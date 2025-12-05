@@ -212,8 +212,8 @@ wxDEFINE_EVENT(EVT_DEL_FILAMENT, SimpleEvent);
 wxDEFINE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
 wxDEFINE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
-#define PRINTER_THUMBNAIL_SIZE (wxSize(FromDIP(48), FromDIP(48)))
-#define PRINTER_PANEL_SIZE (wxSize(FromDIP(96), FromDIP(98)))
+#define PRINTER_THUMBNAIL_SIZE (wxSize(40, 40)) // ORCA
+#define PRINTER_PANEL_SIZE (    wxSize(70, 60)) // ORCA
 #define BTN_SYNC_SIZE (wxSize(FromDIP(96), FromDIP(98)))
 
 static string get_diameter_string(float diameter)
@@ -245,26 +245,12 @@ void Plater::show_illegal_characters_warning(wxWindow* parent)
 }
 
 static std::map<BedType, std::string> bed_type_thumbnails = {
-    {BedType::btPC, "bed_cool"},
-    {BedType::btEP, "bed_engineering"},
-    {BedType::btPEI, "bed_high_templ"},
-    {BedType::btPTE, "bed_pei"},
-    {BedType::btPCT, "bed_pei"}, // TODO: Orca hack
-    {BedType::btSuperTack, "bed_cool_supertack"}
-};
-
-// print_model_id
-static std::map<std::string, std::string> printer_thumbnails = {
-    {"N1", "printer_preview_N1"},
-    {"N2S", "printer_preview_N2S"},
-    {"C11", "printer_preview_C11"},
-    {"C12", "printer_preview_C12"},
-    {"C13", "printer_preview_C13"},
-    {"BL-P001", "printer_preview_BL-P001"},
-    {"BL-P002", "printer_preview_BL-P002"},
-    {"O1D", "printer_preview_O1D"},
-    {"O1E", "printer_preview_O1E"},
-    {"O1S", "printer_preview_O1S"}
+    {BedType::btPC,        "bed_plate_cool_smooth"     }, //"bed_cool"},
+    {BedType::btEP,        "bed_plate_engineering"     }, //"bed_engineering"},
+    {BedType::btPEI,       "bed_plate_high_temp_smooth"}, //"bed_high_templ"},
+    {BedType::btPTE,       "bed_plate_pei"             }, //"bed_pei"},
+    {BedType::btPCT,       "bed_plate_cool_textured"   }, //"bed_pei"}, // TODO: Orca hack
+    {BedType::btSuperTack, "bed_plate_cool_supertack"  }  //"bed_cool_supertack"}
 };
 
 enum SlicedInfoIdx
@@ -362,11 +348,6 @@ enum class ActionButtonType : int {
     abSendGCode
 };
 
-int SidebarProps::TitlebarMargin() { return 8; }  // Use as side margins on titlebar. Has less margin on sides to create separation with its content
-int SidebarProps::ContentMargin()  { return 12; } // Use as side margins contents of title
-int SidebarProps::IconSpacing()    { return 10; } // Use on main elements
-int SidebarProps::ElementSpacing() { return 5; }  // Use if elements has relation between them like edit button for combo box etc.
-
 struct ExtruderGroup : StaticGroup
 {
     ExtruderGroup(wxWindow * parent, int index, wxString const &title);
@@ -425,12 +406,21 @@ struct Sidebar::priv
 
     // Printer
     wxSizer *             vsizer_printer      = nullptr;
+    wxBoxSizer *          extruder_dual_sizer  = nullptr;
+    wxBoxSizer *          extruder_single_sizer = nullptr;
     // Printer - preset
     StaticBox * panel_printer_preset = nullptr;
     wxStaticBitmap *      image_printer       = nullptr;
     PlaterPresetComboBox *combo_printer       = nullptr;
     ScalableButton *      btn_edit_printer    = nullptr;
     ScalableButton *      btn_connect_printer = nullptr;
+
+    // Nozzle diameter
+    StaticBox *     panel_nozzle_dia  = nullptr;
+    Label *         label_nozzle_title= nullptr;
+    ComboBox *      combo_nozzle_dia  = nullptr;
+    Label *         label_nozzle_type = nullptr;
+
     // Printer - bed
     StaticBox *     panel_printer_bed = nullptr;
     wxStaticBitmap *image_printer_bed = nullptr;
@@ -438,7 +428,7 @@ struct Sidebar::priv
 
     ImageDPIFrame *big_bed_image_popup = nullptr;
     // Printer - sync
-    Button *btn_sync_printer;
+    //Button *btn_sync_printer;
     std::shared_ptr<int> counter_sync_printer = std::make_shared<int>();
     wxTimer *            timer_sync_printer = new wxTimer();
     // Printer - ams
@@ -484,6 +474,8 @@ struct Sidebar::priv
     // BBS printer config
     StaticBox* m_panel_printer_title = nullptr;
     ScalableButton* m_printer_icon = nullptr;
+    ScalableButton* m_printer_connect = nullptr;
+    ScalableButton* m_printer_bbl_sync = nullptr;
     ScalableButton* m_printer_setting = nullptr;
     wxStaticText *  m_text_printer_settings = nullptr;
     wxPanel* m_panel_printer_content = nullptr;
@@ -525,22 +517,15 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     // Printer - preset
     if (auto sizer = static_cast<wxBoxSizer *>(panel_printer_preset->GetSizer());
             sizer == nullptr /*|| isBBL != (sizer->GetOrientation() == wxVERTICAL)*/) {
-        wxBoxSizer *hsizer_printer_btn = new wxBoxSizer(wxHORIZONTAL);
-        hsizer_printer_btn->AddStretchSpacer(1);
-        hsizer_printer_btn->Add(btn_edit_printer, 0);
-        hsizer_printer_btn->Add(btn_connect_printer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(4));
-        combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
+
         //if (isBBL) {
-            wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
             wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-            hsizer->AddStretchSpacer(1);
-            hsizer->Add(image_printer, 0, wxEXPAND | wxTOP, FromDIP(8));
-            hsizer->Add(hsizer_printer_btn, 1, wxEXPAND, 0);
-            hsizer->AddSpacer(FromDIP(6));
-            vsizer->AddSpacer(FromDIP(4));
-            vsizer->Add(hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
-            vsizer->Add(combo_printer, 0, wxEXPAND | wxALL, FromDIP(4));
-            panel_printer_preset->SetSizer(vsizer);
+            hsizer->Add(image_printer, 0, wxLEFT  | wxALIGN_LEFT  | wxALIGN_CENTER_VERTICAL, FromDIP(10));
+            hsizer->Add(combo_printer, 1, wxEXPAND | wxALL | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+            hsizer->AddSpacer(FromDIP(2));
+            hsizer->Add(btn_edit_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
+            //hsizer->Add(btn_connect_printer, 0, wxRIGHT | wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, FromDIP(SidebarProps::IconSpacing()));
+            panel_printer_preset->SetSizer(hsizer);
         //} else {
         //    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
         //    hsizer->Add(image_printer, 0, wxLEFT | wxALIGN_CENTER, FromDIP(4));
@@ -554,31 +539,45 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     if (vsizer_printer->GetItemCount() == 0) {
         wxBoxSizer *hsizer_printer = new wxBoxSizer(wxHORIZONTAL);
         hsizer_printer->Add(panel_printer_preset, 1, wxEXPAND, 0);
-        hsizer_printer->Add(panel_printer_bed, 0, wxLEFT | wxEXPAND, FromDIP(4));
-        hsizer_printer->Add(btn_sync_printer, 0, wxLEFT | wxEXPAND, FromDIP(4));
-        vsizer_printer->Add(hsizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(4));
-        vsizer_printer->AddSpacer(FromDIP(4));
+        hsizer_printer->Add(panel_nozzle_dia , 0, wxLEFT, FromDIP(4));
+        hsizer_printer->Add(panel_printer_bed, 0, wxLEFT, FromDIP(4));
+        //hsizer_printer->Add(btn_sync_printer , 0, wxLEFT, FromDIP(4));
+        vsizer_printer->AddSpacer(FromDIP(SidebarProps::ContentMarginV()));
+        vsizer_printer->Add(hsizer_printer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
+        vsizer_printer->AddSpacer(FromDIP(SidebarProps::ContentMarginV()));
         // Printer - extruder
 
         // double
-        auto hsizer_extruder = new wxBoxSizer(wxHORIZONTAL);
-        hsizer_extruder->Add(left_extruder->sizer, 1, wxEXPAND, 0);
-        hsizer_extruder->AddSpacer(FromDIP(4));
-        hsizer_extruder->Add(right_extruder->sizer, 1, wxEXPAND, 0);
+        extruder_dual_sizer = new wxBoxSizer(wxHORIZONTAL);
+        extruder_dual_sizer->Add(left_extruder->sizer, 1, wxEXPAND, 0);
+        extruder_dual_sizer->AddSpacer(FromDIP(4));
+        extruder_dual_sizer->Add(right_extruder->sizer, 1, wxEXPAND, 0);
 
         // single
-        vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
-        vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
+        extruder_single_sizer = single_extruder->sizer;
+        wxBoxSizer * extruder_sizer = new wxBoxSizer(wxVERTICAL);
+        extruder_sizer->Add(extruder_dual_sizer  , 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
+        extruder_sizer->Add(extruder_single_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(SidebarProps::ContentMargin()));
 
-        vsizer_printer->AddSpacer(FromDIP(4));
+        vsizer_printer->Add(extruder_sizer, 1, wxEXPAND | wxBOTTOM, FromDIP(8));
     }
 
-    btn_connect_printer->Show(!isBBL);
-    btn_sync_printer->Show(isBBL);
-    panel_printer_bed->Show(true); // Orca: always show bed type selector
-    vsizer_printer->GetItem(2)->GetSizer()->GetItem(1)->Show(isDual);
-    vsizer_printer->GetItem(2)->Show(isDual); // Orca: always show diameter selection
-    vsizer_printer->GetItem(3)->Show(!isDual);
+    //btn_connect_printer->Show(!isBBL);
+    m_printer_connect->Show(!isBBL);
+    //btn_sync_printer->Show(isBBL);
+    m_printer_bbl_sync->Show(isBBL);
+
+    // ORCA show plate type combo box only when its supported
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    auto cfg = preset_bundle.printers.get_edited_preset().config;
+    panel_printer_bed->Show(isBBL || cfg.opt_bool("support_multi_bed_types"));
+
+    extruder_dual_sizer->Show(isDual);
+
+    // NEEDFIX requires AMS check or any type of ???
+    // Single nozzle & non ams
+    panel_nozzle_dia->Show(!isDual);
+    extruder_single_sizer->Show(false);
 }
 
 void Sidebar::priv::flush_printer_sync(bool restart)
@@ -587,7 +586,8 @@ void Sidebar::priv::flush_printer_sync(bool restart)
         *counter_sync_printer = 6;
         timer_sync_printer->Start(500);
     }
-    btn_sync_printer->SetBackgroundColorNormal((*counter_sync_printer & 1) ? "#F8F8F8" :"#009688");
+    //btn_sync_printer->SetBackgroundColorNormal((*counter_sync_printer & 1) ? "#F8F8F8" :"#009688");
+    m_printer_bbl_sync->SetBitmap_((*counter_sync_printer & 1) ? "printer_sync_not" : "printer_sync_ok");
     if (--*counter_sync_printer <= 0)
         timer_sync_printer->Stop();
 }
@@ -996,13 +996,13 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     // Nozzle
     wxStaticText *label_diameter = new wxStaticText(this, wxID_ANY, _L("Diameter"));
     label_diameter->SetFont(Label::Body_14);
-    label_diameter->SetForegroundColour("#262E30");
+    label_diameter->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
     if (index >= 0) label_diameter->SetMinSize({FromDIP(80), -1});
     auto combo_diameter = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     this->combo_diameter = combo_diameter;
     wxStaticText *label_flow = new wxStaticText(this, wxID_ANY, _L("Flow"));
     label_flow->SetFont(Label::Body_14);
-    label_flow->SetForegroundColour("#262E30");
+    label_flow->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
     if (index >= 0) label_flow->SetMinSize({FromDIP(80), -1});
     auto combo_flow = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     combo_flow->GetDropDown().SetUseContentWidth(true);
@@ -1017,7 +1017,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     // AMS
     wxStaticText *label_ams  = new wxStaticText(this, wxID_ANY, _L("AMS"));
     label_ams->SetFont(Label::Body_14);
-    label_ams->SetForegroundColour("#262E30");
+    label_ams->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
     //label_ams->SetMinSize({FromDIP(70), -1});
     if (index >= 0) {
         btn_edit = new ScalableButton(this, wxID_ANY, "dot");
@@ -1046,7 +1046,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     // AMS not installed message
     ams_not_installed_msg = new wxStaticText(this, wxID_ANY, _L("Not installed"));
     ams_not_installed_msg->SetFont(Label::Body_14);
-    ams_not_installed_msg->SetForegroundColour("#262E30");
+    ams_not_installed_msg->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
 
     // AMS group
     for (size_t i = 0; i < 4; ++i) {
@@ -1205,7 +1205,7 @@ bool Sidebar::priv::switch_diameter(bool single)
         auto diameter_right = right_extruder->combo_diameter->GetValue();
         if (diameter_left != diameter_right) {
             MessageDialog dlg(this->plater,
-                              _L("The software does not support using different diameter of nozzles for one  print. "
+                              _L("The software does not support using different diameter of nozzles for one print. "
                                  "If the left and right nozzles are inconsistent, we can only proceed with single-head printing. "
                                  "Please confirm which nozzle you would like to use for this project."),
                               _L("Switch diameter"), wxYES_NO | wxNO_DEFAULT);
@@ -1365,8 +1365,9 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         right_extruder->sync_ams(nullptr, {}, {});
         single_extruder->ShowBadge(false);
         single_extruder->sync_ams(nullptr, {}, {});
-        btn_sync_printer->SetBorderColor(not_synced_colour);
-        btn_sync_printer->SetIcon("printer_sync");
+        //btn_sync_printer->SetBorderColor(not_synced_colour);
+        //btn_sync_printer->SetIcon("printer_sync");
+        m_printer_bbl_sync->SetBitmap_("printer_sync_not");
     };
 
     if (!obj || !obj->is_info_ready()) {
@@ -1518,12 +1519,14 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     StateColor synced_colour(std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Normal));
     bool all_extruder_synced = std::all_of(extruder_synced.begin(), extruder_synced.end(), [](bool value) { return value; });
     if (printer_synced && all_extruder_synced) {
-        btn_sync_printer->SetBorderColor(synced_colour);
-        btn_sync_printer->SetIcon("ams_nozzle_sync");
+    //    btn_sync_printer->SetBorderColor(synced_colour);
+    //    btn_sync_printer->SetIcon("ams_nozzle_sync");
+        m_printer_bbl_sync->SetBitmap_("printer_sync_ok");
     }
     else {
-        btn_sync_printer->SetBorderColor(not_synced_colour);
-        btn_sync_printer->SetIcon("printer_sync");
+    //    btn_sync_printer->SetBorderColor(not_synced_colour);
+    //    btn_sync_printer->SetIcon("printer_sync");
+        m_printer_bbl_sync->SetBitmap_("printer_sync_not");
     }
  }
 
@@ -1531,7 +1534,8 @@ void Sidebar::update_sync_ams_btn_enable(wxUpdateUIEvent &e)
  {
      if (m_last_slice_state != p->plater->is_background_process_slicing()) {
          m_last_slice_state = p->plater->is_background_process_slicing();
-         btn_sync->Enable(!m_last_slice_state);
+         //btn_sync->Enable(!m_last_slice_state);
+         p->m_printer_bbl_sync->Enable(!m_last_slice_state);
          ams_btn->Enable(!m_last_slice_state);
          Refresh();
      }
@@ -1597,6 +1601,20 @@ Sidebar::Sidebar(Plater *parent)
             //wizard_t->run(ConfigWizard::RR_USER, ConfigWizard::SP_CUSTOM);
             });
 
+        // ORCA use connect button on titlebar
+        p->m_printer_connect = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "monitor_signal_strong");
+        p->m_printer_connect->SetToolTip(_L("Connection"));
+        p->m_printer_connect->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+            PhysicalPrinterDialog dlg(this->GetParent());
+            dlg.ShowModal();
+        });
+
+        // ORCA use sync button on titlebar
+        p->m_printer_bbl_sync = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer_sync_not");
+        p->m_printer_bbl_sync->SetToolTip(_L("Synchronize nozzle information and the number of AMS"));
+        p->m_printer_bbl_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+            deal_btn_sync();
+        });
 
         p->m_printer_setting = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "settings");
         p->m_printer_setting->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
@@ -1611,6 +1629,8 @@ Sidebar::Sidebar(Plater *parent)
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         h_sizer_title->Add(p->m_text_printer_settings, 0, wxALIGN_CENTER);
         h_sizer_title->AddStretchSpacer();
+        h_sizer_title->Add(p->m_printer_connect , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20)); // used larger margin to prevent accidental clicks
+        h_sizer_title->Add(p->m_printer_bbl_sync, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20)); // used larger margin to prevent accidental clicks
         h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
         h_sizer_title->SetMinSize(-1, 3 * em);
@@ -1641,22 +1661,33 @@ Sidebar::Sidebar(Plater *parent)
 
 
         /*************************** 2. add printer content ************************/
+
         p->m_panel_printer_content = new wxPanel(p->scrolled, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
         p->m_panel_printer_content->SetBackgroundColour(wxColour(255, 255, 255));
         StateColor panel_bd_col(std::pair<wxColour, int>(wxColour("#009688"), StateColor::Pressed),
                                 std::pair<wxColour, int>(wxColour("#009688"), StateColor::Hovered),
-                                std::pair<wxColour, int>(wxColour("#EEEEEE"), StateColor::Normal));
+                                std::pair<wxColour, int>(wxColour("#DBDBDB"), StateColor::Normal));
 
         p->panel_printer_preset = new StaticBox(p->m_panel_printer_content);
-        p->panel_printer_preset->SetCornerRadius(8);
+        p->panel_printer_preset->SetCornerRadius(FromDIP(8));
         p->panel_printer_preset->SetBorderColor(panel_bd_col);
-        p->panel_printer_preset->SetMinSize(PRINTER_PANEL_SIZE);
+        p->panel_printer_preset->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
         p->panel_printer_preset->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
             p->combo_printer->wxEvtHandler::ProcessEvent(evt);
         });
+        // ORCA Hide Cover automatically if there is not enough space
+        p->panel_printer_preset->Bind(wxEVT_SIZE, [this](auto & e) {
+            bool is_narrow = e.GetSize().GetWidth() < p->scrolled->FromDIP(235);
+            if(is_narrow && p->image_printer->IsShown())
+                p->image_printer->Hide();
+            else if(!is_narrow && !p->image_printer->IsShown())
+                p->image_printer->Show();
+            e.Skip();
+        });
 
-        ScalableButton *edit_btn = new ScalableButton(p->panel_printer_preset, wxID_ANY, "dot");
+        ScalableButton *edit_btn = new ScalableButton(p->panel_printer_preset, wxID_ANY, "edit");
         edit_btn->SetToolTip(_L("Click to edit preset"));
+        edit_btn->Hide(); // hide for first launch
         edit_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent)
             {
                 p->editing_filament = -1;
@@ -1664,17 +1695,33 @@ Sidebar::Sidebar(Plater *parent)
                     p->editing_filament = 0;
             });
         p->btn_edit_printer = edit_btn;
-        ScalableBitmap bitmap_printer(p->panel_printer_preset, "printer_placeholder", 48);
-        p->image_printer = new wxStaticBitmap(p->panel_printer_preset, wxID_ANY, bitmap_printer.bmp(), wxDefaultPosition, PRINTER_THUMBNAIL_SIZE, 0);
+        ScalableBitmap bitmap_printer(p->panel_printer_preset, "printer_placeholder", PRINTER_THUMBNAIL_SIZE.GetHeight());
+        p->image_printer = new wxStaticBitmap(p->panel_printer_preset, wxID_ANY, bitmap_printer.bmp(), wxDefaultPosition, FromDIP(PRINTER_THUMBNAIL_SIZE), 0);
         p->image_printer->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->combo_printer->wxEvtHandler::ProcessEvent(evt);
         });
 
         PlaterPresetComboBox *combo_printer = new PlaterPresetComboBox(p->panel_printer_preset, Preset::TYPE_PRINTER);
-        combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
+        //combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
         combo_printer->SetBorderWidth(0);
         p->combo_printer = combo_printer;
+        // ORCA paint whole combobox on focus
+        auto printer_focus_bg = [this, panel_bd_col](bool focused){
+            auto bg_color = StateColor::darkModeColorFor(wxColour(focused ? "#E5F0EE" : "#FFFFFF"));
+            auto panel = p->panel_printer_preset;
+            panel->SetBackgroundColor(bg_color);
+            if(focused)
+                panel->SetBorderColor(wxColour("#009688"));
+            else
+                panel->SetBorderColor(panel_bd_col);
+            p->btn_edit_printer->SetBackgroundColour(bg_color);
+            p->image_printer->SetBackgroundColour(bg_color);
+            p->combo_printer->SetBackgroundColour(bg_color); // paints margins instead combo background
+        };
+        combo_printer->Bind(wxEVT_SET_FOCUS,  [this, printer_focus_bg](auto& e) {printer_focus_bg(true ); e.Skip();});
+        combo_printer->Bind(wxEVT_KILL_FOCUS, [this, printer_focus_bg](auto& e) {printer_focus_bg(false); e.Skip();});
 
+        /* ORCA This part moved to titlebar
         p->btn_connect_printer = new ScalableButton(p->panel_printer_preset, wxID_ANY, "monitor_signal_strong");
         p->btn_connect_printer->SetBackgroundColour(wxColour(255, 255, 255));
         p->btn_connect_printer->SetToolTip(_L("Connection"));
@@ -1683,30 +1730,107 @@ Sidebar::Sidebar(Plater *parent)
                 PhysicalPrinterDialog dlg(this->GetParent());
                 dlg.ShowModal();
             });
-
+        */
         {
-        auto hovered = std::make_shared<wxWindow *>();
-        for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_preset, edit_btn, p->image_printer, combo_printer}) {
-            w->Bind(wxEVT_ENTER_WINDOW, [w, hovered, edit_btn](wxMouseEvent &evt) { *hovered = w; edit_btn->SetBitmap_("edit"); });
-            w->Bind(wxEVT_LEAVE_WINDOW, [w, hovered, edit_btn](wxMouseEvent &evt) { if (*hovered == w) { edit_btn->SetBitmap_("dot"); *hovered = nullptr; } });
+        // ORCA use Show/Hide to gain text area instead using blank icon
+        for (wxWindow *w : std::initializer_list<wxWindow *>{p->panel_printer_preset, p->btn_edit_printer, p->image_printer, p->combo_printer}) {
+            w->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+                if(!p->combo_printer->HasFocus())
+                    p->panel_printer_preset->SetBorderColor(wxColour("#009688"));
+                if(!p->btn_edit_printer->IsShown()){
+                    p->btn_edit_printer->Show();
+                    p->panel_printer_preset->Layout();
+                }
+                e.Skip();
+            });
+            w->Bind(wxEVT_LEAVE_WINDOW, [this, panel_bd_col](wxMouseEvent &e) {
+                wxWindow* next_w = wxFindWindowAtPoint(wxGetMousePosition());
+                if (!next_w || (next_w != p->panel_printer_preset && next_w != p->btn_edit_printer && next_w != p->image_printer && next_w != p->combo_printer)){
+                    if(!p->combo_printer->HasFocus())
+                        p->panel_printer_preset->SetBorderColor(panel_bd_col);
+                    p->btn_edit_printer->Hide();
+                    p->panel_printer_preset->Layout();
+                }
+                e.Skip();
+            });
         }
         }
+
+        // ORCA unified Nozzle diameter selection
+        p->panel_nozzle_dia = new StaticBox(p->m_panel_printer_content);
+        p->panel_nozzle_dia->SetCornerRadius(FromDIP(8));
+        p->panel_nozzle_dia->SetBorderColor(panel_bd_col);
+        p->panel_nozzle_dia->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
+        p->panel_nozzle_dia->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
+            p->combo_nozzle_dia->wxEvtHandler::ProcessEvent(evt);
+        });
+
+        p->label_nozzle_title = new Label(p->panel_nozzle_dia, _L("Nozzle"));
+        p->label_nozzle_title->SetFont(Label::Body_10);
+        p->label_nozzle_title->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
+            p->combo_nozzle_dia->wxEvtHandler::ProcessEvent(evt);
+        });
+
+        p->combo_nozzle_dia = new ComboBox(p->panel_nozzle_dia, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+        p->combo_nozzle_dia->SetBorderWidth(0);
+        p->combo_nozzle_dia->GetDropDown().SetUseContentWidth(true);
+        p->combo_nozzle_dia->SetMinSize(FromDIP(wxSize(PRINTER_PANEL_SIZE.GetWidth() - 4, 26))); // requires a static value in here
+        p->combo_nozzle_dia->SetMaxSize(FromDIP(wxSize(PRINTER_PANEL_SIZE.GetWidth() - 4, 26))); // using -1 with wxEXPAND has issues
+        p->combo_nozzle_dia->Bind(wxEVT_COMBOBOX, [this](auto &e) {
+            auto evt_combo = (*p->single_extruder).combo_diameter;
+            evt_combo->SetSelection(e.GetSelection());
+            wxCommandEvent evt(wxEVT_COMBOBOX, evt_combo->GetId());
+            evt.SetEventObject(evt_combo);
+            evt.SetInt(e.GetSelection());
+            wxPostEvent(evt_combo, evt);
+            e.Skip();
+        });
+        // ORCA paint whole combobox on focus
+        auto nozzle_focus_bg = [this, panel_bd_col](bool focused){
+            auto bg_color = StateColor::darkModeColorFor(wxColour(focused ? "#E5F0EE" : "#FFFFFF"));
+            auto panel = p->panel_nozzle_dia;
+            panel->SetBackgroundColor(bg_color);
+            if(focused)
+                panel->SetBorderColor(wxColour("#009688"));
+            else
+                panel->SetBorderColor(panel_bd_col);
+            p->label_nozzle_title->SetBackgroundColour(bg_color);
+            p->label_nozzle_type->SetBackgroundColour(bg_color);
+            p->combo_nozzle_dia->SetBackgroundColour(bg_color); // paints margins instead combo background
+        };
+        p->combo_nozzle_dia->Bind(wxEVT_SET_FOCUS,  [this, nozzle_focus_bg](auto& e) {nozzle_focus_bg(true ); e.Skip();});
+        p->combo_nozzle_dia->Bind(wxEVT_KILL_FOCUS, [this, nozzle_focus_bg](auto& e) {nozzle_focus_bg(false); e.Skip();});
+
+        p->label_nozzle_type = new Label(p->panel_nozzle_dia, "Brass", wxST_ELLIPSIZE_END | wxALIGN_CENTRE_HORIZONTAL);
+        p->label_nozzle_type->SetFont(Label::Body_10);
+        p->label_nozzle_type->SetMinSize(FromDIP(wxSize(56, -1)));
+        p->label_nozzle_type->SetMaxSize(FromDIP(wxSize(56, -1)));
+        p->label_nozzle_type->Bind(wxEVT_LEFT_DOWN, [this](auto & evt) {
+            p->combo_nozzle_dia->wxEvtHandler::ProcessEvent(evt);
+        });
+
+        wxGridSizer *nozzle_dia_sizer = new wxGridSizer(3, 1, FromDIP(2), 0);
+        nozzle_dia_sizer->Add(p->label_nozzle_title, 0, wxALIGN_CENTER | wxTOP, FromDIP(4));
+        nozzle_dia_sizer->Add(p->combo_nozzle_dia  , 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(2));
+        nozzle_dia_sizer->Add(p->label_nozzle_type , 0, wxALIGN_CENTER);
+
+        p->panel_nozzle_dia->SetSizer(nozzle_dia_sizer);
 
         // Bed type selection
         p->panel_printer_bed = new StaticBox(p->m_panel_printer_content);
-        p->panel_printer_bed->SetCornerRadius(8);
+        p->panel_printer_bed->SetCornerRadius(FromDIP(8));
         p->panel_printer_bed->SetBorderColor(panel_bd_col);
-        p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE);
+        p->panel_printer_bed->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
         p->panel_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
         });
 
-        ScalableButton *wiki_bed = new ScalableButton(p->panel_printer_bed, wxID_ANY, "help");
-        wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
-            wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
-        });
+        //ScalableButton *wiki_bed = new ScalableButton(p->panel_printer_bed, wxID_ANY, "help");
+        //wiki_bed->Bind(wxEVT_BUTTON, [](wxCommandEvent) {
+        //    wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/x1/manual/compatibility-and-parameter-settings-of-filaments");
+        //});
 
-        ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 32);
+        ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", PRINTER_THUMBNAIL_SIZE.GetHeight());
         p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, bitmap_bed.bmp(), wxDefaultPosition, wxDefaultSize, 0);
         p->image_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->image_printer_bed->Unbind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
@@ -1716,17 +1840,20 @@ Sidebar::Sidebar(Plater *parent)
             p->combo_printer_bed->wxEvtHandler::ProcessEvent(evt);
         });
 
-        p->combo_printer_bed = new ComboBox(p->panel_printer_bed, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY | wxALIGN_CENTER_HORIZONTAL);
+        p->combo_printer_bed = new ComboBox(p->panel_printer_bed, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
         p->combo_printer_bed->SetBorderWidth(0);
         p->combo_printer_bed->GetDropDown().SetUseContentWidth(true);
+        p->combo_printer_bed->SetMinSize(FromDIP(wxSize(18,-1))); // ORCA show only arrow
+        p->combo_printer_bed->SetMaxSize(FromDIP(wxSize(18,-1))); // ORCA show only arrow
         reset_bed_type_combox_choices(true);
 
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
             bool isDual          = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
             auto image_path        = get_cur_select_bed_image();
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
             if (p->big_bed_image_popup) {
                 p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
+                p->big_bed_image_popup->set_title(p->combo_printer_bed->GetString(p->combo_printer_bed->GetSelection()));
             }
             e.Skip(); // fix bug:Event spreads to sidebar
         });
@@ -1737,17 +1864,26 @@ Sidebar::Sidebar(Plater *parent)
         });
         p->image_printer_bed->Bind(wxEVT_ENTER_WINDOW, &Sidebar::on_enter_image_printer_bed, this);
 
-        wxBoxSizer *bed_type_vsizer = new wxBoxSizer(wxVERTICAL);
-        bed_type_vsizer->AddStretchSpacer(1);
-        wxBoxSizer *bed_type_hsizer = new wxBoxSizer(wxHORIZONTAL);
-            bed_type_hsizer->AddStretchSpacer(1);
-            bed_type_hsizer->Add(p->image_printer_bed, 1, wxEXPAND | wxTOP, FromDIP(8));
-            bed_type_hsizer->Add(wiki_bed, 1, wxTOP, FromDIP(2));
-        bed_type_vsizer->Add(bed_type_hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(8));
-        bed_type_vsizer->Add(p->combo_printer_bed, 0, wxEXPAND | wxALL, FromDIP(2));
-        bed_type_vsizer->AddStretchSpacer(1);
+        // ORCA paint whole combobox on focus
+        auto bed_focus_bg = [this, panel_bd_col](bool focused){
+            auto bg_color = StateColor::darkModeColorFor(wxColour(focused ? "#E5F0EE" : "#FFFFFF"));
+            auto panel = p->panel_printer_bed;
+            panel->SetBackgroundColor(bg_color);
+            if(focused)
+                panel->SetBorderColor(wxColour("#009688"));
+            else
+                panel->SetBorderColor(panel_bd_col);
+            p->image_printer_bed->SetBackgroundColour(bg_color);
+            p->combo_printer_bed->SetBackgroundColour(bg_color); // paints margins instead combo background
+        };
+        p->combo_printer_bed->Bind(wxEVT_SET_FOCUS,  [this, bed_focus_bg](auto& e) {bed_focus_bg(true ); e.Skip();});
+        p->combo_printer_bed->Bind(wxEVT_KILL_FOCUS, [this, bed_focus_bg](auto& e) {bed_focus_bg(false); e.Skip();});
 
-        p->panel_printer_bed->SetSizer(bed_type_vsizer);
+        wxBoxSizer *bed_type_sizer = new wxBoxSizer(wxHORIZONTAL);
+        bed_type_sizer->Add(p->combo_printer_bed, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+        bed_type_sizer->Add(p->image_printer_bed, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+
+        p->panel_printer_bed->SetSizer(bed_type_sizer);
 
         AppConfig *app_config = wxGetApp().app_config;
         std::string str_bed_type = app_config->get("curr_bed_type");
@@ -1771,6 +1907,7 @@ Sidebar::Sidebar(Plater *parent)
         BedType bed_type = (BedType)bed_type_value;
         project_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(bed_type));
 
+        /* ORCA THIS PART MOVED TO TITLEBAR
         // Sync printer information
         btn_sync = new Button(p->m_panel_printer_content, _L("Sync info"), "printer_sync", 0, 32);
         //btn_sync->SetFont(Label::Body_8);
@@ -1795,10 +1932,12 @@ Sidebar::Sidebar(Plater *parent)
         btn_sync->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
             deal_btn_sync();
         });
+        p->btn_sync_printer = btn_sync;
+        */
         p->timer_sync_printer->Bind(wxEVT_TIMER, [this] (wxTimerEvent & e) {
             p->flush_printer_sync();
         });
-        p->btn_sync_printer = btn_sync;
+       
 
         p->left_extruder  = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left Nozzle"));
         p->right_extruder = new ExtruderGroup(p->m_panel_printer_content, 1, _L("Right Nozzle"));
@@ -1870,35 +2009,13 @@ Sidebar::Sidebar(Plater *parent)
     p->m_flushing_volume_btn = new Button(p->m_panel_filament_title, _L("Flushing volumes"));
     p->m_flushing_volume_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
     p->m_flushing_volume_btn->SetId(wxID_RESET);
-    p->m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent &e)
-        {
-            auto& project_config = wxGetApp().preset_bundle->project_config;
-            const std::vector<double>& init_matrix = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
-            const std::vector<double>& init_extruders = (project_config.option<ConfigOptionFloats>("flush_volumes_vector"))->values;
+    auto has_modify = is_flush_config_modified();
+    set_flushing_volume_warning(has_modify);
 
-            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
-            const auto& full_config = wxGetApp().preset_bundle->full_config();
-
-            size_t nozzle_nums = full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
-
-            std::vector<std::vector<int>> extra_flush_volumes;
-            extra_flush_volumes.resize(nozzle_nums, std::vector<int>());
-            for (size_t nozzle_id = 0; nozzle_id < nozzle_nums; ++nozzle_id) {
-                extra_flush_volumes[nozzle_id] = get_min_flush_volumes(full_config, nozzle_id);
-            }
-
-            WipingDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),extra_flush_volumes);
-            dlg.ShowModal();
-            if (dlg.GetSubmitFlag()) {
-                auto matrix = dlg.GetFlattenMatrix();
-                auto flush_multipliers = dlg.GetMultipliers();
-                (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
-                (project_config.option<ConfigOptionFloats>("flush_multiplier"))->values = std::vector<double>(flush_multipliers.begin(), flush_multipliers.end());
-                wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-
-                wxGetApp().plater()->update_project_dirty_from_presets();
-                wxPostEvent(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
-            }
+    p->m_flushing_volume_btn->Bind(wxEVT_BUTTON, ([parent, this](wxCommandEvent &e) {
+            open_flushing_dialog(parent, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, parent));
+            p->plater->get_view3D_canvas3D()->reload_scene(true);
+            p->plater->update();
         }));
 
     bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
@@ -1977,16 +2094,14 @@ Sidebar::Sidebar(Plater *parent)
 
     //bSizer_filament_content->Add(p->sizer_filaments, 1, wxALIGN_CENTER | wxALL);
     wxSizer *sizer_filaments2 = new wxBoxSizer(wxVERTICAL);
-    sizer_filaments2->AddSpacer(FromDIP(16));
     sizer_filaments2->Add(p->sizer_filaments, 0, wxEXPAND, 0);
-    sizer_filaments2->AddSpacer(FromDIP(16));
     p->m_panel_filament_content->SetSizer(sizer_filaments2);
     p->m_panel_filament_content->Layout();
     auto min_size = sizer_filaments2->GetMinSize();
     if (min_size.y > p->m_panel_filament_content->GetMaxHeight())
         min_size.y = p->m_panel_filament_content->GetMaxHeight();
     p->m_panel_filament_content->SetMinSize(min_size);
-    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxEXPAND, 0);
+    scrolled_sizer->Add(p->m_panel_filament_content, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(SidebarProps::ContentMarginV())); // ORCA use vertical margin on parent otherwise it shows scrollbar even on 1 filament
     }
 
     {
@@ -2094,6 +2209,7 @@ void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
         auto image_path        = get_cur_select_bed_image();
         p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
     }
+    p->big_bed_image_popup->set_title(p->combo_printer_bed->GetString(p->combo_printer_bed->GetSelection()));
     p->big_bed_image_popup->SetCanFocus(false);
     p->big_bed_image_popup->SetPosition(temp_pos);
     p->big_bed_image_popup->on_show();
@@ -2231,13 +2347,15 @@ void Sidebar::update_all_preset_comboboxes()
 
     if (preset_bundle.use_bbl_network()) {
         //only show connection button for not-BBL printer
-        p->btn_connect_printer->Hide();
+        //p->btn_connect_printer->Hide();
+        p->m_printer_connect->Hide();
         //only show sync-ams button for BBL printer
         p->m_bpButton_ams_filament->Show();
         //update print button default value for bbl or third-party printer
         p_mainframe->set_print_button_to_default(MainFrame::PrintSelectType::ePrintPlate);
     } else {
-        p->btn_connect_printer->Show();
+        //p->btn_connect_printer->Show();
+        p->m_printer_connect->Show();
         p->m_bpButton_ams_filament->Hide();
         auto print_btn_type = MainFrame::PrintSelectType::eExportGcode;
         wxString url = cfg.opt_string("print_host_webui").empty() ? cfg.opt_string("print_host") : cfg.opt_string("print_host_webui");
@@ -2302,6 +2420,9 @@ void Sidebar::update_all_preset_comboboxes()
         set_bed_type_accord_combox(bed_type);
         p->combo_printer_bed->Disable();
     }
+
+    // ORCA Hide plate selector if not supported by printer
+    p->panel_printer_bed->Show(is_bbl_vendor || cfg.opt_bool("support_multi_bed_types"));
 
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
     //BBS
@@ -2427,12 +2548,38 @@ void Sidebar::update_presets(Preset::Type preset_type)
                 update_extruder_diameter(*p->left_extruder);
                 update_extruder_diameter(*p->right_extruder);
             //}
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
         } else {
             AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
             //if (!p->is_switching_diameter)
                 update_extruder_diameter(*p->single_extruder);
-            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+
+            // ORCA sync unified nozzle combo box
+            p->combo_nozzle_dia->Clear();
+            for (size_t i = 0; i < diameters.size(); ++i)
+                p->combo_nozzle_dia->Append(diameters[i], {});
+            p->combo_nozzle_dia->SetSelection((*p->single_extruder).combo_diameter->GetSelection());
+            
+            // ORCA update nozzle type
+            const auto& full_config = wxGetApp().preset_bundle->full_config();
+            wxString nozzle_type = "-";
+            const ConfigOptionEnumsGenericNullable* cfg_nozzle_type = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
+            if(cfg_nozzle_type != nullptr){
+                std::vector<NozzleType> nozzle_types(cfg_nozzle_type->size());
+                for (size_t idx = 0; idx < cfg_nozzle_type->size(); ++idx)
+                    nozzle_types[idx] = NozzleType(cfg_nozzle_type->values[idx]);
+                nozzle_type = _L( // NEEDFIX this part can be replaced with shorter names
+                    nozzle_types[0] == ntHardenedSteel   ? "Hardened Steel" :
+                    nozzle_types[0] == ntStainlessSteel  ? "Stainless Steel" :
+                    nozzle_types[0] == ntTungstenCarbide ? "Tungsten Carbide" :
+                    nozzle_types[0] == ntBrass           ? "Brass"
+                                                         : "-" // Undefined
+                );
+            }
+            p->label_nozzle_type->SetLabel(nozzle_type);
+            p->label_nozzle_type->SetToolTip(nozzle_type == "-" ? "" : nozzle_type);
+
+            p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
         }
 
         if (GUI::wxGetApp().plater())
@@ -2496,8 +2643,8 @@ BedType Sidebar::get_cur_select_bed_type() {
 std::string Sidebar::get_cur_select_bed_image()
 {
     auto select_bed_type   = get_cur_select_bed_type();
-    auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
-    auto image_path        = bed_type_thumbnails[select_bed_type] + series_suffix_str;
+    //auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
+    auto image_path        = bed_type_thumbnails[select_bed_type];// + series_suffix_str;
     return image_path;
 }
 
@@ -2518,6 +2665,11 @@ bool Sidebar::reset_bed_type_combox_choices(bool is_sidebar_init)
     }
 
     auto pm = p->plater->get_curr_printer_model();
+    if (pm) {
+        if (m_cur_image_bed_type != pm->image_bed_type) {
+            m_cur_image_bed_type = pm->image_bed_type;
+        }
+    }
     if (m_last_combo_bedtype_count != 0 && pm) {
         auto cur_count = (int) BedType::btCount - 1 - pm->not_support_bed_types.size();
         if (cur_count == m_last_combo_bedtype_count) {//no change
@@ -2529,9 +2681,6 @@ bool Sidebar::reset_bed_type_combox_choices(bool is_sidebar_init)
     m_cur_combox_bed_types.clear();
     if (pm &&bed_type_def && bed_type_def->enum_keys_map) {
         int index = 0;
-        if (m_cur_image_bed_type != pm->image_bed_type) {
-            m_cur_image_bed_type = pm->image_bed_type;
-        }
         for (auto item : bed_type_def->enum_labels) {
             index++;
             bool find = std::find(pm->not_support_bed_types.begin(), pm->not_support_bed_types.end(), item) != pm->not_support_bed_types.end();
@@ -2576,12 +2725,36 @@ void Sidebar::msw_rescale()
     p->m_panel_filament_title->GetSizer()
         ->SetMinSize(-1, 3 * wxGetApp().em_unit());
     p->m_printer_icon->msw_rescale();
+    p->m_printer_connect->msw_rescale();
+    p->m_printer_bbl_sync->msw_rescale();
+    p->m_printer_icon->msw_rescale();
     p->m_printer_setting->msw_rescale();
+
+    p->panel_printer_preset->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
+    p->panel_printer_preset->SetCornerRadius(FromDIP(8));
+    p->image_printer->SetSize(FromDIP(PRINTER_THUMBNAIL_SIZE));
+    update_printer_thumbnail();
+    p->combo_printer->Rescale();
     p->btn_edit_printer->msw_rescale();
-    p->image_printer->SetSize(PRINTER_THUMBNAIL_SIZE);
+
+    p->panel_nozzle_dia->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
+    p->panel_nozzle_dia->SetCornerRadius(FromDIP(8));
+    p->combo_nozzle_dia->Rescale();
+
+    p->panel_printer_bed->SetMinSize(FromDIP(PRINTER_PANEL_SIZE));
+    p->panel_printer_bed->SetCornerRadius(FromDIP(8));
+    p->combo_printer_bed->Rescale();
+    p->combo_printer_bed->SetMinSize(FromDIP(wxSize(18,-1))); // ORCA show only arrow
+    p->combo_printer_bed->SetMaxSize(FromDIP(wxSize(18,-1))); // ORCA show only arrow
     bool isDual     = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
     auto image_path = get_cur_select_bed_image();
-    p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+    p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
+    if (p->big_bed_image_popup){ // ORCA force rebuild frame. current wxwidget version not supports wxBITMAP_SCALE_FILL flag on wxStaticBitmap
+                                 // also     wxImage scaledImage = bit_map.ConvertToImage(); scaledImage.Rescale(FromDIP(m_image_px), FromDIP(m_image_px), wxIMAGE_QUALITY_HIGH);
+                                 // didnt worked as expected and it requires use on set_bitmap. so that will try to scale everytime
+        p->big_bed_image_popup->Destroy();
+        p->big_bed_image_popup = nullptr;
+    }
 
     p->m_filament_icon->msw_rescale();
     p->m_bpButton_add_filament->msw_rescale();
@@ -2589,17 +2762,16 @@ void Sidebar::msw_rescale()
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
+    set_flushing_volume_warning(is_flush_config_modified()); // ORCA reapply appearance
+
     //BBS
-    p->combo_printer_bed->Rescale();
-    p->combo_printer_bed->SetMinSize({-1, 3 * wxGetApp().em_unit()});
     p->left_extruder->Rescale();
     p->right_extruder->Rescale();
     p->single_extruder->Rescale();
 
-    p->btn_sync_printer->SetPaddingSize({FromDIP(6), FromDIP(12)});
-    p->btn_sync_printer->SetMinSize(BTN_SYNC_SIZE);
-    p->panel_printer_bed->SetMinSize(PRINTER_PANEL_SIZE);
-    p->btn_sync_printer->Rescale();
+    //p->btn_sync_printer->SetPaddingSize({FromDIP(6), FromDIP(12)});
+    //p->btn_sync_printer->SetMinSize(BTN_SYNC_SIZE);
+    //p->btn_sync_printer->Rescale();
 #if 0
     if (p->mode_sizer)
         p->mode_sizer->msw_rescale();
@@ -2611,7 +2783,7 @@ void Sidebar::msw_rescale()
     //                                                            //p->combo_printer
     //                                                            } )
     //    combo->msw_rescale();
-    p->combo_printer->msw_rescale();
+
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->msw_rescale();
 
@@ -2658,7 +2830,9 @@ void Sidebar::sys_color_changed()
     for (wxWindow* win : std::vector<wxWindow*>{ p->scrolled, p->presets_panel })
         wxGetApp().UpdateAllStaticTextDarkUI(win);
 #endif
-    p->btn_sync_printer->SetIcon("printer_sync");
+    //p->btn_sync_printer->SetIcon("printer_sync");
+    p->m_printer_bbl_sync->msw_rescale();
+    p->m_printer_connect->msw_rescale();
     // for (wxWindow* btn : std::vector<wxWindow*>{ p->btn_reslice, p->btn_export_gcode })
     //    wxGetApp().UpdateDarkUI(btn, true);
     p->m_printer_icon->msw_rescale();
@@ -2670,6 +2844,7 @@ void Sidebar::sys_color_changed()
     p->m_bpButton_ams_filament->msw_rescale();
     p->m_bpButton_set_filament->msw_rescale();
     p->m_flushing_volume_btn->Rescale();
+    set_flushing_volume_warning(is_flush_config_modified()); // ORCA reapply appearance
 
     // BBS
 #if 0
@@ -2690,6 +2865,13 @@ void Sidebar::sys_color_changed()
     p->combo_printer->sys_color_changed();
     for (PlaterPresetComboBox* combo : p->combos_filament)
         combo->sys_color_changed();
+
+    if (p->big_bed_image_popup) // ORCA
+        p->big_bed_image_popup->sys_color_changed();
+
+    p->btn_edit_printer->msw_rescale();
+    p->image_printer->SetSize(FromDIP(PRINTER_THUMBNAIL_SIZE));
+    p->image_printer_bed->SetSize(FromDIP(PRINTER_THUMBNAIL_SIZE));
 
     // BBS
     obj_list()->sys_color_changed();
@@ -2943,13 +3125,13 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
 
     auto build_tray_config = [](DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id) {
         BOOST_LOG_TRIVIAL(info) << boost::format("build_filament_ams_list: name %1% setting_id %2% type %3% color %4%")
-                    % name % tray.setting_id % tray.type % tray.color;
+                    % name % tray.setting_id % tray.m_fila_type % tray.color;
         DynamicPrintConfig tray_config;
         tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.setting_id});
         tray_config.set_key_value("tag_uid", new ConfigOptionStrings{tray.tag_uid});
         tray_config.set_key_value("ams_id", new ConfigOptionStrings{ams_id});
         tray_config.set_key_value("slot_id", new ConfigOptionStrings{slot_id});
-        tray_config.set_key_value("filament_type", new ConfigOptionStrings{tray.type});
+        tray_config.set_key_value("filament_type", new ConfigOptionStrings{tray.m_fila_type});
         tray_config.set_key_value("tray_name", new ConfigOptionStrings{ name });
         tray_config.set_key_value("filament_colour", new ConfigOptionStrings{into_u8(wxColour("#" + tray.color).GetAsString(wxC2S_HTML_SYNTAX))});
         tray_config.set_key_value("filament_multi_colour", new ConfigOptionStrings{});
@@ -3049,8 +3231,8 @@ void Sidebar::on_full_screen(IntEvent &e) {
 
 void Sidebar::get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size)
 {
-    size =btn_sync->GetSize();
-    pt = btn_sync->GetScreenPosition();
+    size = p->m_printer_bbl_sync->GetSize();
+    pt = p->m_printer_bbl_sync->GetScreenPosition();
 }
 
 void Sidebar::get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size) {
@@ -3058,10 +3240,12 @@ void Sidebar::get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size) {
     pt   = ams_btn->GetScreenPosition();
 }
 
-void Sidebar::load_ams_list(std::string const &device, MachineObject* obj)
+void Sidebar::load_ams_list(MachineObject* obj)
 {
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
+
     bool device_change     = false;
+    const std::string& device = obj ? obj->get_dev_id() : "";
     if (p->ams_list_device != device) {
         p->ams_list_device = device;
         device_change      = true;
@@ -3089,7 +3273,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     // Force load ams list
     auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
     if (obj)
-        GUI::wxGetApp().sidebar().load_ams_list(obj->get_dev_id(), obj);
+        GUI::wxGetApp().sidebar().load_ams_list(obj);
 
     auto & list = wxGetApp().preset_bundle->filament_ams_list;
     if (list.empty()) {
@@ -3375,6 +3559,16 @@ wxButton* Sidebar::get_wiping_dialog_button()
     return NULL;
 }
 
+void Sidebar::set_flushing_volume_warning(const bool flushing_volume_modify)
+{
+    if(flushing_volume_modify){
+        p->m_flushing_volume_btn->SetStyle(ButtonStyle::Regular, ButtonType::Compact);
+        p->m_flushing_volume_btn->SetBorderColor(wxColour("#FF6F00"));
+    }
+    else
+        p->m_flushing_volume_btn->SetStyle(ButtonStyle::Confirm, ButtonType::Compact);
+}
+
 void Sidebar::enable_buttons(bool enable)
 {
 #if 0
@@ -3597,14 +3791,24 @@ std::string& Sidebar::get_search_line()
     return p->searcher.search_string();
 }
 
+static std::map<std::string, std::string> printer_thumbnails = {};
+
 void Sidebar::update_printer_thumbnail()
 {
     auto& preset_bundle = wxGetApp().preset_bundle;
     Preset & selected_preset = preset_bundle->printers.get_edited_preset();
     std::string printer_type    = selected_preset.get_current_printer_type(preset_bundle);
-    if (printer_thumbnails.find(printer_type) != printer_thumbnails.end())
-        p->image_printer->SetBitmap(create_scaled_bitmap(printer_thumbnails[printer_type], this, 48));
+    if (printer_thumbnails.find(printer_type) != printer_thumbnails.end()) // Use known cache first
+        p->image_printer->SetBitmap(create_scaled_bitmap(printer_thumbnails[printer_type], this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
     else {
+        try {
+            // No cache, try dedicated printer preview
+            p->image_printer->SetBitmap(create_scaled_bitmap("printer_preview_" + printer_type, this, 48));
+            // Success, cache it
+            printer_thumbnails[printer_type] = "printer_preview_" + printer_type;
+            return;
+        } catch (...) {}
+
         // Orca: try to use the printer model cover as the thumbnail
         const auto model_name = selected_preset.config.opt_string("printer_model");
         std::string cover_file = model_name + "_cover.png";
@@ -3617,7 +3821,7 @@ void Sidebar::update_printer_thumbnail()
                                                              .make_preferred();
                     if (boost::filesystem::exists(cover_path)) {
                         try {
-                            p->image_printer->SetBitmap(create_scaled_bitmap(cover_path.string(), this, 48));
+                            p->image_printer->SetBitmap(create_scaled_bitmap(cover_path.string(), this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
                             printer_thumbnails[printer_type] = cover_path.string(); // Cache the path so we don't look up again
                             return;
                         } catch (...) {}
@@ -3625,7 +3829,7 @@ void Sidebar::update_printer_thumbnail()
                 }
             }
         }
-        p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
+        p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
         printer_thumbnails[printer_type] = "printer_placeholder"; // Avoid unnecessary try
     }
 }
@@ -3665,6 +3869,9 @@ void Sidebar::auto_calc_flushing_volumes(const int filament_idx, const int extru
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     wxGetApp().plater()->update_project_dirty_from_presets();
     wxPostEvent(this, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, this));
+    auto has_modify = is_flush_config_modified();
+    set_flushing_volume_warning(has_modify);
+    p->plater->update();
 }
 
 
@@ -4377,9 +4584,6 @@ private:
     // vector of all warnings generated by last slicing
     std::vector<std::pair<Slic3r::PrintStateBase::Warning, size_t>> current_warnings;
     bool show_warning_dialog { false };
-
-    //record print preset
-    void record_start_print_preset(std::string action);
 };
 
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf)", std::regex::icase);
@@ -4888,14 +5092,19 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
                     return;
                 }
             }
+
             try {
                 if (originfile != "<lock>") // see bbs_3mf.cpp for lock detail
                     boost::filesystem::remove_all(last);
             }
+
             catch (...) {}
-            int skip_confirm = e.GetInt();
-            this->q->new_project(skip_confirm, true);
-            });
+            
+            if (this->q->get_project_filename().IsEmpty() && this->q->is_empty_project()) {
+                int skip_confirm = e.GetInt();
+                this->q->new_project(skip_confirm, true);
+            }
+        });
         //wxPostEvent(this->q, wxCommandEvent{EVT_RESTORE_PROJECT});
     }
 
@@ -5021,6 +5230,9 @@ std::map<std::string, std::string> Plater::get_bed_texture_maps()
     auto pm = get_curr_printer_model();
     if (pm) {
         std::map<std::string, std::string> maps;
+        if (pm->use_double_extruder_default_texture.size() > 0) {
+            maps["use_double_extruder_default_texture"] = pm->use_double_extruder_default_texture;
+        }
         if (pm->bottom_texture_end_name.size() > 0) {
             maps["bottom_texture_end_name"] = pm->bottom_texture_end_name;
         }
@@ -5108,9 +5320,6 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
         set_current_panel(view3D, no_slice);
     }
     else if (name == "Preview") {
-        if (!q->check_ams_status(false))
-            return;
-
         BOOST_LOG_TRIVIAL(info) << "select preview";
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
@@ -7233,6 +7442,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
             this->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
             notification_manager->set_all_slicing_errors_gray(true);
             notification_manager->close_notification_of_type(NotificationType::ValidateError);
+            notification_manager->bbl_close_3mf_warn_notification();
+
             if (invalidated != Print::APPLY_STATUS_UNCHANGED && background_processing_enabled())
                 return_state |= UPDATE_BACKGROUND_PROCESS_RESTART;
 
@@ -9240,9 +9451,6 @@ void Plater::priv::on_action_open_project(SimpleEvent&)
 void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
-        if (!q->check_ams_status(false))
-            return;
-
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
@@ -9325,7 +9533,6 @@ void Plater::priv::on_action_print_plate(SimpleEvent&)
         m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
         m_select_machine_dlg->prepare(partplate_list.get_curr_plate_index());
         m_select_machine_dlg->ShowModal();
-        record_start_print_preset("print_plate");
     } else {
         q->send_gcode_legacy(PLATE_CURRENT_IDX, nullptr, true);
     }
@@ -9427,7 +9634,6 @@ void Plater::priv::on_action_print_all(SimpleEvent&)
         m_select_machine_dlg->set_print_type(PrintFromType::FROM_NORMAL);
         m_select_machine_dlg->prepare(PLATE_ALL_IDX);
         m_select_machine_dlg->ShowModal();
-        record_start_print_preset("print_all");
     } else {
         q->send_gcode_legacy(PLATE_ALL_IDX, nullptr, true);
     }
@@ -9791,6 +9997,7 @@ PlateBBoxData Plater::priv::generate_first_layer_bbox()
     bboxdata.is_seq_print = (curr_plate_seq == PrintSequence::ByObject);
     bboxdata.first_extruder = print->get_tool_ordering().first_extruder();
     bboxdata.bed_type       = bed_type_to_gcode_string(print->config().curr_bed_type.value);
+    bboxdata.first_layer_time = partplate_list.get_curr_plate()->get_slice_result()->initial_layer_time;
     // get nozzle diameter
     auto opt_nozzle_diameters = print->config().option<ConfigOptionFloats>("nozzle_diameter");
     if (opt_nozzle_diameters != nullptr)
@@ -10470,11 +10677,10 @@ void Plater::priv::set_bed_shape(const Pointfs       &shape,
 
         //BBS: update part plate's size
         // BBS: to be checked
-        Vec3d max = bed.extended_bounding_box().max;
-        Vec3d min = bed.extended_bounding_box().min;
+        Vec3d max = bed.printable_bounding_box().max;
+        Vec3d min = bed.printable_bounding_box().min;
         double z = config->opt_float("printable_height");
 
-        //Pointfs& exclude_areas = config->option<ConfigOptionPoints>("bed_exclude_area")->values;
         partplate_list.reset_size(max.x() - min.x() - Bed3D::Axes::DefaultTipRadius, max.y() - min.y() - Bed3D::Axes::DefaultTipRadius, z);
         partplate_list.set_shapes(shape, exclude_areas, wrapping_exclude_areas, extruder_areas, extruder_heights, custom_texture, height_to_lid, height_to_rod);
 
@@ -11040,51 +11246,6 @@ bool Plater::priv::PopupObjectTable(int object_id, int volume_id, const wxPoint&
     return true;
 }
 
-
-void Plater::priv::record_start_print_preset(std::string action) {
-    // record start print preset
-    try {
-        json j;
-        j["user_mode"] = wxGetApp().get_mode_str();
-        int  plate_count = partplate_list.get_plate_count();
-        j["plate_count"] = plate_count;
-        unsigned int obj_count = model.objects.size();
-        j["obj_count"] = obj_count;
-        auto printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset_with_vendor_profile().preset;
-        if (printer_preset.is_system) {
-            j["printer_preset_name"] = printer_preset.name;
-        }
-        else {
-            j["printer_preset_name"] = printer_preset.config.opt_string("inherits");
-        }
-        auto filament_presets = wxGetApp().preset_bundle->filament_presets;
-        for (int i = 0; i < filament_presets.size(); ++i) {
-            auto filament_preset = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[i]);
-            if (filament_preset->is_system) {
-                j["filament_preset_" + std::to_string(i)] = filament_preset->name;
-            }
-            else {
-                j["filament_preset_" + std::to_string(i)] = filament_preset->config.opt_string("inherits");
-            }
-        }
-
-        Preset& print_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
-        if (print_preset.is_system) {
-            j["process_preset"] = print_preset.name;
-        }
-        else {
-            j["process_preset"] = print_preset.config.opt_string("inherits");
-        }
-
-        j["record_event"] = action;
-        NetworkAgent* agent = wxGetApp().getAgent();
-    }
-    catch (...) {
-        return;
-    }
-
-}
-
 void Sidebar::set_btn_label(const ActionButtonType btn_type, const wxString& label) const
 {
     switch (btn_type)
@@ -11140,6 +11301,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
     bool transfer_preset_changes = false;
     // BBS: save confirm
     auto check = [this,&transfer_preset_changes](bool yes_or_no) {
+        m_new_project_and_check_state = true;
         wxString header = _L("Some presets are modified.") + "\n" +
             (yes_or_no ? _L("You can keep the modified presets to the new project or discard them") :
                 _L("You can keep the modified presets to the new project, discard or save changes as new presets."));
@@ -11149,7 +11311,9 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString& project_
         if (m_exported_file) { //.gcode.3mf ignore presets modify
             m_exported_file = false;
         }
-        return wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons, &transfer_preset_changes);
+        bool result = wxGetApp().check_and_keep_current_preset_changes(_L("Creating a new project"), header, act_buttons, &transfer_preset_changes);
+        m_new_project_and_check_state = false;
+        return result;
     };
     int result;
     if (!skip_confirm && (result = close_with_confirm(check)) == wxID_CANCEL)
@@ -11330,6 +11494,9 @@ void Plater::load_project(wxString const& filename2,
     up_to_date(true, true);
 
     wxGetApp().params_panel()->switch_to_object_if_has_object_configs();
+
+    auto       has_modify = is_flush_config_modified();
+    sidebar().set_flushing_volume_warning(has_modify);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " load project done";
     m_loading_project = false;
@@ -11773,7 +11940,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     if (accels.empty()) {
         accels.assign({accel});
         const auto msg{_L("INFO:") + "\n" +
-                       _L("No accelerations provided for calibration. Use default acceleration value ") + std::to_string(long(accel)) + wxString::FromUTF8("mm/s²")};
+                       _L("No accelerations provided for calibration. Use default acceleration value ") + std::to_string(long(accel)) + _L(u8"mm/s²")};
         get_notification_manager()->push_notification(msg.ToStdString());
     } else {
         // set max acceleration in case of batch mode to get correct test pattern size
@@ -11840,7 +12007,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
         speeds.assign({speed});
         const auto msg{_L("INFO:") + "\n" +
-                       _L("No speeds provided for calibration. Use default optimal speed ") + std::to_string(long(speed)) + "mm/s"};
+                       _L("No speeds provided for calibration. Use default optimal speed ") + std::to_string(long(speed)) + _L("mm/s")};
         get_notification_manager()->push_notification(msg.ToStdString());
     } else if (speeds.size() == 1) {
         // If we have single value provided, set speed using global configuration.
@@ -12394,6 +12561,8 @@ void Plater::calib_retraction(const Calib_Params& params)
     print_config->set_key_value("initial_layer_print_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("layer_height", new ConfigOptionFloat(layer_height));
     obj->config.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+    obj->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spAligned));
+    obj->config.set_key_value("wall_sequence", new ConfigOptionEnum<WallSequence>(WallSequence::InnerOuter));
 
     changed_objects({ 0 });
 
@@ -13592,6 +13761,9 @@ void Plater::add_file()
 
 void Plater::update(bool conside_update_flag, bool force_background_processing_update)
 {
+    if (is_new_project_and_check_state()) {
+        return;
+    }
     unsigned int flag = force_background_processing_update ? (unsigned int)Plater::priv::UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE : 0;
     if (conside_update_flag) {
         if (need_update()) {
@@ -14898,6 +15070,9 @@ void Plater::export_toolpaths_to_obj() const
     p->preview->get_canvas3d()->export_toolpaths_to_obj(into_u8(path).c_str());
 }
 
+bool Plater::is_empty_project() {
+    return model().objects.empty();
+}
 bool Plater::is_multi_extruder_ams_empty()
 {
     std::vector<std::string>        extruder_ams_count_str = p->config->option<ConfigOptionStrings>("extruder_ams_count", true)->values;
@@ -14958,6 +15133,7 @@ void Plater::reslice()
     // Only restarts if the state is valid.
     //BBS: jusdge the result
     bool result = this->p->restart_background_process(state | priv::UPDATE_BACKGROUND_PROCESS_FORCE_RESTART);
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: restart background,state=%2%, result=%3%")%__LINE__%state %result;
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
     {
@@ -16246,6 +16422,9 @@ void Plater::pop_warning_and_go_to_device_page(wxString printer_name, PrinterWar
 
 bool Plater::is_same_printer_for_connected_and_selected(bool popup_warning)
 {
+    if (!wxGetApp().getDeviceManager()) {
+        return false;
+    }
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     if (obj == nullptr) {
         return false;
@@ -16555,8 +16734,12 @@ int Plater::select_plate(int plate_index, bool need_slice)
                     //p->process_completed_with_error = -1;
                     p->m_slice_all = false;
                     reset_gcode_toolpaths();
-                    if (model_fits && !validate_err)
+                    if (model_fits && !validate_err) {
+                        if (!check_ams_status(false)){
+                            return ret;
+                        }
                         reslice();
+                    }
                     else {
                         p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
                         //sometimes the previous print's sliced result is still valid, but the newly added object is laid over the boundary
@@ -16666,6 +16849,7 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
             p->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
             p->notification_manager->set_all_slicing_errors_gray(true);
             p->notification_manager->close_notification_of_type(NotificationType::ValidateError);
+            p->notification_manager->bbl_close_3mf_warn_notification();
 
             // Pass a warning from validation and either show a notification,
             // or hide the old one.
