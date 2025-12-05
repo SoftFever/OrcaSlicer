@@ -20,7 +20,7 @@
         "Anycubic PETG @Anycubic Kobra 3 Max 0.6 nozzle",
         "Anycubic TPU @Anycubic Kobra 3 Max 0.6 nozzle"
     ],
-    "disable_m73": "1",
+    "disable_m73": "0",
     "gcode_flavor": "klipper",
     "printable_area": [
         "0x0",
@@ -222,7 +222,7 @@
         "30"
     ],
     "scan_first_layer": "0",
-    "silent_mode": "0",
+    "silent_mode": "1",
     "single_extruder_multi_material": "1",
     "support_air_filtration": "0",
     "support_chamber_temp_control": "0",
