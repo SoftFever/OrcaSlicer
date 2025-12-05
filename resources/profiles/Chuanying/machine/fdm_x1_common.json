@@ -100,6 +100,7 @@
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]",
     "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
     "scan_first_layer": "0",
+    "disable_power_loss_recovery": "0",
     "thumbnails": [
         "140x110"
     ],

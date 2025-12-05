@@ -136,6 +136,7 @@
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
     "machine_pause_gcode": "PAUSE",
     "scan_first_layer": "0",
+    "disable_power_loss_recovery": "0",
     "nozzle_type": "undefine",
     "auxiliary_fan": "0"
 }

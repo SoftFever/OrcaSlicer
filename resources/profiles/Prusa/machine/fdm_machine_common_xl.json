@@ -102,6 +102,7 @@
     "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
     "printer_notes": "Don't remove the following keywords! These keywords are used in the \"compatible printer\" condition of the print and filament profiles to link the particular print and filament profiles to this printer profile.\nPRINTER_MODEL_XLIS\nPG\nINPUT_SHAPER",
     "scan_first_layer": "0",
+    "disable_power_loss_recovery": "0",
     "nozzle_type": "hardened_steel",
     "auxiliary_fan": "0",
     "thumbnails": [
