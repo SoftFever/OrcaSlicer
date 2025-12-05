@@ -96,7 +96,7 @@ SCENARIO("Config accessor functions perform as expected.", "[Config]") {
             }
         }
         WHEN("A numeric option is set to a non-numeric value.") {
-            THEN("A BadOptionTypeException exception is thown.") {
+            THEN("A BadOptionTypeException exception is thrown.") {
                 REQUIRE_THROWS_AS(config.set_deserialize_strict("perimeter_speed", "zzzz"), BadOptionValueException);
             }
             THEN("The value does not change.") {
