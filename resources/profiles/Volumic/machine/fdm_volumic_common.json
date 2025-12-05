@@ -113,7 +113,6 @@
         "0x0"
     ],
     "scan_first_layer": "0",
-    "disable_power_loss_recovery": "0",
     "nozzle_type": "undefine",
     "machine_start_gcode": "M117 Demarrage\nM106 S0\nM140 S[first_layer_bed_temperature]\nM104 T0 S[first_layer_temperature]\nG28\nG90\nM82\nG92 E0\nG1 Z5 F600\nG1 X1 Y299 F6000\nM109 T0 S[first_layer_temperature]\nM300 P350\nG92 E0\nM117 Impression",
     "machine_end_gcode": "M107\nM104 S0\nM140 S0\nG0 X1 Y299 F5000\nM84\nM300",

@@ -53,7 +53,7 @@
     "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
     "printer_notes": "Don't remove the following keywords! These keywords are used in the \"compatible printer\" condition of the print and filament profiles to link the particular print and filament profiles to this printer profile.\nPRINTER_VENDOR_PRUSA3D\nPRINTER_MODEL_MK3\n",
-    "": "0",
+    "scan_first_layer": "0",
     "machine_load_filament_time": "17",
     "machine_unload_filament_time": "16",
     "nozzle_type": "hardened_steel",

@@ -117,7 +117,6 @@
     "change_filament_gcode": "",
     "machine_pause_gcode": "M600 B10",
     "scan_first_layer": "0",
-    "disable_power_loss_recovery": "0",
     "support_chamber_temp_control": "0",
     "support_air_filtration": "0"
 }

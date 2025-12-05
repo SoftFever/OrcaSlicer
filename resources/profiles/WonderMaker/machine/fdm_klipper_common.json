@@ -131,7 +131,6 @@
     ],
     "support_multi_bed_types": "1",
     "scan_first_layer": "0",
-    "disable_power_loss_recovery": "0",
     "nozzle_type": "hardened_steel",
     "single_extruder_multi_material": "1",
     "layer_change_gcode": "",

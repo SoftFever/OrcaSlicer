@@ -82,7 +82,6 @@
     "nozzle_height": "4.76",
     "nozzle_volume": "125",
     "scan_first_layer": "0",
-    "disable_power_loss_recovery": "0",
     "time_lapse_gcode": "",
     "gcode_flavor": "klipper",
     "change_filament_gcode": "M600",

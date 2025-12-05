@@ -137,7 +137,6 @@
     "layer_change_gcode": ";AFTER_LAYER_CHANGE\n;[layer_z]",
     "before_layer_change_gcode": ";BEFORE_LAYER_CHANGE\n;[layer_z]\nG92 E0\n",
     "scan_first_layer": "0",
-    "disable_power_loss_recovery": "0",
     "nozzle_type": "undefine",
     "auxiliary_fan": "0"
 }
