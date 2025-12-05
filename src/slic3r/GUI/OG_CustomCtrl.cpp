@@ -343,6 +343,7 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
         line.render(dc, h_pos, v_pos);
         v_pos += line.height;
     }
+    msw_rescale();
 }
 
 void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
@@ -719,7 +720,7 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
     const std::vector<Option>& option_set = og_line.get_options();
 
     const ConfigOptionMode& line_mode = option_set.front().opt.mode;
-    is_visible = og_line.toggle_visible && line_mode <= mode;
+    is_visible = !option_set.size() || (og_line.toggle_visible && line_mode <= mode);
 
     if (draw_just_act_buttons)
         return;
@@ -749,22 +750,24 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
     correct_items_positions();
 }
 
-void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord v_pos)
+void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 {
-    wxPoint begin(ctrl->m_h_gap, v_pos);
+    v_pos += 4;
+    wxPoint begin(h_pos, v_pos);
     wxPoint end(ctrl->GetSize().GetWidth() - ctrl->m_h_gap, v_pos);
-
     wxPen old_pen = dc.GetPen();
-    // pen.SetColour(*wxLIGHT_GREY);
-    dc.SetPen(*wxTRANSPARENT_PEN);
+    wxColor fc = StateColor::darkModeColorFor("#EEEEEE");
+    dc.SetPen(fc);
     dc.DrawLine(begin, end);
     dc.SetPen(old_pen);
+    height = 8;
+    //draw_title(dc, {h_pos, v_pos}, og_line.label, &fc, h_pos); //TODO: Make separators labelable
 }
 
 void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 {
     if (is_separator()) {
-        render_separator(dc, v_pos);
+        render_separator(dc, h_pos, v_pos);
         return;
     }
 
