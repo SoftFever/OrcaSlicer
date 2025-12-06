@@ -341,9 +341,10 @@ void OG_CustomCtrl::OnPaint(wxPaintEvent&)
         if (!line.is_visible)
             continue;
         line.render(dc, h_pos, v_pos);
+        line.msw_rescale();
         v_pos += line.height;
     }
-    msw_rescale();
+    this->SetSize(this->GetSize().GetWidth(), v_pos);
 }
 
 void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
