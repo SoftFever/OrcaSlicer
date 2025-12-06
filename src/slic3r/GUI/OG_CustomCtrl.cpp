@@ -772,7 +772,7 @@ int OG_CustomCtrl::CtrlLine::get_max_opt_pos() // ORCA: Find the max option fiel
 
 void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 {
-    // v_pos += 0; // here is separator line vertical displacement
+    v_pos += 2; // here is separator line vertical displacement
     wxPoint begin(h_pos, v_pos);
     wxPoint end(get_max_opt_pos(), v_pos);
     wxPen old_pen = dc.GetPen();
@@ -780,7 +780,7 @@ void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord h_pos, wxCoord 
     dc.SetPen(fc);
     dc.DrawLine(begin, end);
     dc.SetPen(old_pen);
-    height = 1;  // here is overall height of separator area
+    height = 5;  // here is overall height of separator area
     //draw_title(dc, {h_pos, v_pos}, og_line.label, &fc, h_pos); //TODO: Make separators labelable
 }
 
