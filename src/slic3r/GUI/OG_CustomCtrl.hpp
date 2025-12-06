@@ -55,6 +55,7 @@ class OG_CustomCtrl :public wxPanel
         ~CtrlLine() { ctrl = nullptr; }
 
         int     get_max_win_width();
+        int     get_max_opt_pos();
         void    correct_items_positions();
         void    msw_rescale();
         void    update_visibility(ConfigOptionMode mode);

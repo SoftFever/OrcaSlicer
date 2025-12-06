@@ -750,17 +750,38 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
     correct_items_positions();
 }
 
+
+int OG_CustomCtrl::CtrlLine::get_max_opt_pos() // ORCA: Find the max option field position
+{
+    Field* field;
+    for (auto line : ctrl->opt_group->get_lines())
+        if (!line.is_separator()) {
+            field = ctrl->opt_group->get_field(line.get_options().front().opt_id);
+            break;
+        }
+    if (field) {
+        if (field->getSizer()) {
+            auto children = field->getSizer()->GetChildren();
+            for (auto child : children)
+                if (child->IsWindow())
+                    return child->GetWindow()->GetPosition().x + child->GetWindow()->GetSize().x;
+        } else if (field->getWindow()) {
+            return field->getWindow()->GetPosition().x + field->getWindow()->GetSize().x;
+        }
+    }
+    return ctrl->GetSize().GetWidth() - ctrl->m_h_gap;
+}
+
 void OG_CustomCtrl::CtrlLine::render_separator(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
 {
-    v_pos += 4;
     wxPoint begin(h_pos, v_pos);
-    wxPoint end(ctrl->GetSize().GetWidth() - ctrl->m_h_gap, v_pos);
+    wxPoint end(get_max_opt_pos(), v_pos);
     wxPen old_pen = dc.GetPen();
     wxColor fc = StateColor::darkModeColorFor("#EEEEEE");
     dc.SetPen(fc);
     dc.DrawLine(begin, end);
     dc.SetPen(old_pen);
-    height = 8;
+    height = 1;
     //draw_title(dc, {h_pos, v_pos}, og_line.label, &fc, h_pos); //TODO: Make separators labelable
 }
 
