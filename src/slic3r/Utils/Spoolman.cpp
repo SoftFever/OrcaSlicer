@@ -191,11 +191,41 @@ bool Spoolman::undo_use_spoolman_spools()
 
 SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool,
                                                            const Preset*              base_preset,
+                                                           bool                       use_preset_data,
                                                            bool                       detach,
                                                            bool                       force)
 {
     PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
     SpoolmanResult    result;
+
+    DynamicPrintConfig preset_data_config;
+    std::map<std::string, std::string> additional_preset_data;
+    if (use_preset_data) {
+        // If the preset data is empty, use the base_preset
+        if (spool->filament->preset_data.empty()) {
+            use_preset_data = false;
+        } else {
+            if (spool->filament->get_config_from_preset_data(preset_data_config, &additional_preset_data)) {
+                if (const auto& inherits = preset_data_config.opt_string("inherits"); inherits.empty()) {
+                    // If inherits is empty, the profile data is detached. When use_preset_data,
+                    // the base_preset is not important, so just provide the default preset
+                    base_preset = &filaments.default_preset();
+                } else {
+                    if (const auto preset_data_base_preset = filaments.find_preset(inherits)) {
+                        base_preset = preset_data_base_preset;
+                    } else {
+                        if (!force)
+                            result.messages.emplace_back(_u8L("The provided preset data inherits from a non-existing preset."));
+                        use_preset_data = false;
+                    }
+                }
+            } else {
+                if (!force)
+                    result.messages.emplace_back(_u8L("There was an error parsing the preset data for the spool"));
+                use_preset_data = false;
+            }
+        }
+    }
 
     if (!base_preset)
         base_preset = &filaments.get_edited_preset();
@@ -213,17 +243,12 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
 
     Preset* preset = filaments.find_preset(filament_preset_name);
 
-    if (force) {
-        if (preset && !preset->is_user())
-            result.messages.emplace_back(_u8L("A system preset exists with the same name and cannot be overwritten"));
-    } else {
+    if (preset && !preset->is_user())
+        result.messages.emplace_back(_u8L("A system preset exists with the same name and cannot be overwritten"));
+    if (!force) {
         // Check if a preset with the same name already exists
-        if (preset) {
-            if (preset->is_user())
-                result.messages.emplace_back(_u8L("Preset already exists with the same name"));
-            else
-                result.messages.emplace_back(_u8L("A system preset exists with the same name and cannot be overwritten"));
-        }
+        if (preset && preset->is_user())
+            result.messages.emplace_back(_u8L("Preset already exists with the same name"));
 
         // Check for presets with the same spool ID
         int compatible(0);
@@ -243,7 +268,7 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
         }
 
         // Check if the material types match between the base preset and the spool
-        if (base_preset->config.opt_string("filament_type", 0) != spool->filament->material) {
+        if (!use_preset_data && base_preset->config.opt_string("filament_type", 0) != spool->filament->material) {
             result.messages.emplace_back(_u8L("The materials of the base preset and the Spoolman spool do not match"));
         }
     }
@@ -251,23 +276,41 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
     if (result.has_failed())
         return result;
 
-    // get the first preset that is a system preset or base user preset in the inheritance hierarchy
-    std::string inherits;
-    if (!detach) {
+    // Begin building the new preset
+    preset = new Preset(Preset::TYPE_FILAMENT, filament_preset_name);
+
+    // Apply the base config
+    if (use_preset_data) {
+        preset->config.apply(preset_data_config);
+    } else {
+        preset->config.apply(base_preset->config);
+    }
+
+    // Get the first preset that is a system preset or base user preset in the inheritance hierarchy
+    // preset data should already be based on a system preset
+    if (!use_preset_data && !detach) {
+        std::string inherits;
         if (const auto base = filaments.get_preset_base(*base_preset))
             inherits = base->name;
         else // fallback if the above operation fails
             inherits = base_preset->name;
+        preset->config.set("inherits", inherits, true);
     }
 
-    preset = new Preset(Preset::TYPE_FILAMENT, filament_preset_name);
-    preset->config.apply(base_preset->config);
     preset->config.set_key_value("filament_settings_id", new ConfigOptionStrings({filament_preset_name}));
-    preset->config.set("inherits", inherits, true);
-    spool->apply_to_preset(preset);
     preset->filament_id = get_filament_id(filament_preset_name);
-    preset->version     = base_preset->version;
-    preset->loaded      = true;
+
+    // Apply settings from the spool on top of the base preset
+    spool->apply_to_preset(preset);
+
+    // Finalize and save
+    if (use_preset_data) {
+        if (auto version = Semver::parse(additional_preset_data[BBL_JSON_KEY_VERSION]))
+            preset->version = *version;
+    } else {
+        preset->version = base_preset->version;
+    }
+    preset->loaded = true;
     filaments.save_current_preset(filament_preset_name, detach, false, preset);
 
     return result;
@@ -510,25 +553,30 @@ void SpoolmanFilament::apply_to_config(Slic3r::DynamicConfig& config) const
         vendor->apply_to_config(config);
 }
 
-DynamicPrintConfig SpoolmanFilament::get_config_from_preset_data() const
+bool SpoolmanFilament::get_config_from_preset_data(DynamicPrintConfig& config, std::map<std::string, std::string>* additional_values) const
 {
     if (preset_data.empty())
-        return {};
+        return false;
     json        j = json::parse(preset_data);
     ConfigSubstitutionContext context(Enable);
     std::map<std::string, std::string> key_values;
     std::string reason;
-    DynamicPrintConfig config;
-    config.load_from_json(j, context, true, key_values, reason);
+    DynamicPrintConfig new_config;
+    new_config.load_from_json(j, context, true, key_values, reason);
     if (!reason.empty())
-        return {};
+        return false;
     auto& presets = wxGetApp().preset_bundle->filaments;
-    if (!presets.load_full_config(config))
-        return {};
-    const auto invalid_keys = Preset::remove_invalid_keys(config, presets.default_preset().config);
+    if (!presets.load_full_config(new_config))
+        return false;
+    const auto invalid_keys = Preset::remove_invalid_keys(new_config, presets.default_preset().config);
     if (!invalid_keys.empty())
-        return {};
-    return config;
+        return false;
+
+    // Checks passed - apply to preset
+    config = std::move(new_config);
+    if (additional_values)
+        *additional_values = std::move(key_values);
+    return true;
 }
 
 

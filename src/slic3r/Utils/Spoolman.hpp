@@ -121,8 +121,15 @@ public:
     /// \returns if succeeded
     bool undo_use_spoolman_spools();
 
+    /// Create a filament preset from a Spoolman spool
+    /// \param spool Spoolman spool
+    /// \param base_preset preset to inherit settings from
+    /// \param use_preset_data if the spool has preset data, the SpoolmanFilament's preset_data will be used instead of using the base preset
+    /// \param detach create profile without depending
+    /// \param force attempt to force past errors
     static SpoolmanResult create_filament_preset_from_spool(const SpoolmanSpoolShrPtr& spool,
                                                             const Preset*              base_preset,
+                                                            bool                       use_preset_data = false,
                                                             bool                       detach = false,
                                                             bool                       force = false);
     static SpoolmanResult update_filament_preset_from_spool(Preset* filament_preset,
@@ -224,7 +231,7 @@ public:
     SpoolmanVendorShrPtr vendor;
 
     void update_from_server(bool recursive = false);
-    DynamicPrintConfig get_config_from_preset_data() const;
+    bool get_config_from_preset_data(DynamicPrintConfig& config, std::map<std::string, std::string>* additional_values = nullptr) const;
 
 private:
     Spoolman* m_spoolman;

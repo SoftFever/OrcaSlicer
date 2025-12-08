@@ -4128,28 +4128,31 @@ void TabFilament::build()
                     return;
                 }
 
+                auto selected_preset = m_presets->get_selected_preset();
+                auto edited_preset = m_presets->get_edited_preset();
                 auto spool = Spoolman::get_instance()->get_spoolman_spool_by_id(
-                    m_presets->get_selected_preset().config.opt_int("spoolman_spool_id", 0));
+                    selected_preset.config.opt_int("spoolman_spool_id", 0));
+
                 if (spool->filament->preset_data.empty()) {
                     show_error(this, "The Spoolman filament does not contain any preset data.");
                     return;
                 }
 
-                auto config = spool->filament->get_config_from_preset_data();
-                if (config.empty()) {
+                const auto success = spool->filament->get_config_from_preset_data(edited_preset.config);
+                if (!success) {
                     show_error(this, "The stored preset data is invalid.");
                     return;
                 }
 
                 // Do not change preset name in this operation
-                auto current_preset_name = m_presets->get_selected_preset().config.opt_string("filament_settings_id", 0u);
-                config.set_key_value("filament_settings_id", new ConfigOptionStrings({current_preset_name}));
+                auto current_preset_name = selected_preset.config.opt_string("filament_settings_id", 0u);
+                edited_preset.config.set_key_value("filament_settings_id", new ConfigOptionStrings({current_preset_name}));
 
                 // Apply spool configuration changes
-                spool->apply_to_config(config);
+                spool->apply_to_config(edited_preset.config);
 
                 // Load config changes into the tab
-                this->load_config(config);
+                this->load_config(edited_preset.config);
             });
             load_from_spoolman_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
             sizer->Add(load_from_spoolman_btn);

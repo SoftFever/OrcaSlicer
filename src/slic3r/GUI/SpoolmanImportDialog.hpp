@@ -10,7 +10,7 @@
 namespace Slic3r { namespace GUI {
 class SpoolmanViewCtrl;
 
-enum Column { COL_CHECK = 0, COL_ID, COL_COLOR, COL_VENDOR, COL_NAME, COL_MATERIAL, COL_COUNT };
+enum Column { COL_CHECK = 0, COL_ID, COL_COLOR, COL_VENDOR, COL_NAME, COL_MATERIAL, COL_PRESET_DATA, COL_COUNT };
 
 //-----------------------------------------
 // SpoolmanNode
@@ -26,6 +26,7 @@ public:
     wxString    get_vendor_name() const { return m_spool->get_vendor() ? wxString::FromUTF8(m_spool->get_vendor()->name) : wxString(); }
     wxString    get_filament_name() const { return wxString::FromUTF8(m_spool->filament->name); }
     wxString    get_material() const { return wxString::FromUTF8(m_spool->filament->material); }
+    bool        get_has_preset_data() const { return !m_spool->filament->preset_data.empty(); }
     bool        is_archived() const { return m_spool->archived; }
 
     bool get_checked() { return m_checked; };
@@ -135,6 +136,7 @@ protected:
     SpoolmanViewCtrl*    m_svc;
     TabPresetComboBox*   m_preset_combobox;
     wxCheckBox*          m_detach_checkbox;
+    wxCheckBox*          m_ignore_preset_data_checkbox;
 };
 }} // namespace Slic3r::GUI
 

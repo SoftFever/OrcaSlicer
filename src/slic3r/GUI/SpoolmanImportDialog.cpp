@@ -76,6 +76,7 @@ void SpoolmanViewModel::GetValue(wxVariant& variant, const wxDataViewItem& item,
     case COL_VENDOR: variant = node->get_vendor_name(); break;
     case COL_NAME: variant = node->get_filament_name(); break;
     case COL_MATERIAL: variant = node->get_material(); break;
+    case COL_PRESET_DATA: variant = wxString(node->get_has_preset_data() ? L"\u2713" : L"\u2715"); break;
     default: wxLogError("Out of bounds column call to SpoolmanViewModel::GetValue. col = %d", col);
     }
 }
@@ -115,6 +116,7 @@ SpoolmanViewCtrl::SpoolmanViewCtrl(wxWindow* parent) : wxDataViewCtrl(parent, wx
     this->AppendTextColumn("Vendor", COL_VENDOR, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxCOL_SORTABLE);
     this->AppendTextColumn("Name", COL_NAME, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxCOL_SORTABLE);
     this->AppendTextColumn("Material", COL_MATERIAL, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_NOT, wxCOL_SORTABLE);
+    this->AppendTextColumn("Preset Data", COL_PRESET_DATA, wxDATAVIEW_CELL_INERT, wxCOL_WIDTH_AUTOSIZE, wxALIGN_CENTER, wxCOL_SORTABLE);
 
     // fake column to put the expander in
     auto temp_col = this->AppendTextColumn("", 100);
@@ -155,10 +157,16 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
     m_preset_combobox->update();
 
     // Detach Checkbox
+    auto checkbox_sizer = new wxBoxSizer(wxVERTICAL);
     m_detach_checkbox = new wxCheckBox(this, wxID_ANY, _L("Save as Detached"));
     m_detach_checkbox->SetToolTip(_L("Save as a standalone preset"));
-    preset_sizer->Add(m_detach_checkbox, 0, wxALIGN_CENTER_VERTICAL);
+    checkbox_sizer->Add(m_detach_checkbox, 0, wxALIGN_CENTER_HORIZONTAL);
 
+    m_ignore_preset_data_checkbox = new wxCheckBox(this, wxID_ANY, _L("Ignore Included Preset"));
+    m_ignore_preset_data_checkbox->SetToolTip(_L("Ignore the preset data stored in Spoolman and use the selected base preset instead"));
+    checkbox_sizer->Add(m_ignore_preset_data_checkbox, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, EM);
+
+    preset_sizer->Add(checkbox_sizer, 0, wxALIGN_CENTER_VERTICAL);
     main_sizer->Add(preset_sizer, 0, wxEXPAND | wxALL, EM);
 
     auto buttons = new DialogButtons(this, {"All", "None", "Import", "Cancel"}, _L("Import"));
@@ -246,6 +254,7 @@ void SpoolmanImportDialog::on_import()
     }
 
     const bool                                                  detach = m_detach_checkbox->GetValue();
+    const bool                                                  ignore_preset_data = m_ignore_preset_data_checkbox->GetValue();
     std::vector<std::pair<SpoolmanSpoolShrPtr, SpoolmanResult>> failed_spools;
 
     auto create_presets = [&](const vector<SpoolmanSpoolShrPtr>& spools, bool force = false) {
@@ -255,7 +264,7 @@ void SpoolmanImportDialog::on_import()
         std::vector<boost::thread> threads;
         for (const auto& spool : spools) {
             threads.emplace_back(Slic3r::create_thread([&] {
-                auto res = Spoolman::create_filament_preset_from_spool(spool, current_preset, detach, force);
+                auto res = Spoolman::create_filament_preset_from_spool(spool, current_preset, !ignore_preset_data, detach, force);
                 if (res.has_failed())
                     failed_spools.emplace_back(spool, res);
             }));
