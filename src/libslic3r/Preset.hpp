@@ -14,6 +14,7 @@
 #include "PrintConfig.hpp"
 #include "Semver.hpp"
 #include "ProjectTask.hpp"
+#include "nlohmann/json.hpp"
 
 //BBS: change system directories
 #define PRESET_SYSTEM_DIR      "system"
@@ -293,12 +294,13 @@ public:
     static std::string  get_iot_type_string(Preset::Type type);
     static Preset::Type get_type_from_string(std::string type_str);
     void                load_info(const std::string& file);
-    void                save_info(std::string file = "");
+    void                save_info(std::string file = "") const;
     void                remove_files();
 
     //BBS: add logic for only difference save
     //if parent_config is null, save all keys, otherwise, only save difference
-    void                save(const DynamicPrintConfig* parent_config);
+    //if output is null, save the data to file, otherwise, save the data to output
+    void                save(const DynamicPrintConfig* parent_config, nlohmann::json* output = nullptr) const;
     void                reload(Preset const & parent);
 
     // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.

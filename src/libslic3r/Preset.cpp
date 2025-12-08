@@ -512,7 +512,7 @@ void Preset::load_info(const std::string& file)
     }
 }
 
-void Preset::save_info(std::string file)
+void Preset::save_info(std::string file) const
 {
     //BBS: add project embedded preset logic
     if (this->is_project_embedded)
@@ -551,7 +551,7 @@ void Preset::remove_files()
 }
 
 //BBS: add logic for only difference save
-void Preset::save(const DynamicPrintConfig* parent_config)
+void Preset::save(const DynamicPrintConfig* parent_config, json* output /*= nullptr*/) const
 {
     //BBS: add project embedded preset logic
     if (this->is_project_embedded)
@@ -568,7 +568,14 @@ void Preset::save(const DynamicPrintConfig* parent_config)
     else
         from_str = std::string("Default");
 
-    boost::filesystem::create_directories(fs::path(this->file).parent_path());
+    json j;
+
+    // If an empty string is passed as the file path, the preset is not outputted to a file
+    std::string file_str;
+    if (!output) {
+        file_str = this->file;
+        boost::filesystem::create_directories(fs::path(file_str).parent_path());
+    }
 
     //BBS: only save difference if it has parent
     if (parent_config) {
@@ -588,12 +595,12 @@ void Preset::save(const DynamicPrintConfig* parent_config)
 
         for (auto option: dirty_options)
         {
-            ConfigOption *opt_src = config.option(option);
+            const ConfigOption *opt_src = config.option(option);
             ConfigOption *opt_dst = temp_config.option(option, true);
             if (opt_dst->is_scalar() || !(opt_dst->nullable()))
                 opt_dst->set(opt_src);
             else {
-                ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
+                const ConfigOptionVectorBase* opt_vec_src = static_cast<const ConfigOptionVectorBase*>(opt_src);
                 ConfigOptionVectorBase* opt_vec_dst = static_cast<ConfigOptionVectorBase*>(opt_dst);
                 const ConfigOptionVectorBase* opt_vec_inherit = static_cast<const ConfigOptionVectorBase*>(parent_config->option(option));
                 if (opt_vec_src->size() == 1)
@@ -608,19 +615,23 @@ void Preset::save(const DynamicPrintConfig* parent_config)
                     opt_dst->set(opt_src);
             }
         }
-        temp_config.save_to_json(this->file, this->name, from_str, this->version.to_string());
+        j = temp_config.save_to_json(file_str, this->name, from_str, this->version.to_string());
     } else if (!filament_id.empty() && inherits().empty()) {
         DynamicPrintConfig temp_config = config;
         temp_config.set_key_value(BBL_JSON_KEY_FILAMENT_ID, new ConfigOptionString(filament_id));
-        temp_config.save_to_json(this->file, this->name, from_str, this->version.to_string());
+        j = temp_config.save_to_json(file_str, this->name, from_str, this->version.to_string());
     } else {
-        this->config.save_to_json(this->file, this->name, from_str, this->version.to_string());
+        j = this->config.save_to_json(file_str, this->name, from_str, this->version.to_string());
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " save config for: " << this->name << " and filament_id: " << filament_id << " and base_id: " << this->base_id;
 
-    fs::path idx_file(this->file);
-    idx_file.replace_extension(".info");
-    this->save_info(idx_file.string());
+    if (output) {
+        *output = std::move(j);
+    } else {
+        fs::path idx_file(this->file);
+        idx_file.replace_extension(".info");
+        this->save_info(idx_file.string());
+    }
 }
 
 void Preset::reload(Preset const &parent)

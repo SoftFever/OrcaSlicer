@@ -321,13 +321,20 @@ SpoolmanResult Spoolman::save_preset_to_spoolman(const Preset* filament_preset)
         return result;
     }
 
-    boost::nowide::ifstream fs(filament_preset->file);
+    auto& filaments = wxGetApp().preset_bundle->filaments;
+    // get the first preset that is a system preset or base user preset in the inheritance hierarchy
+    const DynamicPrintConfig* base_config = nullptr;
+    if (!filament_preset->inherits().empty())
+        if (auto base = filaments.get_preset_base(*filament_preset))
+            base_config = &base->config;
 
-    std::string preset_data;
-    std::string line;
-    while (std::getline(fs, line)) {
-        preset_data += line;
-    }
+    json j;
+    filament_preset->save(base_config, &j);
+
+    std::stringstream ss;
+    ss << j;
+    std::string preset_data = ss.str();
+
     // Spoolman extra fields are a string read as json
     // To save a string to an extra field, the data must be surrounded by double quotes
     // and literal quotes must be escaped twice
