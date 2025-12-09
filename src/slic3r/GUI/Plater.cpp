@@ -231,7 +231,7 @@ Emboss::FontFileWithCache calib_font_with_cache(std::move(WxFontUtils::create_fo
 ///     "y" is the font height in millimeters.
 ///     "z" is the height of the extruded text in millimeters.</param>
 /// <param name="position">Position of model against text pivot.</param>
-static TriangleMesh get_ortho_box_mesh(Vec3d& size, Vec3f& position = Vec3f())
+static TriangleMesh get_ortho_box_mesh(Vec3d size, Vec3f position = Vec3f())
 {
     TriangleMesh mesh(make_cube(size.x(), size.y(), size.z())); // get box
     mesh.translate(position);                                   // move mesh to indeed place
