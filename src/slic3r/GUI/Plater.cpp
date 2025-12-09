@@ -573,7 +573,7 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     // ORCA show plate type combo box only when its supported
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     auto cfg = preset_bundle.printers.get_edited_preset().config;
-    panel_printer_bed->Show(isBBL || cfg.opt_bool("support_multi_bed_types"));
+    panel_printer_bed->Show(preset_bundle.is_bbl_vendor() || cfg.opt_bool("support_multi_bed_types"));
 
     extruder_dual_sizer->Show(isDual);
 
