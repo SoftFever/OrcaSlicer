@@ -1535,7 +1535,7 @@ void GLGizmoEmboss::draw_text_input()
         float width = ImGui::GetContentRegionAvailWidth();
         const ImVec2& padding = style.FramePadding;
         ImVec2 icon_pos(width - m_gui_cfg->icon_width - scrollbar_width + padding.x, 
-                        cursor.y - m_gui_cfg->icon_width - scrollbar_height - 2*padding.y);
+                        cursor.y - 2 * m_gui_cfg->icon_width - scrollbar_height - 2*padding.y);  // ORCA fix vertical position
         
         ImGui::SetCursorPos(icon_pos);
         draw(get_icon(m_icons, IconType::exclamation, IconState::hovered));
@@ -1646,7 +1646,7 @@ void GLGizmoEmboss::draw_font_list_line()
     bool exist_change_in_font = m_style_manager.is_font_changed();
     const std::string& font_text = m_gui_cfg->translations.font;
     if (exist_change_in_font || !exist_stored_style)
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA, font_text);
+        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, font_text); // ORCA match UI color
     else
         ImGuiWrapper::text(font_text);
 
@@ -1673,7 +1673,8 @@ void GLGizmoEmboss::draw_font_list_line()
     EmbossStyle &style = m_style_manager.get_style();
     if (exist_change_in_font) {
         ImGui::SameLine(ImGui::GetStyle().WindowPadding.x);
-        if (draw_button(m_icons, IconType::undo)) {
+        auto r_icon = get_icon(m_icons, IconType::undo, IconState::hovered);
+        if (Slic3r::GUI::button(r_icon, r_icon, r_icon)) { // ORCA draw bottom with same orange color
             const EmbossStyle *stored_style = m_style_manager.get_stored_style();
 
             style.path          = stored_style->path;
@@ -1919,9 +1920,9 @@ void GLGizmoEmboss::draw_style_rename_popup() {
 
     bool allow_change = false;
     if (new_name.empty()) {
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_DARK, _u8L("Name can't be empty."));
+        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Name can't be empty.")); // ORCA match UI color
     }else if (!is_unique) { 
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_DARK, _u8L("Name has to be unique."));
+        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Name has to be unique.")); // ORCA match UI color
     } else {
         ImGui::NewLine();
         allow_change = true;
@@ -2000,9 +2001,9 @@ void GLGizmoEmboss::draw_style_save_as_popup() {
     bool is_unique = m_style_manager.is_unique_style_name(new_name);        
     bool allow_change = false;
     if (new_name.empty()) {
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_DARK, _u8L("Name can't be empty."));
+        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Name can't be empty.")); // ORCA match UI color
     }else if (!is_unique) { 
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_DARK, _u8L("Name has to be unique."));
+        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Name has to be unique.")); // ORCA match UI color
     } else {
         ImGui::NewLine();
         allow_change = true;
@@ -2405,7 +2406,7 @@ bool GLGizmoEmboss::revertible(const std::string &name,
     ImGui::AlignTextToFramePadding();
     bool changed = exist_change(value, default_value);
     if (changed || default_value == nullptr)
-        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORCA, name);
+        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, name);
     else
         ImGuiWrapper::text(name);
 
@@ -2414,7 +2415,8 @@ bool GLGizmoEmboss::revertible(const std::string &name,
         ImGuiWindow *window = ImGui::GetCurrentWindow();
         float prev_x = window->DC.CursorPosPrevLine.x;
         ImGui::SameLine(undo_offset); // change cursor postion
-        if (draw_button(m_icons, IconType::undo)) {
+        auto r_icon = get_icon(m_icons, IconType::undo, IconState::hovered);
+        if (Slic3r::GUI::button(r_icon, r_icon, r_icon)) { // ORCA draw bottom with same orange color
             value = *default_value;
 
             // !! Fix to detect change of value after revert of float-slider

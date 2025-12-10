@@ -158,8 +158,8 @@ static const std::map<const wchar_t, std::string> font_icons_extra_large = {
 
 const ImVec4 ImGuiWrapper::COL_GREY_DARK         = { 0.333f, 0.333f, 0.333f, 1.0f };
 const ImVec4 ImGuiWrapper::COL_GREY_LIGHT        = { 0.4f, 0.4f, 0.4f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_ORANGE_DARK       = { 0.757f, 0.404f, 0.216f, 1.0f };
-const ImVec4 ImGuiWrapper::COL_ORANGE_LIGHT      = to_ImVec4(ColorRGBA::ORANGE());
+const ImVec4 ImGuiWrapper::COL_ORANGE_DARK       = { 253.f / 255.f, 111.f / 255.f, 40.f / 255.f, 1}; // ORCA same color with m_color_label_modified
+const ImVec4 ImGuiWrapper::COL_ORANGE_LIGHT      = { 252.f / 255.f, 77.f  / 255.f, 1.f  / 255.f, 1}; // ORCA same color with m_color_label_modified
 const ImVec4 ImGuiWrapper::COL_WINDOW_BACKGROUND = { 0.1f, 0.1f, 0.1f, 0.8f };
 const ImVec4 ImGuiWrapper::COL_BUTTON_BACKGROUND = COL_ORANGE_DARK;
 const ImVec4 ImGuiWrapper::COL_BUTTON_HOVERED    = COL_ORANGE_LIGHT;
@@ -1111,11 +1111,12 @@ bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float 
     const ImGuiStyle& style = ImGui::GetStyle();
     if (show_edit_btn) {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1, style.ItemSpacing.y });
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);        // ORCA match edit button style
         ImGui::SameLine();
         std::wstring btn_name = ImGui::SliderFloatEditBtnIcon + boost::nowide::widen(str_label);
         ImGui::PushStyleColor(ImGuiCol_Button, { 0.25f, 0.25f, 0.25f, 0.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.5f, 0.5f, 0.5f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.5f, 0.5f, 0.5f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {0, 0, 0, 0 }); // ORCA match edit button style
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  {0, 0, 0, 0 }); // ORCA match edit button style
         if (ImGui::Button(into_u8(btn_name).c_str())) {
             ImGui::SetKeyboardFocusHere(-1);
             this->set_requires_extra_frame();
@@ -1124,7 +1125,7 @@ bool ImGuiWrapper::slider_float(const char* label, float* v, float v_min, float 
         if (ImGui::IsItemHovered())
             this->tooltip(into_u8(_L("Edit")).c_str(), max_tooltip_width);
 
-        ImGui::PopStyleVar();
+        ImGui::PopStyleVar(2); // ORCA
     }
 
     if (label_visible) {
