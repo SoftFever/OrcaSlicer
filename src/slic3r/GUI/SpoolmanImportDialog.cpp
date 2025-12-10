@@ -4,6 +4,7 @@
 #include "ExtraRenderers.hpp"
 #include "MsgDialog.hpp"
 #include "Widgets/DialogButtons.hpp"
+#include "oneapi/tbb/parallel_for_each.h"
 
 #define BTN_GAP FromDIP(10)
 #define BTN_SIZE wxSize(FromDIP(58), FromDIP(24))
@@ -246,7 +247,8 @@ void SpoolmanImportDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 void SpoolmanImportDialog::on_import()
 {
-    const auto  current_preset = wxGetApp().preset_bundle->filaments.find_preset(m_preset_combobox->GetStringSelection().ToUTF8().data());
+    auto&       filaments       = wxGetApp().preset_bundle->filaments;
+    const auto  current_preset  = filaments.find_preset(m_preset_combobox->GetStringSelection().ToUTF8().data());
     const auto& selected_spools = m_svc->get_model()->GetSelectedSpools();
     if (selected_spools.empty()) {
         show_error(this, _L("No spools are selected"));
@@ -259,21 +261,29 @@ void SpoolmanImportDialog::on_import()
 
     auto create_presets = [&](const vector<SpoolmanSpoolShrPtr>& spools, bool force = false) {
         failed_spools.clear();
-        // Attempt to create the presets
-        // Calculating the hash for the internal filament id takes a bit, so using multithreading to speed it up
-        std::vector<boost::thread> threads;
-        for (const auto& spool : spools) {
-            threads.emplace_back(Slic3r::create_thread([&] {
-                auto res = Spoolman::create_filament_preset_from_spool(spool, current_preset, !ignore_preset_data, detach, force);
-                if (res.has_failed())
-                    failed_spools.emplace_back(spool, res);
-            }));
-        }
+        // Save selected preset
+        const auto selected_preset_name = filaments.get_selected_preset_name();
+        auto edited_preset = filaments.get_edited_preset();
 
-        // Join/wait for threads to finish before continuing
-        for (auto& thread : threads)
-            if (thread.joinable())
-                thread.join();
+        std::mutex failed_spools_mutex;
+        auto create_preset = [&](const SpoolmanSpoolShrPtr& spool) {
+            auto res = Spoolman::create_filament_preset_from_spool(spool, current_preset, !ignore_preset_data, detach, force);
+            if (res.has_failed()) {
+                std::lock_guard lock(failed_spools_mutex);
+                failed_spools.emplace_back(spool, res);
+            }
+        };
+
+        // Calculating the hash for the internal filament id takes a bit, so using multithreading to speed it up
+        wxBusyCursor busy_cursor;
+        if (spools.size() > 1)
+            tbb::parallel_for_each(spools.begin(), spools.end(), create_preset);
+        else
+            create_preset(spools[0]);
+
+        // Restore selected preset
+        filaments.select_preset_by_name(selected_preset_name, true);
+        filaments.get_edited_preset() = std::move(edited_preset);
     };
 
     create_presets(selected_spools);

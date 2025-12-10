@@ -311,7 +311,14 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
         preset->version = base_preset->version;
     }
     preset->loaded = true;
+
+    static std::mutex save_mutex;
+    // The save_current_preset function selects and modifies the current preset
+    // The operation is not thread safe and will cause an exception if multiple
+    // threads try to change the selected preset at the same time
+    save_mutex.lock();
     filaments.save_current_preset(filament_preset_name, detach, false, preset);
+    save_mutex.unlock();
 
     return result;
 }
