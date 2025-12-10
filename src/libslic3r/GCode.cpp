@@ -3086,8 +3086,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
                 // Orca: finish tracking power lost recovery
                 {
-                    if (m_second_layer_things_done && print.config().disable_power_loss_recovery.value != true) {
-                        file.write(m_writer.end_power_loss_recovery());
+                    if (m_second_layer_things_done && print.config().enable_power_loss_recovery.value == true) {
+                        file.write(m_writer.enable_power_loss_recovery(false));
                     }
                 }
                 ++ finished_objects;
@@ -3166,10 +3166,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             }
 
             // Orca: finish tracking power lost recovery
-            {
-				if (m_second_layer_things_done && print.config().disable_power_loss_recovery.value != true) {
-                    file.write(m_writer.end_power_loss_recovery());
-                }
+            if (m_second_layer_things_done && print.config().enable_power_loss_recovery.value == true) {
+                file.write(m_writer.enable_power_loss_recovery(false));
             }
             if (m_wipe_tower)
                 // Purge the extruder, pull out the active filament.
@@ -4384,21 +4382,21 @@ LayerResult GCode::process_layer(
     }
 
     if (!first_layer && !m_second_layer_things_done) {
-      if (print.is_BBL_printer()) {
         // Orca: start tracking power lost recovery
-        if (print.config().disable_power_loss_recovery.value != true) {
-		  file.write(m_writer.start_power_loss_recovery());
+        if (print.config().enable_power_loss_recovery.value == true) {
+            gcode += m_writer.enable_power_loss_recovery(true);
         }
 
-        // BBS: open first layer inspection at second layer
-        if (print.config().scan_first_layer.value) {
-          // BBS: retract first to avoid droping when scan model
-          gcode += this->retract();
-          gcode += "M976 S1 P1 ; scan model before printing 2nd layer\n";
-          gcode += "M400 P100\n";
-          gcode += this->unretract();
+        if (print.is_BBL_printer()) {
+            // BBS: open first layer inspection at second layer
+            if (print.config().scan_first_layer.value) {
+                // BBS: retract first to avoid droping when scan model
+                gcode += this->retract();
+                gcode += "M976 S1 P1 ; scan model before printing 2nd layer\n";
+                gcode += "M400 P100\n";
+                gcode += this->unretract();
+            }
         }
-      }
       // Reset acceleration at sencond layer
       // Orca: only set once, don't need to call set_accel_and_jerk
       if (m_config.default_acceleration.value > 0 && m_config.initial_layer_acceleration.value > 0) {

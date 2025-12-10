@@ -4366,7 +4366,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("pellet_modded_printer", "printer_basic_information_advanced#pellet-modded-printer");
         optgroup->append_single_option_line("bbl_use_printhost", "printer_basic_information_advanced#use-3rd-party-print-host");
         optgroup->append_single_option_line("scan_first_layer" , "printer_basic_information_advanced#scan-first-layer");
-        optgroup->append_single_option_line("disable_power_loss_recovery");
+        optgroup->append_single_option_line("enable_power_loss_recovery");
         //option  = optgroup->get_option("wrapping_exclude_area");
         //option.opt.full_width = true;
         //optgroup->append_single_option_line(option);
@@ -5203,7 +5203,7 @@ void TabPrinter::toggle_options()
           toggle_line(el, !is_BBL_printer);
 
         auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
-        toggle_line("disable_power_loss_recovery", is_BBL_printer || gcf == gcfMarlinFirmware);
+        toggle_line("enable_power_loss_recovery", is_BBL_printer || gcf == gcfMarlinFirmware);
     }
     
 

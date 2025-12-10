@@ -3366,9 +3366,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     // Orca
-    def = this->add("disable_power_loss_recovery", coBool);
-    def->label = L("Disable Power Loss Recovery");
-    def->tooltip = L("Enable this to disable power loss recovery commands in generated G-code");
+    def = this->add("enable_power_loss_recovery", coBool);
+    def->label = L("Turn on Power Loss Recovery");
+    def->tooltip = L("Enable this to insert power loss recovery commands in generated G-code.(Only for Bambu Lab printers and Marlin firmware based printers)");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
