@@ -442,19 +442,34 @@ std::string GCodeWriter::reset_e(bool force)
         return "";
     }
 }
-std::string GCodeWriter::disable_power_loss_recovery()
+
+std::string GCodeWriter::start_power_loss_recovery()
 {
     std::ostringstream gcode;
-    gcode << "; close powerlost recovery\n";
+    gcode << "";
+    
     if (m_is_bbl_printers) {
+        gcode << "; start tracking Power Loss Recovery https://wiki.bambulab.com/en/knowledge-sharing/power-loss-recovery\n";
+        gcode << "M1003 S1\n";
+    }
+    
+    return gcode.str();
+}
+
+std::string GCodeWriter::end_power_loss_recovery()
+{
+    std::ostringstream gcode;
+    gcode << "";
+    
+    if (m_is_bbl_printers) {
+        gcode << "; finish tracking Power Loss Recovery https://wiki.bambulab.com/en/knowledge-sharing/power-loss-recovery\n";
         gcode << "M1003 S0\n";
     }
     else if(FLAVOR_IS(gcfMarlinFirmware)) {
+        gcode << "; finish tracking Power-loss Recovery https://marlinfw.org/docs/gcode/M413.html\n";
         gcode << "M413 S0\n";
     }
-    else {
-        return "";
-    }
+    
     return gcode.str();
 }
 
