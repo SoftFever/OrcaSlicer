@@ -3084,10 +3084,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         m_sorted_layer_filaments.emplace_back(lt.extruders);
                 }
 
-                // Orca: close powerlost recovery
+                // Orca: finish tracking power lost recovery
                 {
                     if (m_second_layer_things_done && print.config().disable_power_loss_recovery.value != true) {
-                        file.write(m_writer.disable_power_loss_recovery());
+                        file.write(m_writer.end_power_loss_recovery());
                     }
                 }
                 ++ finished_objects;
@@ -3165,11 +3165,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     m_sorted_layer_filaments.emplace_back(lt.extruders);
             }
 
-            //BBS: close powerlost recovery
+            // Orca: finish tracking power lost recovery
             {
-                if (is_bbl_printers && m_second_layer_things_done && print.config().disable_power_loss_recovery.value != true) {
-                    file.write("; close powerlost recovery\n");
-                    file.write("M1003 S0\n");
+				if (m_second_layer_things_done && print.config().disable_power_loss_recovery.value != true) {
+                    file.write(m_writer.end_power_loss_recovery());
                 }
             }
             if (m_wipe_tower)
@@ -4386,11 +4385,11 @@ LayerResult GCode::process_layer(
 
     if (!first_layer && !m_second_layer_things_done) {
       if (print.is_BBL_printer()) {
-        // BBS: open powerlost recovery
+        // Orca: start tracking power lost recovery
         if (print.config().disable_power_loss_recovery.value != true) {
-          gcode += "; open powerlost recovery\n";
-          gcode += "M1003 S1\n";
+		  file.write(m_writer.start_power_loss_recovery());
         }
+
         // BBS: open first layer inspection at second layer
         if (print.config().scan_first_layer.value) {
           // BBS: retract first to avoid droping when scan model
