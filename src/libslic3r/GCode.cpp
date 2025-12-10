@@ -3084,11 +3084,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         m_sorted_layer_filaments.emplace_back(lt.extruders);
                 }
 
-                //BBS: close powerlost recovery
+                // Orca: close powerlost recovery
                 {
-                    if (is_bbl_printers && m_second_layer_things_done && print.config().disable_power_loss_recovery.value != true) {
-                        file.write("; close powerlost recovery\n");
-                        file.write("M1003 S0\n");
+                    if (m_second_layer_things_done && print.config().disable_power_loss_recovery.value != true) {
+                        file.write(m_writer.disable_power_loss_recovery());
                     }
                 }
                 ++ finished_objects;

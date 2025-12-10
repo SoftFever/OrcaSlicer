@@ -5195,13 +5195,17 @@ void TabPrinter::toggle_options()
     if (m_active_page->title() == L("Basic information")) {
 
         // SoftFever: hide BBL specific settings
-        for (auto el : {"scan_first_layer", "disable_power_loss_recovery", "bbl_calib_mark_logo", "bbl_use_printhost"})
+        for (auto el : {"scan_first_layer", "bbl_calib_mark_logo", "bbl_use_printhost"})
             toggle_line(el, is_BBL_printer);
 
         // SoftFever: hide non-BBL settings
         for (auto el : {"use_firmware_retraction", "use_relative_e_distances", "support_multi_bed_types", "pellet_modded_printer", "bed_mesh_max", "bed_mesh_min", "bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "thumbnails"})
           toggle_line(el, !is_BBL_printer);
+
+        auto gcf = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
+        toggle_line("disable_power_loss_recovery", is_BBL_printer || gcf == gcfMarlinFirmware);
     }
+    
 
     if (m_active_page->title() == L("Machine G-code")) {
         PresetBundle *preset_bundle = wxGetApp().preset_bundle;

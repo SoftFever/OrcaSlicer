@@ -1,5 +1,6 @@
 #include "GCodeWriter.hpp"
 #include "CustomGCode.hpp"
+#include "PrintConfig.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -440,6 +441,21 @@ std::string GCodeWriter::reset_e(bool force)
     } else {
         return "";
     }
+}
+std::string GCodeWriter::disable_power_loss_recovery()
+{
+    std::ostringstream gcode;
+    gcode << "; close powerlost recovery\n";
+    if (m_is_bbl_printers) {
+        gcode << "M1003 S0\n";
+    }
+    else if(FLAVOR_IS(gcfMarlinFirmware)) {
+        gcode << "M413 S0\n";
+    }
+    else {
+        return "";
+    }
+    return gcode.str();
 }
 
 std::string GCodeWriter::update_progress(unsigned int num, unsigned int tot, bool allow_100) const
