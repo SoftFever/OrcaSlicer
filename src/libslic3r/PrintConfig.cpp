@@ -2016,7 +2016,7 @@ void PrintConfigDef::init_fff_params()
     def->max      = 2;
     def->min      = 0.9;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(1.05));
+    def->set_default_value(new ConfigOptionFloat(1.0));
 
     def             = this->add("even_loops_speed", coFloatOrPercent);
     def->label      = L("Even loops speed");
@@ -2029,7 +2029,7 @@ void PrintConfigDef::init_fff_params()
     def->max        = 110;
     def->min        = 1;
     def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(50, true));
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def = this->add("outermost_wall_control",coBool);
     def->label    = L("Outermost wall control");
