@@ -1,0 +1,26 @@
+{
+    "bridge_speed": "60",
+    "enable_arc_fitting": "0",
+    "from": "system",
+    "inherits": "0.20mm Standard @Anycubic Kobra 2 Neo 0.4 nozzle",
+    "initial_layer_infill_speed": "45",
+    "initial_layer_print_height": "0.12",
+    "initial_layer_speed": "45",
+    "inner_wall_speed": "65",
+    "layer_height": "0.12",
+    "name": "0.12mm Standard @Anycubic Kobra 2 Neo 0.4 nozzle",
+    "outer_wall_speed": "45",
+    "overhang_2_4_speed": "45",
+    "overhang_3_4_speed": "28",
+    "print_extruder_id": [
+        "1"
+    ],
+    "print_extruder_variant": [
+        "Direct Drive Standard"
+    ],
+    "print_settings_id": "0.12mm Detail @Anycubic Kobra 2 Neo 0.4 nozzle",
+    "seam_gap": "5%",
+    "solid_infill_rotate_template": "",
+    "version": "2.3.1.10",
+    "xy_hole_compensation": "0"
+}
