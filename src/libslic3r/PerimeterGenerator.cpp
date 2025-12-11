@@ -450,7 +450,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             if (overhangs_reverse && !found_steep_overhang) {
                 std::map<double, ExtrusionPaths> recognization_paths;
                 for (const ExtrusionPath &path : paths) {
-                    if (recognization_paths.count(path.width)) 
+                    if (recognization_paths.count(path.width))
                         recognization_paths[path.width].emplace_back(std::move(path));
                     else
                         recognization_paths.insert(std::pair<double, ExtrusionPaths>(path.width, {std::move(path)}));
