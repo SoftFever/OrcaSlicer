@@ -391,11 +391,11 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
         if (extrusion->empty())
             continue;
 
-        // PPS: Odd-Even wall order
+        // Orca: Odd-Even wall order
         float _flow_ratio = 1;
         bool  _is_even    = extrusion->is_even;
         if (_is_even)
-            _flow_ratio = perimeter_generator.config->even_loops_flow_ratio; //PPS: Here can put the code of implementation of staggered perimeters 
+            _flow_ratio = perimeter_generator.config->even_loops_flow_ratio; //Orca: Here can put the code of implementation of staggered perimeters 
 
         const bool    is_external = extrusion->inset_idx == 0;
         ExtrusionRole role = is_external ? erExternalPerimeter : erPerimeter;
