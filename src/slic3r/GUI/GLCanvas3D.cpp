@@ -8627,23 +8627,23 @@ void GLCanvas3D::_render_return_toolbar() const
 
 void GLCanvas3D::_render_canvas_toolbar() 
 {
-    ImGuiWrapper &imgui     = *wxGetApp().imgui();
-    float         sc        = get_scale();
+    ImGuiWrapper &imgui    = *wxGetApp().imgui();
+    float         sc       = get_scale();
 
     #ifdef WIN32
         const int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
         sc *= (float) dpi / (float) DPI_DEFAULT;
     #endif // WIN32
 
-    ImVec2        btn_size  = ImVec2(36.f, 36.f) * sc;
-    ImVec2        margin    = ImVec2(m_canvas_toolbar_pos[0] > 0 ? 0.f : (10.f * sc), 10.f * sc);
-    ImVec2        spacing   = ImVec2(6.f, 6.f)  * sc;
-    ImVec2        padding   = ImVec2(2.f, 2.f)  * sc;
-    Vec2i32       pos       = {
+    ImVec2        btn_size = ImVec2(36.f, 36.f) * sc;
+    ImVec2        margin   = ImVec2(m_canvas_toolbar_pos[0] > 0 ? 0.f : (10.f * sc), 10.f * sc);
+    ImVec2        spacing  = ImVec2(6.f, 6.f)  * sc;
+    ImVec2        padding  = ImVec2(2.f, 2.f)  * sc;
+    Vec2i32       pos      = {
         m_canvas_toolbar_pos[0]        + margin.x,
         get_canvas_size().get_height() - margin.y
     };
-    bool          zoom_btn  = wxGetApp().show_canvas_zoom_button();
+    bool          zoom_btn = wxGetApp().show_canvas_zoom_button();
 
     imgui.set_next_window_pos(pos[0], pos[1], ImGuiCond_Always, 0, 1); // pivot bottom-left
 
