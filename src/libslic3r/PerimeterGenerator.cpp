@@ -37,7 +37,7 @@ public:
     Polygon                             polygon;
     // Is it a contour or a hole?
     bool                                is_contour;
-    // PPS: property of even wall in odd-even order for control flow and speed rate
+    // Orca: property of even wall in odd-even order for control flow and speed rate
     bool                                is_even = 0;
     // BBS: is perimeter using smaller width
     bool is_smaller_width_perimeter;
