@@ -1573,7 +1573,7 @@ msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr "設定檔「%1%」 已被載入，但部分數值無法識別。"
 
-msgid "Based on PrusaSlicer and BambuStudio"
+msgid "Based on PrusaSlicer and Bambu Studio"
 msgstr ""
 
 msgid ""
@@ -3064,8 +3064,8 @@ msgstr "Orca Slicer 授權於"
 msgid "GNU Affero General Public License, version 3"
 msgstr "GNU Affero 通用公共許可證，版本 3"
 
-msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
-msgstr "Orca Slicer 基於 PrusaSlicer 與 BambuStudio"
+msgid "Orca Slicer is based on PrusaSlicer and Bambu Studio"
+msgstr "Orca Slicer 基於 PrusaSlicer 與 Bambu Studio"
 
 msgid "Libraries"
 msgstr "Libraries"
@@ -3079,11 +3079,11 @@ msgstr "本軟體採用了開源組件，其版權及相關專有權歸屬於各
 msgid "About %s"
 msgstr "關於 %s"
 
-msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
-msgstr "Orca Slicer 是基於 BambuStudio, PrusaSlicer, 與 SuperSlicer 的開發。"
+msgid "OrcaSlicer is based on Bambu Studio, PrusaSlicer, and SuperSlicer."
+msgstr "Orca Slicer 是基於 Bambu Studio, PrusaSlicer, 與 SuperSlicer 的開發。"
 
-msgid "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
-msgstr "BambuStudio 最初是基於 PrusaResearch 的 PrusaSlicer。"
+msgid "Bambu Studio is originally based on PrusaSlicer by PrusaResearch."
+msgstr "Bambu Studio 最初是基於 PrusaResearch 的 PrusaSlicer。"
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
 msgstr "PrusaSlicer 最初是基於 Alessandro Ranellucci 的 Slic3r。"
@@ -9683,8 +9683,8 @@ msgstr "倍數"
 msgid "Flushing volumes for filament change"
 msgstr "線材更換時產生的廢料體積"
 
-msgid "Please choose the filament colour"
-msgstr ""
+msgid "Please choose the filament color"
+msgstr "請選擇線材顏色"
 
 msgid ""
 "Windows Media Player is required for this task! Do you want to enable "
@@ -9701,8 +9701,8 @@ msgstr ""
 
 msgid ""
 "Missing BambuSource component registered for media playing! Please re-"
-"install BambuStudio or seek after-sales help."
-msgstr "缺少 BambuSource 媒體播放組件！請重新安裝 BambuStudio 或聯繫售後支援。"
+"install Bambu Studio or seek after-sales help."
+msgstr "缺少 BambuSource 媒體播放組件！請重新安裝 Bambu Studio 或聯繫售後支援。"
 
 msgid ""
 "Using a BambuSource from a different install, video play may not work "
@@ -14049,7 +14049,7 @@ msgid ""
 "lower. A value of 10-15 mm³/s² is a good starting point for direct drive "
 "extruders and 5-10 mm³/s² for Bowden style.\n"
 "\n"
-"This feature is known as Pressure Equalizer in Prusa slicer.\n"
+"This feature is known as Pressure Equalizer in PrusaSlicer.\n"
 "\n"
 "Note: this parameter disables arc fitting."
 msgstr ""
@@ -19844,9 +19844,6 @@ msgstr ""
 
 #~ msgid "Show home page on startup"
 #~ msgstr "啟動時顯示首頁"
-
-#~ msgid "Please choose the filament color"
-#~ msgstr "請選擇線材顏色"
 
 #~ msgid "Send print job to"
 #~ msgstr "傳送列印作業至"

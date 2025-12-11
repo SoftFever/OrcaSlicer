@@ -4230,7 +4230,7 @@ void PrintConfigDef::init_fff_params()
                      "recommended as this allows for just enough smoothing to assist pressure advance achieve a smoother flow transition.\n\n"
                      "For slower printers without pressure advance, the value should be set much lower. "
                      "A value of 10-15 mm³/s² is a good starting point for direct drive extruders and 5-10 mm³/s² for Bowden style.\n\n"
-                     "This feature is known as Pressure Equalizer in Prusa slicer.\n\n"
+                     "This feature is known as Pressure Equalizer in PrusaSlicer.\n\n"
                      "Note: this parameter disables arc fitting.");
     def->sidetext = L(u8"mm³/s²");	// cubic milimeters per second per second, CIS languages need translation
     def->min = 0;

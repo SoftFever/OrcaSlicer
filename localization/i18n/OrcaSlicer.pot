@@ -1554,7 +1554,7 @@ msgid ""
 "Configuration file \"%1%\" was loaded, but some values were not recognized."
 msgstr ""
 
-msgid "Based on PrusaSlicer and BambuStudio"
+msgid "Based on PrusaSlicer and Bambu Studio"
 msgstr ""
 
 msgid ""
@@ -3018,7 +3018,7 @@ msgstr ""
 msgid "GNU Affero General Public License, version 3"
 msgstr ""
 
-msgid "Orca Slicer is based on PrusaSlicer and BambuStudio"
+msgid "Orca Slicer is based on PrusaSlicer and Bambu Studio"
 msgstr ""
 
 msgid "Libraries"
@@ -3033,10 +3033,10 @@ msgstr ""
 msgid "About %s"
 msgstr ""
 
-msgid "OrcaSlicer is based on BambuStudio, PrusaSlicer, and SuperSlicer."
+msgid "OrcaSlicer is based on Bambu Studio, PrusaSlicer, and SuperSlicer."
 msgstr ""
 
-msgid "BambuStudio is originally based on PrusaSlicer by PrusaResearch."
+msgid "Bambu Studio is originally based on PrusaSlicer by PrusaResearch."
 msgstr ""
 
 msgid "PrusaSlicer is originally based on Slic3r by Alessandro Ranellucci."
@@ -9398,7 +9398,7 @@ msgstr ""
 msgid "Flushing volumes for filament change"
 msgstr ""
 
-msgid "Please choose the filament colour"
+msgid "Please choose the filament color"
 msgstr ""
 
 msgid ""
@@ -9413,7 +9413,7 @@ msgstr ""
 
 msgid ""
 "Missing BambuSource component registered for media playing! Please re-"
-"install BambuStudio or seek after-sales help."
+"install Bambu Studio or seek after-sales help."
 msgstr ""
 
 msgid ""
@@ -13310,7 +13310,7 @@ msgid ""
 "lower. A value of 10-15 mm³/s² is a good starting point for direct drive "
 "extruders and 5-10 mm³/s² for Bowden style.\n"
 "\n"
-"This feature is known as Pressure Equalizer in Prusa slicer.\n"
+"This feature is known as Pressure Equalizer in PrusaSlicer.\n"
 "\n"
 "Note: this parameter disables arc fitting."
 msgstr ""
