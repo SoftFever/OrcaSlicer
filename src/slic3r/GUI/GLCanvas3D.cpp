@@ -8635,22 +8635,22 @@ void GLCanvas3D::_render_canvas_toolbar()
         sc *= (float) dpi / (float) DPI_DEFAULT;
     #endif // WIN32
 
-    ImVec2        btn_size  = ImVec2(36.f * sc, 36.f * sc);
+    ImVec2        btn_size  = ImVec2(36.f, 36.f) * sc;
     ImVec2        margin    = ImVec2(m_canvas_toolbar_pos[0] > 0 ? 0.f : (10.f * sc), 10.f * sc);
-    ImVec2        spacing   = ImVec2(6.f * sc, 6.f * sc);
-    float         pad_fix   = 2.f * sc;
+    ImVec2        spacing   = ImVec2(6.f, 6.f)  * sc;
+    ImVec2        padding   = ImVec2(2.f, 2.f)  * sc;
+    Vec2i32       pos       = {
+        m_canvas_toolbar_pos[0]        + margin.x,
+        get_canvas_size().get_height() - margin.y
+    };
     bool          zoom_btn  = wxGetApp().show_canvas_zoom_button();
 
-    Size          cnv_size  = get_canvas_size();
-    m_canvas_toolbar_pos[1] = cnv_size.get_height() - margin.y;
-    Vec2i32       pos       = m_canvas_toolbar_pos;
-
-    imgui.set_next_window_pos(pos[0] + margin.x, pos[1], ImGuiCond_Always, 0, 1); // pivot bottom-left
+    imgui.set_next_window_pos(pos[0], pos[1], ImGuiCond_Always, 0, 1); // pivot bottom-left
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0    );
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding   , {0,0});
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing    , {0,0});
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding  , {pad_fix, pad_fix}); // without padding images clipping
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding  , padding); // without padding images clipping
 
     imgui.begin(_L("Canvas Toolbar"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
                                            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);//
@@ -8660,10 +8660,10 @@ void GLCanvas3D::_render_canvas_toolbar()
 
     if (ImGui::ImageButton3(m_normal_id, m_hover_id, btn_size)) {
         if(!ImGui::IsPopupOpen("CanvasToolbarMenu")){
-            ImGui::SetNextWindowPos(ImVec2(pos[0] + margin.x + pad_fix, pos[1] - pad_fix - (zoom_btn ? (btn_size.y + spacing.y) : 0.f)), ImGuiCond_Always, ImVec2(0, 1)); // pivot bottom-left
+            ImGui::SetNextWindowPos(ImVec2(pos[0] + padding.x, pos[1] - padding.y - (zoom_btn ? (btn_size.y + spacing.y) : 0.f)), ImGuiCond_Always, ImVec2(0, 1)); // pivot bottom-left
             ImGui::OpenPopup("CanvasToolbarMenu");
         }
-    } // SetNextWindowPos applies to tooltip instead popup if tooltip used
+    }
  
     if(zoom_btn){
         ImGui::Dummy({ 0, spacing.y});
@@ -8691,17 +8691,17 @@ void GLCanvas3D::_render_canvas_toolbar()
     ImGui::PopStyleVar(4); // Window
 
     ImGui::PushStyleColor(ImGuiCol_PopupBg           , m_is_dark ? ImGuiWrapper::COL_TOOLBAR_BG_DARK : ImGuiWrapper::COL_TOOLBAR_BG);
-    ImGui::PushStyleColor(ImGuiCol_Separator         , m_is_dark ? ImVec4(1, 1, 1, .2f) : ImVec4(0, 0, 0, .2f));
-    ImGui::PushStyleColor(ImGuiCol_Text              , m_is_dark ? ImVec4(1.f, 1.f, 1.f, 0.88f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, 1.f));
-    ImGui::PushStyleColor(ImGuiCol_TextDisabled      , m_is_dark ? ImVec4(1.f, 1.f, 1.f, 0.44f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, .5f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered     , ImVec4(1.f, 0.68f, 0.26f, 0.f));
+    ImGui::PushStyleColor(ImGuiCol_Separator         , m_is_dark ? ImVec4(1, 1, 1, .20f) : ImVec4(0, 0, 0, .2f));
+    ImGui::PushStyleColor(ImGuiCol_Text              , m_is_dark ? ImVec4(1, 1, 1, .88f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_TextDisabled      , m_is_dark ? ImVec4(1, 1, 1, .44f) : ImVec4(50 / 255.f, 58 / 255.f, 61 / 255.f, .5f));
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered     , ImVec4(0, 0, 0, 0.f)); // bg color for menu item
     ImGui::PushStyleColor(ImGuiCol_BorderActive      , ImGuiWrapper::COL_ORCA);
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.f     );
     ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding  , 8.f * sc);
-    ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding  , {4.f * sc, 10.f * sc});
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing    , {0, 8.f * sc});
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.f * sc);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding  , 2.f * sc);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding  , ImVec2(4.f, 10.f) * sc);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing    , ImVec2(0.f, 8.f ) * sc);
 
     if (ImGui::BeginPopup("CanvasToolbarMenu")) {
         ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
@@ -8709,7 +8709,7 @@ void GLCanvas3D::_render_canvas_toolbar()
         Plater*    p   = wxGetApp().plater();
         AppConfig* cfg = wxGetApp().app_config;
 
-        auto create_menu_item = [this, sc, &imgui](
+        auto create_menu_item = [this, sc](
             const std::string& name,
             bool enable,
             bool condition,
@@ -8720,7 +8720,7 @@ void GLCanvas3D::_render_canvas_toolbar()
             if (ImGui::BBLMenuItem(("        " + _u8L(name)).c_str(), nullptr, false, enable, ImGui::CalcTextSize(_u8L(name).c_str()).y))
                 action();
             ImGui::SameLine(12.f * sc);
-            imgui.text_colored(enable ? ImVec4(1,1,1,1) : ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled), into_u8(condition ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str());
+            ImGui::TextColored(enable ? ImVec4(1,1,1,1) : ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled), "%s", into_u8(condition ? ImGui::VisibleIcon : ImGui::HiddenIcon).c_str());
         };
 
         create_menu_item( "3D Navigator",
