@@ -5398,7 +5398,6 @@ void ObjectList::change_part_type()
   }
 
   // --- Multi Selection ---
-  std::cerr << "Multi selection\n";
   struct Target { int obj_idx; Slic3r::ModelVolume* vol; };
   std::vector<Target> targets;
   targets.reserve(selections.size());
@@ -5406,24 +5405,18 @@ void ObjectList::change_part_type()
 
   for (const auto& item : selections) {
     auto typeMask = m_objects_model->GetItemType(item);
-    std::cerr << "Item type mask=" << typeMask << "\n";
     if (!(typeMask & itVolume)) {
-      std::cerr << "Skip non-volume item\n";
       continue;
     }
 
     int obj_idx = -1, vol_idx = -1;
     get_selected_item_indexes(obj_idx, vol_idx, item);
-    std::cerr << "resolve obj idx=" << obj_idx << " vol_idx=" << vol_idx << "\n";
     if (obj_idx < 0 || vol_idx < 0) {
-      std::cerr << "skip invalid indexes\n";
       continue;
     }
 
     ModelVolume* vol = (*m_objects)[obj_idx]->volumes[vol_idx];
-    std::cerr << "resolved volume ptr=" << (void*)vol<< "\n";
     if (!vol) {
-      std::cerr << "skip null volume\n";
       continue;
     }
 
