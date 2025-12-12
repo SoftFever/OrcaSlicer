@@ -871,7 +871,7 @@ void MenuFactory::append_menu_item_replace_with_stl(wxMenu *menu)
 
 void MenuFactory::append_menu_item_replace_all_with_stl(wxMenu *menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Replace all with STL") + dots, _L("Replace all selected parts with STL from folder"),
+    append_menu_item(menu, wxID_ANY, _L("Replace all with 3D files") + dots, _L("Replace all selected parts with 3D files from folder"),
         [](wxCommandEvent &) { plater()->replace_all_with_stl(); }, "", menu,
         []() { return plater()->can_replace_all_with_stl(); }, m_parent);
 }

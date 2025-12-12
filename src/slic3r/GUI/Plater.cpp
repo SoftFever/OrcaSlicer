@@ -7980,7 +7980,7 @@ void Plater::priv::replace_all_with_stl()
         return;
     }
 
-    std::string status = _L("Replaced with STLs from directory:\n").ToStdString() + out_path.string() + "\n\n";
+    std::string status = _L("Replaced with 3D files from directory:\n").ToStdString() + out_path.string() + "\n\n";
 
     for (unsigned int idx : volume_idxs) {
         const GLVolume* v = selection.get_volume(idx);
@@ -8013,7 +8013,7 @@ void Plater::priv::replace_all_with_stl()
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " replacing volume : " << input_path << " with " << new_path;
 
-        if (!replace_volume_with_stl(object_idx, volume_idx, new_path, "Replace with STL")) {
+        if (!replace_volume_with_stl(object_idx, volume_idx, new_path, "Replace with 3D file")) {
             status += boost::str(boost::format(_L("✖ Skipped %1%: failed to replace.\n").ToStdString()) % volume_name);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cannot replace volume : failed to replace with " << new_path;
             continue;
