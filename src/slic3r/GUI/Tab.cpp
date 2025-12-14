@@ -4088,7 +4088,7 @@ void TabFilament::build()
                     show_error(this, "Failed to get data from the Spoolman server. Make sure that the port is correct and the server is running.");
                     return;
                 }
-                auto res = Spoolman::update_filament_preset_from_spool(&m_presets->get_selected_preset(), true, stats_only);
+                auto res = Spoolman::update_filament_preset_from_spool(&m_presets->get_edited_preset(), true, stats_only);
 
                 if (res.has_failed()) {
                     show_error(this, res.build_error_dialog_message());
@@ -4096,6 +4096,7 @@ void TabFilament::build()
                 }
 
                 update_spoolman_statistics();
+                this->update_dirty();
             };
 
             auto refresh_all_btn = new Button(parent, _L("Update Filament"));
@@ -4160,8 +4161,7 @@ void TabFilament::build()
                 // Apply spool configuration changes
                 spool->apply_to_config(edited_preset.config);
 
-                // Load config changes into the tab
-                this->load_config(edited_preset.config);
+                this->update_dirty();
             });
             load_from_spoolman_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
             sizer->Add(load_from_spoolman_btn);
