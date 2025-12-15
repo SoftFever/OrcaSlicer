@@ -1646,7 +1646,7 @@ void GLGizmoEmboss::draw_font_list_line()
     bool exist_change_in_font = m_style_manager.is_font_changed();
     const std::string& font_text = m_gui_cfg->translations.font;
     if (exist_change_in_font || !exist_stored_style)
-        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, font_text); // ORCA match UI color
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_MODIFIED, font_text); // ORCA match color
     else
         ImGuiWrapper::text(font_text);
 
@@ -1920,9 +1920,9 @@ void GLGizmoEmboss::draw_style_rename_popup() {
 
     bool allow_change = false;
     if (new_name.empty()) {
-        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Name can't be empty.")); // ORCA match UI color
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_DARK, _u8L("Name can't be empty."));
     }else if (!is_unique) { 
-        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Name has to be unique.")); // ORCA match UI color
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_DARK, _u8L("Name has to be unique."));
     } else {
         ImGui::NewLine();
         allow_change = true;
@@ -2001,9 +2001,9 @@ void GLGizmoEmboss::draw_style_save_as_popup() {
     bool is_unique = m_style_manager.is_unique_style_name(new_name);        
     bool allow_change = false;
     if (new_name.empty()) {
-        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Name can't be empty.")); // ORCA match UI color
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_DARK, _u8L("Name can't be empty."));
     }else if (!is_unique) { 
-        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, _u8L("Name has to be unique.")); // ORCA match UI color
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_ORANGE_DARK, _u8L("Name has to be unique."));
     } else {
         ImGui::NewLine();
         allow_change = true;
@@ -2406,7 +2406,7 @@ bool GLGizmoEmboss::revertible(const std::string &name,
     ImGui::AlignTextToFramePadding();
     bool changed = exist_change(value, default_value);
     if (changed || default_value == nullptr)
-        ImGuiWrapper::text_colored(m_is_dark_mode ? ImGuiWrapper::COL_ORANGE_DARK : ImGuiWrapper::COL_ORANGE_LIGHT, name);
+        ImGuiWrapper::text_colored(ImGuiWrapper::COL_MODIFIED, name); // ORCA Match color
     else
         ImGuiWrapper::text(name);
 
