@@ -727,6 +727,9 @@ void Tab::update_label_colours()
     //update options "decoration"
     for (const auto& opt : m_options_list)
     {
+        // ORCA use simplified logic for label colors
+        const wxColour *color = ((opt.second & osInitValue) != 0) ? &m_sys_label_clr : &m_modified_label_clr;
+        /* ORCA use simplified logic for label colors
         const wxColour *color = &m_sys_label_clr;
 
         // value isn't equal to system value
@@ -738,6 +741,7 @@ void Tab::update_label_colours()
             else
                 color = &m_modified_label_clr;
         }
+        */
         if (opt.first == "printable_area"            ||
             opt.first == "compatible_prints"    || opt.first == "compatible_printers"           ) {
             if (Line* line = get_line(opt.first))
@@ -760,9 +764,12 @@ void Tab::update_label_colours()
             if (translate_category(page->title(), m_type) != title)
                 continue;
 
-            const wxColor *clr = !page->m_is_nonsys_values ? &m_sys_label_clr :
-                page->m_is_modified_values ? &m_modified_label_clr :
-                (m_type < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
+            //const wxColor *clr = !page->m_is_nonsys_values ? &m_sys_label_clr :
+            //   page->m_is_modified_values ? &m_modified_label_clr :
+            //    (m_type < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
+
+            // ORCA use simplified logic for label colors
+            const wxColor *clr =  (page->m_is_modified_values || m_type >= Preset::TYPE_COUNT) ? &m_modified_label_clr : &m_sys_label_clr;
 
             m_tabctrl->SetItemTextColour(cur_item, clr == &m_modified_label_clr ? *clr : StateColor(
                         std::make_pair(0x6B6B6C, (int) StateColor::NotChecked),
@@ -797,7 +804,9 @@ void Tab::decorate()
         const ScalableBitmap* sys_icon  = &m_bmp_value_lock;
         const ScalableBitmap* icon      = &m_bmp_value_revert;
 
-        const wxColour* color = m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr;
+        // ORCA use simplified logic for label colors
+        const wxColour *color = ((opt.second & osInitValue) != 0) ? &m_sys_label_clr : &m_modified_label_clr;
+        //const wxColour* color = m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr;
 
         const wxString* sys_tt  = &m_tt_value_lock;
         const wxString* tt      = &m_tt_value_revert;
@@ -807,12 +816,14 @@ void Tab::decorate()
             is_nonsys_value = true;
             sys_icon = m_bmp_non_system;
             sys_tt = m_tt_non_system;
+            /* ORCA use simplified logic for label colors
             // value is equal to last saved
             if ((opt.second & osInitValue) != 0)
                 color = &m_default_text_clr;
             // value is modified
             else
                 color = &m_modified_label_clr;
+            */
         }
         if ((opt.second & osInitValue) != 0)
         {
@@ -1087,8 +1098,10 @@ void Tab::update_changed_tree_ui()
                 }
             }
 
-            const wxColor *clr = sys_page ? (m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr) :
-                                 (modified_page || m_type >= Preset::TYPE_COUNT) ? &m_modified_label_clr : &m_default_text_clr;
+            //const wxColor *clr = sys_page ? (m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr) :
+            //                     (modified_page || m_type >= Preset::TYPE_COUNT) ? &m_modified_label_clr : &m_default_text_clr;
+            // ORCA use simplified logic for label colors
+            const wxColor *clr =  (modified_page || m_type >= Preset::TYPE_COUNT) ? &m_modified_label_clr : &m_sys_label_clr;
 
             if (page->set_item_colour(clr))
                 m_tabctrl->SetItemTextColour(cur_item, clr == &m_modified_label_clr ? *clr : StateColor(
