@@ -2687,18 +2687,22 @@ void ImGuiWrapper::pop_combo_style()
     ImGui::PopStyleColor(7);
 }
 
-void ImGuiWrapper::push_radio_style()
+void ImGuiWrapper::push_radio_style(const float scale)
 {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.5f, 1.5f) * scale); // ORCA ensure icon size stays consistent
     if (m_is_dark_mode) {
-        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#00675b"))); // ORCA use orca color for radio buttons
+        ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#009688"))); // ORCA use orca color for radio buttons
+        ImGui::PushStyleColor(ImGuiCol_Border   , to_ImVec4(decode_color_to_float_array("#949494"))); // ORCA match border color
     } else {
         ImGui::PushStyleColor(ImGuiCol_CheckMark, to_ImVec4(decode_color_to_float_array("#009688"))); // ORCA use orca color for radio buttons
+        ImGui::PushStyleColor(ImGuiCol_Border   , to_ImVec4(decode_color_to_float_array("#7C8282"))); // ORCA match border color
     }
 }
 
 void ImGuiWrapper::pop_radio_style()
 {
-    ImGui::PopStyleColor(1);
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(1);
 }
 
 void ImGuiWrapper::init_font(bool compress)

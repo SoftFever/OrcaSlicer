@@ -2257,7 +2257,7 @@ void GLGizmoCut3D::render_connectors_input_window(CutConnectors &connectors, flo
     render_flip_plane_button(m_connectors_editing && connectors.empty());
 
     m_imgui->text(m_labels_map["Type"]);
-    ImGuiWrapper::push_radio_style();
+    ImGuiWrapper::push_radio_style(m_parent.get_scale()); // ORCA
     bool type_changed = render_connect_type_radio_button(CutConnectorType::Plug);
     type_changed     |= render_connect_type_radio_button(CutConnectorType::Dowel);
     type_changed     |= render_connect_type_radio_button(CutConnectorType::Snap);
