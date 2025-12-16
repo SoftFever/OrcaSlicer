@@ -764,15 +764,11 @@ void Tab::update_label_colours()
             if (translate_category(page->title(), m_type) != title)
                 continue;
 
-            //const wxColor *clr = !page->m_is_nonsys_values ? &m_sys_label_clr :
-            //   page->m_is_modified_values ? &m_modified_label_clr :
-            //    (m_type < Preset::TYPE_COUNT ? &m_default_text_clr : &m_modified_label_clr);
-
             // ORCA use simplified logic for label colors
-            bool is_modified = (page->m_is_modified_values || m_type >= Preset::TYPE_COUNT);
+            bool is_modified = page->m_is_modified_values;
             m_tabctrl->SetItemTextColour(cur_item, StateColor(
-                std::make_pair(is_modified ? m_modified_label_clr : wxColour("#6B6B6C"), (int) StateColor::NotChecked),
-                std::make_pair(is_modified ? m_modified_label_clr : wxColour("#363636"), (int) StateColor::Normal))
+                std::pair(is_modified ? m_modified_label_clr : wxColour("#6B6B6C"), (int)StateColor::NotChecked),
+                std::pair(is_modified ? m_modified_label_clr : wxColour("#363636"), (int)StateColor::Normal))
             );
             break;
         }
@@ -855,7 +851,7 @@ void Tab::decorate()
                 sys_tt          = m_tt_non_system;
 
                 if (!modified_page)
-                    color = &m_default_text_clr;
+                    color = &m_sys_label_clr; // ORCA
                 else
                     color = &m_modified_label_clr;
             }
@@ -1099,10 +1095,10 @@ void Tab::update_changed_tree_ui()
             }
 
             // ORCA use simplified logic for label colors
-            bool is_modified =  (modified_page || m_type >= Preset::TYPE_COUNT);
+            bool is_modified = modified_page;
             m_tabctrl->SetItemTextColour(cur_item, StateColor(
-                std::make_pair(is_modified ? m_modified_label_clr : wxColour("#6B6B6C"), (int) StateColor::NotChecked),
-                std::make_pair(is_modified ? m_modified_label_clr : wxColour("#363636"), (int) StateColor::Normal))
+                std::pair(is_modified ? m_modified_label_clr : wxColour("#6B6B6C"), (int)StateColor::NotChecked),
+                std::pair(is_modified ? m_modified_label_clr : wxColour("#363636"), (int)StateColor::Normal))
             );
 
             page->m_is_nonsys_values = !sys_page;
@@ -5604,10 +5600,11 @@ void Tab::rebuild_page_tree()
         } else {
             m_tabctrl->SetItemText(curr_item, translate_category(p->title(), m_type));
         }
+        // ORCA use simplified logic for label colors
         bool is_modified = p->m_is_modified_values;
         m_tabctrl->SetItemTextColour(curr_item, StateColor(
-            std::make_pair(is_modified ? m_modified_label_clr : wxColour("#6B6B6C"), (int) StateColor::NotChecked),
-            std::make_pair(is_modified ? m_modified_label_clr : wxColour("#363636"), (int) StateColor::Normal))
+            std::pair(is_modified ? m_modified_label_clr : wxColour("#6B6B6C"), (int)StateColor::NotChecked),
+            std::pair(is_modified ? m_modified_label_clr : wxColour("#363636"), (int)StateColor::Normal))
         );
         if (translate_category(p->title(), m_type) == selected)
             item = curr_item;
@@ -6668,7 +6665,7 @@ void Tab::create_line_with_widget(ConfigOptionsGroup* optgroup, const std::strin
     line.set_undo_to_sys_bitmap(&m_bmp_white_bullet);
     line.set_undo_tooltip(&m_tt_white_bullet);
     line.set_undo_to_sys_tooltip(&m_tt_white_bullet);
-    line.set_label_colour(&m_default_text_clr);
+    line.set_label_colour(&m_sys_label_clr); // ORCA
 
     optgroup->append_line(line);
 }
