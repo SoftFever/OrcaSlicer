@@ -768,7 +768,7 @@ void Tab::update_label_colours()
             bool is_modified = page->m_is_modified_values;
             m_tabctrl->SetItemTextColour(cur_item, StateColor(
                 std::pair(is_modified ? m_modified_label_clr : wxColour("#6B6B6C"), (int)StateColor::NotChecked),
-                std::pair(is_modified ? m_modified_label_clr : wxColour("#363636"), (int)StateColor::Normal))
+                std::pair(is_modified ? m_modified_label_clr : m_sys_label_clr    , (int)StateColor::Normal))
             );
             break;
         }
@@ -1098,7 +1098,7 @@ void Tab::update_changed_tree_ui()
             bool is_modified = modified_page;
             m_tabctrl->SetItemTextColour(cur_item, StateColor(
                 std::pair(is_modified ? m_modified_label_clr : wxColour("#6B6B6C"), (int)StateColor::NotChecked),
-                std::pair(is_modified ? m_modified_label_clr : wxColour("#363636"), (int)StateColor::Normal))
+                std::pair(is_modified ? m_modified_label_clr : m_sys_label_clr    , (int)StateColor::Normal))
             );
 
             page->m_is_nonsys_values = !sys_page;
@@ -5604,7 +5604,7 @@ void Tab::rebuild_page_tree()
         bool is_modified = p->m_is_modified_values;
         m_tabctrl->SetItemTextColour(curr_item, StateColor(
             std::pair(is_modified ? m_modified_label_clr : wxColour("#6B6B6C"), (int)StateColor::NotChecked),
-            std::pair(is_modified ? m_modified_label_clr : wxColour("#363636"), (int)StateColor::Normal))
+            std::pair(is_modified ? m_modified_label_clr : m_sys_label_clr    , (int)StateColor::Normal))
         );
         if (translate_category(p->title(), m_type) == selected)
             item = curr_item;
