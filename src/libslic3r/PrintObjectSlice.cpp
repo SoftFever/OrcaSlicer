@@ -1369,16 +1369,23 @@ static std::vector<bool> identify_model_part_regions(const PrintObject *print_ob
     std::vector<bool> is_model_part_region(print_object->num_printing_regions(), false);
 
     if (!print_object->shared_regions()) {
+        // if no shared regions, assume all regions are model parts (fallback)
+        std::fill(is_model_part_region.begin(), is_model_part_region.end(), true);
         return is_model_part_region;
     }
 
     const PrintObjectRegions *shared_regions = print_object->shared_regions();
 
     // find the layer range that contains this z-height
+    constexpr double z_epsilon = EPSILON;
+    bool found_layer_range = false;
+    
     for (const auto &layer_range : shared_regions->layer_ranges) {
-        if (print_z >= layer_range.layer_height_range.first && 
-            print_z < layer_range.layer_height_range.second) {
+        if (print_z >= layer_range.layer_height_range.first - z_epsilon && 
+            print_z <= layer_range.layer_height_range.second + z_epsilon) {
 
+            found_layer_range = true;
+            
             // mark regions that come from model part volumes
             for (const auto &volume_region : layer_range.volume_regions) {
                 if (volume_region.region && volume_region.model_volume && 
@@ -1391,6 +1398,11 @@ static std::vector<bool> identify_model_part_regions(const PrintObject *print_ob
             }
             break;
         }
+    }
+    
+    // if no layer range found, assume all regions are model parts (fallback)
+    if (!found_layer_range) {
+        std::fill(is_model_part_region.begin(), is_model_part_region.end(), true);
     }
 
     return is_model_part_region;
@@ -1435,19 +1447,20 @@ void PrintObject::apply_conical_overhang() {
         std::vector<bool> upper_is_model_part = identify_model_part_regions(this, upper_layer->print_z);
         std::vector<bool> current_is_model_part = identify_model_part_regions(this, layer->print_z);
 
-        // check if any model part region has this feature enabled
-        bool any_model_part_enabled = false;
+        // check if any model part region has this feature enabled (either globally or via modifier)
+        // this allows modifiers to enable the feature even if globally disabled, or disable it when globally enabled
+        bool any_region_enabled = false;
         for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
             if (upper_is_model_part[region_id] && 
                 region_id < upper_layer->m_regions.size() &&
                 !upper_layer->m_regions[region_id]->slices.empty() &&
                 upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
-                any_model_part_enabled = true;
+                any_region_enabled = true;
                 break;
             }
         }
         
-        if (!any_model_part_enabled) {
+        if (!any_region_enabled) {
             continue;
         }
 
@@ -1459,11 +1472,16 @@ void PrintObject::apply_conical_overhang() {
         ExPolygons current_model_parts;
         
         for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
-            if (region_id < upper_layer->m_regions.size() && upper_is_model_part[region_id] &&
-                upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
-                ExPolygons region_polys = to_expolygons(upper_layer->m_regions[region_id]->slices.surfaces);
-                upper_model_parts.insert(upper_model_parts.end(), region_polys.begin(), region_polys.end());
+            // for upper layer: include model part regions unless explicitly disabled by the region config
+            if (region_id < upper_layer->m_regions.size() && upper_is_model_part[region_id]) {
+                // check if this region has the feature explicitly disabled (e.g., by a modifier)
+                bool region_disabled = !upper_layer->m_regions[region_id]->region().config().make_overhang_printable;
+                if (!region_disabled) {
+                    ExPolygons region_polys = to_expolygons(upper_layer->m_regions[region_id]->slices.surfaces);
+                    upper_model_parts.insert(upper_model_parts.end(), region_polys.begin(), region_polys.end());
+                }
             }
+            // for current layer: collect all model part geometry (needed for reference)
             if (region_id < layer->m_regions.size() && current_is_model_part[region_id]) {
                 ExPolygons region_polys = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
                 current_model_parts.insert(current_model_parts.end(), region_polys.begin(), region_polys.end());
@@ -1510,13 +1528,16 @@ void PrintObject::apply_conical_overhang() {
 
         // apply the conical overhang compensation only to model part regions
         for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
-            // skip if: region doesn't exist in either layer, region is from a modifier (not a model part),
-            // or the feature is disabled for this region
+            // skip if region doesn't exist in either layer or region is from a modifier (not a model part)
             if (region_id >= layer->m_regions.size() ||
                 !current_is_model_part[region_id] ||
                 region_id >= upper_layer->m_regions.size() ||
-                !upper_is_model_part[region_id] ||
-                !upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
+                !upper_is_model_part[region_id]) {
+                continue;
+            }
+            
+            // skip if the feature is explicitly disabled for this region (e.g., by a modifier)
+            if (!upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
                 continue;
             }
 
