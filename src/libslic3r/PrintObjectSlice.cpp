@@ -1408,6 +1408,65 @@ static std::vector<bool> identify_model_part_regions(const PrintObject *print_ob
     return is_model_part_region;
 }
 
+// get spatial footprint of modifier volumes that have make_overhang_printable disabled
+// this handles modifiers that create virtual boundaries without actual geometry
+static ExPolygons get_modifier_exclusion_areas(const PrintObject *print_object, coordf_t print_z) {
+    ExPolygons exclusion_areas;
+
+    if (!print_object->shared_regions()) {
+        return exclusion_areas;
+    }
+
+    const PrintObjectRegions *shared_regions = print_object->shared_regions();
+    constexpr double z_epsilon = EPSILON;
+
+    // find the layer range that contains this z-height
+    for (const auto &layer_range : shared_regions->layer_ranges) {
+        if (print_z >= layer_range.layer_height_range.first - z_epsilon && 
+            print_z <= layer_range.layer_height_range.second + z_epsilon) {
+
+            // check each modifier volume in this layer range
+            for (const auto &volume_region : layer_range.volume_regions) {
+                if (volume_region.model_volume && volume_region.model_volume->is_modifier() &&
+                    volume_region.region) {
+                    
+                    // check if this modifier has make_overhang_printable disabled
+                    if (!volume_region.region->config().make_overhang_printable) {
+                        // slice the modifier volume at this z-height to get its spatial footprint
+                        const ModelVolume *modifier = volume_region.model_volume;
+                        const indexed_triangle_set &its = modifier->mesh().its;
+                        
+                        // get the transformation for this specific modifier volume
+                        // combine print object's trafo with the volume's local transformation matrix
+                        MeshSlicingParamsEx slicing_params;
+                        slicing_params.trafo = print_object->trafo_centered() * modifier->get_matrix();
+                        
+                        if (slicing_params.trafo.rotation().determinant() < 0.) {
+                            // handle mirrored volumes by flipping triangles
+                            indexed_triangle_set its_copy = its;
+                            its_flip_triangles(its_copy);
+                            std::vector<ExPolygons> slices = slice_mesh_ex(its_copy, std::vector<float>{float(print_z)}, slicing_params);
+                            if (!slices.empty() && !slices[0].empty()) {
+                                BOOST_LOG_TRIVIAL(debug) << "Excluding modifier area at Z=" << print_z << ": " << slices[0].size() << " polygons";
+                                exclusion_areas.insert(exclusion_areas.end(), slices[0].begin(), slices[0].end());
+                            }
+                        } else {
+                            std::vector<ExPolygons> slices = slice_mesh_ex(its, std::vector<float>{float(print_z)}, slicing_params);
+                            if (!slices.empty() && !slices[0].empty()) {
+                                BOOST_LOG_TRIVIAL(debug) << "Excluding modifier area at Z=" << print_z << ": " << slices[0].size() << " polygons";
+                                exclusion_areas.insert(exclusion_areas.end(), slices[0].begin(), slices[0].end());
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        }
+    }
+
+    return exclusion_areas;
+}
+
 void PrintObject::apply_conical_overhang() {
     BOOST_LOG_TRIVIAL(info) << "Make overhang printable...";
 
@@ -1446,6 +1505,10 @@ void PrintObject::apply_conical_overhang() {
 
         std::vector<bool> upper_is_model_part = identify_model_part_regions(this, upper_layer->print_z);
         std::vector<bool> current_is_model_part = identify_model_part_regions(this, layer->print_z);
+
+        // get spatial footprints of modifiers with feature disabled
+        ExPolygons modifier_exclusion_upper = get_modifier_exclusion_areas(this, upper_layer->print_z);
+        ExPolygons modifier_exclusion_current = get_modifier_exclusion_areas(this, layer->print_z);
 
         // check if any model part region has this feature enabled (either globally or via modifier)
         // this allows modifiers to enable the feature even if globally disabled, or disable it when globally enabled
@@ -1486,6 +1549,14 @@ void PrintObject::apply_conical_overhang() {
                 ExPolygons region_polys = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
                 current_model_parts.insert(current_model_parts.end(), region_polys.begin(), region_polys.end());
             }
+        }
+        
+        // subtract modifier exclusion areas from upper layer geometry
+        if (!modifier_exclusion_upper.empty()) {
+            upper_model_parts = diff_ex(upper_model_parts, modifier_exclusion_upper);
+        }
+        if (!modifier_exclusion_current.empty()) {
+            current_model_parts = diff_ex(current_model_parts, modifier_exclusion_current);
         }
         
         if (upper_model_parts.empty()) {
