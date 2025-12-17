@@ -1363,6 +1363,39 @@ void PrintObject::slice_volumes()
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - end";
 }
 
+// find which regions are from actual model parts (not modifiers)
+// returns a vector of bools, one per region, indicating if it's from a model part
+static std::vector<bool> identify_model_part_regions(const PrintObject *print_object, coordf_t print_z) {
+    std::vector<bool> is_model_part_region(print_object->num_printing_regions(), false);
+
+    if (!print_object->shared_regions()) {
+        return is_model_part_region;
+    }
+
+    const PrintObjectRegions *shared_regions = print_object->shared_regions();
+
+    // find the layer range that contains this z-height
+    for (const auto &layer_range : shared_regions->layer_ranges) {
+        if (print_z >= layer_range.layer_height_range.first && 
+            print_z < layer_range.layer_height_range.second) {
+
+            // mark regions that come from model part volumes
+            for (const auto &volume_region : layer_range.volume_regions) {
+                if (volume_region.region && volume_region.model_volume && 
+                    volume_region.model_volume->is_model_part()) {
+                    int region_id = volume_region.region->print_object_region_id();
+                    if (region_id >= 0 && region_id < int(is_model_part_region.size())) {
+                        is_model_part_region[region_id] = true;
+                    }
+                }
+            }
+            break;
+        }
+    }
+
+    return is_model_part_region;
+}
+
 void PrintObject::apply_conical_overhang() {
     BOOST_LOG_TRIVIAL(info) << "Make overhang printable...";
 
@@ -1398,24 +1431,53 @@ void PrintObject::apply_conical_overhang() {
           continue;
         }
 
-        // Skip if entire layer has this disabled
-        if (std::all_of(layer->m_regions.begin(), layer->m_regions.end(),
-                        [](const LayerRegion *r) { return  r->slices.empty() || !r->region().config().make_overhang_printable; })) {
+
+        std::vector<bool> upper_is_model_part = identify_model_part_regions(this, upper_layer->print_z);
+        std::vector<bool> current_is_model_part = identify_model_part_regions(this, layer->print_z);
+
+        // check if any model part region has this feature enabled
+        bool any_model_part_enabled = false;
+        for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+            if (upper_is_model_part[region_id] && 
+                region_id < upper_layer->m_regions.size() &&
+                !upper_layer->m_regions[region_id]->slices.empty() &&
+                upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
+                any_model_part_enabled = true;
+                break;
+            }
+        }
+        
+        if (!any_model_part_enabled) {
             continue;
         }
 
         //layer->export_region_slices_to_svg_debug("layer_before_conical_overhang");
         //upper_layer->export_region_slices_to_svg_debug("upper_layer_before_conical_overhang");
 
+        // collect geometry from model part regions only
+        ExPolygons upper_model_parts;
+        ExPolygons current_model_parts;
+        
+        for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+            if (region_id < upper_layer->m_regions.size() && upper_is_model_part[region_id] &&
+                upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
+                ExPolygons region_polys = to_expolygons(upper_layer->m_regions[region_id]->slices.surfaces);
+                upper_model_parts.insert(upper_model_parts.end(), region_polys.begin(), region_polys.end());
+            }
+            if (region_id < layer->m_regions.size() && current_is_model_part[region_id]) {
+                ExPolygons region_polys = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
+                current_model_parts.insert(current_model_parts.end(), region_polys.begin(), region_polys.end());
+            }
+        }
+        
+        if (upper_model_parts.empty()) {
+            continue;
+        }
 
-        // Merge the upper layer because we want to offset the entire layer uniformly, otherwise
-        // the model could break at the region boundary.
-        auto upper_poly = upper_layer->merged(float(SCALED_EPSILON));
-        upper_poly = union_ex(upper_poly);
-
-        // Merge layer for the same reason
-        auto current_poly = layer->merged(float(SCALED_EPSILON));
-        current_poly = union_ex(current_poly);
+        // merge model part polygons -> we want to offset the entire layer uniformly, otherwise
+        // the model could break at the region boundary
+        auto upper_poly = union_ex(upper_model_parts);
+        auto current_poly = union_ex(current_model_parts);
 
         // Avoid closing up of recessed holes in the base of a model.
         // Detects when a hole is completely covered by the layer above and removes the hole from the layer above before
@@ -1446,12 +1508,15 @@ void PrintObject::apply_conical_overhang() {
         // Now offset the upper layer to be added into current layer
         upper_poly = offset_ex(upper_poly, scaled_max_dist_from_lower_layer);
 
+        // apply the conical overhang compensation only to model part regions
         for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
-            // export_to_svg(debug_out_path("Surface-obj-%d-layer-%d-region-%d.svg", id().id, layer->id(), region_id).c_str(),
-            //               layer->m_regions[region_id]->slices.surfaces);
-
-            // Disable on given region
-            if (!upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
+            // skip if: region doesn't exist in either layer, region is from a modifier (not a model part),
+            // or the feature is disabled for this region
+            if (region_id >= layer->m_regions.size() ||
+                !current_is_model_part[region_id] ||
+                region_id >= upper_layer->m_regions.size() ||
+                !upper_is_model_part[region_id] ||
+                !upper_layer->m_regions[region_id]->region().config().make_overhang_printable) {
                 continue;
             }
 
@@ -1467,13 +1532,18 @@ void PrintObject::apply_conical_overhang() {
             ExPolygons layer_polygons = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
             layer->m_regions[region_id]->slices.set(union_ex(layer_polygons, p), stInternal);
 
-            // Then remove it from all other regions, to avoid overlapping regions
+            // Then remove it from all other model part regions to avoid overlapping regions
+            // Do NOT remove from modifier regions - they should maintain their boundaries
             for (size_t other_region = 0; other_region < this->num_printing_regions(); ++other_region) {
-                if (other_region == region_id) {
+                if (other_region == region_id || other_region >= layer->m_regions.size()) {
                     continue;
                 }
-                ExPolygons s = to_expolygons(layer->m_regions[other_region]->slices.surfaces);
-                layer->m_regions[other_region]->slices.set(diff_ex(s, p, ApplySafetyOffset::Yes), stInternal);
+
+                // only subtract from other model part regions, leave modifier regions untouched
+                if (current_is_model_part[other_region]) {
+                    ExPolygons s = to_expolygons(layer->m_regions[other_region]->slices.surfaces);
+                    layer->m_regions[other_region]->slices.set(diff_ex(s, p, ApplySafetyOffset::Yes), stInternal);
+                }
             }
         }
         //layer->export_region_slices_to_svg_debug("layer_after_conical_overhang");
