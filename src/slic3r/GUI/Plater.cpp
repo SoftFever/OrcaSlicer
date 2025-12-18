@@ -2558,6 +2558,11 @@ void Sidebar::update_presets(Preset::Type preset_type)
             auto nozzle_dia = get_diameter_string(nozzle_diameter->values[extruder_index]);
             if(nozzle_dia != diameter && std::find(diameters.begin(), diameters.end(), nozzle_dia) != diameters.end())
                 diameter = nozzle_dia;
+            // ORCA try to add nozzle diameter from config if list is empty. fixes blank nozzle combo box when preset has no alias
+            if(diameters[0].empty() && !nozzle_dia.empty()){
+                diameters[0] = nozzle_dia;
+                diameter = nozzle_dia;
+            }
             for (size_t i = 0; i < diameters.size(); ++i) {
                 if (diameters[i] == diameter)
                     select = extruder.combo_diameter->GetCount();

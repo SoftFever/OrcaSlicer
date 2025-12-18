@@ -30,7 +30,7 @@ ImageDPIFrame::ImageDPIFrame()
     SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
 #endif
 
-    // ORCA add a border around it
+    // ORCA add border
     Bind(wxEVT_PAINT, [this](wxPaintEvent& evt) {
         wxPaintDC dc(this);
         dc.SetPen(StateColor::darkModeColorFor(wxColour("#DBDBDB")));
