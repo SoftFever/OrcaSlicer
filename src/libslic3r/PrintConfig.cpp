@@ -2951,6 +2951,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(300));
 
+    def = this->add("initial_layer_travel_acceleration", coFloatOrPercent);
+    def->label = L("First layer travel acceleration");
+    def->tooltip = L("Travel acceleration of first layer.");
+    def->sidetext = L("mm/s² or %");
+    def->ratio_over = "travel_acceleration";
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+
     def = this->add("accel_to_decel_enable", coBool);
     def->label = L("Enable accel_to_decel");
     def->tooltip = L("Klipper's max_accel_to_decel will be adjusted automatically.");
@@ -3030,6 +3039,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(12));
 
+    def = this->add("initial_layer_travel_jerk", coFloatOrPercent);
+    def->label = L("First layer travel jerk");
+    def->tooltip = L("Travel jerk of first layer.");
+    def->sidetext = L("mm/s or %");
+    def->ratio_over = "travel_jerk";
+    def->min = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
+
     def = this->add("initial_layer_line_width", coFloatOrPercent);
     def->label = L("Initial layer");
     def->category = L("Quality");
@@ -3081,24 +3099,6 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Speed");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "travel_speed";
-    def->min = 1;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
-    
-    def = this->add("initial_layer_travel_acceleration", coFloatOrPercent);
-    def->label = L("Initial layer travel acceleration");
-    def->tooltip = L("Travel acceleration of initial layer.");
-    def->sidetext = L("mm/s or %");
-    def->ratio_over = "travel_acceleration";
-    def->min = 1;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
-    
-    def = this->add("initial_layer_travel_jerk", coFloatOrPercent);
-    def->label = L("Initial layer travel jerk");
-    def->tooltip = L("Travel jerk of initial layer.");
-    def->sidetext = L("mm/s or %");
-    def->ratio_over = "travel_jerk";
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
