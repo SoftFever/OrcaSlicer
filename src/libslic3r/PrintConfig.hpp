@@ -221,7 +221,7 @@ enum GapFillTarget {
 enum LiftType {
     NormalLift,
     SpiralLift,
-    SlopeLift
+    LazyLift
 };
 
 enum SLAMaterial {
