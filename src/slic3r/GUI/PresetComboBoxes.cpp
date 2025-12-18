@@ -1311,7 +1311,8 @@ void PlaterPresetComboBox::update()
 
     //BBS: add project embedded preset logic
     add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"), _L("Project") + " ");
-    add_presets(nonsys_presets, selected_user_preset, L("User presets"), ""); // _L("Custom") + " " ORCA show filament presets without sub menu
+    auto group_filament_presets = wxGetApp().app_config->get("group_filament_presets");
+    add_presets(nonsys_presets, selected_user_preset, L("User presets"), group_filament_presets == "0" ? (_L("Custom") + " ") : ""); // ORCA show filament presets without sub menu
     // BBS: move system to the end
     add_presets(system_presets, selected_system_preset, L("System presets"), _L("System"));
     add_presets(uncompatible_presets, {}, L("Unsupported presets"), _L("Unsupported") + " ");

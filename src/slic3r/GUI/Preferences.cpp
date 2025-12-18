@@ -415,6 +415,52 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxStr
     return m_sizer_combox;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_group_filament_presets(wxString title, wxString tooltip)
+{
+    std::vector<wxString> vlist = {_L("All"), _L("None")}; // ByBrand will be added it to later
+    std::vector<wxString> clist = {   "0"   ,    "1"};
+
+    wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_combox->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
+
+    auto tip = tooltip.IsEmpty() ? title : tooltip; // auto fill tooltips with title if its empty
+
+    auto combo_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    combo_title->SetFont(::Label::Body_14);
+    combo_title->SetToolTip(tip);
+    combo_title->Wrap(DESIGN_TITLE_SIZE.x);
+    m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER);
+
+    auto combobox = new ::ComboBox(m_parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    combobox->SetFont(::Label::Body_14);
+    combobox->GetDropDown().SetFont(::Label::Body_14);
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER | wxLEFT, FromDIP(5));
+
+    std::vector<wxString>::iterator iter;
+    for (iter = vlist.begin(); iter != vlist.end(); iter++) { combobox->Append(*iter); }
+
+    AppConfig * config = GUI::wxGetApp().app_config;
+
+    if (!config->get("group_filament_presets").empty()) {
+        std::string value = config->get("group_filament_presets");
+        for (auto i = 0; i < vlist.size(); i++) {
+            if (clist[i].ToStdString() == value)
+                combobox->SetSelection(i);
+        }
+    }
+
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, combobox, clist](wxCommandEvent &e) {
+        const int v = e.GetSelection();
+        combobox->SetSelection(v);
+        wxGetApp().app_config->set("group_filament_presets", clist[v].ToStdString());
+        wxGetApp().plater()->sidebar().update_presets(Preset::TYPE_FILAMENT);
+        e.Skip();
+    });
+
+    return m_sizer_combox;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxString tooltip, std::vector<wxString> vlist)
 {
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
@@ -1220,6 +1266,9 @@ void PreferencesDialog::create_items()
 
     auto item_remember_printer = create_item_checkbox(_L("Remember printer configuration"), _L("If enabled, Orca will remember and switch filament/process configuration for each printer automatically."), "remember_printer_config");
     g_sizer->Add(item_remember_printer);
+
+    auto item_filament_preset_grouping = create_item_group_filament_presets(_L("Group user filament presets"), _L("Groups user filament presets depends on selection"));
+    g_sizer->Add(item_filament_preset_grouping);
 
     //// GENERAL > Features
     g_sizer->Add(create_item_title(_L("Features")), 1, wxEXPAND);
