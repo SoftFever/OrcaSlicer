@@ -1295,7 +1295,6 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     nozzle_diameters.resize(extruder_nums);
     for (size_t index = 0; index < extruder_nums; ++index) {
         int extruder_id = extruder_map[index];
-        //workarea
         nozzle_diameters[extruder_id] = obj->GetExtderSystem()->GetNozzleDiameter(index);
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
