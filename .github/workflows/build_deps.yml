@@ -23,9 +23,6 @@ on:
         required: false
         type: boolean
 
-permissions:
-  actions: write
-
 jobs:
   build_deps:
     name: Build Deps
@@ -37,7 +34,7 @@ jobs:
 
       # Setup the environment
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           lfs: 'true'
 
