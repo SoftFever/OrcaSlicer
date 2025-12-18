@@ -2952,12 +2952,12 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(300));
 
     def = this->add("initial_layer_travel_acceleration", coFloatOrPercent);
-    def->label = L("First layer travel acceleration");
+    def->label = L("First layer travel");
     def->tooltip = L("Travel acceleration of first layer.");
     def->sidetext = L("mm/s² or %");
-    def->ratio_over = "travel_acceleration";
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
+    def->ratio_over = "travel_acceleration";
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def = this->add("accel_to_decel_enable", coBool);
@@ -3040,12 +3040,12 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloat(12));
 
     def = this->add("initial_layer_travel_jerk", coFloatOrPercent);
-    def->label = L("First layer travel jerk");
+    def->label = L("First layer travel");
     def->tooltip = L("Travel jerk of first layer.");
     def->sidetext = L("mm/s or %");
-    def->ratio_over = "travel_jerk";
-    def->min = 1;
+    def->min = 0;
     def->mode = comAdvanced;
+    def->ratio_over = "travel_jerk";
     def->set_default_value(new ConfigOptionFloatOrPercent(100, true));
 
     def = this->add("initial_layer_line_width", coFloatOrPercent);
