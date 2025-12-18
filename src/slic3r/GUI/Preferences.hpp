@@ -77,11 +77,10 @@ public:
     std::vector<wxFlexGridSizer*> f_sizers;
 
     wxBoxSizer *create_item_title(wxString title);
-    wxBoxSizer *create_item_combobox(wxString title, wxString tooltip, std::string param, std::vector<wxString> vlist);
+    wxBoxSizer *create_item_combobox(wxString title, wxString tooltip, std::string param, std::vector<wxString> vlist, std::function<void(wxString)> onchange = {});
     wxBoxSizer *create_item_combobox(wxString title, wxString tooltip, std::string param, std::vector<wxString> vlist, std::vector<std::string> config_name_index);
     wxBoxSizer *create_item_region_combobox(wxString title, wxString tooltip);
     wxBoxSizer *create_item_language_combobox(wxString title, wxString tooltip);
-    wxBoxSizer *create_item_group_filament_presets(wxString title, wxString tooltip);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_checkbox(wxString title, wxString tooltip, std::string param, const wxString secondary_title = "");
     wxBoxSizer *create_item_darkmode(wxString title,wxString tooltip, std::string param);
