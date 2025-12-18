@@ -220,6 +220,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GUI_Utils.hpp
     GUI/HintNotification.cpp
     GUI/HintNotification.hpp
+    GUI/ThermalPreconditioningDialog.cpp
+    GUI/ThermalPreconditioningDialog.hpp
     GUI/HMS.cpp
     GUI/HMS.hpp
     GUI/HMSPanel.cpp
@@ -474,6 +476,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/AMSItem.hpp
     GUI/Widgets/AxisCtrlButton.cpp
     GUI/Widgets/AxisCtrlButton.hpp
+    GUI/SafetyOptionsDialog.hpp
+    GUI/SafetyOptionsDialog.cpp
     GUI/Widgets/Button.cpp
     GUI/Widgets/Button.hpp
     GUI/Widgets/CheckBox.cpp
@@ -617,6 +621,8 @@ set(SLIC3R_GUI_SOURCES
     Utils/WebSocketClient.hpp
     Utils/WxFontUtils.cpp
     Utils/WxFontUtils.hpp
+    Utils/FileTransferUtils.cpp
+    Utils/FileTransferUtils.hpp
 )
 
 add_subdirectory(GUI/DeviceCore)
@@ -675,7 +681,17 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GeneratedConfig.hpp.in
                ${CMAKE_CURRENT_BINARY_DIR}/GeneratedConfig.hpp
                @ONLY)
 
-add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
+if (WIN32)
+    add_library(libslic3r_gui STATIC
+        ${SLIC3R_GUI_SOURCES}
+        ../dev-utils/BaseException.cpp
+        ../dev-utils/BaseException.h
+        ../dev-utils/StackWalker.cpp
+        ../dev-utils/StackWalker.h
+    )
+else ()
+    add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
+endif ()
 target_include_directories(libslic3r_gui PRIVATE Utils ${CMAKE_CURRENT_BINARY_DIR})
 
 if (WIN32)

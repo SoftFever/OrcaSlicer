@@ -88,6 +88,10 @@ void GLGizmoFuzzySkin::show_tooltip_information(float caption_max, float x, floa
     caption_max += m_imgui->calc_text_size(std::string_view{": "}).x + 15.f;
 
     float  scale       = m_parent.get_scale();
+    #ifdef WIN32
+        int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
+        scale *= (float) dpi / (float) DPI_DEFAULT;
+    #endif // WIN32
     ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0}); // ORCA: Dont add padding
@@ -265,7 +269,7 @@ void GLGizmoFuzzySkin::on_render_input_window(float x, float y, float bottom_lim
         ImGui::AlignTextToFramePadding();
         m_imgui->text(m_desc["smart_fill_angle"]);
         std::string format_str = std::string("%.f") +
-                                 I18N::translate_utf8("°", "Degree sign to use in the respective slider in fuzzy skin gizmo,"
+                                 I18N::translate_utf8("°", "Degree sign to use in the respective slider in fuzzy skin gizmo, "
                                                            "placed after the number with no whitespace in between.");
         ImGui::SameLine(sliders_left_width);
         ImGui::PushItemWidth(sliders_width);
