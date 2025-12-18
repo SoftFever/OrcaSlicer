@@ -232,11 +232,19 @@ SpoolmanResult Spoolman::create_filament_preset_from_spool(const SpoolmanSpoolSh
 
     std::string filament_preset_name = spool->get_preset_name();
 
-    // Bring over the printer name from the base preset or add one for the current printer
-    if (const auto idx = base_preset->name.rfind(" @"); idx != std::string::npos)
+    // Add a printer/vendor identifier
+    if (auto idx = base_preset->name.rfind(" @"); idx != std::string::npos && base_preset->name.substr(idx) != " @System") {
         filament_preset_name += base_preset->name.substr(idx);
-    else
+    } else if (base_preset->vendor) {
+        // Presets from the filament library are compatible with all printers by default
+        // Skip adding an identifier
+        if (!base_preset->m_from_orca_filament_lib)
+            filament_preset_name += " @" + base_preset->vendor->name;
+    } else if (use_preset_data && (idx = additional_preset_data[BBL_JSON_KEY_NAME].find(" @")) != std::string::npos) {
+        filament_preset_name += additional_preset_data[BBL_JSON_KEY_NAME].substr(idx);
+    } else {
         filament_preset_name += " @" + wxGetApp().preset_bundle->printers.get_selected_preset_name();
+    }
 
     if (const auto idx = filament_preset_name.rfind(" - Copy"); idx != std::string::npos)
         filament_preset_name.erase(idx);
