@@ -1295,6 +1295,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     nozzle_diameters.resize(extruder_nums);
     for (size_t index = 0; index < extruder_nums; ++index) {
         int extruder_id = extruder_map[index];
+        //workarea
         nozzle_diameters[extruder_id] = obj->GetExtderSystem()->GetNozzleDiameter(index);
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
@@ -2551,9 +2552,13 @@ void Sidebar::update_presets(Preset::Type preset_type)
         p->layout_printer(preset_bundle.use_bbl_network(), isBBL && is_dual_extruder);
         auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
         auto diameter = printer_preset.config.opt_string("printer_variant");
-        auto update_extruder_diameter = [&diameters, &diameter](ExtruderGroup & extruder) {
+        auto update_extruder_diameter = [&diameters, &diameter, &nozzle_diameter](int extruder_index,ExtruderGroup & extruder) {
             extruder.combo_diameter->Clear();
             int select = -1;
+            // ORCA if user defined a custom nozzle in printer config select it instead inherited one. this will show correct nozzle diameter in combobox if its exist in nozzle diameters list
+            auto nozzle_dia = get_diameter_string(nozzle_diameter->values[extruder_index]);
+            if(nozzle_dia != diameter && std::find(diameters.begin(), diameters.end(), nozzle_dia) != diameters.end())
+                diameter = nozzle_dia;
             for (size_t i = 0; i < diameters.size(); ++i) {
                 if (diameters[i] == diameter)
                     select = extruder.combo_diameter->GetCount();
@@ -2567,14 +2572,14 @@ void Sidebar::update_presets(Preset::Type preset_type)
             AMSCountPopupWindow::UpdateAMSCount(0, p->left_extruder);
             AMSCountPopupWindow::UpdateAMSCount(1, p->right_extruder);
             //if (!p->is_switching_diameter) {
-                update_extruder_diameter(*p->left_extruder);
-                update_extruder_diameter(*p->right_extruder);
+                update_extruder_diameter(0, *p->left_extruder);
+                update_extruder_diameter(1, *p->right_extruder);
             //}
             p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, PRINTER_THUMBNAIL_SIZE.GetHeight()));
         } else {
             AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
             //if (!p->is_switching_diameter)
-                update_extruder_diameter(*p->single_extruder);
+                update_extruder_diameter(0, *p->single_extruder);
 
             // ORCA sync unified nozzle combo box
             p->combo_nozzle_dia->Clear();

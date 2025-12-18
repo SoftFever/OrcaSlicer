@@ -2761,7 +2761,8 @@ Preset *PresetBundle::get_similar_printer_preset(std::string printer_model, std:
     }
     if (printer_presets.empty())
         return nullptr;
-    auto prefer_printer = printers.get_selected_preset().name;
+    auto prefer_printer = printers.get_selected_preset().alias; //.name ORCA use alias instead "name" for calling system presets. otherwise nozzle combo will not change printer presets if they custom named
+
     if (!printer_variant.empty())
         boost::replace_all(prefer_printer, printer_variant_old, printer_variant);
     else if (auto n = prefer_printer.find(printer_variant_old); n != std::string::npos)
