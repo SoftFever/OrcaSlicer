@@ -170,9 +170,7 @@ SpoolmanImportDialog::SpoolmanImportDialog(wxWindow* parent)
     preset_sizer->Add(checkbox_sizer, 0, wxALIGN_CENTER_VERTICAL);
     main_sizer->Add(preset_sizer, 0, wxEXPAND | wxALL, EM);
 
-    auto buttons = new DialogButtons(this, {"All", "None", "Import", "Cancel"}, _L("Import"));
-    buttons->SetLeftAlignLabels({_L("All"), _L("None")});
-    buttons->UpdateButtons();
+    auto buttons = new DialogButtons(this, {"All", "None", "Import", "Cancel"}, _L("Import"), 2);
 
     buttons->GetButtonFromLabel(_L("All"))->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_svc->get_model()->SetAllToggles(true); });
     buttons->GetButtonFromLabel(_L("None"))->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { m_svc->get_model()->SetAllToggles(false); });
