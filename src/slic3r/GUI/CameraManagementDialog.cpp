@@ -2,6 +2,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "Widgets/Label.hpp"
+#include "Widgets/DialogButtons.hpp"
 #include "DeviceCore/DevManager.h"
 
 namespace Slic3r { namespace GUI {
@@ -74,24 +75,11 @@ void CameraEditDialog::create_ui()
 
     main_sizer->Add(grid_sizer, 0, wxEXPAND | wxALL, FromDIP(15));
 
-    wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    Button* ok_btn = new Button(this, _L("OK"));
-    ok_btn->SetBackgroundColor(wxColour(0, 150, 136));
-    ok_btn->SetBorderColor(wxColour(0, 150, 136));
-    ok_btn->SetTextColor(*wxWHITE);
-    ok_btn->SetMinSize(wxSize(FromDIP(80), FromDIP(30)));
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+    main_sizer->Add(dlg_btns, 0, wxEXPAND);
 
-    Button* cancel_btn = new Button(this, _L("Cancel"));
-    cancel_btn->SetMinSize(wxSize(FromDIP(80), FromDIP(30)));
-
-    button_sizer->AddStretchSpacer();
-    button_sizer->Add(ok_btn, 0, wxRIGHT, FromDIP(10));
-    button_sizer->Add(cancel_btn, 0);
-
-    main_sizer->Add(button_sizer, 0, wxEXPAND | wxALL, FromDIP(15));
-
-    ok_btn->Bind(wxEVT_BUTTON, &CameraEditDialog::on_ok, this);
-    cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_CANCEL); });
+    dlg_btns->GetOK()->Bind(wxEVT_BUTTON, &CameraEditDialog::on_ok, this);
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_CANCEL); });
 
     SetSizer(main_sizer);
     Layout();
@@ -263,33 +251,23 @@ void CameraManagementDialog::create_ui()
 
     main_sizer->Add(m_list_ctrl, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
 
-    wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto dlg_btns = new DialogButtons(this, {"Delete", "Add", "Edit", "Close"}, "", 1);
+    main_sizer->Add(dlg_btns, 0, wxEXPAND);
 
-    m_btn_add = new Button(this, _L("Add"));
-    m_btn_add->SetMinSize(wxSize(FromDIP(80), FromDIP(30)));
-    m_btn_add->Bind(wxEVT_BUTTON, &CameraManagementDialog::on_add, this);
+    m_btn_delete = dlg_btns->GetButtonFromLabel(_L("Delete"));
+    m_btn_add = dlg_btns->GetButtonFromLabel(_L("Add"));
+    m_btn_edit = dlg_btns->GetButtonFromLabel(_L("Edit"));
 
-    m_btn_edit = new Button(this, _L("Edit"));
-    m_btn_edit->SetMinSize(wxSize(FromDIP(80), FromDIP(30)));
-    m_btn_edit->Enable(false);
-    m_btn_edit->Bind(wxEVT_BUTTON, &CameraManagementDialog::on_edit, this);
-
-    m_btn_delete = new Button(this, _L("Delete"));
-    m_btn_delete->SetMinSize(wxSize(FromDIP(80), FromDIP(30)));
     m_btn_delete->Enable(false);
+    m_btn_edit->Enable(false);
+
+    m_btn_add->Bind(wxEVT_BUTTON, &CameraManagementDialog::on_add, this);
+    m_btn_edit->Bind(wxEVT_BUTTON, &CameraManagementDialog::on_edit, this);
     m_btn_delete->Bind(wxEVT_BUTTON, &CameraManagementDialog::on_delete, this);
 
-    button_sizer->Add(m_btn_add, 0, wxRIGHT, FromDIP(10));
-    button_sizer->Add(m_btn_edit, 0, wxRIGHT, FromDIP(10));
-    button_sizer->Add(m_btn_delete, 0);
-    button_sizer->AddStretchSpacer();
+    dlg_btns->GetButtonFromLabel(_L("Close"))->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_OK); });
 
-    Button* close_btn = new Button(this, _L("Close"));
-    close_btn->SetMinSize(wxSize(FromDIP(80), FromDIP(30)));
-    close_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_OK); });
-    button_sizer->Add(close_btn, 0);
-
-    main_sizer->Add(button_sizer, 0, wxEXPAND | wxALL, FromDIP(15));
+    dlg_btns->SetAlertButton(_L("Delete"));
 
     SetSizer(main_sizer);
     Layout();
