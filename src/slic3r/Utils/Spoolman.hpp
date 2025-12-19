@@ -193,6 +193,7 @@ class SpoolmanVendor
 public:
     int         id;
     std::string name;
+    std::string comment;
 
     void update_from_server();
 
@@ -226,6 +227,7 @@ public:
     int         bed_temp;
     std::string color;
     std::string preset_data;
+    std::string comment;
 
     // Can be nullptr
     SpoolmanVendorShrPtr vendor;
@@ -255,12 +257,13 @@ private:
 class SpoolmanSpool
 {
 public:
-    int    id;
-    double remaining_weight;
-    double used_weight;
-    double remaining_length;
-    double used_length;
-    bool   archived;
+    int         id;
+    std::string comment;
+    double      remaining_weight;
+    double      used_weight;
+    double      remaining_length;
+    double      used_length;
+    bool        archived;
 
     SpoolmanFilamentShrPtr filament;
 

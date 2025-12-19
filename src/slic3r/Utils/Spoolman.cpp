@@ -10,6 +10,31 @@ namespace Slic3r {
 
 namespace {
 template<class Type> Type get_opt(pt::ptree& data, const string& path, Type default_val = {}) { return data.get_optional<Type>(path).value_or(default_val); }
+
+void update_note(std::string& config_note, const std::string& type, const std::string& value)
+{
+    const auto header = ";spoolman_comment_" + type + "\n";
+    if (size_t header_idx; !config_note.empty() && (header_idx = config_note.find(header)) != std::string::npos) {
+        const size_t comment_begin_idx = header_idx + header.size();
+        if (const size_t comment_end_idx = config_note.find("\n;spoolman_comment_", header_idx); comment_end_idx != std::string::npos) {
+            const size_t comment_len = comment_end_idx - comment_begin_idx;
+            config_note.replace(comment_begin_idx, comment_len, value + "\n");
+            return;
+        }
+    }
+
+    if (value.empty())
+        return;
+
+    if (const size_t end_comment_idx = config_note.find("\n;spoolman_comment_end"); end_comment_idx != std::string::npos) {
+        config_note.insert(end_comment_idx, "\n" + header + value + "\n");
+        return;
+    }
+
+    if (!config_note.empty())
+        config_note.append("\n");
+    config_note.append(header).append(value).append("\n\n;spoolman_comment_end");
+}
 } // namespace
 
 // Max timout in seconds for Spoolman HTTP requests
@@ -499,13 +524,16 @@ void SpoolmanVendor::update_from_server() { update_from_json(Spoolman::get_spool
 
 void SpoolmanVendor::update_from_json(pt::ptree json_data)
 {
-    id   = json_data.get<int>("id");
-    name = get_opt<string>(json_data, "name");
+    id      = json_data.get<int>("id");
+    name    = get_opt<string>(json_data, "name");
+    comment = get_opt<string>(json_data, "comment");
 }
 
 void SpoolmanVendor::apply_to_config(Slic3r::DynamicConfig& config) const
 {
     config.set_key_value("filament_vendor", new ConfigOptionStrings({name}));
+    auto& config_note = config.opt<ConfigOptionStrings>("filament_notes", true)->get_at(0);
+    update_note(config_note, "vendor", comment);
 }
 
 //---------------------------------
@@ -543,6 +571,7 @@ void SpoolmanFilament::update_from_json(pt::ptree json_data)
     bed_temp       = get_opt<int>(json_data, "settings_bed_temp");
     color          = "#" + get_opt<string>(json_data, "color_hex");
     preset_data    = get_opt<string>(json_data, "extra.orcaslicer_preset_data");
+    comment        = get_opt<string>(json_data, "comment");
     if (!preset_data.empty()) {
         boost::trim_if(preset_data, [](char c) { return c == '"'; });
         boost::replace_all(preset_data, "\\\"", "\"");
@@ -564,6 +593,8 @@ void SpoolmanFilament::apply_to_config(Slic3r::DynamicConfig& config) const
         config.set_key_value("hot_plate_temp", new ConfigOptionInts({bed_temp}));
     }
     config.set_key_value("default_filament_colour", new ConfigOptionStrings{color});
+    auto& config_note = config.opt<ConfigOptionStrings>("filament_notes", true)->get_at(0);
+    update_note(config_note, "filament", comment);
     if (vendor)
         vendor->apply_to_config(config);
 }
@@ -627,6 +658,8 @@ std::string SpoolmanSpool::get_preset_name()
 void SpoolmanSpool::apply_to_config(Slic3r::DynamicConfig& config) const
 {
     config.set_key_value("spoolman_spool_id", new ConfigOptionInts({id}));
+    auto& config_note = config.opt<ConfigOptionStrings>("filament_notes", true)->get_at(0);
+    update_note(config_note, "spool", comment);
     filament->apply_to_config(config);
 }
 
@@ -651,6 +684,7 @@ void SpoolmanSpool::update_from_json(pt::ptree json_data)
         filament = m_spoolman->m_filaments.at(filament_id);
     }
     id               = json_data.get<int>("id");
+    comment          = get_opt<string>(json_data, "comment");
     remaining_weight = get_opt<double>(json_data, "remaining_weight");
     used_weight      = get_opt<double>(json_data, "used_weight");
     remaining_length = get_opt<double>(json_data, "remaining_length");
