@@ -194,7 +194,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(wxString title, wxS
             language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\x29");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE)) {
-            language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xb9\x81\xe4\xbd\x93\x29");
+            language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xb9\x81\xe9\xab\x94\x29");
         }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
             language_name = wxString::FromUTF8("\x45\x73\x70\x61\xc3\xb1\x6f\x6c");
@@ -677,6 +677,74 @@ wxBoxSizer *PreferencesDialog::create_item_backup(wxString title, wxString toolt
     return m_sizer_input;
 }
 
+wxBoxSizer *PreferencesDialog::create_item_auto_reslice(wxString title, wxString checkbox_tooltip, wxString delay_tooltip)
+{
+    wxBoxSizer *sizer_row = new wxBoxSizer(wxHORIZONTAL);
+
+    sizer_row->AddSpacer(FromDIP(DESIGN_LEFT_MARGIN));
+
+    auto checkbox_title = new wxStaticText(m_parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, wxST_NO_AUTORESIZE);
+    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    checkbox_title->SetFont(::Label::Body_14);
+    checkbox_title->Wrap(DESIGN_TITLE_SIZE.x);
+    checkbox_title->SetToolTip(checkbox_tooltip);
+
+    auto checkbox = new ::CheckBox(m_parent);
+    checkbox->SetValue(app_config->get_bool("auto_slice_after_change"));
+    checkbox->SetToolTip(checkbox_tooltip);
+
+    wxString delay_value = app_config->get("auto_slice_change_delay_seconds");
+    if (delay_value.empty())
+        delay_value = "0";
+
+    auto input = new ::TextInput(m_parent, wxEmptyString, _L("sec"), wxEmptyString, wxDefaultPosition, wxSize(FromDIP(97), -1), wxTE_PROCESS_ENTER);
+    StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
+    input->SetBackgroundColor(input_bg);
+    input->GetTextCtrl()->SetValue(delay_value);
+    wxTextValidator validator(wxFILTER_DIGITS);
+    input->SetToolTip(delay_tooltip);
+    input->GetTextCtrl()->SetValidator(validator);
+
+    sizer_row->Add(checkbox_title, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(3));
+    sizer_row->Add(checkbox, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(5));
+    sizer_row->Add(input, 0, wxALIGN_CENTER_VERTICAL);
+
+    auto commit_delay = [this, input]() {
+        wxString value = input->GetTextCtrl()->GetValue();
+        long seconds = 0;
+        if (!value.ToLong(&seconds) || seconds < 0)
+            seconds = 0;
+        wxString sanitized = wxString::Format("%ld", seconds);
+        input->GetTextCtrl()->SetValue(sanitized);
+        app_config->set("auto_slice_change_delay_seconds", std::string(sanitized.mb_str()));
+        app_config->save();
+    };
+
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [commit_delay](wxCommandEvent &e) {
+        commit_delay();
+        e.Skip();
+    });
+
+    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [commit_delay](wxFocusEvent &e) {
+        commit_delay();
+        e.Skip();
+    });
+
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, input](wxCommandEvent &e) {
+        const bool enabled = checkbox->GetValue();
+        app_config->set_bool("auto_slice_after_change", enabled);
+        app_config->save();
+        input->Enable(enabled);
+        input->Refresh();
+        e.Skip();
+    });
+
+    input->Enable(checkbox->GetValue());
+    input->Refresh();
+
+    return sizer_row;
+}
+
 wxBoxSizer* PreferencesDialog::create_item_darkmode(wxString title,wxString tooltip, std::string param)
 {
     wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
@@ -1095,7 +1163,7 @@ void PreferencesDialog::create()
 
     m_pref_tabs->SelectItem(0);
 
-    m_sizer_body->Add(m_pref_tabs, 0, wxEXPAND | wxBOTTOM, FromDIP(5));
+    m_sizer_body->Add(m_pref_tabs, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(5));
     m_sizer_body->Add(m_parent, 1, wxEXPAND);
 
     SetSizer(m_sizer_body);
@@ -1193,7 +1261,7 @@ void PreferencesDialog::create_items()
 
     std::vector<wxString> projectLoadSettingsBehaviourOptions = {_L("Load All"), _L("Ask When Relevant"), _L("Always Ask"), _L("Load Geometry Only")};
     std::vector<string>   projectLoadSettingsConfigOptions    = { OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_ALL, OPTION_PROJECT_LOAD_BEHAVIOUR_ASK_WHEN_RELEVANT, OPTION_PROJECT_LOAD_BEHAVIOUR_ALWAYS_ASK, OPTION_PROJECT_LOAD_BEHAVIOUR_LOAD_GEOMETRY };
-    auto item_project_load     = create_item_combobox(_L("Load behaviour"), _L("Should printer/filament/process settings be loaded when opening a .3mf?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
+    auto item_project_load     = create_item_combobox(_L("Load behaviour"), _L("Should printer/filament/process settings be loaded when opening a 3MF file?"), SETTING_PROJECT_LOAD_BEHAVIOUR, projectLoadSettingsBehaviourOptions, projectLoadSettingsConfigOptions);
     g_sizer->Add(item_project_load);
 
     auto item_max_recent_count = create_item_input(_L("Maximum recent files"), "", _L("Maximum count of recent files"), "max_recent_count", [](wxString value) {
@@ -1209,7 +1277,7 @@ void PreferencesDialog::create_items()
     auto item_gcodes_warning   = create_item_checkbox(_L("Don't warn when loading 3MF with modified G-code"), "", "no_warn_when_modified_gcodes");
     g_sizer->Add(item_gcodes_warning);
 
-    auto item_step_dialog      = create_item_checkbox(_L("Show options when importing STEP file"), _L("If enabled,a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
+    auto item_step_dialog      = create_item_checkbox(_L("Show options when importing STEP file"), _L("If enabled, a parameter settings dialog will appear during STEP file import."), "enable_step_mesh_setting");
     g_sizer->Add(item_step_dialog);
 
     auto item_backup           = create_item_backup(_L("Auto backup"), _L("Backup your project periodically for restoring from the occasional crash."));
@@ -1251,11 +1319,17 @@ void PreferencesDialog::create_items()
 
     std::vector<wxString> FlushOptionLabels = {_L("All"),_L("Color"),_L("None")};
     std::vector<std::string> FlushOptionValues = { "all","color change","disabled" };
-    auto item_auto_flush = create_item_combobox(_L("Auto flush after changing ..."), _L("Auto calculate flushing volumes when selected values changed"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
+    auto item_auto_flush = create_item_combobox(_L("Auto flush after changing..."), _L("Auto calculate flushing volumes when selected values changed"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
     g_sizer->Add(item_auto_flush);
 
     auto item_auto_arrange     = create_item_checkbox(_L("Auto arrange plate after cloning"), "", "auto_arrange");
     g_sizer->Add(item_auto_arrange);
+
+    auto item_auto_reslice = create_item_auto_reslice(
+        _L("Auto slice after changes"),
+        _L("If enabled, OrcaSlicer will re-slice automatically whenever slicing-related settings change."),
+        _L("Delay in seconds before auto slicing starts, allowing multiple edits to be grouped. Use 0 to slice immediately."));
+    g_sizer->Add(item_auto_reslice);
  
     //// CONTROL > Camera
     g_sizer->Add(create_item_title(_L("Camera")), 1, wxEXPAND);
@@ -1280,7 +1354,7 @@ void PreferencesDialog::create_items()
     g_sizer->Add(reverse_mouse_zoom);
 
     //// CONTROL > Clear my choice on ...
-    g_sizer->Add(create_item_title(_L("Clear my choice on ...")), 1, wxEXPAND);
+    g_sizer->Add(create_item_title(_L("Clear my choice on...")), 1, wxEXPAND);
 
     auto item_save_choise      = create_item_button(_L("Unsaved projects"), _L("Clear"), "", _L("Clear my choice on the unsaved projects."), []() {
         wxGetApp().app_config->set("save_project_choise", "");
@@ -1359,13 +1433,13 @@ void PreferencesDialog::create_items()
     //// ASSOCIATE > Extensions
     g_sizer->Add(create_item_title(_L("Associate files to OrcaSlicer")), 1, wxEXPAND);
 
-    auto item_associate_3mf    = create_item_checkbox(_L("Associate .3mf files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open .3mf files") , "associate_3mf");
+    auto item_associate_3mf    = create_item_checkbox(_L("Associate 3MF files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open 3MF files.") , "associate_3mf");
     g_sizer->Add(item_associate_3mf);
 
-    auto item_associate_stl    = create_item_checkbox(_L("Associate .stl files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open .stl files") , "associate_stl");
+    auto item_associate_stl    = create_item_checkbox(_L("Associate STL files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open STL files.") , "associate_stl");
     g_sizer->Add(item_associate_stl);
 
-    auto item_associate_step   = create_item_checkbox(_L("Associate .step/.stp files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open .step files"), "associate_step");
+    auto item_associate_step   = create_item_checkbox(_L("Associate STEP files to OrcaSlicer"), _L("If enabled, sets OrcaSlicer as default application to open STEP files."), "associate_step");
     g_sizer->Add(item_associate_step);
 
     //// ASSOCIATE > WebLinks
@@ -1403,6 +1477,10 @@ void PreferencesDialog::create_items()
 
     auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove mixed temperature restriction"), _L("With this option enabled, you can print materials with a large temperature difference together."), "enable_high_low_temp_mixed_printing");
     g_sizer->Add(item_mix_print_high_low_temperature);
+
+    g_sizer->Add(create_item_title(_L("Storage")), 1, wxEXPAND);
+    auto item_allow_abnormal_storage = create_item_checkbox(_L("Allow Abnormal Storage"), _L("This allows the use of Storage that is marked as abnormal by the Printer.\nUse at your own risk, can cause issues!"), "allow_abnormal_storage");
+    g_sizer->Add(item_allow_abnormal_storage);
 
     g_sizer->Add(create_item_title(_L("Log Level")), 1, wxEXPAND);
     auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
@@ -1590,7 +1668,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
                     wxGetApp().request_user_logout();
                     agent->set_country_code(country_code);
                 }
-                ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
+                ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"), ConfirmBeforeSendDialog::VisibleButtons::ONLY_CONFIRM);  // ORCA VisibleButtons instead ButtonStyle 
                 confirm_dlg.update_text(_L("Cloud environment switched, please login again!"));
                 confirm_dlg.on_show();
             }
