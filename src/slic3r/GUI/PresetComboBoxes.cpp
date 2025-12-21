@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <cctype>
 #include <boost/algorithm/string.hpp>
 
 #include <wx/sizer.h>
@@ -1263,7 +1264,7 @@ void PlaterPresetComboBox::update()
                 //    if (GetCount() == 1) Clear();
                 //    else SetString(GetCount() - 1, "");
                 //}
-                if (group == "System presets" || group == "Unsupported presets" || groupName == "by_type" || groupName == "by_vendor") // ORCA add sorting support for vendor / type for user presets
+                if (group == "System presets" || group == "Unsupported presets")
                     std::sort(list.begin(), list.end(), [&filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types](auto *l, auto *r) {
                         { // Compare order
                             auto iter1 = std::find(filament_orders.begin(), filament_orders.end(), l->first);
@@ -1285,11 +1286,29 @@ void PlaterPresetComboBox::update()
                         }
                         return l->first < r->first;
                     });
+                // ORCA add sorting support for vendor / type for user presets
+                if (groupName == "by_vendor" || groupName == "by_type" ){
+                    auto by = groupName == "by_vendor" ? preset_filament_vendors : preset_filament_types;
+                    std::sort(list.begin(), list.end(), [&by](auto *l, auto *r) {
+                        auto get_key = [&](auto* item) -> std::pair<bool, std::string> {
+                            std::string str = by.count(item->first) ? by.at(item->first) : "";
+                            std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::tolower(c);});
+                            return {!str.empty(), str}; // is_valid, lower_case
+                        };
+
+                        auto [l_valid, l_lower] = get_key(l);
+                        auto [r_valid, r_lower] = get_key(r);
+
+                        return (l_valid != r_valid) ? l_valid > r_valid
+                             : (l_lower != r_lower) ? l_lower < r_lower 
+                             : l->first < r->first;
+                    });
+                }
                 bool unsupported = group == "Unsupported presets";
                 for (auto it : list) {
                     // ORCA add sorting support for vendor / type for user presets
-                    auto groupName2 = groupName == "by_type"   ? preset_filament_types[it->first]
-                                    : groupName == "by_vendor" ? preset_filament_vendors[it->first]
+                    auto groupName2 = groupName == "by_type"   ? (preset_filament_types[it->first].empty()   ? _L("Unspecified") : preset_filament_types[it->first])
+                                    : groupName == "by_vendor" ? (preset_filament_vendors[it->first].empty() ? _L("Unspecified") : preset_filament_vendors[it->first])
                                     : groupByGroup             ? groupName
                                     : preset_filament_vendors[it->first];
                     int  index = Append(it->first, *it->second, groupName2, nullptr, unsupported ? DD_ITEM_STYLE_DISABLED : 0);
