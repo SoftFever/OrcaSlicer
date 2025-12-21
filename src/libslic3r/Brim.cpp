@@ -913,6 +913,7 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         for (const auto& objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
             const BrimType     brim_type = object->config().brim_type.value;
+            const float        elephant_foot_comp = scale_(object->config().elefant_foot_compensation.value);
             float              brim_offset = scale_(object->config().brim_object_gap.value);
             double             flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
             float              brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
@@ -978,12 +979,14 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                         }
                         brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
 
-                        Polygons ex_poly_holes_reversed = ex_poly.holes;
+                        ExPolygons Compensated = offset_ex(ex_poly, -elephant_foot_comp);
+                        ExPolygon Compensated_base = Compensated.empty()?ex_poly:Compensated.front();
+                        Polygons ex_poly_holes_reversed = Compensated_base.holes;
                         polygons_reverse(ex_poly_holes_reversed);
 
                         if (has_outer_brim) {
                             // BBS: inner and outer boundary are offset from the same polygon incase of round off error.
-                            auto innerExpoly = offset_ex(ex_poly.contour, brim_offset, jtRound, SCALED_RESOLUTION);
+                            auto innerExpoly = offset_ex(Compensated_base.contour, brim_offset, jtRound, SCALED_RESOLUTION);
                             ExPolygons outerExpoly;
                             if (use_brim_ears) {
                                 outerExpoly = make_brim_ears(object, flowWidth, brim_offset, flow, true);
@@ -1014,11 +1017,11 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                             append(no_brim_area_object, diff_ex(ex_poly_holes_reversed, offset_ex(ex_poly_holes_reversed, -no_brim_offset)));
                         }
                         if (!has_outer_brim)
-                            append(no_brim_area_object, diff_ex(offset(ex_poly.contour, no_brim_offset), ex_poly_holes_reversed));
+                            append(no_brim_area_object, diff_ex(offset(Compensated_base.contour, no_brim_offset), ex_poly_holes_reversed));
                         append(holes_object, ex_poly_holes_reversed);
                     }
                 }
-                auto objectIsland = offset_ex(object->layers().front()->lslices, brim_offset, jtRound, SCALED_RESOLUTION);
+                auto objectIsland = offset_ex(object->layers().front()->lslices, brim_offset - elephant_foot_comp, jtRound, SCALED_RESOLUTION);
                 append(no_brim_area_object, objectIsland);
 
                 brimToWrite.at(object->id()).obj = false;
