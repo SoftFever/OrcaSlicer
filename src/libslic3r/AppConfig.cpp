@@ -319,7 +319,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("group_filament_presets").empty()) {
-        set("group_filament_presets", "1"); // All "0" / None "1" / ByBrand "2" . ByBrand will be added it to later
+        set("group_filament_presets", "1"); // All "0" / None "1" / By Vendor "2" / By Type "3" 
     }
 
     if (get("enable_high_low_temp_mixed_printing").empty()){
