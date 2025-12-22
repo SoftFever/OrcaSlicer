@@ -28,7 +28,8 @@ call :add_arg print_help bool h help "print this help message"
 call :add_arg pack_deps bool p pack "bundle build deps into a zip file"
 call :add_arg build_slicer bool s slicer "build OrcaSlicer"
 call :add_arg install_deps bool u install-deps "download and install system dependencies using WinGet (build prerequisite)"
-call :add_arg use_vs2019 bool "" vs2019 "Use Visual Studio 16 2019 as the generator. Can be used with '-u'. (Default: Visual Studio 17 2022)"
+call :add_arg use_vs2019 bool "" vs2019 "Use Visual Studio 16 2019 as the generator. Can be used with '-u'. (Default: Autodetect or Visual Studio 18 2026)"
+call :add_arg use_vs2022 bool "" vs2022 "Use Visual Studio 17 2022 as the generator. Can be used with '-u'. (Default: Autodetect or Visual Studio 18 2026)"
 call :add_arg install_ide bool "" install-ide "Install the full Visual Studio IDE instead of only the build tools. Use with '-u'"
 call :add_arg bypass_vs_install bool "" no-vs "Skip installing Visual Studio. Select this option if you are providing your own installation. Use with '-u'"
 
@@ -52,6 +53,8 @@ if "%print_help%" == "ON" (
     exit /b 0
 )
 
+call :autodetect_vs
+%error_check%
 
 if "%install_deps%" == "ON" (
     where winget >nul 2>nul
@@ -72,15 +75,17 @@ if "%install_deps%" == "ON" (
                 echo    3^) Install Visual Studio 17 2022 Community edition ^(no '--vs2019'^)
                 exit /b 1
             )
-            set vs_year=2019
+            set vs_year=.2019
         ) else (
+        	if "%use_vs2022%" == "ON" (
+				set vs_year=.2022
+        	)
             if "%install_ide%" == "ON" (
                 set vs_edition=Community
                 set ide_component_flag=Microsoft.VisualStudio.Component.VC.CoreIde
             )
-            set vs_year=2022
         )
-        call :print_and_run winget install !winget_args! --id=Microsoft.VisualStudio.!vs_year!.!vs_edition! --force --custom "--add !ide_component_flag! Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project Microsoft.VisualStudio.Component.Windows11SDK.22621"
+        call :print_and_run winget install !winget_args! --id=Microsoft.VisualStudio!vs_year!.!vs_edition! --force --custom "--add !ide_component_flag! Microsoft.VisualStudio.Component.VC.Tools.x86.x64 Microsoft.VisualStudio.Component.VC.CMake.Project Microsoft.VisualStudio.Component.Windows11SDK.22621"
     )
     call :print_and_run winget install !winget_args! --id=Kitware.CMake
     call :print_and_run winget install !winget_args! --id=StrawberryPerl.StrawberryPerl
@@ -109,8 +114,14 @@ if "%build_debug%"=="ON" (
 )
 echo build type set to %build_type%
 
-set "generator=Visual Studio 17 2022"
-if "%use_vs2019%" == "ON" set "generator=Visual Studio 16 2019"
+set "generator=Visual Studio 18 2026"
+if "%use_vs2019%" == "ON" (
+	set "generator=Visual Studio 16 2019"
+) else (
+	if "%use_vs2022%" == "ON" (
+		set "generator=Visual Studio 17 2022"
+	)
+)
 
 set "SIG_FLAG="
 if defined ORCA_UPDATER_SIG_KEY set "SIG_FLAG=-DORCA_UPDATER_SIG_KEY=%ORCA_UPDATER_SIG_KEY%"
@@ -361,6 +372,59 @@ exit /b 0
     echo %~1=!%~1!
     exit /b 0
 
+:: autodetect_vs
+:autodetect_vs
+	:: skip autodetect if manual selection
+	if "%use_vs2019%" == "ON" exit /b 0
+	if "%use_vs2022%" == "ON" exit /b 0
+
+	where msbuild >nul 2>nul
+	if not !errorlevel! == 0 (
+		:: msbuild could not be found, use default
+		exit /b 0
+	)
+
+	setlocal
+	:: Detect Visual Studio version using msbuild
+	echo Detecting Visual Studio version using msbuild...
+
+	:: Try to get MSBuild version - the output format varies by VS version
+	set VS_MAJOR=
+	for /f "tokens=*" %%i in ('msbuild -version 2^>^&1 ^| findstr /r "^[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*"') do (
+		for /f "tokens=1 delims=." %%a in ("%%i") do set VS_MAJOR=%%a
+		set MSBUILD_OUTPUT=%%i
+		goto :version_found
+	)
+
+	:: Alternative method for newer MSBuild versions
+	if "%VS_MAJOR%"=="" (
+		for /f "tokens=*" %%i in ('msbuild -version 2^>^&1 ^| findstr /r "[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*"') do (
+			for /f "tokens=1 delims=." %%a in ("%%i") do set VS_MAJOR=%%a
+			set MSBUILD_OUTPUT=%%i
+			goto :version_found
+		)
+	)
+
+	:version_found
+	echo Detected Visual Studio %VS_VERSION% (version %VS_MAJOR%)
+
+	if "%VS_MAJOR%"=="16" (
+		endlocal
+		set use_vs2019=ON
+	) else if "%VS_MAJOR%"=="17" (
+		endlocal
+		set use_vs2022=ON
+	) else if "%VS_MAJOR%"=="18" (
+		:: VS 2026 is the default, do nothing
+		endlocal
+	) else (
+		echo Error: Unsupported Visual Studio version: %VS_MAJOR%
+		echo Supported versions: VS2019 (16.x^), VS2022 (17.x^), VS2026 (18.x^)
+		endlocal
+		exit /b 1
+	)
+
+	exit /b 0
 
 :: print_and_run <command...>
 :print_and_run
