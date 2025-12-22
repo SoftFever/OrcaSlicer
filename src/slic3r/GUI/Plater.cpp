@@ -2089,7 +2089,7 @@ Sidebar::Sidebar(Plater *parent)
     bSizer39->Add(ams_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     //bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
 
-    ScalableButton* spoolman_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "spool");
+    ScalableButton* spoolman_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "spoolman");
     spoolman_btn->SetToolTip(_L("View Spoolman info"));
     spoolman_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
         SpoolmanDialog dialog(wxGetApp().mainframe);
