@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <cctype>
 #include <boost/algorithm/string.hpp>
 
 #include <wx/sizer.h>
@@ -1295,10 +1294,8 @@ void PlaterPresetComboBox::update()
                             std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::tolower(c);});
                             return {!str.empty(), str}; // is_valid, lower_case
                         };
-
                         auto [l_valid, l_lower] = get_key(l);
                         auto [r_valid, r_lower] = get_key(r);
-
                         return (l_valid != r_valid) ? l_valid > r_valid
                              : (l_lower != r_lower) ? l_lower < r_lower 
                              : l->first < r->first;
