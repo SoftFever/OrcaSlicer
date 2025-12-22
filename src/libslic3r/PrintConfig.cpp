@@ -3365,6 +3365,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    // Orca
+    def = this->add("enable_power_loss_recovery", coBool);
+    def->label = L("Turn on Power Loss Recovery");
+    def->tooltip = L("Enable this to insert power loss recovery commands in generated G-code.(Only for Bambu Lab printers and Marlin firmware based printers)");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
 
     //BBS
     // def = this->add("spaghetti_detector", coBool);
@@ -7990,8 +7996,41 @@ size_t DynamicPrintConfig::get_parameter_size(const std::string& param_name, siz
     return extruder_nums;
 }
 
+// Orca: Special handling for extruder variants
+// BBL printers have extruder variants pre-defined in system profiles, however for customized multi-extruder profile,
+// we need to set up these parameters automatically, otherwise per-extruder options won't work properly.
+static void extend_extruder_variant(DynamicPrintConfig& config, const unsigned int num_extruders)
+{
+    // 1. Make sure the `extruder_variant_list` is the same length as extruder cnt
+    auto extruder_variant_opt = dynamic_cast<ConfigOptionStrings*>(config.option("extruder_variant_list"));
+    assert(extruder_variant_opt != nullptr);
+    extruder_variant_opt->resize(num_extruders, extruder_variant_opt); // Use the first option as the default value, so all extruders have the same variant
+
+    // 2. Update `printer_extruder_variant` and `printer_extruder_id` based on `extruder_variant_list`
+    auto printer_extruder_id_opt = dynamic_cast<ConfigOptionInts*>(config.option("printer_extruder_id"));
+    assert(printer_extruder_id_opt != nullptr);
+    printer_extruder_id_opt->values.clear();
+    auto printer_extruder_variant_opt = dynamic_cast<ConfigOptionStrings*>(config.option("printer_extruder_variant"));
+    assert(printer_extruder_variant_opt != nullptr);
+    printer_extruder_variant_opt->values.clear();
+    for (int i = 0; i < num_extruders; i++) {
+        // `extruder_variant_list` specifies supported variant of each nozzle/extruder,
+        // each item is a comma separated list of variants (extruder type + nozzle flow type) this extruder supported
+        std::string variant = extruder_variant_opt->get_at(i);
+        std::vector<std::string> variants_list;
+        boost::split(variants_list, variant, boost::is_any_of(","), boost::token_compress_on);
+
+        if (!variants_list.empty()) {
+            printer_extruder_id_opt->values.insert(printer_extruder_id_opt->values.end(), variants_list.size(), i + 1);
+            printer_extruder_variant_opt->values.insert(printer_extruder_variant_opt->values.end(), variants_list.begin(), variants_list.end());
+        }
+    }
+}
+
 void DynamicPrintConfig::set_num_extruders(unsigned int num_extruders)
 {
+    extend_extruder_variant(*this, num_extruders);
+
     const auto &defaults = FullPrintConfig::defaults();
     for (const std::string &key : print_config_def.extruder_option_keys()) {
         if (key == "default_filament_profile")
@@ -10094,6 +10133,10 @@ OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
     def->label = L("Is extruder used?");
     def->tooltip = L("Vector of booleans stating whether a given extruder is used in the print.");
 
+    def = this->add("num_extruders", coInt);
+    def->label   = L("Number of extruders");
+    def->tooltip = L("Total number of extruders, regardless of whether they are used in the current print.");
+
     // Options from PS not used in Orca
     //    def = this->add("initial_filament_type", coString);
     //    def->label = L("Initial filament type");
@@ -10135,22 +10178,21 @@ PrintStatisticsConfigDef::PrintStatisticsConfigDef()
     def->label = L("Total layer count");
     def->tooltip = L("Number of layers in the entire print.");
 
-    // Options from PS not used in Orca
-    /*    def = this->add("normal_print_time", coString);
+    def = this->add("normal_print_time", coString);
     def->label = L("Print time (normal mode)");
     def->tooltip = L("Estimated print time when printed in normal mode (i.e. not in silent mode). Same as print_time.");
 
-    def = this->add("num_printing_extruders", coInt);
-    def->label = L("Number of printing extruders");
-    def->tooltip = L("Number of extruders used during the print.");
+    //def = this->add("num_printing_extruders", coInt);
+    //def->label = L("Number of printing extruders");
+    //def->tooltip = L("Number of extruders used during the print.");
 
     def = this->add("print_time", coString);
     def->label = L("Print time (normal mode)");
     def->tooltip = L("Estimated print time when printed in normal mode (i.e. not in silent mode). Same as normal_print_time.");
 
-    def = this->add("printing_filament_types", coString);
-    def->label = L("Used filament types");
-    def->tooltip = L("Comma-separated list of all filament types used during the print.");
+    //def = this->add("printing_filament_types", coString);
+    //def->label = L("Used filament types");
+    //def->tooltip = L("Comma-separated list of all filament types used during the print.");
 
     def = this->add("silent_print_time", coString);
     def->label = L("Print time (silent mode)");
@@ -10174,7 +10216,7 @@ PrintStatisticsConfigDef::PrintStatisticsConfigDef()
 
     def = this->add("used_filament", coFloat);
     def->label = L("Used filament");
-    def->tooltip = L("Total length of filament used in the print.");*/
+    def->tooltip = L("Total length of filament used in the print.");
 }
 
 ObjectsInfoConfigDef::ObjectsInfoConfigDef()
@@ -10304,10 +10346,6 @@ OtherPresetsConfigDef::OtherPresetsConfigDef()
     def = this->add("physical_printer_preset", coString);
     def->label = L("Physical printer name");
     def->tooltip = L("Name of the physical printer used for slicing.");
-
-    def          = this->add("num_extruders", coInt);
-    def->label   = L("Number of extruders");
-    def->tooltip = L("Total number of extruders, regardless of whether they are used in the current print.");
 }
 
 
