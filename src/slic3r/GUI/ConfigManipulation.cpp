@@ -604,8 +604,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
 
     // Infill patterns that support multiline infill.
     InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
-    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipTpmsD || pattern == ipTpmsFK || pattern == ipCrossHatch || pattern == ipHoneycomb || pattern == ipLateralLattice || pattern == ipLateralHoneycomb ||
-                                                  pattern == ipCubic || pattern == ipStars || pattern == ipAlignedRectilinear || pattern == ipLightning || pattern == ip3DHoneycomb || pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
+    bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipTpmsD || pattern == ipTpmsFK || pattern == ipCrossHatch || pattern == ipHoneycomb || pattern == ipLateralLattice || pattern == ipLateralHoneycomb || pattern == ipConcentric ||
+                                                  pattern == ipCubic || pattern == ipStars || pattern == ipAlignedRectilinear || pattern == ipLightning || pattern == ip3DHoneycomb || pattern == ipAdaptiveCubic || pattern == ipSupportCubic|| pattern == ipTriangles || pattern == ipQuarterCubic|| pattern == ipArchimedeanChords || pattern == ipHilbertCurve || pattern == ipOctagramSpiral;
 
     // If there is infill, enable/disable fill_multiline according to whether the pattern supports multiline infill.
     if (have_infill) {
@@ -774,10 +774,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, co
     // Orca: Force solid support interface when using support ironing
     toggle_field("support_interface_spacing", have_support_material && have_support_interface && !has_support_ironing);
 
-    bool have_skirt_height = have_skirt &&
-    (config->opt_int("skirt_height") > 1 || config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
-    toggle_line("support_speed", have_support_material || have_skirt_height);
-    toggle_line("support_interface_speed", have_support_material && have_support_interface);
+//    see issue #10915
+//    bool have_skirt_height = have_skirt &&
+//    (config->opt_int("skirt_height") > 1 || config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
+//    toggle_line("support_speed", have_support_material || have_skirt_height);
+//    toggle_line("support_interface_speed", have_support_material && have_support_interface);
 
     // BBS
     //toggle_field("support_material_synchronize_layers", have_support_soluble);
