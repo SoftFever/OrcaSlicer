@@ -39,32 +39,28 @@ jobs:
           key: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }}
           restore-keys: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build
 
-      - name: Update DO_BUILD if not a cache hit
-        if: ${{ steps.cache-load.outputs.cache-hit != 'true' }}
-        run: echo "DO_BUILD=true" >> $GITHUB_ENV
-
       - uses: lukka/get-cmake@latest
-        if: ${{ !cancelled() && env.DO_BUILD == 'true' }}
+        if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') }}
         with:
           cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
 
       - name: setup dev on Windows
-        if: ${{ !cancelled() && env.DO_BUILD == 'true' && inputs.os == 'windows-latest' }}
+        if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') && inputs.os == 'windows-latest' }}
         uses: microsoft/setup-msbuild@v2
 
       - name: Get the date on Ubuntu and macOS
-        if: ${{ !cancelled() && env.DO_BUILD == 'true' && inputs.os != 'windows-latest' }}
+        if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') && inputs.os != 'windows-latest' }}
         run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
 
       - name: Get the date on Windows
-        if: ${{ !cancelled() && env.DO_BUILD == 'true' && inputs.os == 'windows-latest' }}
+        if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') && inputs.os == 'windows-latest' }}
         run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
         shell: pwsh
 
       # `pack` creates a zip file in deps/build
       - name: Build on Windows
-        if: ${{ !cancelled() && env.DO_BUILD == 'true' && inputs.os == 'windows-latest' }}
+        if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') && inputs.os == 'windows-latest' }}
         working-directory: ${{ github.workspace }}
         run: |
             choco install strawberryperl
@@ -74,7 +70,7 @@ jobs:
       # But Mac has multiple and we're preserving their directory structure relationship.
       # So the garbage siblings of OrcaSlicer_dep can be deleted to save artifact and cache space.
       - name: Build on Mac ${{ inputs.arch }}
-        if: ${{ !cancelled() && env.DO_BUILD == 'true' && inputs.os == 'macos-14' }}
+        if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') && inputs.os == 'macos-14' }}
         working-directory: ${{ github.workspace }}
         run: |
             brew install automake texinfo libtool
@@ -88,11 +84,11 @@ jobs:
             brew install zstd
 
       - name: Apt-Install Dependencies
-        if: ${{ !cancelled() && env.DO_BUILD == 'true' && inputs.os == 'ubuntu-24.04' }}
+        if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') && inputs.os == 'ubuntu-24.04' }}
         uses: ./.github/actions/apt-install-deps
 
       - name: Build on Ubuntu
-        if: ${{ !cancelled() && env.DO_BUILD == 'true' && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
+        if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') && (inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04') }}
         working-directory: ${{ github.workspace }}
         run: |
             ./build_linux.sh -dr
