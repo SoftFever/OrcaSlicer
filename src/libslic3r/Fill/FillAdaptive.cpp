@@ -1445,7 +1445,7 @@ static std::vector<CubeProperties> make_cubes_properties(double max_cube_edge_le
         props.line_z_distance = edge_length / sqrt(3);
         props.line_xy_distance = edge_length / sqrt(6);
         cubes_properties.emplace_back(props);
-        if (edge_length > max_cube_edge_length)
+        if (edge_length > 1.5 * max_cube_edge_length) // 1.5 Safety margin for very low densities (to ensure that the fill lines intersect the perimeters)
             break;
     }
     return cubes_properties;
