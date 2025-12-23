@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include "libslic3r/PlaceholderParser.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -6,11 +6,11 @@
 using namespace Slic3r;
 
 SCENARIO("Placeholder parser scripting", "[PlaceholderParser]") {
-	PlaceholderParser 	parser;
-	auto 				config = DynamicPrintConfig::full_print_config();
+    PlaceholderParser parser;
+    auto config = DynamicPrintConfig::full_print_config();
 
-	config.set_deserialize_strict( {
-		{ "printer_notes", "  PRINTER_VENDOR_PRUSA3D  PRINTER_MODEL_MK2  " },
+    config.set_deserialize_strict( {
+	    { "printer_notes", "  PRINTER_VENDOR_PRUSA3D  PRINTER_MODEL_MK2  " },
 	    { "nozzle_diameter", "0.6;0.6;0.6;0.6" },
 	    { "nozzle_temperature", "357;359;363;378" }
 	});
@@ -23,9 +23,9 @@ SCENARIO("Placeholder parser scripting", "[PlaceholderParser]") {
     config.option<ConfigOptionFloatOrPercent>("scarf_joint_speed")->percent = true;
 
     parser.apply_config(config);
-	parser.set("foo", 0);
-	parser.set("bar", 2);
-	parser.set("num_extruders", 4);
+    parser.set("foo", 0);
+    parser.set("bar", 2);
+    parser.set("num_extruders", 4);
 
     SECTION("nested config options (legacy syntax)") { REQUIRE(parser.process("[nozzle_temperature[foo]]") == "357"); }
     SECTION("array reference") { REQUIRE(parser.process("{nozzle_temperature[foo]}") == "357"); }
@@ -35,17 +35,17 @@ SCENARIO("Placeholder parser scripting", "[PlaceholderParser]") {
     SECTION("math: 2*3") { REQUIRE(parser.process("{2*3}") == "6"); }
     SECTION("math: 2*3/6") { REQUIRE(parser.process("{2*3/6}") == "1"); }
     SECTION("math: 2*3/12") { REQUIRE(parser.process("{2*3/12}") == "0"); }
-    SECTION("math: 2.*3/12") { REQUIRE(std::stod(parser.process("{2.*3/12}")) == Approx(0.5)); }
-    SECTION("math: 10 % 2.5") { REQUIRE(std::stod(parser.process("{10%2.5}")) == Approx(0.)); }
-    SECTION("math: 11 % 2.5") { REQUIRE(std::stod(parser.process("{11%2.5}")) == Approx(1.)); }
+    SECTION("math: 2.*3/12") { REQUIRE(std::stod(parser.process("{2.*3/12}")) == Catch::Approx(0.5)); }
+    SECTION("math: 10 % 2.5") { REQUIRE(std::stod(parser.process("{10%2.5}")) == Catch::Approx(0.)); }
+    SECTION("math: 11 % 2.5") { REQUIRE(std::stod(parser.process("{11%2.5}")) == Catch::Approx(1.)); }
     SECTION("math: 2*(3-12)") { REQUIRE(parser.process("{2*(3-12)}") == "-18"); }
     SECTION("math: 2*foo*(3-12)") { REQUIRE(parser.process("{2*foo*(3-12)}") == "0"); }
     SECTION("math: 2*bar*(3-12)") { REQUIRE(parser.process("{2*bar*(3-12)}") == "-36"); }
-    SECTION("math: 2.5*bar*(3-12)") { REQUIRE(std::stod(parser.process("{2.5*bar*(3-12)}")) == Approx(-45)); }
+    SECTION("math: 2.5*bar*(3-12)") { REQUIRE(std::stod(parser.process("{2.5*bar*(3-12)}")) == Catch::Approx(-45)); }
     SECTION("math: min(12, 14)") { REQUIRE(parser.process("{min(12, 14)}") == "12"); }
     SECTION("math: max(12, 14)") { REQUIRE(parser.process("{max(12, 14)}") == "14"); }
-    SECTION("math: min(13.4, -1238.1)") { REQUIRE(std::stod(parser.process("{min(13.4, -1238.1)}")) == Approx(-1238.1)); }
-    SECTION("math: max(13.4, -1238.1)") { REQUIRE(std::stod(parser.process("{max(13.4, -1238.1)}")) == Approx(13.4)); }
+    SECTION("math: min(13.4, -1238.1)") { REQUIRE(std::stod(parser.process("{min(13.4, -1238.1)}")) == Catch::Approx(-1238.1)); }
+    SECTION("math: max(13.4, -1238.1)") { REQUIRE(std::stod(parser.process("{max(13.4, -1238.1)}")) == Catch::Approx(13.4)); }
     SECTION("math: int(13.4)") { REQUIRE(parser.process("{int(13.4)}") == "13"); }
     SECTION("math: int(-13.4)") { REQUIRE(parser.process("{int(-13.4)}") == "-13"); }
     SECTION("math: round(13.4)") { REQUIRE(parser.process("{round(13.4)}") == "13"); }
