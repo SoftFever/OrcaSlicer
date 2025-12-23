@@ -1,15 +1,6 @@
 on:
   workflow_call:
     inputs:
-      cache-key:
-        required: true
-        type: string
-      cache-path:
-        required: true
-        type: string
-      valid-cache:
-        required: true
-        type: boolean
       os:
         required: true
         type: string
@@ -26,25 +17,26 @@ on:
 jobs:
   build_deps:
     name: Build Deps
-    if: ${{ !cancelled() && (inputs.build-deps-only || inputs.force-build || inputs.valid-cache != true) }}
     runs-on: ${{ inputs.os }}
     env:
       date:
+      DO_BUILD: ${{ inputs.build-deps-only || inputs.force-build }}
     steps:
-
-      # Setup the environment
       - name: Checkout
         uses: actions/checkout@v6
         with:
           lfs: 'true'
 
       - name: load cached deps
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
+        id: cache-load
         with:
-          path: ${{ inputs.cache-path }}
-          key: ${{ inputs.cache-key }}
+          path: ${{ github.workspace }}/deps/build${{ inputs.os != 'macos-14' && '/OrcaSlicer_dep' || '' }}
+          key: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }}
+          restore-keys: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build
 
       - uses: lukka/get-cmake@latest
+        if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit == 'false') }}
         with:
           cmakeVersion: "~3.28.0"  # use most recent 3.28.x version
 
@@ -101,39 +93,21 @@ jobs:
             cd deps/build
             tar -czvf OrcaSlicer_dep_ubuntu_$(date +"%Y%m%d").tar.gz destdir
 
-
-      # Upload Artifacts
-      # - name: Upload Mac ${{ inputs.arch }} artifacts
-      #   if: inputs.os == 'macos-14'
-      #   uses: actions/upload-artifact@v5
-      #   with:
-      #     name: OrcaSlicer_dep_mac_${{ env.date }}
-      #     path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.tar.gz
-
-      - name: Upload Windows artifacts
-        if: inputs.os == 'windows-latest'
+      - name: Upload ${{inputs.os}} ${{ inputs.arch }} artifacts
+        if: ${{ ! env.ACT }}
         uses: actions/upload-artifact@v5
         with:
-          name: OrcaSlicer_dep_win64_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.zip
-
-      - name: Upload Ubuntu artifacts
-        if: ${{ ! env.ACT && inputs.os == 'ubuntu-20.04' || inputs.os == 'ubuntu-24.04' }}
-        env:
-          ubuntu-ver: ${{ (inputs.os == 'ubuntu-20.04' && '2004') || (inputs.os == 'ubuntu-24.04' && '2404') || '' }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: OrcaSlicer_dep_ubuntu_${{ env.ubuntu-ver }}_${{ env.date }}
-          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep_ubuntu_*.tar.gz
+          name: OrcaSlicer_dep_${{inputs.os}}_${{ inputs.arch }}
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep*.{tar.gz,zip}
+          if-no-files-found: error
 
   build_orca:
     name: Build OrcaSlicer
     needs: [build_deps]
-    if: ${{ !cancelled() && !inputs.build-deps-only && (inputs.force-build || (inputs.valid-cache == true && needs.build_deps.result == 'skipped') || (inputs.valid-cache != true && success())) }}
+    if: ${{ !cancelled() && (!inputs.build-deps-only || inputs.force-build) && success() }}
     uses: ./.github/workflows/build_orca.yml
     with:
-      cache-key: ${{ inputs.cache-key }}
-      cache-path: ${{ inputs.cache-path }}
+      artifact-name: ${{ upload-artifact.name }}
       os: ${{ inputs.os }}
       arch: ${{ inputs.arch }}
     secrets: inherit
