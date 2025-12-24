@@ -111,11 +111,6 @@ void AppConfig::set_defaults()
         if (get("background_processing").empty())
             set_bool("background_processing", false);
 #endif
-        if (get("auto_slice_after_change").empty())
-            set_bool("auto_slice_after_change", false);
-
-        if (get("auto_slice_change_delay_seconds").empty())
-            set("auto_slice_change_delay_seconds", "1");
 
         if (get("drop_project_action").empty())
             set_bool("drop_project_action", true);
@@ -463,6 +458,9 @@ void AppConfig::set_defaults()
     if (get("is_split_compound").empty()) {
         set_bool("is_split_compound", false);
     }
+
+    if (get("show_spoolman_consumption_dialog").empty())
+        set_bool("show_spoolman_consumption_dialog", true);
 
     // Remove legacy window positions/sizes
     erase("app", "main_frame_maximized");

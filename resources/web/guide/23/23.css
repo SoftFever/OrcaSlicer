@@ -39,6 +39,12 @@ input
 	align-items: center;
 }
 
+#ItemSelectArea .SmallBtn
+{
+	margin-left:5px;
+}
+
+
 #ItemBlockArea
 {
 	display:flex;
@@ -105,7 +111,7 @@ input
 {
 	margin-top: 4mm;
 	display: flex;
-	justify-content:flex-end;
+	justify-content:space-around;
 }
 
 #SystemFilamentsArea

@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <algorithm>
 #include <numeric>
-#include <limits>
 #include <vector>
 #include <string>
 #include <regex>
@@ -38,6 +37,7 @@
 #include <wx/busyinfo.h>
 #include <wx/event.h>
 #include <wx/wrapsizer.h>
+#include "SpoolmanDialog.hpp"
 #ifdef _WIN32
 #include <wx/richtooltip.h>
 #include <wx/custombgwin.h>
@@ -145,6 +145,7 @@
 #include <libslic3r/CutUtils.hpp>
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include <libslic3r/miniz_extension.hpp>
+#include <Spoolman.hpp>
 #include "WipeTowerDialog.hpp"
 #include "ObjColorDialog.hpp"
 
@@ -467,6 +468,7 @@ struct Sidebar::priv
     ScalableButton *  m_bpButton_del_filament;
     ScalableButton *  m_bpButton_ams_filament;
     ScalableButton *  m_bpButton_set_filament;
+    ScalableButton *  m_bpButton_spoolman;
     int m_menu_filament_id = -1;
     wxScrolledWindow* m_panel_filament_content;
     wxScrolledWindow* m_scrolledWindow_filament_content;
@@ -944,7 +946,7 @@ public:
 
         Bind(wxEVT_PAINT, [this](wxPaintEvent& evt) {
                 wxPaintDC dc(this);
-                dc.SetPen(StateColor::darkModeColorFor(wxColour("#DBDBDB"))); // ORCA match popup border color
+                dc.SetPen(wxColour("#EEEEEE"));
                 dc.SetBrush(*wxTRANSPARENT_BRUSH);
                 dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
             });
@@ -1467,7 +1469,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         double value = 0.0;
         left_extruder->diameter.ToDouble(&value);
         extruder_infos[0].diameter = float(value);
-    
+
         value = 0.0;
         right_extruder->diameter.ToDouble(&value);
         extruder_infos[1].diameter = float(value);
@@ -1645,8 +1647,8 @@ Sidebar::Sidebar(Plater *parent)
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::ElementSpacing()));
         h_sizer_title->Add(p->m_text_printer_settings, 0, wxALIGN_CENTER);
         h_sizer_title->AddStretchSpacer();
-        h_sizer_title->Add(p->m_printer_connect , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing())); // used larger margin to prevent accidental clicks
-        h_sizer_title->Add(p->m_printer_bbl_sync, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(SidebarProps::WideSpacing())); // used larger margin to prevent accidental clicks
+        h_sizer_title->Add(p->m_printer_connect , 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20)); // used larger margin to prevent accidental clicks
+        h_sizer_title->Add(p->m_printer_bbl_sync, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20)); // used larger margin to prevent accidental clicks
         h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
         h_sizer_title->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
         h_sizer_title->SetMinSize(-1, 3 * em);
@@ -1663,7 +1665,10 @@ Sidebar::Sidebar(Plater *parent)
         // add printer title
         scrolled_sizer->Add(p->m_panel_printer_title, 0, wxEXPAND | wxALL, 0);
         p->m_panel_printer_title->Bind(wxEVT_LEFT_UP, [this] (auto & e) {
-            p->m_panel_printer_content->Show(!p->m_panel_printer_content->IsShown());
+            if (p->m_panel_printer_content->GetMaxHeight() == 0)
+                p->m_panel_printer_content->SetMaxSize({-1, -1});
+            else
+                p->m_panel_printer_content->SetMaxSize({-1, 0});
             m_scrolled_sizer->Layout();
         });
 
@@ -1993,7 +1998,16 @@ Sidebar::Sidebar(Plater *parent)
         if (e.GetPosition().x > (p->m_flushing_volume_btn->IsShown()
                 ? p->m_flushing_volume_btn->GetPosition().x : (p->m_bpButton_add_filament->GetPosition().x - FromDIP(30)))) // ORCA exclude area of del button from titlebar collapse/expand feature to fix undesired collapse when user spams del filament button 
             return;
-        p->m_panel_filament_content->Show(!p->m_panel_filament_content->IsShown());
+        if (p->m_panel_filament_content->GetMaxHeight() == 0) {
+            p->m_panel_filament_content->SetMaxSize({-1, FromDIP(174)});
+            auto min_size = p->m_panel_filament_content->GetSizer()->GetMinSize();
+            if (min_size.y > p->m_panel_filament_content->GetMaxHeight())
+                min_size.y = p->m_panel_filament_content->GetMaxHeight();
+            p->m_panel_filament_content->SetMinSize({-1, min_size.y});
+        } else {
+            p->m_panel_filament_content->SetMinSize({-1, 0});
+            p->m_panel_filament_content->SetMaxSize({-1, 0});
+        }
         m_scrolled_sizer->Layout();
     });
 
@@ -2035,7 +2049,7 @@ Sidebar::Sidebar(Plater *parent)
         }));
 
     bSizer39->Add(p->m_flushing_volume_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
-    bSizer39->Hide(p->m_flushing_volume_btn); // ORCA Ensure button is hidden on launch while 1 filament exist
+    bSizer39->Hide(p->m_flushing_volume_btn);
 
     ScalableButton* add_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "add_filament");
     add_btn->SetToolTip(_L("Add one filament"));
@@ -2055,8 +2069,12 @@ Sidebar::Sidebar(Plater *parent)
 
     bSizer39->Add(del_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     bSizer39->Add(add_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing())); // ORCA Moved add button after delete button to prevent add button position change when remove icon automatically hidden
+    bSizer39->AddSpacer(FromDIP(20));
 
-    bSizer39->Hide(p->m_bpButton_del_filament); // ORCA Ensure button is hidden on launch while 1 filament exist
+    if (p->combos_filament.size() <= 1) { // ORCA Fix Flushing button and Delete filament button not hidden on launch while only 1 filament exist
+        bSizer39->Hide(p->m_flushing_volume_btn);
+        //bSizer39->Hide(p->m_bpButton_del_filament); // ORCA: Hide delete filament button if there is only one filament
+    }
 
     ams_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "ams_fila_sync", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                                  wxBU_EXACTFIT | wxNO_BORDER, false, 16); // ORCA match icon size with other icons as 16x16
@@ -2068,8 +2086,16 @@ Sidebar::Sidebar(Plater *parent)
     ams_btn->Bind(wxEVT_UPDATE_UI, &Sidebar::update_sync_ams_btn_enable, this);
     p->m_bpButton_ams_filament = ams_btn;
 
-    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
+    bSizer39->Add(ams_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     //bSizer39->Add(FromDIP(10), 0, 0, 0, 0 );
+
+    ScalableButton* spoolman_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "spool");
+    spoolman_btn->SetToolTip(_L("View Spoolman info"));
+    spoolman_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        SpoolmanDialog dialog(wxGetApp().mainframe);
+    });
+    p->m_bpButton_spoolman = spoolman_btn;
+    bSizer39->Add(spoolman_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
 
     ScalableButton* set_btn = new ScalableButton(p->m_panel_filament_title, wxID_ANY, "settings");
     set_btn->SetToolTip(_L("Set filaments to use"));
@@ -2081,7 +2107,7 @@ Sidebar::Sidebar(Plater *parent)
         });
     p->m_bpButton_set_filament = set_btn;
 
-    bSizer39->Add(set_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::WideSpacing()));
+    bSizer39->Add(set_btn, 0, wxALIGN_CENTER | wxLEFT, FromDIP(SidebarProps::IconSpacing()));
     bSizer39->AddSpacer(FromDIP(SidebarProps::TitlebarMargin()));
 
     // add filament content
@@ -4122,13 +4148,12 @@ struct Plater::priv
     bool m_ignore_event{false};
     bool m_slice_all{false};
     bool m_is_slicing {false};
-    bool auto_reslice_pending {false};
-    bool auto_reslice_after_cancel {false};
     bool m_is_publishing {false};
     int m_is_RightClickInLeftUI{-1};
     int m_cur_slice_plate;
     //BBS: m_slice_all in .gcode.3mf file case, set true when slice all
     bool m_slice_all_only_has_gcode{ false };
+    bool m_export_all{ false };
 
     bool m_need_update{false};
     //BBS: add popup object table logic
@@ -4168,7 +4193,6 @@ struct Plater::priv
     std::string                 delayed_error_message;
 
     wxTimer                     background_process_timer;
-    wxTimer                     auto_reslice_timer;
 
     std::string                 label_btn_export;
     std::string                 label_btn_send;
@@ -4188,6 +4212,10 @@ struct Plater::priv
     priv(Plater *q, MainFrame *main_frame);
     ~priv();
 
+    int get_current_slicing_plate_index() const
+    {
+        return (m_is_slicing && m_slice_all) ? m_cur_slice_plate : partplate_list.get_curr_plate_index();
+    }
 
     bool need_update() const { return m_need_update; }
     void set_need_update(bool need_update) { m_need_update = need_update; }
@@ -4378,9 +4406,6 @@ struct Plater::priv
     std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info();
     void update_print_volume_state();
     void schedule_background_process();
-    void schedule_auto_reslice_if_needed();
-    void trigger_auto_reslice_now();
-    int  auto_slice_delay_seconds() const;
     // Update background processing thread from the current config and Model.
     enum UpdateBackgroundProcessReturnState {
         // update_background_process() reports, that the Print / SLAPrint was updated in a way,
@@ -4411,7 +4436,7 @@ struct Plater::priv
         }
     }
     void export_gcode(fs::path output_path, bool output_path_on_removable_media);
-    void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job);
+    void export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job, bool export_all = false);
 
     void reload_from_disk();
     bool replace_volume_with_stl(int object_idx, int volume_idx, const fs::path& new_path, const std::string& snapshot = "");
@@ -4432,15 +4457,20 @@ struct Plater::priv
     void on_export_finished(wxCommandEvent&);
     void on_slicing_began();
 
-    void clear_warnings();
+    void clear_warnings(const bool& clear_all_plates = false);
     void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
     // Update notification manager with the current state of warnings produced by the background process (slicing).
     void actualize_slicing_warnings(const PrintBase &print);
-    void actualize_object_warnings(const PrintBase& print);
+    void actualize_object_warnings();
     // Displays dialog window with list of warnings.
     // Returns true if user clicks OK.
     // Returns true if current_warnings vector is empty without showning the dialog
     bool warnings_dialog();
+
+    // If Spoolman is active, the printer does not handle its own consumption, the server is valid, and at least one Spoolman spool is used,
+    // a dialog will be show asking if the user would like to consume the estimated filament usage
+    void spoolman_consumption_dialog(const bool& all_plates);
+    void spoolman_consumption_dialog(int plate_idx);
 
     void on_action_add(SimpleEvent&);
     void on_action_add_plate(SimpleEvent&);
@@ -4466,6 +4496,7 @@ struct Plater::priv
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
+    void on_all_plates_stats_selected(SimpleEvent& evt);
     void on_action_request_model_id(wxCommandEvent& evt);
     void on_action_download_project(wxCommandEvent& evt);
     void on_slice_button_status(bool enable);
@@ -4620,7 +4651,7 @@ private:
     std::string 				m_last_sla_printer_profile_name;
 
     // vector of all warnings generated by last slicing
-    std::vector<std::pair<Slic3r::PrintStateBase::Warning, size_t>> current_warnings;
+    std::map<unsigned int, std::vector<std::pair<PrintStateBase::Warning, size_t>>> current_warnings;
     bool show_warning_dialog { false };
 };
 
@@ -4766,18 +4797,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     panels.push_back(assemble_view);
 
     this->background_process_timer.SetOwner(this->q, 0);
-    this->auto_reslice_timer.SetOwner(this->q, 0);
     this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt)
     {
-        if (&evt.GetTimer() == &this->background_process_timer) {
-            if (!this->suppressed_backround_processing_update)
-                this->update_restart_background_process(false, false);
-        } else if (&evt.GetTimer() == &this->auto_reslice_timer) {
-            this->auto_reslice_timer.Stop();
-            this->trigger_auto_reslice_now();
-        } else {
-            evt.Skip();
-        }
+        if (!this->suppressed_backround_processing_update)
+            this->update_restart_background_process(false, false);
     });
 
     update();
@@ -5026,6 +5049,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         q->Bind(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL, &priv::on_action_export_to_sdcard_all, this);
         q->Bind(EVT_GLTOOLBAR_PRINT_MULTI_MACHINE, &priv::on_action_send_to_multi_machine, this);
         q->Bind(EVT_GLCANVAS_PLATE_SELECT, &priv::on_plate_selected, this);
+        q->Bind(EVT_GLTOOLBAR_SELECT_ALL_PLATES_STATS, &priv::on_all_plates_stats_selected, this);
         q->Bind(EVT_DOWNLOAD_PROJECT, &priv::on_action_download_project, this);
         q->Bind(EVT_IMPORT_MODEL_ID, &priv::on_action_request_model_id, this);
         q->Bind(EVT_PRINT_FINISHED, [q](wxCommandEvent& evt) { q->print_job_finished(evt); });
@@ -5849,7 +5873,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 show_info(q, text, _L("Newer 3MF version"));
                             }
                         }
-                    } 
+                    }
                     else if (load_config && config_loaded.empty()) {
                         load_config = false;
                         show_info(q, _L("The 3MF file was generated by an old OrcaSlicer version, loading geometry data only."), _L("Load 3MF"));
@@ -7137,7 +7161,7 @@ void Plater::priv::reset(bool apply_presets_change)
 {
     Plater::TakeSnapshot snapshot(q, "Reset Project", UndoRedo::SnapshotType::ProjectSeparator);
 
-    clear_warnings();
+    clear_warnings(true);
 
     set_project_filename("");
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " call set_project_filename: empty";
@@ -7317,90 +7341,6 @@ void Plater::priv::schedule_background_process()
     this->view3D->get_canvas3d()->set_config(this->config);
 }
 
-void Plater::priv::schedule_auto_reslice_if_needed()
-{
-    AppConfig* cfg = wxGetApp().app_config;
-    if (cfg == nullptr || !cfg->get_bool("auto_slice_after_change"))
-        return;
-
-    if (model.objects.empty())
-        return;
-
-    PartPlate* plate = partplate_list.get_curr_plate();
-    if (plate == nullptr || !plate->has_printable_instances())
-        return;
-
-    if (background_process.running() || m_is_slicing) {
-        // Remember to restart once the current slice stops and cancel it now.
-        auto_reslice_after_cancel = true;
-        background_process.stop();
-        return;
-    }
-
-    const int delay_seconds = auto_slice_delay_seconds();
-    if (delay_seconds > 0) {
-        auto_reslice_pending = true;
-        auto_reslice_timer.Stop();
-        auto_reslice_timer.Start(delay_seconds * 1000, wxTIMER_ONE_SHOT);
-        return;
-    }
-
-    if (auto_reslice_pending)
-        return;
-
-    auto_reslice_pending = true;
-    auto_reslice_timer.Stop();
-    wxGetApp().CallAfter([this]() { this->trigger_auto_reslice_now(); });
-}
-
-void Plater::priv::trigger_auto_reslice_now()
-{
-    this->auto_reslice_pending = false;
-
-    AppConfig* cfg = wxGetApp().app_config;
-    if (cfg == nullptr || !cfg->get_bool("auto_slice_after_change"))
-        return;
-
-    if (this->model.objects.empty())
-        return;
-
-    if (this->background_process.running() || this->m_is_slicing)
-        return;
-
-    PartPlate* plate = this->partplate_list.get_curr_plate();
-    if (plate == nullptr || !plate->has_printable_instances())
-        return;
-
-    this->q->reslice();
-}
-
-int Plater::priv::auto_slice_delay_seconds() const
-{
-    AppConfig* cfg = wxGetApp().app_config;
-    if (cfg == nullptr)
-        return 0;
-
-    std::string delay_str = cfg->get("auto_slice_change_delay_seconds");
-    if (delay_str.empty())
-        return 0;
-
-    long delay_seconds = 0;
-    try {
-        delay_seconds = std::stol(delay_str);
-    } catch (...) {
-        delay_seconds = 0;
-    }
-
-    if (delay_seconds < 0)
-        delay_seconds = 0;
-
-    const long max_seconds = std::numeric_limits<int>::max() / 1000;
-    if (delay_seconds > max_seconds)
-        delay_seconds = max_seconds;
-
-    return static_cast<int>(delay_seconds);
-}
-
 std::vector<std::vector<DynamicPrintConfig>> Plater::priv::get_extruder_filament_info()
 {
     std::vector<std::vector<DynamicPrintConfig>> filament_infos;
@@ -7570,7 +7510,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
         if (err.string.empty()) {
             this->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
-            notification_manager->set_all_slicing_errors_gray(true);
+            notification_manager->set_all_slicing_errors_gray(true, partplate_list.get_curr_plate_index());
             notification_manager->close_notification_of_type(NotificationType::ValidateError);
             notification_manager->bbl_close_3mf_warn_notification();
 
@@ -7615,7 +7555,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         if (background_process.empty())
             process_validation_warning({});
         actualize_slicing_warnings(*this->background_process.current_print());
-        actualize_object_warnings(*this->background_process.current_print());
+        actualize_object_warnings();
         show_warning_dialog = false;
         process_completed_with_error = -1;
     }
@@ -7769,7 +7709,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     this->background_process.set_task(PrintBase::TaskParams());
     this->restart_background_process(priv::UPDATE_BACKGROUND_PROCESS_FORCE_EXPORT);
 }
-void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job)
+void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_removable_media, PrintHostJob upload_job, bool export_all)
 {
     wxCHECK_RET(!(output_path.empty() && upload_job.empty()), "export_gcode: output_path and upload_job empty");
 
@@ -7789,6 +7729,7 @@ void Plater::priv::export_gcode(fs::path output_path, bool output_path_on_remova
     if ((state & priv::UPDATE_BACKGROUND_PROCESS_INVALID) != 0)
         return;
 
+    m_export_all = export_all;
     show_warning_dialog = true;
     if (! output_path.empty()) {
         background_process.schedule_export(output_path.string(), output_path_on_removable_media);
@@ -7866,38 +7807,7 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
 
     Model new_model;
     try {
-        const bool is_step = boost::algorithm::iends_with(path, ".stp") || boost::algorithm::iends_with(path, ".step");
-        if (is_step) {
-            auto config = wxGetApp().app_config;
-            double linear = std::max(0.003, string_to_double_decimal_point(config->get("linear_defletion")));
-            double angle = std::max(0.5, string_to_double_decimal_point(config->get("angle_defletion")));
-            bool split_compound = config->get_bool("is_split_compound");
-            bool is_user_cancel = false;
-
-            auto callback = [&is_user_cancel, linear, angle, split_compound](Slic3r::Step &file, double &linear_value, double &angle_value, bool &is_split) -> int {
-                if (wxGetApp().app_config->get_bool("enable_step_mesh_setting")) {
-                    StepMeshDialog mesh_dlg(nullptr, file, linear, angle);
-                    if (mesh_dlg.ShowModal() == wxID_OK) {
-                        linear_value = mesh_dlg.get_linear_defletion();
-                        angle_value  = mesh_dlg.get_angle_defletion();
-                        is_split     = mesh_dlg.get_split_compound_value();
-                        return 1;
-                    }
-                } else {
-                    linear_value = linear;
-                    angle_value  = angle;
-                    is_split     = split_compound;
-                    return 1;
-                }
-                is_user_cancel = true;
-                return -1;
-            };
-
-            new_model = Model::read_from_step(path, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel, nullptr, nullptr, callback, linear, angle, split_compound);
-            if (is_user_cancel) return false;
-        } else {
-            new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel);
-        }
+        new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel);
         for (ModelObject* model_object : new_model.objects) {
             model_object->center_around_origin();
             model_object->ensure_on_bed();
@@ -7996,7 +7906,7 @@ void Plater::priv::replace_with_stl()
         return;
     }
 
-    if (!replace_volume_with_stl(object_idx, volume_idx, out_path, "Replace with 3D file"))
+    if (!replace_volume_with_stl(object_idx, volume_idx, out_path, "Replace with STL"))
         return;
 
     // update 3D scene
@@ -8080,7 +7990,7 @@ void Plater::priv::replace_all_with_stl()
         return;
     }
 
-    std::string status = _L("Replaced with 3D files from directory:\n").ToStdString() + out_path.string() + "\n\n";
+    std::string status = _L("Replaced with STLs from directory:\n").ToStdString() + out_path.string() + "\n\n";
 
     for (unsigned int idx : volume_idxs) {
         const GLVolume* v = selection.get_volume(idx);
@@ -8113,7 +8023,7 @@ void Plater::priv::replace_all_with_stl()
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " replacing volume : " << input_path << " with " << new_path;
 
-        if (!replace_volume_with_stl(object_idx, volume_idx, new_path, "Replace with 3D file")) {
+        if (!replace_volume_with_stl(object_idx, volume_idx, new_path, "Replace with STL")) {
             status += boost::str(boost::format(_L("✖ Skipped %1%: failed to replace.\n").ToStdString()) % volume_name);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cannot replace volume : failed to replace with " << new_path;
             continue;
@@ -9125,6 +9035,9 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
             view3D->deselect_all();
         }
+
+        Spoolman::update_visible_spool_statistics();
+
 #if 0   // do not toggle auto calc when change printer
         // update flush matrix
         size_t filament_size = wxGetApp().plater()->get_extruder_colors_from_plater_config().size();
@@ -9225,7 +9138,9 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         for (auto const& warning : state.warnings) {
             if (warning.current) {
                 NotificationManager::NotificationLevel notif_level = NotificationManager::NotificationLevel::WarningNotificationLevel;
-                if (evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingReplaceInitEmptyLayers || evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingEmptyGcodeLayers) {
+                if (evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingReplaceInitEmptyLayers ||
+                    evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingEmptyGcodeLayers ||
+                    evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingNotEnoughFilament) {
                     notif_level = NotificationManager::NotificationLevel::SeriousWarningNotificationLevel;
                 }
                 notification_manager->push_slicing_warning_notification(warning.message, false, model_object, object_id, warning_step, warning.message_id, notif_level);
@@ -9261,14 +9176,19 @@ void Plater::priv::on_slicing_completed(wxCommandEvent & evt)
 
 void Plater::priv::on_export_began(wxCommandEvent& evt)
 {
-    if (show_warning_dialog)
-        warnings_dialog();
+    // Orca: warning dialog calls moved
+    // if (show_warning_dialog)
+    //     warnings_dialog();
 }
 
 void Plater::priv::on_export_finished(wxCommandEvent& evt)
 {
+    if (!m_export_all || (m_cur_slice_plate == (partplate_list.get_plate_count() - 1)))
+        spoolman_consumption_dialog(m_export_all);
 #if 0
     //BBS: also export 3mf to the same directory for debugging
+    if (evt.GetString().empty())
+        return;
     std::string gcode_path_str(evt.GetString().ToUTF8().data());
     fs::path gcode_path(gcode_path_str);
 
@@ -9291,7 +9211,8 @@ void Plater::priv::on_slicing_began()
 }
 void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, size_t oid)
 {
-    for (auto& it : current_warnings) {
+    auto& cur_plate_warnings = current_warnings[get_current_slicing_plate_index()];
+    for (auto& it : cur_plate_warnings) {
         if (warning.message_id == it.first.message_id) {
             if (warning.message_id != 0 || (warning.message_id == 0 && warning.message == it.first.message))
             {
@@ -9301,7 +9222,7 @@ void Plater::priv::add_warning(const Slic3r::PrintStateBase::Warning& warning, s
             }
         }
     }
-    current_warnings.emplace_back(std::pair<Slic3r::PrintStateBase::Warning, size_t>(warning, oid));
+    cur_plate_warnings.emplace_back(warning, oid);
 }
 void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
 {
@@ -9312,42 +9233,131 @@ void Plater::priv::actualize_slicing_warnings(const PrintBase &print)
     }
     ids.emplace_back(print.id());
     std::sort(ids.begin(), ids.end());
-    notification_manager->remove_slicing_warnings_of_released_objects(ids);
-    notification_manager->set_all_slicing_warnings_gray(true);
+    notification_manager->remove_slicing_warnings_of_released_objects(ids, print.get_plate_index());
+    notification_manager->set_all_slicing_warnings_gray(true, print.get_plate_index());
 }
-void Plater::priv::actualize_object_warnings(const PrintBase& print)
+void Plater::priv::actualize_object_warnings()
 {
     std::vector<ObjectID> ids;
-    for (const ModelObject* object : print.model().objects )
+    for (const ModelObject* object : model.objects )
     {
         ids.push_back(object->id());
     }
     std::sort(ids.begin(), ids.end());
     notification_manager->remove_simplify_suggestion_of_released_objects(ids);
 }
-void Plater::priv::clear_warnings()
+void Plater::priv::clear_warnings(const bool& clear_all_plates)
 {
-    notification_manager->close_slicing_errors_and_warnings();
-    this->current_warnings.clear();
+    if (clear_all_plates) {
+        notification_manager->close_slicing_errors_and_warnings();
+        current_warnings.clear();
+    } else {
+        notification_manager->close_slicing_errors_and_warnings(get_current_slicing_plate_index());
+        current_warnings.erase(get_current_slicing_plate_index());
+    }
 }
 bool Plater::priv::warnings_dialog()
 {
-    if (current_warnings.empty())
+    const auto& cur_plate_idx = this->partplate_list.get_curr_plate_index();
+    if (current_warnings.empty() ||
+        (!m_export_all && (current_warnings.count(cur_plate_idx) == 0 || current_warnings[cur_plate_idx].empty())))
         return true;
-    std::string text = _u8L("There are warnings after slicing models:") + "\n";
-    for (auto const& it : current_warnings) {
-        size_t next_n = it.first.message.find_first_of('\n', 0);
-        text += "\n";
-        if (next_n != std::string::npos)
-            text += it.first.message.substr(0, next_n);
-        else
-            text += it.first.message;
-    }
-    //text += "\n\nDo you still wish to export?";
-    MessageDialog msg_window(this->q, from_u8(text), _L("warnings"), wxOK);
-    const auto    res = msg_window.ShowModal();
-    return res == wxID_OK;
+    std::string text = _u8L("There are warnings after slicing models:");
 
+    auto get_text_from_warnings = [&](const vector<pair<PrintStateBase::Warning, size_t>>& warnings, const unsigned int& plate_idx = -1) {
+        if (m_export_all)
+            text += "\n\n" + (boost::format(_u8L("Plate") + " %1%:") % (plate_idx+1)).str();
+        else
+            text += "\n";
+        for (const auto& [warning, object_id] : warnings) {
+            size_t next_n = warning.message.find_first_of('\n', 0);
+            text += "\n";
+            if (next_n != std::string::npos)
+                text += warning.message.substr(0, next_n);
+            else
+                text += warning.message;
+        }
+    };
+
+    if (m_export_all) {
+        for (auto& [plate_idx, warnings] : current_warnings) {
+            if (warnings.empty()) continue;
+            get_text_from_warnings(warnings, plate_idx);
+        }
+    } else {
+        get_text_from_warnings(current_warnings[cur_plate_idx]);
+    }
+    text += "\n\nDo you still wish to export?";
+    MessageDialog msg_window(this->q, from_u8(text), _L("Slicing Warnings"), wxYES_NO);
+    const auto    res = msg_window.ShowModal();
+    return res == wxID_YES;
+}
+
+void Plater::priv::spoolman_consumption_dialog(const bool& all_plates)
+{
+    spoolman_consumption_dialog(all_plates ? PLATE_ALL_IDX : PLATE_CURRENT_IDX);
+}
+
+void Plater::priv::spoolman_consumption_dialog(int plate_idx)
+{
+    static constexpr auto show_dlg_key = "show_spoolman_consumption_dialog";
+    if (!wxGetApp().app_config->get_bool(show_dlg_key))
+        return;
+    if (wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_bool("handles_spoolman_consumption"))
+        return;
+    if (!Spoolman::is_server_valid())
+        return;
+
+    auto spoolman = Spoolman::get_instance();
+    const auto& consumption_type = wxGetApp().app_config->get("spoolman", "consumption_type");
+    std::string unit = consumption_type == "weight" ? "g" : consumption_type == "length" ? "mm" : "";
+
+    if (unit.empty()) {
+        BOOST_LOG_TRIVIAL(error) << "The specified consumption type is not valid";
+        return;
+    }
+
+    std::map<unsigned, double> estimates;
+    std::map<unsigned, wxString> messages;
+
+    auto apply_estimates_from_plate = [&] (PartPlate* plate) {
+        for (const auto& est : plate->fff_print()->get_spoolman_filament_consumption_estimates()) {
+            auto& id = est.spoolman_spool_id;
+            if (consumption_type == "weight") {
+                estimates[id] += est.est_used_weight;
+            } else if (consumption_type == "length") {
+                estimates[id] += est.est_used_length;
+            } else return;
+            messages[id] = wxString::FromUTF8((boost::format("%1%: %2% %3%") % est.filament_name % double_to_string(estimates[id], 2) % unit).str());
+        }
+    };
+
+    if (plate_idx == PLATE_ALL_IDX)
+        for (const auto& plate : partplate_list.get_plate_list())
+            apply_estimates_from_plate(plate);
+    else if (plate_idx == PLATE_CURRENT_IDX)
+        apply_estimates_from_plate(partplate_list.get_curr_plate());
+    else
+        apply_estimates_from_plate(partplate_list.get_plate(plate_idx));
+
+    if (estimates.empty()) return;
+
+    auto msg = _L("Would you like to consume the used filaments registered in Spoolman?") + "\n\n";
+    for (const auto& [id, message] : messages)
+        msg += message + "\n";
+
+    auto dlg = MessageDialog(nullptr, msg, _L("Spoolman Filament Consumption"), wxYES_NO);
+    dlg.show_dsa_button();
+    if (dlg.ShowModal() == wxID_YES) {
+        if (spoolman->use_spoolman_spools(estimates, consumption_type)) {
+            notification_manager->push_spoolman_consumption_finished_notification();
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "Failed to consume filament from Spoolman";
+            show_error(nullptr, _L("Failed to consume filament from Spoolman"));
+        }
+    }
+    if (dlg.get_checkbox_state())
+        wxGetApp().app_config->set_bool(show_dlg_key, false);
 }
 
 //BBS: add project slice logic
@@ -9523,8 +9533,12 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 
     if (is_finished)
     {
+        if (m_slice_all)
+            preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
+
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":finished, reload print soon");
         m_is_slicing = false;
+        m_export_all = false;
         this->preview->reload_print(false);
         /* BBS if in publishing progress */
         if (m_is_publishing) {
@@ -9550,6 +9564,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         if (ret) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":slicing all, plate %1% can not be sliced, will stop")%m_cur_slice_plate;
             m_is_slicing = false;
+            m_export_all = false;
         }
         //not the last plate
         update_fff_scene_only_shells();
@@ -9562,11 +9577,6 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
             }
         }
     }
-    if (auto_reslice_after_cancel) {
-        auto_reslice_after_cancel = false;
-        schedule_auto_reslice_if_needed();
-    }
-
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(", exit.");
 }
 
@@ -9654,7 +9664,8 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
         if (!m_is_publishing)
             q->select_view_3D("Preview");
         //BBS: wish to select all plates stats item
-        preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
+        // Orca: This call has been moved to the process complete function
+        // preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
     }
 }
 
@@ -9766,6 +9777,10 @@ int Plater::priv::update_print_required_data(Slic3r::DynamicPrintConfig config, 
 
 void Plater::priv::on_action_send_to_printer(bool isall)
 {
+    // Orca: Prompt the user with the current slicing warnings (if any) and continue if they wish to
+    if (!warnings_dialog())
+        return;
+
 	if (!m_send_to_sdcard_dlg) m_send_to_sdcard_dlg = new SendToPrinterDialog(q);
     if (isall) {
         m_send_to_sdcard_dlg->prepare(PLATE_ALL_IDX);
@@ -9858,6 +9873,12 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received plate selected event\n" ;
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
+}
+
+void Plater::priv::on_all_plates_stats_selected(SimpleEvent& evt)
+{
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": received all plates stats selected event\n";
+    notification_manager->hide_slicing_notifications_from_other_plates(-1);
 }
 
 void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
@@ -14119,10 +14140,10 @@ void Plater::increase_instances(size_t num)
 
     p->selection_changed();
     this->p->schedule_background_process();
-    //if (wxGetApp().app_config->get("auto_arrange") == "true") {
-    //    this->set_prepare_state(Job::PREPARE_STATE_MENU);
-    //    this->arrange();
-    //}
+    if (wxGetApp().app_config->get("auto_arrange") == "true") {
+        this->set_prepare_state(Job::PREPARE_STATE_MENU);
+        this->arrange();
+    }
 }
 
 void Plater::decrease_instances(size_t num)
@@ -14150,10 +14171,10 @@ void Plater::decrease_instances(size_t num)
 
     p->selection_changed();
     this->p->schedule_background_process();
-    //if (wxGetApp().app_config->get("auto_arrange") == "true") {
-    //    this->set_prepare_state(Job::PREPARE_STATE_MENU);
-    //    this->arrange();
-    //}
+    if (wxGetApp().app_config->get("auto_arrange") == "true") {
+        this->set_prepare_state(Job::PREPARE_STATE_MENU);
+        this->arrange();
+    }
 }
 
 static long GetNumberFromUser(  const wxString& msg,
@@ -14297,6 +14318,10 @@ void Plater::export_gcode(bool prefer_removable)
     if (p->process_completed_with_error == p->partplate_list.get_curr_plate_index())
         return;
 
+    // Orca: Prompt the user with the current slicing warnings (if any) and continue if they wish to
+    if (!p->warnings_dialog())
+        return;
+
     // If possible, remove accents from accented latin characters.
     // This function is useful for generating file names to be processed by legacy firmwares.
     fs::path default_output_file;
@@ -14399,6 +14424,10 @@ void Plater::export_gcode_3mf(bool export_all)
     if (p->process_completed_with_error == p->partplate_list.get_curr_plate_index())
         return;
 
+    // Orca: Prompt the user with the current slicing warnings (if any) and continue if they wish to
+    if (!p->warnings_dialog())
+        return;
+
     //calc default_output_file, get default output file from background process
     fs::path default_output_file;
     AppConfig& appconfig = *wxGetApp().app_config;
@@ -14465,6 +14494,7 @@ void Plater::export_gcode_3mf(bool export_all)
         // update last output dir
         appconfig.update_last_output_dir(output_path.parent_path().string(), false);
         p->notification_manager->push_exporting_finished_notification(output_path.string(), p->last_output_dir_path, on_removable);
+        p->spoolman_consumption_dialog(plate_idx);
     }
 }
 
@@ -15513,6 +15543,10 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool us
     if (! physical_printer_config || p->model.objects.empty())
         return;
 
+    // Orca: Prompt the user with the current slicing warnings (if any) and continue if they wish to
+    if (!p->warnings_dialog())
+        return;
+
     PrintHostJob upload_job(physical_printer_config);
     if (upload_job.empty())
         return;
@@ -15612,7 +15646,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool us
         upload_job.upload_data.source_path = p->m_print_job_data._3mf_path;
     }
 
-    p->export_gcode(fs::path(), false, std::move(upload_job));
+    p->export_gcode(fs::path(), false, std::move(upload_job), plate_idx == PLATE_ALL_IDX);
 }
 int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
 {
@@ -15676,6 +15710,7 @@ void Plater::send_calibration_job_finished(wxCommandEvent & evt)
         event.SetEventObject(curr_wizard);
         wxPostEvent(curr_wizard, event);
     }
+    p->spoolman_consumption_dialog(static_cast<int>(evt.GetExtraLong()));
     evt.Skip();
 }
 
@@ -15704,6 +15739,7 @@ void Plater::print_job_finished(wxCommandEvent &evt)
     MonitorPanel* curr_monitor = p->main_frame->m_monitor;
     if(curr_monitor)
        curr_monitor->get_tabpanel()->ChangeSelection(MonitorPanel::PrinterTab::PT_STATUS);
+    p->spoolman_consumption_dialog(static_cast<int>(evt.GetExtraLong()));
 }
 
 void Plater::send_job_finished(wxCommandEvent& evt)
@@ -15714,6 +15750,7 @@ void Plater::send_job_finished(wxCommandEvent& evt)
 
     send_gcode_finish(evt.GetString());
     p->hide_send_to_printer_dlg();
+    p->spoolman_consumption_dialog(evt.GetInt());
     //p->main_frame->request_select_tab(MainFrame::TabPosition::tpMonitor);
     ////jump to monitor and select device status panel
     //MonitorPanel* curr_monitor = p->main_frame->m_monitor;
@@ -16063,7 +16100,6 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
     if (p->main_frame->is_loaded()) {
         this->p->schedule_background_process();
         update_title_dirty_status();
-        p->schedule_auto_reslice_if_needed();
     }
 }
 
@@ -16813,6 +16849,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
 
     if ((!ret) && (p->background_process.can_switch_print()))
     {
+        get_notification_manager()->hide_slicing_notifications_from_other_plates(plate_index);
         //select successfully
         p->partplate_list.update_slice_context_to_current_plate(p->background_process);
         p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
@@ -17014,7 +17051,7 @@ void Plater::validate_current_plate(bool& model_fits, bool& validate_error)
 
         if (err.string.empty()) {
             p->partplate_list.get_curr_plate()->update_apply_result_invalid(false);
-            p->notification_manager->set_all_slicing_errors_gray(true);
+            p->notification_manager->set_all_slicing_errors_gray(true, p->partplate_list.get_curr_plate_index());
             p->notification_manager->close_notification_of_type(NotificationType::ValidateError);
             p->notification_manager->bbl_close_3mf_warn_notification();
 
@@ -17664,6 +17701,11 @@ void Plater::update_machine_sync_status()
 bool Plater::get_machine_sync_status()
 {
     return p->get_machine_sync_status();
+}
+
+int Plater::get_current_slicing_plate_index() const
+{
+    return p->get_current_slicing_plate_index();
 }
 
 #if ENABLE_ENVIRONMENT_MAP

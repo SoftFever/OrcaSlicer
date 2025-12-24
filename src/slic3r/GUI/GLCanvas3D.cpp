@@ -240,10 +240,6 @@ void GLCanvas3D::LayersEditing::show_tooltip_information(const GLCanvas3D& canva
     caption_max += GImGui->Style.WindowPadding.x + imgui.scaled(1);
 
 	float  scale       = canvas.get_scale();
-    #ifdef WIN32
-        int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
-        scale *= (float) dpi / (float) DPI_DEFAULT;
-    #endif // WIN32
     ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0}); // ORCA: Dont add padding
@@ -6927,6 +6923,11 @@ void GLCanvas3D::_update_select_plate_toolbar_stats_item(bool force_selected) {
 
     if (force_selected && m_sel_plate_toolbar.show_stats_item)
         m_sel_plate_toolbar.m_all_plates_stats_item->selected = true;
+
+    if (m_sel_plate_toolbar.m_all_plates_stats_item->selected) {
+        auto evt = SimpleEvent(EVT_GLTOOLBAR_SELECT_ALL_PLATES_STATS);
+        wxPostEvent(wxGetApp().plater(), evt);
+    }
 }
 
 bool GLCanvas3D::_update_imgui_select_plate_toolbar()
@@ -8873,10 +8874,6 @@ float GLCanvas3D::_show_assembly_tooltip_information(float caption_max, float x,
     caption_max += imgui->calc_text_size(": "sv).x + 35.f;
 
     float  scale       = get_scale();
-    #ifdef WIN32
-        int dpi = get_dpi_for_window(wxGetApp().GetTopWindow());
-        scale *= (float) dpi / (float) DPI_DEFAULT;
-    #endif // WIN32
     ImVec2 button_size = ImVec2(25 * scale, 25 * scale); // ORCA: Use exact resolution will prevent blur on icon
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);

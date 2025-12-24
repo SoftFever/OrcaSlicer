@@ -79,6 +79,10 @@ public:
     bool            m_split_multi_line      = false;
     bool            m_option_label_at_right = false;
 
+    // Orca: allow the show value to be overridden by a callback function
+    // The function provides a bool parameter that is set to the current decision on whether it should be shown
+    std::function<bool(bool)> m_should_show_fn = 0;
+
 public:
 	std::vector <ConfigOptionsGroupShp> m_optgroups;
 	DynamicPrintConfig* m_config;
@@ -141,7 +145,7 @@ protected:
 
 	//BBS: GUI refactor
 	wxPanel*			m_top_panel;
-	ScalableButton* m_mode_icon; // ORCA m_static_title replacement
+	wxStaticText* m_static_title;
 	wxBoxSizer* m_main_sizer;
 	wxBoxSizer* m_top_sizer;
 	wxBoxSizer* m_top_left_sizer;
@@ -566,6 +570,7 @@ private:
     void            add_filament_overrides_page();
     void            update_filament_overrides_page(const DynamicPrintConfig* printers_config);
 	void 			update_volumetric_flow_preset_hints();
+    void            update_spoolman_statistics();
 
     std::map<std::string, ::CheckBox*> m_overrides_options;
 

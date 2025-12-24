@@ -55,6 +55,7 @@ private:
     wxScrolledWindow* CreateColorGrid();
     wxBoxSizer* CreateSeparatorLine();
     void CreateMoreInfoButton();
+    wxBoxSizer* CreateButtonPanel();
     void BindEvents();
 
     // Preview panel helper methods

@@ -34,6 +34,8 @@
 class SwitchButton;
 class StaticBox;
 
+#define TIPS_DIALOG_BUTTON_SIZE wxSize(FromDIP(60), FromDIP(24))
+
 namespace Slic3r {
 namespace GUI {
 
@@ -84,7 +86,7 @@ class ParamsPanel : public wxPanel
         SwitchButton* m_mode_region { nullptr };
         ScalableButton *m_tips_arrow{nullptr};
         bool m_tips_arror_blink{false};
-        ScalableButton* m_mode_icon { nullptr }; // ORCA
+        wxStaticText* m_title_view { nullptr };
         SwitchButton* m_mode_view { nullptr };
         //wxBitmapButton* m_search_button { nullptr };
         wxStaticLine* m_staticline_print { nullptr };

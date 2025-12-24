@@ -24,6 +24,10 @@
 	margin-right: 0px; /* ORCA align buttons with end of horizontal separator/line */
 }
 
+.BannerBtns>.SmallBtn_Green.trans{
+	margin-right: 7px; /* ORCA adds a small gap between buttons */
+}
+
 /*.Banner-Btn
 {
 	background-color: #C0C0C0;
@@ -170,7 +174,7 @@ img.ModelThumbnail
 {
 	margin-top: 4mm;
 	display: flex;
-	justify-content:flex-end;
+	justify-content:space-around;
 }
 
 .search {

@@ -1808,12 +1808,13 @@ FullCompareDialog::FullCompareDialog(const wxString& option_name, const wxString
 
     sizer->Add(grid_sizer, 1, wxEXPAND);
 
-    auto dlg_btns = new DialogButtons(this, {"OK"});
+    wxStdDialogButtonSizer* buttons = this->CreateStdDialogButtonSizer(wxOK);
+    wxGetApp().UpdateDarkUI(static_cast<wxButton*>(this->FindWindowById(wxID_OK, this)), true);
 
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
     topSizer->Add(sizer,   1, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
-    topSizer->Add(dlg_btns , 0, wxEXPAND);
+    topSizer->Add(buttons, 0, wxEXPAND | wxALL, border);
 
     SetSizer(topSizer);
     topSizer->SetSizeHints(this);

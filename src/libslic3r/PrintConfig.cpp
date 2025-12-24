@@ -2676,11 +2676,28 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings());
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("filament_remaining_weight", coFloats);
+    def->set_default_value(new ConfigOptionFloats());
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("filament_remaining_length", coFloats);
+    def->set_default_value(new ConfigOptionFloats());
+    def->cli = ConfigOptionDef::nocli;
+
     def = this->add("filament_vendor", coStrings);
     def->label = L("Vendor");
     def->tooltip = L("Vendor of filament. For show only.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionStrings{L("(Undefined)")});
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("spoolman_spool_id", coInts);
+    def->label = L("Spoolman ID");
+    def->tooltip = L("The spool ID of this filament profile within your Spoolman instance. This will allow automatic spool switching when "
+                     "using moonraker to track spool usage and one touch updating of this filament profile from the Spoolman properties. "
+                     "Setting this to a value of 0 disables its functionality.");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts({ 0 }));
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("infill_direction", coFloat);
@@ -3532,6 +3549,12 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_multi_bed_types", coBool);
     def->label = L("Support multi bed types");
     def->tooltip = L("Enable this option if you want to use multiple bed types.");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("handles_spoolman_consumption", coBool);
+    def->label = L("Handles Spoolman consumption");
+    def->tooltip = L("Indicates that the printer will handle sending consumption requests to Spoolman");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -7739,7 +7762,7 @@ DynamicPrintConfig DynamicPrintConfig::full_print_config()
 	return DynamicPrintConfig((const PrintRegionConfig&)FullPrintConfig::defaults());
 }
 
-DynamicPrintConfig::DynamicPrintConfig(const StaticPrintConfig& rhs) : DynamicConfig(rhs, rhs.keys_ref())
+DynamicPrintConfig::DynamicPrintConfig(const StaticPrintConfig& rhs) : DynamicConfigWithDef(rhs, rhs.keys_ref())
 {
 }
 
@@ -8003,41 +8026,8 @@ size_t DynamicPrintConfig::get_parameter_size(const std::string& param_name, siz
     return extruder_nums;
 }
 
-// Orca: Special handling for extruder variants
-// BBL printers have extruder variants pre-defined in system profiles, however for customized multi-extruder profile,
-// we need to set up these parameters automatically, otherwise per-extruder options won't work properly.
-static void extend_extruder_variant(DynamicPrintConfig& config, const unsigned int num_extruders)
-{
-    // 1. Make sure the `extruder_variant_list` is the same length as extruder cnt
-    auto extruder_variant_opt = dynamic_cast<ConfigOptionStrings*>(config.option("extruder_variant_list"));
-    assert(extruder_variant_opt != nullptr);
-    extruder_variant_opt->resize(num_extruders, extruder_variant_opt); // Use the first option as the default value, so all extruders have the same variant
-
-    // 2. Update `printer_extruder_variant` and `printer_extruder_id` based on `extruder_variant_list`
-    auto printer_extruder_id_opt = dynamic_cast<ConfigOptionInts*>(config.option("printer_extruder_id"));
-    assert(printer_extruder_id_opt != nullptr);
-    printer_extruder_id_opt->values.clear();
-    auto printer_extruder_variant_opt = dynamic_cast<ConfigOptionStrings*>(config.option("printer_extruder_variant"));
-    assert(printer_extruder_variant_opt != nullptr);
-    printer_extruder_variant_opt->values.clear();
-    for (int i = 0; i < num_extruders; i++) {
-        // `extruder_variant_list` specifies supported variant of each nozzle/extruder,
-        // each item is a comma separated list of variants (extruder type + nozzle flow type) this extruder supported
-        std::string variant = extruder_variant_opt->get_at(i);
-        std::vector<std::string> variants_list;
-        boost::split(variants_list, variant, boost::is_any_of(","), boost::token_compress_on);
-
-        if (!variants_list.empty()) {
-            printer_extruder_id_opt->values.insert(printer_extruder_id_opt->values.end(), variants_list.size(), i + 1);
-            printer_extruder_variant_opt->values.insert(printer_extruder_variant_opt->values.end(), variants_list.begin(), variants_list.end());
-        }
-    }
-}
-
 void DynamicPrintConfig::set_num_extruders(unsigned int num_extruders)
 {
-    extend_extruder_variant(*this, num_extruders);
-
     const auto &defaults = FullPrintConfig::defaults();
     for (const std::string &key : print_config_def.extruder_option_keys()) {
         if (key == "default_filament_profile")

@@ -121,8 +121,7 @@ public:
     static int TitlebarMargin(){ return 8 ;} // Use as side margins on titlebar. Has less margin on sides to create separation with its content
     static int ContentMargin() { return 12;} // Use as side margins contents of title
     static int ContentMarginV(){ return 9 ;} // Use as vertical margins contents of title
-    static int IconSpacing()   { return 10;} // Use on main elements in same group of controls
-    static int WideSpacing()   { return 18;} // Use between main elements / control groups for separation or preventing accidental clicks important
+    static int IconSpacing()   { return 10;} // Use on main elements
     static int ElementSpacing(){ return 5 ;} // Use if elements has relation between them like edit button for combo box etc.
 };
 
@@ -732,6 +731,10 @@ public:
     bool get_machine_sync_status();
 
     void update_machine_sync_status();
+    // Return the plate that is currently being sliced
+    // If all plates are being sliced, Plater::priv::m_cur_slice_plate is returned
+    // If no plate is being sliced or a singluar plate is being sliced, partplate_list.get_curr_plate_index() is returned
+    int get_current_slicing_plate_index() const;
 
 #if ENABLE_ENVIRONMENT_MAP
     void init_environment_texture();

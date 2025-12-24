@@ -1976,6 +1976,18 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         result->filename = path;
     }
 
+    // Check the consumption of filament against the remaining filament as reported by Spoolman
+    for (const auto& est : print->get_spoolman_filament_consumption_estimates()) {
+        double remaining_length   = print->config().filament_remaining_length.get_at(est.print_config_idx);
+        double remaining_weight   = print->config().filament_remaining_weight.get_at(est.print_config_idx);
+
+        if (est.est_used_length > remaining_length || est.est_used_weight > remaining_weight) {
+            std::string msg = boost::str(boost::format(_("Filament %1% does not have enough material for the print. Used: %2$.2f m, %3$.2f g, Remaining: %4$.2f m, %5$.2f g")) %
+                                         est.filament_name % (est.est_used_length * 0.001) % est.est_used_weight % (remaining_length * 0.001) % remaining_weight);
+            print->active_step_add_warning(PrintStateBase::WarningLevel::CRITICAL, msg, PrintStateBase::SlicingNotificationType::SlicingNotEnoughFilament);
+        }
+    }
+
     //BBS: add some log for error output
     BOOST_LOG_TRIVIAL(debug) << boost::format("Finished processing gcode to %1% ") % path_tmp;
 
@@ -4251,8 +4263,8 @@ LayerResult GCode::process_layer(
     bool is_multi_extruder = m_config.nozzle_diameter.size() > 1;
 
     bool need_insert_timelapse_gcode_for_traditional = false;
-    if ((!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) && (is_BBL_Printer() || !m_config.time_lapse_gcode.value.empty())) {
-        need_insert_timelapse_gcode_for_traditional = ((is_i3_printer && !m_spiral_vase) || is_multi_extruder);
+    if (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) {
+        need_insert_timelapse_gcode_for_traditional = ((is_i3_printer && !m_spiral_vase)|| is_multi_extruder);
     }
 
     bool has_insert_timelapse_gcode = false;
@@ -4268,18 +4280,19 @@ LayerResult GCode::process_layer(
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     m_layer = &layer;
     m_object_layer_over_raft = false;
-
-    if (!m_config.time_lapse_gcode.value.empty() && !is_BBL_Printer()) {
-        DynamicConfig config;
-        config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-        config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
-        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-        gcode += this->placeholder_parser_process("timelapse_gcode",
-             print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config)
-             + "\n";
+    if(is_BBL_Printer()){
+    } else {
+        if (!m_config.time_lapse_gcode.value.empty()) {
+            DynamicConfig config;
+            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+            config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+            gcode += this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(),
+                                                      &config) +
+                     "\n";
+        }
     }
-
-    if (!m_config.layer_change_gcode.value.empty()) {
+    if (! m_config.layer_change_gcode.value.empty()) {
         DynamicConfig config;
         config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(most_used_extruder)));
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
@@ -4728,7 +4741,7 @@ LayerResult GCode::process_layer(
 
         auto timelapse_pos=m_timelapse_pos_picker.pick_pos(ctx);
 
-        std::string timelapse_gcode;
+        std::string timepals_gcode;
         if (!print.config().time_lapse_gcode.value.empty()) {
             DynamicConfig config;
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
@@ -4739,18 +4752,17 @@ LayerResult GCode::process_layer(
             config.set_key_value("timelapse_pos_x", new ConfigOptionInt((int)timelapse_pos.x()));
             config.set_key_value("timelapse_pos_y", new ConfigOptionInt((int)timelapse_pos.y()));
             config.set_key_value("has_timelapse_safe_pos", new ConfigOptionBool(timelapse_pos != DefaultTimelapsePos));
-            timelapse_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
+            timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
         }
+        if (!timepals_gcode.empty()) {
+        m_writer.set_current_position_clear(false);
 
-        if (!timelapse_gcode.empty()) {
-            m_writer.set_current_position_clear(false);
-
-            double temp_z_after_tool_change;
-            if (GCodeProcessor::get_last_z_from_gcode(timelapse_gcode, temp_z_after_tool_change)) {
-                Vec3d pos = m_writer.get_position();
-                pos(2)    = temp_z_after_tool_change;
-                m_writer.set_position(pos);
-            }
+        double temp_z_after_tool_change;
+        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_tool_change)) {
+            Vec3d pos = m_writer.get_position();
+            pos(2)    = temp_z_after_tool_change;
+            m_writer.set_position(pos);
+        }
         }
 
         // (layer_object_label_ids.size() < 64) this restriction comes from _encode_label_ids_to_base64()
@@ -4771,13 +4783,13 @@ LayerResult GCode::process_layer(
             std::string end_str = std::string("; object ids of this layer") + std::to_string(m_layer_index + 1) + (" end: ") + oss.str() + "\n";
             end_str   += "M625\n";
 
-            timelapse_gcode = start_str + timelapse_gcode + end_str;
+            timepals_gcode = start_str + timepals_gcode + end_str;
         }
 
-        return timelapse_gcode;
+        return timepals_gcode;
     };
 
-    if (!need_insert_timelapse_gcode_for_traditional  && is_BBL_Printer()) { // Equivalent to the timelapse gcode placed in layer_change_gcode
+    if (!need_insert_timelapse_gcode_for_traditional) { // Equivalent to the timelapse gcode placed in layer_change_gcode
         if (FILAMENT_CONFIG(retract_when_changing_layer)) {
             gcode += this->retract(false, false, auto_lift_type, true);
         }
@@ -4873,12 +4885,10 @@ LayerResult GCode::process_layer(
 
             gcode_toolchange = this->set_extruder(extruder_id, print_z);
         }
-
         if (!gcode_toolchange.empty()) {
             // Disable vase mode for layers that has toolchange
             result.spiral_vase_enable = false;
         }
-        
         gcode += std::move(gcode_toolchange);
 
         // let analyzer tag generator aware of a role type change

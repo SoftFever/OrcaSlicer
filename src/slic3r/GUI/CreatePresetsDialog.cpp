@@ -168,7 +168,7 @@ static std::set<int> cannot_input_key = {9, 10, 13, 33, 35, 36, 37, 38, 40, 41, 
 
 static std::set<char> special_key = {'\n', '\t', '\r', '\v', '@', ';'};
 
-static std::string remove_special_key(const std::string &str)
+std::string remove_special_key(const std::string &str)
 {
     std::string res_str;
     for (char c : str) {
@@ -480,7 +480,7 @@ static std::string calculate_md5(const std::string &input)
     return md5;
 }
 
-static std::string get_filament_id(std::string vendor_typr_serial)
+std::string get_filament_id(std::string vendor_typr_serial)
 {
     std::unordered_map<std::string, std::set<std::string>> filament_id_to_filament_name;
 
@@ -2737,7 +2737,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_presets_template_item(wxWindow *pa
 
 wxWindow *CreatePrinterPresetDialog::create_page2_dialog_buttons(wxWindow *parent)
 {
-    auto dlg_btns = new DialogButtons(parent, {"Return", "OK", "Cancel"}, "", 1 /*left_aligned*/);
+    auto dlg_btns = new DialogButtons(parent, {"Return", "OK", "Cancel"});
 
     dlg_btns->GetRETURN()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { show_page1(); });
 
@@ -4741,9 +4741,9 @@ wxBoxSizer *EditFilamentPresetDialog::create_preset_tree_sizer()
 
 wxWindow *EditFilamentPresetDialog::create_dialog_buttons()
 {
-    auto dlg_btns = new DialogButtons(this, {"Delete", "OK"}, "", 1 /*left_aligned*/);
+    auto dlg_btns = new DialogButtons(this, {"Delete", "OK"});
 
-    dlg_btns->GetFIRST()->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
+    dlg_btns->GetButtonFromID(wxID_DELETE)->Bind(wxEVT_BUTTON, ([this](wxCommandEvent &e) {
         WarningDialog dlg(this, _L("All the filament presets belong to this filament would be deleted.\n"
                                    "If you are using this filament on your printer, please reset the filament information for that slot."),
                           _L("Delete filament"), wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);

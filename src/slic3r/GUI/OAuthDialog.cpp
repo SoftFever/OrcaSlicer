@@ -4,7 +4,6 @@
 #include "Jobs/BoostThreadWorker.hpp"
 #include "Jobs/PlaterWorker.hpp"
 #include "wxExtensions.hpp"
-#include "Widgets/DialogButtons.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -21,8 +20,10 @@ OAuthDialog::OAuthDialog(wxWindow* parent, OAuthParams params)
 
     m_worker = std::make_unique<PlaterWorker<BoostThreadWorker>>(this, nullptr, "auth_worker");
 
-    auto dlg_btns = new DialogButtons(this, {"Cancel"});
-    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, &OAuthDialog::on_cancel, this);
+    wxStdDialogButtonSizer* btns = this->CreateStdDialogButtonSizer(wxCANCEL);
+    btnCancel                    = static_cast<wxButton*>(this->FindWindowById(wxID_CANCEL, this));
+    wxGetApp().UpdateDarkUI(btnCancel);
+    btnCancel->Bind(wxEVT_BUTTON, &OAuthDialog::on_cancel, this);
 
     const auto message_sizer = new wxBoxSizer(wxVERTICAL);
     const auto message = new wxStaticText(this, wxID_ANY, _L("Authorizing..."), wxDefaultPosition, wxDefaultSize, 0);
@@ -31,7 +32,7 @@ OAuthDialog::OAuthDialog(wxWindow* parent, OAuthParams params)
 
     const auto topSizer = new wxBoxSizer(wxVERTICAL);
     topSizer->Add(message_sizer, 0, wxEXPAND | wxALL, BORDER_W);
-    topSizer->Add(dlg_btns, 0, wxEXPAND);
+    topSizer->Add(btns, 0, wxEXPAND | wxALL, BORDER_W);
 
     Bind(wxEVT_CLOSE_WINDOW, &OAuthDialog::on_cancel, this);
 
