@@ -520,17 +520,21 @@ static Polygon generate_rectange_polygon(const Vec2f &wt_box_min ,const Vec2f & 
 class WipeTowerWriter
 {
 public:
-	WipeTowerWriter(float layer_height, float line_width, GCodeFlavor flavor, const std::vector<WipeTower::FilamentParameters>& filament_parameters) :
-		m_current_pos(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()),
-		m_current_z(0.f),
-		m_current_feedrate(0.f),
-		m_layer_height(layer_height),
-		m_extrusion_flow(0.f),
-		m_preview_suppressed(false),
-		m_elapsed_time(0.f),
+    WipeTowerWriter(float layer_height, float line_width, GCodeFlavor flavor, const std::vector<WipeTower::FilamentParameters>& filament_parameters) :
+        m_start_pos(Vec2f::Zero()),
+        m_current_pos(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()),
+        m_current_z(0.f),
+        m_current_feedrate(0.f),
+        m_current_tool(0),
+        m_layer_height(layer_height),
+        m_extrusion_flow(0.f),
+        m_preview_suppressed(false),
+        m_elapsed_time(0.f),
+        m_last_fan_speed(0),
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_default_analyzer_line_width(line_width),
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
+        m_used_filament_length(0.f),
         m_gcode_flavor(flavor),
         m_filpar(filament_parameters)
         {

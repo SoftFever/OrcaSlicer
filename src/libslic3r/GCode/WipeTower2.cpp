@@ -567,13 +567,17 @@ public:
                      const std::vector<WipeTower2::FilamentParameters>& filament_parameters,
                      bool  enable_arc_fitting)
         :
+        m_start_pos(Vec2f::Zero()),
 		m_current_pos(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()),
 		m_current_z(0.f),
 		m_current_feedrate(0.f),
+		m_current_tool(0),
 		m_layer_height(layer_height),
 		m_extrusion_flow(0.f),
 		m_preview_suppressed(false),
 		m_elapsed_time(0.f),
+        m_last_fan_speed(0),
+        m_used_filament_length(0.f),
         m_gcode_flavor(flavor), m_filpar(filament_parameters)
         //m_enable_arc_fitting(enable_arc_fitting)
     {

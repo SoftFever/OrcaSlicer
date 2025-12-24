@@ -83,7 +83,7 @@ public:
         bool                    priming;
 
 		bool                    is_tool_change{false};
-		Vec2f                   tool_change_start_pos;
+        Vec2f                   tool_change_start_pos { Vec2f::Zero() };
 
         // Pass a polyline so that normal G-code generator can do a wipe for us.
         // The wipe cannot be done by the wipe tower because it has to pass back
