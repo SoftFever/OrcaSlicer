@@ -2,6 +2,7 @@
 
 #include "ClipperUtils.hpp"
 #include "EdgeGrid.hpp"
+#include "ElephantFootCompensation.hpp"
 #include "Layer.hpp"
 #include "Print.hpp"
 #include "ShortestPath.hpp"
@@ -913,8 +914,9 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         for (const auto& objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
             const BrimType     brim_type = object->config().brim_type.value;
-            const bool         compense_efc= object->config().brim_compense_efc.value;
-            const float        elephant_foot_comp = scale_(object->config().elefant_foot_compensation.value) * compense_efc;
+            const bool         compense_efc = object->config().brim_compense_efc.value;
+            const double       elephant_foot_comp_mm = object->config().elefant_foot_compensation.value * (compense_efc ? 1.0 : 0.0);
+            const float        elephant_foot_comp = scale_(elephant_foot_comp_mm);
             float              brim_offset = scale_(object->config().brim_object_gap.value);
             double             flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
             float              brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
@@ -928,6 +930,9 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             const bool         has_outer_brim = brim_type == btOuterOnly || brim_type == btOuterAndInner || brim_type == btAutoBrim || use_auto_brim_ears || use_brim_ears;
             coord_t            ear_detection_length = scale_(object->config().brim_ears_detection_length.value);
             coordf_t           brim_ears_max_angle = object->config().brim_ears_max_angle.value;
+
+            const LayerRegion* first_layer_region = object->layers().front()->regions().empty() ? nullptr : object->layers().front()->regions().front();
+            const Flow*        first_layer_ext_flow = first_layer_region == nullptr ? nullptr : &first_layer_region->flow(frExternalPerimeter);
 
             ExPolygons         brim_area_object;
             ExPolygons         no_brim_area_object;
@@ -980,8 +985,14 @@ static ExPolygons outer_inner_brim_area(const Print& print,
                         }
                         brim_width_mod = floor(brim_width_mod / scaled_flow_width / 2) * scaled_flow_width * 2;
 
-                        ExPolygons Compensated = offset_ex(ex_poly, -elephant_foot_comp);
-                        ExPolygon Compensated_base = Compensated.empty()?ex_poly:Compensated.front();
+                        ExPolygon Compensated_base = ex_poly;
+                        if (elephant_foot_comp_mm > 0.0 && first_layer_ext_flow != nullptr) {
+                            Compensated_base = elephant_foot_compensation(ex_poly, *first_layer_ext_flow, elephant_foot_comp_mm);
+                        } else if (elephant_foot_comp != 0.f) {
+                            ExPolygons compensated = offset_ex(ex_poly, -elephant_foot_comp);
+                            if (!compensated.empty())
+                                Compensated_base = compensated.front();
+                        }
                         Polygons ex_poly_holes_reversed = Compensated_base.holes;
                         polygons_reverse(ex_poly_holes_reversed);
 
