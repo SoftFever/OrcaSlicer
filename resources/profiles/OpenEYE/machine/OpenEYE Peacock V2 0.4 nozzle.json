@@ -8,8 +8,8 @@
     "machine_end_gcode": "MMU_END\nEND_PRINT",
 	"machine_load_filament_time": "30",
     "machine_max_speed_e": [
-        "30",
-        "30"
+        "60",
+        "60"
     ],
     "machine_max_speed_x": [
         "500",
