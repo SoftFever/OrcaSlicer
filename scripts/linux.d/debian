@@ -26,6 +26,18 @@ REQUIRED_DEV_PACKAGES=(
     wget
 )
 
+REQUIRED_DEV_PACKAGES_2510=(
+    libcereal-dev
+    libboost-all-dev
+    libboost-locale-dev
+    libboost-log-dev
+    libnlopt-dev
+    libopenvdb-ax-dev
+    libopenvdb-dev
+    libopenvdb-tools
+    libtbb-dev
+)
+
 if [[ -n "$UPDATE_LIB" ]]
 then
     # shellcheck source=/dev/null
@@ -37,6 +49,11 @@ then
             # Some extra packages needed on Ubuntu 22.x and 23.x:
             REQUIRED_DEV_PACKAGES+=(curl libfuse-dev m4)
         fi
+        if dpkg --compare-versions "${VERSION_ID}" eq 25 ;
+          then
+              # Some extra packages needed on Ubuntu 22.x and 23.x:
+              REQUIRED_DEV_PACKAGES+=("${REQUIRED_DEV_PACKAGES_2510[@]}")
+          fi
     fi
 
     if [[ -n "$BUILD_DEBUG" ]]
