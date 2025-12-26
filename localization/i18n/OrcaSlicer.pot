@@ -11108,6 +11108,20 @@ msgid ""
 "easily."
 msgstr ""
 
+msgid "Brim follows compensated outline"
+msgstr ""
+
+msgid ""
+"Use Elephant Foot Compensation outline for brim generation.\n"
+"The brim is generated from the first-layer compensated geometry instead of "
+"the original model outline, ensuring contact with compensated perimeters.\n"
+"\n"
+"With aggressive or geometry-altering Elephant Foot Compensation, enabling "
+"this option may cause the brim to fuse with upper layers. Disabling it in "
+"such cases may leave the brim detached from the compensated first layer, "
+"reducing its effectiveness for first-layer adhesion."
+msgstr ""
+
 msgid "Brim ears"
 msgstr ""
 
