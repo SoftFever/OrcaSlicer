@@ -251,7 +251,8 @@ void CameraManagementDialog::create_ui()
 
     main_sizer->Add(m_list_ctrl, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
 
-    auto dlg_btns = new DialogButtons(this, {"Delete", "Add", "Edit", "Close"}, "", 1);
+    auto dlg_btns = new DialogButtons(this, {"Add", "Edit", "Delete", "Close"}, "", 3);
+    dlg_btns->SetPrimaryButton(_L("Add"));
     main_sizer->Add(dlg_btns, 0, wxEXPAND);
 
     m_btn_delete = dlg_btns->GetButtonFromLabel(_L("Delete"));
