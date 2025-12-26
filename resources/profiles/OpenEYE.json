@@ -1,6 +1,6 @@
 {
     "name": "OpenEYE",
-	"url": "http://www.openeye.com/Parameters/vendor/openeye.json",
+	"url": "http://www.openeye.tech",
     "version": "01.00.00.03",
     "force_update": "0",
     "description": "OpenEYE Printers Configurations",
