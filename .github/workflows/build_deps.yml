@@ -38,6 +38,7 @@ jobs:
           path: ${{ env.DEPS_PATH }}
           key: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }}
           restore-keys: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build
+          lookup-only: ${{ inputs.force-build }}  # We want a clean build for force; this method preserves the outputs of this step
 
       - uses: lukka/get-cmake@latest
         if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') }}
@@ -58,7 +59,6 @@ jobs:
         run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
         shell: pwsh
 
-      # `pack` creates a zip file in deps/build
       - name: Build on Windows
         if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') && inputs.os == 'windows-latest' }}
         working-directory: ${{ github.workspace }}
