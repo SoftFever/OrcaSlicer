@@ -874,6 +874,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     PrintObjectConfig,
 
     ((ConfigOptionFloat,               brim_object_gap))
+    ((ConfigOptionBool,                brim_compense_efc))
     ((ConfigOptionEnum<BrimType>,      brim_type))
     ((ConfigOptionFloat,               brim_width))
     ((ConfigOptionFloat,               brim_ears_detection_length))

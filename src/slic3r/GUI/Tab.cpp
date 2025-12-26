@@ -2663,6 +2663,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("brim_type", "others_settings_brim#type");
         optgroup->append_single_option_line("brim_width", "others_settings_brim#width");
         optgroup->append_single_option_line("brim_object_gap", "others_settings_brim#brim-object-gap");
+        optgroup->append_single_option_line("brim_compense_efc", "others_settings_brim#brim-gap-compense-efc");
         optgroup->append_single_option_line("brim_ears_max_angle", "others_settings_brim#ear-max-angle");
         optgroup->append_single_option_line("brim_ears_detection_length", "others_settings_brim#ear-detection-radius");
 

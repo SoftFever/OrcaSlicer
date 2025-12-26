@@ -1562,6 +1562,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.));
 
+    def = this->add("brim_compense_efc", coBool);
+    def->label = L("Compense brim EFC gap");
+    def->tooltip = L("Takes into account the Elephant Foot Compensation for calculating the gap, ensuring adhesion between the brim and the part regardless of said compensation.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("brim_ears", coBool);
     def->label = L("Brim ears");
     def->category = L("Support");

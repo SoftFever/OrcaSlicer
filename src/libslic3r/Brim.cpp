@@ -913,7 +913,8 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         for (const auto& objectWithExtruder : objPrintVec) {
             const PrintObject* object = print.get_object(objectWithExtruder.first);
             const BrimType     brim_type = object->config().brim_type.value;
-            const float        elephant_foot_comp = scale_(object->config().elefant_foot_compensation.value);
+            const bool         compense_efc= object->config().brim_compense_efc.value;
+            const float        elephant_foot_comp = scale_(object->config().elefant_foot_compensation.value) * compense_efc;
             float              brim_offset = scale_(object->config().brim_object_gap.value);
             double             flowWidth = print.brim_flow().scaled_spacing() * SCALING_FACTOR;
             float              brim_width = scale_(floor(object->config().brim_width.value / flowWidth / 2) * flowWidth * 2);
