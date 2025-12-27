@@ -426,7 +426,7 @@ SpoolmanResult Spoolman::save_preset_to_spoolman(const Preset* filament_preset)
 
     pt::ptree pt;
     pt.add("extra.orcaslicer_preset_data", formated_preset_data);
-    auto res = patch_spoolman_json("filament/" + std::to_string(spool_id), pt);
+    auto res = patch_spoolman_json("filament/" + std::to_string(spool->filament->id), pt);
 
     if (res.empty())
         result.messages.emplace_back("Failed to save the data");
