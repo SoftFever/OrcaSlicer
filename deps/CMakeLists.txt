@@ -170,9 +170,16 @@ function(orcaslicer_add_cmake_project projectname)
 
     set(_gen "")
     set(_build_j "-j${NPROC}")
+    set(_clang_cl_args)
     if (MSVC)
         set(_gen CMAKE_GENERATOR "${DEP_MSVC_GEN}" CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}")
         set(_build_j "/m")
+        if (IS_CLANG_CL)
+            set(_clang_cl_args -T=${CMAKE_GENERATOR_TOOLSET}
+                # TODO: Find a more elegant way to add this flag
+                "-DCMAKE_C_FLAGS_RELEASE:STRING=${CMAKE_C_FLAGS_RELEASE} /MP"
+                "-DCMAKE_CXX_FLAGS_RELEASE:STRING=${CMAKE_CXX_FLAGS_RELEASE} /MP")
+        endif ()
     endif ()
 
 if (NOT IS_CROSS_COMPILE OR NOT APPLE)
@@ -191,10 +198,7 @@ if (NOT IS_CROSS_COMPILE OR NOT APPLE)
             -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
             -DCMAKE_TOOLCHAIN_FILE:STRING=${CMAKE_TOOLCHAIN_FILE}
             -DBUILD_SHARED_LIBS:BOOL=OFF
-            -T=${CMAKE_GENERATOR_TOOLSET}
-            # TODO: Find a more elegant way to add this flag
-            "-DCMAKE_C_FLAGS_RELEASE:STRING=${CMAKE_C_FLAGS_RELEASE} /MP"
-            "-DCMAKE_CXX_FLAGS_RELEASE:STRING=${CMAKE_CXX_FLAGS_RELEASE} /MP"
+            ${_clang_cl_args}
             ${_cmake_osx_arch}
             "${_configs_line}"
             ${DEP_CMAKE_OPTS}
