@@ -932,7 +932,12 @@ static ExPolygons outer_inner_brim_area(const Print& print,
             coordf_t           brim_ears_max_angle = object->config().brim_ears_max_angle.value;
 
             const LayerRegion* first_layer_region = object->layers().front()->regions().empty() ? nullptr : object->layers().front()->regions().front();
-            const Flow*        first_layer_ext_flow = first_layer_region == nullptr ? nullptr : &first_layer_region->flow(frExternalPerimeter);
+            const Flow*        first_layer_ext_flow = nullptr;
+            Flow               first_layer_ext_flow_value;
+            if (first_layer_region != nullptr) {
+                first_layer_ext_flow_value = first_layer_region->flow(frExternalPerimeter);
+                first_layer_ext_flow = &first_layer_ext_flow_value;
+            }
 
             ExPolygons         brim_area_object;
             ExPolygons         no_brim_area_object;
