@@ -31,14 +31,16 @@ jobs:
         with:
           lfs: 'true'
 
+      # Cached deps are just the final outputs, no intermediate files.
+      # So building XOR cache loading.
+      # We use `lookup-only` to skip pulling cache.
       - name: load cached deps
         uses: actions/cache/restore@v4
         id: cache-load
         with:
           path: ${{ env.DEPS_PATH }}
           key: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }}
-          restore-keys: ${{ inputs.os }}-${{ inputs.arch }}-cache-orcaslicer_deps-build
-          lookup-only: ${{ inputs.force-build }}  # We want a clean build for force; this method preserves the outputs of this step
+          lookup-only: ${{ env.DO_BUILD == 'true' }}  # Doing this instead of `if` preserves the outputs of this step
 
       - uses: lukka/get-cmake@latest
         if: ${{ !cancelled() && (env.DO_BUILD == 'true' || steps.cache-load.outputs.cache-hit != 'true') }}
