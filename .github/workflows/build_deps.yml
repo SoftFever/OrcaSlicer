@@ -101,7 +101,7 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.DEPS_PATH }}
-          retention-days: 2 # It's big, keep it short.
+          retention-days: 10 # It's not too big, but we don't need it for a very long time.
           if-no-files-found: error
 
       - name: Save cache from main branch
