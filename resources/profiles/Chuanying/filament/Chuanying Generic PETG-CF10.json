@@ -1,7 +1,6 @@
 {
     "type": "filament",
     "name": "Chuanying Generic PETG-CF10",
-    "inherits": "fdm_filament_pet",
     "from": "system",
     "setting_id": "GFSA04",
     "filament_id": "GFG99",
