@@ -461,6 +461,10 @@
     ],
     "filament_list": [
         {
+            "name": "PolyTerra PLA @base",
+            "sub_path": "filament/PolyTerra PLA @base.json"
+        },
+        {
             "name": "PolyTerra PLA @0.2 nozzle",
             "sub_path": "filament/PolyTerra PLA @0.2 nozzle.json"
         },
