@@ -1174,7 +1174,7 @@ void PlaterPresetComboBox::update()
 
             bitmap_key += single_bar ? filament_rgb : filament_rgb + extruder_rgb;
 #endif
-            if (preset.is_system) {
+            if (1) { // preset.is_system ORCA allow caching vendor and type values for all presets instead just system ones
                 if (!preset.is_compatible && preset_filament_vendors.count(name) > 0)
                     continue;
                 else if (preset.is_compatible && preset_filament_vendors.count(name) > 0)
@@ -1285,9 +1285,29 @@ void PlaterPresetComboBox::update()
                         }
                         return l->first < r->first;
                     });
+                // ORCA add sorting support for vendor / type for user presets
+                if (groupName == "by_vendor" || groupName == "by_type" ){
+                    auto by = groupName == "by_vendor" ? preset_filament_vendors : preset_filament_types;
+                    std::sort(list.begin(), list.end(), [&by](auto *l, auto *r) {
+                        auto get_key = [&](auto* item) -> std::pair<bool, std::string> {
+                            std::string str = by.count(item->first) ? by.at(item->first) : "";
+                            std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::tolower(c);});
+                            return {!str.empty(), str}; // is_valid, lower_case
+                        };
+                        auto [l_valid, l_lower] = get_key(l);
+                        auto [r_valid, r_lower] = get_key(r);
+                        return (l_valid != r_valid) ? l_valid > r_valid
+                             : (l_lower != r_lower) ? l_lower < r_lower 
+                             : l->first < r->first;
+                    });
+                }
                 bool unsupported = group == "Unsupported presets";
                 for (auto it : list) {
-                    auto groupName2 = groupByGroup ? groupName : preset_filament_vendors[it->first];
+                    // ORCA add sorting support for vendor / type for user presets
+                    auto groupName2 = groupName == "by_type"   ? (preset_filament_types[it->first].empty()   ? _L("Unspecified") : preset_filament_types[it->first])
+                                    : groupName == "by_vendor" ? (preset_filament_vendors[it->first].empty() ? _L("Unspecified") : preset_filament_vendors[it->first])
+                                    : groupByGroup             ? groupName
+                                    : preset_filament_vendors[it->first];
                     int  index = Append(it->first, *it->second, groupName2, nullptr, unsupported ? DD_ITEM_STYLE_DISABLED : 0);
                     if (unsupported)
                         set_label_marker(index, LABEL_ITEM_DISABLED);
@@ -1311,7 +1331,13 @@ void PlaterPresetComboBox::update()
 
     //BBS: add project embedded preset logic
     add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"), _L("Project") + " ");
-    add_presets(nonsys_presets, selected_user_preset, L("User presets"), _L("Custom") + " ");
+    // ORCA add sorting support for vendor / type for user presets
+    auto group_filament_presets    = wxGetApp().app_config->get("group_filament_presets");
+    auto group_filament_presets_by = group_filament_presets  == "0" ? (_L("Custom") + " ") // Append all to "Custom" sub menu
+                                   : group_filament_presets  == "2" ? "by_type"            // Create sub menus with filament type
+                                   : group_filament_presets  == "3" ? "by_vendor"          // Create sub menus with filament vendor
+                                   : "";                                                   // Use without sub menu
+    add_presets(nonsys_presets, selected_user_preset, L("User presets"), group_filament_presets_by);
     // BBS: move system to the end
     add_presets(system_presets, selected_system_preset, L("System presets"), _L("System"));
     add_presets(uncompatible_presets, {}, L("Unsupported presets"), _L("Unsupported") + " ");
