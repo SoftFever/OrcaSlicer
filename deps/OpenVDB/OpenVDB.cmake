@@ -7,7 +7,6 @@ else()
 endif()
 
 get_patch_dir_flag(OpenVDB)
-message(STATUS "${OpenVDB_dir_flag}")
 
 orcaslicer_add_cmake_project(OpenVDB
     #  support vs2022, update to 8.2

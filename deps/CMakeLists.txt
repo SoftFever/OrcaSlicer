@@ -315,7 +315,6 @@ if((REV_PARSE_RESULT EQUAL 0) AND (REV_PARSE_OUTPUT STREQUAL "true"))
 endif ()
 
 function(get_patch_dir_flag dep_name)
-    message(STATUS "Is in GIT repo: ${IN_GIT_REPO}")
     if (IN_GIT_REPO)
         set(${dep_name}_dir_flag --directory ${BINARY_DIR_REL}/dep_${dep_name}-prefix/src/dep_${dep_name} PARENT_SCOPE)
     endif ()
