@@ -21,6 +21,8 @@ on:
      - 'scripts/test_build_win.ps1'
      - 'build_release_macos.sh'
      - 'scripts/build_preset_cache.*'
+     - 'signpath/**'
+     - 'scripts/*.ps1'
      - 'scripts/flatpak/**'
      - 'scripts/msix/**'
      - 'tests/**'
@@ -38,11 +40,13 @@ on:
      - 'version.inc'
      - ".github/workflows/build_*.yml"
      - ".github/workflows/unit_tests*.yml"
+     - 'signpath/**'
      - 'build_linux.sh'
      - 'build_win.bat'
      - 'scripts/test_build_win.ps1'
      - 'build_release_macos.sh'
      - 'scripts/build_preset_cache.*'
+     - 'scripts/*.ps1'
      - 'scripts/flatpak/**'
      - 'scripts/msix/**'
      - 'tests/**'
