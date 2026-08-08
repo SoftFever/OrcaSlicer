@@ -46,6 +46,7 @@
 #include "ElegooLink.hpp"
 #include "3DPrinterOS.hpp"
 #include "Moonraker.hpp"
+#include "SnapmakerPrinterAgent.hpp"
 
 namespace fs = boost::filesystem;
 using Slic3r::GUI::PrintHostQueueDialog;
@@ -54,6 +55,14 @@ namespace Slic3r {
 
 
 PrintHost::~PrintHost() {}
+
+std::string build_device_map_start_script(FilamentMappingProtocol protocol, const std::string& filename, const std::vector<int>& filament_map_1based)
+{
+    switch (protocol) {
+    case FilamentMappingProtocol::fmpSnapmaker: return SnapmakerProtocol::build_start_script(filename, filament_map_1based);
+    default: return {};
+    }
+}
 
 PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
 {
