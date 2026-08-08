@@ -737,7 +737,9 @@ private:
 
     // SoftFever
     // 
-    // object id
+    // object id. Only assigned when the flavor emits object definitions (GCode::set_object_info),
+    // but the gcode_label_objects comment prints it unconditionally -- left uninitialized it put
+    // heap garbage in the g-code and differed between two slices of the same scene.
     size_t               m_id{0};
     void apply_conical_overhang();
 
