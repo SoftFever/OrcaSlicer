@@ -1243,6 +1243,43 @@ int CLI::run(int argc, char **argv)
             }
             #endif
 
+            // WSLg fallback: WSL's compositor is a fork of old Weston, the strictest
+            // xdg-shell implementation around. It terminates the client (Gdk "Error 71
+            // (Protocol error)") on the nested popup windows wx builds for cascading
+            // dropdowns/flyouts, and its Mesa stack cannot provide a hardware EGL context
+            // on native Wayland either (zink "failed to choose pdev"), so the 3D view runs
+            // degraded at best. XWayland is fully functional there and is what WSLg
+            // actually optimizes for. Detect WSL (kernel osrelease carries "microsoft")
+            // on a Wayland session and select the X11 path before GTK initializes.
+            // GDK_BACKEND set by the user still wins: this runs only when it was unset.
+            {
+                const char* wayland_env = ::getenv("WAYLAND_DISPLAY");
+                if (wayland_env && *wayland_env) {
+                    bool is_wsl = false;
+                    if (boost::nowide::ifstream osrelease("/proc/sys/kernel/osrelease"); osrelease) {
+                        std::string kernel_release;
+                        std::getline(osrelease, kernel_release);
+                        is_wsl = boost::algorithm::icontains(kernel_release, "microsoft");
+                    }
+                    if (is_wsl) {
+                        BOOST_LOG_TRIVIAL(warning) << "WSL detected on a Wayland session; forcing the X11/XWayland backend "
+                                                      "(WSLg's compositor rejects nested popup windows and lacks native-Wayland EGL).";
+                        ::setenv("GDK_BACKEND", "x11", true);
+                        #if __has_include(<X11/Xlib.h>)
+                        XInitThreads();
+                        #endif
+
+                        //ORCA: this force is the second default-path case that really runs through
+                        //      XWayland -- the no-EGL fallback above is the other one -- so it needs
+                        //      the same WebKit2GTK compositing workaround, on the same version gate
+                        //      (#16385): accelerated compositing could fail silently there before
+                        //      WebKit 2.42, and disabling it also costs threaded scrolling.
+                        if (WebView::NeedsCompositingWorkaround())
+                            ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
+                    }
+                }
+            }
+
             // XInitThreads is needed before GStreamer may use Xlib. On
             // native Wayland without DISPLAY, GStreamer uses waylandsink
             // (no Xlib involved), so the call is skipped.
