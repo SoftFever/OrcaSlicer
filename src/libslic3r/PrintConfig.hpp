@@ -125,6 +125,7 @@ enum class FilamentMappingProtocol {
     // seed_printer_from_report); which changer it is only matters at send time, where the
     // printer reports its own dialect (AFC: SET_MAP, Happy Hare: MMU_TTG_MAP).
     fmpKlipperChanger,
+    fmpWonderMaker,
 };
 
 enum PrintHostType {
@@ -2568,6 +2569,13 @@ public:
     // state is considered changed from perspective of the undo/redo stack.
     void         reset() { m_data.clear(); touch(); }
 
+    // Orca: the filament-compaction transform (FilamentCompaction.hpp) rebuilds a DERIVED copy
+    // of a model config deterministically from a source on every Print::apply. Mirroring the
+    // source's timestamp onto the derived copy keys change detection to the source's edit
+    // history; without it every rebuild stamps a fresh timestamp and re-flags the copy as
+    // changed, silently invalidating a finished slice on the very next apply.
+    void         mirror_timestamp_of(const ModelConfig &rhs) { m_timestamp = rhs.m_timestamp; }
+
     void         assign_config(const ModelConfig &rhs) {
         if (m_timestamp != rhs.m_timestamp) {
             m_data      = rhs.m_data;
@@ -2751,6 +2759,21 @@ bool device_resolves_filament_mapping(const ConfigBase& printer_config);
 // mapping machinery instead. The protocol's answer is the fallback for a printer that was never
 // probed; a reported device_tool_count outranks it (Print::validate()).
 size_t protocol_max_plate_filaments(FilamentMappingProtocol protocol, size_t tool_count);
+
+// True when the firmware only accepts tool numbers T0..T(tool_count-1), so the g-code must
+// address the plate's filaments as a dense range instead of by their project slot number. A
+// third capability, independent of the two above: the Snapmaker U1 consumes project slot
+// numbers directly (its 32-entry table is indexed by them), while the WonderMaker ZR Ultra S
+// has no macro past T(tool_count-1) -- a plate using project slots 3 and 6 must reach it as
+// T0/T1 with the mapping saying which box each of those two tools pulls from. See
+// FilamentCompaction.hpp for the renumbering this enables.
+// switch with no default, as protocol_max_plate_filaments: a new enumerator must state its own
+// answer under -Wswitch.
+bool protocol_requires_dense_tool_numbering(FilamentMappingProtocol protocol);
+
+// protocol_requires_dense_tool_numbering() for a printer config. False for every printer
+// without a native protocol, so the compaction machinery is inert unless a protocol asks.
+bool printer_requires_dense_tool_numbering(const ConfigBase& printer_config);
 
 // True when filament-count decoupling / physical-filament inventory UI should be
 // offered: the printer owns the mapping natively via filament_mapping_protocol.
