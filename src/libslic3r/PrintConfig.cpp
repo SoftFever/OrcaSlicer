@@ -202,6 +202,9 @@ static bool protocol_keeps_slicer_mapping(FilamentMappingProtocol protocol)
         return false;
     case FilamentMappingProtocol::fmpKlipperChanger:
         // The changer maps logical tools to lanes/gates itself (SET_MAP / MMU_TTG_MAP).
+    case FilamentMappingProtocol::fmpWonderMaker:
+        // The ZR Ultra S permutes which box each tool pulls from (box_modify_t<n>), so the
+        // slicer's own mapping is likewise dead weight.
         return false;
     case FilamentMappingProtocol::fmpNone:
         break;
@@ -230,6 +233,12 @@ size_t protocol_max_plate_filaments(FilamentMappingProtocol protocol, size_t too
         // gates; both are logical, so nothing in the plate itself limits the count. A live probe
         // of the printer's registered T macros is what should tighten this.
         return 99;
+    case FilamentMappingProtocol::fmpWonderMaker:
+        // The ZR Ultra S only permutes: box_modify_t<n> exists for n < tool_count and there is
+        // no macro past T(tool_count-1), so one plate may use at most one filament per tool.
+        // The plate's filaments are renumbered to fit that range -- see
+        // protocol_requires_dense_tool_numbering() -- so this bounds the COUNT, not the slot.
+        return tool_count;
     case FilamentMappingProtocol::fmpNone:
         break;
     }
@@ -237,6 +246,30 @@ size_t protocol_max_plate_filaments(FilamentMappingProtocol protocol, size_t too
     // is that the firmware assigns filaments to tools on its own screen. Assume the common shape
     // -- one filament per tool, permuted -- so a plate can always be printed.
     return tool_count;
+}
+
+bool protocol_requires_dense_tool_numbering(FilamentMappingProtocol protocol)
+{
+    switch (protocol) {
+    case FilamentMappingProtocol::fmpSnapmaker:
+        // extruder_map_table is indexed BY the project slot number, so renumbering would
+        // scramble the hardware-verified wire format. The U1 wants the slot numbers as-is.
+        return false;
+    case FilamentMappingProtocol::fmpKlipperChanger:
+        // Logical T namespaces (AFC registers T0..T98; Happy Hare tools are its own): the
+        // plate's slot numbers go to the printer as-is, like the Snapmaker.
+        return false;
+    case FilamentMappingProtocol::fmpWonderMaker:
+        return true;
+    case FilamentMappingProtocol::fmpNone:
+        break;
+    }
+    return false;
+}
+
+bool printer_requires_dense_tool_numbering(const ConfigBase& printer_config)
+{
+    return protocol_requires_dense_tool_numbering(filament_mapping_protocol_of(printer_config));
 }
 
 bool device_resolves_filament_mapping(const ConfigBase& printer_config)
@@ -423,7 +456,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WipeTowerType)
 static t_config_enum_values s_keys_map_FilamentMappingProtocol {
     { "none",       int(FilamentMappingProtocol::fmpNone) },
     { "snapmaker",  int(FilamentMappingProtocol::fmpSnapmaker) },
-    { "klipper_changer", int(FilamentMappingProtocol::fmpKlipperChanger) }
+    { "klipper_changer", int(FilamentMappingProtocol::fmpKlipperChanger) },
+    { "wondermaker", int(FilamentMappingProtocol::fmpWonderMaker) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMappingProtocol)
 
@@ -7259,9 +7293,11 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.emplace_back("none");
     def->enum_values.emplace_back("snapmaker");
     def->enum_values.emplace_back("klipper_changer");
+    def->enum_values.emplace_back("wondermaker");
     def->enum_labels.emplace_back(L("None"));
     def->enum_labels.emplace_back(L("Snapmaker"));
     def->enum_labels.emplace_back(L("Klipper filament changer (AFC / Happy Hare)"));
+    def->enum_labels.emplace_back(L("WonderMaker"));
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<FilamentMappingProtocol>(FilamentMappingProtocol::fmpNone));
 

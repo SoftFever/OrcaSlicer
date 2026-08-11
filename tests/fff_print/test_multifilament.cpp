@@ -2241,6 +2241,88 @@ TEST_CASE("More filaments than tools slice to logical tool indices when the devi
     CHECK((int) status == (int) PrintBase::APPLY_STATUS_UNCHANGED);
 }
 
+// Dense tool numbering (protocol_requires_dense_tool_numbering) is the third, independent
+// capability: the WonderMaker ZR Ultra S resolves the mapping itself AND only permutes its tools,
+// so it has no macro past its last one. A plate that legitimately uses project filaments 4 and 7
+// must therefore reach it as T0/T1, which is what FilamentCompaction arranges before slicing.
+// The Snapmaker case below is the control: its extruder_map_table is indexed BY the project slot,
+// so the same plate must keep the un-renumbered tool ids there.
+TEST_CASE("A dense-numbering printer slices a sparse plate to consecutive tool ids", "[MultiFilament]") {
+    struct Case { const char* name; const char* protocol; bool dense; };
+    const Case c = GENERATE(
+        Case{ "wondermaker renumbers to T0..T2", "wondermaker", true  },
+        Case{ "snapmaker keeps the project ids", "snapmaker",   false });
+
+    DYNAMIC_SECTION(c.name) {
+        // Eight project filaments on a four-tool printer. The plate prints filament 1 (the
+        // objects' own), 4 (outer wall) and 7 (infill) -- three filaments, but spread across the
+        // project so the highest id is well past the tool count.
+        DynamicPrintConfig config = multifilament_config(8, {
+            { "nozzle_diameter",                "0.4,0.4,0.4,0.4" },
+            { "single_extruder_multi_material", "0" },
+            { "outer_wall_filament_id",         4 },
+            { "sparse_infill_filament_id",      7 },
+            { "internal_solid_filament_id",     7 },
+            { "enable_prime_tower",             "0" },
+            { "gcode_comments",                 "1" },
+            // validate() checks this too: the default Marlin flavour with relative E needs it.
+            { "layer_change_gcode",             "G92 E0" },
+        });
+        config.set_deserialize_strict({ { "filament_mapping_protocol", c.protocol } });
+
+        const std::string gcode = Slic3r::Test::slice({ TestMesh::cube_with_hole }, config);
+        REQUIRE(!gcode.empty());
+
+        // Which tool ids the g-code actually commands.
+        std::set<int> tools;
+        for (int tool = 0; tool < 8; ++tool)
+            if (gcode.find("\nT" + std::to_string(tool)) != std::string::npos)
+                tools.insert(tool);
+
+        if (c.dense) {
+            // Renumbered: three filaments become T0/T1/T2, and nothing addresses a tool the
+            // firmware has no macro for.
+            CHECK(tools == std::set<int>{ 0, 1, 2 });
+        } else {
+            // Untouched: the U1 wants the project's own ids, so filaments 4 and 7 stay T3 and T6.
+            CHECK(tools == std::set<int>{ 0, 3, 6 });
+        }
+    }
+}
+
+// A mixed filament is numbered after every physical one and never commanded itself; on a
+// dense-numbering printer the renumbering must hand the printer only the components' tools.
+TEST_CASE("A dense-numbering printer commands only a mix's components", "[MultiFilament]") {
+    // Six project filaments on four heads: the plate prints filament 3 and a mix of 1 and 3 in
+    // slot 5. Two physical filaments -> T0 (filament 1) and T1 (filament 3), nothing else.
+    DynamicPrintConfig config = multifilament_config(6, {
+        { "nozzle_diameter",                "0.4,0.4,0.4,0.4" },
+        { "single_extruder_multi_material", "0" },
+        { "filament_is_mixed",              "0,0,0,0,1,0" },
+        { "filament_mixed_components",      ";;;;1,3;" },
+        { "filament_mixed_sublayer_ratios", ";;;;0.5,0.5;" },
+        { "filament_mixed_gradient",        "0,0,0,0,0,0" },
+        { "filament_mixed_gradient_range",  ";;;;;" },
+        { "filament_mixed_gradient_curve",  ";;;;;" },
+        { "filament_mixed_gradient_per_part","0,0,0,0,0,0" },
+        { "wall_filament",                  "3" },
+        { "sparse_infill_filament",         "5" },
+        { "solid_infill_filament",          "5" },
+        { "enable_prime_tower",             "0" },
+        { "layer_change_gcode",             "G92 E0" },
+    });
+    config.set_deserialize_strict({ { "filament_mapping_protocol", "wondermaker" } });
+
+    const std::string gcode = Slic3r::Test::slice({ TestMesh::cube_with_hole }, config);
+    REQUIRE(!gcode.empty());
+
+    std::set<int> tools;
+    for (int tool = 0; tool < 6; ++tool)
+        if (gcode.find("\nT" + std::to_string(tool)) != std::string::npos)
+            tools.insert(tool);
+    CHECK(tools == std::set<int>{ 0, 1 });
+}
+
 // Count decoupling and per-plate routing capacity are different capabilities. The Snapmaker U1
 // owns a 32-entry extruder_map_table and merges surplus logical tools onto its four heads, so a
 // five-filament plate is fine there. Firmware that only permutes its tools (the WonderMaker ZR
