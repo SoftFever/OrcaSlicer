@@ -16,6 +16,7 @@
 #include "libslic3r/libslic3r.h"
 #include <atomic>
 #include <memory>
+#include <optional>
 #include "slic3r/GUI/Event.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include <string>
@@ -676,7 +677,12 @@ public:
     // editor previews rather than a straight blend of two endpoints. A slot that is not a
     // gradient mixed filament gets an empty ramp. Cached; recomputed when the config changes.
     const std::vector<std::vector<wxColour>>& get_filament_gradient_ramps() const;
-    std::vector<std::string> get_colors_for_color_print(const GCodeProcessorResult* const result = nullptr) const;
+    // `filament_colors` replaces the palette's leading per-filament entries. The G-code preview
+    // passes the colours of the g-code's TOOLS, which a compacted plate (FilamentCompaction)
+    // renumbers away from the project's slots; everything else wants the project's own list and
+    // leaves it unset.
+    std::vector<std::string> get_colors_for_color_print(const GCodeProcessorResult* const result = nullptr,
+                                                        std::optional<std::vector<std::string>> filament_colors = std::nullopt) const;
 
     void set_global_filament_map_mode(FilamentMapMode mode);
     void set_global_filament_map(const std::vector<int>& filament_map);

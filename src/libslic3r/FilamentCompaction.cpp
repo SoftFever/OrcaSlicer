@@ -37,6 +37,11 @@ int FilamentCompaction::tool_of_slot(int slot_0based) const
     return it == slot_of_tool.end() ? -1 : int(it - slot_of_tool.begin());
 }
 
+int FilamentCompaction::project_slot_of_tool(int tool) const
+{
+    return tool >= 0 && size_t(tool) < slot_of_tool.size() ? slot_of_tool[tool] : tool;
+}
+
 // The value an object takes for `key`: its own override if it has one, otherwise the project's.
 static int object_or_global_int(const ModelObject& object, const DynamicPrintConfig& config, const char* key)
 {
