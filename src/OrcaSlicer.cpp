@@ -103,6 +103,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Platform.hpp"
+#include "libslic3r/FilamentCompaction.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -7372,12 +7373,18 @@ int CLI::run(int argc, char **argv)
             if (!nozzle_diameter_str.empty())
                 plate_data->nozzle_diameters = nozzle_diameter_str;
 
+            // parse_filament_info keyed these by the g-code's TOOL number, which is not the
+            // project slot on a plate the printer's T namespace forced to renumber
+            // (FilamentCompaction). Same lookup correction as Plater::export_3mf.
+            Slic3r::GUI::PartPlate* filament_info_plate = partplate_list.get_plate(i);
+            const Print*            filament_info_print = filament_info_plate != nullptr ? filament_info_plate->fff_print() : nullptr;
             for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++) {
+                const int slot = filament_info_print != nullptr ? filament_info_print->filament_compaction().project_slot_of_tool(it->id) : it->id;
                 // get_at() on an empty vector option is UB - these can be unpopulated on a from-scratch slice
                 std::string display_filament_type;
-                it->type  = m_print_config.get_filament_type(display_filament_type, it->id);
-                it->color = (filament_color && !filament_color->values.empty()) ? filament_color->get_at(it->id) : "#FFFFFF";
-                it->filament_id = (filament_id && !filament_id->values.empty()) ? filament_id->get_at(it->id) : "";
+                it->type  = m_print_config.get_filament_type(display_filament_type, slot);
+                it->color = (filament_color && !filament_color->values.empty()) ? filament_color->get_at(slot) : "#FFFFFF";
+                it->filament_id = (filament_id && !filament_id->values.empty()) ? filament_id->get_at(slot) : "";
 #ifdef SLIC3R_GUI
                 if (is_bbl_printer)
                     it->filament_id = bbl_agent.from_orca_filament_id(it->filament_id);

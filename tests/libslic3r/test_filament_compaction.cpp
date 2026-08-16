@@ -89,6 +89,30 @@ TEST_CASE("A sparse plate compacts to dense tool numbers in slot order", "[Filam
     CHECK(compaction.tool_of_slot(0) == -1);
 }
 
+// Everything derived from the sliced g-code (PlateData::parse_filament_info and the per-extruder
+// statistics it reads) is keyed by TOOL number. Consumers that then look the filament up in a
+// project-indexed vector -- its colour, its type, its catalog id -- have to come back the other
+// way first, which is what this accessor is for.
+TEST_CASE("A g-code tool number maps back to the project filament it prints", "[FilamentCompaction]")
+{
+    const FilamentCompaction compaction = build_filament_compaction(model_using({4, 7}), plain_config(8));
+    REQUIRE(compaction.slot_of_tool == std::vector<int>{3, 6});
+    CHECK(compaction.project_slot_of_tool(0) == 3);
+    CHECK(compaction.project_slot_of_tool(1) == 6);
+
+    // No compaction: the tool number already IS the project slot, so every caller can route its
+    // lookup through this unconditionally.
+    const FilamentCompaction identity;
+    REQUIRE(identity.slot_of_tool.empty());
+    CHECK(identity.project_slot_of_tool(0) == 0);
+    CHECK(identity.project_slot_of_tool(5) == 5);
+
+    // A tool the compaction does not cover, or a negative id, is left exactly as it came in:
+    // the caller's own range check against the project's filament count still decides.
+    CHECK(compaction.project_slot_of_tool(2) == 2);
+    CHECK(compaction.project_slot_of_tool(-1) == -1);
+}
+
 TEST_CASE("Compaction renumbers the model's filament references", "[FilamentCompaction]")
 {
     Model model = model_using({4, 7});

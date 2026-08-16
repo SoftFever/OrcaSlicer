@@ -42,6 +42,14 @@ struct FilamentCompaction
     bool is_identity() const;
     // The dense tool number that prints a project slot, or -1 when the plate doesn't use it.
     int  tool_of_slot(int slot_0based) const;
+    // The inverse: the 0-based project slot a g-code tool number prints. Everything derived from
+    // the sliced g-code (PlateData::parse_filament_info, and the per-extruder statistics behind
+    // it) is keyed by tool number, so any consumer that goes on to index a project-indexed vector
+    // -- filament_colour, filament_ids, a per-project-filament weight array -- has to come back
+    // through here first. Identity when there is no compaction, and a tool this one doesn't cover
+    // is returned unchanged, so callers can apply it unconditionally and keep their own bounds
+    // check against the project's filament count.
+    int  project_slot_of_tool(int tool) const;
 };
 
 // The 0-based PHYSICAL filament slots the printable objects of the model's current plate use,
