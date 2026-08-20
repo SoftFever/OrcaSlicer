@@ -1,4 +1,5 @@
 #include "FilamentMapRowsPanel.hpp"
+
 #include "FilamentMapPanel.hpp" // wxEVT_INVALID_MANUAL_MAP
 #include "DragDropPanel.hpp"    // Hex2Color
 #include "AmsMappingPopup.hpp"  // MaterialSyncItem, MappingItem, MappingContainer
