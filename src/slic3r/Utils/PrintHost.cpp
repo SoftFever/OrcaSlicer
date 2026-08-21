@@ -87,8 +87,12 @@ DevicePrintSpec device_print_spec(FilamentMappingProtocol protocol)
     case FilamentMappingProtocol::fmpWonderMaker:
         spec.supports_filament_mapping = true;
         // The ZR's start sequence probes (G30) before every print, so leveling defaults on to
-        // match it. Its firmware offers no flow-calibration or time-lapse hook, so declaring
-        // fewer options than the Snapmaker is the whole point of the per-protocol declaration.
+        // match it. Timelapse drives the stock moonraker-timelapse component (enable at start +
+        // per-layer TIMELAPSE_TAKE_FRAME from the profile's layer gcode); off by default so a
+        // send never silently spends storage. No flow-calibration hook on this firmware.
+        spec.options.push_back({"time_lapse", L("Time-lapse Camera"),
+                                L("Record a time-lapse video with the printer's camera."),
+                                DevicePrintOptionKind::Bool, "0", {}});
         spec.options.push_back({"bed_leveling", L("Auto Leveling"),
                                 L("Probe the bed before printing, as the printer's own screen does."),
                                 DevicePrintOptionKind::Bool, "1", {}});
