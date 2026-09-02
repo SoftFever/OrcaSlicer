@@ -864,9 +864,7 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
     std::string http_error;
 
     auto http = Http::get(url);
-    if (!device_info.api_key.empty()) {
-        http.header("X-Api-Key", device_info.api_key);
-    }
+    set_auth(http, device_info.api_key);
     http.timeout_connect(5)
         .timeout_max(10)
         .on_complete([&](std::string body, unsigned status) {
@@ -963,9 +961,7 @@ bool MoonrakerPrinterAgent::fetch_hh_filament_info(std::vector<AmsTrayData>& tra
     std::string http_error;
 
     auto http = Http::get(url);
-    if (!device_info.api_key.empty()) {
-        http.header("X-Api-Key", device_info.api_key);
-    }
+    set_auth(http, device_info.api_key);
     http.timeout_connect(5)
         .timeout_max(10)
         .on_complete([&](std::string body, unsigned status) {
@@ -1187,6 +1183,20 @@ int MoonrakerPrinterAgent::handle_request(const std::string& dev_id, const std::
     return BAMBU_NETWORK_SUCCESS;
 }
 
+// One transport policy for every request this agent makes -- mirrors Moonraker::set_auth in the
+// printhost layer so "Test works" and "the agent works" can never diverge on TLS or auth.
+void MoonrakerPrinterAgent::set_auth(Http& http, const std::string& api_key) const
+{
+    if (!api_key.empty())
+        http.header("X-Api-Key", api_key);
+    if (!device_info.ca_file.empty())
+        http.ca_file(device_info.ca_file);
+#ifdef WIN32
+    // Schannel-only knob, declared under the same guard in Http.hpp.
+    http.ssl_revoke_best_effort(device_info.ssl_revoke_best_effort);
+#endif
+}
+
 bool MoonrakerPrinterAgent::init_device_info(const std::string& dev_id, const std::string& dev_ip, const std::string& username, const std::string& password, bool use_ssl, const std::string& port)
 {
     device_info         = MoonrakerDeviceInfo{};
@@ -1203,7 +1213,25 @@ bool MoonrakerPrinterAgent::init_device_info(const std::string& dev_id, const st
     device_info.api_key    = password;
     device_info.model_name = session.profile().config.opt_string("printer_model");
     device_info.model_id   = session.printer_type();
-    device_info.base_url   = normalize_base_url(use_ssl, dev_ip, port);
+    // Orca: same transport posture as the printhost Test button (Moonraker::set_auth): the
+    // preset's CA file and revocation setting. Without them an https host behind a private CA
+    // passed Test and failed here, silently (field report on PR 15145).
+    device_info.ca_file                = session.profile().config.opt_string("printhost_cafile");
+    device_info.ssl_revoke_best_effort = session.profile().config.opt_bool("printhost_ssl_ignore_revoke");
+    // Orca: when the address is the session's own print_host with an explicit scheme, use it
+    // verbatim like PrintHost::make_url does -- dev_ip is the host[:port] the device layer keys
+    // on, so rebuilding the URL from it drops any path prefix the user put in print_host
+    // (reverse proxies, tunnels). Anything else keeps the host-derived form.
+    device_info.base_url = normalize_base_url(use_ssl, dev_ip, port);
+    {
+        const GUI::ActivePrinterSession::Connection conn = session.connection();
+        if (conn.dev_id == dev_id && (boost::istarts_with(conn.host, "http://") || boost::istarts_with(conn.host, "https://"))) {
+            std::string verbatim = conn.host;
+            while (!verbatim.empty() && verbatim.back() == '/')
+                verbatim.pop_back();
+            device_info.base_url = verbatim;
+        }
+    }
     device_info.dev_id     = dev_id;
     device_info.version    = "";
     device_info.dev_name   = device_info.dev_id;
@@ -1222,9 +1250,7 @@ bool MoonrakerPrinterAgent::fetch_device_info(const std::string&   base_url,
         std::string http_error;
 
         auto http = Http::get(url);
-        if (!api_key.empty()) {
-            http.header("X-Api-Key", api_key);
-        }
+        set_auth(http, api_key);
         http.timeout_connect(5)
             .timeout_max(10)
             .on_complete([&](std::string body, unsigned status) {
@@ -1282,9 +1308,7 @@ bool MoonrakerPrinterAgent::query_printer_status(const std::string& base_url,
     std::string http_error;
 
     auto http = Http::get(url);
-    if (!api_key.empty()) {
-        http.header("X-Api-Key", api_key);
-    }
+    set_auth(http, api_key);
     http.timeout_connect(5)
         .timeout_max(10)
         .on_complete([&](std::string body, unsigned status_code) {
@@ -1372,9 +1396,7 @@ bool MoonrakerPrinterAgent::send_gcode_sync(const std::string& dev_id, const std
     std::string http_error;
 
     auto http = Http::post(join_url(device_info.base_url, "/printer/gcode/script"));
-    if (!device_info.api_key.empty()) {
-        http.header("X-Api-Key", device_info.api_key);
-    }
+    set_auth(http, device_info.api_key);
     http.header("Content-Type", "application/json")
         .set_post_body(payload_str)
         .timeout_connect(5)
@@ -1413,9 +1435,7 @@ bool MoonrakerPrinterAgent::fetch_object_list(const std::string&     base_url,
     std::string http_error;
 
     auto http = Http::get(join_url(base_url, "/printer/objects/list"));
-    if (!api_key.empty()) {
-        http.header("X-Api-Key", api_key);
-    }
+    set_auth(http, api_key);
     http.timeout_connect(5)
         .timeout_max(10)
         // Gives up once the status stream, the only caller, stops
@@ -2233,9 +2253,7 @@ bool MoonrakerPrinterAgent::upload_gcode(const std::string& local_path,
 
     // Use Http::form_add and Http::form_add_file
     auto http = Http::post(join_url(base_url, "/server/files/upload"));
-    if (!api_key.empty()) {
-        http.header("X-Api-Key", api_key);
-    }
+    set_auth(http, api_key);
     http.form_add("root", "gcodes") // Upload to gcodes directory
         .form_add("print", "false") // Don't auto-start print
         .form_add_file("file", source_path.string(), safe_filename)
@@ -2312,9 +2330,7 @@ bool MoonrakerPrinterAgent::send_jsonrpc_command(const std::string&    base_url,
     std::string http_error;
 
     auto http = Http::post(url);
-    if (!api_key.empty()) {
-        http.header("X-Api-Key", api_key);
-    }
+    set_auth(http, api_key);
     http.header("Content-Type", "application/json")
         .set_post_body(request_str)
         .timeout_connect(5)
