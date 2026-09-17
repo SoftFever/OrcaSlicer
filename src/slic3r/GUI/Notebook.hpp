@@ -72,6 +72,10 @@ private:
     std::vector<wxString>           m_pageLabels; // ORCA
     std::vector<std::string>        m_pageIcons;  // ORCA: resource icon name per page, plugin pages empty
     wxWindow*                       m_overflow_button{nullptr}; // ORCA
+    // ORCA: set while an Enter/Space on a tab button is on its way to becoming a click,
+    // so SetSelection knows the activation came from the keyboard. Must outlive the key
+    // event: the selection change it triggers is delivered through a posted event.
+    bool                            m_activating_from_keyboard{false}; // ORCA
 };
 
 class Notebook : public wxBookCtrlBase

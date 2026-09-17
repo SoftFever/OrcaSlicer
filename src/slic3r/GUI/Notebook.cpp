@@ -132,6 +132,11 @@ void ButtonsListCtrl::Rescale()
 
 void ButtonsListCtrl::SetSelection(int sel)
 {
+    // ORCA: consumed here, on whichever selection change the activation produced, so an
+    // Enter/Space that ends up changing nothing cannot leak into a later programmatic one.
+    const bool from_keyboard = m_activating_from_keyboard;
+    m_activating_from_keyboard = false;
+
     if (m_selection == sel && sel >= 0 && sel < static_cast<int>(m_pageButtons.size()))
         return;
     // BBS: change button color
@@ -164,7 +169,23 @@ void ButtonsListCtrl::SetSelection(int sel)
         std::pair{wxColour(254, 254, 254), (int) StateColor::Normal}
         );
     m_pageButtons[m_selection]->SetTextColor(text_color);
-    
+
+    // ORCA: keyboard activation keeps focus on the tab. Enter/Space reaches the page
+    // switch as a synthetic click (Button::keyDownUp), so it shares the mouse path and
+    // inherits its hand-off of focus to the page: Notebook::SetSelection runs
+    // DoSetSelection before this call, and the page-changed handler focuses the page,
+    // which the plater then does again from a posted event - hence CallAfter rather than
+    // a direct SetFocus here. Only the keyboard sets the flag, so a click still lands the
+    // user on the page they clicked to.
+    if (from_keyboard) {
+        Button* btn = m_pageButtons[m_selection];
+        CallAfter([this, btn]() {
+            if (std::find(m_pageButtons.begin(), m_pageButtons.end(), btn) != m_pageButtons.end() &&
+                btn->IsShownOnScreen() && btn->IsEnabled())
+                btn->SetFocusFromKbd();
+        });
+    }
+
     Refresh();
 }
 
@@ -240,6 +261,10 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
             evt.Skip();
             return;
         }
+        // ORCA: Enter/Space is left to Button::keyDownUp, which activates the tab as a
+        // click; flag it so SetSelection can take focus back afterwards. Every other key
+        // clears the flag rather than leaving it set for an unrelated selection change.
+        m_activating_from_keyboard = evt.GetKeyCode() == WXK_RETURN || evt.GetKeyCode() == WXK_SPACE;
         int cur   = int(it - m_pageButtons.begin());
         int count = int(m_pageButtons.size());
         int next;
