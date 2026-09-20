@@ -157,6 +157,59 @@ uint64_t steady_now_ms()
 
 namespace Slic3r {
 
+namespace MoonrakerFilamentDialect {
+
+bool dialect_supports_push(Dialect dialect)
+{
+    return dialect == Dialect::afc_lane_data || dialect == Dialect::happy_hare;
+}
+
+std::map<int, std::string> afc_lane_keys(const nlohmann::json& lane_data_value)
+{
+    std::map<int, std::string> keys;
+    if (!lane_data_value.is_object())
+        return keys;
+    for (const auto& [lane_key, lane_obj] : lane_data_value.items()) {
+        if (!lane_obj.is_object() || !lane_obj.contains("lane"))
+            continue;
+        // Same reading as fetch_moonraker_filament_data: "lane" is the slot number, as a string
+        // or a number.
+        int slot = -1;
+        try {
+            const auto& lane = lane_obj["lane"];
+            slot             = lane.is_number() ? lane.get<int>() : std::stoi(lane.get<std::string>());
+        } catch (...) {
+            continue;
+        }
+        if (slot >= 0)
+            keys[slot] = lane_key;
+    }
+    return keys;
+}
+
+// RRGGBB from the dialog's RRGGBBAA (or #RRGGBB); both dialects store colour without alpha.
+static std::string rgb_of(const std::string& color_rgba)
+{
+    std::string hex;
+    for (char c : color_rgba)
+        if (std::isxdigit(static_cast<unsigned char>(c)))
+            hex.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+    return hex.size() >= 6 ? hex.substr(0, 6) : "FFFFFF";
+}
+
+std::vector<std::string> afc_push_scripts(const std::string& lane_key, const IPrinterAgent::FilamentSlotInfo& info)
+{
+    return {"SET_COLOR LANE=" + lane_key + " COLOR=" + rgb_of(info.color_rgba),
+            "SET_MATERIAL LANE=" + lane_key + " MATERIAL=" + info.type};
+}
+
+std::string happy_hare_push_script(const IPrinterAgent::FilamentSlotInfo& info)
+{
+    return "MMU_GATE_MAP GATE=" + std::to_string(info.slot) + " MATERIAL=" + info.type + " COLOR=" + rgb_of(info.color_rgba);
+}
+
+} // namespace MoonrakerFilamentDialect
+
 const std::string MoonrakerPrinterAgent_VERSION = "1.0.0";
 
 MoonrakerPrinterAgent::MoonrakerPrinterAgent(std::string log_dir) : m_cloud_agent(nullptr) { (void) log_dir; }
@@ -684,6 +737,7 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
     // software that reports lane data to Moonraker like AFC and recent Happy
     // Hare as of Feb 15, 2026)
     if (fetch_moonraker_filament_data(trays, max_lane_index)) {
+        m_filament_dialect = MoonrakerFilamentDialect::Dialect::afc_lane_data;
         BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::fetch_filament_info: Detected Moonraker filament system with "
                                 << (max_lane_index + 1) << " lanes";
         // Orca: one unit per physical tool now (see build_ams_payload), so ams_count is the tool count.
@@ -694,6 +748,7 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
 
     // Attempt Happy Hare first (more widely adopted, supports more filament changers)
     if (fetch_hh_filament_info(trays, max_lane_index)) {
+        m_filament_dialect = MoonrakerFilamentDialect::Dialect::happy_hare;
         BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::fetch_filament_info: Detected Happy Hare MMU with "
                                 << (max_lane_index + 1) << " gates";
         // Orca: one unit per physical tool now (see build_ams_payload), so ams_count is the tool count.
@@ -703,8 +758,50 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
     }
 
     // No MMU detected - this is normal for printers without MMU, not an error
+    m_filament_dialect = MoonrakerFilamentDialect::Dialect::none;
     BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::fetch_filament_info: No MMU system detected (neither HH nor Moonraker)";
     return false;
+}
+
+bool MoonrakerPrinterAgent::supports_filament_push() const
+{
+    return MoonrakerFilamentDialect::dialect_supports_push(m_filament_dialect);
+}
+
+bool MoonrakerPrinterAgent::push_filament_info(std::string dev_id, const FilamentSlotInfo& info)
+{
+    using namespace MoonrakerFilamentDialect;
+    if (!ensure_device_info(dev_id))
+        return false;
+
+    std::vector<std::string> scripts;
+    if (m_filament_dialect == Dialect::afc_lane_data) {
+        // AFC's map is persistent and SET_MAP swaps lanes, so the lane behind a slot can have
+        // changed since the dialog was opened: re-read before addressing it by name.
+        std::vector<AmsTrayData> trays;
+        int                      max_lane_index = 0;
+        if (!fetch_moonraker_filament_data(trays, max_lane_index))
+            return false;
+        auto key = m_afc_lane_keys.find(info.slot);
+        if (key == m_afc_lane_keys.end()) {
+            BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent::push_filament_info: no AFC lane reports slot " << info.slot;
+            return false;
+        }
+        scripts = afc_push_scripts(key->second, info);
+    } else if (m_filament_dialect == Dialect::happy_hare) {
+        scripts = {happy_hare_push_script(info)};
+    } else {
+        return false;
+    }
+
+    for (const std::string& script : scripts) {
+        if (!send_gcode_sync(dev_id, script)) {
+            BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent::push_filament_info failed: " << script;
+            return false;
+        }
+        BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::push_filament_info ok: " << script;
+    }
+    return true;
 }
 
 std::string MoonrakerPrinterAgent::trim_and_upper(const std::string& input)
@@ -903,6 +1000,7 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
 
     // Parse response into AmsTrayData
     const auto& value = json["result"]["value"];
+    m_afc_lane_keys   = MoonrakerFilamentDialect::afc_lane_keys(value);
     trays.clear();
     max_lane_index = 0;
 
