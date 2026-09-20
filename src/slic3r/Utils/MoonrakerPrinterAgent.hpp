@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cstdint>
 #include <atomic>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -20,6 +21,20 @@
 namespace Slic3r { class ICloudServiceAgent; }
 
 namespace Slic3r {
+
+// Orca: the two filament-changer dialects a Moonraker printer can report slots in, and the
+// g-code each takes to write a slot back (IPrinterAgent::push_filament_info). AFC keys its
+// lane_data namespace by lane NAME and has no combined command; Happy Hare addresses gates by
+// index and takes everything in one MMU_GATE_MAP. Neither has a field for vendor or sub-type,
+// so those are not sent. Pure functions so the wire strings are pinned by tests.
+namespace MoonrakerFilamentDialect {
+enum class Dialect { none, afc_lane_data, happy_hare };
+bool dialect_supports_push(Dialect dialect);
+// slot index -> lane key, from the "value" object of /server/database/item?namespace=lane_data.
+std::map<int, std::string> afc_lane_keys(const nlohmann::json& lane_data_value);
+std::vector<std::string> afc_push_scripts(const std::string& lane_key, const IPrinterAgent::FilamentSlotInfo& info);
+std::string              happy_hare_push_script(const IPrinterAgent::FilamentSlotInfo& info);
+} // namespace MoonrakerFilamentDialect
 class Http;
 
 class MoonrakerPrinterAgent : public IPrinterAgent
@@ -71,6 +86,9 @@ public:
     // Pull-mode agent (on-demand filament sync)
     FilamentSyncMode get_filament_sync_mode() const override { return FilamentSyncMode::pull; }
     bool fetch_filament_info(std::string dev_id, FilamentSyncMode sync_mode = FilamentSyncMode::pull) override;
+    // Writes go through whichever dialect the last fetch read; see MoonrakerFilamentDialect.
+    bool supports_filament_push() const override;
+    bool push_filament_info(std::string dev_id, const FilamentSlotInfo& info) override;
     bool bind_device_connection(const std::string& dev_id, const std::string& address, const std::string& access_code, bool use_ssl) override;
 
 protected:
@@ -211,6 +229,10 @@ private:
     // System-specific filament fetch methods
     bool fetch_hh_filament_info(std::vector<AmsTrayData>& trays, int& max_lane_index);
     bool fetch_moonraker_filament_data(std::vector<AmsTrayData>& trays, int& max_lane_index);
+    // Which dialect the last successful fetch_filament_info read, and for AFC the lane name
+    // behind each slot (refreshed on every lane_data read: SET_MAP can permute lanes).
+    MoonrakerFilamentDialect::Dialect m_filament_dialect = MoonrakerFilamentDialect::Dialect::none;
+    std::map<int, std::string>        m_afc_lane_keys;
 
     // JSON helper methods
     static std::string safe_json_string(const nlohmann::json& obj, const char* key);
