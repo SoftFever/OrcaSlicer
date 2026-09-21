@@ -2330,6 +2330,15 @@ TEST_CASE("A dense-numbering printer commands only a mix's components", "[MultiF
 // printer-agnostic enable_filament_mapping flag, so the same plate must be rejected before it
 // becomes an unprintable file. Print::validate() is the gate; protocol_max_plate_filaments() the
 // per-protocol capability.
+// A Klipper filament changer (AFC / Happy Hare) is a logical T namespace like the Snapmaker's:
+// the plate's slot numbers go to the printer as-is and the changer maps them, so the dense
+// renumbering reserved for permutation-only firmware must stay off for it.
+TEST_CASE("A Klipper filament changer keeps its logical tool numbers", "[MultiFilament]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({ { "filament_mapping_protocol", "klipper_changer" } });
+    CHECK_FALSE(printer_requires_dense_tool_numbering(config));
+}
+
 TEST_CASE("A plate may not use more filaments than the printer can route", "[MultiFilament]") {
     struct Case { const char* name; const char* protocol; bool flag; int solid_infill_filament; bool valid; };
     const Case c = GENERATE(
