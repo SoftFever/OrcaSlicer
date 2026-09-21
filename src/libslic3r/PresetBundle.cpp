@@ -4046,6 +4046,31 @@ void PresetBundle::update_selections(AppConfig &config)
         for (const char* key : s_per_filament_project_keys)
             if (const ConfigOption* opt = project_filament_state.option(key))
                 project_config.set_key_value(key, opt->clone());
+        // Orca: the restored arrays describe the project's slots as the project last saw them, but
+        // a project imported from a slicer that has no mixed filaments (any Bambu/MakerWorld 3MF)
+        // never grew filament_is_mixed past its one-element default. Left short it stops describing
+        // every slot, and num_physical_filaments() -- which counts the flags, deliberately, to
+        // ignore the nozzle-count top-up -- then reports one physical filament for a six-filament
+        // project. The extruders_count handler in Tab::on_value_change reads that as "fewer
+        // filaments than tools" and grows the plate back up with fresh generic slots, discarding
+        // the project's filaments and colours. Pad the mixed metadata to the restored count: a slot
+        // the array does not cover is by definition not a mixed filament. Defaults match
+        // set_num_filaments().
+        const size_t restored_count = this->filament_presets.size();
+        if (auto* o = project_config.option<ConfigOptionBools>("filament_is_mixed"))
+            o->values.resize(restored_count, false);
+        if (auto* o = project_config.option<ConfigOptionStrings>("filament_mixed_components"))
+            o->values.resize(restored_count, std::string{});
+        if (auto* o = project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios"))
+            o->values.resize(restored_count, std::string{});
+        if (auto* o = project_config.option<ConfigOptionBools>("filament_mixed_gradient"))
+            o->values.resize(restored_count, false);
+        if (auto* o = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_range"))
+            o->values.resize(restored_count, std::string{});
+        if (auto* o = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve"))
+            o->values.resize(restored_count, std::string{});
+        if (auto* o = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part"))
+            o->values.resize(restored_count, false);
     }
 
     // Update visibility of presets based on their compatibility with the active printer.
