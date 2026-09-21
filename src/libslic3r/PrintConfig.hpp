@@ -120,6 +120,11 @@ enum class WipeTowerType {
 enum class FilamentMappingProtocol {
     fmpNone = 0,
     fmpSnapmaker,
+    // A Klipper filament changer (AFC or Happy Hare) that maps logical tools to lanes/gates
+    // itself. Not a user choice: the first sync that sees one seeds it (see
+    // seed_klipper_changer_protocol); which changer it is only matters at send time, where the
+    // printer reports its own dialect (AFC: SET_MAP, Happy Hare: MMU_TTG_MAP).
+    fmpKlipperChanger,
 };
 
 enum PrintHostType {
@@ -2720,6 +2725,13 @@ FilamentMappingProtocol filament_mapping_protocol_of(const ConfigBase& printer_c
 // True when the printer routes logical tools itself over a native protocol instead of
 // consuming slicer-computed tool numbers (filament_mapping_protocol != fmpNone).
 bool device_owned_mapping_protocol(const ConfigBase& printer_config);
+
+// Orca: record a Klipper filament changer the printer reported ("afc" / "happy_hare"; "" = none)
+// as the profile's protocol, so offline slicing runs against the last known printer. Only fills an
+// undeclared (fmpNone) protocol -- a vendor protocol has no detectable signature and keeps its
+// declaration -- and never removes one: a changer that went away is caught at send time.
+// Returns true when the config changed.
+bool seed_klipper_changer_protocol(DynamicPrintConfig& printer_config, const std::string& reported_dialect);
 
 // True when the PRINTER resolves filament->tool assignment rather than the slicer: either a
 // native protocol (filament_mapping_protocol) or the printer-agnostic enable_filament_mapping

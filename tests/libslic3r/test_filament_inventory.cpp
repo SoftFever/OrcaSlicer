@@ -1161,3 +1161,22 @@ TEST_CASE("type_compatible matches exact types and small families only", "[Filam
     CHECK_FALSE(type_compatible("", "PLA"));
     CHECK_FALSE(type_compatible("PLA", ""));
 }
+
+TEST_CASE("Inventory round-trips a slot's printer-side name and the changer dialect", "[FilamentInventory]") {
+    // AFC addresses lanes by NAME ("lane1", "e1"); the name rides with the slot from the agent's
+    // tray data so print-time mapping can render SET_MAP without a second lookup. The dialect the
+    // sync detected is cached with the inventory and re-confirmed before a send.
+    FilamentInventory inv;
+    inv.tools.assign(2, std::vector<PhysicalFilament>(1));
+    inv.tools[0][0] = PhysicalFilament{1, "#FF0000", "PLA", "Generic PLA", PhysicalFilament::Kind::Manual};
+    inv.tools[0][0].name = "e1";
+    inv.dialect         = "afc";
+    FilamentInventory back = FilamentInventory::deserialize(inv.serialize(), 2);
+    CHECK(back.tools[0][0].name == "e1");
+    CHECK(back.tools[1][0].name.empty());
+    CHECK(back.dialect == "afc");
+    // An inventory written before these fields existed reads as unnamed, no dialect.
+    FilamentInventory old = FilamentInventory::deserialize(R"({"next_id":2,"tools":[[{"id":1,"color":"#FF0000","type":"PLA","preset":"Generic PLA","kind":"manual"}]]})", 1);
+    CHECK(old.tools[0][0].name.empty());
+    CHECK(old.dialect.empty());
+}

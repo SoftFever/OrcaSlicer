@@ -171,6 +171,15 @@ bool device_owned_mapping_protocol(const ConfigBase& printer_config)
     return filament_mapping_protocol_of(printer_config) != FilamentMappingProtocol::fmpNone;
 }
 
+bool seed_klipper_changer_protocol(DynamicPrintConfig& printer_config, const std::string& reported_dialect)
+{
+    if (reported_dialect.empty() || filament_mapping_protocol_of(printer_config) != FilamentMappingProtocol::fmpNone)
+        return false;
+    printer_config.set_key_value("filament_mapping_protocol",
+                                 new ConfigOptionEnum<FilamentMappingProtocol>(FilamentMappingProtocol::fmpKlipperChanger));
+    return true;
+}
+
 // Orca: per-protocol behavior for filament_mapping_protocol != fmpNone. The one axis a
 // device-owned protocol decides today: does the slicer keep its own filament->tool mapping
 // and merge/physical-map knowledge (filament_map, filament_physical_map, filament_volume_map,
@@ -184,6 +193,9 @@ static bool protocol_keeps_slicer_mapping(FilamentMappingProtocol protocol)
     case FilamentMappingProtocol::fmpSnapmaker:
         // Snapmaker's firmware performs its own full swap-free routing: merge/physical-map
         // knowledge is meaningless to it, so the slicer must hand over pure logical space.
+        return false;
+    case FilamentMappingProtocol::fmpKlipperChanger:
+        // The changer maps logical tools to lanes/gates itself (SET_MAP / MMU_TTG_MAP).
         return false;
     case FilamentMappingProtocol::fmpNone:
         break;
@@ -207,6 +219,11 @@ size_t protocol_max_plate_filaments(FilamentMappingProtocol protocol, size_t too
         // extruder_map_table is 32 logical entries wide; merging onto the physical heads is the
         // firmware's job and is hardware-verified (5 filaments on 4 heads).
         return 32;
+    case FilamentMappingProtocol::fmpKlipperChanger:
+        // AFC registers T0..T98 as logical tools and Happy Hare's tools are bounded by its
+        // gates; both are logical, so nothing in the plate itself limits the count. A live probe
+        // of the printer's registered T macros is what should tighten this.
+        return 99;
     case FilamentMappingProtocol::fmpNone:
         break;
     }
@@ -399,7 +416,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WipeTowerType)
 
 static t_config_enum_values s_keys_map_FilamentMappingProtocol {
     { "none",       int(FilamentMappingProtocol::fmpNone) },
-    { "snapmaker",  int(FilamentMappingProtocol::fmpSnapmaker) }
+    { "snapmaker",  int(FilamentMappingProtocol::fmpSnapmaker) },
+    { "klipper_changer", int(FilamentMappingProtocol::fmpKlipperChanger) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMappingProtocol)
 
@@ -7234,8 +7252,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<FilamentMappingProtocol>::get_enum_values();
     def->enum_values.emplace_back("none");
     def->enum_values.emplace_back("snapmaker");
+    def->enum_values.emplace_back("klipper_changer");
     def->enum_labels.emplace_back(L("None"));
     def->enum_labels.emplace_back(L("Snapmaker"));
+    def->enum_labels.emplace_back(L("Klipper filament changer (AFC / Happy Hare)"));
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<FilamentMappingProtocol>(FilamentMappingProtocol::fmpNone));
 

@@ -30,13 +30,19 @@ std::string FilamentInventory::serialize() const
     json jtools = json::array();
     for (const auto& tool : tools) {
         json jtool = json::array();
-        for (const auto& pf : tool)
-            jtool.push_back({ {"id", pf.id}, {"color", pf.color}, {"type", pf.type}, {"preset", pf.preset}, {"kind", kind_to_string(pf.kind)} });
+        for (const auto& pf : tool) {
+            json jpf = { {"id", pf.id}, {"color", pf.color}, {"type", pf.type}, {"preset", pf.preset}, {"kind", kind_to_string(pf.kind)} };
+            if (!pf.name.empty())
+                jpf["name"] = pf.name;
+            jtool.push_back(std::move(jpf));
+        }
         jtools.push_back(std::move(jtool));
     }
     json j;
     j["next_id"] = next_id;
     j["tools"]   = std::move(jtools);
+    if (!dialect.empty())
+        j["dialect"] = dialect;
     return j.dump();
 }
 
@@ -80,6 +86,8 @@ FilamentInventory FilamentInventory::deserialize(const std::string& s, size_t to
                 pf.preset = jpf["preset"].get<std::string>();
             if (jpf.contains("kind") && jpf["kind"].is_string())
                 pf.kind = kind_from_string(jpf["kind"].get<std::string>());
+            if (jpf.contains("name") && jpf["name"].is_string())
+                pf.name = jpf["name"].get<std::string>();
             slots.push_back(pf);
         }
         if (slots.empty())
@@ -112,6 +120,8 @@ FilamentInventory FilamentInventory::deserialize(const std::string& s, size_t to
         }
     }
     inv.next_id = next_id;
+    if (j.contains("dialect") && j["dialect"].is_string())
+        inv.dialect = j["dialect"].get<std::string>();
     return inv;
 }
 

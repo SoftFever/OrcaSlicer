@@ -17,6 +17,7 @@ struct PhysicalFilament
     std::string type;            // e.g. "PLA" (may be empty = unknown)
     std::string preset;          // exact filament preset name (may be empty = profile unknown)
     enum class Kind { Manual, Mmu } kind = Kind::Manual; // Mmu reserved for future AMS-style slots
+    std::string name;            // the printer's own slot name ("lane1", "e1"); empty = none
     bool empty() const { return color.empty() && type.empty() && preset.empty(); }
 };
 
@@ -31,6 +32,7 @@ struct FilamentInventory
 {
     std::vector<std::vector<PhysicalFilament>> tools; // index = physical tool
     int next_id = 1;                                   // id allocator for new entries, persisted
+    std::string dialect;                               // changer dialect the last sync read ("afc", "happy_hare", "")
 
     std::string serialize() const;
     // Tolerant: malformed or short input yields an inventory of one empty loaded slot per tool,

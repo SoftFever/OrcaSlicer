@@ -834,6 +834,12 @@ void FilamentInventoryEditor::push_changes_to_printer()
 
         IPrinterAgent::FilamentSlotInfo info;
         info.slot   = (int) tool;
+        {
+            // The printer's own slot name, as the last sync recorded it (AFC addresses lanes by it).
+            const FilamentInventory& inv = m_store.for_preset(m_printer_preset_name, m_tool_count);
+            if (tool < inv.tools.size() && !inv.tools[tool].empty())
+                info.name = inv.tools[tool][0].name;
+        }
         info.vendor = p->config.opt_string("filament_vendor", 0u);
         const ConfigOptionStrings* ft = p->config.option<ConfigOptionStrings>("filament_type");
         info.type = (ft && !ft->values.empty()) ? ft->values.front() : row.loaded_type;

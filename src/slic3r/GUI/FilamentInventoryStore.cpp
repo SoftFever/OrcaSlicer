@@ -5,6 +5,7 @@
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceManager.hpp"
 #include "GUI_App.hpp"
+#include "Tab.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -148,6 +149,7 @@ bool sync_filament_inventory_from_printer(FilamentInventories& store, FilamentIn
         if (res.present && tool_idx < inv.tools.size() && !inv.tools[tool_idx].empty()) {
             const PhysicalFilament& cur = inv.tools[tool_idx][0];
             if (!cur.empty() && !cur.preset.empty() && cur.type == res.type && cur.color == res.color) {
+                inv.tools[tool_idx][0].name = res.name; // the lane can have been renamed or remapped
                 applied = true;
                 ++tool_idx;
                 continue;
@@ -156,6 +158,7 @@ bool sync_filament_inventory_from_printer(FilamentInventories& store, FilamentIn
         PhysicalFilament slot; // stays empty when nothing is loaded -- mirrors the machine
         if (res.present)
             slot = build_physical_filament(res.color, res.type, res.preset, /*id=*/0, PhysicalFilament::Kind::Manual);
+        slot.name = res.name;
         inv.apply_synced_loaded_slot(tool_idx, slot);
         applied |= res.present;
         ++tool_idx;
@@ -163,6 +166,19 @@ bool sync_filament_inventory_from_printer(FilamentInventories& store, FilamentIn
     if (tool_idx == 0)
         return false;
 
+    // Cached with the inventory so a send can check the changer still speaks the profile's
+    // protocol without another round trip (and refreshed on every sync, which a send does first).
+    inv.dialect = fila_system->GetChangerDialect();
+    // A Klipper changer is not something the user should have to declare: seed the profile's
+    // protocol from what the printer reported, as a modification of the edited printer preset
+    // the user saves (or not) the usual way. Slicing then runs against the last known printer
+    // even offline; the send path re-checks the printer against it.
+    if (seed_klipper_changer_protocol(wxGetApp().preset_bundle->printers.get_edited_preset().config, inv.dialect)) {
+        if (Tab* printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER)) {
+            printer_tab->update_dirty();
+            printer_tab->reload_config();
+        }
+    }
     inv.ensure_ids();
     save_filament_inventories(store);
     return applied;
@@ -180,6 +196,7 @@ DeviceSlotResolution resolve_device_tray(DevAmsTray* tray, const PresetCollectio
         res.color = DevAmsTray::decode_color(tray->color).GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
 
     res.type = tray->get_filament_type();
+    res.name = tray->slot_name;
 
     // Best target first: the agent may have resolved an exact profile for this spool
     // (DevAmsTray::setting_id carries the filament_id it matched -- see e.g.

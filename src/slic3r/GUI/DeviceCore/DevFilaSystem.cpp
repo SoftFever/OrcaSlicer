@@ -398,6 +398,8 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
     {
         if (jj["ams"].contains("ams"))
         {
+            if (jj["ams"].contains("changer_dialect") && jj["ams"]["changer_dialect"].is_string())
+                system->m_changer_dialect = jj["ams"]["changer_dialect"].get<std::string>();
             if (jj["ams"].contains("ams_exist_bits"))
             {
                 obj->ams_exist_bits = stol(jj["ams"]["ams_exist_bits"].get<std::string>(), nullptr, 16);
@@ -696,6 +698,8 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                                 curr_tray->tag_uid = (*tray_it)["tag_uid"].get<std::string>();
                             else
                                 curr_tray->tag_uid = "0";
+                            if (tray_it->contains("slot_name") && (*tray_it)["slot_name"].is_string())
+                                curr_tray->slot_name = (*tray_it)["slot_name"].get<std::string>();
                             if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type"))
                             {
                                 curr_tray->setting_id = (*tray_it)["tray_info_idx"].get<std::string>();

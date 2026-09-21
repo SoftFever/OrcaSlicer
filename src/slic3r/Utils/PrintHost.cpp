@@ -27,6 +27,7 @@
 #include <wx/arrstr.h>
 
 #include "libslic3r/PrintConfig.hpp"
+#include "MoonrakerPrinterAgent.hpp"
 #include "libslic3r/Channel.hpp"
 #include "OctoPrint.hpp"
 #include "Duet.hpp"
@@ -77,6 +78,11 @@ DevicePrintSpec device_print_spec(FilamentMappingProtocol protocol)
                                 L("Probe the bed before printing, as the printer's own screen does."),
                                 DevicePrintOptionKind::Bool, "1", {}});
         break;
+    case FilamentMappingProtocol::fmpKlipperChanger:
+        // The changer owns the tool->lane/gate map; nothing else on these printers is set at
+        // print start.
+        spec.supports_filament_mapping = true;
+        break;
     default: break;
     }
     return spec;
@@ -86,6 +92,10 @@ std::string build_device_map_start_script(FilamentMappingProtocol protocol, cons
 {
     switch (protocol) {
     case FilamentMappingProtocol::fmpSnapmaker: return SnapmakerProtocol::build_start_script(filename, filament_map_1based);
+    // This legacy path carries neither the slot names nor the reported dialect a Klipper changer
+    // needs, so it renders nothing and the caller's no-silent-drop guard keeps the print from
+    // auto-starting unmapped.
+    case FilamentMappingProtocol::fmpKlipperChanger: return {};
     default: return {};
     }
 }
@@ -94,6 +104,13 @@ std::string build_device_start_script(FilamentMappingProtocol protocol, const st
 {
     switch (protocol) {
     case FilamentMappingProtocol::fmpSnapmaker: return SnapmakerProtocol::build_start_script(filename, job);
+    case FilamentMappingProtocol::fmpKlipperChanger:
+        // The vocabulary is the printer's: whichever changer it reported at the last sync.
+        if (job.changer_dialect == "afc")
+            return MoonrakerFilamentDialect::afc_mapping_start_script(filename, job.filament_map_1based, job.slot_names);
+        if (job.changer_dialect == "happy_hare")
+            return MoonrakerFilamentDialect::happy_hare_mapping_start_script(filename, job.filament_map_1based);
+        return {};
     default: return {};
     }
 }

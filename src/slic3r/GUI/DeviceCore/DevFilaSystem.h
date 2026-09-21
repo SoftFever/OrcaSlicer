@@ -58,6 +58,7 @@ public:
 
     std::string              id;
     std::string              tag_uid;             // tag_uid
+    std::string              slot_name;           // Orca: the printer's own slot name (AFC lane key), "" = none
     std::string              setting_id;          // tray_info_idx, map to the filament_id
     std::string              filament_setting_id; // setting_id
     std::string              m_fila_type;
@@ -346,6 +347,9 @@ public:
     /* ams */
     DevAms*                         GetAmsById(const std::string& ams_id) const;
     std::map<std::string, DevAms*, NumericStrCompare>& GetAmsList() { return amsList; }
+    // Orca: which filament changer dialect the pull-mode agent read the slots in ("afc",
+    // "happy_hare", "" = none); cached with the inventory and re-confirmed before a send.
+    const std::string& GetChangerDialect() const { return m_changer_dialect; }
     int                             GetAmsCount() const { return amsList.size(); }
 
     /* tray*/
@@ -397,6 +401,7 @@ private:
     std::vector<DevFilamentStep> m_filament_change_steps;
 
     std::map<std::string, DevAms*, NumericStrCompare> amsList;// key: ams[id], start with 0
+    std::string m_changer_dialect;
 
     DevAmsSystemSetting m_ams_system_setting{ this };
     std::shared_ptr<DevAmsSystemFirmwareSwitch> m_ams_firmware_switch = DevAmsSystemFirmwareSwitch::Create(this);
