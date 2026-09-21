@@ -1681,6 +1681,47 @@ TEST_CASE("Switching to a printer that can take them keeps the project's filamen
     }
 }
 
+// A project saved by a slicer without mixed filaments (any Bambu/MakerWorld 3mf) carries
+// filament_is_mixed at its one-element default. Restored at that length across a printer switch,
+// num_physical_filaments() -- which counts the flags on purpose -- reported one physical filament
+// for a six-filament project, and the printer tab's extruders-count handler topped the plate back
+// up with fresh generic slots. The restore has to pad the mixed metadata to the list it restored.
+TEST_CASE("Restoring a project with default-length mixed metadata still counts every filament", "[Preset][Bundle][FilamentMapping]")
+{
+    AppConfig    config;
+    PresetBundle bundle;
+
+    std::vector<std::string> filament_names;
+    for (int i = 0; i < 6; ++i) {
+        filament_names.push_back("Test Filament " + std::to_string(i));
+        Preset &f  = add_inmemory_preset(bundle.filaments, filament_names.back());
+        f.is_system = true;
+    }
+    Preset &printer   = add_inmemory_preset(bundle.printers, "Target Printer");
+    printer.is_system = true;
+    printer.config.option<ConfigOptionFloats>("nozzle_diameter", true)->values.assign(4, 0.4);
+    printer.config.option<ConfigOptionBool>("single_extruder_multi_material", true)->value = false;
+    printer.config.option<ConfigOptionEnum<FilamentMappingProtocol>>("filament_mapping_protocol", true)->value = FilamentMappingProtocol::fmpSnapmaker;
+    config.set_printer_setting("Target Printer", PRESET_FILAMENT_NAME, filament_names[0]);
+    for (size_t i = 1; i < 4; ++i)
+        config.set_printer_setting("Target Printer", "filament_0" + std::to_string(i), filament_names[i]);
+
+    bundle.filament_presets.assign(filament_names.begin(), filament_names.end());
+    bundle.project_config.option<ConfigOptionStrings>("filament_colour", true)->values.assign(6, "#123456");
+    bundle.project_config.option<ConfigOptionStrings>("filament_multi_colour", true)->values.assign(6, "#123456");
+    bundle.project_config.option<ConfigOptionStrings>("filament_colour_type", true)->values.assign(6, "1");
+    // As imported: the mixed arrays never grew past their defaults.
+    bundle.project_config.option<ConfigOptionBools>("filament_is_mixed", true)->values = { 0 };
+    bundle.project_config.option<ConfigOptionStrings>("filament_mixed_components", true)->values = { "" };
+
+    bundle.printers.select_preset_by_name("Target Printer", true);
+    bundle.update_selections(config);
+
+    REQUIRE(bundle.filament_presets.size() == 6);
+    CHECK(bundle.project_config.option<ConfigOptionBools>("filament_is_mixed")->values.size() == 6);
+    CHECK(bundle.num_physical_filaments() == 6);
+}
+
 TEST_CASE("export_selections preserves the loaded_filaments inventory key across its clear+rewrite", "[Preset][Bundle][FilamentMapping]")
 {
     // export_selections() calls config.clear_printer_settings(printer_name) then rewrites the
