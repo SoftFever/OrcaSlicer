@@ -107,6 +107,8 @@ struct DevicePrintJobInfo
     std::vector<double>      used_mm;             ///< logical
     std::vector<double>      nozzle_diameter;     ///< PHYSICAL
     std::vector<int>         used_physical_tools; ///< PHYSICAL, deduped, first-use order
+    std::vector<std::string> slot_names;          ///< PHYSICAL: the printer's own slot names, "" = none
+    std::string              changer_dialect;     ///< what the printer reported ("afc" / "happy_hare" / ""), chooses the wire vocabulary
     double                   line_width{0.};
     double                   layer_height{0.};
     double                   outer_wall_speed{0.};

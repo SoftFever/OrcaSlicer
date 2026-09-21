@@ -21050,6 +21050,17 @@ static DevicePrintJobInfo build_device_print_job_info(PartPlate*                
         }
     }
 
+    // The printer's own slot names, as the last sync recorded them (the dialog that collected
+    // this map synced on open). AFC renders its map by lane name; other dialects ignore these.
+    {
+        FilamentInventories      store;
+        const size_t             tool_count = resolve_active_printer_tool_count(store);
+        const FilamentInventory& inventory  = current_inventory_for_preset(active_printer_session().profile(), store, tool_count);
+        for (const auto& tool : inventory.tools)
+            job.slot_names.push_back(tool.empty() ? std::string() : tool[0].name);
+        job.changer_dialect = inventory.dialect;
+    }
+
     // line_width is a percentage of the nozzle diameter; the screen sends the resolved value.
     const double first_nozzle = job.nozzle_diameter.empty() ? 0.4 : job.nozzle_diameter.front();
     if (const auto* line_width = config.option<ConfigOptionFloatOrPercent>("line_width"))
@@ -21282,6 +21293,29 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool up
                 // The standard dialog already collected the mapping and the option choices. Only a
                 // start actually needs a script, so a plain upload builds none.
                 if (upload_job.upload_data.post_action == PrintHostPostUploadAction::StartPrint) {
+                    // The plate was sliced against the profile's protocol (the last known printer);
+                    // the dialog just re-read the printer. A Klipper-changer slice needs a changer
+                    // to still be there, and a vendor-protocol slice must not meet one that appeared
+                    // since (a ZR that gained openACE): either way the file no longer matches the
+                    // machine, so refuse and ask for a re-slice after a sync.
+                    {
+                        const FilamentMappingProtocol protocol = filament_mapping_protocol_of(*physical_printer_config);
+                        FilamentInventories           store;
+                        const size_t                  tool_count = resolve_active_printer_tool_count(store);
+                        const std::string             reported   = current_inventory_for_preset(active_printer_session().profile(), store, tool_count).dialect;
+                        const bool                    expects_changer = protocol == FilamentMappingProtocol::fmpKlipperChanger;
+                        if (expects_changer != !reported.empty()) {
+                            BOOST_LOG_TRIVIAL(warning) << "send_gcode_legacy: sliced for protocol " << int(protocol)
+                                                       << " but the printer reports changer '" << reported << "'; send aborted";
+                            MessageDialog(this, expects_changer
+                                                    ? _L("This plate was sliced for a Klipper filament changer, but the printer no longer "
+                                                         "reports one. Sync the printer materials and slice again.")
+                                                    : _L("The printer now reports a Klipper filament changer this plate was not sliced for. "
+                                                         "Sync the printer materials and slice again."),
+                                          _L("Send print"), wxOK | wxICON_WARNING).ShowModal();
+                            return;
+                        }
+                    }
                     const DevicePrintJobInfo job = build_device_print_job_info(device_plate, device_dlg->filament_map(),
                                                                                device_dlg->options());
                     std::string start_script = build_device_start_script(filament_mapping_protocol_of(*physical_printer_config),

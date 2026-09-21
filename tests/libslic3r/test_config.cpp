@@ -1844,3 +1844,36 @@ TEST_CASE("A json config with one bad value still loads every other key", "[Conf
     REQUIRE(config.option("layer_height") != nullptr);
     CHECK(config.option<ConfigOptionFloat>("layer_height")->value == Catch::Approx(0.28));
 }
+
+// A Klipper filament changer (AFC or Happy Hare) is device-resolved like the Snapmaker
+// protocol: the printer maps logical tools to lanes/gates itself, and one plate may address as
+// many tools as the changer registers (AFC registers T0..T98) until a live probe tightens it.
+// Which changer it is matters only at send time, where the printer says so itself.
+TEST_CASE("The Klipper changer protocol is device-resolved, logical, and bounded at 99", "[Config]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_key_value("nozzle_diameter", new ConfigOptionFloats({0.4}));
+    config.set_deserialize_strict({ { "filament_mapping_protocol", "klipper_changer" } });
+    CHECK(device_owned_mapping_protocol(config));
+    CHECK(device_resolves_filament_mapping(config));
+    CHECK(protocol_max_plate_filaments(filament_mapping_protocol_of(config), 1) == 99);
+}
+
+// The protocol is not a user choice for a Klipper changer: the first sync that sees one seeds it
+// into the printer profile, so offline slicing runs against the last known printer. A vendor
+// protocol is never overwritten (its dialect has no signature to detect), and seeding never
+// removes anything -- a changer that disappears is caught at send time instead.
+TEST_CASE("A detected Klipper changer seeds the protocol into an undeclared profile", "[Config]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    CHECK(seed_klipper_changer_protocol(config, "afc"));
+    CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
+    // Already seeded: nothing to do.
+    CHECK_FALSE(seed_klipper_changer_protocol(config, "happy_hare"));
+    // No changer reported: leaves the profile alone either way.
+    CHECK_FALSE(seed_klipper_changer_protocol(config, ""));
+    CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
+    // A vendor-declared protocol keeps its declaration.
+    DynamicPrintConfig vendor = DynamicPrintConfig::full_print_config();
+    vendor.set_deserialize_strict({ { "filament_mapping_protocol", "snapmaker" } });
+    CHECK_FALSE(seed_klipper_changer_protocol(vendor, "afc"));
+    CHECK(filament_mapping_protocol_of(vendor) == FilamentMappingProtocol::fmpSnapmaker);
+}

@@ -485,6 +485,7 @@ public:
     struct FilamentSlotInfo
     {
         int         slot = 0;    ///< 0-based physical tool / lane index
+        std::string name;        ///< the printer's own name for the slot ("lane1", "e1"); "" = none
         std::string vendor;      ///< filament vendor ("" = unspecified)
         std::string type;        ///< base material type, e.g. "PLA"
         std::string sub_type;    ///< vendor product line, e.g. "SnapSpeed" ("" = none)

@@ -29,11 +29,20 @@ namespace Slic3r {
 // so those are not sent. Pure functions so the wire strings are pinned by tests.
 namespace MoonrakerFilamentDialect {
 enum class Dialect { none, afc_lane_data, happy_hare };
-bool dialect_supports_push(Dialect dialect);
-// slot index -> lane key, from the "value" object of /server/database/item?namespace=lane_data.
-std::map<int, std::string> afc_lane_keys(const nlohmann::json& lane_data_value);
-std::vector<std::string> afc_push_scripts(const std::string& lane_key, const IPrinterAgent::FilamentSlotInfo& info);
+bool        dialect_supports_push(Dialect dialect);
+// The wire/persistence name of a dialect ("afc", "happy_hare", ""), and back.
+std::string dialect_name(Dialect dialect);
+Dialect     dialect_from_name(const std::string& name);
+// Slot writes (IPrinterAgent::push_filament_info). AFC addresses the lane by info.name.
+std::vector<std::string> afc_push_scripts(const IPrinterAgent::FilamentSlotInfo& info);
 std::string              happy_hare_push_script(const IPrinterAgent::FilamentSlotInfo& info);
+// Print-start scripts: reset the changer's map, assign every used tool in ascending order, then
+// the plain SD start. tool_to_slot_1based is the dialog's shape (index = 0-based tool, value =
+// 1-based slot, 0 = unassigned). AFC needs the slot names; a used slot without one renders an
+// empty script, which the send path refuses to auto-start on.
+std::string afc_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based,
+                                     const std::vector<std::string>& slot_names);
+std::string happy_hare_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based);
 } // namespace MoonrakerFilamentDialect
 class Http;
 
@@ -130,6 +139,8 @@ protected:
         std::string tag_uid;             // Non-empty when the slot's data came from an NFC/RFID
                                          // tag (Bambu tag_uid convention); such slots are
                                          // authoritative and excluded from filament pushes.
+        std::string slot_name;           // The printer's own name for the slot (AFC lane key such
+                                         // as "lane1" / "e1"); empty when the changer has none.
     };
 
     // Shape of the AMS units build_ams_payload() emits:
@@ -229,10 +240,9 @@ private:
     // System-specific filament fetch methods
     bool fetch_hh_filament_info(std::vector<AmsTrayData>& trays, int& max_lane_index);
     bool fetch_moonraker_filament_data(std::vector<AmsTrayData>& trays, int& max_lane_index);
-    // Which dialect the last successful fetch_filament_info read, and for AFC the lane name
-    // behind each slot (refreshed on every lane_data read: SET_MAP can permute lanes).
+    // Which dialect the last successful fetch_filament_info read. Published with the slots
+    // (build_ams_payload) so the inventory can cache it and a send can re-confirm it.
     MoonrakerFilamentDialect::Dialect m_filament_dialect = MoonrakerFilamentDialect::Dialect::none;
-    std::map<int, std::string>        m_afc_lane_keys;
 
     // JSON helper methods
     static std::string safe_json_string(const nlohmann::json& obj, const char* key);

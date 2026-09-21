@@ -164,27 +164,23 @@ bool dialect_supports_push(Dialect dialect)
     return dialect == Dialect::afc_lane_data || dialect == Dialect::happy_hare;
 }
 
-std::map<int, std::string> afc_lane_keys(const nlohmann::json& lane_data_value)
+std::string dialect_name(Dialect dialect)
 {
-    std::map<int, std::string> keys;
-    if (!lane_data_value.is_object())
-        return keys;
-    for (const auto& [lane_key, lane_obj] : lane_data_value.items()) {
-        if (!lane_obj.is_object() || !lane_obj.contains("lane"))
-            continue;
-        // Same reading as fetch_moonraker_filament_data: "lane" is the slot number, as a string
-        // or a number.
-        int slot = -1;
-        try {
-            const auto& lane = lane_obj["lane"];
-            slot             = lane.is_number() ? lane.get<int>() : std::stoi(lane.get<std::string>());
-        } catch (...) {
-            continue;
-        }
-        if (slot >= 0)
-            keys[slot] = lane_key;
+    switch (dialect) {
+    case Dialect::afc_lane_data: return "afc";
+    case Dialect::happy_hare: return "happy_hare";
+    case Dialect::none: break;
     }
-    return keys;
+    return {};
+}
+
+Dialect dialect_from_name(const std::string& name)
+{
+    if (name == "afc")
+        return Dialect::afc_lane_data;
+    if (name == "happy_hare")
+        return Dialect::happy_hare;
+    return Dialect::none;
 }
 
 // RRGGBB from the dialog's RRGGBBAA (or #RRGGBB); both dialects store colour without alpha.
@@ -197,15 +193,49 @@ static std::string rgb_of(const std::string& color_rgba)
     return hex.size() >= 6 ? hex.substr(0, 6) : "FFFFFF";
 }
 
-std::vector<std::string> afc_push_scripts(const std::string& lane_key, const IPrinterAgent::FilamentSlotInfo& info)
+std::vector<std::string> afc_push_scripts(const IPrinterAgent::FilamentSlotInfo& info)
 {
-    return {"SET_COLOR LANE=" + lane_key + " COLOR=" + rgb_of(info.color_rgba),
-            "SET_MATERIAL LANE=" + lane_key + " MATERIAL=" + info.type};
+    return {"SET_COLOR LANE=" + info.name + " COLOR=" + rgb_of(info.color_rgba),
+            "SET_MATERIAL LANE=" + info.name + " MATERIAL=" + info.type};
 }
 
 std::string happy_hare_push_script(const IPrinterAgent::FilamentSlotInfo& info)
 {
     return "MMU_GATE_MAP GATE=" + std::to_string(info.slot) + " MATERIAL=" + info.type + " COLOR=" + rgb_of(info.color_rgba);
+}
+
+static std::string sd_print_start(const std::string& filename)
+{
+    return "SDCARD_PRINT_FILE FILENAME=\"" + filename + "\"";
+}
+
+std::string afc_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based,
+                                     const std::vector<std::string>& slot_names)
+{
+    // SET_MAP swaps the lane that held T<n> with the one taking it, so assigning in ascending
+    // tool order after a reset settles to exactly the requested map.
+    std::string script = "RESET_AFC_MAPPING\n";
+    for (size_t tool = 0; tool < tool_to_slot_1based.size(); ++tool) {
+        const int slot = tool_to_slot_1based[tool];
+        if (slot <= 0)
+            continue;
+        if (size_t(slot) > slot_names.size() || slot_names[slot - 1].empty())
+            return {};
+        script += "SET_MAP LANE=" + slot_names[slot - 1] + " MAP=T" + std::to_string(tool) + "\n";
+    }
+    return script + sd_print_start(filename);
+}
+
+std::string happy_hare_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based)
+{
+    std::string script = "MMU_TTG_MAP RESET=1\n";
+    for (size_t tool = 0; tool < tool_to_slot_1based.size(); ++tool) {
+        const int slot = tool_to_slot_1based[tool];
+        if (slot <= 0)
+            continue;
+        script += "MMU_TTG_MAP TOOL=" + std::to_string(tool) + " GATE=" + std::to_string(slot - 1) + "\n";
+    }
+    return script + sd_print_start(filename);
 }
 
 } // namespace MoonrakerFilamentDialect
@@ -613,6 +643,7 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
                 }
                 if (tray->nozzle_temp > 0) {
                     tray_json["nozzle_temp_max"] = std::to_string(tray->nozzle_temp);
+                    tray_json["slot_name"] = tray->slot_name;
                 }
             } else {
                 tray_json["tray_info_idx"] = "";
@@ -634,6 +665,7 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
     tray_exist_ss << std::hex << std::uppercase << tray_exist_bits;
 
     ams_json["ams"] = ams_array;
+    ams_json["changer_dialect"] = MoonrakerFilamentDialect::dialect_name(m_filament_dialect);
     ams_json["ams_exist_bits"] = ams_exist_ss.str();
     ams_json["tray_exist_bits"] = tray_exist_ss.str();
 
@@ -774,20 +806,22 @@ bool MoonrakerPrinterAgent::push_filament_info(std::string dev_id, const Filamen
     if (!ensure_device_info(dev_id))
         return false;
 
+    // Read before write: the changer can have been reconfigured (or removed) since the dialog
+    // opened. fetch_filament_info re-reads the slots and re-records the dialect.
+    const Dialect expected = m_filament_dialect;
+    if (!fetch_filament_info(dev_id) || m_filament_dialect != expected) {
+        BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent::push_filament_info: changer no longer reports the "
+                                   << dialect_name(expected) << " dialect; nothing written";
+        return false;
+    }
+
     std::vector<std::string> scripts;
     if (m_filament_dialect == Dialect::afc_lane_data) {
-        // AFC's map is persistent and SET_MAP swaps lanes, so the lane behind a slot can have
-        // changed since the dialog was opened: re-read before addressing it by name.
-        std::vector<AmsTrayData> trays;
-        int                      max_lane_index = 0;
-        if (!fetch_moonraker_filament_data(trays, max_lane_index))
-            return false;
-        auto key = m_afc_lane_keys.find(info.slot);
-        if (key == m_afc_lane_keys.end()) {
-            BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent::push_filament_info: no AFC lane reports slot " << info.slot;
+        if (info.name.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent::push_filament_info: slot " << info.slot << " has no AFC lane name";
             return false;
         }
-        scripts = afc_push_scripts(key->second, info);
+        scripts = afc_push_scripts(info);
     } else if (m_filament_dialect == Dialect::happy_hare) {
         scripts = {happy_hare_push_script(info)};
     } else {
@@ -1000,7 +1034,6 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
 
     // Parse response into AmsTrayData
     const auto& value = json["result"]["value"];
-    m_afc_lane_keys   = MoonrakerFilamentDialect::afc_lane_keys(value);
     trays.clear();
     max_lane_index = 0;
 
@@ -1026,6 +1059,7 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
 
         AmsTrayData tray;
         tray.slot_index = lane_index;
+        tray.slot_name  = lane_key; // AFC addresses lanes by this name (SET_MAP / SET_COLOR / ...)
         tray.tray_color = safe_json_string(lane_obj, "color");
         tray.tray_type = safe_json_string(lane_obj, "material");
         tray.bed_temp = safe_json_int(lane_obj, "bed_temp");
