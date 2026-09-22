@@ -2285,6 +2285,41 @@ TEST_CASE("A plate may not use more filaments than the printer can route", "[Mul
     }
 }
 
+// What the printer actually registers outranks the protocol's constant in both directions: a
+// Klipper changer's 99 is only a ceiling until the sync counts the printer's T<n> commands, and a
+// Snapmaker whose firmware registered fewer than 32 must not be sent a tool it has no macro for.
+// 0 is "never probed" and leaves the protocol's answer in force.
+TEST_CASE("The printer's reported tool count bounds the plate over the protocol's constant", "[MultiFilament]") {
+    struct Case { const char* name; const char* protocol; int reported; bool valid; };
+    const Case c = GENERATE(
+        Case{ "a Klipper changer not yet probed allows the fifth filament", "klipper_changer", 0, true  },
+        Case{ "a Klipper changer with four registered tools rejects it",    "klipper_changer", 4, false },
+        Case{ "a Klipper changer with five registered tools takes it",      "klipper_changer", 5, true  },
+        Case{ "a Snapmaker reporting four tools is bounded by the probe",   "snapmaker",       4, false });
+
+    DYNAMIC_SECTION(c.name) {
+        DynamicPrintConfig config = multifilament_config(5, {
+            { "nozzle_diameter",                "0.4,0.4,0.4,0.4" },
+            { "single_extruder_multi_material", "0" },
+            { "wall_filament",                  "1" },
+            { "sparse_infill_filament",         "2" },
+            { "solid_infill_filament",          5 },
+            { "layer_change_gcode",             "G92 E0" },
+        });
+        config.set_deserialize_strict({ { "filament_mapping_protocol", c.protocol } });
+        config.set_key_value("device_tool_count", new ConfigOptionInt(c.reported));
+
+        Model model;
+        Print print;
+        Slic3r::Test::init_print({ TestMesh::cube_with_hole }, print, model, config);
+        const std::string err = print.validate().string;
+        INFO("validate() said: " << err);
+        CHECK(err.empty() == c.valid);
+        if (!c.valid)
+            CHECK(err.find("filaments on one plate") != std::string::npos);
+    }
+}
+
 // A mixed (virtual) filament is numbered after every physical one but never reaches the printer:
 // only its components are commanded as tools. The plate bound has to see through it, or a
 // four-filament plate that blends two of them is rejected on a four-tool printer.

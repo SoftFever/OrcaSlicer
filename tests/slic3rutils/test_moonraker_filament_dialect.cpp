@@ -133,3 +133,23 @@ TEST_CASE("The Klipper changer protocol renders openACE's start line when the pr
     CHECK(Slic3r::build_device_start_script(Slic3r::FilamentMappingProtocol::fmpKlipperChanger, "cube.gcode", job) ==
           "SDCARD_PRINT_FILE FILENAME=\"cube.gcode\" OPENACE_MAP=\"[[0,3]]\"");
 }
+
+// The printer's logical tool count is the highest T<n> it registers as a g-code command, plus
+// one -- read from /printer/gcode/help. The Snapmaker U1's toolchanger registers T0..T3 without
+// help text (they are absent from the listing) while its T4..T31 macros are listed, so the
+// count is the highest index, not the number of entries. Anything that is not exactly T<digits>
+// (TEMPERATURE_WAIT, T1_ALIAS) is ignored; no T commands at all is 0, "not probed".
+TEST_CASE("The tool count is the highest registered T command plus one", "[MoonrakerFilamentDialect]")
+{
+    nlohmann::json help = nlohmann::json::object();
+    help["T4"]               = "G-code macro";
+    help["T31"]              = "G-code macro";
+    help["TEMPERATURE_WAIT"] = "Wait for a temperature";
+    help["T1_ALIAS"]         = "";
+    CHECK(tool_count_from_gcode_help(help) == 32);
+    CHECK(tool_count_from_gcode_help(nlohmann::json::object()) == 0);
+    CHECK(tool_count_from_gcode_help(nlohmann::json::array()) == 0);
+    help.clear();
+    help["T0"] = "openACE virtual tool T0";
+    CHECK(tool_count_from_gcode_help(help) == 1);
+}
