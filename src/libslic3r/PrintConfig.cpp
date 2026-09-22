@@ -171,13 +171,19 @@ bool device_owned_mapping_protocol(const ConfigBase& printer_config)
     return filament_mapping_protocol_of(printer_config) != FilamentMappingProtocol::fmpNone;
 }
 
-bool seed_klipper_changer_protocol(DynamicPrintConfig& printer_config, const std::string& reported_dialect)
+bool seed_printer_from_report(DynamicPrintConfig& printer_config, const std::string& reported_dialect, int reported_tool_count)
 {
-    if (reported_dialect.empty() || filament_mapping_protocol_of(printer_config) == FilamentMappingProtocol::fmpKlipperChanger)
-        return false;
-    printer_config.set_key_value("filament_mapping_protocol",
-                                 new ConfigOptionEnum<FilamentMappingProtocol>(FilamentMappingProtocol::fmpKlipperChanger));
-    return true;
+    bool changed = false;
+    if (!reported_dialect.empty() && filament_mapping_protocol_of(printer_config) != FilamentMappingProtocol::fmpKlipperChanger) {
+        printer_config.set_key_value("filament_mapping_protocol",
+                                     new ConfigOptionEnum<FilamentMappingProtocol>(FilamentMappingProtocol::fmpKlipperChanger));
+        changed = true;
+    }
+    if (reported_tool_count > 0 && printer_config.opt_int("device_tool_count") != reported_tool_count) {
+        printer_config.set_key_value("device_tool_count", new ConfigOptionInt(reported_tool_count));
+        changed = true;
+    }
+    return changed;
 }
 
 // Orca: per-protocol behavior for filament_mapping_protocol != fmpNone. The one axis a
@@ -7258,6 +7264,16 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.emplace_back(L("Klipper filament changer (AFC / Happy Hare)"));
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<FilamentMappingProtocol>(FilamentMappingProtocol::fmpNone));
+
+    // Orca: not a user setting -- the materials sync writes what the printer registers (the
+    // highest T<n> g-code command + 1) so a plate is bounded by the real printer, offline too.
+    def = this->add("device_tool_count", coInt);
+    def->label = L("Logical tools reported by the printer");
+    def->tooltip = L("How many logical tools (T0..Tn) the printer's firmware registers, as read from the printer "
+                     "by the materials sync. 0 until the printer has been synced. Bounds how many filaments one "
+                     "plate may address; the printer is re-read before every print.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("wipe_tower_type", coEnum);
     def->label = L("Wipe tower type");

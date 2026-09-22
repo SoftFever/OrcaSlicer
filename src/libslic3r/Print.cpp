@@ -333,7 +333,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_notes",
         "process_notes",
         "printer_notes",
-        "use_3mf"
+        "use_3mf",
+        // Bounds the plate in validate() only; the toolpaths are unaffected.
+        "device_tool_count"
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -2110,7 +2112,11 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
     // itself still fired.
     const DynamicPrintConfig& printer_config = this->full_print_config();
     if (device_resolves_filament_mapping(printer_config)) {
-        const size_t max_plate_filaments = protocol_max_plate_filaments(filament_mapping_protocol_of(printer_config), nozzles);
+        // What the printer registered (device_tool_count, cached by the materials sync) outranks
+        // the protocol's constant in both directions; 0 is "never probed".
+        const int    reported            = printer_config.opt_int("device_tool_count");
+        const size_t max_plate_filaments = reported > 0 ? size_t(reported)
+                                                        : protocol_max_plate_filaments(filament_mapping_protocol_of(printer_config), nozzles);
         // A mixed (virtual) slot never reaches the printer: ToolOrdering resolves it to its
         // component filaments and only those are commanded as tools. Bound the components, not
         // the slot's own number -- a project's mixes are numbered after every physical filament,

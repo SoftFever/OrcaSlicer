@@ -179,11 +179,12 @@ DeviceSyncOutcome sync_filament_inventory_from_printer(FilamentInventories& stor
     // Cached with the inventory so a send can check the changer still speaks the profile's
     // protocol without another round trip (and refreshed on every sync, which a send does first).
     inv.dialect = fila_system->GetChangerDialect();
-    // A Klipper changer is not something the user should have to declare: seed the profile's
-    // protocol from what the printer reported, as a modification of the edited printer preset
-    // the user saves (or not) the usual way. Slicing then runs against the last known printer
-    // even offline; the send path re-checks the printer against it.
-    if (seed_klipper_changer_protocol(wxGetApp().preset_bundle->printers.get_edited_preset().config, inv.dialect)) {
+    // Neither a Klipper changer nor the printer's tool count is something the user should have
+    // to declare: seed both from what the printer reported, as a modification of the edited
+    // printer preset the user saves (or not) the usual way. Slicing then runs against the last
+    // known printer even offline; the send path re-reads the printer and re-validates against it.
+    if (seed_printer_from_report(wxGetApp().preset_bundle->printers.get_edited_preset().config, inv.dialect,
+                                 fila_system->GetDeviceToolCount())) {
         if (Tab* printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER)) {
             printer_tab->update_dirty();
             printer_tab->reload_config();
