@@ -173,7 +173,7 @@ bool device_owned_mapping_protocol(const ConfigBase& printer_config)
 
 bool seed_klipper_changer_protocol(DynamicPrintConfig& printer_config, const std::string& reported_dialect)
 {
-    if (reported_dialect.empty() || filament_mapping_protocol_of(printer_config) != FilamentMappingProtocol::fmpNone)
+    if (reported_dialect.empty() || filament_mapping_protocol_of(printer_config) == FilamentMappingProtocol::fmpKlipperChanger)
         return false;
     printer_config.set_key_value("filament_mapping_protocol",
                                  new ConfigOptionEnum<FilamentMappingProtocol>(FilamentMappingProtocol::fmpKlipperChanger));

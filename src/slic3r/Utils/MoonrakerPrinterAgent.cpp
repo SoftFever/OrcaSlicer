@@ -161,7 +161,7 @@ namespace MoonrakerFilamentDialect {
 
 bool dialect_supports_push(Dialect dialect)
 {
-    return dialect == Dialect::afc_lane_data || dialect == Dialect::happy_hare;
+    return dialect == Dialect::afc_lane_data || dialect == Dialect::happy_hare || dialect == Dialect::openace;
 }
 
 std::string dialect_name(Dialect dialect)
@@ -169,6 +169,7 @@ std::string dialect_name(Dialect dialect)
     switch (dialect) {
     case Dialect::afc_lane_data: return "afc";
     case Dialect::happy_hare: return "happy_hare";
+    case Dialect::openace: return "openace";
     case Dialect::none: break;
     }
     return {};
@@ -180,6 +181,8 @@ Dialect dialect_from_name(const std::string& name)
         return Dialect::afc_lane_data;
     if (name == "happy_hare")
         return Dialect::happy_hare;
+    if (name == "openace")
+        return Dialect::openace;
     return Dialect::none;
 }
 
@@ -224,6 +227,18 @@ std::string afc_mapping_start_script(const std::string& filename, const std::vec
         script += "SET_MAP LANE=" + slot_names[slot - 1] + " MAP=T" + std::to_string(tool) + "\n";
     }
     return script + sd_print_start(filename);
+}
+
+std::string openace_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based)
+{
+    std::string pairs;
+    for (size_t tool = 0; tool < tool_to_slot_1based.size(); ++tool) {
+        const int slot = tool_to_slot_1based[tool];
+        if (slot <= 0)
+            continue;
+        pairs += (pairs.empty() ? "" : ",") + std::string("[") + std::to_string(tool) + "," + std::to_string(slot - 1) + "]";
+    }
+    return sd_print_start(filename) + " OPENACE_MAP=\"[" + pairs + "]\"";
 }
 
 std::string happy_hare_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based)
@@ -769,7 +784,13 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
     // software that reports lane data to Moonraker like AFC and recent Happy
     // Hare as of Feb 15, 2026)
     if (fetch_moonraker_filament_data(trays, max_lane_index)) {
-        m_filament_dialect = MoonrakerFilamentDialect::Dialect::afc_lane_data;
+        // The same lane_data shape comes from AFC and from openACE; the latter announces itself
+        // as a Klipper object, and maps per print differently (see Dialect::openace).
+        std::set<std::string> objects;
+        std::string           list_error;
+        const bool            is_openace = fetch_object_list(device_info.base_url, device_info.api_key, objects, list_error) &&
+                                objects.count("openace") > 0;
+        m_filament_dialect = is_openace ? MoonrakerFilamentDialect::Dialect::openace : MoonrakerFilamentDialect::Dialect::afc_lane_data;
         BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::fetch_filament_info: Detected Moonraker filament system with "
                                 << (max_lane_index + 1) << " lanes";
         // Orca: one unit per physical tool now (see build_ams_payload), so ams_count is the tool count.
@@ -816,7 +837,8 @@ bool MoonrakerPrinterAgent::push_filament_info(std::string dev_id, const Filamen
     }
 
     std::vector<std::string> scripts;
-    if (m_filament_dialect == Dialect::afc_lane_data) {
+    if (m_filament_dialect == Dialect::afc_lane_data || m_filament_dialect == Dialect::openace) {
+        // openACE adopted AFC's lane commands, keyed by the lane_data key it publishes.
         if (info.name.empty()) {
             BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent::push_filament_info: slot " << info.slot << " has no AFC lane name";
             return false;

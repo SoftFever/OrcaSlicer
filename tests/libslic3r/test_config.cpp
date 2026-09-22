@@ -1736,11 +1736,12 @@ TEST_CASE("The Klipper changer protocol is device-resolved, logical, and bounded
     CHECK(protocol_max_plate_filaments(filament_mapping_protocol_of(config), 1) == 99);
 }
 
-// The protocol is not a user choice for a Klipper changer: the first sync that sees one seeds it
-// into the printer profile, so offline slicing runs against the last known printer. A vendor
-// protocol is never overwritten (its dialect has no signature to detect), and seeding never
-// removes anything -- a changer that disappears is caught at send time instead.
-TEST_CASE("A detected Klipper changer seeds the protocol into an undeclared profile", "[Config]") {
+// The protocol is not a user choice for a Klipper changer: the sync that sees one seeds it into
+// the printer profile, so offline slicing runs against the last known printer. What the printer
+// reports wins over what the profile declared -- a ZR Ultra that gained openACE must stop
+// getting the vendor's box_modify start script -- and seeding never removes anything: a changer
+// that disappears is caught at send time, and resetting the protocol is the user's call.
+TEST_CASE("A detected Klipper changer seeds the protocol over whatever the profile declared", "[Config]") {
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
     CHECK(seed_klipper_changer_protocol(config, "afc"));
     CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
@@ -1749,9 +1750,10 @@ TEST_CASE("A detected Klipper changer seeds the protocol into an undeclared prof
     // No changer reported: leaves the profile alone either way.
     CHECK_FALSE(seed_klipper_changer_protocol(config, ""));
     CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
-    // A vendor-declared protocol keeps its declaration.
+    // A vendor-declared protocol is replaced by what the printer actually runs.
     DynamicPrintConfig vendor = DynamicPrintConfig::full_print_config();
     vendor.set_deserialize_strict({ { "filament_mapping_protocol", "snapmaker" } });
-    CHECK_FALSE(seed_klipper_changer_protocol(vendor, "afc"));
-    CHECK(filament_mapping_protocol_of(vendor) == FilamentMappingProtocol::fmpSnapmaker);
+    CHECK(seed_klipper_changer_protocol(vendor, "openace"));
+    CHECK(filament_mapping_protocol_of(vendor) == FilamentMappingProtocol::fmpKlipperChanger);
+    CHECK_FALSE(seed_klipper_changer_protocol(vendor, ""));
 }

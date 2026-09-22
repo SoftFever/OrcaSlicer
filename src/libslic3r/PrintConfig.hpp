@@ -2727,10 +2727,11 @@ FilamentMappingProtocol filament_mapping_protocol_of(const ConfigBase& printer_c
 bool device_owned_mapping_protocol(const ConfigBase& printer_config);
 
 // Orca: record a Klipper filament changer the printer reported ("afc" / "happy_hare"; "" = none)
-// as the profile's protocol, so offline slicing runs against the last known printer. Only fills an
-// undeclared (fmpNone) protocol -- a vendor protocol has no detectable signature and keeps its
-// declaration -- and never removes one: a changer that went away is caught at send time.
-// Returns true when the config changed.
+// as the profile's protocol, so offline slicing runs against the last known printer. What the
+// printer reports wins over what the profile declared (a ZR Ultra that gained openACE must stop
+// getting the vendor's start script); seeding never removes a protocol -- a changer that went
+// away is caught at send time, and resetting the profile is the user's call. Returns true when
+// the config changed.
 bool seed_klipper_changer_protocol(DynamicPrintConfig& printer_config, const std::string& reported_dialect);
 
 // True when the PRINTER resolves filament->tool assignment rather than the slicer: either a

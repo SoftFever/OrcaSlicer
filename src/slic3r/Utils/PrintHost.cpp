@@ -110,6 +110,8 @@ std::string build_device_start_script(FilamentMappingProtocol protocol, const st
             return MoonrakerFilamentDialect::afc_mapping_start_script(filename, job.filament_map_1based, job.slot_names);
         if (job.changer_dialect == "happy_hare")
             return MoonrakerFilamentDialect::happy_hare_mapping_start_script(filename, job.filament_map_1based);
+        if (job.changer_dialect == "openace")
+            return MoonrakerFilamentDialect::openace_mapping_start_script(filename, job.filament_map_1based);
         return {};
     default: return {};
     }

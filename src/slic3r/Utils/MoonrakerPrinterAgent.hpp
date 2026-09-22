@@ -28,7 +28,9 @@ namespace Slic3r {
 // index and takes everything in one MMU_GATE_MAP. Neither has a field for vendor or sub-type,
 // so those are not sent. Pure functions so the wire strings are pinned by tests.
 namespace MoonrakerFilamentDialect {
-enum class Dialect { none, afc_lane_data, happy_hare };
+// openace: publishes lane_data in AFC's shape and takes AFC's lane commands for writes, but maps
+// per print through one parameter on the SD start (OPENACE_MAP), not through SET_MAP.
+enum class Dialect { none, afc_lane_data, happy_hare, openace };
 bool        dialect_supports_push(Dialect dialect);
 // The wire/persistence name of a dialect ("afc", "happy_hare", ""), and back.
 std::string dialect_name(Dialect dialect);
@@ -43,6 +45,10 @@ std::string              happy_hare_push_script(const IPrinterAgent::FilamentSlo
 std::string afc_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based,
                                      const std::vector<std::string>& slot_names);
 std::string happy_hare_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based);
+// openACE: the SD start with OPENACE_MAP="[[sliced,virtual],...]" (0-based, no spaces); only
+// assigned tools are listed, the printer's default map covers the rest, and the job map is
+// frozen at start and dropped at the end, so nothing is reset first.
+std::string openace_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based);
 } // namespace MoonrakerFilamentDialect
 class Http;
 
