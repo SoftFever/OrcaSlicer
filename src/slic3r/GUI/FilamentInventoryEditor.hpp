@@ -145,6 +145,10 @@ private:
     // True when the bound agent cannot deliver edits to the printer (no supports_filament_push)
     // -- every card renders edit-disabled with a tooltip naming why.
     bool                      m_read_only{false};
+    wxStaticText*             m_read_only_note{nullptr}; // shown while m_read_only
+    // Re-evaluates m_read_only from the bound agent; true when it changed. The agent only
+    // knows the printer's changer dialect after a fetch, so this runs after every sync too.
+    bool                      refresh_read_only();
     bool                      m_sync_available{false};
 
     // Bidirectional sync state. After a successful read from the printer, each visited tool's

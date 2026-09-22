@@ -97,7 +97,7 @@ public:
         // visible note when the whole inventory is read-only.
         m_edit_btn->Show(!edit_disabled);
         m_edit_btn->SetToolTip(edit_disabled ? disabled_reason : _L("Edit filament"));
-        m_edit_btn->SetBackgroundColour(color);
+        m_edit_btn->SetBackgroundColour(*wxWHITE); // on the badge doRender draws behind it
         Layout();
         Refresh();
     }
@@ -149,6 +149,17 @@ private:
         dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#DBDBDB")), 1));
         dc.SetBrush(wxBrush(m_color));
         dc.DrawRoundedRectangle(0, 0, size.x - 1, size.y - 1, FromDIP(6));
+
+        // The pencil sits on the filament's own colour, which can be anything: give it a white
+        // badge with a dark outline so it reads on every card (it vanished on light and mid
+        // tones -- field report). The button itself paints white over the badge.
+        if (m_edit_btn->IsShown()) {
+            wxRect badge = m_edit_btn->GetRect();
+            badge.Inflate(FromDIP(2));
+            dc.SetPen(wxPen(wxColour(0x26, 0x2E, 0x30), 1));
+            dc.SetBrush(*wxWHITE_BRUSH);
+            dc.DrawRoundedRectangle(badge, FromDIP(3));
+        }
 
         // Auto-contrast text off the card's own background color -- and NOT through
         // StateColor::darkModeColorFor: the text sits on the card's own absolute colour, which
@@ -229,14 +240,12 @@ FilamentInventoryEditor::FilamentInventoryEditor(wxWindow* parent, const std::st
     if (printer_preset) {
     }
     // Editing is only offered when the bound agent can actually deliver the edits to the
-    // printer (supports_filament_push, today the Snapmaker U1 dialect). Printers we can only
-    // READ from -- e.g. an mmu-shaped bridge like WonderSync -- open read-only: inventory and
-    // sync stay useful, but nothing is editable that could never reach the machine. This is
-    // an agent-capability gate, so a future AFC write dialect lifts it with no UI change.
-    {
-        const NetworkAgent* agent = active_printer_session().sync_agent();
-        m_read_only = agent == nullptr || !agent->supports_filament_push();
-    }
+    // printer (supports_filament_push). Printers we can only READ from open read-only:
+    // inventory and sync stay useful, but nothing is editable that could never reach the
+    // machine. Before the first sync the agent may not know the changer yet, so this is
+    // re-evaluated after every sync (refresh_read_only) -- the pencils used to be missing on
+    // the first open and present on the second.
+    refresh_read_only();
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->AddSpacer(FromDIP(15));
@@ -248,13 +257,14 @@ FilamentInventoryEditor::FilamentInventoryEditor(wxWindow* parent, const std::st
     device_sizer->Add(new Label(this, wxString::Format(_L("Printer: %s"), from_u8(printer_preset_name))),
                        0, wxALIGN_CENTER_VERTICAL);
     main_sizer->Add(device_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(15));
-    if (m_read_only) {
-        // The cards below carry no edit affordance in this state (see FilamentCard::set_content);
+    {
+        // The cards carry no edit affordance while read-only (see FilamentCard::set_content);
         // this note is the visible explanation a disabled-control tooltip can't give on MSW.
-        auto* note = new Label(this, _L("Materials are reported by the printer and can't be edited here."));
-        note->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#6B6B6B")));
+        m_read_only_note = new Label(this, _L("Materials are reported by the printer and can't be edited here."));
+        m_read_only_note->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#6B6B6B")));
         main_sizer->AddSpacer(FromDIP(6));
-        main_sizer->Add(note, 0, wxLEFT | wxRIGHT, FromDIP(15));
+        main_sizer->Add(m_read_only_note, 0, wxLEFT | wxRIGHT, FromDIP(15));
+        m_read_only_note->Show(m_read_only);
     }
     main_sizer->AddSpacer(FromDIP(15));
 
@@ -625,6 +635,12 @@ void FilamentInventoryEditor::do_sync_from_printer(bool interactive)
     m_synced_baseline.clear();
     m_tag_locked_tools.clear();
     m_empty_on_printer.clear();
+    // The fetch just told the agent which changer it is talking to; the pencils follow.
+    if (refresh_read_only()) {
+        m_read_only_note->Show(m_read_only);
+        Layout();
+        Fit();
+    }
     reload_rows_from_device();
     for (size_t t = 0; t < sync.tools.size() && t < m_tools.size(); ++t) {
         const DeviceSlotResolution& res = sync.tools[t];
@@ -640,6 +656,15 @@ void FilamentInventoryEditor::do_sync_from_printer(bool interactive)
         rebuild_tool_rows(t);
     if (sync.status == Status::Unchanged && interactive)
         MessageDialog(this, _L("The printer did not report any filament information."), _L("Sync from printer"), wxOK | wxICON_INFORMATION).ShowModal();
+}
+
+bool FilamentInventoryEditor::refresh_read_only()
+{
+    const NetworkAgent* agent     = active_printer_session().sync_agent();
+    const bool          read_only = agent == nullptr || !agent->supports_filament_push();
+    const bool          changed   = read_only != m_read_only;
+    m_read_only                   = read_only;
+    return changed;
 }
 
 PhysicalFilament FilamentInventoryEditor::slot_from_row(const Row& row) const
