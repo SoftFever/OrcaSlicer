@@ -122,7 +122,7 @@ enum class FilamentMappingProtocol {
     fmpSnapmaker,
     // A Klipper filament changer (AFC or Happy Hare) that maps logical tools to lanes/gates
     // itself. Not a user choice: the first sync that sees one seeds it (see
-    // seed_klipper_changer_protocol); which changer it is only matters at send time, where the
+    // seed_printer_from_report); which changer it is only matters at send time, where the
     // printer reports its own dialect (AFC: SET_MAP, Happy Hare: MMU_TTG_MAP).
     fmpKlipperChanger,
 };
@@ -1823,6 +1823,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             imex_mode_active_tools))
     ((ConfigOptionStrings,             imex_mode_gcodes))
     ((ConfigOptionBool,                enable_filament_mapping))
+    ((ConfigOptionInt,                 device_tool_count))
     ((ConfigOptionBool,                single_extruder_multi_material_priming))
     ((ConfigOptionEnum<ToolChangeOrderingType>, toolchange_ordering))
     ((ConfigOptionString,              toolchange_cyclic_order))
@@ -2726,13 +2727,14 @@ FilamentMappingProtocol filament_mapping_protocol_of(const ConfigBase& printer_c
 // consuming slicer-computed tool numbers (filament_mapping_protocol != fmpNone).
 bool device_owned_mapping_protocol(const ConfigBase& printer_config);
 
-// Orca: record a Klipper filament changer the printer reported ("afc" / "happy_hare"; "" = none)
-// as the profile's protocol, so offline slicing runs against the last known printer. What the
-// printer reports wins over what the profile declared (a ZR Ultra that gained openACE must stop
-// getting the vendor's start script); seeding never removes a protocol -- a changer that went
-// away is caught at send time, and resetting the profile is the user's call. Returns true when
-// the config changed.
-bool seed_klipper_changer_protocol(DynamicPrintConfig& printer_config, const std::string& reported_dialect);
+// Orca: record what the printer reported into the profile, so offline slicing runs against the
+// last known printer: a Klipper filament changer ("afc" / "happy_hare" / "openace"; "" = none)
+// becomes the profile's protocol, and the number of logical tools the firmware registers
+// (highest T<n> + 1; 0 = not probed) becomes device_tool_count. What the printer reports wins
+// over what the profile declared (a ZR Ultra that gained openACE must stop getting the vendor's
+// start script); seeding never removes a protocol -- a changer that went away is caught at send
+// time, and resetting the profile is the user's call. Returns true when the config changed.
+bool seed_printer_from_report(DynamicPrintConfig& printer_config, const std::string& reported_dialect, int reported_tool_count);
 
 // True when the PRINTER resolves filament->tool assignment rather than the slicer: either a
 // native protocol (filament_mapping_protocol) or the printer-agnostic enable_filament_mapping
@@ -2746,7 +2748,8 @@ bool device_resolves_filament_mapping(const ConfigBase& printer_config);
 // tools) and per-plate routing capacity are separate capabilities: a printer whose firmware only
 // permutes its tools has no macro past T(tool_count-1). Only meaningful when
 // device_resolves_filament_mapping() is true -- the slicer-mapped path is bounded by its own
-// mapping machinery instead. See Print::validate().
+// mapping machinery instead. The protocol's answer is the fallback for a printer that was never
+// probed; a reported device_tool_count outranks it (Print::validate()).
 size_t protocol_max_plate_filaments(FilamentMappingProtocol protocol, size_t tool_count);
 
 // True when filament-count decoupling / physical-filament inventory UI should be

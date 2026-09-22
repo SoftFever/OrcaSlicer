@@ -49,6 +49,10 @@ std::string happy_hare_mapping_start_script(const std::string& filename, const s
 // assigned tools are listed, the printer's default map covers the rest, and the job map is
 // frozen at start and dropped at the end, so nothing is reset first.
 std::string openace_mapping_start_script(const std::string& filename, const std::vector<int>& tool_to_slot_1based);
+// How many logical tools the printer registers, from /printer/gcode/help's {command: help}
+// object: the highest T<n> + 1. The highest, not the count -- a Klipper toolchanger registers
+// its physical T0..T3 without help text, so they are absent from the listing. 0 = none found.
+int tool_count_from_gcode_help(const nlohmann::json& help);
 } // namespace MoonrakerFilamentDialect
 class Http;
 
@@ -200,7 +204,10 @@ private:
 
     // Auth + TLS options for one request, from device_info (see Moonraker::set_auth in the printhost layer).
     void set_auth(Http& http, const std::string& api_key) const;
+    // One GET of a Moonraker JSON endpoint, unwrapping the "result" envelope.
+    bool fetch_json(const std::string& url, const std::string& api_key, nlohmann::json& result, std::string& error) const;
     bool fetch_object_list(const std::string& base_url, const std::string& api_key, std::set<std::string>& objects, std::string& error) const;
+    bool fetch_tool_count(const std::string& base_url, const std::string& api_key, int& tool_count, std::string& error) const;
     bool query_printer_status(const std::string& base_url, const std::string& api_key, nlohmann::json& status, std::string& error) const;
     bool send_gcode_sync(const std::string& dev_id, const std::string& gcode) const;
     void send_gcode_async(const std::string& dev_id, const std::string& gcode,
@@ -249,6 +256,9 @@ private:
     // Which dialect the last successful fetch_filament_info read. Published with the slots
     // (build_ams_payload) so the inventory can cache it and a send can re-confirm it.
     MoonrakerFilamentDialect::Dialect m_filament_dialect = MoonrakerFilamentDialect::Dialect::none;
+    // Logical tools the printer registered at the last fetch_filament_info (0 = not probed);
+    // published alongside the dialect so the profile can cache it.
+    int m_tool_count = 0;
 
     // JSON helper methods
     static std::string safe_json_string(const nlohmann::json& obj, const char* key);

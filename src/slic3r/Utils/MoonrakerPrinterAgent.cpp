@@ -253,6 +253,20 @@ std::string happy_hare_mapping_start_script(const std::string& filename, const s
     return script + sd_print_start(filename);
 }
 
+int tool_count_from_gcode_help(const nlohmann::json& help)
+{
+    int highest = -1;
+    if (help.is_object()) {
+        for (auto it = help.begin(); it != help.end(); ++it) {
+            const std::string& key = it.key();
+            if (key.size() < 2 || key[0] != 'T' ||
+                !std::all_of(key.begin() + 1, key.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+                continue;
+            highest = std::max(highest, std::stoi(key.substr(1)));
+        }
+    }
+    return highest + 1;
+}
 } // namespace MoonrakerFilamentDialect
 
 const std::string MoonrakerPrinterAgent_VERSION = "1.0.0";
@@ -681,6 +695,7 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
 
     ams_json["ams"] = ams_array;
     ams_json["changer_dialect"] = MoonrakerFilamentDialect::dialect_name(m_filament_dialect);
+    ams_json["device_tool_count"] = m_tool_count;
     ams_json["ams_exist_bits"] = ams_exist_ss.str();
     ams_json["tray_exist_bits"] = tray_exist_ss.str();
 
@@ -779,6 +794,14 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
 
     std::vector<AmsTrayData> trays;
     int max_lane_index = 0;
+
+    // The printer's logical tool count travels with the slots (build_ams_payload) so the profile
+    // can cache it; a failed probe reports 0, "unknown", which never overwrites a cached count.
+    std::string probe_error;
+    if (!fetch_tool_count(device_info.base_url, device_info.api_key, m_tool_count, probe_error)) {
+        m_tool_count = 0;
+        BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent::fetch_filament_info: tool count probe failed: " << probe_error;
+    }
 
     // Try Moonraker filament data (more generic, supports any filament changer
     // software that reports lane data to Moonraker like AFC and recent Happy
@@ -1579,16 +1602,13 @@ bool MoonrakerPrinterAgent::send_gcode_sync(const std::string& dev_id, const std
     return true;
 }
 
-bool MoonrakerPrinterAgent::fetch_object_list(const std::string&     base_url,
-                                              const std::string&     api_key,
-                                              std::set<std::string>& objects,
-                                              std::string&           error) const
+bool MoonrakerPrinterAgent::fetch_json(const std::string& url, const std::string& api_key, nlohmann::json& result, std::string& error) const
 {
     std::string response_body;
     bool        success = false;
     std::string http_error;
 
-    auto http = Http::get(join_url(base_url, "/printer/objects/list"));
+    auto http = Http::get(url);
     set_auth(http, api_key);
     http.timeout_connect(5)
         .timeout_max(10)
@@ -1620,8 +1640,18 @@ bool MoonrakerPrinterAgent::fetch_object_list(const std::string&     base_url,
         error = "Invalid JSON response";
         return false;
     }
+    result = json.contains("result") ? json["result"] : json;
+    return true;
+}
 
-    nlohmann::json result = json.contains("result") ? json["result"] : json;
+bool MoonrakerPrinterAgent::fetch_object_list(const std::string&     base_url,
+                                              const std::string&     api_key,
+                                              std::set<std::string>& objects,
+                                              std::string&           error) const
+{
+    nlohmann::json result;
+    if (!fetch_json(join_url(base_url, "/printer/objects/list"), api_key, result, error))
+        return false;
     if (!result.contains("objects") || !result["objects"].is_array()) {
         error = "Unexpected JSON structure";
         return false;
@@ -1635,6 +1665,15 @@ bool MoonrakerPrinterAgent::fetch_object_list(const std::string&     base_url,
     }
 
     return !objects.empty();
+}
+
+bool MoonrakerPrinterAgent::fetch_tool_count(const std::string& base_url, const std::string& api_key, int& tool_count, std::string& error) const
+{
+    nlohmann::json result;
+    if (!fetch_json(join_url(base_url, "/printer/gcode/help"), api_key, result, error))
+        return false;
+    tool_count = MoonrakerFilamentDialect::tool_count_from_gcode_help(result);
+    return true;
 }
 
 int MoonrakerPrinterAgent::send_version_info(const std::string& dev_id)
