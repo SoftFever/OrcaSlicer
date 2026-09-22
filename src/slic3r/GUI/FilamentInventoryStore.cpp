@@ -114,33 +114,41 @@ const Preset* find_generic_filament_preset(const std::string& type, const Preset
     return fallback;
 }
 
-bool sync_filament_inventory_from_printer(FilamentInventories& store, FilamentInventory& inv, size_t tool_count)
+DeviceSyncOutcome sync_filament_inventory_from_printer(FilamentInventories& store, FilamentInventory& inv, size_t tool_count)
 {
+    using Status = DeviceSyncOutcome::Status;
+    DeviceSyncOutcome outcome;
+
     const ActivePrinterSession& session   = active_printer_session();
     NetworkAgent*               net_agent = session.sync_agent();
     MachineObject*              machine   = session.live_machine();
     if (net_agent == nullptr || machine == nullptr)
-        return false;
+        return outcome; // NoSession
     if (net_agent->get_filament_sync_mode() == FilamentSyncMode::pull &&
-        !net_agent->fetch_filament_info(machine->get_dev_id()))
-        return false;
+        !net_agent->fetch_filament_info(machine->get_dev_id())) {
+        outcome.status = Status::FetchFailed;
+        return outcome;
+    }
 
     std::shared_ptr<DevFilaSystem> fila_system = machine->GetFilaSystem();
-    if (!fila_system)
-        return false;
+    if (!fila_system) {
+        outcome.status = Status::FetchFailed;
+        return outcome;
+    }
 
     const PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
     size_t tool_idx = 0;
     bool   applied  = false;
     for (const auto& [tray_index, slot_id] : fila_system->GetTrayIndexMap()) {
-        // Virtual/external-spool pseudo-trays are always seeded and never resolve; see the
-        // materials editor's sync for the full story.
+        // GetTrayIndexMap() always seeds two virtual/external-spool pseudo-trays alongside the
+        // real ones; they never resolve, so the map is never an "any data?" signal on its own.
         if (devPrinterUtil::IsVirtualSlot(slot_id.first))
             continue;
         if (tool_idx >= tool_count)
             break;
         DevAmsTray* tray = fila_system->GetAmsTray(std::to_string(slot_id.first), std::to_string(slot_id.second));
         const DeviceSlotResolution res = resolve_device_tray(tray, filaments);
+        outcome.tools.push_back(res);
         // Orca: with the print dialog now refreshing on every open (not just bootstrap), an
         // unconditional overwrite would silently downgrade a hand-picked preset to the Generic
         // fallback each time on printers that only report type+color. When the printer reports
@@ -163,8 +171,10 @@ bool sync_filament_inventory_from_printer(FilamentInventories& store, FilamentIn
         applied |= res.present;
         ++tool_idx;
     }
-    if (tool_idx == 0)
-        return false;
+    if (tool_idx == 0) {
+        outcome.status = Status::NothingReported;
+        return outcome;
+    }
 
     // Cached with the inventory so a send can check the changer still speaks the profile's
     // protocol without another round trip (and refreshed on every sync, which a send does first).
@@ -181,7 +191,8 @@ bool sync_filament_inventory_from_printer(FilamentInventories& store, FilamentIn
     }
     inv.ensure_ids();
     save_filament_inventories(store);
-    return applied;
+    outcome.status = applied ? Status::Applied : Status::Unchanged;
+    return outcome;
 }
 
 DeviceSlotResolution resolve_device_tray(DevAmsTray* tray, const PresetCollection& filaments)

@@ -606,155 +606,39 @@ FilamentInventoryEditor::SlotSnapshot FilamentInventoryEditor::snapshot_of(const
 
 void FilamentInventoryEditor::do_sync_from_printer(bool interactive)
 {
-    // Orca: best-effort sync. Any failure is non-blocking and leaves the editor
-    // untouched -- offline manual editing stays the baseline workflow. Sync only ever targets
-    // each tool's slot-0 (loaded) row; swappable rows and their ids are left exactly as they
-    // were, since the printer only ever reports what's currently loaded.
-    const ActivePrinterSession& session   = active_printer_session();
-    NetworkAgent*               net_agent = session.sync_agent();
-    MachineObject*              machine   = session.live_machine();
-    if (net_agent == nullptr) {
-        if (interactive)
-            MessageDialog(this, _L("No connected printer is available to sync from."), _L("Sync from printer"), wxOK | wxICON_INFORMATION).ShowModal();
+    // One sync for every surface (sync_filament_inventory_from_printer): it writes the record --
+    // slot names, the same-spool guard, the changer dialect, the protocol seeding -- and this
+    // dialog then rebuilds its rows FROM the record, so the two can never disagree. What the
+    // record cannot hold (a tag-locked tool, an empty slot on the printer) comes back per tool.
+    const DeviceSyncOutcome sync = sync_filament_inventory_from_printer(m_store, device(), m_tool_count);
+    using Status = DeviceSyncOutcome::Status;
+    if (!sync.ok()) {
+        if (interactive) {
+            const wxString why = sync.status == Status::NoSession    ? _L("No connected printer is available to sync from.") :
+                                 sync.status == Status::FetchFailed  ? _L("Failed to read filament info from the printer.") :
+                                                                       _L("The printer did not report any filament information.");
+            MessageDialog(this, why, _L("Sync from printer"), wxOK | wxICON_INFORMATION).ShowModal();
+        }
         return;
     }
 
-    // fetch_filament_info() is a synchronous/blocking REST call (see IPrinterAgent.hpp); pull-mode
-    // agents populate the machine's DevFilaSystem before returning. Subscription-mode agents keep
-    // DevFilaSystem current via MQTT pushes already, so there's nothing to fetch here. Mirrors the
-    // existing pattern in Sidebar::build_filament_ams_list/load_ams_list (Plater.cpp).
-    if (net_agent->get_filament_sync_mode() == FilamentSyncMode::pull) {
-        if (!net_agent->fetch_filament_info(machine->get_dev_id())) {
-            if (interactive)
-                MessageDialog(this, _L("Failed to read filament info from the printer."), _L("Sync from printer"), wxOK | wxICON_INFORMATION).ShowModal();
-            return;
-        }
-    }
-
-    std::shared_ptr<DevFilaSystem> fila_system = machine->GetFilaSystem();
-    std::map<int, DevAmsSlotId> tray_map = fila_system ? fila_system->GetTrayIndexMap() : std::map<int, DevAmsSlotId>();
-
-    // Orca: tray -> physical tool correspondence is ambiguous for toolchangers (DevFilaSystem's
-    // trays are AMS-shaped, not tool-shaped). Best-effort: real AMS trays, sorted by tray index,
-    // map 1:1 onto tool rows up to tool_count. Rows beyond the reported tray count, and trays
-    // beyond the row count, are left alone.
-    //
-    // GetTrayIndexMap() unconditionally seeds two virtual/external-spool pseudo-tray entries
-    // (VIRTUAL_TRAY_MAIN_ID/DEPUTY_ID) alongside any real AMS trays, so the map is never actually
-    // empty -- it can't be used as an "any data?" signal. Those pseudo-trays live in
-    // MachineObject::vt_slot, not in DevFilaSystem's amsList, so GetAmsTray() below can never
-    // resolve them anyway; skip them explicitly (rather than relying on that null result) so they
-    // don't silently consume a tool row on AMS-less toolchangers, and count rows actually applied
-    // to know whether the sync produced anything.
-    size_t tool_idx     = 0;
-    size_t rows_applied = 0;
     m_synced_baseline.clear();
     m_tag_locked_tools.clear();
     m_empty_on_printer.clear();
-    std::set<size_t> tools_to_refresh; // cards to repaint once, after all tray data is applied
-    for (const auto& [tray_index, slot_id] : tray_map) {
-        if (devPrinterUtil::IsVirtualSlot(slot_id.first))
-            continue;
-        if (tool_idx >= m_tools.size())
-            break;
-        Row&   row       = m_tools[tool_idx].rows[0]; // slot 0 = loaded; sync never touches swappable rows
-        size_t this_tool = tool_idx;
-        ++tool_idx;
-        tools_to_refresh.insert(this_tool);
-
-        DevAmsTray* tray = fila_system->GetAmsTray(std::to_string(slot_id.first), std::to_string(slot_id.second));
-        // The ONE tray->Orca conversion (resolve_device_tray): resolution semantics live in the
-        // store so every consumer of a reported spool agrees on what it means; this loop only
-        // moves the result into row state.
-        const DeviceSlotResolution res = resolve_device_tray(tray, wxGetApp().preset_bundle->filaments);
-        row.slot_name                  = res.name; // present or not, the lane keeps its name
-        if (!res.present) {
-            // The printer reported this slot with no filament loaded. Sync mirrors the machine:
-            // clear the row rather than leaving stale data (an unreported slot never reaches
-            // here -- tray_map only carries what the agent published). Also block editing this
-            // tool's material/color until a later sync reports filament (m_empty_on_printer,
-            // consumed by update_card) -- there's nothing physically present to set either on.
-            bool was_set = row.color_touched || row.type_touched || !row.loaded_type.empty();
-            if (was_set) {
-                row.last_color     = UNSET_COLOR;
-                row.picked_preset.clear();
-                row.loaded_type.clear();
-                row.color_touched = false;
-                row.type_touched  = false;
-                ++rows_applied;
-            }
-            m_empty_on_printer.insert(this_tool);
-            m_synced_baseline[this_tool] = snapshot_of(row); // baseline: empty slot
-            continue;
-        }
-
-        bool applied = false;
-        if (!res.color.empty()) {
-            row.last_color    = wxColour(wxString(res.color));
-            row.color_touched = true;
-            applied           = true;
-        }
-        if (!res.preset.empty()) {
-            row.picked_preset = res.preset;
-            row.type_touched  = true;
-            applied           = true;
-        } else if (!res.type.empty() && !row.picked_preset.empty()) {
-            // The printer reported a material no profile describes at all. Keeping the
-            // previously shown preset would present a material the printer never reported as if
-            // it had just been synced -- a ZR reporting PLA Silk once showed as plain PLA this
-            // way. Drop to the bare reported type instead.
-            row.picked_preset.clear();
-            row.type_touched = false;
-            applied          = true;
-        }
-        if (!res.type.empty())
-            row.loaded_type = res.type;
-        if (applied)
-            ++rows_applied;
-        m_synced_baseline[this_tool] = snapshot_of(row);
+    reload_rows_from_device();
+    for (size_t t = 0; t < sync.tools.size() && t < m_tools.size(); ++t) {
+        const DeviceSlotResolution& res = sync.tools[t];
+        if (!res.present)
+            m_empty_on_printer.insert(t); // block editing until a later sync reports filament
         // The tag is authoritative, so this tool is excluded from push_changes_to_printer.
         if (res.tag_locked)
-            m_tag_locked_tools.insert(this_tool);
+            m_tag_locked_tools.insert(t);
+        // Baseline: what the printer has now; a later push sends only rows that differ from it.
+        m_synced_baseline[t] = snapshot_of(m_tools[t].rows[0]);
     }
-
-    // Orca: write-through to the registry immediately, for every tool this sync actually covered
-    // (always favor what's reported from the printer over a stale local
-    // view -- OK's local-save role becomes redundant for these tools; its real job when connected
-    // is the push_changes_to_printer diff below, unchanged). Without this, every consumer that
-    // reads the registry (the mapping dialog's target options, compute_physical_map_proposal, the
-    // auto-mapper, the Slicing Result summary) would keep seeing whatever was last saved by OK
-    // until the user opens this dialog and presses OK again. Tools never covered by this sync
-    // (tray_map ran out, or the printer never reported them) are untouched, matching the class's
-    // existing "no baseline = no connection-known state" rule for push_changes_to_printer.
-    if (!tools_to_refresh.empty()) {
-        FilamentInventory& inv = device();
-        // Same as sync_filament_inventory_from_printer: cache the changer dialect the printer
-        // reported and seed the profile's protocol from it (a modified preset the user saves).
-        inv.dialect = fila_system->GetChangerDialect();
-        if (seed_klipper_changer_protocol(wxGetApp().preset_bundle->printers.get_edited_preset().config, inv.dialect)) {
-            if (Tab* printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER)) {
-                printer_tab->update_dirty();
-                printer_tab->reload_config();
-            }
-        }
-        for (size_t t : tools_to_refresh)
-            inv.apply_synced_loaded_slot(t, slot_from_row(m_tools[t].rows[0]));
-        inv.next_id = m_next_id;
-        inv.ensure_ids();
-        m_next_id = inv.next_id;
-        // Adopt whatever id ensure_ids settled on (freshly minted for a new filament, or zeroed
-        // for a clear) so a later on_ok save -- which rebuilds its own PhysicalFilament from
-        // row.id -- reuses the same id this write-through just persisted, instead of minting a
-        // second, different one for the same physical slot.
-        for (size_t t : tools_to_refresh)
-            m_tools[t].rows[0].id = inv.tools[t][0].id;
-        save_filament_inventories(m_store);
-    }
-
-    for (size_t t : tools_to_refresh)
+    for (size_t t = 0; t < m_tools.size(); ++t)
         rebuild_tool_rows(t);
-
-    if (rows_applied == 0 && interactive)
+    if (sync.status == Status::Unchanged && interactive)
         MessageDialog(this, _L("The printer did not report any filament information."), _L("Sync from printer"), wxOK | wxICON_INFORMATION).ShowModal();
 }
 
