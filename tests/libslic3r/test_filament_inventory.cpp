@@ -1170,10 +1170,17 @@ TEST_CASE("Inventory round-trips a slot's printer-side name and the changer dial
     inv.tools.assign(2, std::vector<PhysicalFilament>(1));
     inv.tools[0][0] = PhysicalFilament{1, "#FF0000", "PLA", "Generic PLA", PhysicalFilament::Kind::Manual};
     inv.tools[0][0].name = "e1";
+    // Where the slot sits (an openACE unit) and which head it feeds (a Klipper extruder name)
+    // ride along for the read-only grouping in the materials dialog and the mapping picker.
+    inv.tools[0][0].unit = "ace0";
+    inv.tools[0][0].head = "extruder1";
     inv.dialect         = "afc";
     FilamentInventory back = FilamentInventory::deserialize(inv.serialize(), 2);
     CHECK(back.tools[0][0].name == "e1");
+    CHECK(back.tools[0][0].unit == "ace0");
+    CHECK(back.tools[0][0].head == "extruder1");
     CHECK(back.tools[1][0].name.empty());
+    CHECK(back.tools[1][0].unit.empty());
     CHECK(back.dialect == "afc");
     // An inventory written before these fields existed reads as unnamed, no dialect.
     FilamentInventory old = FilamentInventory::deserialize(R"({"next_id":2,"tools":[[{"id":1,"color":"#FF0000","type":"PLA","preset":"Generic PLA","kind":"manual"}]]})", 1);
