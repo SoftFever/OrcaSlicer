@@ -51,6 +51,8 @@ struct DeviceSlotResolution
     std::string preset;             ///< resolved preset name; empty when nothing resolves
     std::string type;               ///< the type string as the printer reported it
     std::string name;               ///< the printer's own slot name (AFC lane key), "" = none
+    std::string unit;               ///< changer unit the slot sits in, "" = flat
+    std::string head;               ///< Klipper extruder the slot feeds, "" = unknown
 };
 
 // tray may be null ("slot exists but nothing loaded" -- same meaning as !is_exists). Preset

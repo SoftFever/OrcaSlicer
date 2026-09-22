@@ -18,6 +18,8 @@ struct PhysicalFilament
     std::string preset;          // exact filament preset name (may be empty = profile unknown)
     enum class Kind { Manual, Mmu } kind = Kind::Manual; // Mmu reserved for future AMS-style slots
     std::string name;            // the printer's own slot name ("lane1", "e1"); empty = none
+    std::string unit;            // the changer unit the slot sits in ("ace0"); empty = unknown/flat
+    std::string head;            // the Klipper extruder the slot feeds ("extruder1"); empty = unknown
     bool empty() const { return color.empty() && type.empty() && preset.empty(); }
 };
 

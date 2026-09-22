@@ -702,6 +702,10 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                                 curr_tray->tag_uid = "0";
                             if (tray_it->contains("slot_name") && (*tray_it)["slot_name"].is_string())
                                 curr_tray->slot_name = (*tray_it)["slot_name"].get<std::string>();
+                            if (tray_it->contains("unit") && (*tray_it)["unit"].is_string())
+                                curr_tray->unit = (*tray_it)["unit"].get<std::string>();
+                            if (tray_it->contains("head") && (*tray_it)["head"].is_string())
+                                curr_tray->head = (*tray_it)["head"].get<std::string>();
                             if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type"))
                             {
                                 curr_tray->setting_id = (*tray_it)["tray_info_idx"].get<std::string>();

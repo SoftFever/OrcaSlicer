@@ -188,8 +188,14 @@ public:
             row_w     = 0;
         };
 
+        wxString current_unit; // a unit's tools stay together: a change of unit starts a new row
         for (const auto &kv : by_tool) {
             wxString label     = wxString::Format(_L("Tool %d"), kv.first + 1);
+            const wxString &unit = options[kv.second.front()].unit;
+            if (unit != current_unit) {
+                flush_row();
+                current_unit = unit;
+            }
             // Orca: pass the tool's real option count (loaded + swap slots, etc.) instead of a
             // hardcoded 1, so a multi-option tool gets MappingContainer's wider 4-slot art/size
             // instead of being squeezed into the 1-slot art. See the class comment above for the
@@ -446,6 +452,8 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
             opt.tool      = (int) t;
             opt.type      = pf.type;
             opt.slot_name = from_u8(pf.name);
+            opt.unit      = from_u8(pf.unit);
+            opt.head      = from_u8(pf.head);
 
             // Orca: prefer the slot's resolved preset name (installed exact preset, or a
             // "Generic <type>" fallback -- see resolve_slot_preset) over the bare type, since it's
@@ -459,8 +467,13 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
             else if (!pf.type.empty())
                 name = from_u8(pf.type);
             wxString tool_part = wxString::Format(_L("Tool %d"), (int) t + 1);
-            if (!opt.slot_name.IsEmpty())
-                tool_part += " (" + opt.slot_name + ")";
+            // "(lane1, ace0, extruder1)": whichever of slot name, unit and head the printer gave.
+            wxString where;
+            for (const wxString& part : { opt.slot_name, opt.unit, opt.head })
+                if (!part.IsEmpty())
+                    where += (where.IsEmpty() ? "" : ", ") + part;
+            if (!where.IsEmpty())
+                tool_part += " (" + where + ")";
             // FromUTF8 for the en dash: a raw literal goes through the ANSI conversion on
             // Windows and renders as mojibake in the option tooltip (same class of bug as the
             // stats separator).
