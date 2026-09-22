@@ -21393,16 +21393,6 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn, bool up
                     if (!start_script.empty())
                         upload_job.upload_data.extended_info["start_script"] = start_script;
                 }
-            } else if (!upload_only && device_owned_mapping_protocol(*physical_printer_config)) {
-                auto picked = collect_device_map_table_for_send(this, device_plate_filaments, _L("Map filaments to tools"));
-                if (!picked.has_value()) {
-                    BOOST_LOG_TRIVIAL(info) << "send_gcode_legacy: filament map dialog canceled for send";
-                    return;
-                }
-                std::string start_script = build_device_map_start_script(filament_mapping_protocol_of(*physical_printer_config),
-                                                                          PRINT_HOST_UPLOADED_FILENAME_PLACEHOLDER, *picked);
-                if (!start_script.empty())
-                    upload_job.upload_data.extended_info["start_script"] = start_script;
             }
             // No-silent-drop guard: a device-owned-protocol printer must never start a print with a
             // filament map the user picked but that never reached the printer.
