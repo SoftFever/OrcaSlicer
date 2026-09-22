@@ -122,7 +122,6 @@ struct DevicePrintJobInfo
     }
 };
 
-std::string build_device_map_start_script(FilamentMappingProtocol protocol, const std::string& filename, const std::vector<int>& filament_map_1based);
 
 /// Full-fidelity form: renders every parameter the printer's own screen sends, including the
 /// user's option choices and the plate's filament statistics.

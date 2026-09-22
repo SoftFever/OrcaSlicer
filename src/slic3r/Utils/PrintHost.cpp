@@ -88,18 +88,6 @@ DevicePrintSpec device_print_spec(FilamentMappingProtocol protocol)
     return spec;
 }
 
-std::string build_device_map_start_script(FilamentMappingProtocol protocol, const std::string& filename, const std::vector<int>& filament_map_1based)
-{
-    switch (protocol) {
-    case FilamentMappingProtocol::fmpSnapmaker: return SnapmakerProtocol::build_start_script(filename, filament_map_1based);
-    // This legacy path carries neither the slot names nor the reported dialect a Klipper changer
-    // needs, so it renders nothing and the caller's no-silent-drop guard keeps the print from
-    // auto-starting unmapped.
-    case FilamentMappingProtocol::fmpKlipperChanger: return {};
-    default: return {};
-    }
-}
-
 std::string build_device_start_script(FilamentMappingProtocol protocol, const std::string& filename, const DevicePrintJobInfo& job)
 {
     switch (protocol) {
