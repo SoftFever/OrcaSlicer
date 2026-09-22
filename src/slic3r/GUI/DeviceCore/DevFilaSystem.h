@@ -59,6 +59,8 @@ public:
     std::string              id;
     std::string              tag_uid;             // tag_uid
     std::string              slot_name;           // Orca: the printer's own slot name (AFC lane key), "" = none
+    std::string              unit;                // Orca: changer unit the slot sits in, "" = flat
+    std::string              head;                // Orca: Klipper extruder the slot feeds, "" = unknown
     std::string              setting_id;          // tray_info_idx, map to the filament_id
     std::string              filament_setting_id; // setting_id
     std::string              m_fila_type;

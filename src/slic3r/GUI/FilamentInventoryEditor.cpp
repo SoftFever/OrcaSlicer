@@ -278,6 +278,13 @@ FilamentInventoryEditor::FilamentInventoryEditor(wxWindow* parent, const std::st
 
         wxBoxSizer* col_sizer = new wxBoxSizer(wxVERTICAL);
 
+        // The changer unit the tool's slot sits in, named above the unit's first column so
+        // consecutive tools read as one group (openACE reports units; AFC is flat). Text set
+        // per reload, since a sync can regroup; blank where the unit repeats or is unknown.
+        group.unit_label = new wxStaticText(this, wxID_ANY, wxString());
+        group.unit_label->SetFont(::Label::Body_12);
+        col_sizer->Add(group.unit_label, 0, wxLEFT | wxBOTTOM, FromDIP(4));
+
         group.main_card = new FilamentCard(this);
         col_sizer->Add(group.main_card, 0, wxALIGN_CENTER_HORIZONTAL);
         col_sizer->AddSpacer(FromDIP(6));
@@ -415,11 +422,14 @@ void FilamentInventoryEditor::update_card(size_t tool_idx, size_t row_idx, Filam
         disabled_reason = _L("This tool's filament is set by an NFC tag and can't be edited here.");
     else if (printer_empty)
         disabled_reason = _L("No filament is loaded on this tool.");
-    // The printer's own slot name (an AFC lane, an openACE virtual tool) beside the tool number,
-    // so the card can be matched to what the printer's screen and its macros call the slot.
     wxString top_label = is_loaded ? wxString::Format("T%d", (int) tool_idx + 1) : wxString();
+    // The printer's own slot name (an AFC lane, an openACE virtual tool) and the head it feeds,
+    // so the card can be matched to what the printer's screen and its macros call the slot.
+    // Middle dot as bytes: a \u escape in a narrow literal is charset-dependent on MSVC.
     if (is_loaded && !row.slot_name.empty())
-        top_label += wxString::FromUTF8(" \xc2\xb7 ") + from_u8(row.slot_name); // middle dot, as bytes: a \u escape is charset-dependent on MSVC
+        top_label += wxString::FromUTF8(" \xc2\xb7 ") + from_u8(row.slot_name);
+    if (is_loaded && !row.head.empty())
+        top_label += wxString::FromUTF8(" \xe2\x86\x92 ") + from_u8(row.head); // right arrow
 
     card->set_content(color, top_label, empty ? _L("(empty)") : from_u8(type_str),
                        empty ? wxString() : from_u8(vendor_str), edit_disabled, disabled_reason);
@@ -582,6 +592,8 @@ void FilamentInventoryEditor::reload_rows_from_device()
             row.is_new        = false;
             row.kind          = slot.kind;
             row.slot_name     = slot.name;
+            row.unit          = slot.unit;
+            row.head          = slot.head;
             row.color_touched = !slot.color.empty();
             row.loaded_type   = slot.type;
             if (row.color_touched) {
@@ -597,6 +609,12 @@ void FilamentInventoryEditor::reload_rows_from_device()
             row.type_touched  = !row.picked_preset.empty();
         }
         rebuild_tool_rows(i);
+    }
+    // Name each unit once, above its first tool; a repeated or unknown unit shows nothing.
+    for (size_t i = 0; i < m_tools.size(); ++i) {
+        const std::string& unit = m_tools[i].rows.empty() ? std::string() : m_tools[i].rows[0].unit;
+        const bool first_of_unit = !unit.empty() && (i == 0 || m_tools[i - 1].rows.empty() || m_tools[i - 1].rows[0].unit != unit);
+        m_tools[i].unit_label->SetLabel(first_of_unit ? from_u8(unit) : wxString());
     }
 
     Layout();
@@ -689,6 +707,8 @@ PhysicalFilament FilamentInventoryEditor::slot_from_row(const Row& row) const
     }
     PhysicalFilament slot = build_physical_filament(color, type, preset, row.id, row.kind);
     slot.name             = row.slot_name;
+    slot.unit             = row.unit;
+    slot.head             = row.head;
     return slot;
 }
 

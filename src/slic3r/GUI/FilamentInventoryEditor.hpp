@@ -69,6 +69,8 @@ private:
         // to keep the previous type when a newly picked preset's filament_type can't be resolved.
         std::string           loaded_type;
         std::string           slot_name; // the printer's own slot name (AFC lane key), "" = none
+        std::string           unit;      // changer unit the slot sits in, "" = flat
+        std::string           head;      // Klipper extruder the slot feeds, "" = unknown
         wxColourPickerCtrl*   color_picker{nullptr};
         PhysicalFilamentComboBox* type_choice{nullptr};
         wxWindow*             action_btn{nullptr}; // Clear (slot 0 only); swap rows have none here
@@ -82,6 +84,7 @@ private:
     {
         std::vector<Row> rows;
         FilamentCard*     main_card{nullptr};
+        wxStaticText*     unit_label{nullptr}; // the unit's name above its first tool, blank elsewhere
     };
 
     // Converts one row's live plain data into the PhysicalFilament shape saved to the registry

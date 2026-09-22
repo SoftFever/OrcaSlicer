@@ -34,6 +34,10 @@ std::string FilamentInventory::serialize() const
             json jpf = { {"id", pf.id}, {"color", pf.color}, {"type", pf.type}, {"preset", pf.preset}, {"kind", kind_to_string(pf.kind)} };
             if (!pf.name.empty())
                 jpf["name"] = pf.name;
+            if (!pf.unit.empty())
+                jpf["unit"] = pf.unit;
+            if (!pf.head.empty())
+                jpf["head"] = pf.head;
             jtool.push_back(std::move(jpf));
         }
         jtools.push_back(std::move(jtool));
@@ -88,6 +92,10 @@ FilamentInventory FilamentInventory::deserialize(const std::string& s, size_t to
                 pf.kind = kind_from_string(jpf["kind"].get<std::string>());
             if (jpf.contains("name") && jpf["name"].is_string())
                 pf.name = jpf["name"].get<std::string>();
+            if (jpf.contains("unit") && jpf["unit"].is_string())
+                pf.unit = jpf["unit"].get<std::string>();
+            if (jpf.contains("head") && jpf["head"].is_string())
+                pf.head = jpf["head"].get<std::string>();
             slots.push_back(pf);
         }
         if (slots.empty())

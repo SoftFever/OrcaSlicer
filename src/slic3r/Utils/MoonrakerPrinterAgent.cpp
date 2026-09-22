@@ -672,8 +672,10 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
                 }
                 if (tray->nozzle_temp > 0) {
                     tray_json["nozzle_temp_max"] = std::to_string(tray->nozzle_temp);
-                    tray_json["slot_name"] = tray->slot_name;
                 }
+                tray_json["slot_name"] = tray->slot_name;
+                tray_json["unit"]      = tray->unit;
+                tray_json["head"]      = tray->head;
             } else {
                 tray_json["tray_info_idx"] = "";
                 tray_json["tray_type"] = "";
@@ -1105,6 +1107,17 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
         AmsTrayData tray;
         tray.slot_index = lane_index;
         tray.slot_name  = lane_key; // AFC addresses lanes by this name (SET_MAP / SET_COLOR / ...)
+        // Where the lane sits and what it feeds, for the read-only grouping in the dialogs.
+        // openACE names both (unit_name, extruder); AFC publishes only the extruder index, from
+        // which Klipper's extruder name follows ("extruder", "extruder1", ...).
+        tray.unit = safe_json_string(lane_obj, "unit_name");
+        if (tray.unit.empty())
+            tray.unit = safe_json_string(lane_obj, "unit");
+        tray.head = safe_json_string(lane_obj, "extruder");
+        if (tray.head.empty() && lane_obj.contains("extruder_index") && lane_obj["extruder_index"].is_number_integer()) {
+            const int extruder_index = lane_obj["extruder_index"].get<int>();
+            tray.head = extruder_index > 0 ? "extruder" + std::to_string(extruder_index) : "extruder";
+        }
         tray.tray_color = safe_json_string(lane_obj, "color");
         tray.tray_type = safe_json_string(lane_obj, "material");
         tray.bed_temp = safe_json_int(lane_obj, "bed_temp");

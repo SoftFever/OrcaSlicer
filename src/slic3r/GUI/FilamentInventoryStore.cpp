@@ -158,6 +158,8 @@ DeviceSyncOutcome sync_filament_inventory_from_printer(FilamentInventories& stor
             const PhysicalFilament& cur = inv.tools[tool_idx][0];
             if (!cur.empty() && !cur.preset.empty() && cur.type == res.type && cur.color == res.color) {
                 inv.tools[tool_idx][0].name = res.name; // the lane can have been renamed or remapped
+                inv.tools[tool_idx][0].unit = res.unit;
+                inv.tools[tool_idx][0].head = res.head;
                 applied = true;
                 ++tool_idx;
                 continue;
@@ -167,6 +169,8 @@ DeviceSyncOutcome sync_filament_inventory_from_printer(FilamentInventories& stor
         if (res.present)
             slot = build_physical_filament(res.color, res.type, res.preset, /*id=*/0, PhysicalFilament::Kind::Manual);
         slot.name = res.name;
+        slot.unit = res.unit;
+        slot.head = res.head;
         inv.apply_synced_loaded_slot(tool_idx, slot);
         applied |= res.present;
         ++tool_idx;
@@ -209,6 +213,8 @@ DeviceSlotResolution resolve_device_tray(DevAmsTray* tray, const PresetCollectio
 
     res.type = tray->get_filament_type();
     res.name = tray->slot_name;
+    res.unit = tray->unit;
+    res.head = tray->head;
 
     // Best target first: the agent may have resolved an exact profile for this spool
     // (DevAmsTray::setting_id carries the filament_id it matched -- see e.g.

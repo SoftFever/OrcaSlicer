@@ -151,6 +151,8 @@ protected:
                                          // authoritative and excluded from filament pushes.
         std::string slot_name;           // The printer's own name for the slot (AFC lane key such
                                          // as "lane1" / "e1"); empty when the changer has none.
+        std::string unit;                // Changer unit the slot sits in (openACE unit_name); "" = flat.
+        std::string head;                // Klipper extruder the slot feeds ("extruder1"); "" = unknown.
     };
 
     // Shape of the AMS units build_ams_payload() emits:
