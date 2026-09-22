@@ -217,7 +217,8 @@ public:
                 // The tray-index text above already identifies the tool; the option's full
                 // label (preset name + loaded/swap/empty suffix) goes in the tooltip instead of
                 // the tile's own name field, which truncates hard past 5 characters
-                // (MappingItem::render).
+                // (MappingItem::render). That field shows the printer's own slot name when the
+                // slot has one ("lane1"; an AFC lane is what the printer's screen calls it).
                 bool disabled = !bootstrap_mode && opt.id <= 0;
                 // Orca: hard material-family gate (field request) -- any material could be
                 // mapped onto any tool here while the sync dialog and the auto-matcher both
@@ -226,7 +227,7 @@ public:
                 // unknown type on either side stay pickable (nothing to compare).
                 bool wrong_type = !disabled && opt.id > 0 && !row_type.empty() && !opt.type.empty() &&
                                   !Slic3r::type_compatible(row_type, opt.type);
-                item->set_data(opt.label, opt.colour, wxString(), /*remain_dect=*/false, data,
+                item->set_data(opt.label, opt.colour, opt.slot_name, /*remain_dect=*/false, data,
                                /*unmatch=*/wrong_type, opt.label);
                 item->set_checked(idx == current_index);
                 item->Enable(!disabled);
@@ -441,9 +442,10 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
             if (pf.empty() || pf.id <= 0) continue; // nothing physically recorded there
 
             TargetOption opt;
-            opt.id   = pf.id;
-            opt.tool = (int) t;
-            opt.type = pf.type;
+            opt.id        = pf.id;
+            opt.tool      = (int) t;
+            opt.type      = pf.type;
+            opt.slot_name = from_u8(pf.name);
 
             // Orca: prefer the slot's resolved preset name (installed exact preset, or a
             // "Generic <type>" fallback -- see resolve_slot_preset) over the bare type, since it's
@@ -457,6 +459,8 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
             else if (!pf.type.empty())
                 name = from_u8(pf.type);
             wxString tool_part = wxString::Format(_L("Tool %d"), (int) t + 1);
+            if (!opt.slot_name.IsEmpty())
+                tool_part += " (" + opt.slot_name + ")";
             // FromUTF8 for the en dash: a raw literal goes through the ANSI conversion on
             // Windows and renders as mojibake in the option tooltip (same class of bug as the
             // stats separator).
