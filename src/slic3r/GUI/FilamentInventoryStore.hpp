@@ -27,13 +27,6 @@ size_t resolve_active_printer_tool_count(FilamentInventories& store);
 // least tool_count tools; never truncates.
 FilamentInventory& current_inventory_for_preset(const Preset& printer_preset, FilamentInventories& store, size_t tool_count);
 
-// Orca: one blocking read of the connected printer's loaded filaments into `inv` (registry
-// write-through + save), via the same agent fetch and resolve_device_tray conversion the
-// materials editor's sync uses. For dialogs that need a populated inventory on open -- the
-// device print dialog calls it when nothing was ever recorded, so a first-ever Print click
-// offers the printer's real filaments instead of bare bootstrap tools. Returns false (inventory
-// untouched) with no connection, a failed fetch, or nothing reported.
-bool sync_filament_inventory_from_printer(FilamentInventories& store, FilamentInventory& inv, size_t tool_count);
 
 // How many tools this printer preset addresses: the physical nozzle count.
 size_t addressable_tool_count_of(const Preset& printer_preset);
@@ -69,6 +62,21 @@ struct DeviceSlotResolution
 // Non-const tray: DevAmsTray::get_filament_type() canonicalizes a legacy "Support" type in
 // place, so reading a tray is not const on the device side.
 DeviceSlotResolution resolve_device_tray(DevAmsTray* tray, const PresetCollection& filaments);
+
+// Orca: THE sync. One blocking read of the connected printer's loaded filaments into `inv`
+// (registry write-through + save): the agent fetch, resolve_device_tray per tool, the same-spool
+// guard, slot names, the changer dialect and the protocol seeding. Both the device print dialog
+// and the materials editor go through here; the editor derives its rows from the record
+// afterwards and keeps only what the record cannot hold (per-tool tag lock / empty flags) from
+// the returned resolutions. `tools[i]` is what the printer reported for tool i, for every tool
+// it reported (status Applied or Unchanged); the inventory is untouched on the other statuses.
+struct DeviceSyncOutcome
+{
+    enum class Status { NoSession, FetchFailed, NothingReported, Unchanged, Applied } status = Status::NoSession;
+    std::vector<DeviceSlotResolution> tools;
+    bool ok() const { return status == Status::Unchanged || status == Status::Applied; }
+};
+DeviceSyncOutcome sync_filament_inventory_from_printer(FilamentInventories& store, FilamentInventory& inv, size_t tool_count);
 
 std::string resolve_slot_preset(const PhysicalFilament& pf, const PresetCollection& filaments);
 
