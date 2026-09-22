@@ -68,6 +68,7 @@ private:
         // The filament_type as loaded (or as last derived from a resolved preset), used by on_ok
         // to keep the previous type when a newly picked preset's filament_type can't be resolved.
         std::string           loaded_type;
+        std::string           slot_name; // the printer's own slot name (AFC lane key), "" = none
         wxColourPickerCtrl*   color_picker{nullptr};
         PhysicalFilamentComboBox* type_choice{nullptr};
         wxWindow*             action_btn{nullptr}; // Clear (slot 0 only); swap rows have none here
