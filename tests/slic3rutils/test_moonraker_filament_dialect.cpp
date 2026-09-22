@@ -52,11 +52,15 @@ TEST_CASE("Happy Hare writes a gate in one MMU_GATE_MAP command", "[MoonrakerFil
     CHECK(happy_hare_push_script(red_pla(3)) == "MMU_GATE_MAP GATE=3 MATERIAL=PLA COLOR=FF0000");
 }
 
-TEST_CASE("Only the two writable dialects support a push", "[MoonrakerFilamentDialect]")
+TEST_CASE("Every changer dialect but none supports a push", "[MoonrakerFilamentDialect]")
 {
     CHECK(dialect_supports_push(Dialect::afc_lane_data));
     CHECK(dialect_supports_push(Dialect::happy_hare));
+    // openACE adopted AFC's lane commands, keyed by the lane_data key it publishes.
+    CHECK(dialect_supports_push(Dialect::openace));
     CHECK_FALSE(dialect_supports_push(Dialect::none));
+    CHECK(dialect_from_name(dialect_name(Dialect::openace)) == Dialect::openace);
+    CHECK(dialect_name(Dialect::openace) == "openace");
 }
 
 // Print-time mapping. The map is reset first so the result does not depend on what the printer's
@@ -108,4 +112,24 @@ TEST_CASE("The Klipper changer protocol renders in the dialect the printer repor
     // The standard device dialog with a mapping and no printer-specific options.
     CHECK(Slic3r::device_print_spec(Slic3r::FilamentMappingProtocol::fmpKlipperChanger).supports_filament_mapping);
     CHECK(Slic3r::device_print_spec(Slic3r::FilamentMappingProtocol::fmpKlipperChanger).options.empty());
+}
+
+// openACE takes the per-print map as one parameter on the SD start: pairs of [sliced tool,
+// openACE virtual tool], both 0-based, no spaces. Omitted tools fall back to the printer's
+// default map, so only assigned tools are listed; an empty map is "[]". The job is frozen at
+// start and discarded at its end, so there is nothing to reset first.
+TEST_CASE("openACE start script carries the map as OPENACE_MAP pairs on the SD start", "[MoonrakerFilamentDialect]")
+{
+    CHECK(openace_mapping_start_script("cube.gcode", {4, 0, 2}) ==
+          "SDCARD_PRINT_FILE FILENAME=\"cube.gcode\" OPENACE_MAP=\"[[0,3],[2,1]]\"");
+    CHECK(openace_mapping_start_script("cube.gcode", {}) == "SDCARD_PRINT_FILE FILENAME=\"cube.gcode\" OPENACE_MAP=\"[]\"");
+}
+
+TEST_CASE("The Klipper changer protocol renders openACE's start line when the printer reported openACE", "[MoonrakerFilamentDialect]")
+{
+    Slic3r::DevicePrintJobInfo job;
+    job.filament_map_1based = {4};
+    job.changer_dialect     = "openace";
+    CHECK(Slic3r::build_device_start_script(Slic3r::FilamentMappingProtocol::fmpKlipperChanger, "cube.gcode", job) ==
+          "SDCARD_PRINT_FILE FILENAME=\"cube.gcode\" OPENACE_MAP=\"[[0,3]]\"");
 }
