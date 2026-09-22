@@ -1865,17 +1865,37 @@ TEST_CASE("The Klipper changer protocol is device-resolved, logical, and bounded
 // that disappears is caught at send time, and resetting the protocol is the user's call.
 TEST_CASE("A detected Klipper changer seeds the protocol over whatever the profile declared", "[Config]") {
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
-    CHECK(seed_klipper_changer_protocol(config, "afc"));
+    CHECK(seed_printer_from_report(config, "afc", 0));
     CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
     // Already seeded: nothing to do.
-    CHECK_FALSE(seed_klipper_changer_protocol(config, "happy_hare"));
+    CHECK_FALSE(seed_printer_from_report(config, "happy_hare", 0));
     // No changer reported: leaves the profile alone either way.
-    CHECK_FALSE(seed_klipper_changer_protocol(config, ""));
+    CHECK_FALSE(seed_printer_from_report(config, "", 0));
     CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
     // A vendor-declared protocol is replaced by what the printer actually runs.
     DynamicPrintConfig vendor = DynamicPrintConfig::full_print_config();
     vendor.set_deserialize_strict({ { "filament_mapping_protocol", "snapmaker" } });
-    CHECK(seed_klipper_changer_protocol(vendor, "openace"));
+    CHECK(seed_printer_from_report(vendor, "openace", 0));
     CHECK(filament_mapping_protocol_of(vendor) == FilamentMappingProtocol::fmpKlipperChanger);
-    CHECK_FALSE(seed_klipper_changer_protocol(vendor, ""));
+    CHECK_FALSE(seed_printer_from_report(vendor, "", 0));
+}
+
+// How many logical tools the printer registers (the highest T<n> command + 1) is the printer's
+// to report, not the user's to configure: the sync caches it in the hidden device_tool_count
+// option, so slicing -- offline too -- runs against the last known printer. 0 means "not probed"
+// and never overwrites a cached count; an unchanged count is not a modification.
+TEST_CASE("The sync caches the printer's reported tool count in the profile", "[Config]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    CHECK(config.opt_int("device_tool_count") == 0);
+    CHECK(seed_printer_from_report(config, "", 32));
+    CHECK(config.opt_int("device_tool_count") == 32);
+    CHECK_FALSE(seed_printer_from_report(config, "", 32));
+    CHECK_FALSE(seed_printer_from_report(config, "", 0));
+    CHECK(config.opt_int("device_tool_count") == 32);
+    // A printer that now registers fewer tools (openACE removed) tightens the cache.
+    CHECK(seed_printer_from_report(config, "", 4));
+    CHECK(config.opt_int("device_tool_count") == 4);
+    // Dialect and count seed together, either alone is a change.
+    CHECK(seed_printer_from_report(config, "afc", 4));
+    CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
 }
