@@ -16,6 +16,7 @@
 #include "FilamentInventoryStore.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "Tab.hpp"
 #include "I18N.hpp"
 #include "MsgDialog.hpp"
 #include "PresetComboBoxes.hpp"
@@ -566,6 +567,7 @@ void FilamentInventoryEditor::reload_rows_from_device()
             row.id            = slot.id;
             row.is_new        = false;
             row.kind          = slot.kind;
+            row.slot_name     = slot.name;
             row.color_touched = !slot.color.empty();
             row.loaded_type   = slot.type;
             if (row.color_touched) {
@@ -665,6 +667,7 @@ void FilamentInventoryEditor::do_sync_from_printer(bool interactive)
         // store so every consumer of a reported spool agrees on what it means; this loop only
         // moves the result into row state.
         const DeviceSlotResolution res = resolve_device_tray(tray, wxGetApp().preset_bundle->filaments);
+        row.slot_name                  = res.name; // present or not, the lane keeps its name
         if (!res.present) {
             // The printer reported this slot with no filament loaded. Sync mirrors the machine:
             // clear the row rather than leaving stale data (an unreported slot never reaches
@@ -725,6 +728,15 @@ void FilamentInventoryEditor::do_sync_from_printer(bool interactive)
     // existing "no baseline = no connection-known state" rule for push_changes_to_printer.
     if (!tools_to_refresh.empty()) {
         FilamentInventory& inv = device();
+        // Same as sync_filament_inventory_from_printer: cache the changer dialect the printer
+        // reported and seed the profile's protocol from it (a modified preset the user saves).
+        inv.dialect = fila_system->GetChangerDialect();
+        if (seed_klipper_changer_protocol(wxGetApp().preset_bundle->printers.get_edited_preset().config, inv.dialect)) {
+            if (Tab* printer_tab = wxGetApp().get_tab(Preset::TYPE_PRINTER)) {
+                printer_tab->update_dirty();
+                printer_tab->reload_config();
+            }
+        }
         for (size_t t : tools_to_refresh)
             inv.apply_synced_loaded_slot(t, slot_from_row(m_tools[t].rows[0]));
         inv.next_id = m_next_id;
@@ -762,7 +774,9 @@ PhysicalFilament FilamentInventoryEditor::slot_from_row(const Row& row) const
     } else {
         type = row.loaded_type;
     }
-    return build_physical_filament(color, type, preset, row.id, row.kind);
+    PhysicalFilament slot = build_physical_filament(color, type, preset, row.id, row.kind);
+    slot.name             = row.slot_name;
+    return slot;
 }
 
 void FilamentInventoryEditor::on_ok(wxCommandEvent&)
@@ -834,12 +848,7 @@ void FilamentInventoryEditor::push_changes_to_printer()
 
         IPrinterAgent::FilamentSlotInfo info;
         info.slot   = (int) tool;
-        {
-            // The printer's own slot name, as the last sync recorded it (AFC addresses lanes by it).
-            const FilamentInventory& inv = m_store.for_preset(m_printer_preset_name, m_tool_count);
-            if (tool < inv.tools.size() && !inv.tools[tool].empty())
-                info.name = inv.tools[tool][0].name;
-        }
+        info.name   = row.slot_name; // the printer's own slot name, as the sync recorded it
         info.vendor = p->config.opt_string("filament_vendor", 0u);
         const ConfigOptionStrings* ft = p->config.option<ConfigOptionStrings>("filament_type");
         info.type = (ft && !ft->values.empty()) ? ft->values.front() : row.loaded_type;
