@@ -415,7 +415,11 @@ void FilamentInventoryEditor::update_card(size_t tool_idx, size_t row_idx, Filam
         disabled_reason = _L("This tool's filament is set by an NFC tag and can't be edited here.");
     else if (printer_empty)
         disabled_reason = _L("No filament is loaded on this tool.");
-    const wxString top_label = is_loaded ? wxString::Format("T%d", (int) tool_idx + 1) : wxString();
+    // The printer's own slot name (an AFC lane, an openACE virtual tool) beside the tool number,
+    // so the card can be matched to what the printer's screen and its macros call the slot.
+    wxString top_label = is_loaded ? wxString::Format("T%d", (int) tool_idx + 1) : wxString();
+    if (is_loaded && !row.slot_name.empty())
+        top_label += wxString::FromUTF8(" \xc2\xb7 ") + from_u8(row.slot_name); // middle dot, as bytes: a \u escape is charset-dependent on MSVC
 
     card->set_content(color, top_label, empty ? _L("(empty)") : from_u8(type_str),
                        empty ? wxString() : from_u8(vendor_str), edit_disabled, disabled_reason);

@@ -37,6 +37,7 @@ public:
         int      id;   // physical filament id, or 0 for a bootstrap/empty-tool placeholder
         int      tool; // 0-based owning/placeholder tool index
         std::string type; // physical material type ("" for bootstrap/bare-tool placeholders)
+        wxString slot_name; // the printer's own name for the slot ("lane1"), "" when it has none
         wxString label;
         wxColour colour; // transparent (alpha 0) for a placeholder with no recorded colour
     };
