@@ -2175,7 +2175,9 @@ std::vector<MainFrame::PrintSelectType> MainFrame::available_print_actions() con
         // job from the printer's own screen instead, so it must not ask for any of them. Printers
         // that declare nothing keep the plain send dialog under "Print", which already offers both
         // actions -- their menu is unchanged.
-        if (!device_print_spec(filament_mapping_protocol_of(preset_bundle->printers.get_edited_preset().config)).empty())
+        if (const DynamicPrintConfig& cfg = preset_bundle->printers.get_edited_preset().config;
+            !device_print_spec(filament_mapping_protocol_of(cfg),
+                               effective_map_delivery(filament_mapping_protocol_of(cfg), reported_changer_of(cfg))).empty())
             actions.push_back(eUploadGcode);
         // Orca: when the printer accepts a .gcode.3mf (the "Support 3MF as gcode" option),
         // also offer exporting the sliced .gcode.3mf bundle

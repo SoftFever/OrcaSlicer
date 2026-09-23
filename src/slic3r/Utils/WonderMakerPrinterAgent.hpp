@@ -15,14 +15,21 @@ namespace Slic3r {
 // with current_extruder reporting 2 while logical T0 was printing. The live variable is consumed
 // on first selection while `_backup` is the durable record, so both are written.
 //
-// This is the ONE place that renders those commands. The tool numbers are DENSE (T0..T(n-1)) --
-// the firmware has no macro past the last tool -- which is what FilamentCompaction exists to
-// guarantee; see protocol_requires_dense_tool_numbering().
+// This is the ONE place that renders those commands. The tool numbers are the ones the g-code
+// EMITS: dense (T0..T(n-1)) whenever the plate reached past the firmware's namespace, which is
+// what FilamentCompaction guarantees (filament_namespace_size).
+//
+// Two renderers, because the prelude (the options the ZR's own screen offers) belongs to the
+// firmware while the box_modify map is one delivery among several: a ZR running openACE keeps
+// the prelude and hands the map to openACE (PrintHost.cpp, build_device_start_script).
 namespace WonderMakerProtocol {
-// box_of_tool_1based: one entry per DENSE tool number, 1-based box index as picked in the send
-// dialog. filename may be PRINT_HOST_UPLOADED_FILENAME_PLACEHOLDER (PrintHost.hpp).
+// "_SET_TIMELAPSE_SETUP ...\n[HYPERLAPSE ACTION=STOP\n]G30|G31\n"
+std::string build_prelude(bool bed_leveling, bool time_lapse);
+// box_of_tool_1based: one entry per emitted tool number, 1-based box index as picked in the send
+// dialog (0 = the plate does not print that tool). Each line ends in "\n".
+std::string build_map_lines(const std::vector<int>& box_of_tool_1based);
+// prelude + map + SD start. filename may be PRINT_HOST_UPLOADED_FILENAME_PLACEHOLDER (PrintHost.hpp).
 std::string build_start_script(const std::string& filename, const std::vector<int>& box_of_tool_1based, bool bed_leveling, bool time_lapse);
-std::string build_start_script(const std::string& filename, const DevicePrintJobInfo& job);
 } // namespace WonderMakerProtocol
 
 // Orca: the WonderMaker ZR Ultra family. It speaks Moonraker, but on stock firmware it reports no

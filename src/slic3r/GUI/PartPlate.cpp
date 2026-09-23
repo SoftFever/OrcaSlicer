@@ -31,6 +31,7 @@
 #include "libslic3r/ParameterUtils.hpp"
 #include <imgui.h>
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/FilamentCompaction.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include <cstdlib>
@@ -3021,6 +3022,24 @@ std::vector<int> PartPlate::get_used_filaments()
 		used_extruders_set.emplace(item.first + 1);
 
 	return std::vector(used_extruders_set.begin(), used_extruders_set.end());
+}
+
+std::vector<int> PartPlate::get_device_filaments() const
+{
+    std::vector<int> filaments;
+    // A .gcode.3mf plate has no objects, so no Print ever applied it.
+    if (check_objects_empty_and_gcode3mf(filaments) || m_print == nullptr)
+        return filaments;
+    const FilamentCompaction& compaction = m_print->filament_compaction();
+    // The sliced G-code's per-tool usage, as get_used_filaments() reads it, back in project numbers.
+    if (m_slice_result_valid && m_gcode_result != nullptr) {
+        std::set<int> printed;
+        for (const auto& [tool, volume] : m_gcode_result->print_statistics.total_volumes_per_extruder)
+            printed.insert(compaction.project_slot_of_tool(int(tool)) + 1);
+        if (!printed.empty())
+            return std::vector<int>(printed.begin(), printed.end());
+    }
+    return compaction.used_filaments_1based();
 }
 
 bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxString& error_message)

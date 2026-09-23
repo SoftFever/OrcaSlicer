@@ -95,23 +95,37 @@ TEST_CASE("Happy Hare start script resets the tool-to-gate map and assigns used 
           "SDCARD_PRINT_FILE FILENAME=\"cube.gcode\"");
 }
 
-TEST_CASE("The Klipper changer protocol renders in the dialect the printer reported", "[MoonrakerFilamentDialect]")
+// A plain Klipper printer declares no protocol; the changer it reported IS the delivery, and the
+// vendor prelude is empty, so the script is the changer's map lines and the SD start.
+TEST_CASE("A reported changer renders the map in its own dialect on a plain Klipper printer", "[MoonrakerFilamentDialect]")
 {
+    using Slic3r::FilamentMappingProtocol;
+    using Slic3r::MapDelivery;
     Slic3r::DevicePrintJobInfo job;
     job.filament_map_1based = {2, 1};
     job.slot_names          = {"lane1", "lane2"};
-    job.changer_dialect     = "afc";
-    CHECK(Slic3r::build_device_start_script(Slic3r::FilamentMappingProtocol::fmpKlipperChanger, "cube.gcode", job) ==
+    CHECK(Slic3r::effective_map_delivery(FilamentMappingProtocol::fmpNone, "afc") == MapDelivery::afc);
+    CHECK(Slic3r::build_device_start_script(FilamentMappingProtocol::fmpNone, MapDelivery::afc, "cube.gcode", job) ==
           "RESET_AFC_MAPPING\nSET_MAP LANE=lane2 MAP=T0\nSET_MAP LANE=lane1 MAP=T1\nSDCARD_PRINT_FILE FILENAME=\"cube.gcode\"");
-    job.changer_dialect = "happy_hare";
-    CHECK(Slic3r::build_device_start_script(Slic3r::FilamentMappingProtocol::fmpKlipperChanger, "cube.gcode", job) ==
+    CHECK(Slic3r::build_device_start_script(FilamentMappingProtocol::fmpNone, MapDelivery::happy_hare, "cube.gcode", job) ==
           "MMU_TTG_MAP RESET=1\nMMU_TTG_MAP TOOL=0 GATE=1\nMMU_TTG_MAP TOOL=1 GATE=0\nSDCARD_PRINT_FILE FILENAME=\"cube.gcode\"");
-    // No changer reported: nothing to send, and the send path refuses to auto-start on that.
-    job.changer_dialect.clear();
-    CHECK(Slic3r::build_device_start_script(Slic3r::FilamentMappingProtocol::fmpKlipperChanger, "cube.gcode", job).empty());
     // The standard device dialog with a mapping and no printer-specific options.
-    CHECK(Slic3r::device_print_spec(Slic3r::FilamentMappingProtocol::fmpKlipperChanger).supports_filament_mapping);
-    CHECK(Slic3r::device_print_spec(Slic3r::FilamentMappingProtocol::fmpKlipperChanger).options.empty());
+    const Slic3r::DevicePrintSpec spec = Slic3r::device_print_spec(FilamentMappingProtocol::fmpNone, MapDelivery::afc);
+    CHECK(spec.supports_filament_mapping);
+    CHECK(spec.options.empty());
+}
+
+TEST_CASE("A plain Klipper printer with no changer has no delivery and no map script", "[MoonrakerFilamentDialect]")
+{
+    using Slic3r::FilamentMappingProtocol;
+    using Slic3r::MapDelivery;
+    CHECK(Slic3r::effective_map_delivery(FilamentMappingProtocol::fmpNone, "") == MapDelivery::none);
+    CHECK_FALSE(Slic3r::device_print_spec(FilamentMappingProtocol::fmpNone, MapDelivery::none).supports_filament_mapping);
+    Slic3r::DevicePrintJobInfo job;
+    CHECK(Slic3r::build_device_start_script(FilamentMappingProtocol::fmpNone, MapDelivery::none, "a.gcode", job).empty());
+    // A vendor protocol is its own delivery until a changer is reported.
+    CHECK(Slic3r::effective_map_delivery(FilamentMappingProtocol::fmpSnapmaker, "") == MapDelivery::snapmaker);
+    CHECK(Slic3r::effective_map_delivery(FilamentMappingProtocol::fmpWonderMaker, "openace") == MapDelivery::openace);
 }
 
 // openACE takes the per-print map as one parameter on the SD start: pairs of [sliced tool,
@@ -125,12 +139,11 @@ TEST_CASE("openACE start script carries the map as OPENACE_MAP pairs on the SD s
     CHECK(openace_mapping_start_script("cube.gcode", {}) == "SDCARD_PRINT_FILE FILENAME=\"cube.gcode\" OPENACE_MAP=\"[]\"");
 }
 
-TEST_CASE("The Klipper changer protocol renders openACE's start line when the printer reported openACE", "[MoonrakerFilamentDialect]")
+TEST_CASE("openACE delivery renders its start line for a plain Klipper printer", "[MoonrakerFilamentDialect]")
 {
     Slic3r::DevicePrintJobInfo job;
     job.filament_map_1based = {4};
-    job.changer_dialect     = "openace";
-    CHECK(Slic3r::build_device_start_script(Slic3r::FilamentMappingProtocol::fmpKlipperChanger, "cube.gcode", job) ==
+    CHECK(Slic3r::build_device_start_script(Slic3r::FilamentMappingProtocol::fmpNone, Slic3r::MapDelivery::openace, "cube.gcode", job) ==
           "SDCARD_PRINT_FILE FILENAME=\"cube.gcode\" OPENACE_MAP=\"[[0,3]]\"");
 }
 

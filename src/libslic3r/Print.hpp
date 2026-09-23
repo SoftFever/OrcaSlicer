@@ -1543,12 +1543,21 @@ private:
     static void append_wipe_tower_extruder(const PrintConfig &config, std::vector<unsigned int> &extruders);
     void        append_wipe_tower_extruder(std::vector<unsigned int> &extruders) const
         { append_wipe_tower_extruder(m_config, extruders); }
+    // Orca: the tool numbers the G-code will command, once psWipeTower has built the tool
+    // ordering: the Print-wide ordering it built, or -- by object -- each object's own, which is
+    // what export builds for that sequence; plus every configured filament where export heats
+    // them all.
+    std::vector<unsigned int> emitted_tools() const;
     void        update_shrinkage_compensation(size_t num_extruders, std::vector<int> &variant_index);
 
     PrintConfig                             m_config;
     // Orca: the filament renumbering applied by the last apply(); empty unless the printer's
     // protocol requires dense tool numbering. See filament_compaction().
     FilamentCompaction                      m_filament_compaction;
+    // Orca: the project slots the last slice of this plate showed never print, though the plate
+    // references them. build_filament_compaction numbers them last. Filled by process() when a
+    // filament that never printed was numbered past the printer's last tool; never saved.
+    std::vector<int>                        m_filament_renumber_hint;
     // The renumbered copy of the caller's model that apply() slices from when a compaction is
     // in effect. A MEMBER, never a local: apply() stores raw ModelInstance*/ModelObject*
     // pointers from the model it was given into the PrintObjects (PrintInstance::model_instance),

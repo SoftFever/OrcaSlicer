@@ -1723,57 +1723,57 @@ TEST_CASE("A json config with one bad value still loads every other key", "[Conf
     CHECK(config.option<ConfigOptionFloat>("layer_height")->value == Catch::Approx(0.28));
 }
 
-// A Klipper filament changer (AFC or Happy Hare) is device-resolved like the Snapmaker
-// protocol: the printer maps logical tools to lanes/gates itself, and one plate may address as
-// many tools as the changer registers (AFC registers T0..T98) until a live probe tightens it.
-// Which changer it is matters only at send time, where the printer says so itself.
-TEST_CASE("The Klipper changer protocol is device-resolved, logical, and bounded at 99", "[Config]") {
+// The protocol is the vendor's declaration of how the map reaches the printer. A reported
+// Klipper changer is a separate, cached fact: it never rewrites the vendor's value (a ZR Ultra
+// keeps its wondermaker options and prelude with openACE installed) and by itself makes a
+// plain Klipper profile device-resolved.
+TEST_CASE("A reported changer is cached beside the vendor protocol, never over it", "[Config]") {
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
-    config.set_key_value("nozzle_diameter", new ConfigOptionFloats({0.4}));
-    config.set_deserialize_strict({ { "filament_mapping_protocol", "klipper_changer" } });
-    CHECK(device_owned_mapping_protocol(config));
-    CHECK(device_resolves_filament_mapping(config));
-    CHECK(protocol_max_plate_filaments(filament_mapping_protocol_of(config), 1) == 99);
-}
+    CHECK(reported_changer_of(config).empty());
+    CHECK_FALSE(device_resolves_filament_mapping(config));
 
-// The protocol is not a user choice for a Klipper changer: the sync that sees one seeds it into
-// the printer profile, so offline slicing runs against the last known printer. What the printer
-// reports wins over what the profile declared -- a ZR Ultra that gained openACE must stop
-// getting the vendor's box_modify start script -- and seeding never removes anything: a changer
-// that disappears is caught at send time, and resetting the protocol is the user's call.
-TEST_CASE("A detected Klipper changer seeds the protocol over whatever the profile declared", "[Config]") {
-    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
     CHECK(seed_printer_from_report(config, "afc", 0));
-    CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
-    // Already seeded: nothing to do.
-    CHECK_FALSE(seed_printer_from_report(config, "happy_hare", 0));
-    // No changer reported: leaves the profile alone either way.
+    CHECK(reported_changer_of(config) == "afc");
+    CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpNone);
+    CHECK(device_resolves_filament_mapping(config));
+    CHECK_FALSE(seed_printer_from_report(config, "afc", 0));
+    // A different changer replaces the cached one; "" (nothing reported) never clears it.
+    CHECK(seed_printer_from_report(config, "openace", 0));
     CHECK_FALSE(seed_printer_from_report(config, "", 0));
-    CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
-    // A vendor-declared protocol is replaced by what the printer actually runs.
+    CHECK(reported_changer_of(config) == "openace");
+
     DynamicPrintConfig vendor = DynamicPrintConfig::full_print_config();
-    vendor.set_deserialize_strict({ { "filament_mapping_protocol", "snapmaker" } });
-    CHECK(seed_printer_from_report(vendor, "openace", 0));
-    CHECK(filament_mapping_protocol_of(vendor) == FilamentMappingProtocol::fmpKlipperChanger);
-    CHECK_FALSE(seed_printer_from_report(vendor, "", 0));
+    vendor.set_deserialize_strict({ { "filament_mapping_protocol", "wondermaker" } });
+    CHECK(seed_printer_from_report(vendor, "openace", 32));
+    CHECK(filament_mapping_protocol_of(vendor) == FilamentMappingProtocol::fmpWonderMaker);
+    CHECK(reported_changer_of(vendor) == "openace");
+    CHECK(vendor.opt_int("device_tool_count") == 32);
 }
 
-// How many logical tools the printer registers (the highest T<n> command + 1) is the printer's
-// to report, not the user's to configure: the sync caches it in the hidden device_tool_count
-// option, so slicing -- offline too -- runs against the last known printer. 0 means "not probed"
-// and never overwrites a cached count; an unchanged count is not a modification.
-TEST_CASE("The sync caches the printer's reported tool count in the profile", "[Config]") {
+// One namespace: the count of T<n> the printer registers. Probed wins; otherwise the vendor's
+// constant (the U1's 32-entry extruder_map_table) or the nozzle count.
+TEST_CASE("The filament namespace is the probed tool count, else the vendor's constant", "[Config]") {
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
-    CHECK(config.opt_int("device_tool_count") == 0);
-    CHECK(seed_printer_from_report(config, "", 32));
-    CHECK(config.opt_int("device_tool_count") == 32);
-    CHECK_FALSE(seed_printer_from_report(config, "", 32));
-    CHECK_FALSE(seed_printer_from_report(config, "", 0));
-    CHECK(config.opt_int("device_tool_count") == 32);
-    // A printer that now registers fewer tools (openACE removed) tightens the cache.
+    CHECK(filament_namespace_size(config, 4) == 4);
+    config.set_deserialize_strict({ { "filament_mapping_protocol", "snapmaker" } });
+    CHECK(filament_namespace_size(config, 4) == 32);
+    config.set_key_value("device_tool_count", new ConfigOptionInt(28));
+    CHECK(filament_namespace_size(config, 4) == 28);
+    config.set_deserialize_strict({ { "filament_mapping_protocol", "wondermaker" } });
+    config.set_key_value("device_tool_count", new ConfigOptionInt(0));
+    CHECK(filament_namespace_size(config, 4) == 4);
+    // The tool count only ever tightens or widens what a sync measured; 0 leaves the cache.
     CHECK(seed_printer_from_report(config, "", 4));
-    CHECK(config.opt_int("device_tool_count") == 4);
-    // Dialect and count seed together, either alone is a change.
-    CHECK(seed_printer_from_report(config, "afc", 4));
-    CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpKlipperChanger);
+    CHECK_FALSE(seed_printer_from_report(config, "", 0));
+    CHECK(filament_namespace_size(config, 4) == 4);
+}
+
+// The value the earlier drafts of this branch wrote for a Klipper changer loads as "none"
+// (a substitution), since the changer is a reported fact now and not a protocol.
+TEST_CASE("klipper_changer is no longer a protocol value", "[Config]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    ConfigSubstitutionContext ctx(ForwardCompatibilitySubstitutionRule::Enable);
+    config.set_deserialize({ { "filament_mapping_protocol", "klipper_changer" } }, ctx);
+    CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpNone);
+    CHECK(ctx.substitutions.size() == 1);
 }

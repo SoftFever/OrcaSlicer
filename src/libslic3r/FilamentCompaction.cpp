@@ -3,12 +3,15 @@
 #include "FilamentMixer.hpp"
 #include "Model.hpp"
 #include "Preset.hpp"
+#include "Print.hpp" // ModelFilaments
 #include "PrintConfig.hpp"
 #include "TriangleSelector.hpp"
 
 #include <algorithm>
 #include <memory>
-#include <set>
+#include <vector>
+#include <string>
+#include <utility>
 
 namespace Slic3r {
 
@@ -42,130 +45,72 @@ int FilamentCompaction::project_slot_of_tool(int tool) const
     return tool >= 0 && size_t(tool) < slot_of_tool.size() ? slot_of_tool[tool] : tool;
 }
 
-// The value an object takes for `key`: its own override if it has one, otherwise the project's.
-static int object_or_global_int(const ModelObject& object, const DynamicPrintConfig& config, const char* key)
+std::vector<int> FilamentCompaction::used_filaments_1based() const
 {
-    if (const ConfigOption* opt = object.config.option(key))
-        return opt->getInt();
-    const ConfigOption* opt = config.option(key);
-    return opt == nullptr ? 0 : opt->getInt();
+    std::vector<int> out;
+    out.reserve(used_slots.size());
+    for (int slot : used_slots)
+        out.push_back(slot + 1);
+    return out;
 }
 
-static bool object_or_global_bool(const ModelObject& object, const DynamicPrintConfig& config, const char* key)
-{
-    if (const ConfigOption* opt = object.config.option(key))
-        return opt->getBool();
-    const ConfigOption* opt = config.option(key);
-    return opt != nullptr && opt->getBool();
-}
-
-// Every 0-based slot the plate references, mixed slots included, sorted and deduplicated.
-static std::vector<int> referenced_filament_slots(const Model& model, const DynamicPrintConfig& config)
-{
-    std::set<int> slots;
-    // Every id handled here is 1-based (0 means "inherit"), so store slot-1.
-    auto add_1based = [&slots](int filament_1based) {
-        if (filament_1based > 0)
-            slots.insert(filament_1based - 1);
-    };
-
-    for (const ModelObject* object : model.objects) {
-        // Print::apply builds print objects only from printable instances, so an object parked on
-        // another plate contributes no filaments -- matching what the user sees on this plate.
-        const bool printable = std::any_of(object->instances.begin(), object->instances.end(),
-                                           [](const ModelInstance* i) { return i->is_printable(); });
-        if (!printable)
-            continue;
-
-        for (const ModelVolume* volume : object->volumes)
-            // 1-based, and already the union of the volume's own filament and its
-            // multi-material painting.
-            for (int filament : volume->get_extruders())
-                add_1based(filament);
-
-        for (const auto& layer_range : object->layer_config_ranges)
-            if (layer_range.second.has("extruder"))
-                add_1based(layer_range.second.option("extruder")->getInt());
-
-        for (const char* key : s_region_filament_keys)
-            add_1based(object_or_global_int(*object, config, key));
-
-        // Support filaments only name a filament when the object actually prints support.
-        if (object_or_global_bool(*object, config, "enable_support") ||
-            object_or_global_int(*object, config, "raft_layers") > 0)
-            for (const char* key : s_support_filament_keys)
-                add_1based(object_or_global_int(*object, config, key));
-    }
-
-    if (slots.empty())
-        return {};
-
-    auto plate_gcodes = model.plates_custom_gcodes.find(model.curr_plate_index);
-    if (plate_gcodes != model.plates_custom_gcodes.end())
-        for (const CustomGCode::Item& item : plate_gcodes->second.gcodes)
-            if (item.type == CustomGCode::Type::ToolChange)
-                add_1based(item.extruder);
-
-    // A wipe tower filament only prints when there is more than one filament to purge between.
-    if (slots.size() > 1) {
-        const ConfigOption* enable_prime_tower = config.option("enable_prime_tower");
-        if (enable_prime_tower != nullptr && enable_prime_tower->getBool()) {
-            const ConfigOption* opt = config.option("wipe_tower_filament");
-            add_1based(opt == nullptr ? 0 : opt->getInt());
-        }
-    }
-
-    return std::vector<int>(slots.begin(), slots.end());
-}
-
-static bool is_mixed_slot(const DynamicPrintConfig& config, int slot_0based)
-{
-    const auto* is_mixed = config.option<ConfigOptionBools>("filament_is_mixed");
-    return is_mixed != nullptr && size_t(slot_0based) < is_mixed->size() && is_mixed->values[slot_0based];
-}
-
-// `slots` with every mixed slot replaced by its component filaments.
-static std::vector<int> physical_slots_of(const std::vector<int>& slots, const DynamicPrintConfig& config)
+FilamentCompaction build_filament_compaction(const ModelFilaments& filaments, const std::vector<int>& demoted,
+                                             const DynamicPrintConfig& config, size_t namespace_size)
 {
     const auto* is_mixed  = config.option<ConfigOptionBools>("filament_is_mixed");
     const auto* comp_strs = config.option<ConfigOptionStrings>("filament_mixed_components");
-    if (is_mixed == nullptr || comp_strs == nullptr || !has_any_mixed_filament(is_mixed->values))
-        return slots;
-    const std::vector<unsigned int> expanded = expand_mixed_filaments(std::vector<unsigned int>(slots.begin(), slots.end()),
-                                                                      is_mixed->values, comp_strs->values);
-    return std::vector<int>(expanded.begin(), expanded.end());
-}
+    const bool  any_mixed = is_mixed != nullptr && comp_strs != nullptr && has_any_mixed_filament(is_mixed->values);
 
-std::vector<int> used_filament_slots(const Model& model, const DynamicPrintConfig& config)
-{
-    return physical_slots_of(referenced_filament_slots(model, config), config);
-}
-
-FilamentCompaction build_filament_compaction(const Model& model, const DynamicPrintConfig& config)
-{
+    // Physical slots, surest tier first. A mixed slot never reaches the printer; its components do.
+    std::vector<int> order;
+    const auto take = [&](const std::vector<unsigned int>& tier) {
+        const std::vector<unsigned int> physical = any_mixed ? expand_mixed_filaments(tier, is_mixed->values, comp_strs->values) : tier;
+        for (unsigned int slot : physical)
+            if (std::find(order.begin(), order.end(), int(slot)) == order.end())
+                order.push_back(int(slot));
+    };
     FilamentCompaction compaction;
-    const std::vector<int> referenced = referenced_filament_slots(model, config);
-    compaction.slot_of_tool           = physical_slots_of(referenced, config);
+    take(filaments.parts);
+    compaction.certain_count = order.size();
+    take(filaments.features);
+    take(filaments.wipe_tower);
+    take(filaments.tool_changes);
+    take(filaments.support);
+
+    compaction.used_slots = order;
+    std::sort(compaction.used_slots.begin(), compaction.used_slots.end());
+    // A plate whose highest physical tool number fits the namespace goes to the printer as-is:
+    // the numbers are the project's, which is what the U1's slot-indexed table and a changer's
+    // logical T space both expect. Only a plate reaching past the namespace is packed.
+    if (compaction.used_slots.empty() || size_t(compaction.used_slots.back()) + 1 <= namespace_size)
+        return compaction;
+
+    // What the last slice of this plate showed never prints goes last (Print::process).
+    std::stable_partition(order.begin(), order.end(), [&demoted](int slot) {
+        return std::find(demoted.begin(), demoted.end(), slot) == demoted.end();
+    });
+    compaction.slot_of_tool = std::move(order);
     // The mixes come after every physical tool so T0..T(n-1) are exactly what the printer loads.
-    for (int slot : referenced)
-        if (is_mixed_slot(config, slot))
-            compaction.slot_of_tool.push_back(slot);
-    // A plate that already uses a dense prefix needs no renumbering; leaving the compaction
-    // identity keeps the model copy and the config gather from running at all.
+    if (any_mixed)
+        for (unsigned int slot : filaments.all())
+            if (slot < is_mixed->values.size() && is_mixed->values[slot])
+                compaction.slot_of_tool.push_back(int(slot));
+    // A plate that already uses a dense prefix needs no renumbering; leaving slot_of_tool empty
+    // keeps the model copy and the config gather from running at all.
     if (compaction.is_identity())
         compaction.slot_of_tool.clear();
     return compaction;
 }
 
-// The renumbered value for a 1-based filament reference. Slots the plate doesn't print keep
-// their value: they belong to a disabled feature, and inventing a tool number for them would
-// claim a tool the plate never uses.
+// The renumbered value for a 1-based filament reference. A reference to a slot the plate does not
+// print becomes 0 ("inherit"): it belongs to a feature the slicer will not print, and keeping its
+// number would make it name whichever filament now holds that tool number.
 static int compacted_1based(const FilamentCompaction& compaction, int filament_1based)
 {
     if (filament_1based <= 0)
         return filament_1based;
     const int tool = compaction.tool_of_slot(filament_1based - 1);
-    return tool < 0 ? filament_1based : tool + 1;
+    return tool < 0 ? 0 : tool + 1;
 }
 
 static void compact_model_config(ModelConfig& model_config, const ModelConfig& source_config, const FilamentCompaction& compaction)
@@ -237,9 +182,6 @@ void apply_filament_compaction(Model& model, const Model& source, const Filament
 
     assert(model.objects.size() == source.objects.size());
 
-    // Support references are renumbered unconditionally here. The collector must not claim a tool
-    // for a feature that is switched off, but rewriting a reference this plate never reads is
-    // harmless, and leaving it pointing at a project slot would be a latent inconsistency.
     for (size_t obj_i = 0; obj_i < model.objects.size(); ++obj_i) {
         ModelObject*       object        = model.objects[obj_i];
         const ModelObject* source_object = source.objects[obj_i];

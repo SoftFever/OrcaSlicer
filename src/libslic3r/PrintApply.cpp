@@ -1393,10 +1393,32 @@ Print::ApplyStatus Print::apply(const Model &model_in, DynamicPrintConfig new_fu
     // filaments by this same space. Renumbering here is what makes all of them dense at once.
     // Inert for every printer that doesn't ask: no compaction is built, and a plate already using
     // a dense prefix produces an identity compaction that copies nothing.
-    m_filament_compaction = printer_requires_dense_tool_numbering(new_full_config)
-                                ? build_filament_compaction(model_in, new_full_config)
-                                : FilamentCompaction();
+    // The plate's filament set is collected once here, with the slicer's own rules, and every
+    // consumer reads it from filament_compaction().
+    const size_t nozzle_count = new_full_config.option<ConfigOptionFloats>("nozzle_diameter", true)->values.size();
+    // process() reads the compaction and writes the renumber hint on the slicing thread.
+    std::unique_lock<std::mutex> compaction_lock(this->state_mutex());
+    const std::vector<int> previous_slot_of_tool = std::move(m_filament_compaction.slot_of_tool);
+    m_filament_compaction = FilamentCompaction();
+    if (device_resolves_filament_mapping(new_full_config)) {
+        PrintConfig       print_config;    print_config.apply(new_full_config, true);
+        PrintObjectConfig object_defaults; object_defaults.apply(new_full_config, true);
+        PrintRegionConfig region_defaults; region_defaults.apply(new_full_config, true);
+        // Neither the filament ids nor the feature gates are per-extruder variant options
+        // (print_options_with_variant), so no variant index is needed to resolve them.
+        std::vector<int>  no_variant;
+        const ModelFilaments filaments = collect_model_filaments(model_in, print_config, object_defaults, region_defaults,
+                                                                 print_config.filament_diameter.size(), no_variant,
+                                                                 FeatureGate::Printed, /*with_wipe_tower=*/true);
+        m_filament_compaction = build_filament_compaction(filaments, m_filament_renumber_hint, new_full_config,
+                                                          filament_namespace_size(new_full_config, nozzle_count));
+    }
+    compaction_lock.unlock();
     const bool compacting = !m_filament_compaction.slot_of_tool.empty();
+    // The numbering can change with no edit to the source model -- a late renumber, or another
+    // object's filament moving every number above it. The copy mirrors the source's timestamps,
+    // so the timestamp comparisons below cannot see that; flag it, as num_extruders_changed does.
+    const bool compaction_changed = m_filament_compaction.slot_of_tool != previous_slot_of_tool;
     if (compacting) {
         // Model::operator= is assign_copy, which preserves object IDs -- apply's model diffing
         // below keys on them, so a copy must not look like a different model. The copy lives in
@@ -1909,7 +1931,7 @@ Print::ApplyStatus Print::apply(const Model &model_in, DynamicPrintConfig new_fu
         // Only volume IDs, volume types, transformation matrices and their order are checked, configuration and other parameters are NOT checked.
         bool solid_or_modifier_differ   = model_volume_list_changed(model_object, model_object_new, solid_or_modifier_types) ||
                                           model_mmu_segmentation_data_changed(model_object, model_object_new) ||
-                                          (model_object_new.is_mm_painted() && num_extruders_changed) ||
+                                          (model_object_new.is_mm_painted() && (num_extruders_changed || compaction_changed)) ||
                                           model_fuzzy_skin_data_changed(model_object, model_object_new);
         bool supports_differ            = model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_BLOCKER) ||
                                           model_volume_list_changed(model_object, model_object_new, ModelVolumeType::SUPPORT_ENFORCER);
@@ -1980,6 +2002,12 @@ Print::ApplyStatus Print::apply(const Model &model_in, DynamicPrintConfig new_fu
             bool object_config_changed = ! model_object.config.timestamp_matches(model_object_new.config);
 			if (object_config_changed)
 				model_object.config.assign_config(model_object_new.config);
+            else if (compaction_changed && model_object.config.get() != model_object_new.config.get()) {
+                // Orca: the renumbered copy mirrors its source's timestamps, and assign_config(ModelConfig)
+                // copies only when they differ: when the numbering changed, copy by value.
+                model_object.config.assign_config(model_object_new.config.get());
+                object_config_changed = true;
+            }
             if (! object_diff.empty() || object_config_changed || num_extruders_changed ) {
                 PrintObjectConfig new_config = PrintObject::object_config_from_model_object(m_default_object_config, model_object, num_extruders, print_variant_index);
                 for (const PrintObjectStatus &print_object_status : print_object_status_db.get_range(model_object)) {
@@ -1994,6 +2022,12 @@ Print::ApplyStatus Print::apply(const Model &model_in, DynamicPrintConfig new_fu
             //FIXME What to do with m_material_id?
 			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::MODEL_PART);
 			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, ModelVolumeType::PARAMETER_MODIFIER);
+            if (compaction_changed) {
+                // Orca: by value, as for the object's config above.
+                assert(model_object.volumes.size() == model_object_new.volumes.size());
+                for (size_t i = 0; i < model_object.volumes.size(); ++ i)
+                    model_object.volumes[i]->config.assign_config(model_object_new.volumes[i]->config.get());
+            }
 			// Synchronize Precise Seam modifier volumes
 			model_volume_list_copy_configs(model_object /* dst */, model_object_new /* src */, precise_seam_types);
             layer_height_ranges_copy_configs(model_object.layer_config_ranges /* dst */, model_object_new.layer_config_ranges /* src */);
