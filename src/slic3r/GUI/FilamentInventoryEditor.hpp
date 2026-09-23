@@ -32,7 +32,7 @@ namespace GUI {
 // didn't touch never change, since plate mappings reference physical filaments by id across
 // sessions.
 class PhysicalFilamentComboBox;
-class FilamentCard;
+class SlotGridPanel;
 
 class FilamentInventoryEditor : public wxDialog
 {
@@ -76,15 +76,11 @@ private:
         wxWindow*             action_btn{nullptr}; // Clear (slot 0 only); swap rows have none here
     };
 
-    // A tool's rows (rows[0] = loaded, rows[1..] = swappable) plus the card widgets that render
-    // them: main_card shows rows[0] (the editor renders one card per tool; rows beyond 0 are
-    // carried as data only and round-trip through save untouched).
-    // torn down/rebuilt whenever a row is added or removed (rebuild_tool_rows).
+    // One reported slot's row (rows[0]; the vector is the shape the row-edit machinery grew up
+    // with). The slot grid renders every group from its plain data (refresh_grid).
     struct ToolGroup
     {
         std::vector<Row> rows;
-        FilamentCard*     main_card{nullptr};
-        wxStaticText*     unit_label{nullptr}; // the unit's name above its first tool, blank elsewhere
     };
 
     // Converts one row's live plain data into the PhysicalFilament shape saved to the registry
@@ -98,6 +94,9 @@ private:
     void on_sync_from_printer(wxCommandEvent& event);
     void update_clear_enabled(Row& row);
     void rebuild_tool_rows(size_t tool_idx);
+    // Repaints the slot grid from every group's current plain data plus the per-slot edit state
+    // (read-only, tag-locked, empty on the printer).
+    void refresh_grid();
     // Builds the color-picker/PhysicalFilamentComboBox/Clear-button row-edit machinery for one
     // row into `parent`/`target_sizer` -- used only by open_row_editor to host it inside that
     // row's small modal editor; the card strip itself never calls this.
@@ -108,7 +107,6 @@ private:
     void open_row_editor(size_t tool_idx, size_t row_idx);
     // Pushes one row's current plain data onto its card (color/label/lock state) and (re)binds
     // the card's pencil/remove callbacks to this tool/row index.
-    void update_card(size_t tool_idx, size_t row_idx, FilamentCard* card);
     // Orca: the row's picked preset, resolved once -- shared by material_type_of, vendor_of,
     // slot_from_row and push_changes_to_printer instead of each independently re-running
     // type_touched/picked_preset/find_preset. nullptr for an unresolved/legacy row (bare
@@ -170,7 +168,7 @@ private:
     std::map<size_t, SlotSnapshot> m_synced_baseline;   // tool index -> post-sync row snapshot
     std::set<size_t>               m_tag_locked_tools;  // tool indexes backed by an NFC tag
     // Tool indexes whose last sync reported the loaded slot as not present -- there's no
-    // filament to set a material/color on, so update_card disables that tool's slot-0 pencil
+    // filament to set a material/color on, so refresh_grid disables that slot's slot-0 pencil
     // (no editing an empty tool). Repopulated from scratch on every
     // do_sync_from_printer call, so it naturally resets once a later sync reports filament; a
     // tool never covered by any sync never enters this set and stays fully editable (in-session
@@ -182,6 +180,8 @@ private:
     void do_sync_from_printer(bool interactive);
     void push_changes_to_printer();
     std::vector<ToolGroup>    m_tools;
+    SlotGridPanel*            m_grid{nullptr};
+    size_t                    m_extruder_count{1}; // nozzles; the grid's extruder row on a MEMM printer
     // Compatible filament preset names for the selected printer, in ComboBox order. Combo layout
     int                       m_next_id{1};   // FilamentInventory::next_id at load; advances only at save
 };
