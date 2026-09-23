@@ -261,7 +261,7 @@ Preview::Preview(
         load_print();
 }
 
-// Orca: on a printer whose protocol requires dense tool numbering (FilamentCompaction), the
+// Orca: on a plate the printer's T namespace forced to renumber (FilamentCompaction), the
 // g-code's tool ids are a compacted renumbering of the PROJECT's filament slots -- a plate using
 // project filaments 1 and 4 slices as T0/T1. Everything in the PREVIEW indexes by the g-code's
 // ids, so its colors (and labels, see GCodeViewer::set_filament_display_ids) must be looked up

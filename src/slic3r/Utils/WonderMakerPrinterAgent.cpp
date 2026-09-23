@@ -177,10 +177,7 @@ bool WonderMakerPrinterAgent::fetch_tmt_filament_info(std::vector<AmsTrayData>& 
 }
 
 
-std::string WonderMakerProtocol::build_start_script(const std::string&      filename,
-                                                    const std::vector<int>& box_of_tool_1based,
-                                                    bool                    bed_leveling,
-                                                    bool                    time_lapse)
+std::string WonderMakerProtocol::build_prelude(bool bed_leveling, bool time_lapse)
 {
     std::string script;
     // Timelapse first, mirroring the touchscreen's own start sequence (captured from the
@@ -198,7 +195,12 @@ std::string WonderMakerProtocol::build_start_script(const std::string&      file
     // so emitting nothing for "off" (as this originally did) actually meant "whatever the last
     // print chose".
     script += bed_leveling ? "G30\n" : "G31\n";
+    return script;
+}
 
+std::string WonderMakerProtocol::build_map_lines(const std::vector<int>& box_of_tool_1based)
+{
+    std::string script;
     for (size_t tool = 0; tool < box_of_tool_1based.size(); ++tool) {
         const int box_1based = box_of_tool_1based[tool];
         // A tool this plate doesn't print carries no pick; leaving its variable alone preserves
@@ -213,17 +215,16 @@ std::string WonderMakerProtocol::build_start_script(const std::string&      file
         script += "SAVE_VARIABLE VARIABLE=" + variable + " VALUE=" + value + "\n";
         script += "SAVE_VARIABLE VARIABLE=" + variable + "_backup VALUE=" + value + "\n";
     }
-
-    script += "SDCARD_PRINT_FILE FILENAME=\"" + filename + "\"";
     return script;
 }
 
-std::string WonderMakerProtocol::build_start_script(const std::string& filename, const DevicePrintJobInfo& job)
+std::string WonderMakerProtocol::build_start_script(const std::string&      filename,
+                                                    const std::vector<int>& box_of_tool_1based,
+                                                    bool                    bed_leveling,
+                                                    bool                    time_lapse)
 {
-    // filament_map_1based is indexed by the tool numbers the g-code actually emits, which for this
-    // protocol are dense (see protocol_requires_dense_tool_numbering), so it is already the
-    // per-tool box list this dialect wants.
-    return build_start_script(filename, job.filament_map_1based, job.option_on("bed_leveling"), job.option_on("time_lapse"));
+    return build_prelude(bed_leveling, time_lapse) + build_map_lines(box_of_tool_1based) +
+           "SDCARD_PRINT_FILE FILENAME=\"" + filename + "\"";
 }
 
 WonderMakerPrinterAgent::WonderMakerPrinterAgent(std::string log_dir) : MoonrakerPrinterAgent(std::move(log_dir)) {}

@@ -42,9 +42,8 @@ constexpr const char* PRINT_HOST_UPLOADED_FILENAME_PLACEHOLDER = "{{uploaded_fil
 // so callers of the print-host send path need no vendor knowledge -- adding a protocol only means
 // adding a case here, in Utils, not editing GUI code. filename may be
 // PRINT_HOST_UPLOADED_FILENAME_PLACEHOLDER when the caller doesn't yet know the uploaded name.
-// Returns "" for a protocol with no start-script dialect (fmpNone, or one whose mapping is
-// delivered through IPrinterAgent::send_filament_mapping() instead); callers must not read that
-// as "nothing to send" without checking device_owned_mapping_protocol() first.
+// Returns "" when there is no delivery (MapDelivery::none); callers must not read that as
+// "nothing to send" without checking the delivery first.
 // ----------------------------------------------------------------------------------------------
 // Send-time print options
 //
@@ -88,9 +87,15 @@ struct DevicePrintSpec
     bool empty() const { return !supports_filament_mapping && options.empty(); }
 };
 
-/// What this printer offers at print-start time. Empty spec (the default for every protocol we
-/// have no dialect for) means "use the stock send dialog", so declaring nothing changes nothing.
-DevicePrintSpec device_print_spec(FilamentMappingProtocol protocol);
+// Orca: how the plate's filament->tool map reaches the printer. The vendor's protocol names its
+// own format; a Klipper changer the printer reported overrides it (effective_map_delivery).
+enum class MapDelivery { none, snapmaker, wondermaker, afc, happy_hare, openace };
+MapDelivery effective_map_delivery(FilamentMappingProtocol vendor, const std::string& reported_changer);
+
+/// What this printer offers at print-start time. The options are the vendor ADAPTER's (what its
+/// screen offers), independent of who delivers the map; supports_filament_mapping is whether
+/// anyone does. Empty spec means "use the stock send dialog", so declaring nothing changes nothing.
+DevicePrintSpec device_print_spec(FilamentMappingProtocol vendor, MapDelivery delivery);
 
 /// Everything a start script may need about the sliced plate. Arrays are sized by LOGICAL filament
 /// (one entry per project filament) EXCEPT nozzle_diameter and used_physical_tools, which are sized
@@ -108,7 +113,6 @@ struct DevicePrintJobInfo
     std::vector<double>      nozzle_diameter;     ///< PHYSICAL
     std::vector<int>         used_physical_tools; ///< PHYSICAL, deduped, first-use order
     std::vector<std::string> slot_names;          ///< PHYSICAL: the printer's own slot names, "" = none
-    std::string              changer_dialect;     ///< what the printer reported ("afc" / "happy_hare" / ""), chooses the wire vocabulary
     double                   line_width{0.};
     double                   layer_height{0.};
     double                   outer_wall_speed{0.};
@@ -123,9 +127,10 @@ struct DevicePrintJobInfo
 };
 
 
-/// Full-fidelity form: renders every parameter the printer's own screen sends, including the
-/// user's option choices and the plate's filament statistics.
-std::string build_device_start_script(FilamentMappingProtocol protocol, const std::string& filename, const DevicePrintJobInfo& job);
+/// The vendor's prelude (its options), then the map in the delivery's vocabulary, then the SD
+/// start. "" when the delivery is none or the map cannot be rendered (an AFC lane without a name):
+/// the send path refuses to auto-start on that.
+std::string build_device_start_script(FilamentMappingProtocol vendor, MapDelivery delivery, const std::string& filename, const DevicePrintJobInfo& job);
 
 struct PrintHostUpload
 {

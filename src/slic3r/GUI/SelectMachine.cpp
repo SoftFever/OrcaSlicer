@@ -3647,7 +3647,7 @@ void SelectMachineDialog::on_send_print()
         const ConfigOption*       protocol_opt           = target_printer_config.option("filament_mapping_protocol");
         if (protocol_opt != nullptr && protocol_opt->getInt() == (int) FilamentMappingProtocol::fmpSnapmaker) {
             PartPlate*        part_plate      = m_plater->get_partplate_list().get_plate(m_print_plate_idx);
-            std::vector<int>  plate_filaments = part_plate ? part_plate->get_extruders(true) : std::vector<int>();
+            std::vector<int>  plate_filaments = part_plate ? part_plate->get_device_filaments() : std::vector<int>();
             auto picked = collect_device_map_table_for_send(this, plate_filaments, _L("Map filaments to tools"));
             if (!picked.has_value()) {
                 BOOST_LOG_TRIVIAL(info) << "print_job: filament map dialog canceled for send";

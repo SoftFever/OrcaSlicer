@@ -6664,10 +6664,11 @@ void TabPrinter::toggle_options()
         toggle_option("wait_for_temp_on_wipe_tower", !bSEMM && supports_wipe_tower_2 && extruders_count > 1);
 
         // Orca: decoupling the filament count from the tool count only makes sense for non-BBL,
-        // multi-extruder, non-SEMM printers. A printer with a native filament-mapping protocol
-        // resolves the assignment already, so the printer-agnostic opt-in is redundant there.
+        // multi-extruder, non-SEMM printers. A printer with a native filament-mapping protocol or
+        // a reported changer resolves the assignment already, so the opt-in is redundant there.
         toggle_line("enable_filament_mapping", !is_BBL_printer && extruders_count > 1 && !bSEMM &&
-                                               !device_owned_mapping_protocol(*m_config));
+                                               filament_mapping_protocol_of(*m_config) == FilamentMappingProtocol::fmpNone &&
+                                               reported_changer_of(*m_config).empty());
 
     }
     if (m_active_page->title() == L("Extruder") && m_extruders_count > 0)

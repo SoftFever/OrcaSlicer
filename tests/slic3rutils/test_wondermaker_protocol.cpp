@@ -64,31 +64,69 @@ TEST_CASE("The job form takes its leveling choice from the send dialog", "[Wonde
     DevicePrintJobInfo job;
     job.filament_map_1based = {1, 2};
     job.options["bed_leveling"] = "0";
-    CHECK(build_start_script("a.gcode", job).find("G30") == std::string::npos);
+    const auto render = [&job]() {
+        return Slic3r::build_device_start_script(FilamentMappingProtocol::fmpWonderMaker, Slic3r::MapDelivery::wondermaker, "a.gcode", job);
+    };
+    CHECK(render().find("G30") == std::string::npos);
     job.options["bed_leveling"] = "1";
-    CHECK(build_start_script("a.gcode", job).find("\nG30\n") != std::string::npos);
+    CHECK(render().find("\nG30\n") != std::string::npos);
 }
 
-TEST_CASE("The ZR Ultra S declares permutation-only routing and dense tool numbering", "[WonderMakerProtocol]")
+TEST_CASE("The ZR Ultra S's namespace is its tool count; the U1's is its 32-entry table", "[WonderMakerProtocol]")
 {
-    // The three capabilities are independent, and this printer is the one that separates them:
-    // it resolves the mapping itself (like the U1) but only permutes its tools and cannot address
-    // a tool number past its last one (unlike the U1's 32-entry table).
-    CHECK(Slic3r::protocol_max_plate_filaments(FilamentMappingProtocol::fmpWonderMaker, 4) == 4);
-    CHECK(Slic3r::protocol_requires_dense_tool_numbering(FilamentMappingProtocol::fmpWonderMaker));
-    // The U1's wire format is indexed BY the project slot, so it must NOT be renumbered.
-    CHECK(Slic3r::protocol_max_plate_filaments(FilamentMappingProtocol::fmpSnapmaker, 4) == 32);
-    CHECK(!Slic3r::protocol_requires_dense_tool_numbering(FilamentMappingProtocol::fmpSnapmaker));
-    CHECK(!Slic3r::protocol_requires_dense_tool_numbering(FilamentMappingProtocol::fmpNone));
+    // What separates the two: the ZR only permutes its tools and cannot address a tool number
+    // past its last one, so a plate reaching past T4 is renumbered (FilamentCompaction); the U1
+    // addresses 32 as-is. Both are the same rule with a different namespace size.
+    Slic3r::DynamicPrintConfig zr = Slic3r::DynamicPrintConfig::full_print_config();
+    zr.set_deserialize_strict({ { "filament_mapping_protocol", "wondermaker" } });
+    CHECK(Slic3r::filament_namespace_size(zr, 4) == 4);
+    Slic3r::DynamicPrintConfig u1 = Slic3r::DynamicPrintConfig::full_print_config();
+    u1.set_deserialize_strict({ { "filament_mapping_protocol", "snapmaker" } });
+    CHECK(Slic3r::filament_namespace_size(u1, 4) == 32);
 }
 
 TEST_CASE("Declares only the options the ZR firmware implements", "[WonderMakerProtocol]")
 {
-    const Slic3r::DevicePrintSpec spec = Slic3r::device_print_spec(FilamentMappingProtocol::fmpWonderMaker);
+    const Slic3r::DevicePrintSpec spec = Slic3r::device_print_spec(FilamentMappingProtocol::fmpWonderMaker, Slic3r::MapDelivery::wondermaker);
     CHECK(spec.supports_filament_mapping);
     REQUIRE(spec.options.size() == 2);
     CHECK(spec.options.front().key == "time_lapse");
     CHECK(spec.options.front().default_value == "0");
     CHECK(spec.options.back().key == "bed_leveling");
     CHECK(spec.options.back().default_value == "1");
+}
+
+// With openACE installed the ZR keeps its own prelude (the options its screen offers) and
+// hands the map to openACE: vendor options are the adapter's, delivery is the changer's.
+TEST_CASE("A ZR with openACE keeps its prelude and sends the map through openACE", "[WonderMakerProtocol]")
+{
+    Slic3r::DevicePrintJobInfo job;
+    job.filament_map_1based = {4, 1};
+    job.options             = { {"bed_leveling", "1"}, {"time_lapse", "0"} };
+    const auto delivery = Slic3r::effective_map_delivery(FilamentMappingProtocol::fmpWonderMaker, "openace");
+    CHECK(delivery == Slic3r::MapDelivery::openace);
+    CHECK(Slic3r::build_device_start_script(FilamentMappingProtocol::fmpWonderMaker, delivery, "cube.gcode", job) ==
+          "_SET_TIMELAPSE_SETUP ENABLE=False\n"
+          "G30\n"
+          "SDCARD_PRINT_FILE FILENAME=\"cube.gcode\" OPENACE_MAP=\"[[0,3],[1,0]]\"");
+    // The options survive the changer: the print dialog still offers them.
+    const auto spec = Slic3r::device_print_spec(FilamentMappingProtocol::fmpWonderMaker, delivery);
+    CHECK(spec.supports_filament_mapping);
+    REQUIRE(spec.options.size() == 2);
+    CHECK(spec.options[0].key == "time_lapse");
+    CHECK(spec.options[1].key == "bed_leveling");
+}
+
+TEST_CASE("A stock ZR still maps through box_modify after its prelude", "[WonderMakerProtocol]")
+{
+    Slic3r::DevicePrintJobInfo job;
+    job.filament_map_1based = {2};
+    job.options             = { {"bed_leveling", "0"}, {"time_lapse", "0"} };
+    const auto delivery = Slic3r::effective_map_delivery(FilamentMappingProtocol::fmpWonderMaker, "");
+    CHECK(delivery == Slic3r::MapDelivery::wondermaker);
+    CHECK(Slic3r::build_device_start_script(FilamentMappingProtocol::fmpWonderMaker, delivery, "a.gcode", job) ==
+          "_SET_TIMELAPSE_SETUP ENABLE=False\nG31\n"
+          "SAVE_VARIABLE VARIABLE=box_modify_t0 VALUE=1\n"
+          "SAVE_VARIABLE VARIABLE=box_modify_t0_backup VALUE=1\n"
+          "SDCARD_PRINT_FILE FILENAME=\"a.gcode\"");
 }

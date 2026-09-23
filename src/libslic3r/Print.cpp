@@ -12,6 +12,7 @@
 #include "libslic3r.h"
 #include "calib.hpp"
 #include <cassert>
+#include "FilamentCompaction.hpp"
 #include "CustomGCode.hpp"
 #include "ObjectID.hpp"
 #include <cstddef>
@@ -695,6 +696,33 @@ void Print::append_wipe_tower_extruder(const PrintConfig &config, std::vector<un
         assert(config.wipe_tower_filament > 0 && config.wipe_tower_filament <= int(config.filament_diameter.size()));
         extruders.emplace_back(config.wipe_tower_filament - 1); // config value is 1-based
     }
+}
+
+std::vector<unsigned int> Print::emitted_tools() const
+{
+    std::vector<unsigned int> tools;
+    if (m_config.print_sequence == PrintSequence::ByObject) {
+        for (const PrintObject *object : m_objects) {
+            ToolOrdering ordering(*object, (unsigned int) -1);
+            ordering.sort_and_build_data(*object, (unsigned int) -1);
+            append(tools, ordering.all_extruders());
+        }
+    } else {
+        const ToolOrdering &ordering = m_wipe_tower_data.tool_ordering.empty() ? m_tool_ordering : m_wipe_tower_data.tool_ordering;
+        tools = ordering.all_extruders();
+    }
+    // Export also sets a temperature for every filament the print configures, printed or not: by
+    // object before each object, and in a start sequence other than Klipper's
+    // (GCode::_print_first_layer_extruder_temperatures). Those tools are commanded too.
+    if (m_config.print_sequence == PrintSequence::ByObject ||
+        (m_config.gcode_flavor != gcfKlipper && !m_config.single_extruder_multi_material)) {
+        const std::vector<unsigned int> configured = this->extruders();
+        append(tools, has_any_mixed_filament(m_config.filament_is_mixed.values)
+                          ? expand_mixed_filaments(configured, m_config.filament_is_mixed.values, m_config.filament_mixed_components.values)
+                          : configured);
+    }
+    sort_remove_duplicates(tools);
+    return tools;
 }
 
 unsigned int Print::num_object_instances() const
@@ -2098,50 +2126,19 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
     }
 
     // Orca: when the PRINTER resolves the filament->tool assignment the project may hold more
-    // filaments than the printer has tools, but a single plate is still bounded by how many
-    // logical tools that firmware can route (see protocol_max_plate_filaments). The g-code
-    // addresses one logical tool per filament, so the plate needs tool indices up to its
-    // highest-numbered used filament; anything beyond the limit would reach the printer as a
-    // tool command it has no macro for.
-    // Read both from the FULL config, never from m_config: filament_mapping_protocol is a printer
-    // option with no member in the static PrintConfig struct, so m_config.option() always returns
-    // null for it and the protocol silently reads as fmpNone. That capped a Snapmaker U1 -- which
-    // routes 32 logical filaments onto its 4 heads -- at 4, rejecting the 5-on-4 plate its
-    // firmware handles natively. enable_filament_mapping does have a member, which is why the gate
-    // itself still fired.
+    // filaments than the printer has tools; a single plate is bounded by the printer's T
+    // namespace (filament_namespace_size). Before slicing only the part filaments are certain to
+    // print (FilamentCompaction::certain_count); support, per-feature, wipe-tower and tool-change
+    // filaments are checked against what ToolOrdering actually commands, in process(). Read from
+    // the FULL config: the protocol and the probe are printer options with no member in the
+    // static PrintConfig struct.
     const DynamicPrintConfig& printer_config = this->full_print_config();
     if (device_resolves_filament_mapping(printer_config)) {
-        // What the printer registered (device_tool_count, cached by the materials sync) outranks
-        // the protocol's constant in both directions; 0 is "never probed".
-        const int    reported            = printer_config.opt_int("device_tool_count");
-        const size_t max_plate_filaments = reported > 0 ? size_t(reported)
-                                                        : protocol_max_plate_filaments(filament_mapping_protocol_of(printer_config), nozzles);
-        // A mixed (virtual) slot never reaches the printer: ToolOrdering resolves it to its
-        // component filaments and only those are commanded as tools. Bound the components, not
-        // the slot's own number -- a project's mixes are numbered after every physical filament,
-        // so counting them rejected a four-filament plate on a four-tool printer.
-        const std::vector<unsigned int> physical_extruders = has_any_mixed_filament(m_config.filament_is_mixed.values)
-            ? expand_mixed_filaments(extruders, m_config.filament_is_mixed.values, m_config.filament_mixed_components.values)
-            : extruders;
-        // Sorted and deduplicated, so the last entry is the highest used filament (0-based); +1 is
-        // both the count of logical tools the g-code will address and the filament's 1-based number
-        // as the user sees it.
-        const size_t highest_used_filament = physical_extruders.empty() ? 0 : size_t(physical_extruders.back()) + 1;
-        if (highest_used_filament > max_plate_filaments) {
-            // On a protocol that renumbers (protocol_requires_dense_tool_numbering) the plate's
-            // filaments were already compacted to a dense range before slicing, so the highest
-            // index IS the count and there is nothing left to renumber -- telling the user to
-            // renumber would be advice that cannot work. Anywhere else the limit is on the
-            // filament NUMBER, which renumbering can fix without dropping a filament.
-            if (printer_requires_dense_tool_numbering(printer_config))
-                return {(boost::format(L("This plate uses %1% filaments, but this printer can only print %2% filaments on one "
-                                         "plate. Reduce the number of filaments used on this plate."))
-                         % highest_used_filament % max_plate_filaments).str()};
-            return {(boost::format(L("This plate uses filament %1%, but this printer can only address %2% filaments on one plate. "
-                                     "Reduce the number of filaments used on this plate, or renumber them so they fit within the "
-                                     "first %2%."))
-                     % highest_used_filament % max_plate_filaments).str()};
-        }
+        const size_t namespace_size = filament_namespace_size(printer_config, nozzles);
+        if (m_filament_compaction.certain_count > namespace_size)
+            return {(boost::format(L("This plate uses %1% filaments, but this printer can only print %2% filaments on one "
+                                     "plate. Reduce the number of filaments used on this plate."))
+                     % m_filament_compaction.certain_count % namespace_size).str()};
     }
 
     if (nozzles < 2 && extruders.size() > 1) {
@@ -3543,6 +3540,36 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
                 throw Slic3r::SlicingError(L("The print is empty. The model is not printable with current print settings."));
 
+        }
+        // Orca: the pre-slice check in validate() only counted the plate's certain filaments.
+        // Now the tool ordering says what the G-code will command. Thrown before set_done so the
+        // step runs again next time.
+        if (device_resolves_filament_mapping(full_print_config())) {
+            const size_t namespace_size = filament_namespace_size(full_print_config(), m_config.nozzle_diameter.size());
+            const std::vector<unsigned int> tools = this->emitted_tools();
+            // apply() rebuilds the compaction and reads the hint on the UI thread.
+            this->throw_if_canceled();
+            std::scoped_lock<std::mutex> lock(this->state_mutex());
+            if (tools.size() > namespace_size)
+                throw Slic3r::SlicingError((boost::format(L("This plate uses %1% filaments, but this printer can only print %2% filaments on one "
+                                                            "plate. Reduce the number of filaments used on this plate."))
+                                            % tools.size() % namespace_size).str());
+            if (!tools.empty() && tools.back() >= namespace_size) {
+                // They fit, but a filament that never printed was numbered below one that did.
+                // Renumbering is a permutation -- nothing sliced depends on the numbers -- so a
+                // reslice prints these same filaments, and numbering them first fits.
+                std::vector<int> unprinted;
+                for (int slot : m_filament_compaction.used_slots)
+                    if (std::none_of(tools.begin(), tools.end(), [&](unsigned int tool) {
+                            return m_filament_compaction.project_slot_of_tool(int(tool)) == slot; }))
+                        unprinted.push_back(slot);
+                if (unprinted == m_filament_renumber_hint)
+                    // These were already numbered last and the tools still do not fit: the
+                    // permutation assumption broke. Say so rather than retry forever.
+                    throw Slic3r::SlicingError(L("Renumbering this plate's filaments did not fit them to the printer's tools."));
+                m_filament_renumber_hint = std::move(unprinted);
+                throw FilamentRenumberRequired(L("This plate's filaments were renumbered to fit the printer's tools. Slice again."));
+            }
         }
         this->set_done(psWipeTower);
         if (m_pipeline_plugin_active) run_pipeline_hook(SlicingPipelineStepPlugin::psWipeTower, nullptr);

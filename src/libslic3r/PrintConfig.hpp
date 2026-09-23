@@ -115,16 +115,12 @@ enum class WipeTowerType {
     Type2,
 };
 
-// A printer that owns filament mapping natively (talks to the slicer over its own
-// protocol instead of consuming slicer-computed tool numbers).
+// Orca: how a printer that owns filament mapping natively receives the map. The vendor's
+// declaration only; a Klipper filament changer the printer reports at sync time is cached in
+// device_changer (reported_changer_of) and overrides this for delivery.
 enum class FilamentMappingProtocol {
     fmpNone = 0,
     fmpSnapmaker,
-    // A Klipper filament changer (AFC or Happy Hare) that maps logical tools to lanes/gates
-    // itself. Not a user choice: the first sync that sees one seeds it (see
-    // seed_printer_from_report); which changer it is only matters at send time, where the
-    // printer reports its own dialect (AFC: SET_MAP, Happy Hare: MMU_TTG_MAP).
-    fmpKlipperChanger,
     fmpWonderMaker,
 };
 
@@ -2728,52 +2724,35 @@ double nozzle_diameter_for_filament(const PrintConfig& config, int filament_id, 
 
 // The printer's configured filament_mapping_protocol (fmpNone if the option is absent).
 // The one accessor for "which protocol" -- everything that needs to know should call this
-// (or device_owned_mapping_protocol() below) instead of re-deriving the option lookup.
+// instead of re-deriving the option lookup.
 FilamentMappingProtocol filament_mapping_protocol_of(const ConfigBase& printer_config);
 
-// True when the printer routes logical tools itself over a native protocol instead of
-// consuming slicer-computed tool numbers (filament_mapping_protocol != fmpNone).
-bool device_owned_mapping_protocol(const ConfigBase& printer_config);
+// The Klipper filament changer the printer reported at the last sync ("afc", "happy_hare",
+// "openace"), "" when none. A cached fact, not a setting: see seed_printer_from_report.
+std::string reported_changer_of(const ConfigBase& printer_config);
 
-// Orca: record what the printer reported into the profile, so offline slicing runs against the
-// last known printer: a Klipper filament changer ("afc" / "happy_hare" / "openace"; "" = none)
-// becomes the profile's protocol, and the number of logical tools the firmware registers
-// (highest T<n> + 1; 0 = not probed) becomes device_tool_count. What the printer reports wins
-// over what the profile declared (a ZR Ultra that gained openACE must stop getting the vendor's
-// start script); seeding never removes a protocol -- a changer that went away is caught at send
-// time, and resetting the profile is the user's call. Returns true when the config changed.
+// Orca: record what the printer reported so offline slicing runs against the last known
+// printer: the changer into device_changer (a different changer replaces it; "" never clears
+// it -- a changer that went away is caught at send time) and the registered T<n> count into
+// device_tool_count (0 = not probed, leaves the cache). The vendor's protocol is never touched:
+// its print options and its own map format stay declared whatever add-on the printer runs.
+// Returns true when the config changed.
 bool seed_printer_from_report(DynamicPrintConfig& printer_config, const std::string& reported_dialect, int reported_tool_count);
 
-// True when the PRINTER resolves filament->tool assignment rather than the slicer: either a
-// native protocol (filament_mapping_protocol) or the printer-agnostic enable_filament_mapping
-// opt-in for firmware that maps on its own with nothing for the slicer to send. The engine
-// treats both identically -- logical tool space, pinned identity map, filament count free of
-// the tool count.
+// True when the PRINTER resolves filament->tool assignment rather than the slicer: a vendor
+// protocol, a reported changer, or the printer-agnostic enable_filament_mapping opt-in for
+// firmware that maps on its own with nothing for the slicer to send. The engine treats all of
+// them identically -- logical tool space, pinned identity map, filament count free of the tool
+// count.
 bool device_resolves_filament_mapping(const ConfigBase& printer_config);
 
-// The largest number of logical tools one plate may address on a printer that resolves the
-// mapping itself. Count decoupling (the project may hold more filaments than the printer has
-// tools) and per-plate routing capacity are separate capabilities: a printer whose firmware only
-// permutes its tools has no macro past T(tool_count-1). Only meaningful when
-// device_resolves_filament_mapping() is true -- the slicer-mapped path is bounded by its own
-// mapping machinery instead. The protocol's answer is the fallback for a printer that was never
-// probed; a reported device_tool_count outranks it (Print::validate()).
-size_t protocol_max_plate_filaments(FilamentMappingProtocol protocol, size_t tool_count);
-
-// True when the firmware only accepts tool numbers T0..T(tool_count-1), so the g-code must
-// address the plate's filaments as a dense range instead of by their project slot number. A
-// third capability, independent of the two above: the Snapmaker U1 consumes project slot
-// numbers directly (its 32-entry table is indexed by them), while the WonderMaker ZR Ultra S
-// has no macro past T(tool_count-1) -- a plate using project slots 3 and 6 must reach it as
-// T0/T1 with the mapping saying which box each of those two tools pulls from. See
-// FilamentCompaction.hpp for the renumbering this enables.
-// switch with no default, as protocol_max_plate_filaments: a new enumerator must state its own
-// answer under -Wswitch.
-bool protocol_requires_dense_tool_numbering(FilamentMappingProtocol protocol);
-
-// protocol_requires_dense_tool_numbering() for a printer config. False for every printer
-// without a native protocol, so the compaction machinery is inert unless a protocol asks.
-bool printer_requires_dense_tool_numbering(const ConfigBase& printer_config);
+// The size of the printer's T<n> namespace: what a sync counted (device_tool_count), else the
+// vendor's constant (the U1's 32-entry extruder_map_table), else the nozzle count. One rule
+// follows from it for every device-resolved printer: a plate whose highest used filament reaches
+// past the namespace is renumbered densely before slicing (FilamentCompaction), and a plate
+// using more distinct filaments than the namespace holds is rejected (Print::validate). Only
+// meaningful when device_resolves_filament_mapping() is true.
+size_t filament_namespace_size(const ConfigBase& printer_config, size_t nozzle_count);
 
 // True when filament-count decoupling / physical-filament inventory UI should be
 // offered: the printer owns the mapping natively via filament_mapping_protocol.

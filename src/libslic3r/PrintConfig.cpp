@@ -172,17 +172,17 @@ FilamentMappingProtocol filament_mapping_protocol_of(const ConfigBase& printer_c
     return opt == nullptr ? FilamentMappingProtocol::fmpNone : (FilamentMappingProtocol) opt->getInt();
 }
 
-bool device_owned_mapping_protocol(const ConfigBase& printer_config)
+std::string reported_changer_of(const ConfigBase& printer_config)
 {
-    return filament_mapping_protocol_of(printer_config) != FilamentMappingProtocol::fmpNone;
+    const ConfigOption* opt = printer_config.option("device_changer");
+    return opt != nullptr ? opt->serialize() : std::string();
 }
 
 bool seed_printer_from_report(DynamicPrintConfig& printer_config, const std::string& reported_dialect, int reported_tool_count)
 {
     bool changed = false;
-    if (!reported_dialect.empty() && filament_mapping_protocol_of(printer_config) != FilamentMappingProtocol::fmpKlipperChanger) {
-        printer_config.set_key_value("filament_mapping_protocol",
-                                     new ConfigOptionEnum<FilamentMappingProtocol>(FilamentMappingProtocol::fmpKlipperChanger));
+    if (!reported_dialect.empty() && reported_changer_of(printer_config) != reported_dialect) {
+        printer_config.set_key_value("device_changer", new ConfigOptionString(reported_dialect));
         changed = true;
     }
     if (reported_tool_count > 0 && printer_config.opt_int("device_tool_count") != reported_tool_count) {
@@ -192,105 +192,31 @@ bool seed_printer_from_report(DynamicPrintConfig& printer_config, const std::str
     return changed;
 }
 
-// Orca: per-protocol behavior for filament_mapping_protocol != fmpNone. The one axis a
-// device-owned protocol decides today: does the slicer keep its own filament->tool mapping
-// and merge/physical-map knowledge (filament_map, filament_physical_map, filament_volume_map,
-// filament_nozzle_map) alive, or does the device want pure logical space with the slicer's
-// mapping machinery fully disabled? A second protocol that owns tool resolution at print time
-// but still wants merges precomputed (e.g. a hub with fewer physical outputs than logical
-// filaments) would add its own `case` returning true here -- callers below never need editing.
-static bool protocol_keeps_slicer_mapping(FilamentMappingProtocol protocol)
+bool device_resolves_filament_mapping(const ConfigBase& printer_config)
 {
-    switch (protocol) {
-    case FilamentMappingProtocol::fmpSnapmaker:
-        // Snapmaker's firmware performs its own full swap-free routing: merge/physical-map
-        // knowledge is meaningless to it, so the slicer must hand over pure logical space.
-        return false;
-    case FilamentMappingProtocol::fmpKlipperChanger:
-        // The changer maps logical tools to lanes/gates itself (SET_MAP / MMU_TTG_MAP).
-    case FilamentMappingProtocol::fmpWonderMaker:
-        // The ZR Ultra S permutes which box each tool pulls from (box_modify_t<n>), so the
-        // slicer's own mapping is likewise dead weight.
-        return false;
-    case FilamentMappingProtocol::fmpNone:
-        break;
-    }
-    return true;
+    // Three ways to say "the printer assigns filaments to tools, not the slicer": the vendor's
+    // protocol, a changer the printer reported, or enable_filament_mapping (firmware that maps
+    // on its own screen with nothing for us to send).
+    return filament_mapping_protocol_of(printer_config) != FilamentMappingProtocol::fmpNone ||
+           !reported_changer_of(printer_config).empty() ||
+           mapping_option_enabled(printer_config, "enable_filament_mapping");
 }
 
-// Orca: how many distinct filaments ONE plate may use when the device resolves the mapping.
-// Decoupling the project's filament count from the tool count is not the same capability as
-// being able to route an arbitrary number of them on a single print: the Snapmaker U1 owns a
-// 32-entry extruder_map_table and merges several logical tools onto one head, while other
-// device-owned firmware (e.g. the WonderMaker ZR Ultra S) only permutes its N tools and has no
-// macro past T(N-1) -- a logical T4 there fails with "Unknown command". Unknown firmware gets
-// the conservative answer, so we never emit a file the printer cannot run.
-// switch with no default, as protocol_keeps_slicer_mapping: a new enumerator must state its own
-// capability under -Wswitch rather than silently inheriting another printer's.
-size_t protocol_max_plate_filaments(FilamentMappingProtocol protocol, size_t tool_count)
+size_t filament_namespace_size(const ConfigBase& printer_config, size_t nozzle_count)
 {
-    switch (protocol) {
+    if (const ConfigOption* probed = printer_config.option("device_tool_count"); probed != nullptr && probed->getInt() > 0)
+        return size_t(probed->getInt());
+    switch (filament_mapping_protocol_of(printer_config)) {
     case FilamentMappingProtocol::fmpSnapmaker:
         // extruder_map_table is 32 logical entries wide; merging onto the physical heads is the
         // firmware's job and is hardware-verified (5 filaments on 4 heads).
         return 32;
-    case FilamentMappingProtocol::fmpKlipperChanger:
-        // AFC registers T0..T98 as logical tools and Happy Hare's tools are bounded by its
-        // gates; both are logical, so nothing in the plate itself limits the count. A live probe
-        // of the printer's registered T macros is what should tighten this.
-        return 99;
     case FilamentMappingProtocol::fmpWonderMaker:
-        // The ZR Ultra S only permutes: box_modify_t<n> exists for n < tool_count and there is
-        // no macro past T(tool_count-1), so one plate may use at most one filament per tool.
-        // The plate's filaments are renumbered to fit that range -- see
-        // protocol_requires_dense_tool_numbering() -- so this bounds the COUNT, not the slot.
-        return tool_count;
+        // Stock firmware only permutes its tools: no macro past T(tool_count-1).
     case FilamentMappingProtocol::fmpNone:
         break;
     }
-    // No protocol: this is the printer-agnostic enable_filament_mapping opt-in, where all we know
-    // is that the firmware assigns filaments to tools on its own screen. Assume the common shape
-    // -- one filament per tool, permuted -- so a plate can always be printed.
-    return tool_count;
-}
-
-bool protocol_requires_dense_tool_numbering(FilamentMappingProtocol protocol)
-{
-    switch (protocol) {
-    case FilamentMappingProtocol::fmpSnapmaker:
-        // extruder_map_table is indexed BY the project slot number, so renumbering would
-        // scramble the hardware-verified wire format. The U1 wants the slot numbers as-is.
-        return false;
-    case FilamentMappingProtocol::fmpKlipperChanger:
-        // Logical T namespaces (AFC registers T0..T98; Happy Hare tools are its own): the
-        // plate's slot numbers go to the printer as-is, like the Snapmaker.
-        return false;
-    case FilamentMappingProtocol::fmpWonderMaker:
-        return true;
-    case FilamentMappingProtocol::fmpNone:
-        break;
-    }
-    return false;
-}
-
-bool printer_requires_dense_tool_numbering(const ConfigBase& printer_config)
-{
-    return protocol_requires_dense_tool_numbering(filament_mapping_protocol_of(printer_config));
-}
-
-bool device_resolves_filament_mapping(const ConfigBase& printer_config)
-{
-    // Two ways to say "the printer assigns filaments to tools, not the slicer":
-    //   - a native protocol (filament_mapping_protocol), which additionally gives us a wire
-    //     dialect to deliver the assignment at print time, and
-    //   - enable_filament_mapping, the printer-agnostic opt-in for firmware that resolves the
-    //     assignment on its own (its own screen/console) with nothing for us to send.
-    // Both mean the same thing to the engine: slice in pure logical tool space and pin the
-    // identity map, so the project may carry more filaments than the printer has tools.
-    FilamentMappingProtocol protocol = filament_mapping_protocol_of(printer_config);
-    if (protocol != FilamentMappingProtocol::fmpNone && !protocol_keeps_slicer_mapping(protocol))
-        return true;
-    return mapping_option_enabled(printer_config, "enable_filament_mapping");
+    return nozzle_count;
 }
 
 bool physical_filament_features_enabled(const ConfigBase& printer_config)
@@ -462,7 +388,6 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WipeTowerType)
 static t_config_enum_values s_keys_map_FilamentMappingProtocol {
     { "none",       int(FilamentMappingProtocol::fmpNone) },
     { "snapmaker",  int(FilamentMappingProtocol::fmpSnapmaker) },
-    { "klipper_changer", int(FilamentMappingProtocol::fmpKlipperChanger) },
     { "wondermaker", int(FilamentMappingProtocol::fmpWonderMaker) }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMappingProtocol)
@@ -7298,11 +7223,9 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<FilamentMappingProtocol>::get_enum_values();
     def->enum_values.emplace_back("none");
     def->enum_values.emplace_back("snapmaker");
-    def->enum_values.emplace_back("klipper_changer");
     def->enum_values.emplace_back("wondermaker");
     def->enum_labels.emplace_back(L("None"));
     def->enum_labels.emplace_back(L("Snapmaker"));
-    def->enum_labels.emplace_back(L("Klipper filament changer (AFC / Happy Hare)"));
     def->enum_labels.emplace_back(L("WonderMaker"));
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<FilamentMappingProtocol>(FilamentMappingProtocol::fmpNone));
@@ -7316,6 +7239,13 @@ void PrintConfigDef::init_fff_params()
                      "plate may address; the printer is re-read before every print.");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(0));
+
+    def = this->add("device_changer", coString);
+    def->label = L("Filament changer reported by the printer");
+    def->tooltip = L("The Klipper filament changer the materials sync found on the printer (AFC, Happy Hare, openACE). "
+                     "Written by the sync, not by hand; it chooses how the filament map is sent at print time.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionString(""));
 
     def = this->add("wipe_tower_type", coEnum);
     def->label = L("Wipe tower type");
