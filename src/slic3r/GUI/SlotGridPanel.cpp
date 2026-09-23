@@ -74,7 +74,7 @@ public:
         }
         if (!slot.tooltip.IsEmpty())
             SetToolTip(slot.tooltip);
-        Bind(wxEVT_PAINT, [this](wxPaintEvent&) { wxAutoBufferedPaintDC dc(this); render(dc); });
+        Bind(wxEVT_PAINT, [this](wxPaintEvent&) { wxPaintDC dc(this); render(dc); });
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
             // A wrong-type tile stays enabled (a disabled control shows no tooltip on Windows);
             // the click is swallowed here instead.
@@ -93,14 +93,30 @@ public:
     }
 
 private:
-    void render(wxDC& dc)
+    // Everything through a wxGCDC so the alpha wash and the anti-aliased diagonal draw the same
+    // on every backend (the MSW GDI DC has neither); on MSW through an offscreen bitmap first,
+    // the flicker mitigation every custom tile in AmsMappingPopup.cpp uses.
+    void render(wxPaintDC& dc)
     {
-        // Everything through a wxGCDC so the alpha wash and the anti-aliased diagonal draw the
-        // same on every backend (the MSW GDI DC has neither).
+        const wxSize size = GetSize();
+#ifdef __WXMSW__
+        wxMemoryDC memdc;
+        wxBitmap   bmp(size.x, size.y);
+        memdc.SelectObject(bmp);
+        {
+            wxGCDC gc(memdc);
+            gc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
+            gc.Clear();
+            doRender(gc);
+        }
+        memdc.SelectObject(wxNullBitmap);
+        dc.DrawBitmap(bmp, 0, 0);
+#else
         wxGCDC gc(dc);
         gc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
         gc.Clear();
         doRender(gc);
+#endif
     }
 
     void doRender(wxDC& dc)
@@ -185,7 +201,7 @@ public:
     {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         SetToolTip(wxString::Format(_L("Extruder %d: %d filament slots. Click to show only its slots."), extruder + 1, (int) slot_count));
-        Bind(wxEVT_PAINT, [this](wxPaintEvent&) { wxAutoBufferedPaintDC dc(this); render(dc); });
+        Bind(wxEVT_PAINT, [this](wxPaintEvent&) { wxPaintDC dc(this); render(dc); });
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) { if (m_on_click) m_on_click(); });
     }
 
@@ -197,12 +213,30 @@ public:
     }
 
 private:
-    void render(wxDC& dc)
+    void render(wxPaintDC& dc)
     {
+        const wxSize size = GetSize();
+#ifdef __WXMSW__
+        wxMemoryDC memdc;
+        wxBitmap   bmp(size.x, size.y);
+        memdc.SelectObject(bmp);
+        {
+            wxGCDC gc(memdc);
+            doRender(gc);
+        }
+        memdc.SelectObject(wxNullBitmap);
+        dc.DrawBitmap(bmp, 0, 0);
+#else
         wxGCDC gc(dc);
+        doRender(gc);
+#endif
+    }
+
+    void doRender(wxGCDC& gc)
+    {
+        const wxSize size = GetSize();
         gc.SetBackground(wxBrush(GetParent()->GetBackgroundColour()));
         gc.Clear();
-        const wxSize size = GetSize();
         gc.SetPen(wxPen(m_selected ? BORDER_SELECTED : StateColor::darkModeColorFor(BORDER_IDLE), m_selected ? FromDIP(2) : 1));
         gc.SetBrush(wxBrush(StateColor::darkModeColorFor(*wxWHITE)));
         gc.DrawRoundedRectangle(1, 1, size.x - 2, size.y - 2, FromDIP(6));
