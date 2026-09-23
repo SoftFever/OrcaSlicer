@@ -21188,8 +21188,8 @@ static DevicePrintJobInfo build_device_print_job_info(PartPlate*                
         FilamentInventories      store;
         const size_t             tool_count = resolve_active_printer_tool_count(store);
         const FilamentInventory& inventory  = current_inventory_for_preset(active_printer_session().profile(), store, tool_count);
-        for (const auto& tool : inventory.tools)
-            job.slot_names.push_back(tool.empty() ? std::string() : tool[0].name);
+        for (const auto& slot : inventory.slots)
+            job.slot_names.push_back(slot.name);
     }
 
     // line_width is a percentage of the nozzle diameter; the screen sends the resolved value.

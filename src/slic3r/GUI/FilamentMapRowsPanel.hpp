@@ -84,7 +84,7 @@ public:
     void SetBasePhysicalMap(const std::vector<int> &full_map);
 
     // Full-length 1-based filament->tool map, DERIVED per plate row from the chosen physical
-    // filament's owning tool (inventory.tool_of(id)+1); a bootstrap-mode row (no physical
+    // filament's slot (inventory.slot_index_of(id)+1); a bootstrap-mode row (no physical
     // filament exists yet) reports its raw tool pick directly instead. Every other filament
     // keeps SetBaseMap()'s passthrough value.
     std::vector<int> GetFilamentMaps() const;

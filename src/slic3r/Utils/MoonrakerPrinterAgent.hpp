@@ -22,6 +22,28 @@ namespace Slic3r { class ICloudServiceAgent; }
 
 namespace Slic3r {
 
+// One reported slot, as the Moonraker readers collect it before build_ams_payload turns it into
+// the device model's tray. Namespace-level so the pure readers below can fill it.
+struct MoonrakerAmsTrayData {
+    int         slot_index = 0;      // 0-based index in the agent's slot order
+    bool        has_filament = false;
+    std::string tray_type;           // Material type (e.g., "PLA", "ASA")
+    std::string tray_color;          // Raw color (#RRGGBB, 0xRRGGBB, or RRGGBBAA)
+    std::string tray_info_idx;       // Setting ID (optional)
+    int         bed_temp = 0;        // Optional
+    int         nozzle_temp = 0;     // Optional
+    std::string tag_uid;             // Non-empty when the slot's data came from an NFC/RFID
+                                     // tag (Bambu tag_uid convention); such slots are
+                                     // authoritative and excluded from filament pushes.
+    std::string slot_name;           // The printer's own name for the slot (AFC lane key such
+                                     // as "lane1" / "e1"); empty when the changer has none.
+    std::string unit;                // Changer unit the slot sits in (openACE unit_name, AFC unit); "" = flat.
+    std::string head;                // Klipper extruder the slot feeds ("extruder1"); "" = unknown.
+    int         slot = 0;            // Position within its unit.
+    int         extruder = -1;       // 0-based extruder it feeds; -1 = unknown.
+    int         virtual_tool = -1;   // The T<n> the printer maps the slot to now; -1 = unknown.
+};
+
 // Orca: the two filament-changer dialects a Moonraker printer can report slots in, and the
 // g-code each takes to write a slot back (IPrinterAgent::push_filament_info). AFC keys its
 // lane_data namespace by lane NAME and has no combined command; Happy Hare addresses gates by
@@ -53,6 +75,13 @@ std::string openace_mapping_start_script(const std::string& filename, const std:
 // object: the highest T<n> + 1. The highest, not the count -- a Klipper toolchanger registers
 // its physical T0..T3 without help text, so they are absent from the listing. 0 = none found.
 int tool_count_from_gcode_help(const nlohmann::json& help);
+// Where a slot sits and what it feeds, from the lane's own record: openACE's lane_data entry
+// carries all of it (unit_name, slot, extruder, map); AFC's lane_data only the extruder index,
+// so its AFC_stepper status object (unit, lane, extruder, map) is read with the same function.
+// Missing fields leave the defaults (-1 / "" / 0).
+int  virtual_tool_from_map(const std::string& map);     // "T3" -> 3, else -1
+int  extruder_index_from_name(const std::string& name); // "extruder" -> 0, "extruder2" -> 2, else -1
+void apply_lane_topology(const nlohmann::json& lane, MoonrakerAmsTrayData& tray);
 } // namespace MoonrakerFilamentDialect
 class Http;
 
@@ -137,23 +166,7 @@ protected:
         std::chrono::milliseconds reconnect_delay{std::chrono::seconds(1)}; // First wait, doubling per consecutive failure up to 32x
     } ws_timings;
 
-    // Tray data for AMS payload building
-    struct AmsTrayData {
-        int         slot_index = 0;      // 0-based slot index
-        bool        has_filament = false;
-        std::string tray_type;           // Material type (e.g., "PLA", "ASA")
-        std::string tray_color;          // Raw color (#RRGGBB, 0xRRGGBB, or RRGGBBAA)
-        std::string tray_info_idx;       // Setting ID (optional)
-        int         bed_temp = 0;        // Optional
-        int         nozzle_temp = 0;     // Optional
-        std::string tag_uid;             // Non-empty when the slot's data came from an NFC/RFID
-                                         // tag (Bambu tag_uid convention); such slots are
-                                         // authoritative and excluded from filament pushes.
-        std::string slot_name;           // The printer's own name for the slot (AFC lane key such
-                                         // as "lane1" / "e1"); empty when the changer has none.
-        std::string unit;                // Changer unit the slot sits in (openACE unit_name); "" = flat.
-        std::string head;                // Klipper extruder the slot feeds ("extruder1"); "" = unknown.
-    };
+    using AmsTrayData = MoonrakerAmsTrayData;
 
     // Shape of the AMS units build_ams_payload() emits:
     //  - Toolchanger: one 1-slot TOOLCHANGER unit per lane (honest per-tool presentation).
@@ -210,6 +223,9 @@ private:
     bool fetch_json(const std::string& url, const std::string& api_key, nlohmann::json& result, std::string& error) const;
     bool fetch_object_list(const std::string& base_url, const std::string& api_key, std::set<std::string>& objects, std::string& error) const;
     bool fetch_tool_count(const std::string& base_url, const std::string& api_key, int& tool_count, std::string& error) const;
+    // AFC keeps a lane's unit / extruder / map in the lane's Klipper status object, not in
+    // lane_data: one query for every lane, joined by lane name.
+    void fetch_afc_lane_topology(std::vector<AmsTrayData>& trays) const;
     bool query_printer_status(const std::string& base_url, const std::string& api_key, nlohmann::json& status, std::string& error) const;
     bool send_gcode_sync(const std::string& dev_id, const std::string& gcode) const;
     void send_gcode_async(const std::string& dev_id, const std::string& gcode,

@@ -435,10 +435,10 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
         return;
     }
 
-    for (size_t t = 0; t < m_tool_count && t < inventory.tools.size(); ++t) {
-        const auto &slots = inventory.tools[t];
-        for (size_t si = 0; si < slots.size(); ++si) {
-            const PhysicalFilament &pf = slots[si];
+    for (size_t t = 0; t < inventory.slots.size(); ++t) {
+        {
+            const size_t            si = 0; // one filament per slot now; kept for the label below
+            const PhysicalFilament &pf = inventory.slots[t];
             // pf.id <= 0 here (non-empty but no valid id) shouldn't happen through any normal
             // save path (FilamentInventoryEditor::on_ok and the v1/v2 migrations always mint an
             // id for a non-empty slot) -- only reachable via a hand-edited/corrupted app config.

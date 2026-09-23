@@ -143,6 +143,10 @@ bool WonderMakerPrinterAgent::fetch_tmt_filament_info(std::vector<AmsTrayData>& 
     for (int slot = 0; slot < *tool_count; ++slot) {
         AmsTrayData tray;
         tray.slot_index = slot;
+        // Stock firmware: one box per tool, addressed as itself.
+        tray.slot         = slot;
+        tray.extruder     = slot;
+        tray.virtual_tool = slot;
 
         const std::string sensor_key = "filament_switch_sensor filament" + std::to_string(slot);
         if (sensors.contains(sensor_key) && sensors[sensor_key].contains("filament_detected") &&

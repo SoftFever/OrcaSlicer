@@ -267,6 +267,54 @@ int tool_count_from_gcode_help(const nlohmann::json& help)
     }
     return highest + 1;
 }
+int virtual_tool_from_map(const std::string& map)
+{
+    if (map.size() < 2 || map[0] != 'T' ||
+        !std::all_of(map.begin() + 1, map.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+        return -1;
+    return std::stoi(map.substr(1));
+}
+
+int extruder_index_from_name(const std::string& name)
+{
+    static const std::string prefix = "extruder";
+    if (name == prefix)
+        return 0;
+    if (name.rfind(prefix, 0) != 0 || name.size() == prefix.size())
+        return -1;
+    const std::string digits = name.substr(prefix.size());
+    return std::all_of(digits.begin(), digits.end(), [](unsigned char c) { return std::isdigit(c) != 0; }) ? std::stoi(digits) : -1;
+}
+
+void apply_lane_topology(const nlohmann::json& lane, MoonrakerAmsTrayData& tray)
+{
+    auto str = [&lane](const char* key) {
+        return lane.contains(key) && lane[key].is_string() ? lane[key].get<std::string>() : std::string();
+    };
+    auto integer = [&lane](const char* key, int& out) {
+        if (lane.contains(key) && lane[key].is_number_integer())
+            out = lane[key].get<int>();
+    };
+    tray.unit = str("unit_name");
+    if (tray.unit.empty())
+        tray.unit = str("unit");
+    integer("slot", tray.slot);
+    if (!lane.contains("slot"))
+        integer("lane", tray.slot);
+    // The extruder by Klipper name where the record has one; else from the index, from which
+    // Klipper's name follows ("extruder", "extruder1", ...).
+    tray.head     = str("extruder");
+    tray.extruder = extruder_index_from_name(tray.head);
+    if (tray.extruder < 0) {
+        int index = -1;
+        integer("extruder_index", index);
+        if (index >= 0) {
+            tray.extruder = index;
+            tray.head     = index > 0 ? "extruder" + std::to_string(index) : "extruder";
+        }
+    }
+    tray.virtual_tool = virtual_tool_from_map(str("map"));
+}
 } // namespace MoonrakerFilamentDialect
 
 const std::string MoonrakerPrinterAgent_VERSION = "1.0.0";
@@ -658,6 +706,14 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
             nlohmann::json tray_json = nlohmann::json::object();
             tray_json["id"] = std::to_string(slot_id);
             tray_json["tag_uid"] = (tray && !tray->tag_uid.empty()) ? tray->tag_uid : "0000000000000000";
+            // An empty slot still has a position, a unit and an extruder: the grid draws it
+            // where the printer has it.
+            tray_json["slot_name"]    = tray ? tray->slot_name : std::string();
+            tray_json["unit"]         = tray ? tray->unit : std::string();
+            tray_json["head"]         = tray ? tray->head : std::string();
+            tray_json["slot"]         = tray ? tray->slot : slot_index;
+            tray_json["extruder"]     = tray ? tray->extruder : -1;
+            tray_json["virtual_tool"] = tray ? tray->virtual_tool : -1;
 
             if (tray && tray->has_filament) {
                 tray_exist_bits |= (1 << slot_index);
@@ -673,9 +729,6 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
                 if (tray->nozzle_temp > 0) {
                     tray_json["nozzle_temp_max"] = std::to_string(tray->nozzle_temp);
                 }
-                tray_json["slot_name"] = tray->slot_name;
-                tray_json["unit"]      = tray->unit;
-                tray_json["head"]      = tray->head;
             } else {
                 tray_json["tray_info_idx"] = "";
                 tray_json["tray_type"] = "";
@@ -816,6 +869,8 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
         const bool            is_openace = fetch_object_list(device_info.base_url, device_info.api_key, objects, list_error) &&
                                 objects.count("openace") > 0;
         m_filament_dialect = is_openace ? MoonrakerFilamentDialect::Dialect::openace : MoonrakerFilamentDialect::Dialect::afc_lane_data;
+        if (!is_openace)
+            fetch_afc_lane_topology(trays);
         BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::fetch_filament_info: Detected Moonraker filament system with "
                                 << (max_lane_index + 1) << " lanes";
         // Orca: one unit per physical tool now (see build_ams_payload), so ams_count is the tool count.
@@ -1107,17 +1162,10 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
         AmsTrayData tray;
         tray.slot_index = lane_index;
         tray.slot_name  = lane_key; // AFC addresses lanes by this name (SET_MAP / SET_COLOR / ...)
-        // Where the lane sits and what it feeds, for the read-only grouping in the dialogs.
-        // openACE names both (unit_name, extruder); AFC publishes only the extruder index, from
-        // which Klipper's extruder name follows ("extruder", "extruder1", ...).
-        tray.unit = safe_json_string(lane_obj, "unit_name");
-        if (tray.unit.empty())
-            tray.unit = safe_json_string(lane_obj, "unit");
-        tray.head = safe_json_string(lane_obj, "extruder");
-        if (tray.head.empty() && lane_obj.contains("extruder_index") && lane_obj["extruder_index"].is_number_integer()) {
-            const int extruder_index = lane_obj["extruder_index"].get<int>();
-            tray.head = extruder_index > 0 ? "extruder" + std::to_string(extruder_index) : "extruder";
-        }
+        // Where the lane sits and what it feeds. openACE says it all here; AFC's lane_data only
+        // carries the extruder index, and fetch_afc_lane_topology fills the rest from its
+        // status objects afterwards.
+        MoonrakerFilamentDialect::apply_lane_topology(lane_obj, tray);
         tray.tray_color = safe_json_string(lane_obj, "color");
         tray.tray_type = safe_json_string(lane_obj, "material");
         tray.bed_temp = safe_json_int(lane_obj, "bed_temp");
@@ -1242,7 +1290,10 @@ bool MoonrakerPrinterAgent::fetch_hh_filament_info(std::vector<AmsTrayData>& tra
         }
 
         AmsTrayData tray;
-        tray.slot_index = gate_idx;
+        tray.slot_index   = gate_idx;
+        tray.slot         = gate_idx;
+        tray.extruder     = 0; // one nozzle behind every gate
+        tray.virtual_tool = gate_idx;
         tray.tray_type = material;
         tray.tray_color = color;
         tray.nozzle_temp = nozzle_temp;
@@ -1678,6 +1729,28 @@ bool MoonrakerPrinterAgent::fetch_object_list(const std::string&     base_url,
     }
 
     return !objects.empty();
+}
+
+void MoonrakerPrinterAgent::fetch_afc_lane_topology(std::vector<AmsTrayData>& trays) const
+{
+    if (trays.empty())
+        return;
+    std::string query;
+    for (const auto& tray : trays)
+        query += (query.empty() ? "" : "&") + std::string("AFC_stepper ") + tray.slot_name;
+    nlohmann::json result;
+    std::string    error;
+    if (!fetch_json(join_url(device_info.base_url, "/printer/objects/query?" + query), device_info.api_key, result, error)) {
+        BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent::fetch_afc_lane_topology: " << error;
+        return;
+    }
+    if (!result.contains("status") || !result["status"].is_object())
+        return;
+    for (auto& tray : trays) {
+        const std::string key = "AFC_stepper " + tray.slot_name;
+        if (result["status"].contains(key) && result["status"][key].is_object())
+            MoonrakerFilamentDialect::apply_lane_topology(result["status"][key], tray);
+    }
 }
 
 bool MoonrakerPrinterAgent::fetch_tool_count(const std::string& base_url, const std::string& api_key, int& tool_count, std::string& error) const

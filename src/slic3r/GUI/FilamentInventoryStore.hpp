@@ -52,7 +52,10 @@ struct DeviceSlotResolution
     std::string type;               ///< the type string as the printer reported it
     std::string name;               ///< the printer's own slot name (AFC lane key), "" = none
     std::string unit;               ///< changer unit the slot sits in, "" = flat
-    std::string head;               ///< Klipper extruder the slot feeds, "" = unknown
+    std::string head;               ///< Klipper extruder the slot feeds (display name), "" = unknown
+    int         slot = 0;           ///< position within its unit
+    int         extruder = -1;      ///< 0-based extruder it feeds, -1 = unknown
+    int         virtual_tool = -1;  ///< the T<n> the printer maps the slot to now, -1 = unknown
 };
 
 // tray may be null ("slot exists but nothing loaded" -- same meaning as !is_exists). Preset
@@ -75,7 +78,7 @@ DeviceSlotResolution resolve_device_tray(DevAmsTray* tray, const PresetCollectio
 struct DeviceSyncOutcome
 {
     enum class Status { NoSession, FetchFailed, NothingReported, Unchanged, Applied } status = Status::NoSession;
-    std::vector<DeviceSlotResolution> tools;
+    std::vector<DeviceSlotResolution> slots; // one per reported slot, inventory order
     bool ok() const { return status == Status::Unchanged || status == Status::Applied; }
 };
 DeviceSyncOutcome sync_filament_inventory_from_printer(FilamentInventories& store, FilamentInventory& inv, size_t tool_count);
