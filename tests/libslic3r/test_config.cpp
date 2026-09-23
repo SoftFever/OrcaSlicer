@@ -1777,3 +1777,11 @@ TEST_CASE("klipper_changer is no longer a protocol value", "[Config]") {
     CHECK(filament_mapping_protocol_of(config) == FilamentMappingProtocol::fmpNone);
     CHECK(ctx.substitutions.size() == 1);
 }
+
+// The flushing-volume matrix is one block per extruder (upstream's format, unchanged). On a
+// toolchanger the dialog edits one entry per physical extruder, and this switch keeps the blocks
+// identical when the user wants one matrix for all of them. Default on: the common case.
+TEST_CASE("flush_volumes_synced is a print option defaulting to one matrix for every extruder", "[Config]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    CHECK(config.opt_bool("flush_volumes_synced"));
+}

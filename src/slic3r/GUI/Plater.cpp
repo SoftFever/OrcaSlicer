@@ -6653,7 +6653,17 @@ void Sidebar::show_SEMM_buttons()
 
     p->m_bpButton_add_filament->Show(single_or_bbl);
     p->m_bpButton_del_filament->Show(is_multi);
-    p->m_flushing_volume_btn->Show(  is_multi);
+    // Orca: flushing only happens where filament is swapped through a nozzle: a single-extruder
+    // multi-material printer, a Bambu head, or a multi-extruder printer with a reported changer
+    // (MEMM). A plain toolchanger with one filament per extruder never purges.
+    {
+        const auto& printer_cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        const auto* nozzles     = printer_cfg.option<ConfigOptionFloats>("nozzle_diameter");
+        const bool  multi_nozzle = nozzles != nullptr && nozzles->size() > 1;
+        const bool  swaps = printer_cfg.opt_bool("single_extruder_multi_material") || wxGetApp().preset_bundle->is_bbl_vendor() ||
+                            (multi_nozzle && !reported_changer_of(printer_cfg).empty());
+        p->m_flushing_volume_btn->Show(is_multi && swaps);
+    }
 
     if (is_multi) {
         for (auto &c : p->combos_filament)
