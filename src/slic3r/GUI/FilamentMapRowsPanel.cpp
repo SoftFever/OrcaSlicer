@@ -74,6 +74,16 @@ public:
         Refresh();
     }
 
+    // True while another assigned row targets a slot on the same extruder: the printer will
+    // swap and purge between the two during the print, which is worth a glance.
+    void set_shared_extruder(bool shared)
+    {
+        if (m_shared_extruder == shared) return;
+        m_shared_extruder = shared;
+        SetToolTip(shared ? _L("Two filaments on the same extruder: the printer will swap and purge between them.") : wxString());
+        Refresh();
+    }
+
 protected:
     void doRender(wxDC &dc) override
     {
@@ -82,6 +92,12 @@ protected:
         // live dc directly off-MSW), so this override's extra painting is captured by the same
         // blit as the base class's.
         MaterialSyncItem::doRender(dc);
+        if (m_shared_extruder) {
+            const wxSize size = GetSize();
+            dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#F5A623")), FromDIP(2)));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRoundedRectangle(1, 1, size.x - 2, size.y - 2, FromDIP(4));
+        }
         if (!m_auto_matched) return;
 
         static constexpr int BADGE_SIZE_DIP = 16;
@@ -108,193 +124,7 @@ protected:
 
 private:
     bool m_auto_matched{false};
-};
-
-// Orca: lightweight, neutral picker popup used only by FilamentMapRowsPanel's tiles. Unlike
-// AmsMapingPopup (AmsMappingPopup.hpp), this consumes FilamentMapRowsPanel::TargetOption
-// directly -- already neutral (id/tool/label/colour), no MachineObject/device coupling -- so it
-// composes MappingContainer + MappingItem directly, with no need for AmsMapingPopup's
-// device-facing update() seam. Positioning mirrors
-// SyncAmsInfoDialog's tile click handler (item->ClientToScreen(0,0) + tile height), the house
-// pattern for "popup under a clicked tile" (SyncAmsInfoDialog.cpp:2700-2722).
-class FilamentMapPickerPopup : public PopupWindow
-{
-public:
-    // Orca: MappingContainer's own ctor rule (AmsMappingPopup.cpp, read-only) is binary -- a
-    // slots_num of exactly 1 gets its 1-slot art/size (74dip wide), anything else gets its 4-slot
-    // art/size (230dip wide) regardless of the actual count, so containers here are NOT uniform
-    // width once a tool has more than one option. MAX_ROW_WIDTH_DIP caps how wide a row of
-    // containers can grow (in Rebuild's greedy pack below) before wrapping to a new row: five
-    // 1-slot containers' worth, so a plate with many single-option tools still wraps at roughly
-    // the point the old fixed-5-column grid did.
-    static constexpr int MAX_ROW_WIDTH_DIP = 5 * 74;
-
-    explicit FilamentMapPickerPopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE)
-    {
-        SetBackgroundColour(*wxWHITE);
-        // Orca: containers are non-uniform width (see MAX_ROW_WIDTH_DIP), which rules out a
-        // wxGridSizer's fixed-cell model -- every cell would have to be as wide as the widest
-        // (230dip) container even on rows made entirely of 74dip ones. Rebuild() below instead
-        // builds one horizontal wxBoxSizer per row by hand (greedy-packed up to
-        // MAX_ROW_WIDTH_DIP) and stacks the rows in this outer vertical box. Deterministic, no
-        // sizer negotiation to fight.
-        m_sizer = new wxBoxSizer(wxVERTICAL);
-        SetSizer(m_sizer);
-        wxGetApp().UpdateDarkUIWin(this);
-    }
-
-    // Rebuilds the popup for one row: one MappingContainer per tool that has at least one target
-    // option (options grouped by TargetOption::tool, ascending), sized for that tool's actual
-    // option count (see MAX_ROW_WIDTH_DIP) and filled with a MappingItem per option. current_index's
-    // item starts checked; on_pick(index) fires (and the popup dismisses itself) on click -- clicks
-    // are bound directly here rather than through MappingItem::send_event's pipe-delimited protocol,
-    // since this popup has no send_win consumer to satisfy.
-    //
-    // bootstrap_mode: true when the whole inventory has nothing recorded (see
-    // FilamentMapRowsPanel::m_bootstrap_mode) OR the active printer session isn't live -- in either
-    // case a bare tool pick (option.id <= 0) is allowed and every such option stays pickable
-    // (offline, "no filament loaded" is unknowable rather than known-empty). Outside those cases an
-    // id<=0 option is a single still-empty tool (BuildTargetOptions' per-tool fallback): shown so the
-    // tool head stays visible/identifiable, but grayed via IsEnabled()/doRender and its click is
-    // swallowed instead of invoking on_pick. This only affects which chips are clickable here; it
-    // does not touch FilamentMapRowsPanel's own bootstrap-mode-gated merge/warning logic elsewhere.
-    void Rebuild(const std::vector<FilamentMapRowsPanel::TargetOption> &options, int current_index,
-                 bool bootstrap_mode, const std::string &row_type, std::function<void(int)> on_pick)
-    {
-        m_on_pick = std::move(on_pick);
-        m_sizer->Clear(true);
-        m_items.clear();
-
-        std::map<int, std::vector<int>> by_tool; // tool -> option indices, ascending tool order
-        for (int i = 0; i < (int) options.size(); ++i)
-            by_tool[options[i].tool].push_back(i);
-
-        const int border      = FromDIP(4); // matches the old wxALL FromDIP(4) per container
-        const int max_row_w   = FromDIP(MAX_ROW_WIDTH_DIP);
-        wxBoxSizer *row_sizer = nullptr; // current row being packed; flushed to m_sizer on wrap
-        int row_w             = 0;       // current row's accumulated width, including borders
-        int container_h       = 0;       // MappingContainer's own height is constant (82dip)
-                                          // regardless of slots_num, so one measurement covers
-                                          // every row -- see MAX_ROW_WIDTH_DIP's doc comment.
-        int total_w           = 0;
-        int row_count         = 0;
-
-        auto flush_row = [&]() {
-            if (!row_sizer) return;
-            m_sizer->Add(row_sizer, 0);
-            total_w = std::max(total_w, row_w);
-            ++row_count;
-            row_sizer = nullptr;
-            row_w     = 0;
-        };
-
-        wxString current_unit; // a unit's tools stay together: a change of unit starts a new row
-        for (const auto &kv : by_tool) {
-            wxString label     = wxString::Format(_L("Tool %d"), kv.first + 1);
-            const wxString &unit = options[kv.second.front()].unit;
-            if (unit != current_unit) {
-                flush_row();
-                current_unit = unit;
-            }
-            // Orca: pass the tool's real option count (loaded + swap slots, etc.) instead of a
-            // hardcoded 1, so a multi-option tool gets MappingContainer's wider 4-slot art/size
-            // instead of being squeezed into the 1-slot art. See the class comment above for the
-            // binary 1-vs-4 rule this relies on.
-            auto    *container = new MappingContainer(this, label, (int) kv.second.size());
-            auto    *item_sizer = new wxBoxSizer(wxHORIZONTAL);
-            item_sizer->Add(0, 0, 0, wxLEFT, FromDIP(6));
-
-            for (int idx : kv.second) {
-                const auto &opt = options[idx];
-
-                auto *item = new MappingItem(container);
-                item->SetSize(wxSize(FromDIP(48), FromDIP(60)));
-                item->SetMinSize(wxSize(FromDIP(48), FromDIP(60)));
-                item->SetMaxSize(wxSize(FromDIP(48), FromDIP(60)));
-                item->set_tray_index(wxString::Format("T%d", opt.tool + 1));
-
-                TrayData data;
-                data.type    = opt.id > 0 ? TrayType::NORMAL : TrayType::EMPTY;
-                data.id      = opt.id;
-                data.ams_id  = opt.tool;
-                data.slot_id = idx;
-                data.colour  = opt.colour;
-
-                // The tray-index text above already identifies the tool; the option's full
-                // label (preset name + loaded/swap/empty suffix) goes in the tooltip instead of
-                // the tile's own name field, which truncates hard past 5 characters
-                // (MappingItem::render). That field shows the printer's own slot name when the
-                // slot has one ("lane1"; an AFC lane is what the printer's screen calls it).
-                bool disabled = !bootstrap_mode && opt.id <= 0;
-                // Orca: hard material-family gate (field request) -- any material could be
-                // mapped onto any tool here while the sync dialog and the auto-matcher both
-                // restrict by family. Uses the same libslic3r type_compatible as the
-                // auto-matcher so "family" means one thing everywhere; options with an
-                // unknown type on either side stay pickable (nothing to compare).
-                bool wrong_type = !disabled && opt.id > 0 && !row_type.empty() && !opt.type.empty() &&
-                                  !Slic3r::type_compatible(row_type, opt.type);
-                item->set_data(opt.label, opt.colour, opt.slot_name, /*remain_dect=*/false, data,
-                               /*unmatch=*/wrong_type, opt.label);
-                item->set_checked(idx == current_index);
-                item->Enable(!disabled);
-                if (disabled)
-                    item->SetToolTip(_L("No filament is loaded on this tool -- load one, or sync from the printer, before selecting it."));
-                else if (wrong_type)
-                    // Stays ENABLED (a disabled control never shows its tooltip on Windows);
-                    // the click is swallowed below and the unmatch paint greys the tile.
-                    item->SetToolTip(wxString::Format(
-                        _L("Material mismatch: this row prints %s but the tool holds %s. Only matching material families can be mapped."),
-                        from_u8(row_type), from_u8(opt.type)));
-
-                item->Bind(wxEVT_LEFT_DOWN, [this, idx, disabled, wrong_type](wxMouseEvent &) {
-                    if (disabled || wrong_type) return; // swallow the click -- empty tool or material-family mismatch
-                    if (m_on_pick) m_on_pick(idx);
-                    Dismiss();
-                });
-
-                item_sizer->Add(item, 0, wxTOP, FromDIP(1));
-                item_sizer->Add(0, 0, 0, wxRIGHT, FromDIP(6));
-                m_items.push_back(item);
-            }
-
-            // SetSizerAndFit (not SetSizer+Layout): the container's own best size must be known
-            // below to size the popup, and a container never Fit only measures 0 until asked.
-            container->SetSizerAndFit(item_sizer);
-
-            // Orca: greedy row pack -- flush the current row (start a new one) if this container
-            // wouldn't fit within MAX_ROW_WIDTH_DIP, then always add it to whatever row is now
-            // current. A single container wider than the cap on its own (can't happen today --
-            // 230dip < 5*74dip -- but kept for correctness if the art/columns ever change) still
-            // gets its own row rather than being dropped.
-            const wxSize cs           = container->GetBestSize();
-            const int    container_w = cs.GetWidth() + 2 * border;
-            container_h              = std::max(container_h, cs.GetHeight() + 2 * border);
-            if (row_sizer && row_w + container_w > max_row_w) flush_row();
-            if (!row_sizer) row_sizer = new wxBoxSizer(wxHORIZONTAL);
-            row_sizer->Add(container, 0, wxALL, border);
-            row_w += container_w;
-        }
-        flush_row();
-
-        // Orca: compute the popup's client size explicitly from the rows just packed -- every
-        // row's own width is already known (row_w tracked above, folded into total_w by
-        // flush_row), and every row is the same height (container_h -- MappingContainer's height
-        // is constant regardless of slots_num, see MAX_ROW_WIDTH_DIP's doc comment), so the total
-        // is just rows * container_h. Sizing by hand rather than through Fit(), whose negotiation
-        // clips a hand-packed row layout.
-        if (row_count > 0) {
-            const wxSize popup_size(total_w, row_count * container_h);
-            SetSize(popup_size);
-            SetMinSize(popup_size);
-        }
-
-        Layout();
-    }
-
-private:
-    wxBoxSizer                 *m_sizer{nullptr};
-    std::vector<MappingItem *> m_items;
-    std::function<void(int)>   m_on_pick;
+    bool m_shared_extruder{false};
 };
 
 FilamentMapRowsPanel::FilamentMapRowsPanel(wxWindow                        *parent,
@@ -316,6 +146,9 @@ FilamentMapRowsPanel::FilamentMapRowsPanel(wxWindow                        *pare
     SetBackgroundColour(*wxWHITE);
     m_base_map.assign(m_filament_count, 1);
     m_base_physical_map.assign(m_filament_count, 0);
+    // Several nozzles fed by a reported changer: picks are extruder-then-slot in a modal, and
+    // the row tiles say which extruder the pick landed on.
+    m_memm = tool_count > 1 && !inventory.dialect.empty();
 
     BuildTargetOptions(inventory, slot_preset_names);
 
@@ -451,9 +284,12 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
             opt.id        = pf.id;
             opt.tool      = (int) t;
             opt.type      = pf.type;
-            opt.slot_name = from_u8(pf.name);
-            opt.unit      = from_u8(pf.unit);
-            opt.head      = from_u8(pf.head);
+            opt.slot_name    = from_u8(pf.name);
+            opt.unit         = from_u8(pf.unit);
+            opt.head         = from_u8(pf.head);
+            opt.slot         = pf.slot;
+            opt.extruder     = pf.extruder;
+            opt.virtual_tool = pf.virtual_tool;
 
             // Orca: prefer the slot's resolved preset name (installed exact preset, or a
             // "Generic <type>" fallback -- see resolve_slot_preset) over the bare type, since it's
@@ -479,7 +315,7 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
             // stats separator).
             wxString label = name.IsEmpty() ? tool_part
                                              : wxString::Format("%s%s%s", name, wxString::FromUTF8(" – "), tool_part);
-            label += (si == 0) ? _L(" (loaded)") : _L(" (swap)");
+            (void) si;
             opt.label = label;
 
             opt.colour = PlaceholderColour;
@@ -512,27 +348,70 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
     }
 }
 
-void FilamentMapRowsPanel::OnTileClicked(size_t row_index)
+std::vector<SlotGridSlot> FilamentMapRowsPanel::PickerRows(const Row &row, bool allow_bare_pick) const
 {
-    if (row_index >= m_rows.size()) return;
-    Row &row = m_rows[row_index];
-
-    if (!m_picker_popup)
-        m_picker_popup = new FilamentMapPickerPopup(this);
-    if (m_picker_popup->IsShown())
-        return;
-
-    // Orca: offline (no live printer context), an unset tool is
-    // "unknown", not "known empty" -- allow the same bare tool pick bootstrap mode does. See
-    // FilamentMapPickerPopup::Rebuild's doc for why this is safe to fold into the same parameter.
-    const bool allow_bare_pick = m_bootstrap_mode || !active_printer_session().live();
     // The row's project material type drives the picker's family gate; out-of-range ids
     // (defensive) or projects without type data yield an empty string = no restriction.
     std::string row_type;
     if (row.filament_id >= 1 && row.filament_id <= (int) m_filament_types.size())
         row_type = m_filament_types[row.filament_id - 1];
-    m_picker_popup->Rebuild(m_target_options, row.selected_index, allow_bare_pick, row_type,
-                            [this, row_index](int idx) { ApplyPick(row_index, idx); });
+
+    std::vector<SlotGridSlot> rows;
+    rows.reserve(m_target_options.size());
+    for (size_t i = 0; i < m_target_options.size(); ++i) {
+        const TargetOption &opt = m_target_options[i];
+        SlotGridSlot        r;
+        r.colour       = opt.colour;
+        r.empty        = opt.id <= 0;
+        r.type         = from_u8(opt.type);
+        r.name         = opt.slot_name;
+        r.unit         = opt.unit;
+        r.slot         = opt.slot;
+        r.extruder     = opt.extruder;
+        r.virtual_tool = opt.virtual_tool;
+        r.checked      = (int) i == row.selected_index;
+        r.tooltip      = opt.label;
+        // Orca: a bare (empty) slot is pickable in bootstrap mode and offline -- "unknown", not
+        // "known empty"; on a live printer an empty slot cannot be printed from.
+        r.disabled = !allow_bare_pick && opt.id <= 0;
+        if (r.disabled)
+            r.tooltip = _L("No filament is loaded in this slot -- load one, or sync from the printer, before selecting it.");
+        // Hard material-family gate (field request): the same libslic3r type_compatible the
+        // auto-matcher uses, so "family" means one thing everywhere; unknown on either side stays
+        // pickable (nothing to compare). Stays ENABLED (a disabled control never shows its tooltip
+        // on Windows); the click is swallowed by the tile and the paint greys it.
+        r.wrong_type = !r.disabled && opt.id > 0 && !row_type.empty() && !opt.type.empty() &&
+                       !Slic3r::type_compatible(row_type, opt.type);
+        if (r.wrong_type)
+            r.tooltip = wxString::Format(_L("Material mismatch: this row prints %s but the slot holds %s. Only matching material families can be mapped."),
+                                         from_u8(row_type), from_u8(opt.type));
+        rows.push_back(std::move(r));
+    }
+    return rows;
+}
+
+void FilamentMapRowsPanel::OnTileClicked(size_t row_index)
+{
+    if (row_index >= m_rows.size()) return;
+    Row &row = m_rows[row_index];
+
+    // Orca: offline (no live printer context), an unset slot is "unknown", not "known empty" --
+    // allow the same bare pick bootstrap mode does.
+    const bool allow_bare_pick = m_bootstrap_mode || !active_printer_session().live();
+    const std::vector<SlotGridSlot> rows = PickerRows(row, allow_bare_pick);
+
+    if (m_memm) {
+        SlotPickDialog dlg(this, rows, m_tool_count, row.selected_index);
+        if (dlg.ShowModal() == wxID_OK && dlg.Picked() >= 0)
+            ApplyPick(row_index, dlg.Picked());
+        return;
+    }
+
+    if (!m_picker_popup)
+        m_picker_popup = new SlotPickPopup(this);
+    if (m_picker_popup->IsShown())
+        return;
+    m_picker_popup->Rebuild(rows, [this, row_index](size_t idx) { ApplyPick(row_index, (int) idx); });
 
     wxPoint pos = row.tile->ClientToScreen(wxPoint(0, 0));
     pos.y += row.tile->GetRect().height;
@@ -568,7 +447,12 @@ void FilamentMapRowsPanel::ApplySelectionToTile(size_t row_index)
 
     if (row.selected_index >= 0 && (size_t) row.selected_index < m_target_options.size()) {
         const TargetOption &opt = m_target_options[row.selected_index];
-        row.tile->set_ams_info(opt.colour, wxString::Format("T%d", opt.tool + 1));
+        // The slot's current virtual tool (the T<n> the printer will address), and on a
+        // multi-extruder changer the extruder it feeds. 1-indexed, like every number shown.
+        wxString label = wxString::Format("T%d", (opt.virtual_tool >= 0 ? opt.virtual_tool : opt.tool) + 1);
+        if (m_memm && opt.extruder >= 0)
+            label += wxString::Format(" E%d", opt.extruder + 1);
+        row.tile->set_ams_info(opt.colour, label);
     } else {
         // Orca: MaterialItem::render derives m_match from m_ams_name every repaint ("-" => not
         // matched), so reset_ams_info's dash is itself the "unassigned" glyph -- no separate
@@ -587,6 +471,24 @@ void FilamentMapRowsPanel::ApplySelectionToTile(size_t row_index)
     // stale-true from an earlier assignment this row no longer has. row.tile is always
     // constructed as a BadgedSyncItem (see the ctor's row-seeding loop); the static_cast is safe.
     static_cast<BadgedSyncItem *>(row.tile)->set_auto_matched(row.selected_index >= 0 && row.auto_matched);
+    UpdateSharedExtruderMarks();
+}
+
+void FilamentMapRowsPanel::UpdateSharedExtruderMarks()
+{
+    // Which extruder each assigned row lands on: the option's reported extruder, else (no
+    // topology known: the U1, offline) the slot index itself, one slot per extruder.
+    std::vector<int> extruder_of_row(m_rows.size(), -1);
+    std::unordered_map<int, int> rows_on_extruder;
+    for (size_t i = 0; i < m_rows.size(); ++i) {
+        const int sel = m_rows[i].selected_index;
+        if (sel < 0 || (size_t) sel >= m_target_options.size()) continue;
+        const TargetOption &opt = m_target_options[sel];
+        extruder_of_row[i]      = opt.extruder >= 0 ? opt.extruder : opt.tool;
+        ++rows_on_extruder[extruder_of_row[i]];
+    }
+    for (size_t i = 0; i < m_rows.size(); ++i)
+        static_cast<BadgedSyncItem *>(m_rows[i].tile)->set_shared_extruder(extruder_of_row[i] >= 0 && rows_on_extruder[extruder_of_row[i]] > 1);
 }
 
 bool FilamentMapRowsPanel::ResolveRow(const Row &row, int &tool, int &id) const

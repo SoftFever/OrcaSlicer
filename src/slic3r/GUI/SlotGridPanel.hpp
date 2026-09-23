@@ -4,10 +4,13 @@
 #include <functional>
 #include <vector>
 
+#include <wx/dialog.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/string.h>
 #include <wx/colour.h>
+
+#include "Widgets/PopupWindow.hpp"
 
 namespace Slic3r {
 struct FilamentInventory;
@@ -85,6 +88,33 @@ private:
 // The display rows for an inventory: colour, type, the hover text (preset, vendor, slot name,
 // unit, E<n>) and the topology. Consumers set the pick/edit flags afterwards.
 std::vector<SlotGridSlot> slot_grid_rows(const FilamentInventory& inv, const PresetCollection& filaments);
+
+// A transient popup under a tile with the slot grid in pick mode and no extruder row: the
+// picker for a single-extruder changer (SEMM) and for the sync dialog. A pick reports the slot
+// index and dismisses the popup.
+class SlotPickPopup : public PopupWindow
+{
+public:
+    explicit SlotPickPopup(wxWindow* parent);
+    void Rebuild(const std::vector<SlotGridSlot>& slots, std::function<void(size_t slot_index)> on_pick);
+
+private:
+    SlotGridPanel*              m_grid{nullptr};
+    std::function<void(size_t)> m_on_pick;
+};
+
+// A modal with the extruder row and the units: the picker for a multi-extruder changer (MEMM),
+// where the pick is two-level (extruder, then slot) and a second filament landing on the same
+// extruder should be a visible choice. Picked() is the slot index, -1 when cancelled.
+class SlotPickDialog : public wxDialog
+{
+public:
+    SlotPickDialog(wxWindow* parent, const std::vector<SlotGridSlot>& slots, size_t extruder_count, int current);
+    int Picked() const { return m_picked; }
+
+private:
+    int m_picked{-1};
+};
 
 } // namespace GUI
 } // namespace Slic3r

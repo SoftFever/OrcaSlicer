@@ -357,5 +357,60 @@ std::vector<SlotGridSlot> slot_grid_rows(const FilamentInventory& inv, const Pre
     return rows;
 }
 
+SlotPickPopup::SlotPickPopup(wxWindow* parent) : PopupWindow(parent, wxBORDER_NONE)
+{
+    SetBackgroundColour(*wxWHITE);
+    SlotGridOptions opts;
+    opts.pick_mode = true;
+    m_grid         = new SlotGridPanel(this, opts);
+    m_grid->SetOnSlotClicked([this](size_t i) {
+        Dismiss();
+        if (m_on_pick) m_on_pick(i);
+    });
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(m_grid, 0, wxALL, FromDIP(8));
+    SetSizer(sizer);
+    wxGetApp().UpdateDarkUIWin(this);
+}
+
+void SlotPickPopup::Rebuild(const std::vector<SlotGridSlot>& slots, std::function<void(size_t)> on_pick)
+{
+    m_on_pick = std::move(on_pick);
+    m_grid->SetSlots(slots, 1);
+    GetSizer()->SetSizeHints(this);
+    Layout();
+}
+
+SlotPickDialog::SlotPickDialog(wxWindow* parent, const std::vector<SlotGridSlot>& slots, size_t extruder_count, int current)
+    : wxDialog(parent, wxID_ANY, _L("Pick the printer's filament"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+{
+    SetBackgroundColour(*wxWHITE);
+    wxGetApp().UpdateDlgDarkUI(this);
+    SlotGridOptions opts;
+    opts.pick_mode             = true;
+    opts.show_extruder_row     = true;
+    opts.show_extruder_on_tile = true;
+    auto* grid = new SlotGridPanel(this, opts);
+    grid->SetOnSlotClicked([this](size_t i) {
+        m_picked = (int) i;
+        EndModal(wxID_OK);
+    });
+    grid->SetSlots(slots, extruder_count);
+    // Start filtered on the current pick's extruder, so the swap-and-purge cost of choosing
+    // another slot on the same extruder is in view from the first click.
+    if (current >= 0 && (size_t) current < slots.size() && slots[current].extruder >= 0)
+        grid->SelectExtruder(slots[current].extruder);
+    auto* hint = new wxStaticText(this, wxID_ANY,
+                                  _L("Click an extruder to see its slots, then a slot. Two filaments on one extruder are swapped and purged during the print."));
+    hint->SetFont(::Label::Body_12);
+    hint->Wrap(FromDIP(420));
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(hint, 0, wxALL, FromDIP(12));
+    sizer->Add(grid, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(12));
+    SetSizerAndFit(sizer);
+    SetEscapeId(wxID_CANCEL);
+    CenterOnParent();
+}
+
 } // namespace GUI
 } // namespace Slic3r
