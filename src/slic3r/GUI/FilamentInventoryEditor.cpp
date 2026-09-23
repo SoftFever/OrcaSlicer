@@ -229,8 +229,8 @@ FilamentInventoryEditor::FilamentInventoryEditor(wxWindow* parent, const std::st
     // need a different tool count later.
     m_tool_count  = tool_count;
 
-    // device() already sizes inv.tools to at least tool_count with slot 0 present per tool
-    // (FilamentInventory::deserialize's invariant, preserved by for_preset's padding). This is
+    // device() already sizes inv.slots to at least tool_count (FilamentInventory::deserialize's
+    // padding, preserved by for_preset). This is
     // the load-modify-save working model: every row's id/kind is copied from it verbatim and
     // never touched again unless the row is brand new (added via "Add filament" in this session,
     // see Row::is_new).
@@ -581,13 +581,17 @@ void FilamentInventoryEditor::reload_rows_from_device()
     const FilamentInventory& inv = device();
     m_next_id = inv.next_id;
 
-    for (size_t i = 0; i < m_tool_count; ++i) {
+    // One group per reported slot: the printer can report more slots than the dialog was
+    // opened with (a first sync on a changer), so the groups follow the inventory.
+    if (m_tools.size() < inv.slots.size())
+        m_tools.resize(inv.slots.size());
+    for (size_t i = 0; i < m_tools.size(); ++i) {
         ToolGroup& group = m_tools[i];
         group.rows.clear();
-        group.rows.resize(inv.tools[i].size());
-        for (size_t s = 0; s < inv.tools[i].size(); ++s) {
-            const PhysicalFilament& slot = inv.tools[i][s];
-            Row& row = group.rows[s];
+        group.rows.resize(1);
+        if (i < inv.slots.size()) {
+            const PhysicalFilament& slot = inv.slots[i];
+            Row& row = group.rows[0];
             row.id            = slot.id;
             row.is_new        = false;
             row.kind          = slot.kind;
@@ -664,8 +668,8 @@ void FilamentInventoryEditor::do_sync_from_printer(bool interactive)
         Fit();
     }
     reload_rows_from_device();
-    for (size_t t = 0; t < sync.tools.size() && t < m_tools.size(); ++t) {
-        const DeviceSlotResolution& res = sync.tools[t];
+    for (size_t t = 0; t < sync.slots.size() && t < m_tools.size(); ++t) {
+        const DeviceSlotResolution& res = sync.slots[t];
         if (!res.present)
             m_empty_on_printer.insert(t); // block editing until a later sync reports filament
         // The tag is authoritative, so this tool is excluded from push_changes_to_printer.
@@ -724,20 +728,18 @@ void FilamentInventoryEditor::on_ok(wxCommandEvent&)
     // recomputes and saves it from the row again, which is redundant but harmless (same data,
     // same id) whenever nothing was edited since; it stays authoritative for anything the sync
     // path doesn't cover (offline edits, swap rows, tools never synced).
-    FilamentInventory inv;
+    FilamentInventory inv = device(); // keeps dialect and every slot's topology
     inv.next_id = m_next_id;
-    inv.tools.resize(m_tools.size());
+    inv.ensure_slot_count(m_tools.size());
     for (size_t i = 0; i < m_tools.size(); ++i) {
-        const ToolGroup& group = m_tools[i];
-        inv.tools[i].resize(1); // slot 0 (loaded) always present
-        for (size_t r = 0; r < group.rows.size(); ++r) {
-            const Row& row = group.rows[r];
-            PhysicalFilament slot = slot_from_row(row);
-            if (r == 0)
-                inv.tools[i][0] = slot;
-            else if (!slot.empty())
-                inv.tools[i].push_back(slot); // an added row left fully empty isn't a filament
-        }
+        const PhysicalFilament& was  = inv.slots[i];
+        PhysicalFilament        slot = slot_from_row(m_tools[i].rows[0]);
+        slot.unit         = was.unit;
+        slot.head         = was.head;
+        slot.slot         = was.slot;
+        slot.extruder     = was.extruder;
+        slot.virtual_tool = was.virtual_tool;
+        inv.slots[i]      = slot;
     }
     inv.ensure_ids();
     device() = inv;

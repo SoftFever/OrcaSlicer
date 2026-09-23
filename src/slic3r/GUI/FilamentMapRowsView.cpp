@@ -276,8 +276,8 @@ std::map<int, std::string> FilamentMapRowsView::build_slot_preset_names() const
 {
     std::map<int, std::string> names;
     const PresetCollection &filament_presets = wxGetApp().preset_bundle->filaments;
-    for (const auto &slots : m_inventory.tools)
-        for (const PhysicalFilament &pf : slots) {
+    {
+        for (const PhysicalFilament &pf : m_inventory.slots) {
             if (pf.empty() || pf.id <= 0) continue;
             // Orca: shared slot_display_name (FilamentInventoryStore) -- the combo rows are
             // width-limited and the printer suffix is redundant inside a printer-scoped dialog.
@@ -480,7 +480,8 @@ void FilamentMapRowsView::Commit()
             if (f < 1 || f > (int) m_filament_map.size()) continue;
             int tool = m_filament_map[f - 1];
             if (tool < 1 || tool > (int) m_tool_count) continue;
-            LoadedFilament &slot = new_inv.tools[tool - 1][0];
+            new_inv.ensure_slot_count(tool);
+            LoadedFilament &slot = new_inv.slots[tool - 1];
             // Orca: preset is now
             // set here too (from m_filament_preset), so a slot recorded through this bootstrap
             // offer resolves a preset/vendor/mismatch-warning identically to one recorded
@@ -502,7 +503,7 @@ void FilamentMapRowsView::Commit()
             if (m_physical_filament_map[f - 1] > 0) continue; // already a real target
             int tool = (f <= (int) m_filament_map.size()) ? m_filament_map[f - 1] : 0;
             if (tool < 1 || tool > (int) m_tool_count) continue;
-            m_physical_filament_map[f - 1] = new_inv.tools[tool - 1][0].id;
+            m_physical_filament_map[f - 1] = new_inv.slots[tool - 1].id;
         }
     }
 }

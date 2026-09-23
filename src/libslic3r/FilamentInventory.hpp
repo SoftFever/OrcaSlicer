@@ -7,9 +7,8 @@
 
 namespace Slic3r {
 
-// A single physical filament known to a printer: either the filament currently loaded into a
-// tool (slot 0 of that tool's list, see FilamentInventory::tools) or a swappable filament
-// recorded for later use on that tool.
+// A single physical filament known to a printer: what one reported slot (an extruder, a lane,
+// a gate) currently holds, with where that slot sits (FilamentInventory::slots).
 struct PhysicalFilament
 {
     int         id   = 0;        // stable per-machine id, > 0; 0 = invalid/unassigned
@@ -17,62 +16,58 @@ struct PhysicalFilament
     std::string type;            // e.g. "PLA" (may be empty = unknown)
     std::string preset;          // exact filament preset name (may be empty = profile unknown)
     enum class Kind { Manual, Mmu } kind = Kind::Manual; // Mmu reserved for future AMS-style slots
-    std::string name;            // the printer's own slot name ("lane1", "e1"); empty = none
-    std::string unit;            // the changer unit the slot sits in ("ace0"); empty = unknown/flat
-    std::string head;            // the Klipper extruder the slot feeds ("extruder1"); empty = unknown
+    std::string name;            // the printer's own slot name ("lane1", "openace_tool_3"); empty = none
+    std::string unit;            // changer unit the slot sits in ("ace0"); empty = flat / unknown
+    std::string head;            // display name of the extruder it feeds ("extruder1"); empty = unknown
+    int         slot = 0;        // position within its unit, 0-based
+    int         extruder = -1;   // 0-based physical extruder it feeds; -1 = unknown
+    int         virtual_tool = -1; // the T<n> the printer currently maps this slot to; -1 = unknown
     bool empty() const { return color.empty() && type.empty() && preset.empty(); }
 };
 
-// Alias retained for source compatibility with call sites not yet reworked to the multi-slot
-// model (see the physical-filaments-merge plan); refers to the same type.
+// Alias retained for source compatibility with call sites not yet reworked to the slot model;
+// refers to the same type.
 using LoadedFilament = PhysicalFilament;
 
-// The set of physical filaments known to a printer, grouped by tool. Element 0 of each tool's
-// list is always present and is the currently loaded filament for that tool (possibly empty());
-// further elements are swappable filaments recorded for that tool.
+// The physical slots a printer reported, in the agent's order: the U1's four extruders, a
+// changer's lanes or gates. One filament per slot (possibly empty()). Until a sync has happened
+// the list is one slot per nozzle (the fallback count deserialize pads to).
 struct FilamentInventory
 {
-    std::vector<std::vector<PhysicalFilament>> tools; // index = physical tool
+    std::vector<PhysicalFilament> slots;
     int next_id = 1;                                   // id allocator for new entries, persisted
-    std::string dialect;                               // changer dialect the last sync read ("afc", "happy_hare", "")
+    std::string dialect;                               // changer dialect the last sync read ("afc", "happy_hare", "openace", "")
 
     std::string serialize() const;
-    // Tolerant: malformed or short input yields an inventory of one empty loaded slot per tool,
-    // sized to tool_count.
-    static FilamentInventory deserialize(const std::string& s, size_t tool_count);
+    // Tolerant: malformed or short input yields fallback_slot_count empty slots. A record written
+    // by the per-tool model ("tools": per nozzle, swap rows after the loaded one) flattens to its
+    // loaded rows, positioned and fed by index; swap rows are dropped.
+    static FilamentInventory deserialize(const std::string& s, size_t fallback_slot_count);
 
-    // Lookup helpers used by dialog/engine plumbing.
     const PhysicalFilament* find(int id) const; // nullptr if absent
-    int tool_of(int id) const;                  // 0-based tool index, -1 if absent
+    int slot_index_of(int id) const;            // 0-based slot index, -1 if absent
 
     // Mint an id for every non-empty slot that lacks one (id <= 0), flooring next_id above every
     // id already in use first. GUI write paths MUST call this before save_filament_inventories:
-    // a non-empty slot persisted with id 0 (e.g. a loaded row first filled on a fresh inventory)
-    // would be renumbered by deserialize's reconcile pass on the NEXT load, silently invalidating
-    // every plate filament_physical_map entry that pointed at it. Also zeroes the id of any EMPTY
-    // slot that still carries one (e.g. a row the editor just cleared, which keeps the id it was
-    // loaded with -- see FilamentInventoryEditor::on_ok): find()/tool_of() key on id alone and
-    // don't check empty(), so a lingering id would let a stale stored reference (an old plate's
-    // filament_physical_map entry, or a durable SlotAssignment) keep resolving to a slot that no
-    // longer represents any physical filament. compute_physical_map_proposal's own !pf->empty()
-    // guard already covers this for the row's proposal, but a cleared slot should round-trip as
-    // canonically empty (id 0) for every consumer, not rely on each one re-deriving that guard.
+    // a non-empty slot persisted with id 0 would be renumbered by deserialize's reconcile pass on
+    // the NEXT load, silently invalidating every plate filament_physical_map entry that pointed
+    // at it. Also zeroes the id of any EMPTY slot that still carries one, so a cleared slot
+    // round-trips as canonically empty for every consumer.
     void ensure_ids();
 
-    // Pads tools with single-empty-slot entries up to tool_count; existing tools (and any extra
-    // beyond tool_count) are never dropped.
-    void ensure_tool_count(size_t tool_count);
+    // Pads slots with empty entries up to n; existing slots (and any extra beyond n) are never
+    // dropped.
+    void ensure_slot_count(size_t n);
 
-    // Orca: write-through seam for a single tool's loaded slot (always favor what's reported
-    // from the printer -- FilamentInventoryEditor::
-    // do_sync_from_printer calls this immediately for every tool a sync actually covers, instead
-    // of waiting for the dialog's OK, so the mapping dialog/auto-mapper/summary always mirror the
-    // LAST sync rather than whatever was last saved). Overwrites tools[tool_idx][0] with `slot`
-    // (pass a default-constructed PhysicalFilament for a printer-reported empty tray); every
-    // other tool, and this tool's own swappable rows (index 1+), are left untouched. Grows tools
-    // first via ensure_tool_count if tool_idx is out of range. The caller must still call
-    // ensure_ids() afterward (same as any other inventory mutation) before saving.
-    void apply_synced_loaded_slot(size_t tool_idx, const PhysicalFilament& slot);
+    // Orca: write-through seam for one slot as the printer reported it. Grows slots first via
+    // ensure_slot_count if slot_idx is out of range. The caller must still call ensure_ids()
+    // afterward (same as any other inventory mutation) before saving.
+    void apply_synced_slot(size_t slot_idx, const PhysicalFilament& slot);
+
+    // Distinct non-empty unit names, first-seen order.
+    std::vector<std::string> units() const;
+    // Indices of the slots feeding `extruder`.
+    std::vector<int> slots_of_extruder(int extruder) const;
 };
 
 // All known physical filament inventories, one per printer preset (an inventory follows the same
@@ -98,11 +93,11 @@ struct FilamentInventories
     static FilamentInventories deserialize(const std::string& s); // malformed -> empty store, parse_error = true
 
     // Resolves the inventory for `printer_preset_name`, creating an empty one on first use. Pads
-    // the returned inventory to at least tool_count tools (never truncates). This is the pure
+    // the returned inventory to at least slot_count slots (never truncates). This is the pure
     // core of Slic3r::GUI::current_inventory_for_preset (src/slic3r/GUI/FilamentInventoryStore.hpp),
     // which resolves the preset name from a Preset and delegates here -- kept in libslic3r so it
     // is unit-testable without a Preset/GUI dependency.
-    FilamentInventory& for_preset(const std::string& printer_preset_name, size_t tool_count);
+    FilamentInventory& for_preset(const std::string& printer_preset_name, size_t slot_count);
 };
 
 // Strip the vendor and material-type tokens (case-insensitive, whole tokens) from a filament
@@ -111,21 +106,18 @@ struct FilamentInventories
 // type PLA) -> "SnapSpeed"; "Generic PLA" -> "".
 std::string derive_filament_subtype(const std::string& display_name, const std::string& vendor, const std::string& type);
 
-// True when nothing is recorded anywhere in the inventory (every slot, loaded and swappable, on
-// every tool is empty()) -- a fresh machine profile that was never populated. Used both to decide
-// whether the mapping dialog can target real physical filaments or must fall back to
-// picking a bare tool (FilamentMapRowsPanel's bootstrap mode), and to gate FilamentMapDialog's
-// "record these as loaded" offer: checking every slot (not just slot 0/loaded) matters because a
-// tool can have an empty loaded slot but a real swappable one (cleared via the Physical Filaments
-// editor's per-tool Clear button, which only touches slot 0) -- treating that as "all unset"
-// would let the record write silently discard the swappable entry.
+// True when nothing is recorded anywhere in the inventory (every slot is empty()) -- a fresh
+// machine profile that was never populated. Used both to decide whether the mapping dialog can
+// target real physical filaments or must fall back to picking a bare slot (FilamentMapRowsPanel's
+// bootstrap mode), and to gate FilamentMapDialog's "record these as loaded" offer.
 bool inventory_all_unset(const FilamentInventory& inv);
 
 // A single durable slot assignment for one physical device in one project: project filament
-// filament_idx (0-based) is routed to physical tool `tool` (0-based), slot `slot` within that
-// tool's PhysicalFilament list (0 = the tool's loaded slot). Persisted on the Model, keyed by
-// printer preset name (the same key FilamentInventories uses), so a toolchanger's tray mapping
-// survives closing and reopening the project even before the device reconnects.
+// filament_idx (0-based) is routed to physical slot `tool` (0-based index into
+// FilamentInventory::slots). `slot` is the retired swap-row index, kept at 0 so records written
+// by the per-tool model still load. Persisted on the Model, keyed by printer preset name (the
+// same key FilamentInventories uses), so a toolchanger's tray mapping survives closing and
+// reopening the project even before the device reconnects.
 struct SlotAssignment
 {
     int filament_idx = 0;
@@ -150,7 +142,7 @@ std::map<std::string, std::vector<SlotAssignment>> load_slot_assignments(const s
 //    stored_map_confirmed is true (the plate has actually been through a confirmed manual
 //    mapping before); a stored entry is only kept as-is when it still resolves to a real,
 //    non-empty physical filament -- inventory.find(id) returning a slot whose empty() is true
-//    (e.g. a loaded/swap slot the user cleared in the Physical Filaments editor after this
+//    (e.g. a slot the user cleared in the Physical Filaments editor after this
 //    plate's map was saved, which keeps its id but drops its content) must fall through to
 //    auto-match exactly like a missing id, not be treated as a valid stored target.
 //  - bootstrap (inventory has nothing recorded anywhere): there is no physical filament to
@@ -225,7 +217,7 @@ struct AutoMapResult
 // color-nearest slot with an exactly-matching, non-empty preset, only if within
 // kMaxFamilyColorDistance (or color unknown on either side); (3) the color-nearest
 // family-compatible slot (type_compatible) within kMaxFamilyColorDistance, tie-broken by vendor
-// then by preferring a loaded slot (index 0) over swappable, then lowest tool index; (4)
+// then lowest slot index; (4)
 // otherwise unmatched -- filament_map keeps its fallback of 1 and the index is recorded in
 // `unmatched`. A preset match beyond the color cutoff at tier 2 is treated as absent and falls
 // through to tier 3, rather than ever auto-proposing a color it can't stand behind.
@@ -259,7 +251,7 @@ struct ManualMapViolation
 // For each project filament i, the target physical filament is resolved as:
 //   - physical_map[i] > 0: inventory.find(physical_map[i]) (the confirmed physical pick).
 //   - otherwise (bootstrap-style manual pick, no physical filament existed to target at
-//     confirmation time): filament_map[i]'s tool's loaded slot (tools[filament_map[i]-1][0]).
+//     confirmation time): the slot filament_map[i] names (slots[filament_map[i]-1]).
 // A target that fails to resolve, or resolves to an empty() slot, raises EmptyTarget and skips the
 // type/color checks below (an empty slot has neither to compare). Otherwise: a known, non-empty
 // project type incompatible with the target's (type_compatible false) raises FamilyMismatch; a

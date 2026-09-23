@@ -356,6 +356,10 @@ bool SnapmakerPrinterAgent::parse_filament_info(const std::string& response_body
     for (int i = 0; i < slot_count; ++i) {
         AmsTrayData tray;
         tray.slot_index   = i;
+        // One filament per extruder, addressed as itself: the topology is the identity.
+        tray.slot         = i;
+        tray.extruder     = i;
+        tray.virtual_tool = i;
         tray.has_filament = filament_exist[i];
 
         if (tray.has_filament) {

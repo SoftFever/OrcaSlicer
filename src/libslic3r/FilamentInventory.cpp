@@ -25,110 +25,112 @@ static PhysicalFilament::Kind kind_from_string(const std::string& s)
     return s == "mmu" ? PhysicalFilament::Kind::Mmu : PhysicalFilament::Kind::Manual;
 }
 
+static json slot_to_json(const PhysicalFilament& pf)
+{
+    json jpf = { {"id", pf.id}, {"color", pf.color}, {"type", pf.type}, {"preset", pf.preset}, {"kind", kind_to_string(pf.kind)},
+                 {"slot", pf.slot}, {"extruder", pf.extruder}, {"virtual_tool", pf.virtual_tool} };
+    if (!pf.name.empty())
+        jpf["name"] = pf.name;
+    if (!pf.unit.empty())
+        jpf["unit"] = pf.unit;
+    if (!pf.head.empty())
+        jpf["head"] = pf.head;
+    return jpf;
+}
+
+static PhysicalFilament slot_from_json(const json& jpf)
+{
+    PhysicalFilament pf;
+    auto str = [&jpf](const char* key, std::string& out) {
+        if (jpf.contains(key) && jpf[key].is_string())
+            out = jpf[key].get<std::string>();
+    };
+    auto integer = [&jpf](const char* key, int& out) {
+        if (jpf.contains(key) && jpf[key].is_number_integer())
+            out = jpf[key].get<int>();
+    };
+    integer("id", pf.id);
+    str("color", pf.color);
+    str("type", pf.type);
+    str("preset", pf.preset);
+    if (jpf.contains("kind") && jpf["kind"].is_string())
+        pf.kind = kind_from_string(jpf["kind"].get<std::string>());
+    str("name", pf.name);
+    str("unit", pf.unit);
+    str("head", pf.head);
+    integer("slot", pf.slot);
+    integer("extruder", pf.extruder);
+    integer("virtual_tool", pf.virtual_tool);
+    return pf;
+}
+
 std::string FilamentInventory::serialize() const
 {
-    json jtools = json::array();
-    for (const auto& tool : tools) {
-        json jtool = json::array();
-        for (const auto& pf : tool) {
-            json jpf = { {"id", pf.id}, {"color", pf.color}, {"type", pf.type}, {"preset", pf.preset}, {"kind", kind_to_string(pf.kind)} };
-            if (!pf.name.empty())
-                jpf["name"] = pf.name;
-            if (!pf.unit.empty())
-                jpf["unit"] = pf.unit;
-            if (!pf.head.empty())
-                jpf["head"] = pf.head;
-            jtool.push_back(std::move(jpf));
-        }
-        jtools.push_back(std::move(jtool));
-    }
+    json jslots = json::array();
+    for (const auto& pf : slots)
+        jslots.push_back(slot_to_json(pf));
     json j;
+    j["version"] = 3;
     j["next_id"] = next_id;
-    j["tools"]   = std::move(jtools);
+    j["slots"]   = std::move(jslots);
     if (!dialect.empty())
         j["dialect"] = dialect;
     return j.dump();
 }
 
-FilamentInventory FilamentInventory::deserialize(const std::string& s, size_t tool_count)
+FilamentInventory FilamentInventory::deserialize(const std::string& s, size_t fallback_slot_count)
 {
-    auto empty_inventory = [tool_count]() {
-        FilamentInventory inv;
-        inv.tools.assign(tool_count, std::vector<PhysicalFilament>(1));
-        inv.next_id = 1;
-        return inv;
-    };
-
+    FilamentInventory inv;
     json j;
     try {
         j = json::parse(s);
     } catch (...) {
-        return empty_inventory();
+        j = json();
     }
 
-    if (!j.is_object() || !j.contains("tools") || !j["tools"].is_array())
-        return empty_inventory();
-
-    FilamentInventory inv;
-    inv.tools.assign(tool_count, std::vector<PhysicalFilament>(1));
-    const json& jtools = j["tools"];
-    for (size_t i = 0; i < tool_count && i < jtools.size(); ++i) {
-        if (!jtools[i].is_array())
-            continue;
-        std::vector<PhysicalFilament> slots;
-        for (const auto& jpf : jtools[i]) {
-            if (!jpf.is_object())
-                continue;
+    if (j.is_object() && j.contains("slots") && j["slots"].is_array()) {
+        for (const auto& jpf : j["slots"])
+            inv.slots.push_back(jpf.is_object() ? slot_from_json(jpf) : PhysicalFilament{});
+    } else if (j.is_object() && j.contains("tools") && j["tools"].is_array()) {
+        // The per-tool record: one list per nozzle, the loaded filament first and swap rows
+        // after it. A slot is one filament now, so only the loaded row survives, positioned and
+        // fed by its tool index (one slot per extruder is what that model described).
+        for (const auto& jtool : j["tools"]) {
             PhysicalFilament pf;
-            if (jpf.contains("id") && jpf["id"].is_number_integer())
-                pf.id = jpf["id"].get<int>();
-            if (jpf.contains("color") && jpf["color"].is_string())
-                pf.color = jpf["color"].get<std::string>();
-            if (jpf.contains("type") && jpf["type"].is_string())
-                pf.type = jpf["type"].get<std::string>();
-            if (jpf.contains("preset") && jpf["preset"].is_string())
-                pf.preset = jpf["preset"].get<std::string>();
-            if (jpf.contains("kind") && jpf["kind"].is_string())
-                pf.kind = kind_from_string(jpf["kind"].get<std::string>());
-            if (jpf.contains("name") && jpf["name"].is_string())
-                pf.name = jpf["name"].get<std::string>();
-            if (jpf.contains("unit") && jpf["unit"].is_string())
-                pf.unit = jpf["unit"].get<std::string>();
-            if (jpf.contains("head") && jpf["head"].is_string())
-                pf.head = jpf["head"].get<std::string>();
-            slots.push_back(pf);
+            if (jtool.is_array() && !jtool.empty() && jtool[0].is_object())
+                pf = slot_from_json(jtool[0]);
+            pf.slot     = int(inv.slots.size());
+            pf.extruder = int(inv.slots.size());
+            inv.slots.push_back(pf);
         }
-        if (slots.empty())
-            slots.resize(1); // slot 0 (loaded) must always be present
-        inv.tools[i] = std::move(slots);
+    } else {
+        j = json();
     }
+    inv.ensure_slot_count(fallback_slot_count);
 
-    // Reconcile ids from untrusted input: find()/tool_of() key on id, so a duplicate would make
-    // one entry unreachable, and a next_id at or below an id already in use would let the
+    // Reconcile ids from untrusted input: find()/slot_index_of() key on id, so a duplicate would
+    // make one entry unreachable, and a next_id at or below an id already in use would let the
     // allocator mint a fresh collision the moment it's used. Renumber the colliding or
     // missing/invalid (<=0) id via the allocator rather than dropping the entry -- that preserves
     // the caller's color/type data. Empty slots (nothing recorded) keep whatever id parsed,
     // including 0/absent; they carry no data to collide over.
     int max_id = 0;
-    for (const auto& tool : inv.tools)
-        for (const auto& pf : tool)
-            max_id = std::max(max_id, pf.id);
-    int parsed_next_id = (j.contains("next_id") && j["next_id"].is_number_integer()) ? j["next_id"].get<int>() : 1;
+    for (const auto& pf : inv.slots)
+        max_id = std::max(max_id, pf.id);
+    int parsed_next_id = (j.is_object() && j.contains("next_id") && j["next_id"].is_number_integer()) ? j["next_id"].get<int>() : 1;
     int next_id = std::max(1, std::max(parsed_next_id, max_id + 1));
 
     std::unordered_set<int> seen_ids;
-    for (auto& tool : inv.tools) {
-        for (auto& pf : tool) {
-            if (pf.empty())
-                continue;
-            if (pf.id > 0 && seen_ids.insert(pf.id).second)
-                continue; // first time we've seen this id; keep it
-            pf.id = next_id++;
-            seen_ids.insert(pf.id);
-        }
+    for (auto& pf : inv.slots) {
+        if (pf.empty())
+            continue;
+        if (pf.id > 0 && seen_ids.insert(pf.id).second)
+            continue; // first time we've seen this id; keep it
+        pf.id = next_id++;
+        seen_ids.insert(pf.id);
     }
     inv.next_id = next_id;
-    if (j.contains("dialect") && j["dialect"].is_string())
+    if (j.is_object() && j.contains("dialect") && j["dialect"].is_string())
         inv.dialect = j["dialect"].get<std::string>();
     return inv;
 }
@@ -136,51 +138,69 @@ FilamentInventory FilamentInventory::deserialize(const std::string& s, size_t to
 void FilamentInventory::ensure_ids()
 {
     int max_id = 0;
-    for (const auto& tool : tools)
-        for (const auto& pf : tool)
-            max_id = std::max(max_id, pf.id);
+    for (const auto& pf : slots)
+        max_id = std::max(max_id, pf.id);
     next_id = std::max({1, next_id, max_id + 1});
-    for (auto& tool : tools)
-        for (auto& pf : tool) {
-            if (!pf.empty() && pf.id <= 0)
-                pf.id = next_id++;
-            else if (pf.empty() && pf.id > 0)
-                pf.id = 0; // a cleared slot round-trips as canonically empty, not a stale reference
-        }
+    for (auto& pf : slots) {
+        if (!pf.empty() && pf.id <= 0)
+            pf.id = next_id++;
+        else if (pf.empty() && pf.id > 0)
+            pf.id = 0; // a cleared slot round-trips as canonically empty, not a stale reference
+    }
 }
 
-void FilamentInventory::ensure_tool_count(size_t tool_count)
+void FilamentInventory::ensure_slot_count(size_t n)
 {
-    while (tools.size() < tool_count)
-        tools.emplace_back(1);
+    while (slots.size() < n) {
+        PhysicalFilament pf;
+        pf.slot     = int(slots.size());
+        pf.extruder = int(slots.size()); // the no-sync fallback: one slot per nozzle
+        slots.push_back(pf);
+    }
 }
 
-void FilamentInventory::apply_synced_loaded_slot(size_t tool_idx, const PhysicalFilament& slot)
+void FilamentInventory::apply_synced_slot(size_t slot_idx, const PhysicalFilament& slot)
 {
-    ensure_tool_count(tool_idx + 1);
-    tools[tool_idx][0] = slot;
+    ensure_slot_count(slot_idx + 1);
+    slots[slot_idx] = slot;
 }
 
 const PhysicalFilament* FilamentInventory::find(int id) const
 {
     if (id <= 0)
         return nullptr;
-    for (const auto& tool : tools)
-        for (const auto& pf : tool)
-            if (pf.id == id)
-                return &pf;
+    for (const auto& pf : slots)
+        if (pf.id == id)
+            return &pf;
     return nullptr;
 }
 
-int FilamentInventory::tool_of(int id) const
+int FilamentInventory::slot_index_of(int id) const
 {
     if (id <= 0)
         return -1;
-    for (size_t ti = 0; ti < tools.size(); ++ti)
-        for (const auto& pf : tools[ti])
-            if (pf.id == id)
-                return static_cast<int>(ti);
+    for (size_t i = 0; i < slots.size(); ++i)
+        if (slots[i].id == id)
+            return static_cast<int>(i);
     return -1;
+}
+
+std::vector<std::string> FilamentInventory::units() const
+{
+    std::vector<std::string> out;
+    for (const auto& pf : slots)
+        if (!pf.unit.empty() && std::find(out.begin(), out.end(), pf.unit) == out.end())
+            out.push_back(pf.unit);
+    return out;
+}
+
+std::vector<int> FilamentInventory::slots_of_extruder(int extruder) const
+{
+    std::vector<int> out;
+    for (size_t i = 0; i < slots.size(); ++i)
+        if (slots[i].extruder == extruder)
+            out.push_back(int(i));
+    return out;
 }
 
 // --- auto_map_filaments helpers -------------------------------------------------------------
@@ -287,66 +307,43 @@ AutoMapResult auto_map_filaments(
         auto ait = assignment_by_filament.find((int) i);
         if (ait != assignment_by_filament.end()) {
             const SlotAssignment& a = ait->second;
-            if (a.tool >= 0 && (size_t) a.tool < inventory.tools.size() &&
-                a.slot >= 0 && (size_t) a.slot < inventory.tools[a.tool].size() &&
-                !inventory.tools[a.tool][a.slot].empty()) {
+            if (a.tool >= 0 && (size_t) a.tool < inventory.slots.size() && a.slot == 0 &&
+                !inventory.slots[a.tool].empty()) {
                 result.filament_map[i] = a.tool + 1;
-                result.physical_map[i] = inventory.tools[a.tool][a.slot].id;
+                result.physical_map[i] = inventory.slots[a.tool].id;
                 continue; // durable assignment wins outright, even over a closer color match
             }
-            // Stale (tool/slot no longer exist, or the slot has since gone empty -- e.g. a printer
-            // sync cleared the tool this assignment was written against): fall through to matching.
+            // Stale (the slot no longer exists, was a retired swap row, or has since gone empty
+            // -- e.g. a printer sync cleared it): fall through to matching.
         }
 
         // An exact profile match is trusted over anything derived from type/color -- checked
         // before family/color matching, but only after a durable assignment (which still wins
         // outright even over an exact-preset slot). Among several exact-preset slots (e.g. the
-        // same preset loaded in two tools with different spool colors), the nearest color wins --
+        // same preset loaded in two slots with different spool colors), the nearest color wins --
         // an unknown color on either side is neutral, same tie-break rule as the family/color
-        // tier below -- then a loaded slot over a swappable one, then the lowest tool index.
+        // tier below -- then the lowest slot index.
         if (!project[i].preset.empty()) {
-            bool  found_exact  = false;
-            float exact_dist   = std::numeric_limits<float>::max();
-            bool  exact_loaded = false;
-            int   exact_tool   = -1;
-            int   exact_id     = 0;
-            for (size_t ti = 0; ti < inventory.tools.size(); ++ti) {
-                for (size_t si = 0; si < inventory.tools[ti].size(); ++si) {
-                    const PhysicalFilament& pf = inventory.tools[ti][si];
-                    if (pf.empty() || pf.preset.empty() || pf.preset != project[i].preset)
-                        continue;
-                    float dist   = auto_map_color_distance(project[i].color, pf.color);
-                    bool  loaded = si == 0;
-
-                    bool better;
-                    if (!found_exact)
-                        better = true;
-                    else if (dist < exact_dist)
-                        better = true;
-                    else if (dist > exact_dist)
-                        better = false;
-                    else
-                        better = loaded && !exact_loaded; // color tie: loaded breaks it
-                    // A strict non-improvement keeps the current best, so a full tie naturally
-                    // keeps the lowest tool index, same rationale as the family/color tier.
-
-                    if (better) {
-                        found_exact  = true;
-                        exact_dist   = dist;
-                        exact_loaded = loaded;
-                        exact_tool   = (int) ti;
-                        exact_id     = pf.id;
-                    }
+            bool  found_exact = false;
+            float exact_dist  = std::numeric_limits<float>::max();
+            int   exact_slot  = -1;
+            int   exact_id    = 0;
+            for (size_t si = 0; si < inventory.slots.size(); ++si) {
+                const PhysicalFilament& pf = inventory.slots[si];
+                if (pf.empty() || pf.preset.empty() || pf.preset != project[i].preset)
+                    continue;
+                const float dist = auto_map_color_distance(project[i].color, pf.color);
+                // A strict non-improvement keeps the current best, so a full tie naturally keeps
+                // the lowest slot index.
+                if (!found_exact || dist < exact_dist) {
+                    found_exact = true;
+                    exact_dist  = dist;
+                    exact_slot  = (int) si;
+                    exact_id    = pf.id;
                 }
             }
-            // A gross color mismatch must not be auto-proposed without confirmation,
-            // even when the preset matches exactly -- a preset match whose color is a known,
-            // out-of-range distance from the project filament's is not taken here; it falls
-            // through to the family/color tier instead (itself cutoff-guarded), so red-project
-            // vs. teal-spool doesn't sail through just because the preset string happens to match.
-            bool exact_beyond_cutoff = exact_dist != std::numeric_limits<float>::max() && exact_dist > kMaxFamilyColorDistance;
-            if (found_exact && !exact_beyond_cutoff) {
-                result.filament_map[i] = exact_tool + 1;
+            if (found_exact && (exact_dist == std::numeric_limits<float>::max() || exact_dist <= kMaxFamilyColorDistance)) {
+                result.filament_map[i] = exact_slot + 1;
                 result.physical_map[i] = exact_id;
                 continue;
             }
@@ -355,52 +352,44 @@ AutoMapResult auto_map_filaments(
         bool   found      = false;
         float  best_dist  = 0.f;
         bool   best_vendor = false;
-        bool   best_loaded = false;
         int    best_tool  = -1;
         int    best_id    = 0;
         const std::string project_vendor = trim_lower(project[i].vendor);
 
-        for (size_t ti = 0; ti < inventory.tools.size(); ++ti) {
-            for (size_t si = 0; si < inventory.tools[ti].size(); ++si) {
-                const PhysicalFilament& pf = inventory.tools[ti][si];
-                if (pf.empty())
-                    continue;
-                if (!type_compatible(project[i].type, pf.type))
-                    continue;
+        for (size_t si = 0; si < inventory.slots.size(); ++si) {
+            const PhysicalFilament& pf = inventory.slots[si];
+            if (pf.empty())
+                continue;
+            if (!type_compatible(project[i].type, pf.type))
+                continue;
 
-                float dist = auto_map_color_distance(project[i].color, pf.color);
-                // A known, finite distance beyond the cutoff disqualifies the candidate; an
-                // unknown color on either side (the color_distance sentinel) still qualifies on
-                // type alone, same as before -- it's simply ranked last since it never wins a
-                // distance comparison against a real, close color match.
-                if (dist != std::numeric_limits<float>::max() && dist > kMaxFamilyColorDistance)
-                    continue;
-                bool  vendor_match = !project_vendor.empty() && project_vendor == preset_vendor_token(pf.preset);
-                bool  loaded       = si == 0;
+            float dist = auto_map_color_distance(project[i].color, pf.color);
+            // A known, finite distance beyond the cutoff disqualifies the candidate; an
+            // unknown color on either side (the color_distance sentinel) still qualifies on
+            // type alone, same as before -- it's simply ranked last since it never wins a
+            // distance comparison against a real, close color match.
+            if (dist != std::numeric_limits<float>::max() && dist > kMaxFamilyColorDistance)
+                continue;
+            bool vendor_match = !project_vendor.empty() && project_vendor == preset_vendor_token(pf.preset);
 
-                bool better;
-                if (!found)
-                    better = true;
-                else if (dist < best_dist)
-                    better = true;
-                else if (dist > best_dist)
-                    better = false;
-                else if (vendor_match != best_vendor)
-                    better = vendor_match && !best_vendor; // equal distance: vendor breaks the tie
-                else
-                    better = loaded && !best_loaded; // equal distance and vendor: loaded breaks the tie
-                // Anything else (a strict non-improvement) keeps the current best -- since tools
-                // are scanned in ascending order, a full tie naturally keeps the lowest tool
-                // index (and, within a tool, the lowest slot index).
+            bool better;
+            if (!found)
+                better = true;
+            else if (dist < best_dist)
+                better = true;
+            else if (dist > best_dist)
+                better = false;
+            else
+                better = vendor_match && !best_vendor; // equal distance: vendor breaks the tie
+            // Anything else (a strict non-improvement) keeps the current best -- since slots
+            // are scanned in ascending order, a full tie naturally keeps the lowest slot index.
 
-                if (better) {
-                    found       = true;
-                    best_dist   = dist;
-                    best_vendor = vendor_match;
-                    best_loaded = loaded;
-                    best_tool   = (int) ti;
-                    best_id     = pf.id;
-                }
+            if (better) {
+                found       = true;
+                best_dist   = dist;
+                best_vendor = vendor_match;
+                best_tool   = (int) si;
+                best_id     = pf.id;
             }
         }
 
@@ -481,8 +470,8 @@ std::vector<ManualMapViolation> validate_manual_map(
             target = inventory.find(physical_id);
         } else {
             int tool = i < filament_map.size() ? filament_map[i] : 0;
-            if (tool >= 1 && (size_t) tool <= inventory.tools.size() && !inventory.tools[tool - 1].empty())
-                target = &inventory.tools[tool - 1][0]; // loaded slot
+            if (tool >= 1 && (size_t) tool <= inventory.slots.size())
+                target = &inventory.slots[tool - 1];
         }
 
         if (target == nullptr || target->empty()) {
@@ -505,7 +494,7 @@ std::string inventory_confirmation_fingerprint(const FilamentInventory& inventor
 {
     // Plain FNV-1a over a delimited encoding of the confirmed content -- not cryptographic, just
     // needs to be stable within a process/build and sensitive to every field this doc promises.
-    // Delimiters (both between fields and between slots/tools) prevent adjacent-field concatenation
+    // Delimiters (both between fields and between slots) prevent adjacent-field concatenation
     // collisions (e.g. type "A"+color "BC" must not hash the same as type "AB"+color "C").
     static constexpr uint64_t kFnvOffset = 14695981039346656037ull;
     static constexpr uint64_t kFnvPrime  = 1099511628211ull;
@@ -519,14 +508,11 @@ std::string inventory_confirmation_fingerprint(const FilamentInventory& inventor
         h *= kFnvPrime;
     };
 
-    mix(std::to_string(inventory.tools.size()));
-    for (const auto& tool : inventory.tools) {
-        mix(std::to_string(tool.size()));
-        for (const auto& pf : tool) {
-            mix(pf.type);
-            mix(pf.color);
-            mix(pf.preset);
-        }
+    mix(std::to_string(inventory.slots.size()));
+    for (const auto& pf : inventory.slots) {
+        mix(pf.type);
+        mix(pf.color);
+        mix(pf.preset);
     }
 
     std::ostringstream oss;
@@ -609,10 +595,9 @@ std::string derive_filament_subtype(const std::string& display_name, const std::
 
 bool inventory_all_unset(const FilamentInventory& inv)
 {
-    for (const auto& tool : inv.tools)
-        for (const auto& pf : tool)
-            if (!pf.empty())
-                return false;
+    for (const auto& pf : inv.slots)
+        if (!pf.empty())
+            return false;
     return true;
 }
 
@@ -651,7 +636,7 @@ std::vector<int> compute_physical_map_proposal(
     // stays all-0 (nothing was ever recorded to point at), so without this fallback every reopen
     // would silently reset every row instead of honoring filament_map.
     if (inventory_all_unset(inventory)) {
-        const int tool_count = (int) inventory.tools.size();
+        const int tool_count = (int) inventory.slots.size();
         std::vector<int> proposal(plate_filaments.size(), 0);
         for (size_t i = 0; i < plate_filaments.size(); ++i) {
             int f    = plate_filaments[i];
@@ -685,14 +670,9 @@ std::vector<int> compute_physical_map_proposal(
         // once the tool gains a recorded filament, auto-match takes over below.
         if (stored_map_confirmed && stored == 0 && f >= 1 && f <= (int) stored_filament_map.size()) {
             int tool = stored_filament_map[f - 1];
-            if (tool >= 1 && tool <= (int) inventory.tools.size()) {
-                const auto& slots = inventory.tools[tool - 1];
-                bool tool_empty = std::all_of(slots.begin(), slots.end(),
-                                              [](const PhysicalFilament& s) { return s.empty(); });
-                if (tool_empty) {
-                    proposal[i] = -tool;
-                    continue;
-                }
+            if (tool >= 1 && tool <= (int) inventory.slots.size() && inventory.slots[tool - 1].empty()) {
+                proposal[i] = -tool;
+                continue;
             }
         }
         int filament_id = f - 1; // stored 1-based, arrays are 0-based
@@ -748,16 +728,15 @@ FilamentInventories FilamentInventories::deserialize(const std::string& s)
     for (const auto& [preset_name, jinv] : jpresets.items()) {
         if (!jinv.is_object())
             continue;
-        size_t tool_count = (jinv.contains("tools") && jinv["tools"].is_array()) ? jinv["tools"].size() : 0;
-        store.by_preset[preset_name] = FilamentInventory::deserialize(jinv.dump(), tool_count);
+        store.by_preset[preset_name] = FilamentInventory::deserialize(jinv.dump(), 0);
     }
     return store;
 }
 
-FilamentInventory& FilamentInventories::for_preset(const std::string& printer_preset_name, size_t tool_count)
+FilamentInventory& FilamentInventories::for_preset(const std::string& printer_preset_name, size_t slot_count)
 {
-    FilamentInventory& inv = by_preset[printer_preset_name]; // default-constructed (no tools yet) on first use
-    inv.ensure_tool_count(tool_count);
+    FilamentInventory& inv = by_preset[printer_preset_name]; // default-constructed (no slots yet) on first use
+    inv.ensure_slot_count(slot_count);
     return inv;
 }
 

@@ -137,47 +137,49 @@ DeviceSyncOutcome sync_filament_inventory_from_printer(FilamentInventories& stor
     }
 
     const PresetCollection& filaments = wxGetApp().preset_bundle->filaments;
-    size_t tool_idx = 0;
+    // GetTrayIndexMap() always seeds two virtual/external-spool pseudo-trays alongside the real
+    // ones; they never resolve, so the map is never an "any data?" signal on its own.
+    const auto&  tray_map = fila_system->GetTrayIndexMap();
+    const size_t reported = std::count_if(tray_map.begin(), tray_map.end(),
+                                          [](const auto& kv) { return !devPrinterUtil::IsVirtualSlot(kv.second.first); });
+    if (reported == 0) {
+        outcome.status = Status::NothingReported;
+        return outcome;
+    }
+    // The printer decides how many slots there are: a changer's lanes, the U1's extruders. The
+    // nozzle-count fallback (tool_count) only sized the inventory before any sync.
+    (void) tool_count;
+    inv.ensure_slot_count(reported);
+    size_t slot_idx = 0;
     bool   applied  = false;
-    for (const auto& [tray_index, slot_id] : fila_system->GetTrayIndexMap()) {
-        // GetTrayIndexMap() always seeds two virtual/external-spool pseudo-trays alongside the
-        // real ones; they never resolve, so the map is never an "any data?" signal on its own.
+    for (const auto& [tray_index, slot_id] : tray_map) {
         if (devPrinterUtil::IsVirtualSlot(slot_id.first))
             continue;
-        if (tool_idx >= tool_count)
-            break;
         DevAmsTray* tray = fila_system->GetAmsTray(std::to_string(slot_id.first), std::to_string(slot_id.second));
         const DeviceSlotResolution res = resolve_device_tray(tray, filaments);
-        outcome.tools.push_back(res);
+        outcome.slots.push_back(res);
+        PhysicalFilament& cur = inv.slots[slot_idx];
         // Orca: with the print dialog now refreshing on every open (not just bootstrap), an
         // unconditional overwrite would silently downgrade a hand-picked preset to the Generic
         // fallback each time on printers that only report type+color. When the printer reports
         // the SAME spool (type and color unchanged) and the recorded slot carries richer detail
         // (a preset), keep the recorded slot; any reported change still wins wholesale.
-        if (res.present && tool_idx < inv.tools.size() && !inv.tools[tool_idx].empty()) {
-            const PhysicalFilament& cur = inv.tools[tool_idx][0];
-            if (!cur.empty() && !cur.preset.empty() && cur.type == res.type && cur.color == res.color) {
-                inv.tools[tool_idx][0].name = res.name; // the lane can have been renamed or remapped
-                inv.tools[tool_idx][0].unit = res.unit;
-                inv.tools[tool_idx][0].head = res.head;
-                applied = true;
-                ++tool_idx;
-                continue;
-            }
+        const bool same_spool = res.present && !cur.empty() && !cur.preset.empty() && cur.type == res.type && cur.color == res.color;
+        if (!same_spool) {
+            // Keep the slot's id when it still holds a filament, so plate maps pointing at it
+            // survive a colour change; an emptied slot is canonically id 0 (ensure_ids).
+            cur = res.present ? build_physical_filament(res.color, res.type, res.preset, cur.id, PhysicalFilament::Kind::Manual)
+                              : PhysicalFilament{};
         }
-        PhysicalFilament slot; // stays empty when nothing is loaded -- mirrors the machine
-        if (res.present)
-            slot = build_physical_filament(res.color, res.type, res.preset, /*id=*/0, PhysicalFilament::Kind::Manual);
-        slot.name = res.name;
-        slot.unit = res.unit;
-        slot.head = res.head;
-        inv.apply_synced_loaded_slot(tool_idx, slot);
+        // Where the slot sits and what it feeds are the printer's to say, every time.
+        cur.name         = res.name;
+        cur.unit         = res.unit;
+        cur.head         = res.head;
+        cur.slot         = res.slot;
+        cur.extruder     = res.extruder;
+        cur.virtual_tool = res.virtual_tool;
         applied |= res.present;
-        ++tool_idx;
-    }
-    if (tool_idx == 0) {
-        outcome.status = Status::NothingReported;
-        return outcome;
+        ++slot_idx;
     }
 
     // Cached with the inventory so a send can check the changer still speaks the profile's
@@ -203,6 +205,15 @@ DeviceSyncOutcome sync_filament_inventory_from_printer(FilamentInventories& stor
 DeviceSlotResolution resolve_device_tray(DevAmsTray* tray, const PresetCollection& filaments)
 {
     DeviceSlotResolution res;
+    if (tray != nullptr) {
+        // An empty slot still has a position: the grid draws it where the printer has it.
+        res.name         = tray->slot_name;
+        res.unit         = tray->unit;
+        res.head         = tray->head;
+        res.slot         = tray->slot;
+        res.extruder     = tray->extruder;
+        res.virtual_tool = tray->virtual_tool;
+    }
     // Null and "exists but nothing loaded" mean the same thing to every consumer.
     if (tray == nullptr || !tray->is_exists)
         return res;
@@ -212,9 +223,6 @@ DeviceSlotResolution resolve_device_tray(DevAmsTray* tray, const PresetCollectio
         res.color = DevAmsTray::decode_color(tray->color).GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
 
     res.type = tray->get_filament_type();
-    res.name = tray->slot_name;
-    res.unit = tray->unit;
-    res.head = tray->head;
 
     // Best target first: the agent may have resolved an exact profile for this spool
     // (DevAmsTray::setting_id carries the filament_id it matched -- see e.g.
