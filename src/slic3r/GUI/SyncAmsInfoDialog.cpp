@@ -88,6 +88,7 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "ActivePrinterSession.hpp"
 #include "FilamentInventoryStore.hpp" // Orca: durable per-device slot assignments (deal_ok())
+#include "SlotGridPanel.hpp"
 #include "libslic3r/FilamentInventory.hpp"
 
 namespace fs = boost::filesystem;
@@ -2143,6 +2144,52 @@ void SyncAmsInfoDialog::on_refresh(wxCommandEvent &event)
     update_user_machine_list();
 }
 
+void SyncAmsInfoDialog::open_slot_picker(wxWindow *anchor, int filament_id)
+{
+    if (!m_slot_picker)
+        m_slot_picker = new SlotPickPopup(this);
+    if (m_slot_picker->IsShown())
+        return;
+
+    FilamentInventories      store;
+    const size_t             fallback  = resolve_active_printer_tool_count(store);
+    const FilamentInventory &inventory = current_inventory_for_preset(active_printer_session().profile(), store, fallback);
+    std::vector<SlotGridSlot> rows     = slot_grid_rows(inventory, wxGetApp().preset_bundle->filaments);
+    for (size_t i = 0; i < rows.size(); ++i) {
+        // A slot with nothing loaded cannot be synced from; the current pick is the result's
+        // tray id (build_ams_payload: slot i == unit i, tray 0 == global tray i).
+        rows[i].disabled = rows[i].empty;
+        for (const FilamentInfo &f : m_ams_mapping_result)
+            if (f.id == filament_id && f.tray_id == (int) i)
+                rows[i].checked = true;
+    }
+    const std::vector<PhysicalFilament> slots = inventory.slots;
+    m_slot_picker->Rebuild(rows, [this, filament_id, slots](size_t i) {
+        if (i >= slots.size()) return;
+        // The inventory records "#RRGGBB" (wxColour's own syntax), not the AMS wire's
+        // RRGGBBAA that DevAmsTray::decode_color reads.
+        wxColour col(0xCE, 0xCE, 0xCE);
+        if (!slots[i].color.empty() && wxColour(slots[i].color).IsOk())
+            col = wxColour(slots[i].color);
+        // The same wire the AMS popup's pick travels on (on_set_finish_mapping):
+        // "r|g|b|a|label|filament|ams_id|slot_id", tray id in the int.
+        const int      virtual_tool = slots[i].virtual_tool >= 0 ? slots[i].virtual_tool : (int) i;
+        const wxString label        = wxString::Format("T%d", virtual_tool + 1);
+        wxCommandEvent evt(EVT_SET_FINISH_MAPPING);
+        evt.SetInt((int) i);
+        evt.SetString(wxString::Format("%d|%d|%d|%d|%s|%d|%d|%d", col.Red(), col.Green(), col.Blue(), col.Alpha(), label,
+                                       filament_id, (int) i, 0));
+        wxPostEvent(this, evt);
+    });
+    wxPoint pos = anchor->ClientToScreen(wxPoint(0, 0));
+    pos.y += anchor->GetRect().height;
+    m_slot_picker->Move(pos);
+    CallAfter([this] {
+        if (m_slot_picker && !m_slot_picker->IsShown())
+            m_slot_picker->Popup();
+    });
+}
+
 void SyncAmsInfoDialog::on_set_finish_mapping(wxCommandEvent &evt)
 {
     auto selection_data     = evt.GetString();
@@ -2836,6 +2883,13 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev_manager) return;
             MachineObject *obj_        = dev_manager->get_selected_machine();
+            // Orca: a toolchanger's slots are picked from the slot grid (units, slot order), fed
+            // by the inventory record the same sync wrote; the BBL AMS popup stays for BBL.
+            if (obj_ && obj_->GetFilaSystem() && obj_->GetFilaSystem()->IsAllToolchanger() &&
+                m_checkbox_list["use_ams"]->getValue() == "on") {
+                open_slot_picker(item, extruder);
+                return;
+            }
             bool is_selector = false;
             if (get_is_double_extruder()) {
                 if (has_selector(obj_)) { // FTS combined view — one dynamic panel when a switch is installed+ready

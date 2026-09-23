@@ -4,6 +4,7 @@
 #include "GUI.hpp"
 #include "Widgets/Label.hpp"
 #include "libslic3r/FilamentInventory.hpp"
+#include "SlotGridPanel.hpp"
 
 #include <wx/colour.h>
 #include <map>
@@ -40,6 +41,9 @@ public:
         wxString slot_name; // the printer's own name for the slot ("lane1"), "" when it has none
         wxString unit;      // changer unit the slot sits in ("ace0"), "" = flat
         wxString head;      // Klipper extruder the slot feeds ("extruder1"), "" = unknown
+        int      slot = 0;         // position within the unit
+        int      extruder = -1;    // 0-based extruder it feeds, -1 = unknown
+        int      virtual_tool = -1; // the T<n> the printer maps it to now, -1 = unknown
         wxString label;
         wxColour colour; // transparent (alpha 0) for a placeholder with no recorded colour
     };
@@ -127,6 +131,11 @@ private:
     // or, when the inventory has no recorded filament at all, one plain "Tool N" entry per tool
     // (bootstrap mode -- see the class comment and GetPhysicalMaps).
     void BuildTargetOptions(const FilamentInventory &inventory, const std::map<int, std::string> &slot_preset_names);
+    // The picker's rows for one project-filament row: every target option as a slot tile, with
+    // the row's current pick checked and the material-family gate applied.
+    std::vector<SlotGridSlot> PickerRows(const Row &row, bool allow_bare_pick) const;
+    // Rows sharing an extruder with another assigned row get the swap-and-purge tint.
+    void UpdateSharedExtruderMarks();
     // Opens (creating on first use) the shared picker popup under row's tile, offering
     // m_target_options grouped by tool; picking one updates the row and fires the
     // wxEVT_INVALID_MANUAL_MAP/UpdateFooter path.
@@ -185,7 +194,10 @@ private:
     size_t                    m_filament_count;
     size_t                    m_tool_count;
 
-    FilamentMapPickerPopup *m_picker_popup{nullptr}; // owned by wx (child of this panel)
+    SlotPickPopup *m_picker_popup{nullptr}; // owned by wx (child of this panel)
+    // Multi-extruder printer with a reported changer: picks go through the modal
+    // (extruder, then slot) instead of the popup, and the tiles show E<n>.
+    bool           m_memm{false};
 
     Label   *m_footer{nullptr};
     // Orca: own line below m_footer, orange, shown only while m_footer_warning is non-empty --

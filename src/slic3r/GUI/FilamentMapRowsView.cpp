@@ -276,14 +276,13 @@ std::map<int, std::string> FilamentMapRowsView::build_slot_preset_names() const
 {
     std::map<int, std::string> names;
     const PresetCollection &filament_presets = wxGetApp().preset_bundle->filaments;
-    {
-        for (const PhysicalFilament &pf : m_inventory.slots) {
-            if (pf.empty() || pf.id <= 0) continue;
-            // Orca: shared slot_display_name (FilamentInventoryStore) -- the combo rows are
-            // width-limited and the printer suffix is redundant inside a printer-scoped dialog.
-            // The mismatch warning resolves names independently, so this map is display-only.
-            names[pf.id] = slot_display_name(pf, filament_presets);
-        }
+    for (const PhysicalFilament &pf : m_inventory.slots) {
+        if (pf.empty() || pf.id <= 0) continue;
+        // Orca: shared slot_display_name (FilamentInventoryStore) -- the combo rows are
+        // width-limited and the printer suffix is redundant inside a printer-scoped dialog.
+        // The mismatch warning resolves names independently, so this map is display-only.
+        names[pf.id] = slot_display_name(pf, filament_presets);
+    }
     return names;
 }
 
