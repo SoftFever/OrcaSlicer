@@ -96,6 +96,13 @@ $clangDir = Join-Path $fixtures 'clang'
 New-Stub (Join-Path $clangDir 'clang-cl.exe')
 $clangOnPath = "$clangDir;$env:PATH"
 
+# A standalone LLVM for --clang-path, under a folder with a space in its name
+# like the real install, so the quoting is exercised without LLVM installed.
+$llvmDir = Join-Path $fixtures 'Program Files\LLVM'
+$llvmClang = "$llvmDir\bin\clang-cl.exe"
+New-Stub $llvmClang
+$llvmClangCMake = $llvmClang -replace '\\', '/'
+
 # A ccache and an sccache that only have to exist. Nothing runs them; the
 # script only locates them. The space in the folder exercises the quoting of
 # the launcher path.
@@ -215,23 +222,23 @@ $cases = @(
        Contains = @('-G "Visual Studio', '-T ClangCL') }
     # A developer with a standalone LLVM points at it, and the path is passed
     # with forward slashes so CMake cannot read a backslash as an escape.
-    @{ Name = '--clang-path names the compiler, quoted for its spaces'; Args = @('-d', '-x', '--clang-path', 'C:\Program Files\LLVM\bin\clang-cl.exe')
-       Contains = @('-DCMAKE_C_COMPILER="C:/Program Files/LLVM/bin/clang-cl.exe"',
-                    '-DCMAKE_CXX_COMPILER="C:/Program Files/LLVM/bin/clang-cl.exe"') }
-    @{ Name = '--clang-path beats the Visual Studio clang'; Args = @('-s', '-x', '--clang-path', 'C:\Program Files\LLVM\bin\clang-cl.exe')
-       Contains = @('Compiler: C:/Program Files/LLVM/bin/clang-cl.exe') }
-    @{ Name = '--clang-path is a clang request on its own'; Args = @('-d', '-x', '--clang-path', 'C:\Program Files\LLVM\bin\clang-cl.exe')
+    @{ Name = '--clang-path names the compiler, quoted for its spaces'; Args = @('-d', '-x', '--clang-path', $llvmClang)
+       Contains = @("-DCMAKE_C_COMPILER=`"$llvmClangCMake`"",
+                    "-DCMAKE_CXX_COMPILER=`"$llvmClangCMake`"") }
+    @{ Name = '--clang-path beats the Visual Studio clang'; Args = @('-s', '-x', '--clang-path', $llvmClang)
+       Contains = @("Compiler: $llvmClangCMake") }
+    @{ Name = '--clang-path is a clang request on its own'; Args = @('-d', '-x', '--clang-path', $llvmClang)
        Contains = @('deps/build-clang') }
-    @{ Name = '--clang-path needs Ninja to take effect'; Args = @('-d', '--clang-path', 'C:\Program Files\LLVM\bin\clang-cl.exe'); ExpectExit = 1
+    @{ Name = '--clang-path needs Ninja to take effect'; Args = @('-d', '--clang-path', $llvmClang); ExpectExit = 1
        Contains = @('needs the Ninja generator') }
     # `exist` is true for a directory too, and a directory would reach CMake
     # as the compiler.
-    @{ Name = '--clang-path must name the exe, not its folder'; Args = @('-d', '-x', '--clang-path', 'C:\Program Files\LLVM'); ExpectExit = 1
+    @{ Name = '--clang-path must name the exe, not its folder'; Args = @('-d', '-x', '--clang-path', $llvmDir); ExpectExit = 1
        Contains = @('is a directory') }
     @{ Name = 'a clang-cl that is not there is caught early'; Args = @('-d', '-x', '--clang-path', 'C:\nope\clang-cl.exe'); ExpectExit = 1
        Contains = @('No clang-cl at')
        NotContains = @('cmake -S deps') }
-    @{ Name = '--clang-path contradicting --msvc is rejected'; Args = @('-d', '-x', '--msvc', '--clang-path', 'C:\Program Files\LLVM\bin\clang-cl.exe'); ExpectExit = 1
+    @{ Name = '--clang-path contradicting --msvc is rejected'; Args = @('-d', '-x', '--msvc', '--clang-path', $llvmClang); ExpectExit = 1
        Contains = @('select different compilers') }
     @{ Name = '--clang-cl and --msvc together are rejected'; Args = @('-d', '-l', '--msvc'); ExpectExit = 1
        Contains = @('select different compilers') }
