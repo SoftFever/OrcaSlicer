@@ -603,10 +603,20 @@ if (APPLE)
         )
 endif ()
 
+# libnest2d's explicit instantiations; see deps_src/libnest2d/CMakeLists.txt.
+set(_libnest2d_cpp "${OrcaSlicer_SOURCE_DIR}/deps_src/libnest2d/src/libnest2d.cpp")
+
 add_library(libslic3r STATIC ${lisbslic3r_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
-    ${OpenVDBUtils_SOURCES})
+    ${OpenVDBUtils_SOURCES}
+    "${_libnest2d_cpp}")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})
+source_group("libnest2d" FILES "${_libnest2d_cpp}")
+# Bundled code, so silenced like the deps_src libraries. cl.exe is left at /W3: it
+# does not fail on warnings, and /W0 after the target's /W3 would trip D9025.
+if (NOT SLIC3R_BUNDLED_WARNINGS AND (NOT MSVC OR IS_CLANG_CL))
+    set_source_files_properties("${_libnest2d_cpp}" PROPERTIES COMPILE_OPTIONS -w)
+endif ()
 
 if (SLIC3R_STATIC)
     set(CGAL_Boost_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
