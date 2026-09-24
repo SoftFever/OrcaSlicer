@@ -2363,3 +2363,67 @@ TEST_CASE("has_restore_data reports no restore data for a path it cannot probe",
     CHECK(unprobeable == backup.string());   // not rewritten to the .3mf it could not confirm
 }
 #endif // _WIN32
+
+// The no-light pass must not mark the plate thumbnail as written.
+SCENARIO("a rendered no-light thumbnail does not suppress the plate thumbnail", "[3mf]")
+{
+    GIVEN("a plate whose no-light thumbnail is rendered and whose plate thumbnail is only on disk") {
+        Model model;
+        const std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl";
+        REQUIRE(load_stl(src_file.c_str(), &model));
+        model.add_default_instances();
+
+        ScopedTemporaryDir backup_dir("orca_no_light");
+        model.set_backup_path(backup_dir.string());
+
+        // Only the bytes matter: the exporter copies this file into the archive verbatim.
+        ScopedTemporaryFile png(".png");
+        const std::string  png_path = png.string();
+        const std::string  png_body = "\x89PNG\r\n\x1a\n" "plate-1-thumbnail-from-disk";
+        {
+            boost::nowide::ofstream out(png_path.c_str(), std::ios::binary);
+            out << png_body;
+        }
+        REQUIRE(boost::filesystem::exists(png_path));
+
+        PlateData plate;
+        plate.plate_index    = 0;
+        plate.thumbnail_file = png_path;
+        PlateDataPtrs plates{ &plate };
+
+        ThumbnailData plate_thumbnail;      // nothing was rendered for the plate itself
+        ThumbnailData no_light_thumbnail;
+        no_light_thumbnail.set(16, 16);
+        no_light_thumbnail.pixels.assign(16 * 16 * 4, static_cast<unsigned char>(0xff));
+        REQUIRE_FALSE(plate_thumbnail.is_valid());
+        REQUIRE(no_light_thumbnail.is_valid());
+
+        WHEN("the project is written") {
+            ScopedTemporaryFile temp(".3mf");
+            const std::string  test_file = temp.string();
+
+            DynamicPrintConfig cfg;
+            StoreParams        sp;
+            sp.path                    = test_file.c_str();
+            sp.model                   = &model;
+            sp.config                  = &cfg;
+            sp.plate_data_list         = plates;
+            sp.thumbnail_data          = { &plate_thumbnail };
+            sp.no_light_thumbnail_data = { &no_light_thumbnail };
+            sp.strategy                = SaveStrategy::Zip64 | SaveStrategy::Silence;
+            REQUIRE(store_bbs_3mf(sp));
+
+            THEN("the plate thumbnail is still copied in from disk") {
+                std::string got;
+                REQUIRE(read_cad_recipe_entry(test_file, got, "Metadata/plate_1.png"));
+                REQUIRE(got == png_body);
+            }
+
+            THEN("the rendered no-light thumbnail is written as well") {
+                std::string got;
+                REQUIRE(read_cad_recipe_entry(test_file, got, "Metadata/plate_no_light_1.png"));
+                REQUIRE_FALSE(got.empty());
+            }
+        }
+    }
+}
