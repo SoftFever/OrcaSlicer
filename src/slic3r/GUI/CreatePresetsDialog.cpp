@@ -2999,22 +2999,32 @@ bool CreatePrinterPresetDialog::data_init()
         if (m_select_model->GetSelection() != wxNOT_FOUND) target_model = into_u8(m_select_model->GetStringSelection());
     } else if (create_type == m_create_type.create_nozzle) {
         auto iter = m_printer_name_to_preset.find(into_u8(m_select_printer->GetStringSelection()));
-        if (iter != m_printer_name_to_preset.end() && iter->second) target_model = iter->second->config.opt_string("printer_model");
+        if (iter != m_printer_name_to_preset.end() && iter->second) {
+            const Preset &printer = *iter->second;
+            target_model  = printer.config.opt_string("printer_model");
+            // User printers are listed under the custom vendor on page 2.
+            target_vendor = printer.is_system && printer.vendor ? printer.vendor->id : PRESET_CUSTOM_VENDOR;
+        }
     }
     if (!target_model.empty()) {
-        // Page 1's vendor names don't always match the vendor profiles', and some model names exist under
-        // several vendors: keep page 1's vendor when its profile has the model, else find a vendor that does.
-        VendorMap  vendors;
+        // Page 1 may name a model by its short id (e.g. "MK4S" for "Prusa MK4S"), its vendor names don't
+        // always match the vendor profiles', and some model names exist under several vendors: prefer the
+        // expected vendor, fall back to any vendor with the model, and use the profile's model name.
+        VendorMap vendors;
         get_exist_vendor_choices(vendors);
-        auto has_model = [&target_model](const VendorProfile &vendor) {
-            return std::any_of(vendor.models.begin(), vendor.models.end(),
-                               [&target_model](const VendorProfile::PrinterModel &m) { return m.name == target_model; });
+        auto find_model = [&target_model](const VendorProfile &vendor) {
+            auto it = std::find_if(vendor.models.begin(), vendor.models.end(), [&target_model](const VendorProfile::PrinterModel &m) {
+                return m.name == target_model || m.id == target_model || m.model_id == target_model;
+            });
+            return it == vendor.models.end() ? nullptr : &*it;
         };
-        auto page1_vendor = vendors.find(target_vendor);
-        if (page1_vendor == vendors.end() || !has_model(page1_vendor->second)) {
-            auto match = std::find_if(vendors.begin(), vendors.end(), [&has_model](const auto &vendor) { return has_model(vendor.second); });
-            if (match != vendors.end()) target_vendor = match->first;
+        const VendorProfile::PrinterModel *model  = nullptr;
+        auto                               vendor = vendors.find(target_vendor);
+        if (vendor != vendors.end()) model = find_model(vendor->second);
+        for (vendor = vendors.begin(); !model && vendor != vendors.end(); ++vendor) {
+            if ((model = find_model(vendor->second))) target_vendor = vendor->first;
         }
+        if (model) target_model = model->name;
     }
     if (!target_vendor.empty())
         m_printer_vendor->SetStringSelection(from_u8(target_vendor));
