@@ -124,101 +124,6 @@ static const std::vector<std::string> filament_types = {"PLA",    "rPLA",  "PLA+
                                                         "PETGCF", "PTBA",  "PTBA90A",   "PEEK",  "TPU93A", "TPU75D", "TPU",       "TPU92A", "TPU98A", "Misc",
                                                         "TPE",    "GLAZE", "Nylon",     "CPE",   "METAL",  "ABST",   "Carbon Fiber", "SBS"};
 
-static const std::vector<std::string> printer_vendors = 
-    {"Anker",              "Anycubic",           "Artillery",          "Bambulab",           "BIQU",
-     "Blocks",             "Chuanying",          "Co Print",           "Comgrow",            "CONSTRUCT3D",
-     "Creality",           "DeltaMaker",         "Dremel",             "Elegoo",             "Flashforge",
-     "FLSun",              "FlyingBear",         "Folgertech",         "Geeetech",           "Ginger Additive",
-     "InfiMech",           "Kingroon",           "Lulzbot",            "MagicMaker",         "Mellow",
-     "Orca Arena Printer", "Peopoly",            "Positron 3D",        "Prusa",              "Qidi",
-     "Raise3D",            "RatRig",             "re3D",               "RolohaunDesign",     "SecKit",             
-     "Snapmaker",          "Sovol",              "Thinker X400",       "Tronxy",             "TwoTrees",           
-     "UltiMaker",          "Vivedino",           "Volumic",            "Voron",              "Voxelab",            
-     "Vzbot",              "Wanhao",             "Z-Bolt"};
-
-static const std::unordered_map<std::string, std::vector<std::string>> printer_model_map =
-    {{"Anker",             {"Anker M5",                   "Anker M5 All-Metal Hot End", "Anker M5C"}},
-     {"Anycubic",          {"Anycubic i3 Mega S",    "Anycubic Chiron",       "Anycubic Vyper",        "Anycubic Kobra",        "Anycubic Kobra Max",
-                            "Anycubic Kobra Plus",   "Anycubic 4Max Pro",     "Anycubic 4Max Pro 2",   "Anycubic Kobra 2",      "Anycubic Kobra 2 Plus",
-                            "Anycubic Kobra 2 Max",  "Anycubic Kobra 2 Pro",  "Anycubic Kobra 2 Neo",  "Anycubic Kobra 3",      "Anycubic Kobra 3 Max", "Anycubic Kobra S1", "Anycubic Predator", }},
-     {"Artillery",         {"Artillery Sidewinder X1",      "Artillery Genius",             "Artillery Genius Pro",         "Artillery Sidewinder X2",      "Artillery Hornet",
-                            "Artillery Sidewinder X3 Pro",  "Artillery Sidewinder X3 Plus", "Artillery Sidewinder X4 Pro",  "Artillery Sidewinder X4 Plus"}},
-     {"Bambulab",          {"Bambu Lab X1 Carbon", "Bambu Lab X1",        "Bambu Lab X1E",       "Bambu Lab P1P",       "Bambu Lab P1S",
-                            "Bambu Lab A1 mini",   "Bambu Lab A1"}},
-     {"BIQU",              {"BIQU B1",      "BIQU BX",      "BIQU Hurakan"}},
-     {"Blocks",            {"BLOCKS Pro S100", "BLOCKS RD50 V2",  "BLOCKS RF50"}},
-     {"Chuanying",         {"Chuanying X1"}},
-     {"Co Print",          {"Co Print ChromaSet"}},
-     {"Comgrow",           {"Comgrow T300", "Comgrow T500"}},
-     {"CONSTRUCT3D",       {"Construct 1 XL", "Construct 1"}},
-     {"Creality",          {"Creality CR-10 V2",           "Creality CR-10 Max",          "Creality CR-10 SE",           "Creality CR-6 SE",            "Creality CR-6 Max",
-                            "Creality CR-M4",              "Creality Ender-3 V2",         "Creality Ender-3 V2 Neo",     "Creality Ender-3 S1",         "Creality Ender-3",
-                            "Creality Ender-3 Pro",        "Creality Ender-3 S1 Pro",     "Creality Ender-3 S1 Plus",    "Creality Ender-3 V3 SE",      "Creality Ender-3 V3 KE",
-                            "Creality Ender-3 V3",         "Creality Ender-3 V3 Plus",    "Creality Ender-5",            "Creality Ender-5 Max",        "Creality Ender-5 Plus",
-                            "Creality Ender-5 Pro (2019)", "Creality Ender-5S",           "Creality Ender-5 S1",         "Creality Ender-6",            "Creality Sermoon V1",
-                            "Creality K1",                 "Creality K1C",                "Creality K1 Max",             "Creality K1 SE",              "Creality K2 Plus",
-                            "Creality Hi"}},
-     {"DeltaMaker",        {"DeltaMaker 2",   "DeltaMaker 2T",  "DeltaMaker 2XT"}},
-     {"Dremel",            {"Dremel 3D20", "Dremel 3D40", "Dremel 3D45"}},
-     {"Elegoo",            {"Elegoo Centauri Carbon 2", "Elegoo Centauri Carbon",  "Elegoo Centauri",         "Elegoo Neptune",          "Elegoo Neptune X",        "Elegoo Neptune 2",
-                            "Elegoo Neptune 2S",       "Elegoo Neptune 2D",       "Elegoo Neptune 3",        "Elegoo Neptune 3 Pro",    "Elegoo Neptune 3 Plus",
-                            "Elegoo Neptune 3 Max",    "Elegoo Neptune 4 Pro",    "Elegoo Neptune 4",        "Elegoo Neptune 4 Max",    "Elegoo Neptune 4 Plus",
-                            "Elegoo OrangeStorm Giga"}},
-     {"Flashforge",        {"Flashforge Adventurer 5M",       "Flashforge Adventurer 5M Pro",   "Flashforge AD5X",                "Flashforge Adventurer 3 Series", "Flashforge Adventurer 4 Series",
-                            "Flashforge Guider 3 Ultra",      "Flashforge Guider 2s", "Flashforge Artemis"}},
-     {"FLSun",             {"FLSun Q5",               "FLSun QQ-S Pro",         "FLSun Super Racer (SR)", "FLSun V400",             "FLSun T1",
-                            "FLSun S1"}},
-     {"FlyingBear",        {"FlyingBear Reborn3", "FlyingBear S1",      "FlyingBear Ghost 6"}},
-     {"Folgertech",        {"Folgertech i3",   "Folgertech FT-5", "Folgertech FT-6"}},
-     {"Geeetech",          {"Geeetech Thunder",   "Geeetech Mizar M",   "Geeetech Mizar S",   "Geeetech Mizar Pro", "Geeetech Mizar Max",
-                            "Geeetech Mizar",     "Geeetech A10 Pro",   "Geeetech A10 M",     "Geeetech A10 T",     "Geeetech A20",
-                            "Geeetech A20 M",     "Geeetech A20 T",     "Geeetech A30 Pro",   "Geeetech A30 M",     "Geeetech A30 T",
-                            "Geeetech M1"}},
-     {"Ginger Additive",   {"ginger G1"}},
-     {"InfiMech",          {"InfiMech TX",                       "InfiMech TX Hardened Steel Nozzle"}},
-     {"Kingroon",          {"Kingroon KP3S PRO S1", "Kingroon KP3S PRO V2", "Kingroon KP3S 3.0",    "Kingroon KP3S V1",     "Kingroon KLP1"}},
-     {"Lulzbot",           {"Lulzbot Taz 6",        "Lulzbot Taz 4 or 5",   "Lulzbot Taz Pro Dual", "Lulzbot Taz Pro S"}},
-     {"MagicMaker",        {"MM hqs hj",   "MM hqs SF",   "MM hj SK",    "MM BoneKing", "MM slb"}},
-     {"Mellow",            {"M1"}},
-     {"Orca Arena Printer",{"Orca Arena X1 Carbon"}},
-     {"Peopoly",           {"Peopoly Magneto X"}},
-     {"Positron 3D",       {"The Positron"}},
-     {"Prusa",             {"Prusa CORE One", "Prusa CORE One HF", "Prusa CORE One L", "Prusa CORE One L HF", "MK4IS", "MK4S", "MK4S HF",
-                            "Prusa XL", "Prusa XL 5T", "MK3.5", "MK3S", "MINI", "MINIIS"}},
-     {"Qidi",              {"Qidi X-Plus 4",  "Qidi Q1 Pro",    "Qidi X-Max 3",   "Qidi X-Plus 3",  "Qidi X-Smart 3",
-                            "Qidi X-Plus",    "Qidi X-Max",     "Qidi X-CF Pro"}},
-     {"Raise3D",           {"Raise3D Pro3",      "Raise3D Pro3 Plus"}},
-     {"RatRig",            {"RatRig V-Core 3 200",                  "RatRig V-Core 3 300",                  "RatRig V-Core 3 400",                  "RatRig V-Core 3 500",                  "RatRig V-Minion",
-                            "RatRig V-Cast",                        "RatRig V-Core 4 300",                  "RatRig V-Core 4 400",                  "RatRig V-Core 4 500",                  "RatRig V-Core 4 HYBRID 300",
-                            "RatRig V-Core 4 HYBRID 400",           "RatRig V-Core 4 HYBRID 500",           "RatRig V-Core 4 IDEX 300",             "RatRig V-Core 4 IDEX 300 COPY MODE",   "RatRig V-Core 4 IDEX 300 MIRROR MODE",
-                            "RatRig V-Core 4 IDEX 400",             "RatRig V-Core 4 IDEX 400 COPY MODE",   "RatRig V-Core 4 IDEX 400 MIRROR MODE", "RatRig V-Core 4 IDEX 500",             "RatRig V-Core 4 IDEX 500 COPY MODE",
-                            "RatRig V-Core 4 IDEX 500 MIRROR MODE"}},
-     {"re3D",              {"re3D Gigabot 4",                       "re3D Gigabot 4 XLT",                   "re3D Terabot 4",
-                            "re3D GigabotX 2",                      "re3D GigabotX 2 XLT",                  "re3D TerabotX 2"}},
-     {"RolohaunDesign",    {"Rook MK1 LDO"}},
-     {"SecKit",            {"SecKit SK-Tank", "Seckit Go3"}},
-     {"Snapmaker",         {"Snapmaker J1",                 "Snapmaker A250",               "Snapmaker A350",               "Snapmaker A250 Dual",          "Snapmaker A350 Dual",
-                            "Snapmaker A250 QSKit",         "Snapmaker A350 QSKit",         "Snapmaker A250 BKit",          "Snapmaker A350 BKit",          "Snapmaker A250 QS+B Kit",
-                            "Snapmaker A350 QS+B Kit",      "Snapmaker A250 Dual QSKit",    "Snapmaker A350 Dual QSKit",    "Snapmaker A250 Dual BKit",     "Snapmaker A350 Dual BKit",
-                            "Snapmaker A250 Dual QS+B Kit", "Snapmaker A350 Dual QS+B Kit", "Snapmaker Artisan"}},
-     {"Sovol",             {"Sovol SV01 Pro",      "Sovol SV02",          "Sovol SV05",          "Sovol SV06",          "Sovol SV06 Plus",
-                            "Sovol SV06 ACE",      "Sovol SV06 Plus ACE", "Sovol SV07",          "Sovol SV07 Plus",     "Sovol SV08"}},
-     {"Thinker X400",      {"Thinker X400"}},
-     {"Tronxy",            {"Tronxy X5SA 400 Marlin Firmware"}},
-     {"TwoTrees",          {"TwoTrees SP-5 Klipper", "TwoTrees SK1"}},
-     {"UltiMaker",         {"UltiMaker 2"}},
-     {"Vivedino",          {"Troodon 2.0 - RRF",     "Troodon 2.0 - Klipper"}},
-     {"Volumic",           {"EXO42 Performance", "EXO65 Performance", "SH65 Performance",  "EXO42",             "EXO65",           
-                            "SH65",              "VS30SC2",           "VS30SC",            "VS30ULTRA",         "VS30MK3",         
-                            "VS30MK2",           "VS20MK2"}},
-     {"Voron",             {"Voron 2.4 250",        "Voron 2.4 300",        "Voron 2.4 350",        "Voron Trident 250",    "Voron Trident 300",
-                            "Voron Trident 350",    "Voron 0.1",            "Voron Switchwire 250"}},
-     {"Voxelab",           {"Voxelab Aquila X2"}},
-     {"Vzbot",             {"Vzbot 235 AWD", "Vzbot 330 AWD"}},
-     {"Wanhao",            {"Wanhao D12-300"}},
-     {"Z-Bolt",            {"Z-Bolt S300",      "Z-Bolt S300 Dual", "Z-Bolt S400",      "Z-Bolt S400 Dual", "Z-Bolt S600",
-                            "Z-Bolt S600 Dual"}}};
-
 static std::vector<std::string>               nozzle_diameter_vec = {"0.4", "0.15", "0.2", "0.25", "0.3", "0.35", "0.5", "0.6", "0.75", "0.8", "1.0", "1.2", "1.75"};
 static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.15", 0.15}, {"0.2", 0.2},   {"0.25", 0.25}, {"0.3", 0.3},
                                                                      {"0.35", 0.35}, {"0.4", 0.4},   {"0.5", 0.5},   {"0.6", 0.6},
@@ -391,19 +296,19 @@ static wxBoxSizer *create_checkbox(wxWindow *parent, wxString &preset_name, std:
     return sizer;
 }
 
-static wxArrayString get_exist_vendor_choices(VendorMap& vendors)
+static wxArrayString get_exist_vendor_choices(VendorMap& vendors, bool include_user_models = true)
 {
     wxArrayString choices;
     PresetBundle  temp_preset_bundle;
     temp_preset_bundle.load_system_models_from_json(ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
-    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-
-    VendorProfile users_models  = preset_bundle->get_custom_vendor_models();
 
     vendors = temp_preset_bundle.vendors;
 
-    if (!users_models.models.empty()) {
-        vendors[users_models.name] = users_models;
+    if (include_user_models) {
+        VendorProfile users_models = wxGetApp().preset_bundle->get_custom_vendor_models();
+        if (!users_models.models.empty()) {
+            vendors[users_models.name] = users_models;
+        }
     }
 
     for (const auto& vendor : vendors) {
@@ -1795,22 +1700,21 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_select_vendor            = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
     m_select_vendor->SetValue(_L("Select Vendor"));
     m_select_vendor->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
-    wxArrayString printer_vendor;
-    for (const std::string &vendor : printer_vendors) {
-        assert(printer_model_map.find(vendor) != printer_model_map.end());
-        printer_vendor.Add(vendor);
-    }
+    // List the installed vendor profiles, the same source page 2 uses. The user's own printer models are
+    // left out: they would replace the system "Custom" vendor's generic printers (both are keyed
+    // PRESET_CUSTOM_VENDOR), and picking one would name the new printer "Custom <existing user model>".
+    // Extending an existing printer is what "Create Nozzle" is for, and a custom vendor/model can be typed in.
+    wxArrayString printer_vendor = get_exist_vendor_choices(m_page1_vendors, false);
     m_select_vendor->Set(printer_vendor);
     m_select_vendor->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent e) {
         m_select_vendor->SetLabelColor(*wxBLACK);
         std::string curr_selected_vendor = into_u8(m_select_vendor->GetStringSelection());
-        std::unordered_map<std::string,std::vector<std::string>>::const_iterator iter  = printer_model_map.find(curr_selected_vendor);
-        if (iter != printer_model_map.end())
+        auto        iter                 = m_page1_vendors.find(curr_selected_vendor);
+        if (iter != m_page1_vendors.end())
         {
-            std::vector<std::string> vendor_model = iter->second;
-            wxArrayString            model_choice;
-            for (const std::string &model : vendor_model) {
-                model_choice.Add(model);
+            wxArrayString model_choice;
+            for (const VendorProfile::PrinterModel &model : iter->second.models) {
+                model_choice.Add(from_u8(model.name));
             }
             m_select_model->Set(model_choice);
             if (!model_choice.empty()) {
@@ -3007,9 +2911,9 @@ bool CreatePrinterPresetDialog::data_init()
         }
     }
     if (!target_model.empty()) {
-        // Page 1 may name a model by its short id (e.g. "MK4S" for "Prusa MK4S"), its vendor names don't
-        // always match the vendor profiles', and some model names exist under several vendors: prefer the
-        // expected vendor, fall back to any vendor with the model, and use the profile's model name.
+        // A printer's printer_model may not be listed under its own vendor, or may give the model's id rather
+        // than its name, and some model names exist under several vendors: prefer the expected vendor, fall
+        // back to any vendor with the model, and use the profile's model name.
         VendorMap vendors;
         get_exist_vendor_choices(vendors);
         auto find_model = [&target_model](const VendorProfile &vendor) {

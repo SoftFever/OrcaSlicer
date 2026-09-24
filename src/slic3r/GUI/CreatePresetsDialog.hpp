@@ -196,6 +196,7 @@ private:
     wxBoxSizer *                                       m_scrooled_preset_sizer          = nullptr;
     ComboBox *                                         m_select_vendor                  = nullptr;
     ComboBox *                                         m_select_model                   = nullptr;
+    VendorMap                                          m_page1_vendors;
     ComboBox *                                         m_select_printer                 = nullptr;
     ::CheckBox *                                       m_can_not_find_vendor_combox     = nullptr;
     ::CheckBox *                                       m_can_not_find_nozzle_checkbox   = nullptr;
