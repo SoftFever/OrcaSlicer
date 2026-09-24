@@ -3002,15 +3002,18 @@ bool CreatePrinterPresetDialog::data_init()
         if (iter != m_printer_name_to_preset.end() && iter->second) target_model = iter->second->config.opt_string("printer_model");
     }
     if (!target_model.empty()) {
-        // Page 1's vendor names don't always match the vendor profiles', so resolve the vendor from the model.
-        VendorMap vendors;
+        // Page 1's vendor names don't always match the vendor profiles', and some model names exist under
+        // several vendors: keep page 1's vendor when its profile has the model, else find a vendor that does.
+        VendorMap  vendors;
         get_exist_vendor_choices(vendors);
-        for (const auto &vendor : vendors) {
-            auto &models = vendor.second.models;
-            if (std::any_of(models.begin(), models.end(), [&target_model](const VendorProfile::PrinterModel &m) { return m.name == target_model; })) {
-                target_vendor = vendor.first;
-                break;
-            }
+        auto has_model = [&target_model](const VendorProfile &vendor) {
+            return std::any_of(vendor.models.begin(), vendor.models.end(),
+                               [&target_model](const VendorProfile::PrinterModel &m) { return m.name == target_model; });
+        };
+        auto page1_vendor = vendors.find(target_vendor);
+        if (page1_vendor == vendors.end() || !has_model(page1_vendor->second)) {
+            auto match = std::find_if(vendors.begin(), vendors.end(), [&has_model](const auto &vendor) { return has_model(vendor.second); });
+            if (match != vendors.end()) target_vendor = match->first;
         }
     }
     if (!target_vendor.empty())
@@ -3100,10 +3103,9 @@ void CreatePrinterPresetDialog::on_select_printer_model(wxCommandEvent &e)
         return;
     }
 
-    std::string nozzle_type = into_u8(m_nozzle_diameter->GetStringSelection());
-    size_t      index_mm    = nozzle_type.find(" mm");
-    if (std::string::npos != index_mm) { nozzle_type = nozzle_type.substr(0, index_mm); }
-    float nozzle = nozzle_diameter_map[nozzle_type];
+    // Honor a custom nozzle diameter ("Can't find my nozzle diameter") when sorting the models.
+    std::string nozzle_type = get_nozzle_diameter();
+    float       nozzle      = my_stof(nozzle_type);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " entry and nozzle type is: " << nozzle_type << " and nozzle is: " << nozzle;
 
     wxArrayString printer_preset_model = printer_preset_sort_with_nozzle_diameter(m_printer_preset_vendor_selected, nozzle);
