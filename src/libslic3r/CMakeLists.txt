@@ -109,6 +109,8 @@ set(lisbslic3r_sources
     ClipperZUtils.hpp
     Color.cpp
     Color.hpp
+    ColorSpaceConvert.cpp
+    ColorSpaceConvert.hpp
     CommonDefs.hpp
     Config.cpp
     Config.hpp
@@ -369,6 +371,7 @@ set(lisbslic3r_sources
     MutablePolygon.cpp
     MutablePolygon.hpp
     MutablePriorityQueue.hpp
+    NanoSVG.cpp
     NormalUtils.cpp
     NormalUtils.hpp
     NSVGUtils.cpp
