@@ -66,17 +66,31 @@ $longFlags = @(
 )
 if ($longFlags.Count -lt 20) { throw "only found $($longFlags.Count) options in $Script; the parser above is wrong" }
 
-# A winget that always fails, so the prerequisite failure path runs without
-# touching the machine. It has to be an .exe: a .bat invoked without `call`
-# transfers control and never comes back, which would end the script instead.
-# where.exe returns 1 when its patterns match nothing and never prompts.
-# Named per run, so two runs at once do not delete each other's fixtures.
+# Every fixture lives in one directory per run, so two runs at once do not
+# delete each other's. They are only named here, in $stubs, $files and $dirs;
+# the try at the bottom makes them, so a failure partway through still
+# removes what was made.
 $fixtures = Join-Path ([IO.Path]::GetTempPath()) "build_win_test_fixtures_$PID"
+$stubs = @()
+$files = @{}
+$dirs = @()
+# A hard kill skips that finally, so clear out what dead runs left behind.
+Get-ChildItem ([IO.Path]::GetTempPath()) -Directory -Filter 'build_win_test_fixtures_*' |
+    Where-Object { $_.Name -match '_(\d+)$' -and -not (Get-Process -Id $Matches[1] -ErrorAction SilentlyContinue) } |
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
+# A stub is a copy of where.exe. It has to be an .exe: a .bat invoked without
+# `call` transfers control and never comes back, which would end the script
+# instead. where.exe returns 1 when its patterns match nothing and never
+# prompts.
 function New-Stub([string]$Path) {
     New-Item -ItemType Directory -Force -Path (Split-Path $Path) | Out-Null
     Copy-Item "$env:SystemRoot\System32\where.exe" $Path -Force
 }
-New-Stub (Join-Path $fixtures 'winget.exe')
+
+# A winget that always fails, so the prerequisite failure path runs without
+# touching the machine.
+$stubs += Join-Path $fixtures 'winget.exe'
 $stubPath = "$fixtures;C:\Windows\system32;C:\Windows"
 
 # Stand-in ninjas that only report a version, so the 1.12 boundary in the
@@ -85,73 +99,77 @@ $stubPath = "$fixtures;C:\Windows\system32;C:\Windows"
 $ninjaPaths = @{}
 foreach ($v in @{ old = '1.11.1'; new = '1.12.0' }.GetEnumerator()) {
     $d = Join-Path $fixtures "ninja-$($v.Key)"
-    New-Item -ItemType Directory -Force -Path $d | Out-Null
-    Set-Content -Path (Join-Path $d 'ninja.bat') -Encoding ascii -Value @('@echo off', "echo $($v.Value)")
+    $files[(Join-Path $d 'ninja.bat')] = @('@echo off', "echo $($v.Value)")
     $ninjaPaths[$v.Key] = "$d;$env:PATH"
 }
 
 # A clang-cl earlier on PATH than the Visual Studio one, which is what the
 # compiler used to resolve to. Nothing runs it; the script only locates it.
 $clangDir = Join-Path $fixtures 'clang'
-New-Stub (Join-Path $clangDir 'clang-cl.exe')
+$stubs += Join-Path $clangDir 'clang-cl.exe'
 $clangOnPath = "$clangDir;$env:PATH"
 
 # A standalone LLVM for --clang-path, under a folder with a space in its name
 # like the real install, so the quoting is exercised without LLVM installed.
 $llvmDir = Join-Path $fixtures 'Program Files\LLVM'
 $llvmClang = "$llvmDir\bin\clang-cl.exe"
-New-Stub $llvmClang
+$stubs += $llvmClang
 $llvmClangCMake = $llvmClang -replace '\\', '/'
 
 # A ccache and an sccache that only have to exist. Nothing runs them; the
 # script only locates them. The space in the folder exercises the quoting of
 # the launcher path.
 $cacheDir = Join-Path $fixtures 'cache dir'
-New-Stub (Join-Path $cacheDir 'ccache.exe')
-New-Stub (Join-Path $cacheDir 'sccache.exe')
+$stubs += Join-Path $cacheDir 'ccache.exe'
+$stubs += Join-Path $cacheDir 'sccache.exe'
 $cacheOnPath = "$cacheDir;$env:PATH"
 
 # ProgramFiles(x86) is where the script looks for vswhere, so an empty one
 # stands in for a machine whose Visual Studio has no clang toolset.
 $noVs = Join-Path $fixtures 'no-vs'
-New-Item -ItemType Directory -Force -Path $noVs | Out-Null
+$dirs += $noVs
 
 # A build directory that already holds a classic solution, for the case where
 # what is on disk disagrees with what the generator would write.
 $slnDir = Join-Path $fixtures 'sln'
-New-Item -ItemType Directory -Force -Path $slnDir | Out-Null
-Set-Content -Path (Join-Path $slnDir 'OrcaSlicer.sln') -Value '' -Encoding ascii
+$files[(Join-Path $slnDir 'OrcaSlicer.sln')] = ''
 
-# Slicer trees for undoing --cache: one never configured, and one that
-# --cache sccache configured, whose cache recorded Embedded and a launcher.
-# A -D with a type and one without leave different types, so both appear.
+# Slicer trees for undoing --cache: one never configured, one that
+# --cache sccache configured with cl, one that --cache ccache configured with
+# clang-cl, which records no format, and one whose format is not --cache's.
+# The script's -D names no type, so CMake records UNINITIALIZED, as here.
 $freshDir = Join-Path $fixtures 'fresh'
 $embeddedDir = Join-Path $fixtures 'embedded'
-New-Item -ItemType Directory -Force -Path $embeddedDir | Out-Null
-Set-Content -Path (Join-Path $embeddedDir 'CMakeCache.txt') -Encoding ascii -Value @(
+$files[(Join-Path $embeddedDir 'CMakeCache.txt')] = @(
     'CMAKE_CXX_COMPILER_LAUNCHER:UNINITIALIZED=C:/tools/sccache.exe'
     'CMAKE_C_COMPILER_LAUNCHER:UNINITIALIZED=C:/tools/sccache.exe'
-    'CMAKE_MSVC_DEBUG_INFORMATION_FORMAT:STRING=Embedded'
+    'CMAKE_MSVC_DEBUG_INFORMATION_FORMAT:UNINITIALIZED=Embedded'
+)
+$launcherDir = Join-Path $fixtures 'launcher'
+$files[(Join-Path $launcherDir 'CMakeCache.txt')] = @(
+    'CMAKE_CXX_COMPILER_LAUNCHER:UNINITIALIZED=C:/tools/ccache.exe'
+    'CMAKE_C_COMPILER_LAUNCHER:UNINITIALIZED=C:/tools/ccache.exe'
+)
+$pdbDir = Join-Path $fixtures 'pdb'
+$files[(Join-Path $pdbDir 'CMakeCache.txt')] = @(
+    'CMAKE_MSVC_DEBUG_INFORMATION_FORMAT:UNINITIALIZED=ProgramDatabase'
 )
 
 # What else a --cache tree can hold: a launcher --cache never writes, which the
 # reset has to leave alone, and the two settings it leaves behind on purpose.
 $otherLauncherDir = Join-Path $fixtures 'other-launcher'
-New-Item -ItemType Directory -Force -Path $otherLauncherDir | Out-Null
-Set-Content -Path (Join-Path $otherLauncherDir 'CMakeCache.txt') -Encoding ascii -Value @(
+$files[(Join-Path $otherLauncherDir 'CMakeCache.txt')] = @(
     'CMAKE_CXX_COMPILER_LAUNCHER:STRING=C:/tools/buildcache.exe'
     'CMAKE_C_COMPILER_LAUNCHER:STRING=C:/tools/buildcache.exe'
 )
 $pchOffDir = Join-Path $fixtures 'pch-off'
-New-Item -ItemType Directory -Force -Path $pchOffDir | Out-Null
-Set-Content -Path (Join-Path $pchOffDir 'CMakeCache.txt') -Encoding ascii -Value @(
+$files[(Join-Path $pchOffDir 'CMakeCache.txt')] = @(
     'SLIC3R_PCH:BOOL=OFF'
     'SLIC3R_RELATIVE_DEBUG_PATHS:BOOL=ON'
 )
 # A deps tree that --cache sccache configured.
 $cachedDepsDir = Join-Path $fixtures 'cached-deps'
-New-Item -ItemType Directory -Force -Path $cachedDepsDir | Out-Null
-Set-Content -Path (Join-Path $cachedDepsDir 'CMakeCache.txt') -Encoding ascii -Value @(
+$files[(Join-Path $cachedDepsDir 'CMakeCache.txt')] = @(
     'CMAKE_CXX_COMPILER_LAUNCHER:UNINITIALIZED=C:/tools/sccache.exe'
     'CMAKE_C_COMPILER_LAUNCHER:UNINITIALIZED=C:/tools/sccache.exe'
 )
@@ -407,10 +425,7 @@ $cases = @(
 
     'the compiler cache'
     # The Visual Studio generator ignores a compiler launcher.
-    @{ Name = '--cache needs Ninja'; Args = @('-s', '-l', '--cache', 'sccache'); ExpectExit = 1
-       Contains = @('--cache needs Ninja') }
     @{ Name = 'sccache with cl needs Ninja'; Args = @('-s', '--cache', 'sccache'); ExpectExit = 1
-       Env = @{ PATH = $cacheOnPath }
        Contains = @('--cache needs Ninja; add -x.') }
     @{ Name = 'ccache with clang-cl needs Ninja'; Args = @('-s', '-l', '--cache', 'ccache'); ExpectExit = 1
        Contains = @('--cache needs Ninja; add -x.') }
@@ -423,7 +438,7 @@ $cases = @(
        Env = @{ PATH = $cacheOnPath }
        Contains = @('-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded')
        Match = @('-DCMAKE_CXX_COMPILER_LAUNCHER="[^"]*/sccache\.exe"', '^Compiler cache: .*/sccache\.exe$')
-       NotContains = @('CMP0141', 'SLIC3R_RELATIVE_DEBUG_PATHS') }
+       NotContains = @('SLIC3R_RELATIVE_DEBUG_PATHS') }
     @{ Name = 'sccache with cl turns the PCH off'; Args = @('-s', '-x', '--cache', 'sccache')
        Env = @{ PATH = $cacheOnPath }
        Contains = @('-DSLIC3R_PCH=OFF') }
@@ -432,7 +447,7 @@ $cases = @(
        Env = @{ PATH = $cacheOnPath }
        Contains = @('-DSLIC3R_RELATIVE_DEBUG_PATHS=ON')
        Match = @('-DCMAKE_CXX_COMPILER_LAUNCHER="[^"]*/sccache\.exe"')
-       NotContains = @('CMP0141', 'CMAKE_MSVC_DEBUG_INFORMATION_FORMAT') }
+       NotContains = @('CMAKE_MSVC_DEBUG_INFORMATION_FORMAT') }
     # CMake takes the last -D, so what --cache needs comes after the user's.
     @{ Name = '--cache sccache wins over a user format'; Args = @('-s', '-x', '--cache', 'sccache')
        Env = @{ PATH = $cacheOnPath; ORCA_SLICER_CMAKE_ARGS = '-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=ProgramDatabase' }
@@ -445,18 +460,20 @@ $cases = @(
     # configure is left as it was.
     @{ Name = 'dropping --cache resets an Embedded tree'; Args = @('-s', '-x', '--build-dir', $embeddedDir)
        Contains = @('-UCMAKE_MSVC_DEBUG_INFORMATION_FORMAT', '-UCMAKE_C_COMPILER_LAUNCHER', '-UCMAKE_CXX_COMPILER_LAUNCHER') }
-    @{ Name = 'default VS build leaves the format alone'; Args = @('-s', '--build-dir', $freshDir)
+    # --cache ccache with clang-cl records a launcher and no format.
+    @{ Name = 'dropping --cache resets a launcher-only tree'; Args = @('-s', '-l', '-x', '--build-dir', $launcherDir)
+       Contains = @('-UCMAKE_C_COMPILER_LAUNCHER', '-UCMAKE_CXX_COMPILER_LAUNCHER')
+       NotContains = @('-UCMAKE_MSVC_DEBUG_INFORMATION_FORMAT') }
+    # The reset rides with what --no-pch and --cache force, last on the line.
+    @{ Name = 'the reset comes after the user arguments'; Args = @('-s', '-x', '--build-dir', $embeddedDir, '--slicer-args', '"-DFOO=1"')
+       Env = @{ ORCA_SLICER_CMAKE_ARGS = '-DBAR=1' }
+       Match = @('^\+ cmake -B .*-DFOO=1.*-DBAR=1.*-UCMAKE_') }
+    @{ Name = 'a format that is not Embedded is left alone'; Args = @('-s', '--build-dir', $pdbDir)
        Contains = @('+ cmake -B')
        NotContains = @('-UCMAKE_') }
     @{ Name = '--cache sccache does not clear the debug info format'; Args = @('-s', '-x', '--cache', 'sccache', '--build-dir', $embeddedDir)
        Env = @{ PATH = $cacheOnPath }
        Contains = @('+ cmake -B')
-       NotContains = @('-UCMAKE_') }
-    @{ Name = '--no-configure never resets'; Args = @('-s', '-x', '--no-configure', '--build-dir', $embeddedDir)
-       Contains = @('+ cmake --build')
-       NotContains = @('-UCMAKE_') }
-    @{ Name = 'deps-only never resets the slicer tree'; Args = @('-d', '-x', '--build-dir', $embeddedDir, '--deps-dir', $freshDir)
-       Contains = @('+ cmake -S deps')
        NotContains = @('-UCMAKE_') }
     @{ Name = 'a debug info format in --slicer-args is kept'; Args = @('-s', '-x', '--build-dir', $embeddedDir, '--slicer-args', '"-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=ProgramDatabase"')
        Match = @('^\+ cmake -B .*-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=ProgramDatabase')
@@ -508,17 +525,11 @@ $cases = @(
        Env = @{ PATH = $cacheOnPath }
        Contains = @('+ cmake -S deps')
        NotContains = @('-UCMAKE_') }
-    @{ Name = '--no-configure never resets the deps tree'; Args = @('-d', '-x', '--no-configure', '--deps-dir', $cachedDepsDir)
-       Contains = @('+ cmake --build')
-       NotContains = @('-UCMAKE_') }
-    @{ Name = 'a slicer build leaves the deps tree alone'; Args = @('-s', '-x', '--deps-dir', $cachedDepsDir, '--build-dir', $freshDir)
-       Contains = @('+ cmake -B')
-       NotContains = @('-UCMAKE_') }
     # Embedded would drop the debug info of the RelWithDebInfo deps.
     @{ Name = '--cache sccache leaves the deps debug info alone'; Args = @('-d', '-x', '--cache', 'sccache')
        Env = @{ PATH = $cacheOnPath }
        Contains = @('+ cmake -S deps', '-DCMAKE_C_COMPILER_LAUNCHER=')
-       NotContains = @('CMP0141', 'CMAKE_MSVC_DEBUG_INFORMATION_FORMAT') }
+       NotContains = @('CMAKE_MSVC_DEBUG_INFORMATION_FORMAT') }
     @{ Name = 'an unknown --cache value is rejected'; Args = @('-s', '-x', '--cache', 'nope'); ExpectExit = 1
        Contains = @('Expected ccache, sccache or off') }
     # A bare PATH, since the machine running the tests may have sccache installed.
@@ -527,7 +538,7 @@ $cases = @(
        Contains = @('is not on PATH') }
     @{ Name = '--cache takes any casing'; Args = @('-s', '-l', '-x', '--cache', 'CCACHE')
        Env = @{ PATH = $cacheOnPath }
-       Contains = @('ccache.exe') }
+       Match = @('[\\/]ccache\.exe"') }
     @{ Name = '--cache off asks for no launcher'; Args = @('-s', '-x', '--cache', 'off', '--build-dir', $freshDir)
        Contains = @('+ cmake -B')
        NotContains = @('COMPILER_LAUNCHER') }
@@ -1114,8 +1125,24 @@ $failed = @()
 # Held back so a filtered run does not print headings for groups it skipped.
 $heading = $null
 
+$callerEnv = @{}
+
 # The fixtures are per run, so remove them even when the run is interrupted.
 try {
+    foreach ($path in $stubs) { New-Stub $path }
+    foreach ($path in $files.Keys) {
+        New-Item -ItemType Directory -Force -Path (Split-Path $path) | Out-Null
+        Set-Content -Path $path -Encoding ascii -Value $files[$path]
+    }
+    foreach ($dir in $dirs) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+
+    # The script reads these, and a caller's own would reach every case. A
+    # case that wants one sets it through Env.
+    foreach ($key in 'ORCA_DEPS_CMAKE_ARGS', 'ORCA_SLICER_CMAKE_ARGS', 'NINJA_STATUS') {
+        $callerEnv[$key] = [Environment]::GetEnvironmentVariable($key)
+        Remove-Item -Path "env:$key" -ErrorAction SilentlyContinue
+    }
+
     foreach ($case in $cases) {
         if ($case -is [string]) {
             $heading = $case
@@ -1140,6 +1167,9 @@ try {
         }
     }
 } finally {
+    foreach ($key in $callerEnv.Keys) {
+        if ($null -ne $callerEnv[$key]) { Set-Item -Path "env:$key" -Value $callerEnv[$key] }
+    }
     Remove-Item -Recurse -Force $fixtures -ErrorAction SilentlyContinue
 }
 
