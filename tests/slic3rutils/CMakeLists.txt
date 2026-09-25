@@ -6,6 +6,7 @@ add_executable(${_TEST_NAME}_tests
     test_creality_cfs_match.cpp
     test_dev_mapping.cpp
     test_dev_fila_system.cpp
+    test_ams_item_info.cpp
     test_device_access.cpp
     test_moonraker_printer_agent.cpp
     test_network_discovery.cpp
