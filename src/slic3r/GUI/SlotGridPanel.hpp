@@ -43,7 +43,8 @@ struct SlotGridSlot
     wxString type;                   // material type line
     wxString tooltip;                // hover text (preset, vendor, slot name, unit, extruder)
     wxString name;                   // the printer's own slot name
-    wxString unit;                   // changer unit; "" = no unit (Direct)
+    wxString unit;                   // changer unit, by stable id; "" = no unit (Direct)
+    wxString unit_label;             // the unit box's title; the id when the unit has no name
     int      slot         = 0;       // position within the unit
     int      extruder     = -1;      // 0-based extruder it feeds; -1 = unknown
     int      virtual_tool = -1;      // the T<n> the printer maps it to now; -1 = unknown

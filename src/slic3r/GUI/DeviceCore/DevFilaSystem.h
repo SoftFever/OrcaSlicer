@@ -59,7 +59,8 @@ public:
     std::string              id;
     std::string              tag_uid;             // tag_uid
     std::string              slot_name;           // Orca: the printer's own slot name (AFC lane key), "" = none
-    std::string              unit;                // Orca: changer unit the slot sits in, "" = flat
+    std::string              unit;                // Orca: changer unit the slot sits in (stable id), "" = flat
+    std::string              unit_label;          // Orca: the unit's display name
     std::string              head;                // Orca: Klipper extruder the slot feeds (display name), "" = unknown
     int                      slot = 0;            // Orca: position within its unit
     int                      extruder = -1;       // Orca: 0-based extruder it feeds, -1 = unknown

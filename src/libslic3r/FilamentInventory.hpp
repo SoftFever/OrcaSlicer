@@ -17,7 +17,8 @@ struct PhysicalFilament
     std::string preset;          // exact filament preset name (may be empty = profile unknown)
     enum class Kind { Manual, Mmu } kind = Kind::Manual; // Mmu reserved for future AMS-style slots
     std::string name;            // the printer's own slot name ("lane1", "openace_tool_3"); empty = none
-    std::string unit;            // changer unit the slot sits in ("ace0"); empty = flat / unknown
+    std::string unit;            // changer unit the slot sits in, by stable id ("ace0"); empty = flat / unknown
+    std::string unit_label;      // the unit's display name; the dialogs title the unit's box with it
     std::string head;            // display name of the extruder it feeds ("extruder1"); empty = unknown
     int         slot = 0;        // position within its unit, 0-based
     int         extruder = -1;   // 0-based physical extruder it feeds; -1 = unknown

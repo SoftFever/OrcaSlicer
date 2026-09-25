@@ -37,7 +37,8 @@ struct MoonrakerAmsTrayData {
                                      // authoritative and excluded from filament pushes.
     std::string slot_name;           // The printer's own name for the slot (AFC lane key such
                                      // as "lane1" / "e1"); empty when the changer has none.
-    std::string unit;                // Changer unit the slot sits in (openACE unit_name, AFC unit); "" = flat.
+    std::string unit;                // Changer unit the slot sits in, by stable id ("ace0", "Turtle_1"); "" = flat.
+    std::string unit_label;          // The unit's display name (openACE unit_name), the id when it has none.
     std::string head;                // Klipper extruder the slot feeds ("extruder1"); "" = unknown.
     int         slot = 0;            // Position within its unit.
     int         extruder = -1;       // 0-based extruder it feeds; -1 = unknown.
@@ -75,11 +76,11 @@ std::string openace_mapping_start_script(const std::string& filename, const std:
 // object: the highest T<n> + 1. The highest, not the count -- a Klipper toolchanger registers
 // its physical T0..T3 without help text, so they are absent from the listing. 0 = none found.
 int tool_count_from_gcode_help(const nlohmann::json& help);
-// Where a slot sits and what it feeds, from the lane's own record: openACE's lane_data entry
-// carries all of it (unit_name, slot, extruder, map); AFC's lane_data only the extruder index,
-// so its AFC_stepper status object (unit, lane, extruder, map) is read with the same function.
-// Missing fields leave the defaults (-1 / "" / 0).
-int  virtual_tool_from_map(const std::string& map);     // "T3" -> 3, else -1
+// Where a slot sits and what it feeds, from the lane's own record, in AFC's schema: "lane" (the
+// index, which is the lane's virtual tool), "unit", "extruder" / "extruder_index", and "slot"
+// once a changer publishes it. openACE adds "unit_name", read as the unit's label only. AFC's
+// lane_data carries just the extruder index, so its AFC_stepper status object is read with the
+// same function. Missing fields leave the defaults (-1 / "" / 0).
 int  extruder_index_from_name(const std::string& name); // "extruder" -> 0, "extruder2" -> 2, else -1
 void apply_lane_topology(const nlohmann::json& lane, MoonrakerAmsTrayData& tray);
 } // namespace MoonrakerFilamentDialect

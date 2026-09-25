@@ -267,14 +267,6 @@ int tool_count_from_gcode_help(const nlohmann::json& help)
     }
     return highest + 1;
 }
-int virtual_tool_from_map(const std::string& map)
-{
-    if (map.size() < 2 || map[0] != 'T' ||
-        !std::all_of(map.begin() + 1, map.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
-        return -1;
-    return std::stoi(map.substr(1));
-}
-
 int extruder_index_from_name(const std::string& name)
 {
     static const std::string prefix = "extruder";
@@ -295,12 +287,25 @@ void apply_lane_topology(const nlohmann::json& lane, MoonrakerAmsTrayData& tray)
         if (lane.contains(key) && lane[key].is_number_integer())
             out = lane[key].get<int>();
     };
-    tray.unit = str("unit_name");
-    if (tray.unit.empty())
-        tray.unit = str("unit");
+    // Grouped by the unit's stable id; a name (openACE's unit_name, outside AFC's schema) is a
+    // label only, so renaming a unit neither splits nor merges its lanes.
+    tray.unit       = str("unit");
+    tray.unit_label = str("unit_name");
+    if (tray.unit_label.empty())
+        tray.unit_label = tray.unit;
+    // The lane's index IS its virtual tool on both changers; the position in the unit is
+    // "slot" where the record has one (openACE now, AFC once it publishes unit and slot), else
+    // the lane index.
+    int lane_index = -1;
+    integer("lane", lane_index);
+    if (lane_index < 0 && lane.contains("lane") && lane["lane"].is_string()) {
+        const std::string l = lane["lane"].get<std::string>();
+        if (!l.empty() && std::all_of(l.begin(), l.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+            lane_index = std::stoi(l);
+    }
     integer("slot", tray.slot);
-    if (!lane.contains("slot"))
-        integer("lane", tray.slot);
+    if (!lane.contains("slot") && lane_index >= 0)
+        tray.slot = lane_index;
     // The extruder by Klipper name where the record has one; else from the index, from which
     // Klipper's name follows ("extruder", "extruder1", ...).
     tray.head     = str("extruder");
@@ -313,7 +318,7 @@ void apply_lane_topology(const nlohmann::json& lane, MoonrakerAmsTrayData& tray)
             tray.head     = index > 0 ? "extruder" + std::to_string(index) : "extruder";
         }
     }
-    tray.virtual_tool = virtual_tool_from_map(str("map"));
+    tray.virtual_tool = lane_index;
 }
 } // namespace MoonrakerFilamentDialect
 
@@ -710,6 +715,7 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
             // where the printer has it.
             tray_json["slot_name"]    = tray ? tray->slot_name : std::string();
             tray_json["unit"]         = tray ? tray->unit : std::string();
+            tray_json["unit_label"]   = tray ? tray->unit_label : std::string();
             tray_json["head"]         = tray ? tray->head : std::string();
             tray_json["slot"]         = tray ? tray->slot : slot_index;
             tray_json["extruder"]     = tray ? tray->extruder : -1;

@@ -306,8 +306,10 @@ void SlotGridPanel::SetSlots(const std::vector<SlotGridSlot>& slots, size_t extr
     };
 
     for (const wxString& unit : units) {
-        auto* box = new wxStaticBoxSizer(wxHORIZONTAL, this, unit);
-        for (size_t i : ordered(unit)) {
+        const std::vector<size_t> members = ordered(unit);
+        const wxString title = members.empty() || slots[members.front()].unit_label.IsEmpty() ? unit : slots[members.front()].unit_label;
+        auto* box = new wxStaticBoxSizer(wxHORIZONTAL, this, title);
+        for (size_t i : members) {
             m_tiles[i]->Reparent(box->GetStaticBox());
             box->Add(m_tiles[i], 0, wxALL, gap / 2);
         }
@@ -362,6 +364,7 @@ std::vector<SlotGridSlot> slot_grid_rows(const FilamentInventory& inv, const Pre
         row.type         = wxString::FromUTF8(pf.type);
         row.name         = wxString::FromUTF8(pf.name);
         row.unit         = wxString::FromUTF8(pf.unit);
+        row.unit_label   = wxString::FromUTF8(pf.unit_label);
         row.slot         = pf.slot;
         row.extruder     = pf.extruder;
         row.virtual_tool = pf.virtual_tool;
@@ -381,7 +384,7 @@ std::vector<SlotGridSlot> slot_grid_rows(const FilamentInventory& inv, const Pre
             if (const std::string vendor = filament_vendor_of(*p); !vendor.empty())
                 parts.push_back(wxString::FromUTF8(vendor));
         if (!pf.name.empty()) parts.push_back(wxString::FromUTF8(pf.name));
-        if (!pf.unit.empty()) parts.push_back(wxString::FromUTF8(pf.unit));
+        if (!pf.unit.empty()) parts.push_back(wxString::FromUTF8(pf.unit_label.empty() ? pf.unit : pf.unit_label));
         if (pf.extruder >= 0) parts.push_back(wxString::Format("E%d", pf.extruder + 1));
         if (pf.empty()) parts.insert(parts.begin(), _L("No filament loaded"));
         for (size_t i = 0; i < parts.size(); ++i)

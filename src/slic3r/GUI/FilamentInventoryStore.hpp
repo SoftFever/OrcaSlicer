@@ -51,7 +51,8 @@ struct DeviceSlotResolution
     std::string preset;             ///< resolved preset name; empty when nothing resolves
     std::string type;               ///< the type string as the printer reported it
     std::string name;               ///< the printer's own slot name (AFC lane key), "" = none
-    std::string unit;               ///< changer unit the slot sits in, "" = flat
+    std::string unit;               ///< changer unit the slot sits in (stable id), "" = flat
+    std::string unit_label;         ///< the unit's display name
     std::string head;               ///< Klipper extruder the slot feeds (display name), "" = unknown
     int         slot = 0;           ///< position within its unit
     int         extruder = -1;      ///< 0-based extruder it feeds, -1 = unknown

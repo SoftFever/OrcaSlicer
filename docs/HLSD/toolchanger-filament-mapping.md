@@ -22,9 +22,12 @@ modification of the edited preset, which the user saves or discards like any oth
 Caching them in the profile is what lets slicing run offline against the last known printer;
 the send path re-reads the printer and re-validates before starting.
 
-A Moonraker lane's topology comes from the lane's own record: openACE publishes unit, slot,
-extruder and map in `lane_data`; AFC publishes only the extruder index there, so its
-`AFC_stepper <lane>` status objects are queried once and joined by lane name. Happy Hare's
+A Moonraker lane's topology is read in AFC's schema: `lane` (the index, which is the lane's
+virtual tool), `unit`, `extruder` or `extruder_index`, and `slot` once a changer publishes it.
+openACE carries all of that in `lane_data` plus a `unit_name`, read as the unit's label only;
+AFC's `lane_data` carries just the extruder index, so its `AFC_stepper <lane>` status objects
+are queried once and joined by lane name. Units are grouped by id and titled by name, so
+renaming a unit neither splits nor merges its lanes. Happy Hare's
 gates, the U1's extruders and the stock ZR's boxes are the identity. The topology rides the
 same hops as the filament data (agent tray → device tray → inventory slot) and is published for
 empty slots too, since an empty slot still has a place.
