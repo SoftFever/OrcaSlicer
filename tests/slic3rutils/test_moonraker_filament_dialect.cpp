@@ -169,43 +169,53 @@ TEST_CASE("The tool count is the highest registered T command plus one", "[Moonr
 
 // Where a slot sits and what it feeds, from the lane's own record. openACE's lane_data entry
 // carries all of it; AFC's lane_data does not, so its AFC_stepper status object is used instead
-// (same reader, the keys line up). The slot's current virtual tool is its "map" ("T3").
+// (same reader, the keys line up). The lane's index is its virtual tool on both.
 TEST_CASE("Lane topology is read from the lane's own record", "[MoonrakerFilamentDialect]")
 {
-    CHECK(virtual_tool_from_map("T3") == 3);
-    CHECK(virtual_tool_from_map("") == -1);
-    CHECK(virtual_tool_from_map("lane1") == -1);
     CHECK(extruder_index_from_name("extruder") == 0);
     CHECK(extruder_index_from_name("extruder2") == 2);
     CHECK(extruder_index_from_name("") == -1);
 
-    // openACE lane_data entry (2026-09-22 capture, trimmed).
+    // openACE lane_data entry: "lane" IS the virtual tool. Units are grouped by their stable id
+    // and titled with the user's name for the unit when the record offers one (openACE's
+    // unit_name; not part of AFC's schema), so renaming an ACE neither splits nor merges its
+    // lanes.
     const nlohmann::json lane = nlohmann::json::parse(
-        R"({"lane":"2","extruder_index":1,"map":"T2","unit":"ace0","unit_name":"ace0","slot":1,"head":"h1","extruder":"extruder1"})");
+        R"({"lane":"2","extruder_index":1,"unit":"ace0","unit_name":"Left ACE","slot":1,"head":"h1","extruder":"extruder1"})");
     Slic3r::MoonrakerAmsTrayData tray;
     apply_lane_topology(lane, tray);
     CHECK(tray.unit == "ace0");
+    CHECK(tray.unit_label == "Left ACE");
     CHECK(tray.slot == 1);
     CHECK(tray.extruder == 1);
     CHECK(tray.virtual_tool == 2);
     CHECK(tray.head == "extruder1");
+    // Anything outside the schema ("map", once published by both changers) is ignored.
+    nlohmann::json with_map = lane;
+    with_map["map"]         = "T7";
+    Slic3r::MoonrakerAmsTrayData same;
+    apply_lane_topology(with_map, same);
+    CHECK(same.virtual_tool == 2);
 
-    // AFC_stepper status: no unit_name, the extruder by name, the lane index as the position.
-    const nlohmann::json afc = nlohmann::json::parse(R"({"name":"lane3","unit":"Turtle_1","extruder":"extruder","lane":3,"map":"T2"})");
+    // AFC_stepper status: no unit_name (the id doubles as the title), the extruder by name, the
+    // lane index as both the position and the tool.
+    const nlohmann::json afc = nlohmann::json::parse(R"({"name":"lane3","unit":"Turtle_1","extruder":"extruder","lane":3})");
     Slic3r::MoonrakerAmsTrayData afc_tray;
     apply_lane_topology(afc, afc_tray);
     CHECK(afc_tray.unit == "Turtle_1");
+    CHECK(afc_tray.unit_label == "Turtle_1");
     CHECK(afc_tray.slot == 3);
     CHECK(afc_tray.extruder == 0);
-    CHECK(afc_tray.virtual_tool == 2);
+    CHECK(afc_tray.virtual_tool == 3);
     CHECK(afc_tray.head == "extruder");
 
-    // AFC's lane_data alone: only the extruder index, from which Klipper's name follows.
+    // AFC's lane_data alone: only the extruder index, from which Klipper's name follows, and the
+    // lane index as tool and position until AFC publishes unit and slot.
     const nlohmann::json afc_lane = nlohmann::json::parse(R"({"lane":3,"extruder_index":2})");
     Slic3r::MoonrakerAmsTrayData lane_only;
     apply_lane_topology(afc_lane, lane_only);
     CHECK(lane_only.extruder == 2);
     CHECK(lane_only.head == "extruder2");
     CHECK(lane_only.unit.empty());
-    CHECK(lane_only.virtual_tool == -1);
+    CHECK(lane_only.virtual_tool == 3);
 }
