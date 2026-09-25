@@ -117,7 +117,7 @@ option(SLIC3R_PCH               "Use precompiled headers" 1)
 option(SLIC3R_WARNINGS          "Emit compiler warnings for OrcaSlicer sources" 1)
 option(SLIC3R_BUNDLED_WARNINGS  "Emit compiler warnings for bundled third-party sources" 0)
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
-option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
+option(SLIC3R_MSVC_PDB          "Emit debug info on MSVC in every configuration (/Zi, or /Z7 when CMAKE_MSVC_DEBUG_INFORMATION_FORMAT is Embedded)" 1)
 option(SLIC3R_RELATIVE_DEBUG_PATHS "Record a relative compilation directory in debug info (clang-cl)" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
 
@@ -355,6 +355,17 @@ if (MSVC)
     # which a silenced bundled target would then override (D9025, once per file).
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}")
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    # CMP0141 likewise: a tree first configured without Embedded debug info keeps
+    # /Zi in its Debug and RelWithDebInfo flags, which would then fight the /Z7
+    # added below. Only the plain value Embedded is recognised, not a generator
+    # expression.
+    if (CMAKE_MSVC_DEBUG_INFORMATION_FORMAT STREQUAL "Embedded")
+        foreach (lang C CXX)
+            foreach (cfg DEBUG RELWITHDEBINFO)
+                string(REGEX REPLACE "(^| )[/-]Zi( |$)" " " CMAKE_${lang}_FLAGS_${cfg} "${CMAKE_${lang}_FLAGS_${cfg}}")
+            endforeach ()
+        endforeach ()
+    endif ()
 
     # /MP only matters for the VS generators, where CMake turns it into the
     # MultiProcessorCompilation property. Ninja parallelises on its own, and
@@ -380,11 +391,20 @@ if (MSVC)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
     add_compile_options(-bigobj)
-    # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
     # Generate symbols at every build target, even for the release.
-	# -Zm520 fixes error C3859 but forces the compiler to pre-allocate that memory for every translation unit regardless
-	# combining /Zi with /FS frees up a significant amount of memory pressure across all parallel compile jobs and makes /MP faster overall.
-    if (SLIC3R_MSVC_PDB)
+    if (CMAKE_MSVC_DEBUG_INFORMATION_FORMAT STREQUAL "Embedded")
+        # A compiler cache cannot store a /Zi compile, whose debug info goes to a
+        # PDB shared across objects; /Z7 keeps it in each object. Without
+        # SLIC3R_MSVC_PDB, still where the strip above removed CMake's own /Zi.
+        if (SLIC3R_MSVC_PDB)
+            add_compile_options(/Z7)
+        else ()
+            add_compile_options($<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:/Z7>)
+        endif ()
+    elseif (SLIC3R_MSVC_PDB)
+        # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
+        # -Zm520 fixes error C3859 but forces the compiler to pre-allocate that memory for every translation unit regardless
+        # combining /Zi with /FS frees up a significant amount of memory pressure across all parallel compile jobs and makes /MP faster overall.
         add_compile_options(/Zi /FS)
     endif ()
     # With /Z7 (or clang-cl, which reads /Zi as /Z7) every object carries its
