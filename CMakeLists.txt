@@ -355,14 +355,19 @@ if (MSVC)
     # which a silenced bundled target would then override (D9025, once per file).
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}")
     string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    # CMP0141 likewise: a tree first configured without Embedded debug info keeps
-    # /Zi in its Debug and RelWithDebInfo flags, which would then fight the /Z7
-    # added below. Only the plain value Embedded is recognised, not a generator
-    # expression.
+    # CMP0141 is OLD here (minimum 3.13), so CMake ignores
+    # CMAKE_MSVC_DEBUG_INFORMATION_FORMAT and keeps /Zi in its Debug and
+    # RelWithDebInfo flags. Treat the value Embedded as our own switch: strip /Zi
+    # here and add /Z7 below. Only the plain value Embedded is recognised, not a
+    # generator expression.
+    set(_slic3r_embedded_debug OFF)
     if (CMAKE_MSVC_DEBUG_INFORMATION_FORMAT STREQUAL "Embedded")
+        set(_slic3r_embedded_debug ON)
+    endif ()
+    if (_slic3r_embedded_debug)
         foreach (lang C CXX)
-            foreach (cfg DEBUG RELWITHDEBINFO)
-                string(REGEX REPLACE "(^| )[/-]Zi( |$)" " " CMAKE_${lang}_FLAGS_${cfg} "${CMAKE_${lang}_FLAGS_${cfg}}")
+            foreach (var CMAKE_${lang}_FLAGS CMAKE_${lang}_FLAGS_DEBUG CMAKE_${lang}_FLAGS_RELWITHDEBINFO)
+                string(REGEX REPLACE "(^| )[/-]Z[iI]( |$)" " " ${var} "${${var}}")
             endforeach ()
         endforeach ()
     endif ()
@@ -392,7 +397,7 @@ if (MSVC)
     # /bigobj (Increase Number of Sections in .Obj file)
     add_compile_options(-bigobj)
     # Generate symbols at every build target, even for the release.
-    if (CMAKE_MSVC_DEBUG_INFORMATION_FORMAT STREQUAL "Embedded")
+    if (_slic3r_embedded_debug)
         # A compiler cache cannot store a /Zi compile, whose debug info goes to a
         # PDB shared across objects; /Z7 keeps it in each object. Without
         # SLIC3R_MSVC_PDB, still where the strip above removed CMake's own /Zi.
@@ -413,7 +418,7 @@ if (MSVC)
     # libslic3r_gui then exceed the 4 GB a .lib can hold (LNK1248). Build them
     # as OBJECT libraries in that case only; with the PCH they fit.
     if (NOT SLIC3R_LARGE_LIB_TYPE AND NOT SLIC3R_PCH AND SLIC3R_MSVC_PDB AND
-        (IS_CLANG_CL OR CMAKE_MSVC_DEBUG_INFORMATION_FORMAT STREQUAL "Embedded"))
+        (IS_CLANG_CL OR _slic3r_embedded_debug))
         set(SLIC3R_LARGE_LIB_TYPE OBJECT)
     endif ()
     # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.

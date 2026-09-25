@@ -439,10 +439,10 @@ REM refuses /Fp outright. ccache does too unless its sloppiness is loosened,
 REM and even then most hits fall back to the slower preprocessed mode.
 set "no_pch=ON"
 REM cl.exe gets embedded debug info (/Z7) in place of /Zi, which sccache
-REM cannot store; the top-level CMakeLists has the details. Slicer only: the
-REM deps superbuild forwards its RelWithDebInfo flags as the sub-builds'
-REM release flags, and dropping /Zi there drops their debug info. So only
-REM release deps are cached; a /Zi compile still builds, uncached.
+REM cannot store; the top-level CMakeLists has the details. Slicer only:
+REM CMP0141 is OLD in the deps superbuild too, so it keeps CMake's /Zi and
+REM its RelWithDebInfo compiles still build, uncached. Only release deps are
+REM cached.
 REM clang-cl reads /Zi as /Z7 already, and relative debug paths let another
 REM tree reuse its objects.
 if "%use_clang_cl%" == "ON" (
