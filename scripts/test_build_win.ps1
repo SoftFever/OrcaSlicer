@@ -134,6 +134,28 @@ Set-Content -Path (Join-Path $embeddedDir 'CMakeCache.txt') -Encoding ascii -Val
     'CMAKE_MSVC_DEBUG_INFORMATION_FORMAT:STRING=Embedded'
 )
 
+# What else a --cache tree can hold: a launcher --cache never writes, which the
+# reset has to leave alone, and the two settings it leaves behind on purpose.
+$otherLauncherDir = Join-Path $fixtures 'other-launcher'
+New-Item -ItemType Directory -Force -Path $otherLauncherDir | Out-Null
+Set-Content -Path (Join-Path $otherLauncherDir 'CMakeCache.txt') -Encoding ascii -Value @(
+    'CMAKE_CXX_COMPILER_LAUNCHER:STRING=C:/tools/buildcache.exe'
+    'CMAKE_C_COMPILER_LAUNCHER:STRING=C:/tools/buildcache.exe'
+)
+$pchOffDir = Join-Path $fixtures 'pch-off'
+New-Item -ItemType Directory -Force -Path $pchOffDir | Out-Null
+Set-Content -Path (Join-Path $pchOffDir 'CMakeCache.txt') -Encoding ascii -Value @(
+    'SLIC3R_PCH:BOOL=OFF'
+    'SLIC3R_RELATIVE_DEBUG_PATHS:BOOL=ON'
+)
+# A deps tree that --cache sccache configured.
+$cachedDepsDir = Join-Path $fixtures 'cached-deps'
+New-Item -ItemType Directory -Force -Path $cachedDepsDir | Out-Null
+Set-Content -Path (Join-Path $cachedDepsDir 'CMakeCache.txt') -Encoding ascii -Value @(
+    'CMAKE_CXX_COMPILER_LAUNCHER:UNINITIALIZED=C:/tools/sccache.exe'
+    'CMAKE_C_COMPILER_LAUNCHER:UNINITIALIZED=C:/tools/sccache.exe'
+)
+
 $cases = @(
     'argument handling'
     @{ Name = 'no arguments prints help'; Args = @(); DryRun = $false
@@ -323,8 +345,9 @@ $cases = @(
        Contains = @('-DSLIC3R_PCH=OFF') }
     @{ Name = '--no-pch says so in the banner'; Args = @('-s', '--no-pch')
        Contains = @('Precompiled header: off') }
-    @{ Name = 'the precompiled header is on unless asked'; Args = @('-s')
-       NotContains = @('SLIC3R_PCH') }
+    # A fresh tree, since one that recorded SLIC3R_PCH=OFF says so in the banner.
+    @{ Name = 'the precompiled header is on unless asked'; Args = @('-s', '--build-dir', $freshDir)
+       NotContains = @('SLIC3R_PCH', 'Precompiled header') }
     # CMake takes the last -D, so the OFF must come after both user sources.
     @{ Name = '--no-pch overrides SLIC3R_PCH=ON in --slicer-args'; Args = @('-s', '--no-pch', '--slicer-args', '"-DSLIC3R_PCH=ON"')
        Match = @('^\+ cmake -B .*-DSLIC3R_PCH=ON.*-DSLIC3R_PCH=OFF') }
@@ -432,7 +455,7 @@ $cases = @(
     @{ Name = '--no-configure never resets'; Args = @('-s', '-x', '--no-configure', '--build-dir', $embeddedDir)
        Contains = @('+ cmake --build')
        NotContains = @('-UCMAKE_') }
-    @{ Name = 'deps-only never resets'; Args = @('-d', '-x', '--build-dir', $embeddedDir)
+    @{ Name = 'deps-only never resets the slicer tree'; Args = @('-d', '-x', '--build-dir', $embeddedDir, '--deps-dir', $freshDir)
        Contains = @('+ cmake -S deps')
        NotContains = @('-UCMAKE_') }
     @{ Name = 'a debug info format in --slicer-args is kept'; Args = @('-s', '-x', '--build-dir', $embeddedDir, '--slicer-args', '"-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=ProgramDatabase"')
@@ -442,11 +465,55 @@ $cases = @(
        Env = @{ ORCA_SLICER_CMAKE_ARGS = '-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded' }
        Match = @('^\+ cmake -B .*-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded')
        NotContains = @('-UCMAKE_MSVC_DEBUG_INFORMATION_FORMAT') }
+    # Each language is judged on its own, so naming one launcher leaves the
+    # other to the reset.
     @{ Name = 'a launcher in ORCA_SLICER_CMAKE_ARGS is kept'; Args = @('-s', '-x', '--build-dir', $embeddedDir)
        Env = @{ ORCA_SLICER_CMAKE_ARGS = '-DCMAKE_CXX_COMPILER_LAUNCHER=foo' }
        Match = @('^\+ cmake -B .*-DCMAKE_CXX_COMPILER_LAUNCHER=foo')
-       Contains = @('-UCMAKE_MSVC_DEBUG_INFORMATION_FORMAT')
-       NotContains = @('-UCMAKE_C_COMPILER_LAUNCHER', '-UCMAKE_CXX_COMPILER_LAUNCHER') }
+       Contains = @('-UCMAKE_MSVC_DEBUG_INFORMATION_FORMAT', '-UCMAKE_C_COMPILER_LAUNCHER')
+       NotContains = @('-UCMAKE_CXX_COMPILER_LAUNCHER') }
+    @{ Name = 'a C launcher in --slicer-args keeps only that one'; Args = @('-s', '-x', '--build-dir', $embeddedDir, '--slicer-args', '"-DCMAKE_C_COMPILER_LAUNCHER=foo"')
+       Contains = @('-UCMAKE_CXX_COMPILER_LAUNCHER')
+       NotContains = @('-UCMAKE_C_COMPILER_LAUNCHER') }
+    @{ Name = 'a launcher for another language does not stop the reset'; Args = @('-s', '-x', '--build-dir', $embeddedDir)
+       Env = @{ ORCA_SLICER_CMAKE_ARGS = '-DCMAKE_RC_COMPILER_LAUNCHER=foo' }
+       Contains = @('-UCMAKE_C_COMPILER_LAUNCHER', '-UCMAKE_CXX_COMPILER_LAUNCHER') }
+    # buildcache set once through cmake-gui, say. --cache never writes it.
+    @{ Name = 'a launcher --cache did not write is left alone'; Args = @('-s', '-x', '--build-dir', $otherLauncherDir)
+       Contains = @('+ cmake -B')
+       NotContains = @('-UCMAKE_') }
+    # SLIC3R_PCH=OFF is an ordinary option, so it stays, and the banner says so.
+    @{ Name = 'a tree left without the PCH says so'; Args = @('-s', '-x', '--build-dir', $pchOffDir)
+       Contains = @('Precompiled header: off (recorded in this tree; pass -DSLIC3R_PCH=ON to restore)')
+       NotContains = @('-DSLIC3R_PCH=OFF', '-USLIC3R_PCH') }
+    @{ Name = 'naming SLIC3R_PCH yourself silences that'; Args = @('-s', '-x', '--build-dir', $pchOffDir)
+       Env = @{ ORCA_SLICER_CMAKE_ARGS = '-DSLIC3R_PCH=ON' }
+       NotContains = @('recorded in this tree') }
+    @{ Name = '--no-pch on that tree gives the plain banner'; Args = @('-s', '-x', '--no-pch', '--build-dir', $pchOffDir)
+       Contains = @('Precompiled header: off', '-DSLIC3R_PCH=OFF')
+       NotContains = @('recorded in this tree') }
+    # Relative debug paths only change how a debugger finds the sources.
+    @{ Name = 'relative debug paths are left as recorded'; Args = @('-s', '-l', '-x', '--build-dir', $pchOffDir)
+       Contains = @('+ cmake -B')
+       NotContains = @('SLIC3R_RELATIVE_DEBUG_PATHS') }
+    # The superbuild forwards its launcher to every sub-build, so a stale one
+    # breaks the deps build once the tool is uninstalled.
+    @{ Name = 'dropping --cache resets the deps tree too'; Args = @('-d', '-x', '--deps-dir', $cachedDepsDir)
+       Match = @('^\+ cmake -S deps .*-UCMAKE_C_COMPILER_LAUNCHER -UCMAKE_CXX_COMPILER_LAUNCHER') }
+    @{ Name = 'a launcher in ORCA_DEPS_CMAKE_ARGS is kept'; Args = @('-d', '-x', '--deps-dir', $cachedDepsDir)
+       Env = @{ ORCA_DEPS_CMAKE_ARGS = '-DCMAKE_C_COMPILER_LAUNCHER=foo -DCMAKE_CXX_COMPILER_LAUNCHER=foo' }
+       Contains = @('+ cmake -S deps')
+       NotContains = @('-UCMAKE_') }
+    @{ Name = '--cache sccache does not reset the deps tree'; Args = @('-d', '-x', '--cache', 'sccache', '--deps-dir', $cachedDepsDir)
+       Env = @{ PATH = $cacheOnPath }
+       Contains = @('+ cmake -S deps')
+       NotContains = @('-UCMAKE_') }
+    @{ Name = '--no-configure never resets the deps tree'; Args = @('-d', '-x', '--no-configure', '--deps-dir', $cachedDepsDir)
+       Contains = @('+ cmake --build')
+       NotContains = @('-UCMAKE_') }
+    @{ Name = 'a slicer build leaves the deps tree alone'; Args = @('-s', '-x', '--deps-dir', $cachedDepsDir, '--build-dir', $freshDir)
+       Contains = @('+ cmake -B')
+       NotContains = @('-UCMAKE_') }
     # Embedded would drop the debug info of the RelWithDebInfo deps.
     @{ Name = '--cache sccache leaves the deps debug info alone'; Args = @('-d', '-x', '--cache', 'sccache')
        Env = @{ PATH = $cacheOnPath }
@@ -498,6 +565,8 @@ $cases = @(
        NotContains = @('is not on PATH') }
     @{ Name = 'the help shows sccache with cl'; Args = @('--help'); DryRun = $false
        Contains = @('build_win.bat -s -x --cache sccache     Rebuild with cl through sccache') }
+    @{ Name = 'the help says --no-pch and --cache beat a user SLIC3R_PCH'; Args = @('--help'); DryRun = $false
+       Contains = @('--no-pch and --cache override a -DSLIC3R_PCH in --slicer-args or ORCA_SLICER_CMAKE_ARGS.') }
 
     'the developer loop'
     @{ Name = '--slicer-target builds one target'; Args = @('-s', '--slicer-target', 'libslic3r')

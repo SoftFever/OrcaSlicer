@@ -390,7 +390,7 @@ if not "%clang_path%" == "" if not "%using_ninja%" == "ON" (
 )
 
 set "cache_args="
-set "debug_format_args="
+set "cache_slicer_args="
 if "%cache%" == "" goto :cache_ready
 if /I "%cache%" == "off" goto :cache_ready
 if /I "%cache%" == "ccache" goto :cache_named
@@ -446,9 +446,9 @@ REM cached.
 REM clang-cl reads /Zi as /Z7 already, and relative debug paths let another
 REM tree reuse its objects.
 if "%use_clang_cl%" == "ON" (
-    set "debug_format_args=-DSLIC3R_RELATIVE_DEBUG_PATHS=ON"
+    set "cache_slicer_args=-DSLIC3R_RELATIVE_DEBUG_PATHS=ON"
 ) else (
-    set "debug_format_args=-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded"
+    set "cache_slicer_args=-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded"
 )
 
 :cache_ready
@@ -537,11 +537,15 @@ for %%p in ("!build_dir!") do set "build_full=%%~fp"
 
 REM Without --cache, undo what an earlier --cache recorded in this tree: the
 REM Embedded debug info format, so /Zi and the STATIC libraries come back,
-REM and the compiler launcher. Only what the cache holds, so any other
-REM configure stays as it was, and not what --slicer-args or
-REM ORCA_SLICER_CMAKE_ARGS names itself. SLIC3R_PCH=OFF is an ordinary option
-REM and stays; pass -DSLIC3R_PCH=ON to bring the precompiled header back.
+REM and a ccache or sccache launcher. Only what --cache would have written,
+REM and only when this run's own arguments don't name it.
+REM
+REM Two of its settings stay. SLIC3R_PCH=OFF is an ordinary option, so the
+REM banner says the tree still has it; with clang-cl it also keeps the OBJECT
+REM libraries. SLIC3R_RELATIVE_DEBUG_PATHS=ON, which clang-cl gets, only
+REM changes how a debugger finds the sources.
 set "cache_reset="
+set "pch_off_recorded="
 if defined cache_args goto :cache_reset_ready
 if not "%build_slicer%" == "ON" goto :cache_reset_ready
 if "%no_configure%" == "ON" goto :cache_reset_ready
@@ -550,12 +554,14 @@ set "user_args=!slicer_args! !ORCA_SLICER_CMAKE_ARGS!"
 set "user_args=!user_args:"=!"
 REM The type is STRING, or UNINITIALIZED after a -D that named none.
 if "!user_args!" == "!user_args:CMAKE_MSVC_DEBUG_INFORMATION_FORMAT=!" findstr /b /r /c:"CMAKE_MSVC_DEBUG_INFORMATION_FORMAT:[A-Z]*=Embedded" "!build_full!\CMakeCache.txt" >nul && set "cache_reset=-UCMAKE_MSVC_DEBUG_INFORMATION_FORMAT"
-if "!user_args!" == "!user_args:COMPILER_LAUNCHER=!" findstr /b /r /c:"CMAKE_C[X]*_COMPILER_LAUNCHER:[A-Z]*=." "!build_full!\CMakeCache.txt" >nul && set "cache_reset=!cache_reset! -UCMAKE_C_COMPILER_LAUNCHER -UCMAKE_CXX_COMPILER_LAUNCHER"
+call :launcher_reset "!build_full!\CMakeCache.txt" user_args cache_reset
+if not "%no_pch%" == "ON" if "!user_args!" == "!user_args:SLIC3R_PCH=!" findstr /b /r /c:"SLIC3R_PCH:[A-Z]*=OFF" "!build_full!\CMakeCache.txt" >nul && set "pch_off_recorded=ON"
 :cache_reset_ready
 
 echo Configuration: %build_type%, %arch%
 if defined clang_exe echo Compiler: !clang_exe!
 if "%no_pch%" == "ON" echo Precompiled header: off
+if defined pch_off_recorded echo Precompiled header: off (recorded in this tree; pass -DSLIC3R_PCH=ON to restore)
 if defined cache_args echo Compiler cache: !cache_exe!
 if "%build_deps%" == "ON" if not "%no_configure%" == "ON" if defined ORCA_DEPS_CMAKE_ARGS echo ORCA_DEPS_CMAKE_ARGS: !ORCA_DEPS_CMAKE_ARGS!
 if "%build_slicer%" == "ON" if not "%no_configure%" == "ON" if defined ORCA_SLICER_CMAKE_ARGS echo ORCA_SLICER_CMAKE_ARGS: !ORCA_SLICER_CMAKE_ARGS!
@@ -578,6 +584,20 @@ if not "%deps_dir%" == "" (
     set "DEP_TREE_PACK=%deps_dir%"
     set "DEP_TREE_FLAG=-DDEP_BUILD_DIR="%deps_dir%""
 )
+
+REM The same launcher reset for the deps tree. The superbuild forwards its
+REM launcher to every sub-build, so one left behind would break the deps build
+REM once the cache tool is uninstalled.
+set "deps_reset="
+if defined cache_args goto :deps_reset_ready
+if not "%build_deps%" == "ON" goto :deps_reset_ready
+if "%no_configure%" == "ON" goto :deps_reset_ready
+for %%p in ("!DEP_TREE!") do set "deps_cache=%%~fp\CMakeCache.txt"
+if not exist "!deps_cache!" goto :deps_reset_ready
+set "user_args=!deps_args! !ORCA_DEPS_CMAKE_ARGS!"
+set "user_args=!user_args:"=!"
+call :launcher_reset "!deps_cache!" user_args deps_reset
+:deps_reset_ready
 
 REM CMakeLists derives DEP_BUILD_DIR from the build directory NAME, which is
 REM wrong whenever the build tree and the dependency tree are named
@@ -655,9 +675,9 @@ if "%build_deps%" == "ON" (
         %error_check%
     )
 
-    REM The launcher goes last, as on the slicer configure.
+    REM The launcher, or its reset, goes last, as on the slicer configure.
     if not "%no_configure%" == "ON" (
-        call :print_and_run cmake -S deps -B "!DEP_TREE!" -G "%generator%" %gen_args% -DCMAKE_BUILD_TYPE=%build_type% !deps_args! %ORCA_DEPS_CMAKE_ARGS% !cache_args!
+        call :print_and_run cmake -S deps -B "!DEP_TREE!" -G "%generator%" %gen_args% -DCMAKE_BUILD_TYPE=%build_type% !deps_args! %ORCA_DEPS_CMAKE_ARGS% !cache_args! !deps_reset!
         %error_check%
     )
 
@@ -732,7 +752,7 @@ if "%build_slicer%" == "ON" (
     set "forced_args="
     if "%no_pch%" == "ON" set "forced_args=-DSLIC3R_PCH=OFF"
     if defined cache_args set "forced_args=!forced_args! !cache_args!"
-    if defined debug_format_args set "forced_args=!forced_args! !debug_format_args!"
+    if defined cache_slicer_args set "forced_args=!forced_args! !cache_slicer_args!"
     if defined cache_reset set "forced_args=!forced_args! !cache_reset!"
 
     REM Configuring against a tree that was never built fails deep inside
@@ -980,6 +1000,8 @@ REM get_str_len <string> -> length in %ret%
     echo.
     echo    --deps-args and --slicer-args cannot carry a value with spaces; use
     echo    these instead. Neither form supports a value containing an ampersand.
+    echo.
+    echo    --no-pch and --cache override a -DSLIC3R_PCH in --slicer-args or ORCA_SLICER_CMAKE_ARGS.
     endlocal
     exit /b 0
 
@@ -1275,6 +1297,21 @@ REM   -1978335189 (0x8A15002B) installed and already the newest version
     if "%~2" == "-1978335135" exit /b 0
     if "%~2" == "-1978335189" exit /b 0
     set "install_failed=%install_failed% %~1"
+    exit /b 0
+
+REM launcher_reset <CMakeCache.txt> <args variable> <result variable> - append
+REM a -U to the result for each language whose recorded launcher is the ccache
+REM or sccache --cache writes, unless the arguments name that launcher. The
+REM pattern ends in ccache\.exe, which covers both, and leaves any other
+REM launcher alone.
+:launcher_reset
+    setlocal
+    set "reset_args=!%~2!"
+    set "reset_out=!%~3!"
+    for %%l in (C CXX) do (
+        if "!reset_args!" == "!reset_args:CMAKE_%%l_COMPILER_LAUNCHER=!" findstr /b /r /i /c:"CMAKE_%%l_COMPILER_LAUNCHER:[A-Z]*=.*ccache\.exe" "%~1" >nul && set "reset_out=!reset_out! -UCMAKE_%%l_COMPILER_LAUNCHER"
+    )
+    endlocal & set "%~3=%reset_out%"
     exit /b 0
 
 REM trim_slash <variable> - drop a trailing backslash from a path value.
