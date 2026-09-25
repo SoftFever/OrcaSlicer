@@ -174,6 +174,7 @@ DeviceSyncOutcome sync_filament_inventory_from_printer(FilamentInventories& stor
         // Where the slot sits and what it feeds are the printer's to say, every time.
         cur.name         = res.name;
         cur.unit         = res.unit;
+        cur.unit_label   = res.unit_label;
         cur.head         = res.head;
         cur.slot         = res.slot;
         cur.extruder     = res.extruder;
@@ -209,6 +210,7 @@ DeviceSlotResolution resolve_device_tray(DevAmsTray* tray, const PresetCollectio
         // An empty slot still has a position: the grid draws it where the printer has it.
         res.name         = tray->slot_name;
         res.unit         = tray->unit;
+        res.unit_label   = tray->unit_label;
         res.head         = tray->head;
         res.slot         = tray->slot;
         res.extruder     = tray->extruder;

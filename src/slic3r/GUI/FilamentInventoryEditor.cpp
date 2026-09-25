@@ -222,7 +222,7 @@ void FilamentInventoryEditor::refresh_grid()
         if (m_tools[i].rows.empty()) continue;
         const PhysicalFilament& was  = shown.slots[i];
         PhysicalFilament        slot = slot_from_row(m_tools[i].rows[0]);
-        slot.unit = was.unit; slot.head = was.head; slot.slot = was.slot;
+        slot.unit = was.unit; slot.unit_label = was.unit_label; slot.head = was.head; slot.slot = was.slot;
         slot.extruder = was.extruder; slot.virtual_tool = was.virtual_tool;
         shown.slots[i] = slot;
     }
@@ -536,6 +536,7 @@ void FilamentInventoryEditor::on_ok(wxCommandEvent&)
         const PhysicalFilament& was  = inv.slots[i];
         PhysicalFilament        slot = slot_from_row(m_tools[i].rows[0]);
         slot.unit         = was.unit;
+        slot.unit_label   = was.unit_label;
         slot.head         = was.head;
         slot.slot         = was.slot;
         slot.extruder     = was.extruder;

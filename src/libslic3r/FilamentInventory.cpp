@@ -33,6 +33,8 @@ static json slot_to_json(const PhysicalFilament& pf)
         jpf["name"] = pf.name;
     if (!pf.unit.empty())
         jpf["unit"] = pf.unit;
+    if (!pf.unit_label.empty())
+        jpf["unit_label"] = pf.unit_label;
     if (!pf.head.empty())
         jpf["head"] = pf.head;
     return jpf;
@@ -57,6 +59,7 @@ static PhysicalFilament slot_from_json(const json& jpf)
         pf.kind = kind_from_string(jpf["kind"].get<std::string>());
     str("name", pf.name);
     str("unit", pf.unit);
+    str("unit_label", pf.unit_label);
     str("head", pf.head);
     integer("slot", pf.slot);
     integer("extruder", pf.extruder);

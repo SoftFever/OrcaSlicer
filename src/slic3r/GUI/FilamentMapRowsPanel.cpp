@@ -286,6 +286,7 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
             opt.type      = pf.type;
             opt.slot_name    = from_u8(pf.name);
             opt.unit         = from_u8(pf.unit);
+            opt.unit_label   = from_u8(pf.unit_label);
             opt.head         = from_u8(pf.head);
             opt.slot         = pf.slot;
             opt.extruder     = pf.extruder;
@@ -305,7 +306,7 @@ void FilamentMapRowsPanel::BuildTargetOptions(const FilamentInventory &inventory
             wxString tool_part = wxString::Format(_L("Tool %d"), (int) t + 1);
             // "(lane1, ace0, extruder1)": whichever of slot name, unit and head the printer gave.
             wxString where;
-            for (const wxString& part : { opt.slot_name, opt.unit, opt.head })
+            for (const wxString& part : { opt.slot_name, opt.unit_label.IsEmpty() ? opt.unit : opt.unit_label, opt.head })
                 if (!part.IsEmpty())
                     where += (where.IsEmpty() ? "" : ", ") + part;
             if (!where.IsEmpty())
@@ -366,6 +367,7 @@ std::vector<SlotGridSlot> FilamentMapRowsPanel::PickerRows(const Row &row, bool 
         r.type         = from_u8(opt.type);
         r.name         = opt.slot_name;
         r.unit         = opt.unit;
+        r.unit_label   = opt.unit_label;
         r.slot         = opt.slot;
         r.extruder     = opt.extruder;
         r.virtual_tool = opt.virtual_tool;

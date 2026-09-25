@@ -39,7 +39,8 @@ public:
         int      tool; // 0-based owning/placeholder tool index
         std::string type; // physical material type ("" for bootstrap/bare-tool placeholders)
         wxString slot_name; // the printer's own name for the slot ("lane1"), "" when it has none
-        wxString unit;      // changer unit the slot sits in ("ace0"), "" = flat
+        wxString unit;      // changer unit the slot sits in, by stable id ("ace0"), "" = flat
+        wxString unit_label; // the unit's display name
         wxString head;      // Klipper extruder the slot feeds ("extruder1"), "" = unknown
         int      slot = 0;         // position within the unit
         int      extruder = -1;    // 0-based extruder it feeds, -1 = unknown
