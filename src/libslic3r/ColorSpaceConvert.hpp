@@ -1,6 +1,4 @@
-#ifndef slic3r_ColorSpaceConvert_hpp_
-#define slic3r_ColorSpaceConvert_hpp_
-const int CUSTOM_COLOR_COUNT = 16;
+#pragma once
 
 #include <tuple>
 
@@ -18,4 +16,3 @@ void RGB2HSV(float r, float g, float b, float* h, float* s, float* v);
 float DeltaE00(float l1, float a1, float b1, float l2, float a2, float b2);
 float DeltaE94(float l1, float a1, float b1, float l2, float a2, float b2);
 float DeltaE76(float l1, float a1, float b1, float l2, float a2, float b2);
-#endif /* slic3r_ColorSpaceConvert_hpp_ */
