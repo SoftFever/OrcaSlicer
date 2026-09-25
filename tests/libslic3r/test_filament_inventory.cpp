@@ -26,12 +26,13 @@ TEST_CASE("Inventory is a flat list of reported slots with their topology", "[Fi
     inv.slots[0].name = "openace_tool_0"; inv.slots[0].unit = "ace0"; inv.slots[0].slot = 0;
     inv.slots[0].extruder = 0; inv.slots[0].virtual_tool = 0;
     inv.slots[1] = PhysicalFilament{2, "#00FF00", "PETG", "", PhysicalFilament::Kind::Manual};
-    inv.slots[1].name = "openace_tool_1"; inv.slots[1].unit = "ace0"; inv.slots[1].slot = 3;
+    inv.slots[1].name = "openace_tool_1"; inv.slots[1].unit = "ace0"; inv.slots[1].unit_label = "Left ACE"; inv.slots[1].slot = 3;
     inv.slots[1].extruder = 2; inv.slots[1].virtual_tool = 5;
     inv.dialect = "openace";
     const FilamentInventory back = FilamentInventory::deserialize(inv.serialize(), 1);
     REQUIRE(back.slots.size() == 3);
     CHECK(back.slots[1].unit == "ace0");
+    CHECK(back.slots[1].unit_label == "Left ACE");
     CHECK(back.slots[1].slot == 3);
     CHECK(back.slots[1].extruder == 2);
     CHECK(back.slots[1].virtual_tool == 5);
