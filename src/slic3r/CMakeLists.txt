@@ -1060,7 +1060,8 @@ target_compile_definitions(libslic3r_gui PRIVATE SLIC3R_CURRENTLY_COMPILING_GUI_
 # including a second PythonPluginBridge.cpp built without
 # ORCA_PYTHON_STUBGEN_MODULE, and none of libslic3r's. The top-level
 # CMakeLists.txt says when SLIC3R_LARGE_LIB_TYPE is OBJECT, and why.
-if (ORCA_BUILD_PYTHON_STUBGEN_MODULE AND SLIC3R_LARGE_LIB_TYPE STREQUAL "OBJECT")
+get_target_property(_gui_type libslic3r_gui TYPE)
+if (ORCA_BUILD_PYTHON_STUBGEN_MODULE AND _gui_type STREQUAL "OBJECT_LIBRARY")
     message(STATUS "orca_stubgen needs static libslic3r_gui; skipped for this OBJECT-library build")
 elseif (ORCA_BUILD_PYTHON_STUBGEN_MODULE)
     add_library(orca_stubgen MODULE

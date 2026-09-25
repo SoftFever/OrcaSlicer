@@ -610,8 +610,8 @@ set(_libnest2d_cpp "${OrcaSlicer_SOURCE_DIR}/deps_src/libnest2d/src/libnest2d.cp
 # top-level CMakeLists.txt for why. An OBJECT library's objects only reach
 # targets that link it directly; one that reaches libslic3r through another
 # library gets none of them. Every target that uses libslic3r links it
-# directly, except orca_stubgen, which is not built when SLIC3R_LARGE_LIB_TYPE
-# is OBJECT.
+# directly, except orca_stubgen, which gets them from the libslic3r_gui archive
+# and is not built when libslic3r_gui is an OBJECT library.
 add_library(libslic3r ${SLIC3R_LARGE_LIB_TYPE} ${lisbslic3r_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     ${OpenVDBUtils_SOURCES}

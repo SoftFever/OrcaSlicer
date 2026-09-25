@@ -442,6 +442,15 @@ endif ()
 if (NOT SLIC3R_LARGE_LIB_TYPE)
     set(SLIC3R_LARGE_LIB_TYPE STATIC)
 endif ()
+if (NOT SLIC3R_LARGE_LIB_TYPE MATCHES "^(STATIC|OBJECT)$")
+    message(FATAL_ERROR "SLIC3R_LARGE_LIB_TYPE must be STATIC or OBJECT, not ${SLIC3R_LARGE_LIB_TYPE}")
+endif ()
+# libslic3r_gui follows the setting on Windows only; elsewhere it stays STATIC.
+if (WIN32)
+    message(STATUS "libslic3r and libslic3r_gui: ${SLIC3R_LARGE_LIB_TYPE} libraries")
+else ()
+    message(STATUS "libslic3r: ${SLIC3R_LARGE_LIB_TYPE} library")
+endif ()
 
 # Without this every object names its build directory and two worktrees never
 # share cache entries. The linker still writes absolute paths into the PDB.
