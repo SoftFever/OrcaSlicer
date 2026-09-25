@@ -618,11 +618,6 @@ add_library(libslic3r ${SLIC3R_LARGE_LIB_TYPE} ${lisbslic3r_sources}
     "${_libnest2d_cpp}")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})
 source_group("libnest2d" FILES "${_libnest2d_cpp}")
-# Bundled code, so silenced like the deps_src libraries. cl.exe is left at /W3: it
-# does not fail on warnings, and /W0 after the target's /W3 would trip D9025.
-if (NOT SLIC3R_BUNDLED_WARNINGS AND (NOT MSVC OR IS_CLANG_CL))
-    set_source_files_properties("${_libnest2d_cpp}" PROPERTIES COMPILE_OPTIONS -w)
-endif ()
 if (MSVC AND SLIC3R_LARGE_LIB_TYPE STREQUAL "OBJECT")
     # Every object is linked, not only those an archive would pull in. /DEBUG
     # defaults to /OPT:NOREF, so re-enable /OPT:REF to drop unreferenced code.
