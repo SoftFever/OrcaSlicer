@@ -1,6 +1,6 @@
 #pragma once
 
-// Included ahead of every libslic3r_gui source: first thing in pchheader.hpp,
+// Included ahead of libslic3r_gui sources: first thing in pchheader.hpp,
 // or force-included on MSVC when SLIC3R_PCH is OFF. Arriving late and
 // transitively, rpcndr.h defines a global `byte` that collides with std::byte
 // under `using namespace std`, and the control and URL moniker types the GUI
