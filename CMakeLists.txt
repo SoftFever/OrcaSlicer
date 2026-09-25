@@ -413,11 +413,12 @@ if (MSVC)
         add_compile_options(/Zi /FS)
     endif ()
     # With /Z7 (or clang-cl, which reads /Zi as /Z7) every object carries its
-    # own debug info. Without the PCH each object also carries its own copy of
+    # own debug info in at least the Debug and RelWithDebInfo configurations.
+    # Without the PCH each object also carries its own copy of
     # the types the precompiled header would have held once, and libslic3r and
     # libslic3r_gui then exceed the 4 GB a .lib can hold (LNK1248). Build them
     # as OBJECT libraries in that case only; with the PCH they fit.
-    if (NOT SLIC3R_LARGE_LIB_TYPE AND NOT SLIC3R_PCH AND SLIC3R_MSVC_PDB AND
+    if (NOT SLIC3R_LARGE_LIB_TYPE AND NOT SLIC3R_PCH AND
         (IS_CLANG_CL OR _slic3r_embedded_debug))
         set(SLIC3R_LARGE_LIB_TYPE OBJECT)
     endif ()
