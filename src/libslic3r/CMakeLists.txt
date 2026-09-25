@@ -606,7 +606,11 @@ endif ()
 # libnest2d's explicit instantiations; see deps_src/libnest2d/CMakeLists.txt.
 set(_libnest2d_cpp "${OrcaSlicer_SOURCE_DIR}/deps_src/libnest2d/src/libnest2d.cpp")
 
-add_library(libslic3r STATIC ${lisbslic3r_sources}
+# An OBJECT library's objects only reach targets that link it directly; one
+# that reaches libslic3r through another library gets none of them. Every
+# target that uses libslic3r links it directly, except orca_stubgen, which is
+# not built when SLIC3R_LARGE_LIB_TYPE is OBJECT.
+add_library(libslic3r ${SLIC3R_LARGE_LIB_TYPE} ${lisbslic3r_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     ${OpenVDBUtils_SOURCES}
     "${_libnest2d_cpp}")
@@ -616,6 +620,17 @@ source_group("libnest2d" FILES "${_libnest2d_cpp}")
 # does not fail on warnings, and /W0 after the target's /W3 would trip D9025.
 if (NOT SLIC3R_BUNDLED_WARNINGS AND (NOT MSVC OR IS_CLANG_CL))
     set_source_files_properties("${_libnest2d_cpp}" PROPERTIES COMPILE_OPTIONS -w)
+endif ()
+if (MSVC AND SLIC3R_LARGE_LIB_TYPE STREQUAL "OBJECT")
+    # Every object is linked, not only those an archive would pull in. /DEBUG
+    # defaults to /OPT:NOREF, so re-enable /OPT:REF to drop unreferenced code.
+    # /OPT:REF would also turn on /OPT:ICF; keep identical functions unfolded,
+    # as the STATIC build does, so stack traces and function-pointer identity
+    # stay the same. /INCREMENTAL:NO silences LNK4075, as /OPT:REF disables
+    # incremental linking anyway. libslic3r_gui's objects get these flags only
+    # because every libslic3r_gui consumer also links libslic3r directly.
+    target_link_options(libslic3r INTERFACE
+        "$<$<NOT:$<CONFIG:Debug>>:/OPT:REF;/OPT:NOICF;/INCREMENTAL:NO>")
 endif ()
 
 if (SLIC3R_STATIC)

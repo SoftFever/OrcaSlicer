@@ -345,6 +345,11 @@ else ()
     set(IS_CLANG_CL FALSE)
 endif ()
 
+# Library type of libslic3r and libslic3r_gui. Left empty, the MSVC debug info
+# settings below choose it; a normal variable then shadows the cache entry.
+set(SLIC3R_LARGE_LIB_TYPE "" CACHE STRING "Library type of libslic3r and libslic3r_gui: STATIC or OBJECT (default: chosen from the debug info format)")
+set_property(CACHE SLIC3R_LARGE_LIB_TYPE PROPERTY STRINGS "" STATIC OBJECT)
+
 if (MSVC)
     # CMP0092 only applies when the cache is created; an existing tree keeps its /W3,
     # which a silenced bundled target would then override (D9025, once per file).
@@ -382,6 +387,15 @@ if (MSVC)
     if (SLIC3R_MSVC_PDB)
         add_compile_options(/Zi /FS)
     endif ()
+    # With /Z7 (or clang-cl, which reads /Zi as /Z7) every object carries its
+    # own debug info. Without the PCH each object also carries its own copy of
+    # the types the precompiled header would have held once, and libslic3r and
+    # libslic3r_gui then exceed the 4 GB a .lib can hold (LNK1248). Build them
+    # as OBJECT libraries in that case only; with the PCH they fit.
+    if (NOT SLIC3R_LARGE_LIB_TYPE AND NOT SLIC3R_PCH AND SLIC3R_MSVC_PDB AND
+        (IS_CLANG_CL OR CMAKE_MSVC_DEBUG_INFORMATION_FORMAT STREQUAL "Embedded"))
+        set(SLIC3R_LARGE_LIB_TYPE OBJECT)
+    endif ()
     # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
     #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
     add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
@@ -397,6 +411,10 @@ if (MSVC)
 	# helps incremental builds by preventing the double-link restart from TBB
     set(CMAKE_EXE_LINKER_FLAGS    "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LTCG")
+endif ()
+
+if (NOT SLIC3R_LARGE_LIB_TYPE)
+    set(SLIC3R_LARGE_LIB_TYPE STATIC)
 endif ()
 
 # Without this every object names its build directory and two worktrees never
