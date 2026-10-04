@@ -596,3 +596,30 @@ TEST_CASE("Body centering survives islands merging and splitting between layers"
         }
     }
 }
+
+TEST_CASE("Z contouring slices an object that has several instances", "[PrintObject]")
+{
+    Print print;
+    Model model;
+    place_two_cube_instances_apart(10., { { "zaa_enabled", "1" } }, print, model);
+    REQUIRE(print.objects().size() == 1);
+    REQUIRE(print.objects().front()->instances().size() == 2);
+
+    CHECK_NOTHROW(print.process());
+    CHECK(print.objects().front()->is_step_done(posContouring));
+}
+
+TEST_CASE("Z contouring slices instances of one object that are turned differently", "[PrintObject]")
+{
+    // An instance turned about Z is sliced as a PrintObject of its own, with the same ModelObject behind it.
+    Print print;
+    Model model;
+    place_two_cube_instances_apart(10., { { "zaa_enabled", "1" } }, print, model);
+    model.objects.front()->instances.back()->set_rotation(Z, PI / 4.);
+    print.apply(model, DynamicPrintConfig(print.full_print_config()));
+    REQUIRE(print.objects().size() == 2);
+
+    CHECK_NOTHROW(print.process());
+    for (const PrintObject *object : print.objects())
+        CHECK(object->is_step_done(posContouring));
+}
