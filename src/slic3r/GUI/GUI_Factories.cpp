@@ -34,6 +34,7 @@
 #include <wx/string.h>
 #include <wx/event.h>
 #include <cstddef>
+#include <functional>
 #include <boost/filesystem/path.hpp>
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
