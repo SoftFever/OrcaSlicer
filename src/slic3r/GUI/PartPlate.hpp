@@ -1,6 +1,21 @@
 #ifndef __part_plate_hpp_
 #define __part_plate_hpp_
 
+#include <cmath>
+#include "libslic3r/Config.hpp"
+#include <utility>
+#include "libslic3r/Point.hpp"
+#include <string>
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Geometry.hpp"
+#include "libslic3r/ExPolygon.hpp"
+#include "libslic3r/Color.hpp"
+#include "libslic3r/GCode/ThumbnailData.hpp"
+#include "libslic3r/PrintBase.hpp"
+#include <map>
+#include <cstddef>
+#include <cereal/access.hpp>
+#include <cereal/specialize.hpp>
 #include <vector>
 #include <set>
 #include <map>
@@ -9,6 +24,7 @@
 #include <thread>
 #include <mutex>
 #include <memory>
+#include <wx/types.h>
 
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
@@ -189,6 +205,7 @@ private:
     void calc_triangles_from_polygon(const ExPolygon &poly, GLModel& render_model);
     void calc_gridlines(const ExPolygon& poly, const BoundingBox& pp_bbox);
     void calc_height_limit();
+    float icon_scale_factor() const;
     void calc_vertex_for_number(int index, bool one_number, GLModel &buffer);
     void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, PickingModel &model);
     void calc_vertex_for_icons(int index, PickingModel &model);
@@ -455,6 +472,10 @@ public:
     bool contains(const GLVolume& v) const;
     bool contains(const BoundingBoxf3& bb) const;
     bool intersects(const BoundingBoxf3& bb) const;
+    // A belt printer with belt_printer_infinite_y: the plate is open along Y for the
+    // containment tests (the drawn plate keeps its shape).
+    bool belt_open_y() const;
+    void open_belt_y(BoundingBoxf3 &box) const { if (this->belt_open_y()) { box.min.y() = -1e5; box.max.y() = 1e5; } }
 
     void render(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_body = false, bool force_background_color = false, HeightLimitMode mode = HEIGHT_LIMIT_NONE, int hover_id = -1, bool render_cali = false, bool show_grid = true, bool hide_chrome = false);
 

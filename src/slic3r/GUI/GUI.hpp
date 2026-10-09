@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_hpp_
 #define slic3r_GUI_hpp_
 
+#include <string>
 namespace boost { class any; }
 namespace boost::filesystem { class path; }
 
@@ -86,6 +87,9 @@ extern void about();
 extern void desktop_open_datadir_folder();
 // Ask the destop to open one folder
 extern void desktop_open_any_folder(const std::string& path);
+// Ask the desktop to open a file from the project's auxiliary directory, after a confirmation
+// unless its type is known to be plain content. Returns false if the file was not opened.
+extern bool desktop_open_project_attachment(wxWindow *parent, const boost::filesystem::path &path);
 } // namespace GUI
 } // namespace Slic3r
 

@@ -11,17 +11,60 @@
 #include "libslic3r/PrintConfig.hpp"
 
 #include <algorithm>
+#include <boost/algorithm/string/erase.hpp>
+#include <cfloat>
+#include <boost/any.hpp>
+#include <climits>
+#include <boost/filesystem/operations.hpp>
 #include <cmath>
+#include "libslic3r/LocalesUtils.hpp"
+#include <cstddef>
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Config.hpp"
+#include <cstdlib>
+#include "libslic3r/Preset.hpp"
+#include <limits>
+#include "libslic3r/enum_bitmask.hpp"
+#include <deque>
+#include "libslic3r/libslic3r.h"
+#include <map>
+#include "libslic3r/Utils.hpp"
+#include <functional>
+#include <cstring>
+#include "libslic3r/Color.hpp"
 #include <regex>
+#include <string>
+#include "slic3r/GUI/Widgets/StateColor.hpp"
+#include "slic3r/GUI/Widgets/DropDown.hpp"
 #include <utility>
 #include <cstdint>
-#include <limits>
+#include <vector>
+#include <wx/event.h>
+#include <wx/chartype.h>
+#include <wx/gdicmn.h>
+#include <wx/arrstr.h>
+#include <wx/anybutton.h>
+#include <wx/colour.h>
+#include <wx/clrpicker.h>
+#include <wx/image.h>
+#include <wx/dcmemory.h>
+#include <wx/dc.h>
+#include <wx/dcgraph.h>
+#include <wx/font.h>
 #include <wx/numformatter.h>
+#include <wx/settings.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/tglbtn.h>
+#include <wx/spinctrl.h>
+#include <wx/panel.h>
+#include <wx/stattext.h>
 #include <wx/tooltip.h>
 #include <wx/notebook.h>
 #include <wx/listbook.h>
 #include <wx/tokenzr.h>
 #include <boost/algorithm/string/predicate.hpp>
+#include <wx/types.h>
 #include "OG_CustomCtrl.hpp"
 #include "MsgDialog.hpp"
 #include "BitmapComboBox.hpp"
@@ -38,6 +81,7 @@
 
 #include "../Utils/ColorSpaceConvert.hpp"
 #include "../Utils/NetworkAgentFactory.hpp"
+#include <wx/sizer.h>
 #ifdef __WXOSX__
 #define wxOSX true
 #else
@@ -658,11 +702,11 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 set_value(str, true);
             }
         } else if (m_opt.opt_key == "sparse_infill_rotate_template" || m_opt.opt_key == "solid_infill_rotate_template") {
-            string ustr(str.utf8_string());
+            std::string ustr(str.utf8_string());
             if (!ConfigOptionFloats::validate_string(ustr)) {
-                string      v;
+                std::string v;
                 std::smatch match;
-                string      ps = (m_opt.opt_key == "sparse_infill_rotate_template") ?
+                std::string ps = (m_opt.opt_key == "sparse_infill_rotate_template") ?
                                      u8"[BT][!]?|[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[BT]?[!*]?" :
                                      u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[!*]?";
 
@@ -693,7 +737,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 break;
             }
         } else if (m_opt.opt_key == "extra_solid_infills") {
-            string ustr(str.utf8_string());
+            std::string ustr(str.utf8_string());
             // New rule: accept either interval form (N or N#K) or explicit list (e.g. 1,7,9), with optional quotes.
             const std::regex rx_interval(u8R"(^\s*['"]?\s*\d+\s*(?:#\s*\d*)?\s*['"]?\s*$)");
             // List entries may be plain numbers or number with optional #K count, e.g., 5, 9#2, 18
@@ -745,18 +789,10 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         str.Replace(" ", wxEmptyString, true);
         const bool bed_exclusion_volume_syntax = m_opt_id == "bed_exclude_area" &&
             (str.Find("|") != wxNOT_FOUND || (str.Find("..") != wxNOT_FOUND && str.Find(";") != wxNOT_FOUND));
-        const wxString raw_str = str;
         if (bed_exclusion_volume_syntax) {
-            wxString points;
-            wxStringTokenizer regions(str, "|");
-            while (regions.HasMoreTokens()) {
-                wxString region = regions.GetNextToken();
-                const int sep = region.Find(";");
-                if (! points.empty())
-                    points += ",";
-                points += sep == wxNOT_FOUND ? region : region.Mid(sep + 1);
-            }
-            str = points;
+            // Leave volume validation and the copy prompt to the printer tab.
+            m_value = into_u8(str);
+            break;
         }
         if (!str.IsEmpty()) {
             bool invalid_val = false;
@@ -785,10 +821,11 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                     text_value = get_thumbnails_string(boost::any_cast<std::vector<Vec2d>>(m_value));
                 set_value(text_value, true);
                 show_error(m_parent, format_wxstr(_L("Invalid format. Expected vector format: \"%1%\""), "XxY, XxY, ..."));
+                break;
             }
         }
 
-        m_value = bed_exclusion_volume_syntax ? boost::any(into_u8(raw_str)) : boost::any(out_values);
+        m_value = out_values;
         break; }
 
 	default:
@@ -995,8 +1032,11 @@ void TextCtrl::BUILD() {
     if (m_opt.is_code)
         temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
+    if(m_opt.multiline){
+        temp->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30"))); // only effects wxTextCtrl
+        temp->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    }
 
-    temp->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
 	wxGetApp().UpdateDarkUI(temp);
 
     if (! m_opt.multiline && !wxOSX)
@@ -2156,7 +2196,8 @@ void PrinterAgentChoice::set_value(const std::string& value, bool change_event)
     if (match == wxNOT_FOUND)
     {
         field->SetSelection(wxNOT_FOUND); // nothing shows as selected in the dropdown
-        field->SetValue(from_u8(value + " (missing)")); // set a value not in the selection (upper display field)
+        // TRN %1% is the ID of a printer agent that is no longer available
+        field->SetValue(format_wxstr(_L("%1% (missing)"), value)); // set a value not in the selection (upper display field)
     }
     else
     {
@@ -2485,7 +2526,7 @@ nlohmann::json plugin_overrides_as_json(const std::string& text)
 
 void PluginConfigField::BUILD()
 {
-    m_button = new ::Button(m_parent, _L("Configure"));
+    m_button = new ::Button(m_parent, _L("Configure") + dots);
     // ButtonType::Parameter gives the button the same height as the parameter fields above it.
     m_button->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
@@ -2515,7 +2556,7 @@ void PluginConfigField::update_button_label()
     const nlohmann::json entries = plugin_overrides_as_json(m_json);
     const size_t         count   = entries.is_array() ? entries.size() : 0;
 
-    m_button->SetLabel(count == 0 ? _L("Configure")
+    m_button->SetLabel(count == 0 ? _L("Configure" + dots)
                                   : wxString::Format(_L("Configure (%d)"), int(count)));
 }
 

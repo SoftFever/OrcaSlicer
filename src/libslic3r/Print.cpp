@@ -3,6 +3,56 @@
 // needs the Win32 types declared already.
 #include <Windows.h>
 #endif
+
+#include "PrintBase.hpp"
+#include <utility>
+#include <string>
+#include <mutex>
+#include <vector>
+#include "libslic3r.h"
+#include "calib.hpp"
+#include <cassert>
+#include "CustomGCode.hpp"
+#include "ObjectID.hpp"
+#include <cstddef>
+#include "Point.hpp"
+#include "Polygon.hpp"
+#include "Geometry.hpp"
+#include <map>
+#include <cmath>
+#include <Eigen/Geometry>
+#include <set>
+#include "Slicing.hpp"
+#include <cstdlib>
+#include "TriangleSelector.hpp"
+#include "GCode/AdaptivePAProcessor.hpp"
+#include <exception>
+#include <ostream>
+#include "ExPolygon.hpp"
+#include "Layer.hpp"
+#include "FilamentGroup.hpp"
+#include <memory>
+#include "FilamentGroupUtils.hpp"
+#include "MultiNozzleUtils.hpp"
+#include <chrono>
+#include <optional>
+#include "GCode/GCodeProcessor.hpp"
+#include "GCode/ThumbnailData.hpp"
+#include "ExtrusionEntity.hpp"
+#include <math.h>
+#include "CommonDefs.hpp"
+#include <ios>
+#include <iomanip>
+#include <tuple>
+#include "Surface.hpp"
+#include "Circle.hpp"
+#include "Polyline.hpp"
+#include "ArcFitter.hpp"
+#include <cstdio>
+#include <boost/filesystem/operations.hpp>
+#include <boost/thread/lock_types.hpp>
+#include <iterator>
+#include "TriangleMesh.hpp"
 #include "Config.hpp"
 #include "Exception.hpp"
 #include "Print.hpp"
@@ -20,6 +70,8 @@
 #include "Thread.hpp"
 #include "Time.hpp"
 #include "GCode.hpp"
+#include "BeltGCode.hpp"
+#include "BeltTransform.hpp"
 #include "GCode/WipeTower.hpp"
 #include "GCode/WipeTower2.hpp"
 #include "GCode/WipeTowerEstimate.hpp"
@@ -28,6 +80,7 @@
 #include "MaterialType.hpp"
 #include "Model.hpp"
 #include "format.hpp"
+#include "LocalesUtils.hpp"
 #include <float.h>
 
 #include <algorithm>
@@ -50,9 +103,14 @@
 #include "nlohmann/json.hpp"
 
 #include "GCode/ConflictChecker.hpp"
-#include "ParameterUtils.hpp"
 
 #include <codecvt>
+#include "Format/STEP.hpp"
+#include "PlaceholderParser.hpp"
+#include "SurfaceCollection.hpp"
+#include "BeltBrim.hpp"
+
+namespace fs = boost::filesystem;
 
 using namespace nlohmann;
 
@@ -206,6 +264,14 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
     // Cache the plenty of parameters, which influence the G-code generator only,
     // or they are only notes not influencing the generated G-code.
     static std::unordered_set<std::string> steps_gcode = {
+        // Belt printer G-code axis remap (only affects G-code output, not slicing).
+        "gcode_remap_x",
+        "gcode_remap_y",
+        "gcode_remap_z",
+        // Machine-frame transform (derived from belt tilt; only affects G-code output).
+        "belt_frame_tilt_decouple", "belt_frame_tilt_angle",
+        // Only inflates the GUI bed volume, like printable_area.
+        "belt_printer_infinite_y",
         //BBS
         "additional_cooling_fan_speed",
         "reduce_crossing_wall",
@@ -418,8 +484,18 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
-            || opt_key == "spiral_mode") {
+            || opt_key == "spiral_mode"
+            // Build plate tilt changes slicing plane orientation.
+            || opt_key == "build_plate_tilt_x"
+            || opt_key == "build_plate_tilt_y"
+            // Belt printer transform options change the mesh geometry before slicing.
+            || opt_key == "belt_printer"
+            || opt_key == "belt_slice_rotation"
+            || opt_key == "belt_slice_rotation_angle") {
             osteps.emplace_back(posSlice);
+        } else if (
+               opt_key == "belt_support_floor_offset") {
+            osteps.emplace_back(posSupportMaterial);
         } else if (
                opt_key == "print_sequence"
             || opt_key == "filament_type"
@@ -454,6 +530,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "hot_plate_temp"
             || opt_key == "textured_plate_temp"
             || opt_key == "enable_prime_tower"
+            || opt_key == "enable_belt_purge_tower"
             || opt_key == "enable_wrapping_detection"
             || opt_key == "prime_tower_enable_framework"
             || opt_key == "prime_tower_width"
@@ -488,6 +565,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "prime_volume"
             || opt_key == "flush_into_infill"
             || opt_key == "flush_into_support"
+            || opt_key == "belt_purge_tower_width"
             || opt_key == "initial_layer_infill_speed"
             || opt_key == "travel_speed"
             || opt_key == "travel_speed_z"
@@ -719,6 +797,9 @@ std::vector<ObjectID> Print::print_object_ids() const
 
 bool Print::has_infinite_skirt() const
 {
+    // Belt printer: no skirt support.
+    if (m_config.belt_printer.value)
+        return false;
     // Orca: unclear why (m_config.ooze_prevention && this->extruders().size() > 1) logic is here, removed.
     // return (m_config.draft_shield == dsEnabled && m_config.skirt_loops > 0) || (m_config.ooze_prevention && this->extruders().size() > 1);
 
@@ -727,12 +808,33 @@ bool Print::has_infinite_skirt() const
 
 bool Print::has_skirt() const
 {
+    // Belt printer: no skirt support.
+    if (m_config.belt_printer.value)
+        return false;
     return (m_config.skirt_height > 0);
 }
 
 bool Print::has_brim() const
 {
     return std::any_of(m_objects.begin(), m_objects.end(), [](PrintObject *object) { return object->has_brim(); });
+}
+
+bool Print::has_tilted_belt() const
+{
+    if (! m_config.belt_printer.value)
+        return false;
+    // A Z rotation leaves the belt floor flat (BeltTransform forces shear = 0) and no
+    // rotation at all means the machine is geometrically a flat bed.
+    const BeltRotationAxis axis = m_config.belt_slice_rotation.value;
+    if (axis != BeltRotationAxis::X && axis != BeltRotationAxis::Y)
+        return false;
+    const double tilt = std::abs(m_config.belt_slice_rotation_angle.value);
+    return tilt >= BELT_BRIM_MIN_TILT_DEG && tilt <= BELT_BRIM_MAX_TILT_DEG;
+}
+
+bool Print::has_belt_brim() const
+{
+    return std::any_of(m_objects.begin(), m_objects.end(), [](PrintObject *object) { return object->has_belt_brim(); });
 }
 
 //BBS
@@ -1854,6 +1956,75 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
     if (extruders.empty())
         return { L("No extrusions under current settings.") };
 
+    // Belt printer validation: incompatible features.
+    if (m_config.belt_printer.value) {
+        for (const PrintObject *object : m_objects) {
+            if (object->config().raft_layers > 0)
+                return { L("Raft is not compatible with belt printer mode.") };
+        }
+        if (m_config.draft_shield != dsDisabled)
+            return { L("Draft shield is not compatible with belt printer mode.") };
+
+        // Belt brim spans many layers and owns the layers below the object, which
+        // spiral vase cannot share. The prime tower setting is no obstacle: belt
+        // printers never print the classic tower, and the belt purge prism is an
+        // ordinary object that never takes a brim.
+        if (this->has_belt_brim()) {
+            if (m_config.spiral_mode.value)
+                return { L("Brim is not compatible with spiral vase mode on a belt printer. "
+                           "Disable one of them.") };
+        }
+
+        for (const PrintObject *object : m_objects) {
+            const PrintObjectConfig &ocfg = object->config();
+            // Mirror PrintObject::has_belt_brim(): an inner-only brim needs a positive
+            // brim_width (leading/extra widen only the outer ring), so keep this
+            // predicate in step or the belt-brim warnings below would fire for a brim
+            // that has_belt_brim() rejects.
+            const bool wants_brim = ocfg.brim_type != btNoBrim
+                                 && (ocfg.brim_type == btInnerOnly
+                                         ? ocfg.brim_width.value > 0.
+                                         : (ocfg.brim_width.value > 0. || ocfg.leading_brim_length.value > 0.
+                                            || ocfg.extra_brim_width.value > 0.));
+            if (! wants_brim)
+                continue;
+
+            if (! this->has_tilted_belt()) {
+                if (std::abs(m_config.belt_slice_rotation_angle.value) > BELT_BRIM_MAX_TILT_DEG)
+                    warn(L("The belt is too steep for a brim, so no brim will be generated."),
+                         "brim_width", object->model_object());
+                else
+                    warn(L("A brim is only generated when the belt is tilted. Set a belt tilt angle, "
+                           "or remove the brim setting."),
+                         "brim_type", object->model_object());
+            }
+
+            if (ocfg.brim_type == btAutoBrim || ocfg.brim_type == btEar || ocfg.brim_type == btPainted)
+                warn(L("Belt printers support outer and inner brim only. Auto, Mouse ear and Painted "
+                       "brim are printed as Outer brim only, using Brim width."),
+                     "brim_type", object->model_object());
+
+            if (ocfg.leading_brim_length.value > 0. && ocfg.brim_object_gap.value > 0.)
+                warn(L("Brim-object gap separates the leading brim from the object's leading edge, "
+                       "which is the edge it is meant to anchor. Set the gap to 0 when using leading "
+                       "brim length."),
+                     "brim_object_gap", object->model_object());
+        }
+        if (this->has_belt_brim() && m_objects.size() > 1)
+            warn(L("Leading brim length extends ahead of each object along the belt, and Arrange does "
+                   "not reserve that space. Leave room between objects."),
+                 "leading_brim_length");
+    } else {
+        // "Leading edge only" describes where a part meets a moving belt, so it has no
+        // meaning on a fixed bed.  Brim.cpp prints it as an ordinary outer brim rather
+        // than silently producing nothing; say so.
+        for (const PrintObject *object : m_objects)
+            if (object->config().brim_type == btLeadingEdgeOnly)
+                warn(L("\"Leading edge only\" brim applies to belt printers. On this printer it is "
+                       "printed as an ordinary outer brim."),
+                     "brim_type", object->model_object());
+    }
+
     // Orca: a gradient mixed filament only renders its gradient with "Mixed color sublayer" on;
     // without it ToolOrdering::resolve_mixed_filaments prints one whole component per layer and
     // the gradient is dropped silently. extruders() already covers painting, height ranges,
@@ -1919,6 +2090,40 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
         }
     }
 
+    if (m_config.belt_printer.value && m_config.enable_belt_purge_tower.value
+        && m_config.print_sequence == PrintSequence::ByObject
+        && extruders.size() > 1) {
+        StringObjectException warningtemp;
+        warningtemp.string     = L("The belt purge tower is not generated in \"By object\" print sequence; "
+                                   "filament changes will not be purged.");
+        warningtemp.opt_key    = "enable_belt_purge_tower";
+        warningtemp.is_warning = true;
+        add_warning(warningtemp);
+    }
+
+    // The purge tower is a model object the GUI creates and sizes; libslic3r only purges
+    // into one that exists. A project sliced without it (the CLI on a project saved before
+    // the tower was generated) changes filament with nowhere to purge.
+    if (m_config.belt_printer.value && m_config.enable_belt_purge_tower.value
+        && m_config.print_sequence != PrintSequence::ByObject
+        && ! m_config.spiral_mode.value && this->object_extruders().size() > 1 && ! this->has_belt_purge_tower()) {
+        StringObjectException warningtemp;
+        warningtemp.string     = L("The belt purge tower is enabled but the project has no purge tower object; "
+                                   "filament changes will not be purged. Open the project in the application "
+                                   "to generate the tower.");
+        warningtemp.opt_key    = "enable_belt_purge_tower";
+        warningtemp.is_warning = true;
+        add_warning(warningtemp);
+    }
+
+    if (m_config.belt_printer.value && m_config.enable_belt_purge_tower.value) {
+        const size_t prism_count = std::count_if(m_objects.begin(), m_objects.end(), [](const PrintObject *object) {
+            return object->config().belt_purge_tower_object.value;
+        });
+        if (prism_count > 1)
+            return {L("The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it.")};
+    }
+
     if (m_config.enable_prime_tower) {
         for (const PrintObject* object : m_objects) {
             if (object->config().precise_z_height.value) {
@@ -1972,34 +2177,56 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
         return profile;
     };
 
-    // Checks that the print does not exceed the max print height
+    // Checks that the print does not exceed the max print height.
+    // For belt printers the slicing-frame Z spans the sheared X-length and
+    // is not comparable to printable_height (which is gantry clearance in the
+    // build-volume frame).  Compare against the model's pre-shear Z instead,
+    // mirroring the bbox computed in PrintObject::update_slicing_parameters.
+    // The machine-frame transform only changes how that height is written to
+    // G-code, not how much room there is under the gantry.
+    const bool belt_printer = this->config().belt_printer.value;
+    const double shrinkage_compensation_z = this->shrinkage_compensation().z();
     for (size_t print_object_idx = 0; print_object_idx < m_objects.size(); ++ print_object_idx) {
         const PrintObject &print_object = *m_objects[print_object_idx];
-        //FIXME It is quite expensive to generate object layers just to get the print height!
-        if (auto layers = generate_object_layers(print_object.slicing_parameters(), layer_height_profile(print_object_idx), print_object.config().precise_z_height.value);
-            !layers.empty()) {
 
-            Vec3d test =this->shrinkage_compensation();
-            const double shrinkage_compensation_z = this->shrinkage_compensation().z();
-            
-            if (shrinkage_compensation_z != 1. && layers.back() > (this->config().printable_height / shrinkage_compensation_z + EPSILON)) {
-                // The object exceeds the maximum build volume height because of shrinkage compensation.
-                return StringObjectException{
-                    Slic3r::format(_u8L("While the object %1% itself fits the build volume, it exceeds the maximum build volume height because of material shrinkage compensation."), print_object.model_object()->name),
-                    print_object.model_object(),
-                    ""
-                };
-            } else if (layers.back() > this->config().printable_height + EPSILON) {
-                // Test whether the last slicing plane is below or above the print volume.
-                return StringObjectException{
-                    0.5 * (layers[layers.size() - 2] + layers.back()) > this->config().printable_height + EPSILON ?
-                    Slic3r::format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name) :
-                    Slic3r::format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
-                    " " + _u8L("You might want to reduce the size of your model or change current print settings and retry."),
-                    print_object.model_object(),
-                    ""
-                };
+        double effective_max_z       = 0;
+        bool   last_layer_below_max  = false;
+        bool   have_height           = false;
+
+        if (belt_printer) {
+            const double raw_z = print_object.model_object()->max_z();
+            effective_max_z = raw_z;
+            have_height     = raw_z > 0;
+        } else {
+            //FIXME It is quite expensive to generate object layers just to get the print height!
+            auto layers = generate_object_layers(print_object.slicing_parameters(), layer_height_profile(print_object_idx), print_object.config().precise_z_height.value);
+            if (!layers.empty()) {
+                effective_max_z      = layers.back();
+                last_layer_below_max = layers.size() >= 2 &&
+                    0.5 * (layers[layers.size() - 2] + layers.back()) <= this->config().printable_height + EPSILON;
+                have_height          = true;
             }
+        }
+
+        if (!have_height)
+            continue;
+
+        if (shrinkage_compensation_z != 1. && effective_max_z > (this->config().printable_height / shrinkage_compensation_z + EPSILON)) {
+            // The object exceeds the maximum build volume height because of shrinkage compensation.
+            return StringObjectException{
+                Slic3r::format(_u8L("While the object %1% itself fits the build volume, it exceeds the maximum build volume height because of material shrinkage compensation."), print_object.model_object()->name),
+                print_object.model_object(),
+                ""
+            };
+        } else if (effective_max_z > this->config().printable_height + EPSILON) {
+            return StringObjectException{
+                last_layer_below_max ?
+                Slic3r::format(_u8L("While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."), print_object.model_object()->name) +
+                " " + _u8L("You might want to reduce the size of your model or change current print settings and retry.") :
+                Slic3r::format(_u8L("The object %1% exceeds the maximum build volume height."), print_object.model_object()->name),
+                print_object.model_object(),
+                ""
+            };
         }
     }
 
@@ -2020,12 +2247,12 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
                     return {_u8L("Variable layer height is not supported with Organic supports.") };
         }
 
-    if (this->has_wipe_tower() && ! m_objects.empty()) {
+    if ((this->has_wipe_tower() || this->has_belt_purge_tower()) && ! m_objects.empty()) {
         // Orca: wipe_tower_filament (issue #10971) is inserted into the tool order after
         // resolve_mixed_filaments has expanded every mixed (virtual) slot, so a mixed slot here
         // would reach the G-code as a tool change to a slot no nozzle carries. The GUI hides
         // mixed slots from the option; this guards loaded projects and the CLI.
-        if (m_config.wipe_tower_filament > 0) {
+        if (this->has_wipe_tower() && m_config.wipe_tower_filament > 0) {
             const auto  &is_mixed = m_config.filament_is_mixed.values;
             const size_t wipe_idx = size_t(m_config.wipe_tower_filament - 1);
             if (wipe_idx < is_mixed.size() && is_mixed[wipe_idx])
@@ -2047,12 +2274,17 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
                 }
         }
 
-        if (! m_config.use_relative_e_distances)
-            return { L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
+        // The following two constraints come from the classic wipe tower G-code
+        // generator; purging into the belt purge prism uses normal object
+        // extrusions and does not need them.
+        if (this->has_wipe_tower()) {
+            if (! m_config.use_relative_e_distances)
+                return { L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).") };
 
-        if (m_config.ooze_prevention && m_config.single_extruder_multi_material)
-            return {L("Ooze prevention is only supported with the wipe tower when 'single_extruder_multi_material' is off.")};
-            
+            if (m_config.ooze_prevention && m_config.single_extruder_multi_material)
+                return {L("Ooze prevention is only supported with the wipe tower when 'single_extruder_multi_material' is off.")};
+        }
+
 #if 0
         if (m_config.gcode_flavor != gcfRepRapSprinter && m_config.gcode_flavor != gcfRepRapFirmware &&
             m_config.gcode_flavor != gcfRepetier && m_config.gcode_flavor != gcfMarlinLegacy && m_config.gcode_flavor != gcfMarlinFirmware)
@@ -2280,7 +2512,7 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
             for (const PrintRegion &region : object->all_regions()) {
                 const auto &bridge_width_opt = region.config().bridge_line_width;
                 for (FlowRole bridge_role : { frPerimeter, frInfill, frSolidInfill, frTopSolidInfill }) {
-                    const double nozzle_diameter = m_config.nozzle_diameter.get_at(region.extruder(bridge_role) - 1);
+                    const double nozzle_diameter = nozzle_diameter_for_filament(m_config, region.extruder(bridge_role), this->is_BBL_printer());
                     const double bridge_width    = bridge_width_opt.get_abs_value(nozzle_diameter);
                     if (bridge_width <= 0.)
                         continue;
@@ -2544,12 +2776,18 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
             if (m_default_region_config.precise_outer_wall && m_default_region_config.wall_sequence != WallSequence::InnerOuter)
                 warn(L("The precise wall option will be ignored for outer-inner or inner-outer-inner wall sequences."), "precise_outer_wall");
 
-            // check adaptive pressure advance model
-            for (unsigned int extruder_id : extruders) {
-                if (m_config.adaptive_pressure_advance.get_at(extruder_id) && 
-                    m_config.enable_pressure_advance.get_at(extruder_id)) {
-                    
-                    const std::string pa_model = m_config.adaptive_pressure_advance_model.get_at(extruder_id);
+            // check adaptive pressure advance model of every extruder variant column of the used filaments
+            const std::vector<int> &self_index = m_config.filament_self_index.values;
+            const size_t pa_columns = std::max(m_config.adaptive_pressure_advance_model.size(), size_t(extruders.back()) + 1);
+            for (size_t column = 0; column < pa_columns; ++column) {
+                // filament_self_index maps a column to its filament once the filament arrays hold one column per variant
+                const unsigned int filament_id = self_index.size() == pa_columns ? self_index[column] - 1 : column;
+                if (!std::binary_search(extruders.begin(), extruders.end(), filament_id))
+                    continue;
+                if (m_config.adaptive_pressure_advance.get_at(column) &&
+                    m_config.enable_pressure_advance.get_at(column)) {
+
+                    const std::string pa_model = m_config.adaptive_pressure_advance_model.get_at(column);
                     if (!pa_model.empty()) {
                         std::string validation_error = AdaptivePAProcessor::validate_adaptive_pa_model(pa_model);
                         if (!validation_error.empty()) {
@@ -2651,7 +2889,7 @@ Flow Print::brim_flow() const
         frPerimeter,
         // Flow::new_from_config_width takes care of the percent to value substitution
 		width,
-        (float)m_config.nozzle_diameter.get_at(m_print_regions.front()->config().outer_wall_filament_id-1),
+        (float)nozzle_diameter_for_filament(m_config, m_print_regions.front()->config().outer_wall_filament_id, this->is_BBL_printer()),
 		(float)this->skirt_first_layer_height());
 }
 
@@ -2668,12 +2906,13 @@ Flow Print::skirt_flow() const
        extruders and take the one with, say, the smallest index;
        The same logic should be applied to the code that selects the extruder during G-code
        generation as well. */
-    return Flow::new_from_config_width(frPerimeter,
-                                       // Flow::new_from_config_width takes care of the percent to value substitution
-                                       width,
-                                       (float) m_config.nozzle_diameter.get_at(
-                                           m_objects.empty() ? 0 : m_objects.front()->config().support_filament - 1),
-                                       (float) this->skirt_first_layer_height());
+    return Flow::new_from_config_width(
+        frPerimeter,
+        // Flow::new_from_config_width takes care of the percent to value substitution
+        width,
+        // ORCA: resolve the actual nozzle the support filament is printed with (dual-nozzle printers).
+        (float)nozzle_diameter_for_filament(m_config, m_objects.empty() ? 0 : m_objects.front()->config().support_filament, this->is_BBL_printer()),
+        (float)this->skirt_first_layer_height());
 }
 
 bool Print::has_support_material() const
@@ -2772,8 +3011,28 @@ BoundingBox PrintObject::get_first_layer_bbox(float& a, float& layer_height, std
             a += area(slice);
         }
     }
-    if (has_brim())
+    // Guard on `defined`: make_brim() can return before assigning this (it does on
+    // belt printers, where has_brim() is still true but the plate brim is skipped),
+    // and overwriting a valid bbox with an undefined one corrupted the first-layer
+    // centre and the GUI's first-layer area readout.
+    if (has_brim() && firstLayerObjectBrimBoundingBox.defined)
         bbox = firstLayerObjectBrimBoundingBox;
+    // Belt brim: the apron reaches ahead of the object along the belt.
+    if (has_belt_brim()) {
+        const Point shift = instances().empty() ? Point(0, 0) : instances()[0].shift_without_plate_offset();
+        for (const ExPolygons &areas : m_belt_brim_areas_by_layer)
+            for (const ExPolygon &ex : areas) {
+                BoundingBox bb = get_extents(ex.contour);
+                bb.translate(shift.x(), shift.y());
+                bbox.merge(bb);
+            }
+        for (const BeltBrimBand &band : m_belt_brim_prologue)
+            for (const ExPolygon &ex : band.areas) {
+                BoundingBox bb = get_extents(ex.contour);
+                bb.translate(shift.x(), shift.y());
+                bbox.merge(bb);
+            }
+    }
     return bbox;
 }
 
@@ -2819,6 +3078,19 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": this=%1%, enter, use_cache=%2%, object size=%3%")%this%use_cache%m_objects.size();
     if (m_objects.empty())
         return;
+
+    // Belt purge prism: _plan_belt_purge() (psWipeTower) truncates the prism's
+    // layers and drops its unclaimed fills, stashing both so a replan can undo
+    // them. The object steps below regenerate per-layer content over m_layers
+    // ONLY, so if any of them is about to rerun the stashes must go back first;
+    // otherwise truncated layers keep stale perimeters/fills and dropped fills
+    // are re-inserted next to freshly generated ones. Every object-step
+    // invalidation also invalidates psWipeTower, so "psWipeTower not done" is
+    // exactly "some object step may rerun" -- and when it IS done nothing below
+    // regenerates, and the plan's edits have to stay.
+    if (!this->is_step_done(psWipeTower))
+        for (PrintObject *obj : m_objects)
+            obj->belt_undo_purge_plan();
 
     {
         LifecycleEventContext ctx;
@@ -2881,15 +3153,20 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
     int object_count = m_objects.size();
     std::set<PrintObject*> need_slicing_objects;
     std::set<PrintObject*> re_slicing_objects;
+    // Belt global modes couple each object's bed position into its layer Z values,
+    // so sharing layers between "identical" objects is wrong.
+    bool belt_no_share = m_config.belt_printer.value;
     if (!use_cache) {
         for (int index = 0; index < object_count; index++)
         {
             PrintObject *obj =  m_objects[index];
-            for (PrintObject *slicing_obj : need_slicing_objects)
-            {
-                if (is_print_object_the_same(obj, slicing_obj)) {
-                    obj->set_shared_object(slicing_obj);
-                    break;
+            if (!belt_no_share) {
+                for (PrintObject *slicing_obj : need_slicing_objects)
+                {
+                    if (is_print_object_the_same(obj, slicing_obj)) {
+                        obj->set_shared_object(slicing_obj);
+                        break;
+                    }
                 }
             }
             if (!obj->get_shared_object())
@@ -2908,12 +3185,14 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             PrintObject *obj =  m_objects[index];
             bool found_shared = false;
             if (need_slicing_objects.find(obj) == need_slicing_objects.end()) {
-                for (PrintObject *slicing_obj : need_slicing_objects)
-                {
-                    if (is_print_object_the_same(obj, slicing_obj)) {
-                        obj->set_shared_object(slicing_obj);
-                        found_shared = true;
-                        break;
+                if (!belt_no_share) {
+                    for (PrintObject *slicing_obj : need_slicing_objects)
+                    {
+                        if (is_print_object_the_same(obj, slicing_obj)) {
+                            obj->set_shared_object(slicing_obj);
+                            found_shared = true;
+                            break;
+                        }
                     }
                 }
                 if (!found_shared) {
@@ -3036,7 +3315,8 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 for (int i = range.begin(); i < range.end(); i++) {
                     PrintObject* obj = m_objects[i];
                     if (need_slicing_objects.count(obj) != 0) {
-                        obj->generate_support_material();
+                        // The belt brim follows sequentially below.
+                        obj->generate_support_material(false);
                     }
                     else {
                         if (obj->set_started(posSupportMaterial))
@@ -3045,6 +3325,10 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
                 }
             }
         );
+        // The belt brim keeps clear of every object's layers and support layers,
+        // so it runs once no support step is rebuilding them any more.
+        for (PrintObject *obj : m_objects)
+            obj->generate_belt_brim();
 
         if (m_pipeline_plugin_active)
             for (size_t i = 0; i < m_objects.size(); ++i)
@@ -3121,7 +3405,10 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
 
         m_wipe_tower_data.clear();
         m_tool_ordering.clear();
-        if (this->has_wipe_tower()) {
+        if (this->has_belt_purge_tower() && this->config().print_sequence != PrintSequence::ByObject) {
+            this->_plan_belt_purge();
+        }
+        else if (this->has_wipe_tower()) {
             this->_make_wipe_tower();
         }
         else if (this->config().print_sequence != PrintSequence::ByObject) {
@@ -3379,6 +3666,26 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
         }
 
 
+        // Belt brim: bound the first-layer convex hull by the lowest apron band, so
+        // bed levelling and the initial purge line account for brim that reaches
+        // ahead of every object.
+        if (this->has_belt_brim()) {
+            for (PrintObject *object : m_objects) {
+                if (! object->has_belt_brim() || object->belt_brim_prologue().empty())
+                    continue;
+                const BeltBrimBand &lowest = object->belt_brim_prologue().front();
+                for (const PrintInstance &instance : object->instances())
+                    for (const ExPolygon &ex : lowest.areas) {
+                        Polygon poly = ex.contour;
+                        poly.translate(instance.shift);
+                        append(m_first_layer_convex_hull.points, std::move(poly.points));
+                    }
+            }
+        }
+
+        // Unchanged for belt printers: _make_skirt() already returns early for them, and
+        // the belt brim does not populate m_brimMapByInstance, which is what the
+        // skirt/brim grouping reads.
         if (has_skirt() || has_infinite_skirt() || has_brim()) {
             // Generate skirt/brim groups after brim so per-object and draft-shield footprints
             // include brims when grouping and offsetting skirt loops.
@@ -3482,12 +3789,17 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     this->set_status(80, message);
 
     // The following line may die for multiple reasons.
-    GCode gcode;
+    // Factory: use BeltGCode for belt printers, plain GCode otherwise.
+    std::unique_ptr<GCode> gcode;
+    if (m_config.belt_printer.value)
+        gcode = std::make_unique<BeltGCode>();
+    else
+        gcode = std::make_unique<GCode>();
     //BBS: compute plate offset for gcode-generator
     const Vec3d origin = this->get_plate_origin();
-    gcode.set_gcode_offset(origin(0), origin(1));
-    gcode.do_export(this, path.c_str(), result, thumbnail_cb);
-    gcode.export_layer_filaments(result);
+    gcode->set_gcode_offset(origin(0), origin(1));
+    gcode->do_export(this, path.c_str(), result, thumbnail_cb);
+    gcode->export_layer_filaments(result);
     //BBS
     if (result != nullptr) {
         result->conflict_result = m_conflict_result;
@@ -3502,6 +3814,10 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
 
 void Print::_make_skirt()
 {
+    // Belt printer: skirt is not compatible.
+    if (m_config.belt_printer.value)
+        return;
+  
     const bool generate_skirt = this->has_skirt() || this->has_infinite_skirt();
 
     // First off we need to decide how tall the skirt must be.
@@ -3592,7 +3908,7 @@ void Print::_make_skirt()
             Polygon loop;
             {
                 // Orca: the hull already represents the occupied outline used for this skirt.
-                Polygons loops = offset(hull, distance, ClipperLib::jtRound, float(scale_(0.1)));
+                Polygons loops = offset(hull, distance, jtRound, float(scale_(0.1)));
                 Geometry::simplify_polygons(loops, scale_(0.05), &loops);
 			    if (loops.empty())
 				    break;
@@ -3629,7 +3945,7 @@ void Print::_make_skirt()
         }
 
         if (collect_skirt_hull)
-            for (Polygon &poly : offset(hull, distance + 0.5f * float(scale_(spacing)), ClipperLib::jtRound, float(scale_(0.1))))
+            for (Polygon &poly : offset(hull, distance + 0.5f * float(scale_(spacing)), jtRound, float(scale_(0.1))))
                 append(m_skirt_convex_hull, std::move(poly.points));
     };
 
@@ -3735,7 +4051,7 @@ void Print::_make_skirt()
                 if (group.emits_skirt) {
                     // Orca: If the expanded skirt outline touches another group
                     // or obstacle, merge them and run the pass again.
-                    Polygons envelopes = offset(envelope, grouping_offset, ClipperLib::jtRound, float(scale_(0.1)));
+                    Polygons envelopes = offset(envelope, grouping_offset, jtRound, float(scale_(0.1)));
                     if (envelopes.empty())
                         continue;
                     envelope = std::move(envelopes.front());
@@ -4459,10 +4775,11 @@ Polygons Print::get_extruder_shared_printable_polygon() const
     return shared_printable_polys;
 }
 
-// Narrow the stored grouping result to the layer-aware type the slicing pipeline uses.
-std::shared_ptr<MultiNozzleUtils::LayeredNozzleGroupResult> Print::get_layered_nozzle_group_result() const
+void Print::set_nozzle_group_result(std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> result)
 {
-    return std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_nozzle_group_result);
+    m_nozzle_group_result         = std::move(result);
+    m_layered_nozzle_group_result = std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_nozzle_group_result);
+    ++m_config_index_generation;
 }
 
 // Dynamic (per-layer selector) regroup predicate.
@@ -4490,14 +4807,15 @@ bool Print::is_dynamic_group_reorder() const
     return true;
 }
 
-int Print::get_filament_config_indx(int filament_id, int layer_id)
+int Print::get_filament_config_indx(int filament_id, int layer_id, bool use_cache)
 {
-    return get_config_index(filament_id, layer_id, m_config.filament_extruder_variant.values, m_filament_self_index, m_filament_index_map);
+    return get_config_index(filament_id, layer_id, m_config.filament_extruder_variant.values, m_filament_self_index, use_cache ? &m_filament_index_map : nullptr);
 }
 
 void Print::update_filament_self_index_cache()
 {
     m_missing_nozzle_group_logged.clear();   // reset the per-slice get_config_index log dedupe
+    ++m_config_index_generation;
 
     std::vector<int> values;
     if (m_full_print_config.has("filament_self_index")) {
@@ -4535,9 +4853,9 @@ int Print::get_nozzle_config_index(int filament_id, int layer_id)
     return get_config_index(filament_id, layer_id, m_default_region_config.print_extruder_variant.values, m_default_region_config.print_extruder_id.values, m_nozzle_index_map);
 }
 
-int Print::get_config_index(int filament_id, int layer_id, const std::vector<std::string> &variant_list, const std::vector<int>& self_index_list, FilamentIndexMap &index_map)
+int Print::get_config_index(int filament_id, int layer_id, const std::vector<std::string> &variant_list, const std::vector<int>& self_index_list, FilamentIndexMap *index_map)
 {
-    auto group_result = get_layered_nozzle_group_result();
+    const MultiNozzleUtils::LayeredNozzleGroupResult *group_result = m_layered_nozzle_group_result.get();
     // Orca: defensive — when no grouping producer has published a result yet, fall back to the
     // static identity: one filament-variant column per filament.
     if (!group_result)
@@ -4546,7 +4864,8 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
     if (!nozzle_info.has_value()) {
         // Orca: this fallback runs per-filament/per-layer in the g-code hot path — log once per filament
         // (reset each slice) instead of flooding thousands of identical lines that bury the real error.
-        if (m_missing_nozzle_group_logged.insert(filament_id).second)
+        // Without the cache, the log set is left alone too; the cached caller reports the same filament.
+        if (index_map && m_missing_nozzle_group_logged.insert(filament_id).second)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                                      << boost::format(", Line %1%: could not found group_nozzle_info corresponding to filament_id %2%, layer_id %3% (further occurrences for this filament suppressed)") % __LINE__ % filament_id %
                                             layer_id;
@@ -4555,21 +4874,23 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
 
     ExtruderType     extruder_type      = ExtruderType(m_config.extruder_type.get_at(nozzle_info->extruder_id));
     NozzleVolumeType nozzle_volume_type = nozzle_info->volume_type;
+    if (!index_map)
+        return get_config_index_base(nozzle_volume_type, extruder_type, filament_id + 1, variant_list, self_index_list);
 
     FilamentIndexKey key{filament_id, extruder_type, nozzle_volume_type};
-    auto             iter = index_map.find(key);
-    if (iter == index_map.end()) {
+    auto             iter = index_map->find(key);
+    if (iter == index_map->end()) {
         int index = get_config_index_base(nozzle_volume_type, extruder_type, filament_id + 1, variant_list, self_index_list);
-        index_map[key] = index;
+        (*index_map)[key] = index;
         return index;
     } else {
-        return index_map[key];
+        return iter->second;
     }
 }
 
 int Print::get_config_index(int filament_id, int layer_id, const std::vector<std::string> &variant_list, const std::vector<int>& self_index_list, PrintIndexMap &index_map)
 {
-    auto group_result = get_layered_nozzle_group_result();
+    const MultiNozzleUtils::LayeredNozzleGroupResult *group_result = m_layered_nozzle_group_result.get();
     // Orca: same static fallback as the filament overload; the slot degenerates to the filament's
     // extruder column (filament_map is 1 based, get_extruder_id guards the filament id range).
     if (!group_result)
@@ -4603,6 +4924,13 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
 // Wipe tower support.
 bool Print::has_wipe_tower() const
 {
+    // Belt printers never get the classic wipe tower: its G-code is generated
+    // directly in machine XY coordinates and bypasses the belt rotation
+    // transform. Purging is routed into the belt purge prism instead
+    // (see has_belt_purge_tower() / _plan_belt_purge()).
+    if (m_config.belt_printer.value)
+        return false;
+
     if (m_config.enable_prime_tower.value == true) {
         if (m_config.enable_wrapping_detection.value && m_config.wrapping_exclude_area.values.size() > 2)
             return true;
@@ -4614,6 +4942,7 @@ bool Print::has_wipe_tower() const
     }
     return false;
 }
+
 
 const WipeTowerData &Print::wipe_tower_data(size_t filaments_cnt) const
 {
@@ -4643,6 +4972,7 @@ bool Print::enable_timelapse_print() const
 {
     return m_config.timelapse_type.value == TimelapseType::tlSmooth;
 }
+
 
 void Print::_make_wipe_tower()
 {
@@ -5176,6 +5506,31 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
         ctx.cancellation_check = [this]() { return canceled(); };
         fire_lifecycle_event(LifecycleEvent::GCodeExportFinished, ctx);
     }
+}
+
+void Print::reload_gcode_moves(GCodeProcessorResult* result) const
+{
+    GCodeProcessor processor;
+    GCodeProcessor::s_IsBBLPrinter = is_BBL_printer();
+    const Vec3d origin = this->get_plate_origin();
+    processor.set_xy_offset(origin(0), origin(1));
+    // Estimate the per-move times with the same nozzle-grouping slot context as the export.
+    if (result->nozzle_group_result)
+        processor.initialize_from_context(result->nozzle_group_result);
+    try {
+        processor.process_file(result->filename);
+    } catch (const std::exception& ex) {
+        // The edited file is what gets printed, so failing to preview it must not fail the slice.
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": cannot re-read the G-code file " << result->filename << ": " << ex.what();
+        std::lock_guard<std::mutex> lock(result->result_mutex);
+        result->lines_ends.clear();
+        return;
+    }
+
+    GCodeProcessorResult& reloaded = processor.result();
+    std::lock_guard<std::mutex> lock(result->result_mutex);
+    result->moves      = std::move(reloaded.moves);
+    result->lines_ends = std::move(reloaded.lines_ends);
 }
 
 std::tuple<float, float> Print::object_skirt_offset(double margin_height) const

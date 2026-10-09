@@ -1,18 +1,64 @@
+#include <array>
+#include <cassert>
+#include <cmath>
+#include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
 #include <cstddef>
 #include <algorithm>
+#include "libslic3r/Color.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Polyline.hpp"
+#include "libslic3r/ExPolygon.hpp"
+#include <iterator>
+#include "libslic3r/BuildVolume.hpp"
+#include "libslic3r/GCode/WipeTower.hpp"
+#include "libslic3r/CustomGCode.hpp"
+#include "libslic3r/GCode/GCodeProcessor.hpp"
+#include <ios>
+#include <iomanip>
+#include "libslic3r/Arrange.hpp"
+#include "libslic3r/PrintBase.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/format.hpp"
+#include <cstring>
+#include <exception>
+#include "libslic3r/ParameterUtils.hpp"
+#include <imgui.h>
+#include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/LocalesUtils.hpp"
+#include <cstdlib>
 #include <limits>
+#include <memory>
+#include <map>
+#include <mutex>
 #include <numeric>
+#include "slic3r/GUI/ImGuiWrapper.hpp"
+#include <utility>
+#include "slic3r/GUI/MeshUtils.hpp"
+#include "slic3r/GUI/GLTexture.hpp"
+#include "slic3r/GUI/GLShader.hpp"
+#include "slic3r/GUI/OpenGLManager.hpp"
+#include "slic3r/GUI/SceneRaycaster.hpp"
+#include <set>
+#include <unordered_map>
+#include <unordered_set>
+#include "slic3r/GUI/3DScene.hpp"
+#include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/GUI_ObjectLayers.hpp"
 #include <vector>
 #include <string>
 #include <sstream>
 #include <regex>
-#include <iomanip>
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include "libslic3r/FilamentMixer.hpp"
 #include <future>
 #include <glad/gl.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
@@ -24,12 +70,11 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/GCode/WipeTowerEstimate.hpp"
-#include "libslic3r/Polyline.hpp"
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/ExclusionVolumeGeometry.hpp"
-#include "libslic3r/Geometry.hpp"
 #include "libslic3r/Tesselate.hpp"
+#include "libslic3r/Geometry.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/LifecycleEvents.hpp"
@@ -51,9 +96,23 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/Utils/FileHelp.hpp"
 #include <imgui/imgui_internal.h>
+#include <wx/colour.h>
 #include <wx/dcgraph.h>
-using boost::optional;
-namespace fs = boost::filesystem;
+#include <wx/string.h>
+#include <wx/types.h>
+#include <wx/dcmemory.h>
+#include <wx/intl.h>
+#include <wx/event.h>
+#include <wx/image.h>
+#include <wx/gdicmn.h>
+#include "libslic3r/ObjectID.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/SLA/Pad.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/GLModel.hpp"
+
+class wxFont;
 
 static const float GROUND_Z = -0.03f;
 static const float GROUND_Z_GRIDLINE = -0.26f;
@@ -754,6 +813,17 @@ void PartPlate::calc_height_limit() {
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "Unable to create height limit top lines\n";
 }
 
+// The plate's icons and labels grow with its depth, but they sit in the gap to the
+// next plate, which grows with its width: on a long, narrow bed (a belt) they would
+// otherwise run across the neighbouring plate.
+float PartPlate::icon_scale_factor() const
+{
+    const BoundingBoxf bed_ext  = get_extents(m_shape);
+    const double       by_depth = bed_ext.size().y() / 200.;
+    const double       by_gap   = bed_ext.size().x() * LOGICAL_PART_PLATE_GAP / (PARTPLATE_ICON_SIZE + 2 * PARTPLATE_ICON_GAP_LEFT);
+    return float(std::min(by_depth, by_gap));
+}
+
 void PartPlate::calc_vertex_for_number(int index, bool one_number, GLModel &buffer)
 {
     buffer.reset();
@@ -770,7 +840,7 @@ void PartPlate::calc_vertex_for_number(int index, bool one_number, GLModel &buff
 #else //in the bottom
     auto bed_ext   = get_extents(m_shape);
     Vec2d p        = bed_ext[1];
-    float factor   = bed_ext.size()(1) / 200.0;
+    float factor   = icon_scale_factor();
     float size     = PARTPLATE_ICON_SIZE     * factor;
     float offset_y = PARTPLATE_TEXT_OFFSET_Y * factor;
     float offset_x = (one_number?PARTPLATE_TEXT_OFFSET_X1: PARTPLATE_TEXT_OFFSET_X2) * factor;
@@ -792,7 +862,7 @@ void PartPlate::calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int ind
     ExPolygon poly;
     auto  bed_ext  = get_extents(m_shape);
     Vec2d p        = bed_ext[3];
-    float factor   = bed_ext.size()(1) / 200.0;
+    float factor   = icon_scale_factor();
     float icon_sz  = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
     float width    = icon_sz;
     float height   = icon_sz;
@@ -825,7 +895,7 @@ void PartPlate::calc_vertex_for_icons(int index, PickingModel &model)
     ExPolygon poly;
     auto  bed_ext  = get_extents(m_shape);
     Vec2d p        = bed_ext[2];
-    auto  factor   = bed_ext.size()(1) / 200.0;
+    float factor   = icon_scale_factor();
     float size     = PARTPLATE_ICON_SIZE     * factor;
     float gap_left = PARTPLATE_ICON_GAP_LEFT * factor;
     float gap_y    = PARTPLATE_ICON_GAP_Y    * factor;
@@ -1030,15 +1100,6 @@ void PartPlate::render_exclude_area(bool force_default_color) {
 	if (force_default_color) //for thumbnail case
 		return;
 
-    // Non-shared modes are rendered from their resolved per-extruder regions in
-    // render_exclusion_volume_previews(). The legacy model only represents the
-    // master area and would otherwise fill that one region twice while leaving
-    // the other extruders' regions hollow.
-    const DynamicPrintConfig *config = m_plater != nullptr ? m_plater->config() : nullptr;
-    if (config != nullptr &&
-        active_bed_exclude_volume_mode(*config) != BedExcludeVolumeMode::Shared)
-        return;
-
 	ColorRGBA select_color{   .9f, .86f, .82f, .7f }; // ORCA
 	ColorRGBA unselect_color{ .6f, .6f, .6f, .3f }; // ORCA
 	//ColorRGBA default_color{ 0.9f, 0.9f, 0.9f, 1.0f };
@@ -1192,7 +1253,9 @@ void PartPlate::update_exclusion_volume_preview_models()
     const bool show_nozzle_ownership =
         regions_by_extruder.size() > 1 && mode != BedExcludeVolumeMode::Shared;
     std::ostringstream grouped_key;
-    grouped_key << exclusion_volume_preview_cache_key(regions) << "mode:" << int(mode) << ";groups:";
+    const bool show_all_volumes = m_plater->are_collision_volumes_shown();
+    grouped_key << exclusion_volume_preview_cache_key(regions) << "mode:" << int(mode)
+                << ";show_all:" << show_all_volumes << ";groups:";
     for (const std::vector<BedExcludeRegion> &group : regions_by_extruder)
         grouped_key << group.size() << ',';
     const std::vector<std::string> filament_colors = m_plater->get_extruder_colors_from_plater_config();
@@ -1327,14 +1390,17 @@ void PartPlate::update_exclusion_volume_preview_models()
         }
     }
 
-    const double preview_height = max_broad_phase_intersecting_object_height(preview_footprints);
-    if (preview_height > EPSILON) {
+    // Automatic previews stay limited to nearby objects. The View toggle lets
+    // profile authors inspect the complete configured height on an empty bed.
+    const double preview_height = show_all_volumes ? 0.0 :
+        max_broad_phase_intersecting_object_height(preview_footprints);
+    if (show_all_volumes || preview_height > EPSILON) {
         for (const PreviewRegion &preview_region : preview_regions) {
             const BedExcludeRegion &region_src = preview_region.region;
             if (!region_src.is_collision_volume())
                 continue;
             const double z_min = region_src.has_z_range ? region_src.z_min : 0.0;
-            const double z_max = std::min(region_src.z_max, preview_height);
+            const double z_max = show_all_volumes ? region_src.z_max : std::min(region_src.z_max, preview_height);
             if (z_max > z_min + EPSILON)
                 active_prisms.push_back({ preview_region.footprint, z_min, z_max });
         }
@@ -3194,7 +3260,7 @@ void PartPlate::generate_plate_name_texture()
     ExPolygon poly;
     auto  bed_ext  = get_extents(m_shape);
     Vec2d p        = bed_ext[3];
-    float factor   = bed_ext.size()(1) / 200.0;
+    float factor   = icon_scale_factor();
     float icon_sz  = factor * PARTPLATE_EDIT_PLATE_NAME_ICON_SIZE;
     float width    = icon_sz * m_name_texture.get_width() / m_name_texture.get_height(); // icon size * text_bb_ratio
     float height   = icon_sz; // scale with icon size to preserve ratio while system scaling
@@ -3397,6 +3463,7 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
 
 	BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
 	BoundingBoxf3 plate_box = get_plate_box();
+	this->open_belt_y(plate_box);
 	if (instance_box.max.z() > plate_box.min.z())
 		plate_box.min.z() += instance_box.min.z(); // not considering outsize if sinking
 
@@ -3775,7 +3842,7 @@ void PartPlate::set_vase_mode_related_object_config(int obj_id) {
 	new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
 	new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(tlTraditional));
 	new_conf.set_key_value("overhang_reverse", new ConfigOptionBool(false));
-	auto applying_keys = global_config->diff(new_conf);
+	const auto applying_keys = global_config->diff(new_conf);
 
 	for (ModelObject* object : obj_ptrs) {
 		ModelConfigObject& config = object->config;
@@ -3784,8 +3851,8 @@ void PartPlate::set_vase_mode_related_object_config(int obj_id) {
 			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
 		}
 
-		applying_keys = config.get().diff(new_conf);
-		for (auto opt_key : applying_keys) {
+		const auto object_keys = config.get().diff(new_conf);
+		for (auto opt_key : object_keys) {
 			config.set_key_value(opt_key, new_conf.option(opt_key)->clone());
 		}
 	}
@@ -4123,6 +4190,19 @@ Polygon PartPlate::get_shared_printable_polygon() const
 	return m_extruder_areas.empty() ? Polygon::new_scale(m_shape) : get_shared_poly(m_extruder_areas);
 }
 
+
+bool PartPlate::belt_open_y() const
+{
+	// Headless (CLI) plates have no plater and no wxApp behind wxGetApp(); the CLI's own belt
+	// handling lives in Print::validate().
+	if (m_plater == nullptr || wxGetApp().preset_bundle == nullptr)
+		return false;
+	const DynamicPrintConfig &printer = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+	const auto *belt       = printer.option<ConfigOptionBool>("belt_printer");
+	const auto *infinite_y = printer.option<ConfigOptionBool>("belt_printer_infinite_y");
+	return belt != nullptr && belt->value && infinite_y != nullptr && infinite_y->value;
+}
+
 bool PartPlate::contains(const Vec3d& point) const
 {
 	return m_bounding_box.contains(point);
@@ -4142,6 +4222,7 @@ bool PartPlate::contains(const BoundingBoxf3& bb) const
 	print_volume.min(1) -= Slic3r::BuildVolume::BedEpsilon;
 	print_volume.max(0) += Slic3r::BuildVolume::BedEpsilon;
 	print_volume.max(1) += Slic3r::BuildVolume::BedEpsilon;
+	this->open_belt_y(print_volume);
 	return print_volume.contains(bb);
 }
 
@@ -4154,6 +4235,7 @@ bool PartPlate::intersects(const BoundingBoxf3& bb) const
 	print_volume.min(1) -= Slic3r::BuildVolume::BedEpsilon;
 	print_volume.max(0) += Slic3r::BuildVolume::BedEpsilon;
 	print_volume.max(1) += Slic3r::BuildVolume::BedEpsilon;
+	this->open_belt_y(print_volume);
 	return print_volume.intersects(bb);
 }
 

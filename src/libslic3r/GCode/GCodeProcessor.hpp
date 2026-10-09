@@ -1,6 +1,11 @@
 #ifndef slic3r_GCodeProcessor_hpp_
 #define slic3r_GCodeProcessor_hpp_
 
+#include "libslic3r/CommonDefs.hpp"
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/ArcFitter.hpp"
 #include "libslic3r/GCodeReader.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
@@ -8,9 +13,19 @@
 #include "libslic3r/CustomGCode.hpp"
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include "libslic3r/GCode/ExclusionVolumePathCheck.hpp"
+#include "libslic3r/GCode/MachineFrameTransform.hpp"
 
+#include <cstddef>
+#include <cassert>
 #include <cstdint>
 #include <array>
+#include <unordered_map>
+#include <utility>
+#include <map>
+#include <memory>
+#include <functional>
+#include <cstdlib>
+#include <set>
 #include <vector>
 #include <mutex>
 #include <string>
@@ -288,6 +303,19 @@ class Print;
         bool support_traditional_timelapse{true};
         float printable_height;
         float z_offset;
+        // Belt printer: physical tilt magnitude (deg) parsed from the slicing-rotation
+        // header comment; used to enable the preview's belt view.
+        float belt_tilt_angle{ 0.f };
+        // Belt printer: machine-Z origin offset (mm) left in m_origin[Z] by the start
+        // G-code (purge-blob belt advance + G92 Z0 resets). Move positions are stored
+        // as gcode_Z + this offset, so the designed-view back-transform must subtract it
+        // to recover the model's belt coordinate.
+        float belt_z_origin{ 0.f };
+        // Belt printer: post-gcode shear/scale/post_remap is configured and
+        // non-identity.  When set, the layer Z values in `moves` are in the
+        // machine frame and should not be compared against `printable_height`
+        // (which lives in the build-volume frame).
+        bool machine_frame_transform_active{ false };
         SettingsIds settings_ids;
         size_t filaments_count;
         bool backtrace_enabled;
@@ -335,16 +363,20 @@ class Print;
 
         //BBS: add mutex for protection of gcode result
         mutable std::mutex result_mutex;
-        GCodeProcessorResult& operator=(const GCodeProcessorResult &other)
+        GCodeProcessorResult& operator=(const GCodeProcessorResult &other) { assign(other); return *this; }
+        // Declared because the user-declared copy assignment suppresses the implicit move.
+        GCodeProcessorResult& operator=(GCodeProcessorResult &&other) { assign(std::move(other)); return *this; }
+        // Add a new member here, or neither assignment transfers it.
+        template<class Other> void assign(Other &&other)
         {
-            filename = other.filename;
-            id = other.id;
-            moves = other.moves;
-            lines_ends = other.lines_ends;
-            printable_area = other.printable_area;
-            bed_exclude_area = other.bed_exclude_area;
-            wrapping_exclude_area = other.wrapping_exclude_area;
-            toolpath_outside = other.toolpath_outside;
+            filename = std::forward<Other>(other).filename;
+            id = std::forward<Other>(other).id;
+            moves = std::forward<Other>(other).moves;
+            lines_ends = std::forward<Other>(other).lines_ends;
+            printable_area = std::forward<Other>(other).printable_area;
+            bed_exclude_area = std::forward<Other>(other).bed_exclude_area;
+            wrapping_exclude_area = std::forward<Other>(other).wrapping_exclude_area;
+            toolpath_outside = std::forward<Other>(other).toolpath_outside;
             exclusion_volume_path_checked = other.exclusion_volume_path_checked;
             exclusion_volume_path_conflict = other.exclusion_volume_path_conflict;
             exclusion_volume_travel_conflict = other.exclusion_volume_travel_conflict;
@@ -356,44 +388,46 @@ class Print;
             exclusion_volume_conflict_extruder_id = other.exclusion_volume_conflict_extruder_id;
             exclusion_volume_conflict_region_id = other.exclusion_volume_conflict_region_id;
             exclusion_volume_conflict_used_unknown_z = other.exclusion_volume_conflict_used_unknown_z;
-            label_object_enabled = other.label_object_enabled;
-            long_retraction_when_cut = other.long_retraction_when_cut;
-            timelapse_warning_code = other.timelapse_warning_code;
-            printable_height = other.printable_height;
-            settings_ids = other.settings_ids;
-            filaments_count = other.filaments_count;
-            extruder_colors = other.extruder_colors;
-            filament_diameters = other.filament_diameters;
-            filament_densities = other.filament_densities;
-            filament_costs = other.filament_costs;
-            print_statistics = other.print_statistics;
-            custom_gcode_per_print_z = other.custom_gcode_per_print_z;
-            spiral_vase_mode = other.spiral_vase_mode;
-            warnings = other.warnings;
-            bed_type = other.bed_type;
-            gcode_check_result = other.gcode_check_result;
-            limit_filament_maps = other.limit_filament_maps;
-            filament_printable_reuslt = other.filament_printable_reuslt;
+            label_object_enabled = std::forward<Other>(other).label_object_enabled;
+            long_retraction_when_cut = std::forward<Other>(other).long_retraction_when_cut;
+            timelapse_warning_code = std::forward<Other>(other).timelapse_warning_code;
+            printable_height = std::forward<Other>(other).printable_height;
+            settings_ids = std::forward<Other>(other).settings_ids;
+            filaments_count = std::forward<Other>(other).filaments_count;
+            extruder_colors = std::forward<Other>(other).extruder_colors;
+            filament_diameters = std::forward<Other>(other).filament_diameters;
+            filament_densities = std::forward<Other>(other).filament_densities;
+            filament_costs = std::forward<Other>(other).filament_costs;
+            print_statistics = std::forward<Other>(other).print_statistics;
+            custom_gcode_per_print_z = std::forward<Other>(other).custom_gcode_per_print_z;
+            spiral_vase_mode = std::forward<Other>(other).spiral_vase_mode;
+            warnings = std::forward<Other>(other).warnings;
+            bed_type = std::forward<Other>(other).bed_type;
+            gcode_check_result = std::forward<Other>(other).gcode_check_result;
+            limit_filament_maps = std::forward<Other>(other).limit_filament_maps;
+            filament_printable_reuslt = std::forward<Other>(other).filament_printable_reuslt;
             // Orca: copy the shared grouping result so a copied result keeps it (shared_ptr =>
             // memory-safe), rather than leaving a stale pointer on the target. No g-code effect either way.
-            nozzle_group_result = other.nozzle_group_result;
+            nozzle_group_result = std::forward<Other>(other).nozzle_group_result;
             // Keep the per-extruder hotend types on a copied result (injector input).
-            extruder_types = other.extruder_types;
-            printer_extruder_variant = other.printer_extruder_variant;
-            printer_extruder_id = other.printer_extruder_id;
-            layer_filaments = other.layer_filaments;
-            filament_change_sequence = other.filament_change_sequence;
-            used_mixed_filaments = other.used_mixed_filaments;
-            nozzle_change_sequence = other.nozzle_change_sequence;
-            optimal_assignment = other.optimal_assignment;
-            filament_change_count_map = other.filament_change_count_map;
+            extruder_types = std::forward<Other>(other).extruder_types;
+            printer_extruder_variant = std::forward<Other>(other).printer_extruder_variant;
+            printer_extruder_id = std::forward<Other>(other).printer_extruder_id;
+            layer_filaments = std::forward<Other>(other).layer_filaments;
+            filament_change_sequence = std::forward<Other>(other).filament_change_sequence;
+            used_mixed_filaments = std::forward<Other>(other).used_mixed_filaments;
+            nozzle_change_sequence = std::forward<Other>(other).nozzle_change_sequence;
+            optimal_assignment = std::forward<Other>(other).optimal_assignment;
+            filament_change_count_map = std::forward<Other>(other).filament_change_count_map;
             // Keep the SKIPPABLE per-type time on a copied result.
-            skippable_part_time = other.skippable_part_time;
-            initial_layer_time = other.initial_layer_time;
+            skippable_part_time = std::forward<Other>(other).skippable_part_time;
+            initial_layer_time = std::forward<Other>(other).initial_layer_time;
+            belt_tilt_angle = std::forward<Other>(other).belt_tilt_angle;
+            belt_z_origin = std::forward<Other>(other).belt_z_origin;
+            machine_frame_transform_active = std::forward<Other>(other).machine_frame_transform_active;
 #if ENABLE_GCODE_VIEWER_STATISTICS
-            time = other.time;
+            time = std::forward<Other>(other).time;
 #endif
-            return *this;
         }
         void  lock() const { result_mutex.lock(); }
         void  unlock() const { result_mutex.unlock(); }
@@ -497,6 +531,9 @@ class Print;
         static const std::string VFlush_End_Tag;
         static const std::string External_Purge_Tag;
     public:
+        // Size of the blocks the post-processing passes write the G-code in
+        static constexpr size_t Output_Block_Size = 65536;
+
         // Orca: SKIPPABLE region tags, stored as static strings (the FLUSH idiom above) rather than
         // a CustomETags/CustomTags array. Public so the emission sites (WipeTower / change_filament
         // path) can reference them single-sourced.
@@ -1088,6 +1125,10 @@ class Print;
     private:
         CommandProcessor m_command_processor;
         GCodeReader m_parser;
+        // Belt printer: the belt keys of the loaded file's config block (plus the bed they
+        // are relative to), handed to the preview through export_config_for_render() so the
+        // belt view and its back-transform follow the file, not the selected printer.
+        DynamicConfig m_belt_render_config;
         EUnits m_units;
         EPositioningType m_global_positioning_type;
         EPositioningType m_e_local_positioning_type;
@@ -1167,6 +1208,13 @@ class Print;
         double          m_x_offset{ 0 };
         double          m_y_offset{ 0 };
 
+        // Belt-printer post-gcode shear/scale/post_remap. Used by
+        // check_multi_extruder_gcode_valid to undo the machine-frame
+        // transform on move positions so bounds checks operate in the
+        // pre-machine-frame (build-volume) frame.
+        MachineFrameTransform m_machine_frame_transform;
+        bool                  m_belt_printer{ false };
+
         unsigned int m_line_id;
         unsigned int m_last_line_id;
         float m_feedrate; // mm/s
@@ -1196,6 +1244,7 @@ class Print;
         float m_first_layer_height; // mm
         float m_zero_layer_height; // mm
         bool m_processing_start_custom_gcode;
+        bool m_in_config_block;
         unsigned int m_g1_line_id;
         unsigned int m_layer_id;
         CpColor m_cp_color;
@@ -1229,6 +1278,9 @@ class Print;
         EProducer m_producer;
 
         TimeProcessor m_time_processor;
+        // calculate_time()'s map from each block's move id to its index after the actual speed moves are inserted,
+        // a member to reuse its capacity.
+        std::vector<std::pair<unsigned int, unsigned int>> m_actual_speed_id_map;
         UsedFilaments m_used_filaments;
 
         Print* m_print{ nullptr };

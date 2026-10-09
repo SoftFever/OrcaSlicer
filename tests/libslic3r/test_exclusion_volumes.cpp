@@ -7,6 +7,7 @@
 #include "libslic3r/TriangleMesh.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <map>
 #include <memory>
 #include <vector>
@@ -100,23 +101,46 @@ TEST_CASE("Legacy point options reject collision-volume syntax", "[ExclusionVolu
     CHECK(is_bed_exclusion_volume_syntax(definition));
 }
 
-TEST_CASE("Legacy rectangle groups convert into separate collision volumes", "[ExclusionVolume][PrintConfig]")
+TEST_CASE("Copying a non-rectangular bed area preserves its complete polygon", "[ExclusionVolume][PrintConfig]")
 {
-    ConfigOptionPoints legacy;
-    REQUIRE(legacy.deserialize("0x0,10x0,10x10,0x10,20x20,30x20,30x30,20x30"));
-    CHECK(legacy_bed_exclude_area_to_volumes(legacy.values) ==
-        "0x0,10x0,10x10,0x10|20x20,30x20,30x30,20x30");
+    const std::string definition = "0x0,20x0,20x10,10x10,10x20,0x20";
+    ConfigOptionPoints area;
+    REQUIRE(area.deserialize(definition));
+    CHECK(legacy_bed_exclude_area_to_volumes(area.values) == definition);
 
-    legacy.values.pop_back();
-    CHECK(legacy_bed_exclude_area_to_volumes(legacy.values).empty());
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict("bed_exclude_area", definition);
+    config.set_key_value("bed_exclude_volumes", new ConfigOptionString(legacy_bed_exclude_area_to_volumes(area.values)));
+    const auto regions = get_bed_excluded_regions(config);
+    REQUIRE(regions.size() == 2);
+    CHECK(regions[0].polygon.points == regions[1].polygon.points);
 }
 
-TEST_CASE("Converted volumes preserve existing definitions and nozzle mode", "[ExclusionVolume][PrintConfig][MultiNozzle]")
+TEST_CASE("Bed-area copying rejects invalid polygons", "[ExclusionVolume][PrintConfig]")
+{
+    const Pointfs valid{Vec2d(0, 0), Vec2d(10, 0), Vec2d(10, 10), Vec2d(0, 10)};
+    Pointfs points = valid;
+
+    SECTION("too few corners") {
+        points.resize(2);
+    }
+    SECTION("a degenerate polygon") {
+        points = {Vec2d(20, 0), Vec2d(21, 0), Vec2d(22, 0), Vec2d(23, 0)};
+    }
+    SECTION("a non-finite coordinate") {
+        points.back().x() = std::numeric_limits<double>::infinity();
+    }
+
+    CHECK(legacy_bed_exclude_area_to_volumes(points).empty());
+}
+
+TEST_CASE("Copied volumes preserve the bed area, existing definitions and nozzle mode", "[ExclusionVolume][PrintConfig][MultiNozzle]")
 {
     const std::string converted = "40x40,50x40,50x50,40x50";
+    DynamicPrintConfig config = two_extruder_config();
+    config.set_deserialize_strict("bed_exclude_area", converted);
 
     SECTION("toolhead-relative definitions remain shared") {
-        DynamicPrintConfig config = two_extruder_config();
         config.set_key_value("bed_exclude_volume_mode",
             new ConfigOptionEnum<BedExcludeVolumeMode>(BedExcludeVolumeMode::ToolheadOffset));
         append_bed_exclude_volumes(config, converted);
@@ -127,7 +151,6 @@ TEST_CASE("Converted volumes preserve existing definitions and nozzle mode", "[E
     }
 
     SECTION("individual definitions receive the former shared keep-out") {
-        DynamicPrintConfig config = two_extruder_config();
         config.set_key_value("bed_exclude_volume_mode",
             new ConfigOptionEnum<BedExcludeVolumeMode>(BedExcludeVolumeMode::PerExtruder));
         config.set_key_value("extruder_bed_exclude_volumes", new ConfigOptionStrings{"", "60x60,70x60,70x70,60x70"});
@@ -140,6 +163,14 @@ TEST_CASE("Converted volumes preserve existing definitions and nozzle mode", "[E
         CHECK(per_extruder->values[0] == converted);
         CHECK(per_extruder->values[1] == "60x60,70x60,70x70,60x70|40x40,50x40,50x50,40x50");
     }
+
+    CHECK(config.option<ConfigOptionPoints>("bed_exclude_area")->serialize() == converted);
+
+    // Resetting just the opt-in settings must leave the original keep-out intact.
+    config.set_key_value("bed_exclude_volumes", new ConfigOptionString());
+    config.set_key_value("extruder_bed_exclude_volumes", new ConfigOptionStrings{""});
+    CHECK_FALSE(has_bed_exclude_volumes(config));
+    CHECK(config.option<ConfigOptionPoints>("bed_exclude_area")->serialize() == converted);
 }
 
 TEST_CASE("Exclusion syntax validation accepts supported forms and rejects malformed regions", "[ExclusionVolume][PrintConfig]")

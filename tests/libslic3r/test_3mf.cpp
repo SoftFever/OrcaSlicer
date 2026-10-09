@@ -1,4 +1,9 @@
 
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/catch_message.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
@@ -14,6 +19,17 @@
 
 #include "test_utils.hpp"
 
+#include "libslic3r/Config.hpp"
+#include "libslic3r/Geometry.hpp"
+#include <cstddef>
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Utils.hpp"
+#include <miniz.h>
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/TriangleSelector.hpp"
+#include <memory>
+#include <cstdint>
+#include <ios>
 #include <nlohmann/json.hpp>
 
 #include <boost/filesystem/operations.hpp>
@@ -26,8 +42,13 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <memory>
+#include <string>
+#include <sstream>
 #include <type_traits> // for std::enable_if_t
 #include <typeinfo>    // for typeid
+#include <regex>
+#include <vector>
+#include <utility>
 
 namespace Catch {
     template <typename T>
@@ -222,6 +243,80 @@ TEST_CASE("Volumetric per-extruder exclusions survive a 3MF round-trip", "[3mf][
     CHECK(legacy->serialize() == "0x0,10x0,10x10,0x10");
 }
 
+SCENARIO("Mirrored instance transforms survive 3mf round trips", "[3mf][Regression]") {
+    const bool bbs_format = GENERATE(false, true);
+
+    GIVEN("an instance with a valid mirrored transform") {
+        Model model;
+        const std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl";
+        REQUIRE(load_stl(src_file.c_str(), &model));
+        model.add_default_instances();
+
+        Transform3d mirrored = Transform3d::Identity();
+        mirrored.linear() <<
+             4.4408921e-16,  0.819152044,  0.573576436,
+             1.0,           -4.4408921e-16, -1.11022302e-16,
+            -5.55111512e-17, -0.573576436,  0.819152044;
+        mirrored.translation() = Vec3d(700.41477, -169.930939, 63.392571);
+        REQUIRE_THAT(mirrored.linear().determinant(), Catch::Matchers::WithinAbs(-1.0, 1e-8));
+        model.objects.front()->instances.front()->set_transformation(Geometry::Transformation(mirrored));
+        const TriangleMesh expected_mesh = model.mesh();
+
+        WHEN("the model is stored and loaded") {
+            ScopedTemporaryDir backup_dir("orca_mirrored_transform");
+            model.set_backup_path(backup_dir.string());
+            ScopedTemporaryFile temp(".3mf");
+            const std::string test_file = temp.string();
+
+            DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+            if (bbs_format) {
+                StoreParams store_params;
+                store_params.path     = test_file.c_str();
+                store_params.model    = &model;
+                store_params.config   = &config;
+                store_params.strategy = SaveStrategy::Zip64 | SaveStrategy::Silence;
+                REQUIRE(store_bbs_3mf(store_params));
+            } else {
+                REQUIRE(store_3mf(test_file.c_str(), &model, &config, false));
+            }
+
+            Model dst_model;
+            ScopedTemporaryDir loaded_backup_dir("orca_mirrored_transform_loaded");
+            dst_model.set_backup_path(loaded_backup_dir.string());
+            DynamicPrintConfig dst_config;
+            ConfigSubstitutionContext ctxt{ ForwardCompatibilitySubstitutionRule::Enable };
+            PlateDataPtrs dst_plates;
+            std::vector<Preset*> project_presets;
+            ScopeGuard cleanup([&dst_plates, &project_presets]() {
+                release_PlateData_list(dst_plates);
+                for (Preset *preset : project_presets)
+                    delete preset;
+            });
+            if (bbs_format) {
+                bool is_bbl_3mf = false, is_orca_3mf = false;
+                Semver file_version;
+                REQUIRE(load_bbs_3mf(test_file.c_str(), &dst_config, &ctxt, &dst_model, &dst_plates,
+                                     &project_presets, &is_bbl_3mf, &is_orca_3mf, &file_version, nullptr,
+                                     LoadStrategy::LoadModel | LoadStrategy::LoadConfig));
+            } else {
+                REQUIRE(load_3mf(test_file.c_str(), dst_config, ctxt, &dst_model, false));
+            }
+
+            THEN("the mirrored transform and world geometry are preserved") {
+                REQUIRE(dst_model.objects.size() == 1);
+                REQUIRE(dst_model.objects.front()->instances.size() == 1);
+                const Transform3d &loaded = dst_model.objects.front()->instances.front()->get_matrix();
+                REQUIRE(loaded.linear().determinant() < 0.0);
+
+                const TriangleMesh loaded_mesh = dst_model.mesh();
+                REQUIRE(loaded_mesh.its.vertices.size() == expected_mesh.its.vertices.size());
+                for (size_t i = 0; i < loaded_mesh.its.vertices.size(); ++i)
+                    REQUIRE(loaded_mesh.its.vertices[i].isApprox(expected_mesh.its.vertices[i], 1e-5f));
+            }
+        }
+    }
+}
+
 // The recipe is an opaque binary blob (CadDocument::serialize_recipe()), so the 3mf backend has
 // to carry it byte-for-byte — no XML/text mangling, embedded NULs intact.
 static std::string make_cad_recipe()
@@ -392,6 +487,68 @@ TEST_CASE("A project with a plate id below 1 fails to load", "[3mf][Regression]"
     bool               loaded = true;
     REQUIRE_NOTHROW(loaded = load_project(temp.string(), model, backup_dir));
     REQUIRE_FALSE(loaded);
+}
+
+TEST_CASE("A project whose components reference themselves fails to load", "[3mf][Regression]")
+{
+    // One self-reference keeps the expansion going without ever reaching a mesh. A thousand also make
+    // each expansion queue a thousand more, so the bound has to hold the work list, not just the loop.
+    const int references = GENERATE(1, 1000);
+    INFO("self-references " << references);
+
+    ScopedTemporaryFile temp(".3mf");
+    store_painted_cube(temp.string());
+
+    // Point the component back at the object that holds it, repeated `references` times.
+    REQUIRE(rewrite_3mf_entries(temp.string(), [references](std::string& name, std::string& data) {
+        if (!boost::algorithm::ends_with(name, "3dmodel.model"))
+            return false;
+        std::smatch match;
+        if (!std::regex_search(data, match, std::regex("<object id=\"([0-9]+)\"[^>]*>\\s*<components")))
+            return false;
+        data = std::regex_replace(data, std::regex("objectid=\"[0-9]+\""), "objectid=\"" + match[1].str() + "\"");
+        std::smatch component;
+        if (!std::regex_search(data, component, std::regex("<component [^>]*/>")))
+            return false;
+        std::string repeated;
+        for (int i = 0; i < references; ++i)
+            repeated += component.str();
+        data.replace(component.position(), component.length(), repeated);
+        return true;
+    }));
+
+    ScopedTemporaryDir backup_dir("orca_cycle_dst");
+    Model              model;
+    bool               loaded = true;
+    REQUIRE_NOTHROW(loaded = load_project(temp.string(), model, backup_dir));
+    REQUIRE_FALSE(loaded);
+}
+
+TEST_CASE("An object loads up to the component reference budget and fails past it", "[3mf][Regression]")
+{
+    // The importer queues at most 100000 component references per object. Every reference besides the
+    // cube's own points at an object the file does not define: it counts toward the budget, then expands
+    // to nothing, so the object stays a single part whatever the count.
+    const auto [references, loads] = GENERATE(table<int, bool>({ { 100000, true }, { 100001, false } }));
+    INFO("component references " << references);
+
+    ScopedTemporaryFile temp(".3mf");
+    store_painted_cube(temp.string());
+
+    std::string dangling;
+    for (int i = 1; i < references; ++i)
+        dangling += "<component objectid=\"999999\"/>";
+    REQUIRE(replace_in_3mf_entry(temp.string(), "3dmodel.model", "</components>", dangling + "</components>"));
+
+    ScopedTemporaryDir backup_dir("orca_budget_dst");
+    Model              model;
+    bool               loaded = !loads;
+    REQUIRE_NOTHROW(loaded = load_project(temp.string(), model, backup_dir));
+    REQUIRE(loaded == loads);
+    if (loads) {
+        REQUIRE(model.objects.size() == 1);
+        CHECK(model.objects.front()->volumes.size() == 1);
+    }
 }
 
 TEST_CASE("A project with malformed paint data loads without the damaged facet", "[3mf][Regression]")

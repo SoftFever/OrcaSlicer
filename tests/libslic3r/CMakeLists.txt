@@ -3,21 +3,29 @@ get_filename_component(_TEST_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
 add_executable(${_TEST_NAME}_tests
     ${_TEST_NAME}_tests.cpp
     test_3mf.cpp
+    test_amf.cpp
     # Round-trip seam metadata and active/dormant volume settings in both formats.
     test_precise_seam_3mf.cpp
+    # Pure perimeter extraction is independent of Print/Layer fixtures.
+    test_precise_seam.cpp
     test_aabbindirect.cpp
     test_appconfig.cpp
     test_arachne_walls.cpp
     test_arrange.cpp
+    test_assemble_list.cpp
     test_bambu_networking.cpp
+    test_belt_brim.cpp
     test_buildvolume.cpp
     test_calib.cpp
     test_clipper_offset.cpp
     test_clipper_utils.cpp
     test_config.cpp
     test_config_variant_expansion.cpp
+    test_locales_utils.cpp
     test_drc.cpp
+    test_gcodereader.cpp
     test_toolordering_nozzle_group.cpp
+    test_parallel_resolve.cpp
     test_preset_bundle_loading.cpp
     test_preset_setting_id.cpp
     test_preset_diff.cpp
@@ -28,9 +36,11 @@ add_executable(${_TEST_NAME}_tests
     test_fill_corner_smoothing.cpp
     test_filament_mixer.cpp
     test_fill_plane_path.cpp
+    test_fill_tpms_adaptive.cpp
     test_geometry.cpp
     test_multimaterial_segmentation.cpp
     test_placeholder_parser.cpp
+    test_png_read_write.cpp
     test_polygon.cpp
     test_mutable_polygon.cpp
     test_mutable_priority_queue.cpp
@@ -41,10 +51,12 @@ add_executable(${_TEST_NAME}_tests
     test_stl.cpp
     test_triangle_selector.cpp
     test_meshboolean.cpp
+    test_trianglemesh_slicer.cpp
     test_marchingsquares.cpp
     test_lay_on_face.cpp
     test_model.cpp
     test_utils.cpp
+    test_miniz_extension.cpp
     test_timeutils.cpp
     test_voronoi.cpp
     test_wipe_tower_estimate.cpp
@@ -54,6 +66,8 @@ add_executable(${_TEST_NAME}_tests
     test_ordering_strategies.cpp
     # test_png_io.cpp
     test_indexed_triangle_set.cpp
+    test_texture_displacement.cpp
+    test_instance_lock.cpp
     ../libnest2d/printer_parts.cpp
     )
 

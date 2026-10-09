@@ -1,10 +1,16 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+#include <catch2/catch_message.hpp>
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/KeyChord.hpp"
 #include "slic3r/GUI/Shortcuts.hpp"
 
+#include <wx/accel.h>
+#include <string>
+#include <vector>
+#include <cstddef>
+#include <optional>
 #include <wx/event.h>
 
 using namespace Slic3r;
@@ -166,6 +172,7 @@ TEST_CASE("Every shortcut is listed under the section of its table row", "[Short
     CHECK(shortcut_section(Shortcut::GizmoBrimEars) == ShortcutSection::Gizmos);
     CHECK(shortcut_section(Shortcut::MovesSliderEnd) == ShortcutSection::Sliders);
     CHECK(shortcut_section(Shortcut::ViewDefault) == ShortcutSection::Camera);
+    CHECK(shortcut_section(Shortcut::ShowCollisionVolumes) == ShortcutSection::Display);
     CHECK(shortcut_section(Shortcut::KeyboardShortcuts) == ShortcutSection::Application);
     CHECK(std::string(section_name(ShortcutSection::SlicingAndPrinting)) == "Slicing and printing");
 }
@@ -321,7 +328,6 @@ TEST_CASE("Custom bindings replace the default and survive a config round trip",
 TEST_CASE("A Global shortcut refuses a config binding that would swallow typing", "[Shortcuts]")
 {
     AppConfig config;
-    // A string literal would pick AppConfig::set's bool overload.
     config.set("shortcuts", "save_project", std::string("S"));
     config.set("shortcuts", "new_project", std::string("F9"));
     ShortcutRegistry registry;

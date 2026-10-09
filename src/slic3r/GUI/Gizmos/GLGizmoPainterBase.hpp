@@ -9,10 +9,20 @@
 #include "libslic3r/TriangleSelector.hpp"
 #include "libslic3r/Model.hpp"
 
+#include <array>
+#include <cassert>
 #include <cereal/types/vector.hpp>
+#include <cstddef>
 #include <glad/gl.h>
 
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Color.hpp"
 #include <memory>
+#include <vector>
+#include <set>
+#include <string>
+#include <wx/event.h>
+#include <wx/string.h>
 
 
 namespace Slic3r::GUI {
@@ -27,7 +37,8 @@ enum class PainterGizmoType {
     FDM_SUPPORTS,
     SEAM,
     MM_SEGMENTATION,
-    FUZZY_SKIN
+    FUZZY_SKIN,
+    TEXTURE_DISPLACEMENT
 };
 
 class TriangleSelectorGUI : public TriangleSelector {
@@ -282,6 +293,9 @@ protected:
 
     bool     m_paint_on_overhangs_only          = false;
     float    m_highlight_by_angle_threshold_deg = 0.f;
+
+    // Returns the up direction accounting for build plate tilt (default: UnitZ)
+    Vec3f get_tilt_up_direction() const;
 
     GLModel m_circle;
     Vec2d m_old_center{ Vec2d::Zero() };

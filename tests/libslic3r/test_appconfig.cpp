@@ -1,8 +1,21 @@
 #include <catch2/catch_all.hpp>
 
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include "libslic3r/AppConfig.hpp"
 
 using namespace Slic3r;
+
+TEST_CASE("Full collision-volume previews are opt-in and retain the user's preference", "[AppConfig][ExclusionVolume]")
+{
+    AppConfig config;
+    config.set_defaults();
+    CHECK_FALSE(config.get_bool("show_collision_volumes"));
+
+    config.set_bool("show_collision_volumes", true);
+    config.set_defaults();
+    CHECK(config.get_bool("show_collision_volumes"));
+}
 
 TEST_CASE("AppConfig network version helpers", "[AppConfig]") {
     AppConfig config;
@@ -42,6 +55,31 @@ TEST_CASE("AppConfig network version helpers", "[AppConfig]") {
         REQUIRE(skipped.size() == 1);
         REQUIRE(config.is_network_version_skipped("02.01.01.52"));
     }
+}
+
+TEST_CASE("Remembered checkbox settings retain both selections", "[AppConfig][Regression]") {
+    AppConfig config;
+    const bool checked = GENERATE(false, true);
+
+    config.set("recent", "checkbox", checked ? "1" : "0");
+    CHECK(config.get("recent", "checkbox") == (checked ? "1" : "0"));
+}
+
+TEST_CASE("Boolean setters retain their established encoding", "[AppConfig][Regression]") {
+    AppConfig config;
+    const bool value = GENERATE(false, true);
+
+    config.set("recent", "flag", value);
+    CHECK(config.get("recent", "flag") == (value ? "true" : "false"));
+}
+
+TEST_CASE("Boolean reads use only the requested section", "[AppConfig][Regression]") {
+    AppConfig config;
+    const bool value = GENERATE(false, true);
+    config.set("recent", "flag", std::string(value ? "1" : "0"));
+    config.set("app", "flag", std::string(value ? "0" : "1"));
+
+    CHECK(config.get_bool("recent", "flag") == value);
 }
 
 TEST_CASE("AppConfig Speed Dial recent count defaults, clamps and parses", "[AppConfig]") {
