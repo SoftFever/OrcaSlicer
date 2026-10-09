@@ -1,14 +1,20 @@
 #include "WonderMakerPrinterAgent.hpp"
 
 #include "Http.hpp"
+#include "MoonrakerPrinterAgent.hpp"
+#include "IPrinterAgent.hpp"
 #include "nlohmann/json.hpp"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/log/trivial.hpp>
 
+#include <cstddef>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace Slic3r {
 

@@ -1,6 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include "libslic3r/FilamentInventory.hpp"
+#include <cstddef>
+#include <map>
 #include <nlohmann/json.hpp>
+#include <vector>
 using namespace Slic3r;
 using json = nlohmann::json;
 

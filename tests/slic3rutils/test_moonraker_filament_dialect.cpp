@@ -5,6 +5,10 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/Utils/MoonrakerPrinterAgent.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
+#include <catch2/catch_test_macros.hpp>
+#include <string>
+#include <vector>
+#include "slic3r/Utils/IPrinterAgent.hpp"
 
 using Slic3r::IPrinterAgent;
 using namespace Slic3r::MoonrakerFilamentDialect;

@@ -1,5 +1,9 @@
 #include "FilamentInventory.hpp"
 
+#include <cstddef>
+#include <map>
+#include <cstdint>
+#include <ios>
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
@@ -7,9 +11,12 @@
 #include <iomanip>
 #include <limits>
 #include <sstream>
+#include <string>
 #include <unordered_set>
 
 #include <boost/log/trivial.hpp>
+#include <utility>
+#include <vector>
 
 namespace Slic3r {
 

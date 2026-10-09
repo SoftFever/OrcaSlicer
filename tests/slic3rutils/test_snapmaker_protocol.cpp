@@ -1,7 +1,10 @@
 #include <catch2/catch_all.hpp>
 
 #include <boost/algorithm/string/replace.hpp>
+#include <vector>
+#include <string>
 
+#include "catch2/catch_test_macros.hpp"
 #include "slic3r/Utils/DeviceJson.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
 #include "slic3r/Utils/SnapmakerPrinterAgent.hpp"

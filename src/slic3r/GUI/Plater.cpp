@@ -200,6 +200,8 @@
 #include "wxExtensions.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "MainFrame.hpp"
+#include "libslic3r/FilamentInventory.hpp"
+#include "libslic3r/FilamentCompaction.hpp"
 #ifdef SLIC3R_CAD
 #include "slic3r/GUI/CAD/DesignPanel.hpp"
 #endif

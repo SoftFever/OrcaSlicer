@@ -1,7 +1,10 @@
 #ifndef slic3r_GUI_FilamentInventoryStore_hpp_
 #define slic3r_GUI_FilamentInventoryStore_hpp_
 
+#include <cstddef>
+#include <libslic3r/PrintConfig.hpp>
 #include <string>
+#include <vector>
 
 #include "libslic3r/FilamentInventory.hpp"
 #include "libslic3r/Preset.hpp"

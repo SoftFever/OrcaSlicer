@@ -13,6 +13,8 @@
 
 #include "libslic3r/FilamentInventory.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
+#include <cstddef>
+#include <wx/string.h>
 
 class Button;
 class CheckBox;

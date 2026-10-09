@@ -5,10 +5,21 @@
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceManager.hpp"
 #include "GUI_App.hpp"
+#include "IPrinterAgent.hpp"
 #include "Tab.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 
+#include <algorithm>
 #include <boost/log/trivial.hpp>
+#include <libslic3r/FilamentInventory.hpp>
+#include <libslic3r/Preset.hpp>
+#include <cstddef>
+#include <libslic3r/Config.hpp>
+#include <string>
+#include <memory>
+#include <libslic3r/PrintConfig.hpp>
+#include <wx/colour.h>
+#include <vector>
 
 namespace Slic3r { namespace GUI {
 

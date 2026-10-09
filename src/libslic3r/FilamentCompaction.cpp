@@ -1,5 +1,7 @@
 #include "FilamentCompaction.hpp"
 
+#include "Config.hpp"
+#include "CustomGCode.hpp"
 #include "FilamentMixer.hpp"
 #include "Model.hpp"
 #include "Preset.hpp"
@@ -8,6 +10,8 @@
 #include "TriangleSelector.hpp"
 
 #include <algorithm>
+#include <cstddef>
+#include <cassert>
 #include <memory>
 #include <vector>
 #include <string>

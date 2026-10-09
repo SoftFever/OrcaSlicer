@@ -3,6 +3,8 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
 #include "slic3r/Utils/WonderMakerPrinterAgent.hpp"
+#include <catch2/catch_test_macros.hpp>
+#include <vector>
 
 using Slic3r::DevicePrintJobInfo;
 using Slic3r::FilamentMappingProtocol;

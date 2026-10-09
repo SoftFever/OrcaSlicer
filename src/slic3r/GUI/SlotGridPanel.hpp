@@ -11,6 +11,8 @@
 #include <wx/colour.h>
 
 #include "Widgets/PopupWindow.hpp"
+#include <cstddef>
+#include <utility>
 
 namespace Slic3r {
 struct FilamentInventory;

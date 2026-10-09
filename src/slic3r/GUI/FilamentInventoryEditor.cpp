@@ -1,10 +1,20 @@
 #include "FilamentInventoryEditor.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <functional>
 
+#include <string>
+#include <libslic3r/Config.hpp>
+#include <wx/busycursor.h>
+#include <libslic3r/FilamentInventory.hpp>
+#include <vector>
 #include <wx/clrpicker.h>
+#include <wx/colour.h>
 #include <wx/dcgraph.h>
+#include <wx/gdicmn.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>

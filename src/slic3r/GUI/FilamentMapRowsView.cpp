@@ -15,13 +15,31 @@
 #include "Widgets/DialogButtons.hpp"
 #include "Widgets/Label.hpp"
 
+#include <cstddef>
+#include <vector>
+#include <string>
+#include <libslic3r/FilamentInventory.hpp>
+#include <functional>
+#include <wx/event.h>
+#include <utility>
+#include <libslic3r/Config.hpp>
+#include <slic3r/GUI/PartPlate.hpp>
+#include <wx/gdicmn.h>
+#include <map>
+#include <libslic3r/Preset.hpp>
+#include <wx/colour.h>
+#include <libslic3r/Color.hpp>
+#include <wx/dialog.h>
+#include <optional>
 #include <wx/image.h>
+#include <wx/panel.h>
 #include <wx/scrolwin.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
 
 #include <algorithm>
 #include <unordered_map>
+#include <wx/window.h>
 
 namespace Slic3r { namespace GUI {
 

@@ -1,6 +1,11 @@
 #include "ActivePrinterSession.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <libslic3r/Preset.hpp>
+#include <string>
+#include <libslic3r/PrintConfig.hpp>
+#include <cstddef>
+#include <memory>
 
 #include "DeviceCore/DevManager.h" // full DeviceManager definition -- DeviceManager.hpp only forward-declares it
 #include "DeviceManager.hpp"

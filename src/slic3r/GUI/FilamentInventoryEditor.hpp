@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_FilamentInventoryEditor_hpp_
 #define slic3r_GUI_FilamentInventoryEditor_hpp_
 
+#include <cstddef>
 #include <map>
 #include <set>
 #include <string>
@@ -8,12 +9,14 @@
 
 #include <wx/colour.h>
 #include <wx/dialog.h>
+#include <wx/event.h>
 
 #include "libslic3r/FilamentInventory.hpp"
 
 class wxColourPickerCtrl;
 class wxBoxSizer;
 class wxSizer;
+class wxStaticText;
 class Button;
 
 namespace Slic3r {
