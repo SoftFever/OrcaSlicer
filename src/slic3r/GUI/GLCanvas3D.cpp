@@ -8911,20 +8911,23 @@ std::vector<std::pair<GLVolume*, bool>> GLCanvas3D::_hide_volumes_of_inactive_pl
     if (!_hides_inactive_plates())
         return hidden;
 
-    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-    const int curr_plate = plate_list.get_curr_plate_index();
+    PartPlate* curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    if (curr_plate == nullptr)
+        return hidden;
     std::unordered_map<const MeshRaycaster*, SceneRaycasterItem*> raycaster_items;
     if (auto* items = get_raycasters_for_picking(SceneRaycaster::EType::Volume))
         for (const auto& item : *items)
             raycaster_items.emplace(item->get_raycaster(), item.get());
 
+    // Plate membership is decided geometrically: a volume belongs to the current plate when it
+    // overlaps its footprint, so every other plate's objects (and wipe tower) are hidden.
+    const BoundingBoxf3& plate_bb = curr_plate->get_bounding_box();
     for (GLVolume* vol : m_volumes.volumes) {
-        if (!vol->is_active || vol->composite_id.object_id < 0)
+        if (!vol->is_active)
             continue;
-        const int plate_idx = vol->composite_id.object_id >= 1000 ?
-            vol->composite_id.object_id - 1000 : // the wipe tower
-            plate_list.find_instance(vol->composite_id.object_id, vol->composite_id.instance_id);
-        if (plate_idx < 0 || plate_idx == curr_plate)
+        const BoundingBoxf3 vol_bb = vol->transformed_convex_hull_bounding_box();
+        if (!vol_bb.defined || (vol_bb.max.x() >= plate_bb.min.x() && vol_bb.min.x() <= plate_bb.max.x() &&
+                                vol_bb.max.y() >= plate_bb.min.y() && vol_bb.min.y() <= plate_bb.max.y()))
             continue;
         bool ray_active = true;
         if (auto it = raycaster_items.find(vol->mesh_raycaster.get()); it != raycaster_items.end()) {
