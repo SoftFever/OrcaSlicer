@@ -9,6 +9,7 @@
 #include "slic3r/GUI/Event.hpp"
 #include <vector>
 #include <utility>
+#include <unordered_map>
 #include "libslic3r/Slicing.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosManager.hpp"
 #include <cstddef>
@@ -2545,6 +2546,11 @@ void GLCanvas3D::_render_frame(bool scene_dirty, bool only_init)
     camera.apply_projection(_max_bounding_box(true, true, true));
 
     wxGetApp().imgui()->new_frame();
+
+    // Objects of hidden plates are made inactive (render and picking) for this frame only.
+    const auto hidden_volumes = _hide_volumes_of_inactive_plates();
+    Slic3r::ScopeGuard inactive_plates_guard([this, &hidden_volumes]() { _restore_volumes_of_inactive_plates(hidden_volumes); });
+
 
     if (m_picking_enabled && !m_benchmarking) {
         if (m_rectangle_selection.is_dragging())
@@ -8894,6 +8900,58 @@ void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& 
     m_bed.render(*this, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
 }
 
+bool GLCanvas3D::_hides_inactive_plates() const
+{
+    return m_canvas_type != ECanvasType::CanvasAssembleView && !m_design_canvas && !wxGetApp().show_inactive_plates();
+}
+
+std::vector<std::pair<GLVolume*, bool>> GLCanvas3D::_hide_volumes_of_inactive_plates()
+{
+    std::vector<std::pair<GLVolume*, bool>> hidden;
+    if (!_hides_inactive_plates())
+        return hidden;
+
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    const int curr_plate = plate_list.get_curr_plate_index();
+    std::unordered_map<const MeshRaycaster*, SceneRaycasterItem*> raycaster_items;
+    if (auto* items = get_raycasters_for_picking(SceneRaycaster::EType::Volume))
+        for (const auto& item : *items)
+            raycaster_items.emplace(item->get_raycaster(), item.get());
+
+    for (GLVolume* vol : m_volumes.volumes) {
+        if (!vol->is_active || vol->composite_id.object_id < 0)
+            continue;
+        const int plate_idx = vol->composite_id.object_id >= 1000 ?
+            vol->composite_id.object_id - 1000 : // the wipe tower
+            plate_list.find_instance(vol->composite_id.object_id, vol->composite_id.instance_id);
+        if (plate_idx < 0 || plate_idx == curr_plate)
+            continue;
+        bool ray_active = true;
+        if (auto it = raycaster_items.find(vol->mesh_raycaster.get()); it != raycaster_items.end()) {
+            ray_active = it->second->is_active();
+            it->second->set_active(false);
+        }
+        vol->is_active = false;
+        hidden.emplace_back(vol, ray_active);
+    }
+    return hidden;
+}
+
+void GLCanvas3D::_restore_volumes_of_inactive_plates(const std::vector<std::pair<GLVolume*, bool>>& hidden)
+{
+    if (hidden.empty())
+        return;
+    std::unordered_map<const MeshRaycaster*, SceneRaycasterItem*> raycaster_items;
+    if (auto* items = get_raycasters_for_picking(SceneRaycaster::EType::Volume))
+        for (const auto& item : *items)
+            raycaster_items.emplace(item->get_raycaster(), item.get());
+    for (const auto& [vol, ray_active] : hidden) {
+        vol->is_active = true;
+        if (auto it = raycaster_items.find(vol->mesh_raycaster.get()); it != raycaster_items.end())
+            it->second->set_active(ray_active);
+    }
+}
+
 void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid)
 {
     PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
@@ -8902,7 +8960,8 @@ void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transfo
     PartPlate* curr_plate = plate_list.get_curr_plate();
     const Transform3d plate_view_matrix = m_design_canvas && curr_plate != nullptr ?
         Transform3d(view_matrix * Geometry::translation_transform(-curr_plate->get_origin())) : view_matrix;
-    plate_list.render(plate_view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali, show_grid, !m_plate_chrome_enabled);
+    const bool hide_inactive = _hides_inactive_plates();
+    plate_list.render(plate_view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali, show_grid, !m_plate_chrome_enabled, hide_inactive);
 }
 
 BoundingBoxf3 GLCanvas3D::_current_plate_box() const
@@ -10932,6 +10991,12 @@ void GLCanvas3D::_render_canvas_toolbar()
             m_canvas_type != ECanvasType::CanvasAssembleView, // not work on assembly
             wxGetApp().show_plate_gridlines(),
             []{wxGetApp().toggle_show_plate_gridlines();}
+        );
+
+        create_menu_item( _utf8(L("Inactive plates")),
+            m_canvas_type != ECanvasType::CanvasAssembleView && !m_design_canvas, // not work on assembly
+            wxGetApp().show_inactive_plates(),
+            [this]{wxGetApp().toggle_show_inactive_plates(); m_dirty = true;}
         );
 
         ImGui::Separator();
