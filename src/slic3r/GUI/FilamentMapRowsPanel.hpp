@@ -6,11 +6,14 @@
 #include "libslic3r/FilamentInventory.hpp"
 #include "SlotGridPanel.hpp"
 
+#include <cstddef>
 #include <wx/colour.h>
 #include <map>
 #include <vector>
 #include <string>
 #include <memory>
+#include <wx/panel.h>
+#include <wx/string.h>
 
 namespace Slic3r { namespace GUI {
 

@@ -1,12 +1,27 @@
 #include "DevicePrintOptionsDialog.hpp"
 
+#include <boost/filesystem/path.hpp>
+#include <wx/arrstr.h>
+#include <string>
+#include <vector>
+#include <slic3r/GUI/PrintHostDialogs.hpp>
+#include <utility>
+#include <libslic3r/FilamentInventory.hpp>
+#include <cstddef>
+#include <libslic3r/Preset.hpp>
+#include <slic3r/GUI/MsgDialog.hpp>
+#include <wx/colour.h>
+#include <wx/event.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/tglbtn.h>
 
 #include "FilamentMapDialog.hpp"
 #include "FilamentMapRowsView.hpp"
 #include "FilamentInventoryStore.hpp"
 #include "ActivePrinterSession.hpp"
+#include "PrintHost.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"

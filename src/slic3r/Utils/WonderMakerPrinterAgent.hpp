@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include "IPrinterAgent.hpp"
 
 namespace Slic3r {
 

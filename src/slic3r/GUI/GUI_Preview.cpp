@@ -49,6 +49,7 @@
 #include "slic3r/GUI/GCodeViewer.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/GUI/Selection.hpp"
+#include "libslic3r/FilamentCompaction.hpp"
 
 class wxDropTarget;
 namespace libvgcode { enum class EViewType : uint8_t; }

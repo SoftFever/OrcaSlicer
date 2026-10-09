@@ -90,6 +90,8 @@
 #include "FilamentInventoryStore.hpp" // Orca: durable per-device slot assignments (deal_ok())
 #include "SlotGridPanel.hpp"
 #include "libslic3r/FilamentInventory.hpp"
+#include "libslic3r/Model.hpp"
+#include <utility>
 
 namespace fs = boost::filesystem;
 using json = nlohmann::json;

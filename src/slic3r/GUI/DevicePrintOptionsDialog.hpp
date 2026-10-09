@@ -7,6 +7,8 @@
 
 #include "PrintHostDialogs.hpp"
 #include "../Utils/PrintHost.hpp"
+#include <boost/filesystem/path.hpp>
+#include <wx/string.h>
 
 class Button;
 

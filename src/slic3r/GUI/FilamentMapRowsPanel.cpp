@@ -9,6 +9,25 @@
 #include "GUI_App.hpp"
 #include "Widgets/StateColor.hpp"
 
+#include <wx/colour.h>
+#include <wx/gdicmn.h>
+#include <slic3r/GUI/Plater.hpp>
+#include <wx/dc.h>
+#include <wx/font.h>
+#include <vector>
+#include <string>
+#include <libslic3r/FilamentInventory.hpp>
+#include <map>
+#include <cstddef>
+#include <wx/panel.h>
+#include <wx/chartype.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <exception>
+#include <wx/event.h>
+#include <slic3r/GUI/Widgets/Label.hpp>
+#include <utility>
+#include <slic3r/GUI/SlotGridPanel.hpp>
 #include <wx/wrapsizer.h>
 
 #include <algorithm>

@@ -1,6 +1,7 @@
 #ifndef slic3r_FilamentInventory_hpp_
 #define slic3r_FilamentInventory_hpp_
 
+#include <cstddef>
 #include <map>
 #include <string>
 #include <vector>

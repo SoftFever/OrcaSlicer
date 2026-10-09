@@ -21,6 +21,10 @@
 #include <limits>
 #include <cctype>
 #include <algorithm>
+#include <boost/algorithm/string/trim.hpp>
+#include <ios>
+#include <cstdint>
+#include "PrintHost.hpp"
 
 namespace Slic3r {
 

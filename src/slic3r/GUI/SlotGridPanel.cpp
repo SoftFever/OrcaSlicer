@@ -1,14 +1,30 @@
 #include "SlotGridPanel.hpp"
 
 #include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <exception>
 #include <map>
 
+#include <wx/colour.h>
+#include <utility>
+#include <wx/anybutton.h>
+#include <wx/dc.h>
+#include <vector>
+#include <slic3r/GUI/Widgets/PopupWindow.hpp>
 #include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 #include <wx/dcmemory.h>
+#include <wx/panel.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/sizer.h>
+#include <wx/dialog.h>
 #include <wx/statbox.h>
 #include <wx/statline.h>
 #include <wx/stattext.h>
+#include <wx/string.h>
 #include <wx/tooltip.h>
 
 #include "libslic3r/FilamentInventory.hpp"
