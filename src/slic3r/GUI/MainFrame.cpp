@@ -1,5 +1,7 @@
 #include "MainFrame.hpp"
 
+#include <initializer_list>
+
 #include <wx/event.h>
 #include "slic3r/GUI/Event.hpp"
 #include <wx/gdicmn.h>
@@ -820,7 +822,32 @@ bool MainFrame::handle_global_shortcut(const KeyChord& chord)
     if (!shortcut.has_value())
         return false;
 
+    // Switch to the first of the given tabs that exists in the tab panel
+    auto go_to_tab = [this](std::initializer_list<const char*> ids) {
+        for (const char* id : ids) {
+            if (m_tabpanel->FindPageByName(id) != wxNOT_FOUND) {
+                m_tabpanel->SelectPageByName(id);
+                return;
+            }
+        }
+    };
+
     switch (*shortcut) {
+    case Shortcut::GoToPrepare: go_to_tab({ TAB_ID_PREPARE }); break;
+    case Shortcut::GoToPreview: go_to_tab({ TAB_ID_PREVIEW }); break;
+    case Shortcut::GoToDevice:  go_to_tab({ TAB_ID_MONITOR, TAB_ID_MONITOR_WEB }); break;
+    case Shortcut::GoToProject: go_to_tab({ TAB_ID_PROJECT }); break;
+    case Shortcut::TabNext:
+    case Shortcut::TabPrevious: {
+        // Cycle through the tab bar, wrapping around at either end
+        const int count = int(m_tabpanel->GetPageCount());
+        const int sel   = m_tabpanel->GetSelection();
+        if (count > 1 && sel != wxNOT_FOUND) {
+            const int step = (*shortcut == Shortcut::TabNext) ? 1 : count - 1;
+            m_tabpanel->SetSelection(size_t((sel + step) % count));
+        }
+        break;
+    }
     case Shortcut::SlicePlate:
         if (m_slice_enable) {
             wxGetApp().plater()->update(true, true);
