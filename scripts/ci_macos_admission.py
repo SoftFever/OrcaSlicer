@@ -19,11 +19,15 @@ by a run waiting for a second one for its other arch.
 - In the minutes around the nightly's cron time, RESERVE runners are held for it
   until its run appears.
 
+A pull request labelled macos-priority when its run starts waits in a separate
+line under the same rule, and the normal line counts every priority run still
+waiting as holding RESERVE, so the next free runners go to it.
+
 Any API error repeated FAILURES_BEFORE_ADMIT times, and the WAIT_MINUTES limit,
 let the arch in, so a fault here never blocks pull requests.
 
-Environment: GH_TOKEN, REPO, WORKFLOW_REF, GITHUB_RUN_ID, and optionally MACOS_RUNNER_LIMIT,
-WAIT_MINUTES, POLL_SECONDS and GITHUB_API_URL.
+Environment: GH_TOKEN, REPO, WORKFLOW_REF, GITHUB_RUN_ID, and optionally PRIORITY,
+MACOS_RUNNER_LIMIT, WAIT_MINUTES, POLL_SECONDS and GITHUB_API_URL.
 """
 
 import datetime
@@ -40,7 +44,8 @@ import urllib.request
 RESERVE = 2
 
 # Must match the job names in build_all.yml and build_check_cache.yml.
-GATE_SUFFIX = " / Wait for a macOS runner"
+GATE = "Wait for a macOS runner"
+PRIORITY_GATE = GATE + " (priority)"
 FINAL_JOBS = {"Build macOS Universal", "macOS arm64"}
 # Must match the cron in build_all.yml.
 NIGHTLY_UTC = datetime.time(2, 15)
@@ -64,13 +69,22 @@ def macos_done(jobs):
     return bool(final) and all(job["status"] == "completed" for job in final)
 
 
+def gates(jobs, names=(GATE, PRIORITY_GATE)):
+    return [job for job in jobs if job["name"].split(" / ")[-1] in names]
+
+
 def admitted(jobs):
     """True once one of the run's arches was let in."""
-    return any(job["name"].endswith(GATE_SUFFIX) and job["conclusion"] == "success" for job in jobs)
+    return any(job["conclusion"] == "success" for job in gates(jobs))
 
 
-def run_demand(run, jobs):
-    """macOS runners a run holds or still needs."""
+def priority_waiting(jobs):
+    return not admitted(jobs) and any(job["status"] != "completed" for job in gates(jobs, (PRIORITY_GATE,)))
+
+
+def run_demand(run, jobs, yield_to_priority=False):
+    """macOS runners a run holds or still needs. With yield_to_priority, a priority
+    run still waiting counts as holding RESERVE."""
     # A run with no jobs that is pending waits behind another run of its
     # concurrency group, which holds the runners for both.
     if not jobs and run["status"] in ("pending", "waiting"):
@@ -79,7 +93,7 @@ def run_demand(run, jobs):
     if macos_done(jobs):
         return active
     if run["event"] == "pull_request" and not admitted(jobs):
-        return active
+        return max(active, RESERVE) if yield_to_priority and priority_waiting(jobs) else active
     return max(active, RESERVE)
 
 
@@ -127,9 +141,10 @@ def latest_run(api, repo, workflow, **params):
     return runs[0] if runs else None
 
 
-def measure(api, repo, workflow, run_id, now):
+def measure(api, repo, workflow, run_id, now, priority=False):
     """Total macOS runners held or needed, one line per run that holds any, and
-    whether run_id was already let in."""
+    whether run_id was already let in. The priority line does not count the
+    priority runs waiting behind it."""
     total, lines, here = 0, [], False
     # A run is listed as queued whenever one of its jobs waits for a runner, and
     # as pending whenever one waits in a concurrency group, so runs in any of these
@@ -139,11 +154,12 @@ def measure(api, repo, workflow, run_id, now):
     for run in runs.values():
         jobs = api.get(f"repos/{repo}/actions/runs/{run['id']}/jobs",
                        filter="latest", per_page=100)["jobs"]
-        demand = run_demand(run, jobs)
+        demand = run_demand(run, jobs, yield_to_priority=not priority and run["id"] != run_id)
         here = here or (run["id"] == run_id and admitted(jobs))
         if demand:
             total += demand
-            lines.append(f"  {demand}  run {run['id']} ({run['event']}, {run['head_branch']})")
+            waiting = ", priority, waiting" if priority_waiting(jobs) else ""
+            lines.append(f"  {demand}  run {run['id']} ({run['event']}, {run['head_branch']}{waiting})")
 
     # build_all.yml runs the nightly only in the main repository.
     start, end = nightly_window(now)
@@ -189,7 +205,8 @@ def main():
     run_id = int(os.environ["GITHUB_RUN_ID"])
     limit = int(os.environ.get("MACOS_RUNNER_LIMIT") or 5)
     reason = wait(
-        lambda: measure(api, repo, workflow, run_id, datetime.datetime.now(datetime.timezone.utc)),
+        lambda: measure(api, repo, workflow, run_id, datetime.datetime.now(datetime.timezone.utc),
+                        priority=os.environ.get("PRIORITY") == "true"),
         limit,
         wait_minutes=int(os.environ.get("WAIT_MINUTES") or 240),
         poll_seconds=int(os.environ.get("POLL_SECONDS") or 180),

@@ -134,17 +134,20 @@ jobs:
   # Hosted macOS runners are scarce, so a pull request's macOS build waits until
   # one is free that push and nightly builds do not need. See the script.
   macos_admission:
-    name: Wait for a macOS runner
+    # The macos-priority label, when the run starts, puts a pull request in its own
+    # line, which the normal one yields to. The script matches both names.
+    name: ${{ contains(github.event.pull_request.labels.*.name, 'macos-priority') && 'Wait for a macOS runner (priority)' || 'Wait for a macOS runner' }}
     needs: [check_cache, wait_for_deps]
     if: ${{ !cancelled() && needs.check_cache.result == 'success' && startsWith(inputs.os, 'macos-') && github.event_name == 'pull_request' }}
     runs-on: ubuntu-24.04
     env:
       WAIT_MINUTES: 240
+      PRIORITY: ${{ contains(github.event.pull_request.labels.*.name, 'macos-priority') }}
     # Must exceed WAIT_MINUTES.
     timeout-minutes: 250
     # One line for every arch of every pull request, and only its first job polls.
     concurrency:
-      group: macos-admission
+      group: ${{ contains(github.event.pull_request.labels.*.name, 'macos-priority') && 'macos-admission-priority' || 'macos-admission' }}
       queue: max
     steps:
       - name: Checkout

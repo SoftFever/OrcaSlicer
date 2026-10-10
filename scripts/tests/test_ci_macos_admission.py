@@ -22,8 +22,9 @@ def job(name, status="completed", conclusion="success", labels=("macos-15",)):
     return {"name": name, "status": status, "conclusion": conclusion, "labels": list(labels)}
 
 
-def gate(arch, status="completed", conclusion="success"):
-    return job(f"build_macos_arch ({arch}) / Wait for a macOS runner", status, conclusion,
+def gate(arch, status="completed", conclusion="success", priority=False):
+    suffix = " (priority)" if priority else ""
+    return job(f"build_macos_arch ({arch}) / Wait for a macOS runner{suffix}", status, conclusion,
                labels=("ubuntu-24.04",))
 
 
@@ -100,6 +101,43 @@ class RunDemandTest(unittest.TestCase):
         jobs = [build("arm64", "completed"), CHECK_CACHE,
                 job("build_linux (ubuntu-24.04) / Check Cache", "in_progress", None, ("ubuntu-24.04",))]
         self.assertEqual(admission.run_demand(PR, jobs), 0)
+
+
+class PriorityTest(unittest.TestCase):
+    WAITING = [gate("arm64", "in_progress", None, priority=True), gate("x86_64", "pending", None, priority=True)]
+
+    def test_normal_line_yields_to_a_waiting_priority_run(self):
+        self.assertEqual(admission.run_demand(PR, self.WAITING, yield_to_priority=True), admission.RESERVE)
+
+    def test_priority_line_does_not_count_priority_runs_behind_it(self):
+        self.assertEqual(admission.run_demand(PR, self.WAITING), 0)
+
+    def test_a_waiting_normal_run_is_not_yielded_to(self):
+        waiting = [gate("arm64", "in_progress", None), gate("x86_64", "pending", None)]
+        self.assertEqual(admission.run_demand(PR, waiting, yield_to_priority=True), 0)
+
+    def test_a_priority_run_let_in_holds_its_runners(self):
+        jobs = [gate("arm64", priority=True), gate("x86_64", "pending", None, priority=True)]
+        self.assertEqual(admission.run_demand(PR, jobs), admission.RESERVE)
+        self.assertEqual(admission.run_demand(PR, jobs, yield_to_priority=True), admission.RESERVE)
+
+    def test_skipped_priority_jobs_of_other_platforms_are_not_waiting(self):
+        jobs = [job("build_linux (ubuntu-24.04) / Wait for a macOS runner (priority)",
+                    conclusion="skipped", labels=("ubuntu-24.04",))]
+        self.assertEqual(admission.run_demand(PR, jobs, yield_to_priority=True), 0)
+
+    def test_measure_from_each_line(self):
+        api = FakeApi({("runs", "pending"): [dict(PR, status="pending")], jobs_path(2): self.WAITING})
+        total, lines, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        self.assertEqual(total, admission.RESERVE)
+        self.assertIn("priority, waiting", lines[0])
+        total, _, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON, priority=True)
+        self.assertEqual(total, 0)
+
+    def test_own_waiting_run_is_not_counted(self):
+        api = FakeApi({("runs", "pending"): [dict(PR, status="pending")], jobs_path(2): self.WAITING})
+        total, _, here = admission.measure(api, "o/r", "build_all.yml", 2, NOON)
+        self.assertEqual((total, here), (0, False))
 
 
 class FakeApi:
