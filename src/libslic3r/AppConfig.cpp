@@ -370,6 +370,10 @@ void AppConfig::set_defaults()
     // restores the conventional CAD representation for users who expect it (x0kd).
     if (get("design_connector_face_glyph").empty())
         set_bool("design_connector_face_glyph", true);
+
+    // Design tab: draw the printer bed and its plate grid (the Feature tree's Bed row).
+    if (get("design_show_bed").empty())
+        set_bool("design_show_bed", true);
 #endif
 
 //#ifdef SUPPORT_SHOW_HINTS
@@ -406,6 +410,9 @@ void AppConfig::set_defaults()
 
     if (get("show_overhang").empty())
         set_bool("show_overhang", false);
+
+    if (get("show_center_of_mass").empty())
+        set_bool("show_center_of_mass", false);
 
 #ifdef _WIN32
 

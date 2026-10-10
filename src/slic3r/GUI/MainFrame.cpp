@@ -34,7 +34,7 @@
 #include "slic3r/GUI/Widgets/SideMenuPopup.hpp"
 #include <utility>
 #include "libslic3r/libslic3r.h"
-#include "slic3r/GUI/Printer/PrinterFileSystem.h"
+#include <nlohmann/json.hpp>
 #include <algorithm>
 #include <wx/dirdlg.h>
 #include <exception>
@@ -113,7 +113,6 @@
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
 #include "GUI_Factories.hpp"
-#include "GUI_ObjectList.hpp"
 #include "NotificationManager.hpp"
 #include "MarkdownTip.hpp"
 #include "NetworkTestDialog.hpp"
@@ -154,6 +153,8 @@
 #include <wx/display.h>
 #include <wx/window.h>
 
+
+using json = nlohmann::json;
 
 namespace Slic3r {
 namespace GUI {
@@ -2308,6 +2309,12 @@ wxBoxSizer* MainFrame::create_side_tools()
 
             bool slice = true;
 
+            // The Slice-plate hover popup is a transient popup that keeps grabbing
+            // the mouse capture while shown. Left behind the modal grouping dialog it
+            // would starve that dialog of mouse events, so close it synchronously first.
+            if (m_filament_group_popup)
+                m_filament_group_popup->Dismiss();
+
             auto curr_plate = m_plater->get_partplate_list().get_curr_plate();
             #ifdef __linux__
                 PresetBundle* preset = wxGetApp().preset_bundle;
@@ -3393,6 +3400,30 @@ void MainFrame::init_menubar_as_editor()
             }, this,
             [this]() { return is_prepare_or_preview_tab(); },
             []() { return wxGetApp().show_plate_gridlines(); }, this);
+
+        // IDEX/IQEX: toggle the per-carriage toolhead representation that appears during
+        // G-code preview playback. Today this is the symbolic footprint box; if a future
+        // change adds true toolhead model support (cf. printer bed models) this same toggle
+        // governs that. Only relevant on Preview, and only meaningful when the active
+        // printer is IDEX/IQEX — gated to keep the menu uncluttered for everyone else.
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show IDEX/IQEX Toolhead"),
+            _L("Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."),
+            [this](wxCommandEvent&) {
+                const bool current = wxGetApp().app_config->get("show_imex_toolhead_boxes") != "false";
+                wxGetApp().app_config->set("show_imex_toolhead_boxes", current ? "false" : "true");
+                m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+            },
+            this,
+            [this]() {
+                if (m_tabpanel->GetSelectedPageName() != TAB_ID_PREVIEW) return false;
+                if (auto* pb = wxGetApp().preset_bundle) {
+                    auto* o = pb->printers.get_edited_preset().config.option<ConfigOptionBool>("is_imex");
+                    return o && o->value;
+                }
+                return false;
+            },
+            []() { return wxGetApp().app_config->get("show_imex_toolhead_boxes") != "false"; },
+            this);
 
         append_menu_item(
             viewMenu, wxID_ANY, _L("Reset Window Layout"), _L("Reset to default window layout"),

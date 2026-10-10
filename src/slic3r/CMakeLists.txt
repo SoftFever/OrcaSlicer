@@ -283,6 +283,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/FilamentMapDialog.hpp
     GUI/IconManager.cpp
     GUI/IconManager.hpp
+    GUI/IMEXFilamentPickerPopover.cpp
+    GUI/IMEXFilamentPickerPopover.hpp
+    GUI/IMEXModesCtrl.cpp
+    GUI/IMEXModesCtrl.hpp
     GUI/IdleScheduler.cpp
     GUI/IdleScheduler.hpp
     GUI/ImageGrid.cpp
@@ -436,6 +440,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ParamsPanel.hpp
     GUI/PartPlate.cpp
     GUI/PartPlate.hpp
+    GUI/BeltPurgeTower.cpp
+    GUI/BeltPurgeTower.hpp
     GUI/FilamentGroupPopup.hpp
     GUI/FilamentGroupPopup.cpp
     GUI/PhysicalPrinterDialog.cpp
@@ -849,11 +855,6 @@ if (SLIC3R_CAD)
         GUI/CAD/SketchInlineEditor.hpp
         GUI/CAD/McpControl.cpp
         GUI/CAD/McpControl.hpp
-        GUI/Gizmos/GLGizmoSketch.cpp
-        GUI/Gizmos/GLGizmoSketch.hpp
-        # Needs GeometryEngine (make_primitive / apply_fillet / tessellate).
-        GUI/Gizmos/GLGizmoPrimitive.cpp
-        GUI/Gizmos/GLGizmoPrimitive.hpp
     )
 endif ()
 

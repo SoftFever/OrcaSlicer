@@ -15,6 +15,7 @@
 #include <catch2/catch_message.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/IMEXHelpers.hpp"
 #include "libslic3r/ParallelResolve.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
@@ -24,7 +25,6 @@
 
 #include "test_utils.hpp"
 
-#include <algorithm>
 #include <iostream>
 #include <initializer_list>
 #include <vector>
@@ -5853,6 +5853,27 @@ TEST_CASE("Config import confines zip entries, preset names and bundle ids to th
     }
 }
 
+TEST_CASE("A saved printer preset reloads the tool layout it was saved with", "[Preset][Bundle][IMEX]")
+{
+    ScopedTemporaryDir         temp_dir;
+    PresetBundle               bundle;
+    PresetsConfigSubstitutions substitutions;
+
+    DynamicPrintConfig config(bundle.printers.default_preset().config);
+    config.set_deserialize_strict("imex_tool_layout", "rear-left");
+    config.option<ConfigOptionString>(BBL_JSON_KEY_INHERITS, true)->value = "";
+    const fs::path file = temp_dir.path() / PRESET_PRINTER_NAME / "ImexPrinter.json";
+    fs::create_directories(file.parent_path());
+    config.save_to_json(file.string(), "ImexPrinter", "User", "1.0.0");
+
+    bundle.printers.load_presets(temp_dir.path().string(), PRESET_PRINTER_NAME, substitutions,
+                                 ForwardCompatibilitySubstitutionRule::Disable);
+
+    const Preset *loaded = bundle.printers.find_preset("ImexPrinter");
+    REQUIRE(loaded != nullptr);
+    CHECK(int(imex_cfg_enum<ImexToolLayout>(loaded->config, "imex_tool_layout")) == int(ImexToolLayout::RearLeft));
+}
+
 // A project saved before a key joined filament_options_with_variant stores it once per filament,
 // while the keys that were already per variant store it once per filament variant. Loading such a
 // project gives every variant of a filament that filament's value.
@@ -5887,6 +5908,21 @@ TEST_CASE("A project saved with pressure advance per filament applies it to ever
     check_double_vector(petg.opt<ConfigOptionFloats>("pressure_advance")->values, { 0.043 });
     check_double_vector(pla.opt<ConfigOptionFloatsNullable>("filament_flow_ratio")->values, { 0.95, 0.96 });
     check_double_vector(petg.opt<ConfigOptionFloatsNullable>("filament_flow_ratio")->values, { 0.97 });
+}
+
+TEST_CASE("A multi-toolhead project saved without filament self indices loads every filament", "[Preset][Bundle]")
+{
+    const std::vector<std::string> colors = { "#FF0000", "#000000", "#FFFFFF", "#FFFF00" };
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.opt<ConfigOptionStrings>("filament_colour")->values = colors;
+    config.opt<ConfigOptionFloats>("nozzle_diameter")->values = std::vector<double>(colors.size(), 0.4);
+    config.option<ConfigOptionBool>("single_extruder_multi_material")->value = false;
+    Preset::normalize(config);
+
+    PresetBundle bundle;
+    REQUIRE_NOTHROW(bundle.load_config_model("test.3mf", std::move(config)));
+    CHECK(bundle.filament_presets.size() == colors.size());
+    CHECK(bundle.project_config.opt<ConfigOptionStrings>("filament_colour")->values == colors);
 }
 
 TEST_CASE("A system preset resolves by name from the bundled profiles", "[Preset][Bundle]")
@@ -6086,6 +6122,57 @@ TEST_CASE("A vendor updated over the air resolves against the library installed 
     }
 }
 
+TEST_CASE("The vendor and filament scans read the bundled vendors that ship as their cache alone", "[Preset][Bundle][Regression]")
+{
+    ScopedTemporaryDir temp_dir;
+    const fs::path     profiles = temp_dir.path() / "resources" / PRESET_PROFILES_DIR;
+    ScopedResourcesDir scoped_resources(temp_dir.path() / "resources");
+    const std::string  lib(PresetBundle::ORCA_FILAMENT_LIBRARY);
+    fs::create_directories(profiles / lib / "filament");
+    std::ofstream((profiles / (lib + ".json")).string())
+        << R"({"version":"1.0.0","name":")" << lib << R"(",)"
+        << R"("filament_list":[{"name":"Generic PLA","sub_path":"filament/generic_pla.json"}]})";
+    std::ofstream((profiles / lib / "filament" / "generic_pla.json").string())
+        << R"({"type":"filament","name":"Generic PLA","from":"system","instantiation":"false","filament_id":"GFL99"})";
+    fs::create_directories(profiles / "Acme" / "machine");
+    fs::create_directories(profiles / "Acme" / "filament");
+    std::ofstream((profiles / "Acme.json").string())
+        << R"({"version":"1.0.0","name":"Acme",)"
+        << R"("machine_model_list":[{"name":"Acme One","sub_path":"machine/model.json"}],)"
+        << R"("machine_list":[{"name":"Acme Printer","sub_path":"machine/printer.json"}],)"
+        << R"("filament_list":[{"name":"Acme PLA","sub_path":"filament/pla.json"}]})";
+    std::ofstream((profiles / "Acme" / "machine" / "model.json").string())
+        << R"({"type":"machine_model","name":"Acme One","nozzle_diameter":"0.4"})";
+    std::ofstream((profiles / "Acme" / "machine" / "printer.json").string())
+        << R"({"type":"machine","name":"Acme Printer","from":"system","instantiation":"true","printer_model":"Acme One","printer_variant":"0.4"})";
+    std::ofstream((profiles / "Acme" / "filament" / "pla.json").string())
+        << R"({"type":"filament","name":"Acme PLA","from":"system","instantiation":"true","inherits":"Generic PLA","filament_id":"P0000001"})";
+
+    auto installed = [](const PresetCollection &presets) {
+        return std::count_if(presets.get_presets().begin(), presets.get_presets().end(), [](const Preset &preset) { return !preset.is_default; });
+    };
+    auto scan = [&installed] {
+        std::vector<std::string> found;
+        PresetBundle             models;
+        models.load_system_models_from_json(ForwardCompatibilitySubstitutionRule::EnableSilent);
+        CHECK(installed(models.printers) + installed(models.prints) + installed(models.filaments) == 0);
+        for (const auto &[vendor_id, vendor] : models.vendors)
+            for (const VendorProfile::PrinterModel &model : vendor.models)
+                found.push_back(vendor_id + " model " + model.id);
+        PresetBundle filaments;
+        filaments.load_system_filaments_json(ForwardCompatibilitySubstitutionRule::EnableSilent);
+        CHECK(installed(filaments.printers) + installed(filaments.prints) == 0);
+        for (const Preset &preset : filaments.filaments.get_presets())
+            if (!preset.is_default)
+                found.push_back(preset.name + " " + preset.filament_id);
+        return found;
+    };
+    const std::vector<std::string> expected{"Acme model Acme One", "Acme PLA P0000001"};
+    REQUIRE(scan() == expected);
+    reduce_vendors_to_caches(profiles, {lib, "Acme"});
+    CHECK(scan() == expected);
+}
+
 namespace {
 
 // A default preset config for type, built the way PresetBundle builds its default presets.
@@ -6228,8 +6315,9 @@ TEST_CASE("A per-variant project value maps onto its base preset's variant layou
                                                                    base_finder(&base, calls));
     CHECK(config.option<ConfigOptionStrings>("print_extruder_variant")->values ==
           std::vector<std::string>{"Direct Drive Standard", "Direct Drive High Flow"});
-    // The listed key keeps the project's Standard value and takes High Flow from the base.
-    check_double_vector(config.option<ConfigOptionFloats>("outer_wall_speed")->values, {100., 300.});
+    // The listed key keeps the project's Standard value, and High Flow, which the project does not
+    // list, takes it too, as a user preset's value does.
+    check_double_vector(config.option<ConfigOptionFloats>("outer_wall_speed")->values, {100., 100.});
     check_double_vector(config.option<ConfigOptionFloats>("inner_wall_speed")->values, {250., 350.});
 }
 

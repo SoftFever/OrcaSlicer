@@ -164,6 +164,7 @@ src/slic3r/GUI/OptionsGroup.cpp
 src/slic3r/GUI/PrintOptionsDialog.cpp
 src/slic3r/GUI/SafetyOptionsDialog.cpp
 src/slic3r/GUI/ParamsPanel.cpp
+src/slic3r/GUI/IMEXModesCtrl.cpp
 src/slic3r/GUI/PartPlate.cpp
 src/slic3r/GUI/Plater.cpp
 src/slic3r/GUI/Preferences.cpp
@@ -212,6 +213,7 @@ src/libslic3r/ExtrusionEntity.cpp
 src/libslic3r/Flow.cpp
 src/libslic3r/Format/AMF.cpp
 src/libslic3r/miniz_extension.cpp
+src/libslic3r/IMEXHelpers.cpp
 src/libslic3r/Preset.cpp
 src/libslic3r/Print.cpp
 src/libslic3r/PrintBase.cpp
@@ -295,8 +297,6 @@ src/slic3r/GUI/CAD/DesignSketchTool.cpp
 src/slic3r/GUI/CAD/SketchInlineEditor.cpp
 src/slic3r/GUI/CAD/DesignOffer.hpp
 src/slic3r/GUI/CAD/DesignTextDialog.cpp
-src/slic3r/GUI/Gizmos/GLGizmoPrimitive.cpp
-src/slic3r/GUI/Gizmos/GLGizmoSketch.cpp
 src/slic3r/GUI/KeyChord.cpp
 src/slic3r/GUI/Shortcuts.cpp
 src/libslic3r/CAD/CadDocument.cpp
