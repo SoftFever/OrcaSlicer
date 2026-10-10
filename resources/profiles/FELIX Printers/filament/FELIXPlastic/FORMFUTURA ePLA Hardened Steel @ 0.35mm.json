@@ -3,6 +3,8 @@
   "name": "FORMFUTURA ePLA Hardened Steel @ 0.35mm",
   "inherits": "fdm_filament_pla",
   "from": "system",
+  "setting_id": "EefsgeXTQ6SNi0Ja",
+  "filament_id": "OFXW3h11",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

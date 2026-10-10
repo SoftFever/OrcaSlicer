@@ -3,6 +3,8 @@
   "name": "FELIX PETG Hardened Steel @ 0.25mm",
   "inherits": "fdm_filament_pet",
   "from": "system",
+  "setting_id": "5RK6gGxFKyADXi4x",
+  "filament_id": "OFQo5ZHk",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.25mm nozzle",

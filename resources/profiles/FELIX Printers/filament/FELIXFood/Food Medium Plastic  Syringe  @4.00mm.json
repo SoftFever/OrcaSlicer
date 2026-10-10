@@ -3,6 +3,8 @@
   "name": "Food Medium Plastic  Syringe  @4.00mm",
   "inherits": "fdm_filament_food",
   "from": "system",
+  "setting_id": "cPdxKT14h52CpmgV",
+  "filament_id": "OFcHPSYQ",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Food Single 4.00mm nozzle",

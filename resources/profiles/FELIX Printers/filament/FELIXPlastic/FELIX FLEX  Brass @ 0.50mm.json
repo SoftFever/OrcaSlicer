@@ -3,6 +3,8 @@
   "name": "FELIX FLEX  Brass @ 0.50mm",
   "inherits": "fdm_filament_flex",
   "from": "system",
+  "setting_id": "B4AmHHxdvhsjN34a",
+  "filament_id": "OFF6vK3j",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.50mm nozzle",

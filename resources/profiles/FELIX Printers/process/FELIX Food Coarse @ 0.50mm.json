@@ -3,6 +3,7 @@
   "name": "FELIX Food Coarse @ 0.50mm",
   "inherits": "fdm_process_felix_food_common",
   "from": "system",
+  "setting_id": "VfymX2iBORoxcmP6",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Food Single 0.50mm nozzle",

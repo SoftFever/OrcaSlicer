@@ -3,6 +3,8 @@
   "name": "FORMFUTURA AppoloX ASA Hardened Steel @ 0.35mm",
   "inherits": "fdm_filament_asa",
   "from": "system",
+  "setting_id": "WdP7DnbgAI8O4JOR",
+  "filament_id": "OFguQdOr",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

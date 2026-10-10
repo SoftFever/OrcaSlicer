@@ -3,6 +3,8 @@
   "name": "Food Very Thick Stainless Steel  Syringe  @3.00mm",
   "inherits": "fdm_filament_food",
   "from": "system",
+  "setting_id": "0ySXw7PXNvxrGBPG",
+  "filament_id": "OFm5jtRu",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Food Single 3.00mm nozzle",

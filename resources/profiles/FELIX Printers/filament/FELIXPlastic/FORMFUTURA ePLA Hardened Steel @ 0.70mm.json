@@ -3,6 +3,8 @@
   "name": "FORMFUTURA ePLA Hardened Steel @ 0.70mm",
   "inherits": "fdm_filament_pla",
   "from": "system",
+  "setting_id": "Pq8oBdovfd0PecTn",
+  "filament_id": "OFXW3h11",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.70mm nozzle",

@@ -3,6 +3,8 @@
   "name": "Food Medium Stainless Steel  Syringe  @0.50mm",
   "inherits": "fdm_filament_food",
   "from": "system",
+  "setting_id": "uYPjYKCYH20fLFrd",
+  "filament_id": "OF77udLK",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Food Single 0.50mm nozzle",

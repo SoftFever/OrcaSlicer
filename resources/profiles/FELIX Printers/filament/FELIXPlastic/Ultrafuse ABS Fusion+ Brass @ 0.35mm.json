@@ -3,6 +3,8 @@
   "name": "Ultrafuse ABS Fusion+ Brass @ 0.35mm",
   "inherits": "fdm_filament_abs",
   "from": "system",
+  "setting_id": "n2E43foPbpAU0s2d",
+  "filament_id": "OFyzD9L0",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

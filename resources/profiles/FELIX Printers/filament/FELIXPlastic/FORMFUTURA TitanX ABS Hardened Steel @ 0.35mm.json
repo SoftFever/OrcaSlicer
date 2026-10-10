@@ -3,6 +3,8 @@
   "name": "FORMFUTURA TitanX ABS Hardened Steel @ 0.35mm",
   "inherits": "fdm_filament_abs",
   "from": "system",
+  "setting_id": "xRkb2JzDHIJVLa6x",
+  "filament_id": "OFUG6JEQ",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

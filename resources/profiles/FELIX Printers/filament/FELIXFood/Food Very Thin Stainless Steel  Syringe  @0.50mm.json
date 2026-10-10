@@ -3,6 +3,8 @@
   "name": "Food Very Thin Stainless Steel  Syringe  @0.50mm",
   "inherits": "fdm_filament_food",
   "from": "system",
+  "setting_id": "08AJJWkrbhAo421K",
+  "filament_id": "OFJDz9xO",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Food Single 0.50mm nozzle",

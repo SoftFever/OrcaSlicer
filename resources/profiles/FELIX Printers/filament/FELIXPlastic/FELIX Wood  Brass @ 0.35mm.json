@@ -3,6 +3,8 @@
   "name": "FELIX Wood  Brass @ 0.35mm",
   "inherits": "fdm_filament_pla",
   "from": "system",
+  "setting_id": "nRikN9oc1mOeA6dO",
+  "filament_id": "OF7CzDzq",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

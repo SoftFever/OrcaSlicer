@@ -3,6 +3,8 @@
   "name": "FORMFUTURA AppoloX ASA Brass @ 0.35mm",
   "inherits": "fdm_filament_asa",
   "from": "system",
+  "setting_id": "gRmosSxV2WFOgLAa",
+  "filament_id": "OFEUX7D3",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

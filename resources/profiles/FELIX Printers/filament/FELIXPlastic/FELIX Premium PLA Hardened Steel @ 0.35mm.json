@@ -3,6 +3,8 @@
   "name": "FELIX Premium PLA Hardened Steel @ 0.35mm",
   "inherits": "fdm_filament_pla",
   "from": "system",
+  "setting_id": "aQI8mIoLrX3liAlM",
+  "filament_id": "OFi00jWL",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

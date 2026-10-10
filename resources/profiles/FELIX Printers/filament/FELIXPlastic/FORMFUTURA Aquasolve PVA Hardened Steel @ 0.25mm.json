@@ -3,6 +3,8 @@
   "name": "FORMFUTURA Aquasolve PVA Hardened Steel @ 0.25mm",
   "inherits": "fdm_filament_pva",
   "from": "system",
+  "setting_id": "Dd4dc8lFUOaswJKt",
+  "filament_id": "OFQ3GEWL",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.25mm nozzle",

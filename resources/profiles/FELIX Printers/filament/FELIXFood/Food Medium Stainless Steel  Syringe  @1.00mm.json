@@ -3,6 +3,8 @@
   "name": "Food Medium Stainless Steel  Syringe  @1.00mm",
   "inherits": "fdm_filament_food",
   "from": "system",
+  "setting_id": "tDzkw7EWmdzVkiX7",
+  "filament_id": "OF77udLK",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Food Single 1.00mm nozzle",

@@ -3,6 +3,8 @@
   "name": "FORMFUTURA Aquasolve PVA Brass @ 0.35mm",
   "inherits": "fdm_filament_pva",
   "from": "system",
+  "setting_id": "BJplNxEdFo9WucQi",
+  "filament_id": "OFumEwBr",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

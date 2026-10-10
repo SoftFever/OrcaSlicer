@@ -3,6 +3,8 @@
   "name": "FELIX PETG Brass @ 0.50mm",
   "inherits": "fdm_filament_pet",
   "from": "system",
+  "setting_id": "RWPOGeCx1EEYeV8R",
+  "filament_id": "OF17qLwN",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.50mm nozzle",

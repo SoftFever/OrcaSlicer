@@ -3,6 +3,8 @@
   "name": "FELIX Wood Hardened Steel @ 0.70mm",
   "inherits": "fdm_filament_pla",
   "from": "system",
+  "setting_id": "LCRYcNn6HN4lviM2",
+  "filament_id": "OFsMMDMp",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.70mm nozzle",

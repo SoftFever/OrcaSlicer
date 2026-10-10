@@ -3,6 +3,8 @@
   "name": "FORMFUTURA Aquasolve PVA Brass @ 0.50mm",
   "inherits": "fdm_filament_pva",
   "from": "system",
+  "setting_id": "EcGwm5A12REi6etq",
+  "filament_id": "OFumEwBr",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.50mm nozzle",

@@ -3,6 +3,8 @@
   "name": "Food Very Thick Stainless Steel  Syringe  @2.00mm",
   "inherits": "fdm_filament_food",
   "from": "system",
+  "setting_id": "Mm7YAezpHqJuoQiE",
+  "filament_id": "OFm5jtRu",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Food Single 2.00mm nozzle",

@@ -3,6 +3,8 @@
   "name": "Ultrafuse ABS Fusion+ Hardened Steel @ 0.35mm",
   "inherits": "fdm_filament_abs",
   "from": "system",
+  "setting_id": "TYWYaDx8qjNurPzD",
+  "filament_id": "OFDCDwNQ",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

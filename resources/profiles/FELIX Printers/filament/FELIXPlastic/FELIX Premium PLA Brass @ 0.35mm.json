@@ -3,6 +3,8 @@
   "name": "FELIX Premium PLA Brass @ 0.35mm",
   "inherits": "fdm_filament_pla",
   "from": "system",
+  "setting_id": "6Ax3SY7RI04PcFFJ",
+  "filament_id": "OF8sLgrm",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

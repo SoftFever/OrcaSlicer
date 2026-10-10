@@ -3,6 +3,8 @@
   "name": "FELIX FLEX Hardened Steel @ 0.50mm",
   "inherits": "fdm_filament_flex",
   "from": "system",
+  "setting_id": "xgFrl1QpyQFFqBYz",
+  "filament_id": "OFSOY4F3",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.50mm nozzle",

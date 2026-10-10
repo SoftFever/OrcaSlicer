@@ -3,6 +3,8 @@
   "name": "FORMFUTURA TitanX ABS Brass @ 0.35mm",
   "inherits": "fdm_filament_abs",
   "from": "system",
+  "setting_id": "FVZ4hAQ2BnhoucfC",
+  "filament_id": "OF8FP7CM",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",

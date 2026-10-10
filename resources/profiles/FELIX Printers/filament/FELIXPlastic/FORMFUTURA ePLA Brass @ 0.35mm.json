@@ -3,6 +3,8 @@
   "name": "FORMFUTURA ePLA Brass @ 0.35mm",
   "inherits": "fdm_filament_pla",
   "from": "system",
+  "setting_id": "2CCo1KKrpDp3YhBX",
+  "filament_id": "OFxrIB3K",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Pro 3 0.35mm nozzle",
