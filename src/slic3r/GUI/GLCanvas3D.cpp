@@ -9,7 +9,6 @@
 #include "slic3r/GUI/Event.hpp"
 #include <vector>
 #include <utility>
-#include <unordered_map>
 #include "libslic3r/Slicing.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmosManager.hpp"
 #include <cstddef>
@@ -2547,10 +2546,8 @@ void GLCanvas3D::_render_frame(bool scene_dirty, bool only_init)
 
     wxGetApp().imgui()->new_frame();
 
-    // Objects of hidden plates are made inactive (render and picking) for this frame only.
-    const auto hidden_volumes = _hide_volumes_of_inactive_plates();
-    Slic3r::ScopeGuard inactive_plates_guard([this, &hidden_volumes]() { _restore_volumes_of_inactive_plates(hidden_volumes); });
-
+    if (_update_inactive_plates_visibility())
+        scene_dirty = true;
 
     if (m_picking_enabled && !m_benchmarking) {
         if (m_rectangle_selection.is_dragging())
@@ -8895,64 +8892,79 @@ void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& 
         const Vec2d bc = m_bed.build_volume().bed_center();
         m_bed.set_axes_origin(Vec3d(bc.x(), bc.y(), 0.0));
     } else {
-        m_bed.set_axes_mode(m_main_toolbar.is_enabled());
+        // With the other plates hidden, the axes go to the current plate as in Preview.
+        m_bed.set_axes_mode(m_main_toolbar.is_enabled() && !_hides_inactive_plates());
     }
     m_bed.render(*this, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
 }
 
 bool GLCanvas3D::_hides_inactive_plates() const
 {
-    return m_canvas_type != ECanvasType::CanvasAssembleView && !m_design_canvas && !wxGetApp().show_inactive_plates();
+    return m_canvas_type == ECanvasType::CanvasView3D && !m_design_canvas && !wxGetApp().show_inactive_plates();
 }
 
-std::vector<std::pair<GLVolume*, bool>> GLCanvas3D::_hide_volumes_of_inactive_plates()
+bool GLCanvas3D::_update_inactive_plates_visibility()
 {
-    std::vector<std::pair<GLVolume*, bool>> hidden;
-    if (!_hides_inactive_plates())
-        return hidden;
+    const bool hide = _hides_inactive_plates();
+    if (!hide && !m_inactive_plates_hidden)
+        return false;
 
-    PartPlate* curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    if (curr_plate == nullptr)
-        return hidden;
-    std::unordered_map<const MeshRaycaster*, SceneRaycasterItem*> raycaster_items;
-    if (auto* items = get_raycasters_for_picking(SceneRaycaster::EType::Volume))
-        for (const auto& item : *items)
-            raycaster_items.emplace(item->get_raycaster(), item.get());
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    const int      curr_plate = plate_list.get_curr_plate_index();
 
-    // Plate membership is decided geometrically: a volume belongs to the current plate when it
-    // overlaps its footprint, so every other plate's objects (and wipe tower) are hidden.
-    const BoundingBoxf3& plate_bb = curr_plate->get_bounding_box();
-    for (GLVolume* vol : m_volumes.volumes) {
-        if (!vol->is_active)
-            continue;
-        const BoundingBoxf3 vol_bb = vol->transformed_convex_hull_bounding_box();
-        if (!vol_bb.defined || (vol_bb.max.x() >= plate_bb.min.x() && vol_bb.min.x() <= plate_bb.max.x() &&
-                                vol_bb.max.y() >= plate_bb.min.y() && vol_bb.min.y() <= plate_bb.max.y()))
-            continue;
-        bool ray_active = true;
-        if (auto it = raycaster_items.find(vol->mesh_raycaster.get()); it != raycaster_items.end()) {
-            ray_active = it->second->is_active();
-            it->second->set_active(false);
+    std::vector<bool> off_plate(m_volumes.volumes.size(), false);
+    if (hide && plate_list.get_curr_plate() != nullptr) {
+        struct Instance
+        {
+            BoundingBoxf3 box;
+            bool          selected{ false };
+        };
+        std::map<std::pair<int, int>, Instance> instances;
+        for (const GLVolume* volume : m_volumes.volumes) {
+            Instance& instance = instances[{ volume->composite_id.object_id, volume->composite_id.instance_id }];
+            instance.box.merge(volume->transformed_convex_hull_bounding_box());
+            instance.selected |= volume->selected;
         }
-        vol->is_active = false;
-        hidden.emplace_back(vol, ray_active);
+        const BoundingBoxf3& plate_box = plate_list.get_curr_plate()->get_bounding_box();
+        for (size_t i = 0; i < m_volumes.volumes.size(); ++i) {
+            const GLVolume* volume   = m_volumes.volumes[i];
+            const Instance& instance = instances[{ volume->composite_id.object_id, volume->composite_id.instance_id }];
+            off_plate[i] = !instance.selected && instance.box.defined && !plate_box.overlap(instance.box);
+        }
     }
-    return hidden;
-}
 
-void GLCanvas3D::_restore_volumes_of_inactive_plates(const std::vector<std::pair<GLVolume*, bool>>& hidden)
-{
-    if (hidden.empty())
-        return;
-    std::unordered_map<const MeshRaycaster*, SceneRaycasterItem*> raycaster_items;
-    if (auto* items = get_raycasters_for_picking(SceneRaycaster::EType::Volume))
-        for (const auto& item : *items)
-            raycaster_items.emplace(item->get_raycaster(), item.get());
-    for (const auto& [vol, ray_active] : hidden) {
-        vol->is_active = true;
-        if (auto it = raycaster_items.find(vol->mesh_raycaster.get()); it != raycaster_items.end())
-            it->second->set_active(ray_active);
+    // A gizmo that hides the other objects shows them all again when it closes.
+    const bool keep_hidden = m_gizmos.is_hiding_instances();
+    bool changed    = false;
+    bool any_hidden = false;
+    std::vector<bool> shown_again(m_volumes.volumes.size(), false);
+    for (size_t i = 0; i < m_volumes.volumes.size(); ++i) {
+        GLVolume* volume = m_volumes.volumes[i];
+        if (off_plate[i]) {
+            changed |= volume->is_active;
+            volume->is_active       = false;
+            volume->on_hidden_plate = true;
+        } else if (volume->on_hidden_plate && !keep_hidden) {
+            volume->is_active       = true;
+            volume->on_hidden_plate = false;
+            shown_again[i]          = true;
+            changed                 = true;
+        }
+        any_hidden |= volume->on_hidden_plate;
     }
+
+    if (auto* raycasters = get_raycasters_for_picking(SceneRaycaster::EType::Volume))
+        for (const std::shared_ptr<SceneRaycasterItem>& item : *raycasters) {
+            const int i = SceneRaycaster::decode_id(SceneRaycaster::EType::Volume, item->get_id());
+            if (0 <= i && i < int(m_volumes.volumes.size()) && (m_volumes.volumes[i]->on_hidden_plate || shown_again[i]))
+                item->set_active(shown_again[i]);
+        }
+    if (auto* raycasters = get_raycasters_for_picking(SceneRaycaster::EType::Bed))
+        for (const std::shared_ptr<SceneRaycasterItem>& item : *raycasters)
+            item->set_active(!hide || SceneRaycaster::decode_id(SceneRaycaster::EType::Bed, item->get_id()) / PartPlate::GRABBER_COUNT == curr_plate);
+
+    m_inactive_plates_hidden = hide || any_hidden;
+    return changed;
 }
 
 void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid)
@@ -10997,7 +11009,7 @@ void GLCanvas3D::_render_canvas_toolbar()
         );
 
         create_menu_item( _utf8(L("Inactive plates")),
-            m_canvas_type != ECanvasType::CanvasAssembleView && !m_design_canvas, // not work on assembly
+            m_canvas_type == ECanvasType::CanvasView3D && !m_design_canvas, // work only on prepare
             wxGetApp().show_inactive_plates(),
             [this]{wxGetApp().toggle_show_inactive_plates(); m_dirty = true;}
         );
