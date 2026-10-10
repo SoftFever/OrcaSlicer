@@ -1,6 +1,6 @@
 #pragma once
 #include "libslic3r/CommonDefs.hpp"
-#include "slic3r/Utils/json_diff.hpp"
+#include <nlohmann/json.hpp>
 
 #include "DevDefs.h"
 #include "DevFilaAmsSetting.h"
@@ -9,12 +9,12 @@
 
 #include <map>
 #include <set>
+#include <string>
 #include <vector>
 #include <optional>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 #include <wx/string.h>
 #include <wx/colour.h>
 
@@ -58,7 +58,7 @@ public:
 
     std::string              id;
     std::string              tag_uid;             // tag_uid
-    std::string              setting_id;          // tray_info_idx
+    std::string              setting_id;          // tray_info_idx, map to the filament_id
     std::string              filament_setting_id; // setting_id
     std::string              m_fila_type;
     std::string              sub_brands;
@@ -270,10 +270,10 @@ private:
     AmsType       m_ams_type = AmsType::AMS;
     std::string   m_ams_id;
     int           m_ext_id;//extruder id
-    // Orca: keeps the legacy single m_ext_id for existing consumers and carries the
-    // switch-aware binding alongside it (BambuStudio stores only the set). Without a Filament
-    // Track Switch the set is {m_ext_id}; with one installed the device binds both extruders and
-    // records which input track (A/B) feeds this AMS.
+    // Orca: pull-mode / multi-vendor agent model — keeps the legacy single m_ext_id for existing
+    // consumers and carries the switch-aware binding alongside it. Without a Filament Track Switch
+    // the set is {m_ext_id}; with one installed the device binds both extruders and records which
+    // input track (A/B) feeds this AMS.
     std::set<int> m_binded_extruder_set;
     std::optional<DevFilaSwitch::SwitchPos> m_binded_switcher_pos;
     bool          m_exist = false;
@@ -414,9 +414,9 @@ private:
 class DevFilaSystemParser
 {
 public:
-    static void ParseV1_0(const json& print_json, MachineObject* obj, DevFilaSystem* system, bool key_field_only);
+    static void ParseV1_0(const nlohmann::json& print_json, MachineObject* obj, DevFilaSystem* system, bool key_field_only);
 
-    static void ParseAgentFilament(const json& data, MachineObject* obj, DevFilaSystem* system);
+    static void ParseAgentFilament(const nlohmann::json& data, MachineObject* obj, DevFilaSystem* system);
 };
 
 struct DevFilamentDryingPreset

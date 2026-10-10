@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <nlohmann/json.hpp>
 
+#include <vector>
 #include <wx/string.h>
 
 namespace Slic3r
@@ -18,7 +19,7 @@ namespace GUI
 class Plater;
 }
 
-struct FilamentInfo; // libslic3r/ProjectTask.hpp
+struct FilamentInfo; // Orca: libslic3r/ProjectTask.hpp — forward-decl for CtrlGetAutoNozzleMappingV0 signature
 
 class MachineObject;
 class DevNozzleMappingCtrl

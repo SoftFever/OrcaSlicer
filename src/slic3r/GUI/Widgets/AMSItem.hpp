@@ -8,12 +8,30 @@
 #include "../DeviceManager.hpp"
 #include "slic3r/GUI/Event.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
+#include <string>
+#include <wx/anybutton.h>
+#include <wx/colour.h>
+#include <vector>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include <wx/event.h>
+#include <wx/dc.h>
+#include <wx/checklst.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <map>
+#include <cstddef>
+#include <wx/dcclient.h>
+#include <utility>
 #include <wx/simplebook.h>
 #include <wx/hyperlink.h>
 #include <wx/animate.h>
 #include <wx/dynarray.h>
 #include <optional>
+#include <wx/string.h>
+#include <wx/timer.h>
+#include <wx/sizer.h>
 
+#include "slic3r/GUI/DeviceCore/DevFilaSwitch.h" // Orca: DevFilaSwitch::SwitchPos for inlet-aware AMS placement
 
 #define AMS_CONTROL_BRAND_COLOUR wxColour(0, 150, 136)
 #define AMS_CONTROL_GRAY700 wxColour(107, 107, 107)
@@ -33,6 +51,9 @@
 
 namespace Slic3r { namespace GUI {
 
+// Orca: GUI-layer AMS-type enum used across the whole AMSItem/AMSControl widget family in place of the
+// device-layer DevAmsType. Kept as an Orca divergence so out-of-cluster consumers (calibration wizard,
+// StatusPanel, humidity popup) that assign/compare AMSModel keep compiling; see ledger cluster-4.
 enum AMSModel {
     EXT_AMS             = 0,    //ext
     GENERIC_AMS         = 1,
@@ -214,17 +235,21 @@ struct AMSinfo
 public:
     std::string             ams_id;
     std::vector<Caninfo>    cans;
-    int                     nozzle_id = 0;
+    int                     nozzle_id = 0;         // Orca: pull-mode AMS->extruder binding (DevAms::GetExtruderId), pinned to MAIN for switch-routed AMS
     std::string             current_can_id;
     AMSPassRoadSTEP         current_step = AMSPassRoadSTEP::AMS_ROAD_STEP_NONE;
     AMSAction               current_action;
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
-    int                     humidity_raw = -1;
+    int                     humidity_raw = -1;     // Orca: raw humidity percent (replaces REF ams_humidity_percent)
     int                     left_dray_time = 0;
     float                   current_temperature = INVALID_AMS_TEMPERATURE;
     AMSModel                ams_type = AMSModel::GENERIC_AMS;
     AMSModelOriginType      ext_type = AMSModelOriginType::GENERIC_EXT;
+
+    // Orca: switch inlet (POS_IN_A/POS_IN_B) carried from the AMS-level DevAms::GetSwitcherPos(); empty on
+    // printers without a Filament Track Switch. Drives inlet-aware panel placement (routes_to_main_extruder).
+    std::optional<DevFilaSwitch::SwitchPos> switch_pos;
 
 public:
     bool operator== (const AMSinfo& other) const
@@ -240,7 +265,8 @@ public:
             left_dray_time == other.left_dray_time &&
             current_temperature == other.current_temperature &&
             ams_type == other.ams_type &&
-            ext_type == other.ext_type)
+            ext_type == other.ext_type &&
+            switch_pos == other.switch_pos) // Orca: refresh placement when the switch inlet changes
         {
             return true;
         }
@@ -266,6 +292,11 @@ public:
     Caninfo get_caninfo(const std::string& can_id, bool& found) const;
 
     int  get_humidity_display_idx() const;
+
+    // Orca: true when this AMS belongs in the main-extruder (right) panel. Follows the switch inlet
+    // (POS_IN_B -> main/right, POS_IN_A -> deputy/left) when a Filament Track Switch is installed, else
+    // falls back to the pinned nozzle_id so switch-less machines behave exactly as before.
+    bool routes_to_main_extruder() const;
 };
 
 /*************************************************
@@ -298,7 +329,7 @@ public:
     ~AMSrefresh();
 
 public:
-    void        Update(std::string ams_id, Caninfo info);
+    void        UpdateInfo(std::string ams_id, Caninfo info);
 
     std::string GetCanId() const { return m_info.can_id; };
 
@@ -362,10 +393,10 @@ public:
     bool            m_show_state = {false};
     wxColour        m_colour;
     ScalableBitmap  m_ams_extruder;
-    string m_file_name;
+    std::string m_file_name;
     bool            m_ams_loading{ false };
     void            doRender(wxDC &dc);
-    AMSextruderImage(wxWindow *parent, wxWindowID id, string file_name, const wxSize& size, const wxPoint &pos = wxDefaultPosition);
+    AMSextruderImage(wxWindow *parent, wxWindowID id, std::string file_name, const wxSize& size, const wxPoint &pos = wxDefaultPosition);
     ~AMSextruderImage();
 };
 
@@ -413,10 +444,10 @@ public:
     bool            m_show_state = {false};
     wxColour        m_colour;
     ScalableBitmap  m_switcher;
-    string m_file_name;
+    std::string m_file_name;
     // bool            m_ams_loading{ false };
     void            doRender(wxDC &dc);
-    SwitcherImage(wxWindow *parent, wxWindowID id, string file_name, const wxSize& size, const wxPoint &pos = wxDefaultPosition);
+    SwitcherImage(wxWindow *parent, wxWindowID id, std::string file_name, const wxSize& size, const wxPoint &pos = wxDefaultPosition);
     ~SwitcherImage();
 };
 
@@ -425,7 +456,7 @@ class AMSextruder : public wxWindow
 {
 private:
     int    m_nozzle_num = -1;
-    string m_series_name;
+    std::string m_series_name;
 
 public:
     void TurnOn(wxColour col);
@@ -435,7 +466,7 @@ public:
     void msw_rescale();
     void has_ams(bool hams) {m_has_vams = hams; Refresh();};
     void no_ams_mode(bool mode) {m_none_ams_mode = mode; Refresh();};
-    bool updateNozzleNum(int nozzle_num, const std::string& series_name = string());
+    bool updateNozzleNum(int nozzle_num, const std::string& series_name = std::string());
 
     bool            m_none_ams_mode{true};
     bool            m_has_vams{false};
@@ -478,7 +509,7 @@ public:
     AMSModel     m_ams_model;
     AMSModelOriginType m_ext_type = { AMSModelOriginType::GENERIC_EXT };
 
-    void         Update(Caninfo info, std::string ams_idx, bool refresh = true);
+    void         UpdateInfo(Caninfo info, std::string ams_idx, bool refresh = true);
     void         UnableSelected() { m_unable_selected = true; };
     void         EableSelected() { m_unable_selected = false; };
     void         OnSelected();
@@ -489,6 +520,9 @@ public:
     void         support_cali(bool sup) { m_support_cali = sup; Refresh(); };
     virtual bool Enable(bool enable = true);
     void         set_disable_mode(bool disable) { m_disable_mode = disable; }
+    // View-only mode (2D laser/cut): show the read-only (eye) icon for every editable spool
+    // while keeping it clickable to open the read-only filament dialog.
+    void         set_view_only(bool view_only) { if (m_view_only != view_only) { m_view_only = view_only; Refresh(); } }
     void         msw_rescale();
     void         on_pass_road(bool pass);
 
@@ -528,6 +562,7 @@ protected:
     wxColour m_road_def_color;
     wxColour m_lib_color;
     bool m_disable_mode{ false };
+    bool m_view_only{ false };
     bool m_pass_road{false};
 
     void on_enter_window(wxMouseEvent &evt);
@@ -563,7 +598,7 @@ public:
     double                       m_radius         = {4};
     wxColour                     m_road_def_color;
     wxColour                     m_road_color;
-    void                         Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan);
+    void                         UpdateInfo(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan);
 
     std::vector<ScalableBitmap> ams_humidity_img;
 
@@ -596,7 +631,7 @@ public:
     void create(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
 public:
-    void Update(AMSinfo amsinfo);
+    void UpdateInfo(AMSinfo amsinfo);
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(wxColour col);
@@ -623,17 +658,11 @@ private:
     AMSRoadShowMode              m_road_mode      = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     AMSPassRoadSTEP              m_load_step      = {AMSPassRoadSTEP::AMS_ROAD_STEP_NONE};
 
-    bool     m_selected       = {false};
-    int      m_passroad_width = {6};
-    double   m_radius         = {4};
     wxColour m_road_def_color;
     wxColour m_road_color;
 
     std::vector<ScalableBitmap> ams_humidity_img;
 
-    int      m_humidity      = {0};
-    bool     m_show_humidity = {false};
-    bool     m_vams_loading{false};
     AMSModel m_ams_model;
 };
 
@@ -666,22 +695,16 @@ public:
 
 private:
     int             m_nozzle_num           = {1};
-    AMSRoadShowMode m_single_ext_rode_mode = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     AMSRoadShowMode m_left_rode_mode       = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     AMSRoadShowMode m_right_rode_mode      = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     bool            m_selected             = {false};
 
     int             m_left_road_length     = {-1};
     int             m_right_road_length    = {-1};
-    int             m_passroad_width       = {6};
-    double          m_radius               = {4};
-    AMSPassRoadType m_pass_road_type       = {AMSPassRoadType::AMS_ROAD_TYPE_NONE};
     AMSPassRoadSTEP m_pass_road_left_step  = {AMSPassRoadSTEP::AMS_ROAD_STEP_NONE};
     AMSPassRoadSTEP m_pass_road_right_step = {AMSPassRoadSTEP::AMS_ROAD_STEP_NONE};
 
     std::map<int, wxColour> m_road_color;
-    bool m_vams_loading{false};
-    AMSModel m_ams_model;
 };
 
 /*************************************************
@@ -697,7 +720,7 @@ public:
     void Open();
     void Close();
 
-    void         Update(AMSinfo amsinfo);
+    void         UpdateInfo(AMSinfo amsinfo);
     void         create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size);
     void         OnEnterWindow(wxMouseEvent &evt);
     void         OnLeaveWindow(wxMouseEvent &evt);
@@ -750,7 +773,7 @@ public:
     int                          m_canindex = { 0 };
     bool                         m_selected = { false };
     double                       m_radius = { 12 };
-    void                         Update(AMSinfo amsinfo);
+    void                         UpdateInfo(AMSinfo amsinfo);
 
     std::vector<ScalableBitmap> ams_humidity_imgs;
     std::vector<ScalableBitmap> ams_humidity_dark_imgs;
@@ -783,7 +806,7 @@ public:
     AmsItem(wxWindow *parent, AMSinfo info, AMSModel model, AMSPanelPos pos);
     ~AmsItem();
 
-    void     Update(AMSinfo info);
+    void     UpdateInfo(AMSinfo info);
     void     create(wxWindow *parent);
     void     AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer);
     void     AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer);
@@ -823,6 +846,8 @@ public:
 
     AMSPanelPos get_panel_pos() const { return m_panel_pos; };
     int         get_nozzle_id() const { return m_info.nozzle_id; };
+    // Orca: inlet-aware panel routing (delegates to AMSinfo::routes_to_main_extruder)
+    bool        routes_to_main_extruder() const { return m_info.routes_to_main_extruder(); };
 
 private:
     ScalableBitmap  m_bitmap_extra_framework;
@@ -846,11 +871,7 @@ private:
     AMSinfo         m_info;
     wxBoxSizer *    sizer_can = {nullptr};
     wxGridSizer*    sizer_can_extra = { nullptr };
-    wxBoxSizer *    sizer_humidity = { nullptr };
     wxBoxSizer *    sizer_item = { nullptr };
-    wxBoxSizer *    sizer_can_middle = {nullptr};
-    wxBoxSizer *    sizer_can_left = {nullptr};
-    wxBoxSizer *    sizer_can_right = {nullptr};
     AMSExtImage*    m_ext_image = { nullptr };      //the ext image upon the ext ams
     AMSExtText* m_ext_text = { nullptr };       //the ext text upon the ext ams
 };

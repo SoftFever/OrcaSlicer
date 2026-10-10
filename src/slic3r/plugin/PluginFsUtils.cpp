@@ -4,16 +4,24 @@
 #include "libslic3r/miniz_extension.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/directory.hpp>
+#include <boost/filesystem/file_status.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include "PluginAuditManager.hpp"
 #include "PythonInterpreter.hpp"
 
+#include <exception>
+#include <miniz.h>
 #include <nlohmann/json.hpp>
 
 #include <chrono>
 #include <filesystem>
+#include <string>
+#include "slic3r/plugin/PluginDescriptor.hpp"
 #include <utility>
 #include <algorithm>
 #include <cctype>
@@ -120,8 +128,7 @@ bool delete_plugin_root(const boost::filesystem::path& resolved_root, const std:
     }
 
     if (removed_count == 0) {
-        error = "Plugin folder was not found: " + resolved_root.string();
-        return false;
+        return true;
     }
 
     BOOST_LOG_TRIVIAL(info) << "Deleted plugin: " << plugin_id << " from " << resolved_root.string();
@@ -172,7 +179,7 @@ void scan_plugin_directory(const std::string& dir_path, std::vector<PluginDescri
             // its error, rather than dropping it silently.
             if (entry_path.empty()) {
                 descriptor.set_error(entry_error);
-                read_install_state(plugin_dir, descriptor);
+                descriptor.install_state_valid = read_install_state(plugin_dir, descriptor);
                 assign_discovered_plugin_key(descriptor, plugin_dir);
                 out.push_back(std::move(descriptor));
                 BOOST_LOG_TRIVIAL(warning) << "Invalid plugin package: " << plugin_dir.string() << " - " << out.back().error;
@@ -185,7 +192,7 @@ void scan_plugin_directory(const std::string& dir_path, std::vector<PluginDescri
                                               read_python_plugin_metadata(entry_path, descriptor, meta_error);
             if (!parsed) {
                 descriptor.set_error(meta_error);
-                read_install_state(plugin_dir, descriptor);
+                descriptor.install_state_valid = read_install_state(plugin_dir, descriptor);
                 assign_discovered_plugin_key(descriptor, entry_path);
                 out.push_back(std::move(descriptor));
                 BOOST_LOG_TRIVIAL(warning) << (is_wheel ? "Invalid wheel plugin: " : "Invalid .py plugin: ")
@@ -199,7 +206,7 @@ void scan_plugin_directory(const std::string& dir_path, std::vector<PluginDescri
 
             // Cloud identity and the package-level auto-load flag. plugin_key is always derived
             // below, never read from the sidecar.
-            read_install_state(plugin_dir, descriptor);
+            descriptor.install_state_valid = read_install_state(plugin_dir, descriptor);
             assign_discovered_plugin_key(descriptor, entry_path);
 
             out.push_back(std::move(descriptor));
@@ -632,7 +639,7 @@ void parse_metadata_rfc822(const std::string& content,
 bool is_ignored_plugin_directory(const boost::filesystem::path& path)
 {
     const std::string name = path.filename().string();
-    return name.empty() || name[0] == '.' || name.rfind("__", 0) == 0 || name == PLUGIN_SUBSCRIBED_DIR;
+    return name.empty() || name[0] == '.' || name.rfind("__", 0) == 0 || name == PLUGIN_SUBSCRIBED_DIR || name == PLUGIN_DATA_DIR;
 }
 
 bool is_safe_relative_path(const boost::filesystem::path& path)
@@ -735,11 +742,11 @@ bool extract_zip_to_directory(const boost::filesystem::path& zip_path, const boo
     return true;
 }
 
-void read_install_state(const boost::filesystem::path& plugin_dir, PluginDescriptor& entry)
+bool read_install_state(const boost::filesystem::path& plugin_dir, PluginDescriptor& entry)
 {
     PluginInstallState state;
     if (!read_install_state(plugin_dir, state))
-        return;
+        return false;
 
     // The cloud identity and the persisted installed version are read back. plugin_key
     // is always derived by the catalog scan (filename for local, the cloud uuid for
@@ -747,7 +754,14 @@ void read_install_state(const boost::filesystem::path& plugin_dir, PluginDescrip
     // truth for a cloud plugin's installed version: it records the version fetched from
     // the cloud at install time, independent of the (possibly stale) manifest/PEP723
     // header that scan_directory parses into entry.version.
-    if (!state.installed_version.empty())
+    //
+    // A local plugin has no cloud copy to diverge from: the entry file's own header is the only
+    // source of truth for its version. Trusting the sidecar there would pin the version shown
+    // in the UI to whatever it was at first install, even after the file is edited.
+    const bool is_local_install = state.installed_from == "local" && state.cloud_uuid.empty();
+    if (is_local_install && !entry.version.empty())
+        entry.installed_version = entry.version;
+    else if (!state.installed_version.empty())
         entry.installed_version = state.installed_version;
     if (!state.cloud_uuid.empty())
         entry.cloud = CloudPluginState{state.cloud_uuid, true, false, false};
@@ -756,6 +770,7 @@ void read_install_state(const boost::filesystem::path& plugin_dir, PluginDescrip
     // capability has no existence — and so no state — until it is materialized, at which point the
     // loader seeds the flag onto the capability itself.
     entry.enabled = state.enabled;
+    return true;
 }
 
 bool read_install_state(const boost::filesystem::path& plugin_dir, PluginInstallState& out)
@@ -784,6 +799,24 @@ bool read_install_state(const boost::filesystem::path& plugin_dir, PluginInstall
             parsed.plugin_name = state["plugin_name"].get<std::string>();
         if (state.contains("cloud_uuid") && state["cloud_uuid"].is_string())
             parsed.cloud_uuid = state["cloud_uuid"].get<std::string>();
+
+        if (state.contains("permissions") && state["permissions"].is_object()) {
+            const auto& permissions = state["permissions"];
+            auto read_string_list = [&permissions](const char* key, std::vector<std::string>& out) {
+                if (!permissions.contains(key) || !permissions[key].is_array())
+                    return;
+                for (const auto& entry : permissions[key])
+                    if (entry.is_string())
+                        out.push_back(entry.get<std::string>());
+            };
+            read_string_list("fs_read", parsed.permissions.fs_read);
+            read_string_list("fs_readwrite", parsed.permissions.fs_readwrite);
+            read_string_list("network_http", parsed.permissions.network_http);
+            read_string_list("network_socket", parsed.permissions.network_socket);
+            read_string_list("process", parsed.permissions.process);
+            read_string_list("threading", parsed.permissions.threading);
+        }
+
         if (state.contains("enabled") && state["enabled"].is_boolean())
             parsed.enabled = state["enabled"].get<bool>();
 
@@ -819,6 +852,15 @@ bool write_install_state(const boost::filesystem::path& plugin_dir, const Plugin
     if (!state.cloud_uuid.empty())
         json["cloud_uuid"] = state.cloud_uuid;
 
+    json["permissions"] = {
+        {"fs_read", state.permissions.fs_read},
+        {"fs_readwrite", state.permissions.fs_readwrite},
+        {"network_http", state.permissions.network_http},
+        {"network_socket", state.permissions.network_socket},
+        {"process", state.permissions.process},
+        {"threading", state.permissions.threading},
+    };
+
     nlohmann::json capabilities = nlohmann::json::array();
     for (const auto& [name, enabled] : state.capabilities)
         capabilities.push_back(nlohmann::json{{name, enabled}});
@@ -836,6 +878,9 @@ bool write_install_state(const boost::filesystem::path& plugin_dir, const Plugin
                          const std::vector<std::pair<std::string, bool>>& capabilities)
 {
     PluginInstallState state;
+    // Loading a plugin updates its lifecycle/capability state, but must retain permissions granted
+    // during register_capabilities() or by a previous runtime audit prompt.
+    read_install_state(plugin_dir, state);
     state.installed_from    = entry.is_cloud_plugin() ? "cloud" : "local";
     // Prefer the descriptor's recorded installed_version (the version fetched from the cloud
     // at install time, preserved across sidecar re-writes) so a stale manifest/PEP723 header
@@ -852,10 +897,16 @@ bool write_install_state(const boost::filesystem::path& plugin_dir, const Plugin
 bool write_install_state(const boost::filesystem::path& plugin_dir, const PluginDescriptor& entry)
 {
     // Install-time writer: the package is not loaded, so its capabilities are not known yet and the
-    // sidecar is (re)initialized to "auto-load, nothing disabled". PluginManager writes the real
-    // per-capability flags once the package is loaded, via the (dir, entry, enabled, capabilities)
-    // overload.
-    return write_install_state(plugin_dir, entry, true, {});
+    // sidecar is (re)initialized to "auto-load, nothing disabled". This intentionally resets
+    // permissions on a fresh install/reinstall. PluginManager writes the real per-capability flags
+    // while preserving permissions once the package is loaded, via the overload above.
+    PluginInstallState state;
+    state.installed_from    = entry.is_cloud_plugin() ? "cloud" : "local";
+    state.installed_version = !entry.installed_version.empty() ? entry.installed_version : entry.version;
+    state.plugin_name       = entry.name;
+    state.cloud_uuid        = entry.cloud_uuid();
+    state.enabled           = true;
+    return write_install_state(plugin_dir, state);
 }
 
 bool read_python_plugin_metadata(const boost::filesystem::path& py_path, PluginDescriptor& descriptor, std::string& error)

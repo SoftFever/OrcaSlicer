@@ -4,7 +4,7 @@ set -e
 set -o pipefail
 SECONDS=0
 
-while getopts ":dpa:snt:xbc:i:1Tuh" opt; do
+while getopts ":dpa:snt:xbc:i:j:Tuh" opt; do
   case "${opt}" in
     d )
         export BUILD_TARGET="deps"
@@ -38,8 +38,8 @@ while getopts ":dpa:snt:xbc:i:1Tuh" opt; do
     i )
         export CMAKE_IGNORE_PREFIX_PATH="${CMAKE_IGNORE_PREFIX_PATH:+$CMAKE_IGNORE_PREFIX_PATH;}$OPTARG"
         ;;
-    1 )
-        export CMAKE_BUILD_PARALLEL_LEVEL=1
+    j )
+        export CMAKE_BUILD_PARALLEL_LEVEL="$OPTARG"
         ;;
     T )
         export BUILD_TESTS="1"
@@ -53,12 +53,12 @@ while getopts ":dpa:snt:xbc:i:1Tuh" opt; do
         echo "   -s: Build slicer only"
         echo "   -u: Build universal app only (requires existing arm64 and x86_64 app bundles)"
         echo "   -n: Nightly build"
-        echo "   -t: Specify minimum version of the target platform, default is 11.3"
+        echo "   -t: Specify minimum version of the target platform, default is 12.0"
         echo "   -x: Use Ninja Multi-Config CMake generator, default is Xcode"
         echo "   -b: Build without reconfiguring CMake"
         echo "   -c: Set CMake build configuration, default is Release"
         echo "   -i: Add a prefix to ignore during CMake dependency discovery (repeatable), defaults to /opt/local:/usr/local:/opt/homebrew"
-        echo "   -1: Use single job for building"
+        echo "   -j: Set the number of parallel build jobs (CMAKE_BUILD_PARALLEL_LEVEL)"
         echo "   -T: Build and run tests (set ORCA_TESTS_BUILD_ONLY=1 to build without running)"
         exit 0
         ;;
@@ -95,7 +95,7 @@ if [ -z "$DEPS_CMAKE_GENERATOR" ]; then
 fi
 
 if [ -z "$OSX_DEPLOYMENT_TARGET" ]; then
-  export OSX_DEPLOYMENT_TARGET="11.3"
+  export OSX_DEPLOYMENT_TARGET="12.0"
 fi
 
 if [ -z "$CMAKE_IGNORE_PREFIX_PATH" ]; then
@@ -104,8 +104,8 @@ fi
 
 CMAKE_VERSION=$(cmake --version | head -1 | sed 's/[^0-9]*\([0-9]*\).*/\1/')
 if [ "$CMAKE_VERSION" -ge 4 ] 2>/dev/null; then
-  export CMAKE_POLICY_VERSION_MINIMUM=3.5
-  export CMAKE_POLICY_COMPAT="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+  export CMAKE_POLICY_VERSION_MINIMUM=3.10
+  export CMAKE_POLICY_COMPAT="-DCMAKE_POLICY_VERSION_MINIMUM=3.10"
   echo "Detected CMake 4.x, adding compatibility flag (env + cmake arg)"
 else
   export CMAKE_POLICY_COMPAT=""
@@ -179,6 +179,22 @@ function pack_deps() {
     )
 }
 
+# codesign cannot seal the runtime's dotted directories (include/python3.12,
+# lib/python3.12) anywhere under Contents/MacOS -- it mistakes any dotted
+# directory there for a nested bundle and fails with "bundle format
+# unrecognized" -- so packaged apps ship the runtime under Contents/Resources
+# with a compatibility symlink that keeps every Contents/MacOS/python path and
+# the @executable_path/python/lib rpath resolving unchanged.
+function relocate_python_runtime() {
+    local app="$1"
+    local pydir="$app/Contents/MacOS/python"
+    if [ -d "$pydir" ] && [ ! -L "$pydir" ]; then
+        rm -rf "$app/Contents/Resources/python"
+        mv "$pydir" "$app/Contents/Resources/python"
+        ln -s ../Resources/python "$pydir"
+    fi
+}
+
 # --- Bundled Python runtime verification --------------------------------------
 # Relocation is handled at the source: deps/python3/python3.cmake stamps
 # libpython with an @rpath id and src/CMakeLists.txt gives the app a matching
@@ -190,6 +206,11 @@ function verify_python_runtime() {
     local app="$1"
     local pydir="$app/Contents/MacOS/python"
     [ -d "$pydir" ] || return 0  # app doesn't bundle Python (e.g. profile validator)
+    if [ ! -L "$pydir" ]; then
+        echo "ERROR: Contents/MacOS/python must be a symlink into Contents/Resources" >&2
+        echo "       (see relocate_python_runtime in this script)" >&2
+        exit 1
+    fi
     # Version-agnostic interpreter name so a CPython version bump cannot
     # silently skip the gate; if the dir exists the interpreter must too.
     local pybin="$pydir/bin/python3"
@@ -273,6 +294,7 @@ function build_slicer() {
             resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)
             rm ./OrcaSlicer.app/Contents/Resources
             cp -R "$resources_path" ./OrcaSlicer.app/Contents/Resources
+            relocate_python_runtime ./OrcaSlicer.app
             # delete .DS_Store file
             find ./OrcaSlicer.app/ -name '.DS_Store' -delete
 

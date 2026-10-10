@@ -4,15 +4,37 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "EncodedFilament.hpp"
-#include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/StateColor.hpp"
 #include "Widgets/DialogButtons.hpp"
 #include "wxExtensions.hpp"
+#include <wx/colour.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/timer.h>
+#include <string>
+#include "slic3r/GUI/GUI_Utils.hpp"
+#include <wx/frame.h>
+#include <wx/nonownedwnd.h>
+#include <wx/scrolwin.h>
+#include <wx/event.h>
+#include <wx/dcmemory.h>
+#include <boost/log/trivial.hpp>
+#include <vector>
+#include "slic3r/GUI/FilamentBitmapUtils.hpp"
+#include <wx/font.h>
+#include <wx/panel.h>
+#include <wx/anybutton.h>
+#include <wx/settings.h>
+#include <wx/colourdata.h>
+#include <wx/utils.h>
+#include <wx/dcclient.h>
+#include <wx/window.h>
 #include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
+#include <cstddef>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -105,9 +127,8 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     container_sizer->Add(main_sizer, 1, wxEXPAND | wxALL, FromDIP(10));
     container_sizer->Add(dlg_btns, 0, wxEXPAND);
 
-    SetSizer(container_sizer);
+    SetSizerAndFit(container_sizer);
     Layout();
-    container_sizer->Fit(this);
 
     // Position the dialog relative to the parent window
     if (GetParent()) {
@@ -427,11 +448,11 @@ wxScrolledWindow* FilamentPickerDialog::CreateColorGrid()
                 });
 
                 // Hover highlight
-                btn->Bind(wxEVT_ENTER_WINDOW, [btn](wxMouseEvent& evt) {
+                btn->Bind(wxEVT_ENTER_WINDOW, [](wxMouseEvent& evt) {
                     evt.Skip();
                 });
 
-                btn->Bind(wxEVT_LEAVE_WINDOW, [btn](wxMouseEvent& evt) {
+                btn->Bind(wxEVT_LEAVE_WINDOW, [](wxMouseEvent& evt) {
                     evt.Skip();
                 });
 

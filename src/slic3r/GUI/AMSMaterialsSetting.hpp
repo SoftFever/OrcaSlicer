@@ -14,8 +14,23 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/TextInput.hpp"
-#include "Widgets/HyperLink.hpp"
 #include "slic3r/Utils/CalibUtils.hpp"
+#include <wx/anybutton.h>
+#include <wx/colour.h>
+#include <vector>
+#include <wx/checklst.h>
+#include <wx/gdicmn.h>
+#include <wx/event.h>
+#include <wx/dc.h>
+#include "slic3r/GUI/Widgets/PopupWindow.hpp"
+#include "slic3r/GUI/Widgets/StaticBox.hpp"
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <string>
+#include "libslic3r/calib.hpp"
+#include "slic3r/GUI/Widgets/StateColor.hpp"
+#include <wx/panel.h>
+#include <map>
 
 #define AMS_MATERIALS_SETTING_DEF_COLOUR wxColour(255, 255, 255)
 #define AMS_MATERIALS_SETTING_GREY900 wxColour(38, 46, 48)
@@ -85,7 +100,6 @@ public:
     void set_ams_colours(std::vector<wxColour> ams);
     void set_def_colour(wxColour col);
     void paintEvent(wxPaintEvent& evt);
-    void Popup();
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
 
@@ -124,6 +138,9 @@ public:
     std::string    ams_setting_id;
 
     bool           m_is_third;
+    // Orca: view-only mode (laser/cut). When set, the dialog is inspectable but every
+    // editing control is disabled and no command is sent.
+    bool           m_view_only = false;
     wxString       m_brand_filament;
     wxString       m_brand_sn;
     wxString       m_brand_tmp;
@@ -148,6 +165,8 @@ protected:
     void update_widgets();
 
     void update_filament_editing(bool is_printing);
+    // Orca: the variant index of the filament's per-variant options on the nozzle this tray feeds
+    int  get_filament_variant_index(const Preset &filament, const std::string &nozzle_diameter_str);
 
 protected:
     StateColor          m_btn_bg_green;
@@ -174,7 +193,7 @@ protected:
 
     wxPanel *           m_panel_kn;
     wxStaticText*       m_ratio_text;
-    HyperLink *         m_wiki_ctrl;
+    Button *            m_wiki_ctrl;
     wxStaticText*       m_k_param;
     TextInput*          m_input_k_val;
     wxStaticText*       m_n_param;
@@ -183,6 +202,7 @@ protected:
 
     int m_pa_cali_select_id = 0;
 
+// Orca: native wxComboBox on macOS (the custom ComboBox mis-renders the filament dropdown there)
 #ifdef __APPLE__
     wxComboBox *m_comboBox_filament;
 #else
