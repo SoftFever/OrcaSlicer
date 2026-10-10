@@ -57,6 +57,8 @@ NIGHTLY_LEAD = datetime.timedelta(minutes=10)
 NIGHTLY_GRACE = datetime.timedelta(minutes=45)
 
 ACTIVE = {"queued", "in_progress", "waiting", "pending", "requested"}
+# Runs created this recently are listed whatever their status.
+RECENT = datetime.timedelta(hours=24)
 FAILURES_BEFORE_ADMIT = 3
 
 
@@ -164,9 +166,16 @@ def measure(api, repo, workflow, run_id, now, priority=False):
     total, lines = 0, []
     # A run is listed as queued whenever one of its jobs waits for a runner, and
     # as pending whenever one waits in a concurrency group, so runs in any of these
-    # can hold runners. A run can move between the lists between the calls.
+    # can hold runners. A run that moves between the lists between the calls is
+    # in neither, as one is whenever the job ahead of this one leaves the line, so
+    # runs created recently are listed by creation time as well, and this run is
+    # read directly.
+    since = (now - RECENT).strftime("%Y-%m-%dT%H:%M:%SZ")
     runs = {run["id"]: run for status in ("in_progress", "queued", "pending", "waiting")
             for run in list_runs(api, repo, workflow, status=status)}
+    runs.update((run["id"], run) for run in list_runs(api, repo, workflow, created=f">={since}")
+                if run["status"] != "completed")
+    runs[run_id] = api.get(f"repos/{repo}/actions/runs/{run_id}")
     for run in runs.values():
         jobs = api.get(f"repos/{repo}/actions/runs/{run['id']}/jobs",
                        filter="latest", per_page=100)["jobs"]

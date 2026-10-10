@@ -165,13 +165,16 @@ class FakeApi:
 
     def get(self, path, **params):
         self.calls.append((path, params))
-        if path.endswith("/runs") and "status" in params:
-            runs = self.responses.get(("runs", params["status"]), [])
+        if path.endswith("/runs") and ("status" in params or "created" in params):
+            runs = self.responses.get(("runs", params.get("status", "recent")), [])
             start = (params["page"] - 1) * params["per_page"]
             return {"total_count": len(runs), "workflow_runs": runs[start:start + params["per_page"]]}
         if path.endswith("/runs"):
             return {"workflow_runs": self.responses.get(("runs", params.get("event")), [])[:1]}
-        return {"jobs": self.responses[path]}
+        if path.endswith("/jobs"):
+            return {"jobs": self.responses.get(path, [])}
+        # A run read by its id, by default a pull request with no jobs listed.
+        return self.responses.get(path, dict(PR, id=int(path.rsplit("/", 1)[-1])))
 
 
 def jobs_path(run_id):
@@ -256,6 +259,29 @@ class MeasureTest(unittest.TestCase):
         })
         total, _ = admission.measure(api, "o/r", "build_all.yml", 2, NOON)
         self.assertEqual(total, 0)
+
+    def test_counts_its_own_run_when_no_status_list_has_it(self):
+        # The run moves from pending to in_progress as its last gate leaves the
+        # line, and is in neither list while that gate checks.
+        jobs = [gate("x86_64"), build("x86_64", "queued"), gate("arm64", "in_progress", None)]
+        api = FakeApi({jobs_path(2): jobs})
+        self.assertEqual(admission.measure(api, "o/r", "build_all.yml", 2, NOON)[0], 1)
+
+    def test_counts_a_recent_run_that_no_status_list_has(self):
+        api = FakeApi({("runs", "recent"): [PR], jobs_path(2): [gate("arm64"), build("arm64")]})
+        self.assertEqual(admission.measure(api, "o/r", "build_all.yml", 99, NOON)[0], 1)
+
+    def test_lists_recent_runs_from_a_day_before(self):
+        api = FakeApi({})
+        admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        self.assertIn(">=2026-10-09T12:00:00Z", [params.get("created") for _, params in api.calls])
+
+    def test_finished_recent_runs_are_not_read(self):
+        done = dict(PUSH, status="completed")
+        api = FakeApi({("runs", "recent"): [done]})
+        total, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        self.assertEqual(total, 0)
+        self.assertNotIn(jobs_path(1), [path for path, _ in api.calls])
 
     def test_no_nightly_lookup_outside_its_window(self):
         api = FakeApi({})
