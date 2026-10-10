@@ -2360,6 +2360,8 @@ void GLCanvas3D::zoom_to_gcode()
 void GLCanvas3D::zoom_to_plate(int plate_idx)
 {
     BoundingBoxf3 box;
+    if (plate_idx == REQUIRES_ZOOM_TO_ALL_PLATE && _hides_inactive_plates())
+        plate_idx = REQUIRES_ZOOM_TO_CUR_PLATE;
     if (plate_idx == REQUIRES_ZOOM_TO_ALL_PLATE) {
         box = wxGetApp().plater()->get_partplate_list().get_bounding_box();
         box.min.z() = 0.0;

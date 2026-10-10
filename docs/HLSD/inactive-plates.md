@@ -42,3 +42,10 @@ again when they close. `GLVolume::on_hidden_plate` records which volumes this up
 shows again what it hid itself, and it waits for a gizmo that hides objects to close before doing
 so. A volume another feature made active again is hidden again on the next frame. While the inactive
 plates are shown and nothing is left hidden, the update returns at once.
+
+## Switching plates
+
+Whatever selects a plate while the others are hidden, the camera moves its target over the new plate
+and keeps its angle, distance and height (`PartPlateList::select_plate()`), so the plate comes into
+view where the previous one was. A zoom to all plates, as after loading a project or adding a plate,
+frames the current plate instead.
