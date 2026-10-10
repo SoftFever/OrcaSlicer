@@ -71,6 +71,10 @@ def admitted(jobs):
 
 def run_demand(run, jobs):
     """macOS runners a run holds or still needs."""
+    # A run with no jobs that is pending waits behind another run of its
+    # concurrency group, which holds the runners for both.
+    if not jobs and run["status"] in ("pending", "waiting"):
+        return 0
     active = sum(1 for job in jobs if is_macos(job) and job["status"] in ACTIVE)
     if macos_done(jobs):
         return active
@@ -127,10 +131,10 @@ def measure(api, repo, workflow, run_id, now):
     """Total macOS runners held or needed, one line per run that holds any, and
     whether run_id was already let in."""
     total, lines, here = 0, [], False
-    # A run is listed as queued whenever one of its jobs waits for a runner, so a
-    # queued run can hold runners too. A run can move between the two lists
-    # between the calls.
-    runs = {run["id"]: run for status in ("in_progress", "queued")
+    # A run is listed as queued whenever one of its jobs waits for a runner, and
+    # as pending whenever one waits in a concurrency group, so runs in any of these
+    # can hold runners. A run can move between the lists between the calls.
+    runs = {run["id"]: run for status in ("in_progress", "queued", "pending", "waiting")
             for run in list_runs(api, repo, workflow, status=status)}
     for run in runs.values():
         jobs = api.get(f"repos/{repo}/actions/runs/{run['id']}/jobs",

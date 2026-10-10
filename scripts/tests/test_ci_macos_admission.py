@@ -139,6 +139,18 @@ class MeasureTest(unittest.TestCase):
         self.assertEqual(len(lines), 3)
         self.assertFalse(here)
 
+    def test_counts_a_pending_run_that_holds_runners(self):
+        # One of its jobs waits in a concurrency group while its macOS builds run.
+        pending_pr = dict(PR, status="pending")
+        api = FakeApi({("runs", "pending"): [pending_pr], jobs_path(2): [gate("arm64"), build("arm64")]})
+        total, _, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        self.assertEqual(total, admission.RESERVE)
+
+    def test_a_push_waiting_behind_another_holds_nothing(self):
+        api = FakeApi({("runs", "pending"): [dict(PUSH, status="pending")], jobs_path(1): []})
+        total, _, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        self.assertEqual(total, 0)
+
     def test_reads_every_page_of_runs(self):
         runs = [dict(PR, id=i) for i in range(150)]
         responses = {("runs", "in_progress"): runs}
