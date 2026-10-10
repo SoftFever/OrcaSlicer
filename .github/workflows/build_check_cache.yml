@@ -157,7 +157,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MACOS_RUNNER_LIMIT: ${{ vars.MACOS_RUNNER_LIMIT }}
-        run: python3 scripts/ci_macos_admission.py
+        # -u, or the log shows nothing until the wait ends.
+        run: python3 -u scripts/ci_macos_admission.py
 
   build_deps: # call next step
     name: Build Deps
