@@ -9996,6 +9996,7 @@ void GLCanvas3D::_render_overlays()
 
     //BBS: GUI refactor: GLToolbar
     _render_imgui_select_plate_toolbar();
+    _render_plate_switcher();
     _render_return_toolbar();
     // BBS
     //_render_view_toolbar();
@@ -10699,6 +10700,74 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     m_sel_plate_toolbar.is_display_scrollbar = is_win_hovered || is_scrollbar_active_drag;
 
     imgui.end();
+}
+
+void GLCanvas3D::_render_plate_switcher()
+{
+    PartPlateList& plate_list  = wxGetApp().plater()->get_partplate_list();
+    const int      plate_count = plate_list.get_plate_count();
+    if (!_hides_inactive_plates() || plate_count < 2 || m_gizmos.get_current_type() != GLGizmosManager::Undefined)
+        return;
+
+    float sc = get_scale();
+#ifdef WIN32
+    sc *= (float) get_dpi_for_window(wxGetApp().GetTopWindow()) / (float) DPI_DEFAULT;
+#endif // WIN32
+
+    ImGuiWrapper& imgui     = *wxGetApp().imgui();
+    const ImVec2  btn_size  = ImVec2(CANVAS_TOOLBAR_BUTTON, CANVAS_TOOLBAR_BUTTON) * sc;
+    const ImVec2  padding   = ImVec2(4.f, 4.f) * sc;
+    const float   spacing   = 4.f * sc;
+    const float   scrollbar = 8.f * sc;
+    const float   top       = std::max(m_main_toolbar.get_height(), m_gizmos.get_scaled_total_height()) + CANVAS_TOOLBAR_MARGIN * sc;
+    // Clear of the 3D navigator, or of the canvas toolbar when it takes the corner.
+    const int     corner_buttons = wxGetApp().show_canvas_zoom_button() ? 3 : 2;
+    const float   corner = wxGetApp().show_3d_navigator() ? NAVIGATOR_SIZE :
+        CANVAS_TOOLBAR_MARGIN + 2.f * CANVAS_TOOLBAR_PADDING + corner_buttons * (CANVAS_TOOLBAR_BUTTON + 6.f);
+    const float   content_h = plate_count * (btn_size.y + spacing) - spacing + 2.f * padding.y;
+    const float   max_h     = std::max(btn_size.y + 2.f * padding.y, float(get_canvas_size().get_height()) - top - corner * sc);
+    const bool    scroll    = content_h > max_h;
+
+    const ImVec4 text_color = m_is_dark ? ImVec4(.9f, .9f, .9f, 1.f) : ImVec4(.3f, .3f, .3f, 1.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.f * sc);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.f * sc);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImVec4(.13f, .13f, .15f, .5f) : ImVec4(1.f, 1.f, 1.f, .7f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.f, 0.f, 0.f, 0.f));
+
+    imgui.set_next_window_pos(CANVAS_TOOLBAR_MARGIN * sc, top, ImGuiCond_Always, 0.f, 0.f);
+    imgui.set_next_window_size(btn_size.x + 2.f * padding.x + (scroll ? scrollbar : 0.f), std::min(content_h, max_h), ImGuiCond_Always);
+    imgui.begin(std::string("##PlateSwitcher"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
+                                                ImGuiWindowFlags_NoCollapse | (scroll ? 0 : ImGuiWindowFlags_NoScrollbar));
+
+    const int curr_plate = plate_list.get_curr_plate_index();
+    for (int i = 0; i < plate_count; ++i) {
+        PartPlate*   plate   = plate_list.get_plate(i);
+        const bool   current = i == curr_plate;
+        const ImVec4 hover   = m_is_dark ? ImVec4(1.f, 1.f, 1.f, .12f) : ImVec4(0.f, 0.f, 0.f, .08f);
+        ImGui::PushStyleColor(ImGuiCol_Button, current ? ImGuiWrapper::COL_ORCA : ImVec4(0.f, 0.f, 0.f, 0.f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, current ? ImGuiWrapper::COL_ORCA_HOVER : hover);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, current ? ImGuiWrapper::COL_ORCA_HOVER : hover);
+        ImGui::PushStyleColor(ImGuiCol_Text, current ? ImVec4(1.f, 1.f, 1.f, 1.f) : ImVec4(text_color.x, text_color.y, text_color.z, plate->empty() ? .45f : 1.f));
+        if (ImGui::Button(std::to_string(i + 1).c_str(), btn_size) && !current)
+            wxGetApp().plater()->CallAfter([i]() {
+                wxGetApp().plater()->select_plate(i);
+                wxGetApp().plater()->deselect_all();
+            });
+        ImGui::PopStyleColor(4);
+        if (ImGui::IsItemHovered()) {
+            const std::string name = plate->get_plate_name();
+            imgui.tooltip(_u8L("Plate") + " " + std::to_string(i + 1) + (name.empty() ? "" : " (" + name + ")"), ImGui::GetFontSize() * 20.f);
+        }
+    }
+
+    imgui.end();
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(7);
 }
 
 //BBS: GUI refactor: GLToolbar adjust

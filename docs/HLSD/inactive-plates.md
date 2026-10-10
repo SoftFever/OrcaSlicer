@@ -45,6 +45,13 @@ plates are shown and nothing is left hidden, the update returns at once.
 
 ## Switching plates
 
+The other plates cannot be clicked while they are hidden, so a compact counterpart of the Preview
+plate toolbar takes their place: a column of numbered buttons in the top left corner, below the top
+toolbar, shown when the project has more than one plate and no gizmo is open. The current plate is
+highlighted and empty plates are dimmed; the tooltip gives the plate name. A click selects the plate
+and clears the selection, as a click on a plate row of the object list does. The column scrolls when
+it does not fit above the 3D navigator or the canvas toolbar.
+
 Whatever selects a plate while the others are hidden, the camera moves its target over the new plate
 and keeps its angle, distance and height (`PartPlateList::select_plate()`), so the plate comes into
 view where the previous one was. A zoom to all plates, as after loading a project or adding a plate,
