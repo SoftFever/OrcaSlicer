@@ -39889,3 +39889,7 @@ msgid ""
 msgstr ""
 "Touchpad: due dita spostano il grafico in entrambe le direzioni.\n"
 "Il pizzico scala i due assi al cursore."
+
+# AI Translated
+msgid "Middle mouse button: drag to pan both axes."
+msgstr "Tasto centrale: trascina entrambi gli assi."

@@ -40948,3 +40948,7 @@ msgid ""
 msgstr ""
 "Touchpad: dwa palce przesuwają wykres w obu kierunkach.\n"
 "Szczypanie skaluje obie osie wokół wskaźnika."
+
+# AI Translated
+msgid "Middle mouse button: drag to pan both axes."
+msgstr "Środkowy przycisk: przeciągnij obie osie."

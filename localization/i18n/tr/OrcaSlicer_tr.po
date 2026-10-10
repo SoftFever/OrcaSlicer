@@ -38525,3 +38525,7 @@ msgid ""
 msgstr ""
 "Dokunmatik yüzey: iki parmak grafiği her yönde taşır.\n"
 "Kıstırma ve açma, iki ekseni işaretçi çevresinde ölçekler."
+
+# AI Translated
+msgid "Middle mouse button: drag to pan both axes."
+msgstr "Orta fare düğmesi: iki ekseni sürükleyin."
