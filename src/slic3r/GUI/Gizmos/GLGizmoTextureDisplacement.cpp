@@ -7358,8 +7358,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                             // physical filaments.
                             const int max_mixes = std::max(1, int(EnforcerBlockerType::ExtruderMax) - int(m_palette_filaments.size()));
                             if (int_row("##color_mix_count", _L("Mixed colors"), &opts.color_mix_count, 1, max_mixes, "%d", card_pad,
-                                        _L("The most mixed filaments a bake may add. They are picked from the "
-                                           "texture's colors, and only the ones the bake actually uses are created."),
+                                        _L("The most mixed filaments a bake may add - a ceiling, not a count. They "
+                                           "are picked from the texture's colors, so a texture the filaments already "
+                                           "cover gets fewer, and only the ones the bake actually uses are created."),
                                         { { "mixed_colors_few.png", _L("Few") }, { "mixed_colors_many.png", _L("Many") } }))
                                 m_preview_params_dirty = true;
                             // After the slider, so a change shows in the same frame.
@@ -7370,6 +7371,26 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                             // TRN %1% is the number of printable colors, %2% is "from N filaments".
                             ImGui::TextDisabled("%s", Slic3r::format(into_u8(_L_PLURAL("%1% printable color %2%", "%1% printable colors %2%", n_colors)),
                                                                      n_colors, from_filaments).c_str());
+                            // Two reasons the palette can hold fewer mixes than the setting asks for, and both
+                            // used to be silent, leaving the user raising a number that changed nothing. A
+                            // flat-color image is matched against the filaments alone, so it gets none at all;
+                            // otherwise the ranking stops once another mix would no longer noticeably improve
+                            // the match.
+                            const int n_mixes = std::max(0, n_colors - n_filaments);
+                            if (n_mixes < opts.color_mix_count) {
+                                const bool flat = std::any_of(mv->texture_displacement_layers.begin(),
+                                                              mv->texture_displacement_layers.end(),
+                                                              [](const TextureDisplacementLayer &l) {
+                                                                  return layer_shows_color(l) &&
+                                                                         analyze_texture_detail(l).flat_colors;
+                                                              });
+                                ImGui::PushTextWrapPos(content_rx - card_pad);
+                                ImGui::TextDisabled("%s", flat ?
+                                    _u8L("Flat-color image: each color prints in one filament, so no mixes are used.").c_str() :
+                                    Slic3r::format(_u8L("This texture uses %1% of them - more mixes would not "
+                                                        "change the result."), n_mixes).c_str());
+                                ImGui::PopTextWrapPos();
+                            }
                         }
                         if (int_row("##color_despeckle", _L("Denoise"), &opts.color_despeckle, 0, 6, "%d", card_pad,
                                     _L("Cleans up single stray triangles of the wrong color, which detail finer "
