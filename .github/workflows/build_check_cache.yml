@@ -143,7 +143,6 @@ jobs:
     env:
       WAIT_MINUTES: 240
       PRIORITY: ${{ contains(github.event.pull_request.labels.*.name, 'macos-priority') }}
-      ARCH: ${{ inputs.arch }}
     # Must exceed WAIT_MINUTES.
     timeout-minutes: 250
     # One line for every arch of every pull request, and only its first job polls.

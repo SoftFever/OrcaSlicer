@@ -93,11 +93,17 @@ class RunDemandTest(unittest.TestCase):
         failed = job("build_macos_arch (arm64) / Build Deps / Build Deps", conclusion="failure")
         self.assertEqual(admission.run_demand(PR, [gate("arm64"), failed]), 0)
 
-    def test_pull_request_keeps_its_runners_for_its_later_jobs(self):
-        # Both arch builds are done and the universal build and tests are not
-        # listed yet: they will need both runners without passing the line.
-        jobs = [gate("arm64"), gate("x86_64"), build("arm64", "completed"), build("x86_64", "completed")]
-        self.assertEqual(admission.run_demand(PR, jobs), 2)
+    def test_both_arches_let_in_hold_only_what_still_builds(self):
+        # The universal build and tests are not held for in advance.
+        jobs = [gate("arm64"), gate("x86_64"), build("arm64", "completed"), build("x86_64")]
+        self.assertEqual(admission.run_demand(PR, jobs), 1)
+
+    def test_universal_build_and_tests_count_once_queued(self):
+        built = [gate("arm64"), gate("x86_64"), build("arm64", "completed"), build("x86_64", "completed")]
+        self.assertEqual(admission.run_demand(PR, built), 0)
+        queued = [job("Build macOS Universal / Build OrcaSlicer", "queued", None),
+                  job("macOS arm64 / Unit Tests", "in_progress", None)]
+        self.assertEqual(admission.run_demand(PR, built + queued), 2)
 
     def test_pull_request_releases_when_macos_is_done(self):
         jobs = [gate("arm64"), gate("x86_64"), UNIVERSAL_DONE, TESTS_DONE]
@@ -138,16 +144,16 @@ class PriorityTest(unittest.TestCase):
 
     def test_measure_from_each_line(self):
         api = FakeApi({("runs", "pending"): [dict(PR, status="pending")], jobs_path(2): self.WAITING})
-        total, lines, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        total, lines = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
         self.assertEqual(total, admission.RESERVE)
         self.assertIn("priority, waiting", lines[0])
-        total, _, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON, priority=True)
+        total, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON, priority=True)
         self.assertEqual(total, 0)
 
     def test_own_waiting_run_is_not_counted(self):
         api = FakeApi({("runs", "pending"): [dict(PR, status="pending")], jobs_path(2): self.WAITING})
-        total, _, need = admission.measure(api, "o/r", "build_all.yml", 2, NOON, arch="arm64")
-        self.assertEqual((total, need), (0, 1))
+        total, _ = admission.measure(api, "o/r", "build_all.yml", 2, NOON)
+        self.assertEqual(total, 0)
 
 
 class FakeApi:
@@ -182,7 +188,7 @@ class MeasureTest(unittest.TestCase):
             jobs_path(2): [gate("arm64"), build("arm64")],
             jobs_path(3): [gate("arm64"), gate("x86_64"), build("arm64", "queued")],
         })
-        total, lines, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        total, lines = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
         self.assertEqual(total, admission.RESERVE + 1 + admission.RESERVE)
         self.assertEqual(len(lines), 3)
 
@@ -190,25 +196,25 @@ class MeasureTest(unittest.TestCase):
         # One of its jobs waits in a concurrency group while its macOS builds run.
         pending_pr = dict(PR, status="pending")
         api = FakeApi({("runs", "pending"): [pending_pr], jobs_path(2): [gate("arm64"), build("arm64")]})
-        total, _, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        total, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
         self.assertEqual(total, 1)
 
     def test_a_push_waiting_behind_another_holds_nothing(self):
         api = FakeApi({("runs", "pending"): [dict(PUSH, status="pending")], jobs_path(1): []})
-        total, _, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        total, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
         self.assertEqual(total, 0)
 
     def test_reads_every_page_of_runs(self):
         runs = [dict(PR, id=i) for i in range(150)]
         responses = {("runs", "in_progress"): runs}
         responses.update({jobs_path(i): [gate("arm64")] for i in range(150)})
-        total, _, _ = admission.measure(FakeApi(responses), "o/r", "build_all.yml", 999, NOON)
+        total, _ = admission.measure(FakeApi(responses), "o/r", "build_all.yml", 999, NOON)
         self.assertEqual(total, 150)
 
     def test_reserves_for_the_nightly_until_its_run_appears(self):
         due = datetime.datetime(2026, 10, 10, 2, 10, tzinfo=UTC)
         yesterday = {"created_at": "2026-10-09T02:20:00Z"}
-        total, lines, _ = admission.measure(
+        total, lines = admission.measure(
             FakeApi({("runs", "schedule"): [yesterday]}), "OrcaSlicer/OrcaSlicer", "build_all.yml", 99, due)
         self.assertEqual(total, admission.RESERVE)
         self.assertIn("nightly", lines[0])
@@ -216,13 +222,13 @@ class MeasureTest(unittest.TestCase):
     def test_no_nightly_reserve_once_its_run_exists(self):
         due = datetime.datetime(2026, 10, 10, 2, 30, tzinfo=UTC)
         today = {"created_at": "2026-10-10T02:21:00Z"}
-        total, _, _ = admission.measure(
+        total, _ = admission.measure(
             FakeApi({("runs", "schedule"): [today]}), "OrcaSlicer/OrcaSlicer", "build_all.yml", 99, due)
         self.assertEqual(total, 0)
 
     def test_no_nightly_reserve_in_a_fork(self):
         due = datetime.datetime(2026, 10, 10, 2, 10, tzinfo=UTC)
-        total, _, _ = admission.measure(FakeApi({}), "fork/OrcaSlicer", "build_all.yml", 99, due)
+        total, _ = admission.measure(FakeApi({}), "fork/OrcaSlicer", "build_all.yml", 99, due)
         self.assertEqual(total, 0)
 
     def test_counts_a_run_in_both_lists_once(self):
@@ -231,25 +237,13 @@ class MeasureTest(unittest.TestCase):
             ("runs", "queued"): [dict(PUSH, status="queued")],
             jobs_path(1): [],
         })
-        total, _, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
+        total, _ = admission.measure(api, "o/r", "build_all.yml", 99, NOON)
         self.assertEqual(total, admission.RESERVE)
 
-    def own(self, jobs, arch):
-        api = FakeApi({("runs", "in_progress"): [PR], jobs_path(2): jobs})
-        total, _, need = admission.measure(api, "o/r", "build_all.yml", 2, NOON, arch=arch)
-        return total, need
-
-    def test_first_arch_needs_one(self):
-        self.assertEqual(self.own([gate("arm64", "in_progress", None)], "arm64"), (0, 1))
-
-    def test_second_arch_needs_one_while_the_first_builds(self):
+    def test_counts_its_own_run(self):
         jobs = [gate("arm64"), build("arm64"), gate("x86_64", "in_progress", None)]
-        self.assertEqual(self.own(jobs, "x86_64"), (1, 1))
-
-    def test_second_arch_needs_both_once_the_first_is_built(self):
-        # Letting it in makes the run hold both for its universal build and tests.
-        jobs = [gate("arm64"), build("arm64", "completed"), gate("x86_64", "in_progress", None)]
-        self.assertEqual(self.own(jobs, "x86_64"), (0, 2))
+        api = FakeApi({("runs", "in_progress"): [PR], jobs_path(2): jobs})
+        self.assertEqual(admission.measure(api, "o/r", "build_all.yml", 2, NOON)[0], 1)
 
     def test_a_run_whose_other_arch_waits_behind_this_one_does_not_block_it(self):
         # The line is A-arm64, B-arm64, A-x86_64. A's arm64 is built and its
@@ -260,8 +254,8 @@ class MeasureTest(unittest.TestCase):
             jobs_path(1): [gate("arm64"), build("arm64", "completed"), gate("x86_64", "pending", None)],
             jobs_path(2): [gate("arm64", "in_progress", None)],
         })
-        total, _, need = admission.measure(api, "o/r", "build_all.yml", 2, NOON, arch="arm64")
-        self.assertEqual((total, need), (0, 1))
+        total, _ = admission.measure(api, "o/r", "build_all.yml", 2, NOON)
+        self.assertEqual(total, 0)
 
     def test_no_nightly_lookup_outside_its_window(self):
         api = FakeApi({})
@@ -278,8 +272,7 @@ class WaitTest(unittest.TestCase):
             result = next(results)
             if isinstance(result, Exception):
                 raise result
-            total, need = result if isinstance(result, tuple) else (result, 1)
-            return total, [], need
+            return result, []
 
         def sleep(seconds):
             now[0] += seconds
@@ -294,8 +287,6 @@ class WaitTest(unittest.TestCase):
     def test_waits_while_full(self):
         self.assertEqual(self.run_wait([5, 6, 4]), ("a runner is free", 240))
 
-    def test_waits_for_what_this_arch_needs(self):
-        self.assertEqual(self.run_wait([(4, 2), (3, 2)]), ("a runner is free", 120))
 
     def test_lets_in_after_repeated_api_errors(self):
         error = urllib.error.URLError("rate limited")

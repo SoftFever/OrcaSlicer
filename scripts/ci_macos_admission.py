@@ -4,20 +4,20 @@
 Runs from a Linux job in build_check_cache.yml, once per macOS arch, in a single
 repo-wide line (a concurrency group with queue: max), so only the job at the
 front of the line polls. It lets its arch in when the runners every active Build
-all run holds or still needs, plus what letting this arch in adds to its own
-run, fit in MACOS_RUNNER_LIMIT:
+all run holds or still needs, plus one for this arch, fit in MACOS_RUNNER_LIMIT:
 
 - A push, nightly or manual run holds RESERVE runners until its macOS work is
   done. The jobs API lists only the jobs a run has reached, so what it still
   needs cannot be counted and is reserved instead.
-- A pull request run with both arches let in holds RESERVE runners until its
-  macOS work is done, which covers its universal build and tests that never
-  pass through the line and start only after both arch builds.
-- A pull request run with one arch let in holds one runner until that arch's
+- A pull request run holds one runner for each arch let in until that arch's
   app build is done, and none after. A run holding a runner while it waits for
   its other arch would deadlock: the other arch can sit in the line behind a
   pull request that waits for that runner.
 - A run holds at least the macOS jobs it has queued or running.
+
+A pull request's universal build and tests skip the line and are not held for
+in advance. They take minutes, and holding two runners for them through the
+slower arch's build left runners idle while other builds waited.
 - In the minutes around the nightly's cron time, RESERVE runners are held for it
   until its run appears.
 
@@ -28,8 +28,8 @@ waiting as holding a runner, so the next free runners go to it.
 Any API error repeated FAILURES_BEFORE_ADMIT times, and the WAIT_MINUTES limit,
 let the arch in, so a fault here never blocks pull requests.
 
-Environment: GH_TOKEN, REPO, WORKFLOW_REF, GITHUB_RUN_ID, ARCH, and optionally
-PRIORITY, MACOS_RUNNER_LIMIT, WAIT_MINUTES, POLL_SECONDS and GITHUB_API_URL.
+Environment: GH_TOKEN, REPO, WORKFLOW_REF, GITHUB_RUN_ID, and optionally PRIORITY,
+MACOS_RUNNER_LIMIT, WAIT_MINUTES, POLL_SECONDS and GITHUB_API_URL.
 """
 
 import datetime
@@ -41,8 +41,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-# A Build all run builds arm64 and x86_64 at the same time, then the universal
-# build and the macOS tests at the same time.
+# A push, nightly or manual run builds arm64 and x86_64 at the same time, then
+# the universal build and the macOS tests at the same time.
 RESERVE = 2
 
 # Must match the job names in build_all.yml and build_check_cache.yml.
@@ -97,10 +97,9 @@ def priority_waiting(jobs):
     return sum(1 for job in gates(jobs, (PRIORITY_GATE,)) if job["status"] != "completed")
 
 
-def run_demand(run, jobs, yield_to_priority=False, letting_in=None):
+def run_demand(run, jobs, yield_to_priority=False):
     """macOS runners a run holds or still needs. With yield_to_priority, each
-    priority arch still waiting counts as holding one. letting_in counts that arch
-    as let in."""
+    priority arch still waiting counts as holding one."""
     # A run with no jobs that is pending waits behind another run of its
     # concurrency group, which holds the runners for both.
     if not jobs and run["status"] in ("pending", "waiting"):
@@ -110,10 +109,7 @@ def run_demand(run, jobs, yield_to_priority=False, letting_in=None):
         return active
     if run["event"] != "pull_request":
         return max(active, RESERVE)
-    arches = admitted_arches(jobs) | ({letting_in} if letting_in else set())
-    if len(arches) >= RESERVE:
-        return max(active, RESERVE)
-    held = sum(1 for arch in arches if not arch_built(jobs, arch))
+    held = sum(1 for arch in admitted_arches(jobs) if not arch_built(jobs, arch))
     if yield_to_priority:
         held += priority_waiting(jobs)
     return max(active, held)
@@ -162,11 +158,10 @@ def latest_run(api, repo, workflow, **params):
     return runs[0] if runs else None
 
 
-def measure(api, repo, workflow, run_id, now, priority=False, arch=None):
-    """Total macOS runners held or needed, one line per run that holds any, and
-    how many more letting arch in adds to run_id. The priority line does not
-    count the priority runs waiting behind it."""
-    total, lines, need = 0, [], 1
+def measure(api, repo, workflow, run_id, now, priority=False):
+    """Total macOS runners held or needed, and one line per run that holds any.
+    The priority line does not count the priority runs waiting behind it."""
+    total, lines = 0, []
     # A run is listed as queued whenever one of its jobs waits for a runner, and
     # as pending whenever one waits in a concurrency group, so runs in any of these
     # can hold runners. A run can move between the lists between the calls.
@@ -177,8 +172,6 @@ def measure(api, repo, workflow, run_id, now, priority=False, arch=None):
                        filter="latest", per_page=100)["jobs"]
         own = run["id"] == run_id
         demand = run_demand(run, jobs, yield_to_priority=not priority and not own)
-        if own:
-            need = max(1, run_demand(run, jobs, letting_in=arch) - demand)
         if demand:
             total += demand
             waiting = ", priority, waiting" if priority_waiting(jobs) and not own else ""
@@ -191,7 +184,7 @@ def measure(api, repo, workflow, run_id, now, priority=False, arch=None):
         if not last or parse_time(last["created_at"]) < start:
             total += RESERVE
             lines.append(f"  {RESERVE}  the nightly, due at {NIGHTLY_UTC:%H:%M} UTC")
-    return total, lines, need
+    return total, lines
 
 
 def wait(measure_now, limit, wait_minutes, poll_seconds,
@@ -201,7 +194,7 @@ def wait(measure_now, limit, wait_minutes, poll_seconds,
     failures = 0
     while True:
         try:
-            total, lines, need = measure_now()
+            total, lines = measure_now()
         except (urllib.error.URLError, OSError, ValueError, KeyError, TypeError) as error:
             failures += 1
             log(f"::warning title=macOS admission::Could not read the queue ({error}).")
@@ -209,10 +202,10 @@ def wait(measure_now, limit, wait_minutes, poll_seconds,
                 return "the queue could not be read"
         else:
             failures = 0
-            log(f"{total} of {limit} macOS runners held or needed, and this arch needs {need}:")
+            log(f"{total} of {limit} macOS runners held or needed:")
             for line in lines:
                 log(line)
-            if total + need <= limit:
+            if total + 1 <= limit:
                 return "a runner is free"
         if clock() + poll_seconds >= deadline:
             return f"it waited {wait_minutes} minutes"
@@ -227,7 +220,7 @@ def main():
     limit = int(os.environ.get("MACOS_RUNNER_LIMIT") or 5)
     reason = wait(
         lambda: measure(api, repo, workflow, run_id, datetime.datetime.now(datetime.timezone.utc),
-                        priority=os.environ.get("PRIORITY") == "true", arch=os.environ["ARCH"]),
+                        priority=os.environ.get("PRIORITY") == "true"),
         limit,
         wait_minutes=int(os.environ.get("WAIT_MINUTES") or 240),
         poll_seconds=int(os.environ.get("POLL_SECONDS") or 180),
