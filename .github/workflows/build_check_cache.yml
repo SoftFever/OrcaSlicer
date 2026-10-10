@@ -131,10 +131,39 @@ jobs:
           key: ${{ needs.check_cache.outputs.cache-key }}
           lookup-only: true
 
+  # Hosted macOS runners are scarce, so a pull request's macOS build waits until
+  # one is free that push and nightly builds do not need. See the script.
+  macos_admission:
+    name: Wait for a macOS runner
+    needs: [check_cache, wait_for_deps]
+    if: ${{ !cancelled() && needs.check_cache.result == 'success' && startsWith(inputs.os, 'macos-') && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    env:
+      WAIT_MINUTES: 240
+    # Must exceed WAIT_MINUTES.
+    timeout-minutes: 250
+    # One line for every arch of every pull request, and only its first job polls.
+    concurrency:
+      group: macos-admission
+      queue: max
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: scripts/ci_macos_admission.py
+          sparse-checkout-cone-mode: false
+
+      - name: wait for a macOS runner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MACOS_RUNNER_LIMIT: ${{ vars.MACOS_RUNNER_LIMIT }}
+        run: python3 scripts/ci_macos_admission.py
+
   build_deps: # call next step
     name: Build Deps
-    needs: [check_cache, wait_for_deps]
-    # A failed wait counts as no cache, so the deps are built here.
+    needs: [check_cache, wait_for_deps, macos_admission]
+    # A failed wait counts as no cache, so the deps are built here. A failed
+    # admission still builds rather than skip macOS.
     if: ${{ !cancelled() && needs.check_cache.result == 'success' }}
     uses: ./.github/workflows/build_deps.yml
     with:
