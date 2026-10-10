@@ -286,10 +286,14 @@ constexpr float PREFER_PURE_DE = 2.f;
 // the quantizer's lookup cube.
 constexpr size_t MIX_TARGET_SAMPLES = size_t(1) << 20;
 constexpr size_t MIX_TARGET_BINS    = 256;
-// rank_mixes() stops once the best remaining mix would improve the match by less than this, in
-// CIEDE2000 averaged over every pixel of the colouring layers (see mix_targets()): a mix that only
-// touches a few stray pixels is not worth a filament slot.
-constexpr float MIN_MIX_GAIN = 0.05f;
+// rank_mixes() stops once the best remaining mix would improve the match by less than this FRACTION
+// of what the best mix bought: a mix that only touches a few stray pixels is not worth a filament
+// slot. Relative rather than a fixed amount of CIEDE2000, because the gains decay smoothly and a
+// fixed cut lands wherever that curve happens to cross it - on a red-to-green gradient with five
+// filaments the old 0.05 kept a mix worth 0.052 and refused one worth 0.042, and it stopped at the
+// same count whether the user allowed 8 mixes or 28, and whether four filaments were loaded or six.
+// As a fraction it scales with the texture, so both the setting and the loaded filaments matter.
+constexpr double MIN_MIX_GAIN_FRACTION = 0.001;
 
 // The project's mixed filament slots, one string each, as the palette cache compares them: anything
 // that changes which of them a mix can reuse changes this.
@@ -5390,6 +5394,8 @@ std::vector<GLGizmoTextureDisplacement::PaletteEntry> GLGizmoTextureDisplacement
     std::vector<float>        current = pure_d;
     std::vector<char>         taken(nc, 0);
     std::vector<PaletteEntry> out;
+    // Set from the first mix taken, so the floor is read off this texture rather than assumed.
+    double                    floor_gain = 0.;
     const auto                counts = [&](size_t c, size_t t) {
         const float d = dist[c * nt + t];
         return d < current[t] && d <= pure_d[t] - PREFER_PURE_DE;
@@ -5409,8 +5415,11 @@ std::vector<GLGizmoTextureDisplacement::PaletteEntry> GLGizmoTextureDisplacement
                 best      = c;
             }
         }
-        if (best == nc || best_gain < double(MIN_MIX_GAIN))
+        // Nothing left that helps, or the remaining mixes are noise beside the first one.
+        if (best == nc || best_gain <= 0. || best_gain < floor_gain)
             break;
+        if (out.empty())
+            floor_gain = best_gain * MIN_MIX_GAIN_FRACTION;
         taken[best] = 1;
         out.push_back(candidates[best]);
         for (size_t t = 0; t < nt; ++t)
