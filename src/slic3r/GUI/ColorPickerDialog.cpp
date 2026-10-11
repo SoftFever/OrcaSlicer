@@ -41,6 +41,11 @@
 #include <gtk/gtk.h>
 #endif
 
+#ifdef __WXMSW__
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+#endif
+
 #include "libslic3r/Color.hpp"
 #include <optional>
 #include <variant>
@@ -930,6 +935,21 @@ void ColorPickerDialog::apply_rounded_shape()
     // Like SpeedDial, clip its native layer instead and guard shape re-entry.
     if (m_applying_shape)
         return;
+
+#ifdef __WXMSW__
+    HWND hwnd = GetHWND();
+    // Rounded corners plus the system border and shadow, the same as a native window.
+    DWM_WINDOW_CORNER_PREFERENCE pref = DWMWCP_ROUND;          // or DWMWCP_ROUNDSMALL, as menus use
+    const bool rounded = SUCCEEDED(DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &pref, sizeof(pref)));
+    if (!rounded) {                                             // Windows 10: square corners, shadow only
+        DWMNCRENDERINGPOLICY policy = DWMNCRP_ENABLED;
+        DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));
+        const MARGINS margins{0, 0, 0, 1};                      // 1px of DWM frame
+        DwmExtendFrameIntoClientArea(hwnd, &margins);
+    }
+    return;
+#endif
+
     const wxSize size = GetClientSize();
     if (size.x <= 0 || size.y <= 0)
         return;
