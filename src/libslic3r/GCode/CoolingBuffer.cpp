@@ -760,7 +760,6 @@ std::string CoolingBuffer::apply_layer_cooldown(
         float fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
         //BBS
         int additional_fan_speed_new = m_config.additional_cooling_fan_speed.get_at(config_index);
-        const bool additional_fan_linear_ramp = EXTRUDER_CONFIG(additional_cooling_fan_linear_ramp);
         int close_fan_the_first_x_layers = EXTRUDER_CONFIG(close_fan_the_first_x_layers);
         // Is the fan speed ramp enabled?
         int full_fan_speed_layer = EXTRUDER_CONFIG(full_fan_speed_layer);
@@ -793,10 +792,8 @@ std::string CoolingBuffer::apply_layer_cooldown(
             supp_interface_fan_control  = false;
             ironing_fan_speed           = initial_layer_fan_speed;
             ironing_fan_control         = false;
-            // The auxiliary fan is independent of the part-cooling override, but it still starts the same linear
-            // ramp (1 / full_fan_speed_layer of its configured speed) so it does not drop after the first layer.
-            if (additional_fan_linear_ramp && full_fan_speed_layer > 1)
-                additional_fan_speed_new = std::clamp(int(float(additional_fan_speed_new) / float(full_fan_speed_layer) + 0.5f), 0, 255);
+            // additional_fan_speed_new is left at its configured value (auxiliary fan is independent of the
+            // part-cooling override).
         } else if (int(layer_id) >= close_fan_the_first_x_layers) {
             float   fan_max_speed             = m_config.fan_max_speed.get_at(config_index);
             float slow_down_layer_time = float(EXTRUDER_CONFIG(slow_down_layer_time));
@@ -834,13 +831,6 @@ std::string CoolingBuffer::apply_layer_cooldown(
                     fan_speed_new    = std::clamp(int(float(fan_speed_new) * factor + 0.5f), 0, 255);
                     overhang_fan_speed = std::clamp(int(float(overhang_fan_speed) * factor + 0.5f), 0, 255);
                 }
-                // The auxiliary fan follows the same linear ramp as the part cooling fan: it rises from
-                // close_fan_the_first_x_layers to full_fan_speed_layer instead of jumping to its full speed.
-                // The first-layer override above does not apply to it, so the ramp is anchored at zero.
-                if (additional_fan_linear_ramp) {
-                    const float aux_factor = float(int(layer_id + 1) - close_fan_the_first_x_layers) / float(full_fan_speed_layer - close_fan_the_first_x_layers);
-                    additional_fan_speed_new = std::clamp(int(float(additional_fan_speed_new) * aux_factor + 0.5f), 0, 255);
-                }
             }
             supp_interface_fan_speed = EXTRUDER_CONFIG(support_material_interface_fan_speed);
             supp_interface_fan_control = supp_interface_fan_speed >= 0;
@@ -872,6 +862,23 @@ std::string CoolingBuffer::apply_layer_cooldown(
             internal_bridge_fan_speed = 0; // ORCA: Add support for separate internal bridge fan speed control
             ironing_fan_control = false; // ORCA: Add support for ironing fan speed control
             ironing_fan_speed = 0; // ORCA: Add support for ironing fan speed control
+        }
+        // Auxiliary fan linear ramp (opt-in). The auxiliary fan has its own schedule, independent of the part cooling
+        // fan: it runs at `first_x_layer_fan_speed` for the first `close_additional_fan_first_x_layers` layers, then
+        // rises linearly to `additional_cooling_fan_speed`, reaching it at layer `additional_fan_full_speed_layer`.
+        // An `additional_fan_full_speed_layer` not above the first-layers count means no ramp: full speed right after.
+        if (m_config.additional_cooling_fan_linear_ramp.get_at(m_current_extruder)) {
+            const int   aux_first_layers = m_config.close_additional_fan_first_x_layers.get_at(m_current_extruder);
+            const int   aux_full_layer   = m_config.additional_fan_full_speed_layer.get_at(m_current_extruder);
+            const float aux_target       = float(m_config.additional_cooling_fan_speed.get_at(config_index));
+            const float aux_first_speed  = std::min(float(m_config.first_x_layer_fan_speed.get_at(m_current_extruder)), aux_target);
+            if (int(layer_id) < aux_first_layers)
+                additional_fan_speed_new = int(aux_first_speed + 0.5f);
+            else if (int(layer_id) + 1 < aux_full_layer) {
+                const float t = float(int(layer_id) + 1 - aux_first_layers) / float(aux_full_layer - aux_first_layers);
+                additional_fan_speed_new = int(aux_first_speed + t * (aux_target - aux_first_speed) + 0.5f);
+            } else
+                additional_fan_speed_new = int(aux_target);
         }
         // A tool change may keep the same configured base fan speed while the physical fan is
         // still running at the previous filament's overhang speed. Restore the base speed before

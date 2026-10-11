@@ -5421,8 +5421,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("additional_cooling_fan_linear_ramp", coBools);
     def->label = L("Linear ramp");
-    def->tooltip = L("Ramp the auxiliary fan up linearly over the layers defined by \"No cooling for the first\" and \"Full fan speed at layer\", "
-                     "the same way as the part cooling fan, instead of running it at full speed from the first layer. "
+    def->tooltip = L("Give the auxiliary fan its own schedule, independent of the part cooling fan: it runs at the fan speed set below for the first "
+                     "layers, then ramps up linearly and reaches the auxiliary fan speed at the \"Full fan speed at layer\" below. "
                      "This reduces the sudden temperature drop near the first layer, which helps against warping.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBools { false });
