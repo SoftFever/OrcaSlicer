@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 08:37+0800\n"
+"POT-Creation-Date: 2026-10-11 16:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl\n"
 "Language-Team: \n"
@@ -13009,6 +13009,119 @@ msgstr "Přihlášení se nezdařilo. Zkuste to prosím znovu."
 msgid "parse json failed"
 msgstr "zpracování json se nezdařilo"
 
+msgid "Loading…"
+msgstr "Načtení probíhá…"
+
+msgid "Welcome to Orca Slicer"
+msgstr "Vítejte v Orca Slicer"
+
+msgid "Orca Slicer will be set up in several steps. Let's start!"
+msgstr "Orca Slicer bude nastaven v několika krocích. Začněme!"
+
+msgid "Get Started"
+msgstr "Začínáme"
+
+msgid "Please select your login region"
+msgstr "Vyberte prosím svou oblast přihlášení"
+
+msgid "Finish"
+msgstr "Dokončit"
+
+msgid "Printer Selection"
+msgstr "Výběr tiskárny"
+
+msgid "Vendors"
+msgstr ""
+
+# AI Translated
+msgid "Custom Printer"
+msgstr "Vlastní tiskárna"
+
+msgid "Create"
+msgstr "Vytvořit"
+
+msgid "Check for new printers"
+msgstr ""
+
+msgid "At least one printer must be selected."
+msgstr "Musí být vybrána alespoň jedna tiskárna."
+
+msgid "New printers found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "New printer vendors installed: %s"
+msgstr ""
+
+msgid "New printer vendors were found, but installation was cancelled."
+msgstr ""
+
+msgid "No new printers found."
+msgstr ""
+
+msgid "Filament Selection"
+msgstr "Výběr Filamentu"
+
+msgid "System Filaments"
+msgstr ""
+
+msgid "Custom Filaments"
+msgstr ""
+
+msgid "Create New"
+msgstr ""
+
+msgid "Filament type"
+msgstr "Typ filamentu"
+
+msgid "Vendor"
+msgstr "Dodavatel"
+
+msgid "No items"
+msgstr ""
+
+msgid "Filter items"
+msgstr ""
+
+msgid "Checked"
+msgstr ""
+
+msgid "Unchecked"
+msgstr ""
+
+msgid "Select filtered"
+msgstr ""
+
+msgid "Clear all"
+msgstr "Vymazat vše"
+
+msgid "At least one filament must be selected."
+msgstr "Musí být vybraný alespoň jeden Filament."
+
+msgid "Do you want to use the default filament?"
+msgstr "Chcete použít výchozí Filament?"
+
+msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
+msgstr "Tím se vypnou všechny cloudové funkce včetně synchronizace profilů s Orca Cloud. Uživatelé, kteří chtějí pracovat zcela offline, mohou tuto možnost zapnout."
+
+msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
+msgstr "Poznámka: Je-li Stealth režim zapnut, nebudou vaše uživatelské profily zálohovány do Orca Cloud."
+
+msgid "Enable Stealth Mode."
+msgstr ""
+
+msgid "Proprietary Plugins"
+msgstr ""
+
+msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
+msgstr ""
+
+msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
+msgstr ""
+
+msgid "Install Bambu Network plug-in"
+msgstr "Instalovat Bambu Network plug-in"
+
 # AI Translated
 msgid "[Action Required] "
 msgstr "[Vyžadována akce] "
@@ -16005,9 +16118,6 @@ msgstr "Cena filamentu. Pouze pro statistické účely."
 
 msgid "money/kg"
 msgstr "peníze/kg"
-
-msgid "Vendor"
-msgstr "Dodavatel"
 
 msgid "Vendor of filament. For show only."
 msgstr "Dodavatel filamentu. Pouze pro zobrazení."
@@ -20465,9 +20575,6 @@ msgstr "Rekalibrace"
 msgid "Calibrate"
 msgstr "Kalibrovat"
 
-msgid "Finish"
-msgstr "Dokončit"
-
 msgid "How can I use calibration results?"
 msgstr "Jak použít výsledek kalibrace?"
 
@@ -21011,9 +21118,6 @@ msgstr ""
 
 msgid "Temperature calibration"
 msgstr "Kalibrace teploty"
-
-msgid "Filament type"
-msgstr "Typ filamentu"
 
 msgid "PLA"
 msgstr "PLA"
@@ -21617,9 +21721,6 @@ msgstr "např. Basic, Matte, Silk, Marble"
 msgid "Filament Preset"
 msgstr "filamentový přednastavený profil"
 
-msgid "Create"
-msgstr "Vytvořit"
-
 msgid "Vendor is not selected; please reselect vendor."
 msgstr "Dodavatel není vybrán, prosím vyberte jej znovu."
 
@@ -21930,6 +22031,9 @@ msgid ""
 msgstr ""
 "Tiskárna a všechny předvolby filamentů a procesů, které k ní patří.\n"
 "Lze sdílet s ostatními."
+
+msgid "Include custom bed texture and model"
+msgstr ""
 
 msgid ""
 "User's filament preset set.\n"
@@ -23201,6 +23305,33 @@ msgstr "Je-li zapnuto, budou výše uvedené hodnoty uloženy jako výchozí pro
 msgid "PresetBundle"
 msgstr "PresetBundle"
 
+msgid "Export Presets"
+msgstr ""
+
+msgid "Open folder in explorer"
+msgstr ""
+
+msgid "Delete bundle"
+msgstr ""
+
+msgid "Unsubscribe bundle"
+msgstr ""
+
+msgid "Update available"
+msgstr ""
+
+msgid "Unauthorized bundle"
+msgstr ""
+
+msgid "Open this bundle in your browser"
+msgstr ""
+
+msgid "Subscribed"
+msgstr ""
+
+msgid "Local"
+msgstr ""
+
 # AI Translated
 msgid "Bundle folder does not exist."
 msgstr "Složka balíčku neexistuje."
@@ -23244,6 +23375,12 @@ msgstr "Zrušit odběr balíčku"
 # AI Translated
 msgid "ExportPresetBundle"
 msgstr "ExportPresetBundle"
+
+msgid "Export to OrcaCloud"
+msgstr ""
+
+msgid "Export to folder"
+msgstr ""
 
 # AI Translated
 msgid "Save preset bundle"
@@ -28805,10 +28942,6 @@ msgid "Custom Printer Setup"
 msgstr "Nastavení vlastní tiskárny"
 
 # AI Translated
-msgid "Custom Printer"
-msgstr "Vlastní tiskárna"
-
-# AI Translated
 msgid "Define a custom printer profile"
 msgstr "Definujte vlastní profil tiskárny"
 
@@ -30305,6 +30438,28 @@ msgstr "Pluginy filamentu"
 msgid "Printer plugins"
 msgstr "Pluginy tiskárny"
 
+msgid "This preset does not use any plugin capabilities"
+msgstr ""
+
+msgid "Capabilities used by this preset"
+msgstr ""
+
+msgid "Capability configuration (JSON)"
+msgstr ""
+
+msgid "Plugin configuration"
+msgstr ""
+
+msgid "Discard this preset's override and use the global configuration again"
+msgstr ""
+
+# AI Translated
+msgid "Restore defaults"
+msgstr "Obnovit výchozí"
+
+msgid "Invalid JSON"
+msgstr ""
+
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
 msgstr "Konfigurace není platný JSON. Vaše změny nebyly uloženy."
@@ -30323,10 +30478,6 @@ msgstr ""
 "Obnovit výchozí konfiguraci pro „%s“?\n"
 "\n"
 "Tím se zahodí přepsání v předvolbě a použije se globální konfigurace."
-
-# AI Translated
-msgid "Restore defaults"
-msgstr "Obnovit výchozí"
 
 # AI Translated
 msgid "Using global configuration. Save the preset to persist it."
@@ -30396,6 +30547,215 @@ msgstr "Instalace pluginu"
 #, c-format, boost-format
 msgid "Installed \"%s\"."
 msgstr "Nainstalováno: „%s“."
+
+msgid "Search plugins"
+msgstr ""
+
+msgid "Clear search"
+msgstr ""
+
+msgid "Match case"
+msgstr ""
+
+msgid "Match whole word"
+msgstr ""
+
+msgid "More plugin install options"
+msgstr ""
+
+msgid "Install plugin"
+msgstr ""
+
+msgid "Install local plugin"
+msgstr ""
+
+msgid "Activate"
+msgstr ""
+
+msgid "Sort by name"
+msgstr ""
+
+msgid "Sort by version"
+msgstr ""
+
+msgid "Plugin Version"
+msgstr ""
+
+msgid "Sort by source"
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "Sort by status"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Status"
+msgstr ""
+
+msgid "Drag to resize; double-click to reset"
+msgstr ""
+
+msgid "Resize the plugin list"
+msgstr ""
+
+msgid "Plugin details"
+msgstr ""
+
+msgid "Plugin Info"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Changelog"
+msgstr ""
+
+msgid "Diagnostics"
+msgstr ""
+
+msgid "Types"
+msgstr ""
+
+msgid "Installed Version"
+msgstr ""
+
+msgid "Latest Version"
+msgstr ""
+
+msgid "Update to the latest version"
+msgstr ""
+
+msgid "No description available"
+msgstr ""
+
+msgid "Select a plugin to configure its capabilities"
+msgstr ""
+
+msgid "Configurable capabilities"
+msgstr ""
+
+msgid "Discard the settings saved for this capability and restore the plugin's defaults"
+msgstr ""
+
+msgid "Plugin changelog"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Changes"
+msgstr ""
+
+msgid "No changelog available"
+msgstr ""
+
+msgid "No issues detected"
+msgstr ""
+
+msgid "No plugins found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "No plugins match \"%s\""
+msgstr ""
+
+msgid "Mine"
+msgstr ""
+
+msgid "Orphaned"
+msgstr ""
+
+msgid "Some plugin capabilities are enabled"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Collapse %s capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Expand %s capabilities"
+msgstr ""
+
+msgid "Collapse capabilities"
+msgstr ""
+
+msgid "Expand capabilities"
+msgstr ""
+
+msgid "Open this plugin in your browser"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Capabilities: %s"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Run \"%s\""
+msgstr ""
+
+#, c-format, boost-format
+msgid "Enable %s"
+msgstr ""
+
+msgid "Unauthorized for updates"
+msgstr ""
+
+msgid "Loading the plugin…"
+msgstr ""
+
+msgid "This plugin exposes no capabilities"
+msgstr ""
+
+msgid "Activate this plugin to configure its capabilities"
+msgstr ""
+
+msgid "View on OrcaCloud <a>here</a>"
+msgstr ""
+
+msgid "Activated"
+msgstr ""
+
+msgid "Runtime error"
+msgstr ""
+
+msgid "Inactive"
+msgstr ""
+
+msgid "This plugin is active and ready to be used."
+msgstr ""
+
+msgid "This plugin is still loading."
+msgstr ""
+
+msgid "This plugin is blocked until its error is fixed."
+msgstr ""
+
+msgid "This plugin is loaded but a capability reported an error."
+msgstr ""
+
+msgid "This plugin is inactive. Activate it to install or load it."
+msgstr ""
+
+msgid "Select a plugin to view its status and details."
+msgstr ""
+
+msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
+msgstr ""
+
+msgid "A newer plugin version is available."
+msgstr ""
+
+msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
+msgstr ""
 
 # AI Translated
 #, c-format, boost-format
@@ -30613,6 +30973,54 @@ msgstr "Opětovné načtení pluginu se nezdařilo."
 msgid "Reloaded \"%s\"."
 msgstr "Znovu načteno: „%s“."
 
+msgid "Printer Connection"
+msgstr ""
+
+msgid "Please set up your printer connection to view the device."
+msgstr ""
+
+msgid "No model information"
+msgstr ""
+
+msgid "Edit Project Info"
+msgstr ""
+
+msgid "Model Information"
+msgstr "Informace o modelu"
+
+msgid "Accessories"
+msgstr "Příslušenství"
+
+msgid "Profile Information"
+msgstr "Informace o profilu"
+
+msgid "Model name"
+msgstr "Název modelu"
+
+msgid "Created by"
+msgstr "Vytvořil"
+
+msgid "Remixed by"
+msgstr "Přepracováno"
+
+msgid "Shared by"
+msgstr "Sdíleno"
+
+msgid "Model description"
+msgstr "Popis modelu"
+
+msgid "BOM"
+msgstr "Seznam součástek (BOM)"
+
+msgid "Profile name"
+msgstr "Název profilu"
+
+msgid "Profile Author"
+msgstr "Autor profilu"
+
+msgid "Profile description"
+msgstr "Popis profilu"
+
 # AI Translated
 msgid "Purge Mode Settings"
 msgstr "Nastavení režimu čištění"
@@ -30636,6 +31044,16 @@ msgstr "Snižuje odpad při čištění a tiskne rychleji. Může způsobit mír
 # AI Translated
 msgid "Terminal"
 msgstr "Terminál"
+
+msgid "python ... or uv ..."
+msgstr ""
+
+msgid "Plugin terminal ready."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process exited with code: %s"
+msgstr ""
 
 # AI Translated
 msgid "A command is already running."
@@ -31034,6 +31452,21 @@ msgstr ""
 msgid "Click an island on the canvas first, in Island mode."
 msgstr ""
 
+msgid "Not signed in"
+msgstr ""
+
+msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
+msgstr "Síťový plug-in Bambu nebyl zjištěn. Klikněte <a>zde</a> k instalaci."
+
+msgid "Create new project"
+msgstr "Vytvořit nový projekt"
+
+msgid "Recently opened"
+msgstr "Nedávno otevřeno"
+
+msgid "Open Containing Folder"
+msgstr "Otevřít složku obsahující"
+
 # AI Translated
 msgid "Forward"
 msgstr "Vpřed"
@@ -31201,6 +31634,30 @@ msgstr "Plugin „%s“ žádá o oprávnění pro auditní událost Pythonu „
 # AI Translated
 msgid "Plugin permission request"
 msgstr "Žádost pluginu o oprávnění"
+
+msgid "Printer connection"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Analysis"
+msgstr ""
+
+msgid "Importer"
+msgstr ""
+
+msgid "Exporter"
+msgstr ""
+
+msgid "Visualization"
+msgstr ""
+
+msgid "Script"
+msgstr ""
+
+msgid "Slicing Pipeline"
+msgstr ""
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
@@ -32010,10 +32467,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Draw a closed profile to enable"
 #~ msgstr "Pro aktivaci nakreslete uzavřený profil"
-
-# AI Translated
-#~ msgid "Clear all"
-#~ msgstr "Vymazat vše"
 
 # AI Translated
 #~ msgid "Empty result"
