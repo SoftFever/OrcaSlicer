@@ -5957,7 +5957,7 @@ if (is_marlin_flavor)
         {
             // In the configuration group rather than a group of its own: a full-width widget line
             // records no mode, so a group holding only this line would show in every mode.
-            auto line = Line{ L("Modes"), L("") };
+            auto line = Line{ L("Modes"), "" };
             line.full_width = 1;
             line.widget = [this](wxWindow* parent) -> wxSizer* {
                 int n_cols = 0, n_rows = 0, layout = 0;

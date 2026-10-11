@@ -2654,9 +2654,10 @@ void GUI_App::init_webview_runtime()
         BOOST_LOG_TRIVIAL(info) << "WebView2 runtime installed successfully.";
     } else {
         BOOST_LOG_TRIVIAL(error) << "WebView2 runtime installation failed or still not detected.";
-        wxMessageBox(_L("The Microsoft WebView2 Runtime could not be installed.\n"
-                        "Some features, including the setup wizard, may appear blank until it is installed.\n"
-                        "Please install it manually from https://developer.microsoft.com/microsoft-edge/webview2/ and restart Orca Slicer."),
+        wxMessageBox(format_wxstr(_L("The Microsoft WebView2 Runtime could not be installed.\n"
+                                     "Some features, including the setup wizard, may appear blank until it is installed.\n"
+                                     "Please install it manually from %1% and restart Orca Slicer."),
+                                  "https://developer.microsoft.com/microsoft-edge/webview2/"),
                      _L("WebView2 Runtime"), wxOK | wxICON_WARNING);
     }
 }
