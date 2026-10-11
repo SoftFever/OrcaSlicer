@@ -2418,12 +2418,22 @@ float GLCanvas3D::get_collapse_toolbar_height() const
 }
 
 // The bottom-left corner: the 3D navigator, then the column of round canvas buttons beside it, in
-// units of the toolbar scale. Shared by _render_3d_navigator, _render_canvas_toolbar and
-// get_canvas_toolbar_right, so an overlay kept clear of the corner follows its layout.
+// units of the toolbar scale. Shared by _render_3d_navigator, _render_canvas_toolbar,
+// get_canvas_toolbar_right and canvas_corner_height, so an overlay kept clear of the corner follows its layout.
 static constexpr float NAVIGATOR_SIZE         = 128.f;
 static constexpr float CANVAS_TOOLBAR_MARGIN  = 10.f;   // off the canvas edge, when there is no navigator
 static constexpr float CANVAS_TOOLBAR_PADDING = 2.f;
 static constexpr float CANVAS_TOOLBAR_BUTTON  = 36.f;
+static constexpr float CANVAS_TOOLBAR_SPACING = 6.f;
+
+// What the corner takes at the left edge of the canvas: the 3D navigator, or else the canvas toolbar.
+static float canvas_corner_height()
+{
+    if (wxGetApp().show_3d_navigator())
+        return NAVIGATOR_SIZE;
+    const int buttons = wxGetApp().show_canvas_zoom_button() ? 3 : 2;
+    return CANVAS_TOOLBAR_MARGIN + 2.f * CANVAS_TOOLBAR_PADDING + buttons * CANVAS_TOOLBAR_BUTTON + (buttons - 1) * CANVAS_TOOLBAR_SPACING;
+}
 
 float GLCanvas3D::get_canvas_toolbar_right() const
 {
@@ -8912,28 +8922,20 @@ bool GLCanvas3D::_update_inactive_plates_visibility()
         return false;
 
     PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-    const int      curr_plate = plate_list.get_curr_plate_index();
+    PartPlate*     plate      = hide ? plate_list.get_curr_plate() : nullptr;
 
-    std::vector<bool> off_plate(m_volumes.volumes.size(), false);
-    if (hide && plate_list.get_curr_plate() != nullptr) {
-        struct Instance
-        {
-            BoundingBoxf3 box;
-            bool          selected{ false };
-        };
-        std::map<std::pair<int, int>, Instance> instances;
+    struct Instance
+    {
+        BoundingBoxf3 box;
+        bool          selected{ false };
+    };
+    std::map<std::pair<int, int>, Instance> instances;
+    if (plate != nullptr)
         for (const GLVolume* volume : m_volumes.volumes) {
-            Instance& instance = instances[{ volume->composite_id.object_id, volume->composite_id.instance_id }];
+            Instance& instance = instances[{ volume->object_idx(), volume->instance_idx() }];
             instance.box.merge(volume->transformed_convex_hull_bounding_box());
             instance.selected |= volume->selected;
         }
-        const BoundingBoxf3& plate_box = plate_list.get_curr_plate()->get_bounding_box();
-        for (size_t i = 0; i < m_volumes.volumes.size(); ++i) {
-            const GLVolume* volume   = m_volumes.volumes[i];
-            const Instance& instance = instances[{ volume->composite_id.object_id, volume->composite_id.instance_id }];
-            off_plate[i] = !instance.selected && instance.box.defined && !plate_box.overlap(instance.box);
-        }
-    }
 
     // A gizmo that hides the other objects shows them all again when it closes.
     const bool keep_hidden = m_gizmos.is_hiding_instances();
@@ -8941,8 +8943,9 @@ bool GLCanvas3D::_update_inactive_plates_visibility()
     bool any_hidden = false;
     std::vector<bool> shown_again(m_volumes.volumes.size(), false);
     for (size_t i = 0; i < m_volumes.volumes.size(); ++i) {
-        GLVolume* volume = m_volumes.volumes[i];
-        if (off_plate[i]) {
+        GLVolume*       volume   = m_volumes.volumes[i];
+        const Instance* instance = plate != nullptr ? &instances[{ volume->object_idx(), volume->instance_idx() }] : nullptr;
+        if (instance != nullptr && !instance->selected && instance->box.defined && !plate->get_bounding_box().overlap(instance->box)) {
             changed |= volume->is_active;
             volume->is_active       = false;
             volume->on_hidden_plate = true;
@@ -8963,7 +8966,8 @@ bool GLCanvas3D::_update_inactive_plates_visibility()
         }
     if (auto* raycasters = get_raycasters_for_picking(SceneRaycaster::EType::Bed))
         for (const std::shared_ptr<SceneRaycasterItem>& item : *raycasters)
-            item->set_active(!hide || SceneRaycaster::decode_id(SceneRaycaster::EType::Bed, item->get_id()) / PartPlate::GRABBER_COUNT == curr_plate);
+            item->set_active(!hide || SceneRaycaster::decode_id(SceneRaycaster::EType::Bed, item->get_id()) / PartPlate::GRABBER_COUNT ==
+                                          plate_list.get_curr_plate_index());
 
     m_inactive_plates_hidden = hide || any_hidden;
     return changed;
@@ -8977,8 +8981,7 @@ void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transfo
     PartPlate* curr_plate = plate_list.get_curr_plate();
     const Transform3d plate_view_matrix = m_design_canvas && curr_plate != nullptr ?
         Transform3d(view_matrix * Geometry::translation_transform(-curr_plate->get_origin())) : view_matrix;
-    const bool hide_inactive = _hides_inactive_plates();
-    plate_list.render(plate_view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali, show_grid, !m_plate_chrome_enabled, hide_inactive);
+    plate_list.render(plate_view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali, show_grid, !m_plate_chrome_enabled, _hides_inactive_plates());
 }
 
 BoundingBoxf3 GLCanvas3D::_current_plate_box() const
@@ -10720,15 +10723,13 @@ void GLCanvas3D::_render_plate_switcher()
     const float   spacing   = 4.f * sc;
     const float   scrollbar = 8.f * sc;
     const float   top       = std::max(m_main_toolbar.get_height(), m_gizmos.get_scaled_total_height()) + CANVAS_TOOLBAR_MARGIN * sc;
-    // Clear of the 3D navigator, or of the canvas toolbar when it takes the corner.
-    const int     corner_buttons = wxGetApp().show_canvas_zoom_button() ? 3 : 2;
-    const float   corner = wxGetApp().show_3d_navigator() ? NAVIGATOR_SIZE :
-        CANVAS_TOOLBAR_MARGIN + 2.f * CANVAS_TOOLBAR_PADDING + corner_buttons * (CANVAS_TOOLBAR_BUTTON + 6.f);
     const float   content_h = plate_count * (btn_size.y + spacing) - spacing + 2.f * padding.y;
-    const float   max_h     = std::max(btn_size.y + 2.f * padding.y, float(get_canvas_size().get_height()) - top - corner * sc);
+    const float   max_h     = std::max(btn_size.y + 2.f * padding.y, float(get_canvas_size().get_height()) - top - (canvas_corner_height() + CANVAS_TOOLBAR_MARGIN) * sc);
     const bool    scroll    = content_h > max_h;
 
-    const ImVec4 text_color = m_is_dark ? ImVec4(.9f, .9f, .9f, 1.f) : ImVec4(.3f, .3f, .3f, 1.f);
+    const ImVec4 text_color  = m_is_dark ? ImVec4(.9f, .9f, .9f, 1.f) : ImVec4(.3f, .3f, .3f, 1.f);
+    const ImVec4 empty_color = ImVec4(text_color.x, text_color.y, text_color.z, .45f);
+    const ImVec4 hover       = m_is_dark ? ImVec4(1.f, 1.f, 1.f, .12f) : ImVec4(0.f, 0.f, 0.f, .08f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.f * sc);
@@ -10746,13 +10747,12 @@ void GLCanvas3D::_render_plate_switcher()
 
     const int curr_plate = plate_list.get_curr_plate_index();
     for (int i = 0; i < plate_count; ++i) {
-        PartPlate*   plate   = plate_list.get_plate(i);
-        const bool   current = i == curr_plate;
-        const ImVec4 hover   = m_is_dark ? ImVec4(1.f, 1.f, 1.f, .12f) : ImVec4(0.f, 0.f, 0.f, .08f);
+        PartPlate* plate   = plate_list.get_plate(i);
+        const bool current = i == curr_plate;
         ImGui::PushStyleColor(ImGuiCol_Button, current ? ImGuiWrapper::COL_ORCA : ImVec4(0.f, 0.f, 0.f, 0.f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, current ? ImGuiWrapper::COL_ORCA_HOVER : hover);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, current ? ImGuiWrapper::COL_ORCA_HOVER : hover);
-        ImGui::PushStyleColor(ImGuiCol_Text, current ? ImVec4(1.f, 1.f, 1.f, 1.f) : ImVec4(text_color.x, text_color.y, text_color.z, plate->empty() ? .45f : 1.f));
+        ImGui::PushStyleColor(ImGuiCol_Text, current ? ImVec4(1.f, 1.f, 1.f, 1.f) : plate->empty() ? empty_color : text_color);
         if (ImGui::Button(std::to_string(i + 1).c_str(), btn_size) && !current)
             wxGetApp().plater()->CallAfter([i]() {
                 wxGetApp().plater()->select_plate(i);
@@ -10876,7 +10876,7 @@ void GLCanvas3D::_render_canvas_toolbar()
 
     ImVec2        btn_size = ImVec2(CANVAS_TOOLBAR_BUTTON, CANVAS_TOOLBAR_BUTTON) * sc;
     ImVec2        margin   = ImVec2(m_canvas_toolbar_pos[0] > 0 ? 0.f : (CANVAS_TOOLBAR_MARGIN * sc), CANVAS_TOOLBAR_MARGIN * sc);
-    ImVec2        spacing  = ImVec2(6.f, 6.f)  * sc;
+    ImVec2        spacing  = ImVec2(CANVAS_TOOLBAR_SPACING, CANVAS_TOOLBAR_SPACING) * sc;
     ImVec2        padding  = ImVec2(CANVAS_TOOLBAR_PADDING, CANVAS_TOOLBAR_PADDING) * sc;
     Vec2i32       pos      = {
         m_canvas_toolbar_pos[0]        + margin.x,
