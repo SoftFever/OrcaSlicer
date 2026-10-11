@@ -3,7 +3,7 @@
 	"name": "fdm_filament_pc",
 	"inherits": "fdm_filament_common",
 	"from": "system",
-	"filament_id": "GFC99",
+	"filament_id": "OFtcKVgP",
 	"instantiation": "false",
 	"cool_plate_temp": [
 		"0"

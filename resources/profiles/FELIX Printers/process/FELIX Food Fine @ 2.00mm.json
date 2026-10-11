@@ -3,6 +3,7 @@
   "name": "FELIX Food Fine @ 2.00mm",
   "inherits": "fdm_process_felix_food_common",
   "from": "system",
+  "setting_id": "uqBBFs2qyrK18QeF",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Food Single 2.00mm nozzle",

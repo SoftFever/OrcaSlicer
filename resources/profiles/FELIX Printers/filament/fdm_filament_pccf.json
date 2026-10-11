@@ -3,7 +3,7 @@
 	"name": "fdm_filament_pccf",
 	"inherits": "fdm_filament_common",
 	"from": "system",
-	"filament_id": "GFC98",
+	"filament_id": "OF8O6WG6",
 	"instantiation": "false",
 	"cool_plate_temp": [
 		"0"

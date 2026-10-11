@@ -3,7 +3,7 @@
   "name": "fdm_filament_pet",
   "inherits": "fdm_filament_common",
   "from": "system",
-  "filament_id": "GFT02",
+  "filament_id": "OFI26O53",
   "instantiation": "false",
   "cool_plate_temp": ["60"],
   "eng_plate_temp": ["0"],

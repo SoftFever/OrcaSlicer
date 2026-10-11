@@ -3,6 +3,7 @@
   "name": "FELIX Food Double 3.00mm nozzle",
   "inherits": "fdm_felix_food_double_common",
   "from": "system",
+  "setting_id": "AdqDfvZISNamxAnQ",
   "instantiation": "true",
   "printer_model": "FELIX Food Double",
   "printer_variant": "3.0",
@@ -15,6 +16,10 @@
   "nozzle_diameter": [
     "3.0",
     "3.0"
+  ],
+  "default_print_profile": "FELIX Food Normal @ 3.00mm",
+  "default_filament_profile": [
+    "Food Medium Plastic Syringe @3.00mm"
   ],
   "min_layer_height": [
     "1.5",

@@ -3,6 +3,7 @@
   "name": "FELIX Pro XL 3.0 0.70mm nozzle",
   "inherits": "fdm_felix_pro_xl_3_common",
   "from": "system",
+  "setting_id": "Ovh8Xw4umQw6Qt9w",
   "instantiation": "true",
   "printer_model": "FELIX Pro XL 3.0",
   "printer_variant": "0.7",
@@ -15,6 +16,10 @@
   "nozzle_diameter": [
     "0.7",
     "0.7"
+  ],
+  "default_print_profile": "FELIX Plastic Normal @ 0.70mm",
+  "default_filament_profile": [
+    "FELIX Premium PLA Hardened Steel @ 0.70mm"
   ],
   "min_layer_height": [
     "0.15",

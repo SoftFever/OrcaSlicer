@@ -3,6 +3,7 @@
   "name": "FELIX Food Coarse @ 2.00mm",
   "inherits": "fdm_process_felix_food_common",
   "from": "system",
+  "setting_id": "CldEMsO7x3i0nZ65",
   "instantiation": "true",
   "compatible_printers": [
     "FELIX Food Single 2.00mm nozzle",

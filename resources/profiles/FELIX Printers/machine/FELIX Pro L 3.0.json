@@ -8,5 +8,5 @@
   "bed_model": "FELIX_Pro_L_Series_Buildplate.stl",
   "bed_texture": "FELIX Pro L Series build plate texture.svg",
   "hotend_model": "hotend.stl",
-  "default_materials": ""
+  "default_materials": "FELIX Premium PLA Hardened Steel @ 0.25mm;FELIX Premium PLA Hardened Steel @ 0.35mm;FELIX Premium PLA Hardened Steel @ 0.50mm;FELIX Premium PLA Hardened Steel @ 0.70mm"
 }

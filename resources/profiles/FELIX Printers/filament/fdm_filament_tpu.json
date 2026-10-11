@@ -3,7 +3,7 @@
 	"name": "fdm_filament_tpu",
 	"inherits": "fdm_filament_common",
 	"from": "system",
-	"filament_id": "GFU99",
+	"filament_id": "OFR5hJyS",
 	"instantiation": "false",
 	"cool_plate_temp": [
 		"30"

@@ -3,6 +3,7 @@
   "name": "FELIX Food Switch 2.00mm nozzle",
   "inherits": "fdm_felix_food_switch_common",
   "from": "system",
+  "setting_id": "CNQdqL9Yx4i3XhBf",
   "instantiation": "true",
   "printer_model": "FELIX Food Switch",
   "printer_variant": "2.0",
@@ -15,6 +16,10 @@
   "nozzle_diameter": [
     "2.0",
     "2.0"
+  ],
+  "default_print_profile": "FELIX Food Normal @ 2.00mm",
+  "default_filament_profile": [
+    "Food Medium Plastic Syringe @2.00mm"
   ],
   "min_layer_height": [
     "1.0",

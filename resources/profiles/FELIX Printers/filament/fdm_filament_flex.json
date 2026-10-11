@@ -3,7 +3,7 @@
 	"name": "fdm_filament_flex",
 	"inherits": "fdm_filament_common",
 	"from": "system",
-	"filament_id": "GFU99",
+	"filament_id": "OFKQ6RhU",
 	"instantiation": "false",
 	"hot_plate_temp_initial_layer": [
 		"50"

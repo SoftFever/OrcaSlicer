@@ -3,6 +3,7 @@
   "name": "FELIX Food Single 1.00mm nozzle",
   "inherits": "fdm_felix_food_common",
   "from": "system",
+  "setting_id": "CBlIX4oJPOnd0q5d",
   "instantiation": "true",
   "printer_model": "FELIX Food Single",
   "printer_variant": "1.0",
@@ -13,6 +14,10 @@
   ],
   "nozzle_diameter": [
     "1.0"
+  ],
+  "default_print_profile": "FELIX Food Normal @ 1.00mm",
+  "default_filament_profile": [
+    "Food Medium Plastic Syringe @1.00mm"
   ],
   "min_layer_height": [
     "0.5"
