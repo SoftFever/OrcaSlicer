@@ -373,6 +373,7 @@ public:
     std::string     get_local_models_path();
     bool            OnInit() override;
     int             OnExit() override;
+    void            CleanUp() override;
     bool            initialized() const { return m_initialized; }
     inline bool     is_enable_multi_machine() { return this->app_config&& this->app_config->get("enable_multi_machine") == "true"; }
 #ifdef SLIC3R_CAD
@@ -396,6 +397,8 @@ public:
     Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
     HMSQuery* get_hms_query() { return hms_query; }
     NetworkAgent* getAgent() { return m_agent; }
+    // Version that wrote the app config before this run; empty when there was no app config.
+    const boost::optional<Semver>& last_config_version() const { return m_last_config_version; }
 
     // Reconcile the live printer agent with the stored preset selection.
     void switch_printer_agent();
@@ -434,6 +437,9 @@ public:
 
     bool show_outline() const { return app_config->get_bool("show_outline"); }
     void toggle_show_outline() const { app_config->set_bool("show_outline", !show_outline()); }
+
+    bool show_center_of_mass() const { return app_config->get_bool("show_center_of_mass"); }
+    void toggle_show_center_of_mass() const { app_config->set_bool("show_center_of_mass", !show_center_of_mass()); }
 
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
