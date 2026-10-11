@@ -1,5 +1,5 @@
 # clang-tidy configuration, enforced by the clang-tidy CI job on the lines a pull
-# request changes (scripts/clang_tidy_diff.py). Two things are reported.
+# request changes (scripts/clang_tidy_diff.py). Three things are reported.
 # Missing includes: a file should include the header for every symbol it uses, not
 # rely on the precompiled header or another header's includes. Run with --fix to
 # add them.
@@ -7,11 +7,34 @@
 # they reach every file that includes the header, and a using-declaration also
 # makes the header look like the one to include for that name. Qualify the name
 # in the header, and put the using in the source files that want it.
+# Likely bugs: a use after std::move, an RAII object or a return value thrown
+# away, an integer stored as a character in a string, slicing, and similar
+# mistakes these checks rarely report on correct code.
 # Every check listed here gates pull requests, so enable a new one only once the
 # code it flags on touched lines is reasonable to fix in passing.
-Checks: '-*,misc-include-cleaner,google-global-names-in-headers'
+Checks: >-
+  -*,
+  misc-include-cleaner,
+  google-global-names-in-headers,
+  bugprone-copy-constructor-init,
+  bugprone-misplaced-widening-cast,
+  bugprone-move-forwarding-reference,
+  bugprone-nondeterministic-pointer-iteration-order,
+  bugprone-redundant-branch-condition,
+  bugprone-string-integer-assignment,
+  bugprone-suspicious-semicolon,
+  bugprone-unhandled-self-assignment,
+  bugprone-unused-local-non-trivial-variable,
+  bugprone-unused-raii,
+  bugprone-unused-return-value,
+  bugprone-use-after-move,
+  cppcoreguidelines-slicing,
+  misc-redundant-expression
 WarningsAsErrors: '*'
 CheckOptions:
+  # The default list without boost::system::error_code: Boost.Asio's overloads
+  # that take an error_code& also return it, and callers check the argument.
+  bugprone-unused-return-value.CheckedReturnTypes: '^::std::error_code$;^::std::error_condition$;^::std::errc$;^::std::expected$'
   # Missing includes only. Builds without the precompiled header break on these.
   misc-include-cleaner.UnusedIncludes: false
   # Headers that declare a symbol but are not the one to include: per-platform
