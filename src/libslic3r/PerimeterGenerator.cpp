@@ -23,6 +23,7 @@
 #include "Line.hpp"
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 #include <cassert>
 #include <cstddef>
 #include <limits>
@@ -2242,7 +2243,6 @@ void PerimeterGenerator::add_infill_contour(ExPolygons&   infill_contour,
                                             double        min_spacing)
 {   
     // Swap expolygons for proper overlap application
-    /* !Disable for testing!
     if (this->upper_slices != NULL) {
         ExPolygons upper = *this->upper_slices;
         ExPolygons infill_to_top = diff_ex(infill_contour, upper);
@@ -2252,7 +2252,6 @@ void PerimeterGenerator::add_infill_contour(ExPolygons&   infill_contour,
         top_expolygons = diff_ex(top_expolygons, upper);
         top_expolygons.insert(top_expolygons.end(), infill_to_top.begin(), infill_to_top.end());
     }
-    */
 
     infill_contour = union_ex(infill_contour);
     top_expolygons = union_ex(top_expolygons);
