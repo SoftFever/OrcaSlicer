@@ -43,7 +43,7 @@
 #include "SVG.hpp"
 
 // #define EXTRA_PERIM_DEBUG_FILES
-#define PERIMETERS_DEBUG
+// #define PERIMETERS_DEBUG
 
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
