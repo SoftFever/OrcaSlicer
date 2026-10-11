@@ -455,8 +455,9 @@ msgstr "自动支撑角度阈值："
 msgid "Circle"
 msgstr "圆"
 
+# AI Translated
 msgid "Sphere"
-msgstr "球"
+msgstr "球体"
 
 msgid "Fill"
 msgstr "填充"
@@ -474,8 +475,9 @@ msgstr "水平"
 msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr "绘制仅对由%1%选中的面片生效"
 
+# AI Translated
 msgid "Highlight faces according to overhang angle."
-msgstr "根据当前设置的悬垂角度来高亮片面。"
+msgstr "根据当前设置的悬垂角度高亮显示面片。"
 
 msgid "No auto support"
 msgstr "无自动支撑"
@@ -616,14 +618,16 @@ msgstr "移动"
 msgid "Please select at least one object."
 msgstr "请至少选中一个对象。"
 
+# AI Translated
 msgid "Gizmo-Move"
-msgstr "Gizmo-移动"
+msgstr "移动"
 
 msgid "Rotate"
 msgstr "旋转"
 
+# AI Translated
 msgid "Gizmo-Rotate"
-msgstr "Gizmo-旋转"
+msgstr "旋转"
 
 msgid "Optimize orientation"
 msgstr "优化朝向"
@@ -632,8 +636,9 @@ msgctxt "Verb"
 msgid "Scale"
 msgstr "缩放"
 
+# AI Translated
 msgid "Gizmo-Scale"
-msgstr "缩放工具"
+msgstr "缩放"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "错误：请先关闭所有工具栏菜单"
@@ -828,24 +833,27 @@ msgstr "间隙"
 msgid "Spacing"
 msgstr "间距"
 
+# AI Translated
 msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane"
 msgstr ""
-"单击以翻转剖切面\n"
-"拖动以移动剖切面"
+"单击以翻转切割平面\n"
+"拖动以移动切割平面"
 
+# AI Translated
 msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
 msgstr ""
-"单击以翻转剖切面\n"
-"拖动以移动剖切面\n"
-"在零件上单击鼠标右键以将其指定给另一侧"
+"单击以翻转切割平面\n"
+"拖动以移动切割平面\n"
+"右键单击零件可将其分配到另一侧"
 
+# AI Translated
 msgid "Move cut plane"
-msgstr "移动剖切面"
+msgstr "移动切割平面"
 
 msgid "Mode"
 msgstr "模式"
@@ -862,8 +870,9 @@ msgstr "拖拽"
 msgid "Move cut line"
 msgstr "移动切割线"
 
+# AI Translated
 msgid "Draw cut line"
-msgstr "绘制切线"
+msgstr "绘制切割线"
 
 msgid "Add connector"
 msgstr "添加连接件"
@@ -888,8 +897,9 @@ msgctxt "Cut tool"
 msgid "Cut"
 msgstr "切割"
 
+# AI Translated
 msgid "Rotate cut plane"
-msgstr "旋转剖切面"
+msgstr "旋转切割平面"
 
 msgid "Remove connectors"
 msgstr "删除所有连接件"
@@ -909,8 +919,9 @@ msgstr "与半径相关的间隔比例"
 msgid "Confirm connectors"
 msgstr "确认"
 
+# AI Translated
 msgid "Flip cut plane"
-msgstr "翻转剖切面"
+msgstr "翻转切割平面"
 
 msgid "Groove change"
 msgstr "槽变化"
@@ -975,11 +986,13 @@ msgstr "存在连接件相互重叠"
 msgid "Select at least one object to keep after cutting."
 msgstr "切割后至少选择一个要保留的对象。"
 
+# AI Translated
 msgid "Cut plane is placed out of object"
-msgstr "剖切面放置在对象之外"
+msgstr "切割平面位于对象之外"
 
+# AI Translated
 msgid "Cut plane with groove is invalid"
-msgstr "槽所在的切割平面无效"
+msgstr "带槽的切割平面无效"
 
 msgid "Connector"
 msgstr "连接件"
@@ -1389,20 +1402,23 @@ msgstr "撤销粗细调整"
 msgid "Tiny / Wide glyphs"
 msgstr "细小/粗大的字形"
 
+# AI Translated
 msgid "Undo letter's skew"
-msgstr "撤消字母的斜体效果"
+msgstr "撤销字母的斜体效果"
 
 msgid "Italic strength ratio"
 msgstr "倾斜强度比"
 
+# AI Translated
 msgid "Undo translation"
-msgstr "撤消翻译"
+msgstr "撤销平移"
 
 msgid "Distance of the center of the text to the model surface."
 msgstr "文字中心到模型曲面的距离。"
 
+# AI Translated
 msgid "Undo rotation"
-msgstr "撤消旋转"
+msgstr "撤销旋转"
 
 msgid "Rotate text Clockwise."
 msgstr "顺时针旋转文本。"
@@ -1416,11 +1432,13 @@ msgstr "沿对象曲面移动文本时，锁定文本的旋转。"
 msgid "Select from True Type Collection."
 msgstr "从True Type集合中选择。"
 
+# AI Translated
 msgid "Set text to face camera"
-msgstr "文字面向摄像头"
+msgstr "文字朝向相机"
 
+# AI Translated
 msgid "Orient the text towards the camera."
-msgstr "选择文字使其面向摄像头"
+msgstr "使文字朝向相机。"
 
 #, boost-format
 msgid "Font \"%1%\" can't be used. Please select another."
@@ -1584,8 +1602,9 @@ msgstr "浮雕形状中缺少 SVG 文件"
 msgid "Missing data of svg file"
 msgstr "缺少 SVG 文件数据"
 
+# AI Translated
 msgid "Face the camera"
-msgstr "面向摄像机"
+msgstr "朝向相机"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -2588,14 +2607,16 @@ msgstr "立方体"
 msgid "Cylinder"
 msgstr "圆柱体"
 
+# AI Translated
 msgid "Cone"
-msgstr "锥体"
+msgstr "圆锥体"
 
 msgid "Disc"
 msgstr "圆盘"
 
+# AI Translated
 msgid "Torus"
-msgstr "环面"
+msgstr "圆环体"
 
 msgid "Orca Cube"
 msgstr "Orca方块"
@@ -3030,18 +3051,20 @@ msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d个错误已修复"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
-msgstr[0] "错误: %1$d 存在非流形边."
+msgstr[0] "错误：%1$d 条非流形边。"
 
 msgid "Remaining errors"
 msgstr "剩余错误"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
-msgstr[0] "%1$d 存在非流形边"
+msgstr[0] "%1$d 条非流形边"
 
 msgid "Click the icon to repair model object"
 msgstr "点击图标修复模型对象"
@@ -5868,8 +5891,9 @@ msgstr "右喷嘴：X：%1%-%2%，Y：%3%-%4%，Z：%5%-%6%"
 msgid "Tool move"
 msgstr "工具 移动"
 
+# AI Translated
 msgid "Tool Rotate"
-msgstr "工具 旋转"
+msgstr "旋转"
 
 msgid "Move object"
 msgstr "移动对象"
@@ -6007,8 +6031,9 @@ msgstr "画布工具栏"
 msgid "Section view"
 msgstr "剖面视图"
 
+# AI Translated
 msgid "Fit camera to scene or selected object."
-msgstr "让相机适合场景或选定的对象。"
+msgstr "缩放视图以完整显示场景或所选对象。"
 
 msgid "3D Navigator"
 msgstr "3D 导航器"
@@ -6367,11 +6392,13 @@ msgstr "下载模型"
 msgid "Default View"
 msgstr "默认视图"
 
+# AI Translated
 msgid "Top View"
-msgstr "顶部视图"
+msgstr "俯视图"
 
+# AI Translated
 msgid "Bottom View"
-msgstr "底部视图"
+msgstr "仰视图"
 
 msgid "Front View"
 msgstr "前视图"
@@ -6551,8 +6578,9 @@ msgstr "使用正交视角"
 msgid "Auto Perspective"
 msgstr "自动透视"
 
+# AI Translated
 msgid "Automatically switch between orthographic and perspective when changing from top/bottom/side views."
-msgstr "当从顶部/底部/侧视图更改时，自动在正交和透视之间切换。"
+msgstr "从俯视图、仰视图或侧视图切换时，自动在正交和透视之间切换。"
 
 msgid "Show &G-code Window"
 msgstr "显示G-code窗口"
@@ -7066,8 +7094,9 @@ msgstr "死区："
 msgid "Options:"
 msgstr "选项："
 
+# AI Translated
 msgid "Zoom"
-msgstr "视角缩放"
+msgstr "缩放"
 
 msgid "Translation/Zoom"
 msgstr "平移/缩放"
@@ -7650,35 +7679,35 @@ msgstr "VFA 校准"
 
 # AI Translated
 msgid "View: Top"
-msgstr "视图：顶部"
+msgstr "视图：俯视图"
 
 # AI Translated
 msgid "View: Bottom"
-msgstr "视图：底部"
+msgstr "视图：仰视图"
 
 # AI Translated
 msgid "View: Front"
-msgstr "视图：前面"
+msgstr "视图：前视图"
 
 # AI Translated
 msgid "View: Rear"
-msgstr "视图：背面"
+msgstr "视图：后视图"
 
 # AI Translated
 msgid "View: Left"
-msgstr "视图：左"
+msgstr "视图：左视图"
 
 # AI Translated
 msgid "View: Right"
-msgstr "视图：右"
+msgstr "视图：右视图"
 
 # AI Translated
 msgid "View: Isometric"
-msgstr "视图：等距"
+msgstr "视图：等轴测视图"
 
 # AI Translated
 msgid "View: Default"
-msgstr "视图：默认"
+msgstr "视图：默认视图"
 
 # AI Translated
 msgid "Fit Bed to View"
@@ -7997,14 +8026,18 @@ msgstr "请升级您的显卡驱动。"
 msgid "Unsupported OpenGL version"
 msgstr "不支持的OpenGL版本"
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Unable to load shaders:\n"
 "%s"
-msgstr "无法加载Shader: %s"
+msgstr ""
+"无法加载着色器：\n"
+"%s"
 
+# AI Translated
 msgid "Error loading shaders"
-msgstr "加载shader程序时发生错误"
+msgstr "加载着色器时出错"
 
 msgctxt "Layers"
 msgid "Top"
@@ -9365,23 +9398,29 @@ msgstr "目前，对象配置表单不能与多挤出机打印机一起使用。
 msgid "Not available"
 msgstr "无法使用"
 
+# AI Translated
 msgid "isometric"
-msgstr "等距"
+msgstr "等轴测"
 
+# AI Translated
 msgid "top_front"
-msgstr "顶面"
+msgstr "前上方"
 
+# AI Translated
 msgid "top"
-msgstr "顶部"
+msgstr "俯视"
 
+# AI Translated
 msgid "bottom"
-msgstr "底部"
+msgstr "仰视"
 
+# AI Translated
 msgid "front"
-msgstr "正面"
+msgstr "前视"
 
+# AI Translated
 msgid "rear"
-msgstr "后部"
+msgstr "后视"
 
 msgid "Switching languages requires the application to restart.\n"
 msgstr "切换语言需要重启应用程序。\n"
@@ -9781,26 +9820,31 @@ msgstr "触控板"
 msgid "Camera style"
 msgstr "视角控制模式"
 
+# AI Translated
 msgid ""
 "Select camera navigation style.\n"
 "Default: LMB+move for rotation, RMB/MMB+move for panning.\n"
 "Touchpad: Alt+move for rotation, Shift+move for panning."
 msgstr ""
-"触摸板：Alt+移动进行旋转，Shift+移动进行平移选择摄像机的导航模式。\n"
-"默认：鼠标左键+拖动 旋转，鼠标右键+拖动 平移；\n"
-"触控板：Alt+拖动 旋转，Shift+拖动 平移。"
+"选择视角控制模式。\n"
+"默认：鼠标左键拖动旋转，鼠标右键/中键拖动平移。\n"
+"触控板：Alt+移动旋转，Shift+移动平移。"
 
+# AI Translated
 msgid "Orbit speed multiplier"
-msgstr "轨道速度倍数"
+msgstr "环绕速度倍率"
 
+# AI Translated
 msgid "Multiplies the orbit speed for finer or coarser camera movement."
-msgstr "乘以轨道速度以获得更精细或更粗略的相机移动"
+msgstr "调整相机环绕的速度倍率，数值越小转动越精细，越大转动越快。"
 
+# AI Translated
 msgid "Zoom to mouse position"
-msgstr "放大到鼠标位置"
+msgstr "以鼠标位置为中心缩放"
 
+# AI Translated
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
-msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
+msgstr "在 3D 视图中以鼠标指针位置为中心缩放，而不是以窗口中心缩放。"
 
 msgid "Use free camera"
 msgstr "使用自由视角"
@@ -12653,11 +12697,13 @@ msgstr "参数配置包在之前的配置向导中发生了变更"
 msgid "Configuration package changed"
 msgstr "参数配置包发生变更"
 
+# AI Translated
 msgid "Pan View"
-msgstr "移动视角"
+msgstr "平移视图"
 
+# AI Translated
 msgid "Rotate View"
-msgstr "旋转视角"
+msgstr "旋转视图"
 
 # AI Translated
 #, c-format, boost-format
@@ -12724,8 +12770,9 @@ msgstr "鼠标中键"
 msgid "Right mouse"
 msgstr "鼠标右键"
 
+# AI Translated
 msgid "Zoom View"
-msgstr "缩放视角"
+msgstr "缩放视图"
 
 # AI Translated
 msgid "Painting"
@@ -17511,11 +17558,13 @@ msgstr "仅顶面"
 msgid "Bottom Only"
 msgstr "仅底面"
 
+# AI Translated
 msgid "Top and Bottom"
-msgstr "顶面和地面"
+msgstr "顶面和底面"
 
+# AI Translated
 msgid "Direct Drive"
-msgstr "直驱（近程）"
+msgstr "近程挤出机"
 
 msgid "Bowden"
 msgstr "远程挤出机"
@@ -19465,7 +19514,7 @@ msgstr "绕 Y 轴的旋转角度（以度为单位）"
 
 # AI Translated
 msgid "Ground largest face"
-msgstr "以最大面着床"
+msgstr "以最大面贴合热床"
 
 # AI Translated
 msgid "Lay each object on the largest face of its convex hull and drop it onto the bed. Of equally large faces, the one already facing down is kept. Objects without a face large enough to rest on are left as they are. Transforms run in command-line order, so rotations given before this option are respected. --orient 1 runs after all transforms and replaces the orientation."
@@ -19473,7 +19522,7 @@ msgstr "将每个对象以其凸包的最大面放置，并落到热床上。若
 
 # AI Translated
 msgid "Ground face by normal"
-msgstr "按法线以指定面着床"
+msgstr "按法线选择面贴合热床"
 
 # AI Translated
 msgid "Lay each object on the convex hull face whose outward normal is closest to the direction NX,NY,NZ and drop it onto the bed. The direction is in object coordinates, which include the rotations given before this option and match the plate axes unless the input file rotates the object. For example, 1,0,0 stands the object on its +X side. --orient 1 runs after all transforms and replaces the orientation."
@@ -19481,7 +19530,7 @@ msgstr "将每个对象以其凸包中外法线最接近方向 NX,NY,NZ 的面�
 
 # AI Translated
 msgid "Ground face at point"
-msgstr "以指定点所在面着床"
+msgstr "以指定点所在的面贴合热床"
 
 # AI Translated
 msgid "Lay each object on the convex hull face that contains the point X,Y,Z and drop it onto the bed. The point is in object coordinates, which include the rotations given before this option; --inspect-mesh reports face centers in them. Objects without such a face are left as they are, and the run fails if no object has one. --orient 1 runs after all transforms and replaces the orientation."
@@ -20578,8 +20627,9 @@ msgstr "PA 校准"
 msgid "Extruder type"
 msgstr "挤出机类型"
 
+# AI Translated
 msgid "DDE"
-msgstr "直驱/近程挤出机"
+msgstr "近程挤出机"
 
 msgid "PA Tower"
 msgstr "PA塔"
@@ -27164,8 +27214,9 @@ msgstr "从STL/STEP/3MF/OBJ/AMF文件中导入几何数据"
 msgid "Select all objects"
 msgstr "选择所有对象"
 
+# AI Translated
 msgid "Paste from clipboard"
-msgstr "从剪切板粘贴"
+msgstr "从剪贴板粘贴"
 
 msgid "Toggle printable for object/part"
 msgstr "切换对象/零件的可打印状态"
@@ -27198,15 +27249,17 @@ msgstr "将所选项顺时针旋转 45 度"
 msgid "Gizmo move"
 msgstr "移动小工具"
 
+# AI Translated
 msgid "Gizmo rotate"
-msgstr "旋转物件"
+msgstr "旋转小工具"
 
 # AI Translated
 msgid "Gizmo scale"
 msgstr "缩放小工具"
 
+# AI Translated
 msgid "Gizmo place face on bed"
-msgstr "选择底面"
+msgstr "选择底面小工具"
 
 # AI Translated
 msgid "Gizmo cut"
@@ -27214,7 +27267,7 @@ msgstr "切割小工具"
 
 # AI Translated
 msgid "Gizmo mesh boolean"
-msgstr "网格布尔操作小工具"
+msgstr "网格布尔运算小工具"
 
 # AI Translated
 msgid "Gizmo FDM paint-on supports"
@@ -27223,8 +27276,9 @@ msgstr "FDM 手绘支撑小工具"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM涂装接缝"
 
+# AI Translated
 msgid "Gizmo FDM paint-on fuzzy skin"
-msgstr "Gizmo FDM手绘绒毛表面"
+msgstr "手绘绒毛表面小工具"
 
 # AI Translated
 msgid "Gizmo multi-material painting"
@@ -27240,7 +27294,7 @@ msgstr "测量小工具"
 
 # AI Translated
 msgid "Gizmo assemble"
-msgstr "组合小工具"
+msgstr "装配小工具"
 
 # AI Translated
 msgid "Gizmo brim ears"
@@ -27268,30 +27322,37 @@ msgstr "水平滑块 - 移动到起始位置"
 msgid "Horizontal slider - Move to last position"
 msgstr "水平滑块 - 移动到末尾位置"
 
+# AI Translated
 msgid "Camera view - Default"
-msgstr "摄像机视角 - 默认"
+msgstr "视图 - 默认视图"
 
+# AI Translated
 msgid "Camera view - Top"
-msgstr "摄像机视角 - 顶部"
+msgstr "视图 - 俯视图"
 
+# AI Translated
 msgid "Camera view - Bottom"
-msgstr "摄像机视角 - 底部"
+msgstr "视图 - 仰视图"
 
+# AI Translated
 msgid "Camera view - Front"
-msgstr "摄像机视角 - 正面"
+msgstr "视图 - 前视图"
 
+# AI Translated
 msgid "Camera view - Behind"
-msgstr "摄像机视角 - 后面"
+msgstr "视图 - 后视图"
 
+# AI Translated
 msgid "Camera Angle - Left side"
-msgstr "摄像机视角 - 左面"
+msgstr "视图 - 左视图"
 
+# AI Translated
 msgid "Camera Angle - Right side"
-msgstr "摄像机视角 - 右面"
+msgstr "视图 - 右视图"
 
 # AI Translated
 msgid "Camera view - Current plate"
-msgstr "相机视图 - 当前盘"
+msgstr "视图 - 当前盘"
 
 msgid "Zoom in"
 msgstr "放大"
