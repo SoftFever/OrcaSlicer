@@ -60,7 +60,7 @@
 }
 
 /* Opt-in host contract for the color picker. Legacy pages retain their existing
-   system-theme behavior until they explicitly adopt this scope. */
+   system-theme behavior until they explicitly adopt this scope. 
 :root[data-orca-page="color-picker"] {
 	--main-color: var(--orca-accent, #009688);
 	--main-color-hover: var(--orca-accent, #009688);
@@ -81,6 +81,7 @@
 	color-scheme: light;
 }
 :root[data-orca-page="color-picker"][data-orca-theme="dark"] { color-scheme: dark; }
+*/
 
 /*////////////////////////////*/
 /*           ICONS            */

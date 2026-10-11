@@ -77,7 +77,8 @@ private:
     bool m_applying_shape{false};
     wxRect m_anchor_rect;
     wxRect m_work_area;
-    int m_content_height = 520;
+    int m_content_height = 360;
+    int m_content_width = 320;
     bool m_positioning = false;
     std::shared_ptr<std::atomic<bool>> m_alive = std::make_shared<std::atomic<bool>>(true);
 };

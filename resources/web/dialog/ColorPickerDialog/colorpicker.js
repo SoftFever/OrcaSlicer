@@ -11,25 +11,41 @@
     const ral = name.match(/^(\d{4}) (.+)$/);
     return ral ? `${ral[1]} ${T(ral[2])}` : /^%\d+$/.test(name) ? name : T(name);
   }
+
+  const FAVORITE_SLOTS              = 16;
+  const SPECTRUM_FOLLOWS_SATURATION = true; // true: the spectrum is drawn at the current saturation, false: it always shows full saturation
+
   const model = window.ColorPickerModel;
   const palettes = window.ColorPickerPalettes;
   const byId = (id) => document.getElementById(id);
-  const hexInput = byId("hexInput"), canvas = byId("spectrum"), context = canvas.getContext("2d");
-  const paletteCombo = byId("paletteCombo"), palette = byId("palette"), preview = byId("colorPreview");
-  const modeSwitch = byId("modeSwitch"), endpointSwitch = byId("gradientSwitch");
-  const rgbPairs = ["r", "g", "b"].map((name) => [byId(name + "Slider"), byId(name + "Value")]);
-  const hslPairs = ["h", "s", "l"].map((name) => [byId(name + "Slider"), byId(name + "Value")]);
-  const alphaPair = [byId("aSlider"), byId("aValue")];
+  const canvas = byId("spectrum"), context = canvas.getContext("2d");
+  const paletteCombo = byId("paletteCombo"), palette = byId("palette"), preview = byId("colorPreview"), confirmBtn = byId("confirmBtn");
+  const modeSwitch = byId("modeSwitch"), satSlider = byId("satSlider"), opacitySlider = byId("opacitySlider");
+  const gradientBar = byId("gradientCtrlBar"), gradientThumbs = [...gradientBar.querySelectorAll(".gradient-thumb")];
+  const originalPreview = byId("originalPreview"), palettePanel = byId("palettePanel"), paletteToggle = byId("paletteToggle");
+  const rgbInputs = ["r", "g", "b"].map((name) => byId(name + "Value"));
+  const hslInputs = ["h", "s", "l"].map((name) => byId(name + "Value"));
+  const hexInput = byId("hexInput"), opacityInput = byId("oValue");
   const pageId = Date.now().toString(36) + Math.random().toString(36).slice(2);
-  let state = model.createState(), favorites = [], dragging = false, initialized = false, favoritesWritable = true;
-  let lastContentHeight = 0, resizePending = false;
-  // Prefer the HSL sliders' own values while they still produce the current color: hue 360
-  // and 0 are both red, and greys, black and white have no hue or saturation in RGB.
+  let state = model.createState(), favorites = [], initialized = false, favoritesWritable = true;
+  // The selection the dialog opened with; the original swatch shows it and restores it on click.
+  let originalSelection = model.exportSelection(state);
+  let lastContentHeight = 0, lastContentWidth = 0, resizePending = false;
+  // Last HSL shown or set. Kept while it still produces the current color: hue 360 and 0 are
+  // both red, and greys, black and white have no hue or saturation in RGB.
+  let hslMemory = [0, 0, 50];
   function displayHsl(color) {
-    const current = hslPairs.map(([slider]) => Number(slider.value));
-    const rgb = model.hslToRgb(...current);
-    return rgb.every((value, index) => value === color[index]) ? current : model.rgbToHsl(...color.slice(0, 3));
+    const rgb = model.hslToRgb(...hslMemory);
+    if (!rgb.every((value, index) => value === color[index])) hslMemory = model.rgbToHsl(...color.slice(0, 3));
+    return hslMemory;
   }
+  // Copy of `values` with one entry replaced.
+  const replaced = (values, index, value) => values.map((current, i) => i === index ? value : current);
+  function setHslChannel(index, value) {
+    hslMemory = replaced(displayHsl(model.activeColor(state)), index, value);
+    model.setRgb(state, model.hslToRgb(...hslMemory));
+  }
+  const round1 = (value) => Math.round(value * 10) / 10;
 
   function emit(command, data = {}) {
     window.dispatchEvent(new CustomEvent("color-picker-message", {detail: {command, ...data}}));
@@ -37,17 +53,17 @@
       window.wx.postMessage(JSON.stringify({command, page_id: pageId, ...data}));
   }
 
-  // Body height is intrinsic, independent of viewport height. Observing it
-  // catches capabilities, notice, font/theme changes, and wrapped translations.
   function scheduleResize() {
     if (!initialized || resizePending) return;
     resizePending = true;
     requestAnimationFrame(() => {
       resizePending = false;
-      const height = Math.min(900, Math.max(300, Math.ceil(document.body.getBoundingClientRect().height)));
-      if (height !== lastContentHeight) {
-        lastContentHeight = height;
-        emit("resize", {height});
+      const rect = document.body.getBoundingClientRect();
+      const height = Math.min(900 , Math.max(300, Math.ceil(rect.height)));
+      const width  = Math.min(1200, Math.max(300, Math.ceil(rect.width )));
+      if (height !== lastContentHeight || width !== lastContentWidth) {
+        lastContentHeight = height; lastContentWidth = width;
+        emit("resize", {width, height});
       }
     });
   }
@@ -57,40 +73,56 @@
     element.style.setProperty("--swatch-color", model.selectionBackground(selection));
   }
 
-  function render(resetEditors = false) {
+  // `editing` is the control the user is typing in. Its text is left alone so the caret,
+  // partial input like "05" and fine steps that round-trip through bytes aren't overwritten.
+  function render(resetEditors = false, editing = null) {
     const color = model.activeColor(state), hsl = displayHsl(color);
-    if (resetEditors || hexInput.checkValidity()) {
-      hexInput.value = model.toHex(color).slice(1, state.options.allow_alpha ? 9 : 7);
-      hexInput.setCustomValidity("");
-    }
-    // Each thumb shows only its own channel: R black→red, G black→green, B black→blue,
-    // H pure hue, S the color at that saturation, L grey at that lightness.
-    const rgbThumbs = [`rgb(${color[0]},0,0)`, `rgb(0,${color[1]},0)`, `rgb(0,0,${color[2]})`];
-    const hslThumbs = [`hsl(${hsl[0]},100%,50%)`, `hsl(${hsl[0]},${hsl[1]}%,${hsl[2]}%)`, `hsl(0,0%,${hsl[2]}%)`];
-    for (const [pairs, values, thumbs] of [[rgbPairs, color, rgbThumbs], [hslPairs, hsl, hslThumbs]]) {
-      pairs.forEach(([slider, input], index) => {
-        slider.value = values[index];
-        if (resetEditors) input.setCustomValidity("");
-        if (resetEditors || input.checkValidity()) input.value = Math.round(values[index] * 10) / 10;
-        slider.style.setProperty("--thumb-color", thumbs[index]);
-      });
-    }
+    const show = (input, value) => {
+      if (input === editing) return;
+      if (resetEditors) input.setCustomValidity("");
+      if (resetEditors || input.checkValidity()) input.value = value;
+    };
+    show(hexInput, model.toHex(color).slice(1, state.options.allow_alpha ? 9 : 7));
+    rgbInputs.forEach((input, index) => show(input, color[index]));
+    // Shown in whole numbers; decimals can still be typed, and hslMemory keeps exact values.
+    hslInputs.forEach((input, index) => show(input, Math.round(hsl[index])));
     // Percentage is a display only until explicitly edited. Never round it back
     // into the alpha byte on endpoint switches, RGB edits, or confirmation.
-    alphaPair.forEach((input) => {
-      if (resetEditors) input.setCustomValidity("");
-      if (resetEditors || input.checkValidity()) input.value = Math.round(color[3] / 255 * 1000) / 10;
-    });
-    const rgbHex = model.toHex([...color.slice(0, 3), 255]);
-    alphaPair[0].style.setProperty("--track-gradient", `linear-gradient(to right, ${rgbHex.slice(0,7)}00, ${rgbHex})`);
-    alphaPair[0].style.setProperty("--thumb-color", rgbHex);
-    byId("sSlider").style.setProperty("--track-gradient", `linear-gradient(to right, hsl(${hsl[0]},0%,${hsl[2]}%), hsl(${hsl[0]},100%,${hsl[2]}%))`);
-    byId("tab1").checked = state.mode === "solid";
-    byId("tab2").checked = state.mode === "gradient";
-    endpointSwitch.checked = state.active === 1;
-    byId("gradient-switch").classList.toggle("hidden", state.mode !== "gradient");
-    setSwatch(preview, model.exportSelection(state));
+    show(opacityInput, Math.round(color[3] / 255 * 100));
+    if (opacitySlider !== editing) opacitySlider.value = color[3] / 255 * 100;
+    const rgb = color.slice(0, 3).join(",");
+    opacitySlider.style.setProperty("--track-gradient", `linear-gradient(to right, rgba(${rgb},0), rgb(${rgb}))`);
+    opacitySlider.style.setProperty("--thumb-color", `rgba(${rgb},${color[3] / 255})`);
+    if (satSlider !== editing) satSlider.value = hsl[1];
+    satSlider.style.setProperty("--track-gradient", `linear-gradient(to right, hsl(${hsl[0]},0%,${hsl[2]}%), hsl(${hsl[0]},100%,${hsl[2]}%))`);
+    satSlider.style.setProperty("--thumb-color", `hsl(${hsl[0]},${hsl[1]}%,${hsl[2]}%)`);
+    modeSwitch.checked = state.mode === "gradient";
+    const selection = model.exportSelection(state);
+    // Kept in the layout (visibility only) so the grid doesn't shift between Solid and Gradient.
+    gradientBar.classList.toggle("invisible", state.mode !== "gradient");
+    if (state.mode === "gradient") {
+      setSwatch(gradientBar.querySelector(".gradient-track"), selection);
+      gradientThumbs.forEach((thumb, index) => {
+        thumb.style.setProperty("--thumb-color", selection.colors[index]);
+        thumb.setAttribute("aria-pressed", String(state.active === index));
+      });
+    }
+    setSwatch(preview, selection);
+    preview.title = `${T("Save current color")}\n${selection.colors.join(" → ")}`;
+    if (SPECTRUM_FOLLOWS_SATURATION && hsl[1] !== spectrumSaturation) { spectrumSaturation = hsl[1]; paintSpectrum(); }
     updateIndicator(hsl);
+    updateConfirm();
+  }
+
+  // Every editor the user can see; alpha only when this caller allows it.
+  function editors() {
+    const inputs = [hexInput, ...rgbInputs, ...hslInputs];
+    if (state.options.allow_alpha) inputs.push(opacityInput);
+    return inputs;
+  }
+  // OK stays disabled while any visible editor holds an invalid or incomplete value.
+  function updateConfirm() {
+    confirmBtn.disabled = !editors().every((input) => input.checkValidity());
   }
 
   function populatePalette() {
@@ -98,9 +130,9 @@
     for (const entry of palettes[paletteCombo.value] || []) {
       const selection = {type: entry.grad ? "gradient" : "solid", colors: entry.grad ? entry.grad.split("-") : [entry.hex]};
       if (!model.normalizeSelection(selection, state.options)) continue;
-      const row = document.createElement("button"); row.type = "button"; row.className = "color-item";
+      const row    = document.createElement("button"); row.type = "button"; row.className = "color-item";
       const swatch = document.createElement("span"); swatch.className = "color-swatch";
-      const name = document.createElement("span"); name.className = "color-name"; name.textContent = paletteName(entry.name);
+      const name   = document.createElement("span"); name.className = "color-name"; name.textContent = paletteName(entry.name);
       setSwatch(swatch, model.normalizeSelection(selection, {allow_gradient: true, allow_alpha: true}));
       row.append(swatch, name); row.title = paletteName(entry.name);
       row.addEventListener("click", () => {
@@ -115,7 +147,7 @@
   function drawFavorites() {
     const grid = byId("userColors"); grid.replaceChildren();
     const visible = favorites.filter((favorite) => state.options.allow_gradient || favorite.type === "solid");
-    for (let index = 0; index < 36; ++index) {
+    for (let index = 0; index < FAVORITE_SLOTS; ++index) {
       const swatch = document.createElement("button"); swatch.type = "button"; swatch.className = "saved-swatch";
       const favorite = visible[index];
       if (favorite) {
@@ -130,13 +162,14 @@
     if (!payload || typeof payload !== "object" || (payload.options !== undefined && (!payload.options || typeof payload.options !== "object"))) return false;
     const next = model.createState(payload.options, payload.selection);
     if (!next) return false;
-    const notice = byId("selectionNotice");
-    notice.hidden = payload.preserve_multi_color !== true;
-    notice.textContent = T("The current multi-color selection is kept until you choose a different color.");
+    byId("selectionNotice").hidden = payload.preserve_multi_color !== true;
     state = next; favorites = model.normalizeFavorites(payload.favorites || []);
+    originalSelection = model.exportSelection(state);
+    setSwatch(originalPreview, originalSelection);
+    originalPreview.title = `${T("Original color")}\n${originalSelection.colors.join(" → ")}`;
     favoritesWritable = payload.favorites_writable !== false;
-    byId("saveColorBtn").disabled = !favoritesWritable;
-    byId("tab2").nextElementSibling.classList.toggle("hidden", !state.options.allow_gradient);
+    preview.disabled = !favoritesWritable;
+    byId("modeControls").classList.toggle("hidden", !state.options.allow_gradient);
     for (const option of paletteCombo.options) option.hidden = option.value === "gradient" && !state.options.allow_gradient;
     if (!state.options.allow_gradient && paletteCombo.value === "gradient") paletteCombo.value = "basic";
     byId("alphaControls").classList.toggle("hidden", !state.options.allow_alpha);
@@ -179,107 +212,140 @@
     return Array.isArray(values) && values.length <= 24 && values.every((value) => model.normalizeSelection(value, {allow_gradient: true, allow_alpha: true}));
   }
 
+  // Saturation the spectrum is currently painted at (always 100 when the option is off).
+  let spectrumSaturation = 100;
   function drawSpectrum() {
     const rect = canvas.getBoundingClientRect();
     canvas.width = Math.max(1, Math.round(rect.width)); canvas.height = Math.max(1, Math.round(rect.height));
+    paintSpectrum();
+  }
+  function paintSpectrum() {
     const hue = context.createLinearGradient(0, 0, canvas.width, 0);
     for (let i = 0; i <= 6; ++i) hue.addColorStop(i / 6, `hsl(${i * 60},100%,50%)`);
     context.fillStyle = hue; context.fillRect(0, 0, canvas.width, canvas.height);
     const shade = context.createLinearGradient(0, 0, 0, canvas.height);
     shade.addColorStop(0, "#FFFFFF"); shade.addColorStop(0.5, "#FFFFFF00"); shade.addColorStop(0.5, "#00000000"); shade.addColorStop(1, "#000000");
     context.fillStyle = shade; context.fillRect(0, 0, canvas.width, canvas.height);
+    // HSL desaturation blends each color toward the grey of the same lightness, and on this
+    // canvas that grey only depends on the row (white at the top, black at the bottom).
+    if (spectrumSaturation < 100) {
+      const grey = context.createLinearGradient(0, 0, 0, canvas.height);
+      grey.addColorStop(0, "#FFFFFF"); grey.addColorStop(1, "#000000");
+      context.globalAlpha = 1 - spectrumSaturation / 100;
+      context.fillStyle = grey; context.fillRect(0, 0, canvas.width, canvas.height);
+      context.globalAlpha = 1;
+    }
   }
 
+  const indicator = byId("colorIndicator");
   function updateIndicator(hsl) {
-    const indicator = byId("colorIndicator");
     indicator.style.left = hsl[0] / 360 * (canvas.width - 1) + "px";
     indicator.style.top = (1 - hsl[2] / 100) * (canvas.height - 1) + "px";
   }
 
-  // Spectrum position maps straight to HSL: x → hue 0..360, y → lightness 100..0, saturation 100.
-  // Setting the HSL sliders lets displayHsl() keep these exact values, including hue 360 at the
-  // right edge and the hue of the white and black corners.
+  // Spectrum position maps straight to hue (x, 0..360) and lightness (y, 100..0); saturation is
+  // the third dimension and comes from the slider below. hslMemory keeps these exact values,
+  // including hue 360 at the right edge and the hue of the white and black corners.
   function sampleSpectrum(event) {
     const rect = canvas.getBoundingClientRect();
     const fraction = (client, start, size, pixels) =>
       Math.max(0, Math.min(pixels - 1, Math.floor((client - start) * pixels / size))) / Math.max(1, pixels - 1);
-    const hsl = [fraction(event.clientX, rect.left, rect.width, canvas.width) * 360, 100,
-                 (1 - fraction(event.clientY, rect.top, rect.height, canvas.height)) * 100]
-      .map((value) => Math.round(value * 10) / 10);
-    hslPairs.forEach(([slider], index) => { slider.value = hsl[index]; });
-    model.setRgb(state, model.hslToRgb(...hsl)); render();
+    const saturation = displayHsl(model.activeColor(state))[1];
+    hslMemory = [round1(fraction(event.clientX, rect.left, rect.width, canvas.width) * 360), saturation,
+                 round1((1 - fraction(event.clientY, rect.top, rect.height, canvas.height)) * 100)];
+    model.setRgb(state, model.hslToRgb(...hslMemory));
+    // A pick replaces every editor's value, so clear any invalid state left from typing.
+    render(true);
   }
 
-  function bindPair(pair, update) {
-    const [slider, input] = pair;
-    input.required = true;
-    for (const control of pair) {
-      control.addEventListener("input", () => {
-        control.setCustomValidity("");
-        if (control.value === "" || !control.checkValidity()) return;
-        const value = Number(control.value);
-        if (!Number.isFinite(value)) return;
-        slider.value = value; update();
-      });
-      control.addEventListener("wheel", (event) => {
-        event.preventDefault();
-        slider.value = Math.max(Number(slider.min), Math.min(Number(slider.max), Number(slider.value) + (event.deltaY > 0 ? -5 : 5)));
-        update();
-      }, {passive: false});
-    }
+  const clamp = (control, value) => Math.min(Number(control.max), Math.max(Number(control.min), value));
+  function bindValue(control, apply) {
+    // Number fields are required, so an empty field is invalid; a range input always has a value.
+    if (control.type === "number") control.required = true;
+    const commit = (value) => { apply(value); render(false, control); };
+    control.addEventListener("input", () => {
+      control.setCustomValidity("");
+      // Out-of-range numbers snap to the field's min/max instead of becoming invalid.
+      if (control.value !== "") {
+        const clamped = clamp(control, Number(control.value));
+        if (clamped !== Number(control.value)) control.value = clamped;
+      }
+      if (control.checkValidity()) commit(Number(control.value));
+    });
+    control.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      const step = control.type === "range" ? 5 : 1;
+      control.value = clamp(control, (Number(control.value) || 0) + (event.deltaY > 0 ? -step : step));
+      control.setCustomValidity("");
+      commit(Number(control.value));
+    }, {passive: false});
+    // Normalize the text (e.g. "05" → "5") once the user leaves the field.
+    control.addEventListener("blur", () => { if (control.checkValidity()) render(); });
   }
 
-  rgbPairs.forEach((pair) => bindPair(pair, () => { model.setRgb(state, rgbPairs.map(([slider]) => Number(slider.value))); render(); }));
-  hslPairs.forEach((pair) => bindPair(pair, () => { model.setRgb(state, model.hslToRgb(...hslPairs.map(([slider]) => Number(slider.value)))); render(); }));
-  bindPair(alphaPair, () => { model.setAlphaPercent(state, Number(alphaPair[0].value)); render(); });
+  rgbInputs.forEach((input, index) => bindValue(input, (value) => model.setRgb(state, replaced(model.activeColor(state).slice(0, 3), index, value))));
+  hslInputs.forEach((input, index) => bindValue(input, (value) => setHslChannel(index, value)));
+  bindValue(satSlider, (value) => setHslChannel(1, value));
+  bindValue(opacityInput, (value) => model.setAlphaPercent(state, value));
+  bindValue(opacitySlider, (value) => model.setAlphaPercent(state, value));
+  // The opacity slider takes the gradient bar's row while the opacity field or the slider is in
+  // use: it opens when the field is clicked or focused, and closes on a click or focus elsewhere.
+  const thirdRow = byId("thirdRow"), alphaControls = byId("alphaControls");
+  const inOpacityControls = (target) => target instanceof Element && target.closest("#alphaControls, #opacitySliderBar");
+  const setOpacitySliderOpen = (open) => thirdRow.classList.toggle("opacity-open", open);
+  for (const type of ["focusin", "click"]) alphaControls.addEventListener(type, () => setOpacitySliderOpen(true));
+  for (const type of ["pointerdown", "focusin"])
+    document.addEventListener(type, (event) => { if (!inOpacityControls(event.target)) setOpacitySliderOpen(false); });
   hexInput.addEventListener("input", () => {
     const text = hexInput.value;
-    const caret = hexInput.selectionStart;
     const valid = model.setHex(state, text.startsWith("#") ? text : "#" + text);
     hexInput.setCustomValidity(valid ? "" : T("Enter a complete hexadecimal color"));
-    if (valid) {
-      render();
-      // Do not append alpha after the sixth digit while the user is typing RGBA.
-      hexInput.value = text; hexInput.setSelectionRange(caret, caret);
-    }
+    // render() leaves the typed text alone, so alpha isn't appended after the sixth digit.
+    if (valid) render(false, hexInput);
   });
   hexInput.addEventListener("blur", () => { if (hexInput.checkValidity()) render(); });
-  modeSwitch.addEventListener("change", () => {
-    byId("rgbSliders").classList.toggle("hidden", modeSwitch.checked);
-    byId("hslSliders").classList.toggle("hidden", !modeSwitch.checked);
+  modeSwitch.addEventListener("change", () => { model.setMode(state, modeSwitch.checked ? "gradient" : "solid"); render(true); });
+  // Thumbs can't be dragged: a click on a thumb selects it, a click on the track selects the
+  // nearer end. Keyboard users tab to a thumb and press Enter or Space.
+  gradientBar.addEventListener("click", (event) => {
+    if (state.mode !== "gradient") return;
+    // A thumb is read from its index: a keyboard-triggered click has no pointer position.
+    const thumb = event.target.closest(".gradient-thumb"), rect = gradientBar.getBoundingClientRect();
+    const index = thumb ? Number(thumb.dataset.index) : event.clientX < rect.left + rect.width / 2 ? 0 : 1;
+    if (index !== state.active) { state.active = index; render(true); }
   });
-  for (const [id, mode] of [["tab1", "solid"], ["tab2", "gradient"]]) byId(id).addEventListener("change", () => { model.setMode(state, mode); render(true); });
-  endpointSwitch.addEventListener("change", () => { state.active = endpointSwitch.checked ? 1 : 0; render(true); });
+  originalPreview.addEventListener("click", () => { if (model.applySelection(state, originalSelection)) render(true); });
+  paletteToggle.addEventListener("click", () => paletteToggle.setAttribute("aria-expanded", palettePanel.classList.toggle("open")));
   paletteCombo.addEventListener("change", populatePalette);
-  canvas.addEventListener("pointerdown", (event) => { dragging = true; canvas.setPointerCapture(event.pointerId); sampleSpectrum(event); });
-  canvas.addEventListener("pointermove", (event) => { if (dragging) sampleSpectrum(event); });
-  canvas.addEventListener("pointerup", () => { dragging = false; });
-  canvas.addEventListener("pointercancel", () => { dragging = false; });
-  window.addEventListener("resize", () => { drawSpectrum(); render(); });
+  // Pointer capture ends by itself on pointerup/pointercancel, so it doubles as the drag state.
+  canvas.addEventListener("pointerdown", (event) => { canvas.setPointerCapture(event.pointerId); sampleSpectrum(event); });
+  canvas.addEventListener("pointermove", (event) => { if (canvas.hasPointerCapture(event.pointerId)) sampleSpectrum(event); });
+  // The spectrum takes the panel's free height, which also changes with the notice, alpha and
+  // gradient controls, so redraw on any size change rather than on window resize only.
+  new ResizeObserver(() => { drawSpectrum(); updateIndicator(displayHsl(model.activeColor(state))); }).observe(canvas.parentElement);
+  // Bubble phase on document runs after each editor's own handler has set its validity.
+  document.addEventListener("input", updateConfirm);
+  // Hex keeps its own message from its input handler; number fields get a translated one.
   function validateEditors() {
-    const pairs = modeSwitch.checked ? hslPairs : rgbPairs;
-    const inputs = [hexInput, ...pairs.map(([, input]) => input)];
-    if (state.options.allow_alpha) inputs.push(alphaPair[1]);
-    for (const input of inputs) {
-      if (input === hexInput) continue;
+    const inputs = editors();
+    for (const input of inputs.filter((input) => input !== hexInput)) {
       input.setCustomValidity("");
-      const validity = input.validity;
-      if (!validity.valid)
-        input.setCustomValidity(T(validity.rangeUnderflow || validity.rangeOverflow ? "Value is out of range." : "Invalid input"));
+      const {valid, rangeUnderflow, rangeOverflow} = input.validity;
+      if (!valid) input.setCustomValidity(T(rangeUnderflow || rangeOverflow ? "Value is out of range." : "Invalid input"));
     }
     return inputs.every((input) => input.reportValidity());
   }
   function confirm() {
     if (initialized && validateEditors()) emit("confirm", {selection: model.exportSelection(state)});
   }
-  byId("saveColorBtn").addEventListener("click", () => {
+  preview.addEventListener("click", () => {
     if (!initialized || !favoritesWritable || !validateEditors()) return;
     const selection = model.exportSelection(state);
     const key = JSON.stringify(selection);
-    favorites = [selection, ...favorites.filter((favorite) => JSON.stringify(favorite) !== key)].slice(0, 24);
+    favorites = [selection, ...favorites.filter((favorite) => JSON.stringify(favorite) !== key)].slice(0, FAVORITE_SLOTS);
     drawFavorites(); emit("update_favorites", {favorites});
   });
-  byId("confirmBtn").addEventListener("click", confirm);
+  confirmBtn.addEventListener("click", confirm);
   byId("cancelBtn").addEventListener("click", () => emit("cancel"));
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") { event.preventDefault(); emit("cancel"); }
@@ -292,5 +358,6 @@
     init, handleMessage, focusInput, exportSelection: () => model.exportSelection(state),
     setFavorites: (values) => { favorites = model.normalizeFavorites(values); drawFavorites(); }
   };
+  setSwatch(originalPreview, originalSelection);
   drawSpectrum(); populatePalette(); drawFavorites(); render(true); emit("ready");
 })();

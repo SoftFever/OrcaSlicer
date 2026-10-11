@@ -291,8 +291,13 @@ nlohmann::json color_picker_ui_strings()
         // TRN: Keep the standard/brand name "RAL" unchanged.
         {"RAL Classic", _u8L("RAL Classic")},
         {"Gradients", _u8L("Gradients")},
-        {"Color", _u8L("Color")},
+        {"Solid", _u8L("Solid")},
         {"Gradient", _u8L("Gradient")},
+        {"Gradient start", _u8L("Gradient start")},
+        {"Gradient end", _u8L("Gradient end")},
+        {"Saturation", _u8L("Saturation")},
+        {"Original color", _u8L("Original color")},
+        {"Palettes", _u8L("Palettes")},
         {"Hex color", _u8L("Hex color")},
         {"Opacity", _u8L("Opacity")},
         {"Opacity percent", _u8L("Opacity percent")},
@@ -733,7 +738,7 @@ ColorPickerDialog::ColorPickerDialog(wxWindow* parent, const ColorSelection& ini
     if (normalized)
         m_initial = *normalized;
     if (!normalized || !create_webview("web/dialog/ColorPickerDialog/index.html", _L("Color Picker"),
-                                      wxSize(550, 520), wxSize(550, 300))) {
+                                      wxSize(320, 360), wxSize(320, 360))) {
         auto* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(new wxStaticText(this, wxID_ANY, wxS("wxWebView unavailable")), wxSizerFlags().Border(wxALL, FromDIP(20)));
         sizer->Add(new wxButton(this, wxID_CANCEL, _L("Cancel")), wxSizerFlags().Right().Border(wxALL, FromDIP(8)));
@@ -797,10 +802,11 @@ void ColorPickerDialog::position_panel()
     if (m_positioning)
         return;
     m_positioning = true;
-    wxSize size = FromDIP(wxSize(550, m_content_height));
+    // Both dimensions come from the page: width changes when the palette sidebar opens or closes.
+    wxSize size = FromDIP(wxSize(m_content_width, m_content_height));
     size.x = std::min(size.x, m_work_area.width);
     size.y = std::min(size.y, std::max(1, m_work_area.height - FromDIP(16)));
-    SetMinSize(wxSize(std::min(FromDIP(550), size.x), std::min(FromDIP(300), size.y)));
+    SetMinSize(wxSize(std::min(FromDIP(320), size.x), std::min(FromDIP(360), size.y)));
     if (size != GetClientSize())
         SetClientSize(size);
     move_to_anchor();
@@ -973,6 +979,16 @@ void ColorPickerDialog::handle_web_command(const nlohmann::json& payload)
         const double value = height->get<double>();
         if (!std::isfinite(value) || value < 300 || value > 900)
             return;
+        // Width is optional so an older page that reports only height keeps the current width.
+        const auto width = payload.find("width");
+        if (width != payload.end()) {
+            if (!width->is_number())
+                return;
+            const double width_value = width->get<double>();
+            if (!std::isfinite(width_value) || width_value < 300 || width_value > 1200)
+                return;
+            m_content_width = static_cast<int>(std::ceil(width_value));
+        }
         resize_to_content(static_cast<int>(std::ceil(value)));
         return;
     }
