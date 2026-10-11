@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
@@ -14,7 +15,6 @@
 #include "I18N.hpp"
 #include "MeshBoolean.hpp"
 #include "Model.hpp"
-#include "ObjectID.hpp"
 #include "TriangleMesh.hpp"
 #include "TriangleSelector.hpp"
 #include "TryCatchSignal.hpp"
@@ -95,16 +95,22 @@ size_t repair_volume(ModelObject                                               &
     // Orca: Split splittable volumes into parts for individual processing.
     size_t parts_count = 1;
     if (volume->is_splittable()) {
-        // split() also deletes the volumes of the object whose convex hull is degenerate, wherever they are, so its
-        // parts are found by the ids of the volumes before and after it.
-        std::vector<ObjectID> before, after;
+        // Orca: split() also deletes the volumes of the object whose convex hull is degenerate, wherever they are,
+        // this one included, so its parts are found as the volumes that were neither before nor after it. Addresses,
+        // not ids: delete_volume() gives the last volume left a new id. They are kept as integers because a deleted
+        // volume leaves an invalid pointer value; split() allocates all parts before it deletes anything, so no part
+        // reuses the address of a volume listed here.
+        const auto address = [](const ModelVolume *v) { return reinterpret_cast<std::uintptr_t>(v); };
+        std::vector<std::uintptr_t> before, after;
         for (size_t i = 0; i < model_object.volumes.size(); ++i)
             if (i != ivolume)
-                (i < ivolume ? before : after).push_back(model_object.volumes[i]->id());
+                (i < ivolume ? before : after).push_back(address(model_object.volumes[i]));
         std::sort(before.begin(), before.end());
         std::sort(after.begin(), after.end());
         volume->split(1, keep_painting);
-        const auto in = [](const std::vector<ObjectID> &ids, const ModelVolume *v) { return std::binary_search(ids.begin(), ids.end(), v->id()); };
+        const auto in = [&address](const std::vector<std::uintptr_t> &addresses, const ModelVolume *v) {
+            return std::binary_search(addresses.begin(), addresses.end(), address(v));
+        };
         const auto first = std::find_if_not(model_object.volumes.begin(), model_object.volumes.end(),
                                             [&](const ModelVolume *v) { return in(before, v); });
         ivolume     = size_t(first - model_object.volumes.begin());
