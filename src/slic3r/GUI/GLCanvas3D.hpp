@@ -660,6 +660,9 @@ private:
     mutable GLToolbar m_main_toolbar;
     mutable GLToolbar m_separator_toolbar;
     mutable IMToolbar m_sel_plate_toolbar;
+    // Thumbnails of the plate switcher (Focus mode), refreshed when the plater's version changes.
+    std::vector<std::unique_ptr<IMToolbarItem>> m_plate_switcher_items;
+    unsigned m_plate_switcher_version{ unsigned(-1) };
     mutable GLToolbar m_assemble_view_toolbar;
     mutable IMReturnToolbar m_return_toolbar;
     mutable Vec2i32 m_canvas_toolbar_pos = {140, 5};

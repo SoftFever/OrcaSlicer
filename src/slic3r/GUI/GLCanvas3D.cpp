@@ -1679,6 +1679,7 @@ GLCanvas3D::~GLCanvas3D()
 
     m_sel_plate_toolbar.del_all_item();
     m_sel_plate_toolbar.del_stats_item();
+    m_plate_switcher_items.clear();
 }
 
 void GLCanvas3D::post_event(wxEvent &&event)
@@ -10707,10 +10708,31 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
 
 void GLCanvas3D::_render_plate_switcher()
 {
-    PartPlateList& plate_list  = wxGetApp().plater()->get_partplate_list();
+    Plater*        plater      = wxGetApp().plater();
+    PartPlateList& plate_list  = plater->get_partplate_list();
     const int      plate_count = plate_list.get_plate_count();
     if (!_hides_inactive_plates() || plate_count < 2 || m_gizmos.get_current_type() != GLGizmosManager::Undefined)
         return;
+
+    // The thumbnails are the ones of the Preview plate toolbar.
+    const unsigned version = plater->plate_toolbar_image_version();
+    if (m_plate_switcher_version != version || m_plate_switcher_items.size() != size_t(plate_count)) {
+        if (!plater->is_gcode_3mf())
+            plater->update_all_plate_thumbnails(true);
+        m_plate_switcher_items.clear();
+        for (int i = 0; i < plate_count; ++i) {
+            auto             item  = std::make_unique<IMToolbarItem>();
+            const PartPlate* plate = plate_list.get_plate(i);
+            if (plate->thumbnail_data.is_valid()) {
+                item->image_data   = plate->thumbnail_data.pixels;
+                item->image_width  = plate->thumbnail_data.width;
+                item->image_height = plate->thumbnail_data.height;
+                item->generate_texture();
+            }
+            m_plate_switcher_items.push_back(std::move(item));
+        }
+        m_plate_switcher_version = version;
+    }
 
     float sc = get_scale();
 #ifdef WIN32
@@ -10718,9 +10740,9 @@ void GLCanvas3D::_render_plate_switcher()
 #endif // WIN32
 
     ImGuiWrapper& imgui     = *wxGetApp().imgui();
-    const ImVec2  btn_size  = ImVec2(CANVAS_TOOLBAR_BUTTON, CANVAS_TOOLBAR_BUTTON) * sc;
-    const ImVec2  padding   = ImVec2(4.f, 4.f) * sc;
-    const float   spacing   = 4.f * sc;
+    const ImVec2  btn_size  = ImVec2(72.f, 72.f) * sc;
+    const ImVec2  padding   = ImVec2(8.f, 8.f) * sc;
+    const float   spacing   = 8.f * sc;
     const float   scrollbar = 8.f * sc;
     const float   top       = std::max(m_main_toolbar.get_height(), m_gizmos.get_scaled_total_height()) + CANVAS_TOOLBAR_MARGIN * sc;
     const float   content_h = plate_count * (btn_size.y + spacing) - spacing + 2.f * padding.y;
@@ -10732,7 +10754,7 @@ void GLCanvas3D::_render_plate_switcher()
     const ImVec4 hover       = m_is_dark ? ImVec4(1.f, 1.f, 1.f, .12f) : ImVec4(0.f, 0.f, 0.f, .08f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.f * sc);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, (4.f + 8.f) * sc); // thumbnail radius + padding
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.f * sc);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.f);
@@ -10746,20 +10768,38 @@ void GLCanvas3D::_render_plate_switcher()
                                                 ImGuiWindowFlags_NoCollapse | (scroll ? 0 : ImGuiWindowFlags_NoScrollbar));
 
     const int curr_plate = plate_list.get_curr_plate_index();
+    ImDrawList*  draw_list = ImGui::GetWindowDrawList();
+    const float  rounding  = 4.f * sc;
+    const ImU32  plate_bg  = m_is_dark ? IM_COL32(255, 255, 255, 10) : IM_COL32(0, 0, 0, 10);
+    const ImU32  plate_dim = m_is_dark ? IM_COL32(30, 30, 30, 100) : IM_COL32(0, 0, 0, 50);
     for (int i = 0; i < plate_count; ++i) {
         PartPlate* plate   = plate_list.get_plate(i);
         const bool current = i == curr_plate;
-        ImGui::PushStyleColor(ImGuiCol_Button, current ? ImGuiWrapper::COL_ORCA : ImVec4(0.f, 0.f, 0.f, 0.f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, current ? ImGuiWrapper::COL_ORCA_HOVER : hover);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, current ? ImGuiWrapper::COL_ORCA_HOVER : hover);
-        ImGui::PushStyleColor(ImGuiCol_Text, current ? ImVec4(1.f, 1.f, 1.f, 1.f) : plate->empty() ? empty_color : text_color);
-        if (ImGui::Button(std::to_string(i + 1).c_str(), btn_size) && !current)
-            wxGetApp().plater()->CallAfter([i]() {
+        const ImVec2 pos   = ImGui::GetCursorScreenPos();
+        ImGui::PushID(i);
+        const bool clicked = ImGui::InvisibleButton("##plate", btn_size);
+        ImGui::PopID();
+        const bool hovered = ImGui::IsItemHovered();
+
+        draw_list->AddRectFilled(pos, pos + btn_size, plate_bg, rounding);
+        if (ImTextureID texture = m_plate_switcher_items[i]->texture_id)
+            draw_list->AddImageRounded(texture, pos, pos + btn_size, ImVec2(0.f, 1.f), ImVec2(1.f, 0.f), IM_COL32_WHITE, rounding);
+        if (plate->empty())
+            draw_list->AddRectFilled(pos, pos + btn_size, plate_dim, rounding);
+        if (current || hovered) {
+            const float border = 2.f * sc;
+            draw_list->AddRect(pos - ImVec2(border, border) * .5f, pos + btn_size + ImVec2(border, border) * .5f,
+                               ImGui::GetColorU32(current ? (hovered ? ImGuiWrapper::COL_ORCA_HOVER : ImGuiWrapper::COL_ORCA) : hover),
+                               rounding + border * .5f, 0, border);
+        }
+        draw_list->AddText(pos + ImVec2(4.f, 2.f) * sc, ImGui::GetColorU32(plate->empty() ? empty_color : text_color), std::to_string(i + 1).c_str());
+
+        if (clicked && !current)
+            plater->CallAfter([i]() {
                 wxGetApp().plater()->select_plate(i);
                 wxGetApp().plater()->deselect_all();
             });
-        ImGui::PopStyleColor(4);
-        if (ImGui::IsItemHovered()) {
+        if (hovered) {
             const std::string name = plate->get_plate_name();
             imgui.tooltip(_u8L("Plate") + " " + std::to_string(i + 1) + (name.empty() ? "" : " (" + name + ")"), ImGui::GetFontSize() * 20.f);
         }
