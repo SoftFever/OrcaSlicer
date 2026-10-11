@@ -7,6 +7,7 @@ on:
      - release/*
     paths:
      - 'deps/**'
+     - 'deps_src/**'
      - 'src/**'
      - '**/CMakeLists.txt'
      - 'version.inc'
@@ -14,8 +15,10 @@ on:
      - 'resources/**'
      - ".github/workflows/build_*.yml"
      - ".github/workflows/unit_tests*.yml"
+     - 'build_linux.sh'
      - 'build_win.bat'
      - 'scripts/test_build_win.ps1'
+     - 'build_release_macos.sh'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
      - 'scripts/msix/**'
