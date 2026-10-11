@@ -64,11 +64,19 @@
 
         <!-- Third row: gradient endpoints, replaced by the opacity slider while the opacity field is in use. -->
         <div id="thirdRow" class="third-row">
-          <!-- Gradient endpoints: fixed thumbs, a click selects the nearest one. -->
+          <!-- Gradient colors: evenly spaced thumbs (built by colorpicker.js); a click selects the nearest. -->
           <div id="gradientCtrlBar" class="invisible" role="group" aria-label="Gradient" data-i18n-aria-label="Gradient">
-            <div class="gradient-track"></div>
-            <button type="button" class="gradient-thumb" data-index="0" aria-label="Gradient start" data-i18n-aria-label="Gradient start"></button>
-            <button type="button" class="gradient-thumb" data-index="1" aria-label="Gradient end" data-i18n-aria-label="Gradient end"></button>
+            <div id="gradientStops" class="gradient-stops">
+              <div class="gradient-track"></div>
+            </div>
+            <div class="gradient-step-buttons hidden">
+              <button type="button" id="gradientRemove" class="gradient-step-button hidden" title="Remove color" data-i18n-title="Remove color">
+                <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><rect x="0" y="4" width="10" height="2" fill="currentColor"/></svg>
+              </button>
+              <button type="button" id="gradientAdd" class="gradient-step-button hidden" title="Add color" data-i18n-title="Add color">
+                <svg viewBox="0 0 10 10" width="10" height="10" aria-hidden="true"><rect x="0" y="4" width="10" height="2" fill="currentColor"/><rect x="4" y="0" width="2" height="10" fill="currentColor"/></svg>
+              </button>
+            </div>
           </div>
           <div id="opacitySliderBar" hidden>
             <input class="valueSlider" type="range" id="opacitySlider" min="0" max="100" step="0.1" tabindex="-1" aria-label="Opacity" data-i18n-aria-label="Opacity">

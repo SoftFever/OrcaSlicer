@@ -437,11 +437,20 @@ const palettes = {
     {hex: "#B2BFC0", name: "9022 Pearl light grey"}
   ],
   gradient: [
-    {grad: "#D8FEE7-#FFF5BD", name: "Pearl"},
-    {grad: "#FFF47B-#CD9800", name: "Gold"},
-    {grad: "#373737-#F5F4F4", name: "Silver"},
-    {grad: "#C39292-#C73725", name: "Copper"},
-    {grad: "#DED699-#C99620", name: "Brass"},
+    {grad: "#FFF47B-#CD9800", name: "Metal: Gold"},
+    {grad: "#373737-#F5F4F4", name: "Metal: Silver"},
+    {grad: "#C39292-#C73725", name: "Metal: Copper"},
+    {grad: "#DED699-#C99620", name: "Metal: Brass"},
+    {grad: "#6E4316-#B0742E", name: "Metal: Bronze"},
+    // More than two colors: only listed when the page enables multi-color gradients.
+    {grad: "#FF0000-#FFFF00-#00FF00-#00FFFF-#0000FF-#FF00FF-#FF0000", name: "Nature: Rainbow"},
+
+    {grad: "#D8FEE7-#FFF5BD", name: "Nature: Pearl"},
+    {grad: "#1E5AA8-#3D8BD9-#7DB9F0-#C9E6FF", name: "Nature: Clear Sky"},
+    {grad: "#2B1B5A-#7A2E7E-#D9466E-#F57C3A-#FFC857", name: "Nature: Sunset"},
+    {grad: "#3B2416-#5A3A24-#45291A-#6B4630-#3B2416", name: "Wood: Dark"},
+    {grad: "#8B5A2B-#A8733F-#946235-#B5844F-#8B5A2B", name: "Wood: Medium"},
+    {grad: "#D9B98C-#E8CFA6-#D3AE7C-#EBD5B0-#D9B98C", name: "Wood: Light"},
   ]
 };
 

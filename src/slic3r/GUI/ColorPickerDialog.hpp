@@ -4,6 +4,7 @@
 #include "Widgets/WebViewHostDialog.hpp"
 
 #include <array>
+#include <cstddef>
 #include <variant>
 #include <nlohmann/json_fwd.hpp>
 #include <atomic>
@@ -18,8 +19,14 @@ class wxWindow;
 
 namespace Slic3r::GUI {
 
-// Gradient endpoints retain their order; a solid has exactly one color.
-using ColorSelection = std::variant<ColorRGBA, std::array<ColorRGBA, 2>>;
+// Most colors an ordered gradient may hold. This is the native switch for multi-color gradients:
+// 2 keeps the classic two-color gradients. The page receives it as options.max_gradient_colors
+// and never offers more, so the picker, favorites and project colors all share one limit.
+inline constexpr std::size_t COLOR_PICKER_MAX_GRADIENT_COLORS = 7;
+
+// Gradient colors retain their order (2..COLOR_PICKER_MAX_GRADIENT_COLORS); a solid has exactly one color.
+using ColorGradient = std::vector<ColorRGBA>;
+using ColorSelection = std::variant<ColorRGBA, ColorGradient>;
 
 struct ColorPickerOptions {
     bool allow_gradient = false;

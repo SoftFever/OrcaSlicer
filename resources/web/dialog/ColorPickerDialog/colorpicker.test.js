@@ -65,3 +65,39 @@ test("invalid cardinality and channel edits cannot change a selection", () => {
   assert.equal(model.setRgb(state, [256,0,0]), false);
   assert.deepEqual(model.exportSelection(state), before);
 });
+
+test("multi-color gradients stay at 2 colors unless the caller raises the limit", () => {
+  const five = {type: "gradient", colors: ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF"]};
+  assert.equal(model.normalizeSelection(five, {allow_gradient: true}), null);
+  assert.equal(model.createState({allow_gradient: true}, five), null);
+  const state = model.createState({allow_gradient: true, max_gradient_colors: 7}, five);
+  assert.equal(state.gradient.length, 5);
+  assert.equal(model.normalizeSelection({...five, colors: Array(8).fill("#000000")}, {allow_gradient: true}, 7), null);
+  assert.equal(model.createState({allow_gradient: true, max_gradient_colors: 99}).maxGradientColors, model.MAX_GRADIENT_COLORS);
+  assert.equal(model.normalizeFavorites([five]).length, 1, "favorites keep every color");
+});
+
+test("adding and removing gradient colors keeps order, selection and the 2..max limits", () => {
+  const state = model.createState({allow_gradient: true, allow_alpha: true, max_gradient_colors: 4}, {type: "gradient", colors: ["#FF000080", "#0000FFFF"]});
+  assert.equal(model.removeGradientColor(state), false, "never fewer than 2");
+  assert.equal(model.addGradientColor(state), true);
+  assert.deepEqual(model.exportSelection(state).colors, ["#FF000080", "#BFFF0080", "#0000FFFF"], "selected color turned 75° in hue, alpha kept");
+  assert.equal(model.NEW_GRADIENT_HUE_SHIFT, 75);
+  assert.equal(state.active, 1);
+  state.active = 2; assert.equal(model.addGradientColor(state), true);
+  assert.equal(state.active, 3); assert.equal(state.gradient.length, 4);
+  assert.equal(model.addGradientColor(state), false, "limit reached");
+  state.active = 1; assert.equal(model.removeGradientColor(state), true);
+  assert.deepEqual(model.exportSelection(state).colors.slice(0, 2), ["#FF000080", "#0000FFFF"]);
+  assert.equal(state.active, 1);
+  assert.equal(model.applySelection(state, {type: "gradient", colors: ["#111111", "#222222"]}), true);
+  state.active = 1; model.addGradientColor(state); model.addGradientColor(state);
+  model.applySelection(state, {type: "gradient", colors: ["#111111", "#222222"]});
+  assert.equal(state.active, 1, "a shorter gradient clamps the selected color");
+});
+
+test("a new gradient starts at the solid color and its 75° hue neighbour", () => {
+  const state = model.createState({allow_gradient: true, allow_alpha: true}, {type: "solid", colors: ["#FF000080"]});
+  assert.equal(model.setMode(state, "gradient"), true);
+  assert.deepEqual(model.exportSelection(state).colors, ["#FF000080", "#BFFF0080"]);
+});

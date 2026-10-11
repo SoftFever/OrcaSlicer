@@ -57,8 +57,6 @@ namespace Slic3r::GUI {
 
 namespace {
 
-using ColorGradient = std::array<ColorRGBA, 2>;
-
 struct ColorPickerFavoritesState {
     std::vector<ColorSelection> favorites;
     bool writable = true;
@@ -109,9 +107,10 @@ std::optional<ColorSelection> normalize_color_selection(const ColorSelection& se
         if (!normalize_color(*solid, options.allow_alpha))
             return std::nullopt;
     } else {
-        if (!options.allow_gradient)
+        auto& gradient = std::get<ColorGradient>(normalized);
+        if (!options.allow_gradient || gradient.size() < 2 || gradient.size() > COLOR_PICKER_MAX_GRADIENT_COLORS)
             return std::nullopt;
-        for (ColorRGBA& color : std::get<ColorGradient>(normalized))
+        for (ColorRGBA& color : gradient)
             if (!normalize_color(color, options.allow_alpha))
                 return std::nullopt;
     }
@@ -130,10 +129,12 @@ std::optional<ColorSelection> color_selection_from_json(const nlohmann::json& va
         ColorRGBA solid;
         if (parse_color((*colors)[0], solid))
             return normalize_color_selection(solid, options);
-    } else if (*type == "gradient" && colors->size() == 2 && options.allow_gradient) {
-        ColorGradient gradient;
-        if (parse_color((*colors)[0], gradient[0]) && parse_color((*colors)[1], gradient[1]))
-            return normalize_color_selection(gradient, options);
+    } else if (*type == "gradient" && options.allow_gradient && colors->size() >= 2 && colors->size() <= COLOR_PICKER_MAX_GRADIENT_COLORS) {
+        ColorGradient gradient(colors->size());
+        for (std::size_t i = 0; i < gradient.size(); ++i)
+            if (!parse_color((*colors)[i], gradient[i]))
+                return std::nullopt;
+        return normalize_color_selection(gradient, options);
     }
     return std::nullopt;
 }
@@ -145,8 +146,10 @@ nlohmann::json color_selection_to_json(const ColorSelection& selection)
         throw std::invalid_argument("Invalid color selection channels");
     if (const auto* solid = std::get_if<ColorRGBA>(&*normalized))
         return {{"type", "solid"}, {"colors", {rgba_hex(*solid)}}};
-    const auto& gradient = std::get<ColorGradient>(*normalized);
-    return {{"type", "gradient"}, {"colors", {rgba_hex(gradient[0]), rgba_hex(gradient[1])}}};
+    nlohmann::json colors = nlohmann::json::array();
+    for (const ColorRGBA& color : std::get<ColorGradient>(*normalized))
+        colors.push_back(rgba_hex(color));
+    return {{"type", "gradient"}, {"colors", std::move(colors)}};
 }
 
 std::optional<std::vector<ColorSelection>> color_favorites_from_json(const nlohmann::json& values)
@@ -295,6 +298,9 @@ nlohmann::json color_picker_ui_strings()
         {"Gradient", _u8L("Gradient")},
         {"Gradient start", _u8L("Gradient start")},
         {"Gradient end", _u8L("Gradient end")},
+        {"Gradient color", _u8L("Gradient color")},
+        {"Add color", _u8L("Add color")},
+        {"Remove color", _u8L("Remove color")},
         {"Saturation", _u8L("Saturation")},
         {"Original color", _u8L("Original color")},
         {"Palettes", _u8L("Palettes")},
@@ -684,10 +690,18 @@ nlohmann::json color_picker_ui_strings()
         {"Traffic black", _u8L("Traffic black")},
         {"Papyrus white", _u8L("Papyrus white")},
         {"Pearl light grey", _u8L("Pearl light grey")},
-        {"Pearl", _u8L("Pearl")},
-        {"Silver", _u8L("Silver")},
-        {"Copper", _u8L("Copper")},
-        {"Brass", _u8L("Brass")}
+        {"Metal: Silver", _u8L("Metal: Silver")},
+        {"Metal: Brass", _u8L("Metal: Brass")},
+        {"Metal: Gold", _u8L("Metal: Gold")},
+        {"Metal: Copper", _u8L("Metal: Copper")},
+        {"Metal: Bronze", _u8L("Metal: Bronze")},
+        {"Nature: Pearl", _u8L("Nature: Pearl")},
+        {"Nature: Rainbow", _u8L("Nature: Rainbow")},
+        {"Nature: Clear Sky", _u8L("Nature: Clear Sky")},
+        {"Nature: Sunset", _u8L("Nature: Sunset")},
+        {"Wood: Dark", _u8L("Wood: Dark")},
+        {"Wood: Medium", _u8L("Wood: Medium")},
+        {"Wood: Light", _u8L("Wood: Light")}
     };
 }
 
@@ -1023,7 +1037,8 @@ void ColorPickerDialog::send_initial_state()
     for (const ColorSelection& selection : m_favorites)
         favorites.push_back(color_selection_to_json(selection));
     const nlohmann::json payload = {{"command", "init"}, {"page_id", m_page_id},
-                                   {"options", {{"allow_gradient", m_options.allow_gradient}, {"allow_alpha", m_options.allow_alpha}}},
+                                   {"options", {{"allow_gradient", m_options.allow_gradient}, {"allow_alpha", m_options.allow_alpha},
+                                                {"max_gradient_colors", COLOR_PICKER_MAX_GRADIENT_COLORS}}},
                                    {"selection", color_selection_to_json(m_initial)}, {"favorites", std::move(favorites)},
                                    {"favorites_writable", m_favorites_writable}, {"preserve_multi_color", m_preserve_multi_color}};
     m_init_sent = true;

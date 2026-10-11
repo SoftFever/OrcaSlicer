@@ -16,10 +16,16 @@
     return "#" + color.map((byte) => Math.round(byte).toString(16).padStart(2, "0")).join("").toUpperCase();
   }
 
-  function normalizeSelection(value, options = {}) {
+  const MAX_GRADIENT_COLORS    = 7;  // Most colors a gradient may have. A caller allows 2 (the default) up to this many.
+  const NEW_GRADIENT_HUE_SHIFT = 75; // Hue step used for every newly created gradient color.
+  const gradientLimit = (value) => Math.max(2, Math.min(MAX_GRADIENT_COLORS, Math.floor(Number(value)) || 2));
+
+  // `maxGradientColors` caps how many colors a gradient may have (2 when omitted).
+  function normalizeSelection(value, options = {}, maxGradientColors = 2) {
     if (!value || !["solid", "gradient"].includes(value.type) || !Array.isArray(value.colors)) return null;
     if (value.type === "gradient" && !options.allow_gradient) return null;
-    if (value.colors.length !== (value.type === "solid" ? 1 : 2)) return null;
+    const count = value.colors.length;
+    if (value.type === "solid" ? count !== 1 : count < 2 || count > gradientLimit(maxGradientColors)) return null;
     const colors = value.colors.map(parseHex);
     if (colors.some((color) => color === null)) return null;
     if (!options.allow_alpha) colors.forEach((color) => { color[3] = 255; });
@@ -48,10 +54,6 @@
     return sectors[Math.floor(h)].map((channel) => Math.round((channel + m) * 255));
   }
 
-  // Rotate the hue by `hueShift` degrees and move lightness toward its opposite in proportion
-  // (0 = same color, 90 = moderate, 180 = complementary with flipped lightness). A negative
-  // value rotates the other way. Greys have no usable hue, so only their lightness moves.
-  // Keeps the original alpha.
   function contrastColor(color, hueShift = 90) {
     if (!Number.isFinite(hueShift)) hueShift = 90;
     const degrees = Math.max(-180, Math.min(180, hueShift));
@@ -63,21 +65,26 @@
     return [...rgb, color[3]];
   }
 
+  // options.max_gradient_colors (2..7, default 2) is how many colors this page lets a gradient have.
   function createState(options = {}, selection = {type: "solid", colors: ["#808080"]}) {
     const capabilities = {allow_gradient: options.allow_gradient === true, allow_alpha: options.allow_alpha === true};
     // gradient stays null until a selection provides one or the user switches to gradient mode.
-    const state = {options: capabilities, mode: "solid", active: 0, solid: [128,128,128,255], gradient: null};
+    const state = {options: capabilities, maxGradientColors: gradientLimit(options.max_gradient_colors),
+                   mode: "solid", active: 0, solid: [128,128,128,255], gradient: null};
     if (!applySelection(state, selection)) return null;
     return state;
   }
 
   function applySelection(state, value) {
-    const selection = normalizeSelection(value, state.options);
+    const selection = normalizeSelection(value, state.options, state.maxGradientColors);
     if (!selection) return false;
     state.mode = selection.type;
     const colors = selection.colors.map(parseHex);
     if (state.mode === "solid") state.solid = colors[0];
-    else state.gradient = colors;
+    else {
+      state.gradient = colors;
+      state.active = Math.min(state.active, colors.length - 1); // A gradient with fewer colors must not leave the selected stop past its end.
+    }
     return true;
   }
 
@@ -86,8 +93,22 @@
   function setMode(state, mode) {
     if (mode !== "solid" && (mode !== "gradient" || !state.options.allow_gradient)) return false;
     // A new gradient starts at the current solid color and ends at its contrast color.
-    if (mode === "gradient" && !state.gradient) state.gradient = [[...state.solid], contrastColor(state.solid, 90)];
+    if (mode === "gradient" && !state.gradient) state.gradient = [[...state.solid], contrastColor(state.solid, NEW_GRADIENT_HUE_SHIFT)];
     state.mode = mode;
+    return true;
+  }
+
+  function addGradientColor(state) {
+    if (state.mode !== "gradient" || state.gradient.length >= state.maxGradientColors) return false;
+    state.gradient.splice(state.active + 1, 0, contrastColor(state.gradient[state.active], NEW_GRADIENT_HUE_SHIFT));
+    state.active += 1;
+    return true;
+  }
+
+  function removeGradientColor(state) {
+    if (state.mode !== "gradient" || state.gradient.length <= 2) return false;
+    state.gradient.splice(state.active, 1);
+    state.active = Math.min(state.active, state.gradient.length - 1);
     return true;
   }
 
@@ -116,18 +137,19 @@
 
   function exportSelection(state) {
     const colors = state.mode === "solid" ? [state.solid] : state.gradient;
-    return normalizeSelection({type: state.mode, colors: colors.map(toHex)}, state.options);
+    return normalizeSelection({type: state.mode, colors: colors.map(toHex)}, state.options, state.maxGradientColors);
   }
 
   // Favorites retain full capabilities regardless of what this caller can select.
   function normalizeFavorites(values) {
     if (!Array.isArray(values)) return [];
-    return values.slice(0, 24).map((value) => normalizeSelection(value, {allow_gradient: true, allow_alpha: true})).filter(Boolean);
+    return values.slice(0, 24).map((value) => normalizeSelection(value, {allow_gradient: true, allow_alpha: true}, MAX_GRADIENT_COLORS)).filter(Boolean);
   }
 
   function selectionBackground(value) {
-    return value.type === "gradient" ? `linear-gradient(to right, ${value.colors[0]}, ${value.colors[1]})` : `linear-gradient(${value.colors[0]}, ${value.colors[0]})`;
+    return value.type === "gradient" ? `linear-gradient(to right, ${value.colors.join(", ")})` : `linear-gradient(${value.colors[0]}, ${value.colors[0]})`;
   }
 
-  return {parseHex, toHex, normalizeSelection, rgbToHsl, hslToRgb, createState, applySelection, activeColor, setMode, setRgb, setAlphaPercent, setHex, exportSelection, normalizeFavorites, selectionBackground};
+  return {MAX_GRADIENT_COLORS, NEW_GRADIENT_HUE_SHIFT, contrastColor, parseHex, toHex, normalizeSelection, rgbToHsl, hslToRgb, createState, applySelection, activeColor, setMode,
+          addGradientColor, removeGradientColor, setRgb, setAlphaPercent, setHex, exportSelection, normalizeFavorites, selectionBackground};
 });

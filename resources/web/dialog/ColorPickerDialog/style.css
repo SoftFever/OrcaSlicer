@@ -309,8 +309,35 @@ body {
   background-size: auto, 8px 8px;
 }
 
-/* Gradient endpoints: thumbs are fixed at the ends; a click anywhere selects the nearest. */
-#gradientCtrlBar { cursor: pointer }
+/* Gradient colors: thumbs are evenly spaced and fixed; a click anywhere selects the nearest. */
+#gradientCtrlBar {
+  display: flex;
+}
+.gradient-stops {
+  position: relative;
+  flex: 1;
+  height: 100%;
+}
+/* Kept 10px away from the gradient bar so a click near its right end can't hit − or +. */
+.gradient-step-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+}
+.gradient-step-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  border-radius: 4px;
+  background: var(--button-bg-normal);
+  color: var(--fg-color-text);
+}
+.gradient-step-button svg { display: block; flex: none }
+.gradient-step-button:hover:not(:disabled) { background: var(--button-bg-hover) }
+.gradient-step-button:disabled { opacity: 0.4 }
 .gradient-track {
   position: absolute;
   inset: 0;
@@ -325,23 +352,26 @@ body {
 .gradient-thumb {
   position: absolute;
   top: 50%;
-  width: 14px;
-  height: 14px;
-  border-radius: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 1px;
   border: 1px solid var(--color-marker-outline);
   box-shadow: 0 0 0 1px var(--color-marker-shadow);
   background: var(--thumb-color);
   transform: translate(-50%, -50%);
-  cursor: pointer;
 }
-.gradient-thumb[data-index="0"] { left: 10px; }
-.gradient-thumb[data-index="1"] { left: calc(100% - 10px); }
+/* Thumb i of n sits at 10px + (100% - 20px) * i / (n - 1), set inline as --stop. */
+.gradient-thumb { left: calc(10px + (100% - 20px) * var(--stop, 0)) }
 .gradient-thumb[aria-pressed="true"] {
   width: var(--thumb-size);
   height: var(--thumb-size);
   border: 2px solid var(--color-marker-outline);
   box-shadow: 0 0 0 2px var(--color-marker-shadow);
   border-radius: 4px;
+}
+
+.gradient-thumb:hover {
+  box-shadow: 0 0 0 3px var(--color-marker-shadow);
 }
 
 /* ---------- Original / current / favorites ---------- */
