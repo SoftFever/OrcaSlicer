@@ -138,10 +138,14 @@ std::vector<uint8_t> serialize(const Scene& scene)
     json node = {{"mesh", 0}};
     if (scene.root_rotation != std::array<double, 4>{{0, 0, 0, 1}})
         node["rotation"] = scene.root_rotation;
+    if (!std::isfinite(scene.root_scale) || scene.root_scale <= 0)
+        throw std::runtime_error("GLB scene contains an invalid unit scale");
+    if (scene.root_scale != 1.0)
+        node["scale"] = {scene.root_scale, scene.root_scale, scene.root_scale};
     json document = {
         {"asset", {{"version", "2.0"}, {"generator", "OrcaSlicer"}}}, {"scene", 0},
         {"scenes", json::array({std::move(scene_object)})}, {"nodes", json::array({std::move(node)})},
-        {"meshes", json::array()}, {"materials", json::array()}, {"accessors", json::array()},
+        {"meshes", json::array()}, {"accessors", json::array()},
         {"bufferViews", json::array()}, {"buffers", json::array()}
     };
 
@@ -175,6 +179,8 @@ std::vector<uint8_t> serialize(const Scene& scene)
     const size_t index_view = append_buffer_view(document, indices_offset, binary.size() - indices_offset,
                                                   ELEMENT_ARRAY_BUFFER);
 
+    if (!scene.materials.empty())
+        document["materials"] = json::array();
     for (const Material& material : scene.materials) {
         json value = {{"pbrMetallicRoughness", {{"baseColorFactor", {
                            material.base_color[0] / 255.0, material.base_color[1] / 255.0,
@@ -210,6 +216,15 @@ std::vector<uint8_t> serialize(const Scene& scene)
             for (float value : point) append_float(binary, value, "polyline point");
         const size_t view = append_buffer_view(document, offset, binary.size() - offset, ARRAY_BUFFER);
         const size_t accessor = append_accessor(document, view, 0, FLOAT_COMPONENT, polyline.points.size(), "VEC3");
+        auto minimum = polyline.points.front();
+        auto maximum = minimum;
+        for (const auto& point : polyline.points)
+            for (size_t axis = 0; axis < 3; ++axis) {
+                minimum[axis] = std::min(minimum[axis], point[axis]);
+                maximum[axis] = std::max(maximum[axis], point[axis]);
+            }
+        document["accessors"][accessor]["min"] = minimum;
+        document["accessors"][accessor]["max"] = maximum;
         json value = {{"attributes", {{"POSITION", accessor}}},
                       {"mode", polyline.closed ? LINE_LOOP : LINE_STRIP}};
         if (!polyline.extras.is_null() && !polyline.extras.empty()) value["extras"] = polyline.extras;
@@ -299,11 +314,18 @@ DocumentInfo validate(const uint8_t* data, size_t size, uint64_t max_file_size)
     DocumentInfo info;
     info.version = version;
     info.file_size = declared_size;
+    if (document.contains("materials") && (!document["materials"].is_array() || document["materials"].empty()))
+        throw std::runtime_error("Invalid GLB materials array");
     info.material_count = document.value("materials", json::array()).size();
     info.scene_extras = scene.value("extras", json::object());
     for (const json& primitive : mesh["primitives"]) {
         if (!primitive.contains("attributes") || !primitive["attributes"].contains("POSITION"))
             throw std::runtime_error("GLB primitive has no positions");
+        const json& positions = array_at(document, "accessors", primitive["attributes"]["POSITION"].get<size_t>());
+        if (positions.value("type", "") != "VEC3" || positions.value("componentType", uint32_t(0)) != FLOAT_COMPONENT ||
+            !positions.contains("min") || !positions["min"].is_array() || positions["min"].size() != 3 ||
+            !positions.contains("max") || !positions["max"].is_array() || positions["max"].size() != 3)
+            throw std::runtime_error("GLB positions are missing valid bounds");
         if (primitive.value("mode", TRIANGLES) == TRIANGLES) {
             if (!primitive.contains("indices"))
                 throw std::runtime_error("GLB triangle primitive has no indices");
@@ -366,6 +388,7 @@ void Slic3r::store_glb(const char* path, const TriangleMesh* mesh)
     GLB::Scene scene;
     scene.name = "OrcaSlicer model";
     scene.root_rotation = {{-0.7071067811865476, 0, 0, 0.7071067811865476}};
+    scene.root_scale = 0.001;
     scene.vertices.reserve(mesh->its.indices.size() * 3);
     scene.indices.reserve(mesh->its.indices.size() * 3);
     for (const auto& face : mesh->its.indices) {

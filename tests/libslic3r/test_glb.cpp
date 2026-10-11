@@ -4,9 +4,17 @@
 #include "test_utils.hpp"
 
 #include <boost/filesystem.hpp>
+#include <nlohmann/json.hpp>
+#include <array>
+#include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <iterator>
+#include <limits>
+#include <stdexcept>
+#include <string>
 #include <type_traits>
+#include <vector>
 
 using namespace Slic3r;
 
@@ -43,6 +51,11 @@ template<class T> T get_le(const std::vector<uint8_t>& data, size_t offset)
     for (size_t i = 0; i < sizeof(T); ++i)
         value |= U(data[offset + i]) << (8 * i);
     return static_cast<T>(value);
+}
+
+nlohmann::json glb_json(const std::vector<uint8_t>& bytes)
+{
+    return nlohmann::json::parse(bytes.begin() + 20, bytes.begin() + 20 + get_le<uint32_t>(bytes, 12));
 }
 
 std::vector<uint8_t> read_file(const boost::filesystem::path& path)
@@ -104,10 +117,34 @@ TEST_CASE("GLB exports geometry without a material", "[GLB]")
     scene.materials.clear();
     scene.primitives.front().material = -1;
 
-    const GLB::DocumentInfo info = GLB::validate(GLB::serialize(scene));
+    const auto bytes = GLB::serialize(scene);
+    const GLB::DocumentInfo info = GLB::validate(bytes);
 
     CHECK(info.material_count == 0);
     CHECK(info.primitive_count == 1);
+    CHECK_FALSE(glb_json(bytes).contains("materials"));
+}
+
+TEST_CASE("GLB includes position bounds for line primitives", "[GLB][Regression]")
+{
+    GLB::Scene scene = sample_scene();
+    scene.polylines.front().points = {{{-2, 4, 1}}, {{3, -5, 2}}, {{1, 0, -3}}};
+    const auto document = glb_json(GLB::serialize(scene));
+    const size_t positions = document["meshes"][0]["primitives"][1]["attributes"]["POSITION"].get<size_t>();
+    const auto& accessor = document["accessors"][positions];
+    const std::array<double, 3> minimum{{-2, -5, -3}};
+    const std::array<double, 3> maximum{{3, 4, 2}};
+    for (size_t axis = 0; axis < 3; ++axis) {
+        CHECK_THAT(accessor["min"][axis].get<double>(), Catch::Matchers::WithinAbs(minimum[axis], 1e-6));
+        CHECK_THAT(accessor["max"][axis].get<double>(), Catch::Matchers::WithinAbs(maximum[axis], 1e-6));
+    }
+}
+
+TEST_CASE("GLB rejects invalid scene scales", "[GLB]")
+{
+    GLB::Scene scene = sample_scene();
+    scene.root_scale = GENERATE(0.0, -1.0, std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN());
+    CHECK_THROWS_AS(GLB::serialize(scene), std::runtime_error);
 }
 
 TEST_CASE("GLB stores a scene atomically", "[GLB]")
@@ -129,10 +166,20 @@ TEST_CASE("GLB stores a triangle mesh", "[GLB]")
 
     store_glb(target.string().c_str(), &mesh);
 
-    const GLB::DocumentInfo info = GLB::validate(read_file(target));
+    const auto bytes = read_file(target);
+    const GLB::DocumentInfo info = GLB::validate(bytes);
     CHECK(info.vertex_count == mesh.its.indices.size() * 3);
     CHECK(info.index_count == mesh.its.indices.size() * 3);
     CHECK(info.primitive_count == 1);
+    const auto document = glb_json(bytes);
+    const double scale = document["nodes"][0]["scale"][0].get<double>();
+    const auto& positions = document["accessors"][0];
+    const std::array<double, 3> dimensions_in_meters{{0.01, 0.02, 0.03}};
+    for (size_t axis = 0; axis < 3; ++axis) {
+        const double extent = positions["max"][axis].get<double>() - positions["min"][axis].get<double>();
+        CHECK_THAT(extent * scale, Catch::Matchers::WithinAbs(dimensions_in_meters[axis], 1e-9));
+        CHECK_THAT(document["nodes"][0]["scale"][axis].get<double>(), Catch::Matchers::WithinAbs(0.001, 1e-12));
+    }
 }
 
 TEST_CASE("GLB skips degenerate triangle mesh facets", "[GLB][Regression]")

@@ -6,8 +6,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdio>
+#include <iterator>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 namespace Slic3r::GUI {
 namespace {
@@ -69,7 +73,8 @@ CrossSection corner_cross_section(const Vec3f& v, const SegmentLocalAxes& axes1,
 class Builder
 {
 public:
-    Builder(const libvgcode::Viewer& viewer, PreviewMeshScope scope) : m_viewer(&viewer), m_scope(scope) {}
+    Builder(const libvgcode::Viewer& viewer, PreviewMeshScope scope, std::FILE* geometry = nullptr, std::FILE* materials = nullptr)
+        : m_viewer(&viewer), m_scope(scope), m_geometry(geometry), m_materials(materials) {}
     explicit Builder(const libvgcode::GCodeInputData& data) : m_data(&data) {}
 
     PreviewTriangleMesh build()
@@ -120,14 +125,24 @@ private:
     PreviewMeshScope m_scope{PreviewMeshScope::Complete};
     PreviewTriangleMesh m_mesh;
     bool m_need_start{true};
+    size_t m_vertex_count{0};
+    std::FILE* m_geometry{nullptr};
+    std::FILE* m_materials{nullptr};
+    std::vector<libvgcode::Color> m_colors;
+    size_t m_active_material{0};
 
     size_t vertices_count() const { return m_viewer ? m_viewer->get_vertices_count() : m_data->vertices.size(); }
     const libvgcode::PathVertex& vertex_at(size_t index) const {
         return m_viewer ? m_viewer->get_vertex_at(index) : m_data->vertices[index];
     }
-    libvgcode::Color vertex_color(const libvgcode::PathVertex& vertex) const {
-        if (m_viewer)
+    libvgcode::Color vertex_color(size_t vertex_id, const libvgcode::PathVertex& vertex) const {
+        if (m_viewer) {
+            const size_t top_layer = m_viewer->is_top_layer_only_view_range() ? m_viewer->get_layers_view_range()[1] : 0;
+            if (m_scope == PreviewMeshScope::Visible && m_viewer->get_view_full_range()[1] != m_viewer->get_view_visible_range()[1] &&
+                vertex.layer_id < top_layer && (!m_viewer->is_spiral_vase_mode() || vertex_id != m_viewer->get_view_enabled_range()[0]))
+                return libvgcode::DUMMY_COLOR;
             return m_viewer->get_vertex_color(vertex);
+        }
         return vertex.extruder_id < m_data->tools_colors.size() ? m_data->tools_colors[vertex.extruder_id] : libvgcode::DUMMY_COLOR;
     }
 
@@ -135,21 +150,49 @@ private:
     {
         if (!vertex.position.allFinite() || !vertex.normal.allFinite())
             throw std::runtime_error("Non-finite libvgcode preview mesh vertex");
-        const uint32_t index = static_cast<uint32_t>(m_mesh.vertices.size());
-        m_mesh.vertices.push_back({vertex.position, vertex.normal, Vec2f::Zero()});
-        m_mesh.bounds.merge(vertex.position.cast<double>());
+        const uint32_t index = static_cast<uint32_t>(m_vertex_count++);
+        if (m_geometry) {
+            fprintf(m_geometry, "v %g %g %g\nvn %g %g %g\n", vertex.position.x(), vertex.position.y(), vertex.position.z(),
+                    vertex.normal.x(), vertex.normal.y(), vertex.normal.z());
+        } else {
+            m_mesh.vertices.push_back({vertex.position, vertex.normal, Vec2f::Zero()});
+            m_mesh.bounds.merge(vertex.position.cast<double>());
+        }
         return index;
     }
 
     void add_triangle(uint32_t a, uint32_t b, uint32_t c)
     {
+        if (m_geometry) {
+            const size_t first = size_t(a) + 1;
+            const size_t second = size_t(b) + 1;
+            const size_t third = size_t(c) + 1;
+            fprintf(m_geometry, "f %zu//%zu %zu//%zu %zu//%zu\n", first, first, second, second, third, third);
+            return;
+        }
         m_mesh.indices.insert(m_mesh.indices.end(), {a, b, c});
         m_mesh.groups.back().index_count += 3;
     }
 
     void begin_group(size_t vertex_id, const libvgcode::PathVertex& vertex)
     {
-        const libvgcode::Color color = vertex_color(vertex);
+        const libvgcode::Color color = vertex_color(vertex_id, vertex);
+        if (m_geometry) {
+            auto material = std::find(m_colors.begin(), m_colors.end(), color);
+            if (material == m_colors.end()) {
+                m_colors.push_back(color);
+                material = std::prev(m_colors.end());
+                constexpr float inv_255 = 1.0f / 255.0f;
+                fprintf(m_materials, "\nnewmtl material_%zu\nKa 1 1 1\nKd %g %g %g\nKs 0 0 0\n", m_colors.size(),
+                        float(color[0]) * inv_255, float(color[1]) * inv_255, float(color[2]) * inv_255);
+            }
+            const size_t material_id = size_t(std::distance(m_colors.begin(), material)) + 1;
+            if (material_id != m_active_material) {
+                fprintf(m_geometry, "\nusemtl material_%zu\n", material_id);
+                m_active_material = material_id;
+            }
+            return;
+        }
         const uint16_t material = vertex.extruder_id;
         const uint8_t role = static_cast<uint8_t>(vertex.role);
         const uint8_t extruder = vertex.extruder_id;
@@ -161,7 +204,6 @@ private:
                 group.colour_id == colour && group.layer_id == layer && group.color == color)
                 return;
         }
-        (void) vertex_id;
         PreviewTriangleGroup group;
         group.first_index = static_cast<uint32_t>(m_mesh.indices.size());
         group.material_slot = material;
@@ -185,7 +227,7 @@ private:
 
         if ((flags & Flag_First) != 0) {
             begin_group(v1_id, v1);
-            const uint32_t base = static_cast<uint32_t>(m_mesh.vertices.size());
+            const uint32_t base = static_cast<uint32_t>(m_vertex_count);
             const Vertex cap = {p1 - Cap_Rounding_Factor * v1.width * axes12.forward, -axes12.forward};
             const CrossSection section = normal_cross_section(p1, axes12, v1.width, v1.height);
             add_vertex(cap); add_vertex(section.right); add_vertex(section.top); add_vertex(section.left); add_vertex(section.bottom);
@@ -195,8 +237,8 @@ private:
 
         begin_group(v1_id + 1, v2);
         if ((flags & Flag_Last) != 0) {
-            const uint32_t previous = static_cast<uint32_t>(m_mesh.vertices.size()) - 4;
-            const uint32_t base = static_cast<uint32_t>(m_mesh.vertices.size());
+            const uint32_t previous = static_cast<uint32_t>(m_vertex_count) - 4;
+            const uint32_t base = static_cast<uint32_t>(m_vertex_count);
             const Vertex cap = {p2 + Cap_Rounding_Factor * v2.width * axes12.forward, axes12.forward};
             const CrossSection section = normal_cross_section(p2, axes12, v2.width, v2.height);
             add_vertex(cap); add_vertex(section.right); add_vertex(section.top); add_vertex(section.left); add_vertex(section.bottom);
@@ -213,8 +255,8 @@ private:
         const CrossSection corner = corner_cross_section(p2, axes12, axes23, v2.width, v2.height, corner_type);
         const CrossSection before = normal_cross_section(p2, axes12, v2.width, v2.height);
         const CrossSection after = normal_cross_section(p2, axes23, v2.width, v2.height);
-        const uint32_t previous = static_cast<uint32_t>(m_mesh.vertices.size()) - 4;
-        const uint32_t base = static_cast<uint32_t>(m_mesh.vertices.size());
+        const uint32_t previous = static_cast<uint32_t>(m_vertex_count) - 4;
+        const uint32_t base = static_cast<uint32_t>(m_vertex_count);
         if (corner_type == CornerType::Straight) {
             add_vertex(before.right); add_vertex(before.top); add_vertex(before.left); add_vertex(before.bottom);
             add_triangle(previous, base, base + 1); add_triangle(previous, base + 1, previous + 1);
@@ -253,6 +295,11 @@ PreviewTriangleMesh build_preview_triangle_mesh(const libvgcode::Viewer& viewer,
 PreviewTriangleMesh build_preview_triangle_mesh(const libvgcode::GCodeInputData& data)
 {
     return Builder(data).build();
+}
+
+void export_preview_triangle_mesh_to_obj(const libvgcode::Viewer& viewer, std::FILE& geometry, std::FILE& materials)
+{
+    Builder(viewer, PreviewMeshScope::Visible, &geometry, &materials).build();
 }
 
 } // namespace Slic3r::GUI

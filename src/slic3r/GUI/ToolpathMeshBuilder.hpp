@@ -6,6 +6,7 @@
 #include <libvgcode/include/Types.hpp>
 
 #include <cstdint>
+#include <cstdio>
 #include <vector>
 
 namespace libvgcode { class Viewer; }
@@ -46,5 +47,7 @@ enum class PreviewMeshScope : uint8_t { Visible, Complete };
 PreviewTriangleMesh build_preview_triangle_mesh(const libvgcode::Viewer& viewer, PreviewMeshScope scope);
 // Raw input data has no viewer range and is therefore always complete.
 PreviewTriangleMesh build_preview_triangle_mesh(const libvgcode::GCodeInputData& data);
+// Streams visible geometry without retaining a second copy of the toolpath mesh.
+void export_preview_triangle_mesh_to_obj(const libvgcode::Viewer& viewer, std::FILE& geometry, std::FILE& materials);
 
 } // namespace Slic3r::GUI

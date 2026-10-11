@@ -2811,7 +2811,6 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
 
     wxBusyCursor busy;
     CNumericLocalesSetter locales_setter;
-    const PreviewTriangleMesh mesh = build_preview_triangle_mesh(m_viewer, PreviewMeshScope::Visible);
     FilePtr geometry = boost::nowide::fopen(filename, "w");
     if (geometry.f == nullptr)
         return;
@@ -2822,33 +2821,7 @@ void GCodeViewer::export_toolpaths_to_obj(const char* filename) const
         return;
 
     fprintf(geometry.f, "# G-Code Toolpaths\nmtllib ./%s\n", materials_filename.filename().string().c_str());
-    for (const auto& vertex : mesh.vertices) {
-        fprintf(geometry.f, "v %g %g %g\n", vertex.position.x(), vertex.position.y(), vertex.position.z());
-        fprintf(geometry.f, "vn %g %g %g\n", vertex.normal.x(), vertex.normal.y(), vertex.normal.z());
-    }
-    constexpr float inv_255 = 1.0f / 255.0f;
-    for (size_t group_id = 0; group_id < mesh.groups.size(); ++group_id) {
-        const auto& group = mesh.groups[group_id];
-        fprintf(geometry.f, "\nusemtl material_%zu\n", group_id + 1);
-        const size_t end = static_cast<size_t>(group.first_index) + group.index_count;
-        for (size_t i = group.first_index; i + 2 < end; i += 3) {
-            const size_t a = static_cast<size_t>(mesh.indices[i]) + 1;
-            const size_t b = static_cast<size_t>(mesh.indices[i + 1]) + 1;
-            const size_t c = static_cast<size_t>(mesh.indices[i + 2]) + 1;
-            fprintf(geometry.f, "f %zu//%zu %zu//%zu %zu//%zu\n", a, a, b, b, c, c);
-        }
-        const auto& color = group.color;
-        fprintf(materials.f, "\nnewmtl material_%zu\nKa 1 1 1\nKd %g %g %g\nKs 0 0 0\n", group_id + 1,
-                static_cast<float>(color[0]) * inv_255, static_cast<float>(color[1]) * inv_255,
-                static_cast<float>(color[2]) * inv_255);
-    }
-}
-
-std::shared_ptr<const PreviewTriangleMesh> GCodeViewer::create_preview_triangle_mesh_snapshot() const
-{
-    if (!has_data() || m_gcode_result == nullptr || m_last_result_id != m_gcode_result->id)
-        return {};
-    return std::make_shared<const PreviewTriangleMesh>(build_preview_triangle_mesh(m_viewer, PreviewMeshScope::Complete));
+    export_preview_triangle_mesh_to_obj(m_viewer, *geometry.f, *materials.f);
 }
 
 void GCodeViewer::load_shells(const Print& print, bool initialized, bool force_previewing)

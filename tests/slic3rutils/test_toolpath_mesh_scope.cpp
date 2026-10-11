@@ -1,5 +1,13 @@
 #include <catch2/catch_all.hpp>
+#include "test_utils.hpp"
+#include <libslic3r/Utils.hpp>
+#include <libslic3r/TriangleMesh.hpp>
+#include <libslic3r/Format/OBJ.hpp>
+#include <boost/nowide/cstdio.hpp>
 
+#include <fstream>
+#include <cstddef>
+#include <cstdint>
 #include <map>
 #include <optional>
 #include <string>
@@ -7,6 +15,7 @@
 
 #include <slic3r/GUI/ToolpathMeshBuilder.hpp>
 #include <libvgcode/include/GCodeInputData.hpp>
+#include <libvgcode/include/Types.hpp>
 
 // libvgcode::Viewer loading owns OpenGL resources. This focused test only needs its normalized
 // CPU vertices and range state, so expose those internals without requiring a test GL context.
@@ -122,4 +131,86 @@ TEST_CASE("Complete mesh supports vertical extrusion segments", "[ToolpathMeshBu
     }
     CHECK(mesh.bounds.min.z() < 0.0);
     CHECK(mesh.bounds.max.z() > 20.0);
+}
+
+TEST_CASE("Visible toolpaths retain lower-layer grey coloring during playback", "[ToolpathMeshBuilder][Regression]")
+{
+    libvgcode::Viewer viewer;
+    viewer.m_impl->m_vertices = {
+        extrusion(0.0f, 1), extrusion(10.0f, 2), travel(20.0f, 3),
+        extrusion(100.0f, 4), extrusion(110.0f, 5), extrusion(120.0f, 6), travel(130.0f, 7)
+    };
+    for (size_t i = 3; i < viewer.m_impl->m_vertices.size(); ++i)
+        viewer.m_impl->m_vertices[i].layer_id = 1;
+    viewer.m_impl->m_layers.set_view_range(0, 1);
+    viewer.m_impl->m_settings.top_layer_only_view_range = true;
+    viewer.m_impl->m_view_range.set_full(0, 6);
+    viewer.m_impl->m_view_range.set_enabled(3, 6);
+    viewer.m_impl->m_view_range.set_visible(3, 4);
+
+    const auto visible = Slic3r::GUI::build_preview_triangle_mesh(viewer, Slic3r::GUI::PreviewMeshScope::Visible);
+    REQUIRE_FALSE(visible.groups.empty());
+    CHECK(visible.groups.front().color == libvgcode::DUMMY_COLOR);
+    CHECK(visible.groups.back().color != libvgcode::DUMMY_COLOR);
+
+    const auto complete = Slic3r::GUI::build_preview_triangle_mesh(viewer, Slic3r::GUI::PreviewMeshScope::Complete);
+    REQUIRE_FALSE(complete.groups.empty());
+    CHECK(complete.groups.front().color != libvgcode::DUMMY_COLOR);
+
+    viewer.m_impl->m_settings.spiral_vase_mode = true;
+    viewer.m_impl->m_view_range.set_enabled(0, 6);
+    const auto spiral = Slic3r::GUI::build_preview_triangle_mesh(viewer, Slic3r::GUI::PreviewMeshScope::Visible);
+    REQUIRE_FALSE(spiral.groups.empty());
+    CHECK(spiral.groups.front().color != libvgcode::DUMMY_COLOR);
+}
+
+TEST_CASE("Streamed OBJ toolpaths retain corner geometry and reuse materials across layers", "[ToolpathMeshBuilder][Regression]")
+{
+    libvgcode::Viewer viewer;
+    viewer.m_impl->m_vertices = {
+        extrusion(0.0f, 1), extrusion(10.0f, 2), extrusion(10.0f, 3), extrusion(20.0f, 4), extrusion(20.0f, 5)
+    };
+    viewer.m_impl->m_vertices[2].position[1] = 10;
+    viewer.m_impl->m_vertices[3].position[1] = 10;
+    viewer.m_impl->m_vertices[4].position[1] = 20;
+    viewer.m_impl->m_vertices[3].layer_id = 1;
+    viewer.m_impl->m_vertices[4].layer_id = 1;
+    viewer.m_impl->m_view_range.set_full(0, 4);
+    viewer.m_impl->m_view_range.set_enabled(0, 4);
+    viewer.m_impl->m_view_range.set_visible(0, 4);
+
+    ScopedTemporaryFile geometry_path(".obj");
+    ScopedTemporaryFile materials_path(".mtl");
+    {
+        Slic3r::FilePtr geometry(boost::nowide::fopen(geometry_path.string().c_str(), "w"));
+        Slic3r::FilePtr materials(boost::nowide::fopen(materials_path.string().c_str(), "w"));
+        REQUIRE(geometry.f != nullptr);
+        REQUIRE(materials.f != nullptr);
+        Slic3r::GUI::export_preview_triangle_mesh_to_obj(viewer, *geometry.f, *materials.f);
+    }
+    Slic3r::TriangleMesh exported;
+    Slic3r::ObjInfo info;
+    std::string error;
+    REQUIRE(Slic3r::load_obj(geometry_path.string().c_str(), &exported, info, error));
+    const auto expected = Slic3r::GUI::build_preview_triangle_mesh(viewer, Slic3r::GUI::PreviewMeshScope::Visible);
+    CHECK(exported.facets_count() == expected.indices.size() / 3);
+    const auto bounds = exported.bounding_box();
+    for (int axis = 0; axis < 3; ++axis) {
+        CHECK_THAT(bounds.min[axis], Catch::Matchers::WithinAbs(expected.bounds.min[axis], 1e-4));
+        CHECK_THAT(bounds.max[axis], Catch::Matchers::WithinAbs(expected.bounds.max[axis], 1e-4));
+    }
+
+    std::ifstream materials(materials_path.string());
+    size_t material_count = 0;
+    for (std::string line; std::getline(materials, line);)
+        if (line.compare(0, 7, "newmtl ") == 0)
+            ++material_count;
+    CHECK(material_count == 1);
+
+    std::ifstream geometry(geometry_path.string());
+    size_t material_switches = 0;
+    for (std::string line; std::getline(geometry, line);)
+        if (line.compare(0, 7, "usemtl ") == 0)
+            ++material_switches;
+    CHECK(material_switches == 1);
 }

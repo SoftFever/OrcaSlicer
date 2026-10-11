@@ -1,11 +1,12 @@
 #pragma once
 
 #include "../pluginTypes/visualization/VisualizationPluginCapability.hpp"
-#include "PreviewGeometrySnapshot.hpp"
+#include "libslic3r/Point.hpp"
 
 #include <boost/filesystem/path.hpp>
 
 #include <condition_variable>
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <functional>
@@ -15,12 +16,14 @@
 #include <set>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace Slic3r {
 
 class PluginManager;
-class TriangleMesh;
+class Model;
+struct GCodeProcessorResult;
 
 class PluginVisualizations
 {
@@ -43,7 +46,6 @@ public:
     void            close_plugin(const std::string& plugin_key);
     void            close_all();
     bool            is_active(const PluginCapabilityId& id) const;
-    bool            has_active_sessions() const;
 
     void request_open(const std::shared_ptr<VisualizationPluginCapability>& capability,
                       const std::vector<VisualizationResourceRequest>& resources = {}, Completion completion = {});
@@ -58,7 +60,6 @@ private:
         std::shared_ptr<VisualizationPluginCapability> capability;
         uint64_t                                       revision{0};
         std::vector<boost::filesystem::path>           snapshot_paths;
-        std::vector<VisualizationInput>                inputs;
         std::vector<VisualizationResourceRequest>      resource_requests;
     };
 
@@ -67,8 +68,11 @@ private:
         VisualizationInput                                      input;
         int                                                     plate_index{-1};
         boost::filesystem::path                                 snapshot_path;
-        std::shared_ptr<const PreviewGeometrySnapshot::Snapshot> toolpath;
-        std::shared_ptr<const TriangleMesh>                      model;
+        std::shared_ptr<const GCodeProcessorResult>              toolpath;
+        std::vector<std::string>                                 tool_colors;
+        Pointfs                                                  printable_area;
+        std::shared_ptr<const Model>                             model;
+        std::vector<std::pair<size_t, size_t>>                    instances;
     };
 
     struct Request

@@ -27,7 +27,6 @@
 #include <array>
 #include <cstdint>
 #include <float.h>
-#include <memory>
 #include <set>
 #include "slic3r/GUI/MeshUtils.hpp"
 #include <string>
@@ -46,7 +45,6 @@ namespace GUI {
 
 class PartPlateList;
 class OpenGLManager;
-struct PreviewTriangleMesh;
 
 static const float GCODE_VIEWER_SLIDER_SCALE = 0.6f;
 static const float SLIDER_DEFAULT_RIGHT_MARGIN  = 10.0f;
@@ -513,7 +511,6 @@ public:
     float get_legend_height() { return m_legend_height; }
 
     void export_toolpaths_to_obj(const char* filename) const;
-    std::shared_ptr<const PreviewTriangleMesh> create_preview_triangle_mesh_snapshot() const;
 
     void set_belt_printer(bool enabled, float angle_deg) { m_belt_view_enabled = enabled; m_belt_angle_deg = angle_deg; }
     bool is_belt_view() const { return m_belt_view_enabled && m_belt_angle_deg > 0.f; }

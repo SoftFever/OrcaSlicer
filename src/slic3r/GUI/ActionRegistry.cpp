@@ -155,7 +155,7 @@ struct PluginVisualizationAction : AppAction
         if (!resolved)
             return {AppActionRunResult::Level::Info, {}};
         PluginVisualizations::instance().request_open(resolved);
-        return {AppActionRunResult::Level::Success, {}};
+        return {AppActionRunResult::Level::Info, {}};
     }
 };
 

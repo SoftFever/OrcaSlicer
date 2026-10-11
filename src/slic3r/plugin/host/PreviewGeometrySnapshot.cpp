@@ -31,8 +31,10 @@ GLB::Scene make_scene(const Snapshot& snapshot)
     scene.bounds_min = snapshot.bounds_min;
     scene.bounds_max = snapshot.bounds_max;
     scene.root_rotation = {{-0.7071067811865476, 0, 0, 0.7071067811865476}};
+    scene.root_scale = 0.001;
     scene.extras = {{"orca", {{"sceneId", snapshot.scene_id},
                                {"plateIndex", snapshot.plate_index},
+                               {"metadataLengthUnit", "mm"},
                                {"spiralVase", (snapshot.flags & FLAG_SPIRAL_VASE) != 0},
                                {"zOffset", snapshot.z_offset},
                                {"printableHeight", snapshot.printable_height}}}};

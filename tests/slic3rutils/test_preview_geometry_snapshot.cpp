@@ -88,6 +88,9 @@ TEST_CASE("preview scene serializes as standard GLB 2.0", "[PreviewGeometrySnaps
     CHECK(info.material_count == 1);
     CHECK(document["asset"]["version"] == "2.0");
     CHECK(document["nodes"][0]["rotation"].size() == 4);
+    for (size_t axis = 0; axis < 3; ++axis)
+        CHECK_THAT(document["nodes"][0]["scale"][axis].get<double>(), Catch::Matchers::WithinAbs(0.001, 1e-12));
+    CHECK(document["scenes"][0]["extras"]["orca"]["metadataLengthUnit"] == "mm");
     CHECK(document["meshes"][0]["primitives"][0]["extras"]["orca"]["layerId"] == 7);
     CHECK(document["meshes"][0]["primitives"][1]["mode"] == 2);
     CHECK(document["meshes"][0]["primitives"][1]["extras"]["orca"]["areaKind"] == "printable");

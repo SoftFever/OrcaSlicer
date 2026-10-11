@@ -52,6 +52,8 @@ struct Scene {
     nlohmann::json extras;
     // glTF is Y-up. Exporters with Z-up data may rotate the root node without rewriting vertices.
     std::array<double, 4> root_rotation{{0, 0, 0, 1}};
+    // glTF uses meters; callers with millimeter geometry set this to 0.001.
+    double root_scale{1.0};
 };
 
 struct DocumentInfo {
