@@ -53,7 +53,9 @@ ones the Preview toolbar shows (`PartPlate::thumbnail_data`); the canvas rebuild
 Preview toolbar's dirty flag is left alone. The current plate has an accent border, empty plates are
 dimmed and the plate number sits in the corner; the tooltip gives the plate name. A click selects the
 plate and clears the selection, as a click on a plate row of the object list does. The column scrolls
-when it does not fit above the 3D navigator or the canvas toolbar.
+when it does not fit above the 3D navigator or the canvas toolbar. Its scrollbar works as the Preview
+toolbar's, with which it shares its style: it shows only while the mouse is over the column or drags
+the bar, and the mouse wheel scrolls the column either way.
 
 Whatever selects a plate while the others are hidden, the camera moves its target over the new plate
 and keeps its angle, distance and height (`PartPlateList::select_plate()`), so the plate comes into
