@@ -7,6 +7,7 @@
 #include <functional>
 #include <cstdint>
 #include <atomic>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -168,6 +169,9 @@ private:
     // System-specific filament fetch methods
     bool fetch_hh_filament_info(std::vector<AmsTrayData>& trays, int& max_lane_index);
     bool fetch_moonraker_filament_data(std::vector<AmsTrayData>& trays, int& max_lane_index);
+    // Lane name -> toolhead index, read from the AFC printer objects (the lane_data database has no
+    // extruder field). Returns false when AFC is not present or the objects cannot be read.
+    bool fetch_afc_lane_extruders(std::map<std::string, int>& lane_extruder);
 
     // Build one BBL tray JSON object (placeholder when the tray has no filament).
     static nlohmann::json make_ams_tray_json(const std::string& tray_id, const AmsTrayData& tray);

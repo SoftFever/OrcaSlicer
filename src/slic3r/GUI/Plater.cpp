@@ -6025,6 +6025,8 @@ void Sidebar::on_bed_type_change(BedType bed_type)
  * - Map key encoding:
  *   - Virtual trays: 0x10000 + vt_tray.id (first/main extruder), or just vt_tray.id (secondary)
  *   - AMS trays: 0x10000 + (ams_id * 4 + slot_id) (main extruder), or (ams_id * 4 + slot_id) (secondary)
+ *   - Generic (non-Bambu) units are not four slots wide: their trays index by a cumulative lane
+ *     count across units instead of ams_id * 4 + slot_id
  *   - The 0x10000 flag indicates the main/right extruder
  * - Map value: DynamicPrintConfig with filament properties (id, type, color, etc.)
  *
@@ -6090,13 +6092,26 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
         return std::string();
     };
 
+    const bool is_bbl_vendor = wxTheApp != nullptr && wxGetApp().preset_bundle != nullptr && wxGetApp().preset_bundle->is_bbl_vendor();
+
     auto list = obj->GetFilaSystem()->GetAmsList();
     for (auto ams : list) {
         int ams_id   = std::stoi(ams.first);
         int extruder = ams.second->GetExtruderId() ? 0 : 0x10000; // Main (first) extruder at right
+        // Bambu units are four slots wide; a generic unit reports its own lane count and its trays
+        // carry a cumulative lane index. The AMS map is keyed by string id, so count preceding units
+        // numerically to keep this the same index the parser and the agent use.
+        int generic_tray_base = 0;
+        if (!is_bbl_vendor) {
+            for (const auto& other : list) {
+                if (std::stoi(other.first) < ams_id)
+                    generic_tray_base += static_cast<int>(other.second->GetTrays().size());
+            }
+        }
         for (auto tray : ams.second->GetTrays()) {
             int  slot_id = std::stoi(tray.first);
-            filament_ams_list.emplace(extruder + (ams_id * 4 + slot_id),
+            const int tray_index = is_bbl_vendor ? ams_id * 4 + slot_id : generic_tray_base + slot_id;
+            filament_ams_list.emplace(extruder + tray_index,
                                       build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
         }
     }

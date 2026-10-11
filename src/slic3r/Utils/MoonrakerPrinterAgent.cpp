@@ -59,6 +59,42 @@ namespace websocket = beast::websocket;
 namespace net       = boost::asio;
 using tcp           = net::ip::tcp;
 
+// Decimal value of a string that is nothing but digits, or -1 when it is empty or not a number.
+int decimal_number(const std::string& digits)
+{
+    if (digits.empty() || !std::all_of(digits.begin(), digits.end(), [](unsigned char c) { return std::isdigit(c) != 0; }))
+        return -1;
+    try {
+        return std::stoi(digits);
+    } catch (...) {
+        return -1;
+    }
+}
+
+// Lane database keys address a lane either as "T<N>" (0-based tool index) or as "lane<N>"
+// (1-based, the AFC/Happy Hare style). Returns -1 when the key carries no usable lane number.
+int lane_index_from_key(const std::string& lane_key)
+{
+    if (lane_key.size() > 1 && (lane_key[0] == 'T' || lane_key[0] == 't'))
+        return decimal_number(lane_key.substr(1));
+    if (lane_key.size() > 4 && lane_key.compare(0, 4, "lane") == 0) {
+        const int lane_number = decimal_number(lane_key.substr(4));
+        return lane_number > 0 ? lane_number - 1 : -1;
+    }
+    return -1;
+}
+
+// AFC names toolheads "extruder", "extruder1", ... and derives the toolhead index from the name
+// itself (AFC_lane.lane_extruder_index): no suffix is 0, otherwise the suffix is the index.
+int extruder_index_from_name(const std::string& toolhead)
+{
+    if (toolhead == "extruder")
+        return 0;
+    if (toolhead.size() > 8 && toolhead.compare(0, 8, "extruder") == 0)
+        return decimal_number(toolhead.substr(8));
+    return -1;
+}
+
 struct WsEndpoint
 {
     std::string host;
@@ -503,6 +539,9 @@ void MoonrakerPrinterAgent::build_ams_payload_grouped(const std::vector<AmsTrayD
     unsigned long tray_exist_bits = 0;
 
     int ams_id = 0;
+    // Cumulative lane index across all boxes, in box then slot order. A lane maps to exactly one
+    // extruder, so this is the lane's identity; the parser derives the same index for generic units.
+    int lane_index = 0;
     for (auto& [extruder_id, lanes] : boxes) {
         if (ams_id < 32) {
             ams_exist_bits |= (1UL << ams_id);
@@ -515,7 +554,9 @@ void MoonrakerPrinterAgent::build_ams_payload_grouped(const std::vector<AmsTrayD
         nlohmann::json tray_array = nlohmann::json::array();
         for (size_t slot = 0; slot < lanes.size(); ++slot) {
             const AmsTrayData& tray = *lanes[slot];
-            int bit = ams_id * 4 + static_cast<int>(slot);
+            // A logical feed group is not a four-slot Bambu AMS: the bit is the lane's cumulative
+            // index, not ams_id*4+slot. DevFilaSystemParser::ParseV1_0 reads the same index.
+            const int bit = lane_index++;
             if (tray.has_filament && bit < 32) {
                 tray_exist_bits |= (1UL << bit);
             }
@@ -881,26 +922,38 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
     trays.clear();
     max_lane_index = 0;
 
+    // The lane_data namespace carries no extruder field; read the lane -> toolhead binding from the
+    // AFC printer objects so lanes on different toolheads end up in different AMS boxes.
+    std::map<std::string, int> lane_extruder;
+    fetch_afc_lane_extruders(lane_extruder);
+
     for (const auto& [lane_key, lane_obj] : value.items()) {
         if (!lane_obj.is_object()) {
             continue;
         }
 
         // Lane tool number (0-based). AFC reports it as a string in the documented sample but it
-        // can also be a number; accept either and skip lanes without a usable index.
-        const int lane_index = safe_json_int_flexible(lane_obj, "lane", -1);
+        // can also be a number; accept either and skip lanes without a usable index. Databases
+        // written without a "lane" field fall back to the key, which names the lane either as
+        // "T<N>" (0-based) or as "lane<N>" (1-based).
+        int lane_index = safe_json_int_flexible(lane_obj, "lane", -1);
         if (lane_index < 0) {
-            continue;
+            lane_index = lane_index_from_key(lane_key);
+            if (lane_index < 0) {
+                continue;
+            }
         }
 
         AmsTrayData tray;
         tray.slot_index = lane_index;
         // AFC exposes the lane's extruder/toolhead as "extruder_index"; tolerate "extruder_id" as
-        // an alias. Unknown or negative falls back to the main extruder (best effort).
+        // an alias. lane_data has neither, so fall back to the AFC lane objects and only then to
+        // the main extruder (best effort).
         tray.extruder_id = safe_json_int_flexible(lane_obj, "extruder_index",
-                              safe_json_int_flexible(lane_obj, "extruder_id", 0));
+                              safe_json_int_flexible(lane_obj, "extruder_id", -1));
         if (tray.extruder_id < 0) {
-            tray.extruder_id = 0;
+            const auto it = lane_extruder.find(lane_key);
+            tray.extruder_id = it != lane_extruder.end() ? it->second : 0;
         }
         tray.tray_color = safe_json_string(lane_obj, "color");
         tray.tray_type = safe_json_string(lane_obj, "material");
@@ -1043,6 +1096,82 @@ bool MoonrakerPrinterAgent::fetch_hh_filament_info(std::vector<AmsTrayData>& tra
     max_lane_index = num_gates - 1;
 
     return true;
+}
+
+// AFC writes its filament data into the lane_data database namespace, and the records of the
+// fixture/agent write path carry no extruder field, so the lane -> toolhead binding has to be read
+// from the printer objects: each AFC_lane <name>.extruder names the toolhead its lane feeds, and
+// the toolhead's name carries its own index. Best effort: on failure every lane keeps the fallback
+// of the main extruder.
+bool MoonrakerPrinterAgent::fetch_afc_lane_extruders(std::map<std::string, int>& lane_extruder)
+{
+    auto query_objects = [this](const std::string& query_string, nlohmann::json& out) {
+        auto http = Http::get(join_url(device_info.base_url, "/printer/objects/query?" + query_string));
+        if (!device_info.api_key.empty()) {
+            http.header("X-Api-Key", device_info.api_key);
+        }
+        std::string body;
+        unsigned    status_code = 0;
+        http.timeout_connect(5)
+            .timeout_max(10)
+            .on_complete([&](std::string response, unsigned status) {
+                body        = std::move(response);
+                status_code = status;
+            })
+            .perform_sync();
+        if (status_code != 200) {
+            return false;
+        }
+        out = nlohmann::json::parse(body, nullptr, false, true);
+        return !out.is_discarded();
+    };
+
+    nlohmann::json afc_json;
+    if (!query_objects("AFC", afc_json) || !afc_json.contains("result") ||
+        !afc_json["result"].contains("status") || !afc_json["result"]["status"].contains("AFC")) {
+        return false;
+    }
+
+    const auto& afc   = afc_json["result"]["status"]["AFC"];
+    const auto& lanes = afc.contains("lanes") ? afc["lanes"] : nlohmann::json::array();
+    if (!lanes.is_array() || lanes.empty()) {
+        return false;
+    }
+
+    // Query every lane object in one request; the object names are "AFC_lane <lane name>".
+    std::string query_string;
+    for (const auto& lane : lanes) {
+        if (!lane.is_string()) {
+            return false;
+        }
+        if (!query_string.empty()) {
+            query_string += "&";
+        }
+        query_string += "AFC_lane%20" + lane.get<std::string>();
+    }
+
+    nlohmann::json lanes_json;
+    if (!query_objects(query_string, lanes_json) || !lanes_json.contains("result") ||
+        !lanes_json["result"].contains("status")) {
+        return false;
+    }
+
+    const auto& status = lanes_json["result"]["status"];
+    for (const auto& lane : lanes) {
+        const std::string name = lane.get<std::string>();
+        const std::string key  = "AFC_lane " + name;
+        if (!status.contains(key) || !status[key].is_object() || !status[key].contains("extruder") ||
+            !status[key]["extruder"].is_string()) {
+            continue;
+        }
+        const std::string toolhead = status[key]["extruder"].get<std::string>();
+        const int toolhead_index   = extruder_index_from_name(toolhead);
+        if (toolhead_index >= 0) {
+            lane_extruder[name] = toolhead_index;
+        }
+    }
+
+    return !lane_extruder.empty();
 }
 
 int MoonrakerPrinterAgent::handle_request(const std::string& dev_id, const std::string& json_str)
