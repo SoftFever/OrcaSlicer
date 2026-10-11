@@ -59,6 +59,16 @@ assert.deepEqual(ctx.filterTabs(localizedTabs, "device").map(function (t) { retu
     "a localized tab matches its English title");
 assert.deepEqual(ctx.filterTabs(localizedTabs, "设备").map(function (t) { return t.id; }), ["monitor"],
     "a localized tab still matches its translated title");
+// A tab found only through its English title shows it as a hint; one that matched its translated
+// title or id already shows why, and one without an English title has nothing to show.
+assert.deepEqual(ctx.tabAliasHint(localizedTabs[0], "device"), { text: "Device", ranges: [[0, 6]] },
+    "an English-only tab match yields the English title and its highlight ranges");
+assert.equal(ctx.tabAliasHint(localizedTabs[0], "设备"), null,
+    "a translated-title tab match draws no English hint");
+assert.equal(ctx.tabAliasHint(localizedTabs[0], "monitor"), null,
+    "a tab matched by its id draws no English hint");
+assert.equal(ctx.tabAliasHint(localizedTabs[1], "Device"), null,
+    "a tab with no English title has no hint");
 
 // tabTitle: pages added with an empty title (e.g. MainFrame's Home tab) fall back to the id.
 assert.equal(ctx.tabTitle({ id: "home", title: "" }), "Home",
@@ -242,6 +252,47 @@ assert.equal(ctx.completionFor("reverse o", ctx.searchActions(zhPool, "reverse o
     "completion extends an English word from title_en");
 assert.equal(ctx.completionFor("quality overh", ctx.searchActions(zhPool, "quality overh")).suffix, "angs",
     "completion also reaches the English breadcrumb");
+// A row matched only through an English group/source/full_label alias still names the action in
+// English: the hint is title_en (the English name), not the alias that matched, so a breadcrumb hit
+// does not just repeat the translated eyebrow.
+ctx.searchActions(zhPool, "export");
+assert.deepEqual(ctx.matchIndex.slice.group_en, [[8, 14]], "the English group keeps its ranges");
+assert.deepEqual(ctx.englishHint(zhPool[1], ctx.matchIndex.slice, null), { text: "Slice and Preview", ranges: null },
+    "an English group match names the action, unhighlighted");
+assert.deepEqual(ctx.englishBreadcrumb(zhPool[1], ctx.matchIndex.slice), { text: "Slice & Export", ranges: [[8, 14]] },
+    "an English group match shows the English breadcrumb beside the eyebrow");
+ctx.searchActions(zhPool, "overhang reversal");
+assert.deepEqual(ctx.matchIndex.rev.full_label_en, [[0, 17]], "the English full_label keeps its ranges");
+assert.deepEqual(ctx.englishHint(zhPool[0], ctx.matchIndex.rev, null), { text: "Reverse on even", ranges: null },
+    "an English full_label match names the action, unhighlighted");
+ctx.searchActions(zhPool, "quality");
+assert.deepEqual(ctx.matchIndex.rev.source_en, [[10, 17]], "the English breadcrumb keeps its ranges");
+assert.deepEqual(ctx.englishHint(zhPool[0], ctx.matchIndex.rev, null), { text: "Reverse on even", ranges: null },
+    "an English breadcrumb match names the action, not the breadcrumb");
+assert.deepEqual(ctx.englishBreadcrumb(zhPool[0], ctx.matchIndex.rev), { text: "Process : Quality : Overhangs", ranges: [[10, 17]] },
+    "an English breadcrumb match shows the English breadcrumb beside the eyebrow");
+// The name itself matching is the one case that highlights the hint.
+ctx.searchActions(zhPool, "reverse on even");
+assert.deepEqual(ctx.englishHint(zhPool[0], ctx.matchIndex.rev, null), { text: "Reverse on even", ranges: [[0, 15]] },
+    "an English title match names and highlights the action");
+assert.equal(ctx.englishBreadcrumb(zhPool[0], ctx.matchIndex.rev), null,
+    "an English title match shows no breadcrumb hint");
+// A breadcrumb match with no English name falls back to the matched alias.
+assert.deepEqual(ctx.englishHint({ title_en: "", source_en: "Process : Speed" }, { source_en: [[10, 15]] }, null),
+    { text: "Process : Speed", ranges: [[10, 15]] }, "without an English name the matched alias is shown");
+// A visible translated highlight suppresses the hint even when an English alias also matched.
+ctx.searchActions(zhPool, "brim");
+assert.equal(ctx.englishHint(zhPool[2], ctx.matchIndex.brim, ctx.matchIndex.brim.title), null,
+    "a row that highlights its translated title draws no English hint");
+// The reported case: "process speed" matches only the English breadcrumb of "Inner wall", so the hint
+// names the setting rather than echoing the breadcrumb.
+const zhInner = [{ id: "inner", title: "内壁", title_en: "Inner wall", source: "工艺 : 速度",
+                   source_en: "Process : Speed", group: "", input: "" }];
+ctx.searchActions(zhInner, "process speed");
+assert.deepEqual(ctx.englishHint(zhInner[0], ctx.matchIndex.inner, null), { text: "Inner wall", ranges: null },
+    "a breadcrumb-only match names the setting in English");
+assert.deepEqual(ctx.englishBreadcrumb(zhInner[0], ctx.matchIndex.inner), { text: "Process : Speed", ranges: [[0, 8], [10, 15]] },
+    "a breadcrumb-only match shows the English breadcrumb beside the eyebrow");
 
 // actionCategory: a command/dynamic action's group is its category; a setting uses the top-level
 // source segment; every plugin shares one header; a category-less action falls back to "Other".
