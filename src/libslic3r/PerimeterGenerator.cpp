@@ -41,7 +41,7 @@
 #include "MultiMaterialSegmentation.hpp"
 #include "SurfaceCollection.hpp"
 
-// #define PERIMETERS_DEBUG
+#define PERIMETERS_DEBUG
 // #define EXTRA_PERIM_DEBUG_FILES
 
 static const int overhang_sampling_number = 6;
@@ -680,10 +680,7 @@ inline double PerimeterGenerator::get_inset(int loop_number, double perimeter_sp
 // ORCA: only_one_wall_top for Arachne - cut out of the already generated inner walls the parts running over the top
 // surface, so geometry that continues upward keeps its walls. A wall too short over the top to be worth slitting open
 // is left whole, its footprint reported in kept_over_top for the caller to withhold from the top fill.
-static void clip_inner_walls_over_top(std::vector<Arachne::VariableWidthLines>& inner_perimeters,
-                                      const ExPolygons& top_region,
-                                      coord_t perimeter_width,
-                                      Polygons& kept_over_top)
+static void clip_inner_walls_over_top(std::vector<Arachne::VariableWidthLines> &inner_perimeters, const ExPolygons &top_region, coord_t perimeter_width, Polygons &kept_over_top)
 {
     const BoundingBox top_region_bbox = get_extents(top_region).inflated(SCALED_EPSILON);
     auto covered_by = [](const Arachne::ExtrusionLine &el) {
@@ -721,7 +718,7 @@ static void clip_inner_walls_over_top(std::vector<Arachne::VariableWidthLines>& 
                 continue; // the clip below would return nothing anyway
             ClipperZUtils::ZPath subject;
             subject.reserve(el.size());
-            for (const Arachne::ExtrusionJunction& j : el.junctions)
+            for (const Arachne::ExtrusionJunction &j : el.junctions)
                 subject.emplace_back(j.p.x(), j.p.y(), j.w);
             ClipperZUtils::ZPaths pieces = clip_extrusion(subject, top_paths_z, ctDifference);
 
@@ -761,7 +758,7 @@ static void clip_inner_walls_over_top(std::vector<Arachne::VariableWidthLines>& 
             for (const ClipperZUtils::ZPath &path : pieces) {
                 Arachne::ExtrusionLine clipped(el.inset_idx, el.is_odd);
                 clipped.junctions.reserve(path.size());
-                for (const ClipperZUtils::ZPoint& pt : path)
+                for (const ClipperZUtils::ZPoint &pt : path)
                     clipped.junctions.emplace_back(Point(pt.x(), pt.y()), coord_t(pt.z()), el.inset_idx);
                 // Discard tiny leftovers that would print as zits.
                 if (clipped.size() >= 2 && clipped.getLength() >= perimeter_width)
@@ -826,8 +823,7 @@ static Polygons walls_footprint(const Arachne::VariableWidthLines &walls)
 }
 
 void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExPolygons &top_fills,
-                                            ExPolygons &non_top_polygons, ExPolygons &fill_clip) const 
-{
+                                            ExPolygons &non_top_polygons, ExPolygons &fill_clip) const {
     // other perimeters
     const double perimeter_width   = this->perimeter_flow.scaled_width();
     const double perimeter_spacing = this->perimeter_flow.scaled_spacing();
@@ -866,7 +862,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     } else
         upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
 
-    //upper_polygons_series_clipped = offset(upper_polygons_series_clipped, min_width_top_surface);
+    // upper_polygons_series_clipped = offset(upper_polygons_series_clipped, min_width_top_surface);
 
     // get the real top surface
     ExPolygons grown_lower_slices;
@@ -878,24 +874,24 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
         // BBS: get the Polygons below the polygon this layer
         Polygons lower_polygons_series_clipped =
             ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->lower_slices, last_box);
-        double bridge_offset = std::max(ext_perimeter_spacing, perimeter_width);
+        const double bridge_offset = std::max(ext_perimeter_spacing, perimeter_width);
         // SoftFever: improve bridging
         const double bridge_margin = scale_(std::min(BRIDGE_INFILL_MARGIN, nozzle_diameter * BRIDGE_INFILL_MARGIN / 0.4));
-        bridge_checker = offset_ex(diff_ex(fill_clip, lower_polygons_series_clipped, ApplySafetyOffset::Yes),
+        bridge_checker = offset_ex(diff_ex(orig_polygons, lower_polygons_series_clipped, ApplySafetyOffset::Yes),
                                                1.5 * bridge_offset + bridge_margin + perimeter_half_spacing);
     }
-    ExPolygons delete_bridge = diff_ex(fill_clip, bridge_checker, ApplySafetyOffset::Yes);
+    ExPolygons delete_bridge = diff_ex(orig_polygons, bridge_checker, ApplySafetyOffset::Yes);
 
     ExPolygons top_polygons = diff_ex(delete_bridge, upper_polygons_series_clipped, ApplySafetyOffset::Yes);
 
     // get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the min_width_top_surface we removed a bit before)
-    ExPolygons temp_gap = diff_ex(top_polygons, fill_clip);
+    ExPolygons temp_gap = diff_ex(top_polygons, orig_polygons);
     
     // get the enlarged top surface, by using inner_polygons instead of upper_slices, and clip it for it to be exactly
     ExPolygons inner_polygons = diff_ex(orig_polygons, offset_ex(top_polygons, perimeter_half_spacing), ApplySafetyOffset::Yes);
     
     // the polygons to fill.
-    top_polygons = diff_ex(fill_clip, inner_polygons, ApplySafetyOffset::Yes);
+    top_polygons = diff_ex(orig_polygons, inner_polygons, ApplySafetyOffset::Yes);
     
     // increase by half peri the inner space to fill the frontier between last and stored.
     top_fills = union_ex(top_fills, offset_ex(top_polygons, perimeter_half_spacing));
@@ -1446,18 +1442,6 @@ static void defer_unsupported_loops(const PerimeterGenerator &perimeter_generato
             loop->print_after_infill = true;
 }
 
-// prepare grown lower layer slices for overhang detection
-inline void prepare_grown_lower_layer_slices_for_overhang_detection(PerimeterGenerator& g, Polygons& lower_slices_polygons)
-{
-    if (g.lower_slices != nullptr && g.config->detect_overhang_wall) {
-        // We consider overhang any part where the entire nozzle diameter is not supported by the
-        // lower layer, so we take lower slices and offset them by half the nozzle diameter used
-        // in the current layer
-        double nozzle_diameter  = g.print_config->nozzle_diameter.get_at(g.config->outer_wall_filament_id - 1);
-        lower_slices_polygons = offset(*g.lower_slices, float(scale_(+nozzle_diameter / 2)));
-    }
-}
-
 // simplify infill contours according to resolution
 inline ExPolygons simplify_infill_contours_according_to_resolution(PerimeterGenerator& g, double scaled_resolution, ExPolygons& infill_contour)
 {
@@ -1529,7 +1513,14 @@ void PerimeterGenerator::process_classic()
     // overhang perimeters
     m_mm3_per_mm_overhang      		= this->overhang_flow.mm3_per_mm();
 
-    prepare_grown_lower_layer_slices_for_overhang_detection(*this, m_lower_slices_polygons);
+    // prepare grown lower layer slices for overhang detection
+    if (this->lower_slices != nullptr && this->config->detect_overhang_wall) {
+        // We consider overhang any part where the entire nozzle diameter is not supported by the
+        // lower layer, so we take lower slices and offset them by half the nozzle diameter used
+        // in the current layer
+        double nozzle_diameter  = this->print_config->nozzle_diameter.get_at(this->config->outer_wall_filament_id - 1);
+        m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter / 2)));
+    }
 
     // Calculate the minimum required spacing between two adjacent traces.
     // This should be equal to the nominal flow spacing but we experiment
@@ -2730,7 +2721,14 @@ void PerimeterGenerator::process_arachne()
     // overhang perimeters
     m_mm3_per_mm_overhang = this->overhang_flow.mm3_per_mm();
 
-    prepare_grown_lower_layer_slices_for_overhang_detection(*this, m_lower_slices_polygons);
+    // prepare grown lower layer slices for overhang detection
+    if (this->lower_slices != nullptr && this->config->detect_overhang_wall) {
+        // We consider overhang any part where the entire nozzle diameter is not supported by the
+        // lower layer, so we take lower slices and offset them by half the nozzle diameter used
+        // in the current layer
+        double nozzle_diameter  = this->print_config->nozzle_diameter.get_at(this->config->outer_wall_filament_id - 1);
+        m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter / 2)));
+    }
 
     Surfaces all_surfaces = this->slices->surfaces;
     process_no_bridge(all_surfaces, perimeter_spacing, ext_perimeter_width);
