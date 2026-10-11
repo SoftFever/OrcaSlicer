@@ -24,6 +24,7 @@
 #include <memory>
 #include <initializer_list>
 #include <map>
+#include <mutex>
 #include <iterator>
 #include <functional>
 #include <limits>
@@ -95,6 +96,34 @@ namespace fs = boost::filesystem;
 using json = nlohmann::json;
 
 namespace Slic3r {
+
+// Per current system filament preset, the printers it listed in an older release and no longer does
+// (resources/info/legacy_compatible_printers.json, written by orca_profile_tool.py legacy-compat).
+// The file ships with the build, so it is read once it opens; until then (e.g. presets loaded before
+// resources_dir() is set) every call tries again and there are no legacy printers.
+static std::map<std::string, std::vector<std::string>> legacy_compatible_printers()
+{
+    static std::mutex                                      mutex;
+    static std::map<std::string, std::vector<std::string>> printers_by_parent;
+    static bool                                            read = false;
+
+    std::lock_guard<std::mutex> guard(mutex);
+    if (!read) {
+        const fs::path path = fs::path(resources_dir()) / "info" / "legacy_compatible_printers.json";
+        boost::nowide::ifstream in(path.string());
+        if (!in) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": " << path.string() << " not found";
+            return {};
+        }
+        read = true;
+        try {
+            printers_by_parent = json::parse(in).at("presets").get<std::map<std::string, std::vector<std::string>>>();
+        } catch (const std::exception &err) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": can not read " << path.string() << ": " << err.what();
+        }
+    }
+    return printers_by_parent;
+}
 
 // Project-level options imported from a loaded 3MF into project_config. s_project_options_published
 // below is the reduced subset that crosses over in "published" 3MF mode; keep both in sync.
@@ -889,6 +918,7 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     // raw vendor-JSON references instead of the silently-repaired ones.
     if (!validation_mode)
         this->normalize_compatible_presets();
+    filaments.set_legacy_compatible_printers(legacy_compatible_printers());
 
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
@@ -1517,6 +1547,7 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &          
 
     // Rewrite renamed compatible references in synced user presets before compatibility is evaluated.
     this->normalize_compatible_presets();
+    filaments.set_legacy_compatible_printers(legacy_compatible_printers());
 
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
@@ -2523,6 +2554,7 @@ PresetsConfigSubstitutions PresetBundle::update_subscribed_presets(
 
     // Rewrite renamed compatible references in synced user presets before compatibility is evaluated.
     this->normalize_compatible_presets();
+    filaments.set_legacy_compatible_printers(legacy_compatible_printers());
 
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);

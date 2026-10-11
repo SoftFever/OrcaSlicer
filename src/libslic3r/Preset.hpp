@@ -311,6 +311,10 @@ public:
     // certain printer models defined in the vendor profile as well, in this case we want to hide this generic preset for these printer models.
     std::set<std::string> m_excluded_from;
 
+    // Printers a user filament preset is also compatible with because its system parent listed them in
+    // an older release; see PresetCollection::set_legacy_compatible_printers().
+    std::vector<std::string> legacy_compatible_printers;
+
     // Orca: flag to indicate if this preset is from Orca Filament Library
     bool m_from_orca_filament_lib = false;
 
@@ -601,6 +605,11 @@ public:
     void            save_user_presets(const std::string& dir_path, const std::string& type, std::map<std::string, std::string>& need_to_delete_list);
     bool            load_user_preset(std::string name, std::map<std::string, std::string> preset_values, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule, const PresetOrigin &load_origin = PresetOrigin(PresetOrigin::Kind::User));
     void            update_after_user_presets_loaded();
+    // User presets store only their diff, so a user preset inherits its system parent's compatible_printers
+    // and disappears from a printer once a profile update narrows that list. Give each user preset that
+    // inherits the list the printers its parent covered in an older release (printers_by_parent, keyed by the
+    // parent's current name), so it keeps showing on the printers it was made for.
+    void            set_legacy_compatible_printers(const std::map<std::string, std::vector<std::string>> &printers_by_parent);
     //BBS: get user presets
     int  get_user_presets(PresetBundle *preset_bundle, std::vector<Preset> &result_presets);
     void set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time, const std::string& user_id);
@@ -893,6 +902,10 @@ public:
     size_t num_default_presets() { return m_num_default_presets; }
 
 protected:
+    // The system parent of a user preset whose compatible_printers is the parent's, or nullptr: the presets
+    // set_legacy_compatible_printers() gives legacy printers to.
+    const Preset*   system_parent_with_inherited_printers(const Preset &preset) const;
+
     PresetCollection() = default;
     // Deleted by the std::recursive_mutex member. PresetBundle copies by assignment.
     PresetCollection(const PresetCollection &other) = delete;
