@@ -412,6 +412,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             long_retraction_when_cut = std::forward<Other>(other).long_retraction_when_cut;
             timelapse_warning_code = std::forward<Other>(other).timelapse_warning_code;
             printable_height = std::forward<Other>(other).printable_height;
+            z_offset = std::forward<Other>(other).z_offset;
             settings_ids = std::forward<Other>(other).settings_ids;
             filaments_count = std::forward<Other>(other).filaments_count;
             extruder_colors = std::forward<Other>(other).extruder_colors;

@@ -53,6 +53,8 @@ public:
                         const std::vector<VisualizationResourceRequest>& resources = {});
 
 private:
+    friend struct PluginVisualizationsTest;
+
     enum class RequestKind { Open, Update };
 
     struct Session
@@ -100,7 +102,7 @@ private:
     void worker_loop();
     void dispatch_request(Request request);
     bool is_current_locked(const Request& request) const;
-    void finish_request(const Request& request, ExecutionResult result);
+    void finish_request(const Request& request, ExecutionResult result, bool preparation_failed = false);
     boost::filesystem::path prepare_cache(const std::string& plugin_key, int plate_index, uint64_t revision,
                                           const std::string& extension = ".glb");
     ExecutionResult open_resources(const std::shared_ptr<VisualizationPluginCapability>& capability,

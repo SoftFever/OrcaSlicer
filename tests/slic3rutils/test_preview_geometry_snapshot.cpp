@@ -128,9 +128,10 @@ TEST_CASE("preview capture preserves shared mesh and result metadata", "[Preview
     for (const auto& vertex : mesh.vertices)
         mesh.bounds.merge(vertex.position.cast<double>());
 
-    GCodeProcessorResult result;
+    GCodeProcessorResult result{};
     result.id                    = 77;
     result.printable_height      = 256;
+    result.z_offset              = 0.75f;
     result.filaments_count       = 1;
     result.extruder_colors       = {"#123456"};
     result.settings_ids.filament = {"filament"};
@@ -139,6 +140,7 @@ TEST_CASE("preview capture preserves shared mesh and result metadata", "[Preview
     const auto snapshot = Preview::capture(mesh, result, 2, 77, plate);
 
     CHECK(snapshot.scene_id == 77);
+    CHECK_THAT(snapshot.z_offset, Catch::Matchers::WithinAbs(0.75f, 1e-6));
     CHECK(snapshot.vertices.size() == 3);
     CHECK(snapshot.indices == mesh.indices);
     CHECK(snapshot.groups.size() == 1);

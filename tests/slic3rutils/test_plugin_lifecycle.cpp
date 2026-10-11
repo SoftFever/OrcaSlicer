@@ -16,6 +16,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_message.hpp>
 #include "plugin_test_utils.hpp"
+#include "test_utils.hpp"
 
 #include <boost/filesystem.hpp>
 
@@ -32,6 +33,31 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <wx/app.h>
+#include <wx/init.h>
+#include <wx/thread.h>
+
+namespace Slic3r {
+
+// Exercise the real worker and queued dispatch without constructing an editor or an OpenGL context.
+struct PluginVisualizationsTest
+{
+    using Request = PluginVisualizations::Request;
+    using PendingResource = PluginVisualizations::PendingResource;
+    PluginVisualizations host;
+
+    void enqueue(Request request) { host.enqueue(std::move(request)); }
+    void dispatch(Request request)
+    {
+        {
+            std::lock_guard<std::mutex> lock(host.m_mutex);
+            request.generation = ++host.m_generations[request.id];
+        }
+        host.dispatch_request(std::move(request));
+    }
+};
+
+} // namespace Slic3r
 
 using namespace Slic3r;
 namespace fs = boost::filesystem;
@@ -43,6 +69,22 @@ namespace fs = boost::filesystem;
 // interpreter singletons are brought up at most once per test.
 
 namespace {
+
+struct ScopedWxConsole
+{
+    bool initialized;
+
+    ScopedWxConsole()
+    {
+        wxApp::SetInstance(new wxAppConsole);
+        initialized = wxInitialize();
+    }
+    ~ScopedWxConsole()
+    {
+        if (initialized)
+            wxUninitialize();
+    }
+};
 
 // Brings the plugin system up, and tears it down explicitly at the end of the test.
 //
@@ -534,6 +576,84 @@ TEST_CASE("Concurrent visualization opens create one session", "[PluginLifecycle
     CHECK(skipped == 1);
     CHECK(capability->open_calls == 1);
     PluginVisualizations::instance().close(capability->identity());
+}
+
+TEST_CASE("Visualization worker failures complete on the main thread and remove snapshots", "[PluginLifecycle][Visualization]")
+{
+    REQUIRE(wxApp::GetInstance() == nullptr);
+    ScopedWxConsole app;
+    REQUIRE(app.initialized);
+    PluginVisualizationsTest visualizations;
+    ScopedTemporaryFile snapshot(".glb");
+    std::ofstream(snapshot.path().string()) << "partial snapshot";
+    REQUIRE(fs::exists(snapshot.path()));
+
+    std::atomic<bool> completed{false};
+    bool on_main_thread = false;
+    ExecutionResult result;
+    PluginVisualizationsTest::Request request;
+    request.id = {PluginCapabilityType::Visualization, "Worker failure", "worker-failure"};
+    PluginVisualizationsTest::PendingResource resource;
+    resource.snapshot_path = snapshot.path();
+    request.resources.push_back(std::move(resource)); // Missing geometry fails inside the worker.
+    request.completion = [&](ExecutionResult completion) {
+        result = std::move(completion);
+        on_main_thread = wxIsMainThread();
+        completed = true;
+    };
+    visualizations.enqueue(std::move(request));
+
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!completed && std::chrono::steady_clock::now() < deadline) {
+        wxApp::GetInstance()->ProcessPendingEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    REQUIRE(completed);
+    CHECK(on_main_thread);
+    CHECK(result.status == PluginResult::RecoverableError);
+    CHECK_FALSE(result.message.empty());
+    CHECK_FALSE(fs::exists(snapshot.path()));
+}
+
+TEST_CASE("Closing a visualization invalidates its queued dispatch", "[PluginLifecycle][Visualization]")
+{
+    REQUIRE(wxApp::GetInstance() == nullptr);
+    ScopedWxConsole app;
+    REQUIRE(app.initialized);
+    PluginVisualizationsTest visualizations;
+    ScopedTemporaryFile snapshot(".glb");
+    std::ofstream(snapshot.path().string()) << "snapshot";
+    REQUIRE(fs::exists(snapshot.path()));
+    auto capability = std::make_shared<ConcurrentVisualization>();
+    capability->set_resolved_identity("Queued Visualization", PluginCapabilityType::Visualization);
+    capability->set_audit_plugin_key("queued-visualization");
+    capability->resolve_type_metadata();
+
+    bool completed = false;
+    ExecutionResult result;
+    PluginVisualizationsTest::Request request;
+    request.id = capability->identity();
+    request.capability = capability;
+    PluginVisualizationsTest::PendingResource resource;
+    resource.snapshot_path = snapshot.path();
+    request.resources.push_back(std::move(resource));
+    request.completion = [&](ExecutionResult completion) {
+        result = std::move(completion);
+        completed = true;
+    };
+    std::thread worker([&] { visualizations.dispatch(std::move(request)); });
+    worker.join();
+    REQUIRE_FALSE(completed);
+
+    visualizations.host.close(capability->identity());
+    wxApp::GetInstance()->ProcessPendingEvents();
+
+    REQUIRE(completed);
+    CHECK(result.status == PluginResult::Skipped);
+    CHECK(result.message.empty());
+    CHECK(capability->open_calls == 0);
+    CHECK_FALSE(visualizations.host.is_active(capability->identity()));
+    CHECK_FALSE(fs::exists(snapshot.path()));
 }
 
 TEST_CASE("Visualization contexts carry separately scoped resources", "[PluginLifecycle][Visualization]")
