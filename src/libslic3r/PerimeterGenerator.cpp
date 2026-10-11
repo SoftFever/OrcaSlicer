@@ -686,11 +686,11 @@ static void clip_inner_walls_over_top(std::vector<Arachne::VariableWidthLines>& 
                                       Polygons& kept_over_top)
 {
     const BoundingBox top_region_bbox = get_extents(top_region).inflated(SCALED_EPSILON);
-    auto covered_by                   = [](const Arachne::ExtrusionLine& el) {
+    auto covered_by = [](const Arachne::ExtrusionLine &el) {
         Polyline centerline;
         centerline.points.reserve(el.junctions.size());
         coord_t width = 0;
-        for (const Arachne::ExtrusionJunction& j : el.junctions) {
+        for (const Arachne::ExtrusionJunction &j : el.junctions) {
             centerline.points.emplace_back(j.p);
             width = std::max(width, j.w);
         }
@@ -699,17 +699,17 @@ static void clip_inner_walls_over_top(std::vector<Arachne::VariableWidthLines>& 
     // Pull the cut back by half a wall width: the clip severs the centerline, but the bead's rounded end
     // extends half a width past its endpoint and would otherwise overlap the top fill.
     ClipperZUtils::ZPaths top_paths_z;
-    for (const Polygon& poly : to_polygons(offset_ex(top_region, float(perimeter_width) / 2.f))) {
+    for (const Polygon &poly : to_polygons(offset_ex(top_region, float(perimeter_width) / 2.f))) {
         top_paths_z.emplace_back();
-        ClipperZUtils::ZPath& out = top_paths_z.back();
+        ClipperZUtils::ZPath &out = top_paths_z.back();
         out.reserve(poly.points.size());
-        for (const Point& pt : poly.points)
+        for (const Point &pt : poly.points)
             out.emplace_back(pt.x(), pt.y(), 0);
     }
-    for (Arachne::VariableWidthLines& inner_perimeter : inner_perimeters) {
+    for (Arachne::VariableWidthLines &inner_perimeter : inner_perimeters) {
         Arachne::VariableWidthLines kept;
         kept.reserve(inner_perimeter.size());
-        for (Arachne::ExtrusionLine& el : inner_perimeter) {
+        for (Arachne::ExtrusionLine &el : inner_perimeter) {
             if (el.empty())
                 continue;
             const TopOverlap overlap = classify_over_top(el, top_region, top_region_bbox);
@@ -727,13 +727,13 @@ static void clip_inner_walls_over_top(std::vector<Arachne::VariableWidthLines>& 
 
             // Clipper treats the subject as an open polyline, so it also cuts a closed loop at its (arbitrary)
             // start vertex and may reverse pieces. Stitch pieces sharing an endpoint back together.
-            auto same_pt = [](const ClipperZUtils::ZPoint& p, const ClipperZUtils::ZPoint& q) {
+            auto same_pt = [](const ClipperZUtils::ZPoint &p, const ClipperZUtils::ZPoint &q) {
                 return std::abs(p.x() - q.x()) <= SCALED_EPSILON && std::abs(p.y() - q.y()) <= SCALED_EPSILON;
             };
-            for (size_t i = 0; i < pieces.size(); ++i) {
+            for (size_t i = 0; i < pieces.size(); ++ i) {
                 for (size_t j = i + 1; j < pieces.size();) {
-                    ClipperZUtils::ZPath& a = pieces[i];
-                    ClipperZUtils::ZPath& b = pieces[j];
+                    ClipperZUtils::ZPath &a = pieces[i];
+                    ClipperZUtils::ZPath &b = pieces[j];
                     if (same_pt(a.front(), b.front()) || same_pt(a.front(), b.back()))
                         std::reverse(a.begin(), a.end());
                     if (same_pt(a.back(), b.back()))
@@ -743,14 +743,14 @@ static void clip_inner_walls_over_top(std::vector<Arachne::VariableWidthLines>& 
                         pieces.erase(pieces.begin() + j);
                         j = i + 1; // the merged path has new endpoints, restart the scan
                     } else
-                        ++j;
+                        ++ j;
                 }
             }
 
             // If the clip removed next to nothing, keep the loop untouched instead of slitting it open. The
             // half-width pull-back above already costs about one width per crossing, hence two widths.
             double kept_length = 0.;
-            for (const ClipperZUtils::ZPath& path : pieces)
+            for (const ClipperZUtils::ZPath &path : pieces)
                 kept_length += clipper_z_path_length(path);
             if (clipper_z_path_length(subject) - kept_length < 2. * double(perimeter_width)) {
                 append(kept_over_top, covered_by(el));
@@ -758,7 +758,7 @@ static void clip_inner_walls_over_top(std::vector<Arachne::VariableWidthLines>& 
                 continue;
             }
 
-            for (const ClipperZUtils::ZPath& path : pieces) {
+            for (const ClipperZUtils::ZPath &path : pieces) {
                 Arachne::ExtrusionLine clipped(el.inset_idx, el.is_odd);
                 clipped.junctions.reserve(path.size());
                 for (const ClipperZUtils::ZPoint& pt : path)
@@ -826,10 +826,12 @@ static Polygons walls_footprint(const Arachne::VariableWidthLines &walls)
 }
 
 void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExPolygons &top_fills,
-                                            ExPolygons &non_top_polygons, ExPolygons &fill_clip) const {
+                                            ExPolygons &non_top_polygons, ExPolygons &fill_clip) const 
+{
     // other perimeters
     const double perimeter_width   = this->perimeter_flow.scaled_width();
     const double perimeter_spacing = this->perimeter_flow.scaled_spacing();
+    const double perimeter_half_spacing = perimeter_spacing / 2.; // const reference: = perimeter_spacing / 2.
 
     // external perimeters
     const double ext_perimeter_width   = this->ext_perimeter_flow.scaled_width();
@@ -854,7 +856,6 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     last_box.offset(SCALED_EPSILON);
 
     // skip if the exposed area is smaller than "min_width_top_surface"
-    //double min_width_top_surface = std::max(ext_perimeter_spacing, scale_(config->min_width_top_surface.get_abs_value(unscale_(perimeter_width)))) / 2.;
     double min_width_top_surface = !wall_loops_count ? 0. : std::max(ext_perimeter_spacing / 2., config->min_width_top_surface.get_abs_value(perimeter_width));
 
     // get the Polygons upper the polygon this layer
@@ -881,7 +882,7 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
         // SoftFever: improve bridging
         const double bridge_margin = scale_(std::min(BRIDGE_INFILL_MARGIN, nozzle_diameter * BRIDGE_INFILL_MARGIN / 0.4));
         bridge_checker = offset_ex(diff_ex(fill_clip, lower_polygons_series_clipped, ApplySafetyOffset::Yes),
-                                   1.5 * bridge_offset + bridge_margin + perimeter_spacing / 2.);
+                                               1.5 * bridge_offset + bridge_margin + perimeter_half_spacing);
     }
     ExPolygons delete_bridge = diff_ex(fill_clip, bridge_checker, ApplySafetyOffset::Yes);
 
@@ -890,14 +891,14 @@ void PerimeterGenerator::split_top_surfaces(const ExPolygons &orig_polygons, ExP
     // get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the min_width_top_surface we removed a bit before)
     ExPolygons temp_gap = diff_ex(top_polygons, fill_clip);
     
-    //ExPolygons inner_polygons = diff_ex(orig_polygons, offset_ex(top_polygons, offset_top_surface + min_width_top_surface - ext_perimeter_spacing / 2.), ApplySafetyOffset::Yes);
-    ExPolygons inner_polygons = diff_ex(orig_polygons, offset_ex(top_polygons, perimeter_spacing / 2.), ApplySafetyOffset::Yes);    // get the enlarged top surface, by using inner_polygons instead of upper_slices, and clip it for it to be exactly
+    // get the enlarged top surface, by using inner_polygons instead of upper_slices, and clip it for it to be exactly
+    ExPolygons inner_polygons = diff_ex(orig_polygons, offset_ex(top_polygons, perimeter_half_spacing), ApplySafetyOffset::Yes);
     
     // the polygons to fill.
     top_polygons = diff_ex(fill_clip, inner_polygons, ApplySafetyOffset::Yes);
     
     // increase by half peri the inner space to fill the frontier between last and stored.
-    top_fills = union_ex(top_fills, offset_ex(top_polygons, perimeter_spacing / 2.));
+    top_fills = union_ex(top_fills, offset_ex(top_polygons, perimeter_half_spacing));
     
     //set the clip to the external wall but go back inside by infill_extrusion_width/2 to be sure the extrusion won't go outside even with a 100% overlap.
     //double infill_spacing_unscaled = this->config->sparse_infill_line_width.get_abs_value(nozzle_diameter);
@@ -1828,7 +1829,7 @@ void PerimeterGenerator::process_classic()
                     }
                 }
 
-                last      = std::move(offsets);
+                last = std::move(offsets);
                 
                 // set the clip to a virtual "second perimeter"
                 infill_contour = offset_ex(last, -perimeter_half_spacing);
@@ -1873,7 +1874,7 @@ void PerimeterGenerator::process_classic()
             svg.draw(last, "brown", 0.75f);                                // surface by determinated of last contour
             svg.draw(infill_contour_by_one_wall, "turquoise", 0.75f);      // 
             svg.draw(infill_contour, "darkviolet", 0.75f);                 // one-wall contour
-            svg.draw(top_expolygons, "blue", 0.75f);              // top infill (pre)
+            svg.draw(top_expolygons, "blue", 0.75f);                       // top infill (pre)
             svg.draw(gaps, "black", 0.75f);                                // gaps fields
 #endif
 
@@ -2205,7 +2206,10 @@ void PerimeterGenerator::process_classic()
 
         } // end of fill gaps
 
-        coord_t solid_infill_spacing              = this->solid_infill_flow.scaled_spacing();
+        if (!one_wall_top_reclaimed.empty())
+            infill_contour = union_ex(infill_contour, one_wall_top_reclaimed);
+
+        coord_t solid_infill_spacing                   = this->solid_infill_flow.scaled_spacing();
         const double min_perimeter_infill_half_spacing = solid_infill_spacing * (1. - INSET_OVERLAP_TOLERANCE) * 0.5;
         double insert                                  = get_inset(loop_number, perimeter_spacing, ext_perimeter_spacing);
         add_infill_contour(infill_contour, top_expolygons, insert, min_perimeter_infill_half_spacing);
@@ -2799,15 +2803,13 @@ void PerimeterGenerator::process_arachne()
         if (inner_loop_number >= 0) {
             assert(upper_slices != nullptr);
 
-            coord_t perimeter_width = this->perimeter_flow.scaled_width();
-
             // Filter out areas that are too thin and expand top surface polygons a bit to hide the wall line.
             // ORCA: skip if the top surface area is smaller than "min_width_top_surface"
             const double top_surface_min_width = std::max(ext_perimeter_spacing, config->min_width_top_surface.get_abs_value(perimeter_width)) / 4.; // + scaled(0.00001) = 10. - not sense for the quarter
 
             // Get top ExPolygons from the given contour. uncovered reports whether the upper layer leaves any of the
             // contour uncovered, before bridges and too thin areas are filtered out.
-            auto get_top_expolygons = [&](const ExPolygons& contour, bool& uncovered) {
+            auto get_top_expolygons = [&](const ExPolygons &contour, bool &uncovered) {
                 // Contour bounding box.
                 BoundingBox contour_bbox = get_extents(contour);
                 contour_bbox.offset(SCALED_EPSILON);
@@ -2825,7 +2827,7 @@ void PerimeterGenerator::process_arachne()
                     return top;
 
                 if (lower_slices != nullptr) {
-                    const float bridge_offset = float(std::max<coord_t>(ext_perimeter_spacing, perimeter_width));
+                    const float bridge_offset = std::max(ext_perimeter_spacing, perimeter_width);
                     const Polygons lower_slices_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*lower_slices, contour_bbox);
                     const ExPolygons current_slices_bridges = offset_ex(diff_ex(top, lower_slices_clipped), bridge_offset);
 
@@ -2867,15 +2869,14 @@ void PerimeterGenerator::process_arachne()
             if (widest_bead(perimeters) > bead_width_0 + 2 * outer_wall_tolerance) {
                 // The single wall pass's inner contour where it widens no bead: inside nominal width outer walls.
                 const ExPolygons nominal_infill_contour = offset_ex(last, -(bead_width_0 + wall_0_inset));
-                bool nominal_uncovered                  = false;
+                bool             nominal_uncovered      = false;
                 // Grown by an outer wall width to take in the outer walls bordering the top surface.
                 const ExPolygons top_zone = offset_ex(get_top_expolygons(nominal_infill_contour, nominal_uncovered), bead_width_0);
                 if (nominal_uncovered) {
                     generate_full_perimeters();
-                    if (!full_perimeters.empty() && !full_perimeters.front().empty() &&
-                        length_off_reference(perimeters, full_perimeters.front(), top_zone, outer_wall_tolerance) >
-                            double(perimeter_width)) {
-                        perimeters     = {full_perimeters.front()};
+                    if (! full_perimeters.empty() && ! full_perimeters.front().empty() &&
+                        length_off_reference(perimeters, full_perimeters.front(), top_zone, outer_wall_tolerance) > double(perimeter_width)) {
+                        perimeters     = { full_perimeters.front() };
                         infill_contour = diff_ex(nominal_infill_contour, walls_footprint(full_perimeters.front()), ApplySafetyOffset::Yes);
                     }
                 }
@@ -2900,14 +2901,14 @@ void PerimeterGenerator::process_arachne()
                     Polygons kept_over_top;
                     clip_inner_walls_over_top(inner_perimeters, top_expolygons, perimeter_width, kept_over_top);
                     // Route the top fill around the walls kept despite grazing the top.
-                    if (!kept_over_top.empty())
+                    if (! kept_over_top.empty())
                         top_expolygons = diff_ex(top_expolygons, kept_over_top);
                 }
 
                 // Recalculate indexes of inner perimeters before merging them: they come after the single outer wall.
                 if (!perimeters.empty())
-                    for (Arachne::VariableWidthLines& inner_perimeter : inner_perimeters)
-                        for (Arachne::ExtrusionLine& el : inner_perimeter)
+                    for (Arachne::VariableWidthLines &inner_perimeter : inner_perimeters)
+                        for (Arachne::ExtrusionLine &el : inner_perimeter)
                             ++el.inset_idx;
 
                 perimeters.insert(perimeters.end(), inner_perimeters.begin(), inner_perimeters.end());
@@ -2932,8 +2933,7 @@ void PerimeterGenerator::process_arachne()
 #ifdef ARACHNE_DEBUG
         {
             static int iRun = 0;
-            export_perimeters_to_svg(debug_out_path("arachne-perimeters-%d-%d.svg", layer_id, iRun++), to_polygons(last), perimeters,
-                                     union_ex(wallToolPaths.getInnerContour()));
+            export_perimeters_to_svg(debug_out_path("arachne-perimeters-%d-%d.svg", layer_id, iRun++), to_polygons(last), perimeters, union_ex(wallToolPaths.getInnerContour()));
         }
 #endif
 
@@ -2949,19 +2949,21 @@ void PerimeterGenerator::process_arachne()
         }());
 
         int start_perimeter = int(perimeters.size()) - 1;
-        int end_perimeter   = -1;
-        int direction       = -1;
+        int end_perimeter = -1;
+        int direction = -1;
 
-        bool is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner ||
-                                   this->config->wall_sequence == WallSequence::InnerOuterInner;
-
-        if (layer_id == 0) { // disable inner outer inner algorithm after the first layer
-            is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner;
+		bool is_outer_wall_first =
+            	this->config->wall_sequence == WallSequence::OuterInner ||
+            	this->config->wall_sequence == WallSequence::InnerOuterInner;
+        
+        if (layer_id == 0){ // disable inner outer inner algorithm after the first layer
+        	is_outer_wall_first =
+            	this->config->wall_sequence == WallSequence::OuterInner;
         }
         if (is_outer_wall_first) {
             start_perimeter = 0;
-            end_perimeter   = int(perimeters.size());
-            direction       = 1;
+            end_perimeter = int(perimeters.size());
+            direction = 1;
         }
 
         std::vector<Arachne::ExtrusionLine*> all_extrusions;
@@ -2973,10 +2975,8 @@ void PerimeterGenerator::process_arachne()
         }
 
         // Find topological order with constraints from extrusions_constrains.
-        std::vector<size_t> blocked(all_extrusions.size(),
-                                    0); // Value indicating how many extrusions it is blocking (preceding extrusions) an extrusion.
-        std::vector<std::vector<size_t>> blocking(
-            all_extrusions.size()); // Each extrusion contains a vector of extrusions that are blocked by this extrusion.
+        std::vector<size_t>              blocked(all_extrusions.size(), 0); // Value indicating how many extrusions it is blocking (preceding extrusions) an extrusion.
+        std::vector<std::vector<size_t>> blocking(all_extrusions.size());   // Each extrusion contains a vector of extrusions that are blocked by this extrusion.
         std::unordered_map<const Arachne::ExtrusionLine*, size_t> map_extrusion_to_idx;
         for (size_t idx = 0; idx < all_extrusions.size(); idx++)
             map_extrusion_to_idx.emplace(all_extrusions[idx], idx);
@@ -2988,16 +2988,14 @@ void PerimeterGenerator::process_arachne()
             blocking[map_extrusion_to_idx.find(before)->second].emplace_back(after_it->second);
         }
 
-        std::vector<bool> processed(all_extrusions.size(), false); // Indicate that the extrusion was already processed.
-        Point current_position = all_extrusions.empty() ? Point::Zero() :
-                                                          all_extrusions.front()->junctions.front().p; // Some starting position.
-        std::vector<PerimeterGeneratorArachneExtrusion> ordered_extrusions; // To store our result in. At the end we'll std::swap.
-        ordered_extrusions.reserve(all_extrusions.size());
+        std::vector<bool> processed(all_extrusions.size(), false);          // Indicate that the extrusion was already processed.
+        Point             current_position = all_extrusions.empty() ? Point::Zero() : all_extrusions.front()->junctions.front().p; // Some starting position.
+        std::vector<PerimeterGeneratorArachneExtrusion> ordered_extrusions;         // To store our result in. At the end we'll std::swap.
 
         while (ordered_extrusions.size() < all_extrusions.size()) {
-            size_t best_candidate    = 0;
+            size_t best_candidate = 0;
             double best_distance_sqr = std::numeric_limits<double>::max();
-            bool is_best_closed      = false;
+            bool   is_best_closed = false;
 
             std::vector<size_t> available_candidates;
             for (size_t candidate = 0; candidate < all_extrusions.size(); ++candidate) {
@@ -3006,16 +3004,14 @@ void PerimeterGenerator::process_arachne()
                 available_candidates.push_back(candidate);
             }
 
-            std::sort(available_candidates.begin(), available_candidates.end(),
-                      [&all_extrusions](const size_t a_idx, const size_t b_idx) -> bool {
-                          return all_extrusions[a_idx]->is_closed < all_extrusions[b_idx]->is_closed;
-                      });
+            std::sort(available_candidates.begin(), available_candidates.end(), [&all_extrusions](const size_t a_idx, const size_t b_idx) -> bool {
+                return all_extrusions[a_idx]->is_closed < all_extrusions[b_idx]->is_closed;
+                });
 
             for (const size_t candidate_path_idx : available_candidates) {
                 auto& path = all_extrusions[candidate_path_idx];
 
-                if (path->junctions
-                        .empty()) { // No vertices in the path. Can't find the start position then or really plan it in. Put that at the end.
+                if (path->junctions.empty()) { // No vertices in the path. Can't find the start position then or really plan it in. Put that at the end.
                     if (best_distance_sqr == std::numeric_limits<double>::max()) {
                         best_candidate = candidate_path_idx;
                         is_best_closed = path->is_closed;
@@ -3024,59 +3020,52 @@ void PerimeterGenerator::process_arachne()
                 }
 
                 const Point candidate_position = path->junctions.front().p;
-                double distance_sqr            = (current_position - candidate_position).cast<double>().norm();
+                double      distance_sqr = (current_position - candidate_position).cast<double>().norm();
                 if (distance_sqr < best_distance_sqr) { // Closer than the best candidate so far.
-                    if (path->is_closed || (!path->is_closed && best_distance_sqr != std::numeric_limits<double>::max()) ||
-                        (!path->is_closed && !is_best_closed)) {
-                        best_candidate    = candidate_path_idx;
+                    if (path->is_closed || (!path->is_closed && best_distance_sqr != std::numeric_limits<double>::max()) || (!path->is_closed && !is_best_closed)) {
+                        best_candidate = candidate_path_idx;
                         best_distance_sqr = distance_sqr;
-                        is_best_closed    = path->is_closed;
+                        is_best_closed = path->is_closed;
                     }
                 }
             }
 
             auto& best_path = all_extrusions[best_candidate];
-            ordered_extrusions.push_back({best_path, best_path->is_contour()});
+            ordered_extrusions.push_back({ best_path, best_path->is_contour() });
             processed[best_candidate] = true;
             for (size_t unlocked_idx : blocking[best_candidate])
                 blocked[unlocked_idx]--;
 
-            if (!best_path->junctions
-                     .empty()) { // If all paths were empty, the best path is still empty. We don't upate the current position then.
+            if (!best_path->junctions.empty()) { //If all paths were empty, the best path is still empty. We don't upate the current position then.
                 if (best_path->is_closed)
-                    current_position = best_path->junctions[0].p; // We end where we started.
+                    current_position = best_path->junctions[0].p; //We end where we started.
                 else
-                    current_position = best_path->junctions.back().p; // Pick the other end from where we started.
+                    current_position = best_path->junctions.back().p; //Pick the other end 
             }
         }
 
         // printf("New Layer: Layer ID %d\n",layer_id); //debug - new layer
-        if (this->config->wall_sequence == WallSequence::InnerOuterInner &&
-            layer_id > 0) {                      // only enable inner outer inner algorithm after first layer
+        if (this->config->wall_sequence == WallSequence::InnerOuterInner && layer_id > 0) { // only enable inner outer inner algorithm after first layer
             if (ordered_extrusions.size() > 2) { // 3 walls minimum needed to do inner outer inner ordering
-                int position = 0;                // index to run the re-ordering for multiple external perimeters in a single island.
-                int arr_i, arr_j = 0;            // indexes to run through the walls in the for loops
+                int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
+                int arr_i, arr_j = 0;    // indexes to run through the walls in the for loops
                 int outer, first_internal, second_internal, max_internal, current_perimeter; // allocate index values
 
-                // To address any remaining scenarios where the outer perimeter contour is not first on the list as arachne sometimes
-                // reorders the perimeters when clustering for OI mode that is used the basis for IOI
+                // To address any remaining scenarios where the outer perimeter contour is not first on the list as arachne sometimes reorders the perimeters when clustering
+                // for OI mode that is used the basis for IOI
                 bringContoursToFront(ordered_extrusions);
                 std::vector<PerimeterGeneratorArachneExtrusion> reordered_extrusions;
 
                 // Debug statement to print spacing values:
-                // printf("External threshold - Ext perimeter: %d Ext spacing: %d Int perimeter: %d Int spacing: %d\n",
-                // this->ext_perimeter_flow.scaled_width(),this->ext_perimeter_flow.scaled_spacing(),this->perimeter_flow.scaled_width(),
-                // this->perimeter_flow.scaled_spacing());
+                //printf("External threshold - Ext perimeter: %d Ext spacing: %d Int perimeter: %d Int spacing: %d\n", this->ext_perimeter_flow.scaled_width(),this->ext_perimeter_flow.scaled_spacing(),this->perimeter_flow.scaled_width(), this->perimeter_flow.scaled_spacing());
 
-                // Get searching thresholds. For an external perimeter we take the external perimeter spacing/2 plus the internal perimeter
-                // spacing/2 and expand by the factor rounding errors. When precise wall is enabled, the external perimeter full spacing is used.
+                // Get searching thresholds. For an external perimeter we take the external perimeter spacing/2 plus the internal perimeter spacing/2 and expand by the factor
+                // rounding errors. When precise wall is enabled, the external perimeter full spacing is used.
                 coord_t threshold_external = (apply_precise_outer_wall)
                                                  // Precise outer wall ⇒ use “full external spacing”
-                                                 ?
-                                                 (ext_perimeter_spacing + perimeter_half_spacing)
+                                                 ? (ext_perimeter_spacing + perimeter_half_spacing)
                                                  // Normal ⇒ half ext spacing + half int spacing
-                                                 :
-                                                 (ext_perimeter_half_spacing + perimeter_half_spacing);
+                                                 : (ext_perimeter_half_spacing + perimeter_half_spacing);
 
                 // For the intenal perimeter threshold, the distance is the internal perimeter spacing expanded by the factor to cover
                 // rounding errors.
@@ -3084,9 +3073,8 @@ void PerimeterGenerator::process_arachne()
 
                 // Re-order extrusions based on distance
                 // Alorithm will aggresively optimise for the appearance of the outermost perimeter
-                ordered_extrusions   = reorderPerimetersByProximity(ordered_extrusions, threshold_external, threshold_internal);
-                reordered_extrusions = ordered_extrusions; // copy them into the reordered extrusions vector to allow for IOI operations to
-                                                           // be performed below without altering the base ordered extrusions list.
+                ordered_extrusions = reorderPerimetersByProximity(ordered_extrusions,threshold_external,threshold_internal );
+                reordered_extrusions = ordered_extrusions; // copy them into the reordered extrusions vector to allow for IOI operations to be performed below without altering the base ordered extrusions list.
 
                 // Now start the sandwich mode wall re-ordering using the reordered_extrusions as the basis
                 // scan to find the external perimeter, first internal, second internal and last perimeter in the island.
@@ -3094,75 +3082,59 @@ void PerimeterGenerator::process_arachne()
                 // perimeters left.
                 while (position < reordered_extrusions.size()) {
                     outer = first_internal = second_internal = current_perimeter = -1; // initialise all index values to -1
-                    max_internal = reordered_extrusions.size() -
-                                   1; // initialise the maximum internal perimeter to the last perimeter on the extrusion list
+                    max_internal = reordered_extrusions.size()-1; // initialise the maximum internal perimeter to the last perimeter on the extrusion list
                     // run through the walls to get the index values that need re-ordering until the first one for each
                     // is found. Start at "position" index to enable the for loop to iterate for multiple external
                     // perimeters in a single island
                     // printf("Reorder Loop. Position %d, extrusion list size: %d, Outer index %d, inner index %d, second inner index %d\n",
                     // position, reordered_extrusions.size(),outer,first_internal,second_internal);
                     for (arr_i = position; arr_i < reordered_extrusions.size(); ++arr_i) {
-                        // printf("Perimeter: extrusion inset index %d, ordered extrusions array position
-                        // %d\n",reordered_extrusions[arr_i].extrusion->inset_idx, arr_i);
+                    // printf("Reorder Loop. Position %d, extrusion list size: %d, Outer index %d, inner index %d, second inner index %d\n", position, reordered_extrusions.size(),outer,first_internal,second_internal);
                         switch (reordered_extrusions[arr_i].extrusion->inset_idx) {
-                        case 0: // external perimeter
-                            if (outer == -1)
-                                outer = arr_i;
-                            break;
-                        case 1: // first internal wall
-                            if (first_internal == -1 && arr_i > outer && outer != -1) {
-                                first_internal = arr_i;
-                            }
-                            break;
-                        case 2: // second internal wall
-                            if (second_internal == -1 && arr_i > first_internal && outer != -1) {
-                                second_internal = arr_i;
-                            }
-                            break;
+                            case 0: // external perimeter
+                                if (outer == -1)
+                                    outer = arr_i;
+                                break;
+                            case 1: // first internal wall
+                                if (first_internal==-1 && arr_i>outer && outer!=-1){
+                                    first_internal = arr_i;
+                                }
+                                break;
+                            case 2: // second internal wall
+                                if (second_internal == -1 && arr_i > first_internal && outer!=-1){
+                                    second_internal = arr_i;
+                                }
+                                break;
                         }
-                        if (outer > -1 && first_internal > -1 &&
-                            reordered_extrusions[arr_i].extrusion->inset_idx ==
-                                0) { // found a new external perimeter after we've found at least a first internal perimeter to re-order.
-                                     // This means we entered a new island.
-                            arr_i        = arr_i - 1; // step back one perimeter
-                            max_internal = arr_i; // new maximum internal perimeter is now this as we have found a new external perimeter,
-                                                  // hence a new island.
-                            break;                // exit the for loop
+                        if(outer >-1 && first_internal>-1 && reordered_extrusions[arr_i].extrusion->inset_idx == 0){  // found a new external perimeter after we've found at least a first internal perimeter to re-order.
+                                                                                                                      // This means we entered a new island.
+                            arr_i=arr_i-1; //step back one perimeter
+                            max_internal = arr_i; // new maximum internal perimeter is now this as we have found a new external perimeter, hence a new island.
+                            break; // exit the for loop
                         }
                     }
 
-                    // printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d, maximum internal perimeter %d
-                    // \n",layer_id,outer,first_internal,second_internal, max_internal);
-                    if (outer > -1 && first_internal > -1 &&
-                        second_internal >
-                            -1) { // found all three perimeters to re-order? If not the perimeters will be processed outside in.
-                        std::vector<PerimeterGeneratorArachneExtrusion>
-                            inner_outer_extrusions; // temporary array to hold extrusions for reordering
-                        inner_outer_extrusions.resize(max_internal - position +
-                                                      1); // reserve array containing the number of perimeters before a new island. Variables
-                                                          // are array indexes hence need to add +1 to convert to position allocations
-                        // printf("Allocated array size %d, max_internal index %d, start position index %d
-                        // \n",max_internal-position+1,max_internal,position);
-
-                        for (arr_j = max_internal; arr_j >= position;
-                             --arr_j) { // go inside out towards the external perimeter (perimeters in reverse order) and store all internal
-                                        // perimeters until the first one identified with inset index 2
-                            if (arr_j >= second_internal) {
-                                // printf("Inside out loop: Mapped perimeter index %d to array position %d\n", arr_j, max_internal-arr_j);
-                                inner_outer_extrusions[max_internal - arr_j] = reordered_extrusions[arr_j];
-                                current_perimeter++;
+                    // printf("Layer ID %d, Outer index %d, inner index %d, second inner index %d, maximum internal perimeter %d \n",layer_id,outer,first_internal,second_internal, max_internal);
+                    if (outer > -1 && first_internal > -1 && second_internal > -1) { // found all three perimeters to re-order? If not the perimeters will be processed outside in.
+                        std::vector<PerimeterGeneratorArachneExtrusion> inner_outer_extrusions; // temporary array to hold extrusions for reordering
+                        inner_outer_extrusions.resize(max_internal - position + 1); // reserve array containing the number of perimeters before a new island. Variables are array indexes hence need to add +1 to convert to position allocations
+                        // printf("Allocated array size %d, max_internal index %d, start position index %d \n",max_internal-position+1,max_internal,position);
+                        
+                        for (arr_j = max_internal; arr_j >=position; --arr_j){ // go inside out towards the external perimeter (perimeters in reverse order) and store all internal perimeters until the first one identified with inset index 2
+                            if(arr_j >= second_internal){
+                                //printf("Inside out loop: Mapped perimeter index %d to array position %d\n", arr_j, max_internal-arr_j);
+                                inner_outer_extrusions[max_internal-arr_j] = reordered_extrusions[arr_j];
+                                current_perimeter++; 
                             }
                         }
 
-                        for (arr_j = position; arr_j < second_internal;
-                             ++arr_j) { // go outside in and map the remaining perimeters (external and first internal wall(s)) using the
-                                        // outside in wall order
+                     for (arr_j = position; arr_j < second_internal; ++arr_j){ // go outside in and map the remaining perimeters (external and first internal wall(s)) using the outside in wall order
                             // printf("Outside in loop: Mapped perimeter index %d to array position %d\n", arr_j, current_perimeter+1);
                             inner_outer_extrusions[++current_perimeter] = reordered_extrusions[arr_j];
                         }
 
-                        for (arr_j = position; arr_j <= max_internal; ++arr_j) // replace perimeter array with the new re-ordered array
-                            ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j - position];
+                        for(arr_j = position; arr_j <= max_internal; ++arr_j) // replace perimeter array with the new re-ordered array
+                            ordered_extrusions[arr_j] = inner_outer_extrusions[arr_j-position];
                     }
                     // go to the next perimeter from the current position to continue scanning for external walls in the same island
                     position = arr_i + 1;
