@@ -50,6 +50,15 @@ assert.equal(ctx.filterTabs(tabOptions, "Device").length, 1,
     "a typed query matches a tab title");
 assert.deepEqual(ctx.filterTabs(tabOptions, "zzz"), [],
     "a typed query with no match returns an empty list");
+// A translated tab whose id is not its English name carries title_en, so English still finds it.
+const localizedTabs = [
+    { id: "monitor", title: "设备", title_en: "Device" },
+    { id: "prepare", title: "准备" }
+];
+assert.deepEqual(ctx.filterTabs(localizedTabs, "device").map(function (t) { return t.id; }), ["monitor"],
+    "a localized tab matches its English title");
+assert.deepEqual(ctx.filterTabs(localizedTabs, "设备").map(function (t) { return t.id; }), ["monitor"],
+    "a localized tab still matches its translated title");
 
 // tabTitle: pages added with an empty title (e.g. MainFrame's Home tab) fall back to the id.
 assert.equal(ctx.tabTitle({ id: "home", title: "" }), "Home",
@@ -191,6 +200,48 @@ assert.equal(ctx.completionFor("inner wall", ctx.searchActions(compPool, "inner 
 assert.equal(ctx.completionFor("", compPool), null, "an empty query has no completion");
 assert.equal(ctx.completionFor("zzz", ctx.searchActions(compPool, "zzz")), null,
     "a query with no match has no completion");
+
+// English aliases: in a non-English UI each translated field may carry its English counterpart
+// (*_en), searched with the weight of the field it mirrors. An English UI sends none.
+const zhPool = [
+    { id: "rev", title: "反转偶数层悬垂方向", full_label: "悬垂反转", source: "工艺 : 质量 : 悬垂",
+      title_en: "Reverse on even", full_label_en: "Overhang reversal", source_en: "Process : Quality : Overhangs",
+      group: "", input: "" },
+    { id: "slice", title: "切片并预览", source: "OrcaSlicer", group: "切片和导出",
+      title_en: "Slice and Preview", group_en: "Slice & Export", input: "" },
+    { id: "brim", title: "Brim宽度", source: "工艺 : 其他 : Brim", source_en: "Process : Others : Brim",
+      group: "", input: "" }
+];
+assert.deepEqual(ctx.searchActions(zhPool, "reverse on even").map(function (a) { return a.id; }), ["rev"],
+    "an English query finds a translated setting through its English title");
+assert.equal(ctx.matchIndex.rev.title, null, "an English-only match does not highlight the translated title");
+assert.deepEqual(ctx.matchIndex.rev.title_en, [[0, 15]], "the English title keeps its ranges for the hint");
+assert.deepEqual(ctx.searchActions(zhPool, "偶数层").map(function (a) { return a.id; }), ["rev"],
+    "the translated title is still searchable");
+assert.equal(ctx.matchIndex.rev.title_en, null, "a translated-title match leaves no English hint ranges");
+assert.deepEqual(ctx.searchActions(zhPool, "reverse 悬垂").map(function (a) { return a.id; }), ["rev"],
+    "a mixed query may match one token in English and another in the translation");
+assert.deepEqual(ctx.searchActions(zhPool, "overhang reversal").map(function (a) { return a.id; }), ["rev"],
+    "the English full_label alias is searchable");
+assert.deepEqual(ctx.searchActions(zhPool, "export").map(function (a) { return a.id; }), ["slice"],
+    "the English group alias is searchable");
+assert.deepEqual(ctx.searchActions(zhPool, "brim").map(function (a) { return a.id; }), ["brim"],
+    "a translation that keeps the English word matches the displayed title");
+assert.deepEqual(ctx.matchIndex.brim.title, [[0, 4]], "that match highlights the displayed title, so no hint is drawn");
+// Weights mirror the localized fields: an English title match outranks an English breadcrumb match.
+const zhRankPool = [
+    { id: "src", title: "内壁", source: "工艺 : 速度", source_en: "Process : Speed", group: "", input: "" },
+    { id: "ttl", title: "速度", source: "工艺 : 其他", title_en: "Speed", group: "", input: "" }
+];
+assert.deepEqual(ctx.searchActions(zhRankPool, "speed").map(function (a) { return a.id; }), ["ttl", "src"],
+    "an English title match outranks an English breadcrumb match, as their localized fields do");
+// Absent aliases (an English UI) leave no English hint; every pool above has none and ranks as before.
+ctx.searchActions(pool, "layer");
+assert.equal(ctx.matchIndex.c1.title_en, null, "an action without English aliases has no English hint ranges");
+assert.equal(ctx.completionFor("reverse o", ctx.searchActions(zhPool, "reverse o")).suffix, "n",
+    "completion extends an English word from title_en");
+assert.equal(ctx.completionFor("quality overh", ctx.searchActions(zhPool, "quality overh")).suffix, "angs",
+    "completion also reaches the English breadcrumb");
 
 // actionCategory: a command/dynamic action's group is its category; a setting uses the top-level
 // source segment; every plugin shares one header; a category-less action falls back to "Other".
@@ -456,9 +507,9 @@ assert.equal(ctx.stateFromPayload({}).tooltipExpanded, true, "expansion defaults
 assert.equal(ctx.stateFromPayload({ tooltip_expanded: false }).tooltipExpanded, false, "a collapsed payload is honored");
 assert.equal(ctx.stateFromPayload({ tooltip_expanded: true }).tooltipExpanded, true, "an expanded payload is honored");
 
-// resultCountText: a search counts the shown matches only ("Showing N actions"); the total is used
+// resultCountText: a search counts the shown matches only ("Matching actions: N"); the total is used
 // solely for the empty-query count.
-assert.equal(ctx.resultCountText(100, 3, "lay"), "Showing 3 actions", "a search reports the shown match count only");
-assert.equal(ctx.resultCountText(100, 100, ""), "100 actions", "an empty query reports the total");
+assert.equal(ctx.resultCountText(100, 3, "lay"), "Matching actions: 3", "a search reports the shown match count only");
+assert.equal(ctx.resultCountText(100, 100, ""), "Actions: 100", "an empty query reports the total");
 
 console.log("ok");

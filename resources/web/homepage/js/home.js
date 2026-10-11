@@ -6,6 +6,10 @@ function OnInit()
 {
 	//-----Official-----
     TranslatePage();
+    let pluginTip = document.getElementById("NoPluginText");
+    if (pluginTip)
+        AppendTemplate(pluginTip, T("plugin_not_detected", "Bambu Network plug-in not detected. Click <a>here</a> to install it."),
+                       pluginTip.querySelector("a"));
 
 	SendMsg_GetLoginInfo();
 	SendMsg_GetBambuLoginInfo();

@@ -414,8 +414,20 @@ body {
     white-space: nowrap;
 }
 
+/* English title of a row found only through it (non-English UI); gives way to the title first. */
+.row-alias {
+    flex: 0 100 auto;
+    min-width: 0;
+    font-size: 11px;
+    color: var(--muted, var(--orca-muted, #6b7280));
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .row-name mark,
-.row-eyebrow mark {
+.row-eyebrow mark,
+.row-alias mark {
     background: var(--plugin-status-warn-bg);
     color: var(--plugin-status-warn);
     border-radius: 2px;
