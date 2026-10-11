@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 08:37+0800\n"
+"POT-Creation-Date: 2026-10-11 16:21+0800\n"
 "PO-Revision-Date: 2026-02-25 13:38+0300\n"
 "Last-Translator: Felix14_v2\n"
 "Language-Team: Felix14_v2 (ДС/ТГ: @felix14_v2, почта: aleks111001@list.ru), Andylg <andylg@yandex.ru>\n"
@@ -12885,6 +12885,119 @@ msgstr "Ошибка входа. Попробуйте ещё раз."
 msgid "parse json failed"
 msgstr "не удалось обработать JSON"
 
+msgid "Loading…"
+msgstr "Загрузка..."
+
+msgid "Welcome to Orca Slicer"
+msgstr "Приветствуем в Orca Slicer!"
+
+msgid "Orca Slicer will be set up in several steps. Let's start!"
+msgstr "Для настройки Orca Slicer необходимо пройти несколько этапов. Давайте начнём!"
+
+msgid "Get Started"
+msgstr "Начать"
+
+msgid "Please select your login region"
+msgstr "Выбор региона"
+
+msgid "Finish"
+msgstr "Завершить"
+
+msgid "Printer Selection"
+msgstr "Выбор принтера"
+
+msgid "Vendors"
+msgstr ""
+
+# AI Translated
+msgid "Custom Printer"
+msgstr "Пользовательский принтер"
+
+msgid "Create"
+msgstr "Создать"
+
+msgid "Check for new printers"
+msgstr ""
+
+msgid "At least one printer must be selected."
+msgstr "Должен быть выбран хотя бы один принтер."
+
+msgid "New printers found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "New printer vendors installed: %s"
+msgstr ""
+
+msgid "New printer vendors were found, but installation was cancelled."
+msgstr ""
+
+msgid "No new printers found."
+msgstr ""
+
+msgid "Filament Selection"
+msgstr "Выбор материала"
+
+msgid "System Filaments"
+msgstr "Системные материалы"
+
+msgid "Custom Filaments"
+msgstr "Пользовательские материалы"
+
+msgid "Create New"
+msgstr "Создать новый"
+
+msgid "Filament type"
+msgstr "Тип материала"
+
+msgid "Vendor"
+msgstr "Производитель"
+
+msgid "No items"
+msgstr ""
+
+msgid "Filter items"
+msgstr ""
+
+msgid "Checked"
+msgstr ""
+
+msgid "Unchecked"
+msgstr ""
+
+msgid "Select filtered"
+msgstr ""
+
+msgid "Clear all"
+msgstr "Очистить"
+
+msgid "At least one filament must be selected."
+msgstr "Должен быть выбран хотя бы один материал."
+
+msgid "Do you want to use the default filament?"
+msgstr "Выбрать материалы по умолчанию?"
+
+msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
+msgstr ""
+
+msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
+msgstr ""
+
+msgid "Enable Stealth Mode."
+msgstr "Включить режим конфиденциальности"
+
+msgid "Proprietary Plugins"
+msgstr ""
+
+msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
+msgstr "Для связи с некоторыми моделями принтеров требуются проприетарные плагины. Выберите соответствующий плагин, если у вас такой принтер."
+
+msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
+msgstr "Имейте в виду, что эти плагины не разрабатываются и не поддерживаются OrcaSlicer. Используйте их на свой страх и риск."
+
+msgid "Install Bambu Network plug-in"
+msgstr "Установить сетевой плагин Bambu"
+
 msgid "[Action Required] "
 msgstr "[Требуется действие] "
 
@@ -15944,9 +16057,6 @@ msgstr "Стоимость материала. Используется при �
 
 msgid "money/kg"
 msgstr "цена за кг"
-
-msgid "Vendor"
-msgstr "Производитель"
 
 msgid "Vendor of filament. For show only."
 msgstr "Производитель материала. Информационный параметр."
@@ -20774,9 +20884,6 @@ msgstr "Перекалибровка"
 msgid "Calibrate"
 msgstr "Калибровка"
 
-msgid "Finish"
-msgstr "Завершить"
-
 msgid "How can I use calibration results?"
 msgstr "Как использовать результаты калибровки?"
 
@@ -21327,9 +21434,6 @@ msgstr ""
 
 msgid "Temperature calibration"
 msgstr "Калибровка температуры"
-
-msgid "Filament type"
-msgstr "Тип материала"
 
 msgid "PLA"
 msgstr "PLA"
@@ -21919,9 +22023,6 @@ msgstr "например обычная, матовая, шёлковая, мр�
 msgid "Filament Preset"
 msgstr "Профиль материала"
 
-msgid "Create"
-msgstr "Создать"
-
 msgid "Vendor is not selected; please reselect vendor."
 msgstr "Производитель не выбран; пожалуйста, выберите его заново."
 
@@ -22235,6 +22336,9 @@ msgstr ""
 "Экспортируется профиль принтера, а также профили материалов\n"
 "и настроек печати, связанные с выбранным принтером.\n"
 "Этими файлами можно поделиться с другими пользователями."
+
+msgid "Include custom bed texture and model"
+msgstr ""
 
 msgid ""
 "User's filament preset set.\n"
@@ -23353,6 +23457,33 @@ msgstr "Активируйте для сохранения настроек им
 msgid "PresetBundle"
 msgstr "PresetBundle"
 
+msgid "Export Presets"
+msgstr ""
+
+msgid "Open folder in explorer"
+msgstr ""
+
+msgid "Delete bundle"
+msgstr ""
+
+msgid "Unsubscribe bundle"
+msgstr ""
+
+msgid "Update available"
+msgstr ""
+
+msgid "Unauthorized bundle"
+msgstr ""
+
+msgid "Open this bundle in your browser"
+msgstr ""
+
+msgid "Subscribed"
+msgstr ""
+
+msgid "Local"
+msgstr ""
+
 msgid "Bundle folder does not exist."
 msgstr "Хранилище пакета профилей не найдено."
 
@@ -23388,6 +23519,12 @@ msgstr "Ошибка"
 
 msgid "ExportPresetBundle"
 msgstr "ExportPresetBundle"
+
+msgid "Export to OrcaCloud"
+msgstr ""
+
+msgid "Export to folder"
+msgstr ""
 
 msgid "Save preset bundle"
 msgstr "Сохранить пакет профилей"
@@ -28900,10 +29037,6 @@ msgid "Custom Printer Setup"
 msgstr "Настройка пользовательского принтера"
 
 # AI Translated
-msgid "Custom Printer"
-msgstr "Пользовательский принтер"
-
-# AI Translated
 msgid "Define a custom printer profile"
 msgstr "Задать профиль пользовательского принтера"
 
@@ -30399,6 +30532,28 @@ msgstr "Плагины материалов"
 msgid "Printer plugins"
 msgstr "Плагины принтеров"
 
+msgid "This preset does not use any plugin capabilities"
+msgstr ""
+
+msgid "Capabilities used by this preset"
+msgstr ""
+
+msgid "Capability configuration (JSON)"
+msgstr ""
+
+msgid "Plugin configuration"
+msgstr ""
+
+msgid "Discard this preset's override and use the global configuration again"
+msgstr ""
+
+# AI Translated
+msgid "Restore defaults"
+msgstr "Восстановить по умолчанию"
+
+msgid "Invalid JSON"
+msgstr ""
+
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
 msgstr "Конфигурация не является допустимым JSON. Изменения не сохранены."
@@ -30417,10 +30572,6 @@ msgstr ""
 "Восстановить конфигурацию по умолчанию для «%s»?\n"
 "\n"
 "Переопределение в профиле будет отменено, и будет использоваться глобальная конфигурация."
-
-# AI Translated
-msgid "Restore defaults"
-msgstr "Восстановить по умолчанию"
 
 # AI Translated
 msgid "Using global configuration. Save the preset to persist it."
@@ -30490,6 +30641,215 @@ msgstr "Установка плагина"
 #, c-format, boost-format
 msgid "Installed \"%s\"."
 msgstr "Плагин «%s» установлен."
+
+msgid "Search plugins"
+msgstr ""
+
+msgid "Clear search"
+msgstr ""
+
+msgid "Match case"
+msgstr ""
+
+msgid "Match whole word"
+msgstr ""
+
+msgid "More plugin install options"
+msgstr ""
+
+msgid "Install plugin"
+msgstr ""
+
+msgid "Install local plugin"
+msgstr ""
+
+msgid "Activate"
+msgstr ""
+
+msgid "Sort by name"
+msgstr ""
+
+msgid "Sort by version"
+msgstr ""
+
+msgid "Plugin Version"
+msgstr ""
+
+msgid "Sort by source"
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "Sort by status"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Status"
+msgstr ""
+
+msgid "Drag to resize; double-click to reset"
+msgstr ""
+
+msgid "Resize the plugin list"
+msgstr ""
+
+msgid "Plugin details"
+msgstr ""
+
+msgid "Plugin Info"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Changelog"
+msgstr ""
+
+msgid "Diagnostics"
+msgstr ""
+
+msgid "Types"
+msgstr ""
+
+msgid "Installed Version"
+msgstr ""
+
+msgid "Latest Version"
+msgstr ""
+
+msgid "Update to the latest version"
+msgstr ""
+
+msgid "No description available"
+msgstr ""
+
+msgid "Select a plugin to configure its capabilities"
+msgstr ""
+
+msgid "Configurable capabilities"
+msgstr ""
+
+msgid "Discard the settings saved for this capability and restore the plugin's defaults"
+msgstr ""
+
+msgid "Plugin changelog"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Changes"
+msgstr ""
+
+msgid "No changelog available"
+msgstr ""
+
+msgid "No issues detected"
+msgstr ""
+
+msgid "No plugins found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "No plugins match \"%s\""
+msgstr ""
+
+msgid "Mine"
+msgstr ""
+
+msgid "Orphaned"
+msgstr ""
+
+msgid "Some plugin capabilities are enabled"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Collapse %s capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Expand %s capabilities"
+msgstr ""
+
+msgid "Collapse capabilities"
+msgstr ""
+
+msgid "Expand capabilities"
+msgstr ""
+
+msgid "Open this plugin in your browser"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Capabilities: %s"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Run \"%s\""
+msgstr ""
+
+#, c-format, boost-format
+msgid "Enable %s"
+msgstr ""
+
+msgid "Unauthorized for updates"
+msgstr ""
+
+msgid "Loading the plugin…"
+msgstr ""
+
+msgid "This plugin exposes no capabilities"
+msgstr ""
+
+msgid "Activate this plugin to configure its capabilities"
+msgstr ""
+
+msgid "View on OrcaCloud <a>here</a>"
+msgstr ""
+
+msgid "Activated"
+msgstr ""
+
+msgid "Runtime error"
+msgstr ""
+
+msgid "Inactive"
+msgstr ""
+
+msgid "This plugin is active and ready to be used."
+msgstr ""
+
+msgid "This plugin is still loading."
+msgstr ""
+
+msgid "This plugin is blocked until its error is fixed."
+msgstr ""
+
+msgid "This plugin is loaded but a capability reported an error."
+msgstr ""
+
+msgid "This plugin is inactive. Activate it to install or load it."
+msgstr ""
+
+msgid "Select a plugin to view its status and details."
+msgstr ""
+
+msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
+msgstr ""
+
+msgid "A newer plugin version is available."
+msgstr ""
+
+msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
+msgstr ""
 
 # AI Translated
 #, c-format, boost-format
@@ -30707,6 +31067,54 @@ msgstr "Не удалось перезагрузить плагин."
 msgid "Reloaded \"%s\"."
 msgstr "«%s» перезагружен."
 
+msgid "Printer Connection"
+msgstr ""
+
+msgid "Please set up your printer connection to view the device."
+msgstr ""
+
+msgid "No model information"
+msgstr "Информация отсутствует"
+
+msgid "Edit Project Info"
+msgstr "Изменить информацию"
+
+msgid "Model Information"
+msgstr "Информация о модели"
+
+msgid "Accessories"
+msgstr "Прикреплённые файлы"
+
+msgid "Profile Information"
+msgstr "Информация о профиле"
+
+msgid "Model name"
+msgstr "Имя модели"
+
+msgid "Created by"
+msgstr "Автор"
+
+msgid "Remixed by"
+msgstr "Модифицировано"
+
+msgid "Shared by"
+msgstr "Поделиться"
+
+msgid "Model description"
+msgstr "Описание модели"
+
+msgid "BOM"
+msgstr "Список материалов"
+
+msgid "Profile name"
+msgstr "Имя профиля"
+
+msgid "Profile Author"
+msgstr "Профиль автора"
+
+msgid "Profile description"
+msgstr "Описание профиля"
+
 # AI Translated
 msgid "Purge Mode Settings"
 msgstr "Настройки режима прочистки"
@@ -30730,6 +31138,16 @@ msgstr "Уменьшает отходы прочистки и ускоряет �
 # AI Translated
 msgid "Terminal"
 msgstr "Консоль"
+
+msgid "python ... or uv ..."
+msgstr ""
+
+msgid "Plugin terminal ready."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process exited with code: %s"
+msgstr ""
 
 # AI Translated
 msgid "A command is already running."
@@ -31128,6 +31546,21 @@ msgstr ""
 msgid "Click an island on the canvas first, in Island mode."
 msgstr ""
 
+msgid "Not signed in"
+msgstr ""
+
+msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
+msgstr "Сетевой плагин Bambu не обнаружен. Нажмите <a>здесь</a>, чтобы установить его."
+
+msgid "Create new project"
+msgstr "Создать новый проект"
+
+msgid "Recently opened"
+msgstr "Недавно открытые"
+
+msgid "Open Containing Folder"
+msgstr "Открыть папку с файлом"
+
 # AI Translated
 msgid "Forward"
 msgstr "Вперёд"
@@ -31295,6 +31728,30 @@ msgstr "Плагин «%s» запрашивает разрешение на с�
 # AI Translated
 msgid "Plugin permission request"
 msgstr "Запрос разрешения плагина"
+
+msgid "Printer connection"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Analysis"
+msgstr ""
+
+msgid "Importer"
+msgstr ""
+
+msgid "Exporter"
+msgstr ""
+
+msgid "Visualization"
+msgstr ""
+
+msgid "Script"
+msgstr ""
+
+msgid "Slicing Pipeline"
+msgstr ""
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
@@ -32096,10 +32553,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Draw a closed profile to enable"
 #~ msgstr "Нарисуйте замкнутый профиль, чтобы включить"
-
-# AI Translated
-#~ msgid "Clear all"
-#~ msgstr "Очистить всё"
 
 # AI Translated
 #~ msgid "Empty result"

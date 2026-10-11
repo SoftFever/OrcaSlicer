@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 08:37+0800\n"
+"POT-Creation-Date: 2026-10-11 16:21+0800\n"
 "PO-Revision-Date: 2026-06-19 13:40+0700\n"
 "Last-Translator: Icezaza\n"
 "Language-Team: Thai\n"
@@ -12782,6 +12782,120 @@ msgstr "การเข้าสู่ระบบล้มเหลว โป�
 msgid "parse json failed"
 msgstr "แยกวิเคราะห์ json ไม่สำเร็จ"
 
+msgid "Loading…"
+msgstr ""
+
+msgid "Welcome to Orca Slicer"
+msgstr ""
+
+msgid "Orca Slicer will be set up in several steps. Let's start!"
+msgstr ""
+
+msgid "Get Started"
+msgstr ""
+
+msgid "Please select your login region"
+msgstr ""
+
+msgid "Finish"
+msgstr "เสร็จ"
+
+msgid "Printer Selection"
+msgstr ""
+
+msgid "Vendors"
+msgstr ""
+
+# AI Translated
+msgid "Custom Printer"
+msgstr "เครื่องพิมพ์แบบกำหนดเอง"
+
+msgid "Create"
+msgstr "สร้าง"
+
+msgid "Check for new printers"
+msgstr ""
+
+msgid "At least one printer must be selected."
+msgstr ""
+
+msgid "New printers found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "New printer vendors installed: %s"
+msgstr ""
+
+msgid "New printer vendors were found, but installation was cancelled."
+msgstr ""
+
+msgid "No new printers found."
+msgstr ""
+
+msgid "Filament Selection"
+msgstr ""
+
+msgid "System Filaments"
+msgstr ""
+
+msgid "Custom Filaments"
+msgstr ""
+
+msgid "Create New"
+msgstr ""
+
+msgid "Filament type"
+msgstr "ชนิดเส้นพลาสติก"
+
+msgid "Vendor"
+msgstr "ผู้ขาย"
+
+msgid "No items"
+msgstr ""
+
+msgid "Filter items"
+msgstr ""
+
+msgid "Checked"
+msgstr ""
+
+msgid "Unchecked"
+msgstr ""
+
+msgid "Select filtered"
+msgstr ""
+
+# AI Translated
+msgid "Clear all"
+msgstr "ล้างทั้งหมด"
+
+msgid "At least one filament must be selected."
+msgstr ""
+
+msgid "Do you want to use the default filament?"
+msgstr ""
+
+msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
+msgstr "ตัวเลือกนี้จะปิดการใช้งานฟีเจอร์คลาวด์ทั้งหมด รวมถึงการซิงก์โปรไฟล์ Orca Cloud ผู้ใช้ที่ต้องการทำงานแบบออฟไลน์ทั้งหมดสามารถเปิดตัวเลือกนี้ได้"
+
+msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
+msgstr "หมายเหตุ: เมื่อเปิดโหมดซ่อนตัว โปรไฟล์ผู้ใช้ของคุณจะไม่ถูกสำรองไปยัง Orca Cloud"
+
+msgid "Enable Stealth Mode."
+msgstr ""
+
+msgid "Proprietary Plugins"
+msgstr ""
+
+msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
+msgstr ""
+
+msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
+msgstr ""
+
+msgid "Install Bambu Network plug-in"
+msgstr ""
+
 msgid "[Action Required] "
 msgstr "[ต้องดำเนินการ]"
 
@@ -15727,9 +15841,6 @@ msgstr "ราคาเส้นพลาสติก. สำหรับสถ�
 
 msgid "money/kg"
 msgstr "เงิน/กก."
-
-msgid "Vendor"
-msgstr "ผู้ขาย"
 
 msgid "Vendor of filament. For show only."
 msgstr "ผู้จำหน่ายเส้นพลาสติก. สำหรับการแสดงเท่านั้น"
@@ -20154,9 +20265,6 @@ msgstr "การปรับเทียบใหม่"
 msgid "Calibrate"
 msgstr "ปรับเทียบ"
 
-msgid "Finish"
-msgstr "เสร็จ"
-
 msgid "How can I use calibration results?"
 msgstr "จะใช้ผลการสอบเทียบได้อย่างไร?"
 
@@ -20702,9 +20810,6 @@ msgstr ""
 
 msgid "Temperature calibration"
 msgstr "การปรับเทียบอุณหภูมิ"
-
-msgid "Filament type"
-msgstr "ชนิดเส้นพลาสติก"
 
 msgid "PLA"
 msgstr "PLA"
@@ -21284,9 +21389,6 @@ msgstr "เช่น พื้นฐาน, เนื้อด้าน, ไห�
 msgid "Filament Preset"
 msgstr "พรีเซ็ตเส้นพลาสติก"
 
-msgid "Create"
-msgstr "สร้าง"
-
 msgid "Vendor is not selected; please reselect vendor."
 msgstr "ไม่ได้เลือกผู้ขาย โปรดเลือกผู้ขายอีกครั้ง"
 
@@ -21589,6 +21691,9 @@ msgid ""
 msgstr ""
 "เครื่องพิมพ์และเส้นพลาสติกและค่าที่ตั้งล่วงหน้ากระบวนการทั้งหมดที่เป็นของเครื่องพิมพ์\n"
 "สามารถแบ่งปันกับผู้อื่นได้"
+
+msgid "Include custom bed texture and model"
+msgstr ""
 
 msgid ""
 "User's filament preset set.\n"
@@ -22737,6 +22842,33 @@ msgstr "หากเปิดใช้งาน ค่าด้านบนจ�
 msgid "PresetBundle"
 msgstr "ชุดค่าที่ตั้งไว้ล่วงหน้า"
 
+msgid "Export Presets"
+msgstr ""
+
+msgid "Open folder in explorer"
+msgstr ""
+
+msgid "Delete bundle"
+msgstr ""
+
+msgid "Unsubscribe bundle"
+msgstr ""
+
+msgid "Update available"
+msgstr ""
+
+msgid "Unauthorized bundle"
+msgstr ""
+
+msgid "Open this bundle in your browser"
+msgstr ""
+
+msgid "Subscribed"
+msgstr ""
+
+msgid "Local"
+msgstr ""
+
 msgid "Bundle folder does not exist."
 msgstr "ไม่มีโฟลเดอร์ชุด"
 
@@ -22769,6 +22901,12 @@ msgstr "ยกเลิกการติดตามชุด"
 
 msgid "ExportPresetBundle"
 msgstr "ส่งออกชุดค่าที่ตั้งไว้ล่วงหน้า"
+
+msgid "Export to OrcaCloud"
+msgstr ""
+
+msgid "Export to folder"
+msgstr ""
 
 msgid "Save preset bundle"
 msgstr "บันทึกชุดค่าที่ตั้งไว้ล่วงหน้า"
@@ -28288,10 +28426,6 @@ msgid "Custom Printer Setup"
 msgstr "ตั้งค่าเครื่องพิมพ์แบบกำหนดเอง"
 
 # AI Translated
-msgid "Custom Printer"
-msgstr "เครื่องพิมพ์แบบกำหนดเอง"
-
-# AI Translated
 msgid "Define a custom printer profile"
 msgstr "กำหนดโปรไฟล์เครื่องพิมพ์แบบกำหนดเอง"
 
@@ -29786,6 +29920,28 @@ msgstr "ปลั๊กอินเส้นพลาสติก"
 msgid "Printer plugins"
 msgstr "ปลั๊กอินเครื่องพิมพ์"
 
+msgid "This preset does not use any plugin capabilities"
+msgstr ""
+
+msgid "Capabilities used by this preset"
+msgstr ""
+
+msgid "Capability configuration (JSON)"
+msgstr ""
+
+msgid "Plugin configuration"
+msgstr ""
+
+msgid "Discard this preset's override and use the global configuration again"
+msgstr ""
+
+# AI Translated
+msgid "Restore defaults"
+msgstr "คืนค่าเริ่มต้น"
+
+msgid "Invalid JSON"
+msgstr ""
+
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
 msgstr "การกำหนดค่าไม่ใช่ JSON ที่ถูกต้อง การเปลี่ยนแปลงของคุณไม่ได้รับการบันทึก"
@@ -29804,10 +29960,6 @@ msgstr ""
 "คืนค่าการกำหนดค่าเริ่มต้นสำหรับ \"%s\" หรือไม่?\n"
 "\n"
 "การดำเนินการนี้จะทิ้งค่าที่พรีเซ็ตแทนที่ไว้และใช้การกำหนดค่าส่วนกลาง"
-
-# AI Translated
-msgid "Restore defaults"
-msgstr "คืนค่าเริ่มต้น"
 
 # AI Translated
 msgid "Using global configuration. Save the preset to persist it."
@@ -29877,6 +30029,215 @@ msgstr "กำลังติดตั้งปลั๊กอิน"
 #, c-format, boost-format
 msgid "Installed \"%s\"."
 msgstr "ติดตั้ง \"%s\" แล้ว"
+
+msgid "Search plugins"
+msgstr ""
+
+msgid "Clear search"
+msgstr ""
+
+msgid "Match case"
+msgstr ""
+
+msgid "Match whole word"
+msgstr ""
+
+msgid "More plugin install options"
+msgstr ""
+
+msgid "Install plugin"
+msgstr ""
+
+msgid "Install local plugin"
+msgstr ""
+
+msgid "Activate"
+msgstr ""
+
+msgid "Sort by name"
+msgstr ""
+
+msgid "Sort by version"
+msgstr ""
+
+msgid "Plugin Version"
+msgstr ""
+
+msgid "Sort by source"
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "Sort by status"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Status"
+msgstr ""
+
+msgid "Drag to resize; double-click to reset"
+msgstr ""
+
+msgid "Resize the plugin list"
+msgstr ""
+
+msgid "Plugin details"
+msgstr ""
+
+msgid "Plugin Info"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Changelog"
+msgstr ""
+
+msgid "Diagnostics"
+msgstr ""
+
+msgid "Types"
+msgstr ""
+
+msgid "Installed Version"
+msgstr ""
+
+msgid "Latest Version"
+msgstr ""
+
+msgid "Update to the latest version"
+msgstr ""
+
+msgid "No description available"
+msgstr ""
+
+msgid "Select a plugin to configure its capabilities"
+msgstr ""
+
+msgid "Configurable capabilities"
+msgstr ""
+
+msgid "Discard the settings saved for this capability and restore the plugin's defaults"
+msgstr ""
+
+msgid "Plugin changelog"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Changes"
+msgstr ""
+
+msgid "No changelog available"
+msgstr ""
+
+msgid "No issues detected"
+msgstr ""
+
+msgid "No plugins found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "No plugins match \"%s\""
+msgstr ""
+
+msgid "Mine"
+msgstr ""
+
+msgid "Orphaned"
+msgstr ""
+
+msgid "Some plugin capabilities are enabled"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Collapse %s capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Expand %s capabilities"
+msgstr ""
+
+msgid "Collapse capabilities"
+msgstr ""
+
+msgid "Expand capabilities"
+msgstr ""
+
+msgid "Open this plugin in your browser"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Capabilities: %s"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Run \"%s\""
+msgstr ""
+
+#, c-format, boost-format
+msgid "Enable %s"
+msgstr ""
+
+msgid "Unauthorized for updates"
+msgstr ""
+
+msgid "Loading the plugin…"
+msgstr ""
+
+msgid "This plugin exposes no capabilities"
+msgstr ""
+
+msgid "Activate this plugin to configure its capabilities"
+msgstr ""
+
+msgid "View on OrcaCloud <a>here</a>"
+msgstr ""
+
+msgid "Activated"
+msgstr ""
+
+msgid "Runtime error"
+msgstr ""
+
+msgid "Inactive"
+msgstr ""
+
+msgid "This plugin is active and ready to be used."
+msgstr ""
+
+msgid "This plugin is still loading."
+msgstr ""
+
+msgid "This plugin is blocked until its error is fixed."
+msgstr ""
+
+msgid "This plugin is loaded but a capability reported an error."
+msgstr ""
+
+msgid "This plugin is inactive. Activate it to install or load it."
+msgstr ""
+
+msgid "Select a plugin to view its status and details."
+msgstr ""
+
+msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
+msgstr ""
+
+msgid "A newer plugin version is available."
+msgstr ""
+
+msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
+msgstr ""
 
 # AI Translated
 #, c-format, boost-format
@@ -30094,6 +30455,54 @@ msgstr "ไม่สามารถโหลดปลั๊กอินใหม
 msgid "Reloaded \"%s\"."
 msgstr "โหลด \"%s\" ใหม่แล้ว"
 
+msgid "Printer Connection"
+msgstr ""
+
+msgid "Please set up your printer connection to view the device."
+msgstr ""
+
+msgid "No model information"
+msgstr ""
+
+msgid "Edit Project Info"
+msgstr ""
+
+msgid "Model Information"
+msgstr ""
+
+msgid "Accessories"
+msgstr ""
+
+msgid "Profile Information"
+msgstr ""
+
+msgid "Model name"
+msgstr ""
+
+msgid "Created by"
+msgstr ""
+
+msgid "Remixed by"
+msgstr ""
+
+msgid "Shared by"
+msgstr ""
+
+msgid "Model description"
+msgstr ""
+
+msgid "BOM"
+msgstr ""
+
+msgid "Profile name"
+msgstr ""
+
+msgid "Profile Author"
+msgstr ""
+
+msgid "Profile description"
+msgstr ""
+
 # AI Translated
 msgid "Purge Mode Settings"
 msgstr "การตั้งค่าโหมดไล่เส้น"
@@ -30117,6 +30526,16 @@ msgstr "ลดเส้นพลาสติกที่เสียจากก
 # AI Translated
 msgid "Terminal"
 msgstr "เทอร์มินัล"
+
+msgid "python ... or uv ..."
+msgstr ""
+
+msgid "Plugin terminal ready."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process exited with code: %s"
+msgstr ""
 
 # AI Translated
 msgid "A command is already running."
@@ -30515,6 +30934,21 @@ msgstr ""
 msgid "Click an island on the canvas first, in Island mode."
 msgstr ""
 
+msgid "Not signed in"
+msgstr ""
+
+msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
+msgstr ""
+
+msgid "Create new project"
+msgstr ""
+
+msgid "Recently opened"
+msgstr ""
+
+msgid "Open Containing Folder"
+msgstr ""
+
 # AI Translated
 msgid "Forward"
 msgstr "ไปข้างหน้า"
@@ -30682,6 +31116,30 @@ msgstr "ปลั๊กอิน \"%s\" กำลังขอสิทธิ์�
 # AI Translated
 msgid "Plugin permission request"
 msgstr "คำขอสิทธิ์ของปลั๊กอิน"
+
+msgid "Printer connection"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Analysis"
+msgstr ""
+
+msgid "Importer"
+msgstr ""
+
+msgid "Exporter"
+msgstr ""
+
+msgid "Visualization"
+msgstr ""
+
+msgid "Script"
+msgstr ""
+
+msgid "Slicing Pipeline"
+msgstr ""
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
@@ -31487,10 +31945,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Draw a closed profile to enable"
 #~ msgstr "วาดโปรไฟล์ปิดเพื่อเปิดใช้งาน"
-
-# AI Translated
-#~ msgid "Clear all"
-#~ msgstr "ล้างทั้งหมด"
 
 # AI Translated
 #~ msgid "Empty result"

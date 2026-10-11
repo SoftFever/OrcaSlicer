@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 08:37+0800\n"
+"POT-Creation-Date: 2026-10-11 16:21+0800\n"
 "PO-Revision-Date: 2025-11-28 13:48-0600\n"
 "Last-Translator: tntchn <15895303+tntchn@users.noreply.github.com>\n"
 "Language-Team: \n"
@@ -4354,9 +4354,10 @@ msgstr "校正完成。如下圖中的範例，請在您的熱床上找到最均
 msgid "Save"
 msgstr "儲存"
 
+# AI Translated
 msgctxt "Navigation"
 msgid "Back"
-msgstr "背面"
+msgstr "返回"
 
 msgid "Example"
 msgstr "範例"
@@ -12767,6 +12768,120 @@ msgstr "登入失敗。請再試一次。"
 msgid "parse json failed"
 msgstr "解析 json 失敗"
 
+msgid "Loading…"
+msgstr ""
+
+msgid "Welcome to Orca Slicer"
+msgstr "歡迎使用 Orca Slicer"
+
+# AI Translated
+msgid "Orca Slicer will be set up in several steps. Let's start!"
+msgstr "Orca Slicer 將透過幾個步驟完成設定。讓我們開始吧！"
+
+msgid "Get Started"
+msgstr "開始"
+
+msgid "Please select your login region"
+msgstr "請選擇登入區域"
+
+msgid "Finish"
+msgstr "完成"
+
+msgid "Printer Selection"
+msgstr "選擇列印裝置"
+
+msgid "Vendors"
+msgstr ""
+
+# AI Translated
+msgid "Custom Printer"
+msgstr "自訂列印裝置"
+
+msgid "Create"
+msgstr "建立"
+
+msgid "Check for new printers"
+msgstr ""
+
+msgid "At least one printer must be selected."
+msgstr "至少需要選擇一款列印裝置。"
+
+msgid "New printers found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "New printer vendors installed: %s"
+msgstr ""
+
+msgid "New printer vendors were found, but installation was cancelled."
+msgstr ""
+
+msgid "No new printers found."
+msgstr ""
+
+msgid "Filament Selection"
+msgstr "選擇線材"
+
+msgid "System Filaments"
+msgstr ""
+
+msgid "Custom Filaments"
+msgstr ""
+
+msgid "Create New"
+msgstr ""
+
+msgid "Filament type"
+msgstr "線材類型"
+
+msgid "Vendor"
+msgstr "廠牌"
+
+msgid "No items"
+msgstr ""
+
+msgid "Filter items"
+msgstr ""
+
+msgid "Checked"
+msgstr ""
+
+msgid "Unchecked"
+msgstr ""
+
+msgid "Select filtered"
+msgstr ""
+
+msgid "Clear all"
+msgstr "清空"
+
+msgid "At least one filament must be selected."
+msgstr "至少要選擇一款線材。"
+
+msgid "Do you want to use the default filament?"
+msgstr "你希望使用預設的線材列表嗎？"
+
+msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
+msgstr "這會停用所有雲端功能，包括 Orca Cloud 設定檔同步。偏好完全離線工作的使用者可以啟用此選項。"
+
+msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
+msgstr "注意：啟用無痕模式時，您的使用者設定檔將不會備份到 Orca Cloud。"
+
+msgid "Enable Stealth Mode."
+msgstr ""
+
+msgid "Proprietary Plugins"
+msgstr ""
+
+msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
+msgstr ""
+
+msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
+msgstr ""
+
+msgid "Install Bambu Network plug-in"
+msgstr "安裝 Bambu 網路外掛"
+
 msgid "[Action Required] "
 msgstr "[需要操作] "
 
@@ -15677,9 +15792,6 @@ msgstr "線材的價格。只用於統計資訊"
 
 msgid "money/kg"
 msgstr "元/公斤"
-
-msgid "Vendor"
-msgstr "廠牌"
 
 msgid "Vendor of filament. For show only."
 msgstr "列印線材的廠牌。僅用於展示"
@@ -20069,9 +20181,6 @@ msgstr "重新校正"
 msgid "Calibrate"
 msgstr "校正"
 
-msgid "Finish"
-msgstr "完成"
-
 msgid "How can I use calibration results?"
 msgstr "如何使用校正結果？"
 
@@ -20615,9 +20724,6 @@ msgstr ""
 
 msgid "Temperature calibration"
 msgstr "溫度校正"
-
-msgid "Filament type"
-msgstr "線材類型"
 
 msgid "PLA"
 msgstr "PLA"
@@ -21197,9 +21303,6 @@ msgstr "例如：基本、霧面、絲光、大理石"
 msgid "Filament Preset"
 msgstr "線材預設"
 
-msgid "Create"
-msgstr "建立"
-
 msgid "Vendor is not selected; please reselect vendor."
 msgstr "廠牌尚未選擇，請重新選擇廠牌。"
 
@@ -21506,6 +21609,9 @@ msgid ""
 msgstr ""
 "列印裝置及所有屬於該列印裝置的線材和處理預設設定。 \n"
 "可以與他人分享。"
+
+msgid "Include custom bed texture and model"
+msgstr ""
 
 msgid ""
 "User's filament preset set.\n"
@@ -22654,6 +22760,33 @@ msgstr "若啟用，上述數值會儲存為未來 STEP 匯入所使用的預設
 msgid "PresetBundle"
 msgstr "設定檔組"
 
+msgid "Export Presets"
+msgstr ""
+
+msgid "Open folder in explorer"
+msgstr ""
+
+msgid "Delete bundle"
+msgstr ""
+
+msgid "Unsubscribe bundle"
+msgstr ""
+
+msgid "Update available"
+msgstr ""
+
+msgid "Unauthorized bundle"
+msgstr ""
+
+msgid "Open this bundle in your browser"
+msgstr ""
+
+msgid "Subscribed"
+msgstr ""
+
+msgid "Local"
+msgstr ""
+
 msgid "Bundle folder does not exist."
 msgstr "設定檔組資料夾不存在。"
 
@@ -22686,6 +22819,12 @@ msgstr "取消訂閱設定檔組"
 
 msgid "ExportPresetBundle"
 msgstr "匯出設定檔組"
+
+msgid "Export to OrcaCloud"
+msgstr ""
+
+msgid "Export to folder"
+msgstr ""
 
 msgid "Save preset bundle"
 msgstr "儲存設定檔組"
@@ -28210,10 +28349,6 @@ msgid "Custom Printer Setup"
 msgstr "自訂列印裝置設定"
 
 # AI Translated
-msgid "Custom Printer"
-msgstr "自訂列印裝置"
-
-# AI Translated
 msgid "Define a custom printer profile"
 msgstr "定義自訂列印裝置設定檔"
 
@@ -29708,6 +29843,28 @@ msgstr "線材外掛"
 msgid "Printer plugins"
 msgstr "列印裝置外掛"
 
+msgid "This preset does not use any plugin capabilities"
+msgstr ""
+
+msgid "Capabilities used by this preset"
+msgstr ""
+
+msgid "Capability configuration (JSON)"
+msgstr ""
+
+msgid "Plugin configuration"
+msgstr ""
+
+msgid "Discard this preset's override and use the global configuration again"
+msgstr ""
+
+# AI Translated
+msgid "Restore defaults"
+msgstr "還原預設值"
+
+msgid "Invalid JSON"
+msgstr ""
+
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
 msgstr "設定不是有效的 JSON。您的變更未儲存。"
@@ -29726,10 +29883,6 @@ msgstr ""
 "要還原「%s」的預設設定嗎？\n"
 "\n"
 "這會捨棄此預設中的覆寫值，並改用全域設定。"
-
-# AI Translated
-msgid "Restore defaults"
-msgstr "還原預設值"
 
 # AI Translated
 msgid "Using global configuration. Save the preset to persist it."
@@ -29799,6 +29952,215 @@ msgstr "正在安裝外掛"
 #, c-format, boost-format
 msgid "Installed \"%s\"."
 msgstr "已安裝「%s」。"
+
+msgid "Search plugins"
+msgstr ""
+
+msgid "Clear search"
+msgstr ""
+
+msgid "Match case"
+msgstr ""
+
+msgid "Match whole word"
+msgstr ""
+
+msgid "More plugin install options"
+msgstr ""
+
+msgid "Install plugin"
+msgstr ""
+
+msgid "Install local plugin"
+msgstr ""
+
+msgid "Activate"
+msgstr ""
+
+msgid "Sort by name"
+msgstr ""
+
+msgid "Sort by version"
+msgstr ""
+
+msgid "Plugin Version"
+msgstr ""
+
+msgid "Sort by source"
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "Sort by status"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Status"
+msgstr ""
+
+msgid "Drag to resize; double-click to reset"
+msgstr ""
+
+msgid "Resize the plugin list"
+msgstr ""
+
+msgid "Plugin details"
+msgstr ""
+
+msgid "Plugin Info"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Changelog"
+msgstr ""
+
+msgid "Diagnostics"
+msgstr ""
+
+msgid "Types"
+msgstr ""
+
+msgid "Installed Version"
+msgstr ""
+
+msgid "Latest Version"
+msgstr ""
+
+msgid "Update to the latest version"
+msgstr ""
+
+msgid "No description available"
+msgstr ""
+
+msgid "Select a plugin to configure its capabilities"
+msgstr ""
+
+msgid "Configurable capabilities"
+msgstr ""
+
+msgid "Discard the settings saved for this capability and restore the plugin's defaults"
+msgstr ""
+
+msgid "Plugin changelog"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Changes"
+msgstr ""
+
+msgid "No changelog available"
+msgstr ""
+
+msgid "No issues detected"
+msgstr ""
+
+msgid "No plugins found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "No plugins match \"%s\""
+msgstr ""
+
+msgid "Mine"
+msgstr ""
+
+msgid "Orphaned"
+msgstr ""
+
+msgid "Some plugin capabilities are enabled"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Collapse %s capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Expand %s capabilities"
+msgstr ""
+
+msgid "Collapse capabilities"
+msgstr ""
+
+msgid "Expand capabilities"
+msgstr ""
+
+msgid "Open this plugin in your browser"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Capabilities: %s"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Run \"%s\""
+msgstr ""
+
+#, c-format, boost-format
+msgid "Enable %s"
+msgstr ""
+
+msgid "Unauthorized for updates"
+msgstr ""
+
+msgid "Loading the plugin…"
+msgstr ""
+
+msgid "This plugin exposes no capabilities"
+msgstr ""
+
+msgid "Activate this plugin to configure its capabilities"
+msgstr ""
+
+msgid "View on OrcaCloud <a>here</a>"
+msgstr ""
+
+msgid "Activated"
+msgstr ""
+
+msgid "Runtime error"
+msgstr ""
+
+msgid "Inactive"
+msgstr ""
+
+msgid "This plugin is active and ready to be used."
+msgstr ""
+
+msgid "This plugin is still loading."
+msgstr ""
+
+msgid "This plugin is blocked until its error is fixed."
+msgstr ""
+
+msgid "This plugin is loaded but a capability reported an error."
+msgstr ""
+
+msgid "This plugin is inactive. Activate it to install or load it."
+msgstr ""
+
+msgid "Select a plugin to view its status and details."
+msgstr ""
+
+msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
+msgstr ""
+
+msgid "A newer plugin version is available."
+msgstr ""
+
+msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
+msgstr ""
 
 # AI Translated
 #, c-format, boost-format
@@ -30016,6 +30378,54 @@ msgstr "重新載入外掛失敗。"
 msgid "Reloaded \"%s\"."
 msgstr "已重新載入「%s」。"
 
+msgid "Printer Connection"
+msgstr ""
+
+msgid "Please set up your printer connection to view the device."
+msgstr ""
+
+msgid "No model information"
+msgstr "沒有模型相關資訊"
+
+msgid "Edit Project Info"
+msgstr "編輯專案資訊"
+
+msgid "Model Information"
+msgstr ""
+
+msgid "Accessories"
+msgstr ""
+
+msgid "Profile Information"
+msgstr ""
+
+msgid "Model name"
+msgstr ""
+
+msgid "Created by"
+msgstr ""
+
+msgid "Remixed by"
+msgstr ""
+
+msgid "Shared by"
+msgstr ""
+
+msgid "Model description"
+msgstr ""
+
+msgid "BOM"
+msgstr ""
+
+msgid "Profile name"
+msgstr ""
+
+msgid "Profile Author"
+msgstr ""
+
+msgid "Profile description"
+msgstr ""
+
 # AI Translated
 msgid "Purge Mode Settings"
 msgstr "清理模式設定"
@@ -30039,6 +30449,16 @@ msgstr "減少清理廢料並加快列印。可能會造成輕微混色或細小
 # AI Translated
 msgid "Terminal"
 msgstr "終端機"
+
+msgid "python ... or uv ..."
+msgstr ""
+
+msgid "Plugin terminal ready."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process exited with code: %s"
+msgstr ""
 
 # AI Translated
 msgid "A command is already running."
@@ -30437,6 +30857,21 @@ msgstr ""
 msgid "Click an island on the canvas first, in Island mode."
 msgstr ""
 
+msgid "Not signed in"
+msgstr ""
+
+msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
+msgstr "沒有發現 Bambu 網路外掛，請<a>下載</a>並安裝。"
+
+msgid "Create new project"
+msgstr "建立一個新專案"
+
+msgid "Recently opened"
+msgstr "最近開啟檔案"
+
+msgid "Open Containing Folder"
+msgstr "開啟所在的資料夾"
+
 # AI Translated
 msgid "Forward"
 msgstr "前進"
@@ -30604,6 +31039,30 @@ msgstr "外掛「%s」正在請求 Python 稽核事件「%s」的權限。"
 # AI Translated
 msgid "Plugin permission request"
 msgstr "外掛權限請求"
+
+msgid "Printer connection"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Analysis"
+msgstr ""
+
+msgid "Importer"
+msgstr ""
+
+msgid "Exporter"
+msgstr ""
+
+msgid "Visualization"
+msgstr ""
+
+msgid "Script"
+msgstr ""
+
+msgid "Slicing Pipeline"
+msgstr ""
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
@@ -31429,10 +31888,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Draw a closed profile to enable"
 #~ msgstr "請繪製封閉輪廓以啟用"
-
-# AI Translated
-#~ msgid "Clear all"
-#~ msgstr "全部清除"
 
 # AI Translated
 #~ msgid "Empty result"

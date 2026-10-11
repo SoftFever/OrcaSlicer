@@ -571,8 +571,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/UserNotification.hpp
     GUI/UVEditorCanvas.cpp
     GUI/UVEditorCanvas.hpp
-    GUI/WebDownPluginDlg.cpp
-    GUI/WebDownPluginDlg.hpp
     GUI/WebGuideDialog.cpp
     GUI/WebGuideDialog.hpp
     GUI/WebUserLoginDialog.cpp

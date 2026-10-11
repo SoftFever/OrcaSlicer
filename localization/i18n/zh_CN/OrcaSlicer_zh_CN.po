@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 08:37+0800\n"
+"POT-Creation-Date: 2026-10-11 16:21+0800\n"
 "PO-Revision-Date: 2026-06-11 12:37-0300\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -4274,9 +4274,10 @@ msgstr "校准完成。如下图中的示例，请在您的热床上找到最均
 msgid "Save"
 msgstr "保存"
 
+# AI Translated
 msgctxt "Navigation"
 msgid "Back"
-msgstr "背面"
+msgstr "返回"
 
 msgid "Example"
 msgstr "示例"
@@ -12680,6 +12681,133 @@ msgstr "登录失败。请重试。"
 msgid "parse json failed"
 msgstr "解析 json 失败"
 
+msgid "Loading…"
+msgstr "正在加载……"
+
+msgid "Welcome to Orca Slicer"
+msgstr "欢迎使用 Orca Slicer"
+
+# AI Translated
+msgid "Orca Slicer will be set up in several steps. Let's start!"
+msgstr "Orca Slicer 将通过几个步骤完成设置。让我们开始吧！"
+
+msgid "Get Started"
+msgstr "开始"
+
+msgid "Please select your login region"
+msgstr "请选择登录区域"
+
+msgid "Finish"
+msgstr "完成"
+
+msgid "Printer Selection"
+msgstr "选择打印机"
+
+# AI Translated
+msgid "Vendors"
+msgstr "供应商"
+
+# AI Translated
+msgid "Custom Printer"
+msgstr "自定义打印机"
+
+msgid "Create"
+msgstr "创建"
+
+# AI Translated
+msgid "Check for new printers"
+msgstr "检查新打印机"
+
+msgid "At least one printer must be selected."
+msgstr "至少需要选择一款打印机。"
+
+# AI Translated
+msgid "New printers found"
+msgstr "发现新打印机"
+
+# AI Translated
+#, c-format, boost-format
+msgid "New printer vendors installed: %s"
+msgstr "已安装新的打印机供应商：%s"
+
+# AI Translated
+msgid "New printer vendors were found, but installation was cancelled."
+msgstr "发现了新的打印机供应商，但安装已取消。"
+
+# AI Translated
+msgid "No new printers found."
+msgstr "未发现新打印机。"
+
+msgid "Filament Selection"
+msgstr "选择耗材丝"
+
+msgid "System Filaments"
+msgstr "系统耗材丝"
+
+msgid "Custom Filaments"
+msgstr "自建耗材丝"
+
+msgid "Create New"
+msgstr "新建"
+
+msgid "Filament type"
+msgstr "耗材类型"
+
+msgid "Vendor"
+msgstr "供应商"
+
+# AI Translated
+msgid "No items"
+msgstr "无项目"
+
+# AI Translated
+msgid "Filter items"
+msgstr "筛选项目"
+
+# AI Translated
+msgid "Checked"
+msgstr "已勾选"
+
+# AI Translated
+msgid "Unchecked"
+msgstr "未勾选"
+
+# AI Translated
+msgid "Select filtered"
+msgstr "选择筛选项"
+
+msgid "Clear all"
+msgstr "清空"
+
+msgid "At least one filament must be selected."
+msgstr "至少要选择一款耗材丝。"
+
+msgid "Do you want to use the default filament?"
+msgstr "你希望使用默认的耗材丝列表吗？"
+
+msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
+msgstr "这将禁用所有云功能，包括 Orca Cloud 配置文件同步。希望完全离线工作的用户可以启用此选项。"
+
+msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
+msgstr "注意：启用局域网模式后，您的用户配置文件将不会备份到 Orca Cloud。"
+
+# AI Translated
+msgid "Enable Stealth Mode."
+msgstr "启用局域网模式。"
+
+# AI Translated
+msgid "Proprietary Plugins"
+msgstr "专有插件"
+
+msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
+msgstr "一些打印机供应商需要安装他们的专有插件才能与打印机通信。如果您使用这类打印机，请选择相应的插件。"
+
+msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
+msgstr "注意：这些插件不是由 OrcaSlicer 开发或维护的。使用它们需自担风险。"
+
+msgid "Install Bambu Network plug-in"
+msgstr "安装 Bambu 网络插件"
+
 msgid "[Action Required] "
 msgstr "[需要操作] "
 
@@ -15638,9 +15766,6 @@ msgstr "耗材丝的价格。只用于统计信息。"
 
 msgid "money/kg"
 msgstr "金额/kg"
-
-msgid "Vendor"
-msgstr "供应商"
 
 msgid "Vendor of filament. For show only."
 msgstr "打印耗材的供应商。仅用于展示。"
@@ -20140,9 +20265,6 @@ msgstr "重新校准"
 msgid "Calibrate"
 msgstr "校准"
 
-msgid "Finish"
-msgstr "完成"
-
 msgid "How can I use calibration results?"
 msgstr "如何使用校准结果？"
 
@@ -20689,9 +20811,6 @@ msgstr "传送带打印机暂不支持此功能，请改用“PA塔”方法。"
 
 msgid "Temperature calibration"
 msgstr "温度校准"
-
-msgid "Filament type"
-msgstr "耗材类型"
 
 msgid "PLA"
 msgstr "PLA"
@@ -21272,9 +21391,6 @@ msgstr "例如：Basic, Matte, Silk, Marble"
 msgid "Filament Preset"
 msgstr "耗材预设"
 
-msgid "Create"
-msgstr "创建"
-
 msgid "Vendor is not selected; please reselect vendor."
 msgstr "未选择供应商，请重新选择供应商。"
 
@@ -21581,6 +21697,10 @@ msgid ""
 msgstr ""
 "打印机和属于打印机的所有的耗材和工艺预设。\n"
 "可与他人分享。"
+
+# AI Translated
+msgid "Include custom bed texture and model"
+msgstr "包含自定义热床纹理和模型"
 
 msgid ""
 "User's filament preset set.\n"
@@ -22723,6 +22843,42 @@ msgstr "如果启用，上述值将被存储为将来 STEP 导入所用的默认
 msgid "PresetBundle"
 msgstr "预设包"
 
+# AI Translated
+msgid "Export Presets"
+msgstr "导出预设"
+
+# AI Translated
+msgid "Open folder in explorer"
+msgstr "打开所在文件夹"
+
+# AI Translated
+msgid "Delete bundle"
+msgstr "删除预设包"
+
+# AI Translated
+msgid "Unsubscribe bundle"
+msgstr "取消订阅预设包"
+
+# AI Translated
+msgid "Update available"
+msgstr "有可用更新"
+
+# AI Translated
+msgid "Unauthorized bundle"
+msgstr "未授权的预设包"
+
+# AI Translated
+msgid "Open this bundle in your browser"
+msgstr "在浏览器中打开此预设包"
+
+# AI Translated
+msgid "Subscribed"
+msgstr "已订阅"
+
+# AI Translated
+msgid "Local"
+msgstr "本地"
+
 msgid "Bundle folder does not exist."
 msgstr "预设包文件夹不存在。"
 
@@ -22755,6 +22911,14 @@ msgstr "取消订阅预设包"
 
 msgid "ExportPresetBundle"
 msgstr "导出预设包"
+
+# AI Translated
+msgid "Export to OrcaCloud"
+msgstr "导出到 OrcaCloud"
+
+# AI Translated
+msgid "Export to folder"
+msgstr "导出到文件夹"
 
 msgid "Save preset bundle"
 msgstr "保存预设包"
@@ -28296,10 +28460,6 @@ msgid "Custom Printer Setup"
 msgstr "自定义打印机设置"
 
 # AI Translated
-msgid "Custom Printer"
-msgstr "自定义打印机"
-
-# AI Translated
 msgid "Define a custom printer profile"
 msgstr "定义自定义打印机配置文件"
 
@@ -29800,6 +29960,34 @@ msgid "Printer plugins"
 msgstr "打印机插件"
 
 # AI Translated
+msgid "This preset does not use any plugin capabilities"
+msgstr "此预设未使用任何插件功能"
+
+# AI Translated
+msgid "Capabilities used by this preset"
+msgstr "此预设使用的功能"
+
+# AI Translated
+msgid "Capability configuration (JSON)"
+msgstr "功能配置（JSON）"
+
+# AI Translated
+msgid "Plugin configuration"
+msgstr "插件配置"
+
+# AI Translated
+msgid "Discard this preset's override and use the global configuration again"
+msgstr "放弃此预设的覆盖配置，重新使用全局配置"
+
+# AI Translated
+msgid "Restore defaults"
+msgstr "恢复默认"
+
+# AI Translated
+msgid "Invalid JSON"
+msgstr "无效的 JSON"
+
+# AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
 msgstr "配置不是有效的 JSON。您的更改未保存。"
 
@@ -29817,10 +30005,6 @@ msgstr ""
 "恢复“%s”的默认配置？\n"
 "\n"
 "这将放弃该预设的覆盖设置，并使用全局配置。"
-
-# AI Translated
-msgid "Restore defaults"
-msgstr "恢复默认"
 
 # AI Translated
 msgid "Using global configuration. Save the preset to persist it."
@@ -29890,6 +30074,282 @@ msgstr "正在安装插件"
 #, c-format, boost-format
 msgid "Installed \"%s\"."
 msgstr "已安装“%s”。"
+
+# AI Translated
+msgid "Search plugins"
+msgstr "搜索插件"
+
+# AI Translated
+msgid "Clear search"
+msgstr "清除搜索"
+
+# AI Translated
+msgid "Match case"
+msgstr "区分大小写"
+
+# AI Translated
+msgid "Match whole word"
+msgstr "全字匹配"
+
+# AI Translated
+msgid "More plugin install options"
+msgstr "更多插件安装选项"
+
+# AI Translated
+msgid "Install plugin"
+msgstr "安装插件"
+
+# AI Translated
+msgid "Install local plugin"
+msgstr "安装本地插件"
+
+# AI Translated
+msgid "Activate"
+msgstr "激活"
+
+# AI Translated
+msgid "Sort by name"
+msgstr "按名称排序"
+
+# AI Translated
+msgid "Sort by version"
+msgstr "按版本排序"
+
+# AI Translated
+msgid "Plugin Version"
+msgstr "插件版本"
+
+# AI Translated
+msgid "Sort by source"
+msgstr "按来源排序"
+
+# AI Translated
+msgid "Source"
+msgstr "来源"
+
+# AI Translated
+msgid "Sort by status"
+msgstr "按状态排序"
+
+# AI Translated
+msgctxt "Plugin"
+msgid "Status"
+msgstr "状态"
+
+# AI Translated
+msgid "Drag to resize; double-click to reset"
+msgstr "拖动以调整大小；双击以重置"
+
+# AI Translated
+msgid "Resize the plugin list"
+msgstr "调整插件列表大小"
+
+# AI Translated
+msgid "Plugin details"
+msgstr "插件详情"
+
+# AI Translated
+msgid "Plugin Info"
+msgstr "插件信息"
+
+# AI Translated
+msgid "Description"
+msgstr "描述"
+
+# AI Translated
+msgid "Config"
+msgstr "配置"
+
+# AI Translated
+msgid "Changelog"
+msgstr "更新日志"
+
+# AI Translated
+msgid "Diagnostics"
+msgstr "诊断"
+
+# AI Translated
+msgid "Types"
+msgstr "类型"
+
+# AI Translated
+msgid "Installed Version"
+msgstr "已安装版本"
+
+# AI Translated
+msgid "Latest Version"
+msgstr "最新版本"
+
+# AI Translated
+msgid "Update to the latest version"
+msgstr "更新到最新版本"
+
+# AI Translated
+msgid "No description available"
+msgstr "暂无描述"
+
+# AI Translated
+msgid "Select a plugin to configure its capabilities"
+msgstr "选择一个插件以配置其功能"
+
+# AI Translated
+msgid "Configurable capabilities"
+msgstr "可配置的功能"
+
+# AI Translated
+msgid "Discard the settings saved for this capability and restore the plugin's defaults"
+msgstr "放弃为此功能保存的设置，恢复插件的默认配置"
+
+# AI Translated
+msgid "Plugin changelog"
+msgstr "插件更新日志"
+
+# AI Translated
+msgid "Date"
+msgstr "日期"
+
+# AI Translated
+msgid "Changes"
+msgstr "更新内容"
+
+# AI Translated
+msgid "No changelog available"
+msgstr "暂无更新日志"
+
+# AI Translated
+msgid "No issues detected"
+msgstr "未检测到问题"
+
+# AI Translated
+msgid "No plugins found"
+msgstr "未找到插件"
+
+# AI Translated
+#, c-format, boost-format
+msgid "No plugins match \"%s\""
+msgstr "没有与“%s”匹配的插件"
+
+# AI Translated
+msgid "Mine"
+msgstr "我的"
+
+# AI Translated
+msgid "Orphaned"
+msgstr "孤立"
+
+# AI Translated
+msgid "Some plugin capabilities are enabled"
+msgstr "已启用部分插件功能"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Collapse %s capabilities"
+msgstr "收起 %s 的功能"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Expand %s capabilities"
+msgstr "展开 %s 的功能"
+
+# AI Translated
+msgid "Collapse capabilities"
+msgstr "收起功能"
+
+# AI Translated
+msgid "Expand capabilities"
+msgstr "展开功能"
+
+# AI Translated
+msgid "Open this plugin in your browser"
+msgstr "在浏览器中打开此插件"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Capabilities: %s"
+msgstr "功能：%s"
+
+# AI Translated
+msgctxt "Plugin"
+msgid "Capabilities"
+msgstr "功能"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Run \"%s\""
+msgstr "运行“%s”"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Enable %s"
+msgstr "启用 %s"
+
+# AI Translated
+msgid "Unauthorized for updates"
+msgstr "未获更新授权"
+
+# AI Translated
+msgid "Loading the plugin…"
+msgstr "正在加载插件…"
+
+# AI Translated
+msgid "This plugin exposes no capabilities"
+msgstr "此插件未提供任何功能"
+
+# AI Translated
+msgid "Activate this plugin to configure its capabilities"
+msgstr "激活此插件后即可配置其功能"
+
+# AI Translated
+msgid "View on OrcaCloud <a>here</a>"
+msgstr "点击<a>此处</a>前往 OrcaCloud 查看"
+
+# AI Translated
+msgid "Activated"
+msgstr "已激活"
+
+# AI Translated
+msgid "Runtime error"
+msgstr "运行时错误"
+
+# AI Translated
+msgid "Inactive"
+msgstr "未激活"
+
+# AI Translated
+msgid "This plugin is active and ready to be used."
+msgstr "此插件已激活，可以使用。"
+
+# AI Translated
+msgid "This plugin is still loading."
+msgstr "此插件仍在加载中。"
+
+# AI Translated
+msgid "This plugin is blocked until its error is fixed."
+msgstr "此插件存在错误，修复之前无法使用。"
+
+# AI Translated
+msgid "This plugin is loaded but a capability reported an error."
+msgstr "此插件已加载，但有功能报告了错误。"
+
+# AI Translated
+msgid "This plugin is inactive. Activate it to install or load it."
+msgstr "此插件未激活。激活后即可安装或加载。"
+
+# AI Translated
+msgid "Select a plugin to view its status and details."
+msgstr "选择一个插件以查看其状态和详细信息。"
+
+# AI Translated
+msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
+msgstr "孤立：此插件已不再订阅，或已无法在 OrcaCloud 中获取。本地副本仍保持安装，可以继续使用。"
+
+# AI Translated
+msgid "A newer plugin version is available."
+msgstr "插件有新版本可用。"
+
+# AI Translated
+msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
+msgstr "此插件未获更新授权，无法获取云端更新。"
 
 # AI Translated
 #, c-format, boost-format
@@ -30108,6 +30568,56 @@ msgid "Reloaded \"%s\"."
 msgstr "已重新加载“%s”。"
 
 # AI Translated
+msgid "Printer Connection"
+msgstr "打印机连接"
+
+# AI Translated
+msgid "Please set up your printer connection to view the device."
+msgstr "请先设置打印机连接以查看设备。"
+
+msgid "No model information"
+msgstr "该模型没有相关信息"
+
+msgid "Edit Project Info"
+msgstr "编辑项目信息"
+
+msgid "Model Information"
+msgstr "模型信息"
+
+msgid "Accessories"
+msgstr "附件"
+
+msgid "Profile Information"
+msgstr "配置信息"
+
+msgid "Model name"
+msgstr "模型名称"
+
+msgid "Created by"
+msgstr "创作"
+
+msgid "Remixed by"
+msgstr "修改"
+
+msgid "Shared by"
+msgstr "分享"
+
+msgid "Model description"
+msgstr "模型介绍"
+
+msgid "BOM"
+msgstr "物料清单"
+
+msgid "Profile name"
+msgstr "配置名称"
+
+msgid "Profile Author"
+msgstr "配置作者"
+
+msgid "Profile description"
+msgstr "配置介绍"
+
+# AI Translated
 msgid "Purge Mode Settings"
 msgstr "冲刷模式设置"
 
@@ -30130,6 +30640,19 @@ msgstr "减少冲刷浪费并加快打印。可能导致轻微混色或细小的
 # AI Translated
 msgid "Terminal"
 msgstr "终端"
+
+# AI Translated
+msgid "python ... or uv ..."
+msgstr "python ... 或 uv ..."
+
+# AI Translated
+msgid "Plugin terminal ready."
+msgstr "插件终端已就绪。"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Process exited with code: %s"
+msgstr "进程已退出，退出代码：%s"
 
 # AI Translated
 msgid "A command is already running."
@@ -30544,6 +31067,22 @@ msgid "Click an island on the canvas first, in Island mode."
 msgstr "请先在岛模式下单击画布上的一个 UV 岛。"
 
 # AI Translated
+msgid "Not signed in"
+msgstr "未登录"
+
+msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
+msgstr "没有发现 Bambu 网络插件，请<a>下载</a>并安装。"
+
+msgid "Create new project"
+msgstr "创建一个新项目"
+
+msgid "Recently opened"
+msgstr "近期打开文件"
+
+msgid "Open Containing Folder"
+msgstr "打开所在的文件夹"
+
+# AI Translated
 msgid "Forward"
 msgstr "前进"
 
@@ -30714,6 +31253,38 @@ msgstr "插件“%s”正在请求 Python 审计事件“%s”的权限。"
 # AI Translated
 msgid "Plugin permission request"
 msgstr "插件权限请求"
+
+# AI Translated
+msgid "Printer connection"
+msgstr "打印机连接"
+
+# AI Translated
+msgid "Pages"
+msgstr "页面"
+
+# AI Translated
+msgid "Analysis"
+msgstr "分析"
+
+# AI Translated
+msgid "Importer"
+msgstr "导入器"
+
+# AI Translated
+msgid "Exporter"
+msgstr "导出器"
+
+# AI Translated
+msgid "Visualization"
+msgstr "可视化"
+
+# AI Translated
+msgid "Script"
+msgstr "脚本"
+
+# AI Translated
+msgid "Slicing Pipeline"
+msgstr "切片流水线"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
@@ -31518,10 +32089,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Draw a closed profile to enable"
 #~ msgstr "绘制一个闭合轮廓以启用"
-
-# AI Translated
-#~ msgid "Clear all"
-#~ msgstr "全部清除"
 
 # AI Translated
 #~ msgid "Empty result"

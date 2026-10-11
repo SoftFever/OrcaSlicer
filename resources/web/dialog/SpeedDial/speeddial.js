@@ -1405,8 +1405,8 @@ function focusInput() { setTimeout(function () { if (qEl) qEl.focus(); }, 0); }
 function OnInit() {
     qEl = $("q"); listEl = $("list"); favEl = $("favBar"); clearEl = $("clear"); eyeEl = $("favEyebrow"); countEl = $("count"); detailEl = $("detail");
     ghostEl = $("ghost"); ghostTypedEl = $("ghostTyped"); ghostSuffixEl = $("ghostSuffix");
-    // text.js's TranslatePage() targets jQuery `.trans` nodes; this page has none and defines its own
-    // `$`, so don't call it. Runtime strings go through T() instead.
+    // This page has no data-i18n markup and defines its own `$` and T(), so it does not load
+    // include/i18n.js. Its strings all go through T().
     qEl.placeholder = T("sd_search", "Search actions");
     qEl.setAttribute("aria-label", T("sd_search", "Search actions"));
     if (clearEl) {
