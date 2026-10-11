@@ -9,6 +9,7 @@ import os
 import sys
 import unittest
 import urllib.error
+from unittest import mock
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -287,6 +288,41 @@ class MeasureTest(unittest.TestCase):
         api = FakeApi({})
         admission.measure(api, "o/r", "build_all.yml", 99, NOON)
         self.assertFalse(any("event" in params for _, params in api.calls))
+
+
+class ApiTest(unittest.TestCase):
+    class Response:
+        def __init__(self, headers):
+            self.headers = headers
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+        def read(self):
+            return b"{}"
+
+    def test_reports_calls_and_the_rate_limit_left(self):
+        api = admission.Api("token")
+        responses = [self.Response({}),
+                     self.Response({"X-RateLimit-Remaining": "812", "X-RateLimit-Limit": "1000"})]
+        with mock.patch.object(admission.urllib.request, "urlopen", side_effect=responses):
+            api.get("first")
+            calls_before = api.calls
+            api.get("second")
+        self.assertEqual(api.usage(0), "  API calls this check: 2, rate limit left: 812 of 1000")
+        self.assertEqual(api.usage(calls_before), "  API calls this check: 1, rate limit left: 812 of 1000")
+
+    def test_reads_the_rate_limit_from_a_failed_request(self):
+        api = admission.Api("token")
+        headers = {"X-RateLimit-Remaining": "0", "X-RateLimit-Limit": "1000"}
+        error = urllib.error.HTTPError("url", 403, "Forbidden", headers, None)
+        with mock.patch.object(admission.urllib.request, "urlopen", side_effect=error), \
+             self.assertRaises(urllib.error.HTTPError):
+            api.get("runs")
+        self.assertEqual(api.usage(0), "  API calls this check: 1, rate limit left: 0 of 1000")
 
 
 class WaitTest(unittest.TestCase):

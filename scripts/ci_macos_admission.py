@@ -131,6 +131,10 @@ class Api:
     def __init__(self, token, url="https://api.github.com"):
         self.token = token
         self.url = url.rstrip("/")
+        # The token's hourly limit is shared by every workflow in the repository,
+        # so what the last response says is left shows their use too.
+        self.calls = 0
+        self.remaining = self.limit = "?"
 
     def get(self, path, **params):
         query = urllib.parse.urlencode(params)
@@ -139,8 +143,22 @@ class Api:
             "Authorization": f"Bearer {self.token}",
             "X-GitHub-Api-Version": "2022-11-28",
         })
-        with urllib.request.urlopen(request, timeout=30) as response:
-            return json.load(response)
+        self.calls += 1
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                self.note_rate_limit(response.headers)
+                return json.load(response)
+        except urllib.error.HTTPError as error:
+            # A rate-limited request fails, and its headers say so.
+            self.note_rate_limit(error.headers)
+            raise
+
+    def note_rate_limit(self, headers):
+        self.remaining = headers.get("X-RateLimit-Remaining", "?")
+        self.limit = headers.get("X-RateLimit-Limit", "?")
+
+    def usage(self, calls_before):
+        return f"  API calls this check: {self.calls - calls_before}, rate limit left: {self.remaining} of {self.limit}"
 
 
 def list_runs(api, repo, workflow, **params):
@@ -227,9 +245,19 @@ def main():
     api = Api(os.environ["GH_TOKEN"], os.environ.get("GITHUB_API_URL", "https://api.github.com"))
     run_id = int(os.environ["GITHUB_RUN_ID"])
     limit = int(os.environ.get("MACOS_RUNNER_LIMIT") or 5)
+
+    def measure_now():
+        calls_before = api.calls
+        try:
+            total, lines = measure(api, repo, workflow, run_id, datetime.datetime.now(datetime.timezone.utc),
+                                   priority=os.environ.get("PRIORITY") == "true")
+        except Exception:
+            print(api.usage(calls_before).strip())
+            raise
+        return total, lines + [api.usage(calls_before)]
+
     reason = wait(
-        lambda: measure(api, repo, workflow, run_id, datetime.datetime.now(datetime.timezone.utc),
-                        priority=os.environ.get("PRIORITY") == "true"),
+        measure_now,
         limit,
         wait_minutes=int(os.environ.get("WAIT_MINUTES") or 240),
         poll_seconds=int(os.environ.get("POLL_SECONDS") or 180),
