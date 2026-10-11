@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 15:16-0300\n"
+"POT-Creation-Date: 2026-10-11 08:37+0800\n"
 "PO-Revision-Date: 2025-06-02 17:12+0900\n"
 "Last-Translator: crwusiz <crwusiz@gmail.com>\n"
 "Language-Team: \n"
@@ -2156,15 +2156,12 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 런타임"
 
-# AI Translated
+#, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
-"Please install it manually from https://developer.microsoft.com/microsoft-edge/webview2/ and restart Orca Slicer."
+"Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
-"Microsoft WebView2 Runtime을 설치할 수 없습니다.\n"
-"설치하기 전까지는 설정 마법사를 포함한 일부 기능이 빈 화면으로 표시될 수 있습니다.\n"
-"https://developer.microsoft.com/microsoft-edge/webview2/ 에서 수동으로 설치한 후 Orca Slicer를 다시 시작하십시오."
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
@@ -4330,6 +4327,9 @@ msgstr "플레이트로 이동"
 msgid "AMS Materials Setting"
 msgstr "AMS 재료 설정"
 
+msgid "Wiki Guide"
+msgstr "위키 가이드"
+
 msgid "Close"
 msgstr "닫기"
 
@@ -4352,9 +4352,6 @@ msgstr "입력 값은 %1%보다 크고 %2%보다 작아야 합니다"
 
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "동적 압출량 교정 계수"
-
-msgid "Wiki Guide"
-msgstr "위키 가이드"
 
 msgid "PA Profile"
 msgstr "PA 사전설정"
@@ -4962,6 +4959,11 @@ msgstr "한도(%g mm)에 맞게 자동으로 조정할까요?"
 
 msgid "Adjust"
 msgstr "조정"
+
+msgid ""
+"Raft and draft shield are not available on belt printers.\n"
+"They have been disabled."
+msgstr ""
 
 msgid ""
 "Layer height too small\n"
@@ -5805,9 +5807,6 @@ msgstr "최적의 필라멘트 그룹핑에 따라 자동으로 재슬라이싱�
 msgid "Filament Grouping"
 msgstr "필라멘트 그룹핑"
 
-msgid "Why this grouping"
-msgstr "이 그룹핑의 이유"
-
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "그룹핑 결과에 따라 프린터에 필라멘트를 배치하세요."
 
@@ -5997,6 +5996,44 @@ msgstr "편집 영역 증가/감소"
 
 msgid "Sequence"
 msgstr "순서"
+
+msgid "Plate center of mass"
+msgstr ""
+
+msgid "Part center of mass"
+msgstr ""
+
+msgid "Support center of mass"
+msgstr ""
+
+msgid "Assembly center of mass"
+msgstr ""
+
+msgid "Object center of mass"
+msgstr ""
+
+msgid "Finished print"
+msgstr ""
+
+#, boost-format
+msgid "Printed up to layer %1%"
+msgstr ""
+
+msgid "Weight"
+msgstr ""
+
+# AI Translated
+msgid "Volume"
+msgstr "부피"
+
+msgid "Center in bounding box"
+msgstr ""
+
+msgid "Bounding box size"
+msgstr ""
+
+msgid "Moment of inertia"
+msgstr ""
 
 # AI Translated
 msgid "Object selection"
@@ -6215,6 +6252,12 @@ msgstr "그리드 라인"
 msgid "Labels"
 msgstr "레이블"
 
+msgid "Center of mass"
+msgstr ""
+
+msgid "Show raw G-code (belt only)"
+msgstr ""
+
 # AI Translated
 msgid "Move section plane"
 msgstr "단면 평면 이동"
@@ -6264,7 +6307,7 @@ msgid "Size:"
 msgstr "크기:"
 
 # AI Translated
-#, c-format, boost-format
+#, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "레이어 %d, Z = %.2lf mm에서 G-code 경로 충돌이 발견되었습니다. 충돌하는 객체를 더 멀리 분리하세요 (%s <-> %s)."
 
@@ -6737,6 +6780,12 @@ msgstr "그리드 라인 표시"
 
 msgid "Show Gridlines on plate"
 msgstr "플레이트에 그리드 라인 표시"
+
+msgid "Show IDEX/IQEX Toolhead"
+msgstr ""
+
+msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
+msgstr ""
 
 msgid "Reset Window Layout"
 msgstr "창 레이아웃 재설정"
@@ -8434,6 +8483,61 @@ msgstr "모든 객체 설정 보기"
 msgid "Material settings"
 msgstr "재료 설정"
 
+msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
+msgstr ""
+
+msgid "Add Mode"
+msgstr ""
+
+# AI Translated
+msgid "Tools"
+msgstr "도구"
+
+msgid "G-code"
+msgstr ""
+
+msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
+msgstr ""
+
+msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
+msgstr ""
+
+msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
+msgstr ""
+
+msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
+msgstr ""
+
+msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
+msgstr ""
+
+msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
+msgstr ""
+
+msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
+msgstr ""
+
+msgid "Primary"
+msgstr ""
+
+msgid "Mode name (required)"
+msgstr ""
+
+msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
+msgstr ""
+
+msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
+msgstr ""
+
+msgid "Edit G-code / browse placeholders"
+msgstr ""
+
+msgid "Remove mode"
+msgstr ""
+
+msgid "Discard in-session edits to this mode (snap back to saved value)"
+msgstr ""
+
 msgid "Remove current plate (if not last one)"
 msgstr "현재 플레이트 제거(마지막 플레이트가 아닌 경우)"
 
@@ -8457,6 +8561,17 @@ msgstr "현재 번호판 이름 수정"
 
 msgid "Move plate to the front"
 msgstr "플레이트를 앞쪽으로 이동"
+
+#, boost-format
+msgid " (process preset: %1%)"
+msgstr ""
+
+#, boost-format
+msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
+msgstr ""
+
+msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
+msgstr ""
 
 msgid "Customize current plate"
 msgstr "사용자 정의 플레이트"
@@ -8523,13 +8638,6 @@ msgstr "AMS(1 슬롯)"
 
 msgid "Not installed"
 msgstr "설치되지 않음"
-
-# AI Translated
-msgid "The software does not support using different diameter of nozzles for one print. If the left and right nozzles are inconsistent, we can only proceed with single-head printing. Please confirm which nozzle you would like to use for this project."
-msgstr "이 소프트웨어는 한 번의 출력에 서로 다른 직경의 노즐을 사용하는 것을 지원하지 않습니다. 왼쪽과 오른쪽 노즐이 서로 다르면 단일 헤드 출력으로만 진행할 수 있습니다. 이 프로젝트에 사용할 노즐을 확인해 주십시오."
-
-msgid "Switch diameter"
-msgstr "직경 스위치"
 
 msgid "Configuration incompatible"
 msgstr "호환되지 않는 구성"
@@ -8612,6 +8720,9 @@ msgstr "혼합 필라멘트"
 msgid "Remove last mixed filament"
 msgstr "마지막 혼합 필라멘트 제거"
 
+msgid "Remove all mixed filaments"
+msgstr ""
+
 # AI Translated
 msgid "Add mixed filament"
 msgstr "혼합 필라멘트 추가"
@@ -8633,6 +8744,10 @@ msgstr "혼합 필라멘트의 구성 요소 참조가 손상되었습니다"
 # AI Translated
 msgid "Edit / Delete / Merge"
 msgstr "편집 / 삭제 / 병합"
+
+#, boost-format
+msgid "Remove all %1% mixed filaments?"
+msgstr ""
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -8711,10 +8826,6 @@ msgstr "파일 로드 중: %s"
 msgid "Load 3MF"
 msgstr "3mf 불러오기"
 
-# AI Translated
-msgid "BambuStudio Project"
-msgstr "BambuStudio 프로젝트"
-
 msgid "The 3MF is not supported by OrcaSlicer, loading geometry data only."
 msgstr "이 3mf는 OrcaSlicer에서 지원되지 않습니다. 형상 데이터만 불러옵니다."
 
@@ -8747,20 +8858,6 @@ msgstr "소프트웨어를 업그레이드하는 것이 좋습니다.\n"
 #, c-format, boost-format
 msgid "The 3MF file version %s is newer than %s's version %s, we suggest to upgrade your software."
 msgstr "3mf의 %s 버전이 %s의 %s 버전보다 최신입니다. 소프트웨어를 업그레이드 하십시오."
-
-# AI Translated
-#, c-format, boost-format
-msgid "The 3MF was created by BambuStudio (version %s), which is newer than the compatible version %s. Found unrecognized settings:"
-msgstr "이 3MF는 BambuStudio(버전 %s)에서 생성되었으며, 이는 호환 버전 %s보다 최신입니다. 인식할 수 없는 설정을 찾았습니다:"
-
-# AI Translated
-#, c-format, boost-format
-msgid "The 3MF was created by BambuStudio (version %s), which is newer than the compatible version %s. Some settings may not be fully compatible."
-msgstr "이 3MF는 BambuStudio(버전 %s)에서 생성되었으며, 이는 호환 버전 %s보다 최신입니다. 일부 설정이 완전히 호환되지 않을 수 있습니다."
-
-# AI Translated
-msgid "The 3MF was created by BambuStudio. Some settings may differ from OrcaSlicer."
-msgstr "이 3MF는 BambuStudio에서 생성되었습니다. 일부 설정이 OrcaSlicer와 다를 수 있습니다."
 
 msgid "Invalid values found in the 3MF:"
 msgstr "3mf에서 잘못된 값이 발견됨:"
@@ -8940,6 +9037,12 @@ msgstr "Z 위치를 유지하기 위해 자동 내려놓기를 비활성화하�
 msgid "Object with floating parts was detected"
 msgstr "떠 있는 부품이 있는 객체가 감지되었습니다"
 
+msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
+msgstr ""
+
+msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
+msgstr ""
+
 msgid "Another export job is running."
 msgstr "다른 내보내기 작업이 실행 중입니다."
 
@@ -9032,6 +9135,38 @@ msgstr "유효하지 않은 데이터"
 msgid "Slicing Canceled"
 msgstr "슬라이싱 취소됨"
 
+#, c-format, boost-format
+msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
+"\n"
+msgstr ""
+
+msgid "Continue slicing?"
+msgstr ""
+
+msgid "IDEX/IQEX Parallel Mode Warning"
+msgstr ""
+
+msgid "Don't show these warnings again"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Plate %d:\n"
+msgstr ""
+
+msgid ""
+"The following IDEX/IQEX parallel mode concerns were detected:\n"
+"\n"
+msgstr ""
+
 # AI Translated
 msgid "Network plug-in switched successfully."
 msgstr "네트워크 플러그인을 성공적으로 전환했습니다."
@@ -9068,9 +9203,8 @@ msgstr ""
 msgid "Sync now"
 msgstr "지금 동기화"
 
-# AI Translated
-msgid "Cannot undo or redo while an operation is running. Stop it first."
-msgstr "작업이 실행 중일 때는 실행 취소하거나 다시 실행할 수 없습니다. 먼저 작업을 중지하십시오."
+msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
+msgstr ""
 
 # AI Translated
 msgid ""
@@ -9141,6 +9275,11 @@ msgstr "다운로드에 실패했습니다. 파일 크기 예외입니다."
 msgid "Project downloaded %d%%"
 msgstr "프로젝트 %d%% 다운로드됨"
 
+msgid ""
+"PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
+"Please use the PA Tower method instead."
+msgstr ""
+
 # AI Translated
 msgid "Pressure Advance Test"
 msgstr "Pressure Advance 테스트"
@@ -9166,6 +9305,13 @@ msgstr "Orca YOLO 압출량 교정"
 #, c-format, boost-format
 msgid "Flowrate Test - Pass%d"
 msgstr "압출량 테스트 - %d차"
+
+#, boost-format
+msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
+msgstr ""
+
+msgid "Temperature tower"
+msgstr ""
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -11733,6 +11879,9 @@ msgstr "서로 다른 압출기 구동 방식이나 노즐 부피 유형 간의 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "변경한 매개변수를 다른 압출기의 해당 매개변수에 동기화합니다."
 
+msgid "Parameters with this icon can be configurable per nozzle."
+msgstr ""
+
 msgid "Click to reset all settings to the last saved preset."
 msgstr "모든 설정을 마지막으로 저장한 사전 설정으로 되돌립니다."
 
@@ -12159,6 +12308,12 @@ msgstr "출력 가능 공간"
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "프린터 통신에 사용할 네트워크 에이전트 구현을 선택합니다. 사용 가능한 에이전트는 시작 시 등록됩니다."
 
+msgid "Belt printer"
+msgstr ""
+
+msgid "Machine frame transforms"
+msgstr ""
+
 #. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
@@ -12290,8 +12445,23 @@ msgstr "노즐 직경"
 msgid "Wipe tower"
 msgstr "프라임 타워"
 
+msgid "Belt purge tower"
+msgstr ""
+
 msgid "Single extruder multi-material parameters"
 msgstr "단일 압출기 다중 재료 매개변수"
+
+msgid "IDEX/IQEX Configuration"
+msgstr ""
+
+msgid "Pre-slice warnings"
+msgstr ""
+
+msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
+msgstr ""
+
+msgid "Modes"
+msgstr ""
 
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
 msgstr "이것은 단일 압출기 다중 재료 프린터이며 모든 압출기의 직경이 새 값으로 설정됩니다. 계속 진행하시겠습니까?"
@@ -12301,6 +12471,18 @@ msgstr "레이어 높이 한도"
 
 msgid "Z-Hop"
 msgstr "Z올리기"
+
+msgid "Front-left"
+msgstr ""
+
+msgid "Front-right"
+msgstr ""
+
+msgid "Rear-left"
+msgstr ""
+
+msgid "Rear-right"
+msgstr ""
 
 # AI Translated
 msgid ""
@@ -12416,10 +12598,9 @@ msgstr "계속"
 msgid "Don't warn again for this preset"
 msgstr "이 사전 설정에 대해 다시 경고하지 않기"
 
-# AI Translated
 #, c-format, boost-format
-msgid "%s: %s"
-msgstr "%s: %s"
+msgid "%s %s"
+msgstr ""
 
 # AI Translated
 msgid "No modifications need to be copied."
@@ -12854,10 +13035,6 @@ msgstr "ms"
 # AI Translated
 msgid "Total ramming"
 msgstr "전체 채워넣기"
-
-# AI Translated
-msgid "Volume"
-msgstr "부피"
 
 # AI Translated
 msgid "Ramming line"
@@ -13382,6 +13559,14 @@ msgstr "필라멘트 압출 역할 변경 G-code"
 msgid "No object can be printed. It may be too small."
 msgstr "객체를 출력할 수 없습니다. 너무 작을 수 있습니다"
 
+#, boost-format
+msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
+msgstr ""
+
+#, boost-format
+msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
+msgstr ""
+
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "출력물이 프라이밍 영역에 매우 가깝습니다. 충돌이 없는지 확인합니다."
 
@@ -13561,6 +13746,26 @@ msgstr "검증에 실패했습니다"
 msgid "write callback failed"
 msgstr "쓰기 호출 실패"
 
+msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
+msgstr ""
+
+msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
+msgstr ""
+
+msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
+msgstr ""
+
+msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
+msgstr ""
+
+#, boost-format
+msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
+msgstr ""
+
+#, boost-format
+msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
+msgstr ""
+
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
 msgstr "%1% 이(가) 제외 영역에 너무 가깝습니다. 출력 시 충돌이 발생 할 수 있습니다."
@@ -13614,6 +13819,43 @@ msgstr "그래도 출력하려면 기본 설정 / 제어 / 슬라이싱 / 혼합
 msgid "No extrusions under current settings."
 msgstr "현재 설정에 압출기가 없습니다."
 
+msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
+msgstr ""
+
+msgid "no configured tool"
+msgstr ""
+
+#, boost-format
+msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
+msgstr ""
+
+msgid "Raft is not compatible with belt printer mode."
+msgstr ""
+
+msgid "Draft shield is not compatible with belt printer mode."
+msgstr ""
+
+msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
+msgstr ""
+
+msgid "The belt is too steep for a brim, so no brim will be generated."
+msgstr ""
+
+msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
+msgstr ""
+
+msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
+msgstr ""
+
+msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
+msgstr ""
+
+msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
+msgstr ""
+
+msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
+msgstr ""
+
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
 msgstr "그라데이션 혼합 필라멘트가 사용 중이지만 '혼색 서브레이어'가 비활성화되어 있습니다. 그라데이션은 출력되지 않습니다."
@@ -13623,6 +13865,15 @@ msgstr "타임랩스의 유연 모드는 \"객체별\" 출력순서가 활성화
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "\"객체별\" 시퀀스가 활성화된 경우 뭉침 감지가 지원되지 않습니다."
+
+msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
+msgstr ""
+
+msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
+msgstr ""
+
+msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
+msgstr ""
 
 # AI Translated
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
@@ -13643,15 +13894,15 @@ msgid "While the object %1% itself fits the build volume, it exceeds the maximum
 msgstr "객체 %1% 자체는 빌드 볼륨에 맞지만, 머티리얼 수축 보정 때문에 최대 빌드 볼륨 높이를 초과합니다."
 
 #, boost-format
-msgid "The object %1% exceeds the maximum build volume height."
-msgstr "%1% 객체가 최대 빌드 부피 높이를 초과합니다."
-
-#, boost-format
 msgid "While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."
 msgstr "%1% 객체 자체가 빌드 부피에 맞지만 마지막 레이어가 최대 빌드 부피 높이를 초과합니다."
 
 msgid "You might want to reduce the size of your model or change current print settings and retry."
 msgstr "모델 크기를 줄이거나 현재 출력 설정을 변경하고 다시 시도할 수 있습니다."
+
+#, boost-format
+msgid "The object %1% exceeds the maximum build volume height."
+msgstr "%1% 객체가 최대 빌드 부피 높이를 초과합니다."
 
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "유기체 서포트에서는 가변 레이어 높이가 지원되지 않습니다."
@@ -14670,11 +14921,38 @@ msgstr "내부 브릿지의 속도. 값을 백분율로 표현하면 bridge_spee
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "모델과 가장 바깥쪽 브림 선까지의 거리"
 
+msgid "Leading brim length"
+msgstr ""
+
+msgid ""
+"Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
+"\n"
+"Measured on the belt surface, and added on top of Brim width: the brim reaches Brim-object gap + Leading brim length + Brim width ahead of the object. Set Brim-object gap to 0, or the apron will not touch the object it is meant to anchor.\n"
+"\n"
+"On a tilted belt each layer lays one strip of the brim, so the thickness of the resulting brim sheet is set by flow rather than by layer height. Use Brim flow ratio to tune it.\n"
+"\n"
+"Set to 0 to disable."
+msgstr ""
+
+msgid "Extra brim width"
+msgstr ""
+
+msgid ""
+"Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
+"\n"
+"Measured on the belt surface, and added on top of Brim width: the brim reaches Brim-object gap + Brim width + Extra brim width to either side of the object. To extend the brim ahead of the object instead, use Leading brim length.\n"
+"\n"
+"Set to 0 to disable."
+msgstr ""
+
 msgid "Brim type"
 msgstr "브림 유형"
 
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "모델의 외부 그리고/또는 내부에서 브림의 생성을 제어합니다. 자동은 브림너비가 자동으로 분석 및 계산됨을 의미합니다."
+
+msgid "Leading edge only"
+msgstr ""
 
 msgid "Brim-object gap"
 msgstr "브림-객체 간격"
@@ -15972,6 +16250,66 @@ msgstr "다중 선 채우기"
 
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "채우기 패턴에서 지원되는 경우 채우기 패턴에 여러 줄을 사용합니다."
+
+msgid "Adaptive density (experimental)"
+msgstr ""
+
+msgid ""
+"Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
+"Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
+" - Distance warp: one continuous pattern, stretched and sheared where the distance changes across directions, as in plates and long parts.\n"
+" - Smooth blend: the patterns of neighbouring densities blended into each other, with small loops where they meet.\n"
+" - Stepped shells: shells of the regular pattern at densities about 1.5 times apart, their lines joined along the shell boundaries.\n"
+" - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
+" - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
+msgstr ""
+
+msgid "Distance warp"
+msgstr ""
+
+msgid "Smooth blend"
+msgstr ""
+
+msgid "Stepped shells"
+msgstr ""
+
+msgid "Lobes"
+msgstr ""
+
+msgid "Normal Z"
+msgstr ""
+
+msgid "Normal Y"
+msgstr ""
+
+msgid "Normal X"
+msgstr ""
+
+msgid "Interior density"
+msgstr ""
+
+msgid "Density of the adaptive infill at the center of the object."
+msgstr ""
+
+msgid "Adaptive gradient"
+msgstr ""
+
+msgid ""
+"How the density changes from the surface to the center of the object.\n"
+"Linear: the density changes at a constant rate.\n"
+"Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
+"Exponential: the density changes quickly just below the surface and levels off towards the center."
+msgstr ""
+
+# AI Translated
+msgid "Linear"
+msgstr "선형"
+
+msgid "Quadratic"
+msgstr ""
+
+msgid "Exponential"
+msgstr ""
 
 # AI Translated
 msgid "Z-buckling bias optimization (experimental)"
@@ -18313,6 +18651,99 @@ msgstr "단일 압출기 다중 재료"
 msgid "Use single nozzle to print multi filament."
 msgstr "단일 노즐을 사용하여 다중 필라멘트 출력"
 
+msgid "IDEX/IQEX Printer"
+msgstr ""
+
+msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
+msgstr ""
+
+msgid "Firmware-managed zones"
+msgstr ""
+
+msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
+msgstr ""
+
+msgid "Gantry Count"
+msgstr ""
+
+msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
+msgstr ""
+
+msgid "Tools per Gantry"
+msgstr ""
+
+msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
+msgstr ""
+
+msgid "Tool 0 Position"
+msgstr ""
+
+msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
+msgstr ""
+
+msgid "Nozzle Clearance X"
+msgstr ""
+
+msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
+msgstr ""
+
+msgid "Nozzle Clearance Y"
+msgstr ""
+
+msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
+msgstr ""
+
+msgid "Safety Margin"
+msgstr ""
+
+msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
+msgstr ""
+
+msgid "Visualization Theme"
+msgstr ""
+
+msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
+msgstr ""
+
+msgid "Deuteranopia / Protanopia (red-green)"
+msgstr ""
+
+msgid "Tritanopia (blue-yellow)"
+msgstr ""
+
+msgid "High Contrast"
+msgstr ""
+
+msgid "IDEX/IQEX Print Mode"
+msgstr ""
+
+msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
+msgstr ""
+
+msgid "IDEX/IQEX head filament map"
+msgstr ""
+
+msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
+msgstr ""
+
+msgid "IDEX/IQEX Mode Names"
+msgstr ""
+
+msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
+msgstr ""
+
+msgid "IDEX/IQEX Mode Active Tools"
+msgstr ""
+
+msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
+msgstr ""
+
+msgid "IDEX/IQEX Mode G-codes"
+msgstr ""
+
+msgid "G-code or macro call to inject at print start for each mode."
+msgstr ""
+
 msgid "Manual Filament Change"
 msgstr "수동 필라멘트 교체"
 
@@ -18701,6 +19132,130 @@ msgstr "임계값 중복"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "임계각이 0이면 오버행이 임계값 미만인 오버행에 대한 서포트가 생성됩니다. 이 값이 작을수록 서포트 없이 출력할 수 있는 오버행이 가파르게 됩니다."
 
+msgid "Build plate tilt X"
+msgstr ""
+
+msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
+msgstr ""
+
+msgid "Build plate tilt Y"
+msgstr ""
+
+msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
+msgstr ""
+
+msgid "Enable belt printing"
+msgstr ""
+
+msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
+msgstr ""
+
+msgid "Infinite Y axis"
+msgstr ""
+
+msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
+msgstr ""
+
+msgid "Belt tilt axis"
+msgstr ""
+
+msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
+msgstr ""
+
+msgid "X"
+msgstr "X"
+
+msgid "Y"
+msgstr "Y"
+
+# AI Translated
+msgid "Z"
+msgstr "Z"
+
+msgid "Belt tilt angle"
+msgstr ""
+
+msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
+msgstr ""
+
+msgid "°"
+msgstr "°"
+
+msgid "Decouple machine-frame tilt"
+msgstr ""
+
+msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
+msgstr ""
+
+msgid "Machine-frame tilt angle"
+msgstr ""
+
+msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
+msgstr ""
+
+msgid "+X"
+msgstr ""
+
+msgid "+Y"
+msgstr ""
+
+msgid "+Z"
+msgstr ""
+
+msgid "-X"
+msgstr ""
+
+msgid "-Y"
+msgstr ""
+
+msgid "-Z"
+msgstr ""
+
+msgid "Rev X"
+msgstr ""
+
+msgid "Rev Y"
+msgstr ""
+
+msgid "Rev Z"
+msgstr ""
+
+msgid "G-code remap X"
+msgstr ""
+
+msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
+msgstr ""
+
+msgid "G-code remap Y"
+msgstr ""
+
+msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
+msgstr ""
+
+msgid "G-code remap Z"
+msgstr ""
+
+msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
+msgstr ""
+
+msgid "Support Floor Z offset"
+msgstr ""
+
+msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
+msgstr ""
+
+msgid "Enable belt purge tower"
+msgstr ""
+
+msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
+msgstr ""
+
+msgid "Belt purge tower width"
+msgstr ""
+
+msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
+msgstr ""
+
 msgid "Tree support branch angle"
 msgstr "트리 서포트 가지 각도"
 
@@ -18889,17 +19444,11 @@ msgstr "상단 쉘 레이어로 계산된 두께가 이 값보다 얇은 경우 
 msgid "Separated infills"
 msgstr "분리된 채우기"
 
-# AI Translated
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
-"Affects line and grid patterns and rotation-template infills.\n"
-"Patterns locked to global coordinates (Gyroid, Honeycomb, TPMS, ...) are unaffected."
+"Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
-"전체 어셈블리가 아니라 각 부품을 개별적으로 슬라이스한 것처럼 부품마다 내부 채우기를 자체 중심에 맞춥니다. 서로 닿거나 겹치는 부품은 하나의 몸체로 간주되어 중심을 공유하며, 분리된 부품(또는 별개의 3D 객체)은 각각 자체 중심을 갖습니다.\n"
-"여러 객체를 묶은 어셈블리에서 각 객체가 자체 중심을 기준으로 일관된 채우기를 유지해야 할 때 유용합니다.\n"
-"선 및 격자 패턴과 회전 템플릿 채우기에 영향을 줍니다.\n"
-"전역 좌표에 고정된 패턴(자이로이드, 벌집, TPMS 등)은 영향을 받지 않습니다."
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -19141,6 +19690,12 @@ msgstr "필라멘트 변경 후 버리기는 객체의 서포트 내부에서 �
 
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "이 객체는 필라멘트를 절약하고 출력 시간을 줄이기 위해 필라멘트 변경 후 노즐에 남은 잔류물을 제거하는 데 사용됩니다. 결과적으로 객체의 색상이 혼합됩니다. 기본 타워가 활성화되지 않으면 적용되지 않습니다."
+
+msgid "Belt purge tower object"
+msgstr ""
+
+msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
+msgstr ""
 
 msgid "Maximal bridging distance"
 msgstr "최대 브릿지 거리"
@@ -20066,8 +20621,8 @@ msgstr "슬라이싱에 사용되는 실제 프린터의 이름입니다."
 msgid "Layer number"
 msgstr "레이어 번호"
 
-msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
-msgstr "현재 레이어의 인덱스입니다. 1 기반(즉, 첫 번째 레이어가 1번입니다)."
+msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
+msgstr ""
 
 msgid "Layer Z"
 msgstr "레이어 z"
@@ -20754,6 +21309,9 @@ msgstr ""
 "가속도 값은 속도 값보다 커야 합니다.\n"
 "입력값을 확인하십시오."
 
+msgid "Not enabled yet on belt printers — use the PA Tower method instead."
+msgstr ""
+
 msgid "Temperature calibration"
 msgstr "온도 교정"
 
@@ -20780,6 +21338,13 @@ msgstr "PA-CF"
 
 msgid "PET-CF"
 msgstr "PET-CF"
+
+# AI Translated
+msgid "Test model"
+msgstr "테스트 모델"
+
+msgid "Overhang"
+msgstr ""
 
 msgid "Start temp: "
 msgstr "시작 온도: "
@@ -20906,10 +21471,6 @@ msgstr "후퇴 시작 길이: "
 
 msgid "End retraction length: "
 msgstr "후퇴 종료 길이: "
-
-# AI Translated
-msgid "Test model"
-msgstr "테스트 모델"
 
 # AI Translated
 msgid "Ringing Tower"
@@ -22473,9 +23034,6 @@ msgstr "필라멘트를 왼쪽 또는 오른쪽 노즐에 수동으로 할당합
 
 msgid "Global settings"
 msgstr "글로벌 설정"
-
-msgid "Video tutorial"
-msgstr "비디오 자습서"
 
 msgid "(Sync with printer)"
 msgstr "(프린터와 동기화)"
@@ -27413,213 +27971,6 @@ msgid "Size: %.1f × %.1f mm"
 msgstr "크기: %.1f × %.1f mm"
 
 # AI Translated
-msgid "Primitive"
-msgstr "기본 모델"
-
-# AI Translated
-msgid "Empty mesh generated"
-msgstr "빈 메시가 생성되었습니다"
-
-# AI Translated
-#. TRN Default name of an object created from the box primitive shape.
-msgid "Box"
-msgstr "상자"
-
-# AI Translated
-#. TRN Primitive gizmo: label in front of the preset cube size buttons
-msgid "Quick:"
-msgstr "빠른 선택:"
-
-# AI Translated
-msgid "Width (X)"
-msgstr "너비 (X)"
-
-# AI Translated
-msgid "Depth (Y)"
-msgstr "깊이 (Y)"
-
-# AI Translated
-msgid "Height (Z)"
-msgstr "높이 (Z)"
-
-# AI Translated
-#. TRN Primitive gizmo: bottom radius of a cone ("Top R" is the top radius)
-msgid "Bottom R"
-msgstr "하단 R"
-
-# AI Translated
-msgid "Top R"
-msgstr "상단 R"
-
-# AI Translated
-#. TRN Primitive gizmo: major radius of a torus ("Minor R" is the tube radius)
-msgid "Major R"
-msgstr "주 R"
-
-# AI Translated
-msgid "Minor R"
-msgstr "부 R"
-
-# AI Translated
-msgid "All edges"
-msgstr "모든 모서리"
-
-# AI Translated
-msgid "Top edges"
-msgstr "상단 모서리"
-
-# AI Translated
-msgid "Bottom edges"
-msgstr "하단 모서리"
-
-# AI Translated
-msgid "Lateral edges"
-msgstr "측면 모서리"
-
-# AI Translated
-msgid "Mesh resolution"
-msgstr "메시 해상도"
-
-# AI Translated
-msgid "Add Shape"
-msgstr "형상 추가"
-
-# AI Translated
-msgid "No outer profile"
-msgstr "외곽 프로파일 없음"
-
-# AI Translated
-msgid "Failed to make outer face"
-msgstr "외곽 면을 만들지 못했습니다"
-
-# AI Translated
-msgid "Failed to build face with holes"
-msgstr "구멍이 있는 면을 만들지 못했습니다"
-
-# AI Translated
-msgid "Revolve failed"
-msgstr "회전 실패"
-
-# AI Translated
-msgid "Profile"
-msgstr "프로파일"
-
-# AI Translated
-msgid "Start new profile (for holes)"
-msgstr "새 프로파일 시작(구멍용)"
-
-# AI Translated
-msgid "Segments"
-msgstr "세그먼트 수"
-
-# AI Translated
-msgid "Sides"
-msgstr "변 수"
-
-# AI Translated
-msgid "Click on canvas to draw"
-msgstr "캔버스를 클릭하여 그리기"
-
-# AI Translated
-msgid "Snap to grid"
-msgstr "격자에 스냅"
-
-# AI Translated
-msgid "Grid step"
-msgstr "격자 간격"
-
-# AI Translated
-msgid "Outer"
-msgstr "외곽"
-
-# AI Translated
-msgid "closed"
-msgstr "닫힘"
-
-# AI Translated
-#. TRN Sketch gizmo profile list: "Outer" or "Hole", profile number, point count, "closed" or nothing
-#, boost-format
-msgid "%1% %2%: %3% points %4%"
-msgstr "%1% %2%: 점 %3%개 %4%"
-
-# AI Translated
-msgid "XY (Top)"
-msgstr "XY (위)"
-
-# AI Translated
-msgid "XZ (Front)"
-msgstr "XZ (앞)"
-
-# AI Translated
-msgid "YZ (Side)"
-msgstr "YZ (측면)"
-
-# AI Translated
-msgid "Revolve deg"
-msgstr "회전 각도"
-
-# AI Translated
-msgid "Set to 0 for extrude, >0 for revolve"
-msgstr "돌출은 0, 회전은 0보다 큰 값으로 설정"
-
-# AI Translated
-msgid "Pocket (cut)"
-msgstr "포켓(잘라내기)"
-
-# AI Translated
-#, c-format
-msgid "%zu closed profile"
-msgid_plural "%zu closed profiles"
-msgstr[0] "%zu개의 닫힌 프로파일"
-
-# AI Translated
-msgid "Draw a closed profile to enable"
-msgstr "활성화하려면 닫힌 프로파일을 그리십시오"
-
-# AI Translated
-msgid "Clear all"
-msgstr "모두 지우기"
-
-# AI Translated
-msgid "Empty result"
-msgstr "결과가 비어 있음"
-
-# AI Translated
-#, boost-format
-msgid "Extrude: %1%"
-msgstr "돌출: %1%"
-
-# AI Translated
-#, boost-format
-msgid "Revolve: %1%"
-msgstr "회전: %1%"
-
-# AI Translated
-msgid "No object selected"
-msgstr "선택한 객체 없음"
-
-# AI Translated
-msgid "Face failed"
-msgstr "면 생성 실패"
-
-# AI Translated
-msgid "Face with holes failed"
-msgstr "구멍이 있는 면 생성 실패"
-
-# AI Translated
-msgid "Tool mesh empty"
-msgstr "도구 메시가 비어 있음"
-
-# AI Translated
-msgid "Pocket added (negative volume)"
-msgstr "포켓 추가됨(비우기 부품)"
-
-# AI Translated
-#, boost-format
-msgid "Pocket: %1%"
-msgstr "포켓: %1%"
-
-# AI Translated
 msgctxt "Keyboard Shortcut"
 msgid "Ins"
 msgstr "Ins"
@@ -27741,6 +28092,9 @@ msgstr "변형도구 병합"
 
 msgid "Gizmo brim ears"
 msgstr "변형도구 브림 귀"
+
+msgid "Gizmo texture displacement painting"
+msgstr ""
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "수직 슬라이더 - 활성 레이어 위로 이동"
@@ -29371,9 +29725,8 @@ msgstr "각도 임계값 - 이보다 날카로운 모서리에서 채우기가 �
 msgid "Click a triangle to paint it"
 msgstr "삼각형을 클릭하여 칠하십시오"
 
-# AI Translated
-msgid "Needs the active layer mapped with Unwrap (LSCM)."
-msgstr "활성 레이어가 펼치기(LSCM)로 매핑되어 있어야 합니다."
+msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
+msgstr ""
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -29387,17 +29740,15 @@ msgstr "빠름 - 요철을 실제로 만들지 않고 음영으로만 표시하�
 msgid "Checker"
 msgstr "체커"
 
-# AI Translated
-msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too"
-msgstr "체커 - 텍스처 대신 테스트 격자를 표시합니다. 정사각형이 정사각형으로 유지되는 곳은 텍스처가 왜곡되지 않으며, 늘어나는 곳은 텍스처도 늘어납니다"
+msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
+msgstr ""
 
 # AI Translated
 msgid "Distortion"
 msgstr "왜곡"
 
-# AI Translated
-msgid "Distortion - blue-to-red stretch heatmap over the unwrap"
-msgstr "왜곡 - 펼친 면 위에 늘어난 정도를 파랑에서 빨강으로 이어지는 히트맵으로 표시합니다"
+msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
+msgstr ""
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -29513,24 +29864,11 @@ msgstr "필라멘트 혼합"
 msgid "Interleaves two filaments to fake the colors in between, so a handful of filaments can cover a photo or a gradient. An image of flat colors prints the same either way. Off uses one filament per area."
 msgstr "두 필라멘트를 번갈아 배치하여 그 사이의 색상을 흉내 내므로, 적은 수의 필라멘트로도 사진이나 그라데이션을 표현할 수 있습니다. 단색 영역으로 이루어진 이미지는 어느 쪽이든 똑같이 출력됩니다. 끄면 영역마다 필라멘트 하나를 사용합니다."
 
-# AI Translated
-msgid "Mix by"
-msgstr "혼합 방식"
-
-# AI Translated
-msgctxt "Texture Displacement"
-msgid "Surface"
-msgstr "표면"
-
-# AI Translated
-msgid ""
-"Layers: the two filaments alternate between print layers, which blends smoothly on upright surfaces but disappears on flat-facing ones, where a whole layer is a single band.\n"
-"Surface: a fine checkerboard across the surface, which works at any angle but can read as texture rather than as a blend.\n"
-"Automatic: layers on upright faces; flat-facing faces take the nearer single filament, since a checkerboard there shows as a pattern."
+msgid "Mixed colors"
 msgstr ""
-"레이어: 두 필라멘트가 출력 레이어마다 번갈아 사용됩니다. 수직면에서는 부드럽게 섞이지만, 레이어 하나가 하나의 띠가 되는 평평한 면에서는 효과가 사라집니다.\n"
-"표면: 표면 전체에 촘촘한 체커보드를 만듭니다. 어떤 각도에서도 작동하지만 혼색이 아니라 질감처럼 보일 수 있습니다.\n"
-"자동: 수직면에는 레이어를 사용하고, 평평한 면에서는 체커보드가 패턴으로 드러나므로 더 가까운 필라멘트 하나를 사용합니다."
+
+msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
+msgstr ""
 
 # AI Translated
 #, boost-format
@@ -29991,14 +30329,6 @@ msgid "How many thousand triangles the refinement may add to the model. The tria
 msgstr "세분화로 모델에 추가할 수 있는 삼각형 수(천 개 단위)입니다. 가장 맞지 않는 삼각형부터 항상 먼저 분할하므로, 예산을 모두 쓰더라도 가장 눈에 띄는 곳에 쓰입니다. 요철이 여전히 거칠어 보이면 높이십시오."
 
 # AI Translated
-msgid "Stops the bake. Whatever it had already finished stays on the model, and can be undone."
-msgstr "굽기를 중지합니다. 이미 완료된 부분은 모델에 남으며 실행 취소할 수 있습니다."
-
-# AI Translated
-msgid "Closes the tool without baking. Your paint, layers and settings stay with the model."
-msgstr "굽지 않고 도구를 닫습니다. 칠, 레이어, 설정은 모델에 그대로 남습니다."
-
-# AI Translated
 msgid "Preparing..."
 msgstr "준비 중..."
 
@@ -30021,6 +30351,14 @@ msgstr "이미 있는 정점을 움직여 칠한 높이 맵을 실제 형상으�
 # AI Translated
 msgid "Turn the painted height maps into real geometry. The mesh is remeshed to an even density and refined where the texture bends first, so the detail has vertices to land on - all in one step."
 msgstr "칠한 높이 맵을 실제 형상으로 바꿉니다. 먼저 메시를 고른 밀도로 리메시하고 텍스처가 굽어지는 곳을 세분화하여 디테일이 놓일 정점을 확보합니다 - 이 모든 것을 한 단계로 처리합니다."
+
+# AI Translated
+msgid "Stops the bake. Whatever it had already finished stays on the model, and can be undone."
+msgstr "굽기를 중지합니다. 이미 완료된 부분은 모델에 남으며 실행 취소할 수 있습니다."
+
+# AI Translated
+msgid "Closes the tool without baking. Your paint, layers and settings stay with the model."
+msgstr "굽지 않고 도구를 닫습니다. 칠, 레이어, 설정은 모델에 그대로 남습니다."
 
 # AI Translated
 #, boost-format
@@ -30829,6 +31167,9 @@ msgstr "  |  스냅 켜짐"
 msgid "Change texture - choose another one from the texture library"
 msgstr "텍스처 변경 - 텍스처 라이브러리에서 다른 텍스처를 선택합니다"
 
+msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
+msgstr ""
+
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
 msgstr "높이 맵 - 아일랜드 아래에 레이어의 텍스처를 표시합니다"
@@ -30861,17 +31202,14 @@ msgstr "아일랜드 연결"
 msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfolded next to each other (a cube becomes a joined net rather than six loose squares). They stay separate islands, so you can still move any of them by hand afterwards."
 msgstr "펼친 결과를 연결된 전개도로 배치합니다: 모서리를 공유하는 조각을 서로 옆에 펼칩니다(정육면체가 흩어진 정사각형 6개가 아니라 이어진 전개도가 됩니다). 각 조각은 별개의 아일랜드로 남으므로, 나중에 어느 것이든 직접 옮길 수 있습니다."
 
-# AI Translated
-msgid "Island - move, rotate and scale whole islands"
-msgstr "아일랜드 - 아일랜드 전체를 이동, 회전, 배율 조정합니다"
+msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
+msgstr ""
 
-# AI Translated
-msgid "Vertex - drag vertices to reshape; Shift/Ctrl to multi-select"
-msgstr "정점 - 정점을 드래그하여 모양을 바꿉니다. Shift/Ctrl로 다중 선택"
+msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
+msgstr ""
 
-# AI Translated
-msgid "Edge - drag edges to reshape; Shift/Ctrl to multi-select"
-msgstr "모서리 - 모서리를 드래그하여 모양을 바꿉니다. Shift/Ctrl로 다중 선택"
+msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
+msgstr ""
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -30909,9 +31247,13 @@ msgstr "UV 편집 지우기 - 수동으로 옮긴 정점/모서리를 모두 버
 msgid "Snap - stick islands together when dragging one against another"
 msgstr "스냅 - 아일랜드를 다른 아일랜드에 대고 드래그하면 서로 붙입니다"
 
-# AI Translated
-msgid "Frame all islands (Home)"
-msgstr "모든 아일랜드 맞추기 (Home)"
+msgid ""
+"Frame all islands, fitting every one of them in view (Home or F).\n"
+"Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
+msgstr ""
+
+msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
+msgstr ""
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -30922,6 +31264,9 @@ msgstr "펼치기로 매핑된 레이어 없음"
 msgid "%.1f mm tile"
 msgstr "%.1f mm 타일"
 
+msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
+msgstr ""
+
 # AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
 msgstr "오래됨 - 이 펼치기를 만든 뒤 칠, 심 또는 심 각도가 변경되었습니다. 눌러서 다시 펼치십시오."
@@ -30930,18 +31275,32 @@ msgstr "오래됨 - 이 펼치기를 만든 뒤 칠, 심 또는 심 각도가 �
 msgid "Flatten the painted area into UV islands. It is computed only when you press this, not on every edit - so paint, change the seam angle or mark seams first, then press Unwrap."
 msgstr "칠한 영역을 UV 아일랜드로 펼칩니다. 편집할 때마다가 아니라 이 버튼을 누를 때만 계산되므로, 먼저 칠하고 심 각도를 바꾸거나 심을 표시한 다음 펼치기를 누르십시오."
 
+msgid "Turn Mark seams on first - Path is a quicker way of marking them."
+msgstr ""
+
+msgid "No seams are marked on this layer."
+msgstr ""
+
+msgid "No islands have been reshaped by hand, so there is nothing to discard."
+msgstr ""
+
 # AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "아일랜드 %d개, 면 %s개"
 
+msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
+msgstr ""
+
+msgid "Press Unwrap first - there are no islands to work on yet."
+msgstr ""
+
+msgid "Click an island on the canvas first, in Island mode."
+msgstr ""
+
 # AI Translated
 msgid "Forward"
 msgstr "앞으로"
-
-# AI Translated
-msgid "Tools"
-msgstr "도구"
 
 # AI Translated
 msgid "View Source"
@@ -31087,6 +31446,16 @@ msgid ""
 msgstr ""
 "플러그인 \"%s\"이(가) 다음 명령 실행을 요청하고 있습니다:\n"
 "%s"
+
+#, c-format, boost-format
+msgid "Plugin \"%s\" is requesting permission to create a thread."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Plugin \"%s\" is requesting to replace the running application with:\n"
+"%s"
+msgstr ""
 
 # AI Translated
 #, c-format, boost-format
@@ -31687,6 +32056,320 @@ msgstr ""
 "ABS와 같이 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
 
 # AI Translated
+#~ msgid ""
+#~ "The Microsoft WebView2 Runtime could not be installed.\n"
+#~ "Some features, including the setup wizard, may appear blank until it is installed.\n"
+#~ "Please install it manually from https://developer.microsoft.com/microsoft-edge/webview2/ and restart Orca Slicer."
+#~ msgstr ""
+#~ "Microsoft WebView2 Runtime을 설치할 수 없습니다.\n"
+#~ "설치하기 전까지는 설정 마법사를 포함한 일부 기능이 빈 화면으로 표시될 수 있습니다.\n"
+#~ "https://developer.microsoft.com/microsoft-edge/webview2/ 에서 수동으로 설치한 후 Orca Slicer를 다시 시작하십시오."
+
+#~ msgid "Why this grouping"
+#~ msgstr "이 그룹핑의 이유"
+
+# AI Translated
+#~ msgid "The software does not support using different diameter of nozzles for one print. If the left and right nozzles are inconsistent, we can only proceed with single-head printing. Please confirm which nozzle you would like to use for this project."
+#~ msgstr "이 소프트웨어는 한 번의 출력에 서로 다른 직경의 노즐을 사용하는 것을 지원하지 않습니다. 왼쪽과 오른쪽 노즐이 서로 다르면 단일 헤드 출력으로만 진행할 수 있습니다. 이 프로젝트에 사용할 노즐을 확인해 주십시오."
+
+#~ msgid "Switch diameter"
+#~ msgstr "직경 스위치"
+
+# AI Translated
+#~ msgid "BambuStudio Project"
+#~ msgstr "BambuStudio 프로젝트"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "The 3MF was created by BambuStudio (version %s), which is newer than the compatible version %s. Found unrecognized settings:"
+#~ msgstr "이 3MF는 BambuStudio(버전 %s)에서 생성되었으며, 이는 호환 버전 %s보다 최신입니다. 인식할 수 없는 설정을 찾았습니다:"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "The 3MF was created by BambuStudio (version %s), which is newer than the compatible version %s. Some settings may not be fully compatible."
+#~ msgstr "이 3MF는 BambuStudio(버전 %s)에서 생성되었으며, 이는 호환 버전 %s보다 최신입니다. 일부 설정이 완전히 호환되지 않을 수 있습니다."
+
+# AI Translated
+#~ msgid "The 3MF was created by BambuStudio. Some settings may differ from OrcaSlicer."
+#~ msgstr "이 3MF는 BambuStudio에서 생성되었습니다. 일부 설정이 OrcaSlicer와 다를 수 있습니다."
+
+# AI Translated
+#~ msgid "Cannot undo or redo while an operation is running. Stop it first."
+#~ msgstr "작업이 실행 중일 때는 실행 취소하거나 다시 실행할 수 없습니다. 먼저 작업을 중지하십시오."
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "%s: %s"
+#~ msgstr "%s: %s"
+
+# AI Translated
+#~ msgid ""
+#~ "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
+#~ "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
+#~ "Affects line and grid patterns and rotation-template infills.\n"
+#~ "Patterns locked to global coordinates (Gyroid, Honeycomb, TPMS, ...) are unaffected."
+#~ msgstr ""
+#~ "전체 어셈블리가 아니라 각 부품을 개별적으로 슬라이스한 것처럼 부품마다 내부 채우기를 자체 중심에 맞춥니다. 서로 닿거나 겹치는 부품은 하나의 몸체로 간주되어 중심을 공유하며, 분리된 부품(또는 별개의 3D 객체)은 각각 자체 중심을 갖습니다.\n"
+#~ "여러 객체를 묶은 어셈블리에서 각 객체가 자체 중심을 기준으로 일관된 채우기를 유지해야 할 때 유용합니다.\n"
+#~ "선 및 격자 패턴과 회전 템플릿 채우기에 영향을 줍니다.\n"
+#~ "전역 좌표에 고정된 패턴(자이로이드, 벌집, TPMS 등)은 영향을 받지 않습니다."
+
+#~ msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
+#~ msgstr "현재 레이어의 인덱스입니다. 1 기반(즉, 첫 번째 레이어가 1번입니다)."
+
+#~ msgid "Video tutorial"
+#~ msgstr "비디오 자습서"
+
+# AI Translated
+#~ msgid "Primitive"
+#~ msgstr "기본 모델"
+
+# AI Translated
+#~ msgid "Empty mesh generated"
+#~ msgstr "빈 메시가 생성되었습니다"
+
+# AI Translated
+#~ msgid "Box"
+#~ msgstr "상자"
+
+# AI Translated
+#~ msgid "Quick:"
+#~ msgstr "빠른 선택:"
+
+# AI Translated
+#~ msgid "Width (X)"
+#~ msgstr "너비 (X)"
+
+# AI Translated
+#~ msgid "Depth (Y)"
+#~ msgstr "깊이 (Y)"
+
+# AI Translated
+#~ msgid "Height (Z)"
+#~ msgstr "높이 (Z)"
+
+# AI Translated
+#~ msgid "Bottom R"
+#~ msgstr "하단 R"
+
+# AI Translated
+#~ msgid "Top R"
+#~ msgstr "상단 R"
+
+# AI Translated
+#~ msgid "Major R"
+#~ msgstr "주 R"
+
+# AI Translated
+#~ msgid "Minor R"
+#~ msgstr "부 R"
+
+# AI Translated
+#~ msgid "All edges"
+#~ msgstr "모든 모서리"
+
+# AI Translated
+#~ msgid "Top edges"
+#~ msgstr "상단 모서리"
+
+# AI Translated
+#~ msgid "Bottom edges"
+#~ msgstr "하단 모서리"
+
+# AI Translated
+#~ msgid "Lateral edges"
+#~ msgstr "측면 모서리"
+
+# AI Translated
+#~ msgid "Mesh resolution"
+#~ msgstr "메시 해상도"
+
+# AI Translated
+#~ msgid "Add Shape"
+#~ msgstr "형상 추가"
+
+# AI Translated
+#~ msgid "No outer profile"
+#~ msgstr "외곽 프로파일 없음"
+
+# AI Translated
+#~ msgid "Failed to make outer face"
+#~ msgstr "외곽 면을 만들지 못했습니다"
+
+# AI Translated
+#~ msgid "Failed to build face with holes"
+#~ msgstr "구멍이 있는 면을 만들지 못했습니다"
+
+# AI Translated
+#~ msgid "Revolve failed"
+#~ msgstr "회전 실패"
+
+# AI Translated
+#~ msgid "Profile"
+#~ msgstr "프로파일"
+
+# AI Translated
+#~ msgid "Start new profile (for holes)"
+#~ msgstr "새 프로파일 시작(구멍용)"
+
+# AI Translated
+#~ msgid "Segments"
+#~ msgstr "세그먼트 수"
+
+# AI Translated
+#~ msgid "Sides"
+#~ msgstr "변 수"
+
+# AI Translated
+#~ msgid "Click on canvas to draw"
+#~ msgstr "캔버스를 클릭하여 그리기"
+
+# AI Translated
+#~ msgid "Snap to grid"
+#~ msgstr "격자에 스냅"
+
+# AI Translated
+#~ msgid "Grid step"
+#~ msgstr "격자 간격"
+
+# AI Translated
+#~ msgid "Outer"
+#~ msgstr "외곽"
+
+# AI Translated
+#~ msgid "closed"
+#~ msgstr "닫힘"
+
+# AI Translated
+#, boost-format
+#~ msgid "%1% %2%: %3% points %4%"
+#~ msgstr "%1% %2%: 점 %3%개 %4%"
+
+# AI Translated
+#~ msgid "XY (Top)"
+#~ msgstr "XY (위)"
+
+# AI Translated
+#~ msgid "XZ (Front)"
+#~ msgstr "XZ (앞)"
+
+# AI Translated
+#~ msgid "YZ (Side)"
+#~ msgstr "YZ (측면)"
+
+# AI Translated
+#~ msgid "Revolve deg"
+#~ msgstr "회전 각도"
+
+# AI Translated
+#~ msgid "Set to 0 for extrude, >0 for revolve"
+#~ msgstr "돌출은 0, 회전은 0보다 큰 값으로 설정"
+
+# AI Translated
+#~ msgid "Pocket (cut)"
+#~ msgstr "포켓(잘라내기)"
+
+# AI Translated
+#, c-format
+#~ msgid "%zu closed profile"
+#~ msgid_plural "%zu closed profiles"
+#~ msgstr[0] "%zu개의 닫힌 프로파일"
+
+# AI Translated
+#~ msgid "Draw a closed profile to enable"
+#~ msgstr "활성화하려면 닫힌 프로파일을 그리십시오"
+
+# AI Translated
+#~ msgid "Clear all"
+#~ msgstr "모두 지우기"
+
+# AI Translated
+#~ msgid "Empty result"
+#~ msgstr "결과가 비어 있음"
+
+# AI Translated
+#, boost-format
+#~ msgid "Extrude: %1%"
+#~ msgstr "돌출: %1%"
+
+# AI Translated
+#, boost-format
+#~ msgid "Revolve: %1%"
+#~ msgstr "회전: %1%"
+
+# AI Translated
+#~ msgid "No object selected"
+#~ msgstr "선택한 객체 없음"
+
+# AI Translated
+#~ msgid "Face failed"
+#~ msgstr "면 생성 실패"
+
+# AI Translated
+#~ msgid "Face with holes failed"
+#~ msgstr "구멍이 있는 면 생성 실패"
+
+# AI Translated
+#~ msgid "Tool mesh empty"
+#~ msgstr "도구 메시가 비어 있음"
+
+# AI Translated
+#~ msgid "Pocket added (negative volume)"
+#~ msgstr "포켓 추가됨(비우기 부품)"
+
+# AI Translated
+#, boost-format
+#~ msgid "Pocket: %1%"
+#~ msgstr "포켓: %1%"
+
+# AI Translated
+#~ msgid "Needs the active layer mapped with Unwrap (LSCM)."
+#~ msgstr "활성 레이어가 펼치기(LSCM)로 매핑되어 있어야 합니다."
+
+# AI Translated
+#~ msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too"
+#~ msgstr "체커 - 텍스처 대신 테스트 격자를 표시합니다. 정사각형이 정사각형으로 유지되는 곳은 텍스처가 왜곡되지 않으며, 늘어나는 곳은 텍스처도 늘어납니다"
+
+# AI Translated
+#~ msgid "Distortion - blue-to-red stretch heatmap over the unwrap"
+#~ msgstr "왜곡 - 펼친 면 위에 늘어난 정도를 파랑에서 빨강으로 이어지는 히트맵으로 표시합니다"
+
+# AI Translated
+#~ msgid "Mix by"
+#~ msgstr "혼합 방식"
+
+# AI Translated
+#~ msgctxt "Texture Displacement"
+#~ msgid "Surface"
+#~ msgstr "표면"
+
+# AI Translated
+#~ msgid ""
+#~ "Layers: the two filaments alternate between print layers, which blends smoothly on upright surfaces but disappears on flat-facing ones, where a whole layer is a single band.\n"
+#~ "Surface: a fine checkerboard across the surface, which works at any angle but can read as texture rather than as a blend.\n"
+#~ "Automatic: layers on upright faces; flat-facing faces take the nearer single filament, since a checkerboard there shows as a pattern."
+#~ msgstr ""
+#~ "레이어: 두 필라멘트가 출력 레이어마다 번갈아 사용됩니다. 수직면에서는 부드럽게 섞이지만, 레이어 하나가 하나의 띠가 되는 평평한 면에서는 효과가 사라집니다.\n"
+#~ "표면: 표면 전체에 촘촘한 체커보드를 만듭니다. 어떤 각도에서도 작동하지만 혼색이 아니라 질감처럼 보일 수 있습니다.\n"
+#~ "자동: 수직면에는 레이어를 사용하고, 평평한 면에서는 체커보드가 패턴으로 드러나므로 더 가까운 필라멘트 하나를 사용합니다."
+
+# AI Translated
+#~ msgid "Island - move, rotate and scale whole islands"
+#~ msgstr "아일랜드 - 아일랜드 전체를 이동, 회전, 배율 조정합니다"
+
+# AI Translated
+#~ msgid "Vertex - drag vertices to reshape; Shift/Ctrl to multi-select"
+#~ msgstr "정점 - 정점을 드래그하여 모양을 바꿉니다. Shift/Ctrl로 다중 선택"
+
+# AI Translated
+#~ msgid "Edge - drag edges to reshape; Shift/Ctrl to multi-select"
+#~ msgstr "모서리 - 모서리를 드래그하여 모양을 바꿉니다. Shift/Ctrl로 다중 선택"
+
+# AI Translated
+#~ msgid "Frame all islands (Home)"
+#~ msgstr "모든 아일랜드 맞추기 (Home)"
+
+# AI Translated
 #~ msgid "(Experimental) Use printer agents instead of print hosts"
 #~ msgstr "(실험적) 출력 호스트 대신 프린터 에이전트 사용"
 
@@ -31718,16 +32401,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Click a face or a reference plane, then pick a drawing tool"
 #~ msgstr "면이나 기준 평면을 클릭한 다음 그리기 도구를 선택하십시오"
-
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
-
-# AI Translated
-#~ msgid "Z"
-#~ msgstr "Z"
 
 # AI Translated
 #~ msgid "XY"
@@ -31784,10 +32457,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Vertical distance"
 #~ msgstr "수직 거리"
-
-# AI Translated
-#~ msgid "Linear"
-#~ msgstr "선형"
 
 #~ msgid "Face recognition"
 #~ msgstr "바닥면 인식"
@@ -33372,9 +34041,6 @@ msgstr ""
 
 #~ msgid "part selection"
 #~ msgstr "부품 선택"
-
-#~ msgid "°"
-#~ msgstr "°"
 
 #~ msgid ""
 #~ "The Wipe option is not available when using the Firmware Retraction mode.\n"
