@@ -42,7 +42,7 @@
 #include "SurfaceCollection.hpp"
 
 // #define EXTRA_PERIM_DEBUG_FILES
-#define PERIMETERS_DEBUG
+// #define PERIMETERS_DEBUG
 #ifdef PERIMETERS_DEBUG || EXTRA_PERIM_DEBUG_FILES
 #include "SVG.hpp"
 #endif
