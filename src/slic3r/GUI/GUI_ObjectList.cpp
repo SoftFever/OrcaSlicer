@@ -6313,14 +6313,7 @@ void ObjectList::fix_through_cgal()
 
     std::vector<std::string> model_names;
 
-    // clear selections from the non-broken models if any exists
-    // and than fill names of models to repairing
     if (vol_idxs.empty()) {
-#if !FIX_THROUGH_CGAL_ALWAYS
-        for (int i = int(obj_idxs.size())-1; i >= 0; --i)
-                if (object(obj_idxs[i])->get_repaired_errors_count() == 0)
-                    obj_idxs.erase(obj_idxs.begin()+i);
-#endif // FIX_THROUGH_CGAL_ALWAYS
         for (int obj_idx : obj_idxs)
             if (object(obj_idx))
                 model_names.push_back(object(obj_idx)->name);
@@ -6328,11 +6321,6 @@ void ObjectList::fix_through_cgal()
     else {
         ModelObject* obj = object(obj_idxs.front());
         if (obj) {
-#if !FIX_THROUGH_CGAL_ALWAYS
-            for (int i = int(vol_idxs.size()) - 1; i >= 0; --i)
-                if (obj->get_repaired_errors_count(vol_idxs[i]) == 0)
-                    vol_idxs.erase(vol_idxs.begin() + i);
-#endif // FIX_THROUGH_CGAL_ALWAYS
             for (int vol_idx : vol_idxs)
                 model_names.push_back(obj->volumes[vol_idx]->name);
         }
@@ -6399,10 +6387,6 @@ void ObjectList::fix_through_cgal()
     if (vol_idxs.empty()) {
         int vol_idx{ -1 };
         for (int obj_idx : obj_idxs) {
-#if !FIX_THROUGH_CGAL_ALWAYS
-            if (object(obj_idx)->get_repaired_errors_count(vol_idx) == 0)
-                continue;
-#endif // FIX_THROUGH_CGAL_ALWAYS
             if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, progress_dlg, succes_models, failed_models))
                 break;
             model_idx++;
