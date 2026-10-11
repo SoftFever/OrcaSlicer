@@ -16,6 +16,8 @@ on:
 
 permissions:
   contents: read
+  # Listing caches while waiting for this PR's deps cache.
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -43,16 +45,56 @@ jobs:
           else
             echo "No C++ changes under src/ or tests/."
           fi
+          if ! git diff --quiet HEAD^1 -- deps; then
+            echo "deps=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "deps-key=linux-clang-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }}" >> "$GITHUB_OUTPUT"
 
-      # Parsing needs the dependency headers, not a build of this PR's deps/, so
-      # a PR that changes deps/ falls back to the newest cache main has.
+      # Parsing needs the dependency headers, not a build of this PR's deps/.
+      # Without an exact match the job falls back to the newest cache main has,
+      # unless the PR changes deps/: its code may need the new headers, so the
+      # job waits for the cache this PR's Linux Build Deps job saves.
       - name: Restore cached deps
+        id: deps_cache
         if: steps.changes.outputs.cpp == 'true'
         uses: actions/cache/restore@v6
         with:
           path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
-          key: linux-clang-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }}
+          key: ${{ steps.changes.outputs.deps-key }}
+
+      - name: Restore the newest cached deps
+        if: steps.changes.outputs.cpp == 'true' && steps.deps_cache.outputs.cache-hit != 'true' && steps.changes.outputs.deps != 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+          key: ${{ steps.changes.outputs.deps-key }}
           restore-keys: linux-clang-cache-orcaslicer_deps-build-
+          fail-on-cache-miss: true
+
+      # Linux Build Deps takes about 35 minutes.
+      - name: Wait for this PR's deps cache
+        if: steps.changes.outputs.cpp == 'true' && steps.deps_cache.outputs.cache-hit != 'true' && steps.changes.outputs.deps == 'true'
+        timeout-minutes: 100
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEY: ${{ steps.changes.outputs.deps-key }}
+        run: |
+          deadline=$((SECONDS + 90 * 60))
+          until [ -n "$(gh cache list --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF" --key "$KEY" --json key --jq ".[] | select(.key == \"$KEY\") | .key")" ]; do
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "::error::No deps cache $KEY after 90 minutes. Check the Linux Build Deps job, then rerun clang-tidy."
+              exit 1
+            fi
+            echo "Waiting for $KEY..."
+            sleep 60
+          done
+
+      - name: Restore this PR's deps cache
+        if: steps.changes.outputs.cpp == 'true' && steps.deps_cache.outputs.cache-hit != 'true' && steps.changes.outputs.deps == 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+          key: ${{ steps.changes.outputs.deps-key }}
           fail-on-cache-miss: true
 
       - name: Apt-Install Dependencies
