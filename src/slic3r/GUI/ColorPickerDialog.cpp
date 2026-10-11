@@ -312,10 +312,8 @@ nlohmann::json color_picker_ui_strings()
     return {
         {"Color Picker", _u8L("Color Picker")},
         {"Basic Colors", _u8L("Basic Colors")},
-        // TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
-        {"Orca Palette", _u8L("Orca Palette")},
-        // TRN: Keep the standard/brand name "RAL" unchanged.
-        {"RAL Classic", _u8L("RAL Classic")},
+        {"Orca Palette", _u8L("Orca Palette")},// TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+        {"RAL Classic", _u8L("RAL Classic")},  // TRN: Keep the standard/brand name "RAL" unchanged.
         {"Gradients", _u8L("Gradients")},
         {"Solid", _u8L("Solid")},
         {"Gradient", _u8L("Gradient")},
@@ -340,6 +338,7 @@ nlohmann::json color_picker_ui_strings()
         {"Invalid input", _u8L("Invalid input")},
         {"Value is out of range.", _u8L("Value is out of range.")},
         {"The current multi-color selection is kept until you choose a different color.", _u8L("The current multi-color selection is kept until you choose a different color.")},
+        {"Up to %d colors supported.", _u8L("Up to %d colors supported.")},
         {"Red", _u8L("Red")},
         {"Crimson", _u8L("Crimson")},
         {"Orange red", _u8L("Orange red")},

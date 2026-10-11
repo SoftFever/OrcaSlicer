@@ -389,8 +389,8 @@ body {
   color: var(--fg-color-text);
 }
 .gradient-step-button svg { display: block; flex: none }
-.gradient-step-button:hover:not(:disabled) { background: var(--button-bg-hover) }
-.gradient-step-button:disabled { opacity: 0.4 }
+.gradient-step-button:hover:not([aria-disabled="true"]) { background: var(--button-bg-hover) }
+.gradient-step-button[aria-disabled="true"] { opacity: 0.4; cursor: default }
 .gradient-track {
   position: absolute;
   inset: 0;

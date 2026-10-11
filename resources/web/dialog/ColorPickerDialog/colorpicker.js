@@ -138,7 +138,10 @@
     gradientAdd.parentElement.classList.toggle("hidden", !multi);
     gradientRemove.classList.toggle("hidden", !multi || count <= 2);
     gradientAdd.classList.toggle("hidden", !multi);
-    gradientAdd.disabled = count >= maxGradientColors;
+    // aria-disabled instead of disabled: a disabled button gets no hover, so its tooltip would never show.
+    const full = count >= maxGradientColors;
+    gradientAdd.setAttribute("aria-disabled", String(full));
+    gradientAdd.title = full ? T("Up to %d colors supported.").replace("%d", maxGradientColors) : T("Add color");
   }
 
   // Every editor the user can see; alpha only when this caller allows it.
@@ -392,7 +395,7 @@
     const index = thumb ? Number(thumb.dataset.index) : Math.round(fraction * last);
     if (index !== state.active) { state.active = index; render(true); }
   });
-  gradientAdd.addEventListener("click", () => { if (model.addGradientColor(state)) render(true); });
+  gradientAdd.addEventListener("click", () => { if (gradientAdd.getAttribute("aria-disabled") !== "true" && model.addGradientColor(state)) render(true); });
   gradientRemove.addEventListener("click", () => { if (model.removeGradientColor(state)) render(true); });
   originalPreview.addEventListener("click", () => { if (model.applySelection(state, originalSelection)) render(true); });
   paletteToggle.addEventListener("click", () => {
