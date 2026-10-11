@@ -825,6 +825,8 @@ bool GLVolume::is_below_printbed() const
 
 void GLVolume::render_sinking_contours()
 {
+    if (!is_active)
+        return;
     m_sinking_contours.render();
 }
 
