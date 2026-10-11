@@ -817,23 +817,24 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 // Names of categories is save in English always. We translate them only for UI.
 // But category "Extruder n" can't be translated regularly (using _()), so
 // just for this category we should splite the title and translate "Extruder" word separately
-wxString Tab::translate_category(const wxString& title, Preset::Type preset_type)
+wxString Tab::translate_category(const wxString& title, Preset::Type preset_type, bool translate)
 {
+    auto tr = [translate](const wxString& s) { return translate ? _(s) : s; };
     if (preset_type == Preset::TYPE_PRINTER && title.Contains("Extruder ")) {
         auto preset = wxGetApp().preset_bundle;
         if (preset && preset->is_bbl_vendor()) {
-            if (title == "Extruder 1") return _("Left Extruder");
-            if (title == "Extruder 2") return _("Right Extruder");
+            if (title == "Extruder 1") return tr(L("Left Extruder"));
+            if (title == "Extruder 2") return tr(L("Right Extruder"));
         }
-        return _("Extruder") + title.SubString(8, title.Last());
+        return tr(L("Extruder")) + title.SubString(8, title.Last());
     }
     // Orca: one "Extruder" page serves all extruders; name it "Extruders" when there are several.
     if (preset_type == Preset::TYPE_PRINTER && title == "Extruder") {
         auto preset = wxGetApp().preset_bundle;
         if (preset && preset->get_printer_extruder_count() > 1)
-            return _("Extruders");
+            return tr(L("Extruders"));
     }
-    return _(title);
+    return tr(title);
 }
 
 void Tab::OnActivate()
@@ -1865,14 +1866,14 @@ Tab::SettingRowState Tab::setting_row_state(const std::string &opt_id) const
                     if (opt.opt_id != opt_id)
                         continue;
                     if (line.toggle_visible) // shown on any owning page is enough
-                        return {true, line.label, line.get_options().size() > 1};
+                        return {true, line.label, line.label_en, line.get_options().size() > 1};
                     found = true;
                 }
             }
         }
     }
     // Never registered on a page -> visible, but with no row label to contribute.
-    return {!found, wxString(), false};
+    return {!found, wxString(), wxString(), false};
 }
 
 // To be called by custom widgets, load a value into a config,
