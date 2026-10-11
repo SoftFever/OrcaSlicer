@@ -40,12 +40,10 @@
 #include "BoundingBox.hpp"
 #include "MultiMaterialSegmentation.hpp"
 #include "SurfaceCollection.hpp"
+#include "SVG.hpp"
 
 // #define EXTRA_PERIM_DEBUG_FILES
-// #define PERIMETERS_DEBUG
-#ifdef PERIMETERS_DEBUG || EXTRA_PERIM_DEBUG_FILES
-#include "SVG.hpp"
-#endif
+#define PERIMETERS_DEBUG
 
 static const int overhang_sampling_number = 6;
 static const double narrow_loop_length_threshold = 10;
