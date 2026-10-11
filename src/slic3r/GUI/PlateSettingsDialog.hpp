@@ -19,6 +19,7 @@
 #include <wx/toplevel.h>
 #include "libslic3r/PrintConfig.hpp"
 #include <utility>
+#include <string>
 #include "slic3r/GUI/Widgets/TextInput.hpp"
 #include <wx/colour.h>
 
@@ -220,10 +221,23 @@ public:
     int get_target_index() const { return m_target_index; }
 
 protected:
+    struct StepButton
+    {
+        ScalableButton *button{nullptr};
+        std::string     icon;      // icon base name, e.g. "frontmost"
+        int             target{0}; // plate index the button moves the choice to, -1 when it does not apply
+    };
+
+    void set_target_index(int index);
+    void update_state();
+    ScalableButton *create_step_button(const std::string &icon, const wxString &tooltip, size_t slot);
+
     ComboBox *m_combobox_plate{nullptr};
     Button   *m_button_ok{nullptr};
+    int       m_plate_count{0};
     int       m_current_index{0};
     int       m_target_index{0};
+    StepButton m_step_buttons[4]; // to the front, one forward, one back, to the back
 };
 }} // namespace Slic3r::GUI
 

@@ -2911,7 +2911,19 @@ msgstr ""
 msgid "Move the selected plate to another position"
 msgstr ""
 
-msgid "Move the current plate to"
+msgid "Move the selected plate to position"
+msgstr ""
+
+msgid "Move to the front"
+msgstr ""
+
+msgid "Move one position forward"
+msgstr ""
+
+msgid "Move one position back"
+msgstr ""
+
+msgid "Move to the back"
 msgstr ""
 
 msgid "Name"
