@@ -15369,6 +15369,12 @@ msgid ""
 "Please enable auxiliary_fan in printer settings to use this feature. G-code command: M106 P2 S(0-255)"
 msgstr ""
 
+msgid "Linear ramp"
+msgstr ""
+
+msgid "Ramp the auxiliary fan up linearly over the layers defined by \"No cooling for the first\" and \"Full fan speed at layer\", the same way as the part cooling fan, instead of running it at full speed from the first layer. This reduces the sudden temperature drop near the first layer, which helps against warping."
+msgstr ""
+
 msgid "For the first"
 msgstr ""
 
