@@ -6304,6 +6304,8 @@ void ObjectList::fix_through_cgal()
     std::vector<std::string>                           succes_models;
     //                   model_name     failing reason
     std::vector<std::pair<std::string, std::string>>   failed_models;
+    // Orca: model_name of the objects repaired with self-intersections left
+    std::vector<std::string>                           self_intersecting_models;
 
     std::vector<int> obj_idxs, vol_idxs;
     get_selection_indexes(obj_idxs, vol_idxs);
@@ -6337,7 +6339,7 @@ void ObjectList::fix_through_cgal()
 
     auto plater = wxGetApp().plater();
 
-    auto fix_and_update_progress = [this, plater, model_names](const int obj_idx, const int vol_idx,
+    auto fix_and_update_progress = [this, plater, model_names, &self_intersecting_models](const int obj_idx, const int vol_idx,
                                           int model_idx,
                                           ProgressDialog& progress_dlg,
                                           std::vector<std::string>& succes_models,
@@ -6363,7 +6365,8 @@ void ObjectList::fix_through_cgal()
         }
         const size_t volumes_before = object(obj_idx)->volumes.size();
         std::string res;
-        if (!fix_model_with_cgal_gui(*(object(obj_idx)), vol_idx, progress_dlg, msg, res, keep_painting))
+        bool        self_intersections_remain = false;
+        if (!fix_model_with_cgal_gui(*(object(obj_idx)), vol_idx, progress_dlg, msg, res, keep_painting, &self_intersections_remain))
             return false;
         //wxGetApp().plater()->changed_mesh(obj_idx);
         object(obj_idx)->ensure_on_bed();
@@ -6376,10 +6379,12 @@ void ObjectList::fix_through_cgal()
         plater->get_partplate_list().notify_instance_update(obj_idx, 0);
         plater->sidebar().obj_list()->update_plate_values_for_items();
 
-        if (res.empty())
-            succes_models.push_back(model_name);
-        else
+        if (!res.empty())
             failed_models.push_back({ model_name, res });
+        else if (self_intersections_remain)
+            self_intersecting_models.push_back(model_name);
+        else
+            succes_models.push_back(model_name);
 
         update_item_error_icon(obj_idx, vol_idx);
         update_info_items(obj_idx);
@@ -6425,6 +6430,12 @@ void ObjectList::fix_through_cgal()
             msg += bullet_suf + from_u8(model);
         msg += "\n\n";
     }
+    if (!self_intersecting_models.empty()) {
+        msg += _L("Repaired, but self-intersections remain in") + ":";
+        for (auto& model : self_intersecting_models)
+            msg += bullet_suf + from_u8(model);
+        msg += "\n\n";
+    }
     if (!failed_models.empty()) {
         msg += _L_PLURAL("Failed to repair the following model object", "Failed to repair the following model objects", failed_models.size()) + ":\n";
         for (auto& model : failed_models)
@@ -6432,7 +6443,10 @@ void ObjectList::fix_through_cgal()
     }
     if (msg.IsEmpty())
         msg = _L("Repairing was canceled");
-    plater->get_notification_manager()->push_notification(NotificationType::CgalFinished, NotificationManager::NotificationLevel::PrintInfoShortNotificationLevel, into_u8(msg));
+    // Orca: Remaining self-intersections are worth a warning, the sliced layers may not be what the model shows.
+    const auto level = self_intersecting_models.empty() ? NotificationManager::NotificationLevel::PrintInfoShortNotificationLevel :
+                                                          NotificationManager::NotificationLevel::WarningNotificationLevel;
+    plater->get_notification_manager()->push_notification(NotificationType::CgalFinished, level, into_u8(msg));
 }
 
 void ObjectList::simplify()

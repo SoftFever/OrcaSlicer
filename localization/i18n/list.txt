@@ -224,6 +224,7 @@ src/libslic3r/PrintObjectSlice.cpp
 src/libslic3r/PlaceholderParser.cpp
 src/libslic3r/Support/TreeSupport.cpp
 src/libslic3r/Model.cpp
+src/libslic3r/ModelObjectRepair.cpp
 src/libslic3r/Format/OBJ.cpp
 src/slic3r/GUI/CalibrationWizardPage.cpp
 src/slic3r/GUI/CalibrationPanel.cpp
