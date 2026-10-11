@@ -399,8 +399,8 @@ void AppConfig::set_defaults()
     if (get("show_plate_gridlines").empty())
         set_bool("show_plate_gridlines", true);
 
-    if (get("show_inactive_plates").empty())
-        set_bool("show_inactive_plates", true);
+    if (get("focus_mode").empty())
+        set_bool("focus_mode", false);
 
     if (get("show_outline").empty())
         set_bool("show_outline", false);

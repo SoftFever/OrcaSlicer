@@ -6155,7 +6155,7 @@ int PartPlateList::select_plate(int index)
 	}
 
 	// With the other plates hidden, the view follows the selected plate.
-	if (previous_index != index && m_intialized && m_plater != nullptr && m_plater->is_view3D_shown() && !wxGetApp().show_inactive_plates()) {
+	if (previous_index != index && m_intialized && m_plater != nullptr && m_plater->is_view3D_shown() && wxGetApp().focus_mode()) {
 		Camera& camera = m_plater->get_camera();
 		Vec3d   target = camera.get_target();
 		target.head<2>() = m_plate_list[index]->get_bounding_box().center().head<2>();

@@ -8912,7 +8912,7 @@ void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& 
 
 bool GLCanvas3D::_hides_inactive_plates() const
 {
-    return m_canvas_type == ECanvasType::CanvasView3D && !m_design_canvas && !wxGetApp().show_inactive_plates();
+    return m_canvas_type == ECanvasType::CanvasView3D && !m_design_canvas && wxGetApp().focus_mode();
 }
 
 bool GLCanvas3D::_update_inactive_plates_visibility()
@@ -11079,10 +11079,15 @@ void GLCanvas3D::_render_canvas_toolbar()
             []{wxGetApp().toggle_show_plate_gridlines();}
         );
 
-        create_menu_item( _utf8(L("Inactive plates")),
+        create_menu_item( _utf8(L("Focus mode")),
             m_canvas_type == ECanvasType::CanvasView3D && !m_design_canvas, // work only on prepare
-            wxGetApp().show_inactive_plates(),
-            [this]{wxGetApp().toggle_show_inactive_plates(); m_dirty = true;}
+            wxGetApp().focus_mode(),
+            [this]{
+                wxGetApp().toggle_focus_mode();
+                if (wxGetApp().focus_mode())
+                    zoom_to_plate(REQUIRES_ZOOM_TO_CUR_PLATE);
+                m_dirty = true;
+            }
         );
 
         ImGui::Separator();

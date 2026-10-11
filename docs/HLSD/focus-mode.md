@@ -1,12 +1,12 @@
-# Inactive plates — High Level Design
+# Focus mode (hiding inactive plates) — High Level Design
 
 ## Purpose and scope
 
-"Inactive plates" is an entry of the canvas menu in the bottom left corner of Prepare. Turned off,
-the 3D view shows the current plate alone, so a project with many plates can be worked on one plate
-at a time. It is a view setting: it changes nothing in the model, the slice or the project file, and
-it does not reach plate thumbnails. The choice is kept in the app config as `show_inactive_plates`,
-on by default.
+"Focus mode" is an entry of the canvas menu in the bottom left corner of Prepare. Turned on (eye
+lit), the 3D view hides the inactive plates and shows the current plate alone, so a project with
+many plates can be worked on one plate at a time. Turned off, every plate is shown. It is a view
+setting: it changes nothing in the model, the slice or the project file, and it does not reach
+plate thumbnails. The choice is kept in the app config as `focus_mode`, off by default.
 
 Preview needs no such option, as it already draws the current plate alone and has its own plate
 toolbar. The assembly view and the Design tab do not lay objects out on plates, so the entry is
@@ -40,12 +40,12 @@ see the same scene as the frame.
 Other features clear `is_active` too: gizmos hide the objects they do not edit and show them all
 again when they close. `GLVolume::on_hidden_plate` records which volumes this update hid, so it only
 shows again what it hid itself, and it waits for a gizmo that hides objects to close before doing
-so. A volume another feature made active again is hidden again on the next frame. While the inactive
-plates are shown and nothing is left hidden, the update returns at once.
+so. A volume another feature made active again is hidden again on the next frame. While Focus mode
+is off and nothing is left hidden, the update returns at once.
 
 ## Switching plates
 
-The other plates cannot be clicked while they are hidden, so a compact counterpart of the Preview
+The other plates cannot be clicked while Focus mode hides them, so a compact counterpart of the Preview
 plate toolbar takes their place: a column of numbered buttons in the top left corner, below the top
 toolbar, shown when the project has more than one plate and no gizmo is open. The current plate is
 highlighted and empty plates are dimmed; the tooltip gives the plate name. A click selects the plate
@@ -55,4 +55,4 @@ it does not fit above the 3D navigator or the canvas toolbar.
 Whatever selects a plate while the others are hidden, the camera moves its target over the new plate
 and keeps its angle, distance and height (`PartPlateList::select_plate()`), so the plate comes into
 view where the previous one was. A zoom to all plates, as after loading a project or adding a plate,
-frames the current plate instead.
+frames the current plate instead. Turning Focus mode on does the same, so the current plate fills the view.
