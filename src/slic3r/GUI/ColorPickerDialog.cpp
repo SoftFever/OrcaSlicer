@@ -287,6 +287,13 @@ namespace {
 // saved, and its presence alone marks favorites as already migrated.
 constexpr const char* COLOR_PICKER_UI_SECTION = "color_picker_ui";
 
+// The page's own size in DIP (style.css): body padding 10 + border 1 on each side around the
+// 320 x 360 picker, and the 160px sidebar plus its 10px gap. Opening at this size means the
+// first resize message from the page normally changes nothing, so the window doesn't jump.
+constexpr int COLOR_PICKER_PAGE_WIDTH    = 320 + 2 * 11;
+constexpr int COLOR_PICKER_PAGE_HEIGHT   = 360 + 2 * 11;
+constexpr int COLOR_PICKER_SIDEBAR_WIDTH = 160 + 10;
+
 // Palette ids are short lowercase words defined by the page (basic, orca, ral, gradient, ...).
 bool valid_palette_id(const std::string& id)
 {
@@ -765,8 +772,19 @@ ColorPickerDialog::ColorPickerDialog(wxWindow* parent, const ColorSelection& ini
     const auto normalized = normalize_color_selection(initial, options);
     if (normalized)
         m_initial = *normalized;
+    // Read the sidebar state before the WebView exists: add_user_scripts() passes it to the page,
+    // and the window opens at the matching size instead of resizing after the page loads.
+    if (wxGetApp().app_config) {
+        const AppConfig& config = *wxGetApp().app_config;
+        m_sidebar_open = config.get(COLOR_PICKER_UI_SECTION, "sidebar_open") == "1";
+        if (const std::string palette = config.get(COLOR_PICKER_UI_SECTION, "palette"); valid_palette_id(palette))
+            m_palette = palette;
+    }
+    m_content_width = COLOR_PICKER_PAGE_WIDTH + (m_sidebar_open ? COLOR_PICKER_SIDEBAR_WIDTH : 0);
+    m_content_height = COLOR_PICKER_PAGE_HEIGHT;
     if (!normalized || !create_webview("web/dialog/ColorPickerDialog/index.html", _L("Color Picker"),
-                                      wxSize(320, 360), wxSize(320, 360))) {
+                                      wxSize(m_content_width, m_content_height),
+                                      wxSize(COLOR_PICKER_PAGE_WIDTH, COLOR_PICKER_PAGE_HEIGHT))) {
         auto* sizer = new wxBoxSizer(wxVERTICAL);
         sizer->Add(new wxStaticText(this, wxID_ANY, wxS("wxWebView unavailable")), wxSizerFlags().Border(wxALL, FromDIP(20)));
         sizer->Add(new wxButton(this, wxID_CANCEL, _L("Cancel")), wxSizerFlags().Right().Border(wxALL, FromDIP(8)));
@@ -796,10 +814,6 @@ ColorPickerDialog::ColorPickerDialog(wxWindow* parent, const ColorSelection& ini
         const auto stored = load_color_picker_favorites(*wxGetApp().app_config);
         m_favorites = stored.favorites;
         m_favorites_writable = stored.writable;
-        const AppConfig& config = *wxGetApp().app_config;
-        m_sidebar_open = config.get(COLOR_PICKER_UI_SECTION, "sidebar_open") == "1";
-        if (const std::string palette = config.get(COLOR_PICKER_UI_SECTION, "palette"); valid_palette_id(palette))
-            m_palette = palette;
     }
     // The shared host attaches its sizer before constructing the full layout.
     GetSizer()->SetSizeHints(this);
@@ -950,7 +964,9 @@ void ColorPickerDialog::add_user_scripts()
         std::replace(language.begin(), language.end(), '_', '-');
         const std::string script = "window.ORCA_UI_STRINGS = " +
             color_picker_ui_strings().dump(-1, ' ', false, nlohmann::json::error_handler_t::ignore) +
-            ";window.ORCA_COLOR_PICKER_LANGUAGE = " + nlohmann::json(language).dump() + ";";
+            ";window.ORCA_COLOR_PICKER_LANGUAGE = " + nlohmann::json(language).dump() +
+            // Lets the page lay out the sidebar before its first paint, matching the window size.
+            ";window.ORCA_COLOR_PICKER_UI = " + nlohmann::json({{"sidebar_open", m_sidebar_open}, {"palette", m_palette}}).dump() + ";";
         view->AddUserScript(wxString::FromUTF8(script));
     }
 }

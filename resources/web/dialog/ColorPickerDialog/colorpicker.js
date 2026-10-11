@@ -448,6 +448,14 @@
     init, handleMessage, focusInput, exportSelection: () => model.exportSelection(state),
     setFavorites: (values) => { favorites = model.normalizeFavorites(values); drawFavorites(); }
   };
+  // The host passes the saved sidebar state before the page loads (the same values come again in
+  // init), so the first paint already matches the window size the host opened with.
+  const earlyUi = window.ORCA_COLOR_PICKER_UI;
+  if (earlyUi && typeof earlyUi === "object") {
+    if (typeof earlyUi.palette === "string" && [...paletteCombo.options].some((option) => option.value === earlyUi.palette))
+      paletteCombo.value = earlyUi.palette;
+    if (typeof earlyUi.sidebar_open === "boolean") setSidebarOpen(earlyUi.sidebar_open);
+  }
   setSwatch(originalPreview, originalSelection);
   drawSpectrum(); populatePalette(); drawFavorites(); render(true); emit("ready");
 })();
