@@ -134,22 +134,20 @@ jobs:
   # Hosted macOS runners are scarce, so a pull request's macOS build waits until
   # one is free that push and nightly builds do not need. See the script.
   macos_admission:
-    # The macos-priority label, when the run starts, puts a pull request in its own
-    # line, which the normal one yields to. The script matches both names.
-    name: ${{ contains(github.event.pull_request.labels.*.name, 'macos-priority') && 'Wait for a macOS runner (priority)' || 'Wait for a macOS runner' }}
+    name: Wait for a macOS runner
     needs: [check_cache, wait_for_deps]
-    if: ${{ !cancelled() && needs.check_cache.result == 'success' && startsWith(inputs.os, 'macos-') && github.event_name == 'pull_request' }}
+    if: ${{ !cancelled() && needs.check_cache.result == 'success' && startsWith(inputs.os, 'macos-') && github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'macos-priority') }}
     runs-on: ubuntu-24.04
     env:
       WAIT_MINUTES: 240
-      PRIORITY: ${{ contains(github.event.pull_request.labels.*.name, 'macos-priority') }}
+      PRIORITY: false
     # Must exceed WAIT_MINUTES.
     timeout-minutes: 250
     # One line for every arch of every pull request, and only its first job polls.
     concurrency:
-      group: ${{ contains(github.event.pull_request.labels.*.name, 'macos-priority') && 'macos-admission-priority' || 'macos-admission' }}
+      group: macos-admission
       queue: max
-    steps:
+    steps: &macos_admission_steps
       - name: Checkout
         uses: actions/checkout@v7
         with:
@@ -163,9 +161,27 @@ jobs:
         # -u, or the log shows nothing until the wait ends.
         run: python3 -u scripts/ci_macos_admission.py
 
+  # The macos-priority label, when the run starts, puts a pull request in its own
+  # line, which the normal one yields to. The names are fixed, because a skipped
+  # job is listed under its unevaluated name, and the script matches both.
+  macos_admission_priority:
+    name: Wait for a macOS runner (priority)
+    needs: [check_cache, wait_for_deps]
+    if: ${{ !cancelled() && needs.check_cache.result == 'success' && startsWith(inputs.os, 'macos-') && github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'macos-priority') }}
+    runs-on: ubuntu-24.04
+    env:
+      WAIT_MINUTES: 240
+      PRIORITY: true
+    # Must exceed WAIT_MINUTES.
+    timeout-minutes: 250
+    concurrency:
+      group: macos-admission-priority
+      queue: max
+    steps: *macos_admission_steps
+
   build_deps: # call next step
     name: Build Deps
-    needs: [check_cache, wait_for_deps, macos_admission]
+    needs: [check_cache, wait_for_deps, macos_admission, macos_admission_priority]
     # A failed wait counts as no cache, so the deps are built here. A failed
     # admission still builds rather than skip macOS.
     if: ${{ !cancelled() && needs.check_cache.result == 'success' }}
