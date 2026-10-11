@@ -65,6 +65,16 @@ bool negotiate_input(const VisualizationPluginCapability& capability, const Visu
     return false;
 }
 
+bool has_required_resources(const std::vector<VisualizationInput>& resources,
+                            const std::vector<VisualizationResourceRequest>& requests)
+{
+    return std::all_of(requests.begin(), requests.end(), [&resources](const auto& request) {
+        return std::any_of(resources.begin(), resources.end(), [&request](const auto& resource) {
+            return resource.kind == request.kind && resource.scope == request.scope;
+        });
+    });
+}
+
 std::vector<std::pair<size_t, size_t>> model_plate_instances(GUI::PartPlate& plate, const Model& model)
 {
     std::vector<std::pair<size_t, size_t>> instances;
@@ -91,22 +101,14 @@ PluginVisualizations& PluginVisualizations::instance()
     return visualizations;
 }
 
-PluginVisualizations::~PluginVisualizations()
-{
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_stop_worker = true;
-        m_requests.clear();
-        for (auto& generation : m_generations)
-            ++generation.second;
-    }
-    m_worker_cv.notify_all();
-    if (m_worker.joinable())
-        m_worker.join();
-}
+PluginVisualizations::~PluginVisualizations() { shutdown(); }
 
 void PluginVisualizations::install_callbacks(PluginManager& manager)
 {
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_stop_worker = false;
+    }
     manager.subscribe_on_capability_load_callback([this](const PluginCapabilityId& id) {
         if (id.type == PluginCapabilityType::Visualization) {
             try {
@@ -120,27 +122,6 @@ void PluginVisualizations::install_callbacks(PluginManager& manager)
         if (id.type == PluginCapabilityType::Visualization)
             close(id);
     });
-    manager.subscribe_on_unload_callback([this](const std::string& plugin_key) {
-        close_plugin(plugin_key);
-    });
-}
-
-std::vector<std::shared_ptr<VisualizationPluginCapability>> PluginVisualizations::capabilities() const
-{
-    std::vector<std::shared_ptr<VisualizationPluginCapability>> result;
-    for (const auto& capability : PluginManager::instance().get_plugin_capabilities("", PluginCapabilityType::Visualization))
-        if (auto visualization = std::dynamic_pointer_cast<VisualizationPluginCapability>(capability))
-            result.push_back(std::move(visualization));
-    return result;
-}
-
-std::vector<std::shared_ptr<VisualizationPluginCapability>> PluginVisualizations::capabilities_for(const VisualizationInput& input) const
-{
-    auto result = capabilities();
-    result.erase(std::remove_if(result.begin(), result.end(), [&input](const auto& capability) {
-        return !capability->supports(input);
-    }), result.end());
-    return result;
 }
 
 ExecutionResult PluginVisualizations::open(const std::shared_ptr<VisualizationPluginCapability>& capability, const VisualizationContext& ctx,
@@ -153,21 +134,20 @@ ExecutionResult PluginVisualizations::open(const std::shared_ptr<VisualizationPl
 }
 
 ExecutionResult PluginVisualizations::open_resources(const std::shared_ptr<VisualizationPluginCapability>& capability,
-                                                     const VisualizationContext& supplied,
+                                                     const VisualizationContext& ctx,
                                                      std::vector<boost::filesystem::path> owned_resources,
                                                      std::vector<VisualizationResourceRequest> resource_requests)
 {
     if (!capability || !capability->is_enabled())
         return host_skipped(L("Visualization capability is unavailable"));
-    VisualizationContext ctx = supplied;
-    if (ctx.resources.empty() && !ctx.input.kind.empty())
-        ctx.resources.push_back(ctx.input);
     if (ctx.resources.empty())
         return host_skipped(L("Visualization has no resources"));
     for (const VisualizationInput& input : ctx.resources)
         if (!capability->supports(input))
             return host_skipped(L("Visualization capability does not support this input"));
-    ctx.input = ctx.resources.front();
+
+    if (!has_required_resources(ctx.resources, resource_requests))
+        return host_skipped(L("No requested visualization resources are available"));
 
     const PluginCapabilityId id = capability->identity();
     ExecutionResult result;
@@ -175,6 +155,8 @@ ExecutionResult PluginVisualizations::open_resources(const std::shared_ptr<Visua
         std::lock_guard<std::recursive_mutex> dispatch_lock(m_dispatch_mutex);
         {
             std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_stop_worker)
+                return ExecutionResult::skipped();
             if (m_sessions.count(id) != 0)
                 return host_skipped(L("Visualization session is already open"));
         }
@@ -200,25 +182,21 @@ ExecutionResult PluginVisualizations::update(const PluginCapabilityId& id, const
     return update_resources(id, ctx, std::move(paths), {});
 }
 
-ExecutionResult PluginVisualizations::update_resources(const PluginCapabilityId& id, const VisualizationContext& supplied,
+ExecutionResult PluginVisualizations::update_resources(const PluginCapabilityId& id, const VisualizationContext& ctx,
                                                        std::vector<boost::filesystem::path> owned_resources,
                                                        std::vector<VisualizationResourceRequest> resource_requests)
 {
     std::shared_ptr<VisualizationPluginCapability> capability;
     ExecutionResult result;
     std::vector<boost::filesystem::path> old_snapshots;
-    VisualizationContext ctx = supplied;
-    if (ctx.resources.empty() && !ctx.input.kind.empty())
-        ctx.resources.push_back(ctx.input);
     if (ctx.resources.empty())
         return host_skipped(L("Visualization has no resources"));
-    ctx.input = ctx.resources.front();
     try {
         std::lock_guard<std::recursive_mutex> dispatch_lock(m_dispatch_mutex);
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             const auto it = m_sessions.find(id);
-            if (it == m_sessions.end())
+            if (m_stop_worker || it == m_sessions.end())
                 return host_skipped(L("Visualization session is not open"));
             if (it->second.revision == ctx.revision)
                 return host_skipped(L("Visualization scene is unchanged"));
@@ -226,6 +204,8 @@ ExecutionResult PluginVisualizations::update_resources(const PluginCapabilityId&
             if (resource_requests.empty())
                 resource_requests = it->second.resource_requests;
         }
+        if (!has_required_resources(ctx.resources, resource_requests))
+            return host_skipped(L("No requested visualization resources are available"));
         for (const VisualizationInput& input : ctx.resources)
             if (!capability->supports(input))
                 return host_skipped(L("Visualization capability does not support this input"));
@@ -307,17 +287,25 @@ void PluginVisualizations::close_plugin(const std::string& plugin_key)
     }
 }
 
-void PluginVisualizations::close_all()
+void PluginVisualizations::shutdown()
 {
     std::vector<PluginCapabilityId> sessions;
+    std::deque<Request> cancelled;
     {
         std::lock_guard<std::mutex> lock(m_mutex);
+        m_stop_worker = true;
         for (const auto& entry : m_sessions)
             sessions.push_back(entry.first);
         for (auto& generation : m_generations)
             ++generation.second;
-        m_requests.clear();
+        cancelled.swap(m_requests);
     }
+    m_worker_cv.notify_all();
+    if (m_worker.joinable())
+        m_worker.join();
+    for (const Request& request : cancelled)
+        for (const PendingResource& resource : request.resources)
+            remove_snapshot(resource.snapshot_path);
     for (const PluginCapabilityId& id : sessions)
         close(id);
 }
@@ -341,10 +329,16 @@ void PluginVisualizations::request_open(const std::shared_ptr<VisualizationPlugi
         const auto requested = resources.empty() ? capability->requested_resources() : resources;
         capture_and_enqueue(capability, requested, RequestKind::Open, std::move(completion));
     };
-    if (wxApp::GetInstance() != nullptr && !wxIsMainThread())
-        wxApp::GetInstance()->CallAfter(std::move(capture));
-    else
-        capture();
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return;
+        if (wxApp::GetInstance() != nullptr && !wxIsMainThread()) {
+            wxApp::GetInstance()->CallAfter(std::move(capture));
+            return;
+        }
+    }
+    capture();
 }
 
 bool PluginVisualizations::request_update(const PluginCapabilityId& id,
@@ -355,7 +349,7 @@ bool PluginVisualizations::request_update(const PluginCapabilityId& id,
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         const auto it = m_sessions.find(id);
-        if (it == m_sessions.end())
+        if (m_stop_worker || it == m_sessions.end())
             return false;
         capability = it->second.capability;
         if (requested.empty())
@@ -364,10 +358,16 @@ bool PluginVisualizations::request_update(const PluginCapabilityId& id,
     auto capture = [this, capability = std::move(capability), requested = std::move(requested)]() mutable {
         capture_and_enqueue(capability, requested, RequestKind::Update);
     };
-    if (wxApp::GetInstance() != nullptr && !wxIsMainThread())
-        wxApp::GetInstance()->CallAfter(std::move(capture));
-    else
-        capture();
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return false;
+        if (wxApp::GetInstance() != nullptr && !wxIsMainThread()) {
+            wxApp::GetInstance()->CallAfter(std::move(capture));
+            return true;
+        }
+    }
+    capture();
     return true;
 }
 
@@ -375,6 +375,11 @@ void PluginVisualizations::capture_and_enqueue(const std::shared_ptr<Visualizati
                                                const std::vector<VisualizationResourceRequest>& resource_requests,
                                                RequestKind kind, Completion completion)
 {
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return;
+    }
     Request request;
     request.kind = kind;
     request.capability = capability;
@@ -405,6 +410,7 @@ void PluginVisualizations::capture_and_enqueue(const std::shared_ptr<Visualizati
 
     try {
         for (const VisualizationResourceRequest& requested : resource_requests) {
+            const size_t resources_before = request.resources.size();
             std::vector<std::pair<int, GUI::PartPlate*>> plates;
             if (requested.scope == VisualizationInputs::CURRENT_PLATE) {
                 plates.emplace_back(plate_list.get_curr_plate_index(), plate_list.get_curr_plate());
@@ -448,6 +454,8 @@ void PluginVisualizations::capture_and_enqueue(const std::shared_ptr<Visualizati
                     }
                     resource.tool_colors = plater->get_extruder_colors_from_plater_config(source.get());
                     resource.printable_area = plate->get_shape();
+                    if (const Print* print = plate->fff_print())
+                        resource.model_transform = GUI::toolpath_model_transform(*source, *print);
                     resource.toolpath = std::move(source);
                 } else {
                     throw std::runtime_error(GUI::format(_L("Unsupported visualization resource kind: %1%"), requested.kind));
@@ -458,10 +466,10 @@ void PluginVisualizations::capture_and_enqueue(const std::shared_ptr<Visualizati
                 resource.input.location = resource.snapshot_path.string();
                 request.resources.push_back(std::move(resource));
             }
-        }
-        if (request.resources.empty()) {
-            finish_request(request, ExecutionResult::skipped(_u8L("No requested visualization resources are available")));
-            return;
+            if (request.resources.size() == resources_before) {
+                finish_request(request, ExecutionResult::skipped(_u8L("No requested visualization resources are available")));
+                return;
+            }
         }
         if (kind == RequestKind::Open && is_active(request.id))
             close(request.id);
@@ -475,6 +483,8 @@ void PluginVisualizations::enqueue(Request request)
 {
     {
         std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return;
         if (request.kind != RequestKind::Open || m_sessions.count(request.id) == 0) {
             request.generation = ++m_generations[request.id];
             m_requests.erase(std::remove_if(m_requests.begin(), m_requests.end(), [&request](const Request& pending) {
@@ -498,7 +508,7 @@ void PluginVisualizations::ensure_worker_locked()
 bool PluginVisualizations::is_current_locked(const Request& request) const
 {
     const auto generation = m_generations.find(request.id);
-    return generation != m_generations.end() && generation->second == request.generation;
+    return !m_stop_worker && generation != m_generations.end() && generation->second == request.generation;
 }
 
 void PluginVisualizations::worker_loop()
@@ -525,17 +535,23 @@ void PluginVisualizations::worker_loop()
         }
         try {
             for (PendingResource& resource : request.resources) {
+                {
+                    std::lock_guard<std::mutex> lock(m_mutex);
+                    if (!is_current_locked(request))
+                        break;
+                }
                 if (resource.toolpath) {
                     PreviewGeometrySnapshot::Snapshot snapshot;
                     {
                         libvgcode::Viewer viewer;
-                        const auto data = libvgcode::convert(*resource.toolpath, resource.tool_colors, {}, viewer);
+                        const auto data = libvgcode::convert(*resource.toolpath, resource.tool_colors, {}, viewer,
+                                                            &resource.model_transform);
                         const auto mesh = GUI::build_preview_triangle_mesh(data);
                         snapshot = PreviewGeometrySnapshot::capture(mesh, *resource.toolpath, resource.plate_index,
-                                                                    resource.toolpath->id, resource.printable_area);
+                                                                    resource.toolpath->id, resource.tool_colors, resource.printable_area);
                     }
                     resource.toolpath.reset();
-                    PreviewGeometrySnapshot::write_atomic(snapshot, resource.snapshot_path, resource.input.format);
+                    PreviewGeometrySnapshot::write_atomic(std::move(snapshot), resource.snapshot_path, resource.input.format);
                 } else if (resource.model) {
                     const auto mesh = PreviewGeometrySnapshot::capture_model(*resource.model, resource.instances);
                     PreviewGeometrySnapshot::write_atomic(mesh, resource.snapshot_path, resource.input.format);
@@ -559,6 +575,14 @@ void PluginVisualizations::worker_loop()
 
 void PluginVisualizations::dispatch_request(Request request)
 {
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker) {
+            for (const PendingResource& resource : request.resources)
+                remove_snapshot(resource.snapshot_path);
+            return;
+        }
+    }
     auto dispatch = [this, request = std::move(request)]() mutable {
         ExecutionResult result;
         bool current;
@@ -584,9 +608,9 @@ void PluginVisualizations::dispatch_request(Request request)
                 context.resources.push_back(resource.input);
                 paths.push_back(resource.snapshot_path);
             }
-            context.input = context.resources.front();
-            const auto plate = context.input.metadata.find("plate_index");
-            if (plate != context.input.metadata.end())
+            const auto& metadata = context.resources.front().metadata;
+            const auto plate = metadata.find("plate_index");
+            if (plate != metadata.end())
                 context.metadata.emplace("plate_index", plate->second);
             if (request.kind == RequestKind::Open)
                 result = open_resources(request.capability, context, std::move(paths), request.resource_requests);
@@ -610,7 +634,17 @@ void PluginVisualizations::dispatch_request(Request request)
 
 void PluginVisualizations::finish_request(const Request& request, ExecutionResult result, bool preparation_failed)
 {
-    auto finish = [completion = request.completion, result = std::move(result), preparation_failed]() mutable {
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return;
+    }
+    auto finish = [this, completion = request.completion, result = std::move(result), preparation_failed]() mutable {
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_stop_worker)
+                return;
+        }
         // Snapshot failures originate on the worker; translate them only after returning to the main thread.
         if (preparation_failed)
             result.message = GUI::format(_L("Failed to prepare visualization resources: %1%"), _u8L(result.message));

@@ -2,6 +2,7 @@
 
 #include "libslic3r/Format/GLB.hpp"
 #include "test_utils.hpp"
+#include "glb_test_utils.hpp"
 
 #include <boost/filesystem.hpp>
 #include <nlohmann/json.hpp>
@@ -36,14 +37,6 @@ GLB::Scene sample_scene()
     return scene;
 }
 
-template<class T> void put_le(std::vector<uint8_t>& data, size_t offset, T value)
-{
-    using U = std::make_unsigned_t<T>;
-    const U encoded = static_cast<U>(value);
-    for (size_t i = 0; i < sizeof(T); ++i)
-        data[offset + i] = uint8_t(encoded >> (8 * i));
-}
-
 template<class T> T get_le(const std::vector<uint8_t>& data, size_t offset)
 {
     using U = std::make_unsigned_t<T>;
@@ -68,7 +61,7 @@ std::vector<uint8_t> read_file(const boost::filesystem::path& path)
 TEST_CASE("GLB exports an indexed material scene", "[GLB]")
 {
     const std::vector<uint8_t> bytes = GLB::serialize(sample_scene());
-    const GLB::DocumentInfo info = GLB::validate(bytes);
+    const GLBTest::DocumentInfo info = GLBTest::validate(bytes);
 
     CHECK(info.version == 2);
     CHECK(info.file_size == bytes.size());
@@ -79,36 +72,34 @@ TEST_CASE("GLB exports an indexed material scene", "[GLB]")
     CHECK(info.scene_extras["revision"] == 42);
 }
 
-TEST_CASE("GLB rejects malformed containers", "[GLB]")
+TEST_CASE("GLB rejects invalid scene geometry", "[GLB]")
 {
-    const std::vector<uint8_t> valid = GLB::serialize(sample_scene());
+    GLB::Scene scene = sample_scene();
+    SECTION("empty vertices") { scene.vertices.clear(); }
+    SECTION("index outside the vertex buffer") { scene.indices.back() = uint32_t(scene.vertices.size()); }
+    SECTION("non-triangular primitive") { scene.primitives.front().index_count = 2; }
+    SECTION("primitive outside the index buffer") { scene.primitives.front().first_index = 3; }
+    SECTION("missing material") { scene.primitives.front().material = int32_t(scene.materials.size()); }
+    SECTION("non-finite position") { scene.vertices.front().position[0] = std::numeric_limits<float>::infinity(); }
+    SECTION("zero normal") { scene.vertices.front().normal = {{0, 0, 0}}; }
+    SECTION("non-finite UV") { scene.vertices.front().uv[0] = std::numeric_limits<float>::quiet_NaN(); }
+    SECTION("reversed bounds") { scene.bounds_min[0] = scene.bounds_max[0] + 1; }
+    CHECK_THROWS_AS(GLB::serialize(scene), std::runtime_error);
+}
 
-    auto bad_magic = valid;
-    bad_magic[0] = 0;
-    CHECK_THROWS(GLB::validate(bad_magic));
+TEST_CASE("GLB converts sRGB material colors to linear factors and preserves alpha", "[GLB][Regression]")
+{
+    GLB::Scene scene = sample_scene();
+    scene.materials.front().base_color = {{128, 10, 255, 128}};
 
-    auto bad_version = valid;
-    put_le<uint32_t>(bad_version, 4, 1);
-    CHECK_THROWS(GLB::validate(bad_version));
-
-    auto truncated = valid;
-    truncated.pop_back();
-    CHECK_THROWS(GLB::validate(truncated));
-
-    auto bad_json_chunk = valid;
-    put_le<uint32_t>(bad_json_chunk, 16, 0);
-    CHECK_THROWS(GLB::validate(bad_json_chunk));
-
-    auto invalid_json = valid;
-    invalid_json[20] = '!';
-    CHECK_THROWS(GLB::validate(invalid_json));
-
-    auto bad_binary_length = valid;
-    const size_t binary_header = 20 + get_le<uint32_t>(bad_binary_length, 12);
-    put_le<uint32_t>(bad_binary_length, binary_header, 0);
-    CHECK_THROWS(GLB::validate(bad_binary_length));
-
-    CHECK_THROWS(GLB::validate(valid, 3));
+    const auto document = glb_json(GLB::serialize(scene));
+    const auto& material = document["materials"][0];
+    const auto& color = material["pbrMetallicRoughness"]["baseColorFactor"];
+    CHECK_THAT(color[0].get<double>(), Catch::Matchers::WithinAbs(0.2158605001, 1e-9));
+    CHECK_THAT(color[1].get<double>(), Catch::Matchers::WithinAbs(0.0030352698, 1e-9));
+    CHECK_THAT(color[2].get<double>(), Catch::Matchers::WithinAbs(1.0, 1e-9));
+    CHECK_THAT(color[3].get<double>(), Catch::Matchers::WithinAbs(128.0 / 255.0, 1e-9));
+    CHECK(material["alphaMode"] == "BLEND");
 }
 
 TEST_CASE("GLB exports geometry without a material", "[GLB]")
@@ -118,7 +109,7 @@ TEST_CASE("GLB exports geometry without a material", "[GLB]")
     scene.primitives.front().material = -1;
 
     const auto bytes = GLB::serialize(scene);
-    const GLB::DocumentInfo info = GLB::validate(bytes);
+    const GLBTest::DocumentInfo info = GLBTest::validate(bytes);
 
     CHECK(info.material_count == 0);
     CHECK(info.primitive_count == 1);
@@ -155,7 +146,7 @@ TEST_CASE("GLB stores a scene atomically", "[GLB]")
     store_glb(target.string().c_str(), sample_scene());
 
     REQUIRE(boost::filesystem::exists(target));
-    CHECK(GLB::validate(read_file(target)).vertex_count == 3);
+    CHECK(GLBTest::validate(read_file(target)).vertex_count == 3);
 }
 
 TEST_CASE("GLB stores a triangle mesh", "[GLB]")
@@ -167,7 +158,7 @@ TEST_CASE("GLB stores a triangle mesh", "[GLB]")
     store_glb(target.string().c_str(), &mesh);
 
     const auto bytes = read_file(target);
-    const GLB::DocumentInfo info = GLB::validate(bytes);
+    const GLBTest::DocumentInfo info = GLBTest::validate(bytes);
     CHECK(info.vertex_count == mesh.its.indices.size() * 3);
     CHECK(info.index_count == mesh.its.indices.size() * 3);
     CHECK(info.primitive_count == 1);
@@ -191,7 +182,7 @@ TEST_CASE("GLB skips degenerate triangle mesh facets", "[GLB][Regression]")
 
     store_glb(target.string().c_str(), &mesh);
 
-    const GLB::DocumentInfo info = GLB::validate(read_file(target));
+    const GLBTest::DocumentInfo info = GLBTest::validate(read_file(target));
     CHECK(info.vertex_count == 3);
     CHECK(info.index_count == 3);
 }

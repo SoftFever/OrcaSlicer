@@ -19,10 +19,6 @@ namespace GUI { struct PreviewTriangleMesh; }
 
 namespace PreviewGeometrySnapshot {
 
-inline constexpr const char* MEDIA_TYPE = GLB::MEDIA_TYPE;
-constexpr uint16_t FORMAT_MAJOR = GLB::FORMAT_MAJOR;
-constexpr uint16_t FORMAT_MINOR = GLB::FORMAT_MINOR;
-constexpr uint64_t DEFAULT_MAX_FILE_SIZE = GLB::DEFAULT_MAX_FILE_SIZE;
 constexpr uint32_t FLAG_SPIRAL_VASE = 1u << 0;
 
 struct Format {
@@ -33,11 +29,7 @@ struct Format {
 };
 
 struct Point { float x{0}; float y{0}; };
-struct Vertex {
-    std::array<float, 3> position{};
-    std::array<float, 3> normal{};
-    std::array<float, 2> uv{};
-};
+using Vertex = GLB::Vertex;
 struct Group {
     uint32_t first_index{0};
     uint32_t index_count{0};
@@ -70,26 +62,15 @@ struct Snapshot {
     std::array<float, 3> bounds_max{};
 };
 
-struct DocumentInfo {
-    uint32_t version{0};
-    uint32_t file_size{0};
-    uint64_t scene_id{0};
-    size_t vertex_count{0};
-    size_t index_count{0};
-    size_t primitive_count{0};
-    size_t material_count{0};
-};
-
 TriangleMesh capture_model(const Model& model, const std::vector<std::pair<size_t, size_t>>& instances);
 Snapshot capture(const GUI::PreviewTriangleMesh& mesh, const GCodeProcessorResult& result,
-                 int plate_index, uint64_t expected_scene_id, const Pointfs& fallback_printable_area = {});
-std::vector<uint8_t> serialize(const Snapshot& snapshot);
-DocumentInfo validate(const uint8_t* data, size_t size, uint64_t max_file_size = DEFAULT_MAX_FILE_SIZE);
-DocumentInfo validate(const std::vector<uint8_t>& data, uint64_t max_file_size = DEFAULT_MAX_FILE_SIZE);
-void write_atomic(const Snapshot& snapshot, const boost::filesystem::path& target);
+                 int plate_index, uint64_t expected_scene_id, const std::vector<std::string>& tool_colors,
+                 const Pointfs& fallback_printable_area = {});
+std::vector<uint8_t> serialize(Snapshot snapshot);
+void write_atomic(Snapshot snapshot, const boost::filesystem::path& target);
 const std::vector<Format>& supported_formats();
 const Format* find_format(const std::string& media_type);
-void write_atomic(const Snapshot& snapshot, const boost::filesystem::path& target, const std::string& media_type);
+void write_atomic(Snapshot snapshot, const boost::filesystem::path& target, const std::string& media_type);
 void write_atomic(const TriangleMesh& mesh, const boost::filesystem::path& target, const std::string& media_type);
 
 } // namespace PreviewGeometrySnapshot

@@ -35,16 +35,13 @@ public:
 
     void install_callbacks(PluginManager& manager);
 
-    std::vector<std::shared_ptr<VisualizationPluginCapability>> capabilities() const;
-    std::vector<std::shared_ptr<VisualizationPluginCapability>> capabilities_for(const VisualizationInput& input) const;
-
     ExecutionResult open(const std::shared_ptr<VisualizationPluginCapability>& capability, const VisualizationContext& ctx,
                          boost::filesystem::path owned_resource = {});
     ExecutionResult update(const PluginCapabilityId& id, const VisualizationContext& ctx,
                            boost::filesystem::path owned_resource = {});
     void            close(const PluginCapabilityId& id);
     void            close_plugin(const std::string& plugin_key);
-    void            close_all();
+    void            shutdown();
     bool            is_active(const PluginCapabilityId& id) const;
 
     void request_open(const std::shared_ptr<VisualizationPluginCapability>& capability,
@@ -73,6 +70,7 @@ private:
         std::shared_ptr<const GCodeProcessorResult>              toolpath;
         std::vector<std::string>                                 tool_colors;
         Pointfs                                                  printable_area;
+        Transform3d                                              model_transform{Transform3d::Identity()};
         std::shared_ptr<const Model>                             model;
         std::vector<std::pair<size_t, size_t>>                    instances;
     };

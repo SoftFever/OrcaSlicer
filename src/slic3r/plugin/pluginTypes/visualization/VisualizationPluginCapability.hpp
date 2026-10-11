@@ -71,7 +71,6 @@ struct VisualizationInput
 struct VisualizationContext : PluginContext
 {
     uint64_t                        revision{0};
-    VisualizationInput              input; // Compatibility alias for resources.front().
     std::vector<VisualizationInput> resources;
     std::map<std::string, std::string> metadata;
 };

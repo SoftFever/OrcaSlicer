@@ -9,8 +9,11 @@
 #include <nlohmann/json.hpp>
 
 #include "test_utils.hpp"
+#include "glb_test_utils.hpp"
 
 #include <boost/filesystem.hpp>
+#include <array>
+#include <cstdint>
 #include <fstream>
 #include <iterator>
 #include <string>
@@ -75,13 +78,13 @@ bool has_snapshot_temp(const fs::path& directory, const std::string& target_name
 TEST_CASE("preview scene serializes as standard GLB 2.0", "[PreviewGeometrySnapshot]")
 {
     const auto bytes = Preview::serialize(sample_snapshot());
-    const auto info = Preview::validate(bytes);
+    const auto info = GLBTest::validate(bytes);
     const auto document = glb_json(bytes);
 
     CHECK(get_le<uint32_t>(bytes, 0) == 0x46546c67);
     CHECK(info.version == 2);
     CHECK(info.file_size == bytes.size());
-    CHECK(info.scene_id == 42);
+    CHECK(info.scene_extras["orca"]["sceneId"] == 42);
     CHECK(info.vertex_count == 4);
     CHECK(info.index_count == 6);
     CHECK(info.primitive_count == 1);
@@ -133,20 +136,22 @@ TEST_CASE("preview capture preserves shared mesh and result metadata", "[Preview
     result.printable_height      = 256;
     result.z_offset              = 0.75f;
     result.filaments_count       = 1;
-    result.extruder_colors       = {"#123456"};
+    result.extruder_colors       = GENERATE(std::vector<std::string>{}, std::vector<std::string>{"#123456"});
     result.settings_ids.filament = {"filament"};
 
     const Pointfs plate = {{0, 0}, {200, 0}, {200, 200}, {0, 200}};
-    const auto snapshot = Preview::capture(mesh, result, 2, 77, plate);
+    const auto snapshot = Preview::capture(mesh, result, 2, 77, {"#A0B0C080"}, plate);
 
     CHECK(snapshot.scene_id == 77);
     CHECK_THAT(snapshot.z_offset, Catch::Matchers::WithinAbs(0.75f, 1e-6));
     CHECK(snapshot.vertices.size() == 3);
     CHECK(snapshot.indices == mesh.indices);
     CHECK(snapshot.groups.size() == 1);
-    CHECK(snapshot.materials.size() == 1);
+    REQUIRE(snapshot.materials.size() == 1);
+    const std::array<uint8_t, 4> expected_color{{160, 176, 192, 128}};
+    CHECK(snapshot.materials.front().rgba == expected_color);
     CHECK(snapshot.printable_area.size() == plate.size());
-    CHECK_THROWS(Preview::capture(mesh, result, 2, 76));
+    CHECK_THROWS(Preview::capture(mesh, result, 2, 76, {"#A0B0C080"}));
 }
 
 TEST_CASE("shared libvgcode mesh builder emits Orca caps and no travel", "[PreviewGeometrySnapshot]")
@@ -189,11 +194,11 @@ TEST_CASE("GLB previews replace an existing target atomically", "[PreviewGeometr
 
     Preview::write_atomic(sample_snapshot(), target);
     REQUIRE(fs::exists(target));
-    CHECK(Preview::validate(read_file(target)).scene_id == 42);
+    CHECK(GLBTest::validate(read_file(target)).scene_extras["orca"]["sceneId"] == 42);
     Preview::Snapshot replacement = sample_snapshot();
     replacement.scene_id = 43;
     Preview::write_atomic(replacement, target);
-    CHECK(Preview::validate(read_file(target)).scene_id == 43);
+    CHECK(GLBTest::validate(read_file(target)).scene_extras["orca"]["sceneId"] == 43);
     CHECK(fs::exists(legacy_temp));
     CHECK_FALSE(has_snapshot_temp(temp.path(), target.filename().string()));
 }

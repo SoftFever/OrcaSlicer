@@ -114,7 +114,7 @@ public:
     // Stop discovery and unload Python plugin objects before Python finalizes.
     void shutdown();
 
-    // Reject new plugin loads. Called early in app teardown, before shutdown() drains.
+    // Main thread: close visualization sessions and reject new loads before shutdown() drains.
     void set_shutting_down();
 
     void discover_plugins(bool async = false, bool clear = false);
@@ -251,6 +251,7 @@ private:
     void release_load_slot(const std::string& plugin_key);
     void cancel_and_wait_for_capabilities(
         const std::vector<std::shared_ptr<PluginCapabilityInterface>>& capabilities);
+    void close_visualization_sessions(const std::string& plugin_key);
 
     // Snapshot subscribers under m_mutex so they can be invoked without holding it.
     std::vector<PluginLifecycleCompleteFn> copy_callbacks(CallbackType type) const;

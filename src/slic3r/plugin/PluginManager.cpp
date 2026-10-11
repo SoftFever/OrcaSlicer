@@ -5,6 +5,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <exception>
 #include <functional>
+#include <future>
 #include "libslic3r/LifecycleEvents.hpp"
 #include <memory>
 #include <optional>
@@ -134,7 +135,13 @@ bool PluginManager::initialize()
     return true;
 }
 
-void PluginManager::set_shutting_down() { m_shutting_down.store(true, std::memory_order_release); }
+void PluginManager::set_shutting_down()
+{
+    // Release workers waiting for a UI-side close only after every visualization has closed.
+    PluginVisualizations::instance().shutdown();
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_shutting_down.store(true, std::memory_order_release);
+}
 
 void PluginManager::shutdown()
 {
@@ -1002,6 +1009,45 @@ void PluginManager::load_plugin_impl(const std::string& plugin_key, bool skip_de
     BOOST_LOG_TRIVIAL(info) << "[load_plugin_impl] SUCCESS plugin=" << plugin_key;
 }
 
+void PluginManager::close_visualization_sessions(const std::string& plugin_key)
+{
+    std::future<void> completion;
+    {
+        // Serialize posting against shutdown, which closes sessions before wx destroys the app.
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_shutting_down.load(std::memory_order_acquire))
+            return;
+        if (wxTheApp != nullptr && !wxIsMainThread()) {
+            auto promise = std::make_shared<std::promise<void>>();
+            completion = promise->get_future();
+            wxTheApp->CallAfter([this, plugin_key, promise] {
+                try {
+                    if (!m_shutting_down.load(std::memory_order_acquire))
+                        PluginVisualizations::instance().close_plugin(plugin_key);
+                    promise->set_value();
+                } catch (...) {
+                    promise->set_exception(std::current_exception());
+                }
+            });
+        }
+    }
+    try {
+        if (!completion.valid()) {
+            PluginVisualizations::instance().close_plugin(plugin_key);
+            return;
+        }
+        // Unload callers are C++ workers without the GIL; the GUI remains free to run close().
+        while (completion.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+            if (m_shutting_down.load(std::memory_order_acquire))
+                return;
+        completion.get();
+    } catch (const std::exception& error) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to close visualizations for " << plugin_key << ": " << error.what();
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to close visualizations for " << plugin_key;
+    }
+}
+
 bool PluginManager::unload_plugin(const std::string& plugin_key)
 {
     auto notify_unload_complete = [this, &plugin_key]() {
@@ -1037,6 +1083,11 @@ bool PluginManager::unload_plugin(const std::string& plugin_key)
         notify_plugin_load_state_changed(cancelled);
         return true;
     }
+
+    if (std::any_of(removed.capabilities.begin(), removed.capabilities.end(), [](const auto& capability) {
+            return capability && capability->type() == PluginCapabilityType::Visualization;
+        }))
+        close_visualization_sessions(plugin_key);
 
     notify_unload_complete();
 
@@ -1078,8 +1129,10 @@ void PluginManager::unload_all_plugins()
 
     // Bulk shutdown intentionally skips the normal unload notification path, but resources owned
     // by GUI subscribers still need to be torn down before the interpreter is finalized.
-    for (const std::string& key : removed_keys)
+    for (const std::string& key : removed_keys) {
+        close_visualization_sessions(key);
         run_on_unload_callbacks(key);
+    }
 
     // Broadcast cancellation to every plugin before waiting. This keeps bulk unload from
     // starving a later plugin while an earlier plugin uses the full cancellation grace period.

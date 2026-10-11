@@ -2913,6 +2913,7 @@ int GUI_App::OnExit()
 
 void GUI_App::CleanUp()
 {
+    Slic3r::PluginManager::instance().set_shutting_down();
     // OnExit() does not run when OnInit() fails, and m_agent is then still set. Stop the check before
     // wxApp::CleanUp() resets wxTheApp, which a result posted from the worker would still be using.
     stop_orca_health_check(m_agent);

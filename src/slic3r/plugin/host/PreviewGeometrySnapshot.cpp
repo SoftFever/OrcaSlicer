@@ -15,6 +15,7 @@
 #include <cmath>
 #include <mutex>
 #include <stdexcept>
+#include <utility>
 
 namespace Slic3r::PreviewGeometrySnapshot {
 namespace {
@@ -24,7 +25,7 @@ uint8_t channel(float value)
     return uint8_t(std::lround(std::clamp(value, 0.0f, 1.0f) * 255.0f));
 }
 
-GLB::Scene make_scene(const Snapshot& snapshot)
+GLB::Scene make_scene(Snapshot&& snapshot)
 {
     GLB::Scene scene;
     scene.name = "OrcaSlicer preview";
@@ -39,10 +40,6 @@ GLB::Scene make_scene(const Snapshot& snapshot)
                                {"zOffset", snapshot.z_offset},
                                {"printableHeight", snapshot.printable_height}}}};
 
-    scene.vertices.reserve(snapshot.vertices.size());
-    for (const Vertex& vertex : snapshot.vertices)
-        scene.vertices.push_back({vertex.position, vertex.normal, vertex.uv});
-    scene.indices = snapshot.indices;
     scene.primitives.reserve(snapshot.groups.size());
     uint64_t covered_indices = 0;
     for (const Group& group : snapshot.groups) {
@@ -58,6 +55,8 @@ GLB::Scene make_scene(const Snapshot& snapshot)
     }
     if (covered_indices != snapshot.indices.size())
         throw std::runtime_error("Preview groups do not cover the index buffer");
+    scene.vertices = std::move(snapshot.vertices);
+    scene.indices = std::move(snapshot.indices);
     scene.materials.reserve(snapshot.materials.size());
     for (const MaterialSlot& material : snapshot.materials)
         scene.materials.push_back({material.display_name, material.rgba,
@@ -123,7 +122,7 @@ TriangleMesh capture_model(const Model& model, const std::vector<std::pair<size_
 }
 
 Snapshot capture(const GUI::PreviewTriangleMesh& mesh, const GCodeProcessorResult& result, int plate_index,
-                 uint64_t expected_scene_id, const Pointfs& fallback_printable_area)
+                 uint64_t expected_scene_id, const std::vector<std::string>& tool_colors, const Pointfs& fallback_printable_area)
 {
     if (mesh.vertices.empty() || mesh.indices.empty() || mesh.groups.empty())
         throw std::runtime_error("Preview mesh is empty");
@@ -131,7 +130,6 @@ Snapshot capture(const GUI::PreviewTriangleMesh& mesh, const GCodeProcessorResul
     Snapshot out;
     out.scene_id = expected_scene_id;
     out.plate_index = plate_index;
-    std::vector<std::string> colors;
     std::vector<std::string> filament_ids;
     size_t filament_count{};
     {
@@ -141,7 +139,6 @@ Snapshot capture(const GUI::PreviewTriangleMesh& mesh, const GCodeProcessorResul
         out.flags = result.spiral_vase_mode ? FLAG_SPIRAL_VASE : 0;
         out.z_offset = result.z_offset;
         out.printable_height = result.printable_height;
-        colors = result.extruder_colors;
         filament_ids = result.settings_ids.filament;
         filament_count = result.filaments_count;
         const auto copy = [](const Pointfs& source, std::vector<Point>& target) {
@@ -167,12 +164,12 @@ Snapshot capture(const GUI::PreviewTriangleMesh& mesh, const GCodeProcessorResul
         max_slot = std::max(max_slot, group.material_slot);
     }
 
-    const size_t material_count = std::max({colors.size(), filament_ids.size(), filament_count, size_t(max_slot) + 1});
+    const size_t material_count = std::max({tool_colors.size(), filament_ids.size(), filament_count, size_t(max_slot) + 1});
     for (size_t i = 0; i < material_count; ++i) {
         MaterialSlot material;
         material.extruder_id = uint8_t(std::min<size_t>(i, 255));
         ColorRGBA color;
-        if (i >= colors.size() || !decode_color(colors[i], color))
+        if (i >= tool_colors.size() || !decode_color(tool_colors[i], color))
             color = ColorRGBA::GRAY();
         material.rgba = {{channel(color.r()), channel(color.g()), channel(color.b()), channel(color.a())}};
         if (i < filament_ids.size()) {
@@ -189,34 +186,14 @@ Snapshot capture(const GUI::PreviewTriangleMesh& mesh, const GCodeProcessorResul
     return out;
 }
 
-std::vector<uint8_t> serialize(const Snapshot& snapshot)
+std::vector<uint8_t> serialize(Snapshot snapshot)
 {
-    return GLB::serialize(make_scene(snapshot));
+    return GLB::serialize(make_scene(std::move(snapshot)));
 }
 
-DocumentInfo validate(const uint8_t* data, size_t size, uint64_t max_file_size)
+void write_atomic(Snapshot snapshot, const boost::filesystem::path& target)
 {
-    const GLB::DocumentInfo glb = GLB::validate(data, size, max_file_size);
-    DocumentInfo info;
-    info.version = glb.version;
-    info.file_size = glb.file_size;
-    info.vertex_count = glb.vertex_count;
-    info.index_count = glb.index_count;
-    info.primitive_count = glb.primitive_count;
-    info.material_count = glb.material_count;
-    if (glb.scene_extras.contains("orca"))
-        info.scene_id = glb.scene_extras["orca"].value("sceneId", uint64_t(0));
-    return info;
-}
-
-DocumentInfo validate(const std::vector<uint8_t>& data, uint64_t max_file_size)
-{
-    return validate(data.data(), data.size(), max_file_size);
-}
-
-void write_atomic(const Snapshot& snapshot, const boost::filesystem::path& target)
-{
-    store_glb(target.string().c_str(), make_scene(snapshot));
+    store_glb(target.string().c_str(), make_scene(std::move(snapshot)));
 }
 
 const std::vector<Format>& supported_formats()
@@ -239,10 +216,10 @@ const Format* find_format(const std::string& media_type)
     return it == formats.end() ? nullptr : &*it;
 }
 
-void write_atomic(const Snapshot& snapshot, const boost::filesystem::path& target, const std::string& media_type)
+void write_atomic(Snapshot snapshot, const boost::filesystem::path& target, const std::string& media_type)
 {
     if (media_type == VisualizationInputs::GLTF_BINARY) {
-        write_atomic(snapshot, target);
+        write_atomic(std::move(snapshot), target);
         return;
     }
     write_atomic(make_mesh(snapshot), target, media_type);

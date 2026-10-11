@@ -109,11 +109,6 @@ struct PluginScriptAction : AppAction
     std::string plugin_key;
     std::string capability;
 
-    // The id an action for (plugin_key, capability) would have - lets refresh_capability
-    // remove a gone capability without materialising the action.
-    static std::string id_for(const std::string& plugin_key, const std::string& capability)
-    { return AppAction::compose_id(kIdPrefix, capability.empty() ? plugin_key : capability, plugin_key); }
-
     PluginScriptAction(std::string plugin_key_in, std::string capability_in, std::string source_name)
         : AppAction(kIdPrefix,
                     capability_in.empty() ? plugin_key_in : capability_in, // title
@@ -562,24 +557,6 @@ void ActionRegistry::refresh_source(const std::string& plugin_key, ActionChange 
         if (auto action = make_page_action(plugin_key, capability->name(), source_name))
             upsert(std::move(action));
     }
-}
-
-void ActionRegistry::refresh_capability(const std::string& plugin_key, const std::string& capability, ActionChange change)
-{
-    assert(wxThread::IsMain());
-
-    const std::string id = PluginScriptAction::id_for(plugin_key, capability);
-    if (change == ActionChange::Removed) {
-        remove(id);
-        return;
-    }
-
-    PluginManager& manager = PluginManager::instance();
-    if (auto action = make_action(plugin_key, capability, PluginCapabilityType::Script,
-                                  find_loaded_source_name(manager, plugin_key)))
-        upsert(std::move(action));
-    else
-        remove(id);
 }
 
 void ActionRegistry::refresh_page_capability(const std::string& plugin_key, const std::string& capability, ActionChange change)

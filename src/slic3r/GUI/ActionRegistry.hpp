@@ -154,9 +154,9 @@ nlohmann::json action_json(const AppAction& a);
 // Self-contained sink and single owner of runnable actions for the app session.
 //
 // Workflow:
-// 1. init() (once, UI thread) subscribes to the plugin loader and enumerates the current script
+// 1. init() (once, UI thread) subscribes to the plugin loader and enumerates the current plugin
 //    capabilities into actions, then materialises the static built-ins from the NativeCommands catalog.
-// 2. Loader load/unload callbacks route through refresh_source()/refresh_capability(),
+// 2. Loader load/unload callbacks route through refresh_source()/refresh_page_capability(),
 //    which upsert()/remove() actions. The registry keeps the only action list and
 //    restores persisted user state as actions arrive.
 // 3. Dynamic built-in families (settings, plates, recent projects) are re-materialised at the top of
@@ -249,9 +249,8 @@ private:
     void materialize_recent_project_actions();
 
     // Loader callbacks (marshalled to the UI thread) land here. refresh_source rebuilds
-    // one plugin's whole action set; refresh_capability touches a single capability.
+    // one plugin's whole action set; refresh_page_capability touches a single page capability.
     void refresh_source(const std::string& plugin_key, ActionChange change);
-    void refresh_capability(const std::string& plugin_key, const std::string& capability, ActionChange change);
     void refresh_page_capability(const std::string& plugin_key, const std::string& capability, ActionChange change);
 
     bool m_started = false;                                                // init() runs exactly once; guards double-subscription

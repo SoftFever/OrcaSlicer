@@ -130,7 +130,6 @@ void VisualizationPluginCapability::RegisterBindings(pybind11::module_& module)
         "contains optional producer-specific strings; unknown keys must be ignored.")
         .def_property_readonly("orca_version", [](const VisualizationContext& ctx) { return ctx.orca_version; }, "Running OrcaSlicer version.")
         .def_property_readonly("revision", [](const VisualizationContext& ctx) { return ctx.revision; }, "Source-content revision for this session.")
-        .def_property_readonly("input", [](const VisualizationContext& ctx) { return ctx.input; }, "First negotiated resource, retained for compatibility.")
         .def_property_readonly("resources", [](const VisualizationContext& ctx) { return ctx.resources; }, "All negotiated immutable resources.")
         .def_property_readonly("metadata", [](const VisualizationContext& ctx) { return ctx.metadata; },
                                "Producer-specific string metadata. Unknown keys must be ignored.");

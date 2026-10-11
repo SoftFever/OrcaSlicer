@@ -11,6 +11,11 @@
 
 namespace libvgcode { class Viewer; }
 
+namespace Slic3r {
+class Print;
+struct GCodeProcessorResult;
+}
+
 namespace Slic3r::GUI {
 
 struct PreviewTriangleVertex
@@ -41,6 +46,10 @@ struct PreviewTriangleMesh
 };
 
 enum class PreviewMeshScope : uint8_t { Visible, Complete };
+
+// Resolve the designed-view belt transform, including the model placement anchor.
+// Call while the print and result are stable; non-belt prints return identity.
+Transform3d toolpath_model_transform(const GCodeProcessorResult& result, const Print& print);
 
 // Builds the same cap/corner topology used by Orca's toolpath OBJ export from the already
 // normalized libvgcode viewer. No G-code parsing or independent path tessellation occurs here.

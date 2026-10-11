@@ -4,6 +4,7 @@
 
 #include <ios>
 #include <libslic3r/LifecycleEvents.hpp>
+#include <libslic3r/GCode/GCodeProcessor.hpp>
 #include <memory>
 #include <slic3r/Utils/NetworkAgentFactory.hpp>
 #include <slic3r/plugin/PluginAuditManager.hpp>
@@ -47,6 +48,12 @@ struct PluginVisualizationsTest
     PluginVisualizations host;
 
     void enqueue(Request request) { host.enqueue(std::move(request)); }
+    bool has_queued_requests() const
+    {
+        std::lock_guard<std::mutex> lock(host.m_mutex);
+        return !host.m_requests.empty();
+    }
+    bool worker_joinable() const { return host.m_worker.joinable(); }
     void dispatch(Request request)
     {
         {
@@ -125,8 +132,10 @@ public:
         return ExecutionResult::success();
     }
     ExecutionResult update(const VisualizationContext&) override { return ExecutionResult::success(); }
+    void close() override { ++close_calls; }
 
     std::atomic<int> open_calls{0};
+    int close_calls{0};
 };
 
 class MultiResourceVisualization final : public VisualizationPluginCapability
@@ -229,15 +238,15 @@ class DummyVisualization(orca.visualization.VisualizationPluginCapabilityBase):
             output.write(event + "\n")
 
     def open(self, ctx):
-        self.events_path = Path(ctx.input.location).with_name("events.txt")
+        self.events_path = Path(ctx.resources[0].location).with_name("events.txt")
         try:
-            ctx.input.location = "plugin-controlled"
+            ctx.resources[0].location = "plugin-controlled"
             mutability = "mutable"
         except AttributeError:
             mutability = "readonly"
         self._record(
-            f"open:{ctx.revision}:{ctx.metadata['plate_index']}:{ctx.input.kind}:{ctx.input.format}:"
-            f"{ctx.input.major_version}.{ctx.input.minor_version}:{len(ctx.resources)}:"
+            f"open:{ctx.revision}:{ctx.metadata['plate_index']}:{ctx.resources[0].kind}:{ctx.resources[0].format}:"
+            f"{ctx.resources[0].major_version}.{ctx.resources[0].minor_version}:{len(ctx.resources)}:"
             f"{ctx.resources[0].scope}:{ctx.orca_version}:{mutability}"
         )
         return orca.ExecutionResult.success()
@@ -543,10 +552,11 @@ TEST_CASE("Concurrent visualization opens create one session", "[PluginLifecycle
     capability->set_audit_plugin_key("concurrent-visualization");
     capability->resolve_type_metadata();
 
+    PluginVisualizationsTest visualizations;
     VisualizationContext context;
     context.revision = 1;
-    context.input = {VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
-                     VisualizationInputs::FILE_TRANSPORT, "snapshot.glb", 2, 0};
+    context.resources = {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                          VisualizationInputs::FILE_TRANSPORT, "snapshot.glb", 2, 0}};
 
     std::atomic<int> ready{0};
     std::atomic<bool> start{false};
@@ -557,7 +567,7 @@ TEST_CASE("Concurrent visualization opens create one session", "[PluginLifecycle
             ++ready;
             while (!start.load(std::memory_order_acquire))
                 std::this_thread::yield();
-            results[index] = PluginVisualizations::instance().open(capability, context);
+            results[index] = visualizations.host.open(capability, context);
         });
     }
     while (ready.load(std::memory_order_acquire) != int(callers.size()))
@@ -575,7 +585,7 @@ TEST_CASE("Concurrent visualization opens create one session", "[PluginLifecycle
     CHECK(successes == 1);
     CHECK(skipped == 1);
     CHECK(capability->open_calls == 1);
-    PluginVisualizations::instance().close(capability->identity());
+    visualizations.host.close(capability->identity());
 }
 
 TEST_CASE("Visualization worker failures complete on the main thread and remove snapshots", "[PluginLifecycle][Visualization]")
@@ -656,6 +666,63 @@ TEST_CASE("Closing a visualization invalidates its queued dispatch", "[PluginLif
     CHECK_FALSE(fs::exists(snapshot.path()));
 }
 
+TEST_CASE("Visualization shutdown joins preparation and suppresses queued callbacks", "[PluginLifecycle][Visualization]")
+{
+    REQUIRE(wxApp::GetInstance() == nullptr);
+    ScopedWxConsole app;
+    REQUIRE(app.initialized);
+    PluginVisualizationsTest visualizations;
+    auto capability = std::make_shared<ConcurrentVisualization>();
+    capability->set_resolved_identity("Shutdown session", PluginCapabilityType::Visualization);
+    capability->set_audit_plugin_key("shutdown-session");
+    capability->resolve_type_metadata();
+    VisualizationContext context;
+    context.resources = {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                          VisualizationInputs::FILE_TRANSPORT, "session.glb", 2, 0}};
+    REQUIRE(visualizations.host.open(capability, context).status == PluginResult::Success);
+
+    auto source = std::make_shared<GCodeProcessorResult>();
+    source->id = 1;
+    source->filaments_count = 1;
+    source->filament_densities = {1.0f};
+    source->moves.resize(2001);
+    for (size_t i = 0; i < source->moves.size(); ++i) {
+        auto& move = source->moves[i];
+        move.type = EMoveType::Extrude;
+        move.extrusion_role = erPerimeter;
+        move.width = 0.45f;
+        move.height = 0.2f;
+        move.position = Vec3f(float(i), 0.0f, 0.2f);
+    }
+    ScopedTemporaryFile snapshot(".glb");
+    PluginVisualizationsTest::PendingResource resource;
+    resource.input.format = VisualizationInputs::GLTF_BINARY;
+    resource.snapshot_path = snapshot.path();
+    resource.toolpath = std::move(source);
+    resource.tool_colors = {"#123456"};
+    PluginVisualizationsTest::Request request;
+    request.id = {PluginCapabilityType::Visualization, "Shutdown build", "shutdown-build"};
+    request.resources.push_back(std::move(resource));
+    bool completed = false;
+    request.completion = [&](ExecutionResult) { completed = true; };
+    visualizations.enqueue(std::move(request));
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (visualizations.has_queued_requests() && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    CHECK_FALSE(visualizations.has_queued_requests());
+
+    visualizations.host.shutdown();
+    CHECK_FALSE(visualizations.worker_joinable());
+    CHECK_FALSE(visualizations.host.is_active(capability->identity()));
+    CHECK(capability->close_calls == 1);
+    wxApp::GetInstance()->ProcessPendingEvents();
+    CHECK_FALSE(completed);
+    CHECK_FALSE(fs::exists(snapshot.path()));
+    CHECK(visualizations.host.open(capability, context).status == PluginResult::Skipped);
+    visualizations.host.shutdown();
+    CHECK(capability->close_calls == 1);
+}
+
 TEST_CASE("Visualization contexts carry separately scoped resources", "[PluginLifecycle][Visualization]")
 {
     auto capability = std::make_shared<MultiResourceVisualization>();
@@ -680,14 +747,43 @@ TEST_CASE("Visualization contexts carry separately scoped resources", "[PluginLi
          VisualizationInputs::PROJECT, {{"plate_index", "0"}}}
     };
 
-    PluginVisualizations& visualizations = PluginVisualizations::instance();
+    PluginVisualizationsTest isolated;
+    PluginVisualizations& visualizations = isolated.host;
     REQUIRE(visualizations.open(capability, context).status == PluginResult::Success);
     REQUIRE(capability->opened.resources.size() == 2);
-    CHECK(capability->opened.input.location == "toolpath.glb");
+    CHECK(capability->opened.resources[0].location == "toolpath.glb");
     CHECK(capability->opened.resources[0].scope == VisualizationInputs::CURRENT_PLATE);
     CHECK(capability->opened.resources[1].scope == VisualizationInputs::PROJECT);
     CHECK(capability->opened.resources[1].metadata.at("plate_index") == "0");
     visualizations.close(capability->identity());
+}
+
+TEST_CASE("Visualization opens and updates require every requested resource", "[PluginLifecycle][Visualization]")
+{
+    auto capability = std::make_shared<MultiResourceVisualization>();
+    capability->set_resolved_identity("Required resources", PluginCapabilityType::Visualization);
+    capability->set_audit_plugin_key("required-resources");
+    capability->resolve_type_metadata();
+    PluginVisualizationsTest visualizations;
+    VisualizationContext context;
+    context.revision = 1;
+    context.resources = {{VisualizationInputs::MODEL, VisualizationInputs::OBJ,
+                          VisualizationInputs::FILE_TRANSPORT, "model.obj", 1, 0, VisualizationInputs::PROJECT}};
+    CHECK(visualizations.host.open(capability, context).status == PluginResult::Skipped);
+    CHECK_FALSE(visualizations.host.is_active(capability->identity()));
+    CHECK(capability->opened.resources.empty());
+
+    context.resources.push_back({VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                                 VisualizationInputs::FILE_TRANSPORT, "toolpath.glb", 2, 0, VisualizationInputs::PROJECT});
+    CHECK(visualizations.host.open(capability, context).status == PluginResult::Skipped);
+    context.resources.back().scope = VisualizationInputs::CURRENT_PLATE;
+    REQUIRE(visualizations.host.open(capability, context).status == PluginResult::Success);
+
+    context.revision = 2;
+    context.resources.pop_back();
+    CHECK(visualizations.host.update(capability->identity(), context).status == PluginResult::Skipped);
+    CHECK(visualizations.host.is_active(capability->identity()));
+    visualizations.host.close(capability->identity());
 }
 
 TEST_CASE("Visualization sessions dispatch lifecycle calls and close when disabled", "[PluginLifecycle][Visualization][Python]")
@@ -721,8 +817,11 @@ TEST_CASE("Visualization sessions dispatch lifecycle calls and close when disabl
     ctx.orca_version  = "test";
     ctx.revision      = 1;
     ctx.metadata["plate_index"] = "0";
-    ctx.input = {VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
-                 VisualizationInputs::FILE_TRANSPORT, (events_path.parent_path() / "snapshot.glb").string(), 2, 0};
+    ctx.resources = {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                      VisualizationInputs::FILE_TRANSPORT, (events_path.parent_path() / "snapshot.glb").string(), 2, 0}};
+
+    ctx.resources.push_back({VisualizationInputs::MODEL, VisualizationInputs::OBJ,
+                             VisualizationInputs::FILE_TRANSPORT, "model.obj", 1, 0, VisualizationInputs::PROJECT});
 
     PluginVisualizations& visualizations = PluginVisualizations::instance();
     CHECK(visualizations.open(capability, ctx).status == PluginResult::Success);
@@ -741,13 +840,80 @@ TEST_CASE("Visualization sessions dispatch lifecycle calls and close when disabl
     CHECK(visualizations.update(capability->identity(), ctx).status == PluginResult::FatalError);
     CHECK_FALSE(visualizations.is_active(capability->identity()));
 
+    ctx.revision = 3;
+    REQUIRE(visualizations.open(capability, ctx).status == PluginResult::Success);
+    REQUIRE(visualizations.is_active(capability->identity()));
     manager.set_capability_enabled(capability->identity(), false);
     CHECK_FALSE(visualizations.is_active(capability->identity()));
     CHECK(manager.unload_plugin("Visualization_Plugin"));
 
     std::ifstream events(events_path.string());
     const std::string contents((std::istreambuf_iterator<char>(events)), std::istreambuf_iterator<char>());
-    CHECK(contents == "open:1:0:toolpath:model/gltf-binary:2.0:1:current_plate:test:readonly\nupdate:2\nclose\n");
+    CHECK(contents == "open:1:0:toolpath:model/gltf-binary:2.0:2:current_plate:test:readonly\nupdate:2\nclose\n"
+                      "open:3:0:toolpath:model/gltf-binary:2.0:2:current_plate:test:readonly\nclose\n");
+}
+
+TEST_CASE("Background visualization unload closes on the main thread before teardown", "[PluginLifecycle][Visualization][Python]")
+{
+    REQUIRE(wxApp::GetInstance() == nullptr);
+    ScopedWxConsole app;
+    REQUIRE(app.initialized);
+    ScopedPluginManager plugin_system;
+    if (!plugin_system.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    ScopedDataDir data_dir_guard("visualization-background-unload");
+    allow_plugin_storage(data_dir_guard);
+    write_plugin(data_dir_guard, "Visualization_Plugin", std::string(VISUALIZATION_PLUGIN_SOURCE) + R"PY(
+import threading
+
+def close_on_main(self):
+    self._record("close-main" if threading.current_thread() is threading.main_thread() else "close-worker")
+
+def record_unload(self):
+    self._record("unload")
+
+DummyVisualization.close = close_on_main
+DummyVisualization.on_unload = record_unload
+)PY");
+    PluginManager& manager = PluginManager::instance();
+    manager.discover_plugins(/*async=*/false, /*clear=*/true);
+    std::string error;
+    REQUIRE(load_and_wait(manager, "Visualization_Plugin", error));
+    auto capability = std::dynamic_pointer_cast<VisualizationPluginCapability>(
+        manager.get_plugin_capability({PluginCapabilityType::Visualization, "Dummy Visualization", "Visualization_Plugin"}));
+    REQUIRE(capability);
+    const fs::path events_path = fs::path(manager.get_storage_dir("Visualization_Plugin")) / "events.txt";
+    VisualizationContext context;
+    context.metadata["plate_index"] = "0";
+    context.resources = {
+        {VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY, VisualizationInputs::FILE_TRANSPORT,
+         (events_path.parent_path() / "snapshot.glb").string(), 2, 0},
+        {VisualizationInputs::MODEL, VisualizationInputs::OBJ, VisualizationInputs::FILE_TRANSPORT,
+         "model.obj", 1, 0, VisualizationInputs::PROJECT}
+    };
+    REQUIRE(PluginVisualizations::instance().open(capability, context).status == PluginResult::Success);
+    std::atomic<bool> completed{false};
+    bool unloaded = false;
+    std::thread worker([&] {
+        unloaded = manager.unload_plugin("Visualization_Plugin");
+        completed.store(true, std::memory_order_release);
+    });
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!completed.load(std::memory_order_acquire) && std::chrono::steady_clock::now() < deadline) {
+        wxApp::GetInstance()->ProcessPendingEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    const bool finished_before_timeout = completed.load(std::memory_order_acquire);
+    if (!finished_before_timeout)
+        manager.set_shutting_down();
+    worker.join();
+    REQUIRE(finished_before_timeout);
+    REQUIRE(unloaded);
+    CHECK_FALSE(PluginVisualizations::instance().is_active(capability->identity()));
+    std::ifstream events(events_path.string());
+    const std::string contents((std::istreambuf_iterator<char>(events)), std::istreambuf_iterator<char>());
+    CHECK(contents.find("close-main\nunload\n") != std::string::npos);
+    CHECK(contents.find("close-worker") == std::string::npos);
 }
 
 TEST_CASE("Unrelated visualization plugins keep independent sessions", "[PluginLifecycle][Visualization][Python]")
@@ -775,24 +941,19 @@ TEST_CASE("Unrelated visualization plugins keep independent sessions", "[PluginL
         manager.get_plugin_capability({PluginCapabilityType::Visualization, "Second Visualization", "Visualization_Second"}));
     REQUIRE(first != nullptr);
     REQUIRE(second != nullptr);
-    CHECK(PluginVisualizations::instance().capabilities().size() == 2);
-
-    VisualizationInput toolpath_input{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
-                                      VisualizationInputs::FILE_TRANSPORT, {}, 2, 0};
-    CHECK(PluginVisualizations::instance().capabilities_for(toolpath_input).size() == 2);
-    toolpath_input.major_version = 3;
-    CHECK(PluginVisualizations::instance().capabilities_for(toolpath_input).empty());
-    toolpath_input = {"model", "model/gltf-binary", "file", {}, 2, 0};
-    CHECK(PluginVisualizations::instance().capabilities_for(toolpath_input).empty());
+    CHECK(manager.get_plugin_capabilities("", PluginCapabilityType::Visualization).size() == 2);
 
     VisualizationContext first_context;
     first_context.revision = 1;
     first_context.metadata["plate_index"] = "0";
-    first_context.input = {VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
-                           VisualizationInputs::FILE_TRANSPORT,
-                           (fs::path(manager.get_storage_dir("Visualization_First")) / "first.glb").string(), 2, 0};
+    first_context.resources = {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                                VisualizationInputs::FILE_TRANSPORT,
+                                (fs::path(manager.get_storage_dir("Visualization_First")) / "first.glb").string(), 2, 0}};
+    first_context.resources.push_back({VisualizationInputs::MODEL, VisualizationInputs::OBJ,
+                                       VisualizationInputs::FILE_TRANSPORT, "model.obj", 1, 0, VisualizationInputs::PROJECT});
     VisualizationContext second_context = first_context;
-    second_context.input.location = (fs::path(manager.get_storage_dir("Visualization_Second")) / "second.glb").string();
+    second_context.resources.resize(1);
+    second_context.resources[0].location = (fs::path(manager.get_storage_dir("Visualization_Second")) / "second.glb").string();
 
     PluginVisualizations& visualizations = PluginVisualizations::instance();
     REQUIRE(visualizations.open(first, first_context).status == PluginResult::Success);

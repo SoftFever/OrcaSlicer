@@ -36,6 +36,7 @@ struct Polyline {
 
 struct Material {
     std::string name;
+    // RGB is sRGB; alpha is linear.
     std::array<uint8_t, 4> base_color{{128, 128, 128, 255}};
     nlohmann::json extras;
 };
@@ -56,19 +57,7 @@ struct Scene {
     double root_scale{1.0};
 };
 
-struct DocumentInfo {
-    uint32_t version{0};
-    uint32_t file_size{0};
-    size_t vertex_count{0};
-    size_t index_count{0};
-    size_t primitive_count{0};
-    size_t material_count{0};
-    nlohmann::json scene_extras;
-};
-
 std::vector<uint8_t> serialize(const Scene& scene);
-DocumentInfo validate(const uint8_t* data, size_t size, uint64_t max_file_size = DEFAULT_MAX_FILE_SIZE);
-DocumentInfo validate(const std::vector<uint8_t>& data, uint64_t max_file_size = DEFAULT_MAX_FILE_SIZE);
 
 } // namespace Slic3r::GLB
 
