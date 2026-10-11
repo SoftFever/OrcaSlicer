@@ -207,6 +207,24 @@ public:
 protected:
     TextInput *m_ti_plate_name;
 };
+
+// Lets the user pick the position the selected plate is moved to.
+class PlateMoveDialog : public DPIDialog
+{
+public:
+    PlateMoveDialog(wxWindow *parent, int plate_count, int current_index);
+    ~PlateMoveDialog();
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+
+    // Zero-based index of the chosen position.
+    int get_target_index() const { return m_target_index; }
+
+protected:
+    ComboBox *m_combobox_plate{nullptr};
+    Button   *m_button_ok{nullptr};
+    int       m_current_index{0};
+    int       m_target_index{0};
+};
 }} // namespace Slic3r::GUI
 
 #endif

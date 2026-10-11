@@ -765,6 +765,75 @@ void PlateNameEditDialog::set_plate_name(const wxString &name) {
     m_ti_plate_name->GetTextCtrl()->SetInsertionPointEnd();
 }
 
+// PlateMoveDialog
+PlateMoveDialog::PlateMoveDialog(wxWindow *parent, int plate_count, int current_index)
+    : DPIDialog(parent, wxID_ANY, _L("Move Plate"), wxDefaultPosition, wxDefaultSize, wxCLOSE_BOX | wxCAPTION)
+    , m_current_index(current_index)
+    , m_target_index(current_index)
+{
+    SetBackgroundColour(*wxWHITE);
+    wxBoxSizer *m_sizer_main = new wxBoxSizer(wxVERTICAL);
+    auto        m_line_top   = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(400), -1));
+    m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
+    m_sizer_main->Add(m_line_top, 0, wxEXPAND, 0);
+    m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(5));
+
+    wxFlexGridSizer *top_sizer = new wxFlexGridSizer(0, 2, FromDIP(5), 0);
+    top_sizer->AddGrowableCol(0, 1);
+    top_sizer->SetFlexibleDirection(wxBOTH);
+    top_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+
+    auto label = new wxStaticText(this, wxID_ANY, _L("Move the current plate to"));
+    label->SetFont(Label::Body_14);
+    m_combobox_plate = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(100), -1), 0, NULL, wxCB_READONLY);
+    for (int i = 0; i < plate_count; ++i)
+        m_combobox_plate->Append(wxString::Format("%d", i + 1));
+    m_combobox_plate->SetSelection(m_current_index);
+    top_sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_combobox_plate, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+
+    m_sizer_main->Add(top_sizer, 0, wxEXPAND | wxALL, FromDIP(30));
+
+    auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
+    m_button_ok   = dlg_btns->GetOK();
+    m_button_ok->Enable(false); // nothing to do until another position is chosen
+
+    m_combobox_plate->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
+        const int selection = m_combobox_plate->GetSelection();
+        if (selection >= 0) {
+            m_target_index = selection;
+            m_button_ok->Enable(m_target_index != m_current_index);
+        }
+    });
+
+    m_button_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        if (this->IsModal())
+            EndModal(wxID_YES);
+        else
+            this->Close();
+    });
+
+    dlg_btns->GetCANCEL()->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        if (this->IsModal())
+            EndModal(wxID_NO);
+        else
+            this->Close();
+    });
+
+    m_sizer_main->Add(dlg_btns, 0, wxEXPAND, FromDIP(20));
+
+    SetSizer(m_sizer_main);
+    Layout();
+    m_sizer_main->Fit(this);
+
+    CenterOnParent();
+
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+PlateMoveDialog::~PlateMoveDialog() {}
+
+void PlateMoveDialog::on_dpi_changed(const wxRect &suggested_rect) {}
 
 }
 } // namespace Slic3r::GUI
