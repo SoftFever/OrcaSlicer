@@ -6,6 +6,7 @@
 #include <libslic3r/LifecycleEvents.hpp>
 #include <memory>
 #include <slic3r/Utils/NetworkAgentFactory.hpp>
+#include <slic3r/plugin/PluginAuditManager.hpp>
 #include <slic3r/plugin/PluginDescriptor.hpp>
 #include <slic3r/plugin/PluginManager.hpp>
 #include <slic3r/plugin/PluginFsUtils.hpp>
@@ -354,6 +355,13 @@ fs::path write_plugin(const ScopedDataDir& data_dir_guard, const std::string& st
     return plugin_dir;
 }
 
+// install_hook() grants data_dir() as it stood when the plugin system came up. A test data dir set
+// afterwards needs the same grant so its plugins may write to their storage folders, as in the app.
+void allow_plugin_storage(const ScopedDataDir& data_dir_guard)
+{
+    PluginAuditManager::instance().add_global_allowed_root(data_dir_guard.dir);
+}
+
 // Loads a plugin and blocks until the detached worker thread is done with it.
 bool load_and_wait(PluginManager&           manager,
                    const std::string&       plugin_key,
@@ -564,10 +572,12 @@ TEST_CASE("Visualization contexts carry separately scoped resources", "[PluginLi
 
 TEST_CASE("Visualization sessions dispatch lifecycle calls and close when disabled", "[PluginLifecycle][Visualization][Python]")
 {
-    ScopedDataDir data_dir_guard("visualization-lifecycle");
     ScopedPluginManager plugin_system;
     if (!plugin_system.initialized)
         SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+
+    ScopedDataDir data_dir_guard("visualization-lifecycle");
+    allow_plugin_storage(data_dir_guard);
     write_plugin(data_dir_guard, "Visualization_Plugin", VISUALIZATION_PLUGIN_SOURCE);
 
     PluginManager& manager = PluginManager::instance();
@@ -622,11 +632,12 @@ TEST_CASE("Visualization sessions dispatch lifecycle calls and close when disabl
 
 TEST_CASE("Unrelated visualization plugins keep independent sessions", "[PluginLifecycle][Visualization][Python]")
 {
-    ScopedDataDir data_dir_guard("visualization-independent");
     ScopedPluginManager plugin_system;
     if (!plugin_system.initialized)
         SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
 
+    ScopedDataDir data_dir_guard("visualization-independent");
+    allow_plugin_storage(data_dir_guard);
     write_plugin(data_dir_guard, "Visualization_First", VISUALIZATION_PLUGIN_SOURCE);
     write_plugin(data_dir_guard, "Visualization_Second", SECOND_VISUALIZATION_PLUGIN_SOURCE);
 

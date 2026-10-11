@@ -2,12 +2,16 @@
 
 #include "VisualizationPluginCapability.hpp"
 #include "../../PyPluginTrampoline.hpp"
+#include "slic3r/plugin/PythonPluginInterface.hpp"
+#include <pybind11/pybind11.h>
+
+#include <vector>
 
 namespace Slic3r {
 
-// Loading mode matches the current capability policy and permits a visualizer to read a negotiated
-// resource and launch packaged helpers. The audit hook still restricts writes to Orca-approved
-// roots and blocks denied application secrets.
+// No audit setup is needed: the negotiated snapshot files live in the plugin's storage folder under
+// data_dir(), a global allowed root. Anything else a visualizer does, such as launching a packaged
+// helper, goes through the same permission prompt as every other capability.
 class PyVisualizationPluginCapabilityTrampoline : public PyPluginCommonTrampoline<VisualizationPluginCapability>
 {
 public:
@@ -16,7 +20,6 @@ public:
     std::vector<VisualizationInputSpec> get_supported_inputs() override
     {
         ORCA_PY_OVERRIDE_AUDITED(
-            ::Slic3r::PluginAuditManager::AuditMode::Loading,
             [] {},
             PYBIND11_OVERRIDE_PURE,
             std::vector<VisualizationInputSpec>,
@@ -27,7 +30,6 @@ public:
     std::vector<VisualizationResourceRequest> get_requested_resources() override
     {
         ORCA_PY_OVERRIDE_AUDITED(
-            ::Slic3r::PluginAuditManager::AuditMode::Loading,
             [] {},
             PYBIND11_OVERRIDE,
             std::vector<VisualizationResourceRequest>,
@@ -38,7 +40,6 @@ public:
     ExecutionResult open(const VisualizationContext& ctx) override
     {
         ORCA_PY_OVERRIDE_AUDITED(
-            ::Slic3r::PluginAuditManager::AuditMode::Loading,
             [] {},
             PYBIND11_OVERRIDE_PURE,
             ExecutionResult,
@@ -50,7 +51,6 @@ public:
     ExecutionResult update(const VisualizationContext& ctx) override
     {
         ORCA_PY_OVERRIDE_AUDITED(
-            ::Slic3r::PluginAuditManager::AuditMode::Loading,
             [] {},
             PYBIND11_OVERRIDE_PURE,
             ExecutionResult,
@@ -62,7 +62,6 @@ public:
     void close() override
     {
         ORCA_PY_OVERRIDE_AUDITED(
-            ::Slic3r::PluginAuditManager::AuditMode::Loading,
             [] {},
             PYBIND11_OVERRIDE,
             void,
