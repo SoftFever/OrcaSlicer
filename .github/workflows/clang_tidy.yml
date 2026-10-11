@@ -37,7 +37,7 @@ jobs:
           # The PR merge commit plus its first parent, the base it is diffed against.
           fetch-depth: 2
 
-      - name: Look for changed C++ files
+      - name: Look for changed files
         id: changes
         run: |
           if git -c core.quotePath=false diff --name-only HEAD^1 -- src tests | grep -qE '\.(cpp|cc|cxx|hpp|h|hxx)$'; then
@@ -71,7 +71,9 @@ jobs:
           restore-keys: linux-clang-cache-orcaslicer_deps-build-
           fail-on-cache-miss: true
 
-      # Linux Build Deps takes about 35 minutes.
+      # Linux Build Deps takes about 35 minutes on GitHub-hosted runners. A
+      # failing lookup is retried a few times, then fails the job instead of
+      # waiting out the deadline.
       - name: Wait for this PR's deps cache
         if: steps.changes.outputs.cpp == 'true' && steps.deps_cache.outputs.cache-hit != 'true' && steps.changes.outputs.deps == 'true'
         timeout-minutes: 100
@@ -80,7 +82,15 @@ jobs:
           KEY: ${{ steps.changes.outputs.deps-key }}
         run: |
           deadline=$((SECONDS + 90 * 60))
-          until [ -n "$(gh cache list --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF" --key "$KEY" --json key --jq ".[] | select(.key == \"$KEY\") | .key")" ]; do
+          failures=0
+          while true; do
+            if found=$(gh cache list --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF" --key "$KEY" --json key --jq ".[] | select(.key == \"$KEY\") | .key"); then
+              [ -n "$found" ] && break
+              failures=0
+            elif [ $((++failures)) -ge 3 ]; then
+              echo "::error::Listing caches failed 3 times in a row."
+              exit 1
+            fi
             if [ "$SECONDS" -ge "$deadline" ]; then
               echo "::error::No deps cache $KEY after 90 minutes. Check the Linux Build Deps job, then rerun clang-tidy."
               exit 1
