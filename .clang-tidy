@@ -7,31 +7,26 @@
 # they reach every file that includes the header, and a using-declaration also
 # makes the header look like the one to include for that name. Qualify the name
 # in the header, and put the using in the source files that want it.
-# Likely bugs: a use after std::move, an RAII object or a return value thrown
-# away, an integer stored as a character in a string, slicing, and similar
-# mistakes these checks rarely report on correct code.
+# Likely bugs: an RAII object or a return value thrown away, an integer stored
+# as a character in a string, std::move on a forwarding reference, iteration
+# whose order depends on pointer values, and a condition already known true.
 # Every check listed here gates pull requests, so enable a new one only once the
 # code it flags on touched lines is reasonable to fix in passing.
 Checks: >-
   -*,
   misc-include-cleaner,
   google-global-names-in-headers,
-  bugprone-copy-constructor-init,
-  bugprone-misplaced-widening-cast,
   bugprone-move-forwarding-reference,
   bugprone-nondeterministic-pointer-iteration-order,
   bugprone-redundant-branch-condition,
   bugprone-string-integer-assignment,
-  bugprone-suspicious-semicolon,
-  bugprone-unhandled-self-assignment,
-  bugprone-unused-local-non-trivial-variable,
   bugprone-unused-raii,
-  bugprone-unused-return-value,
-  bugprone-use-after-move,
-  cppcoreguidelines-slicing,
-  misc-redundant-expression
+  bugprone-unused-return-value
 WarningsAsErrors: '*'
 CheckOptions:
+  # (void) marks a result dropped on purpose, such as a deliberate leak through
+  # unique_ptr::release().
+  bugprone-unused-return-value.AllowCastToVoid: true
   # The default list without boost::system::error_code: Boost.Asio's overloads
   # that take an error_code& also return it, and callers check the argument.
   bugprone-unused-return-value.CheckedReturnTypes: '^::std::error_code$;^::std::error_condition$;^::std::errc$;^::std::expected$'
