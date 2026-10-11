@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <cstdlib>
 #include <wx/textctrl.h>
+#include <wx/toplevel.h>
+#include <wx/anybutton.h>
 #include <string>
 #include <wx/panel.h>
 #include "slic3r/GUI/wxExtensions.hpp"

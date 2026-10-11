@@ -20,6 +20,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include <utility>
 #include <string>
+#include <cstddef>
 #include "slic3r/GUI/Widgets/TextInput.hpp"
 #include <wx/colour.h>
 
