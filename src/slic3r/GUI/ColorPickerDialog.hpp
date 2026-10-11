@@ -79,6 +79,8 @@ private:
     bool m_page_ready = false;
     bool m_closing = false;
     bool m_favorites_writable = false;
+    bool m_sidebar_open = false;
+    std::string m_palette;
     int m_corner_radius{8};
     wxBitmap m_shape_bmp;
     bool m_applying_shape{false};

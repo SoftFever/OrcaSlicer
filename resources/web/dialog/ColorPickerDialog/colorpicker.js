@@ -4,7 +4,7 @@
   const T = (key) => window.ORCA_UI_STRINGS?.[key] || key;
   document.title = T("Color Picker");
   for (const element of document.querySelectorAll("[data-i18n]")) element.textContent = T(element.dataset.i18n);
-  for (const attribute of ["aria-label", "title"])
+  for (const attribute of ["aria-label", "title", "placeholder"])
     for (const element of document.querySelectorAll(`[data-i18n-${attribute}]`))
       element.setAttribute(attribute, T(element.getAttribute(`data-i18n-${attribute}`)));
   function paletteName(name) {
@@ -27,6 +27,7 @@
   const gradientBar = byId("gradientCtrlBar"), gradientStops = byId("gradientStops"), gradientAdd = byId("gradientAdd"), gradientRemove = byId("gradientRemove");
   const hostGradientLimit = (options) => options.max_gradient_colors === undefined ? 2 : options.max_gradient_colors;
   const originalPreview = byId("originalPreview"), palettePanel = byId("palettePanel"), paletteToggle = byId("paletteToggle");
+  const paletteSelect = byId("paletteSelect"), paletteFilter = byId("paletteFilter"), paletteSearchToggle = byId("paletteSearchToggle");
   const rgbInputs = ["r", "g", "b"].map((name) => byId(name + "Value"));
   const hslInputs = ["h", "s", "l"].map((name) => byId(name + "Value"));
   const hexInput = byId("hexInput"), opacityInput = byId("oValue");
@@ -151,11 +152,19 @@
     confirmBtn.disabled = !editors().every((input) => input.checkValidity());
   }
 
+  // Matches the filter against the shown (translated) name, the English name and the hex digits.
+  function paletteMatches(entry, query) {
+    if (!query) return true;
+    const haystack = [paletteName(entry.name), entry.name, entry.hex || "", entry.grad || ""].join(" ").toLowerCase();
+    return query.split(/\s+/).every((word) => haystack.includes(word.replace(/^#/, "")));
+  }
+
   function populatePalette() {
     palette.replaceChildren();
+    const query = paletteSearchToggle.getAttribute("aria-pressed") === "true" ? paletteFilter.value.trim().toLowerCase() : "";
     for (const entry of palettes[paletteCombo.value] || []) {
       const selection = {type: entry.grad ? "gradient" : "solid", colors: entry.grad ? entry.grad.split("-") : [entry.hex]};
-      if (!model.normalizeSelection(selection, state.options, maxGradientColors)) continue;
+      if (!model.normalizeSelection(selection, state.options, maxGradientColors) || !paletteMatches(entry, query)) continue;
       const row    = document.createElement("button"); row.type = "button"; row.className = "color-item";
       const swatch = document.createElement("span"); swatch.className = "color-swatch";
       const name   = document.createElement("span"); name.className = "color-name"; name.textContent = paletteName(entry.name);
@@ -168,6 +177,24 @@
       });
       palette.appendChild(row);
     }
+    byId("paletteEmpty").classList.toggle("hidden", palette.childElementCount > 0);
+    palette.classList.toggle("hidden", palette.childElementCount === 0);
+  }
+
+  // Sidebar state the host keeps in the app config: open/closed and the chosen palette.
+  const uiState = () => ({sidebar_open: palettePanel.classList.contains("open"), palette: paletteCombo.value});
+  function setSidebarOpen(open) {
+    palettePanel.classList.toggle("open", open);
+    paletteToggle.setAttribute("aria-expanded", String(open));
+  }
+  // The search button swaps the combo box for a filter box; closing it clears the filter.
+  function setPaletteSearch(open) {
+    paletteSearchToggle.setAttribute("aria-pressed", String(open));
+    paletteSelect.classList.toggle("hidden", open);
+    paletteFilter.classList.toggle("hidden", !open);
+    if (open) paletteFilter.focus();
+    else paletteFilter.value = "";
+    populatePalette();
   }
 
   function drawFavorites() {
@@ -206,7 +233,11 @@
     preview.disabled = !favoritesWritable;
     byId("modeControls").classList.toggle("hidden", !state.options.allow_gradient);
     for (const option of paletteCombo.options) option.hidden = option.value === "gradient" && !state.options.allow_gradient;
+    const ui = payload.ui || {}; // Restore the sidebar the way it was left; a palette this caller can't use falls back to basic.
+    const saved = [...paletteCombo.options].find((option) => option.value === ui.palette && !option.hidden);
+    if (saved) paletteCombo.value = saved.value;
     if (!state.options.allow_gradient && paletteCombo.value === "gradient") paletteCombo.value = "basic";
+    setSidebarOpen(ui.sidebar_open === true);
     byId("alphaControls").classList.toggle("hidden", !state.options.allow_alpha);
     hexInput.maxLength = state.options.allow_alpha ? 9 : 7;
     populatePalette(); drawFavorites(); render(true);
@@ -232,7 +263,10 @@
           !Number.isInteger(hostLimit) || hostLimit < 2 || hostLimit > model.MAX_GRADIENT_COLORS ||
           !model.normalizeSelection(payload.selection, options, hostLimit) || !validFavorites(payload.favorites) ||
           (payload.favorites_writable !== undefined && typeof payload.favorites_writable !== "boolean") ||
-          (payload.preserve_multi_color !== undefined && typeof payload.preserve_multi_color !== "boolean")) return false;
+          (payload.preserve_multi_color !== undefined && typeof payload.preserve_multi_color !== "boolean") ||
+          (payload.ui !== undefined && (!payload.ui || typeof payload.ui !== "object" ||
+            (payload.ui.sidebar_open !== undefined && typeof payload.ui.sidebar_open !== "boolean") ||
+            (payload.ui.palette !== undefined && typeof payload.ui.palette !== "string")))) return false;
       if (initialized) return true;
       if (!init(payload)) return false;
       emit("initialized");
@@ -361,8 +395,16 @@
   gradientAdd.addEventListener("click", () => { if (model.addGradientColor(state)) render(true); });
   gradientRemove.addEventListener("click", () => { if (model.removeGradientColor(state)) render(true); });
   originalPreview.addEventListener("click", () => { if (model.applySelection(state, originalSelection)) render(true); });
-  paletteToggle.addEventListener("click", () => paletteToggle.setAttribute("aria-expanded", palettePanel.classList.toggle("open")));
-  paletteCombo.addEventListener("change", populatePalette);
+  paletteToggle.addEventListener("click", () => {
+    setSidebarOpen(!palettePanel.classList.contains("open"));
+    if (initialized) emit("update_ui", uiState());
+  });
+  paletteCombo.addEventListener("change", () => {
+    populatePalette();
+    if (initialized) emit("update_ui", uiState());
+  });
+  paletteSearchToggle.addEventListener("click", () => setPaletteSearch(paletteSearchToggle.getAttribute("aria-pressed") !== "true"));
+  paletteFilter.addEventListener("input", populatePalette);
   // Pointer capture ends by itself on pointerup/pointercancel, so it doubles as the drag state.
   canvas.addEventListener("pointerdown", (event) => { canvas.setPointerCapture(event.pointerId); sampleSpectrum(event); });
   canvas.addEventListener("pointermove", (event) => { if (canvas.hasPointerCapture(event.pointerId)) sampleSpectrum(event); });
@@ -394,7 +436,9 @@
   confirmBtn.addEventListener("click", confirm);
   byId("cancelBtn").addEventListener("click", () => emit("cancel"));
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") { event.preventDefault(); emit("cancel"); }
+    // Escape in the filter box closes the search first; a second Escape cancels the dialog.
+    if (event.key === "Escape" && event.target === paletteFilter) { event.preventDefault(); setPaletteSearch(false); paletteSearchToggle.focus(); }
+    else if (event.key === "Escape") { event.preventDefault(); emit("cancel"); }
     else if (event.key === "Enter" && event.target instanceof HTMLInputElement && ["text", "number"].includes(event.target.type)) {
       event.preventDefault(); confirm();
     }

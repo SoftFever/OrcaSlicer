@@ -283,6 +283,17 @@ bool filament_color_picker_changed(const ColorSelection& initial, const std::opt
 
 namespace {
 
+// Sidebar state lives in its own section: "color_picker" is replaced wholesale when favorites are
+// saved, and its presence alone marks favorites as already migrated.
+constexpr const char* COLOR_PICKER_UI_SECTION = "color_picker_ui";
+
+// Palette ids are short lowercase words defined by the page (basic, orca, ral, gradient, ...).
+bool valid_palette_id(const std::string& id)
+{
+    return !id.empty() && id.size() <= 32 &&
+           std::all_of(id.begin(), id.end(), [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_' || c == '-'; });
+}
+
 // English palette names are stable translation keys; RAL codes stay in the page data.
 nlohmann::json color_picker_ui_strings()
 {
@@ -304,6 +315,9 @@ nlohmann::json color_picker_ui_strings()
         {"Saturation", _u8L("Saturation")},
         {"Original color", _u8L("Original color")},
         {"Palettes", _u8L("Palettes")},
+        {"Search colors", _u8L("Search colors")},
+        {"Filter colors", _u8L("Filter colors")},
+        {"No matching colors", _u8L("No matching colors")},
         {"Hex color", _u8L("Hex color")},
         {"Opacity", _u8L("Opacity")},
         {"Opacity percent", _u8L("Opacity percent")},
@@ -782,6 +796,10 @@ ColorPickerDialog::ColorPickerDialog(wxWindow* parent, const ColorSelection& ini
         const auto stored = load_color_picker_favorites(*wxGetApp().app_config);
         m_favorites = stored.favorites;
         m_favorites_writable = stored.writable;
+        const AppConfig& config = *wxGetApp().app_config;
+        m_sidebar_open = config.get(COLOR_PICKER_UI_SECTION, "sidebar_open") == "1";
+        if (const std::string palette = config.get(COLOR_PICKER_UI_SECTION, "palette"); valid_palette_id(palette))
+            m_palette = palette;
     }
     // The shared host attaches its sizer before constructing the full layout.
     GetSizer()->SetSizeHints(this);
@@ -1028,6 +1046,21 @@ void ColorPickerDialog::handle_web_command(const nlohmann::json& payload)
             const nlohmann::json response = {{"command", "favorites"}, {"page_id", m_page_id}, {"favorites", std::move(canonical)}};
             run_script(wxString::FromUTF8("window.ColorPickerDialog.handleMessage(" + response.dump() + ")"));
         }
+    } else if (*command == "update_ui") {
+        // Sidebar open/closed and the chosen palette, restored the next time the picker opens.
+        const auto open = payload.find("sidebar_open");
+        const auto palette = payload.find("palette");
+        if (open == payload.end() || !open->is_boolean() || palette == payload.end() || !palette->is_string() || !wxGetApp().app_config)
+            return;
+        const auto& id = palette->get_ref<const std::string&>();
+        if (!valid_palette_id(id))
+            return;
+        m_sidebar_open = open->get<bool>();
+        m_palette = id;
+        // set() marks the config dirty; it is written with the rest of the app config.
+        AppConfig& config = *wxGetApp().app_config;
+        config.set(COLOR_PICKER_UI_SECTION, "sidebar_open", m_sidebar_open ? "1" : "0");
+        config.set(COLOR_PICKER_UI_SECTION, "palette", m_palette);
     }
 }
 
@@ -1040,7 +1073,8 @@ void ColorPickerDialog::send_initial_state()
                                    {"options", {{"allow_gradient", m_options.allow_gradient}, {"allow_alpha", m_options.allow_alpha},
                                                 {"max_gradient_colors", COLOR_PICKER_MAX_GRADIENT_COLORS}}},
                                    {"selection", color_selection_to_json(m_initial)}, {"favorites", std::move(favorites)},
-                                   {"favorites_writable", m_favorites_writable}, {"preserve_multi_color", m_preserve_multi_color}};
+                                   {"favorites_writable", m_favorites_writable}, {"preserve_multi_color", m_preserve_multi_color},
+                                   {"ui", {{"sidebar_open", m_sidebar_open}, {"palette", m_palette}}}};
     m_init_sent = true;
     // Already deferred and guarded: avoid the shared call_web_handler's unguarded
     // second CallAfter, which could run after this modal dialog is destroyed.

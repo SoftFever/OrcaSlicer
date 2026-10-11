@@ -51,18 +51,71 @@ body {
   display: none;
   flex-direction: column;
 }
-.left-panel.open { display: flex }
+.left-panel.open {
+  display: flex;
+  padding-right: 0px;
+  border-right: 1px solid var(--border-color);
+}
 
 #paletteCombo {
   font-size: 13px;
   width: 100%;
 }
 
+/* Combo box or filter box, with the search / close button on the right. */
+.palette-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 25px;
+  margin-right:5px;
+}
+.palette-toolbar > .palette-select { flex: 1 }
+.palette-filter {
+  flex: 1;
+  height: 25px;
+  padding: 0 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--fg-color-text);
+  background: var(--bg-color);
+  border: 1px solid var(--main-color);
+  outline: none;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.palette-filter::-webkit-search-cancel-button { -webkit-appearance: none }
+
+.palette-search-button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  background-color: var(--button-bg-normal);
+  border: 1px solid var(--border-color);
+  border-left: 0;
+}
+.palette-search-button:hover {
+  background-color: var(--button-bg-hover);
+}
+
+.palette-search-button .icon-close,
+.palette-search-button[aria-pressed="true"] .icon-search { display: none }
+.palette-search-button[aria-pressed="true"] .icon-close { display: block }
+.palette-empty {
+  flex: 1;
+  padding: 8px 2px;
+  font-size: 13px;
+  color: var(--fg-color-label);
+}
+
 .palette {
   flex: 1;
   overflow-y: auto;
   padding-right: 1px;
-  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .color-item {

@@ -13,18 +13,26 @@
 <fieldset id="pickerEditors" disabled>
 <div class="main-wrapper">
 
-  <!-- Palette list opens as a drawer over the picker (sidebar button, bottom left). -->
   <div class="left-panel" id="palettePanel">
-    <div class="palette-select ComboBox">
-      <div class="arrow-icon"></div>
-      <select id="paletteCombo" tabindex="-1">
-        <option value="basic"           data-i18n="Basic Colors">Basic Colors</option>
-        <option value="orca"            data-i18n="Orca Palette">Orca Palette</option>
-        <option value="ral"             data-i18n="RAL Classic" >RAL Classic</option>
-        <option value="gradient" hidden data-i18n="Gradients"   >Gradients</option>
-      </select>
-    </div>
     <div class="palette thin-scroll" id="palette" tabindex="-1"></div>
+    <p class="palette-empty hidden" id="paletteEmpty" data-i18n="No matching colors">No matching colors</p>
+    <div class="palette-toolbar">
+      <div class="palette-select ComboBox" id="paletteSelect">
+        <div class="arrow-icon"></div>
+        <select id="paletteCombo" tabindex="-1">
+          <option value="basic"           data-i18n="Basic Colors">Basic Colors</option>
+          <option value="orca"            data-i18n="Orca Palette">Orca Palette</option>
+          <option value="ral"             data-i18n="RAL Classic" >RAL Classic</option>
+          <option value="gradient" hidden data-i18n="Gradients"   >Gradients</option>
+        </select>
+      </div>
+      <input type="search" id="paletteFilter" class="palette-filter hidden" autocomplete="off" spellcheck="false"
+             placeholder="Filter colors" data-i18n-placeholder="Filter colors" aria-label="Filter colors" data-i18n-aria-label="Filter colors">
+      <button type="button" id="paletteSearchToggle" class="palette-search-button" aria-pressed="false" title="Search colors" data-i18n-title="Search colors">
+        <svg class="icon-search" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 8l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <svg class="icon-close" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
   </div>
 
   <div class="right-panel">
