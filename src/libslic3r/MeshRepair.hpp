@@ -16,7 +16,6 @@ struct MeshRepairStats
     std::size_t filled_holes       = 0;
     std::size_t removed_shells     = 0;
     std::size_t self_intersections = 0;
-    std::size_t merged_shells      = 0;
     // False when the input already was closed, consistently oriented and free of self-intersections.
     bool        modified           = false;
 };

@@ -124,18 +124,26 @@ TEST_CASE("A T-junction is closed", "[MeshRepair]")
     check_solid(mesh, 20. * 20. * 20.);
 }
 
-TEST_CASE("Overlapping shells are united", "[MeshRepair]")
+TEST_CASE("Crossing shells stay separate parts and are made solid", "[MeshRepair]")
 {
-    TriangleMesh mesh(merged({cube(20.), cube(20., {10., 10., 10.})}));
+    indexed_triangle_set inside_out = cube(20., {10., 10., 10.});
+    its_flip_triangles(inside_out);
+    TriangleMesh mesh(merged({cube(20.), inside_out}));
     MeshRepairStats stats;
     REQUIRE(repair_mesh(mesh, &stats));
-    CHECK(stats.merged_shells == 1);
-    check_solid(mesh, 2 * 8000. - 10. * 10. * 10.);
+    CHECK(stats.reversed_shells == 1);
+    CHECK(its_num_open_edges(mesh.its) == 0);
+    CHECK_THAT(its_volume(mesh.its), WithinRel(2 * 8000., 1e-4));
+    CHECK(mesh.split().size() == 2);
 }
 
-TEST_CASE("Solids touching face to face lose the wall between them", "[MeshRepair]")
+TEST_CASE("Solids touching face to face in a soup lose the wall between them", "[MeshRepair]")
 {
-    TriangleMesh mesh(merged({cube(10.), cube(10., {10., 0., 0.})}));
+    // The mirrored copy shares the wall at x = 10 with exactly the same triangles, reversed.
+    TriangleMesh right = make_cube(10., 10., 10.);
+    right.mirror(X);
+    right.translate(20.f, 0.f, 0.f);
+    TriangleMesh mesh(soup(merged({cube(10.), right.its})));
     REQUIRE(repair_mesh(mesh));
     check_solid(mesh, 2 * 1000.);
     CHECK(mesh.split().size() == 1);
