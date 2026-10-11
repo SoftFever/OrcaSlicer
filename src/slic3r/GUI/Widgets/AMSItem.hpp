@@ -199,7 +199,6 @@ struct Caninfo
     std::string     can_id;
     wxString        material_name;
     wxColour        material_colour = {*wxWHITE};
-    bool            material_colour_unset = false; // the printer reported no colour; material_colour is only the white placeholder
     AMSCanType      material_state;
     int             ctype=0;
     int             material_remain = 100;
@@ -208,6 +207,8 @@ struct Caninfo
     float           k = 0.0f;
     float           n = 0.0f;
     std::vector<wxColour> material_cols;
+    // Declared last so the positional Caninfo{id, name, colour, state} initialisers keep working.
+    bool            material_colour_unset = false; // the printer reported no colour; material_colour is only the white placeholder
 
 public:
     bool operator==(const Caninfo& other) const
