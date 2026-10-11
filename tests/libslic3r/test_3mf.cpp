@@ -2043,3 +2043,40 @@ TEST_CASE("3MF XML entries declaring more than an int can hold fail to load", "[
         CHECK_FALSE(parser.check_3mf_from_prusa(path));
     }
 }
+
+TEST_CASE("Loading a gcode.3mf from a stream keeps the plate's pick and pattern file paths", "[3mf][Regression]")
+{
+    Model model;
+    REQUIRE(load_stl((std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl").c_str(), &model));
+    model.add_default_instances();
+    ScopedTemporaryDir backup_dir("orca_pick");
+    model.set_backup_path(backup_dir.string());
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+
+    auto plate = std::make_unique<PlateData>();
+    plate->plate_index       = 0;
+    plate->pick_file         = (backup_dir.path() / "pick.png").string();
+    plate->pattern_bbox_file = (backup_dir.path() / "plate.json").string();
+
+    ScopedTemporaryFile temp(".3mf");
+    const std::string   test_file = temp.string();
+    StoreParams store_params;
+    store_params.path   = test_file.c_str();
+    store_params.model  = &model;
+    store_params.config = &config;
+    store_params.plate_data_list.push_back(plate.get());
+    store_params.strategy = SaveStrategy::Zip64 | SaveStrategy::Silence;
+    REQUIRE(store_bbs_3mf(store_params));
+
+    boost::nowide::ifstream in(test_file, std::ios::binary);
+    Model              dst_model;
+    DynamicPrintConfig dst_config;
+    PlateDataPtrs      dst_plates;
+    Semver             file_version;
+    dst_model.set_backup_path(backup_dir.string());
+    REQUIRE(load_gcode_3mf_from_stream(in, &dst_config, &dst_model, &dst_plates, &file_version));
+    REQUIRE(dst_plates.size() == 1);
+    CHECK(dst_plates.front()->pick_file == "Metadata/pick_1.png");
+    CHECK(dst_plates.front()->pattern_bbox_file == "Metadata/plate_1.json");
+    release_PlateData_list(dst_plates);
+}
