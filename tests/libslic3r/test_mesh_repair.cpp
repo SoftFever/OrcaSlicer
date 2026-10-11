@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <string>
@@ -235,4 +236,20 @@ TEST_CASE("A mesh enclosing no volume is reported and left untouched", "[MeshRep
     CHECK_FALSE(repair_mesh(mesh, nullptr, &error));
     CHECK_FALSE(error.empty());
     CHECK(mesh.its.indices.size() == 2);
+}
+
+TEST_CASE("Progress is reported in order and throwing from it cancels the repair", "[MeshRepair]")
+{
+    TriangleMesh     mesh(soup(cube(20.)));
+    std::vector<int> reported;
+    REQUIRE(repair_mesh(mesh, nullptr, nullptr, [&reported](int percent) { reported.push_back(percent); }));
+    CHECK_FALSE(reported.empty());
+    CHECK(std::is_sorted(reported.begin(), reported.end()));
+
+    struct Canceled {};
+    TriangleMesh       canceled(soup(cube(20.)));
+    const TriangleMesh original = canceled;
+    CHECK_THROWS_AS(repair_mesh(canceled, nullptr, nullptr, [](int) { throw Canceled(); }), Canceled);
+    CHECK(canceled.its.vertices == original.its.vertices);
+    CHECK(canceled.its.indices == original.its.indices);
 }

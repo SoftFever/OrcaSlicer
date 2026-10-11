@@ -86,6 +86,7 @@ using Halfedge = Mesh::Halfedge_index;
 using Face     = Mesh::Face_index;
 using Triangle = std::array<std::size_t, 3>;
 using Tree     = CGAL::AABB_tree<CGAL::AABB_traits_3<Kernel, CGAL::AABB_face_graph_triangle_primitive<Mesh>>>;
+using Box      = CGAL::Box_intersection_d::Box_with_info_d<double, 3, std::size_t>;
 
 constexpr std::size_t NONE = std::size_t(-1);
 
@@ -114,7 +115,7 @@ private:
     std::vector<std::size_t> m_parent;
 };
 
-template<class Container> void erase_marked(Container &items, const std::vector<bool> &marked)
+template<class Container, class Mask> void erase_marked(Container &items, const Mask &marked)
 {
     std::size_t out = 0;
     for (std::size_t i = 0; i < items.size(); ++i)
@@ -123,12 +124,131 @@ template<class Container> void erase_marked(Container &items, const std::vector<
     items.resize(out);
 }
 
+template<class Fn> void parallel_for_each(std::size_t n, Fn &&fn)
+{
+    tbb::parallel_for(tbb::blocked_range<std::size_t>(0, n, 1), [&fn](const tbb::blocked_range<std::size_t> &range) {
+        for (std::size_t i = range.begin(); i < range.end(); ++i)
+            fn(i);
+    });
+}
+
+// Triangles sharing a vertex belong to one part.
+UnionFind connect_vertices(std::size_t num_points, const std::vector<Triangle> &triangles)
+{
+    UnionFind parts(num_points);
+    for (const Triangle &t : triangles) {
+        parts.unite(t[0], t[1]);
+        parts.unite(t[0], t[2]);
+    }
+    return parts;
+}
+
+bool bbox_contains(const CGAL::Bbox_3 &outer, const CGAL::Bbox_3 &inner, double tolerance = 0.)
+{
+    return outer.xmin() - tolerance <= inner.xmin() && outer.ymin() - tolerance <= inner.ymin() && outer.zmin() - tolerance <= inner.zmin() &&
+           outer.xmax() + tolerance >= inner.xmax() && outer.ymax() + tolerance >= inner.ymax() && outer.zmax() + tolerance >= inner.zmax();
+}
+
+std::vector<std::pair<std::size_t, std::size_t>> overlapping_boxes(std::vector<Box> &boxes)
+{
+    std::vector<std::pair<std::size_t, std::size_t>> pairs;
+    CGAL::box_self_intersection_d(boxes.begin(), boxes.end(), [&pairs](const Box &a, const Box &b) {
+        pairs.emplace_back(std::min(a.info(), b.info()), std::max(a.info(), b.info()));
+    }, std::ptrdiff_t(10), CGAL::Box_intersection_d::CLOSED);
+    std::sort(pairs.begin(), pairs.end());
+    return pairs;
+}
+
 double bbox_diagonal(const std::vector<Point> &points)
 {
     CGAL::Bbox_3 bb;
     for (const Point &p : points)
         bb += p.bbox();
     return points.empty() ? 0. : std::sqrt(CGAL::square(bb.x_span()) + CGAL::square(bb.y_span()) + CGAL::square(bb.z_span()));
+}
+
+// One use of an edge by a triangle: a <= b are its vertices, corner = 3 * triangle + position of the edge's first vertex.
+struct EdgeUse
+{
+    std::size_t a, b, corner;
+    bool operator<(const EdgeUse &rhs) const { return std::tie(a, b, corner) < std::tie(rhs.a, rhs.b, rhs.corner); }
+};
+
+std::vector<EdgeUse> sorted_edge_uses(const std::vector<Triangle> &triangles)
+{
+    std::vector<EdgeUse> uses;
+    uses.reserve(3 * triangles.size());
+    for (std::size_t f = 0; f < triangles.size(); ++f)
+        for (std::size_t k = 0; k < 3; ++k) {
+            const auto [a, b] = std::minmax(triangles[f][k], triangles[f][(k + 1) % 3]);
+            uses.push_back({a, b, 3 * f + k});
+        }
+    tbb::parallel_sort(uses.begin(), uses.end());
+    return uses;
+}
+
+// Calls fn(first, last) with the range of uses of each edge.
+template<class Fn> void for_each_edge(const std::vector<EdgeUse> &uses, Fn &&fn)
+{
+    for (std::size_t i = 0; i < uses.size();) {
+        std::size_t j = i + 1;
+        while (j < uses.size() && uses[j].a == uses[i].a && uses[j].b == uses[i].b)
+            ++j;
+        fn(i, j);
+        i = j;
+    }
+}
+
+bool same_direction(const std::vector<Triangle> &triangles, const EdgeUse &e1, const EdgeUse &e2)
+{
+    return triangles[e1.corner / 3][e1.corner % 3] == triangles[e2.corner / 3][e2.corner % 3];
+}
+
+struct SoupTopology
+{
+    std::vector<char>        open_face;     // on an edge used by one triangle
+    std::vector<char>        bad_face;      // on an edge used by more than two triangles, or twice in one direction
+    std::vector<char>        pinched;       // vertex whose triangles form several fans
+    std::vector<std::size_t> border;        // vertices of the edges used by one triangle
+    double                   open_fraction = 0.;
+};
+
+// The fans around each vertex are found by joining the corners of triangles across their shared edges.
+SoupTopology analyze_topology(std::size_t num_points, const std::vector<Triangle> &triangles)
+{
+    SoupTopology topology{std::vector<char>(triangles.size(), 0), std::vector<char>(triangles.size(), 0), std::vector<char>(num_points, 0)};
+    const std::vector<EdgeUse> uses = sorted_edge_uses(triangles);
+    UnionFind fans(3 * triangles.size());
+    std::size_t num_edges = 0;
+    for_each_edge(uses, [&](std::size_t i, std::size_t j) {
+        const EdgeUse &e = uses[i];
+        ++num_edges;
+        if (j - i == 1 && e.a != e.b) {
+            topology.open_face[e.corner / 3] = 1;
+            topology.border.push_back(e.a);
+            topology.border.push_back(e.b);
+        } else if (j - i != 2 || e.a == e.b || same_direction(triangles, e, uses[i + 1])) {
+            for (std::size_t k = i; k < j; ++k)
+                topology.bad_face[uses[k].corner / 3] = 1;
+        } else {
+            const std::size_t c = e.corner, n = uses[i + 1].corner;
+            fans.unite(c, n - n % 3 + (n + 1) % 3);
+            fans.unite(c - c % 3 + (c + 1) % 3, n);
+        }
+    });
+    topology.open_fraction = num_edges == 0 ? 0. : double(topology.border.size() / 2) / double(num_edges);
+    std::sort(topology.border.begin(), topology.border.end());
+    topology.border.erase(std::unique(topology.border.begin(), topology.border.end()), topology.border.end());
+
+    std::vector<std::size_t> fan_of(num_points, NONE);
+    for (std::size_t c = 0; c < 3 * triangles.size(); ++c) {
+        const std::size_t v = triangles[c / 3][c % 3], root = fans.find(c);
+        if (fan_of[v] == NONE)
+            fan_of[v] = root;
+        else if (fan_of[v] != root)
+            topology.pinched[v] = 1;
+    }
+    return topology;
 }
 
 // orient_polygon_soup() needs resizable polygons.
@@ -168,15 +288,13 @@ std::vector<Mesh> soup_to_meshes(const std::vector<Point> &points, const std::ve
                                  const std::vector<std::vector<std::size_t>> &groups, bool known_valid)
 {
     std::vector<Mesh> meshes(groups.size());
-    tbb::parallel_for(tbb::blocked_range<std::size_t>(0, groups.size(), 1), [&](const tbb::blocked_range<std::size_t> &range) {
-        for (std::size_t i = range.begin(); i < range.end(); ++i) {
-            std::vector<Point>    group_points;
-            std::vector<Triangle> group_triangles;
-            extract_group(points, triangles, groups[i], group_points, group_triangles);
-            if (!known_valid && !PMP::is_polygon_soup_a_polygon_mesh(group_triangles))
-                orient_with_cgal(group_points, group_triangles);
-            PMP::polygon_soup_to_polygon_mesh(group_points, group_triangles, meshes[i]);
-        }
+    parallel_for_each(groups.size(), [&](std::size_t i) {
+        std::vector<Point>    group_points;
+        std::vector<Triangle> group_triangles;
+        extract_group(points, triangles, groups[i], group_points, group_triangles);
+        if (!known_valid && !PMP::is_polygon_soup_a_polygon_mesh(group_triangles))
+            orient_with_cgal(group_points, group_triangles);
+        PMP::polygon_soup_to_polygon_mesh(group_points, group_triangles, meshes[i]);
     });
     return meshes;
 }
@@ -218,94 +336,36 @@ std::vector<Mesh> split_shells(Mesh &mesh)
     return shells;
 }
 
-struct SoupTopology
-{
-    std::vector<bool> open_face;   // on an edge used by one triangle
-    std::vector<bool> bad_face;    // on an edge used by more than two triangles, or twice in one direction
-    std::vector<bool> pinched;     // vertex whose triangles form several fans
-};
-
-// The fans around each vertex are found by joining the corners of triangles across their shared edges.
-SoupTopology analyze_topology(std::size_t num_points, const std::vector<Triangle> &polygons)
-{
-    struct EdgeUse
-    {
-        std::size_t a, b, corner;
-        bool operator<(const EdgeUse &rhs) const { return std::tie(a, b, corner) < std::tie(rhs.a, rhs.b, rhs.corner); }
-    };
-    std::vector<EdgeUse> uses;
-    uses.reserve(3 * polygons.size());
-    for (std::size_t f = 0; f < polygons.size(); ++f)
-        for (std::size_t k = 0; k < 3; ++k) {
-            const auto [a, b] = std::minmax(polygons[f][k], polygons[f][(k + 1) % 3]);
-            uses.push_back({a, b, 3 * f + k});
-        }
-    tbb::parallel_sort(uses.begin(), uses.end());
-
-    SoupTopology topology{std::vector<bool>(polygons.size(), false), std::vector<bool>(polygons.size(), false), std::vector<bool>(num_points, false)};
-    UnionFind fans(3 * polygons.size());
-    for (std::size_t i = 0; i < uses.size();) {
-        std::size_t j = i + 1;
-        while (j < uses.size() && uses[j].a == uses[i].a && uses[j].b == uses[i].b)
-            ++j;
-        const std::size_t f = uses[i].corner / 3, fk = uses[i].corner % 3;
-        const std::size_t g = uses[i + 1 < j ? i + 1 : i].corner / 3, gk = uses[i + 1 < j ? i + 1 : i].corner % 3;
-        if (j - i == 1 && uses[i].a != uses[i].b)
-            topology.open_face[f] = true;
-        else if (j - i != 2 || uses[i].a == uses[i].b || polygons[f][fk] == polygons[g][gk]) {
-            for (std::size_t k = i; k < j; ++k)
-                topology.bad_face[uses[k].corner / 3] = true;
-        } else {
-            fans.unite(3 * f + fk, 3 * g + (gk + 1) % 3);
-            fans.unite(3 * f + (fk + 1) % 3, 3 * g + gk);
-        }
-        i = j;
-    }
-    std::vector<std::size_t> fan_of(num_points, NONE);
-    for (std::size_t c = 0; c < 3 * polygons.size(); ++c) {
-        const std::size_t v = polygons[c / 3][c % 3], root = fans.find(c);
-        if (fan_of[v] == NONE)
-            fan_of[v] = root;
-        else if (fan_of[v] != root)
-            topology.pinched[v] = true;
-    }
-    return topology;
-}
-
 // Valid closed parts skip the soup repair, which would weld them to coincident parts into non-manifold junctions.
-std::vector<Mesh> take_closed_shells(const std::vector<Point> &points, std::vector<Triangle> &polygons)
+std::vector<Mesh> take_closed_shells(const std::vector<Point> &points, std::vector<Triangle> &triangles)
 {
-    const SoupTopology topology = analyze_topology(points.size(), polygons);
-    UnionFind parts(points.size());
-    for (const Triangle &p : polygons) {
-        parts.unite(p[0], p[1]);
-        parts.unite(p[0], p[2]);
-    }
-    std::vector<bool> part_ok(points.size(), true);
-    for (std::size_t f = 0; f < polygons.size(); ++f)
-        for (std::size_t v : polygons[f])
+    const SoupTopology topology = analyze_topology(points.size(), triangles);
+    UnionFind parts = connect_vertices(points.size(), triangles);
+    std::vector<char> part_ok(points.size(), 1);
+    for (std::size_t f = 0; f < triangles.size(); ++f)
+        for (std::size_t v : triangles[f])
             if (topology.open_face[f] || topology.bad_face[f] || topology.pinched[v])
-                part_ok[parts.find(v)] = false;
+                part_ok[parts.find(v)] = 0;
 
     std::vector<std::size_t> group_of(points.size(), NONE);
     std::vector<std::vector<std::size_t>> groups;
-    std::vector<bool> taken(polygons.size(), false);
-    for (std::size_t f = 0; f < polygons.size(); ++f)
-        if (const std::size_t r = parts.find(polygons[f][0]); part_ok[r]) {
+    std::vector<char> taken(triangles.size(), 0);
+    for (std::size_t f = 0; f < triangles.size(); ++f)
+        if (const std::size_t r = parts.find(triangles[f][0]); part_ok[r]) {
             if (group_of[r] == NONE) {
                 group_of[r] = groups.size();
                 groups.emplace_back();
             }
             groups[group_of[r]].push_back(f);
-            taken[f] = true;
+            taken[f] = 1;
         }
-    std::vector<Mesh> shells = soup_to_meshes(points, polygons, groups, true);
-    erase_marked(polygons, taken);
+    std::vector<Mesh> shells = soup_to_meshes(points, triangles, groups, true);
+    erase_marked(triangles, taken);
     return shells;
 }
 
 // Opposite coincident triangles cancel in pairs, unless that empties a whole region (a two-sided export).
-void remove_duplicate_triangles(std::size_t num_points, std::vector<Triangle> &polygons)
+void remove_duplicate_triangles(std::size_t num_points, std::vector<Triangle> &triangles)
 {
     struct Entry
     {
@@ -314,17 +374,15 @@ void remove_duplicate_triangles(std::size_t num_points, std::vector<Triangle> &p
         std::size_t                idx;
     };
     std::vector<Entry> entries;
-    for (std::size_t i = 0; i < polygons.size(); ++i) {
-        const Triangle &p = polygons[i];
-        if (p[0] == p[1] || p[1] == p[2] || p[0] == p[2])
-            continue;
-        const std::size_t r = std::min_element(p.begin(), p.end()) - p.begin();
-        const std::size_t b = p[(r + 1) % 3], c = p[(r + 2) % 3];
-        entries.push_back({{p[r], std::min(b, c), std::max(b, c)}, b > c, i});
+    for (std::size_t i = 0; i < triangles.size(); ++i) {
+        const Triangle &t = triangles[i];
+        const std::size_t r = std::min_element(t.begin(), t.end()) - t.begin();
+        const std::size_t b = t[(r + 1) % 3], c = t[(r + 2) % 3];
+        entries.push_back({{t[r], std::min(b, c), std::max(b, c)}, b > c, i});
     }
     tbb::parallel_sort(entries.begin(), entries.end(), [](const Entry &l, const Entry &r) { return std::tie(l.key, l.idx) < std::tie(r.key, r.idx); });
 
-    std::vector<bool> remove(polygons.size(), false);
+    std::vector<char> remove(triangles.size(), 0);
     std::vector<std::size_t> cancelled;
     for (std::size_t i = 0; i < entries.size();) {
         std::size_t j = i + 1;
@@ -342,29 +400,25 @@ void remove_duplicate_triangles(std::size_t num_points, std::vector<Triangle> &p
                 if (!kept && entries[k].odd == odd_wins)
                     kept = true;
                 else
-                    remove[entries[k].idx] = true;
+                    remove[entries[k].idx] = 1;
             }
         }
         i = j;
     }
     if (!cancelled.empty()) {
-        UnionFind regions(num_points);
-        for (const Triangle &p : polygons) {
-            regions.unite(p[0], p[1]);
-            regions.unite(p[0], p[2]);
-        }
-        std::vector<bool> survives(num_points, false);
-        for (std::size_t i = 0; i < polygons.size(); ++i)
+        UnionFind regions = connect_vertices(num_points, triangles);
+        std::vector<char> survives(num_points, 0);
+        for (std::size_t i = 0; i < triangles.size(); ++i)
             if (!remove[i])
-                survives[regions.find(polygons[i][0])] = true;
+                survives[regions.find(triangles[i][0])] = 1;
         for (std::size_t i : cancelled)
-            if (!survives[regions.find(polygons[i][0])])
-                remove[i] = false;
+            if (!survives[regions.find(triangles[i][0])])
+                remove[i] = 0;
     }
-    erase_marked(polygons, remove);
+    erase_marked(triangles, remove);
 }
 
-void clean_soup(std::vector<Point> &points, std::vector<Triangle> &polygons)
+void clean_soup(std::vector<Point> &points, std::vector<Triangle> &triangles)
 {
     std::vector<std::size_t> order(points.size());
     std::iota(order.begin(), order.end(), std::size_t(0));
@@ -374,20 +428,20 @@ void clean_soup(std::vector<Point> &points, std::vector<Triangle> &polygons)
     std::vector<std::size_t> merged(points.size());
     for (std::size_t i = 0; i < order.size(); ++i)
         merged[order[i]] = i > 0 && points[order[i]] == points[order[i - 1]] ? merged[order[i - 1]] : order[i];
-    std::vector<bool> degenerate(polygons.size());
-    for (std::size_t f = 0; f < polygons.size(); ++f) {
-        Triangle &p = polygons[f];
-        for (std::size_t &v : p)
+    std::vector<char> degenerate(triangles.size(), 0);
+    for (std::size_t f = 0; f < triangles.size(); ++f) {
+        Triangle &t = triangles[f];
+        for (std::size_t &v : t)
             v = merged[v];
-        degenerate[f] = p[0] == p[1] || p[1] == p[2] || p[0] == p[2];
+        degenerate[f] = t[0] == t[1] || t[1] == t[2] || t[0] == t[2];
     }
-    erase_marked(polygons, degenerate);
-    remove_duplicate_triangles(points.size(), polygons);
+    erase_marked(triangles, degenerate);
+    remove_duplicate_triangles(points.size(), triangles);
 
     std::vector<std::size_t> compact(points.size(), NONE);
     std::vector<Point> used;
-    for (Triangle &p : polygons)
-        for (std::size_t &v : p) {
+    for (Triangle &t : triangles)
+        for (std::size_t &v : t) {
             if (compact[v] == NONE) {
                 compact[v] = used.size();
                 used.push_back(points[v]);
@@ -398,35 +452,18 @@ void clean_soup(std::vector<Point> &points, std::vector<Triangle> &polygons)
 }
 
 // Closes cracks between open edges; no vertex moves by more than a quarter of its shortest edge.
-std::size_t weld_border_vertices(const std::vector<Point> &points, std::vector<Triangle> &polygons, double tolerance, double &open_fraction)
+std::size_t weld_border_vertices(const std::vector<Point> &points, std::vector<Triangle> &triangles, const std::vector<std::size_t> &border,
+                                 double tolerance)
 {
-    std::vector<double> radius(points.size(), tolerance);
-    std::vector<std::pair<std::size_t, std::size_t>> edges;
-    for (const Triangle &p : polygons)
-        for (std::size_t k = 0; k < 3; ++k) {
-            const std::size_t a = p[k], b = p[(k + 1) % 3];
-            const double r = 0.25 * std::sqrt(CGAL::squared_distance(points[a], points[b]));
-            radius[a] = std::min(radius[a], r);
-            radius[b] = std::min(radius[b], r);
-            edges.emplace_back(std::minmax(a, b));
-        }
-    tbb::parallel_sort(edges.begin(), edges.end());
-    std::vector<std::size_t> border;
-    std::size_t num_edges = 0;
-    for (std::size_t i = 0; i < edges.size();) {
-        std::size_t j = i + 1;
-        while (j < edges.size() && edges[j] == edges[i])
-            ++j;
-        if (j - i == 1) {
-            border.push_back(edges[i].first);
-            border.push_back(edges[i].second);
-        }
-        ++num_edges;
-        i = j;
-    }
-    open_fraction = num_edges == 0 ? 0. : double(border.size() / 2) / double(num_edges);
     if (border.empty())
         return 0;
+    std::vector<double> radius(points.size(), tolerance);
+    for (const Triangle &t : triangles)
+        for (std::size_t k = 0; k < 3; ++k) {
+            const double r = 0.25 * std::sqrt(CGAL::squared_distance(points[t[k]], points[t[(k + 1) % 3]]));
+            radius[t[k]]           = std::min(radius[t[k]], r);
+            radius[t[(k + 1) % 3]] = std::min(radius[t[(k + 1) % 3]], r);
+        }
 
     using Cell = std::array<int64_t, 3>;
     auto cell_of = [tolerance](const Point &p) {
@@ -436,7 +473,6 @@ std::size_t weld_border_vertices(const std::vector<Point> &points, std::vector<T
     for (std::size_t v : border)
         grid.emplace_back(cell_of(points[v]), v);
     tbb::parallel_sort(grid.begin(), grid.end());
-    grid.erase(std::unique(grid.begin(), grid.end()), grid.end());
 
     UnionFind uf(points.size());
     for (const auto &[c, v] : grid)
@@ -450,47 +486,133 @@ std::size_t weld_border_vertices(const std::vector<Point> &points, std::vector<T
                             uf.unite(u, v);
                 }
     std::size_t welded = 0;
-    for (const auto &[c, v] : grid)
+    for (std::size_t v : border)
         welded += uf.find(v) != v;
     if (welded > 0)
-        for (Triangle &p : polygons)
-            for (std::size_t &v : p)
+        for (Triangle &t : triangles)
+            for (std::size_t &v : t)
                 v = uf.find(v);
     return welded;
 }
 
-double open_edge_fraction(const std::vector<Triangle> &polygons)
+// Orients each part as most of its area was and gives each fan its own vertex; false if the mesh is still invalid.
+bool orient_soup(std::vector<Point> &points, std::vector<Triangle> &triangles, std::size_t &reversed_parts)
 {
-    std::vector<std::pair<std::size_t, std::size_t>> edges;
-    for (const Triangle &p : polygons)
-        for (std::size_t k = 0; k < 3; ++k)
-            edges.emplace_back(std::minmax(p[k], p[(k + 1) % 3]));
-    tbb::parallel_sort(edges.begin(), edges.end());
-    std::size_t unique = 0, open = 0;
-    for (std::size_t i = 0; i < edges.size();) {
-        std::size_t j = i + 1;
-        while (j < edges.size() && edges[j] == edges[i])
-            ++j;
-        ++unique;
-        open += j - i == 1;
-        i = j;
+    const std::size_t num_faces = triangles.size();
+    const std::vector<EdgeUse> uses = sorted_edge_uses(triangles);
+    std::vector<std::size_t> twin(3 * num_faces, NONE);
+    std::vector<std::pair<std::size_t, std::size_t>> cut; // edges used by more than two triangles
+    for_each_edge(uses, [&](std::size_t i, std::size_t j) {
+        if (j - i == 2) {
+            twin[uses[i].corner]     = uses[i + 1].corner;
+            twin[uses[i + 1].corner] = uses[i].corner;
+        } else if (j - i > 2)
+            cut.emplace_back(i, j);
+    });
+
+    std::vector<signed char> flip(num_faces, -1);
+    std::vector<std::size_t> part_of(num_faces);
+    std::vector<double> vote;
+    std::vector<char> conflict(3 * num_faces, 0);
+    std::vector<std::size_t> stack;
+    for (std::size_t seed = 0; seed < num_faces; ++seed) {
+        if (flip[seed] >= 0)
+            continue;
+        const std::size_t part = vote.size();
+        vote.push_back(0.);
+        flip[seed] = 0;
+        stack.push_back(seed);
+        while (!stack.empty()) {
+            const std::size_t f = stack.back();
+            stack.pop_back();
+            part_of[f] = part;
+            const Triangle &t = triangles[f];
+            const double area = std::sqrt(CGAL::squared_area(points[t[0]], points[t[1]], points[t[2]]));
+            vote[part] += flip[f] ? -area : area;
+            for (std::size_t k = 0; k < 3; ++k) {
+                const std::size_t c = 3 * f + k, n = twin[c];
+                if (n == NONE)
+                    continue;
+                const std::size_t g = n / 3;
+                // Triangles agree when they run along their shared edge in opposite directions.
+                const signed char want = flip[f] ^ (t[k] == triangles[g][n % 3]);
+                if (flip[g] < 0) {
+                    flip[g] = want;
+                    stack.push_back(g);
+                } else if (flip[g] != want)
+                    conflict[c] = conflict[n] = 1;
+            }
+        }
     }
-    return unique == 0 ? 0. : double(open) / double(unique);
+
+    // Corners keep their input vertex in original, through the flips below.
+    std::vector<std::size_t> original(3 * num_faces);
+    std::vector<char> part_reversed(vote.size(), 0);
+    for (std::size_t f = 0; f < num_faces; ++f) {
+        if (flip[f] != (vote[part_of[f]] < 0.)) {
+            std::swap(triangles[f][1], triangles[f][2]);
+            part_reversed[part_of[f]] = 1;
+        }
+        for (std::size_t k = 0; k < 3; ++k)
+            original[3 * f + k] = triangles[f][k];
+    }
+    reversed_parts = std::count(part_reversed.begin(), part_reversed.end(), 1);
+
+    auto corner_of = [&original](std::size_t f, std::size_t v) { return 3 * f + (original[3 * f] == v ? 0 : original[3 * f + 1] == v ? 1 : 2); };
+    UnionFind fans(3 * num_faces);
+    for (const EdgeUse &e : uses)
+        if (const std::size_t n = twin[e.corner]; n != NONE && e.corner < n && !conflict[e.corner]) {
+            fans.unite(corner_of(e.corner / 3, e.a), corner_of(n / 3, e.a));
+            fans.unite(corner_of(e.corner / 3, e.b), corner_of(n / 3, e.b));
+        }
+    std::vector<std::size_t> fan_vertex(3 * num_faces, NONE);
+    std::vector<char> used(points.size(), 0);
+    for (std::size_t c = 0; c < 3 * num_faces; ++c) {
+        std::size_t &copy = fan_vertex[fans.find(c)];
+        if (copy == NONE) {
+            const std::size_t v = original[c];
+            copy = used[v] ? points.size() : v;
+            if (used[v])
+                points.push_back(points[v]);
+            used[v] = 1;
+        }
+        triangles[c / 3][c % 3] = copy;
+    }
+
+    // Only edges that were cut can still be shared wrongly: by more than two triangles, or twice in one direction.
+    for (std::size_t k = 0; k < uses.size(); ++k)
+        if (conflict[uses[k].corner] && uses[k].corner < twin[uses[k].corner])
+            cut.emplace_back(k, k + 2);
+    for (const auto &[i, j] : cut) {
+        // Each use as its copied endpoints and whether it runs from a to b.
+        std::vector<std::array<std::size_t, 3>> copies;
+        for (std::size_t k = i; k < j; ++k) {
+            const std::size_t f = uses[k].corner / 3, ka = corner_of(f, uses[k].a) % 3, kb = corner_of(f, uses[k].b) % 3;
+            const auto [ca, cb] = std::minmax(triangles[f][ka], triangles[f][kb]);
+            copies.push_back({ca, cb, std::size_t((ka + 1) % 3 == kb)});
+        }
+        std::sort(copies.begin(), copies.end());
+        for (std::size_t k = 0; k + 1 < copies.size(); ++k)
+            if (copies[k][0] == copies[k + 1][0] && copies[k][1] == copies[k + 1][1] &&
+                (copies[k][2] == copies[k + 1][2] || (k + 2 < copies.size() && copies[k + 2][0] == copies[k][0] && copies[k + 2][1] == copies[k][1])))
+                return false;
+    }
+    return true;
 }
 
 // orient_polygon_soup() orients each part arbitrarily; give it back the orientation most of its input had.
-std::size_t keep_input_orientation(Mesh &mesh, const std::vector<Point> &points_before, const std::vector<Triangle> &polygons_before,
-                                   const std::vector<Point> &points, const std::vector<Triangle> &polygons)
+std::size_t keep_input_orientation(Mesh &mesh, const std::vector<Point> &points_before, const std::vector<Triangle> &triangles_before,
+                                   const std::vector<Point> &points, const std::vector<Triangle> &triangles)
 {
-    if (mesh.number_of_faces() != polygons.size())
+    if (mesh.number_of_faces() != triangles.size())
         return 0;
     auto fcc = mesh.add_property_map<Face, std::size_t>("f:repair_part").first;
     const std::size_t num_parts = PMP::connected_components(mesh, fcc);
     std::vector<double> vote(num_parts, 0.);
     std::size_t i = 0;
     for (Face f : mesh.faces()) {
-        const Triangle &a = polygons_before[i];
-        const Triangle &b = polygons[i++];
+        const Triangle &a = triangles_before[i];
+        const Triangle &b = triangles[i++];
         bool same = false;
         for (std::size_t r = 0; r < 3 && !same; ++r) {
             same = true;
@@ -661,21 +783,17 @@ std::size_t fill_holes(Mesh &mesh, double tolerance)
 
     // Planar loops facing each other in the same plane, one inside the other, bound one region.
     UnionFind regions(loops.size());
-    std::vector<bool> grouped(loops.size(), false);
-    auto contains = [tolerance](const CGAL::Bbox_3 &a, const CGAL::Bbox_3 &b) {
-        return a.xmin() - tolerance <= b.xmin() && a.ymin() - tolerance <= b.ymin() && a.zmin() - tolerance <= b.zmin() &&
-               a.xmax() + tolerance >= b.xmax() && a.ymax() + tolerance >= b.ymax() && a.zmax() + tolerance >= b.zmax();
-    };
+    std::vector<char> grouped(loops.size(), 0);
     for (std::size_t a = 0; a < loops.size(); ++a)
         for (std::size_t b = 0; b < loops.size(); ++b) {
             const BorderLoop &la = loops[a], &lb = loops[b];
-            if (a == b || !la.planar || !lb.planar || la.normal * lb.normal > -0.99 || !contains(la.bbox, lb.bbox))
+            if (a == b || !la.planar || !lb.planar || la.normal * lb.normal > -0.99 || !bbox_contains(la.bbox, lb.bbox, tolerance))
                 continue;
             if (std::all_of(lb.halfedges.begin(), lb.halfedges.end(), [&](Halfedge h) {
                     return std::abs((mesh.point(mesh.source(h)) - CGAL::ORIGIN) * la.normal - la.offset) <= tolerance;
                 })) {
                 regions.unite(a, b);
-                grouped[a] = grouped[b] = true;
+                grouped[a] = grouped[b] = 1;
             }
         }
     std::map<std::size_t, std::vector<std::size_t>> groups;
@@ -684,7 +802,7 @@ std::size_t fill_holes(Mesh &mesh, double tolerance)
             groups[regions.find(i)].push_back(i);
 
     std::size_t filled = 0;
-    std::vector<bool> done(loops.size(), false);
+    std::vector<char> done(loops.size(), 0);
     for (auto &[root, members] : groups) {
         // The outermost loop sets the orientation of the region.
         auto extent = [&loops](std::size_t i) { return loops[i].bbox.x_span() + loops[i].bbox.y_span() + loops[i].bbox.z_span(); };
@@ -695,22 +813,24 @@ std::size_t fill_holes(Mesh &mesh, double tolerance)
         if (fill_planar_region(mesh, group)) {
             filled += members.size();
             for (std::size_t i : members)
-                done[i] = true;
+                done[i] = 1;
         }
     }
 
     for (std::size_t i = 0; i < loops.size(); ++i) {
         if (done[i])
             continue;
+        ++filled;
         std::vector<Face> patch;
-        // The exhaustive fallback search is cubic in the length of the loop.
+        // Searching all triangles is cubic in the loop length; the search among Delaunay ones varies from run to run.
+        const std::size_t size = loops[i].halfedges.size();
         PMP::triangulate_hole(mesh, loops[i].halfedge,
                               CGAL::parameters::use_2d_constrained_delaunay_triangulation(true)
-                                  .do_not_use_cubic_algorithm(loops[i].halfedges.size() > 200)
+                                  .use_delaunay_triangulation(size > 100)
+                                  .do_not_use_cubic_algorithm(size > 200)
                                   .face_output_iterator(std::back_inserter(patch)));
         if (patch.empty() && CGAL::is_border(loops[i].halfedge, mesh))
             fill_with_fan(mesh, loops[i]);
-        ++filled;
     }
     return filled;
 }
@@ -763,12 +883,6 @@ bool surfaces_intersect(const Mesh &mesh, const Tree &other)
     return false;
 }
 
-bool bbox_contains(const CGAL::Bbox_3 &outer, const CGAL::Bbox_3 &inner)
-{
-    return outer.xmin() <= inner.xmin() && outer.ymin() <= inner.ymin() && outer.zmin() <= inner.zmin() &&
-           outer.xmax() >= inner.xmax() && outer.ymax() >= inner.ymax() && outer.zmax() >= inner.zmax();
-}
-
 Point inner_sample(const Mesh &shell)
 {
     Face   best;
@@ -783,30 +897,23 @@ Point inner_sample(const Mesh &shell)
 }
 
 // Orients and filters the shells by the nonzero winding rule of slicing. Crossing shells stay apart, as parts do.
-void resolve_shells(std::vector<Mesh> &shells, MeshRepairStats &stats, const std::function<void()> &throw_on_cancel)
+void resolve_shells(std::vector<Mesh> &shells, MeshRepairStats &stats, const std::function<void(int)> &progress)
 {
     const std::size_t n = shells.size();
     std::vector<CGAL::Bbox_3> bbox(n);
     std::vector<int> sign(n);
+    std::vector<Box> boxes;
     for (std::size_t i = 0; i < n; ++i) {
         bbox[i] = PMP::bbox(shells[i]);
         sign[i] = signed_volume(shells[i]) < 0. ? -1 : 1;
-    }
-
-    using Box = CGAL::Box_intersection_d::Box_with_info_d<double, 3, std::size_t>;
-    std::vector<Box> boxes;
-    for (std::size_t i = 0; i < n; ++i)
         boxes.emplace_back(bbox[i], i);
-    std::vector<std::pair<std::size_t, std::size_t>> overlaps;
-    CGAL::box_self_intersection_d(boxes.begin(), boxes.end(), [&overlaps](const Box &a, const Box &b) {
-        overlaps.emplace_back(std::min(a.info(), b.info()), std::max(a.info(), b.info()));
-    }, std::ptrdiff_t(10), CGAL::Box_intersection_d::CLOSED);
-    std::sort(overlaps.begin(), overlaps.end());
+    }
+    const std::vector<std::pair<std::size_t, std::size_t>> overlaps = overlapping_boxes(boxes);
 
     std::vector<std::vector<std::size_t>> enclosing(n);
-    std::vector<bool> needs_tree(n, false);
+    std::vector<char> needs_tree(n, 0);
     for (const auto &[a, b] : overlaps) {
-        needs_tree[shells[a].number_of_faces() < shells[b].number_of_faces() ? b : a] = true;
+        needs_tree[shells[a].number_of_faces() < shells[b].number_of_faces() ? b : a] = 1;
         if (bbox_contains(bbox[a], bbox[b]))
             enclosing[b].push_back(a);
         if (bbox_contains(bbox[b], bbox[a]))
@@ -814,51 +921,45 @@ void resolve_shells(std::vector<Mesh> &shells, MeshRepairStats &stats, const std
     }
     for (const std::vector<std::size_t> &outer : enclosing)
         for (std::size_t k : outer)
-            needs_tree[k] = true;
+            needs_tree[k] = 1;
     // Built before any query: an AABB tree finishes its construction lazily on the first one.
     std::vector<std::unique_ptr<Tree>> trees(n);
-    tbb::parallel_for(tbb::blocked_range<std::size_t>(0, n, 1), [&](const tbb::blocked_range<std::size_t> &range) {
-        for (std::size_t i = range.begin(); i < range.end(); ++i)
-            if (needs_tree[i]) {
-                trees[i] = std::make_unique<Tree>(shells[i].faces().begin(), shells[i].faces().end(), shells[i]);
-                trees[i]->build();
-            }
+    parallel_for_each(n, [&](std::size_t i) {
+        if (needs_tree[i]) {
+            trees[i] = std::make_unique<Tree>(shells[i].faces().begin(), shells[i].faces().end(), shells[i]);
+            trees[i]->build();
+        }
     });
 
     std::vector<char> hit(overlaps.size(), 0);
-    tbb::parallel_for(tbb::blocked_range<std::size_t>(0, overlaps.size(), 1), [&](const tbb::blocked_range<std::size_t> &range) {
-        for (std::size_t i = range.begin(); i < range.end(); ++i) {
-            const auto [a, b]     = overlaps[i];
-            const bool a_smaller = shells[a].number_of_faces() < shells[b].number_of_faces();
-            hit[i] = surfaces_intersect(shells[a_smaller ? a : b], *trees[a_smaller ? b : a]);
-        }
+    parallel_for_each(overlaps.size(), [&](std::size_t i) {
+        const auto [a, b]     = overlaps[i];
+        const bool a_smaller = shells[a].number_of_faces() < shells[b].number_of_faces();
+        hit[i] = surfaces_intersect(shells[a_smaller ? a : b], *trees[a_smaller ? b : a]);
     });
-    std::vector<bool> crossing(n, false);
+    std::vector<char> crossing(n, 0);
     for (std::size_t i = 0; i < overlaps.size(); ++i)
         if (hit[i])
-            crossing[overlaps[i].first] = crossing[overlaps[i].second] = true;
-    throw_on_cancel();
+            crossing[overlaps[i].first] = crossing[overlaps[i].second] = 1;
+    progress(95);
 
     // Crossing shells are solids; any other shell must separate zero from nonzero winding.
-    std::vector<bool> drop(n, false);
+    std::vector<char> drop(n, 0);
     std::vector<int> target(n, 1);
-    tbb::parallel_for(tbb::blocked_range<std::size_t>(0, n, 1), [&](const tbb::blocked_range<std::size_t> &range) {
-        for (std::size_t j = range.begin(); j < range.end(); ++j) {
-            if (crossing[j])
-                continue;
-            const Point sample  = inner_sample(shells[j]);
-            int         winding = 0;
-            for (std::size_t k : enclosing[j])
-                if (CGAL::Side_of_triangle_mesh<Mesh, Kernel, CGAL::Default, Tree>(*trees[k])(sample) == CGAL::ON_BOUNDED_SIDE)
-                    winding += crossing[k] ? 1 : sign[k];
-            const bool solid_outside = winding != 0;
-            const bool solid_inside  = winding + sign[j] != 0;
-            drop[j]   = solid_outside == solid_inside;
-            target[j] = solid_inside ? 1 : -1;
-        }
+    parallel_for_each(n, [&](std::size_t j) {
+        if (crossing[j])
+            return;
+        const Point sample  = inner_sample(shells[j]);
+        int         winding = 0;
+        for (std::size_t k : enclosing[j])
+            if (CGAL::Side_of_triangle_mesh<Mesh, Kernel, CGAL::Default, Tree>(*trees[k])(sample) == CGAL::ON_BOUNDED_SIDE)
+                winding += crossing[k] ? 1 : sign[k];
+        const bool solid_outside = winding != 0;
+        const bool solid_inside  = winding + sign[j] != 0;
+        drop[j]   = solid_outside == solid_inside;
+        target[j] = solid_inside ? 1 : -1;
     });
     trees.clear();
-    throw_on_cancel();
 
     for (std::size_t i = 0; i < n; ++i)
         if (drop[i])
@@ -870,139 +971,28 @@ void resolve_shells(std::vector<Mesh> &shells, MeshRepairStats &stats, const std
     erase_marked(shells, drop);
 }
 
-// Orients each part as most of its area was and gives each fan its own vertex; false if the mesh is still invalid.
-bool orient_soup(std::vector<Point> &points, std::vector<Triangle> &triangles, std::size_t &reversed_parts)
-{
-    struct EdgeUse
-    {
-        std::size_t a, b, corner;
-        bool operator<(const EdgeUse &rhs) const { return std::tie(a, b, corner) < std::tie(rhs.a, rhs.b, rhs.corner); }
-    };
-    const std::size_t num_faces = triangles.size();
-    std::vector<EdgeUse> uses;
-    uses.reserve(3 * num_faces);
-    for (std::size_t f = 0; f < num_faces; ++f)
-        for (std::size_t k = 0; k < 3; ++k) {
-            const auto [a, b] = std::minmax(triangles[f][k], triangles[f][(k + 1) % 3]);
-            uses.push_back({a, b, 3 * f + k});
-        }
-    tbb::parallel_sort(uses.begin(), uses.end());
-
-    // Triangles meet through edges two of them share; other edges are cut.
-    std::vector<std::size_t> twin(3 * num_faces, NONE);
-    std::vector<std::array<std::size_t, 4>> shared; // corners of both triangles, then the two vertices of the edge
-    for (std::size_t i = 0; i < uses.size();) {
-        std::size_t j = i + 1;
-        while (j < uses.size() && uses[j].a == uses[i].a && uses[j].b == uses[i].b)
-            ++j;
-        if (j - i == 2) {
-            twin[uses[i].corner]     = uses[i + 1].corner;
-            twin[uses[i + 1].corner] = uses[i].corner;
-            shared.push_back({uses[i].corner, uses[i + 1].corner, uses[i].a, uses[i].b});
-        }
-        i = j;
-    }
-
-    std::vector<signed char> flip(num_faces, -1);
-    std::vector<std::size_t> part_of(num_faces);
-    std::vector<double> vote;
-    std::vector<char> conflict(3 * num_faces, 0);
-    std::vector<std::size_t> stack;
-    for (std::size_t seed = 0; seed < num_faces; ++seed) {
-        if (flip[seed] >= 0)
-            continue;
-        const std::size_t part = vote.size();
-        vote.push_back(0.);
-        flip[seed] = 0;
-        stack.push_back(seed);
-        while (!stack.empty()) {
-            const std::size_t f = stack.back();
-            stack.pop_back();
-            part_of[f] = part;
-            const Triangle &t = triangles[f];
-            const double area = std::sqrt(CGAL::squared_area(points[t[0]], points[t[1]], points[t[2]]));
-            vote[part] += flip[f] ? -area : area;
-            for (std::size_t k = 0; k < 3; ++k) {
-                const std::size_t c = 3 * f + k, n = twin[c];
-                if (n == NONE)
-                    continue;
-                const std::size_t g = n / 3;
-                // Triangles agree when they run along their shared edge in opposite directions.
-                const signed char want = flip[f] ^ (t[k] == triangles[g][n % 3]);
-                if (flip[g] < 0) {
-                    flip[g] = want;
-                    stack.push_back(g);
-                } else if (flip[g] != want)
-                    conflict[c] = conflict[n] = 1;
-            }
-        }
-    }
-    std::vector<char> part_reversed(vote.size(), 0);
-    for (std::size_t f = 0; f < num_faces; ++f)
-        if (flip[f] != (vote[part_of[f]] < 0.)) {
-            std::swap(triangles[f][1], triangles[f][2]);
-            part_reversed[part_of[f]] = 1;
-        }
-    reversed_parts = std::count(part_reversed.begin(), part_reversed.end(), 1);
-
-    auto corner_of = [&triangles](std::size_t f, std::size_t v) {
-        const Triangle &t = triangles[f];
-        return 3 * f + (t[0] == v ? 0 : t[1] == v ? 1 : 2);
-    };
-    UnionFind fans(3 * num_faces);
-    for (const auto &[c, n, a, b] : shared)
-        if (!conflict[c]) {
-            fans.unite(corner_of(c / 3, a), corner_of(n / 3, a));
-            fans.unite(corner_of(c / 3, b), corner_of(n / 3, b));
-        }
-    std::vector<std::size_t> fan_vertex(3 * num_faces, NONE);
-    std::vector<char> used(points.size(), 0);
-    for (std::size_t c = 0; c < 3 * num_faces; ++c) {
-        std::size_t &v = triangles[c / 3][c % 3];
-        std::size_t &copy = fan_vertex[fans.find(c)];
-        if (copy == NONE) {
-            if (!used[v]) {
-                used[v] = 1;
-                copy    = v;
-            } else {
-                copy = points.size();
-                points.push_back(points[v]);
-            }
-        }
-        v = copy;
-    }
-    const SoupTopology topology = analyze_topology(points.size(), triangles);
-    return std::none_of(topology.bad_face.begin(), topology.bad_face.end(), [](bool b) { return b; }) &&
-           std::none_of(topology.pinched.begin(), topology.pinched.end(), [](bool b) { return b; });
-}
-
 // Connected parts of the soup; open parts with touching bounding boxes share a unit, so cracks between them close.
-std::vector<std::vector<std::size_t>> soup_units(const std::vector<Point> &points, const std::vector<Triangle> &polygons,
+std::vector<std::vector<std::size_t>> soup_units(const std::vector<Point> &points, const std::vector<Triangle> &triangles,
                                                  const SoupTopology &topology, double tolerance)
 {
-    UnionFind parts(points.size());
-    for (const Triangle &p : polygons) {
-        parts.unite(p[0], p[1]);
-        parts.unite(p[0], p[2]);
-    }
+    UnionFind parts = connect_vertices(points.size(), triangles);
     std::vector<std::size_t> part_index(points.size(), NONE);
-    std::vector<std::size_t> part_of_face(polygons.size());
+    std::vector<std::size_t> part_of_face(triangles.size());
     std::vector<CGAL::Bbox_3> part_bbox;
-    std::vector<bool> part_open;
-    for (std::size_t f = 0; f < polygons.size(); ++f) {
-        std::size_t &index = part_index[parts.find(polygons[f][0])];
+    std::vector<char> part_open;
+    for (std::size_t f = 0; f < triangles.size(); ++f) {
+        std::size_t &index = part_index[parts.find(triangles[f][0])];
         if (index == NONE) {
             index = part_bbox.size();
             part_bbox.emplace_back();
-            part_open.push_back(false);
+            part_open.push_back(0);
         }
         part_of_face[f] = index;
-        for (std::size_t v : polygons[f])
+        for (std::size_t v : triangles[f])
             part_bbox[index] += points[v].bbox();
         part_open[index] = part_open[index] || topology.open_face[f];
     }
 
-    using Box = CGAL::Box_intersection_d::Box_with_info_d<double, 3, std::size_t>;
     std::vector<Box> boxes;
     for (std::size_t i = 0; i < part_bbox.size(); ++i)
         if (part_open[i]) {
@@ -1011,12 +1001,12 @@ std::vector<std::vector<std::size_t>> soup_units(const std::vector<Point> &point
                                             b.ymax() + tolerance, b.zmax() + tolerance), i);
         }
     UnionFind units(part_bbox.size());
-    CGAL::box_self_intersection_d(boxes.begin(), boxes.end(), [&units](const Box &a, const Box &b) { units.unite(a.info(), b.info()); },
-                                  std::ptrdiff_t(10), CGAL::Box_intersection_d::CLOSED);
+    for (const auto &[a, b] : overlapping_boxes(boxes))
+        units.unite(a, b);
 
     std::vector<std::size_t> unit_index(part_bbox.size(), NONE);
     std::vector<std::vector<std::size_t>> out;
-    for (std::size_t f = 0; f < polygons.size(); ++f) {
+    for (std::size_t f = 0; f < triangles.size(); ++f) {
         std::size_t &index = unit_index[units.find(part_of_face[f])];
         if (index == NONE) {
             index = out.size();
@@ -1035,34 +1025,34 @@ struct UnitResult
     bool              closed   = true;
 };
 
-UnitResult repair_unit(const std::vector<Point> &points, const std::vector<Triangle> &polygons, const std::vector<std::size_t> &faces,
+UnitResult repair_unit(const std::vector<Point> &points, const std::vector<Triangle> &triangles, const std::vector<std::size_t> &faces,
                        const SoupTopology &topology, double tolerance)
 {
     std::vector<Point>    unit_points;
-    std::vector<Triangle> unit_polygons;
-    extract_group(points, polygons, faces, unit_points, unit_polygons);
+    std::vector<Triangle> unit_triangles;
+    extract_group(points, triangles, faces, unit_points, unit_triangles);
     bool oriented_manifold = true;
     for (std::size_t f : faces) {
         oriented_manifold = oriented_manifold && !topology.bad_face[f];
-        for (std::size_t v : polygons[f])
+        for (std::size_t v : triangles[f])
             oriented_manifold = oriented_manifold && !topology.pinched[v];
     }
 
     UnitResult result;
     Mesh mesh;
     if (oriented_manifold)
-        PMP::polygon_soup_to_polygon_mesh(unit_points, unit_polygons, mesh);
+        PMP::polygon_soup_to_polygon_mesh(unit_points, unit_triangles, mesh);
     else {
         std::vector<Point>    oriented_points    = unit_points;
-        std::vector<Triangle> oriented_triangles = unit_polygons;
+        std::vector<Triangle> oriented_triangles = unit_triangles;
         if (orient_soup(oriented_points, oriented_triangles, result.reversed))
             PMP::polygon_soup_to_polygon_mesh(oriented_points, oriented_triangles, mesh);
         else {
-            const std::vector<Point>    points_before   = unit_points;
-            const std::vector<Triangle> polygons_before = unit_polygons;
-            orient_with_cgal(unit_points, unit_polygons);
-            PMP::polygon_soup_to_polygon_mesh(unit_points, unit_polygons, mesh);
-            result.reversed = keep_input_orientation(mesh, points_before, polygons_before, unit_points, unit_polygons);
+            const std::vector<Point>    points_before    = unit_points;
+            const std::vector<Triangle> triangles_before = unit_triangles;
+            orient_with_cgal(unit_points, unit_triangles);
+            PMP::polygon_soup_to_polygon_mesh(unit_points, unit_triangles, mesh);
+            result.reversed = keep_input_orientation(mesh, points_before, triangles_before, unit_points, unit_triangles);
         }
     }
 
@@ -1084,42 +1074,35 @@ UnitResult repair_unit(const std::vector<Point> &points, const std::vector<Trian
 }
 
 // Returns false when no closed shell was left.
-bool repair_soup(std::vector<Point> &points, std::vector<Triangle> &polygons, Mesh &out, MeshRepairStats &stats,
-                 const std::function<void()> &throw_on_cancel)
+bool repair_soup(std::vector<Point> &points, std::vector<Triangle> &triangles, std::vector<Mesh> &shells, MeshRepairStats &stats,
+                 const std::function<void(int)> &progress)
 {
-    const std::size_t num_triangles = polygons.size();
     const double tolerance = 1e-4 * bbox_diagonal(points);
-    std::vector<Mesh> shells = take_closed_shells(points, polygons);
-    std::size_t num_taken = 0;
-    for (const Mesh &s : shells)
-        num_taken += s.number_of_faces();
-    stats.modified = !polygons.empty();
-    throw_on_cancel();
+    shells = take_closed_shells(points, triangles);
+    stats.modified = !triangles.empty();
+    progress(10);
 
-    if (!polygons.empty()) {
-        clean_soup(points, polygons);
+    if (!triangles.empty()) {
+        const std::size_t num_triangles = triangles.size();
+        clean_soup(points, triangles);
+        SoupTopology topology = analyze_topology(points.size(), triangles);
         // A soup that stays mostly open has cracks wider than the tolerance, so try wider ones.
         for (double t = tolerance; t > 0. && t <= 100. * tolerance; t *= 10.) {
-            double open_fraction = 0.;
-            if (const std::size_t welded = weld_border_vertices(points, polygons, t, open_fraction); welded > 0) {
+            if (const std::size_t welded = weld_border_vertices(points, triangles, topology.border, t); welded > 0) {
                 stats.welded_vertices += welded;
-                clean_soup(points, polygons);
-                open_fraction = open_edge_fraction(polygons);
+                clean_soup(points, triangles);
+                topology = analyze_topology(points.size(), triangles);
             }
-            if (open_fraction < 0.5)
+            if (topology.open_fraction < 0.5)
                 break;
         }
-        stats.removed_triangles = num_triangles - num_taken - polygons.size();
-        throw_on_cancel();
+        stats.removed_triangles = num_triangles - triangles.size();
+        progress(25);
 
         // Independent parts of the soup are repaired in parallel.
-        const SoupTopology topology = analyze_topology(points.size(), polygons);
-        const std::vector<std::vector<std::size_t>> units = soup_units(points, polygons, topology, tolerance);
+        const std::vector<std::vector<std::size_t>> units = soup_units(points, triangles, topology, tolerance);
         std::vector<UnitResult> results(units.size());
-        tbb::parallel_for(tbb::blocked_range<std::size_t>(0, units.size(), 1), [&](const tbb::blocked_range<std::size_t> &range) {
-            for (std::size_t i = range.begin(); i < range.end(); ++i)
-                results[i] = repair_unit(points, polygons, units[i], topology, tolerance);
-        });
+        parallel_for_each(units.size(), [&](std::size_t i) { results[i] = repair_unit(points, triangles, units[i], topology, tolerance); });
         for (UnitResult &result : results) {
             if (!result.closed)
                 return false;
@@ -1128,67 +1111,78 @@ bool repair_soup(std::vector<Point> &points, std::vector<Triangle> &polygons, Me
             for (Mesh &shell : result.shells)
                 shells.emplace_back(std::move(shell));
         }
-        throw_on_cancel();
+        progress(60);
     }
 
-    // Shells are independent from here on. Hole filling closes stray flat patches into shells enclosing nothing.
-    std::vector<bool> flat(shells.size());
-    std::vector<std::size_t> pairs(shells.size(), 0);
-    tbb::parallel_for(tbb::blocked_range<std::size_t>(0, shells.size(), 1), [&](const tbb::blocked_range<std::size_t> &range) {
-        for (std::size_t i = range.begin(); i < range.end(); ++i)
-            if (!(flat[i] = std::abs(signed_volume(shells[i])) <= 0.1 * tolerance * PMP::area(shells[i])))
-                pairs[i] = remove_local_self_intersections(shells[i]);
+    // Shells are independent from here on. Hole filling and remeshing leave some that enclose nothing.
+    auto flat = [tolerance](const Mesh &shell) {
+        // Fewer than four faces are two triangles back to back, whose volumes need not cancel exactly.
+        return shell.number_of_faces() < 4 || std::abs(signed_volume(shell)) <= 0.1 * tolerance * PMP::area(shell);
+    };
+    std::vector<std::vector<Mesh>> pieces(shells.size());
+    std::vector<std::size_t> pairs(shells.size(), 0), removed(shells.size(), 0);
+    parallel_for_each(shells.size(), [&](std::size_t i) {
+        if (flat(shells[i]))
+            removed[i] = 1;
+        else if ((pairs[i] = remove_local_self_intersections(shells[i])) == 0)
+            pieces[i].emplace_back(std::move(shells[i]));
+        else
+            for (Mesh &piece : split_shells(shells[i]))
+                if (flat(piece))
+                    ++removed[i];
+                else
+                    pieces[i].emplace_back(std::move(piece));
     });
-    stats.removed_shells += std::count(flat.begin(), flat.end(), true);
+    stats.removed_shells += std::accumulate(removed.begin(), removed.end(), std::size_t(0));
     stats.self_intersections += std::accumulate(pairs.begin(), pairs.end(), std::size_t(0));
-    erase_marked(shells, flat);
-    throw_on_cancel();
-    resolve_shells(shells, stats, throw_on_cancel);
+    shells.clear();
+    for (std::vector<Mesh> &shell_pieces : pieces)
+        std::move(shell_pieces.begin(), shell_pieces.end(), std::back_inserter(shells));
+    progress(90);
+    resolve_shells(shells, stats, progress);
 
     stats.modified = stats.modified || stats.removed_shells > 0 || stats.reversed_shells > 0 || stats.self_intersections > 0;
-    out.clear();
-    for (const Mesh &s : shells)
-        out.join(s);
-    return !out.is_empty();
+    return !shells.empty();
 }
 
 // Repairs its into result, which is left empty when the input needs no change.
-bool repair_its(const indexed_triangle_set &its, indexed_triangle_set &result, MeshRepairStats &stats, const std::function<void()> &throw_on_cancel)
+bool repair_its(const indexed_triangle_set &its, indexed_triangle_set &result, MeshRepairStats &stats, const std::function<void(int)> &progress)
 {
     std::vector<Point> points;
     points.reserve(its.vertices.size());
     for (const stl_vertex &v : its.vertices)
         points.emplace_back(v.x(), v.y(), v.z());
-    std::vector<Triangle> polygons;
-    polygons.reserve(its.indices.size());
+    std::vector<Triangle> triangles;
+    triangles.reserve(its.indices.size());
     for (const stl_triangle_vertex_indices &f : its.indices)
         if (its.vertices[f[0]].allFinite() && its.vertices[f[1]].allFinite() && its.vertices[f[2]].allFinite())
-            polygons.push_back({std::size_t(f[0]), std::size_t(f[1]), std::size_t(f[2])});
-    const bool dropped = polygons.size() != its.indices.size();
+            triangles.push_back({std::size_t(f[0]), std::size_t(f[1]), std::size_t(f[2])});
+    const bool dropped = triangles.size() != its.indices.size();
 
-    Mesh out;
-    const bool ok = repair_soup(points, polygons, out, stats, throw_on_cancel);
+    std::vector<Mesh> shells;
+    const bool ok = repair_soup(points, triangles, shells, stats, progress);
     stats.modified = stats.modified || dropped;
     if (!ok || !stats.modified)
         return ok;
 
-    out.collect_garbage();
-    result.vertices.reserve(out.number_of_vertices());
-    for (Vertex v : out.vertices()) {
-        const Point &p = out.point(v);
-        result.vertices.emplace_back(float(p.x()), float(p.y()), float(p.z()));
-    }
-    result.indices.reserve(out.number_of_faces());
-    for (Face f : out.faces()) {
-        const Halfedge h = out.halfedge(f);
-        result.indices.emplace_back(int(out.source(h)), int(out.target(h)), int(out.target(out.next(h))));
+    for (Mesh &shell : shells) {
+        shell.collect_garbage();
+        const int offset = int(result.vertices.size());
+        for (Vertex v : shell.vertices()) {
+            const Point &p = shell.point(v);
+            result.vertices.emplace_back(float(p.x()), float(p.y()), float(p.z()));
+        }
+        for (Face f : shell.faces()) {
+            const Halfedge h = shell.halfedge(f);
+            result.indices.emplace_back(offset + int(shell.source(h)), offset + int(shell.target(h)), offset + int(shell.target(shell.next(h))));
+        }
     }
     return true;
 }
 
 } // namespace
 
-bool repair_mesh(TriangleMesh &mesh, MeshRepairStats *stats_out, std::string *error, const std::function<void()> &throw_on_cancel)
+bool repair_mesh(TriangleMesh &mesh, MeshRepairStats *stats_out, std::string *error, const std::function<void(int)> &progress)
 {
     if (mesh.its.indices.empty())
         return true;
@@ -1197,7 +1191,7 @@ bool repair_mesh(TriangleMesh &mesh, MeshRepairStats *stats_out, std::string *er
     indexed_triangle_set result;
     bool                 ok = false;
     try {
-        ok = repair_its(mesh.its, result, stats, throw_on_cancel ? throw_on_cancel : [] {});
+        ok = repair_its(mesh.its, result, stats, progress ? progress : [](int) {});
     } catch (const CGAL::Failure_exception &ex) {
         if (error)
             *error = ex.what();

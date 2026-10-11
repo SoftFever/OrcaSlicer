@@ -2447,7 +2447,7 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
         struct Canceled {};
         TriangleMesh tm(mesh);
         try {
-            if (!repair_mesh(tm, nullptr, error_message, [&cancel_callback] {
+            if (!repair_mesh(tm, nullptr, error_message, [&cancel_callback](int) {
                     if (cancel_callback && cancel_callback())
                         throw Canceled();
                 }))

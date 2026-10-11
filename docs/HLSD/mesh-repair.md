@@ -10,7 +10,8 @@ built on CGAL and is the only repair the application has, on every platform.
 
 `repair_mesh()` in `src/libslic3r/MeshRepair.cpp` does the work on one `TriangleMesh`. The GUI side,
 `fix_model_with_cgal_gui()` in `src/slic3r/Utils/FixModelByCgal.cpp`, runs it on a worker thread for each volume
-of an object, or for one volume, behind a progress dialog that can cancel it between stages.
+of an object, or for one volume, behind a progress dialog. `repair_mesh()` reports its progress between stages
+through a callback, which cancels the repair by throwing.
 
 ## What the repaired mesh is
 
@@ -84,8 +85,10 @@ region, such as a missing annulus at the end of a tube or a cap with features st
 triangulated at once with a 2D constrained Delaunay triangulation that fills only the faces at odd nesting depth,
 so the openings inside the region stay open. The patch is used only if it closes every loop with the orientation
 of the triangles around it. Every other loop is filled on its own with `triangulate_hole()`, which uses a 2D
-constrained Delaunay triangulation when the loop is planar; its exhaustive cubic fallback is skipped for loops of
-more than 200 edges, and a fan around the loop's centroid closes a loop nothing else could.
+constrained Delaunay triangulation when the loop is planar. Otherwise it searches the best triangulation among all
+triangles over the loop for loops of up to 100 edges, and among the triangles of a 3D Delaunay triangulation for
+longer ones, as the full search is cubic in the length of the loop. Beyond 200 edges the full search is not even
+used as a fallback, and a fan around the loop's centroid closes a loop nothing else could.
 
 The closed unit is split into its shells. The largest stays in place and the others are copied out, as converting
 the whole mesh again costs seconds on large models.
@@ -99,7 +102,8 @@ Self-intersections inside a shell are removed locally with `experimental::remove
 remeshes the region around them. It is used only for local defects: a shell whose intersections involve more than
 5 % of its faces is left as it is, and a result that changes the enclosed volume by more than 0.1 % is undone. On
 heavily overlapping ornamental models the remeshing otherwise cuts parts down to slivers, while on genuine defects
-it changes the volume by thousandths of a percent. Overlaps left in place slice correctly.
+it changes the volume by thousandths of a percent. Overlaps left in place slice correctly. Remeshing can cut
+small pieces off a shell, so a shell it changed is split again and its pieces enclosing no volume are dropped.
 
 Shells crossing others are found through their bounding boxes and an AABB tree per shell, and are made outward
 oriented solids. For every other shell the winding number just outside it is summed from the orientation of the
@@ -119,7 +123,10 @@ as every mesh in the application is.
 The result does not depend on thread scheduling. `libslic3r_cgal` is built with `CGAL_LINKED_WITH_TBB`. Units and
 shells are processed in parallel, but each on its own data, and their results are gathered in a fixed order;
 sorts compare complete keys, and the detected self-intersections are put in order before they are used. Snapping
-stays sequential, as its parallel version gives different results from run to run.
+stays sequential, as its parallel version gives different results from run to run. Holes are filled with the full
+search wherever it is affordable, because the search among Delaunay triangles can choose between equally good fills
+differently from run to run, so only non-planar holes of more than 100 edges may still vary. On some inputs
+`experimental::remove_self_intersections()` itself places a few vertices differently from run to run.
 
 ## Verification
 

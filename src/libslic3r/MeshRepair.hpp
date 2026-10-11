@@ -20,8 +20,9 @@ struct MeshRepairStats
     bool        modified           = false;
 };
 
-// Returns false, leaving the mesh untouched, if no solid can be built. See docs/HLSD/mesh-repair.md.
+// Returns false, leaving the mesh untouched, if no solid can be built. progress gets the percentage done and may
+// throw to cancel. See docs/HLSD/mesh-repair.md.
 bool repair_mesh(TriangleMesh &mesh, MeshRepairStats *stats = nullptr, std::string *error = nullptr,
-                 const std::function<void()> &throw_on_cancel = {});
+                 const std::function<void(int)> &progress = {});
 
 } // namespace Slic3r

@@ -69,19 +69,21 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
 
     auto worker_thread = std::thread([&]() {
         set_current_thread_name("cgal_fix_model");
-        const auto throw_on_cancel = [&canceled] {
-            if (canceled)
-                throw RepairCanceledException();
-        };
         try {
             for (std::size_t i = 0; i < volumes.size(); ++i) {
-                ModelVolume *volume = volumes[i];
-                on_progress(volumes.size() > 1 ? volume->name : std::string(), int(100 * i / volumes.size()));
+                ModelVolume      *volume = volumes[i];
+                const std::string name   = volumes.size() > 1 ? volume->name : std::string();
+                const auto        report = [&](int percent) {
+                    if (canceled)
+                        throw RepairCanceledException();
+                    on_progress(name, int((100 * i + std::size_t(percent)) / volumes.size()));
+                };
+                report(0);
 
                 TriangleMesh    mesh = volume->mesh();
                 MeshRepairStats stats;
                 std::string     error;
-                if (!repair_mesh(mesh, &stats, &error, throw_on_cancel)) {
+                if (!repair_mesh(mesh, &stats, &error, report)) {
                     errors += (errors.empty() ? "" : "\n") + (volumes.size() > 1 ? volume->name + ": " : std::string()) + error;
                     continue;
                 }
@@ -95,12 +97,13 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
                 volume->set_new_unique_id();
                 volume->restore_painting(saved_painting);
             }
-            model_object.invalidate_bounding_box();
         } catch (const RepairCanceledException &) {
             canceled = true;
         } catch (const std::exception &ex) {
             errors += (errors.empty() ? "" : "\n") + std::string(ex.what());
         }
+        // Volumes repaired before a cancel or an error keep their new mesh.
+        model_object.invalidate_bounding_box();
         finished = true;
         on_progress(_u8L("Repair finished"), 100);
     });
