@@ -476,6 +476,8 @@ static t_config_enum_values s_keys_map_SeamPosition {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SeamPosition)
 
+
+
 // Orca
 static t_config_enum_values s_keys_map_SeamScarfType{
     { "none",           int(SeamScarfType::None) },
@@ -7208,6 +7210,79 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Close holes"));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SlicingMode>(SlicingMode::Regular));
+
+    def = this->add("enable_z_pins", coBool);
+    def->label = L("Enable Z-pinning");
+    def->tooltip = L("Periodically deposit small filament slugs (\"Z-pins\") through the infill to mechanically interlock adjacent layers. "
+                     "Z-pinning significantly improves Z-direction (inter-layer) tensile and shear strength without requiring exotic materials. "
+                     "Based on research by Duty et al. (Oak Ridge National Laboratory, 2019) — see OSTI biblio/1808415.\n"
+                     "On a modifier mesh, setting this to OFF suppresses Z-pins inside that region.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("z_pin_spacing", coFloat);
+    def->label = L("Z-pin spacing");
+    def->tooltip = L("Minimum center-to-center distance between simultaneously active Z-pins (mm). "
+                     "The Bridson scheduler places pins with at least this spacing, using graph coloring to stagger expiration. "
+                     "Must be >= pin diameter. Smaller spacing increases density; larger spacing spreads pins apart. "
+                     "Duty et al. (ORNL 2019, OSTI biblio/1808415) found that spacing relative to pin diameter governs load-bearing area.");
+    def->sidetext = L("mm");
+    def->min = 1.0;
+    def->set_default_value(new ConfigOptionFloat(3.0));
+
+    def = this->add("z_pin_depth", coInt);
+    def->label = L("Z-pin depth");
+    def->tooltip = L("Number of layers spanned by each Z-pin. A pin is deposited every N layers and fills the void accumulated over those layers. "
+                     "Greater depth concentrates more material per pin, improving pull-out resistance; shallower depth yields more frequent, smaller pins. "
+                     "Duty et al. (ORNL 2019, OSTI biblio/1808415) demonstrated that pin aspect ratio (depth/diameter) is a key strength driver.");
+    def->sidetext = L("layers");
+    def->min = 2;
+    def->max = 30;
+    def->set_default_value(new ConfigOptionInt(5));
+
+    def = this->add("z_pin_diameter", coFloat);
+    def->label = L("Z-pin diameter");
+    def->tooltip = L("Nominal diameter of each Z-pin void and deposited slug (mm). "
+                     "Should be at least 2× the nozzle diameter to ensure reliable filling. "
+                     "Larger diameters produce stronger pins but displace more infill and may leave visible surface artifacts. "
+                     "See Duty et al. (ORNL 2019, OSTI biblio/1808415) for pin geometry guidelines.");
+    def->sidetext = L("mm");
+    def->min = 0.4;
+    def->set_default_value(new ConfigOptionFloat(1.1));
+
+    def = this->add("z_pin_fill_pct", coFloat);
+    def->label = L("Z-pin fill percentage");
+    def->tooltip = L("How much of the calculated Z-pin void volume to fill with material, expressed as a percentage. "
+                     "100% fills the void exactly. Values above 100% (e.g., 110%) slightly overfill to ensure complete bonding with the void walls. "
+                     "Increase toward 120% if pins show gaps or pull-out strength is low; decrease if excess material bleeds into surrounding infill. "
+                     "Reference: Duty et al. (ORNL 2019, OSTI biblio/1808415).");
+    def->sidetext = L("%");
+    def->min = 10.0;
+    def->max = 200.0;
+    def->set_default_value(new ConfigOptionFloat(80.0));
+
+    def = this->add("z_pin_feedrate", coFloat);
+    def->label = L("Z-pin feedrate");
+    def->tooltip = L("Print speed used when depositing Z-pin material (mm/s). "
+                     "Slow speeds (5–15 mm/s) give the molten filament more time to bond with the void walls, improving inter-layer adhesion. "
+                     "Excessively slow speeds may cause heat-soak in thin sections. "
+                     "Duty et al. (ORNL 2019, OSTI biblio/1808415) used low-speed deposition to maximize bonding.");
+    def->sidetext = L("mm/s");
+    def->min = 1.0;
+    def->set_default_value(new ConfigOptionFloat(8.0));
+
+    def = this->add("z_pin_style", coEnum);
+    def->label = L("Z-pin fill style");
+    def->tooltip = L("Pattern used to deposit material inside the Z-pin void.\n"
+                     "Stationary: extrudes the full slug volume at the pin center — simple but may under-fill edges.\n"
+                     "Spiral: deposits material at four radial arms around the center, improving void-wall contact and pull-out strength. "
+                     "Duty et al. (ORNL 2019, OSTI biblio/1808415) suggest maximizing contact area with the void wall for best results.");
+    def->enum_keys_map = &ConfigOptionEnum<ZPinStyle>::get_enum_values();
+    def->enum_values.push_back("stationary");
+    def->enum_values.push_back("spiral");
+    def->enum_labels.push_back(L("Stationary"));
+    def->enum_labels.push_back(L("Spiral"));
+    def->set_default_value(new ConfigOptionEnum<ZPinStyle>(ZPinStyle::Spiral));
 
     def = this->add("z_offset", coFloat);
     def->label = L("Z offset");

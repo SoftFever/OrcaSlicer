@@ -1985,7 +1985,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", i=%1%, key=%2%")%i %new_changed_keys[i];
         }
-
         update_apply_status(false);
 
         // The following call may stop the background processing.

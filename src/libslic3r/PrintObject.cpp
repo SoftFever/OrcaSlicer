@@ -33,6 +33,7 @@
 #include "Fill/Fill.hpp"
 #include "Fill/FillLightning.hpp"
 #include "Fill/FillTpmsAdaptive.hpp"
+#include "Fill/FillZPin.hpp"
 #include "format.hpp"
 #include "AABBTreeIndirect.hpp"
 #include "AABBTreeLines.hpp"
@@ -60,6 +61,7 @@
 #include <math.h>
 #include <mutex>
 #include <set>
+#include <shared_mutex>
 #include <optional>
 #include <ratio>
 #include <string>
@@ -194,13 +196,49 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
 std::vector<std::reference_wrapper<const PrintRegion>> PrintObject::all_regions() const
 {
     std::vector<std::reference_wrapper<const PrintRegion>> out;
-    if(!m_shared_regions)
+    // Prefer the layer-based path: m_shared_regions->all_regions can be
+    // reallocated by apply() while the slicing pipeline is reading it, but
+    // m_layers[0]->m_regions is only written during layer setup and is safe.
+    if (!m_layers.empty()) {
+        out.reserve(m_layers[0]->m_regions.size());
+        for (const LayerRegion *lr : m_layers[0]->m_regions)
+            out.emplace_back(lr->region());
         return out;
-        
+    }
+    if (!m_shared_regions)
+        return out;
     out.reserve(m_shared_regions->all_regions.size());
     for (const std::unique_ptr<Slic3r::PrintRegion> &region : m_shared_regions->all_regions)
         out.emplace_back(*region.get());
     return out;
+}
+
+size_t PrintObject::num_printing_regions() const throw()
+{
+    // Use the layer's region count as the authoritative source.
+    // m_shared_regions->all_regions can become corrupted when apply() runs
+    // concurrently with the slicing pipeline, but m_layers[0]->m_regions is
+    // only ever written during layer setup (make_layers / slice_volumes) and
+    // never touched by apply(), so it is always safe to read here.
+    if (!m_layers.empty())
+        return m_layers[0]->m_regions.size();
+    // Fall back to all_regions only if there are no layers yet (shouldn't
+    // happen during prepare_infill, but keeps the pre-pipeline call sites safe).
+    return m_shared_regions ? m_shared_regions->all_regions.size() : 0;
+}
+
+const PrintRegion& PrintObject::printing_region(size_t idx) const throw()
+{
+    // Go through the LayerRegion's cached pointer rather than through
+    // m_shared_regions->all_regions, whose vector metadata can be corrupted
+    // when apply() modifies m_shared_regions concurrently.  The underlying
+    // PrintRegion objects are heap-allocated and remain alive as long as
+    // m_shared_regions owns them; LayerRegion::m_region is a stable raw
+    // pointer to the same objects and is never touched by apply().
+    if (!m_layers.empty() && idx < m_layers[0]->m_regions.size())
+        return m_layers[0]->m_regions[idx]->region();
+    // Fallback for call sites before layers exist (e.g. early validation).
+    return *m_shared_regions->all_regions[idx].get();
 }
 
 Polygons create_polyholes(const Point center, const coord_t radius, const coord_t nozzle_diameter, bool multiple, int max_edges)
@@ -502,6 +540,29 @@ void PrintObject::make_perimeters()
     // prerequisites
     this->slice();
 
+    // Z-Pinning: compute hex grid (geometry only, no scheduling yet).
+    // Scheduling is deferred to prepare_infill() after surface types are
+    // classified, so the scheduler can avoid placing voids on top/bottom
+    // shell layers where they cannot be subtracted.
+    if (m_config.enable_z_pins.value) {
+        // Use the raw bounding box but center it at origin to match the
+        // object coordinate space used by lslices and fill_surfaces.
+        // raw_bounding_box() returns model-space coords without translation,
+        // but the object's slicing centers the mesh at the origin.
+        BoundingBoxf3 bb = this->model_object()->raw_bounding_box();
+        Vec3d center = bb.center();
+        bb.min -= center;
+        bb.max -= center;
+        double diameter = m_config.z_pin_diameter.value;
+        double spacing  = m_config.z_pin_spacing.value;
+        if (spacing < diameter) spacing = diameter;
+
+        m_z_pin_grid = FillZPin::compute_hex_grid(bb, diameter);
+        m_z_pin_grid.depth   = m_config.z_pin_depth.value;
+        m_z_pin_grid.spacing = spacing;
+        m_z_pin_grid.style   = m_config.z_pin_style.value;
+    }
+
     if (! this->set_started(posPerimeters))
         return;
 
@@ -524,69 +585,7 @@ void PrintObject::make_perimeters()
     // but we don't generate any extra perimeter if fill density is zero, as they would be floating
     // inside the object - infill_only_where_needed should be the method of choice for printing
     // hollow objects
-    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
-        const PrintRegion &region = this->printing_region(region_id);
-        //BBS: remove extra_perimeters, always false
-        //if (! region.config().extra_perimeters || region.config().wall_loops == 0 || region.config().sparse_infill_density == 0 || this->layer_count() < 2)
-            continue;
-
-        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
-        tbb::parallel_for(
-            tbb::blocked_range<size_t>(0, m_layers.size() - 1),
-            [this, &region, region_id](const tbb::blocked_range<size_t>& range) {
-                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
-                    m_print->throw_if_canceled();
-                    LayerRegion &layerm                     = *m_layers[layer_idx]->get_region(region_id);
-                    const LayerRegion &upper_layerm         = *m_layers[layer_idx+1]->get_region(region_id);
-                    const Polygons upper_layerm_polygons    = to_polygons(upper_layerm.slices.surfaces);
-                    // Filter upper layer polygons in intersection_ppl by their bounding boxes?
-                    // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
-                    const double total_loop_length      = total_length(upper_layerm_polygons);
-                    const coord_t perimeter_spacing     = layerm.flow(frPerimeter).scaled_spacing();
-                    const Flow ext_perimeter_flow       = layerm.flow(frExternalPerimeter);
-                    const coord_t ext_perimeter_width   = ext_perimeter_flow.scaled_width();
-                    const coord_t ext_perimeter_spacing = ext_perimeter_flow.scaled_spacing();
-
-                    for (Surface &slice : layerm.slices.surfaces) {
-                        for (;;) {
-                            // compute the total thickness of perimeters
-                            const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
-                                + (region.config().wall_loops-1 + slice.extra_perimeters) * perimeter_spacing;
-                            // define a critical area where we don't want the upper slice to fall into
-                            // (it should either lay over our perimeters or outside this area)
-                            const coord_t critical_area_depth = coord_t(perimeter_spacing * 1.5);
-                            const Polygons critical_area = diff(
-                                offset(slice.expolygon, float(- perimeters_thickness)),
-                                offset(slice.expolygon, float(- perimeters_thickness - critical_area_depth))
-                            );
-                            // check whether a portion of the upper slices falls inside the critical area
-                            const Polylines intersection = intersection_pl(to_polylines(upper_layerm_polygons), critical_area);
-                            // only add an additional loop if at least 30% of the slice loop would benefit from it
-                            if (total_length(intersection) <=  total_loop_length*0.3)
-                                break;
-                            /*
-                            if (0) {
-                                require "Slic3r/SVG.pm";
-                                Slic3r::SVG::output(
-                                    "extra.svg",
-                                    no_arrows   => 1,
-                                    expolygons  => union_ex($critical_area),
-                                    polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
-                                );
-                            }
-                            */
-                            ++ slice.extra_perimeters;
-                        }
-                        #ifdef DEBUG
-                            if (slice.extra_perimeters > 0)
-                                printf("  adding %d more perimeter(s) at layer %zu\n", slice.extra_perimeters, layer_idx);
-                        #endif
-                    }
-                }
-            });
-        m_print->throw_if_canceled();
-        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end";
-    }
+    // BBS: extra_perimeters feature removed; loop above was dead code (always continued).
 
     BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
     tbb::parallel_for(
@@ -636,7 +635,6 @@ void PrintObject::prepare_infill()
             region->prepare_fill_surfaces();
             m_print->throw_if_canceled();
         }
-
 
     // Add solid fills to ensure the shell vertical thickness.
     this->discover_vertical_shells();
@@ -772,6 +770,93 @@ void PrintObject::prepare_infill()
     // combine fill surfaces to honor the "infill every N layers" option
     this->combine_infill();
     m_print->throw_if_canceled();
+
+    // Z-Pinning: run Bridson scheduler now that surface types are classified.
+    // The scheduler checks fill_surfaces to avoid placing voids on top/bottom
+    // shell layers where void subtraction cannot operate.
+    if (m_config.enable_z_pins.value &&
+        !m_z_pin_grid.centres.empty() && m_z_pin_grid.depth > 0) {
+        FillZPin::schedule_all_layers(
+            m_layers, m_z_pin_grid, m_config,
+            this->print()->default_region_config(),
+            m_z_pin_schedule, m_z_pin_void_indices);
+    }
+    m_print->throw_if_canceled();
+
+    // Z-Pinning: subtract void circles from internal fill surfaces for active pins
+    if (m_config.enable_z_pins.value && !m_z_pin_void_indices.empty()) {
+        for (size_t lid = 0; lid < m_layers.size(); ++lid) {
+            if (lid >= m_z_pin_void_indices.size()) break;
+            const auto& indices = m_z_pin_void_indices[lid];
+            if (indices.empty()) continue;
+
+            Layer* layer = m_layers[lid];
+            ExPolygons voids = FillZPin::void_polygons_for_indices(
+                m_z_pin_grid, indices, layer->lslices);
+            if (voids.empty()) continue;
+
+            // Expand voids by half a line width so the fill system's internal
+            // offsets and gap fill don't place extrusions inside the void.
+            // The pin extrusion volume is calculated from the nominal void
+            // diameter (z_pin_diameter), not this expanded version.
+            const coordf_t fill_margin = scaled<coordf_t>(
+                this->print()->default_region_config().outer_wall_line_width.value > 0
+                ? this->print()->default_region_config().outer_wall_line_width.value * 0.6
+                : 0.25);
+            ExPolygons expanded_voids;
+            try {
+                expanded_voids = offset_ex(voids, fill_margin);
+            } catch (...) {
+                expanded_voids = voids;
+            }
+
+            for (LayerRegion* region : layer->m_regions) {
+                Surfaces new_surfaces;
+                for (const Surface& surf : region->fill_surfaces.surfaces) {
+                    // Only subtract voids from internal fill types.
+                    if (surf.surface_type != stInternal &&
+                        surf.surface_type != stInternalSolid &&
+                        surf.surface_type != stInternalVoid) {
+                        new_surfaces.push_back(surf);
+                        continue;
+                    }
+                    if (std::abs(surf.expolygon.area()) < scaled<double>(0.01) * scaled<double>(1.0)) {
+                        new_surfaces.push_back(surf);
+                        continue;
+                    }
+                    ExPolygons remaining;
+                    try {
+                        remaining = diff_ex(ExPolygons{surf.expolygon}, expanded_voids);
+                    } catch (...) {
+                        new_surfaces.push_back(surf);
+                        continue;
+                    }
+                    for (ExPolygon& ep : remaining) {
+                        if (std::abs(ep.area()) < scaled<double>(0.01) * scaled<double>(1.0))
+                            continue;
+                        new_surfaces.emplace_back(surf, std::move(ep));
+                    }
+                }
+                region->fill_surfaces.surfaces = std::move(new_surfaces);
+
+                // Also subtract from fill_no_overlap_expolygons (gap fill boundary)
+                // and fill_expolygons (used as fill region reference).
+                if (!region->fill_no_overlap_expolygons.empty()) {
+                    try {
+                        region->fill_no_overlap_expolygons =
+                            diff_ex(region->fill_no_overlap_expolygons, expanded_voids);
+                    } catch (...) {}
+                }
+                if (!region->fill_expolygons.empty()) {
+                    try {
+                        region->fill_expolygons =
+                            diff_ex(region->fill_expolygons, expanded_voids);
+                    } catch (...) {}
+                }
+            }
+            m_print->throw_if_canceled();
+        }
+    }
 
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
@@ -910,11 +995,14 @@ static const float g_min_overhang_percent_for_lift = 0.3f;
 void PrintObject::detect_overhangs_for_lift()
 {
     if (this->set_started(posDetectOverhangsForLift)) {
+        // Hold a shared lock so clear_layers() can't free layers under us.
+        std::shared_lock<std::shared_mutex> layers_lk(m_layers_mutex);
+
         const double nozzle_diameter = m_print->config().nozzle_diameter.get_at(0);
         const coordf_t line_width = this->config().get_abs_value("line_width", nozzle_diameter);
 
         const float min_overlap = line_width * g_min_overhang_percent_for_lift;
-        size_t num_layers = this->layer_count();
+        size_t num_layers = m_layers.size();   // safe: held shared lock above
         size_t num_raft_layers = m_slicing_params.raft_layers();
 
         m_print->set_status(71, L("Detect overhangs for auto-lift"));
@@ -926,12 +1014,16 @@ void PrintObject::detect_overhangs_for_lift()
             [this, min_overlap, line_width](const tbb::blocked_range<size_t>& range)
             {
                 for (size_t layer_id = range.begin(); layer_id < range.end(); ++layer_id) {
-                    Layer& layer = *m_layers[layer_id];
-                    Layer& lower_layer = *layer.lower_layer;
-
-                    ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
-                    layer.loverhangs = offset2_ex(overhangs, -0.1f * scale_(line_width), 0.1f * scale_(line_width));
-                    layer.loverhangs_bbox = get_extents(layer.loverhangs);
+                    if (m_print->canceled()) return;
+                    try {
+                        Layer& layer = *m_layers.at(layer_id);
+                        Layer& lower_layer = *layer.lower_layer;
+                        ExPolygons overhangs = diff_ex(layer.lslices, offset_ex(lower_layer.lslices, scale_(min_overlap)));
+                        layer.loverhangs = offset2_ex(overhangs, -0.1f * scale_(line_width), 0.1f * scale_(line_width));
+                        layer.loverhangs_bbox = get_extents(layer.loverhangs);
+                    } catch (const std::out_of_range&) {
+                        return; // apply() resized m_layers; cancel will clean up.
+                    }
                 }
             });
 
@@ -974,6 +1066,49 @@ void PrintObject::generate_support_material(bool with_belt_brim)
                 if (layer->empty())
                     throw Slic3r::SlicingError("Levitating objects cannot be printed without supports.");
 #endif
+        }
+
+        // Acquire shared lock for the entire support-generation workflow.
+        // Prevents clear_layers()/assign_layers() from freeing Layer objects
+        // while detect_overhangs() reads them inside TBB parallel_fors.
+        std::shared_lock<std::shared_mutex> layers_lk(m_layers_mutex);
+
+        // Sanity check: bail if layer count is implausible (corrupt vector metadata).
+        {
+            constexpr uint64_t GUARD_VAL = 0xDEADC0DEDEADC0DEULL;
+            static const size_t MAX_SANE_LAYERS = 500000;
+            bool guard_ok = (m_slicing_params_guard[0] == GUARD_VAL &&
+                             m_slicing_params_guard[1] == GUARD_VAL &&
+                             m_slicing_params_guard[2] == GUARD_VAL);
+            if (!guard_ok) {
+                BOOST_LOG_TRIVIAL(error) << "generate_support_material: m_slicing_params_guard overwritten! "
+                    << std::hex << m_slicing_params_guard[0] << " "
+                    << m_slicing_params_guard[1] << " "
+                    << m_slicing_params_guard[2] << std::dec
+                    << " — m_layers may be corrupt";
+            }
+            if (m_layers.size() > MAX_SANE_LAYERS) {
+                BOOST_LOG_TRIVIAL(error) << "generate_support_material: m_layers.size()="
+                    << m_layers.size() << " is implausible (guard "
+                    << (guard_ok ? "intact" : "OVERWRITTEN") << "), aborting support generation";
+                this->set_done(posSupportMaterial);
+                return;
+            }
+        }
+
+        // Pre-compute shared layer fields sequentially to prevent data races.
+        // The outer TBB parallel_for in Print::process() runs generate_support_material()
+        // for multiple objects concurrently. Inner TBB parallel_fors in support generation
+        // write to shared Layer fields, so we initialize them here first.
+        for (size_t layer_idx = 0; layer_idx < m_layers.size(); ++layer_idx) {
+            Layer* layer = m_layers[layer_idx];
+            layer->lslices_extrudable.clear();
+            layer->loverhangs.clear();
+            layer->loverhangs_bbox = BoundingBox();
+            layer->sharp_tails.clear();
+            layer->sharp_tails_height.clear();
+            layer->cantilevers.clear();
+            m_print->throw_if_canceled();
         }
 
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && !m_layers.empty())) {
@@ -1284,6 +1419,7 @@ TpmsRadialFields PrintObject::prepare_tpms_radial_fields() const
 void PrintObject::clear_layers()
 {
     if (!m_shared_object) {
+        std::unique_lock<std::shared_mutex> lk(m_layers_mutex);
         for (Layer *l : m_layers)
             delete l;
         m_layers.clear();
@@ -1298,6 +1434,26 @@ void PrintObject::clear_layers()
             delete d.entity;
         m_belt_dropped_fills.clear();
     }
+}
+
+void PrintObject::assign_layers(LayerPtrs &&layers)
+{
+    std::unique_lock<std::shared_mutex> lk(m_layers_mutex);
+    m_layers = std::move(layers);
+}
+
+void PrintObject::trim_empty_top_layers()
+{
+    std::unique_lock<std::shared_mutex> lk(m_layers_mutex);
+    while (!m_layers.empty()) {
+        const Layer *layer = m_layers.back();
+        if (!layer->empty())
+            break;
+        delete layer;
+        m_layers.pop_back();
+    }
+    if (!m_layers.empty())
+        m_layers.back()->upper_layer = nullptr;
 }
 
 Layer* PrintObject::add_layer(int id, coordf_t height, coordf_t print_z, coordf_t slice_z)
@@ -1837,6 +1993,16 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "belt_purge_tower_object") {
             invalidated |= m_print->invalidate_step(psWipeTower);
             invalidated |= m_print->invalidate_step(psGCodeExport);
+        } else if (
+               opt_key == "enable_z_pins"
+            || opt_key == "z_pin_spacing"
+            || opt_key == "z_pin_depth"
+            || opt_key == "z_pin_diameter"
+            || opt_key == "z_pin_fill_pct"
+            || opt_key == "z_pin_feedrate"
+            || opt_key == "z_pin_style") {
+            steps.emplace_back(posPerimeters);
+            invalidated |= m_print->invalidate_step(psGCodeExport);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             this->invalidate_all_steps();
@@ -1918,7 +2084,7 @@ bool PrintObject::invalidate_all_steps()
 // If a part of a region is of stBottom and stTop, the stBottom wins.
 void PrintObject::detect_surfaces_type()
 {
-    BOOST_LOG_TRIVIAL(info) << "Detecting solid surfaces..." << log_memory_info();
+    BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces...";
 
     // Interface shells: the intersecting parts are treated as self standing objects supporting each other.
     // Each of the objects will have a full number of top / bottom layers, even if these top / bottom layers
@@ -1927,9 +2093,11 @@ void PrintObject::detect_surfaces_type()
     // should be visible.
     bool spiral_mode      = this->print()->config().spiral_mode.value;
     bool interface_shells = ! spiral_mode && m_config.interface_shells.value;
+    const size_t num_regions = this->num_printing_regions();
+    if (num_regions == 0) { m_print->throw_if_canceled(); return; }
     size_t num_layers     = spiral_mode ? std::min(size_t(this->printing_region(0).config().bottom_shell_layers), m_layers.size()) : m_layers.size();
 
-    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+    for (size_t region_id = 0; region_id < num_regions; ++ region_id) {
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " in parallel - start";
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (Layer *layer : m_layers)
@@ -1963,14 +2131,18 @@ void PrintObject::detect_surfaces_type()
                     bottom_is_fully_supported &= (m_config.support_interface_top_layers.value > 0 && m_config.max_bridge_length.value == 0 && m_config.support_critical_regions_only.value==false);
                 }
                 SurfaceType surface_type_bottom_other = bottom_is_fully_supported ? stBottom : stBottomBridge;
+                // Snapshot layer count to prevent OOB if apply() resizes m_layers concurrently.
+                const size_t nlay = m_layers.size();
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
-                    // BOOST_LOG_TRIVIAL(trace) << "Detecting solid surfaces for region " << region_id << " and layer " << layer->print_z;
+                    if (idx_layer >= nlay) return;
                     Layer       *layer  = m_layers[idx_layer];
+                    if (region_id >= layer->m_regions.size()) {
+                        m_print->throw_if_canceled();
+                        return;
+                    }
                     LayerRegion *layerm = layer->m_regions[region_id];
-                    // comparison happens against the *full* slices (considering all regions)
-                    // unless internal shells are requested
-                    Layer       *upper_layer = (idx_layer + 1 < this->layer_count()) ? m_layers[idx_layer + 1] : nullptr;
+                    Layer       *upper_layer = (idx_layer + 1 < nlay) ? m_layers[idx_layer + 1] : nullptr;
                     Layer       *lower_layer = (idx_layer > 0) ? m_layers[idx_layer - 1] : nullptr;
                     // collapse very narrow parts (using the safety offset in the diff is not enough)
                     const float offset = layerm->flow(frExternalPerimeter).scaled_width() / 10.f;
@@ -2215,6 +2387,11 @@ void PrintObject::detect_surfaces_type()
             tbb::parallel_for(tbb::blocked_range<size_t>(0, last), [this, region_id, &bridge_polys_per_layer](const tbb::blocked_range<size_t> &range) {
                 for (size_t i = range.begin(); i < range.end(); ++i) {
                     m_print->throw_if_canceled();
+                    // Guard: region count may change if apply() fires between throw_if_canceled and here.
+                    if (region_id >= m_layers[i]->m_regions.size() || region_id >= m_layers[i + 1]->m_regions.size()) {
+                        m_print->throw_if_canceled();
+                        return;
+                    }
                     const Surfaces &bot_surfs = m_layers[i]->m_regions[region_id]->slices.surfaces;
                     for (const Surface &sbot : bot_surfs) {
                         if (sbot.surface_type == stBottomBridge) {
@@ -2337,16 +2514,18 @@ void PrintObject::detect_surfaces_type()
                     }
                     top_surfs = std::move(new_surfaces);
                 }
-            }
-            );
+            },
+            tbb::simple_partitioner());
             // ==============================================================================================================
             // === ORCA: Interim workaround - for now the new stInternalAfterExternalBridge surfaace is re-classified  ==============
             // === back to a bottom bridge. As a starting point, this improves bridging reliability as it extrudes ==========
             // === two external bridge layers. However, TODO: Implement a new surface type throughout the codebase ==========
             // ==============================================================================================================
-            for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+            for (size_t region_id = 0; region_id < num_regions; ++region_id) {
                 tbb::parallel_for( tbb::blocked_range<size_t>(0, m_layers.size()), [this, region_id](const tbb::blocked_range<size_t> &range) {
                     for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer) {
+                        if (region_id >= m_layers[idx_layer]->m_regions.size())
+                            return;
                         Surfaces &surfs = m_layers[idx_layer]->m_regions[region_id]->slices.surfaces;
                         for (Surface &s : surfs) {
                             if (s.surface_type == stInternalAfterExternalBridge) {
@@ -2354,8 +2533,8 @@ void PrintObject::detect_surfaces_type()
                             }
                         }
                     }
-                }
-              );
+                },
+                tbb::simple_partitioner());
             }
         }
         // ==============================================================================================================
@@ -2369,6 +2548,10 @@ void PrintObject::detect_surfaces_type()
             [this, region_id](const tbb::blocked_range<size_t>& range) {
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
+                    if (region_id >= m_layers[idx_layer]->m_regions.size()) {
+                        m_print->throw_if_canceled();
+                        return;
+                    }
                     LayerRegion *layerm = m_layers[idx_layer]->m_regions[region_id];
                     layerm->slices_to_fill_surfaces_clipped();
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
@@ -2388,12 +2571,15 @@ void PrintObject::process_external_surfaces()
 {
     BOOST_LOG_TRIVIAL(info) << "Processing external surfaces..." << log_memory_info();
 
+    // Snapshot region count to prevent apply() from changing the loop bounds mid-execution.
+    const size_t num_regions = this->num_printing_regions();
+
     // Cached surfaces covered by some extrusion, defining regions, over which the from the surfaces one layer higher are allowed to expand.
     std::vector<Polygons> surfaces_covered;
     // Is there any printing region, that has zero infill? If so, then we don't want the expansion to be performed over the complete voids, but only
     // over voids, which are supported by the layer below.
     bool 				  has_voids = false;
-	for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id)
+	for (size_t region_id = 0; region_id < num_regions; ++ region_id)
 		if (this->printing_region(region_id).config().sparse_infill_density == 0) {
 			has_voids = true;
 			break;
@@ -2445,7 +2631,7 @@ void PrintObject::process_external_surfaces()
 	    BOOST_LOG_TRIVIAL(debug) << "Collecting surfaces covered with extrusions in parallel - end";
 	}
 
-	for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+	for (size_t region_id = 0; region_id < num_regions; ++region_id) {
         BOOST_LOG_TRIVIAL(debug) << "Processing external surfaces for region " << region_id << " in parallel - start";
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, m_layers.size()),
@@ -2480,9 +2666,11 @@ void PrintObject::discover_vertical_shells()
         Polygons    holes;
     };
     bool     spiral_mode      = this->print()->config().spiral_mode.value;
+    const size_t num_regions  = this->num_printing_regions();
+    if (num_regions == 0) { m_print->throw_if_canceled(); return; }
     size_t   num_layers       = spiral_mode ? std::min(size_t(this->printing_region(0).config().bottom_shell_layers), m_layers.size()) : m_layers.size();
     std::vector<DiscoverVerticalShellsCacheEntry> cache_top_botom_regions(num_layers, DiscoverVerticalShellsCacheEntry());
-    bool top_bottom_surfaces_all_regions = this->num_printing_regions() > 1 && ! m_config.interface_shells.value;
+    bool top_bottom_surfaces_all_regions = num_regions > 1 && ! m_config.interface_shells.value;
 //    static constexpr const float top_bottom_expansion_coeff = 1.05f;
     // Just a tiny fraction of an infill extrusion width to merge neighbor regions reliably.
     static constexpr const float top_bottom_expansion_coeff = 0.05f;
@@ -2491,7 +2679,7 @@ void PrintObject::discover_vertical_shells()
         // is calculated over all materials.
         // Is the "ensure vertical wall thickness" applicable to any region?
         bool has_extra_layers = false;
-        for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+        for (size_t region_id = 0; region_id < num_regions; ++region_id) {
             const PrintRegionConfig &config = this->printing_region(region_id).config();
             if (config.ensure_vertical_shell_thickness.value == evstAll) {
                 has_extra_layers = true;
@@ -2506,9 +2694,8 @@ void PrintObject::discover_vertical_shells()
         size_t grain_size = std::max(num_layers / 16, size_t(1));
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, num_layers, grain_size),
-            [this, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
+            [this, num_regions, &cache_top_botom_regions](const tbb::blocked_range<size_t>& range) {
                 const std::initializer_list<SurfaceType> surfaces_bottom { stBottom, stBottomBridge };
-                const size_t num_regions = this->num_printing_regions();
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
                     const Layer                      &layer = *m_layers[idx_layer];
@@ -2569,7 +2756,7 @@ void PrintObject::discover_vertical_shells()
         BOOST_LOG_TRIVIAL(debug) << "Discovering vertical shells in parallel - end : cache top / bottom";
     }
 
-    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
+    for (size_t region_id = 0; region_id < num_regions; ++ region_id) {
         const PrintRegion &region = this->printing_region(region_id);
         if (region.config().ensure_vertical_shell_thickness.value != evstAll )
             // This region will be handled by discover_horizontal_shells().
@@ -2624,6 +2811,10 @@ void PrintObject::discover_vertical_shells()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
                     Layer       	        *layer          = m_layers[idx_layer];
+                    if (region_id >= layer->m_regions.size()) {
+                        m_print->throw_if_canceled();
+                        return;
+                    }
                     LayerRegion 	        *layerm         = layer->m_regions[region_id];
                     const PrintRegionConfig &region_config  = layerm->region().config();
 
@@ -2928,6 +3119,21 @@ template<typename T> void debug_draw(std::string name, const T& a, const T& b, c
 // This method applies bridge flow to the first internal solid layer above sparse infill.
 void PrintObject::bridge_over_infill()
 {
+    // Sanity-check m_layers: pre-existing race where apply() on the main thread
+    // can free/replace the PrintObject while the background thread is here.
+    {
+        const size_t n = m_layers.size();
+        const Layer* const* p = m_layers.data();
+        if (n > 500000 || (n > 0 && ((uintptr_t)p < 0x4000000ULL || (uintptr_t)p > 0x7fffffffffffULL))) {
+            BOOST_LOG_TRIVIAL(error) << "bridge_over_infill: m_layers corrupt, skipping";
+            return;
+        }
+    }
+
+    // Snapshot m_layers so a concurrent apply() overwriting the vector metadata
+    // cannot produce a garbage pointer mid-function.
+    const LayerPtrs layers_snap(m_layers);
+
     BOOST_LOG_TRIVIAL(info) << "Bridge over infill - Start" << log_memory_info();
     struct CandidateSurface
     {
@@ -2963,10 +3169,10 @@ void PrintObject::bridge_over_infill()
     // SECTION to gather and filter surfaces for expanding, and then cluster them by layer
     {
         tbb::concurrent_vector<CandidateSurface> candidate_surfaces;
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = static_cast<const PrintObject *>(this), &candidate_surfaces](tbb::blocked_range<size_t> r) {
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, layers_snap.size()), [po = static_cast<const PrintObject *>(this), &candidate_surfaces, &layers_snap](tbb::blocked_range<size_t> r) {
             PRINT_OBJECT_TIME_LIMIT_MILLIS(PRINT_OBJECT_TIME_LIMIT_DEFAULT);
             for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
-                const Layer *layer = po->get_layer(lidx);
+                const Layer *layer = layers_snap[lidx];
                 if (layer->lower_layer == nullptr) {
                     continue;
                 }
@@ -3059,7 +3265,7 @@ void PrintObject::bridge_over_infill()
         // then a copy is created, modifiyed and passed to lightning infill generator. After generator is created, we restore the original state of the fills
         // again by moving the data from this map back to the layer regions. This ensures that pointers to surfaces stay valid.
         std::map<size_t, std::map<const LayerRegion *, SurfaceCollection>> backup_surfaces;
-        for (size_t lidx = 0; lidx < this->layer_count(); lidx++) {
+        for (size_t lidx = 0; lidx < layers_snap.size(); lidx++) {
             backup_surfaces[lidx] = {};
         }
 
@@ -3098,14 +3304,14 @@ void PrintObject::bridge_over_infill()
         // sole purpose of `lightning_fill` in the original code: a gate. Capture
         // it once into a per-layer bool, derived from the original (unmodified)
         // surfaces, so the gate is platform-independent and order-independent.
-        std::vector<char> needs_lightning_expansion(this->layers().size(), 0);
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = this, &surfaces_by_layer,
-                                                                                 &needs_lightning_expansion](tbb::blocked_range<size_t> r) {
+        std::vector<char> needs_lightning_expansion(layers_snap.size(), 0);
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, layers_snap.size()), [&surfaces_by_layer, &needs_lightning_expansion,
+                                                                              &layers_snap](tbb::blocked_range<size_t> r) {
             PRINT_OBJECT_TIME_LIMIT_MILLIS(PRINT_OBJECT_TIME_LIMIT_DEFAULT);
             for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
                 if (surfaces_by_layer.find(lidx) == surfaces_by_layer.end())
                     continue;
-                const Layer *layer = po->get_layer(lidx);
+                const Layer *layer = layers_snap[lidx];
                 const Layer *lower_layer = layer->lower_layer;
                 if (lower_layer == nullptr)
                     continue;
@@ -3123,15 +3329,14 @@ void PrintObject::bridge_over_infill()
         // fill_surfaces and never reads any other layer's surfaces. Different
         // iterations write to disjoint LayerRegion::fill_surfaces vectors, so
         // there is no aliasing between worker threads.
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = this, &backup_surfaces,
-                                                                                 &surfaces_by_layer,
-                                                                                 &needs_lightning_expansion](tbb::blocked_range<size_t> r) {
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, layers_snap.size()), [&backup_surfaces, &surfaces_by_layer,
+                                                                              &needs_lightning_expansion, &layers_snap](tbb::blocked_range<size_t> r) {
             PRINT_OBJECT_TIME_LIMIT_MILLIS(PRINT_OBJECT_TIME_LIMIT_DEFAULT);
             for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
                 if (! needs_lightning_expansion[lidx])
                     continue;
 
-                Layer *layer = po->get_layer(lidx);
+                Layer *layer = layers_snap[lidx];
 
                 for (LayerRegion *region : layer->regions()) {
                     backup_surfaces[lidx][region] = std::move(
@@ -3173,8 +3378,8 @@ void PrintObject::bridge_over_infill()
 
         // And now restore carefully the original surfaces, again using move to avoid reallocation and preserving the validity of the
         // pointers in surface candidates
-        for (size_t lidx = 0; lidx < this->layer_count(); lidx++) {
-            Layer *layer = this->get_layer(lidx);
+        for (size_t lidx = 0; lidx < layers_snap.size(); lidx++) {
+            Layer *layer = layers_snap[lidx];
             for (LayerRegion *region : layer->regions()) {
                 if (backup_surfaces[lidx].find(region) != backup_surfaces[lidx].end()) {
                     region->fill_surfaces = std::move(backup_surfaces[lidx][region]);
@@ -3205,12 +3410,12 @@ void PrintObject::bridge_over_infill()
 
         tbb::parallel_for(tbb::blocked_range<size_t>(0, layers_to_generate_infill.size()), [po = static_cast<const PrintObject *>(this),
                                                                                             &layers_to_generate_infill,
-                                                                                            &infill_lines](tbb::blocked_range<size_t> r) {
+                                                                                            &infill_lines, &layers_snap](tbb::blocked_range<size_t> r) {
             PRINT_OBJECT_TIME_LIMIT_MILLIS(PRINT_OBJECT_TIME_LIMIT_DEFAULT);
             for (size_t job_idx = r.begin(); job_idx < r.end(); job_idx++) {
                 size_t lidx = layers_to_generate_infill[job_idx];
                 infill_lines.at(
-                    lidx) = po->get_layer(lidx)->generate_sparse_infill_polylines_for_anchoring(&po->m_adaptive_fill_octrees,
+                    lidx) = layers_snap[lidx]->generate_sparse_infill_polylines_for_anchoring(&po->m_adaptive_fill_octrees,
                                                                                                 po->m_lightning_generator.get());
             }
         });
@@ -3251,9 +3456,9 @@ void PrintObject::bridge_over_infill()
         // note: surfaces_by_layer is ordered map
         for (auto pair : surfaces_by_layer) {
             if (clustered_layers_for_threads.empty() ||
-                this->get_layer(clustered_layers_for_threads.back().back())->print_z <
-                    this->get_layer(pair.first)->print_z -
-                        this->get_layer(pair.first)->regions()[0]->bridging_flow(frSolidInfill, true).height() * target_flow_height_factor -
+                layers_snap[clustered_layers_for_threads.back().back()]->print_z <
+                    layers_snap[pair.first]->print_z -
+                        layers_snap[pair.first]->regions()[0]->bridging_flow(frSolidInfill, true).height() * target_flow_height_factor -
                         EPSILON ||
                 intersection(layer_area_covered_by_candidates[clustered_layers_for_threads.back().back()],
                              layer_area_covered_by_candidates[pair.first])
@@ -3277,14 +3482,14 @@ void PrintObject::bridge_over_infill()
     }
 
     // LAMBDA to gather areas with sparse infill deep enough that we can fit thick bridges there.
-    auto gather_areas_w_depth = [target_flow_height_factor](const PrintObject *po, int lidx, float target_flow_height) {
+    auto gather_areas_w_depth = [target_flow_height_factor, &layers_snap](const PrintObject *po, int lidx, float target_flow_height) {
         // Gather layers sparse infill areas, to depth defined by used bridge flow
         ExPolygons layers_sparse_infill{};
         ExPolygons not_sparse_infill{};
-        double   bottom_z = po->get_layer(lidx)->print_z - target_flow_height * target_flow_height_factor - EPSILON;
+        double   bottom_z = layers_snap[lidx]->print_z - target_flow_height * target_flow_height_factor - EPSILON;
         for (int i = int(lidx) - 1; i >= 0; --i) {
             // Stop iterating if layer is lower than bottom_z and at least one iteration was made
-            const Layer *layer = po->get_layer(i);
+            const Layer *layer = layers_snap[i];
             if (layer->print_z < bottom_z && i < int(lidx) - 1)
                 break;
 
@@ -3571,13 +3776,13 @@ void PrintObject::bridge_over_infill()
                                                                                            &clustered_layers_for_threads,
                                                                                            gather_areas_w_depth, &infill_lines,
                                                                                            determine_bridging_angle,
-                                                                                           construct_anchored_polygon](
+                                                                                           construct_anchored_polygon, &layers_snap](
                                                                                               tbb::blocked_range<size_t> r) {
         PRINT_OBJECT_TIME_LIMIT_MILLIS(PRINT_OBJECT_TIME_LIMIT_DEFAULT);
         for (size_t cluster_idx = r.begin(); cluster_idx < r.end(); cluster_idx++) {
             for (size_t job_idx = 0; job_idx < clustered_layers_for_threads[cluster_idx].size(); job_idx++) {
                 size_t       lidx  = clustered_layers_for_threads[cluster_idx][job_idx];
-                const Layer *layer = po->get_layer(lidx);
+                const Layer *layer = layers_snap[lidx];
                 // this thread has exclusive access to all surfaces in layers enumerated in
                 // clustered_layers_for_threads[cluster_idx]
 
@@ -3619,7 +3824,7 @@ void PrintObject::bridge_over_infill()
                     if (job_idx > 0) {
                         for (int lower_job_idx = job_idx - 1; lower_job_idx >= 0; lower_job_idx--) {
                             size_t       lower_layer_idx = clustered_layers_for_threads[cluster_idx][lower_job_idx];
-                            const Layer *lower_layer     = po->get_layer(lower_layer_idx);
+                            const Layer *lower_layer     = layers_snap[lower_layer_idx];
                             if (lower_layer->print_z >= bottom_z) {
                                 for (const auto &c : surfaces_by_layer[lower_layer_idx]) {
                                     filled_polyons_on_lower_layers.insert(filled_polyons_on_lower_layers.end(), c.new_polys.begin(),
@@ -3810,12 +4015,12 @@ void PrintObject::bridge_over_infill()
 
     BOOST_LOG_TRIVIAL(info) << "Bridge over infill - Directions and expanded surfaces computed" << log_memory_info();
 
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, this->layers().size()), [po = this, &surfaces_by_layer](tbb::blocked_range<size_t> r) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, layers_snap.size()), [&surfaces_by_layer, &layers_snap](tbb::blocked_range<size_t> r) {
         PRINT_OBJECT_TIME_LIMIT_MILLIS(PRINT_OBJECT_TIME_LIMIT_DEFAULT);
         for (size_t lidx = r.begin(); lidx < r.end(); lidx++) {
             if (surfaces_by_layer.find(lidx) == surfaces_by_layer.end() && surfaces_by_layer.find(lidx + 1) == surfaces_by_layer.end())
                 continue;
-            Layer *layer = po->get_layer(lidx);
+            Layer *layer = layers_snap[lidx];
 
             Polygons cut_from_infill{};
             if (surfaces_by_layer.find(lidx) != surfaces_by_layer.end()) {
@@ -3903,12 +4108,12 @@ void PrintObject::bridge_over_infill()
         };
         // Guard against size_t underflow when the object has 0 or 1 layers — there is
         // no "layer above" to receive an extra bridge, so the whole pass is a no-op.
-        const size_t last = (this->layers().size() < 2) ? 0 : this->layers().size() - 1;
-        std::vector<LayerBridgeCache> caches(this->layers().size());
+        const size_t last = (layers_snap.size() < 2) ? 0 : layers_snap.size() - 1;
+        std::vector<LayerBridgeCache> caches(layers_snap.size());
 
-        tbb::parallel_for( tbb::blocked_range<size_t>(0, last), [this, &caches](const tbb::blocked_range<size_t>& r) {
+        tbb::parallel_for( tbb::blocked_range<size_t>(0, last), [&caches, &layers_snap](const tbb::blocked_range<size_t>& r) {
             for (size_t lidx = r.begin(); lidx < r.end(); ++lidx) {
-                Layer* layer = this->get_layer(lidx);
+                Layer* layer = layers_snap[lidx];
                 LayerBridgeCache &cache = caches[lidx];
 
                 if (!layer->regions().empty())
@@ -3939,7 +4144,7 @@ void PrintObject::bridge_over_infill()
         // Phase 2: write — each iteration mutates only m_layers[lidx+1]->fill_surfaces and
         // pulls its bridge polygons from the precomputed cache. Different iterations never
         // touch the same fill_surfaces vector, so there is no aliasing between workers.
-        tbb::parallel_for( tbb::blocked_range<size_t>(0, last), [this, &caches](const tbb::blocked_range<size_t>& r) {
+        tbb::parallel_for( tbb::blocked_range<size_t>(0, last), [&caches, &layers_snap](const tbb::blocked_range<size_t>& r) {
             for (size_t lidx = r.begin(); lidx < r.end(); ++lidx)
             {
                 const LayerBridgeCache &cache = caches[lidx];
@@ -3949,8 +4154,8 @@ void PrintObject::bridge_over_infill()
                     continue;
 
                 // (C) If there is a next layer, identify overlapping stInternal & stInternalSolid areas and convert the overlap to stSecondInternalBridge
-                if (lidx + 1 < this->layers().size()) {
-                    Layer* next_layer = this->get_layer(lidx + 1);
+                if (lidx + 1 < layers_snap.size()) {
+                    Layer* next_layer = layers_snap[lidx + 1];
                     
                     // second bridging angle is 90 degrees offset
                     
@@ -4031,8 +4236,8 @@ void PrintObject::bridge_over_infill()
         // === back to an internal bridge. As a starting point, this improves bridging reliability as it extrudes ==========
         // === two external bridge layers. However, TODO: Implement a new surface type throughout the codebase =============
         // =================================================================================================================
-        for (size_t lidx = 0; lidx < this->layers().size(); ++lidx) {
-            Layer* layer = this->get_layer(lidx);
+        for (size_t lidx = 0; lidx < layers_snap.size(); ++lidx) {
+            Layer* layer = layers_snap[lidx];
             for (LayerRegion* region : layer->regions()) {
                 for (Surface &surf : region->fill_surfaces.surfaces) {
                     if (surf.surface_type == stSecondInternalBridge) {

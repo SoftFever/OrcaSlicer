@@ -2,6 +2,7 @@
 #include "BoundingBox.hpp"
 #include "Circle.hpp"
 #include "Config.hpp"
+#include <cstdio>
 #include "GCode/GCodeProcessor.hpp"
 #include "Flow.hpp"
 #include "GCode/ThumbnailData.hpp"
@@ -133,9 +134,6 @@ using namespace std::literals::string_view_literals;
 
 #if 0
 // Enable debugging and asserts, even in the release build.
-#define DEBUG
-#define _DEBUG
-#undef NDEBUG
 #endif
 
 #include <assert.h>
@@ -2191,7 +2189,16 @@ static bool belt_object_layer_prints_something(const PrintObject &object, const 
 std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object, bool skip_empty_first_layer)
 {
     std::vector<GCode::LayerToPrint> layers_to_print;
-    layers_to_print.reserve(object.layers().size() + object.support_layers().size());
+    // Guard against a torn read of m_layers vector metadata: if apply() is
+    // clearing layers concurrently (without the slicing thread holding
+    // m_layers_mutex), the size() call can return a garbage huge value.
+    const size_t n_obj = object.layers().size();
+    const size_t n_sup = object.support_layers().size();
+    if (n_obj > 500000 || n_sup > 500000) {
+        BOOST_LOG_TRIVIAL(error) << "collect_layers_to_print: implausible layer counts obj=" << n_obj << " sup=" << n_sup << " — returning empty";
+        return layers_to_print;
+    }
+    layers_to_print.reserve(n_obj + n_sup);
 
     /*
     // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
@@ -3350,7 +3357,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
             std::vector<coordf_t> zs;
-            zs.reserve(object->layers().size() + object->support_layers().size());
+            const size_t n_l = object->layers().size();
+            const size_t n_s = object->support_layers().size();
+            if (n_l > 500000 || n_s > 500000) {
+                BOOST_LOG_TRIVIAL(error) << "_do_export: implausible layer counts n_l=" << n_l << " n_s=" << n_s << " for object " << object->model_object()->name;
+                throw Slic3r::RuntimeError("Layer data corrupted (possible apply() race); aborting export.");
+            }
+            zs.reserve(n_l + n_s);
             for (auto layer : object->layers())
                 if (! belt || belt_object_layer_prints_something(*object, *layer))
                     zs.push_back(layer->print_z);
@@ -3376,7 +3389,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // Print all objects with the same print_z together.
         std::vector<coordf_t> zs;
         for (auto object : print.objects()) {
-            zs.reserve(zs.size() + object->layers().size() + object->support_layers().size());
+            const size_t n_l = object->layers().size();
+            const size_t n_s = object->support_layers().size();
+            if (n_l > 500000 || n_s > 500000) {
+                BOOST_LOG_TRIVIAL(error) << "_do_export: implausible layer counts n_l=" << n_l << " n_s=" << n_s << " for object " << object->model_object()->name;
+                throw Slic3r::RuntimeError("Layer data corrupted (possible apply() race); aborting export.");
+            }
+            zs.reserve(zs.size() + n_l + n_s);
             for (auto layer : object->layers())
                 if (! belt || belt_object_layer_prints_something(*object, *layer))
                     zs.push_back(layer->print_z);
@@ -6383,6 +6402,9 @@ LayerResult GCode::process_layer(
         layer_ptr = object_layer;
     else if (support_layer != nullptr)
         layer_ptr = support_layer;
+    if (layer_ptr == nullptr) {
+        return LayerResult { {}, 0, false, last_layer };
+    }
     const Layer& layer = *layer_ptr;
     m_cur_layer_idx = layer.id();
     // A per-layer nozzle grouping can move the active filament to another variant column on a
@@ -7592,6 +7614,25 @@ LayerResult GCode::process_layer(
                     gcode += this->extrude_infill(print,by_region_specific, true);
                 }
 
+                // Z-Pinning: fire pre-scheduled pins for this layer.
+                if (print_wipe_extrusions == 0 && m_layer != nullptr) {
+                    const PrintObject* zpin_obj = &instance_to_print.print_object;
+                    if (zpin_obj->config().enable_z_pins.value) {
+                        const auto& schedule = zpin_obj->z_pin_schedule();
+                        const size_t lid     = m_layer->id();
+                        if (lid < schedule.size() && !schedule[lid].empty()) {
+                            const auto& grids = zpin_obj->z_pin_grids();
+                            const Point& inst_offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
+                            this->set_origin(unscale(inst_offset));
+                            gcode += "; ZPIN lid=" + std::to_string(lid)
+                                   + " n_pins=" + std::to_string(schedule[lid].size()) + "\n";
+                            gcode += this->_z_pin_extrude(*m_layer, schedule[lid],
+                                                          grids.empty() ? ZPinGrid{} : grids[0],
+                                                          zpin_obj->config());
+                        }
+                    }
+                }
+
                 if (this->config().gcode_label_objects) {
                     gcode += std::string("; stop printing object ") +
                              instance_to_print.print_object.model_object()->name +
@@ -8017,7 +8058,6 @@ LayerResult GCode::process_layer(
             && printer_structure == PrinterStructure::psI3
             && m_config.timelapse_type.value == TimelapseType::tlTraditional)
             m_support_traditional_timelapse = false;
-
         // The traditional model will have flaws for multi_extruder when switching extruder
         if (m_config.nozzle_diameter.values.size() == 2
             && m_support_traditional_timelapse
@@ -8029,7 +8069,6 @@ LayerResult GCode::process_layer(
             gcode += this->retract(false, false, auto_lift_type, true);
         }
         m_writer.add_object_change_labels(gcode);
-
         gcode += insert_timelapse_gcode();
     }
 
@@ -8037,7 +8076,6 @@ LayerResult GCode::process_layer(
     result.cooling_buffer_flush = object_layer || raft_layer || last_layer;
     return result;
 }
-
 void GCode::apply_print_config(const PrintConfig &print_config)
 {
     m_writer.apply_print_config(print_config);
@@ -8245,6 +8283,7 @@ std::string GCode::change_layer(coordf_t print_z)
     if (m_spiral_vase) {
         //BBS: force to normal lift immediately in spiral vase mode
         std::ostringstream comment;
+        
         comment << "move to next layer (" << m_layer_index << ")";
         gcode += m_writer.travel_to_z(z, comment.str());
     }
@@ -8690,7 +8729,11 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
     std::string gcode;
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.perimeters.empty()) {
-            m_config.apply(print.get_print_region(&region - &by_region.front()).config());
+            size_t region_idx = static_cast<size_t>(&region - &by_region.front());
+            if (region_idx >= print.num_print_regions()) {
+                continue;
+            }
+            m_config.apply(print.get_print_region(region_idx).config());
             // BBS: for first layer, we always print wall firstly to get better bed adhesive force
             // This behaviour is same with cura
             const bool should_print = is_first_layer ? !is_infill_first
@@ -8716,10 +8759,11 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
             // already down and belong in the prefix an inward wipe may land on.
             if (wipe_support && defer_unsupported && unsupported_loops_only)
                 for (const ExtrusionEntity* ee : region.perimeters)
-                    if (!waits_for_infill(ee))
+                    if (ee != nullptr && !waits_for_infill(ee))
                         wipe_support->append(*ee);
 
             for (const ExtrusionEntity* ee : region.perimeters) {
+                if (ee == nullptr) continue;
                 if (defer_unsupported && waits_for_infill(ee) != unsupported_loops_only)
                     continue;
                 gcode += this->extrude_entity(*ee, "perimeter", -1., region.perimeters,
@@ -11294,5 +11338,97 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
 // Index into std::vector<LayerToPrint>, which contains Object and Support layers for the current print_z, collected for
 // a single object, or for possibly multiple objects with multiple instances.
 
+// Fire pre-selected pin centres at the current layer.
+// The `centres` vector is already filtered and scheduled by PrintObject::prepare_infill().
+// `grid` is used only for diameter/depth/style metadata; its centre list is not used here.
+std::string GCode::_z_pin_extrude(const Layer& layer, const std::vector<Point>& centres,
+                                   const ZPinGrid& grid, const PrintObjectConfig& cfg, double vol_scale) {
+    std::string gcode;
+    if (centres.empty()) return gcode;
+    const double feedrate = cfg.z_pin_feedrate.value * 60.0;
+    const double flow     = cfg.z_pin_fill_pct.value / 100.0;
+    const double fil_r    = m_print->config().filament_diameter.get_at(0) * 0.5;
+    const double fil_area = M_PI * fil_r * fil_r;
+    if (fil_area <= 0 || feedrate <= 0) return gcode;
+
+    // VP/VH fill factor (Duty et al.): volume is relative to the full void depth, not one layer.
+    // Cap at 100% (flow=1.0) when surrounding infill is solid — overflow has nowhere to go laterally.
+    const int    pin_depth     = cfg.z_pin_depth.value;
+    double       effective_flow = flow;
+    for (const LayerRegion* lr : layer.regions()) {
+        if (lr->region().config().sparse_infill_density.value >= 99.0) {
+            effective_flow = std::min(effective_flow, 1.0);
+            break;
+        }
+    }
+
+    bool role_emitted = false;
+    const ExtrusionRole saved_role = m_last_processor_extrusion_role;
+    char role_buf[256];
+
+    for (const Point& c : centres) {
+        // Modifier suppression: skip pins inside regions with enable_z_pins=false.
+        bool suppressed = false;
+        for (const LayerRegion* lr : layer.regions()) {
+            if (!lr->region().config().enable_z_pins.value) {
+                for (const ExPolygon& ex : lr->raw_slices)
+                    if (ex.contains(c)) { suppressed = true; break; }
+                if (suppressed) break;
+            }
+        }
+        if (suppressed) continue;
+
+        // Lazy-emit Custom role tag so the G-code viewer colours pins distinctly.
+        if (!role_emitted) {
+            sprintf(role_buf, ";%s%s\n",
+                    GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(),
+                    ExtrusionEntity::role_to_string(erCustom).c_str());
+            gcode += role_buf;
+            m_last_processor_extrusion_role = erCustom;
+            role_emitted = true;
+        }
+
+        Vec2d centre = this->point_to_gcode(c);
+        double r     = grid.diameter * 0.5;
+        // VH = full void cylinder volume (depth layers); VP = VH × fill factor.
+        double vol   = M_PI * r * r * layer.height * pin_depth * effective_flow * vol_scale;
+        double e_len = vol / fil_area;
+
+        const double hop = m_config.z_hop.get_at(0);
+        gcode += this->retract(false, false, LiftType::NormalLift);
+        if (hop > 0)
+            gcode += m_writer.travel_to_z(layer.print_z + hop, "z-pin hop up");
+        gcode += m_writer.travel_to_xy(centre, "z-pin travel");
+        if (hop > 0)
+            gcode += m_writer.travel_to_z(layer.print_z, "z-pin hop down");
+        gcode += m_writer.unretract();
+        gcode += m_writer.set_speed(feedrate, "z-pin fill");
+
+        if (cfg.z_pin_style.value == ZPinStyle::Spiral) {
+            for (int s = 0; s < 4; ++s) {
+                double a = s * M_PI / 2;
+                Vec2d p = centre + Vec2d(r * 0.8 * std::cos(a), r * 0.8 * std::sin(a));
+                const Point p_scaled = this->gcode_to_point(p);
+                bool arm_inside = false;
+                for (const ExPolygon& ex : layer.lslices)
+                    if (ex.contains(p_scaled)) { arm_inside = true; break; }
+                gcode += m_writer.extrude_to_xy(arm_inside ? p : centre, e_len / 4, "z-pin spiral");
+            }
+        } else {
+            gcode += m_writer.extrude_to_xy(centre, e_len, "z-pin");
+        }
+    }
+
+    // Restore previous extrusion role.
+    if (role_emitted) {
+        sprintf(role_buf, ";%s%s\n",
+                GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Role).c_str(),
+                ExtrusionEntity::role_to_string(saved_role).c_str());
+        gcode += role_buf;
+        m_last_processor_extrusion_role = saved_role;
+    }
+
+    return gcode;
+}
 
 } // namespace Slic3r

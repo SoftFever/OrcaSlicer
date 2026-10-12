@@ -12,6 +12,7 @@
 #include "PrintBase.hpp"
 #include "Fill/FillAdaptive.hpp"
 #include "Fill/FillLightning.hpp"
+#include "Fill/FillZPin.hpp"
 #include "Fill/FillTpmsAdaptive.hpp"
 
 #include "BoundingBox.hpp"
@@ -45,6 +46,7 @@
 #include <math.h>
 #include <optional>
 #include <set>
+#include <shared_mutex>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -452,9 +454,23 @@ public:
     // since they have different semantics.
     size_t 			total_layer_count() const { return this->layer_count() + this->support_layer_count(); }
     size_t 			layer_count() const { return m_layers.size(); }
+    // Thread-safe version: holds m_layers_mutex (shared) to prevent a torn read
+    // of the vector size() when another thread calls clear_layers() concurrently.
+    size_t          layer_count_safe() const;
     void 			clear_layers();
+    // Assign a freshly-built layer vector under the same mutex that guards
+    // detect_overhangs() reads, preventing a race between the assignment and
+    // a concurrent is_support_necessary() snapshot.
+    void            assign_layers(LayerPtrs &&layers);
+    // Delete and pop empty layers from the back of m_layers under the same mutex,
+    // preventing a race with a concurrent detect_overhangs() snapshot.
+    void            trim_empty_top_layers();
     const Layer* 	get_layer(int idx) const { return m_layers[idx]; }
     Layer* 			get_layer(int idx) 		 { return m_layers[idx]; }
+    // Returns the maximum layer height across all object layers.
+    // Caller must hold m_layers_mutex (shared) — see generate_support_material().
+    coordf_t        max_layer_height() const;
+
     // Get a layer exactly at print_z.
     const Layer*	get_layer_at_printz(coordf_t print_z) const;
     Layer*			get_layer_at_printz(coordf_t print_z);
@@ -497,8 +513,8 @@ public:
     // Orca: XYZ shrinkage compensation has introduced the const Vec3d &object_shrinkage_compensation parameter to the function below
     static SlicingParameters    slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z, const Vec3d &object_shrinkage_compensation, std::vector<int> variant_index = std::vector<int>());
 
-    size_t                      num_printing_regions() const throw() { return m_shared_regions->all_regions.size(); }
-    const PrintRegion&          printing_region(size_t idx) const throw() { return *m_shared_regions->all_regions[idx].get(); }
+    size_t                      num_printing_regions() const throw();
+    const PrintRegion&          printing_region(size_t idx) const throw();
     //FIXME returing all possible regions before slicing, thus some of the regions may not be slicing at the end.
     std::vector<std::reference_wrapper<const PrintRegion>> all_regions() const;
     const PrintObjectRegions*   shared_regions() const throw() { return m_shared_regions; }
@@ -672,8 +688,24 @@ private:
     // Object split into layer ranges and regions with their associated configurations.
     // Shared among PrintObjects created for the same ModelObject.
     PrintObjectRegions                     *m_shared_regions { nullptr };
+    ZPinGrid                                m_z_pin_grid;      // master hex grid
+    std::vector<std::vector<Point>>         m_z_pin_schedule;  // firing centres per layer_id
+    std::vector<std::vector<int>>           m_z_pin_void_indices; // active cell indices per layer
+public:
+    // Compat shim: GCode.cpp calls z_pin_grids()[0] — return single-element vector.
+    std::vector<ZPinGrid>                   z_pin_grids()    const { return {m_z_pin_grid}; }
+    const std::vector<std::vector<Point>>& z_pin_schedule() const { return m_z_pin_schedule; }
+    const ZPinGrid&                         z_pin_grid()     const { return m_z_pin_grid; }
+    const std::vector<std::vector<int>>&   z_pin_void_indices() const { return m_z_pin_void_indices; }
+private:
 
     SlicingParameters                       m_slicing_params;
+    // Explicit 24-byte pad: ARM64 NEON stores can overshoot a 208-byte struct
+    // copy.  This guard absorbs overflow so m_layers.__begin_ is not corrupted.
+    // DO NOT remove or shrink without updating the static_assert in Slicing.hpp.
+    uint64_t                                m_slicing_params_guard[3] { 0xDEADC0DEDEADC0DEULL,
+                                                                         0xDEADC0DEDEADC0DEULL,
+                                                                         0xDEADC0DEDEADC0DEULL };
     LayerPtrs                               m_layers;
     LayerPtrs                               m_belt_truncated_layers;
     // Fills removed by belt_drop_unclaimed_fills(), owned by this vector until
@@ -687,6 +719,13 @@ private:
     };
     std::vector<BeltDroppedFill>            m_belt_dropped_fills;
     SupportLayerPtrs                        m_support_layers;
+    // Shared-read by detect_overhangs() (via generate_support_material() and
+    // is_support_necessary()); exclusively written by clear_layers(),
+    // assign_layers() and trim_empty_top_layers().  Using a shared_mutex allows
+    // concurrent support generation on different objects while preventing a new
+    // process() run from deleting Layer objects out from under a running
+    // detect_overhangs().
+    mutable std::shared_mutex               m_layers_mutex;
     // Belt brim, generated in posSupportMaterial by BeltBrim.cpp.  Object-local
     // slicing frame, one entry per object layer plus a prologue of brim-only
     // bands that print below the object's first layer.
@@ -998,6 +1037,7 @@ struct PrintStatistics
     static const std::string TotalFilamentCostValueMask;
     static const std::string TotalFilamentUsedWipeTower;
     static const std::string TotalFilamentUsedWipeTowerValueMask;
+    
     
 };
 

@@ -66,9 +66,6 @@ void Layer::make_slices()
         slices = union_safety_offset_ex(slices_p);
     }
 
-    this->lslices.clear();
-    this->lslices.reserve(slices.size());
-
     // prepare ordering points
     Points ordering_points;
     ordering_points.reserve(slices.size());
@@ -79,6 +76,8 @@ void Layer::make_slices()
     std::vector<Points::size_type> order = chain_points(ordering_points);
 
     // populate slices vector
+    this->lslices.clear();
+    this->lslices.reserve(slices.size());
     for (size_t i : order)
         this->lslices.emplace_back(std::move(slices[i]));
 }

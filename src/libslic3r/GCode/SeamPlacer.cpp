@@ -30,6 +30,7 @@
 #include <random>
 #include <algorithm>
 #include <queue>
+#include <cstdio>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -1104,15 +1105,30 @@ void pick_random_seam_point(const std::vector<SeamCandidate> &perimeter_points, 
 void SeamPlacer::gather_seam_candidates(const PrintObject *po, const SeamPlacerImpl::GlobalModelInfo &global_model_info,
                                         PreciseSeam::PreciseSeamWarnings* warnings) {
   using namespace SeamPlacerImpl;
-  PrintObjectSeamData &seam_data = m_seam_per_object.emplace(po, PrintObjectSeamData { }).first->second;
-  seam_data.layers.resize(po->layer_count());
+  // Use a single consistent layer count to avoid a race where apply() clears
+  // m_layers between the resize() and the loop bound check.
+  const size_t n_layers = po->layer_count();
 
-  tbb::parallel_for(tbb::blocked_range<size_t>(0, po->layers().size()),
+  // Sanity guard: if apply() raced with export and tore the m_layers vector
+  // size, n_layers will be a huge garbage value. Bail out to avoid a crash
+  // in resize(); the throw_if_canceled() call in init() will propagate the
+  // cancellation shortly after we return.
+  if (n_layers > 500000)
+    return;
+
+  PrintObjectSeamData &seam_data = m_seam_per_object.emplace(po, PrintObjectSeamData { }).first->second;
+  seam_data.layers.resize(n_layers);
+
+  if (n_layers == 0)
+    return;
+
+  tbb::parallel_for(tbb::blocked_range<size_t>(0, n_layers),
                     [po, &global_model_info, &seam_data, warnings]
                     (tbb::blocked_range<size_t> r) {
                       for (size_t layer_idx = r.begin(); layer_idx < r.end(); ++layer_idx) {
                         PrintObjectSeamData::LayerSeams &layer_seams = seam_data.layers[layer_idx];
                         const Layer *layer = po->get_layer(layer_idx);
+                        if (!layer) continue;
                         auto unscaled_z = layer->slice_z;
                         std::vector<const LayerRegion*> regions;
                         //NOTE corresponding region ptr may be null, if the layer has zero perimeters
@@ -1156,20 +1172,22 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po) 
   tbb::parallel_for(tbb::blocked_range<size_t>(0, layers.size()),
                     [po, &layers](tbb::blocked_range<size_t> r) {
                       std::unique_ptr<PerimeterDistancer> prev_layer_distancer;
+                      try {
                       if (r.begin() > 0) { // previous layer exists
-                        prev_layer_distancer = std::make_unique<PerimeterDistancer>(to_unscaled_linesf(po->layers()[r.begin() - 1]->lslices));
+                        prev_layer_distancer = std::make_unique<PerimeterDistancer>(to_unscaled_linesf(po->layers().at(r.begin() - 1)->lslices));
                       }
 
                       for (size_t layer_idx = r.begin(); layer_idx < r.end(); ++layer_idx) {
+                        if (po->print()->canceled()) return;
                         size_t regions_with_perimeter = 0;
-                        for (const LayerRegion *region : po->layers()[layer_idx]->regions()) {
+                        for (const LayerRegion *region : po->layers().at(layer_idx)->regions()) {
                           if (region->perimeters.entities.size() > 0) {
                             regions_with_perimeter++;
                           }
                         };
                         bool should_compute_layer_embedding = regions_with_perimeter > 1;
                         std::unique_ptr<PerimeterDistancer> current_layer_distancer        = std::make_unique<PerimeterDistancer>(
-                            to_unscaled_linesf(po->layers()[layer_idx]->lslices));
+                            to_unscaled_linesf(po->layers().at(layer_idx)->lslices));
 
                         auto& layer_seams = layers[layer_idx];
                         for (SeamCandidate &perimeter_point : layer_seams.points) {
@@ -1179,7 +1197,7 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po) 
                             perimeter_point.overhang = _dist
                                                        + 0.65f * perimeter_point.perimeter.flow_width
                                                        - tan(SeamPlacer::overhang_angle_threshold)
-                                                             * po->layers()[layer_idx]->height;
+                                                             * po->layers().at(layer_idx)->height;
                             perimeter_point.overhang =
                                 perimeter_point.overhang < 0.0f ? 0.0f : perimeter_point.overhang;
                             perimeter_point.unsupported_dist = _dist + 0.4f * perimeter_point.perimeter.flow_width;
@@ -1192,6 +1210,9 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po) 
                         }
 
                         prev_layer_distancer.swap(current_layer_distancer);
+                      }
+                      } catch (const std::out_of_range&) {
+                          return;
                       }
                     }
   );
@@ -1527,6 +1548,9 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
 
   for (const PrintObject *po : print.objects()) {
     throw_if_canceled_func();
+    // Skip objects with no layers (can happen if apply() ran concurrently).
+    if (po->layers().empty())
+      continue;
     SeamPosition configured_seam_preference = po->config().seam_position.value;
     SeamComparator comparator { configured_seam_preference };
 
@@ -1564,24 +1588,13 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
           << "SeamPlacer: gather_seam_candidates: end";
       throw_if_canceled_func();
       if (configured_seam_preference == spAligned || configured_seam_preference == spNearest || configured_seam_preference == spAlignedBack) {
-        BOOST_LOG_TRIVIAL(debug)
-            << "SeamPlacer: calculate_candidates_visibility : start";
         calculate_candidates_visibility(po, global_model_info);
-        BOOST_LOG_TRIVIAL(debug)
-            << "SeamPlacer: calculate_candidates_visibility : end";
       }
     } // destruction of global_model_info (large structure, no longer needed)
     throw_if_canceled_func();
-    BOOST_LOG_TRIVIAL(debug)
-        << "SeamPlacer: calculate_overhangs and layer embdedding : start";
     calculate_overhangs_and_layer_embedding(po);
-    BOOST_LOG_TRIVIAL(debug)
-        << "SeamPlacer: calculate_overhangs and layer embdedding: end";
     throw_if_canceled_func();
-    if (configured_seam_preference != spNearest) { // For spNearest, the seam is picked in the place_seam method with actual nozzle position information
-      BOOST_LOG_TRIVIAL(debug)
-          << "SeamPlacer: pick_seam_point : start";
-      //pick seam point
+    if (configured_seam_preference != spNearest) {
       std::vector<PrintObjectSeamData::LayerSeams> &layers = m_seam_per_object[po].layers;
       tbb::parallel_for(tbb::blocked_range<size_t>(0, layers.size()),
                         [&layers, configured_seam_preference, comparator](tbb::blocked_range<size_t> r) {
@@ -1595,16 +1608,10 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
                                 pick_seam_point(layer_perimeter_points, current, comparator);
                           }
                         });
-      BOOST_LOG_TRIVIAL(debug)
-          << "SeamPlacer: pick_seam_point : end";
     }
     throw_if_canceled_func();
     if (configured_seam_preference == spAligned || configured_seam_preference == spRear || configured_seam_preference == spAlignedBack) {
-      BOOST_LOG_TRIVIAL(debug)
-          << "SeamPlacer: align_seam_points : start";
       align_seam_points(po, comparator);
-      BOOST_LOG_TRIVIAL(debug)
-          << "SeamPlacer: align_seam_points : end";
     }
 
     // Restore precise seam positions that were potentially modified
@@ -1709,6 +1716,17 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop,
   assert(layer->id() >= po->slicing_parameters().raft_layers());
   const size_t layer_index = layer->id() - po->slicing_parameters().raft_layers();
   const double unscaled_z = layer->slice_z;
+
+  // Guard against missing or empty seam data (can happen if apply() ran concurrently
+  // during SeamPlacer::init() and cleared the layers before gather_seam_candidates ran).
+  {
+    auto it = m_seam_per_object.find(layer->object());
+    if (it == m_seam_per_object.end() || layer_index >= it->second.layers.size() ||
+        it->second.layers[layer_index].points.empty()) {
+      loop.split_at(last_pos, false);
+      return;
+    }
+  }
 
   auto get_next_loop_point = [loop](ExtrusionLoop::ClosestPathPoint current) {
     current.segment_idx += 1;

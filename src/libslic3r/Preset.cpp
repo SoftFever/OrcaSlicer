@@ -1482,6 +1482,14 @@ static std::vector<std::string> s_Preset_print_options{
     "zaa_dont_alternate_fill_direction",
     "zaa_min_z",
     "ironing_expansion",
+    // Z-Pinning
+    "enable_z_pins",
+    "z_pin_spacing",
+    "z_pin_depth",
+    "z_pin_diameter",
+    "z_pin_fill_pct",
+    "z_pin_feedrate",
+    "z_pin_style",
 };
 
 static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", */ "default_filament_colour", "required_nozzle_HRC", "filament_diameter", "pellet_flow_coefficient", "volumetric_speed_coefficients", "filament_type",

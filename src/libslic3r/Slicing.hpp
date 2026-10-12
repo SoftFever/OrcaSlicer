@@ -122,6 +122,7 @@ struct SlicingParameters
     double      belt_floor_z_shift { 0.0 };        // bb_min_z + max(0, -min_z_after_shear)
 };
 static_assert(IsTriviallyCopyable<SlicingParameters>::value, "SlicingParameters class is not POD (and it should be - see constructor).");
+static_assert(sizeof(SlicingParameters) == 208, "SlicingParameters size changed — update m_slicing_params_guard padding in Print.hpp (must keep m_layers at offset +232 from m_slicing_params, i.e. 24-byte guard)");
 
 // The two slicing parameters lead to the same layering as long as the variable layer thickness is not in action.
 inline bool equal_layering(const SlicingParameters &sp1, const SlicingParameters &sp2)
