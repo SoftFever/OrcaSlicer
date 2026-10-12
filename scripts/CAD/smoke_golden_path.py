@@ -4,6 +4,9 @@ over the app's control socket, with a screenshot per step and one Ctrl+Z undo ch
 
     ORCA_CAD_MCP=/tmp/orca-a9.sock DISPLAY=:11 python3 scripts/CAD/smoke_golden_path.py [outdir]
 
+Preconditions: a FRESH document, the Design tab selected, no modal on screen (first-run wizard, "Bambu network
+module", "restore unsaved items"). A modal or another tab swallows Ctrl+Z and "undo extrude" then fails.
+
 sketch -> extrude -> fillet -> chamfer -> shell -> revolve -> linear pattern -> circular pattern -> slice.
 "Commit to Plate" and the Prepare-tab slice are driven by the GUI and reported as NOT COVERED here.
 Exit code 0 only when every step succeeded and every undo removed exactly one feature.
