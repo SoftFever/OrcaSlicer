@@ -931,6 +931,8 @@ protected:
     // BBS
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
     int get_highest_bed_temperature(const bool is_first_layer,const Print &print) const;
+    int compat_first_layer_bed_temperature(const Print &print, unsigned int initial_extruder_id) const;
+    int compat_first_layer_temperature(const Print &print, unsigned int initial_extruder_id) const;
 
     void update_layer_related_config(int layer_id);
 

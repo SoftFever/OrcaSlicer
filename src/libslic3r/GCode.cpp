@@ -4149,12 +4149,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 file.write(full_config);
 
             // SoftFever: write compatiple image
-            int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
+            // Firmwares read these lines (e.g. Anycubic GoKlipper heats the bed with it for its flow calibration and
+            // keeps it for power-loss recovery), so write what the print actually uses instead of filament 1.
             file.write_format("; first_layer_bed_temperature = %d\n",
-                                first_layer_bed_temperature);
+                                compat_first_layer_bed_temperature(print, initial_extruder_id));
             file.write_format(
                 "; first_layer_temperature = %d\n",
-                print.config().nozzle_temperature_initial_layer.get_at(0));
+                compat_first_layer_temperature(print, initial_extruder_id));
             file.write("; CONFIG_BLOCK_END\n\n");
         } else if (thumbnail_cb != nullptr) {
             // generate the thumbnails
@@ -4737,10 +4738,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
           file.write(full_config);
 
         // SoftFever: write compatiple info
-        int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
-        file.write_format("; first_layer_bed_temperature = %d\n", first_layer_bed_temperature);
+        // Firmwares read these lines, so write what the print actually uses instead of filament 1 (see above).
+        file.write_format("; first_layer_bed_temperature = %d\n", compat_first_layer_bed_temperature(print, initial_extruder_id));
         file.write_format("; bed_shape = %s\n", print.full_print_config().opt_serialize("printable_area").c_str());
-        file.write_format("; first_layer_temperature = %d\n", print.config().nozzle_temperature_initial_layer.get_at(0));
+        file.write_format("; first_layer_temperature = %d\n", compat_first_layer_temperature(print, initial_extruder_id));
         file.write_format("; first_layer_height = %.3f\n", print.config().initial_layer_print_height.value);
 
           //SF TODO
@@ -5348,6 +5349,21 @@ int GCode::get_bed_temperature(const int extruder_id, const bool is_first_layer,
     std::string bed_temp_key = is_first_layer ? get_bed_temp_1st_layer_key(bed_type) : get_bed_temp_key(bed_type);
     const ConfigOptionInts* bed_temp_opt = m_config.option<ConfigOptionInts>(bed_temp_key);
     return bed_temp_opt->get_at(extruder_id);
+}
+
+// First layer bed temperature as the print uses it: the same choice as the bed temperature written before the
+// start G-code (highest of the used filaments, or the first printing filament).
+int GCode::compat_first_layer_bed_temperature(const Print& print, unsigned int initial_extruder_id) const
+{
+    if (m_config.bed_temperature_formula.value == BedTempFormula::btfHighestTemp)
+        return get_highest_bed_temperature(true, print);
+    return get_bed_temperature(initial_extruder_id, true, print.config().curr_bed_type);
+}
+
+// First layer nozzle temperature of the first printing filament.
+int GCode::compat_first_layer_temperature(const Print& print, unsigned int initial_extruder_id) const
+{
+    return print.config().nozzle_temperature_initial_layer.get_at(get_filament_config_index((int) initial_extruder_id));
 }
 
 int GCode::get_highest_bed_temperature(const bool is_first_layer, const Print& print) const
