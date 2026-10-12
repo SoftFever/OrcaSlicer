@@ -8,6 +8,7 @@
 #include "libslic3r/TextureDisplacement.hpp"
 #include <exception>
 #include <cstddef>
+#include <cstdint>
 #include "slic3r/GUI/Jobs/Worker.hpp"
 #include <memory>
 

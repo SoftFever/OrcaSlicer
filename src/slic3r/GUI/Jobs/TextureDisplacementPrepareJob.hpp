@@ -9,6 +9,7 @@
 #include "Job.hpp"
 
 #include "libslic3r/ObjectID.hpp"
+#include "libslic3r/Point.hpp"
 #include "libslic3r/TextureDisplacement.hpp"
 
 namespace Slic3r {
