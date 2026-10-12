@@ -12,6 +12,7 @@
 #include <wx/panel.h>
 
 #include <functional>
+#include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
 #include <memory>
 #include <string>
 #include <wx/string.h>
@@ -79,6 +80,13 @@ public:
                      const SketchPlane& plane);
     void set_sketch_tool(DesignSketchTool::Mode mode);
     void set_sketch_construction(bool c);
+    // The feature tree drawn on the canvas with ImGui (see DesignImGuiUi.hpp). Off = the wx tree.
+    DesignRibbonOverlay& ribbon_overlay() { return m_ribbon; }
+    void set_ribbon_overlay(bool on) { m_ribbon_on = on; request_repaint(); }
+    bool ribbon_overlay_on() const { return m_ribbon_on; }
+    DesignTreeOverlay& tree_overlay() { return m_tree_overlay; }
+    void set_tree_overlay(bool on) { m_tree_overlay_on = on; request_repaint(); }
+    bool tree_overlay_on() const { return m_tree_overlay_on; }
     void begin_sketch3d(const Vec3d& start, std::vector<Vec3d> snap_targets) { m_sketch_tool.begin_sketch3d(start, std::move(snap_targets)); request_repaint(); }
     void end_sketch3d() { m_sketch_tool.end_sketch3d(); request_repaint(); }
     bool sketch3d_active() const { return m_sketch_tool.sketch3d_active(); }
@@ -461,6 +469,11 @@ private:
     // tool's current values (fed by the tool's on_readout), bottom-left the status line written by
     // DesignPanel. Empty text draws nothing. They were top-level popups once; a popup does not
     // follow its frame, so it floated over other applications and outlived the tab.
+    bool                m_ctx_over_ui{false};   // the right press landed on an ImGui window
+    DesignRibbonOverlay m_ribbon;
+    bool                m_ribbon_on{false};
+    DesignTreeOverlay m_tree_overlay;
+    bool              m_tree_overlay_on{false};
     std::string   m_hud_last;
     wxString      m_status_hud_last;
     wxColour      m_status_hud_colour;   // wxNullColour: the overlay's own text colour

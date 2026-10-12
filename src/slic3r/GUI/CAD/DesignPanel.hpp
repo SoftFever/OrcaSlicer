@@ -21,6 +21,7 @@
 #include <map>
 
 #include "libslic3r/CAD/CadDocument.hpp"
+#include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
 #include "slic3r/GUI/CAD/DesignInteraction.hpp"   // CadLevel: what one Esc press means
 #include "slic3r/GUI/AuiMgr.hpp"
 #include "slic3r/GUI/Lazy.hpp"
@@ -83,6 +84,8 @@ public:
 
     // MCP control hooks: let the external control server (McpControl.cpp) drive and
     // perceive the SAME kernel the GUI uses. Called only on the wx main thread.
+    void         mcp_set_imgui_tree(bool on) { set_imgui_tree(on); }
+    void         mcp_set_imgui_ribbon(bool on) { set_imgui_ribbon(on); }
     CadDocument& mcp_doc()        { return m_doc; }            // live document (read + mutate)
     void         mcp_after_change() { after_tree_edit(true); } // refresh tree + viewport + status
     DesignCanvas* mcp_viewport()  { return m_viewport; }        // live sketch + 3D view
@@ -569,6 +572,16 @@ private:
     wxCheckBox*       m_grid_snap{nullptr};      // sketch grid snap on/off (persisted)
     wxSpinCtrlDouble* m_grid_step{nullptr};      // snap step, mm (persisted)
     void              push_grid_snap();          // spin/check -> viewport + config
+    // Feature tree on the canvas (ImGui) instead of the side panel's wx list. The wx list stays alive,
+    // hidden, as the selection model: the overlay emits events that call the same handlers.
+    void              set_imgui_tree(bool on);
+    void              apply_tree_events(const std::vector<TreeEvent>& evs);
+    TreeView          build_tree_view() const;
+    bool              m_imgui_tree{false};
+    // The ribbon (tabs -> groups -> tools) drawn on the canvas; the wx toolbar's tool groups hide
+    // while it is on (its Confirm/Cancel bar and document buttons stay).
+    void              set_imgui_ribbon(bool on);
+    bool              m_imgui_ribbon{false};
     void              start_sketch3d();          // free 3D curve: click points, Tab cycles the working plane
     wxSpinCtrlDouble* m_move_dx{nullptr};        // Move/Rotate card: world translation
     wxSpinCtrlDouble* m_move_dy{nullptr};

@@ -196,7 +196,19 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
     // — are drawn by the canvas itself, in the tool's ImGui pass: they go away with the canvas,
     // the tab and the window, and never take the keyboard.
     m_sketch_tool.on_readout      = [this](const std::string& s) { set_readout(s); };
-    m_sketch_tool.render_overlays = [this] { render_hud(); };
+    m_sketch_tool.render_overlays = [this] {
+        render_hud();
+        ImGuiWrapper& imgui = *wxGetApp().imgui();
+        const float   em    = imgui.get_style_scaling();
+        if (std::getenv("ORCA_CAD_UITRACE")) std::fprintf(stderr, "[UI] overlays ribbon=%d tree=%d em=%.2f\n", int(m_ribbon_on), int(m_tree_overlay_on), double(em));
+        float top = 0.f;
+        if (m_ribbon_on) {   // clear of the corner collapse button
+            m_ribbon.render(imgui, m_canvas->get_scale(), 34.f * em, 0.f);
+            top = m_ribbon.height();
+        }
+        if (m_tree_overlay_on)
+            m_tree_overlay.render(imgui, m_canvas->get_scale(), 0.f, std::max(top, 0.f) + 34.f * em * (m_ribbon_on ? 0.f : 1.f));
+    };
 
     refresh_bed();
 
@@ -1100,6 +1112,10 @@ void DesignCanvas::set_on_context_menu(std::function<void(const wxPoint&)> cb)
     m_canvas_widget->Bind(wxEVT_RIGHT_DOWN, [this](wxMouseEvent& e) {
         m_ctx_press     = e.GetPosition();
         m_ctx_travelled = false;
+        // A press over an ImGui window (the on-canvas tree, ribbon, a popup) belongs to ImGui: the
+        // offer must not open under it, and the sketch tool must not see the click.
+        m_ctx_over_ui = ImGui::GetIO().WantCaptureMouse;
+        if (m_ctx_over_ui) { e.Skip(); return; }
         // Drop any press the tool still keeps (only a click's release takes it, so a pan's stays)
         // before the canvas offers it this one, which ImGui may take instead.
         m_sketch_tool.drop_right_click();
@@ -1113,6 +1129,7 @@ void DesignCanvas::set_on_context_menu(std::function<void(const wxPoint&)> cb)
         e.Skip();
     });
     m_canvas_widget->Bind(wxEVT_RIGHT_UP, [this](wxMouseEvent& e) {
+        if (m_ctx_over_ui) { m_ctx_over_ui = false; e.Skip(); return; }   // ImGui's click, not the canvas's
         const wxPoint d  = e.GetPosition() - m_ctx_press;
         // Click, or navigation? A press that travelled panned or orbited; one that did not, did not.
         const bool is_click = !m_ctx_travelled && std::max(std::abs(d.x), std::abs(d.y)) <= kCadRightClickDriftPx;

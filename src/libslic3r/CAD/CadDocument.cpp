@@ -2109,6 +2109,7 @@ void CadDocument::clear()
 
 void CadDocument::checkpoint()
 {
+    rollback_index = -1;   // a mutation always acts on the full history
     m_undo.push_back(Snapshot{features, variables});   // snapshot the pre-mutation recipe
     m_redo.clear();                                    // any new action invalidates the redo branch
     if (m_undo.size() > k_undo_cap)
@@ -2125,6 +2126,7 @@ bool CadDocument::undo()
 {
     if (m_undo.empty())
         return false;
+    rollback_index = -1;
     m_redo.push_back(Snapshot{std::move(features), std::move(variables)});   // current state becomes redoable
     features  = std::move(m_undo.back().features);
     variables = std::move(m_undo.back().variables);
@@ -2137,6 +2139,7 @@ bool CadDocument::redo()
 {
     if (m_redo.empty())
         return false;
+    rollback_index = -1;
     m_undo.push_back(Snapshot{std::move(features), std::move(variables)});
     features  = std::move(m_redo.back().features);
     variables = std::move(m_redo.back().variables);
@@ -4255,17 +4258,25 @@ bool CadDocument::recompute()
     // the 3MF recipe only "on success", so nothing was written, and deserialize_recipe ends with
     // `return recompute()`, so a project that did carry a recipe was refused on load with
     // "Could not restore the CAD model" while its features sat correctly in the list. mtav.
-    const bool any_solid_feature = std::any_of(features.begin(), features.end(), [](const CadFeature& f) {
-        return f.enabled && produces_body(f.type);
-    });
+    // (Only the replayed prefix counts: rolled back to a sketch, "no solid yet" is the right answer.)
+    bool any_solid_feature = false;
+    for (size_t i = 0; i < features.size() && (rollback_index < 0 || int(i) <= rollback_index); ++i)
+        if (features[i].enabled && produces_body(features[i].type)) { any_solid_feature = true; break; }
+    error_feature = -1;
+    size_t replaying = 0;
     try {
         bind_expressions();
-        for (size_t fi = 0; fi < features.size(); ++fi)
+        for (size_t fi = 0; fi < features.size(); ++fi) {
+            if (rollback_index >= 0 && int(fi) > rollback_index) break;   // rolled back to rollback_index
+            replaying = fi;
             replay_feature(fi, built);
+        }
     } catch (const std::exception& e) {
+        error_feature = int(replaying);
         error = *e.what() ? e.what() : _u8L("OCCT operation failed");
         return false;
     } catch (...) {
+        error_feature = int(replaying);
         error = _u8L("unknown geometry error");
         return false;
     }
