@@ -27,6 +27,7 @@
 #include <wx/mstream.h>
 
 #include "libslic3r/PNGReadWrite.hpp"
+#include "libslic3r/TextureDisplacement.hpp"
 #include "libslic3r/Utils.hpp"
 
 #include "libslic3r/AppConfig.hpp"
