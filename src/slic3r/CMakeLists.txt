@@ -511,6 +511,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/SettingsIndex.cpp
     GUI/SettingsIndex.hpp
     GUI/Selection.cpp
+    GUI/SelectionAlignment.cpp
+    GUI/SelectionAlignment.hpp
     GUI/Selection.hpp
     GUI/SelectMachine.cpp
     GUI/SelectMachine.hpp
