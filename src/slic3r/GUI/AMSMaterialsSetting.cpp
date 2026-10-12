@@ -213,7 +213,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     m_comboBox_filament = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
     m_star_filled = ScalableBitmap(this, "score_star_light", 16);
-    m_star_empty  = ScalableBitmap(this, "score_star_dark", 16);
+    m_star_empty  = ScalableBitmap(this, "score_star_outline", 16);
 
     m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
 
