@@ -416,7 +416,14 @@ private:
     // it antialiased sub-pixel strokes, rounded joins, a contrast halo and the numeric readout. The
     // cost is that render_adjust_texture_gizmo() has to be called from inside the gizmo's ImGui
     // frame (see on_render_input_window()), not from on_render() with the rest of the GL drawing.
-    enum class AdjustHandle { None, Move, Axis, Scale, Rotate };
+    // Move is the whole interior, free in both axes. AxisMove is the four arrows, each holding a
+    // move to one of the tile's axes. EdgeScale is the four edge bars, one tile extent each, and
+    // CornerScale the four corner grips, which take both extents at once.
+    //
+    // The arrows and the bars share the same four rays out of the tile, so they are kept apart by
+    // distance rather than direction: the bar hugs its edge, then a clear gap, then the arrow well
+    // outside it. adjust_pick() leans on that - see the order it tests them in.
+    enum class AdjustHandle { None, Move, AxisMove, EdgeScale, CornerScale, Rotate };
 
     // The gizmo's geometry for one frame, in screen pixels. Worked out once and shared by the
     // drawing and the hit test, so the two cannot disagree about where a handle is. Everything
@@ -429,10 +436,17 @@ private:
         Vec2d center = Vec2d::Zero();
         // +u+v, +u-v, -u-v, -u+v. A scale grip sits on each.
         std::array<Vec2d, 4> corner{};
-        // +u, -u, +v, -v: where each axis arm leaves the frame, and where its chevron ends.
+        // +u, -u, +v, -v: the middle of each edge, and the two ends of the bar that sits just
+        // outside it. The bar's ends are kept rather than recomputed so the drawing and the hit test
+        // cannot end up with it in two different places.
         std::array<Vec2d, 4> edge_mid{};
+        std::array<Vec2d, 4> bar_a{};
+        std::array<Vec2d, 4> bar_b{};
+        // The axis arrow further out on the same ray: where its shaft starts and where its chevron
+        // ends. Kept, like the bar's ends, so the drawing and the hit test cannot disagree.
+        std::array<Vec2d, 4> arm_base{};
         std::array<Vec2d, 4> arm_tip{};
-        std::array<Vec2d, 4> arm_dir{}; // unit, pointing outward
+        std::array<Vec2d, 4> arm_dir{}; // unit, pointing outward from the centre
         Vec2d rotate_at = Vec2d::Zero();
         // The tile projects to less than ADJUST_MIN_TILE_PX across, so the frame was drawn at that
         // floor instead. It is dashed to say so, and the readout still gives the true millimetres.
@@ -468,7 +482,8 @@ private:
     // the tile changes where a given offset places it, so every drag recomputes the offset from the
     // centre it wants to keep - which is what makes rotate and scale act *in place* rather than
     // swinging the tile around the anchor.
-    static Vec2f adjust_offset_for_planar(const Vec2f &planar, float rot_deg, const Vec2f &tile_mm, float aspect);
+    static Vec2f adjust_offset_for_planar(const Vec2f &planar, float rot_deg, const Vec2f &tile_mm,
+                                          const Vec2f &mirror_sign, float aspect);
     // The mesh-local-to-world transform of the selected instance, the (unrotated) tangent basis and
     // the lifted anchor the whole gizmo is built on. False when there is nothing to build on - which
     // is the single place that decides the gizmo is not drawable, so the drawing, the hit test and
@@ -1070,9 +1085,18 @@ private:
     // drift away from the cursor.
     Vec2f m_adjust_drag_start_center = Vec2f::Zero(); // tile centre, planar mm
     Vec2f m_adjust_drag_start_grab   = Vec2f::Zero(); // the grabbed point, planar mm
+    // How far the grab landed from the handle's own position, in planar mm. A scale drag reads the
+    // extents straight off the cursor, so without subtracting this the tile would jump by however
+    // far inside the generous hit radius the click happened to fall.
+    Vec2f m_adjust_drag_grab_bias    = Vec2f::Zero();
     float m_adjust_drag_start_rot    = 0.f;
     Vec2f m_adjust_drag_start_tile   = Vec2f::Ones(); // (u, v) extents as stored
     float m_adjust_drag_start_angle  = 0.f;           // planar angle of the grab, radians
+    // The mirroring the layer had when the drag began. A width or height handle dragged back through
+    // the tile's middle toggles its axis against this, rather than against whatever the last frame
+    // left behind, so dragging back and forth across the middle cannot ratchet the flag.
+    bool  m_adjust_drag_start_mirror_u = false;
+    bool  m_adjust_drag_start_mirror_v = false;
 
     // The live value to put in the readout pill, built by the drag and drawn by the renderer in the
     // same frame. Empty when no drag is running, which is also when no pill is drawn.

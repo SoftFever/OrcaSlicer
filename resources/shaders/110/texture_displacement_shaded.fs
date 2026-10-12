@@ -49,6 +49,10 @@ uniform float      tiling_scale;
 // every layer had before the two axes could differ - which is also what layer_tile_mm() does on the
 // CPU side, so an unset uniform behaves exactly as this shader always did.
 uniform float      tiling_scale_v;
+// Mirror the texture along one axis of the tile. Both default to false, which GLSL guarantees for an
+// uninitialised bool uniform, so a shader whose caller has not set them behaves exactly as before.
+uniform bool       mirror_u;
+uniform bool       mirror_v;
 // Height map width / height. Scales the v axis so a non-square image keeps its proportions
 // instead of being squeezed into a square tile - mirrors libslic3r's apply_uv_transform().
 uniform float      tex_aspect;
@@ -161,6 +165,12 @@ vec2 tile_mm()
     return vec2(su, (tiling_scale_v > 1e-6) ? tiling_scale_v : su);
 }
 
+// +1 or -1 per axis, matching layer_mirror_sign() on the CPU side.
+vec2 mirror_sign()
+{
+    return vec2(mirror_u ? -1.0 : 1.0, mirror_v ? -1.0 : 1.0);
+}
+
 vec2 project_uv(vec3 p, vec3 n)
 {
     vec2 planar = projection_raw(p, n);
@@ -168,8 +178,9 @@ vec2 project_uv(vec3 p, vec3 n)
     float sn = sin(rotation_rad);
     vec2 r = vec2(planar.x * cs - planar.y * sn, planar.x * sn + planar.y * cs);
     // Extents divide after the rotation, so a tile whose two sides differ stays a rotated rectangle
-    // instead of shearing. With a square tile the two orders agree exactly.
-    r /= tile_mm();
+    // instead of shearing. With a square tile the two orders agree exactly. The mirror is a sign on
+    // the same division, in the tile's own frame.
+    r *= mirror_sign() / tile_mm();
     // After the rotation, so the rotation stays a rotation rather than becoming a shear.
     r.y *= tex_aspect;
     return r + uv_offset;
@@ -330,7 +341,10 @@ void main()
         float sn = sin(rotation_rad);
         // One uv unit is tile.x mm along u but tile.y / tex_aspect mm along v, so each component of
         // the uv-space gradient carries its own factor before being rotated back into t/b.
-        vec2  g     = vec2(dh_duv.x / tile.x, dh_duv.y * tex_aspect / tile.y);
+        // Each component carries its own extent and its own mirror sign, both of which project_uv()
+        // applied on the way in; without the sign a mirrored layer would light as though it were not.
+        vec2  ms    = mirror_sign();
+        vec2  g     = vec2(dh_duv.x * ms.x / tile.x, dh_duv.y * tex_aspect * ms.y / tile.y);
         // ...and back out of raw-projection units into millimetres along t / b; see the 140 variant.
         vec2  slope = amplitude * vec2(g.x * cs + g.y * sn, -g.x * sn + g.y * cs) * units_per_mm;
 

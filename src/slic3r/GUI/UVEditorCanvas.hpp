@@ -93,8 +93,8 @@ public:
     // repeat exactly the way the height sampler does, or the pane would stop showing what gets baked.
     // `tiling_scale_v` is the tile's extent along v; pass <= 0 for a square tile, matching
     // layer_tile_mm().
-    void set_uv_transform(float tiling_scale, float tiling_scale_v, float rotation_deg, bool tile_enabled,
-                          bool tile_mirrored);
+    void set_uv_transform(float tiling_scale, float tiling_scale_v, const Vec2f &mirror_sign,
+                          float rotation_deg, bool tile_enabled, bool tile_mirrored);
 
     // Same 8-bit grayscale pixels build_texture_displacement()'s height sampling uses, shown
     // beneath the wireframe (expanded to RGBA on upload) so the unwrap can be checked against the
@@ -296,6 +296,7 @@ private:
 
     float m_tiling_scale   = 1.f;
     float m_tiling_scale_v = 1.f; // already resolved: never the "unset" sentinel, see set_uv_transform()
+    Vec2f m_mirror_sign    = Vec2f::Ones(); // +1 or -1 per axis, see layer_mirror_sign()
     float m_rotation_deg   = 0.f;
     bool  m_tile_enabled  = true;
     bool  m_tile_mirrored = false;

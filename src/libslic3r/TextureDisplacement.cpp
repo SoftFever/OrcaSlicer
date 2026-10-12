@@ -1687,8 +1687,11 @@ struct UVTransform
     UVTransform(const TextureDisplacementLayer &layer, float aspect_)
     {
         const Vec2f tile = layer_tile_mm(layer);
-        inv_u  = 1.f / tile.x();
-        inv_v  = 1.f / tile.y();
+        const Vec2f sign = layer_mirror_sign(layer);
+        // The mirror folds into the reciprocal: it is a negation of the same coordinate, so there is
+        // nothing to do per sample beyond carrying the sign here.
+        inv_u  = sign.x() / tile.x();
+        inv_v  = sign.y() / tile.y();
         const float rad = layer.rotation_deg * float(M_PI) / 180.f;
         cs     = std::cos(rad);
         sn     = std::sin(rad);
@@ -1731,9 +1734,15 @@ Vec2f apply_uv_transform(const Vec2f &planar, const TextureDisplacementLayer &la
     // coordinate by different amounts would be a shear, so the rotation has to come first and the
     // extents divide in the tile's own frame. With a square tile the two orders agree exactly,
     // R being linear - which is why this is not a change in behaviour for any existing layer.
+    //
+    // The mirror rides along as a sign on the same division. It is in the tile's own frame too, so
+    // it mirrors along the tile's axes rather than the world's, and because the offset is what
+    // positions the tile, mirroring about the tile's middle is a matter of the offset the gizmo
+    // writes alongside it, not of anything here.
     const Vec2f tile = layer_tile_mm(layer);
-    rotated.x() /= tile.x();
-    rotated.y() /= tile.y();
+    const Vec2f sign = layer_mirror_sign(layer);
+    rotated.x() *= sign.x() / tile.x();
+    rotated.y() *= sign.y() / tile.y();
 
     // Non-square textures. Without this the [0,1] square of uv covers the whole image whatever its
     // proportions, so a 2:1 image is squeezed into one tile and every feature in it comes out half

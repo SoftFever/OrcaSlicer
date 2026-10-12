@@ -182,6 +182,12 @@ struct TextureDisplacementLayer
     // the default and what a layer created before the tile could be non-square meant - so an older
     // undo snapshot still comes back as the square tile it was.
     float tiling_scale_v = -1.f;
+    // Mirror the texture along one axis of the tile. Set by dragging a width or height handle back
+    // through the tile's middle, which is how a side handle behaves in an image editor: the extent
+    // cannot go negative, so the sign lives here instead. Both default to off, which is what every
+    // layer written before this meant.
+    bool  mirror_u = false;
+    bool  mirror_v = false;
     float rotation_deg = 0.f;
     Vec2f offset       = Vec2f::Zero();
     bool  invert       = false;
@@ -306,7 +312,8 @@ struct TextureDisplacementLayer
            static_cast<int>(tile_method), static_cast<int>(projection_method), lscm_seam_angle_deg, islands,
            static_cast<int>(blend_mode), midlevel, island_padding_mm, lscm_seam_edges, view_project_right,
            view_project_up, smoothing, edge_smoothing, edge_smoothing_amount, auto_connect_islands, island_groups,
-           lscm_uv_overrides, view_project_projective, view_project_matrix, color_enabled, tiling_scale_v);
+           lscm_uv_overrides, view_project_projective, view_project_matrix, color_enabled, tiling_scale_v,
+           mirror_u, mirror_v);
     }
     template<class Archive> void load(Archive &ar)
     {
@@ -318,7 +325,7 @@ struct TextureDisplacementLayer
            tile_method_int, projection_method_int, lscm_seam_angle_deg, islands, blend_mode_int, midlevel,
            island_padding_mm, lscm_seam_edges, view_project_right, view_project_up, smoothing, edge_smoothing,
            edge_smoothing_amount, auto_connect_islands, island_groups, lscm_uv_overrides, view_project_projective,
-           view_project_matrix, color_enabled, tiling_scale_v);
+           view_project_matrix, color_enabled, tiling_scale_v, mirror_u, mirror_v);
         image_data        = blob.empty() ? nullptr : std::make_shared<std::vector<unsigned char>>(blob.begin(), blob.end());
         tile_method       = static_cast<TextureTileMethod>(tile_method_int);
         projection_method = static_cast<TextureProjectionMethod>(projection_method_int);
@@ -335,6 +342,15 @@ inline Vec2f layer_tile_mm(const TextureDisplacementLayer &layer)
 {
     const float su = (layer.tiling_scale > 1e-6f) ? layer.tiling_scale : 1.f;
     return Vec2f(su, (layer.tiling_scale_v > 1e-6f) ? layer.tiling_scale_v : su);
+}
+
+// +1 or -1 per axis, for the layer's mirroring. A separate factor from the extents rather than a
+// signed extent: the extents are a size the panel shows and the refinement measures texels against,
+// and letting one of them go negative would mean every one of those places had to remember to take
+// the magnitude.
+inline Vec2f layer_mirror_sign(const TextureDisplacementLayer &layer)
+{
+    return Vec2f(layer.mirror_u ? -1.f : 1.f, layer.mirror_v ? -1.f : 1.f);
 }
 
 // Settings that apply to the whole layer stack rather than to one layer, held per ModelVolume next

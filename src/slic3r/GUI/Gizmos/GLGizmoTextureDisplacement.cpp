@@ -1565,6 +1565,8 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
     shader->set_uniform("depth_mm", layer->depth_mm);
     shader->set_uniform("tiling_scale", layer->tiling_scale);
     shader->set_uniform("tiling_scale_v", layer_tile_mm(*layer).y());
+    shader->set_uniform("mirror_u", layer->mirror_u);
+    shader->set_uniform("mirror_v", layer->mirror_v);
     // Read off the uploaded texture rather than the decoded one: they are the same image, and this is
     // the aspect the sampler will actually see.
     shader->set_uniform("tex_aspect", float(tex->get_width()) / float(tex->get_height()));
@@ -2115,6 +2117,8 @@ void GLGizmoTextureDisplacement::render_uvcheck_mesh()
     shader->set_uniform("checker_freq", 4.f); // squares per texture tile
     shader->set_uniform("tiling_scale", layer->tiling_scale);
     shader->set_uniform("tiling_scale_v", layer_tile_mm(*layer).y());
+    shader->set_uniform("mirror_u", layer->mirror_u);
+    shader->set_uniform("mirror_v", layer->mirror_v);
     shader->set_uniform("rotation_rad", layer->rotation_deg * float(M_PI) / 180.f);
     shader->set_uniform("uv_offset", layer->offset);
     shader->set_uniform("use_vertex_uv", m_uvcheck_uses_vertex_uv);
@@ -2479,8 +2483,9 @@ void GLGizmoTextureDisplacement::update_uv_editor()
         }
     }
     // The backdrop's extent and repeat follow the tile settings, with or without an unwrap.
-    uv_canvas->set_uv_transform(layer->tiling_scale, layer_tile_mm(*layer).y(), layer->rotation_deg,
-                                layer->tile_enabled, layer->tile_method == TextureTileMethod::MirroredRepeat);
+    uv_canvas->set_uv_transform(layer->tiling_scale, layer_tile_mm(*layer).y(), layer_mirror_sign(*layer),
+                                layer->rotation_deg, layer->tile_enabled,
+                                layer->tile_method == TextureTileMethod::MirroredRepeat);
 
     if (m_uv_editor_unwrap.empty()) {
         // Nothing unwrapped yet: the pane opens anyway, because Unwrap itself lives in it. Its canvas shows the
@@ -3103,13 +3108,17 @@ GLGizmoTextureDisplacement::uv_editor_island_transforms(const TextureDisplacemen
     // S^-1 R, with S the tile extents - the same order apply_uv_transform() applies them in, so a
     // non-square tile scales each row rather than the whole matrix.
     const Vec2f tile = layer_tile_mm(layer);
+    const Vec2f sign = layer_mirror_sign(layer);
     const float rad  = layer.rotation_deg * float(M_PI) / 180.f;
     const float cs   = std::cos(rad);
     const float sn   = std::sin(rad);
 
+    // M S^-1 R, the mirror being a sign on each row of S^-1 - the same composition, in the same
+    // order, as apply_uv_transform().
+    const float iu = sign.x() / tile.x(), iv = sign.y() / tile.y();
     Eigen::Matrix2f uv_linear;
-    uv_linear << cs / tile.x(), -sn / tile.x(),
-                 sn / tile.y(),  cs / tile.y();
+    uv_linear << cs * iu, -sn * iu,
+                 sn * iv,  cs * iv;
 
     m_uv_editor_bbox_min = Vec2f(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
     m_uv_editor_bbox_max = Vec2f(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest());
@@ -3285,24 +3294,34 @@ void GLGizmoTextureDisplacement::end_adjust_texture_mode()
     m_adjust_readout.clear();
 }
 
+// One tile of the texture is uv [0,1] in both axes, so the middle of the image is uv (0.5, 0.5) -
+// not uv 0, which is one of its *corners*. Everything about the gizmo's position hangs off this: the
+// frame is centred here, so it bounds one whole tile rather than straddling the four that meet at
+// the image's corner, and rotating and scaling hold this point still, so they turn and resize the
+// image about its middle.
+static const Vec2f ADJUST_TILE_UV_CENTER(0.5f, 0.5f);
+
 Vec2f GLGizmoTextureDisplacement::adjust_handle_planar(const TextureDisplacementLayer &layer, float aspect)
 {
     // apply_uv_transform() maps a planar mm coordinate p to  uv = S^-1 R(p) + offset, with S the
-    // tile extents and v additionally carrying the image's aspect. The tile's centre is the p whose
-    // uv is zero, so that one equation inverts directly: R(p) = -S offset (with the aspect undone
-    // on v), and p is R^-1 of it. Which is also why the centre lands exactly on the anchor when the
-    // offset is zero, whatever the rotation or the tile size.
+    // tile extents and v additionally carrying the image's aspect. Asking which p lands on a given
+    // uv inverts that one equation directly: R(p) = S (uv - offset), with the aspect undone on v,
+    // and p is R^-1 of it.
+    // A negation is its own inverse, so the mirror's sign appears here exactly as it does going
+    // forward - no special case, just the same factor on the same axis.
     const Vec2f tile = layer_tile_mm(layer);
+    const Vec2f sign = layer_mirror_sign(layer);
     const float a    = (aspect > 0.f) ? aspect : 1.f;
-    const float X    = -layer.offset.x() * tile.x();
-    const float Y    = -layer.offset.y() * tile.y() / a;
+    const float X    = (ADJUST_TILE_UV_CENTER.x() - layer.offset.x()) * tile.x() * sign.x();
+    const float Y    = (ADJUST_TILE_UV_CENTER.y() - layer.offset.y()) * tile.y() / a * sign.y();
     const float rad  = layer.rotation_deg * float(M_PI) / 180.f;
     const float cs = std::cos(rad), sn = std::sin(rad);
     return Vec2f(cs * X + sn * Y, -sn * X + cs * Y);
 }
 
 Vec2f GLGizmoTextureDisplacement::adjust_offset_for_planar(const Vec2f &planar, float rot_deg,
-                                                           const Vec2f &tile_mm, float aspect)
+                                                           const Vec2f &tile_mm, const Vec2f &mirror_sign,
+                                                           float aspect)
 {
     const float a   = (aspect > 0.f) ? aspect : 1.f;
     const float rad = rot_deg * float(M_PI) / 180.f;
@@ -3311,7 +3330,11 @@ Vec2f GLGizmoTextureDisplacement::adjust_offset_for_planar(const Vec2f &planar, 
     const float Y  = planar.x() * sn + planar.y() * cs;
     const float su = (tile_mm.x() > 1e-6f) ? tile_mm.x() : 1.f;
     const float sv = (tile_mm.y() > 1e-6f) ? tile_mm.y() : su;
-    return Vec2f(-X / su, -Y * a / sv);
+    // The exact inverse of adjust_handle_planar(), uv centre and mirror included: solving
+    // uv = M S^-1 R(planar) + offset for the offset that puts the image's middle on `planar`. Because
+    // the offset is solved for the centre the gesture means to keep, mirroring one axis mirrors the
+    // image about the tile's own middle rather than sliding it somewhere else.
+    return ADJUST_TILE_UV_CENTER - Vec2f(mirror_sign.x() * X / su, mirror_sign.y() * Y * a / sv);
 }
 
 Vec3f GLGizmoTextureDisplacement::adjust_handle_center(const TextureDisplacementLayer &layer) const
@@ -3343,17 +3366,30 @@ namespace {
 // The placement gizmo's fixed screen-space dimensions, in pixels. Nothing here scales with the
 // volume or the zoom: the handles have to stay the same size to stay grabbable, and only the tile
 // frame - the one part that stands for a measurement - is allowed to grow and shrink.
-constexpr double ADJUST_MIN_TILE_PX   = 44.0; // the smallest the frame is ever drawn
-constexpr double ADJUST_ARM_PX        = 32.0; // how far an axis arm reaches past the frame's edge
-constexpr double ADJUST_ROT_STEM_PX   = 30.0; // from the near corner out to the rotate ring
-constexpr double ADJUST_ROT_R_PX      = 7.6;  // the rotate ring's radius
-constexpr double ADJUST_GRIP_HALF_PX  = 4.6;  // half the side of a corner scale grip
+// How large the handles are drawn, against the sizes the gizmo was first laid out at. The whole set
+// scales together, and has to: bigger grips with the old minimum frame would bury the move area
+// under the four corner zones on a small tile, and bigger marks with the old hit radii would be
+// something to aim at and miss. Stroke widths are deliberately *not* in here - they are line
+// weights in Orca's icon language, not dimensions of the handles.
+constexpr double ADJUST_UI_SCALE      = 2.0;
+constexpr double ADJUST_MIN_TILE_PX   = 44.0 * ADJUST_UI_SCALE; // the smallest the frame is ever drawn
+constexpr double ADJUST_BAR_OFF_PX    = 8.0 * ADJUST_UI_SCALE;  // edge to the bar that resizes it
+constexpr double ADJUST_BAR_HALF_PX   = 11.0 * ADJUST_UI_SCALE; // half the bar's length, along the edge
+// The axis arrow sits beyond the bar on the same ray. The gap is what keeps the two from fighting
+// over clicks: it is wider than the bar's own hit radius, so by the time the arrow's shaft begins
+// the bar's zone has all but ended, and the few pixels where they do meet go to the bar.
+constexpr double ADJUST_ARM_GAP_PX    = 23.0 * ADJUST_UI_SCALE; // edge to the start of the arrow
+constexpr double ADJUST_ARM_PX        = 32.0 * ADJUST_UI_SCALE; // the arrow's own length
+constexpr double ADJUST_ROT_STEM_PX   = 30.0 * ADJUST_UI_SCALE; // near corner out to the rotate ring
+constexpr double ADJUST_ROT_R_PX      = 7.6 * ADJUST_UI_SCALE;  // the rotate ring's radius
+constexpr double ADJUST_GRIP_HALF_PX  = 4.6 * ADJUST_UI_SCALE;  // half the side of a corner grip
 // Hit radii, in the order adjust_pick() tests them. Deliberately larger than the marks they belong
 // to: the drawn handle says where to aim, the radius decides what counts as hitting it.
-constexpr double ADJUST_PICK_ROT_PX   = 12.0;
-constexpr double ADJUST_PICK_GRIP_PX  = 11.0;
-constexpr double ADJUST_PICK_TIP_PX   = 11.0;
-constexpr double ADJUST_PICK_SHAFT_PX = 8.0;
+constexpr double ADJUST_PICK_ROT_PX   = 12.0 * ADJUST_UI_SCALE;
+constexpr double ADJUST_PICK_GRIP_PX  = 11.0 * ADJUST_UI_SCALE;
+constexpr double ADJUST_PICK_BAR_PX   = 9.0 * ADJUST_UI_SCALE;  // around the bar's own segment
+constexpr double ADJUST_PICK_TIP_PX   = 11.0 * ADJUST_UI_SCALE; // around the arrow's chevron
+constexpr double ADJUST_PICK_SHAFT_PX = 8.0 * ADJUST_UI_SCALE;  // around the arrow's shaft
 
 double point_to_segment_px(const Vec2d &p, const Vec2d &a, const Vec2d &b)
 {
@@ -3488,16 +3524,33 @@ GLGizmoTextureDisplacement::AdjustFrame GLGizmoTextureDisplacement::adjust_frame
         f.clamped = true;
     }
 
-    // Arms are measured in screen pixels off the projected edge, not in millimetres along the
-    // surface, so they keep their length however the tile is foreshortened.
+    // The bars are measured in screen pixels off the projected edge, not in millimetres along the
+    // surface, so they keep their size however the tile is foreshortened. Each sits just outside its
+    // own edge and runs parallel to it, which is what says "this edge moves" rather than "this
+    // whole thing moves".
     static const Vec2d fallback_dir[4] = { { 1.0, 0.0 }, { -1.0, 0.0 }, { 0.0, 1.0 }, { 0.0, -1.0 } };
+    // The two corners each edge runs between, in the corner order +u+v, +u-v, -u-v, -u+v.
+    static const int edge_ends[4][2] = { { 0, 1 }, { 2, 3 }, { 3, 0 }, { 1, 2 } };
     for (int i = 0; i < 4; ++i) {
         const Vec2d  out = f.edge_mid[size_t(i)] - f.center;
         const double len = out.norm();
         // An edge seen exactly edge-on projects to nothing and has no outward direction to read off
-        // it; the screen axes keep the arms spread out rather than piled on the centre.
+        // it; the screen axes keep the bars spread out rather than piled on the centre.
         f.arm_dir[size_t(i)] = (len > 1e-6) ? Vec2d(out / len) : fallback_dir[i];
-        f.arm_tip[size_t(i)] = f.edge_mid[size_t(i)] + f.arm_dir[size_t(i)] * ADJUST_ARM_PX;
+        const Vec2d  along     = f.corner[size_t(edge_ends[i][0])] - f.corner[size_t(edge_ends[i][1])];
+        const double along_len = along.norm();
+        // Degenerate the same way: fall back to the perpendicular of the outward direction so the
+        // bar still has a length to be picked along.
+        const Vec2d dir = (along_len > 1e-6) ? Vec2d(along / along_len) :
+                                               Vec2d(-f.arm_dir[size_t(i)].y(), f.arm_dir[size_t(i)].x());
+        // Never longer than the edge it belongs to, or a small tile would wear bars sticking out
+        // past its own corners and into the neighbouring edge's.
+        const double half = std::min(ADJUST_BAR_HALF_PX, std::max(0.35 * along_len, 3.0));
+        const Vec2d  at   = f.edge_mid[size_t(i)] + f.arm_dir[size_t(i)] * ADJUST_BAR_OFF_PX;
+        f.bar_a[size_t(i)] = at - dir * half;
+        f.bar_b[size_t(i)] = at + dir * half;
+        f.arm_base[size_t(i)] = f.edge_mid[size_t(i)] + f.arm_dir[size_t(i)] * ADJUST_ARM_GAP_PX;
+        f.arm_tip[size_t(i)]  = f.arm_base[size_t(i)] + f.arm_dir[size_t(i)] * ADJUST_ARM_PX;
     }
 
     const Vec2d  rot_out = f.corner[0] - f.center;
@@ -3525,17 +3578,26 @@ GLGizmoTextureDisplacement::adjust_pick(const Vec2d &mouse, const AdjustFrame &f
     for (int i = 0; i < 4; ++i)
         if (within(f.corner[size_t(i)], ADJUST_PICK_GRIP_PX)) {
             index = i;
-            return AdjustHandle::Scale;
+            return AdjustHandle::CornerScale;
         }
+    // The arrow's chevron is the furthest thing out on its ray, so nothing else can claim it.
     for (int i = 0; i < 4; ++i)
         if (within(f.arm_tip[size_t(i)], ADJUST_PICK_TIP_PX)) {
             index = i;
-            return AdjustHandle::Axis;
+            return AdjustHandle::AxisMove;
+        }
+    // Corners before edges: a corner sits at the end of two edges, and grabbing it should take both
+    // extents rather than whichever edge happened to be tested first. And the bar before the
+    // arrow's shaft, which is what gives the bar the handful of pixels where their zones meet.
+    for (int i = 0; i < 4; ++i)
+        if (point_to_segment_px(mouse, f.bar_a[size_t(i)], f.bar_b[size_t(i)]) <= ADJUST_PICK_BAR_PX) {
+            index = i;
+            return AdjustHandle::EdgeScale;
         }
     for (int i = 0; i < 4; ++i)
-        if (point_to_segment_px(mouse, f.edge_mid[size_t(i)], f.arm_tip[size_t(i)]) <= ADJUST_PICK_SHAFT_PX) {
+        if (point_to_segment_px(mouse, f.arm_base[size_t(i)], f.arm_tip[size_t(i)]) <= ADJUST_PICK_SHAFT_PX) {
             index = i;
-            return AdjustHandle::Axis;
+            return AdjustHandle::AxisMove;
         }
     // A real polygon test, not a circle through the corners: the old hit test let a move start from
     // empty space beside the tile, and refused one near a corner the circle did not reach.
@@ -3597,6 +3659,11 @@ void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
     const ImU32 frame_col = move_live ? act_col : accent;
     const float frame_w   = move_live ? 2.4f : 1.8f;
 
+    // The marks drawn inline below are in the same units as the constants above, so they take the
+    // same factor; without it the chevrons, the grip dots and the ring's glyph would stay at their
+    // original size inside handles twice as large.
+    const float S = float(ADJUST_UI_SCALE);
+
     const auto P = [](const Vec2d &v) { return ImVec2(float(v.x()), float(v.y())); };
     // Every stroke goes down twice: the halo first, a pixel wider on each side, then the stroke
     // itself. That is the whole reason the gizmo stays readable over a pale model, a dark one and a
@@ -3624,12 +3691,12 @@ void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
                 dashed(ghost[size_t(i)], ghost[size_t((i + 1) % 4)], ghostc, 5.0, 5.0);
 
         const ImU32 guide = dark ? IM_COL32(38, 166, 154, 153) : IM_COL32(0, 150, 136, 166);
-        if (act == AdjustHandle::Axis && act_idx >= 0) {
-            // The axis the move is being held to, drawn right across the view so it is obvious which
-            // one won when two arms were close together on screen.
+        if ((act == AdjustHandle::AxisMove || act == AdjustHandle::EdgeScale) && act_idx >= 0) {
+            // The axis the extent is read along, drawn right across the view so it is obvious which
+            // of the two the bar under the cursor controls.
             const Vec2d d = f.arm_dir[size_t(act_idx)];
             dashed(f.center - d * 1200.0, f.center + d * 1200.0, guide, 6.0, 6.0);
-        } else if (act == AdjustHandle::Scale && act_idx >= 0) {
+        } else if (act == AdjustHandle::CornerScale && act_idx >= 0) {
             const Vec2d  out = f.corner[size_t(act_idx)] - f.center;
             const double len = out.norm();
             if (len > 1e-6) {
@@ -3684,20 +3751,39 @@ void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
     else
         stroke(quad, 4, true, frame_col, frame_w);
 
-    // ---- axis arms -----------------------------------------------------------------------------
+    // ---- axis arrows: a move held to one of the tile's own axes --------------------------------
     for (int i = 0; i < 4; ++i) {
-        const bool   live = act == AdjustHandle::Axis && act_idx == i;
+        const bool   live = act == AdjustHandle::AxisMove && act_idx == i;
         const ImU32  col  = live ? act_col : rest_col;
         const Vec2d &tip  = f.arm_tip[size_t(i)];
         if (live)
-            dl->AddCircleFilled(P(tip), 6.4f, col, 16);
-        const ImVec2 shaft[2] = { P(f.edge_mid[size_t(i)]), P(tip) };
+            dl->AddCircleFilled(P(tip), 6.4f * S, col, 16);
+        const ImVec2 shaft[2] = { P(f.arm_base[size_t(i)]), P(tip) };
         stroke(shaft, 2, false, col, live ? 1.8f : 1.6f);
-        // The chevron is the Adjust placement icon's own mark. Idle it is the only thing there, so
-        // the gizmo stays light; the filled dot behind it appears on hover, when a target is wanted.
+        // The chevron is the Adjust placement icon's own mark, and pointing away from the tile is
+        // what separates it from the bar behind it: one says "move it this way", the other "this
+        // edge moves". The filled dot behind the chevron appears on hover, when a target is wanted.
         const Vec2d  d = f.arm_dir[size_t(i)], n(-d.y(), d.x());
-        const ImVec2 chev[3] = { P(tip - d * 8.0 + n * 5.0), P(tip), P(tip - d * 8.0 - n * 5.0) };
+        const ImVec2 chev[3] = { P(tip - d * (8.0 * ADJUST_UI_SCALE) + n * (5.0 * ADJUST_UI_SCALE)), P(tip),
+                                 P(tip - d * (8.0 * ADJUST_UI_SCALE) - n * (5.0 * ADJUST_UI_SCALE)) };
         stroke(chev, 3, false, live ? handle : col, live ? 1.8f : 1.6f);
+    }
+
+    // ---- edge bars: one tile extent each -------------------------------------------------------
+    for (int i = 0; i < 4; ++i) {
+        const bool  live = act == AdjustHandle::EdgeScale && act_idx == i;
+        const ImU32 col  = live ? act_col : (dragging ? dimc : accent);
+        // A capsule lying just outside its edge, parallel to it: a bar across the axis it resizes,
+        // which is the usual way of saying "this side moves" and leaves the corners to mean both.
+        const ImVec2 bar[2] = { P(f.bar_a[size_t(i)]), P(f.bar_b[size_t(i)]) };
+        dl->AddLine(bar[0], bar[1], halo, (live ? 5.4f : 4.2f) + 2.4f);
+        dl->AddLine(bar[0], bar[1], col, live ? 5.4f : 4.2f);
+        // A tick from the bar back to its edge while it is live, so which edge is moving is not left
+        // to be inferred from a bar floating beside the frame.
+        if (live) {
+            const ImVec2 tick[2] = { P(f.edge_mid[size_t(i)]), P(f.edge_mid[size_t(i)] + f.arm_dir[size_t(i)] * ADJUST_BAR_OFF_PX) };
+            stroke(tick, 2, false, col, 1.6f);
+        }
     }
 
     // ---- move grip: the panel's own drag icon, six dots, lying in the tile's plane --------------
@@ -3709,15 +3795,16 @@ void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
         const ImU32  col = move_live ? act_col : rest_col;
         for (int r = -1; r <= 1; ++r)
             for (int c = -1; c <= 1; c += 2) {
-                const Vec2d p = f.center + eu * (double(c) * 2.9) + ev * (double(r) * 5.4);
-                dl->AddCircleFilled(P(p), 2.6f, halo, 10);
-                dl->AddCircleFilled(P(p), 1.5f, col, 10);
+                const Vec2d p = f.center + eu * (double(c) * 2.9 * ADJUST_UI_SCALE) +
+                                ev * (double(r) * 5.4 * ADJUST_UI_SCALE);
+                dl->AddCircleFilled(P(p), 2.6f * S, halo, 10);
+                dl->AddCircleFilled(P(p), 1.5f * S, col, 10);
             }
     }
 
     // ---- corner scale grips --------------------------------------------------------------------
     for (int i = 0; i < 4; ++i) {
-        const bool   live = act == AdjustHandle::Scale && act_idx == i;
+        const bool   live = act == AdjustHandle::CornerScale && act_idx == i;
         const Vec2d &c    = f.corner[size_t(i)];
         const double h    = ADJUST_GRIP_HALF_PX;
         const ImVec2 sq[4] = { ImVec2(float(c.x() - h), float(c.y() - h)), ImVec2(float(c.x() + h), float(c.y() - h)),
@@ -3733,17 +3820,17 @@ void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
         const ImVec2 stem[2] = { P(f.corner[0]), P(f.rotate_at) };
         stroke(stem, 2, false, col, live ? 1.8f : 1.6f);
         const ImVec2 at = P(f.rotate_at);
-        dl->AddCircleFilled(at, float(ADJUST_ROT_R_PX) + 1.2f, halo, 20);
+        dl->AddCircleFilled(at, float(ADJUST_ROT_R_PX) + 1.2f * S, halo, 20);
         dl->AddCircleFilled(at, float(ADJUST_ROT_R_PX), live ? act_col : handle, 20);
         dl->AddCircle(at, float(ADJUST_ROT_R_PX), live ? act_col : frame_col, 20, 1.6f);
         // The same curved arrow Orca's rotate gizmo uses, so the handle says what it does without a
         // tooltip: a part ring with an arrowhead on its leading end.
         const ImU32 gcol = live ? handle : rest_col;
         dl->PathClear();
-        dl->PathArcTo(at, 4.2f, float(M_PI) * 1.11f, float(M_PI) * 1.89f, 12);
+        dl->PathArcTo(at, 4.2f * S, float(M_PI) * 1.11f, float(M_PI) * 1.89f, 20);
         dl->PathStroke(gcol, 0, 1.5f);
-        const ImVec2 head[3] = { ImVec2(at.x + 1.11f, at.y - 3.38f), ImVec2(at.x + 3.95f, at.y - 1.44f),
-                                 ImVec2(at.x + 4.87f, at.y - 4.75f) };
+        const ImVec2 head[3] = { ImVec2(at.x + 1.11f * S, at.y - 3.38f * S), ImVec2(at.x + 3.95f * S, at.y - 1.44f * S),
+                                 ImVec2(at.x + 4.87f * S, at.y - 4.75f * S) };
         dl->AddPolyline(head, 3, gcol, 0, 1.5f);
     }
 
@@ -3804,25 +3891,73 @@ bool GLGizmoTextureDisplacement::on_mouse_adjust_texture(const wxMouseEvent &mou
         // component once the tile is rotated, which is what the old axis drag got wrong.
         const Vec2f e_u(cs0, -sn0), e_v(sn0, cs0);
 
-        Vec2f centre = m_adjust_drag_start_center;
-        float rot    = m_adjust_drag_start_rot;
-        Vec2f tile   = m_adjust_drag_start_tile;
+        Vec2f centre   = m_adjust_drag_start_center;
+        float rot      = m_adjust_drag_start_rot;
+        Vec2f tile      = m_adjust_drag_start_tile;
+        bool  mirror_u = m_adjust_drag_start_mirror_u;
+        bool  mirror_v = m_adjust_drag_start_mirror_v;
+        // Which side of the centre each handle sits on, by index: arms and bars run +u, -u, +v, -v,
+        // and corners +u+v, +u-v, -u-v, -u+v. A handle dragged to the far side of the centre has
+        // turned the tile inside out on that axis, which is a mirror.
+        static const float side_u[4] = { 1.f, -1.f, 0.f, 0.f };
+        static const float side_v[4] = { 0.f, 0.f, 1.f, -1.f };
+        static const float corn_u[4] = { 1.f, 1.f, -1.f, -1.f };
+        static const float corn_v[4] = { 1.f, -1.f, -1.f, 1.f };
+        const size_t       di       = size_t(std::clamp(m_adjust_drag_index, 0, 3));
 
         switch (m_adjust_drag_kind) {
         case AdjustHandle::Move: {
-            centre = m_adjust_drag_start_center + (hit - m_adjust_drag_start_grab);
-            m_adjust_readout = Slic3r::format(_u8L("U %1%   V %2% mm"), signed_mm(centre.x()),
-                                              signed_mm(centre.y()));
+            const Vec2f delta = hit - m_adjust_drag_start_grab;
+            if (mouse_event.ShiftDown()) {
+                // Shift holds the move to one of the tile's own axes - whichever the gesture is
+                // already going along. Projecting onto that axis is not the same as zeroing a planar
+                // component once the tile is rotated, which is what makes this worth spelling out.
+                const bool  along_u = std::abs(delta.dot(e_u)) >= std::abs(delta.dot(e_v));
+                const Vec2f axis    = along_u ? e_u : e_v;
+                centre = m_adjust_drag_start_center + axis * delta.dot(axis);
+                m_adjust_readout = Slic3r::format(_u8L("%1% %2% mm"), along_u ? "U" : "V",
+                                                  signed_mm(centre.dot(axis)));
+            } else {
+                centre = m_adjust_drag_start_center + delta;
+                m_adjust_readout = Slic3r::format(_u8L("U %1%   V %2% mm"), signed_mm(centre.x()),
+                                                  signed_mm(centre.y()));
+            }
             break;
         }
-        case AdjustHandle::Axis: {
+        case AdjustHandle::AxisMove: {
+            // Along the tile's own axis. Projecting onto it is not the same as zeroing one planar
+            // component once the tile is rotated, which is what the first version of this got wrong.
             const Vec2f axis  = (m_adjust_drag_index < 2) ? e_u : e_v;
             const Vec2f delta = hit - m_adjust_drag_start_grab;
             centre = m_adjust_drag_start_center + axis * delta.dot(axis);
-            // The position along the axis, not the distance travelled, so this reads the same way
-            // the free move's readout does.
             m_adjust_readout = Slic3r::format(_u8L("%1% %2% mm"), (m_adjust_drag_index < 2) ? "U" : "V",
                                               signed_mm(centre.dot(axis)));
+            break;
+        }
+        case AdjustHandle::EdgeScale: {
+            // One extent, straight off the cursor: the grabbed edge follows it and the opposite one
+            // mirrors, so the tile resizes about its centre and the other axis is left alone. This is
+            // the whole point of the edge bars - a corner can only ever give you both at once.
+            //
+            // Keep dragging past the middle and the extent does not stick at its floor: the handle
+            // has crossed to the far side, so the tile is inside out on that axis and the texture
+            // mirrors, the way a side handle behaves in an image editor. The extent itself stays a
+            // magnitude - the sign is the mirror flag.
+            const Vec2f rel     = (hit - m_adjust_drag_grab_bias) - centre;
+            const bool  along_u = m_adjust_drag_index < 2;
+            const float a       = (aspect > 0.f) ? aspect : 1.f;
+            if (along_u) {
+                const float along = rel.dot(e_u);
+                tile.x() = 2.f * std::abs(along);
+                mirror_u = m_adjust_drag_start_mirror_u != (along * side_u[di] < 0.f);
+            } else {
+                const float along = rel.dot(e_v);
+                tile.y() = 2.f * std::abs(along) * a;
+                mirror_v = m_adjust_drag_start_mirror_v != (along * side_v[di] < 0.f);
+            }
+            const std::string flipped = (along_u ? mirror_u : mirror_v) ? _u8L(", mirrored") : std::string();
+            m_adjust_readout = (along_u ? Slic3r::format(_u8L("Tile width %1% mm"), num(tile.x(), 2)) :
+                                          Slic3r::format(_u8L("Tile height %1% mm"), num(tile.y(), 2))) + flipped;
             break;
         }
         case AdjustHandle::Rotate: {
@@ -3842,22 +3977,26 @@ bool GLGizmoTextureDisplacement::on_mouse_adjust_texture(const wxMouseEvent &mou
             m_adjust_readout = num(shown, 1) + "°";
             break;
         }
-        case AdjustHandle::Scale: {
-            const Vec2f rel    = hit - centre;
+        case AdjustHandle::CornerScale: {
+            const Vec2f rel    = (hit - m_adjust_drag_grab_bias) - centre;
             const bool  locked = layer->tiling_scale_v <= 0.f;
             if (locked || mouse_event.ShiftDown()) {
-                // One extent, or the lock asked for: the tile follows how much further out the grab
-                // point is than where it started, which is the only reading that cannot change the
-                // tile's proportions.
-                const float r0 = (m_adjust_drag_start_grab - m_adjust_drag_start_center).norm();
+                // A square tile, or Shift asking for the proportions to hold: the tile follows how
+                // much further out the grab point is than where it started, which is the only
+                // reading that cannot change the ratio between the two extents.
+                const float r0 = (m_adjust_drag_start_grab - m_adjust_drag_grab_bias - m_adjust_drag_start_center).norm();
                 const float k  = (r0 > 1e-4f) ? (rel.norm() / r0) : 1.f;
                 tile = m_adjust_drag_start_tile * k;
             } else {
                 // The grabbed corner follows the cursor about the fixed centre, so its coordinates
                 // in the tile's own frame *are* the half extents. The v extent is stored before the
                 // aspect correction, hence the multiply back on the way in.
-                const float a = (aspect > 0.f) ? aspect : 1.f;
-                tile = Vec2f(2.f * std::abs(rel.dot(e_u)), 2.f * std::abs(rel.dot(e_v)) * a);
+                const float a      = (aspect > 0.f) ? aspect : 1.f;
+                const float along_u = rel.dot(e_u), along_v = rel.dot(e_v);
+                tile = Vec2f(2.f * std::abs(along_u), 2.f * std::abs(along_v) * a);
+                // Dragged through the middle on either axis, same as an edge bar.
+                mirror_u = m_adjust_drag_start_mirror_u != (along_u * corn_u[di] < 0.f);
+                mirror_v = m_adjust_drag_start_mirror_v != (along_v * corn_v[di] < 0.f);
             }
             // The same bounds the panel's sliders clamp to, so a drag cannot reach a value the
             // control beside it refuses to show.
@@ -3872,15 +4011,23 @@ bool GLGizmoTextureDisplacement::on_mouse_adjust_texture(const wxMouseEvent &mou
 
         layer->rotation_deg = rot;
         layer->tiling_scale = tile.x();
-        // A locked tile stays locked: a scale drag must not quietly give the v extent a value of its
-        // own behind the panel's lock.
-        if (layer->tiling_scale_v > 0.f)
+        // Dragging one edge is a request for one extent, which a square tile cannot honour - the two
+        // are the same number - so the edge bars unlock it. The panel's link flips to "Lock to a
+        // square tile" on the next frame, which is where that becomes visible.
+        if (m_adjust_drag_kind == AdjustHandle::EdgeScale)
             layer->tiling_scale_v = tile.y();
+        // Otherwise a locked tile stays locked: a corner drag must not quietly give the v extent a
+        // value of its own behind the panel's lock.
+        else if (layer->tiling_scale_v > 0.f)
+            layer->tiling_scale_v = tile.y();
+        layer->mirror_u = mirror_u;
+        layer->mirror_v = mirror_v;
         // Last, and for every kind of drag alike: the offset is whatever puts the tile's centre
         // where this gesture wants it, given the rotation and the extents it has just settled. That
         // is what makes a rotate or a scale act in place instead of swinging the tile around the
         // anchor, and it is why there is only one place that writes `offset`.
-        layer->offset = adjust_offset_for_planar(centre, rot, layer_tile_mm(*layer), aspect);
+        layer->offset = adjust_offset_for_planar(centre, rot, layer_tile_mm(*layer), layer_mirror_sign(*layer),
+                                                 aspect);
 
         m_preview_params_dirty = true;
         m_parent.set_as_dirty();
@@ -3907,6 +4054,28 @@ bool GLGizmoTextureDisplacement::on_mouse_adjust_texture(const wxMouseEvent &mou
         m_adjust_drag_start_tile   = f.tile_mm;
         const Vec2f rel            = grab - f.center_planar;
         m_adjust_drag_start_angle  = std::atan2(rel.y(), rel.x());
+        m_adjust_drag_start_mirror_u = layer->mirror_u;
+        m_adjust_drag_start_mirror_v = layer->mirror_v;
+        // Where the handle actually is, as against where the click landed inside its hit radius. The
+        // scale drags read the extents straight off the cursor, so without this the tile would jump
+        // by that difference the instant the button went down - and the radii are deliberately
+        // generous, so the jump would be plainly visible.
+        m_adjust_drag_grab_bias = Vec2f::Zero();
+        if (k == AdjustHandle::EdgeScale || k == AdjustHandle::CornerScale) {
+            const float rad = layer->rotation_deg * float(M_PI) / 180.f;
+            const float cs = std::cos(rad), sn = std::sin(rad);
+            const Vec2f e_u(cs, -sn), e_v(sn, cs);
+            // Corner order, and edge order, both as adjust_frame() builds them.
+            static const float cu[4] = { 1.f, 1.f, -1.f, -1.f };
+            static const float cv[4] = { 1.f, -1.f, -1.f, 1.f };
+            static const float eu[4] = { 1.f, -1.f, 0.f, 0.f };
+            static const float ev[4] = { 0.f, 0.f, 1.f, -1.f };
+            const size_t j = size_t(std::clamp(idx, 0, 3));
+            const float  su = (k == AdjustHandle::CornerScale) ? cu[j] : eu[j];
+            const float  sv = (k == AdjustHandle::CornerScale) ? cv[j] : ev[j];
+            const Vec2f  at = f.center_planar + e_u * (su * f.half_planar.x()) + e_v * (sv * f.half_planar.y());
+            m_adjust_drag_grab_bias = grab - at;
+        }
         m_adjust_readout.clear();
         m_parent.set_as_dirty();
         return true;
@@ -4062,6 +4231,9 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         "texture_displacement_adjust.svg", "canvas_drag.svg", "texture_displacement_move_up.svg",
         "texture_displacement_move_down.svg", "texture_displacement_drag.svg",
         "texture_displacement_select_all.svg", "texture_displacement_erase_all.svg",
+        // The tile's square lock. Two glyphs rather than one icon's two variants, the states being
+        // different shapes; both already carry the accent and the icon grey this panel uses.
+        "lock_closed.svg", "lock_open.svg",
     };
     std::vector<std::string> paths;
     paths.reserve(names.size());
@@ -6845,32 +7017,32 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             // means "same as u" (see layer_tile_mm()), so there is no separate panel flag to keep in
             // step with it, and nothing to go stale across a layer switch or an undo.
             const bool tile_split = layer.tiling_scale_v > 0.f;
+            // The slider gives up the width the lock needs, so the two sit on one row.
             m_preview_params_dirty |= float_row("##tile_size", tile_split ? _L("Tile width") : _L("Tile size"),
-                                                &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true, card_pad);
+                                                &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true,
+                                                card_pad + icon_sm + gap_s);
             hover_tip(_u8L("How wide one copy of the texture is on the model. Smaller repeats the pattern "
                            "more often and makes its detail finer; with Tile off, this is the size of the "
                            "single copy."));
+            ImGui::SameLine(0.f, gap_s);
+            if (icon_toggle(843, tile_split ? "lock_open.svg" : "lock_closed.svg", !tile_split, icon_sm,
+                            _L("Square tile"),
+                            tile_split ? _L("Width and height are set separately. Click to lock the tile "
+                                            "square again, taking the height from the width.") :
+                                         _L("The tile is square: one size sets both axes. Click to unlock "
+                                            "and set the height on its own."))) {
+                // Unlocking seeds v from u, so the lock on its own never changes what is baked.
+                layer.tiling_scale_v   = tile_split ? -1.f : layer.tiling_scale;
+                m_preview_params_dirty = true;
+            }
             if (tile_split) {
+                // Indented under the width by the same amount, so the lock reads as governing the pair
+                // rather than belonging to the row above it.
                 m_preview_params_dirty |= float_row("##tile_size_v", _L("Tile height"), &layer.tiling_scale_v,
-                                                    0.2f, 200.f, "%.2f mm", true, card_pad);
+                                                    0.2f, 200.f, "%.2f mm", true, card_pad + icon_sm + gap_s);
                 hover_tip(_u8L("How tall one copy of the texture is on the model. Different from Tile width, "
                                "the pattern is stretched along one axis of the surface - which is what a "
                                "woodgrain or a brushed finish wants."));
-            }
-            {
-                const std::string text = tile_split ? _u8L("Lock to a square tile") :
-                                                      _u8L("Separate width and height");
-                const ImVec2      ts   = ImGui::CalcTextSize(text.c_str());
-                const ImVec2      lp   = ImGui::GetCursorScreenPos();
-                if (ImGui::InvisibleButton("##tile_lock", ts)) {
-                    // Unlocking seeds v from u, so the toggle on its own never changes what is baked.
-                    layer.tiling_scale_v   = tile_split ? -1.f : layer.tiling_scale;
-                    m_preview_params_dirty = true;
-                }
-                const ImU32 lc = ImGui::GetColorU32(col_link);
-                dl->AddText(lp, lc, text.c_str());
-                if (ImGui::IsItemHovered())
-                    dl->AddLine(ImVec2(lp.x, lp.y + ts.y), ImVec2(lp.x + ts.x, lp.y + ts.y), lc);
             }
             m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f, "%.0f°", false, card_pad);
             hover_tip(_u8L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
@@ -7169,7 +7341,10 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
                     ImGui::SameLine(0.f, gap_s);
                     if (icon_toggle(842, "texture_displacement_adjust.svg", m_adjust_texture_mode, icon_sm, _L("Adjust placement"),
-                                    _L("Adjust placement - drag the handle on the model to move the texture"))) {
+                                    _L("Adjust placement - drag the tile on the model to move the texture, "
+                                       "its edges to set the tile's width and height, a corner for both, "
+                                       "or the ring to rotate it. Shift holds a move to one axis, and holds "
+                                       "a corner's proportions."))) {
                         if (!m_adjust_texture_mode) {
                             update_model_object(); // flush any pending strokes before anchoring
                             if (update_adjust_anchor())

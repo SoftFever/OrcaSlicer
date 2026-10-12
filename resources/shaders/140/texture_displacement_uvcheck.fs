@@ -28,6 +28,9 @@ uniform float tiling_scale;
 // Tile extent along v, in mm. Zero or negative means "the same as tiling_scale" - see
 // layer_tile_mm() on the CPU side, so an unset uniform behaves exactly as this shader always did.
 uniform float tiling_scale_v;
+// Mirror along one tile axis; false by default, so an unset uniform is the old behaviour.
+uniform bool  mirror_u;
+uniform bool  mirror_v;
 uniform vec3  tex_anchor; // the volume's origin in world space
 uniform float rotation_rad;
 uniform vec2  uv_offset;
@@ -89,6 +92,12 @@ vec2 tile_mm()
     return vec2(su, (tiling_scale_v > 1e-6) ? tiling_scale_v : su);
 }
 
+// +1 or -1 per axis, matching layer_mirror_sign() on the CPU side.
+vec2 mirror_sign()
+{
+    return vec2(mirror_u ? -1.0 : 1.0, mirror_v ? -1.0 : 1.0);
+}
+
 vec2 project_uv(vec3 p, vec3 n)
 {
     vec2 planar = projection_raw(p, n);
@@ -96,8 +105,9 @@ vec2 project_uv(vec3 p, vec3 n)
     float sn = sin(rotation_rad);
     vec2 r = vec2(planar.x * cs - planar.y * sn, planar.x * sn + planar.y * cs);
     // Extents divide after the rotation, so a tile whose two sides differ stays a rotated rectangle
-    // instead of shearing. With a square tile the two orders agree exactly.
-    r /= tile_mm();
+    // instead of shearing. With a square tile the two orders agree exactly. The mirror is a sign on
+    // the same division, in the tile's own frame.
+    r *= mirror_sign() / tile_mm();
     r.y *= tex_aspect; // after the rotation, so the rotation stays a rotation rather than a shear
     return r + uv_offset;
 }

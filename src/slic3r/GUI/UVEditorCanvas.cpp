@@ -296,11 +296,12 @@ void UVEditorCanvas::set_island_fill_colors(std::vector<ColorRGBA> colors)
     Refresh();
 }
 
-void UVEditorCanvas::set_uv_transform(float tiling_scale, float tiling_scale_v, float rotation_deg,
-                                      bool tile_enabled, bool tile_mirrored)
+void UVEditorCanvas::set_uv_transform(float tiling_scale, float tiling_scale_v, const Vec2f &mirror_sign,
+                                      float rotation_deg, bool tile_enabled, bool tile_mirrored)
 {
     m_tiling_scale          = (std::abs(tiling_scale) > 1e-6f) ? tiling_scale : 1.f;
     m_tiling_scale_v        = (tiling_scale_v > 1e-6f) ? tiling_scale_v : m_tiling_scale;
+    m_mirror_sign           = mirror_sign;
     m_rotation_deg          = rotation_deg;
     m_tile_enabled          = tile_enabled;
     m_tile_mirrored         = tile_mirrored;
@@ -663,7 +664,10 @@ Vec2f UVEditorCanvas::uv_delta_to_unwrap(const Vec2f &delta_uv) const
     // not.
     const float rad = m_rotation_deg * float(M_PI) / 180.f;
     const float cs = std::cos(rad), sn = std::sin(rad);
-    const Vec2f scaled(delta_uv.x() * m_tiling_scale, delta_uv.y() * m_tiling_scale_v);
+    // The mirror is its own sign on the same axis, and a negation is its own inverse, so it comes
+    // back out here exactly as it went in.
+    const Vec2f scaled(delta_uv.x() * m_tiling_scale * m_mirror_sign.x(),
+                       delta_uv.y() * m_tiling_scale_v * m_mirror_sign.y());
     return Vec2f(scaled.x() * cs + scaled.y() * sn, -scaled.x() * sn + scaled.y() * cs);
 }
 
