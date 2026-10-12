@@ -77,6 +77,7 @@ class Preset;
 class BBLProject;
 
 class KeyStore;
+struct MeshRepairStats;
 
 namespace UndoRedo {
 	class StackImpl;
@@ -1043,6 +1044,9 @@ public:
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
     size_t              split(unsigned int max_extruders, bool remap_paint);
+    // Replaces the mesh by its repair_mesh() result if that changed it. False if no solid can be built.
+    bool                repair(bool keep_painting, MeshRepairStats *stats = nullptr, std::string *error = nullptr,
+                               const std::function<void(int)> &progress = {});
     void                translate(double x, double y, double z) { translate(Vec3d(x, y, z)); }
     void                translate(const Vec3d& displacement);
     void                scale(const Vec3d& scaling_factors);

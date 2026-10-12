@@ -460,6 +460,9 @@ public:
     void split_instances();
     void rename_item();
     void fix_through_cgal();
+    // Fixes every object on the selected plate, or on all plates.
+    void fix_all_through_cgal(bool all_plates);
+    void fix_through_cgal(const std::vector<int> &obj_idxs, const std::vector<int> &vol_idxs);
     void simplify();
     void smooth_mesh();
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;

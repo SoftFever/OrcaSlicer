@@ -7,10 +7,8 @@
 #include <cstddef>
 #include <exception>
 #include <mutex>
-#include <optional>
 #include <string>
 #include <thread>
-#include <utility>
 #include <vector>
 
 #include <wx/string.h>
@@ -19,8 +17,6 @@
 #include "libslic3r/MeshRepair.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Thread.hpp"
-#include "libslic3r/TriangleMesh.hpp"
-#include "libslic3r/TriangleSelector.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/Widgets/ProgressDialog.hpp"
 
@@ -36,7 +32,8 @@ public:
 
 } // namespace
 
-bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::ProgressDialog &progress_dialog, const wxString &msg_header, std::string &fix_result, bool keep_painting)
+bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::ProgressDialog &progress_dialog, const wxString &msg_header, std::string &fix_result, bool keep_painting,
+                             bool *modified)
 {
     // Keeps the backup manager from reading a mesh while the worker replaces it.
     SaveObjectGaurd backup_gaurd(model_object);
@@ -57,6 +54,7 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
     } progress;
     std::atomic<bool> canceled = false;
     std::atomic<bool> finished = false;
+    bool              any_modified = false;
     std::string       errors;
 
     auto on_progress = [&mtx, &condition, &progress](const std::string &msg, int percent) {
@@ -80,22 +78,11 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
                 };
                 report(0);
 
-                TriangleMesh    mesh = volume->mesh();
                 MeshRepairStats stats;
                 std::string     error;
-                if (!repair_mesh(mesh, &stats, &error, report)) {
+                if (!volume->repair(keep_painting, &stats, &error, report))
                     errors += (errors.empty() ? "" : "\n") + (volumes.size() > 1 ? volume->name + ": " : std::string()) + error;
-                    continue;
-                }
-                if (!stats.modified)
-                    continue;
-
-                const std::optional<TriangleSelector::SavedPainting> saved_painting = keep_painting ? volume->save_painting() : std::nullopt;
-                volume->set_mesh(std::move(mesh));
-                volume->calculate_convex_hull();
-                volume->invalidate_convex_hull_2d();
-                volume->set_new_unique_id();
-                volume->restore_painting(saved_painting);
+                any_modified = any_modified || stats.modified;
             }
         } catch (const RepairCanceledException &) {
             canceled = true;
@@ -123,6 +110,8 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
         worker_thread.join();
 
     fix_result = canceled ? std::string() : errors;
+    if (modified)
+        *modified = any_modified;
     return !canceled;
 }
 

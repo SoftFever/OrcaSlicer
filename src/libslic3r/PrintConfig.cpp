@@ -12866,10 +12866,11 @@ CLITransformConfigDef::CLITransformConfigDef()
     //def->cli = "orient|o";
     def->set_default_value(new ConfigOptionInt(0));
 
-    /*def = this->add("repair", coBool);
+    def = this->add("repair", coBool);
     def->label = L("Repair");
-    def->tooltip = L("Repair the model's meshes if it is non-manifold mesh.");
-    def->set_default_value(new ConfigOptionBool(false));*/
+    def->tooltip = L("Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and "
+                     "remove self-intersections.");
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("rotate", coFloat);
     def->label = L("Rotate");

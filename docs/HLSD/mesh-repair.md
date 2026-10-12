@@ -4,14 +4,16 @@
 
 Mesh repair turns a broken triangle mesh into closed, outward oriented shells that bound a solid, so that the
 mesh slices predictably and the other mesh tools (booleans, cut, painting) get valid input. It runs on demand:
-the *Fix Model* command of the context menu of an object or part and of the warning icon in the object list, the
-prompt the Cut tool shows when a cut leaves open edges, and the *Repair and import* choice of texture import. It is
-built on CGAL and is the only repair the application has, on every platform.
+the *Fix Model* command of the context menu of an object or part and of the warning icon in the object list, *Fix
+All* and *Fix All Plates* in the context menu of a plate, the prompt the Cut tool shows when a cut leaves open edges,
+the *Repair and import* choice of texture import, and the `--repair` option of the command line. It is built on CGAL
+and is the only repair the application has, on every platform.
 
-`repair_mesh()` in `src/libslic3r/MeshRepair.cpp` does the work on one `TriangleMesh`. The GUI side,
-`fix_model_with_cgal_gui()` in `src/slic3r/Utils/FixModelByCgal.cpp`, runs it on a worker thread for each volume
-of an object, or for one volume, behind a progress dialog. `repair_mesh()` reports its progress between stages
-through a callback, which cancels the repair by throwing.
+`repair_mesh()` in `src/libslic3r/MeshRepair.cpp` does the work on one `TriangleMesh`, and `ModelVolume::repair()`
+applies it to a part: it replaces the mesh only when the repair changed it, and remaps or drops the painting of a
+replaced mesh. The GUI side, `fix_model_with_cgal_gui()` in `src/slic3r/Utils/FixModelByCgal.cpp`, runs it on a
+worker thread for each volume of an object, or for one volume, behind a progress dialog. `repair_mesh()` reports its
+progress between stages through a callback, which cancels the repair by throwing.
 
 ## What the repaired mesh is
 

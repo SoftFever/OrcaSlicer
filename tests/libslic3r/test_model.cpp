@@ -12,7 +12,9 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include "libslic3r/MeshRepair.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/ObjectID.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/libslic3r.h"
 
@@ -172,4 +174,29 @@ TEST_CASE("Replacing a part's mesh updates whether it can be split", "[Model]")
 
     volume->set_mesh(make_cube(10, 10, 10));
     CHECK_FALSE(volume->is_splittable());
+}
+
+TEST_CASE("Repairing a part replaces its mesh only when the repair changes it", "[Model]")
+{
+    Model model;
+    ModelObject *object = model.add_object();
+    TriangleMesh flipped = make_cube(10, 10, 10);
+    std::swap(flipped.its.indices.front()[1], flipped.its.indices.front()[2]);
+    ModelVolume *broken = object->add_volume(std::move(flipped), ModelVolumeType::MODEL_PART, false);
+    TriangleMesh cube = make_cube(10, 10, 10);
+    cube.translate(30.f, 0.f, 0.f);
+    ModelVolume *valid = object->add_volume(std::move(cube), ModelVolumeType::MODEL_PART, false);
+    const ObjectID broken_id = broken->id();
+    const ObjectID valid_id  = valid->id();
+
+    MeshRepairStats stats;
+    REQUIRE(broken->repair(false, &stats));
+    CHECK(stats.modified);
+    CHECK(broken->id() != broken_id);
+    CHECK_THAT(its_volume(broken->mesh().its), Catch::Matchers::WithinRel(1000., 1e-6));
+    CHECK_FALSE(broken->get_convex_hull().empty());
+
+    REQUIRE(valid->repair(false, &stats));
+    CHECK_FALSE(stats.modified);
+    CHECK(valid->id() == valid_id);
 }

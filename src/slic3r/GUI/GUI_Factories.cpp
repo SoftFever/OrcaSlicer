@@ -1952,6 +1952,16 @@ void MenuFactory::create_plate_menu()
         },
         "", nullptr, []() { return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty(); }, m_parent);
 
+    // fix objects on current plate
+    append_menu_item(menu, wxID_ANY, _L("Fix All"), _L("Fix all models on the current plate"),
+        [](wxCommandEvent&) { obj_list()->fix_all_through_cgal(false); }, "", nullptr,
+        []() { return !plater()->get_partplate_list().get_selected_plate()->empty(); }, m_parent);
+
+    // fix objects on all plates
+    append_menu_item(menu, wxID_ANY, _L("Fix All Plates"), _L("Fix all models on all plates"),
+        [](wxCommandEvent&) { obj_list()->fix_all_through_cgal(true); }, "", nullptr,
+        []() { return !plater()->model().objects.empty(); }, m_parent);
+
     // orient objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("Auto rotate current plate"),
         [](wxCommandEvent&) {

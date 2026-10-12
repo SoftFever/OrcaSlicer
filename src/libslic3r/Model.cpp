@@ -29,6 +29,7 @@
 #include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
 #include "MaterialType.hpp"
+#include "MeshRepair.hpp"
 
 #include "Format/AMF.hpp"
 #include "Format/svg.hpp"
@@ -2998,6 +2999,26 @@ size_t ModelVolume::split(unsigned int max_extruders, bool remap_paint)
     }
 
     return idx;
+}
+
+bool ModelVolume::repair(bool keep_painting, MeshRepairStats *stats_out, std::string *error, const std::function<void(int)> &progress)
+{
+    TriangleMesh    mesh = this->mesh();
+    MeshRepairStats stats;
+    const bool      ok = repair_mesh(mesh, &stats, error, progress);
+    if (stats_out)
+        *stats_out = stats;
+    if (!ok || !stats.modified)
+        return ok;
+
+    const std::optional<TriangleSelector::SavedPainting> saved_painting = keep_painting ? save_painting() : std::nullopt;
+    this->set_mesh(std::move(mesh));
+    this->calculate_convex_hull();
+    this->invalidate_convex_hull_2d();
+    // Assign a new unique ID, so that a new GLVolume will be generated.
+    this->set_new_unique_id();
+    this->restore_painting(saved_painting);
+    return true;
 }
 
 void ModelVolume::translate(const Vec3d& displacement)
