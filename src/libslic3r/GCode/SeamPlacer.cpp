@@ -706,7 +706,7 @@ void compute_global_occlusion(GlobalModelInfo &result, const PrintObject *po,
                               SeamPosition seam_position = spAligned) {
   BOOST_LOG_TRIVIAL(debug)
       << "SeamPlacer: gather occlusion meshes: start";
-  auto obj_transform = po->trafo_centered();
+  auto obj_transform = po->trafo_sliced();
   indexed_triangle_set triangle_set;
   indexed_triangle_set negative_volumes_set;
   //add all parts
@@ -796,7 +796,7 @@ void gather_enforcers_blockers(GlobalModelInfo &result, const PrintObject *po) {
   BOOST_LOG_TRIVIAL(debug)
       << "SeamPlacer: build AABB trees for raycasting enforcers/blockers: start";
 
-  auto obj_transform = po->trafo_centered();
+  auto obj_transform = po->trafo_sliced();
 
   for (const ModelVolume *mv : po->model_object()->volumes) {
     // Collect painting only from model parts (what the gizmo edits) and negative volumes (the only way
@@ -1135,7 +1135,6 @@ void SeamPlacer::gather_seam_candidates(const PrintObject *po, const SeamPlacerI
 
 void SeamPlacer::calculate_candidates_visibility(const PrintObject *po,
                                                  const SeamPlacerImpl::GlobalModelInfo &global_model_info) {
-  using namespace SeamPlacerImpl;
 
   std::vector<PrintObjectSeamData::LayerSeams> &layers = m_seam_per_object[po].layers;
   tbb::parallel_for(tbb::blocked_range<size_t>(0, layers.size()),

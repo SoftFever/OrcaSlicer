@@ -46,6 +46,8 @@
 
 namespace Slic3r {
 
+using namespace CustomGCode;
+
 namespace GUI {
 
 // equal to 25 mm2
@@ -1405,7 +1407,7 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
 }
 
 void IMSlider::do_go_to_layer(size_t layer_number) {
-    layer_number = clamp((int)layer_number, m_min_value, m_max_value);
+    layer_number = std::clamp((int)layer_number, m_min_value, m_max_value);
     GetSelection() == ssLower ? SetLowerValue(layer_number) : SetHigherValue(layer_number);
 }
 
@@ -1524,7 +1526,7 @@ void IMSlider::render_add_menu()
         ImGui::OpenPopup("slider_add_menu_popup");
         m_show_menu = false;
     }
-    if (ImGui::BeginPopup("slider_add_menu_popup")) {
+    if (ImGui::BeginPopup("slider_add_menu_popup", ImGuiWindowFlags_NoMove)) {
         bool menu_item_enable = m_draw_mode != dmSequentialFffPrint;
         bool hovered = false;
         {
@@ -1579,7 +1581,7 @@ void IMSlider::render_edit_menu(const TickCode& tick)
         ImGui::OpenPopup("slider_edit_menu_popup");
         m_show_menu = false;
     }
-    if (ImGui::BeginPopup("slider_edit_menu_popup")) {
+    if (ImGui::BeginPopup("slider_edit_menu_popup", ImGuiWindowFlags_NoMove)) {
         switch (tick.type)
         {
         case CustomGCode::PausePrint:

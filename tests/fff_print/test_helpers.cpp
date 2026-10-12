@@ -14,6 +14,7 @@
 #include <initializer_list>
 #include "libslic3r/Point.hpp"
 #include <fstream>
+#include <ios>
 #include <iterator>
 #include <set>
 #include <string>
@@ -25,8 +26,6 @@
 #include <vector>
 
 #include "test_utils.hpp"
-
-using namespace std;
 
 namespace Slic3r { namespace Test {
 
@@ -235,6 +234,19 @@ DynamicPrintConfig multifilament_config(unsigned int filaments, std::initializer
 	return config;
 }
 
+void size_flush_to_nozzles(DynamicPrintConfig &config)
+{
+	// One filaments x filaments flush block and one flush multiplier per nozzle, as the GUI
+	// sizes them when the nozzle count changes; a single block leaves each nozzle's slice short.
+	const size_t nozzles = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+	auto        &flush   = config.option<ConfigOptionFloats>("flush_volumes_matrix", true)->values;
+	const std::vector<double> block = flush;
+	for (size_t i = 1; i < nozzles; ++i)
+		flush.insert(flush.end(), block.begin(), block.end());
+	for (const char *key : { "flush_multiplier", "flush_multiplier_fast" })
+		config.option<ConfigOptionFloats>(key, true)->resize(nozzles);
+}
+
 void init_print(std::vector<TriangleMesh> &&meshes, Slic3r::Print &print, Slic3r::Model &model, const DynamicPrintConfig &config_in,
                 const std::vector<std::vector<ConfigBase::SetDeserializeItem>> *per_object_overrides, bool arrange, size_t instances)
 {
@@ -330,13 +342,13 @@ void init_and_process_print(std::initializer_list<TriangleMesh> meshes, Slic3r::
 	print.process();
 }
 
-std::string gcode(Print & print)
+std::string gcode(Print & print, GCodeProcessorResult* result)
 {
     ScopedTemporaryFile temp(".gcode");
     print.set_status_silent();
     print.process();
-    print.export_gcode(temp.string(), nullptr, nullptr);
-    std::ifstream t(temp.string());
+    print.export_gcode(temp.string(), result, nullptr);
+    std::ifstream t(temp.string(), std::ios::binary);
 	std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 	return str;
 }
@@ -458,7 +470,10 @@ int role_passes(const std::string &gcode, const std::string &role)
     bool in_role = false;
     GCodeReader reader;
     reader.parse_buffer(gcode, [&](GCodeReader &self, const GCodeReader::GCodeLine &line) {
-        if (! line.extruding(self)) return;
+        // E-only unretraction moves have positive E but do not lay down material. Ignoring
+        // them keeps a role pass contiguous across travel/retraction bookkeeping.
+        if (! line.extruding(self) || (line.dist_XY(self) <= EPSILON && std::abs(line.dist_Z(self)) <= EPSILON))
+            return;
         const bool is_role = line.comment().find(role) != std::string_view::npos;
         if (is_role && ! in_role) ++passes;
         in_role = is_role;

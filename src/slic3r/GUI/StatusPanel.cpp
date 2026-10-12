@@ -117,6 +117,7 @@
 #include "SafetyOptionsDialog.hpp"
 
 #include "ThermalPreconditioningDialog.hpp"
+#include <wx/dcgraph.h>
 
 
 namespace Slic3r { namespace GUI {
@@ -1216,7 +1217,7 @@ void PrintingTaskPanel::on_stage_clicked(wxMouseEvent &event)
 
     if (obj && obj->stage_curr == 58) {
             wxWindow *top    = wxGetTopLevelParent(this);
-            ThermalPreconditioningDialog m_thermal_dialog(top ? top : this, obj->get_dev_id() , "Calculating...");
+            ThermalPreconditioningDialog m_thermal_dialog(top ? top : this, obj->get_dev_id() , _L("Calculating..."));
             m_thermal_dialog.ShowModal();
     }
 
@@ -4816,7 +4817,7 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 
         if (has_filament_at_extruder) {
             MessageDialog msg_dlg(nullptr, _L("Cannot read filament info: the filament is loaded to the tool head. Please unload the filament and try again."), wxEmptyString,
-                                  wxICON_WARNING | wxYES);
+                                  wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
             return;
         }

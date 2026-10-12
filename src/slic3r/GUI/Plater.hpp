@@ -17,6 +17,7 @@
 #include <atomic>
 #include <memory>
 #include "slic3r/GUI/Event.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include <string>
 #include "slic3r/GUI/ObjectDataViewModel.hpp"
 #include "slic3r/GUI/SettingsIndex.hpp"
@@ -107,7 +108,6 @@ class PlaterPresetComboBox;
 class PartPlateList;
 class SyncNozzleAndAmsDialog;
 class FinishSyncAmsDialog;
-using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
 enum class ActionButtonType : int;
@@ -140,7 +140,7 @@ wxDECLARE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
-const wxString DEFAULT_PROJECT_NAME = "Untitled";
+const wxString DEFAULT_PROJECT_NAME = L("Untitled");
 
 class SidebarProps
 {
@@ -291,8 +291,20 @@ public:
 
     // Mixed-color filament sidebar section
     void add_mixed_filament();
+    // The filament slot that blends `components` (1-based physical filament indices) in `ratios`
+    // (percentages) at a fixed ratio, creating it when no existing fixed mixed slot already describes
+    // that blend (see find_fixed_mixed_filament()). Returns the 0-based filament index, or -1 when the
+    // paint-state cap leaves no room for another one.
+    //
+    // Exists so a feature that needs a blend can ask for one without going through the modal dialog:
+    // a texture displacement bake turns each mix it painted with into a slot, which is what moves the
+    // interleaving from its own paint mask to the slicer, where it happens per layer.
+    int ensure_mixed_filament(const std::vector<unsigned int> &components, const std::vector<int> &ratios);
     void edit_mixed_filament(size_t idx);
     void delete_mixed_filament_at(size_t idx);
+    // Drops every mixed filament at once, after confirming. The texture displacement gizmo can create
+    // one slot per colour in its palette, so clearing them one at a time is tedious.
+    void remove_all_mixed_filaments();
     void decompose_filament_color(int filament_idx);
     void recalc_filament_scroll_sizes();
     void update_mixed_filament_list();
@@ -324,7 +336,6 @@ private:
 class Plater: public wxPanel
 {
 public:
-    using fs_path = boost::filesystem::path;
 
     Plater(wxWindow *parent, MainFrame *main_frame);
     Plater(Plater &&) = delete;
@@ -384,6 +395,10 @@ public:
     void load_gcode(const wxString& filename);
     void reload_gcode_from_disk();
     void reload_print();
+    // Belt printers: re-run the G-code preview conversion so the "designed view" toggle
+    // (hotkey B / legend checkbox) takes effect; the back-transform is applied to the
+    void refresh_belt_view();
+    // toolpath geometry at load time. Keeps the current layer range and only-gcode mode.
 
     // SoftFever
     void calib_pa(const Calib_Params& params);
@@ -551,6 +566,9 @@ public:
     void export_gcode_3mf(bool export_all = false);
     void send_gcode_finish(wxString name);
     void export_core_3mf();
+    // Write the project to output_path as a copy: the project's file name, dirty state and model stay
+    // as they are, and the signed-in account is not added as the designer. False when the write fails.
+    bool export_3mf_copy(const boost::filesystem::path& output_path);
     // Export a "published" 3MF embedding the author-selected settings in the file metadata; a
     // pure export that leaves the in-memory project untouched.
     int  export_published_3mf(const std::vector<std::string>& published_keys, const std::vector<Slic3r::PublishedMaterialEntry>& material_keys);
@@ -715,6 +733,18 @@ public:
     void set_current_canvas_as_dirty();
     void unbind_canvas_event_handlers();
     void reset_canvas_volumes();
+
+    // Dispatch a left-click on an IMEX ghost volume in the 3D canvas to the plater-level
+    // popover. Implemented in Task 7; stub body for Task 6.
+    void on_imex_ghost_click(int physical_head);
+
+    struct ImexGhostTooltip {
+        int         physical_head;
+        int         filament_slot_1based;  // -1 if no routing
+        ColorRGBA   swatch;
+        std::string label;                 // "T2 -> filament 6" or "T2 -> (no filament)"
+    };
+    ImexGhostTooltip format_imex_ghost_tooltip(int physical_head) const;
 
     PrinterTechnology   printer_technology() const;
     const DynamicPrintConfig * config() const;
@@ -1072,6 +1102,8 @@ private:
     void _calib_pa_pattern_gen_gcode();
     void _calib_pa_tower(const Calib_Params& params);
     void _calib_pa_select_added_objects();
+    void _calib_apply_belt_mode();
+    void _calib_temp_belt_sectioned(const Calib_Params& params, double belt_angle_rad);
 
     void cut_horizontal(size_t obj_idx, size_t instance_idx, double z, ModelObjectCutAttributes attributes);
 

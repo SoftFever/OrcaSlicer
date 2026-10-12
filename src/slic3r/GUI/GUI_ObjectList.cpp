@@ -1108,7 +1108,7 @@ void ObjectList::update_name_column_width() const
         }
     }
 
-    GetColumn(colName)->SetWidth(max(0, client_size.x - (others_width)*em));
+    GetColumn(colName)->SetWidth(std::max(0, client_size.x - (others_width)*em));
 }
 
 void ObjectList::set_filament_column_hidden(const bool hide) const
@@ -2701,7 +2701,7 @@ void ObjectList::load_mesh_object(const std::vector<std::pair<const TriangleMesh
     Slic3r::save_object_mesh(*new_object);
 
     // BBS: find an empty cell to put the copied object
-    auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
+    auto start_point = wxGetApp().plater()->build_volume().bed_center();
     auto empty_cell  = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
 
     new_object->instances[0]->set_offset(center ? to_3d(Vec2d(empty_cell(0), empty_cell(1)), -new_object->origin_translation.z()) : bb.center());
@@ -3970,7 +3970,7 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
         if (config->opt_float("layer_height") == object_cfg->opt_float("layer_height")) {
             SettingsFactory::Bundle new_cat_options;
             for (auto cat_opt : cat_options) {
-                std::vector<string> temp;
+                std::vector<std::string> temp;
                 for (auto value : cat_opt.second) {
                     if (value != "layer_height")
                         temp.push_back(value);
