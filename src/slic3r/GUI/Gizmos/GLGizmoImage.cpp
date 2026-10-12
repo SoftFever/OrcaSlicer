@@ -103,11 +103,23 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
 
     const float approx_height = m_imgui->scaled(22.f);
     y = std::min(y, bottom_limit - approx_height);
-    GizmoImguiSetNextWIndowPos(x, y, ImGuiCond_Always, 0.0f, 0.0f);
+
+    // Docked (the default) it is pinned to the right edge of the 3D canvas and cannot be moved, the
+    // same place and the same rule as the displacement panel, so the two tools do not put their
+    // controls in different corners. Undocked it becomes an ordinary floating window with a title
+    // bar to drag it by; the position is deliberately not seeded on undock, so it stays exactly
+    // where it was and the user simply gains the ability to move it.
+    ImGuiWindowFlags flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse;
+    if (!m_undocked) {
+        flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar;
+        // Right-aligned (pivot 1), so the width the window auto-resized to last frame does not need
+        // to be known here.
+        float right = float(m_parent.get_canvas_size().get_width()) - m_imgui->scaled(0.5f);
+        GizmoImguiSetNextWIndowPos(right, y, 0.f, 0.f, ImGuiCond_Always, 1.0f, 0.0f);
+    }
 
     ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
-    GizmoImguiBegin(get_name(), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize |
-                                    ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    GizmoImguiBegin(get_name(), flags);
     ensure_panel_icons();
 
     const ImGuiStyle &style    = ImGui::GetStyle();
@@ -138,6 +150,28 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         return ImGui::SliderFloat(id, v, v_min, v_max, format,
                                   ImGuiSliderFlags_AlwaysClamp | (log ? ImGuiSliderFlags_Logarithmic : 0));
     };
+    // Borderless icon button, for the dock toggle: always the grey monochrome variant.
+    const auto icon_button = [&](int uid, const std::string &iconfile, const wxString &label,
+                                 const wxString &tip_text) -> bool {
+        const auto  it  = m_panel_icon_map.find(iconfile);
+        const float pad = std::max(1.f, std::round(icon_sm * 0.14f));
+        bool        clicked = false;
+        ImGui::PushID(uid);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.f);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+        if (it != m_panel_icon_map.end() && !it->second.empty() && it->second[0]->is_valid()) {
+            const IconManager::Icon &ic = *it->second[0];
+            clicked = m_imgui->image_button((ImTextureID) (intptr_t) ic.tex_id,
+                                            ImVec2(icon_sm - 2.f * pad, icon_sm - 2.f * pad), ic.tl, ic.br, int(pad));
+        } else {
+            clicked = ImGui::Button(label.ToUTF8().data(), ImVec2(0.f, icon_sm));
+        }
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
+        ImGui::PopID();
+        hover_tip(tip_text);
+        return clicked;
+    };
     // Framed icon toggle, the displacement panel's one cut down to what this window needs.
     const auto icon_toggle = [&](int uid, const std::string &iconfile, bool active, const wxString &label,
                                  const wxString &tip_text) -> bool {
@@ -166,9 +200,19 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
 
     TextureDisplacementLayer *layer = mv != nullptr ? active_layer() : nullptr;
 
-    m_imgui->push_bold_font();
-    m_imgui->text(wxString::FromUTF8(get_name(false)));
-    m_imgui->pop_bold_font();
+    {
+        const float x0 = ImGui::GetCursorPosX();
+        ImGui::AlignTextToFramePadding();
+        m_imgui->push_bold_font();
+        m_imgui->text(wxString::FromUTF8(get_name(false)));
+        m_imgui->pop_bold_font();
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + panel_w - icon_sm));
+        if (icon_button(920, "canvas_drag.svg", m_undocked ? _L("Dock panel") : _L("Undock panel"),
+                        _L("Detach this panel so it can be dragged anywhere over the 3D view, or dock it back "
+                           "against the right edge.")))
+            m_undocked = !m_undocked;
+    }
     ImGui::Separator();
 
     // The picture, shown whole and the full width of the window: it is the thing being placed, so a
@@ -179,7 +223,10 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         m_picker_slot         = slot;
         m_picker_open_request = true;
     };
-    if (layer == nullptr) {
+    // A layer with no picture on it is the starting state, not a broken one: the tool creates the
+    // layer empty and the panel stays on the frame below until a picture has been chosen.
+    const bool has_picture = layer != nullptr && !layer->empty();
+    if (!has_picture) {
         const float  box_h = std::round(panel_w * 0.6f);
         const ImVec2 p0    = ImGui::GetCursorScreenPos();
         m_imgui->disabled_begin(busy || mv == nullptr);
@@ -195,8 +242,9 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         dl->AddLine(ImVec2(cx, cy - arm), ImVec2(cx, cy + arm), col, thick);
         hover_tip(_u8L("Choose a picture to put on the model."));
         if (clicked) {
-            add_texture_layer();                  // seeds the first library image that has colour in it
-            open_library(m_active_layer_slot);    // ... and offers the library, Import included, at once
+            if (layer == nullptr)
+                add_texture_layer();           // created with no picture on it, on purpose
+            open_library(layer != nullptr ? layer->slot : m_active_layer_slot);
         }
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panel_w);
         ImGui::TextDisabled("%s", _u8L("Choose a picture, then click the model to put it there.").c_str());
@@ -448,8 +496,8 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         m_imgui->pop_bold_font();
         GLGizmoUtils::pop_orca_button_style();
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            m_imgui->tooltip(layer == nullptr ? _u8L("Load a picture first.") :
-                             !painted         ? _u8L("Click the model to place the picture first.") :
+            m_imgui->tooltip(!has_picture ? _u8L("Choose a picture first.") :
+                             !painted     ? _u8L("Click the model to place the picture first.") :
                              no_colors        ? _u8L("This picture is grayscale, so there is nothing to print. "
                                                      "Choose a color picture.") :
                                                 _u8L("Prints the picture where you placed it, in the nearest of your "

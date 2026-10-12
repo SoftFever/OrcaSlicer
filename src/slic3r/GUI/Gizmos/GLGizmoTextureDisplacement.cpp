@@ -1564,6 +1564,9 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
     shader->set_uniform("height_tex", 0);
     shader->set_uniform("height_tex_texel", Vec2f(1.f / float(tex->get_width()), 1.f / float(tex->get_height())));
     shader->set_uniform("depth_mm", layer->depth_mm);
+    // Without this the preview wrapped the image and showed a repeating pattern where the bake
+    // places a single copy.
+    shader->set_uniform("tile_enabled", layer->tile_enabled);
     shader->set_uniform("tiling_scale", layer->tiling_scale);
     // Read off the uploaded texture rather than the decoded one: they are the same image, and this is
     // the aspect the sampler will actually see.
@@ -3724,31 +3727,26 @@ void GLGizmoTextureDisplacement::add_texture_layer()
 
     TextureDisplacementLayer layer;
     layer.slot = free_slot;
-    // Start the layer off on a library texture rather than on nothing at all: a textureless layer
-    // looks broken (painting on it appears to do nothing, because there is no height map to displace
-    // by). The user swaps it for another from the layer's own picker.
+    // Start the layer off on the first library texture rather than on nothing at all: a textureless
+    // layer looks broken (painting on it appears to do nothing, because there is no height map to
+    // displace by). The user swaps it for another from the layer's own picker.
     //
-    // The Image tool needs that first texture to have colour in it, since colour is the only thing it
-    // bakes - most of the shipped library is grayscale height maps, and landing on one of those would
-    // open the tool on an image it then warns about.
-    const std::vector<TextureLibraryEntry> &library = texture_library();
-    for (const TextureLibraryEntry &entry : library) {
-        const LibraryTexture *tex = get_library_texture(entry.path);
-        if (tex == nullptr)
-            continue;
-        if (image_mode()) {
-            TextureDisplacementLayer probe;
-            probe.image_data = tex->image_data;
-            if (!height_texture_has_color(probe))
-                continue;
-            // One copy, not a repeating pattern: a photo or a logo is placed once. The panel's Tile
-            // checkbox is there for the cases that do want it, so this is a default and not a pin.
-            layer.tile_enabled = false;
-        }
-        layer.name       = entry.name;
-        layer.path       = entry.path;
-        layer.image_data = tex->image_data;
-        break;
+    // Not in the Image tool: there the layer deliberately starts with no picture at all, so the panel
+    // stays on its empty frame until the user has chosen one. Picking a shipped height map for them
+    // would be choosing the wrong thing twice over - it is not their picture, and most of that
+    // library is grayscale, which an image bake cannot print.
+    if (image_mode()) {
+        // One copy, not a repeating pattern: a photo or a logo is placed once. The panel's Tile
+        // checkbox is there for the cases that do want it, so this is a default and not a pin.
+        layer.tile_enabled = false;
+    } else {
+        const std::vector<TextureLibraryEntry> &library = texture_library();
+        if (!library.empty())
+            if (const LibraryTexture *tex = get_library_texture(library.front().path)) {
+                layer.name       = library.front().name;
+                layer.path       = library.front().path;
+                layer.image_data = tex->image_data;
+            }
     }
     mv->texture_displacement_layers.push_back(std::move(layer));
     // A new layer opens with every setting showing; there is nothing on it yet to hide settings from.
@@ -3944,15 +3942,19 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         return n;
     };
 
-    ImGui::TextDisabled("%s", _u8L("Built-in").c_str());
-    {
+    // The shipped library is grayscale height maps, which is what the displacement tool wants and the
+    // opposite of what an image bake can use: it prints colour, and a height map has none. So the
+    // Image tool offers only the user's own pictures, and the section is left out entirely rather
+    // than shown full of things that would all warn when picked.
+    if (!image_mode()) {
+        ImGui::TextDisabled("%s", _u8L("Built-in").c_str());
         const ImVec2 origin = ImGui::GetCursorScreenPos();
         const int    count  = grid(origin, false);
         end_grid(origin, count);
         if (count == 0)
             ImGui::TextDisabled("%s", _u8L("No textures found.").c_str());
     }
-    ImGui::TextDisabled("%s", _u8L("My textures").c_str());
+    ImGui::TextDisabled("%s", image_mode() ? _u8L("My images").c_str() : _u8L("My textures").c_str());
     {
         const ImVec2 origin = ImGui::GetCursorScreenPos();
         const int    count  = grid(origin, true);
@@ -3960,15 +3962,20 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         if (ImGui::Button("+##import_texture", ImVec2(tile, tile)))
             import_clicked = true;
         if (ImGui::IsItemHovered())
-            m_imgui->tooltip(_u8L("Import your own image as a height map. It is converted to the format the slicer "
-                                  "bakes from and saved to your personal texture folder, kept separate from the "
-                                  "textures shipped with OrcaSlicer."),
+            m_imgui->tooltip(image_mode() ?
+                                 _u8L("Import a picture from your computer. Its colors are kept, and it is saved to "
+                                      "your personal folder so it is here next time.") :
+                                 _u8L("Import your own image as a height map. It is converted to the format the "
+                                      "slicer bakes from and saved to your personal texture folder, kept separate "
+                                      "from the textures shipped with OrcaSlicer."),
                              m_imgui->scaled(20.f));
         end_grid(origin, count + 1);
     }
 
     ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + grid_w);
-    ImGui::TextDisabled("%s", _u8L("PNG, JPG or BMP - converted to a height map on import. Hover one of yours to remove it.").c_str());
+    ImGui::TextDisabled("%s", image_mode() ?
+                                  _u8L("PNG, JPG or BMP. Hover one to remove it.").c_str() :
+                                  _u8L("PNG, JPG or BMP - converted to a height map on import. Hover one of yours to remove it.").c_str());
     ImGui::PopTextWrapPos();
 
     if (chosen || import_clicked)

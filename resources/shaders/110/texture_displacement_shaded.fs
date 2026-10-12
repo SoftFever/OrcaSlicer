@@ -51,6 +51,11 @@ uniform float      tex_aspect;
 uniform float      rotation_rad;
 uniform vec2       uv_offset;
 uniform bool       invert;
+// False means the layer places a single copy rather than repeating: outside that copy there is
+// simply no texture. DecodedHeightTexture::sample() has always returned 0 there, so the bake got
+// this right while the preview wrapped the image and showed a tiled pattern that was never going
+// to be printed.
+uniform bool       tile_enabled;
 uniform float      midlevel;      // the height that means "don't move"; needed by the parallax step
 uniform vec3       eye_model_pos; // camera position in the texture frame (world minus tex_anchor)
 uniform vec3       tex_anchor;    // the volume's origin in world space: the texture frame's origin
@@ -218,6 +223,14 @@ int nearest_palette_entry(vec3 rgb)
     return best;
 }
 
+// True where this uv has texture on it: everywhere when the layer repeats, and only inside the
+// single placed copy when it does not. The bake's own sampler draws the same line (see
+// DecodedHeightTexture::sample), so the preview now stops at the same edge it does.
+bool in_tile(vec2 uv)
+{
+    return tile_enabled || (uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0);
+}
+
 void main()
 {
     if (any(lessThan(clipping_planes_dots, ZERO)))
@@ -243,9 +256,9 @@ void main()
                     ? vec2(dot(island_delta_lin.xy, vertex_uv), dot(island_delta_lin.zw, vertex_uv)) + island_delta_tr
                     : vertex_uv;
         color_uv = uv;
-        have_uv  = true;
+        have_uv  = in_tile(uv);
         float h = texture2D(height_tex, uv).r;
-        float k = (invert ? -1.0 : 1.0) * depth_mm * clamp(weight, 0.0, 1.0);
+        float k = (invert ? -1.0 : 1.0) * depth_mm * clamp(weight, 0.0, 1.0) * (have_uv ? 1.0 : 0.0);
         vec3  sigmaS = dFdx(world_pos.xyz);
         vec3  sigmaT = dFdy(world_pos.xyz);
         vec3  R1 = cross(sigmaT, triangle_normal);
@@ -262,10 +275,12 @@ void main()
 
         // Parallax occlusion mapping: march the view ray through the height shell and shade at the
         // first point where it drops below the displaced surface (see header).
-        float amp      = (invert ? -1.0 : 1.0) * depth_mm * clamp(weight, 0.0, 1.0);
+        // uv first: outside a single placed copy there is no shell to march through.
+        vec2  uv       = project_uv(tex_pos, triangle_normal);
+        float amp      = (invert ? -1.0 : 1.0) * depth_mm * clamp(weight, 0.0, 1.0) *
+                         (in_tile(uv) ? 1.0 : 0.0);
         vec3  view_dir = normalize(eye_model_pos - tex_pos);
         float v_dot_n  = dot(view_dir, triangle_normal);
-        vec2  uv       = project_uv(tex_pos, triangle_normal);
 
         // The shell the displaced surface lives inside, as signed heights along the normal. Taken from
         // both ends of h in [0, 1] so it stays correct for an inverted layer or a raised midlevel,
@@ -302,7 +317,7 @@ void main()
         }
 
         color_uv = uv; // after the parallax march, so colour and relief stay registered
-        have_uv  = true;
+        have_uv  = in_tile(uv);
 
         float hL = texture2D(height_tex, uv - vec2(height_tex_texel.x, 0.0)).r;
         float hR = texture2D(height_tex, uv + vec2(height_tex_texel.x, 0.0)).r;
@@ -311,7 +326,8 @@ void main()
 
         vec2 dh_duv = vec2((hR - hL) / (2.0 * height_tex_texel.x), (hU - hD) / (2.0 * height_tex_texel.y));
         float inv_tiling = (tiling_scale > 1e-6) ? (1.0 / tiling_scale) : 1.0;
-        float amplitude  = (invert ? -1.0 : 1.0) * depth_mm * inv_tiling * clamp(weight, 0.0, 1.0);
+        float amplitude  = (invert ? -1.0 : 1.0) * depth_mm * inv_tiling * clamp(weight, 0.0, 1.0) *
+                           (have_uv ? 1.0 : 0.0);
 
         float cs = cos(rotation_rad);
         float sn = sin(rotation_rad);
