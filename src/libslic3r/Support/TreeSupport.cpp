@@ -1976,8 +1976,8 @@ coordf_t TreeSupport::get_radius(const SupportNode* node)
     return node->radius;
 }
 
-// Orca: these are hit up to several times per node per layer in drop_nodes(), so hand out a
-// reference into the TreeSupportData cache instead of copying the ExPolygons out of it.
+// Orca: drop_nodes() calls these several times per node per layer, so they return a reference into the
+// TreeSupportData cache. The cache only ever inserts, so its entries never move while nodes drop in parallel.
 const ExPolygons& TreeSupport::get_avoidance(coordf_t radius, size_t obj_layer_nr)
 {
     return m_ts_data->get_avoidance(radius, obj_layer_nr);
@@ -2805,9 +2805,10 @@ void TreeSupport::draw_circles()
 #endif  // SUPPORT_TREE_DEBUG_TO_SVG
 
     SupportLayerPtrs& ts_layers = m_object->support_layers();
-    // Orca: the vector owns its layers, so the dropped ones have to be deleted, not just unlinked.
+    // Orca: the vector owns its layers, so the dropped ones are deleted before they are erased.
     // std::stable_partition (unlike std::remove_if) leaves exactly the dropped layers in the tail.
-    auto iter = std::stable_partition(ts_layers.begin(), ts_layers.end(), [](SupportLayer* ts_layer) { return ts_layer->height >= EPSILON; });
+    // Only heights below EPSILON are dropped; written as !(height < EPSILON), a NaN height is kept.
+    auto iter = std::stable_partition(ts_layers.begin(), ts_layers.end(), [](SupportLayer* ts_layer) { return !(ts_layer->height < EPSILON); });
     for (auto it = iter; it != ts_layers.end(); ++it)
         delete *it;
     ts_layers.erase(iter, ts_layers.end());
