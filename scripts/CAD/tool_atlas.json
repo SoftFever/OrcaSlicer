@@ -236,6 +236,23 @@
       "hint": "Sketch on the selected flat face or plane, or click one next"
     },
     {
+      "id": "sketch3d",
+      "name": "3D Sketch",
+      "slot": "create",
+      "key": null,
+      "feature": "Sketch3D",
+      "mcp": "sketch3d",
+      "accepts": [
+        "none"
+      ],
+      "needs": {},
+      "refusal": null,
+      "gui": true,
+      "action": "btn:sketch3d",
+      "icon": "design_sketch",
+      "hint": "Click points in space; Tab cycles the working plane. Use it as a Sweep path"
+    },
+    {
       "id": "extrude",
       "name": "Extrude",
       "slot": "add",

@@ -20,6 +20,9 @@
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_MakePolygon.hxx>
+#include <GeomAPI_Interpolate.hxx>
+#include <TColgp_HArray1OfPnt.hxx>
+#include <Geom_BSplineCurve.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Common.hxx>
@@ -523,6 +526,7 @@ bool CadDocument::produces_body(CadFeatureType t)
     switch (t) {
     case CadFeatureType::Sketch: case CadFeatureType::Helix: case CadFeatureType::Plane:
     case CadFeatureType::Axis:   case CadFeatureType::CoordSys: case CadFeatureType::Project:
+    case CadFeatureType::Sketch3D:
         return false;
     default:
         return true;
@@ -1586,6 +1590,50 @@ std::vector<CadDocument::MateOption> CadDocument::mate_options(int cs_a, int cs_
     }
 
     return out;
+}
+
+int CadDocument::add_sketch3d(const std::vector<Vec3d>& points, bool smooth, bool closed, const std::string& name)
+{
+    CadFeature f;
+    f.type       = CadFeatureType::Sketch3D;
+    f.name       = name;
+    f.sk3_points = points;
+    f.sk3_smooth = smooth;
+    f.sk3_closed = closed;
+    features.push_back(f);
+    return int(features.size()) - 1;
+}
+
+TopoDS_Wire CadDocument::build_sketch3d_wire(const CadFeature& f, std::string& err)
+{
+    err.clear();
+    // Drop repeated points: a zero-length leg is not an edge, and OCCT's polygon builder fails on it.
+    std::vector<gp_Pnt> pts;
+    for (const Vec3d& p : f.sk3_points) {
+        const gp_Pnt g(p.x(), p.y(), p.z());
+        if (pts.empty() || pts.back().Distance(g) > 1e-6) pts.push_back(g);
+    }
+    if (f.sk3_closed && pts.size() > 2 && pts.front().Distance(pts.back()) < 1e-6) pts.pop_back();
+    if (pts.size() < 2) { err = _u8L("a 3D sketch needs at least two distinct points"); return TopoDS_Wire(); }
+    try {
+        if (f.sk3_smooth && pts.size() >= 3) {
+            Handle(TColgp_HArray1OfPnt) arr = new TColgp_HArray1OfPnt(1, int(pts.size()));
+            for (int i = 0; i < int(pts.size()); ++i) arr->SetValue(i + 1, pts[i]);
+            GeomAPI_Interpolate interp(arr, f.sk3_closed ? Standard_True : Standard_False, 1e-6);
+            interp.Perform();
+            if (!interp.IsDone()) { err = _u8L("the 3D sketch spline could not be interpolated"); return TopoDS_Wire(); }
+            TopoDS_Edge e = BRepBuilderAPI_MakeEdge(interp.Curve()).Edge();
+            return BRepBuilderAPI_MakeWire(e).Wire();
+        }
+        BRepBuilderAPI_MakePolygon poly;
+        for (const gp_Pnt& p : pts) poly.Add(p);
+        if (f.sk3_closed && pts.size() >= 3) poly.Close();
+        if (!poly.IsDone()) { err = _u8L("the 3D sketch polyline could not be built"); return TopoDS_Wire(); }
+        return poly.Wire();
+    } catch (const Standard_Failure& ex) {
+        err = std::string(_u8L("the 3D sketch could not be built: ")) + (*ex.GetMessageString() ? ex.GetMessageString() : "OCCT failure");
+        return TopoDS_Wire();
+    }
 }
 
 int CadDocument::add_helix(const SketchPlane& plane, double radius, double pitch, double height,
@@ -2670,6 +2718,8 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
         return; // edges-to-sketch: consumed downstream, no solid body
     case CadFeatureType::Helix:
         return; // helical curve; consumed by Sweep as a path (like Sketch)
+    case CadFeatureType::Sketch3D:
+        return; // free 3D curve; consumed by Sweep as a path
     case CadFeatureType::Boolean:
         return; // body-body boolean is handled in route_feature/apply_boolean, never here
     case CadFeatureType::Import:
@@ -2876,8 +2926,12 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
             if (path.IsNull()) throw std::runtime_error(format(_u8L("helix path: %1%"), helix_err));
         } else if (path_feat.type == CadFeatureType::Sketch) {
             path = build_sketch_wire(path_feat);
+        } else if (path_feat.type == CadFeatureType::Sketch3D) {
+            std::string e3;
+            path = build_sketch3d_wire(path_feat, e3);
+            if (path.IsNull()) throw std::runtime_error(format(_u8L("3D sketch path: %1%"), e3));
         } else {
-            throw std::runtime_error(_u8L("sweep path must be a sketch or helix"));
+            throw std::runtime_error(_u8L("sweep path must be a sketch, 3D sketch or helix"));
         }
         TopoDS_Wire profile = build_sketch_wire(sk, true);
         TopoDS_Shape tool   = SketchEngine::make_sweep(profile, path);
@@ -4072,6 +4126,7 @@ void CadDocument::route_feature(std::vector<CadBody>& bodies, const CadFeature& 
     if (f.type == CadFeatureType::Axis)    return;   // datum axis
     if (f.type == CadFeatureType::CoordSys) return; // datum coordinate system
     if (f.type == CadFeatureType::Helix)   return;   // helical curve; consumed by Sweep
+    if (f.type == CadFeatureType::Sketch3D) return;  // free 3D curve; consumed by Sweep
     if (f.type == CadFeatureType::Boolean) { apply_boolean(bodies, f); return; }   // body-body op
     if (f.type == CadFeatureType::Cut)     { apply_cut(bodies, f);     return; }   // plane-split body
     if (f.type == CadFeatureType::Mirror)  { apply_mirror(bodies, f);  return; }   // mirror body about plane
@@ -4159,6 +4214,11 @@ void CadDocument::replay_feature(size_t fi, std::vector<CadBody>& built)
     if (!f.enabled) return;
     if (f.type == CadFeatureType::Sketch) return; // consumed by an extrude
     if (f.type == CadFeatureType::Helix)  return; // consumed by Sweep as a path
+    if (f.type == CadFeatureType::Sketch3D) {     // no solid, but a curve that cannot be built is an Error now,
+        std::string e3;                           // not a surprise when a Sweep later reads it
+        if (build_sketch3d_wire(f, e3).IsNull()) throw std::runtime_error(e3);
+        return;
+    }
     if (f.type == CadFeatureType::Plane)   return; // datum: no solid, derived on demand
     if (f.type == CadFeatureType::Axis)    return; // datum axis
     if (f.type == CadFeatureType::CoordSys) return; // datum coordinate system

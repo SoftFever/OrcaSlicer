@@ -79,6 +79,14 @@ public:
                      const SketchPlane& plane);
     void set_sketch_tool(DesignSketchTool::Mode mode);
     void set_sketch_construction(bool c);
+    void begin_sketch3d(const Vec3d& start, std::vector<Vec3d> snap_targets) { m_sketch_tool.begin_sketch3d(start, std::move(snap_targets)); request_repaint(); }
+    void end_sketch3d() { m_sketch_tool.end_sketch3d(); request_repaint(); }
+    bool sketch3d_active() const { return m_sketch_tool.sketch3d_active(); }
+    bool sketch3d_key(int key) { const bool r = m_sketch_tool.sketch3d_key(key); request_repaint(); return r; }
+    void set_on_sketch3d(std::function<void(const std::vector<Vec3d>&, bool)> done, std::function<void()> cancel,
+                         std::function<void(int, int, bool)> state)
+    { m_sketch_tool.on_sketch3d_done = std::move(done); m_sketch_tool.on_sketch3d_cancel = std::move(cancel);
+      m_sketch_tool.on_sketch3d_state = std::move(state); }
     void set_sketch_grid_snap(bool on, double step);
     void set_extrude_signed(bool on);
     // Flip the sketch selection between construction and real geometry; returns the

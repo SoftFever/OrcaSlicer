@@ -1,3 +1,4 @@
+#include <BRepCheck_Analyzer.hxx>
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_approx.hpp>
@@ -2398,8 +2399,9 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // cut in half is read as whatever half arrived.)
     // + the Use link appended after revolve_axis_entity: project_from_sketch (bool),
     // project_source_sketch (int) and the empty project_sketch_entities list (a size tag).
-    // + the loft end conditions (two ints) appended after the Use link.
-    const size_t drop = sizeof(uint32_t) + 3 * sizeof(bool) + 4 * sizeof(cereal::size_type) + sizeof(double)
+    // + the loft end conditions (two ints), then the 3D sketch tail: sk3_points (an empty list: a size
+    // tag), sk3_closed, sk3_smooth. Every field appended after revolve_axis_entity is counted here.
+    const size_t drop = sizeof(uint32_t) + 5 * sizeof(bool) + 5 * sizeof(cereal::size_type) + sizeof(double)
                         + 4 * sizeof(int);
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
@@ -9756,4 +9758,50 @@ TEST_CASE("A vertical-edge fillet still works after the shell and after a linear
         INFO(doc.error);
         CHECK(ok);
     }
+
+// Item 8 (3D sketch, slices 8a model + 8d wire): a free 3D curve that makes no solid and sweeps.
+TEST_CASE("A 3D sketch builds a valid wire, sweeps a profile, and survives the recipe", "[CadDocument][sketch3d]")
+{
+    const std::vector<Vec3d> pts = { {0, 0, 0}, {0, 0, 40}, {0, 30, 70}, {30, 30, 100} };
+
+    for (bool smooth : {false, true}) {
+        CadFeature f;
+        f.type = CadFeatureType::Sketch3D; f.sk3_points = pts; f.sk3_smooth = smooth;
+        std::string err;
+        TopoDS_Wire w = CadDocument::build_sketch3d_wire(f, err);
+        REQUIRE(err.empty());
+        REQUIRE_FALSE(w.IsNull());
+        CHECK(BRepCheck_Analyzer(w).IsValid());
+    }
+
+    CadDocument doc;
+    SketchEntity circ; circ.type = SketchEntity::Type::Circle; circ.center = Vec2d(0, 0); circ.radius = 3.0;
+    const int prof = doc.add_sketch_entities({circ}, SketchPlane::XY(), "Profile");
+    const int path = doc.add_sketch3d(pts, /*smooth*/ true, /*closed*/ false, "Path3D");
+    REQUIRE(doc.recompute());
+    CHECK(doc.bodies.empty());                        // a 3D sketch makes no solid by itself
+    doc.add_sweep(prof, path, BooleanMode::New, "Sweep3D");
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.error.empty());
+    const double v = double(doc.display_mesh.volume());
+    double chord = 0; for (size_t i = 1; i < pts.size(); ++i) chord += (pts[i] - pts[i - 1]).norm();
+    CHECK(v > 0.8 * M_PI * 9.0 * 100.0);              // a smooth curve through the points is no longer than the legs
+    CHECK(v < 1.1 * M_PI * 9.0 * chord);
+
+    // Recipe round trip keeps the curve.
+    CadDocument back;
+    REQUIRE(back.deserialize_recipe(doc.serialize_recipe()));
+    REQUIRE(back.features.size() == 3);
+    CHECK(back.features[path].type == CadFeatureType::Sketch3D);
+    CHECK(back.features[path].sk3_smooth);
+    REQUIRE(back.features[path].sk3_points.size() == 4);
+    CHECK((back.features[path].sk3_points[3] - pts[3]).norm() < 1e-12);
+    REQUIRE(back.recompute());
+    CHECK(double(back.display_mesh.volume()) == Catch::Approx(v).epsilon(1e-6));
+
+    // Fewer than two distinct points is an Error, not an empty curve.
+    CadDocument bad;
+    bad.add_sketch3d({{1, 1, 1}, {1, 1, 1}}, false, false, "Degenerate");
+    CHECK_FALSE(bad.recompute());
+    CHECK_FALSE(bad.error.empty());
 }

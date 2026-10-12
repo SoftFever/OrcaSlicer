@@ -1,4 +1,10 @@
 #include "slic3r/GUI/CAD/DesignPanel.hpp"
+#include <BRepAdaptor_Curve.hxx>
+#include <BRep_Tool.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS.hxx>
+#include <TopoDS_Edge.hxx>
+#include <TopoDS_Vertex.hxx>
 #include "libslic3r_version.h"
 #include "slic3r/GUI/CAD/DesignCanvas.hpp"
 #include "slic3r/GUI/CAD/DesignSketchTool.hpp"
@@ -1058,6 +1064,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
         auto* b_color = icon_btn("color_palette", _L("Color — set the selected body's display color"));
         b_color->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_set_body_color(); });
         fadd("color", b_color);
+        m_verb_actions["btn:sketch3d"] = [this] { start_sketch3d(); };
         m_verb_actions["btn:colour"] = [this] { on_set_body_color(); };
         m_verb_actions["btn:zoom_to"] = [this] { zoom_to_selection(); };
         m_verb_actions["btn:delete"] = [this] { on_delete_feature(); };
@@ -4264,6 +4271,9 @@ DesignPanel::DesignPanel(wxWindow* parent)
             // exactly what CadLevel::Transient means, so it closes the field and stops there.
         }
 
+        // 3D sketch owns Tab / Enter / Backspace / S / Esc while it is live.
+        if (m_viewport && m_viewport->sketch3d_active() && !in_text && m_viewport->sketch3d_key(key))
+            return;
         // ONE Esc, ONE route, whatever holds focus. Which widget has focus is an accident of where
         // the user last clicked (a toolbar button, the Construction checkbox), and Esc must not
         // depend on it. It used to be answered in four places — the inline field above, a sketch
@@ -7347,7 +7357,8 @@ const char* DesignPanel::tree_icon_for(CadFeatureType t)
     case CadFeatureType::Plane:
     case CadFeatureType::Axis:
     case CadFeatureType::CoordSys:
-    case CadFeatureType::Project:        return "design_sketch";    // sketches, datums, projections
+    case CadFeatureType::Project:
+    case CadFeatureType::Sketch3D:       return "design_sketch";    // sketches, datums, projections
     case CadFeatureType::Fillet:
     case CadFeatureType::Chamfer:
     case CadFeatureType::Mate:           return "design_dressup";
@@ -11402,6 +11413,51 @@ void DesignPanel::start_sketch()
     update_reference_planes();
     update_action_bar();   // ✗ leaves the choice
     set_status(StatusKind::Info, sketch_plane_prompt());
+}
+
+// Snap targets for the 3D sketch: every body vertex, edge midpoint and circle centre, in world
+// coordinates with the display move applied (what the user sees is what the cursor snaps to).
+void DesignPanel::start_sketch3d()
+{
+    if (!m_viewport) return;
+    if (m_ui_mode != UiMode::Feature || m_active != Tool::None || m_viewport->is_sketching()) {
+        set_status(StatusKind::Info, _L("Finish or cancel what is open first"));
+        return;
+    }
+    std::vector<Vec3d> targets;
+    for (size_t b = 0; b < m_doc.bodies.size(); ++b) {
+        const TopoDS_Shape& sh = m_doc.bodies[b].shape;
+        if (sh.IsNull()) continue;
+        const Transform3d xf = b < m_body_xform.size() ? m_body_xform[b] : Transform3d::Identity();
+        auto add = [&](const gp_Pnt& p) { targets.push_back(xf * Vec3d(p.X(), p.Y(), p.Z())); };
+        for (TopExp_Explorer ex(sh, TopAbs_VERTEX); ex.More(); ex.Next()) add(BRep_Tool::Pnt(TopoDS::Vertex(ex.Current())));
+        for (const TopoDS_Edge& e : GeometryEngine::edges_of(sh)) {
+            BRepAdaptor_Curve c(e);
+            add(c.Value(0.5 * (c.FirstParameter() + c.LastParameter())));
+            const GeometryEngine::CylinderFace circ = GeometryEngine::circle_of_edge(e);
+            if (circ.ok) targets.push_back(xf * circ.base);
+        }
+        if (targets.size() > 20000) break;   // ponytail: cap, a huge mesh-derived body would stall every mouse move
+    }
+    m_viewport->set_on_sketch3d(
+        [this](const std::vector<Vec3d>& pts, bool smooth) {
+            m_doc.checkpoint();
+            m_feature_counter++;
+            m_doc.add_sketch3d(pts, smooth, false, feature_name(_L("3D Sketch")));
+            if (!recompute_guarded(_L("Rebuilding model…")))
+                set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
+            else
+                set_status(StatusKind::Ok, _L("3D sketch added — use it as a Sweep path"));
+            refresh_tree();
+        },
+        [this] { set_status(StatusKind::Info, _L("3D sketch cancelled")); },
+        [this](int axis, int n, bool smooth) {
+            static const char* kAx[3] = { "X", "Y", "Z" };
+            set_status(StatusKind::Info, wxString::Format(
+                _L("3D sketch: %d point(s) · plane normal to %s (Tab) · S: %s · Enter or right-click: finish · Backspace: undo point · Esc: cancel"),
+                n, kAx[axis], smooth ? _L("smooth ON") : _L("smooth off")));
+        });
+    m_viewport->begin_sketch3d(m_doc.modeling_origin, std::move(targets));
 }
 
 void DesignPanel::push_grid_snap()

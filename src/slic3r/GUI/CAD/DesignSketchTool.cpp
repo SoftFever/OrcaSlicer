@@ -5864,6 +5864,167 @@ int DesignSketchTool::hit_test_base_pick(GLCanvas3D& canvas, const wxMouseEvent&
     return pick_reference_square(squares, H, r.a, r.b - r.a);
 }
 
+
+// ---- 3D sketch (slices 8b input, 8c snapping) -------------------------------------------------
+void DesignSketchTool::begin_sketch3d(const Vec3d& start, std::vector<Vec3d> snap_targets)
+{
+    m_s3_active     = true;
+    m_s3_pts.clear();
+    m_s3_targets    = std::move(snap_targets);
+    m_s3_start      = start;
+    m_s3_axis       = 2;
+    m_s3_smooth     = false;
+    m_s3_has_cursor = false;
+    m_s3_snapped    = false;
+    m_s3_pending    = false;
+    m_pick_pending  = false;
+    m_pre           = SolidPick{};   // no hover outline promising a click that will not be taken
+    s3_notify();
+}
+
+void DesignSketchTool::s3_finish()
+{
+    std::vector<Vec3d> pts = m_s3_pts;
+    const bool smooth = m_s3_smooth;
+    end_sketch3d();
+    if (pts.size() >= 2) { if (on_sketch3d_done) on_sketch3d_done(pts, smooth); }
+    else if (on_sketch3d_cancel)                 on_sketch3d_cancel();
+}
+
+bool DesignSketchTool::sketch3d_key(int key)
+{
+    if (!m_s3_active) return false;
+    switch (key) {
+    case WXK_TAB:       m_s3_axis = (m_s3_axis + 1) % 3; m_s3_has_cursor = false; s3_notify(); return true;
+    case WXK_RETURN:
+    case WXK_NUMPAD_ENTER: s3_finish(); return true;
+    case WXK_BACK:      if (!m_s3_pts.empty()) m_s3_pts.pop_back(); m_s3_has_cursor = false; s3_notify(); return true;
+    case 'S':           m_s3_smooth = !m_s3_smooth; s3_notify(); return true;
+    case WXK_ESCAPE:    end_sketch3d(); if (on_sketch3d_cancel) on_sketch3d_cancel(); return true;
+    default:            return false;
+    }
+}
+
+// The cursor is the mouse ray's hit on the working plane (through the last point, normal = chosen
+// world axis), unless a snap target is within 12 px on screen, which wins and is exact.
+void DesignSketchTool::s3_update_cursor(GLCanvas3D& canvas, const wxMouseEvent& evt)
+{
+    const Camera& cam = wxGetApp().plater()->get_camera();
+    const Eigen::Matrix4d to_clip = cam.get_projection_matrix().matrix() * cam.get_view_matrix().matrix();
+    const std::array<int, 4>& vp  = cam.get_viewport();
+    auto to_screen = [&](const Vec3d& x, Vec2d& out) {
+        const Eigen::Vector4d clip = to_clip * x.homogeneous();
+        if (clip.w() <= 1e-9) return false;
+        const Vec3d ndc = clip.head<3>() / clip.w();
+        out = Vec2d(vp[0] + (ndc.x() * 0.5 + 0.5) * vp[2], vp[1] + (1.0 - (ndc.y() * 0.5 + 0.5)) * vp[3]);
+        return true;
+    };
+    const Vec2d mouse(evt.GetX(), evt.GetY());
+    m_s3_snapped = false;
+    double best = 12.0;   // px
+    auto try_snap = [&](const Vec3d& p) {
+        Vec2d s;
+        if (!to_screen(p, s)) return;
+        const double d = (s - mouse).norm();
+        if (d < best) { best = d; m_s3_cursor = p; m_s3_snapped = true; m_s3_has_cursor = true; }
+    };
+    for (const Vec3d& p : m_s3_targets) try_snap(p);
+    for (const Vec3d& p : m_s3_pts)     try_snap(p);
+    if (m_s3_snapped) return;
+
+    const Linef3 r = canvas.mouse_ray(Point(evt.GetX(), evt.GetY()));
+    const Vec3d  rd = r.b - r.a;
+    const Vec3d  n  = Vec3d::Unit(m_s3_axis);
+    const Vec3d  o  = m_s3_pts.empty() ? m_s3_start : m_s3_pts.back();
+    const double denom = rd.dot(n);
+    if (std::abs(denom) < 1e-9 * rd.norm()) return;   // looking along the plane: keep the last cursor
+    const double t = (o - r.a).dot(n) / denom;
+    if (t < 0.) return;
+    m_s3_cursor = r.a + t * rd;
+    m_s3_has_cursor = true;
+}
+
+// Camera-facing quads for 3D segments (draw_strokes lifts 2D points through m_plane; these are 3D).
+void DesignSketchTool::draw_strokes3d(GLModel& model, const std::vector<std::pair<Vec3d, Vec3d>>& segs,
+                                      double hw, const ColorRGBA& color)
+{
+    const Camera& cam = wxGetApp().plater()->get_camera();
+    const Vec3d fwd = cam.get_dir_forward().normalized();
+    GLModel::Geometry g;
+    g.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
+    unsigned int base = 0;
+    for (const auto& s : segs) {
+        const Vec3d d = s.second - s.first;
+        if (d.norm() < 1e-9) continue;
+        Vec3d n = d.cross(fwd);
+        if (n.norm() < 1e-9) continue;
+        n = n.normalized() * hw;
+        g.add_vertex((Vec3f)(s.first + n).cast<float>());
+        g.add_vertex((Vec3f)(s.second + n).cast<float>());
+        g.add_vertex((Vec3f)(s.second - n).cast<float>());
+        g.add_vertex((Vec3f)(s.first - n).cast<float>());
+        g.add_triangle(base, base + 1, base + 2);
+        g.add_triangle(base, base + 2, base + 3);
+        base += 4;
+    }
+    if (base == 0) return;
+    model.reset();
+    model.init_from(std::move(g));
+    model.set_color(color);
+    model.render();
+}
+
+void DesignSketchTool::render_sketch3d()
+{
+    if (!m_s3_active) return;
+    const Camera& cam = wxGetApp().plater()->get_camera();
+    const double upp = 1.0 / std::max(cam.get_zoom(), 1e-6);
+    const Vec3d right = cam.get_dir_right().normalized();
+    const Vec3d up    = cam.get_dir_up().normalized();
+    const ColorRGBA cols[3] = { ColorRGBA(0.92f, 0.28f, 0.28f, 1.0f), ColorRGBA(0.30f, 0.80f, 0.34f, 1.0f),
+                                ColorRGBA(0.32f, 0.55f, 0.95f, 1.0f) };
+    glsafe(::glDisable(GL_DEPTH_TEST));
+
+    // The curve so far, plus the leg the next click would add.
+    std::vector<std::pair<Vec3d, Vec3d>> done, live;
+    for (size_t i = 1; i < m_s3_pts.size(); ++i) done.emplace_back(m_s3_pts[i - 1], m_s3_pts[i]);
+    if (m_s3_has_cursor && !m_s3_pts.empty()) live.emplace_back(m_s3_pts.back(), m_s3_cursor);
+    draw_strokes3d(m_s3_model, done, std::max(0.9 * upp, 1e-4), ColorRGBA(1.0f, 0.55f, 0.10f, 1.0f));
+    draw_strokes3d(m_s3_model, live, std::max(0.6 * upp, 1e-4), ColorRGBA(1.0f, 0.80f, 0.45f, 1.0f));
+
+    // Points: small billboard squares (the first one bigger, so a closing click is easy to aim at).
+    auto square = [&](const Vec3d& p, double h, const ColorRGBA& c) {
+        draw_strokes3d(m_s3_model, { { p - right * h, p + right * h } }, std::max(h, 1e-4), c);
+        (void) up;
+    };
+    for (size_t i = 0; i < m_s3_pts.size(); ++i)
+        square(m_s3_pts[i], (i == 0 ? 4.0 : 2.5) * upp, ColorRGBA(1.0f, 0.85f, 0.25f, 1.0f));
+
+    // Snap targets within reach are dots, so the user sees what a click can land on.
+    for (const Vec3d& t : m_s3_targets)
+        square(t, 1.4 * upp, ColorRGBA(0.55f, 0.85f, 1.0f, 1.0f));
+
+    if (m_s3_has_cursor) {
+        const double L = 38.0 * upp;
+        const Vec3d  c = m_s3_cursor;
+        // Compass: three world-axis stubs through the cursor; the active one (the working plane's
+        // normal) is the thick one.
+        for (int a = 0; a < 3; ++a) {
+            const Vec3d e = Vec3d::Unit(a);
+            draw_strokes3d(m_s3_model, { { c - e * (L * 0.3), c + e * L } },
+                           std::max((a == m_s3_axis ? 1.6 : 0.6) * upp, 1e-4), cols[a]);
+        }
+        // The working plane as a square outline around the cursor.
+        const Vec3d u = Vec3d::Unit((m_s3_axis + 1) % 3), v = Vec3d::Unit((m_s3_axis + 2) % 3);
+        const double h = L * 0.8;
+        const Vec3d p0 = c - u * h - v * h, p1 = c + u * h - v * h, p2 = c + u * h + v * h, p3 = c - u * h + v * h;
+        draw_strokes3d(m_s3_model, { { p0, p1 }, { p1, p2 }, { p2, p3 }, { p3, p0 } },
+                       std::max(0.5 * upp, 1e-4), ColorRGBA(cols[m_s3_axis].r(), cols[m_s3_axis].g(), cols[m_s3_axis].b(), 0.7f));
+        if (m_s3_snapped) square(c, 5.0 * upp, ColorRGBA(1.0f, 1.0f, 0.2f, 1.0f));
+    }
+    glsafe(::glEnable(GL_DEPTH_TEST));
+}
+
 // ---- Move-body gizmo (M5) -------------------------------------------------------------
 void DesignSketchTool::set_move_gizmo(int body, const Vec3d& pivot, const Transform3d& base_xform,
                                       double body_radius)
@@ -9761,6 +9922,7 @@ void DesignSketchTool::render(GLCanvas3D& canvas)
         if (m_rb_active) render_rib_gizmo();
         if (m_ex_active) render_extrude_gizmo();
         if (m_mv_active) render_move_gizmo();
+        if (m_s3_active) render_sketch3d();
         if (m_fl_active) render_fillet_gizmo();
         if (m_hl_active) render_hole_gizmo();
         if (m_th_active) render_thread_gizmo();
@@ -11043,6 +11205,26 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
                 canvas.set_as_dirty();
                 if (h >= 0) return true;   // caller render()s on true -> hover repaints on software GL
             }
+        }
+        // 3D sketch: the click places a point in space, Tab/Enter/Backspace/S/Esc come in via
+        // sketch3d_key, right-click or a double-click finishes. Orbit stays free: a press is only
+        // a click if the pointer is still near where it went down.
+        if (m_s3_active) {
+            if (evt.Moving()) { s3_update_cursor(canvas, evt); return true; }
+            if (evt.Dragging()) { m_s3_pending = false; return false; }
+            if (evt.LeftDown()) {
+                m_s3_press_x = evt.GetX(); m_s3_press_y = evt.GetY(); m_s3_pending = true;
+                return false;
+            }
+            if (evt.LeftUp() && m_s3_pending) {
+                m_s3_pending = false;
+                if (std::max(std::abs(evt.GetX() - m_s3_press_x), std::abs(evt.GetY() - m_s3_press_y)) > 6) return false;
+                s3_update_cursor(canvas, evt);
+                if (m_s3_has_cursor) { m_s3_pts.push_back(m_s3_cursor); s3_notify(); }
+                return true;
+            }
+            if (evt.LeftDClick() || evt.RightDown()) { s3_finish(); return true; }
+            return false;
         }
         // Visual Extrude gizmo (C5b): while the Extrude card is open the depth arrow is
         // grabbable — drag changes the depth live; a click (no drag) on the arrow opens the

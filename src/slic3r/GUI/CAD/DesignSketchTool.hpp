@@ -158,6 +158,18 @@ public:
     void set_escalate_on_repick(bool on) { m_escalate_repick = on; }
     bool constrain_value_anchor(wxPoint& out) const; // screen anchor over the picked constrain geometry
 
+    // 3D sketch (slices 8b input + 8c snapping): click points in space. The cursor rides a virtual
+    // plane through the last point whose normal is the chosen world axis (Tab cycles X/Y/Z), and
+    // snaps to body vertices, edge midpoints and circle centres within a screen-px tolerance.
+    void begin_sketch3d(const Vec3d& start, std::vector<Vec3d> snap_targets);
+    void end_sketch3d() { m_s3_active = false; m_s3_pts.clear(); m_s3_targets.clear(); }
+    bool sketch3d_active() const { return m_s3_active; }
+    // Tab / Enter / Backspace / Esc / S. True when the key was consumed.
+    bool sketch3d_key(int key);
+    std::function<void(const std::vector<Vec3d>&, bool smooth)> on_sketch3d_done;
+    std::function<void()>                                       on_sketch3d_cancel;
+    std::function<void(int axis, int npoints, bool smooth)>     on_sketch3d_state;
+
     void begin(const SketchPlane& plane, Mode mode = Mode::Polyline);
     // Re-open a committed entity sketch for full in-canvas editing: load its entities +
     // driving constraints, re-detect the polygon/rect/slot grouping, and live-solve. The
@@ -215,7 +227,7 @@ public:
                                       || (m_solid_bodies != nullptr && !m_solid_bodies->empty())
                                       || !m_datum_planes.empty()
                                       || m_show_planes || m_show_axes
-                                      || m_ex_active || m_mv_active || m_fl_active
+                                      || m_s3_active || m_ex_active || m_mv_active || m_fl_active
                                       || m_hl_active || m_th_active || m_sh_active
                                       || m_dr_active || m_ct_active || m_dz_active || m_dbp_active || m_hx_active || m_rb_active; }
 
@@ -1477,6 +1489,25 @@ private:
     void render_reference_axes(const Vec3d& origin, double half);
     void render_base_pick();
     int  hit_test_base_pick(GLCanvas3D& canvas, const wxMouseEvent& evt) const;
+
+    // 3D sketch state.
+    bool               m_s3_active{false};
+    std::vector<Vec3d> m_s3_pts;
+    std::vector<Vec3d> m_s3_targets;
+    Vec3d              m_s3_start{Vec3d::Zero()};   // working plane origin until the first point exists
+    int                m_s3_axis{2};                // working-plane normal: 0 X, 1 Y, 2 Z
+    bool               m_s3_smooth{false};
+    Vec3d              m_s3_cursor{Vec3d::Zero()};
+    bool               m_s3_has_cursor{false};
+    bool               m_s3_snapped{false};
+    int                m_s3_press_x{0}, m_s3_press_y{0};
+    bool               m_s3_pending{false};
+    GLModel            m_s3_model;
+    void   s3_update_cursor(GLCanvas3D& canvas, const wxMouseEvent& evt);
+    void   s3_finish();
+    void   s3_notify() const { if (on_sketch3d_state) on_sketch3d_state(m_s3_axis, int(m_s3_pts.size()), m_s3_smooth); }
+    void   render_sketch3d();
+    void   draw_strokes3d(GLModel& model, const std::vector<std::pair<Vec3d, Vec3d>>& segs, double hw, const ColorRGBA& color);
 
     // Move-body gizmo state: 3 world-axis translate arrows + 3 world-axis rotate rings.
     // Delta model: offset/rot are deltas about a fixed pivot, composed onto m_mv_base_xform

@@ -88,6 +88,7 @@ const char* feature_type_name(CadFeatureType t)
         case CadFeatureType::Axis:    return "Axis";
         case CadFeatureType::CoordSys: return "CoordSys";
         case CadFeatureType::Helix:    return "Helix";
+        case CadFeatureType::Sketch3D: return "Sketch3D";
         case CadFeatureType::Transform: return "Transform";
         case CadFeatureType::Thicken:  return "Thicken";
         case CadFeatureType::Project:  return "Project";
@@ -273,6 +274,11 @@ json describe_tools()
                      json{{"name", "source_sketch"}, {"type", "integer"}, {"description", "feature index of the sketch to project"}},
                      json{{"name", "plane"},  {"type", "string"}, {"default", "XY"}, {"description", "XY, XZ, YZ or datum:N"}},
                      json{{"name", "entities"}, {"type", "array"}, {"default", json::array()}, {"description", "entity indices of the source; empty = all"}}})}},
+            json{{"name", "sketch3d"}, {"summary", "Create a free 3D curve through world-mm points (polyline, or a smooth spline). It makes no solid; use it as a Sweep path."},
+                 {"params", json::array({
+                     json{{"name", "points"}, {"type", "array"}, {"description", "[[x,y,z], ...], at least two"}},
+                     json{{"name", "smooth"}, {"type", "boolean"}, {"default", false}},
+                     json{{"name", "closed"}, {"type", "boolean"}, {"default", false}}})}},
             json{{"name", "plane"}, {"summary", "Create a datum plane: offset (mm) from base 0=XY, 1=XZ, 2=YZ or 3+N = Nth earlier datum, optional tilt (deg) about axis. Sketch on it with sketch_begin plane=datum:N."},
                  {"params", json::array({
                      json{{"name", "base"},   {"type", "integer"}, {"default", 0}},
@@ -1914,6 +1920,23 @@ json action_use(DesignPanel* panel, const json& params)
                 {"entities", ok ? int(doc.features[idx].entities.size()) : 0}};
 }
 
+json action_sketch3d(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    if (!params.contains("points") || !params["points"].is_array() || params["points"].size() < 2)
+        throw std::runtime_error("sketch3d needs 'points': [[x,y,z], ...] with at least two points");
+    std::vector<Vec3d> pts;
+    for (const auto& p : params["points"]) {
+        if (!p.is_array() || p.size() < 3) throw std::runtime_error("each point must be [x, y, z]");
+        pts.emplace_back(p[0].get<double>(), p[1].get<double>(), p[2].get<double>());
+    }
+    doc.checkpoint();
+    const int idx = doc.add_sketch3d(pts, params.value("smooth", false), params.value("closed", false), "Sketch3D");
+    const bool ok = doc.recompute();
+    panel->mcp_after_change();
+    return json{{"ok", ok}, {"feature_index", idx}, {"error", doc.error}};
+}
+
 json action_plane(DesignPanel* panel, const json& params)
 {
     CadDocument& doc = panel->mcp_doc();
@@ -2173,6 +2196,7 @@ std::string handle_on_main(const std::string& method, const json& params, const 
         if (method == "delete_face")    return rpc_result(id, action_delete_face(panel, params));
         if (method == "bridge")         return rpc_result(id, action_bridge(panel, params));
         if (method == "plane")          return rpc_result(id, action_plane(panel, params));
+        if (method == "sketch3d")       return rpc_result(id, action_sketch3d(panel, params));
         if (method == "use")            return rpc_result(id, action_use(panel, params));
         if (method == "axis")           return rpc_result(id, action_axis(panel, params));
         if (method == "coordsys")       return rpc_result(id, action_coordsys(panel, params));

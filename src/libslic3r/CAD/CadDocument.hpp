@@ -23,7 +23,7 @@
 
 namespace Slic3r {
 
-enum class CadFeatureType { Sketch, Extrude, Fillet, Chamfer, Hole, Thread, Shell, Revolve, Sweep, Pattern, Plane, Loft, Draft, Import, Boolean, Cut, Mirror, Axis, CoordSys, Helix, Transform, Thicken, Project, DeleteFace, Rib, SurfaceExtrude, SurfaceRevolve, ThickenSurface, SurfaceOffset, SurfaceLoft, SurfaceFill, Mate };
+enum class CadFeatureType { Sketch, Extrude, Fillet, Chamfer, Hole, Thread, Shell, Revolve, Sweep, Pattern, Plane, Loft, Draft, Import, Boolean, Cut, Mirror, Axis, CoordSys, Helix, Transform, Thicken, Project, DeleteFace, Rib, SurfaceExtrude, SurfaceRevolve, ThickenSurface, SurfaceOffset, SurfaceLoft, SurfaceFill, Mate, Sketch3D };
 enum class SketchShape    { Rectangle, Circle };
 enum class PlaneType      { Offset, Angle, Midplane, Tangent, TwoEdges, Coincident };
 enum class AxisType       { TwoPoints, FaceNormal, CylinderCenterline, PlaneIntersection, AlongEdge };
@@ -349,6 +349,12 @@ struct CadFeature {
     // "Use": the source is another SKETCH (any plane, incl. a parallel one), not a body. The link is
     // persistent: entities are re-projected on every recompute, so editing the parent moves them,
     // and a parent that is gone is an Error, never a silent keep-the-old-geometry.
+    // Sketch3D: a free 3D polyline / spline through `sk3_points` (world mm). It makes no solid; it is a
+    // PATH (Sweep) and, later, a loft guide. `smooth` interpolates a C2 spline instead of straight legs.
+    std::vector<Vec3d> sk3_points;
+    bool               sk3_closed{false};
+    bool               sk3_smooth{false};
+
     bool             project_from_sketch{false};
     int              project_source_sketch{-1}; // feature index; remapped on delete (orphan -> -1 = Error)
     std::vector<int> project_sketch_entities;   // entity indices of the source; empty = all
@@ -425,7 +431,8 @@ struct CadFeature {
                text_string, text_font, text_height,
                revolve_axis_entity,
                project_from_sketch, project_source_sketch, project_sketch_entities,
-               loft_start_cond, loft_end_cond);
+               loft_start_cond, loft_end_cond,
+               sk3_points, sk3_closed, sk3_smooth);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -470,7 +477,8 @@ struct CadFeature {
                text_string, text_font, text_height,
                revolve_axis_entity,
                project_from_sketch, project_source_sketch, project_sketch_entities,
-               loft_start_cond, loft_end_cond);
+               loft_start_cond, loft_end_cond,
+               sk3_points, sk3_closed, sk3_smooth);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature
@@ -628,6 +636,11 @@ public:
     // sketch or body reference is invalid. Unlike add_project_edges this creates no feature: the
     // references become part of the sketch that borrows them.
     // "Use": project another sketch (all its entities, or the listed ones) onto `plane`, parent-linked.
+    // 3D sketch: points in world coordinates; consumed as a Sweep path.
+    int  add_sketch3d(const std::vector<Vec3d>& points, bool smooth, bool closed, const std::string& name);
+    // The Sketch3D feature as one wire (polyline, or an interpolated spline). Null + `err` when it
+    // cannot be built: fewer than 2 distinct points, or a spline OCCT refuses.
+    static TopoDS_Wire build_sketch3d_wire(const CadFeature& f, std::string& err);
     int  add_use_sketch(int source_sketch, const std::vector<int>& entities,
                         const SketchPlane& plane, const std::string& name);
     int  project_edges_into_sketch(int sketch_feature, int source_body,

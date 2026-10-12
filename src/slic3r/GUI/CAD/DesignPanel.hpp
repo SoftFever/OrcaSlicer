@@ -569,6 +569,7 @@ private:
     wxCheckBox*       m_grid_snap{nullptr};      // sketch grid snap on/off (persisted)
     wxSpinCtrlDouble* m_grid_step{nullptr};      // snap step, mm (persisted)
     void              push_grid_snap();          // spin/check -> viewport + config
+    void              start_sketch3d();          // free 3D curve: click points, Tab cycles the working plane
     wxSpinCtrlDouble* m_move_dx{nullptr};        // Move/Rotate card: world translation
     wxSpinCtrlDouble* m_move_dy{nullptr};
     wxSpinCtrlDouble* m_move_dz{nullptr};
