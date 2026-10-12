@@ -157,12 +157,33 @@ struct SmoothedTextureCache
     {
         std::weak_ptr<const std::vector<unsigned char>> source;
         float                                           smoothing = 0.f;
+        // Part of the key, not of the result: smoothing is applied *after* the panel's adjustments, so a
+        // blur computed over one set of adjustments is not the blur another set would give.
+        TextureAdjustments                              adjust;
         DecodedHeightTexture                            texture;
     };
     std::mutex                                   mutex;
     std::unordered_map<const void *, Entry>      entries;
 };
 SmoothedTextureCache g_smoothed_texture_cache;
+
+// The adjusted copy, cached between the raw decode and the smoothed one. Needed for the same reason the
+// smoothed cache is: while a slider in the image-adjustment panel moves, the thumbnail, the shaded
+// preview's height and colour textures, the UV editor backdrop and the displacement preview job all ask
+// for the same (image, adjustments) pair within one frame, and each of them running a full-size resample
+// of its own is what would make the panel unusable on a large texture.
+struct AdjustedTextureCache
+{
+    struct Entry
+    {
+        std::weak_ptr<const std::vector<unsigned char>> source;
+        TextureAdjustments                              adjust;
+        DecodedHeightTexture                            texture;
+    };
+    std::mutex                              mutex;
+    std::unordered_map<const void *, Entry> entries;
+};
+AdjustedTextureCache g_adjusted_texture_cache;
 } // namespace
 
 namespace {
@@ -338,6 +359,34 @@ DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer
         entries[key] = { std::weak_ptr<const std::vector<unsigned char>>(layer.image_data), result };
     }
 
+    // The image-adjustment panel's live edits, on top of the decode and before the smoothing. Before,
+    // because `preview_adjust` is an edit to the image while `smoothing` is a live low-pass over whatever
+    // the image is - the same order the panel presents them in, and the same order a commit bakes in.
+    //
+    // Nothing applies here once the panel has closed: it resets preview_adjust to identity, and identity
+    // is a no-op that costs one comparison.
+    if (!layer.preview_adjust.identity()) {
+        bool have_adjusted = false;
+        {
+            std::lock_guard<std::mutex> lock(g_adjusted_texture_cache.mutex);
+            auto it = g_adjusted_texture_cache.entries.find(key);
+            if (it != g_adjusted_texture_cache.entries.end() && it->second.adjust == layer.preview_adjust &&
+                it->second.source.lock() == layer.image_data) {
+                result        = it->second.texture;
+                have_adjusted = true;
+            }
+        }
+        if (!have_adjusted) {
+            result = apply_texture_adjustments(result, layer.preview_adjust);
+            std::lock_guard<std::mutex> lock(g_adjusted_texture_cache.mutex);
+            auto &entries = g_adjusted_texture_cache.entries;
+            for (auto it = entries.begin(); it != entries.end();)
+                it = it->second.source.expired() ? entries.erase(it) : std::next(it);
+            entries[key] = { std::weak_ptr<const std::vector<unsigned char>>(layer.image_data),
+                             layer.preview_adjust, result };
+        }
+    }
+
     // Smoothing radius scales with the texture so the same slider value blurs the same *fraction* of
     // the image whatever resolution it came in at, and stays continuous in the slider - see
     // smooth_height_pixels(). The cap is a cost limit, not part of the mapping: the blur is
@@ -348,7 +397,7 @@ DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer
             std::lock_guard<std::mutex> lock(g_smoothed_texture_cache.mutex);
             auto it = g_smoothed_texture_cache.entries.find(key);
             if (it != g_smoothed_texture_cache.entries.end() && it->second.smoothing == layer.smoothing &&
-                it->second.source.lock() == layer.image_data)
+                it->second.adjust == layer.preview_adjust && it->second.source.lock() == layer.image_data)
                 return it->second.texture;
         }
         const float span   = 0.05f * float(std::min(result.width, result.height));
@@ -372,7 +421,8 @@ DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer
         auto &entries = g_smoothed_texture_cache.entries;
         for (auto it = entries.begin(); it != entries.end();)
             it = it->second.source.expired() ? entries.erase(it) : std::next(it);
-        entries[key] = { std::weak_ptr<const std::vector<unsigned char>>(layer.image_data), layer.smoothing, result };
+        entries[key] = { std::weak_ptr<const std::vector<unsigned char>>(layer.image_data), layer.smoothing,
+                         layer.preview_adjust, result };
     }
     return result;
 }

@@ -2411,3 +2411,54 @@ TEST_CASE("downscaling a height texture averages the texels it drops and never u
     CHECK(wide.height == 25);
     CHECK(wide.has_color());
 }
+
+TEST_CASE("a layer's live image adjustment reaches its decode", "[TextureDisplacement]")
+{
+    // This is what makes the image-adjustment panel's sliders move the relief: decode_height_texture()
+    // applies the layer's preview_adjust, so everything downstream of the decode - the displacement, the
+    // colour, the thumbnails, the bake - sees the adjusted image without being told about the panel.
+    TextureDisplacementLayer layer;
+    layer.image_data = make_checkerboard_png(32, 32);
+
+    const DecodedHeightTexture raw = decode_height_texture(layer);
+    REQUIRE_FALSE(raw.empty());
+
+    // An untouched panel, and a closed one, cost nothing and change nothing.
+    layer.preview_adjust = TextureAdjustments{};
+    CHECK(decode_height_texture(layer).pixels == raw.pixels);
+
+    layer.preview_adjust.brightness = 0.5f;
+    const DecodedHeightTexture bright = decode_height_texture(layer);
+    CHECK(bright.pixels != raw.pixels);
+    CHECK(bright.pixels == apply_texture_adjustments(raw, layer.preview_adjust).pixels);
+
+    // Back to identity gives the stored image back, so closing the panel really does revert the layer.
+    layer.preview_adjust = TextureAdjustments{};
+    CHECK(decode_height_texture(layer).pixels == raw.pixels);
+}
+
+TEST_CASE("changing a live adjustment is not served the previous one from cache", "[TextureDisplacement]")
+{
+    // The decode caches by the image_data pointer, which does not change while a slider moves - so the
+    // adjustment has to be part of the key or every slider move past the first would redraw the same
+    // pixels. Same for the smoothed copy, which is computed on top of the adjusted one.
+    TextureDisplacementLayer layer;
+    layer.image_data = make_checkerboard_png(32, 32);
+    const DecodedHeightTexture raw = decode_height_texture(layer);
+    REQUIRE_FALSE(raw.empty());
+
+    layer.preview_adjust.brightness = 0.5f;
+    const std::vector<uint8_t> bright = decode_height_texture(layer).pixels;
+    layer.preview_adjust.brightness   = -0.5f;
+    const std::vector<uint8_t> dark   = decode_height_texture(layer).pixels;
+    CHECK(bright != dark);
+    CHECK(dark == apply_texture_adjustments(raw, layer.preview_adjust).pixels);
+
+    // The same question again with smoothing on, which is cached separately and keyed by both.
+    layer.smoothing                 = 0.5f;
+    layer.preview_adjust.brightness = 0.5f;
+    const std::vector<uint8_t> smooth_bright = decode_height_texture(layer).pixels;
+    layer.preview_adjust.brightness          = -0.5f;
+    const std::vector<uint8_t> smooth_dark   = decode_height_texture(layer).pixels;
+    CHECK(smooth_bright != smooth_dark);
+}

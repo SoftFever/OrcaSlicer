@@ -407,25 +407,29 @@ private:
     // layer's *image*, so the adjusted pixels feed the colour and the displacement together and a
     // brightness change moves the relief too (see TextureAdjustments).
     //
-    // Modal, unlike the texture picker beside it, because it has three distinct exits - discard,
-    // overwrite the layer's image, write a new library texture - and a click outside silently
-    // discarding the edit is not one of them.
-    void render_image_adjust_popup(const ImVec2 &panel_min, const ImVec2 &panel_max);
+    // An ordinary floating window rather than a popup, and deliberately so. A popup dims the canvas
+    // behind it and closes on any click outside itself, which between them make it impossible to watch the
+    // relief change on the model - which is the whole point of adjusting the image here rather than in an
+    // image editor. A window leaves the 3D view live, clickable and orbitable while the panel is open.
+    void render_image_adjust_window(const ImVec2 &panel_min, const ImVec2 &panel_max);
     // Opens the panel for `layer` and decodes its image once, into m_adjust_source. Sliders never
     // re-decode the PNG.
     void open_image_adjust(const TextureDisplacementLayer &layer);
-    // Gives `layer` the full-size adjusted image: as its own image_data (`as_copy` false), or by writing
-    // a new texture into the user's library and pointing the layer at that (`as_copy` true). Closes the
-    // panel either way. Takes an undo snapshot.
-    void commit_image_adjust(TextureDisplacementLayer &layer, bool as_copy);
+    // Resolves the panel: writes the adjusted image into the user's texture library as a new file and
+    // points `layer` at it, which is the only way an adjustment becomes permanent. Closes the panel.
+    void commit_image_adjust(TextureDisplacementLayer &layer);
+    // Closes the panel and reverts the layer's live preview_adjust to identity, so every exit that is not
+    // a commit - Cancel, the window's close button, the gizmo closing - leaves the layer as it was found.
     void close_image_adjust();
     // Collects a finished preview and starts one for the current slider values. One at a time, so a drag
     // coalesces into "whatever the sliders last said" instead of a queue of superseded frames.
     void update_image_adjust_preview();
 
-    int                m_adjust_slot         = -1; // the layer the panel is open for; -1 when closed
-    bool               m_adjust_open_request = false;
-    TextureAdjustments m_adjust;                   // what the sliders currently say
+    int                m_adjust_slot = -1; // the layer the panel is open for; -1 when closed
+    TextureAdjustments m_adjust;           // what the sliders currently say
+    // What the layer's live preview_adjust was last set from, so a slider move can be told from a frame in
+    // which nothing happened and only the former asks the displacement to be recomputed.
+    TextureAdjustments m_adjust_applied;
 
     // The layer's image as it was when the panel opened, and a small copy of it. The sliders are applied
     // to the small copy for the live preview and to the full-size one exactly once, on commit. Measured on
@@ -926,6 +930,7 @@ private:
     enum class UVBackground { None, Height, Checker };
     UVBackground m_uv_editor_bg = UVBackground::None;
     float        m_uv_editor_bg_smoothing = -1.f; // smoothing the height backdrop was uploaded at
+    TextureAdjustments m_uv_editor_bg_adjust;        // and the live image adjustment it was uploaded at
     const void  *m_uv_editor_bg_image     = nullptr; // the layer image it was uploaded from
     // Per-chart distortion heatmap colour for the UV pane (#7/#14), computed once when the unwrap is
     // re-solved (relative stretch doesn't change when islands are merely moved), fed to the canvas only
@@ -969,6 +974,10 @@ private:
     std::array<const void *, TEXTURE_DISPLACEMENT_MAX_LAYERS>               m_thumbnail_source{};
     // The smoothing each cached thumbnail was built at, so a smoothing change re-uploads it.
     std::array<float, TEXTURE_DISPLACEMENT_MAX_LAYERS>                      m_thumbnail_smoothing{};
+    // And the live image adjustment each was built at, so moving a slider in the image-adjustment panel
+    // re-uploads it. Part of the key for the same reason smoothing is: preview_adjust changes the pixels
+    // decode_height_texture() hands back, and every one of these textures is a copy of those pixels.
+    std::array<TextureAdjustments, TEXTURE_DISPLACEMENT_MAX_LAYERS>          m_thumbnail_adjust{};
 
     // Full-resolution height texture for the preview shader, keyed the same way (see
     // get_layer_height_texture()). A smoothing change re-uploads it, so the fast preview shows the
@@ -976,12 +985,14 @@ private:
     std::unique_ptr<GLTexture> m_height_tex;
     const void                *m_height_tex_source    = nullptr;
     float                      m_height_tex_smoothing = -1.f;
+    TextureAdjustments         m_height_tex_adjust;
 
     // The same, for the layer's *colour*, which the fast preview quantizes per fragment so it shows
     // the image at texel resolution rather than at the mesh's. Null for a grayscale texture.
     std::unique_ptr<GLTexture> m_color_tex;
     const void                *m_color_tex_source    = nullptr;
     float                      m_color_tex_smoothing = -1.f;
+    TextureAdjustments         m_color_tex_adjust;
 
     // Library textures the picker has shown at least once, keyed by file path (see LibraryTexture).
     std::map<std::string, LibraryTexture> m_library_textures;

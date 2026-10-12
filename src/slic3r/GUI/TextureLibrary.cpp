@@ -411,21 +411,6 @@ std::shared_ptr<std::vector<unsigned char>> load_texture_image_data(const std::s
     return std::make_shared<std::vector<unsigned char>>(std::move(converted));
 }
 
-std::shared_ptr<std::vector<unsigned char>> encode_texture_image_data(const DecodedHeightTexture &image, std::string &error)
-{
-    std::vector<unsigned char> scratch;
-    const wxImage              wx = image_from_decoded(image, scratch);
-    if (!wx.IsOk()) {
-        error = _u8L("The selected image is empty.");
-        return nullptr;
-    }
-
-    std::vector<unsigned char> bytes;
-    if (!encode_png_bytes(wx, bytes, error))
-        return nullptr;
-    return std::make_shared<std::vector<unsigned char>>(std::move(bytes));
-}
-
 std::optional<TextureLibraryEntry> save_texture_to_library(const DecodedHeightTexture &image, const std::string &stem,
                                                            std::string &error)
 {
