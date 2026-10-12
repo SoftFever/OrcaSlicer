@@ -1,14 +1,20 @@
 #include <catch2/catch_all.hpp>
 
+#include <cstddef>
 #include <libslic3r/Model.hpp>
 #include <libslic3r/PresetBundle.hpp>
 #include <libslic3r/TriangleMesh.hpp>
 #include <slic3r/GUI/DockPanel.hpp>
 #include <slic3r/GUI/AuiPaneLayout.hpp>
 #include <slic3r/GUI/Widgets/WebHosting.hpp>
-#include <slic3r/plugin/PythonPluginBridge.hpp>
 
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_message.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
 #include "plugin_test_utils.hpp"
+#include <pybind11/pytypes.h>
+#include <pybind11/cast.h>
 #include "python_test_support.hpp"
 
 #include <pybind11/embed.h>
@@ -16,7 +22,13 @@
 
 #include <string>
 
+#include <wx/string.h>
 #include <wx/uri.h>
+#include "libslic3r/ObjectID.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include <pybind11/detail/common.h>
 
 namespace py = pybind11;
 
@@ -121,7 +133,7 @@ TEST_CASE("Plugin host API reports unavailable GUI objects before Orca app initi
 {
     py::object host = import_orca_module().attr("host");
 
-    for (const char* function_name : { "preset_bundle", "plater", "model" }) {
+    for (const char* function_name : { "preset_bundle", "plater", "model", "app_info", "selected_printer" }) {
         CAPTURE(function_name);
         try {
             host.attr(function_name)();
@@ -131,6 +143,17 @@ TEST_CASE("Plugin host API reports unavailable GUI objects before Orca app initi
             CHECK(std::string(error.what()).find("OrcaSlicer application is not initialized") != std::string::npos);
         }
     }
+}
+
+TEST_CASE("Plugin host API reports no GL details before the 3D view exists", "[PluginHost][Python]")
+{
+    py::object host = import_orca_module().attr("host");
+
+    CHECK(host.attr("gl_info")().is_none());
+
+    py::object plater_type = host.attr("Plater");
+    CHECK(has_attr(plater_type, "project_path"));
+    CHECK(has_attr(plater_type, "export_3mf_copy"));
 }
 
 TEST_CASE("Plugin host API exposes the UI module and guards it before Orca app initialization", "[PluginHost][Python]")

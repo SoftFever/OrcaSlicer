@@ -6,6 +6,18 @@
 #include "slic3r/GUI/Gizmos/GLGizmoTextureDisplacement.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include <functional>
+#include <vector>
+#include "libslic3r/TextureBake/TextureBakeDebug.hpp"
+#include <utility>
+#include <string>
+#include "libslic3r/TextureDisplacement.hpp"
+#include <exception>
+#include <cstddef>
+#include "slic3r/GUI/Jobs/Worker.hpp"
+#include <memory>
+#include "libslic3r/ObjectID.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 
 namespace Slic3r::GUI {
 
@@ -47,7 +59,7 @@ void TextureDisplacementDebugJob::process(Ctl &ctl)
     if (m_input.run_prepare && !m_input.options.pipeline_v2) {
         const TextureDisplacementPrepareResult prepared =
             GLGizmoTextureDisplacement::prepare_mesh(mesh, masks, m_input.layers, m_input.prepare_params,
-                                                     m_input.color.palette,
+                                                     m_input.color,
                                                      // Preparation is roughly half the run; the bake
                                                      // takes the progress bar from there.
                                                      [&report](int pct) { return report(1 + pct / 2); },
