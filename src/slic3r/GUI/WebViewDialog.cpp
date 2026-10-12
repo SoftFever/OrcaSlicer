@@ -55,6 +55,13 @@ namespace GUI {
 
     #define LOGIN_INFO_UPDATE_TIMER_ID 10002
 
+// OrcaCloud is a native pane of its own: the site refuses to be framed
+// (x-frame-options: DENY / CSP frame-ancestors 'none').
+static const char *const kCloudUrl = "https://cloud.orcaslicer.com";
+// #LeftBoard in resources/web/homepage/css/home.css is a 262px column plus a 1px right
+// border; the homepage keeps that width as the nav column while the cloud pane is open.
+static const int kLeftNavWidth = 263;
+
 // The home page's strings (resources/web/homepage), keyed by their data-i18n and T() ids.
 static json home_page_strings()
 {
@@ -134,7 +141,11 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_reset_on_show = WebView::NeedsRecreateOnShow();
     SetSizer(topsizer);
 
-    topsizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+    // The homepage shell is the left nav column; when OrcaCloud opens, its page lives in a
+    // second native pane beside it (the site refuses to be framed).
+    m_content_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_content_sizer->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
+    topsizer->Add(m_content_sizer, wxSizerFlags().Expand().Proportion(1));
 
     // Log backend information
     /* m_browser->GetUserAgent() may lead crash
@@ -290,12 +301,86 @@ void WebViewPanel::create_browser()
     m_browser->Hide();
 }
 
+// The cloud page gets its own native view, created on first use and kept alive afterwards
+// so its session and scroll position survive hiding.
+void WebViewPanel::create_cloud_browser()
+{
+    m_cloud_browser = WebView::CreateWebView(this, wxEmptyString);
+
+    // Webview events are command events, so they would otherwise propagate up to the
+    // panel's handlers, which drive the homepage view. Keep the cloud pane's events here.
+    m_cloud_browser->Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnCloudWebViewEvent, this);
+    m_cloud_browser->Bind(wxEVT_WEBVIEW_NAVIGATED, &WebViewPanel::OnCloudWebViewEvent, this);
+    m_cloud_browser->Bind(wxEVT_WEBVIEW_LOADED, &WebViewPanel::OnCloudWebViewEvent, this);
+    m_cloud_browser->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebViewPanel::OnCloudWebViewEvent, this);
+    m_cloud_browser->Bind(wxEVT_WEBVIEW_ERROR, &WebViewPanel::OnCloudWebViewEvent, this);
+    m_cloud_browser->Bind(wxEVT_WEBVIEW_NEWWINDOW, &WebViewPanel::OnCloudWebViewEvent, this);
+    m_cloud_browser->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebViewPanel::OnCloudWebViewEvent, this);
+
+    m_cloud_browser->Hide();
+    if (m_content_sizer)
+        m_content_sizer->Add(m_cloud_browser, wxSizerFlags().Expand().Proportion(1));
+}
+
+// Consumed on the cloud view so it never reaches the homepage handlers; new windows open in
+// the system browser, the same way PrinterWebView treats them.
+void WebViewPanel::OnCloudWebViewEvent(wxWebViewEvent& evt)
+{
+    if (evt.GetEventType() == wxEVT_WEBVIEW_NEWWINDOW) {
+        const wxString url = evt.GetURL();
+        if (!url.empty())
+            wxLaunchDefaultBrowser(url);
+        evt.Veto();
+    }
+}
+
+void WebViewPanel::apply_cloud_layout(bool cloud_on)
+{
+    if (!m_content_sizer)
+        return;
+
+    // Cloud mode pins the homepage to the nav column width; otherwise it fills the panel.
+    if (m_browser) {
+        if (wxSizerItem* item = m_content_sizer->GetItem(m_browser))
+            item->SetProportion(cloud_on ? 0 : 1);
+        // kLeftNavWidth is in DIP: the web view's CSS px are DIP, so scale to physical pixels.
+        m_browser->SetMinSize(cloud_on ? m_browser->FromDIP(wxSize(kLeftNavWidth, -1)) : wxDefaultSize);
+    }
+    Layout();
+}
+
+void WebViewPanel::set_cloud_mode(bool on)
+{
+    if (on) {
+        if (!m_cloud_browser) {
+            create_cloud_browser();
+            WebView::LoadUrl(m_cloud_browser, kCloudUrl);
+        }
+        m_cloud_browser->Show();
+    } else if (m_cloud_browser) {
+        m_cloud_browser->Hide();
+    }
+    apply_cloud_layout(on && m_cloud_browser != nullptr);
+}
+
 void WebViewPanel::reset_browser()
 {
+    // Rebuild both views the same way, keeping the cloud pane's open/closed state.
+    const bool cloud_on = m_cloud_browser && m_cloud_browser->IsShown();
+
     m_browser->Destroy(); // also removes it from the sizer
     create_browser();
-    GetSizer()->Add(m_browser, wxSizerFlags().Expand().Proportion(1));
-    Layout();
+    m_content_sizer->Insert(size_t(0), m_browser, wxSizerFlags().Expand().Proportion(1));
+
+    if (m_cloud_browser) {
+        m_cloud_browser->Destroy();
+        m_cloud_browser = nullptr;
+        create_cloud_browser();
+        WebView::LoadUrl(m_cloud_browser, kCloudUrl);
+        m_cloud_browser->Show(cloud_on);
+    }
+
+    apply_cloud_layout(cloud_on);
 }
 
 bool WebViewPanel::Show(bool show)
@@ -710,6 +795,9 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
         if (wxGetApp().get_mode() == comDevelop)
             wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
     }
+    // A reloaded homepage loses its cloud-mode class; restore it if the pane is open.
+    if (m_cloud_browser && m_cloud_browser->IsShown())
+        RunScript("SetCloudMode(true)");
     UpdateState();
     SendCloudProvidersInfo();
 }

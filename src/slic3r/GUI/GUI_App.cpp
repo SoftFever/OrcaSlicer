@@ -5419,6 +5419,20 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_openproject") == 0) {
                 this->request_open_project({});
             }
+            else if (command_str.compare("homepage_open_cloud") == 0) {
+                // Deferred: set_cloud_mode() may create a second native webview, which must
+                // not run inside this webview's script-message callback.
+                CallAfter([]() {
+                    if (WebViewPanel* home = WebViewPanel::if_built())
+                        home->set_cloud_mode(true);
+                });
+            }
+            else if (command_str.compare("homepage_close_cloud") == 0) {
+                CallAfter([]() {
+                    if (WebViewPanel* home = WebViewPanel::if_built())
+                        home->set_cloud_mode(false);
+                });
+            }
             else if (command_str.compare("get_recent_projects") == 0) {
                 if (mainframe) {
                     if (WebViewPanel* home = WebViewPanel::if_built()) {

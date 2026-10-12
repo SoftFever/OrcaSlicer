@@ -28,6 +28,7 @@
 #include "wx/fs_mem.h"
 #include "wx/stdpaths.h"
 #include <wx/panel.h>
+#include <wx/sizer.h>
 #include <wx/tbarbase.h>
 #include "wx/textctrl.h"
 #include <wx/timer.h>
@@ -114,12 +115,22 @@ public:
 
     void update_mode();
 
+    // Shows/hides the native OrcaCloud pane beside this homepage nav column.
+    void set_cloud_mode(bool on);
+
     bool Show(bool show = true) override;
 private:
     void create_browser();
+    void create_cloud_browser();
     void reset_browser();
+    // Consumes the cloud pane's webview events so they stay off the homepage handlers.
+    void OnCloudWebViewEvent(wxWebViewEvent& evt);
+    // Re-applies the content sizer's proportions and min sizes for the cloud state.
+    void apply_cloud_layout(bool cloud_on);
 
     wxWebView* m_browser;
+    wxWebView* m_cloud_browser{nullptr};
+    wxBoxSizer* m_content_sizer{nullptr};
     wxString m_home_url;
     bool m_reset_on_show{false};
     wxButton *  m_button_stop;
