@@ -197,6 +197,27 @@ public:
     };
     static PaintedColors painted_colors(const TriangleMesh &mesh, const TriangleSelector::TriangleSplittingData &paint);
 
+    // The view while the UV editor's selected islands are highlighted on the model. The highlight lies on the
+    // undisplaced surface, so the Normal view's relief hides it wherever it rises: Normal gives way to Fast
+    // while islands are selected and comes back once none are. A view the user clicks in the View row is
+    // theirs - the pane's background buttons are not a pick, Height only meaning "the texture view".
+    struct IslandViewFollow
+    {
+        bool shown       = false; // the highlight, as of the last step()
+        bool switched    = false; // Fast was switched on for the highlight, so Normal comes back once it is gone
+        bool keep_normal = false; // the user picked Normal in the View row while the highlight was shown
+        // The view to apply this frame (0 Normal, 1 Fast), or -1 for none. `view` is the one on screen, numbered as
+        // apply_view_mode() takes it; `debug_open` a debug stage on screen, which holds Normal itself.
+        int  step(bool shown_now, int view, bool debug_open);
+        // A View row button clicked, the active one included. The row is drawn after step() in the same frame,
+        // so `shown` is this frame's.
+        void picked(int view)
+        {
+            switched    = false;
+            keep_normal = shown && view == 0;
+        }
+    };
+
     void render_painter_gizmo() override;
 
     // Intercepts mouse input while "Adjust Texture" mode is on (dragging the on-canvas offset/
@@ -513,6 +534,11 @@ private:
     // The panel's view modes: 0 Normal, 1 Fast, 2 Checker, 3 Distortion. Shared by the View row and the pane's
     // background buttons, so both switch views the same way.
     void apply_view_mode(int mode);
+    // The view on screen, numbered as apply_view_mode() takes it.
+    int  view_mode() const;
+    // Run once a frame, after the pane's commands: switches the view as m_island_view says.
+    void             follow_island_highlight();
+    IslandViewFollow m_island_view;
     // The pane header's thumbnail of the active layer's texture, rebuilt only when its image changes.
     static constexpr int       UV_THUMB_PX       = 64;
     const void                *m_uv_thumb_source = nullptr;
@@ -744,6 +770,8 @@ private:
     // in place. Rebuilt whenever the pane's selection differs from the one it was built for.
     GLModel          m_island_overlay_glmodel;
     std::vector<int> m_island_overlay_selection;
+    // The pane's selection while the overlay applies - the pane open over an unwrapped LSCM layer - else null.
+    const std::vector<int> *island_highlight_selection();
     void             rebuild_island_overlay(const std::vector<int> &selection);
     void             render_island_overlay();
     // Set on every paint event, cleared when the overlay is rebuilt in render_painter_gizmo(). Kept
