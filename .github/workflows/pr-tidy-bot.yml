@@ -1,28 +1,22 @@
 name: PR clang-tidy Bot
 
-# Adds the includes the clang-tidy check reports missing, on request, as a
-# commit pushed to the pull request's branch.
+# Posts the includes the clang-tidy check reports missing, on request, as a
+# review the PR's author can apply.
 #
-# Command, posted as a comment on the PR by an account with write access:
+# Command, posted as a comment on the PR by its author or an account with write
+# access:
 #   /bot fix-tidy
 #
-# The fix job runs scripts/run_clang_tidy.sh --fix, as a contributor would
-# locally, on the merge commit the clang-tidy check runs on: clang-tidy's
-# missing-include fixes on the lines the PR changes. Other findings, such as a
-# using in a header, need a manual edit and are left for the check to report.
+# The fix comes from the clang-tidy check's own run on the PR's latest commit:
+# when the check fails, clang_tidy.yml runs it again with --fix and uploads the
+# result as the clang-tidy-fix artifact. Findings --fix cannot fix, such as a
+# using in a header, are left for the check to report.
 #
-# The PR's code runs only in the fix job, which has a read-only token and no
-# secrets and hands back a patch. The push job never runs that code. It accepts
-# the patch only when every line it adds is an #include in a C++ file the PR
-# already changes, then commits it on the PR head and pushes. The fix job still
-# runs the PR's build scripts, so the command is limited to accounts with write
-# access, who are expected to have read the PR first.
-#
-# Pushing needs the CLANG_TIDY_BOT_TOKEN repository secret: a classic personal
-# access token with the public_repo scope, of an account with write access.
-# GITHUB_TOKEN cannot push to a fork, and a push made with it does not start the
-# checks again. A fork's branch can only be pushed to when its PR allows edits
-# by maintainers.
+# The reply is one review. Each include whose place falls on a line the PR's
+# diff shows is a suggestion GitHub can commit in one click, and the review's
+# body holds the whole patch with a git apply command for the rest. Nothing is
+# pushed, and no code from the PR runs here: the patch is only accepted when
+# every line it adds is an #include in a C++ file the PR already changes.
 
 on:
   issue_comment:
@@ -32,32 +26,32 @@ on:
 permissions: {}
 
 jobs:
-  authorize:
+  suggest:
     # Skips the job unless a PR comment mentions the command.
     if: >-
       github.repository == 'OrcaSlicer/OrcaSlicer'
       && github.event.issue.pull_request != null
       && contains(github.event.comment.body, '/bot fix-tidy')
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.issue.number }}
+      cancel-in-progress: false
     permissions:
-      pull-requests: read    # pulls.get, pulls.listFiles
+      actions: read          # find the check's run and download its patch
+      contents: read         # check out the PR head
+      pull-requests: write   # the review
       issues: write          # feedback comment + reactions
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      head-sha: ${{ steps.check.outputs.head-sha }}
-      head-repo: ${{ steps.check.outputs.head-repo }}
-      head-ref: ${{ steps.check.outputs.head-ref }}
-      files: ${{ steps.check.outputs.files }}
+    timeout-minutes: 10
     steps:
-      - name: Check the command and the PR
-        id: check
+      - name: Find the check's fix
+        id: find
         uses: actions/github-script@v9
-        env:
-          HAS_TOKEN: ${{ secrets.CLANG_TIDY_BOT_TOKEN != '' }}
         with:
           script: |
             const MARKER = '<!-- pr-tidy-bot -->';
-            const LOCAL_FIX = 'run `scripts/run_clang_tidy.sh --fix` (`scripts\\run_clang_tidy.ps1 -Fix` on Windows) and push the result';
+            const CHECK_WORKFLOW = 'clang_tidy.yml';
+            const ARTIFACT = 'clang-tidy-fix';
+            const CPP = /^(src|tests)\/.+\.(cpp|cc|cxx|hpp|h|hxx)$/;
 
             const { owner, repo } = context.repo;
             const issue = context.payload.issue;
@@ -79,33 +73,27 @@ jobs:
             }
 
             const commenter = comment.user.login;
-            const react = (content) =>
-              github.rest.reactions.createForIssueComment({ owner, repo, comment_id: comment.id, content });
-            const say = (body) =>
-              github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `${MARKER}\n@${commenter} ${body}` });
-            async function refuse(reason) {
-              core.warning(`Refused /bot fix-tidy from @${commenter}: ${reason}`);
-              await react('-1');
-              await say(reason);
+            // Answers only the PR's author and maintainers, so the command cannot be used to spam.
+            if (commenter !== issue.user.login) {
+              const { data: access } = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: commenter });
+              if (!['admin', 'write'].includes(access.permission)) {
+                core.info(`Ignoring /bot fix-tidy from @${commenter}: not the PR's author and no write access.`);
+                return;
+              }
             }
 
-            const { data: access } = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: commenter });
-            if (!['admin', 'write'].includes(access.permission)) {
-              // Answers only the PR's author, so the command cannot be used to spam.
-              if (commenter === issue.user.login) {
-                return refuse(`only maintainers can run \`/bot fix-tidy\`. Ask one to, or ${LOCAL_FIX}.`);
-              }
-              core.info(`Ignoring /bot fix-tidy from @${commenter}: no write access.`);
-              return;
+            const react = (content) =>
+              github.rest.reactions.createForIssueComment({ owner, repo, comment_id: comment.id, content });
+            async function reply(body, content) {
+              await react(content);
+              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `${MARKER}\n@${commenter} ${body}` });
             }
+            const refuse = (reason) => reply(reason, '-1');
 
             await react('eyes');
 
             if (!/^\/bot\s+fix-tidy$/i.test(commandLine)) {
               return refuse('`/bot fix-tidy` takes no arguments.');
-            }
-            if (process.env.HAS_TOKEN !== 'true') {
-              return refuse('I can\'t push without the `CLANG_TIDY_BOT_TOKEN` secret, which is not set up.');
             }
 
             const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: issue.number });
@@ -115,207 +103,238 @@ jobs:
             if (!pr.head.repo) {
               return refuse('the PR\'s branch is in a repository that no longer exists.');
             }
-            const fork = pr.head.repo.full_name !== `${owner}/${repo}`;
-            if (fork && !pr.maintainer_can_modify) {
-              return refuse(`I can't push to this PR's branch because it does not allow edits by maintainers. Turn that on, or ${LOCAL_FIX}.`);
+
+            const sha = pr.head.sha.slice(0, 10);
+            const { data: { workflow_runs: runs } } = await github.rest.actions.listWorkflowRuns({
+              owner, repo, workflow_id: CHECK_WORKFLOW, event: 'pull_request', head_sha: pr.head.sha, per_page: 1
+            });
+            const run = runs[0];
+            if (!run) {
+              return refuse(`the clang-tidy check has not run on ${sha}, the PR's latest commit.`);
             }
-            // The fix is made on the merge commit, which a conflict leaves out of date.
-            if (pr.mergeable === false) {
-              return refuse('the PR conflicts with its base branch. Resolve that first.');
+            if (run.status !== 'completed') {
+              return refuse(`the clang-tidy check is still running on ${sha}. Comment \`/bot fix-tidy\` again once it finishes.`);
+            }
+            if (run.conclusion === 'success') {
+              return reply(`the clang-tidy check passes on ${sha}. There is nothing to fix.`, '+1');
+            }
+            const { data: { artifacts } } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner, repo, run_id: run.id, name: ARTIFACT
+            });
+            if (!artifacts.some((a) => !a.expired)) {
+              return refuse(
+                run.conclusion === 'failure'
+                  ? `clang-tidy has no automatic fix for what the check reports on ${sha}. The findings, in the [check's log](${run.html_url}), need a manual edit.`
+                  : `the clang-tidy check on ${sha} did not finish (${run.conclusion}). Re-run it, then comment \`/bot fix-tidy\` again.`
+              );
             }
 
+            // The right-side lines of each changed C++ file's diff: the lines a
+            // review comment can be placed on. A file too large for GitHub to
+            // show its diff has none, and gets no suggestions.
             const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 });
+            const ranges = {};
+            for (const file of files) {
+              if (file.status === 'removed' || !CPP.test(file.filename)) {
+                continue;
+              }
+              ranges[file.filename] = [...(file.patch || '').matchAll(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/gm)]
+                .map((m) => [Number(m[1]), Number(m[1]) + Number(m[2] ?? 1) - 1])
+                .filter(([first, last]) => last >= first);
+            }
+
+            core.setOutput('run-id', run.id);
+            core.setOutput('run-url', run.html_url);
             core.setOutput('head-sha', pr.head.sha);
             core.setOutput('head-repo', pr.head.repo.full_name);
-            core.setOutput('head-ref', pr.head.ref);
-            core.setOutput('files', JSON.stringify(files.filter((f) => f.status !== 'removed').map((f) => f.filename)));
+            core.setOutput('ranges', JSON.stringify(ranges));
 
-  fix:
-    needs: authorize
-    if: needs.authorize.outputs.head-sha != ''
-    # A newer command for the same PR supersedes this one.
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.event.issue.number }}
-      cancel-in-progress: true
-    permissions:
-      contents: read
-    runs-on: ${{ vars.SELF_HOSTED && 'orca-lnx-server' || 'ubuntu-24.04' }}
-    timeout-minutes: 60
-    outputs:
-      status: ${{ steps.tidy.outputs.status }}
-      patch: ${{ steps.tidy.outputs.patch }}
-    steps:
-      # The merge commit and its first parent, as the clang-tidy check sees them.
-      - name: Checkout
-        uses: actions/checkout@v7
+      - name: Download the fix
+        if: steps.find.outputs.run-id != ''
+        uses: actions/download-artifact@v8
         with:
-          ref: refs/pull/${{ github.event.issue.number }}/merge
-          fetch-depth: 2
-          lfs: 'false'
-          persist-credentials: false
+          name: clang-tidy-fix
+          run-id: ${{ steps.find.outputs.run-id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/clang-tidy-fix
 
-      - name: Check the merge commit is of the checked head
-        env:
-          HEAD_SHA: ${{ needs.authorize.outputs.head-sha }}
-        run: |
-          if [ "$(git rev-parse HEAD^2)" != "$HEAD_SHA" ]; then
-            echo "::error::The PR changed after the command was checked. Run /bot fix-tidy again."
-            exit 1
-          fi
-
-      # Parsing needs the dependency headers, not a build of this PR's deps/, so
-      # a PR that changes deps/ falls back to the newest cache main has.
-      - name: Restore cached deps
-        uses: actions/cache/restore@v6
-        with:
-          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
-          key: linux-clang-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }}
-          restore-keys: linux-clang-cache-orcaslicer_deps-build-
-          fail-on-cache-miss: true
-
-      - name: Apt-Install Dependencies
-        if: ${{ !vars.SELF_HOSTED }}
-        uses: ./.github/actions/apt-install-deps
-
-      # Base64 keeps the patch on one output line. The exit status tells whether
-      # findings remain that --fix could not fix.
-      - name: Fix the changed lines
-        id: tidy
-        run: |
-          status=0
-          scripts/run_clang_tidy.sh --base HEAD^1 --yes --fix || status=$?
-          git -c core.quotePath=false diff --no-color --no-ext-diff --src-prefix=a/ --dst-prefix=b/ > "$RUNNER_TEMP/fix.patch"
-          echo "status=$status" >> "$GITHUB_OUTPUT"
-          echo "patch=$(base64 -w0 "$RUNNER_TEMP/fix.patch")" >> "$GITHUB_OUTPUT"
-
-  push:
-    needs: [authorize, fix]
-    # Reports a failed fix too, but not one a newer command cancelled.
-    if: always() && needs.authorize.outputs.head-sha != '' && needs.fix.result != 'cancelled' && needs.fix.result != 'skipped'
-    permissions:
-      issues: write          # feedback comment + reactions
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
       # The PR's own files, only to apply the patch to. Nothing in them is run.
       - name: Checkout the PR head
-        if: needs.fix.outputs.patch != ''
+        if: steps.find.outputs.run-id != ''
         uses: actions/checkout@v7
         with:
-          repository: ${{ needs.authorize.outputs.head-repo }}
-          ref: ${{ needs.authorize.outputs.head-sha }}
-          token: ${{ secrets.CLANG_TIDY_BOT_TOKEN }}
+          repository: ${{ steps.find.outputs.head-repo }}
+          ref: ${{ steps.find.outputs.head-sha }}
+          path: head
           fetch-depth: 1
           lfs: 'false'
+          persist-credentials: false
           sparse-checkout: |
             src
             tests
 
-      - name: Check, commit and push the patch
-        id: push
-        if: needs.fix.outputs.patch != ''
+      # The check made the patch on the PR's merge commit, so it is applied to the
+      # head and diffed again, giving line numbers in the PR's own files.
+      - name: Check the fix and place its suggestions
+        id: place
+        if: steps.find.outputs.run-id != ''
         env:
-          PATCH: ${{ needs.fix.outputs.patch }}
-          FILES: ${{ needs.authorize.outputs.files }}
-          HEAD_REF: ${{ needs.authorize.outputs.head-ref }}
+          RANGES: ${{ steps.find.outputs.ranges }}
         run: |
-          echo "$PATCH" | base64 -d > "$RUNNER_TEMP/fix.patch"
-          cat "$RUNNER_TEMP/fix.patch"
+          python3 -I - "$RUNNER_TEMP/clang-tidy-fix/fix.patch" head "$RUNNER_TEMP" <<'EOF'
+          import json, os, re, subprocess, sys
 
-          # Every line the patch adds must be an #include or blank, in a C++ file
-          # under src/ or tests/ that the PR already changes, and it may not remove,
-          # create, rename or change the mode of anything.
-          if ! python3 -I - "$RUNNER_TEMP/fix.patch" <<'EOF'
-          import json, os, re, sys
-          allowed = set(json.loads(os.environ["FILES"]))
-          cpp = re.compile(r"(src|tests)/.+\.(cpp|cc|cxx|hpp|h|hxx)")
-          include = re.compile(r'\+\s*#\s*include\s*(<[^<>"]+>|"[^<>"]+")\s*')
+          patch_path, head, out = sys.argv[1:]
+          ranges = json.loads(os.environ["RANGES"])
+
+          def output(**values):
+              with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+                  for key, value in values.items():
+                      f.write(f"{key}={value}\n")
+
+          # Every line the patch adds must be an #include or blank, in a C++ file the
+          # PR changes, and it may not remove, create, rename or change the mode of
+          # anything.
+          include = re.compile(r'\s*#\s*include\s*(<[\w./+-]+>|"[\w./+-]+")\s*')
           header = re.compile(r"(index [0-9a-f]+\.\.[0-9a-f]+( \d+)?|@@ -\d+(,\d+)? \+\d+(,\d+)? @@.*)")
           problems = []
           path = None
-          for line in open(sys.argv[1], encoding="utf-8").read().splitlines():
+          for line in open(patch_path, encoding="utf-8").read().splitlines():
               if line.startswith("diff --git "):
                   match = re.fullmatch(r"diff --git a/(.+) b/\1", line)
                   path = match.group(1) if match else None
-                  if path is None or path not in allowed or not cpp.fullmatch(path):
+                  if path not in ranges:
                       problems.append(f"{line}: not a C++ file the PR changes")
               # git appends a tab to the --- and +++ lines of a path that contains a space.
               elif line.removesuffix("\t") in (f"--- a/{path}", f"+++ b/{path}") or header.fullmatch(line):
                   pass
               elif line.startswith(" ") or line == "\\ No newline at end of file":
                   pass
-              elif line.startswith("+") and (include.fullmatch(line) or not line[1:].strip()):
+              elif line.startswith("+") and (include.fullmatch(line[1:]) or not line[1:].strip()):
                   pass
               else:
                   problems.append(f"{path}: {line}")
-          for problem in problems:
-              print(f"::error::Refused patch line {problem}")
-          sys.exit(1 if problems else 0)
+          if problems:
+              for problem in problems:
+                  print(f"::error::Refused patch line {problem}")
+              output(result="rejected")
+              sys.exit()
+
+          if subprocess.run(["git", "-C", head, "apply", "--index", os.path.abspath(patch_path)]).returncode != 0:
+              output(result="apply-failed")
+              sys.exit()
+
+          git = ["git", "-C", head, "-c", "core.quotePath=false", "diff", "--cached", "--no-color", "--no-ext-diff",
+                 "--src-prefix=a/", "--dst-prefix=b/"]
+          with open(os.path.join(out, "head.patch"), "w", encoding="utf-8") as f:
+              f.write(subprocess.run(git, check=True, capture_output=True, encoding="utf-8").stdout)
+
+          # Each run of added lines becomes one suggestion on the line it goes after
+          # (before, at the top of a file): that line, replaced by itself and the
+          # includes. It can only sit on a line the PR's diff shows.
+          hunks = []
+          path = None
+          for line in subprocess.run(git + ["-U0"], check=True, capture_output=True, encoding="utf-8").stdout.splitlines():
+              if line.startswith("diff --git "):
+                  path = re.fullmatch(r"diff --git a/(.+) b/\1", line).group(1)
+              elif line.startswith("@@ "):
+                  hunks.append((path, int(re.match(r"@@ -(\d+)", line).group(1)), []))
+              elif hunks and line.startswith("+") and not line.startswith("+++ "):
+                  hunks[-1][2].append(line[1:])
+
+          suggestions = []
+          total = suggested = 0
+          for path, after, added in hunks:
+              count = sum(bool(include.fullmatch(line)) for line in added)
+              total += count
+              original = subprocess.run(["git", "-C", head, "show", f"HEAD:{path}"], check=True, capture_output=True,
+                                        encoding="utf-8").stdout.splitlines()
+              line = max(after, 1)
+              if line > len(original) or not any(first <= line <= last for first, last in ranges[path]):
+                  continue
+              body = "\n".join([original[line - 1], *added] if after else [*added, original[0]])
+              # A fence longer than any run of backticks in the line it repeats.
+              fence = "`" * max([3] + [len(run) + 1 for run in re.findall(r"`+", body)])
+              suggestions.append({"path": path, "line": line, "side": "RIGHT",
+                                  "body": f"{fence}suggestion\n{body}\n{fence}"})
+              suggested += count
+          with open(os.path.join(out, "suggestions.json"), "w", encoding="utf-8") as f:
+              json.dump(suggestions, f)
+          output(result="ok", includes=total, suggested=suggested)
           EOF
-          then
-            echo "result=rejected" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
 
-          if ! git apply --index "$RUNNER_TEMP/fix.patch"; then
-            echo "result=apply-failed" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          git -c user.name='github-actions[bot]' \
-              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-              commit --quiet -m "Add Missing Includes Reported by clang-tidy"
-          # No force: a branch that moved since the command was checked rejects the push.
-          if ! git push origin "HEAD:refs/heads/$HEAD_REF"; then
-            echo "result=push-failed" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "result=pushed" >> "$GITHUB_OUTPUT"
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Report
-        if: always()
+      - name: Post the fix
+        if: always() && steps.find.outputs.run-id != ''
         uses: actions/github-script@v9
         env:
-          FIX_RESULT: ${{ needs.fix.result }}
-          STATUS: ${{ needs.fix.outputs.status }}
-          HAS_PATCH: ${{ needs.fix.outputs.patch != '' }}
-          RESULT: ${{ steps.push.outputs.result }}
-          SHA: ${{ steps.push.outputs.sha }}
+          RESULT: ${{ steps.place.outputs.result }}
+          INCLUDES: ${{ steps.place.outputs.includes }}
+          SUGGESTED: ${{ steps.place.outputs.suggested }}
+          HEAD_SHA: ${{ steps.find.outputs.head-sha }}
+          CHECK_URL: ${{ steps.find.outputs.run-url }}
         with:
           script: |
+            const fs = require('fs');
+            const path = require('path');
             const MARKER = '<!-- pr-tidy-bot -->';
-            const { owner, repo } = context.repo;
-            const comment = context.payload.comment;
-            const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
-            const remaining = process.env.STATUS === '0'
-              ? 'clang-tidy passes with it.'
-              : `Some findings remain that need a manual edit, listed in the [run log](${run}).`;
-            const { FIX_RESULT, HAS_PATCH, RESULT, SHA } = process.env;
+            // GitHub's limit on a review body is 65536 characters.
+            const MAX_PATCH = 60000;
 
-            let ok = false;
-            let body;
-            if (FIX_RESULT !== 'success') {
-              body = `I couldn't run clang-tidy on this PR. See the [run log](${run}).`;
-            } else if (HAS_PATCH !== 'true') {
-              ok = process.env.STATUS === '0';
-              body = ok
-                ? 'clang-tidy passes on this PR. There is nothing to fix.'
-                : `clang-tidy has no fix for what it reports. The findings need a manual edit, listed in the [run log](${run}).`;
-            } else if (RESULT === 'pushed') {
-              ok = true;
-              body = `I pushed ${SHA}, which adds the missing includes. ${remaining}`;
-            } else if (RESULT === 'rejected') {
-              body = `clang-tidy's fix changed more than includes, so I didn't push it. See the [run log](${run}).`;
-            } else if (RESULT === 'apply-failed') {
-              body = `clang-tidy's fix doesn't apply to the PR's branch. See the [run log](${run}).`;
-            } else if (RESULT === 'push-failed') {
-              body = `I couldn't push to the PR's branch. If it changed since the command, run \`/bot fix-tidy\` again. See the [run log](${run}).`;
-            } else {
-              body = `Something went wrong. See the [run log](${run}).`;
+            const { owner, repo } = context.repo;
+            const issue = context.payload.issue;
+            const comment = context.payload.comment;
+            const commenter = comment.user.login;
+            const { RESULT, INCLUDES, SUGGESTED, HEAD_SHA, CHECK_URL, RUNNER_TEMP } = process.env;
+            const sha = HEAD_SHA.slice(0, 10);
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            const react = (content) =>
+              github.rest.reactions.createForIssueComment({ owner, repo, comment_id: comment.id, content });
+            async function refuse(reason) {
+              await react('-1');
+              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `${MARKER}\n@${commenter} ${reason}` });
             }
 
-            await github.rest.reactions.createForIssueComment({ owner, repo, comment_id: comment.id, content: ok ? '+1' : '-1' });
-            await github.rest.issues.createComment({
-              owner, repo, issue_number: context.payload.issue.number,
-              body: `${MARKER}\n@${comment.user.login} ${body}`
-            });
+            if (RESULT === 'rejected') {
+              return refuse(`the check's fix changes more than includes, so I didn't post it. See the [run log](${runUrl}).`);
+            }
+            if (RESULT === 'apply-failed') {
+              return refuse(`the check's fix doesn't apply to ${sha}. Merge the base branch into the PR, then comment \`/bot fix-tidy\` again once the check has run.`);
+            }
+            if (RESULT !== 'ok') {
+              return refuse(`something went wrong. See the [run log](${runUrl}).`);
+            }
+
+            const read = (...parts) => fs.readFileSync(path.join(RUNNER_TEMP, ...parts), 'utf8');
+            const patch = read('head.patch');
+            const suggestions = JSON.parse(read('suggestions.json'));
+            const passes = read('clang-tidy-fix', 'status').trim() === '0';
+
+            const one = INCLUDES === '1';
+            const includes = one ? '1 missing include' : `${INCLUDES} missing includes`;
+            const inline = SUGGESTED === '0'
+              ? (one ? 'It goes on a line this PR does not change, so I can\'t suggest it inline.'
+                     : 'They go on lines this PR does not change, so I can\'t suggest them inline.')
+              : SUGGESTED === INCLUDES
+                ? (one ? 'It is suggested inline below.' : 'Each is suggested inline below.')
+                : `${SUGGESTED} of them are suggested inline below; the rest go on lines this PR does not change.`;
+            const remaining = passes
+              ? `With ${one ? 'it' : 'them'}, the check passes.`
+              : `Some findings remain that need a manual edit; see the [check's log](${CHECK_URL}).`;
+            // A fence longer than any run of backticks in the patch's context lines.
+            const fence = '`'.repeat(Math.max(3, ...[...patch.matchAll(/`+/g)].map((m) => m[0].length + 1)));
+            const apply = patch.length > MAX_PATCH
+              ? `The full patch is too large to show here. Download \`fix.patch\` from the [check's run](${CHECK_URL}) and run \`git apply fix.patch\`.`
+              : `To apply ${one ? 'it' : 'all of them'}, run this in your checkout of the PR branch:\n\n${fence}sh\ngit apply <<'EOF'\n${patch}EOF\n${fence}`;
+            const body = (withSuggestions) => `${MARKER}\n@${commenter} clang-tidy's fix for ${sha} adds ${includes}. ` +
+              `${withSuggestions ? `${inline} ` : ''}${remaining}\n\n${apply}`;
+
+            const review = { owner, repo, pull_number: issue.number, commit_id: HEAD_SHA, event: 'COMMENT' };
+            try {
+              await github.rest.pulls.createReview({ ...review, body: body(true), comments: suggestions });
+            } catch (error) {
+              // A suggestion GitHub will not place still leaves the patch.
+              core.warning(`Posting the suggestions failed (${error.message}); posting the patch alone.`);
+              await github.rest.pulls.createReview({ ...review, body: body(false) });
+            }
+            await react('+1');
