@@ -26,7 +26,6 @@
 #include "Print.hpp"
 #include "GCode/OrderingStrategies.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <cassert>
 #include "MultiMaterialSegmentation.hpp"
