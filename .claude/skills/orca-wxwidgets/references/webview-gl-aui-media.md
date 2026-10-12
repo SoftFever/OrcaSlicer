@@ -568,7 +568,13 @@ vue-resize workaround script and sets a persistent SQLite cookie store on the vi
 ## WebKitGTK on Linux sessions
 
 **Mechanism.** `CLI::run` (`src/OrcaSlicer.cpp`, under `#ifdef __WXGTK__`, before GTK initialises)
-branches on `GDK_BACKEND`:
+sets the NVIDIA DMABUF workaround and then branches on `GDK_BACKEND`:
+- **Both paths**, before the split: when `/proc/driver/nvidia/version` exists and the linked WebKitGTK
+  honours the switch (>= 2.44, `WebView::SupportsForceSharedMemory()`), it sets
+  `WEBKIT_DMABUF_RENDERER_FORCE_SHM=1` and `WEBKIT_FORCE_DMABUF_RENDERER=1` non-replacing. The
+  proprietary driver cannot back WebKit's hardware DMABUF renderer, so the shared-memory transport keeps
+  compositing and threaded scrolling; `WEBKIT_FORCE_DMABUF_RENDERER` clears the Debian/Ubuntu/openSUSE
+  `isNVIDIA()` early return, which otherwise returns before the FORCE_SHM check.
 - **Default path** (`GDK_BACKEND` unset or not starting with `x11`): if wx lacks EGL (`!wxHAS_EGL`) and
   `WAYLAND_DISPLAY` is set, it forces `GDK_BACKEND=x11`; it sets `WEBKIT_DISABLE_COMPOSITING_MODE=1`
   non-replacing **only** when the linked WebKitGTK predates 2.42 (`WebView::NeedsCompositingWorkaround()`)
@@ -577,13 +583,31 @@ branches on `GDK_BACKEND`:
   `DISPLAY` is set.
 - **`GDK_BACKEND=x11…` opt-in path**: sets `DRI_PRIME=1` (and the NVIDIA PRIME variables when
   `/proc/driver/nvidia/version` exists), calls `XInitThreads()`, and deliberately does **not** disable
-  compositing (the comment: the WebKit2GTK XWayland bug appears fixed in WebKit2GTK ≥ 2.42, and leaving
-  compositing on keeps hardware acceleration for Device / Setup Wizard / login pages).
+  compositing, which keeps hardware acceleration for Device / Setup Wizard / login pages.
 
 Runtime backend detection elsewhere uses Orca's `is_running_on_wayland()` / `is_running_on_x11()`
 (see `references/platforms.md`), not these environment variables.
 
 **Pitfall.**
+- **Rule:** On NVIDIA reach for `WEBKIT_DMABUF_RENDERER_FORCE_SHM` before
+  `WEBKIT_DISABLE_COMPOSITING_MODE`. **Why:** the proprietary driver cannot back WebKit's hardware
+  DMABUF renderer, leaving web views blank or slow; FORCE_SHM keeps compositing and threaded scrolling
+  and only skips the hardware path, while disabling compositing also turns threaded scrolling off.
+  `WEBKIT_DISABLE_DMABUF_RENDERER` is not a substitute — it is read first, leaves the transport set
+  empty (no compositing) and has a reported crash path. On Debian/Ubuntu and openSUSE the `isNVIDIA()`
+  patch returns before the FORCE_SHM check, so `WEBKIT_FORCE_DMABUF_RENDERER=1` must clear it first.
+  WebKit reads all of these once per process, before the first WebView.
+  ```cpp
+  // Wrong: kills compositing and threaded scrolling (and can crash on modern WebKit)
+  ::setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", false);
+  // Right: keep compositing, skip only the hardware DMABUF path
+  if (::access("/proc/driver/nvidia/version", F_OK) == 0 && WebView::SupportsForceSharedMemory()) {
+      ::setenv("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1", /*replace*/ false);
+      ::setenv("WEBKIT_FORCE_DMABUF_RENDERER", "1", /*replace*/ false);
+  }
+  ```
+  Cite: WebKit 2.52.6 `Source/WebKit/UIProcess/gtk/AcceleratedBackingStore.cpp`
+  (`rendererBufferTransportMode()`), Debian `disable-nvidia-dmabuf.patch`, WebKit bug 262607.
 - **Rule:** Set `WEBKIT_DISABLE_COMPOSITING_MODE` only on the default path in Wayland sessions,
   non-replacing (`setenv(..., false)`, so a value the user already exported wins), before GTK
   initialises; never unconditionally, and only for the WebKitGTK releases that need it (older than

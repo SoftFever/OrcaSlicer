@@ -1164,6 +1164,14 @@ int CLI::run(int argc, char **argv)
         // honours the first backend in the comma-separated list).
         const bool x11_opt_in = gdk_backend && boost::starts_with(gdk_backend, "x11");
 
+        // NVIDIA's proprietary driver cannot back WebKitGTK's DMABUF renderer.
+        // Force the shared-memory transport, which keeps compositing and threaded
+        // scrolling; the second variable clears Debian/Ubuntu/openSUSE's isNVIDIA().
+        if (::access("/proc/driver/nvidia/version", F_OK) == 0 && WebView::SupportsForceSharedMemory()) {
+            ::setenv("WEBKIT_DMABUF_RENDERER_FORCE_SHM", "1", /* replace */ false);
+            ::setenv("WEBKIT_FORCE_DMABUF_RENDERER", "1", /* replace */ false);
+        }
+
         if (x11_opt_in) {
             // ===== X11 / XWayland (opted in via GDK_BACKEND=x11) =====
             BOOST_LOG_TRIVIAL(info) << "GDK_BACKEND=x11 detected; applying v2.3.2 X11/XWayland workarounds.";

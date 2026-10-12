@@ -569,13 +569,16 @@ on the **first** call. So:
 #endif
 ```
 
-**Before GTK starts**, only the environment exists. `CLI::run` (`src/OrcaSlicer.cpp`) branches on
-`GDK_BACKEND` (an `x11` prefix means the X11 opt-in). On the default path it forces `GDK_BACKEND=x11`
-when wx lacks EGL and `WAYLAND_DISPLAY` is set. It sets `WEBKIT_DISABLE_COMPOSITING_MODE=1`
-(non-replacing) only when both `DISPLAY` and `WAYLAND_DISPLAY` are set and the linked WebKitGTK is
-older than 2.42, and calls `XInitThreads()`
+**Before GTK starts**, only the environment exists. `CLI::run` (`src/OrcaSlicer.cpp`) sets the NVIDIA
+DMABUF workaround and then branches on `GDK_BACKEND` (an `x11` prefix means the X11 opt-in). On both
+paths, when `/proc/driver/nvidia/version` exists and the linked WebKitGTK honours the switch (>= 2.44,
+`WebView::SupportsForceSharedMemory()`), it sets `WEBKIT_DMABUF_RENDERER_FORCE_SHM=1` and
+`WEBKIT_FORCE_DMABUF_RENDERER=1` (non-replacing): the proprietary driver cannot back WebKit's hardware
+DMABUF renderer. On the default path it forces `GDK_BACKEND=x11` when wx lacks EGL and `WAYLAND_DISPLAY`
+is set. It sets `WEBKIT_DISABLE_COMPOSITING_MODE=1` (non-replacing) only when both `DISPLAY` and
+`WAYLAND_DISPLAY` are set and the linked WebKitGTK is older than 2.42, and calls `XInitThreads()`
 only when `DISPLAY` is set. With neither variable set, the GUI refuses to start ("Neither DISPLAY nor
-WAYLAND_DISPLAY set"). The details and the WebKit rule (c12912e0df) are in
+WAYLAND_DISPLAY set"). The details and the WebKit rules (c12912e0df) are in
 `references/webview-gl-aui-media.md` §WebKitGTK on Linux sessions.
 
 **wx's own detectors**, for reference:

@@ -417,6 +417,17 @@ bool WebView::NeedsCompositingWorkaround()
 #endif
 }
 
+bool WebView::SupportsForceSharedMemory()
+{
+#ifdef __linux__
+    const guint major = webkit_get_major_version();
+    const guint minor = webkit_get_minor_version();
+    return major > 2 || (major == 2 && minor >= 44);
+#else
+    return false;
+#endif
+}
+
 #if wxUSE_WEBVIEW_EDGE
 bool WebView::CheckWebViewRuntime()
 {
