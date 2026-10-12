@@ -3688,13 +3688,14 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         "texture_displacement_checker.svg", "texture_displacement_distortion.svg",
         "texture_displacement_wireframe.svg", "texture_displacement_cross.svg",
         "texture_displacement_uv_select_island.svg", "texture_displacement_uv_select_edge.svg",
+        "cog.svg", // the layer card's "adjust image" button
         "texture_displacement_uv_select_vertex.svg",
         // Paint / Erase, brush cursor shape, mapping, tiling, placement and the dock toggle.
         "texture_displacement_add.svg", "texture_displacement_add_negative.svg", "circle_paint.svg",
         "menu_obj_sphere.svg", "menu_obj_cube.svg", "menu_obj_cylinder.svg", "texture_displacement_map_unwrap.svg",
         "texture_displacement_map_view.svg", "texture_displacement_tile_repeat.svg", "menu_mirror_x.svg",
         "texture_displacement_adjust.svg", "canvas_drag.svg", "texture_displacement_move_up.svg",
-        "texture_displacement_move_down.svg", "texture_displacement_drag.svg", "cog.svg",
+        "texture_displacement_move_down.svg", "texture_displacement_drag.svg",
         "texture_displacement_select_all.svg", "texture_displacement_erase_all.svg",
     };
     std::vector<std::string> paths;
@@ -4043,6 +4044,19 @@ void GLGizmoTextureDisplacement::open_image_adjust(const TextureDisplacementLaye
     m_adjust_volume_id = mv != nullptr ? mv->id().id : 0;
 }
 
+void GLGizmoTextureDisplacement::invalidate_adjust_textures()
+{
+    // The GPU copies of a layer's image - the list thumbnail, the preview shader's height and colour
+    // textures - are keyed on the image_data pointer and the layer's Smoothing, and a live adjustment
+    // changes neither: the pointer still names the same PNG. Rather than widen three cache keys for a
+    // panel that is open a few seconds at a time, the panel drops the copies itself whenever it moves
+    // the adjustment. Nulling the source is enough; the next get_layer_*() rebuilds from the decode,
+    // which does see the adjustment.
+    m_thumbnail_source.fill(nullptr);
+    m_color_tex_source  = nullptr;
+    m_height_tex_source = nullptr;
+}
+
 void GLGizmoTextureDisplacement::close_image_adjust()
 {
     // Revert the layer's live adjustment. Every exit that reaches here is a discard: a commit resets
@@ -4066,6 +4080,9 @@ void GLGizmoTextureDisplacement::close_image_adjust()
                     }
             }
         }
+
+    if (reverted)
+        invalidate_adjust_textures();
 
     // std::async's future blocks here until the pass finishes. That is a few milliseconds on an image
     // this small, and the alternative - a detached thread writing into the members of a closed panel -
@@ -4283,6 +4300,7 @@ void GLGizmoTextureDisplacement::render_image_adjust_window(const ImVec2 &panel_
     layer->preview_adjust = m_adjust;
     if (m_adjust != m_adjust_applied) {
         m_adjust_applied = m_adjust;
+        invalidate_adjust_textures();
         // Marked dirty rather than rebuilt here: the panel's own flag is consumed by the main panel's
         // "rebuild once the mouse is released" rule, so dragging a slider recomputes the displacement
         // once, on release, instead of on every frame of the drag. That is what keeps the UI responsive
@@ -4371,7 +4389,6 @@ void GLGizmoTextureDisplacement::swap_layer_slots(int slot_a, int slot_b)
     std::swap(m_thumbnails[a], m_thumbnails[b]);
     std::swap(m_thumbnail_source[a], m_thumbnail_source[b]);
     std::swap(m_thumbnail_smoothing[a], m_thumbnail_smoothing[b]);
-    std::swap(m_thumbnail_adjust[a], m_thumbnail_adjust[b]);
     std::swap(m_layer_expanded[a], m_layer_expanded[b]);
     if (m_active_layer_slot == slot_a)
         m_active_layer_slot = slot_b;
@@ -5635,7 +5652,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_thumbnail(const TextureDisplace
 
     const size_t slot = size_t(layer.slot);
     if (m_thumbnails[slot] && m_thumbnail_source[slot] == layer.image_data.get() &&
-        m_thumbnail_smoothing[slot] == layer.smoothing && m_thumbnail_adjust[slot] == layer.preview_adjust)
+        m_thumbnail_smoothing[slot] == layer.smoothing)
         return m_thumbnails[slot].get();
 
     // Reuses the already-decoded, already-cached grayscale pixels (see decode_height_texture()'s
@@ -5649,7 +5666,6 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_thumbnail(const TextureDisplace
     m_thumbnails[slot]          = std::move(texture);
     m_thumbnail_source[slot]    = layer.image_data.get();
     m_thumbnail_smoothing[slot] = layer.smoothing;
-    m_thumbnail_adjust[slot]    = layer.preview_adjust;
     return m_thumbnails[slot].get();
 }
 
@@ -5657,8 +5673,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_color_texture(const TextureDisp
 {
     if (layer.empty() || !layer.color_enabled)
         return nullptr;
-    if (m_color_tex && m_color_tex_source == layer.image_data.get() && m_color_tex_smoothing == layer.smoothing &&
-        m_color_tex_adjust == layer.preview_adjust)
+    if (m_color_tex && m_color_tex_source == layer.image_data.get() && m_color_tex_smoothing == layer.smoothing)
         return m_color_tex.get();
 
     std::unique_ptr<GLTexture> texture = upload_color_texture(decode_height_texture(layer), HEIGHT_TEX_MAX_PX);
@@ -5670,7 +5685,6 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_color_texture(const TextureDisp
     m_color_tex           = std::move(texture);
     m_color_tex_source    = layer.image_data.get();
     m_color_tex_smoothing = layer.smoothing;
-    m_color_tex_adjust    = layer.preview_adjust;
     return m_color_tex.get();
 }
 
@@ -5681,8 +5695,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_height_texture(const TextureDis
 
     // One slot, not one per layer: the preview shader only ever shades the *active* layer, so a single
     // full-resolution upload is enough and the VRAM cost stays at one texture rather than eight.
-    if (m_height_tex && m_height_tex_source == layer.image_data.get() && m_height_tex_smoothing == layer.smoothing &&
-        m_height_tex_adjust == layer.preview_adjust)
+    if (m_height_tex && m_height_tex_source == layer.image_data.get() && m_height_tex_smoothing == layer.smoothing)
         return m_height_tex.get();
 
     std::unique_ptr<GLTexture> texture = upload_height_thumbnail(decode_height_texture(layer), HEIGHT_TEX_MAX_PX);
@@ -5692,7 +5705,6 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_height_texture(const TextureDis
     m_height_tex           = std::move(texture);
     m_height_tex_source    = layer.image_data.get();
     m_height_tex_smoothing = layer.smoothing;
-    m_height_tex_adjust    = layer.preview_adjust;
     return m_height_tex.get();
 }
 

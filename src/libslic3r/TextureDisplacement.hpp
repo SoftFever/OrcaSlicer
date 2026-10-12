@@ -309,6 +309,18 @@ struct TextureDisplacementLayer
     //  - zero or positive: a mesh vertex, every unwrapped copy of it (how edits were stored before).
     std::vector<std::pair<int, Vec2f>> lscm_uv_overrides;
 
+    // Live, unsaved image adjustments from the gizmo's image-adjustment panel, applied by
+    // decode_height_texture() on top of the decoded image - so while the panel is open the relief, the
+    // colour, the thumbnails and the bake all see the adjusted image, and moving a slider really does
+    // change the displacement. See TextureAdjustments.
+    //
+    // Deliberately *not* serialized, by either save()/load() here or the .3mf: it is the state of an open
+    // editor, not a property of the layer. The panel resets it when it closes, and "Save as copy" resolves
+    // it by writing a new image and pointing the layer at that - which is the only way an adjustment
+    // becomes permanent. A project saved mid-adjustment therefore stores the unadjusted image, which is
+    // the honest answer: nothing was committed.
+    TextureAdjustments preview_adjust;
+
     // How this layer folds into the displacement accumulated by the layers below it. Ignored for
     // the lowest-slot painted layer, which has nothing beneath it to combine with (the GUI shows
     // it as the "Base" layer and hides the control).
@@ -324,18 +336,6 @@ struct TextureDisplacementLayer
     // own (see subdivide_mesh_adaptive()): without triangles along a colour boundary there is nothing
     // for the boundary to be drawn on.
     bool color_enabled = false;
-
-    // Live, unsaved image adjustments from the gizmo's image-adjustment panel, applied by
-    // decode_height_texture() on top of the decoded image - so while the panel is open the relief, the
-    // colour, the thumbnails and the bake all see the adjusted image, and moving a slider really does
-    // change the displacement. See TextureAdjustments.
-    //
-    // Deliberately *not* serialized, by either save()/load() here or the .3mf: it is the state of an open
-    // editor, not a property of the layer. The panel resets it when it closes, and "Save as copy" resolves
-    // it by writing a new image and pointing the layer at that - which is the only way an adjustment
-    // becomes permanent. A project saved mid-adjustment therefore stores the unadjusted image, which is
-    // the honest answer: nothing was committed.
-    TextureAdjustments preview_adjust;
 
     bool empty() const { return !image_data || image_data->empty(); }
 
@@ -521,18 +521,6 @@ struct DecodedHeightTexture
     bool texel_tap(const Vec2f &uv, bool tile_enabled, TextureTileMethod tile_method, TexelTap &out) const;
 };
 
-// Decode a layer's raw image bytes into sampleable height data, plus colour when the source has any.
-// Both 8-bit grayscale PNGs (the shipped library, and anything imported before colour was kept) and
-// colour PNGs are accepted; for a colour source the height is its luminance, using the same
-// coefficients wxImage::ConvertToGreyscale() uses, so a texture imported as colour displaces exactly
-// as it did when the importer flattened it to grey on the way in. Returns an empty
-// DecodedHeightTexture if image_data is empty or is not a PNG at all.
-DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer);
-
-// decode_height_texture(layer).has_color(), answered from the decode cache rather than from a copy of the
-// texture - cheap enough to ask every frame. Smoothing does not change it, so the raw decode is what is read.
-bool height_texture_has_color(const TextureDisplacementLayer &layer);
-
 // Applies `adj` to `src` and returns the result; `src` is left alone. An empty `src`, or an identity
 // `adj`, gives back a copy.
 //
@@ -562,6 +550,18 @@ float adjustment_blur_radius(float blur, int width, int height);
 // these textures are high-frequency by nature, and dropping texels would alias the preview into
 // showing detail the adjustment is not actually producing.
 DecodedHeightTexture downscale_height_texture(const DecodedHeightTexture &src, int max_px);
+
+// Decode a layer's raw image bytes into sampleable height data, plus colour when the source has any.
+// Both 8-bit grayscale PNGs (the shipped library, and anything imported before colour was kept) and
+// colour PNGs are accepted; for a colour source the height is its luminance, using the same
+// coefficients wxImage::ConvertToGreyscale() uses, so a texture imported as colour displaces exactly
+// as it did when the importer flattened it to grey on the way in. Returns an empty
+// DecodedHeightTexture if image_data is empty or is not a PNG at all.
+DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer);
+
+// decode_height_texture(layer).has_color(), answered from the decode cache rather than from a copy of the
+// texture - cheap enough to ask every frame. Smoothing does not change it, so the raw decode is what is read.
+bool height_texture_has_color(const TextureDisplacementLayer &layer);
 
 // Maps a linear RGB colour in [0, 1] to an index into the caller's palette, or -1 for "no colour".
 //

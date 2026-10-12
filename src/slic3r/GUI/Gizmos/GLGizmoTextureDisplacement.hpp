@@ -400,6 +400,12 @@ private:
     void set_layer_texture(TextureDisplacementLayer &layer, const TextureLibraryEntry &entry);
     void import_custom_texture(TextureDisplacementLayer &layer);
 
+    // Paint / Erase, from the panel. See get_left_button_state_type().
+    bool m_erase_mode = false;
+    // Per slot: whether the layer's card shows every setting or only Depth, Tile size and Rotation.
+    // Panel state only, not saved with the project.
+    std::array<bool, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_layer_expanded{};
+
     // ---- The image-adjustment panel ----
     //
     // Brightness/contrast/sharpness/blur/hue over one layer's image, shown on the image itself and
@@ -461,12 +467,9 @@ private:
     TextureAdjustments                m_adjust_preview_running; // what the in-flight pass is computing
     TextureAdjustments                m_adjust_preview_shown;   // what m_adjust_preview_tex holds
     bool                              m_adjust_preview_valid = false;
-
-    // Paint / Erase, from the panel. See get_left_button_state_type().
-    bool m_erase_mode = false;
-    // Per slot: whether the layer's card shows every setting or only Depth, Tile size and Rotation.
-    // Panel state only, not saved with the project.
-    std::array<bool, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_layer_expanded{};
+    // Drops the GPU copies of the layer's image so the next frame rebuilds them from the decode, which
+    // is where the live adjustment is applied. Called whenever the panel moves or reverts it.
+    void invalidate_adjust_textures();
 
     // "Adjust Texture" mode: instead of painting, dragging an on-canvas handle changes the active
     // layer's offset. The handle is a flat panel lying in the paint patch's own tangent plane
@@ -985,10 +988,6 @@ private:
     std::array<const void *, TEXTURE_DISPLACEMENT_MAX_LAYERS>               m_thumbnail_source{};
     // The smoothing each cached thumbnail was built at, so a smoothing change re-uploads it.
     std::array<float, TEXTURE_DISPLACEMENT_MAX_LAYERS>                      m_thumbnail_smoothing{};
-    // And the live image adjustment each was built at, so moving a slider in the image-adjustment panel
-    // re-uploads it. Part of the key for the same reason smoothing is: preview_adjust changes the pixels
-    // decode_height_texture() hands back, and every one of these textures is a copy of those pixels.
-    std::array<TextureAdjustments, TEXTURE_DISPLACEMENT_MAX_LAYERS>          m_thumbnail_adjust{};
 
     // Full-resolution height texture for the preview shader, keyed the same way (see
     // get_layer_height_texture()). A smoothing change re-uploads it, so the fast preview shows the
@@ -996,14 +995,12 @@ private:
     std::unique_ptr<GLTexture> m_height_tex;
     const void                *m_height_tex_source    = nullptr;
     float                      m_height_tex_smoothing = -1.f;
-    TextureAdjustments         m_height_tex_adjust;
 
     // The same, for the layer's *colour*, which the fast preview quantizes per fragment so it shows
     // the image at texel resolution rather than at the mesh's. Null for a grayscale texture.
     std::unique_ptr<GLTexture> m_color_tex;
     const void                *m_color_tex_source    = nullptr;
     float                      m_color_tex_smoothing = -1.f;
-    TextureAdjustments         m_color_tex_adjust;
 
     // Library textures the picker has shown at least once, keyed by file path (see LibraryTexture).
     std::map<std::string, LibraryTexture> m_library_textures;
