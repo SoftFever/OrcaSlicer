@@ -9686,7 +9686,7 @@ TEST_CASE("Loft end condition Normal-to-profile makes the skin leave and arrive 
 
 // Item 13 (interactive LOD): measurement, not an assertion on speed. Hidden by default; run with
 // "[.perf]" to print the numbers that go into the commit message / bd.
-TEST_CASE("Preview tessellation cost at the committed vs the interactive deflection", "[.perf][CadDocument]")
+TEST_CASE("Preview tessellation cost at the committed vs the interactive deflection", "[.perf]")
 {
     CadDocument doc;
     const int base = combine_rect(doc, -50, -50, 50, 50, 0, "Base");
@@ -9758,6 +9758,7 @@ TEST_CASE("A vertical-edge fillet still works after the shell and after a linear
         INFO(doc.error);
         CHECK(ok);
     }
+}
 
 // Item 8 (3D sketch, slices 8a model + 8d wire): a free 3D curve that makes no solid and sweeps.
 TEST_CASE("A 3D sketch builds a valid wire, sweeps a profile, and survives the recipe", "[CadDocument][sketch3d]")
