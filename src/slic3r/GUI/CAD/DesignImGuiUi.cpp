@@ -253,7 +253,7 @@ void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_l
     ImGui::SetNextWindowSize(ImVec2(std::max(ds.x - inset_left, 100.f), 0.f), ImGuiCond_Always);
     imgui.begin(std::string("##design_ribbon"),
                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);
+                ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);   // a narrow canvas scrolls instead of clipping
     m_hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
     if (std::getenv("ORCA_CAD_UITRACE")) {
         const ImVec2 wp = ImGui::GetWindowPos(), wsz = ImGui::GetWindowSize();
