@@ -3,6 +3,8 @@
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/Widgets/Label.hpp"   // Label::Body_12, the Confirm/Cancel font
+#include <wx/dcscreen.h>
 #include "slic3r/GUI/3DScene.hpp"   // glsafe
 #include <glad/gl.h>
 #include <nanosvg/nanosvg.h>
@@ -320,6 +322,15 @@ static ImTextureID ribbon_icon_texture(const OfferVerb& v)
     cache[key] = tex;   // nullptr cached too: no icon for this verb, don't hit the disk every frame
     return tex;
 }
+// The ribbon's text is sized to the Confirm / Cancel buttons beside it (Label::Body_12), not to the
+// canvas overlay's default ImGui font, which is a good deal larger. Applied per window.
+static float ribbon_font_scale()
+{
+    wxScreenDC dc;
+    const float px = Label::Body_12.GetFractionalPointSize() * float(dc.GetPPI().y) / 72.f;
+    const float sc = px / ImGui::GetFontSize();
+    return std::min(1.f, std::max(0.5f, sc));
+}
 // Label clipped to `maxw` with a trailing ".." so a long verb name cannot widen its button column.
 static std::string fit_label(const std::string& s, float maxw)
 {
@@ -349,6 +360,7 @@ void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_l
     imgui.begin(std::string("##design_ribbon"),
                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                 ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);   // a narrow canvas scrolls instead of clipping
+    ImGui::SetWindowFontScale(ribbon_font_scale());
     m_hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
     if (std::getenv("ORCA_CAD_UITRACE")) {
         const ImVec2 wp = ImGui::GetWindowPos(), wsz = ImGui::GetWindowSize();
@@ -418,10 +430,13 @@ void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_l
                 }
                 if (g.verbs.size() > 1) {
                     ImGui::SameLine(0.f, 1.f * em);
+                    // Half the size the stock arrow button had before the ribbon font was reduced.
+                    const float asz = 0.5f * (ImGui::GetFontSize() / ribbon_font_scale() + 2.f * ImGui::GetStyle().FramePadding.y);
                     if (ribbon_icon_texture(*main))
-                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + std::max(0.f, (32.f * em - ImGui::GetFrameHeight()) * 0.5f));
-                    if (ImGui::ArrowButton("##dd", ImGuiDir_Down)) ImGui::OpenPopup("##variants");
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + std::max(0.f, (32.f * em - asz) * 0.5f));
+                    if (ImGui::ArrowButtonEx("##dd", ImGuiDir_Down, ImVec2(asz, asz))) ImGui::OpenPopup("##variants");
                     if (ImGui::BeginPopup("##variants")) {   // Esc and a click away close it; nothing is armed
+                        ImGui::SetWindowFontScale(ribbon_font_scale());
                         for (const OfferVerb* v : g.verbs)
                             if (draw_verb_button(*v, true)) {
                                 if (save_last) save_last(g.name, v->id);
