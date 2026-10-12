@@ -18,6 +18,7 @@
 #include "slic3r/GUI/Jobs/Worker.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <imgui.h>
 #include <optional>
@@ -259,6 +260,17 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         hover_tip(tip_text);
         return clicked;
     };
+    // The integer twin of float_row, for the colour count.
+    const auto int_row = [&](const char *id, const wxString &label, int *v, int v_min, int v_max,
+                             const char *format) -> bool {
+        const float x0 = ImGui::GetCursorPosX();
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(label);
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
+        ImGui::SetNextItemWidth(x0 + panel_w - ImGui::GetCursorPosX());
+        return ImGui::SliderInt(id, v, v_min, v_max, format, ImGuiSliderFlags_AlwaysClamp);
+    };
     // Framed icon toggle, the displacement panel's one cut down to what this window needs.
     const auto icon_toggle = [&](int uid, const std::string &iconfile, bool active, const wxString &label,
                                  const wxString &tip_text) -> bool {
@@ -356,14 +368,41 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         const float aspect = std::max(0.05f, layer_texture_aspect(*layer));
         const float box_h  = std::clamp(std::round(panel_w / aspect), std::round(panel_w * 0.35f),
                                         std::round(panel_w * 1.1f));
+        const ImVec2 box_min = ImGui::GetCursorScreenPos();
+        bool         box_hit = false;
         if (shown != nullptr) {
-            if (ImGui::ImageButton((ImTextureID) (intptr_t) shown->get_id(), ImVec2(panel_w, box_h),
-                                   ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), 0))
-                open_library(layer->slot);
-        } else if (ImGui::Button("?##thumb", ImVec2(panel_w, box_h))) {
-            open_library(layer->slot);
+            box_hit = ImGui::ImageButton((ImTextureID) (intptr_t) shown->get_id(), ImVec2(panel_w, box_h),
+                                         ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), 0);
+        } else {
+            box_hit = ImGui::Button("?##thumb", ImVec2(panel_w, box_h));
         }
-        hover_tip(_u8L("Choose a different picture. Where you placed it and how it is corrected stay as they are."));
+        hover_tip(m_image_bg_picking ?
+                      _u8L("Click the part of the picture that is its background.") :
+                      _u8L("Choose a different picture. Where you placed it and how it is corrected stay as "
+                           "they are."));
+        if (box_hit) {
+            if (!m_image_bg_picking) {
+                open_library(layer->slot);
+            } else {
+                // Read straight out of the decoded image rather than off the screen: the preview is
+                // scaled, and it already has the corrections applied, so a screen read would key the
+                // corrected colour against itself.
+                const ImVec2 rel((ImGui::GetIO().MousePos.x - box_min.x) / panel_w,
+                                 (ImGui::GetIO().MousePos.y - box_min.y) / box_h);
+                const DecodedHeightTexture &tex = decode_height_texture(*layer);
+                if (tex.has_color()) {
+                    const int px = std::clamp(int(rel.x * float(tex.width)), 0, tex.width - 1);
+                    const int py = std::clamp(int(rel.y * float(tex.height)), 0, tex.height - 1);
+                    const size_t i = (size_t(py) * size_t(tex.width) + size_t(px)) * 3;
+                    for (int c = 0; c < 3; ++c)
+                        layer->bg_color[c] = float(tex.rgb[i + size_t(c)]) / 255.f;
+                    layer->bg_from_corners = false;
+                    layer->bg_remove       = true;
+                    m_preview_params_dirty = true;
+                }
+                m_image_bg_picking = false;
+            }
+        }
         const std::string name = layer->name.empty() ? _u8L("Image") : layer->name;
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panel_w);
         ImGui::TextDisabled("%s", name.c_str());
@@ -534,27 +573,79 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
                        "than in a photo: a soft edge between two colors quantizes into a ragged band of "
                        "both, and sharpening first makes it land in one place."));
 
-        // Two filaments, on purpose. The case this exists for is a logo or line art, where anything
-        // in between the two reads as speckle rather than as shading.
-        if (m_imgui->bbl_checkbox(_L("Two colors"), layer->threshold_enabled))
-            m_preview_params_dirty = true;
-        hover_tip(_u8L("Forces the picture to light and dark only, so it prints in exactly two filaments. "
-                       "For a logo or line art, where the in-between grays come out as speckle."));
-        if (layer->threshold_enabled) {
-            m_preview_params_dirty |= float_row("##threshold", _L("Split at"), &layer->threshold, 0.05f, 0.95f, "%.2f", false);
-            hover_tip(_u8L("Where the split falls. Lower keeps more of the picture on the light side, higher "
-                           "on the dark one."));
+        // How many colours the picture may use. 2 is a logo in two flat colours, 4 or 5 a poster,
+        // off a photograph. This is not the same as the displacement tool's "Mixed colors", which
+        // caps how many mixed filament slots a bake may create rather than what the picture uses.
+        {
+            int count = layer->color_count;
+            if (int_row("##colors", _L("Colors"), &count, 0, 12, count == 0 ? _u8L("Off").c_str() : "%d")) {
+                // 1 is not a picture, so the slider steps over it on the way out of Off.
+                layer->color_count     = count == 1 ? 2 : count;
+                m_preview_params_dirty = true;
+            }
+            hover_tip(_u8L("Reduces the picture to this many colors before your filaments are matched to "
+                           "it, so it prints in at most that many. The colors are the ones the picture is "
+                           "actually made of, not an even split of the range. Off leaves it alone."));
         }
 
         if (m_imgui->bbl_checkbox(_L("Remove background"), layer->bg_remove))
             m_preview_params_dirty = true;
         hover_tip(_u8L("Leaves the background unprinted, so the object's own color shows through instead of "
-                       "a slab of white behind a logo. The color is taken from the picture's four corners. "
-                       "A picture that is already transparent needs none of this: those parts are left out "
-                       "either way."));
+                       "a slab of white behind a logo. A picture that is already transparent needs none of "
+                       "this: those parts are left out either way."));
         if (layer->bg_remove) {
+            // Which colour is being removed, shown rather than described: the swatch is also a
+            // picker, and the dropper beside it takes the colour from the preview above.
+            const float x0 = ImGui::GetCursorPosX();
+            ImGui::AlignTextToFramePadding();
+            m_imgui->text(_L("Color"));
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
+            float shown_bg[3] = { layer->bg_color[0], layer->bg_color[1], layer->bg_color[2] };
+            if (layer->bg_from_corners) {
+                // Nothing has been picked, so show what the corners actually gave: the same median
+                // the bake will key on, not a placeholder white.
+                const DecodedHeightTexture &tex = decode_height_texture(*layer);
+                if (tex.has_color() && tex.width > 1 && tex.height > 1) {
+                    const size_t n = size_t(tex.width) * size_t(tex.height);
+                    const size_t corner[4] = { 0, size_t(tex.width) - 1,
+                                               (size_t(tex.height) - 1) * size_t(tex.width), n - 1 };
+                    for (int c = 0; c < 3; ++c) {
+                        std::array<float, 4> v{};
+                        for (int i = 0; i < 4; ++i)
+                            v[size_t(i)] = float(tex.rgb[corner[i] * 3 + size_t(c)]);
+                        std::sort(v.begin(), v.end());
+                        shown_bg[c] = 0.5f * (v[1] + v[2]) / 255.f;
+                    }
+                }
+            }
+            ImGui::SetNextItemWidth(x0 + panel_w - ImGui::GetCursorPosX() - icon_sm - gap_s);
+            if (ImGui::ColorEdit3("##bg_color", shown_bg,
+                                  ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
+                for (int c = 0; c < 3; ++c)
+                    layer->bg_color[c] = shown_bg[c];
+                layer->bg_from_corners = false;
+                m_preview_params_dirty = true;
+            }
+            hover_tip(layer->bg_from_corners ?
+                          _u8L("Taken from the four corners of the picture, which is right for a logo on a "
+                               "plain card. Click to choose a color yourself instead.") :
+                          _u8L("The color being removed. Click to change it."));
+            ImGui::SameLine(0.f, gap_s);
+            if (icon_toggle(930, "texture_displacement_adjust.svg", m_image_bg_picking, _L("Pick from the picture"),
+                            _L("Pick from the picture - then click the background in the preview above.")))
+                m_image_bg_picking = !m_image_bg_picking;
+            if (!layer->bg_from_corners) {
+                ImGui::SameLine(0.f, gap_s);
+                if (m_imgui->button(_u8L("Corners"))) {
+                    layer->bg_from_corners = true;
+                    m_preview_params_dirty = true;
+                }
+                hover_tip(_u8L("Back to taking the color from the picture's four corners."));
+            }
+
             m_preview_params_dirty |= float_row("##bg_tol", _L("Tolerance"), &layer->bg_tolerance, 0.01f, 0.6f, "%.2f", false);
-            hover_tip(_u8L("How different from the corners still counts as background. Raise it when a "
+            hover_tip(_u8L("How different from that color still counts as background. Raise it when a "
                            "shadow or a gradient is left behind; lower it when it starts eating the picture."));
         }
 
@@ -569,10 +660,12 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             layer->hue             = 0.f;
             layer->gamma           = 1.f;
             layer->sharpness       = 0.f;
-            layer->threshold_enabled = false;
-            layer->threshold       = 0.5f;
+            layer->color_count     = 0;
             layer->bg_remove       = false;
             layer->bg_tolerance    = 0.15f;
+            layer->bg_from_corners = true;
+            layer->bg_color[0] = layer->bg_color[1] = layer->bg_color[2] = 1.f;
+            m_image_bg_picking     = false;
             layer->color_invert    = false;
             m_preview_params_dirty = true;
         }

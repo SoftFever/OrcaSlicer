@@ -305,42 +305,140 @@ void sharpen_rgb(DecodedHeightTexture &tex, float amount)
     }
 }
 
-// Two levels, on luma. For line art and logos, where the useful result is exactly two filaments and
-// anything in between is speckle.
-void apply_threshold(DecodedHeightTexture &tex, const TextureDisplacementLayer &layer)
+// Reduces the picture to at most `count` colours, by k-means in RGB.
+//
+// "At most": two of the chosen colours can still match the same filament, in which case the print
+// uses fewer. The guarantee runs the right way round, which is the one that matters - asking for
+// three colours cannot produce four.
+//
+// k-means rather than a fixed palette or an even split of the luma range, because the useful
+// question is which colours this picture is actually made of. A tartan asks for its own handful of
+// greens and reds; posterizing the range would hand it eight shades of mud instead. The clustering
+// runs over a coarse histogram, not over the pixels: at 1024 x 1024 that is 4096 weighted points
+// instead of a million, which is what makes it cheap enough to sit on a slider.
+void reduce_colors(DecodedHeightTexture &tex, int count)
 {
-    if (!tex.has_color() || !layer.threshold_enabled)
+    if (!tex.has_color() || count < 2 || count > 64)
         return;
-    const float cut = std::clamp(layer.threshold, 0.f, 1.f) * 255.f;
-    const size_t n  = size_t(tex.width) * size_t(tex.height);
+    const size_t n = size_t(tex.width) * size_t(tex.height);
+
+    // 16 levels per channel, each bin keeping the mean of what fell in it, so a colour is not
+    // snapped to a bin corner before the clustering has had a say.
+    struct Bin { double r = 0, g = 0, b = 0; uint32_t n = 0; };
+    std::vector<Bin> bins(size_t(16 * 16 * 16));
     for (size_t i = 0; i < n; ++i) {
-        const float luma = 0.2126f * float(tex.rgb[i * 3]) + 0.7152f * float(tex.rgb[i * 3 + 1]) +
-                           0.0722f * float(tex.rgb[i * 3 + 2]);
-        const uint8_t v = luma >= cut ? 255 : 0;
-        tex.rgb[i * 3] = tex.rgb[i * 3 + 1] = tex.rgb[i * 3 + 2] = v;
+        const uint8_t r = tex.rgb[i * 3], g = tex.rgb[i * 3 + 1], b = tex.rgb[i * 3 + 2];
+        Bin &bin = bins[(size_t(r >> 4) << 8) | (size_t(g >> 4) << 4) | size_t(b >> 4)];
+        bin.r += r; bin.g += g; bin.b += b; ++bin.n;
     }
+    struct Point { float c[3]; double w; };
+    std::vector<Point> pts;
+    pts.reserve(bins.size());
+    for (const Bin &bin : bins)
+        if (bin.n > 0)
+            pts.push_back({ { float(bin.r / bin.n), float(bin.g / bin.n), float(bin.b / bin.n) }, double(bin.n) });
+    if (pts.size() <= size_t(count))
+        return; // already no more colours than asked for
+
+    // Seeded the k-means++ way, deterministically: the heaviest point first, then each next one is
+    // whichever point is furthest from everything chosen so far, weighted by how much of the image
+    // it is. Picking the N fullest bins instead would put every centre inside the one dominant
+    // colour of a picture that has one.
+    std::vector<std::array<float, 3>> centre;
+    {
+        size_t best = 0;
+        for (size_t i = 1; i < pts.size(); ++i)
+            if (pts[i].w > pts[best].w)
+                best = i;
+        centre.push_back({ pts[best].c[0], pts[best].c[1], pts[best].c[2] });
+        std::vector<double> d2(pts.size(), std::numeric_limits<double>::max());
+        while (int(centre.size()) < count) {
+            const auto &last = centre.back();
+            double      top  = -1.0;
+            size_t      pick = 0;
+            for (size_t i = 0; i < pts.size(); ++i) {
+                const double dr = pts[i].c[0] - last[0], dg = pts[i].c[1] - last[1], db = pts[i].c[2] - last[2];
+                d2[i] = std::min(d2[i], dr * dr + dg * dg + db * db);
+                if (const double score = d2[i] * pts[i].w; score > top) {
+                    top  = score;
+                    pick = i;
+                }
+            }
+            if (top <= 0.0)
+                break; // fewer distinct colours than asked for
+            centre.push_back({ pts[pick].c[0], pts[pick].c[1], pts[pick].c[2] });
+        }
+    }
+
+    // Lloyd's algorithm over the weighted bins. Twelve passes: on a histogram this coarse it has
+    // stopped moving well before that, and a fixed count keeps the slider's cost predictable.
+    const int k = int(centre.size());
+    for (int iter = 0; iter < 12; ++iter) {
+        std::vector<std::array<double, 3>> sum(size_t(k), { 0.0, 0.0, 0.0 });
+        std::vector<double>                wsum(size_t(k), 0.0);
+        for (const Point &p : pts) {
+            int    best = 0;
+            double bd   = std::numeric_limits<double>::max();
+            for (int c = 0; c < k; ++c) {
+                const double dr = p.c[0] - centre[size_t(c)][0], dg = p.c[1] - centre[size_t(c)][1],
+                             db = p.c[2] - centre[size_t(c)][2];
+                if (const double d = dr * dr + dg * dg + db * db; d < bd) { bd = d; best = c; }
+            }
+            for (int ch = 0; ch < 3; ++ch)
+                sum[size_t(best)][size_t(ch)] += double(p.c[ch]) * p.w;
+            wsum[size_t(best)] += p.w;
+        }
+        for (int c = 0; c < k; ++c)
+            if (wsum[size_t(c)] > 0.0)
+                for (int ch = 0; ch < 3; ++ch)
+                    centre[size_t(c)][size_t(ch)] = float(sum[size_t(c)][size_t(ch)] / wsum[size_t(c)]);
+    }
+
+    // Every texel takes its nearest centre. Parallel by rows, as the tonal pass is.
+    const size_t rows = size_t(tex.height), cols = size_t(tex.width);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, rows), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t y = range.begin(); y < range.end(); ++y)
+            for (size_t x = 0; x < cols; ++x) {
+                uint8_t *px   = tex.rgb.data() + (y * cols + x) * 3;
+                int      best = 0;
+                float    bd   = std::numeric_limits<float>::max();
+                for (int c = 0; c < k; ++c) {
+                    const float dr = float(px[0]) - centre[size_t(c)][0], dg = float(px[1]) - centre[size_t(c)][1],
+                                db = float(px[2]) - centre[size_t(c)][2];
+                    if (const float d = dr * dr + dg * dg + db * db; d < bd) { bd = d; best = c; }
+                }
+                for (int ch = 0; ch < 3; ++ch)
+                    px[size_t(ch)] = uint8_t(std::lround(std::clamp(centre[size_t(best)][size_t(ch)], 0.f, 255.f)));
+            }
+    });
 }
 
-// Keys out the colour the picture's corners share, so a logo on a white card prints as the logo and
-// the object's own colour shows through the rest.
+// Keys one colour out, so a logo on a white card prints as the logo and the object's own colour
+// shows through the rest.
 //
-// The corners rather than a colour the user picks: a background that does not reach all four of them
-// is not a background, and asking for an eyedropper would be a second interaction for the case this
-// exists to make one click. The median of the four is used so a single stray corner cannot decide it.
+// The corners are the default because a background that does not reach all four of them is not a
+// background, and that makes the common case one click; the median of the four is taken so a single
+// stray corner cannot decide it. The panel's dropper and swatch override it when the picture needs
+// something else keyed out.
 void remove_background(DecodedHeightTexture &tex, const TextureDisplacementLayer &layer)
 {
     if (!tex.has_color() || !layer.bg_remove || tex.width < 2 || tex.height < 2)
         return;
     const size_t n = size_t(tex.width) * size_t(tex.height);
-    const size_t corner[4] = { 0, size_t(tex.width) - 1, (size_t(tex.height) - 1) * size_t(tex.width),
-                               n - 1 };
     float key[3];
-    for (int c = 0; c < 3; ++c) {
-        std::array<float, 4> v{};
-        for (int i = 0; i < 4; ++i)
-            v[size_t(i)] = float(tex.rgb[corner[i] * 3 + size_t(c)]);
-        std::sort(v.begin(), v.end());
-        key[c] = 0.5f * (v[1] + v[2]);
+    if (layer.bg_from_corners) {
+        const size_t corner[4] = { 0, size_t(tex.width) - 1, (size_t(tex.height) - 1) * size_t(tex.width),
+                                   n - 1 };
+        for (int c = 0; c < 3; ++c) {
+            std::array<float, 4> v{};
+            for (int i = 0; i < 4; ++i)
+                v[size_t(i)] = float(tex.rgb[corner[i] * 3 + size_t(c)]);
+            std::sort(v.begin(), v.end());
+            key[c] = 0.5f * (v[1] + v[2]);
+        }
+    } else {
+        for (int c = 0; c < 3; ++c)
+            key[c] = std::clamp(layer.bg_color[c], 0.f, 1.f) * 255.f;
     }
     // Euclidean in 0..255 RGB, against a tolerance scaled to the diagonal of that cube, so the
     // slider reads as "how different from the background still counts as background".
@@ -361,7 +459,7 @@ bool has_color_adjustments(const TextureDisplacementLayer &layer)
 {
     return layer.brightness != 0.f || layer.contrast != 0.f || layer.saturation != 1.f ||
            layer.gamma != 1.f || layer.color_invert || layer.hue != 0.f || layer.sharpness > 0.f ||
-           layer.threshold_enabled || layer.bg_remove;
+           layer.color_count >= 2 || layer.bg_remove;
 }
 
 void apply_color_adjustments(DecodedHeightTexture &tex, const TextureDisplacementLayer &layer)
@@ -439,7 +537,7 @@ void apply_color_adjustments(DecodedHeightTexture &tex, const TextureDisplacemen
     // thresholded image would only ring along the one edge it has left, and the key has to read the
     // colours the user is actually looking at.
     sharpen_rgb(tex, layer.sharpness);
-    apply_threshold(tex, layer);
+    reduce_colors(tex, layer.color_count);
     remove_background(tex, layer);
 }
 

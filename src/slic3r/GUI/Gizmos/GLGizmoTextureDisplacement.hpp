@@ -160,21 +160,24 @@ public:
     struct ColorAdjustKey
     {
         float brightness = 0.f, contrast = 0.f, saturation = 1.f, gamma = 1.f, hue = 0.f;
-        float sharpness = 0.f, threshold = 0.5f, bg_tolerance = 0.15f;
-        bool  invert = false, threshold_on = false, bg_remove = false;
+        float sharpness = 0.f, bg_tolerance = 0.15f;
+        float bg_r = 1.f, bg_g = 1.f, bg_b = 1.f;
+        int   color_count = 0;
+        bool  invert = false, bg_remove = false, bg_from_corners = true;
         bool  operator==(const ColorAdjustKey &o) const
         {
             return brightness == o.brightness && contrast == o.contrast && saturation == o.saturation &&
                    gamma == o.gamma && hue == o.hue && sharpness == o.sharpness &&
-                   threshold == o.threshold && bg_tolerance == o.bg_tolerance && invert == o.invert &&
-                   threshold_on == o.threshold_on && bg_remove == o.bg_remove;
+                   bg_tolerance == o.bg_tolerance && bg_r == o.bg_r && bg_g == o.bg_g && bg_b == o.bg_b &&
+                   color_count == o.color_count && invert == o.invert && bg_remove == o.bg_remove &&
+                   bg_from_corners == o.bg_from_corners;
         }
         bool operator!=(const ColorAdjustKey &o) const { return !(*this == o); }
         static ColorAdjustKey of(const TextureDisplacementLayer &l)
         {
-            return { l.brightness,   l.contrast,          l.saturation, l.gamma,   l.hue,
-                     l.sharpness,    l.threshold,         l.bg_tolerance,
-                     l.color_invert, l.threshold_enabled, l.bg_remove };
+            return { l.brightness,  l.contrast,     l.saturation,      l.gamma,        l.hue,
+                     l.sharpness,   l.bg_tolerance, l.bg_color[0],     l.bg_color[1],  l.bg_color[2],
+                     l.color_count, l.color_invert, l.bg_remove,       l.bg_from_corners };
         }
     };
     std::vector<ColorAdjustKey> m_palette_adjusts; // alongside m_palette_images, one per entry
@@ -324,6 +327,9 @@ private:
     // render_image_input_window() draws over the canvas.
     bool m_file_drag_over = false;
     void render_image_drop_hint();
+    // Set while the panel's background dropper is armed: the next click on the picture preview takes
+    // the colour under it instead of opening the library.
+    bool m_image_bg_picking = false;
     // Standard mode's Bake: remesh to an even density, refine where the texture bends, then displace.
     // The order matters and is the whole reason this is one button - a height map can only move
     // existing vertices, so the mesh has to be prepared first, and remeshing after painting would drop

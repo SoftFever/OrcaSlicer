@@ -301,15 +301,20 @@ struct TextureDisplacementLayer
     float contrast     = 0.f;  // -1 .. 1, pivoted on mid grey; -1 flattens to grey, 1 doubles the slope
     float hue          = 0.f;  // -180 .. 180 degrees, rotated about the grey axis at constant luma
     float sharpness    = 0.f;  //  0 .. 1 unsharp mask amount, 0 is off
-    // Line art and logos: everything lighter than `threshold` becomes white and the rest black, so the
-    // picture matches exactly two filaments instead of speckling across several.
-    bool  threshold_enabled = false;
-    float threshold         = 0.5f; // 0 .. 1, on Rec. 709 luma
+    // How many colours the picture is allowed to use, 0 for as many as it likes. Reduced by k-means
+    // in RGB before the filaments are matched, so the result uses at most this many of them: 2 for a
+    // logo that should be two flat colours, 4 or 5 for a poster, off for a photograph.
+    int   color_count  = 0;    // 0, or 2 .. 12
     // Leaves the background of a picture unprinted, so the object's own colour shows through instead
     // of a slab of white behind a logo. Texels the source image marked transparent always count;
-    // `bg_remove` additionally keys out whatever colour the picture's corners share.
+    // `bg_remove` additionally keys out one colour.
     bool  bg_remove    = false;
     float bg_tolerance = 0.15f; // 0 .. 1, distance from the keyed colour that still counts as background
+    // The colour keyed out. Taken from the median of the picture's four corners while
+    // `bg_from_corners` is set, which is right for nearly every logo on a flat card; the panel's
+    // dropper and swatch clear it and put a colour of the user's own here.
+    bool  bg_from_corners = true;
+    float bg_color[3]     = { 1.f, 1.f, 1.f };
     float saturation   = 1.f;  //  0 .. 2, 1 leaves it alone, 0 is grayscale
     float gamma        = 1.f;  // 0.2 .. 5, 1 leaves it alone; above 1 lifts the midtones
     bool  color_invert = false; // negative of the colour, as opposed to `invert` which flips relief
@@ -324,8 +329,8 @@ struct TextureDisplacementLayer
            static_cast<int>(blend_mode), midlevel, island_padding_mm, lscm_seam_edges, view_project_right,
            view_project_up, smoothing, edge_smoothing, edge_smoothing_amount, auto_connect_islands, island_groups,
            lscm_uv_overrides, view_project_projective, view_project_matrix, color_enabled, brightness,
-           contrast, saturation, gamma, color_invert, hue, sharpness, threshold_enabled, threshold,
-           bg_remove, bg_tolerance);
+           contrast, saturation, gamma, color_invert, hue, sharpness, color_count, bg_remove,
+           bg_tolerance, bg_from_corners, bg_color[0], bg_color[1], bg_color[2]);
     }
     template<class Archive> void load(Archive &ar)
     {
@@ -338,7 +343,7 @@ struct TextureDisplacementLayer
            island_padding_mm, lscm_seam_edges, view_project_right, view_project_up, smoothing, edge_smoothing,
            edge_smoothing_amount, auto_connect_islands, island_groups, lscm_uv_overrides, view_project_projective,
            view_project_matrix, color_enabled, brightness, contrast, saturation, gamma, color_invert, hue, sharpness,
-           threshold_enabled, threshold, bg_remove, bg_tolerance);
+           color_count, bg_remove, bg_tolerance, bg_from_corners, bg_color[0], bg_color[1], bg_color[2]);
         image_data        = blob.empty() ? nullptr : std::make_shared<std::vector<unsigned char>>(blob.begin(), blob.end());
         tile_method       = static_cast<TextureTileMethod>(tile_method_int);
         projection_method = static_cast<TextureProjectionMethod>(projection_method_int);
