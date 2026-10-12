@@ -1,0 +1,65 @@
+name: clang-tidy fix
+
+# Makes the missing-include fix that /bot fix-tidy (pr-tidy-bot.yml) posts on a
+# pull request: scripts/run_clang_tidy.sh --fix on the merge commit the
+# clang-tidy check runs on, uploaded as the clang-tidy-fix artifact.
+#
+# Every push to a PR starts this workflow, and its job skips on that first
+# attempt. The bot re-runs it on request. A re-run keeps the pull_request
+# context, so the PR's code runs with a read-only token, no secrets and the
+# PR's own cache, never main's, whoever asked for it.
+on:
+  pull_request:
+    branches:
+      - main
+      - release/*
+
+permissions:
+  contents: read
+
+jobs:
+  fix:
+    if: github.run_attempt > 1
+    # A hosted runner, so nothing the PR's code leaves behind outlives the job.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+          # The PR merge commit plus its first parent, the base it is diffed against.
+          fetch-depth: 2
+          persist-credentials: false
+
+      # Parsing needs the dependency headers, not a build of this PR's deps/, so
+      # a PR that changes deps/ falls back to the newest cache main has.
+      - name: Restore cached deps
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ github.workspace }}/deps/build/OrcaSlicer_dep
+          key: linux-clang-cache-orcaslicer_deps-build-${{ hashFiles('deps/**') }}
+          restore-keys: linux-clang-cache-orcaslicer_deps-build-
+          fail-on-cache-miss: true
+
+      - name: Apt-Install Dependencies
+        uses: ./.github/actions/apt-install-deps
+
+      # The status says whether findings remain that --fix cannot fix.
+      - name: Fix the changed lines
+        run: |
+          mkdir -p "$RUNNER_TEMP/clang-tidy-fix"
+          status=0
+          scripts/run_clang_tidy.sh --base HEAD^1 --yes --fix || status=$?
+          echo "$status" > "$RUNNER_TEMP/clang-tidy-fix/status"
+          git -c core.quotePath=false diff --no-color --no-ext-diff --src-prefix=a/ --dst-prefix=b/ \
+            > "$RUNNER_TEMP/clang-tidy-fix/fix.patch"
+
+      - name: Upload the fix
+        uses: actions/upload-artifact@v7
+        with:
+          name: clang-tidy-fix
+          path: ${{ runner.temp }}/clang-tidy-fix/
+          retention-days: 7
+          # A later re-run of the same run replaces the earlier fix.
+          overwrite: true
