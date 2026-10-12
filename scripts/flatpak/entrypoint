@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 
 # Work-around https://gitlab.gnome.org/GNOME/gnome-build-meta/-/issues/754
-grep -q org.freedesktop.Platform.GL.nvidia /.flatpak-info && export WEBKIT_DISABLE_DMABUF_RENDERER=1
+# The runtime's WebKitGTK cannot back its DMABUF renderer on the NVIDIA driver.
+# WEBKIT_DISABLE_DMABUF_RENDERER is read first and would leave compositing off.
+grep -q org.freedesktop.Platform.GL.nvidia /.flatpak-info && export WEBKIT_DMABUF_RENDERER_FORCE_SHM=1
 
 # Work-around https://github.com/bambulab/BambuStudio/issues/3440
 # Use LC_NUMERIC instead of LC_ALL to prevent decimal separator issues
