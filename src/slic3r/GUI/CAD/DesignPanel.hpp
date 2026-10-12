@@ -634,6 +634,8 @@ private:
     // Loft controls (skin a solid through 2+ ordered profile Sketches).
     wxCheckListBox*   m_loft_list{nullptr};        // every Sketch; check 2+ in list order = profiles
     CheckBox*         m_loft_ruled{nullptr};       // ruled (straight) vs smooth sections
+    ComboBox*         m_loft_start_cond{nullptr};  // first profile: Contact / Normal to profile
+    ComboBox*         m_loft_end_cond{nullptr};    // last profile
     ComboBox*         m_loft_mode{nullptr};        // New/Add/Cut/Intersect
     std::vector<int>  m_loft_sketch_idx;           // feature index for each row in m_loft_list
     std::vector<int>  m_loft_refs;                 // chosen profile refs (for re-edit pre-check)

@@ -408,14 +408,48 @@ TopoDS_Shape SketchEngine::make_sweep(const TopoDS_Wire& profile, const TopoDS_W
     return pipe.Shape();
 }
 
-TopoDS_Shape SketchEngine::make_loft(const std::vector<TopoDS_Wire>& profiles, bool ruled)
+// A copy of `w` moved along its own plane normal by `strength` * (distance to `toward`'s centre),
+// on the side that faces `toward`. Null if the wire has no plane.
+static TopoDS_Wire normal_section(const TopoDS_Wire& w, const TopoDS_Wire& toward, double strength)
+{
+    auto face_of = [](const TopoDS_Wire& x) { return BRepBuilderAPI_MakeFace(x).Face(); };
+    const TopoDS_Face fa = face_of(w), fb = face_of(toward);
+    BRepAdaptor_Surface sa(fa);
+    if (sa.GetType() != GeomAbs_Plane) return TopoDS_Wire();
+    GProp_GProps pa, pb;
+    BRepGProp::SurfaceProperties(fa, pa);
+    BRepGProp::SurfaceProperties(fb, pb);
+    const gp_Pnt ca = pa.CentreOfMass(), cb = pb.CentreOfMass();
+    gp_Vec n(sa.Plane().Axis().Direction());
+    const gp_Vec gap(ca, cb);
+    if (gap.Magnitude() < 1e-9) return TopoDS_Wire();
+    if (n.Dot(gap) < 0) n.Reverse();
+    gp_Trsf tr;
+    tr.SetTranslation(n * (strength * std::abs(n.Dot(gap))));
+    BRepBuilderAPI_Transform xf(w, tr, true);
+    return TopoDS::Wire(xf.Shape());
+}
+
+TopoDS_Shape SketchEngine::make_loft(const std::vector<TopoDS_Wire>& profiles, bool ruled,
+                                     int start_cond, int end_cond, double strength)
 {
     if (profiles.size() < 2)
         throw std::runtime_error(_u8L("loft needs at least 2 profiles"));
     BRepOffsetAPI_ThruSections loft(true /*solid*/, ruled);
-    for (const TopoDS_Wire& w : profiles) {
+    for (size_t i = 0; i < profiles.size(); ++i) {
+        const TopoDS_Wire& w = profiles[i];
         if (w.IsNull()) throw std::runtime_error("loft: null profile wire");
         loft.AddWire(w);
+        // Normal-to-profile end condition: one auxiliary section right after the first profile / right
+        // before the last, so the smooth skin leaves (arrives) perpendicular to that profile.
+        if (!ruled && i == 0 && start_cond == 1) {
+            const TopoDS_Wire aux = normal_section(w, profiles[1], strength);
+            if (!aux.IsNull()) loft.AddWire(aux);
+        }
+        if (!ruled && i + 2 == profiles.size() && end_cond == 1) {
+            const TopoDS_Wire aux = normal_section(profiles.back(), w, strength);
+            if (!aux.IsNull()) loft.AddWire(aux);
+        }
     }
     loft.Build();
     if (!loft.IsDone()) throw std::runtime_error(_u8L("loft failed"));

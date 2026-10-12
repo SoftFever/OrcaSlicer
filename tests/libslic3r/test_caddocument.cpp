@@ -2396,8 +2396,9 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // cut in half is read as whatever half arrived.)
     // + the Use link appended after revolve_axis_entity: project_from_sketch (bool),
     // project_source_sketch (int) and the empty project_sketch_entities list (a size tag).
+    // + the loft end conditions (two ints) appended after the Use link.
     const size_t drop = sizeof(uint32_t) + 3 * sizeof(bool) + 4 * sizeof(cereal::size_type) + sizeof(double)
-                        + 2 * sizeof(int);
+                        + 4 * sizeof(int);
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
     shortened.erase(f_off[1] + 4 + f_len[1] - drop, drop);
@@ -9618,4 +9619,63 @@ TEST_CASE("Push/pull of a planar face: out joins (V + A*d), in cuts (V - A*d), f
         REQUIRE(ok);
         CHECK(vol(doc, 0) < before);
     }
+}
+
+// Item 11 (loft with N profiles): measure before claiming a limit.
+TEST_CASE("A 3-profile loft across z=0/10/20 matches the analytic volume and does not twist", "[CadDocument][loft]")
+{
+    CadDocument doc;
+    const int a = combine_rect(doc, -5, -5, 5, 5, 0, "P0");        // 10x10
+    const int b = combine_rect(doc, -10, -10, 10, 10, 10, "P1");   // 20x20
+    const int c = combine_rect(doc, -5, -5, 5, 5, 20, "P2");       // 10x10
+    SECTION("ruled: two frusta") {
+        doc.add_loft({a, b, c}, true, BooleanMode::New, "Loft");
+        const bool ok = doc.recompute();
+        INFO(doc.error);
+        REQUIRE(ok);
+        REQUIRE(doc.bodies.size() == 1);
+        const double frustum = (10.0 / 3.0) * (100.0 + 400.0 + std::sqrt(100.0 * 400.0));
+        CHECK(vol(doc, 0) == Catch::Approx(2.0 * frustum).epsilon(1e-3));
+        // No twist: the side walls stay inside the 20x20 envelope and span z 0..20.
+        const auto bb = doc.display_mesh.bounding_box();
+        CHECK(bb.min.z() == Catch::Approx(0.0).margin(1e-6));
+        CHECK(bb.max.z() == Catch::Approx(20.0).margin(1e-6));
+        CHECK(bb.max.x() - bb.min.x() == Catch::Approx(20.0).margin(1e-3));
+    }
+    SECTION("smooth (not ruled) builds a valid solid through all three") {
+        doc.add_loft({a, b, c}, false, BooleanMode::New, "Loft");
+        const bool ok = doc.recompute();
+        INFO(doc.error);
+        REQUIRE(ok);
+        REQUIRE(doc.bodies.size() == 1);
+        CHECK(vol(doc, 0) > 2.0 * 10.0 * 100.0);   // more than the thin prism, less than the 20x20 box
+        CHECK(vol(doc, 0) < 20.0 * 400.0);
+    }
+}
+
+TEST_CASE("Loft end condition Normal-to-profile makes the skin leave and arrive perpendicular", "[CadDocument][loft]")
+{
+    auto make = [](int start, int end) {
+        CadDocument doc;
+        const int a = combine_rect(doc, -5, -5, 5, 5, 0, "P0");        // 10x10
+        const int b = combine_rect(doc, -10, -10, 10, 10, 10, "P1");   // 20x20
+        const int l = doc.add_loft({a, b}, false, BooleanMode::New, "Loft");
+        doc.features[l].loft_start_cond = start;
+        doc.features[l].loft_end_cond   = end;
+        const bool ok = doc.recompute();
+        INFO(doc.error);
+        REQUIRE(ok);
+        REQUIRE(doc.bodies.size() == 1);
+        return doc.body_mass_properties(0).volume;
+    };
+    const double frustum = (10.0 / 3.0) * (100.0 + 400.0 + std::sqrt(100.0 * 400.0));
+    CHECK(make(0, 0) == Catch::Approx(frustum).epsilon(1e-3));            // Contact: straight walls
+    const double both = make(1, 1);
+    CHECK(both > frustum * 1.005);   // an S-shaped wall, hugging the verticals at both ends, holds more
+    CHECK(both < frustum * 1.05);
+    // Start only: the skin leaves the 10x10 profile straight and stays narrow longer before it
+    // flares to 20x20, so it holds LESS than the straight frustum.
+    const double one = make(1, 0);
+    CHECK(one < frustum * 0.999);
+    CHECK(one > 0.5 * frustum);
 }

@@ -2366,6 +2366,20 @@ DesignPanel::DesignPanel(wxWindow* parent)
         lrow->AddStretchSpacer();
         lrow->Add(m_loft_ruled, 0, wxALIGN_CENTER_VERTICAL);
         m_box_loft->Add(lrow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+        // End conditions (smooth lofts): how the skin leaves the first profile and arrives at the last.
+        auto* cform = two_col_form();
+        auto cond = [&](const wxString& label, ComboBox*& c) {
+            c = make_combo(m_cards);
+            c->Append(_L("Contact"));
+            c->Append(_L("Normal to profile"));
+            c->SetSelection(0);
+            c->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
+            cform->Add(new wxStaticText(m_cards, wxID_ANY, label), 0, wxALIGN_CENTER_VERTICAL);
+            cform->Add(c, 0, wxEXPAND);
+        };
+        cond(_L("Start condition"), m_loft_start_cond);
+        cond(_L("End condition"), m_loft_end_cond);
+        m_box_loft->Add(cform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
     }
     cards->Add(m_box_loft, 0, wxEXPAND);
 
@@ -5588,8 +5602,12 @@ void DesignPanel::on_add_loft()
         return;
     }
     m_feature_counter++;
-    m_doc.add_loft(refs, m_loft_ruled->GetValue(), mode,
-                   feature_name(_L("Loft")));
+    const int loft_idx = m_doc.add_loft(refs, m_loft_ruled->GetValue(), mode,
+                                        feature_name(_L("Loft")));
+    if (loft_idx >= 0 && loft_idx < int(m_doc.features.size())) {
+        m_doc.features[loft_idx].loft_start_cond = m_loft_start_cond->GetSelection();
+        m_doc.features[loft_idx].loft_end_cond   = m_loft_end_cond->GetSelection();
+    }
 
     if (!recompute_guarded(_L("Rebuilding model…")))
         set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
@@ -9820,6 +9838,8 @@ void DesignPanel::load_feature_into_dialog(const CadFeature& f)
         m_loft_refs = f.loft_profile_refs;   // show_tool re-checks these in the list
         m_loft_ruled->SetValue(f.loft_ruled);
         m_loft_mode->SetSelection(static_cast<int>(f.mode));
+        m_loft_start_cond->SetSelection(f.loft_start_cond == 1 ? 1 : 0);
+        m_loft_end_cond->SetSelection(f.loft_end_cond == 1 ? 1 : 0);
         break;
     case CadFeatureType::Draft:
         m_draft_angle->SetValue(f.draft_angle);
@@ -10498,6 +10518,8 @@ CadFeature DesignPanel::build_candidate(Tool t) const
     case Tool::Loft: {
         f.type      = CadFeatureType::Loft;
         f.loft_ruled = m_loft_ruled->GetValue();
+        f.loft_start_cond = m_loft_start_cond->GetSelection();
+        f.loft_end_cond   = m_loft_end_cond->GetSelection();
         f.mode      = static_cast<BooleanMode>(m_loft_mode->GetSelection());
         f.loft_profile_refs.clear();
         for (unsigned i = 0; i < m_loft_list->GetCount(); ++i)

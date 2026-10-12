@@ -352,6 +352,11 @@ struct CadFeature {
     bool             project_from_sketch{false};
     int              project_source_sketch{-1}; // feature index; remapped on delete (orphan -> -1 = Error)
     std::vector<int> project_sketch_entities;   // entity indices of the source; empty = all
+    // Loft end conditions for the FIRST / LAST profile: 0 = Contact (the surface just starts at the
+    // profile), 1 = Normal to profile (it leaves along the profile's plane normal). Ignored for a ruled
+    // loft, whose straight sections have no end condition to give.
+    int loft_start_cond{0};
+    int loft_end_cond{0};
 
     // Direct edit: faces to remove (global face indices into target_body's shape),
     // healed via BRepAlgoAPI_Defeaturing.
@@ -419,7 +424,8 @@ struct CadFeature {
                dressup_edges,
                text_string, text_font, text_height,
                revolve_axis_entity,
-               project_from_sketch, project_source_sketch, project_sketch_entities);
+               project_from_sketch, project_source_sketch, project_sketch_entities,
+               loft_start_cond, loft_end_cond);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -463,7 +469,8 @@ struct CadFeature {
                dressup_edges,
                text_string, text_font, text_height,
                revolve_axis_entity,
-               project_from_sketch, project_source_sketch, project_sketch_entities);
+               project_from_sketch, project_source_sketch, project_sketch_entities,
+               loft_start_cond, loft_end_cond);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature

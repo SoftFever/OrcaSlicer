@@ -278,7 +278,11 @@ public:
 
     // Loft a solid through 2+ closed profile wires (each on its own plane), in the
     // given order. ruled=true => straight (ruled) sections; false => smooth (C2).
-    static TopoDS_Shape make_loft(const std::vector<TopoDS_Wire>& profiles, bool ruled);
+    // start_cond / end_cond: 0 = Contact, 1 = Normal to profile (smooth lofts only). Normal adds an
+    // auxiliary section a fraction `strength` of the gap to the neighbouring profile, along the
+    // profile's own plane normal, so the interpolated surface leaves perpendicular to the profile.
+    static TopoDS_Shape make_loft(const std::vector<TopoDS_Wire>& profiles, bool ruled,
+                                  int start_cond = 0, int end_cond = 0, double strength = 0.25);
 
     // Skin `profiles` WITHOUT end caps -> an open shell (sheet). Same as make_loft but the
     // ThruSections solid flag is false. // ponytail: a sibling instead of a bool param, so no

@@ -2897,7 +2897,7 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
         }
         if (profiles.size() < 2)
             throw std::runtime_error(_u8L("loft needs 2+ valid profile sketches"));
-        TopoDS_Shape tool = SketchEngine::make_loft(profiles, f.loft_ruled);
+        TopoDS_Shape tool = SketchEngine::make_loft(profiles, f.loft_ruled, f.loft_start_cond, f.loft_end_cond);
         combine_into(f.mode, result, have_body, tool);
         break;
     }
