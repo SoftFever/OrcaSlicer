@@ -261,6 +261,60 @@ bool height_texture_has_color(const TextureDisplacementLayer &layer)
     return decode_height_texture(layer).has_color();
 }
 
+bool has_color_adjustments(const TextureDisplacementLayer &layer)
+{
+    return layer.brightness != 0.f || layer.contrast != 0.f || layer.saturation != 1.f ||
+           layer.gamma != 1.f || layer.color_invert;
+}
+
+void apply_color_adjustments(DecodedHeightTexture &tex, const TextureDisplacementLayer &layer)
+{
+    if (!tex.has_color() || !has_color_adjustments(layer))
+        return;
+
+    // A contrast of -1 collapses the image to mid grey and +1 doubles the slope about it, which is
+    // the range a single slider can offer without a scale nobody can read off the handle.
+    const float slope  = 1.f + std::clamp(layer.contrast, -1.f, 1.f);
+    const float bright = std::clamp(layer.brightness, -1.f, 1.f);
+    const float sat    = std::max(0.f, layer.saturation);
+    const float inv_g  = 1.f / std::max(0.01f, layer.gamma);
+    const bool  negate = layer.color_invert;
+
+    // Each output byte depends only on its own pixel, so the rows are independent. At 1024 x 1024
+    // this runs on every preview rebuild and every bake, which is what makes it worth splitting.
+    const size_t rows = size_t(tex.height);
+    const size_t cols = size_t(tex.width);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, rows), [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t y = range.begin(); y < range.end(); ++y) {
+            uint8_t *row = tex.rgb.data() + y * cols * 3;
+            for (size_t x = 0; x < cols; ++x) {
+                uint8_t *px = row + x * 3;
+                float    c[3];
+                for (int k = 0; k < 3; ++k) {
+                    float v = float(px[k]) * (1.f / 255.f);
+                    v       = std::pow(v, inv_g);
+                    v       = (v - 0.5f) * slope + 0.5f;
+                    v      += bright;
+                    c[k]    = v;
+                }
+                if (sat != 1.f) {
+                    // Rec. 709 luma, the same weights the rest of the colour path uses to decide
+                    // what counts as light and dark.
+                    const float luma = 0.2126f * c[0] + 0.7152f * c[1] + 0.0722f * c[2];
+                    for (float &v : c)
+                        v = luma + (v - luma) * sat;
+                }
+                for (int k = 0; k < 3; ++k) {
+                    float v = std::clamp(c[k], 0.f, 1.f);
+                    if (negate)
+                        v = 1.f - v;
+                    px[k] = uint8_t(std::lround(v * 255.f));
+                }
+            }
+        }
+    });
+}
+
 DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer)
 {
     DecodedHeightTexture result;
@@ -3241,9 +3295,13 @@ std::shared_ptr<std::vector<PreparedLayer>> prepare_sampleable_layers(
         const TriangleSelector::TriangleSplittingData &data = facets_data[size_t(layer->slot)];
         if (data.triangles_to_split.empty())
             continue;
-        const DecodedHeightTexture tex = decode_height_texture(*layer);
+        DecodedHeightTexture tex = decode_height_texture(*layer);
         if (tex.empty() || (need_color && !tex.has_color()))
             continue;
+        // The one place the bake and every preview job read a layer's colour from, so correcting it
+        // here is what keeps what the panel shows and what the bake prints the same image.
+        if (need_color)
+            apply_color_adjustments(tex, *layer);
 
         TriangleSelector selector(selector_mesh);
         selector.deserialize(data, false);

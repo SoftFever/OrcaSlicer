@@ -154,6 +154,25 @@ public:
     // What the cache was built from.
     std::vector<ColorRGBA>                                   m_palette_filaments;
     std::vector<std::shared_ptr<std::vector<unsigned char>>> m_palette_images; // the colouring layers' images
+    // One layer's colour correction, as a value that can be compared and cached on. It belongs to
+    // every cache keyed on "what the image looks like", because a correction slider changes the
+    // pixels while leaving the image_data pointer alone.
+    struct ColorAdjustKey
+    {
+        float brightness = 0.f, contrast = 0.f, saturation = 1.f, gamma = 1.f;
+        bool  invert     = false;
+        bool  operator==(const ColorAdjustKey &o) const
+        {
+            return brightness == o.brightness && contrast == o.contrast && saturation == o.saturation &&
+                   gamma == o.gamma && invert == o.invert;
+        }
+        bool operator!=(const ColorAdjustKey &o) const { return !(*this == o); }
+        static ColorAdjustKey of(const TextureDisplacementLayer &l)
+        {
+            return { l.brightness, l.contrast, l.saturation, l.gamma, l.color_invert };
+        }
+    };
+    std::vector<ColorAdjustKey> m_palette_adjusts; // alongside m_palette_images, one per entry
     std::optional<std::vector<PaletteEntry>>                 m_mix_ranking;    // rank_mixes(), computed on demand
     bool                                                     m_palette_mixing     = false;
     int                                                      m_palette_mix_count  = 0;
@@ -278,6 +297,11 @@ private:
     // picture has any. Those two are what turn the displacement bake into "put this picture on the
     // model" without a second code path. Returns true if it actually changed something.
     bool apply_image_mode_presets(ModelVolume *mv);
+    // The Image tool's whole window: load a picture, click the model to place it, correct it, Apply.
+    // Defined in GLGizmoImage.cpp, beside the class it exists for, rather than here - it is a member
+    // only so that it can reach the same private machinery the displacement panel uses, and keeping
+    // it out of this file leaves that panel's 1700 lines alone.
+    void render_image_input_window(float x, float y, float bottom_limit);
     // Standard mode's Bake: remesh to an even density, refine where the texture bends, then displace.
     // The order matters and is the whole reason this is one button - a height map can only move
     // existing vertices, so the mesh has to be prepared first, and remeshing after painting would drop
@@ -948,6 +972,7 @@ private:
     std::unique_ptr<GLTexture> m_color_tex;
     const void                *m_color_tex_source    = nullptr;
     float                      m_color_tex_smoothing = -1.f;
+    ColorAdjustKey m_color_tex_adjust;
 
     // Library textures the picker has shown at least once, keyed by file path (see LibraryTexture).
     std::map<std::string, LibraryTexture> m_library_textures;

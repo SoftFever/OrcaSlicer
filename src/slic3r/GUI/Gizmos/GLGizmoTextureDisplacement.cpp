@@ -531,6 +531,7 @@ void GLGizmoTextureDisplacement::on_shutdown()
     m_palette_pure_quantizer = nullptr;
     m_palette_filaments.clear();
     m_palette_images.clear();
+    m_palette_adjusts.clear();
     m_mix_ranking.reset();
     m_palette_slots.clear();
     m_palette_changed = false;
@@ -4544,15 +4545,22 @@ const std::vector<GLGizmoTextureDisplacement::PaletteEntry> &GLGizmoTextureDispl
     // The images themselves rather than their addresses, so a freed and reallocated image can never
     // pass for the old one. Whether one has colour, and whether its colours are flat, follows from it.
     std::vector<std::shared_ptr<std::vector<unsigned char>>> images;
+    // ... and what each one is corrected by, which changes the colours the mixes are ranked against
+    // without changing the image it came from.
+    std::vector<ColorAdjustKey> adjusts;
     if (mv != nullptr)
         for (const TextureDisplacementLayer &layer : mv->texture_displacement_layers)
-            if (layer.color_enabled && !layer.empty())
+            if (layer.color_enabled && !layer.empty()) {
                 images.push_back(layer.image_data);
+                adjusts.push_back(ColorAdjustKey::of(layer));
+            }
 
-    const bool ranking_stale = filaments != m_palette_filaments || images != m_palette_images;
+    const bool ranking_stale = filaments != m_palette_filaments || images != m_palette_images ||
+                               adjusts != m_palette_adjusts;
     if (ranking_stale) {
         m_palette_filaments = std::move(filaments);
         m_palette_images    = std::move(images);
+        m_palette_adjusts   = std::move(adjusts);
         m_mix_ranking.reset();
     }
     if (mixing && !m_mix_ranking)
@@ -4629,9 +4637,12 @@ std::vector<GLGizmoTextureDisplacement::MixTarget> GLGizmoTextureDisplacement::m
             continue;
         TextureDisplacementLayer raw = layer;
         raw.smoothing                = 0.f;
-        const DecodedHeightTexture tex = decode_height_texture(raw);
+        DecodedHeightTexture tex = decode_height_texture(raw);
         if (!tex.has_color())
             continue;
+        // Corrected first: the mixes are chosen to cover the colours the bake will actually ask for,
+        // and a darkened or desaturated image asks for different ones.
+        apply_color_adjustments(tex, layer);
 
         // 16 levels per channel, each bin keeping the mean of the colours that fell in it: a coarse grid
         // to gather on, without snapping every colour to a bin corner.
@@ -5337,10 +5348,16 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_color_texture(const TextureDisp
 {
     if (layer.empty() || !layer.color_enabled)
         return nullptr;
-    if (m_color_tex && m_color_tex_source == layer.image_data.get() && m_color_tex_smoothing == layer.smoothing)
+    const ColorAdjustKey adjust = ColorAdjustKey::of(layer);
+    if (m_color_tex && m_color_tex_source == layer.image_data.get() && m_color_tex_smoothing == layer.smoothing &&
+        m_color_tex_adjust == adjust)
         return m_color_tex.get();
 
-    std::unique_ptr<GLTexture> texture = upload_color_texture(decode_height_texture(layer), HEIGHT_TEX_MAX_PX);
+    // Corrected here rather than inside the decode, exactly as prepare_sampleable_layers() does for
+    // the bake, so the fast preview shades the image the bake will print.
+    DecodedHeightTexture tex = decode_height_texture(layer);
+    apply_color_adjustments(tex, layer);
+    std::unique_ptr<GLTexture> texture = upload_color_texture(tex, HEIGHT_TEX_MAX_PX);
     if (!texture) {
         m_color_tex.reset();
         m_color_tex_source = nullptr;
@@ -5349,6 +5366,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_color_texture(const TextureDisp
     m_color_tex           = std::move(texture);
     m_color_tex_source    = layer.image_data.get();
     m_color_tex_smoothing = layer.smoothing;
+    m_color_tex_adjust    = adjust;
     return m_color_tex.get();
 }
 
@@ -5456,14 +5474,14 @@ bool GLGizmoTextureDisplacement::apply_standard_mode_presets(ModelVolume *mv)
 }
 
 // Pinned into the volume rather than applied on the way to the bake, exactly as Standard mode pins
-// displace_border and smooth_enabled: the preview, the bake, the triangle estimate and the UV pane all
-// read the layers straight off the volume, and a value that only some of them saw would put the
-// preview and the bake out of step.
+// displace_border and smooth_enabled above: the preview, the bake, the triangle estimate and the
+// palette all read the layers straight off the volume, and a value that only some of them saw would
+// put the preview and the bake out of step.
 //
 // The two tools share one layer stack - that is what "not a fork" means here - so opening the Image
 // tool on a volume whose layers carry relief flattens them, and they stay flat when the displacement
-// tool is reopened. Only that one number changes: the paint, the image, the tiling, the mapping and
-// any relief already baked into the mesh are untouched.
+// tool is reopened. Only that one number changes: the paint, the image, the placement and any relief
+// already baked into the mesh are untouched.
 bool GLGizmoTextureDisplacement::apply_image_mode_presets(ModelVolume *mv)
 {
     if (mv == nullptr)
@@ -5478,12 +5496,18 @@ bool GLGizmoTextureDisplacement::apply_image_mode_presets(ModelVolume *mv)
             changed        = true;
         }
         // Colour is the only thing an image bake produces, so it is on wherever there is colour to
-        // use rather than being a checkbox. A grayscale picture leaves it off, which is what makes
-        // the panel's "this image has no colors" note the honest answer instead of a silent no-op.
+        // use rather than being a checkbox the user could leave off and wonder at.
         const bool wanted = height_texture_has_color(layer);
         if (layer.color_enabled != wanted) {
             layer.color_enabled = wanted;
             changed             = true;
+        }
+        // Unwrap is the one projection the Image tool does not offer: it is an editor's worth of UI
+        // (seams, islands, the UV pane) for a case that wants a click and a slider. A layer arriving
+        // from the displacement tool set to it falls back to the triplanar default.
+        if (layer.projection_method == TextureProjectionMethod::LSCM) {
+            layer.projection_method = TextureProjectionMethod::Triplanar;
+            changed                 = true;
         }
     }
     return changed;
@@ -5797,6 +5821,14 @@ void GLGizmoTextureDisplacement::render_paint_cursor_hint()
 
 void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float bottom_limit)
 {
+    // The Image tool gets its own, much smaller window (see GLGizmoImage.cpp): everything below this
+    // point is the displacement panel, and it is left exactly as it was rather than being threaded
+    // with tests for which of the two tools is drawing.
+    if (image_mode()) {
+        render_image_input_window(x, y, bottom_limit);
+        return;
+    }
+
     ModelObject *mo = m_c->selection_info()->model_object();
     if (!mo)
         return;
@@ -5845,13 +5877,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     const float previous_body_h   = m_panel_body_h;
     const float previous_footer_h = m_panel_footer_h;
 
-    // The Image tool is Standard with the relief taken out of it; there is no Pro there to switch to.
-    if (image_mode())
-        m_panel_mode = 0;
     // Pinned every frame while Standard is active, so what Preview shows is always what Bake will do.
     if (!pro_mode() && apply_standard_mode_presets(mv))
-        m_preview_params_dirty = true;
-    if (image_mode() && apply_image_mode_presets(mv))
         m_preview_params_dirty = true;
 
     // Layout follows the Option C design: a fixed-width panel, a header pinned at the top, a body that
@@ -6007,26 +6034,21 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     {
         const float x0 = ImGui::GetCursorPosX();
         ImGui::AlignTextToFramePadding();
-        // The tool's own name, so the Image panel does not announce itself as the one it is built on.
-        heading(wxString::FromUTF8(get_name(false)));
+        heading(_L("Texture displacement"));
 
         const std::string labels[2] = { _u8L("Standard"), _u8L("Pro") };
         const float       seg_pad   = m_imgui->scaled(0.5f);
         const float seg_w[2] = { ImGui::CalcTextSize(labels[0].c_str()).x + 2.f * seg_pad, ImGui::CalcTextSize(labels[1].c_str()).x + 2.f * seg_pad };
-        // Standard / Pro is a mode, not an option: Standard hides every mesh-preparation control and folds
-        // the whole recipe into Bake, Pro shows all of it and hands the ordering to the user. The Image
-        // tool is the restricted case of Standard, so it offers neither and the segment is left out.
-        const int mode_buttons = image_mode() ? 0 : 2;
         ImGui::SameLine();
-        ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(),
-                                      x0 + panel_w - icon_sm -
-                                          (mode_buttons > 0 ? seg_w[0] + seg_w[1] + gap_s : 0.f)));
+        ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + panel_w - (seg_w[0] + seg_w[1] + gap_s + icon_sm)));
 
+        // Standard / Pro is a mode, not an option: Standard hides every mesh-preparation control and folds
+        // the whole recipe into Bake, Pro shows all of it and hands the ordering to the user.
         const ImVec2 seg_min = ImGui::GetCursorScreenPos();
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, style.ItemSpacing.y));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.f);
         m_imgui->disabled_begin(busy);
-        for (int m = 0; m < mode_buttons; ++m) {
+        for (int m = 0; m < 2; ++m) {
             if (m > 0)
                 ImGui::SameLine();
             const bool on = m_panel_mode == m;
@@ -6057,11 +6079,10 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         }
         m_imgui->disabled_end();
         ImGui::PopStyleVar(2);
-        if (mode_buttons > 0) {
-            ImGui::GetWindowDrawList()->AddRect(seg_min, ImVec2(ImGui::GetItemRectMax().x, seg_min.y + frame_h),
-                                                ImGui::GetColorU32(col_frame), style.FrameRounding);
-            ImGui::SameLine(0.f, gap_s);
-        }
+        ImGui::GetWindowDrawList()->AddRect(seg_min, ImVec2(ImGui::GetItemRectMax().x, seg_min.y + frame_h),
+                                            ImGui::GetColorU32(col_frame), style.FrameRounding);
+
+        ImGui::SameLine(0.f, gap_s);
         if (icon_button(806, "canvas_drag.svg", icon_sm, m_undocked ? _L("Dock panel") : _L("Undock panel"),
                         _L("Detach this panel so it can be dragged anywhere over the 3D view, or dock it back beside "
                            "the toolbar.")))
@@ -6334,7 +6355,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     // ---- Texture layers: the active layer as an open card, every other one as a single row ----
     {
         ImGui::AlignTextToFramePadding();
-        heading(image_mode() ? _L("Images") : _L("Texture layers"));
+        heading(_L("Texture layers"));
         if (mv != nullptr) {
             const std::string count = std::to_string(mv->texture_displacement_layers.size()) + " / " +
                                       std::to_string(TEXTURE_DISPLACEMENT_MAX_LAYERS);
@@ -6509,13 +6530,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
             // The three controls nearly every layer needs; everything else waits behind "More settings".
             // Depth and tile size are logarithmic, so both ends of their wide ranges stay usable.
-            // Depth is the one the Image tool has no use for: it is pinned to 0 there, and a slider
-            // that must not be moved is worse than none.
-            if (!image_mode()) {
-                m_preview_params_dirty |= float_row("##depth", _L("Depth"), &layer.depth_mm, 0.01f, 10.f, "%.3f mm", true, card_pad);
-                hover_tip(_u8L("Height of the relief: how far white in the texture lifts the surface, in "
-                               "millimetres. Black does not move it at all, unless Midlevel says otherwise."));
-            }
+            m_preview_params_dirty |= float_row("##depth", _L("Depth"), &layer.depth_mm, 0.01f, 10.f, "%.3f mm", true, card_pad);
+            hover_tip(_u8L("Height of the relief: how far white in the texture lifts the surface, in "
+                           "millimetres. Black does not move it at all, unless Midlevel says otherwise."));
             m_preview_params_dirty |= float_row("##tile_size", _L("Tile size"), &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true, card_pad);
             hover_tip(_u8L("How wide one copy of the texture is on the model. Smaller repeats the pattern "
                            "more often and makes its detail finer; with Tile off, this is the size of the "
@@ -6536,87 +6553,65 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                 }
 
                 // Midlevel: the height that means "don't move". At 0 the surface only ever bulges outwards;
-                // at 0.5 mid-grey is neutral and darker texels cut inwards. Every setting from here to
-                // Smoothing describes relief only, so the Image tool leaves the lot out.
-                if (!image_mode()) {
-                    m_preview_params_dirty |= float_row("##midlevel", _L("Midlevel"), &layer.midlevel, 0.f, 10.f, "%.2f", false, card_pad);
-                    hover_tip(_u8L("Which gray stays where the surface already is. At 0 the texture only pushes "
-                                   "outwards; at 0.5 mid-gray stays put, so darker grays cut in and lighter ones "
-                                   "still push out - one image both embosses and engraves.\n\n"
-                                   "What cuts in has to fit: inside a sharp corner or through a thin wall, a deep "
-                                   "cut can pass through the other side."));
-                    if (layer.midlevel > 0.f && layer.depth_mm > 1.f) {
-                        ImGui::PushTextWrapPos(content_rx - card_pad);
-                        m_imgui->warning_text(_L("Deep inward displacement may self-intersect."));
-                        ImGui::PopTextWrapPos();
-                    }
+                // at 0.5 mid-grey is neutral and darker texels cut inwards.
+                m_preview_params_dirty |= float_row("##midlevel", _L("Midlevel"), &layer.midlevel, 0.f, 10.f, "%.2f", false, card_pad);
+                hover_tip(_u8L("Which gray stays where the surface already is. At 0 the texture only pushes "
+                               "outwards; at 0.5 mid-gray stays put, so darker grays cut in and lighter ones "
+                               "still push out - one image both embosses and engraves.\n\n"
+                               "What cuts in has to fit: inside a sharp corner or through a thin wall, a deep "
+                               "cut can pass through the other side."));
+                if (layer.midlevel > 0.f && layer.depth_mm > 1.f) {
+                    ImGui::PushTextWrapPos(content_rx - card_pad);
+                    m_imgui->warning_text(_L("Deep inward displacement may self-intersect."));
+                    ImGui::PopTextWrapPos();
                 }
 
-                // Blurs the image itself, so it is as much a colour control as a relief one - the Image
-                // tool keeps it for exactly that.
                 m_preview_params_dirty |= float_row("##smoothing", _L("Smoothing"), &layer.smoothing, 0.f, 1.f, "%.2f", false, card_pad);
                 hover_tip(_u8L("Blurs the image before it is used, which rounds off hard steps and removes "
                                "speckle from a noisy photo. Raise it if the relief looks harsh or grainy; it "
                                "costs fine detail."));
 
-                if (!image_mode()) {
-                    // Edge fade: the relief flattens toward the boundary of the painted area.
-                    m_preview_params_dirty |= m_imgui->bbl_checkbox(_L("Edge fade") + "##edge_smoothing", layer.edge_smoothing);
-                    hover_tip(_u8L("Flattens the relief as it approaches the edge of the painted area, so it "
-                                   "blends into the bare surface instead of stopping at a step."));
-                    ImGui::SameLine();
-                    m_imgui->disabled_begin(!layer.edge_smoothing);
-                    ImGui::SetNextItemWidth(-card_pad);
-                    m_preview_params_dirty |= ImGui::SliderFloat("##edge_amount", &layer.edge_smoothing_amount, 0.02f, 1.f, "%.2f",
-                                                                 ImGuiSliderFlags_AlwaysClamp);
-                    m_imgui->disabled_end();
-                    hover_tip(_u8L("How far in the fade reaches, as a share of the painted area. Small values "
-                                   "soften a narrow band at the edge; 1 flattens almost all of it."));
-                }
+                // Edge fade: the relief flattens toward the boundary of the painted area.
+                m_preview_params_dirty |= m_imgui->bbl_checkbox(_L("Edge fade") + "##edge_smoothing", layer.edge_smoothing);
+                hover_tip(_u8L("Flattens the relief as it approaches the edge of the painted area, so it "
+                               "blends into the bare surface instead of stopping at a step."));
+                ImGui::SameLine();
+                m_imgui->disabled_begin(!layer.edge_smoothing);
+                ImGui::SetNextItemWidth(-card_pad);
+                m_preview_params_dirty |= ImGui::SliderFloat("##edge_amount", &layer.edge_smoothing_amount, 0.02f, 1.f, "%.2f",
+                                                             ImGuiSliderFlags_AlwaysClamp);
+                m_imgui->disabled_end();
+                hover_tip(_u8L("How far in the fade reaches, as a share of the painted area. Small values "
+                               "soften a narrow band at the edge; 1 flattens almost all of it."));
 
                 // Invert and Colours share a row.
                 {
                     const float x0 = ImGui::GetCursorPosX();
-                    if (!image_mode()) {
-                        m_preview_params_dirty |= m_imgui->bbl_checkbox(_L("Invert"), layer.invert);
-                        hover_tip(_u8L("Turns the relief inside out: what stood out is cut in, and the other way "
-                                       "round. The same as using a negative of the image."));
-                        ImGui::SameLine();
-                        ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + 0.5f * (ImGui::GetWindowContentRegionMax().x - card_pad - x0)));
-                    }
+                    m_preview_params_dirty |= m_imgui->bbl_checkbox(_L("Invert"), layer.invert);
+                    hover_tip(_u8L("Turns the relief inside out: what stood out is cut in, and the other way "
+                                   "round. The same as using a negative of the image."));
+                    ImGui::SameLine();
+                    ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + 0.5f * (ImGui::GetWindowContentRegionMax().x - card_pad - x0)));
 
                     // Only offered for a texture that actually has colour - the shipped library is grayscale,
                     // and a checkbox that silently does nothing on nine textures out of ten is worse than no
                     // checkbox. Disabled rather than hidden so it is clear the feature exists and what it wants.
-                    //
-                    // In the Image tool colour is not a choice at all - it is the only thing the bake produces -
-                    // so the checkbox gives way to a warning on the one case that cannot work: a picture with no
-                    // colour in it, which would bake to nothing.
                     const bool has_color     = decode_height_texture(layer).has_color();
-                    const bool color_enabled = image_mode() ? has_color : (layer.color_enabled && has_color);
-                    if (image_mode()) {
-                        if (!has_color) {
-                            ImGui::PushTextWrapPos(content_rx - card_pad);
-                            m_imgui->warning_text(_L("This image is grayscale - pick one with colors in it."));
-                            ImGui::PopTextWrapPos();
-                        }
-                    } else {
-                        bool enable = color_enabled;
-                        m_imgui->disabled_begin(!has_color);
-                        if (m_imgui->bbl_checkbox(_L("Colors"), enable)) {
-                            layer.color_enabled    = enable;
-                            m_preview_params_dirty = true;
-                        }
-                        m_imgui->disabled_end();
-                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                            m_imgui->tooltip(has_color ?
-                                                 _u8L("Prints the painted area in the texture's colors as well as its "
-                                                      "relief. Each color is matched to the nearest of your loaded "
-                                                      "filaments; anything you did not paint keeps the object's own.") :
-                                                 _u8L("This texture is a grayscale height map, so it has no colors to "
-                                                      "apply. Import a color image to use this."),
-                                             wrap_w);
+                    bool       color_enabled = layer.color_enabled && has_color;
+                    m_imgui->disabled_begin(!has_color);
+                    if (m_imgui->bbl_checkbox(_L("Colors"), color_enabled)) {
+                        layer.color_enabled    = color_enabled;
+                        m_preview_params_dirty = true;
                     }
+                    m_imgui->disabled_end();
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        m_imgui->tooltip(has_color ?
+                                             _u8L("Prints the painted area in the texture's colors as well as its "
+                                                  "relief. Each color is matched to the nearest of your loaded "
+                                                  "filaments; anything you did not paint keeps the object's own.") :
+                                             _u8L("This texture is a grayscale height map, so it has no colors to "
+                                                  "apply. Import a color image to use this."),
+                                         wrap_w);
 
                     // The rest of colour belongs to the whole stack, not to this layer, so it only appears once -
                     // under whichever layer turned colour on.
@@ -6804,51 +6799,40 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     }
                 }
 
-                // Blend, and placement on the model. Blend combines *displacements*, so with every
-                // layer pinned to zero depth it has nothing to combine - the Image tool shows only the
-                // placement handle. Colour does not blend either way: a higher layer simply paints over
-                // a lower one where they overlap.
+                // Blend, and placement on the model.
                 {
                     const float x0 = ImGui::GetCursorPosX();
-                    if (!image_mode()) {
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::TextDisabled("%s", _u8L("Blend").c_str());
-                        ImGui::SameLine();
-                        ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
-                        const std::string blend_add      = _u8L_CONTEXT("Add", "Texture Displacement");
-                        const std::string blend_subtract = _u8L_CONTEXT("Subtract", "Texture Displacement");
-                        const std::string blend_multiply = _u8L_CONTEXT("Multiply", "Texture Displacement");
-                        const std::string blend_divide   = _u8L("Divide");
-                        const char *blend_items[] = { blend_add.c_str(), blend_subtract.c_str(), blend_multiply.c_str(), blend_divide.c_str() };
-                        // The first layer has nothing before it to combine with - build_texture_displacement() makes it
-                        // add regardless - so its combo shows Add and cannot be changed.
-                        const bool base_layer = li == 0;
-                        int        blend_mode = base_layer ? 0 : static_cast<int>(layer.blend_mode);
-                        ImGui::SetNextItemWidth(-(card_pad + gap_s + icon_sm));
-                        m_imgui->disabled_begin(base_layer);
-                        if (scoped_combo("##blend_mode", &blend_mode, blend_items, IM_ARRAYSIZE(blend_items)) && !base_layer) {
-                            layer.blend_mode       = static_cast<TextureBlendMode>(blend_mode);
-                            m_preview_params_dirty = true;
-                        }
-                        m_imgui->disabled_end();
-                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                            m_imgui->tooltip(base_layer ?
-                                                 _u8L("The base layer has nothing beneath it to combine with, so it always adds.") :
-                                                 _u8L("What this layer does where it overlaps the ones below. Add and "
-                                                      "Subtract pile relief on or carve it away. Multiply and Divide scale "
-                                                      "what is underneath, which turns this layer into a mask over it - "
-                                                      "there, Depth acts as a strength, and 1 mm leaves white areas "
-                                                      "untouched."),
-                                             wrap_w);
-
-                        ImGui::SameLine(0.f, gap_s);
-                    } else {
-                        // On its own, the handle toggle needs the label the Blend row would have carried.
-                        ImGui::AlignTextToFramePadding();
-                        ImGui::TextDisabled("%s", _u8L("Placement").c_str());
-                        ImGui::SameLine();
-                        ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::TextDisabled("%s", _u8L("Blend").c_str());
+                    ImGui::SameLine();
+                    ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
+                    const std::string blend_add      = _u8L_CONTEXT("Add", "Texture Displacement");
+                    const std::string blend_subtract = _u8L_CONTEXT("Subtract", "Texture Displacement");
+                    const std::string blend_multiply = _u8L_CONTEXT("Multiply", "Texture Displacement");
+                    const std::string blend_divide   = _u8L("Divide");
+                    const char *blend_items[] = { blend_add.c_str(), blend_subtract.c_str(), blend_multiply.c_str(), blend_divide.c_str() };
+                    // The first layer has nothing before it to combine with - build_texture_displacement() makes it
+                    // add regardless - so its combo shows Add and cannot be changed.
+                    const bool base_layer = li == 0;
+                    int        blend_mode = base_layer ? 0 : static_cast<int>(layer.blend_mode);
+                    ImGui::SetNextItemWidth(-(card_pad + gap_s + icon_sm));
+                    m_imgui->disabled_begin(base_layer);
+                    if (scoped_combo("##blend_mode", &blend_mode, blend_items, IM_ARRAYSIZE(blend_items)) && !base_layer) {
+                        layer.blend_mode       = static_cast<TextureBlendMode>(blend_mode);
+                        m_preview_params_dirty = true;
                     }
+                    m_imgui->disabled_end();
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        m_imgui->tooltip(base_layer ?
+                                             _u8L("The base layer has nothing beneath it to combine with, so it always adds.") :
+                                             _u8L("What this layer does where it overlaps the ones below. Add and "
+                                                  "Subtract pile relief on or carve it away. Multiply and Divide scale "
+                                                  "what is underneath, which turns this layer into a mask over it - "
+                                                  "there, Depth acts as a strength, and 1 mm leaves white areas "
+                                                  "untouched."),
+                                         wrap_w);
+
+                    ImGui::SameLine(0.f, gap_s);
                     if (icon_toggle(842, "texture_displacement_adjust.svg", m_adjust_texture_mode, icon_sm, _L("Adjust placement"),
                                     _L("Adjust placement - drag the handle on the model to move the texture"))) {
                         if (!m_adjust_texture_mode) {
@@ -6942,13 +6926,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             hover_tip(_u8L("Pick a different image for this layer. The paint, depth and tiling stay as they are."));
             ImGui::SameLine();
 
-            // Depth is what a closed relief layer is summarised by; with it pinned to zero that says
-            // nothing, so the Image tool reports the one state a closed row still has.
             char depth_text[32];
             std::snprintf(depth_text, sizeof(depth_text), "%.3f mm", layer.depth_mm);
-            const std::string summary    = !painted            ? _u8L("not painted") :
-                                           image_mode()        ? _u8L("painted") :
-                                                                 std::string(depth_text);
+            const std::string summary    = painted ? std::string(depth_text) : _u8L("not painted");
             const float       sum_w      = ImGui::CalcTextSize(summary.c_str()).x;
             const float       right_edge = ImGui::GetWindowContentRegionMax().x - inner;
             const float       name_w     = std::max(0.f, right_edge - ImGui::GetCursorPosX() - 2.f * gap_s - sum_w - frame_h);
@@ -7002,9 +6982,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
             char depth_text[32];
             std::snprintf(depth_text, sizeof(depth_text), "%.3f mm", l.depth_mm);
-            const std::string summary = !slot_painted(l.slot) ? _u8L("not painted") :
-                                        image_mode()          ? _u8L("painted") :
-                                                                std::string(depth_text);
+            const std::string summary = slot_painted(l.slot) ? std::string(depth_text) : _u8L("not painted");
             const float       sum_w   = ImGui::CalcTextSize(summary.c_str()).x;
             const float       text_y  = mn.y + 0.5f * (row_h - ImGui::GetFontSize());
             fg->AddText(ImVec2(mx.x - inner - sum_w, text_y), ImGui::GetColorU32(ImGuiCol_TextDisabled), summary.c_str());
@@ -7015,9 +6993,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
     if (mv != nullptr) {
         const bool        full  = mv->texture_displacement_layers.size() >= TEXTURE_DISPLACEMENT_MAX_LAYERS;
-        const std::string label = full         ? Slic3r::format(_u8L("All %1% layers used"), TEXTURE_DISPLACEMENT_MAX_LAYERS) :
-                                  image_mode() ? "+  " + _u8L("Add image") :
-                                                 "+  " + _u8L("Add layer");
+        const std::string label = full ? Slic3r::format(_u8L("All %1% layers used"), TEXTURE_DISPLACEMENT_MAX_LAYERS) :
+                                         "+  " + _u8L("Add layer");
         m_imgui->disabled_begin(busy || full);
         if (ImGui::Button((label + "##add_layer").c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0.f)))
             add_texture_layer();
@@ -7407,14 +7384,6 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                 hover_tip(Slic3r::format(_u8L("Chosen from the size of the model: %1$.2f mm triangles, "
                                               "budget %2% k. Untick Auto to set them yourself."),
                                           rec.edge_mm, rec.budget_k));
-            else if (image_mode())
-                // Same number, different thing to look at: with no relief to carry, the mesh under the
-                // paint is only ever as fine as the color edges printed along it need it to be.
-                hover_tip(_u8L("How fine the mesh is made under the paint, in millimetres. Each triangle "
-                               "prints in one filament, so this is how sharp an edge between two colors "
-                               "can come out. Smaller costs triangles fast: halving it needs four times "
-                               "as many, and once they no longer fit the budget the bake simplifies back "
-                               "down and the sharpness goes with it."));
             else
                 hover_tip(_u8L("How fine the mesh is made under the paint, in millimetres. It has to be "
                                "smaller than the detail you want out of the texture - a 0.5 mm groove needs "
@@ -7495,11 +7464,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
         ImGui::SameLine(x0 + panel_w - button_w * 2 - style.ItemSpacing.x);
 
-        // Colour is the only thing an image bake produces, so with no colouring layer there would be
-        // nothing to show for it - and it is not a cheap no-op: the bake would still refine the painted
-        // area and replace the mesh with the result.
-        const bool        no_colors  = image_mode() && mv != nullptr && !any_layer_colors(*mv);
-        const bool        can_bake   = !busy && mv != nullptr && mv->is_texture_displacement_painted() && !no_colors;
+        const bool        can_bake   = !busy && mv != nullptr && mv->is_texture_displacement_painted();
         const std::string bake_label = m_prepare_in_progress ? _u8L("Preparing...") :
                                        m_bake_in_progress    ? _u8L("Baking...") :
                                                                into_u8(m_desc.at("bake"));
@@ -7524,13 +7489,6 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                                           "strokes on the model mark seams instead of painting - turn "
                                                           "it off in the pane to paint.") :
                                                      _u8L("Nothing is painted yet.")) :
-                             no_colors ?
-                                 _u8L("None of the images have colors in them, so there is nothing to print. Pick a "
-                                      "color picture.") :
-                             image_mode() ?
-                                 _u8L("Prints the painted area in the picture's colors. Each color is matched to the "
-                                      "nearest of your loaded filaments; the surface itself is left exactly where it "
-                                      "is, and anything you did not paint keeps the object's own color.") :
                              pro_mode() ?
                                  _u8L("Turn the painted height maps into real geometry, by moving the vertices that are "
                                       "already there. Use Subdivide first if the mesh is too coarse to show the detail.") :

@@ -293,6 +293,16 @@ struct TextureDisplacementLayer
     // for the boundary to be drawn on.
     bool color_enabled = false;
 
+    // Colour correction, applied to the image's RGB before it is matched against the filaments and
+    // before the preview quantizes it. Never to the height: the relief is what the grayscale says,
+    // and a brightness slider has no business moving geometry. The defaults below are the identity,
+    // so a layer that never meets the Image tool behaves exactly as it did.
+    float brightness   = 0.f;  // -1 .. 1, added last, after contrast
+    float contrast     = 0.f;  // -1 .. 1, pivoted on mid grey; -1 flattens to grey, 1 doubles the slope
+    float saturation   = 1.f;  //  0 .. 2, 1 leaves it alone, 0 is grayscale
+    float gamma        = 1.f;  // 0.2 .. 5, 1 leaves it alone; above 1 lifts the midtones
+    bool  color_invert = false; // negative of the colour, as opposed to `invert` which flips relief
+
     bool empty() const { return !image_data || image_data->empty(); }
 
     template<class Archive> void save(Archive &ar) const
@@ -302,7 +312,8 @@ struct TextureDisplacementLayer
            static_cast<int>(tile_method), static_cast<int>(projection_method), lscm_seam_angle_deg, islands,
            static_cast<int>(blend_mode), midlevel, island_padding_mm, lscm_seam_edges, view_project_right,
            view_project_up, smoothing, edge_smoothing, edge_smoothing_amount, auto_connect_islands, island_groups,
-           lscm_uv_overrides, view_project_projective, view_project_matrix, color_enabled);
+           lscm_uv_overrides, view_project_projective, view_project_matrix, color_enabled, brightness,
+           contrast, saturation, gamma, color_invert);
     }
     template<class Archive> void load(Archive &ar)
     {
@@ -314,7 +325,7 @@ struct TextureDisplacementLayer
            tile_method_int, projection_method_int, lscm_seam_angle_deg, islands, blend_mode_int, midlevel,
            island_padding_mm, lscm_seam_edges, view_project_right, view_project_up, smoothing, edge_smoothing,
            edge_smoothing_amount, auto_connect_islands, island_groups, lscm_uv_overrides, view_project_projective,
-           view_project_matrix, color_enabled);
+           view_project_matrix, color_enabled, brightness, contrast, saturation, gamma, color_invert);
         image_data        = blob.empty() ? nullptr : std::make_shared<std::vector<unsigned char>>(blob.begin(), blob.end());
         tile_method       = static_cast<TextureTileMethod>(tile_method_int);
         projection_method = static_cast<TextureProjectionMethod>(projection_method_int);
@@ -488,6 +499,19 @@ DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer
 // decode_height_texture(layer).has_color(), answered from the decode cache rather than from a copy of the
 // texture - cheap enough to ask every frame. Smoothing does not change it, so the raw decode is what is read.
 bool height_texture_has_color(const TextureDisplacementLayer &layer);
+
+// True when `layer`'s colour correction is anything other than the identity, so callers can skip
+// both the work and the cache invalidation it would otherwise force.
+bool has_color_adjustments(const TextureDisplacementLayer &layer);
+
+// Applies that correction to an already decoded image, in place, to `rgb` only. Order is gamma,
+// contrast, brightness, saturation, invert, each clamped back into range - the order a photo editor
+// applies them in, and the one that keeps contrast pivoted on mid grey rather than on a brightness
+// the slider has already moved.
+//
+// Deliberately not folded into decode_height_texture(): that result is cached per image, shared by
+// every layer using the same file, and keyed on the image bytes alone.
+void apply_color_adjustments(DecodedHeightTexture &tex, const TextureDisplacementLayer &layer);
 
 // Maps a linear RGB colour in [0, 1] to an index into the caller's palette, or -1 for "no colour".
 //
