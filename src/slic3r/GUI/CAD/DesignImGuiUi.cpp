@@ -3,7 +3,16 @@
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/3DScene.hpp"   // glsafe
+#include <glad/gl.h>
+#include <nanosvg/nanosvg.h>
+#include <nanosvg/nanosvgrast.h>
+#include <boost/nowide/fstream.hpp>
+#include <cctype>
+#include <iterator>
+#include <map>
 #include "libslic3r/libslic3r.h"   // SLIC3R_APP_KEY
+#include "libslic3r/Utils.hpp"    // Slic3r::var
 #include <wx/intl.h>
 
 #include <imgui/imgui.h>
@@ -234,6 +243,92 @@ void DesignTreeOverlay::render(ImGuiWrapper& imgui, float scale, float inset_lef
 namespace {
 std::string tr_group(const std::string& s) { return std::string(wxGetTranslation(wxString::FromUTF8(s), SLIC3R_APP_KEY).ToUTF8()); }
 std::string tr_verb(const OfferVerb& v)     { return std::string(I18N::translate(v.name, "Design").ToUTF8()); }
+
+// ---- ribbon icons -------------------------------------------------------------------------------
+// FreeCAD's LGPL icons (resources/images/fc_<verb id>.svg, imported by scripts/CAD/import_freecad_icons.py),
+// else the verb's own design_* glyph, else none (text-only button). Rasterised once per theme at 64 px
+// and drawn down-scaled. FreeCAD draws on a light ground: near-neutral dark strokes (and, on a light
+// UI, near-white ones) are re-tinted at load so an outline never disappears into the ribbon.
+static bool hex_rgb(const std::string& s, size_t i, int& r, int& g, int& b)
+{
+    if (i + 7 > s.size() || s[i] != '#') return false;
+    for (size_t k = 1; k <= 6; ++k) if (!std::isxdigit(static_cast<unsigned char>(s[i + k]))) return false;
+    if (i + 7 < s.size() && std::isxdigit(static_cast<unsigned char>(s[i + 7]))) return false;   // longer token
+    r = std::stoi(s.substr(i + 1, 2), nullptr, 16); g = std::stoi(s.substr(i + 3, 2), nullptr, 16); b = std::stoi(s.substr(i + 5, 2), nullptr, 16);
+    return true;
+}
+static void retint_neutrals(std::string& s, bool dark)
+{
+    for (size_t i = 0; i < s.size(); ++i) {
+        int r, g, b;
+        if (s[i] != '#' || !hex_rgb(s, i, r, g, b)) continue;
+        const int mx = std::max({r, g, b}), mn = std::min({r, g, b});
+        const bool  neutral = (mx - mn) <= 40;                      // grey-ish, not a hue
+        const float lum     = (0.299f * r + 0.587f * g + 0.114f * b) / 255.f;
+        const char* to      = nullptr;
+        if (dark && neutral && lum < 0.30f)       to = "#d3d7cf";   // Tango aluminium 2
+        else if (!dark && neutral && lum > 0.93f) to = "#555753";   // Tango aluminium 5
+        if (to) s.replace(i, 7, to);
+    }
+}
+static ImTextureID ribbon_icon_texture(const OfferVerb& v)
+{
+    static std::map<std::string, ImTextureID> cache;
+    static bool cache_dark = false;
+    const bool dark = GUI_App::dark_mode();
+    if (dark != cache_dark) {   // theme flipped: the tint is baked into the raster
+        for (auto& kv : cache) if (kv.second) { GLuint t = (GLuint)(intptr_t)kv.second; glsafe(::glDeleteTextures(1, &t)); }
+        cache.clear(); cache_dark = dark;
+    }
+    const std::string key = v.id;
+    if (auto it = cache.find(key); it != cache.end()) return it->second;
+
+    ImTextureID tex = nullptr;
+    std::vector<std::string> names = { std::string("fc_") + v.id };
+    if (v.icon) names.push_back(v.icon);
+    for (const std::string& n : names) {
+        const std::string path = Slic3r::var(n + ".svg");
+        boost::nowide::ifstream f(path, std::ios::binary);
+        if (!f) continue;
+        std::string svg((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        if (n.rfind("fc_", 0) == 0) retint_neutrals(svg, dark);
+        else if (dark) { size_t p = 0; while ((p = svg.find("\"#808080\"", p)) != std::string::npos) svg.replace(p, 9, "\"#d0d0d0\""); }
+        NSVGimage* img = nsvgParse(svg.data(), "px", 96.f);   // parses in place: svg is our own copy
+        if (!img) continue;
+        constexpr int N = 64;
+        const float sc = float(N) / std::max(img->width, img->height);
+        std::vector<unsigned char> px(size_t(N) * N * 4, 0);
+        if (NSVGrasterizer* rast = nsvgCreateRasterizer()) {
+            const float ox = (N - img->width * sc) * 0.5f, oy = (N - img->height * sc) * 0.5f;   // centre non-square art
+            nsvgRasterize(rast, img, ox, oy, sc, px.data(), N, N, N * 4);
+            nsvgDeleteRasterizer(rast);
+            GLint  last = 0;
+            GLuint id   = 0;
+            glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last));
+            glsafe(::glGenTextures(1, &id));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, id));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+            glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+            glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+            glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, N, N, 0, GL_RGBA, GL_UNSIGNED_BYTE, px.data()));
+            glsafe(::glBindTexture(GL_TEXTURE_2D, last));
+            tex = (ImTextureID)(intptr_t)id;
+        }
+        nsvgDelete(img);
+        if (tex) break;
+    }
+    cache[key] = tex;   // nullptr cached too: no icon for this verb, don't hit the disk every frame
+    return tex;
+}
+// Label clipped to `maxw` with a trailing ".." so a long verb name cannot widen its button column.
+static std::string fit_label(const std::string& s, float maxw)
+{
+    if (ImGui::CalcTextSize(s.c_str()).x <= maxw) return s;
+    std::string t = s;
+    while (t.size() > 2 && ImGui::CalcTextSize((t + "..").c_str()).x > maxw) t.pop_back();
+    return t + "..";
+}
+
 }
 
 void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_left, float inset_top)
@@ -287,13 +382,33 @@ void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_l
                         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
                     }
                     const std::string label = tr_verb(v);
-                    const bool clicked = as_menu_item ? ImGui::MenuItem(label.c_str()) : ImGui::Button(label.c_str());
+                    const ImTextureID tex   = ribbon_icon_texture(v);
+                    bool clicked;
+                    if (as_menu_item) {
+                        if (tex) { ImGui::Image(tex, ImVec2(16.f * em, 16.f * em)); ImGui::SameLine(); }
+                        clicked = ImGui::MenuItem(label.c_str());
+                    } else if (tex) {   // icon over a short label, the way FreeCAD / Onshape lay a toolbar out
+                        const float isz = 32.f * em;
+                        ImGui::BeginGroup();
+                        ImGui::PushID(v.id);
+                        clicked = ImGui::ImageButton(tex, ImVec2(isz, isz));
+                        ImGui::PopID();
+                        const float bw  = isz + 2.f * ImGui::GetStyle().FramePadding.x;
+                        const std::string txt = fit_label(label, bw + 34.f * em);
+                        const float tw  = ImGui::CalcTextSize(txt.c_str()).x;
+                        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + std::max(0.f, (bw - tw) * 0.5f));
+                        ImGui::TextUnformatted(txt.c_str());
+                        ImGui::EndGroup();
+                    } else {
+                        clicked = ImGui::Button(label.c_str());
+                    }
                     if (!usable) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
                     if (!usable && ImGui::IsItemHovered()) {
                         const std::string why = !st.why.empty() ? st.why : (v.refusal ? tr_group(v.refusal) : std::string());
                         if (!why.empty()) ImGui::SetTooltip("%s", why.c_str());
-                    } else if (usable && ImGui::IsItemHovered() && v.hint) {
-                        ImGui::SetTooltip("%s", tr_group(v.hint).c_str());
+                    } else if (usable && ImGui::IsItemHovered()) {
+                        if (v.hint) ImGui::SetTooltip("%s\n%s", label.c_str(), tr_group(v.hint).c_str());
+                        else        ImGui::SetTooltip("%s", label.c_str());
                     }
                     return clicked && usable;
                 };
@@ -303,6 +418,8 @@ void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_l
                 }
                 if (g.verbs.size() > 1) {
                     ImGui::SameLine(0.f, 1.f * em);
+                    if (ribbon_icon_texture(*main))
+                        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + std::max(0.f, (32.f * em - ImGui::GetFrameHeight()) * 0.5f));
                     if (ImGui::ArrowButton("##dd", ImGuiDir_Down)) ImGui::OpenPopup("##variants");
                     if (ImGui::BeginPopup("##variants")) {   // Esc and a click away close it; nothing is armed
                         for (const OfferVerb* v : g.verbs)
