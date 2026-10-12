@@ -691,6 +691,10 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
                            "actually made of, not an even split of the range. Off leaves it alone."));
         }
 
+        if (m_imgui->bbl_checkbox(_L("Negative"), layer->color_invert))
+            m_preview_params_dirty = true;
+        hover_tip(_u8L("Prints the picture inverted, light for dark and each color for its opposite."));
+
         } // Color
 
         ImGui::Separator();
@@ -763,11 +767,10 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
 
         } // Background
 
-        if (m_imgui->bbl_checkbox(_L("Negative"), layer->color_invert))
-            m_preview_params_dirty = true;
-        hover_tip(_u8L("Prints the picture inverted, light for dark and each color for its opposite."));
-        ImGui::SameLine();
-        if (m_imgui->button(_u8L("Reset"))) {
+        // Outside both sections, because it clears the colour corrections and the background key
+        // alike, and a reset that lives inside one of them would look like it only reached that far.
+        ImGui::Separator();
+        if (m_imgui->button(_u8L("Reset all"))) {
             layer->brightness      = 0.f;
             layer->contrast        = 0.f;
             layer->saturation      = 1.f;
@@ -783,7 +786,8 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             layer->color_invert    = false;
             m_preview_params_dirty = true;
         }
-        hover_tip(_u8L("Puts every correction above back to where it started, leaving the picture as it was loaded."));
+        hover_tip(_u8L("Puts every correction and the background back to where they started, leaving the "
+                       "picture as it was loaded. Where you placed it and how big it is are not touched."));
     }
 
     // The library popup lives in this window's scope, where its open request and the popup itself
