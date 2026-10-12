@@ -6508,28 +6508,25 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
             // The three controls nearly every layer needs; everything else waits behind "More settings".
             // Depth and tile size are logarithmic, so both ends of their wide ranges stay usable.
-            m_preview_params_dirty |= float_row("##depth", _L("Depth"), &layer.depth_mm, 0.01f, 10.f, "%.3f mm", true, card_pad);
-            hover_tip(_u8L("Height of the relief: how far white in the texture lifts the surface, in "
-                           "millimetres. Black does not move it at all, unless Midlevel says otherwise."));
+            m_preview_params_dirty |= float_row("##depth", _L("Depth"), &layer.depth_mm, 0.01f, 10.f, "%.3f mm", true, card_pad,
+                                                _L("Height of the relief: how far white in the texture lifts the surface, in "
+                                                   "millimetres. Black does not move it at all, unless Midlevel says otherwise."));
             // Mapped by the model's own UV layout there is no millimetre scale to set: the layout is the
-            // placement (see TextureProjectionMethod::ModelUV), so the slider would move nothing.
+            // placement (see TextureProjectionMethod::ModelUV), so the slider would move nothing. The row
+            // states why rather than hiding: float_row()'s tooltip is shown for a disabled slider too.
             const bool tile_size_na = layer.projection_method == TextureProjectionMethod::ModelUV;
             m_imgui->disabled_begin(tile_size_na);
-            m_preview_params_dirty |= float_row("##tile_size", _L("Tile size"), &layer.tiling_scale, 0.2f, 200.f,
-                                                "%.2f mm", true, card_pad);
+            m_preview_params_dirty |= float_row("##tile_size", _L("Tile size"), &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true, card_pad,
+                                                tile_size_na ?
+                                                    _L("Mapped by the model's own UV layout, which is already the placement - one "
+                                                       "copy of the texture covers it exactly, so there is no tile size to set.") :
+                                                    _L("How wide one copy of the texture is on the model. Smaller repeats the pattern "
+                                                       "more often and makes its detail finer; with Tile off, this is the size of the "
+                                                       "single copy."));
             m_imgui->disabled_end();
-            // AllowWhenDisabled, or the one case that needs explaining is the one that cannot be hovered.
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                m_imgui->tooltip(tile_size_na ?
-                                     _u8L("Mapped by the model's own UV layout, which is already the placement - one "
-                                          "copy of the texture covers it exactly, so there is no tile size to set.") :
-                                     _u8L("How wide one copy of the texture is on the model. Smaller repeats the "
-                                          "pattern more often and makes its detail finer; with Tile off, this is the "
-                                          "size of the single copy."),
-                                 wrap_w);
-            m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f, "%.0f°", false, card_pad);
-            hover_tip(_u8L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
-                           "edge of the model."));
+            m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f, "%.0f°", false, card_pad,
+                                                _L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
+                                                   "edge of the model."));
 
             if (m_layer_expanded[size_t(layer.slot)]) {
                 {
