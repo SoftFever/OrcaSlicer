@@ -153,11 +153,11 @@ std::vector<std::pair<size_t, bool>> chain_segments_greedy_constrained_reversals
 
 				auto entry_pt = [&](size_t k) {
 					bool rev = (mask >> k) & 1;
-					return end_point_func(perm[k], !rev).template cast<double>();
+					return end_point_func(perm[k], !rev).template cast<double>().eval();
 				};
 				auto exit_pt = [&](size_t k) {
 					bool rev = (mask >> k) & 1;
-					return end_point_func(perm[k], rev).template cast<double>();
+					return end_point_func(perm[k], rev).template cast<double>().eval();
 				};
 
 				double cost = 0.;
