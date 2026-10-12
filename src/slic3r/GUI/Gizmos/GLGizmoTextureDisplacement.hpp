@@ -310,6 +310,12 @@ private:
     // Standard is active so what Preview shows is always what Bake will do. Returns true if it actually
     // changed something, so the caller can invalidate the preview.
     bool apply_standard_mode_presets(ModelVolume *mv);
+    // Standard mode's Bake: remesh to an even density, refine where the texture bends, then displace.
+    // The order matters and is the whole reason this is one button - a height map can only move
+    // existing vertices, so the mesh has to be prepared first, and remeshing after painting would drop
+    // the paint if it were not carried across (see prepare_mesh()).
+    void bake_standard();
+
     // Image mode's fixed values, on top of Standard's and pinned the same way (every frame, so the
     // preview cannot disagree with the bake): zero depth on every layer, and colour on wherever the
     // picture has any. Those two are what turn the displacement bake into "put this picture on the
@@ -339,11 +345,6 @@ private:
     bool m_image_sec_place = true;
     bool m_image_sec_color = true;
     bool m_image_sec_bg    = true;
-    // Standard mode's Bake: remesh to an even density, refine where the texture bends, then displace.
-    // The order matters and is the whole reason this is one button - a height map can only move
-    // existing vertices, so the mesh has to be prepared first, and remeshing after painting would drop
-    // the paint if it were not carried across (see prepare_mesh()).
-    void bake_standard();
 
     // Queues one prepare_mesh() run on the job worker and commits its result when it lands. Every
     // mesh-preparation button goes through here - Pro's Remesh, Pro's adaptive Subdivide and Standard's
