@@ -174,6 +174,8 @@ public:
     bool add_imported_regions(const std::vector<std::vector<std::vector<Vec2d>>>& regions);
     void set_tool(Mode mode);                 // switch tool, keep accumulated entities
     void set_construction(bool c) { m_construction = c; }
+    // Face push/pull: the extrude arrow may be dragged past the face into the body (negative depth).
+    void set_extrude_signed(bool on) { m_ex_signed = on; }
     // Grid snap: draw tools land on multiples of `step` (mm) in sketch (u,v). Inference snaps and
     // Shift (the existing "no snapping" modifier) take priority over it.
     void set_grid_snap(bool on, double step) { m_grid_on = on; m_grid_step = step; }
@@ -1086,6 +1088,7 @@ private:
     bool                m_has_cursor{false};
     bool                m_snap_off{false};      // Shift held -> suppress angle snapping
     bool                m_grid_on{false};
+    bool                m_ex_signed{false};     // extrude gizmo depth may be negative (face push/pull)
     double              m_grid_step{1.0};
     InferenceSnap       m_cursor_snap;          // last cursor inference target (for hint render)
     bool                m_cursor_locked{false}; // rubber-band segment is angle-locked

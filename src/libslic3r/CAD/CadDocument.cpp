@@ -68,6 +68,7 @@
 #include <TopAbs_Orientation.hxx>   // outward-normal orientation for face-extrude
 #include <TopoDS.hxx>               // TopoDS::Edge for SurfaceFill
 #include <TopExp_Explorer.hxx>      // is_sheet_shape
+#include <ShapeUpgrade_UnifySameDomain.hxx>   // push/pull: merge the faces a pull leaves coplanar
 #include <gp_Circ.hxx>
 #include <gp_Ax2.hxx>
 #include <gp_Ax3.hxx>
@@ -2610,6 +2611,20 @@ static int solid_count(const TopoDS_Shape& s)
     return n;
 }
 
+// Merge faces and edges that lie on the same surface. A pull leaves the old side faces and the new
+// walls coplanar and split; without this a later fillet or shell sees a seam that is not there.
+static TopoDS_Shape unify_same_domain(const TopoDS_Shape& s)
+{
+    try {
+        ShapeUpgrade_UnifySameDomain u(s, /*edges*/ true, /*faces*/ true, /*concat bsplines*/ true);
+        u.Build();
+        const TopoDS_Shape out = u.Shape();
+        return out.IsNull() ? s : out;
+    } catch (...) {
+        return s;   // a shape OCCT cannot unify is still a valid shape
+    }
+}
+
 // The one place Extrude / Revolve / Sweep / Loft combine their tool with the body (Onshape's New /
 // Add / Remove / Intersect). Four copies of this used to drift independently.
 static void combine_into(BooleanMode mode, TopoDS_Shape& result, bool& have_body, const TopoDS_Shape& tool)
@@ -2749,7 +2764,14 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
         // New / first-of-a-body => result becomes the tool (route_feature sends New extrudes
         // here with an empty result, so a face-extrude New builds a fresh body from the source
         // face in `context` without touching it). Add/Cut/Intersect boolean into `result`.
-        combine_into(f.mode, result, have_body, tool);
+        // Push/pull of a picked face: the SIGN of the distance picks the operation, as in Fusion,
+        // Shapr3D and Plasticity. Out along the normal joins (V + A*d); in cuts (V - A*d). The tool
+        // for a negative distance is already the prism going into the material.
+        BooleanMode eff = f.mode;
+        if (f.extrude_src_face >= 0 && signed_d < 0 && eff == BooleanMode::Add) eff = BooleanMode::Cut;
+        combine_into(eff, result, have_body, tool);
+        if (f.extrude_src_face >= 0 && eff != BooleanMode::New && have_body && !result.IsNull())
+            result = unify_same_domain(result);
         break;
     }
     case CadFeatureType::Revolve: {

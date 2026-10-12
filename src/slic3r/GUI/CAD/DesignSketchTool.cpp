@@ -4972,7 +4972,10 @@ void DesignSketchTool::drag_extrude_arrow(GLCanvas3D& canvas, const wxMouseEvent
     const double a = e.dot(e), b = e.dot(rd), c = rd.dot(rd), dd = e.dot(w0), ee = rd.dot(w0);
     const double denom = a * c - b * b;
     if (std::abs(denom) < 1e-7) return;                        // camera ∥ axis: leave depth as-is
-    const double depth = std::max(0.01, (b * ee - c * dd) / denom);
+    const double raw = (b * ee - c * dd) / denom;
+    // Never exactly 0 (a zero-depth extrude is refused), but a face pull keeps its sign.
+    const double depth = m_ex_signed ? (std::abs(raw) < 0.01 ? (raw < 0 ? -0.01 : 0.01) : raw)
+                                     : std::max(0.01, raw);
     if (which == 1) m_ex_depth2 = depth; else m_ex_depth = depth;
     if (on_extrude_depth_changed) on_extrude_depth_changed(depth, which == 1);
 }
@@ -4984,7 +4987,7 @@ void DesignSketchTool::open_extrude_editor(int which)
     const wxPoint px(m_last_mouse_x, m_last_mouse_y);
     on_inline_edit(px, cur, "",
         [this, which](double v) {
-            const double d = std::max(0.01, v);
+            const double d = m_ex_signed ? (std::abs(v) < 0.01 ? (v < 0 ? -0.01 : 0.01) : v) : std::max(0.01, v);
             if (which == 1) m_ex_depth2 = d; else m_ex_depth = d;
             if (on_extrude_depth_changed) on_extrude_depth_changed(d, which == 1);
         },

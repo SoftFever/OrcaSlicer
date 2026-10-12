@@ -9567,3 +9567,55 @@ TEST_CASE("Ctrl multi-profile: one extrude per picked loop, same mode, all of th
     REQUIRE(doc.bodies.size() == 2);
     CHECK(vol(doc, 0) + vol(doc, 1) == Catch::Approx(2.0 * 10.0 * 10.0 * 5.0).epsilon(1e-6));
 }
+
+// Item 10 (push/pull of a planar face): the sign of the distance picks Join/Cut and the seams merge.
+TEST_CASE("Push/pull of a planar face: out joins (V + A*d), in cuts (V - A*d), faces merge, fillet resolves",
+          "[CadDocument][pushpull]")
+{
+    auto box_with_top = [](CadDocument& doc) {
+        const int base = combine_rect(doc, -10, -10, 10, 10, 0, "Base");
+        doc.add_extrude(base, 10.0, false, BooleanMode::New, "Box");
+        REQUIRE(doc.recompute());
+        const TopoDS_Shape& s = doc.bodies[0].shape;
+        for (int i = 0; i < GeometryEngine::face_count(s); ++i) {
+            const TopoDS_Face f = GeometryEngine::face_by_index(s, i);
+            if (std::abs(GeometryEngine::face_normal_world(f).z()) > 0.9
+                && GeometryEngine::face_centroid_world(f).z() > 5.0)
+                return i;
+        }
+        return -1;
+    };
+    SECTION("pull out") {
+        CadDocument doc;
+        const int top = box_with_top(doc);
+        REQUIRE(top >= 0);
+        doc.add_extrude_face(top, 5.0, false, BooleanMode::Add, "Pull");
+        REQUIRE(doc.recompute());
+        REQUIRE(doc.bodies.size() == 1);
+        CHECK(vol(doc, 0) == Catch::Approx(4000.0 + 400.0 * 5.0).epsilon(1e-6));
+        CHECK(GeometryEngine::face_count(doc.bodies[0].shape) == 6);   // not 10: side faces merged
+    }
+    SECTION("push in") {
+        CadDocument doc;
+        const int top = box_with_top(doc);
+        REQUIRE(top >= 0);
+        doc.add_extrude_face(top, -3.0, false, BooleanMode::Add, "Push");   // negative = into the body
+        REQUIRE(doc.recompute());
+        REQUIRE(doc.bodies.size() == 1);
+        CHECK(vol(doc, 0) == Catch::Approx(4000.0 - 400.0 * 3.0).epsilon(1e-6));
+        CHECK(GeometryEngine::face_count(doc.bodies[0].shape) == 6);
+    }
+    SECTION("a later fillet still resolves on the merged shape") {
+        CadDocument doc;
+        const int top = box_with_top(doc);
+        REQUIRE(top >= 0);
+        doc.add_extrude_face(top, 5.0, false, BooleanMode::Add, "Pull");
+        REQUIRE(doc.recompute());
+        const double before = vol(doc, 0);
+        doc.add_fillet(1.0, 0, "Fillet");
+        const bool ok = doc.recompute();
+        INFO(doc.error);
+        REQUIRE(ok);
+        CHECK(vol(doc, 0) < before);
+    }
+}

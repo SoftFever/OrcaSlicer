@@ -521,6 +521,8 @@ void DesignCanvas::set_sketch_construction(bool c)
     m_sketch_tool.set_construction(c);
 }
 
+void DesignCanvas::set_extrude_signed(bool on) { m_sketch_tool.set_extrude_signed(on); }
+
 void DesignCanvas::set_sketch_grid_snap(bool on, double step)
 {
     m_sketch_tool.set_grid_snap(on, step);

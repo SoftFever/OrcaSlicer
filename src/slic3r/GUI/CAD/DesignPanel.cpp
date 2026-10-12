@@ -11063,6 +11063,7 @@ void DesignPanel::update_extrude_gizmo()
     std::vector<SketchEntity> ents;
     Vec2d centroid(0, 0);
     bool  have = false, have_centroid = false;
+    m_viewport->set_extrude_signed(false);   // only a picked FACE may be pulled both ways
     if (extrude_uses_loop()) {
         plane = m_doc.features[m_extrude_sketch_ref].plane;
         ents  = m_viewport->selected_loop_entities();
@@ -11098,6 +11099,9 @@ void DesignPanel::update_extrude_gizmo()
             plane.origin = c;
             if (n.norm() > 1e-9) plane.normal = n.normalized();
             have = true;
+            // Push/pull: the arrow may go past the face into the body. The sign picks the operation
+            // (out = Join, in = Cut) in the kernel, so the drag needs no mode switch.
+            m_viewport->set_extrude_signed(true);
         }
     }
     if (!have) { m_viewport->clear_extrude_gizmo(); return; }
