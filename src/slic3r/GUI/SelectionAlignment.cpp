@@ -3,6 +3,7 @@
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
 #include "Selection.hpp"
+#include "I18N.hpp"
 
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Model.hpp"
@@ -173,9 +174,13 @@ bool align(GLCanvas3D& canvas, int axis, Mode mode)
     if (!moved)
         return false;
 
-    static const char* const axis_names[] = { "X", "Y", "Z" };
-    static const char* const mode_names[] = { "Min", "Center", "Max" };
-    canvas.do_move(std::string("Align ") + axis_names[axis] + " " + mode_names[static_cast<int>(mode)]);
+    // Marked for translation; the undo history translates the name when the snapshot is taken.
+    static const char* const names[3][3] = {
+        { L("Align X Min"), L("Align X Center"), L("Align X Max") },
+        { L("Align Y Min"), L("Align Y Center"), L("Align Y Max") },
+        { L("Align Z Min"), L("Align Z Center"), L("Align Z Max") },
+    };
+    canvas.do_move(names[axis][static_cast<int>(mode)]);
     return true;
 }
 
@@ -206,8 +211,8 @@ bool distribute(GLCanvas3D& canvas, int axis)
     if (!moved)
         return false;
 
-    static const char* const axis_names[] = { "X", "Y", "Z" };
-    canvas.do_move(std::string("Distribute ") + axis_names[axis]);
+    static const char* const names[3] = { L("Distribute X"), L("Distribute Y"), L("Distribute Z") };
+    canvas.do_move(names[axis]);
     return true;
 }
 

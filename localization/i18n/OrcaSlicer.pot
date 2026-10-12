@@ -27661,3 +27661,96 @@ msgstr ""
 #: resources/data/hints.ini: [hint:Avoid warping]
 msgid "Avoid warping\nDid you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
 msgstr ""
+
+msgid "Align min"
+msgstr ""
+
+msgid "Align center"
+msgstr ""
+
+msgid "Align max"
+msgstr ""
+
+msgid "Distribute"
+msgstr ""
+
+msgid "Select at least three objects or parts to distribute them."
+msgstr ""
+
+msgid "Align/Distribute"
+msgstr ""
+
+msgid "Align or evenly distribute the selected objects or parts"
+msgstr ""
+
+msgid "Distribute left-right"
+msgstr ""
+
+msgid "Distribute front-back"
+msgstr ""
+
+msgid "Distribute top-bottom"
+msgstr ""
+
+msgid "Align left"
+msgstr ""
+
+msgid "Align left-right center"
+msgstr ""
+
+msgid "Align right"
+msgstr ""
+
+msgid "Align front"
+msgstr ""
+
+msgid "Align front-back center"
+msgstr ""
+
+msgid "Align back"
+msgstr ""
+
+msgid "Align bottom"
+msgstr ""
+
+msgid "Align top-bottom center"
+msgstr ""
+
+msgid "Align top"
+msgstr ""
+
+msgid "Align X Min"
+msgstr ""
+
+msgid "Align X Center"
+msgstr ""
+
+msgid "Align X Max"
+msgstr ""
+
+msgid "Align Y Min"
+msgstr ""
+
+msgid "Align Y Center"
+msgstr ""
+
+msgid "Align Y Max"
+msgstr ""
+
+msgid "Align Z Min"
+msgstr ""
+
+msgid "Align Z Center"
+msgstr ""
+
+msgid "Align Z Max"
+msgstr ""
+
+msgid "Distribute X"
+msgstr ""
+
+msgid "Distribute Y"
+msgstr ""
+
+msgid "Distribute Z"
+msgstr ""

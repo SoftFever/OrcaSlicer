@@ -4,6 +4,7 @@
 #include "libslic3r/Model.hpp"
 
 #include "GUI_Factories.hpp"
+#include "SelectionAlignment.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_App.hpp"
 #include "Shortcuts.hpp"
@@ -13,6 +14,7 @@
 
 #include "OptionsGroup.hpp"
 #include "GLCanvas3D.hpp"
+#include <vector>
 #include "Selection.hpp"
 //BBS: add partplate related logic
 #include "PartPlate.hpp"
@@ -980,6 +982,66 @@ void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
         [](wxCommandEvent &) { plater()->fill_bed_with_copies(); }, "", nullptr, []() { return plater()->can_increase_instances(); }, m_parent);
 }
 
+void MenuFactory::append_menu_item_align_distribute(wxMenu* menu)
+{
+    using namespace SelectionAlignment;
+
+    struct Entry { wxString label; int axis; bool distribute; Mode mode; };
+    const std::vector<std::vector<Entry>> groups = {
+        { { _L("Distribute left-right") + " (X)", 0, true, Mode::Center },
+          { _L("Distribute front-back") + " (Y)", 1, true, Mode::Center },
+          { _L("Distribute top-bottom") + " (Z)", 2, true, Mode::Center } },
+        { { _L("Align left") + " (-X)", 0, false, Mode::Min },
+          { _L("Align left-right center") + " (X)", 0, false, Mode::Center },
+          { _L("Align right") + " (+X)", 0, false, Mode::Max } },
+        { { _L("Align front") + " (-Y)", 1, false, Mode::Min },
+          { _L("Align front-back center") + " (Y)", 1, false, Mode::Center },
+          { _L("Align back") + " (+Y)", 1, false, Mode::Max } },
+        { { _L("Align bottom") + " (-Z)", 2, false, Mode::Min },
+          { _L("Align top-bottom center") + " (Z)", 2, false, Mode::Center },
+          { _L("Align top") + " (+Z)", 2, false, Mode::Max } },
+    };
+
+    wxMenu* sub_menu = new wxMenu();
+    bool    first    = true;
+    for (const auto& group : groups) {
+        if (!first)
+            sub_menu->AppendSeparator();
+        first = false;
+        for (const Entry& e : group) {
+            const int  axis       = e.axis;
+            const bool distribute = e.distribute;
+            const Mode mode       = e.mode;
+            append_menu_item(
+                sub_menu, wxID_ANY, e.label, "",
+                [axis, distribute, mode](wxCommandEvent&) {
+                    if (GLCanvas3D* canvas = plater()->get_current_canvas3D()) {
+                        if (distribute)
+                            SelectionAlignment::distribute(*canvas, axis);
+                        else
+                            SelectionAlignment::align(*canvas, axis, mode);
+                    }
+                },
+                "", menu,
+                [axis, distribute]() {
+                    GLCanvas3D* canvas = plater()->get_current_canvas3D();
+                    if (canvas == nullptr)
+                        return false;
+                    return distribute ? SelectionAlignment::can_distribute(canvas->get_selection(), axis) :
+                                        SelectionAlignment::can_align(canvas->get_selection(), axis);
+                },
+                m_parent);
+        }
+    }
+
+    append_submenu(menu, sub_menu, wxID_ANY, _L("Align/Distribute"), _L("Align or evenly distribute the selected objects or parts"), "",
+        []() {
+            GLCanvas3D* canvas = plater()->get_current_canvas3D();
+            return canvas != nullptr && SelectionAlignment::can_align(canvas->get_selection(), 0);
+        },
+        m_parent);
+}
+
 wxMenuItem* MenuFactory::append_menu_item_printable(wxMenu* menu)
 {
     // BBS: to be checked
@@ -1752,6 +1814,7 @@ void MenuFactory::create_part_menu()
     append_menu_item_export_drc(menu);
     append_menu_item_fix_through_cgal(menu);
     append_menu_items_mirror(menu);
+    append_menu_item_align_distribute(menu);
     append_menu_item_merge_parts_to_single_part(menu);
 
     append_menu_item(menu, wxID_ANY, _L("Split"), _L("Split the selected object into multiple parts"),
@@ -2127,6 +2190,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         }
         append_menu_item_center(menu);
         append_menu_item_drop(menu);
+        append_menu_item_align_distribute(menu);
         append_menu_item_fix_through_cgal(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -2152,6 +2216,7 @@ wxMenu* MenuFactory::multi_selection_menu()
     else {
         append_menu_item_center(menu);
         append_menu_item_drop(menu);
+        append_menu_item_align_distribute(menu);
         append_menu_item_fix_through_cgal(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);

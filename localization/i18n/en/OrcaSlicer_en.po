@@ -27812,6 +27812,99 @@ msgstr ""
 #~ msgid "Extruders count"
 #~ msgstr "Extruder count"
 
+msgid "Align min"
+msgstr "Align min"
+
+msgid "Align center"
+msgstr "Align center"
+
+msgid "Align max"
+msgstr "Align max"
+
+msgid "Distribute"
+msgstr "Distribute"
+
+msgid "Select at least three objects or parts to distribute them."
+msgstr "Select at least three objects or parts to distribute them."
+
+msgid "Align/Distribute"
+msgstr "Align/Distribute"
+
+msgid "Align or evenly distribute the selected objects or parts"
+msgstr "Align or evenly distribute the selected objects or parts"
+
+msgid "Distribute left-right"
+msgstr "Distribute left-right"
+
+msgid "Distribute front-back"
+msgstr "Distribute front-back"
+
+msgid "Distribute top-bottom"
+msgstr "Distribute top-bottom"
+
+msgid "Align left"
+msgstr "Align left"
+
+msgid "Align left-right center"
+msgstr "Align left-right center"
+
+msgid "Align right"
+msgstr "Align right"
+
+msgid "Align front"
+msgstr "Align front"
+
+msgid "Align front-back center"
+msgstr "Align front-back center"
+
+msgid "Align back"
+msgstr "Align back"
+
+msgid "Align bottom"
+msgstr "Align bottom"
+
+msgid "Align top-bottom center"
+msgstr "Align top-bottom center"
+
+msgid "Align top"
+msgstr "Align top"
+
+msgid "Align X Min"
+msgstr "Align X Min"
+
+msgid "Align X Center"
+msgstr "Align X Center"
+
+msgid "Align X Max"
+msgstr "Align X Max"
+
+msgid "Align Y Min"
+msgstr "Align Y Min"
+
+msgid "Align Y Center"
+msgstr "Align Y Center"
+
+msgid "Align Y Max"
+msgstr "Align Y Max"
+
+msgid "Align Z Min"
+msgstr "Align Z Min"
+
+msgid "Align Z Center"
+msgstr "Align Z Center"
+
+msgid "Align Z Max"
+msgstr "Align Z Max"
+
+msgid "Distribute X"
+msgstr "Distribute X"
+
+msgid "Distribute Y"
+msgstr "Distribute Y"
+
+msgid "Distribute Z"
+msgstr "Distribute Z"
+
 #~ msgid "Line pattern of support."
 #~ msgstr "This is the line pattern for support."
 
