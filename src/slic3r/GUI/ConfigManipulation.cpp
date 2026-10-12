@@ -1020,7 +1020,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     const BrimType brim_type = config->opt_enum<BrimType>("brim_type");
     const bool have_auto_brim_ear = brim_type == btEar && !is_belt_tilted;
     const bool have_painted_brim_ear = brim_type == btPainted && !is_belt_tilted;
-    set_option_label("brim_width", have_auto_brim_ear ? _L("Brim ear radius") : _L("Brim width"));
+    set_option_label("brim_width", have_auto_brim_ear ? L("Brim ear radius") : L("Brim width"));
     const auto brim_width = config->opt_float("brim_width");
     // Automatic brim ear settings require a non-zero brim width.
     toggle_field("brim_ears_max_angle", brim_width > 0.0f);

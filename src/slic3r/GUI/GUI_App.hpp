@@ -397,6 +397,8 @@ public:
     Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
     HMSQuery* get_hms_query() { return hms_query; }
     NetworkAgent* getAgent() { return m_agent; }
+    // Version that wrote the app config before this run; empty when there was no app config.
+    const boost::optional<Semver>& last_config_version() const { return m_last_config_version; }
 
     // Reconcile the live printer agent with the stored preset selection.
     void switch_printer_agent();
@@ -517,7 +519,6 @@ public:
     void            check_printer_presets();
 
     void            recreate_GUI(const wxString& message);
-    void            system_info();
     void            keyboard_shortcuts(ShortcutContext page, wxWindow* parent = nullptr);   // the main frame when null
     void            troubleshoot();
     void            load_project(wxWindow *parent, wxString& input_file) const;

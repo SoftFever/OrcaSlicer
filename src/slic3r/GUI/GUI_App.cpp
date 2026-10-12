@@ -2654,9 +2654,10 @@ void GUI_App::init_webview_runtime()
         BOOST_LOG_TRIVIAL(info) << "WebView2 runtime installed successfully.";
     } else {
         BOOST_LOG_TRIVIAL(error) << "WebView2 runtime installation failed or still not detected.";
-        wxMessageBox(_L("The Microsoft WebView2 Runtime could not be installed.\n"
-                        "Some features, including the setup wizard, may appear blank until it is installed.\n"
-                        "Please install it manually from https://developer.microsoft.com/microsoft-edge/webview2/ and restart Orca Slicer."),
+        wxMessageBox(format_wxstr(_L("The Microsoft WebView2 Runtime could not be installed.\n"
+                                     "Some features, including the setup wizard, may appear blank until it is installed.\n"
+                                     "Please install it manually from %1% and restart Orca Slicer."),
+                                  "https://developer.microsoft.com/microsoft-edge/webview2/"),
                      _L("WebView2 Runtime"), wxOK | wxICON_WARNING);
     }
 }
@@ -3231,9 +3232,16 @@ bool GUI_App::on_init_inner()
 #ifdef _MSW_DARK_MODE
 
 #ifndef __WINDOWS__
+    // The label colours and the dark mode flag were set above from the saved mode. When the system theme
+    // differs from it, refresh them, or dialogs that map their colours stay in the old mode for this session.
+    const bool saved_dark_mode = dark_mode();
     wxSystemAppearance app = wxSystemSettings::GetAppearance();
     GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
     GUI::wxGetApp().app_config->save();
+    if (dark_mode() != saved_dark_mode) {
+        init_label_colours();
+        Update_dark_mode_flag();
+    }
 #endif // __APPLE__
 
 
@@ -4852,12 +4860,6 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     m_is_recreating_gui = false;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
-}
-
-void GUI_App::system_info()
-{
-    //SysInfoDialog dlg;
-    //dlg.ShowModal();
 }
 
 void GUI_App::keyboard_shortcuts(ShortcutContext page, wxWindow* parent)
