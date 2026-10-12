@@ -44,7 +44,8 @@ std::vector<Item> collect_items(const Selection& selection)
     if (selection.is_empty() || selection.is_wipe_tower())
         return items;
 
-    if (selection.is_single_full_instance() || selection.is_multiple_full_instance()) {
+    if (selection.is_single_full_instance() || selection.is_multiple_full_instance() || selection.is_single_full_object() ||
+        selection.is_multiple_full_object()) {
         // Build per-instance bounding boxes of the model parts (modifiers do not count).
         std::map<std::pair<int, int>, BoundingBoxf3> boxes;
         for (unsigned int idx : selection.get_volume_idxs()) {
