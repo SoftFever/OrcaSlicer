@@ -1,7 +1,5 @@
 #include "MainFrame.hpp"
 
-#include <initializer_list>
-
 #include <wx/event.h>
 #include "slic3r/GUI/Event.hpp"
 #include <wx/gdicmn.h>
