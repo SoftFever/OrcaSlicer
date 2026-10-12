@@ -2105,78 +2105,6 @@ TEST_CASE("Cancelling while flat faces are harvested past the budget stops the d
     CHECK(canceled > full);
 }
 
-TEST_CASE("A second bake beside a first comes out as fine as a single bake", "[TextureDisplacement]")
-{
-    // A stroke in each of the cube's two top triangles, baked one after the other. The first bake used
-    // to leave the unpainted ground fanned into slivers from a far corner, or re-triangulated by the
-    // flat harvest into long triangles, and the second bake refined those shapes rather than the
-    // cube's own grid: its stroke came out many times as dense, with walls off the texture's lines.
-    const indexed_triangle_set cube = its_make_cube(20.f, 20.f, 20.f);
-    const Vec2f                first_stroke(5.f, 15.f), second_stroke(15.f, 5.f);
-    constexpr float            radius = 3.f;
-
-    TextureDisplacementLayer layer;
-    layer.slot         = 0;
-    layer.image_data   = make_checkerboard_png(16, 16);
-    layer.tiling_scale = 5.f;
-    layer.depth_mm     = 0.5f;
-    TextureDisplacementOptions options;
-    options.pipeline_v2        = true;
-    options.v2_refine_mm       = 0.5f;
-    options.v2_max_triangles_k = 750; // export: the flat harvest runs
-    const auto bake = [&](const indexed_triangle_set &mesh, const Vec2f &stroke) {
-        TextureDisplacementFacetsData facets;
-        facets[0] = paint_top_disc(mesh, 20.f, stroke, radius);
-        return build_texture_displacement(mesh, { layer }, facets, options);
-    };
-    // Aspect ratios of the top-face triangles whose centroid's distance from `centre` passes `keep`.
-    const auto top_aspects = [](const indexed_triangle_set &mesh, const Vec2f &centre, auto keep) {
-        std::vector<float> out;
-        for (const stl_triangle_vertex_indices &t : mesh.indices) {
-            const Vec3f &a = mesh.vertices[size_t(t[0])], &b = mesh.vertices[size_t(t[1])], &c = mesh.vertices[size_t(t[2])];
-            const Vec3f  g = (a + b + c) / 3.f;
-            if (g.z() > 19.9f && keep((Vec2f(g.x(), g.y()) - centre).norm()))
-                out.push_back(triangle_aspect(a, b, c));
-        }
-        return out;
-    };
-    const auto in_stroke = [&](float d) { return d < radius; };
-
-    const indexed_triangle_set first = bake(cube, first_stroke);
-    REQUIRE(first.indices.size() > cube.indices.size());
-    // What the first bake leaves around its stroke is ground the second one refines: whole pieces of
-    // the cube's grid, not slivers.
-    const std::vector<float> ground = top_aspects(first, first_stroke, [&](float d) { return d > radius + 1.f; });
-    REQUIRE(!ground.empty());
-    const float worst = *std::max_element(ground.begin(), ground.end());
-    INFO("worst aspect ratio on the ground the first bake left: " << worst);
-    CHECK(worst < 6.f);
-
-    const size_t single = top_aspects(bake(cube, second_stroke), second_stroke, in_stroke).size();
-    const size_t second = top_aspects(bake(first, second_stroke), second_stroke, in_stroke).size();
-    INFO("second stroke baked alone: " << single << " triangles, after the first: " << second);
-    REQUIRE(single > 0);
-    CHECK(second <= single * 5 / 4);
-}
-
-TEST_CASE("whether a layer's texture has colour agrees with its decode", "[TextureDisplacement]")
-{
-    TextureDisplacementLayer gray;
-    gray.image_data = make_flat_gray_png(128);
-    CHECK_FALSE(height_texture_has_color(gray));
-
-    TextureDisplacementLayer color;
-    color.image_data = make_flat_rgb_png(200, 40, 10);
-    // Before the image is decoded and after, and whatever the smoothing.
-    CHECK(height_texture_has_color(color));
-    CHECK(decode_height_texture(color).has_color());
-    CHECK(height_texture_has_color(color));
-    color.smoothing = 0.5f;
-    CHECK(height_texture_has_color(color));
-
-    CHECK_FALSE(height_texture_has_color(TextureDisplacementLayer{}));
-}
-
 TEST_CASE("Baking twice keeps the mesh closed and carries the first bake's colours across",
           "[TextureDisplacement][Regression]")
 {
@@ -2185,8 +2113,9 @@ TEST_CASE("Baking twice keeps the mesh closed and carries the first bake's colou
     // thing. Taken across by triangle id it lands on unrelated faces - a bake almost always grows the
     // triangle count, so every stale id passes the only bound check deserialize() makes - which both
     // scatters colour over surfaces nothing painted and destroys what the first pass laid down.
-    // TriangleSelector::remap_painting() carries it by position instead, which is what makes successive
-    // bakes accumulate. See TextureDisplacementBakeJob, which is where the two meet.
+    // transfer_facet_paint() carries it across by position instead - every triangle of the new mesh
+    // takes the state painted at its foot point on the old one - which is what makes successive bakes
+    // accumulate. See TextureDisplacementBakeJob, which is where the two meet.
     constexpr float            side    = 20.f;
     constexpr float            refine  = 0.5f;
     constexpr float            radius  = 4.f;
@@ -2264,10 +2193,11 @@ TEST_CASE("Baking twice keeps the mesh closed and carries the first bake's colou
     {
         const TriangleMesh mesh(second);
         TriangleSelector   selector(mesh);
-        const TriangleSelector::TriangleSplittingData carried = TriangleSelector::remap_painting(
-            first, painted_first, second, Transform3d::Identity(), {});
-        REQUIRE_FALSE(carried.bitstream.empty());
-        selector.deserialize(carried, false);
+        const std::vector<uint8_t> carried = transfer_facet_paint(first, painted_first, second);
+        REQUIRE(carried.size() == second.indices.size());
+        for (size_t i = 0; i < carried.size(); ++i)
+            if (carried[i] != 0)
+                selector.set_facet(int(i), EnforcerBlockerType(carried[i]));
         for (size_t i = 0; i < color2.size(); ++i)
             if (color2[i] != 0)
                 selector.set_facet(int(i), EnforcerBlockerType(color2[i]));
@@ -2292,9 +2222,10 @@ TEST_CASE("Baking twice keeps the mesh closed and carries the first bake's colou
         coloured_first.vertices, coloured_first.indices);
 
     // A triangle may carry colour the second bake did not produce only where the first bake's colour
-    // actually was. Carrying the mask by position can widen that region by a triangle, so the margin
-    // is the edge length the bake was told to refine to; landing anywhere else means the mask was read
-    // against a mesh it no longer matches.
+    // actually was. A foot point sits on the surface the bake started from, which the relief has since
+    // moved, and the transfer can widen the region by a triangle, so the margin is twice the edge
+    // length the bake was told to refine to; landing anywhere else means the mask was read against a
+    // mesh it no longer matches.
     size_t own = 0, carried_over = 0, stranded = 0;
     float  worst = 0.f;
     for (size_t i = 0; i < second.indices.size(); ++i) {
@@ -2323,4 +2254,76 @@ TEST_CASE("Baking twice keeps the mesh closed and carries the first bake's colou
     CHECK(own > 0);
     CHECK(carried_over > 0);   // the first bake's colour survived the second
     CHECK(stranded == 0);      // and nothing was painted where neither bake put colour
+}
+
+TEST_CASE("A second bake beside a first comes out as fine as a single bake", "[TextureDisplacement]")
+{
+    // A stroke in each of the cube's two top triangles, baked one after the other. The first bake used
+    // to leave the unpainted ground fanned into slivers from a far corner, or re-triangulated by the
+    // flat harvest into long triangles, and the second bake refined those shapes rather than the
+    // cube's own grid: its stroke came out many times as dense, with walls off the texture's lines.
+    const indexed_triangle_set cube = its_make_cube(20.f, 20.f, 20.f);
+    const Vec2f                first_stroke(5.f, 15.f), second_stroke(15.f, 5.f);
+    constexpr float            radius = 3.f;
+
+    TextureDisplacementLayer layer;
+    layer.slot         = 0;
+    layer.image_data   = make_checkerboard_png(16, 16);
+    layer.tiling_scale = 5.f;
+    layer.depth_mm     = 0.5f;
+    TextureDisplacementOptions options;
+    options.pipeline_v2        = true;
+    options.v2_refine_mm       = 0.5f;
+    options.v2_max_triangles_k = 750; // export: the flat harvest runs
+    const auto bake = [&](const indexed_triangle_set &mesh, const Vec2f &stroke) {
+        TextureDisplacementFacetsData facets;
+        facets[0] = paint_top_disc(mesh, 20.f, stroke, radius);
+        return build_texture_displacement(mesh, { layer }, facets, options);
+    };
+    // Aspect ratios of the top-face triangles whose centroid's distance from `centre` passes `keep`.
+    const auto top_aspects = [](const indexed_triangle_set &mesh, const Vec2f &centre, auto keep) {
+        std::vector<float> out;
+        for (const stl_triangle_vertex_indices &t : mesh.indices) {
+            const Vec3f &a = mesh.vertices[size_t(t[0])], &b = mesh.vertices[size_t(t[1])], &c = mesh.vertices[size_t(t[2])];
+            const Vec3f  g = (a + b + c) / 3.f;
+            if (g.z() > 19.9f && keep((Vec2f(g.x(), g.y()) - centre).norm()))
+                out.push_back(triangle_aspect(a, b, c));
+        }
+        return out;
+    };
+    const auto in_stroke = [&](float d) { return d < radius; };
+
+    const indexed_triangle_set first = bake(cube, first_stroke);
+    REQUIRE(first.indices.size() > cube.indices.size());
+    // What the first bake leaves around its stroke is ground the second one refines: whole pieces of
+    // the cube's grid, not slivers.
+    const std::vector<float> ground = top_aspects(first, first_stroke, [&](float d) { return d > radius + 1.f; });
+    REQUIRE(!ground.empty());
+    const float worst = *std::max_element(ground.begin(), ground.end());
+    INFO("worst aspect ratio on the ground the first bake left: " << worst);
+    CHECK(worst < 6.f);
+
+    const size_t single = top_aspects(bake(cube, second_stroke), second_stroke, in_stroke).size();
+    const size_t second = top_aspects(bake(first, second_stroke), second_stroke, in_stroke).size();
+    INFO("second stroke baked alone: " << single << " triangles, after the first: " << second);
+    REQUIRE(single > 0);
+    CHECK(second <= single * 5 / 4);
+}
+
+TEST_CASE("whether a layer's texture has colour agrees with its decode", "[TextureDisplacement]")
+{
+    TextureDisplacementLayer gray;
+    gray.image_data = make_flat_gray_png(128);
+    CHECK_FALSE(height_texture_has_color(gray));
+
+    TextureDisplacementLayer color;
+    color.image_data = make_flat_rgb_png(200, 40, 10);
+    // Before the image is decoded and after, and whatever the smoothing.
+    CHECK(height_texture_has_color(color));
+    CHECK(decode_height_texture(color).has_color());
+    CHECK(height_texture_has_color(color));
+    color.smoothing = 0.5f;
+    CHECK(height_texture_has_color(color));
+
+    CHECK_FALSE(height_texture_has_color(TextureDisplacementLayer{}));
 }

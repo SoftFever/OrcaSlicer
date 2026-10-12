@@ -8,12 +8,12 @@
 #include "libslic3r/TextureDisplacement.hpp"
 #include <exception>
 #include <cstddef>
+#include <cstdint>
 #include "slic3r/GUI/Jobs/Worker.hpp"
 #include <memory>
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/format.hpp"
-#include "libslic3r/Point.hpp"
 #include "libslic3r/TriangleSelector.hpp"
 
 #include "slic3r/GUI/GLCanvas3D.hpp"
@@ -27,6 +27,7 @@
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/TriangleMesh.hpp"
+#include <array>
 
 namespace Slic3r::GUI {
 
@@ -76,23 +77,6 @@ void TextureDisplacementBakeJob::process(Ctl &ctl)
             return true;
         },
         color, m_input.volume_to_world, nullptr, &m_stats));
-
-    // Bring the colour that was already painted onto the mesh this bake just built, while still on
-    // the worker thread. Triangle ids only mean the same thing on both meshes when the bake preserved
-    // the topology - the classic path moves vertices and nothing else - and the one-run pipeline
-    // rebuilds the mesh from scratch. Deserializing the old mask against the new one only checks that
-    // the ids are in range, and a bake almost always *grows* the triangle count, so every stale id
-    // passes that check and lands on an unrelated face: colour debris where nothing was painted, and
-    // the earlier pass's colour destroyed rather than kept. remap_painting() transfers it by position
-    // instead, which is what lets successive bakes accumulate. It is spatial work over both meshes,
-    // which is why it belongs here and not in finalize().
-    if (!m_input.mmu_segmentation.bitstream.empty() && !m_result.empty() && !ctl.was_canceled()) {
-        if (m_result.its.indices.size() == m_input.base_mesh.indices.size())
-            m_carried_mmu = m_input.mmu_segmentation;
-        else
-            m_carried_mmu = TriangleSelector::remap_painting(m_input.base_mesh, m_input.mmu_segmentation,
-                                                             m_result.its, Transform3d::Identity(), {});
-    }
 
     // Always finish at 100: this is what closes the notification. Reported even on cancel, where
     // build_texture_displacement() returns an empty mesh and finalize() commits nothing.
@@ -144,39 +128,76 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
                                                      { mix.a_percent(), 100 - mix.a_percent() });
             });
 
-        // Read while the volume still holds the mesh the paint was recorded against, and after the
-        // filament slots above - adding one can clamp the paint, and that clamp has to survive.
-        // Normally process() has already carried the colour onto the baked topology; it only has to
-        // be redone here when the paint changed after the job was queued, because the snapshot
-        // process() worked from is then not what the user is looking at.
-        const bool mmu_changed = volume->mmu_segmentation_facets.timestamp() != m_input.mmu_segmentation_timestamp;
-        const indexed_triangle_set                    pre_bake_mesh = mmu_changed ? volume->mesh().its
-                                                                                  : indexed_triangle_set{};
-        const TriangleSelector::TriangleSplittingData live_mmu      = mmu_changed
-                                                                          ? volume->mmu_segmentation_facets.get_data()
-                                                                          : TriangleSelector::TriangleSplittingData{};
+        // Whether the bake replaced the triangles or only moved the vertices it was given. The classic
+        // path is topology-preserving by contract, so every per-triangle annotation on the volume still
+        // means what it did; the default pipeline refines, cuts and simplifies, so none of them do.
+        // Both are checked: the flag is what the bake promised, the count is what it delivered. Only
+        // the triangles matter - the annotations are per facet and reference no vertex index - so a
+        // vertex count that changed on its own (the bake compacts unreferenced vertices away) is not a
+        // reason to remap anything.
+        const bool topology_changed = m_input.options.pipeline_v2 ||
+                                      m_result.its.indices.size() != m_input.base_mesh.indices.size();
+
+        // Carry the volume's existing paint - the model's own colours above all - across that rebuild.
+        // Without it a bake left the mmu_segmentation_facets bitstream pointing at a triangle set that
+        // no longer existed, which is what scrambled the colours of an imported coloured model even
+        // with colour switched off on every layer and nothing in the bake that was meant to touch them.
+        //
+        // transfer_facet_paint() rather than ModelVolume::restore_painting(): the latter's remap wants
+        // a target triangle overlapping the source paint to within 0.01 mm, which the baked surface is
+        // nowhere near - it has moved by the relief depth. Nothing to do when the topology is intact:
+        // triangle i is still triangle i, so the paint is already exactly right and carrying it at all
+        // could only lose detail.
+        std::array<TriangleSelector::TriangleSplittingData, 4> before;
+        if (topology_changed) {
+            before[0] = volume->supported_facets.get_data();
+            before[1] = volume->seam_facets.get_data();
+            before[2] = volume->mmu_segmentation_facets.get_data();
+            before[3] = volume->fuzzy_skin_facets.get_data();
+        }
 
         volume->set_mesh(std::move(m_result));
         volume->set_new_unique_id();
         volume->calculate_convex_hull();
 
+        if (topology_changed) {
+            const std::array<FacetsAnnotation *, 4> target{ &volume->supported_facets, &volume->seam_facets,
+                                                            &volume->mmu_segmentation_facets,
+                                                            &volume->fuzzy_skin_facets };
+            for (size_t ch = 0; ch < target.size(); ++ch) {
+                const std::vector<uint8_t> state =
+                    transfer_facet_paint(m_input.base_mesh, before[ch], volume->mesh().its);
+                // Nothing was painted in this channel, or there is nothing to paint it onto: either
+                // way the annotation must not keep describing the mesh that is gone.
+                if (state.empty()) {
+                    target[ch]->reset();
+                    continue;
+                }
+                TriangleSelector selector(volume->mesh());
+                bool             any = false;
+                for (size_t i = 0; i < state.size(); ++i)
+                    if (state[i] != 0) {
+                        selector.set_facet(int(i), EnforcerBlockerType(state[i]));
+                        any = true;
+                    }
+                if (any)
+                    target[ch]->set(selector);
+                else
+                    target[ch]->reset();
+            }
+        }
+
         // Colour lands in mmu_segmentation_facets, merged *over* whatever is already painted there
         // rather than replacing it: a triangle the texture does not colour keeps its existing filament,
         // and one the user never painted at all stays at NONE, which already means "the volume's own
         // filament". That is what confines the effect to the painted area without having to invent a
-        // colour for everything outside it. What was already painted comes from m_carried_mmu, which
-        // process() brought onto this mesh's topology; this bake's own colour goes on top of it, so it
-        // wins wherever it painted and leaves the rest alone.
+        // colour for everything outside it. What was already painted is whatever the transfer above
+        // left in the annotation, so this bake's colour lands on top of it rather than instead of it.
         if (!m_triangle_color.empty() && m_triangle_color.size() == volume->mesh().its.indices.size()) {
-            if (mmu_changed && !live_mmu.bitstream.empty())
-                m_carried_mmu = pre_bake_mesh.indices.size() == volume->mesh().its.indices.size()
-                                    ? live_mmu
-                                    : TriangleSelector::remap_painting(pre_bake_mesh, live_mmu,
-                                                                       volume->mesh().its,
-                                                                       Transform3d::Identity(), {});
             TriangleSelector selector(volume->mesh());
-            if (!m_carried_mmu.bitstream.empty())
-                selector.deserialize(m_carried_mmu, false);
+            const TriangleSelector::TriangleSplittingData &existing = volume->mmu_segmentation_facets.get_data();
+            if (!existing.bitstream.empty())
+                selector.deserialize(existing, false);
             for (size_t i = 0; i < m_triangle_color.size(); ++i) {
                 const size_t entry = size_t(m_triangle_color[i]);
                 if (entry > 0 && entry <= filament_of.size() && filament_of[entry - 1] >= 0)
@@ -195,7 +216,6 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
         // pipeline, which rebuilds and then simplifies the mesh. A mask left behind against the old
         // topology is exactly what makes the gizmo reload an empty selector over a non-empty mask and
         // then erase it on the next flush - see GLGizmoTextureDisplacement::update_from_model_object().
-        const bool topology_changed = m_input.base_mesh.indices.size() != volume->mesh().its.indices.size();
         for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot) {
             const auto it = std::find_if(m_input.layers.begin(), m_input.layers.end(),
                                          [slot](const TextureDisplacementLayer &l) { return l.slot == slot; });
@@ -258,8 +278,6 @@ void queue_texture_displacement_bake(const ModelVolume &volume, const TextureCol
     input.layers     = volume.texture_displacement_layers;
     input.options    = volume.texture_displacement_options;
     input.volume_to_world = texture_displacement_volume_to_world(volume);
-    input.mmu_segmentation           = volume.mmu_segmentation_facets.get_data();
-    input.mmu_segmentation_timestamp = volume.mmu_segmentation_facets.timestamp();
     for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
         input.facets_data[size_t(i)] = volume.texture_displacement_facet(i).get_data();
 
