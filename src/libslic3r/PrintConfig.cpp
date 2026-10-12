@@ -242,6 +242,13 @@ static t_config_enum_values s_keys_map_PowerLossRecoveryMode {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PowerLossRecoveryMode)
 
+static t_config_enum_values s_keys_map_CoolingPolicy {
+    {"default",     int(CoolingPolicy::Default) },
+    {"always_off",  int(CoolingPolicy::AlwaysOff) },
+    {"always_on",   int(CoolingPolicy::AlwaysOn) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CoolingPolicy)
+
 static t_config_enum_values s_keys_map_CenterOfSurfacePattern{
     {"each_surface", int(CenterOfSurfacePattern::Each_Surface)},
     {"each_model", int(CenterOfSurfacePattern::Each_Model)},
@@ -2969,10 +2976,21 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enabling this setting means that part cooling fan will never stop entirely and will instead run at least at minimum speed to reduce the frequency of starting and stopping.");
     def->set_default_value(new ConfigOptionBools { false });
 
-    def          = this->add("fan_always_off", coBools);
-    def->label   = L("Keep fan always off");
-    def->tooltip = L("Force the cooling fan to stay at 0% for the entire print, ignoring all other cooling settings (including bridges and overhangs).");
-    def->set_default_value(new ConfigOptionBools{false});
+    def                = this->add("cooling_policy", coEnums);
+    def->label         = L("Cooling policy");
+    def->tooltip       = L("Choose how cooling is applied: \n"
+                           "Default: Uses standard logic based on layer time.\n"
+                           "Always off: Forces fan to 0% for the entire print.\n"
+                           "Always on: Fan runs at least at the minimum speed at all times.");
+    def->enum_keys_map = &ConfigOptionEnum<CoolingPolicy>::get_enum_values();
+    def->enum_values.push_back("default");
+    def->enum_values.push_back("always_off");
+    def->enum_values.push_back("always_on");
+    def->enum_labels.push_back(L("Default"));
+    def->enum_labels.push_back(L("Always off"));
+    def->enum_labels.push_back(L("Always on"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnumsGeneric{(int) CoolingPolicy::Default});
 
     def = this->add("dont_slow_down_outer_wall", coBools);
     def->label = L("Don't slow down outer walls");
@@ -8960,7 +8978,7 @@ void PrintConfigDef::init_filament_option_keys()
         "filament_colour",
         "filament_diameter",
         "filament_retract_length_nc",
-        "fan_always_off",
+        "cooling_policy",
         // "filament_seam_gap",
         "long_retractions_when_cut",
         "max_layer_height",
@@ -9980,6 +9998,22 @@ void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
         }
         config.set_key_value("wiping_volumes_use_custom_matrix", new ConfigOptionBool(custom));
     }
+    // Legacy migration: Convert old checkboxes to the new Cooling Policy
+    if (!config.has("cooling_policy")) {
+        CoolingPolicy policy_val = CoolingPolicy::Default;
+        if (config.has("fan_always_off")) {
+            auto opt = config.option<ConfigOptionBools>("fan_always_off");
+            if (opt && !opt->values.empty() && opt->get_at(0))
+                policy_val = CoolingPolicy::AlwaysOff;
+        }
+        if (policy_val == CoolingPolicy::Default && config.has("reduce_fan_stop_start_freq")) {
+            auto opt = config.option<ConfigOptionBools>("reduce_fan_stop_start_freq");
+            if (opt && !opt->values.empty() && opt->get_at(0))
+                policy_val = CoolingPolicy::AlwaysOn;
+        }
+        // ALWAYS create the option, even if policy_val is Default
+        config.set_key_value("cooling_policy", new ConfigOptionEnumsGeneric{(int) policy_val});
+    }
 
     // Orca: a config saved before a key joined filament_options_with_variant stores it once per filament
     // rather than once per filament variant, and one exported by an older CLI may store a single value.
@@ -10075,7 +10109,7 @@ std::set<std::string> filament_options_with_variant = {
     "filament_retraction_distances_when_cut",
     "long_retractions_when_ec",
     "retraction_distances_when_ec", 
-    "fan_always_off",
+    "cooling_policy",
     "nozzle_temperature_initial_layer",
     "nozzle_temperature",
     "filament_flush_volumetric_speed",

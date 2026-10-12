@@ -4725,8 +4725,7 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("fan_max_speed", 0));
         line.append_option(optgroup->get_option("slow_down_layer_time"));
         optgroup->append_line(line);
-        optgroup->append_single_option_line("reduce_fan_stop_start_freq", "material_cooling#keep-fan-always-on");
-        optgroup->append_single_option_line("fan_always_off", "material_cooling#fan-always-off"); 
+        optgroup->append_single_option_line("cooling_policy", "material_cooling#cooling-policy", 0);
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "material_cooling#slow-printing-down-for-better-layer-cooling");
         optgroup->append_single_option_line("dont_slow_down_outer_wall", "material_cooling#dont-slow-down-outer-walls");
         optgroup->append_single_option_line("slow_down_min_speed", "material_cooling#min-print-speed");
@@ -4934,18 +4933,18 @@ void TabFilament::toggle_options()
 
     auto printer_cfg = m_preset_bundle->printers.get_edited_preset().config;
 
-    if (m_active_page->title() == L("Cooling")) {
-        bool is_always_off = false;
-        if (m_config->has("fan_always_off")) {
-            auto opt = m_config->option<ConfigOptionBools>("fan_always_off");
-            if (opt && !opt->values.empty()) {
-                is_always_off = opt->get_at(0);
+     if (m_active_page->title() == L("Cooling")) {
+        auto policy = CoolingPolicy::Default;
+        if (m_config->has("cooling_policy")) {
+            auto cp_opt = dynamic_cast<const ConfigOptionEnumsGeneric*>(m_config->option("cooling_policy"));
+            if (cp_opt && !cp_opt->values.empty()) {
+                policy = (CoolingPolicy) cp_opt->get_at(variant_index < cp_opt->values.size() ? variant_index : 0);
             }
-        }          
-        if (is_always_off) {
+        } 
+        if (policy == CoolingPolicy::AlwaysOff) {
+            // Disable all other cooling settings because they are ignored
             toggle_option("fan_min_speed", false);
             toggle_option("fan_max_speed", false);
-            toggle_option("reduce_fan_stop_start_freq", false);
             toggle_option("slow_down_for_layer_cooling", false);
             toggle_option("enable_overhang_bridge_fan", false);
             toggle_option("overhang_fan_threshold", false);
@@ -4954,13 +4953,18 @@ void TabFilament::toggle_options()
             toggle_option("close_fan_the_first_x_layers", false);
             toggle_option("full_fan_speed_layer", false);
         } else {
+            // Standard Logic: Enable options normally
             bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
-        for (auto el : {"overhang_fan_speed", "overhang_fan_threshold", "internal_bridge_fan_speed"}) // ORCA: Add support for separate internal bridge fan speed control
+            for (auto el : {"overhang_fan_speed", "overhang_fan_threshold", "internal_bridge_fan_speed"})
                 toggle_option(el, has_enable_overhang_bridge_fan);
 
-            // Orca: toggle dont slow down for external perimeters if
             bool has_slow_down_for_layer_cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
             toggle_option("dont_slow_down_outer_wall", has_slow_down_for_layer_cooling);
+
+            // Re-enable the basics
+            toggle_option("fan_min_speed", true);
+            toggle_option("fan_max_speed", true);
+            toggle_option("slow_down_for_layer_cooling", true);
 
             // ORCA: First layer fan speed override only makes sense when no layers are gated off ("No cooling for
             // the first" == 0). Otherwise the override would set layer 0 to a non-zero value while the gate forces
