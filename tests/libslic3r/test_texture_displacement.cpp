@@ -68,6 +68,28 @@ static std::shared_ptr<std::vector<unsigned char>> make_flat_gray_png(uint8_t va
     return std::make_shared<std::vector<unsigned char>>(std::move(bytes));
 }
 
+// The same round trip for a flat colour image, which decode_height_texture() reads through its colour path.
+static std::shared_ptr<std::vector<unsigned char>> make_flat_rgb_png(uint8_t r, uint8_t g, uint8_t b, size_t w = 4, size_t h = 4)
+{
+    std::vector<uint8_t> rgb;
+    for (size_t i = 0; i < w * h; ++i)
+        rgb.insert(rgb.end(), { r, g, b });
+    const boost::filesystem::path tmp_path = boost::filesystem::temp_directory_path()
+        / boost::filesystem::unique_path("texdisp_test_%%%%%%%%.png");
+    REQUIRE(Slic3r::png::write_rgb_to_file(tmp_path.string(), w, h, rgb));
+
+    std::vector<unsigned char> bytes;
+    {
+        std::ifstream ifs(tmp_path.string(), std::ios::binary);
+        bytes.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+    }
+    boost::system::error_code ec;
+    boost::filesystem::remove(tmp_path, ec);
+
+    REQUIRE_FALSE(bytes.empty());
+    return std::make_shared<std::vector<unsigned char>>(std::move(bytes));
+}
+
 // A hard-edged black/white checkerboard, the worst case for a height map: every texel boundary is a
 // step, which is precisely the relief the post-process smoothing exists to round off.
 static std::shared_ptr<std::vector<unsigned char>> make_checkerboard_png(size_t w = 16, size_t h = 16)
@@ -2135,7 +2157,6 @@ TEST_CASE("A second bake beside a first comes out as fine as a single bake", "[T
     CHECK(second <= single * 5 / 4);
 }
 
-
 // The .3mf stores the layer stack as JSON (see texture_displacement_layers_to_json). Two properties
 // matter: everything the UV editor and the panel can set has to survive a round trip, and a document
 // written by a build that knew fewer fields has to keep loading, with the missing ones left at their
@@ -2185,7 +2206,7 @@ TEST_CASE("Texture displacement layers survive a JSON round trip", "[TextureDisp
     options.smooth_iterations = 5;
     options.pipeline_v2       = false;
     options.v2_max_triangles_k = 250;
-    options.color_mix_mode    = ColorMixMode::XYDither;
+    options.color_mix_count   = 3;
     options.color_despeckle   = 4;
     options.active_slot       = 3;
     options.panel_mode        = 1;
@@ -2240,7 +2261,7 @@ TEST_CASE("Texture displacement layers survive a JSON round trip", "[TextureDisp
     CHECK(read_options.smooth_iterations == options.smooth_iterations);
     CHECK(read_options.pipeline_v2 == options.pipeline_v2);
     CHECK(read_options.v2_max_triangles_k == options.v2_max_triangles_k);
-    CHECK(read_options.color_mix_mode == options.color_mix_mode);
+    CHECK(read_options.color_mix_count == options.color_mix_count);
     CHECK(read_options.color_despeckle == options.color_despeckle);
     // Where the panel was left comes back with the rest, so a reopened project is on the same layer.
     CHECK(read_options.active_slot == options.active_slot);
@@ -2269,7 +2290,7 @@ TEST_CASE("Texture displacement JSON keeps defaults for keys it does not carry",
     CHECK(l.tile_enabled == fresh.tile_enabled);
     CHECK(l.projection_method == fresh.projection_method);
     CHECK_THAT(l.lscm_seam_angle_deg, WithinAbs(fresh.lscm_seam_angle_deg, 1e-6f));
-    CHECK(options.color_mix_mode == defaults.color_mix_mode);
+    CHECK(options.color_mix_count == defaults.color_mix_count);
     CHECK(options.pipeline_v2 == defaults.pipeline_v2);
     CHECK(options.active_slot == defaults.active_slot);
     CHECK(options.panel_mode == defaults.panel_mode);
@@ -2277,4 +2298,22 @@ TEST_CASE("Texture displacement JSON keeps defaults for keys it does not carry",
     std::vector<TextureDisplacementLayer> unused_layers;
     TextureDisplacementOptions            unused_options;
     CHECK(!texture_displacement_layers_from_json("not json at all", unused_layers, unused_options));
+}
+
+TEST_CASE("whether a layer's texture has colour agrees with its decode", "[TextureDisplacement]")
+{
+    TextureDisplacementLayer gray;
+    gray.image_data = make_flat_gray_png(128);
+    CHECK_FALSE(height_texture_has_color(gray));
+
+    TextureDisplacementLayer color;
+    color.image_data = make_flat_rgb_png(200, 40, 10);
+    // Before the image is decoded and after, and whatever the smoothing.
+    CHECK(height_texture_has_color(color));
+    CHECK(decode_height_texture(color).has_color());
+    CHECK(height_texture_has_color(color));
+    color.smoothing = 0.5f;
+    CHECK(height_texture_has_color(color));
+
+    CHECK_FALSE(height_texture_has_color(TextureDisplacementLayer{}));
 }

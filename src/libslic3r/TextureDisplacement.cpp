@@ -248,6 +248,20 @@ void smooth_height_pixels(std::vector<uint8_t> &pixels, int width, int height, f
 }
 } // namespace
 
+bool height_texture_has_color(const TextureDisplacementLayer &layer)
+{
+    if (layer.empty())
+        return false;
+    {
+        std::lock_guard<std::mutex> lock(g_decoded_texture_cache.mutex);
+        const auto it = g_decoded_texture_cache.entries.find(layer.image_data.get());
+        if (it != g_decoded_texture_cache.entries.end() && it->second.first.lock() == layer.image_data)
+            return it->second.second.has_color();
+    }
+    // Not decoded yet. Decoding caches the raw image, so this happens once per image.
+    return decode_height_texture(layer).has_color();
+}
+
 DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer)
 {
     DecodedHeightTexture result;
@@ -2373,12 +2387,11 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
     //
     // The *palette* index, not the printed filament. The decimation treats any edge whose two faces
     // differ as a crease (TextureBakeDecimate.cpp), so it must only ever see where the **perceived**
-    // colour changes - which is exactly what ColorResolveFn's own contract says the interleaving may
-    // never be fed into. Handing it the resolved filament made every Z band boundary a crease: on an
-    // upright wall that is one crease per band, so the collapse ran along those lines and left a stack
-    // of horizontal slivers, each printing in a single filament. Those were the horizontal colour
-    // lines in the baked result, and they also spent the triangle budget drawing a pattern the eye is
-    // meant to blend away. Faces the paint excludes are skipped by the pipeline itself.
+    // colour changes. A mix is one perceived colour however its components are laid down, which is why
+    // it has to be the palette index here: back when this was handed a per-triangle interleave instead,
+    // every band boundary read as a crease, the collapse ran along those lines and left a stack of
+    // horizontal slivers, and the triangle budget went on drawing a pattern the eye is meant to blend
+    // away. Faces the paint excludes are skipped by the pipeline itself.
     const TextureBake::ColorSampleFn color_sample =
         color_sampler ? TextureBake::ColorSampleFn([&color_sampler](const Vec3f &p, const Vec3f &n) {
                             return color_sampler(p, n);
@@ -2404,7 +2417,7 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
         stats->triangles_budget  = result.triangles_budget;
         stats->budget_limited    = result.budget_limited;
     }
-    indexed_triangle_set out = TextureBake::to_indexed_triangle_set(result.geometry);
+    indexed_triangle_set out = TextureBake::to_indexed_triangle_set(result.geometry, &result.face_color);
     if (out.indices.empty())
         return mesh;
     if (flip_normals)
@@ -2425,6 +2438,8 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
                 max_depth = std::max(max_depth, std::abs(layer.depth_mm));
             const float relief_tol = max_depth + paint_tol;
             std::vector<int> palette(out.indices.size(), -1);
+            const std::vector<int> &face_mask      = result.face_color;
+            const bool              have_face_mask = face_mask.size() == out.indices.size();
             tbb::parallel_for(tbb::blocked_range<size_t>(0, out.indices.size()), [&](const tbb::blocked_range<size_t> &r) {
                 for (size_t i = r.begin(); i < r.end(); ++i) {
                     const stl_triangle_vertex_indices &t = out.indices[i];
@@ -2440,8 +2455,19 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
                     // reason; this path was the inconsistent one.
                     Vec3f       foot = centroid, base_n = Vec3f::UnitZ();
                     const float d2   = painted_closest(centroid, &foot, &base_n);
-                    if (!all_painted && d2 >= relief_tol * relief_tol)
+                    // Which faces may be coloured comes from the pipeline, which recorded it on the
+                    // refined mesh where the paint mask is exact, and carried it through the collapse,
+                    // the T-junction repair and the weld. Proximity cannot answer this: a displaced face
+                    // is no longer where its base was, so on a part thinner than the relief depth the
+                    // nearest painted surface to the *opposite* face is the painted one, and the texture
+                    // appeared there too. Only the position to sample at still comes from the base
+                    // surface, for the projection reason above.
+                    if (have_face_mask) {
+                        if (face_mask[i] == TextureBake::FACE_UNPAINTED)
+                            continue;
+                    } else if (!all_painted && d2 >= relief_tol * relief_tol) {
                         continue;
+                    }
                     palette[i] = sampler(foot, base_n);
                 }
             });
@@ -2463,7 +2489,7 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
                 Vec3f        normal   = (b - a).cross(c - a);
                 const float  nl       = normal.norm();
                 normal                = (nl > 0.f) ? Vec3f(normal / nl) : Vec3f::UnitZ();
-                const int filament = color->resolve ? color->resolve(palette[i], centroid, normal) : palette[i];
+                const int filament = palette[i];
                 if (filament >= 0)
                     out_color[i] = uint8_t(std::min(filament + 1, 255));
             }
@@ -2920,8 +2946,7 @@ static indexed_triangle_set build_texture_displacement_in_place(
             Vec3f        normal   = (b - a).cross(c - a);
             const float  nl       = normal.norm();
             normal                = (nl > 0.f) ? Vec3f(normal / nl) : Vec3f::UnitZ();
-            const int filament = color->resolve ? color->resolve(triangle_palette[i], centroid, normal)
-                                                : triangle_palette[i];
+            const int filament = triangle_palette[i];
             if (filament >= 0)
                 out_color[i] = uint8_t(std::min(filament + 1, 255));
         }
@@ -5205,8 +5230,8 @@ std::string texture_displacement_layers_to_json(const std::vector<TextureDisplac
     opt["v2_relocate"]        = options.v2_relocate;
     opt["v2_flip_edges"]      = options.v2_flip_edges;
     opt["color_mix_enabled"]  = options.color_mix_enabled;
-    opt["color_mix_mode"]     = int(options.color_mix_mode);
     opt["color_despeckle"]    = options.color_despeckle;
+    opt["color_mix_count"]    = options.color_mix_count;
     opt["active_slot"]        = options.active_slot;
     opt["panel_mode"]         = options.panel_mode;
 
@@ -5301,9 +5326,7 @@ bool texture_displacement_layers_from_json(const std::string                    
         read(opt, "v2_flip_edges", out_options.v2_flip_edges);
         read(opt, "color_mix_enabled", out_options.color_mix_enabled);
         read(opt, "color_despeckle", out_options.color_despeckle);
-        int mix_mode = int(out_options.color_mix_mode);
-        read_enum(opt, "color_mix_mode", mix_mode);
-        out_options.color_mix_mode = ColorMixMode(std::clamp(mix_mode, 0, 2));
+        read(opt, "color_mix_count", out_options.color_mix_count);
         read(opt, "active_slot", out_options.active_slot);
         read(opt, "panel_mode", out_options.panel_mode);
         out_options.active_slot = std::clamp(out_options.active_slot, 0, int(TEXTURE_DISPLACEMENT_MAX_LAYERS) - 1);
