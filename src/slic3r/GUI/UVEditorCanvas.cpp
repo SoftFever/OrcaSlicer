@@ -939,7 +939,8 @@ void UVEditorCanvas::on_mouse(wxMouseEvent &evt)
             m_active_edge = (hit.first >= 0 && is_edge_selected(hit)) ? hit : std::pair<int, int>{ -1, -1 };
             m_gesture     = (m_active_edge.first >= 0) ? Gesture::MoveEdge : Gesture::Pan;
         } else {
-            const int hit = island_at(uv);
+            const std::vector<int> selection_before = m_selection;
+            const int              hit              = island_at(uv);
             if (hit >= 0) {
                 if (evt.ShiftDown()) {
                     // Shift adds to the selection (and makes the clicked one the new primary).
@@ -969,6 +970,10 @@ void UVEditorCanvas::on_mouse(wxMouseEvent &evt)
                 m_selected_island = -1;
             }
             m_gesture = (m_selected_island >= 0) ? Gesture::MoveIsland : Gesture::Pan;
+            // The owner shows the selection on the model and would not hear of this click otherwise in time: a
+            // click that clears the selection starts no gesture, and one that sets it reports only on release.
+            if (m_selection != selection_before)
+                run_command(Command::SelectionChanged);
         }
         grab_mouse();
         Refresh();
