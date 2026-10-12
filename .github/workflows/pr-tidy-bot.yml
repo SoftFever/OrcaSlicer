@@ -1,57 +1,60 @@
 name: PR clang-tidy Bot
 
-# Posts the includes the clang-tidy check reports missing, on request, as a
-# review the PR's author can apply.
+# Helps a pull request past the clang-tidy check.
 #
-# Command, posted as a comment on the PR by its author or an account with write
-# access:
+# When the check fails on a PR's changes, a comment asks the author to fix it,
+# either with scripts/run_clang_tidy.sh --fix or by commenting:
 #   /bot fix-tidy
 #
-# The fix comes from the clang-tidy check's own run on the PR's latest commit:
-# when the check fails, clang_tidy.yml runs it again with --fix and uploads the
-# result as the clang-tidy-fix artifact. Findings --fix cannot fix, such as a
-# using in a header, are left for the check to report.
+# That command, from the PR's author or an account with write access, re-runs
+# the PR's clang-tidy fix run (clang_tidy_fix.yml), which makes the fix in the
+# PR's own context. When it finishes, the fix is posted as one review: each
+# include whose place falls on a line the PR's diff shows is a suggestion GitHub
+# can commit in one click, and the review's body holds the whole patch with a
+# git apply command. Findings --fix cannot fix, such as a using in a header,
+# are left for the check to report.
 #
-# The reply is one review. Each include whose place falls on a line the PR's
-# diff shows is a suggestion GitHub can commit in one click, and the review's
-# body holds the whole patch with a git apply command for the rest. Nothing is
-# pushed, and no code from the PR runs here: the patch is only accepted when
-# every line it adds is an #include in a C++ file the PR already changes.
+# No code from the PR runs here. Nothing is pushed, and the patch is only
+# posted when every line it adds is an #include in a C++ file the PR changes.
+#
+# workflow_run matches the workflows by their name: keep "clang-tidy" and
+# "clang-tidy fix" in step with clang_tidy.yml and clang_tidy_fix.yml, and
+# TIDY_STEP below with the clang-tidy step's name in clang_tidy.yml.
 
 on:
   issue_comment:
     types:
       - created
+  workflow_run:
+    workflows:
+      - clang-tidy
+      - clang-tidy fix
+    types:
+      - completed
 
 permissions: {}
 
 jobs:
-  suggest:
+  request:
     # Skips the job unless a PR comment mentions the command.
     if: >-
       github.repository == 'OrcaSlicer/OrcaSlicer'
+      && github.event_name == 'issue_comment'
       && github.event.issue.pull_request != null
       && contains(github.event.comment.body, '/bot fix-tidy')
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.event.issue.number }}
-      cancel-in-progress: false
     permissions:
-      actions: read          # find the check's run and download its patch
-      contents: read         # check out the PR head
-      pull-requests: write   # the review
+      actions: write         # re-run the fix run
+      pull-requests: read    # pulls.get
       issues: write          # feedback comment + reactions
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
-      - name: Find the check's fix
-        id: find
+      - name: Re-run the PR's clang-tidy fix
         uses: actions/github-script@v9
         with:
           script: |
             const MARKER = '<!-- pr-tidy-bot -->';
-            const CHECK_WORKFLOW = 'clang_tidy.yml';
-            const ARTIFACT = 'clang-tidy-fix';
-            const CPP = /^(src|tests)\/.+\.(cpp|cc|cxx|hpp|h|hxx)$/;
+            const FIX_WORKFLOW = 'clang_tidy_fix.yml';
 
             const { owner, repo } = context.repo;
             const issue = context.payload.issue;
@@ -84,11 +87,10 @@ jobs:
 
             const react = (content) =>
               github.rest.reactions.createForIssueComment({ owner, repo, comment_id: comment.id, content });
-            async function reply(body, content) {
-              await react(content);
-              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `${MARKER}\n@${commenter} ${body}` });
+            async function refuse(reason) {
+              await react('-1');
+              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `${MARKER}\n@${commenter} ${reason}` });
             }
-            const refuse = (reason) => reply(reason, '-1');
 
             await react('eyes');
 
@@ -100,33 +102,80 @@ jobs:
             if (pr.state !== 'open') {
               return refuse('the PR is not open.');
             }
-            if (!pr.head.repo) {
-              return refuse('the PR\'s branch is in a repository that no longer exists.');
-            }
 
             const sha = pr.head.sha.slice(0, 10);
             const { data: { workflow_runs: runs } } = await github.rest.actions.listWorkflowRuns({
-              owner, repo, workflow_id: CHECK_WORKFLOW, event: 'pull_request', head_sha: pr.head.sha, per_page: 1
+              owner, repo, workflow_id: FIX_WORKFLOW, event: 'pull_request', head_sha: pr.head.sha, per_page: 1
             });
             const run = runs[0];
             if (!run) {
-              return refuse(`the clang-tidy check has not run on ${sha}, the PR's latest commit.`);
+              return refuse(`the PR's checks have not started on ${sha} yet. Comment \`/bot fix-tidy\` again once they have.`);
             }
             if (run.status !== 'completed') {
-              return refuse(`the clang-tidy check is still running on ${sha}. Comment \`/bot fix-tidy\` again once it finishes.`);
+              // The first attempt is the one every push starts, and it makes no fix.
+              return refuse(run.run_attempt > 1
+                ? `a clang-tidy fix for ${sha} is already [running](${run.html_url}). I'll post it when it finishes.`
+                : `the PR's checks on ${sha} are still starting. Comment \`/bot fix-tidy\` again in a minute.`);
             }
-            if (run.conclusion === 'success') {
-              return reply(`the clang-tidy check passes on ${sha}. There is nothing to fix.`, '+1');
-            }
-            const { data: { artifacts } } = await github.rest.actions.listWorkflowRunArtifacts({
-              owner, repo, run_id: run.id, name: ARTIFACT
+            await github.rest.actions.reRunWorkflow({ owner, repo, run_id: run.id });
+            core.info(`Re-ran ${run.html_url}`);
+
+  suggest:
+    # The fix run's re-runs only. Its first attempt makes no fix.
+    if: >-
+      github.repository == 'OrcaSlicer/OrcaSlicer'
+      && github.event_name == 'workflow_run'
+      && github.event.workflow_run.name == 'clang-tidy fix'
+      && github.event.workflow_run.event == 'pull_request'
+      && github.event.workflow_run.run_attempt > 1
+    concurrency:
+      group: ${{ github.workflow }}-suggest-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: false
+    permissions:
+      actions: read          # download the fix
+      contents: read         # check out the PR head
+      pull-requests: write   # the review
+      issues: write          # feedback comment + reactions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Find the PR and who asked
+        id: find
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const MARKER = '<!-- pr-tidy-bot -->';
+            const CPP = /^(src|tests)\/.+\.(cpp|cc|cxx|hpp|h|hxx)$/;
+
+            const { owner, repo } = context.repo;
+            const run = context.payload.workflow_run;
+
+            // workflow_run lists no PR for a fork's branch, so the PR is found by its branch.
+            const { data: prs } = await github.rest.pulls.list({
+              owner, repo, state: 'open', head: `${run.head_repository.owner.login}:${run.head_branch}`
             });
-            if (!artifacts.some((a) => !a.expired)) {
-              return refuse(
-                run.conclusion === 'failure'
-                  ? `clang-tidy has no automatic fix for what the check reports on ${sha}. The findings, in the [check's log](${run.html_url}), need a manual edit.`
-                  : `the clang-tidy check on ${sha} did not finish (${run.conclusion}). Re-run it, then comment \`/bot fix-tidy\` again.`
-              );
+            const pr = prs[0];
+            if (!pr) {
+              core.info('No open PR for this run.');
+              return;
+            }
+
+            // The latest /bot fix-tidy comment is the one this run answers.
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr.number, per_page: 100 });
+            const request = comments.reverse().find((c) => c.user.type === 'User' && /^\s*\/bot\s+fix-tidy\s*$/im.test(c.body || ''));
+            const mention = request ? `@${request.user.login} ` : '';
+            async function refuse(reason) {
+              if (request) {
+                await github.rest.reactions.createForIssueComment({ owner, repo, comment_id: request.id, content: '-1' });
+              }
+              await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: `${MARKER}\n${mention}${reason}` });
+            }
+
+            if (pr.head.sha !== run.head_sha) {
+              return refuse('the PR changed while I was making its clang-tidy fix. Comment `/bot fix-tidy` again.');
+            }
+            if (run.conclusion !== 'success') {
+              return refuse(`I couldn't make the clang-tidy fix. See the [run log](${run.html_url}).`);
             }
 
             // The right-side lines of each changed C++ file's diff: the lines a
@@ -143,24 +192,25 @@ jobs:
                 .filter(([first, last]) => last >= first);
             }
 
-            core.setOutput('run-id', run.id);
-            core.setOutput('run-url', run.html_url);
+            core.setOutput('pr', pr.number);
             core.setOutput('head-sha', pr.head.sha);
-            core.setOutput('head-repo', pr.head.repo.full_name);
+            core.setOutput('head-repo', run.head_repository.full_name);
             core.setOutput('ranges', JSON.stringify(ranges));
+            core.setOutput('mention', mention);
+            core.setOutput('request-id', request ? request.id : '');
 
       - name: Download the fix
-        if: steps.find.outputs.run-id != ''
+        if: steps.find.outputs.pr != ''
         uses: actions/download-artifact@v8
         with:
           name: clang-tidy-fix
-          run-id: ${{ steps.find.outputs.run-id }}
+          run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/clang-tidy-fix
 
       # The PR's own files, only to apply the patch to. Nothing in them is run.
       - name: Checkout the PR head
-        if: steps.find.outputs.run-id != ''
+        if: steps.find.outputs.pr != ''
         uses: actions/checkout@v7
         with:
           repository: ${{ steps.find.outputs.head-repo }}
@@ -173,11 +223,11 @@ jobs:
             src
             tests
 
-      # The check made the patch on the PR's merge commit, so it is applied to the
-      # head and diffed again, giving line numbers in the PR's own files.
+      # The fix was made on the PR's merge commit, so it is applied to the head
+      # and diffed again, giving line numbers in the PR's own files.
       - name: Check the fix and place its suggestions
         id: place
-        if: steps.find.outputs.run-id != ''
+        if: steps.find.outputs.pr != ''
         env:
           RANGES: ${{ steps.find.outputs.ranges }}
         run: |
@@ -192,6 +242,11 @@ jobs:
                   for key, value in values.items():
                       f.write(f"{key}={value}\n")
 
+          patch = open(patch_path, encoding="utf-8").read()
+          if not patch.strip():
+              output(result="empty")
+              sys.exit()
+
           # Every line the patch adds must be an #include or blank, in a C++ file the
           # PR changes, and it may not remove, create, rename or change the mode of
           # anything.
@@ -199,7 +254,7 @@ jobs:
           header = re.compile(r"(index [0-9a-f]+\.\.[0-9a-f]+( \d+)?|@@ -\d+(,\d+)? \+\d+(,\d+)? @@.*)")
           problems = []
           path = None
-          for line in open(patch_path, encoding="utf-8").read().splitlines():
+          for line in patch.splitlines():
               if line.startswith("diff --git "):
                   match = re.fullmatch(r"diff --git a/(.+) b/\1", line)
                   path = match.group(1) if match else None
@@ -264,14 +319,16 @@ jobs:
           EOF
 
       - name: Post the fix
-        if: always() && steps.find.outputs.run-id != ''
+        if: always() && steps.find.outputs.pr != ''
         uses: actions/github-script@v9
         env:
+          PR: ${{ steps.find.outputs.pr }}
+          MENTION: ${{ steps.find.outputs.mention }}
+          REQUEST_ID: ${{ steps.find.outputs.request-id }}
+          HEAD_SHA: ${{ steps.find.outputs.head-sha }}
           RESULT: ${{ steps.place.outputs.result }}
           INCLUDES: ${{ steps.place.outputs.includes }}
           SUGGESTED: ${{ steps.place.outputs.suggested }}
-          HEAD_SHA: ${{ steps.find.outputs.head-sha }}
-          CHECK_URL: ${{ steps.find.outputs.run-url }}
         with:
           script: |
             const fs = require('fs');
@@ -281,34 +338,40 @@ jobs:
             const MAX_PATCH = 60000;
 
             const { owner, repo } = context.repo;
-            const issue = context.payload.issue;
-            const comment = context.payload.comment;
-            const commenter = comment.user.login;
-            const { RESULT, INCLUDES, SUGGESTED, HEAD_SHA, CHECK_URL, RUNNER_TEMP } = process.env;
+            const { PR, MENTION, REQUEST_ID, HEAD_SHA, RESULT, INCLUDES, SUGGESTED, RUNNER_TEMP } = process.env;
+            const issue_number = Number(PR);
             const sha = HEAD_SHA.slice(0, 10);
+            const fixUrl = context.payload.workflow_run.html_url;
             const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
 
-            const react = (content) =>
-              github.rest.reactions.createForIssueComment({ owner, repo, comment_id: comment.id, content });
-            async function refuse(reason) {
-              await react('-1');
-              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `${MARKER}\n@${commenter} ${reason}` });
-            }
-
-            if (RESULT === 'rejected') {
-              return refuse(`the check's fix changes more than includes, so I didn't post it. See the [run log](${runUrl}).`);
-            }
-            if (RESULT === 'apply-failed') {
-              return refuse(`the check's fix doesn't apply to ${sha}. Merge the base branch into the PR, then comment \`/bot fix-tidy\` again once the check has run.`);
-            }
-            if (RESULT !== 'ok') {
-              return refuse(`something went wrong. See the [run log](${runUrl}).`);
+            const react = (content) => REQUEST_ID
+              ? github.rest.reactions.createForIssueComment({ owner, repo, comment_id: Number(REQUEST_ID), content })
+              : Promise.resolve();
+            async function reply(body, content) {
+              await react(content);
+              await github.rest.issues.createComment({ owner, repo, issue_number, body: `${MARKER}\n${MENTION}${body}` });
             }
 
             const read = (...parts) => fs.readFileSync(path.join(RUNNER_TEMP, ...parts), 'utf8');
+            const passes = RESULT && read('clang-tidy-fix', 'status').trim() === '0';
+
+            if (RESULT === 'empty') {
+              return passes
+                ? reply(`clang-tidy passes on ${sha}. There is nothing to fix.`, '+1')
+                : reply(`clang-tidy has no automatic fix for what it reports on ${sha}. The findings, in the [fix run's log](${fixUrl}), need a manual edit.`, '-1');
+            }
+            if (RESULT === 'rejected') {
+              return reply(`the clang-tidy fix changes more than includes, so I didn't post it. See the [run log](${runUrl}).`, '-1');
+            }
+            if (RESULT === 'apply-failed') {
+              return reply(`the clang-tidy fix doesn't apply to ${sha}. Merge the base branch into the PR, then comment \`/bot fix-tidy\` again.`, '-1');
+            }
+            if (RESULT !== 'ok') {
+              return reply(`something went wrong. See the [run log](${runUrl}).`, '-1');
+            }
+
             const patch = read('head.patch');
             const suggestions = JSON.parse(read('suggestions.json'));
-            const passes = read('clang-tidy-fix', 'status').trim() === '0';
 
             const one = INCLUDES === '1';
             const includes = one ? '1 missing include' : `${INCLUDES} missing includes`;
@@ -319,17 +382,17 @@ jobs:
                 ? (one ? 'It is suggested inline below.' : 'Each is suggested inline below.')
                 : `${SUGGESTED} of them are suggested inline below; the rest go on lines this PR does not change.`;
             const remaining = passes
-              ? `With ${one ? 'it' : 'them'}, the check passes.`
-              : `Some findings remain that need a manual edit; see the [check's log](${CHECK_URL}).`;
+              ? `With ${one ? 'it' : 'them'}, clang-tidy passes.`
+              : `Some findings remain that need a manual edit; see the [fix run's log](${fixUrl}).`;
             // A fence longer than any run of backticks in the patch's context lines.
             const fence = '`'.repeat(Math.max(3, ...[...patch.matchAll(/`+/g)].map((m) => m[0].length + 1)));
             const apply = patch.length > MAX_PATCH
-              ? `The full patch is too large to show here. Download \`fix.patch\` from the [check's run](${CHECK_URL}) and run \`git apply fix.patch\`.`
+              ? `The full patch is too large to show here. Download \`fix.patch\` from the [fix run](${fixUrl}) and run \`git apply fix.patch\`.`
               : `To apply ${one ? 'it' : 'all of them'}, run this in your checkout of the PR branch:\n\n${fence}sh\ngit apply <<'EOF'\n${patch}EOF\n${fence}`;
-            const body = (withSuggestions) => `${MARKER}\n@${commenter} clang-tidy's fix for ${sha} adds ${includes}. ` +
+            const body = (withSuggestions) => `${MARKER}\n${MENTION}clang-tidy's fix for ${sha} adds ${includes}. ` +
               `${withSuggestions ? `${inline} ` : ''}${remaining}\n\n${apply}`;
 
-            const review = { owner, repo, pull_number: issue.number, commit_id: HEAD_SHA, event: 'COMMENT' };
+            const review = { owner, repo, pull_number: issue_number, commit_id: HEAD_SHA, event: 'COMMENT' };
             try {
               await github.rest.pulls.createReview({ ...review, body: body(true), comments: suggestions });
             } catch (error) {
@@ -338,3 +401,67 @@ jobs:
               await github.rest.pulls.createReview({ ...review, body: body(false) });
             }
             await react('+1');
+
+  nudge:
+    if: >-
+      github.repository == 'OrcaSlicer/OrcaSlicer'
+      && github.event_name == 'workflow_run'
+      && github.event.workflow_run.name == 'clang-tidy'
+      && github.event.workflow_run.event == 'pull_request'
+    concurrency:
+      group: ${{ github.workflow }}-nudge-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: false
+    permissions:
+      actions: read          # the check's steps
+      pull-requests: read    # find the PR
+      issues: write          # the comment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask for a fix when the check fails
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const MARKER = '<!-- pr-tidy-bot-nudge -->';
+            // The clang-tidy step's name in clang_tidy.yml. A failure in any other
+            // step is the CI's, not the PR's.
+            const TIDY_STEP = 'Run clang-tidy on the changed lines';
+
+            const { owner, repo } = context.repo;
+            const run = context.payload.workflow_run;
+
+            // workflow_run lists no PR for a fork's branch, so the PR is found by its branch.
+            const { data: prs } = await github.rest.pulls.list({
+              owner, repo, state: 'open', head: `${run.head_repository.owner.login}:${run.head_branch}`
+            });
+            const pr = prs.find((p) => p.head.sha === run.head_sha);
+            if (!pr) {
+              core.info('No open PR at this run\'s commit; a newer run will answer.');
+              return;
+            }
+
+            const { data: { jobs } } = await github.rest.actions.listJobsForWorkflowRun({ owner, repo, run_id: run.id });
+            const failed = jobs.some((job) => (job.steps || []).some((step) => step.name === TIDY_STEP && step.conclusion === 'failure'));
+
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pr.number, per_page: 100 });
+            const previous = comments.find((c) => c.user.type === 'Bot' && (c.body || '').startsWith(MARKER));
+
+            if (!failed) {
+              // Removes the request once the check passes.
+              if (previous && run.conclusion === 'success') {
+                await github.rest.issues.deleteComment({ owner, repo, comment_id: previous.id });
+              }
+              return;
+            }
+
+            const body = `${MARKER}\n@${pr.user.login} the clang-tidy check found problems in this PR's changes ` +
+              `at ${run.head_sha.slice(0, 10)} ([log](${run.html_url})). Missing includes can be fixed either way:\n\n` +
+              '- run `scripts/run_clang_tidy.sh --fix` (`scripts\\run_clang_tidy.ps1 -Fix` on Windows) and push the result, or\n' +
+              '- comment `/bot fix-tidy`, and I\'ll suggest the fix here for you to apply.\n\n' +
+              'Other findings, such as a `using` in a header, need a manual edit.';
+            // Edits the earlier request instead of posting another, so each push does not notify again.
+            if (previous) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: previous.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body });
+            }

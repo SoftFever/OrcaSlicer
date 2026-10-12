@@ -3,8 +3,7 @@ name: clang-tidy
 # Runs clang-tidy, with the checks in .clang-tidy, over the C++ lines a pull
 # request changes (scripts/clang_tidy_diff.py). The compile database is
 # configured without the precompiled header, so code that only builds because
-# the PCH supplied an include fails here. A failed check also uploads the
-# missing-include fixes, which /bot fix-tidy (pr-tidy-bot.yml) posts on the PR.
+# the PCH supplied an include fails here.
 #
 # No paths filter: the job is a required check, and a workflow skipped by a
 # paths filter leaves a required check pending forever. A PR with no C++
@@ -84,34 +83,7 @@ jobs:
         run: cmake --build build-tidy --target git_commit_hash_header
 
       - name: Run clang-tidy on the changed lines
-        id: tidy
         if: steps.changes.outputs.cpp == 'true'
         run: >
           python3 scripts/clang_tidy_diff.py -p build-tidy --base HEAD^1
           --clang-tidy "$RUNNER_TEMP/clang-tidy/bin/clang-tidy" -j "$(nproc)"
-
-      # The fixes for a failed check, for /bot fix-tidy (pr-tidy-bot.yml) to post on
-      # the PR. They go into the patch only, so the check still fails. The status
-      # says whether findings remain that --fix cannot fix.
-      - name: Make the fix patch
-        id: fix
-        if: failure() && steps.tidy.outcome == 'failure'
-        run: |
-          mkdir -p "$RUNNER_TEMP/clang-tidy-fix"
-          status=0
-          python3 scripts/clang_tidy_diff.py -p build-tidy --base HEAD^1 \
-            --clang-tidy "$RUNNER_TEMP/clang-tidy/bin/clang-tidy" -j "$(nproc)" -- --fix > /dev/null || status=$?
-          echo "$status" > "$RUNNER_TEMP/clang-tidy-fix/status"
-          git -c core.quotePath=false diff --no-color --no-ext-diff --src-prefix=a/ --dst-prefix=b/ \
-            > "$RUNNER_TEMP/clang-tidy-fix/fix.patch"
-          if [ -s "$RUNNER_TEMP/clang-tidy-fix/fix.patch" ]; then
-            echo "patch=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Upload the fix patch
-        if: failure() && steps.fix.outputs.patch == 'true'
-        uses: actions/upload-artifact@v7
-        with:
-          name: clang-tidy-fix
-          path: ${{ runner.temp }}/clang-tidy-fix/
-          retention-days: 30
