@@ -409,10 +409,18 @@ std::unique_ptr<GLTexture> upload_color_texture(const DecodedHeightTexture &deco
                     for (int c = 0; c < 3; ++c)
                         sum[c] += decoded.rgb[si + size_t(c)];
                 }
+            // Coverage rides in the fourth channel, box-filtered with the colour, so the shader can
+            // leave the surface alone where the picture is not there (see the colour path in
+            // texture_displacement_shaded.fs).
+            unsigned int sum_a = 0;
+            if (decoded.has_alpha())
+                for (int sy = y0; sy < y1 && sy < decoded.height; ++sy)
+                    for (int sx = x0; sx < x1 && sx < decoded.width; ++sx)
+                        sum_a += decoded.alpha[size_t(sy) * size_t(decoded.width) + size_t(sx)];
             const size_t di = (size_t(y) * size_t(w) + size_t(x)) * 4;
             for (int c = 0; c < 3; ++c)
                 rgba[di + size_t(c)] = (n > 0) ? static_cast<unsigned char>(sum[size_t(c)] / n) : 0;
-            rgba[di + 3] = 255;
+            rgba[di + 3] = (decoded.has_alpha() && n > 0) ? static_cast<unsigned char>(sum_a / n) : 255;
         }
 
     auto texture = std::make_unique<GLTexture>();

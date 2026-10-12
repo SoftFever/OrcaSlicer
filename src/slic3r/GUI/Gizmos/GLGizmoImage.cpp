@@ -529,6 +529,35 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         m_preview_params_dirty |= float_row("##gamma", _L("Gamma"), &layer->gamma, 0.2f, 5.f, "%.2f", true);
         hover_tip(_u8L("Lifts or drops the midtones without touching the brightest and darkest parts. Use it "
                        "when the middle of the picture is the part coming out wrong."));
+        m_preview_params_dirty |= float_row("##sharpen", _L("Sharpen"), &layer->sharpness, 0.f, 1.f, "%.2f", false);
+        hover_tip(_u8L("Crisps up the edges before the picture is matched to your filaments. Worth more here "
+                       "than in a photo: a soft edge between two colors quantizes into a ragged band of "
+                       "both, and sharpening first makes it land in one place."));
+
+        // Two filaments, on purpose. The case this exists for is a logo or line art, where anything
+        // in between the two reads as speckle rather than as shading.
+        if (m_imgui->bbl_checkbox(_L("Two colors"), layer->threshold_enabled))
+            m_preview_params_dirty = true;
+        hover_tip(_u8L("Forces the picture to light and dark only, so it prints in exactly two filaments. "
+                       "For a logo or line art, where the in-between grays come out as speckle."));
+        if (layer->threshold_enabled) {
+            m_preview_params_dirty |= float_row("##threshold", _L("Split at"), &layer->threshold, 0.05f, 0.95f, "%.2f", false);
+            hover_tip(_u8L("Where the split falls. Lower keeps more of the picture on the light side, higher "
+                           "on the dark one."));
+        }
+
+        if (m_imgui->bbl_checkbox(_L("Remove background"), layer->bg_remove))
+            m_preview_params_dirty = true;
+        hover_tip(_u8L("Leaves the background unprinted, so the object's own color shows through instead of "
+                       "a slab of white behind a logo. The color is taken from the picture's four corners. "
+                       "A picture that is already transparent needs none of this: those parts are left out "
+                       "either way."));
+        if (layer->bg_remove) {
+            m_preview_params_dirty |= float_row("##bg_tol", _L("Tolerance"), &layer->bg_tolerance, 0.01f, 0.6f, "%.2f", false);
+            hover_tip(_u8L("How different from the corners still counts as background. Raise it when a "
+                           "shadow or a gradient is left behind; lower it when it starts eating the picture."));
+        }
+
         if (m_imgui->bbl_checkbox(_L("Negative"), layer->color_invert))
             m_preview_params_dirty = true;
         hover_tip(_u8L("Prints the picture inverted, light for dark and each color for its opposite."));
@@ -539,6 +568,11 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             layer->saturation      = 1.f;
             layer->hue             = 0.f;
             layer->gamma           = 1.f;
+            layer->sharpness       = 0.f;
+            layer->threshold_enabled = false;
+            layer->threshold       = 0.5f;
+            layer->bg_remove       = false;
+            layer->bg_tolerance    = 0.15f;
             layer->color_invert    = false;
             m_preview_params_dirty = true;
         }

@@ -160,16 +160,21 @@ public:
     struct ColorAdjustKey
     {
         float brightness = 0.f, contrast = 0.f, saturation = 1.f, gamma = 1.f, hue = 0.f;
-        bool  invert     = false;
+        float sharpness = 0.f, threshold = 0.5f, bg_tolerance = 0.15f;
+        bool  invert = false, threshold_on = false, bg_remove = false;
         bool  operator==(const ColorAdjustKey &o) const
         {
             return brightness == o.brightness && contrast == o.contrast && saturation == o.saturation &&
-                   gamma == o.gamma && hue == o.hue && invert == o.invert;
+                   gamma == o.gamma && hue == o.hue && sharpness == o.sharpness &&
+                   threshold == o.threshold && bg_tolerance == o.bg_tolerance && invert == o.invert &&
+                   threshold_on == o.threshold_on && bg_remove == o.bg_remove;
         }
         bool operator!=(const ColorAdjustKey &o) const { return !(*this == o); }
         static ColorAdjustKey of(const TextureDisplacementLayer &l)
         {
-            return { l.brightness, l.contrast, l.saturation, l.gamma, l.hue, l.color_invert };
+            return { l.brightness,   l.contrast,          l.saturation, l.gamma,   l.hue,
+                     l.sharpness,    l.threshold,         l.bg_tolerance,
+                     l.color_invert, l.threshold_enabled, l.bg_remove };
         }
     };
     std::vector<ColorAdjustKey> m_palette_adjusts; // alongside m_palette_images, one per entry

@@ -115,6 +115,20 @@ float DecodedHeightTexture::sample(const Vec2f &uv, bool tile_enabled, TextureTi
     return top * (1.f - ty) + bottom * ty;
 }
 
+float DecodedHeightTexture::sample_alpha(const Vec2f &uv, bool tile_enabled, TextureTileMethod tile_method) const
+{
+    TexelTap tap;
+    if (!has_alpha())
+        return 1.f; // no coverage plane means the picture is everywhere, which is the usual case
+    if (!texel_tap(uv, tile_enabled, tile_method, tap))
+        return 0.f;
+
+    auto at = [this](int x, int y) { return float(alpha[size_t(y) * size_t(width) + size_t(x)]) / 255.f; };
+    const float top    = at(tap.x0, tap.y0) * (1.f - tap.tx) + at(tap.x1, tap.y0) * tap.tx;
+    const float bottom = at(tap.x0, tap.y1) * (1.f - tap.tx) + at(tap.x1, tap.y1) * tap.tx;
+    return top * (1.f - tap.ty) + bottom * tap.ty;
+}
+
 Vec3f DecodedHeightTexture::sample_color(const Vec2f &uv, bool tile_enabled, TextureTileMethod tile_method) const
 {
     TexelTap tap;
@@ -261,10 +275,93 @@ bool height_texture_has_color(const TextureDisplacementLayer &layer)
     return decode_height_texture(layer).has_color();
 }
 
+namespace {
+// Unsharp mask over the colour: blur a copy and push each texel away from it. The blur is the same
+// sliding-window helper the Smoothing slider uses, run per channel, so the cost is the image size
+// rather than the image size times the radius.
+//
+// Worth having here for a reason it would not be in a photo editor: the picture is about to be
+// reduced to a handful of flat colours, and a soft edge between two of them quantizes into a ragged
+// band of both. Sharpening first makes that boundary land in one place.
+void sharpen_rgb(DecodedHeightTexture &tex, float amount)
+{
+    if (!tex.has_color() || amount <= 0.f)
+        return;
+    const size_t n = size_t(tex.width) * size_t(tex.height);
+    // A small radius, scaled with the image so a 4k picture is not sharpened a tenth as hard as a
+    // 512 one. Deliberately not tied to `amount`: that is how much, this is how wide.
+    const int radius = std::max(1, int(std::lround(double(std::min(tex.width, tex.height)) / 512.0)));
+    const float k    = std::clamp(amount, 0.f, 1.f) * 1.5f;
+
+    std::vector<uint8_t> plane(n);
+    for (int c = 0; c < 3; ++c) {
+        for (size_t i = 0; i < n; ++i)
+            plane[i] = tex.rgb[i * 3 + size_t(c)];
+        smooth_height_pixels_box(plane, tex.width, tex.height, radius);
+        for (size_t i = 0; i < n; ++i) {
+            const float sharp = float(tex.rgb[i * 3 + size_t(c)]) + k * (float(tex.rgb[i * 3 + size_t(c)]) - float(plane[i]));
+            tex.rgb[i * 3 + size_t(c)] = uint8_t(std::lround(std::clamp(sharp, 0.f, 255.f)));
+        }
+    }
+}
+
+// Two levels, on luma. For line art and logos, where the useful result is exactly two filaments and
+// anything in between is speckle.
+void apply_threshold(DecodedHeightTexture &tex, const TextureDisplacementLayer &layer)
+{
+    if (!tex.has_color() || !layer.threshold_enabled)
+        return;
+    const float cut = std::clamp(layer.threshold, 0.f, 1.f) * 255.f;
+    const size_t n  = size_t(tex.width) * size_t(tex.height);
+    for (size_t i = 0; i < n; ++i) {
+        const float luma = 0.2126f * float(tex.rgb[i * 3]) + 0.7152f * float(tex.rgb[i * 3 + 1]) +
+                           0.0722f * float(tex.rgb[i * 3 + 2]);
+        const uint8_t v = luma >= cut ? 255 : 0;
+        tex.rgb[i * 3] = tex.rgb[i * 3 + 1] = tex.rgb[i * 3 + 2] = v;
+    }
+}
+
+// Keys out the colour the picture's corners share, so a logo on a white card prints as the logo and
+// the object's own colour shows through the rest.
+//
+// The corners rather than a colour the user picks: a background that does not reach all four of them
+// is not a background, and asking for an eyedropper would be a second interaction for the case this
+// exists to make one click. The median of the four is used so a single stray corner cannot decide it.
+void remove_background(DecodedHeightTexture &tex, const TextureDisplacementLayer &layer)
+{
+    if (!tex.has_color() || !layer.bg_remove || tex.width < 2 || tex.height < 2)
+        return;
+    const size_t n = size_t(tex.width) * size_t(tex.height);
+    const size_t corner[4] = { 0, size_t(tex.width) - 1, (size_t(tex.height) - 1) * size_t(tex.width),
+                               n - 1 };
+    float key[3];
+    for (int c = 0; c < 3; ++c) {
+        std::array<float, 4> v{};
+        for (int i = 0; i < 4; ++i)
+            v[size_t(i)] = float(tex.rgb[corner[i] * 3 + size_t(c)]);
+        std::sort(v.begin(), v.end());
+        key[c] = 0.5f * (v[1] + v[2]);
+    }
+    // Euclidean in 0..255 RGB, against a tolerance scaled to the diagonal of that cube, so the
+    // slider reads as "how different from the background still counts as background".
+    const float limit = std::clamp(layer.bg_tolerance, 0.f, 1.f) * 441.67f;
+    if (!tex.has_alpha())
+        tex.alpha.assign(n, 255);
+    for (size_t i = 0; i < n; ++i) {
+        const float dr = float(tex.rgb[i * 3]) - key[0];
+        const float dg = float(tex.rgb[i * 3 + 1]) - key[1];
+        const float db = float(tex.rgb[i * 3 + 2]) - key[2];
+        if (std::sqrt(dr * dr + dg * dg + db * db) <= limit)
+            tex.alpha[i] = 0;
+    }
+}
+} // namespace
+
 bool has_color_adjustments(const TextureDisplacementLayer &layer)
 {
     return layer.brightness != 0.f || layer.contrast != 0.f || layer.saturation != 1.f ||
-           layer.gamma != 1.f || layer.color_invert || layer.hue != 0.f;
+           layer.gamma != 1.f || layer.color_invert || layer.hue != 0.f || layer.sharpness > 0.f ||
+           layer.threshold_enabled || layer.bg_remove;
 }
 
 void apply_color_adjustments(DecodedHeightTexture &tex, const TextureDisplacementLayer &layer)
@@ -336,6 +433,14 @@ void apply_color_adjustments(DecodedHeightTexture &tex, const TextureDisplacemen
             }
         }
     });
+
+    // Sharpen, threshold and the background key are all passes over the whole image rather than
+    // per-texel arithmetic, so they come after the loop above and in this order: sharpening a
+    // thresholded image would only ring along the one edge it has left, and the key has to read the
+    // colours the user is actually looking at.
+    sharpen_rgb(tex, layer.sharpness);
+    apply_threshold(tex, layer);
+    remove_background(tex, layer);
 }
 
 DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer)
@@ -390,6 +495,10 @@ DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer
             result.height = h;
             result.pixels.resize(size_t(w) * size_t(h));
             result.rgb.resize(size_t(w) * size_t(h) * 3);
+            // A fourth channel is coverage, and it is the only thing that can say "the picture is
+            // not here" as opposed to "the picture is black here". Kept only when the source has it.
+            if (bpp >= 4)
+                result.alpha.resize(size_t(w) * size_t(h));
             // decode_colored_png() hands its buffer back bottom-up - it is shared with the CLI's
             // plate-thumbnail loader, which expects that - while this type, and decode_png()'s
             // grayscale path above, are top-to-bottom. Reverse the rows on the way in so a colour
@@ -403,6 +512,8 @@ DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer
                     result.rgb[dst * 3 + 1] = g;
                     result.rgb[dst * 3 + 2] = b;
                     result.pixels[dst] = uint8_t(std::lround(0.299 * r + 0.587 * g + 0.114 * b));
+                    if (bpp >= 4)
+                        result.alpha[dst] = src[3];
                 }
         }
 
@@ -1936,10 +2047,14 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
     // Outside a non-tiled placement there is no texture at all - the same hard edge sample() gives the
     // height. Checked explicitly because sample_color() reports it as black, which is a real colour.
     auto covered = [&](const Vec2f &planar) {
-        if (layer.tile_enabled)
-            return true;
         const Vec2f uv = xf(planar);
-        return uv.x() >= 0.f && uv.x() < 1.f && uv.y() >= 0.f && uv.y() < 1.f;
+        if (!layer.tile_enabled && !(uv.x() >= 0.f && uv.x() < 1.f && uv.y() >= 0.f && uv.y() < 1.f))
+            return false;
+        // Where the picture is transparent there is no colour to print, which is the same answer as
+        // being outside the placement - not black, which is a colour. Half coverage counts as
+        // covered: a triangle prints in one filament either way, so the only useful question is
+        // which side of the edge it falls on.
+        return texture.sample_alpha(uv, layer.tile_enabled, layer.tile_method) >= 0.5f;
     };
 
     if (lscm_uv != nullptr) {

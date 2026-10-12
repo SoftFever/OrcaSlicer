@@ -300,6 +300,16 @@ struct TextureDisplacementLayer
     float brightness   = 0.f;  // -1 .. 1, added last, after contrast
     float contrast     = 0.f;  // -1 .. 1, pivoted on mid grey; -1 flattens to grey, 1 doubles the slope
     float hue          = 0.f;  // -180 .. 180 degrees, rotated about the grey axis at constant luma
+    float sharpness    = 0.f;  //  0 .. 1 unsharp mask amount, 0 is off
+    // Line art and logos: everything lighter than `threshold` becomes white and the rest black, so the
+    // picture matches exactly two filaments instead of speckling across several.
+    bool  threshold_enabled = false;
+    float threshold         = 0.5f; // 0 .. 1, on Rec. 709 luma
+    // Leaves the background of a picture unprinted, so the object's own colour shows through instead
+    // of a slab of white behind a logo. Texels the source image marked transparent always count;
+    // `bg_remove` additionally keys out whatever colour the picture's corners share.
+    bool  bg_remove    = false;
+    float bg_tolerance = 0.15f; // 0 .. 1, distance from the keyed colour that still counts as background
     float saturation   = 1.f;  //  0 .. 2, 1 leaves it alone, 0 is grayscale
     float gamma        = 1.f;  // 0.2 .. 5, 1 leaves it alone; above 1 lifts the midtones
     bool  color_invert = false; // negative of the colour, as opposed to `invert` which flips relief
@@ -314,7 +324,8 @@ struct TextureDisplacementLayer
            static_cast<int>(blend_mode), midlevel, island_padding_mm, lscm_seam_edges, view_project_right,
            view_project_up, smoothing, edge_smoothing, edge_smoothing_amount, auto_connect_islands, island_groups,
            lscm_uv_overrides, view_project_projective, view_project_matrix, color_enabled, brightness,
-           contrast, saturation, gamma, color_invert, hue);
+           contrast, saturation, gamma, color_invert, hue, sharpness, threshold_enabled, threshold,
+           bg_remove, bg_tolerance);
     }
     template<class Archive> void load(Archive &ar)
     {
@@ -326,7 +337,8 @@ struct TextureDisplacementLayer
            tile_method_int, projection_method_int, lscm_seam_angle_deg, islands, blend_mode_int, midlevel,
            island_padding_mm, lscm_seam_edges, view_project_right, view_project_up, smoothing, edge_smoothing,
            edge_smoothing_amount, auto_connect_islands, island_groups, lscm_uv_overrides, view_project_projective,
-           view_project_matrix, color_enabled, brightness, contrast, saturation, gamma, color_invert, hue);
+           view_project_matrix, color_enabled, brightness, contrast, saturation, gamma, color_invert, hue, sharpness,
+           threshold_enabled, threshold, bg_remove, bg_tolerance);
         image_data        = blob.empty() ? nullptr : std::make_shared<std::vector<unsigned char>>(blob.begin(), blob.end());
         tile_method       = static_cast<TextureTileMethod>(tile_method_int);
         projection_method = static_cast<TextureProjectionMethod>(projection_method_int);
@@ -460,11 +472,19 @@ struct DecodedHeightTexture
     // has_color() is what the whole colour feature keys off: a layer set to colour a model with a
     // grayscale texture on it simply colours nothing.
     std::vector<uint8_t> rgb;
+    // Coverage: 0 where the picture is not there at all, 255 where it is fully there. Empty when the
+    // source image had no alpha and nothing has keyed a background out, which is the common case and
+    // means "opaque everywhere". Distinct from a black texel, which is a colour.
+    std::vector<uint8_t> alpha;
     int width  = 0;
     int height = 0;
 
     bool empty() const { return width <= 0 || height <= 0 || pixels.empty(); }
     bool has_color() const { return !empty() && rgb.size() == size_t(width) * size_t(height) * 3; }
+    bool has_alpha() const { return !empty() && alpha.size() == size_t(width) * size_t(height); }
+    // Coverage at a uv, bilinear, in [0, 1]. 1 everywhere when there is no alpha plane.
+    float sample_alpha(const Vec2f &uv, bool tile_enabled = true,
+                       TextureTileMethod tile_method = TextureTileMethod::Repeat) const;
     // Bilinearly sampled height in [0, 1] at a normalized uv coordinate. When tile_enabled is false,
     // a uv outside [0, 1) samples as 0 - the texture simply is not there, rather than its border
     // row/column being smeared outward forever (which is what clamping the coordinate would do, and
