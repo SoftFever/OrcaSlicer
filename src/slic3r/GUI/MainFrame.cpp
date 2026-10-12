@@ -822,21 +822,14 @@ bool MainFrame::handle_global_shortcut(const KeyChord& chord)
     if (!shortcut.has_value())
         return false;
 
-    // Switch to the first of the given tabs that exists in the tab panel
-    auto go_to_tab = [this](std::initializer_list<const char*> ids) {
-        for (const char* id : ids) {
-            if (m_tabpanel->FindPageByName(id) != wxNOT_FOUND) {
-                m_tabpanel->SelectPageByName(id);
-                return;
-            }
-        }
-    };
-
     switch (*shortcut) {
-    case Shortcut::GoToPrepare: go_to_tab({ TAB_ID_PREPARE }); break;
-    case Shortcut::GoToPreview: go_to_tab({ TAB_ID_PREVIEW }); break;
-    case Shortcut::GoToDevice:  go_to_tab({ TAB_ID_MONITOR, TAB_ID_MONITOR_WEB }); break;
-    case Shortcut::GoToProject: go_to_tab({ TAB_ID_PROJECT }); break;
+    case Shortcut::GoToPrepare: m_tabpanel->SelectPageByName(TAB_ID_PREPARE); break;
+    case Shortcut::GoToPreview: m_tabpanel->SelectPageByName(TAB_ID_PREVIEW); break;
+    case Shortcut::GoToDevice:
+        if (!m_tabpanel->SelectPageByName(TAB_ID_MONITOR))
+            m_tabpanel->SelectPageByName(TAB_ID_MONITOR_WEB);
+        break;
+    case Shortcut::GoToProject: m_tabpanel->SelectPageByName(TAB_ID_PROJECT); break;
     case Shortcut::TabNext:
     case Shortcut::TabPrevious: {
         // Cycle through the tab bar, wrapping around at either end
