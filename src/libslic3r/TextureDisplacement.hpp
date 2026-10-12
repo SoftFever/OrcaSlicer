@@ -524,11 +524,24 @@ struct TextureColorSettings
     bool empty() const { return palette.empty(); }
 };
 
+// The two world directions the box projection takes its u and v along on a face whose outward
+// normal is `normal`: the plane is the one that normal is closest to, and the pair is oriented as a
+// viewer standing outside the model sees it - u to their right, v *down* the image, which is the
+// direction v runs in the texture (v = 0 is the image's first pixel row, see
+// DecodedHeightTexture::sample()). So an image comes out the way it looks in a file manager rather
+// than upside down, and it is not mirrored on the three faces facing the other way.
+//
+// Exposed because the GUI needs the same basis for the on-canvas "adjust texture placement" gizmo
+// (its ring's zero angle and its offset handle's plane), and it must not be a second, drifting copy
+// of the table.
+void box_projection_axes(const Vec3f &normal, Vec3f &u_axis, Vec3f &v_axis);
+
 // Raw dominant-axis planar projection of `position` (in mm, not yet scaled/rotated/offset by any
-// layer), dropping the axis position that best aligns with `normal`. Exposed on its own (rather
-// than only inline inside project_texture_displacement_uv()) so GUI code - the on-canvas
-// "adjust texture placement" gizmo - can map a dragged 3D point into the exact same 2D space
-// tiling_scale/rotation_deg/offset operate in, without duplicating the axis-selection logic.
+// layer), dropping the axis position that best aligns with `normal`. Equivalent to projecting onto
+// box_projection_axes()' pair. Exposed on its own (rather than only inline inside
+// project_texture_displacement_uv()) so GUI code - the on-canvas "adjust texture placement" gizmo -
+// can map a dragged 3D point into the exact same 2D space tiling_scale/rotation_deg/offset operate
+// in, without duplicating the axis-selection logic.
 Vec2f project_planar(const Vec3f &position, const Vec3f &normal);
 
 // Applies a layer's tiling_scale/rotation_deg/offset to an already-projected planar coordinate

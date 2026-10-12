@@ -423,8 +423,8 @@ private:
     // obvious whether the next stroke adds paint (default) or erases it (Shift). Uses ImGui's
     // foreground draw list, so it must be called from inside the gizmo's ImGui frame.
     void render_paint_cursor_hint();
-    // Mesh-local tangent-plane basis at m_adjust_anchor_normal, matching project_planar()'s
-    // dominant-axis convention so dragging on-canvas maps consistently onto offset.
+    // Mesh-local tangent-plane basis at m_adjust_anchor_normal: box_projection_axes(), so dragging
+    // on-canvas maps consistently onto offset whichever face the anchor is on.
     void adjust_tangent_basis(Vec3f &u_axis, Vec3f &v_axis) const;
 
     // The plane a drag is measured against: the paint patch's anchor, lifted clear of the surface.
