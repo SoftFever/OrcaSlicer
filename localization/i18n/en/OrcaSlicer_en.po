@@ -24474,24 +24474,6 @@ msgstr ""
 msgid "Collapse/Expand the sidebar"
 msgstr ""
 
-msgid "Go to the Prepare tab"
-msgstr "Go to the Prepare tab"
-
-msgid "Go to the Preview tab"
-msgstr "Go to the Preview tab"
-
-msgid "Go to the Device tab"
-msgstr "Go to the Device tab"
-
-msgid "Go to the Project tab"
-msgstr "Go to the Project tab"
-
-msgid "Switch to the next tab"
-msgstr "Switch to the next tab"
-
-msgid "Switch to the previous tab"
-msgstr "Switch to the previous tab"
-
 msgid "Reload the device page"
 msgstr ""
 
