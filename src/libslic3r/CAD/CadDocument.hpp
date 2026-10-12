@@ -603,6 +603,9 @@ public:
     // imported part. Angular already matched. Same BRepMesh_IncrementalMesh call, same GLVolume
     // path, same shaders: the renderer was never the difference, the mesh fed to it was.
     double linear_deflection{0.003};
+    // Preview ghosts (card open, gizmo drag) are tessellated no finer than this: they are redrawn on
+    // every parameter change and replaced by the committed mesh (linear_deflection) on Confirm.
+    double preview_linear_deflection{0.05};
     double angular_deflection{0.5};
 
     int  add_sketch(SketchShape shape, const SketchPlane& plane,

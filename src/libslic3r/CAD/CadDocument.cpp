@@ -4333,7 +4333,8 @@ bool CadDocument::preview(const CadFeature& candidate, TriangleMesh& out_mesh,
     // Tessellate per body (same path as recompute) so the GUI can re-apply its display-only
     // per-body Move transforms to the ghost; out_mesh is the merged whole.
     std::vector<int> tf, tb;
-    out_mesh = tessellate_bodies(tmp, tf, tb, out_body_meshes, linear_deflection, angular_deflection);
+    out_mesh = tessellate_bodies(tmp, tf, tb, out_body_meshes,
+                                 std::max(linear_deflection, preview_linear_deflection), angular_deflection);
     if (out_mesh.its.indices.empty()) {
         err = _u8L("preview produced an empty mesh");
         return false;
