@@ -86,6 +86,7 @@ public:
     // perceive the SAME kernel the GUI uses. Called only on the wx main thread.
     void         mcp_set_imgui_tree(bool on) { set_imgui_tree(on); }
     void         mcp_set_imgui_ribbon(bool on) { set_imgui_ribbon(on); }
+    void         mcp_set_imgui_menu(bool on);
     CadDocument& mcp_doc()        { return m_doc; }            // live document (read + mutate)
     void         mcp_after_change() { after_tree_edit(true); } // refresh tree + viewport + status
     DesignCanvas* mcp_viewport()  { return m_viewport; }        // live sketch + 3D view
@@ -581,6 +582,10 @@ private:
     // The ribbon (tabs -> groups -> tools) drawn on the canvas; the wx toolbar's tool groups hide
     // while it is on (its Confirm/Cancel bar and document buttons stay).
     void              set_imgui_ribbon(bool on);
+    // The right-click offer as an ImGui popup instead of a wx menu (item 3). False = not handled:
+    // the caller falls back to the wx menu (the Mate palette's hover ghosts live there).
+    bool              open_imgui_offer(const wxPoint& screen_pos);
+    bool              m_imgui_menu{false};
     bool              m_imgui_ribbon{false};
     void              start_sketch3d();          // free 3D curve: click points, Tab cycles the working plane
     wxSpinCtrlDouble* m_move_dx{nullptr};        // Move/Rotate card: world translation

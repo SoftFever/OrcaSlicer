@@ -202,6 +202,7 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
         const float   em    = imgui.get_style_scaling();
         if (std::getenv("ORCA_CAD_UITRACE")) std::fprintf(stderr, "[UI] overlays ribbon=%d tree=%d em=%.2f\n", int(m_ribbon_on), int(m_tree_overlay_on), double(em));
         float top = 0.f;
+        m_offer_popup.render(imgui, m_canvas->get_scale());
         if (m_ribbon_on) {   // clear of the corner collapse button
             m_ribbon.render(imgui, m_canvas->get_scale(), 34.f * em, 0.f);
             top = m_ribbon.height();
@@ -1145,6 +1146,13 @@ void DesignCanvas::set_on_context_menu(std::function<void(const wxPoint&)> cb)
         }
         e.Skip();
     });
+}
+
+void DesignCanvas::open_offer_popup(std::string header, std::vector<OfferNode> nodes, const wxPoint& screen)
+{
+    const wxPoint p = m_canvas_widget ? m_canvas_widget->ScreenToClient(screen) : screen;
+    m_offer_popup.open(std::move(header), std::move(nodes), float(p.x), float(p.y));
+    request_repaint();
 }
 
 void DesignCanvas::set_display_sketches(std::vector<DesignSketchTool::DisplaySketch> ds)

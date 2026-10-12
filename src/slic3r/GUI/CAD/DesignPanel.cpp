@@ -6741,8 +6741,109 @@ wxString DesignPanel::offer_header(int kind) const
     }
 }
 
+void DesignPanel::mcp_set_imgui_menu(bool on)
+{
+    m_imgui_menu = on;
+    wxGetApp().app_config->set_bool("design_imgui_menu", on);
+}
+
+bool DesignPanel::open_imgui_offer(const wxPoint& screen_pos)
+{
+    if (!m_viewport) return false;
+    int connectors = 0;
+    for (const auto& f : m_doc.features) if (f.type == CadFeatureType::CoordSys && f.enabled) ++connectors;
+    if (connectors >= 2) return false;   // the Mate palette (hover ghosts) is a wx-menu feature
+
+    const int      kind = offer_selection_kind();
+    const uint32_t bit  = offer_bit(OfferSel(kind));
+    const bool     sketching = sketch_map_applies();
+    const int      bodies = int(m_doc.bodies.size());
+    int sketches = 0;
+    for (const auto& f : m_doc.features) if (f.type == CadFeatureType::Sketch) ++sketches;
+    bool sheet = false;
+    for (const auto& b : m_doc.bodies) if (CadDocument::is_sheet_shape(b.shape)) { sheet = true; break; }
+    auto applies = [&](const OfferVerb& v) {
+        return (v.accepts & bit) && v.need_bodies <= bodies && v.need_sketches <= sketches && (!v.need_sheet || sheet);
+    };
+    auto tr = [](const char* s) { return std::string(wxGetTranslation(wxString::FromUTF8(s), SLIC3R_APP_KEY).ToUTF8()); };
+    auto name_of = [](const OfferVerb& v) { return std::string(I18N::translate(v.name, "Design").ToUTF8()); };
+    auto item = [&](const OfferVerb& v, bool enabled, const std::string& why) {
+        OfferNode n;
+        n.label = name_of(v); n.shortcut = v.key ? v.key : ""; n.enabled = enabled; n.why = why; n.verb = &v;
+        return n;
+    };
+
+    std::vector<int> rows;
+    for (const bool flat : {true, false})
+        for (int row = 0; row < kOfferRowCount; ++row)
+            if (kOfferRowFlat[row] == flat) rows.push_back(row);
+
+    std::vector<OfferNode> top;
+    bool flat_items = false;
+    for (const int row : rows) {
+        std::vector<const OfferVerb*> live, family;
+        for (int i = 0; i < kOfferVerbCount; ++i) {
+            const OfferVerb& v = kOfferVerbs[i];
+            if (v.row != row || v.sketch_mode != sketching) continue;
+            family.push_back(&v);
+            if (applies(v)) live.push_back(&v);
+        }
+        if (family.empty()) continue;
+        if (kOfferRowFlat[row]) {
+            for (const OfferVerb* v : family) {
+                if (!(v->accepts & bit)) continue;
+                top.push_back(item(*v, applies(*v) && v->action != nullptr, applies(*v) ? std::string() : (v->refusal ? tr(v->refusal) : std::string())));
+                flat_items = true;
+            }
+            continue;
+        }
+        const std::string fam = tr(kOfferRowNames[row]);
+        OfferNode node;
+        node.label = fam;
+        node.separator_before = flat_items;
+        flat_items = false;
+        if (live.empty()) {
+            // Disabled in place: the row stays, its reason on hover (a prefix would repeat on every row).
+            node.enabled = false;
+            for (const OfferVerb* v : family) if ((v->accepts & bit) && v->refusal) { node.why = tr(v->refusal); break; }
+        } else if (live.size() == 1 && std::none_of(family.begin(), family.end(), [&](const OfferVerb* v) { return (v->accepts & bit) && !applies(*v); })) {
+            OfferNode single = item(*live[0], live[0]->action != nullptr, std::string());
+            single.separator_before = node.separator_before;
+            top.push_back(std::move(single));
+            continue;
+        } else {
+            std::vector<std::pair<std::string, size_t>> groups;   // family name -> index into node.children
+            for (const OfferVerb* v : family) {
+                const bool ok = applies(*v);
+                if (!ok && !(v->accepts & bit)) continue;
+                std::vector<OfferNode>* target = &node.children;
+                if (v->family && *v->family) {
+                    auto it = std::find_if(groups.begin(), groups.end(), [&](const auto& g) { return g.first == v->family; });
+                    if (it == groups.end()) {
+                        OfferNode g; g.label = tr(v->family);
+                        node.children.push_back(std::move(g));
+                        groups.emplace_back(v->family, node.children.size() - 1);
+                        it = groups.end() - 1;
+                    }
+                    target = &node.children[it->second].children;
+                }
+                target->push_back(item(*v, ok && v->action != nullptr, ok ? std::string() : (v->refusal ? tr(v->refusal) : std::string())));
+            }
+        }
+        top.push_back(std::move(node));
+    }
+
+    m_viewport->offer_popup().run = [this](const OfferVerb& v) {
+        const std::string action = v.action ? v.action : "";
+        CallAfter([this, action] { run_offer_action(action.c_str()); });
+    };
+    m_viewport->open_offer_popup(std::string(offer_header(kind).ToUTF8()), std::move(top), screen_pos);
+    return true;
+}
+
 void DesignPanel::show_offer_menu(const wxPoint& screen_pos)
 {
+    if (m_imgui_menu && open_imgui_offer(screen_pos)) return;
     const int      kind = offer_selection_kind();
     const uint32_t bit  = offer_bit(OfferSel(kind));
     // Which verb MAP applies is a question about the MODE, not about whether a session is
@@ -7411,6 +7512,7 @@ void DesignPanel::on_tab_shown()
     // The persisted tree placement: on the canvas (ImGui) or in the side panel (wx).
     if (wxGetApp().app_config->get_bool("design_imgui_tree") != m_imgui_tree) set_imgui_tree(!m_imgui_tree);
     if (wxGetApp().app_config->get_bool("design_imgui_ribbon") != m_imgui_ribbon) set_imgui_ribbon(!m_imgui_ribbon);
+    m_imgui_menu = wxGetApp().app_config->get_bool("design_imgui_menu");
     if (show_clock.Time() > 100)   // a slow first show is what users report; the usual one is not news
         BOOST_LOG_TRIVIAL(info) << "Design tab shown: bed, project recipe and planes in " << show_clock.Time() << " ms";
     m_laid_out = true;
