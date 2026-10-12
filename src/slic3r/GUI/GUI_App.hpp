@@ -519,7 +519,6 @@ public:
     void            check_printer_presets();
 
     void            recreate_GUI(const wxString& message);
-    void            system_info();
     void            keyboard_shortcuts(ShortcutContext page, wxWindow* parent = nullptr);   // the main frame when null
     void            troubleshoot();
     void            load_project(wxWindow *parent, wxString& input_file) const;
