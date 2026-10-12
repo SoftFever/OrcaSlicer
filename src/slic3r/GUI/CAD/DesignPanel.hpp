@@ -389,6 +389,8 @@ private:
     void       refresh_mate_connectors(); // push connector frames so verse + polarity are visible
     void       update_reference_planes(); // the XY/XZ/YZ planes + axes: Origin row, plane choice, Plane tool
     void       toggle_origin();           // the Origin row's eye (and Ctrl+Shift+O): keep the reference planes up
+    void       toggle_toolbar();          // the Toolbar row's eye: show or hide the ribbon
+    void       apply_toolbar_visibility();
     void       toggle_bed();              // the Bed row's eye (and Ctrl+Shift+B): draw the printer bed, or not
     void       refresh_pinned();          // rebuild the Origin and Bed rows (their eyes and label colours)
     // Sketch: open a session on the picked face or plane, or with none picked, put the planes up
@@ -619,6 +621,9 @@ private:
     // The Feature tree's Bed row: draws the printer bed and its plate grid. A view preference
     // (AppConfig "design_show_bed"), not part of the recipe.
     bool              m_show_bed{true};
+    // The Feature tree's Toolbar row: shows or hides the ribbon (or the wx tool groups). A view
+    // preference (AppConfig "design_show_toolbar", absent = shown). Confirm/Cancel are never hidden.
+    bool              m_show_toolbar{true};
     ComboBox*         m_shape{nullptr};
     ComboBox*         m_mode{nullptr};
     wxSpinCtrlDouble* m_width{nullptr};

@@ -284,7 +284,7 @@ static std::string commit_icon(bool bodies)
 // The icons on each Feature tree and Bodies row (DesignRowList::Action::id).
 enum RowAction { RowEdit, RowMove, RowVisibility, RowDelete, RowZoom };
 // The rows of the Feature tree's pinned block, above the features.
-static constexpr int kOriginRow = 0, kBedRow = 1;
+static constexpr int kOriginRow = 0, kBedRow = 1, kToolbarRow = 2;
 
 // A row's eye shows the state the row is in; its tip names what a click does.
 static DesignRowList::Action eye_action(bool shown)
@@ -299,6 +299,10 @@ static wxString origin_toggle_text(bool shown)
 }
 
 // What the Bed row's eye and its menu item do.
+static wxString toolbar_toggle_text(bool shown)
+{
+    return shown ? _L("Hide the toolbar") : _L("Show the toolbar");
+}
 static wxString bed_toggle_text(bool shown)
 {
     return shown ? _L("Hide the printer bed and its plate grid")
@@ -3178,7 +3182,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
     // list: view switches, not history. A list of their own so they stay put while the features
     // scroll, and a non-selectable one because selecting them would do nothing: only their eyes
     // answer. 13 = the feature list's margin plus its frame, so the two lists' icons line up.
-    m_pinned = new DesignRowList(m_tree_box, 2, false, wxBORDER_NONE);
+    m_pinned = new DesignRowList(m_tree_box, 3, false, wxBORDER_NONE);
     m_pinned->SetBackgroundColour(dp_panel_bg());
     tree_inner->Add(m_pinned, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 13);
     // Sized to its rows, so a short history wastes no block, and scrolling past 9 features.
@@ -3191,14 +3195,21 @@ DesignPanel::DesignPanel(wxWindow* parent)
             toggle_bed();
         else if (row == kOriginRow)
             toggle_origin();
+        else if (row == kToolbarRow)
+            toggle_toolbar();
     };
     // Exactly what the eye does, named.
     m_pinned->on_menu = [this](int row, const wxPoint& screen) {
-        const bool bed = (row == kBedRow);
         wxMenu     menu;
         const int  id_toggle = wxWindow::NewControlId();
-        menu.Append(id_toggle, bed ? bed_toggle_text(m_show_bed) : origin_toggle_text(m_show_origin));
-        menu.Bind(wxEVT_MENU, [this, bed](wxCommandEvent&) { bed ? toggle_bed() : toggle_origin(); }, id_toggle);
+        menu.Append(id_toggle, row == kBedRow ? bed_toggle_text(m_show_bed)
+                             : row == kToolbarRow ? toolbar_toggle_text(m_show_toolbar)
+                             : origin_toggle_text(m_show_origin));
+        menu.Bind(wxEVT_MENU, [this, row](wxCommandEvent&) {
+            if (row == kBedRow) toggle_bed();
+            else if (row == kToolbarRow) toggle_toolbar();
+            else toggle_origin();
+        }, id_toggle);
         m_pinned->PopupMenu(&menu, m_pinned->ScreenToClient(screen));
     };
 
@@ -4520,6 +4531,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
     m_show_origin = wxGetApp().app_config->get_bool("design_show_origin");
     // The tree on the canvas is applied once the viewport exists (see set_imgui_tree callers).
     m_show_bed    = wxGetApp().app_config->get_bool("design_show_bed");
+    m_show_toolbar = wxGetApp().app_config->get("design_show_toolbar") != "0";
     if (m_viewport) m_viewport->set_show_bed(m_show_bed);
     set_ui_mode(UiMode::Feature);
     // The Origin and Bed rows from the first paint: nothing else builds them before the first
@@ -4594,11 +4606,12 @@ void DesignPanel::set_ui_mode(UiMode m)
     if (m == UiMode::Constrain)
         apply_dof_status(m_dof_last, m_dof_last_ok, m_dof_last_has);
     wxSizer* s = m_toolbar->GetSizer();
-    s->Show(m_tb_feature,   !m_imgui_ribbon && m == UiMode::Feature, true);
-    s->Show(m_tb_sketch,    !m_imgui_ribbon && m == UiMode::Sketch,  true);
+    const bool wx_groups = !m_imgui_ribbon && m_show_toolbar;
+    s->Show(m_tb_feature,   wx_groups && m == UiMode::Feature, true);
+    s->Show(m_tb_sketch,    wx_groups && m == UiMode::Sketch,  true);
     // Constraint buttons are live in BOTH Sketch and Constrain (Fase 4.2 live path); the
     // Confirm/Cancel action bar (m_tb_action) is already mode-appropriate and stays untouched.
-    s->Show(m_tb_relations, !m_imgui_ribbon && (m == UiMode::Sketch || m == UiMode::Constrain), true);
+    s->Show(m_tb_relations, wx_groups && (m == UiMode::Sketch || m == UiMode::Constrain), true);
     m_toolbar->Layout();
     m_toolbar->FitInside();   // refresh the horizontal scroll range for the new group widths
     set_active_tool_btn(nullptr);   // no tool selected right after a mode switch
@@ -11573,6 +11586,31 @@ void DesignPanel::toggle_origin()
     refresh_pinned();   // the Origin row's eye
 }
 
+void DesignPanel::toggle_toolbar()
+{
+    m_show_toolbar = !m_show_toolbar;
+    wxGetApp().app_config->set("design_show_toolbar", m_show_toolbar ? "1" : "0");
+    apply_toolbar_visibility();
+    refresh_pinned();   // the Toolbar row's eye
+}
+
+// The ribbon follows `m_show_toolbar` on top of its own on/off (design_imgui_ribbon): the same
+// re-show the mode switch and set_imgui_ribbon do, without re-wiring the ribbon's callbacks.
+void DesignPanel::apply_toolbar_visibility()
+{
+    if (m_viewport) m_viewport->set_ribbon_overlay(m_imgui_ribbon && m_show_toolbar);
+    if (m_toolbar && m_toolbar->GetSizer()) {
+        wxSizer* s = m_toolbar->GetSizer();
+        const bool wx_groups = !m_imgui_ribbon && m_show_toolbar;
+        s->Show(m_tb_feature,   wx_groups && m_ui_mode == UiMode::Feature, true);
+        s->Show(m_tb_sketch,    wx_groups && m_ui_mode == UiMode::Sketch,  true);
+        s->Show(m_tb_relations, wx_groups && (m_ui_mode == UiMode::Sketch || m_ui_mode == UiMode::Constrain), true);
+        m_toolbar->Layout();
+        m_toolbar->FitInside();
+    }
+    if (m_viewport) m_viewport->Refresh();
+}
+
 void DesignPanel::toggle_bed()
 {
     m_show_bed = !m_show_bed;
@@ -11595,6 +11633,7 @@ void DesignPanel::refresh_pinned()
     // In kOriginRow / kBedRow order.
     add("design_plane", _L("Origin"), m_show_origin, origin_toggle_text(m_show_origin));
     add("design_bed",   _L("Bed"),    m_show_bed,    bed_toggle_text(m_show_bed));
+    add("design_edit",  _L("Toolbar"), m_show_toolbar, toolbar_toggle_text(m_show_toolbar));
     m_pinned->set_rows(std::move(rows));
 }
 
@@ -11749,12 +11788,13 @@ void DesignPanel::set_imgui_ribbon(bool on)
     r.sketching = [this] { return sketch_map_applies(); };
     r.load_last = [cfg](const std::string& group) { return cfg->get("design_ribbon_last_" + group); };
     r.save_last = [cfg](const std::string& group, const std::string& id) { cfg->set("design_ribbon_last_" + group, id); };
-    m_viewport->set_ribbon_overlay(on);
+    m_viewport->set_ribbon_overlay(on && m_show_toolbar);
     if (m_toolbar && m_toolbar->GetSizer()) {
         wxSizer* s = m_toolbar->GetSizer();
-        s->Show(m_tb_feature,   !on && m_ui_mode == UiMode::Feature, true);
-        s->Show(m_tb_sketch,    !on && m_ui_mode == UiMode::Sketch,  true);
-        s->Show(m_tb_relations, !on && (m_ui_mode == UiMode::Sketch || m_ui_mode == UiMode::Constrain), true);
+        const bool wx_groups = !on && m_show_toolbar;
+        s->Show(m_tb_feature,   wx_groups && m_ui_mode == UiMode::Feature, true);
+        s->Show(m_tb_sketch,    wx_groups && m_ui_mode == UiMode::Sketch,  true);
+        s->Show(m_tb_relations, wx_groups && (m_ui_mode == UiMode::Sketch || m_ui_mode == UiMode::Constrain), true);
         m_toolbar->Layout();
         m_toolbar->FitInside();
     }
