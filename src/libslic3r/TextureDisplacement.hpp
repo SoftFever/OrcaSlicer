@@ -600,6 +600,31 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
                         const Vec3f &patch_center = Vec3f::Zero(), const Vec3f &patch_axis = Vec3f::UnitZ(),
                         const Vec2f *lscm_uv = nullptr);
 
+// Carries a per-facet paint annotation - the colour paint above all - from a mesh onto the mesh a
+// bake produced from it: every triangle of `dst_mesh` takes the state painted at its own foot point on
+// `src_mesh`, i.e. on the nearest point of the surface it was built from. Returned as one
+// EnforcerBlockerType per `dst_mesh` triangle, 0 (NONE) where that foot point carried no paint.
+//
+// ModelVolume::restore_painting() cannot do this. Its remap pairs a source paint triangle with a
+// target triangle that *overlaps* it to within 0.01 mm, which is right for a remesh or a
+// simplification - they leave the surface where it was - and useless after a bake, which moves the
+// surface by the relief depth. Measured on a model displaced by a tenth of its own size, that remap
+// kept a quarter of the colour and left the rest unpainted; this keeps essentially all of it, because
+// a foot point is exactly as far away as the relief is deep and the lookup does not care how far that
+// is.
+//
+// The source's *sub*-triangles are what is looked up, not its triangles, so the part of a triangle a
+// brush stroke only clipped a corner off keeps its own state rather than rounding to the whole
+// triangle's. No distance limit is needed or wanted: the nearest point on the source surface is where
+// a baked triangle came from however far the relief carried it, and an unpainted origin reports NONE
+// on its own.
+//
+// Returns an empty vector when `src_paint` is empty or either mesh is - the caller then has nothing to
+// carry, which is not the same as "carry nothing".
+std::vector<uint8_t> transfer_facet_paint(const indexed_triangle_set                    &src_mesh,
+                                         const TriangleSelector::TriangleSplittingData &src_paint,
+                                         const indexed_triangle_set                    &dst_mesh);
+
 // Area-weighted centroid and average normal of a layer's currently painted patch, in mesh-local
 // coordinates - the same measurements build_texture_displacement() uses to pick its dominant
 // projection axis. Used by the GUI to anchor the on-canvas "adjust texture placement" gizmo to
@@ -761,31 +786,6 @@ std::vector<Vec2f> transfer_uv_channel(const indexed_triangle_set &src_mesh,
                                        const std::vector<Vec2f>   &src_uv,
                                        const indexed_triangle_set &dst_mesh,
                                        float                       max_distance = -1.f);
-
-// Carries a per-facet paint annotation - the colour paint above all - from a mesh onto the mesh a
-// bake produced from it: every triangle of `dst_mesh` takes the state painted at its own foot point on
-// `src_mesh`, i.e. on the nearest point of the surface it was built from. Returned as one
-// EnforcerBlockerType per `dst_mesh` triangle, 0 (NONE) where that foot point carried no paint.
-//
-// ModelVolume::restore_painting() cannot do this. Its remap pairs a source paint triangle with a
-// target triangle that *overlaps* it to within 0.01 mm, which is right for a remesh or a
-// simplification - they leave the surface where it was - and useless after a bake, which moves the
-// surface by the relief depth. Measured on a model displaced by a tenth of its own size, that remap
-// kept a quarter of the colour and left the rest unpainted; this keeps essentially all of it, because
-// a foot point is exactly as far away as the relief is deep and the lookup does not care how far that
-// is.
-//
-// The source's *sub*-triangles are what is looked up, not its triangles, so the part of a triangle a
-// brush stroke only clipped a corner off keeps its own state rather than rounding to the whole
-// triangle's. No distance limit is needed or wanted: the nearest point on the source surface is where
-// a baked triangle came from however far the relief carried it, and an unpainted origin reports NONE
-// on its own.
-//
-// Returns an empty vector when `src_paint` is empty or either mesh is - the caller then has nothing to
-// carry, which is not the same as "carry nothing".
-std::vector<uint8_t> transfer_facet_paint(const indexed_triangle_set                    &src_mesh,
-                                         const TriangleSelector::TriangleSplittingData &src_paint,
-                                         const indexed_triangle_set                    &dst_mesh);
 
 // The TextureDisplacementLayer::lscm_uv_overrides key for one unwrapped vertex (an index into PatchUnwrap::uvs).
 inline int lscm_uv_override_key(int unwrapped_vertex) { return -(unwrapped_vertex + 1); }

@@ -1570,6 +1570,61 @@ std::vector<TextureIsland> compute_connected_net(const PatchUnwrap &unwrap)
     return islands;
 }
 
+std::vector<uint8_t> transfer_facet_paint(const indexed_triangle_set                    &src_mesh,
+                                         const TriangleSelector::TriangleSplittingData &src_paint,
+                                         const indexed_triangle_set                    &dst_mesh)
+{
+    if (src_mesh.indices.empty() || dst_mesh.indices.empty() || src_paint.bitstream.empty())
+        return {};
+
+    const TriangleMesh src(src_mesh);
+    TriangleSelector   selector(src);
+    selector.deserialize(src_paint, false);
+
+    // Every sub-triangle of the source, each carrying its own state - NONE included, so the soup
+    // covers the whole surface and a foot point always lands on something. One soup rather than one
+    // tree per state: a foot point has one nearest triangle, and that triangle's state is the answer.
+    std::vector<indexed_triangle_set> per_state;
+    selector.get_facets(per_state);
+    indexed_triangle_set soup;
+    std::vector<uint8_t> label;
+    for (size_t st = 0; st < per_state.size(); ++st) {
+        const indexed_triangle_set &part = per_state[st];
+        if (part.indices.empty())
+            continue;
+        const int base = int(soup.vertices.size());
+        soup.vertices.insert(soup.vertices.end(), part.vertices.begin(), part.vertices.end());
+        for (const stl_triangle_vertex_indices &t : part.indices) {
+            soup.indices.emplace_back(t[0] + base, t[1] + base, t[2] + base);
+            label.push_back(uint8_t(st));
+        }
+    }
+    if (soup.indices.empty())
+        return {};
+
+    const AABBTreeIndirect::Tree3f tree =
+        AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(soup.vertices, soup.indices);
+
+    std::vector<uint8_t> out(dst_mesh.indices.size(), 0);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, dst_mesh.indices.size()),
+                      [&](const tbb::blocked_range<size_t> &range) {
+        for (size_t j = range.begin(); j < range.end(); ++j) {
+            const stl_triangle_vertex_indices &t = dst_mesh.indices[j];
+            // The centroid, not a corner: a facet takes one state, and its middle is the point that
+            // is inside it whatever the triangle looks like.
+            const Vec3f centroid = (dst_mesh.vertices[size_t(t[0])] + dst_mesh.vertices[size_t(t[1])] +
+                                    dst_mesh.vertices[size_t(t[2])]) / 3.f;
+            size_t      hit = 0;
+            Vec3f       foot;
+            const float d2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(soup.vertices, soup.indices,
+                                                                                        tree, centroid, hit, foot);
+            if (d2 >= 0.f && hit < label.size())
+                out[j] = label[hit];
+        }
+    });
+    return out;
+}
+
 void average_island_scales(std::vector<TextureIsland> &islands)
 {
     if (islands.empty())
@@ -1776,61 +1831,6 @@ std::vector<Vec2f> transfer_uv_channel(const indexed_triangle_set &src_mesh,
     return out;
 }
 
-std::vector<uint8_t> transfer_facet_paint(const indexed_triangle_set                    &src_mesh,
-                                         const TriangleSelector::TriangleSplittingData &src_paint,
-                                         const indexed_triangle_set                    &dst_mesh)
-{
-    if (src_mesh.indices.empty() || dst_mesh.indices.empty() || src_paint.bitstream.empty())
-        return {};
-
-    const TriangleMesh src(src_mesh);
-    TriangleSelector   selector(src);
-    selector.deserialize(src_paint, false);
-
-    // Every sub-triangle of the source, each carrying its own state - NONE included, so the soup
-    // covers the whole surface and a foot point always lands on something. One soup rather than one
-    // tree per state: a foot point has one nearest triangle, and that triangle's state is the answer.
-    std::vector<indexed_triangle_set> per_state;
-    selector.get_facets(per_state);
-    indexed_triangle_set soup;
-    std::vector<uint8_t> label;
-    for (size_t st = 0; st < per_state.size(); ++st) {
-        const indexed_triangle_set &part = per_state[st];
-        if (part.indices.empty())
-            continue;
-        const int base = int(soup.vertices.size());
-        soup.vertices.insert(soup.vertices.end(), part.vertices.begin(), part.vertices.end());
-        for (const stl_triangle_vertex_indices &t : part.indices) {
-            soup.indices.emplace_back(t[0] + base, t[1] + base, t[2] + base);
-            label.push_back(uint8_t(st));
-        }
-    }
-    if (soup.indices.empty())
-        return {};
-
-    const AABBTreeIndirect::Tree3f tree =
-        AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(soup.vertices, soup.indices);
-
-    std::vector<uint8_t> out(dst_mesh.indices.size(), 0);
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, dst_mesh.indices.size()),
-                      [&](const tbb::blocked_range<size_t> &range) {
-        for (size_t j = range.begin(); j < range.end(); ++j) {
-            const stl_triangle_vertex_indices &t = dst_mesh.indices[j];
-            // The centroid, not a corner: a facet takes one state, and its middle is the point that
-            // is inside it whatever the triangle looks like.
-            const Vec3f centroid = (dst_mesh.vertices[size_t(t[0])] + dst_mesh.vertices[size_t(t[1])] +
-                                    dst_mesh.vertices[size_t(t[2])]) / 3.f;
-            size_t      hit = 0;
-            Vec3f       foot;
-            const float d2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(soup.vertices, soup.indices,
-                                                                                        tree, centroid, hit, foot);
-            if (d2 >= 0.f && hit < label.size())
-                out[j] = label[hit];
-        }
-    });
-    return out;
-}
-
 namespace {
 // apply_uv_transform()'s per-layer constants, worked out once. Triplanar sampling runs the transform
 // three times per point, and recomputing the rotation's cos/sin and the tiling reciprocal on every one
@@ -1990,8 +1990,7 @@ float sample_layer_height(const DecodedHeightTexture &texture, const TextureDisp
         // Flat projection onto the captured projector plane. Single-valued per point, so unlike
         // blended triplanar it is one sample, and it is what "project from view" places.
         return sample_at(Vec2f(position.dot(layer.view_project_right), position.dot(layer.view_project_up)));
-    case TextureProjectionMethod::LSCM:    // no usable unwrap for this patch - fall back to Triplanar
-    case TextureProjectionMethod::ModelUV: // the volume carries no UV channel - same fallback
+    case TextureProjectionMethod::LSCM: // no usable unwrap for this patch - fall back to Triplanar
     case TextureProjectionMethod::Triplanar:
     default: break;
     }
@@ -2086,8 +2085,7 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
             out = sample_at(p);
             return true;
         }
-    case TextureProjectionMethod::LSCM:    // no usable unwrap for this patch - fall back to Triplanar
-    case TextureProjectionMethod::ModelUV: // the volume carries no UV channel - same fallback
+    case TextureProjectionMethod::LSCM: // no usable unwrap for this patch - fall back to Triplanar
     case TextureProjectionMethod::Triplanar:
     default: break;
     }

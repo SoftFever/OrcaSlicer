@@ -188,20 +188,12 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
             }
         }
 
-        // The model's own UV channel. Resampled onto a rebuilt mesh from the surface the bake started
-        // from: a displaced vertex came from its foot point on that surface, which is the position its
-        // uv belongs to - so no distance limit, the relief depth is exactly how far it has moved.
-        if (!m_input.model_uv.empty())
-            volume->texture_uv = topology_changed ? transfer_uv_channel(m_input.base_mesh, m_input.model_uv,
-                                                                        volume->mesh().its) :
-                                                     m_input.model_uv;
-
         // Colour lands in mmu_segmentation_facets, merged *over* whatever is already painted there
         // rather than replacing it: a triangle the texture does not colour keeps its existing filament,
         // and one the user never painted at all stays at NONE, which already means "the volume's own
         // filament". That is what confines the effect to the painted area without having to invent a
-        // colour for everything outside it. Safe to index straight onto the new mesh - the bake is
-        // topology-preserving, so triangle i is still triangle i.
+        // colour for everything outside it. What was already painted is whatever the transfer above
+        // left in the annotation, so this bake's colour lands on top of it rather than instead of it.
         if (!m_triangle_color.empty() && m_triangle_color.size() == volume->mesh().its.indices.size()) {
             TriangleSelector selector(volume->mesh());
             const TriangleSelector::TriangleSplittingData &existing = volume->mmu_segmentation_facets.get_data();
@@ -231,6 +223,14 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
             if (topology_changed || (it != m_input.layers.end() && !it->empty()))
                 volume->texture_displacement_facet(slot).reset();
         }
+
+        // The model's own UV channel. Resampled onto a rebuilt mesh from the surface the bake started
+        // from: a displaced vertex came from its foot point on that surface, which is the position its
+        // uv belongs to - so no distance limit, the relief depth is exactly how far it has moved.
+        if (!m_input.model_uv.empty())
+            volume->texture_uv = topology_changed ? transfer_uv_channel(m_input.base_mesh, m_input.model_uv,
+                                                                        volume->mesh().its) :
+                                                     m_input.model_uv;
 
         ModelObject *object = volume->get_object();
         if (object == nullptr)
