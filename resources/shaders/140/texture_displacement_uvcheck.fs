@@ -25,6 +25,9 @@ uniform bool volume_mirrored;
 uniform int   mode;          // 0 checker, 1 distortion
 uniform float checker_freq;  // checker squares per uv unit (one uv unit == one texture tile)
 uniform float tiling_scale;
+// Tile extent along v, in mm. Zero or negative means "the same as tiling_scale" - see
+// layer_tile_mm() on the CPU side, so an unset uniform behaves exactly as this shader always did.
+uniform float tiling_scale_v;
 uniform vec3  tex_anchor; // the volume's origin in world space
 uniform float rotation_rad;
 uniform vec2  uv_offset;
@@ -78,13 +81,23 @@ vec2 projection_raw(vec3 p, vec3 n)
     return (an.x >= an.y && an.x >= an.z) ? p.yz : ((an.y >= an.x && an.y >= an.z) ? p.xz : p.xy);
 }
 
+
+// Tile extents in mm, u then v, with the v fallback layer_tile_mm() applies.
+vec2 tile_mm()
+{
+    float su = (tiling_scale > 1e-6) ? tiling_scale : 1.0;
+    return vec2(su, (tiling_scale_v > 1e-6) ? tiling_scale_v : su);
+}
+
 vec2 project_uv(vec3 p, vec3 n)
 {
     vec2 planar = projection_raw(p, n);
-    planar *= (tiling_scale > 1e-6) ? (1.0 / tiling_scale) : 1.0;
     float cs = cos(rotation_rad);
     float sn = sin(rotation_rad);
     vec2 r = vec2(planar.x * cs - planar.y * sn, planar.x * sn + planar.y * cs);
+    // Extents divide after the rotation, so a tile whose two sides differ stays a rotated rectangle
+    // instead of shearing. With a square tile the two orders agree exactly.
+    r /= tile_mm();
     r.y *= tex_aspect; // after the rotation, so the rotation stays a rotation rather than a shear
     return r + uv_offset;
 }

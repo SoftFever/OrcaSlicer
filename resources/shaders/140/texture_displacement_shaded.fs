@@ -104,6 +104,10 @@ uniform sampler2D height_tex;
 uniform vec2      height_tex_texel; // (1/width, 1/height) of height_tex
 uniform float      depth_mm;
 uniform float      tiling_scale;
+// Tile extent along v, in mm. Zero or negative means "the same as tiling_scale" - the square tile
+// every layer had before the two axes could differ - which is also what layer_tile_mm() does on the
+// CPU side, so an unset uniform behaves exactly as this shader always did.
+uniform float      tiling_scale_v;
 // Height map width / height. Scales the v axis so a non-square image keeps its proportions
 // instead of being squeezed into a square tile - mirrors libslic3r's apply_uv_transform().
 uniform float      tex_aspect;
@@ -216,13 +220,22 @@ void projection_axes(vec3 p, vec3 n, out vec3 t, out vec3 b, out vec2 units_per_
     }
 }
 
+// Tile extents in mm, u then v, with the v fallback layer_tile_mm() applies.
+vec2 tile_mm()
+{
+    float su = (tiling_scale > 1e-6) ? tiling_scale : 1.0;
+    return vec2(su, (tiling_scale_v > 1e-6) ? tiling_scale_v : su);
+}
+
 vec2 project_uv(vec3 p, vec3 n)
 {
     vec2 planar = projection_raw(p, n);
-    planar *= (tiling_scale > 1e-6) ? (1.0 / tiling_scale) : 1.0;
     float cs = cos(rotation_rad);
     float sn = sin(rotation_rad);
     vec2 r = vec2(planar.x * cs - planar.y * sn, planar.x * sn + planar.y * cs);
+    // Extents divide after the rotation, so a tile whose two sides differ stays a rotated rectangle
+    // instead of shearing. With a square tile the two orders agree exactly.
+    r /= tile_mm();
     // After the rotation, so the rotation stays a rotation rather than becoming a shear.
     r.y *= tex_aspect;
     return r + uv_offset;
@@ -359,7 +372,7 @@ void main()
         // a texel there is no parallax to find and the march would be pure cost - which is the common
         // case of looking straight down at a surface.
         float sweep = length(view_dir - triangle_normal * v_dot_n) * (h_hi - h_lo) / max(v_dot_n, 1e-4);
-        if (v_dot_n > 0.05 && sweep > 0.5 * tiling_scale * height_tex_texel.x) {
+        if (v_dot_n > 0.05 && sweep > 0.5 * min(tile_mm().x, tile_mm().y) * height_tex_texel.x) {
             // A point at ray parameter s (model_pos + view_dir * s) sits at height s * v_dot_n above the
             // undisplaced surface. Start at the top of the shell, where the ray is outside the surface
             // by construction, and step inward; the crossing is what this pixel actually sees.
@@ -393,17 +406,17 @@ void main()
         // Central difference, per uv unit (not per texel).
         vec2 dh_duv = vec2((hR - hL) / (2.0 * height_tex_texel.x), (hU - hD) / (2.0 * height_tex_texel.y));
 
-        // uv -> mm is 1/tiling_scale for the triplanar projection, so this turns the uv-space
-        // gradient into a real surface slope.
-        float inv_tiling = (tiling_scale > 1e-6) ? (1.0 / tiling_scale) : 1.0;
-        float amplitude  = (invert ? -1.0 : 1.0) * depth_mm * inv_tiling * clamp(weight, 0.0, 1.0);
+        // uv -> mm is the reciprocal of the tile extents, applied per component below, which is what
+        // turns the uv-space gradient into a real surface slope.
+        vec2  tile       = tile_mm();
+        float amplitude  = (invert ? -1.0 : 1.0) * depth_mm * clamp(weight, 0.0, 1.0);
         // uv was rotated by project_uv() while t/b are the unrotated model axes, so rotate the
         // gradient back into the axes' frame.
         float cs = cos(rotation_rad);
         float sn = sin(rotation_rad);
-        // One uv unit is tiling_scale mm along u but tiling_scale / tex_aspect mm along v, so the v
-        // component of the gradient carries the extra factor before being rotated back into t/b.
-        vec2  g     = vec2(dh_duv.x, dh_duv.y * tex_aspect);
+        // One uv unit is tile.x mm along u but tile.y / tex_aspect mm along v, so each component of
+        // the uv-space gradient carries its own factor before being rotated back into t/b.
+        vec2  g     = vec2(dh_duv.x / tile.x, dh_duv.y * tex_aspect / tile.y);
         // ...and back out of raw-projection units into millimetres of travel along t / b, which is a
         // no-op except for the spherical longitude (see projection_axes()). After the inverse rotation,
         // because units_per_mm is expressed in the t/b frame rather than in uv.

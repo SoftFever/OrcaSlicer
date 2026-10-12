@@ -470,7 +470,10 @@ V2Resolution recommend_v2_resolution(const indexed_triangle_set                 
         const DecodedHeightTexture &tex = decode_height_texture(layer);
         if (tex.width <= 0)
             continue;
-        const float texel = layer.tiling_scale / float(tex.width);
+        // Texels are square in both axes (the aspect correction is what keeps them so), so the finer
+        // of the two tile extents sets the finest texel the refinement has to resolve.
+        const Vec2f tile  = layer_tile_mm(layer);
+        const float texel = std::min(tile.x(), tile.y()) / float(tex.width);
         if (out.texel_mm <= 0.f || texel < out.texel_mm) {
             out.texel_mm        = texel;
             out.pixels_per_edge = analyze_texture_detail(layer).pixels_per_edge;
@@ -1678,12 +1681,14 @@ namespace {
 // of them was most of the per-sample arithmetic.
 struct UVTransform
 {
-    float scale, cs, sn, aspect;
+    float inv_u, inv_v, cs, sn, aspect;
     Vec2f offset;
 
     UVTransform(const TextureDisplacementLayer &layer, float aspect_)
     {
-        scale = (layer.tiling_scale > 1e-6f) ? (1.f / layer.tiling_scale) : 1.f;
+        const Vec2f tile = layer_tile_mm(layer);
+        inv_u  = 1.f / tile.x();
+        inv_v  = 1.f / tile.y();
         const float rad = layer.rotation_deg * float(M_PI) / 180.f;
         cs     = std::cos(rad);
         sn     = std::sin(rad);
@@ -1692,9 +1697,11 @@ struct UVTransform
     }
     Vec2f operator()(const Vec2f &planar) const
     {
-        const Vec2f scaled = planar * scale;
-        Vec2f       rotated(scaled.x() * cs - scaled.y() * sn, scaled.x() * sn + scaled.y() * cs);
-        // See apply_uv_transform() for why the aspect correction follows the rotation.
+        // See apply_uv_transform() for why both the tile extents and the aspect correction follow
+        // the rotation rather than preceding it.
+        Vec2f rotated(planar.x() * cs - planar.y() * sn, planar.x() * sn + planar.y() * cs);
+        rotated.x() *= inv_u;
+        rotated.y() *= inv_v;
         if (aspect > 0.f && aspect != 1.f)
             rotated.y() *= aspect;
         return rotated + offset;
@@ -1714,24 +1721,26 @@ inline Vec3f triplanar_weights(const Vec3f &normal)
 
 Vec2f apply_uv_transform(const Vec2f &planar, const TextureDisplacementLayer &layer, float aspect)
 {
-    const float scale = (layer.tiling_scale > 1e-6f) ? (1.f / layer.tiling_scale) : 1.f;
-    const Vec2f scaled = planar * scale;
-
     const float rad = layer.rotation_deg * float(M_PI) / 180.f;
     const float cs  = std::cos(rad);
     const float sn  = std::sin(rad);
-    Vec2f       rotated(scaled.x() * cs - scaled.y() * sn, scaled.x() * sn + scaled.y() * cs);
+    Vec2f       rotated(planar.x() * cs - planar.y() * sn, planar.x() * sn + planar.y() * cs);
+
+    // The tile extents. Dividing here rather than before the rotation is what makes a non-square
+    // tile a rotated *rectangle* on the surface: scaling the two axes of an already-rotated
+    // coordinate by different amounts would be a shear, so the rotation has to come first and the
+    // extents divide in the tile's own frame. With a square tile the two orders agree exactly,
+    // R being linear - which is why this is not a change in behaviour for any existing layer.
+    const Vec2f tile = layer_tile_mm(layer);
+    rotated.x() /= tile.x();
+    rotated.y() /= tile.y();
 
     // Non-square textures. Without this the [0,1] square of uv covers the whole image whatever its
-    // proportions, so a 2:1 image is squeezed into a square tile and every feature in it comes out
-    // half as wide as it should be. `tiling_scale` is the tile's size along u; the tile is
-    // `tiling_scale * height / width` mm along v, which is exactly what keeps texels square - so
-    // dividing v by that extent is the same as multiplying it by width / height. A square texture has
-    // aspect 1 and is untouched, which is why this changes nothing for the shipped library.
-    //
-    // Applied after the rotation, not before: scaling one axis of an already-rotated coordinate is a
-    // shear, and doing it the other way round would make "Rotation" skew the pattern instead of
-    // turning it.
+    // proportions, so a 2:1 image is squeezed into one tile and every feature in it comes out half
+    // as wide as it should be. The tile is `layer_tile_mm().y() * height / width` mm along v, which
+    // is exactly what keeps texels square - so dividing v by that extent is the same as multiplying
+    // it by width / height. A square texture has aspect 1 and is untouched, which is why this
+    // changes nothing for the shipped library.
     if (aspect > 0.f && aspect != 1.f)
         rotated.y() *= aspect;
 

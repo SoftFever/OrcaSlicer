@@ -554,7 +554,7 @@ void GLGizmoTextureDisplacement::on_shutdown()
     m_island_move_set.clear();
     m_adjust_texture_mode = false;
     m_seam_edit_mode      = false;
-    m_adjust_drag_handle  = AdjustHandle::None;
+    end_adjust_texture_mode();
     m_adjust_anchor_valid = false;
     // The pane is request-only: closing the gizmo drops the request, so reopening it later doesn't
     // silently reopen the pane too.
@@ -748,9 +748,9 @@ void GLGizmoTextureDisplacement::render_painter_gizmo()
 
     m_c->object_clipper()->render_cut();
     m_c->instances_hider()->render_cut();
-    if (m_adjust_texture_mode)
-        render_adjust_texture_gizmo();
-    else if (!m_seam_edit_mode) // the brush cursor is meaningless while marking seams
+    // The placement gizmo is drawn through ImGui's foreground draw list, which only exists inside
+    // the gizmo's ImGui frame - see the end of on_render_input_window(). Here there is only the brush.
+    if (!m_adjust_texture_mode && !m_seam_edit_mode) // the brush cursor is meaningless while marking seams
         render_cursor();
 
     glsafe(::glDisable(GL_BLEND));
@@ -1564,6 +1564,7 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
     shader->set_uniform("height_tex_texel", Vec2f(1.f / float(tex->get_width()), 1.f / float(tex->get_height())));
     shader->set_uniform("depth_mm", layer->depth_mm);
     shader->set_uniform("tiling_scale", layer->tiling_scale);
+    shader->set_uniform("tiling_scale_v", layer_tile_mm(*layer).y());
     // Read off the uploaded texture rather than the decoded one: they are the same image, and this is
     // the aspect the sampler will actually see.
     shader->set_uniform("tex_aspect", float(tex->get_width()) / float(tex->get_height()));
@@ -2113,6 +2114,7 @@ void GLGizmoTextureDisplacement::render_uvcheck_mesh()
     shader->set_uniform("mode", m_uv_check_mode == UVCheckMode::Distortion ? 1 : 0);
     shader->set_uniform("checker_freq", 4.f); // squares per texture tile
     shader->set_uniform("tiling_scale", layer->tiling_scale);
+    shader->set_uniform("tiling_scale_v", layer_tile_mm(*layer).y());
     shader->set_uniform("rotation_rad", layer->rotation_deg * float(M_PI) / 180.f);
     shader->set_uniform("uv_offset", layer->offset);
     shader->set_uniform("use_vertex_uv", m_uvcheck_uses_vertex_uv);
@@ -2477,8 +2479,8 @@ void GLGizmoTextureDisplacement::update_uv_editor()
         }
     }
     // The backdrop's extent and repeat follow the tile settings, with or without an unwrap.
-    uv_canvas->set_uv_transform(layer->tiling_scale, layer->rotation_deg, layer->tile_enabled,
-                                layer->tile_method == TextureTileMethod::MirroredRepeat);
+    uv_canvas->set_uv_transform(layer->tiling_scale, layer_tile_mm(*layer).y(), layer->rotation_deg,
+                                layer->tile_enabled, layer->tile_method == TextureTileMethod::MirroredRepeat);
 
     if (m_uv_editor_unwrap.empty()) {
         // Nothing unwrapped yet: the pane opens anyway, because Unwrap itself lives in it. Its canvas shows the
@@ -2654,6 +2656,7 @@ void GLGizmoTextureDisplacement::push_uv_pane_state()
         st.has_layer       = true;
         st.layer_name      = from_u8(layer->name.empty() ? Slic3r::format(_u8L("Layer %1%"), layer->slot + 1) : layer->name);
         st.tile_mm         = layer->tiling_scale;
+        st.tile_mm_v       = layer_tile_mm(*layer).y();
         st.seam_angle_deg  = layer->lscm_seam_angle_deg;
         st.connect_islands = layer->auto_connect_islands;
         st.has_seams       = !layer->lscm_seam_edges.empty();
@@ -2848,8 +2851,10 @@ void GLGizmoTextureDisplacement::run_uv_command(int cmd, float value)
         m_uv_select_mode = std::clamp(int(std::lround(value)), 0, 2); // the canvas has already switched
     } else if (cmd == int(Command::SetMarkSeams)) {
         m_seam_edit_mode = value != 0.f;
-        if (m_seam_edit_mode)
+        if (m_seam_edit_mode) {
             m_adjust_texture_mode = false; // the two click modes are mutually exclusive
+            end_adjust_texture_mode();
+        }
         else {
             m_seam_hover_edge   = { -1, -1 }; // drop the hover highlight when leaving the mode
             m_seam_hover_vertex = -1;
@@ -3095,14 +3100,16 @@ void GLGizmoTextureDisplacement::cut_island(TextureDisplacementLayer &layer, int
 std::vector<Eigen::Matrix<float, 2, 3>>
 GLGizmoTextureDisplacement::uv_editor_island_transforms(const TextureDisplacementLayer &layer)
 {
-    const float uv_scale = (layer.tiling_scale > 1e-6f) ? (1.f / layer.tiling_scale) : 1.f;
-    const float rad      = layer.rotation_deg * float(M_PI) / 180.f;
-    const float cs       = std::cos(rad) * uv_scale;
-    const float sn       = std::sin(rad) * uv_scale;
+    // S^-1 R, with S the tile extents - the same order apply_uv_transform() applies them in, so a
+    // non-square tile scales each row rather than the whole matrix.
+    const Vec2f tile = layer_tile_mm(layer);
+    const float rad  = layer.rotation_deg * float(M_PI) / 180.f;
+    const float cs   = std::cos(rad);
+    const float sn   = std::sin(rad);
 
     Eigen::Matrix2f uv_linear;
-    uv_linear << cs, -sn,
-                 sn,  cs;
+    uv_linear << cs / tile.x(), -sn / tile.x(),
+                 sn / tile.y(),  cs / tile.y();
 
     m_uv_editor_bbox_min = Vec2f(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
     m_uv_editor_bbox_max = Vec2f(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest());
@@ -3269,31 +3276,56 @@ Vec3f GLGizmoTextureDisplacement::adjust_plane_point() const
     return m_adjust_anchor_pos + m_adjust_anchor_normal * lift;
 }
 
+void GLGizmoTextureDisplacement::end_adjust_texture_mode()
+{
+    m_adjust_drag_kind   = AdjustHandle::None;
+    m_adjust_drag_index  = -1;
+    m_adjust_hover_kind  = AdjustHandle::None;
+    m_adjust_hover_index = -1;
+    m_adjust_readout.clear();
+}
+
+Vec2f GLGizmoTextureDisplacement::adjust_handle_planar(const TextureDisplacementLayer &layer, float aspect)
+{
+    // apply_uv_transform() maps a planar mm coordinate p to  uv = S^-1 R(p) + offset, with S the
+    // tile extents and v additionally carrying the image's aspect. The tile's centre is the p whose
+    // uv is zero, so that one equation inverts directly: R(p) = -S offset (with the aspect undone
+    // on v), and p is R^-1 of it. Which is also why the centre lands exactly on the anchor when the
+    // offset is zero, whatever the rotation or the tile size.
+    const Vec2f tile = layer_tile_mm(layer);
+    const float a    = (aspect > 0.f) ? aspect : 1.f;
+    const float X    = -layer.offset.x() * tile.x();
+    const float Y    = -layer.offset.y() * tile.y() / a;
+    const float rad  = layer.rotation_deg * float(M_PI) / 180.f;
+    const float cs = std::cos(rad), sn = std::sin(rad);
+    return Vec2f(cs * X + sn * Y, -sn * X + cs * Y);
+}
+
+Vec2f GLGizmoTextureDisplacement::adjust_offset_for_planar(const Vec2f &planar, float rot_deg,
+                                                           const Vec2f &tile_mm, float aspect)
+{
+    const float a   = (aspect > 0.f) ? aspect : 1.f;
+    const float rad = rot_deg * float(M_PI) / 180.f;
+    const float cs = std::cos(rad), sn = std::sin(rad);
+    const float X  = planar.x() * cs - planar.y() * sn;
+    const float Y  = planar.x() * sn + planar.y() * cs;
+    const float su = (tile_mm.x() > 1e-6f) ? tile_mm.x() : 1.f;
+    const float sv = (tile_mm.y() > 1e-6f) ? tile_mm.y() : su;
+    return Vec2f(-X / su, -Y * a / sv);
+}
+
 Vec3f GLGizmoTextureDisplacement::adjust_handle_center(const TextureDisplacementLayer &layer) const
 {
-    // apply_uv_transform() maps a planar mm coordinate p to uv = R(p / tiling_scale) + offset, and
-    // on_mouse_adjust_texture() drives offset by  offset = offset_start - R(delta / tiling_scale).
-    // Inverting that, the handle's displacement from the anchor is  - R^-1(offset) * tiling_scale -
-    // which, substituted into the drag equation, moves the handle by exactly `delta`. So the handle
-    // follows the cursor precisely, and is back on the anchor exactly when offset is zero.
-    const float rad = layer.rotation_deg * float(M_PI) / 180.f;
-    const float cs = std::cos(rad), sn = std::sin(rad);
-    // Undo the non-square v scaling first - it is the last thing apply_uv_transform() does, so it is
-    // the first thing to come off on the way back.
-    const float aspect = layer_texture_aspect(layer);
-    const Vec2f o(layer.offset.x(), (aspect > 0.f) ? layer.offset.y() / aspect : layer.offset.y());
-    const Vec2f unrotated(o.x() * cs + o.y() * sn, -o.x() * sn + o.y() * cs);
-    const Vec2f planar = -unrotated * layer.tiling_scale;
-
     Vec3f u_axis, v_axis;
     adjust_tangent_basis(u_axis, v_axis);
+    const Vec2f planar = adjust_handle_planar(layer, layer_texture_aspect(layer));
     return adjust_plane_point() + u_axis * planar.x() + v_axis * planar.y();
 }
 
 void GLGizmoTextureDisplacement::adjust_tangent_basis(Vec3f &u_axis, Vec3f &v_axis) const
 {
-    // Mirrors project_planar()'s own dominant-axis choice exactly, so the ring's "0 degrees" and
-    // the offset handle's plane always agree with what project_texture_displacement_uv() does.
+    // Mirrors project_planar()'s own dominant-axis choice exactly, so the tile's "0 degrees" and
+    // the drag arithmetic always agree with what project_texture_displacement_uv() does.
     const Vec3f n = m_adjust_anchor_normal.cwiseAbs();
     if (n.x() >= n.y() && n.x() >= n.z()) {
         u_axis = Vec3f::UnitY();
@@ -3307,236 +3339,586 @@ void GLGizmoTextureDisplacement::adjust_tangent_basis(Vec3f &u_axis, Vec3f &v_ax
     }
 }
 
-void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
+namespace {
+// The placement gizmo's fixed screen-space dimensions, in pixels. Nothing here scales with the
+// volume or the zoom: the handles have to stay the same size to stay grabbable, and only the tile
+// frame - the one part that stands for a measurement - is allowed to grow and shrink.
+constexpr double ADJUST_MIN_TILE_PX   = 44.0; // the smallest the frame is ever drawn
+constexpr double ADJUST_ARM_PX        = 32.0; // how far an axis arm reaches past the frame's edge
+constexpr double ADJUST_ROT_STEM_PX   = 30.0; // from the near corner out to the rotate ring
+constexpr double ADJUST_ROT_R_PX      = 7.6;  // the rotate ring's radius
+constexpr double ADJUST_GRIP_HALF_PX  = 4.6;  // half the side of a corner scale grip
+// Hit radii, in the order adjust_pick() tests them. Deliberately larger than the marks they belong
+// to: the drawn handle says where to aim, the radius decides what counts as hitting it.
+constexpr double ADJUST_PICK_ROT_PX   = 12.0;
+constexpr double ADJUST_PICK_GRIP_PX  = 11.0;
+constexpr double ADJUST_PICK_TIP_PX   = 11.0;
+constexpr double ADJUST_PICK_SHAFT_PX = 8.0;
+
+double point_to_segment_px(const Vec2d &p, const Vec2d &a, const Vec2d &b)
+{
+    const Vec2d  ab   = b - a;
+    const double len2 = ab.squaredNorm();
+    const double t    = (len2 > 1e-9) ? std::clamp((p - a).dot(ab) / len2, 0.0, 1.0) : 0.0;
+    return (p - (a + ab * t)).norm();
+}
+
+// Point in a convex quad, vertices in order: every edge's cross product shares a sign for a point
+// inside. A degenerate edge (the frame seen exactly edge-on) contributes no sign and is skipped.
+bool point_in_quad(const Vec2d &p, const std::array<Vec2d, 4> &q)
+{
+    int sign = 0;
+    for (int i = 0; i < 4; ++i) {
+        const Vec2d &a = q[size_t(i)], &b = q[size_t((i + 1) % 4)];
+        const double cr = (b.x() - a.x()) * (p.y() - a.y()) - (b.y() - a.y()) * (p.x() - a.x());
+        const int    s  = (cr > 0.0) ? 1 : ((cr < 0.0) ? -1 : 0);
+        if (s == 0)
+            continue;
+        if (sign == 0)
+            sign = s;
+        else if (s != sign)
+            return false;
+    }
+    return true;
+}
+} // namespace
+
+bool GLGizmoTextureDisplacement::adjust_basis(Transform3d &trafo, Vec3f &u_axis, Vec3f &v_axis, Vec3f &base) const
 {
     if (!m_adjust_anchor_valid)
-        return;
+        return false;
+    const ModelObject *mo = m_c->selection_info()->model_object();
+    const ModelVolume *mv = texture_volume();
+    if (mo == nullptr || mv == nullptr || active_layer() == nullptr)
+        return false;
+    const Selection &selection = m_parent.get_selection();
+    const int        idx       = selection.get_instance_idx();
+    if (idx < 0 || size_t(idx) >= mo->instances.size())
+        return false;
+    trafo = mo->instances[size_t(idx)]->get_transformation().get_matrix() * mv->get_matrix();
+    adjust_tangent_basis(u_axis, v_axis);
+    base = adjust_plane_point();
+    return true;
+}
 
-    const ModelObject              *mo    = m_c->selection_info()->model_object();
-    const ModelVolume              *mv    = texture_volume();
+bool GLGizmoTextureDisplacement::adjust_quad_for(const Vec2f &center_planar, float rot_deg,
+                                                 const Vec2f &tile_mm, std::array<Vec2d, 4> &out) const
+{
+    Transform3d trafo;
+    Vec3f       u_axis, v_axis, base;
+    if (!adjust_basis(trafo, u_axis, v_axis, base))
+        return false;
     const TextureDisplacementLayer *layer = active_layer();
-    if (mo == nullptr || mv == nullptr || layer == nullptr)
-        return;
-
-    const Selection  &selection    = m_parent.get_selection();
-    const Transform3d trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
-
-    // Handle sizes scale with the volume so they stay usable on both tiny and huge models.
-    const float bbox_size    = float(mv->mesh().bounding_box().size().norm());
-    const float panel_half   = bbox_size * 0.04f + 1.f;
-    const float arrow_length = panel_half * 2.2f;
-
-    // Tracks the layer's offset, so the handle actually travels with the texture as it is dragged.
-    const Vec3f handle_center_local = adjust_handle_center(*layer);
-
-    GLShaderProgram *shader = wxGetApp().get_shader("flat");
-    if (shader == nullptr)
-        return;
-
-    glsafe(::glDisable(GL_DEPTH_TEST));
-    glsafe(::glEnable(GL_BLEND));
-    shader->start_using();
+    const float aspect = layer_texture_aspect(*layer);
+    const float rad    = rot_deg * float(M_PI) / 180.f;
+    const float cs = std::cos(rad), sn = std::sin(rad);
+    const Vec3f e_u = u_axis * cs - v_axis * sn;
+    const Vec3f e_v = u_axis * sn + v_axis * cs;
+    const Vec3f c   = base + u_axis * center_planar.x() + v_axis * center_planar.y();
+    const Vec3f du  = e_u * (0.5f * tile_mm.x());
+    const Vec3f dv  = e_v * (0.5f * tile_mm.y() / ((aspect > 0.f) ? aspect : 1.f));
 
     const Camera &camera = wxGetApp().plater()->get_camera();
-
-    Vec3f u_axis, v_axis;
-    adjust_tangent_basis(u_axis, v_axis);
-    Transform3d plane_transform     = Transform3d::Identity();
-    plane_transform.linear().col(0) = u_axis.cast<double>();
-    plane_transform.linear().col(1) = v_axis.cast<double>();
-    plane_transform.linear().col(2) = m_adjust_anchor_normal.cast<double>();
-    plane_transform.translation()   = handle_center_local.cast<double>();
-
-    // Pan panel: a flat square lying in the patch's own tangent plane. Dragging anywhere on it
-    // moves the texture freely along both axes at once.
-    if (!m_adjust_panel_glmodel.is_initialized()) {
-        GLModel::Geometry init_data;
-        init_data.format = { GLModel::Geometry::EPrimitiveType::Triangles, GLModel::Geometry::EVertexLayout::P3 };
-        init_data.reserve_vertices(4);
-        init_data.reserve_indices(6);
-        init_data.add_vertex(Vec3f(-1.f, -1.f, 0.f));
-        init_data.add_vertex(Vec3f(1.f, -1.f, 0.f));
-        init_data.add_vertex(Vec3f(1.f, 1.f, 0.f));
-        init_data.add_vertex(Vec3f(-1.f, 1.f, 0.f));
-        init_data.add_triangle(0, 1, 2);
-        init_data.add_triangle(0, 2, 3);
-        m_adjust_panel_glmodel.init_from(std::move(init_data));
+    const Vec3f   pts[4] = { c + du + dv, c + du - dv, c - du - dv, c - du + dv };
+    for (int i = 0; i < 4; ++i) {
+        const Point p = CameraUtils::project(camera, trafo * pts[i].cast<double>());
+        out[size_t(i)] = Vec2d(double(p.x()), double(p.y()));
     }
-    Transform3d view_model_matrix = camera.get_view_matrix() * trafo_matrix * plane_transform *
-        Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(panel_half, panel_half, panel_half));
-    shader->set_uniform("view_model_matrix", view_model_matrix);
-    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-    ColorRGBA panel_color = m_adjust_drag_handle == AdjustHandle::Pan ? ColorRGBA::YELLOW() : ColorRGBA::ORANGE();
-    panel_color.a(0.45f);
-    m_adjust_panel_glmodel.set_color(panel_color);
-    m_adjust_panel_glmodel.render();
+    return true;
+}
 
-    // Axis arrows: a shaft plus a small V-shaped arrowhead, both along local +X. Reused for both
-    // the U and V axes below by swapping which world direction local +X is transformed to.
-    if (!m_adjust_arrow_glmodel.is_initialized()) {
-        GLModel::Geometry init_data;
-        init_data.format = { GLModel::Geometry::EPrimitiveType::Lines, GLModel::Geometry::EVertexLayout::P3 };
-        init_data.reserve_vertices(4);
-        init_data.reserve_indices(6);
-        init_data.add_vertex(Vec3f(0.f, 0.f, 0.f));
-        init_data.add_vertex(Vec3f(1.f, 0.f, 0.f));
-        init_data.add_vertex(Vec3f(0.82f, 0.08f, 0.f));
-        init_data.add_vertex(Vec3f(0.82f, -0.08f, 0.f));
-        init_data.add_line(0, 1);
-        init_data.add_line(1, 2);
-        init_data.add_line(1, 3);
-        m_adjust_arrow_glmodel.init_from(std::move(init_data));
-    }
-#if !SLIC3R_OPENGL_ES
-    if (!OpenGLManager::get_gl_info().is_core_profile())
-        glsafe(::glLineWidth(2.0f));
-#endif // !SLIC3R_OPENGL_ES
+GLGizmoTextureDisplacement::AdjustFrame GLGizmoTextureDisplacement::adjust_frame() const
+{
+    AdjustFrame f;
+    Transform3d trafo;
+    Vec3f       u_axis, v_axis, base;
+    if (!adjust_basis(trafo, u_axis, v_axis, base))
+        return f;
+    const TextureDisplacementLayer *layer = active_layer();
 
-    auto render_arrow = [&](const Vec3f &axis, const Vec3f &other_axis, bool is_active) {
-        Transform3d arrow_transform     = Transform3d::Identity();
-        arrow_transform.linear().col(0) = axis.cast<double>();
-        arrow_transform.linear().col(1) = other_axis.cast<double>();
-        arrow_transform.linear().col(2) = m_adjust_anchor_normal.cast<double>();
-        arrow_transform.translation()   = handle_center_local.cast<double>();
+    // The tile's own edge directions. apply_uv_transform() rotates the planar coordinate by
+    // +rotation_deg before dividing by the extents, so the tile's u edge lies along R^-1 of the uv
+    // u axis, which is (cos, -sin) in the planar basis - and the pattern on the surface therefore
+    // appears to turn the other way, which is what "Rotation" has always meant here.
+    const float rad = layer->rotation_deg * float(M_PI) / 180.f;
+    const float cs = std::cos(rad), sn = std::sin(rad);
+    f.e_u = u_axis * cs - v_axis * sn;
+    f.e_v = u_axis * sn + v_axis * cs;
 
-        const Transform3d vmm = camera.get_view_matrix() * trafo_matrix * arrow_transform *
-            Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), Vec3d(arrow_length, arrow_length, arrow_length));
-        shader->set_uniform("view_model_matrix", vmm);
-        shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-        m_adjust_arrow_glmodel.set_color(is_active ? ColorRGBA::YELLOW() : ColorRGBA::ORANGE());
-        m_adjust_arrow_glmodel.render();
+    const float aspect = layer_texture_aspect(*layer);
+    f.tile_mm = layer_tile_mm(*layer);
+    // One uv unit along v is tile.y / aspect millimetres, the aspect correction living in uv space
+    // (see apply_uv_transform()), so that - not tile.y itself - is the edge to draw.
+    f.half_planar   = Vec2f(0.5f * f.tile_mm.x(), 0.5f * f.tile_mm.y() / ((aspect > 0.f) ? aspect : 1.f));
+    f.center_planar = adjust_handle_planar(*layer, aspect);
+
+    const Vec3f centre = base + u_axis * f.center_planar.x() + v_axis * f.center_planar.y();
+    const Vec3f du     = f.e_u * f.half_planar.x();
+    const Vec3f dv     = f.e_v * f.half_planar.y();
+
+    const Camera &camera = wxGetApp().plater()->get_camera();
+    const auto to_screen = [&](const Vec3f &local) {
+        const Point p = CameraUtils::project(camera, trafo * local.cast<double>());
+        return Vec2d(double(p.x()), double(p.y()));
     };
-    render_arrow(u_axis, v_axis, m_adjust_drag_handle == AdjustHandle::AxisU);
-    render_arrow(v_axis, u_axis, m_adjust_drag_handle == AdjustHandle::AxisV);
 
-    shader->stop_using();
-    glsafe(::glDisable(GL_BLEND));
-    glsafe(::glEnable(GL_DEPTH_TEST));
+    f.center      = to_screen(centre);
+    f.corner[0]   = to_screen(centre + du + dv);
+    f.corner[1]   = to_screen(centre + du - dv);
+    f.corner[2]   = to_screen(centre - du - dv);
+    f.corner[3]   = to_screen(centre - du + dv);
+    f.edge_mid[0] = to_screen(centre + du);
+    f.edge_mid[1] = to_screen(centre - du);
+    f.edge_mid[2] = to_screen(centre + dv);
+    f.edge_mid[3] = to_screen(centre - dv);
+
+    // A tile can project to a handful of pixels - a fine texture, or a zoomed-out view - and a
+    // control that small cannot be aimed at. Below the floor the frame is pushed out from its centre
+    // to exactly that size and drawn dashed instead of solid; the readout keeps reporting the true
+    // millimetres, so the drawing can never be mistaken for the measurement.
+    double reach = 0.0;
+    for (const Vec2d &c : f.corner)
+        reach = std::max(reach, (c - f.center).norm());
+    if (reach > 1e-6 && 2.0 * reach < ADJUST_MIN_TILE_PX) {
+        const double k = 0.5 * ADJUST_MIN_TILE_PX / reach;
+        for (Vec2d &c : f.corner)
+            c = f.center + (c - f.center) * k;
+        for (Vec2d &m : f.edge_mid)
+            m = f.center + (m - f.center) * k;
+        f.clamped = true;
+    }
+
+    // Arms are measured in screen pixels off the projected edge, not in millimetres along the
+    // surface, so they keep their length however the tile is foreshortened.
+    static const Vec2d fallback_dir[4] = { { 1.0, 0.0 }, { -1.0, 0.0 }, { 0.0, 1.0 }, { 0.0, -1.0 } };
+    for (int i = 0; i < 4; ++i) {
+        const Vec2d  out = f.edge_mid[size_t(i)] - f.center;
+        const double len = out.norm();
+        // An edge seen exactly edge-on projects to nothing and has no outward direction to read off
+        // it; the screen axes keep the arms spread out rather than piled on the centre.
+        f.arm_dir[size_t(i)] = (len > 1e-6) ? Vec2d(out / len) : fallback_dir[i];
+        f.arm_tip[size_t(i)] = f.edge_mid[size_t(i)] + f.arm_dir[size_t(i)] * ADJUST_ARM_PX;
+    }
+
+    const Vec2d  rot_out = f.corner[0] - f.center;
+    const double rot_len = rot_out.norm();
+    f.rotate_at = f.corner[0] + ((rot_len > 1e-6) ? Vec2d(rot_out / rot_len) : Vec2d(0.0, 1.0)) * ADJUST_ROT_STEM_PX;
+
+    f.valid = true;
+    return f;
+}
+
+GLGizmoTextureDisplacement::AdjustHandle
+GLGizmoTextureDisplacement::adjust_pick(const Vec2d &mouse, const AdjustFrame &f, int &index) const
+{
+    index = -1;
+    if (!f.valid)
+        return AdjustHandle::None;
+
+    const auto within = [&mouse](const Vec2d &p, double r) { return (mouse - p).squaredNorm() <= r * r; };
+
+    // Outermost first. The rotate ring is the only handle off the frame, so it is the cheapest to
+    // rule out; the corners and the arms come before the interior so that a grip stays grabbable
+    // even when the frame is foreshortened to a sliver and every handle lands on the move area.
+    if (within(f.rotate_at, ADJUST_PICK_ROT_PX))
+        return AdjustHandle::Rotate;
+    for (int i = 0; i < 4; ++i)
+        if (within(f.corner[size_t(i)], ADJUST_PICK_GRIP_PX)) {
+            index = i;
+            return AdjustHandle::Scale;
+        }
+    for (int i = 0; i < 4; ++i)
+        if (within(f.arm_tip[size_t(i)], ADJUST_PICK_TIP_PX)) {
+            index = i;
+            return AdjustHandle::Axis;
+        }
+    for (int i = 0; i < 4; ++i)
+        if (point_to_segment_px(mouse, f.edge_mid[size_t(i)], f.arm_tip[size_t(i)]) <= ADJUST_PICK_SHAFT_PX) {
+            index = i;
+            return AdjustHandle::Axis;
+        }
+    // A real polygon test, not a circle through the corners: the old hit test let a move start from
+    // empty space beside the tile, and refused one near a corner the circle did not reach.
+    if (point_in_quad(mouse, f.corner))
+        return AdjustHandle::Move;
+    return AdjustHandle::None;
+}
+
+bool GLGizmoTextureDisplacement::adjust_planar_under(const Vec2d &mouse, Vec2f &planar) const
+{
+    Transform3d trafo;
+    Vec3f       u_axis, v_axis, base;
+    if (!adjust_basis(trafo, u_axis, v_axis, base))
+        return false;
+    const Camera &camera = wxGetApp().plater()->get_camera();
+    Vec3d         world_hit;
+    if (!ray_plane_hit(camera, mouse, trafo, base, m_adjust_anchor_normal, world_hit))
+        return false;
+    const Vec3f local = (trafo.inverse() * world_hit).cast<float>();
+    // project_planar() is absolute, and everything here is relative to the anchor, so the base's own
+    // planar coordinate is the origin. Taking it from the very point the frame is built on is what
+    // keeps the hit, the frame and the offset arithmetic in one coordinate system.
+    planar = project_planar(local, m_adjust_anchor_normal) - project_planar(base, m_adjust_anchor_normal);
+    return true;
+}
+
+void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
+{
+    const AdjustFrame f = adjust_frame();
+    if (!f.valid)
+        return;
+
+    ImDrawList *dl = ImGui::GetForegroundDrawList();
+
+    // Orca's own palette: COL_ORCA for the accent, the icon grey for structure, both straight out of
+    // ImGuiWrapper and the panel's own SVGs. The accent lifts in the dark theme, but it is the halo
+    // and the handle fill that really carry the theme - a volume stays the same neutral grey however
+    // the UI is themed, so the accent alone could not.
+    const bool  dark     = m_is_dark_mode;
+    const ImU32 accent   = dark ? IM_COL32(38, 166, 154, 255) : IM_COL32(0, 150, 136, 255);
+    const ImU32 hot      = dark ? IM_COL32(77, 182, 172, 255) : IM_COL32(38, 166, 154, 255);
+    const ImU32 held     = dark ? IM_COL32(128, 203, 196, 255) : IM_COL32(0, 103, 91, 255);
+    const ImU32 structc  = dark ? IM_COL32(182, 182, 182, 255) : IM_COL32(148, 148, 148, 255);
+    const ImU32 dimc     = dark ? IM_COL32(182, 182, 182, 115) : IM_COL32(148, 148, 148, 128);
+    const ImU32 halo     = dark ? IM_COL32(0, 0, 0, 133) : IM_COL32(0, 0, 0, 82);
+    const ImU32 fill     = dark ? IM_COL32(38, 166, 154, 31) : IM_COL32(0, 150, 136, 20);
+    const ImU32 fill_hot = dark ? IM_COL32(38, 166, 154, 51) : IM_COL32(0, 150, 136, 41);
+    const ImU32 handle   = dark ? IM_COL32(45, 45, 49, 255) : IM_COL32(255, 255, 255, 255);
+    const ImU32 ghostc   = dark ? IM_COL32(182, 182, 182, 153) : IM_COL32(100, 100, 106, 153);
+
+    const bool         dragging = m_adjust_drag_kind != AdjustHandle::None;
+    const AdjustHandle act      = dragging ? m_adjust_drag_kind : m_adjust_hover_kind;
+    const int          act_idx  = dragging ? m_adjust_drag_index : m_adjust_hover_index;
+    const ImU32        act_col  = dragging ? held : hot;
+    // While a drag runs, everything that is not being dragged drops to grey: during a rotation the
+    // frame has to read as the thing being turned, not as another thing to grab.
+    const ImU32 rest_col  = dragging ? dimc : structc;
+    const bool  move_live = act == AdjustHandle::Move;
+    const ImU32 frame_col = move_live ? act_col : accent;
+    const float frame_w   = move_live ? 2.4f : 1.8f;
+
+    const auto P = [](const Vec2d &v) { return ImVec2(float(v.x()), float(v.y())); };
+    // Every stroke goes down twice: the halo first, a pixel wider on each side, then the stroke
+    // itself. That is the whole reason the gizmo stays readable over a pale model, a dark one and a
+    // painted one alike, and it is why this is drawn through ImGui rather than the flat shader.
+    const auto stroke = [&](const ImVec2 *pts, int n, bool closed, ImU32 col, float w) {
+        const ImDrawFlags fl = closed ? ImDrawFlags_Closed : ImDrawFlags(0);
+        dl->AddPolyline(pts, n, halo, fl, w + 2.4f);
+        dl->AddPolyline(pts, n, col, fl, w);
+    };
+    const auto dashed = [&](const Vec2d &a, const Vec2d &b, ImU32 col, double dash, double gap) {
+        const double len = (b - a).norm();
+        if (len < 1e-6)
+            return;
+        const Vec2d dir = (b - a) / len;
+        for (double t = 0.0; t < len; t += dash + gap)
+            dl->AddLine(P(a + dir * t), P(a + dir * std::min(t + dash, len)), col, 1.3f);
+    };
+
+    // ---- drag feedback, under the gizmo itself --------------------------------------------------
+    if (dragging) {
+        // Where the tile was when the drag began, so there is something to judge the move against.
+        std::array<Vec2d, 4> ghost;
+        if (adjust_quad_for(m_adjust_drag_start_center, m_adjust_drag_start_rot, m_adjust_drag_start_tile, ghost))
+            for (int i = 0; i < 4; ++i)
+                dashed(ghost[size_t(i)], ghost[size_t((i + 1) % 4)], ghostc, 5.0, 5.0);
+
+        const ImU32 guide = dark ? IM_COL32(38, 166, 154, 153) : IM_COL32(0, 150, 136, 166);
+        if (act == AdjustHandle::Axis && act_idx >= 0) {
+            // The axis the move is being held to, drawn right across the view so it is obvious which
+            // one won when two arms were close together on screen.
+            const Vec2d d = f.arm_dir[size_t(act_idx)];
+            dashed(f.center - d * 1200.0, f.center + d * 1200.0, guide, 6.0, 6.0);
+        } else if (act == AdjustHandle::Scale && act_idx >= 0) {
+            const Vec2d  out = f.corner[size_t(act_idx)] - f.center;
+            const double len = out.norm();
+            if (len > 1e-6) {
+                const Vec2d d = out / len;
+                dashed(f.center - d * 1200.0, f.center + d * 1200.0, guide, 6.0, 6.0);
+            }
+        } else if (act == AdjustHandle::Rotate) {
+            // The orbit, and the angle swept since the drag began, measured in the surface's own
+            // plane - so a circle on the model, an ellipse on screen.
+            Transform3d trafo;
+            Vec3f       u_axis, v_axis, base;
+            if (adjust_basis(trafo, u_axis, v_axis, base)) {
+                const Camera &camera = wxGetApp().plater()->get_camera();
+                const double  r      = std::max(double(f.half_planar.norm()), 1e-4);
+                const auto on_orbit = [&](double ang) {
+                    const Vec3f local = base + u_axis * float(f.center_planar.x() + r * std::cos(ang)) +
+                                        v_axis * float(f.center_planar.y() + r * std::sin(ang));
+                    const Point p = CameraUtils::project(camera, trafo * local.cast<double>());
+                    return Vec2d(double(p.x()), double(p.y()));
+                };
+                constexpr int N = 72;
+                Vec2d prev = on_orbit(0.0);
+                for (int i = 1; i <= N; ++i) {
+                    const Vec2d cur = on_orbit(double(i) * 2.0 * M_PI / double(N));
+                    dashed(prev, cur, guide, 4.0, 6.0);
+                    prev = cur;
+                }
+                // The swept arc, solid on top of the dashed orbit - the start angle is where the
+                // grab was, so the arc reads as "this is how far you have turned it".
+                // rotation_deg runs the opposite way to the cursor's sweep (see the drag), so where
+                // the cursor is now is the start angle plus however far the value has gone back.
+                const double a0 = double(m_adjust_drag_start_angle);
+                const double a1 = a0 + double(m_adjust_drag_start_rot - active_layer()->rotation_deg) * M_PI / 180.0;
+                const int    steps = std::max(2, int(std::ceil(std::abs(a1 - a0) / (2.0 * M_PI / double(N)))));
+                Vec2d        sp    = on_orbit(a0);
+                for (int i = 1; i <= steps; ++i) {
+                    const Vec2d cur = on_orbit(a0 + (a1 - a0) * double(i) / double(steps));
+                    dl->AddLine(P(sp), P(cur), act_col, 3.0f);
+                    sp = cur;
+                }
+            }
+        }
+    }
+
+    // ---- the tile ------------------------------------------------------------------------------
+    const ImVec2 quad[4] = { P(f.corner[0]), P(f.corner[1]), P(f.corner[2]), P(f.corner[3]) };
+    dl->AddConvexPolyFilled(quad, 4, move_live ? fill_hot : fill);
+    if (f.clamped)
+        // Dashed says "not to scale": the tile is really smaller than this.
+        for (int i = 0; i < 4; ++i)
+            dashed(f.corner[size_t(i)], f.corner[size_t((i + 1) % 4)], frame_col, 5.0, 5.0);
+    else
+        stroke(quad, 4, true, frame_col, frame_w);
+
+    // ---- axis arms -----------------------------------------------------------------------------
+    for (int i = 0; i < 4; ++i) {
+        const bool   live = act == AdjustHandle::Axis && act_idx == i;
+        const ImU32  col  = live ? act_col : rest_col;
+        const Vec2d &tip  = f.arm_tip[size_t(i)];
+        if (live)
+            dl->AddCircleFilled(P(tip), 6.4f, col, 16);
+        const ImVec2 shaft[2] = { P(f.edge_mid[size_t(i)]), P(tip) };
+        stroke(shaft, 2, false, col, live ? 1.8f : 1.6f);
+        // The chevron is the Adjust placement icon's own mark. Idle it is the only thing there, so
+        // the gizmo stays light; the filled dot behind it appears on hover, when a target is wanted.
+        const Vec2d  d = f.arm_dir[size_t(i)], n(-d.y(), d.x());
+        const ImVec2 chev[3] = { P(tip - d * 8.0 + n * 5.0), P(tip), P(tip - d * 8.0 - n * 5.0) };
+        stroke(chev, 3, false, live ? handle : col, live ? 1.8f : 1.6f);
+    }
+
+    // ---- move grip: the panel's own drag icon, six dots, lying in the tile's plane --------------
+    {
+        const Vec2d  ou = f.edge_mid[0] - f.center, ov = f.edge_mid[2] - f.center;
+        const double lu = ou.norm(), lv = ov.norm();
+        const Vec2d  eu = (lu > 1e-6) ? Vec2d(ou / lu) : Vec2d(1.0, 0.0);
+        const Vec2d  ev = (lv > 1e-6) ? Vec2d(ov / lv) : Vec2d(0.0, 1.0);
+        const ImU32  col = move_live ? act_col : rest_col;
+        for (int r = -1; r <= 1; ++r)
+            for (int c = -1; c <= 1; c += 2) {
+                const Vec2d p = f.center + eu * (double(c) * 2.9) + ev * (double(r) * 5.4);
+                dl->AddCircleFilled(P(p), 2.6f, halo, 10);
+                dl->AddCircleFilled(P(p), 1.5f, col, 10);
+            }
+    }
+
+    // ---- corner scale grips --------------------------------------------------------------------
+    for (int i = 0; i < 4; ++i) {
+        const bool   live = act == AdjustHandle::Scale && act_idx == i;
+        const Vec2d &c    = f.corner[size_t(i)];
+        const double h    = ADJUST_GRIP_HALF_PX;
+        const ImVec2 sq[4] = { ImVec2(float(c.x() - h), float(c.y() - h)), ImVec2(float(c.x() + h), float(c.y() - h)),
+                               ImVec2(float(c.x() + h), float(c.y() + h)), ImVec2(float(c.x() - h), float(c.y() + h)) };
+        dl->AddConvexPolyFilled(sq, 4, live ? act_col : handle);
+        stroke(sq, 4, true, live ? act_col : frame_col, 1.6f);
+    }
+
+    // ---- rotate handle -------------------------------------------------------------------------
+    {
+        const bool   live = act == AdjustHandle::Rotate;
+        const ImU32  col  = live ? act_col : rest_col;
+        const ImVec2 stem[2] = { P(f.corner[0]), P(f.rotate_at) };
+        stroke(stem, 2, false, col, live ? 1.8f : 1.6f);
+        const ImVec2 at = P(f.rotate_at);
+        dl->AddCircleFilled(at, float(ADJUST_ROT_R_PX) + 1.2f, halo, 20);
+        dl->AddCircleFilled(at, float(ADJUST_ROT_R_PX), live ? act_col : handle, 20);
+        dl->AddCircle(at, float(ADJUST_ROT_R_PX), live ? act_col : frame_col, 20, 1.6f);
+        // The same curved arrow Orca's rotate gizmo uses, so the handle says what it does without a
+        // tooltip: a part ring with an arrowhead on its leading end.
+        const ImU32 gcol = live ? handle : rest_col;
+        dl->PathClear();
+        dl->PathArcTo(at, 4.2f, float(M_PI) * 1.11f, float(M_PI) * 1.89f, 12);
+        dl->PathStroke(gcol, 0, 1.5f);
+        const ImVec2 head[3] = { ImVec2(at.x + 1.11f, at.y - 3.38f), ImVec2(at.x + 3.95f, at.y - 1.44f),
+                                 ImVec2(at.x + 4.87f, at.y - 4.75f) };
+        dl->AddPolyline(head, 3, gcol, 0, 1.5f);
+    }
+
+    // ---- the readout, by the cursor, only while a drag is live ----------------------------------
+    if (!m_adjust_readout.empty() && ImGui::IsMousePosValid()) {
+        const ImVec2 mouse = ImGui::GetIO().MousePos;
+        const ImVec2 ts    = ImGui::CalcTextSize(m_adjust_readout.c_str());
+        const ImVec2 at(mouse.x + 16.f, mouse.y - ts.y - 20.f);
+        dl->AddRectFilled(ImVec2(at.x - 7.f, at.y - 5.f), ImVec2(at.x + ts.x + 7.f, at.y + ts.y + 5.f),
+                          IM_COL32(26, 26, 29, 230), 5.f);
+        dl->AddText(at, IM_COL32(255, 255, 255, 255), m_adjust_readout.c_str());
+    }
 }
 
 bool GLGizmoTextureDisplacement::on_mouse_adjust_texture(const wxMouseEvent &mouse_event)
 {
-    if (!m_adjust_anchor_valid)
-        return false;
-
-    ModelVolume              *mv    = texture_volume();
-    ModelObject              *mo    = m_c->selection_info()->model_object();
     TextureDisplacementLayer *layer = active_layer();
-    if (mv == nullptr || mo == nullptr || layer == nullptr)
+    if (!m_adjust_anchor_valid || layer == nullptr)
         return false;
 
-    const Selection   &selection    = m_parent.get_selection();
-    const Transform3d  trafo_matrix = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
-    const Camera      &camera       = wxGetApp().plater()->get_camera();
+    const Vec2d mouse(mouse_event.GetX(), mouse_event.GetY());
 
-    const float bbox_size    = float(mv->mesh().bounding_box().size().norm());
-    const float panel_half   = bbox_size * 0.04f + 1.f;
-    const float arrow_length = panel_half * 2.2f;
-    // Where the handle is drawn (moves with the layer's offset) vs. the plane the drag is measured
-    // against (fixed at the anchor). Keeping them apart is what stops the handle's own motion from
-    // feeding back into the delta that produced it.
-    const Vec3f handle_center_local = adjust_handle_center(*layer);
-    const Vec3f drag_plane_local    = adjust_plane_point();
-    const Vec3d handle_center_world = trafo_matrix * handle_center_local.cast<double>();
-    const Vec2d mouse_pos(mouse_event.GetX(), mouse_event.GetY());
-
-    Vec3f u_axis, v_axis;
-    adjust_tangent_basis(u_axis, v_axis);
-
-    const Point handle_screen = CameraUtils::project(camera, handle_center_world);
-    const Vec2d handle_screen_d(double(handle_screen.x()), double(handle_screen.y()));
-
-    // Point-to-segment distance in screen space, for the arrow shafts.
-    auto dist_to_segment_px = [](const Vec2d &p, const Vec2d &a, const Vec2d &b) {
-        const Vec2d ab = b - a;
-        const double len2 = ab.squaredNorm();
-        const double t = (len2 > 1e-9) ? std::clamp((p - a).dot(ab) / len2, 0.0, 1.0) : 0.0;
-        return (p - (a + ab * t)).norm();
-    };
-
-    if (mouse_event.LeftDown()) {
-        const Vec3d u_tip_world = trafo_matrix * (handle_center_local + u_axis * arrow_length).cast<double>();
-        const Vec3d v_tip_world = trafo_matrix * (handle_center_local + v_axis * arrow_length).cast<double>();
-        const Point u_tip_screen = CameraUtils::project(camera, u_tip_world);
-        const Point v_tip_screen = CameraUtils::project(camera, v_tip_world);
-        const Vec2d u_tip_screen_d(double(u_tip_screen.x()), double(u_tip_screen.y()));
-        const Vec2d v_tip_screen_d(double(v_tip_screen.x()), double(v_tip_screen.y()));
-
-        // Panel screen-space "radius", approximated from one corner (a loose circle around the
-        // square is close enough for hit-testing purposes).
-        const Vec3d panel_corner_world = trafo_matrix * (handle_center_local + (u_axis + v_axis) * panel_half).cast<double>();
-        const Point panel_corner_screen = CameraUtils::project(camera, panel_corner_world);
-        const double panel_screen_radius = (Vec2d(double(panel_corner_screen.x()), double(panel_corner_screen.y())) - handle_screen_d).norm();
-
-        constexpr double pick_tolerance_px = 8.0;
-        const double dist_to_u = dist_to_segment_px(mouse_pos, handle_screen_d, u_tip_screen_d);
-        const double dist_to_v = dist_to_segment_px(mouse_pos, handle_screen_d, v_tip_screen_d);
-        const double dist_to_panel = (handle_screen_d - mouse_pos).norm();
-
-        // Arrows take priority over the panel (their tips extend past it), then the panel covers
-        // the broader central area.
-        if (dist_to_u <= pick_tolerance_px && dist_to_u <= dist_to_v)
-            m_adjust_drag_handle = AdjustHandle::AxisU;
-        else if (dist_to_v <= pick_tolerance_px)
-            m_adjust_drag_handle = AdjustHandle::AxisV;
-        else if (dist_to_panel <= panel_screen_radius)
-            m_adjust_drag_handle = AdjustHandle::Pan;
-        else {
-            m_adjust_drag_handle = AdjustHandle::None;
-            return false;
-        }
-
-        m_adjust_drag_start_offset = layer->offset;
-
-        Vec3d world_hit;
-        if (ray_plane_hit(camera, mouse_pos, trafo_matrix, drag_plane_local, m_adjust_anchor_normal, world_hit)) {
-            const Vec3f local_hit = (trafo_matrix.inverse() * world_hit).cast<float>();
-            m_adjust_drag_start_planar = project_planar(local_hit, m_adjust_anchor_normal);
-        }
+    if (mouse_event.LeftUp() && m_adjust_drag_kind != AdjustHandle::None) {
+        m_adjust_drag_kind  = AdjustHandle::None;
+        m_adjust_drag_index = -1;
+        m_adjust_readout.clear();
+        // The live drag only marked the preview's parameters stale; the real mesh is rebuilt once,
+        // when the gesture ends, exactly as a paint stroke is flushed on mouse-up.
+        rebuild_preview();
+        m_preview_params_dirty = false;
+        m_parent.set_as_dirty();
         return true;
     }
 
-    if (mouse_event.Dragging() && m_adjust_drag_handle != AdjustHandle::None) {
-        Vec3d world_hit;
-        if (!ray_plane_hit(camera, mouse_pos, trafo_matrix, drag_plane_local, m_adjust_anchor_normal, world_hit))
+    if (mouse_event.Dragging() && m_adjust_drag_kind != AdjustHandle::None) {
+        Vec2f hit;
+        if (!adjust_planar_under(mouse, hit))
             return true;
-        const Vec3f local_hit      = (trafo_matrix.inverse() * world_hit).cast<float>();
-        const Vec2f current_planar = project_planar(local_hit, m_adjust_anchor_normal);
 
-        Vec2f delta_planar = current_planar - m_adjust_drag_start_planar;
-        // project_planar()'s (x, y) axes are exactly u_axis/v_axis (see adjust_tangent_basis()),
-        // so zeroing one component constrains the drag to only the other axis.
-        if (m_adjust_drag_handle == AdjustHandle::AxisU)
-            delta_planar.y() = 0.f;
-        else if (m_adjust_drag_handle == AdjustHandle::AxisV)
-            delta_planar.x() = 0.f;
+        // Numbers are formatted first and substituted as strings: boost::format, which
+        // Slic3r::format wraps, will not take a printf width together with positional arguments.
+        const auto num = [](float v, int dp) {
+            char b[32];
+            std::snprintf(b, sizeof(b), "%.*f", dp, double(v));
+            return std::string(b);
+        };
+        const auto signed_mm = [](float v) {
+            char b[32];
+            std::snprintf(b, sizeof(b), "%+.2f", double(v));
+            return std::string(b);
+        };
 
-        const float scale        = (layer->tiling_scale > 1e-6f) ? (1.f / layer->tiling_scale) : 1.f;
-        const Vec2f delta_scaled = delta_planar * scale;
-        const float rad          = layer->rotation_deg * float(M_PI) / 180.f;
-        const float cs = std::cos(rad), sn = std::sin(rad);
-        Vec2f delta_rotated(delta_scaled.x() * cs - delta_scaled.y() * sn, delta_scaled.x() * sn + delta_scaled.y() * cs);
-        // ...and the same v scaling apply_uv_transform() applies for a non-square texture, so the
-        // handle keeps tracking the cursor exactly instead of drifting on the v axis.
-        delta_rotated.y() *= layer_texture_aspect(*layer);
-        // Increasing `offset` shifts which texel is sampled at a fixed world position, which
-        // visually slides the pattern the *opposite* way - subtracting is this session's
-        // best-effort reasoning about the direction that feels like "dragging the texture",
-        // unverified against an actual render (see header comment).
-        layer->offset = m_adjust_drag_start_offset - delta_rotated;
+        const float aspect = layer_texture_aspect(*layer);
+        const float rad0   = m_adjust_drag_start_rot * float(M_PI) / 180.f;
+        const float cs0 = std::cos(rad0), sn0 = std::sin(rad0);
+        // The tile's own axes in planar space: orthonormal, and the directions the frame's edges run
+        // along (see adjust_frame()). Projecting onto these is not the same as zeroing one planar
+        // component once the tile is rotated, which is what the old axis drag got wrong.
+        const Vec2f e_u(cs0, -sn0), e_v(sn0, cs0);
+
+        Vec2f centre = m_adjust_drag_start_center;
+        float rot    = m_adjust_drag_start_rot;
+        Vec2f tile   = m_adjust_drag_start_tile;
+
+        switch (m_adjust_drag_kind) {
+        case AdjustHandle::Move: {
+            centre = m_adjust_drag_start_center + (hit - m_adjust_drag_start_grab);
+            m_adjust_readout = Slic3r::format(_u8L("U %1%   V %2% mm"), signed_mm(centre.x()),
+                                              signed_mm(centre.y()));
+            break;
+        }
+        case AdjustHandle::Axis: {
+            const Vec2f axis  = (m_adjust_drag_index < 2) ? e_u : e_v;
+            const Vec2f delta = hit - m_adjust_drag_start_grab;
+            centre = m_adjust_drag_start_center + axis * delta.dot(axis);
+            // The position along the axis, not the distance travelled, so this reads the same way
+            // the free move's readout does.
+            m_adjust_readout = Slic3r::format(_u8L("%1% %2% mm"), (m_adjust_drag_index < 2) ? "U" : "V",
+                                              signed_mm(centre.dot(axis)));
+            break;
+        }
+        case AdjustHandle::Rotate: {
+            const Vec2f rel = hit - centre;
+            if (rel.squaredNorm() < 1e-8f)
+                return true;
+            const float ang = std::atan2(rel.y(), rel.x());
+            // The tile's u edge sits at planar angle -rotation_deg, so the stored value runs the
+            // other way from the cursor's own sweep. Getting this backwards is the difference
+            // between a handle that follows the pointer and one that runs away from it.
+            rot = m_adjust_drag_start_rot - (ang - m_adjust_drag_start_angle) * 180.f / float(M_PI);
+            float shown = std::fmod(rot, 360.f);
+            if (shown > 180.f)
+                shown -= 360.f;
+            if (shown <= -180.f)
+                shown += 360.f;
+            m_adjust_readout = num(shown, 1) + "°";
+            break;
+        }
+        case AdjustHandle::Scale: {
+            const Vec2f rel    = hit - centre;
+            const bool  locked = layer->tiling_scale_v <= 0.f;
+            if (locked || mouse_event.ShiftDown()) {
+                // One extent, or the lock asked for: the tile follows how much further out the grab
+                // point is than where it started, which is the only reading that cannot change the
+                // tile's proportions.
+                const float r0 = (m_adjust_drag_start_grab - m_adjust_drag_start_center).norm();
+                const float k  = (r0 > 1e-4f) ? (rel.norm() / r0) : 1.f;
+                tile = m_adjust_drag_start_tile * k;
+            } else {
+                // The grabbed corner follows the cursor about the fixed centre, so its coordinates
+                // in the tile's own frame *are* the half extents. The v extent is stored before the
+                // aspect correction, hence the multiply back on the way in.
+                const float a = (aspect > 0.f) ? aspect : 1.f;
+                tile = Vec2f(2.f * std::abs(rel.dot(e_u)), 2.f * std::abs(rel.dot(e_v)) * a);
+            }
+            // The same bounds the panel's sliders clamp to, so a drag cannot reach a value the
+            // control beside it refuses to show.
+            tile = Vec2f(std::clamp(tile.x(), 0.2f, 200.f), std::clamp(tile.y(), 0.2f, 200.f));
+            m_adjust_readout = (layer->tiling_scale_v > 0.f) ?
+                                   Slic3r::format(_u8L("Tile %1% x %2% mm"), num(tile.x(), 2), num(tile.y(), 2)) :
+                                   Slic3r::format(_u8L("Tile %1% mm"), num(tile.x(), 2));
+            break;
+        }
+        default: break;
+        }
+
+        layer->rotation_deg = rot;
+        layer->tiling_scale = tile.x();
+        // A locked tile stays locked: a scale drag must not quietly give the v extent a value of its
+        // own behind the panel's lock.
+        if (layer->tiling_scale_v > 0.f)
+            layer->tiling_scale_v = tile.y();
+        // Last, and for every kind of drag alike: the offset is whatever puts the tile's centre
+        // where this gesture wants it, given the rotation and the extents it has just settled. That
+        // is what makes a rotate or a scale act in place instead of swinging the tile around the
+        // anchor, and it is why there is only one place that writes `offset`.
+        layer->offset = adjust_offset_for_planar(centre, rot, layer_tile_mm(*layer), aspect);
 
         m_preview_params_dirty = true;
         m_parent.set_as_dirty();
         return true;
     }
 
-    if (mouse_event.LeftUp() && m_adjust_drag_handle != AdjustHandle::None) {
-        m_adjust_drag_handle = AdjustHandle::None;
-        rebuild_preview();
-        m_preview_params_dirty = false;
+    const AdjustFrame f   = adjust_frame();
+    int               idx = -1;
+    const AdjustHandle k  = adjust_pick(mouse, f, idx);
+
+    if (mouse_event.LeftDown()) {
+        if (k == AdjustHandle::None)
+            return false; // not ours: falls through so the view can still be orbited in this mode
+        Vec2f grab;
+        if (!adjust_planar_under(mouse, grab))
+            return false;
+        m_adjust_drag_kind         = k;
+        m_adjust_drag_index        = idx;
+        m_adjust_hover_kind        = k;
+        m_adjust_hover_index       = idx;
+        m_adjust_drag_start_center = f.center_planar;
+        m_adjust_drag_start_grab   = grab;
+        m_adjust_drag_start_rot    = layer->rotation_deg;
+        m_adjust_drag_start_tile   = f.tile_mm;
+        const Vec2f rel            = grab - f.center_planar;
+        m_adjust_drag_start_angle  = std::atan2(rel.y(), rel.x());
+        m_adjust_readout.clear();
+        m_parent.set_as_dirty();
         return true;
     }
 
+    // Hover. Only ever one handle, and only redrawn when it actually changes - the pick runs on
+    // every motion event, and this mode is live for as long as the user is placing a texture.
+    if (k != m_adjust_hover_kind || idx != m_adjust_hover_index) {
+        m_adjust_hover_kind  = k;
+        m_adjust_hover_index = idx;
+        m_parent.set_as_dirty();
+    }
     return false;
 }
 
@@ -4476,7 +4858,8 @@ const V2Resolution &GLGizmoTextureDisplacement::v2_recommendation(const ModelVol
     // panel asks for this every frame.
     std::string key = std::to_string(mv.id().id) + ":" + std::to_string(mv.mesh().facets_count());
     for (const TextureDisplacementLayer &l : mv.texture_displacement_layers)
-        key += Slic3r::format("|%1%:%2%:%3%:%4%", l.slot, reinterpret_cast<uintptr_t>(l.image_data.get()), l.tiling_scale, l.depth_mm);
+        key += Slic3r::format("|%1%:%2%:%3%:%4%:%5%", l.slot, reinterpret_cast<uintptr_t>(l.image_data.get()),
+                              l.tiling_scale, layer_tile_mm(l).y(), l.depth_mm);
     const Transform3d trafo = texture_displacement_volume_to_world(mv);
     for (int i = 0; i < 12; ++i)
         key += Slic3r::format(",%1%", trafo.matrix()(i / 4, i % 4));
@@ -4972,8 +5355,10 @@ TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
                     if (layer.empty())
                         continue;
                     const DecodedHeightTexture &tex = decode_height_texture(layer);
-                    if (tex.width > 0 && layer.tiling_scale > 0.f)
-                        texel_mm = std::min(texel_mm, layer.tiling_scale / float(tex.width));
+                    if (tex.width > 0 && layer.tiling_scale > 0.f) {
+                        const Vec2f tile = layer_tile_mm(layer);
+                        texel_mm = std::min(texel_mm, std::min(tile.x(), tile.y()) / float(tex.width));
+                    }
                 }
             const bool cut_steps = texel_mm < std::numeric_limits<float>::max() &&
                                    texture_has_steps_to_cut(mesh.its, region, sampler, 2.f * texel_mm, 2.f * texel_mm);
@@ -6454,10 +6839,39 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             m_preview_params_dirty |= float_row("##depth", _L("Depth"), &layer.depth_mm, 0.01f, 10.f, "%.3f mm", true, card_pad);
             hover_tip(_u8L("Height of the relief: how far white in the texture lifts the surface, in "
                            "millimetres. Black does not move it at all, unless Midlevel says otherwise."));
-            m_preview_params_dirty |= float_row("##tile_size", _L("Tile size"), &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true, card_pad);
+            // One tile can be a rectangle, so the extent along v is its own control - but only once it
+            // has been unlocked, since a square tile is what almost every texture wants and two
+            // sliders for one number would be noise. The lock state *is* the data: a v extent of <= 0
+            // means "same as u" (see layer_tile_mm()), so there is no separate panel flag to keep in
+            // step with it, and nothing to go stale across a layer switch or an undo.
+            const bool tile_split = layer.tiling_scale_v > 0.f;
+            m_preview_params_dirty |= float_row("##tile_size", tile_split ? _L("Tile width") : _L("Tile size"),
+                                                &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true, card_pad);
             hover_tip(_u8L("How wide one copy of the texture is on the model. Smaller repeats the pattern "
                            "more often and makes its detail finer; with Tile off, this is the size of the "
                            "single copy."));
+            if (tile_split) {
+                m_preview_params_dirty |= float_row("##tile_size_v", _L("Tile height"), &layer.tiling_scale_v,
+                                                    0.2f, 200.f, "%.2f mm", true, card_pad);
+                hover_tip(_u8L("How tall one copy of the texture is on the model. Different from Tile width, "
+                               "the pattern is stretched along one axis of the surface - which is what a "
+                               "woodgrain or a brushed finish wants."));
+            }
+            {
+                const std::string text = tile_split ? _u8L("Lock to a square tile") :
+                                                      _u8L("Separate width and height");
+                const ImVec2      ts   = ImGui::CalcTextSize(text.c_str());
+                const ImVec2      lp   = ImGui::GetCursorScreenPos();
+                if (ImGui::InvisibleButton("##tile_lock", ts)) {
+                    // Unlocking seeds v from u, so the toggle on its own never changes what is baked.
+                    layer.tiling_scale_v   = tile_split ? -1.f : layer.tiling_scale;
+                    m_preview_params_dirty = true;
+                }
+                const ImU32 lc = ImGui::GetColorU32(col_link);
+                dl->AddText(lp, lc, text.c_str());
+                if (ImGui::IsItemHovered())
+                    dl->AddLine(ImVec2(lp.x, lp.y + ts.y), ImVec2(lp.x + ts.x, lp.y + ts.y), lc);
+            }
             m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f, "%.0f°", false, card_pad);
             hover_tip(_u8L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
                            "edge of the model."));
@@ -6764,7 +7178,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                 show_error(nullptr, _u8L("Paint something with this layer first."));
                         } else {
                             m_adjust_texture_mode = false;
-                            m_adjust_drag_handle  = AdjustHandle::None;
+                            end_adjust_texture_mode();
                         }
                     }
                 }
@@ -6782,7 +7196,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     // Placement is one of the settings being hidden, so it stops with them.
                     if (expanded && m_adjust_texture_mode) {
                         m_adjust_texture_mode = false;
-                        m_adjust_drag_handle  = AdjustHandle::None;
+                        end_adjust_texture_mode();
                     }
                 }
                 const ImU32 c  = ImGui::GetColorU32(col_link);
@@ -7470,6 +7884,10 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     // Drawn last, over everything, via the foreground draw list: the +/- add-remove sign next to the 3D
     // cursor. Still inside the gizmo's ImGui frame here, which is what render_paint_cursor_hint() needs.
     render_paint_cursor_hint();
+    // Same reason, same frame: the placement gizmo's halo, sub-pixel strokes and readout all come
+    // from this draw list.
+    if (m_adjust_texture_mode)
+        render_adjust_texture_gizmo();
 }
 
 } // namespace Slic3r::GUI
