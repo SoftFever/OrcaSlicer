@@ -4862,12 +4862,6 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
 }
 
-void GUI_App::system_info()
-{
-    //SysInfoDialog dlg;
-    //dlg.ShowModal();
-}
-
 void GUI_App::keyboard_shortcuts(ShortcutContext page, wxWindow* parent)
 {
     KBShortcutsDialog dlg(parent != nullptr ? parent : mainframe, page);
