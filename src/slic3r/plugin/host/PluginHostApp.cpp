@@ -3,6 +3,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 
+#include <libslic3r/GCode/GCodeProcessor.hpp>
 #include <libslic3r/Model.hpp>
 #include <libslic3r/PresetBundle.hpp>
 #include <libslic3r/AppConfig.hpp>
@@ -14,6 +15,7 @@
 #include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/GUI_App.hpp>
 #include <slic3r/GUI/OpenGLManager.hpp>
+#include <slic3r/GUI/PartPlate.hpp>
 #include <slic3r/GUI/Plater.hpp>
 #include <slic3r/Utils/CloudProvider.hpp>
 #include <slic3r/Utils/NetworkAgent.hpp>
@@ -24,7 +26,10 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/optional/optional.hpp>
 
+#include <cstddef>
+#include <map>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include <wx/app.h>
 #include <wx/string.h>
@@ -149,6 +154,102 @@ py::object selected_printer()
     return std::move(out);
 }
 
+// Per-filament material usage of a plate's last slice, straight from the
+// GCodeProcessor statistics the preview legend is built from. Volumes are mm^3,
+// keyed by the 0-based filament index. "loads" counts how often a filament
+// becomes the extruding one (first use plus every switch back to it), which is
+// how often a printer with a filament changer loads it. Returns None when the
+// plate has no slice result.
+py::object slice_statistics(int plate_index, bool require_valid)
+{
+    GUI::Plater* plater = current_plater();
+    require_main_thread("slice_statistics");
+    GUI::PartPlateList& plates = plater->get_partplate_list();
+    GUI::PartPlate* plate = nullptr;
+    if (plate_index < 0)
+        plate = plates.get_curr_plate();
+    else if (plate_index < plates.get_plate_count())
+        plate = plates.get_plate(plate_index);
+    if (plate == nullptr)
+        return py::none();
+
+    const bool valid = plate->is_slice_result_valid();
+    if (require_valid && !valid)
+        return py::none();
+
+    const GCodeProcessorResult* result = plate->get_slice_result();
+    if (result == nullptr)
+        return py::none();
+
+    // The result is shared with the background slicing process.
+    struct ResultLock {
+        const GCodeProcessorResult* r;
+        explicit ResultLock(const GCodeProcessorResult* r) : r(r) { r->lock(); }
+        ~ResultLock() { r->unlock(); }
+    } result_lock(result);
+
+    const PrintEstimatedStatistics& ps = result->print_statistics;
+
+    // Loads per filament and the order they happen in: (from, to) -> count,
+    // from -1 for the first filament of the print.
+    std::map<size_t, unsigned int> loads;
+    std::map<std::pair<int, int>, unsigned int> transitions;
+    int active = -1;
+    for (const GCodeProcessorResult::MoveVertex& move : result->moves) {
+        if (move.type != EMoveType::Extrude || static_cast<int>(move.extruder_id) == active)
+            continue;
+        ++transitions[{active, static_cast<int>(move.extruder_id)}];
+        active = move.extruder_id;
+        ++loads[move.extruder_id];
+    }
+
+    std::set<size_t> ids;
+    for (const auto* volumes : {&ps.model_volumes_per_extruder, &ps.support_volumes_per_extruder,
+                                &ps.wipe_tower_volumes_per_extruder, &ps.flush_per_filament,
+                                &ps.total_volumes_per_extruder})
+        for (const auto& item : *volumes)
+            ids.insert(item.first);
+
+    const auto volume_of = [](const std::map<size_t, double>& volumes, size_t id) {
+        const auto it = volumes.find(id);
+        return it == volumes.end() ? 0.0 : it->second;
+    };
+
+    py::list filaments;
+    for (size_t id : ids) {
+        py::dict f;
+        f["index"]       = id;
+        f["model_mm3"]   = volume_of(ps.model_volumes_per_extruder, id);
+        f["support_mm3"] = volume_of(ps.support_volumes_per_extruder, id);
+        f["tower_mm3"]   = volume_of(ps.wipe_tower_volumes_per_extruder, id);
+        f["flush_mm3"]   = volume_of(ps.flush_per_filament, id);
+        f["total_mm3"]   = volume_of(ps.total_volumes_per_extruder, id);
+        const auto l     = loads.find(id);
+        f["loads"]       = l == loads.end() ? 0u : l->second;
+        f["diameter"]    = id < result->filament_diameters.size() ? py::object(py::float_(result->filament_diameters[id])) : py::object(py::none());
+        f["density"]     = id < result->filament_densities.size() ? py::object(py::float_(result->filament_densities[id])) : py::object(py::none());
+        filaments.append(std::move(f));
+    }
+
+    py::dict out;
+    out["plate_index"]                  = plate->get_index();
+    out["valid"]                        = valid;
+    out["filaments"]                    = std::move(filaments);
+    out["total_filament_changes"]       = ps.total_filament_changes;
+    out["total_flush_filament_changes"] = ps.total_flush_filament_changes;
+
+    py::list changes;
+    for (const auto& [pair, count] : transitions) {
+        py::dict c;
+        c["from"]  = pair.first < 0 ? py::object(py::none()) : py::object(py::int_(pair.first));
+        c["to"]    = pair.second;
+        c["count"] = count;
+        changes.append(std::move(c));
+    }
+    out["transitions"] = std::move(changes);
+    return out;
+}
+
 } // namespace
 
 // Access to the live GUI application: the Plater and the module-level
@@ -185,6 +286,13 @@ void host_bindings::register_app(py::module_& host)
              "Agent, model_id, connection ('lan' or 'cloud'), online, connected and firmware of the printer selected in the "
              "device list; model_id and firmware are empty for non-Bambu agents. None when none is selected. Print hosts "
              "configured in the printer preset (OctoPrint and the like) are not in the device list.");
+    // Material usage of the last slice per filament (model, support, prime
+    // tower, flush, total in mm^3 plus diameter, density and load count) and the
+    // filament changes in order ("transitions": from, to, count), so
+    // plugins can compare it with what is left on the loaded spools. plate_index -1 is the
+    // current plate. The valid flag is only set after SlicingJobComplete has been
+    // dispatched, so a handler of that event passes require_valid=False.
+    host.def("slice_statistics", &slice_statistics, py::arg("plate_index") = -1, py::arg("require_valid") = true);
 }
 
 } // namespace Slic3r
