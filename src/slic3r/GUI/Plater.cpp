@@ -15609,7 +15609,7 @@ void Plater::reset_project_dirty_initial_presets() { p->reset_project_dirty_init
 void Plater::render_project_state_debug_window() const { p->render_project_state_debug_window(); }
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
 
-void Plater::normalize_bed_types(bool printer_setting_changed)
+void Plater::normalize_bed_types(bool multi_bed_changed)
 {
     if (only_gcode_mode() || is_gcode_3mf())
         return;
@@ -15635,7 +15635,7 @@ void Plater::normalize_bed_types(bool printer_setting_changed)
     }
 
     // Refresh the controls after a capability change, even when no override was reset.
-    if (printer_setting_changed || overrides_reset) {
+    if (multi_bed_changed || overrides_reset) {
         sidebar().update_all_preset_comboboxes();
         wxGetApp().obj_list()->update_and_show_object_settings_item();
     }
