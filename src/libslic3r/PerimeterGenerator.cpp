@@ -2268,7 +2268,6 @@ void PerimeterGenerator::add_infill_contour(ExPolygons&   infill_contour,
             h.simplify(m_scaled_resolution);
     }
 
-    this->fill_no_overlap->clear();
     append(*this->fill_no_overlap, offset2_ex(infill_contour, -min_spacing, min_spacing));
 
     double top_insert = this->config->top_bottom_infill_wall_overlap.get_abs_value(insert);;
