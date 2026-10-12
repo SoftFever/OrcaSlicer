@@ -9463,3 +9463,45 @@ TEST_CASE("A 3D sketch builds a valid wire, sweeps a profile, and survives the r
     CHECK_FALSE(bad.recompute());
     CHECK_FALSE(bad.error.empty());
 }
+
+// Item 1 (feature tree): rollback shows the model as of an earlier feature; a mutation returns to the
+// end; a failing feature is named.
+TEST_CASE("Rolling the history back shows the earlier model and a mutation returns to the end", "[CadDocument][rollback]")
+{
+    CadDocument doc;
+    const int s1 = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 20, 10, 0, "Sk1");
+    doc.add_extrude(s1, 5.0, false, BooleanMode::New, "Ex1");              // feature 1: 20*10*5 = 1000
+    const int s2 = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 20, 10, 0, "Sk2");
+    doc.add_extrude(s2, 5.0, false, BooleanMode::Add, "Ex2");              // feature 3: fuse an equal box = still 1000
+    const int s3 = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XZ(), 20, 10, 0, "Sk3");
+    doc.add_extrude(s3, 40.0, false, BooleanMode::Add, "Ex3");             // feature 5: adds a fin
+    REQUIRE(doc.recompute());
+    const double full = double(doc.display_mesh.volume());
+    REQUIRE(full > 1100.0);
+
+    doc.rollback_index = 1;                                                // as of Ex1
+    REQUIRE(doc.recompute());
+    CHECK(double(doc.display_mesh.volume()) == Catch::Approx(1000.0).epsilon(1e-3));
+    CHECK(doc.features.size() == 6);                                       // nothing was removed
+
+    doc.rollback_index = 0;                                                // rolled back to a lone sketch: no solid, not an error
+    CHECK(doc.recompute());
+    CHECK(doc.error.empty());
+
+    doc.checkpoint();                                                      // any mutation acts on the full history
+    CHECK(doc.rollback_index == -1);
+    REQUIRE(doc.recompute());
+    CHECK(double(doc.display_mesh.volume()) == Catch::Approx(full).epsilon(1e-9));
+
+    doc.rollback_index = 1;
+    REQUIRE(doc.undo());                                                   // undo returns to the end too
+    CHECK(doc.rollback_index == -1);
+}
+
+TEST_CASE("A failing feature is named by index", "[CadDocument][rollback]")
+{
+    CadDocument doc;
+    doc.add_sketch3d({{1, 1, 1}, {1, 1, 1}}, false, false, "Bad");        // feature 0 cannot be built
+    CHECK_FALSE(doc.recompute());
+    CHECK(doc.error_feature == 0);
+}

@@ -794,6 +794,14 @@ public:
     // v6: no wire-format change — the bytes are v5's, and both are read by the same framed path.
     // The stamp advances only to put a project-container change on the record; the 3MF backends
     // own that story. v4 still opens through the pre-framing flat path.
+    // History rollback (the feature tree's draggable bar). Session-only, never serialized:
+    // features AFTER this index are not replayed, so the model shows the state at that point in
+    // the history while every feature stays in the recipe. -1 = no rollback. Any mutation
+    // (checkpoint()) and undo/redo return to the end, so a new feature never lands mid-history.
+    int rollback_index{-1};
+    // The feature whose replay threw in the last recompute(), or -1. Lets the tree mark the row
+    // that failed instead of leaving the user a global message and no suspect.
+    int error_feature{-1};
     static constexpr uint32_t ORCA_CAD_RECIPE_VERSION = 6;
     std::string serialize_recipe() const;
     bool deserialize_recipe(const std::string& blob);
