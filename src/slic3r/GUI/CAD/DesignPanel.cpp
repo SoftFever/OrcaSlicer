@@ -3257,7 +3257,11 @@ DesignPanel::DesignPanel(wxWindow* parent)
         const bool zoom = can_zoom_to_feature(row);
         if (zoom) menu.Append(id_zoom, _L("Zoom to selection"));
         menu.AppendSeparator();
+        const int id_canvas = wxWindow::NewControlId();
+        menu.Append(id_canvas, _L("Draw the tree on the canvas"));
+        menu.AppendSeparator();
         menu.Append(id_del,    _L("Delete"));
+        menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) { set_imgui_tree(true); }, id_canvas);
         menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) { m_verb_actions["btn:rename"](); }, id_rename);
         menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) { on_edit_feature(); },      id_edit);
         menu.Bind(wxEVT_MENU, [this](wxCommandEvent&) { on_move_feature(-1); },    id_up);
@@ -4260,6 +4264,9 @@ DesignPanel::DesignPanel(wxWindow* parent)
         // 3D sketch owns Tab / Enter / Backspace / S / Esc while it is live.
         if (m_viewport && m_viewport->sketch3d_active() && !in_text && m_viewport->sketch3d_key(key))
             return;
+        // An open overlay popup (ribbon dropdown, tree row menu) takes the first Esc: it closes and
+        // nothing underneath is touched, so a half-opened dropdown never leaves a tool armed.
+        if (key == WXK_ESCAPE && imgui_popup_open()) { imgui_close_popups(); if (m_viewport) m_viewport->request_repaint(); return; }
         // ONE Esc, ONE route, whatever holds focus. Which widget has focus is an accident of where
         // the user last clicked (a toolbar button, the Construction checkbox), and Esc must not
         // depend on it. It used to be answered in four places — the inline field above, a sketch
@@ -4479,6 +4486,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
     }
 
     m_show_origin = wxGetApp().app_config->get_bool("design_show_origin");
+    // The tree on the canvas is applied once the viewport exists (see set_imgui_tree callers).
     m_show_bed    = wxGetApp().app_config->get_bool("design_show_bed");
     if (m_viewport) m_viewport->set_show_bed(m_show_bed);
     set_ui_mode(UiMode::Feature);
@@ -4554,11 +4562,11 @@ void DesignPanel::set_ui_mode(UiMode m)
     if (m == UiMode::Constrain)
         apply_dof_status(m_dof_last, m_dof_last_ok, m_dof_last_has);
     wxSizer* s = m_toolbar->GetSizer();
-    s->Show(m_tb_feature,   m == UiMode::Feature,   true);
-    s->Show(m_tb_sketch,    m == UiMode::Sketch,    true);
+    s->Show(m_tb_feature,   !m_imgui_ribbon && m == UiMode::Feature, true);
+    s->Show(m_tb_sketch,    !m_imgui_ribbon && m == UiMode::Sketch,  true);
     // Constraint buttons are live in BOTH Sketch and Constrain (Fase 4.2 live path); the
     // Confirm/Cancel action bar (m_tb_action) is already mode-appropriate and stays untouched.
-    s->Show(m_tb_relations, m == UiMode::Sketch || m == UiMode::Constrain, true);
+    s->Show(m_tb_relations, !m_imgui_ribbon && (m == UiMode::Sketch || m == UiMode::Constrain), true);
     m_toolbar->Layout();
     m_toolbar->FitInside();   // refresh the horizontal scroll range for the new group widths
     set_active_tool_btn(nullptr);   // no tool selected right after a mode switch
@@ -7400,6 +7408,9 @@ void DesignPanel::on_tab_shown()
 
     hydrate_from_model();
     update_reference_planes();   // entering the Design tab
+    // The persisted tree placement: on the canvas (ImGui) or in the side panel (wx).
+    if (wxGetApp().app_config->get_bool("design_imgui_tree") != m_imgui_tree) set_imgui_tree(!m_imgui_tree);
+    if (wxGetApp().app_config->get_bool("design_imgui_ribbon") != m_imgui_ribbon) set_imgui_ribbon(!m_imgui_ribbon);
     if (show_clock.Time() > 100)   // a slow first show is what users report; the usual one is not news
         BOOST_LOG_TRIVIAL(info) << "Design tab shown: bed, project recipe and planes in " << show_clock.Time() << " ms";
     m_laid_out = true;
@@ -11416,6 +11427,122 @@ void DesignPanel::start_sketch3d()
     m_viewport->begin_sketch3d(m_doc.modeling_origin, std::move(targets));
 }
 
+TreeView DesignPanel::build_tree_view() const
+{
+    TreeView v;
+    v.selected    = m_tree ? m_tree->selection() : -1;
+    if (v.selected == wxNOT_FOUND) v.selected = -1;
+    v.rollback    = m_doc.rollback_index;
+    v.show_origin = m_show_origin;
+    v.show_bed    = m_show_bed;
+    v.rows.reserve(m_doc.features.size());
+    for (size_t fi = 0; fi < m_doc.features.size(); ++fi) {
+        const CadFeature& f = m_doc.features[fi];
+        TreeRowView r;
+        r.label      = f.name;
+        r.suppressed = !f.enabled;
+        r.failed     = (m_doc.error_feature == int(fi));
+        if (r.failed) r.note = m_doc.error;
+        else if (const std::string* why = mate_conflict_reason(int(fi))) { r.conflict = true; r.note = *why; }
+        v.rows.push_back(std::move(r));
+    }
+    return v;
+}
+
+void DesignPanel::apply_tree_events(const std::vector<TreeEvent>& evs)
+{
+    const int n = int(m_doc.features.size());
+    auto ok = [n](int r) { return r >= 0 && r < n; };
+    for (const TreeEvent& e : evs) {
+        switch (e.kind) {
+        case TreeEvent::Select:
+            if (ok(e.row)) { if (m_parts) m_parts->unselect(); m_tree->select(e.row); }
+            break;
+        case TreeEvent::Deselect:      m_tree->unselect(); break;
+        case TreeEvent::Edit:          if (ok(e.row)) { m_tree->select(e.row); on_edit_feature(); } break;
+        case TreeEvent::ToggleEnabled: if (ok(e.row)) { m_tree->select(e.row); on_toggle_visibility(); } break;
+        case TreeEvent::Delete:        if (ok(e.row)) { m_tree->select(e.row); on_delete_feature(); } break;
+        case TreeEvent::Zoom:          if (ok(e.row)) zoom_to_feature(e.row); break;
+        case TreeEvent::MoveUp:        if (ok(e.row)) { m_tree->select(e.row); on_move_feature(-1); } break;
+        case TreeEvent::MoveDown:      if (ok(e.row)) { m_tree->select(e.row); on_move_feature(+1); } break;
+        case TreeEvent::Rename:
+            if (ok(e.row) && m_tree->on_rename) m_tree->on_rename(e.row, wxString::FromUTF8(e.text));
+            break;
+        case TreeEvent::SetRollback:
+            m_doc.rollback_index = (e.row >= 0 && e.row < n - 1) ? e.row : -1;
+            if (!recompute_guarded(_L("Rebuilding model…")))
+                set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
+            // No refresh_tree(): a rollback is a VIEW of the history, not an edit (nothing to sync into
+            // the recipe), and rebuilding the rows mid-drag took the canvas's mouse state with it.
+            if (m_viewport) m_viewport->request_repaint();
+            break;
+        case TreeEvent::ToggleOrigin:  toggle_origin(); break;
+        case TreeEvent::ToggleBed:     toggle_bed(); break;
+        case TreeEvent::DockBack:      set_imgui_tree(false); break;
+        }
+    }
+}
+
+void DesignPanel::set_imgui_ribbon(bool on)
+{
+    m_imgui_ribbon = on;
+    AppConfig* cfg = wxGetApp().app_config;
+    cfg->set_bool("design_imgui_ribbon", on);
+    if (!m_viewport) return;
+    DesignRibbonOverlay& r = m_viewport->ribbon_overlay();
+    r.state = [this](const OfferVerb& v) {
+        // Same rule the right-click offer uses (show_offer_menu): the selection kind, the document
+        // counts, and the mode; the reason shown is the verb's own refusal text.
+        const uint32_t bit = offer_bit(OfferSel(offer_selection_kind()));
+        const bool sketching = sketch_map_applies();
+        int sketches = 0;
+        for (const auto& f : m_doc.features) if (f.type == CadFeatureType::Sketch) ++sketches;
+        bool sheet = false;
+        for (const auto& b : m_doc.bodies) if (CadDocument::is_sheet_shape(b.shape)) { sheet = true; break; }
+        DesignRibbonOverlay::VerbState st;
+        st.enabled = v.sketch_mode == sketching && (v.accepts & bit) && v.need_bodies <= int(m_doc.bodies.size())
+                     && v.need_sketches <= sketches && (!v.need_sheet || sheet);
+        if (!st.enabled && v.sketch_mode != sketching)
+            st.why = std::string(sketching ? _u8L("Finish the sketch first") : _u8L("Open a sketch first"));
+        return st;
+    };
+    r.run = [this](const OfferVerb& v) {
+        const std::string action = v.action ? v.action : "";
+        CallAfter([this, action] { run_offer_action(action.c_str()); });   // the same router the offer menu uses
+    };
+    r.sketching = [this] { return sketch_map_applies(); };
+    r.load_last = [cfg](const std::string& group) { return cfg->get("design_ribbon_last_" + group); };
+    r.save_last = [cfg](const std::string& group, const std::string& id) { cfg->set("design_ribbon_last_" + group, id); };
+    m_viewport->set_ribbon_overlay(on);
+    if (m_toolbar && m_toolbar->GetSizer()) {
+        wxSizer* s = m_toolbar->GetSizer();
+        s->Show(m_tb_feature,   !on && m_ui_mode == UiMode::Feature, true);
+        s->Show(m_tb_sketch,    !on && m_ui_mode == UiMode::Sketch,  true);
+        s->Show(m_tb_relations, !on && (m_ui_mode == UiMode::Sketch || m_ui_mode == UiMode::Constrain), true);
+        m_toolbar->Layout();
+        m_toolbar->FitInside();
+    }
+}
+
+void DesignPanel::set_imgui_tree(bool on)
+{
+    m_imgui_tree = on;
+    wxGetApp().app_config->set_bool("design_imgui_tree", on);
+    if (!m_viewport) return;
+    DesignTreeOverlay& o = m_viewport->tree_overlay();
+    o.get_view = [this] { return build_tree_view(); };
+    o.can_zoom = [this](int row) { return can_zoom_to_feature(row); };
+    o.emit     = [this](std::vector<TreeEvent> evs) {
+        // ImGui only EMITS; the model changes on the next turn of the loop, outside the frame.
+        CallAfter([this, evs = std::move(evs)] { apply_tree_events(evs); });
+    };
+    m_viewport->set_tree_overlay(on);
+    if (m_tree_box) {
+        m_tree_box->Show(!on);
+        if (m_form && m_form->GetSizer()) { m_form->Layout(); m_form->FitInside(); }
+    }
+}
+
 void DesignPanel::push_grid_snap()
 {
     if (!m_grid_snap || !m_grid_step) return;
@@ -11814,7 +11941,8 @@ void DesignPanel::open_tool(Tool t)
         int sel_idx = wxNOT_FOUND;
         for (int i = 0; i < int(m_doc.features.size()); ++i) {
             const CadFeature& sf = m_doc.features[i];
-            if (sf.type != CadFeatureType::Sketch || i == m_sweep_profile_ref) continue;
+            // A 3D sketch is a path too (its curve is what a Sweep follows); it has no profile role.
+            if ((sf.type != CadFeatureType::Sketch && sf.type != CadFeatureType::Sketch3D) || i == m_sweep_profile_ref) continue;
             const int pos = combo_append_index(m_sweep_path, wxString::FromUTF8(sf.name), i);
             if (i == m_sweep_path_ref) sel_idx = pos;
         }

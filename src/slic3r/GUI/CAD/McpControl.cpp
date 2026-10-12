@@ -279,6 +279,12 @@ json describe_tools()
                      json{{"name", "points"}, {"type", "array"}, {"description", "[[x,y,z], ...], at least two"}},
                      json{{"name", "smooth"}, {"type", "boolean"}, {"default", false}},
                      json{{"name", "closed"}, {"type", "boolean"}, {"default", false}}})}},
+            json{{"name", "new_document"}, {"summary", "Clear every feature (undoable). For test rigs that need a known starting document."},
+                 {"params", json::array()}},
+            json{{"name", "ui_option"}, {"summary", "Switch a Design UI option: imgui_tree = draw the feature tree on the canvas (ImGui) instead of the side panel; imgui_ribbon = draw the tool ribbon on the canvas instead of the wx toolbar groups."},
+                 {"params", json::array({
+                     json{{"name", "name"},  {"type", "string"}, {"enum", json::array({"imgui_tree", "imgui_ribbon"})}},
+                     json{{"name", "value"}, {"type", "boolean"}, {"default", false}}})}},
             json{{"name", "plane"}, {"summary", "Create a datum plane: offset (mm) from base 0=XY, 1=XZ, 2=YZ or 3+N = Nth earlier datum, optional tilt (deg) about axis. Sketch on it with sketch_begin plane=datum:N."},
                  {"params", json::array({
                      json{{"name", "base"},   {"type", "integer"}, {"default", 0}},
@@ -1937,6 +1943,26 @@ json action_sketch3d(DesignPanel* panel, const json& params)
     return json{{"ok", ok}, {"feature_index", idx}, {"error", doc.error}};
 }
 
+json action_new_document(DesignPanel* panel, const json& params)
+{
+    (void)params;
+    CadDocument& doc = panel->mcp_doc();
+    doc.checkpoint();
+    doc.features.clear();
+    doc.recompute();
+    panel->mcp_after_change();
+    return json{{"ok", true}, {"features", 0}};
+}
+
+json action_ui_option(DesignPanel* panel, const json& params)
+{
+    const std::string name = params.value("name", std::string());
+    const bool        on   = params.value("value", false);
+    if (name == "imgui_tree")   { panel->mcp_set_imgui_tree(on);   return json{{"ok", true}, {"imgui_tree", on}}; }
+    if (name == "imgui_ribbon") { panel->mcp_set_imgui_ribbon(on); return json{{"ok", true}, {"imgui_ribbon", on}}; }
+    throw std::runtime_error("unknown ui option: " + name + " (imgui_tree, imgui_ribbon)");
+}
+
 json action_plane(DesignPanel* panel, const json& params)
 {
     CadDocument& doc = panel->mcp_doc();
@@ -2196,6 +2222,8 @@ std::string handle_on_main(const std::string& method, const json& params, const 
         if (method == "delete_face")    return rpc_result(id, action_delete_face(panel, params));
         if (method == "bridge")         return rpc_result(id, action_bridge(panel, params));
         if (method == "plane")          return rpc_result(id, action_plane(panel, params));
+        if (method == "ui_option")      return rpc_result(id, action_ui_option(panel, params));
+        if (method == "new_document")   return rpc_result(id, action_new_document(panel, params));
         if (method == "sketch3d")       return rpc_result(id, action_sketch3d(panel, params));
         if (method == "use")            return rpc_result(id, action_use(panel, params));
         if (method == "axis")           return rpc_result(id, action_axis(panel, params));
