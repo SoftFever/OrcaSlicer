@@ -1,7 +1,10 @@
 #include "TextureDisplacement.hpp"
 
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
@@ -11,10 +14,14 @@
 #include <iterator>
 #include <limits>
 #include <map>
+#include <memory>
+#include <math.h>
 #include <mutex>
 #include <numeric>
 #include <optional>
+#include "nlohmann/json.hpp"
 #include <queue>
+#include <ratio>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -27,15 +34,21 @@
 #include <tbb/parallel_sort.h>
 
 #include <boost/log/trivial.hpp>
+#include <utility>
+#include <vector>
 
 #include "AABBTreeIndirect.hpp"
 #include "MeshBoolean.hpp"
 #include "Model.hpp"
 #include "PNGReadWrite.hpp"
+#include "Point.hpp"
+#include "TriangleMesh.hpp"
+#include "TextureBake/TextureBakeDisplace.hpp"
 #include "TriangleSelector.hpp"
 #include "TextureBake/TextureBakeDebug.hpp"
 #include "TextureBake/TextureBakeMesh.hpp"
 #include "TextureBake/TextureBakePipeline.hpp"
+#include "TextureBake/TextureBakeIndex.hpp"
 
 namespace Slic3r {
 
@@ -234,6 +247,20 @@ void smooth_height_pixels(std::vector<uint8_t> &pixels, int width, int height, f
             pixels[i] = uint8_t(std::lround(float(raw[i]) + (float(pixels[i]) - float(raw[i])) * mix));
 }
 } // namespace
+
+bool height_texture_has_color(const TextureDisplacementLayer &layer)
+{
+    if (layer.empty())
+        return false;
+    {
+        std::lock_guard<std::mutex> lock(g_decoded_texture_cache.mutex);
+        const auto it = g_decoded_texture_cache.entries.find(layer.image_data.get());
+        if (it != g_decoded_texture_cache.entries.end() && it->second.first.lock() == layer.image_data)
+            return it->second.second.has_color();
+    }
+    // Not decoded yet. Decoding caches the raw image, so this happens once per image.
+    return decode_height_texture(layer).has_color();
+}
 
 DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer)
 {
@@ -1236,52 +1263,81 @@ bool triangles_overlap(const Tri2 &a, const Tri2 &b, float eps)
 struct NetGrid
 {
     static constexpr int BIG_SPAN = 16;
-    float                cell;
-    float                eps;
-    std::unordered_map<uint64_t, std::vector<Tri2>> cells;
-    std::vector<Tri2>    big;
+    // Each stored triangle keeps its own bounding box. Overlap testing is dominated by rejects - a cell
+    // holds every triangle whose box touches it, and a candidate meets only a couple of them for real -
+    // so paying six floats per entry to answer most of those rejects with four comparisons, instead of a
+    // full triangle intersection, is what makes the net affordable. Measured on a 42k-triangle patch the
+    // grid ran ~19 million candidate pairs per net, nearly all of them misses, and rejecting them this
+    // way took the net from ~175 ms to ~53 ms.
+    //
+    // The box rides inside the entry rather than in a parallel array: splitting them to scan boxes back
+    // to back was tried and came out slower, because each bucket then grows two vectors instead of one.
+    struct Entry
+    {
+        Tri2  tri;
+        Vec2f lo, hi;
+    };
+    float                                           cell;
+    float                                           eps;
+    std::unordered_map<uint64_t, std::vector<Entry>> cells;
+    std::vector<Entry>                              big;
 
     static uint64_t key(int x, int y) { return (uint64_t(uint32_t(x)) << 32) | uint32_t(y); }
-    bool range(const Tri2 &t, int &x0, int &y0, int &x1, int &y1) const
+    static Entry    entry(const Tri2 &t)
     {
-        const Vec2f lo = t[0].cwiseMin(t[1]).cwiseMin(t[2]), hi = t[0].cwiseMax(t[1]).cwiseMax(t[2]);
+        return Entry{ t, t[0].cwiseMin(t[1]).cwiseMin(t[2]), t[0].cwiseMax(t[1]).cwiseMax(t[2]) };
+    }
+    bool range(const Vec2f &lo, const Vec2f &hi, int &x0, int &y0, int &x1, int &y1) const
+    {
         x0 = int(std::floor(lo.x() / cell));
         y0 = int(std::floor(lo.y() / cell));
         x1 = int(std::floor(hi.x() / cell));
         y1 = int(std::floor(hi.y() / cell));
         return x1 - x0 <= BIG_SPAN && y1 - y0 <= BIG_SPAN;
     }
+    // Boxes grown by eps on both sides, to match the tolerance triangles_overlap() itself works to: a
+    // reject here must never discard a pair that test would have called touching.
+    bool boxes_apart(const Entry &a, const Entry &b) const
+    {
+        return a.hi.x() + eps < b.lo.x() || b.hi.x() + eps < a.lo.x() || a.hi.y() + eps < b.lo.y() ||
+               b.hi.y() + eps < a.lo.y();
+    }
+    bool hits(const Entry &q, const std::vector<Entry> &bucket) const
+    {
+        for (const Entry &b : bucket)
+            if (!boxes_apart(q, b) && triangles_overlap(q.tri, b.tri, eps))
+                return true;
+        return false;
+    }
     bool overlaps(const Tri2 &t) const
     {
-        for (const Tri2 &b : big)
-            if (triangles_overlap(t, b, eps))
-                return true;
+        const Entry q = entry(t);
+        if (hits(q, big))
+            return true;
         int x0, y0, x1, y1;
-        if (!range(t, x0, y0, x1, y1)) {
-            for (const auto &[k, tris] : cells)
-                for (const Tri2 &b : tris)
-                    if (triangles_overlap(t, b, eps))
-                        return true;
+        if (!range(q.lo, q.hi, x0, y0, x1, y1)) {
+            for (const auto &[k, bucket] : cells)
+                if (hits(q, bucket))
+                    return true;
             return false;
         }
         for (int x = x0; x <= x1; ++x)
             for (int y = y0; y <= y1; ++y)
-                if (const auto it = cells.find(key(x, y)); it != cells.end())
-                    for (const Tri2 &b : it->second)
-                        if (triangles_overlap(t, b, eps))
-                            return true;
+                if (const auto it = cells.find(key(x, y)); it != cells.end() && hits(q, it->second))
+                    return true;
         return false;
     }
     void insert(const Tri2 &t)
     {
-        int x0, y0, x1, y1;
-        if (!range(t, x0, y0, x1, y1)) {
-            big.push_back(t);
+        const Entry e = entry(t);
+        int         x0, y0, x1, y1;
+        if (!range(e.lo, e.hi, x0, y0, x1, y1)) {
+            big.push_back(e);
             return;
         }
         for (int x = x0; x <= x1; ++x)
             for (int y = y0; y <= y1; ++y)
-                cells[key(x, y)].push_back(t);
+                cells[key(x, y)].push_back(e);
     }
 };
 } // namespace
@@ -1293,11 +1349,20 @@ std::vector<TextureIsland> compute_connected_net(const PatchUnwrap &unwrap)
     if (n <= 1)
         return islands;
 
-    // Chart adjacency, with one representative shared edge per adjacent pair.
+    // Chart adjacency, with one representative shared edge per adjacent pair: the fold line the pair is
+    // unfolded about.
+    //
+    // Which edge that is matters, because two charts can touch along more than one run. A chart cut open
+    // to flatten it - a ring opened by segment_into_charts(), say - touches its other half along *both*
+    // sides of the cut. Folding is rigid, so only the run the fold line belongs to comes out matching;
+    // every other run is left mismatched, and a mismatched run is exactly where the texture visibly
+    // jumps. Taking whichever edge the map happened to yield first therefore left the long side broken
+    // about as often as the short one. The fold line is picked from the longest run instead, so what is
+    // left discontinuous is the shortest boundary the pair has.
     const auto edges = build_shared_edges(unwrap);
     struct PairEdge { ChartEdge a, b; };
-    std::map<std::pair<int, int>, PairEdge> pair_edge;
-    std::vector<std::vector<int>>            adj(static_cast<size_t>(n));
+    struct SharedEdge { PairEdge fold; int base_lo = -1, base_hi = -1; float length = 0.f; };
+    std::map<std::pair<int, int>, std::vector<SharedEdge>> pair_shared;
     for (const auto &[base_edge, list] : edges) {
         for (size_t i = 0; i < list.size(); ++i)
             for (size_t j = i + 1; j < list.size(); ++j) {
@@ -1305,12 +1370,48 @@ std::vector<TextureIsland> compute_connected_net(const PatchUnwrap &unwrap)
                 if (c1 == c2 || c1 < 0 || c2 < 0 || c1 >= n || c2 >= n)
                     continue;
                 const std::pair<int, int> pk{ std::min(c1, c2), std::max(c1, c2) };
-                if (pair_edge.count(pk))
-                    continue; // keep the first shared edge as the fold line for this pair
-                pair_edge[pk] = (c1 < c2) ? PairEdge{ list[i], list[j] } : PairEdge{ list[j], list[i] };
-                adj[size_t(pk.first)].push_back(pk.second);
-                adj[size_t(pk.second)].push_back(pk.first);
+                SharedEdge se;
+                se.fold    = (c1 < c2) ? PairEdge{ list[i], list[j] } : PairEdge{ list[j], list[i] };
+                se.base_lo = base_edge.first;
+                se.base_hi = base_edge.second;
+                // The unwrap is scaled to true surface area, so a uv distance is a length in mm.
+                se.length = (unwrap.uvs[size_t(se.fold.a.uv_lo)] - unwrap.uvs[size_t(se.fold.a.uv_hi)]).norm();
+                pair_shared[pk].push_back(se);
             }
+    }
+
+    std::map<std::pair<int, int>, PairEdge> pair_edge;
+    std::map<std::pair<int, int>, float>    pair_weight; // length of the run each pair folds across
+    std::vector<std::vector<int>>           adj(static_cast<size_t>(n));
+    for (const auto &[pk, shared] : pair_shared) {
+        // Group the pair's shared edges into runs - edges joined end to end through a base vertex - and
+        // total each run's length.
+        std::unordered_map<int, int> local;
+        for (const SharedEdge &se : shared)
+            for (const int v : { se.base_lo, se.base_hi })
+                local.emplace(v, int(local.size()));
+        UnionFind runs(local.size());
+        for (const SharedEdge &se : shared)
+            runs.unite(local[se.base_lo], local[se.base_hi]);
+
+        std::unordered_map<int, float>  run_length;
+        std::unordered_map<int, size_t> run_first;
+        for (size_t i = 0; i < shared.size(); ++i) {
+            const int root = runs.find(local[shared[i].base_lo]);
+            run_length[root] += shared[i].length;
+            run_first.emplace(root, i);
+        }
+        int   best_root = -1;
+        float best_len  = -1.f;
+        for (const auto &[root, len] : run_length)
+            if (len > best_len) { best_len = len; best_root = root; }
+        if (best_root < 0)
+            continue;
+
+        pair_edge[pk] = shared[run_first[best_root]].fold;
+        pair_weight[pk] = best_len;
+        adj[size_t(pk.first)].push_back(pk.second);
+        adj[size_t(pk.second)].push_back(pk.first);
     }
 
     // Per chart: its vertices, its triangles and its flattened area.
@@ -1366,15 +1467,29 @@ std::vector<TextureIsland> compute_connected_net(const PatchUnwrap &unwrap)
             for (const int t : chart_tris[size_t(root)])
                 grid.insert(placed(m, t));
         }
-        std::queue<int> q;
-        q.push(root);
+        // Grown strongest-adjacency-first (Prim, not breadth-first): a chart is folded onto whichever
+        // neighbour it shares the longest boundary with, among everything reachable so far. Order matters
+        // because only the fold a chart is actually reached by comes out matching - every other boundary
+        // it has is left to chance. Taking neighbours in breadth-first order, biggest-area first, let a
+        // far-off branch claim a chart across a short boundary before its true neighbour was reached, and
+        // the long boundary they shared then stayed broken. That is the visible seam next to a hole: a
+        // ring is cut into two halves that share a long boundary, and whichever half was reached first
+        // took the other one along some unrelated edge.
+        using Candidate = std::pair<float, std::pair<int, int>>; // weight, (from, to)
+        std::priority_queue<Candidate>                              q;
+        const auto push_neighbours = [&](int p) {
+            for (const int c : adj[size_t(p)])
+                if (net_of[size_t(c)] < 0 && !chart_tris[size_t(c)].empty()) {
+                    const auto w = pair_weight.find({ std::min(p, c), std::max(p, c) });
+                    q.push({ w == pair_weight.end() ? 0.f : w->second, { p, c } });
+                }
+        };
+        push_neighbours(root);
         while (!q.empty()) {
-            const int p = q.front();
+            const auto [weight, link] = q.top();
             q.pop();
-            std::vector<int> neighbours = adj[size_t(p)];
-            std::stable_sort(neighbours.begin(), neighbours.end(),
-                             [&chart_area](int a, int b) { return chart_area[size_t(a)] > chart_area[size_t(b)]; });
-            for (const int c : neighbours) {
+            const int p = link.first, c = link.second;
+            {
                 if (net_of[size_t(c)] >= 0 || chart_tris[size_t(c)].empty())
                     continue;
                 const auto it = pair_edge.find({ std::min(p, c), std::max(p, c) });
@@ -1405,7 +1520,7 @@ std::vector<TextureIsland> compute_connected_net(const PatchUnwrap &unwrap)
                 for (const Tri2 &t : tris)
                     grid.insert(t);
                 net_of[size_t(c)] = net;
-                q.push(c);
+                push_neighbours(c);
             }
         }
     }
@@ -2272,12 +2387,11 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
     //
     // The *palette* index, not the printed filament. The decimation treats any edge whose two faces
     // differ as a crease (TextureBakeDecimate.cpp), so it must only ever see where the **perceived**
-    // colour changes - which is exactly what ColorResolveFn's own contract says the interleaving may
-    // never be fed into. Handing it the resolved filament made every Z band boundary a crease: on an
-    // upright wall that is one crease per band, so the collapse ran along those lines and left a stack
-    // of horizontal slivers, each printing in a single filament. Those were the horizontal colour
-    // lines in the baked result, and they also spent the triangle budget drawing a pattern the eye is
-    // meant to blend away. Faces the paint excludes are skipped by the pipeline itself.
+    // colour changes. A mix is one perceived colour however its components are laid down, which is why
+    // it has to be the palette index here: back when this was handed a per-triangle interleave instead,
+    // every band boundary read as a crease, the collapse ran along those lines and left a stack of
+    // horizontal slivers, and the triangle budget went on drawing a pattern the eye is meant to blend
+    // away. Faces the paint excludes are skipped by the pipeline itself.
     const TextureBake::ColorSampleFn color_sample =
         color_sampler ? TextureBake::ColorSampleFn([&color_sampler](const Vec3f &p, const Vec3f &n) {
                             return color_sampler(p, n);
@@ -2303,7 +2417,7 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
         stats->triangles_budget  = result.triangles_budget;
         stats->budget_limited    = result.budget_limited;
     }
-    indexed_triangle_set out = TextureBake::to_indexed_triangle_set(result.geometry);
+    indexed_triangle_set out = TextureBake::to_indexed_triangle_set(result.geometry, &result.face_color);
     if (out.indices.empty())
         return mesh;
     if (flip_normals)
@@ -2324,6 +2438,8 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
                 max_depth = std::max(max_depth, std::abs(layer.depth_mm));
             const float relief_tol = max_depth + paint_tol;
             std::vector<int> palette(out.indices.size(), -1);
+            const std::vector<int> &face_mask      = result.face_color;
+            const bool              have_face_mask = face_mask.size() == out.indices.size();
             tbb::parallel_for(tbb::blocked_range<size_t>(0, out.indices.size()), [&](const tbb::blocked_range<size_t> &r) {
                 for (size_t i = r.begin(); i < r.end(); ++i) {
                     const stl_triangle_vertex_indices &t = out.indices[i];
@@ -2339,8 +2455,19 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
                     // reason; this path was the inconsistent one.
                     Vec3f       foot = centroid, base_n = Vec3f::UnitZ();
                     const float d2   = painted_closest(centroid, &foot, &base_n);
-                    if (!all_painted && d2 >= relief_tol * relief_tol)
+                    // Which faces may be coloured comes from the pipeline, which recorded it on the
+                    // refined mesh where the paint mask is exact, and carried it through the collapse,
+                    // the T-junction repair and the weld. Proximity cannot answer this: a displaced face
+                    // is no longer where its base was, so on a part thinner than the relief depth the
+                    // nearest painted surface to the *opposite* face is the painted one, and the texture
+                    // appeared there too. Only the position to sample at still comes from the base
+                    // surface, for the projection reason above.
+                    if (have_face_mask) {
+                        if (face_mask[i] == TextureBake::FACE_UNPAINTED)
+                            continue;
+                    } else if (!all_painted && d2 >= relief_tol * relief_tol) {
                         continue;
+                    }
                     palette[i] = sampler(foot, base_n);
                 }
             });
@@ -2362,7 +2489,7 @@ indexed_triangle_set build_texture_displacement_v2(const indexed_triangle_set   
                 Vec3f        normal   = (b - a).cross(c - a);
                 const float  nl       = normal.norm();
                 normal                = (nl > 0.f) ? Vec3f(normal / nl) : Vec3f::UnitZ();
-                const int filament = color->resolve ? color->resolve(palette[i], centroid, normal) : palette[i];
+                const int filament = palette[i];
                 if (filament >= 0)
                     out_color[i] = uint8_t(std::min(filament + 1, 255));
             }
@@ -2819,8 +2946,7 @@ static indexed_triangle_set build_texture_displacement_in_place(
             Vec3f        normal   = (b - a).cross(c - a);
             const float  nl       = normal.norm();
             normal                = (nl > 0.f) ? Vec3f(normal / nl) : Vec3f::UnitZ();
-            const int filament = color->resolve ? color->resolve(triangle_palette[i], centroid, normal)
-                                                : triangle_palette[i];
+            const int filament = triangle_palette[i];
             if (filament >= 0)
                 out_color[i] = uint8_t(std::min(filament + 1, 255));
         }
@@ -5039,6 +5165,262 @@ indexed_triangle_set cut_mesh_at_steps(const indexed_triangle_set &mesh, const s
     if (out_source) *out_source = std::move(source);
     if (out_cut_count) *out_cut_count = cut_count;
     return out;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Project persistence. See the declarations in TextureDisplacement.hpp for why this is JSON rather
+// than the cereal stream next to them.
+// ---------------------------------------------------------------------------------------------
+namespace {
+
+nlohmann::json vec2_to_json(const Vec2f &v) { return nlohmann::json::array({ v.x(), v.y() }); }
+nlohmann::json vec3_to_json(const Vec3f &v) { return nlohmann::json::array({ v.x(), v.y(), v.z() }); }
+
+Vec2f vec2_from_json(const nlohmann::json &j, const Vec2f &fallback)
+{
+    if (!j.is_array() || j.size() != 2)
+        return fallback;
+    return Vec2f(j[0].get<float>(), j[1].get<float>());
+}
+Vec3f vec3_from_json(const nlohmann::json &j, const Vec3f &fallback)
+{
+    if (!j.is_array() || j.size() != 3)
+        return fallback;
+    return Vec3f(j[0].get<float>(), j[1].get<float>(), j[2].get<float>());
+}
+
+// Reads key `k` into `out` when it is present and of the expected type, leaving `out` alone otherwise.
+// That "leave it alone" is the whole point: every member starts at its struct default, so a project
+// written by an older build simply keeps the defaults for whatever it did not know about.
+template<class T> void read(const nlohmann::json &j, const char *k, T &out)
+{
+    const auto it = j.find(k);
+    if (it == j.end())
+        return;
+    try {
+        out = it->get<T>();
+    } catch (...) {
+    }
+}
+void read_enum(const nlohmann::json &j, const char *k, int &out)
+{
+    const auto it = j.find(k);
+    if (it != j.end() && it->is_number_integer())
+        out = it->get<int>();
+}
+
+} // namespace
+
+std::string texture_displacement_layers_to_json(const std::vector<TextureDisplacementLayer> &layers,
+                                                const TextureDisplacementOptions            &options)
+{
+    nlohmann::json root;
+    root["version"] = 1;
+
+    nlohmann::json &opt = root["options"];
+    opt["displace_border"]    = options.displace_border;
+    opt["smooth_enabled"]     = options.smooth_enabled;
+    opt["smooth_strength"]    = options.smooth_strength;
+    opt["smooth_iterations"]  = options.smooth_iterations;
+    opt["smooth_skip_border"] = options.smooth_skip_border;
+    opt["pipeline_v2"]        = options.pipeline_v2;
+    opt["v2_refine_mm"]       = options.v2_refine_mm;
+    opt["v2_regularize"]      = options.v2_regularize;
+    opt["v2_max_triangles_k"] = options.v2_max_triangles_k;
+    opt["v2_relocate"]        = options.v2_relocate;
+    opt["v2_flip_edges"]      = options.v2_flip_edges;
+    opt["color_mix_enabled"]  = options.color_mix_enabled;
+    opt["color_despeckle"]    = options.color_despeckle;
+    opt["color_mix_count"]    = options.color_mix_count;
+    opt["active_slot"]        = options.active_slot;
+    opt["panel_mode"]         = options.panel_mode;
+
+    nlohmann::json &arr = root["layers"];
+    arr                 = nlohmann::json::array();
+    for (const TextureDisplacementLayer &l : layers) {
+        nlohmann::json j;
+        j["slot"]        = l.slot;
+        j["name"]        = l.name;
+        j["path"]        = l.path;
+        j["path_in_3mf"] = l.path_in_3mf;
+
+        j["depth_mm"]     = l.depth_mm;
+        j["tiling_scale"] = l.tiling_scale;
+        j["rotation_deg"] = l.rotation_deg;
+        j["offset"]       = vec2_to_json(l.offset);
+        j["invert"]       = l.invert;
+        j["midlevel"]     = l.midlevel;
+        j["smoothing"]    = l.smoothing;
+
+        j["edge_smoothing"]        = l.edge_smoothing;
+        j["edge_smoothing_amount"] = l.edge_smoothing_amount;
+        j["auto_connect_islands"]  = l.auto_connect_islands;
+
+        j["tile_enabled"]      = l.tile_enabled;
+        j["tile_method"]       = int(l.tile_method);
+        j["projection_method"] = int(l.projection_method);
+        j["blend_mode"]        = int(l.blend_mode);
+        j["color_enabled"]     = l.color_enabled;
+
+        j["lscm_seam_angle_deg"] = l.lscm_seam_angle_deg;
+        j["island_padding_mm"]   = l.island_padding_mm;
+
+        j["view_project_right"]      = vec3_to_json(l.view_project_right);
+        j["view_project_up"]         = vec3_to_json(l.view_project_up);
+        j["view_project_projective"] = l.view_project_projective;
+        j["view_project_matrix"]     = l.view_project_matrix;
+
+        // Flat pairs rather than nested arrays: shorter, and the reader can simply ignore a trailing
+        // odd element instead of having to validate every sub-array.
+        nlohmann::json &seams = j["lscm_seam_edges"];
+        seams                 = nlohmann::json::array();
+        for (const auto &[a, b] : l.lscm_seam_edges) {
+            seams.push_back(a);
+            seams.push_back(b);
+        }
+
+        nlohmann::json &islands = j["islands"];
+        islands                 = nlohmann::json::array();
+        for (const TextureIsland &island : l.islands)
+            islands.push_back(nlohmann::json::array(
+                { island.offset.x(), island.offset.y(), island.rotation_deg, island.scale }));
+
+        j["island_groups"] = l.island_groups;
+
+        nlohmann::json &overrides = j["lscm_uv_overrides"];
+        overrides                 = nlohmann::json::array();
+        for (const auto &[key, uv] : l.lscm_uv_overrides)
+            overrides.push_back(nlohmann::json::array({ key, uv.x(), uv.y() }));
+
+        arr.push_back(std::move(j));
+    }
+    return root.dump();
+}
+
+bool texture_displacement_layers_from_json(const std::string                     &text,
+                                           std::vector<TextureDisplacementLayer> &layers,
+                                           TextureDisplacementOptions            &options)
+{
+    nlohmann::json root;
+    try {
+        root = nlohmann::json::parse(text);
+    } catch (...) {
+        return false;
+    }
+    if (!root.is_object())
+        return false;
+
+    TextureDisplacementOptions out_options;
+    if (const auto it = root.find("options"); it != root.end() && it->is_object()) {
+        const nlohmann::json &opt = *it;
+        read(opt, "displace_border", out_options.displace_border);
+        read(opt, "smooth_enabled", out_options.smooth_enabled);
+        read(opt, "smooth_strength", out_options.smooth_strength);
+        read(opt, "smooth_iterations", out_options.smooth_iterations);
+        read(opt, "smooth_skip_border", out_options.smooth_skip_border);
+        read(opt, "pipeline_v2", out_options.pipeline_v2);
+        read(opt, "v2_refine_mm", out_options.v2_refine_mm);
+        read(opt, "v2_regularize", out_options.v2_regularize);
+        read(opt, "v2_max_triangles_k", out_options.v2_max_triangles_k);
+        read(opt, "v2_relocate", out_options.v2_relocate);
+        read(opt, "v2_flip_edges", out_options.v2_flip_edges);
+        read(opt, "color_mix_enabled", out_options.color_mix_enabled);
+        read(opt, "color_despeckle", out_options.color_despeckle);
+        read(opt, "color_mix_count", out_options.color_mix_count);
+        read(opt, "active_slot", out_options.active_slot);
+        read(opt, "panel_mode", out_options.panel_mode);
+        out_options.active_slot = std::clamp(out_options.active_slot, 0, int(TEXTURE_DISPLACEMENT_MAX_LAYERS) - 1);
+        out_options.panel_mode  = std::clamp(out_options.panel_mode, 0, 1);
+    }
+
+    std::vector<TextureDisplacementLayer> out_layers;
+    // read() skips a value of the wrong type, but the vector, matrix, seam, island and UV-override arrays
+    // below read their numbers with get<>(), which throws on one; that rejects the document, like text that
+    // does not parse.
+    try {
+        if (const auto it = root.find("layers"); it != root.end() && it->is_array()) {
+            for (const nlohmann::json &j : *it) {
+                if (!j.is_object())
+                    continue;
+                TextureDisplacementLayer l;
+                read(j, "slot", l.slot);
+                // The panel and the paint masks are indexed by slot, so a layer without a valid one rejects the
+                // document rather than reaching them.
+                if (l.slot < 0 || l.slot >= int(TEXTURE_DISPLACEMENT_MAX_LAYERS))
+                    return false;
+                read(j, "name", l.name);
+                read(j, "path", l.path);
+                read(j, "path_in_3mf", l.path_in_3mf);
+
+                read(j, "depth_mm", l.depth_mm);
+                read(j, "tiling_scale", l.tiling_scale);
+                read(j, "rotation_deg", l.rotation_deg);
+                if (const auto o = j.find("offset"); o != j.end())
+                    l.offset = vec2_from_json(*o, l.offset);
+                read(j, "invert", l.invert);
+                read(j, "midlevel", l.midlevel);
+                read(j, "smoothing", l.smoothing);
+
+                read(j, "edge_smoothing", l.edge_smoothing);
+                read(j, "edge_smoothing_amount", l.edge_smoothing_amount);
+                read(j, "auto_connect_islands", l.auto_connect_islands);
+
+                read(j, "tile_enabled", l.tile_enabled);
+                read(j, "color_enabled", l.color_enabled);
+                int tile_method = int(l.tile_method), projection = int(l.projection_method), blend = int(l.blend_mode);
+                read_enum(j, "tile_method", tile_method);
+                read_enum(j, "projection_method", projection);
+                read_enum(j, "blend_mode", blend);
+                l.tile_method       = TextureTileMethod(tile_method);
+                l.projection_method = TextureProjectionMethod(std::clamp(projection, 0, 4));
+                l.blend_mode        = TextureBlendMode(blend);
+
+                read(j, "lscm_seam_angle_deg", l.lscm_seam_angle_deg);
+                read(j, "island_padding_mm", l.island_padding_mm);
+
+                if (const auto v = j.find("view_project_right"); v != j.end())
+                    l.view_project_right = vec3_from_json(*v, l.view_project_right);
+                if (const auto v = j.find("view_project_up"); v != j.end())
+                    l.view_project_up = vec3_from_json(*v, l.view_project_up);
+                read(j, "view_project_projective", l.view_project_projective);
+                if (const auto v = j.find("view_project_matrix"); v != j.end() && v->is_array() && v->size() == 12)
+                    for (size_t i = 0; i < 12; ++i)
+                        l.view_project_matrix[i] = (*v)[i].get<float>();
+
+                if (const auto v = j.find("lscm_seam_edges"); v != j.end() && v->is_array())
+                    for (size_t i = 0; i + 1 < v->size(); i += 2)
+                        l.lscm_seam_edges.emplace_back((*v)[i].get<int>(), (*v)[i + 1].get<int>());
+
+                if (const auto v = j.find("islands"); v != j.end() && v->is_array())
+                    for (const nlohmann::json &e : *v) {
+                        if (!e.is_array() || e.size() != 4)
+                            continue;
+                        TextureIsland island;
+                        island.offset       = Vec2f(e[0].get<float>(), e[1].get<float>());
+                        island.rotation_deg = e[2].get<float>();
+                        island.scale        = e[3].get<float>();
+                        l.islands.push_back(island);
+                    }
+
+                read(j, "island_groups", l.island_groups);
+
+                if (const auto v = j.find("lscm_uv_overrides"); v != j.end() && v->is_array())
+                    for (const nlohmann::json &e : *v) {
+                        if (!e.is_array() || e.size() != 3)
+                            continue;
+                        l.lscm_uv_overrides.emplace_back(e[0].get<int>(), Vec2f(e[1].get<float>(), e[2].get<float>()));
+                    }
+
+                out_layers.push_back(std::move(l));
+            }
+        }
+    } catch (const nlohmann::json::exception &) {
+        return false;
+    }
+
+    layers  = std::move(out_layers);
+    options = out_options;
+    return true;
 }
 
 } // namespace Slic3r

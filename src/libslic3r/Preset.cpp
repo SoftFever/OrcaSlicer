@@ -1,4 +1,30 @@
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/file_status.hpp>
+#include <boost/uuid/name_generator_sha1.hpp>
+#include <boost/optional/optional.hpp>
+#include <boost/filesystem/directory.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <cassert>
+#include <string>
+#include <cstddef>
+#include <iterator>
+#include <vector>
+#include <map>
+#include <utility>
+#include <cstdlib>
+#include <ostream>
+#include <system_error>
+#include <set>
+#include <exception>
+#include <cstdio>
+#include <functional>
+#include <optional>
+#include <deque>
+#include <regex>
+#include <initializer_list>
 
 #include "Config.hpp"
 #include "Exception.hpp"
@@ -7,6 +33,9 @@
 #include "AppConfig.hpp"
 #include "LocalesUtils.hpp"
 #include "ParallelResolve.hpp"
+#include "Semver.hpp"
+#include "PrintConfig.hpp"
+#include "libslic3r_version.h"
 
 #ifdef _MSC_VER
     #define WIN32_LEAN_AND_MEAN
@@ -51,9 +80,14 @@
 #include "libslic3r.h"
 #include "LifecycleEvents.hpp"
 #include "Utils.hpp"
-#include "Time.hpp"
+#include "InstanceLock.hpp"
+
+#include <sstream>
 #include "PlaceholderParser.hpp"
 #include "libslic3r/GCode/Thumbnails.hpp"
+
+namespace fs = boost::filesystem;
+using json = nlohmann::json;
 
 using boost::property_tree::ptree;
 
@@ -105,6 +139,32 @@ std::string get_preset_canonical_name(const std::string &preset_bare_name, const
     default:
         return preset_bare_name;
     }
+}
+
+std::string user_presets_lock_path(bool read_only)
+{
+    return read_only || data_dir().empty() ? std::string() : (fs::path(data_dir()) / (PRESET_USER_DIR ".lock")).string();
+}
+
+// Removes a preset file the scan could not load, and its .info, under the lock.
+// The scan passes read_only when it could not take the lock, since the file may
+// then be another instance's fresh write that it merely raced.
+static void remove_preset_files(const std::string &preset_file, bool read_only)
+{
+    if (read_only)
+        return;
+    InstanceLock instance_lock(user_presets_lock_path());
+    // A symlink whose target is missing stays, since the target may come back; one
+    // that cannot even be followed is removed like any other unreadable file.
+    auto remove = [](const fs::path &file) {
+        boost::system::error_code ec;
+        if (fs::status(file, ec).type() != fs::file_not_found)
+            fs::remove(file, ec);
+    };
+    fs::path file_path(preset_file);
+    remove(file_path);
+    file_path.replace_extension(".info");
+    remove(file_path);
 }
 
 std::string get_preset_bare_name(const std::string &canonical_name)
@@ -649,18 +709,20 @@ void Preset::save_info(std::string file)
         file = idx_file.string();
     }
 
-    boost::nowide::ofstream c;
-    c.open(file, std::ios::out | std::ios::trunc);
     std::string sync_info_to_save;
     //BBS: hold is used for stop requesting to server this time
     if (this->sync_info.compare("hold") != 0)
         sync_info_to_save = this->sync_info;
+    std::ostringstream c;
     c << "sync_info" << " = " << sync_info_to_save << std::endl;
     c << "user_id" << " = " << this->user_id << std::endl;
     c << "setting_id" << " = " << this->setting_id << std::endl;
     c << "base_id" << " = " << this->base_id << std::endl;
     c << "updated_time" << " = " << std::to_string(this->updated_time) << std::endl;
-    c.close();
+
+    InstanceLock instance_lock(user_presets_lock_path());
+    if (const std::error_code ec = write_file_atomically(file, c.str()))
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to save " << file << ": " << ec.message();
 }
 
 void Preset::remove_files(bool cloud_already_deleted)
@@ -669,6 +731,7 @@ void Preset::remove_files(bool cloud_already_deleted)
     if (this->is_project_embedded) {
         return;
     }
+    InstanceLock instance_lock(user_presets_lock_path());
     // Erase the preset file.
     boost::nowide::remove(this->file.c_str());
     fs::path idx_path(this->file);
@@ -686,11 +749,11 @@ void Preset::remove_files(bool cloud_already_deleted)
 }
 
 //BBS: add logic for only difference save
-void Preset::save(DynamicPrintConfig* parent_config)
+bool Preset::save(DynamicPrintConfig* parent_config)
 {
     //BBS: add project embedded preset logic
     if (this->is_project_embedded)
-        return;
+        return true;
     //BBS: change to json format
     //this->config.save(this->file);
     std::string from_str;
@@ -705,12 +768,16 @@ void Preset::save(DynamicPrintConfig* parent_config)
     else
         from_str = std::string("Default");
 
-    boost::filesystem::create_directories(fs::path(this->file).parent_path());
     const std::string bare_name = get_preset_bare_name(this->name);
+
+    // What gets written: the diff against the parent, the config plus its
+    // filament id, or the config as is. Built before the lock is taken so the
+    // exclusive window covers only the file writes.
+    DynamicPrintConfig        temp_config;
+    const DynamicPrintConfig *to_save = &this->config;
 
     //BBS: only save difference if it has parent
     if (parent_config) {
-        DynamicPrintConfig temp_config;
         std::vector<std::string> dirty_options = config.diff(*parent_config);
 
         std::string extruder_id_name, extruder_variant_name;
@@ -746,13 +813,22 @@ void Preset::save(DynamicPrintConfig* parent_config)
                     opt_dst->set(opt_src);
             }
         }
-        temp_config.save_to_json(this->file, bare_name, from_str, this->version.to_string());
+        to_save = &temp_config;
     } else if (!filament_id.empty() && inherits().empty()) {
-        DynamicPrintConfig temp_config = config;
+        temp_config = config;
         temp_config.set_key_value(BBL_JSON_KEY_FILAMENT_ID, new ConfigOptionString(filament_id));
-        temp_config.save_to_json(this->file, bare_name, from_str, this->version.to_string());
-    } else {
-        this->config.save_to_json(this->file, bare_name, from_str, this->version.to_string());
+        to_save = &temp_config;
+    }
+
+    std::ostringstream json;
+    to_save->save_to_json(json, bare_name, from_str, this->version.to_string());
+
+    InstanceLock instance_lock(user_presets_lock_path());
+    boost::filesystem::create_directories(fs::path(this->file).parent_path());
+    if (const std::error_code ec = write_file_atomically(this->file, json.str())) {
+        // No .info either: one without its preset reads as a cloud deletion request.
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to save " << this->file << ": " << ec.message();
+        return false;
     }
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " save config for: " << this->name << " and filament_id: " << filament_id << " and base_id: " << this->base_id;
 
@@ -762,6 +838,7 @@ void Preset::save(DynamicPrintConfig* parent_config)
         idx_file.replace_extension(".info");
         this->save_info(idx_file.string());
     }
+    return true;
 }
 
 void Preset::reload(Preset const &parent)
@@ -773,6 +850,7 @@ void Preset::reload(Preset const &parent)
     std::string                        reason;
     ForwardCompatibilitySubstitutionRule substitution_rule    = ForwardCompatibilitySubstitutionRule::Disable;
     try {
+        InstanceLock instance_lock(user_presets_lock_path());
         ConfigSubstitutions                config_substitutions = config.load_from_json(file, substitution_rule, key_values, reason);
         this->config = parent.config;
         this->config.apply(std::move(config));
@@ -1103,6 +1181,9 @@ static std::vector<std::string> s_Preset_print_options{
     "is_infill_first",
     "sparse_infill_density",
     "fill_multiline",
+    "tpms_adaptive",
+    "tpms_interior_density",
+    "tpms_adaptive_gradient",
     "gyroid_optimized",
     "sparse_infill_pattern",
     "sparse_infill_smooth_factor",
@@ -1132,6 +1213,7 @@ static std::vector<std::string> s_Preset_print_options{
     "infill_lock_depth",
     "skin_infill_depth",
     "skin_infill_density",
+    "infill_complete_top",
     "align_infill_direction_to_model",
     "extra_solid_infills",
     "center_of_surface_pattern",
@@ -1159,7 +1241,7 @@ static std::vector<std::string> s_Preset_print_options{
     "top_surface_speed", "support_speed", "support_object_xy_distance", "support_object_first_layer_gap", "support_interface_speed",
     "bridge_speed", "internal_bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed",
     "outer_wall_acceleration", "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "skirt_type", "skirt_loops", "skirt_speed","min_skirt_length", "skirt_distance", "skirt_start_angle", "skirt_height","single_loop_draft_shield", "draft_shield",
-    "brim_width", "brim_object_gap", "brim_flow_ratio", "brim_use_efc_outline", "combine_brims", "brim_type", "brim_ears_max_angle", "brim_ears_detection_length", "brim_ears_outer_only", "enable_support", "support_type", "support_threshold_angle", "support_threshold_overlap","enforce_support_layers",
+    "brim_width", "leading_brim_length", "extra_brim_width", "brim_object_gap", "brim_flow_ratio", "brim_use_efc_outline", "combine_brims", "brim_type", "brim_ears_max_angle", "brim_ears_detection_length", "brim_ears_outer_only", "enable_support", "support_type", "support_threshold_angle", "support_threshold_overlap","enforce_support_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_expansion", "support_style",
     // BBS
@@ -1229,6 +1311,8 @@ static std::vector<std::string> s_Preset_print_options{
     "prime_volume",
     "prime_tower_infill_gap",
     "prime_tower_flat_ironing",
+    "belt_purge_tower_width",
+    "belt_purge_tower_object",
     "enable_tower_interface_features",
     "enable_tower_interface_cooldown_during_tower",
     "wipe_tower_no_sparse_layers",
@@ -1389,6 +1473,9 @@ static std::vector<std::string> s_Preset_print_options{
     "interlocking_boundary_avoidance",
     "interlocking_beam_width",
     "calib_flowrate_topinfill_special_order",
+    // IDEX/IQEX parallel print mode (per-print selection)
+    "imex_parallel_mode",
+    "imex_head_filament_map",
     // Z Anti-Aliasing (ZAA)
     "zaa_enabled",
     "zaa_minimize_perimeter_height",
@@ -1479,8 +1566,14 @@ static std::vector<std::string> s_Preset_machine_limits_options {
 
 static std::vector<std::string> s_Preset_printer_options {
     "printer_technology",
-    "printable_area", "extruder_printable_area", "support_parallel_printheads", "parallel_printheads_count", "parallel_printheads_bed_exclude_areas", "bed_exclude_area","bed_custom_texture", "bed_custom_model", "gcode_flavor",
-     "gcode_skip_config_block", "fan_kickstart", "part_cooling_fan_min_pwm", "fan_speedup_time", "fan_speedup_overhangs",
+    "printable_area", "extruder_printable_area", "support_parallel_printheads", "parallel_printheads_count", "parallel_printheads_bed_exclude_areas", "bed_exclude_area","bed_custom_texture", "bed_custom_model", "build_plate_tilt_x", "build_plate_tilt_y", "belt_printer", "belt_printer_infinite_y",
+    "belt_slice_rotation", "belt_slice_rotation_angle",
+    "gcode_remap_x", "gcode_remap_y", "gcode_remap_z",
+    "belt_frame_tilt_decouple", "belt_frame_tilt_angle",
+    "belt_support_floor_offset",
+    "enable_belt_purge_tower",
+    "gcode_flavor", "gcode_skip_config_block",
+    "fan_kickstart", "part_cooling_fan_min_pwm", "fan_speedup_time", "fan_speedup_overhangs",
     "single_extruder_multi_material", "manual_filament_change", "file_start_gcode", "machine_start_gcode", "machine_end_gcode", "before_layer_change_gcode", "printing_by_object_gcode", "layer_change_gcode", "time_lapse_gcode", "wrapping_detection_gcode", "change_filament_gcode", "change_extrusion_role_gcode",
     "printer_model", "printer_variant", "printer_extruder_id", "printer_extruder_variant", "extruder_variant_list", "default_nozzle_volume_type",
     "printable_height", "extruder_printable_height", "extruder_clearance_radius", "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod", "extruder_clearance_dist_to_rod",
@@ -1501,6 +1594,11 @@ static std::vector<std::string> s_Preset_printer_options {
     "z_offset",
     "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "pellet_modded_printer", "support_multi_bed_types", "use_3mf", "default_bed_type", "bed_mesh_min","bed_mesh_max","bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     "bed_temperature_formula", "nozzle_flush_dataset",
+    // IDEX/IQEX (independent X extruder) — printer capability and user-defined modes
+    "is_imex", "imex_firmware_managed_zones",
+    "imex_gantry_count", "imex_tools_per_gantry", "imex_tool_layout",
+    "imex_nozzle_clearance_x", "imex_nozzle_clearance_y", "imex_carriage_margin", "imex_viz_theme",
+    "imex_mode_names", "imex_mode_active_tools", "imex_mode_gcodes",
     // Multi-nozzle count + pre-heat model printer options
     "extruder_max_nozzle_count", "group_algo_with_time", "enable_pre_heating", "hotend_heating_rate", "hotend_cooling_rate",
     "machine_hotend_change_time", "machine_prepare_compensation_time",
@@ -1702,6 +1800,22 @@ std::string PresetCollection::canonical_preset_name(const std::string &name, con
     return get_preset_canonical_name(parsed.bare, origin);
 }
 
+PresetCollection::PresetFilesOnDisk PresetCollection::PresetFilesOnDisk::read(const boost::filesystem::path &file)
+{
+    auto read_if_present = [](const fs::path &path) -> std::optional<std::string> {
+        std::string bytes;
+        try {
+            load_string_file(path, bytes);
+        } catch (const std::exception &) {
+            return std::nullopt;
+        }
+        return bytes;
+    };
+    fs::path info_path(file);
+    info_path.replace_extension(".info");
+    return { read_if_present(file), read_if_present(info_path) };
+}
+
 PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
     const boost::filesystem::path &file, const std::string &canonical_name,
     const PresetOrigin &load_origin, ForwardCompatibilitySubstitutionRule substitution_rule,
@@ -1713,6 +1827,9 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
     Preset &preset = out.preset;
     preset.bundle_id = load_origin.bundle_id;
     preset.file = file.string();
+    // Before either file is parsed, so a save that lands during the parse still shows
+    // up as a difference when commit compares.
+    out.on_disk = PresetFilesOnDisk::read(file);
     // Load the preset file, apply preset values on top of defaults.
     try {
         fs::path idx_path(preset.file);
@@ -1825,14 +1942,8 @@ void PresetCollection::commit_user_preset(UserPresetLoad &&loaded, std::deque<Pr
         ++m_errors;
         BOOST_LOG_TRIVIAL(error) << error;
     }
-    if (loaded.discard_file && !read_only) {
-        fs::path file_path(loaded.preset.file);
-        if (fs::exists(file_path))
-            fs::remove(file_path);
-        file_path.replace_extension(".info");
-        if (fs::exists(file_path))
-            fs::remove(file_path);
-    }
+    if (loaded.discard_file)
+        remove_preset_files(loaded.preset.file, read_only);
     if (!loaded.install)
         return;
 
@@ -1840,9 +1951,12 @@ void PresetCollection::commit_user_preset(UserPresetLoad &&loaded, std::deque<Pr
         if (loaded.save_compatible_printers) {
             // A filesystem error from the rewrite is counted, and the preset still loads.
             try {
-                if (!read_only)
-                    preset.save(nullptr);
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " added compatible_printers for preset: " << preset.name;
+                if (read_only)
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " added compatible_printers for preset: " << preset.name << " (not written back)";
+                else if (preset.save(nullptr))
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " added compatible_printers for preset: " << preset.name;
+                else
+                    ++m_errors; // save() logged why
             } catch (const std::runtime_error &err) {
                 ++m_errors;
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " can not write compatible_printers back to " << preset.file << ": " << err.what();
@@ -1928,11 +2042,32 @@ void PresetCollection::load_presets(
             return this->resolve_user_preset(files[i].path, files[i].canonical_name, resolved_origin, substitution_rule,
                                              extruder_id_name, extruder_variant_name, key_set1, key_set2);
         },
-        [&](size_t, UserPresetLoad &&loaded) {
+        [&](size_t i, UserPresetLoad &&loaded) {
+            // Resolve read the files without the lock, so another instance may have saved
+            // over them since. A file that changed is resolved again under the lock before
+            // commit removes or rewrites it, which also keeps its .json and .info from two
+            // different saves apart. Without the lock nothing is checked, so commit leaves
+            // the files alone.
+            const std::string lock_path = user_presets_lock_path(read_only);
+            InstanceLock      instance_lock(lock_path);
+            if (instance_lock.locked()) {
+                const PresetFilesOnDisk   on_disk = PresetFilesOnDisk::read(files[i].path);
+                boost::system::error_code ec;
+                // The link itself, and a stat error counts as present, so a file that is
+                // there but cannot be read is still counted and removed by commit.
+                if (! on_disk.json && fs::symlink_status(files[i].path, ec).type() == fs::file_not_found)
+                    return; // removed by another instance since it was read
+                if (! (on_disk == loaded.on_disk)) {
+                    CNumericLocalesSetter locales_setter;
+                    loaded = this->resolve_user_preset(files[i].path, files[i].canonical_name, resolved_origin, substitution_rule,
+                                                       extruder_id_name, extruder_variant_name, key_set1, key_set2);
+                }
+            }
+            const bool leave_files = read_only || (! lock_path.empty() && ! instance_lock.locked());
             // Committing can remove an unreadable preset's file, and a filesystem error
             // there is reported without stopping the rest of the directory.
             try {
-                this->commit_user_preset(std::move(loaded), presets_loaded, substitutions, preset_loaded_fn, read_only);
+                this->commit_user_preset(std::move(loaded), presets_loaded, substitutions, preset_loaded_fn, leave_files);
             } catch (const std::runtime_error &err) {
                 errors_cummulative += err.what();
                 errors_cummulative += "\n";
@@ -2221,7 +2356,7 @@ bool PresetCollection::reset_project_embedded_presets()
     return re_select;
 }
 
-void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time)
+void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time, const std::string& user_id)
 {
     lock();
     const std::string canonical_name = this->canonical_preset_name(name);
@@ -2239,10 +2374,16 @@ void PresetCollection::set_sync_info_and_save(std::string name, std::string sett
                         preset2.save_info();
                     }
             }
-            preset->setting_id = setting_id;
+            if (!setting_id.empty())
+                preset->setting_id = setting_id;
+            if (!user_id.empty())
+                preset->user_id = user_id;
             if (update_time > 0)
                 preset->updated_time = update_time;
-            preset->sync_info == "update" ? preset->save(nullptr) : preset->save_info();
+            if (preset->sync_info == "update")
+                preset->save(nullptr);
+            else
+                preset->save_info();
             break;
         }
     }
@@ -2526,6 +2667,9 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             iter->base_id = based_id;
             iter->filament_id = cloud_filament_id;
             update_alias(*iter);
+            // Persist the cloud-assigned identity to disk, mirroring the equal/newer branch
+            // above; otherwise the id stays only in memory and the next launch rewrites it.
+            iter->save_info();
             //presets_loaded.emplace_back(*it->second);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", update the user preset %1% from cloud, type %2%, setting_id %3%, base_id %4%, sync_info %5% inherits %6%, filament_id %7%")
                % iter->name %Preset::get_type_string(m_type) %iter->setting_id %iter->base_id %iter->sync_info %iter->inherits() % iter->filament_id;
@@ -4311,8 +4455,15 @@ void PhysicalPrinter::update_preset_names_in_config()
     }
 }
 
+void PhysicalPrinter::save(DynamicPrintConfig* /* parent_config */)
+{
+    InstanceLock instance_lock(user_presets_lock_path());
+    this->config.save_to_json(this->file, std::string("Physical_Printer"), std::string("User"), std::string(SLIC3R_VERSION));
+}
+
 void PhysicalPrinter::save(const std::string& file_name_from, const std::string& file_name_to)
 {
+    InstanceLock instance_lock(user_presets_lock_path());
     // rename the file
     boost::nowide::rename(file_name_from.data(), file_name_to.data());
     this->file = file_name_to;
@@ -4444,6 +4595,7 @@ void PhysicalPrinterCollection::load_printers(
                 continue;
             }
             try {
+                InstanceLock instance_lock(user_presets_lock_path());
                 PhysicalPrinter printer(name, this->default_config());
                 printer.file = dir_entry.path().string();
                 // Load the preset file, apply preset values on top of defaults.
@@ -4636,7 +4788,10 @@ bool PhysicalPrinterCollection::delete_printer(const std::string& name)
 
     const PhysicalPrinter& printer = *it;
     // Erase the preset file.
-    boost::nowide::remove(printer.file.c_str());
+    {
+        InstanceLock instance_lock(user_presets_lock_path());
+        boost::nowide::remove(printer.file.c_str());
+    }
     m_printers.erase(it);
     return true;
 }
@@ -4648,7 +4803,10 @@ bool PhysicalPrinterCollection::delete_selected_printer()
     const PhysicalPrinter& printer = this->get_selected_printer();
 
     // Erase the preset file.
-    boost::nowide::remove(printer.file.c_str());
+    {
+        InstanceLock instance_lock(user_presets_lock_path());
+        boost::nowide::remove(printer.file.c_str());
+    }
     // Remove the preset from the list.
     m_printers.erase(m_printers.begin() + m_idx_selected);
     // unselect all printers

@@ -13,12 +13,25 @@
 
 #include <algorithm>
 
+#include "libslic3r/Config.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
+#include <string>
+#include <wx/chartype.h>
+#include <atomic>
+#include <vector>
+#include <utility>
 #include <wx/dcmemory.h>
 #include <wx/display.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/frame.h>
+#include <wx/nonownedwnd.h>
 #include <wx/region.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/string.h>
 #include <wx/utils.h>
+#include <wx/webview.h>
 
 #ifdef __linux__
 #include <gtk/gtk.h>
@@ -44,10 +57,10 @@ int json_int_or(const nlohmann::json& j, const char* key, int fallback)
 wxString mode_label(ConfigOptionMode mode)
 {
     switch (mode) {
-    case comAdvanced: return _L("Advanced");
-    case comExpert: return _L("Expert");
-    case comDevelop: return _L("Developer");
-    default: return _L("Simple");
+    case comAdvanced: return _L_CONTEXT("Advanced", "Settings Mode");
+    case comExpert: return _L_CONTEXT("Expert", "Settings Mode");
+    case comDevelop: return _L_CONTEXT("Developer", "Settings Mode");
+    default: return _L_CONTEXT("Simple", "Settings Mode");
     }
 }
 
@@ -71,9 +84,8 @@ void focus_webview(wxWebView* browser, bool page_ready)
         browser->RunScript("focusInput();");
 }
 
-// Localized strings for the Speed Dial page, injected as a document-start user script. The page's
-// T() reads window.ORCA_UI_STRINGS, so these flow through the same .po pipeline as the rest of the
-// UI (the JS literals are only a fallback before the script runs / in the node vm test).
+// Localized strings for the Speed Dial page (see WebViewHostDialog::localized_strings). The page's own T()
+// reads them; its JS literals are only a fallback before the script runs / in the node vm test.
 // %% is a literal '%': T() collapses it after substituting %s. Keep the shortcut tokens out of the
 // translated text so the platform prefix (Alt+/⌥+, Ctrl+/⌘+) stays correct.
 nlohmann::json speed_dial_ui_strings()
@@ -93,25 +105,25 @@ nlohmann::json speed_dial_ui_strings()
         {"sd_no_actions", _u8L("No actions yet")},
         {"sd_no_tabs_match", _u8L("No tabs match")},
         {"sd_no_tabs", _u8L("No tabs")},
-        {"sd_result_count", _u8L("Showing %s actions")},
-        {"sd_result_count_all", _u8L("%s actions")},
-        {"sd_tab_count", _u8L("%s tabs")},
-        {"sd_tab_match_count", _u8L("%s matches")},
-        {"sd_favs_full", _u8L("Favourites are full (%s max)")},
+        {"sd_result_count", _u8L("Matching actions: %s")},
+        {"sd_result_count_all", _u8L("Actions: %s")},
+        {"sd_tab_count", _u8L("Tabs: %s")},
+        {"sd_tab_match_count", _u8L("Matching tabs: %s")},
+        {"sd_favs_full", _u8L("Favorites are full (%s max)")},
         {"sd_go_to_pct", _u8L("Go to %s%% of the layer range")},
         {"sd_enter_pct", _u8L("Enter a layer percentage (0-100)")},
         {"sd_go_layer_ph", _u8L("Go to layer %% (0-100)")},
         {"sd_go_tab_ph", _u8L("Go to tab")},
-        {"sd_fav_slot", _u8L("Favourite %s (%s)")},
-        {"sd_pin_fav", _u8L("Pin to favourites (%s)")},
-        {"sd_unpin_fav", _u8L("Unpin from favourites (%s)")},
-        {"sd_remove_fav", _u8L("Remove from favourites")},
+        {"sd_fav_slot", _u8L("Favorite %s (%s)")},
+        {"sd_pin_fav", _u8L("Pin to favorites (%s)")},
+        {"sd_unpin_fav", _u8L("Unpin from favorites (%s)")},
+        {"sd_remove_fav", _u8L("Remove from favorites")},
         {"sd_move_left", _u8L("Move left")},
         {"sd_move_right", _u8L("Move right")},
         {"sd_unpin", _u8L("Unpin")},
-        {"sd_mode_advanced", _u8L("Advanced")},
-        {"sd_mode_expert", _u8L("Expert")},
-        {"sd_mode_develop", _u8L("Developer")},
+        {"sd_mode_advanced", _u8L_CONTEXT("Advanced", "Settings Mode")},
+        {"sd_mode_expert", _u8L_CONTEXT("Expert", "Settings Mode")},
+        {"sd_mode_develop", _u8L_CONTEXT("Developer", "Settings Mode")},
         {"sd_wiki_f1", _u8L("Wiki (F1)")},
         {"sd_no_wiki", _u8L("No wiki page for this action")},
         {"sd_show_details", _u8L("Show details")},
@@ -162,17 +174,7 @@ SpeedDialWebDialog::SpeedDialWebDialog(wxWindow* parent)
 
 SpeedDialWebDialog::~SpeedDialWebDialog() { m_alive->store(false, std::memory_order_release); }
 
-// Document-start hook: hand the page its translated strings before speeddial.js runs, so the first
-// paint is already localized. The table is built when the dialog is created; a live language switch
-// rebuilds the GUI (and with it this dialog), so the next open re-injects the new locale.
-void SpeedDialWebDialog::add_user_scripts()
-{
-    if (wxWebView* wv = browser()) {
-        const std::string js = "window.ORCA_UI_STRINGS = " +
-                               speed_dial_ui_strings().dump(-1, ' ', false, nlohmann::json::error_handler_t::ignore) + ";";
-        wv->AddUserScript(wxString::FromUTF8(js));
-    }
-}
+nlohmann::json SpeedDialWebDialog::localized_strings() const { return speed_dial_ui_strings(); }
 
 void SpeedDialWebDialog::request_show()
 {
