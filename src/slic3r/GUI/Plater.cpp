@@ -67,6 +67,7 @@
 #include "slic3r/GUI/Field.hpp"
 #include "slic3r/GUI/Widgets/PopupWindow.hpp"
 #include <set>
+#include <wx/filename.h>
 #include "slic3r/GUI/Widgets/StaticLine.hpp"
 #include "slic3r/GUI/GUI_ObjectSettings.hpp"
 #include "slic3r/GUI/ColorDecomposeDialog.hpp"
@@ -246,6 +247,7 @@
 #include "DeviceCore/DevNozzleSystem.h"          // DevNozzle, GetExtNozzles / GetRackNozzles
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
+#include "Gizmos/GLGizmoImage.hpp" // Drop an image onto the Image tool
 #include "Gizmos/GLGizmoSVG.hpp" // Drop SVG file
 #include "Gizmos/GizmoObjectManipulation.hpp"
 
@@ -7125,6 +7127,25 @@ private:
 };
 
 namespace {
+// True when `file` is a picture and the Image gizmo is the one currently open, in which case it has
+// taken the file. Mirrors emboss_svg() below, which does the same for an SVG and the text tool.
+bool drop_image_on_gizmo(Plater &plater, const wxString &file)
+{
+    static const std::set<wxString> image_ext = { "png", "jpg", "jpeg", "bmp" };
+    const wxString                  ext       = wxFileName(file).GetExt().Lower();
+    if (image_ext.count(ext) == 0)
+        return false;
+
+    GLCanvas3D *canvas = plater.canvas3D();
+    if (canvas == nullptr)
+        return false;
+    GLGizmosManager &gizmos = canvas->get_gizmos_manager();
+    if (gizmos.get_current_type() != GLGizmosManager::Image)
+        return false;
+    auto *image = dynamic_cast<GLGizmoImage *>(gizmos.get_gizmo(GLGizmosManager::Image));
+    return image != nullptr && image->drop_image_file(into_u8(file));
+}
+
 bool emboss_svg(Plater& plater, const wxString &svg_file, const Vec2d& mouse_drop_position)
 {
     std::string svg_file_str = into_u8(svg_file);
@@ -7794,6 +7815,11 @@ bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &fi
     m_mainframe.select_tab(TAB_ID_PREPARE);
     if (wxGetApp().is_editor())
         m_plater.select_view_3D("3D");
+
+    // A picture dropped while the Image tool is open is that tool's input, not a model to load. Only
+    // then: with the tool closed a dropped PNG goes on doing whatever it did before.
+    if (filenames.size() == 1 && drop_image_on_gizmo(m_plater, filenames.Last()))
+        return true;
 
     // When only one .svg file is dropped on scene
     if (filenames.size() == 1) {

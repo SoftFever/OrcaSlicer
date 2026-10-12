@@ -11,6 +11,7 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/Plater.hpp"
+#include "slic3r/GUI/TextureLibrary.hpp"
 #include "slic3r/GUI/Shortcuts.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoUtils.hpp"
@@ -19,6 +20,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <imgui.h>
+#include <optional>
 #include <string>
 #include <vector>
 #include <wx/string.h>
@@ -50,6 +52,31 @@ wxString GLGizmoImage::handle_snapshot_action_name(bool shift_down, GLGizmoPaint
     // Same paint, same masks; only the undo step's wording follows the tool the user is in.
     const bool erasing = shift_down || (m_erase_mode != (button_down == GLGizmoPainterBase::Button::Right));
     return erasing ? _L("Remove image from the area") : _L("Place image");
+}
+
+bool GLGizmoTextureDisplacement::drop_image_file(const std::string &path)
+{
+    if (!image_mode() || texture_volume() == nullptr)
+        return false;
+
+    // Imported rather than just read: the same thing the panel's Import tile does, so a dropped
+    // picture lands in "My images" and is there the next time without hunting for the file again.
+    std::string                              error;
+    const std::optional<TextureLibraryEntry> entry = import_texture_to_library(path, error);
+    if (!entry) {
+        show_error(nullptr, error);
+        return false;
+    }
+
+    // The tool starts with no layer at all, so a drop before anything is loaded has to make one.
+    if (active_layer() == nullptr)
+        add_texture_layer();
+    TextureDisplacementLayer *layer = active_layer();
+    if (layer == nullptr)
+        return false;
+    set_layer_texture(*layer, *entry);
+    m_parent.set_as_dirty();
+    return true;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -226,6 +253,16 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
     // A layer with no picture on it is the starting state, not a broken one: the tool creates the
     // layer empty and the panel stays on the frame below until a picture has been chosen.
     const bool has_picture = layer != nullptr && !layer->empty();
+    const bool placed      = mv != nullptr && mv->is_texture_displacement_painted();
+
+    // The handle comes up by itself the first moment there is something to anchor it to, so the
+    // picture can be nudged straight after the click that placed it without hunting for a toggle.
+    // Armed once: turning it back off has to stay off, not be undone on the next frame.
+    if (has_picture && placed && !m_image_handle_armed) {
+        m_image_handle_armed = true;
+        if (update_adjust_anchor())
+            m_adjust_texture_mode = true;
+    }
     if (!has_picture) {
         const float  box_h = std::round(panel_w * 0.6f);
         const ImVec2 p0    = ImGui::GetCursorScreenPos();
@@ -282,9 +319,8 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         // the angle below. No brush, no erase toggle - on a flat side or a cube face the click alone
         // is the whole gesture, and the slider is there for the cases where it is not.
         ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panel_w);
-        ImGui::TextDisabled("%s", mv != nullptr && mv->is_texture_displacement_painted() ?
-                                      _u8L("Click the model to move the picture somewhere else.").c_str() :
-                                      _u8L("Click the model to put the picture there.").c_str());
+        ImGui::TextDisabled("%s", placed ? _u8L("Click the model to move the picture somewhere else.").c_str() :
+                                           _u8L("Click the model to put the picture there.").c_str());
         ImGui::PopTextWrapPos();
         float fill_angle = m_smart_fill_angle;
         if (float_row("##fill_angle", _L("Spread"), &fill_angle, SmartFillAngleMin, SmartFillAngleMax, "%.0f°", false))
@@ -461,7 +497,7 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
 
     ImGui::Separator();
     {
-        const bool painted   = mv != nullptr && mv->is_texture_displacement_painted();
+        const bool painted   = placed;
         const bool no_colors = mv != nullptr && !any_layer_colors(*mv);
         // Colour is the only thing this bake produces, so with a grayscale picture there would be
         // nothing to show for it - and it is not a cheap no-op: the bake still refines the painted

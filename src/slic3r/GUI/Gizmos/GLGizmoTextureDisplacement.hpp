@@ -222,6 +222,11 @@ public:
     // rotation handles instead of painting); otherwise forwards to the normal painting handling.
     bool on_mouse(const wxMouseEvent &mouse_event) override;
 
+    // Loads `path` as the Image tool's picture, importing it into the user's library on the way so
+    // it is there next time. For a drop onto the 3D view; see PlaterDropTarget::OnDropFiles(). False
+    // when this is not the Image tool, or the file could not be read.
+    bool drop_image_file(const std::string &path);
+
 protected:
     // True in the Image tool (see GLGizmoImage): this same gizmo restricted to the one case where
     // the surface does not move at all - a colour picture laid on the model. Everything behind the
@@ -302,6 +307,9 @@ private:
     // only so that it can reach the same private machinery the displacement panel uses, and keeping
     // it out of this file leaves that panel's 1700 lines alone.
     void render_image_input_window(float x, float y, float bottom_limit);
+    // Set once the Image tool has switched its placement handle on for the current picture, so that
+    // turning the handle back off stays off instead of being re-armed on the next frame.
+    bool m_image_handle_armed = false;
     // Standard mode's Bake: remesh to an even density, refine where the texture bends, then displace.
     // The order matters and is the whole reason this is one button - a height map can only move
     // existing vertices, so the mesh has to be prepared first, and remeshing after painting would drop

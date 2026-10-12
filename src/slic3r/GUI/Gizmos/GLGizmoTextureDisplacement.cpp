@@ -557,6 +557,7 @@ void GLGizmoTextureDisplacement::on_shutdown()
     m_seam_edit_mode      = false;
     m_adjust_drag_handle  = AdjustHandle::None;
     m_adjust_anchor_valid = false;
+    m_image_handle_armed  = false;
     // The pane is request-only: closing the gizmo drops the request, so reopening it later doesn't
     // silently reopen the pane too.
     m_show_uv_editor = false;
@@ -761,8 +762,16 @@ bool GLGizmoTextureDisplacement::on_mouse(const wxMouseEvent &mouse_event)
 {
     if (m_seam_edit_mode)
         return on_mouse_seam(mouse_event);
-    if (m_adjust_texture_mode)
-        return on_mouse_adjust_texture(mouse_event);
+    if (m_adjust_texture_mode) {
+        if (on_mouse_adjust_texture(mouse_event))
+            return true;
+        // The displacement tool turns this mode on deliberately, so there a click off the handle
+        // doing nothing is the point. The Image tool has it on from the start, so the same click has
+        // to fall through and place the picture, or turning it on would disable the tool's one
+        // gesture.
+        if (!image_mode())
+            return false;
+    }
 
     const bool handled = GLGizmoPainterBase::on_mouse(mouse_event);
     // A consumed drag/click is a paint (or erase) event: the base class has already updated the live
@@ -3590,6 +3599,11 @@ void GLGizmoTextureDisplacement::update_model_object()
         wxGetApp().obj_list()->update_info_items(std::find(mos.begin(), mos.end(), mo) - mos.begin());
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
         rebuild_preview();
+        // The on-canvas handle is anchored to the paint patch, so a stroke that moved the paint has
+        // to move it with them. Matters most in the Image tool, where the handle is on from the
+        // start and a click moves the picture to a different part of the model.
+        if (m_adjust_texture_mode)
+            update_adjust_anchor();
     }
 }
 
