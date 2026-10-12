@@ -303,8 +303,8 @@ TEST_CASE("Per-object wall filament override is honored", "[MultiFilament]")
     CHECK(tools_for_role(gcode, "infill")    == std::set<int>{ 0 }); // infill not overridden: stays on F1
 }
 
-// FanMover's guard against splitting a G1 inside custom gcode keys off the "; custom gcode
-// start/end" markers GCode::set_extruder() must emit around change_filament_gcode's output. Direct
+// FanMover's guard against splitting a G1 inside custom gcode keys off the ";_FAN_MOVER_SKIP_START/END"
+// markers GCode::set_extruder() must emit around change_filament_gcode's output. Direct
 // toolchanges and Type2's wipe-tower toolchange (append_tcr2() calls set_extruder()) both go
 // through it; Type1's wipe-tower toolchange (WipeTowerIntegration::append_tcr(), append_tcr2's only
 // sibling caller of change_filament_gcode) needs the same bracketing of its own.

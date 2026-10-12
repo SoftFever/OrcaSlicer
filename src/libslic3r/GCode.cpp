@@ -991,14 +991,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         return buf;
     }
 
-    // FanMover only reads "; custom gcode start/end" to avoid splitting a G1 inside custom gcode
-    // when it actually runs - same gate as its own construction in GCode::process_layers. Skip the
-    // markers otherwise so they aren't two dead comment lines on every toolchange.
+    // FanMover consumes these markers (and drops them) to avoid splitting a G1 inside custom gcode.
+    // Only written when FanMover runs, the same gate as its construction in GCode::process_layers.
     static std::string wrap_custom_gcode_for_fan_mover(const FullPrintConfig &config, const std::string &gcode)
     {
         if (config.fan_speedup_time.value == 0 && config.fan_kickstart.value <= 0)
             return gcode;
-        return "; custom gcode start\n" + gcode + "; custom gcode end\n";
+        return ";_FAN_MOVER_SKIP_START\n" + gcode + ";_FAN_MOVER_SKIP_END\n";
     }
 
     std::string WipeTowerIntegration::append_tcr(GCode& gcodegen, const WipeTower::ToolChangeResult& tcr, int new_filament_id, double z) const
