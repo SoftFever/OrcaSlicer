@@ -1071,7 +1071,20 @@ private:
     // Constraint-manager card (C3.4): header + a rebuildable list of constraint rows.
     wxSizer*          m_box_constraints{nullptr};
     wxStaticText*     m_hdr_constraints{nullptr};
-    bool              m_constraints_collapsed{false};   // header click folds the constraint list
+    wxScrolledWindow* m_constraint_scroll{nullptr};   // bounded, scrolling home of the constraint rows
+    // Collapsible side-panel sections (Constraints, Feature tree, Bodies, Variables).
+    struct FoldSection {
+        std::string                              key;
+        wxStaticText*                            chevron{nullptr};
+        std::function<std::vector<wxWindow*>()>  body;   // what folds, resolved at toggle time
+        bool                                     collapsed{false};
+    };
+    std::vector<FoldSection> m_folds;
+    void add_fold(wxSizer* header, wxWindow* card, wxStaticText* title, const char* key,
+                  std::function<std::vector<wxWindow*>()> body);
+    bool is_folded(const char* key) const;
+    void toggle_fold(const std::string& key);
+    void apply_fold(const std::string& key, bool relayout = true);
     wxSizer*          m_constraint_rows{nullptr};
     int               m_constraint_sel{-1};   // highlighted constraint row, or -1
 };

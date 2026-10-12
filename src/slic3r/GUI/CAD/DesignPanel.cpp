@@ -3129,20 +3129,19 @@ DesignPanel::DesignPanel(wxWindow* parent)
     //     entity-constraints; each row selects (highlights) + deletes. Shown only
     //     in Constrain mode; rebuilt by rebuild_constraint_list().
     m_box_constraints = new wxBoxSizer(wxVERTICAL);
-    m_box_constraints->Add(card_header(m_cards, "design_constrain", _L("Constraints"), m_hdr_constraints),
-                           0, wxLEFT | wxRIGHT | wxTOP, 12);
-    // Click the header to fold the list: a constrained sketch easily has dozens of rows.
-    m_constraints_collapsed = wxGetApp().app_config->get_bool("design_constraints_collapsed");
-    m_hdr_constraints->SetCursor(wxCursor(wxCURSOR_HAND));
-    m_hdr_constraints->SetToolTip(_L("Click to collapse or expand the list"));
-    m_hdr_constraints->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) {
-        m_constraints_collapsed = !m_constraints_collapsed;
-        wxGetApp().app_config->set_bool("design_constraints_collapsed", m_constraints_collapsed);
-        CallAfter([this] { rebuild_constraint_list(); });
-    });
+    wxSizer* con_hdr = card_header(m_cards, "design_constrain", _L("Constraints"), m_hdr_constraints);
+    add_fold(con_hdr, m_cards, m_hdr_constraints, "constraints", [] { return std::vector<wxWindow*>{}; });
+    m_box_constraints->Add(con_hdr, 0, wxLEFT | wxRIGHT | wxTOP, 12);
     m_box_constraints->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
+    // The rows live in their own scrolled window, sized to at most 8 rows (rebuild_constraint_list):
+    // a constrained sketch has dozens, and an unbounded list pushed the whole panel off screen.
+    m_constraint_scroll = new wxScrolledWindow(m_cards, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                               wxVSCROLL | wxBORDER_NONE);
+    m_constraint_scroll->SetScrollRate(0, FromDIP(8));
+    m_constraint_scroll->SetBackgroundColour(dp_panel_bg());
     m_constraint_rows = new wxBoxSizer(wxVERTICAL);
-    m_box_constraints->Add(m_constraint_rows, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
+    m_constraint_scroll->SetSizer(m_constraint_rows);
+    m_box_constraints->Add(m_constraint_scroll, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
     cards->Add(m_box_constraints, 0, wxEXPAND);
 
     // Wrap every card label now that the whole stack exists. wxStaticText never wraps on its
@@ -3165,8 +3164,11 @@ DesignPanel::DesignPanel(wxWindow* parent)
     root->Add(m_tree_box, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
 
     m_hdr_tree_row = new wxBoxSizer(wxHORIZONTAL);
-    m_hdr_tree_row->Add(card_header(m_tree_box, "design_sketch", _L("Feature tree"), m_hdr_tree), 0,
-                        wxALIGN_CENTER_VERTICAL);
+    {
+        wxSizer* h = card_header(m_tree_box, "design_sketch", _L("Feature tree"), m_hdr_tree);
+        add_fold(h, m_tree_box, m_hdr_tree, "tree", [this] { return std::vector<wxWindow*>{m_pinned, m_tree}; });
+        m_hdr_tree_row->Add(h, 0, wxALIGN_CENTER_VERTICAL);
+    }
     m_hdr_tree_row->AddStretchSpacer();
     tree_inner->Add(m_hdr_tree_row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP,
               FromDIP(SidebarProps::ContentMargin()));
@@ -3344,8 +3346,11 @@ DesignPanel::DesignPanel(wxWindow* parent)
     root->Add(m_parts_box, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 8);
 
     m_parts_hdr = new wxBoxSizer(wxHORIZONTAL);
-    m_parts_hdr->Add(card_header(m_parts_box, "design_extrude", _L("Bodies"), m_parts_label), 0,
-                     wxALIGN_CENTER_VERTICAL);
+    {
+        wxSizer* h = card_header(m_parts_box, "design_extrude", _L("Bodies"), m_parts_label);
+        add_fold(h, m_parts_box, m_parts_label, "bodies", [this] { return std::vector<wxWindow*>{m_parts}; });
+        m_parts_hdr->Add(h, 0, wxALIGN_CENTER_VERTICAL);
+    }
     // The bodies card header carries the body actions that are not one row's own. Boolean is the
     // one body-body operation, gated through on_boolean_tool, and Colour recolours the selected
     // body, resolving it itself (on_set_body_color), so nothing here decides policy. Move,
@@ -3444,8 +3449,11 @@ DesignPanel::DesignPanel(wxWindow* parent)
     {
         auto* var_hdr = new wxBoxSizer(wxHORIZONTAL);
         wxStaticText* var_hdr_title = nullptr;
-        var_hdr->Add(card_header(m_var_box, "design_constrain", _L("Variables"), var_hdr_title), 0,
-                     wxALIGN_CENTER_VERTICAL);
+        {
+            wxSizer* h = card_header(m_var_box, "design_constrain", _L("Variables"), var_hdr_title);
+            add_fold(h, m_var_box, var_hdr_title, "variables", [this] { return std::vector<wxWindow*>{m_var_list}; });
+            var_hdr->Add(h, 0, wxALIGN_CENTER_VERTICAL);
+        }
         var_hdr->AddStretchSpacer();
         // Icon actions in the card header, as the Feature tree and Bodies cards have them.
         m_btn_add_var  = sidebar_icon_btn(m_var_box, "add",           _L("Add variable"));
@@ -3505,6 +3513,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
 
     // Start with every tool dialog hidden (only the toolbar + tree + Commit show).
     root->Show(m_parts_box, false, false);   // no bodies on a fresh document
+    for (const FoldSection& f : m_folds) apply_fold(f.key, false);   // saved fold state
     root->Show(m_cards,     false, false);   // no tool open yet: don't draw an empty frame
     cards->Show(m_box_sketch,  false, true);
     cards->Show(m_box_move,    false, true);
@@ -7878,7 +7887,7 @@ void DesignPanel::refresh_parts()
     // Hide the whole block until there is something to list, so an empty document doesn't
     // show a stray empty box.
     const bool any = m_parts->GetItemCount() > 0;
-    m_parts->Show(any);
+    m_parts->Show(any && !is_folded("bodies"));
     if (m_parts_label) m_parts_label->Show(any);
     if (m_parts_hdr)   m_parts_hdr->ShowItems(any);   // icon + title live in this sizer
     if (m_parts_rule)  m_parts_rule->Show(any);
@@ -8889,6 +8898,65 @@ bool DesignPanel::live_constraint_scope() const
            !m_viewport->is_constraining() && !m_viewport->is_constraining_entities();
 }
 
+// ---- collapsible side-panel sections --------------------------------------------------------
+// A chevron at the left of a card header (and a click on its title) folds the card's list. The
+// state persists per section in design_fold_<key>. Constraints is the odd one: its card is shown
+// and hidden by the tool modes, so folding it goes through rebuild_constraint_list(), which owns
+// that visibility, instead of Show()ing the list directly into a card that may be hidden.
+void DesignPanel::add_fold(wxSizer* header, wxWindow* card, wxStaticText* title, const char* key,
+                           std::function<std::vector<wxWindow*>()> body)
+{
+    auto* chev = new wxStaticText(card, wxID_ANY, "");
+    chev->SetCursor(wxCursor(wxCURSOR_HAND));
+    chev->SetToolTip(_L("Collapse or expand"));
+    header->Insert(0, chev, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
+    FoldSection f;
+    f.key       = key;
+    f.chevron   = chev;
+    f.body      = std::move(body);
+    f.collapsed = wxGetApp().app_config->get_bool(std::string("design_fold_") + key);
+    m_folds.push_back(std::move(f));
+    const std::string k = key;
+    auto toggle = [this, k](wxMouseEvent&) { toggle_fold(k); };
+    chev->Bind(wxEVT_LEFT_UP, toggle);
+    if (title) { title->SetCursor(wxCursor(wxCURSOR_HAND)); title->Bind(wxEVT_LEFT_UP, toggle); }
+}
+
+bool DesignPanel::is_folded(const char* key) const
+{
+    for (const FoldSection& f : m_folds)
+        if (f.key == key) return f.collapsed;
+    return false;
+}
+
+void DesignPanel::toggle_fold(const std::string& key)
+{
+    for (FoldSection& f : m_folds) {
+        if (f.key != key) continue;
+        f.collapsed = !f.collapsed;
+        wxGetApp().app_config->set_bool("design_fold_" + key, f.collapsed);
+    }
+    CallAfter([this, key] { apply_fold(key, true); });   // not while this very click is being dispatched
+}
+
+void DesignPanel::apply_fold(const std::string& key, bool relayout)
+{
+    for (FoldSection& f : m_folds) {
+        if (f.key != key) continue;
+        f.chevron->SetLabel(wxString::FromUTF8(f.collapsed ? "\u25B8" : "\u25BE"));
+        if (key == "constraints") {
+            if (relayout) rebuild_constraint_list();
+            return;
+        }
+        for (wxWindow* w : f.body()) {
+            if (w == nullptr) continue;
+            // Bodies has no list at all while the document has no body.
+            w->Show(!f.collapsed && !(w == m_parts && m_parts->GetItemCount() == 0));
+        }
+    }
+    if (relayout && m_form) { update_cards_frame(); m_form->Layout(); m_form->FitInside(); }
+}
+
 // Rebuild the constraint-row list. Source depends on scope: a LIVE sketch session owns its
 // constraints inside the sketch tool and has no committed feature yet, so the list read only
 // the feature's and stayed empty for the whole session — constraints applied while drawing had
@@ -8908,30 +8976,37 @@ void DesignPanel::rebuild_constraint_list()
       : active ? m_doc.features[m_constrain_feat].entity_constraints : empty;
 
     if (m_hdr_constraints)
-        m_hdr_constraints->SetLabel(wxString::Format(wxString::FromUTF8(m_constraints_collapsed ? "\u25B8 " : "\u25BE ") +
-                                                     _L("Constraints (%d)"), int(cons.size())));
+        m_hdr_constraints->SetLabel(wxString::Format(_L("Constraints (%d)"), int(cons.size())));
 
+    const bool folded = is_folded("constraints");
+    int visible_h = 0;   // height of the first kMaxRows rows: the list scrolls past that
+    constexpr int kMaxRows = 8;
     if (cons.empty()) {
-        auto* none = new wxStaticText(m_cards, wxID_ANY, _L("No constraints yet"));
+        auto* none = new wxStaticText(m_constraint_scroll, wxID_ANY, _L("No constraints yet"));
         none->SetForegroundColour(dp_sec_text());
         m_constraint_rows->Add(none, 0, wxTOP, 4);
+        visible_h = none->GetBestSize().y + 4;
     }
-    for (int i = 0; i < int(cons.size()) && !m_constraints_collapsed; ++i) {
+    for (int i = 0; i < int(cons.size()) && !folded; ++i) {
         auto* row = new wxBoxSizer(wxHORIZONTAL);
         // Delete button first (fixed left position, always visible — long labels can
         // horizontally scroll but ✗ stays put and clickable).
-        auto* del = sidebar_icon_btn(m_cards, "design_delete", _L("Delete constraint"), 16);
+        auto* del = sidebar_icon_btn(m_constraint_scroll, "design_delete", _L("Delete constraint"), 16);
         // After the click: deleting rebuilds these rows, and with them this button, which must
         // not be destroyed while its own click is still being dispatched.
         del->Bind(wxEVT_BUTTON, [this, i](wxCommandEvent&) { CallAfter([this, i] { delete_constraint(i); }); });
         // Clickable label: selecting it highlights the referenced entities.
-        auto* lbl = new wxStaticText(m_cards, wxID_ANY, constraint_label(cons[i]));
+        auto* lbl = new wxStaticText(m_constraint_scroll, wxID_ANY, constraint_label(cons[i]));
         lbl->SetCursor(wxCursor(wxCURSOR_HAND));
         lbl->Bind(wxEVT_LEFT_UP, [this, i](wxMouseEvent&) { highlight_constraint_entities(i); });
         row->Add(del, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 6);
         row->Add(lbl, 1, wxALIGN_CENTER_VERTICAL);
         m_constraint_rows->Add(row, 0, wxEXPAND | wxTOP, 2);
+        if (i < kMaxRows) visible_h += row->CalcMin().y + 2;
     }
+    m_constraint_scroll->SetMinSize(wxSize(-1, visible_h));
+    m_constraint_scroll->FitInside();
+    m_constraint_scroll->Scroll(0, 0);
 
     // Feed the same list to the viewport for the on-sketch glyph badges (C3.4b).
     if (m_viewport)
@@ -8939,6 +9014,7 @@ void DesignPanel::rebuild_constraint_list()
 
     m_cards->GetSizer()->Show(m_box_constraints,
                               m_ui_mode == UiMode::Constrain || live, true);
+    if (folded) m_constraint_scroll->Show(false);   // the recursive Show above re-showed it
     update_cards_frame(); m_form->Layout();
     m_form->FitInside();
 }
@@ -12707,6 +12783,14 @@ void DesignPanel::refresh_variables()
         m_var_list->InsertItem(row, wxString::FromUTF8(name));
         m_var_list->SetItem(row, 1, wxString::FromUTF8(expr));
         ++row;
+    }
+    // Sized to its rows (2..8), scrolling past that: the fixed 64 px showed two rows of a long list.
+    wxRect r;
+    const int rh = (row > 0 && m_var_list->GetItemRect(0, r)) ? std::max(r.height, 16) : m_var_list->FromDIP(22);
+    const int h  = m_var_list->FromDIP(30) + std::clamp(row, 2, 8) * rh;
+    if (m_var_list->GetMinSize().y != h) {
+        m_var_list->SetMinSize(wxSize(-1, h));
+        if (m_form) { m_form->Layout(); m_form->FitInside(); }
     }
 }
 
