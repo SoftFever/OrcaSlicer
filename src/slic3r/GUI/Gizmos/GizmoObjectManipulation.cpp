@@ -19,6 +19,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "slic3r/GUI/Selection.hpp"
+#include "slic3r/GUI/SelectionAlignment.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "GLGizmoUtils.hpp"
@@ -894,6 +895,37 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         }
         m_buffered_position = display_position;
         update(current_active_id, "position", original_position, m_buffered_position);
+    }
+    // Align / distribute rows, shown when the selection has enough objects or parts to work with.
+    if (!is_avoid_one_update && SelectionAlignment::can_align(selection, 0)) {
+        struct AlignRow { const char* caption; bool distribute; SelectionAlignment::Mode mode; };
+        const AlignRow rows[] = {
+            { L("Align min"),    false, SelectionAlignment::Mode::Min    },
+            { L("Align center"), false, SelectionAlignment::Mode::Center },
+            { L("Align max"),    false, SelectionAlignment::Mode::Max    },
+            { L("Distribute"),   true,  SelectionAlignment::Mode::Center },
+        };
+        static const char* const axis_labels[3] = { "X", "Y", "Z" };
+        const float button_width = unit_size;
+        for (const AlignRow& row : rows) {
+            ImGui::AlignTextToFramePadding();
+            imgui_wrapper->text(_L(row.caption));
+            for (int axis = 0; axis < 3; ++axis) {
+                const bool enable = row.distribute ? SelectionAlignment::can_distribute(selection, axis) :
+                                                     SelectionAlignment::can_align(selection, axis);
+                ImGui::SameLine(caption_max + (axis + 1) * space_size + axis * unit_size);
+                const std::string label = std::string(axis_labels[axis]) + "##align_" + std::to_string(int(row.distribute) * 3 + int(row.mode)) +
+                                          "_" + std::to_string(axis);
+                if (imgui_wrapper->button(wxString::FromUTF8(label), ImVec2(button_width, 0.f), enable)) {
+                    if (row.distribute)
+                        SelectionAlignment::distribute(m_glcanvas, axis);
+                    else
+                        SelectionAlignment::align(m_glcanvas, axis, row.mode);
+                }
+                if (row.distribute && !enable && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    imgui_wrapper->tooltip(_L("Select at least three objects or parts to distribute them."), ImGui::GetFontSize() * 20.f);
+            }
+        }
     }
     // the init position values are not zero, won't add reset button
 
