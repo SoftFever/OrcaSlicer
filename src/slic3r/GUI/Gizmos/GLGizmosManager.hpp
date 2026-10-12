@@ -96,6 +96,7 @@ public:
         FuzzySkin,
         MmSegmentation,
         TextureDisplacement,
+        Image,
         Emboss,
         Svg,
         Measure,

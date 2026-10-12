@@ -204,6 +204,14 @@ public:
     bool on_mouse(const wxMouseEvent &mouse_event) override;
 
 protected:
+    // True in the Image tool (see GLGizmoImage): this same gizmo restricted to the one case where
+    // the surface does not move at all - a colour picture laid on the model. Everything behind the
+    // panel is shared and unchanged: the same layers, the same paint masks, the same bake. This flag
+    // only tells the panel which of the two tools it is drawing, and makes it pin the values the
+    // restricted case fixes (see apply_image_mode_presets()).
+    virtual bool image_mode() const { return false; }
+
+    bool        on_init() override;
     void        on_render_input_window(float x, float y, float bottom_limit) override;
     std::string on_get_name() const override;
     // Never in the assemble view: its toolbar does not offer this gizmo, and every preview here is drawn
@@ -221,8 +229,11 @@ protected:
     EnforcerBlockerType get_left_button_state_type() const override { return m_erase_mode ? EnforcerBlockerType::NONE : EnforcerBlockerType::ENFORCER; }
     EnforcerBlockerType get_right_button_state_type() const override { return m_erase_mode ? EnforcerBlockerType::ENFORCER : EnforcerBlockerType::NONE; }
 
+    // Paint / Erase, from the panel. See get_left_button_state_type(). Protected because a subclass
+    // overriding handle_snapshot_action_name() has to read the same flag to name the undo step.
+    bool m_erase_mode = false;
+
 private:
-    bool on_init() override;
     void update_model_object() override;
     void update_from_model_object(bool first_update) override;
     void on_opening() override {}
@@ -262,6 +273,11 @@ private:
     // Standard is active so what Preview shows is always what Bake will do. Returns true if it actually
     // changed something, so the caller can invalidate the preview.
     bool apply_standard_mode_presets(ModelVolume *mv);
+    // Image mode's fixed values, on top of Standard's and pinned the same way (every frame, so the
+    // preview cannot disagree with the bake): zero depth on every layer, and colour on wherever the
+    // picture has any. Those two are what turn the displacement bake into "put this picture on the
+    // model" without a second code path. Returns true if it actually changed something.
+    bool apply_image_mode_presets(ModelVolume *mv);
     // Standard mode's Bake: remesh to an even density, refine where the texture bends, then displace.
     // The order matters and is the whole reason this is one button - a height map can only move
     // existing vertices, so the mesh has to be prepared first, and remeshing after painting would drop
@@ -399,8 +415,6 @@ private:
     void set_layer_texture(TextureDisplacementLayer &layer, const TextureLibraryEntry &entry);
     void import_custom_texture(TextureDisplacementLayer &layer);
 
-    // Paint / Erase, from the panel. See get_left_button_state_type().
-    bool m_erase_mode = false;
     // Per slot: whether the layer's card shows every setting or only Depth, Tile size and Rotation.
     // Panel state only, not saved with the project.
     std::array<bool, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_layer_expanded{};

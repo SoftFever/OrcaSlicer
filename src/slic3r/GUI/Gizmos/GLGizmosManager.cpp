@@ -22,6 +22,7 @@
 //#include "slic3r/GUI/Gizmos/GLGizmoHollow.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSeam.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoImage.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoTextureDisplacement.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoSimplify.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoEmboss.hpp"
@@ -201,6 +202,11 @@ void GLGizmosManager::switch_gizmos_icon_filename()
             // light/dark switch.
             gizmo->set_icon_filename("toolbar_texture_displacement.svg");
             break;
+        case(EType::Image):
+            // Drawn flat in Orca's menu-icon palette, which reads on either background, so one file
+            // serves both themes here too.
+            gizmo->set_icon_filename("toolbar_image.svg");
+            break;
         case(EType::MeshBoolean):
             gizmo->set_icon_filename(m_is_dark ? "toolbar_meshboolean_dark.svg" : "toolbar_meshboolean.svg");
             break;
@@ -252,6 +258,8 @@ bool GLGizmosManager::init()
     m_gizmos.emplace_back(new GLGizmoMmuSegmentation(m_parent, m_is_dark ? "mmu_segmentation_dark.svg" : "mmu_segmentation.svg", EType::MmSegmentation));
     // One shared icon (no dedicated dark variant yet); it recolours acceptably in both themes.
     m_gizmos.emplace_back(new GLGizmoTextureDisplacement(m_parent, "toolbar_texture_displacement.svg", EType::TextureDisplacement));
+    // The same gizmo restricted to the zero-displacement case; see GLGizmoImage.
+    m_gizmos.emplace_back(new GLGizmoImage(m_parent, "toolbar_image.svg", EType::Image));
     m_gizmos.emplace_back(new GLGizmoEmboss(m_parent, m_is_dark ? "toolbar_text_dark.svg" : "toolbar_text.svg", EType::Emboss));
     m_gizmos.emplace_back(new GLGizmoSVG(m_parent));
     m_gizmos.emplace_back(new GLGizmoMeasure(m_parent, m_is_dark ? "toolbar_measure_dark.svg" : "toolbar_measure.svg", EType::Measure));
@@ -585,6 +593,8 @@ bool GLGizmosManager::gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_p
         return dynamic_cast<GLGizmoFuzzySkin*>(m_gizmos[FuzzySkin].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == TextureDisplacement)
         return dynamic_cast<GLGizmoTextureDisplacement*>(m_gizmos[TextureDisplacement].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
+    else if (m_current == Image)
+        return dynamic_cast<GLGizmoImage*>(m_gizmos[Image].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == MeshBoolean)
         return dynamic_cast<GLGizmoMeshBoolean*>(m_gizmos[MeshBoolean].get())->gizmo_event(action, mouse_position, shift_down, alt_down, control_down);
     else if (m_current == BrimEars)
@@ -599,6 +609,7 @@ bool GLGizmosManager::is_paint_gizmo()
            m_current == EType::MmSegmentation ||
            m_current == EType::FuzzySkin ||
            m_current == EType::TextureDisplacement ||
+           m_current == EType::Image ||
            m_current == EType::Seam;
 }
 
@@ -1550,6 +1561,8 @@ std::string get_name_from_gizmo_etype(GLGizmosManager::EType type)
         return "Fuzzy Skin Painting";
     case GLGizmosManager::EType::TextureDisplacement:
         return "Texture Displacement";
+    case GLGizmosManager::EType::Image:
+        return "Image";
     default:
         return "";
     }

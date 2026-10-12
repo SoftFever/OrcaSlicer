@@ -124,7 +124,9 @@ Control on the Global page, and from the `?` key on the page of the view that re
    the dialog should list it; the row's section heading is the `section_table` entry
    above it, so a new section needs an entry there too. Pick a default that does not
    collide inside its contexts; the `[Shortcuts]` tests check every default against the
-   others.
+   others. A default `KeyChord{}` leaves the action unbound: it is listed in the dialog
+   for the user to bind and matches nothing until they do, which is the honest answer
+   when every key its contexts can reach is already spoken for.
 2. Handle it in the dispatcher of its context: `MainFrame::handle_global_shortcut`,
    `GLCanvas3D::handle_shortcut`, `ObjectList::dispatch_shortcut`, or a gizmo's
    `on_tool_shortcut`. A gizmo that opens on a key sets `m_shortcut` in its constructor.
