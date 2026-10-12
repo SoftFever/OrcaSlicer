@@ -372,6 +372,8 @@ TEST_CASE("Toolchange gcode is bracketed against FanMover splitting its moves", 
     const size_t bracketed       = count_occurrences(gcode_str, "M400 S3\nG1 X77 F5000");
     REQUIRE(total_waypoints > 0);
     CHECK(bracketed == total_waypoints);
+    // FanMover drops its own markers; only the start-of-print toolchange, which it never processes, keeps them.
+    CHECK(count_occurrences(gcode_str, ";_FAN_MOVER_SKIP_START") <= 1);
 }
 
 // With wait_for_temp_on_wipe_tower the blocking M109 moves from right after the Tn command to
