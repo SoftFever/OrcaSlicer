@@ -1,3 +1,22 @@
+#include <string>
+#include <vector>
+#include <cstddef>
+#include <wx/string.h>
+#include <wx/utils.h>
+#include <boost/nowide/convert.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <fstream>
+#include <cstdlib>
+#include <exception>
+#include "libslic3r_version.h"
+#include <cstdio>
+#include <cassert>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/dialog.h>
+#include <wx/toplevel.h>
+#include <wx/sizer.h>
+#include "slic3r/GUI/Plater.hpp"
 #ifdef __linux__
 #include "DesktopIntegrationDialog.hpp"
 #include "GUI_App.hpp"
@@ -209,7 +228,7 @@ bool DesktopIntegrationDialog::is_integrated()
     if (path.empty())
         return false;
 
-    // confirmation that OrcaSlicer.desktop exists
+    // confirmation that com.orcaslicer.OrcaSlicer.desktop exists
     struct stat buffer;   
     return (stat (path.c_str(), &buffer) == 0);
 }
@@ -336,19 +355,21 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                 "Exec=\"%3%\" %%F\n"
                 "Terminal=false\n"
                 "Type=Application\n"
+                "PrefersNonDefaultGPU=true\n"
+                "X-KDE-RunOnDiscreteGpu=true\n"
                 "MimeType=model/stl;application/vnd.ms-3mfdocument;application/prs.wavefront-obj;application/x-amf;\n"
                 "Categories=Graphics;3DGraphics;Engineering;\n"
                 "Keywords=3D;Printing;Slicer;slice;3D;printer;convert;gcode;stl;obj;amf;SLA\n"
                 "StartupNotify=false\n"
                 "StartupWMClass=orca-slicer\n", name_suffix, version_suffix, excutable_path);
 
-            std::string path = GUI::format("%1%/applications/OrcaSlicer%2%.desktop", target_dir_desktop, version_suffix);
+            std::string path = GUI::format("%1%/applications/com.orcaslicer.OrcaSlicer%2%.desktop", target_dir_desktop, version_suffix);
             if (create_desktop_file(path, desktop_file)){
-                BOOST_LOG_TRIVIAL(debug) << "OrcaSlicer.desktop file installation success.";
+                BOOST_LOG_TRIVIAL(debug) << "com.orcaslicer.OrcaSlicer.desktop file installation success.";
                 break;
             } else {
             	// write failed - try another path
-                BOOST_LOG_TRIVIAL(debug) << "Attempt to OrcaSlicer.desktop file installation failed. failed path: " << target_candidates[i];
+                BOOST_LOG_TRIVIAL(debug) << "Attempt to com.orcaslicer.OrcaSlicer.desktop file installation failed. failed path: " << target_candidates[i];
                 target_dir_desktop.clear(); 
             }
             // if all failed - try creating default home folder
@@ -357,7 +378,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
                 create_path(into_u8(wxFileName::GetHomeDir()), ".local/share/applications");
                 // create desktop file
                 target_dir_desktop = GUI::format("%1%/.local/share",wxFileName::GetHomeDir());
-                std::string path = GUI::format("%1%/applications/OrcaSlicer%2%.desktop", target_dir_desktop, version_suffix);
+                std::string path = GUI::format("%1%/applications/com.orcaslicer.OrcaSlicer%2%.desktop", target_dir_desktop, version_suffix);
                 if (contains_path_dir(target_dir_desktop, "applications")) {
                     if (!create_desktop_file(path, desktop_file)) {    
                         // Desktop file not written - end desktop integration
@@ -379,7 +400,7 @@ void DesktopIntegrationDialog::perform_desktop_integration()
         return;
     }
     // save path to desktop file
-    app_config->set("desktop_integration_app_path", GUI::format("%1%/applications/OrcaSlicer%2%.desktop", target_dir_desktop, version_suffix));
+    app_config->set("desktop_integration_app_path", GUI::format("%1%/applications/com.orcaslicer.OrcaSlicer%2%.desktop", target_dir_desktop, version_suffix));
 
     // Repeat for Gcode viewer - use same paths as for slicer files
     // Do NOT add gcode viewer desktop file on ChromeOS
@@ -405,6 +426,8 @@ void DesktopIntegrationDialog::perform_desktop_integration()
             "Exec=\"%3%\" --gcodeviewer %%F\n"
             "Terminal=false\n"
             "Type=Application\n"
+            "PrefersNonDefaultGPU=true\n"
+            "X-KDE-RunOnDiscreteGpu=true\n"
             "MimeType=text/x.gcode;\n"
             "Categories=Graphics;3DGraphics;\n"
             "Keywords=3D;Printing;Slicer;\n"
@@ -629,7 +652,7 @@ DesktopIntegrationDialog::DesktopIntegrationDialog(wxWindow *parent)
 
 	wxString text = _L("Desktop Integration sets this binary to be searchable by the system.\n\nPress \"Perform\" to proceed.");
 	if (can_undo)
-		text += "\nPress \"Undo\" to remove previous integration.";
+		text += "\n" + _L("Press \"Undo\" to remove previous integration.");
 
     vbox->Add(
         new wxStaticText( this, wxID_ANY, text),
@@ -641,7 +664,7 @@ DesktopIntegrationDialog::DesktopIntegrationDialog(wxWindow *parent)
 	
 
 	wxBoxSizer *btn_szr = new wxBoxSizer(wxHORIZONTAL);
-	wxButton *btn_perform = new wxButton(this, wxID_ANY, _L("Perform"));
+	wxButton *btn_perform = new wxButton(this, wxID_ANY, _L("Apply"));
 	btn_szr->Add(btn_perform, 0, wxALL, 10);
 
 	btn_perform->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { DesktopIntegrationDialog::perform_desktop_integration(); EndModal(wxID_ANY); });

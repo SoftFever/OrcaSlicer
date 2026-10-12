@@ -1,10 +1,42 @@
 #include "GUI_Utils.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r_version.h"
+#include "slic3r/Utils/NetworkAgent.hpp"
+#include <vector>
+#include "slic3r/GUI/Widgets/StateColor.hpp"
+#include <utility>
+#include <wx/colour.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
+#include "slic3r/GUI/Widgets/Button.hpp"
+#include "slic3r/GUI/wxExtensions.hpp"
+#include "slic3r/GUI/Widgets/AnimaController.hpp"
+#include <cstddef>
+#include <boost/filesystem/path.hpp>
+#include "libslic3r/Utils.hpp"
+#include <filesystem>
+#include <boost/filesystem/operations.hpp>
+#include <wx/msgdlg.h>
+#include <boost/log/trivial.hpp>
+#include <string>
+#include <boost/smart_ptr/make_shared_object.hpp>
+#include <boost/smart_ptr/weak_ptr.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include "slic3r/GUI/PartSkipCommon.hpp"
+#include <iterator>
 #include <wx/panel.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
+#include <wx/simplebook.h>
+#include <wx/scrolwin.h>
 #include <wx/sizer.h>
 #include <wx/gbsizer.h>
+#include <wx/toplevel.h>
+#include <wx/string.h>
+#include <wx/tglbtn.h>
 #include <wx/webrequest.h>
 #include <wx/control.h>
 #include <wx/dcclient.h>
@@ -22,13 +54,13 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Label.hpp"
 
-#include "MsgDialog.hpp"
 #include "Printer/PrinterFileSystem.h"
 #include "PartSkipDialog.hpp"
 #include "SkipPartCanvas.hpp"
-#include "MediaPlayCtrl.h"
 
 #include "DeviceCore/DevManager.h"
+
+namespace fs = boost::filesystem;
 
 namespace Slic3r { namespace GUI {
 
@@ -54,7 +86,7 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
 {
     std::time_t       t = std::time(0);
     std::stringstream buf;
-    buf << put_time(std::localtime(&t), "%a_%b_%d_%H_%M_%S/");
+    buf << std::put_time(std::localtime(&t), "%a_%b_%d_%H_%M_%S/");
     m_timestamp = buf.str();
 
     SetBackgroundColour(*wxWHITE);
@@ -147,7 +179,7 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
     m_line->SetBackgroundColour(wxColor(238, 238, 238));
 
     m_list_view = new wxScrolledWindow(m_book_third_panel, wxID_ANY, wxDefaultPosition, wxSize(267, -1), wxHSCROLL | wxVSCROLL);
-    m_list_view->SetScrollRate(5, 5);
+    m_list_view->SetScrollRate(5, FromDIP(30));
     m_list_view->SetMinSize(wxSize(FromDIP(267), FromDIP(378)));
     m_list_view->SetMaxSize(wxSize(FromDIP(267), FromDIP(378)));
     m_list_view->SetBackgroundColour(*wxWHITE);
@@ -197,9 +229,9 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
 #else
     m_dlg_btn_sizer->Add(m_tot_label, 0, wxALIGN_CENTER_VERTICAL, 0);
 #endif
-    m_dlg_btn_sizer->Add(0, 0, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    m_dlg_btn_sizer->Add(0, 0, 1, wxEXPAND, FromDIP(0));
     m_dlg_btn_sizer->Add(m_apply_btn, 0, wxALIGN_CENTER_VERTICAL, FromDIP(0));
-    m_dlg_btn_sizer->Add(0, 0, 0, wxLEFT | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(24));
+    m_dlg_btn_sizer->Add(0, 0, 0, wxLEFT | wxEXPAND, FromDIP(24));
 
     m_dlg_placeholder = new wxPanel(m_book_third_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_dlg_placeholder->SetMinSize(wxSize(-1, FromDIP(15)));
@@ -270,7 +302,7 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
     m_simplebook->AddPage(m_book_third_panel, _("dialog page"), false);
     m_sizer->Add(m_simplebook, 1, wxEXPAND | wxALL, 5);
 
-    SetSizer(m_sizer);
+    SetSizerAndFit(m_sizer);
     m_zoom_in_btn->Bind(wxEVT_BUTTON, &PartSkipDialog::OnZoomIn, this);
     m_zoom_out_btn->Bind(wxEVT_BUTTON, &PartSkipDialog::OnZoomOut, this);
     m_switch_drag_btn->Bind(wxEVT_BUTTON, &PartSkipDialog::OnSwitchDrag, this);
@@ -281,7 +313,6 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
     m_all_checkbox->Bind(wxEVT_TOGGLEBUTTON, &PartSkipDialog::OnAllCheckbox, this);
 
     Layout();
-    Fit();
     CentreOnParent();
 }
 
@@ -367,11 +398,11 @@ std::string PartSkipDialog::create_tmp_path()
     }
     std::string tmp_path = (parent_path / buf.str()).string();
 
-    if (!std::filesystem::exists(tmp_path + "Metadata/") && !fs::create_directories(tmp_path + "Metadata/")) { wxMessageBox("create file failed."); }
+    if (!std::filesystem::exists(tmp_path + "Metadata/") && !fs::create_directories(tmp_path + "Metadata/")) { wxMessageBox(_L("Failed to create the temporary folder.")); }
     return tmp_path;
 }
 
-bool PartSkipDialog::is_local_file_existed(const std::vector<string> &local_paths)
+bool PartSkipDialog::is_local_file_existed(const std::vector<std::string> &local_paths)
 {
     for (auto path : local_paths) {
         if (!std::filesystem::exists(path)) { return false; }
@@ -672,8 +703,8 @@ void PartSkipDialog::InitDialogUI()
     m_parts_state.clear();
     m_parts_name.clear();
 
-    string pick_img   = m_local_paths[0];
-    string slice_info = m_local_paths[2];
+    std::string pick_img   = m_local_paths[0];
+    std::string slice_info = m_local_paths[2];
 
     m_switch_drag_btn->SetIcon("canvas_drag");
     m_switch_drag_btn->SetBackgroundColor(*wxWHITE);
@@ -824,7 +855,7 @@ bool PartSkipDialog::IsAllChecked()
     return true;
 }
 
-bool PartSkipDialog::IsAllCancled()
+bool PartSkipDialog::IsAllCanceled()
 {
     for (auto &[part_id, part_state] : m_parts_state) {
         if (part_state == PartState::psChecked) return false;
@@ -851,7 +882,7 @@ void PartSkipDialog::OnAllCheckbox(wxCommandEvent &event)
 
 void PartSkipDialog::UpdateApplyButtonStatus()
 {
-    if (IsAllCancled()) {
+    if (IsAllCanceled()) {
         m_apply_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
         m_apply_btn->SetToolTip(_L("Nothing selected"));
         m_enable_apply_btn = false;

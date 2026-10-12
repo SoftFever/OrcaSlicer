@@ -2,8 +2,9 @@
 
 set -e
 set -o pipefail
+SECONDS=0
 
-while getopts ":dpa:snt:xbc:1Tuh" opt; do
+while getopts ":dpa:snt:xbc:i:j:Tuh" opt; do
   case "${opt}" in
     d )
         export BUILD_TARGET="deps"
@@ -34,8 +35,11 @@ while getopts ":dpa:snt:xbc:1Tuh" opt; do
     c )
         export BUILD_CONFIG="$OPTARG"
         ;;
-    1 )
-        export CMAKE_BUILD_PARALLEL_LEVEL=1
+    i )
+        export CMAKE_IGNORE_PREFIX_PATH="${CMAKE_IGNORE_PREFIX_PATH:+$CMAKE_IGNORE_PREFIX_PATH;}$OPTARG"
+        ;;
+    j )
+        export CMAKE_BUILD_PARALLEL_LEVEL="$OPTARG"
         ;;
     T )
         export BUILD_TESTS="1"
@@ -49,12 +53,13 @@ while getopts ":dpa:snt:xbc:1Tuh" opt; do
         echo "   -s: Build slicer only"
         echo "   -u: Build universal app only (requires existing arm64 and x86_64 app bundles)"
         echo "   -n: Nightly build"
-        echo "   -t: Specify minimum version of the target platform, default is 11.3"
+        echo "   -t: Specify minimum version of the target platform, default is 12.0"
         echo "   -x: Use Ninja Multi-Config CMake generator, default is Xcode"
         echo "   -b: Build without reconfiguring CMake"
         echo "   -c: Set CMake build configuration, default is Release"
-        echo "   -1: Use single job for building"
-        echo "   -T: Build and run tests"
+        echo "   -i: Add a prefix to ignore during CMake dependency discovery (repeatable), defaults to /opt/local:/usr/local:/opt/homebrew"
+        echo "   -j: Set the number of parallel build jobs (CMAKE_BUILD_PARALLEL_LEVEL)"
+        echo "   -T: Build and run tests (set ORCA_TESTS_BUILD_ONLY=1 to build without running)"
         exit 0
         ;;
     * )
@@ -90,13 +95,17 @@ if [ -z "$DEPS_CMAKE_GENERATOR" ]; then
 fi
 
 if [ -z "$OSX_DEPLOYMENT_TARGET" ]; then
-  export OSX_DEPLOYMENT_TARGET="11.3"
+  export OSX_DEPLOYMENT_TARGET="12.0"
+fi
+
+if [ -z "$CMAKE_IGNORE_PREFIX_PATH" ]; then
+  export CMAKE_IGNORE_PREFIX_PATH="/opt/local:/usr/local:/opt/homebrew"
 fi
 
 CMAKE_VERSION=$(cmake --version | head -1 | sed 's/[^0-9]*\([0-9]*\).*/\1/')
 if [ "$CMAKE_VERSION" -ge 4 ] 2>/dev/null; then
-  export CMAKE_POLICY_VERSION_MINIMUM=3.5
-  export CMAKE_POLICY_COMPAT="-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+  export CMAKE_POLICY_VERSION_MINIMUM=3.10
+  export CMAKE_POLICY_COMPAT="-DCMAKE_POLICY_VERSION_MINIMUM=3.10"
   echo "Detected CMake 4.x, adding compatibility flag (env + cmake arg)"
 else
   export CMAKE_POLICY_COMPAT=""
@@ -108,6 +117,7 @@ echo " - BUILD_CONFIG: $BUILD_CONFIG"
 echo " - BUILD_TARGET: $BUILD_TARGET"
 echo " - CMAKE_GENERATOR: $SLICER_CMAKE_GENERATOR for Slicer, $DEPS_CMAKE_GENERATOR for deps"
 echo " - OSX_DEPLOYMENT_TARGET: $OSX_DEPLOYMENT_TARGET"
+echo " - CMAKE_IGNORE_PREFIX_PATH: $CMAKE_IGNORE_PREFIX_PATH"
 echo
 
 # if which -s brew; then
@@ -151,6 +161,7 @@ function build_deps() {
                         -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
                         -DCMAKE_OSX_ARCHITECTURES:STRING="${_ARCH}" \
                         -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}" \
+                        -DCMAKE_IGNORE_PREFIX_PATH="${CMAKE_IGNORE_PREFIX_PATH}" \
                         ${CMAKE_POLICY_COMPAT}
                 fi
                 cmake --build . --config "$BUILD_CONFIG" --target deps
@@ -166,6 +177,66 @@ function pack_deps() {
         cd "$DEPS_DIR"
         tar -zcvf "OrcaSlicer_dep_mac_${ARCH}_$(date +"%Y%m%d").tar.gz" "build"
     )
+}
+
+# codesign cannot seal the runtime's dotted directories (include/python3.12,
+# lib/python3.12) anywhere under Contents/MacOS -- it mistakes any dotted
+# directory there for a nested bundle and fails with "bundle format
+# unrecognized" -- so packaged apps ship the runtime under Contents/Resources
+# with a compatibility symlink that keeps every Contents/MacOS/python path and
+# the @executable_path/python/lib rpath resolving unchanged.
+function relocate_python_runtime() {
+    local app="$1"
+    local pydir="$app/Contents/MacOS/python"
+    if [ -d "$pydir" ] && [ ! -L "$pydir" ]; then
+        rm -rf "$app/Contents/Resources/python"
+        mv "$pydir" "$app/Contents/Resources/python"
+        ln -s ../Resources/python "$pydir"
+    fi
+}
+
+# --- Bundled Python runtime verification --------------------------------------
+# Relocation is handled at the source: deps/python3/python3.cmake stamps
+# libpython with an @rpath id and src/CMakeLists.txt gives the app a matching
+# rpath. This gate catches regressions that would otherwise only surface as
+# launch failures on end users' machines (the absolute deps path still exists
+# on the build host, so a plain run can pass while relocation is broken --
+# hence the otool checks). The x86_64 leg runs under Rosetta on arm64 hosts.
+function verify_python_runtime() {
+    local app="$1"
+    local pydir="$app/Contents/MacOS/python"
+    [ -d "$pydir" ] || return 0  # app doesn't bundle Python (e.g. profile validator)
+    if [ ! -L "$pydir" ]; then
+        echo "ERROR: Contents/MacOS/python must be a symlink into Contents/Resources" >&2
+        echo "       (see relocate_python_runtime in this script)" >&2
+        exit 1
+    fi
+    # Version-agnostic interpreter name so a CPython version bump cannot
+    # silently skip the gate; if the dir exists the interpreter must too.
+    local pybin="$pydir/bin/python3"
+    if [ ! -x "$pybin" ]; then
+        echo "ERROR: bundled python/ present but no interpreter at $pybin" >&2
+        exit 1
+    fi
+    echo "  Verifying bundled Python runtime in $(basename "$app")..."
+    local bad
+    bad=$(otool -arch all -L "$pybin" "$app/Contents/MacOS/OrcaSlicer" | grep "libpython" | grep -v "@rpath/" || true)
+    if [ -n "$bad" ]; then
+        echo "ERROR: a bundled binary references libpython by absolute path (relocation regression):" >&2
+        echo "$bad" >&2
+        exit 1
+    fi
+    # otool -L shows load commands only; assert the consumer rpath separately.
+    # Its loss is masked on the build host by CMake's absolute build-tree rpath.
+    if ! otool -arch all -l "$app/Contents/MacOS/OrcaSlicer" | grep -q "path @executable_path/python/lib "; then
+        echo "ERROR: OrcaSlicer lacks the @executable_path/python/lib rpath (relocation regression)" >&2
+        exit 1
+    fi
+    if ! "$pybin" -c "import ssl"; then
+        echo "ERROR: bundled Python failed to start (libpython relocation broken," >&2
+        echo "       or missing Rosetta 2 for the x86_64 leg?)" >&2
+        exit 1
+    fi
 }
 
 function build_slicer() {
@@ -192,18 +263,16 @@ function build_slicer() {
                     -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
                     -DCMAKE_OSX_ARCHITECTURES="${_ARCH}" \
                     -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}" \
+                    -DCMAKE_IGNORE_PREFIX_PATH="${CMAKE_IGNORE_PREFIX_PATH}" \
                     ${CMAKE_POLICY_COMPAT}
             fi
             cmake --build . --config "$BUILD_CONFIG" --target "$SLICER_BUILD_TARGET"
         )
 
-        if [ "1." == "$BUILD_TESTS". ]; then
-            echo "Running tests for $_ARCH..."
-            (
-                set -x
-                cd "$PROJECT_BUILD_DIR"
-                ctest --build-config "$BUILD_CONFIG" --output-on-failure
-            )
+        # -T also runs the tests; ORCA_TESTS_BUILD_ONLY=1 builds them without
+        # running, so CI can build here and run them in a dedicated job.
+        if [ "1." == "$BUILD_TESTS". ] && [ "1." != "$ORCA_TESTS_BUILD_ONLY". ]; then
+            "$PROJECT_DIR/scripts/run_unit_tests.sh" "build/$_ARCH/tests" "$BUILD_CONFIG"
         fi
 
         echo "Verify localization with gettext..."
@@ -225,8 +294,11 @@ function build_slicer() {
             resources_path=$(readlink ./OrcaSlicer.app/Contents/Resources)
             rm ./OrcaSlicer.app/Contents/Resources
             cp -R "$resources_path" ./OrcaSlicer.app/Contents/Resources
+            relocate_python_runtime ./OrcaSlicer.app
             # delete .DS_Store file
             find ./OrcaSlicer.app/ -name '.DS_Store' -delete
+
+            verify_python_runtime ./OrcaSlicer.app
             
             # Copy OrcaSlicer_profile_validator.app if it exists
             if [ -f "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer_profile_validator.app/Contents/MacOS/OrcaSlicer_profile_validator" ]; then
@@ -235,6 +307,7 @@ function build_slicer() {
                 cp -pR "../src$BUILD_DIR_CONFIG_SUBDIR/OrcaSlicer_profile_validator.app" ./OrcaSlicer_profile_validator.app
                 # delete .DS_Store file
                 find ./OrcaSlicer_profile_validator.app/ -name '.DS_Store' -delete
+                verify_python_runtime ./OrcaSlicer_profile_validator.app
             fi
         )
 
@@ -290,6 +363,7 @@ function build_universal() {
     echo "Creating universal binaries for OrcaSlicer.app..."
     lipo_dir "$UNIVERSAL_APP" "$X86_64_APP"
     echo "Universal OrcaSlicer.app created at $UNIVERSAL_APP"
+    verify_python_runtime "$UNIVERSAL_APP"
 
     # Create universal binary for profile validator if it exists
     ARM64_VALIDATOR="$PROJECT_DIR/build/arm64/OrcaSlicer/OrcaSlicer_profile_validator.app"
@@ -331,3 +405,6 @@ fi
 if [ "1." == "$PACK_DEPS". ]; then
     pack_deps
 fi
+
+elapsed=$SECONDS
+printf "\nBuild completed in %dh %dm %ds\n" $((elapsed/3600)) $((elapsed%3600/60)) $((elapsed%60))

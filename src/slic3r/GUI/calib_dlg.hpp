@@ -13,7 +13,11 @@
 #include "Widgets/RadioGroup.hpp"
 #include "GUI_App.hpp"
 #include "wx/hyperlink.h"
+#include <wx/anybutton.h>
+#include <wx/checklst.h>
+#include <wx/event.h>
 #include <wx/radiobox.h>
+#include <wx/sizer.h>
 #include "libslic3r/calib.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -59,12 +63,16 @@ protected:
     
     virtual void on_start(wxCommandEvent& event);
     virtual void on_filament_type_changed(wxCommandEvent& event);
+    void on_show(wxShowEvent& event);
     Calib_Params m_params;
 
     RadioGroup* m_rbFilamentType;
+    RadioGroup* m_rbModel = nullptr;
+    wxStaticBoxSizer* m_model_box = nullptr;
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
+    CheckBox*  m_cbResize;
     Plater* m_plater;
 };
 
@@ -99,6 +107,8 @@ protected:
     TextInput* m_tiStart;
     TextInput* m_tiEnd;
     TextInput* m_tiStep;
+    CheckBox*  m_cbAutoAdjust;
+    CheckBox*  m_cbResize;
     Plater* m_plater;
 };
 
@@ -178,6 +188,22 @@ protected:
     RadioGroup* m_rbModel;
     TextInput* m_tiJDStart;
     TextInput* m_tiJDEnd;
+    Plater* m_plater;
+};
+
+class FlowRateCalibrationDialog : public DPIDialog
+{
+public:
+    FlowRateCalibrationDialog(wxWindow* parent, wxWindowID id, Plater* plater);
+    ~FlowRateCalibrationDialog();
+    void on_dpi_changed(const wxRect& suggested_rect) override;
+
+protected:
+    virtual void on_start(wxCommandEvent& event);
+
+    RadioGroup* m_rbType;
+    // ORCA: use standard OrcaSlicer ComboBox instead of BitmapComboBox
+    ComboBox* m_rbPattern;
     Plater* m_plater;
 };
 }} // namespace Slic3r::GUI

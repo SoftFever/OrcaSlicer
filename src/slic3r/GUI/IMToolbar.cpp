@@ -1,9 +1,12 @@
 #include "IMToolbar.hpp"
 
 #include "3DScene.hpp"
-#include <GL/glew.h>
+#include <cstdint>
+#include <glad/gl.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/imgui.h>
+#include <string>
+#include "libslic3r/Utils.hpp"
 
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
@@ -61,8 +64,6 @@ void IMToolbar::del_stats_item()
 void IMToolbar::set_enabled(bool enable)
 {
     m_enabled = enable;
-    if (!m_enabled)
-        is_render_finish = false;
 }
 
 bool IMReturnToolbar::init()
@@ -87,7 +88,7 @@ bool IMReturnToolbar::init()
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
-    if (compress && GLEW_EXT_texture_compression_s3tc)
+    if (compress && GLAD_GL_EXT_texture_compression_s3tc)
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, data.width, data.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data.width, data.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));

@@ -1,7 +1,9 @@
 #ifndef __I_CLOUD_SERVICE_AGENT_HPP__
 #define __I_CLOUD_SERVICE_AGENT_HPP__
 
+#include "ICameraSignalingChannel.hpp"
 #include "bambu_networking.hpp"
+#include "CloudProvider.hpp"
 #include "../../libslic3r/ProjectTask.hpp"
 #include <string>
 #include <map>
@@ -35,6 +37,14 @@ namespace Slic3r {
  * access tokens for cloud-relay operations without coupling to a specific auth
  * implementation.
  */
+
+struct CloudEvent {
+    std::string provider;  // ORCA_CLOUD_PROVIDER or BBL_CLOUD_PROVIDER
+};
+
+using AppOnServerConnectedFn = std::function<void(CloudEvent event, int return_code, int reason_code)>;
+using AppOnHttpErrorFn = std::function<void(CloudEvent event, unsigned http_code, std::string http_body)>;
+
 class ICloudServiceAgent {
 public:
     virtual ~ICloudServiceAgent() = default;
@@ -65,6 +75,7 @@ public:
      */
     virtual int set_country_code(std::string country_code) = 0;
 
+    virtual std::string get_id() const = 0;
     /**
      * Start the agent, performing any expensive initialization.
      * Typically regenerates PKCE bundles and attempts silent sign-in.
@@ -82,7 +93,6 @@ public:
      * 2. WebView/OAuth: {"command": "user_login", "data": {...}}
      * 3. Token format: {"data": {"token": "...", "refresh_token": "...", "user": {...}}}
      *
-     * On completion, invokes the registered OnUserLoginFn callback.
      */
     virtual int change_user(std::string user_info) = 0;
 
@@ -190,6 +200,9 @@ public:
 
     /**
      * Force a server state recheck, clearing any cached state.
+     * The result arrives through is_server_connected() and OnServerConnectedFn. Implementations may
+     * return before the check finishes, fold the call into a check already in flight, and ignore
+     * calls while the agent is shutting down.
      */
     virtual int refresh_connection() = 0;
 
@@ -235,7 +248,7 @@ public:
     /**
      * Update or create a preset with a known setting_id.
      */
-    virtual int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code) = 0;
+    virtual int put_setting(std::string setting_id, std::string name, std::map<std::string, std::string>* values_map, unsigned int* http_code, bool force = false) = 0;
 
     /**
      * Trigger bulk download of user presets.
@@ -319,6 +332,17 @@ public:
     virtual int get_camera_url(std::string dev_id, std::function<void(std::string)> callback) = 0;
 
     /**
+     * Create a camera signaling channel object for P2P camera streaming over WebRTC.
+     * 
+     */
+    virtual std::unique_ptr<ICameraSignalingChannel>
+    create_camera_signaling_channel(const std::string& dev_id)
+    {
+        (void) dev_id;
+        return nullptr;
+    }
+
+    /**
      * Fetch staff-picked designs from model mall.
      */
     virtual int get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback) = 0;
@@ -352,6 +376,14 @@ public:
      * Retrieve user's model mall profile.
      */
     virtual int get_my_profile(std::string token, unsigned int* http_code, std::string* http_body) = 0;
+
+    /**
+     * Exchange a one-time login ticket (from a third-party OAuth callback)
+     * for token + profile JSON. Used by the localhost callback handler when
+     * the auth server redirects with ?ticket=...&redirect_url=... instead of
+     * passing tokens directly in the URL.
+     */
+    virtual int get_my_token(std::string ticket, unsigned int* http_code, std::string* http_body) = 0;
 
     // ========================================================================
     // Analytics & Tracking
@@ -418,16 +450,6 @@ public:
     // Extra Features
     // ========================================================================
     /**
-     * Set additional HTTP headers for all requests.
-     */
-    virtual int set_extra_http_header(std::map<std::string, std::string> extra_headers) = 0;
-
-    /**
-     * Get the studio info URL.
-     */
-    virtual std::string get_studio_info_url() = 0;
-
-    /**
      * Fetch MakerWorld user preferences.
      */
     virtual int get_mw_user_preference(std::function<void(std::string)> callback) = 0;
@@ -446,20 +468,14 @@ public:
     // Callback Registration
     // ========================================================================
     /**
-     * Register the login status callback.
-     * Called after change_user() finishes or when the session expires.
-     */
-    virtual int set_on_user_login_fn(OnUserLoginFn fn) = 0;
-
-    /**
      * Register server connection status callback.
      */
-    virtual int set_on_server_connected_fn(OnServerConnectedFn fn) = 0;
+    virtual int set_on_server_connected_fn(AppOnServerConnectedFn fn) = 0;
 
     /**
      * Register HTTP error callback.
      */
-    virtual int set_on_http_error_fn(OnHttpErrorFn fn) = 0;
+    virtual int set_on_http_error_fn(AppOnHttpErrorFn fn) = 0;
 
     /**
      * Provide country code getter callback.

@@ -1,6 +1,9 @@
 #ifndef slic3r_Model_hpp_
 #define slic3r_Model_hpp_
 
+#include "BoundingBox.hpp"
+#include "Polygon.hpp"
+#include "Semver.hpp"
 #include "libslic3r.h"
 #include "enum_bitmask.hpp"
 #include "Geometry.hpp"
@@ -15,10 +18,10 @@
 #include "TriangleMesh.hpp"
 #include "CustomGCode.hpp"
 #include "calib.hpp"
-#include "enum_bitmask.hpp"
 #include "TextConfiguration.hpp"
 #include "EmbossShape.hpp"
 #include "TriangleSelector.hpp"
+#include "TextureDisplacement.hpp"
 
 //BBS: add bbs 3mf
 #include "Format/bbs_3mf.hpp"
@@ -28,6 +31,14 @@
 #include "Format/STL.hpp"
 #include "Format/OBJ.hpp"
 
+#include <array>
+#include <cereal/access.hpp>
+#include <cereal/types/base_class.hpp>
+#include <cassert>
+#include <cstddef>
+#include <iterator>
+#include <initializer_list>
+#include <cereal/specialize.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -47,6 +58,8 @@ namespace cereal {
 }
 
 namespace Slic3r {
+
+struct TexturedMesh;
 enum class ConversionType;
 
 class BuildVolume;
@@ -345,7 +358,20 @@ enum class ModelVolumeType : int {
     PARAMETER_MODIFIER,
     SUPPORT_BLOCKER,
     SUPPORT_ENFORCER,
+    // Precise seam modifiers (6 subtypes for seam placement control).
+    // Order is critical: strong types first, then weak. Range checks in is_precise_seam*() depend on it.
+    PRECISE_SEAM_CENTER,
+    PRECISE_SEAM_LEFT,
+    PRECISE_SEAM_RIGHT,
+    PRECISE_SEAM_ENFORCED,
+    PRECISE_SEAM_BLOCKED,
+    PRECISE_SEAM_NEUTRAL,
 };
+
+// Free functions for checking ModelVolumeType without a ModelVolume object.
+inline bool is_precise_seam(ModelVolumeType t)       { return t >= ModelVolumeType::PRECISE_SEAM_CENTER && t <= ModelVolumeType::PRECISE_SEAM_NEUTRAL; }
+inline bool is_precise_seam_strong(ModelVolumeType t) { return t >= ModelVolumeType::PRECISE_SEAM_CENTER && t <= ModelVolumeType::PRECISE_SEAM_RIGHT; }
+inline bool is_precise_seam_weak(ModelVolumeType t)   { return t >= ModelVolumeType::PRECISE_SEAM_ENFORCED && t <= ModelVolumeType::PRECISE_SEAM_NEUTRAL; }
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
 // and possibly having multiple modifier volumes, each modifier volume with its set of parameters and materials.
@@ -516,7 +542,7 @@ public:
     void delete_connectors();
     void clone_for_cut(ModelObject **obj);
 
-    void split(ModelObjectPtrs*new_objects);
+    void split(ModelObjectPtrs*new_objects, bool remap_paint);
     void merge();
 
     // BBS: Boolean opts - Musang King
@@ -719,6 +745,7 @@ enum class ConversionType : int {
 };
 
 enum class En3mfType : int {
+    From_Orca,
     From_BBS,
     From_Prusa,
     From_Other
@@ -730,6 +757,7 @@ public:
     void assign(const FacetsAnnotation &rhs) { if (! this->timestamp_matches(rhs)) { m_data = rhs.m_data; this->copy_timestamp(rhs); } }
     void assign(FacetsAnnotation &&rhs) { if (! this->timestamp_matches(rhs)) { m_data = std::move(rhs.m_data); this->copy_timestamp(rhs); } }
     const TriangleSelector::TriangleSplittingData &get_data() const noexcept { return m_data; }
+    void set_data(TriangleSelector::TriangleSplittingData &&data) { m_data = std::move(data); this->touch(); }
     bool set(const TriangleSelector& selector);
     indexed_triangle_set get_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     // BBS
@@ -738,6 +766,13 @@ public:
                                                        EnforcerBlockerType max_type,
                                                        EnforcerBlockerType to_delete_filament = EnforcerBlockerType::NONE,
                                                        EnforcerBlockerType replace_filament = EnforcerBlockerType::NONE);
+    // Shift painted filament indices >= threshold by delta. Used when a physical filament is
+    // inserted ahead of existing slots (mixed-color slots are kept at the end of the list).
+    void                 shift_states_above(const ModelVolume &mv, EnforcerBlockerType threshold, int delta);
+    // Relabel painted filament indices according to state_map (old state value -> new state
+    // value; untouched states keep their identity). Used when published-3MF import relocates
+    // mixed-filament definitions onto new slot numbers.
+    void                 remap_states(const ModelVolume &mv, const EnforcerBlockerStateMap &state_map);
     indexed_triangle_set get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool has_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool empty() const { return m_data.triangles_to_split.empty(); }
@@ -876,12 +911,80 @@ public:
     // List of mesh facets painted for fuzzy skin.
     FacetsAnnotation    fuzzy_skin_facets;
 
+    // One independent paint mask per texture-displacement layer slot (see texture_displacement_layers
+    // below). Unlike the other facets fields above, a triangle may be painted (ENFORCER) in more
+    // than one of these simultaneously -- that overlap is what makes the layers "blend".
+    //
+    // These are 8 plain named fields rather than a std::array<FacetsAnnotation, N>: FacetsAnnotation's
+    // default/copy constructors are private and friended only to ModelVolume, but std::array's own
+    // implicitly-defined default/copy constructors are generated with std::array's access rights,
+    // not ModelVolume's -- so an array of FacetsAnnotation ends up with its default/copy
+    // constructors implicitly deleted regardless of the friend declaration. Use
+    // texture_displacement_facet(slot) below for array-like indexed access.
+    FacetsAnnotation texture_displacement_facets_0;
+    FacetsAnnotation texture_displacement_facets_1;
+    FacetsAnnotation texture_displacement_facets_2;
+    FacetsAnnotation texture_displacement_facets_3;
+    FacetsAnnotation texture_displacement_facets_4;
+    FacetsAnnotation texture_displacement_facets_5;
+    FacetsAnnotation texture_displacement_facets_6;
+    FacetsAnnotation texture_displacement_facets_7;
+
+    FacetsAnnotation& texture_displacement_facet(int slot) {
+        switch (slot) {
+        case 0: return texture_displacement_facets_0;
+        case 1: return texture_displacement_facets_1;
+        case 2: return texture_displacement_facets_2;
+        case 3: return texture_displacement_facets_3;
+        case 4: return texture_displacement_facets_4;
+        case 5: return texture_displacement_facets_5;
+        case 6: return texture_displacement_facets_6;
+        default: assert(slot == 7); return texture_displacement_facets_7;
+        }
+    }
+    const FacetsAnnotation& texture_displacement_facet(int slot) const { return const_cast<ModelVolume*>(this)->texture_displacement_facet(slot); }
+
+    // Small helpers for the constructor asserts below (kept out of line-noise at each call site).
+    bool texture_displacement_facets_ids_valid() const {
+        for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
+            if (!texture_displacement_facet(i).id().valid() || texture_displacement_facet(i).id() == this->id())
+                return false;
+        return true;
+    }
+    bool texture_displacement_facets_ids_invalid() const {
+        for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
+            if (texture_displacement_facet(i).id().valid())
+                return false;
+        return true;
+    }
+    bool texture_displacement_facets_all_empty() const {
+        for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
+            if (!texture_displacement_facet(i).empty())
+                return false;
+        return true;
+    }
+
+    // Texture assets (height maps) and their projection/displacement parameters. Element order
+    // is not meaningful for baking (layers are applied in TextureDisplacementLayer::slot order,
+    // see build_texture_displacement()); it only reflects UI insertion order.
+    std::vector<TextureDisplacementLayer> texture_displacement_layers;
+
+    // Whole-stack displacement settings (border handling, post-process smoothing) - see
+    // TextureDisplacementOptions. They live beside the layers rather than on one of them because
+    // they are not a property of any single layer.
+    TextureDisplacementOptions texture_displacement_options;
+
+    // Save painting data before reset_extra_facets() discards it.
+    // Used for replacing mesh without losing painting data.
+    // Only for model parts (not modifiers/connectors).
+    std::optional<TriangleSelector::SavedPainting> save_painting() const;
+    
+    // Remap painting data from previous saved source to this mesh
+    void restore_painting(const std::optional<TriangleSelector::SavedPainting>& saved, bool keep_existing_paint = false);
+
     // BBS: quick access for volume extruders, 1 based
     mutable std::vector<int> mmuseg_extruders;
     mutable Timestamp        mmuseg_ts;
-
-    // List of exterior faces
-    FacetsAnnotation    exterior_facets;
 
     // Is set only when volume is Embossed Text type
     // Contain information how to re-create volume
@@ -901,6 +1004,14 @@ public:
 	bool                is_support_enforcer()   const { return m_type == ModelVolumeType::SUPPORT_ENFORCER; }
 	bool                is_support_blocker()    const { return m_type == ModelVolumeType::SUPPORT_BLOCKER; }
 	bool                is_support_modifier()   const { return m_type == ModelVolumeType::SUPPORT_BLOCKER || m_type == ModelVolumeType::SUPPORT_ENFORCER; }
+	// Check if this volume is any of the precise seam modifier subtypes
+	bool                is_precise_seam()       const { return Slic3r::is_precise_seam(m_type); }
+	// Helper to check if volume is a "strong" Precise Seam type (center, left, right)
+	// Strong modifiers have priority and always appear above weak modifiers in UI
+	bool                is_precise_seam_strong() const { return Slic3r::is_precise_seam_strong(m_type); }
+	// Helper to check if volume is a "weak" Precise Seam type (enforced, blocked, neutral)
+	// Weak modifiers always appear below strong modifiers in UI
+	bool                is_precise_seam_weak()   const { return Slic3r::is_precise_seam_weak(m_type); }
     bool                is_text()               const { return text_configuration.has_value(); }
     bool                is_svg() const { return emboss_shape.has_value()  && !text_configuration.has_value(); }
     bool                is_the_only_one_part() const; // behave like an object
@@ -913,17 +1024,25 @@ public:
     // Extruder ID is only valid for FFF. Returns -1 for SLA or if the extruder ID is not applicable (support volumes).
     int                 extruder_id() const;
 
+    //Orca: cache clearing procedure to ensure that the shape is positioned accurately when manipulating it
+    void clear_cache() {
+        m_cached_trans_matrix = Transform3d::Identity().inverse(); // get unvelivable matrix
+        m_convex_hull_2d.clear();
+        m_cached_2d_polygon.clear();
+    };
+
     bool                is_splittable() const;
 
     // BBS
     std::vector<int>    get_extruders() const;
     void                update_extruder_count(size_t extruder_count);
-    void                update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id = -1);
+    void                update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id = -1,
+                                                                   const std::vector<unsigned char> &filament_is_mixed = {});
 
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
-    size_t              split(unsigned int max_extruders);
+    size_t              split(unsigned int max_extruders, bool remap_paint);
     void                translate(double x, double y, double z) { translate(Vec3d(x, y, z)); }
     void                translate(const Vec3d& displacement);
     void                scale(const Vec3d& scaling_factors);
@@ -959,34 +1078,34 @@ public:
     static std::string  type_to_string(const ModelVolumeType t);
 
     const Geometry::Transformation& get_transformation() const { return m_transformation; }
-    void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
-    void set_transformation(const Transform3d& trafo) { m_transformation.set_matrix(trafo); }
+    void set_transformation(const Geometry::Transformation& transformation) { clear_cache(); m_transformation = transformation; }
+    void set_transformation(const Transform3d& trafo) { clear_cache(); m_transformation.set_matrix(trafo); }
 
     Vec3d get_offset() const { return m_transformation.get_offset(); }
 
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
 
-    void set_offset(const Vec3d& offset) { m_transformation.set_offset(offset); }
-    void set_offset(Axis axis, double offset) { m_transformation.set_offset(axis, offset); }
+    void set_offset(const Vec3d& offset) { clear_cache(); m_transformation.set_offset(offset); }
+    void set_offset(Axis axis, double offset) { clear_cache(); m_transformation.set_offset(axis, offset); }
 
     Vec3d get_rotation() const { return m_transformation.get_rotation(); }
     double get_rotation(Axis axis) const { return m_transformation.get_rotation(axis); }
 
-    void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); }
-    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); }
+    void set_rotation(const Vec3d& rotation) { clear_cache(); m_transformation.set_rotation(rotation); }
+    void set_rotation(Axis axis, double rotation) { clear_cache(); m_transformation.set_rotation(axis, rotation); }
 
     Vec3d get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
     double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
 
-    void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); }
-    void set_scaling_factor(Axis axis, double scaling_factor) { m_transformation.set_scaling_factor(axis, scaling_factor); }
+    void set_scaling_factor(const Vec3d& scaling_factor) { clear_cache(); m_transformation.set_scaling_factor(scaling_factor); }
+    void set_scaling_factor(Axis axis, double scaling_factor) {clear_cache(); m_transformation.set_scaling_factor(axis, scaling_factor); }
 
     Vec3d get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
     bool is_left_handed() const { return m_transformation.is_left_handed(); }
 
-    void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
-    void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
+    void set_mirror(const Vec3d& mirror) { clear_cache(); m_transformation.set_mirror(mirror); }
+    void set_mirror(Axis axis, double mirror) { clear_cache(); m_transformation.set_mirror(axis, mirror); }
     void convert_from_imperial_units();
     void convert_from_meters();
 
@@ -1000,12 +1119,18 @@ public:
         this->seam_facets.set_new_unique_id();
         this->mmu_segmentation_facets.set_new_unique_id();
         this->fuzzy_skin_facets.set_new_unique_id();
+        for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
+            this->texture_displacement_facet(i).set_new_unique_id();
     }
 
     bool is_fdm_support_painted() const { return !this->supported_facets.empty(); }
     bool is_seam_painted() const { return !this->seam_facets.empty(); }
     bool is_mm_painted() const { return !this->mmu_segmentation_facets.empty(); }
     bool is_fuzzy_skin_painted() const { return !this->fuzzy_skin_facets.empty(); }
+    bool is_texture_displacement_painted() const { return !this->texture_displacement_facets_all_empty(); }
+    bool is_any_painted() const {
+        return is_fdm_support_painted() || is_seam_painted() || is_mm_painted() || is_fuzzy_skin_painted() || is_texture_displacement_painted();
+    }
     
     // Orca: Implement prusa's filament shrink compensation approach
     // Returns 0-based indices of extruders painted by multi-material painting gizmo.
@@ -1016,7 +1141,7 @@ protected:
     friend class SLAPrint;
     friend class Model;
 	friend class ModelObject;
-    friend void model_volume_list_update_supports(ModelObject& model_object_dst, const ModelObject& model_object_new);
+    friend void model_volume_list_update_supports_and_seams(ModelObject& model_object_dst, const ModelObject& model_object_new);
 
 	// Copies IDs of both the ModelVolume and its config.
 	explicit ModelVolume(const ModelVolume &rhs) = default;
@@ -1058,6 +1183,7 @@ private:
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->fuzzy_skin_facets.id().valid());
+        assert(this->texture_displacement_facets_ids_valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
         assert(this->id() != this->seam_facets.id());
@@ -1074,6 +1200,7 @@ private:
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->fuzzy_skin_facets.id().valid());
+        assert(this->texture_displacement_facets_ids_valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
         assert(this->id() != this->seam_facets.id());
@@ -1088,6 +1215,7 @@ private:
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
         assert(this->fuzzy_skin_facets.id().valid());
+        assert(this->texture_displacement_facets_ids_valid());
         assert(this->id() != this->config.id());
         assert(this->id() != this->supported_facets.id());
         assert(this->id() != this->seam_facets.id());
@@ -1101,10 +1229,17 @@ private:
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
         config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
         supported_facets(other.supported_facets), seam_facets(other.seam_facets), mmu_segmentation_facets(other.mmu_segmentation_facets),
-        fuzzy_skin_facets(other.fuzzy_skin_facets), cut_info(other.cut_info), text_configuration(other.text_configuration), emboss_shape(other.emboss_shape)
+        fuzzy_skin_facets(other.fuzzy_skin_facets),
+        texture_displacement_facets_0(other.texture_displacement_facets_0), texture_displacement_facets_1(other.texture_displacement_facets_1),
+        texture_displacement_facets_2(other.texture_displacement_facets_2), texture_displacement_facets_3(other.texture_displacement_facets_3),
+        texture_displacement_facets_4(other.texture_displacement_facets_4), texture_displacement_facets_5(other.texture_displacement_facets_5),
+        texture_displacement_facets_6(other.texture_displacement_facets_6), texture_displacement_facets_7(other.texture_displacement_facets_7),
+        texture_displacement_layers(other.texture_displacement_layers),
+        texture_displacement_options(other.texture_displacement_options),
+        cut_info(other.cut_info), text_configuration(other.text_configuration), emboss_shape(other.emboss_shape)
     {
-		assert(this->id().valid()); 
-        assert(this->config.id().valid()); 
+		assert(this->id().valid());
+        assert(this->config.id().valid());
         assert(this->supported_facets.id().valid());
         assert(this->seam_facets.id().valid());
         assert(this->mmu_segmentation_facets.id().valid());
@@ -1154,6 +1289,8 @@ private:
         assert(this->seam_facets.empty());
         assert(this->mmu_segmentation_facets.empty());
         assert(this->fuzzy_skin_facets.empty());
+        assert(this->texture_displacement_facets_all_empty());
+        assert(this->texture_displacement_layers.empty());
     }
 
     ModelVolume& operator=(ModelVolume &rhs) = delete;
@@ -1161,13 +1298,17 @@ private:
 	friend class cereal::access;
 	friend class UndoRedo::StackImpl;
 	// Used for deserialization, therefore no IDs are allocated.
-	ModelVolume() : ObjectBase(-1), config(-1), supported_facets(-1), seam_facets(-1), mmu_segmentation_facets(-1), fuzzy_skin_facets(-1), object(nullptr) {
+	ModelVolume() : ObjectBase(-1), config(-1), supported_facets(-1), seam_facets(-1), mmu_segmentation_facets(-1), fuzzy_skin_facets(-1),
+		texture_displacement_facets_0(-1), texture_displacement_facets_1(-1), texture_displacement_facets_2(-1), texture_displacement_facets_3(-1),
+		texture_displacement_facets_4(-1), texture_displacement_facets_5(-1), texture_displacement_facets_6(-1), texture_displacement_facets_7(-1),
+		object(nullptr) {
 		assert(this->id().invalid());
         assert(this->config.id().invalid());
         assert(this->supported_facets.id().invalid());
         assert(this->seam_facets.id().invalid());
         assert(this->mmu_segmentation_facets.id().invalid());
         assert(this->fuzzy_skin_facets.id().invalid());
+        assert(this->texture_displacement_facets_ids_invalid());
 	}
 	template<class Archive> void load(Archive &ar) {
 		bool has_convex_hull;
@@ -1187,6 +1328,13 @@ private:
         mesh_changed |= t != mmu_segmentation_facets.timestamp();
         cereal::load_by_value(ar, fuzzy_skin_facets);
         mesh_changed |= t != fuzzy_skin_facets.timestamp();
+        for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i) {
+            FacetsAnnotation &f  = texture_displacement_facet(i);
+            Timestamp         tf = f.timestamp();
+            cereal::load_by_value(ar, f);
+            mesh_changed |= tf != f.timestamp();
+        }
+        ar(texture_displacement_layers, texture_displacement_options);
         cereal::load_by_value(ar, config);
         cereal::load(ar, text_configuration);
         cereal::load(ar, emboss_shape);
@@ -1208,6 +1356,9 @@ private:
         cereal::save_by_value(ar, seam_facets);
         cereal::save_by_value(ar, mmu_segmentation_facets);
         cereal::save_by_value(ar, fuzzy_skin_facets);
+        for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
+            cereal::save_by_value(ar, texture_displacement_facet(i));
+        ar(texture_displacement_layers, texture_displacement_options);
         cereal::save_by_value(ar, config);
         cereal::save(ar, text_configuration);
         cereal::save(ar, emboss_shape);
@@ -1251,6 +1402,7 @@ public:
     ModelInstanceEPrintVolumeState print_volume_state;
     // Whether or not this instance is printable
     bool printable;
+    bool auto_drop;
     bool use_loaded_id_for_label {false};
     int arrange_order = 0; // BBS
     size_t loaded_id = 0; // BBS
@@ -1379,7 +1531,11 @@ private:
     Polygon convex_hull; // BBS
 
     // Constructor, which assigns a new unique ID.
-    explicit ModelInstance(ModelObject* object) : print_volume_state(ModelInstancePVS_Inside), printable(true), object(object), m_assemble_initialized(false) { assert(this->id().valid()); }
+    explicit ModelInstance(ModelObject* object)
+        : print_volume_state(ModelInstancePVS_Inside), printable(true), auto_drop(true), object(object), m_assemble_initialized(false)
+    {
+        assert(this->id().valid());
+    }
     // Constructor, which assigns a new unique ID.
     explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_transformation(other.m_transformation)
@@ -1387,6 +1543,7 @@ private:
         , m_offset_to_assembly(other.m_offset_to_assembly)
         , print_volume_state(ModelInstancePVS_Inside)
         , printable(other.printable)
+        , auto_drop(other.auto_drop)
         , object(object)
         , m_assemble_initialized(false) { assert(this->id().valid() && this->id() != other.id()); }
 
@@ -1400,7 +1557,7 @@ private:
 	ModelInstance() : ObjectBase(-1), object(nullptr) { assert(this->id().invalid()); }
     // BBS. Add added members to archive.
     template<class Archive> void serialize(Archive& ar) {
-        ar(m_transformation, print_volume_state, printable, m_assemble_transformation, m_offset_to_assembly, m_assemble_initialized);
+        ar(m_transformation, print_volume_state, printable, auto_drop, m_assemble_transformation, m_offset_to_assembly, m_assemble_initialized);
     }
 };
 
@@ -1453,6 +1610,7 @@ struct GlobalSpeedMap
     double topSolidInfillSpeed;
     double supportSpeed;
     double smallPerimeterSpeed;
+    double smallSupportPerimeterSpeed;
     double maxSpeed;
     Polygon bed_poly;
 };
@@ -1527,11 +1685,19 @@ public:
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;
 
+    // Textured mesh data for texture-to-painting import. Populated by the loader when a mesh
+    // arrives with usable UVs and a texture map; consumed (and reset) by the import dialog.
+    std::shared_ptr<TexturedMesh> texture_mesh;
+
     //makerlab information
     std::string mk_name;
     std::string mk_version;
     std::vector<std::string> md_name;
     std::vector<std::string> md_value;
+
+    // Opaque parametric CAD recipe (CadDocument::serialize_recipe()), round-tripped through
+    // the 3MF as Metadata/orca_cad.bin. Empty for non-CAD projects.
+    std::string cad_recipe;
 
     void SetDesigner(std::string designer, std::string designer_user_id) {
         if (design_info == nullptr) {
@@ -1574,8 +1740,8 @@ public:
                                 ImportStepProgressFn                                    stepFn,
                                 StepIsUtf8Fn                                            stepIsUtf8Fn,
                                 std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
-                                double                                                  linear_defletion,
-                                double                                                  angle_defletion,
+                                double                                                  linear_deflection,
+                                double                                                  angle_deflection,
                                 bool                                                    is_split_compound);
 
     //BBS: add part plate related logic
@@ -1588,8 +1754,7 @@ public:
         std::vector<Preset*>* project_presets = nullptr, bool* is_xxx = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr,
                                 ImportstlProgressFn        stlFn                = nullptr,
                                 BBLProject *               project              = nullptr,
-                                int                        plate_id             = 0,
-                                ObjImportColorFn           objFn                = nullptr
+                                int                        plate_id             = 0
                                 );
     // BBS
     static bool    obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, const unsigned char &first_extruder_id, Model *model);
@@ -1757,6 +1922,13 @@ bool model_brim_points_data_changed(const ModelObject& mo, const ModelObject& mo
 bool model_has_multi_part_objects(const Model &model);
 // If the model has advanced features, then it cannot be processed in simple mode.
 bool model_has_advanced_features(const Model &model);
+
+// Remap the model's filament-slot references after a published-3MF import relocated
+// mixed-filament definitions onto new slot numbers: object/volume "extruder" configs and
+// multi-material color-painting states (paint state stores the one-based slot number).
+// slot_relocations maps the author's zero-based slot number to its final zero-based slot;
+// entries are applied simultaneously (no chained lookups), untouched slots keep everything.
+void remap_model_filament_slots(Model &model, const std::map<int, int> &slot_relocations);
 
 #ifndef NDEBUG
 // Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.

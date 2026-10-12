@@ -1,19 +1,30 @@
 #ifndef slic3r_GUI_ObjectList_hpp_
 #define slic3r_GUI_ObjectList_hpp_
 
+#include <cstdint>
+#include <cstddef>
+#include <functional>
 #include <map>
+#include <string>
+#include <utility>
 #include <vector>
 #include <set>
 
+#include <wx/arrstr.h>
 #include <wx/bitmap.h>
 #include <wx/dataview.h>
+#include <wx/gdicmn.h>
+#include <wx/event.h>
 #include <wx/menu.h>
+#include <wx/string.h>
+#include <wx/window.h>
 
 #include "Event.hpp"
-#include "wxExtensions.hpp"
 #include "ObjectDataViewModel.hpp"
 
 #include "libslic3r/PrintConfig.hpp"
+
+class wxBitmap;
 
 class wxBoxSizer;
 class wxBitmapComboBox;
@@ -37,9 +48,12 @@ typedef std::pair<coordf_t, coordf_t>               t_layer_height_range;
 typedef std::map<t_layer_height_range, ModelConfig> t_layer_config_ranges;
 
 // Manifold mesh may contain self-intersections, so we want to always allow fixing the mesh.
-#define FIX_THROUGH_NETFABB_ALWAYS 1
+#define FIX_THROUGH_CGAL_ALWAYS 1
 
 namespace GUI {
+
+enum class Shortcut : uint8_t;
+
 struct ObjectVolumeID {
     ModelObject* object{ nullptr };
     ModelVolume* volume{ nullptr };
@@ -192,6 +206,13 @@ private:
     int 	    m_last_selected_column = -1;
 #endif /* __MSW__ */
 
+#ifdef __WXOSX__
+    bool m_starting_filament_editor = false;
+    wxDataViewItem m_filament_editor_item { nullptr };
+    bool is_live_model_item(wxDataViewItem item) const;
+    void start_filament_editor(wxDataViewItem item);
+#endif // __WXOSX__
+
 #if 0
     SettingsFactory::Bundle m_freq_settings_fff;
     SettingsFactory::Bundle m_freq_settings_sla;
@@ -263,7 +284,11 @@ public:
     void                extruder_editing();
 #ifndef __WXOSX__
     void                key_event(wxKeyEvent& event);
+#else
+    // wxDataViewCtrl never sees key events on macOS, so the bindings are installed as accelerators.
+    void                update_shortcut_accelerators();
 #endif /* __WXOSX__ */
+    bool                dispatch_shortcut(Shortcut shortcut);
 
     void                copy();
     void                paste();
@@ -290,6 +315,8 @@ public:
     void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                load_shape_object(const std::string &type_name);
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
+    // One object holding one part per mesh; the parts keep their placement relative to each other.
+    void                load_mesh_object(const std::vector<std::pair<const TriangleMesh*, wxString>> &parts, const wxString &name, bool center = true);
     // BBS
     void                switch_to_object_process();
     bool                del_object(const int obj_idx, bool refresh_immediately = true);
@@ -413,7 +440,16 @@ public:
     bool fix_cut_selection(wxDataViewItemArray &sels);
 
     ModelVolume* get_selected_model_volume();
+#if 0 // ORCA: disabled alongside definition in GUI_ObjectList.cpp (see #if 0 block there)
     void change_part_type();
+#endif
+	// preserve_ps_subtype = true: when new_type is PRECISE_SEAM_CENTER, volumes that are
+	//   already Precise Seam keep their existing subtype (LEFT/RIGHT/etc.). Used by the
+	//   generic "Change type → Precise Seam" entry where CENTER is a default fallback.
+	// preserve_ps_subtype = false: no preservation — target type is applied verbatim. Used
+	//   by the "Precise Seam Type" subtype picker where the user explicitly wants CENTER.
+	void set_volume_type(ModelVolumeType new_type, bool preserve_ps_subtype = true);
+    ModelVolumeType get_selected_volume_type();
 
     void last_volume_is_deleted(const int obj_idx);
     void update_and_show_object_settings_item();
@@ -426,7 +462,7 @@ public:
     void instances_to_separated_objects(const int obj_idx);
     void split_instances();
     void rename_item();
-    void fix_through_netfabb();
+    void fix_through_cgal();
     void simplify();
     void smooth_mesh();
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;
@@ -447,6 +483,7 @@ public:
     //update printable state for item from objects model
     void update_printable_state(int obj_idx, int instance_idx);
     void toggle_printable_state();
+    void toggle_auto_drop();
     void enable_layers_editing();
 
     //BBS: remove const qualifier
@@ -461,6 +498,7 @@ public:
     void on_plate_selected(int plate_index);
     void notify_instance_updated(int obj_idx);
     void object_config_options_changed(const ObjectVolumeID& ov_id);
+    void printable_state_changed(const std::vector<ModelObject*> model_objects);
     void printable_state_changed(const std::vector<ObjectVolumeID>& ov_ids);
 
     // search objectlist
@@ -469,8 +507,8 @@ public:
 
 private:
 #ifdef __WXOSX__
-//    void OnChar(wxKeyEvent& event);
     wxAcceleratorTable m_accel;
+    wxWindowID         m_shortcut_id_base;
 #endif /* __WXOSX__ */
     void OnContextMenu(wxDataViewEvent &event);
     void list_manipulation(const wxPoint& mouse_pos, bool evt_context_menu = false);

@@ -6,10 +6,16 @@
 
 #include <cassert>
 #include <algorithm>
+#include <string>
+#include <initializer_list>
+#include <memory>
+#include "slic3r/GUI/OpenGLManager.hpp"
+#include "libslic3r/Technologies.hpp"
 #include <string_view>
+#include <utility>
 using namespace std::literals;
 
-#include <GL/glew.h>
+#include <glad/gl.h>
 
 namespace Slic3r {
 
@@ -48,6 +54,10 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("flat_clip", { prefix + "flat_clip.vs", prefix + "flat_clip.fs" });
     // basic shader for textures, used to render textures
     valid &= append_shader("flat_texture", { prefix + "flat_texture.vs", prefix + "flat_texture.fs" });
+    // used to apply post-processing antialiasing in screen space
+    valid &= append_shader("fxaa", { prefix + "fxaa.vs", prefix + "fxaa.fs" });
+    // used to apply screen-space ambient occlusion in post process
+    valid &= append_shader("ssao", { prefix + "ssao.vs", prefix + "ssao.fs" });
     // used to render 3D scene background
     valid &= append_shader("background", { prefix + "background.vs", prefix + "background.fs" });
 #if SLIC3R_OPENGL_ES
@@ -64,6 +74,10 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("thumbnail", { prefix + "thumbnail.vs", prefix + "thumbnail.fs"});
     // used to render printbed
     valid &= append_shader("printbed", { prefix + "printbed.vs", prefix + "printbed.fs" });
+#if !SLIC3R_OPENGL_ES
+    // used to cast the object shadow map onto the build plate (realistic view)
+    valid &= append_shader("printbed_shadow", { prefix + "printbed_shadow.vs", prefix + "printbed_shadow.fs" });
+#endif // !SLIC3R_OPENGL_ES
     valid &= append_shader("hotbed", {prefix + "hotbed.vs", prefix + "hotbed.fs"});
     // used to render options in gcode preview
     if (GUI::wxGetApp().is_gl_version_greater_or_equal_to(3, 3)) {
@@ -76,6 +90,14 @@ std::pair<bool, std::string> GLShadersManager::init()
         , { "ENABLE_ENVIRONMENT_MAP"sv }
 #endif // ENABLE_ENVIRONMENT_MAP
         );
+    // used to render objects in 3d editor with phong shading
+    valid &= append_shader("phong", { prefix + "phong.vs", prefix + "phong.fs" }
+#if ENABLE_ENVIRONMENT_MAP
+        , { "ENABLE_ENVIRONMENT_MAP"sv }
+#endif // ENABLE_ENVIRONMENT_MAP
+        );
+    // used to render objects as translucent, edge weighted surfaces in the X-Ray view
+    valid &= append_shader("xray", { prefix + "xray.vs", prefix + "xray.fs" });
     // used to render variable layers heights in 3d editor
     valid &= append_shader("variable_layer_height", { prefix + "variable_layer_height.vs", prefix + "variable_layer_height.fs" });
     // used to render highlight contour around selected triangles inside the multi-material gizmo
@@ -90,6 +112,11 @@ std::pair<bool, std::string> GLShadersManager::init()
         valid &= append_shader("mm_gouraud", { prefix + "mm_gouraud.vs", prefix + "mm_gouraud.fs" }, { "FLIP_TRIANGLE_NORMALS"sv });
     else
         valid &= append_shader("mm_gouraud", { prefix + "mm_gouraud.vs", prefix + "mm_gouraud.fs" });
+    // Fast shaded preview for the texture displacement gizmo (see libslic3r/TextureDisplacement.hpp).
+    valid &= append_shader("texture_displacement_shaded", { prefix + "texture_displacement_shaded.vs", prefix + "texture_displacement_shaded.fs" });
+    // UV-check overlay for the same gizmo: a procedural checker or a distortion heatmap over the
+    // painted patch, to sanity-check the unwrap.
+    valid &= append_shader("texture_displacement_uvcheck", { prefix + "texture_displacement_uvcheck.vs", prefix + "texture_displacement_uvcheck.fs" });
 
     return { valid, error };
 }

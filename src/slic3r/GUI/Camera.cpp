@@ -3,12 +3,27 @@
 
 #include "Camera.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/Technologies.hpp"
+#include <string>
+#include "libslic3r/Point.hpp"
+#include <algorithm>
+#include "libslic3r/Geometry.hpp"
+#include <cmath>
+#include "libslic3r/BoundingBox.hpp"
+#include <cassert>
+#include "slic3r/GUI/3DScene.hpp"
+#include <cstdlib>
+#include <utility>
+#include <vector>
+#include <cfloat>
+#include "libslic3r/TriangleMesh.hpp"
+#include <math.h>
 #if ENABLE_CAMERA_STATISTICS
 #include "Mouse3DController.hpp"
 #include "Plater.hpp"
 #endif // ENABLE_CAMERA_STATISTICS
 
-#include <GL/glew.h>
+#include <glad/gl.h>
 
 namespace Slic3r {
 namespace GUI {

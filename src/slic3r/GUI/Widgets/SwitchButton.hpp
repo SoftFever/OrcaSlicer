@@ -3,12 +3,24 @@
 
 #include "../wxExtensions.hpp"
 #include "StateColor.hpp"
+#include "StaticBox.hpp"
 
+#include <cstddef>
+#include <vector>
+#include <wx/anybutton.h>
+#include <wx/event.h>
+#include <wx/checklst.h>
+#include <wx/colour.h>
+#include <wx/dc.h>
+#include <wx/gdicmn.h>
+#include <wx/sizer.h>
+#include <wx/scrolwin.h>
+#include <wx/string.h>
 #include <wx/tglbtn.h>
-#include "Label.hpp"
 #include "Button.hpp"
 
 wxDECLARE_EVENT(wxCUSTOMEVT_SWITCH_POS, wxCommandEvent);
+wxDECLARE_EVENT(wxCUSTOMEVT_MULTISWITCH_SELECTION, wxCommandEvent);
 
 class SwitchButton : public wxBitmapToggleButton
 {
@@ -46,6 +58,46 @@ private:
 	StateColor   thumb_color;
 };
 
+class ModeSwitchButton : public StaticBox
+{
+public:
+    ModeSwitchButton(wxWindow* parent = nullptr, wxWindowID id = wxID_ANY);
+
+    int  GetSelection() const { return m_selection; }
+    void SetSelection(int selection);
+    void SelectAndNotify(int selection);
+
+    void Rescale();
+    void msw_rescale() { Rescale(); }
+
+    bool Enable(bool enable = true) override;
+    void SetDevMode(bool enable = true);
+    bool GetDevMode() const {return m_dev_mode;};
+
+protected:
+    void doRender(wxDC& dc) override;
+
+private:
+    void mouseDown(wxMouseEvent& event);
+    void mouseReleased(wxMouseEvent& event);
+    void mouseCaptureLost(wxMouseCaptureLostEvent& event);
+    int  hit_test_selection(const wxPoint& point) const;
+    wxRect thumb_rect_for(int selection) const;
+    void update_tooltip();
+
+private:
+    int      m_selection { 0 };
+    bool     m_pressed   { false };
+    bool     m_enabled   { true };
+    bool     m_dev_mode  { false };
+    wxString   m_tooltips[4];
+    StateColor dot_active;
+    StateColor dot_dimmed;
+    StateColor text_color;
+    StateColor track_background;
+    StateColor track_border;
+};
+
 class SwitchBoard : public wxWindow
 {
 public:
@@ -62,8 +114,8 @@ public:
     void* client_data = nullptr;/*MachineObject* in StatusPanel*/
 
 public:
-    void Enable();
-    void Disable();
+    bool Enable(bool enable = true) override;
+    bool Disable() { return Enable(false); }
     bool IsEnabled(){return is_enable;};
 
     void  SetClientData(void* data) { client_data = data; };
@@ -79,6 +131,86 @@ protected:
 
 private:
     bool auto_disable_when_switch = false;
+};
+
+class MultiSwitchButton : public StaticBox
+{
+public:
+    MultiSwitchButton(wxWindow *parent = nullptr, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition,
+                      const wxSize &size = wxDefaultSize, long style = 0);
+    ~MultiSwitchButton();
+
+    int AppendOption(const wxString &option, void *clientData = nullptr);
+    void SetOptions(const std::vector<wxString> &options);
+    void DeleteAllOptions();
+
+    unsigned int GetCount() const;
+
+    int      GetSelection() const;
+    void     SetSelection(int index);
+    wxString GetSelectedText() const;
+
+    Button*  GetButton(unsigned int index) const
+    {
+        return index >= 0 && index < btns.size() ? btns[index] : nullptr;
+    }
+
+    wxString GetOptionText(unsigned int index) const;
+    void     SetOptionText(unsigned int index, const wxString &text);
+
+    void *GetOptionData(unsigned int index) const;
+    void  SetOptionData(unsigned int index, void *clientData);
+
+    void SetBackgroundColor(const StateColor &color);
+    void SetTextColor(const StateColor &color);
+    void SetButtonTextColor(int index, const StateColor &color)
+    {
+        if (index >= btns.size()) return;
+
+        btns[index]->SetTextColor(color);
+        btns[index]->Refresh();
+    }
+    void SetModified(int index, bool modified);
+    void SetButtonCornerRadius(double radius);
+    // Padding around each button's label, in DIP. The switch converts it for the current DPI when it
+    // applies it, and again in Rescale().
+    void SetButtonPadding(const wxSize &padding);
+
+    // Keep the switch exactly as wide as the buttons need instead of letting the layout stretch it.
+    // A layout with less room than that still squeezes it, and it scrolls its buttons then.
+    void SetFitToOptions(bool fit = true) { m_fit_to_options = fit; update_scroll_range(); }
+
+    void Rescale();
+
+protected:
+    void button_clicked(wxCommandEvent &event);
+    void update_button_styles();
+
+    bool send_selection_event();
+
+private:
+    // Height of the single button row, measured from the buttons themselves.
+    int  options_height() const;
+    void update_scroll_range();
+    int  scrollbar_height(int options_width) const;
+    void scroll_option_into_view(Button *btn);
+    void on_size(wxSizeEvent &evt);
+
+    std::vector<Button *> btns;
+    std::vector<bool> btns_modified;
+    // The buttons are laid out inside this scrolled area so that a switch holding more options than
+    // the layout has room for scrolls instead of clipping its tail.
+    wxScrolledWindow     *m_scroll         = nullptr;
+    wxBoxSizer           *sizer            = nullptr;
+    bool                  m_fit_to_options = false;
+    int                   sel              = -1;
+
+    StateColor m_bg_color;
+    StateColor m_text_color;
+    StateColor m_br_color_modified;
+    StateColor m_fg_color_modified;
+    double     m_button_radius;
+    wxSize     m_button_padding; // in DIP
 };
 
 #endif // !slic3r_GUI_SwitchButton_hpp_

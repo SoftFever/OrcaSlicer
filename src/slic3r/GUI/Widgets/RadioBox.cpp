@@ -1,6 +1,13 @@
 #include "RadioBox.hpp"
 
 #include "../wxExtensions.hpp"
+#include <wx/anybutton.h>
+#include <wx/checklst.h>
+#include <wx/gdicmn.h>
+
+#ifdef __WXGTK__
+#include "../GUI_Utils.hpp"
+#endif
 
 namespace Slic3r {
 namespace GUI {
@@ -13,9 +20,17 @@ RadioBox::RadioBox(wxWindow *parent)
     // SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
     if (parent) SetBackgroundColour(parent->GetBackgroundColour());
     // Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { update(); e.Skip(); });
+    update();
+#ifdef __WXGTK__
+    Slic3r::GUI::RemoveButtonBorder(this);
+    wxSize bestSize = GetBestSize();
+    bestSize.IncTo(m_on.GetBmpSize());
+    SetSize(bestSize);
+    SetMinSize(bestSize);
+#else
     SetSize(m_on.GetBmpSize());
     SetMinSize(m_on.GetBmpSize());
-    update();
+#endif
 }
 
 void RadioBox::SetValue(bool value)
@@ -24,18 +39,21 @@ void RadioBox::SetValue(bool value)
     update();
 }
 
-bool RadioBox::GetValue()
-{
-    return wxBitmapToggleButton::GetValue();
-}
-
 
 void RadioBox::Rescale()
 {
     m_on.msw_rescale();
     m_off.msw_rescale();
-    SetSize(m_on.GetBmpSize());
     update();
+#ifdef __WXGTK__
+    wxSize bestSize = GetBestSize();
+    bestSize.IncTo(m_on.GetBmpSize());
+    SetSize(bestSize);
+    SetMinSize(bestSize);
+#else
+    SetSize(m_on.GetBmpSize());
+    SetMinSize(m_on.GetBmpSize());
+#endif
 }
 
 void RadioBox::update() {

@@ -1,13 +1,22 @@
 #include "QidiPrinterAgent.hpp"
 #include "Http.hpp"
+#include "MoonrakerPrinterAgent.hpp"
+#include "IPrinterAgent.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 
 #include "nlohmann/json.hpp"
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/log/trivial.hpp>
 #include <cctype>
+#include "libslic3r/Preset.hpp"
+#include <map>
 #include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace Slic3r {
 
@@ -38,7 +47,7 @@ AgentInfo QidiPrinterAgent::get_agent_info_static()
     return AgentInfo{"qidi", "Qidi", QidiPrinterAgent_VERSION, "Qidi printer agent"};
 }
 
-bool QidiPrinterAgent::fetch_filament_info(std::string dev_id)
+bool QidiPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSyncMode /*sync_mode*/)
 {
     std::string error;
 
@@ -49,6 +58,10 @@ bool QidiPrinterAgent::fetch_filament_info(std::string dev_id)
         if (fetch_device_info(device_info.base_url, device_info.api_key, info, error)) {
             series_id = infer_series_id(info.model_id, info.dev_name);
         }
+    }
+    if (series_id.empty()) {
+        // Fall back to the configured Orca model if Moonraker doesn't expose a usable identifier.
+        series_id = infer_series_id(device_info.model_id, device_info.model_name);
     }
 
     // 2. Fetch filament dictionary
