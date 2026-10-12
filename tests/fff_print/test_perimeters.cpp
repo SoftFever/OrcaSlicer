@@ -994,3 +994,82 @@ TEST_CASE("A hole whose outer wall touches the contour's runs with it", "[Perime
         CHECK(layers[i].holes_ccw.front() == ccw);
     }
 }
+
+namespace {
+
+// A 2mm tall round tube 1.5mm thick. With 0.5mm walls exactly three fit: the outer walls of the contour and of the
+// hole, and one inner wall between them that both share, which Arachne lays as the odd centre line.
+Print &thin_round_tube(Print &print, Model &model, const char *wall_sequence)
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "wall_generator",             "arachne" },
+        { "wall_sequence",              wall_sequence },
+        { "wall_loops",                 3 },
+        { "layer_height",               0.2 },
+        { "initial_layer_print_height", 0.2 },
+        { "nozzle_diameter",            "0.4" },
+        { "outer_wall_line_width",      0.5 },
+        { "inner_wall_line_width",      0.5 },
+        { "precise_outer_wall",         true },
+        { "only_one_wall_top",          false },
+        { "only_one_wall_first_layer",  false },
+        { "overhang_reverse",           false },
+    });
+
+    ModelObject *object = model.add_object();
+    object->name = "thin_round_tube.stl";
+    object->add_volume(make_cylinder(11.5, 2.), ModelVolumeType::MODEL_PART, false);
+    object->add_volume(make_cylinder(10., 2.), ModelVolumeType::NEGATIVE_VOLUME, false);
+    object->add_instance();
+    object->ensure_on_bed();
+
+    print.auto_assign_extruders(object);
+    print.apply(model, config);
+    print.validate();
+    print.set_status_silent();
+    print.process();
+    return print;
+}
+
+// Per layer, where the inner wall is extruded among the three wall loops: 0 first, 2 last, -1 if the layer
+// does not have exactly two outer walls and one inner wall.
+std::vector<int> inner_wall_positions(const Print &print)
+{
+    std::vector<int> out;
+    for (const Layer *layer : print.objects().front()->layers()) {
+        std::vector<int> insets;
+        for (const LayerRegion *region : layer->regions())
+            for (const ExtrusionEntity *entity : region->perimeters.flatten().entities)
+                if (entity->is_loop())
+                    insets.push_back(static_cast<const ExtrusionLoop*>(entity)->inset_idx);
+        const bool three_walls = insets.size() == 3 && std::count(insets.begin(), insets.end(), 0) == 2;
+        out.push_back(three_walls ? int(std::find_if(insets.begin(), insets.end(), [](int inset) { return inset > 0; }) - insets.begin()) : -1);
+    }
+    return out;
+}
+
+} // namespace
+
+// The inner wall shared by the two outer walls of a thin tube follows the wall sequence like any other inner
+// wall. Inner/Outer/Inner has no third wall to print first here, so it prints both outer walls before the inner
+// one, except on the first layer, which it prints Inner/Outer.
+TEST_CASE("An inner wall shared by two outer walls follows the wall sequence", "[Perimeters]")
+{
+    const char *wall_sequence = GENERATE("inner wall/outer wall", "outer wall/inner wall", "inner-outer-inner wall");
+    CAPTURE(wall_sequence);
+
+    Print print;
+    Model model;
+    thin_round_tube(print, model, wall_sequence);
+    const std::vector<int> positions = inner_wall_positions(print);
+    // 2mm at 0.2mm layers.
+    REQUIRE(positions.size() == 10);
+
+    for (size_t i = 0; i < positions.size(); ++ i) {
+        CAPTURE(i);
+        const bool inner_first = std::string(wall_sequence) == "inner wall/outer wall" ||
+                                 (std::string(wall_sequence) == "inner-outer-inner wall" && i == 0);
+        CHECK(positions[i] == (inner_first ? 0 : 2));
+    }
+}

@@ -2412,11 +2412,23 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderPerimetersByProximity(std
 
     // Function to reorder perimeters starting from a given reference index
     auto reorderFromReference = [&](int referenceIndex) {
-        std::unordered_set<int> firstLevelIndices;
-        firstLevelIndices.insert(referenceIndex);
-
-        // Find first level touching perimeters
-        std::vector<int> firstLevelTouchingIndices = findAllTouchingPerimeters(entities, firstLevelIndices, threshold_external, threshold_internal, 1);
+        // Find first level touching perimeters. The odd centre line of a wall too narrow for two inner walls is shared
+        // by the outer walls on both sides, so those join this island and are printed before it too.
+        std::vector<int> outerIndices{referenceIndex};
+        std::vector<int> firstLevelTouchingIndices;
+        for (size_t next = 0; next < outerIndices.size(); ++next)
+            for (int idx : findAllTouchingPerimeters(entities, {outerIndices[next]}, threshold_external, threshold_internal, 1)) {
+                if (std::find(firstLevelTouchingIndices.begin(), firstLevelTouchingIndices.end(), idx) != firstLevelTouchingIndices.end())
+                    continue;
+                firstLevelTouchingIndices.push_back(idx);
+                if (!entities[idx].extrusion->is_odd)
+                    continue;
+                for (size_t i = 0; i < entities.size(); ++i)
+                    if (entities[i].extrusion->inset_idx == 0 && includedIndices.count(int(i)) == 0 &&
+                        std::find(outerIndices.begin(), outerIndices.end(), int(i)) == outerIndices.end() &&
+                        arachne_lines_touch(*entities[i].extrusion, *entities[idx].extrusion, double(threshold_external)))
+                        outerIndices.push_back(int(i));
+            }
         // Bring the largest first level perimeter to the front
         // The longest first neighbour is most likely the dominant proximate perimeter
         // hence printing it immediately after the external perimeter should speed things up
@@ -2427,8 +2439,10 @@ std::vector<PerimeterGeneratorArachneExtrusion> reorderPerimetersByProximity(std
             std::iter_swap(maxIt, firstLevelTouchingIndices.end() - 1);
         }
         // Insert first level perimeters into reordered list
-        reordered.push_back(entities[referenceIndex]);
-        includedIndices.insert(referenceIndex);
+        for (int idx : outerIndices) {
+            reordered.push_back(entities[idx]);
+            includedIndices.insert(idx);
+        }
 
         for (int idx : firstLevelTouchingIndices) {
             if (includedIndices.count(idx) == 0) {
