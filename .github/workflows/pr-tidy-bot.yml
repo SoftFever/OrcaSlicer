@@ -108,8 +108,10 @@ jobs:
               owner, repo, workflow_id: FIX_WORKFLOW, event: 'pull_request', head_sha: pr.head.sha, per_page: 1
             });
             const run = runs[0];
+            // A PR last pushed before clang_tidy_fix.yml existed has no run to re-run.
             if (!run) {
-              return refuse(`the PR's checks have not started on ${sha} yet. Comment \`/bot fix-tidy\` again once they have.`);
+              return refuse(`there is no clang-tidy fix run for ${sha}, the PR's latest commit. If you just pushed it, ` +
+                'try again in a minute. Otherwise, push a commit or merge the base branch to start one, then comment `/bot fix-tidy` again.');
             }
             if (run.status !== 'completed') {
               // The first attempt is the one every push starts, and it makes no fix.
@@ -117,7 +119,14 @@ jobs:
                 ? `a clang-tidy fix for ${sha} is already [running](${run.html_url}). I'll post it when it finishes.`
                 : `the PR's checks on ${sha} are still starting. Comment \`/bot fix-tidy\` again in a minute.`);
             }
-            await github.rest.actions.reRunWorkflow({ owner, repo, run_id: run.id });
+            // GitHub refuses to re-run a run created over 30 days ago.
+            try {
+              await github.rest.actions.reRunWorkflow({ owner, repo, run_id: run.id });
+            } catch (error) {
+              core.warning(`Re-running ${run.html_url} failed: ${error.message}`);
+              return refuse(`GitHub won't re-run the [clang-tidy fix run](${run.html_url}) for ${sha} (${error.message}). ` +
+                'Push a commit or merge the base branch to start a new one, then comment `/bot fix-tidy` again.');
+            }
             core.info(`Re-ran ${run.html_url}`);
 
   suggest:
