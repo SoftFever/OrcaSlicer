@@ -326,17 +326,13 @@ ConfigOption* ConfigOptionDef::create_default_option() const
             return new ConfigOptionEnumGeneric(this->enum_keys_map, this->default_value->getInt());
 
         if (type == coEnums) {
-            auto dft = this->default_value->clone();
-            if (dft->nullable()) {
-                ConfigOptionEnumsGenericNullable *opt = dynamic_cast<ConfigOptionEnumsGenericNullable *>(this->default_value->clone());
-                opt->keys_map = this->enum_keys_map;
-                return opt;
-            } else {
-                ConfigOptionEnumsGeneric *opt = dynamic_cast<ConfigOptionEnumsGeneric *>(this->default_value->clone());
-                opt->keys_map = this->enum_keys_map;
-                return opt;
-            }
-            delete dft;
+            // Enum list defaults are built without a keys map, which the copy needs to deserialize and serialize names.
+            ConfigOption *opt = this->default_value->clone();
+            if (auto *nullable_enums = dynamic_cast<ConfigOptionEnumsGenericNullable *>(opt))
+                nullable_enums->keys_map = this->enum_keys_map;
+            else if (auto *enums = dynamic_cast<ConfigOptionEnumsGeneric *>(opt))
+                enums->keys_map = this->enum_keys_map;
+            return opt;
         }
 
         return this->default_value->clone();
@@ -869,19 +865,6 @@ ConfigSubstitutions ConfigBase::load_from_json(const std::string &file, ForwardC
 
     ret = load_from_json(file, substitutions_ctxt, true, key_values, reason);
     return std::move(substitutions_ctxt.substitutions);
-}
-
-// Case-insensitive compare of a JSON key against a fixed ASCII one, without
-// boost::iequals, whose std::locale() takes a lock the whole process shares in the
-// MSVC runtime.
-static bool ascii_iequals(const std::string &key, const char *literal)
-{
-    auto lower = [](char c) { return (c >= 'A' && c <= 'Z') ? char(c - 'A' + 'a') : c; };
-    size_t i = 0;
-    for (; i < key.size() && literal[i] != '\0'; ++ i)
-        if (lower(key[i]) != lower(literal[i]))
-            return false;
-    return i == key.size() && literal[i] == '\0';
 }
 
 int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContext& substitution_context, bool load_inherits_to_config, std::map<std::string, std::string>& key_values, std::string& reason)

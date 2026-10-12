@@ -14,7 +14,6 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/TextInput.hpp"
-#include "Widgets/HyperLink.hpp"
 #include "slic3r/Utils/CalibUtils.hpp"
 #include <wx/anybutton.h>
 #include <wx/colour.h>
@@ -32,6 +31,7 @@
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 #include <wx/panel.h>
 #include <map>
+#include <set>
 
 #define AMS_MATERIALS_SETTING_DEF_COLOUR wxColour(255, 255, 255)
 #define AMS_MATERIALS_SETTING_GREY900 wxColour(38, 46, 48)
@@ -157,6 +157,7 @@ protected:
     void create_panel_kn(wxWindow* parent);
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_filament(wxCommandEvent& evt);
+    void on_toggle_favorite_filament(wxCommandEvent& evt);
     void on_select_cali_result(wxCommandEvent &evt);
     void on_select_ok(wxCommandEvent &event);
     void on_select_reset(wxCommandEvent &event);
@@ -164,6 +165,11 @@ protected:
     void on_clr_picker(wxMouseEvent &event);
     bool is_virtual_tray();
     void update_widgets();
+    void rebuild_filament_dropdown_items(const std::string& selected_filament_id);
+    void update_favorite_stars();
+    std::set<std::string> load_favorite_filament_ids() const;
+    void save_favorite_filament_ids(const std::set<std::string>& favorite_ids);
+    void toggle_favorite_filament(const std::string& filament_id);
 
     void update_filament_editing(bool is_printing);
     // Orca: the variant index of the filament's per-variant options on the nozzle this tray feeds
@@ -194,7 +200,7 @@ protected:
 
     wxPanel *           m_panel_kn;
     wxStaticText*       m_ratio_text;
-    HyperLink *         m_wiki_ctrl;
+    Button *            m_wiki_ctrl;
     wxStaticText*       m_k_param;
     TextInput*          m_input_k_val;
     wxStaticText*       m_n_param;
@@ -203,12 +209,7 @@ protected:
 
     int m_pa_cali_select_id = 0;
 
-// Orca: native wxComboBox on macOS (the custom ComboBox mis-renders the filament dropdown there)
-#ifdef __APPLE__
-    wxComboBox *m_comboBox_filament;
-#else
     ComboBox *m_comboBox_filament;
-#endif
     ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
 
@@ -216,7 +217,20 @@ protected:
         std::string filament_id;
         std::string setting_id;
     };
-    std::map<std::string, FilamentInfos> map_filament_items;
+    struct FilamentListItem {
+        FilamentInfos filament;
+        bool          is_filament{false};
+    };
+    const FilamentInfos* selected_filament_info() const;
+
+    // Keyed by the same wxString the dropdown shows, so a row's name never has to be converted back.
+    std::map<wxString, FilamentInfos>    map_filament_items;
+    std::vector<wxString>                m_sorted_filament_items;
+    std::vector<FilamentListItem>        m_filament_list_items;
+    ScalableBitmap                       m_star_filled;
+    ScalableBitmap                       m_star_empty;
+    // Favorites changed while the list was open; their rows are regrouped before it opens again.
+    bool                                 m_favorites_regroup{false};
 };
 
 wxDECLARE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);

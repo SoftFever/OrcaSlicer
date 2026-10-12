@@ -51,7 +51,6 @@
 #include "libslic3r/Point.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 #include "libslic3r/LocalesUtils.hpp"
-#include "libslic3r/Format/STEP.hpp"
 #include <exception>
 #include "slic3r/GUI/ParamsPanel.hpp"
 #include "slic3r/GUI/GUI_ObjectLayers.hpp"
@@ -103,6 +102,9 @@
 #include "Gizmos/GLGizmoScale.hpp"
 
 #include "libslic3r/TriangleMeshDeal.hpp"
+
+class wxMenu;
+namespace Slic3r { class Step; }
 namespace Slic3r
 {
 namespace GUI
@@ -1106,7 +1108,7 @@ void ObjectList::update_name_column_width() const
         }
     }
 
-    GetColumn(colName)->SetWidth(max(0, client_size.x - (others_width)*em));
+    GetColumn(colName)->SetWidth(std::max(0, client_size.x - (others_width)*em));
 }
 
 void ObjectList::set_filament_column_hidden(const bool hide) const
@@ -1615,7 +1617,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
             int obj_idx, vol_idx;
             get_selected_item_indexes(obj_idx, vol_idx, item);
             if (obj_idx != -1) {
-                Plater::TakeSnapshot(plater, _u8L("Shift objects to bed"));
+                Plater::TakeSnapshot snapshot(plater, _u8L("Shift objects to bed"));
                 (*m_objects)[obj_idx]->ensure_on_bed();
                 cnv->reload_scene(true, true);
                 update_info_items(obj_idx);
@@ -2663,6 +2665,11 @@ void ObjectList::load_shape_object(const std::string &type_name)
 
 void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center)
 {
+    load_mesh_object(std::vector<std::pair<const TriangleMesh*, wxString>>{{&mesh, name}}, name, center);
+}
+
+void ObjectList::load_mesh_object(const std::vector<std::pair<const TriangleMesh*, wxString>> &parts, const wxString &name, bool center)
+{
     // Add mesh to model as a new object
     Model& model = wxGetApp().plater()->model();
 
@@ -2671,14 +2678,19 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #endif /* _DEBUG */
 
     std::vector<size_t> object_idxs;
-    auto bb = mesh.bounding_box();
+    BoundingBoxf3 bb;
     ModelObject* new_object = model.add_object();
     new_object->name = into_u8(name);
     new_object->add_instance(); // each object should have at least one instance
 
-    ModelVolume* new_volume = new_object->add_volume(mesh);
+    // add_volume() centres each part on its own geometry, so the part offsets carry the
+    // meshes' placement relative to each other.
+    for (const auto& [mesh, part_name] : parts) {
+        bb.merge(mesh->bounding_box());
+        ModelVolume* new_volume = new_object->add_volume(*mesh);
+        new_volume->name = into_u8(part_name);
+    }
     new_object->sort_volumes(true);
-    new_volume->name = into_u8(name);
     // set a default extruder value, since user can't add it manually
     // BBS
     new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
@@ -2689,7 +2701,7 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
     Slic3r::save_object_mesh(*new_object);
 
     // BBS: find an empty cell to put the copied object
-    auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
+    auto start_point = wxGetApp().plater()->build_volume().bed_center();
     auto empty_cell  = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
 
     new_object->instances[0]->set_offset(center ? to_3d(Vec2d(empty_cell(0), empty_cell(1)), -new_object->origin_translation.z()) : bb.center());
@@ -2767,12 +2779,13 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
     GLCanvas3D* cnv = plater->canvas3D();
 
     switch (type) {
-    case InfoItemType::CustomSupports:
+    case InfoItemType::CustomSupports: {
         cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, "Remove support painting");
+        Plater::TakeSnapshot snapshot(plater, "Remove support painting");
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->supported_facets.reset();
         break;
+    }
 
     // BBS: remove CustomSeam
 
@@ -2783,19 +2796,21 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
         }
         break;
 
-    case InfoItemType::MmSegmentation:
+    case InfoItemType::MmSegmentation: {
         cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, "Remove color painting");
+        Plater::TakeSnapshot snapshot(plater, "Remove color painting");
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->mmu_segmentation_facets.reset();
         break;
+    }
 
-    case InfoItemType::FuzzySkin:
+    case InfoItemType::FuzzySkin: {
         cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, _u8L("Remove paint-on fuzzy skin"));
+        Plater::TakeSnapshot snapshot(plater, _u8L("Remove paint-on fuzzy skin"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->fuzzy_skin_facets.reset();
         break;
+    }
 
     // BBS: remove Sinking
     case InfoItemType::Undef : assert(false); break;
@@ -3958,7 +3973,7 @@ wxDataViewItem ObjectList::add_settings_item(wxDataViewItem parent_item, const D
         if (config->opt_float("layer_height") == object_cfg->opt_float("layer_height")) {
             SettingsFactory::Bundle new_cat_options;
             for (auto cat_opt : cat_options) {
-                std::vector<string> temp;
+                std::vector<std::string> temp;
                 for (auto value : cat_opt.second) {
                     if (value != "layer_height")
                         temp.push_back(value);
@@ -5804,6 +5819,7 @@ void ObjectList::change_part_type()
   return;
 }
 #endif
+
 ModelVolumeType ObjectList::get_selected_volume_type()
 {
     ModelVolume* volume = get_selected_model_volume();
@@ -6705,7 +6721,7 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     else if (col == colSinking) {
         Plater *    plater = wxGetApp().plater();
         GLCanvas3D *cnv    = plater->canvas3D();
-        Plater::TakeSnapshot(plater, _u8L("Shift objects to bed"));
+        Plater::TakeSnapshot snapshot(plater, _u8L("Shift objects to bed"));
         int obj_idx, vol_idx;
         get_selected_item_indexes(obj_idx, vol_idx, item);
         (*m_objects)[obj_idx]->ensure_on_bed();

@@ -518,6 +518,21 @@ bool capability_save_config(const PluginCapabilityInterface& capability, const n
     return PluginManager::instance().get_config().store_capability_config(capability_identity(capability, "save_config"), config);
 }
 
+std::string PluginConfig::capability_type_label(PluginCapabilityType type)
+{
+    switch (type) {
+    case PluginCapabilityType::PrinterConnection: return _u8L("Printer connection");
+    case PluginCapabilityType::Pages: return _u8L("Pages");
+    case PluginCapabilityType::Analysis: return _u8L("Analysis");
+    case PluginCapabilityType::Importer: return _u8L("Importer");
+    case PluginCapabilityType::Exporter: return _u8L("Exporter");
+    case PluginCapabilityType::Visualization: return _u8L("Visualization");
+    case PluginCapabilityType::Script: return _u8L("Script");
+    case PluginCapabilityType::SlicingPipeline: return _u8L("Slicing Pipeline");
+    default: return _u8L("Unknown");
+    }
+}
+
 nlohmann::json PluginConfig::capabilities_payload(const std::vector<PluginCapabilityId>& caps)
 {
     nlohmann::json payload = nlohmann::json::array();
@@ -530,7 +545,7 @@ nlohmann::json PluginConfig::capabilities_payload(const std::vector<PluginCapabi
         nlohmann::json entry;
         entry["plugin_key"]    = id.plugin_key;
         entry["name"]          = id.name;
-        entry["type"]          = plugin_capability_type_display_name(id.type);
+        entry["type"]          = capability_type_label(id.type);
         entry["type_key"]      = plugin_capability_type_to_string(id.type);
         entry["has_config_ui"] = capability->config_ui_available();
         payload.push_back(std::move(entry));

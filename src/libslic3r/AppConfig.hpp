@@ -15,8 +15,6 @@
 #include "libslic3r/Semver.hpp"
 #include "calib.hpp"
 
-using namespace nlohmann;
-
 #define ENV_DEV_HOST		"0"
 #define ENV_QAT_HOST		"1"
 #define ENV_PRE_HOST		"2"
@@ -163,7 +161,7 @@ public:
 	std::string 		get(const std::string &key) const
 		{ std::string value; this->get("app", key, value); return value; }
 	bool				get_bool(const std::string &section, const std::string &key) const
-		{ return this->get(section, key) == "true" || this->get(key) == "1"; }
+		{ const std::string value = this->get(section, key); return value == "true" || value == "1"; }
 	bool				get_bool(const std::string &key) const
 		{ return this->get_bool("app", key); }
 	void			    set(const std::string &section, const std::string &key, const std::string &value)
@@ -199,6 +197,9 @@ public:
 			m_dirty = true;
 		}
 	}
+
+	void                set(const std::string& section, const std::string& key, const char* value)
+		{ this->set(section, key, std::string(value)); }
 
 	void				set(const std::string& section, const std::string &key, bool value)
 	{
