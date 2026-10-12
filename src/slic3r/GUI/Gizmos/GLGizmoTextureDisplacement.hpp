@@ -407,6 +407,12 @@ private:
     // Per slot: whether the layer's card shows every setting or only Depth, Tile size and Rotation.
     // Panel state only, not saved with the project.
     std::array<bool, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_layer_expanded{};
+    // The slider whose edit icon was just clicked, as its ImGui id, and the frame it was clicked on.
+    // The row acts on it on the next frame - ImGui's keyboard-focus request only takes effect a frame
+    // later - and clears it; the frame number is what retires a request whose row has gone off screen
+    // in the meantime. Panel state only, not saved with the project.
+    std::string m_slider_type_request;
+    int         m_slider_type_request_frame = 0;
 
     // "Adjust Texture" mode: instead of painting, dragging an on-canvas handle changes the active
     // layer's offset. The handle is a flat panel lying in the paint patch's own tangent plane
@@ -1022,6 +1028,9 @@ private:
     std::vector<std::pair<wxString, wxString>> m_shortcuts_bucket_fill;
     // Contains all shortcuts in the format of {shortcut, description}, e.g. {alt + _L("Left mouse button"), _L("Part_selection")}
     std::vector<std::pair<wxString, wxString>> m_shortcuts_gap_fill;
+    // The two ways every slider in the panel takes a typed value. They hold whatever tool is selected,
+    // so they are tacked onto each of the lists above and stand on their own when no tool is active.
+    std::vector<std::pair<wxString, wxString>> m_shortcuts_sliders;
 
     // Icons for the panel's icon buttons (tools, views, mapping, tiling, layer actions). Loaded through IconManager with
     // the same colour/monochrome variants the main toolbar uses, so an inactive button shows the icon in
