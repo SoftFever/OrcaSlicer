@@ -3998,6 +3998,34 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         m_picker_open_request = true;
     }
 }
+bool GLGizmoTextureDisplacement::load_image_adjust_source(const TextureDisplacementLayer &layer)
+{
+    if (layer.empty())
+        return false;
+
+    // The *raw* image: neither the layer's Smoothing nor the panel's own preview_adjust, so what the
+    // sliders act on is always the image as it is actually stored rather than the last preview of it.
+    // Without clearing preview_adjust here the adjustment would compound on itself every reload.
+    TextureDisplacementLayer raw = layer;
+    raw.smoothing                = 0.f;
+    raw.preview_adjust           = TextureAdjustments{};
+
+    DecodedHeightTexture decoded = decode_height_texture(raw);
+    if (decoded.empty())
+        return false;
+
+    m_adjust_source         = std::move(decoded);
+    m_adjust_preview_source = downscale_height_texture(m_adjust_source, ADJUST_PREVIEW_MAX_PX);
+    m_adjust_source_image   = layer.image_data.get();
+    // The unadjusted image, so the box is filled now rather than one background pass later. Pairing it
+    // with an identity `shown` is what makes update_image_adjust_preview() relaunch for the sliders'
+    // current values against the new source instead of deciding it is already showing them.
+    m_adjust_preview_shown = TextureAdjustments{};
+    m_adjust_preview_tex   = upload_height_thumbnail(m_adjust_preview_source, ADJUST_PREVIEW_MAX_PX);
+    m_adjust_preview_valid = m_adjust_preview_tex != nullptr;
+    return true;
+}
+
 void GLGizmoTextureDisplacement::open_image_adjust(const TextureDisplacementLayer &layer)
 {
     if (layer.empty() || layer.slot < 0)
@@ -4005,23 +4033,14 @@ void GLGizmoTextureDisplacement::open_image_adjust(const TextureDisplacementLaye
 
     close_image_adjust(); // reverts and clears any previous panel
 
-    // The *raw* image: neither the layer's Smoothing nor a previous preview_adjust, so reopening the panel
-    // always starts from the image as it is actually stored rather than from the last preview of it.
-    TextureDisplacementLayer raw = layer;
-    raw.smoothing               = 0.f;
-    raw.preview_adjust          = TextureAdjustments{};
-    m_adjust_source             = decode_height_texture(raw);
-    if (m_adjust_source.empty())
+    if (!load_image_adjust_source(layer))
         return;
 
-    m_adjust_preview_source = downscale_height_texture(m_adjust_source, ADJUST_PREVIEW_MAX_PX);
-    m_adjust                = TextureAdjustments{};
-    m_adjust_applied        = TextureAdjustments{};
-    m_adjust_preview_shown  = TextureAdjustments{};
-    m_adjust_slot           = layer.slot;
-    // The unadjusted image, so the box is filled the moment the panel appears rather than one pass later.
-    m_adjust_preview_tex   = upload_height_thumbnail(m_adjust_preview_source, ADJUST_PREVIEW_MAX_PX);
-    m_adjust_preview_valid = m_adjust_preview_tex != nullptr;
+    m_adjust           = TextureAdjustments{};
+    m_adjust_applied   = TextureAdjustments{};
+    m_adjust_slot      = layer.slot;
+    const ModelVolume *mv = texture_volume();
+    m_adjust_volume_id = mv != nullptr ? mv->id().id : 0;
 }
 
 void GLGizmoTextureDisplacement::close_image_adjust()
@@ -4029,14 +4048,24 @@ void GLGizmoTextureDisplacement::close_image_adjust()
     // Revert the layer's live adjustment. Every exit that reaches here is a discard: a commit resets
     // preview_adjust itself, before pointing the layer at the file that already carries the edit, so this
     // cannot undo a committed adjustment.
+    //
+    // Found by the id recorded when the panel opened rather than through texture_volume(), which answers
+    // for the *current* selection. One of the ways to get here is the selection having moved on, and
+    // reverting the newly selected object's layer instead would both miss the adjustment that is still
+    // live on the original volume and clear one the user never touched.
     bool reverted = false;
-    if (m_adjust_slot >= 0)
-        if (ModelVolume *mv = texture_volume())
-            for (TextureDisplacementLayer &l : mv->texture_displacement_layers)
-                if (l.slot == m_adjust_slot && !l.preview_adjust.identity()) {
-                    l.preview_adjust = TextureAdjustments{};
-                    reverted         = true;
-                }
+    if (m_adjust_slot >= 0 && m_adjust_volume_id != 0)
+        for (ModelObject *mo : wxGetApp().model().objects) {
+            for (ModelVolume *mv : mo->volumes) {
+                if (mv->id().id != m_adjust_volume_id)
+                    continue;
+                for (TextureDisplacementLayer &l : mv->texture_displacement_layers)
+                    if (l.slot == m_adjust_slot && !l.preview_adjust.identity()) {
+                        l.preview_adjust = TextureAdjustments{};
+                        reverted         = true;
+                    }
+            }
+        }
 
     // std::async's future blocks here until the pass finishes. That is a few milliseconds on an image
     // this small, and the alternative - a detached thread writing into the members of a closed panel -
@@ -4050,6 +4079,8 @@ void GLGizmoTextureDisplacement::close_image_adjust()
     m_adjust_applied        = TextureAdjustments{};
     m_adjust_source         = DecodedHeightTexture{};
     m_adjust_preview_source = DecodedHeightTexture{};
+    m_adjust_source_image   = nullptr;
+    m_adjust_volume_id      = 0;
     m_adjust_preview_tex.reset();
     m_adjust_preview_valid = false;
 
@@ -4137,15 +4168,31 @@ void GLGizmoTextureDisplacement::render_image_adjust_window(const ImVec2 &panel_
     if (m_adjust_slot < 0)
         return;
 
-    ModelVolume              *mv    = texture_volume();
-    TextureDisplacementLayer *layer = nullptr;
-    if (mv != nullptr)
-        for (TextureDisplacementLayer &l : mv->texture_displacement_layers)
-            if (l.slot == m_adjust_slot)
-                layer = &l;
-    if (layer == nullptr) {
-        // The layer went away under the panel (removed, or the selection changed).
+    ModelVolume *mv = texture_volume();
+    // A different volume is selected than the one this panel was opened on. Slots are numbered per
+    // volume, so looking m_adjust_slot up here would find an unrelated layer rather than nothing.
+    if (mv == nullptr || mv->id().id != m_adjust_volume_id) {
         close_image_adjust();
+        return;
+    }
+
+    TextureDisplacementLayer *layer = nullptr;
+    for (TextureDisplacementLayer &l : mv->texture_displacement_layers)
+        if (l.slot == m_adjust_slot)
+            layer = &l;
+    if (layer == nullptr) {
+        // The layer went away under the panel (removed, or merged away by an undo).
+        close_image_adjust();
+        return;
+    }
+
+    // The layer's image can be swapped from the texture picker while this panel is open - the panel is a
+    // window now, so the rest of the gizmo stays usable behind it. Re-read the source when that happens,
+    // keeping the slider positions: the user is adjusting this layer, and the 3D view has already moved to
+    // the new image (decode_height_texture() reads layer.image_data, which changed), so re-reading here is
+    // also what keeps the panel's photo and the model showing the same thing.
+    if (layer->image_data.get() != m_adjust_source_image && !load_image_adjust_source(*layer)) {
+        close_image_adjust(); // the new image cannot be decoded; nothing left to adjust
         return;
     }
 

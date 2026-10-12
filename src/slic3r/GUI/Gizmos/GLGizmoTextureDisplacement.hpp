@@ -412,9 +412,13 @@ private:
     // relief change on the model - which is the whole point of adjusting the image here rather than in an
     // image editor. A window leaves the 3D view live, clickable and orbitable while the panel is open.
     void render_image_adjust_window(const ImVec2 &panel_min, const ImVec2 &panel_max);
-    // Opens the panel for `layer` and decodes its image once, into m_adjust_source. Sliders never
-    // re-decode the PNG.
+    // Opens the panel for `layer`, decoding its image into m_adjust_source. Sliders never re-decode
+    // the PNG.
     void open_image_adjust(const TextureDisplacementLayer &layer);
+    // Reads `layer`'s stored image into the panel's source buffers and records which image it came from.
+    // Called when the panel opens and again whenever the layer's image is swapped under it, which is why
+    // it leaves the slider values alone. False when the image cannot be decoded.
+    bool load_image_adjust_source(const TextureDisplacementLayer &layer);
     // Resolves the panel: writes the adjusted image into the user's texture library as a new file and
     // points `layer` at it, which is the only way an adjustment becomes permanent. Closes the panel.
     void commit_image_adjust(TextureDisplacementLayer &layer);
@@ -438,6 +442,13 @@ private:
     // 384 px copy is 3-4 ms / 9-12 ms, and that is all the preview box can show anyway.
     DecodedHeightTexture m_adjust_source;
     DecodedHeightTexture m_adjust_preview_source;
+    // Which image_data the two buffers above were decoded from, so the panel can notice the layer's image
+    // being swapped from the texture picker while it is open and re-read it. Compared, never dereferenced.
+    const void          *m_adjust_source_image = nullptr;
+    // And which volume the panel was opened on. Slot numbers are per volume, so without this a change of
+    // selection would silently rebind the open panel to whichever layer happens to hold the same slot on
+    // the newly selected object - a different image, under a panel the user opened for this one.
+    size_t               m_adjust_volume_id = 0;
     // The preview image on screen, re-uploaded whenever a background pass finishes.
     std::unique_ptr<GLTexture> m_adjust_preview_tex;
 
