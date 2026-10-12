@@ -9716,3 +9716,44 @@ TEST_CASE("Preview tessellation cost at the committed vs the interactive deflect
                     lin, int(ok), m.its.indices.size(), ms);
     }
 }
+
+// Closing smoke (golden path): a fillet after a pattern is a normal thing to do.
+TEST_CASE("A vertical-edge fillet still works after the shell and after a linear pattern", "[CadDocument][smoke]")
+{
+    auto vertical_edge = [](const CadDocument& doc, int rank) {
+        const TopoDS_Shape& s = doc.bodies[0].shape;
+        std::vector<std::pair<double, int>> cand;
+        for (int i = 0; i < GeometryEngine::edge_count(s); ++i) {
+            const TopoDS_Edge e = GeometryEngine::edge_by_index(s, i);
+            BRepAdaptor_Curve c(e);
+            const gp_Pnt a = c.Value(c.FirstParameter()), b = c.Value(c.LastParameter());
+            if (std::abs(a.X() - b.X()) < 1e-6 && std::abs(a.Y() - b.Y()) < 1e-6 && std::abs(a.Z() - b.Z()) > 1e-3)
+                cand.emplace_back(-std::abs(a.Z() - b.Z()), i);
+        }
+        std::sort(cand.begin(), cand.end());
+        return cand.empty() ? -1 : cand[std::min<size_t>(size_t(rank), cand.size() - 1)].second;
+    };
+    CadDocument doc;
+    const int base = combine_rect(doc, -30, -20, 30, 20, 0, "Base");
+    doc.add_extrude(base, 20.0, false, BooleanMode::New, "Box");
+    doc.add_shell(2.0, -1, 0, "Shell");
+    REQUIRE(doc.recompute());
+    SECTION("fillet right after the shell") {
+        const int e = vertical_edge(doc, 0);
+        REQUIRE(e >= 0);
+        doc.add_fillet(0.5, e, "Fillet");
+        const bool ok = doc.recompute();
+        INFO(doc.error);
+        CHECK(ok);
+    }
+    SECTION("fillet after a linear pattern") {
+        doc.add_pattern(false, 3, 80.0, 0, 360.0, 0, "Lin");
+        REQUIRE(doc.recompute());
+        const int e = vertical_edge(doc, 0);
+        REQUIRE(e >= 0);
+        doc.add_fillet(0.5, e, "Fillet");
+        const bool ok = doc.recompute();
+        INFO(doc.error);
+        CHECK(ok);
+    }
+}
