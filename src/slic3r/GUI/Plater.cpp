@@ -11430,7 +11430,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         // update string by type
         q->post_process_string_object_exception(err);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warnings=%2%")%err.string%warnings.size();
-        
+
         if (err.string.empty())
             err.string = imex_placement_error(partplate_list.get_curr_plate());
 
