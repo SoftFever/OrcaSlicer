@@ -5334,77 +5334,88 @@ bool texture_displacement_layers_from_json(const std::string                    
     }
 
     std::vector<TextureDisplacementLayer> out_layers;
-    if (const auto it = root.find("layers"); it != root.end() && it->is_array()) {
-        for (const nlohmann::json &j : *it) {
-            if (!j.is_object())
-                continue;
-            TextureDisplacementLayer l;
-            read(j, "slot", l.slot);
-            read(j, "name", l.name);
-            read(j, "path", l.path);
-            read(j, "path_in_3mf", l.path_in_3mf);
+    // read() skips a value of the wrong type, but the vector, matrix, seam, island and UV-override arrays
+    // below read their numbers with get<>(), which throws on one; that rejects the document, like text that
+    // does not parse.
+    try {
+        if (const auto it = root.find("layers"); it != root.end() && it->is_array()) {
+            for (const nlohmann::json &j : *it) {
+                if (!j.is_object())
+                    continue;
+                TextureDisplacementLayer l;
+                read(j, "slot", l.slot);
+                // The panel and the paint masks are indexed by slot, so a layer without a valid one rejects the
+                // document rather than reaching them.
+                if (l.slot < 0 || l.slot >= int(TEXTURE_DISPLACEMENT_MAX_LAYERS))
+                    return false;
+                read(j, "name", l.name);
+                read(j, "path", l.path);
+                read(j, "path_in_3mf", l.path_in_3mf);
 
-            read(j, "depth_mm", l.depth_mm);
-            read(j, "tiling_scale", l.tiling_scale);
-            read(j, "rotation_deg", l.rotation_deg);
-            if (const auto o = j.find("offset"); o != j.end())
-                l.offset = vec2_from_json(*o, l.offset);
-            read(j, "invert", l.invert);
-            read(j, "midlevel", l.midlevel);
-            read(j, "smoothing", l.smoothing);
+                read(j, "depth_mm", l.depth_mm);
+                read(j, "tiling_scale", l.tiling_scale);
+                read(j, "rotation_deg", l.rotation_deg);
+                if (const auto o = j.find("offset"); o != j.end())
+                    l.offset = vec2_from_json(*o, l.offset);
+                read(j, "invert", l.invert);
+                read(j, "midlevel", l.midlevel);
+                read(j, "smoothing", l.smoothing);
 
-            read(j, "edge_smoothing", l.edge_smoothing);
-            read(j, "edge_smoothing_amount", l.edge_smoothing_amount);
-            read(j, "auto_connect_islands", l.auto_connect_islands);
+                read(j, "edge_smoothing", l.edge_smoothing);
+                read(j, "edge_smoothing_amount", l.edge_smoothing_amount);
+                read(j, "auto_connect_islands", l.auto_connect_islands);
 
-            read(j, "tile_enabled", l.tile_enabled);
-            read(j, "color_enabled", l.color_enabled);
-            int tile_method = int(l.tile_method), projection = int(l.projection_method), blend = int(l.blend_mode);
-            read_enum(j, "tile_method", tile_method);
-            read_enum(j, "projection_method", projection);
-            read_enum(j, "blend_mode", blend);
-            l.tile_method       = TextureTileMethod(tile_method);
-            l.projection_method = TextureProjectionMethod(std::clamp(projection, 0, 4));
-            l.blend_mode        = TextureBlendMode(blend);
+                read(j, "tile_enabled", l.tile_enabled);
+                read(j, "color_enabled", l.color_enabled);
+                int tile_method = int(l.tile_method), projection = int(l.projection_method), blend = int(l.blend_mode);
+                read_enum(j, "tile_method", tile_method);
+                read_enum(j, "projection_method", projection);
+                read_enum(j, "blend_mode", blend);
+                l.tile_method       = TextureTileMethod(tile_method);
+                l.projection_method = TextureProjectionMethod(std::clamp(projection, 0, 4));
+                l.blend_mode        = TextureBlendMode(blend);
 
-            read(j, "lscm_seam_angle_deg", l.lscm_seam_angle_deg);
-            read(j, "island_padding_mm", l.island_padding_mm);
+                read(j, "lscm_seam_angle_deg", l.lscm_seam_angle_deg);
+                read(j, "island_padding_mm", l.island_padding_mm);
 
-            if (const auto v = j.find("view_project_right"); v != j.end())
-                l.view_project_right = vec3_from_json(*v, l.view_project_right);
-            if (const auto v = j.find("view_project_up"); v != j.end())
-                l.view_project_up = vec3_from_json(*v, l.view_project_up);
-            read(j, "view_project_projective", l.view_project_projective);
-            if (const auto v = j.find("view_project_matrix"); v != j.end() && v->is_array() && v->size() == 12)
-                for (size_t i = 0; i < 12; ++i)
-                    l.view_project_matrix[i] = (*v)[i].get<float>();
+                if (const auto v = j.find("view_project_right"); v != j.end())
+                    l.view_project_right = vec3_from_json(*v, l.view_project_right);
+                if (const auto v = j.find("view_project_up"); v != j.end())
+                    l.view_project_up = vec3_from_json(*v, l.view_project_up);
+                read(j, "view_project_projective", l.view_project_projective);
+                if (const auto v = j.find("view_project_matrix"); v != j.end() && v->is_array() && v->size() == 12)
+                    for (size_t i = 0; i < 12; ++i)
+                        l.view_project_matrix[i] = (*v)[i].get<float>();
 
-            if (const auto v = j.find("lscm_seam_edges"); v != j.end() && v->is_array())
-                for (size_t i = 0; i + 1 < v->size(); i += 2)
-                    l.lscm_seam_edges.emplace_back((*v)[i].get<int>(), (*v)[i + 1].get<int>());
+                if (const auto v = j.find("lscm_seam_edges"); v != j.end() && v->is_array())
+                    for (size_t i = 0; i + 1 < v->size(); i += 2)
+                        l.lscm_seam_edges.emplace_back((*v)[i].get<int>(), (*v)[i + 1].get<int>());
 
-            if (const auto v = j.find("islands"); v != j.end() && v->is_array())
-                for (const nlohmann::json &e : *v) {
-                    if (!e.is_array() || e.size() != 4)
-                        continue;
-                    TextureIsland island;
-                    island.offset       = Vec2f(e[0].get<float>(), e[1].get<float>());
-                    island.rotation_deg = e[2].get<float>();
-                    island.scale        = e[3].get<float>();
-                    l.islands.push_back(island);
-                }
+                if (const auto v = j.find("islands"); v != j.end() && v->is_array())
+                    for (const nlohmann::json &e : *v) {
+                        if (!e.is_array() || e.size() != 4)
+                            continue;
+                        TextureIsland island;
+                        island.offset       = Vec2f(e[0].get<float>(), e[1].get<float>());
+                        island.rotation_deg = e[2].get<float>();
+                        island.scale        = e[3].get<float>();
+                        l.islands.push_back(island);
+                    }
 
-            read(j, "island_groups", l.island_groups);
+                read(j, "island_groups", l.island_groups);
 
-            if (const auto v = j.find("lscm_uv_overrides"); v != j.end() && v->is_array())
-                for (const nlohmann::json &e : *v) {
-                    if (!e.is_array() || e.size() != 3)
-                        continue;
-                    l.lscm_uv_overrides.emplace_back(e[0].get<int>(), Vec2f(e[1].get<float>(), e[2].get<float>()));
-                }
+                if (const auto v = j.find("lscm_uv_overrides"); v != j.end() && v->is_array())
+                    for (const nlohmann::json &e : *v) {
+                        if (!e.is_array() || e.size() != 3)
+                            continue;
+                        l.lscm_uv_overrides.emplace_back(e[0].get<int>(), Vec2f(e[1].get<float>(), e[2].get<float>()));
+                    }
 
-            out_layers.push_back(std::move(l));
+                out_layers.push_back(std::move(l));
+            }
         }
+    } catch (const nlohmann::json::exception &) {
+        return false;
     }
 
     layers  = std::move(out_layers);

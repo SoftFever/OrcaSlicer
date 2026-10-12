@@ -32,6 +32,7 @@
 #include <fstream>
 #include <limits>
 #include <set>
+#include <string>
 #include <boost/filesystem.hpp>
 
 #include "libslic3r/AABBMesh.hpp"
@@ -2298,6 +2299,34 @@ TEST_CASE("Texture displacement JSON keeps defaults for keys it does not carry",
     std::vector<TextureDisplacementLayer> unused_layers;
     TextureDisplacementOptions            unused_options;
     CHECK(!texture_displacement_layers_from_json("not json at all", unused_layers, unused_options));
+}
+
+TEST_CASE("Texture displacement JSON with a wrong-typed element or an out-of-range slot is rejected", "[TextureDisplacement]")
+{
+    const std::string layer = GENERATE(as<std::string>{},
+                                       R"({"slot":0,"offset":["x",0]})",
+                                       R"({"slot":0,"view_project_right":[null,0,0]})",
+                                       R"({"slot":0,"view_project_matrix":[0,0,0,0,0,0,0,0,0,0,0,"x"]})",
+                                       R"({"slot":0,"lscm_seam_edges":[1,null]})",
+                                       R"({"slot":0,"islands":[[0,0,"x",1]]})",
+                                       R"({"slot":0,"lscm_uv_overrides":[[null,0,0]]})",
+                                       R"({"slot":8})",
+                                       R"({"slot":-1})",
+                                       R"({"slot":"x"})",
+                                       R"({"name":"No slot"})");
+    INFO(layer);
+
+    std::vector<TextureDisplacementLayer> layers(1);
+    layers.front().name = "Kept";
+    TextureDisplacementOptions options;
+    options.color_mix_count = 7;
+
+    bool parsed = true;
+    REQUIRE_NOTHROW(parsed = texture_displacement_layers_from_json(R"({"version":1,"layers":[)" + layer + "]}", layers, options));
+    CHECK_FALSE(parsed);
+    REQUIRE(layers.size() == 1);
+    CHECK(layers.front().name == "Kept");
+    CHECK(options.color_mix_count == 7);
 }
 
 TEST_CASE("whether a layer's texture has colour agrees with its decode", "[TextureDisplacement]")

@@ -424,7 +424,10 @@ struct TextureDisplacementOptions
 // responsible for writing it and for filling `image_data` back in on load.
 std::string texture_displacement_layers_to_json(const std::vector<TextureDisplacementLayer> &layers,
                                                 const TextureDisplacementOptions            &options);
-// Returns false and leaves both outputs untouched when the text is not valid JSON.
+// Returns false and leaves both outputs untouched when the text is not a valid JSON object, a number in a
+// layer's vector, matrix, seam, island or UV-override array has the wrong type, or a layer's slot is
+// missing or outside [0, TEXTURE_DISPLACEMENT_MAX_LAYERS). Any other value of the wrong type or shape
+// keeps its default.
 bool texture_displacement_layers_from_json(const std::string                      &text,
                                            std::vector<TextureDisplacementLayer>  &layers,
                                            TextureDisplacementOptions             &options);

@@ -64,7 +64,6 @@
 #include <ostream>
 #include <sstream>
 #include <set>
-#include <iterator>
 #include <memory>
 #include <optional>
 #include <map>
@@ -856,7 +855,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::vector<std::string> custom_seam;
             std::vector<std::string> mmu_segmentation;
             std::vector<std::string> fuzzy_skin;
-            // One per texture displacement layer slot, each parallel to `triangles` like the masks above.
+            // One per texture displacement layer slot, indexed like `triangles` but stored only as far as the
+            // slot's last painted triangle: empty when the slot has no paint, which is nearly every file.
             std::vector<std::string> texture_displacement[TEXTURE_DISPLACEMENT_MAX_LAYERS];
             // BBS
             std::vector<std::string> face_properties;
@@ -3355,34 +3355,20 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             add_error("Malformed texture displacement data: " + json_path);
             return;
         }
-        // A layer the archive carries no image for - saved while its texture had not been loaded, or
-        // written by a build that stored only the path - falls back to the file it came from. The
-        // importer copies every texture into the user's own library, so that path resolves on the
-        // machine the project was made on and quietly resolves nowhere else, which is the old
-        // behaviour: settings restored, pixels not.
-        const auto load_image_from_disk = [](TextureDisplacementLayer &layer) {
-            boost::system::error_code ec;
-            if (layer.path.empty() || !boost::filesystem::is_regular_file(layer.path, ec) || ec)
-                return;
-            boost::nowide::ifstream file(layer.path, std::ios::binary);
-            if (!file.good())
-                return;
-            std::vector<unsigned char> bytes((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-            if (!bytes.empty())
-                layer.image_data = std::make_shared<std::vector<unsigned char>>(std::move(bytes));
-        };
-
+        // The archive is the only source of a layer's pixels. `path` comes from the project file, so loading
+        // the project must never read the file it names: that would let whoever made the project pick any
+        // local (or, on Windows, network) file to read, and the next save would embed it in the archive.
+        // `path` stays a label of where the texture came from; a layer the archive carries no image for
+        // loads without one, its settings intact, until the user picks a texture again.
         for (TextureDisplacementLayer &layer : layers) {
-            if (!layer.path_in_3mf.empty()) {
-                if (const auto image = m_texture_displacement_files.find(layer.path_in_3mf);
-                    image != m_texture_displacement_files.end()) {
-                    layer.image_data = std::make_shared<std::vector<unsigned char>>(image->second.begin(),
-                                                                                    image->second.end());
-                    continue;
-                }
+            if (layer.path_in_3mf.empty())
+                continue;
+            const auto image = m_texture_displacement_files.find(layer.path_in_3mf);
+            if (image == m_texture_displacement_files.end()) {
                 add_error("Missing texture displacement image: " + layer.path_in_3mf);
+                continue;
             }
-            load_image_from_disk(layer);
+            layer.image_data = std::make_shared<std::vector<unsigned char>>(image->second.begin(), image->second.end());
         }
         volume.texture_displacement_layers  = std::move(layers);
         volume.texture_displacement_options = options;
@@ -4045,8 +4031,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_curr_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
             m_curr_object->geometry.fuzzy_skin.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_FUZZY_SKIN_ATTR));
             for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot)
-                m_curr_object->geometry.texture_displacement[slot].push_back(
-                    bbs_get_attribute_value_string(attributes, num_attributes, TEXTURE_DISPLACEMENT_ATTRS[slot]));
+                if (const char *paint = bbs_get_attribute_value_charptr(attributes, num_attributes, TEXTURE_DISPLACEMENT_ATTRS[slot])) {
+                    std::vector<std::string> &mask = m_curr_object->geometry.texture_displacement[slot];
+                    mask.resize(m_curr_object->geometry.triangles.size());
+                    mask.back() = paint;
+                }
             // BBS
             m_curr_object->geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
         }
@@ -5401,7 +5390,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot) {
                     const std::vector<std::string> &mask = sub_object->geometry.texture_displacement[slot];
                     if (mask.empty())
-                        continue; // written by a build without the feature
+                        continue; // no triangle painted on this slot
                     FacetsAnnotation &facets = volume->texture_displacement_facet(slot);
                     facets.reserve(triangles_count);
                     for (size_t i = 0; i < triangles_count && i < mask.size(); ++i)
@@ -5917,8 +5906,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             current_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
             current_object->geometry.fuzzy_skin.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_FUZZY_SKIN_ATTR));
             for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot)
-                current_object->geometry.texture_displacement[slot].push_back(
-                    bbs_get_attribute_value_string(attributes, num_attributes, TEXTURE_DISPLACEMENT_ATTRS[slot]));
+                if (const char *paint = bbs_get_attribute_value_charptr(attributes, num_attributes, TEXTURE_DISPLACEMENT_ATTRS[slot])) {
+                    std::vector<std::string> &mask = current_object->geometry.texture_displacement[slot];
+                    mask.resize(current_object->geometry.triangles.size());
+                    mask.back() = paint;
+                }
             // BBS
             current_object->geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
         }
@@ -7349,10 +7341,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             if (iter != m_shared_meshes.end())
                             {
                                 const ModelVolume* shared_volume = iter->second.second;
+                                bool same_texture_paint = true;
+                                for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS) && same_texture_paint; ++slot)
+                                    same_texture_paint = shared_volume->texture_displacement_facet(slot).equals(volume->texture_displacement_facet(slot));
                                 if ((shared_volume->supported_facets.equals(volume->supported_facets))
                                     && (shared_volume->seam_facets.equals(volume->seam_facets))
                                     && (shared_volume->mmu_segmentation_facets.equals(volume->mmu_segmentation_facets))
-                                    && (shared_volume->fuzzy_skin_facets.equals(volume->fuzzy_skin_facets)))
+                                    && (shared_volume->fuzzy_skin_facets.equals(volume->fuzzy_skin_facets))
+                                    && same_texture_paint)
                                 {
                                     auto data = iter->second.first;
                                     const_cast<_BBS_3MF_Exporter *>(this)->m_volume_paths.insert({volume, {data->sub_path, data->volumes_objectID.find(iter->second.second)->second}});
