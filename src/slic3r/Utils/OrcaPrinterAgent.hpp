@@ -181,6 +181,12 @@ protected:
     // or malformed fields default to 0. protected static for the Probe.
     static PrinterFileMetadata parse_files_metadata_reply(const std::string& payload);
 
+    // Pure JSON -> image-bytes extraction for the files.thumbnails MQTT reply
+    // ({"files":{...,"items":[{path,data|state,...}]}}). Returns decoded image bytes
+    // for `path`, or empty when the path has no thumbnail, an error state, or is
+    // absent. protected static for the test Probe.
+    static std::string parse_files_thumbnail_reply(const std::string& payload, const std::string& path);
+
     // Dispatch one files.* command (list/metadata/delete) over the LAN MQTT
     // connection and route its reply, matched by sequence_id, into `complete`.
     // `complete` runs once on the UI thread (or the calling thread when no queue is

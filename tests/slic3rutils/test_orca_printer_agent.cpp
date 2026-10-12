@@ -33,6 +33,7 @@ struct Probe : OrcaPrinterAgent {
     using OrcaPrinterAgent::prepare_outgoing_request;
     using OrcaPrinterAgent::parse_files_list_reply;
     using OrcaPrinterAgent::parse_files_metadata_reply;
+    using OrcaPrinterAgent::parse_files_thumbnail_reply;
     using OrcaPrinterAgent::try_consume_files_reply;
 };
 }
@@ -243,6 +244,31 @@ TEST_CASE("OrcaPrinterAgent::parse_files_list_reply tolerates a non-boolean is_d
         Probe::parse_files_list_reply(R"({"files": {"result": "success", "entries": [{"name": "x.gcode", "is_dir": "yes"}]}})");
     REQUIRE(files.size() == 1);
     CHECK(files[0].name == "x.gcode");
+}
+
+TEST_CASE("OrcaPrinterAgent::parse_files_thumbnail_reply decodes the requested path's image and ignores others", "[OrcaPrinterAgent]") {
+    const std::string payload = R"({
+        "files": {
+            "command": "thumbnails",
+            "sequence_id": "1",
+            "result": "success",
+            "root": "gcodes",
+            "items": [
+                {"path": "a.gcode", "state": "none"},
+                {"path": "b.gcode", "content_type": "image/png", "data": "aGk="}
+            ]
+        }
+    })";
+    CHECK(Probe::parse_files_thumbnail_reply(payload, "b.gcode") == "hi");   // aGk= is base64 "hi"
+    CHECK(Probe::parse_files_thumbnail_reply(payload, "a.gcode").empty());   // state item carries no image
+    CHECK(Probe::parse_files_thumbnail_reply(payload, "missing.gcode").empty());
+}
+
+TEST_CASE("OrcaPrinterAgent::parse_files_thumbnail_reply is empty for malformed or dataless replies", "[OrcaPrinterAgent]") {
+    CHECK(Probe::parse_files_thumbnail_reply("not json", "x.gcode").empty());
+    CHECK(Probe::parse_files_thumbnail_reply(R"({"files":{"items":"nope"}})", "x.gcode").empty());
+    CHECK(Probe::parse_files_thumbnail_reply(
+        R"({"files":{"items":[{"path": "x.gcode", "state": "too_large"}]}})", "x.gcode").empty());
 }
 
 TEST_CASE("OrcaPrinterAgent::try_consume_files_reply ignores reports it did not request", "[OrcaPrinterAgent]") {

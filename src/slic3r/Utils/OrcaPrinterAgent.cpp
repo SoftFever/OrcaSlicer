@@ -21,6 +21,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+#include <boost/beast/core/detail/base64.hpp>
 
 #include <exception>
 #include <functional>
@@ -744,7 +745,7 @@ void OrcaPrinterAgent::forget_device_capabilities(const std::string& dev_id)
 void OrcaPrinterAgent::deliver_to_sink(const std::string& dev_id, const std::string& payload, bool local)
 {
     // A files.* reply answers a pending request and is not printer state.
-    if (local && try_consume_files_reply(dev_id, payload))
+    if (try_consume_files_reply(dev_id, payload))
         return;
 
     parse_ipcam_info(dev_id, payload);
@@ -1829,7 +1830,8 @@ int OrcaPrinterAgent::send_files_request(const std::string& dev_id, const std::s
     if (!complete)
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
 
-    std::shared_ptr<OrcaMqttConnection> conn;
+    std::shared_ptr<OrcaMqttConnection> conn;      // LAN: held so a racing disconnect cannot free it mid-send
+    OrcaMqttConnection*                 conn_ptr = nullptr;
     QueueOnMainFn                       queue;
     CurrentConn                         transport = NONE;
     std::string                         lan_dev;
@@ -1837,12 +1839,18 @@ int OrcaPrinterAgent::send_files_request(const std::string& dev_id, const std::s
         std::lock_guard<std::mutex> lock(state_mutex);
         transport = m_current_connection;
         lan_dev   = m_lan_dev_id;
-        if (m_current_connection == LAN && m_lan_dev_id == dev_id)
-            conn = lan_mqtt_connection; // keep alive across the send, racing disconnects included
+        if (m_current_connection == LAN && m_lan_dev_id == dev_id) {
+            conn     = lan_mqtt_connection;
+            conn_ptr = conn.get();
+        }
         queue = queue_on_main_fn;
     }
-    if (!conn) {
-        BOOST_LOG_TRIVIAL(warning) << "Orca diagnostic: files." << command << " not sent: no live LAN session for dev_id=" << dev_id
+    if (!conn_ptr && transport == CLOUD) {
+        if (auto* cloud = get_orca_cloud_agent())
+            conn_ptr = cloud->get_mqtt_connection(); // owned by the cloud agent; no shared hold needed
+    }
+    if (!conn_ptr) {
+        BOOST_LOG_TRIVIAL(warning) << "Orca diagnostic: files." << command << " not sent: no live session for dev_id=" << dev_id
                                    << " transport=" << connection_type_name(transport) << " m_lan_dev_id=" << lan_dev;
         complete(ORCA_NETWORK_ERR_CMD_NOT_SUPPORTED, {});
         return ORCA_NETWORK_ERR_CMD_NOT_SUPPORTED;
@@ -1869,13 +1877,13 @@ int OrcaPrinterAgent::send_files_request(const std::string& dev_id, const std::s
         registry->entries[sequence_id] = FilesReply{dev_id, finish, fired};
     }
 
-    if (!conn->send_request(dev_id, payload)) {
+    if (!conn_ptr->send_request(dev_id, payload)) {
         {
             std::lock_guard<std::mutex> lock(registry->mutex);
             registry->entries.erase(sequence_id);
         }
         BOOST_LOG_TRIVIAL(warning) << "Orca diagnostic: files." << command << " send_request failed dev_id=" << dev_id
-                                   << " sequence_id=" << sequence_id << " mqtt_connected=" << conn->is_connected();
+                                   << " sequence_id=" << sequence_id << " mqtt_connected=" << conn_ptr->is_connected();
         finish(BAMBU_NETWORK_ERR_CONNECTION_TO_SERVER_FAILED, {});
         return BAMBU_NETWORK_ERR_CONNECTION_TO_SERVER_FAILED;
     }
@@ -1995,6 +2003,43 @@ PrinterFileMetadata OrcaPrinterAgent::parse_files_metadata_reply(const std::stri
     return meta;
 }
 
+// Standard (RFC 4648) base64 -> bytes. OrcaSonar sends StdEncoding (+ / alphabet, padded).
+static std::string decode_base64_standard(const std::string& input)
+{
+    const std::size_t out_size = boost::beast::detail::base64::decoded_size(input.size());
+    std::string       out(out_size, '\0');
+    const auto        written = boost::beast::detail::base64::decode(out.data(), input.data(), input.size());
+    out.resize(written.first);
+    return out;
+}
+
+std::string OrcaPrinterAgent::parse_files_thumbnail_reply(const std::string& payload, const std::string& path)
+{
+    const nlohmann::json envelope = nlohmann::json::parse(payload, nullptr, false);
+    if (envelope.is_discarded() || !envelope.is_object())
+        return {};
+    const auto files_it = envelope.find("files");
+    if (files_it == envelope.end() || !files_it->is_object())
+        return {};
+    const auto items_it = files_it->find("items");
+    if (items_it == files_it->end() || !items_it->is_array())
+        return {};
+    for (const auto& item : *items_it) {
+        if (!item.is_object())
+            continue;
+        const auto path_it = item.find("path");
+        if (path_it == item.end() || !path_it->is_string() || path_it->get<std::string>() != path)
+            continue;
+        // A state (none/too_large/not_found/invalid_path/error) or a missing "data"
+        // field means no image for this path; an empty image is a normal outcome.
+        const auto data_it = item.find("data");
+        if (data_it == item.end() || !data_it->is_string())
+            return {};
+        return decode_base64_standard(data_it->get<std::string>());
+    }
+    return {};
+}
+
 // Fetch one file's thumbnail over HTTP; the worker captures no `this`.
 int OrcaPrinterAgent::get_printer_file_thumbnail(const std::string& dev_id, const std::string& path, PrinterFileThumbnailFn callback)
 {
@@ -2002,16 +2047,33 @@ int OrcaPrinterAgent::get_printer_file_thumbnail(const std::string& dev_id, cons
     bool          use_ssl = false;
     std::string   ca_file;
     QueueOnMainFn queue;
-    bool          live = false;
+    bool          live  = false;
+    bool          cloud = false;
     {
         std::lock_guard<std::mutex> lock(state_mutex);
-        live = m_current_connection == LAN && m_lan_dev_id == dev_id;
+        live  = m_current_connection == LAN && m_lan_dev_id == dev_id;
+        cloud = m_current_connection == CLOUD;
+        queue = queue_on_main_fn;
         if (live) {
             origin  = http_origin_from_lan_ws(m_lan_url);
             use_ssl = m_lan_use_ssl;
             ca_file = m_lan_ca_file;
-            queue   = queue_on_main_fn;
         }
+    }
+    if (cloud) {
+        // No inbound HTTP path to a cloud printer: fetch the thumbnail as an OPCP
+        // files.thumbnails command and decode the inline base64 image from its reply.
+        return send_files_request(
+            dev_id, "thumbnails",
+            nlohmann::json{{"root", "gcodes"}, {"paths", nlohmann::json::array({path})}, {"max_width", 64}, {"max_bytes", 40960}},
+            [path, callback = std::move(callback)](int result, const std::string& payload) mutable {
+                if (!callback)
+                    return;
+                if (result == BAMBU_NETWORK_SUCCESS)
+                    callback(result, parse_files_thumbnail_reply(payload, path));
+                else
+                    callback(result, {});
+            });
     }
     if (!live) {
         if (callback)
