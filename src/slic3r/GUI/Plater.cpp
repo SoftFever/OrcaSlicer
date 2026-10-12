@@ -1,5 +1,6 @@
 #include "Plater.hpp"
 #include "../Utils/NetworkAgent.hpp"
+#include "slic3r/Utils/NetworkAgentFactory.hpp"
 #include "IPrinterAgent.hpp"
 #include "CalibUtils.hpp"
 #include "Flashforge.hpp"
@@ -1018,6 +1019,7 @@ struct Sidebar::priv
     // Orca: BBS resets the switcher UI from DeviceManager::OnSelectedMachineChanged, which Orca lacks.
     // Track the last-synced device id here so update_sync_status can detect a machine change.
     std::string last_sync_dev_id;
+    std::string last_curve_path_dev_id;
 
 #ifdef _WIN32
     wxString btn_reslice_tip;
@@ -2537,6 +2539,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         last_sync_dev_id = cur_dev_id;
         update_extruder_separator_icon(false, false);
         fila_switch_warning_shown = false;
+        last_curve_path_dev_id.clear();
     }
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -2556,6 +2559,26 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
         panel_printer_preset->ShowBadge(true);
         printer_synced = true;
+
+        // Disable arc fitting when curve planning enhancement support is detected on a Bambu Lab printer,
+        if (obj->is_support_curve_path && (obj->printer_agent_id == BBL_PRINTER_AGENT_ID || obj->printer_agent_id.empty())) {
+            if (cur_dev_id != last_curve_path_dev_id) {
+                last_curve_path_dev_id = cur_dev_id;
+                Preset &process_preset = preset_bundle->prints.get_edited_preset();
+                // Ensure arc fitting is only disabled and notification sent when arc fitting is currently enabled (not disabled already)
+                if (process_preset.config.opt_bool("enable_arc_fitting")) {
+                    process_preset.config.set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
+                    if (auto print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+                        print_tab->update_dirty();
+                        print_tab->reload_config();
+                    }
+                    if (auto plater = wxGetApp().plater()) {
+                        plater->get_notification_manager()->push_notification(
+                            _u8L("Curve planning enhancement support detected on your printer. Arc fitting has been disabled to ensure this feature functions correctly."));
+                    }
+                }
+            }
+        }
 
         wxGetApp().plater()->sidebar().udpate_combos_filament_badge();
     } else {
@@ -11407,7 +11430,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         // update string by type
         q->post_process_string_object_exception(err);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": validate err=%1%, warnings=%2%")%err.string%warnings.size();
-
+        
         if (err.string.empty())
             err.string = imex_placement_error(partplate_list.get_curr_plate());
 
