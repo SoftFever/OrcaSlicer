@@ -573,8 +573,8 @@ sets the NVIDIA DMABUF workaround and then branches on `GDK_BACKEND`:
   honours the switch (>= 2.44, `WebView::SupportsForceSharedMemory()`), it sets
   `WEBKIT_DMABUF_RENDERER_FORCE_SHM=1` and `WEBKIT_FORCE_DMABUF_RENDERER=1` non-replacing. The
   proprietary driver cannot back WebKit's hardware DMABUF renderer, so the shared-memory transport keeps
-  compositing and threaded scrolling; `WEBKIT_FORCE_DMABUF_RENDERER` clears the Debian/Ubuntu/openSUSE
-  `isNVIDIA()` early return, which otherwise returns before the FORCE_SHM check.
+  accelerated compositing instead of dropping it; `WEBKIT_FORCE_DMABUF_RENDERER` clears the
+  Debian/Ubuntu/openSUSE `isNVIDIA()` early return, which otherwise returns before the FORCE_SHM check.
 - **Default path** (`GDK_BACKEND` unset or not starting with `x11`): if wx lacks EGL (`!wxHAS_EGL`) and
   `WAYLAND_DISPLAY` is set, it forces `GDK_BACKEND=x11`; it sets `WEBKIT_DISABLE_COMPOSITING_MODE=1`
   non-replacing **only** when the linked WebKitGTK predates 2.42 (`WebView::NeedsCompositingWorkaround()`)
@@ -591,12 +591,17 @@ Runtime backend detection elsewhere uses Orca's `is_running_on_wayland()` / `is_
 **Pitfall.**
 - **Rule:** On NVIDIA reach for `WEBKIT_DMABUF_RENDERER_FORCE_SHM` before
   `WEBKIT_DISABLE_COMPOSITING_MODE`. **Why:** the proprietary driver cannot back WebKit's hardware
-  DMABUF renderer, leaving web views blank or slow; FORCE_SHM keeps compositing and threaded scrolling
-  and only skips the hardware path, while disabling compositing also turns threaded scrolling off.
-  `WEBKIT_DISABLE_DMABUF_RENDERER` is not a substitute — it is read first, leaves the transport set
-  empty (no compositing) and has a reported crash path. On Debian/Ubuntu and openSUSE the `isNVIDIA()`
-  patch returns before the FORCE_SHM check, so `WEBKIT_FORCE_DMABUF_RENDERER=1` must clear it first.
-  WebKit reads all of these once per process, before the first WebView.
+  DMABUF renderer, leaving web views blank or slow; FORCE_SHM keeps accelerated compositing and only
+  skips the hardware path, while disabling compositing drops it. Threaded scrolling is a separate,
+  release-dependent default (off in 2.44/2.45, on from 2.46). `WEBKIT_DISABLE_DMABUF_RENDERER` is not a
+  substitute — it is read first, leaves the transport set empty (no compositing from 2.44 on, where the
+  X11/Wayland fallback renderers were removed) and has a reported crash path. On Debian/Ubuntu and
+  openSUSE the `isNVIDIA()` patch returns before the FORCE_SHM check, so `WEBKIT_FORCE_DMABUF_RENDERER=1`
+  must clear it first; that variable exists only in those patches. WebKit reads all of these once per
+  process, before the first WebView.
+  The test is `/proc/driver/nvidia/version`, so a hybrid laptop that renders on its iGPU also takes the
+  shared-memory path, which is a per-frame GPU readback rather than zero-copy; exporting
+  `WEBKIT_DMABUF_RENDERER_FORCE_SHM=0` in the environment restores the hardware path.
   ```cpp
   // Wrong: kills compositing and threaded scrolling (and can crash on modern WebKit)
   ::setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", false);
