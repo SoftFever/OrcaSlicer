@@ -4,6 +4,7 @@
 #include "libslic3r/Model.hpp"
 
 #include "GUI_Factories.hpp"
+#include "ExtraRenderers.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_App.hpp"
 #include "Shortcuts.hpp"
@@ -1151,6 +1152,8 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
             } else {
                 item_name = from_u8(preset->label(false));
             }
+            // On a synced dual-nozzle printer, show which nozzle this filament is on.
+            item_name += get_filament_nozzle_suffix(i);
         }
 
         if (is_active_extruder) {
@@ -2461,6 +2464,8 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
             } else {
                 item_name = from_u8(preset->label(false));
             }
+            // On a synced dual-nozzle printer, show which nozzle this filament is on.
+            item_name += get_filament_nozzle_suffix(i);
         }
 
         if (is_active_extruder) {
