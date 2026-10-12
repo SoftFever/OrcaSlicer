@@ -281,9 +281,9 @@ json describe_tools()
                      json{{"name", "closed"}, {"type", "boolean"}, {"default", false}}})}},
             json{{"name", "new_document"}, {"summary", "Clear every feature (undoable). For test rigs that need a known starting document."},
                  {"params", json::array()}},
-            json{{"name", "ui_option"}, {"summary", "Switch a Design UI option: imgui_tree = draw the feature tree on the canvas (ImGui) instead of the side panel; imgui_ribbon = draw the tool ribbon on the canvas instead of the wx toolbar groups."},
+            json{{"name", "ui_option"}, {"summary", "Switch a Design UI option: imgui_tree = draw the feature tree on the canvas (ImGui) instead of the side panel; imgui_ribbon = draw the tool ribbon on the canvas instead of the wx toolbar groups; imgui_menu = the right-click offer as an ImGui popup."},
                  {"params", json::array({
-                     json{{"name", "name"},  {"type", "string"}, {"enum", json::array({"imgui_tree", "imgui_ribbon"})}},
+                     json{{"name", "name"},  {"type", "string"}, {"enum", json::array({"imgui_tree", "imgui_ribbon", "imgui_menu"})}},
                      json{{"name", "value"}, {"type", "boolean"}, {"default", false}}})}},
             json{{"name", "plane"}, {"summary", "Create a datum plane: offset (mm) from base 0=XY, 1=XZ, 2=YZ or 3+N = Nth earlier datum, optional tilt (deg) about axis. Sketch on it with sketch_begin plane=datum:N."},
                  {"params", json::array({
@@ -1960,7 +1960,8 @@ json action_ui_option(DesignPanel* panel, const json& params)
     const bool        on   = params.value("value", false);
     if (name == "imgui_tree")   { panel->mcp_set_imgui_tree(on);   return json{{"ok", true}, {"imgui_tree", on}}; }
     if (name == "imgui_ribbon") { panel->mcp_set_imgui_ribbon(on); return json{{"ok", true}, {"imgui_ribbon", on}}; }
-    throw std::runtime_error("unknown ui option: " + name + " (imgui_tree, imgui_ribbon)");
+    if (name == "imgui_menu")   { panel->mcp_set_imgui_menu(on);   return json{{"ok", true}, {"imgui_menu", on}}; }
+    throw std::runtime_error("unknown ui option: " + name + " (imgui_tree, imgui_ribbon, imgui_menu)");
 }
 
 json action_plane(DesignPanel* panel, const json& params)

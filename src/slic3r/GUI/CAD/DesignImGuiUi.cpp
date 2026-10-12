@@ -253,7 +253,7 @@ void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_l
     ImGui::SetNextWindowSize(ImVec2(std::max(ds.x - inset_left, 100.f), 0.f), ImGuiCond_Always);
     imgui.begin(std::string("##design_ribbon"),
                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);
+                ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);   // a narrow canvas scrolls instead of clipping
     m_hovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
     if (std::getenv("ORCA_CAD_UITRACE")) {
         const ImVec2 wp = ImGui::GetWindowPos(), wsz = ImGui::GetWindowSize();
@@ -324,6 +324,58 @@ void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_l
     m_height = ImGui::GetWindowHeight();
     imgui.end();
     ImGui::PopStyleVar(3);
+    theme.reset();
+    ImGuiWrapper::pop_common_window_style();
+}
+
+// ---- offer popup -------------------------------------------------------------------------------------
+void DesignOfferPopup::open(std::string header, std::vector<OfferNode> nodes, float x, float y)
+{
+    m_header = std::move(header);
+    m_nodes  = std::move(nodes);
+    m_x = x; m_y = y;
+    m_open = true;
+    m_opened_now = true;
+}
+
+void DesignOfferPopup::render(ImGuiWrapper& imgui, float scale)
+{
+    if (!m_open) return;
+    ImGuiWrapper::push_common_window_style(scale);
+    auto theme = std::make_unique<ThemeScope>();
+    ImGui::SetNextWindowPos(ImVec2(m_x, m_y), ImGuiCond_Always);
+    if (m_opened_now) { ImGui::OpenPopup("##design_offer"); m_opened_now = false; }
+
+    std::function<void(const std::vector<OfferNode>&)> draw = [&](const std::vector<OfferNode>& nodes) {
+        for (const OfferNode& n : nodes) {
+            if (n.separator_before) ImGui::Separator();
+            if (!n.children.empty()) {
+                if (ImGui::BeginMenu(n.label.c_str(), n.enabled)) { draw(n.children); ImGui::EndMenu(); }
+                continue;
+            }
+            const bool usable = n.enabled && n.verb != nullptr;
+            if (!usable) {   // ImGui 1.83: no BeginDisabled
+                ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+            }
+            const bool clicked = ImGui::MenuItem(n.label.c_str(), n.shortcut.empty() ? nullptr : n.shortcut.c_str());
+            if (!usable) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
+            // The reason only on hover of a DISABLED item: a tooltip on every row is noise.
+            if (!usable && !n.why.empty() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", n.why.c_str());
+            if (clicked && usable && run) { const OfferVerb* v = n.verb; ImGui::CloseCurrentPopup(); run(*v); }
+        }
+    };
+
+    if (ImGui::BeginPopup("##design_offer", ImGuiWindowFlags_NoSavedSettings)) {
+        // One disabled header says WHAT the rows act on ("Nothing selected" included); the rows
+        // below it do not repeat the reason.
+        ImGui::TextDisabled("%s", m_header.empty() ? "" : m_header.c_str());
+        ImGui::Separator();
+        draw(m_nodes);
+        ImGui::EndPopup();
+    } else {
+        m_open = false;
+    }
     theme.reset();
     ImGuiWrapper::pop_common_window_style();
 }

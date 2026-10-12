@@ -81,6 +81,9 @@ public:
     void set_sketch_tool(DesignSketchTool::Mode mode);
     void set_sketch_construction(bool c);
     // The feature tree drawn on the canvas with ImGui (see DesignImGuiUi.hpp). Off = the wx tree.
+    DesignOfferPopup& offer_popup() { return m_offer_popup; }
+    // Open the right-click offer as an ImGui popup at a SCREEN position.
+    void open_offer_popup(std::string header, std::vector<OfferNode> nodes, const wxPoint& screen);
     DesignRibbonOverlay& ribbon_overlay() { return m_ribbon; }
     void set_ribbon_overlay(bool on) { m_ribbon_on = on; request_repaint(); }
     bool ribbon_overlay_on() const { return m_ribbon_on; }
@@ -470,6 +473,7 @@ private:
     // DesignPanel. Empty text draws nothing. They were top-level popups once; a popup does not
     // follow its frame, so it floated over other applications and outlived the tab.
     bool                m_ctx_over_ui{false};   // the right press landed on an ImGui window
+    DesignOfferPopup    m_offer_popup;
     DesignRibbonOverlay m_ribbon;
     bool                m_ribbon_on{false};
     DesignTreeOverlay m_tree_overlay;

@@ -93,6 +93,34 @@ private:
     bool   m_was_sketching{false};
 };
 
+// ---- right-click offer menu as an ImGui popup (item 3) ----------------------------------------------
+// The same rows the wx offer builds (flat rows first, then one submenu per family), as plain data.
+struct OfferNode {
+    std::string            label;
+    std::string            shortcut;
+    bool                   enabled{true};
+    std::string            why;                 // tooltip, shown only while hovering a DISABLED item
+    const OfferVerb*       verb{nullptr};       // null for a submenu
+    bool                   separator_before{false};
+    std::vector<OfferNode> children;            // non-empty = submenu
+};
+
+class DesignOfferPopup
+{
+public:
+    std::function<void(const OfferVerb&)> run;   // the panel applies it next turn, through the offer's action router
+    void open(std::string header, std::vector<OfferNode> nodes, float x, float y);
+    void render(ImGuiWrapper& imgui, float scale);
+    bool is_open() const { return m_open; }
+
+private:
+    bool                   m_open{false};
+    bool                   m_opened_now{false};
+    float                  m_x{0.f}, m_y{0.f};
+    std::string            m_header;
+    std::vector<OfferNode> m_nodes;
+};
+
 // An ImGui popup (ribbon dropdown, tree row menu) is open anywhere? Esc closes it, before the
 // panel's own Esc ladder, which knows nothing about ImGui.
 bool imgui_popup_open();
