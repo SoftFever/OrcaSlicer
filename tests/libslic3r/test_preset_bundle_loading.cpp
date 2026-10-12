@@ -1,21 +1,52 @@
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/directory.hpp>
+#include <boost/filesystem/file_status.hpp>
 #include <catch2/catch_all.hpp>
 
 #include <algorithm>
 #include <boost/filesystem.hpp>
+#include <boost/nowide/convert.hpp>
+#include <boost/nowide/fstream.hpp>
+#include <cstddef>
 #include <fstream>
 
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/catch_message.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/IMEXHelpers.hpp"
+#include "libslic3r/ParallelResolve.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/miniz_extension.hpp"
+#include "libslic3r/PrinterBedAssets.hpp"
 
 #include "test_utils.hpp"
 
-#include <algorithm>
 #include <iostream>
 #include <initializer_list>
+#include <vector>
+#include <string>
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/Preset.hpp"
+#include <utility>
+#include "libslic3r/Config.hpp"
+#include <map>
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/PublishSettings.hpp"
+#include <set>
+#include "libslic3r/TriangleSelector.hpp"
+#include <iterator>
+#include <miniz.h>
+
+#ifndef _WIN32
+#include <unistd.h> // geteuid
+#endif
 
 using namespace Slic3r;
 
@@ -1589,7 +1620,7 @@ const char *kMixedKeys[] = {
 } // namespace
 
 // Mixed-color filament metadata lives in project_config as parallel per-filament arrays.
-// set_num_filaments() is the single place that grows them alongside filament_colour; if it
+// set_num_filaments() grows them alongside filament_colour; if it
 // misses them, creating a mixed slot writes past the end of the short arrays.
 TEST_CASE("set_num_filaments keeps mixed-color arrays in step with the filament count", "[Preset][Bundle][FilamentMixer]")
 {
@@ -4513,6 +4544,153 @@ TEST_CASE("Published 3MF overrides each extruder slot on a similar multi-extrude
     }
 }
 
+TEST_CASE("Loading incomplete mixed metadata normalizes slots before adding a filament", "[Preset][Bundle][FilamentMixer]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    const std::vector<std::string> colors = { "#000000", "#FFFFFF", "#5E5C64" };
+    config.option<ConfigOptionStrings>("filament_colour")->values = colors;
+    config.option<ConfigOptionBool>("single_extruder_multi_material")->value = true;
+    config.option<ConfigOptionFloats>("filament_diameter")->values = { 1.75, 1.75, 1.75 };
+    config.option<ConfigOptionStrings>("filament_settings_id", true)->values = { "Test PETG", "Test PLA", "Test TPU" };
+    const std::vector<std::string> bool_keys = {
+        "filament_is_mixed", "filament_mixed_gradient", "filament_mixed_gradient_per_part"
+    };
+    const std::vector<std::string> string_keys = {
+        "filament_mixed_components", "filament_mixed_sublayer_ratios",
+        "filament_mixed_gradient_range", "filament_mixed_gradient_curve"
+    };
+    const size_t metadata_size = GENERATE(0u, 1u, 4u);
+    for (const auto &key : bool_keys) {
+        if (metadata_size == 0)
+            config.erase(key);
+        else {
+            auto &values = config.option<ConfigOptionBools>(key)->values;
+            values.assign(metadata_size, false);
+            if (metadata_size > colors.size())
+                values.back() = true;
+        }
+    }
+    for (const auto &key : string_keys) {
+        if (metadata_size == 0)
+            config.erase(key);
+        else {
+            auto &values = config.option<ConfigOptionStrings>(key)->values;
+            values.assign(metadata_size, "");
+            if (metadata_size > colors.size())
+                values.back() = "stale";
+        }
+    }
+    Preset::normalize(config);
+
+    PresetBundle bundle;
+    bundle.load_config_model("test.3mf", std::move(config), Semver());
+    const auto presets = bundle.filament_presets;
+    REQUIRE(presets.size() == colors.size());
+    REQUIRE(presets[0] != presets[1]);
+    REQUIRE(presets[1] != presets[2]);
+    REQUIRE(presets[0] != presets[2]);
+    for (const auto &key : bool_keys) {
+        CAPTURE(key, metadata_size);
+        CHECK(bundle.project_config.option<ConfigOptionBools>(key)->values ==
+              std::vector<unsigned char>(colors.size(), false));
+    }
+    for (const auto &key : string_keys) {
+        CAPTURE(key, metadata_size);
+        CHECK(bundle.project_config.option<ConfigOptionStrings>(key)->values ==
+              std::vector<std::string>(colors.size(), ""));
+    }
+    REQUIRE(bundle.num_physical_filaments() == colors.size());
+    REQUIRE(bundle.num_mixed_filaments() == 0);
+
+    bundle.set_num_filaments(bundle.num_physical_filaments() + bundle.num_mixed_filaments() + 1, "#FF0000");
+    REQUIRE(bundle.filament_presets.size() == presets.size() + 1);
+    const auto &actual_colors = bundle.project_config.option<ConfigOptionStrings>("filament_colour")->values;
+    REQUIRE(actual_colors.size() == colors.size() + 1);
+    for (size_t i = 0; i < presets.size(); ++i) {
+        CHECK(bundle.filament_presets[i] == presets[i]);
+        CHECK(actual_colors[i] == colors[i]);
+    }
+    CHECK(bundle.num_physical_filaments() == colors.size() + 1);
+    CHECK_FALSE(bundle.is_mixed_filament(colors.size()));
+}
+
+TEST_CASE("Loading a project preserves existing mixed filament definitions", "[Preset][Bundle][FilamentMixer]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.option<ConfigOptionBool>("single_extruder_multi_material")->value = true;
+    config.option<ConfigOptionFloats>("filament_diameter")->values = { 1.75, 1.75, 1.75 };
+    config.option<ConfigOptionStrings>("filament_colour")->values = { "#000000", "#FFFFFF", "#808080" };
+    config.option<ConfigOptionBools>("filament_is_mixed")->values = { false, false, true };
+    config.option<ConfigOptionStrings>("filament_mixed_components")->values = { "", "", "1,2" };
+    config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios")->values = { "", "", "1,2" };
+    config.option<ConfigOptionBools>("filament_mixed_gradient")->values = { false, false, true };
+    config.option<ConfigOptionStrings>("filament_mixed_gradient_range")->values = { "", "", "0,100" };
+    config.option<ConfigOptionStrings>("filament_mixed_gradient_curve")->values = { "", "", "0,0.1|1,0.9" };
+    config.option<ConfigOptionBools>("filament_mixed_gradient_per_part")->values = { false, false, true };
+    Preset::normalize(config);
+    const auto original = config;
+
+    PresetBundle bundle;
+    bundle.load_config_model("test.3mf", std::move(config), Semver());
+    for (const auto *key : kMixedKeys) {
+        CAPTURE(key);
+        CHECK(*bundle.project_config.option(key) == *original.option(key));
+    }
+    CHECK(bundle.num_physical_filaments() == 2);
+    CHECK(bundle.num_mixed_filaments() == 1);
+}
+
+TEST_CASE("Adding a filament preserves slots with incomplete mixed metadata", "[Preset][Bundle][FilamentMixer]")
+{
+    PresetBundle bundle;
+    bundle.set_num_filaments(3u, std::string("#000000"));
+    auto *colors = bundle.project_config.option<ConfigOptionStrings>("filament_colour");
+    colors->values = { "#000000", "#FFFFFF", "#5E5C64" };
+    bundle.filament_presets = { "Test PETG", "Test PLA", "Test TPU" };
+    const auto original_presets = bundle.filament_presets;
+    const auto original_colors = colors->values;
+    auto *flags = bundle.project_config.option<ConfigOptionBools>("filament_is_mixed");
+    flags->values = GENERATE(std::vector<unsigned char>{}, std::vector<unsigned char>{ false },
+                            std::vector<unsigned char>{ false, false, false, true });
+    const std::vector<std::string> string_keys = {
+        "filament_mixed_components", "filament_mixed_sublayer_ratios",
+        "filament_mixed_gradient_range", "filament_mixed_gradient_curve"
+    };
+    const std::vector<std::string> bool_keys = {
+        "filament_mixed_gradient", "filament_mixed_gradient_per_part"
+    };
+    for (const auto &key : string_keys)
+        bundle.project_config.option<ConfigOptionStrings>(key)->values = { "", "", "", "stale" };
+    for (const auto &key : bool_keys)
+        bundle.project_config.option<ConfigOptionBools>(key)->values = { false, false, false, true };
+
+    REQUIRE(bundle.num_physical_filaments() == original_colors.size());
+    REQUIRE(bundle.num_mixed_filaments() == 0);
+    bundle.set_num_filaments(bundle.num_physical_filaments() + bundle.num_mixed_filaments() + 1, "#FF0000");
+
+    REQUIRE(bundle.filament_presets.size() == original_presets.size() + 1);
+    REQUIRE(colors->values.size() == original_colors.size() + 1);
+    for (size_t i = 0; i < original_presets.size(); ++i) {
+        CHECK(bundle.filament_presets[i] == original_presets[i]);
+        CHECK(colors->values[i] == original_colors[i]);
+    }
+    CHECK(colors->values.back() == "#FF0000");
+    CHECK(bundle.num_physical_filaments() == 4);
+    CHECK(bundle.num_mixed_filaments() == 0);
+    REQUIRE(flags->values.size() == 4);
+    CHECK_FALSE(bundle.is_mixed_filament(3));
+    for (const auto &key : string_keys) {
+        CAPTURE(key);
+        CHECK(bundle.project_config.option<ConfigOptionStrings>(key)->values ==
+              std::vector<std::string>{ "", "", "", "" });
+    }
+    for (const auto &key : bool_keys) {
+        CAPTURE(key);
+        CHECK(bundle.project_config.option<ConfigOptionBools>(key)->values ==
+              std::vector<unsigned char>{ false, false, false, false });
+    }
+}
+
 // The nozzle-count top-up in update_multi_material_filament_presets() grows filament_presets on
 // its own, so a physical count derived from that list reports a slot no per-filament array has
 // yet. That is what made the extruder-count handler conclude there was nothing to add and leave
@@ -5571,6 +5749,35 @@ struct ScopedDataDir
     ~ScopedDataDir() { set_data_dir(previous); }
 };
 
+// resources_dir() is process-wide too; system preset lookups scan its profiles directory.
+struct ScopedResourcesDir
+{
+    std::string previous = resources_dir();
+    explicit ScopedResourcesDir(const fs::path &dir) { set_resources_dir(dir.string()); }
+    ~ScopedResourcesDir() { set_resources_dir(previous); }
+};
+
+// An "Acme" vendor under root whose "Acme Printer" inherits extruder_clearance_dist_to_rod from an
+// abstract base, with the printer in a nested sub_path so the name cannot be derived from the file.
+void write_acme_printer_vendor(const fs::path &root, double dist_to_rod)
+{
+    const fs::path machine_dir = root / "Acme" / "machine";
+    fs::create_directories(machine_dir / "nested");
+    std::ofstream((root / "Acme.json").string())
+        << R"({"version":"1.0.0","name":"Acme",)"
+        << R"("machine_model_list":[{"name":"Acme One","sub_path":"machine/model.json"}],"machine_list":[)"
+        << R"({"name":"fdm_acme_common","sub_path":"machine/base.json"},)"
+        << R"({"name":"Acme Printer","sub_path":"machine/nested/printer.json"}]})";
+    std::ofstream((machine_dir / "model.json").string())
+        << R"({"type":"machine_model","name":"Acme One","nozzle_diameter":"0.4"})";
+    std::ofstream((machine_dir / "base.json").string())
+        << R"({"type":"machine","name":"fdm_acme_common","from":"system","instantiation":"false",)"
+        << R"("extruder_clearance_dist_to_rod":")" << dist_to_rod << R"("})";
+    std::ofstream((machine_dir / "nested" / "printer.json").string())
+        << R"({"type":"machine","name":"Acme Printer","from":"system","instantiation":"true","inherits":"fdm_acme_common",)"
+        << R"("printer_model":"Acme One","printer_variant":"0.4"})";
+}
+
 std::string read_file(const fs::path &file)
 {
     std::ifstream in(file.string(), std::ios::binary);
@@ -5649,6 +5856,630 @@ TEST_CASE("Config import confines zip entries, preset names and bundle ids to th
     }
 }
 
+namespace {
+
+const std::string kTextureBytes("\x89PNG\x00tex", 8);
+const std::string kModelBytes("stl\x00model", 9);
+const std::string kOtherBytes("\x89PNG\x00other", 10);
+
+void write_bytes(const std::string &utf8_path, const std::string &bytes)
+{
+    const auto slash = utf8_path.find_last_of("/\\");
+    if (slash != std::string::npos) {
+#ifdef _WIN32
+        fs::create_directories(fs::path(boost::nowide::widen(utf8_path.substr(0, slash))));
+#else
+        fs::create_directories(utf8_path.substr(0, slash));
+#endif
+    }
+    boost::nowide::ofstream out(utf8_path, std::ios::binary | std::ios::trunc);
+    REQUIRE(out);
+    out.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+    REQUIRE(out);
+}
+
+fs::path write_printer_json(const DynamicPrintConfig &defaults, const fs::path &file, const std::string &name,
+                            const std::string &texture, const std::string &model, const std::string &inherits = {})
+{
+    DynamicPrintConfig config(defaults);
+    config.option<ConfigOptionString>("printer_settings_id", true)->value = name;
+    config.option<ConfigOptionString>("inherits", true)->value = inherits;
+    if (texture.empty())
+        config.erase("bed_custom_texture");
+    else
+        config.option<ConfigOptionString>("bed_custom_texture", true)->value = texture;
+    if (model.empty())
+        config.erase("bed_custom_model");
+    else
+        config.option<ConfigOptionString>("bed_custom_model", true)->value = model;
+    fs::create_directories(file.parent_path());
+    config.save_to_json(file.string(), name, "User", "1.0.0");
+    return file;
+}
+
+nlohmann::json bed_manifest(const std::string &bundle_id)
+{
+    nlohmann::json structure = nlohmann::json::object();
+    structure["id"] = bundle_id;
+    structure["bundle_type"] = "printer config bundle";
+    structure["printer_config"] = nlohmann::json::array({"printer/BedPrinter.json"});
+    return structure;
+}
+
+void set_printer_bed_asset(nlohmann::json &structure, const std::string &option, const std::string &zip_name,
+                           const std::string &printer_entry = "printer/BedPrinter.json")
+{
+    structure["printer_asset"][printer_entry][option] = zip_name;
+}
+
+nlohmann::json pack_bed_zip(const fs::path &zip_file, const fs::path &printer_json, const DynamicPrintConfig &defaults,
+                            const std::string &texture, const std::string &model, const std::string &bundle_id,
+                            bool include_bed_assets = true)
+{
+    DynamicPrintConfig config(defaults);
+    if (!texture.empty())
+        config.option<ConfigOptionString>("bed_custom_texture", true)->value = texture;
+    if (!model.empty())
+        config.option<ConfigOptionString>("bed_custom_model", true)->value = model;
+    nlohmann::json structure = bed_manifest(bundle_id);
+    mz_zip_archive zip;
+    mz_zip_zero_struct(&zip);
+    const std::string printer_bytes = read_file(printer_json);
+    REQUIRE(open_zip_writer(&zip, zip_file.string()));
+    REQUIRE(mz_zip_writer_add_mem(&zip, "printer/BedPrinter.json", printer_bytes.data(), printer_bytes.size(),
+                                  MZ_DEFAULT_COMPRESSION));
+    if (include_bed_assets)
+        REQUIRE(append_printer_bed_assets(zip, config, structure, "printer/BedPrinter.json", 0));
+    const std::string manifest = structure.dump();
+    REQUIRE(mz_zip_writer_add_mem(&zip, BUNDLE_STRUCTURE_JSON_NAME, manifest.data(), manifest.size(),
+                                  MZ_DEFAULT_COMPRESSION));
+    REQUIRE(mz_zip_writer_finalize_archive(&zip));
+    REQUIRE(close_zip_writer(&zip));
+    return structure;
+}
+
+std::vector<std::string> zip_entry_names(const fs::path &zip_file)
+{
+    mz_zip_archive zip;
+    mz_zip_zero_struct(&zip);
+    REQUIRE(open_zip_reader(&zip, zip_file.string()));
+    std::vector<std::string> names;
+    const int n = static_cast<int>(mz_zip_reader_get_num_files(&zip));
+    for (int i = 0; i < n; ++i) {
+        mz_zip_archive_file_stat st;
+        REQUIRE(mz_zip_reader_file_stat(&zip, i, &st));
+        names.emplace_back(st.m_filename);
+    }
+    REQUIRE(close_zip_reader(&zip));
+    return names;
+}
+
+const Preset *import_named_printer(PresetBundle &bundle, const fs::path &zip_file, const fs::path &data_root,
+                                   const std::string &bare_name, int confirm = 1)
+{
+    ScopedDataDir scoped(data_root);
+    AppConfig config;
+    std::vector<std::string> files{zip_file.string()};
+    bundle.import_presets(files, [confirm](std::string const &) { return confirm; },
+                          ForwardCompatibilitySubstitutionRule::Disable, config);
+    for (const Preset &preset : bundle.printers.get_presets())
+        if (get_preset_bare_name(preset.name) == bare_name && !preset.file.empty())
+            return &preset;
+    return nullptr;
+}
+
+const Preset *import_bed(PresetBundle &bundle, const fs::path &zip_file, const fs::path &data_root, int confirm = 1)
+{
+    return import_named_printer(bundle, zip_file, data_root, "BedPrinter", confirm);
+}
+
+struct BedRoots {
+    ScopedTemporaryDir temp_dir;
+    fs::path           src;
+    fs::path           data_root;
+    PresetBundle       bundle;
+    BedRoots()
+        : src(temp_dir.path() / "src")
+        , data_root(temp_dir.path() / "datadir")
+    {}
+};
+
+} // namespace
+
+TEST_CASE("Printer bundle round trip packs bed texture and model and rewrites both keys", "[Preset][Bundle]")
+{
+    // tex_rel "*" builds a non-ASCII source path under the temp directory.
+    const auto pack_import = [](const std::string &bundle_id, const std::string &tex_rel, const std::string &mod_rel,
+                                const std::string &tex_bytes, const std::string &mod_bytes, bool tex_exists,
+                                bool mod_exists, int imports) {
+        ScopedTemporaryDir temp_dir;
+        const fs::path src = temp_dir.path() / "src";
+        const fs::path data_root = temp_dir.path() / "datadir";
+        std::string texture = tex_rel.empty() ? std::string() : (src / tex_rel).make_preferred().string();
+        std::string model = mod_rel.empty() ? std::string() : (src / mod_rel).make_preferred().string();
+        if (tex_rel == "*") {
+            const fs::path dir = fs::path(src.wstring()) / fs::path(boost::nowide::widen("\xE5\xBA\x8A"));
+            texture = boost::nowide::narrow((dir / fs::path(boost::nowide::widen("\xE7\xBA\xB9\xE7\x90\x86.png"))).wstring());
+        }
+        if (tex_exists)
+            write_bytes(texture, tex_bytes);
+        if (mod_exists)
+            write_bytes(model, mod_bytes);
+        PresetBundle bundle;
+        const fs::path printer_json = write_printer_json(bundle.printers.default_preset().config, src / "BedPrinter.json",
+                                                         "BedPrinter", texture, model);
+        const fs::path zip_file = src / "bundle.orca_printer";
+        const nlohmann::json structure = pack_bed_zip(zip_file, printer_json, bundle.printers.default_preset().config,
+                                                      texture, model, bundle_id);
+        const Preset *saved = nullptr;
+        for (int i = 0; i < imports; ++i)
+            saved = import_bed(bundle, zip_file, data_root);
+        REQUIRE(saved != nullptr);
+        const std::string got[] = {saved->config.opt_string("bed_custom_texture"), saved->config.opt_string("bed_custom_model")};
+        const std::string rel[] = {tex_rel, mod_rel};
+        const std::string bytes[] = {tex_bytes, mod_bytes};
+        const std::string path[] = {texture, model};
+        const bool exists[] = {tex_exists, mod_exists};
+        const char *option[] = {"bed_custom_texture", "bed_custom_model"};
+        const char *stem[] = {"texture", "model"};
+        for (int slot = 0; slot < 2; ++slot) {
+            if (exists[slot]) {
+                const std::string ext = fs::path(rel[slot] == "*" ? "x.png" : rel[slot]).extension().string();
+                const std::string zip_name = std::string("bed/0/") + stem[slot] + ext;
+                REQUIRE(structure["printer_asset"]["printer/BedPrinter.json"][option[slot]] == zip_name);
+                REQUIRE(fs::path(got[slot]).filename().string() == std::string(stem[slot]) + fs::path(zip_name).extension().string());
+                REQUIRE(fs::path(got[slot]).parent_path().filename() == "0");
+                REQUIRE(fs::path(got[slot]).parent_path().parent_path().filename() == "bed");
+                REQUIRE(got[slot].find(bundle_id) != std::string::npos);
+                REQUIRE(read_file(got[slot]) == bytes[slot]);
+                REQUIRE(got[slot] != path[slot]);
+            } else if (!rel[slot].empty() && rel[slot] != "*") {
+                REQUIRE_FALSE(structure.value("printer_asset", nlohmann::json::object())
+                                  .value("printer/BedPrinter.json", nlohmann::json::object())
+                                  .contains(option[slot]));
+                REQUIRE(got[slot] == path[slot]);
+            } else if (rel[slot].empty()) {
+                REQUIRE(got[slot].empty());
+            }
+        }
+        if (imports > 1) {
+            int copies = 0;
+            for (fs::recursive_directory_iterator it(data_root), end; it != end; ++it)
+                if (it->path().filename() == "texture.png" || it->path().filename() == "model.stl")
+                    ++copies;
+            REQUIRE(copies == (tex_exists ? 1 : 0) + (mod_exists ? 1 : 0));
+        }
+    };
+
+    SECTION("both assets are packed from the preset config and rewritten on import") {
+        pack_import("bed-roundtrip", "fixture/baseline_bed_texture.png", "fixture/baseline_bed_model.stl",
+                    kTextureBytes, kModelBytes, true, true, 1);
+    }
+    SECTION("texture only") {
+        pack_import("texture-only", "only.png", "", kTextureBytes, "", true, false, 1);
+    }
+    SECTION("model only") {
+        pack_import("model-only", "", "only.stl", "", kModelBytes, false, true, 1);
+    }
+    SECTION("texture and model share a source basename") {
+        pack_import("shared-basename", "a/plate.png", "b/plate.stl", kTextureBytes, kOtherBytes, true, true, 1);
+    }
+    SECTION("importing the same bundle twice keeps one copy of the assets") {
+        // First import installs kTextureBytes / kModelBytes. The second pack uses different bytes so
+        // the Yes-overwrite path (copy_file overwrite_existing) is actually proven.
+        BedRoots bed;
+        const std::string texture = (bed.src / "twice.png").make_preferred().string();
+        const std::string model = (bed.src / "twice.stl").make_preferred().string();
+        write_bytes(texture, kTextureBytes);
+        write_bytes(model, kModelBytes);
+        const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config,
+                                                         bed.src / "BedPrinter.json", "BedPrinter", texture, model);
+        const fs::path zip_file = bed.src / "bundle.orca_printer";
+        pack_bed_zip(zip_file, printer_json, bed.bundle.printers.default_preset().config, texture, model, "reimport");
+        const Preset *saved = import_bed(bed.bundle, zip_file, bed.data_root);
+        REQUIRE(saved != nullptr);
+        const std::string got_tex = saved->config.opt_string("bed_custom_texture");
+        const std::string got_mod = saved->config.opt_string("bed_custom_model");
+        REQUIRE(read_file(got_tex) == kTextureBytes);
+        REQUIRE(read_file(got_mod) == kModelBytes);
+        write_bytes(texture, kOtherBytes);
+        write_bytes(model, std::string("stl\x00other", 9));
+        pack_bed_zip(zip_file, printer_json, bed.bundle.printers.default_preset().config, texture, model, "reimport");
+        saved = import_bed(bed.bundle, zip_file, bed.data_root);
+        REQUIRE(saved != nullptr);
+        REQUIRE(saved->config.opt_string("bed_custom_texture") == got_tex);
+        REQUIRE(saved->config.opt_string("bed_custom_model") == got_mod);
+        REQUIRE(read_file(got_tex) == kOtherBytes);
+        REQUIRE(read_file(got_mod) == std::string("stl\x00other", 9));
+    }
+    SECTION("a non-ASCII source path is packed") {
+        pack_import("non-ascii", "*", "", kTextureBytes, "", true, false, 1);
+    }
+}
+
+TEST_CASE("An old printer bundle without printer_asset imports unchanged", "[Preset][Bundle]")
+{
+    BedRoots bed;
+    const std::string texture = (bed.src / "old.png").make_preferred().string();
+    const std::string model = (bed.src / "old.stl").make_preferred().string();
+    write_bytes(texture, kTextureBytes);
+    write_bytes(model, kModelBytes);
+    const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                     "BedPrinter", texture, model);
+    nlohmann::json structure = bed_manifest("old-bundle");
+    REQUIRE_FALSE(structure.contains("printer_asset"));
+    const fs::path zip_file = bed.src / "old.orca_printer";
+    write_zip(zip_file, {{"printer/BedPrinter.json", read_file(printer_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()}});
+    // A bed/ folder left by an earlier import into the same bundle folder must survive an asset-less import.
+    const fs::path old_bed = bed.data_root / "user" / "default" / "_local" / "old-bundle" / "bed";
+    write_bytes((old_bed / "texture.png").string(), kTextureBytes);
+    const Preset *saved = import_bed(bed.bundle, zip_file, bed.data_root);
+    REQUIRE(saved != nullptr);
+    REQUIRE(saved->config.opt_string("bed_custom_texture") == texture);
+    REQUIRE(saved->config.opt_string("bed_custom_model") == model);
+    CHECK(fs::exists(old_bed / "texture.png"));
+}
+
+TEST_CASE("Printer bundle asset names that escape the bundle directory are rejected", "[Preset][Bundle]")
+{
+    const char *bad_names[] = {"../../pwned.png", "bed/../../pwned.png", "..\\..\\pwned.png", "C:/Windows/pwned.png",
+                               "machine/texture.png", "/bed/texture.png"};
+    const std::string marker = "PWNED-BED-ASSET-MARKER";
+    for (const char *name : bad_names) {
+        DYNAMIC_SECTION("rejects " << name) {
+            BedRoots bed;
+            const std::string texture = (bed.src / "kept.png").make_preferred().string();
+            const std::string model = (bed.src / "kept.stl").make_preferred().string();
+            write_bytes(texture, kTextureBytes);
+            write_bytes(model, kModelBytes);
+            const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config,
+                                                             bed.src / "BedPrinter.json", "BedPrinter", texture, model);
+            nlohmann::json structure = bed_manifest("traverse");
+            set_printer_bed_asset(structure, "bed_custom_texture", name);
+            std::vector<std::pair<std::string, std::string>> entries = {
+                {"printer/BedPrinter.json", read_file(printer_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()}};
+            if (name[0] != '/' && name[0] != '\\')
+                entries.emplace_back(name, marker);
+            const fs::path zip_file = bed.src / "bad.orca_printer";
+            write_zip(zip_file, entries);
+            const Preset *saved = import_bed(bed.bundle, zip_file, bed.data_root);
+            REQUIRE(saved != nullptr);
+            REQUIRE(saved->config.opt_string("bed_custom_texture") == texture);
+            REQUIRE(saved->config.opt_string("bed_custom_model") == model);
+            CHECK_FALSE(any_filename_contains(bed.data_root, fs::path(name).filename().string()));
+            if (fs::exists(bed.data_root))
+                for (fs::recursive_directory_iterator it(bed.data_root), end; it != end; ++it)
+                    if (fs::is_regular_file(*it))
+                        CHECK(read_file(*it).find(marker) == std::string::npos);
+        }
+    }
+}
+
+TEST_CASE("A printer bundle asset that is missing is skipped", "[Preset][Bundle]")
+{
+    SECTION("a manifest entry with no zip bytes leaves the original path") {
+        BedRoots bed;
+        const std::string texture = (bed.src / "gone.png").make_preferred().string();
+        write_bytes(texture, kTextureBytes);
+        const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                         "BedPrinter", texture, {});
+        nlohmann::json structure = bed_manifest("missing-zip");
+        set_printer_bed_asset(structure, "bed_custom_texture", "bed/0/texture.png");
+        const fs::path zip_file = bed.src / "missing.orca_printer";
+        write_zip(zip_file, {{"printer/BedPrinter.json", read_file(printer_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()}});
+        const Preset *saved = import_bed(bed.bundle, zip_file, bed.data_root);
+        REQUIRE(saved != nullptr);
+        REQUIRE(saved->config.opt_string("bed_custom_texture") == texture);
+        CHECK_FALSE(any_filename_contains(bed.data_root, "texture.png"));
+    }
+
+    SECTION("a missing file at export is omitted and the export still succeeds") {
+        BedRoots bed;
+        const std::string missing = (bed.src / "missing.png").make_preferred().string();
+        const std::string model = (bed.src / "present.stl").make_preferred().string();
+        write_bytes(model, kModelBytes);
+        const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                         "BedPrinter", missing, model);
+        const fs::path zip_file = bed.src / "partial.orca_printer";
+        const nlohmann::json structure = pack_bed_zip(zip_file, printer_json, bed.bundle.printers.default_preset().config,
+                                                      missing, model, "missing-export");
+        REQUIRE_FALSE(structure["printer_asset"]["printer/BedPrinter.json"].contains("bed_custom_texture"));
+        REQUIRE(structure["printer_asset"]["printer/BedPrinter.json"]["bed_custom_model"] == "bed/0/model.stl");
+        const Preset *saved = import_bed(bed.bundle, zip_file, bed.data_root);
+        REQUIRE(saved != nullptr);
+        REQUIRE(saved->config.opt_string("bed_custom_texture") == missing);
+        REQUIRE(read_file(saved->config.opt_string("bed_custom_model")) == kModelBytes);
+        REQUIRE(fs::path(saved->config.opt_string("bed_custom_model")).filename() == "model.stl");
+        CHECK_FALSE(any_filename_contains(bed.data_root, "texture.png"));
+    }
+}
+
+TEST_CASE("An inherited printer bundle rewrites bed paths taken from the parent", "[Preset][Bundle]")
+{
+    BedRoots bed;
+    const std::string texture = (bed.src / "parent.png").make_preferred().string();
+    const std::string model = (bed.src / "parent.stl").make_preferred().string();
+    write_bytes(texture, kTextureBytes);
+    write_bytes(model, kModelBytes);
+    DynamicPrintConfig parent(bed.bundle.printers.default_preset().config);
+    parent.option<ConfigOptionString>("printer_settings_id", true)->value = "ParentPrinter";
+    parent.option<ConfigOptionString>("inherits", true)->value.clear();
+    parent.option<ConfigOptionString>("bed_custom_texture", true)->value = texture;
+    parent.option<ConfigOptionString>("bed_custom_model", true)->value = model;
+    bed.bundle.printers.load_preset((bed.src / "ParentPrinter.json").string(), "ParentPrinter", std::move(parent), false);
+    const fs::path child_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                   "BedPrinter", {}, {}, "ParentPrinter");
+    const nlohmann::json written = nlohmann::json::parse(read_file(child_json));
+    REQUIRE_FALSE(written.contains("bed_custom_texture"));
+    REQUIRE_FALSE(written.contains("bed_custom_model"));
+    nlohmann::json structure = bed_manifest("inherit-bed");
+    set_printer_bed_asset(structure, "bed_custom_texture", "bed/0/texture.png");
+    set_printer_bed_asset(structure, "bed_custom_model", "bed/0/model.stl");
+    const fs::path zip_file = bed.src / "inherit.orca_printer";
+    write_zip(zip_file, {{"printer/BedPrinter.json", read_file(child_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()},
+                         {"bed/0/texture.png", kTextureBytes}, {"bed/0/model.stl", kModelBytes}});
+    const Preset *saved = import_bed(bed.bundle, zip_file, bed.data_root);
+    REQUIRE(saved != nullptr);
+    REQUIRE(saved->config.opt_string("bed_custom_texture") != texture);
+    REQUIRE(saved->config.opt_string("bed_custom_model") != model);
+    REQUIRE(read_file(saved->config.opt_string("bed_custom_texture")) == kTextureBytes);
+    REQUIRE(read_file(saved->config.opt_string("bed_custom_model")) == kModelBytes);
+    REQUIRE(fs::path(saved->config.opt_string("bed_custom_texture")).filename() == "texture.png");
+    REQUIRE(fs::path(saved->config.opt_string("bed_custom_model")).filename() == "model.stl");
+}
+
+TEST_CASE("A printer bundle rejects bed assets whose extension the bed dialog does not allow", "[Preset][Bundle]")
+{
+    BedRoots bed;
+    const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                     "BedPrinter", {}, {});
+    nlohmann::json structure = bed_manifest("bad-ext");
+    set_printer_bed_asset(structure, "bed_custom_texture", "bed/0/texture.stl");
+    set_printer_bed_asset(structure, "bed_custom_model", "bed/0/model.exe");
+    const fs::path zip_file = bed.src / "bad-ext.orca_printer";
+    write_zip(zip_file, {{"printer/BedPrinter.json", read_file(printer_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()},
+                         {"bed/0/texture.stl", kTextureBytes}, {"bed/0/model.exe", std::string("MZ")}});
+    REQUIRE(import_bed(bed.bundle, zip_file, bed.data_root) != nullptr);
+    CHECK_FALSE(any_filename_contains(bed.data_root, "model.exe"));
+    CHECK_FALSE(any_filename_contains(bed.data_root, "texture.stl"));
+}
+
+TEST_CASE("A manifest asset name that points at a preset does not drop that preset", "[Preset][Bundle]")
+{
+    BedRoots bed;
+    const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                     "BedPrinter", {}, {});
+    nlohmann::json structure = bed_manifest("name-clash");
+    set_printer_bed_asset(structure, "bed_custom_texture", "printer/BedPrinter.json");
+    const fs::path zip_file = bed.src / "clash.orca_printer";
+    write_zip(zip_file, {{"printer/BedPrinter.json", read_file(printer_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()}});
+    REQUIRE(import_bed(bed.bundle, zip_file, bed.data_root) != nullptr);
+    CHECK_FALSE(any_filename_contains(bed.data_root, "texture.png"));
+}
+
+TEST_CASE("A declined printer bundle import leaves existing bed files alone", "[Preset][Bundle]")
+{
+    BedRoots bed;
+    const fs::path kept = bed.data_root / "user" / "default" / "_local" / "keep-bed" / "bed" / "texture.png";
+    const std::string original("kept-texture");
+    write_bytes(kept.string(), original);
+    DynamicPrintConfig existing(bed.bundle.printers.default_preset().config);
+    existing.option<ConfigOptionString>("printer_settings_id", true)->value = "BedPrinter";
+    existing.option<ConfigOptionString>("inherits", true)->value.clear();
+    bed.bundle.printers.load_preset((bed.src / "existing.json").string(), "_local/keep-bed/BedPrinter", std::move(existing),
+                                    false);
+    const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                     "BedPrinter", {}, {});
+    nlohmann::json structure = bed_manifest("keep-bed");
+    set_printer_bed_asset(structure, "bed_custom_texture", "bed/0/texture.png");
+    set_printer_bed_asset(structure, "bed_custom_model", "bed/0/model.stl");
+    const fs::path zip_file = bed.src / "keep.orca_printer";
+    write_zip(zip_file, {{"printer/BedPrinter.json", read_file(printer_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()},
+                         {"bed/0/texture.png", kTextureBytes}, {"bed/0/model.stl", kModelBytes}});
+    import_bed(bed.bundle, zip_file, bed.data_root, 0);
+    // This import wrote nothing: the existing texture is unchanged and model.stl was not added.
+    REQUIRE(fs::exists(kept));
+    REQUIRE(read_file(kept) == original);
+    CHECK_FALSE(fs::exists(kept.parent_path() / "model.stl"));
+    CHECK_FALSE(fs::exists(kept.parent_path() / "0" / "model.stl"));
+}
+
+TEST_CASE("A declined re-import does not replace bed bytes an earlier import wrote", "[Preset][Bundle]")
+{
+    BedRoots bed;
+    const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                     "BedPrinter", {}, {});
+    nlohmann::json structure = bed_manifest("reimport-no");
+    set_printer_bed_asset(structure, "bed_custom_texture", "bed/0/texture.png");
+    const std::string manifest = structure.dump();
+    const std::string printer_bytes = read_file(printer_json);
+    const fs::path first_zip = bed.src / "first.orca_printer";
+    const fs::path second_zip = bed.src / "second.orca_printer";
+    write_zip(first_zip, {{"printer/BedPrinter.json", printer_bytes}, {BUNDLE_STRUCTURE_JSON_NAME, manifest},
+                          {"bed/0/texture.png", kTextureBytes}});
+    write_zip(second_zip, {{"printer/BedPrinter.json", printer_bytes}, {BUNDLE_STRUCTURE_JSON_NAME, manifest},
+                           {"bed/0/texture.png", kOtherBytes}});
+    const Preset *saved = import_bed(bed.bundle, first_zip, bed.data_root);
+    REQUIRE(saved != nullptr);
+    const std::string installed = saved->config.opt_string("bed_custom_texture");
+    REQUIRE(read_file(installed) == kTextureBytes);
+    import_bed(bed.bundle, second_zip, bed.data_root, 0);
+    REQUIRE(fs::exists(installed));
+    REQUIRE(read_file(installed) == kTextureBytes);
+}
+
+TEST_CASE("Export with bed assets disabled packs no bed files and writes no printer_asset", "[Preset][Bundle]")
+{
+    BedRoots bed;
+    const std::string texture = (bed.src / "off.png").make_preferred().string();
+    const std::string model = (bed.src / "off.stl").make_preferred().string();
+    write_bytes(texture, kTextureBytes);
+    write_bytes(model, kModelBytes);
+    const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                     "BedPrinter", texture, model);
+    const fs::path zip_file = bed.src / "off.orca_printer";
+    const nlohmann::json structure = pack_bed_zip(zip_file, printer_json, bed.bundle.printers.default_preset().config,
+                                                  texture, model, "bed-off", false);
+    REQUIRE_FALSE(structure.contains("printer_asset"));
+    for (const std::string &name : zip_entry_names(zip_file))
+        REQUIRE(name.compare(0, 4, "bed/") != 0);
+}
+
+TEST_CASE("Two printers in one bundle keep separate bed folders", "[Preset][Bundle]")
+{
+    BedRoots bed;
+    const std::string tex_a = (bed.src / "a.png").make_preferred().string();
+    const std::string mod_a = (bed.src / "a.stl").make_preferred().string();
+    const std::string tex_b = (bed.src / "b.png").make_preferred().string();
+    const std::string mod_b = (bed.src / "b.stl").make_preferred().string();
+    write_bytes(tex_a, kTextureBytes);
+    write_bytes(mod_a, kModelBytes);
+    write_bytes(tex_b, kOtherBytes);
+    write_bytes(mod_b, std::string("stl\x00other", 9));
+    const fs::path json_a = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "PrinterA.json",
+                                               "PrinterA", tex_a, mod_a);
+    const fs::path json_b = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "PrinterB.json",
+                                               "PrinterB", tex_b, mod_b);
+    nlohmann::json structure = nlohmann::json::object();
+    structure["id"] = "two-printers";
+    structure["bundle_type"] = "printer config bundle";
+    structure["printer_config"] = nlohmann::json::array({"printer/PrinterA.json", "printer/PrinterB.json"});
+    DynamicPrintConfig config_a(bed.bundle.printers.default_preset().config);
+    config_a.option<ConfigOptionString>("bed_custom_texture", true)->value = tex_a;
+    config_a.option<ConfigOptionString>("bed_custom_model", true)->value = mod_a;
+    DynamicPrintConfig config_b(bed.bundle.printers.default_preset().config);
+    config_b.option<ConfigOptionString>("bed_custom_texture", true)->value = tex_b;
+    config_b.option<ConfigOptionString>("bed_custom_model", true)->value = mod_b;
+    const fs::path zip_file = bed.src / "two.orca_printer";
+    mz_zip_archive zip;
+    mz_zip_zero_struct(&zip);
+    const std::string bytes_a = read_file(json_a);
+    const std::string bytes_b = read_file(json_b);
+    REQUIRE(open_zip_writer(&zip, zip_file.string()));
+    REQUIRE(mz_zip_writer_add_mem(&zip, "printer/PrinterA.json", bytes_a.data(), bytes_a.size(), MZ_DEFAULT_COMPRESSION));
+    REQUIRE(mz_zip_writer_add_mem(&zip, "printer/PrinterB.json", bytes_b.data(), bytes_b.size(), MZ_DEFAULT_COMPRESSION));
+    REQUIRE(append_printer_bed_assets(zip, config_a, structure, "printer/PrinterA.json", 0));
+    REQUIRE(append_printer_bed_assets(zip, config_b, structure, "printer/PrinterB.json", 1));
+    const std::string manifest = structure.dump();
+    REQUIRE(mz_zip_writer_add_mem(&zip, BUNDLE_STRUCTURE_JSON_NAME, manifest.data(), manifest.size(),
+                                  MZ_DEFAULT_COMPRESSION));
+    REQUIRE(mz_zip_writer_finalize_archive(&zip));
+    REQUIRE(close_zip_writer(&zip));
+    REQUIRE(structure["printer_asset"]["printer/PrinterA.json"]["bed_custom_texture"] == "bed/0/texture.png");
+    REQUIRE(structure["printer_asset"]["printer/PrinterB.json"]["bed_custom_texture"] == "bed/1/texture.png");
+    ScopedDataDir scoped(bed.data_root);
+    AppConfig app_config;
+    std::vector<std::string> files{zip_file.string()};
+    bed.bundle.import_presets(files, [](std::string const &) { return 1; },
+                              ForwardCompatibilitySubstitutionRule::Disable, app_config);
+    const Preset *saved_a = nullptr;
+    const Preset *saved_b = nullptr;
+    for (const Preset &preset : bed.bundle.printers.get_presets()) {
+        if (preset.file.empty())
+            continue;
+        if (get_preset_bare_name(preset.name) == "PrinterA")
+            saved_a = &preset;
+        if (get_preset_bare_name(preset.name) == "PrinterB")
+            saved_b = &preset;
+    }
+    REQUIRE(saved_a != nullptr);
+    REQUIRE(saved_b != nullptr);
+    const std::string got_tex_a = saved_a->config.opt_string("bed_custom_texture");
+    const std::string got_tex_b = saved_b->config.opt_string("bed_custom_texture");
+    REQUIRE(fs::path(got_tex_a).parent_path().filename() == "0");
+    REQUIRE(fs::path(got_tex_b).parent_path().filename() == "1");
+    REQUIRE(got_tex_a != got_tex_b);
+    REQUIRE(read_file(got_tex_a) == kTextureBytes);
+    REQUIRE(read_file(got_tex_b) == kOtherBytes);
+    REQUIRE(read_file(saved_a->config.opt_string("bed_custom_model")) == kModelBytes);
+    REQUIRE(read_file(saved_b->config.opt_string("bed_custom_model")) == std::string("stl\x00other", 9));
+}
+
+TEST_CASE("A printer_asset entry keyed to a printer not in the zip is ignored", "[Preset][Bundle]")
+{
+    BedRoots bed;
+    const std::string texture = (bed.src / "kept.png").make_preferred().string();
+    write_bytes(texture, kTextureBytes);
+    const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                     "BedPrinter", texture, {});
+    nlohmann::json structure = bed_manifest("ghost-key");
+    set_printer_bed_asset(structure, "bed_custom_texture", "bed/0/texture.png", "printer/Ghost.json");
+    const fs::path zip_file = bed.src / "ghost.orca_printer";
+    write_zip(zip_file, {{"printer/BedPrinter.json", read_file(printer_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()},
+                         {"bed/0/texture.png", kOtherBytes}});
+    const Preset *saved = import_bed(bed.bundle, zip_file, bed.data_root);
+    REQUIRE(saved != nullptr);
+    REQUIRE(saved->config.opt_string("bed_custom_texture") == texture);
+    CHECK_FALSE(any_filename_contains(bed.data_root, "texture.png"));
+}
+
+TEST_CASE("Keyed printer_asset rejects malformed bed paths", "[Preset][Bundle]")
+{
+    const char *bad_names[] = {"bed/texture.png", "bed/x/texture.png", "bed/0/../texture.png", "bed/0/model.png"};
+    const std::string marker = "PWNED-BED-ASSET-MARKER";
+    for (const char *name : bad_names) {
+        DYNAMIC_SECTION("rejects " << name) {
+            BedRoots bed;
+            const std::string texture = (bed.src / "kept.png").make_preferred().string();
+            write_bytes(texture, kTextureBytes);
+            const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config,
+                                                             bed.src / "BedPrinter.json", "BedPrinter", texture, {});
+            nlohmann::json structure = bed_manifest("bad-keyed");
+            set_printer_bed_asset(structure, "bed_custom_texture", name);
+            std::vector<std::pair<std::string, std::string>> entries = {
+                {"printer/BedPrinter.json", read_file(printer_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()},
+                {name, marker}};
+            const fs::path zip_file = bed.src / "bad-keyed.orca_printer";
+            write_zip(zip_file, entries);
+            const Preset *saved = import_bed(bed.bundle, zip_file, bed.data_root);
+            REQUIRE(saved != nullptr);
+            REQUIRE(saved->config.opt_string("bed_custom_texture") == texture);
+            if (fs::exists(bed.data_root))
+                for (fs::recursive_directory_iterator it(bed.data_root), end; it != end; ++it)
+                    if (fs::is_regular_file(*it))
+                        CHECK(read_file(*it).find(marker) == std::string::npos);
+        }
+    }
+
+    SECTION("field name does not match file kind") {
+        BedRoots bed;
+        const std::string texture = (bed.src / "kept.png").make_preferred().string();
+        write_bytes(texture, kTextureBytes);
+        const fs::path printer_json = write_printer_json(bed.bundle.printers.default_preset().config, bed.src / "BedPrinter.json",
+                                                         "BedPrinter", texture, {});
+        nlohmann::json structure = bed_manifest("kind-mismatch");
+        set_printer_bed_asset(structure, "bed_custom_texture", "bed/0/model.stl");
+        const fs::path zip_file = bed.src / "kind.orca_printer";
+        write_zip(zip_file, {{"printer/BedPrinter.json", read_file(printer_json)}, {BUNDLE_STRUCTURE_JSON_NAME, structure.dump()},
+                             {"bed/0/model.stl", kModelBytes}});
+        const Preset *saved = import_bed(bed.bundle, zip_file, bed.data_root);
+        REQUIRE(saved != nullptr);
+        REQUIRE(saved->config.opt_string("bed_custom_texture") == texture);
+        CHECK_FALSE(any_filename_contains(bed.data_root, "model.stl"));
+    }
+}
+
+TEST_CASE("A saved printer preset reloads the tool layout it was saved with", "[Preset][Bundle][IMEX]")
+{
+    ScopedTemporaryDir         temp_dir;
+    PresetBundle               bundle;
+    PresetsConfigSubstitutions substitutions;
+
+    DynamicPrintConfig config(bundle.printers.default_preset().config);
+    config.set_deserialize_strict("imex_tool_layout", "rear-left");
+    config.option<ConfigOptionString>(BBL_JSON_KEY_INHERITS, true)->value = "";
+    const fs::path file = temp_dir.path() / PRESET_PRINTER_NAME / "ImexPrinter.json";
+    fs::create_directories(file.parent_path());
+    config.save_to_json(file.string(), "ImexPrinter", "User", "1.0.0");
+
+    bundle.printers.load_presets(temp_dir.path().string(), PRESET_PRINTER_NAME, substitutions,
+                                 ForwardCompatibilitySubstitutionRule::Disable);
+
+    const Preset *loaded = bundle.printers.find_preset("ImexPrinter");
+    REQUIRE(loaded != nullptr);
+    CHECK(int(imex_cfg_enum<ImexToolLayout>(loaded->config, "imex_tool_layout")) == int(ImexToolLayout::RearLeft));
+}
+
 // A project saved before a key joined filament_options_with_variant stores it once per filament,
 // while the keys that were already per variant store it once per filament variant. Loading such a
 // project gives every variant of a filament that filament's value.
@@ -5684,3 +6515,649 @@ TEST_CASE("A project saved with pressure advance per filament applies it to ever
     check_double_vector(pla.opt<ConfigOptionFloatsNullable>("filament_flow_ratio")->values, { 0.95, 0.96 });
     check_double_vector(petg.opt<ConfigOptionFloatsNullable>("filament_flow_ratio")->values, { 0.97 });
 }
+
+TEST_CASE("A multi-toolhead project saved without filament self indices loads every filament", "[Preset][Bundle]")
+{
+    const std::vector<std::string> colors = { "#FF0000", "#000000", "#FFFFFF", "#FFFF00" };
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.opt<ConfigOptionStrings>("filament_colour")->values = colors;
+    config.opt<ConfigOptionFloats>("nozzle_diameter")->values = std::vector<double>(colors.size(), 0.4);
+    config.option<ConfigOptionBool>("single_extruder_multi_material")->value = false;
+    Preset::normalize(config);
+
+    PresetBundle bundle;
+    REQUIRE_NOTHROW(bundle.load_config_model("test.3mf", std::move(config)));
+    CHECK(bundle.filament_presets.size() == colors.size());
+    CHECK(bundle.project_config.opt<ConfigOptionStrings>("filament_colour")->values == colors);
+}
+
+TEST_CASE("A system preset resolves by name from the bundled profiles", "[Preset][Bundle]")
+{
+    ScopedTemporaryDir temp_dir;
+    ScopedDataDir      data(temp_dir.path() / "data");
+    ScopedResourcesDir resources(temp_dir.path() / "resources");
+    write_acme_printer_vendor(temp_dir.path() / "resources" / "profiles", 33.);
+
+    PresetBundle       bundle;
+    DynamicPrintConfig config;
+    std::string        error;
+    REQUIRE(bundle.resolve_system_preset(config, Preset::TYPE_PRINTER, "Acme Printer",
+                                         ForwardCompatibilitySubstitutionRule::EnableSilent, error));
+    CHECK(error.empty());
+    CHECK_THAT(config.opt_float("extruder_clearance_dist_to_rod"), Catch::Matchers::WithinAbs(33., 1e-6));
+}
+
+TEST_CASE("A system preset resolves from the data directory copy of its vendor", "[Preset][Bundle]")
+{
+    ScopedTemporaryDir temp_dir;
+    ScopedDataDir      data(temp_dir.path() / "data");
+    ScopedResourcesDir resources(temp_dir.path() / "resources");
+    write_acme_printer_vendor(temp_dir.path() / "resources" / "profiles", 33.);
+    write_acme_printer_vendor(temp_dir.path() / "data" / PRESET_SYSTEM_DIR, 35.);
+
+    PresetBundle       bundle;
+    DynamicPrintConfig config;
+    std::string        error;
+    REQUIRE(bundle.resolve_system_preset(config, Preset::TYPE_PRINTER, "Acme Printer",
+                                         ForwardCompatibilitySubstitutionRule::EnableSilent, error));
+    CHECK_THAT(config.opt_float("extruder_clearance_dist_to_rod"), Catch::Matchers::WithinAbs(35., 1e-6));
+}
+
+TEST_CASE("A system preset resolves from a vendor shipped as its preset cache alone", "[Preset][Bundle]")
+{
+    ScopedTemporaryDir temp_dir;
+    ScopedDataDir      data(temp_dir.path() / "data");
+    ScopedResourcesDir resources(temp_dir.path() / "resources");
+    const fs::path     profiles = temp_dir.path() / "resources" / "profiles";
+    write_acme_printer_vendor(profiles, 33.);
+
+    PresetBundle writer;
+    writer.set_generate_vendor_caches(true);
+    writer.load_vendor_configs_from_json(profiles.string(), "Acme", PresetBundle::LoadSystem,
+                                         ForwardCompatibilitySubstitutionRule::EnableSilent);
+    REQUIRE(fs::exists(profiles / "Acme.opc"));
+    // Release builds ship the cache and drop the profile JSONs, manifest included.
+    fs::remove(profiles / "Acme.json");
+    fs::remove_all(profiles / "Acme");
+
+    PresetBundle       bundle;
+    DynamicPrintConfig config;
+    std::string        error;
+    REQUIRE(bundle.resolve_system_preset(config, Preset::TYPE_PRINTER, "Acme Printer",
+                                         ForwardCompatibilitySubstitutionRule::EnableSilent, error));
+    CHECK_THAT(config.opt_float("extruder_clearance_dist_to_rod"), Catch::Matchers::WithinAbs(33., 1e-6));
+}
+
+TEST_CASE("A system preset no vendor lists is not resolved", "[Preset][Bundle]")
+{
+    ScopedTemporaryDir temp_dir;
+    ScopedDataDir      data(temp_dir.path() / "data");
+    ScopedResourcesDir resources(temp_dir.path() / "resources");
+    write_acme_printer_vendor(temp_dir.path() / "resources" / "profiles", 33.);
+
+    PresetBundle       bundle;
+    DynamicPrintConfig config;
+    std::string        error;
+    CHECK_FALSE(bundle.resolve_system_preset(config, Preset::TYPE_PRINTER, "Unknown Printer",
+                                             ForwardCompatibilitySubstitutionRule::EnableSilent, error));
+    CHECK_FALSE(error.empty());
+}
+
+namespace {
+
+// Writes each vendor's preset cache into dir, then deletes its profile JSONs: what a release build installs.
+void reduce_vendors_to_caches(const fs::path &dir, const std::vector<std::string> &vendor_ids)
+{
+    const std::string lib(PresetBundle::ORCA_FILAMENT_LIBRARY);
+    PresetBundle      library;
+    if (fs::exists(dir / (lib + ".json"))) {
+        library.set_generate_vendor_caches(true);
+        library.load_vendor_configs_from_json(dir.string(), lib, PresetBundle::LoadSystem,
+                                              ForwardCompatibilitySubstitutionRule::EnableSilent);
+    }
+    for (const std::string &vendor_id : vendor_ids) {
+        if (vendor_id == lib)
+            continue;
+        PresetBundle writer;
+        writer.set_generate_vendor_caches(true);
+        writer.load_vendor_configs_from_json(dir.string(), vendor_id, PresetBundle::LoadSystem,
+                                             ForwardCompatibilitySubstitutionRule::EnableSilent, &library);
+    }
+    for (const std::string &vendor_id : vendor_ids) {
+        REQUIRE(fs::exists(dir / (vendor_id + ".opc")));
+        fs::remove(dir / (vendor_id + ".json"));
+        fs::remove_all(dir / vendor_id);
+    }
+}
+
+// The filament library with one abstract base filament, and an "Acme" vendor whose one filament inherits it.
+void write_library_and_acme_filament(const fs::path &root)
+{
+    const std::string lib(PresetBundle::ORCA_FILAMENT_LIBRARY);
+    fs::create_directories(root / lib / "filament");
+    std::ofstream((root / (lib + ".json")).string())
+        << R"({"version":"1.0.0","name":")" << lib << R"(",)"
+        << R"("filament_list":[{"name":"Generic PLA","sub_path":"filament/generic_pla.json"}]})";
+    std::ofstream((root / lib / "filament" / "generic_pla.json").string())
+        << R"({"type":"filament","name":"Generic PLA","from":"system","instantiation":"false","filament_id":"GFL99","filament_cost":"27"})";
+    fs::create_directories(root / "Acme" / "filament");
+    std::ofstream((root / "Acme.json").string())
+        << R"({"version":"1.0.0","name":"Acme","filament_list":[{"name":"Acme PLA","sub_path":"filament/pla.json"}]})";
+    std::ofstream((root / "Acme" / "filament" / "pla.json").string())
+        << R"({"type":"filament","name":"Acme PLA","from":"system","instantiation":"true","inherits":"Generic PLA"})";
+}
+
+} // namespace
+
+TEST_CASE("A read-only load resolves a user preset against vendors installed as their cache alone", "[Preset][Bundle][Regression]")
+{
+    ScopedTemporaryDir temp_dir;
+    const fs::path     data   = temp_dir.path() / "data";
+    const fs::path     system = data / PRESET_SYSTEM_DIR;
+    ScopedDataDir      scoped_data(data);
+    ScopedResourcesDir scoped_resources(temp_dir.path() / "resources");
+    write_acme_printer_vendor(system, 33.);
+    reduce_vendors_to_caches(system, {"Acme"});
+
+    fs::create_directories(data / PRESET_USER_DIR / DEFAULT_USER_FOLDER_NAME / PRESET_PRINTER_NAME);
+    std::ofstream((data / PRESET_USER_DIR / DEFAULT_USER_FOLDER_NAME / PRESET_PRINTER_NAME / "My Acme.json").string())
+        << R"({"type":"machine","name":"My Acme","from":"User","version":"2.3.0.0","inherits":"Acme Printer","printable_height":"123"})";
+
+    AppConfig    app_config;
+    PresetBundle bundle;
+    std::string  errors;
+    bundle.load_presets(app_config, ForwardCompatibilitySubstitutionRule::EnableSilent, PresetBundle::PresetPreferences(),
+                        &errors, true);
+    CHECK(errors.empty());
+    const Preset *preset = bundle.printers.find_preset("My Acme");
+    REQUIRE(preset != nullptr);
+    CHECK_THAT(preset->config.opt_float("printable_height"), Catch::Matchers::WithinAbs(123., 1e-6));
+    CHECK_THAT(preset->config.opt_float("extruder_clearance_dist_to_rod"), Catch::Matchers::WithinAbs(33., 1e-6));
+}
+
+TEST_CASE("A read-only load writes no preset cache", "[Preset][Bundle][Regression]")
+{
+    ScopedTemporaryDir temp_dir;
+    const fs::path     system = temp_dir.path() / "data" / PRESET_SYSTEM_DIR;
+    ScopedDataDir      scoped_data(temp_dir.path() / "data");
+    ScopedResourcesDir scoped_resources(temp_dir.path() / "resources");
+    write_acme_printer_vendor(system, 33.);
+
+    AppConfig    app_config;
+    PresetBundle bundle;
+    std::string  errors;
+    bundle.load_presets(app_config, ForwardCompatibilitySubstitutionRule::EnableSilent, PresetBundle::PresetPreferences(),
+                        &errors, true);
+    CHECK(errors.empty());
+    CHECK(bundle.printers.find_preset("Acme Printer") != nullptr);
+    CHECK_FALSE(fs::exists(system / "Acme.opc"));
+}
+
+TEST_CASE("A vendor updated over the air resolves against the library installed as its cache alone", "[Preset][Bundle][Regression]")
+{
+    ScopedTemporaryDir temp_dir;
+    const fs::path     system = temp_dir.path() / "data" / PRESET_SYSTEM_DIR;
+    ScopedDataDir      scoped_data(temp_dir.path() / "data");
+    ScopedResourcesDir scoped_resources(temp_dir.path() / "resources");
+    // System presets are found by name through the bundled profiles.
+    write_library_and_acme_filament(temp_dir.path() / "resources" / PRESET_PROFILES_DIR);
+    // The release install, then an update that brings Acme back as JSONs while the library stays a cache.
+    write_library_and_acme_filament(system);
+    reduce_vendors_to_caches(system, {PresetBundle::ORCA_FILAMENT_LIBRARY, "Acme"});
+    write_library_and_acme_filament(temp_dir.path() / "update");
+    fs::copy_file(temp_dir.path() / "update" / "Acme.json", system / "Acme.json");
+    fs::create_directories(system / "Acme" / "filament");
+    fs::copy_file(temp_dir.path() / "update" / "Acme" / "filament" / "pla.json", system / "Acme" / "filament" / "pla.json");
+
+    SECTION("by name") {
+        PresetBundle       bundle;
+        DynamicPrintConfig config;
+        std::string        error;
+        REQUIRE(bundle.resolve_system_preset(config, Preset::TYPE_FILAMENT, "Acme PLA",
+                                             ForwardCompatibilitySubstitutionRule::EnableSilent, error));
+        CHECK_THAT(config.opt<ConfigOptionFloats>("filament_cost")->values.front(), Catch::Matchers::WithinAbs(27., 1e-6));
+    }
+    SECTION("by its source file") {
+        PresetBundle       bundle;
+        DynamicPrintConfig config;
+        config.option<ConfigOptionString>(BBL_JSON_KEY_INHERITS, true)->value = "Generic PLA";
+        std::string error;
+        REQUIRE(bundle.resolve_preset_config(config, Preset::TYPE_FILAMENT, (system / "Acme" / "filament" / "pla.json").string(),
+                                             ForwardCompatibilitySubstitutionRule::EnableSilent, error));
+        CHECK_THAT(config.opt<ConfigOptionFloats>("filament_cost")->values.front(), Catch::Matchers::WithinAbs(27., 1e-6));
+    }
+}
+
+TEST_CASE("The vendor and filament scans read the bundled vendors that ship as their cache alone", "[Preset][Bundle][Regression]")
+{
+    ScopedTemporaryDir temp_dir;
+    const fs::path     profiles = temp_dir.path() / "resources" / PRESET_PROFILES_DIR;
+    ScopedResourcesDir scoped_resources(temp_dir.path() / "resources");
+    const std::string  lib(PresetBundle::ORCA_FILAMENT_LIBRARY);
+    fs::create_directories(profiles / lib / "filament");
+    std::ofstream((profiles / (lib + ".json")).string())
+        << R"({"version":"1.0.0","name":")" << lib << R"(",)"
+        << R"("filament_list":[{"name":"Generic PLA","sub_path":"filament/generic_pla.json"}]})";
+    std::ofstream((profiles / lib / "filament" / "generic_pla.json").string())
+        << R"({"type":"filament","name":"Generic PLA","from":"system","instantiation":"false","filament_id":"GFL99"})";
+    fs::create_directories(profiles / "Acme" / "machine");
+    fs::create_directories(profiles / "Acme" / "filament");
+    std::ofstream((profiles / "Acme.json").string())
+        << R"({"version":"1.0.0","name":"Acme",)"
+        << R"("machine_model_list":[{"name":"Acme One","sub_path":"machine/model.json"}],)"
+        << R"("machine_list":[{"name":"Acme Printer","sub_path":"machine/printer.json"}],)"
+        << R"("filament_list":[{"name":"Acme PLA","sub_path":"filament/pla.json"}]})";
+    std::ofstream((profiles / "Acme" / "machine" / "model.json").string())
+        << R"({"type":"machine_model","name":"Acme One","nozzle_diameter":"0.4"})";
+    std::ofstream((profiles / "Acme" / "machine" / "printer.json").string())
+        << R"({"type":"machine","name":"Acme Printer","from":"system","instantiation":"true","printer_model":"Acme One","printer_variant":"0.4"})";
+    std::ofstream((profiles / "Acme" / "filament" / "pla.json").string())
+        << R"({"type":"filament","name":"Acme PLA","from":"system","instantiation":"true","inherits":"Generic PLA","filament_id":"P0000001"})";
+
+    auto installed = [](const PresetCollection &presets) {
+        return std::count_if(presets.get_presets().begin(), presets.get_presets().end(), [](const Preset &preset) { return !preset.is_default; });
+    };
+    auto scan = [&installed] {
+        std::vector<std::string> found;
+        PresetBundle             models;
+        models.load_system_models_from_json(ForwardCompatibilitySubstitutionRule::EnableSilent);
+        CHECK(installed(models.printers) + installed(models.prints) + installed(models.filaments) == 0);
+        for (const auto &[vendor_id, vendor] : models.vendors)
+            for (const VendorProfile::PrinterModel &model : vendor.models)
+                found.push_back(vendor_id + " model " + model.id);
+        PresetBundle filaments;
+        filaments.load_system_filaments_json(ForwardCompatibilitySubstitutionRule::EnableSilent);
+        CHECK(installed(filaments.printers) + installed(filaments.prints) == 0);
+        for (const Preset &preset : filaments.filaments.get_presets())
+            if (!preset.is_default)
+                found.push_back(preset.name + " " + preset.filament_id);
+        return found;
+    };
+    const std::vector<std::string> expected{"Acme model Acme One", "Acme PLA P0000001"};
+    REQUIRE(scan() == expected);
+    reduce_vendors_to_caches(profiles, {lib, "Acme"});
+    CHECK(scan() == expected);
+}
+
+namespace {
+
+// A default preset config for type, built the way PresetBundle builds its default presets.
+DynamicPrintConfig external_default_config(Preset::Type type)
+{
+    DynamicPrintConfig config;
+    config.apply_only(static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()),
+                      type == Preset::TYPE_PRINTER ? Preset::printer_options() : Preset::print_options());
+    Preset::inherits(config);
+    return config;
+}
+
+// A find_base callback that counts its calls and returns base.
+auto base_finder(DynamicPrintConfig *base, int &calls)
+{
+    return [base, &calls](const std::string &) {
+        ++calls;
+        return base;
+    };
+}
+
+} // namespace
+
+TEST_CASE("A key missing from a project takes the default preset value when there is no base", "[Preset][ExternalPreset]")
+{
+    DynamicPrintConfig defaults = external_default_config(Preset::TYPE_PRINT);
+    defaults.set("wall_loops", 7, true);
+    const DynamicPrintConfig project;
+    int calls = 0;
+
+    const DynamicPrintConfig config = Preset::load_external_config(Preset::TYPE_PRINT, defaults, project, {"sparse_infill_density"},
+                                                                   base_finder(nullptr, calls));
+    CHECK(calls == 1);
+    CHECK(config.opt_int("wall_loops") == 7);
+}
+
+TEST_CASE("A key missing from a project takes its base preset value", "[Preset][ExternalPreset]")
+{
+    DynamicPrintConfig defaults = external_default_config(Preset::TYPE_PRINT);
+    defaults.set("wall_loops", 7, true);
+    DynamicPrintConfig base = defaults;
+    base.set("wall_loops", 5, true);
+    const DynamicPrintConfig project;
+    int calls = 0;
+
+    const DynamicPrintConfig config = Preset::load_external_config(Preset::TYPE_PRINT, defaults, project, {"sparse_infill_density"},
+                                                                   base_finder(&base, calls));
+    CHECK(config.opt_int("wall_loops") == 5);
+}
+
+TEST_CASE("A project key listed as different keeps the project value", "[Preset][ExternalPreset]")
+{
+    const DynamicPrintConfig defaults = external_default_config(Preset::TYPE_PRINT);
+    DynamicPrintConfig       base     = defaults;
+    base.set("wall_loops", 5, true);
+    DynamicPrintConfig project;
+    project.set("wall_loops", 4, true);
+    int calls = 0;
+
+    const DynamicPrintConfig config = Preset::load_external_config(Preset::TYPE_PRINT, defaults, project, {"wall_loops"},
+                                                                   base_finder(&base, calls));
+    CHECK(config.opt_int("wall_loops") == 4);
+}
+
+TEST_CASE("A project key not listed as different is refreshed to the base value", "[Preset][ExternalPreset]")
+{
+    const DynamicPrintConfig defaults = external_default_config(Preset::TYPE_PRINT);
+    DynamicPrintConfig       base     = defaults;
+    base.set("wall_loops", 5, true);
+    DynamicPrintConfig project;
+    project.set("wall_loops", 4, true);
+    project.set("inherits", "Base Process", true);
+    std::string inherits;
+
+    const DynamicPrintConfig config = Preset::load_external_config(Preset::TYPE_PRINT, defaults, project, {"sparse_infill_density"},
+                                                                   [&base, &inherits](const std::string &name) {
+                                                                       inherits = name;
+                                                                       return &base;
+                                                                   });
+    CHECK(inherits == "Base Process");
+    CHECK(config.opt_int("wall_loops") == 5);
+}
+
+TEST_CASE("An empty different settings list keeps the project values without a base", "[Preset][ExternalPreset]")
+{
+    DynamicPrintConfig defaults = external_default_config(Preset::TYPE_PRINT);
+    defaults.set("top_shell_layers", 7, true);
+    DynamicPrintConfig base = defaults;
+    base.set("wall_loops", 5, true);
+    base.set("top_shell_layers", 9, true);
+    DynamicPrintConfig project;
+    project.set("wall_loops", 4, true);
+    int calls = 0;
+
+    const DynamicPrintConfig config = Preset::load_external_config(Preset::TYPE_PRINT, defaults, project, {}, base_finder(&base, calls));
+    CHECK(calls == 0);
+    CHECK(config.opt_int("wall_loops") == 4);
+    CHECK(config.opt_int("top_shell_layers") == 7);
+}
+
+TEST_CASE("Print-host keys are never taken from a project", "[Preset][ExternalPreset]")
+{
+    DynamicPrintConfig defaults = external_default_config(Preset::TYPE_PRINTER);
+    defaults.set("print_host", "", true);
+    defaults.set("printhost_apikey", "", true);
+    DynamicPrintConfig project;
+    project.set("print_host", "http://project-host", true);
+    project.set("printhost_apikey", "project-key", true);
+    project.set("printer_notes", "project notes", true);
+    t_config_option_keys keys;
+    int calls = 0;
+
+    const DynamicPrintConfig config = Preset::load_external_config(Preset::TYPE_PRINTER, defaults, project, {"printer_notes"},
+                                                                   base_finder(nullptr, calls), &keys);
+    CHECK(config.opt_string("print_host").empty());
+    CHECK(config.opt_string("printhost_apikey").empty());
+    CHECK(config.opt_string("printer_notes") == "project notes");
+    CHECK_FALSE(contains_key(keys, "print_host"));
+    CHECK_FALSE(contains_key(keys, "printhost_apikey"));
+    CHECK(contains_key(keys, "printer_notes"));
+}
+
+TEST_CASE("A per-variant project value maps onto its base preset's variant layout", "[Preset][ExternalPreset]")
+{
+    const DynamicPrintConfig defaults = external_default_config(Preset::TYPE_PRINT);
+    DynamicPrintConfig       base     = defaults;
+    base.set_key_value("print_extruder_id", new ConfigOptionInts({1, 1}));
+    base.set_key_value("print_extruder_variant", new ConfigOptionStrings({"Direct Drive Standard", "Direct Drive High Flow"}));
+    base.set_key_value("outer_wall_speed", new ConfigOptionFloats({200., 300.}));
+    base.set_key_value("inner_wall_speed", new ConfigOptionFloats({250., 350.}));
+    // A project saved before its printer had a High Flow variant.
+    DynamicPrintConfig project;
+    project.set_key_value("print_extruder_id", new ConfigOptionInts({1}));
+    project.set_key_value("print_extruder_variant", new ConfigOptionStrings({"Direct Drive Standard"}));
+    project.set_key_value("outer_wall_speed", new ConfigOptionFloats({100.}));
+    project.set_key_value("inner_wall_speed", new ConfigOptionFloats({150.}));
+    int calls = 0;
+
+    const DynamicPrintConfig config = Preset::load_external_config(Preset::TYPE_PRINT, defaults, project, {"outer_wall_speed"},
+                                                                   base_finder(&base, calls));
+    CHECK(config.option<ConfigOptionStrings>("print_extruder_variant")->values ==
+          std::vector<std::string>{"Direct Drive Standard", "Direct Drive High Flow"});
+    // The listed key keeps the project's Standard value, and High Flow, which the project does not
+    // list, takes it too, as a user preset's value does.
+    check_double_vector(config.option<ConfigOptionFloats>("outer_wall_speed")->values, {100., 100.});
+    check_double_vector(config.option<ConfigOptionFloats>("inner_wall_speed")->values, {250., 350.});
+}
+
+TEST_CASE("A project's different settings always keep the preset bookkeeping keys", "[Preset][ExternalPreset]")
+{
+    const std::set<std::string> keys = PresetBundle::project_different_keys(escape_strings_cstyle({"wall_loops", "top_shell_layers"}));
+    for (const char *key : {"wall_loops", "top_shell_layers", "inherits", "print_settings_id", "filament_settings_id", "printer_settings_id"})
+        CHECK(keys.count(key) == 1);
+    CHECK(PresetBundle::project_different_keys(std::string()).count("inherits") == 1);
+}
+
+// A connected machine's tray is checked against the filament variant of the nozzle it feeds.
+TEST_CASE("A filament's variant index follows the extruder type and nozzle volume type", "[Preset]")
+{
+    DynamicPrintConfig filament;
+    filament.option<ConfigOptionStrings>("filament_extruder_variant", true)->values = {"Direct Drive Standard", "Direct Drive High Flow",
+                                                                                       "Bowden Standard"};
+    DynamicPrintConfig printer;
+    printer.option<ConfigOptionEnumsGeneric>("extruder_type", true)->values = {etDirectDrive, etBowden};
+
+    CHECK(PresetBundle::get_filament_variant_index(filament, printer, 0, nvtStandard) == 0);
+    CHECK(PresetBundle::get_filament_variant_index(filament, printer, 0, nvtHighFlow) == 1);
+    CHECK(PresetBundle::get_filament_variant_index(filament, printer, 1, nvtStandard) == 2);
+    // the filament defines no Bowden High Flow variant
+    CHECK(PresetBundle::get_filament_variant_index(filament, printer, 1, nvtHighFlow) == 0);
+}
+
+TEST_CASE("A user preset saved over by another instance while its directory loads is read again under the lock", "[Preset][Bundle][InstanceLock]")
+{
+    ScopedTemporaryDir   temp_dir;
+    ScopedDataDir        data_dir_scope(temp_dir.path());
+    RenameTestCollection coll;
+
+    Preset &parent = add_inmemory_preset(coll, "Parent Process");
+    parent.config.option<ConfigOptionFloat>("layer_height", true)->value = 0.24;
+    parent.is_system = true;
+
+    // Fewer than one batch, so every file is read before the first one is committed.
+    constexpr int  children = 8;
+    static_assert(children <= int(resolve_batch_size));
+    const fs::path dir      = temp_dir.path() / PRESET_PRINT_NAME;
+    for (int i = 0; i < children; ++ i)
+        write_minimal_child(dir / ("Child " + std::to_string(i) + ".json"), "Child " + std::to_string(i), "Parent Process");
+
+    // The first commit stands in for another instance saving every other preset after
+    // they were read and before they are committed.
+    std::string first;
+    auto save_the_others = [&](Preset &preset) {
+        if (! first.empty())
+            return;
+        first = preset.name;
+        for (int i = 0; i < children; ++ i) {
+            const std::string name = "Child " + std::to_string(i);
+            if (name != first)
+                std::ofstream((dir / (name + ".json")).string())
+                    << R"({"type":"process","name":")" << name
+                    << R"(","from":"User","version":"1.0.0","inherits":"Parent Process","layer_height":"0.3"})";
+        }
+    };
+    PresetsConfigSubstitutions substitutions;
+    coll.load_presets(temp_dir.path().string(), PRESET_PRINT_NAME, substitutions,
+                      ForwardCompatibilitySubstitutionRule::Disable, save_the_others);
+
+    REQUIRE_FALSE(first.empty());
+    CHECK(coll.error_count() == 0);
+    for (int i = 0; i < children; ++ i) {
+        const std::string name  = "Child " + std::to_string(i);
+        const Preset     *child = coll.find_preset(name);
+        REQUIRE(child != nullptr);
+        CHECK_THAT(child->config.opt_float("layer_height"), Catch::Matchers::WithinAbs(name == first ? 0.24 : 0.3, 1e-9));
+    }
+}
+
+TEST_CASE("A user preset removed by another instance while its directory loads is not installed", "[Preset][Bundle][InstanceLock]")
+{
+    ScopedTemporaryDir   temp_dir;
+    ScopedDataDir        data_dir_scope(temp_dir.path());
+    RenameTestCollection coll;
+
+    Preset &parent = add_inmemory_preset(coll, "Parent Process");
+    parent.is_system = true;
+
+    // Fewer than one batch, so every file is read before the first one is committed.
+    constexpr int  children = 8;
+    static_assert(children <= int(resolve_batch_size));
+    const fs::path dir      = temp_dir.path() / PRESET_PRINT_NAME;
+    for (int i = 0; i < children; ++ i)
+        write_minimal_child(dir / ("Child " + std::to_string(i) + ".json"), "Child " + std::to_string(i), "Parent Process");
+
+    std::string first;
+    auto remove_the_others = [&](Preset &preset) {
+        if (! first.empty())
+            return;
+        first = preset.name;
+        for (int i = 0; i < children; ++ i)
+            if (const std::string name = "Child " + std::to_string(i); name != first)
+                fs::remove(dir / (name + ".json"));
+    };
+    PresetsConfigSubstitutions substitutions;
+    coll.load_presets(temp_dir.path().string(), PRESET_PRINT_NAME, substitutions,
+                      ForwardCompatibilitySubstitutionRule::Disable, remove_the_others);
+
+    REQUIRE_FALSE(first.empty());
+    CHECK(coll.error_count() == 0);
+    CHECK(coll.size() == 3); // the default preset, the parent and the first child
+    CHECK(coll.find_preset(first) != nullptr);
+}
+
+TEST_CASE("Without the instance lock a user preset loads but its file is not written back", "[Preset][Bundle][InstanceLock]")
+{
+    ScopedTemporaryDir temp_dir;
+    ScopedDataDir      data_dir_scope(temp_dir.path());
+    // A directory where the lock file belongs, so the lock cannot be taken.
+    fs::create_directories(fs::path(user_presets_lock_path()));
+    PresetBundle       bundle;
+    const fs::path     file = temp_dir.path() / PRESET_FILAMENT_NAME / "My PLA @Test Printer.json";
+    write_preset_with_inherits(bundle.filaments.default_preset().config, file, "My PLA @Test Printer", std::string());
+    const std::string before = read_file(file);
+
+    PresetsConfigSubstitutions substitutions;
+    bundle.filaments.load_presets(temp_dir.path().string(), PRESET_FILAMENT_NAME, substitutions,
+                                  ForwardCompatibilitySubstitutionRule::EnableSilent);
+
+    const Preset *preset = bundle.filaments.find_preset("My PLA @Test Printer");
+    REQUIRE(preset != nullptr);
+    CHECK(preset->config.option<ConfigOptionStrings>("compatible_printers")->values == std::vector<std::string>{ "Test Printer" });
+    CHECK(read_file(file) == before);
+}
+
+#ifndef _WIN32
+// File permissions stop reading only on POSIX.
+TEST_CASE("A user preset that cannot be read under the instance lock is counted and removed", "[Preset][Bundle][InstanceLock]")
+{
+    if (::geteuid() == 0)
+        SKIP("file permissions do not stop root");
+    ScopedTemporaryDir   temp_dir;
+    ScopedDataDir        data_dir_scope(temp_dir.path());
+    RenameTestCollection coll;
+
+    Preset &parent = add_inmemory_preset(coll, "Parent Process");
+    parent.is_system = true;
+    const fs::path file = temp_dir.path() / PRESET_PRINT_NAME / "Unreadable.json";
+    write_minimal_child(file, "Unreadable", "Parent Process");
+    fs::permissions(file, fs::no_perms);
+
+    PresetsConfigSubstitutions substitutions;
+    coll.load_presets(temp_dir.path().string(), PRESET_PRINT_NAME, substitutions,
+                      ForwardCompatibilitySubstitutionRule::Disable);
+
+    CHECK(coll.error_count() == 1);
+    CHECK(coll.find_preset("Unreadable") == nullptr);
+    CHECK_FALSE(fs::exists(file));
+}
+#endif
+
+#ifndef _WIN32
+// Creating a symlink needs no privilege only on POSIX.
+TEST_CASE("A user preset that is a symlink to itself is counted and removed while the rest still load", "[Preset][Bundle][InstanceLock]")
+{
+    ScopedTemporaryDir   temp_dir;
+    ScopedDataDir        data_dir_scope(temp_dir.path());
+    RenameTestCollection coll;
+
+    Preset &parent = add_inmemory_preset(coll, "Parent Process");
+    parent.is_system = true;
+    const fs::path dir = temp_dir.path() / PRESET_PRINT_NAME;
+    write_minimal_child(dir / "Good A.json", "Good A", "Parent Process");
+    write_minimal_child(dir / "Good B.json", "Good B", "Parent Process");
+    const fs::path loop = dir / "Loop.json";
+    fs::create_symlink(loop.filename(), loop);
+
+    PresetsConfigSubstitutions substitutions;
+    REQUIRE_NOTHROW(coll.load_presets(temp_dir.path().string(), PRESET_PRINT_NAME, substitutions,
+                                      ForwardCompatibilitySubstitutionRule::Disable));
+
+    CHECK(coll.error_count() == 1);
+    CHECK(coll.find_preset("Good A") != nullptr);
+    CHECK(coll.find_preset("Good B") != nullptr);
+    CHECK(coll.find_preset("Loop") == nullptr);
+    boost::system::error_code ec;
+    CHECK(fs::symlink_status(loop, ec).type() == fs::file_not_found);
+}
+#endif
+
+#ifndef _WIN32
+// Creating a symlink needs no privilege only on POSIX.
+TEST_CASE("A user preset symlinked to a missing target is counted but the link is kept", "[Preset][Bundle][InstanceLock]")
+{
+    ScopedTemporaryDir   temp_dir;
+    ScopedDataDir        data_dir_scope(temp_dir.path());
+    RenameTestCollection coll;
+
+    const fs::path dir  = temp_dir.path() / PRESET_PRINT_NAME;
+    const fs::path link = dir / "Linked.json";
+    fs::create_directories(dir);
+    fs::create_symlink(temp_dir.path() / "unmounted" / "Linked.json", link);
+
+    PresetsConfigSubstitutions substitutions;
+    coll.load_presets(temp_dir.path().string(), PRESET_PRINT_NAME, substitutions,
+                      ForwardCompatibilitySubstitutionRule::Disable);
+
+    CHECK(coll.error_count() == 1);
+    CHECK(coll.find_preset("Linked") == nullptr);
+    boost::system::error_code ec;
+    CHECK(fs::symlink_status(link, ec).type() == fs::symlink_file);
+}
+#endif
+
+#ifndef _WIN32
+// The read-only bit on a directory stops file creation only on POSIX.
+TEST_CASE("A user filament whose derived compatible printer cannot be written back still loads with the failure counted", "[Preset][Bundle]")
+{
+    if (::geteuid() == 0)
+        SKIP("a read-only directory does not stop root");
+    ScopedTemporaryDir temp_dir;
+    PresetBundle       bundle;
+    const fs::path     dir  = temp_dir.path() / PRESET_FILAMENT_NAME;
+    const fs::path     file = dir / "My PLA @Test Printer.json";
+    write_preset_with_inherits(bundle.filaments.default_preset().config, file, "My PLA @Test Printer", std::string());
+    const std::string before = read_file(file);
+
+    fs::permissions(file, fs::owner_read);
+    fs::permissions(dir, fs::owner_read | fs::owner_exe);
+    PresetsConfigSubstitutions substitutions;
+    bundle.filaments.load_presets(temp_dir.path().string(), PRESET_FILAMENT_NAME, substitutions,
+                                  ForwardCompatibilitySubstitutionRule::EnableSilent);
+    // Restored before any assertion, so a failure never leaves an unremovable directory behind.
+    fs::permissions(dir, fs::owner_all);
+    fs::permissions(file, fs::owner_read | fs::owner_write);
+
+    const Preset *preset = bundle.filaments.find_preset("My PLA @Test Printer");
+    REQUIRE(preset != nullptr);
+    CHECK(preset->config.option<ConfigOptionStrings>("compatible_printers")->values == std::vector<std::string>{ "Test Printer" });
+    CHECK(bundle.filaments.error_count() == 1);
+    CHECK(read_file(file) == before);
+}
+#endif
