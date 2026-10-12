@@ -3,6 +3,8 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/Utils/MacDarkMode.hpp"
 
+#include <libslic3r/Utils.hpp>
+
 #include <algorithm>
 #include <boost/log/trivial.hpp>
 
@@ -72,6 +74,26 @@ webkit_javascript_result_unref              (WebKitJavascriptResult *js_result);
 }
 #endif
 
+// Private storage root for an isolated (plugin) profile. Plugin pages must not reach the shared
+// default store's cookies/session (e.g. the OrcaCloud login), so each profile gets its own dir.
+// macOS isolates with an in-memory store instead (see CreateWebView), so this is unused there.
+#if !defined(__WXOSX__)
+static wxString isolated_profile_path(const wxString& profile)
+{
+    wxString safe;
+    safe.reserve(profile.size());
+    for (wxString::const_iterator it = profile.begin(); it != profile.end(); ++it) {
+        const wxChar c = *it;
+        const bool keep = (c >= wxT('a') && c <= wxT('z')) || (c >= wxT('A') && c <= wxT('Z')) ||
+                          (c >= wxT('0') && c <= wxT('9')) || c == wxT('.') || c == wxT('-') || c == wxT('_');
+        safe += keep ? c : wxT('_');
+    }
+    if (safe.empty())
+        safe = wxT("default");
+    return wxString::FromUTF8((boost::filesystem::path(Slic3r::data_dir()) / "web_profiles" / safe.ToStdString()).string());
+}
+#endif
+
 #ifdef __WIN32__
 // Run Download and Install in another thread so we don't block the UI thread
 DWORD DownloadAndInstallWV2RT() {
@@ -135,6 +157,9 @@ DWORD DownloadAndInstallWV2RT() {
 class WebViewEdge : public wxWebViewEdge
 {
 public:
+    WebViewEdge() = default;
+    explicit WebViewEdge(const wxWebViewConfiguration& config) : wxWebViewEdge(config) {}
+
     bool SetUserAgent(const wxString &userAgent) override
     {
         bool dark = userAgent.Contains("dark");
@@ -213,6 +238,11 @@ public:
     {
     }
 
+    explicit WebViewWebKit(const wxWebViewConfiguration& config)
+        : wxWebViewWebKit(config)
+    {
+    }
+
     ~WebViewWebKit() override
     {
         RemoveScriptMessageHandler("wx");
@@ -284,7 +314,7 @@ static WebViewRef *webview_ref(wxWebView *webView)
     return webView ? static_cast<WebViewRef *>(webView->GetRefData()) : nullptr;
 }
 
-wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
+wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url, wxString const & profile)
 {
 #if wxUSE_WEBVIEW_EDGE
     // Check if a fixed version of edge is present in
@@ -304,12 +334,36 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << url2.ToUTF8();
 
+    const bool isolated = !profile.IsEmpty();
+
 #ifdef __WIN32__
-    wxWebView* webView = new WebViewEdge;
+    wxWebView* webView = nullptr;
+    if (isolated) {
+        wxWebViewConfiguration config = wxWebView::NewConfiguration(wxWebViewBackendEdge);
+        config.SetDataPath(isolated_profile_path(profile));
+        webView = new WebViewEdge(config);
+    } else {
+        webView = new WebViewEdge;
+    }
 #elif defined(__WXOSX__)
-    wxWebView* webView = new WebViewWebKit;
+    wxWebView* webView = nullptr;
+    if (isolated) {
+        // wx has no SetDataPath on macOS; give the view its own in-memory store instead.
+        wxWebViewConfiguration config = wxWebView::NewConfiguration(wxWebViewBackendWebKit);
+        Slic3r::GUI::WKWebViewConfiguration_setNonPersistentDataStore(config.GetNativeConfiguration());
+        webView = new WebViewWebKit(config);
+    } else {
+        webView = new WebViewWebKit;
+    }
 #else
-    auto webView = wxWebView::New();
+    wxWebView* webView = nullptr;
+    if (isolated) {
+        wxWebViewConfiguration config = wxWebView::NewConfiguration(wxWebViewBackendWebKit);
+        config.SetDataPath(isolated_profile_path(profile));
+        webView = wxWebView::New(config);
+    } else {
+        webView = wxWebView::New();
+    }
 #endif
     if (webView) {
         webView->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));

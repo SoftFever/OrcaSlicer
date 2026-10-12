@@ -22,7 +22,7 @@ namespace Slic3r { namespace GUI {
 class WebPanel : public wxPanel
 {
 public:
-    WebPanel(wxWindow* parent, const char* bridge_script);
+    WebPanel(wxWindow* parent, const char* bridge_script, const wxString& profile = wxEmptyString);
 
 protected:
     wxWebView* browser() const { return m_browser; }
