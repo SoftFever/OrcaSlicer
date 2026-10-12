@@ -771,6 +771,11 @@ bool GLGizmoTextureDisplacement::on_mouse(const wxMouseEvent &mouse_event)
 {
     if (m_seam_edit_mode)
         return on_mouse_seam(mouse_event);
+    // The background dropper takes the next click wherever it lands, the model included, so it comes
+    // before both the handle and the paint.
+    if (m_image_bg_picking && mouse_event.LeftDown() &&
+        pick_background_at(Vec2d(mouse_event.GetX(), mouse_event.GetY())))
+        return true;
     if (m_adjust_texture_mode) {
         if (on_mouse_adjust_texture(mouse_event))
             return true;
@@ -3704,7 +3709,8 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         "texture_displacement_add.svg", "texture_displacement_add_negative.svg", "circle_paint.svg",
         "menu_obj_sphere.svg", "menu_obj_cube.svg", "menu_obj_cylinder.svg", "texture_displacement_map_unwrap.svg",
         "texture_displacement_map_view.svg", "texture_displacement_tile_repeat.svg", "menu_mirror_x.svg",
-        "texture_displacement_adjust.svg", "canvas_drag.svg", "texture_displacement_move_up.svg",
+        "texture_displacement_adjust.svg", "texture_displacement_pipette.svg", "canvas_drag.svg",
+        "texture_displacement_move_up.svg",
         "texture_displacement_move_down.svg", "texture_displacement_drag.svg",
         "texture_displacement_select_all.svg", "texture_displacement_erase_all.svg",
     };

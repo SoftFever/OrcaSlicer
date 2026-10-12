@@ -4,6 +4,7 @@
 #include "libslic3r/TextureDisplacement.hpp"
 #include "libslic3r/format.hpp"
 
+#include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GLTexture.hpp"
 #include "slic3r/GUI/GUI.hpp"
@@ -53,6 +54,58 @@ wxString GLGizmoImage::handle_snapshot_action_name(bool shift_down, GLGizmoPaint
     // Same paint, same masks; only the undo step's wording follows the tool the user is in.
     const bool erasing = shift_down || (m_erase_mode != (button_down == GLGizmoPainterBase::Button::Right));
     return erasing ? _L("Remove image from the area") : _L("Place image");
+}
+
+bool GLGizmoTextureDisplacement::pick_background_at(const Vec2d &mouse_pos)
+{
+    ModelVolume              *mv    = texture_volume();
+    ModelObject              *mo    = m_c->selection_info()->model_object();
+    TextureDisplacementLayer *layer = mv != nullptr ? active_layer() : nullptr;
+    if (mv == nullptr || mo == nullptr || layer == nullptr || layer->empty())
+        return false;
+
+    const int idx = texture_volume_raycaster_index();
+    if (idx < 0)
+        return false;
+    const Selection  &selection = m_parent.get_selection();
+    const Transform3d trafo = mo->instances[selection.get_instance_idx()]->get_transformation().get_matrix() * mv->get_matrix();
+    const Camera     &camera = wxGetApp().plater()->get_camera();
+
+    Vec3f hit = Vec3f::Zero(), normal = Vec3f::Zero();
+    if (!m_c->raycaster()->raycasters()[size_t(idx)]->unproject_on_mesh(
+            mouse_pos, trafo, camera, hit, normal,
+            m_c->object_clipper()->get_clipping_plane()))
+        return false;
+
+    // The picture's own colour at that point, read through the projection the bake uses, rather
+    // than the pixel on screen: the screen pixel carries the lighting and the filament the colour
+    // was already quantized to, so keying on it would remove the wrong thing.
+    //
+    // Uncorrected, deliberately. The key is applied at the end of the correction chain, against
+    // colours the earlier passes have already moved, so it has to be stated in those terms - the
+    // same reason the panel's dropper reads the corrected preview.
+    const indexed_triangle_set &base = mv->mesh().its;
+    const indexed_triangle_set  patch =
+        extract_painted_patch(base, mv->texture_displacement_facet(layer->slot).get_data());
+    Vec3f center = Vec3f::Zero(), axis = Vec3f::UnitZ(), average_normal = Vec3f::UnitZ();
+    if (!patch.indices.empty())
+        texture_displacement_patch_frame(patch, texture_displacement_vertex_normals(base), center, axis,
+                                         average_normal);
+
+    DecodedHeightTexture tex = decode_height_texture(*layer);
+    apply_color_adjustments(tex, *layer);
+    Vec3f rgb;
+    if (!sample_layer_color(tex, *layer, hit, normal, rgb, center, axis))
+        return false;
+
+    for (int c = 0; c < 3; ++c)
+        layer->bg_color[c] = std::clamp(rgb[c], 0.f, 1.f);
+    layer->bg_from_corners = false;
+    layer->bg_remove       = true;
+    m_image_bg_picking     = false;
+    m_preview_params_dirty = true;
+    m_parent.set_as_dirty();
+    return true;
 }
 
 void GLGizmoTextureDisplacement::set_file_drag_over(bool over)
@@ -209,6 +262,8 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
     ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
     GizmoImguiBegin(get_name(), flags);
     ensure_panel_icons();
+    const float previous_body_h   = m_panel_body_h;
+    const float previous_footer_h = m_panel_footer_h;
 
     const ImGuiStyle &style    = ImGui::GetStyle();
     const bool        busy     = m_bake_in_progress || m_prepare_in_progress;
@@ -260,6 +315,31 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         hover_tip(tip_text);
         return clicked;
     };
+    // A section header that folds its contents away. ImGui's own CollapsingHeader draws a filled bar
+    // that is louder than anything else in this window, so this is the same triangle-and-text the
+    // displacement panel's "More settings" link uses, at heading weight.
+    const auto section = [&](const char *id, const wxString &label, bool &open) {
+        const float  arrow = std::round(ImGui::GetFontSize() * 0.55f);
+        const ImVec2 ts    = ImGui::CalcTextSize(label.ToUTF8().data());
+        const ImVec2 p     = ImGui::GetCursorScreenPos();
+        ImGui::PushID(id);
+        if (ImGui::InvisibleButton("##sec", ImVec2(panel_w, ts.y + gap_s)))
+            open = !open;
+        const bool  hot = ImGui::IsItemHovered();
+        ImDrawList *dl  = ImGui::GetWindowDrawList();
+        const ImU32 col = ImGui::GetColorU32(hot ? ImGuiCol_Text : ImGuiCol_TextDisabled);
+        const float cx = p.x + 0.5f * arrow, cy = p.y + 0.5f * ts.y, hs = 0.32f * arrow;
+        if (open)
+            dl->AddTriangleFilled(ImVec2(cx - hs, cy - 0.5f * hs), ImVec2(cx + hs, cy - 0.5f * hs),
+                                  ImVec2(cx, cy + 0.5f * hs), col);
+        else
+            dl->AddTriangleFilled(ImVec2(cx - 0.5f * hs, cy - hs), ImVec2(cx - 0.5f * hs, cy + hs),
+                                  ImVec2(cx + 0.5f * hs, cy), col);
+        dl->AddText(ImVec2(p.x + arrow + gap_s, p.y), col, label.ToUTF8().data());
+        ImGui::PopID();
+        return open;
+    };
+
     // The integer twin of float_row, for the colour count.
     const auto int_row = [&](const char *id, const wxString &label, int *v, int v_min, int v_max,
                              const char *format) -> bool {
@@ -313,6 +393,25 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             m_undocked = !m_undocked;
     }
     ImGui::Separator();
+
+    // Everything between the title and the footer scrolls as one, so Apply and Close stay on screen
+    // on a short canvas instead of being the first thing pushed off the bottom. Sized from last
+    // frame's content and footer heights, as the displacement panel's body is.
+    const float bottom     = m_undocked ? ImGui::GetIO().DisplaySize.y : bottom_limit;
+    const float max_body_h = std::max(m_imgui->scaled(8.f), bottom - ImGui::GetCursorScreenPos().y -
+                                                                m_panel_footer_h - style.WindowPadding.y -
+                                                                style.ItemSpacing.y);
+    const float body_h      = m_panel_body_h > 0.f ? std::min(m_panel_body_h + 1.f, max_body_h) : max_body_h;
+    const float scrollbar_w = m_imgui->scaled(0.5f);
+    const ImVec4 grab       = wxGetApp().dark_mode() ? ImVec4(1.f, 1.f, 1.f, 0.26f) : ImVec4(0.f, 0.f, 0.f, 0.26f);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_w);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 0.5f * scrollbar_w);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.f, 0.f, 0.f, 0.f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, grab);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(grab.x, grab.y, grab.z, 0.45f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(grab.x, grab.y, grab.z, 0.65f));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.f, 0.f, 0.f, 0.f));
+    ImGui::BeginChild("##image_body", ImVec2(panel_w, body_h), false);
 
     // The picture, shown whole and the full width of the window: it is the thing being placed, so a
     // row-sized thumbnail beside a file name is the wrong size for it. Clicking it opens the library,
@@ -377,7 +476,7 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             box_hit = ImGui::Button("?##thumb", ImVec2(panel_w, box_h));
         }
         hover_tip(m_image_bg_picking ?
-                      _u8L("Click the part of the picture that is its background.") :
+                      _u8L("Click the background, here or on the model.") :
                       _u8L("Choose a different picture. Where you placed it and how it is corrected stay as "
                            "they are."));
         if (box_hit) {
@@ -428,6 +527,7 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
                        "flatter than this, and stops at a sharper fold. Small values keep it to one face."));
 
         ImGui::Separator();
+        if (section("place", _L("Placement"), m_image_sec_place)) {
 
         // Projection, minus Unwrap: that one is an editor's worth of UI (seams, islands, the UV pane)
         // for a tool whose whole point is a click and a few sliders.
@@ -548,7 +648,10 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             }
         }
 
+        } // Placement
+
         ImGui::Separator();
+        if (section("color", _L("Color"), m_image_sec_color)) {
 
         // Colour correction. Every one of these changes which filament each area lands in, which is
         // why they are here rather than left to whatever the file happened to contain: a photo that
@@ -588,6 +691,14 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
                            "actually made of, not an even split of the range. Off leaves it alone."));
         }
 
+        } // Color
+
+        ImGui::Separator();
+        if (!section("bg", _L("Background"), m_image_sec_bg)) {
+            // Folded away, but still worth saying whether it is doing anything.
+            ImGui::SameLine();
+            ImGui::TextDisabled("%s", layer->bg_remove ? _u8L("removed").c_str() : _u8L("kept").c_str());
+        } else {
         if (m_imgui->bbl_checkbox(_L("Remove background"), layer->bg_remove))
             m_preview_params_dirty = true;
         hover_tip(_u8L("Leaves the background unprinted, so the object's own color shows through instead of "
@@ -632,8 +743,9 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
                                "plain card. Click to choose a color yourself instead.") :
                           _u8L("The color being removed. Click to change it."));
             ImGui::SameLine(0.f, gap_s);
-            if (icon_toggle(930, "texture_displacement_adjust.svg", m_image_bg_picking, _L("Pick from the picture"),
-                            _L("Pick from the picture - then click the background in the preview above.")))
+                if (icon_toggle(930, "texture_displacement_pipette.svg", m_image_bg_picking, _L("Pick the color"),
+                            _L("Pick the color - then click the background, either in the preview above or on "
+                               "the model itself.")))
                 m_image_bg_picking = !m_image_bg_picking;
             if (!layer->bg_from_corners) {
                 ImGui::SameLine(0.f, gap_s);
@@ -648,6 +760,8 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             hover_tip(_u8L("How different from that color still counts as background. Raise it when a "
                            "shadow or a gradient is left behind; lower it when it starts eating the picture."));
         }
+
+        } // Background
 
         if (m_imgui->bbl_checkbox(_L("Negative"), layer->color_invert))
             m_preview_params_dirty = true;
@@ -687,6 +801,12 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         m_preview_params_dirty = false;
     }
 
+    m_panel_body_h = ImGui::GetCursorPosY() - style.ItemSpacing.y;
+    ImGui::EndChild();
+    ImGui::PopStyleColor(5);
+    ImGui::PopStyleVar(2);
+
+    const float footer_top = ImGui::GetCursorScreenPos().y;
     ImGui::Separator();
     {
         const bool painted   = placed;
@@ -744,6 +864,12 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             hover_tip(_u8L("Closes the tool. Your picture and where you put it stay with the model."));
         }
     }
+
+    m_panel_footer_h = ImGui::GetCursorScreenPos().y - footer_top;
+    // Both heights feed back into next frame's layout, so the window needs one more frame whenever
+    // either of them moved.
+    if (std::abs(m_panel_body_h - previous_body_h) > 0.5f || std::abs(m_panel_footer_h - previous_footer_h) > 0.5f)
+        m_parent.request_extra_frame();
 
     // Last, on the foreground list, so it covers the panel as well as the view.
     render_image_drop_hint();

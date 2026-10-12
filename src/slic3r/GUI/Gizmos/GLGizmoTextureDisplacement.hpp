@@ -330,6 +330,15 @@ private:
     // Set while the panel's background dropper is armed: the next click on the picture preview takes
     // the colour under it instead of opening the library.
     bool m_image_bg_picking = false;
+    // Takes the background colour from the point of the model under `mouse_pos`: the picture's own
+    // colour there, read through the same projection the bake uses, not the lit pixel on screen.
+    // False when the ray misses or the layer does not colour that point, leaving the dropper armed.
+    bool pick_background_at(const Vec2d &mouse_pos);
+    // Which of the Image panel's sections are unfolded. Panel state for the session, deliberately
+    // not saved with the project.
+    bool m_image_sec_place = true;
+    bool m_image_sec_color = true;
+    bool m_image_sec_bg    = true;
     // Standard mode's Bake: remesh to an even density, refine where the texture bends, then displace.
     // The order matters and is the whole reason this is one button - a height map can only move
     // existing vertices, so the mesh has to be prepared first, and remeshing after painting would drop
