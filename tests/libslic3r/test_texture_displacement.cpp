@@ -2174,3 +2174,240 @@ TEST_CASE("whether a layer's texture has colour agrees with its decode", "[Textu
 
     CHECK_FALSE(height_texture_has_color(TextureDisplacementLayer{}));
 }
+
+// ---- Image adjustments (the gizmo's image-adjustment panel) ----------------------------------------
+
+// A grayscale ramp 0..255 across the width, so every input level is present exactly once per row and a
+// tonal curve can be read straight off the output.
+static DecodedHeightTexture make_gray_ramp(int w = 256, int h = 4)
+{
+    DecodedHeightTexture t;
+    t.width  = w;
+    t.height = h;
+    t.pixels.resize(size_t(w) * size_t(h));
+    for (int y = 0; y < h; ++y)
+        for (int x = 0; x < w; ++x)
+            t.pixels[size_t(y) * size_t(w) + size_t(x)] = uint8_t(x * 255 / std::max(1, w - 1));
+    return t;
+}
+
+// A one-texel checkerboard of 0 and 255 - the highest spatial frequency the grid can hold, which is what
+// a blur has to remove and a downscale has to average rather than drop.
+static DecodedHeightTexture make_gray_checkerboard(int w = 16, int h = 16)
+{
+    DecodedHeightTexture t;
+    t.width  = w;
+    t.height = h;
+    t.pixels.resize(size_t(w) * size_t(h));
+    for (int y = 0; y < h; ++y)
+        for (int x = 0; x < w; ++x)
+            t.pixels[size_t(y) * size_t(w) + size_t(x)] = ((x + y) % 2 == 0) ? 0 : 255;
+    return t;
+}
+
+static DecodedHeightTexture make_rgb_flat(uint8_t r, uint8_t g, uint8_t b, int w = 8, int h = 8)
+{
+    DecodedHeightTexture t;
+    t.width  = w;
+    t.height = h;
+    t.pixels.resize(size_t(w) * size_t(h));
+    t.rgb.resize(size_t(w) * size_t(h) * 3);
+    for (size_t i = 0; i < size_t(w) * size_t(h); ++i) {
+        t.rgb[i * 3]     = r;
+        t.rgb[i * 3 + 1] = g;
+        t.rgb[i * 3 + 2] = b;
+        t.pixels[i]      = uint8_t(std::lround(0.299 * r + 0.587 * g + 0.114 * b));
+    }
+    return t;
+}
+
+TEST_CASE("an adjustment that moves no slider returns the image unchanged", "[TextureDisplacement]")
+{
+    const DecodedHeightTexture src = make_gray_ramp();
+    const DecodedHeightTexture out = apply_texture_adjustments(src, TextureAdjustments{});
+    CHECK(out.width == src.width);
+    CHECK(out.height == src.height);
+    CHECK(out.pixels == src.pixels);
+    CHECK(TextureAdjustments{}.identity());
+}
+
+TEST_CASE("brightness reaches pure white and pure black only at the ends of its range", "[TextureDisplacement]")
+{
+    const DecodedHeightTexture src = make_gray_ramp();
+
+    TextureAdjustments up;
+    up.brightness = 1.f;
+    const DecodedHeightTexture white = apply_texture_adjustments(src, up);
+    CHECK(std::all_of(white.pixels.begin(), white.pixels.end(), [](uint8_t v) { return v == 255; }));
+
+    TextureAdjustments down;
+    down.brightness = -1.f;
+    const DecodedHeightTexture black = apply_texture_adjustments(src, down);
+    CHECK(std::all_of(black.pixels.begin(), black.pixels.end(), [](uint8_t v) { return v == 0; }));
+}
+
+TEST_CASE("brightness lifts the image without flattening it into a clipped plateau", "[TextureDisplacement]")
+{
+    // The reason brightness is a lift toward white rather than an additive offset: an offset would drive
+    // everything above mid-grey to a flat 255, and since this image is also the height map that region
+    // would bake as flat relief. Half a stop up must leave almost nothing at pure white.
+    const DecodedHeightTexture src = make_gray_ramp();
+    TextureAdjustments         adj;
+    adj.brightness = 0.5f;
+    const DecodedHeightTexture out = apply_texture_adjustments(src, adj);
+
+    REQUIRE(out.pixels.size() == src.pixels.size());
+    const size_t clipped = size_t(std::count(out.pixels.begin(), out.pixels.end(), uint8_t(255)));
+    CHECK(clipped * 100 < out.pixels.size()); // under 1%; an additive shift would clip half the ramp
+
+    // Every texel got brighter, and the curve stays ordered: brighter in means brighter out.
+    for (size_t i = 0; i < out.pixels.size(); ++i)
+        REQUIRE(out.pixels[i] >= src.pixels[i]);
+    for (int x = 1; x < out.width; ++x)
+        REQUIRE(out.pixels[size_t(x)] >= out.pixels[size_t(x - 1)]);
+}
+
+TEST_CASE("contrast at its lowest flattens the image to mid-grey and at its highest spreads it apart",
+          "[TextureDisplacement]")
+{
+    const DecodedHeightTexture src = make_gray_ramp();
+
+    TextureAdjustments flat;
+    flat.contrast = -1.f;
+    const DecodedHeightTexture grey = apply_texture_adjustments(src, flat);
+    // One value everywhere - the pivot. Which exact level that rounds to is not the point.
+    CHECK(std::adjacent_find(grey.pixels.begin(), grey.pixels.end(), std::not_equal_to<uint8_t>()) ==
+          grey.pixels.end());
+
+    TextureAdjustments hard;
+    hard.contrast = 1.f;
+    const DecodedHeightTexture split = apply_texture_adjustments(src, hard);
+    // A threshold about the pivot: the dark end of the ramp goes to black, the light end to white.
+    CHECK(split.pixels[0] == 0);
+    CHECK(split.pixels[size_t(split.width - 1)] == 255);
+}
+
+TEST_CASE("blur removes the finest detail and sharpness exaggerates an edge", "[TextureDisplacement]")
+{
+    // Blur: a one-texel checkerboard is the highest frequency the grid holds, so a blur has to collapse it
+    // toward its own mean. Measured as mean absolute deviation, which needs no assumption about the mean.
+    const DecodedHeightTexture checker = make_gray_checkerboard(32, 32);
+    const auto                 deviation = [](const DecodedHeightTexture &t) {
+        double mean = 0.;
+        for (uint8_t v : t.pixels)
+            mean += double(v);
+        mean /= double(t.pixels.size());
+        double dev = 0.;
+        for (uint8_t v : t.pixels)
+            dev += std::abs(double(v) - mean);
+        return dev / double(t.pixels.size());
+    };
+    TextureAdjustments blur;
+    blur.blur = 1.f;
+    CHECK(deviation(apply_texture_adjustments(checker, blur)) < 0.25 * deviation(checker));
+
+    // Sharpness: an unsharp mask pushes each side of a step further from the other, so the step
+    // overshoots - darker than the dark side just inside it, brighter than the bright side just inside.
+    DecodedHeightTexture step;
+    step.width  = 64;
+    step.height = 8;
+    step.pixels.assign(size_t(step.width) * size_t(step.height), 100);
+    for (int y = 0; y < step.height; ++y)
+        for (int x = step.width / 2; x < step.width; ++x)
+            step.pixels[size_t(y) * size_t(step.width) + size_t(x)] = 150;
+
+    TextureAdjustments sharp;
+    sharp.sharpness = 1.f;
+    const DecodedHeightTexture sharpened = apply_texture_adjustments(step, sharp);
+    const size_t               row       = size_t(step.height / 2) * size_t(step.width);
+    const size_t               mid       = size_t(step.width / 2);
+    CHECK(sharpened.pixels[row + mid - 1] < 100); // undershoot on the dark side of the step
+    CHECK(sharpened.pixels[row + mid] > 150);     // overshoot on the light side
+}
+
+TEST_CASE("a grayscale image stays grayscale and its hue slider does nothing", "[TextureDisplacement]")
+{
+    const DecodedHeightTexture src = make_gray_ramp();
+    REQUIRE_FALSE(src.has_color());
+
+    TextureAdjustments hue;
+    hue.hue_deg = 120.f;
+    const DecodedHeightTexture out = apply_texture_adjustments(src, hue);
+    // Not promoted to RGB: a grey image has no colour to offer the layer's colour feature, and storing it
+    // as RGB would triple the PNG for a row of identical greys.
+    CHECK_FALSE(out.has_color());
+    CHECK(out.rgb.empty());
+    CHECK(out.pixels == src.pixels);
+}
+
+TEST_CASE("a colour image's height stays the luminance of its adjusted colour", "[TextureDisplacement]")
+{
+    // The invariant that keeps the relief and the colour from drifting apart: whatever the adjustment did
+    // to the channels, the height is recomputed from the channels that came out.
+    const DecodedHeightTexture src = make_rgb_flat(200, 60, 30);
+    REQUIRE(src.has_color());
+
+    TextureAdjustments adj;
+    adj.brightness = 0.2f;
+    adj.contrast   = 0.3f;
+    adj.hue_deg    = 75.f;
+    const DecodedHeightTexture out = apply_texture_adjustments(src, adj);
+    REQUIRE(out.has_color());
+
+    for (size_t i = 0; i < out.pixels.size(); ++i) {
+        const long expect = std::lround(0.299 * out.rgb[i * 3] + 0.587 * out.rgb[i * 3 + 1] +
+                                        0.114 * out.rgb[i * 3 + 2]);
+        REQUIRE(long(out.pixels[i]) == expect);
+    }
+    // The hue turn actually moved the colour, so the check above is not passing on an unchanged image.
+    CHECK(out.rgb != src.rgb);
+}
+
+TEST_CASE("a full turn of the hue leaves a colour where it started", "[TextureDisplacement]")
+{
+    const DecodedHeightTexture src = make_rgb_flat(200, 60, 30);
+    TextureAdjustments         adj;
+    adj.hue_deg                    = 360.f;
+    const DecodedHeightTexture out = apply_texture_adjustments(src, adj);
+    REQUIRE(out.has_color());
+    // Rounding through 8-bit channels, so a level or two of slack rather than exact equality.
+    for (size_t i = 0; i < out.rgb.size(); ++i)
+        REQUIRE(std::abs(int(out.rgb[i]) - int(src.rgb[i])) <= 2);
+}
+
+TEST_CASE("the adjustment blur radius ramps from zero and stays under its cost cap", "[TextureDisplacement]")
+{
+    CHECK_THAT(adjustment_blur_radius(0.f, 512, 512), Catch::Matchers::WithinAbs(0.f, 1e-6f));
+    // 5% of the short side, as the Smoothing slider uses.
+    CHECK_THAT(adjustment_blur_radius(1.f, 512, 512), Catch::Matchers::WithinAbs(25.6f, 1e-3f));
+    CHECK_THAT(adjustment_blur_radius(0.5f, 512, 512), Catch::Matchers::WithinAbs(12.8f, 1e-3f));
+    // Capped, so a large image at the top of the slider cannot cost without bound.
+    CHECK_THAT(adjustment_blur_radius(1.f, 8192, 8192), Catch::Matchers::WithinAbs(48.f, 1e-3f));
+    // Sized off the short side, not the long one.
+    CHECK_THAT(adjustment_blur_radius(1.f, 4096, 200), Catch::Matchers::WithinAbs(10.f, 1e-3f));
+}
+
+TEST_CASE("downscaling a height texture averages the texels it drops and never upscales",
+          "[TextureDisplacement]")
+{
+    // Averaging, not decimation: a one-texel checkerboard halved must come out uniformly mid-grey. Picking
+    // one texel per block would instead come out all black or all white - detail the adjustment never
+    // produced, shown in the preview.
+    const DecodedHeightTexture small = downscale_height_texture(make_gray_checkerboard(16, 16), 8);
+    CHECK(small.width == 8);
+    CHECK(small.height == 8);
+    CHECK(std::all_of(small.pixels.begin(), small.pixels.end(), [](uint8_t v) { return v == 127; }));
+
+    // Already within the limit: handed back as it is.
+    const DecodedHeightTexture ramp = make_gray_ramp(64, 4);
+    const DecodedHeightTexture same = downscale_height_texture(ramp, 256);
+    CHECK(same.width == ramp.width);
+    CHECK(same.height == ramp.height);
+    CHECK(same.pixels == ramp.pixels);
+
+    // Aspect preserved, and a colour source keeps its colour.
+    const DecodedHeightTexture wide = downscale_height_texture(make_rgb_flat(200, 60, 30, 400, 100), 100);
+    CHECK(wide.width == 100);
+    CHECK(wide.height == 25);
+    CHECK(wide.has_color());
+}

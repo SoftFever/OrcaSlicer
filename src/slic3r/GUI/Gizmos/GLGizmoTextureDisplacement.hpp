@@ -23,6 +23,7 @@
 #include "libslic3r/Point.hpp"
 #include <imgui.h>
 #include <map>
+#include <future>
 #include <memory>
 #include <optional>
 #include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
@@ -398,6 +399,53 @@ private:
     bool m_picker_open_request = false;
     void set_layer_texture(TextureDisplacementLayer &layer, const TextureLibraryEntry &entry);
     void import_custom_texture(TextureDisplacementLayer &layer);
+
+    // ---- The image-adjustment panel ----
+    //
+    // Brightness/contrast/sharpness/blur/hue over one layer's image, shown on the image itself and
+    // updating as the sliders move. What it produces is not a set of layer parameters: it replaces the
+    // layer's *image*, so the adjusted pixels feed the colour and the displacement together and a
+    // brightness change moves the relief too (see TextureAdjustments).
+    //
+    // Modal, unlike the texture picker beside it, because it has three distinct exits - discard,
+    // overwrite the layer's image, write a new library texture - and a click outside silently
+    // discarding the edit is not one of them.
+    void render_image_adjust_popup(const ImVec2 &panel_min, const ImVec2 &panel_max);
+    // Opens the panel for `layer` and decodes its image once, into m_adjust_source. Sliders never
+    // re-decode the PNG.
+    void open_image_adjust(const TextureDisplacementLayer &layer);
+    // Gives `layer` the full-size adjusted image: as its own image_data (`as_copy` false), or by writing
+    // a new texture into the user's library and pointing the layer at that (`as_copy` true). Closes the
+    // panel either way. Takes an undo snapshot.
+    void commit_image_adjust(TextureDisplacementLayer &layer, bool as_copy);
+    void close_image_adjust();
+    // Collects a finished preview and starts one for the current slider values. One at a time, so a drag
+    // coalesces into "whatever the sliders last said" instead of a queue of superseded frames.
+    void update_image_adjust_preview();
+
+    int                m_adjust_slot         = -1; // the layer the panel is open for; -1 when closed
+    bool               m_adjust_open_request = false;
+    TextureAdjustments m_adjust;                   // what the sliders currently say
+
+    // The layer's image as it was when the panel opened, and a small copy of it. The sliders are applied
+    // to the small copy for the live preview and to the full-size one exactly once, on commit. Measured on
+    // a 1024x1024 with every knob engaged, a full-size pass costs 13-19 ms grayscale and 40-60 ms in
+    // colour (130-190 ms at 2048 in colour) - far too much to repeat per slider frame. The same pass on a
+    // 384 px copy is 3-4 ms / 9-12 ms, and that is all the preview box can show anyway.
+    DecodedHeightTexture m_adjust_source;
+    DecodedHeightTexture m_adjust_preview_source;
+    // The preview image on screen, re-uploaded whenever a background pass finishes.
+    std::unique_ptr<GLTexture> m_adjust_preview_tex;
+
+    // The live preview runs on its own thread rather than on the UI thread or on the plater's job
+    // worker. Not the UI thread because even the small pass is milliseconds and this runs while a slider
+    // is being dragged; not the job worker because that is a single FIFO shared with Bake and the
+    // displacement preview (see queue_preview_job()), where a per-frame image filter would sit behind -
+    // and delay - multi-second mesh work.
+    std::future<DecodedHeightTexture> m_adjust_preview_job;
+    TextureAdjustments                m_adjust_preview_running; // what the in-flight pass is computing
+    TextureAdjustments                m_adjust_preview_shown;   // what m_adjust_preview_tex holds
+    bool                              m_adjust_preview_valid = false;
 
     // Paint / Erase, from the panel. See get_left_button_state_type().
     bool m_erase_mode = false;

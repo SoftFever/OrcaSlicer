@@ -378,6 +378,63 @@ DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer
 }
 
 namespace {
+// Fraction of the short side that TextureAdjustments::blur == 1 blurs over, and the cost cap on it.
+// Deliberately the same pair decode_height_texture() uses for the Smoothing slider - see
+// adjustment_blur_radius().
+constexpr float SOURCE_BLUR_SPAN   = 0.05f;
+constexpr float SOURCE_BLUR_MAX_PX = 48.f;
+
+// Radius of the unsharp mask's blurred reference, in texels. Small and only mildly resolution-dependent:
+// a sharpen is meant to act on the finest detail the image holds, so its radius tracks the texel grid
+// rather than the picture's size. 1024x1024 gives ~2 texels, the usual photo-editor default.
+float unsharp_radius(int width, int height)
+{
+    return std::max(1.f, 0.002f * float(std::min(width, height)));
+}
+
+// Brightness as a *lift* toward white (or toward black) rather than an additive offset: positive b maps
+// v to v + b*(1 - v), negative to v*(1 + b). Both reach the endpoint exactly at |b| == 1 while staying
+// monotonic and non-clipping in between, which an additive shift does not - it drives a whole region to
+// a flat 255 and, because this image is also the height map, that region bakes as flat relief rather
+// than as bright relief. Keeping the curve injective keeps the detail in it.
+float apply_brightness(float v, float b)
+{
+    return b >= 0.f ? v + b * (1.f - v) : v * (1.f + b);
+}
+
+// Contrast about the 0.5 pivot. Gain is 1/(1-c) going up (c == 1 would be an infinite-slope threshold, so
+// the caller's clamp keeps it finite) and 1+c going down, reaching a flat mid-grey at c == -1.
+float apply_contrast(float v, float c)
+{
+    const float gain = c >= 0.f ? 1.f / std::max(1e-3f, 1.f - c) : 1.f + c;
+    return (v - 0.5f) * gain + 0.5f;
+}
+
+// Blur then sharpen one 8-bit channel in place. Shared by the grayscale path and by each of a colour
+// image's three channels, so every channel gets the identical spatial treatment and a colour image's
+// hue cannot shift just because its channels were filtered differently.
+void adjust_channel_spatial(std::vector<uint8_t> &channel, int width, int height, float blur, float sharpness)
+{
+    if (blur > 0.f)
+        smooth_height_pixels(channel, width, height, adjustment_blur_radius(blur, width, height));
+
+    if (sharpness <= 0.f)
+        return;
+
+    // Unsharp mask: push each texel away from its local average by `amount` times the difference. The
+    // blurred reference is a copy, so the sharpen reads the un-sharpened neighbourhood everywhere rather
+    // than its own partly-written output.
+    std::vector<uint8_t> base = channel;
+    smooth_height_pixels(base, width, height, unsharp_radius(width, height));
+    const float amount = 1.5f * std::clamp(sharpness, 0.f, 1.f);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, channel.size()), [&](const tbb::blocked_range<size_t> &r) {
+        for (size_t i = r.begin(); i < r.end(); ++i) {
+            const float v = float(channel[i]) + amount * (float(channel[i]) - float(base[i]));
+            channel[i]    = uint8_t(std::lround(std::clamp(v, 0.f, 255.f)));
+        }
+    });
+}
+
 struct TextureDetailCache
 {
     std::mutex mutex;
@@ -385,6 +442,150 @@ struct TextureDetailCache
 };
 TextureDetailCache g_texture_detail_cache;
 } // namespace
+
+float adjustment_blur_radius(float blur, int width, int height)
+{
+    if (blur <= 0.f || width <= 0 || height <= 0)
+        return 0.f;
+    const float span = SOURCE_BLUR_SPAN * float(std::min(width, height));
+    return std::clamp(blur, 0.f, 1.f) * std::min(span, SOURCE_BLUR_MAX_PX);
+}
+
+DecodedHeightTexture downscale_height_texture(const DecodedHeightTexture &src, int max_px)
+{
+    if (src.empty() || max_px <= 0 || (src.width <= max_px && src.height <= max_px))
+        return src;
+
+    const int  scale = std::max(1, (std::max(src.width, src.height) + max_px - 1) / max_px);
+    const int  w     = std::max(1, src.width / scale);
+    const int  h     = std::max(1, src.height / scale);
+    const bool color = src.has_color();
+
+    DecodedHeightTexture out;
+    out.width  = w;
+    out.height = h;
+    out.pixels.resize(size_t(w) * size_t(h));
+    if (color)
+        out.rgb.resize(size_t(w) * size_t(h) * 3);
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, h), [&](const tbb::blocked_range<int> &r) {
+        for (int y = r.begin(); y < r.end(); ++y)
+            for (int x = 0; x < w; ++x) {
+                // The source block this destination texel covers. The max() keeps the block non-empty
+                // when rounding would otherwise collapse it.
+                const int x0 = x * src.width / w, x1 = std::max(x0 + 1, (x + 1) * src.width / w);
+                const int y0 = y * src.height / h, y1 = std::max(y0 + 1, (y + 1) * src.height / h);
+                uint32_t  sum_h = 0, sum_c[3] = { 0, 0, 0 }, n = 0;
+                for (int sy = y0; sy < y1 && sy < src.height; ++sy)
+                    for (int sx = x0; sx < x1 && sx < src.width; ++sx, ++n) {
+                        const size_t si = size_t(sy) * size_t(src.width) + size_t(sx);
+                        sum_h += src.pixels[si];
+                        if (color)
+                            for (int c = 0; c < 3; ++c)
+                                sum_c[c] += src.rgb[si * 3 + size_t(c)];
+                    }
+                const size_t di = size_t(y) * size_t(w) + size_t(x);
+                out.pixels[di]  = n > 0 ? uint8_t(sum_h / n) : 0;
+                if (color)
+                    for (int c = 0; c < 3; ++c)
+                        out.rgb[di * 3 + size_t(c)] = n > 0 ? uint8_t(sum_c[c] / n) : 0;
+            }
+    });
+    return out;
+}
+
+DecodedHeightTexture apply_texture_adjustments(const DecodedHeightTexture &src, const TextureAdjustments &adj)
+{
+    DecodedHeightTexture out = src;
+    if (src.empty() || adj.identity())
+        return out;
+
+    const int    w = out.width;
+    const int    h = out.height;
+    const size_t n = size_t(w) * size_t(h);
+
+    const float brightness = std::clamp(adj.brightness, -1.f, 1.f);
+    // Short of 1, so apply_contrast()'s gain stays finite; at this value it is already a 1000x slope,
+    // i.e. a threshold in all but name.
+    const float contrast   = std::clamp(adj.contrast, -1.f, 0.999f);
+    const float blur       = std::clamp(adj.blur, 0.f, 1.f);
+    const float sharpness  = std::clamp(adj.sharpness, 0.f, 1.f);
+
+    // The tonal pass: a 256-entry lookup table, because brightness and contrast are the same scalar
+    // curve for every texel and every channel. Building it once beats evaluating two curves a few
+    // million times, and it is what keeps this pass off the panel's critical path.
+    std::array<uint8_t, 256> tone{};
+    for (int i = 0; i < 256; ++i) {
+        float v = float(i) / 255.f;
+        v       = apply_brightness(v, brightness);
+        v       = apply_contrast(v, contrast);
+        tone[size_t(i)] = uint8_t(std::lround(std::clamp(v, 0.f, 1.f) * 255.f));
+    }
+
+    if (!out.has_color()) {
+        // Grayscale: one channel, and hue has nothing to turn.
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, n), [&](const tbb::blocked_range<size_t> &r) {
+            for (size_t i = r.begin(); i < r.end(); ++i)
+                out.pixels[i] = tone[out.pixels[i]];
+        });
+        adjust_channel_spatial(out.pixels, w, h, blur, sharpness);
+        return out;
+    }
+
+    // Colour: tone each channel through the same table, then rotate the hue about the luminance axis.
+    //
+    // The rotation is feColorMatrix's hueRotate matrix (SVG filters), which holds Rec.709 luma fixed.
+    // The height below is taken with decode_height_texture()'s Rec.601 coefficients instead, so a hue
+    // turn is not perfectly height-neutral - a few levels at full saturation. Reconciling the two would
+    // mean a different rotation than every other tool's, which is the worse trade: the user is watching
+    // the colour, and the height follows the colour by construction either way.
+    const float  theta = adj.hue_deg * float(M_PI) / 180.f;
+    const float  c     = std::cos(theta);
+    const float  s     = std::sin(theta);
+    const float  m[9]  = {
+        0.213f + c * 0.787f - s * 0.213f, 0.715f - c * 0.715f - s * 0.715f, 0.072f - c * 0.072f + s * 0.928f,
+        0.213f - c * 0.213f + s * 0.143f, 0.715f + c * 0.285f + s * 0.140f, 0.072f - c * 0.072f - s * 0.283f,
+        0.213f - c * 0.213f - s * 0.787f, 0.715f - c * 0.715f + s * 0.715f, 0.072f + c * 0.928f + s * 0.072f,
+    };
+    const bool turn_hue = adj.hue_deg != 0.f;
+
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, n), [&](const tbb::blocked_range<size_t> &r) {
+        for (size_t i = r.begin(); i < r.end(); ++i) {
+            const float rr = float(tone[out.rgb[i * 3]]);
+            const float gg = float(tone[out.rgb[i * 3 + 1]]);
+            const float bb = float(tone[out.rgb[i * 3 + 2]]);
+            const float nr = turn_hue ? m[0] * rr + m[1] * gg + m[2] * bb : rr;
+            const float ng = turn_hue ? m[3] * rr + m[4] * gg + m[5] * bb : gg;
+            const float nb = turn_hue ? m[6] * rr + m[7] * gg + m[8] * bb : bb;
+            out.rgb[i * 3]     = uint8_t(std::lround(std::clamp(nr, 0.f, 255.f)));
+            out.rgb[i * 3 + 1] = uint8_t(std::lround(std::clamp(ng, 0.f, 255.f)));
+            out.rgb[i * 3 + 2] = uint8_t(std::lround(std::clamp(nb, 0.f, 255.f)));
+        }
+    });
+
+    // The spatial pass wants one channel at a time (smooth_height_pixels() is a single-channel blur, and
+    // reusing it is what keeps this consistent with Smoothing), so de-interleave, filter, re-interleave.
+    if (blur > 0.f || sharpness > 0.f) {
+        std::vector<uint8_t> channel(n);
+        for (int ch = 0; ch < 3; ++ch) {
+            for (size_t i = 0; i < n; ++i)
+                channel[i] = out.rgb[i * 3 + size_t(ch)];
+            adjust_channel_spatial(channel, w, h, blur, sharpness);
+            for (size_t i = 0; i < n; ++i)
+                out.rgb[i * 3 + size_t(ch)] = channel[i];
+        }
+    }
+
+    // Height is the luminance of the colour that came out, not the toned luminance of the colour that
+    // went in: the two differ once hue rotation or a per-channel clamp has moved the channels around,
+    // and a height that disagrees with the colour it is stored next to is the bug this avoids.
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, n), [&](const tbb::blocked_range<size_t> &r) {
+        for (size_t i = r.begin(); i < r.end(); ++i)
+            out.pixels[i] = uint8_t(std::lround(0.299 * out.rgb[i * 3] + 0.587 * out.rgb[i * 3 + 1] +
+                                                0.114 * out.rgb[i * 3 + 2]));
+    });
+    return out;
+}
 
 TextureDetail analyze_texture_detail(const TextureDisplacementLayer &layer)
 {

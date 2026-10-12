@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "libslic3r/TextureDisplacement.hpp"
+
 namespace Slic3r::GUI {
 
 // One selectable height-map texture in the texture-displacement gizmo's texture picker.
@@ -56,6 +58,27 @@ std::optional<TextureLibraryEntry> import_texture_to_library(const std::string &
 // by hand - is converted on the fly, so a valid image never silently produces a blank layer.
 // Returns nullptr with `error` set if the file cannot be read or decoded at all.
 std::shared_ptr<std::vector<unsigned char>> load_texture_image_data(const std::string &path, std::string &error);
+
+// Encodes already-decoded pixels back into the PNG form a layer's image_data holds - grayscale in,
+// grayscale out, as on import. This is how an edited image (see apply_texture_adjustments()) becomes a
+// layer's image.
+//
+// The returned buffer is always a *fresh allocation*, which is load-bearing rather than incidental:
+// decode_height_texture() and analyze_texture_detail() both cache by the image_data pointer, so writing
+// new bytes into the buffer a layer already holds would leave every one of those caches - and the GPU
+// thumbnail and height/colour textures, keyed the same way - serving the old pixels. Assigning a new
+// allocation is what invalidates them.
+//
+// Returns nullptr with `error` set if the pixels are empty or the encode fails.
+std::shared_ptr<std::vector<unsigned char>> encode_texture_image_data(const DecodedHeightTexture &image, std::string &error);
+
+// Writes `image` into user_texture_dir() as a new PNG named after `stem` (uniquified if taken, so an
+// existing texture is never overwritten) and returns its library entry. The in-memory counterpart of
+// import_texture_to_library(), for an image that was edited rather than read off disk.
+//
+// Returns nullopt with `error` set on failure.
+std::optional<TextureLibraryEntry> save_texture_to_library(const DecodedHeightTexture &image, const std::string &stem,
+                                                           std::string &error);
 
 } // namespace Slic3r::GUI
 
