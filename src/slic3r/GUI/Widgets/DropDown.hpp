@@ -5,6 +5,7 @@
 #include <wx/event.h>
 #include <vector>
 #include <cstddef>
+#include <utility>
 #include <wx/gdicmn.h>
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 #include <boost/date_time/posix_time/ptime.hpp>
@@ -67,6 +68,7 @@ private:
 
     wxSize textSize;
     wxSize iconSize;
+    int    actionIconWidth = 0;
     wxSize rowSize;
 
     StateHandler state_handler;
@@ -137,7 +139,7 @@ private:
     int hoverIndex();
 
     int selectedItem();
-    wxSize actionIconSize() const;
+    std::pair<int, int> actionColumn() const;
 
     friend class ComboBox;
     void messureSize();

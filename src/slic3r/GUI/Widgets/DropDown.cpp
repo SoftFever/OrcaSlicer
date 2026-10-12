@@ -243,27 +243,17 @@ static wxSize GetBmpSize(wxBitmap & bmp)
 #endif
 }
 
-wxSize DropDown::actionIconSize() const
+// The x-range [first, second) of the column at the right of the rows that holds the items' action
+// icons, empty when no item has one. render() draws the icons in it and mouseReleased() hit-tests
+// clicks against it, so the drawn icon and its clickable area always match.
+std::pair<int, int> DropDown::actionColumn() const
 {
-    wxSize size;
-    std::set<wxString> groups;
-    for (const Item& item : items) {
-        if (group.IsEmpty()) {
-            if (!item.group_key.IsEmpty()) {
-                if (groups.find(item.group_key) != groups.end())
-                    continue;
-                groups.insert(item.group_key);
-            }
-        } else if (item.group_key != group) {
-            continue;
-        }
-
-        wxBitmap icon = item.action_icon;
-        wxSize icon_size = GetBmpSize(icon);
-        size.x = std::max(size.x, icon_size.x);
-        size.y = std::max(size.y, icon_size.y);
-    }
-    return size;
+    if (actionIconWidth <= 0)
+        return {0, 0};
+    int right = rowSize.x;
+    if (rowSize.y * count > GetSize().y) // position bar
+        right -= 6;
+    return {right - actionIconWidth - FromDIP(16), right};
 }
 
 static void _DrawSplitItem(const wxWindow* w, wxDC& dc, wxString split_text, wxPoint start_pt, int item_width, int item_height)
@@ -395,8 +385,9 @@ void DropDown::render(wxDC &dc)
         rcContent.width -= szBmp.x + 5;
     }
 
-    const wxSize action_icon_size = actionIconSize();
-    const int action_column_width = action_icon_size.x > 0 ? action_icon_size.x + FromDIP(16) : 0;
+    const auto action_column = actionColumn();
+    if (action_column.second > action_column.first)
+        rcContent.width = action_column.first - rcContent.x;
 
     std::set<wxString> groups;
     // draw texts & icons
@@ -436,7 +427,6 @@ void DropDown::render(wxDC &dc)
         }
         if (rcContent.y > size.y) break;
         wxPoint pt   = rcContent.GetLeftTop();
-        int rcContent_width = rcContent.width;
 
         if (item.style & DD_ITEM_STYLE_SPLIT_ITEM) {
             _DrawSplitItem(this, dc, item.text, pt, rowSize.GetWidth(), rowSize.GetHeight());
@@ -462,12 +452,9 @@ void DropDown::render(wxDC &dc)
         auto text = group.IsEmpty()
                         ? (item.group_key.IsEmpty() ? item.text : item.group_label)
                         : item.text;
-        if (action_column_width > 0)
-            rcContent.width -= action_column_width;
-
         if (item.action_icon.IsOk()) {
             auto action_size = GetBmpSize(item.action_icon);
-            wxPoint action_pt(rcContent.x + rcContent_width - action_size.x - FromDIP(8),
+            wxPoint action_pt(action_column.second - action_size.x - FromDIP(8),
                               rcContent.y + (rcContent.height - action_size.y) / 2);
             dc.DrawBitmap(item.action_icon, action_pt);
         }
@@ -498,7 +485,6 @@ void DropDown::render(wxDC &dc)
                 dc.DrawBitmap(arrow_bitmap.bmp(), pt);
             }
         }
-        rcContent.width = rcContent_width;
         rcContent.y += rowSize.y;
     }
 }
@@ -572,6 +558,7 @@ void DropDown::messureSize()
     if (!need_sync) return;
     textSize = wxSize();
     iconSize = wxSize();
+    actionIconWidth = 0;
     count = 0;
     wxClientDC dc(GetParent() ? GetParent() : this);
     dc.SetFont(GetFont());
@@ -609,9 +596,12 @@ void DropDown::messureSize()
             }
         }
         if (item.action_icon.IsOk())
-            size1.x += GetBmpSize(item.action_icon).x + FromDIP(16);
+            actionIconWidth = std::max(actionIconWidth, GetBmpSize(item.action_icon).x);
         if (size1.x > textSize.x) textSize = size1;
     }
+    // Every row leaves room for the action column, as render() and actionColumn() lay it out.
+    if (actionIconWidth > 0)
+        textSize.x += actionIconWidth + FromDIP(16);
     if (!align_icon) iconSize.x = 0;
     wxSize szContent = textSize;
     if (szContent.x < FromDIP(120) && !use_content_width)
@@ -766,12 +756,8 @@ void DropDown::mouseReleased(wxMouseEvent& event)
         if (hover_item >= 0 && (subDropDown == nullptr || subDropDown->group.empty())) { // not moved
             int index = hoverIndex();
             if (index >= 0 && items[index].action_icon.IsOk()) {
-                wxSize action_size = actionIconSize();
-                int action_right = GetSize().x;
-                if (rowSize.y * count > GetSize().y)
-                    action_right -= 6;
-                int action_left = action_right - action_size.x - FromDIP(16);
-                if (event.GetX() >= action_left && event.GetX() <= action_right) {
+                const auto action_column = actionColumn();
+                if (event.GetX() >= action_column.first && event.GetX() < action_column.second) {
                     sendDropDownActionEvent(index);
                     paintNow();
                     return;

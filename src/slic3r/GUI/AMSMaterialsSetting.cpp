@@ -16,6 +16,7 @@
 #include <wx/checklst.h>
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
+#include "slic3r/GUI/Widgets/DropDown.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
 #include <utility>
 #include "slic3r/GUI/wxExtensions.hpp"
@@ -175,6 +176,24 @@ void AMSMaterialsSetting::create()
     m_comboBox_filament->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
     m_comboBox_filament->Bind(EVT_DROPDOWN_ITEM_ACTION, &AMSMaterialsSetting::on_toggle_favorite_filament, this);
 
+    // Favorites toggled in the open list are regrouped just before it opens again, so rows never move
+    // under the cursor. These handlers run ahead of ComboBox's own, which then measure and show the
+    // rebuilt rows; wxEVT_COMBOBOX_DROPDOWN would be too late, as ComboBox sends it after showing the list.
+    auto regroup_favorites = [this]() {
+        if (!m_favorites_regroup || m_comboBox_filament->is_drop_down())
+            return;
+        const FilamentInfos* info        = selected_filament_info();
+        const std::string    filament_id = info ? info->filament_id : std::string();
+        rebuild_filament_dropdown_items(filament_id);
+    };
+    m_comboBox_filament->Bind(wxEVT_LEFT_DOWN, [regroup_favorites](wxMouseEvent& e) { regroup_favorites(); e.Skip(); });
+    m_comboBox_filament->Bind(wxEVT_LEFT_DCLICK, [regroup_favorites](wxMouseEvent& e) { regroup_favorites(); e.Skip(); });
+    m_comboBox_filament->Bind(wxEVT_KEY_DOWN, [regroup_favorites](wxKeyEvent& e) {
+        if (e.GetKeyCode() == WXK_RETURN || e.GetKeyCode() == WXK_SPACE) // the keys that open the list
+            regroup_favorites();
+        e.Skip();
+    });
+
     m_comboBox_cali_result->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_cali_result), NULL, this);
 }
 
@@ -193,6 +212,8 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_sizer_filament->Add(0, 0, 0, wxEXPAND, 0);
 
     m_comboBox_filament = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
+    m_star_filled = ScalableBitmap(this, "score_star_light", 16);
+    m_star_empty  = ScalableBitmap(this, "score_star_dark", 16);
 
     m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
 
@@ -988,12 +1009,10 @@ static const char* AMS_FAVORITE_FILAMENT_IDS_KEY = "ams_favorite_filament_ids";
 
 const AMSMaterialsSetting::FilamentInfos* AMSMaterialsSetting::selected_filament_info() const
 {
-    int selection = m_comboBox_filament->GetSelection();
-    if (selection >= 0 && selection < int(m_filament_list_items.size()) && m_filament_list_items[selection].is_filament)
-        return &m_filament_list_items[selection].filament;
-
-    auto iter = map_filament_items.find(m_comboBox_filament->GetValue().ToStdString());
-    return iter == map_filament_items.end() ? nullptr : &iter->second;
+    const int selection = m_comboBox_filament->GetSelection();
+    if (selection < 0 || selection >= int(m_filament_list_items.size()) || !m_filament_list_items[selection].is_filament)
+        return nullptr;
+    return &m_filament_list_items[selection].filament;
 }
 
 std::set<std::string> AMSMaterialsSetting::load_favorite_filament_ids() const
@@ -1019,10 +1038,6 @@ void AMSMaterialsSetting::rebuild_filament_dropdown_items(const std::string& sel
     std::vector<DropDown::Item> items;
     m_filament_list_items.clear();
 
-    const std::set<std::string> favorite_ids = load_favorite_filament_ids();
-    wxBitmap star_filled = ScalableBitmap(this, "score_star_light", 16).bmp();
-    wxBitmap star_empty  = ScalableBitmap(this, "score_star_dark", 16).bmp();
-
     auto append_header = [&items, this](const wxString& label) {
         DropDown::Item item;
         item.text = label;
@@ -1031,43 +1046,32 @@ void AMSMaterialsSetting::rebuild_filament_dropdown_items(const std::string& sel
         m_filament_list_items.push_back(FilamentListItem{});
     };
 
-    auto append_filament = [&items, this, &favorite_ids, &star_filled, &star_empty](const wxString& name) {
-        auto info_it = map_filament_items.find(name.ToStdString());
+    auto append_filament = [&items, this](const wxString& name) {
+        auto info_it = map_filament_items.find(name);
         if (info_it == map_filament_items.end())
             return;
 
-        const bool is_favorite = favorite_ids.find(info_it->second.filament_id) != favorite_ids.end();
         DropDown::Item item;
         item.text = name;
-        item.action_icon = is_favorite ? star_filled : star_empty;
-        item.style = 0;
         items.push_back(item);
-
-        FilamentListItem list_item;
-        list_item.filament = info_it->second;
-        list_item.is_filament = true;
-        m_filament_list_items.push_back(list_item);
+        m_filament_list_items.push_back(FilamentListItem{info_it->second, true});
     };
 
-    bool has_favorites = false;
+    // Favorites are listed again at the top under their own header. Without any, the list is the
+    // plain filament list.
+    const std::set<std::string> favorite_ids = load_favorite_filament_ids();
+    std::vector<wxString>       favorites;
     for (const wxString& name : m_sorted_filament_items) {
-        auto info_it = map_filament_items.find(name.ToStdString());
-        if (info_it != map_filament_items.end() && favorite_ids.find(info_it->second.filament_id) != favorite_ids.end()) {
-            has_favorites = true;
-            break;
-        }
+        auto info_it = map_filament_items.find(name);
+        if (info_it != map_filament_items.end() && favorite_ids.count(info_it->second.filament_id) > 0)
+            favorites.push_back(name);
     }
-
-    if (has_favorites) {
+    if (!favorites.empty()) {
         append_header(_L("Favorite filaments"));
-        for (const wxString& name : m_sorted_filament_items) {
-            auto info_it = map_filament_items.find(name.ToStdString());
-            if (info_it != map_filament_items.end() && favorite_ids.find(info_it->second.filament_id) != favorite_ids.end())
-                append_filament(name);
-        }
+        for (const wxString& name : favorites)
+            append_filament(name);
+        append_header(_L("All filaments"));
     }
-
-    append_header(_L("All filaments"));
     for (const wxString& name : m_sorted_filament_items)
         append_filament(name);
 
@@ -1081,8 +1085,25 @@ void AMSMaterialsSetting::rebuild_filament_dropdown_items(const std::string& sel
         }
     }
 
+    // Clear() first: SetItems() keeps the old selection, and SetSelection() ignores an index equal to it,
+    // which would leave the previous filament's name on the combo.
+    m_comboBox_filament->Clear();
     m_comboBox_filament->SetItems(items);
+    update_favorite_stars();
     m_comboBox_filament->SetSelection(selection_idx);
+    m_favorites_regroup = false;
+}
+
+void AMSMaterialsSetting::update_favorite_stars()
+{
+    const std::set<std::string> favorite_ids = load_favorite_filament_ids();
+    for (size_t i = 0; i < m_filament_list_items.size(); ++i) {
+        const FilamentListItem& row = m_filament_list_items[i];
+        if (row.is_filament) {
+            const bool favorite = favorite_ids.count(row.filament.filament_id) > 0;
+            m_comboBox_filament->SetItemActionBitmap(i, favorite ? m_star_filled.bmp() : m_star_empty.bmp());
+        }
+    }
 }
 
 void AMSMaterialsSetting::toggle_favorite_filament(const std::string& filament_id)
@@ -1106,12 +1127,9 @@ void AMSMaterialsSetting::on_toggle_favorite_filament(wxCommandEvent& evt)
     if (index < 0 || index >= int(m_filament_list_items.size()) || !m_filament_list_items[index].is_filament)
         return;
 
-    std::string selected_filament_id;
-    if (const FilamentInfos* info = selected_filament_info())
-        selected_filament_id = info->filament_id;
     toggle_favorite_filament(m_filament_list_items[index].filament.filament_id);
-    rebuild_filament_dropdown_items(selected_filament_id);
-    m_comboBox_filament->RefreshDropdownIfOpen();
+    update_favorite_stars();
+    m_favorites_regroup = true;
 }
 
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
@@ -1127,16 +1145,12 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_input_k_val->GetTextCtrl()->SetValue(k);
     m_input_n_val->GetTextCtrl()->SetValue(n);
 
-    wxArrayString filament_items;
-    map_filament_items.clear();
-    m_sorted_filament_items.clear();
-    m_filament_list_items.clear();
     wxString bambu_filament_name;
-    wxString hint_filament_name; // the hint type to be selected
     std::unordered_map<wxString, wxString> query_filament_vendors;// some information for sort
     std::unordered_map<wxString, wxString> query_filament_types;  //
 
     std::set<std::string> filament_id_set;
+    m_sorted_filament_items.clear();
     // The alias keyed map has to start empty: it is a member, so a stale alias left by an earlier
     // popup (a different printer, a different nozzle) would resolve to that printer's filament_id.
     map_filament_items.clear();
@@ -1166,7 +1180,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             if (alias.empty())
                 continue;
 
-            filament_items.push_back(alias);
+            m_sorted_filament_items.push_back(alias);
             _collect_filament_info(alias, *filament_it, query_filament_vendors, query_filament_types);
 
             FilamentInfos filament_infos;
@@ -1175,7 +1189,6 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             map_filament_items[alias]  = filament_infos;
 
             if (filament_it->filament_id == ams_filament_id) {
-                hint_filament_name = from_u8(alias);
                 bambu_filament_name = from_u8(alias);
 
 
@@ -1346,20 +1359,10 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             return name_compare != 0 ? name_compare < 0 : left < right;
         };
 
-        std::sort(filament_items.begin(), filament_items.end(), _filament_sorter);
+        std::sort(m_sorted_filament_items.begin(), m_sorted_filament_items.end(), _filament_sorter);
     }
 
-    std::string selection_filament_id;
-    for (int i = 0; i < int(filament_items.size()); ++i) {
-        m_sorted_filament_items.push_back(filament_items[i]);
-        if (hint_filament_name == filament_items[i]) {
-            auto info_it = map_filament_items.find(filament_items[i].ToStdString());
-            if (info_it != map_filament_items.end())
-                selection_filament_id = info_it->second.filament_id;
-        }
-    }
-
-    rebuild_filament_dropdown_items(selection_filament_id);
+    rebuild_filament_dropdown_items(ams_filament_id);
     int selection_idx = m_comboBox_filament->GetSelection();
     post_select_event(selection_idx);
 
@@ -1645,6 +1648,11 @@ void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
     m_button_reset->Rescale(); // ORCA
     m_button_confirm->Rescale(); // ORCA
     m_button_close->Rescale(); // ORCA
+    // An open list would keep the measurements of the old stars, so close it before replacing them.
+    m_comboBox_filament->CloseDropdown();
+    m_star_filled.msw_rescale();
+    m_star_empty.msw_rescale();
+    update_favorite_stars();
     this->Refresh();
 }
 

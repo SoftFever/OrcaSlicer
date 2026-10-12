@@ -101,7 +101,7 @@ public:
     void     DeleteOneItem(unsigned int pos) { DoDeleteOneItem(pos); }
 
     void ForceDropdownOpen();
-    void RefreshDropdownIfOpen();
+    void CloseDropdown();
 
 protected:
     virtual int  DoInsertItems(const wxArrayStringsAdapter &items,

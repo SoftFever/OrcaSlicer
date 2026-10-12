@@ -302,25 +302,10 @@ void ComboBox::ForceDropdownOpen()
     }
 }
 
-void ComboBox::RefreshDropdownIfOpen()
+void ComboBox::CloseDropdown()
 {
-    if (!drop_down)
-        return;
-
-    drop.hover_item = -1;
-    drop.offset = wxPoint();
-    if (drop.subDropDown) {
-        drop.subDropDown->group.clear();
-        drop.subDropDown->hover_item = -1;
-        drop.subDropDown->offset = wxPoint();
-        if (drop.subDropDown->IsShown())
-            drop.subDropDown->Dismiss();
-    }
-
-    drop.need_sync = true;
-    drop.messureSize();
-    drop.autoPosition();
-    drop.paintNow();
+    if (drop.IsShown())
+        drop.DismissAndNotify();
 }
 
 unsigned int ComboBox::GetCount() const { return items.size(); }
@@ -452,16 +437,18 @@ void ComboBox::keyDown(wxKeyEvent& event)
         case WXK_UP:
         case WXK_DOWN:
         case WXK_LEFT:
-        case WXK_RIGHT:
-            if ((event.GetKeyCode() == WXK_UP || event.GetKeyCode() == WXK_LEFT) && GetSelection() > 0) {
-                SetSelection(GetSelection() - 1);
-            } else if ((event.GetKeyCode() == WXK_DOWN || event.GetKeyCode() == WXK_RIGHT) && GetSelection() + 1 < items.size()) {
-                SetSelection(GetSelection() + 1);
-            } else {
+        case WXK_RIGHT: {
+            // Step over disabled rows: the mouse cannot select them either.
+            const int step = (event.GetKeyCode() == WXK_UP || event.GetKeyCode() == WXK_LEFT) ? -1 : 1;
+            int       n    = GetSelection() + step;
+            while (n >= 0 && n < int(items.size()) && (items[n].style & DD_ITEM_STYLE_DISABLED))
+                n += step;
+            if (n < 0 || n >= int(items.size()))
                 break;
-            }
+            SetSelection(n);
             sendComboBoxEvent();
             break;
+        }
         case WXK_TAB:
             HandleAsNavigationKey(event);
             break;
