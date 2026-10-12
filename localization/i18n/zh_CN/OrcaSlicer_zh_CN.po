@@ -7478,7 +7478,7 @@ msgid "Update"
 msgstr "更新"
 
 msgid "Assistant(HMS)"
-msgstr "助理（HMS）"
+msgstr "助手(HMS)"
 
 #, c-format, boost-format
 msgid "Network plug-in v%s"
