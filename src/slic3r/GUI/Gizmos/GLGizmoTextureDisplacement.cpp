@@ -3690,8 +3690,7 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         "texture_displacement_adjust.svg", "canvas_drag.svg", "texture_displacement_move_up.svg",
         "texture_displacement_move_down.svg", "texture_displacement_drag.svg",
         "texture_displacement_select_all.svg", "texture_displacement_erase_all.svg",
-        // The "type a value instead" icon at the right end of every slider.
-        "edit.svg",
+        "edit.svg", // the "type a value" button at the right end of every slider
     };
     std::vector<std::string> paths;
     paths.reserve(names.size());
@@ -5942,11 +5941,11 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     };
 
     // ---- Typed values on sliders ----
-    // Every slider in the panel goes through typed_slider(), so all of them take a number the same
-    // two ways: Ctrl+click on the track, or the edit icon at the right end for the same box without
-    // the modifier. Both end up in ImGui's own "temp input" mode - the icon only asks ImGui to focus
-    // the slider, which is what turns it into an input box (see SliderScalar) - so the parsing,
-    // the clamping and the Enter/click-away behaviour are ImGui's, not a second implementation.
+    // Every slider in the panel goes through typed_row(), so all of them take a number the same two
+    // ways: Ctrl+click on the track, or the edit icon at the right end for the same box without the
+    // modifier. Both end up in ImGui's own "temp input" mode - the icon only asks ImGui to focus the
+    // slider, which is what turns it into an input box (see SliderScalar) - so the parsing, the
+    // clamping and the Enter/click-away behaviour are ImGui's, not a second implementation.
 
     // Retires a click whose row is no longer being drawn - the panel changed mode in between - so that
     // it cannot fire later when that row comes back. Before any row is drawn, so a live one still wins.
@@ -5973,18 +5972,29 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             out.pop_back();
         return out;
     };
-    const auto range_text = [](const std::string &lo, const std::string &hi) {
-        return Slic3r::format(_u8L("Range: %1% to %2%"), lo, hi);
-    };
-    const auto edit_icon_tip = [&](const std::string &range) {
-        return _u8L("Type a value instead of dragging. Ctrl+click on the slider does the same.") + "\n\n" + range;
+    const auto edit_icon_tip = [](const std::string &lo, const std::string &hi) {
+        return _u8L("Type a value instead of dragging. Ctrl+click on the slider does the same.") + "\n\n" +
+               Slic3r::format(_u8L("Range: %1% to %2%"), lo, hi);
     };
 
-    // Draws `slider` at `item_w` (SetNextItemWidth's convention: negative measures back from the right
-    // edge, and the caller has already left edit_icon_room in it), then the edit icon. `tip` and the
-    // range go on both. Returns whatever the slider returned.
-    const auto typed_row = [&](const char *id, float item_w, const wxString &tip, const std::string &range,
+    // Draws the edit icon at the right end of the row and then `slider` to its left - in that order on
+    // purpose. The slider is then the last item submitted, so the hover_tip() a caller writes after the
+    // row still describes the slider rather than the icon, and no row has to pass its tooltip through
+    // here. `item_w` follows SetNextItemWidth's convention (negative measures back from the right edge)
+    // and already has edit_icon_room taken out of it.
+    const auto typed_row = [&](const char *id, float item_w, const std::string &tip,
                                const std::function<bool()> &slider) -> bool {
+        const float x0 = ImGui::GetCursorPosX();
+        const float w  = item_w > 0.f ? item_w : std::max(1.f, ImGui::GetContentRegionAvail().x + item_w);
+        ImGui::SetCursorPosX(x0 + w + gap_s);
+        if (icon_button(int(ImGui::GetID(id)), "edit.svg", edit_icon_w, _L("Edit"), from_u8(tip))) {
+            m_slider_type_request       = id;
+            m_slider_type_request_frame = ImGui::GetFrameCount();
+            m_parent.set_as_dirty(); // the next frame is where the request above is turned into focus
+        }
+        // Back onto the same row and to its start, which is where the slider belongs.
+        ImGui::SameLine(0.f, 0.f);
+        ImGui::SetCursorPosX(x0);
         // Deferred from the click a frame ago: SetKeyboardFocusHere() is a request for the *next*
         // frame, so it has to be issued before the slider it names, not from the icon beside it.
         if (m_slider_type_request == id) {
@@ -5992,55 +6002,35 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             m_slider_type_request.clear();
             m_parent.set_as_dirty(); // the focus only lands on a frame that actually gets drawn
         }
-        ImGui::SetNextItemWidth(item_w);
-        const bool changed = slider();
-        // AllowWhenDisabled: several of these rows are drawn inside disabled_begin(), and a greyed
-        // slider is exactly when the user needs to be told what it is and why it is not moving.
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-            wxString full = tip;
-            if (!full.IsEmpty())
-                full += "\n\n";
-            m_imgui->tooltip(full + from_u8(range), wrap_w);
-        }
-        // SameLine() puts the cursor back at the slider's own top (ItemSize records the Y the item was
-        // drawn at), so an icon of the same height lands on the track wherever the row placed it.
-        ImGui::SameLine(0.f, gap_s);
-        if (icon_button(int(ImGui::GetID(id)), "edit.svg", edit_icon_w, _L("Edit"), from_u8(edit_icon_tip(range)))) {
-            m_slider_type_request       = id;
-            m_slider_type_request_frame = ImGui::GetFrameCount();
-            m_parent.set_as_dirty(); // the next frame is where the request above is turned into focus
-        }
-        return changed;
+        ImGui::SetNextItemWidth(w);
+        return slider();
     };
 
-    // The two forms every slider in the panel is one of. They derive the range from the bounds they are
-    // already given, so no row states its bounds or its format twice and the tooltip cannot drift from
-    // the track. `item_w` is as typed_row() takes it.
-    const auto typed_slider = [&](const char *id, float item_w, float *v, float v_min, float v_max, const char *format,
-                                  bool log, const wxString &tip) -> bool {
-        return typed_row(id, item_w, tip, range_text(fmt_bound(format, v_min), fmt_bound(format, v_max)), [&] {
+    // The two forms every slider in the panel is one of. They derive the icon's range note from the
+    // bounds they are already given, so no row states its bounds or its format twice.
+    const auto typed_slider = [&](const char *id, float item_w, float *v, float v_min, float v_max,
+                                  const char *format, bool log) -> bool {
+        return typed_row(id, item_w, edit_icon_tip(fmt_bound(format, v_min), fmt_bound(format, v_max)), [&] {
             return ImGui::SliderFloat(id, v, v_min, v_max, format,
                                       ImGuiSliderFlags_AlwaysClamp | (log ? ImGuiSliderFlags_Logarithmic : 0));
         });
     };
-    const auto typed_slider_int = [&](const char *id, float item_w, int *v, int v_min, int v_max, const char *format,
-                                      bool log, const wxString &tip) -> bool {
-        return typed_row(id, item_w, tip, range_text(fmt_bound(format, v_min), fmt_bound(format, v_max)), [&] {
-            return ImGui::SliderInt(id, v, v_min, v_max, format,
-                                    ImGuiSliderFlags_AlwaysClamp | (log ? ImGuiSliderFlags_Logarithmic : 0));
+    const auto typed_slider_int = [&](const char *id, float item_w, int *v, int v_min, int v_max,
+                                      const char *format) -> bool {
+        return typed_row(id, item_w, edit_icon_tip(fmt_bound(format, v_min), fmt_bound(format, v_max)), [&] {
+            return ImGui::SliderInt(id, v, v_min, v_max, format, ImGuiSliderFlags_AlwaysClamp);
         });
     };
 
-    // Label column + the slider filling the rest of the row.
     const auto float_row = [&](const char *id, const wxString &label, float *v, float v_min, float v_max, const char *format,
-                               bool log, float right_inset, const wxString &tip) -> bool {
+                               bool log, float right_inset) -> bool {
         slider_label(label);
-        return typed_slider(id, -(std::max(right_inset, 1.f) + edit_icon_room), v, v_min, v_max, format, log, tip);
+        return typed_slider(id, -(std::max(right_inset, 1.f) + edit_icon_room), v, v_min, v_max, format, log);
     };
     const auto int_row = [&](const char *id, const wxString &label, int *v, int v_min, int v_max, const char *format,
-                             float right_inset, const wxString &tip) -> bool {
+                             float right_inset) -> bool {
         slider_label(label);
-        return typed_slider_int(id, -(std::max(right_inset, 1.f) + edit_icon_room), v, v_min, v_max, format, false, tip);
+        return typed_slider_int(id, -(std::max(right_inset, 1.f) + edit_icon_room), v, v_min, v_max, format);
     };
     const auto layer_name = [](const TextureDisplacementLayer &l) {
         return l.name.empty() ? Slic3r::format(_u8L("Layer %1%"), l.slot + 1) : l.name;
@@ -6265,7 +6255,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             centre_on_row(frame_h);
             typed_slider("##cursor_radius",
                          std::max(1.f, row_end - ImGui::GetCursorPosX() - (3.f * gap_s + 1.f + 2.f * icon_sm) - edit_icon_room),
-                         &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f mm", false, m_desc.at("cursor_size"));
+                         &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f mm", false);
+            hover_tip(m_desc.at("cursor_size"));
             vsep(icon_sm);
             const bool is_circle = m_cursor_type == TriangleSelector::CursorType::CIRCLE;
             centre_on_row(icon_sm);
@@ -6280,8 +6271,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         } else if (is_area_mode) {
             centre_on_row(frame_h);
             typed_slider("##smart_fill_angle", std::max(1.f, row_end - ImGui::GetCursorPosX() - edit_icon_room),
-                         &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, "%.0f°", false,
-                         _L("Angle threshold - the fill stops at edges sharper than this"));
+                         &m_smart_fill_angle, SmartFillAngleMin, SmartFillAngleMax, "%.0f°", false);
+            hover_tip(_u8L("Angle threshold - the fill stops at edges sharper than this"));
         } else {
             centre_on_row(frame_h);
             ImGui::AlignTextToFramePadding();
@@ -6551,16 +6542,16 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
             // The three controls nearly every layer needs; everything else waits behind "More settings".
             // Depth and tile size are logarithmic, so both ends of their wide ranges stay usable.
-            m_preview_params_dirty |= float_row("##depth", _L("Depth"), &layer.depth_mm, 0.01f, 10.f, "%.3f mm", true, card_pad,
-                                                _L("Height of the relief: how far white in the texture lifts the surface, in "
-                                                   "millimetres. Black does not move it at all, unless Midlevel says otherwise."));
-            m_preview_params_dirty |= float_row("##tile_size", _L("Tile size"), &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true, card_pad,
-                                                _L("How wide one copy of the texture is on the model. Smaller repeats the pattern "
-                                                   "more often and makes its detail finer; with Tile off, this is the size of the "
-                                                   "single copy."));
-            m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f, "%.0f°", false, card_pad,
-                                                _L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
-                                                   "edge of the model."));
+            m_preview_params_dirty |= float_row("##depth", _L("Depth"), &layer.depth_mm, 0.01f, 10.f, "%.3f mm", true, card_pad);
+            hover_tip(_u8L("Height of the relief: how far white in the texture lifts the surface, in "
+                           "millimetres. Black does not move it at all, unless Midlevel says otherwise."));
+            m_preview_params_dirty |= float_row("##tile_size", _L("Tile size"), &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true, card_pad);
+            hover_tip(_u8L("How wide one copy of the texture is on the model. Smaller repeats the pattern "
+                           "more often and makes its detail finer; with Tile off, this is the size of the "
+                           "single copy."));
+            m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f, "%.0f°", false, card_pad);
+            hover_tip(_u8L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
+                           "edge of the model."));
 
             if (m_layer_expanded[size_t(layer.slot)]) {
                 {
@@ -6575,22 +6566,22 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
                 // Midlevel: the height that means "don't move". At 0 the surface only ever bulges outwards;
                 // at 0.5 mid-grey is neutral and darker texels cut inwards.
-                m_preview_params_dirty |= float_row("##midlevel", _L("Midlevel"), &layer.midlevel, 0.f, 10.f, "%.2f", false, card_pad,
-                                                    _L("Which gray stays where the surface already is. At 0 the texture only pushes "
-                                                       "outwards; at 0.5 mid-gray stays put, so darker grays cut in and lighter ones "
-                                                       "still push out - one image both embosses and engraves.\n\n"
-                                                       "What cuts in has to fit: inside a sharp corner or through a thin wall, a deep "
-                                                       "cut can pass through the other side."));
+                m_preview_params_dirty |= float_row("##midlevel", _L("Midlevel"), &layer.midlevel, 0.f, 10.f, "%.2f", false, card_pad);
+                hover_tip(_u8L("Which gray stays where the surface already is. At 0 the texture only pushes "
+                               "outwards; at 0.5 mid-gray stays put, so darker grays cut in and lighter ones "
+                               "still push out - one image both embosses and engraves.\n\n"
+                               "What cuts in has to fit: inside a sharp corner or through a thin wall, a deep "
+                               "cut can pass through the other side."));
                 if (layer.midlevel > 0.f && layer.depth_mm > 1.f) {
                     ImGui::PushTextWrapPos(content_rx - card_pad);
                     m_imgui->warning_text(_L("Deep inward displacement may self-intersect."));
                     ImGui::PopTextWrapPos();
                 }
 
-                m_preview_params_dirty |= float_row("##smoothing", _L("Smoothing"), &layer.smoothing, 0.f, 1.f, "%.2f", false, card_pad,
-                                                    _L("Blurs the image before it is used, which rounds off hard steps and removes "
-                                                       "speckle from a noisy photo. Raise it if the relief looks harsh or grainy; it "
-                                                       "costs fine detail."));
+                m_preview_params_dirty |= float_row("##smoothing", _L("Smoothing"), &layer.smoothing, 0.f, 1.f, "%.2f", false, card_pad);
+                hover_tip(_u8L("Blurs the image before it is used, which rounds off hard steps and removes "
+                               "speckle from a noisy photo. Raise it if the relief looks harsh or grainy; it "
+                               "costs fine detail."));
 
                 // Edge fade: the relief flattens toward the boundary of the painted area.
                 m_preview_params_dirty |= m_imgui->bbl_checkbox(_L("Edge fade") + "##edge_smoothing", layer.edge_smoothing);
@@ -6598,11 +6589,12 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                "blends into the bare surface instead of stopping at a step."));
                 ImGui::SameLine();
                 m_imgui->disabled_begin(!layer.edge_smoothing);
-                m_preview_params_dirty |= typed_slider("##edge_amount", -(card_pad + edit_icon_room),
-                                                       &layer.edge_smoothing_amount, 0.02f, 1.f, "%.2f", false,
-                                                       _L("How far in the fade reaches, as a share of the painted area. Small "
-                                                          "values soften a narrow band at the edge; 1 flattens almost all of it."));
+                ImGui::SetNextItemWidth(-card_pad);
+                m_preview_params_dirty |= ImGui::SliderFloat("##edge_amount", &layer.edge_smoothing_amount, 0.02f, 1.f, "%.2f",
+                                                             ImGuiSliderFlags_AlwaysClamp);
                 m_imgui->disabled_end();
+                hover_tip(_u8L("How far in the fade reaches, as a share of the painted area. Small values "
+                               "soften a narrow band at the edge; 1 flattens almost all of it."));
 
                 // Invert and Colours share a row.
                 {
@@ -6647,19 +6639,19 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                             // Every mix can become a filament slot, and there are only so many beside the
                             // physical filaments.
                             const int max_mixes = std::max(1, int(EnforcerBlockerType::ExtruderMax) - int(m_palette_filaments.size()));
-                            if (int_row("##color_mix_count", _L("Mixed colors"), &opts.color_mix_count, 1, max_mixes, "%d", card_pad,
-                                        _L("The most mixed filaments a bake may add. They are picked from the "
-                                           "texture's colors, and only the ones the bake actually uses are created.")))
+                            if (int_row("##color_mix_count", _L("Mixed colors"), &opts.color_mix_count, 1, max_mixes, "%d", card_pad))
                                 m_preview_params_dirty = true;
+                            hover_tip(_u8L("The most mixed filaments a bake may add. They are picked from the "
+                                           "texture's colors, and only the ones the bake actually uses are created."));
                             // After the slider, so a change shows in the same frame.
                             ImGui::TextDisabled("%s", Slic3r::format(_u8L("%1% printable colors from %2% filaments"),
                                                                      int(cached_palette().size()), int(m_palette_filaments.size())).c_str());
                         }
-                        if (int_row("##color_despeckle", _L("Denoise"), &opts.color_despeckle, 0, 6, "%d", card_pad,
-                                    _L("Cleans up single stray triangles of the wrong color, which detail finer "
-                                       "than the mesh leaves behind. Raise it if the result looks speckled, "
-                                       "lower it if small features are being swallowed.")))
+                        if (int_row("##color_despeckle", _L("Denoise"), &opts.color_despeckle, 0, 6, "%d", card_pad))
                             m_preview_params_dirty = true;
+                        hover_tip(_u8L("Cleans up single stray triangles of the wrong color, which detail finer "
+                                       "than the mesh leaves behind. Raise it if the result looks speckled, "
+                                       "lower it if small features are being swallowed."));
                     }
                 }
 
@@ -6764,10 +6756,10 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                     "gets the texture, and its border becomes the edge of the projection."));
 
                     if (projector_open) {
-                        if (int_row("##projector_opacity", _L("Opacity"), &m_projector_opacity, 20, 255, "%d", card_pad,
-                                    _L("How solid the frame window looks while you place it. Lower to see the "
-                                       "model through it; it does not affect the result.")))
+                        if (int_row("##projector_opacity", _L("Opacity"), &m_projector_opacity, 20, 255, "%d", card_pad))
                             m_projector_frame->set_opacity(m_projector_opacity);
+                        hover_tip(_u8L("How solid the frame window looks while you place it. Lower to see the "
+                                       "model through it; it does not affect the result."));
 
                         if (m_imgui->button(_u8L("Apply projection frame"))) {
                             const int painted_count = apply_projection_frame();
@@ -7068,57 +7060,57 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             // pattern can sample four points that all happen to land at similar heights, report no error,
             // and stall before refinement ever starts.
             if (float_row("##subdiv_target", m_subdivide_feature ? _L("Max edge") : _L("Target edge"), &m_subdivide_target_mm,
-                          0.001f, 20.f, "%.3f mm", true, 0.f,
-                          m_subdivide_feature ?
-                              _L("No triangle in the painted area stays larger than this, even where the texture "
-                                 "is flat. Keep it near the size of the smallest feature you want to come out.") :
-                              _L("Triangles in the painted area are split until none is larger than this. Smaller "
-                                 "means finer detail and, fast, a lot more triangles.")))
+                          0.001f, 20.f, "%.3f mm", true, 0.f))
                 preview_live();
+            hover_tip(m_subdivide_feature ?
+                          _u8L("No triangle in the painted area stays larger than this, even where the texture "
+                               "is flat. Keep it near the size of the smallest feature you want to come out.") :
+                          _u8L("Triangles in the painted area are split until none is larger than this. Smaller "
+                               "means finer detail and, fast, a lot more triangles."));
 
             if (m_subdivide_feature) {
-                if (float_row("##subdiv_detail", _L("Detail"), &m_subdivide_detail_mm, 0.001f, 1.f, "%.3f mm", true, 0.f,
-                              _L("How far the mesh may sit from the shape the texture describes, in millimetres. "
-                                 "Smaller follows fine detail and costs triangles; larger only chases the big "
-                                 "features.")))
+                if (float_row("##subdiv_detail", _L("Detail"), &m_subdivide_detail_mm, 0.001f, 1.f, "%.3f mm", true, 0.f))
                     preview_live();
-                if (float_row("##subdiv_min", _L("Min edge"), &m_subdivide_min_edge_mm, 0.001f, 20.f, "%.3f mm", true, 0.f,
-                              _L("A floor on triangle size, so a sharp step in the texture cannot be chased "
-                                 "forever. Lower it for finer relief, raise it if the count runs away at hard "
-                                 "edges.")))
+                hover_tip(_u8L("How far the mesh may sit from the shape the texture describes, in millimetres. "
+                               "Smaller follows fine detail and costs triangles; larger only chases the big "
+                               "features."));
+                if (float_row("##subdiv_min", _L("Min edge"), &m_subdivide_min_edge_mm, 0.001f, 20.f, "%.3f mm", true, 0.f))
                     preview_live();
+                hover_tip(_u8L("A floor on triangle size, so a sharp step in the texture cannot be chased "
+                               "forever. Lower it for finer relief, raise it if the count runs away at hard "
+                               "edges."));
             }
 
             // Applies in both adaptive sub-modes: it is about the step the bake puts at the paint's edge, which
             // exists whether or not "Follow texture detail" is on. 0 turns the band off.
-            if (float_row("##subdiv_border", _L("Edge detail"), &m_subdivide_border_mm, 0.f, 5.f, "%.3f mm", false, 0.f,
-                          _L("Triangle size along the outline of the painted area, where the relief drops back to the "
-                             "bare surface. Lower it if that rim looks jagged; it only costs triangles along the "
-                             "outline. 0 turns it off.")))
+            if (float_row("##subdiv_border", _L("Edge detail"), &m_subdivide_border_mm, 0.f, 5.f, "%.3f mm", false, 0.f))
                 preview_live();
+            hover_tip(_u8L("Triangle size along the outline of the painted area, where the relief drops back to the "
+                            "bare surface. Lower it if that rim looks jagged; it only costs triangles along the "
+                            "outline. 0 turns it off."));
 
             // Only worth showing when a layer is actually colouring: with no colour there is no boundary for it
             // to refine and the control would do nothing whatever it is set to.
             if (mv != nullptr && any_layer_colors(*mv)) {
-                if (float_row("##subdiv_color", _L("Color detail"), &m_subdivide_color_mm, 0.f, 5.f, "%.3f mm", false, 0.f,
-                              _L("Triangle size where two colors meet. Each triangle prints in one filament, so a "
-                                 "color edge can only be as sharp as the triangles along it - and nothing else "
-                                 "refines there, since the surface is flat across a change of color. 0 turns it off.")))
+                if (float_row("##subdiv_color", _L("Color detail"), &m_subdivide_color_mm, 0.f, 5.f, "%.3f mm", false, 0.f))
                     preview_live();
+                hover_tip(_u8L("Triangle size where two colors meet. Each triangle prints in one filament, so a "
+                                "color edge can only be as sharp as the triangles along it - and nothing else "
+                                "refines there, since the surface is flat across a change of color. 0 turns it off."));
             }
 
             ImGui::TextDisabled("%s", _u8L("Triangle budget: set with Triangles, below.").c_str());
             if (m_subdivide_editing && m_subdivide_preview_tris > 0)
                 m_imgui->text(Slic3r::format(_u8L("Preview: %1% triangles"), m_subdivide_preview_tris));
         } else {
-            if (int_row("##subdiv_steps", _L("Steps"), &m_subdivide_count, 0, 5, "%d", 0.f,
-                        _L("Splits every triangle of the model into four, this many times over. Each step "
-                           "quadruples the count - 3 turns 100 k triangles into 6.4 M - so prefer refining "
-                           "only the painted area unless you need the whole model finer."))) {
+            if (int_row("##subdiv_steps", _L("Steps"), &m_subdivide_count, 0, 5, "%d", 0.f)) {
                 if (m_subdivide_editing)
                     rebuild_subdivide_preview(); // a count of 0 clears the preview, it doesn't compute one
                 m_parent.set_as_dirty();
             }
+            hover_tip(_u8L("Splits every triangle of the model into four, this many times over. Each step "
+                           "quadruples the count - 3 turns 100 k triangles into 6.4 M - so prefer refining "
+                           "only the painted area unless you need the whole model finer."));
         }
 
         {
@@ -7180,9 +7172,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                 }
             m_remesh_target_edge_mm = cnt > 0 ? std::clamp(float(sum / double(cnt)), 0.1f, 20.f) : 1.f;
         }
-        float_row("##remesh_edge", _L("Target edge"), &m_remesh_target_edge_mm, 0.1f, 20.f, "%.2f mm", true, 0.f,
-                  _L("Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an "
-                     "even mesh; this is what makes one out of an uneven import."));
+        float_row("##remesh_edge", _L("Target edge"), &m_remesh_target_edge_mm, 0.1f, 20.f, "%.2f mm", true, 0.f);
+        hover_tip(_u8L("Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an "
+                        "even mesh; this is what makes one out of an uneven import."));
 
         m_imgui->bbl_checkbox(_L("Keep sharp edges") + "##remesh_sharp", m_remesh_keep_sharp_edges);
         hover_tip(_u8L("Holds hard edges and open borders in place while the rest is remeshed. Without it "
@@ -7190,10 +7182,11 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                        "a cube comes back with wobbly edges."));
         ImGui::SameLine();
         m_imgui->disabled_begin(!m_remesh_keep_sharp_edges);
-        typed_slider("##remesh_sharp_angle", -(1.f + edit_icon_room), &m_remesh_sharp_angle_deg, 5.f, 90.f, "%.0f°", false,
-                     _L("How sharp a fold has to be, in degrees, before the remesher treats it as an edge worth "
-                        "keeping. Lower protects more of the model's shape; higher rebuilds more of it evenly."));
+        ImGui::SetNextItemWidth(-1.f);
+        ImGui::SliderFloat("##remesh_sharp_angle", &m_remesh_sharp_angle_deg, 5.f, 90.f, "%.0f°", ImGuiSliderFlags_AlwaysClamp);
         m_imgui->disabled_end();
+        hover_tip(_u8L("How sharp a fold has to be, in degrees, before the remesher treats it as an edge worth "
+                        "keeping. Lower protects more of the model's shape; higher rebuilds more of it evenly."));
 
         m_imgui->disabled_begin(mv == nullptr || busy);
         if (ImGui::Button(_u8L("Remesh").c_str()))
@@ -7221,16 +7214,16 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                             "on a layer is a different thing: it blurs the image before it is used."));
             if (opts.smooth_enabled) {
                 float percent = opts.smooth_strength * 100.f;
-                if (float_row("##dispsmooth", _L_CONTEXT("Strength", "Texture Displacement"), &percent, 1.f, 100.f, "%.0f %%", false, 0.f,
-                              _L("How far each pass pulls a vertex towards its neighbours. High values round the "
-                                 "relief off quickly; low values need more passes but keep more of the detail."))) {
+                if (float_row("##dispsmooth", _L_CONTEXT("Strength", "Texture Displacement"), &percent, 1.f, 100.f, "%.0f %%", false, 0.f)) {
                     opts.smooth_strength   = std::clamp(percent / 100.f, 0.01f, 1.f);
                     m_preview_params_dirty = true;
                 }
-                if (int_row("##dispsmoothit", _L("Passes"), &opts.smooth_iterations, 1, 10, "%d", 0.f,
-                            _L("How many smoothing passes to run. More passes spread the smoothing further across "
-                               "the surface; Strength decides how much each one moves.")))
+                hover_tip(_u8L("How far each pass pulls a vertex towards its neighbours. High values round the "
+                               "relief off quickly; low values need more passes but keep more of the detail."));
+                if (int_row("##dispsmoothit", _L("Passes"), &opts.smooth_iterations, 1, 10, "%d", 0.f))
                     m_preview_params_dirty = true;
+                hover_tip(_u8L("How many smoothing passes to run. More passes spread the smoothing further across "
+                                "the surface; Strength decides how much each one moves."));
 
                 m_preview_params_dirty |= m_imgui->bbl_checkbox(_L("Ignore outer ring"), opts.smooth_skip_border);
                 hover_tip(_u8L("Keeps the outer ring of the painted area out of the smoothing. Its neighbours "
@@ -7273,16 +7266,16 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             int        shown_k     = auto_budget ? v2_recommendation(*mv).budget_k : opts.v2_max_triangles_k;
             m_imgui->disabled_begin(auto_budget);
             // TRN Slider value: %d is the triangle budget in thousands
-            if (int_row("##v2budget", _L("Budget"), &shown_k, 0, 4000, auto_budget ? _u8L("%d k (auto)").c_str() : "%d k", 0.f,
-                        _L("How many thousand triangles this bake may spend on the area you painted. "
-                           "Relief already baked into the rest of the model is kept on top of it, so a "
-                           "second bake somewhere else gets the same budget as the first. Raise it if the "
-                           "warning below Resolution says the detail will not fit; 0 keeps every triangle "
-                           "the refinement produced, however many that is."))) {
+            if (int_row("##v2budget", _L("Budget"), &shown_k, 0, 4000, auto_budget ? _u8L("%d k (auto)").c_str() : "%d k", 0.f)) {
                 opts.v2_max_triangles_k = shown_k;
                 m_preview_params_dirty  = true;
             }
             m_imgui->disabled_end();
+            hover_tip(_u8L("How many thousand triangles this bake may spend on the area you painted. "
+                           "Relief already baked into the rest of the model is kept on top of it, so a "
+                           "second bake somewhere else gets the same budget as the first. Raise it if the "
+                           "warning below Resolution says the detail will not fit; 0 keeps every triangle "
+                           "the refinement produced, however many that is."));
         }
         if (SHOW_PIPELINE_DEV_CONTROLS && opts.pipeline_v2) {
             // Keeping the relief above the plate is not a checkbox: it is unconditional, in both pipelines
@@ -7389,28 +7382,26 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                            "default. Untick to set both yourself - worth doing for a texture much finer or "
                            "much coarser than the part it sits on."));
             ImGui::SameLine();
+            ImGui::SetNextItemWidth(x0 + panel_w - ImGui::GetCursorPosX());
             float shown = auto_res ? rec.edge_mm : opts.v2_refine_mm;
-            // Held in a local: the format outlives the call that reads it, and the slider and the
-            // range in its tooltip are then formatted the same way.
-            const std::string v2edge_format = auto_res ? _u8L("%.2f mm (auto)") : std::string("%.2f mm");
-            const wxString    v2edge_tip =
-                auto_res && rec.edge_mm > 0.f ?
-                    from_u8(Slic3r::format(_u8L("Chosen from the size of the model: %1$.2f mm triangles, "
-                                                "budget %2% k. Untick Auto to set them yourself."),
-                                           rec.edge_mm, rec.budget_k)) :
-                    _L("How fine the mesh is made under the paint, in millimetres. It has to be "
-                       "smaller than the detail you want out of the texture - a 0.5 mm groove needs "
-                       "triangles well under 0.5 mm. Smaller costs triangles fast: halving it needs "
-                       "four times as many, and once they no longer fit the budget the bake simplifies "
-                       "back down and the detail goes with it.");
             m_imgui->disabled_begin(busy || auto_res);
-            if (typed_slider("##v2edge", x0 + panel_w - ImGui::GetCursorPosX() - edit_icon_room, &shown, 0.02f, 2.f,
-                             v2edge_format.c_str(), true, v2edge_tip)) {
+            if (ImGui::SliderFloat("##v2edge", &shown, 0.02f, 2.f, auto_res ? _u8L("%.2f mm (auto)").c_str() : "%.2f mm",
+                                   ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic)) {
                 opts.v2_refine_mm      = shown;
                 m_preview_params_dirty = true;
                 m_parent.set_as_dirty();
             }
             m_imgui->disabled_end();
+            if (auto_res && rec.edge_mm > 0.f)
+                hover_tip(Slic3r::format(_u8L("Chosen from the size of the model: %1$.2f mm triangles, "
+                                              "budget %2% k. Untick Auto to set them yourself."),
+                                          rec.edge_mm, rec.budget_k));
+            else
+                hover_tip(_u8L("How fine the mesh is made under the paint, in millimetres. It has to be "
+                               "smaller than the detail you want out of the texture - a 0.5 mm groove needs "
+                               "triangles well under 0.5 mm. Smaller costs triangles fast: halving it needs "
+                               "four times as many, and once they no longer fit the budget the bake simplifies "
+                               "back down and the detail goes with it."));
 
             // What this resolution costs over what is painted, against what the budget allows. Refining
             // past the budget is not an error - the bake simplifies back down to it - but the result
@@ -7442,17 +7433,18 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             m_imgui->text(_L("Triangles"));
             ImGui::SameLine();
             ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
+            ImGui::SetNextItemWidth(x0 + panel_w - ImGui::GetCursorPosX());
             m_imgui->disabled_begin(busy);
-            if (typed_slider_int("##subdivbudget", x0 + panel_w - ImGui::GetCursorPosX() - edit_icon_room,
-                                 &m_subdivide_budget_k, 10, 2000, "+%d k", true,
-                                 _L("How many thousand triangles the refinement may add to the model. The triangle "
-                                    "that fits worst is always split first, so even a run that spends the lot has "
-                                    "spent it where it shows most. Raise it if the relief still looks coarse."))) {
+            if (ImGui::SliderInt("##subdivbudget", &m_subdivide_budget_k, 10, 2000, "+%d k",
+                                 ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_Logarithmic)) {
                 if (m_subdivide_editing)
                     rebuild_subdivide_preview();
                 m_parent.set_as_dirty();
             }
             m_imgui->disabled_end();
+            hover_tip(_u8L("How many thousand triangles the refinement may add to the model. The triangle "
+                           "that fits worst is always split first, so even a run that spends the lot has "
+                           "spent it where it shows most. Raise it if the relief still looks coarse."));
         }
 
         const float button_h = std::round(frame_h * 1.25f);
