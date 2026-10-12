@@ -86,6 +86,17 @@ enum class TextureProjectionMethod : int
     // that is inherent to view projection and is the user's call, not a bug. The projector's two
     // in-plane axes live in TextureDisplacementLayer::view_project_right/up.
     ViewProjected = 4,
+    // The model's own texture coordinates, as the file it was imported from carried them (see
+    // ModelVolume::texture_uv). Nothing is unwrapped or projected: the artist's layout *is* the
+    // placement, so a texture authored against that layout - the model's own albedo map, say - lands
+    // exactly where it was painted. Automatically picked for a new layer on a volume that has a UV
+    // channel, since re-unwrapping a model that already carries one can only be worse than using it.
+    //
+    // The uv is already normalized, so unlike every method above it is not measured in millimetres:
+    // "Tile size" and the non-square aspect correction do not apply to it (the layer's rotation and
+    // offset still do). Falls back to Triplanar when the volume has no channel, exactly as LSCM falls
+    // back when a patch cannot be flattened.
+    ModelUV       = 5,
 };
 
 // Dihedral angle (degrees) above which an edge between two painted triangles becomes a chart seam
@@ -121,6 +132,11 @@ enum class TextureBlendMode : int
     Subtract = 1, // acc - value          (carve this layer's relief out of the layers below)
     Multiply = 2, // acc * (value / 1mm)  (mask/modulate the layers below by this layer)
     Divide   = 3, // acc / (value / 1mm)  (inverse mask; guarded against a zero/near-zero divisor)
+    // acc = value: this layer replaces what is under it instead of combining with it, so where it is
+    // painted only its own relief remains. The image editor's "Normal" mode, under the name the panel
+    // uses. Note the stack's *colour* already behaves this way - a higher slot's colour overwrites a
+    // lower one's where they overlap - so this is what makes the displacement agree with it.
+    Override = 4,
 };
 
 // Combines one layer's signed displacement `value` (mm) into `accumulated` (mm) per `mode`.
@@ -541,7 +557,13 @@ Vec2f project_planar(const Vec3f &position, const Vec3f &normal);
 // squeezed into a square tile: `tiling_scale` is the tile's size along u, and the tile is
 // `tiling_scale * height / width` mm along v, which keeps texels square. 1 (the default) is the
 // square case and leaves the coordinate exactly as it always was.
-Vec2f apply_uv_transform(const Vec2f &planar, const TextureDisplacementLayer &layer, float aspect = 1.f);
+//
+// `normalized_uv` says the coordinate is already a uv rather than a millimetre measurement on the
+// model - which is what TextureProjectionMethod::ModelUV hands in. Then neither the tiling scale (mm
+// per tile is meaningless for it) nor the aspect correction (the artist's layout already accounts for
+// the image's proportions) applies, and only the rotation and offset are left.
+Vec2f apply_uv_transform(const Vec2f &planar, const TextureDisplacementLayer &layer, float aspect = 1.f,
+                         bool normalized_uv = false);
 
 // Applies a row-major 3x4 projective matrix (see TextureDisplacementLayer::view_project_matrix) to a
 // local-space point, writing the resulting texture uv. Returns false - and leaves `uv` untouched -
@@ -691,6 +713,80 @@ std::vector<Vec2f> compute_lscm_uvs(const indexed_triangle_set &patch, const Tex
 // Returns an empty vector if the patch has no triangles or the unwrap carries no source_face map.
 std::vector<Vec2f> compute_lscm_corner_uvs(const indexed_triangle_set &patch, const TextureDisplacementLayer &layer);
 
+// Three UVs per patch triangle, read out of the model's *own* UV channel - the
+// TextureProjectionMethod::ModelUV counterpart of compute_lscm_corner_uvs(), and laid out the same way
+// (corner k of triangle i at index 3i+k).
+//
+// `model_uv` is the volume's channel: three uvs per triangle of `base_mesh`, in its triangle order
+// (see ModelVolume::texture_uv). `patch_source` maps each patch triangle back to the base-mesh
+// triangle it was cut from - TriangleSelector::get_facets_strict()'s out_source. A patch triangle is
+// always a piece of exactly one base triangle, so each of its corners is interpolated barycentrically
+// inside that triangle's three uvs. That is what keeps a sub-triangle the brush split (whose corners
+// are not base-mesh vertices at all) on the texture, and what keeps the two sides of a UV seam
+// reading from their own island instead of from one averaged coordinate.
+//
+// Returns an empty vector when the channel does not match `base_mesh`, when `patch_source` does not
+// match `patch`, or when either is empty - the callers treat that as "no placement" and fall back,
+// exactly as they do for an unwrap that failed.
+std::vector<Vec2f> compute_model_corner_uvs(const indexed_triangle_set &base_mesh,
+                                            const std::vector<Vec2f>   &model_uv,
+                                            const indexed_triangle_set &patch,
+                                            const std::vector<int>     &patch_source);
+
+// One UV per patch vertex, collapsed from a per-corner array: the first corner to reach a vertex wins.
+// This is the per-corner/per-vertex split compute_lscm_uvs() documents, applied to any corner array -
+// displacement is per-vertex, so a vertex on a seam has to settle on one of its copies.
+// Returns an empty vector if `corner` is not three per patch triangle.
+std::vector<Vec2f> collapse_corner_uvs(const indexed_triangle_set &patch, const std::vector<Vec2f> &corner);
+
+// Resamples a per-corner UV channel from `src_mesh` onto `dst_mesh`, for when something replaces a
+// volume's mesh and the model's own UV channel has to come along: the colour import's painted mesh,
+// the gizmo's remesh/subdivide, the default bake pipeline's rebuild. Each destination corner takes the
+// uv of its closest point on the source surface, interpolated barycentrically inside the source
+// triangle it lands on - the same transfer LscmLookup does per point, run over every corner.
+//
+// Exact wherever the two meshes describe the same surface, which is the case for every caller here
+// (they subdivide, repair or displace it, they do not reshape it). A corner that lands nowhere near
+// the source - farther than `max_distance` (negative: no limit) - takes (0, 0).
+//
+// One thing a positional transfer cannot reproduce: a *seam* vertex, where one position carries a
+// different uv in each island that meets there. Position alone does not say which island a corner
+// belongs to, so corners on a seam all take whichever island the nearest-triangle lookup lands on,
+// and the texture can be off by up to one triangle in a band along the island borders. Doing better
+// needs a triangle-to-triangle correspondence, which only some of the stages that replace a mesh
+// have (a remesh has none at all).
+//
+// Returns an empty vector when `src_uv` is not three per source triangle, or when either mesh is empty.
+std::vector<Vec2f> transfer_uv_channel(const indexed_triangle_set &src_mesh,
+                                       const std::vector<Vec2f>   &src_uv,
+                                       const indexed_triangle_set &dst_mesh,
+                                       float                       max_distance = -1.f);
+
+// Carries a per-facet paint annotation - the colour paint above all - from a mesh onto the mesh a
+// bake produced from it: every triangle of `dst_mesh` takes the state painted at its own foot point on
+// `src_mesh`, i.e. on the nearest point of the surface it was built from. Returned as one
+// EnforcerBlockerType per `dst_mesh` triangle, 0 (NONE) where that foot point carried no paint.
+//
+// ModelVolume::restore_painting() cannot do this. Its remap pairs a source paint triangle with a
+// target triangle that *overlaps* it to within 0.01 mm, which is right for a remesh or a
+// simplification - they leave the surface where it was - and useless after a bake, which moves the
+// surface by the relief depth. Measured on a model displaced by a tenth of its own size, that remap
+// kept a quarter of the colour and left the rest unpainted; this keeps essentially all of it, because
+// a foot point is exactly as far away as the relief is deep and the lookup does not care how far that
+// is.
+//
+// The source's *sub*-triangles are what is looked up, not its triangles, so the part of a triangle a
+// brush stroke only clipped a corner off keeps its own state rather than rounding to the whole
+// triangle's. No distance limit is needed or wanted: the nearest point on the source surface is where
+// a baked triangle came from however far the relief carried it, and an unpainted origin reports NONE
+// on its own.
+//
+// Returns an empty vector when `src_paint` is empty or either mesh is - the caller then has nothing to
+// carry, which is not the same as "carry nothing".
+std::vector<uint8_t> transfer_facet_paint(const indexed_triangle_set                    &src_mesh,
+                                         const TriangleSelector::TriangleSplittingData &src_paint,
+                                         const indexed_triangle_set                    &dst_mesh);
+
 // The TextureDisplacementLayer::lscm_uv_overrides key for one unwrapped vertex (an index into PatchUnwrap::uvs).
 inline int lscm_uv_override_key(int unwrapped_vertex) { return -(unwrapped_vertex + 1); }
 
@@ -749,6 +845,10 @@ using TextureDisplacementFacetsData = std::array<TriangleSelector::TriangleSplit
 //
 // `color`, when given, also reports which filament each triangle should print in - see
 // TextureColorRequest.
+//
+// `model_uv`, when given, is the volume's own UV channel (three uvs per base-mesh triangle, see
+// ModelVolume::texture_uv) and is what a TextureProjectionMethod::ModelUV layer maps through. A layer
+// set to ModelUV without it falls back to Triplanar.
 struct TextureColorRequest
 {
     // RGB -> palette index. Supplied by the GUI, which owns both the perceptual matching and the list
@@ -823,7 +923,9 @@ indexed_triangle_set build_texture_displacement(const indexed_triangle_set      
                                                  // stage, already brought back into `base_mesh`'s frame.
                                                  BakeStageRecorder                           *debug = nullptr,
                                                  // When given, receives what the bake spent.
-                                                 TextureBakeStats                            *stats = nullptr);
+                                                 TextureBakeStats                            *stats = nullptr,
+                                                 // The model's own UV channel; see above.
+                                                 const std::vector<Vec2f>                    *model_uv = nullptr);
 
 // `volume`'s mesh coordinates -> world millimetres: its first instance's transform times its own.
 // The mesh is shared by every instance, so a multi-instance object can only be baked for one of
@@ -898,11 +1000,15 @@ ColorFieldSampler make_combined_color_sampler(const indexed_triangle_set        
                                               const std::vector<TextureDisplacementLayer> &layers,
                                               const TextureDisplacementFacetsData         &facets_data,
                                               ColorQuantizeFn                              quantize,
-                                              ColorQuantizeFn                              quantize_pure = nullptr);
+                                              ColorQuantizeFn                              quantize_pure = nullptr,
+                                              // The model's own UV channel, for ModelUV layers; see
+                                              // build_texture_displacement().
+                                              const std::vector<Vec2f>                    *model_uv = nullptr);
 
 HeightFieldSampler make_combined_displacement_sampler(const indexed_triangle_set                  &base_mesh,
                                                       const std::vector<TextureDisplacementLayer> &layers,
-                                                      const TextureDisplacementFacetsData         &facets_data);
+                                                      const TextureDisplacementFacetsData         &facets_data,
+                                                      const std::vector<Vec2f>                    *model_uv = nullptr);
 
 // Uniformly subdivides `mesh` (every triangle recursively split into 4 via edge midpoints, using a
 // shared cache so a midpoint is computed once and reused by both triangles on either side of that
@@ -1107,6 +1213,10 @@ struct TextureDisplacementPrepareResult
 {
     indexed_triangle_set          mesh;
     TextureDisplacementFacetsData masks;
+    // The model's own UV channel, resampled onto `mesh` (see transfer_uv_channel()). Empty when the
+    // volume had none. Like the masks it is handed back rather than left to the caller to recompute,
+    // because only the run itself knows which stages replaced the mesh.
+    std::vector<Vec2f>            uv;
     // The remesh landed but no layer's paint survived being carried onto it. Nothing is committed:
     // everything downstream is driven by that paint, so baking on would bake a flat mesh.
     bool                          paint_lost = false;

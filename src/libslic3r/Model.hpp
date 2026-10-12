@@ -974,6 +974,26 @@ public:
     // they are not a property of any single layer.
     TextureDisplacementOptions texture_displacement_options;
 
+    // The model's own texture coordinates, as the file it was imported from carried them: three per
+    // triangle of mesh().its, in its triangle order (corner k of triangle i at 3i+k), V already
+    // flipped to the sampling convention (V = 0 is the image's top row). Empty when the source had
+    // none, which is every STL and every 3mf - only a textured OBJ brings one in today.
+    //
+    // Per corner rather than per vertex because that is what a UV layout is: the two sides of a seam
+    // are the same vertex with two different coordinates, and collapsing them would smear the texture
+    // across every island boundary. TextureProjectionMethod::ModelUV maps through it, which is what
+    // lets a model that already carries a UV channel be textured on the artist's own layout instead
+    // of on a fresh unwrap.
+    //
+    // Indexed by triangle, so anything that *replaces* the mesh has to bring it across (or drop it):
+    // see transfer_uv_channel(), and reset_texture_uv() for the cases that cannot.
+    std::vector<Vec2f> texture_uv;
+
+    bool has_texture_uv() const { return !texture_uv.empty() && texture_uv.size() == mesh().its.indices.size() * 3; }
+    // Forgets the channel. For a mesh change that nothing can carry it across - a split, a boolean -
+    // where leaving it would map the texture by another mesh's triangle numbering.
+    void reset_texture_uv() { texture_uv.clear(); }
+
     // Save painting data before reset_extra_facets() discards it.
     // Used for replacing mesh without losing painting data.
     // Only for model parts (not modifiers/connectors).
@@ -1236,6 +1256,7 @@ private:
         texture_displacement_facets_6(other.texture_displacement_facets_6), texture_displacement_facets_7(other.texture_displacement_facets_7),
         texture_displacement_layers(other.texture_displacement_layers),
         texture_displacement_options(other.texture_displacement_options),
+        texture_uv(other.texture_uv),
         cut_info(other.cut_info), text_configuration(other.text_configuration), emboss_shape(other.emboss_shape)
     {
 		assert(this->id().valid());
@@ -1334,7 +1355,7 @@ private:
             cereal::load_by_value(ar, f);
             mesh_changed |= tf != f.timestamp();
         }
-        ar(texture_displacement_layers, texture_displacement_options);
+        ar(texture_displacement_layers, texture_displacement_options, texture_uv);
         cereal::load_by_value(ar, config);
         cereal::load(ar, text_configuration);
         cereal::load(ar, emboss_shape);
@@ -1358,7 +1379,7 @@ private:
         cereal::save_by_value(ar, fuzzy_skin_facets);
         for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
             cereal::save_by_value(ar, texture_displacement_facet(i));
-        ar(texture_displacement_layers, texture_displacement_options);
+        ar(texture_displacement_layers, texture_displacement_options, texture_uv);
         cereal::save_by_value(ar, config);
         cereal::save(ar, text_configuration);
         cereal::save(ar, emboss_shape);

@@ -2174,3 +2174,353 @@ TEST_CASE("whether a layer's texture has colour agrees with its decode", "[Textu
 
     CHECK_FALSE(height_texture_has_color(TextureDisplacementLayer{}));
 }
+
+// ---------------------------------------------------------------------------------------------
+// The model's own UV channel, and the Override blend mode
+// ---------------------------------------------------------------------------------------------
+
+// A grayscale image that is black in its left half and white in its right half, so where a sample
+// lands along u is readable straight off the height it comes back with.
+static std::shared_ptr<std::vector<unsigned char>> make_left_right_split_png(size_t w = 16, size_t h = 16)
+{
+    std::vector<uint8_t> pixels(w * h);
+    for (size_t y = 0; y < h; ++y)
+        for (size_t x = 0; x < w; ++x)
+            pixels[y * w + x] = (x < w / 2) ? 0 : 255;
+    const boost::filesystem::path tmp_path = boost::filesystem::temp_directory_path()
+        / boost::filesystem::unique_path("texdisp_test_%%%%%%%%.png");
+    REQUIRE(Slic3r::png::write_gray_to_file(tmp_path.string(), w, h, pixels));
+
+    std::vector<unsigned char> bytes;
+    {
+        std::ifstream ifs(tmp_path.string(), std::ios::binary);
+        bytes.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+    }
+    boost::system::error_code ec;
+    boost::filesystem::remove(tmp_path, ec);
+
+    REQUIRE_FALSE(bytes.empty());
+    return std::make_shared<std::vector<unsigned char>>(std::move(bytes));
+}
+
+// Where a sheet coordinate lands in uv: across [UV_LO, UV_LO + UV_SPAN] rather than the full [0, 1].
+// The inset keeps the tests off the exact edge of an untiled placement, where there is deliberately no
+// texture at all rather than its border texel (see DecodedHeightTexture::sample()) - a real model's
+// channel does reach 1.0, and a vertex sitting exactly there displaces by nothing on purpose.
+static constexpr float UV_LO   = 0.1f;
+static constexpr float UV_SPAN = 0.8f;
+
+static float sheet_uv_at(float coord, float size, bool mirror = false)
+{
+    const float t = coord / size;
+    return UV_LO + UV_SPAN * (mirror ? 1.f - t : t);
+}
+
+// One UV per triangle corner: u follows x, v follows y. `mirror_u` mirrors u, which is what the tests
+// use to show the bake is really reading the channel rather than projecting the position.
+static std::vector<Vec2f> sheet_uv_channel(const indexed_triangle_set &sheet, float size, bool mirror_u = false)
+{
+    std::vector<Vec2f> uv(sheet.indices.size() * 3);
+    for (size_t f = 0; f < sheet.indices.size(); ++f)
+        for (int k = 0; k < 3; ++k) {
+            const Vec3f &p = sheet.vertices[size_t(sheet.indices[f][k])];
+            uv[f * 3 + size_t(k)] = Vec2f(sheet_uv_at(p.x(), size, mirror_u), sheet_uv_at(p.y(), size));
+        }
+    return uv;
+}
+
+TEST_CASE("Override blend replaces the displacement under it instead of combining with it",
+          "[TextureDisplacement]")
+{
+    CHECK_THAT(blend_displacement(3.f, 1.f, TextureBlendMode::Override), WithinAbs(1.f, 1e-6f));
+    // Nothing underneath yet is still just the value, so an Override layer at the bottom of the
+    // stack behaves exactly like the Add the bake forces there.
+    CHECK_THAT(blend_displacement(0.f, 1.f, TextureBlendMode::Override), WithinAbs(1.f, 1e-6f));
+    // The sign carries, and a zero sample really does flatten what is under it - that is the point.
+    CHECK_THAT(blend_displacement(3.f, -1.f, TextureBlendMode::Override), WithinAbs(-1.f, 1e-6f));
+    CHECK_THAT(blend_displacement(3.f, 0.f, TextureBlendMode::Override), WithinAbs(0.f, 1e-6f));
+}
+
+TEST_CASE("an Override layer leaves only its own relief where two layers overlap", "[TextureDisplacement]")
+{
+    const indexed_triangle_set cube = its_make_cube(10., 10., 10.);
+
+    TextureDisplacementLayer base;
+    base.slot         = 0;
+    base.depth_mm     = 2.0f;
+    base.tiling_scale = 5.0f;
+    base.image_data   = make_flat_gray_png(255); // full depth everywhere
+
+    TextureDisplacementLayer second = base;
+    second.slot       = 1;
+    second.depth_mm   = 0.5f;
+    second.blend_mode = TextureBlendMode::Override;
+
+    TextureDisplacementFacetsData facets{};
+    facets[0] = paint_whole_mesh(cube);
+    facets[1] = facets[0];
+
+    const indexed_triangle_set overridden = build_texture_displacement(cube, {base, second}, facets, classic_options());
+    REQUIRE(overridden.vertices.size() == cube.vertices.size());
+
+    // Add would have piled the two up to 2.5 mm; Override keeps the upper layer's 0.5 mm alone.
+    TextureDisplacementLayer added = second;
+    added.blend_mode               = TextureBlendMode::Add;
+    const indexed_triangle_set summed = build_texture_displacement(cube, {base, added}, facets, classic_options());
+    REQUIRE(summed.vertices.size() == cube.vertices.size());
+
+    for (size_t i = 0; i < cube.vertices.size(); ++i) {
+        if (!above_resting_plane(cube, i))
+            continue;
+        CHECK_THAT((overridden.vertices[i] - cube.vertices[i]).norm(), WithinAbs(0.5f, 1e-3f));
+        CHECK_THAT((summed.vertices[i] - cube.vertices[i]).norm(), WithinAbs(2.5f, 1e-3f));
+    }
+}
+
+TEST_CASE("the ModelUV mapping displaces through the model's own UV channel", "[TextureDisplacement]")
+{
+    constexpr float            size  = 10.f;
+    const indexed_triangle_set sheet = make_flat_sheet(size, 1.f);
+
+    TextureDisplacementLayer layer;
+    layer.slot         = 0;
+    layer.depth_mm     = 1.0f;
+    layer.image_data   = make_left_right_split_png();
+    layer.tile_enabled = false; // the layout is the placement; nothing should repeat
+    layer.projection_method = TextureProjectionMethod::ModelUV;
+
+    TextureDisplacementFacetsData facets{};
+    facets[0] = paint_whole_mesh(sheet);
+
+    const std::vector<Vec2f> uv      = sheet_uv_channel(sheet, size);
+    const std::vector<Vec2f> flipped = sheet_uv_channel(sheet, size, /* mirror_u */ true);
+
+    const indexed_triangle_set out = build_texture_displacement(sheet, {layer}, facets, classic_options(), {}, nullptr,
+                                                                 Transform3d::Identity(), nullptr, nullptr, &uv);
+    REQUIRE(out.vertices.size() == sheet.vertices.size());
+
+    // The image is black for u < 0.5 and white above it, and the channel's u rises with x across the
+    // sheet, so it comes out flat on its left half and raised by the full depth on its right.
+    size_t low = 0, high = 0;
+    for (size_t i = 0; i < sheet.vertices.size(); ++i) {
+        const float x    = sheet.vertices[i].x();
+        const float dz   = out.vertices[i].z() - sheet.vertices[i].z();
+        if (x < 0.4f * size) {
+            CHECK_THAT(dz, WithinAbs(0.f, 1e-3f));
+            ++low;
+        } else if (x > 0.6f * size) {
+            CHECK_THAT(dz, WithinAbs(layer.depth_mm, 1e-3f));
+            ++high;
+        }
+    }
+    REQUIRE(low > 0);
+    REQUIRE(high > 0);
+
+    // Mirroring the channel mirrors the relief: the mapping really is the channel's, not a planar
+    // projection of the position (which would be unchanged by it).
+    const indexed_triangle_set mirrored = build_texture_displacement(sheet, {layer}, facets, classic_options(), {},
+                                                                      nullptr, Transform3d::Identity(), nullptr, nullptr,
+                                                                      &flipped);
+    REQUIRE(mirrored.vertices.size() == sheet.vertices.size());
+    for (size_t i = 0; i < sheet.vertices.size(); ++i) {
+        const float x = sheet.vertices[i].x();
+        if (x < 0.4f * size)
+            CHECK_THAT(mirrored.vertices[i].z() - sheet.vertices[i].z(), WithinAbs(layer.depth_mm, 1e-3f));
+        else if (x > 0.6f * size)
+            CHECK_THAT(mirrored.vertices[i].z() - sheet.vertices[i].z(), WithinAbs(0.f, 1e-3f));
+    }
+}
+
+TEST_CASE("a ModelUV layer falls back to Triplanar when the volume carries no UV channel",
+          "[TextureDisplacement]")
+{
+    constexpr float            size  = 10.f;
+    const indexed_triangle_set sheet = make_flat_sheet(size, 2.f);
+
+    TextureDisplacementLayer layer;
+    layer.slot         = 0;
+    layer.depth_mm     = 1.0f;
+    layer.tiling_scale = 5.0f;
+    layer.image_data   = make_flat_gray_png(255);
+
+    TextureDisplacementFacetsData facets{};
+    facets[0] = paint_whole_mesh(sheet);
+
+    layer.projection_method                 = TextureProjectionMethod::Triplanar;
+    const indexed_triangle_set as_triplanar = build_texture_displacement(sheet, {layer}, facets, classic_options());
+    layer.projection_method                 = TextureProjectionMethod::ModelUV;
+    const indexed_triangle_set no_channel    = build_texture_displacement(sheet, {layer}, facets, classic_options());
+
+    REQUIRE(no_channel.vertices.size() == as_triplanar.vertices.size());
+    for (size_t i = 0; i < as_triplanar.vertices.size(); ++i)
+        CHECK_THAT((no_channel.vertices[i] - as_triplanar.vertices[i]).norm(), WithinAbs(0.f, 1e-5f));
+}
+
+TEST_CASE("a bake with colour off on every layer reports no colour at all", "[TextureDisplacement]")
+{
+    const indexed_triangle_set cube = its_make_cube(10., 10., 10.);
+
+    TextureDisplacementLayer layer;
+    layer.slot          = 0;
+    layer.depth_mm      = 1.0f;
+    layer.tiling_scale  = 5.0f;
+    layer.image_data    = make_flat_rgb_png(200, 40, 10); // has colour to give...
+    layer.color_enabled = false;                          // ...but is not asked for it
+
+    TextureDisplacementFacetsData facets{};
+    facets[0] = paint_whole_mesh(cube);
+
+    std::vector<uint8_t> triangle_color;
+    TextureColorRequest  request;
+    request.quantize     = [](const Vec3f &) { return 0; }; // would colour everything, if asked
+    request.out_triangle = &triangle_color;
+
+    const indexed_triangle_set out = build_texture_displacement(cube, {layer}, facets, classic_options(), {}, &request);
+    REQUIRE_FALSE(out.vertices.empty());
+    // Every entry 0 ("this triangle takes no colour from the texture"), so the commit leaves whatever
+    // the model was already painted with exactly as it was.
+    for (const uint8_t entry : triangle_color)
+        CHECK(entry == 0);
+}
+
+TEST_CASE("transfer_uv_channel resamples a UV channel onto a subdivided copy of the same surface",
+          "[TextureDisplacement]")
+{
+    constexpr float            size   = 10.f;
+    const indexed_triangle_set coarse = make_flat_sheet(size, 5.f);
+    const indexed_triangle_set fine   = make_flat_sheet(size, 1.f);
+    const std::vector<Vec2f>   uv     = sheet_uv_channel(coarse, size);
+
+    const std::vector<Vec2f> moved = transfer_uv_channel(coarse, uv, fine);
+    REQUIRE(moved.size() == fine.indices.size() * 3);
+
+    // The channel is affine in position here (u = x/size, v = y/size), so a correct transfer
+    // reproduces it exactly at every corner of the finer mesh.
+    for (size_t f = 0; f < fine.indices.size(); ++f)
+        for (int k = 0; k < 3; ++k) {
+            const Vec3f &p = fine.vertices[size_t(fine.indices[f][k])];
+            CHECK_THAT(moved[f * 3 + size_t(k)].x(), WithinAbs(sheet_uv_at(p.x(), size), 1e-4f));
+            CHECK_THAT(moved[f * 3 + size_t(k)].y(), WithinAbs(sheet_uv_at(p.y(), size), 1e-4f));
+        }
+
+    // A mismatched channel is refused rather than read past its end.
+    CHECK(transfer_uv_channel(coarse, {Vec2f::Zero()}, fine).empty());
+    CHECK(transfer_uv_channel(coarse, uv, indexed_triangle_set{}).empty());
+}
+
+TEST_CASE("the model's per-corner UVs survive a brush split and collapse to one per vertex",
+          "[TextureDisplacement]")
+{
+    constexpr float            size  = 10.f;
+    const indexed_triangle_set sheet = make_flat_sheet(size, 5.f);
+    const std::vector<Vec2f>   uv    = sheet_uv_channel(sheet, size);
+
+    // The whole sheet as a patch, with the source map the channel is read through.
+    const TriangleMesh tm(sheet);
+    TriangleSelector   selector(tm);
+    for (int f = 0; f < int(sheet.indices.size()); ++f)
+        selector.set_facet(f, EnforcerBlockerType::ENFORCER);
+    std::vector<int>           source;
+    const indexed_triangle_set patch = selector.get_facets_strict(EnforcerBlockerType::ENFORCER, &source);
+    REQUIRE(patch.indices.size() == source.size());
+
+    const std::vector<Vec2f> corner = compute_model_corner_uvs(sheet, uv, patch, source);
+    REQUIRE(corner.size() == patch.indices.size() * 3);
+    // An unsplit patch triangle *is* its source triangle, so its corners reproduce the channel.
+    for (size_t f = 0; f < patch.indices.size(); ++f)
+        for (int k = 0; k < 3; ++k) {
+            const Vec3f &p = patch.vertices[size_t(patch.indices[f][k])];
+            CHECK_THAT(corner[f * 3 + size_t(k)].x(), WithinAbs(sheet_uv_at(p.x(), size), 1e-4f));
+            CHECK_THAT(corner[f * 3 + size_t(k)].y(), WithinAbs(sheet_uv_at(p.y(), size), 1e-4f));
+        }
+
+    const std::vector<Vec2f> per_vertex = collapse_corner_uvs(patch, corner);
+    REQUIRE(per_vertex.size() == patch.vertices.size());
+    for (size_t i = 0; i < patch.vertices.size(); ++i) {
+        CHECK_THAT(per_vertex[i].x(), WithinAbs(sheet_uv_at(patch.vertices[i].x(), size), 1e-4f));
+        CHECK_THAT(per_vertex[i].y(), WithinAbs(sheet_uv_at(patch.vertices[i].y(), size), 1e-4f));
+    }
+
+    // Mismatched inputs report nothing rather than guessing.
+    CHECK(compute_model_corner_uvs(sheet, {Vec2f::Zero()}, patch, source).empty());
+    CHECK(compute_model_corner_uvs(sheet, uv, patch, {}).empty());
+    CHECK(collapse_corner_uvs(patch, {Vec2f::Zero()}).empty());
+}
+
+TEST_CASE("facet paint is carried onto a rebuilt mesh by each facet's foot point", "[TextureDisplacement]")
+{
+    constexpr float            size   = 10.f;
+    const indexed_triangle_set coarse = make_flat_sheet(size, 2.5f);
+
+    // Two filaments, split down the middle - the pattern the transfer has to reproduce.
+    const TriangleMesh coarse_mesh(coarse);
+    TriangleSelector   painter(coarse_mesh);
+    for (size_t t = 0; t < coarse.indices.size(); ++t) {
+        const stl_triangle_vertex_indices &tri = coarse.indices[t];
+        const float x = (coarse.vertices[size_t(tri[0])].x() + coarse.vertices[size_t(tri[1])].x() +
+                         coarse.vertices[size_t(tri[2])].x()) / 3.f;
+        painter.set_facet(int(t), x < 0.5f * size ? EnforcerBlockerType::Extruder1 : EnforcerBlockerType::Extruder2);
+    }
+    const TriangleSelector::TriangleSplittingData paint = painter.serialize();
+
+    // A finer mesh, lifted clear of the original surface the way a bake's relief lifts it. This is
+    // what ModelVolume::restore_painting()'s 0.01 mm overlap remap cannot follow.
+    indexed_triangle_set lifted = make_flat_sheet(size, 1.f);
+    for (Vec3f &v : lifted.vertices)
+        v.z() += 0.5f;
+
+    const std::vector<uint8_t> state = transfer_facet_paint(coarse, paint, lifted);
+    REQUIRE(state.size() == lifted.indices.size());
+
+    size_t left = 0, right = 0;
+    for (size_t t = 0; t < lifted.indices.size(); ++t) {
+        const stl_triangle_vertex_indices &tri = lifted.indices[t];
+        const float x = (lifted.vertices[size_t(tri[0])].x() + lifted.vertices[size_t(tri[1])].x() +
+                         lifted.vertices[size_t(tri[2])].x()) / 3.f;
+        // Only away from the split: a facet straddling it may legitimately land on either side.
+        if (x < 0.4f * size) {
+            CHECK(state[t] == uint8_t(EnforcerBlockerType::Extruder1));
+            ++left;
+        } else if (x > 0.6f * size) {
+            CHECK(state[t] == uint8_t(EnforcerBlockerType::Extruder2));
+            ++right;
+        }
+    }
+    REQUIRE(left > 0);
+    REQUIRE(right > 0);
+
+    // An unpainted source has nothing to carry, which is not the same as carrying NONE everywhere:
+    // the caller has to tell those apart to decide between resetting the annotation and writing one.
+    CHECK(transfer_facet_paint(coarse, TriangleSelector::TriangleSplittingData{}, lifted).empty());
+    CHECK(transfer_facet_paint(coarse, paint, indexed_triangle_set{}).empty());
+}
+
+TEST_CASE("an unpainted part of the source carries no paint onto the rebuilt mesh", "[TextureDisplacement]")
+{
+    constexpr float            size   = 10.f;
+    const indexed_triangle_set coarse = make_flat_sheet(size, 2.5f);
+
+    // Only the left half is painted at all; the right half must come back NONE rather than borrowing
+    // the nearest painted colour from across the model.
+    const TriangleMesh coarse_mesh(coarse);
+    TriangleSelector   painter(coarse_mesh);
+    for (size_t t = 0; t < coarse.indices.size(); ++t) {
+        const stl_triangle_vertex_indices &tri = coarse.indices[t];
+        const float x = (coarse.vertices[size_t(tri[0])].x() + coarse.vertices[size_t(tri[1])].x() +
+                         coarse.vertices[size_t(tri[2])].x()) / 3.f;
+        if (x < 0.5f * size)
+            painter.set_facet(int(t), EnforcerBlockerType::Extruder3);
+    }
+
+    const std::vector<uint8_t> state = transfer_facet_paint(coarse, painter.serialize(), coarse);
+    REQUIRE(state.size() == coarse.indices.size());
+    for (size_t t = 0; t < coarse.indices.size(); ++t) {
+        const stl_triangle_vertex_indices &tri = coarse.indices[t];
+        const float x = (coarse.vertices[size_t(tri[0])].x() + coarse.vertices[size_t(tri[1])].x() +
+                         coarse.vertices[size_t(tri[2])].x()) / 3.f;
+        if (x < 0.4f * size)
+            CHECK(state[t] == uint8_t(EnforcerBlockerType::Extruder3));
+        else if (x > 0.6f * size)
+            CHECK(state[t] == uint8_t(EnforcerBlockerType::NONE));
+    }
+}

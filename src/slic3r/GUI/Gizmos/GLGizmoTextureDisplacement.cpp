@@ -1221,9 +1221,33 @@ indexed_triangle_set GLGizmoTextureDisplacement::patch_in_world(const indexed_tr
     return world;
 }
 
-std::vector<Vec2f> GLGizmoTextureDisplacement::compute_layer_vertex_uvs(const indexed_triangle_set     &local_patch,
-                                                                       const TextureDisplacementLayer &layer) const
+std::vector<Vec2f> GLGizmoTextureDisplacement::model_uv_corners(const indexed_triangle_set     &local_patch,
+                                                                const TextureDisplacementLayer &layer,
+                                                                const std::vector<int>         *patch_source) const
 {
+    const ModelVolume *mv = texture_volume();
+    if (layer.projection_method != TextureProjectionMethod::ModelUV || patch_source == nullptr || mv == nullptr ||
+        !mv->has_texture_uv())
+        return {};
+    // The channel is indexed against the volume's *local* mesh, and a uv is a coordinate in the
+    // texture rather than on the model, so unlike every projected method this never goes through
+    // patch_in_world() - there is no millimetre measurement here for a world scale to change.
+    std::vector<Vec2f> uv = compute_model_corner_uvs(mv->mesh().its, mv->texture_uv, local_patch, *patch_source);
+    for (Vec2f &p : uv)
+        // Already a uv: no tiling scale, no aspect correction - see apply_uv_transform().
+        p = apply_uv_transform(p, layer, 1.f, /* normalized_uv */ true);
+    return uv;
+}
+
+std::vector<Vec2f> GLGizmoTextureDisplacement::compute_layer_vertex_uvs(const indexed_triangle_set     &local_patch,
+                                                                       const TextureDisplacementLayer &layer,
+                                                                       const std::vector<int>         *patch_source) const
+{
+    if (layer.projection_method == TextureProjectionMethod::ModelUV)
+        // Collapsed to one per vertex the same way the unwrap is - a vertex has one position, so the
+        // displacement can only read one height for it.
+        return collapse_corner_uvs(local_patch, model_uv_corners(local_patch, layer, patch_source));
+
     // The bake maps the texture in world millimetres, so "Tile size (mm)" means the same thing on a
     // scaled instance as it does on an untouched one (see build_texture_displacement()). Everything
     // that has to agree with the bake - the fast preview's uvs, the checker/distortion overlays -
@@ -1283,8 +1307,11 @@ int GLGizmoTextureDisplacement::layer_projection_frame(const indexed_triangle_se
 }
 
 std::vector<Vec2f> GLGizmoTextureDisplacement::compute_layer_corner_uvs(const indexed_triangle_set     &local_patch,
-                                                                        const TextureDisplacementLayer &layer) const
+                                                                        const TextureDisplacementLayer &layer,
+                                                                        const std::vector<int>         *patch_source) const
 {
+    if (layer.projection_method == TextureProjectionMethod::ModelUV)
+        return model_uv_corners(local_patch, layer, patch_source);
     if (layer.projection_method == TextureProjectionMethod::LSCM) {
         const indexed_triangle_set patch  = patch_in_world(local_patch);
         const float                aspect = layer_texture_aspect(layer);
@@ -1294,7 +1321,7 @@ std::vector<Vec2f> GLGizmoTextureDisplacement::compute_layer_corner_uvs(const in
         return uv;
     }
     // Single-valued per point: fan the per-vertex result out over the corners.
-    const std::vector<Vec2f> per_vertex = compute_layer_vertex_uvs(local_patch, layer);
+    const std::vector<Vec2f> per_vertex = compute_layer_vertex_uvs(local_patch, layer, patch_source);
     if (per_vertex.size() != local_patch.vertices.size())
         return {};
     std::vector<Vec2f> corner(local_patch.indices.size() * 3);
@@ -1315,7 +1342,11 @@ void GLGizmoTextureDisplacement::rebuild_shaded_preview_mesh()
     // Uses the *live* selector (not the flushed model facet data), so this reflects an in-progress
     // stroke immediately rather than only once it ends - the point of this preview mode is to be
     // the fast, no-CPU-meshing one.
-    const indexed_triangle_set patch = m_triangle_selectors[0]->get_facets_strict(EnforcerBlockerType::ENFORCER);
+    // The source map comes along because a ModelUV layer's uvs are read per base-mesh triangle; every
+    // other mapping ignores it.
+    std::vector<int>           patch_source;
+    const indexed_triangle_set patch =
+        m_triangle_selectors[0]->get_facets_strict(EnforcerBlockerType::ENFORCER, &patch_source);
     if (patch.indices.empty())
         return;
 
@@ -1339,7 +1370,8 @@ void GLGizmoTextureDisplacement::rebuild_shaded_preview_mesh()
     // Per *corner*, not per vertex: the mesh below is flat (unshared) anyway, so each triangle can
     // carry its own chart's UVs - see compute_layer_corner_uvs().
     const TextureDisplacementLayer *active = active_layer();
-    std::vector<Vec2f> corner_uv = active != nullptr ? compute_layer_corner_uvs(patch, *active) : std::vector<Vec2f>{};
+    std::vector<Vec2f> corner_uv = active != nullptr ? compute_layer_corner_uvs(patch, *active, &patch_source) :
+                                                       std::vector<Vec2f>{};
     m_shaded_preview_uses_vertex_uv = corner_uv.size() == patch.indices.size() * 3;
     if (!m_shaded_preview_uses_vertex_uv)
         corner_uv.clear();
@@ -1996,7 +2028,9 @@ void GLGizmoTextureDisplacement::rebuild_uvcheck_mesh()
     const ModelVolume *mv = texture_volume();
     if (mv == nullptr || m_triangle_selectors.empty())
         return;
-    const indexed_triangle_set patch = m_triangle_selectors[0]->get_facets_strict(EnforcerBlockerType::ENFORCER);
+    std::vector<int>           patch_source; // only ModelUV reads it; see compute_layer_vertex_uvs()
+    const indexed_triangle_set patch =
+        m_triangle_selectors[0]->get_facets_strict(EnforcerBlockerType::ENFORCER, &patch_source);
     if (patch.indices.empty())
         return;
     // Everything below works in the *patch's* vertex space, not the mesh's. Those agree only until a
@@ -2010,7 +2044,7 @@ void GLGizmoTextureDisplacement::rebuild_uvcheck_mesh()
 
     // The checker samples wherever the projection puts it; the projections the shader can't
     // reconstruct (LSCM, ViewProjected) get a precomputed per-vertex uv, the rest project in-shader.
-    std::vector<Vec2f> uv       = compute_layer_vertex_uvs(patch, *layer);
+    std::vector<Vec2f> uv       = compute_layer_vertex_uvs(patch, *layer, &patch_source);
     const bool         have_uvs = uv.size() == patch.vertices.size();
     m_uvcheck_uses_vertex_uv    = have_uvs;
     m_uvcheck_projection_mode   = have_uvs ? 0 :
@@ -2019,7 +2053,7 @@ void GLGizmoTextureDisplacement::rebuild_uvcheck_mesh()
     // different uv in each island it borders, so the shared-vertex form drew one triangle per face from
     // a neighbouring island's placement. Only the *drawing* needs this; the distortion metric below is
     // a per-vertex average by construction and keeps using `uv`.
-    const std::vector<Vec2f> corner_uv = compute_layer_corner_uvs(patch, *layer);
+    const std::vector<Vec2f> corner_uv = compute_layer_corner_uvs(patch, *layer, &patch_source);
     const bool               have_corner_uvs = have_uvs && corner_uv.size() == patch.indices.size() * 3;
 
     // Per-vertex area distortion in [0,1] (0.5 == ideal), only when both requested and possible.
@@ -2295,6 +2329,8 @@ void GLGizmoTextureDisplacement::queue_preview_job()
     if (input.options.pipeline_v2)
         input.options.v2_max_triangles_k = 0;
     input.volume_to_world = texture_displacement_volume_to_world(*mv);
+    if (mv->has_texture_uv())
+        input.model_uv = mv->texture_uv;
     for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
         input.facets_data[size_t(i)] = mv->texture_displacement_facet(i).get_data();
     // Captured here rather than read in the handler: the palette is main-thread state, and the preview
@@ -3676,7 +3712,8 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         // Paint / Erase, brush cursor shape, mapping, tiling, placement and the dock toggle.
         "texture_displacement_add.svg", "texture_displacement_add_negative.svg", "circle_paint.svg",
         "menu_obj_sphere.svg", "menu_obj_cube.svg", "menu_obj_cylinder.svg", "texture_displacement_map_unwrap.svg",
-        "texture_displacement_map_view.svg", "texture_displacement_tile_repeat.svg", "menu_mirror_x.svg",
+        "texture_displacement_map_view.svg", "texture_displacement_map_model_uv.svg",
+        "texture_displacement_tile_repeat.svg", "menu_mirror_x.svg",
         "texture_displacement_adjust.svg", "canvas_drag.svg", "texture_displacement_move_up.svg",
         "texture_displacement_move_down.svg", "texture_displacement_drag.svg",
         "texture_displacement_select_all.svg", "texture_displacement_erase_all.svg",
@@ -3723,6 +3760,11 @@ void GLGizmoTextureDisplacement::add_texture_layer()
 
     TextureDisplacementLayer layer;
     layer.slot = free_slot;
+    // A model that came with a UV channel is mapped by it. Re-unwrapping such a model throws away the
+    // layout it was authored against and can only be worse than using it, so the default follows the
+    // model rather than the other way round; the Mapping row still offers every other method.
+    if (mv->has_texture_uv())
+        layer.projection_method = TextureProjectionMethod::ModelUV;
     // Start the layer off on the first library texture rather than on nothing at all: a textureless
     // layer looks broken (painting on it appears to do nothing, because there is no height map to
     // displace by). The user swaps it for another from the layer's own picker.
@@ -4868,7 +4910,8 @@ ColorQuantizeFn GLGizmoTextureDisplacement::make_palette_quantizer(const std::ve
 
 TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
     const indexed_triangle_set &base, const TextureDisplacementFacetsData &masks,
-    const std::vector<TextureDisplacementLayer> &layers, const TextureDisplacementPrepareParams &params,
+    const std::vector<TextureDisplacementLayer> &layers, const std::vector<Vec2f> &model_uv,
+    const TextureDisplacementPrepareParams &params,
     const TextureColorSettings &color_settings, const DisplacementProgressFn &progress,
     BakeStageRecorder *debug)
 {
@@ -4895,6 +4938,13 @@ TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
     bool                          had_paint = false;
     for (const TriangleSelector::TriangleSplittingData &m : masks)
         had_paint = had_paint || TriangleSelector::has_facets(m, EnforcerBlockerType::ENFORCER);
+    // The model's own UV channel for whatever `mesh` currently is. Every stage below keeps the input's
+    // surface - it evens out, refines or cuts the triangles lying on it - so each corner reads its uv
+    // straight off `base`'s channel at its own position instead of being carried stage by stage, which
+    // would compound each stage's approximation. Untouched while nothing has replaced the mesh yet.
+    const auto uv_now = [&]() {
+        return (model_uv.empty() || !changed) ? model_uv : transfer_uv_channel(base, model_uv, mesh.its);
+    };
     if (!report(1))
         return out;
 
@@ -4941,9 +4991,11 @@ TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
             // Feature-adaptive: sample the combined displacement so refinement follows texture
             // curvature. A null sampler (only LSCM layers, or nothing decodable) falls back to the
             // length baseline alone.
+            const std::vector<Vec2f> uv_stage = uv_now();
+            const std::vector<Vec2f> *uv_ptr  = uv_stage.empty() ? nullptr : &uv_stage;
             HeightFieldSampler sampler;
             if (params.subdiv_feature)
-                sampler = make_combined_displacement_sampler(mesh.its, layers, current);
+                sampler = make_combined_displacement_sampler(mesh.its, layers, current, uv_ptr);
             // Colour boundaries need triangles of their own - the chord test cannot see them, since
             // the height field is perfectly smooth across a change of filament.
             ColorFieldSampler color;
@@ -4951,7 +5003,7 @@ TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
             // boundaries are refined where the bake will actually change filament.
             if (params.subdiv_color_edge_mm > 0.f && !color_settings.empty())
                 color = make_combined_color_sampler(mesh.its, layers, current, make_palette_quantizer(color_settings.palette),
-                                                    make_palette_quantizer(color_settings.palette_pure));
+                                                    make_palette_quantizer(color_settings.palette_pure), uv_ptr);
             // The refinement follows perceived colour: a mix is one colour here, however the slicer
             // interleaves its filaments layer by layer.
             // "Min edge" is a feature-mode control (it is the floor the curvature test refines down
@@ -5010,8 +5062,10 @@ TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
                 std::vector<uint8_t> cut_region(mesh.its.indices.size(), 0);
                 for (size_t i = 0; i < cut_region.size() && i < source.size(); ++i)
                     cut_region[i] = (region[size_t(source[i])] & REFINE_PAINTED) ? 1 : 0;
+                const std::vector<Vec2f> uv_refined = uv_now();
                 const HeightFieldSampler refined_sampler =
-                    make_combined_displacement_sampler(mesh.its, layers, current);
+                    make_combined_displacement_sampler(mesh.its, layers, current,
+                                                        uv_refined.empty() ? nullptr : &uv_refined);
                 std::vector<int>     cut_source;
                 size_t               cuts = 0;
                 indexed_triangle_set cut = cut_mesh_at_steps(mesh.its, cut_region, refined_sampler,
@@ -5035,6 +5089,7 @@ TextureDisplacementPrepareResult GLGizmoTextureDisplacement::prepare_mesh(
     if (!report(100) || !changed)
         return out; // an empty result: nothing to commit, which is not a failure
 
+    out.uv    = uv_now();
     out.mesh  = std::move(mesh.its);
     out.masks = std::move(current);
     return out;
@@ -5686,6 +5741,8 @@ void GLGizmoTextureDisplacement::queue_prepare(const TextureDisplacementPrepareP
     input.layers        = mv->texture_displacement_layers;
     input.params        = params;
     input.snapshot_name = snapshot_name;
+    if (mv->has_texture_uv())
+        input.model_uv = mv->texture_uv;
     if (params.subdiv_color_edge_mm > 0.f)
         input.color = color_settings_for(*mv);
 
@@ -6454,10 +6511,22 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             m_preview_params_dirty |= float_row("##depth", _L("Depth"), &layer.depth_mm, 0.01f, 10.f, "%.3f mm", true, card_pad);
             hover_tip(_u8L("Height of the relief: how far white in the texture lifts the surface, in "
                            "millimetres. Black does not move it at all, unless Midlevel says otherwise."));
-            m_preview_params_dirty |= float_row("##tile_size", _L("Tile size"), &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true, card_pad);
-            hover_tip(_u8L("How wide one copy of the texture is on the model. Smaller repeats the pattern "
-                           "more often and makes its detail finer; with Tile off, this is the size of the "
-                           "single copy."));
+            // Mapped by the model's own UV layout there is no millimetre scale to set: the layout is the
+            // placement (see TextureProjectionMethod::ModelUV), so the slider would move nothing.
+            const bool tile_size_na = layer.projection_method == TextureProjectionMethod::ModelUV;
+            m_imgui->disabled_begin(tile_size_na);
+            m_preview_params_dirty |= float_row("##tile_size", _L("Tile size"), &layer.tiling_scale, 0.2f, 200.f,
+                                                "%.2f mm", true, card_pad);
+            m_imgui->disabled_end();
+            // AllowWhenDisabled, or the one case that needs explaining is the one that cannot be hovered.
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                m_imgui->tooltip(tile_size_na ?
+                                     _u8L("Mapped by the model's own UV layout, which is already the placement - one "
+                                          "copy of the texture covers it exactly, so there is no tile size to set.") :
+                                     _u8L("How wide one copy of the texture is on the model. Smaller repeats the "
+                                          "pattern more often and makes its detail finer; with Tile off, this is the "
+                                          "size of the single copy."),
+                                 wrap_w);
             m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f, "%.0f°", false, card_pad);
             hover_tip(_u8L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
                            "edge of the model."));
@@ -6564,7 +6633,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     }
                 }
 
-                // Mapping, as five icons in TextureProjectionMethod's own order.
+                // Mapping, as one icon per TextureProjectionMethod, in the enum's own order.
                 {
                     const float x0 = ImGui::GetCursorPosX();
                     ImGui::AlignTextToFramePadding();
@@ -6592,13 +6661,26 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                         { "texture_displacement_map_view.svg", _L("From view"),
                           _L("From view - projects straight onto the painted area from where you are looking, like a slide "
                              "projector.") },
+                        { "texture_displacement_map_model_uv.svg", _L("Model UV"),
+                          _L("Model UV - uses the texture coordinates the model itself came with, so a texture made for "
+                             "that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does "
+                             "not apply: the model's own layout is the placement.") },
                     };
+                    // Only a volume that actually carries a UV channel can be mapped by it. Shown
+                    // greyed out rather than hidden, so the reason is visible instead of the control
+                    // simply being missing.
+                    const wxString model_uv_na =
+                        (mv != nullptr && mv->has_texture_uv()) ?
+                            wxString() :
+                            _L("This model carries no texture coordinates of its own. Only a model imported with a UV "
+                               "channel - a textured OBJ, say - can be mapped by them.");
                     for (int mi = 0; mi < int(IM_ARRAYSIZE(mappings)); ++mi) {
                         if (mi > 0)
                             ImGui::SameLine(0.f, gap_s);
                         const auto method = static_cast<TextureProjectionMethod>(mi);
+                        const wxString na = (method == TextureProjectionMethod::ModelUV) ? model_uv_na : wxString();
                         if (icon_toggle(830 + mi, mappings[mi].file, layer.projection_method == method, icon_sm, mappings[mi].label,
-                                        mappings[mi].tip) &&
+                                        mappings[mi].tip, na) &&
                             layer.projection_method != method) {
                             // Capture the current view the moment "From view" is chosen, so it does something
                             // sensible immediately rather than projecting from a stale/default direction.
@@ -6728,18 +6810,33 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     ImGui::SameLine();
                     ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
                     const std::string blend_add      = _u8L_CONTEXT("Add", "Texture Displacement");
+                    const std::string blend_override  = _u8L_CONTEXT("Override", "Texture Displacement");
                     const std::string blend_subtract = _u8L_CONTEXT("Subtract", "Texture Displacement");
                     const std::string blend_multiply = _u8L_CONTEXT("Multiply", "Texture Displacement");
                     const std::string blend_divide   = _u8L("Divide");
-                    const char *blend_items[] = { blend_add.c_str(), blend_subtract.c_str(), blend_multiply.c_str(), blend_divide.c_str() };
+                    const char *blend_items[] = { blend_add.c_str(), blend_override.c_str(), blend_subtract.c_str(),
+                                                  blend_multiply.c_str(), blend_divide.c_str() };
+                    // The combo's order is the panel's, not the enum's - Override reads as the sibling of Add and
+                    // belongs next to it, while TextureBlendMode's numbering is fixed by what projects already
+                    // store. Hence the explicit mapping rather than a cast of the index.
+                    static const TextureBlendMode blend_modes[] = { TextureBlendMode::Add, TextureBlendMode::Override,
+                                                                    TextureBlendMode::Subtract, TextureBlendMode::Multiply,
+                                                                    TextureBlendMode::Divide };
+                    static_assert(IM_ARRAYSIZE(blend_items) == IM_ARRAYSIZE(blend_modes),
+                                  "every Blend entry needs its mode");
                     // The first layer has nothing before it to combine with - build_texture_displacement() makes it
                     // add regardless - so its combo shows Add and cannot be changed.
                     const bool base_layer = li == 0;
-                    int        blend_mode = base_layer ? 0 : static_cast<int>(layer.blend_mode);
+                    int        blend_mode = 0;
+                    if (!base_layer)
+                        for (int bi = 0; bi < int(IM_ARRAYSIZE(blend_modes)); ++bi)
+                            if (blend_modes[bi] == layer.blend_mode)
+                                blend_mode = bi;
                     ImGui::SetNextItemWidth(-(card_pad + gap_s + icon_sm));
                     m_imgui->disabled_begin(base_layer);
-                    if (scoped_combo("##blend_mode", &blend_mode, blend_items, IM_ARRAYSIZE(blend_items)) && !base_layer) {
-                        layer.blend_mode       = static_cast<TextureBlendMode>(blend_mode);
+                    if (scoped_combo("##blend_mode", &blend_mode, blend_items, IM_ARRAYSIZE(blend_items)) && !base_layer &&
+                        blend_mode >= 0 && blend_mode < int(IM_ARRAYSIZE(blend_modes))) {
+                        layer.blend_mode       = blend_modes[blend_mode];
                         m_preview_params_dirty = true;
                     }
                     m_imgui->disabled_end();
@@ -6747,10 +6844,11 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                         m_imgui->tooltip(base_layer ?
                                              _u8L("The base layer has nothing beneath it to combine with, so it always adds.") :
                                              _u8L("What this layer does where it overlaps the ones below. Add and "
-                                                  "Subtract pile relief on or carve it away. Multiply and Divide scale "
-                                                  "what is underneath, which turns this layer into a mask over it - "
-                                                  "there, Depth acts as a strength, and 1 mm leaves white areas "
-                                                  "untouched."),
+                                                  "Subtract pile relief on or carve it away. Override replaces them, "
+                                                  "so only this layer's relief is left where it is painted. Multiply "
+                                                  "and Divide scale what is underneath, which turns this layer into a "
+                                                  "mask over it - there, Depth acts as a strength, and 1 mm leaves "
+                                                  "white areas untouched."),
                                          wrap_w);
 
                     ImGui::SameLine(0.f, gap_s);
