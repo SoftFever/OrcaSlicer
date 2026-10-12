@@ -3428,6 +3428,28 @@ void DesignSketchTool::hit_display_sketch(const DisplaySketch& d, const Vec2d& p
                   face_feat, face_reg, edge_feat, edge_reg, edge_ent);
 }
 
+void DesignSketchTool::apply_loop_click(int feature, int region, bool additive)
+{
+    if (additive && feature == m_display_pick && m_display_pick_region >= 0 && region >= 0) {
+        if (region_picked(feature, region)) {
+            // Ctrl on an already-picked region drops it.
+            if (region == m_display_pick_region) {
+                if (m_display_pick_extra.empty()) { m_display_pick_region = -1; return; }
+                m_display_pick_region = m_display_pick_extra.back();
+                m_display_pick_extra.pop_back();
+            } else {
+                m_display_pick_extra.erase(std::remove(m_display_pick_extra.begin(), m_display_pick_extra.end(), region),
+                                           m_display_pick_extra.end());
+            }
+            return;
+        }
+        m_display_pick_extra.push_back(m_display_pick_region);
+        m_display_pick_region = region;
+        return;
+    }
+    m_display_pick = feature; m_display_pick_region = region; m_display_pick_extra.clear();
+}
+
 std::vector<SketchEntity> DesignSketchTool::selected_loop_entities() const
 {
     if (m_display_pick < 0 || m_display_pick_region < 0) return {};
@@ -3450,6 +3472,41 @@ std::vector<SketchEntity> DesignSketchTool::selected_loop_entities() const
         return out;
     }
     return {};
+}
+
+// One entity list per picked region (primary first), each region with its own holes. A region that is
+// the hole of another picked region rides with that one rather than being extruded on its own. The
+// kernel refuses disjoint regions in a single extrude on purpose, so the panel makes one feature per
+// group.
+std::vector<std::vector<SketchEntity>> DesignSketchTool::selected_loop_groups() const
+{
+    std::vector<std::vector<SketchEntity>> groups;
+    if (m_display_pick < 0 || m_display_pick_region < 0) return groups;
+    for (const DisplaySketch& d : m_display_sketches) {
+        if (d.feature != m_display_pick) continue;
+        const std::vector<RegionLoop> loops = region_loops(d.entities);
+        std::vector<int> regions = { m_display_pick_region };
+        for (auto it = m_display_pick_extra.rbegin(); it != m_display_pick_extra.rend(); ++it) regions.push_back(*it);
+        std::vector<int> is_hole;   // holes of picked regions
+        for (int r : regions)
+            if (r >= 0 && r < int(loops.size()))
+                for (int h : loops[r].holes) is_hole.push_back(h);
+        for (int r : regions) {
+            if (r < 0 || r >= int(loops.size())) continue;
+            if (std::find(is_hole.begin(), is_hole.end(), r) != is_hole.end()) continue;
+            std::vector<SketchEntity> g;
+            auto take = [&](int region) {
+                if (region < 0 || region >= int(loops.size())) return;
+                for (int ei : loops[region].ents)
+                    if (ei >= 0 && ei < int(d.entities.size())) g.push_back(d.entities[ei]);
+            };
+            take(r);
+            for (int h : loops[r].holes) take(h);
+            if (!g.empty()) groups.push_back(std::move(g));
+        }
+        break;
+    }
+    return groups;
 }
 
 // ---- Solid topology selection (whole -> face -> edge cycle) ----
@@ -9627,7 +9684,7 @@ void DesignSketchTool::render(GLCanvas3D& canvas)
             m_plane = ds.plane;
             const std::vector<RegionLoop> loops = region_loops(ds.entities);
             for (int r = 0; r < int(loops.size()); ++r) {
-                const bool sel = (ds.feature == m_display_pick && r == m_display_pick_region);
+                const bool sel = region_picked(ds.feature, r);
                 const ColorRGBA* hlc = sketch_hl_color(ds.feature);
                 ColorRGBA fc = sel ? sface : dface;
                 if (hlc && !sel) { fc = *hlc; fc.a(0.20f); }
@@ -9645,6 +9702,8 @@ void DesignSketchTool::render(GLCanvas3D& canvas)
             if (ds.feature == m_display_pick && m_display_pick_region >= 0) {
                 const std::vector<RegionLoop> loops = region_loops(ds.entities);
                 if (m_display_pick_region < int(loops.size())) {
+                    std::vector<int> picked = { m_display_pick_region };
+                    for (int r : m_display_pick_extra) picked.push_back(r);
                     // The holes light up with their region. The highlight has to show what will
                     // be EXTRUDED, and a hole is part of that — a plate whose bore stays orange
                     // while its outline turns cyan would say the circle is not coming along,
@@ -9654,8 +9713,11 @@ void DesignSketchTool::render(GLCanvas3D& canvas)
                         for (int ei : loops[region].ents)
                             if (ei >= 0 && ei < int(sel_ent.size())) sel_ent[ei] = 1;
                     };
-                    mark(m_display_pick_region);
-                    for (int h : loops[m_display_pick_region].holes) mark(h);
+                    for (int r : picked) {
+                        mark(r);
+                        if (r >= 0 && r < int(loops.size()))
+                            for (int h : loops[r].holes) mark(h);
+                    }
                 }
             }
             std::vector<Vec2d> point_markers, sel_point_markers;
@@ -11231,8 +11293,11 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
             hit_display_sketch(d, p, tol, edge_feat, edge_reg, edge_ent, edge_d, face_feat, face_reg);
         }
         // A precise hit on a loop outline wins over the solid face beneath it.
+        // Ctrl (or Cmd) adds another region of the same sketch to the pick. The camera binds Ctrl
+        // only to wheel and drag; a click that stays inside the drag budget is ours.
+        const bool additive = evt.ControlDown() || evt.CmdDown();
         if (edge_feat >= 0) {
-            m_display_pick = edge_feat; m_display_pick_region = edge_reg;
+            apply_loop_click(edge_feat, edge_reg, additive);
             if (on_display_sketch_selected) on_display_sketch_selected(edge_feat, edge_reg, edge_ent);
             return true;
         }
@@ -11240,11 +11305,11 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
         if (handle_solid_click(canvas, evt)) return true;
         // Interior of a committed loop with no solid behind it.
         if (face_feat >= 0) {
-            m_display_pick = face_feat; m_display_pick_region = face_reg;
+            apply_loop_click(face_feat, face_reg, additive);
             if (on_display_sketch_selected) on_display_sketch_selected(face_feat, face_reg, -1);
             return true;
         }
-        m_display_pick = -1; m_display_pick_region = -1;  // clicked bare plate -> drop highlight
+        m_display_pick = -1; m_display_pick_region = -1; m_display_pick_extra.clear();  // clicked bare plate -> drop highlight
         // ...and the SOLID selection goes with it (od0). A click that hits nothing has to
         // mean what a rubber band that sweeps nothing already means — pick_bodies_in_rectangle
         // clears on an empty sweep, and the two gestures cannot disagree about the same outcome.

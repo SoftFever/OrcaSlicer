@@ -136,6 +136,7 @@ public:
     void set_on_display_sketch_selected(std::function<void(int, int, int)> cb);  // committed loop clicked: (feature, region, entity)
     void set_on_display_sketch_activated(std::function<void(int)> cb);      // committed sketch DOUBLE-clicked: edit it
     std::vector<SketchEntity> selected_loop_entities() const;  // entities of the click-selected loop
+    std::vector<std::vector<SketchEntity>> selected_loop_groups() const;   // every Ctrl-picked loop, with its holes
     std::vector<std::vector<int>> region_entity_indices(const std::vector<SketchEntity>& ents) const;
     // Like region_entity_indices, but each region's entry is its OWN entities followed by the
     // entities of each of its holes — the same order selected_loop_entities() hands the kernel.

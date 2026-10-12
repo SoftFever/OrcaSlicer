@@ -680,6 +680,11 @@ void DesignCanvas::set_on_display_sketch_activated(std::function<void(int)> cb)
     m_sketch_tool.on_display_sketch_activated = std::move(cb);
 }
 
+std::vector<std::vector<SketchEntity>> DesignCanvas::selected_loop_groups() const
+{
+    return m_sketch_tool.selected_loop_groups();
+}
+
 std::vector<SketchEntity> DesignCanvas::selected_loop_entities() const
 {
     return m_sketch_tool.selected_loop_entities();

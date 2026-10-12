@@ -307,6 +307,7 @@ public:
     // Entities forming the currently click-selected loop (for a per-loop extrude); empty
     // if no loop is selected.
     std::vector<SketchEntity> selected_loop_entities() const;
+    std::vector<std::vector<SketchEntity>> selected_loop_groups() const;   // one per Ctrl-picked region
     // Per closed loop, the indices into `ents` that form it (for hiding already-extruded
     // loops from the committed-sketch overlay).
     std::vector<std::vector<int>> region_entity_indices(const std::vector<SketchEntity>& ents) const;
@@ -314,12 +315,12 @@ public:
     // holes, in that order — the exact list a per-loop extrude of a region WITH holes stores
     // (see selected_loop_entities()). Needed to match a consumed loop against its source sketch.
     std::vector<std::vector<int>> region_entity_indices_with_holes(const std::vector<SketchEntity>& ents) const;
-    void clear_display_pick() { m_display_pick = -1; m_display_pick_region = -1; }
+    void clear_display_pick() { m_display_pick = -1; m_display_pick_region = -1; m_display_pick_extra.clear(); }
     // Adopt a loop pick the tool did not make itself. The live-sketch path resolves the region
     // BEFORE the sketch is committed, so once finish_sketch() has turned it into a display
     // sketch there is nothing left that would set this — and selected_loop_entities(), which is
     // what Extrude consumes, reads exactly these two fields.
-    void set_display_pick(int feature, int region) { m_display_pick = feature; m_display_pick_region = region; }
+    void set_display_pick(int feature, int region) { m_display_pick = feature; m_display_pick_region = region; m_display_pick_extra.clear(); }
     int  display_pick() const { return m_display_pick; }
     int  display_pick_region() const { return m_display_pick_region; }
 
@@ -1392,6 +1393,16 @@ private:
     GLModel m_body_edges_model;
     GLModel m_solid_vertex_model;
     int m_display_pick_region{-1}; // selected closed-region index within that feature (-1 none)
+    // Ctrl+click adds more regions of the SAME sketch (the Onshape multi-profile pick). The primary
+    // above is the latest click; these are the earlier ones. All of them extrude together.
+    std::vector<int> m_display_pick_extra;
+    bool region_picked(int feature, int region) const {
+        return feature == m_display_pick && region >= 0
+            && (region == m_display_pick_region
+                || std::find(m_display_pick_extra.begin(), m_display_pick_extra.end(), region) != m_display_pick_extra.end());
+    }
+    // Apply a loop click: plain = replace the pick; Ctrl on a region of the same sketch = toggle it.
+    void apply_loop_click(int feature, int region, bool additive);
 
     // Visual Extrude gizmo state (C5b). GUI-only; fed by the panel each refresh_preview.
     bool        m_ex_active{false};

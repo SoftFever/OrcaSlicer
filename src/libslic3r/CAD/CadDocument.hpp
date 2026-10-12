@@ -572,6 +572,10 @@ public:
     // behind these; they are graph facts about which mate drives which body.
     std::vector<std::pair<int, std::string>> mate_conflicts;
 
+    // Non-fatal notes from the last recompute(): a combine mode that could not be honoured and fell back
+    // to a new body (Extrude / Revolve / Sweep / Loft). .first = feature index, .second = what happened.
+    std::vector<std::pair<int, std::string>> feature_warnings;
+
     // Modeling origin: the world point the default XY/XZ/YZ planes pass through. The GUI sets this
     // to the bed centre so sketches/datums land in the middle of the bed (not the bed corner =
     // world 0) — for a NEW document. It is saved with the recipe: sketches bake it into their
@@ -904,6 +908,7 @@ private:
     void apply_thicken_surface(std::vector<CadBody>& bodies, const CadFeature& f) const;
     void apply_surface_offset(std::vector<CadBody>& bodies, const CadFeature& f) const;
     void apply_project(const std::vector<CadBody>& bodies, CadFeature& f, size_t fi) const;
+    mutable std::vector<std::string> m_pending_warnings;   // filled by route_feature, flushed by replay_feature
     void apply_project_from_sketch(CadFeature& f, size_t fi) const;
     static DatumCoordSys datum_frame(const std::vector<CadBody>& bodies, const CadFeature& f);
     void apply_mate(std::vector<CadBody>& bodies, const CadFeature& f) const;
