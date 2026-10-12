@@ -2300,6 +2300,47 @@ TEST_CASE("Texture displacement JSON keeps defaults for keys it does not carry",
     CHECK(!texture_displacement_layers_from_json("not json at all", unused_layers, unused_options));
 }
 
+// The vectors, the islands and the UV overrides are read through nlohmann's typed accessors, which
+// throw on a value of the wrong type rather than returning anything. Nothing between here and the
+// project load catches that, so a document carrying one has to come back as "malformed block".
+TEST_CASE("Texture displacement JSON reports a value of the wrong type instead of throwing", "[TextureDisplacement]")
+{
+    const std::string json = GENERATE(
+        R"({"layers":[{"slot":0,"offset":["a","b"]}]})",
+        R"({"layers":[{"slot":0,"view_project_right":[1,null,3]}]})",
+        R"({"layers":[{"slot":0,"view_project_matrix":[1,2,3,4,5,6,7,8,9,10,11,"x"]}]})",
+        R"({"layers":[{"slot":0,"lscm_seam_edges":["a","b"]}]})",
+        R"({"layers":[{"slot":0,"islands":[[1,2,"a",4]]}]})",
+        R"({"layers":[{"slot":0,"lscm_uv_overrides":[[1,"a",3]]}]})");
+    INFO(json);
+
+    std::vector<TextureDisplacementLayer> layers;
+    TextureDisplacementOptions            options;
+    bool                                  parsed = true;
+    REQUIRE_NOTHROW(parsed = texture_displacement_layers_from_json(json, layers, options));
+    CHECK_FALSE(parsed);
+    CHECK(layers.empty());
+}
+
+// A plain setting is read through a helper that shrugs a wrong type off, which is the deliberate
+// other half of the case above: the field keeps its default and the rest of the layer still loads.
+TEST_CASE("Texture displacement JSON keeps the default for a setting of the wrong type", "[TextureDisplacement]")
+{
+    const std::string json = R"({"options":{"smooth_strength":"a lot"},"layers":[{"slot":"two","name":"Old","depth_mm":0.75}]})";
+
+    std::vector<TextureDisplacementLayer> layers;
+    TextureDisplacementOptions            options;
+    REQUIRE(texture_displacement_layers_from_json(json, layers, options));
+    REQUIRE(layers.size() == 1);
+
+    const TextureDisplacementLayer   fresh;
+    const TextureDisplacementOptions defaults;
+    CHECK(layers[0].slot == fresh.slot);
+    CHECK(layers[0].name == "Old");
+    CHECK_THAT(layers[0].depth_mm, WithinAbs(0.75f, 1e-6f));
+    CHECK_THAT(options.smooth_strength, WithinAbs(defaults.smooth_strength, 1e-6f));
+}
+
 TEST_CASE("whether a layer's texture has colour agrees with its decode", "[TextureDisplacement]")
 {
     TextureDisplacementLayer gray;

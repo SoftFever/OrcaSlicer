@@ -856,12 +856,29 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::vector<std::string> custom_seam;
             std::vector<std::string> mmu_segmentation;
             std::vector<std::string> fuzzy_skin;
-            // One per texture displacement layer slot, each parallel to `triangles` like the masks above.
+            // One per texture displacement layer slot, indexed by triangle like the masks above, but
+            // empty for a slot nothing paints and no longer than its last painted triangle.
+            // See push_texture_displacement().
             std::vector<std::string> texture_displacement[TEXTURE_DISPLACEMENT_MAX_LAYERS];
             // BBS
             std::vector<std::string> face_properties;
 
             bool empty() { return vertices.empty() || triangles.empty(); }
+
+            // Records the paint mask of the triangle just appended, for one layer slot. A slot no
+            // triangle names keeps its vector empty instead of holding one empty string per triangle:
+            // eight slots over a million triangles would otherwise cost hundreds of megabytes, for
+            // every project, whether or not it uses the feature. The vector is padded up to the
+            // triangles seen so far the first time a value turns up, so it stays indexed by triangle,
+            // and both readers stop at its size, so trailing triangles without a value need nothing.
+            void push_texture_displacement(int slot, std::string &&mask_string) {
+                std::vector<std::string> &mask = texture_displacement[slot];
+                if (mask_string.empty() && mask.empty())
+                    return;
+                assert(!triangles.empty());
+                mask.resize(triangles.size() - 1);
+                mask.push_back(std::move(mask_string));
+            }
 
             // backup & restore
             void swap(Geometry& o) {
@@ -3355,34 +3372,23 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             add_error("Malformed texture displacement data: " + json_path);
             return;
         }
-        // A layer the archive carries no image for - saved while its texture had not been loaded, or
-        // written by a build that stored only the path - falls back to the file it came from. The
-        // importer copies every texture into the user's own library, so that path resolves on the
-        // machine the project was made on and quietly resolves nowhere else, which is the old
-        // behaviour: settings restored, pixels not.
-        const auto load_image_from_disk = [](TextureDisplacementLayer &layer) {
-            boost::system::error_code ec;
-            if (layer.path.empty() || !boost::filesystem::is_regular_file(layer.path, ec) || ec)
-                return;
-            boost::nowide::ifstream file(layer.path, std::ios::binary);
-            if (!file.good())
-                return;
-            std::vector<unsigned char> bytes((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-            if (!bytes.empty())
-                layer.image_data = std::make_shared<std::vector<unsigned char>>(std::move(bytes));
-        };
-
+        // The pixels come from the archive and nowhere else. A layer the archive carries no image for -
+        // saved while its texture had not been loaded, or written by a build that stored only the path -
+        // keeps its settings without an image, which the user recovers by picking the texture again.
+        // `layer.path` is left alone on purpose: it names a file on the machine the project was made on,
+        // so reading it here would let any project choose a local file to open - a UNC path among them -
+        // and have the next save copy it into the archive. The EmbossShape SVGs are read from the archive
+        // only, for the same reason.
         for (TextureDisplacementLayer &layer : layers) {
-            if (!layer.path_in_3mf.empty()) {
-                if (const auto image = m_texture_displacement_files.find(layer.path_in_3mf);
-                    image != m_texture_displacement_files.end()) {
-                    layer.image_data = std::make_shared<std::vector<unsigned char>>(image->second.begin(),
-                                                                                    image->second.end());
-                    continue;
-                }
+            if (layer.path_in_3mf.empty())
+                continue;
+            const auto image = m_texture_displacement_files.find(layer.path_in_3mf);
+            if (image == m_texture_displacement_files.end()) {
                 add_error("Missing texture displacement image: " + layer.path_in_3mf);
+                continue;
             }
-            load_image_from_disk(layer);
+            layer.image_data = std::make_shared<std::vector<unsigned char>>(image->second.begin(),
+                                                                            image->second.end());
         }
         volume.texture_displacement_layers  = std::move(layers);
         volume.texture_displacement_options = options;
@@ -4045,8 +4051,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_curr_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
             m_curr_object->geometry.fuzzy_skin.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_FUZZY_SKIN_ATTR));
             for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot)
-                m_curr_object->geometry.texture_displacement[slot].push_back(
-                    bbs_get_attribute_value_string(attributes, num_attributes, TEXTURE_DISPLACEMENT_ATTRS[slot]));
+                m_curr_object->geometry.push_texture_displacement(
+                    slot, bbs_get_attribute_value_string(attributes, num_attributes, TEXTURE_DISPLACEMENT_ATTRS[slot]));
             // BBS
             m_curr_object->geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
         }
@@ -5917,8 +5923,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             current_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
             current_object->geometry.fuzzy_skin.push_back(bbs_get_attribute_value_string(attributes, num_attributes, CUSTOM_FUZZY_SKIN_ATTR));
             for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot)
-                current_object->geometry.texture_displacement[slot].push_back(
-                    bbs_get_attribute_value_string(attributes, num_attributes, TEXTURE_DISPLACEMENT_ATTRS[slot]));
+                current_object->geometry.push_texture_displacement(
+                    slot, bbs_get_attribute_value_string(attributes, num_attributes, TEXTURE_DISPLACEMENT_ATTRS[slot]));
             // BBS
             current_object->geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
         }
