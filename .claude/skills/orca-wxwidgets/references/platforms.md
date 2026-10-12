@@ -572,7 +572,8 @@ on the **first** call. So:
 **Before GTK starts**, only the environment exists. `CLI::run` (`src/OrcaSlicer.cpp`) branches on
 `GDK_BACKEND` (an `x11` prefix means the X11 opt-in). On the default path it forces `GDK_BACKEND=x11`
 when wx lacks EGL and `WAYLAND_DISPLAY` is set. It sets `WEBKIT_DISABLE_COMPOSITING_MODE=1`
-(non-replacing) only when both `DISPLAY` and `WAYLAND_DISPLAY` are set, and calls `XInitThreads()`
+(non-replacing) only when both `DISPLAY` and `WAYLAND_DISPLAY` are set and the linked WebKitGTK is
+older than 2.42, and calls `XInitThreads()`
 only when `DISPLAY` is set. With neither variable set, the GUI refuses to start ("Neither DISPLAY nor
 WAYLAND_DISPLAY set"). The details and the WebKit rule (c12912e0df) are in
 `references/webview-gl-aui-media.md` §WebKitGTK on Linux sessions.

@@ -61,7 +61,8 @@ available; GTK2/WebKit1 is an opt-out configuration the GUI does not support.
 11. A web host that re-themes in place handles `EVT_WEBVIEW_RECREATED` without `Skip()`; one that
     needs a reload lets it through. §[Orca wrapper](#orca-webview-wrapper-widgetswebview)
 12. Keep `WebViewWebKit`'s destructor removing the `"wx"` handler. §[Orca wrapper](#orca-webview-wrapper-widgetswebview)
-13. Do not widen `WEBKIT_DISABLE_COMPOSITING_MODE` beyond Orca's default-path XWayland case, and never
+13. Do not widen `WEBKIT_DISABLE_COMPOSITING_MODE` beyond Orca's default-path XWayland case for
+    WebKitGTK older than 2.42, and never
     make a page's progress depend only on a C++→JS callback. §[WebKitGTK on Linux](#webkitgtk-on-linux-sessions)
 14. GL attribute lists: legacy `int[]` lists end with `0` and spell out `WX_GL_RGBA` and
     `WX_GL_DOUBLEBUFFER`; `wxGLAttributes`/`wxGLContextAttrs` end with `EndList()`; MSAA is requested
@@ -570,7 +571,8 @@ vue-resize workaround script and sets a persistent SQLite cookie store on the vi
 branches on `GDK_BACKEND`:
 - **Default path** (`GDK_BACKEND` unset or not starting with `x11`): if wx lacks EGL (`!wxHAS_EGL`) and
   `WAYLAND_DISPLAY` is set, it forces `GDK_BACKEND=x11`; it sets `WEBKIT_DISABLE_COMPOSITING_MODE=1`
-  non-replacing **only** when both `DISPLAY` and `WAYLAND_DISPLAY` are non-empty (a Wayland session with
+  non-replacing **only** when the linked WebKitGTK predates 2.42 (`WebView::NeedsCompositingWorkaround()`)
+  **and** both `DISPLAY` and `WAYLAND_DISPLAY` are non-empty (a Wayland session with
   XWayland available — the session, not the backend GTK will pick); `XInitThreads()` runs only when
   `DISPLAY` is set.
 - **`GDK_BACKEND=x11…` opt-in path**: sets `DRI_PRIME=1` (and the NVIDIA PRIME variables when
@@ -584,16 +586,19 @@ Runtime backend detection elsewhere uses Orca's `is_running_on_wayland()` / `is_
 **Pitfall.**
 - **Rule:** Set `WEBKIT_DISABLE_COMPOSITING_MODE` only on the default path in Wayland sessions,
   non-replacing (`setenv(..., false)`, so a value the user already exported wins), before GTK
-  initialises; never unconditionally. Keep JS-side fallbacks so a page never
+  initialises; never unconditionally, and only for the WebKitGTK releases that need it (older than
+  2.42, `WebView::NeedsCompositingWorkaround()`). Keep JS-side fallbacks so a page never
   waits forever for a C++→JS call.
-  **Why:** WebKit2GTK accelerated compositing could fail silently under XWayland, leaving web views
-  blank (Setup Wizard stuck on "Loading..."); disabling it everywhere needlessly drops hardware
-  acceleration; without the JS timeout the user is stuck when the signal is lost.
+  **Why:** WebKit2GTK accelerated compositing could fail silently under XWayland before 2.42, leaving
+  web views blank (Setup Wizard stuck on "Loading..."); the variable also turns off threaded scrolling,
+  so applying it on a newer WebKit needlessly drops both GPU compositing and async scrolling (the
+  Device tab loses its smoothness); without the JS timeout the user is stuck when the signal is lost.
   ```cpp
   // Wrong: unconditional, kills HW acceleration everywhere
   ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", false);
-  // Right (default path only): non-replacing, before GTK init, Wayland session with XWayland
-  if (display && *display && wayland && *wayland)
+  // Right (default path only): non-replacing, before GTK init, WebKitGTK < 2.42,
+  // Wayland session with XWayland
+  if (WebView::NeedsCompositingWorkaround() && display && *display && wayland && *wayland)
       ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /*replace*/ false);
   ```
   Cite: c12912e0df (`src/OrcaSlicer.cpp`; `resources/web/guide/0/load.js` `OnInit`

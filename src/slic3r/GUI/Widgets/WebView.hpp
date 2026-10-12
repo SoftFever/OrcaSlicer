@@ -30,6 +30,11 @@ public:
     // ignoring every navigation. A panel that gets true here recreates its view on first Show().
     static bool NeedsRecreateOnShow();
 
+    // True when the linked WebKitGTK predates the fix for the XWayland accelerated
+    // compositing bug (< 2.42), so accelerated compositing must be forced off. False
+    // on every other platform. Safe to call before GTK initialises.
+    static bool NeedsCompositingWorkaround();
+
     static void RecreateAll();
 };
 

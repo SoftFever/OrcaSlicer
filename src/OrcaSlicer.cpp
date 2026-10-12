@@ -161,6 +161,7 @@ using json = nlohmann::json;
 #include <X11/Xlib.h>
 #endif
 #include <unistd.h>
+#include "slic3r/GUI/Widgets/WebView.hpp"
 #endif
 
 #ifdef SLIC3R_GUI
@@ -1153,8 +1154,9 @@ int CLI::run(int argc, char **argv)
     // opt-in path. The ~2020-era WebKit2GTK XWayland compositor bug it
     // worked around appears fixed in WebKit2GTK >= 2.42; leaving it
     // unset preserves WebKit hardware acceleration on Device / Setup
-    // Wizard / login / store. The default path still applies it on
-    // XWayland sessions as a conservative fallback for older WebKit.
+    // Wizard / login / store. The default path applies it only on
+    // XWayland sessions and only when the linked WebKitGTK predates the
+    // fix (< 2.42), as a conservative fallback for older WebKit.
     // ------------------------------------------------------------------
     {
         const char* gdk_backend = ::getenv("GDK_BACKEND");
@@ -1205,15 +1207,15 @@ int CLI::run(int argc, char **argv)
             }
             #endif
 
-            // WebKit2GTK compositing can fail under XWayland on older
-            // WebKit releases. Disable it only when both DISPLAY and
-            // WAYLAND_DISPLAY are set (i.e. an XWayland session is in
-            // use). On pure X11 or native Wayland, compositing is left
-            // enabled so WebKit retains HW acceleration.
+            // WebKit2GTK accelerated compositing could fail under XWayland
+            // on WebKit releases before 2.42. Disable it only then, and only
+            // when both DISPLAY and WAYLAND_DISPLAY are set (an XWayland
+            // session). Disabling it also turns off threaded scrolling, so on
+            // newer WebKit it only costs performance.
             {
                 const char* display_env_wk = ::getenv("DISPLAY");
                 const char* wayland_env_wk = ::getenv("WAYLAND_DISPLAY");
-                if (display_env_wk && *display_env_wk && wayland_env_wk && *wayland_env_wk) {
+                if (WebView::NeedsCompositingWorkaround() && display_env_wk && *display_env_wk && wayland_env_wk && *wayland_env_wk) {
                     ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
                 }
             }
