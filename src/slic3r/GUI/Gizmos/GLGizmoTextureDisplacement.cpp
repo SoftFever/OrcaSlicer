@@ -3741,6 +3741,9 @@ void GLGizmoTextureDisplacement::add_texture_layer()
             probe.image_data = tex->image_data;
             if (!height_texture_has_color(probe))
                 continue;
+            // One copy, not a repeating pattern: a photo or a logo is placed once. The panel's Tile
+            // checkbox is there for the cases that do want it, so this is a default and not a pin.
+            layer.tile_enabled = false;
         }
         layer.name       = entry.name;
         layer.path       = entry.path;
@@ -5443,6 +5446,8 @@ static constexpr float STD_SUBDIV_BORDER_MM   = 0.4f;
 // what the eye actually lands on - a stepped outline around a printed decal reads as a defect in a
 // way a slightly coarse relief transition does not - and it costs triangles along an outline only.
 static constexpr float STD_SUBDIV_COLOR_MM    = 0.25f;
+// The Image tool's triangle budget, in thousands. See apply_image_mode_presets().
+static constexpr int   IMAGE_BUDGET_K        = 1000;
 
 bool GLGizmoTextureDisplacement::apply_standard_mode_presets(ModelVolume *mv)
 {
@@ -5486,7 +5491,22 @@ bool GLGizmoTextureDisplacement::apply_image_mode_presets(ModelVolume *mv)
 {
     if (mv == nullptr)
         return false;
-    bool changed = false;
+    bool                        changed = false;
+    TextureDisplacementOptions &opts    = mv->texture_displacement_options;
+    // A million triangles for the picture. The auto budget is 750 k, chosen for relief, where the
+    // triangles buy shape; here they buy nothing but the sharpness of the edges between colours, and
+    // that is the whole output, so it is worth spending more of them on it.
+    if (opts.v2_max_triangles_k != IMAGE_BUDGET_K) {
+        opts.v2_max_triangles_k = IMAGE_BUDGET_K;
+        changed                 = true;
+    }
+    // Resolution is a slider in this panel rather than an Auto checkbox, so it needs a real value to
+    // start from: the same recommendation Auto would have produced for this model.
+    if (opts.v2_refine_mm <= 0.f) {
+        const float edge   = v2_recommendation(*mv).edge_mm;
+        opts.v2_refine_mm  = edge > 0.f ? edge : 0.3f;
+        changed            = true;
+    }
     for (TextureDisplacementLayer &layer : mv->texture_displacement_layers) {
         // Zero depth is the whole of "no relief": the bake still refines the painted area and still
         // writes the colours, every layer just contributes a displacement of 0 (see

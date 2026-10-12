@@ -6,6 +6,7 @@
 
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GLTexture.hpp"
+#include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
@@ -81,7 +82,11 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
     // produce: Standard's recipe, zero depth with colour on, a click that floods the connected
     // surface rather than a brush, and the fast preview, which with no relief to build is both
     // instant and exactly the final colour.
-    if (apply_standard_mode_presets(mv) || apply_image_mode_presets(mv))
+    // Two statements, not one `||`: short-circuiting would skip the image presets on any frame the
+    // standard ones changed something.
+    const bool std_changed   = apply_standard_mode_presets(mv);
+    const bool image_changed = apply_image_mode_presets(mv);
+    if (std_changed || image_changed)
         m_preview_params_dirty = true;
     m_tool_type   = ToolType::SMART_FILL;
     m_cursor_type = TriangleSelector::CursorType::POINTER;
@@ -166,36 +171,58 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
     m_imgui->pop_bold_font();
     ImGui::Separator();
 
+    // The picture, shown whole and the full width of the window: it is the thing being placed, so a
+    // row-sized thumbnail beside a file name is the wrong size for it. Clicking it opens the library,
+    // which is also where Import lives, and before anything is loaded the same box is an empty frame
+    // with a plus in it - one target, in the same place, whichever state the tool is in.
+    const auto open_library = [&](int slot) {
+        m_picker_slot         = slot;
+        m_picker_open_request = true;
+    };
     if (layer == nullptr) {
-        // Nothing loaded yet, so the window is one button. Picking an image is what creates the
-        // layer; there is no "add a layer first" step to understand.
-        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panel_w);
-        ImGui::TextDisabled("%s", _u8L("Load a picture, then click the model to put it there.").c_str());
-        ImGui::PopTextWrapPos();
+        const float  box_h = std::round(panel_w * 0.6f);
+        const ImVec2 p0    = ImGui::GetCursorScreenPos();
         m_imgui->disabled_begin(busy || mv == nullptr);
-        if (ImGui::Button((_u8L("Load image") + "##load").c_str(), ImVec2(panel_w, 0.f))) {
-            add_texture_layer();           // seeds the first library image that has colour in it
-            m_picker_slot         = m_active_layer_slot;
-            m_picker_open_request = true;  // ... and offers the library, Import included, straight away
-        }
+        const bool clicked = ImGui::InvisibleButton("##load", ImVec2(panel_w, box_h));
         m_imgui->disabled_end();
+        const bool  hot = ImGui::IsItemHovered();
+        ImDrawList *dl  = ImGui::GetWindowDrawList();
+        const ImU32 col = ImGui::GetColorU32(hot ? orca : col_frame);
+        dl->AddRect(p0, ImVec2(p0.x + panel_w, p0.y + box_h), col, style.FrameRounding);
+        const float cx = p0.x + 0.5f * panel_w, cy = p0.y + 0.5f * box_h;
+        const float arm = std::round(box_h * 0.18f), thick = std::max(1.f, std::round(box_h * 0.035f));
+        dl->AddLine(ImVec2(cx - arm, cy), ImVec2(cx + arm, cy), col, thick);
+        dl->AddLine(ImVec2(cx, cy - arm), ImVec2(cx, cy + arm), col, thick);
+        hover_tip(_u8L("Choose a picture to put on the model."));
+        if (clicked) {
+            add_texture_layer();                  // seeds the first library image that has colour in it
+            open_library(m_active_layer_slot);    // ... and offers the library, Import included, at once
+        }
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panel_w);
+        ImGui::TextDisabled("%s", _u8L("Choose a picture, then click the model to put it there.").c_str());
+        ImGui::PopTextWrapPos();
     } else {
-        // The picture: thumbnail and name both reopen the library, which is also where Import lives.
-        const std::string name = layer->name.empty() ? _u8L("Image") : layer->name;
-        if (GLTexture *thumb = get_layer_thumbnail(*layer)) {
-            if (ImGui::ImageButton((ImTextureID) (intptr_t) thumb->get_id(), ImVec2(frame_h, frame_h),
-                                   ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), 0)) {
-                m_picker_slot         = layer->slot;
-                m_picker_open_request = true;
-            }
-        } else if (ImGui::Button("?##thumb", ImVec2(frame_h, frame_h))) {
-            m_picker_slot         = layer->slot;
-            m_picker_open_request = true;
+        // The colour texture is the corrected image at full resolution, which is exactly what should
+        // be previewed - move a correction slider and the box follows. A grayscale picture has no
+        // colour texture, so it falls back to the height thumbnail.
+        GLTexture  *shown  = get_layer_color_texture(*layer);
+        if (shown == nullptr)
+            shown = get_layer_thumbnail(*layer);
+        const float aspect = std::max(0.05f, layer_texture_aspect(*layer));
+        const float box_h  = std::clamp(std::round(panel_w / aspect), std::round(panel_w * 0.35f),
+                                        std::round(panel_w * 1.1f));
+        if (shown != nullptr) {
+            if (ImGui::ImageButton((ImTextureID) (intptr_t) shown->get_id(), ImVec2(panel_w, box_h),
+                                   ImVec2(0.f, 0.f), ImVec2(1.f, 1.f), 0))
+                open_library(layer->slot);
+        } else if (ImGui::Button("?##thumb", ImVec2(panel_w, box_h))) {
+            open_library(layer->slot);
         }
         hover_tip(_u8L("Choose a different picture. Where you placed it and how it is corrected stay as they are."));
-        ImGui::SameLine();
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(name.c_str());
+        const std::string name = layer->name.empty() ? _u8L("Image") : layer->name;
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panel_w);
+        ImGui::TextDisabled("%s", name.c_str());
+        ImGui::PopTextWrapPos();
 
         if (!height_texture_has_color(*layer)) {
             ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panel_w);
@@ -273,6 +300,70 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         hover_tip(_u8L("How wide the picture is on the model, in millimetres."));
         m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer->rotation_deg, 0.f, 360.f, "%.0f°", false);
         hover_tip(_u8L("Turns the picture on the surface, for lining it up with an edge of the model."));
+
+        // Sliding it into place, and whether it repeats. Both belong on one row: the handle is the
+        // coarse control and Tile decides what it is sliding - one copy, or a pattern.
+        {
+            const float x0 = ImGui::GetCursorPosX();
+            ImGui::AlignTextToFramePadding();
+            m_imgui->text(_L("Move"));
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
+            if (icon_toggle(910, "texture_displacement_adjust.svg", m_adjust_texture_mode, _L("Move on the model"),
+                            _L("Move on the model - drag the handle that appears on the surface to slide the "
+                               "picture around, or one of its two arrows to slide it along just that axis."))) {
+                if (!m_adjust_texture_mode) {
+                    update_model_object(); // flush any pending placement before anchoring to it
+                    if (update_adjust_anchor())
+                        m_adjust_texture_mode = true;
+                    else
+                        show_error(nullptr, _u8L("Click the model to put the picture somewhere first."));
+                } else {
+                    m_adjust_texture_mode = false;
+                    m_adjust_drag_handle  = AdjustHandle::None;
+                }
+            }
+            ImGui::SameLine(0.f, gap_s * 2.f);
+            if (m_imgui->bbl_checkbox(_L("Tile"), layer->tile_enabled))
+                m_preview_params_dirty = true;
+            hover_tip(_u8L("Repeats the picture over the area instead of placing a single copy. Off by "
+                           "default, because a photo or a logo goes on once; Size then sets how big that "
+                           "one copy is."));
+        }
+
+        // The one number that decides how sharp the printed picture is. Each triangle prints in a
+        // single filament, so the mesh under the paint has to be finer than the detail wanted out of
+        // the image - and the budget above is what stops that running away.
+        {
+            TextureDisplacementOptions &opts = mv->texture_displacement_options;
+            float                       edge = opts.v2_refine_mm;
+            m_imgui->disabled_begin(busy);
+            if (float_row("##resolution", _L("Detail"), &edge, 0.02f, 2.f, "%.2f mm", true)) {
+                opts.v2_refine_mm      = edge;
+                m_preview_params_dirty = true;
+            }
+            m_imgui->disabled_end();
+            hover_tip(_u8L("How fine the mesh is made under the picture, in millimetres. Each triangle prints "
+                           "in one filament, so this is how sharp an edge between two colors can come out. "
+                           "Smaller costs triangles fast: halving it needs four times as many."));
+
+            // Refining past the budget is not an error - the bake simplifies back down to it - but the
+            // result then carries less of the picture than this slider asks for, and without saying so
+            // the only sign is a print that came out softer than expected.
+            const size_t budget = size_t(std::max(0, opts.v2_max_triangles_k)) * 1000;
+            const size_t needed = estimated_refined_triangles(*mv, edge);
+            if (budget > 0 && needed > budget * 5 / 4) {
+                const auto count = [](size_t n) {
+                    return n >= 1000000 ? Slic3r::format("%1$.1f M", double(n) / 1000000.) :
+                                          Slic3r::format("%1% k", (n + 500) / 1000);
+                };
+                ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + panel_w);
+                m_imgui->warning_text(Slic3r::format(_u8L("Needs about %1% triangles, budget %2% - it will be "
+                                                          "simplified back down and come out softer."),
+                                                     count(needed), count(budget)));
+                ImGui::PopTextWrapPos();
+            }
+        }
 
         ImGui::Separator();
 
