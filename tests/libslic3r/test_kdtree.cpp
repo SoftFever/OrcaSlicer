@@ -3,6 +3,11 @@
 #include <numeric>
 #include <random>
 #include <vector>
+#include <algorithm>
+#include <cstddef>
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include "libslic3r/KDTreeIndirect.hpp"
 #include "libslic3r/Point.hpp"

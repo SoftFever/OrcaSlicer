@@ -11,8 +11,10 @@
 #include <boost/filesystem.hpp>
 #include <utility>
 #include <vector>
+#include <cstdlib>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/catch_approx.hpp>
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/ExPolygon.hpp"

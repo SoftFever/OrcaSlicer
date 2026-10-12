@@ -6,6 +6,7 @@
 #include "../ShortestPath.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/libslic3r.h"
 
 #include <algorithm>
 #include <cmath>
