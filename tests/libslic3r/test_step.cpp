@@ -6,6 +6,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/STEP.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -89,6 +91,44 @@ TEST_CASE("A cone with a slightly tilted seam imports as a closed mesh", "[Step]
     REQUIRE(model.objects.size() == 1);
     REQUIRE(model.objects.front()->volumes.size() == 1);
     CHECK(its_num_open_edges(model.objects.front()->volumes.front()->mesh().its) == 0);
+}
+
+// Imports a STEP file from tests/data and returns its only object's only mesh.
+static TriangleMesh import_single_mesh(const char *file_name, bool split_compound)
+{
+    const std::string path = std::string(TEST_DATA_DIR) + PATH_SEPARATOR + file_name;
+
+    Model model;
+    bool  cancel = false;
+    Step  step(path);
+
+    REQUIRE(step.load() == Step::Step_Status::LOAD_SUCCESS);
+    REQUIRE(step.mesh(&model, cancel, split_compound) == Step::Step_Status::MESH_SUCCESS);
+
+    REQUIRE(model.objects.size() == 1);
+    REQUIRE(model.objects.front()->volumes.size() == 1);
+    return model.objects.front()->volumes.front()->mesh();
+}
+
+// A hexagonal prism with a through hole, centred on the origin and exported as a surface model: 9 loose
+// faces that share no edges, every other face reversed and shifted by 1e-12 mm, so the seams on the
+// x = 0, y = 0 and z = 0 planes differ in float32. Its volume is that of the prism it was cut from.
+TEST_CASE("A STEP surface model imports as a closed mesh", "[Step]")
+{
+    const bool         split_compound = GENERATE(false, true);
+    const TriangleMesh mesh           = import_single_mesh("surface_model_loose_faces.step", split_compound);
+
+    CHECK(its_num_open_edges(mesh.its) == 0);
+    CHECK_THAT(its_volume(mesh.its), Catch::Matchers::WithinRel(1157.666, 1e-3));
+}
+
+// A 10 mm box without its top face: one open shell whose faces share their edges. Sewing cannot close it,
+// so it has to come through unchanged, also when split compounds keep only solids.
+TEST_CASE("An open STEP surface imports unchanged with split compounds", "[Step]")
+{
+    const TriangleMesh mesh = import_single_mesh("open_box_surface.step", true);
+
+    CHECK(its_num_open_edges(mesh.its) == 4);
 }
 
 TEST_CASE("isUtf8 recognises two, three and four byte sequences", "[Step]")

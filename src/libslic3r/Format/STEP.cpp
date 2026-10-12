@@ -28,6 +28,7 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
@@ -57,6 +58,14 @@
 #include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
 #include "BRepTools.hxx"
+#include "BRep_Builder.hxx"
+#include "BRepBuilderAPI_Sewing.hxx"
+#include "ShapeFix_Solid.hxx"
+#include "Standard_Failure.hxx"
+#include "TopExp.hxx"
+#include "TopTools_IndexedDataMapOfShapeListOfShape.hxx"
+#include "TopoDS_Shape.hxx"
+#include "TopoDS_Shell.hxx"
 #include <IMeshTools_Parameters.hxx>
 
 namespace fs = boost::filesystem;
@@ -200,6 +209,65 @@ int StepPreProcessor::preNum(const unsigned char byte) {
     return num;
 }
 
+// Orca: true when an edge bounds only one face. Degenerated edges (e.g. at sphere poles) do not count.
+static bool has_free_edges(const TopoDS_Shape &shape)
+{
+    TopTools_IndexedDataMapOfShapeListOfShape edge_faces;
+    TopExp::MapShapesAndAncestors(shape, TopAbs_EDGE, TopAbs_FACE, edge_faces);
+    for (Standard_Integer i = 1; i <= edge_faces.Extent(); ++i)
+        if (edge_faces(i).Extent() == 1 && !BRep_Tool::Degenerated(TopoDS::Edge(edge_faces.FindKey(i))))
+            return true;
+    return false;
+}
+
+// Orca: surface-model exports (e.g. AP203 GEOMETRIC_SET of trimmed surfaces) hold faces that share no edges.
+// Meshed one by one, their seams only weld where the float coordinates are bitwise equal, which leaves open
+// edges. Sew such faces and make solids of the closed shells, which also orients the faces outward.
+// Returns the shape unchanged when that closes nothing, e.g. for solids or a deliberately open surface.
+static TopoDS_Shape sew_loose_faces(const TopoDS_Shape &shape)
+{
+    // 1 micrometre: far below print resolution, far above the rounding noise between faces of an export.
+    constexpr double sewing_tolerance = 1e-3;
+
+    if (shape.ShapeType() != TopAbs_COMPOUND && shape.ShapeType() != TopAbs_SHELL)
+        return shape;
+    try {
+        BRep_Builder    builder;
+        TopoDS_Compound loose_faces;
+        builder.MakeCompound(loose_faces);
+        for (TopExp_Explorer face(shape, TopAbs_FACE, TopAbs_SOLID); face.More(); face.Next())
+            builder.Add(loose_faces, face.Current());
+        if (!has_free_edges(loose_faces))
+            return shape;
+
+        BRepBuilderAPI_Sewing sewing(sewing_tolerance);
+        sewing.Add(loose_faces);
+        sewing.Perform();
+        const TopoDS_Shape &sewn = sewing.SewedShape();
+
+        TopoDS_Compound result;
+        builder.MakeCompound(result);
+        bool closed_any = false;
+        for (TopExp_Explorer solid(shape, TopAbs_SOLID); solid.More(); solid.Next())
+            builder.Add(result, solid.Current());
+        for (TopExp_Explorer it(sewn, TopAbs_SHELL); it.More(); it.Next()) {
+            const TopoDS_Shell &shell = TopoDS::Shell(it.Current());
+            if (BRep_Tool::IsClosed(shell)) {
+                builder.Add(result, ShapeFix_Solid().SolidFromShell(shell));
+                closed_any = true;
+            } else {
+                builder.Add(result, shell);
+            }
+        }
+        for (TopExp_Explorer free_face(sewn, TopAbs_FACE, TopAbs_SHELL); free_face.More(); free_face.Next())
+            builder.Add(result, free_face.Current());
+        return closed_any ? result : shape;
+    } catch (const Standard_Failure &error) {
+        BOOST_LOG_TRIVIAL(warning) << "STEP import: sewing loose faces failed, importing them unsewn: " << error.GetMessageString();
+        return shape;
+    }
+}
+
 static void getNamedSolids(const TopLoc_Location& location,
                            const std::string& prefix,
                            unsigned int& id,
@@ -231,20 +299,20 @@ static void getNamedSolids(const TopLoc_Location& location,
         TopoDS_Shape shape;
         TopExp_Explorer explorer;
         shapeTool->GetShape(referredLabel, shape);
-        TopAbs_ShapeEnum shape_type = shape.ShapeType();
         BRepBuilderAPI_Transform transform(shape, localLocation, true);
-        int                      i = 0;
-        switch (shape_type) {
+        const TopoDS_Shape       placed = sew_loose_faces(transform.Shape());
+        int                      i      = 0;
+        switch (placed.ShapeType()) {
         case TopAbs_COMPOUND:
             if (!isSplitCompound) {
-                namedSolids.emplace_back(TopoDS::Compound(transform.Shape()), fullName);
+                namedSolids.emplace_back(TopoDS::Compound(placed), fullName);
                 break;
             }
         case TopAbs_COMPSOLID:
             if (!isSplitCompound) {
-                namedSolids.emplace_back(TopoDS::CompSolid(transform.Shape()), fullName);
+                namedSolids.emplace_back(TopoDS::CompSolid(placed), fullName);
             } else {
-                for (explorer.Init(transform.Shape(), TopAbs_SOLID); explorer.More(); explorer.Next()) {
+                for (explorer.Init(placed, TopAbs_SOLID); explorer.More(); explorer.Next()) {
                     i++;
                     const TopoDS_Shape& currentShape = explorer.Current();
                     namedSolids.emplace_back(TopoDS::Solid(currentShape), fullName + "-SOLID-" + std::to_string(i));
@@ -252,10 +320,10 @@ static void getNamedSolids(const TopLoc_Location& location,
             }
             break;
         case TopAbs_SOLID:
-            namedSolids.emplace_back(TopoDS::Solid(transform.Shape()), fullName);
+            namedSolids.emplace_back(TopoDS::Solid(placed), fullName);
             break;
         case TopAbs_SHELL:
-            namedSolids.emplace_back(TopoDS::Shell(transform.Shape()), fullName);
+            namedSolids.emplace_back(TopoDS::Shell(placed), fullName);
             break;
         default:
             break;
