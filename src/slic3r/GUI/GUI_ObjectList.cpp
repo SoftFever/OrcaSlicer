@@ -1617,7 +1617,7 @@ void ObjectList::list_manipulation(const wxPoint& mouse_pos, bool evt_context_me
             int obj_idx, vol_idx;
             get_selected_item_indexes(obj_idx, vol_idx, item);
             if (obj_idx != -1) {
-                Plater::TakeSnapshot(plater, _u8L("Shift objects to bed"));
+                Plater::TakeSnapshot snapshot(plater, _u8L("Shift objects to bed"));
                 (*m_objects)[obj_idx]->ensure_on_bed();
                 cnv->reload_scene(true, true);
                 update_info_items(obj_idx);
@@ -2701,7 +2701,7 @@ void ObjectList::load_mesh_object(const std::vector<std::pair<const TriangleMesh
     Slic3r::save_object_mesh(*new_object);
 
     // BBS: find an empty cell to put the copied object
-    auto start_point = wxGetApp().plater()->build_volume().bounding_volume2d().center();
+    auto start_point = wxGetApp().plater()->build_volume().bed_center();
     auto empty_cell  = wxGetApp().plater()->canvas3D()->get_nearest_empty_cell({start_point(0), start_point(1)});
 
     new_object->instances[0]->set_offset(center ? to_3d(Vec2d(empty_cell(0), empty_cell(1)), -new_object->origin_translation.z()) : bb.center());
@@ -2779,12 +2779,13 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
     GLCanvas3D* cnv = plater->canvas3D();
 
     switch (type) {
-    case InfoItemType::CustomSupports:
+    case InfoItemType::CustomSupports: {
         cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, "Remove support painting");
+        Plater::TakeSnapshot snapshot(plater, "Remove support painting");
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->supported_facets.reset();
         break;
+    }
 
     // BBS: remove CustomSeam
 
@@ -2795,19 +2796,21 @@ void ObjectList::del_info_item(const int obj_idx, InfoItemType type)
         }
         break;
 
-    case InfoItemType::MmSegmentation:
+    case InfoItemType::MmSegmentation: {
         cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, "Remove color painting");
+        Plater::TakeSnapshot snapshot(plater, "Remove color painting");
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->mmu_segmentation_facets.reset();
         break;
+    }
 
-    case InfoItemType::FuzzySkin:
+    case InfoItemType::FuzzySkin: {
         cnv->get_gizmos_manager().reset_all_states();
-        Plater::TakeSnapshot(plater, _u8L("Remove paint-on fuzzy skin"));
+        Plater::TakeSnapshot snapshot(plater, _u8L("Remove paint-on fuzzy skin"));
         for (ModelVolume* mv : (*m_objects)[obj_idx]->volumes)
             mv->fuzzy_skin_facets.reset();
         break;
+    }
 
     // BBS: remove Sinking
     case InfoItemType::Undef : assert(false); break;
@@ -6718,7 +6721,7 @@ void ObjectList::OnEditingStarted(wxDataViewEvent &event)
     else if (col == colSinking) {
         Plater *    plater = wxGetApp().plater();
         GLCanvas3D *cnv    = plater->canvas3D();
-        Plater::TakeSnapshot(plater, _u8L("Shift objects to bed"));
+        Plater::TakeSnapshot snapshot(plater, _u8L("Shift objects to bed"));
         int obj_idx, vol_idx;
         get_selected_item_indexes(obj_idx, vol_idx, item);
         (*m_objects)[obj_idx]->ensure_on_bed();

@@ -38,6 +38,7 @@
 #include <wx/url.h>
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
+#include <slic3r/GUI/Widgets/WebViewHostDialog.hpp>
 #include <wx/webview.h>
 #include <wx/utils.h>
 #include <wx/window.h>
@@ -53,6 +54,25 @@ namespace GUI {
     wxDEFINE_EVENT(EVT_RESPONSE_MESSAGE, wxCommandEvent);
 
     #define LOGIN_INFO_UPDATE_TIMER_ID 10002
+
+// The home page's strings (resources/web/homepage), keyed by their data-i18n and T() ids.
+static json home_page_strings()
+{
+    return {
+        {"login", _u8L("Login")},
+        {"not_signed_in", _u8L("Not signed in")},
+        {"plugin_not_detected", _u8L("Bambu Network plug-in not detected. Click <a>here</a> to install it.")},
+        {"log_out", _u8L("Log Out")},
+        {"recent", _u8L("Recent")},
+        {"new_project", _u8L("New Project")},
+        {"create_new_project", _u8L("Create new project")},
+        {"open_project", _u8L("Open Project")},
+        {"recently_opened", _u8L("Recently opened")},
+        {"clear_all", _u8L("Clear all")},
+        {"remove", _u8L("Remove")},
+        {"open_containing_folder", _u8L("Open Containing Folder")},
+    };
+}
 
     BEGIN_EVENT_TABLE(WebViewPanel, wxPanel)
     EVT_TIMER(LOGIN_INFO_UPDATE_TIMER_ID, WebViewPanel::OnFreshLoginStatus)
@@ -263,7 +283,10 @@ WebViewPanel::~WebViewPanel()
 
 void WebViewPanel::create_browser()
 {
-    m_browser = WebView::CreateWebView(this, m_home_url);
+    // Created empty and loaded after the strings are added, so the first load already has them.
+    m_browser = WebView::CreateWebView(this, wxEmptyString);
+    m_browser->AddUserScript(wxString::FromUTF8(WebViewHostDialog::localized_strings_script(home_page_strings())));
+    WebView::LoadUrl(m_browser, m_home_url);
     m_browser->Hide();
 }
 
