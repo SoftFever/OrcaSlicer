@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: 2025-06-02 17:12+0900\n"
 "Last-Translator: crwusiz <crwusiz@gmail.com>\n"
 "Language-Team: \n"
@@ -4324,6 +4324,16 @@ msgstr "최근 프로젝트"
 msgid "Go to Plate"
 msgstr "플레이트로 이동"
 
+msgid "Device"
+msgstr "장치"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "장치 (웹)"
+
+msgid "Multi-device"
+msgstr "멀티 디바이스"
+
 msgid "AMS Materials Setting"
 msgstr "AMS 재료 설정"
 
@@ -4374,6 +4384,9 @@ msgstr "정말 필라멘트 정보를 삭제하시겠습니까?"
 msgid "You need to select the material type and color first."
 msgstr "재료 유형과 색상을 먼저 선택해야 합니다."
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "유효한 값을 입력하세요 (%.1f~%.1f 사이의 K)"
@@ -4381,6 +4394,12 @@ msgstr "유효한 값을 입력하세요 (%.1f~%.1f 사이의 K)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "유효한 값을 입력하세요 (%.1f~%.1f 사이의 K, %.1f~%.1f 사이의 N)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -6472,18 +6491,8 @@ msgstr "준비 하기"
 msgid "Preview"
 msgstr "미리 보기"
 
-msgid "Device"
-msgstr "장치"
-
-msgid "Multi-device"
-msgstr "멀티 디바이스"
-
 msgid "Project"
 msgstr "프로젝트"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "장치 (웹)"
 
 msgid "Yes"
 msgstr "예"
@@ -7192,6 +7201,22 @@ msgstr ".gcode.3mf 파일에는 G-code 데이터가 없습니다. OrcaSlicer에�
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "'%s' 파일이 손실되었습니다! 다시 다운로드하세요."
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11458,6 +11483,12 @@ msgstr "타임랩스 취소 후 출력"
 # AI Translated
 msgid "Clean Up"
 msgstr "정리"
+
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "출력 작업 준비 중"
@@ -31797,6 +31828,9 @@ msgstr "개발자 도구 사용"
 msgid "An error occurred loading %s"
 msgstr "%s 로드 중 오류가 발생했습니다"
 
+msgid "/"
+msgstr "/"
+
 # AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
@@ -33871,9 +33905,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "로드 중 오류가 발생했습니다: "
-
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: 2026-07-02 14:13+0300\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -4291,6 +4291,16 @@ msgstr "Paskutinieji projektai"
 msgid "Go to Plate"
 msgstr "Eiti į plokštę"
 
+msgid "Device"
+msgstr "Įrenginys"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Įrenginys (Web)"
+
+msgid "Multi-device"
+msgstr "Kelių įrenginių valdymas (Multi-device)"
+
 msgid "AMS Materials Setting"
 msgstr "AMS medžiagų nuostatos"
 
@@ -4341,6 +4351,9 @@ msgstr "Ar jūs tikrai norite išvalyti gijos informaciją?"
 msgid "You need to select the material type and color first."
 msgstr "Pradžioje jums reikia pasirinkti medžiagos tipą ir spalvą."
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "Įveskite tinkamą reikšmę (K %.1f~%.1f)"
@@ -4348,6 +4361,12 @@ msgstr "Įveskite tinkamą reikšmę (K %.1f~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Įveskite tinkamą reikšmę (K %.1f~%.1f, N %.1f~%.1f)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -6435,18 +6454,8 @@ msgstr "Paruošimas"
 msgid "Preview"
 msgstr "Peržiūra"
 
-msgid "Device"
-msgstr "Įrenginys"
-
-msgid "Multi-device"
-msgstr "Kelių įrenginių valdymas (Multi-device)"
-
 msgid "Project"
 msgstr "Projektas"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Įrenginys (Web)"
 
 msgid "Yes"
 msgstr "Taip"
@@ -7152,6 +7161,22 @@ msgstr "Failas „.gcode.3mf“ neturi G-code duomenų. Supjaustykite jį su „
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Failas „%s“ nerastas! Atsisiųskite jį iš naujo."
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11285,6 +11310,12 @@ msgstr "Atšaukti intervalinį fotografavimą ir spausdinti"
 msgid "Clean Up"
 msgstr "Išvalyti"
 
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Spausdinimo užduoties rengimas"
 
@@ -12954,6 +12985,7 @@ msgstr ""
 msgid "Select filtered"
 msgstr ""
 
+# AI Translated
 msgid "Clear all"
 msgstr "Išvalyti visus"
 
@@ -31133,6 +31165,10 @@ msgid "An error occurred loading %s"
 msgstr "Įvyko klaida įkeliant %s"
 
 # AI Translated
+msgid "/"
+msgstr "/"
+
+# AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
 msgstr "Įkelti %1%: %2%"
@@ -33198,10 +33234,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "Įvyko klaida įkeliant "
-
-# AI Translated
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format

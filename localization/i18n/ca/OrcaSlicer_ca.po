@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: 2025-03-15 10:55+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4375,6 +4375,16 @@ msgstr "Projectes recents"
 msgid "Go to Plate"
 msgstr "Anar a la placa"
 
+msgid "Device"
+msgstr "Dispositiu"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Dispositiu (Web)"
+
+msgid "Multi-device"
+msgstr "Multidispositiu"
+
 msgid "AMS Materials Setting"
 msgstr "Configuració de materials AMS"
 
@@ -4423,6 +4433,9 @@ msgstr "Estàs segur que vols esborrar la informació del filament?"
 msgid "You need to select the material type and color first."
 msgstr "Primer heu de seleccionar el tipus de material i el color."
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "Introduïu un valor vàlid (K a %.1f~%.1f)"
@@ -4430,6 +4443,12 @@ msgstr "Introduïu un valor vàlid (K a %.1f~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Introduïu un valor vàlid (K a %.1f~%.1f, N a %.1f~%.1f)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -6506,18 +6525,8 @@ msgstr "Preparació"
 msgid "Preview"
 msgstr "Previsualització"
 
-msgid "Device"
-msgstr "Dispositiu"
-
-msgid "Multi-device"
-msgstr "Multidispositiu"
-
 msgid "Project"
 msgstr "Projecte"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Dispositiu (Web)"
 
 msgid "Yes"
 msgstr "Sí"
@@ -7224,6 +7233,22 @@ msgstr "El fitxer .gcode.3mf no conté dades de G-code. Lamineu-lo amb Orca Slic
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "L'arxiu '%s' s'ha perdut! Si us plau, descarregueu-lo de nou."
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11410,6 +11435,12 @@ msgstr "Cancel·lar el timelapse i imprimir"
 # AI Translated
 msgid "Clean Up"
 msgstr "Netejar"
+
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "Preparant el treball d'impressió"
@@ -31518,6 +31549,9 @@ msgstr "Activar les eines de desenvolupament"
 msgid "An error occurred loading %s"
 msgstr "S'ha produït un error en carregar %s"
 
+msgid "/"
+msgstr "/"
+
 # AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
@@ -33584,9 +33618,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "S'ha produït un error en carregar "
-
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format

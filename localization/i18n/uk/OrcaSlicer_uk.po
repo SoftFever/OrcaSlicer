@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: 2026-07-17 16:25+0300\n"
 "Last-Translator: Andrij Mizyk <andm1zyk@proton.me>\n"
 "Language-Team: Ukrainian\n"
@@ -4245,6 +4245,16 @@ msgstr "Останні проєкти"
 msgid "Go to Plate"
 msgstr "Перейти до пластини"
 
+msgid "Device"
+msgstr "Пристрій"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Пристрій (Веб)"
+
+msgid "Multi-device"
+msgstr "Багато пристроїв"
+
 msgid "AMS Materials Setting"
 msgstr "Налаштування матеріалів AMS"
 
@@ -4295,6 +4305,9 @@ msgstr "Ви впевнені, що хочете видалити інформа
 msgid "You need to select the material type and color first."
 msgstr "Спочатку потрібно вибрати тип матеріалу та колір."
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "Будь ласка введіть коректне значення (K в %.1f~%.1f)"
@@ -4302,6 +4315,12 @@ msgstr "Будь ласка введіть коректне значення (K 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Будь ласка введіть коректне значення (K в %.1f~%.1f, N в %.1f~%.1f)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 # AI Translated
 msgid ""
@@ -6429,18 +6448,8 @@ msgstr "Підготовка"
 msgid "Preview"
 msgstr "Перегляд"
 
-msgid "Device"
-msgstr "Пристрій"
-
-msgid "Multi-device"
-msgstr "Багато пристроїв"
-
 msgid "Project"
 msgstr "Проєкт"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Пристрій (Веб)"
 
 msgid "Yes"
 msgstr "Так"
@@ -7147,6 +7156,22 @@ msgstr "Файл .gcode.3mf не містить даних G-code. Будь ла
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Файл '%s' втрачений! Завантажте його знову."
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11363,6 +11388,12 @@ msgstr "Скасувати таймлапс і друкувати"
 # AI Translated
 msgid "Clean Up"
 msgstr "Очистити"
+
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "Підготовка завдання для друку"
@@ -31624,6 +31655,9 @@ msgstr "Увімкнути інструменти розробника"
 msgid "An error occurred loading %s"
 msgstr "Помилка під час завантаження %s"
 
+msgid "/"
+msgstr "/"
+
 # AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
@@ -33717,9 +33751,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "Помилка під час завантаження "
-
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format

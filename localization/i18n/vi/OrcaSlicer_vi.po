@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: 2025-10-02 17:43+0700\n"
 "Last-Translator: \n"
 "Language-Team: hainguyen.ts13@gmail.com\n"
@@ -4503,6 +4503,16 @@ msgstr "Dự án gần đây"
 msgid "Go to Plate"
 msgstr "Đi tới plate"
 
+msgid "Device"
+msgstr "Thiết bị"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Thiết bị (Web)"
+
+msgid "Multi-device"
+msgstr "Nhiều thiết bị"
+
 msgid "AMS Materials Setting"
 msgstr "Cài đặt vật liệu AMS"
 
@@ -4555,6 +4565,9 @@ msgstr "Bạn có chắc muốn xóa thông tin filament?"
 msgid "You need to select the material type and color first."
 msgstr "Bạn cần chọn loại vật liệu và màu trước."
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "Vui lòng nhập giá trị hợp lệ (K trong %.1f~%.1f)"
@@ -4562,6 +4575,12 @@ msgstr "Vui lòng nhập giá trị hợp lệ (K trong %.1f~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Vui lòng nhập giá trị hợp lệ (K trong %.1f~%.1f, N trong %.1f~%.1f)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 # AI Translated
 msgid ""
@@ -6789,18 +6808,8 @@ msgstr "Chuẩn bị"
 msgid "Preview"
 msgstr "Xem trước"
 
-msgid "Device"
-msgstr "Thiết bị"
-
-msgid "Multi-device"
-msgstr "Nhiều thiết bị"
-
 msgid "Project"
 msgstr "Dự án"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Thiết bị (Web)"
 
 msgid "Yes"
 msgstr "Có"
@@ -7512,6 +7521,22 @@ msgstr "File .gcode.3mf không chứa dữ liệu G-code. Vui lòng slice với 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "File '%s' đã bị mất! Vui lòng tải lại."
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11886,6 +11911,12 @@ msgstr "Hủy timelapse & In"
 # AI Translated
 msgid "Clean Up"
 msgstr "Dọn dẹp"
+
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "Đang chuẩn bị công việc in"
@@ -32296,6 +32327,10 @@ msgid "An error occurred loading %s"
 msgstr "Đã xảy ra lỗi khi tải %s"
 
 # AI Translated
+msgid "/"
+msgstr "/"
+
+# AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
 msgstr "Nạp %1% vào %2%"
@@ -34397,10 +34432,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "Đã xảy ra lỗi khi tải "
-
-# AI Translated
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format

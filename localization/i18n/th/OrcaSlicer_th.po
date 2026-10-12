@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: 2026-06-19 13:40+0700\n"
 "Last-Translator: Icezaza\n"
 "Language-Team: Thai\n"
@@ -4279,6 +4279,16 @@ msgstr "โปรเจกต์ล่าสุด"
 msgid "Go to Plate"
 msgstr "ไปที่ฐานพิมพ์"
 
+msgid "Device"
+msgstr "อุปกรณ์"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "อุปกรณ์ (เว็บ)"
+
+msgid "Multi-device"
+msgstr "หลายอุปกรณ์"
+
 msgid "AMS Materials Setting"
 msgstr "การตั้งค่าวัสดุ AMS"
 
@@ -4329,6 +4339,9 @@ msgstr "คุณแน่ใจหรือไม่ว่าต้องกา
 msgid "You need to select the material type and color first."
 msgstr "คุณต้องเลือกประเภทวัสดุและสีก่อน"
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "โปรดป้อนค่าที่ถูกต้อง (K อยู่ในช่วง %.1f~%.1f)"
@@ -4336,6 +4349,12 @@ msgstr "โปรดป้อนค่าที่ถูกต้อง (K อ�
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "โปรดป้อนค่าที่ถูกต้อง (K ใน %.1f~%.1f, N ใน %.1f~%.1f)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -6399,18 +6418,8 @@ msgstr "เตรียมพิมพ์"
 msgid "Preview"
 msgstr "พรีวิว"
 
-msgid "Device"
-msgstr "อุปกรณ์"
-
-msgid "Multi-device"
-msgstr "หลายอุปกรณ์"
-
 msgid "Project"
 msgstr "โปรเจกต์"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "อุปกรณ์ (เว็บ)"
 
 msgid "Yes"
 msgstr "ใช่"
@@ -7105,6 +7114,22 @@ msgstr "ไฟล์ .gcode.3mf ไม่มีข้อมูล G-code โป�
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "ไฟล์ '%s' สูญหาย! กรุณาดาวน์โหลดอีกครั้ง."
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11214,6 +11239,12 @@ msgstr "ยกเลิกไทม์แลปส์และพิมพ์"
 # AI Translated
 msgid "Clean Up"
 msgstr "ล้าง"
+
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "กำลังเตรียมงานพิมพ์"
@@ -31015,6 +31046,10 @@ msgid "An error occurred loading %s"
 msgstr "เกิดข้อผิดพลาดในการโหลด %s"
 
 # AI Translated
+msgid "/"
+msgstr "/"
+
+# AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
 msgstr "โหลด %1% ไปยัง %2%"
@@ -33074,10 +33109,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "เกิดข้อผิดพลาดในการโหลด "
-
-# AI Translated
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format

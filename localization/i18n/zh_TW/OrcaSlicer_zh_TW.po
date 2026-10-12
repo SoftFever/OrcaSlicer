@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: 2025-11-28 13:48-0600\n"
 "Last-Translator: tntchn <15895303+tntchn@users.noreply.github.com>\n"
 "Language-Team: \n"
@@ -4237,6 +4237,16 @@ msgstr "最近的專案"
 msgid "Go to Plate"
 msgstr "前往列印板"
 
+msgid "Device"
+msgstr "裝置"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "裝置（網頁）"
+
+msgid "Multi-device"
+msgstr "多臺裝置"
+
 msgid "AMS Materials Setting"
 msgstr "AMS 線材設定"
 
@@ -4288,6 +4298,9 @@ msgstr "您確認要清除線材資訊嗎？"
 msgid "You need to select the material type and color first."
 msgstr "您需要先選擇線材類型和顏色。"
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "請輸入有效的數值 (K於 %.1f~%.1f 之間)"
@@ -4295,6 +4308,12 @@ msgstr "請輸入有效的數值 (K於 %.1f~%.1f 之間)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "請輸入有效的數值 (K於 %.1f~%.1f 之間，N於 %.1f~%.1f 之間)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -6381,18 +6400,8 @@ msgstr "準備"
 msgid "Preview"
 msgstr "預覽"
 
-msgid "Device"
-msgstr "裝置"
-
-msgid "Multi-device"
-msgstr "多臺裝置"
-
 msgid "Project"
 msgstr "專案"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "裝置（網頁）"
 
 msgid "Yes"
 msgstr "是"
@@ -7087,6 +7096,22 @@ msgstr ".gcode.3mf 檔案不包含 G-code 資料。請使用 OrcaSlicer 切片�
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "檔案 %s 遺失，請重新下載。"
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11203,6 +11228,12 @@ msgstr "取消縮時攝影並列印"
 msgid "Clean Up"
 msgstr "清理"
 
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "正在準備列印作業"
 
@@ -12852,6 +12883,7 @@ msgstr ""
 msgid "Select filtered"
 msgstr ""
 
+# AI Translated
 msgid "Clear all"
 msgstr "清空"
 
@@ -30938,6 +30970,10 @@ msgid "An error occurred loading %s"
 msgstr "載入 %s 時發生錯誤"
 
 # AI Translated
+msgid "/"
+msgstr "/"
+
+# AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
 msgstr "將 %1% 載入至%2%"
@@ -33013,10 +33049,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "載入時發生錯誤： "
-
-# AI Translated
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format

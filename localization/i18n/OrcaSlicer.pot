@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3999,6 +3999,15 @@ msgstr ""
 msgid "Go to Plate"
 msgstr ""
 
+msgid "Device"
+msgstr ""
+
+msgid "Device (Web)"
+msgstr ""
+
+msgid "Multi-device"
+msgstr ""
+
 msgid "AMS Materials Setting"
 msgstr ""
 
@@ -4047,12 +4056,21 @@ msgstr ""
 msgid "You need to select the material type and color first."
 msgstr ""
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr ""
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
 msgstr ""
 
 msgid ""
@@ -5985,16 +6003,7 @@ msgstr ""
 msgid "Preview"
 msgstr ""
 
-msgid "Device"
-msgstr ""
-
-msgid "Multi-device"
-msgstr ""
-
 msgid "Project"
-msgstr ""
-
-msgid "Device (Web)"
 msgstr ""
 
 msgid "Yes"
@@ -6668,6 +6677,22 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "File '%s' was lost! Please download it again."
+msgstr ""
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -10340,6 +10365,12 @@ msgid "Cancel Timelapse & Print"
 msgstr ""
 
 msgid "Clean Up"
+msgstr ""
+
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
 msgstr ""
 
 msgid "Preparing print job"
@@ -27205,6 +27236,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "An error occurred loading %s"
+msgstr ""
+
+msgid "/"
 msgstr ""
 
 #, possible-boost-format

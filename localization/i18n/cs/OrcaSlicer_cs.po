@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl\n"
 "Language-Team: \n"
@@ -4331,6 +4331,16 @@ msgstr "Nedávné projekty"
 msgid "Go to Plate"
 msgstr "Přejít na desku"
 
+msgid "Device"
+msgstr "Zařízení"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Zařízení (Web)"
+
+msgid "Multi-device"
+msgstr "Více zařízení"
+
 msgid "AMS Materials Setting"
 msgstr "Nastavení materiálů AMS"
 
@@ -4381,6 +4391,9 @@ msgstr "Opravdu chcete vymazat informace o filamentu?"
 msgid "You need to select the material type and color first."
 msgstr "Nejprve musíte vybrat typ materiálu a barvu."
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "Zadejte platnou hodnotu (K v rozsahu %.1f~%.1f)"
@@ -4388,6 +4401,12 @@ msgstr "Zadejte platnou hodnotu (K v rozsahu %.1f~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Zadejte platnou hodnotu (K v rozsahu %.1f~%.1f, N v rozsahu %.1f~%.1f)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -6482,18 +6501,8 @@ msgstr "Připravit"
 msgid "Preview"
 msgstr "Náhled"
 
-msgid "Device"
-msgstr "Zařízení"
-
-msgid "Multi-device"
-msgstr "Více zařízení"
-
 msgid "Project"
 msgstr "Projekt"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Zařízení (Web)"
 
 msgid "Yes"
 msgstr "Ano"
@@ -7204,6 +7213,22 @@ msgstr "Soubor .gcode.3mf neobsahuje žádná G-code data. Prosím, rozřežte m
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Soubor '%s' byl ztracen! Stáhněte jej prosím znovu."
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11379,6 +11404,12 @@ msgstr "Zrušit časosběr a tisknout"
 # AI Translated
 msgid "Clean Up"
 msgstr "Vyčistit"
+
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "Příprava tiskové úlohy"
@@ -31533,6 +31564,10 @@ msgid "An error occurred loading %s"
 msgstr "Při načítání %s došlo k chybě"
 
 # AI Translated
+msgid "/"
+msgstr "/"
+
+# AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
 msgstr "Načíst %1% do: %2%"
@@ -33600,10 +33635,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "Při načítání došlo k chybě: "
-
-# AI Translated
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4295,6 +4295,16 @@ msgstr "Progetti recenti"
 msgid "Go to Plate"
 msgstr "Vai al piatto"
 
+msgid "Device"
+msgstr "Dispositivo"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Dispositivo (Web)"
+
+msgid "Multi-device"
+msgstr "Multi-dispositivo"
+
 msgid "AMS Materials Setting"
 msgstr "Impostazione materiali AMS"
 
@@ -4347,6 +4357,9 @@ msgstr "Sei sicuro di voler cancellare le informazioni del filamento?"
 msgid "You need to select the material type and color first."
 msgstr "Devi prima selezionare il tipo e il colore del materiale."
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "Si prega di immettere un valore valido (K in %.1f~%.1f)"
@@ -4354,6 +4367,12 @@ msgstr "Si prega di immettere un valore valido (K in %.1f~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Si prega di immettere un valore valido (K in %.1f~%.1f, N in %.1f~%.1f)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -6416,18 +6435,8 @@ msgstr "Prepara"
 msgid "Preview"
 msgstr "Anteprima"
 
-msgid "Device"
-msgstr "Dispositivo"
-
-msgid "Multi-device"
-msgstr "Multi-dispositivo"
-
 msgid "Project"
 msgstr "Progetto"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Dispositivo (Web)"
 
 msgid "Yes"
 msgstr "Sì"
@@ -7131,6 +7140,22 @@ msgstr "Il file .gcode.3mf non contiene dati G-code. Elaboralo con OrcaSlicer ed
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Il file '%s' è stato perso! Si prega di scaricarlo di nuovo."
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11288,6 +11313,12 @@ msgstr "Annulla timelapse e stampa"
 # AI Translated
 msgid "Clean Up"
 msgstr "Pulisci"
+
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "Preparazione della stampa"
@@ -31259,6 +31290,9 @@ msgstr "Abilita strumenti per sviluppatori"
 msgid "An error occurred loading %s"
 msgstr "Si è verificato un errore durante il caricamento di %s"
 
+msgid "/"
+msgstr "/"
+
 # AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
@@ -33321,9 +33355,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "Si è verificato un errore durante il caricamento di "
-
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 19:00+0800\n"
 "PO-Revision-Date: 2026-02-25 13:38+0300\n"
 "Last-Translator: Felix14_v2\n"
 "Language-Team: Felix14_v2 (ДС/ТГ: @felix14_v2, почта: aleks111001@list.ru), Andylg <andylg@yandex.ru>\n"
@@ -4267,6 +4267,16 @@ msgstr "Недавние проекты"
 msgid "Go to Plate"
 msgstr "Перейти к столу"
 
+msgid "Device"
+msgstr "Принтер"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Принтер (веб)"
+
+msgid "Multi-device"
+msgstr "Принтеры"
+
 msgid "AMS Materials Setting"
 msgstr "Настройка материалов AMS"
 
@@ -4317,6 +4327,9 @@ msgstr "Вы действительно хотите удалить информ
 msgid "You need to select the material type and color first."
 msgstr "Сначала нужно выбрать тип материала и цвет."
 
+msgid "The minimum temperature cannot be greater than the maximum temperature."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr "Пожалуйста, введите допустимое значение (K в диапазоне %.1f~%.1f)"
@@ -4324,6 +4337,12 @@ msgstr "Пожалуйста, введите допустимое значени
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Пожалуйста, введите допустимое значение (K в диапазоне %.1f~%.1f, N в диапазоне %.1f~%.1f)"
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
+msgstr ""
 
 # Дичь какая-то бамбуковская с терминами, требуется проверка.
 msgid ""
@@ -6465,18 +6484,8 @@ msgstr "Подготовка"
 msgid "Preview"
 msgstr "Просмотр нарезки"
 
-msgid "Device"
-msgstr "Принтер"
-
-msgid "Multi-device"
-msgstr "Принтеры"
-
 msgid "Project"
 msgstr "Проект"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Принтер (веб)"
 
 msgid "Yes"
 msgstr "Да"
@@ -7189,6 +7198,22 @@ msgstr "Файл .gcode.3mf не содержит данных G-code. Испо�
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
 msgstr "Файл '%s' потерян! Пожалуйста, загрузите его снова."
+
+msgid "gcodes"
+msgstr ""
+
+msgid "Failed to delete the file from printer."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Do you want to print the file '%s' from printer?"
+msgstr ""
+
+msgid "Print file"
+msgstr ""
+
+msgid "Failed to start the print job."
+msgstr ""
 
 #, c-format, boost-format
 msgid ""
@@ -11298,6 +11323,12 @@ msgstr "Отключить таймлапс и продолжить"
 msgid "Clean Up"
 msgstr "Очистить"
 
+msgid "AMS filament mapping is not available for this printer. Clear the AMS mapping before printing."
+msgstr ""
+
+msgid "A filament used by this print has no AMS mapping. Assign it before printing."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Подготовка задания на печать"
 
@@ -12968,6 +12999,7 @@ msgstr ""
 msgid "Select filtered"
 msgstr ""
 
+# AI Translated
 msgid "Clear all"
 msgstr "Очистить"
 
@@ -31626,6 +31658,9 @@ msgstr "Включить инструменты разработчика"
 msgid "An error occurred loading %s"
 msgstr "Ошибка при загрузке %s"
 
+msgid "/"
+msgstr "/"
+
 # AI Translated
 #, boost-format
 msgid "Load %1% to %2%"
@@ -33692,9 +33727,6 @@ msgstr ""
 # AI Translated
 #~ msgid "An error occurred loading "
 #~ msgstr "Ошибка при загрузке "
-
-#~ msgid "/"
-#~ msgstr "/"
 
 # AI Translated
 #, c-format, boost-format
