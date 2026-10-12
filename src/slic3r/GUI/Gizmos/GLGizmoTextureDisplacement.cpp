@@ -562,6 +562,11 @@ void GLGizmoTextureDisplacement::on_shutdown()
     m_shaded_island_delta  = Eigen::Matrix<float, 2, 3>::Identity();
     m_island_drag_active = false;
     m_island_move_set.clear();
+    // The pane closes below, taking the highlight with it, and the view must not open the next session in a
+    // Fast the user never picked. Set directly: nothing is to be queued against a gizmo that is closing.
+    if (m_island_view.switched)
+        m_use_shaded_preview = false;
+    m_island_view = IslandViewFollow{};
     m_adjust_texture_mode = false;
     m_seam_edit_mode      = false;
     m_adjust_drag_handle  = AdjustHandle::None;
@@ -727,18 +732,13 @@ void GLGizmoTextureDisplacement::render_painter_gizmo()
 
     // The UV editor's island selection, shown on the model. Polled here rather than pushed: the pane
     // changes its selection in its own mouse handling, and a compare of a few ints per frame is free.
-    {
-        const TextureDisplacementLayer *al = active_layer();
-        const UVEditorCanvas           *uv_canvas = wxGetApp().plater()->get_uv_editor_canvas();
-        if (m_show_uv_editor && al != nullptr && al->projection_method == TextureProjectionMethod::LSCM &&
-            uv_canvas != nullptr && !m_uv_editor_unwrap.empty()) {
-            if (uv_canvas->selected_islands() != m_island_overlay_selection)
-                rebuild_island_overlay(uv_canvas->selected_islands());
-            render_island_overlay();
-        } else if (m_island_overlay_glmodel.is_initialized()) {
-            m_island_overlay_glmodel.reset();
-            m_island_overlay_selection.clear();
-        }
+    if (const std::vector<int> *islands = island_highlight_selection()) {
+        if (*islands != m_island_overlay_selection)
+            rebuild_island_overlay(*islands);
+        render_island_overlay();
+    } else if (m_island_overlay_glmodel.is_initialized()) {
+        m_island_overlay_glmodel.reset();
+        m_island_overlay_selection.clear();
     }
 
     // Diagnostic overlays, drawn on top of whatever preview is active (both pull toward the camera
@@ -1520,7 +1520,7 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
     // is box-filtered down to 128 px for a ~48 px row, and feeding it to the shader cost the preview
     // three quarters of the height map's detail - and, since height_tex_texel is derived from it, also
     // flattened the shading gradient and made the parallax march skip itself at angles where it should
-    // run. Cached on the image_data pointer + smoothing, so no PNG is decoded per frame.
+    // run. Cached per image_data and smoothing, so no PNG is decoded per frame.
     GLTexture *tex = get_layer_height_texture(*layer);
     if (tex == nullptr || tex->get_width() <= 0 || tex->get_height() <= 0)
         return;
@@ -1924,6 +1924,16 @@ void GLGizmoTextureDisplacement::render_paint_overlay(GLModel &overlay)
     glsafe(::glDepthMask(GL_TRUE));
     glsafe(::glDisable(GL_POLYGON_OFFSET_FILL));
     shader->stop_using();
+}
+
+const std::vector<int> *GLGizmoTextureDisplacement::island_highlight_selection()
+{
+    const TextureDisplacementLayer *al        = active_layer();
+    const UVEditorCanvas           *uv_canvas = wxGetApp().plater()->get_uv_editor_canvas();
+    if (m_show_uv_editor && al != nullptr && al->projection_method == TextureProjectionMethod::LSCM &&
+        uv_canvas != nullptr && !m_uv_editor_unwrap.empty())
+        return &uv_canvas->selected_islands();
+    return nullptr;
 }
 
 void GLGizmoTextureDisplacement::rebuild_island_overlay(const std::vector<int> &selection)
@@ -2651,6 +2661,37 @@ void GLGizmoTextureDisplacement::apply_view_mode(int mode)
     m_parent.set_as_dirty();
 }
 
+int GLGizmoTextureDisplacement::view_mode() const
+{
+    return m_use_shaded_preview                         ? 1 :
+           m_uv_check_mode == UVCheckMode::Checker    ? 2 :
+           m_uv_check_mode == UVCheckMode::Distortion ? 3 : 0;
+}
+
+int GLGizmoTextureDisplacement::IslandViewFollow::step(bool shown_now, int view, bool debug_open)
+{
+    shown = shown_now;
+    if (!shown) {
+        // The view is back to Normal already if a debug stage took it, and Normal applied over a stage would
+        // queue a preview job that replaces the stage being inspected.
+        const bool restore = switched && view == 1;
+        switched = keep_normal = false;
+        return restore ? 0 : -1;
+    }
+    if (view != 0 || keep_normal || debug_open)
+        return -1;
+    switched = true;
+    return 1;
+}
+
+void GLGizmoTextureDisplacement::follow_island_highlight()
+{
+    const std::vector<int> *islands = island_highlight_selection();
+    const int view = m_island_view.step(islands != nullptr && !islands->empty(), view_mode(), m_debug_stage >= 0);
+    if (view >= 0)
+        apply_view_mode(view);
+}
+
 void GLGizmoTextureDisplacement::push_uv_pane_state()
 {
     UVEditorCanvas *canvas = wxGetApp().plater()->get_uv_editor_canvas();
@@ -2891,7 +2932,8 @@ void GLGizmoTextureDisplacement::run_uv_command(int cmd, float value)
             rebuild_preview();
         }
     }
-    // FrameAll/ToggleSnap are handled inside the canvas; ProjectFromView is not wired yet.
+    // FrameAll/ToggleSnap are handled inside the canvas; ProjectFromView is not wired yet. SelectionChanged
+    // only asks for this frame: follow_island_highlight() and the overlay read the selection back themselves.
     m_parent.set_as_dirty();
 }
 
@@ -4038,8 +4080,8 @@ void GLGizmoTextureDisplacement::remove_texture_layer(int slot)
     if (slot >= 0 && slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS)) {
         mv->texture_displacement_facet(slot).reset();
         m_thumbnails[size_t(slot)].reset();
-        m_thumbnail_source[size_t(slot)] = nullptr;
-        m_layer_expanded[size_t(slot)]   = false;
+        m_thumbnail_source[size_t(slot)].reset();
+        m_layer_expanded[size_t(slot)] = false;
     }
     if (m_picker_slot == slot)
         m_picker_slot = -1;
@@ -4213,7 +4255,7 @@ int GLGizmoTextureDisplacement::select_visible_faces(const std::array<float, 12>
     selector.reset();
     for (unsigned i : unobscured)
         selector.set_facet(int(front_facing[i]), EnforcerBlockerType::ENFORCER);
-    selector.request_update_render_data();
+    selector.request_update_render_data(true);
 
     update_model_object();
     m_parent.set_as_dirty();
@@ -4236,7 +4278,7 @@ void GLGizmoTextureDisplacement::select_whole_model()
         const size_t facet_count = v->mesh().its.indices.size();
         for (size_t i = 0; i < facet_count; ++i)
             m_triangle_selectors[idx]->set_facet(int(i), EnforcerBlockerType::ENFORCER);
-        m_triangle_selectors[idx]->request_update_render_data();
+        m_triangle_selectors[idx]->request_update_render_data(true);
     }
     update_model_object();
     m_parent.set_as_dirty();
@@ -5342,7 +5384,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_thumbnail(const TextureDisplace
         return nullptr;
 
     const size_t slot = size_t(layer.slot);
-    if (m_thumbnails[slot] && m_thumbnail_source[slot] == layer.image_data.get() &&
+    if (m_thumbnails[slot] && m_thumbnail_source[slot].lock() == layer.image_data &&
         m_thumbnail_smoothing[slot] == layer.smoothing)
         return m_thumbnails[slot].get();
 
@@ -5355,7 +5397,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_thumbnail(const TextureDisplace
         return nullptr;
 
     m_thumbnails[slot]          = std::move(texture);
-    m_thumbnail_source[slot]    = layer.image_data.get();
+    m_thumbnail_source[slot]    = layer.image_data;
     m_thumbnail_smoothing[slot] = layer.smoothing;
     return m_thumbnails[slot].get();
 }
@@ -5364,17 +5406,17 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_color_texture(const TextureDisp
 {
     if (layer.empty() || !layer.color_enabled)
         return nullptr;
-    if (m_color_tex && m_color_tex_source == layer.image_data.get() && m_color_tex_smoothing == layer.smoothing)
+    if (m_color_tex && m_color_tex_source.lock() == layer.image_data && m_color_tex_smoothing == layer.smoothing)
         return m_color_tex.get();
 
     std::unique_ptr<GLTexture> texture = upload_color_texture(decode_height_texture(layer), HEIGHT_TEX_MAX_PX);
     if (!texture) {
         m_color_tex.reset();
-        m_color_tex_source = nullptr;
+        m_color_tex_source.reset();
         return nullptr;
     }
     m_color_tex           = std::move(texture);
-    m_color_tex_source    = layer.image_data.get();
+    m_color_tex_source    = layer.image_data;
     m_color_tex_smoothing = layer.smoothing;
     return m_color_tex.get();
 }
@@ -5386,7 +5428,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_height_texture(const TextureDis
 
     // One slot, not one per layer: the preview shader only ever shades the *active* layer, so a single
     // full-resolution upload is enough and the VRAM cost stays at one texture rather than eight.
-    if (m_height_tex && m_height_tex_source == layer.image_data.get() && m_height_tex_smoothing == layer.smoothing)
+    if (m_height_tex && m_height_tex_source.lock() == layer.image_data && m_height_tex_smoothing == layer.smoothing)
         return m_height_tex.get();
 
     std::unique_ptr<GLTexture> texture = upload_height_thumbnail(decode_height_texture(layer), HEIGHT_TEX_MAX_PX);
@@ -5394,7 +5436,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_height_texture(const TextureDis
         return nullptr;
 
     m_height_tex           = std::move(texture);
-    m_height_tex_source    = layer.image_data.get();
+    m_height_tex_source    = layer.image_data;
     m_height_tex_smoothing = layer.smoothing;
     return m_height_tex.get();
 }
@@ -5835,6 +5877,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     GizmoImguiBegin(get_name(), flags);
     ensure_panel_icons();
     process_uv_commands(); // clicks from the UV editor pane, run here where the GL context is current
+    // After the pane's commands, which can close it or change the view, and before the View row, so the row
+    // lights the view this frame ends up in and a click on it has the last word.
+    follow_island_highlight();
     const float previous_body_h   = m_panel_body_h;
     const float previous_footer_h = m_panel_footer_h;
 
@@ -6281,7 +6326,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                 if (v->is_model_part()) {
                     ++idx;
                     m_triangle_selectors[idx]->reset();
-                    m_triangle_selectors[idx]->request_update_render_data();
+                    m_triangle_selectors[idx]->request_update_render_data(true);
                 }
             update_model_object();
             m_parent.set_as_dirty();
@@ -6323,10 +6368,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     // ---- View: Normal / Fast / Checker / Distortion as one group, Wireframe on its own ----
     // The underlying state stays m_use_shaded_preview + m_uv_check_mode.
     {
-        const int cur_mode = m_use_shaded_preview                               ? 1 :
-                             m_uv_check_mode == UVCheckMode::Checker    ? 2 :
-                             m_uv_check_mode == UVCheckMode::Distortion ? 3 : 0;
+        const int cur_mode = view_mode();
         int  new_mode       = cur_mode;
+        int  picked         = -1; // the button clicked, the active one included
         bool wf_toggle      = false;
         bool open_uv_editor = false;
         // Checker and Distortion both draw *the unwrap* - the first the texture grid laid over it, the second
@@ -6349,19 +6393,19 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + m_imgui->scaled(2.6f)));
         if (icon_toggle(701, "texture_displacement_real_preview.svg", cur_mode == 0, icon_md, _L("Normal"),
                         _L("Normal - the real geometry, exactly what Bake will produce. Slower to update")))
-            new_mode = 0;
+            new_mode = picked = 0;
         ImGui::SameLine(0.f, gap_s);
         if (icon_toggle(702, "texture_displacement_fast_preview.svg", cur_mode == 1, icon_md, _L("Fast"),
                         _L("Fast - the relief is only shaded on, not built, and only for the layer you are "
                            "editing. Updates instantly while you paint")))
-            new_mode = 1;
+            new_mode = picked = 1;
         ImGui::SameLine(0.f, gap_s);
         if (icon_toggle(703, "texture_displacement_checker.svg", cur_mode == 2, icon_md, _L("Checker"),
                         _L("Checker - a test grid instead of the texture. Where the squares stay square the "
                            "texture is undistorted; where they stretch, it will too. Opens the UV editor if "
                            "it is closed"),
                         uv_view_na)) {
-            new_mode       = 2;
+            new_mode       = picked = 2;
             open_uv_editor = true;
         }
         ImGui::SameLine(0.f, gap_s);
@@ -6369,7 +6413,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                         _L("Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if "
                            "it is closed"),
                         uv_view_na)) {
-            new_mode       = 3;
+            new_mode       = picked = 3;
             open_uv_editor = true;
         }
         vsep(icon_md);
@@ -6393,6 +6437,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             if (new_mode == cur_mode)
                 update_uv_editor(); // otherwise apply_view_mode() below does it
         }
+        if (picked >= 0)
+            m_island_view.picked(picked);
         if (new_mode != cur_mode)
             apply_view_mode(new_mode);
         if (wf_toggle) {
