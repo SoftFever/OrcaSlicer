@@ -134,6 +134,7 @@ public:
     // N: look straight down the sketch plane's normal, keeping the current zoom. A sketch drawn
     // at an angle is a sketch drawn wrong, and no amount of orbiting by hand lands exactly square.
     bool view_normal_to_sketch();
+    void square_up_on_entry();   // begin_sketch/edit_sketch: look straight at the plane
     void cancel_sketch();
     void set_on_sketch_commit(std::function<void(const SketchProfile&, const SketchPlane&)> cb);
     void set_on_sketch_entities_commit(

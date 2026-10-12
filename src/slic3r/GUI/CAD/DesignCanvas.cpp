@@ -509,6 +509,7 @@ void DesignCanvas::set_view(const std::string& view_name)
 void DesignCanvas::begin_sketch(const SketchPlane& plane, DesignSketchTool::Mode mode)
 {
     m_sketch_tool.begin(plane, mode);
+    square_up_on_entry();
     if (m_canvas) m_canvas->set_as_dirty();
     if (m_canvas_widget) m_canvas_widget->Refresh();
 }
@@ -518,6 +519,7 @@ void DesignCanvas::edit_sketch(const std::vector<SketchEntity>& entities,
                                const SketchPlane& plane)
 {
     m_sketch_tool.begin_edit(entities, constraints, plane);
+    square_up_on_entry();
     if (m_canvas) m_canvas->set_as_dirty();
     if (m_canvas_widget) m_canvas_widget->Refresh();
 }
@@ -1587,6 +1589,14 @@ bool DesignCanvas::is_constraining_entities() const
 int DesignCanvas::sketch_selection_count() const
 {
     return int(m_sketch_tool.selection().size());
+}
+
+// Entering a sketch brings the view normal to its plane (the N key does the same on demand).
+// "design_sketch_auto_normal" = 0 turns the automatic part off.
+void DesignCanvas::square_up_on_entry()
+{
+    if (wxGetApp().app_config->get("design_sketch_auto_normal") == "0") return;
+    view_normal_to_sketch();
 }
 
 bool DesignCanvas::view_normal_to_sketch()
