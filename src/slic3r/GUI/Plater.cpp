@@ -1019,7 +1019,6 @@ struct Sidebar::priv
     // Orca: BBS resets the switcher UI from DeviceManager::OnSelectedMachineChanged, which Orca lacks.
     // Track the last-synced device id here so update_sync_status can detect a machine change.
     std::string last_sync_dev_id;
-    std::string last_curve_path_dev_id;
 
 #ifdef _WIN32
     wxString btn_reslice_tip;
@@ -2539,7 +2538,6 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         last_sync_dev_id = cur_dev_id;
         update_extruder_separator_icon(false, false);
         fila_switch_warning_shown = false;
-        last_curve_path_dev_id.clear();
     }
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -2559,26 +2557,6 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     if (preset_bundle && preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle) == obj->get_show_printer_type()) {
         panel_printer_preset->ShowBadge(true);
         printer_synced = true;
-
-        // Disable arc fitting when curve planning enhancement support is detected on a Bambu Lab printer,
-        if (obj->is_support_curve_path && (obj->printer_agent_id == BBL_PRINTER_AGENT_ID || obj->printer_agent_id.empty())) {
-            if (cur_dev_id != last_curve_path_dev_id) {
-                last_curve_path_dev_id = cur_dev_id;
-                Preset &process_preset = preset_bundle->prints.get_edited_preset();
-                // Ensure arc fitting is only disabled and notification sent when arc fitting is currently enabled (not disabled already)
-                if (process_preset.config.opt_bool("enable_arc_fitting")) {
-                    process_preset.config.set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
-                    if (auto print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
-                        print_tab->update_dirty();
-                        print_tab->reload_config();
-                    }
-                    if (auto plater = wxGetApp().plater()) {
-                        plater->get_notification_manager()->push_notification(
-                            _u8L("Curve planning enhancement support detected on your printer. Arc fitting has been disabled to ensure this feature functions correctly."));
-                    }
-                }
-            }
-        }
 
         wxGetApp().plater()->sidebar().udpate_combos_filament_badge();
     } else {
@@ -6311,8 +6289,37 @@ void Sidebar::load_ams_list(MachineObject* obj)
     p->combo_printer->update();
 }
 
+static void check_curve_path_and_disable_arc_fitting()
+{
+    auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
+    if (!obj)
+        return;
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle)
+        return;
+
+    // Disable arc fitting when curve planning enhancement support is detected on a Bambu Lab printer,
+    if (obj->is_support_curve_path && (obj->printer_agent_id == BBL_PRINTER_AGENT_ID || obj->printer_agent_id.empty())) {
+        Preset &process_preset = preset_bundle->prints.get_edited_preset();
+        // Ensure arc fitting is only disabled and notification sent when arc fitting is currently enabled (not disabled already)
+        if (process_preset.config.opt_bool("enable_arc_fitting")) {
+            process_preset.config.set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
+            if (auto print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+                print_tab->update_dirty();
+                print_tab->reload_config();
+            }
+            if (auto plater = wxGetApp().plater()) {
+                plater->get_notification_manager()->push_notification(
+                    _u8L("Curve planning enhancement support detected on your printer. Arc fitting has been disabled to ensure this feature functions correctly."));
+            }
+        }
+    }
+}
+
 void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
 {
+    check_curve_path_and_disable_arc_fitting();
     wxBusyCursor cursor;
     // Force load ams list
     auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
@@ -6728,6 +6735,7 @@ bool Sidebar::is_multifilament()
 }
 
 void Sidebar::deal_btn_sync() {
+    check_curve_path_and_disable_arc_fitting();
     m_begin_sync_printer_status = true;
     bool only_external_material;
     // Manual "sync machine" button: is_manual=true so an H2C pops the MultiNozzleSyncDialog to pick a nozzle option.
