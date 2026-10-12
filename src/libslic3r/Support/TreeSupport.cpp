@@ -950,11 +950,24 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                 ExPolygons enforced_overhangs;
                 if (layer_nr < enforcers.size() && !enforcers[layer_nr].empty())
                     enforced_overhangs = intersection_ex(diff_ex(layer->lslices_extrudable, lower_layer->lslices_extrudable), enforcers[layer_nr]);
-                overhangs_all_layers[layer_nr] = std::move(diff_ex(curr_polys, lower_layer_offseted));
-                if (!enforced_overhangs.empty()) {
-                    // STUDIO-7538: expand enforcers a bit so they work on steep overhangs.
-                    enforced_overhangs = diff_ex(offset_ex(enforced_overhangs, enforcer_overhang_offset), lower_layer->lslices_extrudable);
-                    overhangs_all_layers[layer_nr] = union_ex(overhangs_all_layers[layer_nr], enforced_overhangs);
+                // Keep the auto/manual split of Bambu c03e13340 (STUDIO-11484): manual mode must
+                // never run the full-layer auto overhang diff, otherwise every painted layer
+                // leaks supports over unpainted overhangs (bug 7131842245). The original port
+                // flattened this if/else into an unconditional diff + union, dropping the else.
+                if (is_auto(stype)) {
+                    overhangs_all_layers[layer_nr] = std::move(diff_ex(curr_polys, lower_layer_offseted));
+                    if (!enforced_overhangs.empty()) {
+                        // STUDIO-7538: expand enforcers a bit so they work on steep overhangs.
+                        enforced_overhangs =
+                            diff_ex(offset_ex(enforced_overhangs, enforcer_overhang_offset), lower_layer->lslices_extrudable);
+                        overhangs_all_layers[layer_nr] = union_ex(overhangs_all_layers[layer_nr], enforced_overhangs);
+                    }
+                } else if (lower_layer) {
+                    // Manual mode: keep only the painted overhangs (expanded per STUDIO-7538),
+                    // never the full-layer auto diff. Mirrors Bambu's native else branch.
+                    overhangs_all_layers[layer_nr] = (!enforced_overhangs.empty())
+                        ? diff_ex(offset_ex(enforced_overhangs, enforcer_overhang_offset), lower_layer->lslices_extrudable)
+                        : ExPolygons{};
                 }
 
                 double duration{ std::chrono::duration_cast<second_>(clock_::now() - t0).count() };
