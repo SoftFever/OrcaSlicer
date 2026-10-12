@@ -1729,8 +1729,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             //plate->pattern_file = it->second->pattern_file;
             plate->no_light_thumbnail_file = it->second->no_light_thumbnail_file;
             plate->top_file = it->second->top_file;
-            plate->pick_file = it->second->pick_file.empty();
-            plate->pattern_bbox_file = it->second->pattern_bbox_file.empty();
+            plate->pick_file = it->second->pick_file;
+            plate->pattern_bbox_file = it->second->pattern_bbox_file;
             plate->config = it->second->config;
 
             if (!plate->thumbnail_file.empty())
