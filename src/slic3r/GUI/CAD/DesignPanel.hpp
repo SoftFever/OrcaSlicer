@@ -1071,6 +1071,7 @@ private:
     // Constraint-manager card (C3.4): header + a rebuildable list of constraint rows.
     wxSizer*          m_box_constraints{nullptr};
     wxStaticText*     m_hdr_constraints{nullptr};
+    bool              m_constraints_collapsed{false};   // header click folds the constraint list
     wxSizer*          m_constraint_rows{nullptr};
     int               m_constraint_sel{-1};   // highlighted constraint row, or -1
 };

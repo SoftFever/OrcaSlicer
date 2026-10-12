@@ -3131,6 +3131,15 @@ DesignPanel::DesignPanel(wxWindow* parent)
     m_box_constraints = new wxBoxSizer(wxVERTICAL);
     m_box_constraints->Add(card_header(m_cards, "design_constrain", _L("Constraints"), m_hdr_constraints),
                            0, wxLEFT | wxRIGHT | wxTOP, 12);
+    // Click the header to fold the list: a constrained sketch easily has dozens of rows.
+    m_constraints_collapsed = wxGetApp().app_config->get_bool("design_constraints_collapsed");
+    m_hdr_constraints->SetCursor(wxCursor(wxCURSOR_HAND));
+    m_hdr_constraints->SetToolTip(_L("Click to collapse or expand the list"));
+    m_hdr_constraints->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&) {
+        m_constraints_collapsed = !m_constraints_collapsed;
+        wxGetApp().app_config->set_bool("design_constraints_collapsed", m_constraints_collapsed);
+        CallAfter([this] { rebuild_constraint_list(); });
+    });
     m_box_constraints->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
     m_constraint_rows = new wxBoxSizer(wxVERTICAL);
     m_box_constraints->Add(m_constraint_rows, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 12);
@@ -7547,7 +7556,11 @@ void DesignPanel::on_tab_shown()
     update_reference_planes();   // entering the Design tab
     // The persisted tree placement: on the canvas (ImGui) or in the side panel (wx).
     if (wxGetApp().app_config->get_bool("design_imgui_tree") != m_imgui_tree) set_imgui_tree(!m_imgui_tree);
-    if (wxGetApp().app_config->get_bool("design_imgui_ribbon") != m_imgui_ribbon) set_imgui_ribbon(!m_imgui_ribbon);
+    {   // The ribbon is the default toolbar: a profile with no saved choice gets it, an explicit "off" is kept.
+        AppConfig* cfg = wxGetApp().app_config;
+        const bool want = cfg->get("design_imgui_ribbon").empty() ? true : cfg->get_bool("design_imgui_ribbon");
+        if (want != m_imgui_ribbon) set_imgui_ribbon(want);
+    }
     m_imgui_menu = wxGetApp().app_config->get_bool("design_imgui_menu");
     if (show_clock.Time() > 100)   // a slow first show is what users report; the usual one is not news
         BOOST_LOG_TRIVIAL(info) << "Design tab shown: bed, project recipe and planes in " << show_clock.Time() << " ms";
@@ -8895,14 +8908,15 @@ void DesignPanel::rebuild_constraint_list()
       : active ? m_doc.features[m_constrain_feat].entity_constraints : empty;
 
     if (m_hdr_constraints)
-        m_hdr_constraints->SetLabel(wxString::Format(_L("Constraints (%d)"), int(cons.size())));
+        m_hdr_constraints->SetLabel(wxString::Format(wxString::FromUTF8(m_constraints_collapsed ? "\u25B8 " : "\u25BE ") +
+                                                     _L("Constraints (%d)"), int(cons.size())));
 
     if (cons.empty()) {
         auto* none = new wxStaticText(m_cards, wxID_ANY, _L("No constraints yet"));
         none->SetForegroundColour(dp_sec_text());
         m_constraint_rows->Add(none, 0, wxTOP, 4);
     }
-    for (int i = 0; i < int(cons.size()); ++i) {
+    for (int i = 0; i < int(cons.size()) && !m_constraints_collapsed; ++i) {
         auto* row = new wxBoxSizer(wxHORIZONTAL);
         // Delete button first (fixed left position, always visible — long labels can
         // horizontally scroll but ✗ stays put and clickable).
