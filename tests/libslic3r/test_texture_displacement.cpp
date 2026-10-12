@@ -35,10 +35,12 @@
 #include <boost/filesystem.hpp>
 
 #include "libslic3r/AABBMesh.hpp"
+#include "libslic3r/AABBTreeIndirect.hpp"
 #include "libslic3r/TextureDisplacement.hpp"
 #include "libslic3r/TextureBake/TextureBakeDecimate.hpp"
 #include "libslic3r/TextureBake/TextureBakeFlip.hpp"
 #include "libslic3r/TextureBake/TextureBakeMesh.hpp"
+#include "libslic3r/TextureBake/TextureBakeRepair.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/TriangleSelector.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
@@ -2173,4 +2175,152 @@ TEST_CASE("whether a layer's texture has colour agrees with its decode", "[Textu
     CHECK(height_texture_has_color(color));
 
     CHECK_FALSE(height_texture_has_color(TextureDisplacementLayer{}));
+}
+
+TEST_CASE("Baking twice keeps the mesh closed and carries the first bake's colours across",
+          "[TextureDisplacement][Regression]")
+{
+    // Bake, colour part of what came back, bake again. The one-run pipeline rebuilds the topology, so
+    // the colour recorded against the first bake's mesh indexes triangles that no longer mean the same
+    // thing. Taken across by triangle id it lands on unrelated faces - a bake almost always grows the
+    // triangle count, so every stale id passes the only bound check deserialize() makes - which both
+    // scatters colour over surfaces nothing painted and destroys what the first pass laid down.
+    // TriangleSelector::remap_painting() carries it by position instead, which is what makes successive
+    // bakes accumulate. See TextureDisplacementBakeJob, which is where the two meet.
+    constexpr float            side    = 20.f;
+    constexpr float            refine  = 0.5f;
+    constexpr float            radius  = 4.f;
+    const indexed_triangle_set cube    = its_make_cube(side, side, side);
+    const Vec2f                first_stroke(6.f, 6.f), second_stroke(14.f, 14.f);
+
+    TextureDisplacementLayer layer;
+    layer.slot          = 0;
+    layer.image_data    = make_rgb_png_2x2();
+    layer.tiling_scale  = 5.f;
+    layer.depth_mm      = 0.5f;
+    layer.color_enabled = true;
+
+    TextureDisplacementOptions options;
+    options.pipeline_v2        = true;
+    options.v2_refine_mm       = refine;
+    options.v2_max_triangles_k = 750;
+
+    // Three primaries, so a palette entry is legible in the assertions below.
+    const std::array<Vec3f, 3> palette = { Vec3f(1, 0, 0), Vec3f(0, 1, 0), Vec3f(0, 0, 1) };
+    TextureColorRequest        request;
+    request.quantize = [&palette](const Vec3f &rgb) {
+        int   best = 0;
+        float bd   = std::numeric_limits<float>::max();
+        for (int i = 0; i < 3; ++i)
+            if (const float d = (palette[size_t(i)] - rgb).squaredNorm(); d < bd) { bd = d; best = i; }
+        return best;
+    };
+
+    const auto bake = [&](const indexed_triangle_set &mesh, const Vec2f &stroke, std::vector<uint8_t> &color) {
+        TextureDisplacementFacetsData facets;
+        facets[0] = paint_top_disc(mesh, side, stroke, radius);
+        TextureColorRequest req = request;
+        req.out_triangle        = &color;
+        return build_texture_displacement(mesh, { layer }, facets, options, {}, &req);
+    };
+    // The pipeline's own counters, over welded positions, so a mesh watertight only after welding
+    // still reads as closed.
+    const auto defects = [](const indexed_triangle_set &mesh) {
+        return TextureBake::count_edge_defects(TextureBake::to_soup(mesh));
+    };
+
+    std::vector<uint8_t>       color1;
+    const indexed_triangle_set first = bake(cube, first_stroke, color1);
+    REQUIRE(first.indices.size() > cube.indices.size());
+    REQUIRE(color1.size() == first.indices.size());
+    const TextureBake::EdgeDefects d1 = defects(first);
+    INFO("first bake: " << d1.triangles << " triangles, " << d1.open << " open, " << d1.non_manifold << " non-manifold");
+    CHECK(d1.open == 0);
+    CHECK(d1.non_manifold == 0);
+
+    // The colour the first bake committed, as TextureDisplacementBakeJob writes it.
+    TriangleSelector::TriangleSplittingData painted_first;
+    {
+        const TriangleMesh mesh(first);
+        TriangleSelector   selector(mesh);
+        for (size_t i = 0; i < color1.size(); ++i)
+            if (color1[i] != 0)
+                selector.set_facet(int(i), EnforcerBlockerType(color1[i]));
+        painted_first = selector.serialize();
+    }
+    REQUIRE_FALSE(painted_first.bitstream.empty());
+
+    std::vector<uint8_t>       color2;
+    const indexed_triangle_set second = bake(first, second_stroke, color2);
+    REQUIRE(color2.size() == second.indices.size());
+    REQUIRE(second.indices.size() != first.indices.size()); // the topology really did change
+    const TextureBake::EdgeDefects d2 = defects(second);
+    INFO("second bake: " << d2.triangles << " triangles, " << d2.open << " open, " << d2.non_manifold << " non-manifold");
+    CHECK(d2.open == 0);
+    CHECK(d2.non_manifold == 0);
+
+    // The commit: the earlier colour carried onto the new topology, this bake's own colour over it.
+    std::vector<uint8_t> committed(second.indices.size(), 0);
+    {
+        const TriangleMesh mesh(second);
+        TriangleSelector   selector(mesh);
+        const TriangleSelector::TriangleSplittingData carried = TriangleSelector::remap_painting(
+            first, painted_first, second, Transform3d::Identity(), {});
+        REQUIRE_FALSE(carried.bitstream.empty());
+        selector.deserialize(carried, false);
+        for (size_t i = 0; i < color2.size(); ++i)
+            if (color2[i] != 0)
+                selector.set_facet(int(i), EnforcerBlockerType(color2[i]));
+        for (int state = 1; state <= int(palette.size()); ++state) {
+            std::vector<int> src;
+            if (selector.get_facets_strict(EnforcerBlockerType(state), &src).indices.empty())
+                continue;
+            for (const int s : src)
+                if (s >= 0 && size_t(s) < committed.size() && committed[size_t(s)] == 0)
+                    committed[size_t(s)] = uint8_t(state);
+        }
+    }
+
+    // Just the triangles the first bake coloured, to ask "how far is this from colour that was really
+    // laid down" of anything the commit painted.
+    indexed_triangle_set coloured_first;
+    coloured_first.vertices = first.vertices;
+    for (size_t i = 0; i < color1.size(); ++i)
+        if (color1[i] != 0)
+            coloured_first.indices.push_back(first.indices[i]);
+    const AABBTreeIndirect::Tree3f tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
+        coloured_first.vertices, coloured_first.indices);
+
+    // A triangle may carry colour the second bake did not produce only where the first bake's colour
+    // actually was. Carrying the mask by position can widen that region by a triangle, so the margin
+    // is the edge length the bake was told to refine to; landing anywhere else means the mask was read
+    // against a mesh it no longer matches.
+    size_t own = 0, carried_over = 0, stranded = 0;
+    float  worst = 0.f;
+    for (size_t i = 0; i < second.indices.size(); ++i) {
+        if (committed[i] == 0)
+            continue;
+        if (i < color2.size() && color2[i] != 0) {
+            CHECK(committed[i] == color2[i]); // this bake's own colour wins where it painted
+            ++own;
+            continue;
+        }
+        const stl_triangle_vertex_indices &t = second.indices[i];
+        const Vec3f g = (second.vertices[size_t(t[0])] + second.vertices[size_t(t[1])] +
+                         second.vertices[size_t(t[2])]) / 3.f;
+        size_t      hit = 0;
+        Vec3f       foot;
+        const float d = std::sqrt(std::max(0.f, AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                                                    coloured_first.vertices, coloured_first.indices, tree, g, hit, foot)));
+        worst = std::max(worst, d);
+        if (d <= 2.f * refine)
+            ++carried_over;
+        else
+            ++stranded;
+    }
+    INFO("committed: " << own << " from this bake, " << carried_over << " carried over, " << stranded
+                       << " stranded, worst distance from the first bake's colour " << worst << " mm");
+    CHECK(own > 0);
+    CHECK(carried_over > 0);   // the first bake's colour survived the second
+    CHECK(stranded == 0);      // and nothing was painted where neither bake put colour
 }

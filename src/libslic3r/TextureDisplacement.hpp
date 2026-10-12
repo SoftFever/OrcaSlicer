@@ -771,9 +771,12 @@ struct TextureColorRequest
     // single facets; an image detail a few facets wide still leaves thousands of pinhead islands
     // that the slicer's multi-material segmentation cannot digest. 0 turns it off.
     float           min_color_region_mm2 = 0.5f;
-    // Filled per *base mesh* triangle (the bake is topology-preserving, so this indexes the returned
-    // mesh too): the quantize callback's index plus one, or 0 for "this triangle takes no colour from
-    // the texture". The +1 lines up with EnforcerBlockerType, where 0 is NONE ("use the volume's own
+    // Filled per triangle of the *returned* mesh: the quantize callback's index plus one, or 0 for
+    // "this triangle takes no colour from the texture". That is the same indexing as the base mesh
+    // only on the classic path, which moves vertices and leaves the topology alone; the one-run
+    // pipeline rebuilds the mesh, so nothing recorded against the base mesh - an existing paint mask,
+    // say - may be carried over by triangle id (see TriangleSelector::remap_painting()).
+    // The +1 lines up with EnforcerBlockerType, where 0 is NONE ("use the volume's own
     // filament"): where every palette entry is a filament, these go straight to a TriangleSelector. A
     // palette with mixes maps each index to the mix's filament slot first (see
     // GLGizmoTextureDisplacement::palette_filaments()).

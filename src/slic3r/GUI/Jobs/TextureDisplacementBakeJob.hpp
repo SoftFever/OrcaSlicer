@@ -10,6 +10,7 @@
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/TextureDisplacement.hpp"
 #include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/TriangleSelector.hpp"
 
 #include "Job.hpp"
 
@@ -34,6 +35,13 @@ struct TextureDisplacementBakeInput
     // writes the volume's mmu_segmentation_facets - the same per-triangle filament assignment the MMU
     // paint gizmo writes - alongside the displaced geometry.
     TextureColorSettings                  color;
+    // The colour already painted on the volume, indexed against `base_mesh`. Carried here rather than
+    // read at commit time because the one-run pipeline rebuilds the mesh, and bringing this across to
+    // the new topology is spatial work (see process()) that has no business on the UI thread.
+    TriangleSelector::TriangleSplittingData mmu_segmentation;
+    // What `mmu_segmentation` was taken from, so the commit can tell whether the volume was painted
+    // while the bake ran and fall back to the live data if it was.
+    ObjectBase::Timestamp                   mmu_segmentation_timestamp = 0;
     // Whether this job pushes its own undo step when it commits. False when the caller has already
     // taken one that is meant to cover the displacement as well - Standard mode's Bake, which remeshes
     // and subdivides first and has to undo as a single action.
@@ -60,6 +68,9 @@ private:
     // Empty unless a layer asked for colour. See TextureColorRequest; finalize() turns these into
     // filaments.
     std::vector<uint8_t>         m_triangle_color;
+    // m_input.mmu_segmentation brought onto m_result's topology, so finalize() can lay this bake's
+    // colour over the colour that was already there. Indexed against m_result, not base_mesh.
+    TriangleSelector::TriangleSplittingData m_carried_mmu;
     std::function<void()>        m_on_finished;
 };
 

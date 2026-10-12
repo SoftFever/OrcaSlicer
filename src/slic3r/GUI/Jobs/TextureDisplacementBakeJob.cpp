@@ -13,6 +13,7 @@
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/format.hpp"
+#include "libslic3r/Point.hpp"
 #include "libslic3r/TriangleSelector.hpp"
 
 #include "slic3r/GUI/GLCanvas3D.hpp"
@@ -76,6 +77,23 @@ void TextureDisplacementBakeJob::process(Ctl &ctl)
         },
         color, m_input.volume_to_world, nullptr, &m_stats));
 
+    // Bring the colour that was already painted onto the mesh this bake just built, while still on
+    // the worker thread. Triangle ids only mean the same thing on both meshes when the bake preserved
+    // the topology - the classic path moves vertices and nothing else - and the one-run pipeline
+    // rebuilds the mesh from scratch. Deserializing the old mask against the new one only checks that
+    // the ids are in range, and a bake almost always *grows* the triangle count, so every stale id
+    // passes that check and lands on an unrelated face: colour debris where nothing was painted, and
+    // the earlier pass's colour destroyed rather than kept. remap_painting() transfers it by position
+    // instead, which is what lets successive bakes accumulate. It is spatial work over both meshes,
+    // which is why it belongs here and not in finalize().
+    if (!m_input.mmu_segmentation.bitstream.empty() && !m_result.empty() && !ctl.was_canceled()) {
+        if (m_result.its.indices.size() == m_input.base_mesh.indices.size())
+            m_carried_mmu = m_input.mmu_segmentation;
+        else
+            m_carried_mmu = TriangleSelector::remap_painting(m_input.base_mesh, m_input.mmu_segmentation,
+                                                             m_result.its, Transform3d::Identity(), {});
+    }
+
     // Always finish at 100: this is what closes the notification. Reported even on cancel, where
     // build_texture_displacement() returns an empty mesh and finalize() commits nothing.
     ctl.update_status(100, status);
@@ -126,6 +144,18 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
                                                      { mix.a_percent(), 100 - mix.a_percent() });
             });
 
+        // Read while the volume still holds the mesh the paint was recorded against, and after the
+        // filament slots above - adding one can clamp the paint, and that clamp has to survive.
+        // Normally process() has already carried the colour onto the baked topology; it only has to
+        // be redone here when the paint changed after the job was queued, because the snapshot
+        // process() worked from is then not what the user is looking at.
+        const bool mmu_changed = volume->mmu_segmentation_facets.timestamp() != m_input.mmu_segmentation_timestamp;
+        const indexed_triangle_set                    pre_bake_mesh = mmu_changed ? volume->mesh().its
+                                                                                  : indexed_triangle_set{};
+        const TriangleSelector::TriangleSplittingData live_mmu      = mmu_changed
+                                                                          ? volume->mmu_segmentation_facets.get_data()
+                                                                          : TriangleSelector::TriangleSplittingData{};
+
         volume->set_mesh(std::move(m_result));
         volume->set_new_unique_id();
         volume->calculate_convex_hull();
@@ -134,13 +164,19 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
         // rather than replacing it: a triangle the texture does not colour keeps its existing filament,
         // and one the user never painted at all stays at NONE, which already means "the volume's own
         // filament". That is what confines the effect to the painted area without having to invent a
-        // colour for everything outside it. Safe to index straight onto the new mesh - the bake is
-        // topology-preserving, so triangle i is still triangle i.
+        // colour for everything outside it. What was already painted comes from m_carried_mmu, which
+        // process() brought onto this mesh's topology; this bake's own colour goes on top of it, so it
+        // wins wherever it painted and leaves the rest alone.
         if (!m_triangle_color.empty() && m_triangle_color.size() == volume->mesh().its.indices.size()) {
+            if (mmu_changed && !live_mmu.bitstream.empty())
+                m_carried_mmu = pre_bake_mesh.indices.size() == volume->mesh().its.indices.size()
+                                    ? live_mmu
+                                    : TriangleSelector::remap_painting(pre_bake_mesh, live_mmu,
+                                                                       volume->mesh().its,
+                                                                       Transform3d::Identity(), {});
             TriangleSelector selector(volume->mesh());
-            const TriangleSelector::TriangleSplittingData &existing = volume->mmu_segmentation_facets.get_data();
-            if (!existing.bitstream.empty())
-                selector.deserialize(existing, false);
+            if (!m_carried_mmu.bitstream.empty())
+                selector.deserialize(m_carried_mmu, false);
             for (size_t i = 0; i < m_triangle_color.size(); ++i) {
                 const size_t entry = size_t(m_triangle_color[i]);
                 if (entry > 0 && entry <= filament_of.size() && filament_of[entry - 1] >= 0)
@@ -222,6 +258,8 @@ void queue_texture_displacement_bake(const ModelVolume &volume, const TextureCol
     input.layers     = volume.texture_displacement_layers;
     input.options    = volume.texture_displacement_options;
     input.volume_to_world = texture_displacement_volume_to_world(volume);
+    input.mmu_segmentation           = volume.mmu_segmentation_facets.get_data();
+    input.mmu_segmentation_timestamp = volume.mmu_segmentation_facets.timestamp();
     for (int i = 0; i < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++i)
         input.facets_data[size_t(i)] = volume.texture_displacement_facet(i).get_data();
 
