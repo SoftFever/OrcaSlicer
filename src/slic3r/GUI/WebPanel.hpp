@@ -4,6 +4,7 @@
 
 #include <wx/event.h>
 #include <wx/panel.h>
+#include <wx/string.h>
 #include <wx/webview.h>
 
 #include <optional>

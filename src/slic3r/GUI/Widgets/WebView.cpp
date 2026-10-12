@@ -14,6 +14,7 @@
 #include <exception>
 #include <thread>
 
+#include <wx/chartype.h>
 #include <wx/setup.h>
 #include <wx/webview.h>
 #include <wx/string.h>
