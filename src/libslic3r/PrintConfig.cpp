@@ -9810,9 +9810,9 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "chamber_temperature";
     } else if (opt_key == "thumbnail_size") {
         opt_key = "thumbnails";
-    } else if (opt_key == "only_one_wall_top" && value == "1") {
+    } else if (opt_key == "only_one_wall_top") {
         opt_key = "top_one_wall_type";
-        value   = "all top";
+        value   = (value == "1") ? "all top" : "none";
     } else if (opt_key == "initial_layer_flow_ratio") {
         opt_key = "bottom_solid_infill_flow_ratio";
     } else if (opt_key == "ironing_direction") {

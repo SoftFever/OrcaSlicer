@@ -2241,11 +2241,11 @@ void PerimeterGenerator::add_infill_contour(ExPolygons&   infill_contour,
     // Swap expolygons for proper overlap application
     if (this->upper_slices != NULL) {
         ExPolygons upper = *this->upper_slices;
-        ExPolygons infill_to_top = diff_ex(infill_contour, upper);
-        ExPolygons top_to_infill = intersection_ex(top_expolygons, upper);
-        infill_contour           = intersection_ex(infill_contour, upper);
+        ExPolygons infill_to_top = diff_ex(infill_contour, upper, ApplySafetyOffset::Yes);
+        ExPolygons top_to_infill = intersection_ex(top_expolygons, upper, ApplySafetyOffset::Yes);
+        infill_contour           = intersection_ex(infill_contour, upper, ApplySafetyOffset::Yes);
         infill_contour.insert(infill_contour.end(), top_to_infill.begin(), top_to_infill.end());
-        top_expolygons = diff_ex(top_expolygons, upper);
+        top_expolygons = diff_ex(top_expolygons, upper, ApplySafetyOffset::Yes);
         top_expolygons.insert(top_expolygons.end(), infill_to_top.begin(), infill_to_top.end());
     }
 
@@ -2280,7 +2280,7 @@ void PerimeterGenerator::add_infill_contour(ExPolygons&   infill_contour,
     infill_contour = offset_ex(infill_contour, insert);
 
     if (!top_expolygons.empty()) 
-        infill_contour = union_ex(infill_contour, offset_ex(top_expolygons, top_insert));
+        infill_contour = union_ex(infill_contour, offset_ex(top_expolygons, top_insert), true);
 
     for (ExPolygon& ex : union_ex(infill_contour)) {
         ex.contour.simplify(m_scaled_resolution);
