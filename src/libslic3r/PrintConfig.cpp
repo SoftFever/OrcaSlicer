@@ -1820,7 +1820,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Not apply"));
     def->enum_labels.push_back(L("Topmost surface"));
     def->enum_labels.push_back(L("Top surfaces"));
-    def->set_default_value(new ConfigOptionEnum<TopOneWallType>(TopOneWallType::Alltop));
+    def->set_default_value(new ConfigOptionEnum<TopOneWallType>(TopOneWallType::None));
 
     // the tooltip is copied from SuperStudio
     def = this->add("min_width_top_surface", coFloatOrPercent);
