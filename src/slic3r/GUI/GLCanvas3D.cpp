@@ -7673,7 +7673,6 @@ void GLCanvas3D::_update_select_plate_toolbar_stats_item(bool force_selected) {
 
 bool GLCanvas3D::_update_imgui_select_plate_toolbar()
 {
-    bool result = true;
     if (!m_sel_plate_toolbar.is_enabled()) {
         return false;
     }
@@ -7698,19 +7697,13 @@ bool GLCanvas3D::_update_imgui_select_plate_toolbar()
     PartPlateList& plate_list = p_plater->get_partplate_list();
     for (int i = 0; i < plate_list.get_plate_count(); i++) {
         IMToolbarItem* item = new IMToolbarItem();
-        PartPlate* plate = plate_list.get_plate(i);
-        if (plate && plate->thumbnail_data.is_valid()) {
-            PartPlate* plate = plate_list.get_plate(i);
-            item->image_data = plate->thumbnail_data.pixels;
-            item->image_width = plate->thumbnail_data.width;
-            item->image_height = plate->thumbnail_data.height;
-            result = item->generate_texture();
-        }
+        if (PartPlate* plate = plate_list.get_plate(i))
+            item->set_thumbnail(plate->thumbnail_data);
         m_sel_plate_toolbar.m_items.push_back(item);
     }
     p_plater->clear_plate_toolbar_image_dirty();
     m_sel_plate_toolbar.is_display_scrollbar = false;
-    return result;
+    return true;
 }
 
 //BBS: GUI refactor
@@ -10284,6 +10277,12 @@ static void push_plate_toolbar_scrollbar_style(bool is_dark, float scrollbar_siz
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_size);
 }
 
+// The border of a hovered plate in the plate toolbars, when it is not the current one.
+static ImVec4 plate_toolbar_hover_color(bool is_dark)
+{
+    return ImVec4(0.67f, 0.67f, 0.67f, is_dark ? .6f : 1.f);
+}
+
 // Not IsWindowHovered(), which is false while a button is held down and would drop the bar.
 static bool plate_toolbar_keeps_scrollbar(bool shown, float scrollbar_size)
 {
@@ -10428,7 +10427,7 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
 
     ImVec4 window_bg     = m_is_dark ? ImVec4(.13f, .13f, .15f, .5f) : ImVec4(1.f, 1.f, 1.f, .7f);
     ImVec4 button_active = ImGuiWrapper::COL_ORCA; // ORCA: Use orca color for selected sliced plate border
-    ImVec4 button_hover  = ImVec4(0.67f, 0.67f, 0.67, m_is_dark ? .6f : 1.0f);
+    ImVec4 button_hover  = plate_toolbar_hover_color(m_is_dark);
     ImVec4 orca_active   = m_is_dark ? ImGuiWrapper::COL_ORCA_DARK       : ImGuiWrapper::COL_ORCA;
     ImVec4 orca_hover    = m_is_dark ? ImGuiWrapper::COL_ORCA_HOVER_DARK : ImGuiWrapper::COL_ORCA_HOVER;
     ImU32  plate_bg      = m_is_dark ? IM_COL32(255, 255, 255, 10) : IM_COL32(0, 0, 0, 10);
@@ -10728,19 +10727,13 @@ void GLCanvas3D::_render_plate_switcher()
     // The thumbnails are the ones of the Preview plate toolbar.
     const unsigned version = plater->plate_toolbar_image_version();
     if (m_plate_switcher_version != version || m_plate_switcher_items.size() != size_t(plate_count)) {
-        if (!plater->is_gcode_3mf())
-            plater->update_all_plate_thumbnails(true);
+        // Only the current plate is edited here; the others are redrawn when their thumbnails go invalid.
+        for (int i = 0; i < plate_count && !plater->is_gcode_3mf(); ++i)
+            plater->update_plate_thumbnails(i, i == plate_list.get_curr_plate_index());
         m_plate_switcher_items.clear();
         for (int i = 0; i < plate_count; ++i) {
-            auto             item  = std::make_unique<IMToolbarItem>();
-            const PartPlate* plate = plate_list.get_plate(i);
-            if (plate->thumbnail_data.is_valid()) {
-                item->image_data   = plate->thumbnail_data.pixels;
-                item->image_width  = plate->thumbnail_data.width;
-                item->image_height = plate->thumbnail_data.height;
-                item->generate_texture();
-            }
-            m_plate_switcher_items.push_back(std::move(item));
+            m_plate_switcher_items.push_back(std::make_unique<IMToolbarItem>());
+            m_plate_switcher_items.back()->set_thumbnail(plate_list.get_plate(i)->thumbnail_data);
         }
         m_plate_switcher_version = version;
     }
@@ -10764,7 +10757,7 @@ void GLCanvas3D::_render_plate_switcher()
 
     const ImVec4 text_color  = m_is_dark ? ImVec4(.9f, .9f, .9f, 1.f) : ImVec4(.3f, .3f, .3f, 1.f);
     const ImVec4 empty_color = ImVec4(text_color.x, text_color.y, text_color.z, .45f);
-    const ImVec4 hover       = m_is_dark ? ImVec4(1.f, 1.f, 1.f, .12f) : ImVec4(0.f, 0.f, 0.f, .08f);
+    const ImVec4 hover       = plate_toolbar_hover_color(m_is_dark);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
     // Concentric with the thumbnails; tighter around the scrollbar, as in the Preview plate toolbar.
