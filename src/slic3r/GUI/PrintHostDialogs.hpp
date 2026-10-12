@@ -1,10 +1,14 @@
 #ifndef slic3r_PrintHostSendDialog_hpp_
 #define slic3r_PrintHostSendDialog_hpp_
 
+#include <map>
+#include <cstddef>
 #include <string>
+#include <utility>
 #include <vector>
 #include <boost/filesystem/path.hpp>
 
+#include <wx/colour.h>
 #include <wx/string.h>
 #include <wx/event.h>
 #include <wx/dialog.h>
@@ -24,6 +28,8 @@ class wxFlexGridSizer;
 class wxStaticText;
 class wxWrapSizer;
 class CheckBox;
+
+namespace Slic3r { namespace GUI { class BitmapComboBox; } }
 
 namespace Slic3r {
 
@@ -161,7 +167,7 @@ public:
     BedType      bedType() const { return m_BedType; }
 
     virtual void                               init() override;
-    virtual std::map<std::string, std::string> extendedInfo() const
+    virtual std::map<std::string, std::string> extendedInfo() const override
     {
         return {{"bedType", std::to_string(static_cast<int>(m_BedType))},
                 {"timeLapse", std::to_string(m_timeLapse)},
@@ -184,6 +190,37 @@ private:
     int     m_timeLapse;
     int     m_heatedBedLeveling;
     BedType m_BedType;
+};
+
+class CrealityPrintHostSendDialog : public PrintHostSendDialog
+{
+public:
+    CrealityPrintHostSendDialog(const boost::filesystem::path& path,
+                                PrintHostPostUploadActions     post_actions,
+                                const wxArrayString&           groups,
+                                const wxArrayString&           storage_paths,
+                                const wxArrayString&           storage_names,
+                                bool                           switch_to_device_tab,
+                                PrintHost*                     printhost);
+
+    virtual void                               init() override;
+    virtual std::map<std::string, std::string> extendedInfo() const override;
+
+private:
+    static constexpr const char* CONFIG_KEY_ENABLESELFTEST = "crealityprint_enable_self_test";
+
+    bool        m_enableSelfTest;
+    PrintHost*  m_printhost;
+
+    struct SlotInfo {
+        std::string tool_id;   // e.g. "T1A"
+        std::string type;      // e.g. "PLA"
+        std::string color;     // e.g. "#ffffff"
+        int         box_id;
+        int         material_id;
+    };
+    std::vector<SlotInfo>   m_printer_slots;
+    std::vector<BitmapComboBox*> m_slot_combos; // one per gcode filament
 };
 
 class FlashforgePrintHostSendDialog : public PrintHostSendDialog

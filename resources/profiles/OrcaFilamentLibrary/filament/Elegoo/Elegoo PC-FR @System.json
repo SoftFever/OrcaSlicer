@@ -1,9 +1,10 @@
 {
 	"type": "filament",
 	"name": "Elegoo PC-FR @System",
-	"inherits": "Elegoo PC @base",
+	"renamed_from": "Elegoo PC-FR",
+	"inherits": "Elegoo PC-FR @base",
 	"from": "system",
-	"setting_id": "OEPCFRS00",
+	"setting_id": "JcopkaXZ7YyLjIcw",
 	"instantiation": "true",
 	"pressure_advance": [
 		"0.05"

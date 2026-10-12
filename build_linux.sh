@@ -8,9 +8,10 @@ SCRIPT_PATH=$(dirname "$(readlink -f "${0}")")
 pushd "${SCRIPT_PATH}" > /dev/null
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-D][-e][-F][-g][-h][-i][-j N][-p][-r][-s][-t][-u][-l][-L]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-D][-e][-F][-g][-h][-i][-j N][-J N][-p][-r][-s][-t][-u][-l][-L]"
     echo "   -1: limit builds to one core (where possible)"
     echo "   -j N: limit builds to N cores (where possible)"
+    echo "   -J N: build up to N dependencies at a time, each still using -j jobs (default: 1)"
     echo "   -b: build in Debug mode"
     echo "   -c: force a clean build"
     echo "   -C: enable ANSI-colored compile output (GNU/Clang only)"
@@ -36,12 +37,13 @@ function usage() {
 }
 
 SLIC3R_PRECOMPILED_HEADERS="ON"
+DEPS_PARALLEL=""
 
 unset name
 BUILD_DIR=build
 BUILD_CONFIG=Release
 FORWARDED_ARGS=()
-while getopts ":1j:bcCdDeFghiprstulL" opt ; do
+while getopts ":1j:J:bcCdDeFghiprstulL" opt ; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -50,6 +52,10 @@ while getopts ":1j:bcCdDeFghiprstulL" opt ; do
     j )
         export CMAKE_BUILD_PARALLEL_LEVEL=$OPTARG
         FORWARDED_ARGS+=("-j" "$OPTARG")
+        ;;
+    J )
+        DEPS_PARALLEL=$OPTARG
+        FORWARDED_ARGS+=("-J" "$OPTARG")
         ;;
     b )
         BUILD_DIR=build-dbg
@@ -132,6 +138,11 @@ fi
 
 if [[ -n "${CLEAN_DOCKER_IMAGE}" ]] && [[ -z "${USE_DOCKER}" ]] ; then
     echo "Error: -F requires -g."
+    exit 1
+fi
+
+if [[ -n "${DEPS_PARALLEL}" ]] && ! [[ "${DEPS_PARALLEL}" =~ ^[1-9][0-9]*$ ]] ; then
+    echo "Error: -J expects a positive integer."
     exit 1
 fi
 
@@ -504,13 +515,24 @@ if [[ -n "${USE_LLD}" ]] ; then
     fi
 fi
 
-# Auto-detect ccache for faster rebuilds
 export CMAKE_CCACHE_ARGS=()
-if command -v ccache >/dev/null 2>&1 ; then
-    echo "ccache found at $(command -v ccache), enabling compiler caching..."
-    export CMAKE_CCACHE_ARGS=(-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache)
+CMAKE_CCACHE=${CMAKE_CCACHE:-}
+if [ -n "$CMAKE_CCACHE" ]; then
+        echo "Checking ${CMAKE_CCACHE} environment variable for compiler cache program..."
+        CMAKE_CCACHE=$(command -v "${CMAKE_CCACHE}") || {
+            echo "CMAKE_CCACHE environment variable is set to '${CMAKE_CCACHE}' but it was not found in PATH."
+            CMAKE_CCACHE=""
+        }
+elif command -v sccache >/dev/null 2>&1 ; then
+        CMAKE_CCACHE=$(command -v sccache)
+elif command -v ccache >/dev/null 2>&1 ; then
+        CMAKE_CCACHE=$(command -v ccache)
+fi
+if [ -n "${CMAKE_CCACHE}" ] ; then
+    echo "${CMAKE_CCACHE} found, enabling compiler caching..."
+    export CMAKE_CCACHE_ARGS=(-DCMAKE_C_COMPILER_LAUNCHER="${CMAKE_CCACHE}" -DCMAKE_CXX_COMPILER_LAUNCHER="${CMAKE_CCACHE}")
 else
-    echo "Note: ccache not found. Install ccache for faster rebuilds."
+    echo "Note: ccache or sccache are not found. Install either of them for faster rebuilds."
 fi
 
 if [[ -n "${BUILD_DEPS}" ]] ; then
@@ -525,8 +547,30 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
         BUILD_ARGS+=(-DCMAKE_BUILD_TYPE="${BUILD_CONFIG}")
     fi
 
-    print_and_run cmake -S deps -B deps/$BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS[@]}"
-    print_and_run cmake --build deps/$BUILD_DIR -j1
+    print_and_run cmake -S deps -B deps/$BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" "${CMAKE_CCACHE_ARGS[@]}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS[@]}"
+    # The top-level build runs one dependency at a time by default, which keeps the console
+    # output readable and lets that dependency's own build use all of CMAKE_BUILD_PARALLEL_LEVEL.
+    # -J raises the top level instead, and -j still applies in full to every dependency, so the
+    # worst case is -J times -j compile jobs at once. Ninja has no job server to share a pool
+    # across the nested builds, so that ceiling is not enforced anywhere: pick -J to suit the RAM.
+    DEPS_JOBS=1
+    if [[ -n "${DEPS_PARALLEL}" ]] ; then
+        DEPS_JOBS=${DEPS_PARALLEL}
+        SAVED_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL-}
+        export CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL:-$(nproc)}
+        echo "Building up to ${DEPS_JOBS} dependencies at a time, ${CMAKE_BUILD_PARALLEL_LEVEL} jobs each: up to $(( DEPS_JOBS * CMAKE_BUILD_PARALLEL_LEVEL )) compile jobs at once."
+    fi
+
+    print_and_run cmake --build deps/$BUILD_DIR -j"${DEPS_JOBS}"
+
+    if [[ -n "${DEPS_PARALLEL}" ]] ; then
+        # Give the whole -j back to the OrcaSlicer build below.
+        if [[ -n "${SAVED_PARALLEL_LEVEL}" ]] ; then
+            export CMAKE_BUILD_PARALLEL_LEVEL=${SAVED_PARALLEL_LEVEL}
+        else
+            unset CMAKE_BUILD_PARALLEL_LEVEL
+        fi
+    fi
 fi
 
 if [[ -n "${BUILD_ORCA}" ]] || [[ -n "${BUILD_TESTS}" ]] ; then
@@ -556,6 +600,8 @@ if [[ -n "${BUILD_ORCA}" ]] || [[ -n "${BUILD_TESTS}" ]] ; then
 	print_and_run cmake --build $BUILD_DIR --config "${BUILD_CONFIG}" --target OrcaSlicer
 	echo "Building OrcaSlicer_profile_validator .."
 	print_and_run cmake --build $BUILD_DIR --config "${BUILD_CONFIG}" --target OrcaSlicer_profile_validator
+	echo "Building generate_system_cache ..."
+	print_and_run cmake --build $BUILD_DIR --config "${BUILD_CONFIG}" --target generate_system_cache
 	./scripts/run_gettext.sh
     fi
     if [[ -n "${BUILD_TESTS}" ]] ; then

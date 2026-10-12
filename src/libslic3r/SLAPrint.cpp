@@ -1,17 +1,40 @@
 #include "SLAPrint.hpp"
+#include "PrintConfig.hpp"
+#include "SLA/SupportTree.hpp"
+#include "SLA/Pad.hpp"
+#include "Point.hpp"
+#include "Model.hpp"
+#include "ObjectID.hpp"
+#include "Config.hpp"
+#include "PrintBase.hpp"
+#include "SLA/SupportPoint.hpp"
+#include "ExPolygon.hpp"
+#include "SLA/Hollowing.hpp"
 #include "SLAPrintSteps.hpp"
 
-#include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "MTUtils.hpp"
 #include "Thread.hpp"
+#include "libslic3r.h"
+#include "Utils.hpp"
 
+#include <mutex>
+#include <Eigen/Geometry>
+#include <cassert>
+#include <algorithm>
+#include <set>
+#include <cstddef>
+#include <array>
+#include <cmath>
+#include <exception>
 #include <unordered_set>
 #include <numeric>
 
 #include <tbb/parallel_for.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
+#include <vector>
+#include <utility>
 
 // #define SLAPRINT_DO_BENCHMARK
 
@@ -20,6 +43,9 @@
 #endif
 
 #include "I18N.hpp"
+#include "PlaceholderParser.hpp"
+
+namespace Slic3r { class Polygon; }
 
 //! macro used to mark string used at localization,
 //! return same string
@@ -613,7 +639,7 @@ std::string SLAPrint::output_filename(const std::string &filename_base) const
     return this->PrintBase::output_filename(m_print_config.filename_format.value, ".sl1", filename_base, &config);
 }
 
-StringObjectException SLAPrint::validate(StringObjectException *exception, Polygons *collison_polygons, std::vector<std::pair<Polygon, float>> *height_polygons) const
+StringObjectException SLAPrint::validate(std::vector<StringObjectException> *warnings, Polygons *collison_polygons, std::vector<std::pair<Polygon, float>> *height_polygons) const
 {
     for(SLAPrintObject * po : m_objects) {
 
@@ -1007,7 +1033,9 @@ bool SLAPrintObject::invalidate_step(SLAPrintObjectStep step)
 
 bool SLAPrintObject::invalidate_all_steps()
 {
-    return Inherited::invalidate_all_steps() | m_print->invalidate_all_steps();
+    const bool inherited_invalidated = Inherited::invalidate_all_steps();
+    const bool print_invalidated     = m_print->invalidate_all_steps();
+    return inherited_invalidated || print_invalidated;
 }
 
 double SLAPrintObject::get_elevation() const {

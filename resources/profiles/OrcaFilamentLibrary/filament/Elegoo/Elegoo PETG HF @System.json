@@ -1,9 +1,10 @@
 {
 	"type": "filament",
 	"name": "Elegoo PETG HF @System",
-	"inherits": "Elegoo PETG @base",
+	"renamed_from": "Elegoo PETG HF",
+	"inherits": "Elegoo PETG HF @base",
 	"from": "system",
-	"setting_id": "OERPETGHFS00",
+	"setting_id": "d6gNuzrG00SXvMth",
 	"instantiation": "true",
 	"pressure_advance": [
 		"0.052"

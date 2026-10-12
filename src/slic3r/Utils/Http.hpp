@@ -1,8 +1,10 @@
 #ifndef __Http_hpp__
 #define __Http_hpp__
 
+#include <cstddef>
 #include <map>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <functional>
 #include <boost/filesystem/path.hpp>
@@ -204,6 +206,8 @@ public:
 	static std::string url_decode(const std::string &str);
 
 	static std::string get_filename_from_url(const std::string &url);
+	static std::string get_host_from_url(const std::string &url, std::string *port = nullptr);
+	static std::string get_host_header_value(const std::string &url);
 private:
 	Http(const std::string &url);
 

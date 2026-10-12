@@ -1,20 +1,34 @@
 #include "FixModelByCgal.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/libslic3r.h"
+#include <exception>
+#include <cstddef>
+#include "libslic3r/Exception.hpp"
 #include <limits>
 #include <mutex>
+#include "slic3r/GUI/Widgets/ProgressDialog.hpp"
+#include <optional>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
+#include <wx/string.h>
 
 #include "libslic3r/MeshBoolean.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/Format/bbs_3mf.hpp"
 #include "libslic3r/format.hpp"
 #include "libslic3r/Thread.hpp"
 #include "../GUI/I18N.hpp"
+#include "libslic3r/TriangleSelector.hpp"
 
 // Orca: This file provides utilities for repairing 3D model meshes using the CGAL library, handling mesh splitting, merging, and boolean operations.
 
@@ -69,6 +83,9 @@ public:
 // Returns false if fixing was canceled. fix_result contains error message if failed.
 bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::ProgressDialog &progress_dialog, const wxString &msg_header, std::string &fix_result, bool keep_painting)
 {
+    // Hold SaveObjectGaurd to prevent backup manager from racing concurrent mesh mutations (use-after-free).
+    SaveObjectGaurd backup_gaurd(model_object);
+
     // Orca: Synchronization primitives for progress updates between worker thread and GUI.
     std::mutex mtx;
     std::condition_variable condition;
@@ -85,7 +102,7 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
     size_t ivolume = 0;
 
     // Orca: Lambda for updating progress from worker thread.
-    auto on_progress = [&mtx, &condition, &ivolume, &model_object, &progress](const char *msg, unsigned prcnt) {
+    auto on_progress = [&mtx, &condition, &ivolume, &model_object, &progress](const std::string &msg, unsigned prcnt) {
         std::unique_lock<std::mutex> lock(mtx);
         progress.message = msg;
         const size_t total = std::max<size_t>(1, model_object.volumes.size());
@@ -108,7 +125,7 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
                 if (canceled)
                     throw RepairCanceledException();
 
-                on_progress(L("Repairing model object"), 10);
+                on_progress(_u8L("Repairing model object"), 10);
 
                 ModelVolume *volume = model_object.volumes[ivolume];
 
@@ -118,7 +135,7 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
                     parts_count = volume->split(1, keep_painting);
                     if (parts_count > 1) {
                         const std::string msg = Slic3r::format(L("Split into %1% parts"), parts_count);
-                        on_progress(msg.c_str(), 10);
+                        on_progress(msg, 10);
                     }
                 }
 
@@ -145,7 +162,7 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
 
                 if (removed_parts >= parts_count) {
                     ivolume = part_end;
-                    on_progress(L("Repair finished"), 100);
+                    on_progress(_u8L("Repair finished"), 100);
                     continue;
                 }
 
@@ -161,7 +178,7 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
 
                         std::string error;
                         if (!MeshBoolean::cgal::repair(mesh, nullptr, &error))
-                            throw Slic3r::RuntimeError(error.empty() ? L("Repair failed") : error.c_str());
+                            throw Slic3r::RuntimeError(error.empty() ? _u8L("Repair failed") : error);
 
                         part_volume->set_mesh(std::move(mesh));
                         part_volume->calculate_convex_hull();
@@ -175,20 +192,20 @@ bool fix_model_with_cgal_gui(ModelObject &model_object, int volume_idx, GUI::Pro
 
                 ivolume = part_end;
 
-                on_progress(L("Repair finished"), 100);
+                on_progress(_u8L("Repair finished"), 100);
             }
 
             model_object.invalidate_bounding_box();
 
             if (ivolume > 0)
                 --ivolume;
-            on_progress(L("Repair finished"), 100);
+            on_progress(_u8L("Repair finished"), 100);
             success = true;
             finished = true;
         } catch (RepairCanceledException &) {
             canceled = true;
             finished = true;
-            on_progress(L("Repair canceled"), 100);
+            on_progress(_u8L("Repair canceled"), 100);
         } catch (std::exception &ex) {
             success = false;
             finished = true;

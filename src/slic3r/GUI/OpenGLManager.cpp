@@ -8,16 +8,31 @@
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Platform.hpp"
 
+#include <boost/algorithm/string/predicate.hpp>
+#include <algorithm>
+#include <boost/algorithm/string/constants.hpp>
+#include <cstdlib>
 #include <glad/gl.h>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/log/trivial.hpp>
 
+#include <string>
+#include <ostream>
+#include "libslic3r/Utils.hpp"
+#include <vector>
+#include <sstream>
+#include <utility>
+#include <wx/gdicmn.h>
 #include <wx/glcanvas.h>
+#include <wx/log.h>
 #include <wx/msgdlg.h>
+#include <wx/string.h>
+#include <wx/version.h>
 
 #include "GUI_Init.hpp"
+#include "slic3r/GUI/GLShadersManager.hpp"
 
 #ifdef __APPLE__
 #include "../Utils/MacDarkMode.hpp"
@@ -266,7 +281,12 @@ bool OpenGLManager::init_gl(bool popup_error)
         else
             s_compressed_textures_supported = false;
 
-        if (GLAD_GL_ARB_framebuffer_object) {
+        if (s_gl_info.is_version_greater_or_equal_to(3, 0)) {
+            // ARB framebuffer became a mandatory part of core OpenGL 3.0
+            s_framebuffers_type = EFramebufferType::Arb;
+            BOOST_LOG_TRIVIAL(info) << "Opengl version >= 30, FrameBuffer Type ARB." << std::endl;
+        }
+        else if (GLAD_GL_ARB_framebuffer_object) {
             s_framebuffers_type = EFramebufferType::Arb;
             BOOST_LOG_TRIVIAL(info) << "Found Framebuffer Type ARB."<< std::endl;
         }
@@ -281,7 +301,7 @@ bool OpenGLManager::init_gl(bool popup_error)
 
         bool valid_version = s_gl_info.is_version_greater_or_equal_to(2, 0);
         if (!valid_version) {
-            BOOST_LOG_TRIVIAL(error) << "Found opengl version <= 3.2"<< std::endl;
+            BOOST_LOG_TRIVIAL(error) << "Found opengl version < 2.0"<< std::endl;
             // Complain about the OpenGL version.
             if (popup_error) {
                 wxString message = from_u8((boost::format(
