@@ -362,6 +362,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Lazy.hpp
     GUI/LazyPage.cpp
     GUI/LazyPage.hpp
+    GUI/LegacyPrinterMigrationDialog.cpp
+    GUI/LegacyPrinterMigrationDialog.hpp
     GUI/LibVGCode/LibVGCodeWrapper.hpp
     GUI/LibVGCode/LibVGCodeWrapper.cpp
     GUI/LinuxDisplayBackend.cpp

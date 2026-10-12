@@ -37,6 +37,7 @@
 #include <utility>
 #include "libslic3r/Config.hpp"
 #include <map>
+#include <regex>
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PublishSettings.hpp"
 #include <set>
@@ -7162,7 +7163,7 @@ TEST_CASE("A user filament whose derived compatible printer cannot be written ba
 }
 #endif
 
-TEST_CASE("A user filament keeps the printers its narrowed system parent listed in an older release", "[Preset][Bundle]")
+TEST_CASE("User filaments that lost printers their narrowed system parent listed in an older release are found", "[Preset][Bundle]")
 {
     PresetBundle      bundle;
     PresetCollection &filaments = bundle.filaments;
@@ -7179,25 +7180,14 @@ TEST_CASE("A user filament keeps the printers its narrowed system parent listed 
     set_printers("My PETG", { "Creality K1C 0.6 nozzle" });
     set_printers("My PETG own list", { "Creality K1C 0.6 nozzle", "Creality K1C 0.8 nozzle" });
 
-    filaments.set_legacy_compatible_printers({ { parent, { "Creality K1C 0.4 nozzle" } } });
-
-    auto compatible = [&filaments](const std::string &filament, const Preset &printer) {
-        return is_compatible_with_printer(PresetWithVendorProfile(*filaments.find_preset(filament), nullptr),
-                                          PresetWithVendorProfile(printer, nullptr));
-    };
-    Preset k1c_04(Preset::TYPE_PRINTER, "Creality K1C 0.4 nozzle");
-    k1c_04.is_system = true;
-    Preset k1_max(Preset::TYPE_PRINTER, "Creality K1 Max 0.4 nozzle");
-    k1_max.is_system = true;
-    Preset my_k1c(Preset::TYPE_PRINTER, "My K1C");
-    my_k1c.config.option<ConfigOptionString>(BBL_JSON_KEY_INHERITS, true)->value = "Creality K1C 0.4 nozzle";
-
-    CHECK(compatible("My PETG", k1c_04));
-    CHECK(compatible("My PETG", my_k1c));
-    CHECK_FALSE(compatible("My PETG", k1_max));
-    // The system preset itself and a user preset with its own list keep exactly their lists.
-    CHECK_FALSE(compatible(parent, k1c_04));
-    CHECK_FALSE(compatible("My PETG own list", k1c_04));
+    // A printer the parent still lists is not reported again. The system preset and a user preset
+    // with its own list are left alone.
+    std::vector<LegacyPrinterMigration> migrations =
+        filaments.legacy_printer_migrations({ { parent, { "Creality K1C 0.4 nozzle", "Creality K1C 0.6 nozzle" } } });
+    REQUIRE(migrations.size() == 1);
+    CHECK(migrations[0].preset == "My PETG");
+    CHECK(migrations[0].parent == parent);
+    CHECK(migrations[0].printers == std::vector<std::string>{ "Creality K1C 0.4 nozzle" });
 
     // A parent renamed after the map was written is still found under its old name.
     add_inmemory_preset(filaments, "Generic PETG @Creality K1 renamed").is_system = true;
@@ -7205,45 +7195,93 @@ TEST_CASE("A user filament keeps the printers its narrowed system parent listed 
     set_renamed_from(filaments, "Generic PETG @Creality K1 renamed", { parent });
     set_printers("Generic PETG @Creality K1 renamed", { "Creality K1C 0.6 nozzle" });
     set_printers("My renamed PETG", { "Creality K1C 0.6 nozzle" });
-    filaments.set_legacy_compatible_printers({ { parent, { "Creality K1C 0.4 nozzle" } } });
-    CHECK(compatible("My renamed PETG", k1c_04));
+    migrations = filaments.legacy_printer_migrations({ { parent, { "Creality K1C 0.4 nozzle" } } });
+    REQUIRE(migrations.size() == 2);
+    CHECK(migrations[1].preset == "My renamed PETG");
+    CHECK(migrations[1].parent == "Generic PETG @Creality K1 renamed");
 }
 
-TEST_CASE("A saved user filament keeps its legacy printers only while it inherits its parent's printer list", "[Preset][Bundle]")
+TEST_CASE("Migrating a user filament backs up the user folder to a zip and writes the legacy printers to its file", "[Preset][Bundle]")
 {
     ScopedTemporaryDir temp_dir;
-    PresetBundle       bundle;
-    PresetCollection  &filaments = bundle.filaments;
+    ScopedDataDir      data(temp_dir.path());
     const std::string  parent    = "Generic PETG @Creality K1-all";
+    auto with_parent = [&parent](PresetBundle &bundle) {
+        add_inmemory_preset(bundle.filaments, parent).is_system = true;
+        bundle.filaments.find_preset(parent)->config.option<ConfigOptionStrings>("compatible_printers", true)->values = { "Creality K1C 0.6 nozzle" };
+    };
+    // Like a real user preset, the file states only its diff, so the printer list comes from the parent.
+    const fs::path user_dir = temp_dir.path() / PRESET_USER_DIR / "default";
+    const fs::path file     = user_dir / PRESET_FILAMENT_NAME / "My PETG.json";
+    fs::create_directories(file.parent_path());
+    const std::string original = std::string(R"({"type":"filament","name":"My PETG","from":"User","version":"1.0.0","inherits":")") + parent + R"("})";
+    std::ofstream(file.string()) << original;
+    auto load = [&user_dir](PresetCollection &filaments) {
+        PresetsConfigSubstitutions substitutions;
+        filaments.load_presets(user_dir.string(), PRESET_FILAMENT_NAME, substitutions, ForwardCompatibilitySubstitutionRule::EnableSilent);
+    };
+    PresetBundle      bundle;
+    PresetCollection &filaments = bundle.filaments;
+    with_parent(bundle);
+    load(filaments);
+    const std::map<std::string, std::vector<std::string>> map{ { parent, { "Creality K1C 0.4 nozzle" } } };
+    const std::vector<LegacyPrinterMigration> migrations = filaments.legacy_printer_migrations(map);
+    REQUIRE(migrations.size() == 1);
+
+    std::vector<std::string> failed;
+    const std::string backup = bundle.migrate_legacy_printers(migrations, failed);
+    REQUIRE_FALSE(backup.empty());
+    CHECK(std::regex_match(fs::path(backup).filename().string(), std::regex("filament_preset_migration_\\d{8}T\\d{6}Z_backup\\.zip")));
+    CHECK(failed.empty());
+    const fs::path extracted = temp_dir.path() / "extracted";
+    REQUIRE(extract_archive_confined(backup, extracted.string()));
+    CHECK(read_file(extracted / PRESET_USER_DIR / "default" / PRESET_FILAMENT_NAME / "My PETG.json") == original);
+
+    // Reloaded from disk, the preset carries both printers itself and needs no further migration.
+    PresetBundle reloaded;
+    with_parent(reloaded);
+    load(reloaded.filaments);
+    const std::vector<std::string> expected{ "Creality K1C 0.6 nozzle", "Creality K1C 0.4 nozzle" };
+    CHECK(reloaded.filaments.find_preset("My PETG")->config.option<ConfigOptionStrings>("compatible_printers")->values == expected);
+    CHECK(reloaded.filaments.legacy_printer_migrations(map).empty());
+    CHECK_FALSE(reloaded.filaments.apply_legacy_printer_migration(migrations[0]));
+}
+
+namespace {
+
+// A filament collection that exposes the rename map update, which PresetBundle runs after loading system presets.
+struct RenameTestFilaments : public PresetCollection
+{
+    RenameTestFilaments()
+        : PresetCollection(Preset::TYPE_FILAMENT, Preset::filament_options(),
+                           static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()))
+    {}
+    using PresetCollection::update_map_system_profile_renamed;
+};
+
+} // namespace
+
+TEST_CASE("Migrating a user filament keeps the old name of its renamed parent", "[Preset][Bundle]")
+{
+    ScopedTemporaryDir  temp_dir;
+    RenameTestFilaments filaments;
+    const std::string   parent     = "Generic PETG @Creality K1-all";
+    const std::string   old_parent = "Creality Generic PETG @K1-all";
     add_inmemory_preset(filaments, parent).is_system = true;
     filaments.find_preset(parent)->config.option<ConfigOptionStrings>("compatible_printers", true)->values = { "Creality K1C 0.6 nozzle" };
-    // Like a real user preset, the file states only its diff, so the printer list comes from the parent.
-    fs::create_directories(temp_dir.path() / PRESET_FILAMENT_NAME);
-    std::ofstream((temp_dir.path() / PRESET_FILAMENT_NAME / "My PETG.json").string())
-        << R"({"type":"filament","name":"My PETG","from":"User","version":"1.0.0","inherits":")" << parent << R"("})";
+    set_renamed_from(filaments, parent, { old_parent });
+    filaments.update_map_system_profile_renamed();
+    const fs::path file = temp_dir.path() / PRESET_FILAMENT_NAME / "My PETG.json";
+    fs::create_directories(file.parent_path());
+    std::ofstream(file.string()) << R"({"type":"filament","name":"My PETG","from":"User","version":"1.0.0","inherits":")" << old_parent << R"("})";
     PresetsConfigSubstitutions substitutions;
-    filaments.load_presets(temp_dir.path().string(), PRESET_FILAMENT_NAME, substitutions,
-                           ForwardCompatibilitySubstitutionRule::EnableSilent);
-    filaments.set_legacy_compatible_printers({ { parent, { "Creality K1C 0.4 nozzle" } } });
-    const std::vector<std::string> legacy { "Creality K1C 0.4 nozzle" };
-    REQUIRE(filaments.find_preset("My PETG")->legacy_compatible_printers == legacy);
+    filaments.load_presets(temp_dir.path().string(), PRESET_FILAMENT_NAME, substitutions, ForwardCompatibilitySubstitutionRule::EnableSilent);
 
-    auto save_from_my_petg = [&filaments](const std::string &name, bool detach) {
-        filaments.select_preset_by_name("My PETG", true);
-        filaments.save_current_preset(name, detach);
-        return filaments.find_preset(name)->legacy_compatible_printers;
-    };
-    CHECK(save_from_my_petg("My PETG copy", false) == legacy);
-    CHECK(save_from_my_petg("My PETG detached", true).empty());
-
-    // A clone is detached from the parent, as "Create filament" makes for another printer.
-    std::vector<std::string> failures;
-    REQUIRE(filaments.clone_presets({ filaments.find_preset("My PETG") }, failures,
-                                    [](Preset &preset, Preset::Type &) { preset.name = "My PETG clone"; }));
-    CHECK(filaments.find_preset("My PETG clone")->legacy_compatible_printers.empty());
-
-    filaments.select_preset_by_name("My PETG", true);
-    filaments.get_edited_preset().config.option<ConfigOptionStrings>("compatible_printers")->values = { "Creality K1C 0.8 nozzle" };
-    filaments.save_current_preset("My PETG", false);
-    CHECK(filaments.find_preset("My PETG")->legacy_compatible_printers.empty());
+    const std::vector<LegacyPrinterMigration> migrations = filaments.legacy_printer_migrations({ { parent, { "Creality K1C 0.4 nozzle" } } });
+    REQUIRE(migrations.size() == 1);
+    REQUIRE(filaments.apply_legacy_printer_migration(migrations[0]));
+    // An older release knows the parent only by its old name.
+    const std::string saved = read_file(file);
+    CHECK(saved.find("\"inherits\": \"" + old_parent + "\"") != std::string::npos);
+    CHECK(saved.find("Creality K1C 0.4 nozzle") != std::string::npos);
 }

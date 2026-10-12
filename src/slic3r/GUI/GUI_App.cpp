@@ -12,6 +12,7 @@
 #include "DeviceManager.hpp"
 #include "HMS.hpp"
 #include "PresetBundleDialog.hpp"
+#include "LegacyPrinterMigrationDialog.hpp"
 #include "WebUserLoginDialog.hpp"
 #include "WebViewDialog.hpp"
 #include "slic3r/Utils/BBLCloudServiceAgent.hpp"
@@ -1109,6 +1110,8 @@ void GUI_App::post_init()
             }
 
             this->check_new_version_sf();
+            if (!cw_showed)
+                this->check_legacy_printer_migration(false);
             const auto cloud_provider = get_printer_cloud_provider();
             if (is_user_login(cloud_provider) && !app_config->get_stealth_mode()) {
               // this->check_privacy_version(0);
@@ -6820,6 +6823,50 @@ void GUI_App::reload_settings()
         else
             CallAfter(refresh_synced_ui);
     }
+}
+
+void GUI_App::check_legacy_printer_migration(bool by_user)
+{
+    const std::vector<LegacyPrinterMigration> migrations = preset_bundle->legacy_printer_migrations();
+    if (migrations.empty()) {
+        if (by_user)
+            MessageDialog(mainframe, _L("All your filament presets are available on the printers they were made for."),
+                          _L("Migrate Filament Presets"), wxOK | wxICON_INFORMATION).ShowModal();
+        return;
+    }
+    if (!by_user && app_config->get_bool("legacy_printer_migration_dont_remind"))
+        return;
+
+    LegacyPrinterMigrationDialog dlg(mainframe, migrations, !by_user);
+    const bool migrate = dlg.ShowModal() == wxID_YES;
+    if (dlg.dont_remind())
+        app_config->set_bool("legacy_printer_migration_dont_remind", true);
+    if (!migrate)
+        return;
+
+    std::vector<std::string> failed;
+    const std::string backup = preset_bundle->migrate_legacy_printers(migrations, failed);
+    if (backup.empty()) {
+        show_error(mainframe, _L("Your presets could not be backed up, so they were not migrated."));
+        return;
+    }
+    preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+    mainframe->update_side_preset_ui();
+    for (auto tab : tabs_list) {
+        tab->reload_config();
+        tab->update_changed_ui();
+    }
+    if (plater_)
+        plater_->sidebar().update_all_preset_comboboxes();
+
+    wxString message = format_wxstr(_L("Your filament presets were migrated. Select them again in the filament list where you used them.\n\n"
+                                        "A backup of your presets was saved to:\n%1%"), backup);
+    if (!failed.empty()) {
+        message += "\n\n" + _L("These presets could not be migrated:");
+        for (const std::string &name : failed)
+            message += "\n" + from_u8(name);
+    }
+    MessageDialog(mainframe, message, _L("Migrate Filament Presets"), wxOK | (failed.empty() ? wxICON_INFORMATION : wxICON_WARNING)).ShowModal();
 }
 
 //BBS reload when logout

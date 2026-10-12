@@ -376,6 +376,16 @@ public:
     bool use_bbl_device_tab();
 
     bool backup_user_folder() const;
+    // Writes the user preset folder into a zip archive at zip_path, its entries under "user/".
+    bool backup_user_folder_to_zip(const std::string &zip_path) const;
+
+    // User filament presets that no longer show on printers their parent listed in an older release
+    // (resources/info/legacy_compatible_printers.json).
+    std::vector<LegacyPrinterMigration> legacy_printer_migrations() const;
+    // Backs up the user preset folder into a zip in data_dir(), then writes each migration's printers into its
+    // preset file. Returns the zip's path, or an empty string when the backup failed and nothing was migrated.
+    // The presets that could not be migrated are added to failed.
+    std::string migrate_legacy_printers(const std::vector<LegacyPrinterMigration> &migrations, std::vector<std::string> &failed);
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);

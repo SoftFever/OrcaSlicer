@@ -11,7 +11,7 @@ commands:
   normalize        rewrite profile files into their canonical shape
   trim             delete profile files no <vendor>.json list references
   update-index     regenerate the *_list sections of <vendor>.json
-  legacy-compat    write the printers user presets keep from an older release
+  legacy-compat    write the printers user presets can be migrated back to
 
 options shared by several commands:
   --vendor VENDOR      act on one vendor bundle only; repeatable, empty means all
@@ -27,7 +27,7 @@ normalize supplies missing types; update-index registers presets before id
 generation.
 After renaming filament presets or narrowing their compatible_printers, also
 rerun legacy-compat --base <2.4.2 profiles> so user presets made against 2.4.2
-keep their printers.
+can be migrated back to their printers.
 Use trim only for deliberate cleanup, previewed with --dry-run: it judges against
 the current index and can delete newly added, unindexed presets.
 
@@ -3136,12 +3136,12 @@ def legacy_compatible_printers(base_dir, profiles_dir=PROFILES_DIR):
     User presets store only their diff, so they inherit their parent's
     compatible_printers; when a profile change narrows that list, a user preset
     made against the base release disappears from printers it was used on. The
-    loader adds these printers back to such user presets. Requiring a same-id
+    app offers to write these printers into such user presets. Requiring a same-id
     successor leaves out printers a filament was deliberately taken off, and
     requiring a shared extruder variant keeps a printer from picking up another
     variant's values.
 
-    Keyed by the current preset name: the loader resolves a renamed parent
+    Keyed by the current preset name: the app resolves a renamed parent
     before the map is consulted. Printer names are translated through the
     printers' renamed_from. Returns {preset name: sorted printer names}.
     """
@@ -3232,7 +3232,7 @@ normalize supplies missing types; update-index registers presets before id
 generation.
 After renaming filament presets or narrowing their compatible_printers, also
 rerun legacy-compat --base <2.4.2 profiles> so user presets made against 2.4.2
-keep their printers.
+can be migrated back to their printers.
 Use trim only for deliberate cleanup, previewed with --dry-run: it judges against
 the current index and can delete newly added, unindexed presets.
 """

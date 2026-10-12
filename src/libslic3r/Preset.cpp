@@ -81,6 +81,7 @@
 #include "LifecycleEvents.hpp"
 #include "Utils.hpp"
 #include "InstanceLock.hpp"
+#include "nlohmann/json.hpp"
 
 #include <sstream>
 #include "PlaceholderParser.hpp"
@@ -932,14 +933,10 @@ bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const Pre
             return true;
         }
     }
-    const std::vector<std::string> &legacy = preset.preset.legacy_compatible_printers;
-    auto is_legacy_printer = [&legacy](const std::string &name) { return std::find(legacy.begin(), legacy.end(), name) != legacy.end(); };
     return preset.preset.is_default || active_printer.preset.name.empty() || !has_compatible_printers ||
            std::find(compatible_printers->values.begin(), compatible_printers->values.end(), active_printer.preset.name) !=
                compatible_printers->values.end() ||
-           (!active_printer.preset.is_system && is_compatible_with_parent_printer(preset, active_printer)) ||
-           is_legacy_printer(active_printer.preset.name) ||
-           (!active_printer.preset.is_system && is_legacy_printer(active_printer.preset.inherits()));
+           (!active_printer.preset.is_system && is_compatible_with_parent_printer(preset, active_printer));
 }
 
 bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_printer)
@@ -2745,13 +2742,16 @@ const Preset *PresetCollection::system_parent_with_inherited_printers(const Pres
     return own != nullptr && inherited != nullptr && own->values == inherited->values ? parent : nullptr;
 }
 
-void PresetCollection::set_legacy_compatible_printers(const std::map<std::string, std::vector<std::string>> &printers_by_parent)
+std::vector<LegacyPrinterMigration> PresetCollection::legacy_printer_migrations(const std::map<std::string, std::vector<std::string>> &printers_by_parent) const
 {
-    lock();
-    for (Preset &preset : m_presets) {
-        preset.legacy_compatible_printers.clear();
+    std::vector<LegacyPrinterMigration> migrations;
+    for (const Preset &preset : m_presets) {
         const Preset *parent = system_parent_with_inherited_printers(preset);
         if (parent == nullptr)
+            continue;
+        // An empty list already covers every printer.
+        const std::vector<std::string> &own = preset.config.option<ConfigOptionStrings>("compatible_printers")->values;
+        if (own.empty())
             continue;
         // The map names the parent as it was when the map was written; a later rename keeps that name in renamed_from.
         auto it = printers_by_parent.find(parent->name);
@@ -2759,13 +2759,63 @@ void PresetCollection::set_legacy_compatible_printers(const std::map<std::string
             it = printers_by_parent.find(*old_name);
         if (it == printers_by_parent.end())
             continue;
-        preset.legacy_compatible_printers = it->second;
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": user preset " << preset.name << " keeps " << it->second.size()
-                                << " printer(s) its parent " << parent->name << " listed in an older release";
+        LegacyPrinterMigration migration{preset.name, parent->name, {}};
+        for (const std::string &printer : it->second)
+            if (std::find(own.begin(), own.end(), printer) == own.end())
+                migration.printers.push_back(printer);
+        if (!migration.printers.empty())
+            migrations.push_back(std::move(migration));
     }
-    if (m_idx_selected < m_presets.size() && m_edited_preset.name == m_presets[m_idx_selected].name)
-        m_edited_preset.legacy_compatible_printers = m_presets[m_idx_selected].legacy_compatible_printers;
+    return migrations;
+}
+
+bool PresetCollection::apply_legacy_printer_migration(const LegacyPrinterMigration &migration)
+{
+    lock();
+    auto it = this->find_preset_internal(migration.preset);
+    if (it == m_presets.end() || it->name != migration.preset || system_parent_with_inherited_printers(*it) == nullptr) {
+        unlock();
+        return false;
+    }
+    Preset                  &preset   = *it;
+    std::vector<std::string> printers = preset.config.option<ConfigOptionStrings>("compatible_printers")->values;
+    for (const std::string &printer : migration.printers)
+        if (std::find(printers.begin(), printers.end(), printer) == printers.end())
+            printers.push_back(printer);
+    const bool selected = m_idx_selected == static_cast<size_t>(it - m_presets.begin());
     unlock();
+
+    // Only compatible_printers changes in the file. Saving the whole preset would also rewrite an inherits that
+    // names a renamed parent by its old name, the only name older releases know it by.
+    {
+        InstanceLock instance_lock(user_presets_lock_path());
+        try {
+            boost::nowide::ifstream in(preset.file);
+            json                    j = json::parse(in);
+            j["compatible_printers"]  = printers;
+            if (const std::error_code ec = write_file_atomically(preset.file, j.dump(1, '\t'))) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to save " << preset.file << ": " << ec.message();
+                return false;
+            }
+        } catch (const std::exception &err) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": can not migrate " << preset.file << ": " << err.what();
+            return false;
+        }
+    }
+
+    lock();
+    preset.config.option<ConfigOptionStrings>("compatible_printers")->values = printers;
+    if (selected)
+        m_edited_preset.config.option<ConfigOptionStrings>("compatible_printers", true)->values = printers;
+    unlock();
+    // Push the change to the cloud copy, as an edit in the settings tab would.
+    if (!preset.setting_id.empty()) {
+        preset.sync_info = "update";
+        preset.save_info();
+    }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": user preset " << preset.name << " gets " << migration.printers.size()
+                            << " printer(s) its parent listed in an older release";
+    return true;
 }
 
 //BBS: validate_preset
@@ -3121,7 +3171,6 @@ bool PresetCollection::clone_presets(std::vector<Preset const *> const &presets,
         preset.vendor         = nullptr;
         preset.renamed_from.clear();
         preset.m_excluded_from.clear();
-        preset.legacy_compatible_printers.clear();
         preset.setting_id.clear();
         preset.inherits().clear();
         preset.is_default  = false;
@@ -3259,9 +3308,6 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
             preset.m_excluded_from.clear();
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": save preset %1% , with detach")%new_name;
         }
-        // Legacy printers belong only to a preset that still inherits its system parent's printer list.
-        if (system_parent_with_inherited_printers(preset) == nullptr)
-            preset.legacy_compatible_printers.clear();
         //BBS: add lock logic for sync preset in background
 
         if (m_type == Preset::TYPE_PRINT)
@@ -3314,8 +3360,6 @@ void PresetCollection::save_current_preset(const std::string &new_name, bool det
         }
         else
             preset.is_project_embedded = false;
-        if (system_parent_with_inherited_printers(preset) == nullptr)
-            preset.legacy_compatible_printers.clear();
         if (m_type == Preset::TYPE_PRINT)
             preset.config.option<ConfigOptionString>("print_settings_id", true)->value = new_name;
         else if (m_type == Preset::TYPE_FILAMENT)

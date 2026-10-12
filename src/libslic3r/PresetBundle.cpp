@@ -2,6 +2,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/directory.hpp>
+#include <boost/filesystem/file_status.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/optional/optional.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -39,6 +40,8 @@
 #include "ParallelResolve.hpp"
 #include "Preset.hpp"
 #include "PresetCacheFormat.hpp"
+#include "Time.hpp"
+#include "Zipper.hpp"
 #include "PrintConfig.hpp"
 #include "PublishSettings.hpp"
 #include "FilamentMixer.hpp"
@@ -918,7 +921,6 @@ PresetsConfigSubstitutions PresetBundle::load_presets(AppConfig &config, Forward
     // raw vendor-JSON references instead of the silently-repaired ones.
     if (!validation_mode)
         this->normalize_compatible_presets();
-    filaments.set_legacy_compatible_printers(legacy_compatible_printers());
 
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
@@ -1073,6 +1075,55 @@ bool PresetBundle::backup_user_folder() const
             boost::filesystem::remove_all(boost::filesystem::path(backup_folderpath));
         return false;
     }
+}
+
+bool PresetBundle::backup_user_folder_to_zip(const std::string &zip_path) const
+{
+    const fs::path user_dir = fs::path(data_dir()) / PRESET_USER_DIR;
+    BOOST_LOG_TRIVIAL(info) << "Backing up user folder to: " << zip_path;
+    try {
+        Zipper zipper(zip_path);
+        // Directories get their own entries, which extract_archive_confined() needs to recreate them.
+        zipper.add_entry(std::string(PRESET_USER_DIR) + "/", nullptr, 0);
+        for (const fs::directory_entry &entry : fs::recursive_directory_iterator(user_dir)) {
+            const std::string name = (fs::path(PRESET_USER_DIR) / entry.path().lexically_relative(user_dir)).generic_string();
+            if (fs::is_directory(entry.status())) {
+                zipper.add_entry(name + "/", nullptr, 0);
+                continue;
+            }
+            if (!fs::is_regular_file(entry.status()))
+                continue;
+            boost::nowide::ifstream in(entry.path().string(), std::ios::binary);
+            const std::string data((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+            if (!in.good() && !in.eof())
+                throw Slic3r::RuntimeError("can not read " + entry.path().string());
+            zipper.add_entry(name, data.data(), data.size());
+        }
+        zipper.finalize();
+        return true;
+    } catch (const std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Exception during user folder backup: " << ex.what();
+        boost::system::error_code ec;
+        fs::remove(zip_path, ec);
+        return false;
+    }
+}
+
+std::vector<LegacyPrinterMigration> PresetBundle::legacy_printer_migrations() const
+{
+    return filaments.legacy_printer_migrations(legacy_compatible_printers());
+}
+
+std::string PresetBundle::migrate_legacy_printers(const std::vector<LegacyPrinterMigration> &migrations, std::vector<std::string> &failed)
+{
+    const std::string zip_path = data_dir() + "/filament_preset_migration_" +
+                                 Utils::time2str(Utils::TimeZone::utc, Utils::TimeFormat::iso8601Z) + "_backup.zip";
+    if (!backup_user_folder_to_zip(zip_path))
+        return {};
+    for (const LegacyPrinterMigration &migration : migrations)
+        if (!filaments.apply_legacy_printer_migration(migration))
+            failed.push_back(migration.preset);
+    return zip_path;
 }
 
 std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name) const
@@ -1547,7 +1598,6 @@ PresetsConfigSubstitutions PresetBundle::load_user_presets(AppConfig &          
 
     // Rewrite renamed compatible references in synced user presets before compatibility is evaluated.
     this->normalize_compatible_presets();
-    filaments.set_legacy_compatible_printers(legacy_compatible_printers());
 
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);
@@ -2554,7 +2604,6 @@ PresetsConfigSubstitutions PresetBundle::update_subscribed_presets(
 
     // Rewrite renamed compatible references in synced user presets before compatibility is evaluated.
     this->normalize_compatible_presets();
-    filaments.set_legacy_compatible_printers(legacy_compatible_printers());
 
     this->update_multi_material_filament_presets();
     this->update_compatible(PresetSelectCompatibleType::Never);

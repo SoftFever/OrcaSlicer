@@ -2827,6 +2827,10 @@ wxMenu* MainFrame::generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, _L("Show Configuration Folder"), _L("Show Configuration Folder"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
 
+    append_menu_item(helpMenu, wxID_ANY, _L("Migrate Filament Presets"),
+        _L("Bring back filament presets that a profile update removed from printers they were made for"),
+        [](wxCommandEvent&) { wxGetApp().check_legacy_printer_migration(true); });
+
     helpMenu->AppendSeparator();
 
     // Troubleshoot center
