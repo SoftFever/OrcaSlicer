@@ -197,6 +197,27 @@ public:
     };
     static PaintedColors painted_colors(const TriangleMesh &mesh, const TriangleSelector::TriangleSplittingData &paint);
 
+    // The view while the UV editor's selected islands are highlighted on the model. The highlight lies on the
+    // undisplaced surface, so the Normal view's relief hides it wherever it rises: Normal gives way to Fast
+    // while islands are selected and comes back once none are. A view the user clicks in the View row is
+    // theirs - the pane's background buttons are not a pick, Height only meaning "the texture view".
+    struct IslandViewFollow
+    {
+        bool shown       = false; // the highlight, as of the last step()
+        bool switched    = false; // Fast was switched on for the highlight, so Normal comes back once it is gone
+        bool keep_normal = false; // the user picked Normal in the View row while the highlight was shown
+        // The view to apply this frame (0 Normal, 1 Fast), or -1 for none. `view` is the one on screen, numbered as
+        // apply_view_mode() takes it; `debug_open` a debug stage on screen, which holds Normal itself.
+        int  step(bool shown_now, int view, bool debug_open);
+        // A View row button clicked, the active one included. The row is drawn after step() in the same frame,
+        // so `shown` is this frame's.
+        void picked(int view)
+        {
+            switched    = false;
+            keep_normal = shown && view == 0;
+        }
+    };
+
     void render_painter_gizmo() override;
 
     // Intercepts mouse input while "Adjust Texture" mode is on (dragging the on-canvas offset/
@@ -513,6 +534,11 @@ private:
     // The panel's view modes: 0 Normal, 1 Fast, 2 Checker, 3 Distortion. Shared by the View row and the pane's
     // background buttons, so both switch views the same way.
     void apply_view_mode(int mode);
+    // The view on screen, numbered as apply_view_mode() takes it.
+    int  view_mode() const;
+    // Run once a frame, after the pane's commands: switches the view as m_island_view says.
+    void             follow_island_highlight();
+    IslandViewFollow m_island_view;
     // The pane header's thumbnail of the active layer's texture, rebuilt only when its image changes.
     static constexpr int       UV_THUMB_PX       = 64;
     const void                *m_uv_thumb_source = nullptr;
@@ -744,6 +770,8 @@ private:
     // in place. Rebuilt whenever the pane's selection differs from the one it was built for.
     GLModel          m_island_overlay_glmodel;
     std::vector<int> m_island_overlay_selection;
+    // The pane's selection while the overlay applies - the pane open over an unwrapped LSCM layer - else null.
+    const std::vector<int> *island_highlight_selection();
     void             rebuild_island_overlay(const std::vector<int> &selection);
     void             render_island_overlay();
     // Set on every paint event, cleared when the overlay is rebuilt in render_painter_gizmo(). Kept
@@ -924,25 +952,26 @@ private:
     bool m_preview_job_pending = false;
     void queue_preview_job();
 
-    // Per-slot GPU thumbnail cache for the layer list panel, keyed by the image_data pointer that
-    // was current the last time each thumbnail was built (see get_layer_thumbnail()).
-    std::array<std::unique_ptr<GLTexture>, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_thumbnails;
-    std::array<const void *, TEXTURE_DISPLACEMENT_MAX_LAYERS>               m_thumbnail_source{};
+    // Per-slot GPU thumbnail cache for the layer list panel, each keyed by the image_data it was built from
+    // (see get_layer_thumbnail()). Held weakly rather than by address, as decode_height_texture()'s cache is:
+    // an image freed and replaced by another at the same address must not pass for it.
+    std::array<std::unique_ptr<GLTexture>, TEXTURE_DISPLACEMENT_MAX_LAYERS>                       m_thumbnails;
+    std::array<std::weak_ptr<const std::vector<unsigned char>>, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_thumbnail_source;
     // The smoothing each cached thumbnail was built at, so a smoothing change re-uploads it.
-    std::array<float, TEXTURE_DISPLACEMENT_MAX_LAYERS>                      m_thumbnail_smoothing{};
+    std::array<float, TEXTURE_DISPLACEMENT_MAX_LAYERS>                                            m_thumbnail_smoothing{};
 
     // Full-resolution height texture for the preview shader, keyed the same way (see
     // get_layer_height_texture()). A smoothing change re-uploads it, so the fast preview shows the
     // blur the bake will apply.
-    std::unique_ptr<GLTexture> m_height_tex;
-    const void                *m_height_tex_source    = nullptr;
-    float                      m_height_tex_smoothing = -1.f;
+    std::unique_ptr<GLTexture>                      m_height_tex;
+    std::weak_ptr<const std::vector<unsigned char>> m_height_tex_source;
+    float                                           m_height_tex_smoothing = -1.f;
 
     // The same, for the layer's *colour*, which the fast preview quantizes per fragment so it shows
     // the image at texel resolution rather than at the mesh's. Null for a grayscale texture.
-    std::unique_ptr<GLTexture> m_color_tex;
-    const void                *m_color_tex_source    = nullptr;
-    float                      m_color_tex_smoothing = -1.f;
+    std::unique_ptr<GLTexture>                      m_color_tex;
+    std::weak_ptr<const std::vector<unsigned char>> m_color_tex_source;
+    float                                           m_color_tex_smoothing = -1.f;
 
     // Library textures the picker has shown at least once, keyed by file path (see LibraryTexture).
     std::map<std::string, LibraryTexture> m_library_textures;
