@@ -283,10 +283,8 @@ void BackgroundSlicingProcess::process_fff()
         m_temp_output_path = this->get_current_plate()->get_tmp_gcode_path();
         m_fff_print->export_gcode(m_temp_output_path, m_gcode_result,
                                   [this](const ThumbnailsParams& params) { return this->render_thumbnails(params); });
-        // Orca: BBL printers post-process the g-code in place here, in the file the G-code viewer maps, so
-        // the preview re-reads its moves and line offsets from the edited file. The rest of m_gcode_result,
-        // including nozzle_group_result (consumed by the H2C print-dispatch nozzle mapping), is kept.
-        if (m_fff_print->is_BBL_printer()) {
+        bool needs_early_post_process = m_fff_print->is_BBL_printer() || !m_upload_job.empty() || m_upload_job.upload_data.use_3mf;
+        if (needs_early_post_process) {
             if (run_post_process_scripts(m_temp_output_path, false, "File", m_temp_output_path, m_fff_print->full_print_config()))
                 m_fff_print->reload_gcode_moves(m_gcode_result);
         }
@@ -986,7 +984,7 @@ void BackgroundSlicingProcess::prepare_upload()
 
             // Make a copy of the source path, as run_post_process_scripts() is allowed to change it when making a copy of the source file
             // (not here, but when the final target is a file).
-            if (!m_fff_print->is_BBL_printer()) {
+            if (!m_fff_print->is_BBL_printer() && !m_upload_job.upload_data.use_3mf) {
                 std::string source_path_str = source_path.string();
                 std::string output_name_str = m_upload_job.upload_data.upload_path.string();
                 // source_path_str is already a dedicated copy of the temp G-code (see copy_file above), not the
