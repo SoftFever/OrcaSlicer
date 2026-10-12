@@ -1520,7 +1520,7 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
     // is box-filtered down to 128 px for a ~48 px row, and feeding it to the shader cost the preview
     // three quarters of the height map's detail - and, since height_tex_texel is derived from it, also
     // flattened the shading gradient and made the parallax march skip itself at angles where it should
-    // run. Cached on the image_data pointer + smoothing, so no PNG is decoded per frame.
+    // run. Cached per image_data and smoothing, so no PNG is decoded per frame.
     GLTexture *tex = get_layer_height_texture(*layer);
     if (tex == nullptr || tex->get_width() <= 0 || tex->get_height() <= 0)
         return;
@@ -4038,8 +4038,8 @@ void GLGizmoTextureDisplacement::remove_texture_layer(int slot)
     if (slot >= 0 && slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS)) {
         mv->texture_displacement_facet(slot).reset();
         m_thumbnails[size_t(slot)].reset();
-        m_thumbnail_source[size_t(slot)] = nullptr;
-        m_layer_expanded[size_t(slot)]   = false;
+        m_thumbnail_source[size_t(slot)].reset();
+        m_layer_expanded[size_t(slot)] = false;
     }
     if (m_picker_slot == slot)
         m_picker_slot = -1;
@@ -4213,7 +4213,7 @@ int GLGizmoTextureDisplacement::select_visible_faces(const std::array<float, 12>
     selector.reset();
     for (unsigned i : unobscured)
         selector.set_facet(int(front_facing[i]), EnforcerBlockerType::ENFORCER);
-    selector.request_update_render_data();
+    selector.request_update_render_data(true);
 
     update_model_object();
     m_parent.set_as_dirty();
@@ -4236,7 +4236,7 @@ void GLGizmoTextureDisplacement::select_whole_model()
         const size_t facet_count = v->mesh().its.indices.size();
         for (size_t i = 0; i < facet_count; ++i)
             m_triangle_selectors[idx]->set_facet(int(i), EnforcerBlockerType::ENFORCER);
-        m_triangle_selectors[idx]->request_update_render_data();
+        m_triangle_selectors[idx]->request_update_render_data(true);
     }
     update_model_object();
     m_parent.set_as_dirty();
@@ -5342,7 +5342,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_thumbnail(const TextureDisplace
         return nullptr;
 
     const size_t slot = size_t(layer.slot);
-    if (m_thumbnails[slot] && m_thumbnail_source[slot] == layer.image_data.get() &&
+    if (m_thumbnails[slot] && m_thumbnail_source[slot].lock() == layer.image_data &&
         m_thumbnail_smoothing[slot] == layer.smoothing)
         return m_thumbnails[slot].get();
 
@@ -5355,7 +5355,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_thumbnail(const TextureDisplace
         return nullptr;
 
     m_thumbnails[slot]          = std::move(texture);
-    m_thumbnail_source[slot]    = layer.image_data.get();
+    m_thumbnail_source[slot]    = layer.image_data;
     m_thumbnail_smoothing[slot] = layer.smoothing;
     return m_thumbnails[slot].get();
 }
@@ -5364,17 +5364,17 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_color_texture(const TextureDisp
 {
     if (layer.empty() || !layer.color_enabled)
         return nullptr;
-    if (m_color_tex && m_color_tex_source == layer.image_data.get() && m_color_tex_smoothing == layer.smoothing)
+    if (m_color_tex && m_color_tex_source.lock() == layer.image_data && m_color_tex_smoothing == layer.smoothing)
         return m_color_tex.get();
 
     std::unique_ptr<GLTexture> texture = upload_color_texture(decode_height_texture(layer), HEIGHT_TEX_MAX_PX);
     if (!texture) {
         m_color_tex.reset();
-        m_color_tex_source = nullptr;
+        m_color_tex_source.reset();
         return nullptr;
     }
     m_color_tex           = std::move(texture);
-    m_color_tex_source    = layer.image_data.get();
+    m_color_tex_source    = layer.image_data;
     m_color_tex_smoothing = layer.smoothing;
     return m_color_tex.get();
 }
@@ -5386,7 +5386,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_height_texture(const TextureDis
 
     // One slot, not one per layer: the preview shader only ever shades the *active* layer, so a single
     // full-resolution upload is enough and the VRAM cost stays at one texture rather than eight.
-    if (m_height_tex && m_height_tex_source == layer.image_data.get() && m_height_tex_smoothing == layer.smoothing)
+    if (m_height_tex && m_height_tex_source.lock() == layer.image_data && m_height_tex_smoothing == layer.smoothing)
         return m_height_tex.get();
 
     std::unique_ptr<GLTexture> texture = upload_height_thumbnail(decode_height_texture(layer), HEIGHT_TEX_MAX_PX);
@@ -5394,7 +5394,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_height_texture(const TextureDis
         return nullptr;
 
     m_height_tex           = std::move(texture);
-    m_height_tex_source    = layer.image_data.get();
+    m_height_tex_source    = layer.image_data;
     m_height_tex_smoothing = layer.smoothing;
     return m_height_tex.get();
 }
@@ -6281,7 +6281,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                 if (v->is_model_part()) {
                     ++idx;
                     m_triangle_selectors[idx]->reset();
-                    m_triangle_selectors[idx]->request_update_render_data();
+                    m_triangle_selectors[idx]->request_update_render_data(true);
                 }
             update_model_object();
             m_parent.set_as_dirty();

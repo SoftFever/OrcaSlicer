@@ -924,25 +924,26 @@ private:
     bool m_preview_job_pending = false;
     void queue_preview_job();
 
-    // Per-slot GPU thumbnail cache for the layer list panel, keyed by the image_data pointer that
-    // was current the last time each thumbnail was built (see get_layer_thumbnail()).
-    std::array<std::unique_ptr<GLTexture>, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_thumbnails;
-    std::array<const void *, TEXTURE_DISPLACEMENT_MAX_LAYERS>               m_thumbnail_source{};
+    // Per-slot GPU thumbnail cache for the layer list panel, each keyed by the image_data it was built from
+    // (see get_layer_thumbnail()). Held weakly rather than by address, as decode_height_texture()'s cache is:
+    // an image freed and replaced by another at the same address must not pass for it.
+    std::array<std::unique_ptr<GLTexture>, TEXTURE_DISPLACEMENT_MAX_LAYERS>                       m_thumbnails;
+    std::array<std::weak_ptr<const std::vector<unsigned char>>, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_thumbnail_source;
     // The smoothing each cached thumbnail was built at, so a smoothing change re-uploads it.
-    std::array<float, TEXTURE_DISPLACEMENT_MAX_LAYERS>                      m_thumbnail_smoothing{};
+    std::array<float, TEXTURE_DISPLACEMENT_MAX_LAYERS>                                            m_thumbnail_smoothing{};
 
     // Full-resolution height texture for the preview shader, keyed the same way (see
     // get_layer_height_texture()). A smoothing change re-uploads it, so the fast preview shows the
     // blur the bake will apply.
-    std::unique_ptr<GLTexture> m_height_tex;
-    const void                *m_height_tex_source    = nullptr;
-    float                      m_height_tex_smoothing = -1.f;
+    std::unique_ptr<GLTexture>                      m_height_tex;
+    std::weak_ptr<const std::vector<unsigned char>> m_height_tex_source;
+    float                                           m_height_tex_smoothing = -1.f;
 
     // The same, for the layer's *colour*, which the fast preview quantizes per fragment so it shows
     // the image at texel resolution rather than at the mesh's. Null for a grayscale texture.
-    std::unique_ptr<GLTexture> m_color_tex;
-    const void                *m_color_tex_source    = nullptr;
-    float                      m_color_tex_smoothing = -1.f;
+    std::unique_ptr<GLTexture>                      m_color_tex;
+    std::weak_ptr<const std::vector<unsigned char>> m_color_tex_source;
+    float                                           m_color_tex_smoothing = -1.f;
 
     // Library textures the picker has shown at least once, keyed by file path (see LibraryTexture).
     std::map<std::string, LibraryTexture> m_library_textures;
