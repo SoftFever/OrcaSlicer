@@ -264,7 +264,7 @@ bool height_texture_has_color(const TextureDisplacementLayer &layer)
 bool has_color_adjustments(const TextureDisplacementLayer &layer)
 {
     return layer.brightness != 0.f || layer.contrast != 0.f || layer.saturation != 1.f ||
-           layer.gamma != 1.f || layer.color_invert;
+           layer.gamma != 1.f || layer.color_invert || layer.hue != 0.f;
 }
 
 void apply_color_adjustments(DecodedHeightTexture &tex, const TextureDisplacementLayer &layer)
@@ -279,6 +279,14 @@ void apply_color_adjustments(DecodedHeightTexture &tex, const TextureDisplacemen
     const float sat    = std::max(0.f, layer.saturation);
     const float inv_g  = 1.f / std::max(0.01f, layer.gamma);
     const bool  negate = layer.color_invert;
+    // Hue is a rotation of the colour about the grey axis. Rodrigues' formula about (1,1,1)/sqrt(3),
+    // then the luma is put back exactly (the rotation preserves R+G+B, not the Rec. 709 weighting),
+    // so turning the wheel changes which filament an area matches without also changing how light
+    // it is.
+    const float hue_rad = layer.hue * float(M_PI) / 180.f;
+    const float hue_cos = std::cos(hue_rad), hue_sin = std::sin(hue_rad);
+    const bool  rotate  = layer.hue != 0.f;
+    constexpr float LW[3] = { 0.2126f, 0.7152f, 0.0722f }; // Rec. 709 luma
 
     // Each output byte depends only on its own pixel, so the rows are independent. At 1024 x 1024
     // this runs on every preview rebuild and every bake, which is what makes it worth splitting.
@@ -297,10 +305,25 @@ void apply_color_adjustments(DecodedHeightTexture &tex, const TextureDisplacemen
                     v      += bright;
                     c[k]    = v;
                 }
+                if (rotate) {
+                    const float luma = LW[0] * c[0] + LW[1] * c[1] + LW[2] * c[2];
+                    // The component of the colour across the grey axis, which is what a hue is.
+                    const float mean = (c[0] + c[1] + c[2]) / 3.f;
+                    const float p[3] = { c[0] - mean, c[1] - mean, c[2] - mean };
+                    // k x p for the unit grey axis k = (1,1,1)/sqrt(3).
+                    constexpr float INV_SQRT3 = 0.57735027f;
+                    const float     x[3]      = { INV_SQRT3 * (p[1] - p[2]), INV_SQRT3 * (p[2] - p[0]),
+                                                  INV_SQRT3 * (p[0] - p[1]) };
+                    for (int k = 0; k < 3; ++k)
+                        c[k] = mean + p[k] * hue_cos + x[k] * hue_sin;
+                    const float luma_now = LW[0] * c[0] + LW[1] * c[1] + LW[2] * c[2];
+                    for (float &v : c)
+                        v += luma - luma_now;
+                }
                 if (sat != 1.f) {
                     // Rec. 709 luma, the same weights the rest of the colour path uses to decide
                     // what counts as light and dark.
-                    const float luma = 0.2126f * c[0] + 0.7152f * c[1] + 0.0722f * c[2];
+                    const float luma = LW[0] * c[0] + LW[1] * c[1] + LW[2] * c[2];
                     for (float &v : c)
                         v = luma + (v - luma) * sat;
                 }

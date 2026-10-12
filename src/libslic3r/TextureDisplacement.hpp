@@ -299,6 +299,7 @@ struct TextureDisplacementLayer
     // so a layer that never meets the Image tool behaves exactly as it did.
     float brightness   = 0.f;  // -1 .. 1, added last, after contrast
     float contrast     = 0.f;  // -1 .. 1, pivoted on mid grey; -1 flattens to grey, 1 doubles the slope
+    float hue          = 0.f;  // -180 .. 180 degrees, rotated about the grey axis at constant luma
     float saturation   = 1.f;  //  0 .. 2, 1 leaves it alone, 0 is grayscale
     float gamma        = 1.f;  // 0.2 .. 5, 1 leaves it alone; above 1 lifts the midtones
     bool  color_invert = false; // negative of the colour, as opposed to `invert` which flips relief
@@ -313,7 +314,7 @@ struct TextureDisplacementLayer
            static_cast<int>(blend_mode), midlevel, island_padding_mm, lscm_seam_edges, view_project_right,
            view_project_up, smoothing, edge_smoothing, edge_smoothing_amount, auto_connect_islands, island_groups,
            lscm_uv_overrides, view_project_projective, view_project_matrix, color_enabled, brightness,
-           contrast, saturation, gamma, color_invert);
+           contrast, saturation, gamma, color_invert, hue);
     }
     template<class Archive> void load(Archive &ar)
     {
@@ -325,7 +326,7 @@ struct TextureDisplacementLayer
            tile_method_int, projection_method_int, lscm_seam_angle_deg, islands, blend_mode_int, midlevel,
            island_padding_mm, lscm_seam_edges, view_project_right, view_project_up, smoothing, edge_smoothing,
            edge_smoothing_amount, auto_connect_islands, island_groups, lscm_uv_overrides, view_project_projective,
-           view_project_matrix, color_enabled, brightness, contrast, saturation, gamma, color_invert);
+           view_project_matrix, color_enabled, brightness, contrast, saturation, gamma, color_invert, hue);
         image_data        = blob.empty() ? nullptr : std::make_shared<std::vector<unsigned char>>(blob.begin(), blob.end());
         tile_method       = static_cast<TextureTileMethod>(tile_method_int);
         projection_method = static_cast<TextureProjectionMethod>(projection_method_int);

@@ -522,6 +522,10 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
         m_preview_params_dirty |= float_row("##saturation", _L("Saturation"), &layer->saturation, 0.f, 2.f, "%.2f", false);
         hover_tip(_u8L("How strong the colors are. At 0 the picture is gray, so it prints in your grays and "
                        "blacks; raising it pushes each area towards a purer filament."));
+        m_preview_params_dirty |= float_row("##hue", _L("Hue"), &layer->hue, -180.f, 180.f, "%.0f°", false);
+        hover_tip(_u8L("Turns every color of the picture around the color wheel, without changing how light "
+                       "it is. Your filaments are a fixed, arbitrary set, so this is what lets the picture "
+                       "meet them: if you have orange loaded but no red, a small turn puts the reds on it."));
         m_preview_params_dirty |= float_row("##gamma", _L("Gamma"), &layer->gamma, 0.2f, 5.f, "%.2f", true);
         hover_tip(_u8L("Lifts or drops the midtones without touching the brightest and darkest parts. Use it "
                        "when the middle of the picture is the part coming out wrong."));
@@ -533,6 +537,7 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             layer->brightness      = 0.f;
             layer->contrast        = 0.f;
             layer->saturation      = 1.f;
+            layer->hue             = 0.f;
             layer->gamma           = 1.f;
             layer->color_invert    = false;
             m_preview_params_dirty = true;

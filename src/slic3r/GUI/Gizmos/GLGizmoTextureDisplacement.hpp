@@ -159,17 +159,17 @@ public:
     // pixels while leaving the image_data pointer alone.
     struct ColorAdjustKey
     {
-        float brightness = 0.f, contrast = 0.f, saturation = 1.f, gamma = 1.f;
+        float brightness = 0.f, contrast = 0.f, saturation = 1.f, gamma = 1.f, hue = 0.f;
         bool  invert     = false;
         bool  operator==(const ColorAdjustKey &o) const
         {
             return brightness == o.brightness && contrast == o.contrast && saturation == o.saturation &&
-                   gamma == o.gamma && invert == o.invert;
+                   gamma == o.gamma && hue == o.hue && invert == o.invert;
         }
         bool operator!=(const ColorAdjustKey &o) const { return !(*this == o); }
         static ColorAdjustKey of(const TextureDisplacementLayer &l)
         {
-            return { l.brightness, l.contrast, l.saturation, l.gamma, l.color_invert };
+            return { l.brightness, l.contrast, l.saturation, l.gamma, l.hue, l.color_invert };
         }
     };
     std::vector<ColorAdjustKey> m_palette_adjusts; // alongside m_palette_images, one per entry
