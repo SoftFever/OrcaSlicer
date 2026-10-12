@@ -44,7 +44,7 @@ jobs:
       && contains(github.event.comment.body, '/bot fix-tidy')
     permissions:
       actions: write         # re-run the fix run
-      pull-requests: read    # pulls.get
+      pull-requests: write   # react to and answer the comment, which is the PR's
       issues: write          # feedback comment + reactions
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -413,7 +413,7 @@ jobs:
       cancel-in-progress: false
     permissions:
       actions: read          # the check's steps
-      pull-requests: read    # find the PR
+      pull-requests: write   # comment on the PR
       issues: write          # the comment
     runs-on: ubuntu-latest
     timeout-minutes: 5
