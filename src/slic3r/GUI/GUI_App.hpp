@@ -557,6 +557,9 @@ public:
     void            on_update_machine_list(wxCommandEvent& evt);
     void            on_user_login(wxCommandEvent &evt);
     void            on_user_login_handle(wxCommandEvent& evt);
+    // Returns the fragment handoff URL for the signed-in Orca Cloud session, refreshing the
+    // token first if needed. Empty when not signed in.
+    wxString        cloud_webview_handoff();
     void            enable_user_preset_folder(bool enable);
 
     // BBS

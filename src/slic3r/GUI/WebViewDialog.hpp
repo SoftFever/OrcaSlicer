@@ -115,8 +115,13 @@ public:
 
     void update_mode();
 
-    // Shows/hides the native OrcaCloud pane beside this homepage nav column.
-    void set_cloud_mode(bool on);
+    // Shows/hides the native OrcaCloud pane beside this homepage nav column. When the pane is
+    // created, or when `on` is true with a non-empty `url`, that URL is loaded (the fragment
+    // carries a Supabase session handoff); `url` empty falls back to the cloud home page.
+    void set_cloud_mode(bool on, const wxString& url = wxString());
+
+    // True while the OrcaCloud pane exists and is visible.
+    bool cloud_mode_active() const { return m_cloud_browser && m_cloud_browser->IsShown(); }
 
     bool Show(bool show = true) override;
 private:

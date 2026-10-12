@@ -5422,9 +5422,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_open_cloud") == 0) {
                 // Deferred: set_cloud_mode() may create a second native webview, which must
                 // not run inside this webview's script-message callback.
-                CallAfter([]() {
+                CallAfter([this]() {
                     if (WebViewPanel* home = WebViewPanel::if_built())
-                        home->set_cloud_mode(true);
+                        home->set_cloud_mode(true, cloud_webview_handoff());
                 });
             }
             else if (command_str.compare("homepage_close_cloud") == 0) {
@@ -5849,6 +5849,22 @@ void GUI_App::on_update_machine_list(wxCommandEvent &evt)
      }*/
 }
 
+wxString GUI_App::cloud_webview_handoff()
+{
+    auto orca = m_agent ? std::dynamic_pointer_cast<OrcaCloudServiceAgent>(m_agent->get_cloud_agent()) : nullptr;
+    if (!orca || !orca->is_user_login())
+        return {};
+    // Never block the UI thread on a token refresh: that can take a cross-process lock plus a
+    // synchronous POST and retry. If the access token is missing or within a minute of expiry,
+    // skip the handoff for this open — set_cloud_mode then loads the plain cloud page and the next
+    // open retries. The pane is the app's guest: the app owns the session and re-injects a
+    // freshly-refreshed copy on each open (Supabase rotates refresh tokens, so a concurrent
+    // refresh by the SPA can invalidate the app's copy — a known, accepted trade-off).
+    if (orca->access_token_needs_refresh(std::chrono::seconds(60)))
+        return {};
+    return from_u8(orca->build_webview_handoff_url());
+}
+
 void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
@@ -5904,6 +5920,12 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
     if (app_config->get("sync_user_preset") == "true") {
         start_sync_user_preset();
     }
+
+    // Re-seed the embedded OrcaCloud pane if it is already open, so it picks up the new session
+    // without waiting for the next open. A closed pane is seeded when it is next opened.
+    if (WebViewPanel* home = WebViewPanel::if_built())
+        if (home->cloud_mode_active())
+            home->set_cloud_mode(true, cloud_webview_handoff());
 }
 
 

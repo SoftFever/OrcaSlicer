@@ -203,6 +203,11 @@ public:
     // ========================================================================
     std::string get_cloud_service_host() override;
     std::string get_cloud_login_url(const std::string& language = "") override;
+    // URL that hands the current session to the OrcaCloud SPA via the URL fragment
+    // (Supabase implicit flow / detectSessionInUrl). Empty when not signed in or no cloud URL.
+    std::string build_webview_handoff_url() const;
+    // True when the access token is missing or will expire within `skew` (no network).
+    bool access_token_needs_refresh(std::chrono::seconds skew) const;
     int connect_server() override;
     bool is_server_connected() override;
     int refresh_connection() override;

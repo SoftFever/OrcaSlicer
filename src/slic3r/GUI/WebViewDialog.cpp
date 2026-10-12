@@ -349,16 +349,28 @@ void WebViewPanel::apply_cloud_layout(bool cloud_on)
     Layout();
 }
 
-void WebViewPanel::set_cloud_mode(bool on)
+void WebViewPanel::set_cloud_mode(bool on, const wxString& url)
 {
     if (on) {
         if (!m_cloud_browser) {
             create_cloud_browser();
-            WebView::LoadUrl(m_cloud_browser, kCloudUrl);
+            if (url.empty()) {
+                WebView::LoadUrl(m_cloud_browser, wxString(kCloudUrl));
+            } else {
+                // Load the handoff directly: WebView::LoadUrl re-serializes through wxURI, which
+                // could alter the fragment that carries the session.
+                m_cloud_browser->LoadURL(url);
+            }
+        } else if (!url.empty()) {
+            // Re-inject a freshly-refreshed session whenever the pane is (re)opened.
+            m_cloud_browser->LoadURL(url);
         }
         m_cloud_browser->Show();
     } else if (m_cloud_browser) {
         m_cloud_browser->Hide();
+        // Supabase scrubs with window.location.hash='', so the token fragment can remain in
+        // history; drop it when the pane is closed.
+        m_cloud_browser->ClearHistory();
     }
     apply_cloud_layout(on && m_cloud_browser != nullptr);
 }
@@ -730,7 +742,7 @@ void WebViewPanel::update_mode()
     */
 void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << WebView::RedactUrl(evt.GetURL()).ToUTF8().data();
     const wxString &url = evt.GetURL();
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage/index.html")) {
@@ -776,7 +788,7 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
 {
     m_browser->Show();
     Layout();
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << WebView::RedactUrl(evt.GetURL()).ToUTF8().data();
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
     UpdateState();
@@ -813,7 +825,7 @@ void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
     */
 void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << WebView::RedactUrl(evt.GetURL()).ToUTF8().data();
     wxString flag = " (other)";
 
     if (evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER)

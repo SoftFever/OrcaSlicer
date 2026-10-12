@@ -85,6 +85,8 @@ namespace {
 constexpr const char* ORCA_DEFAULT_API_URL   = "https://api.orcaslicer.com";
 constexpr const char* ORCA_DEFAULT_AUTH_URL  = "https://auth.orcaslicer.com";
 constexpr const char* ORCA_DEFAULT_CLOUD_URL = "https://cloud.orcaslicer.com";
+// Host component of ORCA_DEFAULT_CLOUD_URL. The handoff pins to it (build_webview_handoff_url).
+constexpr const char* ORCA_DEFAULT_CLOUD_HOST = "cloud.orcaslicer.com";
 // Orca: This is a public key with no secret, used to identify the client application to the backend.
 constexpr const char* ORCA_DEFAULT_PUB_KEY = "sb_publishable_lvVe_whOi80SU9BPSxM1kA_tbt9AbR_";
 
@@ -3016,6 +3018,82 @@ std::string OrcaCloudServiceAgent::get_cloud_login_url(const std::string& langua
         url += "?lang=" + language;
     }
     return url;
+}
+
+// True when the two strings are equal ignoring ASCII case.
+static bool ascii_iequals(const std::string& a, const std::string& b)
+{
+    return a.size() == b.size() &&
+           std::equal(a.begin(), a.end(), b.begin(),
+                      [](char x, char y) { return std::tolower(static_cast<unsigned char>(x)) ==
+                                                  std::tolower(static_cast<unsigned char>(y)); });
+}
+
+// Percent-encodes every byte outside the RFC 3986 unreserved set (A-Za-z0-9-._~), so token values
+// survive fragment parsing intact. Deliberately tiny: no URL-encoder dependency.
+static std::string percent_encode_unreserved(const std::string& s)
+{
+    static const char* const hex = "0123456789ABCDEF";
+    std::string out;
+    out.reserve(s.size());
+    for (unsigned char c : s) {
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+            c == '-' || c == '.' || c == '_' || c == '~') {
+            out.push_back(static_cast<char>(c));
+        } else {
+            out.push_back('%');
+            out.push_back(hex[c >> 4]);
+            out.push_back(hex[c & 0x0F]);
+        }
+    }
+    return out;
+}
+
+std::string OrcaCloudServiceAgent::build_webview_handoff_url() const
+{
+    if (cloud_base_url.empty())
+        return "";
+
+    // Pin the handoff to the known cloud origin: https, no userinfo, no port (or :443), and the
+    // exact host. The OrcaCloud pane hardcodes the same host as kCloudUrl in WebViewDialog.cpp, so
+    // the handoff must target that host; if the pane ever becomes configurable, both must move
+    // together. Rejecting anything else avoids handing the refresh token to a plaintext or
+    // attacker-controlled base URL.
+    const std::string https_prefix = "https://";
+    const bool https_scheme = cloud_base_url.size() >= https_prefix.size() &&
+                              ascii_iequals(https_prefix, cloud_base_url.substr(0, https_prefix.size()));
+    const std::string authority = https_scheme ? cloud_base_url.substr(https_prefix.size()) : std::string();
+    // host_port = [userinfo@]host[:port], up to the first '/', '?' or '#'.
+    const std::string host_port  = authority.substr(0, authority.find_first_of("/?#"));
+    const bool        has_userinfo = host_port.find('@') != std::string::npos;
+    const size_t      port_sep     = host_port.find(':');
+    const std::string host         = host_port.substr(0, port_sep);
+    const std::string port         = port_sep == std::string::npos ? "" : host_port.substr(port_sep + 1);
+    const bool        host_ok      = ascii_iequals(host, ORCA_DEFAULT_CLOUD_HOST);
+    const bool        port_ok      = port.empty() || port == "443";
+    if (!https_scheme || has_userinfo || !host_ok || !port_ok) {
+        BOOST_LOG_TRIVIAL(warning) << "refusing OrcaCloud webview handoff: cloud URL is not the pinned https origin";
+        return "";
+    }
+
+    std::lock_guard<std::mutex> lock(session_mutex);
+    if (!session.logged_in || session.access_token.empty())
+        return "";
+
+    // Supabase's implicit flow (detectSessionInUrl) requires all four fragment parameters.
+    const auto expires_in = std::max<long long>(0,
+        std::chrono::duration_cast<std::chrono::seconds>(session.expires_at - std::chrono::system_clock::now()).count());
+
+    return cloud_base_url + "/#access_token=" + percent_encode_unreserved(session.access_token) +
+           "&refresh_token=" + percent_encode_unreserved(session.refresh_token) +
+           "&expires_in=" + std::to_string(expires_in) +
+           "&token_type=bearer";
+}
+
+bool OrcaCloudServiceAgent::access_token_needs_refresh(std::chrono::seconds skew) const
+{
+    std::lock_guard<std::mutex> lock(session_mutex);
+    return should_refresh_locked(skew);
 }
 
 int OrcaCloudServiceAgent::get_mw_user_preference(std::function<void(std::string)> callback)

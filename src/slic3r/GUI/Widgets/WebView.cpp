@@ -418,6 +418,12 @@ bool WebView::DownloadAndInstallWebViewRuntime()
     return DownloadAndInstallWV2RT() == 0;
 }
 #endif
+wxString WebView::RedactUrl(const wxString& url)
+{
+    const size_t cut = url.find_first_of(wxString("?#"));
+    return cut == wxString::npos ? url : url.Left(cut);
+}
+
 void WebView::LoadUrl(wxWebView * webView, wxString const &url)
 {
     auto url2  = url;
@@ -425,7 +431,7 @@ void WebView::LoadUrl(wxWebView * webView, wxString const &url)
     url2.Replace("\\", "/");
 #endif
     if (!url2.empty()) { url2 = wxURI(url2).BuildURI(); }
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << url2.ToUTF8();
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << RedactUrl(url2).ToUTF8();
     webView->LoadURL(url2);
 }
 
