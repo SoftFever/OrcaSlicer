@@ -7112,6 +7112,9 @@ void Sidebar::can_search()
     p->can_search();
 }
 
+// Defined with the other drop helpers below; forward declared because the drop target uses it.
+void set_image_drag_over(Plater &plater, bool over);
+
 class PlaterDropTarget : public wxFileDropTarget
 {
 public:
@@ -7121,12 +7124,40 @@ public:
 
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames);
 
+    // A drag has no feedback of its own, so the Image tool is told when one is over the view and
+    // draws a drop zone for as long as it is. wxWidgets cannot hand us the file names before the
+    // drop on GTK, so this says nothing about what is being dragged: the zone invites a picture,
+    // and anything else still falls through to the model loader.
+    virtual wxDragResult OnEnter(wxCoord x, wxCoord y, wxDragResult def)
+    {
+        set_image_drag_over(m_plater, true);
+        return wxFileDropTarget::OnEnter(x, y, def);
+    }
+    virtual void OnLeave()
+    {
+        set_image_drag_over(m_plater, false);
+        wxFileDropTarget::OnLeave();
+    }
+
 private:
     MainFrame& m_mainframe;
     Plater& m_plater;
 };
 
 namespace {
+// The Image gizmo, but only while it is the open one. Null otherwise, which is what keeps a drag or
+// a drop from meaning anything different with the tool closed.
+GLGizmoImage *open_image_gizmo(Plater &plater)
+{
+    GLCanvas3D *canvas = plater.canvas3D();
+    if (canvas == nullptr)
+        return nullptr;
+    GLGizmosManager &gizmos = canvas->get_gizmos_manager();
+    if (gizmos.get_current_type() != GLGizmosManager::Image)
+        return nullptr;
+    return dynamic_cast<GLGizmoImage *>(gizmos.get_gizmo(GLGizmosManager::Image));
+}
+
 // True when `file` is a picture and the Image gizmo is the one currently open, in which case it has
 // taken the file. Mirrors emboss_svg() below, which does the same for an SVG and the text tool.
 bool drop_image_on_gizmo(Plater &plater, const wxString &file)
@@ -7136,13 +7167,7 @@ bool drop_image_on_gizmo(Plater &plater, const wxString &file)
     if (image_ext.count(ext) == 0)
         return false;
 
-    GLCanvas3D *canvas = plater.canvas3D();
-    if (canvas == nullptr)
-        return false;
-    GLGizmosManager &gizmos = canvas->get_gizmos_manager();
-    if (gizmos.get_current_type() != GLGizmosManager::Image)
-        return false;
-    auto *image = dynamic_cast<GLGizmoImage *>(gizmos.get_gizmo(GLGizmosManager::Image));
+    GLGizmoImage *image = open_image_gizmo(plater);
     return image != nullptr && image->drop_image_file(into_u8(file));
 }
 
@@ -7804,12 +7829,20 @@ const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::ica
 const std::regex Plater::priv::pattern_any_amf(".*[.](amf|amf[.]xml|zip[.]amf)", std::regex::icase);
 const std::regex Plater::priv::pattern_prusa(".*bbl", std::regex::icase);
 
+void set_image_drag_over(Plater &plater, bool over)
+{
+    if (GLGizmoImage *image = open_image_gizmo(plater))
+        image->set_file_drag_over(over);
+}
+
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
 {
 #ifdef WIN32
     // hides the system icon
     this->MSWUpdateDragImageOnLeave();
 #endif // WIN32
+
+    set_image_drag_over(m_plater, false); // the drag is over, whoever ends up taking the file
 
     m_mainframe.Raise();
     m_mainframe.select_tab(TAB_ID_PREPARE);

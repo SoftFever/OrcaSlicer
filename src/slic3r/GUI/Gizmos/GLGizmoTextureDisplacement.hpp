@@ -227,6 +227,11 @@ public:
     // when this is not the Image tool, or the file could not be read.
     bool drop_image_file(const std::string &path);
 
+    // Called while a file is being dragged over the 3D view, so the Image tool can show that
+    // dropping it there will do something. Without it the drag has no feedback at all and the only
+    // way to find out is to let go.
+    void set_file_drag_over(bool over);
+
 protected:
     // True in the Image tool (see GLGizmoImage): this same gizmo restricted to the one case where
     // the surface does not move at all - a colour picture laid on the model. Everything behind the
@@ -310,6 +315,10 @@ private:
     // Set once the Image tool has switched its placement handle on for the current picture, so that
     // turning the handle back off stays off instead of being re-armed on the next frame.
     bool m_image_handle_armed = false;
+    // Set between a drag entering the 3D view and leaving or dropping on it; drives the drop zone
+    // render_image_input_window() draws over the canvas.
+    bool m_file_drag_over = false;
+    void render_image_drop_hint();
     // Standard mode's Bake: remesh to an even density, refine where the texture bends, then displace.
     // The order matters and is the whole reason this is one button - a height map can only move
     // existing vertices, so the mesh has to be prepared first, and remeshing after painting would drop

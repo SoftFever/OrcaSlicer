@@ -54,6 +54,66 @@ wxString GLGizmoImage::handle_snapshot_action_name(bool shift_down, GLGizmoPaint
     return erasing ? _L("Remove image from the area") : _L("Place image");
 }
 
+void GLGizmoTextureDisplacement::set_file_drag_over(bool over)
+{
+    if (!image_mode() || m_file_drag_over == over)
+        return;
+    m_file_drag_over = over;
+    // A drag is not a mouse move as far as the canvas is concerned, so nothing would repaint and the
+    // zone would appear only once something else happened to trigger a frame.
+    m_parent.set_as_dirty();
+    m_parent.request_extra_frame();
+}
+
+// Drawn over the whole canvas on the foreground list, from inside the panel's ImGui frame, which is
+// what puts it above the 3D view and above the panel itself.
+void GLGizmoTextureDisplacement::render_image_drop_hint()
+{
+    if (!m_file_drag_over)
+        return;
+
+    const ImVec2 size = ImGui::GetIO().DisplaySize;
+    if (size.x < 1.f || size.y < 1.f)
+        return;
+    ImDrawList *dl   = ImGui::GetForegroundDrawList();
+    const ImU32 teal = ImGui::GetColorU32(ImGuiWrapper::COL_ORCA);
+
+    // Dim the view so the zone reads as a state the canvas is in, not as decoration on top of it.
+    dl->AddRectFilled(ImVec2(0.f, 0.f), size, IM_COL32(0, 0, 0, 70));
+
+    const float inset = std::round(ImGui::GetFontSize() * 1.2f);
+    const ImVec2 a(inset, inset), b(size.x - inset, size.y - inset);
+    if (b.x <= a.x || b.y <= a.y)
+        return;
+
+    // A dashed border, drawn as runs along the four edges: ImGui 1.83 has no dashed stroke.
+    const float dash = std::round(ImGui::GetFontSize() * 0.75f);
+    const float gap  = dash;
+    const float th   = std::max(2.f, std::round(ImGui::GetFontSize() * 0.12f));
+    for (float x = a.x; x < b.x; x += dash + gap) {
+        const float x1 = std::min(x + dash, b.x);
+        dl->AddLine(ImVec2(x, a.y), ImVec2(x1, a.y), teal, th);
+        dl->AddLine(ImVec2(x, b.y), ImVec2(x1, b.y), teal, th);
+    }
+    for (float y = a.y; y < b.y; y += dash + gap) {
+        const float y1 = std::min(y + dash, b.y);
+        dl->AddLine(ImVec2(a.x, y), ImVec2(a.x, y1), teal, th);
+        dl->AddLine(ImVec2(b.x, y), ImVec2(b.x, y1), teal, th);
+    }
+
+    // What dropping here will do. Worded as an invitation rather than a promise: anything that is
+    // not a picture falls through to the model loader, exactly as it did before this tool existed.
+    const std::string text = _u8L("Drop a picture to put it on the model");
+    const ImVec2      ts   = ImGui::CalcTextSize(text.c_str());
+    const float       pad  = std::round(ImGui::GetFontSize() * 0.8f);
+    const ImVec2      c((a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f);
+    const ImVec2      r0(c.x - ts.x * 0.5f - pad, c.y - ts.y * 0.5f - pad * 0.6f);
+    const ImVec2      r1(c.x + ts.x * 0.5f + pad, c.y + ts.y * 0.5f + pad * 0.6f);
+    dl->AddRectFilled(r0, r1, ImGui::GetColorU32(ImGuiCol_WindowBg, 0.92f), ImGui::GetStyle().FrameRounding);
+    dl->AddRect(r0, r1, teal, ImGui::GetStyle().FrameRounding, 0, th * 0.5f);
+    dl->AddText(ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), ImGui::GetColorU32(ImGuiCol_Text), text.c_str());
+}
+
 bool GLGizmoTextureDisplacement::drop_image_file(const std::string &path)
 {
     if (!image_mode() || texture_volume() == nullptr)
@@ -552,6 +612,9 @@ void GLGizmoTextureDisplacement::render_image_input_window(float x, float y, flo
             hover_tip(_u8L("Closes the tool. Your picture and where you put it stay with the model."));
         }
     }
+
+    // Last, on the foreground list, so it covers the panel as well as the view.
+    render_image_drop_hint();
 
     GizmoImguiEnd();
     ImGuiWrapper::pop_toolbar_style();

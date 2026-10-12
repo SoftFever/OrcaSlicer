@@ -558,6 +558,7 @@ void GLGizmoTextureDisplacement::on_shutdown()
     m_adjust_drag_handle  = AdjustHandle::None;
     m_adjust_anchor_valid = false;
     m_image_handle_armed  = false;
+    m_file_drag_over      = false;
     // The pane is request-only: closing the gizmo drops the request, so reopening it later doesn't
     // silently reopen the pane too.
     m_show_uv_editor = false;
