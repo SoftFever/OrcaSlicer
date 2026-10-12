@@ -328,7 +328,10 @@ static float ribbon_font_scale()
 {
     wxScreenDC dc;
     const float px = Label::Body_12.GetFractionalPointSize() * float(dc.GetPPI().y) / 72.f;
-    const float sc = px / ImGui::GetFontSize();
+    // The font's own size: GetFontSize() already includes the window's previous-frame font scale, so
+    // dividing by it made the scale flip between two values every frame (small <-> big).
+    const float base = ImGui::GetFont()->FontSize * ImGui::GetIO().FontGlobalScale;
+    const float sc   = px / base;
     return std::min(1.f, std::max(0.5f, sc));
 }
 // Label clipped to `maxw` with a trailing ".." so a long verb name cannot widen its button column.
@@ -431,7 +434,7 @@ void DesignRibbonOverlay::render(ImGuiWrapper& imgui, float scale, float inset_l
                 if (g.verbs.size() > 1) {
                     ImGui::SameLine(0.f, 1.f * em);
                     // Half the size the stock arrow button had before the ribbon font was reduced.
-                    const float asz = 0.5f * (ImGui::GetFontSize() / ribbon_font_scale() + 2.f * ImGui::GetStyle().FramePadding.y);
+                    const float asz = 0.5f * (ImGui::GetFont()->FontSize * ImGui::GetIO().FontGlobalScale + 2.f * ImGui::GetStyle().FramePadding.y);
                     if (ribbon_icon_texture(*main))
                         ImGui::SetCursorPosY(ImGui::GetCursorPosY() + std::max(0.f, (32.f * em - asz) * 0.5f));
                     if (ImGui::ArrowButtonEx("##dd", ImGuiDir_Down, ImVec2(asz, asz))) ImGui::OpenPopup("##variants");
