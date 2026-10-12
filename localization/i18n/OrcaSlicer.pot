@@ -27662,18 +27662,6 @@ msgstr ""
 msgid "Avoid warping\nDid you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping?"
 msgstr ""
 
-msgid "Align min"
-msgstr ""
-
-msgid "Align center"
-msgstr ""
-
-msgid "Align max"
-msgstr ""
-
-msgid "Distribute"
-msgstr ""
-
 msgid "Select at least three objects or parts to distribute them."
 msgstr ""
 

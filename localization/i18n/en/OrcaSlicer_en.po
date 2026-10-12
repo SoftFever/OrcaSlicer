@@ -27812,18 +27812,6 @@ msgstr ""
 #~ msgid "Extruders count"
 #~ msgstr "Extruder count"
 
-msgid "Align min"
-msgstr "Align min"
-
-msgid "Align center"
-msgstr "Align center"
-
-msgid "Align max"
-msgstr "Align max"
-
-msgid "Distribute"
-msgstr "Distribute"
-
 msgid "Select at least three objects or parts to distribute them."
 msgstr "Select at least three objects or parts to distribute them."
 

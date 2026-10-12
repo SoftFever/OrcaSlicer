@@ -17,6 +17,7 @@
 #include "libslic3r/AppConfig.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "libslic3r/Utils.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "slic3r/GUI/Selection.hpp"
 #include "slic3r/GUI/SelectionAlignment.hpp"
@@ -41,6 +42,7 @@
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
+#include <map>
 #include <string>
 
 #define MAX_NUM 9999.99
@@ -897,34 +899,83 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         m_buffered_position = display_position;
         update(current_active_id, "position", original_position, m_buffered_position);
     }
-    // Align / distribute rows, shown when the selection has enough objects or parts to work with.
+    // Align / distribute: one row of icon buttons per axis (align to min, center, max, then distribute).
     if (!is_avoid_one_update && SelectionAlignment::can_align(selection, 0)) {
-        struct AlignRow { const char* caption; bool distribute; SelectionAlignment::Mode mode; };
-        const AlignRow rows[] = {
-            { L("Align min"),    false, SelectionAlignment::Mode::Min    },
-            { L("Align center"), false, SelectionAlignment::Mode::Center },
-            { L("Align max"),    false, SelectionAlignment::Mode::Max    },
-            { L("Distribute"),   true,  SelectionAlignment::Mode::Center },
+        struct AlignButton { const char* icon; SelectionAlignment::Mode mode; bool distribute; const char* tooltip; };
+        const AlignButton buttons[3][4] = {
+            { { "align_x_min",    SelectionAlignment::Mode::Min,    false, L("Align left") },
+              { "align_x_center", SelectionAlignment::Mode::Center, false, L("Align left-right center") },
+              { "align_x_max",    SelectionAlignment::Mode::Max,    false, L("Align right") },
+              { "distribute_x",   SelectionAlignment::Mode::Center, true,  L("Distribute left-right") } },
+            { { "align_y_min",    SelectionAlignment::Mode::Min,    false, L("Align front") },
+              { "align_y_center", SelectionAlignment::Mode::Center, false, L("Align front-back center") },
+              { "align_y_max",    SelectionAlignment::Mode::Max,    false, L("Align back") },
+              { "distribute_y",   SelectionAlignment::Mode::Center, true,  L("Distribute front-back") } },
+            { { "align_z_min",    SelectionAlignment::Mode::Min,    false, L("Align bottom") },
+              { "align_z_center", SelectionAlignment::Mode::Center, false, L("Align top-bottom center") },
+              { "align_z_max",    SelectionAlignment::Mode::Max,    false, L("Align top") },
+              { "distribute_z",   SelectionAlignment::Mode::Center, true,  L("Distribute top-bottom") } },
         };
-        static const char* const axis_labels[3] = { "X", "Y", "Z" };
-        const float button_width = unit_size;
-        for (const AlignRow& row : rows) {
+        static const char* const axis_letters[3] = { "X", "Y", "Z" };
+        static std::map<std::string, ImTextureID> icon_cache; // textures are loaded once and live for the whole session
+
+        const float icon_size = ImGui::GetFrameHeight() * 1.2f;
+        for (int axis = 0; axis < 3; ++axis) {
             ImGui::AlignTextToFramePadding();
-            imgui_wrapper->text(_L(row.caption));
-            for (int axis = 0; axis < 3; ++axis) {
-                const bool enable = row.distribute ? SelectionAlignment::can_distribute(selection, axis) :
+            if (axis == 0)
+                imgui_wrapper->text(_L("Align/Distribute"));
+            else
+                ImGui::NewLine();
+            ImGui::SameLine(caption_max + space_size);
+            for (int i = 0; i < 4; ++i) {
+                const AlignButton& btn = buttons[axis][i];
+                const bool enable = btn.distribute ? SelectionAlignment::can_distribute(selection, axis) :
                                                      SelectionAlignment::can_align(selection, axis);
-                ImGui::SameLine(caption_max + (axis + 1) * space_size + axis * unit_size);
-                const std::string label = std::string(axis_labels[axis]) + "##align_" + std::to_string(int(row.distribute) * 3 + int(row.mode)) +
-                                          "_" + std::to_string(axis);
-                if (imgui_wrapper->button(wxString::FromUTF8(label), ImVec2(button_width, 0.f), enable)) {
-                    if (row.distribute)
-                        SelectionAlignment::distribute(m_glcanvas, axis);
-                    else
-                        SelectionAlignment::align(m_glcanvas, axis, row.mode);
+
+                const std::string key = std::string(btn.icon) + (wxGetApp().dark_mode() ? "_dark" : "");
+                auto it = icon_cache.find(key);
+                if (it == icon_cache.end()) {
+                    ImTextureID id = nullptr;
+                    IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/" + key + ".svg", 64, 64, id);
+                    it = icon_cache.emplace(key, id).first;
                 }
-                if (row.distribute && !enable && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                    imgui_wrapper->tooltip(_L("Select at least three objects or parts to distribute them."), ImGui::GetFontSize() * 20.f);
+                if (i > 0)
+                    ImGui::SameLine(0.f, space_size * 0.5f);
+                if (it->second == nullptr) {
+                    // Texture could not be loaded: fall back to a text button.
+                    if (imgui_wrapper->button(wxString::FromUTF8(std::string(btn.icon) + "##align_fb_" + std::to_string(axis) + std::to_string(i)),
+                                              ImVec2(icon_size, icon_size), enable) && enable) {
+                        if (btn.distribute) SelectionAlignment::distribute(m_glcanvas, axis);
+                        else                SelectionAlignment::align(m_glcanvas, axis, btn.mode);
+                    }
+                } else {
+                    ImGui::PushID(axis * 4 + i);
+                    if (!enable) {
+                        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.3f);
+                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyle().Colors[ImGuiCol_Button]);
+                        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_Button]);
+                    }
+                    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+                    const bool clicked = ImGui::ImageButton3(it->second, it->second, ImVec2(icon_size, icon_size));
+                    ImGui::PopStyleVar();
+                    if (!enable) {
+                        ImGui::PopStyleColor(2);
+                        ImGui::PopStyleVar();
+                    }
+                    ImGui::PopID();
+                    if (clicked && enable) {
+                        if (btn.distribute) SelectionAlignment::distribute(m_glcanvas, axis);
+                        else                SelectionAlignment::align(m_glcanvas, axis, btn.mode);
+                    }
+                }
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                    const char* sign = (btn.distribute || btn.mode == SelectionAlignment::Mode::Center) ? "" :
+                                       (btn.mode == SelectionAlignment::Mode::Min ? "-" : "+");
+                    wxString tip = _L(btn.tooltip) + " (" + sign + axis_letters[axis] + ")";
+                    if (btn.distribute && !enable)
+                        tip += "\n" + _L("Select at least three objects or parts to distribute them.");
+                    imgui_wrapper->tooltip(tip, ImGui::GetFontSize() * 20.f);
+                }
             }
         }
     }
