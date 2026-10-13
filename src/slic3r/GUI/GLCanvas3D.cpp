@@ -1514,6 +1514,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_PRINTABLE, SimpleEvent);
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 const double GLCanvas3D::DefaultCameraZoomToBedMarginFactor = 2.00;
 const double GLCanvas3D::DefaultCameraZoomToPlateMarginFactor = 1.25;
+// Main-thread only: _render_frame never runs off it, so no atomic is needed.
+int GLCanvas3D::s_frames_in_progress = 0;
 
 void GLCanvas3D::load_arrange_settings()
 {
@@ -2468,7 +2470,8 @@ void GLCanvas3D::_render_frame(bool scene_dirty, bool only_init)
     }
 
     m_in_render = true;
-    Slic3r::ScopeGuard in_render_guard([this]() { m_in_render = false; });
+    ++s_frames_in_progress;
+    Slic3r::ScopeGuard in_render_guard([this]() { m_in_render = false; --s_frames_in_progress; });
     (void)in_render_guard;
 
     if (m_canvas == nullptr)
@@ -2713,15 +2716,31 @@ void GLCanvas3D::_render_frame(bool scene_dirty, bool only_init)
 
     // On Wayland, eglSwapBuffers blocks when the canvas is hidden or
     // occluded. Skip the swap to avoid stalling the render loop.
-    if (m_canvas->IsShownOnScreen()) {
+    // Code run from inside this frame - a modal dialog a gizmo opened from its ImGui panel, a
+    // synchronous paint of another canvas - may have made a different surface current. Bind this one
+    // again before presenting, so the swap is not issued against a window the context no longer
+    // belongs to: on Mesa/X11 that is a fatal BadMatch, not the no-op it is on other platforms. Draws
+    // already issued before this point cannot be redirected - only this swap is protected.
+    if (m_canvas->IsShownOnScreen() && _set_current()) {
         m_canvas->SwapBuffers();
         m_frame_profiler.mark("swap");
         if (!overlay_tick)
             m_render_stats.increment_fps_counter();
         m_presented_signature = signature;
     }
-    else
+    else {
+        if (m_canvas->IsShownOnScreen()) {
+            // Logged once: if the rebind fails it does so every frame, and a warning per frame would
+            // bury everything else.
+            static bool rebind_failure_logged = false;
+            if (!rebind_failure_logged) {
+                rebind_failure_logged = true;
+                BOOST_LOG_TRIVIAL(warning) << "GLCanvas3D: could not rebind the GL context to this canvas before "
+                                              "SwapBuffers(); the frame is not presented";
+            }
+        }
         m_presented_signature.reset();
+    }
 }
 
 // Everything drawn into the 3D scene, from the clear to the post processing passes, ending in the

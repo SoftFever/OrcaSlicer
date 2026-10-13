@@ -27,6 +27,7 @@
 #include <wx/mstream.h>
 
 #include "libslic3r/PNGReadWrite.hpp"
+#include "libslic3r/TextureDisplacement.hpp"
 #include "libslic3r/Utils.hpp"
 
 #include "libslic3r/AppConfig.hpp"
@@ -158,6 +159,28 @@ bool encode_png_bytes(const wxImage &image, std::vector<unsigned char> &out, std
                                   : encode_gray_png_bytes(image, out, error);
 }
 
+// A wxImage over decoded pixels, so the encoders above can be reached from an in-memory image as well as
+// from a file. Grayscale is expanded to the three equal channels wxImage always stores, which is what
+// image_has_color() then reads as "no colour" - so a grey image still encodes as a grayscale PNG.
+//
+// `scratch` holds the pixel buffer: the wxImage is constructed over it without taking ownership, so it
+// has to outlive every use of the returned image.
+wxImage image_from_decoded(const DecodedHeightTexture &image, std::vector<unsigned char> &scratch)
+{
+    if (image.empty())
+        return wxImage();
+
+    const size_t n = size_t(image.width) * size_t(image.height);
+    scratch.resize(n * 3);
+    if (image.has_color())
+        scratch.assign(image.rgb.begin(), image.rgb.end());
+    else
+        for (size_t i = 0; i < n; ++i)
+            scratch[i * 3] = scratch[i * 3 + 1] = scratch[i * 3 + 2] = image.pixels[i];
+
+    return wxImage(image.width, image.height, scratch.data(), /* static_data */ true);
+}
+
 std::vector<unsigned char> read_file_bytes(const std::string &path)
 {
     std::ifstream ifs(path, std::ios::binary);
@@ -185,6 +208,42 @@ bool is_supported_height_map(const std::vector<unsigned char> &bytes)
 
 std::vector<TextureLibraryEntry> g_library;
 bool                             g_library_scanned = false;
+
+// Writes `bytes` into the user's own texture folder as `stem`.png, uniquified so an existing texture -
+// shipped-name collision, or a second edit of the same source - is never overwritten. Returns the new
+// file's library entry. Shared by import_texture_to_library() and save_texture_to_library(), which
+// differ only in where their bytes came from.
+std::optional<TextureLibraryEntry> write_user_texture(const std::vector<unsigned char> &bytes, const std::string &stem,
+                                                      std::string &error)
+{
+    const std::string user_dir = user_texture_dir();
+    if (user_dir.empty()) {
+        error = _u8L("Could not create the folder for imported textures.");
+        return std::nullopt;
+    }
+
+    boost::filesystem::path dest = boost::filesystem::path(user_dir) / (stem + ".png");
+    for (int i = 2; boost::filesystem::exists(dest); ++i)
+        dest = boost::filesystem::path(user_dir) / (stem + " (" + std::to_string(i) + ").png");
+
+    {
+        boost::nowide::ofstream ofs(dest.string(), std::ios::binary);
+        ofs.write(reinterpret_cast<const char *>(bytes.data()), std::streamsize(bytes.size()));
+        if (!ofs.good()) {
+            error = _u8L("Failed to save the imported texture.");
+            return std::nullopt;
+        }
+    }
+
+    texture_library(true); // pick the new file up
+    const std::string dest_str = dest.string();
+    for (const TextureLibraryEntry &e : g_library)
+        if (e.path == dest_str)
+            return e;
+
+    error = _u8L("Failed to save the imported texture.");
+    return std::nullopt;
+}
 
 // The user's own textures, most recently used first, kept in the app config. File names are stored rather
 // than paths so the order survives a moved data directory; '/' separates them because no platform allows
@@ -317,12 +376,6 @@ bool remove_user_texture(const std::string &path, std::string &error)
 
 std::optional<TextureLibraryEntry> import_texture_to_library(const std::string &source_path, std::string &error)
 {
-    const std::string user_dir = user_texture_dir();
-    if (user_dir.empty()) {
-        error = _u8L("Could not create the folder for imported textures.");
-        return std::nullopt;
-    }
-
     wxImage image;
     if (!image.LoadFile(from_u8(source_path)) || !image.IsOk()) {
         error = _u8L("Could not load the selected image.");
@@ -333,30 +386,7 @@ std::optional<TextureLibraryEntry> import_texture_to_library(const std::string &
     if (!encode_png_bytes(image, bytes, error))
         return std::nullopt;
 
-    // Never overwrite an existing texture (the user's or, if they picked the same name twice, their
-    // own earlier import) - uniquify instead.
-    const std::string       stem = boost::filesystem::path(source_path).stem().string();
-    boost::filesystem::path dest = boost::filesystem::path(user_dir) / (stem + ".png");
-    for (int i = 2; boost::filesystem::exists(dest); ++i)
-        dest = boost::filesystem::path(user_dir) / (stem + " (" + std::to_string(i) + ").png");
-
-    {
-        boost::nowide::ofstream ofs(dest.string(), std::ios::binary);
-        ofs.write(reinterpret_cast<const char *>(bytes.data()), std::streamsize(bytes.size()));
-        if (!ofs.good()) {
-            error = _u8L("Failed to save the imported texture.");
-            return std::nullopt;
-        }
-    }
-
-    texture_library(true); // pick the new file up
-    const std::string dest_str = dest.string();
-    for (const TextureLibraryEntry &e : g_library)
-        if (e.path == dest_str)
-            return e;
-
-    error = _u8L("Failed to save the imported texture.");
-    return std::nullopt;
+    return write_user_texture(bytes, boost::filesystem::path(source_path).stem().string(), error);
 }
 
 std::shared_ptr<std::vector<unsigned char>> load_texture_image_data(const std::string &path, std::string &error)
@@ -380,6 +410,23 @@ std::shared_ptr<std::vector<unsigned char>> load_texture_image_data(const std::s
     if (!encode_png_bytes(image, converted, error))
         return nullptr;
     return std::make_shared<std::vector<unsigned char>>(std::move(converted));
+}
+
+std::optional<TextureLibraryEntry> save_texture_to_library(const DecodedHeightTexture &image, const std::string &stem,
+                                                           std::string &error)
+{
+    std::vector<unsigned char> scratch;
+    const wxImage              wx = image_from_decoded(image, scratch);
+    if (!wx.IsOk()) {
+        error = _u8L("The selected image is empty.");
+        return std::nullopt;
+    }
+
+    std::vector<unsigned char> bytes;
+    if (!encode_png_bytes(wx, bytes, error))
+        return std::nullopt;
+
+    return write_user_texture(bytes, stem.empty() ? std::string("texture") : stem, error);
 }
 
 } // namespace Slic3r::GUI

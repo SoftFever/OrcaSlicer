@@ -341,12 +341,12 @@ jobs:
           
           # Notarize main DMG
           xcrun notarytool submit "OrcaSlicer_Mac_universal_${{ env.ver }}.dmg" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}" --wait
-          xcrun stapler staple OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
+          retry xcrun stapler staple OrcaSlicer_Mac_universal_${{ env.ver }}.dmg
 
           # Notarize profile validator DMG if it exists
           if [ -f "OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg" ]; then
             xcrun notarytool submit "OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg" --apple-id "${{ secrets.APPLE_DEV_ACCOUNT }}" --team-id "${{ secrets.TEAM_ID }}" --password "${{ secrets.APP_PWD }}" --wait
-            xcrun stapler staple OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
+            retry xcrun stapler staple OrcaSlicer_profile_validator_Mac_universal_${{ env.ver }}.dmg
           fi
 
       - name: Create DMG without notary
@@ -460,10 +460,6 @@ jobs:
       - name: Build slicer Win
         if: runner.os == 'Windows'
         working-directory: ${{ github.workspace }}
-        # Orca: Removed Netfabb STL fixing service support in favor of CGAL.
-        # env:
-        #   WindowsSdkDir: 'C:\Program Files (x86)\Windows Kits\10\'
-        #   WindowsSDKVersion: '10.0.26100.0\'
         # --tests builds the unit tests too; the unit_tests_windows_* jobs run them.
         run: |
           # cache-path is the install directory inside the deps build directory.

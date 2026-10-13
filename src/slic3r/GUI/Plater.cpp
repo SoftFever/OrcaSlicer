@@ -14984,24 +14984,8 @@ bool Plater::priv::can_fix_through_cgal() const
     std::vector<int> obj_idxs, vol_idxs;
     sidebar->obj_list()->get_selection_indexes(obj_idxs, vol_idxs);
 
-#if FIX_THROUGH_CGAL_ALWAYS
-    // Fixing always.
+    // A closed mesh may still self-intersect, so fixing is always allowed.
     return ! obj_idxs.empty() || ! vol_idxs.empty();
-#else // FIX_THROUGH_CGAL_ALWAYS
-    // Fixing only if the model is not manifold.
-    if (vol_idxs.empty()) {
-        for (auto obj_idx : obj_idxs)
-            if (model.objects[obj_idx]->get_repaired_errors_count() > 0)
-                return true;
-        return false;
-    }
-
-    int obj_idx = obj_idxs.front();
-    for (auto vol_idx : vol_idxs)
-        if (model.objects[obj_idx]->get_repaired_errors_count(vol_idx) > 0)
-            return true;
-    return false;
-#endif // FIX_THROUGH_CGAL_ALWAYS
 }
 
 bool Plater::priv::can_simplify() const
@@ -22041,13 +22025,16 @@ void Plater::clear_before_change_mesh(int obj_idx)
         mv->mmu_segmentation_facets.reset();
         mv->fuzzy_skin_facets.reset();
     }
-    if (paint_removed) {
-        // snapshot_time is captured by copy so the lambda knows where to undo/redo to.
-        get_notification_manager()->push_notification(
-                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
-                    _u8L("Custom supports and color painting were removed before repairing."));
-    }
+    if (paint_removed)
+        notify_painting_removed();
+}
+
+void Plater::notify_painting_removed()
+{
+    get_notification_manager()->push_notification(
+                NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+                NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
+                _u8L("Custom supports and color painting were removed before repairing."));
 }
 
 void Plater::changed_mesh(int obj_idx)
