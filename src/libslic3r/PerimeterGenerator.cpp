@@ -1837,6 +1837,10 @@ void PerimeterGenerator::process_classic()
             // we continue inwards after having finished the brim
             // TODO: add test for perimeter order
             bool is_outer_wall_first = this->config->wall_sequence == WallSequence::OuterInner;
+            // Orca: a contour with only a thin wall hole beside it keeps the hole first, as with Arachne.
+            const PerimeterGeneratorLoops &island_loops = contours.front();
+            const bool thin_wall_hole_island = island_loops.size() == 1 && island_loops.front().children.size() == 1 &&
+                                               island_loops.front().children.front().is_thin_wall_hole;
             if (is_outer_wall_first ||
                 //BBS: always print outer wall first when there indeed has brim.
                 // btLeadingEdgeOnly is an outer brim too (a belt brim at the part's first contact).
@@ -1846,7 +1850,7 @@ void PerimeterGenerator::process_classic()
                     this->object_config->brim_width.value > 0))
                 entities.reverse();
             // Orca: sandwich mode. Apply after 1st layer.
-            else if ((this->config->wall_sequence == WallSequence::InnerOuterInner) && layer_id > 0){
+            else if ((this->config->wall_sequence == WallSequence::InnerOuterInner) && layer_id > 0 && !thin_wall_hole_island){
                 entities.reverse(); // reverse all entities - order them from external to internal
                 if(entities.entities.size()>2){ // 3 walls minimum needed to do inner outer inner ordering
                     int position = 0; // index to run the re-ordering for multiple external perimeters in a single island.
