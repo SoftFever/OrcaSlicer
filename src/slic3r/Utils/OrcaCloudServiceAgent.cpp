@@ -5,6 +5,7 @@
 #include "ICloudServiceAgent.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "libslic3r/AppConfig.hpp"
 
 #include <atomic>
@@ -882,7 +883,7 @@ std::string OrcaCloudServiceAgent::build_login_cmd()
     if (is_user_login()) {
         std::string display_name = get_user_nickname();
         if (display_name.empty()) {
-            display_name = "unknown name";
+            display_name = _u8L("unknown name");
         }
         json cmd;
         cmd["command"]         = "orca_userlogin";

@@ -18,6 +18,7 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
+#include "libslic3r/I18N.hpp"
 #include "libslic3r_version.h"
 #include "GCodeProcessor.hpp"
 
@@ -1066,13 +1067,13 @@ void GCodeProcessor::run_post_process()
 {
     FilePtr in{ boost::nowide::fopen(m_result.filename.c_str(), "rb") };
     if (in.f == nullptr)
-        throw Slic3r::RuntimeError(std::string("GCode processor post process export failed.\nCannot open file for reading.\n"));
+        throw Slic3r::RuntimeError(_u8L("G-code processor post-process export failed.\nCannot open file for reading.\n"));
 
     // temporary file to contain modified gcode
     std::string out_path = m_result.filename + ".postprocess";
     FilePtr out{ boost::nowide::fopen(out_path.c_str(), "wb") };
     if (out.f == nullptr)
-        throw Slic3r::RuntimeError(std::string("GCode processor post process export failed.\nCannot open file for writing.\n"));
+        throw Slic3r::RuntimeError(_u8L("G-code processor post-process export failed.\nCannot open file for writing.\n"));
 
     std::vector<double> filament_mm(m_result.filaments_count, 0.0);
     std::vector<double> filament_cm3(m_result.filaments_count, 0.0);
@@ -1467,10 +1468,10 @@ void GCodeProcessor::run_post_process()
                     // found an invalid value, clamp it to a valid one
                     tool_number = std::clamp<int>(0, m_filament_nozzle_temp.size() - 1, tool_number);
                     // emit warning
-                    std::string warning = "GCode Post-Processor encountered an invalid toolchange, maybe from a custom gcode:";
+                    std::string warning = _u8L("The G-code post-processor encountered an invalid tool change, maybe from custom G-code:");
                     warning += "\n> ";
                     warning += gcode_line;
-                    warning += "Generated M104 lines may be incorrect.";
+                    warning += _u8L("Generated M104 lines may be incorrect.");
                     BOOST_LOG_TRIVIAL(error) << warning;
                     // Orca todo
                     if (m_print != nullptr)
@@ -1712,7 +1713,7 @@ void GCodeProcessor::run_post_process()
         for (;;) {
             size_t cnt_read = ::fread(buffer.data(), 1, buffer.size(), in.f);
             if (::ferror(in.f))
-                throw Slic3r::RuntimeError(std::string("GCode processor post process export failed.\nError while reading from file.\n"));
+                throw Slic3r::RuntimeError(_u8L("G-code processor post-process export failed.\nError while reading from file.\n"));
             bool eof       = cnt_read == 0;
             auto it        = buffer.begin();
             auto it_bufend = buffer.begin() + cnt_read;
@@ -1877,8 +1878,9 @@ void GCodeProcessor::run_post_process()
     }
 
     if (rename_file(out_path, result_filename))
-        throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + out_path + " to " + result_filename + '\n' +
-            "Is " + out_path + " locked?" + '\n');
+        // TRN %1% is the temporary file path, %2% the output file path.
+        throw Slic3r::RuntimeError(Slic3r::format(_u8L("Failed to rename the output G-code file from %1% to %2%.\nIs %1% locked?"),
+                                                  out_path, result_filename) + '\n');
 }
 
 // Additive second file-rewrite pass for the pre-heat/pre-cool injector. The single-pass
@@ -1979,12 +1981,12 @@ void GCodeProcessor::run_second_pass_injection()
 
     FilePtr in{ boost::nowide::fopen(m_result.filename.c_str(), "rb") };
     if (in.f == nullptr)
-        throw Slic3r::RuntimeError(std::string("GCode processor pre-heat injection pass failed.\nCannot open file for reading.\n"));
+        throw Slic3r::RuntimeError(_u8L("G-code processor pre-heat injection pass failed.\nCannot open file for reading.\n"));
 
     const std::string out_path = m_result.filename + ".preheat";
     FilePtr out{ boost::nowide::fopen(out_path.c_str(), "wb") };
     if (out.f == nullptr)
-        throw Slic3r::RuntimeError(std::string("GCode processor pre-heat injection pass failed.\nCannot open file for writing.\n"));
+        throw Slic3r::RuntimeError(_u8L("G-code processor pre-heat injection pass failed.\nCannot open file for writing.\n"));
 
     // The rewrite may shift byte positions (once the injector inserts lines), so rebuild lines_ends from scratch.
     // With an empty map the scanned '\n' offsets reproduce the current lines_ends exactly.
@@ -2002,7 +2004,7 @@ void GCodeProcessor::run_second_pass_injection()
     for (;;) {
         size_t cnt_read = ::fread(buffer.data(), 1, buffer.size(), in.f);
         if (::ferror(in.f))
-            throw Slic3r::RuntimeError(std::string("GCode processor pre-heat injection pass failed.\nError while reading from file.\n"));
+            throw Slic3r::RuntimeError(_u8L("G-code processor pre-heat injection pass failed.\nError while reading from file.\n"));
         bool eof       = cnt_read == 0;
         auto it        = buffer.begin();
         auto it_bufend = buffer.begin() + cnt_read;
@@ -2053,8 +2055,9 @@ void GCodeProcessor::run_second_pass_injection()
     handle_offsets_of_second_process(inserted_operation_lines);
 
     if (rename_file(out_path, m_result.filename))
-        throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + out_path + " to " + m_result.filename + '\n' +
-            "Is " + out_path + " locked?" + '\n');
+        // TRN %1% is the temporary file path, %2% the output file path.
+        throw Slic3r::RuntimeError(Slic3r::format(_u8L("Failed to rename the output G-code file from %1% to %2%.\nIs %1% locked?"),
+                                                  out_path, m_result.filename) + '\n');
 }
 
 // Every move whose gcode_id sits at or after an inserted line is pushed down by the running count of
@@ -3941,7 +3944,7 @@ ConfigSubstitutions load_from_superslicer_gcode_file(const std::string& filename
     key_value_pairs = ConfigBase::load_from_gcode_string_legacy(config, data.data(), substitutions_ctxt);
 
     if (key_value_pairs < 80)
-        throw Slic3r::RuntimeError(format("Suspiciously low number of configuration values extracted from %1%: %2%", filename, key_value_pairs));
+        throw Slic3r::RuntimeError(format(_u8L("Suspiciously low number of configuration values extracted from %1%: %2%"), filename, key_value_pairs));
 
     return std::move(substitutions_ctxt.substitutions);
 }

@@ -1484,7 +1484,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
                 // return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n",
                 //        inst->model_instance->get_object()};
                 //ORCA: Pass ModelInstance instead of ModelObject
-                return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n",
+                return {(boost::format(L("%1% is too close to exclusion area. There may be collisions when printing.")) % inst->model_instance->get_object()->name).str() + "\n",
                         inst->model_instance};
             }
 
@@ -1492,7 +1492,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
                 // return {inst->model_instance->get_object()->name + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n",
                 //        inst->model_instance->get_object()};
                 //ORCA: Pass ModelInstance instead of ModelObject
-                return {inst->model_instance->get_object()->name + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n",
+                return {(boost::format(L("%1% is too close to the clumping detection area. There may be collisions when printing.")) % inst->model_instance->get_object()->name).str() + "\n",
                         inst->model_instance};
             }
             current_instance_hulls.emplace_back(volume_hull);
@@ -1577,20 +1577,20 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     // many setups that print fine.
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
-            warning->string += L("Prime Tower") + L(" is too close to others, and collisions may be caused.\n");
+            warning->string += L("Prime tower is too close to others, and collisions may be caused.\n");
         }
     }
     if (!intersection(exclude_polys, tower_polys_checked).empty()) {
-        return {L("Prime Tower") + L(" is too close to an exclusion area, and collisions will be caused.\n")};
+        return {L("Prime tower is too close to an exclusion area, and collisions will be caused.\n")};
     }
     if (print_config.enable_wrapping_detection.value && !intersection({wrapping_poly}, tower_polys_checked).empty()) {
-        return {L("Prime Tower") + L(" is too close to clumping detection area, and collisions will be caused.\n")};
+        return {L("Prime tower is too close to the clumping detection area, and collisions will be caused.\n")};
     }
     if (warning && !intersection(exclude_polys, tower_polys_estimated).empty()) {
-        warning->string += L("Prime Tower") + L(" is too close to exclusion area, there may be collisions when printing.") + "\n";
+        warning->string += L("Prime tower is too close to an exclusion area. There may be collisions when printing.") + "\n";
     }
     if (warning && print_config.enable_wrapping_detection.value && !intersection({wrapping_poly}, tower_polys_estimated).empty()) {
-        warning->string += L("Prime Tower") + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n";
+        warning->string += L("Prime tower is too close to the clumping detection area. There may be collisions when printing.") + "\n";
     }
     // No gate on "is there a tower": one that is not printed estimates to zero, so the hulls
     // are degenerate and every check passes. Re-deriving it here missed the wrapping-detection
@@ -1600,9 +1600,9 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     for (Polygon &p : printable_polys)
         p.translate(plate_shift);
     if (!diff(tower_polys_checked, printable_polys).empty())
-        return {L("Prime Tower") + L(" is partially outside the printable area, and it cannot be printed.\n")};
+        return {L("Prime tower is partially outside the printable area, and it cannot be printed.\n")};
     if (warning && !diff(tower_polys_estimated, printable_polys).empty())
-        warning->string += L("Prime Tower") + L(" is partially outside the printable area, and it cannot be printed.\n");
+        warning->string += L("Prime tower is partially outside the printable area, and it cannot be printed.\n");
     return {};
 }
 
@@ -1969,14 +1969,19 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
                 // What is left is a printer with more filaments than logical extruders, where
                 // the tail slots fall outside the map. Narrow, but without this the sentence
                 // ends in a dangling "on .".
-                if (routed_list.empty())
-                    routed_list = L("no configured tool");
-
                 StringObjectException err;
-                err.string = Slic3r::format(
-                    L("IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. "
-                      "Assign a filament loaded on T%2%, or switch this plate to Primary mode."),
-                    parallel_mode, routing.primary_phys, routed_list);
+                if (routed_list.empty())
+                    err.string = Slic3r::format(
+                        // TRN %1% is the IDEX/IQEX mode name, %2% the tool number.
+                        L("IDEX/IQEX mode \"%1%\" prints with T%2%, but none of this plate's filaments are on a configured tool. "
+                          "Assign a filament loaded on T%2%, or switch this plate to Primary mode."),
+                        parallel_mode, routing.primary_phys);
+                else
+                    err.string = Slic3r::format(
+                        // TRN %1% is the IDEX/IQEX mode name, %2% the tool number, %3% a list of tools such as "T1, T2".
+                        L("IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. "
+                          "Assign a filament loaded on T%2%, or switch this plate to Primary mode."),
+                        parallel_mode, routing.primary_phys, routed_list);
                 // Gives the notification a "Jump to <object>" link, which selects the object
                 // and switches to Prepare -- directly enabling the first suggested remedy.
                 err.object = m_objects.front();
@@ -3458,7 +3463,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             m_tool_ordering = ToolOrdering(*this, -1, false);
             m_tool_ordering.sort_and_build_data(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
-                throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
+                throw Slic3r::SlicingError(L("The print is empty. The model is not printable with current print settings."));
 
         }
         this->set_done(psWipeTower);
@@ -5407,11 +5412,11 @@ void Print::_make_wipe_tower()
             BOOST_LOG_TRIVIAL(error) << boost::format("wipe tower footprint [%1%,%2%]-[%3%,%4%] leaves printable [%5%,%6%]-[%7%,%8%]") %
                 unscaled(fp.min.x()) % unscaled(fp.min.y()) % unscaled(fp.max.x()) % unscaled(fp.max.y()) %
                 unscaled(pr.min.x()) % unscaled(pr.min.y()) % unscaled(pr.max.x()) % unscaled(pr.max.y());
-            throw Slic3r::SlicingError(L("Prime Tower") + L(" is partially outside the printable area, and it cannot be printed.\n"));
+            throw Slic3r::SlicingError(L("Prime tower is partially outside the printable area, and it cannot be printed.\n"));
         }
         // The cutter/purge corner is a physical obstacle — the brim must stay out like the body.
         if (!intersection(get_bed_excluded_area(m_config), Polygons{footprint}).empty())
-            throw Slic3r::SlicingError(L("Prime Tower") + L(" is too close to an exclusion area, and collisions will be caused.\n"));
+            throw Slic3r::SlicingError(L("Prime tower is too close to an exclusion area, and collisions will be caused.\n"));
     }
 }
 
@@ -5526,7 +5531,8 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
             fire_lifecycle_event(LifecycleEvent::GCodeExportFinished, ctx);
         }
         throw Slic3r::RuntimeError(
-            std::string("Failed to process the G-code file ") + file + " from previous 3mf\n");
+            // TRN %1% is a file path.
+            Slic3r::format(L("Failed to process the G-code file %1% from the previous 3MF file."), file) + "\n");
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  process the G-code file %1% successfully")%file.c_str();

@@ -1979,7 +1979,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
                 if (m_layer_idx < (int) m_tool_changes.size()) {
                     if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
-                        throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+                        throw Slic3r::RuntimeError(_(L("Wipe tower generation failed, possibly due to empty first layer.")));
 
                     // Calculate where the wipe tower layer will be printed. -1 means that print z will not change,
                     // resulting in a wipe tower with sparse layers.
@@ -2018,7 +2018,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
             if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
                 if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
-                    throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+                    throw Slic3r::RuntimeError(_(L("Wipe tower generation failed, possibly due to empty first layer.")));
 
                 if (!ignore_sparse)
                     gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id, wipe_tower_z);
@@ -2044,7 +2044,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
             if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
-                throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+                throw Slic3r::RuntimeError(_(L("Wipe tower generation failed, possibly due to empty first layer.")));
 
             if (!ignore_sparse) {
                 return false;
@@ -2792,11 +2792,13 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     m_processor.set_print(print);
     GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor);
     if (! file.is_open()) {
-        std::string err_msg = std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n";
+        // TRN %1% is a file path.
+        std::string err_msg = Slic3r::format(_(L("G-code export to %1% failed.\nCannot open the file for writing.")), path) + "\n";
         BOOST_LOG_TRIVIAL(error) << err_msg << std::endl;
         if (!fs::exists(folder)) {
             //fs::create_directory(folder);
-            std::string add_err_msg = "the parent path " + folder.string() +" is not there!!!";
+            // TRN %1% is a folder path.
+            std::string add_err_msg = Slic3r::format(_(L("The folder %1% does not exist.")), folder.string());
             BOOST_LOG_TRIVIAL(error) << add_err_msg << std::endl;
             err_msg += add_err_msg;
         }
@@ -2818,7 +2820,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         if (file.is_error()) {
             file.close();
             boost::nowide::remove(path_tmp.c_str());
-            throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
+            // TRN %1% is a file path.
+            throw Slic3r::RuntimeError(Slic3r::format(_(L("G-code export to %1% failed.\nIs the disk full?")), path) + "\n");
         }
     } catch (std::exception &ex) {
         // Rethrow on any exception. std::runtime_exception and CanceledException are expected to be thrown.
@@ -2949,8 +2952,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
             fire_lifecycle_event(LifecycleEvent::GCodeExportFinished, ctx);
         }
         throw Slic3r::RuntimeError(
-            std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' + "error code " + ret.message() + '\n' +
-            "Is " + path_tmp + " locked?" + '\n');
+            // TRN %1% is the temporary file path, %2% the output file path, %3% the system error message.
+            Slic3r::format(_(L("Failed to rename the output G-code file from %1% to %2%.\nError: %3%\nIs %1% locked?")),
+                           path_tmp, path, ret.message()) + '\n');
     }
     else {
         BOOST_LOG_TRIVIAL(info) << boost::format("rename_file from %1% to %2% successfully")% path_tmp % path;
@@ -4161,7 +4165,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             auto [thumbnails, errors] = GCodeThumbnails::make_and_check_thumbnail_list(print.full_print_config());
 
             if (errors != enum_bitmask<ThumbnailError>()) {
-                std::string error_str = format("Invalid thumbnails value:");
+                std::string error_str = _(L("Invalid thumbnails value:"));
                 error_str += GCodeThumbnails::get_error_string(errors);
                 throw Slic3r::ExportError(error_str);
             }

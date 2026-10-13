@@ -253,7 +253,7 @@ void MultiMachineItem::doRender(wxDC& dc)
         dc.DrawRoundedRectangle(left, (size.y - FromDIP(38)) / 2, FromDIP(90), FromDIP(38), 6);
         dc.SetFont(Label::Body_14);
         dc.SetTextForeground(*wxBLACK);
-        dc.DrawText(_L("View"),left + FromDIP(90) / 2 - dc.GetTextExtent(_L("View")).x / 2, (size.y -dc.GetTextExtent(_L("View")).y) / 2);
+        dc.DrawText(_L_CONTEXT("View", "Verb"),left + FromDIP(90) / 2 - dc.GetTextExtent(_L_CONTEXT("View", "Verb")).x / 2, (size.y -dc.GetTextExtent(_L_CONTEXT("View", "Verb")).y) / 2);
 
     }
 

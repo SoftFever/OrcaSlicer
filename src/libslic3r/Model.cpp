@@ -472,7 +472,7 @@ Model Model::read_from_file(const std::string&                                  
              boost::algorithm::iends_with(input_file, ".abc") || boost::algorithm::iends_with(input_file, ".ply")) {
         std::string temp_stl = make_temp_stl_with_modelio(input_file);
         if (temp_stl.empty()) {
-            throw Slic3r::RuntimeError("Failed to convert asset to STL via ModelIO.");
+            throw Slic3r::RuntimeError(_L("Failed to convert asset to STL via ModelIO."));
         }
         result = load_stl(temp_stl.c_str(), &model);
         delete_temp_file(temp_stl);
