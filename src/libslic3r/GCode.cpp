@@ -3559,10 +3559,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     print.throw_if_canceled();
 
-    // First layer temperatures for the compatibility lines in the header. Firmwares read them (e.g. Anycubic GoKlipper
-    // heats the bed with it for its flow calibration and keeps it for power-loss recovery), so they follow the print:
-    // the bed like the bed temperature before the start G-code, the nozzle by the first printing filament. Taken here
-    // because printing by object reassigns initial_extruder_id to each object's first filament below.
+    // Taken before the object loop, which reassigns initial_extruder_id when printing by object.
     const int compat_first_layer_bed_temp = m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp ?
                                                 get_highest_bed_temperature(true, print) :
                                                 get_bed_temperature(initial_extruder_id, true, print.config().curr_bed_type);
