@@ -5492,8 +5492,13 @@ void GCodeProcessor::process_G1(const std::array<std::optional<double>, 4>& axes
                 m_seams_detector.activate(true);
                 m_seams_detector.set_first_vertex(*m_overhang_path_start);
                 m_outer_overhang_candidate = true;
-            } else if (type != EMoveType::Extrude && (seam_vertex() - *m_overhang_path_start).squaredNorm() < 0.0625f)
-                m_overhang_seams.note_overhang_only_path();
+            } else if (type != EMoveType::Extrude) {
+                // Normalize the saved endpoint with its own filament, as at EOF.
+                const auto &last = m_result.moves.back();
+                const Vec3f end = last.position - m_extruder_offsets[last.extruder_id] - plate_offset;
+                if ((end - *m_overhang_path_start).squaredNorm() < 0.0625f)
+                    m_overhang_seams.note_overhang_only_path();
+            }
             m_overhang_path_start.reset();
         }
     } else if (overhang_move && !overhang_seam_candidate && !m_result.spiral_vase_mode &&
