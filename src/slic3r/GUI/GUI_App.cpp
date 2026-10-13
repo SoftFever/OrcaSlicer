@@ -1109,10 +1109,7 @@ void GUI_App::post_init()
             }
 
             this->check_new_version_sf();
-            // Only presets made against 2.4.2 or older, the release legacy_compatible_printers.json is generated
-            // against, can be missing printers, so the prompt runs only on the first start after one of those.
-            if (!cw_showed && m_last_config_version && m_last_config_version->valid()
-                && *m_last_config_version <= Semver(2, 4, 2))
+            if (!cw_showed)
                 this->check_legacy_user_filament_presets(false);
             const auto cloud_provider = get_printer_cloud_provider();
             if (is_user_login(cloud_provider) && !app_config->get_stealth_mode()) {
@@ -6852,8 +6849,14 @@ void GUI_App::check_legacy_user_filament_presets(bool by_user)
     if (!migrate)
         return;
 
-    std::vector<std::string> failed;
-    const std::string backup = preset_bundle->migrate_legacy_user_filament_presets(legacy_presets, failed);
+    const PresetBundle::LegacyUserFilamentPresetMigration migration = preset_bundle->migrate_legacy_user_filament_presets(legacy_presets);
+    if (!migration.locked) {
+        show_error(mainframe, _L("Another OrcaSlicer instance is saving presets right now, so nothing was migrated. "
+                                 "Try again later from Help > Migrate Filament Presets."));
+        return;
+    }
+    const std::string              &backup = migration.backup;
+    const std::vector<std::string> &failed = migration.failed;
     if (backup.empty()) {
         show_error(mainframe, _L("Your presets could not be backed up, so they were not migrated."));
         return;

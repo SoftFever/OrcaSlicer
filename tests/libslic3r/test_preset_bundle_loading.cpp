@@ -7329,6 +7329,8 @@ TEST_CASE("User filaments made against an older release that lost printers their
     CHECK(legacy_presets[0].parent == k1_parent);
     CHECK(legacy_presets[0].inherits == k1_old_parent);
     CHECK(legacy_presets[0].printers == std::vector<std::string>{ "Creality K1C 0.4 nozzle" });
+    CHECK(legacy_presets[0].file == (temp_dir.path() / PRESET_FILAMENT_NAME / "Old PETG.json").string());
+    CHECK(legacy_presets[0].compatible_printers == std::vector<std::string>{ "Creality K1C 0.6 nozzle", "Creality K1C 0.4 nozzle" });
 }
 
 TEST_CASE("Migrating a user filament backs up the user folder to a zip and writes the legacy printers to its file", "[Preset][Bundle]")
@@ -7345,11 +7347,12 @@ TEST_CASE("Migrating a user filament backs up the user folder to a zip and write
     const std::vector<LegacyUserFilamentPreset> legacy_presets = bundle.filaments.legacy_user_filament_presets(map);
     REQUIRE(legacy_presets.size() == 1);
 
-    std::vector<std::string> failed;
-    const std::string backup = bundle.migrate_legacy_user_filament_presets(legacy_presets, failed);
+    const PresetBundle::LegacyUserFilamentPresetMigration migration = bundle.migrate_legacy_user_filament_presets(legacy_presets);
+    const std::string &backup = migration.backup;
+    CHECK(migration.locked);
     REQUIRE_FALSE(backup.empty());
     CHECK(std::regex_match(fs::path(backup).filename().string(), std::regex("filament_preset_migration_\\d{8}T\\d{6}Z_backup\\.zip")));
-    CHECK(failed.empty());
+    CHECK(migration.failed.empty());
     const fs::path extracted = temp_dir.path() / "extracted";
     REQUIRE(extract_archive_confined(backup, extracted.string()));
     CHECK(read_file(extracted / PRESET_USER_DIR / "default" / PRESET_FILAMENT_NAME / "My PETG.json") == original);
@@ -7361,7 +7364,8 @@ TEST_CASE("Migrating a user filament backs up the user folder to a zip and write
     const std::vector<std::string> expected{ "Creality K1C 0.6 nozzle", "Creality K1C 0.4 nozzle" };
     CHECK(reloaded.filaments.find_preset("My PETG")->config.option<ConfigOptionStrings>("compatible_printers")->values == expected);
     CHECK(reloaded.filaments.legacy_user_filament_presets(map).empty());
-    CHECK_FALSE(reloaded.filaments.migrate_legacy_user_filament_preset(legacy_presets[0]));
+    // The file now sets its own list, so the migration found earlier no longer applies to it.
+    CHECK(reloaded.migrate_legacy_user_filament_presets(legacy_presets).failed == std::vector<std::string>{ "My PETG" });
 }
 
 TEST_CASE("Migrating a user filament keeps the old name of its renamed parent", "[Preset][Bundle]")
@@ -7376,7 +7380,7 @@ TEST_CASE("Migrating a user filament keeps the old name of its renamed parent", 
     const std::vector<LegacyUserFilamentPreset> legacy_presets =
         filaments.legacy_user_filament_presets({ { k1_old_parent, { "Creality K1C 0.4 nozzle" } } });
     REQUIRE(legacy_presets.size() == 1);
-    REQUIRE(filaments.migrate_legacy_user_filament_preset(legacy_presets[0]));
+    REQUIRE(PresetCollection::write_legacy_user_filament_preset(legacy_presets[0]));
     // An older release knows the parent only by its old name.
     const std::string saved = read_file(file);
     CHECK(saved.find("\"inherits\": \"" + k1_old_parent + "\"") != std::string::npos);
@@ -7402,27 +7406,37 @@ TEST_CASE("Migrating a user filament leaves a file another instance changed afte
         write_user_filament(temp_dir.path(), "My PETG", "Generic PETG @System");
     }
     const std::string edited = read_file(file);
-    CHECK_FALSE(filaments.migrate_legacy_user_filament_preset(legacy_presets[0]));
+    CHECK_FALSE(PresetCollection::write_legacy_user_filament_preset(legacy_presets[0]));
     CHECK(read_file(file) == edited);
 }
 
-TEST_CASE("Migrating a user filament writes nothing while it can not take the user presets lock", "[Preset][Bundle]")
+TEST_CASE("Migrating user filaments backs up and writes nothing while it can not take the user presets lock", "[Preset][Bundle]")
 {
-    ScopedTemporaryDir  temp_dir;
-    RenameTestFilaments filaments;
-    add_system_filament(filaments, k1_parent, { "Creality K1C 0.6 nozzle" });
-    const fs::path    file     = write_user_filament(temp_dir.path(), "My PETG", k1_parent);
-    const std::string original = read_file(file);
-    load_user_filaments(filaments, temp_dir.path());
+    ScopedTemporaryDir temp_dir;
+    ScopedDataDir      data(temp_dir.path());
+    const fs::path     user_dir = temp_dir.path() / PRESET_USER_DIR / "default";
+    const fs::path     file     = write_user_filament(user_dir, "My PETG", k1_parent);
+    const std::string  original = read_file(file);
+    PresetBundle       bundle;
+    add_system_filament(bundle.filaments, k1_parent, { "Creality K1C 0.6 nozzle" });
+    load_user_filaments(bundle.filaments, user_dir);
     const std::vector<LegacyUserFilamentPreset> legacy_presets =
-        filaments.legacy_user_filament_presets({ { k1_parent, { "Creality K1C 0.4 nozzle" } } });
+        bundle.filaments.legacy_user_filament_presets({ { k1_parent, { "Creality K1C 0.4 nozzle" } } });
     REQUIRE(legacy_presets.size() == 1);
 
-    // A folder in the lock file's place can not be opened as the lock.
-    ScopedDataDir data(temp_dir.path() / "data");
+    // A folder in the lock file's place can not be opened as the lock; a fresh data dir, since loading has
+    // already opened the lock file of the first one. One hold covers the backup and every write, so a lock
+    // held elsewhere is one outcome, not a failure per preset.
+    const fs::path other_data = temp_dir.path() / "data";
+    ScopedDataDir  data_for_migration(other_data);
     fs::create_directories(fs::path(user_presets_lock_path()));
-    CHECK_FALSE(filaments.migrate_legacy_user_filament_preset(legacy_presets[0]));
+    const PresetBundle::LegacyUserFilamentPresetMigration migration = bundle.migrate_legacy_user_filament_presets(legacy_presets);
+    CHECK_FALSE(migration.locked);
+    CHECK(migration.backup.empty());
+    CHECK(migration.failed.empty());
     CHECK(read_file(file) == original);
+    for (const fs::directory_entry &entry : fs::directory_iterator(other_data))
+        CHECK(entry.path().extension() != ".zip");
 }
 
 TEST_CASE("Migrating the selected user filament keeps a printer list edit pending in the settings tab", "[Preset][Bundle]")
@@ -7449,7 +7463,8 @@ TEST_CASE("Migrating the selected user filament keeps a printer list edit pendin
         expected_edited   = edited_printers();
         expected_dirty    = true;
     }
-    REQUIRE(filaments.migrate_legacy_user_filament_preset(legacy_presets[0]));
+    REQUIRE(PresetCollection::write_legacy_user_filament_preset(legacy_presets[0]));
+    filaments.apply_legacy_user_filament_presets(legacy_presets);
     // find_preset() returns the edited copy of the selected preset unless asked for the real one.
     CHECK(filaments.find_preset("My PETG", false, true)->config.option<ConfigOptionStrings>("compatible_printers")->values == migrated);
     CHECK(edited_printers() == expected_edited);

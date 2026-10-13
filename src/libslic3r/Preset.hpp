@@ -558,7 +558,11 @@ struct LegacyUserFilamentPreset {
     std::string              parent;
     // The parent's name as the preset file states it: the name the older release knew it by.
     std::string              inherits;
+    // The printers the preset lost: what the prompt lists.
     std::vector<std::string> printers;
+    std::string              file;
+    // The list the file gets: the parent's current printers plus the lost ones.
+    std::vector<std::string> compatible_printers;
 };
 
 // Collections of presets of the same type (one of the Print, Filament or Printer type).
@@ -617,10 +621,12 @@ public:
     // no longer lists. printers_by_parent is keyed by the parent's name in that release, which is the name
     // the preset file's inherits still holds.
     std::vector<LegacyUserFilamentPreset> legacy_user_filament_presets(const std::map<std::string, std::vector<std::string>> &printers_by_parent);
-    // Adds the printers to the preset's own compatible_printers and saves the preset to disk. False if the
-    // preset file sets compatible_printers or names another parent by now, if another instance holds the
-    // user presets lock, or if the file could not be saved.
-    bool            migrate_legacy_user_filament_preset(const LegacyUserFilamentPreset &legacy);
+    // Writes legacy.compatible_printers into the preset's file and keeps every other key. The caller holds the
+    // user presets lock. False if the file has gained a compatible_printers key or another parent since the
+    // preset was found, or could not be written.
+    static bool     write_legacy_user_filament_preset(const LegacyUserFilamentPreset &legacy);
+    // Gives the loaded presets the lists their files were just given, and marks cloud copies for upload.
+    void            apply_legacy_user_filament_presets(const std::vector<LegacyUserFilamentPreset> &written);
     //BBS: get user presets
     int  get_user_presets(PresetBundle *preset_bundle, std::vector<Preset> &result_presets);
     void set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time, const std::string& user_id);

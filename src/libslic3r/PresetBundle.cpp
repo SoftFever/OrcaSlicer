@@ -1101,16 +1101,32 @@ std::vector<LegacyUserFilamentPreset> PresetBundle::legacy_user_filament_presets
     return filaments.legacy_user_filament_presets(legacy_compatible_printers());
 }
 
-std::string PresetBundle::migrate_legacy_user_filament_presets(const std::vector<LegacyUserFilamentPreset> &legacy_presets, std::vector<std::string> &failed)
+PresetBundle::LegacyUserFilamentPresetMigration PresetBundle::migrate_legacy_user_filament_presets(const std::vector<LegacyUserFilamentPreset> &legacy_presets)
 {
-    const std::string zip_path = data_dir() + "/filament_preset_migration_" +
-                                 Utils::time2str(Utils::TimeZone::utc, Utils::TimeFormat::iso8601Z) + "_backup.zip";
-    if (!backup_user_folder_to_zip(zip_path))
-        return {};
-    for (const LegacyUserFilamentPreset &legacy : legacy_presets)
-        if (!filaments.migrate_legacy_user_filament_preset(legacy))
-            failed.push_back(legacy.preset);
-    return zip_path;
+    LegacyUserFilamentPresetMigration     result;
+    std::vector<LegacyUserFilamentPreset> written;
+    {
+        // One hold for the backup and every write: no other instance can save a preset in between, and a lock
+        // the other instance keeps is one outcome rather than a failure per preset (the lock backs off for a
+        // while after a miss). Held without the collection mutex, the order InstanceLock requires.
+        const std::string lock_path = user_presets_lock_path();
+        InstanceLock      instance_lock(lock_path);
+        if (!lock_path.empty() && !instance_lock.locked())
+            return result;
+        result.locked = true;
+        const std::string zip_path = data_dir() + "/filament_preset_migration_" +
+                                     Utils::time2str(Utils::TimeZone::utc, Utils::TimeFormat::iso8601Z) + "_backup.zip";
+        if (!backup_user_folder_to_zip(zip_path))
+            return result;
+        result.backup = zip_path;
+        for (const LegacyUserFilamentPreset &legacy : legacy_presets)
+            if (PresetCollection::write_legacy_user_filament_preset(legacy))
+                written.push_back(legacy);
+            else
+                result.failed.push_back(legacy.preset);
+    }
+    filaments.apply_legacy_user_filament_presets(written);
+    return result;
 }
 
 std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name) const
