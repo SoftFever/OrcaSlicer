@@ -90,9 +90,11 @@ the checks is consistency, not proof that every marker belongs to the intended
 loop.
 
 These diagnostics describe the original generator-to-processor hand-over during
-export. The BBL post-processing file reload replaces the preview moves while
-retaining the original export statistics. A consistent original hand-over does
-not guarantee that the reloaded preview contains fully overhanging seam markers.
+export and remain specific to each export. The BBL post-processing file reload
+replaces the preview moves while retaining the original export statistics. Its
+file-based marker risk is stored separately in
+`GCodeProcessorResult::overhang_seam_reload_risk`; a consistent original hand-over
+does not guarantee markers in the reloaded preview.
 
 As a conservative limit, loops whose quantized command start or any printing
 endpoint has Z 0 are not handed over. With the usual zero origin this avoids
@@ -110,14 +112,15 @@ shown there if the seam falls on an overhang.
   reloaded after post-processing for BBL printers. A fully overhanging outer loop
   has no marker; mixed loops remain eligible for text recognition under the
   existing seam detector's rules.
-- Only direct G-code opening through `Plater::load_gcode` shows the once-per-session
-  notice about fully overhanging outer walls. It is triggered by a path printed
-  as "Overhang wall" from start to end, which may be an inner wall; the notice can
-  therefore appear where no outer seam marker is due. Reopened sliced projects
-  and the BBL post-processing reload do not use this notice path.
+- The three file-based paths share one notice per application session. It is
+  triggered only by an overhang-only path whose end is less than 0.25 mm from
+  its start, including at end of file. An open overhang tail does not trigger it.
+  A fully overhanging inner loop remains indistinguishable from an outer one,
+  so the notice may appear where no outer marker is due.
 - The BBL post-processing reload replaces preview moves and line offsets but
   retains the original export's hand-over statistics and slicing warnings.
-  Those diagnostics do not describe marker loss during the reload.
+  Those diagnostics do not describe marker loss during the reload; the separate
+  reload-risk flag supplies the common notice instead.
 - Spiral vase prints are excluded entirely.
 - The hand-over is conservatively disabled for writers requiring full XYZ
   emission (`has_axis_remap()`), including all belt configurations and
@@ -138,13 +141,22 @@ shown there if the seam falls on an overhang.
 The hand-over and the matching live in `src/libslic3r/GCode/OverhangSeamLoops`;
 the hooks are `GCodeWriter`'s extrusion capture, `GCode::extrude_loop`,
 `GCode::process_layer` and `GCode::do_export` on the generator side and
-`GCodeProcessor::process_G1` on the processor side. The notice for G-code files
-is shown by `Plater::load_gcode`.
+`GCodeProcessor::process_G1` on the processor side. The common notice is shown
+by `Plater::load_gcode` and the successful background-process completion handler,
+after export and any file reload finish. Its process-wide shown flag is never
+reset by loading a project, switching a plate or resetting a processor.
 
 `Print::export_gcode_from_previous_file` rebuilds the result from stored G-code
 without hand-over data. `Print::reload_gcode_moves` rereads the post-processed
 file for BBL printers without that data. These paths have the file-reload limits
 above.
+
+`OverhangSeamStats::hand_over` explicitly records the generator's export context,
+even when it hands over no loops. Ordinary exports therefore do not trigger the
+file-preview notice just because an inner wall has a closed overhang-only path.
+The separate reload-risk flag preserves this distinction after BBL replaces the
+moves. Reset and result assignment transfer these fields with the preview data.
+The notice does not suppress each export's detailed mismatch or Z 0 warnings.
 
 Tests in `tests/fff_print/test_gcodeprocessor.cpp` and `test_gcodewriter.cpp`
 (tag `[OverhangSeam]`) compare the markers with the same stream labelled "Outer
@@ -154,5 +166,8 @@ notice flag and spiral vase, and compare an exported sphere's markers with a
 replay of its G-code relabelled "Outer wall". Not covered by tests: `G92`, plate
 and extruder offsets, arcs, multi-nozzle, sequential printing, the PA
 calibration and command Z 0.
-The stored-project and BBL post-processing file-reload paths are not covered by
-the new marker tests.
+Tests also cover the strict closure threshold and end of file, open inner-wall
+tails, export/file notice eligibility, reset and assignment, and the risk update
+in `Print::reload_gcode_moves` while retaining export diagnostics. GUI event
+ordering for stored projects and the once-per-session display require manual
+verification.

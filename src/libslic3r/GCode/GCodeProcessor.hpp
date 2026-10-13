@@ -389,6 +389,11 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         BedType bed_type = BedType::btCount;
         // Orca: diagnostics of seam markers on outer walls that start on an overhang.
         OverhangSeamStats overhang_seam_stats;
+        // File reload replaces moves but keeps the original export's hand-over statistics.
+        bool overhang_seam_reload_risk{false};
+        bool overhang_seam_markers_may_be_missing() const {
+            return (!overhang_seam_stats.hand_over && overhang_seam_stats.overhang_only_paths) || overhang_seam_reload_risk;
+        }
         void reset();
 
         //BBS: add mutex for protection of gcode result
@@ -449,6 +454,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             belt_z_origin = std::forward<Other>(other).belt_z_origin;
             machine_frame_transform_active = std::forward<Other>(other).machine_frame_transform_active;
             overhang_seam_stats = std::forward<Other>(other).overhang_seam_stats;
+            overhang_seam_reload_risk = other.overhang_seam_reload_risk;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = std::forward<Other>(other).time;
 #endif
@@ -1284,6 +1290,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         OverhangSeamChannel m_overhang_seam_channel;
         OverhangSeamMatcher m_overhang_seams;
         size_t m_overhang_seam_layer_tags{0};
+        bool m_overhang_seam_hand_over{false}; // The generator reported its export context.
         // Orca: first vertex of an "Overhang wall" path not yet known to be an outer wall.
         std::optional<Vec3f> m_overhang_path_start;
         // Orca: the seam detector candidate is an outer wall that started on an overhang.
@@ -1405,7 +1412,10 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         // beside the text (OverhangSeamLoops.hpp). The generator publishes into the channel and
         // reports how many layer change tags it wrote before finalize().
         OverhangSeamChannel& overhang_seam_channel() { return m_overhang_seam_channel; }
-        void set_overhang_seam_layer_tags(size_t count) { m_overhang_seam_layer_tags = count; }
+        void set_overhang_seam_layer_tags(size_t count) {
+            m_overhang_seam_layer_tags = count;
+            m_overhang_seam_hand_over = true;
+        }
 
     private:
         void register_commands();

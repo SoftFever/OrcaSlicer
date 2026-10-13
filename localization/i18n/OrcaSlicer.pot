@@ -8743,7 +8743,7 @@ msgstr ""
 msgid "An Error has occurred while loading the G-code file."
 msgstr ""
 
-msgid "Seam markers are not shown for outer walls that overhang all the way round in G-code files."
+msgid "Seam markers may be missing in the preview for outer walls that overhang all the way round. Printed seams are not affected."
 msgstr ""
 
 #. TRN %1% is archive path

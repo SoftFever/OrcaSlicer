@@ -63,8 +63,9 @@ struct OverhangSeamStats
     size_t      layer_tags_expected{0}; // layer tags written by the generator
     size_t      layer_tags_seen{0};     // layer tags read by the processor
     std::vector<ProblemObject> problem_objects; // in the order of their first problem
-    // A path printed as "Overhang wall" from start to end: without the generator's hand-over,
-    // as for a G-code file, it cannot be told an outer wall, so it has no seam marker.
+    // Export context is explicit even when the generator has no eligible loops to hand over.
+    bool        hand_over{false};
+    // A closed path printed only as "Overhang wall" could be outer; files cannot tell it apart.
     bool        overhang_only_paths{false};
 
     bool layer_tags_mismatch() const { return layer_tags_expected != layer_tags_seen; }

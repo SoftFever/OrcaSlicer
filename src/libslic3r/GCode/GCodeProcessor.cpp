@@ -2645,6 +2645,7 @@ void GCodeProcessorResult::reset() {
     filament_change_count_map.clear();
     warnings.clear();
     overhang_seam_stats = {};
+    overhang_seam_reload_risk = false;
     // keep the grouping-result field default-empty across resets.
     nozzle_group_result.reset();
     // per-extruder hotend types (pre-heat injector input); repopulated by apply_config.
@@ -3722,6 +3723,7 @@ void GCodeProcessor::reset()
     m_overhang_seam_channel.clear();
     m_overhang_seams.reset();
     m_overhang_seam_layer_tags = 0;
+    m_overhang_seam_hand_over = false;
 
     m_producer = EProducer::Unknown;
 
@@ -3867,11 +3869,16 @@ void GCodeProcessor::finalize(bool post_process)
 
     // A G-code file may end on a path still printed as "Overhang wall" only.
     if (m_overhang_path_start) {
-        m_overhang_seams.note_overhang_only_path();
+        // Use the detector's frame and closure threshold, including at end of file.
+        const auto &last = m_result.moves.back();
+        const Vec3f end = last.position - m_extruder_offsets[last.extruder_id] - Vec3f(float(m_x_offset), float(m_y_offset), 0.f);
+        if ((end - *m_overhang_path_start).squaredNorm() < 0.0625f)
+            m_overhang_seams.note_overhang_only_path();
         m_overhang_path_start.reset();
     }
     m_overhang_seams.finish(m_overhang_seam_channel, m_overhang_seam_layer_tags);
     m_result.overhang_seam_stats = m_overhang_seams.stats();
+    m_result.overhang_seam_stats.hand_over = m_overhang_seam_hand_over;
 
     // update width/height of wipe moves
     for (GCodeProcessorResult::MoveVertex& move : m_result.moves) {
@@ -5485,7 +5492,7 @@ void GCodeProcessor::process_G1(const std::array<std::optional<double>, 4>& axes
                 m_seams_detector.activate(true);
                 m_seams_detector.set_first_vertex(*m_overhang_path_start);
                 m_outer_overhang_candidate = true;
-            } else if (type != EMoveType::Extrude)
+            } else if (type != EMoveType::Extrude && (seam_vertex() - *m_overhang_path_start).squaredNorm() < 0.0625f)
                 m_overhang_seams.note_overhang_only_path();
             m_overhang_path_start.reset();
         }
