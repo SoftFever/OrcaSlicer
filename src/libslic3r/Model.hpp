@@ -41,6 +41,7 @@
 #include <cereal/specialize.hpp>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -514,9 +515,15 @@ public:
 
     // BBS: true 2D outline (XY projection of the transformed printable volumes). The
     // ExPolygon form retains enclosed openings for Sparrow's final hole-fill pass.
-    const ExPolygon &true_outline_2d_ex(const Transform3d &trafo_instance) const;
-    const Polygon &true_outline_2d(const Transform3d &trafo_instance) const;
-    void           invalidate_true_outline_2d() const { m_true_outline_2d.clear(); m_true_outline_base.clear(); }
+    // Returned by value: the cache is shared by every thread that arranges or validates this
+    // object, so a reference into it could be overwritten while the caller still reads it.
+    ExPolygon true_outline_2d_ex(const Transform3d &trafo_instance) const;
+    Polygon   true_outline_2d(const Transform3d &trafo_instance) const;
+    void      invalidate_true_outline_2d() const {
+        std::lock_guard<std::mutex> lock(m_true_outline_mutex);
+        m_true_outline_2d.clear();
+        m_true_outline_base.clear();
+    }
 
     void center_around_origin(bool include_modifiers = true);
     void ensure_on_bed(bool allow_negative_z = false);
@@ -694,6 +701,8 @@ private:
 
     // BBS: true 2D outline cache, mirrors ModelVolume's m_convex_hull_2d trio.
     // m_true_outline_base is at zero XY offset, m_true_outline_2d at m_true_outline_trafo.
+    // Guards the four members below; the cache is filled from the UI and the background threads.
+    mutable std::mutex    m_true_outline_mutex;
     mutable ExPolygon     m_true_outline_2d;
     mutable ExPolygon     m_true_outline_base;
     mutable Transform3d   m_true_outline_trafo{Transform3d::Identity()};
@@ -1517,8 +1526,8 @@ public:
 
     // BBS: true 2D projected outline of this instance under `trafo_instance` (same
     // frame as ModelObject::convex_hull_2d). Falls back to the convex hull.
-    const ExPolygon &true_outline_2d_ex(const Transform3d &trafo_instance) const;
-    const Polygon &true_outline_2d(const Transform3d &trafo_instance) const;
+    ExPolygon true_outline_2d_ex(const Transform3d &trafo_instance) const;
+    Polygon   true_outline_2d(const Transform3d &trafo_instance) const;
 
     // BBS: does this instance's footprint intersect `polys`? `trafo_instance` and
     // `offset` place the instance into the frame of `polys`. Tests the convex hull

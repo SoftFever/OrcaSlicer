@@ -67,6 +67,7 @@
 #include <map>
 #include <utility>
 #include <memory>
+#include <mutex>
 #include <iterator>
 #include <limits>
 #include <sstream>
@@ -1791,8 +1792,9 @@ BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(const ModelInstance
 
 // BBS: true 2D outline of the printable volumes, cached per transformation like
 // ModelVolume::get_convex_hull_2d(): a pure translation just shifts the contour.
-const ExPolygon &ModelObject::true_outline_2d_ex(const Transform3d &trafo_instance) const
+ExPolygon ModelObject::true_outline_2d_ex(const Transform3d &trafo_instance) const
 {
+    std::lock_guard<std::mutex> lock(m_true_outline_mutex);
     // assemble_transform() builds T * Rz * Ry * Rx * S, so the Z rotation commutes with
     // the XY projection and the cached base contour is shared by every instance that
     // differs only in Z rotation and position.
@@ -1829,7 +1831,7 @@ const ExPolygon &ModelObject::true_outline_2d_ex(const Transform3d &trafo_instan
     return m_true_outline_2d;
 }
 
-const Polygon &ModelObject::true_outline_2d(const Transform3d &trafo_instance) const
+Polygon ModelObject::true_outline_2d(const Transform3d &trafo_instance) const
 {
     return true_outline_2d_ex(trafo_instance).contour;
 }
@@ -3664,12 +3666,12 @@ double ModelInstance::get_auto_brim_width() const
 }
 
 //BBS: true 2D projected outline of the instance's model parts.
-const Polygon &ModelInstance::true_outline_2d(const Transform3d &trafo_instance) const
+Polygon ModelInstance::true_outline_2d(const Transform3d &trafo_instance) const
 {
     return get_object()->true_outline_2d(trafo_instance);
 }
 
-const ExPolygon &ModelInstance::true_outline_2d_ex(const Transform3d &trafo_instance) const
+ExPolygon ModelInstance::true_outline_2d_ex(const Transform3d &trafo_instance) const
 {
     return get_object()->true_outline_2d_ex(trafo_instance);
 }
