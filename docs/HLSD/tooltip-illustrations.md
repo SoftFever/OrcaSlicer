@@ -55,25 +55,45 @@ so an animation authored against that plays at the speed it was authored at.
 
 The animation restarts when its tooltip opens, rather than running off a free-running clock: these are
 short loops of one setting going from one value to another, and joining one halfway through shows the
-end of a change the user never saw the start of. The canvas only redraws on demand, so each frame asks
-for the next through `GLCanvas3D::schedule_extra_frame()`, timed to when that frame is actually due.
+end of a change the user never saw the start of.
+
+Driving the frames takes two calls, not one. `GLCanvas3D::schedule_extra_frame()` only guarantees an
+idle event at the moment the next frame is due; `GLCanvas3D::on_idle()` returns without rendering
+anything unless something has marked the canvas dirty by then, so an animation left to the timer alone
+advances one frame per mouse movement and stands still whenever the mouse does. `set_dirty()` on the
+gizmo is what on_idle reads, through `GLGizmoBase::update_items_state()`, to find out there are frames
+still to draw. The pair of them is what makes an animation play at its own speed and stop costing
+anything the moment its tooltip closes.
 
 ## Making one
 
-Captures of the real tool are the first choice for anything involving the model, the mesh or colour.
-Settings whose meaning is a shape are drawn from the same arithmetic instead, by
-`scripts/gen_texture_displacement_tips.py`: it shades a height field as a relief catching the light,
-and covers Depth, Tile, Tile size, Rotation, Repeat/Mirror, Midlevel, Smoothing, Edge fade, Invert and
-Blend that way.
+`scripts/gen_texture_displacement_tips.py` draws the lot, in four languages, picked by what the
+setting actually is:
 
-One motif - a ring inside a square frame - runs through nearly all of them, because using one shape
-everywhere is what lets two pictures be compared: whatever differs between them is the setting, since
-nothing else is.
+- **A shaded relief**, for the settings that are about a pattern: Depth, Tile, Tile size, Rotation,
+  Repeat/Mirror, Smoothing, Edge fade, Invert, Blend and the Normal, Fast, Checker and Distortion
+  views. One motif - a ring inside a square frame - runs through all of them, because using one shape
+  everywhere is what lets two pictures be compared: whatever differs between them is the setting,
+  since nothing else is.
+- **A flat mesh of triangles**, for the settings that are about the mesh or about a tool: the paint
+  tools, brush size, the connected-area fill, subdivision, feature-adaptive refinement, remeshing,
+  hard edges, slivers and the wireframe view. These carry the one accent colour in the set, meaning
+  "painted", because that is the only thing in such a picture that is not geometry.
+- **A section**, for Midlevel and for smoothing the geometry. The reason generalises: shading reads
+  slopes, so a height field moved up or down as a whole shades identically to where it started, and
+  any setting whose meaning is *where the surface sits relative to where it was* is invisible from
+  above and has to be drawn from the side.
+- **A flat ramp of greys**, for Mix filaments, Mixed colors and Denoise. Those are about which
+  filament a spot ends up as; lighting one would only add a second thing changing between two
+  pictures meant to differ in one.
 
-Midlevel is drawn in section rather than as a relief, and the reason generalises. Shading reads
-slopes, so a height field moved up or down as a whole shades identically to where it started; any
-setting whose meaning is *where the relief sits relative to the surface* is invisible in a top view
-and has to be drawn from the side, against the bare surface as a reference.
+The five Mapping pictures are one ball with a checker laid on it five ways, which is the whole of what
+choosing a projection does - except Unwrap, which is not a projection onto the model at all and so is
+drawn as the flat layout it produces.
+
+Captures of the real tool are still the first choice for anything involving a real model or real
+filament colour: Bake, the mixed-colour count on a photograph, Adjust placement, the frame window and
+the UV editor's seam tool have no picture yet for that reason.
 
 Either way:
 
