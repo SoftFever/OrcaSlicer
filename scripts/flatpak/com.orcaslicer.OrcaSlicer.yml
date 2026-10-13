@@ -178,16 +178,16 @@ modules:
         sha256: 0dbb1f9e3aaad66f352c03227d8c983f6f0b49e0b07e71a7300f4abcc01aee12
         dest: external-packages/Eigen
 
-      # TBB v2021.5.0
+      # TBB v2021.13.0
       - type: file
-        url: https://github.com/oneapi-src/oneTBB/archive/refs/tags/v2021.5.0.zip
-        sha256: 83ea786c964a384dd72534f9854b419716f412f9d43c0be88d41874763e7bb47
+        url: https://github.com/uxlfoundation/oneTBB/archive/refs/tags/v2021.13.0.zip
+        sha256: f8dba2602f61804938d40c24d8f9b1f1cc093cd003b24901d5c3cc75f3dbb952
         dest: external-packages/TBB
 
       # Cereal v1.3.0
       - type: file
-        url: https://github.com/USCiLab/cereal/archive/refs/tags/v1.3.0.zip
-        sha256: 71642cb54658e98c8f07a0f0d08bf9766f1c3771496936f6014169d3726d9657
+        url: https://github.com/USCiLab/cereal/archive/refs/tags/v1.3.2.zip
+        sha256: e72c3fa8fe3d531247773e346e6824a4744cc6472a25cf9b30599cd52146e2ae
         dest: external-packages/Cereal
 
       # Qhull v8.0.2
@@ -256,17 +256,16 @@ modules:
         sha256: 96ffd6cc47898dd8147aab53d7d1b1911b507d9dbaecd5613ca2649468afd8b6
         dest: external-packages/libnoise
 
-      # Draco 1.5.7
+      # Draco 1.5.9
       - type: file
-        url: https://github.com/google/draco/archive/refs/tags/1.5.7.zip
-        sha256: 27b72ba2d5ff3d0a9814ad40d4cb88f8dc89a35491c0866d952473f8f9416b77
+        url: https://github.com/google/draco/archive/refs/tags/1.5.9.zip
+        sha256: ee89f62f688088af64314bdd81be9389b8b8b8932c12f2622e2804d248c56378
         dest: external-packages/Draco
 
       # Assimp 5.4.3
       - type: file
         url: https://github.com/assimp/assimp/archive/refs/tags/v5.4.3.tar.gz
         sha256: 66dfbaee288f2bc43172440a55d0235dfc7bf885dda6435c038e8000e79582cb
-        dest: external-packages/Assimp
 
       # OpenSSL 1.1.1w (GNOME SDK has 3.x; OrcaSlicer requires 1.1.x)
       - type: file
@@ -274,10 +273,10 @@ modules:
         sha256: 2130e8c2fb3b79d1086186f78e59e8bc8d1a6aedf17ab3907f4cb9ae20918c41
         dest: external-packages/OpenSSL
 
-      # CURL 7.75.0 (built from source to link against OpenSSL 1.1.x)
+      # CURL 7.78.1 (built from source to link against OpenSSL 1.1.x)
       - type: file
-        url: https://github.com/curl/curl/archive/refs/tags/curl-7_75_0.zip
-        sha256: a63ae025bb0a14f119e73250f2c923f4bf89aa93b8d4fafa4a9f5353a96a765a
+        url: https://github.com/curl/curl/archive/refs/tags/curl-7_88_1.zip
+        sha256: f50894095d675f8d9b00fac49c1dce29366365bc020ecf3f8dadb9a03e115bae
         dest: external-packages/CURL
 
       # OCCT (OpenCASCADE) V8_0_1
@@ -310,13 +309,13 @@ modules:
         sha256: 4f1b727ee006a07210ca010abb04e67a034c9d361a3a4a1e51d5a2657e0fe7a4
         dest: external-packages/FFMPEG
 
-      # libdatachannel v0.24.5
+      # libdatachannel v0.24.6
       # The Git checkout includes the submodules that are missing from the
       # GitHub source archive. DataChannel.cmake consumes it as SOURCE_DIR.
       - type: git
         url: https://github.com/paullouisageneau/libdatachannel.git
-        tag: v0.24.5
-        commit: 443f6934d9007eb7076ab7825ba330f355fcbead
+        tag: v0.24.6
+        sha256: c78ca1b7ce45f08c7e6233eba4d714bde10c6e3a4e60aad0be891e2594807519
         dest: external-packages/DataChannel
 
       # ---------------------------------------------------------------
