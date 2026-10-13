@@ -9,10 +9,12 @@
 #endif
 
 #include <catch2/catch_all.hpp>
+#include <memory>
 
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/Utils/IPrinterAgent.hpp"
 #include "slic3r/Utils/NetworkAgentFactory.hpp"
 #include "slic3r/Utils/MoonrakerPrinterAgent.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"

@@ -1,5 +1,6 @@
 #include <catch2/catch_all.hpp>
 
+#include <string>
 #include "slic3r/Utils/MoonrakerPrinterAgent.hpp"
 
 using namespace Slic3r;

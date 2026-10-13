@@ -1,5 +1,11 @@
 #include <catch2/catch_all.hpp>
 
+#include <utility>
+#include <memory>
+#include <vector>
+#include <functional>
+
+#include "slic3r/Utils/bambu_networking.hpp"
 #include "slic3r/Utils/MoonrakerPrinterAgent.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 

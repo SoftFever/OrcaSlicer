@@ -67,6 +67,7 @@
 #include <vector>
 #include <wx/colour.h>
 #include <tuple>
+#include <wx/app.h>
 #include <wx/dir.h>
 #include <wx/string.h>
 #include <wx/event.h>
