@@ -1610,6 +1610,12 @@ void PlaterPresetComboBox::show_default_color_picker()
 {
     DynamicPrintConfig* cfg = &wxGetApp().preset_bundle->project_config;
     auto colors = static_cast<ConfigOptionStrings*>(cfg->option("filament_colour")->clone());
+    // The combo can outlive the project's colour array (e.g. a slot padded onto the printer's
+    // nozzle count); guard before indexing so a stale slot index cannot read past the end.
+    if (m_filament_idx < 0 || m_filament_idx >= static_cast<int>(colors->values.size())) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": m_filament_idx %1% out of range %2%") % m_filament_idx % colors->values.size();
+        return;
+    }
     wxColour current_clr(colors->values[m_filament_idx]);
     if (!current_clr.IsOk())
         current_clr = wxColour(0, 0, 0); // Don't set alfa to transparence

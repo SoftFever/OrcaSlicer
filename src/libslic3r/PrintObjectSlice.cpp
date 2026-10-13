@@ -1073,8 +1073,14 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
             const auto  &layer_ranges   = print_object.shared_regions()->layer_ranges;
             double       z              = print_object.get_layer(int(range.begin()))->slice_z;
             auto         it_layer_range = layer_range_first(layer_ranges, z);
+            // The per-layer row width of the segmentation is the number of material channels it
+            // was built with (filament_colour.size()). Size the bound from the data itself rather
+            // than from filament_diameter.size(): those two arrays can diverge (the project's
+            // colour array can end up shorter than the padded preset list), and trusting the
+            // larger count reads past the end of every row.
             // BBS
-            const size_t num_extruders = print_object.print()->config().filament_diameter.size();
+            const size_t num_extruders = segmentation.empty() ? 0 : segmentation.front().size();
+            assert(num_extruders == print_object.print()->config().filament_diameter.size());
 
             struct ByExtruder {
                 ExPolygons  expolygons;
@@ -1097,7 +1103,8 @@ static inline void apply_mm_segmentation(PrintObject &print_object, ThrowOnCance
                 by_extruder.assign(num_extruders, ByExtruder());
                 by_region.assign(layer.region_count(), ByRegion());
                 bool layer_split = false;
-                for (size_t extruder_id = 0; extruder_id < num_extruders; ++ extruder_id) {
+                const size_t layer_channels = segmentation[layer_id].size();
+                for (size_t extruder_id = 0; extruder_id < std::min(num_extruders, layer_channels); ++ extruder_id) {
                     ByExtruder &region = by_extruder[extruder_id];
                     append(region.expolygons, std::move(segmentation[layer_id][extruder_id]));
                     if (! region.expolygons.empty()) {

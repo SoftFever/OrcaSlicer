@@ -394,6 +394,12 @@ public:
     // slots live. A caller adding physical filaments has to add num_mixed_filaments() on top and
     // then move the new slots ahead of the mixed tail, as Sidebar::add_custom_filament does.
     void            set_num_filaments(unsigned int n, std::string new_col = "");
+    // Grow or shrink the project-scoped per-slot arrays (filament_colour, filament_colour_type,
+    // filament_multi_colour, the filament maps and the mixed metadata) to n, without touching
+    // filament_presets and without rebuilding flush volumes. Callers that resize filament_presets
+    // must keep these arrays in lockstep with it. Returns the array size before the resize so the
+    // caller can seed the new tail.
+    size_t          resize_project_filament_slots(size_t n);
     void         update_num_filaments(unsigned int to_del_flament_id);
 
     void get_ams_cobox_infos(AMSComboInfo &combox_info);

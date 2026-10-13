@@ -3905,14 +3905,8 @@ void PresetBundle::export_selections(AppConfig &config)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": printer %1%, print %2%, filaments[0] %3% ")%printers.get_selected_preset_name() % prints.get_selected_preset_name() %filament_presets[0];
 }
 
-void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
+size_t PresetBundle::resize_project_filament_slots(size_t n)
 {
-    unsigned old_filament_count = this->filament_presets.size();
-    if (n > old_filament_count && old_filament_count != 0)
-        filament_presets.resize(n, filament_presets.back());
-    else {
-        filament_presets.resize(n);
-    }
     ConfigOptionStrings* filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
     ConfigOptionStrings *filament_multi_color = project_config.option<ConfigOptionStrings>("filament_multi_colour");
     ConfigOptionStrings* filament_color_type = project_config.option<ConfigOptionStrings>("filament_colour_type");
@@ -3938,9 +3932,25 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     ams_multi_color_filment.resize(n);
 
     resize_mixed_filament_metadata(project_config, old_slot_count, n);
+    return old_slot_count;
+}
+
+void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
+{
+    unsigned old_filament_count = this->filament_presets.size();
+    if (n > old_filament_count && old_filament_count != 0)
+        filament_presets.resize(n, filament_presets.back());
+    else {
+        filament_presets.resize(n);
+    }
+
+    const size_t old_slot_count = resize_project_filament_slots(n);
 
     //BBS set new filament color to new_color
     if (!new_color.empty()) {
+        ConfigOptionStrings* filament_color = project_config.option<ConfigOptionStrings>("filament_colour");
+        ConfigOptionStrings *filament_multi_color = project_config.option<ConfigOptionStrings>("filament_multi_colour");
+        ConfigOptionStrings* filament_color_type = project_config.option<ConfigOptionStrings>("filament_colour_type");
         for (size_t i = old_slot_count; i < n; i++) {
             filament_color->values[i] = new_color;
             filament_multi_color->values[i] = new_color;
@@ -5376,6 +5386,23 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
+
+    // The slice config is consumed by code that indexes per-slot arrays by material id
+    // (MultiMaterialSegmentation sizes its state count from filament_colour). After the
+    // producer-side lockstep in update_multi_material_filament_presets() these project-scoped
+    // arrays are expected to be exactly num_filaments; the property the pipeline relies on is
+    // that none is shorter (a short filament_colour was the OOB in #16432). Pad if needed.
+    for (const char* per_slot_key : { "filament_colour", "filament_colour_type", "filament_multi_colour" }) {
+        auto* per_slot_opt = dynamic_cast<ConfigOptionVectorBase*>(out.option(per_slot_key, true));
+        if (per_slot_opt == nullptr)
+            continue;
+        if (per_slot_opt->size() < num_filaments) {
+            BOOST_LOG_TRIVIAL(warning) << "full_fff_config: per-slot array " << per_slot_key
+                                       << " has " << per_slot_opt->size() << " entries, padding to num_filaments=" << num_filaments;
+            per_slot_opt->resize(num_filaments, FullPrintConfig::defaults().option(per_slot_key));
+        }
+        assert(per_slot_opt->size() >= num_filaments);
+    }
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -7911,6 +7938,15 @@ void PresetBundle::update_multi_material_filament_presets(size_t to_delete_filam
         this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name :
                                                                                       this->filament_presets.back());
         num_filaments = this->filament_presets.size();
+
+        // Keep the project-scoped per-slot arrays in lockstep with the padded preset list, so
+        // consumers that size from filament_colour (MultiMaterialSegmentation) agree with those
+        // that size from the preset list / filament_diameter (PrintObjectSlice). Grow only: a
+        // colour array longer than the preset list is a valid state (a project with more slots
+        // than nozzles) and must not be truncated here.
+        const auto* filament_colour = this->project_config.option<ConfigOptionStrings>("filament_colour");
+        if (filament_colour == nullptr || filament_colour->values.size() < num_filaments)
+            this->resize_project_filament_slots(num_filaments);
     }
     if (to_delete_filament_id == -1)
         to_delete_filament_id = num_filaments;
