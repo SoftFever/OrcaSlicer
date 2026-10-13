@@ -749,7 +749,7 @@ void FilamentDropDown::messureSize()
     }
     const size_t visible_rows = std::min(max_rows, std::max(count, size_t{1}));
     szContent.y                = multiply_to_int(szContent.y, visible_rows);
-    if (items.size() > max_rows)
+    if (count > max_rows)
         szContent.y = add_to_int(szContent.y, rowSize.y / 2);
     wxWindow::SetSize(szContent);
 #ifdef __WXGTK__
