@@ -76,7 +76,8 @@ void TextureDisplacementBakeJob::process(Ctl &ctl)
             }
             return true;
         },
-        color, m_input.volume_to_world, nullptr, &m_stats));
+        color, m_input.volume_to_world, nullptr, &m_stats,
+        m_input.model_uv.empty() ? nullptr : &m_input.model_uv));
 
     // Always finish at 100: this is what closes the notification. Reported even on cancel, where
     // build_texture_displacement() returns an empty mesh and finalize() commits nothing.
@@ -223,6 +224,14 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
                 volume->texture_displacement_facet(slot).reset();
         }
 
+        // The model's own UV channel. Resampled onto a rebuilt mesh from the surface the bake started
+        // from: a displaced vertex came from its foot point on that surface, which is the position its
+        // uv belongs to - so no distance limit, the relief depth is exactly how far it has moved.
+        if (!m_input.model_uv.empty())
+            volume->texture_uv = topology_changed ? transfer_uv_channel(m_input.base_mesh, m_input.model_uv,
+                                                                        volume->mesh().its) :
+                                                     m_input.model_uv;
+
         ModelObject *object = volume->get_object();
         if (object == nullptr)
             return;
@@ -275,6 +284,8 @@ void queue_texture_displacement_bake(const ModelVolume &volume, const TextureCol
     input.take_snapshot = take_snapshot;
     input.volume_id  = volume.id();
     input.base_mesh  = volume.mesh().its;
+    if (volume.has_texture_uv())
+        input.model_uv = volume.texture_uv;
     input.layers     = volume.texture_displacement_layers;
     input.options    = volume.texture_displacement_options;
     input.volume_to_world = texture_displacement_volume_to_world(volume);

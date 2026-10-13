@@ -62,6 +62,12 @@ public:
     static TextureDisplacementPrepareResult prepare_mesh(const indexed_triangle_set                  &base,
                                                          const TextureDisplacementFacetsData         &masks,
                                                          const std::vector<TextureDisplacementLayer> &layers,
+                                                         // `base`'s own UV channel, when it has one
+                                                         // (ModelVolume::texture_uv). Resampled onto
+                                                         // the result and reported back in it, and fed
+                                                         // to the samplers so a ModelUV layer drives
+                                                         // the refinement through its own layout.
+                                                         const std::vector<Vec2f>                    &model_uv,
                                                          const TextureDisplacementPrepareParams      &params,
                                                          const TextureColorSettings                  &color_settings,
                                                          const DisplacementProgressFn                &progress,
@@ -921,18 +927,31 @@ private:
     // Merges chart `b`'s join group into chart `a`'s (materialising `groups` to `chart_count` first).
     static void      join_island_groups(std::vector<int> &groups, int a, int b, int chart_count);
     // Final per-vertex texture uv for the projections the shader can't reconstruct itself - LSCM (an
-    // unwrap) and ViewProjected (a projector plane the shader doesn't know). One entry per patch/base
-    // vertex, already through apply_uv_transform(). Empty for Triplanar/Cylindrical/Spherical, which
-    // the shader projects on its own. Shared by the shaded preview and the UV-check overlay.
+    // unwrap), ModelUV (the model's own channel) and ViewProjected (a projector plane the shader
+    // doesn't know). One entry per patch/base vertex, already through apply_uv_transform(). Empty for
+    // Triplanar/Cylindrical/Spherical, which the shader projects on its own. Shared by the shaded
+    // preview and the UV-check overlay.
+    //
+    // `patch_source` maps each patch triangle back to its base-mesh triangle
+    // (TriangleSelector::get_facets_strict()'s out_source). Only ModelUV needs it - its channel is per
+    // base triangle - and without it a ModelUV layer reports no uvs and the preview falls back.
     std::vector<Vec2f> compute_layer_vertex_uvs(const indexed_triangle_set &patch,
-                                                const TextureDisplacementLayer &layer) const;
+                                                const TextureDisplacementLayer &layer,
+                                                const std::vector<int> *patch_source = nullptr) const;
     // The same, but three UVs per patch triangle (corner 0..2 of triangle i at 3i..3i+2). This is what
     // the flat, unshared-vertex preview meshes actually want: under LSCM a seam vertex has a different
     // UV in each island it borders, so collapsing to one per vertex handed a triangle at an unjoined
     // seam its neighbour's placement - one visibly skewed triangle per face. Every other projection is
     // single-valued per point, so there a corner's UV is just its vertex's.
     std::vector<Vec2f> compute_layer_corner_uvs(const indexed_triangle_set &patch,
-                                                const TextureDisplacementLayer &layer) const;
+                                                const TextureDisplacementLayer &layer,
+                                                const std::vector<int> *patch_source = nullptr) const;
+    // The model's own channel over `local_patch`, already through apply_uv_transform() - three per
+    // patch triangle. Empty when the volume has no channel, or when `patch_source` is missing. Shared
+    // by the two functions above so the per-vertex and per-corner forms can never disagree.
+    std::vector<Vec2f> model_uv_corners(const indexed_triangle_set &local_patch,
+                                        const TextureDisplacementLayer &layer,
+                                        const std::vector<int> *patch_source) const;
     // The in-shader projection for `layer` (0 Triplanar, 1 Cylindrical, 2 Spherical) plus, for the two
     // wrapping ones, the patch centroid and cylinder axis they wrap around - in the texture frame the
     // shaders project in. Taken from the bake's own texture_displacement_patch_frame(), so a preview
