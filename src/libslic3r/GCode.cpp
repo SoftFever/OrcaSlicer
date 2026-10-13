@@ -437,8 +437,18 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // Check if this tool will ever be used again in this print.
         bool is_last_use = false;
         if (gcodegen.m_print != nullptr && !gcodegen.m_print->tool_ordering().empty()) {
-            coordf_t current_z = gcodegen.layer() ? gcodegen.layer()->print_z : gcodegen.writer().get_position().z();
-            is_last_use        = gcodegen.m_print->tool_ordering().is_last_extrusion_layer(current_z, extruder_id);
+            coordf_t current_z        = gcodegen.layer() ? gcodegen.layer()->print_z : gcodegen.writer().get_position().z();
+            const auto& tool_ordering = gcodegen.m_print->tool_ordering();
+            const auto& phys_map      = gcodegen.config().physical_extruder_map.values;
+
+            auto heater_done = [&](int heater) {
+                for (size_t f = 0; f < phys_map.size(); ++f)
+                    if (phys_map[f] == heater && !tool_ordering.is_last_extrusion_layer(current_z, static_cast<unsigned int>(f)))
+                        return false;
+                return true;
+            };
+
+            is_last_use = phys_map.empty() ? tool_ordering.is_last_extrusion_layer(current_z, extruder_id) : heater_done(gcodegen.config().physical_extruder_map.get_at(extruder_id));
         }
 
         int temp = 0;

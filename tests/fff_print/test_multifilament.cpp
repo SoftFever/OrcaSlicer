@@ -1669,3 +1669,28 @@ TEST_CASE("Each filament cools with the fan speeds of its extruder variant", "[M
         CHECK(gcode.find("; start range high " + std::to_string(range_high) + "\n") != std::string::npos);
     }
 }
+
+TEST_CASE("Shared heater on IMEX printer stays hot until all filaments on it are done", "[MultiFilament]")
+{
+    // On IMEX printers, filaments 1, 2, and 5 share the same physical heater (T0).
+    // Filament 2 finishes at 4mm, but filaments 1 and 5 continue to 10mm.
+    // The shared heater T0 must not be turned off (S0) at 4mm while other filaments on it still have layers left.
+    const std::string gcode = slice_with_object_overrides({make_cube(20., 20., 10.), make_cube(20., 20., 4.), make_cube(20., 20., 10.)},
+                                                          imex_7x4_printer({
+                                                              {"ooze_prevention", 1},
+                                                              {"preheat_time", 0},
+                                                          }),
+                                                          {{{"extruder", 1}, {"layer_height", 0.30}},
+                                                           {{"extruder", 2}, {"layer_height", 0.15}},
+                                                           {{"extruder", 5}}});
+
+    int t0_s0_cooldown_count = 0;
+    std::istringstream stream(gcode);
+    for (std::string line; std::getline(stream, line);) {
+        if (line.find(";cooldown") != std::string::npos && line.find("M104 S0 T0") != std::string::npos)
+            ++t0_s0_cooldown_count;
+    }
+
+    // T0 is used up to the 10mm layer by filaments 1 and 5, so it must never receive an S0 cooldown mid-print.
+    CHECK(t0_s0_cooldown_count == 0);
+}
