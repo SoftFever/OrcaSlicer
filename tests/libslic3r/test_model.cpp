@@ -12,7 +12,9 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include "libslic3r/MeshRepair.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/ObjectID.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/libslic3r.h"
 
@@ -96,4 +98,105 @@ TEST_CASE("An instance added from another's scale, rotation and mirror matches i
     const ModelInstance *copy = object->add_instance(original->get_offset(), original->get_scaling_factor(),
                                                      original->get_rotation(), original->get_mirror());
     CHECK(copy->get_matrix().linear().isApprox(original->get_matrix().linear(), 1e-9));
+}
+
+namespace {
+
+// A flat triangle first, then a cube for each offset, all in one mesh.
+TriangleMesh flat_triangle_then_cubes(const std::vector<double> &cube_offsets)
+{
+    indexed_triangle_set its;
+    its.vertices = {{-20.f, 0.f, 0.f}, {-10.f, 0.f, 0.f}, {-15.f, 5.f, 0.f}};
+    its.indices  = {{0, 1, 2}};
+    for (double offset : cube_offsets) {
+        TriangleMesh cube = make_cube(10, 10, 10);
+        cube.translate(float(offset), 0.f, 0.f);
+        its_merge(its, cube.its);
+    }
+    return TriangleMesh(its);
+}
+
+} // namespace
+
+TEST_CASE("Splitting a part drops pieces enclosing no volume and keeps the part itself", "[Model]")
+{
+    Model model;
+    ModelObject *object = model.add_object();
+    ModelVolume *volume = object->add_volume(flat_triangle_then_cubes({0., 30.}), ModelVolumeType::MODEL_PART, false);
+    REQUIRE(volume->is_splittable());
+
+    CHECK(volume->split(1, false) == 2);
+    REQUIRE(object->volumes.size() == 2);
+    CHECK(std::find(object->volumes.begin(), object->volumes.end(), volume) != object->volumes.end());
+    for (const ModelVolume *part : object->volumes) {
+        CHECK(part->mesh().facets_count() == 12);
+        CHECK_FALSE(part->is_splittable());
+    }
+}
+
+TEST_CASE("Splitting a part with a single solid piece keeps just that piece", "[Model]")
+{
+    Model model;
+    ModelObject *object = model.add_object();
+    ModelVolume *volume = object->add_volume(flat_triangle_then_cubes({0.}), ModelVolumeType::MODEL_PART, false);
+
+    CHECK(volume->split(1, false) == 1);
+    REQUIRE(object->volumes.size() == 1);
+    CHECK(object->volumes.front() == volume);
+    CHECK(volume->mesh().facets_count() == 12);
+}
+
+TEST_CASE("Splitting a part made only of pieces enclosing no volume leaves it whole", "[Model]")
+{
+    Model model;
+    ModelObject *object = model.add_object();
+    indexed_triangle_set its;
+    its.vertices = {{0.f, 0.f, 0.f}, {10.f, 0.f, 0.f}, {5.f, 5.f, 0.f}, {20.f, 0.f, 0.f}, {30.f, 0.f, 0.f}, {25.f, 5.f, 0.f}};
+    its.indices  = {{0, 1, 2}, {3, 4, 5}};
+    ModelVolume *volume = object->add_volume(TriangleMesh(its), ModelVolumeType::MODEL_PART, false);
+
+    CHECK(volume->split(1, false) == 1);
+    REQUIRE(object->volumes.size() == 1);
+    CHECK(object->volumes.front() == volume);
+    CHECK(volume->mesh().facets_count() == 2);
+}
+
+TEST_CASE("Replacing a part's mesh updates whether it can be split", "[Model]")
+{
+    Model model;
+    ModelObject *object = model.add_object();
+    TriangleMesh two_cubes = make_cube(10, 10, 10);
+    TriangleMesh second    = make_cube(10, 10, 10);
+    second.translate(30.f, 0.f, 0.f);
+    two_cubes.merge(second);
+    ModelVolume *volume = object->add_volume(std::move(two_cubes), ModelVolumeType::MODEL_PART, false);
+    REQUIRE(volume->is_splittable());
+
+    volume->set_mesh(make_cube(10, 10, 10));
+    CHECK_FALSE(volume->is_splittable());
+}
+
+TEST_CASE("Repairing a part replaces its mesh only when the repair changes it", "[Model]")
+{
+    Model model;
+    ModelObject *object = model.add_object();
+    TriangleMesh flipped = make_cube(10, 10, 10);
+    std::swap(flipped.its.indices.front()[1], flipped.its.indices.front()[2]);
+    ModelVolume *broken = object->add_volume(std::move(flipped), ModelVolumeType::MODEL_PART, false);
+    TriangleMesh cube = make_cube(10, 10, 10);
+    cube.translate(30.f, 0.f, 0.f);
+    ModelVolume *valid = object->add_volume(std::move(cube), ModelVolumeType::MODEL_PART, false);
+    const ObjectID broken_id = broken->id();
+    const ObjectID valid_id  = valid->id();
+
+    MeshRepairStats stats;
+    REQUIRE(broken->repair(false, &stats));
+    CHECK(stats.modified);
+    CHECK(broken->id() != broken_id);
+    CHECK_THAT(its_volume(broken->mesh().its), Catch::Matchers::WithinRel(1000., 1e-6));
+    CHECK_FALSE(broken->get_convex_hull().empty());
+
+    REQUIRE(valid->repair(false, &stats));
+    CHECK_FALSE(stats.modified);
+    CHECK(valid->id() == valid_id);
 }
