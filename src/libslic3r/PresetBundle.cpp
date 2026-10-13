@@ -2,6 +2,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/directory.hpp>
+#include <boost/filesystem/file_status.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/optional/optional.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -38,6 +39,8 @@
 #include "ParallelResolve.hpp"
 #include "Preset.hpp"
 #include "PresetCacheFormat.hpp"
+#include "Time.hpp"
+#include "Zipper.hpp"
 #include "PrintConfig.hpp"
 #include "PublishSettings.hpp"
 #include "FilamentMixer.hpp"
@@ -95,6 +98,21 @@ namespace fs = boost::filesystem;
 using json = nlohmann::json;
 
 namespace Slic3r {
+
+// Per system filament preset of an older release, by its name then, the printers it listed that the preset it
+// now loads as does not (resources/info/legacy_compatible_printers.json, written by orca_profile_tool.py
+// legacy-compat). Empty if the file is missing or malformed.
+static std::map<std::string, std::vector<std::string>> legacy_compatible_printers()
+{
+    const fs::path path = fs::path(resources_dir()) / "info" / "legacy_compatible_printers.json";
+    try {
+        boost::nowide::ifstream in(path.string());
+        return json::parse(in).at("presets").get<std::map<std::string, std::vector<std::string>>>();
+    } catch (const std::exception &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": can not read " << path.string() << ": " << err.what();
+        return {};
+    }
+}
 
 // Project-level options imported from a loaded 3MF into project_config. s_project_options_published
 // below is the reduced subset that crosses over in "published" 3MF mode; keep both in sync.
@@ -809,7 +827,7 @@ void PresetBundle::setup_directories()
                 BOOST_LOG_TRIVIAL(warning) << boost::format("creating directory %1% failed, maybe created by other instance, go on!")%subdir.string();
             }
             else
-                throw Slic3r::RuntimeError(std::string("Unable to create directory ") + subdir.string());
+                throw Slic3r::RuntimeError((boost::format(L("Unable to create directory %1%")) % subdir.string()).str());
         }
     }
 }
@@ -1043,6 +1061,73 @@ bool PresetBundle::backup_user_folder() const
             boost::filesystem::remove_all(boost::filesystem::path(backup_folderpath));
         return false;
     }
+}
+
+bool PresetBundle::backup_user_folder_to_zip(const std::string &zip_path) const
+{
+    const fs::path user_dir = fs::path(data_dir()) / PRESET_USER_DIR;
+    BOOST_LOG_TRIVIAL(info) << "Backing up user folder to: " << zip_path;
+    try {
+        Zipper zipper(zip_path);
+        // Directories get their own entries, which extract_archive_confined() needs to recreate them.
+        zipper.add_entry(std::string(PRESET_USER_DIR) + "/", nullptr, 0);
+        // The loader follows symlinked folders, and migration writes the presets in them.
+        for (const fs::directory_entry &entry : fs::recursive_directory_iterator(user_dir, fs::directory_options::follow_directory_symlink)) {
+            const std::string name = (fs::path(PRESET_USER_DIR) / entry.path().lexically_relative(user_dir)).generic_string();
+            if (fs::is_directory(entry.status())) {
+                zipper.add_entry(name + "/", nullptr, 0);
+                continue;
+            }
+            if (!fs::is_regular_file(entry.status()))
+                continue;
+            boost::nowide::ifstream in(entry.path().string(), std::ios::binary);
+            const std::string data((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+            if (!in.good() && !in.eof())
+                throw Slic3r::RuntimeError("can not read " + entry.path().string());
+            zipper.add_entry(name, data.data(), data.size());
+        }
+        zipper.finalize();
+        return true;
+    } catch (const std::exception &ex) {
+        BOOST_LOG_TRIVIAL(error) << "Exception during user folder backup: " << ex.what();
+        boost::system::error_code ec;
+        fs::remove(zip_path, ec);
+        return false;
+    }
+}
+
+std::vector<LegacyUserFilamentPreset> PresetBundle::legacy_user_filament_presets()
+{
+    return filaments.legacy_user_filament_presets(legacy_compatible_printers());
+}
+
+PresetBundle::LegacyUserFilamentPresetMigration PresetBundle::migrate_legacy_user_filament_presets(const std::vector<LegacyUserFilamentPreset> &legacy_presets)
+{
+    LegacyUserFilamentPresetMigration     result;
+    std::vector<LegacyUserFilamentPreset> written;
+    const std::string zip_path = data_dir() + "/filament_preset_migration_" +
+                                 Utils::time2str(Utils::TimeZone::utc, Utils::TimeFormat::iso8601Z) + "_backup.zip";
+    // Before the lock: zipping a large folder takes longer than a guard may be held.
+    if (!backup_user_folder_to_zip(zip_path))
+        return result;
+    result.backup = zip_path;
+    {
+        // One hold for every write, so a lock another instance keeps is one outcome rather than a failure per
+        // preset (the lock backs off for a while after a miss). Held without the collection mutex, the order
+        // InstanceLock requires; each write re-reads its file, so a save that slipped in before is respected.
+        const std::string lock_path = user_presets_lock_path();
+        InstanceLock      instance_lock(lock_path);
+        if (!lock_path.empty() && !instance_lock.locked())
+            return result;
+        result.locked = true;
+        for (const LegacyUserFilamentPreset &legacy : legacy_presets)
+            if (PresetCollection::write_legacy_user_filament_preset(legacy))
+                written.push_back(legacy);
+            else
+                result.failed.push_back(legacy.preset);
+    }
+    filaments.apply_legacy_user_filament_presets(written);
+    return result;
 }
 
 std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name) const
@@ -5451,7 +5536,7 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" can not load config file %1% not from gcode")%path ;
-    throw Slic3r::RuntimeError(std::string("Unknown configuration file: ") + path);
+    throw Slic3r::RuntimeError((boost::format(L("Unknown configuration file: %1%")) % path).str());
     
     return ConfigSubstitutions{};
 }
@@ -5653,7 +5738,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     ConfigOptionStrings* filament_colour_option = config.option<ConfigOptionStrings>("filament_colour");
     size_t num_filaments = filament_colour_option?filament_colour_option->size():0;
     if (num_filaments == 0)
-        throw Slic3r::RuntimeError(std::string("Invalid configuration file: ") + name_or_path);
+        throw Slic3r::RuntimeError((boost::format(L("Invalid configuration file: %1%")) % name_or_path).str());
 #endif
 
     //BBS: add config related logs
@@ -5717,7 +5802,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             || (extruder_variant_count < num_filaments)) {
             assert(false);
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid config file %1%, can not find suitable filament_extruder_variant or filament_self_index") % name_or_path;
-            throw Slic3r::RuntimeError(std::string("Invalid configuration file: ") + name_or_path);
+            throw Slic3r::RuntimeError((boost::format(L("Invalid configuration file: %1%")) % name_or_path).str());
         }
         if (num_filaments != extruder_variant_count) {
             process_multi_extruder = true;
@@ -6151,8 +6236,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 // A payload mix authored at the same slot (a mix inside the physical region) is
                 // processed after this sweep and overrides its own destination below.
                 published_config->mixed_slot_relocations.insert_or_assign(int(slot), int(dest));
-                published_config->material_replacements.emplace_back("slot " + std::to_string(slot) + " -> slot " +
-                                                                      std::to_string(dest) + ": mixed filament");
+                // TRN Filament slot change after loading a published project. %1% and %2% are slot numbers.
+                published_config->material_replacements.emplace_back(
+                    (boost::format(L("slot %1% -> slot %2%: mixed filament")) % slot % dest).str());
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": published 3MF relocated receiver mixed filament slot " << slot
                                         << " -> " << dest << " (physical-first rebalance)";
             }
@@ -6186,9 +6272,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                     // No free virtual slot left: report instead of destroying a real filament.
                     // The local skipped_keys is published wholesale at the end of the pass;
                     // writing published_config->skipped_keys here would be clobbered by it.
-                    skipped_keys.emplace_back("material:" + material_label + (is_payload_mix ?
-                                                                                  " (mixed filament definition: filament slot limit reached)" :
-                                                                                  " (filament slot limit reached)"));
+                    skipped_keys.emplace_back("material:" + material_label + " (" +
+                                              (is_payload_mix ? L("mixed filament definition: filament slot limit reached") :
+                                                                L("filament slot limit reached")) +
+                                              ")");
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": published 3MF " << (is_payload_mix ? "mixed filament definition" : "material")
                                                << " from slot " << entry.slot << " could not be placed: all " << next_free_slot
                                                << " slots exhausted";
@@ -6200,8 +6287,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                     // sidebar's mixed section needs two physical filaments to mix), so a
                     // placeholder would be invisible and unfixable: drop the entry and
                     // report it like any other unappliable input.
-                    skipped_keys.emplace_back("material:" + material_label + " (printer supports only " +
-                                              std::to_string(physical_capacity) + " filament)");
+                    skipped_keys.emplace_back("material:" + material_label + " (" +
+                                              (boost::format(L("the printer's filament limit is %1%")) % physical_capacity).str() + ")");
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": published 3MF material from slot " << entry.slot
                                                << " dropped: printer supports only " << physical_capacity << " filament";
                     entry_it = published_config->material_keys.erase(entry_it);
@@ -6219,8 +6306,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                         any_mixed_relocated     = true;
                         mixed_moves.emplace_back(size_t(authored_slot), size_t(entry.slot));
                         published_config->mixed_slot_relocations.insert_or_assign(authored_slot, entry.slot);
-                        published_config->material_replacements.emplace_back("slot " + std::to_string(authored_slot) + " -> slot " +
-                                                                             std::to_string(entry.slot) + ": mixed filament");
+                        published_config->material_replacements.emplace_back(
+                            (boost::format(L("slot %1% -> slot %2%: mixed filament")) % authored_slot % entry.slot).str());
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": published 3MF relocated mixed filament slot " << authored_slot
                                                 << " -> " << entry.slot;
                         ++entry_it;
@@ -6238,10 +6325,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                         published_config->mixed_slot_relocations.insert_or_assign(authored_slot, dest_slot);
                     }
                     published_config->material_replacements.emplace_back(
-                        (dest_slot != authored_slot ?
-                             "slot " + std::to_string(authored_slot) + " -> slot " + std::to_string(dest_slot) :
-                             "slot " + std::to_string(dest_slot)) +
-                        ": unassigned mixed filament (printer supports only " + std::to_string(physical_capacity) + " filaments)");
+                        dest_slot != authored_slot ?
+                            (boost::format(L("slot %1% -> slot %2%: unassigned mixed filament (the printer's filament limit is %3%)")) %
+                             authored_slot % dest_slot % physical_capacity).str() :
+                            (boost::format(L("slot %1%: unassigned mixed filament (the printer's filament limit is %2%)")) % dest_slot %
+                             physical_capacity).str());
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": published 3MF material from slot " << authored_slot
                                             << " placed as an unassigned mixed filament at slot " << dest_slot
                                             << " (printer supports only " << physical_capacity << " filaments)";
@@ -6463,8 +6551,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                     this->filament_presets[slot]   = replacement;
                     material_applied               = true;
                     // The re-point used to be silent; surface it like the other slot changes.
-                    published_config->material_replacements.emplace_back("slot " + std::to_string(slot) + ": " + aliased_name + " -> " +
-                                                                         replacement);
+                    // TRN Filament slot change after loading a published project. %1% is the slot number, %2% the old preset, %3% the new one.
+                    published_config->material_replacements.emplace_back(
+                        (boost::format(L("slot %1%: %2% -> %3%")) % slot % aliased_name % replacement).str());
                 }
                 // Grow the per-slot colour/type/map project vectors to the new slot count and
                 // seed the new entries so the slots render with colours instead of blank chips
@@ -6659,8 +6748,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                         // definition below.
                         if (is_mixed_definition(entry) && !this->is_mixed_filament(slot)) {
                             finalize_mixed_placeholder(slot);
-                            published_config->material_replacements.emplace_back("slot " + std::to_string(slot) +
-                                                                                 ": mixed filament definition could not be imported");
+                            published_config->material_replacements.emplace_back(
+                                (boost::format(L("slot %1%: mixed filament definition could not be imported")) % slot).str());
                         }
                         continue;
                     }
@@ -6687,17 +6776,18 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                             if (comps.size() < 2)
                                 // An empty definition cell counts as broken too: applying it
                                 // would ship a mix the sidebar would only flag later.
-                                mix_error = "needs at least two components";
+                                mix_error = L("needs at least two components");
                             else
                                 for (unsigned int comp : comps)
                                     if (comp < 1 || size_t(comp) > mixed_final_slot_count ||
                                         mixed_final_slots.count(int(comp) - 1) != 0) {
-                                        mix_error = "components reference missing slots";
+                                        mix_error = L("components reference missing slots");
                                         break;
                                     }
                         }
                         if (!mix_error.empty()) {
-                            skipped_keys.emplace_back("material:" + material_label + " (mixed filament definition: " + mix_error + ")");
+                            skipped_keys.emplace_back("material:" + material_label + " (" +
+                                                      (boost::format(L("mixed filament definition: %1%")) % mix_error).str() + ")");
                             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": published 3MF mixed filament from slot " << entry.slot
                                                        << " rejected: " << mix_error;
                             // Degradation, not silent corruption: the slot was already grown and
@@ -6713,9 +6803,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                             //    is reported as skipped above.
                             if (!this->is_mixed_filament(slot)) {
                                 finalize_mixed_placeholder(slot);
-                                published_config->material_replacements.emplace_back("slot " + std::to_string(slot) +
-                                                                                     ": mixed filament definition could not be imported (" +
-                                                                                     mix_error + ")");
+                                published_config->material_replacements.emplace_back(
+                                    (boost::format(L("slot %1%: mixed filament definition could not be imported (%2%)")) % slot % mix_error).str());
                             }
                             continue;
                         }
@@ -6786,8 +6875,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                         const std::string old_name   = this->filament_presets[slot];
                         this->filament_presets[slot] = new_name;
                         material_applied             = true;
-                        published_config->material_replacements.emplace_back("slot " + std::to_string(slot) + ": " + old_name + " -> " +
-                                                                             new_name);
+                        published_config->material_replacements.emplace_back(
+                            (boost::format(L("slot %1%: %2% -> %3%")) % slot % old_name % new_name).str());
                         // Colour is slot-scoped and project-visible: sync into project_config
                         // (the copy already baked it, this makes the chips render).
                         if (entry.publish_color && !entry.color.empty()) {
@@ -6906,11 +6995,12 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                                     << " (score " << score << ", preset_name \"" << entry.preset_name << "\", filament_id \""
                                     << entry.filament_id << "\", setting_id \"" << entry.setting_id << "\", type \""
                                     << entry.publish_type_value << "\")";
-                                std::string replacement_line = "slot " + std::to_string(slot) + ": " + old_name + " -> " + replacement;
                                 // A pick that is not the exact published material is a substitute;
                                 // an entry without identity fields cannot be judged, so it stays plain.
-                                if (score < 2 && (!entry.filament_id.empty() || !entry.filament_vendor.empty()))
-                                    replacement_line += " (substitute)";
+                                const bool  is_substitute    = score < 2 && (!entry.filament_id.empty() || !entry.filament_vendor.empty());
+                                std::string replacement_line = (boost::format(is_substitute ? L("slot %1%: %2% -> %3% (substitute)") :
+                                                                                              L("slot %1%: %2% -> %3%")) %
+                                                                slot % old_name % replacement).str();
                                 published_config->material_replacements.emplace_back(std::move(replacement_line));
                             } else {
                                 // Partial publish with no replacement: keep the receiver's
@@ -6926,8 +7016,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                                 // mix is left untouched).
                                 if (is_mixed_definition(entry) && !this->is_mixed_filament(slot)) {
                                     finalize_mixed_placeholder(slot);
-                                    published_config->material_replacements.emplace_back("slot " + std::to_string(slot) +
-                                                                                         ": mixed filament definition could not be imported");
+                                    published_config->material_replacements.emplace_back(
+                                        (boost::format(L("slot %1%: mixed filament definition could not be imported")) % slot).str());
                                 }
                             }
                         }
@@ -7010,8 +7100,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                     if (!this->is_mixed_filament(size_t(gap_slot))) {
                         finalize_mixed_placeholder(size_t(gap_slot));
                         published_config->material_replacements.emplace_back(
-                            "slot " + std::to_string(gap_slot) +
-                            ": unassigned mixed filament (printer supports only " + std::to_string(physical_capacity) + " filaments)");
+                            (boost::format(L("slot %1%: unassigned mixed filament (the printer's filament limit is %2%)")) % gap_slot %
+                             physical_capacity).str());
                     }
             }
         }
@@ -7064,7 +7154,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 
 static ConfigurationError failed_loading_error(const std::string& file, const std::string& dir)
 {
-    return ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % file % dir).str());
+    return ConfigurationError((boost::format(L("Failed loading configuration file %1%\nSuggest cleaning the directory %2% first")) % file % dir).str());
 }
 
 void PresetBundle::log_errors(const std::vector<std::string>& errors)
@@ -7537,7 +7627,8 @@ void PresetBundle::parse_vendor_json(VendorRead& read)
                 auto config_version = Semver::parse(version_str);
                 if (! config_version) {
                     ++m_errors;
-                    throw ConfigurationError((boost::format("vendor %1%'s config version: %2% invalid\nSuggest cleaning the directory %3% firstly")
+                    // TRN %1% is the vendor name, %2% the version found in its profile, %3% the profile directory.
+                    throw ConfigurationError((boost::format(L("Vendor %1%'s config version: %2% invalid\nSuggest cleaning the directory %3% first"))
                         % vendor_name % version_str % dir).str());
                 } else {
                     vendor_profile.config_version = std::move(*config_version);
@@ -7575,7 +7666,7 @@ void PresetBundle::parse_vendor_json(VendorRead& read)
     }
     catch(nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<root_file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
-        throw ConfigurationError((boost::format("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% firstly")
+        throw ConfigurationError((boost::format(L("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% first"))
                 %root_file %err.what() % dir).str());
         //goto __error_process;
     }
@@ -7690,7 +7781,7 @@ void PresetBundle::parse_vendor_json(VendorRead& read)
         }
         catch(nlohmann::detail::parse_error &err) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<< subfile <<" got a nlohmann::detail::parse_error, reason = " << err.what();
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% firstly")
+            throw ConfigurationError((boost::format(L("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% first"))
                 %subfile %err.what() % dir).str());
         }
 

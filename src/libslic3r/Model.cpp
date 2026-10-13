@@ -472,7 +472,7 @@ Model Model::read_from_file(const std::string&                                  
              boost::algorithm::iends_with(input_file, ".abc") || boost::algorithm::iends_with(input_file, ".ply")) {
         std::string temp_stl = make_temp_stl_with_modelio(input_file);
         if (temp_stl.empty()) {
-            throw Slic3r::RuntimeError("Failed to convert asset to STL via ModelIO.");
+            throw Slic3r::RuntimeError(_L("Failed to convert asset to STL via ModelIO."));
         }
         result = load_stl(temp_stl.c_str(), &model);
         delete_temp_file(temp_stl);
@@ -1280,6 +1280,7 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     this->layer_config_ranges         = rhs.layer_config_ranges;
     this->layer_height_profile        = rhs.layer_height_profile;
     this->printable                   = rhs.printable;
+    this->auto_drop                   = rhs.auto_drop;
     this->origin_translation          = rhs.origin_translation;
     this->cut_id.copy(rhs.cut_id);
     this->copy_transformation_caches(rhs);
@@ -1320,6 +1321,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->layer_config_ranges         = std::move(rhs.layer_config_ranges);
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
     this->printable                   = std::move(rhs.printable);
+    this->auto_drop                   = rhs.auto_drop;
     this->origin_translation          = std::move(rhs.origin_translation);
     this->copy_transformation_caches(rhs);
 
@@ -1889,6 +1891,9 @@ void ModelObject::center_around_origin(bool include_modifiers)
 
 void ModelObject::ensure_on_bed(bool allow_negative_z)
 {
+    if (!auto_drop)
+        return;
+
     double z_offset = 0.0;
 
     if (allow_negative_z) {
@@ -1907,14 +1912,8 @@ void ModelObject::ensure_on_bed(bool allow_negative_z)
     else
         z_offset = -this->min_z();
 
-    if (z_offset != 0.0) {
-        for (size_t i = 0; i < instances.size(); ++i) {
-            if (!instances[i]->auto_drop)
-                continue;
-
-            translate_instance(i, z_offset * Vec3d::UnitZ());
-        }
-    }
+    if (z_offset != 0.0)
+        translate_instances(z_offset * Vec3d::UnitZ());
 }
 
 void ModelObject::translate_instances(const Vec3d& vector)

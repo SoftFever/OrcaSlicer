@@ -28,6 +28,7 @@
 #include <set>
 #include <initializer_list>
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "libslic3r/Preset.hpp"
 #include <boost/log/trivial.hpp>
 #include <wx/anybutton.h>
@@ -584,7 +585,7 @@ void Tab::create_preset_tab()
 
         ScalableButton* icon = nullptr;
         add_scaled_button(panel, &icon, "multi_extruder");
-        icon->SetToolTip(_L("Parameters with this icon can be configurable per nozzle."));
+        icon->SetToolTip(_L("Parameters with this icon can be configured per nozzle."));
 
         auto sync_box_sizer = new wxBoxSizer(wxHORIZONTAL);
         sync_box_sizer->Add(m_extruder_sync, 1, wxEXPAND);
@@ -620,7 +621,7 @@ void Tab::create_preset_tab()
 
         ScalableButton* icon = nullptr;
         add_scaled_button(panel, &icon, "multi_extruder");
-        icon->SetToolTip(_L("Parameters with this icon can be configurable per nozzle."));
+        icon->SetToolTip(_L("Parameters with this icon can be configured per nozzle."));
 
         wxBoxSizer *top_sizer = new wxBoxSizer(wxHORIZONTAL);
         top_sizer->Add(icon,            0, wxALIGN_CENTER_VERTICAL);
@@ -4154,7 +4155,8 @@ bool Tab::validate_custom_gcode(const wxString& title, const std::string& gcode)
                       tags.size()),
             lines);
         //wxMessageDialog dialog(wxGetApp().mainframe, reports, _L("Found reserved keywords in") + " " + _(title), wxICON_WARNING | wxOK);
-        MessageDialog dialog(wxGetApp().mainframe, reports, _L("Reserved keywords found") + " " + _(title), wxICON_WARNING | wxOK);
+        // TRN %1% is the name of the custom G-code setting, e.g. "Machine start G-code".
+        MessageDialog dialog(wxGetApp().mainframe, reports, format_wxstr(_L("Reserved keywords found in %1%"), _(title)), wxICON_WARNING | wxOK);
         dialog.ShowModal();
     }
     return !invalid;
@@ -8091,9 +8093,6 @@ void Tab::delete_preset()
     auto current_preset = m_presets->get_selected_preset();
     // Don't let the user delete the ' - default - ' configuration.
     //BBS: add project embedded preset logic and refine is_external
-    std::string action =  _utf8(L("Delete"));
-    //std::string action = current_preset.is_external ? _utf8(L("remove")) : _utf8(L("delete"));
-    // TRN  remove/delete
     wxString msg;
     bool     confirm_delete_third_party_printer = false;
     bool     is_base_preset                 = false;
@@ -8112,8 +8111,10 @@ void Tab::delete_preset()
 
             DeleteConfirmDialog
                 dlg(parent(), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Delete"),
-                    wxString::Format(_L("%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."),
-                                     filament_preset_num, process_preset_num));
+                    // TRN %1% is "N filament preset(s)", %2% is "N process preset(s)".
+                    format_wxstr(_L("%1% and %2% are attached to this printer. Those presets would be deleted if the printer is deleted."),
+                                 wxString::Format(_L_PLURAL("%d filament preset", "%d filament presets", filament_preset_num), filament_preset_num),
+                                 wxString::Format(_L_PLURAL("%d process preset", "%d process presets", process_preset_num), process_preset_num)));
             int res = dlg.ShowModal();
             if (res != wxID_OK) return;
             confirm_delete_third_party_printer = true;
@@ -8128,9 +8129,9 @@ void Tab::delete_preset()
         if (count > 0) {
             msg = _L("Presets inherited by other presets cannot be deleted!");
             msg += "\n";
-            msg += _L_PLURAL("The following presets inherit this preset.",
-                            "The following preset inherits this preset.", count);
-            wxString title = from_u8((boost::format(_utf8(L("%1% Preset"))) % action).str()); // action + _(L(" Preset"));
+            msg += _L_PLURAL("The following preset inherits this preset.",
+                            "The following presets inherit this preset.", count);
+            wxString title = _L("Delete Preset");
             MessageDialog(parent(), msg + presets, title, wxOK | wxICON_ERROR).ShowModal();
             return;
         }
@@ -8177,17 +8178,13 @@ void Tab::delete_preset()
         }
     }
 
-    if (is_base_preset && (current_preset.type == Preset::Type::TYPE_FILAMENT) && action == _utf8(L("Delete"))) {
+    if (is_base_preset && (current_preset.type == Preset::Type::TYPE_FILAMENT)) {
         msg += from_u8(_u8L("Are you sure to delete the selected preset?\nIf the preset corresponds to a filament currently in use on your printer, please reset the filament information for that slot."));
     } else {
-        msg += from_u8((boost::format(_u8L("Are you sure you want to %1% the selected preset\?")) % action).str());
+        msg += _L("Are you sure you want to delete the selected preset?");
     }
 
-    //BBS: add project embedded preset logic and refine is_external
-    action =  _utf8(L("Delete"));
-    //action = current_preset.is_external ? _utf8(L("Remove")) : _utf8(L("Delete"));
-    // TRN  Remove/Delete
-    wxString title = from_u8((boost::format(_utf8(L("%1% Preset"))) % action).str());  //action + _(L(" Preset"));
+    wxString title = _L("Delete Preset");
     if (current_preset.is_default || !(confirm_delete_third_party_printer ||
         //wxID_YES != wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
         wxID_YES == MessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal()))
@@ -8743,15 +8740,20 @@ static wxString short_nozzle_volume_name(const std::string &volume_name)
     // Hybrid has no entry on purpose: it is never a variant string, and the switch lists its two
     // sub-nozzle types as separate tags (see generate_extruder_options).
     if (volume_name == "Standard")
-        return "SF";
+        // TRN Short tag for the Standard nozzle flow type.
+        return _L_CONTEXT("SF", "Nozzle flow type");
     if (volume_name == "High Flow")
-        return "HF";
+        // TRN Short tag for the High Flow nozzle flow type.
+        return _L_CONTEXT("HF", "Nozzle flow type");
     if (volume_name == "TPU High Flow")
-        return "TPU HF";
+        // TRN Short tag for the TPU High Flow nozzle flow type.
+        return _L_CONTEXT("TPU HF", "Nozzle flow type");
     if (volume_name == "E3D High Flow")
-        return "E3D HF";
+        // TRN Short tag for the E3D High Flow nozzle flow type.
+        return _L_CONTEXT("E3D HF", "Nozzle flow type");
     if (volume_name == "Extra High Flow")
-        return "XHF";
+        // TRN Short tag for the Extra High Flow nozzle flow type.
+        return _L_CONTEXT("XHF", "Nozzle flow type");
     return from_u8(volume_name);
 }
 
@@ -8795,7 +8797,7 @@ std::vector<wxString> Tab::generate_extruder_options()
                     nozzle = "";
                 }
             }
-            options.push_back(wxString::Format(_L("%s %s"), _L(drive), short_nozzle_volume_name(nozzle)));
+            options.push_back(wxString::Format("%s %s", _L(drive), short_nozzle_volume_name(nozzle)));
         }
         return options;
     }
@@ -8829,10 +8831,10 @@ std::vector<wxString> Tab::generate_extruder_options()
         NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volumes->values[i]);
 
         if (volume_type == NozzleVolumeType::nvtHybrid) {
-            options.push_back(wxString::Format(_L("%s %s"), extruder_name, short_nozzle_volume_name(get_nozzle_volume_type_string(NozzleVolumeType::nvtStandard))));
-            options.push_back(wxString::Format(_L("%s %s"), extruder_name, short_nozzle_volume_name(get_nozzle_volume_type_string(NozzleVolumeType::nvtHighFlow))));
+            options.push_back(wxString::Format("%s %s", extruder_name, short_nozzle_volume_name(get_nozzle_volume_type_string(NozzleVolumeType::nvtStandard))));
+            options.push_back(wxString::Format("%s %s", extruder_name, short_nozzle_volume_name(get_nozzle_volume_type_string(NozzleVolumeType::nvtHighFlow))));
         } else {
-            options.push_back(wxString::Format(_L("%s %s"), extruder_name,
+            options.push_back(wxString::Format("%s %s", extruder_name,
                                                short_nozzle_volume_name(get_nozzle_volume_type_string(volume_type))));
         }
     }

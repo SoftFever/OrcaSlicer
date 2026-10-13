@@ -6530,7 +6530,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         ImGui::AlignTextToFramePadding();
         heading(_L("Texture displacement"));
 
-        const std::string labels[2] = { _u8L("Standard"), _u8L("Pro") };
+        const std::string labels[2] = { _u8L_CONTEXT("Standard", "Mode"), _u8L("Pro") };
         const float       seg_pad   = m_imgui->scaled(0.5f);
         const float seg_w[2] = { ImGui::CalcTextSize(labels[0].c_str()).x + 2.f * seg_pad, ImGui::CalcTextSize(labels[1].c_str()).x + 2.f * seg_pad };
         ImGui::SameLine();
@@ -7145,8 +7145,13 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                            "texture's colors, and only the ones the bake actually uses are created.")))
                                 m_preview_params_dirty = true;
                             // After the slider, so a change shows in the same frame.
-                            ImGui::TextDisabled("%s", Slic3r::format(_u8L("%1% printable colors from %2% filaments"),
-                                                                     int(cached_palette().size()), int(m_palette_filaments.size())).c_str());
+                            const int n_colors    = int(cached_palette().size());
+                            const int n_filaments = int(m_palette_filaments.size());
+                            // TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
+                            const std::string from_filaments = Slic3r::format(into_u8(_L_PLURAL("from %1% filament", "from %1% filaments", n_filaments)), n_filaments);
+                            // TRN %1% is the number of printable colors, %2% is "from N filaments".
+                            ImGui::TextDisabled("%s", Slic3r::format(into_u8(_L_PLURAL("%1% printable color %2%", "%1% printable colors %2%", n_colors)),
+                                                                     n_colors, from_filaments).c_str());
                         }
                         if (int_row("##color_despeckle", _L("Denoise"), &opts.color_despeckle, 0, 6, "%d", card_pad,
                                     _L("Cleans up single stray triangles of the wrong color, which detail finer "
@@ -7233,7 +7238,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     if (m_uv_editor_unwrap.empty())
                         ImGui::TextDisabled("%s", _u8L("Not unwrapped yet").c_str());
                     else
-                        ImGui::TextDisabled("%s", Slic3r::format(_u8L("%1% islands"), m_uv_editor_unwrap.chart_count).c_str());
+                        ImGui::TextDisabled("%s", Slic3r::format(into_u8(_L_PLURAL("%1% island", "%1% islands", m_uv_editor_unwrap.chart_count)),
+                                                                 m_uv_editor_unwrap.chart_count).c_str());
                 }
 
                 if (layer.projection_method == TextureProjectionMethod::ViewProjected) {
@@ -7535,7 +7541,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
     if (mv != nullptr) {
         const bool        full  = mv->texture_displacement_layers.size() >= TEXTURE_DISPLACEMENT_MAX_LAYERS;
-        const std::string label = full ? Slic3r::format(_u8L("All %1% layers used"), TEXTURE_DISPLACEMENT_MAX_LAYERS) :
+        const std::string label = full ? Slic3r::format(into_u8(_L_PLURAL("All %1% layer used", "All %1% layers used", unsigned(TEXTURE_DISPLACEMENT_MAX_LAYERS))), TEXTURE_DISPLACEMENT_MAX_LAYERS) :
                                          "+  " + _u8L("Add layer");
         m_imgui->disabled_begin(busy || full);
         if (ImGui::Button((label + "##add_layer").c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0.f)))
@@ -7631,7 +7637,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
             ImGui::TextDisabled("%s", _u8L("Triangle budget: set with Triangles, below.").c_str());
             if (m_subdivide_editing && m_subdivide_preview_tris > 0)
-                m_imgui->text(Slic3r::format(_u8L("Preview: %1% triangles"), m_subdivide_preview_tris));
+                m_imgui->text(Slic3r::format(into_u8(_L_PLURAL("Preview: %1% triangle", "Preview: %1% triangles", m_subdivide_preview_tris)), m_subdivide_preview_tris));
         } else {
             if (int_row("##subdiv_steps", _L("Steps"), &m_subdivide_count, 0, 5, "%d", 0.f,
                         _L("Splits every triangle of the model into four, this many times over. Each step "
@@ -8059,18 +8065,28 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         if (mv != nullptr) {
             const std::string base_count = base_k > 0 ? Slic3r::format(_u8L("%1% k"), base_k) :
                                                         std::to_string(mv->mesh().facets_count());
-            std::string note = v2         ? Slic3r::format(_u8L("Model: %1% triangles - the bake refines to the resolution above, up to its budget"), base_count) :
-                               pro_mode() ? Slic3r::format(_u8L("Bake moves existing vertices - the model stays at %1% triangles"), base_count) :
-                                            Slic3r::format(_u8L("Bake result up to ~%1% k triangles"), base_k + m_subdivide_budget_k);
+            const unsigned    base_n     = base_k > 0 ? unsigned(base_k) * 1000 : unsigned(mv->mesh().facets_count());
+            const unsigned    result_n   = unsigned(base_k + m_subdivide_budget_k) * 1000;
+            // TRN %1% is a triangle count, either exact or rounded to thousands such as "120 k".
+            std::string note = v2         ? Slic3r::format(into_u8(_L_PLURAL("Model: %1% triangle - the bake refines to the resolution above, up to its budget",
+                                                                             "Model: %1% triangles - the bake refines to the resolution above, up to its budget", base_n)), base_count) :
+                               // TRN %1% is a triangle count, either exact or rounded to thousands such as "120 k".
+                               pro_mode() ? Slic3r::format(into_u8(_L_PLURAL("Bake moves existing vertices - the model stays at %1% triangle",
+                                                                             "Bake moves existing vertices - the model stays at %1% triangles", base_n)), base_count) :
+                                            Slic3r::format(into_u8(_L_PLURAL("Bake result up to ~%1% k triangle", "Bake result up to ~%1% k triangles", result_n)),
+                                                           base_k + m_subdivide_budget_k);
             if (mv->is_texture_displacement_painted()) {
                 std::vector<std::string> skipped;
                 for (const TextureDisplacementLayer &l : mv->texture_displacement_layers)
                     if (!slot_painted(l.slot))
                         skipped.push_back(layer_name(l));
                 if (skipped.size() > 2)
-                    note += ", " + Slic3r::format(_u8L("%1% layers not painted, skipped"), skipped.size());
+                    note += ", " + Slic3r::format(into_u8(_L_PLURAL("%1% layer not painted, skipped", "%1% layers not painted, skipped",
+                                                                    unsigned(skipped.size()))), skipped.size());
                 else if (!skipped.empty())
-                    note += ", " + Slic3r::format(_u8L("%1% not painted, skipped"),
+                    // TRN %1% is one layer name, or two names separated by a comma.
+                    note += ", " + Slic3r::format(into_u8(_L_PLURAL("%1% not painted, skipped", "%1% not painted, skipped",
+                                                                    unsigned(skipped.size()))),
                                                    skipped.size() == 2 ? skipped[0] + ", " + skipped[1] : skipped[0]);
             }
             ImGui::PushTextWrapPos(x0 + panel_w);
