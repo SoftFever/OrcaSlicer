@@ -1109,6 +1109,27 @@ bool runs_with_contour(const TubeLoop &loop, bool thin_wall_hole)
     return loop.side != TubeSide::Hole || thin_wall_hole;
 }
 
+// The insets of the walls on one side of a round_tube() layer, the shared centre line included, in extrusion order.
+std::vector<int> side_insets(const std::vector<TubeLoop> &loops, TubeSide side)
+{
+    std::vector<int> insets;
+    for (const TubeLoop &loop : loops)
+        if (loop.side == side || loop.side == TubeSide::Centre)
+            insets.push_back(loop.inset);
+    return insets;
+}
+
+// The walls of a round_tube() layer in extrusion order, as side and inset: "c0 c1 h0 h1" is the contour's outer wall,
+// then its first inner wall, then the same for the hole, and "m" marks the wall in the middle both sides share.
+std::string wall_order(const std::vector<TubeLoop> &loops)
+{
+    std::string out;
+    for (const TubeLoop &loop : loops)
+        out += std::string(out.empty() ? "" : " ") + (loop.side == TubeSide::Contour ? "c" : loop.side == TubeSide::Hole ? "h" : "m") +
+               std::to_string(loop.inset);
+    return out;
+}
+
 } // namespace
 
 // Each side of a tube wall prints its walls in the order the wall sequence asks for, from two walls a side up to
@@ -1143,10 +1164,7 @@ TEST_CASE("Each side of a tube wall prints its walls in the wall sequence order"
         for (const TubeSide side : { TubeSide::Contour, TubeSide::Hole }) {
             const bool contour_side = side == TubeSide::Contour;
             CAPTURE(i, contour_side);
-            std::vector<int> insets;
-            for (const TubeLoop &loop : layers[i])
-                if (loop.side == side || loop.side == TubeSide::Centre)
-                    insets.push_back(loop.inset);
+            const std::vector<int> insets = side_insets(layers[i], side);
             REQUIRE(int(insets.size()) == walls);
             CHECK(insets == wall_sequence_insets(wall_sequence, i == 0, walls - 1));
         }
@@ -1175,6 +1193,30 @@ TEST_CASE("A thin wall hole is printed before the contour unless the outer walls
         REQUIRE(layers[i].size() == 2);
         REQUIRE(layers[i][0].side != layers[i][1].side);
         CHECK(layers[i].front().side == first);
+    }
+}
+
+// A 1.5mm tube wall leaves Inner/Outer/Inner no third wall to sandwich, only the inner wall Arachne lays in the middle
+// for both sides, or Classic's gap fill. Past the first layer it prints the hole first, then the contour, then the
+// middle.
+TEST_CASE("Inner/Outer/Inner prints the hole of a narrow tube wall first and the middle last", "[Perimeters]")
+{
+    const char *wall_generator = GENERATE("classic", "arachne");
+    CAPTURE(wall_generator);
+
+    DynamicPrintConfig config = tube_config(wall_generator, 3);
+    config.set_deserialize_strict("wall_sequence", "inner-outer-inner wall");
+    Print print;
+    Model model;
+    round_tube(print, model, config, 1.5);
+    const std::vector<std::vector<TubeLoop>> layers = tube_loops(print, 1.5);
+    REQUIRE(layers.size() == 10);
+
+    // Classic's gap fill is not a wall loop, and goes after the walls.
+    const std::string expected = std::string(wall_generator) == "arachne" ? "h0 c0 m1" : "h0 c0";
+    for (size_t i = 1; i < layers.size(); ++ i) {
+        CAPTURE(i);
+        CHECK(wall_order(layers[i]) == expected);
     }
 }
 
@@ -1243,4 +1285,94 @@ TEST_CASE("Reverse on even reverses the tube walls of every other layer", "[Peri
             CHECK(reversed[i][j].ccw == (plain[i][j].ccw != flips));
         }
     }
+}
+
+namespace {
+
+DynamicPrintConfig brim_tube_config(const char *wall_generator, const std::string &wall_sequence, const char *brim_type, double brim_width)
+{
+    DynamicPrintConfig config = tube_config(wall_generator, 3);
+    config.set_deserialize_strict({
+        { "wall_sequence", wall_sequence },
+        { "brim_type",     brim_type },
+        { "brim_width",    brim_width },
+    });
+    return config;
+}
+
+} // namespace
+
+// A brim against the outer walls makes the first layer print them first, whatever the wall sequence, so the brim runs
+// straight on into the outer wall: each side of the tube wall outside in, and the contour before a thin wall hole.
+// Brims that may leave the outer walls bare keep the wall sequence, and so do the layers above.
+TEST_CASE("A brim against the outer walls makes the first layer print them first", "[Perimeters]")
+{
+    struct Brim {
+        const char *type;
+        double      width;
+        bool        outer_walls_first;
+    };
+    const Brim brim = GENERATE(values<Brim>({
+        { "no_brim", 5., false }, { "inner_only", 5., false }, { "auto_brim", 5., false }, { "outer_only", 0., false },
+        { "outer_only", 5., true }, { "outer_and_inner", 5., true }, { "leading_edge_only", 5., true } }));
+    const double      wall           = GENERATE(1.0, 3.0);
+    const char       *wall_generator = GENERATE("classic", "arachne");
+    const std::string wall_sequence  = GENERATE("inner wall/outer wall", "inner-outer-inner wall");
+    CAPTURE(brim.type, brim.width, wall, wall_generator, wall_sequence);
+
+    Print print;
+    Model model;
+    round_tube(print, model, brim_tube_config(wall_generator, wall_sequence, brim.type, brim.width), wall);
+    const std::vector<std::vector<TubeLoop>> layers = tube_loops(print, wall);
+    REQUIRE(layers.size() == 10);
+
+    // The thin wall hole has its outer wall a side, the 3mm tube wall three walls a side.
+    const size_t walls = wall == 1. ? 1 : 3;
+    for (const size_t i : { size_t(0), size_t(1) }) {
+        const bool outer_walls_first = brim.outer_walls_first && i == 0;
+        for (const TubeSide side : { TubeSide::Contour, TubeSide::Hole }) {
+            const bool contour_side = side == TubeSide::Contour;
+            CAPTURE(i, contour_side);
+            const std::vector<int> insets = side_insets(layers[i], side);
+            REQUIRE(insets.size() == walls);
+            CHECK(insets == wall_sequence_insets(outer_walls_first ? "outer wall/inner wall" : wall_sequence, i == 0, int(walls) - 1));
+        }
+        if (wall == 1.)
+            CHECK(layers[i].front().side == (outer_walls_first ? TubeSide::Contour : TubeSide::Hole));
+    }
+}
+
+// Changing the brim of a sliced print regenerates the walls when the first layer's wall order changes with it, so
+// the print gets the walls a slice from scratch with the new brim gets.
+TEST_CASE("Changing the brim updates the wall order of the first layer", "[Perimeters]")
+{
+    struct BrimChange {
+        const char *from_type;
+        double      from_width;
+        const char *to_type;
+        double      to_width;
+    };
+    const BrimChange change = GENERATE(values<BrimChange>({
+        { "outer_only", 0., "outer_only", 5. }, { "outer_only", 5., "outer_only", 0. },
+        { "no_brim", 5., "outer_and_inner", 5. }, { "outer_and_inner", 5., "inner_only", 5. } }));
+    const char *wall_generator = GENERATE("classic", "arachne");
+    CAPTURE(change.from_type, change.from_width, change.to_type, change.to_width, wall_generator);
+
+    const std::string wall_sequence = "inner wall/outer wall";
+    Print print;
+    Model model;
+    round_tube(print, model, brim_tube_config(wall_generator, wall_sequence, change.from_type, change.from_width), 3.);
+    const std::string before = wall_order(tube_loops(print, 3.).front());
+    print.apply(model, brim_tube_config(wall_generator, wall_sequence, change.to_type, change.to_width));
+    print.process();
+    const std::string after = wall_order(tube_loops(print, 3.).front());
+
+    Print fresh_print;
+    Model fresh_model;
+    round_tube(fresh_print, fresh_model, brim_tube_config(wall_generator, wall_sequence, change.to_type, change.to_width), 3.);
+    const std::string fresh = wall_order(tube_loops(fresh_print, 3.).front());
+
+    // The change does turn the first layer around.
+    REQUIRE(before != fresh);
+    CHECK(after == fresh);
 }
