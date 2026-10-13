@@ -823,7 +823,7 @@ namespace client
                 value = (op == '|') ? (lhs.b() || rhs.b()) : (lhs.b() && rhs.b());
             } else {
                 boost::throw_exception(qi::expectation_failure<Iterator>(
-                    lhs.it_range.begin(), rhs.it_range.end(), spirit::info(std::string("*") + L("Cannot apply logical operation to non-boolean operators."))));
+                    lhs.it_range.begin(), rhs.it_range.end(), spirit::info(std::string("*") + L("Cannot apply logical operation to non-boolean operands."))));
             }
             lhs.set_b_lite(value);
         }
