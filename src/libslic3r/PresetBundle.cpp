@@ -1105,20 +1105,21 @@ PresetBundle::LegacyUserFilamentPresetMigration PresetBundle::migrate_legacy_use
 {
     LegacyUserFilamentPresetMigration     result;
     std::vector<LegacyUserFilamentPreset> written;
+    const std::string zip_path = data_dir() + "/filament_preset_migration_" +
+                                 Utils::time2str(Utils::TimeZone::utc, Utils::TimeFormat::iso8601Z) + "_backup.zip";
+    // Before the lock: zipping a large folder takes longer than a guard may be held.
+    if (!backup_user_folder_to_zip(zip_path))
+        return result;
+    result.backup = zip_path;
     {
-        // One hold for the backup and every write: no other instance can save a preset in between, and a lock
-        // the other instance keeps is one outcome rather than a failure per preset (the lock backs off for a
-        // while after a miss). Held without the collection mutex, the order InstanceLock requires.
+        // One hold for every write, so a lock another instance keeps is one outcome rather than a failure per
+        // preset (the lock backs off for a while after a miss). Held without the collection mutex, the order
+        // InstanceLock requires; each write re-reads its file, so a save that slipped in before is respected.
         const std::string lock_path = user_presets_lock_path();
         InstanceLock      instance_lock(lock_path);
         if (!lock_path.empty() && !instance_lock.locked())
             return result;
         result.locked = true;
-        const std::string zip_path = data_dir() + "/filament_preset_migration_" +
-                                     Utils::time2str(Utils::TimeZone::utc, Utils::TimeFormat::iso8601Z) + "_backup.zip";
-        if (!backup_user_folder_to_zip(zip_path))
-            return result;
-        result.backup = zip_path;
         for (const LegacyUserFilamentPreset &legacy : legacy_presets)
             if (PresetCollection::write_legacy_user_filament_preset(legacy))
                 written.push_back(legacy);

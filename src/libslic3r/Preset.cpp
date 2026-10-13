@@ -2846,16 +2846,23 @@ void PresetCollection::apply_legacy_user_filament_presets(const std::vector<Lega
             continue; // deleted by the preset sync thread meanwhile
         std::vector<std::string> &saved  = it->config.option<ConfigOptionStrings>("compatible_printers", true)->values;
         std::vector<std::string> &edited = m_edited_preset.config.option<ConfigOptionStrings>("compatible_printers", true)->values;
+        // Added to the list the preset holds now rather than replacing it: the cloud sync may have given the
+        // preset a newer list since it was found, and that list is still to be written out.
+        std::vector<std::string> printers = saved;
+        for (const std::string &printer : legacy.printers)
+            if (std::find(printers.begin(), printers.end(), printer) == printers.end())
+                printers.push_back(printer);
         // A change to the list pending in the settings tab stays pending. Without one, the edited copy and the
         // snapshot unsaved changes are measured against take the written list, so nothing reads as modified.
         if (m_idx_selected == static_cast<size_t>(it - m_presets.begin()) && edited == saved) {
-            edited = legacy.compatible_printers;
+            edited = printers;
             if (m_saved_preset.name == it->name)
-                m_saved_preset.config.option<ConfigOptionStrings>("compatible_printers", true)->values = legacy.compatible_printers;
+                m_saved_preset.config.option<ConfigOptionStrings>("compatible_printers", true)->values = printers;
         }
-        saved = legacy.compatible_printers;
-        // Push the change to the cloud copy, as an edit in the settings tab would.
-        if (!it->setting_id.empty()) {
+        saved = printers;
+        // Push the change to the cloud copy, as an edit in the settings tab would. A sync already pending for
+        // the preset (a download waiting to be saved, a deletion) keeps its state.
+        if (!it->setting_id.empty() && it->sync_info.empty()) {
             it->sync_info = "update";
             it->save_info();
         }

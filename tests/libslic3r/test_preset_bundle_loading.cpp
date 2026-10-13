@@ -7425,18 +7425,39 @@ TEST_CASE("Migrating user filaments backs up and writes nothing while it can not
     REQUIRE(legacy_presets.size() == 1);
 
     // A folder in the lock file's place can not be opened as the lock; a fresh data dir, since loading has
-    // already opened the lock file of the first one. One hold covers the backup and every write, so a lock
-    // held elsewhere is one outcome, not a failure per preset.
+    // already opened the lock file of the first one. The backup is taken before the lock, then one hold covers
+    // every write, so a lock held elsewhere is one outcome, not a failure per preset.
     const fs::path other_data = temp_dir.path() / "data";
-    ScopedDataDir  data_for_migration(other_data);
+    fs::create_directories(other_data / PRESET_USER_DIR);
+    ScopedDataDir data_for_migration(other_data);
     fs::create_directories(fs::path(user_presets_lock_path()));
     const PresetBundle::LegacyUserFilamentPresetMigration migration = bundle.migrate_legacy_user_filament_presets(legacy_presets);
+    CHECK_FALSE(migration.backup.empty());
     CHECK_FALSE(migration.locked);
-    CHECK(migration.backup.empty());
     CHECK(migration.failed.empty());
     CHECK(read_file(file) == original);
-    for (const fs::directory_entry &entry : fs::directory_iterator(other_data))
-        CHECK(entry.path().extension() != ".zip");
+}
+
+TEST_CASE("Applying a migration adds the printers to the list the preset holds now and keeps a pending cloud sync", "[Preset][Bundle]")
+{
+    ScopedTemporaryDir  temp_dir;
+    RenameTestFilaments filaments;
+    add_system_filament(filaments, k1_parent, { "Creality K1C 0.6 nozzle" });
+    write_user_filament(temp_dir.path(), "My PETG", k1_parent);
+    load_user_filaments(filaments, temp_dir.path());
+    const std::vector<LegacyUserFilamentPreset> legacy_presets =
+        filaments.legacy_user_filament_presets({ { k1_parent, { "Creality K1C 0.4 nozzle" } } });
+    REQUIRE(legacy_presets.size() == 1);
+
+    // Between detection and the write, the cloud sync gave the preset a newer list that is still to be saved.
+    Preset *preset = filaments.find_preset("My PETG", false, true);
+    preset->config.option<ConfigOptionStrings>("compatible_printers", true)->values = { "Creality K1C 0.8 nozzle" };
+    preset->setting_id = "GFSA01";
+    preset->sync_info  = "save";
+    filaments.apply_legacy_user_filament_presets(legacy_presets);
+    CHECK(preset->config.option<ConfigOptionStrings>("compatible_printers")->values ==
+          std::vector<std::string>{ "Creality K1C 0.8 nozzle", "Creality K1C 0.4 nozzle" });
+    CHECK(preset->sync_info == "save");
 }
 
 TEST_CASE("Migrating the selected user filament keeps a printer list edit pending in the settings tab", "[Preset][Bundle]")

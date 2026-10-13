@@ -382,9 +382,9 @@ public:
     // User filament presets made against an older release that no longer show on printers their parent
     // listed then (resources/info/legacy_compatible_printers.json).
     std::vector<LegacyUserFilamentPreset> legacy_user_filament_presets();
-    // Under one hold of the user presets lock, backs up the user preset folder into a zip in data_dir() and writes
-    // each preset's printers into its file. Nothing is written when the lock is held elsewhere (locked false) or
-    // the backup failed (backup empty); otherwise failed names the presets whose files could not be written.
+    // Backs up the user preset folder into a zip in data_dir(), then writes each preset's printers into its file
+    // under one hold of the user presets lock. Nothing is written when the backup failed (backup empty) or the
+    // lock could not be taken (locked false); otherwise failed names the presets whose files could not be written.
     struct LegacyUserFilamentPresetMigration {
         bool                     locked{false};
         std::string              backup;

@@ -6850,15 +6850,16 @@ void GUI_App::check_legacy_user_filament_presets(bool by_user)
         return;
 
     const PresetBundle::LegacyUserFilamentPresetMigration migration = preset_bundle->migrate_legacy_user_filament_presets(legacy_presets);
-    if (!migration.locked) {
-        show_error(mainframe, _L("Another OrcaSlicer instance is saving presets right now, so nothing was migrated. "
-                                 "Try again later from Help > Migrate Filament Presets."));
-        return;
-    }
     const std::string              &backup = migration.backup;
     const std::vector<std::string> &failed = migration.failed;
     if (backup.empty()) {
         show_error(mainframe, _L("Your presets could not be backed up, so they were not migrated."));
+        return;
+    }
+    if (!migration.locked) {
+        // The lock is also refused for a while after a miss, and when the lock file itself cannot be opened.
+        show_error(mainframe, _L("The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer "
+                                 "instance may be saving presets; try again later from Help > Migrate Filament Presets."));
         return;
     }
     if (failed.size() == legacy_presets.size()) {
