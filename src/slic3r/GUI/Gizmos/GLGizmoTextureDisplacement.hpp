@@ -1059,7 +1059,13 @@ private:
     // from its first frame each time its tooltip opens, rather than from wherever a free-running clock
     // happened to be.
     std::string m_tip_media_key;
-    double      m_tip_media_start = 0.;
+    double      m_tip_media_start  = 0.;
+    int         m_tip_media_frame  = -2; // the frame it was last drawn on, to spot the tooltip reopening
+    // How long the pointer has rested on the control a tooltip belongs to, and when one was last on
+    // screen, both on the real clock tip_now() keeps (see the .cpp for why ImGui's own will not do).
+    ImVec2 m_tip_item{-1.f, -1.f};
+    double m_tip_hover_since = 0.;
+    double m_tip_last_shown  = -1e9;
 };
 
 } // namespace Slic3r::GUI

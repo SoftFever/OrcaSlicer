@@ -3701,6 +3701,28 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         m_panel_icon_map[names[i]] = icons[i];
 }
 
+// Seconds on a real clock, for the tooltips' own timing.
+//
+// Not ImGui::GetTime(): nothing in OrcaSlicer ever sets io.DeltaTime, so it keeps imgui's default of
+// 1/60 per frame and its clock counts frames rather than seconds. On a canvas that renders only when
+// something asks it to, that is not a clock at all - an animation driven by it crawled while the canvas
+// was idle and raced while a moving mouse was rendering it flat out.
+static double tip_now()
+{
+    using clock = std::chrono::steady_clock;
+    static const clock::time_point base = clock::now();
+    return std::chrono::duration<double>(clock::now() - base).count();
+}
+
+// How long the pointer has to rest on a control before its tooltip appears. The panel is dense and the
+// tooltip lands on the model beside it, so with no wait at all a sweep from the top of the panel down to
+// Bake flashes a dozen large panels over the scene. Once one has just been up the wait drops to almost
+// nothing, so reading several settings in a row stays quick - but not to nothing, or that same sweep
+// would flash again the moment one tooltip had been seen.
+static constexpr double TIP_DELAY       = 0.45;
+static constexpr double TIP_DELAY_AGAIN = 0.10;
+static constexpr double TIP_STICKY      = 0.70;
+
 void GLGizmoTextureDisplacement::panel_tooltip(const wxString &text, const std::vector<TipMedia> &media)
 {
     panel_tooltip(into_u8(text), media);
@@ -3708,6 +3730,23 @@ void GLGizmoTextureDisplacement::panel_tooltip(const wxString &text, const std::
 
 void GLGizmoTextureDisplacement::panel_tooltip(const std::string &text, const std::vector<TipMedia> &media)
 {
+    // The item's position stands in for its identity: moving to another control restarts the wait, and
+    // staying on this one carries it on.
+    const double now  = tip_now();
+    const ImVec2 item = ImGui::GetItemRectMin();
+    if (item.x != m_tip_item.x || item.y != m_tip_item.y) {
+        m_tip_item        = item;
+        m_tip_hover_since = now;
+    }
+    if (now - m_tip_hover_since < (now - m_tip_last_shown < TIP_STICKY ? TIP_DELAY_AGAIN : TIP_DELAY)) {
+        // A pointer resting on a control produces no events, so nothing would redraw the canvas and the
+        // tooltip would never get its chance to appear. Ask for the frame it appears on.
+        set_dirty();
+        m_parent.schedule_extra_frame(40);
+        return;
+    }
+    m_tip_last_shown = now;
+
     const ImGuiStyle &style = ImGui::GetStyle();
     const float       gap   = m_imgui->scaled(0.5f);
     const float       wrap  = m_imgui->scaled(20.f);
@@ -3757,11 +3796,15 @@ void GLGizmoTextureDisplacement::render_tip_media(const std::vector<TipMedia> &m
     // Each animation plays from its first frame when its tooltip opens: these are short loops showing
     // one setting going from one value to another, and joining one halfway through shows the user the
     // end of a change they never saw the start of.
-    if (key != m_tip_media_key) {
+    // Restart on a different tooltip, and on the same one opening again - which is what a gap in the
+    // frames it was drawn on means, since it is drawn on every frame for as long as it is on screen.
+    const int this_frame = ImGui::GetFrameCount();
+    if (key != m_tip_media_key || this_frame != m_tip_media_frame + 1) {
         m_tip_media_key   = key;
-        m_tip_media_start = ImGui::GetTime();
+        m_tip_media_start = tip_now();
     }
-    const double time = ImGui::GetTime() - m_tip_media_start;
+    m_tip_media_frame = this_frame;
+    const double time = tip_now() - m_tip_media_start;
 
     const ImGuiStyle &style   = ImGui::GetStyle();
     const float       spacing = style.ItemSpacing.x;

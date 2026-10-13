@@ -42,6 +42,17 @@ A file that is missing or will not decode is skipped, and a tooltip whose pictur
 exactly the text tooltip it was before. So the art for a tooltip can land after the tooltip does, and
 a half-finished set never breaks the panel.
 
+## When a tooltip appears
+
+A tooltip waits for the pointer to rest on its control for 0.45 s. The panel is dense and the tooltip
+lands on the model beside it, so with no wait a sweep from the top of the panel down to Bake flashes a
+dozen large panels over the scene. Once one has just been up, the wait drops to 0.1 s for 0.7 s
+afterwards, so reading several settings in a row stays quick - but not to zero, or that same sweep
+would flash again the moment one tooltip had been seen.
+
+A pointer resting on a control produces no events, and the canvas only renders when something asks it
+to, so the wait itself has to keep asking; see panel_tooltip().
+
 ## Decoding and playback
 
 `slic3r/GUI/AnimatedTexture.hpp` decodes a file once and uploads one GL texture per frame. Stills go
@@ -57,13 +68,18 @@ The animation restarts when its tooltip opens, rather than running off a free-ru
 short loops of one setting going from one value to another, and joining one halfway through shows the
 end of a change the user never saw the start of.
 
-Driving the frames takes two calls, not one. `GLCanvas3D::schedule_extra_frame()` only guarantees an
-idle event at the moment the next frame is due; `GLCanvas3D::on_idle()` returns without rendering
+Two things drive the frames, and both are needed. `GLCanvas3D::schedule_extra_frame()` only guarantees
+an idle event at the moment the next frame is due; `GLCanvas3D::on_idle()` returns without rendering
 anything unless something has marked the canvas dirty by then, so an animation left to the timer alone
 advances one frame per mouse movement and stands still whenever the mouse does. `set_dirty()` on the
 gizmo is what on_idle reads, through `GLGizmoBase::update_items_state()`, to find out there are frames
 still to draw. The pair of them is what makes an animation play at its own speed and stop costing
 anything the moment its tooltip closes.
+
+Which frame is due is measured on a real clock, not `ImGui::GetTime()`. Nothing in OrcaSlicer ever sets
+`io.DeltaTime`, so it keeps imgui's default of 1/60 per frame and imgui's clock counts frames rather
+than seconds. On a canvas that renders only when asked, that is not a clock at all: an animation driven
+by it crawls while the canvas is idle and races while a moving mouse is rendering it flat out.
 
 ## Making one
 
