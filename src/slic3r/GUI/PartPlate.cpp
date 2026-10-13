@@ -3804,7 +3804,7 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
 			exclude_polys.reserve(m_exclude_bounding_box.size());
 			for (size_t index = 0; index < m_exclude_bounding_box.size(); index++)
 				exclude_polys.push_back(m_exclude_bounding_box[index].polygon(true));  // instance convex hull is scaled, so we need to scale here
-			if (!instance->footprint_intersects(exclude_polys, instance->get_matrix(false)))
+			if (!instance->footprint_intersects(exclude_polys, instance->get_matrix()))
 				outside = false;
 		}
 		else

@@ -66,6 +66,7 @@
 #include <string>
 #include <map>
 #include <utility>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <iterator>
@@ -1811,7 +1812,7 @@ ExPolygon ModelObject::true_outline_2d_ex(const Transform3d &trafo_instance) con
     std::vector<std::pair<const TriangleMesh *, Matrix4d>> volumes_key;
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part())
-            volumes_key.emplace_back(v->mesh_ptr(), v->get_matrix().matrix());
+            volumes_key.emplace_back(v->mesh_ptr().get(), v->get_matrix().matrix());
     const bool volumes_changed = volumes_key != m_true_outline_volumes;
 
     if (volumes_changed || trafo_instance.matrix() != m_true_outline_trafo.matrix() || !m_true_outline_2d.is_valid()) {

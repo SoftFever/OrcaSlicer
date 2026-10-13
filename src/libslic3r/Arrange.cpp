@@ -1,6 +1,8 @@
 #include "Arrange.hpp"
+#include <atomic>
 #include "ExPolygon.hpp"
 #include "Point.hpp"
+#include "Polygon.hpp"
 #include "Geometry/ConvexHull.hpp"
 
 #ifdef SLIC3R_SPARROW_ARRANGE

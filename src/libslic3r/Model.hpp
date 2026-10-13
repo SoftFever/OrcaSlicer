@@ -3,6 +3,7 @@
 
 #include "BoundingBox.hpp"
 #include "Polygon.hpp"
+#include "ExPolygon.hpp"
 #include "Semver.hpp"
 #include "libslic3r.h"
 #include "enum_bitmask.hpp"

@@ -31,6 +31,8 @@
 #include <algorithm>
 #include "libslic3r/PrintConfig.hpp"
 #include <map>
+#include <atomic>
+#include <wx/string.h>
 #include <cassert>
 #include "slic3r/GUI/Jobs/Job.hpp"
 #include "libslic3r/ExPolygon.hpp"
