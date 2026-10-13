@@ -94,11 +94,14 @@ For each language:
 
    ```bash
    python3 $T pending --lang <L> --limit 60 --out <scratch>/<L>.json
-   # fill "msgstr" (or every "msgstr_plural" form) in that file; add "review" where unsure
-   python3 $T apply --lang <L> --input <scratch>/<L>.json
+   # write <scratch>/<L>-tr.json: [{"id": "...", "msgstr": "..."}, ...], "msgstr_plural" for plurals,
+   # plus "review": "<what to check>" where unsure
+   python3 $T apply --lang <L> --input <scratch>/<L>-tr.json
    ```
 
    - **Batch files go in a scratch directory, not the repository.**
+   - **Each entry's `id` identifies it,** so the translation file need not repeat the English. `apply`
+     also accepts `msgid` with `msgctxt`, or the pending file itself with its `msgstr` fields filled.
    - **Translate every entry in the batch.** A blank `msgstr` is skipped, not cleared.
    - **Next batch:** applied entries leave the list, so run `pending` again at offset 0. Use `--offset`
      only to step past entries you deliberately leave blank.
@@ -115,7 +118,7 @@ For each language:
      `review` reason.
 
 `apply` adds `# AI Translated` to every entry it writes, and `# Needs human review: <reason>` where an
-item has `review`. Never add either to a translation a person wrote. `--human` is for applying their
+item has `review`. On an `--overwrite`, `"review": ""` removes an earlier note. Never add either to a translation a person wrote. `--human` is for applying their
 text.
 
 **The work is large:** every new string, times every language. When subagents are available, give each

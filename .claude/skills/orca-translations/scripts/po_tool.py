@@ -19,6 +19,7 @@ glossary-set refuses to run.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -142,6 +143,10 @@ class Entry:
     def key(self):
         return (self.msgctxt, self.msgid)
 
+    def id(self):
+        """Short stable handle, so a translation file need not repeat the English."""
+        return hashlib.sha1(f"{self.msgctxt or ''}\x04{self.msgid}".encode("utf-8")).hexdigest()[:10]
+
     def rewrite(self, msgstrs, ai=True, review=None):
         """Replace the translation; add the AI and review comments; clear fuzzy."""
         lines = list(self.lines)
@@ -171,7 +176,7 @@ class Entry:
         while pos < len(lines) and (lines[pos] == "#" or lines[pos].startswith("# ")):
             pos += 1
         add = []
-        if review:
+        if review is not None:  # "" clears an earlier note, a reason replaces it
             lines = [l for l in lines if not l.startswith("# " + REVIEW_TAG)]
             pos = 0
             while pos < len(lines) and (lines[pos] == "#" or lines[pos].startswith("# ")):
@@ -476,7 +481,7 @@ def cmd_pending(a):
     batch = todo[a.offset:a.offset + a.limit] if a.limit else todo[a.offset:]
     items = []
     for e in batch:
-        item = {"msgctxt": e.msgctxt, "msgid": e.msgid}
+        item = {"id": e.id(), "msgctxt": e.msgctxt, "msgid": e.msgid}
         if e.msgid_plural is not None:
             item["msgid_plural"] = e.msgid_plural
             item["msgstr_plural"] = (e.msgstrs() + [""] * c.nplurals)[:c.nplurals]
@@ -506,14 +511,19 @@ def cmd_apply(a):
     data = json.loads(Path(a.input).read_text(encoding="utf-8"))
     items = data["entries"] if isinstance(data, dict) else data
     idx = c.index()
+    by_id = {c.entries[i].id(): i for i in idx.values()}
     applied, skipped, rejected, warned = 0, 0, [], []
     for it in items:
-        key = (it.get("msgctxt"), it["msgid"])
-        label = (f"[{key[0]}] " if key[0] else "") + key[1][:70].replace("\n", "\\n")
-        if key not in idx:
-            rejected.append((label, ["no such msgid in the catalog"]))
+        if "msgid" in it:
+            key = (it.get("msgctxt"), it["msgid"])
+            i = idx.get(key)
+            label = (f"[{key[0]}] " if key[0] else "") + key[1][:70].replace("\n", "\\n")
+        else:
+            i = by_id.get(it.get("id"))
+            label = f"id {it.get('id')}" if i is None else c.entries[i].msgid[:70].replace("\n", "\\n")
+        if i is None:
+            rejected.append((label, ["no such entry in the catalog (give its id, or msgid and msgctxt)"]))
             continue
-        i = idx[key]
         e = c.entries[i]
         if e.msgid_plural is not None and "msgstr_plural" not in it:
             rejected.append((label, [f"plural entry: give msgstr_plural with {c.nplurals} forms"]))
@@ -575,7 +585,10 @@ def cmd_check(a):
             errs += bool(errors)
             warns += bool(warnings)
         if msgfmt:
-            r = subprocess.run([msgfmt, "--check-format", "-o", os.devnull if os.name != "nt" else str(Path(tempfile.gettempdir()) / "orca_check.mo"), str(c.path)], capture_output=True, text=True)
+            fd, mo = tempfile.mkstemp(suffix=".mo")  # Windows msgfmt cannot write to "nul"
+            os.close(fd)
+            r = subprocess.run([msgfmt, "--check-format", "-o", mo, str(c.path)], capture_output=True, text=True)
+            os.unlink(mo)
             if r.returncode:
                 print(f"{lang}: msgfmt --check-format failed\n{r.stderr.strip()}")
                 status = 1
