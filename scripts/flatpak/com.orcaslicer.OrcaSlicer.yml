@@ -196,10 +196,10 @@ modules:
         sha256: a378e9a39e718e289102c20d45632f873bfdc58a7a5f924246ea4b176e185f1e
         dest: external-packages/Qhull
 
-      # GLFW 3.4
+      # GLFW 3.5.1
       - type: file
-        url: https://github.com/glfw/glfw/archive/refs/tags/3.4.zip
-        sha256: a133ddc3d3c66143eba9035621db8e0bcf34dba1ee9514a9e23e96afd39fd57a
+        url: https://github.com/glfw/glfw/archive/refs/tags/3.5.1.zip
+        sha256: e9a80355e8a0c59b15ae8576c2c3aeae792c2b1082ec426dc93bde70d5017fda
         dest: external-packages/GLFW
 
       # SolveSpace libslvs (2D sketch constraint solver, Design tab)
@@ -208,10 +208,10 @@ modules:
         sha256: 1c4bdde9c3c6ef20ea4b50b73601de56769f2eb131b36927d7c6489f102e6c30
         dest: external-packages/SLVS
 
-      # Blosc 1.17.0 (tamasmeszaros fork)
+      # Blosc 1.21.6 (tamasmeszaros fork)
       - type: file
-        url: https://github.com/tamasmeszaros/c-blosc/archive/refs/heads/v1.17.0_tm.zip
-        sha256: dcb48bf43a672fa3de6a4b1de2c4c238709dad5893d1e097b8374ad84b1fc3b3
+        url: https://github.com/Blosc/c-blosc/archive/refs/tags/v1.21.6.zip
+        sha256: 1919c97d55023c04aa8771ea8235b63e9da3c22e3d2a68340b33710d19c2a2eb
         dest: external-packages/Blosc
 
       # OpenEXR v2.5.5
@@ -222,8 +222,8 @@ modules:
 
       # OpenVDB (custom fork)
       - type: file
-        url: https://github.com/tamasmeszaros/openvdb/archive/a68fd58d0e2b85f01adeb8b13d7555183ab10aa5.zip
-        sha256: f353e7b99bd0cbfc27ac9082de51acf32a8bc0b3e21ff9661ecca6f205ec1d81
+        url: https://github.com/AcademySoftwareFoundation/openvdb/archive/refs/tags/v13.1.0.zip 
+        sha256: 1e67429ecc7205e05a3b1e9a91cbdd61cc4a46988404555a6b8dcd36ab50c3c4
         dest: external-packages/OpenVDB
 
       # GMP 6.2.1
@@ -304,10 +304,10 @@ modules:
         sha256: 0ba163956f2d468b19a91b96c5aba66ee9610843ea41dda628ea44cdafde7db7
         dest: external-packages/wxInspector
 
-      # FFmpeg n7.0.3
+      # FFmpeg n7.1.5
       - type: file
-        url: https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n7.0.3.tar.gz
-        sha256: deedcabe339165214a3637df4c86a507aef0d793cf8774ff68735f4737e8ddbc
+        url: https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n7.1.5.zip
+        sha256: 4f1b727ee006a07210ca010abb04e67a034c9d361a3a4a1e51d5a2657e0fe7a4
         dest: external-packages/FFMPEG
 
       # libdatachannel v0.24.5
