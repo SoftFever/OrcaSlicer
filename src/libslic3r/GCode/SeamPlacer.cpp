@@ -747,11 +747,6 @@ void process_perimeter_polygon(const Polygon &orig_polygon, float z_coord, const
   if (ignore_full_paint)
     BOOST_LOG_TRIVIAL(debug) << "[SeamPaint] full_perimeter z=" << z_coord << " normalized=true";
   perimeter.exact_enforced_ends = !intervals.empty();
-  if (!perimeter.exact_enforced_ends && weak_volumes.empty()) {
-    // Prove that no green paint exists at this height; do not infer absence from failed interval reconstruction.
-    const auto &nodes = global_model_info.enforcers_tree.nodes();
-
-  }
   const auto in_interval = [&](double at, const std::vector<PaintedInterval> &ranges) {
     for (const PaintedInterval &interval : ranges)
       for (const double s : { at, at + loop_length })
@@ -834,13 +829,14 @@ void process_perimeter_polygon(const Polygon &orig_polygon, float z_coord, const
       orig_point = true;
     }
 
-    if (!ignore_full_paint &&
-        (perimeter.exact_enforced_ends ? in_interval(at, intervals) : global_model_info.is_enforced(position, perimeter.flow_width))) {
+    // Projected ends bound paint but cannot prove that a detour between them stays near its surface.
+    if (!ignore_full_paint && (!perimeter.exact_enforced_ends || in_interval(at, intervals)) &&
+        global_model_info.is_enforced(position, perimeter.flow_width)) {
       type = EnforcedBlockedSeamPoint::Enforced;
     }
 
-    if (perimeter.exact_blocked_ends ? in_interval(at, blocked_intervals) :
-                                     global_model_info.is_blocked(position, perimeter.flow_width)) {
+    if ((!perimeter.exact_blocked_ends || in_interval(at, blocked_intervals)) &&
+        global_model_info.is_blocked(position, perimeter.flow_width)) {
       type = EnforcedBlockedSeamPoint::Blocked;
     }
     some_point_enforced = some_point_enforced || type == EnforcedBlockedSeamPoint::Enforced;

@@ -605,6 +605,35 @@ TEST_CASE("Painted ranges end exactly where the paint contour crosses the layer"
     CHECK(centers == 1);
 }
 
+TEST_CASE("Projected paint boundaries do not color a distant contour detour", "[SeamPlacer][Regression]")
+{
+    const auto paint = GENERATE(EnforcerBlockerType::ENFORCER, EnforcerBlockerType::BLOCKER);
+    PipelineFixture fixture;
+    paint_front_face(fixture, paint);
+    PrintObject &object = fixture.prepare();
+    auto &region = clear_first_layer(object);
+    // The projected ends span x=0..20, but the middle of this contour leaves the painted front face.
+    append_loop(region, fixture.points_in_layer(object,
+        {{-5, 0.2}, {5, 0.2}, {5, 10}, {15, 10}, {15, 0.2}, {25, 0.2}, {25, 15}, {-5, 15}}));
+    SeamPlacer placer;
+    placer.init(fixture.print, [] {});
+    const auto &data = placer.m_seam_per_object.at(&object).layers.front();
+    REQUIRE(data.perimeters.size() == 1);
+    const auto &perimeter = data.perimeters.front();
+    CHECK((paint == EnforcerBlockerType::ENFORCER ? perimeter.exact_enforced_ends : perimeter.exact_blocked_ends));
+    const auto gray = fixture.points_in_layer(object, {{5, 10}, {15, 10}});
+    for (const auto &point : gray) {
+        const auto position = unscale(point);
+        const auto candidate = std::find_if(data.points.begin(), data.points.end(), [&](const SeamPlacerImpl::SeamCandidate &p) {
+            return (p.position.head<2>().cast<double>() - position).norm() < 1e-3;
+        });
+        REQUIRE(candidate != data.points.end());
+        CHECK(candidate->type == SeamType::Neutral);
+    }
+    const auto expected = paint == EnforcerBlockerType::ENFORCER ? SeamType::Enforced : SeamType::Blocked;
+    CHECK(std::any_of(data.points.begin(), data.points.end(), [&](const auto &p) { return p.type == expected; }));
+}
+
 TEST_CASE("Aligned painted seams follow the middle of the painted band", "[SeamPlacer][Regression]")
 {
     // 10 layers with the loop of the previous test; the vertex before the face moves on every layer, which

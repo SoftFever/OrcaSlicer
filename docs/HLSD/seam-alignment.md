@@ -22,7 +22,7 @@ Nearest and Random bypass this stage, but share the paint reconstruction rules.
   the seam onto sharp corners; at 55° and above the seam is the candidate itself.
 - **Enforced run.** The maximal sequence of consecutive Enforced candidates of the perimeter that
   contains C, or the whole loop when every candidate is Enforced. With exact painted ranges it
-  covers a range exactly; otherwise it approximates the painted area with the candidate spacing.
+  follows its geometric bounds and surface proximity; otherwise it approximates the painted area with the candidate spacing.
 
 ## Painted ranges
 
@@ -33,6 +33,11 @@ the direction from it into the paint. The contour is built once per object and s
 tree.
 
 Green and red paint use separate instances of the same contour and interval reconstruction.
+An interval bounds paint membership but does not establish it: every classified candidate must
+also lie within one line width of a triangle of the corresponding paint. A contour can leave the
+painted surface between projected endpoints, especially at concavities and nearby surface folds.
+The same proximity check used by the fallback prevents such a detour from acquiring synthetic
+paint; exact interval bounds still exclude the fringe beyond the projected ends.
 Red ranges classify candidates as Blocked, including the boundary itself (1 µm membership
 tolerance), overriding green paint at an overlap. Inserted samples include both red ends, a
 range midpoint, a gap midpoint and permitted guard samples up to 2 µm outside the red ends.
