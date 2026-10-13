@@ -1525,8 +1525,12 @@ TEST_CASE("Belt supports reach the belt under a leading overhang", "[Print][belt
 TEST_CASE("The build height check counts the Z shrinkage compensation once", "[Print][validate][Regression]")
 {
     // printable_height is 100 mm and Z shrinks to 95 %, so the object is sliced 100 / 95 times taller.
-    // 92 mm become about 96.8 mm and fit; 97 mm become about 102.1 mm and only the compensation makes them too tall.
-    const auto [height, fits] = GENERATE(table<double, bool>({ { 92., true }, { 97., false } }));
+    // 92 mm become about 96.8 mm and fit; 97 mm become about 102.1 mm and only the compensation makes them too tall; 101 mm are too tall on their own.
+    const auto [height, expected] = GENERATE(table<double, std::string>({
+        { 92., "" },
+        { 97., "because of material shrinkage compensation" },
+        { 101., "exceeds the maximum build volume height." },
+    }));
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
     config.set_deserialize_strict({
         { "printable_height", 100. },
@@ -1541,10 +1545,10 @@ TEST_CASE("The build height check counts the Z shrinkage compensation once", "[P
     init_print({ make_cube(20., 20., height) }, print, model, config);
     const std::string error = print.validate().string;
     INFO(error);
-    if (fits)
+    if (expected.empty())
         CHECK(error.empty());
     else
-        CHECK(error.find("because of material shrinkage compensation") != std::string::npos);
+        CHECK(error.find(expected) != std::string::npos);
 }
 
 TEST_CASE("The build height check counts the raft", "[Print][validate][Regression]")
