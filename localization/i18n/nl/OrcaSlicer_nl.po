@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3338,6 +3338,22 @@ msgstr "Alles opnieuw laden"
 msgid "Reload all from disk"
 msgstr "Alles opnieuw laden vanaf schijf"
 
+# AI Translated
+msgid "Fix All"
+msgstr "Alles repareren"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "Alle modellen op het huidige printbed repareren"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "Alle printbedden repareren"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "Alle modellen op alle printbedden repareren"
+
 msgid "Auto Rotate"
 msgstr "Automatisch roteren"
 
@@ -3706,6 +3722,13 @@ msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model objects"
 msgstr[0] "Repareren van de volgende modellen is mislukt@"
 msgstr[1] "Repareren van de volgende modellen is mislukt@"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "Bij %1$d modelobject was geen reparatie nodig."
+msgstr[1] "Bij %1$d modelobjecten was geen reparatie nodig."
 
 msgid "Repairing was canceled"
 msgstr "Repareren is geannuleerd"
@@ -14838,21 +14861,8 @@ msgstr "De firmwareversie is abnormaal. Repareren en bijwerken is vereist voor h
 msgid "Extension Board"
 msgstr "Uitbreidingsprint"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "Splitsen in %1% onderdeel"
-msgstr[1] "Splitsen in %1% onderdelen"
-
 msgid "Repair finished"
 msgstr "Reperaren afgerond"
-
-msgid "Repair failed"
-msgstr "Repareren mislukt."
-
-msgid "Repair canceled"
-msgstr "Repareren geannuleerd"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -22155,6 +22165,14 @@ msgstr "Oriëntatieopties"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "Oriëntatieopties: 0-uitschakelen, 1-inschakelen, andere-automatisch"
+
+# AI Translated
+msgid "Repair"
+msgstr "Repareren"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "Repareert de meshes van de modellen zoals \"Repareer model\" dat doet: sluit gaten en scheuren, richt ze naar buiten en verwijdert zelfdoorsnijdingen."
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "Rotatiehoek rond de Z-as in graden."
@@ -33036,6 +33054,50 @@ msgid "Remove texture"
 msgstr "Textuur verwijderen"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "Afbeelding aanpassen"
+
+# AI Translated
+msgid "Brightness"
+msgstr "Helderheid"
+
+# AI Translated
+msgid "Contrast"
+msgstr "Contrast"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "Scherpte"
+
+# AI Translated
+msgid "Blur"
+msgstr "Vervagen"
+
+# AI Translated
+msgid "Hue"
+msgstr "Tint"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "Haalt de fijnste details uit de afbeelding naar voren. Wordt toegepast na Vervagen, dus beide kunnen samen worden gebruikt: vervaag de ruis en maak daarna de resterende randen scherper."
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "Vervaagt de afbeelding zelf. De eigen schuifregelaar Gladmaken van de laag maakt het reliëf zachter zonder de afbeelding te wijzigen en is de eerste keuze."
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "Deze textuur is in grijswaarden, dus er is geen tint om te verschuiven."
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "Het model wordt bijgewerkt zodra u een schuifregelaar loslaat. \"Opslaan als kopie\" schrijft de aangepaste afbeelding naar uw textuurbibliotheek en laat deze laag ernaar verwijzen."
+
+# AI Translated
+msgid "Save as copy"
+msgstr "Opslaan als kopie"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "Laag voor textuurverplaatsing verwijderen"
 
@@ -33338,6 +33400,10 @@ msgid "not painted"
 msgstr "niet geschilderd"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "Helderheid, contrast, scherpte, vervagen en tint, direct zichtbaar op de afbeelding en op het model terwijl u ze instelt. \"Opslaan als kopie\" schrijft het resultaat naar uw textuurbibliotheek en laat deze laag ernaar verwijzen."
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "Omhoog - eerder toegepast"
 
@@ -33356,6 +33422,10 @@ msgstr "Hoogte van het reliëf: hoe ver wit in de textuur het oppervlak optilt, 
 # AI Translated
 msgid "Tile size"
 msgstr "Tegelgrootte"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "Gekoppeld via de eigen UV-indeling van het model, die al de plaatsing bepaalt: één kopie van de textuur bedekt het model precies, dus er is geen tegelgrootte in te stellen."
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -33501,6 +33571,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "Vanuit aanzicht - projecteert recht op het geschilderde gebied vanuit uw kijkrichting, zoals een diaprojector."
 
 # AI Translated
+msgid "Model UV"
+msgstr "Model-UV"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "Model-UV - gebruikt de textuurcoördinaten die bij het model zelf horen, zodat een textuur die voor dat model is gemaakt precies terechtkomt waar die is geschilderd. Er wordt niets uitgevouwen en Tegelgrootte is niet van toepassing: de eigen indeling van het model is de plaatsing."
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "Dit model heeft geen eigen textuurcoördinaten. Alleen een model dat met een UV-kanaal is geïmporteerd - bijvoorbeeld een getextureerde OBJ - kan daarmee worden gekoppeld."
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "UV-editor openen"
 
@@ -33606,6 +33688,11 @@ msgstr "Toevoegen"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "Overschrijven"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "Aftrekken"
 
@@ -33623,8 +33710,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "De basislaag heeft niets eronder om mee te combineren, dus deze wordt altijd toegevoegd."
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "Wat deze laag doet waar deze de onderliggende lagen overlapt. Toevoegen en Aftrekken stapelen reliëf op of snijden het weg. Vermenigvuldigen en Delen schalen wat eronder ligt, waardoor deze laag een masker daarover wordt - daar werkt Diepte als sterkte, en bij 1 mm blijven witte gebieden onaangetast."
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "Wat deze laag doet waar deze de onderliggende lagen overlapt. Toevoegen en Aftrekken stapelen reliëf op of snijden het weg. Overschrijven vervangt de lagen eronder, zodat alleen het reliëf van deze laag overblijft waar het is geschilderd. Vermenigvuldigen en Delen schalen wat eronder ligt, waardoor deze laag een masker daarover wordt - daar werkt Diepte als sterkte, en bij 1 mm blijven witte gebieden onaangetast."
 
 # AI Translated
 msgid "Adjust placement"
@@ -35031,8 +35118,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "Berekening mislukt. Pas de parameters aan en probeer het opnieuw."
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "De mesh heeft niet-manifold geometrie of open grenzen. U kunt het model ongewijzigd importeren of het vóór het importeren repareren met de 3D-reparatieservice van Windows."
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "De mesh heeft niet-manifold geometrie of open grenzen. U kunt het model ongewijzigd importeren of het vóór het importeren repareren."
 
 # AI Translated
 msgid "Mesh repair"
@@ -35047,20 +35134,20 @@ msgid "Repair and import"
 msgstr "Repareren en importeren"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Let op: de mesh heeft niet-manifold geometrie of open grenzen."
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "Meshprobleem"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "De geselecteerde afbeelding is leeg."
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "Voorbereiden van de textuur voor gebruik is mislukt."
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "Kon de map voor geïmporteerde texturen niet aanmaken."
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "Opslaan van de geïmporteerde textuur is mislukt."
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -35071,16 +35158,8 @@ msgid "Could not delete the texture file."
 msgstr "Kon het textuurbestand niet verwijderen."
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "Kon de map voor geïmporteerde texturen niet aanmaken."
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "Kon de geselecteerde afbeelding niet laden."
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "Opslaan van de geïmporteerde textuur is mislukt."
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -36305,10 +36384,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "Aangepaste G-code meldt een negatieve z_restart_extra."
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "Repareren mislukt: mesh nog steeds open na het vullen van gaten."
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "Kopiëren van map %1% naar %2% mislukt: %3%"
@@ -36758,6 +36833,39 @@ msgid ""
 msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "Splitsen in %1% onderdeel"
+#~ msgstr[1] "Splitsen in %1% onderdelen"
+
+#~ msgid "Repair failed"
+#~ msgstr "Repareren mislukt."
+
+#~ msgid "Repair canceled"
+#~ msgstr "Repareren geannuleerd"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "Wat deze laag doet waar deze de onderliggende lagen overlapt. Toevoegen en Aftrekken stapelen reliëf op of snijden het weg. Vermenigvuldigen en Delen schalen wat eronder ligt, waardoor deze laag een masker daarover wordt - daar werkt Diepte als sterkte, en bij 1 mm blijven witte gebieden onaangetast."
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "De mesh heeft niet-manifold geometrie of open grenzen. U kunt het model ongewijzigd importeren of het vóór het importeren repareren met de 3D-reparatieservice van Windows."
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Let op: de mesh heeft niet-manifold geometrie of open grenzen."
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "Meshprobleem"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "Repareren mislukt: mesh nog steeds open na het vullen van gaten."
 
 # AI Translated
 #~ msgid "Cannot apply logical operation to non-boolean operators."

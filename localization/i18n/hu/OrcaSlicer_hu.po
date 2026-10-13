@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3086,6 +3086,22 @@ msgstr "Összes újratöltése"
 msgid "Reload all from disk"
 msgstr "Összes újratöltése lemezről"
 
+# AI Translated
+msgid "Fix All"
+msgstr "Összes javítása"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "Az aktuális tálca összes modelljének javítása"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "Összes tálca javítása"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "Az összes tálca összes modelljének javítása"
+
 msgid "Auto Rotate"
 msgstr "Automatikus forgatás"
 
@@ -3434,6 +3450,13 @@ msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model objects"
 msgstr[0] "Nem sikerült megjavítani a következő modellt"
 msgstr[1] "Nem sikerült megjavítani a következő modelleket"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "%1$d modellobjektum nem szorult javításra."
+msgstr[1] "%1$d modellobjektum nem szorult javításra."
 
 msgid "Repairing was canceled"
 msgstr "A javítás meg lett szakítva"
@@ -13870,21 +13893,8 @@ msgstr "A firmware-verzió hibás. Nyomtatás előtt javítani és frissíteni k
 msgid "Extension Board"
 msgstr "Bővítőpanel"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "Felosztás %1% tárgyra"
-msgstr[1] "Felosztás %1% tárgyra"
-
 msgid "Repair finished"
 msgstr "Javítás befejezve"
-
-msgid "Repair failed"
-msgstr "A javítás sikertelen"
-
-msgid "Repair canceled"
-msgstr "Javítás megszakítva"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -20606,6 +20616,15 @@ msgstr "Tájolási beállítások"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "Tájolási beállítások: 0-letiltás, 1-engedélyezés, egyéb-automatikus"
+
+# AI Translated
+msgid "Repair"
+msgstr "Javítás"
+
+# AI Translated
+# Needs human review: Quotes the Fix Model label as „Modell javítása” (as in the tip text); the catalog's own msgstr for the "Fix Model" menu entry is "Model javítása" (single l, probably a typo), so the tooltip and the menu label differ until that is fixed.
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "Kijavítja a modellek hálóit úgy, ahogy a „Modell javítása” is: lezárja a lyukakat és a repedéseket, kifelé orientálja a hálót, és eltávolítja az önmetszéseket."
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "Az Z tengely körüli forgatási szög fokban."
@@ -31144,6 +31163,50 @@ msgid "Remove texture"
 msgstr "Textúra eltávolítása"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "Kép módosítása"
+
+# AI Translated
+msgid "Brightness"
+msgstr "Fényerő"
+
+# AI Translated
+msgid "Contrast"
+msgstr "Kontraszt"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "Élesség"
+
+# AI Translated
+msgid "Blur"
+msgstr "Elmosás"
+
+# AI Translated
+msgid "Hue"
+msgstr "Színárnyalat"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "Kiemeli a kép legapróbb részleteit. Az Elmosás után lesz alkalmazva, így a kettő együtt is használható: az elmosással tüntesd el a szemcsézettséget, majd élesítsd a megmaradt éleket."
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "Magát a képet mossa el. A textúraréteg saját Simítás csúszkája a kép módosítása nélkül lágyítja a domborzatot, és érdemes először ahhoz nyúlni."
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "Ez a textúra szürkeárnyalatos, így nincs színárnyalata, amit eltolhatnál."
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "A modell a csúszka elengedésekor frissül. A Mentés másolatként a módosított képet a textúratárba írja, és ezt a textúraréteget az új képre állítja át."
+
+# AI Translated
+msgid "Save as copy"
+msgstr "Mentés másolatként"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "Textúrás domborítási réteg eltávolítása"
 
@@ -31446,6 +31509,10 @@ msgid "not painted"
 msgstr "nincs befestve"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "Fényerő, kontraszt, élesség, elmosás és színárnyalat, módosítás közben a képen és a modellen is látható. A Mentés másolatként az eredményt a textúratárba írja, és ezt a textúraréteget az új képre állítja át."
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "Feljebb - korábban alkalmazva"
 
@@ -31464,6 +31531,10 @@ msgstr "A domborzat magassága: a textúra fehér részei milliméterben mennyiv
 # AI Translated
 msgid "Tile size"
 msgstr "Csempeméret"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "A modell saját UV-elrendezése szerint leképezve, ami már maga az elhelyezés - a textúra egyetlen másolata pontosan lefedi, így nincs megadandó csempeméret."
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -31609,6 +31680,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "Nézetből - egyenesen a befestett területre vetít onnan, ahonnan nézed, mint egy diavetítő."
 
 # AI Translated
+msgid "Model UV"
+msgstr "Modell UV"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "Modell UV - a modellhez eleve tartozó textúrakoordinátákat használja, így az ahhoz a modellhez készült textúra pontosan oda kerül, ahová festették. Nem történik kiterítés, és a Csempeméret nem érvényes: a modell saját elrendezése maga az elhelyezés."
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "Ennek a modellnek nincsenek saját textúrakoordinátái. Csak UV-csatornával importált modell - például textúrázott OBJ - képezhető le velük."
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "UV-szerkesztő megnyitása"
 
@@ -31714,6 +31797,11 @@ msgstr "Hozzáadás"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "Felülírás"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "Kivonás"
 
@@ -31731,8 +31819,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "Az alapréteg alatt nincs semmi, amivel kombinálódhatna, ezért mindig hozzáad."
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "Mit tesz ez a réteg ott, ahol átfedi az alatta lévőket. A Hozzáadás és a Kivonás domborzatot halmoz rá vagy farag el. A Szorzás és az Osztás az alatta lévőt skálázza, így ez a réteg maszkká válik fölötte - ott a Mélység erősségként működik, és 1 mm érintetlenül hagyja a fehér területeket."
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "Mit tesz ez a réteg ott, ahol átfedi az alatta lévőket. A Hozzáadás és a Kivonás domborzatot halmoz rá vagy farag el. A Felülírás lecseréli őket, így ott, ahol festve van, csak ennek a rétegnek a domborzata marad. A Szorzás és az Osztás az alatta lévőt skálázza, így ez a réteg maszkká válik fölötte - ott a Mélység erősségként működik, és 1 mm érintetlenül hagyja a fehér területeket."
 
 # AI Translated
 msgid "Adjust placement"
@@ -33138,8 +33226,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "A számítás sikertelen. Módosítsd a paramétereket, és próbáld újra."
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "A háló nem manifold geometriát vagy nyitott határokat tartalmaz. Importálhatod így is, vagy importálás előtt kijavíthatod a Windows 3D-javító szolgáltatásával."
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "A háló nem manifold geometriát vagy nyitott határokat tartalmaz. Importálhatod így is, vagy importálás előtt kijavíthatod."
 
 # AI Translated
 msgid "Mesh repair"
@@ -33154,20 +33242,20 @@ msgid "Repair and import"
 msgstr "Javítás és importálás"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Figyelem: a háló nem manifold geometriát vagy nyitott határokat tartalmaz."
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "Hálóprobléma"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "A kiválasztott kép üres."
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "Nem sikerült előkészíteni a textúrát a használatra."
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "Nem sikerült létrehozni az importált textúrák mappáját."
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "Nem sikerült menteni az importált textúrát."
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -33178,16 +33266,8 @@ msgid "Could not delete the texture file."
 msgstr "Nem sikerült törölni a textúrafájlt."
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "Nem sikerült létrehozni az importált textúrák mappáját."
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "Nem sikerült betölteni a kiválasztott képet."
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "Nem sikerült menteni az importált textúrát."
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -34412,10 +34492,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "Az egyedi G-code negatív z_restart_extra értéket jelez."
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "A javítás sikertelen: a háló a lyukak kitöltése után is nyitott."
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "A(z) %1% könyvtár másolása ide: %2% sikertelen: %3%"
@@ -34866,6 +34942,39 @@ msgid ""
 msgstr ""
 "Kunkorodás elkerülése\n"
 "Tudtad, hogy a kunkorodásra hajlamos anyagok (például ABS) nyomtatásakor az asztal hőmérsékletének növelése csökkentheti a kunkorodás valószínűségét?"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "Felosztás %1% tárgyra"
+#~ msgstr[1] "Felosztás %1% tárgyra"
+
+#~ msgid "Repair failed"
+#~ msgstr "A javítás sikertelen"
+
+#~ msgid "Repair canceled"
+#~ msgstr "Javítás megszakítva"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "Mit tesz ez a réteg ott, ahol átfedi az alatta lévőket. A Hozzáadás és a Kivonás domborzatot halmoz rá vagy farag el. A Szorzás és az Osztás az alatta lévőt skálázza, így ez a réteg maszkká válik fölötte - ott a Mélység erősségként működik, és 1 mm érintetlenül hagyja a fehér területeket."
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "A háló nem manifold geometriát vagy nyitott határokat tartalmaz. Importálhatod így is, vagy importálás előtt kijavíthatod a Windows 3D-javító szolgáltatásával."
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Figyelem: a háló nem manifold geometriát vagy nyitott határokat tartalmaz."
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "Hálóprobléma"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "A javítás sikertelen: a háló a lyukak kitöltése után is nyitott."
 
 # AI Translated
 #~ msgid "Cannot apply logical operation to non-boolean operators."

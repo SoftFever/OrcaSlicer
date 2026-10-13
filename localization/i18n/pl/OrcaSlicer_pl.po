@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.3.0-rc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <<tlumaczeniebs@gmail.com>>\n"
 "Language-Team: \n"
@@ -3155,6 +3155,22 @@ msgstr "Wczytaj wszystko ponownie"
 msgid "Reload all from disk"
 msgstr "Przeładuj wszystko z dysku"
 
+# AI Translated
+msgid "Fix All"
+msgstr "Napraw wszystkie"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "Napraw wszystkie modele na bieżącej płycie"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "Napraw wszystkie płyty"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "Napraw wszystkie modele na wszystkich płytach"
+
 msgid "Auto Rotate"
 msgstr "Obróć automatycznie"
 
@@ -3511,6 +3527,14 @@ msgid_plural "Failed to repair the following model objects"
 msgstr[0] "Nie udało się naprawić następującego obiektu modelu"
 msgstr[1] "Nie udało się naprawić następujących obiektów modelu"
 msgstr[2] "Nie udało się naprawić następujących obiektów modelu"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "%1$d obiekt modelu nie wymagał naprawy."
+msgstr[1] "%1$d obiekty modelu nie wymagały naprawy."
+msgstr[2] "%1$d obiektów modelu nie wymagało naprawy."
 
 msgid "Repairing was canceled"
 msgstr "Naprawa została anulowana"
@@ -14133,22 +14157,8 @@ msgstr "Błąd wersji oprogramowania układowego. Naprawa i aktualizacja są wym
 msgid "Extension Board"
 msgstr "Płyta rozszerzeń"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "Podziel na %1% część"
-msgstr[1] "Podziel na %1% części"
-msgstr[2] "Podziel na %1% części"
-
 msgid "Repair finished"
 msgstr "Naprawa zakończona"
-
-msgid "Repair failed"
-msgstr "Naprawa nie powiodła się."
-
-msgid "Repair canceled"
-msgstr "Naprawa anulowana"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -20992,6 +21002,14 @@ msgstr "Opcje orientacji"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "Opcje orientacji: 0-wyłącz, 1-włącz, inne-auto"
+
+# AI Translated
+msgid "Repair"
+msgstr "Napraw"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "Naprawia siatki modeli tak jak „Napraw model”: zamyka otwory i pęknięcia, orientuje je na zewnątrz i usuwa samoprzecięcia."
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "Kąt obrotu wokół osi Z w stopniach."
@@ -31571,6 +31589,50 @@ msgid "Remove texture"
 msgstr "Usuń teksturę"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "Dostosuj obraz"
+
+# AI Translated
+msgid "Brightness"
+msgstr "Jasność"
+
+# AI Translated
+msgid "Contrast"
+msgstr "Kontrast"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "Ostrość"
+
+# AI Translated
+msgid "Blur"
+msgstr "Rozmycie"
+
+# AI Translated
+msgid "Hue"
+msgstr "Odcień"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "Wydobywa najdrobniejsze szczegóły obrazu. Stosowana po opcji „Rozmycie”, więc obie można łączyć: rozmyj plamki, a następnie wyostrz krawędzie, które pozostały."
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "Rozmywa sam obraz. Suwak „Wygładzanie” samej warstwy łagodzi relief bez zmiany obrazu i warto sięgnąć po niego w pierwszej kolejności."
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "Ta tekstura jest w skali szarości, więc nie ma odcienia do przesunięcia."
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "Model aktualizuje się po puszczeniu suwaka. „Zapisz jako kopię” zapisuje dopasowany obraz w bibliotece tekstur i przypisuje go tej warstwie."
+
+# AI Translated
+msgid "Save as copy"
+msgstr "Zapisz jako kopię"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "Usuń warstwę tekstury reliefowej"
 
@@ -31873,6 +31935,10 @@ msgid "not painted"
 msgstr "niepomalowana"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "Jasność, kontrast, ostrość, rozmycie i odcień są pokazywane na obrazie i na modelu podczas ustawiania. „Zapisz jako kopię” zapisuje wynik w bibliotece tekstur i przypisuje go tej warstwie."
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "Przesuń w górę - stosowana wcześniej"
 
@@ -31891,6 +31957,10 @@ msgstr "Wysokość reliefu: o ile biel w teksturze podnosi powierzchnię, w mili
 # AI Translated
 msgid "Tile size"
 msgstr "Rozmiar kafelka"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "Mapowanie według własnego układu UV modelu, który już stanowi rozmieszczenie - jedna kopia tekstury pokrywa go dokładnie, więc nie ma rozmiaru kafelka do ustawienia."
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -32038,6 +32108,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "Z widoku - rzutuje teksturę prosto na pomalowany obszar z miejsca, z którego patrzysz, jak rzutnik do slajdów."
 
 # AI Translated
+msgid "Model UV"
+msgstr "UV modelu"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "UV modelu - używa współrzędnych tekstury dołączonych do samego modelu, więc tekstura wykonana dla tego modelu trafia dokładnie tam, gdzie została namalowana. Nic nie jest rozwijane, a rozmiar kafelka nie ma zastosowania: własny układ modelu jest rozmieszczeniem."
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "Ten model nie zawiera własnych współrzędnych tekstury. Tylko model zaimportowany z kanałem UV - na przykład teksturowany OBJ - może być mapowany według nich."
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "Otwórz edytor UV"
 
@@ -32144,6 +32226,11 @@ msgstr "Dodaj"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "Zastąp"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "Odejmij"
 
@@ -32161,8 +32248,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "Warstwa bazowa nie ma pod sobą nic, z czym mogłaby się łączyć, więc zawsze dodaje."
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "Co ta warstwa robi tam, gdzie nakłada się na warstwy poniżej. Dodaj i Odejmij nakładają relief lub go wycinają. Pomnóż i Podziel skalują to, co jest pod spodem, przez co ta warstwa staje się nad tym maską - tam Głębokość działa jak siła, a 1 mm pozostawia białe obszary nietknięte."
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "Co ta warstwa robi tam, gdzie nakłada się na warstwy poniżej. Dodaj i Odejmij nakładają relief lub go wycinają. Zastąp zastępuje je, więc tam, gdzie warstwa jest namalowana, zostaje tylko jej relief. Pomnóż i Podziel skalują to, co jest pod spodem, przez co ta warstwa staje się nad tym maską - tam Głębokość działa jak siła, a 1 mm pozostawia białe obszary nietknięte."
 
 # AI Translated
 msgid "Adjust placement"
@@ -33560,8 +33647,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "Obliczenia nie powiodły się. Dostosuj parametry i spróbuj ponownie."
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "Siatka ma geometrię nierozmaitościową lub otwarte brzegi. Możesz zaimportować ją bez zmian lub przed importem naprawić ją za pomocą usługi naprawy 3D systemu Windows."
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "Siatka ma geometrię nierozmaitościową lub otwarte brzegi. Możesz zaimportować ją bez zmian lub naprawić ją przed importem."
 
 # AI Translated
 msgid "Mesh repair"
@@ -33576,20 +33663,20 @@ msgid "Repair and import"
 msgstr "Napraw i importuj"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Uwaga: siatka ma geometrię nierozmaitościową lub otwarte brzegi."
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "Problem z siatką"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "Wybrany obraz jest pusty."
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "Nie udało się przygotować tekstury do użycia."
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "Nie udało się utworzyć folderu na zaimportowane tekstury."
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "Nie udało się zapisać zaimportowanej tekstury."
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -33600,16 +33687,8 @@ msgid "Could not delete the texture file."
 msgstr "Nie udało się usunąć pliku tekstury."
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "Nie udało się utworzyć folderu na zaimportowane tekstury."
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "Nie udało się wczytać wybranego obrazu."
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "Nie udało się zapisać zaimportowanej tekstury."
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -34839,10 +34918,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "Niestandardowy G-code zgłasza ujemną wartość z_restart_extra."
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "Naprawa nie powiodła się: siatka jest nadal otwarta po wypełnieniu otworów."
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "Nie udało się skopiować katalogu %1% do %2%: %3%"
@@ -35291,6 +35366,40 @@ msgid ""
 msgstr ""
 "Unikaj odkształceń\n"
 "Czy wiesz, że podczas drukowania filamentami podatnymi na odkształcenia, takimi jak ABS, odpowiednie zwiększenie temperatury podgrzewanej płyty może zmniejszyć prawdopodobieństwo odkształceń?"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "Podziel na %1% część"
+#~ msgstr[1] "Podziel na %1% części"
+#~ msgstr[2] "Podziel na %1% części"
+
+#~ msgid "Repair failed"
+#~ msgstr "Naprawa nie powiodła się."
+
+#~ msgid "Repair canceled"
+#~ msgstr "Naprawa anulowana"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "Co ta warstwa robi tam, gdzie nakłada się na warstwy poniżej. Dodaj i Odejmij nakładają relief lub go wycinają. Pomnóż i Podziel skalują to, co jest pod spodem, przez co ta warstwa staje się nad tym maską - tam Głębokość działa jak siła, a 1 mm pozostawia białe obszary nietknięte."
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "Siatka ma geometrię nierozmaitościową lub otwarte brzegi. Możesz zaimportować ją bez zmian lub przed importem naprawić ją za pomocą usługi naprawy 3D systemu Windows."
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Uwaga: siatka ma geometrię nierozmaitościową lub otwarte brzegi."
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "Problem z siatką"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "Naprawa nie powiodła się: siatka jest nadal otwarta po wypełnieniu otworów."
 
 # AI Translated
 # Needs human review: English says 'non-boolean operators' but means operands; rendered as operandów. Source wording may need fixing.

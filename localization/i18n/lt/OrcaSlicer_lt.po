@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: 2026-07-02 14:13+0300\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -3081,6 +3081,22 @@ msgstr "Įkelti viską iš naujo"
 msgid "Reload all from disk"
 msgstr "Įkelti viską iš naujo iš disko"
 
+# AI Translated
+msgid "Fix All"
+msgstr "Taisyti viską"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "Taisyti visus modelius dabartinėje plokštėje"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "Taisyti visas plokštes"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "Taisyti visus modelius visose plokštėse"
+
 msgid "Auto Rotate"
 msgstr "Automatinis pasukimas"
 
@@ -3434,6 +3450,14 @@ msgid_plural "Failed to repair the following model objects"
 msgstr[0] "Nepavyko pataisyti šio modelio objekto"
 msgstr[1] "Nepavyko pataisyti šių modelio objektų"
 msgstr[2] "Nepavyko pataisyti šių modelio objektų"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "%1$d modelio objekto taisyti nereikėjo."
+msgstr[1] "%1$d modelio objektų taisyti nereikėjo."
+msgstr[2] "%1$d modelio objektų taisyti nereikėjo."
 
 msgid "Repairing was canceled"
 msgstr "Taisymas buvo atšauktas"
@@ -13819,22 +13843,8 @@ msgstr "Įterptinės programinės įrangos versija yra nenormali. Prieš spausdi
 msgid "Extension Board"
 msgstr "Išplėtimo plokštė"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "Padalinti į %1% dalį"
-msgstr[1] "Padalinti į %1% dalis"
-msgstr[2] "Padalinti į %1% dalių"
-
 msgid "Repair finished"
 msgstr "Taisymas baigtas"
-
-msgid "Repair failed"
-msgstr "Taisymas nepavyko"
-
-msgid "Repair canceled"
-msgstr "Taisymas atšauktas"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -20506,6 +20516,14 @@ msgstr "Orientacijos parinktys"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "Orientacijos parinktys: 0 – išjungti, 1 – įjungti, kitos – automatiškai"
+
+# AI Translated
+msgid "Repair"
+msgstr "Taisyti"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "Taiso modelių tinklelius taip, kaip „Taisyti modelį“: uždaro skyles ir plyšius, nukreipia juos į išorę ir pašalina savaiminius susikirtimus."
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "Sukimosi kampas aplink Z ašį laipsniais."
@@ -30936,6 +30954,50 @@ msgid "Remove texture"
 msgstr "Pašalinti tekstūrą"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "Koreguoti vaizdą"
+
+# AI Translated
+msgid "Brightness"
+msgstr "Ryškumas"
+
+# AI Translated
+msgid "Contrast"
+msgstr "Kontrastas"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "Aštrumas"
+
+# AI Translated
+msgid "Blur"
+msgstr "Suliejimas"
+
+# AI Translated
+msgid "Hue"
+msgstr "Spalvos tonas"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "Išryškina smulkiausias vaizdo detales. Taikoma po suliejimo, todėl abu galima naudoti kartu: sulieskite triukšmą, tada paaštrinkite likusius kraštus."
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "Suliejamas pats vaizdas. Paties sluoksnio slankiklis „Glotninimas“ sušvelnina reljefą nekeisdamas vaizdo, todėl pirmiausia rinkitės jį."
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "Ši tekstūra yra pilkų atspalvių, todėl neturi spalvos tono, kurį būtų galima keisti."
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "Modelis atnaujinamas atleidus slankiklį. „Išsaugoti kaip kopiją“ įrašo pakoreguotą vaizdą į jūsų tekstūrų biblioteką ir nukreipia šį sluoksnį į jį."
+
+# AI Translated
+msgid "Save as copy"
+msgstr "Išsaugoti kaip kopiją"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "Pašalinti tekstūrinio reljefo sluoksnį"
 
@@ -31238,6 +31300,10 @@ msgid "not painted"
 msgstr "nenupiešta"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "Ryškumas, kontrastas, aštrumas, suliejimas ir spalvos tonas rodomi vaizde ir modelyje, kai juos nustatote. „Išsaugoti kaip kopiją“ įrašo rezultatą į jūsų tekstūrų biblioteką ir nukreipia šį sluoksnį į jį."
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "Perkelti aukštyn - taikoma anksčiau"
 
@@ -31256,6 +31322,10 @@ msgstr "Reljefo aukštis: kiek balta tekstūros spalva pakelia paviršių, milim
 # AI Translated
 msgid "Tile size"
 msgstr "Plytelės dydis"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "Tekstūra dedama pagal paties modelio UV išdėstymą, kuris jau nustato padėtį - viena tekstūros kopija jį dengia tiksliai, todėl plytelės dydžio nustatyti nereikia."
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -31403,6 +31473,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "Iš vaizdo - projektuoja tiesiai į nupieštą sritį iš ten, iš kur žiūrite, kaip skaidrių projektorius."
 
 # AI Translated
+msgid "Model UV"
+msgstr "Modelio UV"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "Modelio UV - naudojamos pačiam modeliui priskirtos tekstūros koordinatės, todėl tam modeliui sukurta tekstūra patenka būtent ten, kur buvo nupiešta. Niekas neišskleidžiama, o plytelės dydis netaikomas: padėtį nustato paties modelio išdėstymas."
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "Šis modelis neturi savų tekstūros koordinačių. Pagal jas galima išdėstyti tik modelį, importuotą su UV kanalu (pavyzdžiui, tekstūruotą OBJ)."
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "Atverti UV redaktorių"
 
@@ -31509,6 +31591,11 @@ msgstr "Įtraukti"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "Perrašyti"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "Atimti"
 
@@ -31526,8 +31613,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "Po baziniu sluoksniu nėra nieko, su kuo jį būtų galima derinti, todėl jis visada pridedamas."
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "Ką šis sluoksnis daro ten, kur persidengia su apatiniais. „Įtraukti“ ir „Atimti“ prideda reljefo arba jį išpjauna. „Dauginti“ ir „Dalyti“ keičia to, kas apačioje, mastelį, todėl šis sluoksnis tampa jo kauke - tuomet „Gylis“ veikia kaip stiprumas, o 1 mm baltų sričių nekeičia."
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "Ką šis sluoksnis daro ten, kur persidengia su apatiniais. „Įtraukti“ ir „Atimti“ prideda reljefo arba jį išpjauna. „Perrašyti“ pakeičia apatinius sluoksnius, todėl nupieštoje vietoje lieka tik šio sluoksnio reljefas. „Dauginti“ ir „Dalyti“ keičia to, kas apačioje, mastelį, todėl šis sluoksnis tampa jo kauke - tuomet „Gylis“ veikia kaip stiprumas, o 1 mm baltų sričių nekeičia."
 
 # AI Translated
 msgid "Adjust placement"
@@ -32929,8 +33016,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "Skaičiavimas nepavyko. Pakoreguokite parametrus ir bandykite dar kartą."
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "Tinklelyje yra ne daugialypės (non-manifold) geometrijos arba atvirų kraštų. Galite jį importuoti tokį, koks yra, arba prieš importuodami sutaisyti „Windows“ 3D taisymo paslauga."
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "Tinklelyje yra ne daugialypės (non-manifold) geometrijos arba atvirų kraštų. Galite jį importuoti tokį, koks yra, arba prieš importuodami sutaisyti."
 
 # AI Translated
 msgid "Mesh repair"
@@ -32945,20 +33032,20 @@ msgid "Repair and import"
 msgstr "Sutaisyti ir importuoti"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Atkreipkite dėmesį, kad tinklelyje yra ne daugialypės (non-manifold) geometrijos arba atvirų kraštų."
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "Tinklelio problema"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "Pasirinktas paveikslėlis tuščias."
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "Nepavyko paruošti tekstūros naudojimui."
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "Nepavyko sukurti aplanko importuotoms tekstūroms."
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "Nepavyko išsaugoti importuotos tekstūros."
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -32969,16 +33056,8 @@ msgid "Could not delete the texture file."
 msgstr "Nepavyko ištrinti tekstūros failo."
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "Nepavyko sukurti aplanko importuotoms tekstūroms."
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "Nepavyko įkelti pasirinkto paveikslėlio."
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "Nepavyko išsaugoti importuotos tekstūros."
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -34221,10 +34300,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "Pasirinktinis G-code pateikia neigiamą z_restart_extra."
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "Taisymas nepavyko: tinklas po skylių užpildymo vis dar atviras."
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "Katalogo %1% kopijavimas į %2% nepavyko: %3%"
@@ -34674,6 +34749,40 @@ msgid ""
 msgstr ""
 "Venkite deformacijų (warping)\n"
 "Ar žinojote, kad spausdinant medžiagas, kurios yra linkusios trauktis ir riestis (pvz., ABS), tinkamas kaitinamojo pagrindo temperatūros padidinimas gali sumažinti deformacijų (warping) tikimybę?"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "Padalinti į %1% dalį"
+#~ msgstr[1] "Padalinti į %1% dalis"
+#~ msgstr[2] "Padalinti į %1% dalių"
+
+#~ msgid "Repair failed"
+#~ msgstr "Taisymas nepavyko"
+
+#~ msgid "Repair canceled"
+#~ msgstr "Taisymas atšauktas"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "Ką šis sluoksnis daro ten, kur persidengia su apatiniais. „Įtraukti“ ir „Atimti“ prideda reljefo arba jį išpjauna. „Dauginti“ ir „Dalyti“ keičia to, kas apačioje, mastelį, todėl šis sluoksnis tampa jo kauke - tuomet „Gylis“ veikia kaip stiprumas, o 1 mm baltų sričių nekeičia."
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "Tinklelyje yra ne daugialypės (non-manifold) geometrijos arba atvirų kraštų. Galite jį importuoti tokį, koks yra, arba prieš importuodami sutaisyti „Windows“ 3D taisymo paslauga."
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Atkreipkite dėmesį, kad tinklelyje yra ne daugialypės (non-manifold) geometrijos arba atvirų kraštų."
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "Tinklelio problema"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "Taisymas nepavyko: tinklas po skylių užpildymo vis dar atviras."
 
 # AI Translated
 # Needs human review: English says 'operators' but means operands (the values the logical operation is applied to); translated as operands. Check the source wording.

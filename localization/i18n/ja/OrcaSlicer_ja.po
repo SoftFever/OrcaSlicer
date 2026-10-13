@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3099,6 +3099,22 @@ msgstr "全て再読み込み"
 msgid "Reload all from disk"
 msgstr "全てディスクから再読み込み"
 
+# AI Translated
+msgid "Fix All"
+msgstr "すべて修復"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "現在のプレート上のすべてのモデルを修復"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "全プレートを修復"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "すべてのプレート上のすべてのモデルを修復"
+
 msgid "Auto Rotate"
 msgstr "自動回転"
 
@@ -3443,6 +3459,12 @@ msgstr[0] "以下のモデルオブジェクトが修復されました。"
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model objects"
 msgstr[0] "以下のオブジェクトを修復てきませんでした"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "%1$d個のモデルオブジェクトは修復の必要がありませんでした。"
 
 msgid "Repairing was canceled"
 msgstr "修復は取消しました"
@@ -13832,20 +13854,8 @@ msgstr "ファームウェアのバージョンに異常があります。印刷
 msgid "Extension Board"
 msgstr "拡張ボード"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "%1%個のパーツに分割"
-
 msgid "Repair finished"
 msgstr "修復完了"
-
-msgid "Repair failed"
-msgstr "修復が失敗しました"
-
-msgid "Repair canceled"
-msgstr "修復を取消しました"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -20900,6 +20910,14 @@ msgstr "方向オプション"
 # AI Translated
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "方向オプション: 0-無効、1-有効、その他-自動"
+
+# AI Translated
+msgid "Repair"
+msgstr "修復"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "「モデルを修復」と同様にモデルのメッシュを修復します。穴や隙間を閉じ、メッシュを外向きに揃え、自己交差を取り除きます。"
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "Z軸周りの回転角度(度)。"
@@ -31492,6 +31510,50 @@ msgid "Remove texture"
 msgstr "テクスチャを削除"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "画像を調整"
+
+# AI Translated
+msgid "Brightness"
+msgstr "明るさ"
+
+# AI Translated
+msgid "Contrast"
+msgstr "コントラスト"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "シャープネス"
+
+# AI Translated
+msgid "Blur"
+msgstr "ぼかし"
+
+# AI Translated
+msgid "Hue"
+msgstr "色相"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "画像の最も細かいディテールを際立たせます。「ぼかし」の後に適用されるため、両方を併用できます。まずぼかしてノイズを除き、残ったエッジをシャープにします。"
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "画像そのものをぼかします。レイヤー自体の「スムージング」スライダーは、画像を変えずに起伏をなだらかにするため、まずはそちらを試してください。"
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "このテクスチャはグレースケールのため、シフトできる色相がありません。"
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "スライダーを放すとモデルが更新されます。「コピーとして保存」は、調整後の画像をテクスチャライブラリに書き込み、このレイヤーがその画像を使うようにします。"
+
+# AI Translated
+msgid "Save as copy"
+msgstr "コピーとして保存"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "テクスチャ変位レイヤーを削除"
 
@@ -31794,6 +31856,10 @@ msgid "not painted"
 msgstr "未ペイント"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "明るさ、コントラスト、シャープネス、ぼかし、色相。設定すると画像とモデルに表示されます。「コピーとして保存」は結果をテクスチャライブラリに書き込み、このレイヤーがその画像を使うようにします。"
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "上へ移動 - 先に適用"
 
@@ -31812,6 +31878,10 @@ msgstr "起伏の高さ: テクスチャの白い部分が表面を持ち上げ�
 # AI Translated
 msgid "Tile size"
 msgstr "タイルサイズ"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "モデル自身のUVレイアウトでマッピングされます。このレイアウトがそのまま配置になり、テクスチャ1枚がちょうど全体を覆うため、設定するタイルサイズはありません。"
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -31955,6 +32025,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "ビューから - スライドプロジェクターのように、現在見ている方向からペイント領域にまっすぐ投影します。"
 
 # AI Translated
+msgid "Model UV"
+msgstr "モデルUV"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "モデルUV - モデルに元から付属するテクスチャ座標を使うため、そのモデル用に作られたテクスチャは描かれた位置にそのまま配置されます。展開は行われず、「タイルサイズ」は適用されません。モデル自身のレイアウトがそのまま配置になります。"
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "このモデルには独自のテクスチャ座標がありません。UVチャンネル付きでインポートしたモデル (たとえばテクスチャ付きOBJ) のみ、その座標でマッピングできます。"
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "UVエディターを開く"
 
@@ -32059,6 +32141,11 @@ msgstr "追加"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "上書き"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "減算"
 
@@ -32076,8 +32163,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "ベースレイヤーは下に組み合わせるものがないため、常に追加になります。"
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "このレイヤーが下のレイヤーと重なる部分での動作です。「追加」と「減算」は起伏を盛り上げたり削ったりします。「乗算」と「除算」は下にあるものを拡大縮小するため、このレイヤーはその上のマスクになります - その場合「深さ」は強度として働き、1 mmでは白い部分は変化しません。"
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "このレイヤーが下のレイヤーと重なる部分での動作です。「追加」と「減算」は起伏を盛り上げたり削ったりします。「上書き」は下のレイヤーを置き換えるため、ペイントした部分にはこのレイヤーの起伏だけが残ります。「乗算」と「除算」は下にあるものを拡大縮小するため、このレイヤーはその上のマスクになります - その場合「深さ」は強度として働き、1 mmでは白い部分は変化しません。"
 
 # AI Translated
 msgid "Adjust placement"
@@ -33472,8 +33559,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "計算に失敗しました。パラメータを調整して再試行してください。"
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "メッシュに非多様体ジオメトリまたは開いた境界があります。そのままインポートするか、インポート前にWindowsの3D修復サービスで修復できます。"
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "メッシュに非多様体ジオメトリまたは開いた境界があります。そのままインポートするか、インポート前に修復できます。"
 
 # AI Translated
 msgid "Mesh repair"
@@ -33488,20 +33575,20 @@ msgid "Repair and import"
 msgstr "修復してインポート"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "メッシュに非多様体ジオメトリまたは開いた境界があることに注意してください。"
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "メッシュの問題"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "選択した画像は空です。"
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "テクスチャを使用できるように準備できませんでした。"
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "インポートしたテクスチャ用のフォルダーを作成できませんでした。"
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "インポートしたテクスチャの保存に失敗しました。"
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -33512,16 +33599,8 @@ msgid "Could not delete the texture file."
 msgstr "テクスチャファイルを削除できませんでした。"
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "インポートしたテクスチャ用のフォルダーを作成できませんでした。"
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "選択した画像を読み込めませんでした。"
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "インポートしたテクスチャの保存に失敗しました。"
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -34725,10 +34804,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "カスタムG-codeがz_restart_extraに負の値を報告しています。"
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "修復に失敗しました: 穴埋め後もメッシュが開いたままです。"
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "ディレクトリ%1%の%2%へのコピーに失敗しました: %3%"
@@ -35189,6 +35264,38 @@ msgid ""
 msgstr ""
 "反りを避ける\n"
 "ABSのような反りやすい素材を印刷する場合、ヒートベッドの温度を適切に上げることで、反りが発生する確率を下げることができることをご存知ですか？"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "%1%個のパーツに分割"
+
+#~ msgid "Repair failed"
+#~ msgstr "修復が失敗しました"
+
+#~ msgid "Repair canceled"
+#~ msgstr "修復を取消しました"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "このレイヤーが下のレイヤーと重なる部分での動作です。「追加」と「減算」は起伏を盛り上げたり削ったりします。「乗算」と「除算」は下にあるものを拡大縮小するため、このレイヤーはその上のマスクになります - その場合「深さ」は強度として働き、1 mmでは白い部分は変化しません。"
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "メッシュに非多様体ジオメトリまたは開いた境界があります。そのままインポートするか、インポート前にWindowsの3D修復サービスで修復できます。"
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "メッシュに非多様体ジオメトリまたは開いた境界があることに注意してください。"
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "メッシュの問題"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "修復に失敗しました: 穴埋め後もメッシュが開いたままです。"
 
 # AI Translated
 #~ msgid "Cannot apply logical operation to non-boolean operators."

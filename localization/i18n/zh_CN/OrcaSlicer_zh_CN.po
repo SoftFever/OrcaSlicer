@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: 2026-06-11 12:37-0300\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -2997,6 +2997,22 @@ msgstr "重新加载全部"
 msgid "Reload all from disk"
 msgstr "从磁盘重新加载全部"
 
+# AI Translated
+msgid "Fix All"
+msgstr "全部修复"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "修复当前盘上的所有模型"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "修复所有盘"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "修复所有盘上的所有模型"
+
 msgid "Auto Rotate"
 msgstr "自动朝向"
 
@@ -3324,6 +3340,12 @@ msgstr[0] "以下模型对象已被修复"
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model objects"
 msgstr[0] "以下模型对象修复失败"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "%1$d个模型对象无需修复。"
 
 msgid "Repairing was canceled"
 msgstr "修复被取消"
@@ -13526,20 +13548,8 @@ msgstr "当前固件版本异常，需要进行修复升级，否则无法继续
 msgid "Extension Board"
 msgstr "扩展板"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "拆分为 %1% 个零件"
-
 msgid "Repair finished"
 msgstr "修复已完成"
-
-msgid "Repair failed"
-msgstr "修复失败"
-
-msgid "Repair canceled"
-msgstr "修复被取消"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -20095,6 +20105,14 @@ msgstr "朝向选项"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "朝向选项：0-禁用，1-启用，其他-自动"
+
+# AI Translated
+msgid "Repair"
+msgstr "修复"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "像“修复模型”一样修复模型的网格：封闭孔洞和裂缝，使其朝向外侧，并消除自相交。"
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "绕 Z 轴的旋转角度（以度为单位）。"
@@ -30497,6 +30515,50 @@ msgid "Remove texture"
 msgstr "移除纹理"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "调整图像"
+
+# AI Translated
+msgid "Brightness"
+msgstr "亮度"
+
+# AI Translated
+msgid "Contrast"
+msgstr "对比度"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "锐度"
+
+# AI Translated
+msgid "Blur"
+msgstr "模糊"
+
+# AI Translated
+msgid "Hue"
+msgstr "色相"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "突出图像中最精细的细节。在“模糊”之后应用，因此两者可配合使用：先模糊掉斑点，再锐化剩余的边缘。"
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "模糊图像本身。图层自带的“平滑”滑块可在不改变图像的情况下柔化起伏，应优先使用。"
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "此纹理为灰度图，没有可偏移的色相。"
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "松开滑块时模型才会更新。“另存为副本”会将调整后的图像写入您的纹理库，并让此图层使用该图像。"
+
+# AI Translated
+msgid "Save as copy"
+msgstr "另存为副本"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "移除纹理置换图层"
 
@@ -30799,6 +30861,10 @@ msgid "not painted"
 msgstr "未绘制"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "亮度、对比度、锐度、模糊和色相，设置时会同步显示在图像和模型上。“另存为副本”会将结果写入您的纹理库，并让此图层使用该结果。"
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "上移 - 更早应用"
 
@@ -30817,6 +30883,10 @@ msgstr "起伏的高度：纹理中的白色将表面抬起多少，单位为毫
 # AI Translated
 msgid "Tile size"
 msgstr "平铺尺寸"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "按模型自身的 UV 布局映射，该布局本身就是放置方式 - 纹理的一个副本即可精确覆盖，因此无需设置平铺尺寸。"
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -30960,6 +31030,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "从视图 - 从您当前观察的方向直接投影到绘制区域上，就像幻灯机一样。"
 
 # AI Translated
+msgid "Model UV"
+msgstr "模型 UV"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "模型 UV - 使用模型自带的纹理坐标，因此为该模型制作的纹理会精确落在其绘制的位置。不会进行展开，“平铺尺寸”也不适用：模型自身的布局就是放置方式。"
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "此模型没有自带纹理坐标。只有导入时带有 UV 通道的模型（例如带纹理的 OBJ）才能按其进行映射。"
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "打开 UV 编辑器"
 
@@ -31064,6 +31146,11 @@ msgstr "添加"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "覆盖"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "相减"
 
@@ -31081,8 +31168,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "基础图层下方没有可与之组合的内容，因此始终使用“添加”。"
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "此图层与下方图层重叠处的作用方式。“添加”和“相减”会堆叠或削减起伏。“相乘”和“相除”会缩放下方的内容，使此图层成为其上的遮罩 - 此时“深度”相当于强度，1 mm 时白色区域保持不变。"
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "此图层与下方图层重叠处的作用方式。“添加”和“相减”会堆叠或削减起伏。“覆盖”会取代下方图层，因此在绘制处只保留此图层的起伏。“相乘”和“相除”会缩放下方的内容，使此图层成为其上的遮罩 - 此时“深度”相当于强度，1 mm 时白色区域保持不变。"
 
 # AI Translated
 msgid "Adjust placement"
@@ -32466,8 +32553,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "计算失败。请调整参数后重试。"
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "网格存在非流形几何体或开放边界。您可以按原样导入，或在导入前使用 Windows 3D 修复服务进行修复。"
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "网格存在非流形几何体或开放边界。您可以按原样导入，或在导入前进行修复。"
 
 # AI Translated
 msgid "Mesh repair"
@@ -32482,20 +32569,20 @@ msgid "Repair and import"
 msgstr "修复并导入"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "请注意，该网格存在非流形几何体或开放边界。"
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "网格问题"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "所选图像为空。"
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "准备纹理以供使用失败。"
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "无法创建用于存放导入纹理的文件夹。"
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "保存导入的纹理失败。"
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -32506,16 +32593,8 @@ msgid "Could not delete the texture file."
 msgstr "无法删除纹理文件。"
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "无法创建用于存放导入纹理的文件夹。"
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "无法加载所选图像。"
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "保存导入的纹理失败。"
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -33716,10 +33795,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "自定义 G-code 报告 z_restart_extra 为负。"
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "修复失败：填补孔洞后网格仍未封闭。"
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "复制目录 %1% 到 %2% 失败：%3%"
@@ -34168,6 +34243,38 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "拆分为 %1% 个零件"
+
+#~ msgid "Repair failed"
+#~ msgstr "修复失败"
+
+#~ msgid "Repair canceled"
+#~ msgstr "修复被取消"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "此图层与下方图层重叠处的作用方式。“添加”和“相减”会堆叠或削减起伏。“相乘”和“相除”会缩放下方的内容，使此图层成为其上的遮罩 - 此时“深度”相当于强度，1 mm 时白色区域保持不变。"
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "网格存在非流形几何体或开放边界。您可以按原样导入，或在导入前使用 Windows 3D 修复服务进行修复。"
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "请注意，该网格存在非流形几何体或开放边界。"
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "网格问题"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "修复失败：填补孔洞后网格仍未封闭。"
 
 # AI Translated
 #~ msgid "Cannot apply logical operation to non-boolean operators."

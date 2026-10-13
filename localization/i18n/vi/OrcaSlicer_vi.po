@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: 2025-10-02 17:43+0700\n"
 "Last-Translator: \n"
 "Language-Team: hainguyen.ts13@gmail.com\n"
@@ -3214,6 +3214,22 @@ msgstr "Tải lại tất cả"
 msgid "Reload all from disk"
 msgstr "tải lại tất cả từ ổ đĩa"
 
+# AI Translated
+msgid "Fix All"
+msgstr "Sửa tất cả"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "Sửa tất cả mô hình trên plate hiện tại"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "Sửa tất cả plate"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "Sửa tất cả mô hình trên mọi plate"
+
 msgid "Auto Rotate"
 msgstr "Tự động xoay"
 
@@ -3571,6 +3587,12 @@ msgstr[0] "Vật thể model sau đã được sửa"
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model objects"
 msgstr[0] "Không thể sửa vật thể model sau"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "%1$d vật thể mô hình không cần sửa."
 
 msgid "Repairing was canceled"
 msgstr "Đã hủy sửa chữa"
@@ -14497,20 +14519,8 @@ msgstr "Phiên bản firmware bất thường. Cần sửa chữa và cập nh�
 msgid "Extension Board"
 msgstr "Bo mạch mở rộng"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "Tách thành %1% phần"
-
 msgid "Repair finished"
 msgstr "Sửa chữa hoàn tất"
-
-msgid "Repair failed"
-msgstr "Sửa chữa thất bại."
-
-msgid "Repair canceled"
-msgstr "Sửa chữa đã hủy"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -21355,6 +21365,14 @@ msgstr "Tùy chọn định hướng"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "Tùy chọn định hướng: 0-tắt, 1-bật, khác-tự động"
+
+# AI Translated
+msgid "Repair"
+msgstr "Sửa"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "Sửa lưới của các mô hình như Sửa model: bịt kín lỗ hổng và vết nứt, định hướng mặt ra ngoài và loại bỏ các chỗ tự giao cắt."
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "Góc xoay xung quanh trục Z tính bằng độ."
@@ -31982,6 +32000,50 @@ msgid "Remove texture"
 msgstr "Xóa kết cấu"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "Điều chỉnh ảnh"
+
+# AI Translated
+msgid "Brightness"
+msgstr "Độ sáng"
+
+# AI Translated
+msgid "Contrast"
+msgstr "Độ tương phản"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "Độ sắc nét"
+
+# AI Translated
+msgid "Blur"
+msgstr "Làm mờ"
+
+# AI Translated
+msgid "Hue"
+msgstr "Sắc độ"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "Làm nổi bật các chi tiết nhỏ nhất trong ảnh. Được áp dụng sau Làm mờ, nên có thể dùng cả hai cùng nhau: làm mờ bớt nhiễu hạt, rồi làm sắc nét các cạnh còn lại."
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "Làm mờ chính bức ảnh. Thanh trượt Làm mượt riêng của lớp kết cấu làm mềm phần nổi mà không thay đổi ảnh, và nên thử thanh đó trước."
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "Kết cấu này là thang độ xám, nên không có sắc độ nào để thay đổi."
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "Mô hình được cập nhật khi bạn thả thanh trượt. Lưu thành bản sao ghi ảnh đã điều chỉnh vào thư viện kết cấu của bạn và trỏ lớp kết cấu này tới đó."
+
+# AI Translated
+msgid "Save as copy"
+msgstr "Lưu thành bản sao"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "Xóa lớp dịch chuyển kết cấu"
 
@@ -32284,6 +32346,10 @@ msgid "not painted"
 msgstr "chưa vẽ"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "Độ sáng, độ tương phản, độ sắc nét, làm mờ và sắc độ, hiển thị trên ảnh và trên mô hình khi bạn thiết lập. Lưu thành bản sao ghi kết quả vào thư viện kết cấu của bạn và trỏ lớp kết cấu này tới đó."
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "Di chuyển lên - áp dụng sớm hơn"
 
@@ -32302,6 +32368,10 @@ msgstr "Chiều cao của phần nổi: màu trắng trong kết cấu nâng b�
 # AI Translated
 msgid "Tile size"
 msgstr "Kích thước ô"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "Được ánh xạ theo bố cục UV riêng của mô hình, vốn đã là vị trí đặt sẵn - một bản sao của kết cấu phủ vừa khít, nên không có kích thước ô để thiết lập."
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -32445,6 +32515,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "Từ góc nhìn - chiếu thẳng lên vùng đã vẽ từ vị trí bạn đang nhìn, như một máy chiếu slide."
 
 # AI Translated
+msgid "Model UV"
+msgstr "UV của mô hình"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "UV của mô hình - dùng tọa độ kết cấu đi kèm với chính mô hình, nên kết cấu được tạo cho mô hình đó sẽ nằm đúng chỗ đã được vẽ. Không có gì được trải phẳng, và Kích thước ô không áp dụng: bố cục riêng của mô hình chính là vị trí đặt."
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "Mô hình này không có tọa độ kết cấu riêng. Chỉ mô hình được nhập kèm kênh UV - chẳng hạn một OBJ có kết cấu - mới có thể được ánh xạ theo chúng."
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "Mở trình chỉnh sửa UV"
 
@@ -32549,6 +32631,11 @@ msgstr "Thêm"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "Ghi đè"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "Trừ"
 
@@ -32566,8 +32653,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "Lớp nền không có gì bên dưới để kết hợp, nên luôn ở chế độ Thêm."
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "Tác động của lớp này tại nơi nó chồng lên các lớp bên dưới. Thêm và Trừ đắp thêm hoặc khoét bớt phần nổi. Nhân và Chia co giãn những gì nằm bên dưới, biến lớp này thành một mặt nạ phủ lên đó - khi ấy Độ sâu đóng vai trò như cường độ, và 1 mm giữ nguyên các vùng trắng."
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "Tác động của lớp này tại nơi nó chồng lên các lớp bên dưới. Thêm và Trừ đắp thêm hoặc khoét bớt phần nổi. Ghi đè thay thế chúng, nên chỗ được vẽ chỉ còn phần nổi của lớp này. Nhân và Chia co giãn những gì nằm bên dưới, biến lớp này thành một mặt nạ phủ lên đó - khi ấy Độ sâu đóng vai trò như cường độ, và 1 mm giữ nguyên các vùng trắng."
 
 # AI Translated
 msgid "Adjust placement"
@@ -33965,8 +34052,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "Tính toán thất bại. Vui lòng điều chỉnh tham số và thử lại."
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "Lưới có hình học non-manifold hoặc biên hở. Bạn có thể nhập nguyên trạng hoặc sửa bằng dịch vụ sửa chữa 3D của Windows trước khi nhập."
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "Lưới có hình học non-manifold hoặc biên hở. Bạn có thể nhập nguyên trạng hoặc sửa trước khi nhập."
 
 # AI Translated
 msgid "Mesh repair"
@@ -33981,20 +34068,20 @@ msgid "Repair and import"
 msgstr "Sửa và nhập"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Lưu ý rằng lưới có hình học non-manifold hoặc biên hở."
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "Vấn đề về lưới"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "Ảnh đã chọn trống."
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "Không thể chuẩn bị kết cấu để sử dụng."
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "Không thể tạo thư mục cho các kết cấu đã nhập."
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "Lưu kết cấu đã nhập thất bại."
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -34005,16 +34092,8 @@ msgid "Could not delete the texture file."
 msgstr "Không thể xóa file kết cấu."
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "Không thể tạo thư mục cho các kết cấu đã nhập."
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "Không thể tải ảnh đã chọn."
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "Lưu kết cấu đã nhập thất bại."
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -35219,10 +35298,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "G-code tùy chỉnh báo z_restart_extra âm."
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "Sửa chữa thất bại: lưới vẫn hở sau khi lấp lỗ."
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "Sao chép thư mục %1% sang %2% thất bại: %3%"
@@ -35672,6 +35747,38 @@ msgid ""
 msgstr ""
 "Tránh cong vênh\n"
 "Bạn có biết rằng khi in vật liệu dễ cong vênh như ABS, tăng nhiệt độ bàn nóng một cách thích hợp có thể giảm xác suất cong vênh không?"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "Tách thành %1% phần"
+
+#~ msgid "Repair failed"
+#~ msgstr "Sửa chữa thất bại."
+
+#~ msgid "Repair canceled"
+#~ msgstr "Sửa chữa đã hủy"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "Tác động của lớp này tại nơi nó chồng lên các lớp bên dưới. Thêm và Trừ đắp thêm hoặc khoét bớt phần nổi. Nhân và Chia co giãn những gì nằm bên dưới, biến lớp này thành một mặt nạ phủ lên đó - khi ấy Độ sâu đóng vai trò như cường độ, và 1 mm giữ nguyên các vùng trắng."
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "Lưới có hình học non-manifold hoặc biên hở. Bạn có thể nhập nguyên trạng hoặc sửa bằng dịch vụ sửa chữa 3D của Windows trước khi nhập."
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Lưu ý rằng lưới có hình học non-manifold hoặc biên hở."
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "Vấn đề về lưới"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "Sửa chữa thất bại: lưới vẫn hở sau khi lấp lỗ."
 
 # AI Translated
 # Needs human review: Source says 'operators' but means operands (the values operated on); translated as 'toán hạng'.

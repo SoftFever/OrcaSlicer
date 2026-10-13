@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: 2026-06-19 13:40+0700\n"
 "Last-Translator: Icezaza\n"
 "Language-Team: Thai\n"
@@ -3073,6 +3073,22 @@ msgstr "โหลดใหม่ทั้งหมด"
 msgid "Reload all from disk"
 msgstr "โหลดใหม่ทั้งหมดจากดิสก์"
 
+# AI Translated
+msgid "Fix All"
+msgstr "ซ่อมทั้งหมด"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "ซ่อมโมเดลทั้งหมดบนเพลตปัจจุบัน"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "ซ่อมทุกเพลต"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "ซ่อมโมเดลทั้งหมดบนทุกเพลต"
+
 msgid "Auto Rotate"
 msgstr "หมุนอัตโนมัติ"
 
@@ -3415,6 +3431,12 @@ msgstr[0] "ซ่อมแซมวัตถุโมเดลต่อไปน
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model objects"
 msgstr[0] "ล้มเหลวในการซ่อมแซมวัตถุโมเดลต่อไปนี้"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "วัตถุโมเดล %1$d ชิ้นไม่ต้องซ่อม"
 
 msgid "Repairing was canceled"
 msgstr "การซ่อมแซมถูกยกเลิก"
@@ -13710,20 +13732,8 @@ msgstr "เวอร์ชันเฟิร์มแวร์ผิดปกต
 msgid "Extension Board"
 msgstr "คณะกรรมการขยาย"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "แบ่งออกเป็น %1% ชิ้นส่วน"
-
 msgid "Repair finished"
 msgstr "ซ่อมเสร็จแล้ว"
-
-msgid "Repair failed"
-msgstr "ซ่อมล้มเหลว"
-
-msgid "Repair canceled"
-msgstr "ยกเลิกการซ่อมแล้ว"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -20340,6 +20350,14 @@ msgstr "ตัวเลือกตะวันออก"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "ตัวเลือกการวางแนว: 0-ปิดการใช้งาน, 1-เปิดใช้งาน, อื่นๆ-อัตโนมัติ"
+
+# AI Translated
+msgid "Repair"
+msgstr "ซ่อม"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "ซ่อมเมชของโมเดลเหมือนที่ ซ่อมโมเดล ทำ: ปิดรูและรอยแตก จัดทิศทางให้หันออกด้านนอก และลบการตัดกันเอง"
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "มุมการหมุนรอบแกน Z มีหน่วยเป็นองศา"
@@ -30722,6 +30740,50 @@ msgid "Remove texture"
 msgstr "นำพื้นผิวออก"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "ปรับภาพ"
+
+# AI Translated
+msgid "Brightness"
+msgstr "ความสว่าง"
+
+# AI Translated
+msgid "Contrast"
+msgstr "ความเปรียบต่าง"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "ความคมชัด"
+
+# AI Translated
+msgid "Blur"
+msgstr "เบลอ"
+
+# AI Translated
+msgid "Hue"
+msgstr "เฉดสี"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "ทำให้รายละเอียดที่ละเอียดที่สุดในภาพเด่นชัดขึ้น ใช้หลังเบลอ จึงใช้ร่วมกันได้: เบลอจุดรบกวนออกก่อน แล้วเพิ่มความคมให้ขอบที่เหลือ"
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "เบลอตัวภาพเอง แถบเลื่อน ปรับให้เรียบ ของเลเยอร์เองจะทำให้ลายนูนนุ่มลงโดยไม่เปลี่ยนภาพ และควรลองใช้แถบนั้นก่อน"
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "พื้นผิวนี้เป็นโทนสีเทา จึงไม่มีเฉดสีให้เปลี่ยน"
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "โมเดลจะอัปเดตเมื่อคุณปล่อยแถบเลื่อน บันทึกเป็นสำเนา จะเขียนภาพที่ปรับแล้วลงในคลังพื้นผิวของคุณ และชี้เลเยอร์นี้ไปที่ภาพนั้น"
+
+# AI Translated
+msgid "Save as copy"
+msgstr "บันทึกเป็นสำเนา"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "นำเลเยอร์การกระจัดพื้นผิวออก"
 
@@ -31024,6 +31086,10 @@ msgid "not painted"
 msgstr "ยังไม่ได้ระบาย"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "ความสว่าง ความเปรียบต่าง ความคมชัด เบลอ และเฉดสี แสดงบนภาพและบนโมเดลขณะที่คุณตั้งค่า บันทึกเป็นสำเนา จะเขียนผลลัพธ์ลงในคลังพื้นผิวของคุณ และชี้เลเยอร์นี้ไปที่ผลลัพธ์นั้น"
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "เลื่อนขึ้น - ใช้ก่อน"
 
@@ -31042,6 +31108,10 @@ msgstr "ความสูงของลายนูน: ระยะที่�
 # AI Translated
 msgid "Tile size"
 msgstr "ขนาดไทล์"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "แมปด้วยเลย์เอาต์ UV ของโมเดลเอง ซึ่งเป็นตำแหน่งวางอยู่แล้ว - พื้นผิวหนึ่งชุดครอบคลุมพอดี จึงไม่มีขนาดไทล์ให้ตั้งค่า"
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -31185,6 +31255,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "จากมุมมอง - ฉายตรงลงบนบริเวณที่ระบายจากตำแหน่งที่คุณกำลังมอง เหมือนเครื่องฉายสไลด์"
 
 # AI Translated
+msgid "Model UV"
+msgstr "UV ของโมเดล"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "UV ของโมเดล - ใช้พิกัดพื้นผิวที่มาพร้อมกับโมเดลเอง ดังนั้นพื้นผิวที่ทำมาสำหรับโมเดลนั้นจะวางตรงตำแหน่งที่ระบายไว้พอดี ไม่มีการคลี่ และไม่ใช้ ขนาดไทล์: เลย์เอาต์ของโมเดลเองคือตำแหน่งวาง"
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "โมเดลนี้ไม่มีพิกัดพื้นผิวของตัวเอง เฉพาะโมเดลที่นำเข้าพร้อมช่อง UV - เช่น OBJ ที่มีพื้นผิว - เท่านั้นจึงจะแมปด้วยพิกัดเหล่านั้นได้"
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "เปิดตัวแก้ไข UV"
 
@@ -31289,6 +31371,11 @@ msgstr "เพิ่ม"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "แทนที่"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "ลบออก"
 
@@ -31306,8 +31393,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "เลเยอร์ฐานไม่มีสิ่งใดอยู่ข้างใต้ให้รวมด้วย จึงใช้แบบเพิ่มเสมอ"
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "สิ่งที่เลเยอร์นี้ทำในบริเวณที่ซ้อนทับกับเลเยอร์ด้านล่าง เพิ่ม และ ลบออก จะเพิ่มลายนูนทับหรือแกะลายนูนออก คูณ และ หาร จะปรับสเกลสิ่งที่อยู่ข้างใต้ ซึ่งทำให้เลเยอร์นี้เป็นมาสก์ทับเลเยอร์ด้านล่าง - ในกรณีนั้น ความลึก จะทำหน้าที่เป็นความแรง และ 1 มม. จะไม่เปลี่ยนแปลงบริเวณสีขาว"
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "สิ่งที่เลเยอร์นี้ทำในบริเวณที่ซ้อนทับกับเลเยอร์ด้านล่าง เพิ่ม และ ลบออก จะเพิ่มลายนูนทับหรือแกะลายนูนออก แทนที่ จะแทนที่เลเยอร์เหล่านั้น ทำให้บริเวณที่ระบายเหลือเฉพาะลายนูนของเลเยอร์นี้ คูณ และ หาร จะปรับสเกลสิ่งที่อยู่ข้างใต้ ซึ่งทำให้เลเยอร์นี้เป็นมาสก์ทับเลเยอร์ด้านล่าง - ในกรณีนั้น ความลึก จะทำหน้าที่เป็นความแรง และ 1 มม. จะไม่เปลี่ยนแปลงบริเวณสีขาว"
 
 # AI Translated
 msgid "Adjust placement"
@@ -32706,8 +32793,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "การคำนวณล้มเหลว โปรดปรับพารามิเตอร์แล้วลองอีกครั้ง"
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "เมชมีเรขาคณิตแบบ non-manifold หรือขอบเปิด คุณสามารถนำเข้าตามเดิมหรือซ่อมด้วยบริการซ่อมแซม 3D ของ Windows ก่อนนำเข้า"
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "เมชมีเรขาคณิตแบบ non-manifold หรือขอบเปิด คุณสามารถนำเข้าตามเดิมหรือซ่อมก่อนนำเข้า"
 
 # AI Translated
 msgid "Mesh repair"
@@ -32722,20 +32809,20 @@ msgid "Repair and import"
 msgstr "ซ่อมแล้วนำเข้า"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "โปรดทราบว่าเมชมีเรขาคณิตแบบ non-manifold หรือขอบเปิด"
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "ปัญหาเมช"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "ภาพที่เลือกว่างเปล่า"
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "ไม่สามารถเตรียมพื้นผิวสำหรับใช้งานได้"
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "ไม่สามารถสร้างโฟลเดอร์สำหรับพื้นผิวที่นำเข้าได้"
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "ไม่สามารถบันทึกพื้นผิวที่นำเข้าได้"
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -32746,16 +32833,8 @@ msgid "Could not delete the texture file."
 msgstr "ไม่สามารถลบไฟล์พื้นผิวได้"
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "ไม่สามารถสร้างโฟลเดอร์สำหรับพื้นผิวที่นำเข้าได้"
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "ไม่สามารถโหลดภาพที่เลือกได้"
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "ไม่สามารถบันทึกพื้นผิวที่นำเข้าได้"
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -33962,10 +34041,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "G-code แบบกำหนดเองรายงาน z_restart_extra ติดลบ"
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "ซ่อมแซมล้มเหลว: เมชยังเปิดอยู่หลังการเติมรู"
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "การคัดลอกไดเรกทอรี %1% ไปยัง %2% ล้มเหลว: %3%"
@@ -34414,6 +34489,38 @@ msgid ""
 msgstr ""
 "หลีกเลี่ยงการบิดเบี้ยว\n"
 "คุณรู้หรือไม่ว่าเมื่อพิมพ์วัสดุที่มีแนวโน้มที่จะเกิดการบิดเบี้ยว เช่น ABS การเพิ่มอุณหภูมิฐานพิมพ์อย่างเหมาะสมสามารถลดความน่าจะเป็นของการบิดเบี้ยวได้"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "แบ่งออกเป็น %1% ชิ้นส่วน"
+
+#~ msgid "Repair failed"
+#~ msgstr "ซ่อมล้มเหลว"
+
+#~ msgid "Repair canceled"
+#~ msgstr "ยกเลิกการซ่อมแล้ว"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "สิ่งที่เลเยอร์นี้ทำในบริเวณที่ซ้อนทับกับเลเยอร์ด้านล่าง เพิ่ม และ ลบออก จะเพิ่มลายนูนทับหรือแกะลายนูนออก คูณ และ หาร จะปรับสเกลสิ่งที่อยู่ข้างใต้ ซึ่งทำให้เลเยอร์นี้เป็นมาสก์ทับเลเยอร์ด้านล่าง - ในกรณีนั้น ความลึก จะทำหน้าที่เป็นความแรง และ 1 มม. จะไม่เปลี่ยนแปลงบริเวณสีขาว"
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "เมชมีเรขาคณิตแบบ non-manifold หรือขอบเปิด คุณสามารถนำเข้าตามเดิมหรือซ่อมด้วยบริการซ่อมแซม 3D ของ Windows ก่อนนำเข้า"
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "โปรดทราบว่าเมชมีเรขาคณิตแบบ non-manifold หรือขอบเปิด"
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "ปัญหาเมช"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "ซ่อมแซมล้มเหลว: เมชยังเปิดอยู่หลังการเติมรู"
 
 # AI Translated
 #~ msgid "Cannot apply logical operation to non-boolean operators."

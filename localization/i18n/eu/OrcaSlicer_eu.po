@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: 2026-07-20 13:33+0200\n"
 "Last-Translator: Manu Goiogana <mgoiogana@gmail.com>\n"
 "Language-Team: \n"
@@ -3008,6 +3008,22 @@ msgstr "Birkargatu guztia"
 msgid "Reload all from disk"
 msgstr "Birkargatu guztia diskotik"
 
+# AI Translated
+msgid "Fix All"
+msgstr "Konpondu guztiak"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "Konpondu uneko plakako modelo guztiak"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "Konpondu plaka guztiak"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "Konpondu plaka guztietako modelo guztiak"
+
 msgid "Auto Rotate"
 msgstr "Biratu automatikoki"
 
@@ -3335,6 +3351,13 @@ msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model objects"
 msgstr[0] "Ezin izan da ondorengo objektu-modeloa konpondu"
 msgstr[1] "Ezin izan dira ondorengo objektu-modeloak konpondu"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "Ez zen konponketarik behar izan %1$d modelo-objektuan."
+msgstr[1] "Ez zen konponketarik behar izan %1$d modelo-objektutan."
 
 msgid "Repairing was canceled"
 msgstr "Konponketa bertan behera geratu zen"
@@ -13530,21 +13553,8 @@ msgstr "Firmwarearen bertsioa ez da egokia. Inprimatu aurretik konpondu eta egun
 msgid "Extension Board"
 msgstr "Hedapen-plaka"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "Banatu %1% piezatan"
-msgstr[1] "Banatu %1% piezatan"
-
 msgid "Repair finished"
 msgstr "Konponketa amaitu da"
-
-msgid "Repair failed"
-msgstr "Konponketak huts egin du"
-
-msgid "Repair canceled"
-msgstr "Konponketa bertan behera utzi da"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -20110,6 +20120,14 @@ msgstr "Orientazio-aukerak"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "Orientazio-aukerak: 0-desgaitu, 1-gaitu, besteak-auto"
+
+# AI Translated
+msgid "Repair"
+msgstr "Konpondu"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "Konpondu modeloen sareak \"Konpondu modeloa\" funtzioak egiten duen bezala: itxi zuloak eta pitzadurak, orientatu kanporantz eta kendu auto-gurutzaketak."
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "Z ardatzaren inguruko biraketa-angelua, gradutan."
@@ -30438,6 +30456,50 @@ msgid "Remove texture"
 msgstr "Kendu testura"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "Doitu irudia"
+
+# AI Translated
+msgid "Brightness"
+msgstr "Distira"
+
+# AI Translated
+msgid "Contrast"
+msgstr "Kontrastea"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "Zorroztasuna"
+
+# AI Translated
+msgid "Blur"
+msgstr "Lausotzea"
+
+# AI Translated
+msgid "Hue"
+msgstr "Tonua"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "Irudiaren xehetasun finenak nabarmentzen ditu. Lausotzearen ondoren aplikatzen da, beraz biak batera erabil daitezke: lausotu orbanak, eta gero zorroztu gelditzen diren ertzak."
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "Irudia bera lausotzen du. Testura-geruzaren Leuntzen graduatzaileak erliebea leuntzen du irudia aldatu gabe, eta lehenik hura erabili beharko zenuke."
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "Testura hau gris-eskalakoa da, beraz ez du aldatzeko tonurik."
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "Modeloa graduatzailea askatzen duzunean eguneratzen da. Gorde kopia gisa aukerak doitutako irudia zure testura-liburutegian gordetzen du eta testura-geruza hau hartara bideratzen du."
+
+# AI Translated
+msgid "Save as copy"
+msgstr "Gorde kopia gisa"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "Kendu testura-desplazamenduko geruza"
 
@@ -30740,6 +30802,10 @@ msgid "not painted"
 msgstr "margotu gabe"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "Distira, kontrastea, zorroztasuna, lausotzea eta tonua, ezartzen dituzun heinean irudian eta modeloan erakutsita. Gorde kopia gisa aukerak emaitza zure testura-liburutegian gordetzen du eta testura-geruza hau hartara bideratzen du."
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "Mugitu gora - lehenago aplikatzen da"
 
@@ -30758,6 +30824,10 @@ msgstr "Erliebearen altuera: testurako zuriak gainazala zenbat altxatzen duen, m
 # AI Translated
 msgid "Tile size"
 msgstr "Lauzaren tamaina"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "Modeloaren UV diseinuak berak mapatzen du, eta hori da jada kokapena - testuraren kopia batek zehazki estaltzen du, beraz ez dago ezartzeko lauzaren tamainarik."
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -30903,6 +30973,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "Ikuspegitik - zuzenean proiektatzen du margotutako eremuaren gainean begiratzen ari zaren lekutik, diapositiba-proiektore batek bezala."
 
 # AI Translated
+msgid "Model UV"
+msgstr "Modeloaren UV"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "Modeloaren UV - modeloak berak dakartzan testura-koordenatuak erabiltzen ditu, eta horrela modelo horretarako egindako testura margotu zen lekuan bertan gelditzen da. Ez da ezer zabaltzen, eta Lauzaren tamaina ez da aplikatzen: modeloaren diseinua bera da kokapena."
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "Modelo honek ez du berezko testura-koordenaturik. UV kanala duen modelo inportatu bat bakarrik - esaterako, testuradun OBJ bat - mapa daiteke horien bidez."
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "Ireki UV editorea"
 
@@ -31008,6 +31090,11 @@ msgstr "Gehitu"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "Ordeztu"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "Kendu"
 
@@ -31025,8 +31112,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "Oinarrizko geruzak ez du azpian konbinatzeko ezer; beraz, beti gehitzen du."
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "Geruza honek zer egiten duen azpikoekin gainjartzen den lekuan. Gehitu eta Kendu aukerek erliebea pilatzen edo zizelkatzen dute. Biderkatu eta Zatitu aukerek azpian dagoena eskalatzen dute; horrek geruza hau haren gaineko maskara bihurtzen du - kasu horretan, Sakonerak indar gisa jokatzen du, eta 1 mm-k eremu zuriak ukitu gabe uzten ditu."
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "Geruza honek zer egiten duen azpikoekin gainjartzen den lekuan. Gehitu eta Kendu aukerek erliebea pilatzen edo zizelkatzen dute. Ordeztu aukerak azpikoak ordezkatzen ditu, beraz margotuta dagoen lekuan geruza honen erliebea soilik geratzen da. Biderkatu eta Zatitu aukerek azpian dagoena eskalatzen dute; horrek geruza hau haren gaineko maskara bihurtzen du - kasu horretan, Sakonerak indar gisa jokatzen du, eta 1 mm-k eremu zuriak ukitu gabe uzten ditu."
 
 # AI Translated
 msgid "Adjust placement"
@@ -32432,8 +32519,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "Kalkuluak huts egin du. Doitu parametroak eta saiatu berriro."
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "Sareak geometria ez-manifolda edo muga irekiak ditu. Dagoen bezala inporta dezakezu edo Windows-en 3D konponketa-zerbitzuarekin konpondu inportatu aurretik."
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "Sareak geometria ez-manifolda edo muga irekiak ditu. Dagoen bezala inporta dezakezu edo konpondu inportatu aurretik."
 
 # AI Translated
 msgid "Mesh repair"
@@ -32448,20 +32535,20 @@ msgid "Repair and import"
 msgstr "Konpondu eta inportatu"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Kontuan izan sareak geometria ez-manifolda edo muga irekiak dituela."
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "Sarearen arazoa"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "Hautatutako irudia hutsik dago."
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "Ezin izan da testura erabiltzeko prestatu."
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "Ezin izan da inportatutako testuren karpeta sortu."
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "Ezin izan da inportatutako testura gorde."
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -32472,16 +32559,8 @@ msgid "Could not delete the texture file."
 msgstr "Ezin izan da testura-fitxategia ezabatu."
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "Ezin izan da inportatutako testuren karpeta sortu."
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "Ezin izan da hautatutako irudia kargatu."
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "Ezin izan da inportatutako testura gorde."
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -33706,10 +33785,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "G-code pertsonalizatuak z_restart_extra negatiboa jakinarazten du."
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "Konponketak huts egin du: sareak irekita jarraitzen du zuloak bete ondoren."
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "%1% direktorioa %2% helmugara kopiatzeak huts egin du: %3%"
@@ -34158,6 +34233,39 @@ msgid ""
 msgstr ""
 "Saihestu okertzea\n"
 "Ba al zenekien ABS bezalako okertzeko joera duten materialak inprimatzean ohe beroaren tenperatura egoki igotzeak okertzeko probabilitatea murriztu dezakeela?"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "Banatu %1% piezatan"
+#~ msgstr[1] "Banatu %1% piezatan"
+
+#~ msgid "Repair failed"
+#~ msgstr "Konponketak huts egin du"
+
+#~ msgid "Repair canceled"
+#~ msgstr "Konponketa bertan behera utzi da"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "Geruza honek zer egiten duen azpikoekin gainjartzen den lekuan. Gehitu eta Kendu aukerek erliebea pilatzen edo zizelkatzen dute. Biderkatu eta Zatitu aukerek azpian dagoena eskalatzen dute; horrek geruza hau haren gaineko maskara bihurtzen du - kasu horretan, Sakonerak indar gisa jokatzen du, eta 1 mm-k eremu zuriak ukitu gabe uzten ditu."
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "Sareak geometria ez-manifolda edo muga irekiak ditu. Dagoen bezala inporta dezakezu edo Windows-en 3D konponketa-zerbitzuarekin konpondu inportatu aurretik."
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Kontuan izan sareak geometria ez-manifolda edo muga irekiak dituela."
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "Sarearen arazoa"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "Konponketak huts egin du: sareak irekita jarraitzen du zuloak bete ondoren."
 
 # AI Translated
 #~ msgid "Cannot apply logical operation to non-boolean operators."

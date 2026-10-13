@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2856,6 +2856,18 @@ msgstr ""
 msgid "Reload all from disk"
 msgstr ""
 
+msgid "Fix All"
+msgstr ""
+
+msgid "Fix all models on the current plate"
+msgstr ""
+
+msgid "Fix All Plates"
+msgstr ""
+
+msgid "Fix all models on all plates"
+msgstr ""
+
 msgid "Auto Rotate"
 msgstr ""
 
@@ -3176,6 +3188,12 @@ msgstr[1] ""
 
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model objects"
+msgstr[0] ""
+msgstr[1] ""
+
+#, possible-c-format, possible-boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -12497,19 +12515,7 @@ msgstr ""
 msgid "Extension Board"
 msgstr ""
 
-#, possible-boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] ""
-msgstr[1] ""
-
 msgid "Repair finished"
-msgstr ""
-
-msgid "Repair failed"
-msgstr ""
-
-msgid "Repair canceled"
 msgstr ""
 
 #, possible-boost-format
@@ -18224,6 +18230,12 @@ msgid "Orient Options"
 msgstr ""
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
+msgstr ""
+
+msgid "Repair"
+msgstr ""
+
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
 msgstr ""
 
 msgid "Rotation angle around the Z axis in degrees."
@@ -26723,6 +26735,39 @@ msgstr ""
 msgid "Remove texture"
 msgstr ""
 
+msgid "Adjust image"
+msgstr ""
+
+msgid "Brightness"
+msgstr ""
+
+msgid "Contrast"
+msgstr ""
+
+msgid "Sharpness"
+msgstr ""
+
+msgid "Blur"
+msgstr ""
+
+msgid "Hue"
+msgstr ""
+
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr ""
+
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr ""
+
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr ""
+
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr ""
+
+msgid "Save as copy"
+msgstr ""
+
 msgid "Remove texture displacement layer"
 msgstr ""
 
@@ -26950,6 +26995,9 @@ msgstr ""
 msgid "not painted"
 msgstr ""
 
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr ""
+
 msgid "Move up - applied earlier"
 msgstr ""
 
@@ -26963,6 +27011,9 @@ msgid "Height of the relief: how far white in the texture lifts the surface, in 
 msgstr ""
 
 msgid "Tile size"
+msgstr ""
+
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
 msgstr ""
 
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -27073,6 +27124,15 @@ msgstr ""
 msgid "From view - projects straight onto the painted area from where you are looking, like a slide projector."
 msgstr ""
 
+msgid "Model UV"
+msgstr ""
+
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr ""
+
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr ""
+
 msgid "Open UV editor"
 msgstr ""
 
@@ -27153,6 +27213,10 @@ msgid "Add"
 msgstr ""
 
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr ""
+
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr ""
 
@@ -27166,7 +27230,7 @@ msgstr ""
 msgid "The base layer has nothing beneath it to combine with, so it always adds."
 msgstr ""
 
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
 msgstr ""
 
 msgid "Adjust placement"
@@ -28228,7 +28292,7 @@ msgstr ""
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr ""
 
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
 msgstr ""
 
 msgid "Mesh repair"
@@ -28240,16 +28304,16 @@ msgstr ""
 msgid "Repair and import"
 msgstr ""
 
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr ""
-
-msgid "Mesh issue"
-msgstr ""
-
 msgid "The selected image is empty."
 msgstr ""
 
 msgid "Failed to prepare the texture for use."
+msgstr ""
+
+msgid "Could not create the folder for imported textures."
+msgstr ""
+
+msgid "Failed to save the imported texture."
 msgstr ""
 
 msgid "Only your own imported textures can be removed."
@@ -28258,13 +28322,7 @@ msgstr ""
 msgid "Could not delete the texture file."
 msgstr ""
 
-msgid "Could not create the folder for imported textures."
-msgstr ""
-
 msgid "Could not load the selected image."
-msgstr ""
-
-msgid "Failed to save the imported texture."
 msgstr ""
 
 msgid "Could not read the texture file."
@@ -29194,9 +29252,6 @@ msgid "Custom G-code reports negative z_retracted."
 msgstr ""
 
 msgid "Custom G-code reports negative z_restart_extra."
-msgstr ""
-
-msgid "Repair failed: mesh still open after hole filling."
 msgstr ""
 
 #, possible-boost-format

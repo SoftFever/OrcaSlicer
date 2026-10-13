@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:44-0300\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: 2026-07-17 16:25+0300\n"
 "Last-Translator: Andrij Mizyk <andm1zyk@proton.me>\n"
 "Language-Team: Ukrainian\n"
@@ -3057,6 +3057,22 @@ msgstr "Перезавантажити все"
 msgid "Reload all from disk"
 msgstr "Перезавантажити все з диска"
 
+# AI Translated
+msgid "Fix All"
+msgstr "Виправити все"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "Виправити всі моделі на поточній пластині"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "Виправити всі пластини"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "Виправити всі моделі на всіх пластинах"
+
 msgid "Auto Rotate"
 msgstr "Авто-поворот"
 
@@ -3400,6 +3416,15 @@ msgstr[0] "Не вдалося відремонтувати таку части�
 msgstr[1] "Не вдалося відремонтувати такі частини моделі"
 msgstr[2] "Не вдалося відремонтувати таких частин моделі"
 msgstr[3] "Не вдалося відремонтувати такі частини моделі"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "%1$d обʼєкт моделі не потребував виправлення."
+msgstr[1] "%1$d обʼєкти моделі не потребували виправлення."
+msgstr[2] "%1$d обʼєктів моделі не потребувало виправлення."
+msgstr[3] "%1$d обʼєкта моделі не потребувало виправлення."
 
 msgid "Repairing was canceled"
 msgstr "Ремонт було скасовано"
@@ -13998,23 +14023,8 @@ msgstr "Версія прошивки незвичайна. Потрібно в�
 msgid "Extension Board"
 msgstr "Плата розширення"
 
-# AI Translated
-#, boost-format
-msgid "Split into %1% part"
-msgid_plural "Split into %1% parts"
-msgstr[0] "Розділити на %1% частину"
-msgstr[1] "Розділити на %1% частини"
-msgstr[2] "Розділити на %1% частин"
-msgstr[3] "Розділити на %1% частини"
-
 msgid "Repair finished"
 msgstr "Ремонт завершено"
-
-msgid "Repair failed"
-msgstr "Ремонт не вдалося."
-
-msgid "Repair canceled"
-msgstr "Ремонт скасовано"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
@@ -20924,6 +20934,14 @@ msgstr "Параметри орієнтації"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "Орієнтація: 0 - вимкнено, 1 - увімкнено, інші - автоматично"
+
+# AI Translated
+msgid "Repair"
+msgstr "Виправити"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "Виправляє сітки моделей так само, як «Виправити модель»: закриває отвори й тріщини, орієнтує їх назовні та усуває самоперетини."
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "Кут обертання навколо осі Z у градусах."
@@ -31476,6 +31494,50 @@ msgid "Remove texture"
 msgstr "Вилучити текстуру"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "Налаштувати зображення"
+
+# AI Translated
+msgid "Brightness"
+msgstr "Яскравість"
+
+# AI Translated
+msgid "Contrast"
+msgstr "Контрастність"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "Різкість"
+
+# AI Translated
+msgid "Blur"
+msgstr "Розмиття"
+
+# AI Translated
+msgid "Hue"
+msgstr "Колірний тон"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "Виявляє найдрібніші деталі зображення. Застосовується після «Розмиття», тож їх можна використовувати разом: спершу розмийте дрібний шум, потім підвищте різкість країв, що залишилися."
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "Розмиває саме зображення. Повзунок «Згладжування» самого шару помʼякшує рельєф, не змінюючи зображення, і саме його варто спробувати першим."
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "Ця текстура у відтінках сірого, тож у неї немає колірного тону, який можна змінити."
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "Модель оновлюється, коли ви відпускаєте повзунок. «Зберегти як копію» записує налаштоване зображення до вашої бібліотеки текстур і спрямовує цей шар на нього."
+
+# AI Translated
+msgid "Save as copy"
+msgstr "Зберегти як копію"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "Вилучити шар текстурного зміщення"
 
@@ -31778,6 +31840,10 @@ msgid "not painted"
 msgstr "не намальовано"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "Яскравість, контрастність, різкість, розмиття та колірний тон показуються на зображенні й на моделі в міру налаштування. «Зберегти як копію» записує результат до вашої бібліотеки текстур і спрямовує цей шар на нього."
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "Перемістити вгору - застосовується раніше"
 
@@ -31796,6 +31862,10 @@ msgstr "Висота рельєфу: наскільки білий колір т
 # AI Translated
 msgid "Tile size"
 msgstr "Розмір плитки"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "Накладається за власною UV-розкладкою моделі, яка вже і є розміщенням - одна копія текстури покриває її точно, тож розмір плитки задавати не потрібно."
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -31945,6 +32015,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "З поточного виду - проєктує прямо на намальовану область з того місця, звідки ви дивитеся, як діапроєктор."
 
 # AI Translated
+msgid "Model UV"
+msgstr "UV моделі"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "UV моделі - використовує текстурні координати, з якими постачається сама модель, тож текстура, створена для цієї моделі, лягає точно туди, де була намальована. Нічого не розгортається, а «Розмір плитки» не застосовується: власна розкладка моделі і є розміщенням."
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "У цієї моделі немає власних текстурних координат. Накласти за ними можна лише модель, імпортовану з UV-каналом - наприклад, OBJ з текстурою."
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "Відкрити UV-редактор"
 
@@ -32052,6 +32134,11 @@ msgstr "Додати"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "Замінити"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "Відняти"
 
@@ -32069,8 +32156,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "Під базовим шаром немає нічого, з чим його можна поєднати, тому він завжди додає."
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "Що робить цей шар там, де він перекриває нижні. «Додати» та «Відняти» нарощують рельєф або вирізають його. «Помножити» та «Розділити» масштабують те, що під ним, і цей шар стає маскою над ним - тоді «Глибина» діє як сила, а 1 мм залишає білі ділянки незмінними."
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "Що робить цей шар там, де він перекриває нижні. «Додати» та «Відняти» нарощують рельєф або вирізають його. «Замінити» замінює їх, тож там, де його намальовано, лишається лише рельєф цього шару. «Помножити» та «Розділити» масштабують те, що під ним, і цей шар стає маскою над ним - тоді «Глибина» діє як сила, а 1 мм залишає білі ділянки незмінними."
 
 # AI Translated
 msgid "Adjust placement"
@@ -33495,8 +33582,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "Обчислення не вдалося. Змініть параметри та повторіть спробу."
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "Сітка має неманіфолдну геометрію або відкриті межі. Ви можете імпортувати її як є або перед імпортом виправити її за допомогою служби 3D-виправлення Windows."
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "Сітка має неманіфолдну геометрію або відкриті межі. Ви можете імпортувати її як є або виправити її перед імпортом."
 
 # AI Translated
 msgid "Mesh repair"
@@ -33511,20 +33598,20 @@ msgid "Repair and import"
 msgstr "Виправити й імпортувати"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "Зверніть увагу, що сітка має неманіфолдну геометрію або відкриті межі."
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "Проблема із сіткою"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "Вибране зображення порожнє."
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "Не вдалося підготувати текстуру до використання."
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "Не вдалося створити теку для імпортованих текстур."
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "Не вдалося зберегти імпортовану текстуру."
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -33535,16 +33622,8 @@ msgid "Could not delete the texture file."
 msgstr "Не вдалося видалити файл текстури."
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "Не вдалося створити теку для імпортованих текстур."
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "Не вдалося завантажити вибране зображення."
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "Не вдалося зберегти імпортовану текстуру."
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -34810,10 +34889,6 @@ msgid "Custom G-code reports negative z_restart_extra."
 msgstr "Користувацький G-code повідомляє відʼємне значення z_restart_extra."
 
 # AI Translated
-msgid "Repair failed: mesh still open after hole filling."
-msgstr "Не вдалося виправити: сітка залишається відкритою після заповнення отворів."
-
-# AI Translated
 #, boost-format
 msgid "Copying directory %1% to %2% failed: %3%"
 msgstr "Копіювання теки %1% у %2% не вдалося: %3%"
@@ -35267,6 +35342,41 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури столу може зменшити ймовірність деформації?"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "Розділити на %1% частину"
+#~ msgstr[1] "Розділити на %1% частини"
+#~ msgstr[2] "Розділити на %1% частин"
+#~ msgstr[3] "Розділити на %1% частини"
+
+#~ msgid "Repair failed"
+#~ msgstr "Ремонт не вдалося."
+
+#~ msgid "Repair canceled"
+#~ msgstr "Ремонт скасовано"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "Що робить цей шар там, де він перекриває нижні. «Додати» та «Відняти» нарощують рельєф або вирізають його. «Помножити» та «Розділити» масштабують те, що під ним, і цей шар стає маскою над ним - тоді «Глибина» діє як сила, а 1 мм залишає білі ділянки незмінними."
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "Сітка має неманіфолдну геометрію або відкриті межі. Ви можете імпортувати її як є або перед імпортом виправити її за допомогою служби 3D-виправлення Windows."
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "Зверніть увагу, що сітка має неманіфолдну геометрію або відкриті межі."
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "Проблема із сіткою"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "Не вдалося виправити: сітка залишається відкритою після заповнення отворів."
 
 # AI Translated
 #~ msgid "Cannot apply logical operation to non-boolean operators."
