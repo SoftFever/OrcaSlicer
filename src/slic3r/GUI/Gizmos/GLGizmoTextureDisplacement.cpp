@@ -43,6 +43,7 @@
 #include <cstdint>
 #include <functional>
 #include <chrono>
+#include <future>
 #include <cstdio>
 #include <glad/gl.h>
 #include <imgui.h>
@@ -119,6 +120,14 @@ constexpr int THUMBNAIL_MAX_PX = 128;
 // this size, so the shaded preview reads the same height field the bake does instead of a 128 px box
 // blur of it - which is what made Fast look flatter and softer than the result it was previewing.
 constexpr int HEIGHT_TEX_MAX_PX = 2048;
+
+// Size the image-adjustment panel's live preview is computed and uploaded at. The panel draws the image
+// in a box about 240 px wide, so there is nothing to show above this - and the preview is recomputed on
+// every slider move, which is what makes its cost worth bounding. Measured on a 1024x1024 with every
+// knob engaged, a full-size pass is 13-19 ms grayscale / 40-60 ms in colour (130-190 ms at 2048 in
+// colour); the same pass on a 384 px copy is 3-4 ms / 9-12 ms, and it runs off the UI thread besides.
+// The full-size image is only ever adjusted once, on commit.
+constexpr int ADJUST_PREVIEW_MAX_PX = 384;
 
 // How many rings of vertex-adjacent triangles either side of the paint's edge join the border refine
 // band (see collect_paint_region()). Two is enough to grade the size change without the band's own
@@ -535,6 +544,10 @@ void GLGizmoTextureDisplacement::on_shutdown()
     // progress poll, and its completion handler then finds nothing to do.
     m_preview_generation->fetch_add(1);
     m_preview_job_pending = false;
+    // The adjustment panel holds a full-size decode of its layer's image, which is the largest thing
+    // here; a closed gizmo should not keep it alive. Discards the edit, as closing the gizmo on an open
+    // panel implies.
+    close_image_adjust();
     // The palette caches hold the last volume's images; a closed gizmo should not keep them alive.
     m_palette_cache.clear();
     m_palette_quantizer      = nullptr;
@@ -562,6 +575,11 @@ void GLGizmoTextureDisplacement::on_shutdown()
     m_shaded_island_delta  = Eigen::Matrix<float, 2, 3>::Identity();
     m_island_drag_active = false;
     m_island_move_set.clear();
+    // The pane closes below, taking the highlight with it, and the view must not open the next session in a
+    // Fast the user never picked. Set directly: nothing is to be queued against a gizmo that is closing.
+    if (m_island_view.switched)
+        m_use_shaded_preview = false;
+    m_island_view = IslandViewFollow{};
     m_adjust_texture_mode = false;
     m_seam_edit_mode      = false;
     m_adjust_drag_handle  = AdjustHandle::None;
@@ -727,18 +745,13 @@ void GLGizmoTextureDisplacement::render_painter_gizmo()
 
     // The UV editor's island selection, shown on the model. Polled here rather than pushed: the pane
     // changes its selection in its own mouse handling, and a compare of a few ints per frame is free.
-    {
-        const TextureDisplacementLayer *al = active_layer();
-        const UVEditorCanvas           *uv_canvas = wxGetApp().plater()->get_uv_editor_canvas();
-        if (m_show_uv_editor && al != nullptr && al->projection_method == TextureProjectionMethod::LSCM &&
-            uv_canvas != nullptr && !m_uv_editor_unwrap.empty()) {
-            if (uv_canvas->selected_islands() != m_island_overlay_selection)
-                rebuild_island_overlay(uv_canvas->selected_islands());
-            render_island_overlay();
-        } else if (m_island_overlay_glmodel.is_initialized()) {
-            m_island_overlay_glmodel.reset();
-            m_island_overlay_selection.clear();
-        }
+    if (const std::vector<int> *islands = island_highlight_selection()) {
+        if (*islands != m_island_overlay_selection)
+            rebuild_island_overlay(*islands);
+        render_island_overlay();
+    } else if (m_island_overlay_glmodel.is_initialized()) {
+        m_island_overlay_glmodel.reset();
+        m_island_overlay_selection.clear();
     }
 
     // Diagnostic overlays, drawn on top of whatever preview is active (both pull toward the camera
@@ -1286,8 +1299,9 @@ std::vector<Vec2f> GLGizmoTextureDisplacement::compute_layer_vertex_uvs(const in
                     uv[vi] = Vec2f(-1e6f, -1e6f);
                 continue;
             }
+            // Negated up, as sample_layer_height()'s affine branch has it: v runs down the image.
             const Vec2f planar(patch.vertices[vi].dot(layer.view_project_right),
-                               patch.vertices[vi].dot(layer.view_project_up));
+                               -patch.vertices[vi].dot(layer.view_project_up));
             uv[vi] = apply_uv_transform(planar, layer, aspect);
         }
         return uv;
@@ -1552,7 +1566,7 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
     // is box-filtered down to 128 px for a ~48 px row, and feeding it to the shader cost the preview
     // three quarters of the height map's detail - and, since height_tex_texel is derived from it, also
     // flattened the shading gradient and made the parallax march skip itself at angles where it should
-    // run. Cached on the image_data pointer + smoothing, so no PNG is decoded per frame.
+    // run. Cached per image_data and smoothing, so no PNG is decoded per frame.
     GLTexture *tex = get_layer_height_texture(*layer);
     if (tex == nullptr || tex->get_width() <= 0 || tex->get_height() <= 0)
         return;
@@ -1956,6 +1970,16 @@ void GLGizmoTextureDisplacement::render_paint_overlay(GLModel &overlay)
     glsafe(::glDepthMask(GL_TRUE));
     glsafe(::glDisable(GL_POLYGON_OFFSET_FILL));
     shader->stop_using();
+}
+
+const std::vector<int> *GLGizmoTextureDisplacement::island_highlight_selection()
+{
+    const TextureDisplacementLayer *al        = active_layer();
+    const UVEditorCanvas           *uv_canvas = wxGetApp().plater()->get_uv_editor_canvas();
+    if (m_show_uv_editor && al != nullptr && al->projection_method == TextureProjectionMethod::LSCM &&
+        uv_canvas != nullptr && !m_uv_editor_unwrap.empty())
+        return &uv_canvas->selected_islands();
+    return nullptr;
 }
 
 void GLGizmoTextureDisplacement::rebuild_island_overlay(const std::vector<int> &selection)
@@ -2496,9 +2520,12 @@ void GLGizmoTextureDisplacement::update_uv_editor()
     // before, and independently of, the unwrap - the texture belongs on screen before anything is unwrapped - and
     // only when the choice, the layer's image or its smoothing changed, because the height image is large.
     const UVBackground desired_bg = (m_uv_check_mode == UVCheckMode::Checker) ? UVBackground::Checker : UVBackground::Height;
-    const bool bg_smoothing_changed = (desired_bg == UVBackground::Height) && (m_uv_editor_bg_smoothing != layer->smoothing);
+    const bool bg_smoothing_changed = (desired_bg == UVBackground::Height) &&
+                                      (m_uv_editor_bg_smoothing != layer->smoothing ||
+                                       !(m_uv_editor_bg_adjust == layer->preview_adjust));
     if (desired_bg != m_uv_editor_bg || layer->image_data.get() != m_uv_editor_bg_image || bg_smoothing_changed) {
         m_uv_editor_bg_smoothing = layer->smoothing;
+        m_uv_editor_bg_adjust    = layer->preview_adjust;
         m_uv_editor_bg_image     = layer->image_data.get();
         m_uv_editor_bg           = desired_bg;
         if (desired_bg == UVBackground::Checker) {
@@ -2685,6 +2712,37 @@ void GLGizmoTextureDisplacement::apply_view_mode(int mode)
     refresh_wireframe(); // Normal<->Fast swaps the wireframe between displaced and base mesh
     update_uv_editor();  // mirror the checker / distortion heatmap into the UV pane too
     m_parent.set_as_dirty();
+}
+
+int GLGizmoTextureDisplacement::view_mode() const
+{
+    return m_use_shaded_preview                         ? 1 :
+           m_uv_check_mode == UVCheckMode::Checker    ? 2 :
+           m_uv_check_mode == UVCheckMode::Distortion ? 3 : 0;
+}
+
+int GLGizmoTextureDisplacement::IslandViewFollow::step(bool shown_now, int view, bool debug_open)
+{
+    shown = shown_now;
+    if (!shown) {
+        // The view is back to Normal already if a debug stage took it, and Normal applied over a stage would
+        // queue a preview job that replaces the stage being inspected.
+        const bool restore = switched && view == 1;
+        switched = keep_normal = false;
+        return restore ? 0 : -1;
+    }
+    if (view != 0 || keep_normal || debug_open)
+        return -1;
+    switched = true;
+    return 1;
+}
+
+void GLGizmoTextureDisplacement::follow_island_highlight()
+{
+    const std::vector<int> *islands = island_highlight_selection();
+    const int view = m_island_view.step(islands != nullptr && !islands->empty(), view_mode(), m_debug_stage >= 0);
+    if (view >= 0)
+        apply_view_mode(view);
 }
 
 void GLGizmoTextureDisplacement::push_uv_pane_state()
@@ -2927,7 +2985,8 @@ void GLGizmoTextureDisplacement::run_uv_command(int cmd, float value)
             rebuild_preview();
         }
     }
-    // FrameAll/ToggleSnap are handled inside the canvas; ProjectFromView is not wired yet.
+    // FrameAll/ToggleSnap are handled inside the canvas; ProjectFromView is not wired yet. SelectionChanged
+    // only asks for this frame: follow_island_highlight() and the overlay read the selection back themselves.
     m_parent.set_as_dirty();
 }
 
@@ -3338,19 +3397,10 @@ Vec3f GLGizmoTextureDisplacement::adjust_handle_center(const TextureDisplacement
 
 void GLGizmoTextureDisplacement::adjust_tangent_basis(Vec3f &u_axis, Vec3f &v_axis) const
 {
-    // Mirrors project_planar()'s own dominant-axis choice exactly, so the ring's "0 degrees" and
-    // the offset handle's plane always agree with what project_texture_displacement_uv() does.
-    const Vec3f n = m_adjust_anchor_normal.cwiseAbs();
-    if (n.x() >= n.y() && n.x() >= n.z()) {
-        u_axis = Vec3f::UnitY();
-        v_axis = Vec3f::UnitZ();
-    } else if (n.y() >= n.x() && n.y() >= n.z()) {
-        u_axis = Vec3f::UnitX();
-        v_axis = Vec3f::UnitZ();
-    } else {
-        u_axis = Vec3f::UnitX();
-        v_axis = Vec3f::UnitY();
-    }
+    // libslic3r's own basis, asked for rather than restated here, so the ring's "0 degrees" and the
+    // offset handle's plane always agree with what project_texture_displacement_uv() does - including
+    // v pointing *down* the texture and u flipping on the far side of each plane.
+    box_projection_axes(m_adjust_anchor_normal, u_axis, v_axis);
 }
 
 void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()
@@ -3746,6 +3796,7 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         "texture_displacement_checker.svg", "texture_displacement_distortion.svg",
         "texture_displacement_wireframe.svg", "texture_displacement_cross.svg",
         "texture_displacement_uv_select_island.svg", "texture_displacement_uv_select_edge.svg",
+        "cog.svg", // the layer card's "adjust image" button
         "texture_displacement_uv_select_vertex.svg",
         // Paint / Erase, brush cursor shape, mapping, tiling, placement and the dock toggle.
         "texture_displacement_add.svg", "texture_displacement_add_negative.svg", "circle_paint.svg",
@@ -4064,6 +4115,338 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         m_picker_open_request = true;
     }
 }
+bool GLGizmoTextureDisplacement::load_image_adjust_source(const TextureDisplacementLayer &layer)
+{
+    if (layer.empty())
+        return false;
+
+    // The *raw* image: neither the layer's Smoothing nor the panel's own preview_adjust, so what the
+    // sliders act on is always the image as it is actually stored rather than the last preview of it.
+    // Without clearing preview_adjust here the adjustment would compound on itself every reload.
+    TextureDisplacementLayer raw = layer;
+    raw.smoothing                = 0.f;
+    raw.preview_adjust           = TextureAdjustments{};
+
+    DecodedHeightTexture decoded = decode_height_texture(raw);
+    if (decoded.empty())
+        return false;
+
+    m_adjust_source         = std::move(decoded);
+    m_adjust_preview_source = downscale_height_texture(m_adjust_source, ADJUST_PREVIEW_MAX_PX);
+    m_adjust_source_image   = layer.image_data.get();
+    // The unadjusted image, so the box is filled now rather than one background pass later. Pairing it
+    // with an identity `shown` is what makes update_image_adjust_preview() relaunch for the sliders'
+    // current values against the new source instead of deciding it is already showing them.
+    m_adjust_preview_shown = TextureAdjustments{};
+    m_adjust_preview_tex   = upload_height_thumbnail(m_adjust_preview_source, ADJUST_PREVIEW_MAX_PX);
+    m_adjust_preview_valid = m_adjust_preview_tex != nullptr;
+    return true;
+}
+
+void GLGizmoTextureDisplacement::open_image_adjust(const TextureDisplacementLayer &layer)
+{
+    if (layer.empty() || layer.slot < 0)
+        return;
+
+    close_image_adjust(); // reverts and clears any previous panel
+
+    if (!load_image_adjust_source(layer))
+        return;
+
+    m_adjust           = TextureAdjustments{};
+    m_adjust_applied   = TextureAdjustments{};
+    m_adjust_slot      = layer.slot;
+    const ModelVolume *mv = texture_volume();
+    m_adjust_volume_id = mv != nullptr ? mv->id().id : 0;
+}
+
+void GLGizmoTextureDisplacement::invalidate_adjust_textures()
+{
+    // The GPU copies of a layer's image - the list thumbnail, the preview shader's height and colour
+    // textures - are keyed on the image_data pointer and the layer's Smoothing, and a live adjustment
+    // changes neither: the pointer still names the same PNG. Rather than widen three cache keys for a
+    // panel that is open a few seconds at a time, the panel drops the copies itself whenever it moves
+    // the adjustment. Resetting the source is enough; the next get_layer_*() rebuilds from the decode,
+    // which does see the adjustment.
+    m_thumbnail_source.fill({});
+    m_color_tex_source.reset();
+    m_height_tex_source.reset();
+}
+
+void GLGizmoTextureDisplacement::close_image_adjust()
+{
+    // Revert the layer's live adjustment. Every exit that reaches here is a discard: a commit resets
+    // preview_adjust itself, before pointing the layer at the file that already carries the edit, so this
+    // cannot undo a committed adjustment.
+    //
+    // Found by the id recorded when the panel opened rather than through texture_volume(), which answers
+    // for the *current* selection. One of the ways to get here is the selection having moved on, and
+    // reverting the newly selected object's layer instead would both miss the adjustment that is still
+    // live on the original volume and clear one the user never touched.
+    bool reverted = false;
+    if (m_adjust_slot >= 0 && m_adjust_volume_id != 0)
+        for (ModelObject *mo : wxGetApp().model().objects) {
+            for (ModelVolume *mv : mo->volumes) {
+                if (mv->id().id != m_adjust_volume_id)
+                    continue;
+                for (TextureDisplacementLayer &l : mv->texture_displacement_layers)
+                    if (l.slot == m_adjust_slot && !l.preview_adjust.identity()) {
+                        l.preview_adjust = TextureAdjustments{};
+                        reverted         = true;
+                    }
+            }
+        }
+
+    if (reverted)
+        invalidate_adjust_textures();
+
+    // std::async's future blocks here until the pass finishes. That is a few milliseconds on an image
+    // this small, and the alternative - a detached thread writing into the members of a closed panel -
+    // is worse.
+    if (m_adjust_preview_job.valid())
+        m_adjust_preview_job.wait();
+    m_adjust_preview_job = {};
+
+    m_adjust_slot           = -1;
+    m_adjust                = TextureAdjustments{};
+    m_adjust_applied        = TextureAdjustments{};
+    m_adjust_source         = DecodedHeightTexture{};
+    m_adjust_preview_source = DecodedHeightTexture{};
+    m_adjust_source_image   = nullptr;
+    m_adjust_volume_id      = 0;
+    m_adjust_preview_tex.reset();
+    m_adjust_preview_valid = false;
+
+    // Only while the gizmo is up: on_shutdown() also comes through here, and rebuilding a preview for a
+    // gizmo that is closing would be work for a model nobody is looking at. The reverted layer data is
+    // what matters there, and that is already done above.
+    if (reverted && m_state == On) {
+        rebuild_preview();
+        m_parent.set_as_dirty();
+    }
+}
+
+void GLGizmoTextureDisplacement::update_image_adjust_preview()
+{
+    if (m_adjust_preview_source.empty())
+        return;
+
+    // Collect a finished pass. wait_for(0) rather than get() outright: this runs inside the frame, and
+    // blocking on the worker here would hand back to the UI thread the very stall the worker exists to
+    // spare it.
+    if (m_adjust_preview_job.valid() &&
+        m_adjust_preview_job.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        const DecodedHeightTexture adjusted = m_adjust_preview_job.get();
+        m_adjust_preview_job                = {};
+        if (std::unique_ptr<GLTexture> tex = upload_height_thumbnail(adjusted, ADJUST_PREVIEW_MAX_PX)) {
+            m_adjust_preview_tex   = std::move(tex);
+            m_adjust_preview_shown = m_adjust_preview_running;
+            m_adjust_preview_valid = true;
+        }
+    }
+
+    // One pass at a time: whatever the sliders did while it ran is picked up by the next launch, so a
+    // drag collapses to the value the sliders ended on instead of queuing one pass per frame.
+    if (!m_adjust_preview_job.valid() && m_adjust != m_adjust_preview_shown) {
+        m_adjust_preview_running = m_adjust;
+        // Captured by value: the pass must not read members the UI thread goes on editing while it runs.
+        m_adjust_preview_job = std::async(std::launch::async,
+                                          [src = m_adjust_preview_source, adj = m_adjust_preview_running] {
+                                              return apply_texture_adjustments(src, adj);
+                                          });
+    }
+
+    // A pass in flight has no other way to get its result on screen: without a redraw request the canvas
+    // can sit idle, and the preview would only catch up on the next unrelated frame.
+    if (m_adjust_preview_job.valid())
+        m_parent.set_as_dirty();
+}
+
+void GLGizmoTextureDisplacement::commit_image_adjust(TextureDisplacementLayer &layer)
+{
+    if (m_adjust_source.empty() || m_adjust.identity()) {
+        // Nothing was changed, so there is nothing to save.
+        close_image_adjust();
+        return;
+    }
+
+    // The full-size pass, once: 13-19 ms grayscale / 40-60 ms colour on a 1024x1024 with every knob
+    // engaged. Run on the UI thread deliberately, unlike the live preview: this is a single click, and the
+    // rebuild that follows it - a CPU mesh displacement of the painted patch - is already an order of
+    // magnitude more work, synchronously, so moving only this off the thread would buy nothing a user
+    // could perceive.
+    const DecodedHeightTexture adjusted = apply_texture_adjustments(m_adjust_source, m_adjust);
+
+    std::string                              error;
+    const std::string                        stem  = layer.name.empty() ? std::string("texture") : layer.name;
+    const std::optional<TextureLibraryEntry> entry = save_texture_to_library(adjusted, stem, error);
+    if (!entry) {
+        show_error(nullptr, error);
+        return; // the panel stays open, and the layer keeps the live adjustment: the edit is not lost
+    }
+
+    // Cleared *before* the layer is pointed at the new file, and this ordering is the whole correctness of
+    // the commit: the saved image already has the adjustment baked into its pixels, so leaving
+    // preview_adjust set would apply brightness, contrast and the rest a second time on top of itself.
+    layer.preview_adjust = TextureAdjustments{};
+    // set_layer_texture() does the rest - the name, the recently-used ordering, a fresh image_data buffer
+    // (which is what invalidates every cache keyed by the old pointer), the undo snapshot and the rebuild.
+    set_layer_texture(layer, *entry);
+
+    close_image_adjust();
+}
+
+void GLGizmoTextureDisplacement::render_image_adjust_window(const ImVec2 &panel_min, const ImVec2 &panel_max)
+{
+    if (m_adjust_slot < 0)
+        return;
+
+    ModelVolume *mv = texture_volume();
+    // A different volume is selected than the one this panel was opened on. Slots are numbered per
+    // volume, so looking m_adjust_slot up here would find an unrelated layer rather than nothing.
+    if (mv == nullptr || mv->id().id != m_adjust_volume_id) {
+        close_image_adjust();
+        return;
+    }
+
+    TextureDisplacementLayer *layer = nullptr;
+    for (TextureDisplacementLayer &l : mv->texture_displacement_layers)
+        if (l.slot == m_adjust_slot)
+            layer = &l;
+    if (layer == nullptr) {
+        // The layer went away under the panel (removed, or merged away by an undo).
+        close_image_adjust();
+        return;
+    }
+
+    // The layer's image can be swapped from the texture picker while this panel is open - the panel is a
+    // window now, so the rest of the gizmo stays usable behind it. Re-read the source when that happens,
+    // keeping the slider positions: the user is adjusting this layer, and the 3D view has already moved to
+    // the new image (decode_height_texture() reads layer.image_data, which changed), so re-reading here is
+    // also what keeps the panel's photo and the model showing the same thing.
+    if (layer->image_data.get() != m_adjust_source_image && !load_image_adjust_source(*layer)) {
+        close_image_adjust(); // the new image cannot be decoded; nothing left to adjust
+        return;
+    }
+
+    const float img_w = std::round(m_imgui->scaled(16.f));
+    const float gap   = m_imgui->scaled(0.5f);
+    // Placed beside the panel on first appearance only, and left wherever the user drags it after that -
+    // it is a window, not a popup, so its position is theirs to keep.
+    const float win_w = img_w + 2.f * ImGui::GetStyle().WindowPadding.x;
+    const bool  left  = panel_min.x - gap - win_w >= 0.f;
+    ImGui::SetNextWindowPos(ImVec2(left ? panel_min.x - gap - win_w : panel_max.x + gap,
+                                   panel_min.y + m_imgui->scaled(4.f)), ImGuiCond_Appearing);
+
+    bool keep_open = true;
+    if (!ImGui::Begin((_u8L("Adjust image") + "##texture_adjust").c_str(), &keep_open,
+                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse)) {
+        ImGui::End();
+        if (!keep_open)
+            close_image_adjust();
+        return;
+    }
+
+    // Collect a finished pass and start one for the current slider values before the image is drawn, so
+    // the newest available result is what lands on screen this frame.
+    update_image_adjust_preview();
+
+    // The photo itself, at the image's own aspect so a non-square texture is not stretched.
+    const float aspect = m_adjust_source.height > 0 ? float(m_adjust_source.width) / float(m_adjust_source.height) : 1.f;
+    const float img_h  = std::round(img_w / std::max(0.05f, aspect));
+    if (m_adjust_preview_valid && m_adjust_preview_tex)
+        ImGui::Image((ImTextureID) (intptr_t) m_adjust_preview_tex->get_id(), ImVec2(img_w, img_h));
+    else
+        ImGui::Dummy(ImVec2(img_w, img_h));
+
+    // The label column is sized off the widest of the five labels, so the tracks line up whatever the
+    // translation does to their lengths.
+    float label_w = 0.f;
+    for (const wxString &l : { _L("Brightness"), _L("Contrast"), _L("Sharpness"), _L("Blur"), _L("Hue") })
+        label_w = std::max(label_w, ImGui::CalcTextSize(into_u8(l).c_str()).x);
+    label_w += m_imgui->scaled(1.2f);
+    // An explicit track width rather than a fill-to-the-right one: this window is AlwaysAutoResize, so its
+    // width comes from its content, and an item asking for "whatever is left" would make the width depend
+    // on itself. The image above sets the content width, and the sliders match it.
+    const float slider_w = std::max(m_imgui->scaled(4.f), img_w - label_w);
+
+    const auto row = [&](const char *id, const wxString &label, float *v, float v_min, float v_max,
+                         const char *format, bool enabled, const std::string &tip) {
+        const float x0 = ImGui::GetCursorPosX();
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(label);
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
+        ImGui::SetNextItemWidth(slider_w);
+        m_imgui->disabled_begin(!enabled);
+        ImGui::SliderFloat(id, v, v_min, v_max, format, ImGuiSliderFlags_AlwaysClamp);
+        m_imgui->disabled_end();
+        // Only on an enabled row: a disabled item does not report hover, so a tooltip on one would never
+        // be shown. What has to be said about a disabled slider is written out below it instead.
+        if (enabled && !tip.empty() && ImGui::IsItemHovered())
+            m_imgui->tooltip(tip, ImGui::GetFontSize() * 20.f);
+    };
+
+    row("##adj_brightness", _L("Brightness"), &m_adjust.brightness, -1.f, 1.f, "%.2f", true, {});
+    row("##adj_contrast", _L("Contrast"), &m_adjust.contrast, -1.f, 1.f, "%.2f", true, {});
+    row("##adj_sharpness", _L("Sharpness"), &m_adjust.sharpness, 0.f, 1.f, "%.2f", true,
+        _u8L("Brings out the finest detail in the image. Applied after Blur, so the two can be used "
+             "together: blur away the speckle, then sharpen the edges that remain."));
+    row("##adj_blur", _L("Blur"), &m_adjust.blur, 0.f, 1.f, "%.2f", true,
+        _u8L("Blurs the image itself. The layer's own Smoothing slider softens the relief without altering "
+             "the image, and is the one to reach for first."));
+    // Grey has no hue to turn, and the shipped library is grayscale - so on most textures this is a
+    // slider that would visibly do nothing. Disabled with the reason given, rather than hidden.
+    const bool has_color = m_adjust_source.has_color();
+    row("##adj_hue", _L("Hue"), &m_adjust.hue_deg, -180.f, 180.f, "%.0f°", has_color, {});
+    if (!has_color) {
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + img_w);
+        ImGui::TextDisabled("%s", _u8L("This texture is grayscale, so it has no hue to shift.").c_str());
+        ImGui::PopTextWrapPos();
+    }
+
+    if (m_imgui->button(_L("Reset")))
+        m_adjust = TextureAdjustments{};
+
+    // Hand the sliders to the layer, which is what puts the adjusted image in front of the displacement:
+    // decode_height_texture() applies preview_adjust, so the relief, the colour and the thumbnails all
+    // follow from here. Written every frame rather than only on a change, so an undo snapshot or a
+    // reselection that resets the layer cannot leave the model showing an adjustment the panel has moved
+    // on from.
+    layer->preview_adjust = m_adjust;
+    if (m_adjust != m_adjust_applied) {
+        m_adjust_applied = m_adjust;
+        invalidate_adjust_textures();
+        // Marked dirty rather than rebuilt here: the panel's own flag is consumed by the main panel's
+        // "rebuild once the mouse is released" rule, so dragging a slider recomputes the displacement
+        // once, on release, instead of on every frame of the drag. That is what keeps the UI responsive
+        // while a full-size resample and a mesh displacement happen behind it.
+        m_preview_params_dirty = true;
+        // This window is drawn after the block that consumes that flag, so the rebuild happens on a later
+        // frame - which means there has to *be* one. Cheap insurance: a slider release that generated no
+        // further canvas event would otherwise leave the flag set and the model unchanged until something
+        // unrelated redrew.
+        m_parent.set_as_dirty();
+    }
+
+    ImGui::Separator();
+    m_imgui->text_wrapped(_u8L("The model updates when you release a slider. Save as copy writes the "
+                               "adjusted image to your texture library and points this layer at it."), img_w);
+
+    const bool cancel = m_imgui->button(_L("Cancel"));
+    ImGui::SameLine();
+    // Nothing to save until a slider has actually moved.
+    m_imgui->disabled_begin(m_adjust.identity());
+    const bool as_copy = m_imgui->button(_L("Save as copy"));
+    m_imgui->disabled_end();
+
+    ImGui::End();
+
+    if (cancel || !keep_open)
+        close_image_adjust();
+    else if (as_copy)
+        commit_image_adjust(*layer);
+}
 
 void GLGizmoTextureDisplacement::remove_texture_layer(int slot)
 {
@@ -4080,8 +4463,8 @@ void GLGizmoTextureDisplacement::remove_texture_layer(int slot)
     if (slot >= 0 && slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS)) {
         mv->texture_displacement_facet(slot).reset();
         m_thumbnails[size_t(slot)].reset();
-        m_thumbnail_source[size_t(slot)] = nullptr;
-        m_layer_expanded[size_t(slot)]   = false;
+        m_thumbnail_source[size_t(slot)].reset();
+        m_layer_expanded[size_t(slot)] = false;
     }
     if (m_picker_slot == slot)
         m_picker_slot = -1;
@@ -4255,7 +4638,7 @@ int GLGizmoTextureDisplacement::select_visible_faces(const std::array<float, 12>
     selector.reset();
     for (unsigned i : unobscured)
         selector.set_facet(int(front_facing[i]), EnforcerBlockerType::ENFORCER);
-    selector.request_update_render_data();
+    selector.request_update_render_data(true);
 
     update_model_object();
     m_parent.set_as_dirty();
@@ -4278,7 +4661,7 @@ void GLGizmoTextureDisplacement::select_whole_model()
         const size_t facet_count = v->mesh().its.indices.size();
         for (size_t i = 0; i < facet_count; ++i)
             m_triangle_selectors[idx]->set_facet(int(i), EnforcerBlockerType::ENFORCER);
-        m_triangle_selectors[idx]->request_update_render_data();
+        m_triangle_selectors[idx]->request_update_render_data(true);
     }
     update_model_object();
     m_parent.set_as_dirty();
@@ -5397,7 +5780,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_thumbnail(const TextureDisplace
         return nullptr;
 
     const size_t slot = size_t(layer.slot);
-    if (m_thumbnails[slot] && m_thumbnail_source[slot] == layer.image_data.get() &&
+    if (m_thumbnails[slot] && m_thumbnail_source[slot].lock() == layer.image_data &&
         m_thumbnail_smoothing[slot] == layer.smoothing)
         return m_thumbnails[slot].get();
 
@@ -5410,7 +5793,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_thumbnail(const TextureDisplace
         return nullptr;
 
     m_thumbnails[slot]          = std::move(texture);
-    m_thumbnail_source[slot]    = layer.image_data.get();
+    m_thumbnail_source[slot]    = layer.image_data;
     m_thumbnail_smoothing[slot] = layer.smoothing;
     return m_thumbnails[slot].get();
 }
@@ -5419,17 +5802,17 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_color_texture(const TextureDisp
 {
     if (layer.empty() || !layer.color_enabled)
         return nullptr;
-    if (m_color_tex && m_color_tex_source == layer.image_data.get() && m_color_tex_smoothing == layer.smoothing)
+    if (m_color_tex && m_color_tex_source.lock() == layer.image_data && m_color_tex_smoothing == layer.smoothing)
         return m_color_tex.get();
 
     std::unique_ptr<GLTexture> texture = upload_color_texture(decode_height_texture(layer), HEIGHT_TEX_MAX_PX);
     if (!texture) {
         m_color_tex.reset();
-        m_color_tex_source = nullptr;
+        m_color_tex_source.reset();
         return nullptr;
     }
     m_color_tex           = std::move(texture);
-    m_color_tex_source    = layer.image_data.get();
+    m_color_tex_source    = layer.image_data;
     m_color_tex_smoothing = layer.smoothing;
     return m_color_tex.get();
 }
@@ -5441,7 +5824,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_height_texture(const TextureDis
 
     // One slot, not one per layer: the preview shader only ever shades the *active* layer, so a single
     // full-resolution upload is enough and the VRAM cost stays at one texture rather than eight.
-    if (m_height_tex && m_height_tex_source == layer.image_data.get() && m_height_tex_smoothing == layer.smoothing)
+    if (m_height_tex && m_height_tex_source.lock() == layer.image_data && m_height_tex_smoothing == layer.smoothing)
         return m_height_tex.get();
 
     std::unique_ptr<GLTexture> texture = upload_height_thumbnail(decode_height_texture(layer), HEIGHT_TEX_MAX_PX);
@@ -5449,7 +5832,7 @@ GLTexture *GLGizmoTextureDisplacement::get_layer_height_texture(const TextureDis
         return nullptr;
 
     m_height_tex           = std::move(texture);
-    m_height_tex_source    = layer.image_data.get();
+    m_height_tex_source    = layer.image_data;
     m_height_tex_smoothing = layer.smoothing;
     return m_height_tex.get();
 }
@@ -5892,6 +6275,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     GizmoImguiBegin(get_name(), flags);
     ensure_panel_icons();
     process_uv_commands(); // clicks from the UV editor pane, run here where the GL context is current
+    // After the pane's commands, which can close it or change the view, and before the View row, so the row
+    // lights the view this frame ends up in and a click on it has the last word.
+    follow_island_highlight();
     const float previous_body_h   = m_panel_body_h;
     const float previous_footer_h = m_panel_footer_h;
 
@@ -6338,7 +6724,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                 if (v->is_model_part()) {
                     ++idx;
                     m_triangle_selectors[idx]->reset();
-                    m_triangle_selectors[idx]->request_update_render_data();
+                    m_triangle_selectors[idx]->request_update_render_data(true);
                 }
             update_model_object();
             m_parent.set_as_dirty();
@@ -6380,10 +6766,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     // ---- View: Normal / Fast / Checker / Distortion as one group, Wireframe on its own ----
     // The underlying state stays m_use_shaded_preview + m_uv_check_mode.
     {
-        const int cur_mode = m_use_shaded_preview                               ? 1 :
-                             m_uv_check_mode == UVCheckMode::Checker    ? 2 :
-                             m_uv_check_mode == UVCheckMode::Distortion ? 3 : 0;
+        const int cur_mode = view_mode();
         int  new_mode       = cur_mode;
+        int  picked         = -1; // the button clicked, the active one included
         bool wf_toggle      = false;
         bool open_uv_editor = false;
         // Checker and Distortion both draw *the unwrap* - the first the texture grid laid over it, the second
@@ -6406,19 +6791,19 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + m_imgui->scaled(2.6f)));
         if (icon_toggle(701, "texture_displacement_real_preview.svg", cur_mode == 0, icon_md, _L("Normal"),
                         _L("Normal - the real geometry, exactly what Bake will produce. Slower to update")))
-            new_mode = 0;
+            new_mode = picked = 0;
         ImGui::SameLine(0.f, gap_s);
         if (icon_toggle(702, "texture_displacement_fast_preview.svg", cur_mode == 1, icon_md, _L("Fast"),
                         _L("Fast - the relief is only shaded on, not built, and only for the layer you are "
                            "editing. Updates instantly while you paint")))
-            new_mode = 1;
+            new_mode = picked = 1;
         ImGui::SameLine(0.f, gap_s);
         if (icon_toggle(703, "texture_displacement_checker.svg", cur_mode == 2, icon_md, _L("Checker"),
                         _L("Checker - a test grid instead of the texture. Where the squares stay square the "
                            "texture is undistorted; where they stretch, it will too. Opens the UV editor if "
                            "it is closed"),
                         uv_view_na)) {
-            new_mode       = 2;
+            new_mode       = picked = 2;
             open_uv_editor = true;
         }
         ImGui::SameLine(0.f, gap_s);
@@ -6426,7 +6811,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                         _L("Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if "
                            "it is closed"),
                         uv_view_na)) {
-            new_mode       = 3;
+            new_mode       = picked = 3;
             open_uv_editor = true;
         }
         vsep(icon_md);
@@ -6450,6 +6835,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             if (new_mode == cur_mode)
                 update_uv_editor(); // otherwise apply_view_mode() below does it
         }
+        if (picked >= 0)
+            m_island_view.picked(picked);
         if (new_mode != cur_mode)
             apply_view_mode(new_mode);
         if (wf_toggle) {
@@ -6599,7 +6986,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                 ImGui::SameLine();
 
                 const std::string not_painted = _u8L("not painted");
-                const float right_w = (painted ? 0.f : ImGui::CalcTextSize(not_painted.c_str()).x + gap_s) + 3.f * frame_h + 2.f * gap_s;
+                const float right_w = (painted ? 0.f : ImGui::CalcTextSize(not_painted.c_str()).x + gap_s) + 4.f * frame_h + 3.f * gap_s;
                 const float name_w  = std::max(frame_h, ImGui::GetWindowContentRegionMax().x - card_pad - ImGui::GetCursorPosX() - gap_s - right_w);
                 ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(orca.x, orca.y, orca.z, 0.2f));
                 ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(orca.x, orca.y, orca.z, 0.35f));
@@ -6613,6 +7000,16 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     ImGui::SameLine();
                     ImGui::TextDisabled("%s", not_painted.c_str());
                 }
+                // Between the name and the order arrows: it acts on the image the name refers to, so it
+                // belongs with the name rather than with the controls that reorder the stack.
+                ImGui::SameLine();
+                m_imgui->disabled_begin(busy || layer.empty());
+                if (icon_button(613 + layer.slot, "cog.svg", frame_h, _L("Adjust image"),
+                                _u8L("Brightness, contrast, sharpness, blur and hue, shown on the image and on the "
+                                     "model as you set them. Save as copy writes the result to your texture library "
+                                     "and points this layer at it.")))
+                    open_image_adjust(layer);
+                m_imgui->disabled_end();
                 ImGui::SameLine();
                 m_imgui->disabled_begin(busy || li == 0);
                 if (icon_button(611, "texture_displacement_move_up.svg", frame_h, _L("Move up"), _L("Move up - applied earlier"))) {
@@ -7448,10 +7845,15 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         set_active_layer(m_picker_slot);
 
     // In this window's scope, where the popup's open request and the popup itself share one ID stack.
+    ImVec2 panel_rect_min, panel_rect_max;
     {
         const ImVec2 win_min = ImGui::GetWindowPos();
         const ImVec2 win_sz  = ImGui::GetWindowSize();
         render_texture_library_popup(win_min, ImVec2(win_min.x + win_sz.x, win_min.y + win_sz.y));
+        // Only recorded here. The image-adjustment panel is a top-level window rather than a popup, so it
+        // cannot be begun inside this one; it is drawn after GizmoImguiEnd() below.
+        panel_rect_min = win_min;
+        panel_rect_max = ImVec2(win_min.x + win_sz.x, win_min.y + win_sz.y);
     }
 
     // ImGui sliders report "changed" continuously on every frame while being dragged, not just once on
@@ -7689,6 +8091,11 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         m_parent.request_extra_frame();
     }
     GizmoImguiEnd();
+
+    // Outside the gizmo's window, because it is a window of its own: a floating, non-modal panel that
+    // leaves the 3D view live so the relief can be watched while the sliders move. No-op when closed.
+    render_image_adjust_window(panel_rect_min, panel_rect_max);
+
     ImGuiWrapper::pop_toolbar_style();
 
     // Drawn last, over everything, via the foreground draw list: the +/- add-remove sign next to the 3D
