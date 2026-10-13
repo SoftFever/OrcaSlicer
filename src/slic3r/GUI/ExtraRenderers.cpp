@@ -647,7 +647,7 @@ wxWindow* BitmapChoiceRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelR
         // The tooltip shows the readable color name and the AMS location, e.g. "Black — AMS HT-B".
         wxString tip;
         if (i < fila_colors.size())
-            tip = get_color_display_name(from_u8(fila_colors[i]));
+            tip = get_color_display_name(Slic3r::GUI::from_u8(fila_colors[i]));
         if (i < ams_locations.size()) {
             const wxString loc = format_ams_location(ams_locations[i]);
             if (!loc.IsEmpty())
