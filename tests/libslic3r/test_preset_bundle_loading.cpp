@@ -37,6 +37,7 @@
 #include <utility>
 #include "libslic3r/Config.hpp"
 #include <map>
+#include <memory>
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PublishSettings.hpp"
 #include <set>
@@ -330,6 +331,105 @@ TEST_CASE("A directory of user presets loads with each one resolved against its 
         CHECK(child->loaded);
         REQUIRE(child->config.option<ConfigOptionFloat>("layer_height") != nullptr);
         CHECK_THAT(child->config.opt_float("layer_height"), Catch::Matchers::WithinAbs(0.24, 1e-9));
+    }
+}
+
+TEST_CASE("A user preset synced to the cloud and back keeps its values on every nozzle variant", "[Preset][Bundle]")
+{
+    // Two extruders with a Standard and a High Flow variant each, as on a dual-nozzle printer.
+    auto add_parent = [](PresetCollection &coll) {
+        Preset &parent = add_inmemory_preset(coll, "Parent Process");
+        parent.config.set_key_value("print_extruder_variant",
+            new ConfigOptionStrings({"Direct Drive Standard", "Direct Drive High Flow", "Direct Drive Standard", "Direct Drive High Flow"}));
+        parent.config.set_key_value("print_extruder_id", new ConfigOptionInts({1, 1, 2, 2}));
+        parent.config.set_deserialize_strict("outer_wall_speed", "50,50,50,50");
+        parent.is_system  = true;
+        parent.setting_id = "parent-id";
+        return parent.config;
+    };
+
+    RenameTestCollection local;
+    const DynamicPrintConfig parent_config = add_parent(local);
+    Preset &child = add_inmemory_preset(local, "User Process", "Parent Process");
+    child.config.apply_only(parent_config, {"print_extruder_variant", "print_extruder_id"});
+    child.config.set_deserialize_strict("outer_wall_speed", "11,12,21,22");
+    child.version = Semver(1, 0, 0);
+
+    std::map<std::string, std::string> uploaded;
+    REQUIRE(local.get_differed_values_to_update(child, uploaded) == 0);
+    uploaded[BBL_JSON_KEY_SETTING_ID] = "child-id";
+    uploaded[BBL_JSON_KEY_USER_ID]    = "user";
+
+    // A cloud copy stored before uploads carried the variant layout holds the values alone.
+    std::map<std::string, std::string> stored_without_layout = uploaded;
+    stored_without_layout.erase("print_extruder_variant");
+    stored_without_layout.erase("print_extruder_id");
+    // One saved while the parent had a single variant covers the first extruder only.
+    std::map<std::string, std::string> stored_single_value = stored_without_layout;
+    stored_single_value["outer_wall_speed"] = "11";
+
+    struct Case { const char *label; std::map<std::string, std::string> values; const char *expected; };
+    for (const Case &c : {Case{"current upload", uploaded, "11,12,21,22"},
+                          Case{"stored without layout", stored_without_layout, "11,12,21,22"},
+                          Case{"stored with a single value", stored_single_value, "11,11,50,50"}}) {
+        DYNAMIC_SECTION(c.label) {
+            RenameTestCollection       downloaded;
+            PresetsConfigSubstitutions substitutions;
+            add_parent(downloaded);
+            REQUIRE(downloaded.load_user_preset("User Process", c.values, substitutions, ForwardCompatibilitySubstitutionRule::Disable));
+
+            const Preset *synced = downloaded.find_preset("User Process");
+            REQUIRE(synced != nullptr);
+            CHECK(synced->config.opt_serialize("outer_wall_speed") == c.expected);
+        }
+    }
+}
+
+TEST_CASE("A user filament synced to the cloud and back keeps its values and unset overrides on every variant", "[Preset][Bundle]")
+{
+    auto add_parent = [](PresetCollection &coll) {
+        Preset &parent = add_inmemory_preset(coll, "Parent Filament");
+        parent.config.set_key_value("filament_extruder_variant",
+            new ConfigOptionStrings({"Direct Drive Standard", "Direct Drive High Flow"}));
+        parent.config.set_deserialize_strict("nozzle_temperature", "220,220");
+        parent.config.set_deserialize_strict("filament_retraction_length", "nil,nil");
+        parent.is_system  = true;
+        parent.setting_id = "parent-id";
+        return parent.config;
+    };
+    auto make_collection = [] {
+        return std::make_unique<PresetCollection>(Preset::TYPE_FILAMENT, Preset::filament_options(),
+                                                  static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()));
+    };
+
+    auto local = make_collection();
+    add_parent(*local);
+    Preset &child = add_inmemory_preset(*local, "User Filament", "Parent Filament");
+    child.config.apply_only(add_parent(*make_collection()), {"filament_extruder_variant"});
+    child.config.set_deserialize_strict("nozzle_temperature", "200,210");
+    child.config.set_deserialize_strict("filament_retraction_length", "1.2,nil");
+    child.version = Semver(1, 0, 0);
+
+    std::map<std::string, std::string> uploaded;
+    REQUIRE(local->get_differed_values_to_update(child, uploaded) == 0);
+    uploaded[BBL_JSON_KEY_SETTING_ID] = "child-id";
+    uploaded[BBL_JSON_KEY_USER_ID]    = "user";
+    std::map<std::string, std::string> stored_without_layout = uploaded;
+    stored_without_layout.erase("filament_extruder_variant");
+
+    for (const auto &[label, values] : {std::make_pair("current upload", uploaded),
+                                        std::make_pair("stored without layout", stored_without_layout)}) {
+        DYNAMIC_SECTION(label) {
+            auto                       downloaded = make_collection();
+            PresetsConfigSubstitutions substitutions;
+            add_parent(*downloaded);
+            REQUIRE(downloaded->load_user_preset("User Filament", values, substitutions, ForwardCompatibilitySubstitutionRule::Disable));
+
+            const Preset *synced = downloaded->find_preset("User Filament");
+            REQUIRE(synced != nullptr);
+            CHECK(synced->config.opt_serialize("nozzle_temperature") == "200,210");
+            CHECK(synced->config.opt_serialize("filament_retraction_length") == "1.2,nil");
+        }
     }
 }
 
