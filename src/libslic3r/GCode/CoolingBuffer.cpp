@@ -769,9 +769,18 @@ std::string CoolingBuffer::apply_layer_cooldown(
         auto policy = CoolingPolicy::Default;
         if (m_config.has("cooling_policy")) {
             const auto* cp_opt = dynamic_cast<const ConfigOptionEnumsGeneric*>(m_config.option("cooling_policy"));
-            if (cp_opt && m_current_extruder < cp_opt->values.size()) {
-                policy = (CoolingPolicy) cp_opt->get_at(m_current_extruder);
-            }
+            if (cp_opt && m_current_extruder < cp_opt->values.size())
+                policy = static_cast<CoolingPolicy>(cp_opt->get_at(m_current_extruder));
+        } else {
+            // Fallback for configs loaded without going through Preset::normalize
+            // (e.g. direct 3MF load). Read the legacy checkboxes via generic lookup.
+            const auto* fan_off_opt = dynamic_cast<const ConfigOptionBools*>(m_config.option("fan_always_off"));
+            const auto* freq_opt    = dynamic_cast<const ConfigOptionBools*>(m_config.option("reduce_fan_stop_start_freq"));
+
+            if (fan_off_opt && m_current_extruder < fan_off_opt->values.size() && fan_off_opt->get_at(m_current_extruder))
+                policy = CoolingPolicy::AlwaysOff;
+            else if (freq_opt && m_current_extruder < freq_opt->values.size() && freq_opt->get_at(m_current_extruder))
+                policy = CoolingPolicy::AlwaysOn;
         }
 
         if (policy == CoolingPolicy::AlwaysOff) {

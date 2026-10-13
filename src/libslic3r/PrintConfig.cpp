@@ -9997,20 +9997,7 @@ void PrintConfigDef::handle_legacy_composite(DynamicPrintConfig &config)
         }
         config.set_key_value("wiping_volumes_use_custom_matrix", new ConfigOptionBool(custom));
     }
-    // Legacy migration: Convert old checkboxes to the new Cooling Policy (FILAMENT presets only)
-    if (!config.has("cooling_policy")) {
-        if (config.has("fan_always_off")) {
-            auto opt = config.option<ConfigOptionBools>("fan_always_off");
-            if (opt && !opt->values.empty() && opt->get_at(0))
-                config.set_key_value("cooling_policy", new ConfigOptionEnumsGeneric{(int) CoolingPolicy::AlwaysOff});
-        }
-        if (!config.has("cooling_policy") && config.has("reduce_fan_stop_start_freq")) {
-            auto opt = config.option<ConfigOptionBools>("reduce_fan_stop_start_freq");
-            if (opt && !opt->values.empty() && opt->get_at(0))
-                config.set_key_value("cooling_policy", new ConfigOptionEnumsGeneric{(int) CoolingPolicy::AlwaysOn});
-        }
-    }
-
+   
     // Orca: a config saved before a key joined filament_options_with_variant stores it once per filament
     // rather than once per filament variant, and one exported by an older CLI may store a single value.
     normalize_filament_values_to_variants(config);

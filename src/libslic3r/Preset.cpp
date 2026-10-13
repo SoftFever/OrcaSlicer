@@ -565,6 +565,25 @@ void Preset::normalize(DynamicPrintConfig &config)
         }
     }
 
+    // Legacy migration: convert old per-extruder checkboxes to the unified CoolingPolicy enum.
+    // Runs here (preset load) rather than in handle_legacy_composite (3MF import) so that
+    // 3MF roundtrip tests are not broken by unexpected key injection during import/export.
+    if (config.option("filament_diameter") != nullptr && !config.has("cooling_policy")) {
+        CoolingPolicy policy_val = CoolingPolicy::Default;
+        if (config.has("fan_always_off")) {
+            const auto* opt = config.option<ConfigOptionBools>("fan_always_off");
+            // Check extruder 0 as representative; old checkboxes did not support per-extruder config.
+            if (opt && !opt->values.empty() && opt->get_at(0))
+                policy_val = CoolingPolicy::AlwaysOff;
+        }
+        if (policy_val == CoolingPolicy::Default && config.has("reduce_fan_stop_start_freq")) {
+            const auto* opt = config.option<ConfigOptionBools>("reduce_fan_stop_start_freq");
+            if (opt && !opt->values.empty() && opt->get_at(0))
+                policy_val = CoolingPolicy::AlwaysOn;
+        }
+        config.set_key_value("cooling_policy", new ConfigOptionEnumsGeneric{(int) policy_val});
+    }
+
     handle_legacy_sla(config);
 }
 
