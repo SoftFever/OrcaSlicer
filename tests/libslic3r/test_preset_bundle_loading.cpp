@@ -10,8 +10,12 @@
 #include <boost/nowide/fstream.hpp>
 #include <cstddef>
 #include <fstream>
+#include <functional>
 #include <future>
+#include <mutex>
+#include <new>
 #include <nlohmann/json.hpp>
+#include <shared_mutex>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
@@ -6569,6 +6573,7 @@ TEST_CASE("Local reload rolls back prepared collection growth on a late allocati
     REQUIRE(failed);
     check_reload_state(f.bundle, before);
     CHECK(f.bundle.bundles.m_bundles.at(f.id).bundle_type == BundleType::Local);
+}
 
 namespace {
 
