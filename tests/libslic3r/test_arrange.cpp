@@ -281,6 +281,29 @@ TEST_CASE("Arrange centers a pile that fits on the custom alignment point", "[Ar
     require_no_overlap(items);
 }
 
+// A row of four 40 mm parts centred on the 30% mark of a 200 x 50 mm bed would start 24 mm
+// left of it (#15727). The pile stops at the left edge instead.
+TEST_CASE("Arrange keeps a custom-aligned pile within the bed", "[Arrange]")
+{
+    const BoundingBox bed_   = bed(200, 50);
+    ArrangePolygons   items  = squares(4, 40.);
+    ArrangeParams     params = quiet_params(scaled(2.));
+    params.align_center      = Vec2d(0.3, 0.5);
+
+    arrange(items, bed_, params);
+
+    coord_t leftmost = std::numeric_limits<coord_t>::max();
+    for (const ArrangePolygon &ap : items) {
+        REQUIRE(ap.bed_idx == 0);
+        const BoundingBox bb = ap.transformed_poly().contour.bounding_box();
+        CHECK(bed_.contains(bb));
+        leftmost = std::min(leftmost, bb.min.x());
+    }
+    // Stopped at the edge it was aimed at, not re-centred.
+    CHECK(leftmost < scaled(10.));
+    require_no_overlap(items);
+}
+
 // Arranging a selection leaves the unselected parts where they are, but the final alignment
 // centres the box around both, so the selection does not move by its own centring. The check
 // against the bed and the fixed part must test where the selection actually lands.
