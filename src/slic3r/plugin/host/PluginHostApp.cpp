@@ -29,6 +29,7 @@
 #include <cstddef>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <stdexcept>
 #include <wx/app.h>
@@ -154,13 +155,7 @@ py::object selected_printer()
     return std::move(out);
 }
 
-// Per-filament material usage of a plate's last slice, straight from the
-// GCodeProcessor statistics the preview legend is built from. Volumes are mm^3,
-// keyed by the 0-based filament index. "loads" counts how often a filament
-// becomes the extruding one (first use plus every switch back to it), which is
-// how often a printer with a filament changer loads it. Returns None when the
-// plate has no slice result.
-py::object slice_statistics(int plate_index, bool require_valid)
+py::object slice_statistics(int plate_index)
 {
     GUI::Plater* plater = current_plater();
     require_main_thread("slice_statistics");
@@ -170,11 +165,7 @@ py::object slice_statistics(int plate_index, bool require_valid)
         plate = plates.get_curr_plate();
     else if (plate_index < plates.get_plate_count())
         plate = plates.get_plate(plate_index);
-    if (plate == nullptr)
-        return py::none();
-
-    const bool valid = plate->is_slice_result_valid();
-    if (require_valid && !valid)
+    if (plate == nullptr || !plate->is_slice_result_valid())
         return py::none();
 
     const GCodeProcessorResult* result = plate->get_slice_result();
@@ -182,17 +173,11 @@ py::object slice_statistics(int plate_index, bool require_valid)
         return py::none();
 
     // The result is shared with the background slicing process.
-    struct ResultLock {
-        const GCodeProcessorResult* r;
-        explicit ResultLock(const GCodeProcessorResult* r) : r(r) { r->lock(); }
-        ~ResultLock() { r->unlock(); }
-    } result_lock(result);
+    std::lock_guard<std::mutex> lock(result->result_mutex);
 
     const PrintEstimatedStatistics& ps = result->print_statistics;
 
-    // Loads per filament and the order they happen in: (from, to) -> count,
-    // from -1 for the first filament of the print.
-    std::map<size_t, unsigned int> loads;
+    // Filament changes in order: (from, to) -> count, from -1 for the first filament of the print.
     std::map<std::pair<int, int>, unsigned int> transitions;
     int active = -1;
     for (const GCodeProcessorResult::MoveVertex& move : result->moves) {
@@ -200,7 +185,6 @@ py::object slice_statistics(int plate_index, bool require_valid)
             continue;
         ++transitions[{active, static_cast<int>(move.extruder_id)}];
         active = move.extruder_id;
-        ++loads[move.extruder_id];
     }
 
     std::set<size_t> ids;
@@ -224,8 +208,6 @@ py::object slice_statistics(int plate_index, bool require_valid)
         f["tower_mm3"]   = volume_of(ps.wipe_tower_volumes_per_extruder, id);
         f["flush_mm3"]   = volume_of(ps.flush_per_filament, id);
         f["total_mm3"]   = volume_of(ps.total_volumes_per_extruder, id);
-        const auto l     = loads.find(id);
-        f["loads"]       = l == loads.end() ? 0u : l->second;
         f["diameter"]    = id < result->filament_diameters.size() ? py::object(py::float_(result->filament_diameters[id])) : py::object(py::none());
         f["density"]     = id < result->filament_densities.size() ? py::object(py::float_(result->filament_densities[id])) : py::object(py::none());
         filaments.append(std::move(f));
@@ -233,7 +215,6 @@ py::object slice_statistics(int plate_index, bool require_valid)
 
     py::dict out;
     out["plate_index"]                  = plate->get_index();
-    out["valid"]                        = valid;
     out["filaments"]                    = std::move(filaments);
     out["total_filament_changes"]       = ps.total_filament_changes;
     out["total_flush_filament_changes"] = ps.total_flush_filament_changes;
@@ -286,13 +267,12 @@ void host_bindings::register_app(py::module_& host)
              "Agent, model_id, connection ('lan' or 'cloud'), online, connected and firmware of the printer selected in the "
              "device list; model_id and firmware are empty for non-Bambu agents. None when none is selected. Print hosts "
              "configured in the printer preset (OctoPrint and the like) are not in the device list.");
-    // Material usage of the last slice per filament (model, support, prime
-    // tower, flush, total in mm^3 plus diameter, density and load count) and the
-    // filament changes in order ("transitions": from, to, count), so
-    // plugins can compare it with what is left on the loaded spools. plate_index -1 is the
-    // current plate. The valid flag is only set after SlicingJobComplete has been
-    // dispatched, so a handler of that event passes require_valid=False.
-    host.def("slice_statistics", &slice_statistics, py::arg("plate_index") = -1, py::arg("require_valid") = true);
+    host.def("slice_statistics", &slice_statistics, py::arg("plate_index") = -1,
+             "Material usage of the last valid slice of a plate (plate_index -1 is the current plate), as the preview "
+             "legend shows it: per filament (0-based index) the model, support, prime tower, flush and total volume in "
+             "mm^3 plus diameter and density; total_filament_changes, total_flush_filament_changes and the filament "
+             "changes in order as transitions (from, to, count; from is None for the first filament). None when the "
+             "plate has no valid slice result.");
 }
 
 } // namespace Slic3r
