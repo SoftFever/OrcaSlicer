@@ -1675,6 +1675,8 @@ void MenuFactory::create_extra_object_menu()
     append_menu_item_center(&m_object_menu);
     // Object Drop
     append_menu_item_drop(&m_object_menu);
+    // Scale to build volume: makes sense just for whole objects
+    append_menu_item_scale_selection_to_fit_print_volume(&m_object_menu);
     // Object Split
     wxMenu* split_menu = new wxMenu();
     if (!split_menu)
