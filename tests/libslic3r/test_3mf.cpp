@@ -36,6 +36,7 @@
 #include <nlohmann/json.hpp>
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/file_status.hpp>   // no_perms, owner_all
 #include <boost/nowide/fstream.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <algorithm>
