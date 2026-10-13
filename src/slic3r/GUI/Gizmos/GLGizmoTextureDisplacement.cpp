@@ -4124,11 +4124,11 @@ void GLGizmoTextureDisplacement::invalidate_adjust_textures()
     // textures - are keyed on the image_data pointer and the layer's Smoothing, and a live adjustment
     // changes neither: the pointer still names the same PNG. Rather than widen three cache keys for a
     // panel that is open a few seconds at a time, the panel drops the copies itself whenever it moves
-    // the adjustment. Nulling the source is enough; the next get_layer_*() rebuilds from the decode,
+    // the adjustment. Resetting the source is enough; the next get_layer_*() rebuilds from the decode,
     // which does see the adjustment.
-    m_thumbnail_source.fill(nullptr);
-    m_color_tex_source  = nullptr;
-    m_height_tex_source = nullptr;
+    m_thumbnail_source.fill({});
+    m_color_tex_source.reset();
+    m_height_tex_source.reset();
 }
 
 void GLGizmoTextureDisplacement::close_image_adjust()
