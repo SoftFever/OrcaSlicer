@@ -9814,7 +9814,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "thumbnails";
     } else if (opt_key == "only_one_wall_top") {
         opt_key = "top_one_wall_type";
-        value   = (value == "1" || value == "true") ? "all top" : "none";
+        value   = (value == "0" || value == "false") ? "not apply" : "all top";
     } else if (opt_key == "initial_layer_flow_ratio") {
         opt_key = "bottom_solid_infill_flow_ratio";
     } else if (opt_key == "ironing_direction") {
