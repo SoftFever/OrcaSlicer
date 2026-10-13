@@ -11,15 +11,60 @@
 #include "libslic3r/PrintConfig.hpp"
 
 #include <algorithm>
+#include <boost/algorithm/string/erase.hpp>
+#include <cfloat>
+#include <boost/any.hpp>
+#include <climits>
+#include <boost/filesystem/operations.hpp>
+#include <cmath>
+#include "libslic3r/LocalesUtils.hpp"
+#include <cstddef>
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Config.hpp"
+#include <cstdlib>
+#include "libslic3r/Preset.hpp"
+#include <limits>
+#include "libslic3r/enum_bitmask.hpp"
+#include <deque>
+#include "libslic3r/libslic3r.h"
+#include <map>
+#include "libslic3r/Utils.hpp"
+#include <functional>
+#include <cstring>
+#include "libslic3r/Color.hpp"
 #include <regex>
+#include <string>
+#include "slic3r/GUI/Widgets/StateColor.hpp"
+#include "slic3r/GUI/Widgets/DropDown.hpp"
 #include <utility>
 #include <cstdint>
+#include <vector>
+#include <wx/event.h>
+#include <wx/chartype.h>
+#include <wx/gdicmn.h>
+#include <wx/arrstr.h>
+#include <wx/anybutton.h>
+#include <wx/colour.h>
+#include <wx/clrpicker.h>
+#include <wx/image.h>
+#include <wx/dcmemory.h>
+#include <wx/dc.h>
+#include <wx/dcgraph.h>
+#include <wx/font.h>
 #include <wx/numformatter.h>
+#include <wx/settings.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/tglbtn.h>
+#include <wx/spinctrl.h>
+#include <wx/panel.h>
+#include <wx/stattext.h>
 #include <wx/tooltip.h>
 #include <wx/notebook.h>
 #include <wx/listbook.h>
 #include <wx/tokenzr.h>
 #include <boost/algorithm/string/predicate.hpp>
+#include <wx/types.h>
 #include "OG_CustomCtrl.hpp"
 #include "MsgDialog.hpp"
 #include "BitmapComboBox.hpp"
@@ -36,6 +81,7 @@
 
 #include "../Utils/ColorSpaceConvert.hpp"
 #include "../Utils/NetworkAgentFactory.hpp"
+#include <wx/sizer.h>
 #ifdef __WXOSX__
 #define wxOSX true
 #else
@@ -513,7 +559,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 else if(m_opt_id == "filament_retraction_distances_when_cut" || opt_key_without_idx == "retraction_distances_when_cut"){
                     if (m_value.empty() || boost::any_cast<double>(m_value) != val) {
                         wxString msg_text = format_wxstr(_L("Value %s is out of range. The valid range is from %d to %d."), str, m_opt.min, m_opt.max);
-                        WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxYES);
+                        WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxOK);
                         if (dialog.ShowModal()) {
                             if (m_value.empty()) {
                                 if (m_opt.min > val) val = m_opt.min;
@@ -540,51 +586,95 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
     case coStrings:
     case coFloatOrPercent:
     case coFloatsOrPercents: {
-        if ((m_opt.type == coFloatOrPercent || m_opt.type == coFloatsOrPercents) && !str.IsEmpty() &&  str.Last() != '%')
-        {
+        if ((m_opt.type == coFloatOrPercent || m_opt.type == coFloatsOrPercents) && !str.IsEmpty() &&
+            !(m_opt.nullable && str == m_na_value)) {
+            bool update_control = false;
+            wxString numeric_str = str;
             double val = 0.;
+
             const char dec_sep = is_decimal_separator_point() ? '.' : ',';
             const char dec_sep_alt = dec_sep == '.' ? ',' : '.';
-            // Replace the first incorrect separator in decimal number.
-            if (str.Replace(dec_sep_alt, dec_sep, false) != 0)
-                set_value(str, false);
+            // Orca: normalize the decimal separator and optional unit before
+            // detecting the percentage suffix and parsing the numeric part.
+            update_control |= numeric_str.Replace(dec_sep_alt, dec_sep, false) != 0;
+            update_control |= numeric_str.Replace(" ", "", true) != 0;
+            const bool has_literal_unit = numeric_str.EndsWith("mm");
+            if (has_literal_unit) {
+                numeric_str.RemoveLast(2);
+                update_control = true;
+            }
+            bool is_percent = !numeric_str.IsEmpty() && numeric_str.Last() == '%';
+            if (is_percent)
+                numeric_str.RemoveLast();
 
-
-            // remove space and "mm" substring, if any exists
-            str.Replace(" ", "", true);
-            str.Replace("m", "", true);
-
-            if (!str.ToDouble(&val))
-            {
+            if ((has_literal_unit && is_percent) || !numeric_str.ToDouble(&val) || !std::isfinite(val)) {
                 if (!check_value) {
                     m_value.clear();
                     break;
                 }
                 show_error(m_parent, _L("Invalid numeric."));
-                set_value(double_to_string(val), true);
-            }
-            else if (((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max) ||
-                     (m_opt.sidetext.rfind("mm ") != std::string::npos && val > /*1*/m_opt.max_literal)) &&
-                     (m_value.empty() || into_u8(str) != boost::any_cast<std::string>(m_value)))
-            {
-                if (!check_value) {
-                    m_value.clear();
-                    break;
+                numeric_str = double_to_string(std::clamp(0., double(m_opt.min), double(m_opt.max)));
+                is_percent = false;
+                update_control = true;
+            } else {
+                const bool looks_like_missing_percent = !is_percent && !has_literal_unit &&
+                    ((m_opt.sidetext.rfind("mm/s") != std::string::npos && val > m_opt.max) ||
+                     (m_opt.sidetext.rfind("mm ") != std::string::npos && val > m_opt.max_literal));
+                // Orca: validate explicit percentages and literal values before
+                // asking whether an otherwise valid literal was meant as a percentage.
+                const bool out_of_range = !m_opt.is_value_valid(val);
+                if (out_of_range) {
+                    if (!check_value) {
+                        m_value.clear();
+                        break;
+                    }
+                    show_error(m_parent, _L("Value is out of range."));
+                    val = std::clamp(val, double(m_opt.min), double(m_opt.max));
+                    // Orca: retain the inferred percent unit when clamping a
+                    // suspicious unitless value, so 2000 becomes 100%, not 100 mm.
+                    is_percent |= looks_like_missing_percent;
+                    numeric_str = double_to_string(val);
+                    update_control = true;
+                } else {
+                    const bool value_changed = m_value.empty() || into_u8(str) != boost::any_cast<std::string>(m_value);
+                    if (looks_like_missing_percent && value_changed) {
+                        if (!check_value) {
+                            m_value.clear();
+                            break;
+                        }
+
+                        const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
+                        const wxString stVal       = numeric_str;
+                        const wxString msg_text    = from_u8((boost::format(_utf8(L("Is it %s%% or %s %s?"))) %
+                                                              stVal % stVal % sidetext).str());
+                        WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxYES | wxNO);
+                        dialog.SetButtonLabel(wxID_YES, stVal + _L("%"));
+                        dialog.SetButtonLabel(wxID_NO, stVal + " " + _L(sidetext));
+                        dialog.GetSizer()->SetSizeHints(&dialog);
+                        dialog.Fit();
+                        dialog.CenterOnParent();
+                        is_percent = dialog.ShowModal() == wxID_YES;
+                        update_control = true;
+                    }
                 }
 
-                const std::string sidetext = m_opt.sidetext.rfind("mm/s") != std::string::npos ? "mm/s" : "mm";
-                const wxString stVal       = double_to_string(val, 2);
-                const wxString msg_text    = from_u8((boost::format(_utf8(L("Is it %s%% or %s %s?\n"
-                                                                            "YES for %s%%, \n"
-                                                                            "NO for %s %s."))) %
-                                                      stVal % stVal % sidetext % stVal % stVal % sidetext)
-                                                         .str());
-                WarningDialog dialog(m_parent, msg_text, _L("Parameter validation") + ": " + m_opt_id, wxYES | wxNO);
-                if ((val > 100) && dialog.ShowModal() == wxID_YES) {
-                    set_value(from_u8((boost::format("%s%%") % stVal).str()), false /*true*/);
-                    str += "%%";
-                } else
-                    set_value(stVal, false); // it's no needed but can be helpful, when inputted value contained "," instead of "."
+                // Orca: also enforce the literal limit after clamping an explicit mm input.
+                if (!is_percent && m_opt.sidetext.rfind("mm ") != std::string::npos && val > m_opt.max_literal) {
+                    if (!check_value) {
+                        m_value.clear();
+                        break;
+                    }
+                    if (!out_of_range)
+                        show_error(m_parent, _L("Value is out of range."));
+                    val = m_opt.max_literal;
+                    numeric_str = double_to_string(val);
+                    update_control = true;
+                }
+            }
+
+            if (update_control) {
+                str = numeric_str + (is_percent ? "%" : "");
+                set_value(str, true);
             }
         }
         if (m_opt.opt_key == "thumbnails") {
@@ -612,11 +702,11 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
                 set_value(str, true);
             }
         } else if (m_opt.opt_key == "sparse_infill_rotate_template" || m_opt.opt_key == "solid_infill_rotate_template") {
-            string ustr(str.utf8_string());
+            std::string ustr(str.utf8_string());
             if (!ConfigOptionFloats::validate_string(ustr)) {
-                string      v;
+                std::string v;
                 std::smatch match;
-                string      ps = (m_opt.opt_key == "sparse_infill_rotate_template") ?
+                std::string ps = (m_opt.opt_key == "sparse_infill_rotate_template") ?
                                      u8"[BT][!]?|[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[BT]?[!*]?" :
                                      u8"[#][\\d]+[!]?|[+\\-]?[\\d.]+[%]?[*]?[\\d]*[/NnZz$LlUuQq~^|#]?[+\\-]?[\\d.]*[%#\'\"cm]?[m]?[!*]?";
 
@@ -639,7 +729,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
             }
             break;
         } else if (m_opt.opt_key == "extra_solid_infills") {
-            string ustr(str.utf8_string());
+            std::string ustr(str.utf8_string());
             // New rule: accept either interval form (N or N#K) or explicit list (e.g. 1,7,9), with optional quotes.
             const std::regex rx_interval(u8R"(^\s*['"]?\s*\d+\s*(?:#\s*\d*)?\s*['"]?\s*$)");
             // List entries may be plain numbers or number with optional #K count, e.g., 5, 9#2, 18
@@ -926,8 +1016,11 @@ void TextCtrl::BUILD() {
     if (m_opt.is_code)
         temp->SetFont(Slic3r::GUI::wxGetApp().normal_font());
 
+    if(m_opt.multiline){
+        temp->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30"))); // only effects wxTextCtrl
+        temp->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    }
 
-    temp->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
 	wxGetApp().UpdateDarkUI(temp);
 
     if (! m_opt.multiline && !wxOSX)
@@ -941,7 +1034,11 @@ void TextCtrl::BUILD() {
 	temp->SetToolTip(get_tooltip_text(text_value));
 
     if (!m_opt.multiline) {
-        text_ctrl->Bind(wxEVT_TEXT_ENTER, ([this, temp](wxEvent &e)
+        text_ctrl->Bind(wxEVT_TEXT_ENTER, ([
+#if !defined(__WXGTK__)
+            temp,
+#endif // __WXGTK__
+            this](wxEvent &e)
         {
 #if !defined(__WXGTK__)
             e.Skip();
@@ -973,7 +1070,11 @@ void TextCtrl::BUILD() {
 		temp->GetToolTip()->Enable(flag);
 	}), text_ctrl->GetId());
 
-	temp->Bind(wxEVT_KILL_FOCUS, ([this, temp](wxEvent &e)
+	temp->Bind(wxEVT_KILL_FOCUS, ([
+#if !defined(__WXGTK__)
+		temp,
+#endif // __WXGTK__
+		this](wxEvent &e)
 	{
 		e.Skip();
 #if !defined(__WXGTK__)
@@ -1324,7 +1425,7 @@ void SpinCtrl::BUILD() {
         bEnterPressed = true;
     }), temp->GetId());
 
-	temp->GetTextCtrl()->Bind(wxEVT_TEXT, ([this, temp](wxCommandEvent e)
+	temp->GetTextCtrl()->Bind(wxEVT_TEXT, ([this](wxCommandEvent e)
 	{
 // 		# On OSX / Cocoa, SpinInput::GetValue() doesn't return the new value
 // 		# when it was changed from the text control, so the on_change callback
@@ -2079,7 +2180,8 @@ void PrinterAgentChoice::set_value(const std::string& value, bool change_event)
     if (match == wxNOT_FOUND)
     {
         field->SetSelection(wxNOT_FOUND); // nothing shows as selected in the dropdown
-        field->SetValue(from_u8(value + " (missing)")); // set a value not in the selection (upper display field)
+        // TRN %1% is the ID of a printer agent that is no longer available
+        field->SetValue(format_wxstr(_L("%1% (missing)"), value)); // set a value not in the selection (upper display field)
     }
     else
     {
@@ -2146,6 +2248,7 @@ void PrinterAgentChoice::msw_rescale()
 void PluginField::BUILD()
 {
     auto* panel = new wxPanel(m_parent, wxID_ANY);
+    panel->SetBackgroundColour(*wxWHITE);
     wxGetApp().UpdateDarkUI(panel);
     window = panel;
 
@@ -2188,9 +2291,8 @@ void PluginField::rebuild_ui()
     m_rows.clear();
     m_standalone_add_btn = nullptr;
 
-    if (m_values.empty()) {
-        add_empty_state_row();
-    } else {
+    add_empty_state_row();
+    if (!m_values.empty()) {
         for (size_t i = 0; i < m_values.size(); ++i)
             add_plugin_row(display_name_for_value(m_values[i]), i == m_values.size() - 1);
     }
@@ -2207,94 +2309,43 @@ void PluginField::rebuild_ui()
 
 void PluginField::add_empty_state_row()
 {
-    const auto button_size = wxSize(def_width_thinner() * m_em_unit, -1);
-    auto row_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    wxTextCtrl* display = new wxTextCtrl(window, wxID_ANY, _L("No plugin selected"),
-        wxDefaultPosition, wxSize(def_width_wider() * m_em_unit, wxDefaultCoord),
-        wxTE_READONLY);
-    display->SetEditable(false);
-    wxGetApp().UpdateDarkUI(display);
-    display->SetToolTip(_L("No plugin selected"));
-
-    auto add_btn = new ScalableButton(window, wxID_ANY, "param_add", wxEmptyString,
-        button_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 16);
-    wxGetApp().UpdateDarkUI(add_btn);
-    add_btn->SetToolTip(_L("Add plugin"));
+    auto add_btn = new Button(window, _L("Add plugin"), "param_add", 0, 16);
+    add_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
     add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_add_clicked(); });
 
-    row_sizer->Add(display, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-    row_sizer->Add(add_btn, 0, wxALIGN_CENTER_VERTICAL);
-    m_main_sizer->Add(row_sizer, 0, wxEXPAND);
-
-    PluginRow row;
-    row.display = display;
-    row.add_btn = add_btn;
-    row.sizer = row_sizer;
-    m_rows.push_back(row);
+    m_main_sizer->Add(add_btn, 0, wxEXPAND | wxBOTTOM, window->FromDIP(SidebarProps::ContentMarginV()));
 
     m_standalone_add_btn = add_btn;
 }
 
 void PluginField::add_plugin_row(const wxString& value, bool is_last)
 {
-    const auto button_size = wxSize(def_width_thinner() * m_em_unit, -1);
     auto row_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    ScalableButton* select_btn = new ScalableButton(window, wxID_ANY, "search", wxEmptyString,
-        button_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 16);
-    wxGetApp().UpdateDarkUI(select_btn);
-    select_btn->SetToolTip(_L("Select plugin"));
-
-    wxTextCtrl* display = new wxTextCtrl(window, wxID_ANY, value,
-        wxDefaultPosition, wxSize(def_width_wider() * m_em_unit, wxDefaultCoord),
-        wxTE_READONLY);
-    display->SetEditable(false);
-    wxGetApp().UpdateDarkUI(display);
+    ComboBox* display = new ComboBox(window, wxID_ANY, value, wxDefaultPosition, wxDefaultSize, 0, NULL, wxCB_READONLY | CB_NO_DROP_ICON);
+    display->SetIcon("edit");
     display->SetToolTip(get_tooltip_text(value));
 
-    ScalableButton* remove_btn = nullptr;
-    if (!m_opt.readonly) {
-        remove_btn = new ScalableButton(window, wxID_ANY, "cross", wxEmptyString,
-            button_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 16);
-        wxGetApp().UpdateDarkUI(remove_btn);
-        remove_btn->SetToolTip(_L("Remove plugin"));
-    }
+    ScalableButton* remove_btn = new ScalableButton(window, wxID_ANY, "cross", wxEmptyString,
+        wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 16);
+    remove_btn->SetToolTip(_L("Remove plugin"));
 
-    ScalableButton* add_btn = nullptr;
-    if (is_last && !m_opt.readonly) {
-        add_btn = new ScalableButton(window, wxID_ANY, "param_add", wxEmptyString,
-            button_size, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 16);
-        wxGetApp().UpdateDarkUI(add_btn);
-        add_btn->SetToolTip(_L("Add plugin"));
-        add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_add_clicked(); });
-    }
+    if (m_opt.readonly)
+        remove_btn->Disable();
 
     const size_t row_index = m_rows.size();
-    select_btn->Bind(wxEVT_BUTTON, [this, row_index](wxCommandEvent&) { on_select_clicked(row_index); });
-    if (remove_btn)
-        remove_btn->Bind(wxEVT_BUTTON, [this, row_index](wxCommandEvent&) { on_remove_clicked(row_index); });
+    display->Bind(wxEVT_LEFT_DOWN, [this, row_index](wxMouseEvent&  ) { on_select_clicked(row_index); });
+    remove_btn->Bind(wxEVT_BUTTON, [this, row_index](wxCommandEvent&) { on_remove_clicked(row_index); });
 
-    row_sizer->Add(select_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-    row_sizer->Add(display, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-    if (remove_btn)
-        row_sizer->Add(remove_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
-    if (add_btn)
-        row_sizer->Add(add_btn, 0, wxALIGN_CENTER_VERTICAL);
-    else if (!m_opt.readonly) {
-        // Reserve space equal to the add button so all rows align.
-        row_sizer->Add(button_size.GetWidth(), button_size.GetHeight(), 0, wxALIGN_CENTER_VERTICAL);
-    }
+    row_sizer->Add(display   , 1, wxALIGN_CENTER_VERTICAL);
+    row_sizer->Add(remove_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, window->FromDIP(SidebarProps::ElementSpacing()));
 
-    const int bottom_gap = is_last ? 0 : 4;
-    m_main_sizer->Add(row_sizer, 0, wxEXPAND | (bottom_gap > 0 ? wxBOTTOM : 0), bottom_gap);
+    m_main_sizer->Add(row_sizer, 0, wxEXPAND | wxBOTTOM, window->FromDIP(is_last ? SidebarProps::ContentMarginV() : 4));
 
     PluginRow row;
-    row.select_btn = select_btn;
     row.display = display;
     row.remove_btn = remove_btn;
-    row.add_btn = add_btn;
     row.sizer = row_sizer;
     m_rows.push_back(row);
 }
@@ -2346,9 +2397,9 @@ void PluginField::on_add_clicked()
     m_values.push_back(selected);
     m_value = m_values;
 
-    rebuild_ui();
-
-    on_change_field();
+    // Defer: don't destroy the clicked button from inside its own handler.
+    if(window)
+        window->CallAfter([this]() {rebuild_ui(); on_change_field();});
 }
 
 void PluginField::on_remove_clicked(size_t index)
@@ -2359,8 +2410,9 @@ void PluginField::on_remove_clicked(size_t index)
     m_values.erase(m_values.begin() + index);
     m_value = m_values;
 
-    rebuild_ui();
-    on_change_field();
+    // Defer: don't destroy the clicked button from inside its own handler.
+    if(window)
+        window->CallAfter([this]() {rebuild_ui(); on_change_field();});
 }
 
 wxString PluginField::get_row_value(size_t index) const
@@ -2374,7 +2426,7 @@ void PluginField::set_row_value(size_t index, const wxString& value)
 {
     if (index >= m_rows.size() || !m_rows[index].display)
         return;
-    m_rows[index].display->ChangeValue(value);
+    m_rows[index].display->SetValue(value);
     m_rows[index].display->SetToolTip(get_tooltip_text(value));
 }
 
@@ -2417,14 +2469,10 @@ boost::any& PluginField::get_value()
 void PluginField::enable()
 {
     for (auto& row : m_rows) {
-        if (row.select_btn)
-            row.select_btn->Enable();
         if (row.display)
             row.display->Enable();
         if (row.remove_btn)
             row.remove_btn->Enable();
-        if (row.add_btn)
-            row.add_btn->Enable();
     }
     if (m_standalone_add_btn)
         m_standalone_add_btn->Enable();
@@ -2433,14 +2481,10 @@ void PluginField::enable()
 void PluginField::disable()
 {
     for (auto& row : m_rows) {
-        if (row.select_btn)
-            row.select_btn->Disable();
         if (row.display)
             row.display->Disable();
         if (row.remove_btn)
             row.remove_btn->Disable();
-        if (row.add_btn)
-            row.add_btn->Disable();
     }
     if (m_standalone_add_btn)
         m_standalone_add_btn->Disable();
@@ -2466,7 +2510,7 @@ nlohmann::json plugin_overrides_as_json(const std::string& text)
 
 void PluginConfigField::BUILD()
 {
-    m_button = new ::Button(m_parent, _L("Configure"));
+    m_button = new ::Button(m_parent, _L("Configure") + dots);
     // ButtonType::Parameter gives the button the same height as the parameter fields above it.
     m_button->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
 
@@ -2496,7 +2540,7 @@ void PluginConfigField::update_button_label()
     const nlohmann::json entries = plugin_overrides_as_json(m_json);
     const size_t         count   = entries.is_array() ? entries.size() : 0;
 
-    m_button->SetLabel(count == 0 ? _L("Configure")
+    m_button->SetLabel(count == 0 ? _L("Configure" + dots)
                                   : wxString::Format(_L("Configure (%d)"), int(count)));
 }
 
@@ -2597,7 +2641,11 @@ void ColourPicker::BUILD()
 	// 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
 
-	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([this,temp](wxCommandEvent e) {
+	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([
+        #ifdef __WXMSW__
+            temp,
+        #endif
+        this](wxCommandEvent e) {
         #ifdef __WXMSW__
             draw_bmp_btn(temp, temp->GetColour());
         #endif
@@ -2699,7 +2747,8 @@ void ColourPicker::set_value(const boost::any& value, bool change_event)
     auto field = dynamic_cast<wxColourPickerCtrl*>(window);
 
     #ifdef __WXMSW__
-        wxColour clr = (clr_str.IsEmpty() || !clr.IsOk()) ? wxTransparentColour : clr_str;
+        const wxColour parsed_clr(clr_str);
+        wxColour clr = (clr_str.IsEmpty() || !parsed_clr.IsOk()) ? wxTransparentColour : parsed_clr;
         field->SetColour(clr);
         draw_bmp_btn(field, clr);
     #else
@@ -2850,11 +2899,11 @@ void PointCtrl::BUILD()
 	//temp->Add(static_text_y, 0, wxALIGN_CENTER_VERTICAL, 0);
 	temp->Add(y_input);
 
-    x_textctrl->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e) { propagate_value(x_textctrl); }), x_textctrl->GetId());
-	y_textctrl->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e) { propagate_value(y_textctrl); }), y_textctrl->GetId());
+	x_textctrl->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e) { propagate_input_value(x_textctrl); }), x_textctrl->GetId());
+	y_textctrl->Bind(wxEVT_TEXT_ENTER, ([this](wxCommandEvent e) { propagate_input_value(y_textctrl); }), y_textctrl->GetId());
 
-    x_textctrl->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { e.Skip(); propagate_value(x_textctrl); }), x_textctrl->GetId());
-    y_textctrl->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { e.Skip(); propagate_value(y_textctrl); }), y_textctrl->GetId());
+	x_textctrl->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { e.Skip(); propagate_input_value(x_textctrl); }), x_textctrl->GetId());
+	y_textctrl->Bind(wxEVT_KILL_FOCUS, ([this](wxEvent& e) { e.Skip(); propagate_input_value(y_textctrl); }), y_textctrl->GetId());
 
 	// 	// recast as a wxWindow to fit the calling convention
     window = dynamic_cast<wxWindow*>(x_input);
@@ -2903,7 +2952,7 @@ bool PointCtrl::value_was_changed(wxTextCtrl* win)
 	return boost::any_cast<Vec2d>(m_value) != boost::any_cast<Vec2d>(val);
 }
 
-void PointCtrl::propagate_value(wxTextCtrl* win)
+void PointCtrl::propagate_input_value(wxTextCtrl* win)
 {
     if (win->GetValue().empty())
         on_kill_focus();

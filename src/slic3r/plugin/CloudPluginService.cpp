@@ -4,9 +4,13 @@
 #include "slic3r/Utils/Http.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <cstddef>
+#include <memory>
+#include <ios>
 #include <slic3r/plugin/PluginDescriptor.hpp>
 #include <string>
 #include <unordered_map>
@@ -193,6 +197,7 @@ bool CloudPluginService::download_cloud_plugin(PluginDescriptor& entry,
     Http http = Http::get(download_url);
     http.timeout_connect(30)
         .timeout_max(300)
+        .tls_verify(true)
         .on_complete([&body, &http_status](std::string response_body, unsigned status) {
             body        = std::move(response_body);
             http_status = status;

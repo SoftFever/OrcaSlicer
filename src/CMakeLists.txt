@@ -33,7 +33,8 @@ if (SLIC3R_GUI)
         set (wxWidgets_CONFIG_OPTIONS "--toolkit=gtk${SLIC3R_GTK}")
         find_package(wxWidgets 3.3 REQUIRED COMPONENTS base core adv html gl aui net media webview)
     else ()
-        find_package(wxWidgets 3.3 CONFIG REQUIRED COMPONENTS html adv gl core base webview aui net media)
+        # propgrid is required by wxInspector.
+        find_package(wxWidgets 3.3 CONFIG REQUIRED COMPONENTS html adv gl core base webview aui net media propgrid)
     endif ()
 
     if(UNIX)
@@ -90,6 +91,22 @@ if (SLIC3R_GUI)
 #    list(REMOVE_ITEM wxWidgets_LIBRARIES oleacc)
 
     find_package(wxInspector REQUIRED)
+    # wxInspector 1.0.0 installs its headers but accidentally declares the
+    # INSTALL_INTERFACE include directory PRIVATE, so its imported target does
+    # not expose them to consumers. Restore the package prefix include path until
+    # the upstream export is fixed.
+    get_filename_component(WXINSPECTOR_PREFIX "${wxInspector_DIR}/../../.." ABSOLUTE)
+    target_include_directories(wxInspector::wxInspector INTERFACE "${WXINSPECTOR_PREFIX}/include")
+
+    # wxInspector's exported interface names the release wxWidgets import
+    # libraries, which a Debug build cannot link. wx is linked above instead.
+    get_target_property(_wxinspector_interface wxInspector::wxInspector INTERFACE_LINK_LIBRARIES)
+    if (_wxinspector_interface)
+        list(FILTER _wxinspector_interface EXCLUDE REGEX "wx(base|msw)3[0-9]u[_.]")
+        set_target_properties(wxInspector::wxInspector PROPERTIES
+            INTERFACE_LINK_LIBRARIES "${_wxinspector_interface}")
+    endif ()
+
     list(APPEND wxWidgets_LIBRARIES "wxInspector::wxInspector")
 
     message(STATUS "wx libs: ${wxWidgets_LIBRARIES}")
@@ -172,10 +189,9 @@ else ()
     target_link_libraries(OrcaSlicer ${CMAKE_DL_LIBS} -lstdc++ Threads::Threads pangoft2-1.0)
 endif ()
 
-# Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
 #    target_link_libraries(OrcaSlicer ws2_32 uxtheme setupapi libslic3r_gui ${wxWidgets_LIBRARIES})
-target_link_libraries(OrcaSlicer libslic3r_gui)
+target_link_libraries(OrcaSlicer libslic3r_gui wxInspector::wxInspector)
     if (MSVC)
         # Generate debug symbols even in release mode.
         target_link_options(OrcaSlicer PUBLIC "$<$<CONFIG:RELEASE>:/DEBUG>")
