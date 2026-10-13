@@ -709,12 +709,13 @@ TEST_CASE("Weak full containment follows painting: the whole perimeter takes the
 TEST_CASE("Whole-perimeter weak zones take part in the usual priority order", "[PreciseSeam]")
 {
     // Volumes are listed low priority first; a later zone overwrites an earlier one.
-    const int scenario = GENERATE(0, 1, 2, 3, 4);
+    const int scenario = GENERATE(0, 1, 2, 3, 4, 5, 6);
     CAPTURE(scenario);
     SeamFixture fixture;
     const auto *whole_enforced = fixture.add(ModelVolumeType::PRECISE_SEAM_ENFORCED, {rectangle(-2, -2, 22, 22)});
     const auto *whole_neutral = fixture.add(ModelVolumeType::PRECISE_SEAM_NEUTRAL, {rectangle(-2, -2, 22, 22)});
     const auto *whole_blocked = fixture.add(ModelVolumeType::PRECISE_SEAM_BLOCKED, {rectangle(-2, -2, 22, 22)});
+    const auto *lower_whole_blocked = fixture.add(ModelVolumeType::PRECISE_SEAM_BLOCKED, {rectangle(-2, -2, 22, 22)});
     const auto *band_blocked = fixture.add(ModelVolumeType::PRECISE_SEAM_BLOCKED, {rectangle(8, -2, 12, 2)});
     const auto *band_enforced = fixture.add(ModelVolumeType::PRECISE_SEAM_ENFORCED, {rectangle(8, -2, 12, 2)});
     std::vector<const ModelVolume*> volumes;
@@ -723,10 +724,13 @@ TEST_CASE("Whole-perimeter weak zones take part in the usual priority order", "[
     if (scenario == 2) volumes = {band_enforced, whole_blocked}; // A whole Blocked overrides the lower band.
     if (scenario == 3) volumes = {whole_blocked, band_enforced}; // A higher band unblocks part of a whole Blocked.
     if (scenario == 4) volumes = {whole_blocked, band_blocked};  // A higher Blocked band keeps it whole Blocked.
+    if (scenario == 5) volumes = {lower_whole_blocked, whole_enforced, whole_blocked}; // The lower one is overwritten.
+    if (scenario == 6) volumes = {lower_whole_blocked, whole_blocked};                 // Only the higher one is in effect.
     Polygon perimeter = rectangle(0, 0, 20, 20);
     PreciseSeam::PreciseSeamWarnings warnings;
     // Registered as SeamPlacer::init() does, so the per-modifier warning flag is tracked.
     warnings.modifier_usage.try_emplace(whole_blocked);
+    warnings.modifier_usage.try_emplace(lower_whole_blocked);
     const auto segments = PreciseSeam::collect_weak_modifier_segments(
         volumes, perimeter, PreciseSeam::PreparedPerimeter(perimeter), fixture.layer, fixture.cache, &warnings);
     const auto types = weak_candidate_types(perimeter, segments, {}, &warnings);
@@ -742,9 +746,11 @@ TEST_CASE("Whole-perimeter weak zones take part in the usual priority order", "[
         CHECK(types[i] == expected);
     }
     CHECK(warnings.full_containment.load() == 0);
-    // The warning follows the final typing: only a perimeter left whole Blocked is reported.
-    const bool expected_fully_blocked = scenario == 2 || scenario == 4;
+    // The warning follows the final typing: only a perimeter left whole Blocked is reported, through the
+    // highest whole zone.
+    const bool expected_fully_blocked = scenario == 2 || scenario == 4 || scenario == 5 || scenario == 6;
     CHECK(warnings.modifier_usage.at(whole_blocked).fully_blocked.load() == expected_fully_blocked);
+    CHECK_FALSE(warnings.modifier_usage.at(lower_whole_blocked).fully_blocked.load());
     check_square_boundary(perimeter);
 }
 
@@ -1471,11 +1477,29 @@ TEST_CASE("Full containment warns for Blocked but not for Enforced", "[PreciseSe
         CHECK(fixture.warning().empty());
 }
 
+TEST_CASE("A perimeter blocked all round gets the seam of an unmarked one", "[PreciseSeam][Regression]")
+{
+    // Equal Blocked candidates compare like Neutral ones, so random and aligned seams still vary and align.
+    const std::string seam_position = GENERATE(as<std::string>{}, "random", "aligned", "aligned_back", "back", "nearest");
+    CAPTURE(seam_position);
+    ExportFixture unmarked(seam_position);
+    const auto expected = outer_wall_loops(unmarked.export_gcode());
+    ExportFixture blocked(seam_position);
+    blocked.add(ModelVolumeType::PRECISE_SEAM_BLOCKED, make_cube(30, 30, 4), Vec3d(-5, -5, -1));
+    const auto loops = outer_wall_loops(blocked.export_gcode());
+    REQUIRE(loops.size() == expected.size());
+    for (size_t i = 0; i < loops.size(); ++i) {
+        CAPTURE(i, loops[i].seam.x(), loops[i].seam.y(), expected[i].seam.x(), expected[i].seam.y());
+        CHECK((loops[i].seam - expected[i].seam).norm() < 0.01);
+    }
+}
+
 TEST_CASE("The whole-perimeter Blocked warning names the first modifier and counts them all", "[PreciseSeam]")
 {
     ExportFixture fixture("back");
-    fixture.add(ModelVolumeType::PRECISE_SEAM_BLOCKED, make_cube(30, 30, 4), Vec3d(-5, -5, -1), "first blocker");
-    fixture.add(ModelVolumeType::PRECISE_SEAM_BLOCKED, make_cube(30, 30, 4), Vec3d(-5, -5, -1), "second blocker");
+    // Separate layers: where both covered the same perimeter, only the higher-priority one would count.
+    fixture.add(ModelVolumeType::PRECISE_SEAM_BLOCKED, make_cube(30, 30, 1.4), Vec3d(-5, -5, -1), "first blocker");
+    fixture.add(ModelVolumeType::PRECISE_SEAM_BLOCKED, make_cube(30, 30, 2), Vec3d(-5, -5, 1), "second blocker");
     fixture.export_gcode();
     const std::string warning = fixture.warning();
     CAPTURE(warning);

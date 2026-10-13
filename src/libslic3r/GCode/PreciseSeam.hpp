@@ -62,7 +62,7 @@ struct PreciseSeamWarnings {
     struct ModifierUsage {
         std::atomic<bool> checked{false};       // Extracted on at least one perimeter.
         std::atomic<bool> reached{false};       // Gave a segment, full containment or a discarded fragment.
-        std::atomic<bool> fully_blocked{false}; // Seam Blocked that typed a whole perimeter left Blocked.
+        std::atomic<bool> fully_blocked{false}; // Seam Blocked whole zone in effect on a perimeter left Blocked.
     };
     std::unordered_map<const ModelVolume*, ModifierUsage> modifier_usage;
 
@@ -72,12 +72,17 @@ struct PreciseSeamWarnings {
         assert(is_precise_seam(type));
         return 1u << (int(type) - int(ModelVolumeType::PRECISE_SEAM_CENTER));
     }
-    // Load before fetch_or: most calls find the bit already set, so shared cache lines stay clean.
+    // Load before writing: most calls find the bit or flag already set, so shared cache lines stay clean.
     static void mark(std::atomic<unsigned> &mask, ModelVolumeType type)
     {
         const unsigned bit = type_bit(type);
         if ((mask.load(std::memory_order_relaxed) & bit) == 0)
             mask.fetch_or(bit, std::memory_order_relaxed);
+    }
+    static void set(std::atomic<bool> &flag)
+    {
+        if (!flag.load(std::memory_order_relaxed))
+            flag.store(true, std::memory_order_relaxed);
     }
 };
 
@@ -144,7 +149,7 @@ struct WeakModifierSegment {
     // Full containment of a weak modifier: the zone is the whole perimeter, without boundaries
     // (the points and positions above are unused and nothing is inserted for it).
     bool whole_perimeter = false;
-    const ModelVolume *modifier = nullptr; // Source of a whole-perimeter zone, for its warning.
+    const ModelVolume *modifier = nullptr; // Source modifier, for the warnings.
 };
 
 // Collects the object's Precise Seam volumes: strong ones in priority order, weak ones in application
@@ -176,8 +181,8 @@ std::vector<WeakModifierSegment> collect_weak_modifier_segments(
     PreciseSeamWarnings* warnings = nullptr);
 
 // Retypes the candidates inside each zone in the given order (pass zones lowest priority first);
-// sets some_point_enforced when an Enforced zone applies. When the whole perimeter ends up Blocked,
-// flags every Seam Blocked modifier with a whole-perimeter zone on it for the warning.
+// sets some_point_enforced when an Enforced zone applies. When the whole perimeter ends up Blocked and
+// the highest whole-perimeter zone is Blocked, flags that zone's modifier for the warning.
 void apply_weak_modifiers_to_perimeter(
     const std::vector<WeakModifierSegment> &weak_segments,
     PrintObjectSeamData::LayerSeams &result,

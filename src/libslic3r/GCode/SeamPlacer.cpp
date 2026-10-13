@@ -896,16 +896,13 @@ struct SeamComparator {
       return a.central_enforcer;
     }
 
-    if (a.type == EnforcedBlockedSeamPoint::Enforced) {
-      return true;
-    }
-
-    if (a.type == EnforcedBlockedSeamPoint::Blocked) {
-      return false;
-    }
-
     if (a.type != b.type) {
       return a.type > b.type;
+    }
+
+    // Two Blocked points fall through like Neutral ones, so a perimeter blocked all round still gets a proper seam.
+    if (a.type == EnforcedBlockedSeamPoint::Enforced) {
+      return true;
     }
 
     //avoid overhangs
@@ -1681,12 +1678,15 @@ void SeamPlacer::init(const Print &print, std::function<void(void)> throw_if_can
               << "\" modifier=\"" << volume->name << "\"";
       if (!fully_blocked.empty()) {
           const ModelVolume *first = fully_blocked.front();
-          if (fully_blocked.size() == 1)
-              parts.push_back((boost::format(_u8L("Seam Blocked modifier \"%1%\" of \"%2%\" covers an entire perimeter"))
-                  % first->name % first->get_object()->name).str());
-          else
-              parts.push_back((boost::format(_u8L("Seam Blocked modifier \"%1%\" of \"%2%\" (%3% in total) covers an entire perimeter"))
-                  % first->name % first->get_object()->name % fully_blocked.size()).str());
+          if (fully_blocked.size() == 1) {
+              // TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+              parts.push_back((boost::format(_u8L("%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"))
+                  % _u8L("Seam Blocked") % first->name % first->get_object()->name).str());
+          } else {
+              // TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+              parts.push_back((boost::format(_u8L("%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"))
+                  % _u8L("Seam Blocked") % first->name % first->get_object()->name % fully_blocked.size()).str());
+          }
       }
       // Modifiers evaluated somewhere that never reached a perimeter; never-evaluated ones are not reported.
       const std::vector<const ModelVolume*> no_effect = collect_modifiers(

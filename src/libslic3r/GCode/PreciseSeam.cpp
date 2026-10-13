@@ -685,13 +685,10 @@ static void record_extraction(PreciseSeamWarnings *warnings, const ModelVolume *
     const auto it = warnings->modifier_usage.find(modifier);
     if (it == warnings->modifier_usage.end())
         return;
-    // Load before store: most calls find the flag already set, so shared cache lines stay clean.
     PreciseSeamWarnings::ModifierUsage &usage = it->second;
-    if (!usage.checked.load(std::memory_order_relaxed))
-        usage.checked.store(true, std::memory_order_relaxed);
-    const bool reached = !extracted.segments.empty() || extracted.full_containment || extracted.discarded_fragments > 0;
-    if (reached && !usage.reached.load(std::memory_order_relaxed))
-        usage.reached.store(true, std::memory_order_relaxed);
+    PreciseSeamWarnings::set(usage.checked);
+    if (!extracted.segments.empty() || extracted.full_containment || extracted.discarded_fragments > 0)
+        PreciseSeamWarnings::set(usage.reached);
 }
 
 // Strong priority is per modifier, never a global maximum across different modifiers.
@@ -956,15 +953,12 @@ std::vector<WeakModifierSegment> collect_weak_modifier_segments(
         // Full containment works like seam painting all round: the whole perimeter takes the type.
         // A perimeter left whole Blocked also gets a warning (see apply_weak_modifiers_to_perimeter()).
         if (extracted.full_containment) {
-            WeakModifierSegment whole{type, Point(), PerimeterPosition{0, 0.}, Point(), PerimeterPosition{0, 0.}};
-            whole.whole_perimeter = true;
-            whole.modifier = modifier_volume;
-            result.push_back(whole);
+            result.push_back({type, Point(), PerimeterPosition{0, 0.}, Point(), PerimeterPosition{0, 0.}, true, modifier_volume});
             continue;
         }
         for (const PerimeterSegment &segment : extracted.segments) {
             result.push_back({type, segment.polyline.points.front(), segment.begin,
-                                   segment.polyline.points.back(), segment.end});
+                                   segment.polyline.points.back(), segment.end, false, modifier_volume});
         }
     }
     // Boundary insertion, refinement and last-write-wins priority use the established path.
@@ -1027,20 +1021,18 @@ void apply_weak_modifiers_to_perimeter(
         }
     }
 
-    // Warn only about the final typing: a higher-priority zone may unblock part of a whole Blocked one.
+    // Only the highest whole zone is in effect, and a higher band may still unblock part of it.
     if (warnings == nullptr)
+        return;
+    const auto last_whole = std::find_if(weak_segments.rbegin(), weak_segments.rend(),
+                                         [](const WeakModifierSegment &segment) { return segment.whole_perimeter; });
+    if (last_whole == weak_segments.rend() || last_whole->type != EnforcedBlockedSeamPoint::Blocked)
         return;
     for (size_t i = perimeter.start_index; i < perimeter.end_index; ++i)
         if (result.points[i].type != EnforcedBlockedSeamPoint::Blocked)
             return;
-    for (const WeakModifierSegment &segment : weak_segments) {
-        if (!segment.whole_perimeter || segment.type != EnforcedBlockedSeamPoint::Blocked)
-            continue;
-        const auto usage = warnings->modifier_usage.find(segment.modifier);
-        // Load before store: most calls find the flag already set, so shared cache lines stay clean.
-        if (usage != warnings->modifier_usage.end() && !usage->second.fully_blocked.load(std::memory_order_relaxed))
-            usage->second.fully_blocked.store(true, std::memory_order_relaxed);
-    }
+    if (const auto usage = warnings->modifier_usage.find(last_whole->modifier); usage != warnings->modifier_usage.end())
+        PreciseSeamWarnings::set(usage->second.fully_blocked);
 }
 
 // Restore precise seam positions that may have been modified

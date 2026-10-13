@@ -237,9 +237,12 @@ follows seam painting, where a whole perimeter can be painted in either color:
 - **Seam Neutral** types the whole perimeter Neutral, like an unmarked perimeter,
   clearing painting and lower zones.
 - **Seam Blocked** types the whole perimeter Blocked, like a perimeter painted
-  red all round, overriding painting and lower zones. If the perimeter stays
-  Blocked after all weak zones, a warning names the modifier, so the user can
-  check it.
+  red all round, overriding painting and lower zones. The seam cannot avoid such
+  a perimeter: the seam placer compares Blocked candidates with each other like
+  Neutral ones, so the seam is placed as on an unmarked perimeter. If the
+  perimeter stays Blocked after all weak zones, it is reported in the user
+  warning (see [Diagnostics and warnings](#diagnostics-and-warnings)), so the
+  user can check the modifier.
 - **Seam Center, Left and Right** are skipped with the full-containment warning:
   there is no intersection to place the point on.
 
@@ -399,11 +402,13 @@ The causes are:
 - **Seam Blocked modifier "<name>" of "<object>" covers an entire perimeter:**
   a Seam Blocked modifier covered a whole perimeter (see
   [Full containment](#full-containment)). Only perimeters whose candidates are
-  all Blocked after all weak zones contribute to this warning:
-  `apply_weak_modifiers_to_perimeter()` checks the final types and flags every
-  Seam Blocked modifier with a whole-perimeter zone there. Only the first such
-  modifier in print and volume order is named, followed by "(N in total)" when
-  there are several.
+  all Blocked after all weak zones contribute to this warning, and only through
+  the zone in effect there: `apply_weak_modifiers_to_perimeter()` checks the
+  final types and flags the modifier of the highest whole-perimeter zone when it
+  is Blocked. A lower whole zone is overwritten by it and is not reported. Only
+  the first flagged modifier in print and volume order is named, followed by
+  "(N in total)" when there are several. The type name reuses the menu's
+  translation.
 - **modifier "<name>" of "<object>" had no effect on the seam (it might not reach
   the centerline of the printed perimeter):** a modifier was evaluated on at
   least one perimeter and never gave a segment, full containment or a discarded
@@ -578,7 +583,8 @@ last modifier would.
   a real object with Precise Seam
   volumes and check the outer wall starts in the exported G-code: every strong
   mode under several seam positions and with a raft, Enforced and Blocked zones,
-  a modifier with a hole, and the user warning.
+  a perimeter blocked all round under every seam position, a modifier with a
+  hole, and the user warning.
 - [Seam placer tests](../../tests/fff_print/test_seam_placer.cpp) cover
   enforced-patch selection independent of the contour start, fully painted
   contours, duplicate removal, and `Print::apply()` synchronization through type
