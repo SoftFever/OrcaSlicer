@@ -42,6 +42,11 @@
 #include <functional>
 #include <initializer_list>
 
+#include <fstream>
+#ifndef _WIN32
+#include <unistd.h> // geteuid
+#endif
+
 #include <catch2/catch_tostring.hpp>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -2313,3 +2318,45 @@ SCENARIO("thumbnail relationships are declared only for thumbnails that were wri
         }
     }
 }
+// has_restore_data() runs from the queued EVT_RESTORE_PROJECT handler, whose try starts after
+// the call, so a filesystem_error from probing the stored backup path aborts the application.
+// The realistic trigger is an absolute path from another user's config whose home is not
+// searchable, so the parent, not the backup directory, is what blocks.
+#ifndef _WIN32
+TEST_CASE("has_restore_data reports no restore data for a path it cannot probe", "[3mf]") {
+    if (::geteuid() == 0)
+        SKIP("root ignores the directory permissions this test depends on");
+
+    ScopedTemporaryDir      outer("orca_restore");
+    boost::filesystem::path backup = outer.path() / "backup";
+    REQUIRE(boost::filesystem::create_directory(backup));
+    std::ofstream((backup / ".3mf").string()) << "stand-in for the backed-up project";
+    std::ofstream((backup / "origin.txt").string()) << "project.3mf";
+
+    // Control: while the path is readable the session is found, so the false below really is
+    // the probe failing and not a mis-built fixture.
+    std::string readable = backup.string(), origin;
+    REQUIRE(has_restore_data(readable, origin));
+    REQUIRE(readable == (backup / ".3mf").string());
+    REQUIRE(origin == "project.3mf");
+
+    // Puts the permissions back before ~ScopedTemporaryDir needs them to clean up, and does so
+    // even if an assertion below throws.
+    struct Searchable {
+        boost::filesystem::path dir;
+        ~Searchable() { boost::system::error_code ec;
+                        boost::filesystem::permissions(dir, boost::filesystem::owner_all, ec); }
+    } restore{ outer.path() };
+    boost::filesystem::permissions(outer.path(), boost::filesystem::no_perms);
+
+    boost::system::error_code probe_ec;
+    if (boost::filesystem::exists(backup / ".3mf", probe_ec) || !probe_ec)
+        SKIP("the backup path could not be made unprobeable here");
+
+    std::string unprobeable = backup.string(), origin2;
+    bool        has         = true;
+    REQUIRE_NOTHROW(has = has_restore_data(unprobeable, origin2));
+    CHECK_FALSE(has);
+    CHECK(unprobeable == backup.string());   // not rewritten to the .3mf it could not confirm
+}
+#endif // _WIN32
