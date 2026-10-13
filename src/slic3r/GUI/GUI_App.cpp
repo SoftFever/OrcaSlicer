@@ -12,7 +12,6 @@
 #include "DeviceManager.hpp"
 #include "HMS.hpp"
 #include "PresetBundleDialog.hpp"
-#include "LegacyPrinterMigrationDialog.hpp"
 #include "WebUserLoginDialog.hpp"
 #include "WebViewDialog.hpp"
 #include "slic3r/Utils/BBLCloudServiceAgent.hpp"
@@ -1110,8 +1109,11 @@ void GUI_App::post_init()
             }
 
             this->check_new_version_sf();
-            if (!cw_showed)
-                this->check_legacy_printer_migration(false);
+            // Only presets made against 2.4.2 or older, the release legacy_compatible_printers.json is generated
+            // against, can be missing printers, so the prompt runs only on the first start after one of those.
+            if (!cw_showed && m_last_config_version && m_last_config_version->valid()
+                && *m_last_config_version <= Semver(2, 4, 2))
+                this->check_legacy_user_filament_presets(false);
             const auto cloud_provider = get_printer_cloud_provider();
             if (is_user_login(cloud_provider) && !app_config->get_stealth_mode()) {
               // this->check_privacy_version(0);
@@ -6819,29 +6821,45 @@ void GUI_App::reload_settings()
     }
 }
 
-void GUI_App::check_legacy_printer_migration(bool by_user)
+void GUI_App::check_legacy_user_filament_presets(bool by_user)
 {
-    const std::vector<LegacyPrinterMigration> migrations = preset_bundle->legacy_printer_migrations();
-    if (migrations.empty()) {
+    if (!by_user && app_config->get_bool("legacy_user_filament_presets_dont_remind"))
+        return;
+    const std::vector<LegacyUserFilamentPreset> legacy_presets = preset_bundle->legacy_user_filament_presets();
+    if (legacy_presets.empty()) {
         if (by_user)
             MessageDialog(mainframe, _L("All your filament presets are available on the printers they were made for."),
                           _L("Migrate Filament Presets"), wxOK | wxICON_INFORMATION).ShowModal();
         return;
     }
-    if (!by_user && app_config->get_bool("legacy_printer_migration_dont_remind"))
-        return;
 
-    LegacyPrinterMigrationDialog dlg(mainframe, migrations, !by_user);
+    wxString message = _L("OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare "
+                          "for future features. As a result, the presets below no longer show on some printers they were made "
+                          "for. Sorry for the trouble; this is a one-time fix.\n\n"
+                          "Add those printers back to your presets now? Your presets are backed up first. You can also do this "
+                          "later from Help > Migrate Filament Presets.") + "\n";
+    for (const LegacyUserFilamentPreset &legacy : legacy_presets) {
+        message += "\n" + format_wxstr(_L("%1% (based on %2%)"), legacy.preset, legacy.parent);
+        for (const std::string &printer : legacy.printers)
+            message += "\n    " + from_u8(printer);
+    }
+    RichMessageDialog dlg(mainframe, message, _L("Migrate Filament Presets"), wxYES | wxNO | wxICON_QUESTION);
+    if (!by_user)
+        dlg.ShowCheckBox(_L("Don't remind me again"));
     const bool migrate = dlg.ShowModal() == wxID_YES;
-    if (dlg.dont_remind())
-        app_config->set_bool("legacy_printer_migration_dont_remind", true);
+    if (dlg.IsCheckBoxChecked())
+        app_config->set_bool("legacy_user_filament_presets_dont_remind", true);
     if (!migrate)
         return;
 
     std::vector<std::string> failed;
-    const std::string backup = preset_bundle->migrate_legacy_printers(migrations, failed);
+    const std::string backup = preset_bundle->migrate_legacy_user_filament_presets(legacy_presets, failed);
     if (backup.empty()) {
         show_error(mainframe, _L("Your presets could not be backed up, so they were not migrated."));
+        return;
+    }
+    if (failed.size() == legacy_presets.size()) {
+        show_error(mainframe, format_wxstr(_L("Your filament presets could not be migrated. A backup of your presets was saved to:\n%1%"), backup));
         return;
     }
     preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
@@ -6850,11 +6868,9 @@ void GUI_App::check_legacy_printer_migration(bool by_user)
         tab->reload_config();
         tab->update_changed_ui();
     }
-    if (plater_)
-        plater_->sidebar().update_all_preset_comboboxes();
 
-    wxString message = format_wxstr(_L("Your filament presets were migrated. Select them again in the filament list where you used them.\n\n"
-                                        "A backup of your presets was saved to:\n%1%"), backup);
+    message = format_wxstr(_L("Your filament presets were migrated. Select them again in the filament list where you used them.\n\n"
+                              "A backup of your presets was saved to:\n%1%"), backup);
     if (!failed.empty()) {
         message += "\n\n" + _L("These presets could not be migrated:");
         for (const std::string &name : failed)

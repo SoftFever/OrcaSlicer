@@ -567,10 +567,10 @@ public:
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_new_version_sf(bool show_tips = false, int by_user = 0);
-    // Offers to migrate user filament presets that lost printers their parent listed in an older release.
-    // At startup it asks once per release unless the user chose not to be reminded; by_user also reports
-    // when there is nothing to migrate.
-    void            check_legacy_printer_migration(bool by_user);
+    // Offers to migrate user filament presets made against an older release that lost printers their parent
+    // listed then. At startup it runs only on the first start after 2.4.2 or older, unless the user chose not
+    // to be reminded; by_user also reports when there is nothing to migrate.
+    void            check_legacy_user_filament_presets(bool by_user);
     bool            process_network_msg(std::string dev_id, std::string msg);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();

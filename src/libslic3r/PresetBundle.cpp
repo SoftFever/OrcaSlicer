@@ -25,7 +25,6 @@
 #include <memory>
 #include <initializer_list>
 #include <map>
-#include <mutex>
 #include <iterator>
 #include <functional>
 #include <limits>
@@ -100,32 +99,19 @@ using json = nlohmann::json;
 
 namespace Slic3r {
 
-// Per current system filament preset, the printers it listed in an older release and no longer does
-// (resources/info/legacy_compatible_printers.json, written by orca_profile_tool.py legacy-compat).
-// The file ships with the build, so it is read once it opens; until then (e.g. presets loaded before
-// resources_dir() is set) every call tries again and there are no legacy printers.
+// Per system filament preset of an older release, by its name then, the printers it listed that the preset it
+// now loads as does not (resources/info/legacy_compatible_printers.json, written by orca_profile_tool.py
+// legacy-compat). Empty if the file is missing or malformed.
 static std::map<std::string, std::vector<std::string>> legacy_compatible_printers()
 {
-    static std::mutex                                      mutex;
-    static std::map<std::string, std::vector<std::string>> printers_by_parent;
-    static bool                                            read = false;
-
-    std::lock_guard<std::mutex> guard(mutex);
-    if (!read) {
-        const fs::path path = fs::path(resources_dir()) / "info" / "legacy_compatible_printers.json";
+    const fs::path path = fs::path(resources_dir()) / "info" / "legacy_compatible_printers.json";
+    try {
         boost::nowide::ifstream in(path.string());
-        if (!in) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": " << path.string() << " not found";
-            return {};
-        }
-        read = true;
-        try {
-            printers_by_parent = json::parse(in).at("presets").get<std::map<std::string, std::vector<std::string>>>();
-        } catch (const std::exception &err) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": can not read " << path.string() << ": " << err.what();
-        }
+        return json::parse(in).at("presets").get<std::map<std::string, std::vector<std::string>>>();
+    } catch (const std::exception &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": can not read " << path.string() << ": " << err.what();
+        return {};
     }
-    return printers_by_parent;
 }
 
 // Project-level options imported from a loaded 3MF into project_config. s_project_options_published
@@ -1085,7 +1071,8 @@ bool PresetBundle::backup_user_folder_to_zip(const std::string &zip_path) const
         Zipper zipper(zip_path);
         // Directories get their own entries, which extract_archive_confined() needs to recreate them.
         zipper.add_entry(std::string(PRESET_USER_DIR) + "/", nullptr, 0);
-        for (const fs::directory_entry &entry : fs::recursive_directory_iterator(user_dir)) {
+        // The loader follows symlinked folders, and migration writes the presets in them.
+        for (const fs::directory_entry &entry : fs::recursive_directory_iterator(user_dir, fs::directory_options::follow_directory_symlink)) {
             const std::string name = (fs::path(PRESET_USER_DIR) / entry.path().lexically_relative(user_dir)).generic_string();
             if (fs::is_directory(entry.status())) {
                 zipper.add_entry(name + "/", nullptr, 0);
@@ -1109,20 +1096,20 @@ bool PresetBundle::backup_user_folder_to_zip(const std::string &zip_path) const
     }
 }
 
-std::vector<LegacyPrinterMigration> PresetBundle::legacy_printer_migrations() const
+std::vector<LegacyUserFilamentPreset> PresetBundle::legacy_user_filament_presets()
 {
-    return filaments.legacy_printer_migrations(legacy_compatible_printers());
+    return filaments.legacy_user_filament_presets(legacy_compatible_printers());
 }
 
-std::string PresetBundle::migrate_legacy_printers(const std::vector<LegacyPrinterMigration> &migrations, std::vector<std::string> &failed)
+std::string PresetBundle::migrate_legacy_user_filament_presets(const std::vector<LegacyUserFilamentPreset> &legacy_presets, std::vector<std::string> &failed)
 {
     const std::string zip_path = data_dir() + "/filament_preset_migration_" +
                                  Utils::time2str(Utils::TimeZone::utc, Utils::TimeFormat::iso8601Z) + "_backup.zip";
     if (!backup_user_folder_to_zip(zip_path))
         return {};
-    for (const LegacyPrinterMigration &migration : migrations)
-        if (!filaments.apply_legacy_printer_migration(migration))
-            failed.push_back(migration.preset);
+    for (const LegacyUserFilamentPreset &legacy : legacy_presets)
+        if (!filaments.migrate_legacy_user_filament_preset(legacy))
+            failed.push_back(legacy.preset);
     return zip_path;
 }
 

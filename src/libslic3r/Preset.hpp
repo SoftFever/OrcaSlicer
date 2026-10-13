@@ -551,11 +551,13 @@ struct PresetConfigSubstitutions {
 // PrusaSlicer and reading the user Print / Filament / Printer profiles.
 using PresetsConfigSubstitutions = std::vector<PresetConfigSubstitutions>;
 
-// A user filament preset that no longer shows on printers its system parent listed in an older release,
-// and those printers. Migrating it writes them into the preset's own compatible_printers.
-struct LegacyPrinterMigration {
+// A user filament preset made against an older release that no longer shows on printers its system parent
+// listed then, and those printers. Migrating it writes them into the preset's own compatible_printers.
+struct LegacyUserFilamentPreset {
     std::string              preset;
     std::string              parent;
+    // The parent's name as the preset file states it: the name the older release knew it by.
+    std::string              inherits;
     std::vector<std::string> printers;
 };
 
@@ -610,13 +612,15 @@ public:
     bool            load_user_preset(std::string name, std::map<std::string, std::string> preset_values, PresetsConfigSubstitutions& substitutions, ForwardCompatibilitySubstitutionRule rule, const PresetOrigin &load_origin = PresetOrigin(PresetOrigin::Kind::User));
     void            update_after_user_presets_loaded();
     // User presets store only their diff, so a user preset inherits its system parent's compatible_printers
-    // and disappears from a printer once a profile update narrows that list. Lists the user presets that
-    // inherit the list and the printers their parent covered in an older release (printers_by_parent, keyed
-    // by the parent's name then) but no longer lists.
-    std::vector<LegacyPrinterMigration> legacy_printer_migrations(const std::map<std::string, std::vector<std::string>> &printers_by_parent) const;
-    // Adds the migration's printers to the preset's own compatible_printers and saves the preset to disk.
-    // False if the preset no longer inherits its parent's list or could not be saved.
-    bool            apply_legacy_printer_migration(const LegacyPrinterMigration &migration);
+    // and disappears from a printer once a profile update narrows that list. Lists the user presets whose
+    // files do not set compatible_printers, and the printers their parent covered in an older release but
+    // no longer lists. printers_by_parent is keyed by the parent's name in that release, which is the name
+    // the preset file's inherits still holds.
+    std::vector<LegacyUserFilamentPreset> legacy_user_filament_presets(const std::map<std::string, std::vector<std::string>> &printers_by_parent);
+    // Adds the printers to the preset's own compatible_printers and saves the preset to disk. False if the
+    // preset file sets compatible_printers or names another parent by now, if another instance holds the
+    // user presets lock, or if the file could not be saved.
+    bool            migrate_legacy_user_filament_preset(const LegacyUserFilamentPreset &legacy);
     //BBS: get user presets
     int  get_user_presets(PresetBundle *preset_bundle, std::vector<Preset> &result_presets);
     void set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time, const std::string& user_id);
@@ -909,10 +913,6 @@ public:
     size_t num_default_presets() { return m_num_default_presets; }
 
 protected:
-    // The system parent of a user preset whose compatible_printers is the parent's, or nullptr: the presets
-    // legacy_printer_migrations() considers.
-    const Preset*   system_parent_with_inherited_printers(const Preset &preset) const;
-
     PresetCollection() = default;
     // Deleted by the std::recursive_mutex member. PresetBundle copies by assignment.
     PresetCollection(const PresetCollection &other) = delete;

@@ -2829,7 +2829,7 @@ wxMenu* MainFrame::generate_help_menu()
 
     append_menu_item(helpMenu, wxID_ANY, _L("Migrate Filament Presets"),
         _L("Bring back filament presets that a profile update removed from printers they were made for"),
-        [](wxCommandEvent&) { wxGetApp().check_legacy_printer_migration(true); });
+        [](wxCommandEvent&) { wxGetApp().check_legacy_user_filament_presets(true); });
 
     helpMenu->AppendSeparator();
 
