@@ -6881,8 +6881,7 @@ LayerResult GCode::process_layer(
                     }
                 #endif
 
-                    if (support_dontcare)
-                        support_extruder = dontcare_extruder;
+                    support_extruder = dontcare_extruder;
                 }
                 else if (support_dontcare || interface_dontcare) {
                     // Some support will be printed with "don't care" material, preferably non-soluble.

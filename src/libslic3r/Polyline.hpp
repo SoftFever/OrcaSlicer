@@ -248,7 +248,7 @@ inline void polylines_merge(PointsType &dst, bool dst_first, PointsType &&src, b
     } else if (! src_first)
         std::reverse(src.begin(), src.end());
     // Merge src into dst.
-    append(dst, std::move(src));
+    append(dst, std::forward<PointsType>(src));
 }
 
 const Point& leftmost_point(const Polylines &polylines);

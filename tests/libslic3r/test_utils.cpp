@@ -165,10 +165,10 @@ TEST_CASE("write_file_atomically survives two threads writing one target", "[uti
 
     std::thread other([&] {
         for (int i = 0; i < 50; ++i)
-            write_file_atomically(target.string(), a);
+            (void) write_file_atomically(target.string(), a);
     });
     for (int i = 0; i < 50; ++i)
-        write_file_atomically(target.string(), b);
+        (void) write_file_atomically(target.string(), b);
     other.join();
 
     std::string content;

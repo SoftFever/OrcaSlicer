@@ -3471,6 +3471,7 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
                 //      compatible_filaments.insert(&filament);
             }
         // and mark these filaments as installed, therefore this code will not be executed at the next start of the application.
+        // NOLINTNEXTLINE(bugprone-nondeterministic-pointer-iteration-order) - each is set by name, so only the log order varies
         for (const auto &filament: compatible_filaments) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": set filament %1% to visible by default")%filament->name;
             config.set(AppConfig::SECTION_FILAMENTS, filament->name, "true");
@@ -3497,6 +3498,7 @@ void PresetBundle::load_installed_sla_materials(AppConfig &config)
 						comp_sla_materials.insert(&material);
 			}
 		// and mark these SLA materials as installed, therefore this code will not be executed at the next start of the application.
+		// NOLINTNEXTLINE(bugprone-nondeterministic-pointer-iteration-order) - each is set by name, so the order does not matter
 		for (const auto &material: comp_sla_materials)
             config.set(AppConfig::SECTION_MATERIALS, material->name, "true");
     }

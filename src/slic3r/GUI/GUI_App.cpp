@@ -3951,9 +3951,7 @@ bool GUI_App::on_init_network(bool try_backup)
                 if (!bambu_source) {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not get bambu source module!";
                     m_networking_compatible = false;
-                    if (should_load_networking_plugin) {
-                        m_networking_need_update = true;
-                    }
+                    m_networking_need_update = true;
                 }
             } else {
                 if (try_backup) {
@@ -3964,9 +3962,7 @@ bool GUI_App::on_init_network(bool try_backup)
                     goto __retry;
                 }
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
-                if (should_load_networking_plugin) {
-                    m_networking_need_update = true;
-                }
+                m_networking_need_update = true;
             }
         } else {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll failed";
@@ -3984,10 +3980,8 @@ bool GUI_App::on_init_network(bool try_backup)
                 load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
                 goto __retry;
             }
-            if (should_load_networking_plugin) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
-                m_networking_need_update = true;
-            }
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
+            m_networking_need_update = true;
         }
     }
 
@@ -8353,7 +8347,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     // Release the old locales, create new locales.
     //FIXME wxWidgets cause havoc if the current locale is deleted. We just forget it causing memory leaks for now.
-    m_wxLocale.release();
+    (void) m_wxLocale.release();
     m_wxLocale = Slic3r::make_unique<wxLocale>();
     m_wxLocale->Init(locale_language_info->Language);
     // Override language at the active wxTranslations class (which is stored in the active m_wxLocale)
