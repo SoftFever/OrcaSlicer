@@ -6298,29 +6298,43 @@ void ObjectList::rename_item()
 
 void ObjectList::fix_through_cgal()
 {
+    std::vector<int> obj_idxs, vol_idxs;
+    get_selection_indexes(obj_idxs, vol_idxs);
+    fix_through_cgal(obj_idxs, vol_idxs);
+}
+
+void ObjectList::fix_all_through_cgal(bool all_plates)
+{
+    std::vector<int> obj_idxs;
+    if (all_plates) {
+        for (int obj_idx = 0; obj_idx < int(m_objects->size()); ++obj_idx)
+            obj_idxs.push_back(obj_idx);
+    } else {
+        for (const ModelObject *mo : wxGetApp().plater()->get_partplate_list().get_selected_plate()->get_objects_on_this_plate())
+            obj_idxs.push_back(int(std::find(m_objects->begin(), m_objects->end(), mo) - m_objects->begin()));
+        std::sort(obj_idxs.begin(), obj_idxs.end());
+        obj_idxs.erase(std::unique(obj_idxs.begin(), obj_idxs.end()), obj_idxs.end());
+    }
+    fix_through_cgal(obj_idxs, {});
+}
+
+void ObjectList::fix_through_cgal(const std::vector<int> &obj_idxs, const std::vector<int> &vol_idxs)
+{
     // Do not fix anything when a gizmo is open. There might be issues with updates
     // and what is worse, the snapshot time would refer to the internal stack.
-    if (!wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
+    if (obj_idxs.empty() || !wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
         return;
 
     //          model_name
     std::vector<std::string>                           succes_models;
     //                   model_name     failing reason
     std::vector<std::pair<std::string, std::string>>   failed_models;
-
-    std::vector<int> obj_idxs, vol_idxs;
-    get_selection_indexes(obj_idxs, vol_idxs);
+    size_t                                             unchanged_models = 0;
+    bool                                               painting_removed = false;
 
     std::vector<std::string> model_names;
 
-    // clear selections from the non-broken models if any exists
-    // and than fill names of models to repairing
     if (vol_idxs.empty()) {
-#if !FIX_THROUGH_CGAL_ALWAYS
-        for (int i = int(obj_idxs.size())-1; i >= 0; --i)
-                if (object(obj_idxs[i])->get_repaired_errors_count() == 0)
-                    obj_idxs.erase(obj_idxs.begin()+i);
-#endif // FIX_THROUGH_CGAL_ALWAYS
         for (int obj_idx : obj_idxs)
             if (object(obj_idx))
                 model_names.push_back(object(obj_idx)->name);
@@ -6328,31 +6342,26 @@ void ObjectList::fix_through_cgal()
     else {
         ModelObject* obj = object(obj_idxs.front());
         if (obj) {
-#if !FIX_THROUGH_CGAL_ALWAYS
-            for (int i = int(vol_idxs.size()) - 1; i >= 0; --i)
-                if (obj->get_repaired_errors_count(vol_idxs[i]) == 0)
-                    vol_idxs.erase(vol_idxs.begin() + i);
-#endif // FIX_THROUGH_CGAL_ALWAYS
             for (int vol_idx : vol_idxs)
                 model_names.push_back(obj->volumes[vol_idx]->name);
         }
     }
 
     auto plater = wxGetApp().plater();
+    const bool keep_painting = GUI::wxGetApp().app_config->get_bool("keep_painting");
 
-    auto fix_and_update_progress = [this, plater, model_names](const int obj_idx, const int vol_idx,
-                                          int model_idx,
-                                          ProgressDialog& progress_dlg,
-                                          std::vector<std::string>& succes_models,
-                                          std::vector<std::pair<std::string, std::string>>& failed_models)
+    auto fix_and_update_progress = [&](const int obj_idx, const int vol_idx, int model_idx, ProgressDialog& progress_dlg)
     {
-        if (!object(obj_idx))
+        ModelObject *mo = object(obj_idx);
+        if (!mo)
             return false;
 
         const std::string& model_name = model_names[model_idx];
         wxString msg = _L("Repairing model object");
         if (model_names.size() == 1)
             msg += ": " + from_u8(model_name) + "\n";
+        else if (model_names.size() > 10)
+            msg += ": " + from_u8(model_name) + wxString::Format(" (%d/%d)", model_idx + 1, int(model_names.size())) + "\n";
         else {
             msg += ":\n";
             for (int i = 0; i < int(model_names.size()); ++i)
@@ -6360,33 +6369,29 @@ void ObjectList::fix_through_cgal()
             msg += "\n";
         }
 
-        const bool keep_painting = GUI::wxGetApp().app_config->get_bool("keep_painting");
-        if (!keep_painting) {
-            plater->clear_before_change_mesh(obj_idx);
-        }
-        const size_t volumes_before = object(obj_idx)->volumes.size();
+        auto count_painted = [mo]() { return std::count_if(mo->volumes.begin(), mo->volumes.end(), [](const ModelVolume *mv) { return mv->is_any_painted(); }); };
+        const auto  painted_before = count_painted();
         std::string res;
-        if (!fix_model_with_cgal_gui(*(object(obj_idx)), vol_idx, progress_dlg, msg, res, keep_painting))
+        bool        modified = false;
+        if (!fix_model_with_cgal_gui(*mo, vol_idx, progress_dlg, msg, res, keep_painting, &modified))
             return false;
-        //wxGetApp().plater()->changed_mesh(obj_idx);
-        object(obj_idx)->ensure_on_bed();
-        plater->changed_mesh(obj_idx);
 
-        const size_t volumes_after = object(obj_idx)->volumes.size();
-        if (volumes_after != volumes_before)
-            add_volumes_to_object_in_list(obj_idx);
+        if (modified) {
+            painting_removed = painting_removed || count_painted() < painted_before;
+            mo->ensure_on_bed();
+            plater->changed_mesh(obj_idx);
+            plater->get_partplate_list().notify_instance_update(obj_idx, 0);
+            plater->sidebar().obj_list()->update_plate_values_for_items();
+            update_item_error_icon(obj_idx, vol_idx);
+            update_info_items(obj_idx);
+        }
 
-        plater->get_partplate_list().notify_instance_update(obj_idx, 0);
-        plater->sidebar().obj_list()->update_plate_values_for_items();
-
-        if (res.empty())
+        if (!res.empty())
+            failed_models.push_back({ model_name, res });
+        else if (modified)
             succes_models.push_back(model_name);
         else
-            failed_models.push_back({ model_name, res });
-
-        update_item_error_icon(obj_idx, vol_idx);
-        update_info_items(obj_idx);
-
+            ++unchanged_models;
         return true;
     };
 
@@ -6399,11 +6404,7 @@ void ObjectList::fix_through_cgal()
     if (vol_idxs.empty()) {
         int vol_idx{ -1 };
         for (int obj_idx : obj_idxs) {
-#if !FIX_THROUGH_CGAL_ALWAYS
-            if (object(obj_idx)->get_repaired_errors_count(vol_idx) == 0)
-                continue;
-#endif // FIX_THROUGH_CGAL_ALWAYS
-            if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, progress_dlg, succes_models, failed_models))
+            if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, progress_dlg))
                 break;
             model_idx++;
         }
@@ -6411,7 +6412,7 @@ void ObjectList::fix_through_cgal()
     else {
         int obj_idx{ obj_idxs.front() };
         for (int vol_idx : vol_idxs) {
-            if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, progress_dlg, succes_models, failed_models))
+            if (!fix_and_update_progress(obj_idx, vol_idx, model_idx, progress_dlg))
                 break;
             model_idx++;
         }
@@ -6419,20 +6420,29 @@ void ObjectList::fix_through_cgal()
     // Close the progress dialog
     progress_dlg.Update(100, "");
 
+    if (painting_removed)
+        plater->notify_painting_removed();
+
     // Show info notification
-    wxString msg;
+    std::vector<wxString> blocks;
     wxString bullet_suf = "\n   - ";
     if (!succes_models.empty()) {
-        msg = _L_PLURAL("The following model object has been repaired", "The following model objects have been repaired", succes_models.size()) + ":";
+        wxString block = _L_PLURAL("The following model object has been repaired", "The following model objects have been repaired", succes_models.size()) + ":";
         for (auto& model : succes_models)
-            msg += bullet_suf + from_u8(model);
-        msg += "\n\n";
+            block += bullet_suf + from_u8(model);
+        blocks.push_back(block);
     }
     if (!failed_models.empty()) {
-        msg += _L_PLURAL("Failed to repair the following model object", "Failed to repair the following model objects", failed_models.size()) + ":\n";
+        wxString block = _L_PLURAL("Failed to repair the following model object", "Failed to repair the following model objects", failed_models.size()) + ":";
         for (auto& model : failed_models)
-            msg += bullet_suf + from_u8(model.first) + ": " + _(model.second);
+            block += bullet_suf + from_u8(model.first) + ": " + _(model.second);
+        blocks.push_back(block);
     }
+    if (unchanged_models > 0)
+        blocks.push_back(format_wxstr(_L_PLURAL("%1$d model object needed no repair.", "%1$d model objects needed no repair.", unchanged_models), unchanged_models));
+    wxString msg;
+    for (const wxString &block : blocks)
+        msg += (msg.IsEmpty() ? "" : "\n\n") + block;
     if (msg.IsEmpty())
         msg = _L("Repairing was canceled");
     plater->get_notification_manager()->push_notification(NotificationType::CgalFinished, NotificationManager::NotificationLevel::PrintInfoShortNotificationLevel, into_u8(msg));
