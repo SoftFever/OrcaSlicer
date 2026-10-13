@@ -3919,20 +3919,12 @@ bool GUI_App::on_init_network(bool try_backup)
             app_config->save();
         }
 
-        bool should_load_network_plugin = true;
         if (config_version.empty()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": no version configured, need to download";
             m_networking_need_update = true;
-
-            if (!m_device_manager)
-                m_device_manager = new Slic3r::DeviceManager();
-            if (!m_user_manager)
-                m_user_manager = new Slic3r::UserManager();
-
-            should_load_network_plugin = false;
         }
 
-        if(should_load_network_plugin) {
+        if(!config_version.empty()) {
             int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
         __retry:
             if (!load_agent_dll) {
