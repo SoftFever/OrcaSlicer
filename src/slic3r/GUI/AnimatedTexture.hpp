@@ -39,11 +39,8 @@ public:
     // Length of one loop, in seconds; 0 for a still image.
     double duration() const { return m_duration; }
 
-    // The texture to draw `time` seconds into the loop (which wraps), and - when `time_to_next` is
-    // given - how much longer that frame stays up. A canvas that only redraws on demand uses the
-    // latter to ask for the next redraw at the right moment instead of spinning at full speed.
-    // 0, and a time_to_next of 0, when nothing is loaded.
-    unsigned int texture_id(double time, double *time_to_next = nullptr) const;
+    // The texture to draw `time` seconds into the loop, which wraps. 0 when nothing is loaded.
+    unsigned int texture_id(double time) const;
 
 private:
     struct Frame

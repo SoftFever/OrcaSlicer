@@ -3730,6 +3730,17 @@ void GLGizmoTextureDisplacement::panel_tooltip(const wxString &text, const std::
 
 void GLGizmoTextureDisplacement::panel_tooltip(const std::string &text, const std::vector<TipMedia> &media)
 {
+    // Nothing explains a control while the control is being used: dragging a slider, typing a value
+    // into one, picking from a combo, dragging a layer card. The pointer sits on the very thing being
+    // edited, so without this the tooltip covers the model exactly while the user is watching it change.
+    // The full wait comes back afterwards rather than the short one - having just let go of a slider is
+    // not a reason to be shown a picture of it.
+    if (ImGui::IsAnyItemActive() || ImGui::IsAnyMouseDown()) {
+        m_tip_item       = ImVec2(-1.f, -1.f);
+        m_tip_last_shown = -1e9;
+        return;
+    }
+
     // The item's position stands in for its identity: moving to another control restarts the wait, and
     // staying on this one carries it on.
     const double now  = tip_now();
@@ -3739,10 +3750,16 @@ void GLGizmoTextureDisplacement::panel_tooltip(const std::string &text, const st
         m_tip_hover_since = now;
     }
     if (now - m_tip_hover_since < (now - m_tip_last_shown < TIP_STICKY ? TIP_DELAY_AGAIN : TIP_DELAY)) {
-        // A pointer resting on a control produces no events, so nothing would redraw the canvas and the
-        // tooltip would never get its chance to appear. Ask for the frame it appears on.
-        set_dirty();
-        m_parent.schedule_extra_frame(40);
+        // A pointer resting on a control produces no events at all, so unless the wait asks for frames
+        // itself nothing redraws the canvas and the wait never finishes - the tooltip then appears only
+        // on the next pixel of mouse movement.
+        //
+        // request_extra_frame() and not schedule_extra_frame(): the latter only arranges a timer, whose
+        // event an idle event is assumed to follow, and GLCanvas3D::on_idle() renders nothing unless the
+        // canvas was already dirty when it ran. request_extra_frame() ends on_idle with
+        // evt.RequestMore(), which obliges wx to deliver the next one. It is what 3DBed's fade uses.
+        // Costing a few hundred milliseconds of frames is the cheaper half of that trade.
+        m_parent.request_extra_frame();
         return;
     }
     m_tip_last_shown = now;
@@ -3829,23 +3846,16 @@ void GLGizmoTextureDisplacement::render_tip_media(const std::vector<TipMedia> &m
         }
 
         ImGui::BeginGroup();
-        double             next = 0.;
-        const unsigned int id   = texture->texture_id(time, &next);
+        const unsigned int id = texture->texture_id(time);
         ImGui::SetCursorPosX(cell_x + std::round(0.5f * (cell_w - w)));
         ImGui::Image((ImTextureID) (intptr_t) id, ImVec2(w, h));
         ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), frame, style.FrameRounding);
-        // The canvas only redraws on demand, so an animation has to ask for its own frames - and for
-        // exactly when the next one is due, rather than for a redraw as fast as the machine will go.
-        //
-        // Both halves are needed. schedule_extra_frame() alone only guarantees an idle event at that
-        // moment; GLCanvas3D::on_idle() returns without rendering anything unless something has marked
-        // the canvas dirty by then, which is why an animation left to that alone advanced one frame per
-        // mouse movement and stood still whenever the mouse did. set_dirty() is what on_idle reads
-        // (through GLGizmoBase::update_items_state()) to find out this gizmo still has frames to draw.
-        if (texture->is_animated()) {
-            set_dirty();
-            m_parent.schedule_extra_frame(int(next * 1000.0));
-        }
+        // The canvas only redraws on demand, so an animation has to ask for its own frames. It asks for
+        // them as fast as they come rather than pacing itself with a timer: which frame is drawn is
+        // decided by the clock above, so a redraw that arrives early simply draws the same frame again,
+        // and a guaranteed frame is worth more here than a frugal one that may never arrive.
+        if (texture->is_animated())
+            m_parent.request_extra_frame();
 
         if (!entry.caption.empty()) {
             // Centred under its own illustration, and never wider than its column.

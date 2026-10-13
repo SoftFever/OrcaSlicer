@@ -50,8 +50,20 @@ dozen large panels over the scene. Once one has just been up, the wait drops to 
 afterwards, so reading several settings in a row stays quick - but not to zero, or that same sweep
 would flash again the moment one tooltip had been seen.
 
+No tooltip appears at all while a control is being used - a slider dragged, a value typed into one, a
+combo open, a layer card being dragged. The pointer sits on the very thing being edited, so a tooltip
+there covers the model exactly while the user is watching it change. The full wait comes back
+afterwards rather than the short one: having just let go of a slider is not a reason to be shown a
+picture of it.
+
 A pointer resting on a control produces no events, and the canvas only renders when something asks it
-to, so the wait itself has to keep asking; see panel_tooltip().
+to, so the wait has to ask for its own frames, and so does an animation once one is on screen. Both use
+`GLCanvas3D::request_extra_frame()`, which ends `on_idle()` with `evt.RequestMore()` and so obliges wx
+to deliver the next idle. `schedule_extra_frame()` is not enough on its own: it only arranges a timer
+whose event an idle event is assumed to follow, and on_idle renders nothing unless the canvas was
+already dirty when it ran. Asking for frames as fast as they come is safe here because which frame is
+drawn comes from the clock, not from the frame count, so a redraw that arrives early simply draws the
+same frame again.
 
 ## Decoding and playback
 
@@ -68,15 +80,7 @@ The animation restarts when its tooltip opens, rather than running off a free-ru
 short loops of one setting going from one value to another, and joining one halfway through shows the
 end of a change the user never saw the start of.
 
-Two things drive the frames, and both are needed. `GLCanvas3D::schedule_extra_frame()` only guarantees
-an idle event at the moment the next frame is due; `GLCanvas3D::on_idle()` returns without rendering
-anything unless something has marked the canvas dirty by then, so an animation left to the timer alone
-advances one frame per mouse movement and stands still whenever the mouse does. `set_dirty()` on the
-gizmo is what on_idle reads, through `GLGizmoBase::update_items_state()`, to find out there are frames
-still to draw. The pair of them is what makes an animation play at its own speed and stop costing
-anything the moment its tooltip closes.
-
-Which frame is due is measured on a real clock, not `ImGui::GetTime()`. Nothing in OrcaSlicer ever sets
+Which frame is drawn is measured on a real clock, not `ImGui::GetTime()`. Nothing in OrcaSlicer ever sets
 `io.DeltaTime`, so it keeps imgui's default of 1/60 per frame and imgui's clock counts frames rather
 than seconds. On a canvas that renders only when asked, that is not a clock at all: an animation driven
 by it crawls while the canvas is idle and races while a moving mouse is rendering it flat out.

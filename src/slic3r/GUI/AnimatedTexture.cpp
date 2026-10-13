@@ -207,26 +207,18 @@ void AnimatedTexture::reset()
     m_duration = 0.;
 }
 
-unsigned int AnimatedTexture::texture_id(double time, double *time_to_next) const
+unsigned int AnimatedTexture::texture_id(double time) const
 {
-    if (m_frames.empty()) {
-        if (time_to_next != nullptr)
-            *time_to_next = 0.;
+    if (m_frames.empty())
         return 0;
-    }
-    if (m_frames.size() == 1 || m_duration <= 0.) {
-        if (time_to_next != nullptr)
-            *time_to_next = 0.;
+    if (m_frames.size() == 1 || m_duration <= 0.)
         return m_frames.front().texture->get_id();
-    }
 
     const double t = time - m_duration * std::floor(time / m_duration);
     // Frames are few; a linear walk beats keeping an index around and getting it stale.
     size_t i = 0;
     while (i + 1 < m_frames.size() && t >= m_frames[i].start + m_frames[i].delay)
         ++i;
-    if (time_to_next != nullptr)
-        *time_to_next = std::max(0., m_frames[i].start + m_frames[i].delay - t);
     return m_frames[i].texture->get_id();
 }
 
