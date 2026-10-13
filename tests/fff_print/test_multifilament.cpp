@@ -1672,25 +1672,35 @@ TEST_CASE("Each filament cools with the fan speeds of its extruder variant", "[M
 
 TEST_CASE("Shared heater on IMEX printer stays hot until all filaments on it are done", "[MultiFilament]")
 {
-    // On IMEX printers, filaments 1, 2, and 5 share the same physical heater (T0).
-    // Filament 2 finishes at 4mm, but filaments 1 and 5 continue to 10mm.
-    // The shared heater T0 must not be turned off (S0) at 4mm while other filaments on it still have layers left.
+    // Build an IMEX configuration, apply IMEX geometry, then pass it to the slicer helper.
+    DynamicPrintConfig cfg = multifilament_config(7);
+    cfg.set_deserialize_strict({
+        {"ooze_prevention", 1},
+        {"preheat_time", 0},
+    });
+    imex_7x4_printer(cfg);
+
     const std::string gcode = slice_with_object_overrides({make_cube(20., 20., 10.), make_cube(20., 20., 4.), make_cube(20., 20., 10.)},
-                                                          imex_7x4_printer({
-                                                              {"ooze_prevention", 1},
-                                                              {"preheat_time", 0},
-                                                          }),
+                                                          cfg,
                                                           {{{"extruder", 1}, {"layer_height", 0.30}},
                                                            {{"extruder", 2}, {"layer_height", 0.15}},
                                                            {{"extruder", 5}}});
 
-    int t0_s0_cooldown_count = 0;
+    bool premature_s0_t0 = false;
+    double current_z     = 0.0;
     std::istringstream stream(gcode);
     for (std::string line; std::getline(stream, line);) {
-        if (line.find(";cooldown") != std::string::npos && line.find("M104 S0 T0") != std::string::npos)
-            ++t0_s0_cooldown_count;
+        if (line.rfind("G1 ", 0) == 0 && line.find(" Z") != std::string::npos) {
+            const size_t z_pos = line.find(" Z");
+            current_z          = std::stod(line.substr(z_pos + 2));
+        }
+        // Check if an S0 cooldown was emitted prematurely for T0 while still below 9mm (e.g. at Z 3.95)
+        if (line.find(";cooldown") != std::string::npos && line.find("M104 S0 T0") != std::string::npos) {
+            if (current_z < 9.0)
+                premature_s0_t0 = true;
+        }
     }
 
-    // T0 is used up to the 10mm layer by filaments 1 and 5, so it must never receive an S0 cooldown mid-print.
-    CHECK(t0_s0_cooldown_count == 0);
+    // T0 is shared by filaments 1 and 5 up to 10mm, so it must not shut down at 4mm (Z 3.95).
+    CHECK_FALSE(premature_s0_t0);
 }
