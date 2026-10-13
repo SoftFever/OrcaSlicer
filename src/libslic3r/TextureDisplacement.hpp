@@ -154,6 +154,38 @@ struct TextureIsland
 // chart to its true mm area, so a freshly unwrapped patch has uniform texel density to begin with.
 void average_island_scales(std::vector<TextureIsland> &islands);
 
+// Photo-style adjustments to a layer's source image, as the gizmo's image-adjustment panel sets them.
+//
+// These are *not* layer parameters: nothing here is stored on TextureDisplacementLayer and nothing here is
+// re-applied at bake time. The panel applies them once, to the image, and the result becomes the layer's
+// image - so the adjusted pixels feed the colour and the displacement together, and a brightness change
+// really does change the relief. That is the intended behaviour: one image, one source of truth, rather
+// than a second set of knobs the bake would have to replay in the right order.
+//
+// Contrast with TextureDisplacementLayer::smoothing, which *is* a layer parameter applied on every decode:
+// `blur` here is a destructive edit of the image, `smoothing` is a live low-pass over whatever the image is.
+struct TextureAdjustments
+{
+    float brightness = 0.f; // [-1, 1]; 0 unchanged, -1 black, +1 white
+    float contrast   = 0.f; // [-1, 1]; 0 unchanged, -1 flat mid-grey, +1 hard threshold
+    float sharpness  = 0.f; // [0, 1];  0 unchanged. Unsharp-mask amount
+    float blur       = 0.f; // [0, 1];  0 unchanged. Fraction of SOURCE_BLUR_SPAN, as `smoothing` is
+    float hue_deg    = 0.f; // [-180, 180]; 0 unchanged. No effect on a grayscale image - grey has no hue
+
+    bool identity() const
+    {
+        return brightness == 0.f && contrast == 0.f && sharpness == 0.f && blur == 0.f && hue_deg == 0.f;
+    }
+    // Exact equality, which is what is wanted: these come straight off sliders, and the question asked of
+    // them is "is this still the value the preview on screen was computed from", not "are these close".
+    bool operator==(const TextureAdjustments &o) const
+    {
+        return brightness == o.brightness && contrast == o.contrast && sharpness == o.sharpness &&
+               blur == o.blur && hue_deg == o.hue_deg;
+    }
+    bool operator!=(const TextureAdjustments &o) const { return !(*this == o); }
+};
+
 // One texture asset plus its projection/displacement parameters. Several layers may be painted
 // onto overlapping areas of the same volume: their displacements are combined per vertex, in slot
 // order, each layer folding into the total via its own TextureBlendMode (see
@@ -276,6 +308,18 @@ struct TextureDisplacementLayer
     //    islands where they are. Like `islands`, meaningful only against the unwrap it was made on.
     //  - zero or positive: a mesh vertex, every unwrapped copy of it (how edits were stored before).
     std::vector<std::pair<int, Vec2f>> lscm_uv_overrides;
+
+    // Live, unsaved image adjustments from the gizmo's image-adjustment panel, applied by
+    // decode_height_texture() on top of the decoded image - so while the panel is open the relief, the
+    // colour, the thumbnails and the bake all see the adjusted image, and moving a slider really does
+    // change the displacement. See TextureAdjustments.
+    //
+    // Deliberately *not* serialized, by either save()/load() here or the .3mf: it is the state of an open
+    // editor, not a property of the layer. The panel resets it when it closes, and "Save as copy" resolves
+    // it by writing a new image and pointing the layer at that - which is the only way an adjustment
+    // becomes permanent. A project saved mid-adjustment therefore stores the unadjusted image, which is
+    // the honest answer: nothing was committed.
+    TextureAdjustments preview_adjust;
 
     // How this layer folds into the displacement accumulated by the layers below it. Ignored for
     // the lowest-slot painted layer, which has nothing beneath it to combine with (the GUI shows
@@ -503,6 +547,36 @@ struct DecodedHeightTexture
     };
     bool texel_tap(const Vec2f &uv, bool tile_enabled, TextureTileMethod tile_method, TexelTap &out) const;
 };
+
+// Applies `adj` to `src` and returns the result; `src` is left alone. An empty `src`, or an identity
+// `adj`, gives back a copy.
+//
+// Order is tonal, then spatial: brightness, contrast and hue per texel first, then blur, then sharpness.
+// Sharpness last is what lets the two spatial knobs be used together - blur to kill speckle, then
+// sharpness to put the real edges back - instead of the blur simply undoing the sharpen.
+//
+// Grayscale in, grayscale out (`rgb` stays empty): promoting a grey image to RGB would hand the layer's
+// colour feature a row of identical greys to "colour" the model with, and triple the stored PNG for it.
+// For a colour image the height is recomputed as the luminance of the *adjusted* colour, with
+// decode_height_texture()'s own coefficients, so the relief and the colour can never drift apart.
+DecodedHeightTexture apply_texture_adjustments(const DecodedHeightTexture &src, const TextureAdjustments &adj);
+
+// Blur radius, in texels, that TextureAdjustments::blur == 1 means on a `min(width, height)`-sized image:
+// the same 5%-of-the-short-side span the Smoothing slider uses, under the same 48-texel cost cap, so the
+// two controls bite at the same rate and a user moving between them is not surprised.
+float adjustment_blur_radius(float blur, int width, int height);
+
+// Box-filters `src` down so neither side exceeds `max_px`, preserving aspect; never upscales, and
+// returns a copy when it already fits. Colour and height are filtered the same way, and the height
+// stays the height - it is not recomputed from the filtered colour, because a box filter is linear and
+// luminance is linear in the channels, so the two agree already.
+//
+// This is what lets the adjustment panel's live preview cost depend on the size of the box it is drawn
+// in rather than on the size of the image: adjusting a downscaled copy per slider frame, and the
+// full-size image only once, on commit. A box filter (rather than a plain decimation) is the point -
+// these textures are high-frequency by nature, and dropping texels would alias the preview into
+// showing detail the adjustment is not actually producing.
+DecodedHeightTexture downscale_height_texture(const DecodedHeightTexture &src, int max_px);
 
 // Decode a layer's raw image bytes into sampleable height data, plus colour when the source has any.
 // Both 8-bit grayscale PNGs (the shipped library, and anything imported before colour was kept) and
