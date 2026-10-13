@@ -512,6 +512,12 @@ public:
     // This method is used by the auto arrange function.
     Polygon       convex_hull_2d(const Transform3d &trafo_instance) const;
 
+    // BBS: true 2D outline (XY projection of the transformed printable volumes). The
+    // ExPolygon form retains enclosed openings for Sparrow's final hole-fill pass.
+    const ExPolygon &true_outline_2d_ex(const Transform3d &trafo_instance) const;
+    const Polygon &true_outline_2d(const Transform3d &trafo_instance) const;
+    void           invalidate_true_outline_2d() const { m_true_outline_2d.clear(); m_true_outline_base.clear(); }
+
     void center_around_origin(bool include_modifiers = true);
     void ensure_on_bed(bool allow_negative_z = false);
 
@@ -685,6 +691,15 @@ private:
         m_raw_mesh_bounding_box           = src.m_raw_mesh_bounding_box;
         m_raw_mesh_bounding_box_valid     = src.m_raw_mesh_bounding_box_valid;
     }
+
+    // BBS: true 2D outline cache, mirrors ModelVolume's m_convex_hull_2d trio.
+    // m_true_outline_base is at zero XY offset, m_true_outline_2d at m_true_outline_trafo.
+    mutable ExPolygon     m_true_outline_2d;
+    mutable ExPolygon     m_true_outline_base;
+    mutable Transform3d   m_true_outline_trafo{Transform3d::Identity()};
+    // Fingerprint of the volumes the base contour was built from; makes the cache self-invalidating.
+    mutable std::vector<std::pair<const TriangleMesh *, Matrix4d>> m_true_outline_volumes;
+    void                  calculate_true_outline_2d(const Geometry::Transformation &transformation) const;
 
     // Called by Print::apply() to set the model pointer after making a copy.
     friend class Print;
@@ -1072,6 +1087,8 @@ public:
     void invalidate_convex_hull_2d()
     {
         m_convex_hull_2d.clear();
+        // BBS: the object's true-outline cache is built from this mesh too.
+        if (object) object->invalidate_true_outline_2d();
     }
 
     // Get count of errors in the mesh
@@ -1497,6 +1514,17 @@ public:
     // BBS
     Polygon convex_hull_2d();
     void invalidate_convex_hull_2d();
+
+    // BBS: true 2D projected outline of this instance under `trafo_instance` (same
+    // frame as ModelObject::convex_hull_2d). Falls back to the convex hull.
+    const ExPolygon &true_outline_2d_ex(const Transform3d &trafo_instance) const;
+    const Polygon &true_outline_2d(const Transform3d &trafo_instance) const;
+
+    // BBS: does this instance's footprint intersect `polys`? `trafo_instance` and
+    // `offset` place the instance into the frame of `polys`. Tests the convex hull
+    // first and only pays for the true outline when the hull intersects.
+    bool footprint_intersects(const Polygons &polys, const Transform3d &trafo_instance,
+                              const Point &offset = Point(0, 0)) const;
 
     // Getting the input polygon for arrange
     // We use void* as input type to avoid including Arrange.hpp in Model.hpp.
