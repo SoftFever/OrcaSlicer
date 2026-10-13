@@ -27,7 +27,7 @@ REQUIRED_DEV_PACKAGES=(
     perl-FindBin-Real
     texinfo
     wayland-protocols-devel
-    webkitgtk4-devel
+    webkitgtk3-devel
     wget
     libcurl-devel
 )
