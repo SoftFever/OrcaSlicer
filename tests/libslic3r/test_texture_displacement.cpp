@@ -1653,6 +1653,321 @@ TEST_CASE("Per-corner LSCM UVs give each triangle its own island's placement", "
     CHECK(differs);
 }
 
+// ---------------------------------------------------------------------------------------------
+// UV orientation: which way up a texture lands on the model.
+//
+// v = 0 is the height map's *first* pixel row, i.e. its top (DecodedHeightTexture::sample(), and
+// the UV editor negates Y on screen for the same reason). So "the image is the right way up" is the
+// statement that the row a point samples gets *lower* as the point moves up the face, and "it is
+// not left-right mirrored" is that the column gets higher as the point moves to the right of a
+// viewer standing outside the model. Both are measured below by sampling a ramp whose value says
+// which row (or column) it came from, which settles the question without having to reason about the
+// uv transform at all.
+
+static constexpr int   RAMP_N      = 64;   // the ramp texture's size, in texels
+static constexpr float RAMP_TILING = 40.f; // mm per tile
+static constexpr float CUBE_HALF   = 5.f;  // half extent of the cube the probes walk over
+// How far a probe steps off a face centre. Short on purpose: the cylindrical and spherical u is an
+// arc length (angle * radius), so a long step also changes the radius, and that term swamps the
+// angular one. It is symmetric about the face centre, so at a short step it cancels between the two
+// readings a check compares.
+static constexpr float RAMP_STEP   = 1.f;
+// What one step's worth of travel is in ramp rows: 2 * RAMP_STEP mm of separation, RAMP_N texels per
+// RAMP_TILING mm. Halved as the margin a check demands, so "flat" cannot pass as either direction.
+static constexpr double RAMP_MARGIN = RAMP_N * RAMP_STEP / RAMP_TILING;
+
+// A height map whose rows (or columns) carry a linear ramp: row r holds 3 + 4r, so the sampled
+// height identifies the row. Built directly rather than through a PNG because these tests are about
+// the projection, not the decoder - decode_height_texture() has its own tests.
+static DecodedHeightTexture ramp_texture(bool by_row)
+{
+    DecodedHeightTexture t;
+    t.width = t.height = RAMP_N;
+    t.pixels.resize(size_t(RAMP_N) * size_t(RAMP_N));
+    for (int y = 0; y < RAMP_N; ++y)
+        for (int x = 0; x < RAMP_N; ++x)
+            t.pixels[size_t(y) * size_t(RAMP_N) + size_t(x)] = uint8_t(3 + 4 * (by_row ? y : x));
+    return t;
+}
+
+// uv 0.5 at the cube's centre, and a tile wide enough that every point the probes visit stays well
+// inside the one tile - so no reading is a wrapped-around neighbour of the one it is compared with.
+static TextureDisplacementLayer ramp_layer(TextureProjectionMethod method)
+{
+    TextureDisplacementLayer layer;
+    layer.projection_method = method;
+    layer.tiling_scale      = RAMP_TILING;
+    layer.offset            = Vec2f(0.5f, 0.5f);
+    layer.depth_mm          = 1.f;
+    return layer;
+}
+
+// Which row (or column) of `ramp` the layer reads at `p`. Fractional, because a point between two
+// texels reads the ramp between them; only the direction it moves in matters here.
+static double ramp_index(const DecodedHeightTexture &ramp, const TextureDisplacementLayer &layer, const Vec3f &p,
+                         const Vec3f &n, const Vec3f &center = Vec3f(Vec3f::Zero()),
+                         const Vec3f &axis = Vec3f(Vec3f::UnitZ()))
+{
+    return (double(sample_layer_height(ramp, layer, p, n, center, axis, nullptr)) * 255.0 - 3.0) / 4.0;
+}
+
+// How a viewer standing outside the model sees a face: their right, and their up. Up is world +Z on
+// the four upright faces; on the top and bottom, where +Z is edge on, it is world +Y.
+static void outside_viewer_frame(const Vec3f &n, Vec3f &right, Vec3f &up)
+{
+    up    = (std::abs(n.z()) < 0.9f) ? Vec3f(0.f, 0.f, 1.f) : Vec3f(0.f, 1.f, 0.f);
+    right = Vec3f((-n).cross(up).normalized());
+}
+
+static const std::array<std::pair<const char *, Vec3f>, 6> CUBE_FACES = { {
+    { "+X", Vec3f(1.f, 0.f, 0.f) },
+    { "-X", Vec3f(-1.f, 0.f, 0.f) },
+    { "+Y", Vec3f(0.f, 1.f, 0.f) },
+    { "-Y", Vec3f(0.f, -1.f, 0.f) },
+    { "+Z", Vec3f(0.f, 0.f, 1.f) },
+    { "-Z", Vec3f(0.f, 0.f, -1.f) },
+} };
+
+TEST_CASE("the box projection lands a texture upright and unmirrored on all six faces of a cube",
+          "[TextureDisplacement]")
+{
+    const DecodedHeightTexture     rows  = ramp_texture(true);
+    const DecodedHeightTexture     cols  = ramp_texture(false);
+    const TextureDisplacementLayer layer = ramp_layer(TextureProjectionMethod::Triplanar);
+
+    for (const auto &[name, n] : CUBE_FACES) {
+        DYNAMIC_SECTION("face " << name)
+        {
+            Vec3f right, up;
+            outside_viewer_frame(n, right, up);
+            const Vec3f centre = n * CUBE_HALF;
+
+            // Upright: the row read near the top of the face is nearer the image's first row.
+            const double row_up   = ramp_index(rows, layer, centre + up * RAMP_STEP, n);
+            const double row_down = ramp_index(rows, layer, centre - up * RAMP_STEP, n);
+            INFO("row at the top of the face " << row_up << ", at the bottom " << row_down);
+            CHECK(row_down - row_up > RAMP_MARGIN);
+
+            // Unmirrored: the column read to the viewer's right is further into the image. Without a
+            // per-side sign this fails on exactly the three faces facing away - -X, +Y and -Z - which
+            // is the mirroring a bare v flip leaves behind.
+            const double col_left  = ramp_index(cols, layer, centre - right * RAMP_STEP, n);
+            const double col_right = ramp_index(cols, layer, centre + right * RAMP_STEP, n);
+            INFO("column at the left of the face " << col_left << ", at the right " << col_right);
+            CHECK(col_right - col_left > RAMP_MARGIN);
+        }
+    }
+}
+
+TEST_CASE("every projection method lands a texture upright on an upright face", "[TextureDisplacement]")
+{
+    const DecodedHeightTexture rows = ramp_texture(true);
+    // ViewProjected is one flat projection from the captured camera rather than a per-face map, so its
+    // "up" is the projector's own (view_project_up), which the default capture puts at +Y.
+    const auto method = GENERATE(TextureProjectionMethod::Triplanar, TextureProjectionMethod::Cylindrical,
+                                 TextureProjectionMethod::Spherical, TextureProjectionMethod::ViewProjected);
+    const TextureDisplacementLayer layer = ramp_layer(method);
+
+    for (const auto &[name, n] : CUBE_FACES) {
+        // Only the four upright faces: on the top and bottom a cylinder's v is constant (they are its
+        // caps) and a sphere's is at an extremum (they are its poles), so neither says anything about
+        // which way up the image is.
+        if (std::abs(n.z()) > 0.9f)
+            continue;
+        DYNAMIC_SECTION("method " << int(method) << ", face " << name)
+        {
+            const Vec3f up = (method == TextureProjectionMethod::ViewProjected) ? layer.view_project_up :
+                                                                                 Vec3f(0.f, 0.f, 1.f);
+            const Vec3f centre = n * CUBE_HALF;
+            const double row_up   = ramp_index(rows, layer, centre + up * RAMP_STEP, n);
+            const double row_down = ramp_index(rows, layer, centre - up * RAMP_STEP, n);
+            INFO("row at the top " << row_up << ", at the bottom " << row_down);
+            CHECK(row_down - row_up > RAMP_MARGIN);
+        }
+    }
+}
+
+TEST_CASE("the cylindrical and spherical wraps run left to right as seen from outside", "[TextureDisplacement]")
+{
+    const DecodedHeightTexture cols = ramp_texture(false);
+    const auto method = GENERATE(TextureProjectionMethod::Cylindrical, TextureProjectionMethod::Spherical);
+    const TextureDisplacementLayer layer = ramp_layer(method);
+
+    for (const auto &[name, n] : CUBE_FACES) {
+        // The caps and poles are out, as above - u is undefined on the axis. So is whichever face the
+        // atan2 branch cut runs through, where u jumps from +pi to -pi: that is a real seam in both
+        // projections, and a reading taken across it compares two opposite sides of the model.
+        if (std::abs(n.z()) > 0.9f)
+            continue;
+        const bool on_the_cut = (method == TextureProjectionMethod::Cylindrical) ? (n.y() < -0.9f) : (n.x() < -0.9f);
+        if (on_the_cut)
+            continue;
+        DYNAMIC_SECTION("method " << int(method) << ", face " << name)
+        {
+            Vec3f right, up;
+            outside_viewer_frame(n, right, up);
+            const Vec3f  centre    = n * CUBE_HALF;
+            const double col_left  = ramp_index(cols, layer, centre - right * RAMP_STEP, n);
+            const double col_right = ramp_index(cols, layer, centre + right * RAMP_STEP, n);
+            INFO("column at the left " << col_left << ", at the right " << col_right);
+            CHECK(col_right - col_left > RAMP_MARGIN);
+        }
+    }
+}
+
+TEST_CASE("an unwrapped cube's flat charts are laid out the right way up", "[TextureDisplacement]")
+{
+    indexed_triangle_set cube = its_make_cube(2. * CUBE_HALF, 2. * CUBE_HALF, 2. * CUBE_HALF);
+    for (Vec3f &v : cube.vertices)
+        v -= Vec3f(CUBE_HALF, CUBE_HALF, CUBE_HALF);
+
+    const PatchUnwrap unwrap = compute_patch_unwrap(cube, LSCM_DEFAULT_SEAM_ANGLE_DEG);
+    REQUIRE_FALSE(unwrap.empty());
+    REQUIRE(unwrap.chart_count == 6); // one flat chart per face, cut at the 90-degree edges
+
+    // Each chart carries one face. The four upright ones span world Z, and their v has to grow
+    // downwards like every other projection's - whatever the packing then did with the island.
+    int upright_charts = 0;
+    for (int c = 0; c < unwrap.chart_count; ++c) {
+        int top = -1, bottom = -1;
+        for (size_t i = 0; i < unwrap.uvs.size(); ++i) {
+            if (unwrap.vertex_chart[i] != c)
+                continue;
+            const float z = cube.vertices[size_t(unwrap.source_vertex[i])].z();
+            if (top < 0 || z > cube.vertices[size_t(unwrap.source_vertex[size_t(top)])].z())
+                top = int(i);
+            if (bottom < 0 || z < cube.vertices[size_t(unwrap.source_vertex[size_t(bottom)])].z())
+                bottom = int(i);
+        }
+        REQUIRE(top >= 0);
+        REQUIRE(bottom >= 0);
+        const float v_top = unwrap.uvs[size_t(top)].y(), v_bottom = unwrap.uvs[size_t(bottom)].y();
+        if (std::abs(v_top - v_bottom) < 1e-3f)
+            continue; // a cap: the whole chart is at one height, so it has no up
+        ++upright_charts;
+        DYNAMIC_SECTION("chart " << c)
+        {
+            INFO("v at the chart's topmost vertex " << v_top << ", at its bottommost " << v_bottom);
+            CHECK(v_bottom - v_top > 1.f);
+        }
+    }
+    CHECK(upright_charts == 4); // the four sides; the top and bottom faces are the caps skipped above
+}
+
+TEST_CASE("project_planar agrees with the box projection's own axes", "[TextureDisplacement]")
+{
+    // The two express the same table in different shapes - one a pair of world axes for the GUI, the
+    // other the closed form the bake's hot path uses - so they are checked against each other here
+    // rather than left to drift apart.
+    const Vec3f p(2.f, -3.f, 7.f);
+    for (const auto &[name, n] : CUBE_FACES) {
+        DYNAMIC_SECTION("face " << name)
+        {
+            Vec3f u_axis, v_axis;
+            box_projection_axes(n, u_axis, v_axis);
+            const Vec2f planar = project_planar(p, n);
+            CHECK_THAT(planar.x(), WithinAbs(p.dot(u_axis), 1e-5f));
+            CHECK_THAT(planar.y(), WithinAbs(p.dot(v_axis), 1e-5f));
+            // Right-handed for a viewer outside the model: u to their right, v down, so u x v points
+            // into the surface. Getting this wrong is exactly what mirrors a face.
+            CHECK_THAT(u_axis.cross(v_axis).dot(n), WithinAbs(-1.f, 1e-5f));
+        }
+    }
+}
+
+// An image with a different value in each quadrant, so one bake says both which way up it landed
+// and whether it came out mirrored. Distinct enough that a wrong quadrant cannot be mistaken for the
+// right one: top-left 255, top-right 170, bottom-left 85, bottom-right 0.
+static std::shared_ptr<std::vector<unsigned char>> make_quadrant_marker_png(size_t w = 32, size_t h = 32)
+{
+    std::vector<uint8_t> pixels(w * h);
+    for (size_t y = 0; y < h; ++y)
+        for (size_t x = 0; x < w; ++x)
+            pixels[y * w + x] = (y < h / 2) ? ((x < w / 2) ? 255 : 170) : ((x < w / 2) ? 85 : 0);
+    const boost::filesystem::path tmp_path = boost::filesystem::temp_directory_path()
+        / boost::filesystem::unique_path("texdisp_test_%%%%%%%%.png");
+    REQUIRE(Slic3r::png::write_gray_to_file(tmp_path.string(), w, h, pixels));
+
+    std::vector<unsigned char> bytes;
+    {
+        std::ifstream ifs(tmp_path.string(), std::ios::binary);
+        bytes.assign(std::istreambuf_iterator<char>(ifs), std::istreambuf_iterator<char>());
+    }
+    boost::system::error_code ec;
+    boost::filesystem::remove(tmp_path, ec);
+
+    REQUIRE_FALSE(bytes.empty());
+    return std::make_shared<std::vector<unsigned char>>(std::move(bytes));
+}
+
+TEST_CASE("baking an asymmetric image puts the top of the image at the top of the model", "[TextureDisplacement]")
+{
+    // An upright wall in the plane y = 0, facing -Y, tessellated so that each of the image's four
+    // quadrants gets a vertex at its centre. A flat sheet rather than a cube because every vertex
+    // normal is then exactly the face normal, which is what makes the expected depth below an exact
+    // number instead of a tri-planar blend of three of them.
+    constexpr int   STEPS = 4;    // cells per side, so 5x5 vertices
+    constexpr float SPAN  = 20.f; // mm, the wall's width and height
+    indexed_triangle_set wall;
+    for (int j = 0; j <= STEPS; ++j)
+        for (int i = 0; i <= STEPS; ++i)
+            wall.vertices.emplace_back(-SPAN / 2.f + SPAN * float(i) / float(STEPS), 0.f,
+                                       SPAN * float(j) / float(STEPS));
+    const auto at = [](int i, int j) { return j * (STEPS + 1) + i; };
+    for (int j = 0; j < STEPS; ++j)
+        for (int i = 0; i < STEPS; ++i) {
+            // Wound so that (+x) x (+z) = -y: the wall faces -Y, away from the origin.
+            wall.indices.emplace_back(at(i, j), at(i + 1, j), at(i + 1, j + 1));
+            wall.indices.emplace_back(at(i, j), at(i + 1, j + 1), at(i, j + 1));
+        }
+
+    TextureDisplacementFacetsData facets{};
+    facets[0] = paint_whole_mesh(wall);
+
+    TextureDisplacementLayer layer;
+    layer.slot              = 0;
+    layer.projection_method = TextureProjectionMethod::Triplanar;
+    layer.image_data        = make_quadrant_marker_png();
+    layer.depth_mm          = 2.f;
+    // The wall is 20 mm across and one tile is 40 mm, so it covers the middle half of the image in
+    // both axes: the quadrant boundaries land on x = 0 and z = 10, and the probed vertices sit a
+    // whole number of texels away from both.
+    layer.tiling_scale      = 40.f;
+    layer.offset            = Vec2f(0.5f, 0.75f);
+    // A single decal rather than a repeat, so that getting the orientation wrong cannot be masked by
+    // the wrap bringing the flipped coordinate back into the image at a plausible-looking row. With
+    // tiling off, uv stays inside [0.25, 0.75] in both axes only while v runs the right way.
+    layer.tile_enabled      = false;
+
+    const indexed_triangle_set result = build_texture_displacement(wall, { layer }, facets, classic_options());
+    REQUIRE(result.vertices.size() == wall.vertices.size());
+
+    // Seen from outside this face the viewer's right is +X and their up is +Z, so the image's
+    // top-left quadrant has to land at low x and high z. Each entry: the vertex, and the image value
+    // whose quadrant it must have read.
+    const std::array<std::tuple<const char *, int, int, int>, 4> expected = { {
+        { "top-left (255)", 1, 3, 255 },
+        { "top-right (170)", 3, 3, 170 },
+        { "bottom-left (85)", 1, 1, 85 },
+        { "bottom-right (0)", 3, 1, 0 },
+    } };
+
+    for (const auto &[name, i, j, value] : expected) {
+        DYNAMIC_SECTION("quadrant " << name)
+        {
+            const size_t vi = size_t(at(i, j));
+            // The whole displacement is along -Y, so this is the relief's height at that vertex.
+            const float raised = wall.vertices[vi].y() - result.vertices[vi].y();
+            INFO("vertex at " << wall.vertices[vi].x() << ", " << wall.vertices[vi].z());
+            CHECK_THAT(raised, WithinAbs(layer.depth_mm * float(value) / 255.f, 1e-3f));
+            // Nothing moved sideways or vertically: a mirrored or rotated basis would still have
+            // displaced along the normal, so this is here to catch the relief leaning instead.
+            CHECK_THAT(result.vertices[vi].x(), WithinAbs(wall.vertices[vi].x(), 1e-4f));
+            CHECK_THAT(result.vertices[vi].z(), WithinAbs(wall.vertices[vi].z(), 1e-4f));
+        }
+    }
+}
+
 TEST_CASE("The Cylindrical/Spherical patch frame is the bake's own, so a preview can share it", "[TextureDisplacement]")
 {
     // The fast preview reconstructs these two projections in the fragment shader and needs the very

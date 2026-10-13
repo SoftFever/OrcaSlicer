@@ -1262,8 +1262,9 @@ std::vector<Vec2f> GLGizmoTextureDisplacement::compute_layer_vertex_uvs(const in
                     uv[vi] = Vec2f(-1e6f, -1e6f);
                 continue;
             }
+            // Negated up, as sample_layer_height()'s affine branch has it: v runs down the image.
             const Vec2f planar(patch.vertices[vi].dot(layer.view_project_right),
-                               patch.vertices[vi].dot(layer.view_project_up));
+                               -patch.vertices[vi].dot(layer.view_project_up));
             uv[vi] = apply_uv_transform(planar, layer, aspect);
         }
         return uv;
@@ -3344,19 +3345,10 @@ Vec3f GLGizmoTextureDisplacement::adjust_handle_center(const TextureDisplacement
 
 void GLGizmoTextureDisplacement::adjust_tangent_basis(Vec3f &u_axis, Vec3f &v_axis) const
 {
-    // Mirrors project_planar()'s own dominant-axis choice exactly, so the ring's "0 degrees" and
-    // the offset handle's plane always agree with what project_texture_displacement_uv() does.
-    const Vec3f n = m_adjust_anchor_normal.cwiseAbs();
-    if (n.x() >= n.y() && n.x() >= n.z()) {
-        u_axis = Vec3f::UnitY();
-        v_axis = Vec3f::UnitZ();
-    } else if (n.y() >= n.x() && n.y() >= n.z()) {
-        u_axis = Vec3f::UnitX();
-        v_axis = Vec3f::UnitZ();
-    } else {
-        u_axis = Vec3f::UnitX();
-        v_axis = Vec3f::UnitY();
-    }
+    // libslic3r's own basis, asked for rather than restated here, so the ring's "0 degrees" and the
+    // offset handle's plane always agree with what project_texture_displacement_uv() does - including
+    // v pointing *down* the texture and u flipping on the far side of each plane.
+    box_projection_axes(m_adjust_anchor_normal, u_axis, v_axis);
 }
 
 void GLGizmoTextureDisplacement::render_adjust_texture_gizmo()

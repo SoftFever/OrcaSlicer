@@ -492,6 +492,57 @@ V2Resolution recommend_v2_resolution(const indexed_triangle_set                 
     return out;
 }
 
+namespace {
+// Which side of a world plane a face is on, with an exactly zero component counted as the positive
+// side. The tie never shows: a normal component of zero carries zero tri-planar blend weight (see
+// triplanar_weights()), so the plane it orients contributes nothing at that point.
+inline float box_face_sign(float n) { return n >= 0.f ? 1.f : -1.f; }
+
+// The box projection's 2D basis for one of the three world planes, oriented the way a viewer
+// standing outside the model sees that face.
+//
+// v runs *down* the image, because that is what v means to the sampler: v = 0 is the texture's first
+// pixel row, i.e. its top (DecodedHeightTexture::sample(); the UV editor negates Y on screen for the
+// same reason, see UVEditorCanvas::render()). So v = -z on the four upright planes and v = -y on the
+// horizontal one, which is what puts the top of an image at the top of the model rather than
+// upside down.
+//
+// u then has to depend on which *side* of the plane the face is on, or one of the two faces sharing
+// a plane comes out left-right mirrored: with a single u per plane, a portrait image reads upright on
+// +X and 180 degrees round on -X. Fixing that is the sign below, chosen so that u x v == -normal,
+// i.e. (right, down, into the surface) is right-handed for a viewer outside:
+//
+//   face  u     v       face  u     v       face  u     v
+//   +X    +y    -z      +Y    -x    -z      +Z    +x    -y
+//   -X    -y    -z      -Y    +x    -z      -Z    -x    -y
+//
+// The sign flips where its own normal component crosses zero, and the blend weight of the plane it
+// belongs to is exactly zero there, so the blended tri-planar sum stays continuous across the flip -
+// it is not a return of the hard axis switch described on TextureProjectionMethod::Triplanar.
+inline Vec2f box_plane_yz(const Vec3f &p, float nx) { return Vec2f(box_face_sign(nx) * p.y(), -p.z()); }
+inline Vec2f box_plane_xz(const Vec3f &p, float ny) { return Vec2f(-box_face_sign(ny) * p.x(), -p.z()); }
+inline Vec2f box_plane_xy(const Vec3f &p, float nz) { return Vec2f(box_face_sign(nz) * p.x(), -p.y()); }
+} // namespace
+
+void box_projection_axes(const Vec3f &normal, Vec3f &u_axis, Vec3f &v_axis)
+{
+    // The same table as box_plane_yz()/box_plane_xz()/box_plane_xy(), handed out as a pair of world
+    // directions for the plane the normal is closest to. Two shapes of one table, because the bake's
+    // hot path wants the closed form and the GUI wants the axes; the test suite checks them against
+    // each other so they cannot drift apart.
+    const Vec3f n = normal.cwiseAbs();
+    if (n.x() >= n.y() && n.x() >= n.z()) {
+        u_axis = box_face_sign(normal.x()) * Vec3f::UnitY();
+        v_axis = -Vec3f::UnitZ();
+    } else if (n.y() >= n.x() && n.y() >= n.z()) {
+        u_axis = -box_face_sign(normal.y()) * Vec3f::UnitX();
+        v_axis = -Vec3f::UnitZ();
+    } else {
+        u_axis = box_face_sign(normal.z()) * Vec3f::UnitX();
+        v_axis = -Vec3f::UnitY();
+    }
+}
+
 Vec2f project_planar(const Vec3f &position, const Vec3f &normal)
 {
     // Planar-project onto the two axes orthogonal to the dominant component of `normal`. Called
@@ -502,23 +553,26 @@ Vec2f project_planar(const Vec3f &position, const Vec3f &normal)
     // other face in the same patch - exactly the bug an earlier version of this feature had).
     const Vec3f n = normal.cwiseAbs();
     if (n.x() >= n.y() && n.x() >= n.z())
-        return Vec2f(position.y(), position.z());
+        return box_plane_yz(position, normal.x());
     if (n.y() >= n.x() && n.y() >= n.z())
-        return Vec2f(position.x(), position.z());
-    return Vec2f(position.x(), position.y());
+        return box_plane_xz(position, normal.y());
+    return box_plane_xy(position, normal.z());
 }
 
 namespace {
 // Wrapped around patch_axis, centered at patch_center. u is the arc length (mm) around the axis at
-// this point's own radius, v is the signed distance along the axis - a reasonable approximation
-// for roughly cylindrical selections, not an exact fit for arbitrary geometry.
+// this point's own radius, v is the distance along the axis, measured *against* it - a reasonable
+// approximation for roughly cylindrical selections, not an exact fit for arbitrary geometry.
 Vec2f project_cylindrical(const Vec3f &position, const Vec3f &patch_center, const Vec3f &patch_axis)
 {
     Vec3f up = patch_axis;
     up       = (up.norm() > 1e-8f) ? Vec3f(up.normalized()) : Vec3f::UnitZ();
     const Vec3f arbitrary = (std::abs(up.dot(Vec3f::UnitZ())) < 0.9f) ? Vec3f::UnitZ() : Vec3f::UnitX();
     const Vec3f right     = Vec3f(up.cross(arbitrary).normalized());
-    const Vec3f fwd       = Vec3f(right.cross(up).normalized());
+    // up x right, not right x up: that makes (right, fwd, up) right-handed, so the angle below grows
+    // anticlockwise about the axis - which, seen from outside the cylinder, is to the viewer's right.
+    // The other way round the texture wraps on mirrored, as if seen through the model from behind.
+    const Vec3f fwd       = Vec3f(up.cross(right).normalized());
 
     const Vec3f rel        = position - patch_center;
     const float along_axis = rel.dot(up);
@@ -527,7 +581,9 @@ Vec2f project_cylindrical(const Vec3f &position, const Vec3f &patch_center, cons
     const float radius     = std::sqrt(x * x + y * y);
     const float angle      = std::atan2(y, x);
 
-    return Vec2f(angle * radius, along_axis);
+    // Negated, like every other projection's v: v = 0 is the texture's top row, so v has to grow
+    // *down* the axis for the top of the image to sit at the top of the model.
+    return Vec2f(angle * radius, -along_axis);
 }
 
 // Longitude/latitude around patch_center. u/v are scaled by this point's own distance from the
@@ -543,7 +599,9 @@ Vec2f project_spherical(const Vec3f &position, const Vec3f &patch_center)
     const Vec3f dir       = rel / radius;
     const float longitude = std::atan2(dir.y(), dir.x());
     const float latitude  = std::asin(std::clamp(dir.z(), -1.f, 1.f));
-    return Vec2f(longitude, latitude) * radius;
+    // Longitude already grows to the right as seen from outside; latitude grows toward the north
+    // pole, so it is negated to put the image's top row (v = 0) at the top of the model.
+    return Vec2f(longitude, -latitude) * radius;
 }
 
 // CGAL's LSCM parameterizer expects a clean mesh with no isolated (unreferenced) vertices - but
@@ -838,9 +896,26 @@ std::vector<int> segment_into_charts(const indexed_triangle_set &mesh, const std
 // solve at all, and why this also serves as the fallback for a chart LSCM cannot handle.
 std::vector<Vec2f> project_to_tangent_plane(const indexed_triangle_set &chart, const Vec3f &normal)
 {
-    const Vec3f seed = (std::abs(normal.z()) < 0.9f) ? Vec3f::UnitZ() : Vec3f::UnitX();
-    const Vec3f u    = Vec3f(seed.cross(normal).normalized());
-    const Vec3f v    = Vec3f(normal.cross(u).normalized());
+    // Oriented like the box projection (see box_projection_axes()), so a chart reads the right way up
+    // and unmirrored instead of being flattened to whichever basis a cross product happened to give.
+    // For a chart whose normal *is* a world axis - a cube face, which is the common case once the
+    // seam angle has cut the patch along its sharp edges - this is exactly the box basis, so such a
+    // face unwraps to the same orientation Triplanar would have given it.
+    Vec3f u, v;
+    box_projection_axes(normal, u, v);
+    // The box axes lie in the tangent plane already when the normal is a world axis; for any other
+    // normal, u is squared up against it and v follows. u x v == -normal keeps the chart the way
+    // round a viewer outside the model sees it (a plain normal x u would mirror it).
+    u = u - normal * normal.dot(u);
+    if (u.norm() <= 1e-6f) {
+        // Out of reach for a unit normal - the box basis puts u perpendicular to the normal's own
+        // dominant axis, so the two can never be within 45 degrees of each other - but a caller
+        // handing over an unnormalized normal should still get a usable basis rather than a NaN.
+        const Vec3f seed = (std::abs(normal.z()) < 0.9f) ? Vec3f::UnitZ() : Vec3f::UnitX();
+        u = seed.cross(normal);
+    }
+    u = Vec3f(u.normalized());
+    v = Vec3f(u.cross(normal).normalized());
 
     std::vector<Vec2f> uvs(chart.vertices.size());
     for (size_t i = 0; i < chart.vertices.size(); ++i)
@@ -1815,8 +1890,10 @@ float sample_layer_height(const DecodedHeightTexture &texture, const TextureDisp
             return texture.sample(uv, layer.tile_enabled, layer.tile_method);
         }
         // Flat projection onto the captured projector plane. Single-valued per point, so unlike
-        // blended triplanar it is one sample, and it is what "project from view" places.
-        return sample_at(Vec2f(position.dot(layer.view_project_right), position.dot(layer.view_project_up)));
+        // blended triplanar it is one sample, and it is what "project from view" places. The
+        // projector's up axis is negated because v runs *down* the image (v = 0 is its first pixel
+        // row), the same reason the projective branch above measures window y downward.
+        return sample_at(Vec2f(position.dot(layer.view_project_right), -position.dot(layer.view_project_up)));
     case TextureProjectionMethod::LSCM: // no usable unwrap for this patch - fall back to Triplanar
     case TextureProjectionMethod::Triplanar:
     default: break;
@@ -1831,14 +1908,15 @@ float sample_layer_height(const DecodedHeightTexture &texture, const TextureDisp
     const float w_sum = w.x() + w.y() + w.z();
     if (w_sum < 1e-8f)
         // Degenerate normal: no axis is meaningfully dominant, so no blend is meaningful either.
-        return sample_at(Vec2f(position.x(), position.y()));
+        return sample_at(box_plane_xy(position, normal.z()));
     w /= w_sum;
 
-    // Each plane drops the axis it is named for, matching project_planar()'s own convention (which
-    // the GUI's on-canvas placement gizmo also relies on).
-    return w.x() * sample_at(Vec2f(position.y(), position.z())) +
-           w.y() * sample_at(Vec2f(position.x(), position.z())) +
-           w.z() * sample_at(Vec2f(position.x(), position.y()));
+    // Each plane drops the axis it is named for and is oriented for the side of that plane the normal
+    // points to, matching project_planar()'s own convention (which the GUI's on-canvas placement
+    // gizmo also relies on). See box_plane_yz() for why the orientation is not simply (y, z).
+    return w.x() * sample_at(box_plane_yz(position, normal.x())) +
+           w.y() * sample_at(box_plane_xz(position, normal.y())) +
+           w.z() * sample_at(box_plane_xy(position, normal.z()));
 }
 
 bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDisplacementLayer &layer,
@@ -1900,7 +1978,8 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
             out = texture.sample_color(uv, layer.tile_enabled, layer.tile_method);
             return true;
         } else {
-            const Vec2f p(position.dot(layer.view_project_right), position.dot(layer.view_project_up));
+            // Negated up, exactly as sample_layer_height() does it.
+            const Vec2f p(position.dot(layer.view_project_right), -position.dot(layer.view_project_up));
             if (!covered(p))
                 return false;
             out = sample_at(p);
@@ -1916,7 +1995,7 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
     Vec3f w = triplanar_weights(normal);
     const float w_sum = w.x() + w.y() + w.z();
     if (w_sum < 1e-8f) {
-        const Vec2f p(position.x(), position.y());
+        const Vec2f p = box_plane_xy(position, normal.z());
         if (!covered(p))
             return false;
         out = sample_at(p);
@@ -1927,8 +2006,8 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
     // A blend of three planes is only "not covered" where *every* contributing plane is outside the
     // placement; where some are, the covered ones are renormalised so the colour does not fade toward
     // black at the edge of an untiled tri-planar layer.
-    const std::array<Vec2f, 3> planes = { Vec2f(position.y(), position.z()), Vec2f(position.x(), position.z()),
-                                          Vec2f(position.x(), position.y()) };
+    const std::array<Vec2f, 3> planes = { box_plane_yz(position, normal.x()), box_plane_xz(position, normal.y()),
+                                          box_plane_xy(position, normal.z()) };
     Vec3f acc     = Vec3f::Zero();
     float acc_w   = 0.f;
     for (int i = 0; i < 3; ++i)
