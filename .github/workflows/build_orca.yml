@@ -460,10 +460,6 @@ jobs:
       - name: Build slicer Win
         if: runner.os == 'Windows'
         working-directory: ${{ github.workspace }}
-        # Orca: Removed Netfabb STL fixing service support in favor of CGAL.
-        # env:
-        #   WindowsSdkDir: 'C:\Program Files (x86)\Windows Kits\10\'
-        #   WindowsSDKVersion: '10.0.26100.0\'
         # --tests builds the unit tests too; the unit_tests_windows_* jobs run them.
         run: |
           # cache-path is the install directory inside the deps build directory.

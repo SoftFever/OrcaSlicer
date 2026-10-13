@@ -99,6 +99,7 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/GCode.hpp"
+#include "libslic3r/MeshRepair.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Platform.hpp"
@@ -5130,9 +5131,19 @@ int CLI::run(int argc, char **argv)
                 }
             }
         } else if (opt_key == "repair") {
-            // Models are repaired by default.
-            //for (auto &model : m_models)
-            //    model.repair();
+            if (m_config.opt_bool(opt_key))
+                for (Model &model : m_models)
+                    for (ModelObject *object : model.objects) {
+                        for (ModelVolume *volume : object->volumes) {
+                            MeshRepairStats stats;
+                            std::string     error;
+                            if (!volume->repair(true, &stats, &error))
+                                BOOST_LOG_TRIVIAL(warning) << "repair of " << object->name << " / " << volume->name << " failed: " << error;
+                            else if (stats.modified)
+                                BOOST_LOG_TRIVIAL(info) << "repaired " << object->name << " / " << volume->name;
+                        }
+                        object->invalidate_bounding_box();
+                    }
         } else {
             boost::nowide::cerr << "error: option not implemented yet: " << opt_key << std::endl;
             record_exit_reson(outfile_dir, CLI_UNSUPPORTED_OPERATION, 0, cli_errors[CLI_UNSUPPORTED_OPERATION], sliced_info);

@@ -29,6 +29,7 @@
 #include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
 #include "MaterialType.hpp"
+#include "MeshRepair.hpp"
 
 #include "Format/AMF.hpp"
 #include "Format/svg.hpp"
@@ -2946,6 +2947,18 @@ size_t ModelVolume::split(unsigned int max_extruders, bool remap_paint)
     if (text_configuration.has_value())
         text_configuration.reset();
 
+    // Parts without a convex hull enclose no volume; drop them here, as deleting volumes later could delete this one.
+    std::vector<std::unique_ptr<ModelVolume>> parts;
+    for (TriangleMesh &mesh : meshes)
+        if (!mesh.empty()) {
+            std::unique_ptr<ModelVolume> part(new ModelVolume(object, *this, std::move(mesh)));
+            if (const std::shared_ptr<const TriangleMesh> &hull = part->get_convex_hull_shared_ptr();
+                hull != nullptr && !hull->its.vertices.empty() && !hull->its.indices.empty())
+                parts.emplace_back(std::move(part));
+        }
+    if (parts.empty())
+        return 1;
+
     std::optional<TriangleSelector::SavedPainting> saved_painting = remap_paint ? save_painting() :
                                                                                   std::optional<TriangleSelector::SavedPainting>{};
 
@@ -2956,26 +2969,22 @@ size_t ModelVolume::split(unsigned int max_extruders, bool remap_paint)
     unsigned int extruder_counter = 0;
     const Vec3d offset = this->get_offset();
 
-    for (TriangleMesh &mesh : meshes) {
-        if (mesh.empty())
-            // Repair may have removed unconnected triangles, thus emptying the mesh.
-            continue;
-
+    for (std::unique_ptr<ModelVolume> &part : parts) {
         if (idx == 0) {
-            this->set_mesh(std::move(mesh));
-            this->calculate_convex_hull();
+            this->set_mesh(part->m_mesh);
+            m_convex_hull = part->m_convex_hull;
             this->invalidate_convex_hull_2d();
             // Assign a new unique ID, so that a new GLVolume will be generated.
             this->set_new_unique_id();
-            // reset the source to disable reload from disk
-            this->source = ModelVolume::Source();
 
             // BBS: reset facet annotations
             this->reset_extra_facets();
         }
         else
-            this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), new ModelVolume(object, *this, std::move(mesh)));
+            this->object->volumes.insert(this->object->volumes.begin() + (++ivolume), part.release());
 
+        // reset the source to disable reload from disk
+        this->object->volumes[ivolume]->source = ModelVolume::Source();
         this->object->volumes[ivolume]->set_offset(Vec3d::Zero());
         this->object->volumes[ivolume]->center_geometry_after_creation();
         this->object->volumes[ivolume]->translate(offset);
@@ -2989,19 +2998,27 @@ size_t ModelVolume::split(unsigned int max_extruders, bool remap_paint)
         ++ idx;
     }
 
-    // discard volumes for which the convex hull was not generated or is degenerate
-    size_t i = 0;
-    while (i < this->object->volumes.size()) {
-        const std::shared_ptr<const TriangleMesh> &hull = this->object->volumes[i]->get_convex_hull_shared_ptr();
-        if (hull == nullptr || hull->its.vertices.empty() || hull->its.indices.empty()) {
-            this->object->delete_volume(i);
-            --idx;
-            --i;
-        }
-        ++i;
-    }
-
     return idx;
+}
+
+bool ModelVolume::repair(bool keep_painting, MeshRepairStats *stats_out, std::string *error, const std::function<void(int)> &progress)
+{
+    TriangleMesh    mesh = this->mesh();
+    MeshRepairStats stats;
+    const bool      ok = repair_mesh(mesh, &stats, error, progress);
+    if (stats_out)
+        *stats_out = stats;
+    if (!ok || !stats.modified)
+        return ok;
+
+    const std::optional<TriangleSelector::SavedPainting> saved_painting = keep_painting ? save_painting() : std::nullopt;
+    this->set_mesh(std::move(mesh));
+    this->calculate_convex_hull();
+    this->invalidate_convex_hull_2d();
+    // Assign a new unique ID, so that a new GLVolume will be generated.
+    this->set_new_unique_id();
+    this->restore_painting(saved_painting);
+    return true;
 }
 
 void ModelVolume::translate(const Vec3d& displacement)
