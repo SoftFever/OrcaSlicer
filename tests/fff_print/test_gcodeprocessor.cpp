@@ -23,6 +23,7 @@
 #include <cstddef>
 #include <fstream>
 #include <initializer_list>
+#include <ios>
 #include <iterator>
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Point.hpp"
@@ -909,7 +910,9 @@ TEST_CASE("Exported overhang outer walls get the seams of outer walls", "[GCodeP
     for (size_t pos = gcode.find(overhang); pos != std::string::npos; pos = gcode.find(overhang, pos + outer.size()))
         gcode.replace(pos, overhang.size(), outer);
     ScopedTemporaryFile temp(".gcode");
-    std::ofstream(temp.string()) << gcode;
+    // Preserve exported line endings: Windows text mode can split a CRLF at a reader buffer
+    // boundary and introduce an extra parsed line, invalidating the gcode_id comparison.
+    std::ofstream(temp.string(), std::ios::binary) << gcode;
     GCodeProcessor processor;
     processor.process_file(temp.string());
     GCodeProcessorResult relabelled;

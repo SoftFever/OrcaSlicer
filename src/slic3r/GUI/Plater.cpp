@@ -18240,7 +18240,7 @@ void Plater::load_gcode(const wxString& filename)
             overhang_seam_notice_shown = true;
             get_notification_manager()->push_notification(NotificationType::CustomNotification,
                                                           NotificationManager::NotificationLevel::WarningNotificationLevel,
-                                                          _u8L("Seam markers on overhangs are not shown for G-code files."));
+                                                          _u8L("Seam markers are not shown for outer walls that overhang all the way round in G-code files."));
         }
     }
 
