@@ -85,8 +85,6 @@ namespace {
 constexpr const char* ORCA_DEFAULT_API_URL   = "https://api.orcaslicer.com";
 constexpr const char* ORCA_DEFAULT_AUTH_URL  = "https://auth.orcaslicer.com";
 constexpr const char* ORCA_DEFAULT_CLOUD_URL = "https://cloud.orcaslicer.com";
-// Host component of ORCA_DEFAULT_CLOUD_URL. The handoff pins to it (build_webview_handoff_url).
-constexpr const char* ORCA_DEFAULT_CLOUD_HOST = "cloud.orcaslicer.com";
 // Orca: This is a public key with no secret, used to identify the client application to the backend.
 constexpr const char* ORCA_DEFAULT_PUB_KEY = "sb_publishable_lvVe_whOi80SU9BPSxM1kA_tbt9AbR_";
 
@@ -109,6 +107,10 @@ constexpr const char* ORCA_PLUGIN_DOWNLOAD_URL = "/api/v1/plugins/download";
 constexpr const char* ORCA_CLOUD_PRINTER       = "/api/v1/printers";
 
 constexpr const char* ORCA_CLOUD_LOGIN_PATH = "/orcaslicer-login";
+
+// Gateway endpoint that mints a one-time web-session handoff token for the signed-in desktop
+// user. The cloud pane reloads the returned token into the webview (see build_web_session_*).
+constexpr const char* ORCA_WEB_SESSION_HANDOFF_PATH = "/api/v1/account/web-session-handoff";
 
 constexpr const char* CONFIG_ORCA_API_URL   = "orca_api_url";
 constexpr const char* CONFIG_ORCA_AUTH_URL  = "orca_auth_url";
@@ -3020,15 +3022,6 @@ std::string OrcaCloudServiceAgent::get_cloud_login_url(const std::string& langua
     return url;
 }
 
-// True when the two strings are equal ignoring ASCII case.
-static bool ascii_iequals(const std::string& a, const std::string& b)
-{
-    return a.size() == b.size() &&
-           std::equal(a.begin(), a.end(), b.begin(),
-                      [](char x, char y) { return std::tolower(static_cast<unsigned char>(x)) ==
-                                                  std::tolower(static_cast<unsigned char>(y)); });
-}
-
 // Percent-encodes every byte outside the RFC 3986 unreserved set (A-Za-z0-9-._~), so token values
 // survive fragment parsing intact. Deliberately tiny: no URL-encoder dependency.
 static std::string percent_encode_unreserved(const std::string& s)
@@ -3049,51 +3042,126 @@ static std::string percent_encode_unreserved(const std::string& s)
     return out;
 }
 
-std::string OrcaCloudServiceAgent::build_webview_handoff_url() const
+std::string OrcaCloudServiceAgent::build_web_session_start_url(const std::string& next) const
 {
     if (cloud_base_url.empty())
         return "";
 
-    // Pin the handoff to the known cloud origin: https, no userinfo, no port (or :443), and the
-    // exact host. The OrcaCloud pane hardcodes the same host as kCloudUrl in WebViewDialog.cpp, so
-    // the handoff must target that host; if the pane ever becomes configurable, both must move
-    // together. Rejecting anything else avoids handing the refresh token to a plaintext or
-    // attacker-controlled base URL.
-    const std::string https_prefix = "https://";
-    const bool https_scheme = cloud_base_url.size() >= https_prefix.size() &&
-                              ascii_iequals(https_prefix, cloud_base_url.substr(0, https_prefix.size()));
-    const std::string authority = https_scheme ? cloud_base_url.substr(https_prefix.size()) : std::string();
-    // host_port = [userinfo@]host[:port], up to the first '/', '?' or '#'.
-    const std::string host_port  = authority.substr(0, authority.find_first_of("/?#"));
-    const bool        has_userinfo = host_port.find('@') != std::string::npos;
-    const size_t      port_sep     = host_port.find(':');
-    const std::string host         = host_port.substr(0, port_sep);
-    const std::string port         = port_sep == std::string::npos ? "" : host_port.substr(port_sep + 1);
-    const bool        host_ok      = ascii_iequals(host, ORCA_DEFAULT_CLOUD_HOST);
-    const bool        port_ok      = port.empty() || port == "443";
-    if (!https_scheme || has_userinfo || !host_ok || !port_ok) {
-        BOOST_LOG_TRIVIAL(warning) << "refusing OrcaCloud webview handoff: cloud URL is not the pinned https origin";
-        return "";
-    }
+    // The page replaces a `next` that is not a same-site path with /app/profiles, so pass a
+    // same-site path (the guide's default) and let it validate.
+    std::string url = cloud_base_url + "/auth/handoff?next=" +
+                      percent_encode_unreserved(next.empty() ? "/app/profiles" : next);
 
     std::lock_guard<std::mutex> lock(session_mutex);
-    if (!session.logged_in || session.access_token.empty())
-        return "";
-
-    // Supabase's implicit flow (detectSessionInUrl) requires all four fragment parameters.
-    const auto expires_in = std::max<long long>(0,
-        std::chrono::duration_cast<std::chrono::seconds>(session.expires_at - std::chrono::system_clock::now()).count());
-
-    return cloud_base_url + "/#access_token=" + percent_encode_unreserved(session.access_token) +
-           "&refresh_token=" + percent_encode_unreserved(session.refresh_token) +
-           "&expires_in=" + std::to_string(expires_in) +
-           "&token_type=bearer";
+    if (session.logged_in && !session.user_id.empty())
+        url += "&user_id=" + percent_encode_unreserved(session.user_id);
+    return url;
 }
 
-bool OrcaCloudServiceAgent::access_token_needs_refresh(std::chrono::seconds skew) const
+std::string OrcaCloudServiceAgent::build_web_session_complete_url(const std::string& token_hash,
+                                                                  const std::string& state) const
 {
-    std::lock_guard<std::mutex> lock(session_mutex);
-    return should_refresh_locked(skew);
+    if (cloud_base_url.empty() || token_hash.empty() || state.empty())
+        return "";
+
+    // Fragment (not query) so the one-time token never reaches a server or a log.
+    return cloud_base_url + "/auth/handoff#token_hash=" + percent_encode_unreserved(token_hash) +
+           "&state=" + percent_encode_unreserved(state);
+}
+
+std::string OrcaCloudServiceAgent::build_web_session_signout_url() const
+{
+    if (cloud_base_url.empty())
+        return "";
+    return cloud_base_url + "/auth/handoff?signout=1";
+}
+
+// Extracts the machine-readable code from a handoff error body. 401 uses {"error":"<code>"};
+// the other statuses use {"error":{"code":"<code>","message":"..."}}.
+static std::string handoff_error_code(const std::string& body)
+{
+    const json j = json::parse(body, nullptr, false);
+    if (j.is_discarded() || !j.is_object() || !j.contains("error"))
+        return "";
+    const auto& err = j["error"];
+    if (err.is_string())
+        return err.get<std::string>();
+    if (err.is_object() && err.contains("code") && err["code"].is_string())
+        return err["code"].get<std::string>();
+    return "";
+}
+
+int OrcaCloudServiceAgent::request_web_session_handoff(std::string& token_hash, std::string& error_code,
+                                                       unsigned int& http_code)
+{
+    token_hash.clear();
+    error_code.clear();
+    http_code = 0;
+
+    const std::string url = api_base_url + ORCA_WEB_SESSION_HANDOFF_PATH;
+    BOOST_LOG_TRIVIAL(trace) << "OrcaCloudServiceAgent: POST " << ORCA_WEB_SESSION_HANDOFF_PATH;
+
+    // Refresh the desktop token the usual way before minting (newest access token).
+    ensure_token_fresh("web_session_handoff");
+
+    auto perform = [&]() {
+        HttpResult result;
+        try {
+            auto http = Http::post(url);
+            http.tls_verify(true);
+
+            const std::string token = get_access_token();
+
+            auto headers = data_headers();
+            for (const auto& pair : headers) {
+                http.header(pair.first, pair.second);
+            }
+            if (!token.empty()) {
+                http.header("Authorization", "Bearer " + token);
+            }
+
+            // No request body: the endpoint identifies the user by the bearer token alone.
+            http.on_complete([&](std::string resp_body, unsigned resp_status) {
+                    result.success = true;
+                    result.status  = resp_status;
+                    result.body    = resp_body;
+                })
+                .on_error([&](std::string resp_body, std::string error, unsigned resp_status) {
+                    result.success = false;
+                    result.status  = resp_status == 0 ? 404 : resp_status;
+                    result.body    = resp_body;
+                    BOOST_LOG_TRIVIAL(error) << "OrcaCloudServiceAgent: web-session-handoff HTTP error - " << error;
+                })
+                .timeout_max(30)
+                .perform_sync();
+
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "OrcaCloudServiceAgent: web-session-handoff exception - " << e.what();
+        }
+        return result;
+    };
+
+    HttpResult res = perform();
+    // Reuse the shared 401 policy (refresh once, then retry), exactly like http_get/http_post:
+    // `suppress` is true for a transient refresh failure (keep the session and token, no logout)
+    // and false when the refresh token was rejected — so a 401 that remains after the refresh
+    // surfaces through the generic HTTP-error callback and drives the normal desktop logout.
+    // Every other handoff status (409/429/503/transport) stays silent here, so the page can
+    // offer "Try again" instead of the desktop showing a generic cloud error.
+    const bool suppress = resolve_unauthorized(res, perform, "web_session_handoff");
+    if (!suppress && res.status == 401)
+        invoke_http_error_callback(res.status, res.body);
+
+    http_code = res.status;
+    if (res.status == 200) {
+        const json j = json::parse(res.body, nullptr, false);
+        if (!j.is_discarded() && j.is_object() && j.contains("token_hash") && j["token_hash"].is_string())
+            token_hash = j["token_hash"].get<std::string>();
+    } else {
+        error_code = handoff_error_code(res.body);
+    }
+
+    return (res.success && res.status == 200) ? BAMBU_NETWORK_SUCCESS : BAMBU_NETWORK_ERR_CONNECT_FAILED;
 }
 
 int OrcaCloudServiceAgent::get_mw_user_preference(std::function<void(std::string)> callback)

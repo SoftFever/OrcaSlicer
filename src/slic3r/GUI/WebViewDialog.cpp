@@ -36,12 +36,17 @@
 #include <wx/textdlg.h>
 #include <wx/toplevel.h>
 #include <wx/url.h>
+#include <wx/uri.h>
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
 #include <slic3r/GUI/Widgets/WebViewHostDialog.hpp>
 #include <wx/webview.h>
 #include <wx/utils.h>
 #include <wx/window.h>
+
+#ifdef __linux__
+#include <webkit2/webkit2.h>
+#endif
 #include <wx/infobar.h>
 
 namespace pt = boost::property_tree;
@@ -307,6 +312,19 @@ void WebViewPanel::create_cloud_browser()
 {
     m_cloud_browser = WebView::CreateWebView(this, wxEmptyString);
 
+#ifdef __linux__
+    // The pane's web session is a cookie (guide §3), and WebKitGTK keeps cookies only in memory
+    // unless a persistent store is set up, so without this the sign-in is lost on every restart
+    // (and on every reset_browser). Each wxWebView has its own context, so give the cloud pane its
+    // own store instead of sharing PrinterWebView's. Mirrors PrinterWebView::create_browser.
+    if (auto* wv = static_cast<WebKitWebView*>(m_cloud_browser->GetNativeBackend())) {
+        const auto cookies_path = boost::filesystem::path(data_dir() + "/cache/cloud_cookies.db");
+        auto*      cookie_manager = webkit_web_context_get_cookie_manager(webkit_web_view_get_context(wv));
+        webkit_cookie_manager_set_persistent_storage(cookie_manager, cookies_path.c_str(),
+                                                     WEBKIT_COOKIE_PERSISTENT_STORAGE_SQLITE);
+    }
+#endif
+
     // Webview events are command events, so they would otherwise propagate up to the
     // panel's handlers, which drive the homepage view. Keep the cloud pane's events here.
     m_cloud_browser->Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnCloudWebViewEvent, this);
@@ -322,16 +340,97 @@ void WebViewPanel::create_cloud_browser()
         m_content_sizer->Add(m_cloud_browser, wxSizerFlags().Expand().Proportion(1));
 }
 
-// Consumed on the cloud view so it never reaches the homepage handlers; new windows open in
-// the system browser, the same way PrinterWebView treats them.
+// The scheme://host[:port] origin of an http(s) URL, lower-cased and with the default port
+// dropped, or empty for any other scheme or a malformed URL. Comparing origins (not a string
+// prefix) is what keeps a lookalike host such as "https://cloud.orcaslicer.com.evil.com" out.
+static wxString http_origin_of(const wxString& url)
+{
+    const wxURI uri(url);
+    if (!uri.HasScheme() || !uri.HasServer())
+        return {};
+    const wxString scheme = uri.GetScheme().Lower();
+    if (scheme != "http" && scheme != "https")
+        return {};
+    wxString origin = scheme + "://" + uri.GetServer().Lower();
+    const wxString port = uri.GetPort();
+    if (!port.IsEmpty() && port != (scheme == "https" ? "443" : "80"))
+        origin += ":" + port;
+    return origin;
+}
+
+// Whether a NAVIGATING event will replace the pane's top-level document rather than load a
+// subframe. Edge and macOS report the target frame; WebKitGTK does not (IsTargetMainFrame() is
+// always false there), so a user-gesture navigation stands in: a page's own embedded frames load
+// without a gesture and stay put, while a user following a link to another site does not.
+static bool cloud_navigation_is_top_level(const wxWebViewEvent& evt)
+{
+#ifdef __WXGTK__
+    return evt.GetNavigationAction() == wxWEBVIEW_NAV_ACTION_USER;
+#else
+    return evt.IsTargetMainFrame();
+#endif
+}
+
+// Sends an off-site navigation to the system browser instead of embedding it. Deferred: this runs
+// inside a native webview navigation callback, so launching must not re-enter it.
+static void open_cloud_url_externally(const wxString& url)
+{
+    if (url.empty())
+        return;
+    BOOST_LOG_TRIVIAL(info) << "cloud pane: opening externally " << WebView::RedactUrl(url).ToUTF8().data();
+    wxGetApp().CallAfter([url] { wxLaunchDefaultBrowser(url); });
+}
+
+// Consumed on the cloud view so it never reaches the homepage handlers. {web} pages stay in the
+// pane; every other site (OAuth providers included) opens in the system browser (guide §3).
 void WebViewPanel::OnCloudWebViewEvent(wxWebViewEvent& evt)
 {
-    if (evt.GetEventType() == wxEVT_WEBVIEW_NEWWINDOW) {
+    const wxEventType event_type = evt.GetEventType();
+    if (event_type == wxEVT_WEBVIEW_NAVIGATING) {
         const wxString url = evt.GetURL();
-        if (!url.empty())
-            wxLaunchDefaultBrowser(url);
+        // Guide §3: keep every {web} page in the pane and open other sites (OAuth providers
+        // included) in the system browser. Only top-level navigations are diverted, and
+        // should_divert_cloud_url() excludes same-origin URLs and internal schemes.
+        if (should_divert_cloud_url(url) && cloud_navigation_is_top_level(evt)) {
+            evt.Veto();
+            open_cloud_url_externally(url);
+        }
+    } else if (event_type == wxEVT_WEBVIEW_NEWWINDOW) {
+        const wxString url = evt.GetURL();
+        if (!url.empty()) {
+            if (is_cloud_origin(url))
+                load_cloud_url(url);
+            else
+                open_cloud_url_externally(url);
+        }
         evt.Veto();
+    } else if (event_type == wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED) {
+        on_cloud_script_message(evt.GetString().utf8_string());
+    } else if (event_type == wxEVT_WEBVIEW_LOADED || event_type == wxEVT_WEBVIEW_ERROR) {
+        // A Start URL deferred behind a sign-out (see load_cloud_after_signout).
+        if (!m_cloud_after_signout_url.IsEmpty()) {
+            const wxString next = std::exchange(m_cloud_after_signout_url, wxString());
+            load_cloud_url(next);
+        }
     }
+}
+
+// The page asks for a web session by posting JSON through window.wx; only the newest request
+// counts (tracked in GUI_App). Nothing here touches the UI directly: the desktop login dialog and
+// the network mint must not run on the webview's message-dispatch stack.
+void WebViewPanel::on_cloud_script_message(const std::string& body)
+{
+    const json msg = json::parse(body, nullptr, false);
+    if (msg.is_discarded() || !msg.is_object() || msg.value("command", std::string()) != "request_web_session")
+        return;
+
+    std::string state;
+    if (msg.contains("data") && msg["data"].is_object())
+        state = msg["data"].value("state", std::string());
+    if (state.empty())
+        return;
+
+    wxGetApp().CallAfter([state = std::move(state)] { wxGetApp().request_cloud_web_session(state); });
 }
 
 void WebViewPanel::apply_cloud_layout(bool cloud_on)
@@ -349,28 +448,116 @@ void WebViewPanel::apply_cloud_layout(bool cloud_on)
     Layout();
 }
 
+void WebViewPanel::load_cloud_url(const wxString& url)
+{
+    if (url.empty())
+        return;
+    // Track the origin of whatever the pane is told to load (Start URL, Complete URL, sign-out or
+    // the plain cloud fallback), so navigation policy has the right origin from the first load on.
+    const wxString origin = http_origin_of(url);
+    if (!origin.IsEmpty())
+        m_cloud_base_url = origin;
+    if (!m_cloud_browser)
+        return;
+    // Raw LoadURL: WebView::LoadUrl re-serialises through wxURI, which must not alter the
+    // fragment that carries the one-time handoff token. Log only the redacted URL.
+    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << WebView::RedactUrl(url).ToUTF8().data();
+    m_cloud_browser->LoadURL(url);
+}
+
+bool WebViewPanel::is_cloud_origin(const wxString& url) const
+{
+    const wxString origin = http_origin_of(url);
+    return !origin.IsEmpty() && !m_cloud_base_url.IsEmpty() && origin == m_cloud_base_url;
+}
+
+bool WebViewPanel::should_divert_cloud_url(const wxString& url) const
+{
+    const wxString origin = http_origin_of(url);
+    // Unknown cloud origin or a non-web scheme: never divert (the pane must keep working).
+    if (origin.IsEmpty() || m_cloud_base_url.IsEmpty())
+        return false;
+    return origin != m_cloud_base_url;
+}
+
+// Explicit sign-out ends the pane's own web session. That session is a cookie JS cannot clear
+// (HttpOnly, guide §3/§8) and ClearHistory() is a no-op on WebKitGTK, so drop the pane's stored
+// data natively. wx 3.3.2 ignores the type mask on every backend (any non-zero mask clears
+// everything) and needs an invalid `since` to delete cookies, so the default "all" call is used.
+void WebViewPanel::clear_cloud_storage()
+{
+    if (m_cloud_browser)
+        m_cloud_browser->ClearBrowsingData(wxWEBVIEW_BROWSING_DATA_ALL);
+}
+
+void WebViewPanel::load_cloud_after_signout(const wxString& url)
+{
+    if (m_cloud_pending_signout && !m_cloud_signout_url.IsEmpty()) {
+        // The pane did not exist when the user signed out, so its persisted session must be
+        // cleared before the sign-out page runs and `url` loads once that navigation finishes
+        // (see OnCloudWebViewEvent).
+        m_cloud_pending_signout    = false;
+        m_cloud_after_signout_url  = url;
+        clear_cloud_storage();
+        load_cloud_url(m_cloud_signout_url);
+        return;
+    }
+    load_cloud_url(url);
+}
+
+void WebViewPanel::schedule_cloud_load(const wxString& url)
+{
+    if (!m_cloud_browser) {
+        load_cloud_after_signout(url);
+        return;
+    }
+    // CreateWebView queues the "wx" handler add on the view (macOS/Linux); queue the load behind
+    // it so the page's first scripts already see the bridge (guide §3).
+    m_cloud_browser->CallAfter([this, url]() { load_cloud_after_signout(url); });
+}
+
+void WebViewPanel::cloud_signed_out(const wxString& signout_url)
+{
+    if (signout_url.empty())
+        return;
+    m_cloud_signout_url = signout_url;
+    // The next Start URL must re-seed the pane (it now reflects the signed-out state), so forget
+    // the previous seed regardless of which branch below runs.
+    m_cloud_seed_url.clear();
+    if (m_cloud_browser) {
+        m_cloud_pending_signout = false;
+        // Run the sign-out page (ends the server-side session), then clear the pane's stored data.
+        load_cloud_url(signout_url);
+        clear_cloud_storage();
+    } else {
+        // Pane never opened this run: clear the persisted session on its first open.
+        m_cloud_pending_signout = true;
+    }
+}
+
 void WebViewPanel::set_cloud_mode(bool on, const wxString& url)
 {
     if (on) {
+        // load_cloud_url records the origin from whatever it loads, including the plain cloud
+        // fallback used when `url` is empty.
         if (!m_cloud_browser) {
             create_cloud_browser();
-            if (url.empty()) {
-                WebView::LoadUrl(m_cloud_browser, wxString(kCloudUrl));
-            } else {
-                // Load the handoff directly: WebView::LoadUrl re-serializes through wxURI, which
-                // could alter the fragment that carries the session.
-                m_cloud_browser->LoadURL(url);
-            }
-        } else if (!url.empty()) {
-            // Re-inject a freshly-refreshed session whenever the pane is (re)opened.
-            m_cloud_browser->LoadURL(url);
+            m_cloud_seed_url = url;
+            schedule_cloud_load(url.empty() ? wxString(kCloudUrl) : url);
+        } else if (!url.empty() && url != m_cloud_seed_url) {
+            // Re-seed only when the Start URL actually changed — a login, an account switch or a
+            // sign-out changes it; an ordinary re-open does not (guide §8). Reloading an unchanged
+            // Start URL re-runs the page's auth check on every open, which flashes "Signing you
+            // in…" and re-requests a session (guide §10: mint when the page asks, not per open).
+            // The pane is kept alive, so an unchanged open just shows the page it already holds.
+            m_cloud_seed_url = url;
+            load_cloud_after_signout(url);
         }
         m_cloud_browser->Show();
     } else if (m_cloud_browser) {
+        // Closing keeps the pane alive with its session, so re-opening does not have to sign in
+        // again (guide §10). Nothing is cleared here.
         m_cloud_browser->Hide();
-        // Supabase scrubs with window.location.hash='', so the token fragment can remain in
-        // history; drop it when the pane is closed.
-        m_cloud_browser->ClearHistory();
     }
     apply_cloud_layout(on && m_cloud_browser != nullptr);
 }
@@ -388,8 +575,10 @@ void WebViewPanel::reset_browser()
         m_cloud_browser->Destroy();
         m_cloud_browser = nullptr;
         create_cloud_browser();
-        WebView::LoadUrl(m_cloud_browser, kCloudUrl);
+        schedule_cloud_load(wxString(kCloudUrl));
         m_cloud_browser->Show(cloud_on);
+        // The rebuilt pane holds no seed, so the next open loads the Start URL again.
+        m_cloud_seed_url.clear();
     }
 
     apply_cloud_layout(cloud_on);

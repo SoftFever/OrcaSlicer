@@ -645,7 +645,7 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxStr
                 combobox->SetSelection(current_region);
                 return;
             } else {
-                wxGetApp().request_user_logout();
+                wxGetApp().request_user_logout(ORCA_CLOUD_PROVIDER, /*user_initiated=*/true);
                 config->set("region", region.ToStdString());
                 auto area = config->get_country_code();
                 if (agent) {
@@ -2479,7 +2479,7 @@ wxBoxSizer* PreferencesDialog::create_debug_page()
                 AppConfig* config = GUI::wxGetApp().app_config;
                 std::string country_code = config->get_country_code();
                 if (agent) {
-                    wxGetApp().request_user_logout();
+                    wxGetApp().request_user_logout(ORCA_CLOUD_PROVIDER, /*user_initiated=*/true);
                     agent->set_country_code(country_code);
                 }
                 ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Warning"), ConfirmBeforeSendDialog::VisibleButtons::ONLY_CONFIRM);  // ORCA VisibleButtons instead ButtonStyle 

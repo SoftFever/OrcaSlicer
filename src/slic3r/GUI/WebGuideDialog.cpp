@@ -753,7 +753,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
                     if (wxGetApp().is_user_login()) {
                         BOOST_LOG_TRIVIAL(info) << "logout: user_logout on user_guide_finish";
                         // agent->user_logout();
-                        wxGetApp().request_user_logout();
+                        wxGetApp().request_user_logout(ORCA_CLOUD_PROVIDER, /*user_initiated=*/true);
                     }
                 }
             }
