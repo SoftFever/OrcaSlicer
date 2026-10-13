@@ -8,7 +8,7 @@ changes in the layout `msgmerge --no-wrap` writes, so every other byte stays put
     pending    --lang L [--offset N --limit N] [--out FILE] [--include-fuzzy]
     apply      --lang L --input FILE [--overwrite] [--dry-run]    adds "# AI Translated"
     check      [--lang L ...] [--scope ai|all] [--warnings]
-    lookup     --lang L PATTERN [--limit N]    existing translations, obsolete ones included
+    lookup     --lang L PATTERN [--msgstr]     existing translations with ids, obsolete ones included
     glossary   --lang L [TERM]                 the language's glossary column and notes
     candidates [--min-count N] [--limit N]     recurring untranslated phrases not in the glossary
     glossary-set --term T [--description D] --set L=VALUE ... [--replace]
@@ -604,12 +604,13 @@ def cmd_lookup(a):
     rx = re.compile(a.pattern, re.I)
     n = 0
     for e in c.entries:
-        if e.is_header or not (rx.search(e.msgid) or (e.msgid_plural and rx.search(e.msgid_plural))):
-            continue
         strs = [s for s in e.msgstrs() if s]
-        if not strs:
+        if e.is_header or not strs:
             continue
-        mark = "obsolete " if e.obsolete else ("AI " if e.ai else "")
+        texts = strs if a.msgstr else [e.msgid, e.msgid_plural or ""]
+        if not any(rx.search(t) for t in texts):
+            continue
+        mark = "obsolete " if e.obsolete else f"{e.id()} " + ("AI " if e.ai else "")
         ctx = f"[{e.msgctxt}] " if e.msgctxt else ""
         print(f"{mark}{ctx}{json.dumps(e.msgid, ensure_ascii=False)}\n    -> {json.dumps(strs[0] if len(strs) == 1 else strs, ensure_ascii=False)}")
         n += 1
@@ -808,6 +809,7 @@ def main():
     s = sub.add_parser("lookup")
     s.add_argument("--lang", required=True)
     s.add_argument("pattern")
+    s.add_argument("--msgstr", action="store_true", help="search the translations instead of the English")
     s.add_argument("--limit", type=int, default=40)
     s.set_defaults(func=cmd_lookup)
 

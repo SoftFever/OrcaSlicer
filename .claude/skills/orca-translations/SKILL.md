@@ -173,6 +173,22 @@ change. Commit or open PRs only when asked.
 7. **Write catalogs only through `po_tool.py` or gettext.** PO libraries such as polib reflow unrelated
    entries, and hand edits skip the validation.
 
+## Changing an established term
+
+A glossary cell is usually copied from the catalog's own label. When the label is wrong, the glossary
+inherits the mistake, so fix both in the same change:
+
+1. **Check the catalog's usage first.** `lookup --lang <L> "<term>"` searches the English, and with
+   `--msgstr` it searches the translations.
+   - When most entries already use the correct form, move the cell to it.
+   - When the wrong form is used consistently throughout, leave both as they are and ask a
+     translator.
+2. **Update the cell:** `glossary-set --term "<Term>" --replace --set <L>=<value>`.
+3. **Rewrite the entries that still use the old form,** only where the term has that meaning.
+   - Write `[{"id": "<id from lookup>", "msgstr": "<full corrected text>"}]` and run
+     `apply --overwrite`.
+   - The rewritten entries are marked `# AI Translated`.
+
 ## Reviewing a translation change
 
 Review it for these:
