@@ -2348,9 +2348,11 @@ TEST_CASE("has_restore_data reports no restore data for a path it cannot probe",
         ~Searchable() { boost::system::error_code ec;
                         boost::filesystem::permissions(dir, boost::filesystem::owner_all, ec); }
     } restore{ outer.path() };
-    boost::filesystem::permissions(outer.path(), boost::filesystem::no_perms);
 
+    // Non-throwing here too: a filesystem that refuses the mode change has to reach the skip
+    // below rather than fail the test. The probe then still succeeds, which is that same case.
     boost::system::error_code probe_ec;
+    boost::filesystem::permissions(outer.path(), boost::filesystem::no_perms, probe_ec);
     if (boost::filesystem::exists(backup / ".3mf", probe_ec) || !probe_ec)
         SKIP("the backup path could not be made unprobeable here");
 
