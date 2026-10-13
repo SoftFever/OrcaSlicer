@@ -1672,7 +1672,6 @@ TEST_CASE("Each filament cools with the fan speeds of its extruder variant", "[M
 
 TEST_CASE("Shared heater on IMEX printer stays hot until all filaments on it are done", "[MultiFilament]")
 {
-    // Build an IMEX configuration, apply IMEX geometry, then pass it to the slicer helper.
     DynamicPrintConfig cfg = multifilament_config(7);
     cfg.set_deserialize_strict({
         {"ooze_prevention", 1},
@@ -1688,19 +1687,20 @@ TEST_CASE("Shared heater on IMEX printer stays hot until all filaments on it are
 
     bool premature_s0_t0 = false;
     double current_z     = 0.0;
-    std::istringstream stream(gcode);
-    for (std::string line; std::getline(stream, line);) {
-        if (line.rfind("G1 ", 0) == 0 && line.find(" Z") != std::string::npos) {
-            const size_t z_pos = line.find(" Z");
-            current_z          = std::stod(line.substr(z_pos + 2));
-        }
-        // Check if an S0 cooldown was emitted prematurely for T0 while still below 9mm (e.g. at Z 3.95)
-        if (line.find(";cooldown") != std::string::npos && line.find("M104 S0 T0") != std::string::npos) {
+
+    GCodeReader reader;
+    reader.parse_buffer(gcode, [&](GCodeReader& /*self*/, const GCodeReader::GCodeLine& line) {
+        if (line.has_z())
+            current_z = line.z();
+
+        const std::string raw = line.raw();
+        if (raw.find("M104 S0 T0") != std::string::npos && raw.find(";cooldown") != std::string::npos) {
             if (current_z < 9.0)
                 premature_s0_t0 = true;
         }
-    }
+    });
 
-    // T0 is shared by filaments 1 and 5 up to 10mm, so it must not shut down at 4mm (Z 3.95).
+    // Filaments 1 and 5 share T0 and both print up to 10mm.
+    // T0 must not shut down at ~4mm when filament 2 finishes.
     CHECK_FALSE(premature_s0_t0);
 }
