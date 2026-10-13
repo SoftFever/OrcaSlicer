@@ -19,6 +19,7 @@
 #include <mutex>
 #include <numeric>
 #include <optional>
+#include "nlohmann/json.hpp"
 #include <queue>
 #include <ratio>
 #include <string>
@@ -742,6 +743,57 @@ V2Resolution recommend_v2_resolution(const indexed_triangle_set                 
     return out;
 }
 
+namespace {
+// Which side of a world plane a face is on, with an exactly zero component counted as the positive
+// side. The tie never shows: a normal component of zero carries zero tri-planar blend weight (see
+// triplanar_weights()), so the plane it orients contributes nothing at that point.
+inline float box_face_sign(float n) { return n >= 0.f ? 1.f : -1.f; }
+
+// The box projection's 2D basis for one of the three world planes, oriented the way a viewer
+// standing outside the model sees that face.
+//
+// v runs *down* the image, because that is what v means to the sampler: v = 0 is the texture's first
+// pixel row, i.e. its top (DecodedHeightTexture::sample(); the UV editor negates Y on screen for the
+// same reason, see UVEditorCanvas::render()). So v = -z on the four upright planes and v = -y on the
+// horizontal one, which is what puts the top of an image at the top of the model rather than
+// upside down.
+//
+// u then has to depend on which *side* of the plane the face is on, or one of the two faces sharing
+// a plane comes out left-right mirrored: with a single u per plane, a portrait image reads upright on
+// +X and 180 degrees round on -X. Fixing that is the sign below, chosen so that u x v == -normal,
+// i.e. (right, down, into the surface) is right-handed for a viewer outside:
+//
+//   face  u     v       face  u     v       face  u     v
+//   +X    +y    -z      +Y    -x    -z      +Z    +x    -y
+//   -X    -y    -z      -Y    +x    -z      -Z    -x    -y
+//
+// The sign flips where its own normal component crosses zero, and the blend weight of the plane it
+// belongs to is exactly zero there, so the blended tri-planar sum stays continuous across the flip -
+// it is not a return of the hard axis switch described on TextureProjectionMethod::Triplanar.
+inline Vec2f box_plane_yz(const Vec3f &p, float nx) { return Vec2f(box_face_sign(nx) * p.y(), -p.z()); }
+inline Vec2f box_plane_xz(const Vec3f &p, float ny) { return Vec2f(-box_face_sign(ny) * p.x(), -p.z()); }
+inline Vec2f box_plane_xy(const Vec3f &p, float nz) { return Vec2f(box_face_sign(nz) * p.x(), -p.y()); }
+} // namespace
+
+void box_projection_axes(const Vec3f &normal, Vec3f &u_axis, Vec3f &v_axis)
+{
+    // The same table as box_plane_yz()/box_plane_xz()/box_plane_xy(), handed out as a pair of world
+    // directions for the plane the normal is closest to. Two shapes of one table, because the bake's
+    // hot path wants the closed form and the GUI wants the axes; the test suite checks them against
+    // each other so they cannot drift apart.
+    const Vec3f n = normal.cwiseAbs();
+    if (n.x() >= n.y() && n.x() >= n.z()) {
+        u_axis = box_face_sign(normal.x()) * Vec3f::UnitY();
+        v_axis = -Vec3f::UnitZ();
+    } else if (n.y() >= n.x() && n.y() >= n.z()) {
+        u_axis = -box_face_sign(normal.y()) * Vec3f::UnitX();
+        v_axis = -Vec3f::UnitZ();
+    } else {
+        u_axis = box_face_sign(normal.z()) * Vec3f::UnitX();
+        v_axis = -Vec3f::UnitY();
+    }
+}
+
 Vec2f project_planar(const Vec3f &position, const Vec3f &normal)
 {
     // Planar-project onto the two axes orthogonal to the dominant component of `normal`. Called
@@ -752,23 +804,26 @@ Vec2f project_planar(const Vec3f &position, const Vec3f &normal)
     // other face in the same patch - exactly the bug an earlier version of this feature had).
     const Vec3f n = normal.cwiseAbs();
     if (n.x() >= n.y() && n.x() >= n.z())
-        return Vec2f(position.y(), position.z());
+        return box_plane_yz(position, normal.x());
     if (n.y() >= n.x() && n.y() >= n.z())
-        return Vec2f(position.x(), position.z());
-    return Vec2f(position.x(), position.y());
+        return box_plane_xz(position, normal.y());
+    return box_plane_xy(position, normal.z());
 }
 
 namespace {
 // Wrapped around patch_axis, centered at patch_center. u is the arc length (mm) around the axis at
-// this point's own radius, v is the signed distance along the axis - a reasonable approximation
-// for roughly cylindrical selections, not an exact fit for arbitrary geometry.
+// this point's own radius, v is the distance along the axis, measured *against* it - a reasonable
+// approximation for roughly cylindrical selections, not an exact fit for arbitrary geometry.
 Vec2f project_cylindrical(const Vec3f &position, const Vec3f &patch_center, const Vec3f &patch_axis)
 {
     Vec3f up = patch_axis;
     up       = (up.norm() > 1e-8f) ? Vec3f(up.normalized()) : Vec3f::UnitZ();
     const Vec3f arbitrary = (std::abs(up.dot(Vec3f::UnitZ())) < 0.9f) ? Vec3f::UnitZ() : Vec3f::UnitX();
     const Vec3f right     = Vec3f(up.cross(arbitrary).normalized());
-    const Vec3f fwd       = Vec3f(right.cross(up).normalized());
+    // up x right, not right x up: that makes (right, fwd, up) right-handed, so the angle below grows
+    // anticlockwise about the axis - which, seen from outside the cylinder, is to the viewer's right.
+    // The other way round the texture wraps on mirrored, as if seen through the model from behind.
+    const Vec3f fwd       = Vec3f(up.cross(right).normalized());
 
     const Vec3f rel        = position - patch_center;
     const float along_axis = rel.dot(up);
@@ -777,7 +832,9 @@ Vec2f project_cylindrical(const Vec3f &position, const Vec3f &patch_center, cons
     const float radius     = std::sqrt(x * x + y * y);
     const float angle      = std::atan2(y, x);
 
-    return Vec2f(angle * radius, along_axis);
+    // Negated, like every other projection's v: v = 0 is the texture's top row, so v has to grow
+    // *down* the axis for the top of the image to sit at the top of the model.
+    return Vec2f(angle * radius, -along_axis);
 }
 
 // Longitude/latitude around patch_center. u/v are scaled by this point's own distance from the
@@ -793,7 +850,9 @@ Vec2f project_spherical(const Vec3f &position, const Vec3f &patch_center)
     const Vec3f dir       = rel / radius;
     const float longitude = std::atan2(dir.y(), dir.x());
     const float latitude  = std::asin(std::clamp(dir.z(), -1.f, 1.f));
-    return Vec2f(longitude, latitude) * radius;
+    // Longitude already grows to the right as seen from outside; latitude grows toward the north
+    // pole, so it is negated to put the image's top row (v = 0) at the top of the model.
+    return Vec2f(longitude, -latitude) * radius;
 }
 
 // CGAL's LSCM parameterizer expects a clean mesh with no isolated (unreferenced) vertices - but
@@ -1088,9 +1147,26 @@ std::vector<int> segment_into_charts(const indexed_triangle_set &mesh, const std
 // solve at all, and why this also serves as the fallback for a chart LSCM cannot handle.
 std::vector<Vec2f> project_to_tangent_plane(const indexed_triangle_set &chart, const Vec3f &normal)
 {
-    const Vec3f seed = (std::abs(normal.z()) < 0.9f) ? Vec3f::UnitZ() : Vec3f::UnitX();
-    const Vec3f u    = Vec3f(seed.cross(normal).normalized());
-    const Vec3f v    = Vec3f(normal.cross(u).normalized());
+    // Oriented like the box projection (see box_projection_axes()), so a chart reads the right way up
+    // and unmirrored instead of being flattened to whichever basis a cross product happened to give.
+    // For a chart whose normal *is* a world axis - a cube face, which is the common case once the
+    // seam angle has cut the patch along its sharp edges - this is exactly the box basis, so such a
+    // face unwraps to the same orientation Triplanar would have given it.
+    Vec3f u, v;
+    box_projection_axes(normal, u, v);
+    // The box axes lie in the tangent plane already when the normal is a world axis; for any other
+    // normal, u is squared up against it and v follows. u x v == -normal keeps the chart the way
+    // round a viewer outside the model sees it (a plain normal x u would mirror it).
+    u = u - normal * normal.dot(u);
+    if (u.norm() <= 1e-6f) {
+        // Out of reach for a unit normal - the box basis puts u perpendicular to the normal's own
+        // dominant axis, so the two can never be within 45 degrees of each other - but a caller
+        // handing over an unnormalized normal should still get a usable basis rather than a NaN.
+        const Vec3f seed = (std::abs(normal.z()) < 0.9f) ? Vec3f::UnitZ() : Vec3f::UnitX();
+        u = seed.cross(normal);
+    }
+    u = Vec3f(u.normalized());
+    v = Vec3f(u.cross(normal).normalized());
 
     std::vector<Vec2f> uvs(chart.vertices.size());
     for (size_t i = 0; i < chart.vertices.size(); ++i)
@@ -2065,8 +2141,10 @@ float sample_layer_height(const DecodedHeightTexture &texture, const TextureDisp
             return texture.sample(uv, layer.tile_enabled, layer.tile_method);
         }
         // Flat projection onto the captured projector plane. Single-valued per point, so unlike
-        // blended triplanar it is one sample, and it is what "project from view" places.
-        return sample_at(Vec2f(position.dot(layer.view_project_right), position.dot(layer.view_project_up)));
+        // blended triplanar it is one sample, and it is what "project from view" places. The
+        // projector's up axis is negated because v runs *down* the image (v = 0 is its first pixel
+        // row), the same reason the projective branch above measures window y downward.
+        return sample_at(Vec2f(position.dot(layer.view_project_right), -position.dot(layer.view_project_up)));
     case TextureProjectionMethod::LSCM: // no usable unwrap for this patch - fall back to Triplanar
     case TextureProjectionMethod::Triplanar:
     default: break;
@@ -2081,14 +2159,15 @@ float sample_layer_height(const DecodedHeightTexture &texture, const TextureDisp
     const float w_sum = w.x() + w.y() + w.z();
     if (w_sum < 1e-8f)
         // Degenerate normal: no axis is meaningfully dominant, so no blend is meaningful either.
-        return sample_at(Vec2f(position.x(), position.y()));
+        return sample_at(box_plane_xy(position, normal.z()));
     w /= w_sum;
 
-    // Each plane drops the axis it is named for, matching project_planar()'s own convention (which
-    // the GUI's on-canvas placement gizmo also relies on).
-    return w.x() * sample_at(Vec2f(position.y(), position.z())) +
-           w.y() * sample_at(Vec2f(position.x(), position.z())) +
-           w.z() * sample_at(Vec2f(position.x(), position.y()));
+    // Each plane drops the axis it is named for and is oriented for the side of that plane the normal
+    // points to, matching project_planar()'s own convention (which the GUI's on-canvas placement
+    // gizmo also relies on). See box_plane_yz() for why the orientation is not simply (y, z).
+    return w.x() * sample_at(box_plane_yz(position, normal.x())) +
+           w.y() * sample_at(box_plane_xz(position, normal.y())) +
+           w.z() * sample_at(box_plane_xy(position, normal.z()));
 }
 
 bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDisplacementLayer &layer,
@@ -2150,7 +2229,8 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
             out = texture.sample_color(uv, layer.tile_enabled, layer.tile_method);
             return true;
         } else {
-            const Vec2f p(position.dot(layer.view_project_right), position.dot(layer.view_project_up));
+            // Negated up, exactly as sample_layer_height() does it.
+            const Vec2f p(position.dot(layer.view_project_right), -position.dot(layer.view_project_up));
             if (!covered(p))
                 return false;
             out = sample_at(p);
@@ -2166,7 +2246,7 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
     Vec3f w = triplanar_weights(normal);
     const float w_sum = w.x() + w.y() + w.z();
     if (w_sum < 1e-8f) {
-        const Vec2f p(position.x(), position.y());
+        const Vec2f p = box_plane_xy(position, normal.z());
         if (!covered(p))
             return false;
         out = sample_at(p);
@@ -2177,8 +2257,8 @@ bool sample_layer_color(const DecodedHeightTexture &texture, const TextureDispla
     // A blend of three planes is only "not covered" where *every* contributing plane is outside the
     // placement; where some are, the covered ones are renormalised so the colour does not fade toward
     // black at the edge of an untiled tri-planar layer.
-    const std::array<Vec2f, 3> planes = { Vec2f(position.y(), position.z()), Vec2f(position.x(), position.z()),
-                                          Vec2f(position.x(), position.y()) };
+    const std::array<Vec2f, 3> planes = { box_plane_yz(position, normal.x()), box_plane_xz(position, normal.y()),
+                                          box_plane_xy(position, normal.z()) };
     Vec3f acc     = Vec3f::Zero();
     float acc_w   = 0.f;
     for (int i = 0; i < 3; ++i)
@@ -5417,5 +5497,260 @@ indexed_triangle_set cut_mesh_at_steps(const indexed_triangle_set &mesh, const s
     return out;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Project persistence. See the declarations in TextureDisplacement.hpp for why this is JSON rather
+// than the cereal stream next to them.
+// ---------------------------------------------------------------------------------------------
+namespace {
+
+nlohmann::json vec2_to_json(const Vec2f &v) { return nlohmann::json::array({ v.x(), v.y() }); }
+nlohmann::json vec3_to_json(const Vec3f &v) { return nlohmann::json::array({ v.x(), v.y(), v.z() }); }
+
+Vec2f vec2_from_json(const nlohmann::json &j, const Vec2f &fallback)
+{
+    if (!j.is_array() || j.size() != 2)
+        return fallback;
+    return Vec2f(j[0].get<float>(), j[1].get<float>());
+}
+Vec3f vec3_from_json(const nlohmann::json &j, const Vec3f &fallback)
+{
+    if (!j.is_array() || j.size() != 3)
+        return fallback;
+    return Vec3f(j[0].get<float>(), j[1].get<float>(), j[2].get<float>());
+}
+
+// Reads key `k` into `out` when it is present and of the expected type, leaving `out` alone otherwise.
+// That "leave it alone" is the whole point: every member starts at its struct default, so a project
+// written by an older build simply keeps the defaults for whatever it did not know about.
+template<class T> void read(const nlohmann::json &j, const char *k, T &out)
+{
+    const auto it = j.find(k);
+    if (it == j.end())
+        return;
+    try {
+        out = it->get<T>();
+    } catch (...) {
+    }
+}
+void read_enum(const nlohmann::json &j, const char *k, int &out)
+{
+    const auto it = j.find(k);
+    if (it != j.end() && it->is_number_integer())
+        out = it->get<int>();
+}
+
+} // namespace
+
+std::string texture_displacement_layers_to_json(const std::vector<TextureDisplacementLayer> &layers,
+                                                const TextureDisplacementOptions            &options)
+{
+    nlohmann::json root;
+    root["version"] = 1;
+
+    nlohmann::json &opt = root["options"];
+    opt["displace_border"]    = options.displace_border;
+    opt["smooth_enabled"]     = options.smooth_enabled;
+    opt["smooth_strength"]    = options.smooth_strength;
+    opt["smooth_iterations"]  = options.smooth_iterations;
+    opt["smooth_skip_border"] = options.smooth_skip_border;
+    opt["pipeline_v2"]        = options.pipeline_v2;
+    opt["v2_refine_mm"]       = options.v2_refine_mm;
+    opt["v2_regularize"]      = options.v2_regularize;
+    opt["v2_max_triangles_k"] = options.v2_max_triangles_k;
+    opt["v2_relocate"]        = options.v2_relocate;
+    opt["v2_flip_edges"]      = options.v2_flip_edges;
+    opt["color_mix_enabled"]  = options.color_mix_enabled;
+    opt["color_despeckle"]    = options.color_despeckle;
+    opt["color_mix_count"]    = options.color_mix_count;
+    opt["active_slot"]        = options.active_slot;
+    opt["panel_mode"]         = options.panel_mode;
+
+    nlohmann::json &arr = root["layers"];
+    arr                 = nlohmann::json::array();
+    for (const TextureDisplacementLayer &l : layers) {
+        nlohmann::json j;
+        j["slot"]        = l.slot;
+        j["name"]        = l.name;
+        j["path"]        = l.path;
+        j["path_in_3mf"] = l.path_in_3mf;
+
+        j["depth_mm"]     = l.depth_mm;
+        j["tiling_scale"] = l.tiling_scale;
+        j["rotation_deg"] = l.rotation_deg;
+        j["offset"]       = vec2_to_json(l.offset);
+        j["invert"]       = l.invert;
+        j["midlevel"]     = l.midlevel;
+        j["smoothing"]    = l.smoothing;
+
+        j["edge_smoothing"]        = l.edge_smoothing;
+        j["edge_smoothing_amount"] = l.edge_smoothing_amount;
+        j["auto_connect_islands"]  = l.auto_connect_islands;
+
+        j["tile_enabled"]      = l.tile_enabled;
+        j["tile_method"]       = int(l.tile_method);
+        j["projection_method"] = int(l.projection_method);
+        j["blend_mode"]        = int(l.blend_mode);
+        j["color_enabled"]     = l.color_enabled;
+
+        j["lscm_seam_angle_deg"] = l.lscm_seam_angle_deg;
+        j["island_padding_mm"]   = l.island_padding_mm;
+
+        j["view_project_right"]      = vec3_to_json(l.view_project_right);
+        j["view_project_up"]         = vec3_to_json(l.view_project_up);
+        j["view_project_projective"] = l.view_project_projective;
+        j["view_project_matrix"]     = l.view_project_matrix;
+
+        // Flat pairs rather than nested arrays: shorter, and the reader can simply ignore a trailing
+        // odd element instead of having to validate every sub-array.
+        nlohmann::json &seams = j["lscm_seam_edges"];
+        seams                 = nlohmann::json::array();
+        for (const auto &[a, b] : l.lscm_seam_edges) {
+            seams.push_back(a);
+            seams.push_back(b);
+        }
+
+        nlohmann::json &islands = j["islands"];
+        islands                 = nlohmann::json::array();
+        for (const TextureIsland &island : l.islands)
+            islands.push_back(nlohmann::json::array(
+                { island.offset.x(), island.offset.y(), island.rotation_deg, island.scale }));
+
+        j["island_groups"] = l.island_groups;
+
+        nlohmann::json &overrides = j["lscm_uv_overrides"];
+        overrides                 = nlohmann::json::array();
+        for (const auto &[key, uv] : l.lscm_uv_overrides)
+            overrides.push_back(nlohmann::json::array({ key, uv.x(), uv.y() }));
+
+        arr.push_back(std::move(j));
+    }
+    return root.dump();
+}
+
+bool texture_displacement_layers_from_json(const std::string                     &text,
+                                           std::vector<TextureDisplacementLayer> &layers,
+                                           TextureDisplacementOptions            &options)
+{
+    nlohmann::json root;
+    try {
+        root = nlohmann::json::parse(text);
+    } catch (...) {
+        return false;
+    }
+    if (!root.is_object())
+        return false;
+
+    TextureDisplacementOptions out_options;
+    if (const auto it = root.find("options"); it != root.end() && it->is_object()) {
+        const nlohmann::json &opt = *it;
+        read(opt, "displace_border", out_options.displace_border);
+        read(opt, "smooth_enabled", out_options.smooth_enabled);
+        read(opt, "smooth_strength", out_options.smooth_strength);
+        read(opt, "smooth_iterations", out_options.smooth_iterations);
+        read(opt, "smooth_skip_border", out_options.smooth_skip_border);
+        read(opt, "pipeline_v2", out_options.pipeline_v2);
+        read(opt, "v2_refine_mm", out_options.v2_refine_mm);
+        read(opt, "v2_regularize", out_options.v2_regularize);
+        read(opt, "v2_max_triangles_k", out_options.v2_max_triangles_k);
+        read(opt, "v2_relocate", out_options.v2_relocate);
+        read(opt, "v2_flip_edges", out_options.v2_flip_edges);
+        read(opt, "color_mix_enabled", out_options.color_mix_enabled);
+        read(opt, "color_despeckle", out_options.color_despeckle);
+        read(opt, "color_mix_count", out_options.color_mix_count);
+        read(opt, "active_slot", out_options.active_slot);
+        read(opt, "panel_mode", out_options.panel_mode);
+        out_options.active_slot = std::clamp(out_options.active_slot, 0, int(TEXTURE_DISPLACEMENT_MAX_LAYERS) - 1);
+        out_options.panel_mode  = std::clamp(out_options.panel_mode, 0, 1);
+    }
+
+    std::vector<TextureDisplacementLayer> out_layers;
+    // read() skips a value of the wrong type, but the vector, matrix, seam, island and UV-override arrays
+    // below read their numbers with get<>(), which throws on one; that rejects the document, like text that
+    // does not parse.
+    try {
+        if (const auto it = root.find("layers"); it != root.end() && it->is_array()) {
+            for (const nlohmann::json &j : *it) {
+                if (!j.is_object())
+                    continue;
+                TextureDisplacementLayer l;
+                read(j, "slot", l.slot);
+                // The panel and the paint masks are indexed by slot, so a layer without a valid one rejects the
+                // document rather than reaching them.
+                if (l.slot < 0 || l.slot >= int(TEXTURE_DISPLACEMENT_MAX_LAYERS))
+                    return false;
+                read(j, "name", l.name);
+                read(j, "path", l.path);
+                read(j, "path_in_3mf", l.path_in_3mf);
+
+                read(j, "depth_mm", l.depth_mm);
+                read(j, "tiling_scale", l.tiling_scale);
+                read(j, "rotation_deg", l.rotation_deg);
+                if (const auto o = j.find("offset"); o != j.end())
+                    l.offset = vec2_from_json(*o, l.offset);
+                read(j, "invert", l.invert);
+                read(j, "midlevel", l.midlevel);
+                read(j, "smoothing", l.smoothing);
+
+                read(j, "edge_smoothing", l.edge_smoothing);
+                read(j, "edge_smoothing_amount", l.edge_smoothing_amount);
+                read(j, "auto_connect_islands", l.auto_connect_islands);
+
+                read(j, "tile_enabled", l.tile_enabled);
+                read(j, "color_enabled", l.color_enabled);
+                int tile_method = int(l.tile_method), projection = int(l.projection_method), blend = int(l.blend_mode);
+                read_enum(j, "tile_method", tile_method);
+                read_enum(j, "projection_method", projection);
+                read_enum(j, "blend_mode", blend);
+                l.tile_method       = TextureTileMethod(tile_method);
+                l.projection_method = TextureProjectionMethod(std::clamp(projection, 0, 4));
+                l.blend_mode        = TextureBlendMode(blend);
+
+                read(j, "lscm_seam_angle_deg", l.lscm_seam_angle_deg);
+                read(j, "island_padding_mm", l.island_padding_mm);
+
+                if (const auto v = j.find("view_project_right"); v != j.end())
+                    l.view_project_right = vec3_from_json(*v, l.view_project_right);
+                if (const auto v = j.find("view_project_up"); v != j.end())
+                    l.view_project_up = vec3_from_json(*v, l.view_project_up);
+                read(j, "view_project_projective", l.view_project_projective);
+                if (const auto v = j.find("view_project_matrix"); v != j.end() && v->is_array() && v->size() == 12)
+                    for (size_t i = 0; i < 12; ++i)
+                        l.view_project_matrix[i] = (*v)[i].get<float>();
+
+                if (const auto v = j.find("lscm_seam_edges"); v != j.end() && v->is_array())
+                    for (size_t i = 0; i + 1 < v->size(); i += 2)
+                        l.lscm_seam_edges.emplace_back((*v)[i].get<int>(), (*v)[i + 1].get<int>());
+
+                if (const auto v = j.find("islands"); v != j.end() && v->is_array())
+                    for (const nlohmann::json &e : *v) {
+                        if (!e.is_array() || e.size() != 4)
+                            continue;
+                        TextureIsland island;
+                        island.offset       = Vec2f(e[0].get<float>(), e[1].get<float>());
+                        island.rotation_deg = e[2].get<float>();
+                        island.scale        = e[3].get<float>();
+                        l.islands.push_back(island);
+                    }
+
+                read(j, "island_groups", l.island_groups);
+
+                if (const auto v = j.find("lscm_uv_overrides"); v != j.end() && v->is_array())
+                    for (const nlohmann::json &e : *v) {
+                        if (!e.is_array() || e.size() != 3)
+                            continue;
+                        l.lscm_uv_overrides.emplace_back(e[0].get<int>(), Vec2f(e[1].get<float>(), e[2].get<float>()));
+                    }
+
+                out_layers.push_back(std::move(l));
+            }
+        }
+    } catch (const nlohmann::json::exception &) {
+        return false;
+    }
+
+    layers  = std::move(out_layers);
+    options = out_options;
+    return true;
+}
 
 } // namespace Slic3r

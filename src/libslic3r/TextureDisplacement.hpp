@@ -441,13 +441,40 @@ struct TextureDisplacementOptions
     // finer than the mesh leaves behind, without eating features that are genuinely a facet wide.
     int          color_despeckle   = 2;
 
+    // Where the panel was left, rather than anything the bake reads. It lives with the volume because
+    // that is what it describes: reopening a project should put the user back on the layer they were
+    // editing, in the mode they were editing it in, not on slot 0 in Standard.
+    int active_slot = 0;
+    int panel_mode  = 0; // 0 Standard, 1 Pro
+
     template<class Archive> void serialize(Archive &ar)
     {
         ar(displace_border, smooth_enabled, smooth_strength, smooth_iterations, smooth_skip_border,
            pipeline_v2, v2_refine_mm, v2_regularize, v2_max_triangles_k,
-           v2_relocate, color_mix_enabled, color_despeckle, color_mix_count);
+           v2_relocate, v2_flip_edges, color_mix_enabled, color_despeckle, color_mix_count,
+           active_slot, panel_mode);
     }
 };
+
+// Project persistence (see bbs_3mf.cpp). The layer stack and the per-volume options are written to the
+// .3mf as JSON rather than through the cereal save()/load() above: those two are positional and
+// unversioned, which is right for the undo/redo stack they serve (one session, one binary) but would
+// make every future field a project-breaking change. A JSON object tolerates both directions - an
+// unknown key is ignored, a missing one keeps the member's default - so old projects keep loading and
+// new ones degrade gracefully in older builds.
+//
+// The texture image itself is *not* in here. It is a binary blob that belongs in the archive as a file
+// of its own, exactly as EmbossShape stores its SVG; `path_in_3mf` names that file, and the caller is
+// responsible for writing it and for filling `image_data` back in on load.
+std::string texture_displacement_layers_to_json(const std::vector<TextureDisplacementLayer> &layers,
+                                                const TextureDisplacementOptions            &options);
+// Returns false and leaves both outputs untouched when the text is not a valid JSON object, a number in a
+// layer's vector, matrix, seam, island or UV-override array has the wrong type, or a layer's slot is
+// missing or outside [0, TEXTURE_DISPLACEMENT_MAX_LAYERS). Any other value of the wrong type or shape
+// keeps its default.
+bool texture_displacement_layers_from_json(const std::string                      &text,
+                                           std::vector<TextureDisplacementLayer>  &layers,
+                                           TextureDisplacementOptions             &options);
 
 // How much detail a height texture carries: central differences of the grey image, the mean gradient
 // and the share of texels steeper than 30 grey levels, mapped to how many texels one mesh edge may
@@ -598,11 +625,24 @@ struct TextureColorSettings
     bool empty() const { return palette.empty(); }
 };
 
+// The two world directions the box projection takes its u and v along on a face whose outward
+// normal is `normal`: the plane is the one that normal is closest to, and the pair is oriented as a
+// viewer standing outside the model sees it - u to their right, v *down* the image, which is the
+// direction v runs in the texture (v = 0 is the image's first pixel row, see
+// DecodedHeightTexture::sample()). So an image comes out the way it looks in a file manager rather
+// than upside down, and it is not mirrored on the three faces facing the other way.
+//
+// Exposed because the GUI needs the same basis for the on-canvas "adjust texture placement" gizmo
+// (its ring's zero angle and its offset handle's plane), and it must not be a second, drifting copy
+// of the table.
+void box_projection_axes(const Vec3f &normal, Vec3f &u_axis, Vec3f &v_axis);
+
 // Raw dominant-axis planar projection of `position` (in mm, not yet scaled/rotated/offset by any
-// layer), dropping the axis position that best aligns with `normal`. Exposed on its own (rather
-// than only inline inside project_texture_displacement_uv()) so GUI code - the on-canvas
-// "adjust texture placement" gizmo - can map a dragged 3D point into the exact same 2D space
-// tiling_scale/rotation_deg/offset operate in, without duplicating the axis-selection logic.
+// layer), dropping the axis position that best aligns with `normal`. Equivalent to projecting onto
+// box_projection_axes()' pair. Exposed on its own (rather than only inline inside
+// project_texture_displacement_uv()) so GUI code - the on-canvas "adjust texture placement" gizmo -
+// can map a dragged 3D point into the exact same 2D space tiling_scale/rotation_deg/offset operate
+// in, without duplicating the axis-selection logic.
 Vec2f project_planar(const Vec3f &position, const Vec3f &normal);
 
 // Applies a layer's tiling_scale/rotation_deg/offset to an already-projected planar coordinate

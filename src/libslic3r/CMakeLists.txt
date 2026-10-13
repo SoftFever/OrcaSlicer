@@ -625,6 +625,7 @@ add_library(libslic3r_cgal STATIC
     CutSurface.hpp CutSurface.cpp
     IntersectionPoints.hpp IntersectionPoints.cpp
     MeshBoolean.hpp MeshBoolean.cpp
+    MeshRepair.hpp MeshRepair.cpp
     TryCatchSignal.hpp TryCatchSignal.cpp
     Triangulation.hpp Triangulation.cpp
 )
@@ -652,7 +653,9 @@ if (IS_CLANG_CL)
     target_compile_options(libslic3r_cgal PRIVATE -Wno-overriding-option)
 endif ()
 
-target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} admesh libigl mcut boost_libs)
+# Lets CGAL algorithms given CGAL::Parallel_if_available_tag run on TBB.
+target_compile_definitions(libslic3r_cgal PRIVATE CGAL_LINKED_WITH_TBB)
+target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} admesh libigl mcut boost_libs TBB::tbb)
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)
