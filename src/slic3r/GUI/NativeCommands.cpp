@@ -589,6 +589,10 @@ std::vector<NativeCommand> build_command_catalog()
         Slic3r::GUI::desktop_open_datadir_folder();
         return AppActionRunResult{AppActionRunResult::Level::Success};
     });
+    add("help_migrate_filament_presets", L("Migrate Filament Presets"), L("Help"), [](const std::string&) {
+        wxGetApp().check_legacy_user_filament_presets(true);
+        return AppActionRunResult{AppActionRunResult::Level::Success};
+    });
     add("help_troubleshoot", L("Troubleshoot Center"), L("Help"), [](const std::string&) {
         wxGetApp().troubleshoot();
         return AppActionRunResult{AppActionRunResult::Level::Success};

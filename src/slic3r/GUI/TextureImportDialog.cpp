@@ -633,7 +633,9 @@ public:
         decompose_label->SetCursor(wxCursor(add_enabled ? wxCURSOR_HAND : wxCURSOR_ARROW));
         if (!add_enabled)
             add_label->SetToolTip(wxString::Format(
-                _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+                _L_PLURAL("The project supports up to %d filament. Extra filaments will be discarded.",
+                          "The project supports up to %d filaments. Extra filaments will be discarded.",
+                          (int)EnforcerBlockerType::ExtruderMax),
                 (int)EnforcerBlockerType::ExtruderMax));
         decompose_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
             if (m_can_add_filament && !m_can_add_filament())
@@ -2324,7 +2326,9 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
 {
     m_drop_warning_label = new wxStaticText(this, wxID_ANY,
         wxString::Format(
-            _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+            _L_PLURAL("The project supports up to %d filament. Extra filaments will be discarded.",
+                      "The project supports up to %d filaments. Extra filaments will be discarded.",
+                      (int)max_filament_count()),
             (int)max_filament_count()));
     m_drop_warning_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#FF6F00")));
     m_drop_warning_label->SetFont(texture_import_section_title_font(this));

@@ -1948,7 +1948,7 @@ void copy_directory_recursively(const boost::filesystem::path& source,
             if (cfr != CopyFileResult::SUCCESS) {
                 BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
                 throw Slic3r::CriticalException(Slic3r::format(
-                    ("Copying directory %1% to %2% failed: %3%"),
+                    _u8L("Copying directory %1% to %2% failed: %3%"),
                     source, target, error_message));
             }
         }

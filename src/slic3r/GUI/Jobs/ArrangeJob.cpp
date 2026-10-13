@@ -659,7 +659,7 @@ void ArrangeJob::check_unprintable()
             if (it->poly.area() < 0.001) {
                 auto msg = (boost::format(
                     _u8L("Object %s has zero size and can't be arranged."))
-                    % _utf8(it->name)).str();
+                    % it->name).str();
                 m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
                     NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
             }
@@ -713,7 +713,8 @@ void ArrangeJob::process(Ctl &ctl)
         // Keep all sources monotone, including a stock-arranger retry. Reserve
         // completion for the final status after results have been processed.
         m_progress_value = std::max(m_progress_value, int(std::clamp(fraction, 0., 0.99) * 100));
-        ctl.update_status(m_progress_value, _u8L("Arranging ") + str);
+        // TRN Progress status. %1% is the name of the object being arranged.
+        ctl.update_status(m_progress_value, GUI::format(_u8L("Arranging %1%"), str));
     };
     params.progressind = [report_progress, progress_items](unsigned num_finished, std::string str = "") {
         report_progress(num_finished / progress_items, str);
