@@ -1,9 +1,0 @@
-{
-	"type": "filament",
-	"name": "Goofoo TurboM PETG HF @System",
-	"from": "system",
-	"setting_id": "ZasXfVraOa7nq7FN",
-	"instantiation": "true",
-	"inherits": "Goofoo TurboM PETG HF @base",
-	"compatible_printers": []
-}

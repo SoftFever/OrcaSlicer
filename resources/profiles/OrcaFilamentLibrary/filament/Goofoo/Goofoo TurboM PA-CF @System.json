@@ -1,9 +1,0 @@
-{
-	"type": "filament",
-	"name": "Goofoo TurboM PA-CF @System",
-	"from": "system",
-	"setting_id": "6BD6wYTX4ffL6aUo",
-	"instantiation": "true",
-	"inherits": "Goofoo TurboM PA-CF @base",
-	"compatible_printers": []
-}

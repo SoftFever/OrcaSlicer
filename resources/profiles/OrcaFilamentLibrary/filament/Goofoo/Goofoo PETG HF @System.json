@@ -1,0 +1,9 @@
+{
+	"type": "filament",
+	"name": "Goofoo PETG HF @System",
+	"from": "system",
+	"setting_id": "eMjhTRf5qPeeqSgk",
+	"instantiation": "true",
+	"inherits": "Goofoo PETG HF @base",
+	"compatible_printers": []
+}

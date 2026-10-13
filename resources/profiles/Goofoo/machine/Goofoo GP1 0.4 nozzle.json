@@ -9,7 +9,7 @@
     "0.4"
   ],
   "default_filament_profile": [
-    "Goofoo GP1 ABS @System"
+    "Goofoo ABS @System"
   ],
   "printer_model": "Goofoo GP1",
   "default_print_profile": "0.20mm Standard @Goofoo GP1",

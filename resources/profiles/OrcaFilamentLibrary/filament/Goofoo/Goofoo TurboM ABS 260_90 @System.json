@@ -1,9 +1,0 @@
-{
-	"type": "filament",
-	"name": "Goofoo TurboM ABS 260_90 @System",
-	"from": "system",
-	"setting_id": "vHv1h43LWAs664Gl",
-	"instantiation": "true",
-	"inherits": "Goofoo TurboM ABS 260_90 @base",
-	"compatible_printers": []
-}

@@ -1,0 +1,14 @@
+{
+  "type": "filament",
+  "name": "Goofoo PP @base",
+  "from": "system",
+  "instantiation": "false",
+  "inherits": "Generic PP @System",
+  "filament_id": "OFlqlUSx",
+  "filament_vendor": [
+    "Goofoo"
+  ],
+  "filament_type": [
+    "PP"
+  ]
+}

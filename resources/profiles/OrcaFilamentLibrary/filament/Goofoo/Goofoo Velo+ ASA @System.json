@@ -1,9 +1,0 @@
-{
-	"type": "filament",
-	"name": "Goofoo Velo+ ASA @System",
-	"from": "system",
-	"setting_id": "YzkkjWTLWAqORXRA",
-	"instantiation": "true",
-	"inherits": "Goofoo Velo+ ASA @base",
-	"compatible_printers": []
-}

@@ -1,0 +1,14 @@
+{
+  "type": "filament",
+  "name": "Goofoo PLA Silk @base",
+  "from": "system",
+  "instantiation": "false",
+  "inherits": "Generic PLA Silk @System",
+  "filament_id": "OFpta2gc",
+  "filament_vendor": [
+    "Goofoo"
+  ],
+  "filament_type": [
+    "PLA Silk"
+  ]
+}

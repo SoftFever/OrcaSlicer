@@ -1,9 +1,0 @@
-{
-	"type": "filament",
-	"name": "Goofoo TurboM PLA @System",
-	"from": "system",
-	"setting_id": "P4nPgotdihAQTzqf",
-	"instantiation": "true",
-	"inherits": "Goofoo TurboM PLA @base",
-	"compatible_printers": []
-}

@@ -15,6 +15,10 @@
 		{
 			"name": "Goofoo Velo+",
 			"sub_path": "machine/Goofoo Velo+.json"
+		},
+		{
+			"name": "Goofoo Velo+ Tool",
+			"sub_path": "machine/Goofoo Velo+ Tool.json"
 		}
 	],
 	"process_list": [
@@ -72,6 +76,10 @@
 		{
 			"name": "Goofoo Velo+ 0.6 nozzle",
 			"sub_path": "machine/Goofoo Velo+ 0.6 nozzle.json"
+		},
+		{
+			"name": "Goofoo Velo+ Tool 0.4",
+			"sub_path": "machine/Goofoo Velo+ Tool 0.4.json"
 		}
 	]
 }

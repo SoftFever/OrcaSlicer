@@ -1,0 +1,14 @@
+{
+  "type": "filament",
+  "name": "Goofoo PETG HF @base",
+  "from": "system",
+  "instantiation": "false",
+  "inherits": "Generic PETG HF @System",
+  "filament_id": "OF5bjxyx",
+  "filament_vendor": [
+    "Goofoo"
+  ],
+  "filament_type": [
+    "PETG HF"
+  ]
+}
