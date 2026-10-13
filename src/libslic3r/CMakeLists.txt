@@ -745,13 +745,13 @@ if (SLIC3R_SPARROW_ARRANGE)
 
     add_dependencies(libslic3r sparrow_arrange_build)
     target_compile_definitions(libslic3r PRIVATE SLIC3R_SPARROW_ARRANGE)
-    # Plain target_link_libraries() signature: libslic3r uses it everywhere else and
-    # CMake forbids mixing. Extra libs are from `rustc --print native-static-libs`.
-    target_link_libraries(libslic3r sparrow_arrange)
+    # Keyword signature, as libslic3r uses it below; CMake forbids mixing the two.
+    # Extra libs are from `rustc --print native-static-libs`.
+    target_link_libraries(libslic3r PRIVATE sparrow_arrange)
     if (APPLE)
-        target_link_libraries(libslic3r iconv)
+        target_link_libraries(libslic3r PRIVATE iconv)
     elseif (WIN32)
-        target_link_libraries(libslic3r ntdll.lib userenv.lib ws2_32.lib bcrypt.lib synchronization.lib dbghelp.lib advapi32.lib)
+        target_link_libraries(libslic3r PRIVATE ntdll.lib userenv.lib ws2_32.lib bcrypt.lib synchronization.lib dbghelp.lib advapi32.lib)
     endif ()
 endif ()
 

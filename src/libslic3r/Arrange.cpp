@@ -1251,9 +1251,9 @@ void arrange(ArrangePolygons &      arrangables,
 #ifdef SLIC3R_SPARROW_ARRANGE
     // BBS: sparrow handles rectangular beds only (every Bambu printer); other bed
     // types and a failed sparrow run fall through to libnest2d. It has no notion of
-    // print order, height or per-plate filament grouping, so sequential print and
-    // "one material per plate" also stay on libnest2d.
-    if (params.use_sparrow && !params.is_seq_print && params.allow_multi_materials_on_same_plate) {
+    // print order, height, belt geometry or per-plate filament grouping, so sequential
+    // print, belt printers and "one material per plate" also stay on libnest2d.
+    if (params.use_sparrow && !params.is_seq_print && !params.is_belt && params.allow_multi_materials_on_same_plate) {
         if constexpr (std::is_same_v<BedT, BoundingBox>) {
             if (arrange_sparrow(arrangables, excludes, bed, params))
                 return;
