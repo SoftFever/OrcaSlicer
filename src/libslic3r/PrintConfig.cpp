@@ -6935,9 +6935,10 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_tool_mapping", coBool);
     def->label = L("Map filaments to tools when printing");
-    def->tooltip = L("For tool changers whose firmware maps the tool numbers in the G-code to physical tools when the "
-                     "print is sent. The project may then hold more filaments than the printer has tools; each "
-                     "filament is assigned to a tool in the print dialog.");
+    def->tooltip = L("For tool changers whose filaments are assigned to tools when the print is sent. The project "
+                     "may then hold more filaments than the printer has tools. The printer connection applies the "
+                     "assignment: through the firmware where it maps tool numbers itself, otherwise by renumbering "
+                     "the tools in the uploaded G-code.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 

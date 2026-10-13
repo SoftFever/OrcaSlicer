@@ -127,10 +127,21 @@ protected:
     bool call_jsonrpc_ws(const std::string& method, const nlohmann::json& params, nlohmann::json& result, std::string& error) const;
 
     bool send_gcode_sync(const std::string& dev_id, const std::string& gcode) const;
+    void send_gcode_async(const std::string& dev_id, const std::string& gcode,
+                          std::function<void(bool)> on_result = {}) const;
 
     // Filament-to-tool assignment of the print dialog: filament index -> physical tool, from the
     // dialog's per-filament tray array. Tray ids past `tool_count` and unused filaments are left out.
     static std::map<int, int> parse_tool_mapping(const std::string& ams_mapping, int tool_count);
+
+    // Whether the firmware maps the G-code's tool numbers to physical tools itself. When it does
+    // not and the printer preset maps filaments to tools at print time (filament_tool_mapping),
+    // the uploaded G-code is renumbered to the physical tools the print dialog chose.
+    virtual bool firmware_maps_tools() const { return false; }
+    // The renumbering applied to the uploaded G-code (empty when none is), see firmware_maps_tools().
+    std::map<int, int> upload_tool_map(const PrintParams& params) const;
+    // Lets an agent update firmware-specific comment lines that list tool numbers.
+    virtual void rewrite_mapped_comment(std::string& /*line*/, const std::map<int, int>& /*tool_map*/) const {}
 
     // State access for derived classes
     mutable std::recursive_mutex       state_mutex;
@@ -154,9 +165,6 @@ private:
 
     bool fetch_object_list(const std::string& base_url, const std::string& api_key, std::set<std::string>& objects, std::string& error) const;
     bool query_printer_status(const std::string& base_url, const std::string& api_key, nlohmann::json& status, std::string& error) const;
-    void send_gcode_async(const std::string& dev_id, const std::string& gcode,
-                          std::function<void(bool)> on_result = {}) const;
-
     void announce_printhost_device();
     void dispatch_local_connect(int state, const std::string& dev_id, const std::string& msg);
     void dispatch_printer_connected(const std::string& dev_id);
@@ -172,6 +180,9 @@ private:
     int pause_print(const std::string& dev_id);
     int resume_print(const std::string& dev_id);
     int cancel_print(const std::string& dev_id);
+
+    // Writes `source` to `target` with its tools renumbered through `tool_map`.
+    bool write_remapped_gcode(const std::string& source, const std::string& target, const std::map<int, int>& tool_map) const;
 
     // File upload
     bool upload_gcode(const std::string& local_path, const std::string& filename,
