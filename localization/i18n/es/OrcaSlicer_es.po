@@ -5454,8 +5454,9 @@ msgstr "Perímetro externo"
 msgid "Overhang wall"
 msgstr "Perímetro de voladizo"
 
+# AI Translated
 msgid "Sparse infill"
-msgstr "Relleno poco denso"
+msgstr "Relleno de baja densidad"
 
 msgid "Internal solid infill"
 msgstr "Relleno sólido interno"
@@ -15693,7 +15694,7 @@ msgid ""
 " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
 " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
 msgstr ""
-"Gradúa el relleno Giroide y TPMS dentro del objeto: sus celdas crecen desde la superficie del objeto hacia su centro. La densidad del relleno poco denso se usa en la superficie y la densidad interior en el centro.\n"
+"Gradúa el relleno Giroide y TPMS dentro del objeto: sus celdas crecen desde la superficie del objeto hacia su centro. La densidad del relleno de baja densidad se usa en la superficie y la densidad interior en el centro.\n"
 "«Deformación por distancia», «Fusión suave» y «Cubiertas escalonadas» siguen la distancia a la superficie más cercana, incluidas la superior y la inferior, con la densidad interior en el punto más alejado de ella:\n"
 " - Deformación por distancia: un único patrón continuo, estirado y cizallado donde la distancia cambia según la dirección, como en placas y piezas largas.\n"
 " - Fusión suave: los patrones de densidades vecinas se mezclan entre sí, con pequeños bucles donde se encuentran.\n"
@@ -15750,7 +15751,7 @@ msgid ""
 msgstr ""
 "Cómo cambia la densidad desde la superficie hasta el centro del objeto.\n"
 "Lineal: la densidad cambia a un ritmo constante.\n"
-"Cuadrático: la densidad se mantiene cerca de la densidad del relleno poco denso junto a la superficie y cambia más rápido hacia el centro.\n"
+"Cuadrático: la densidad se mantiene cerca de la densidad del relleno de baja densidad junto a la superficie y cambia más rápido hacia el centro.\n"
 "Exponencial: la densidad cambia rápidamente justo debajo de la superficie y se estabiliza hacia el centro."
 
 # AI Translated
@@ -15837,11 +15838,11 @@ msgstr "Giroide"
 
 # AI Translated
 msgid "Sparse infill smooth factor"
-msgstr "Factor de suavizado del relleno poco denso"
+msgstr "Factor de suavizado del relleno de baja densidad"
 
 # AI Translated
 msgid "Controls how strongly sparse infill corners are rounded. 0% keeps the original sharp path, while 100% produces the largest possible curves between adjacent infill lines."
-msgstr "Controla cuánto se redondean las esquinas del relleno poco denso. 0% mantiene el trazado original con esquinas vivas, mientras que 100% produce las curvas más amplias posibles entre líneas de relleno adyacentes."
+msgstr "Controla cuánto se redondean las esquinas del relleno de baja densidad. 0% mantiene el trazado original con esquinas vivas, mientras que 100% produce las curvas más amplias posibles entre líneas de relleno adyacentes."
 
 msgid "This is the acceleration of top surface infill. Using a lower value may improve top surface quality."
 msgstr "Aceleración del relleno de la superficie superior. El uso de un valor más bajo puede mejorar la calidad de la superficie superior."
@@ -16595,11 +16596,12 @@ msgstr ""
 msgid "0 (Simple connect)"
 msgstr "0 (Conexión simple)"
 
+# AI Translated
 msgid ""
 "Filament to print internal sparse infill.\n"
 "\"Default\" uses the active object/part filament."
 msgstr ""
-"Filamento para imprimir un relleno interno poco denso.\n"
+"Filamento para imprimir el relleno interno de baja densidad.\n"
 "La opción «Predeterminado» utiliza el filamento del objeto o pieza activa."
 
 msgid "Line width of internal sparse infill. If expressed as a %, it will be computed over the nozzle diameter."
@@ -18146,7 +18148,7 @@ msgid ""
 "\n"
 "Unlike \"No sparse layers\" the tower keeps following the model, so the toolhead never has to reach down to it. Has no effect with \"No sparse layers\", smooth timelapse or clumping detection, which need a tower on every layer."
 msgstr ""
-"Si está activado, las capas consecutivas en las que la torre de purga no tiene cambio de filamento se imprimen como una sola capa de torre más gruesa en lugar de una capa fina cada una, del mismo modo que la combinación de relleno fusiona el relleno poco denso. La capa fusionada se imprime en la parte superior del tramo, a la altura de todo lo que cubre.\n"
+"Si está activado, las capas consecutivas en las que la torre de purga no tiene cambio de filamento se imprimen como una sola capa de torre más gruesa en lugar de una capa fina cada una, del mismo modo que la combinación de relleno fusiona el relleno de baja densidad. La capa fusionada se imprime en la parte superior del tramo, a la altura de todo lo que cubre.\n"
 "\n"
 "Solo se fusionan capas completas, y nunca más allá de la altura máxima de capa de la boquilla que imprime la torre (tres cuartas partes del diámetro de la boquilla cuando se deja en 0). Por lo tanto, dos o más capas tienen que caber bajo ese límite para que cambie algo: con una altura de capa de 0,2 mm y un máximo de 0,3 mm no se fusiona nada, mientras que con 0,1 mm tres capas se convierten en una.\n"
 "\n"

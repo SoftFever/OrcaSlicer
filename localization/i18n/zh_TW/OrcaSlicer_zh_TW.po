@@ -3424,8 +3424,9 @@ msgstr "外牆速度"
 msgid "Plate"
 msgstr "列印板"
 
+# AI Translated
 msgid "Brim"
-msgstr "邊緣"
+msgstr "Brim"
 
 msgid "Object/Part Settings"
 msgstr "物件/零件設定"
@@ -13727,31 +13728,31 @@ msgstr "防風罩與輸送帶列印裝置模式不相容。"
 
 # AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr "在輸送帶列印裝置上，邊緣與螺旋花瓶模式不相容。請停用其中之一。"
+msgstr "在輸送帶列印裝置上，Brim 與螺旋花瓶模式不相容。請停用其中之一。"
 
 # AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr "輸送帶傾斜角度過大，不適合使用邊緣，因此不會產生邊緣。"
+msgstr "輸送帶傾斜角度過大，不適合使用 Brim，因此不會產生 Brim。"
 
 # AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr "僅在輸送帶傾斜時才會產生邊緣。請設定輸送帶傾斜角度，或移除邊緣設定。"
+msgstr "僅在輸送帶傾斜時才會產生 Brim。請設定輸送帶傾斜角度，或移除 Brim 設定。"
 
 # AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr "輸送帶列印裝置僅支援外側和內側邊緣。「自動」、「圓盤」和「上色」邊緣會以「僅外側」方式列印，並使用「Brim 寬度」。"
+msgstr "輸送帶列印裝置僅支援外側和內側 Brim。「自動」、「圓盤」和「上色」Brim 會以「僅外側」方式列印，並使用「Brim 寬度」。"
 
 # AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr "「Brim 與模型的間隙」會使前緣邊緣與物件的前緣分離，而前緣正是前緣邊緣要固定的邊。使用「前緣邊緣長度」時，請將間隙設為 0。"
+msgstr "「Brim 與模型的間隙」會使前緣 Brim 與物件的前緣分離，而前緣正是前緣 Brim 要固定的邊。使用「前緣 Brim 長度」時，請將間隙設為 0。"
 
 # AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr "「前緣邊緣長度」會沿輸送帶向每個物件前方延伸，而「自動擺放」不會預留該空間。請在物件之間保留間距。"
+msgstr "「前緣 Brim 長度」會沿輸送帶向每個物件前方延伸，而「自動擺放」不會預留該空間。請在物件之間保留間距。"
 
 # AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr "「僅前緣」邊緣僅適用於輸送帶列印裝置。在此列印裝置上，它會以一般的外側邊緣列印。"
+msgstr "「僅前緣」Brim 僅適用於輸送帶列印裝置。在此列印裝置上，它會以一般的外側 Brim 列印。"
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -14483,11 +14484,15 @@ msgstr "變更其他擠出路徑類型的流量比。"
 msgid "First layer flow ratio"
 msgstr "首層流量比"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material on the first layer for the extrusion path roles listed in this section.\n"
 "\n"
 "For the first layer, the actual flow ratio for each path role (does not affect brims and skirts) will be multiplied by this value."
-msgstr "此因素會影響本節中列出的擠出路徑角色的第一層上的材料量。 對於第一層，每個路徑角色的實際流量比（不影響邊緣和​​裙子）將乘以該值。"
+msgstr ""
+"此因素會影響本節中列出的擠出路徑角色的第一層上的材料量。\n"
+"\n"
+"對於第一層，每個路徑角色的實際流量比（不影響 Brim 和​​裙子）將乘以該值。"
 
 msgid "Outer wall flow ratio"
 msgstr "外牆流量比"
@@ -14725,7 +14730,7 @@ msgstr "從模型到 Brim 最外圈的距離"
 # AI Translated
 # Needs human review: Brim is the glossary's 邊緣, so 'leading brim' became 前緣邊緣 (edge + edge); the nearby labels use Brim (Brim 寬度, Brim 類型). Check it reads clearly in the belt brim settings, and in the tooltips that quote it.
 msgid "Leading brim length"
-msgstr "前緣邊緣長度"
+msgstr "前緣 Brim 長度"
 
 # AI Translated
 msgid ""
@@ -14737,17 +14742,17 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
-"僅適用於輸送帶列印裝置。沿輸送帶將邊緣延伸至物件前方，涵蓋其接觸區域中每一個朝下坡方向的邊——包括物件首次接觸輸送帶之處，以及之後才落到輸送帶上的任何島區。這段延伸部分會在物件到達之前先鋪在輸送帶上，讓前緣有已經黏牢的部分可以依附。\n"
+"僅適用於輸送帶列印裝置。沿輸送帶將 Brim 延伸至物件前方，涵蓋其接觸區域中每一個朝下坡方向的邊——包括物件首次接觸輸送帶之處，以及之後才落到輸送帶上的任何島區。這段延伸部分會在物件到達之前先鋪在輸送帶上，讓前緣有已經黏牢的部分可以依附。\n"
 "\n"
-"在輸送帶表面上量測，並疊加在「Brim 寬度」之上：邊緣在物件前方延伸的距離為「Brim 與模型的間隙」+「前緣邊緣長度」+「Brim 寬度」。請將「Brim 與模型的間隙」設為 0，否則延伸部分將無法接觸到它要固定的物件。\n"
+"在輸送帶表面上量測，並疊加在「Brim 寬度」之上：Brim 在物件前方延伸的距離為「Brim 與模型的間隙」+「前緣 Brim 長度」+「Brim 寬度」。請將「Brim 與模型的間隙」設為 0，否則延伸部分將無法接觸到它要固定的物件。\n"
 "\n"
-"在傾斜的輸送帶上，每一層只鋪設一條邊緣，因此所形成的邊緣薄片厚度由流量決定，而非層高。請使用「邊緣流量比例」進行調整。\n"
+"在傾斜的輸送帶上，每一層只鋪設一條 Brim，因此所形成的 Brim 薄片厚度由流量決定，而非層高。請使用「Brim 流量比例」進行調整。\n"
 "\n"
 "設為 0 以停用。"
 
 # AI Translated
 msgid "Extra brim width"
-msgstr "額外邊緣寬度"
+msgstr "額外 Brim 寬度"
 
 # AI Translated
 msgid ""
@@ -14757,17 +14762,18 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
-"僅適用於輸送帶列印裝置。橫跨輸送帶向兩側加寬邊緣，而不會進一步向物件前方或後方延伸。當零件沿其長度方向需要比單靠「Brim 寬度」更強的附著力時使用。\n"
+"僅適用於輸送帶列印裝置。橫跨輸送帶向兩側加寬 Brim，而不會進一步向物件前方或後方延伸。當零件沿其長度方向需要比單靠「Brim 寬度」更強的附著力時使用。\n"
 "\n"
-"在輸送帶表面上量測，並疊加在「Brim 寬度」之上：邊緣在物件兩側延伸的距離為「Brim 與模型的間隙」+「Brim 寬度」+「額外邊緣寬度」。若要改為向物件前方延伸邊緣，請使用「前緣邊緣長度」。\n"
+"在輸送帶表面上量測，並疊加在「Brim 寬度」之上：Brim 在物件兩側延伸的距離為「Brim 與模型的間隙」+「Brim 寬度」+「額外 Brim 寬度」。若要改為向物件前方延伸 Brim，請使用「前緣 Brim 長度」。\n"
 "\n"
 "設為 0 以停用。"
 
 msgid "Brim type"
 msgstr "Brim 類型"
 
+# AI Translated
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
-msgstr "該參數控制在模型的外側和/或內側產生 Brim 。自動是指自動分析和計算邊框的寬度。"
+msgstr "該參數控制在模型的外側和/或內側產生 Brim 。自動是指自動分析和計算 Brim 的寬度。"
 
 # AI Translated
 msgid "Leading edge only"
@@ -14779,9 +14785,11 @@ msgstr "Brim 與模型的間隙"
 msgid "This creates a gap between the innermost brim line and the object and can make the brim easier to remove."
 msgstr "在 Brim 和模型之間設定間隙，能夠讓 Brim 更容易拆除"
 
+# AI Translated
 msgid "Brim flow ratio"
-msgstr "邊緣流量比例"
+msgstr "Brim 流量比例"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for brims.\n"
 "\n"
@@ -14789,14 +14797,15 @@ msgid ""
 "\n"
 "Note: The resulting value will not be affected by the first-layer flow ratio."
 msgstr ""
-"此係數會影響邊緣所使用的材料量。\n"
+"此係數會影響 Brim 所使用的材料量。\n"
 "\n"
-"實際使用的邊緣流量是將此值乘以線材流量比例計算而得；若有設定，還會再乘以物件的流量比例。\n"
+"實際使用的 Brim 流量是將此值乘以線材流量比例計算而得；若有設定，還會再乘以物件的流量比例。\n"
 "\n"
 "注意：計算結果不會受首層流量比例影響。"
 
+# AI Translated
 msgid "Brim follows compensated outline"
-msgstr "邊緣 遵循補償輪廓"
+msgstr "Brim 遵循補償輪廓"
 
 # AI Translated
 msgid ""
@@ -14805,16 +14814,18 @@ msgid ""
 "\n"
 "If your current setup already works well, enabling it may be unnecessary and can cause the brim to fuse with upper layers."
 msgstr ""
-"啟用後，邊緣將與套用象腳補償之後的第一層輪廓幾何對齊。\n"
+"啟用後，Brim 將與套用象腳補償之後的第一層輪廓幾何對齊。\n"
 "此選項適用於象腳補償會明顯改變第一層輪廓的情況。\n"
 "\n"
-"如果您目前的設定已經運作良好，則不一定需要啟用此選項，因為它可能導致邊緣與上方層黏合在一起。"
+"如果您目前的設定已經運作良好，則不一定需要啟用此選項，因為它可能導致 Brim 與上方層黏合在一起。"
 
+# AI Translated
 msgid "Combine brims"
-msgstr "合併邊緣"
+msgstr "合併 Brim"
 
+# AI Translated
 msgid "Combine multiple brims into one when they are close to each other. This can improve brim adhesion."
-msgstr "當多個邊緣彼此靠近時，將它們合併為一個。這可以改善邊緣附著力。"
+msgstr "當多個 Brim 彼此靠近時，將它們合併為一個。這可以改善 Brim 附著力。"
 
 msgid "Brim ears"
 msgstr "耳狀 Brim"
@@ -19273,8 +19284,9 @@ msgstr "換料塔旋轉角度"
 msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "換料塔相對於 x 軸的旋轉角度。"
 
+# AI Translated
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
-msgstr "換料塔的邊緣寬度，負值表示根據換料塔高度自動計算寬度"
+msgstr "換料塔的 Brim 寬度，負值表示根據換料塔高度自動計算寬度"
 
 msgid "Stabilization cone apex angle"
 msgstr "穩定錐形頂角"
@@ -22809,17 +22821,20 @@ msgstr "使用最大角度與偵測半徑產生耳狀 Brim"
 msgid "Add or Select"
 msgstr "新增或選取"
 
+# AI Translated
 msgid "Warning: The brim type is not set to \"painted\", the brim ears will not take effect!"
-msgstr "警告：邊緣類型未設定「上色」，因此邊緣支撐 (Brim) 不會生效！"
+msgstr "警告：Brim 類型未設定「上色」，因此耳狀 Brim 不會生效！"
 
+# AI Translated
 msgid "Set the brim type of this object to \"painted\""
-msgstr "將此物件的邊緣類型設定為\"繪製\""
+msgstr "將此物件的 Brim 類型設定為\"繪製\""
 
 msgid "invalid brim ears"
 msgstr "無效的耳狀 Brim"
 
+# AI Translated
 msgid "Brim Ears"
-msgstr "邊緣支撐 (Brim)"
+msgstr "耳狀 Brim"
 
 msgid "Please select single object."
 msgstr "請選擇一個物件。"
@@ -27623,8 +27638,9 @@ msgstr "測量"
 msgid "Gizmo assemble"
 msgstr "組裝"
 
+# AI Translated
 msgid "Gizmo brim ears"
-msgstr "擴邊耳工具"
+msgstr "耳狀 Brim 工具"
 
 # AI Translated
 msgid "Gizmo texture displacement painting"

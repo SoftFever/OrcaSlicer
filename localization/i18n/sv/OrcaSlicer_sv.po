@@ -3793,8 +3793,9 @@ msgstr "Kopiering av flertalet celler stöds ej"
 msgid "Outside"
 msgstr "Utsida"
 
+# AI Translated
 msgid "Layer height"
-msgstr "Lager höjd"
+msgstr "Lagerhöjd"
 
 msgid "Wall loops"
 msgstr "Antal väggar"
@@ -6195,8 +6196,9 @@ msgstr "Noop"
 msgid "Retract"
 msgstr "Reversera"
 
+# AI Translated
 msgid "Unretract"
-msgstr "Reversera Ej"
+msgstr "Deretraktion"
 
 msgid "Seam"
 msgstr "Söm"
@@ -7508,8 +7510,9 @@ msgstr "Flödesförhållande"
 msgid "Flow Rate Calibration"
 msgstr "Kalibrering av flödeshastighet"
 
+# AI Translated
 msgid "Retraction"
-msgstr "Reduktion"
+msgstr "Retraktion"
 
 # AI Translated
 msgid "Cornering"
@@ -8588,7 +8591,7 @@ msgstr "Kalibrering av flödesförhållande"
 
 # AI Translated
 msgid "Retraction Calibration"
-msgstr "Kalibrering av reduktion"
+msgstr "Kalibrering av retraktion"
 
 # AI Translated
 msgid "Cornering Calibration"
@@ -10829,8 +10832,9 @@ msgstr "Spara fullständiga sökvägar till källfiler i projekt"
 msgid "If enabled, saved projects store the absolute path to imported source files (STEP/STL/...), so \"Reload from disk\" still works when the source file is kept in a different folder than the project. If disabled, only the filename is stored, which keeps projects portable and avoids embedding absolute paths."
 msgstr "Om detta är aktiverat sparar sparade projekt den absoluta sökvägen till importerade källfiler (STEP/STL/...), så att \"Läs in från disk igen\" fortfarande fungerar när källfilen ligger i en annan mapp än projektet. Om det är avstängt sparas endast filnamnet, vilket gör projekten portabla och undviker inbäddade absoluta sökvägar."
 
+# AI Translated
 msgid "Preset"
-msgstr "Förinställd"
+msgstr "Förinställning"
 
 # AI Translated
 msgid "Remember printer configuration"
@@ -13180,8 +13184,9 @@ msgstr "Hittade reserverade nyckelord"
 msgid "Setting Overrides"
 msgstr "Åsidosätter inställningar"
 
+# AI Translated
 msgid "Retraction when switching material"
-msgstr "Reduktion vid material byte"
+msgstr "Retraktion vid material byte"
 
 msgid "Basic information"
 msgstr "Allmän information"
@@ -13257,27 +13262,31 @@ msgstr "Volumetrisk hastighets begränsning"
 msgid "Cooling for specific layer"
 msgstr "Kylning för valda lager"
 
+# AI Translated
 msgid "Part cooling fan"
-msgstr "Del kylningsfläkten"
+msgstr "Delkylningsfläkten"
 
 msgid "Min fan speed threshold"
 msgstr "Min fläkt hastighets gräns"
 
 # AI Translated
 msgid "The part cooling fan will run at the minimum fan speed when the estimated layer time is longer than the threshold value. When the layer time is shorter than the threshold, the fan speed will be interpolated between the minimum and maximum fan speed according to layer printing time."
-msgstr "Del kylfläkten kommer att gå med lägsta fläkthastighet när den beräknade lagertiden är längre än gränsvärdet. När lagertiden är kortare än gränsvärdet interpoleras fläkthastigheten mellan lägsta och högsta fläkthastighet enligt lagrets utskriftstid."
+msgstr "Delkylningsfläkten kommer att gå med lägsta fläkthastighet när den beräknade lagertiden är längre än gränsvärdet. När lagertiden är kortare än gränsvärdet interpoleras fläkthastigheten mellan lägsta och högsta fläkthastighet enligt lagrets utskriftstid."
 
 msgid "Max fan speed threshold"
 msgstr "Max fläkt hastighets gräns"
 
+# AI Translated
 msgid "The part cooling fan will run at maximum speed when the estimated layer time is shorter than the threshold value."
-msgstr "Del kylfläktens hastighet kommer att vara max när den beräknade lagringstiden är kortare än inställningsvärdet"
+msgstr "Delkylningsfläktens hastighet kommer att vara max när den beräknade lagringstiden är kortare än inställningsvärdet."
 
+# AI Translated
 msgid "Auxiliary part cooling fan"
-msgstr "Extra del kylnings fläkt"
+msgstr "Extra delkylningsfläkt"
 
+# AI Translated
 msgid "Exhaust fan"
-msgstr "Utsugs fläkt"
+msgstr "Utsugsfläkt"
 
 msgid "During print"
 msgstr "Under utskrift"
@@ -15740,7 +15749,7 @@ msgstr "Tvinga kylning för överhäng och bridges"
 
 # AI Translated
 msgid "Enable this option to allow adjustment of the part cooling fan speed for specifically for overhangs, internal and external bridges. Setting the fan speed specifically for these features can improve overall print quality and reduce warping."
-msgstr "Aktivera det här alternativet för att kunna justera hastigheten på del kylningsfläkten specifikt för överhäng samt inre och yttre bridges. Att ange fläkthastigheten särskilt för dessa detaljer kan förbättra den totala utskriftskvaliteten och minska skevhet."
+msgstr "Aktivera det här alternativet för att kunna justera hastigheten på delkylningsfläkten specifikt för överhäng samt inre och yttre bridges. Att ange fläkthastigheten särskilt för dessa detaljer kan förbättra den totala utskriftskvaliteten och minska skevhet."
 
 # AI Translated
 msgid "Overhangs and external bridges fan speed"
@@ -15752,7 +15761,7 @@ msgid ""
 "\n"
 "Please note, this fan speed is clamped on the lower end by the minimum fan speed threshold set above. It is also adjusted upwards up to the maximum fan speed threshold when the minimum layer time threshold is not met."
 msgstr ""
-"Använd den här hastigheten på del kylningsfläkten när bridges eller överhängsväggar skrivs ut med ett överhäng som överstiger värdet i parametern 'Tröskel för kylning av överhäng' ovan. Ökad kylning särskilt för överhäng och bridges kan förbättra den totala utskriftskvaliteten för dessa detaljer.\n"
+"Använd den här hastigheten på delkylningsfläkten när bridges eller överhängsväggar skrivs ut med ett överhäng som överstiger värdet i parametern 'Tröskel för kylning av överhäng' ovan. Ökad kylning särskilt för överhäng och bridges kan förbättra den totala utskriftskvaliteten för dessa detaljer.\n"
 "\n"
 "Observera att den här fläkthastigheten begränsas nedåt av den lägsta fläkthastighetströskeln som anges ovan. Den justeras också uppåt, upp till den högsta fläkthastighetströskeln, när tröskeln för minsta lagertid inte uppnås."
 
@@ -16541,11 +16550,11 @@ msgstr "Aktivera detta för att åsidosätta den fläkthastighet som anges i anp
 
 # AI Translated
 msgid "Speed of exhaust fan during printing. This speed will override the speed in filament custom G-code."
-msgstr "Hastighet för frånluftsfläkt under utskrift. Denna hastighet kommer att åsidosätta hastigheten i filamentets anpassade G-code."
+msgstr "Hastighet för utsugsfläkt under utskrift. Denna hastighet kommer att åsidosätta hastigheten i filamentets anpassade G-code."
 
 # AI Translated
 msgid "Speed of exhaust fan after printing completes."
-msgstr "Hastighet för utsugs fläkten efter att utskriften är klar."
+msgstr "Hastighet för utsugsfläkten efter att utskriften är klar."
 
 msgid "No cooling for the first"
 msgstr "Ingen kylning vid första"
@@ -16727,8 +16736,9 @@ msgstr "Monoton linje"
 msgid "Rectilinear"
 msgstr "Räta linjer"
 
+# AI Translated
 msgid "Aligned Rectilinear"
-msgstr "Justerade Rätlinjig"
+msgstr "Justerade räta linjer"
 
 msgid "Concentric"
 msgstr "Koncentrisk"
@@ -17163,8 +17173,9 @@ msgstr "Standardlinjebredd om övriga linjebredder är satta till 0. Om värdet 
 msgid "Keep fan always on"
 msgstr "Behåll alltid fläkten på"
 
+# AI Translated
 msgid "Enabling this setting means that part cooling fan will never stop entirely and will instead run at least at minimum speed to reduce the frequency of starting and stopping."
-msgstr "Om den här inställningen aktiveras, kommer en del kylfläkten aldrig stoppas och den kommer att åtminstone gå på lägsta hastighet för att minska frekvensen av start och stopp"
+msgstr "Om den här inställningen aktiveras, kommer delkylningsfläkten aldrig stoppas och den kommer att åtminstone gå på lägsta hastighet för att minska frekvensen av start och stopp."
 
 # AI Translated
 msgid "Don't slow down outer walls"
@@ -17185,8 +17196,9 @@ msgstr ""
 msgid "Layer time"
 msgstr "Lager tid"
 
+# AI Translated
 msgid "The part cooling fan will be enabled for layers where the estimated time is shorter than this value. Fan speed is interpolated between the minimum and maximum fan speeds according to layer printing time."
-msgstr "Del kylfläkten kommer att aktiveras för lager vars beräknade tid är kortare än detta värde. Fläkthastigheten interpoleras mellan den lägsta och högsta fläkthastigheten enligt utskriftstiden för lager"
+msgstr "Delkylningsfläkten kommer att aktiveras för lager vars beräknade tid är kortare än detta värde. Fläkthastigheten interpoleras mellan den lägsta och högsta fläkthastigheten enligt utskriftstiden för lager."
 
 # AI Translated
 msgctxt "second"
@@ -18067,7 +18079,7 @@ msgid ""
 "Set to -1 to disable it.\n"
 "This setting is overridden by disable_fan_first_layers."
 msgstr ""
-"Den här hastigheten på del kylningsfläkten används vid utskrift av supportens kontaktytor. Om du sätter parametern högre än den vanliga hastigheten minskar lagerbindningen mellan support och den stödda delen, vilket gör dem lättare att separera.\n"
+"Den här hastigheten på delkylningsfläkten används vid utskrift av supportens kontaktytor. Om du sätter parametern högre än den vanliga hastigheten minskar lagerbindningen mellan support och den stödda delen, vilket gör dem lättare att separera.\n"
 "Sätt till -1 för att avaktivera.\n"
 "Den här inställningen åsidosätts av disable_fan_first_layers."
 
@@ -18081,7 +18093,7 @@ msgid ""
 "\n"
 "Reducing the internal bridges fan speed, compared to your regular fan speed, can help reduce part warping due to excessive cooling applied over a large surface for a prolonged period of time."
 msgstr ""
-"Hastigheten på del kylningsfläkten som används för alla inre bridges. Sätt till -1 för att i stället använda inställningarna för fläkthastighet vid överhäng.\n"
+"Hastigheten på delkylningsfläkten som används för alla inre bridges. Sätt till -1 för att i stället använda inställningarna för fläkthastighet vid överhäng.\n"
 "\n"
 "Om du sänker fläkthastigheten för inre bridges jämfört med din vanliga fläkthastighet kan skevhet i delen minska, eftersom kraftig kylning annars appliceras över en stor yta under lång tid."
 
@@ -18094,7 +18106,7 @@ msgid ""
 "This part cooling fan speed is applied when ironing. Setting this parameter to a lower than regular speed reduces possible nozzle clogging due to the low volumetric flow rate, making the interface smoother.\n"
 "Set to -1 to disable it."
 msgstr ""
-"Den här hastigheten på del kylningsfläkten används vid strykning. Om du sätter parametern lägre än den vanliga hastigheten minskar risken för igensatt nozzel på grund av det låga volymetriska flödet, vilket ger en jämnare yta.\n"
+"Den här hastigheten på delkylningsfläkten används vid strykning. Om du sätter parametern lägre än den vanliga hastigheten minskar risken för igensatt nozzel på grund av det låga volymetriska flödet, vilket ger en jämnare yta.\n"
 "Sätt till -1 för att avaktivera."
 
 msgid "Ironing flow"
@@ -18417,7 +18429,7 @@ msgstr "Bästa automatiska arrangemangs position i intervallet [0,1] w.r.t. bäd
 
 # AI Translated
 msgid "Enable this option if machine has auxiliary part cooling fan. G-code command: M106 P2 S(0-255)."
-msgstr "Aktivera det här alternativet om maskinen har en extra del kylningsfläkt. G-code-kommando: M106 P2 S(0-255)."
+msgstr "Aktivera det här alternativet om maskinen har en extra delkylningsfläkt. G-code-kommando: M106 P2 S(0-255)."
 
 # AI Translated
 msgid "Fan direction"
@@ -18467,7 +18479,7 @@ msgstr ""
 
 # AI Translated
 msgid "Minimum non-zero part cooling fan speed"
-msgstr "Lägsta fläkthastighet skild från noll för del kylningsfläkten"
+msgstr "Lägsta fläkthastighet skild från noll för delkylningsfläkten"
 
 # AI Translated
 msgid ""
@@ -18475,7 +18487,7 @@ msgid ""
 "If your firmware already disables the fan below a threshold (for example Klipper's [fan] off_below: 0.10 shuts the fan off whenever the commanded duty cycle is below 10%), this option and the firmware threshold should ideally be set to the same value. Matching them (e.g. off_below: 0.10 in Klipper and 10% here) guarantees the slicer never emits a non-zero value that the firmware would silently drop, and the fan never receives a value below the one you know it can actually spool at.\n"
 "Set to 0 to deactivate."
 msgstr ""
-"Vissa del kylningsfläktar kan inte börja snurra när de får ett kommando under en viss PWM-arbetscykel. När värdet är över 0 höjs varje fläktkommando skilt från noll till minst den här procentandelen, så att fläkten startar tillförlitligt. Ett fläktkommando på 0 (fläkt av) följs alltid exakt. Denna begränsning tillämpas efter alla andra fläktberäkningar (upptrappning på första lagret, interpolering efter lagertid, åsidosättningar för överhäng/bridge/supportkontaktyta/strykning), så skalningen sker fortfarande inom intervallet [detta värde, 100 %].\n"
+"Vissa delkylningsfläktar kan inte börja snurra när de får ett kommando under en viss PWM-arbetscykel. När värdet är över 0 höjs varje fläktkommando skilt från noll till minst den här procentandelen, så att fläkten startar tillförlitligt. Ett fläktkommando på 0 (fläkt av) följs alltid exakt. Denna begränsning tillämpas efter alla andra fläktberäkningar (upptrappning på första lagret, interpolering efter lagertid, åsidosättningar för överhäng/bridge/supportkontaktyta/strykning), så skalningen sker fortfarande inom intervallet [detta värde, 100 %].\n"
 "Om din fasta programvara redan stänger av fläkten under en tröskel (till exempel Klippers [fan] off_below: 0.10, som stänger av fläkten när den kommenderade arbetscykeln är under 10 %) bör det här alternativet och tröskeln i den fasta programvaran helst sättas till samma värde. Om de matchar (t.ex. off_below: 0.10 i Klipper och 10 % här) garanteras att beredningsprogrammet aldrig skickar ett värde skilt från noll som den fasta programvaran tyst skulle förkasta, och att fläkten aldrig får ett värde under det du vet att den faktiskt kan starta vid.\n"
 "Sätt till 0 för att avaktivera."
 
@@ -19343,8 +19355,9 @@ msgstr ""
 "Noll använder dämpningsförhållandet i den fasta programvaran.\n"
 "Använd typen Avaktivera för att stänga av input shaping."
 
+# AI Translated
 msgid "The part cooling fan speed may be increased when auto cooling is enabled. This is the maximum speed for the part cooling fan."
-msgstr "Del kylfläktens hastighet kan ökas när automatisk kylning är aktiverad. Detta är max hastighets begränsning för en del kylfläkt"
+msgstr "Delkylningsfläktens hastighet kan ökas när automatisk kylning är aktiverad. Detta är max hastighets begränsning för en delkylningsfläkt."
 
 # AI Translated
 msgid "The highest printable layer height for the extruder. Used to limit the maximum layer height when enable adaptive layer height."
@@ -19413,15 +19426,16 @@ msgstr "Tillämpa endast på yttre detaljer"
 msgid "Applies extrusion rate smoothing only on external perimeters and overhangs. This can help reduce artefacts due to sharp speed transitions on externally visible overhangs without impacting the print speed of features that will not be visible to the user."
 msgstr "Tillämpar utjämning av extruderingshastighet endast på ytterperimetrar och överhäng. Det kan minska artefakter från skarpa hastighetsövergångar på synliga överhäng utan att påverka utskriftshastigheten för detaljer som användaren ändå inte ser."
 
+# AI Translated
 msgid "Minimum speed for part cooling fan."
-msgstr "Min hastighet för del kylfläkten"
+msgstr "Min hastighet för delkylningsfläkten."
 
 # AI Translated
 msgid ""
 "Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers which is defined by no cooling layers.\n"
 "Please enable auxiliary_fan in printer settings to use this feature. G-code command: M106 P2 S(0-255)"
 msgstr ""
-"Hastighet för den extra del kylningsfläkten. Den extra fläkten körs med den här hastigheten under utskriften, utom de första lagren som definieras av antalet lager utan kylning.\n"
+"Hastighet för den extra delkylningsfläkten. Den extra fläkten körs med den här hastigheten under utskriften, utom de första lagren som definieras av antalet lager utan kylning.\n"
 "Aktivera auxiliary_fan i skrivarinställningarna för att kunna använda funktionen. G-code-kommando: M106 P2 S(0-255)"
 
 msgid "For the first"
@@ -19730,7 +19744,7 @@ msgstr "Detta är längden av snabb retraktion före en wipe, i förhållande ti
 
 # AI Translated
 msgid "Retract amount after wipe"
-msgstr "Reduktionsmängd efter avtorkning"
+msgstr "Retraktionsmängd efter avtorkning"
 
 # AI Translated
 #, no-c-format, no-boost-format
@@ -19738,8 +19752,8 @@ msgid ""
 "This is the length of fast retraction after wipe, relative to retraction length.\n"
 "The value will be clamped by 100% minus the retract amount before the wipe value."
 msgstr ""
-"Längden på den snabba reduktionen efter avtorkning, i förhållande till reduktionslängden.\n"
-"Värdet begränsas till 100 % minus värdet för reduktionsmängd före avtorkning."
+"Längden på den snabba retraktionen efter avtorkning, i förhållande till retraktionslängden.\n"
+"Värdet begränsas till 100 % minus värdet för retraktionsmängd före avtorkning."
 
 msgid "Retract on layer change"
 msgstr "Retraktera vid lager byte"
@@ -19752,11 +19766,11 @@ msgstr "Retraktions längd"
 
 # AI Translated
 msgid "Some amount of material in extruder is pulled back to avoid ooze during long travel. Set zero to disable retraction."
-msgstr "En viss mängd material i extrudern dras tillbaka för att undvika dropp under långa flyttar. Sätt till noll för att avaktivera reduktion."
+msgstr "En viss mängd material i extrudern dras tillbaka för att undvika dropp under långa flyttar. Sätt till noll för att avaktivera retraktion."
 
 # AI Translated
 msgid "Long retraction when cut (beta)"
-msgstr "Lång reduktion vid kapning (beta)"
+msgstr "Lång retraktion vid kapning (beta)"
 
 # AI Translated
 msgid "Experimental feature: Retracting and cutting off the filament at a longer distance during changes to minimize purge. While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems."
@@ -19764,27 +19778,27 @@ msgstr "Experimentell funktion: Filamentet dras tillbaka och kapas på ett läng
 
 # AI Translated
 msgid "Retraction distance when cut"
-msgstr "Reduktionssträcka vid kapning"
+msgstr "Retraktionssträcka vid kapning"
 
 # AI Translated
 msgid "Experimental feature: Retraction length before cutting off during filament change."
-msgstr "Experimentell funktion: Reduktionslängd före kapning vid filamentbyte."
+msgstr "Experimentell funktion: Retraktionslängd före kapning vid filamentbyte."
 
 # AI Translated
 msgid "Long retraction when extruder change"
-msgstr "Lång reduktion vid extruderbyte"
+msgstr "Lång retraktion vid extruderbyte"
 
 # AI Translated
 msgid "Retraction distance when extruder change"
-msgstr "Reduktionssträcka vid extruderbyte"
+msgstr "Retraktionssträcka vid extruderbyte"
 
 # AI Translated
 msgid "Retraction Length (Toolchange)"
-msgstr "Reduktionslängd (Verktygsbyte)"
+msgstr "Retraktionslängd (Verktygsbyte)"
 
 # AI Translated
 msgid "When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder)."
-msgstr "När reduktionen utlöses före ett verktygsbyte dras filamentet tillbaka med den angivna mängden (längden mäts på det obearbetade filamentet, innan det når extrudern)."
+msgstr "När retraktionen utlöses före ett verktygsbyte dras filamentet tillbaka med den angivna mängden (längden mäts på det obearbetade filamentet, innan det når extrudern)."
 
 # AI Translated
 msgid "Z-hop height"
@@ -19903,7 +19917,7 @@ msgstr "Extra längd vid omstart"
 
 # AI Translated
 msgid "When the retraction is compensated after the travel move, the extruder will push this additional amount of filament. This setting is rarely needed."
-msgstr "När reduktionen kompenseras efter flyttrörelsen trycker extrudern fram den här extra mängden filament. Den här inställningen behövs sällan."
+msgstr "När retraktionen kompenseras efter flyttrörelsen trycker extrudern fram den här extra mängden filament. Den här inställningen behövs sällan."
 
 # AI Translated
 msgid "Extra length on restart (Toolchange)"
@@ -19911,7 +19925,7 @@ msgstr "Extra längd vid omstart (Verktygsbyte)"
 
 # AI Translated
 msgid "When the retraction is compensated after changing tool, the extruder will push this additional amount of filament."
-msgstr "När reduktionen kompenseras efter verktygsbyte trycker extrudern fram den här extra mängden filament."
+msgstr "När retraktionen kompenseras efter verktygsbyte trycker extrudern fram den här extra mängden filament."
 
 msgid "Retraction speed"
 msgstr "Retraktions hastighet"
@@ -19925,11 +19939,11 @@ msgstr "Åter retraktions hastighet"
 
 # AI Translated
 msgid "Speed for reloading filament into the nozzle. Zero means same speed of retraction."
-msgstr "Hastighet för att mata tillbaka filament in i nozzeln. Noll innebär samma hastighet som reduktionen."
+msgstr "Hastighet för att mata tillbaka filament in i nozzeln. Noll innebär samma hastighet som retraktionen."
 
 # AI Translated
 msgid "Deretraction speed (extruder change)"
-msgstr "Dereduktionshastighet (extruderbyte)"
+msgstr "Deretraktionshastighet (extruderbyte)"
 
 # AI Translated
 msgid "Speed for reloading filament into the nozzle when switching extruder."
@@ -19940,7 +19954,7 @@ msgstr "Använd firmware retraktion"
 
 # AI Translated
 msgid "This experimental setting uses G10 and G11 commands to have the firmware handle the retraction. This is only supported in recent Marlin."
-msgstr "Den här experimentella inställningen använder kommandona G10 och G11 så att den fasta programvaran hanterar reduktionen. Det stöds endast i nyare Marlin."
+msgstr "Den här experimentella inställningen använder kommandona G10 och G11 så att den fasta programvaran hanterar retraktionen. Det stöds endast i nyare Marlin."
 
 # AI Translated
 msgid "Show auto-calibration marks"
@@ -20151,9 +20165,9 @@ msgid ""
 "\n"
 "This is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order as in these modes it is more likely an external perimeter is printed immediately after a de-retraction move."
 msgstr ""
-"För att minimera synligheten av eventuell överextrudering i början av en ytterperimeter vid utskrift med väggordningen Yttre/Inre eller Inre/Yttre/Inre görs dereduktionen en liten bit på insidan om ytterperimeterns startpunkt. På så sätt döljs eventuell överextrudering från den yttre ytan.\n"
+"För att minimera synligheten av eventuell överextrudering i början av en ytterperimeter vid utskrift med väggordningen Yttre/Inre eller Inre/Yttre/Inre görs deretraktionen en liten bit på insidan om ytterperimeterns startpunkt. På så sätt döljs eventuell överextrudering från den yttre ytan.\n"
 "\n"
-"Detta är användbart vid utskrift med väggordningen Yttre/Inre eller Inre/Yttre/Inre, eftersom det i dessa lägen är mer sannolikt att en ytterperimeter skrivs ut direkt efter en dereduktionsrörelse."
+"Detta är användbart vid utskrift med väggordningen Yttre/Inre eller Inre/Yttre/Inre, eftersom det i dessa lägen är mer sannolikt att en ytterperimeter skrivs ut direkt efter en deretraktionsrörelse."
 
 msgid "Wipe speed"
 msgstr "Hastighet för avtorkning"
@@ -21352,11 +21366,11 @@ msgid ""
 "\n"
 "Setting a value in the retract amount before wipe setting below will perform any excess retraction before the wipe, else it will be performed after."
 msgstr ""
-"Beskriver hur långt nozzeln flyttas längs den sista banan vid reduktion.\n"
+"Beskriver hur långt nozzeln flyttas längs den sista banan vid retraktion.\n"
 "\n"
-"Beroende på hur länge avtorkningen pågår och hur snabba och långa inställningarna för extruder-/filamentreduktion är, kan en reduktionsrörelse behövas för att dra tillbaka det återstående filamentet.\n"
+"Beroende på hur länge avtorkningen pågår och hur snabba och långa inställningarna för extruder-/filamentretraktion är, kan en retraktionsrörelse behövas för att dra tillbaka det återstående filamentet.\n"
 "\n"
-"Om du anger ett värde i inställningen reduktionsmängd före avtorkning nedan utförs eventuell överskjutande reduktion före avtorkningen, annars utförs den efteråt."
+"Om du anger ett värde i inställningen retraktionsmängd före avtorkning nedan utförs eventuell överskjutande retraktion före avtorkningen, annars utförs den efteråt."
 
 # AI Translated
 msgid "Mixed color sublayer"
@@ -22268,15 +22282,15 @@ msgstr "Extruderns position i början av det anpassade G-code-blocket. Om den an
 
 # AI Translated
 msgid "Retraction state at the beginning of the custom G-code block. If the custom G-code moves the extruder axis, it should write to this variable so OrcaSlicer de-retracts correctly when it gets control back."
-msgstr "Reduktionstillstånd i början av det anpassade G-code-blocket. Om den anpassade G-code:n rör extruderaxeln bör den skriva till den här variabeln, så att OrcaSlicer dereducerar korrekt när kontrollen återlämnas."
+msgstr "Retraktionstillstånd i början av det anpassade G-code-blocket. Om den anpassade G-code:n rör extruderaxeln bör den skriva till den här variabeln, så att OrcaSlicer deretrakterar korrekt när kontrollen återlämnas."
 
 # AI Translated
 msgid "Extra de-retraction"
-msgstr "Extra dereduktion"
+msgstr "Extra deretraktion"
 
 # AI Translated
 msgid "Currently planned extra extruder priming after de-retraction."
-msgstr "Aktuellt planerad extra priming av extrudern efter dereduktion."
+msgstr "Aktuellt planerad extra priming av extrudern efter deretraktion."
 
 # AI Translated
 msgid "Absolute E position"
@@ -34532,7 +34546,7 @@ msgid ""
 "Did you know that OrcaSlicer supports Auxiliary part cooling fan?"
 msgstr ""
 "Extra fläkt\n"
-"Visste du att OrcaSlicer stöder en extra del kylningsfläkt?"
+"Visste du att OrcaSlicer stöder en extra delkylningsfläkt?"
 
 # AI Translated
 #: resources/data/hints.ini: [hint:Air filtration]
@@ -34540,8 +34554,8 @@ msgid ""
 "Air filtration/Exhaust Fan\n"
 "Did you know that OrcaSlicer can support Air filtration/Exhaust Fan?"
 msgstr ""
-"Luftfiltrering/utsugs fläkt\n"
-"Visste du att OrcaSlicer kan stödja luftfiltrering/utsugs fläkt?"
+"Luftfiltrering/utsugsfläkt\n"
+"Visste du att OrcaSlicer kan stödja luftfiltrering/utsugsfläkt?"
 
 # AI Translated
 #: resources/data/hints.ini: [hint:G-code window]
@@ -34713,14 +34727,15 @@ msgstr ""
 "Dela upp dina utskrifter i byggytor\n"
 "Visste du att du kan dela upp en modell med många delar i enskilda byggytor som är färdiga att skrivas ut? Detta förenklar processen att hålla reda på alla delar."
 
+# AI Translated
 #: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
 #: Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster by using the Adaptive Layer Height option? Check it out!"
 msgstr ""
-"Snabba upp utskriften med Adaptiv Lager Höjd\n"
-"Visste du att du kan skriva ut en modell ännu snabbare med alternativet Adaptiv Lager Höjd? Kolla in det!"
+"Snabba upp utskriften med Adaptiv Lagerhöjd\n"
+"Visste du att du kan skriva ut en modell ännu snabbare med alternativet Adaptiv Lagerhöjd? Kolla in det!"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""

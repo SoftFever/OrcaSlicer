@@ -859,8 +859,9 @@ msgstr "Nutwinkel"
 msgid "Cut position"
 msgstr "Schnittposition"
 
+# AI Translated
 msgid "Build Volume"
-msgstr "Bau Volumen"
+msgstr "Bauvolumen"
 
 msgid "Multiple"
 msgstr "Mehrere"
@@ -3404,8 +3405,9 @@ msgstr "Wandschleifen"
 msgid "Infill density(%)"
 msgstr "Füllungsdichte(%)"
 
+# AI Translated
 msgid "Auto Brim"
-msgstr "Automatische Umrandung"
+msgstr "Automatischer Rand"
 
 msgid "Mouse ear"
 msgstr "Mausohren"
@@ -3422,8 +3424,9 @@ msgstr "Nur Innenrand"
 msgid "Outer and inner brim"
 msgstr "Äußere und innere Randleiste"
 
+# AI Translated
 msgid "No-brim"
-msgstr "Keine Umrandung"
+msgstr "Kein Rand"
 
 msgid "Outer wall speed"
 msgstr "Geschwindigkeit Außenwand"
@@ -3431,8 +3434,9 @@ msgstr "Geschwindigkeit Außenwand"
 msgid "Plate"
 msgstr "Platte"
 
+# AI Translated
 msgid "Brim"
-msgstr "Umrandung"
+msgstr "Rand"
 
 msgid "Object/Part Settings"
 msgstr "Objekt-/Teileinstellungen"
@@ -5612,8 +5616,9 @@ msgstr "Überbrückung"
 msgid "Gap infill"
 msgstr "Lückenfüllung"
 
+# AI Translated
 msgid "Skirt"
-msgstr "Saum"
+msgstr "Umrandung"
 
 msgid "Support interface"
 msgstr "Stützstruktur-Schnittstelle"
@@ -13715,31 +13720,31 @@ msgstr "Luftzug-Schutz ist nicht mit dem Förderbanddrucker-Modus kompatibel."
 
 # AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr "Umrandung ist auf einem Förderbanddrucker nicht mit dem Vasenmodus kompatibel. Deaktivieren Sie eine der beiden Optionen."
+msgstr "Ein Rand ist auf einem Förderbanddrucker nicht mit dem Vasenmodus kompatibel. Deaktivieren Sie eine der beiden Optionen."
 
 # AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr "Das Förderband ist für eine Umrandung zu steil, daher wird keine Umrandung erzeugt."
+msgstr "Das Förderband ist für einen Rand zu steil, daher wird kein Rand erzeugt."
 
 # AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr "Eine Umrandung wird nur erzeugt, wenn das Förderband geneigt ist. Legen Sie einen „Neigungswinkel des Förderbands“ fest, oder entfernen Sie die Umrandungseinstellung."
+msgstr "Ein Rand wird nur erzeugt, wenn das Förderband geneigt ist. Legen Sie einen „Neigungswinkel des Förderbands“ fest, oder entfernen Sie die Randeinstellung."
 
 # AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr "Förderbanddrucker unterstützen nur äußere und innere Umrandung. „Automatisch“, „Mausohren“ und „Bemalt“ werden als „Nur Außen“ mit „Randbreite“ gedruckt."
+msgstr "Förderbanddrucker unterstützen nur äußeren und inneren Rand. „Automatisch“, „Mausohren“ und „Bemalt“ werden als „Nur Außen“ mit „Randbreite“ gedruckt."
 
 # AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr "„Lücke zwischen Rand und Objekt“ trennt die vordere Umrandung von der Vorderkante des Objekts, also der Kante, die sie verankern soll. Setzen Sie den Abstand auf 0, wenn Sie „Länge der vorderen Umrandung“ verwenden."
+msgstr "„Lücke zwischen Rand und Objekt“ trennt den vorderen Rand von der Vorderkante des Objekts, also der Kante, die er verankern soll. Setzen Sie den Abstand auf 0, wenn Sie „Länge des vorderen Randes“ verwenden."
 
 # AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr "„Länge der vorderen Umrandung“ reicht entlang des Förderbands vor jedes Objekt hinaus, und „Anordnen“ reserviert diesen Platz nicht. Lassen Sie Abstand zwischen den Objekten."
+msgstr "„Länge des vorderen Randes“ reicht entlang des Förderbands vor jedes Objekt hinaus, und „Anordnen“ reserviert diesen Platz nicht. Lassen Sie Abstand zwischen den Objekten."
 
 # AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr "Die Umrandung „Nur Vorderkante“ gilt für Förderbanddrucker. Auf diesem Drucker wird sie als gewöhnliche äußere Umrandung gedruckt."
+msgstr "Der Rand „Nur Vorderkante“ gilt für Förderbanddrucker. Auf diesem Drucker wird er als gewöhnlicher äußerer Rand gedruckt."
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -13944,17 +13949,19 @@ msgstr "Das Adaptive Pressure Advance-Modell für einen oder mehrere Extruder ka
 msgid "Filament shrinkage will not be used because filament shrinkage for the used filaments does not match."
 msgstr "Filament-Schrumpfung wird nicht verwendet, da sich die Filament-Schrumpfung für die verwendeten Filamente signifikant unterscheidet."
 
+# AI Translated
 msgid "Generating skirt & brim"
-msgstr "Generieren von Schürze und Rand (skirt & brim)"
+msgstr "Generieren von Umrandung und Rand"
 
+# AI Translated
 msgid ""
 "Per-object skirts cannot fit between the objects in By object print sequence.\n"
 "\n"
 "Move the objects farther apart, reduce brim/skirt size, switch Skirt type to Combined, or switch Print sequence to By layer."
 msgstr ""
-"Schürzen für einzelne Objekte passen nicht zwischen die Objekte in der Druckreihenfolge 'Nach Objekt'.\n"
+"Umrandungen für einzelne Objekte passen nicht zwischen die Objekte in der Druckreihenfolge 'Nach Objekt'.\n"
 "\n"
-"Bewegen Sie die Objekte weiter auseinander, verringern Sie die Größe von Rand/Schürze, wechseln Sie den Schürzentyp zu 'Kombiniert' oder wechseln Sie die Druckreihenfolge zu 'Nach Schicht'."
+"Bewegen Sie die Objekte weiter auseinander, verringern Sie die Größe von Rand/Umrandung, wechseln Sie die Art der Umrandung zu 'Kombiniert' oder wechseln Sie die Druckreihenfolge zu 'Nach Schicht'."
 
 msgid "Exporting G-code"
 msgstr "Exportiere G-Code"
@@ -14740,7 +14747,7 @@ msgstr "Abstand vom Modell zur äußersten Randlinie"
 
 # AI Translated
 msgid "Leading brim length"
-msgstr "Länge der vorderen Umrandung"
+msgstr "Länge des vorderen Randes"
 
 # AI Translated
 msgid ""
@@ -14752,17 +14759,17 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
-"Nur für Förderbanddrucker. Verlängert die Umrandung entlang des Förderbands VOR das Objekt, an jeder abwärts gerichteten Kante seiner Kontaktfläche - sowohl beim ersten Kontakt des Objekts mit dem Förderband als auch bei jeder später aufsetzenden Insel. Diese Fläche wird auf das Förderband gelegt, bevor das Objekt es erreicht, sodass die Vorderkante bereits etwas Haftendes zum Festhalten hat.\n"
+"Nur für Förderbanddrucker. Verlängert den Rand entlang des Förderbands VOR das Objekt, an jeder abwärts gerichteten Kante seiner Kontaktfläche - sowohl beim ersten Kontakt des Objekts mit dem Förderband als auch bei jeder später aufsetzenden Insel. Diese Fläche wird auf das Förderband gelegt, bevor das Objekt es erreicht, sodass die Vorderkante bereits etwas Haftendes zum Festhalten hat.\n"
 "\n"
-"Gemessen auf der Förderbandoberfläche und zusätzlich zu „Randbreite“: Die Umrandung reicht „Lücke zwischen Rand und Objekt“ + „Länge der vorderen Umrandung“ + „Randbreite“ vor das Objekt. Setzen Sie „Lücke zwischen Rand und Objekt“ auf 0, sonst berührt diese Fläche das Objekt nicht, das sie verankern soll.\n"
+"Gemessen auf der Förderbandoberfläche und zusätzlich zu „Randbreite“: Der Rand reicht „Lücke zwischen Rand und Objekt“ + „Länge des vorderen Randes“ + „Randbreite“ vor das Objekt. Setzen Sie „Lücke zwischen Rand und Objekt“ auf 0, sonst berührt diese Fläche das Objekt nicht, das sie verankern soll.\n"
 "\n"
-"Auf einem geneigten Förderband legt jede Schicht einen Streifen der Umrandung, daher wird die Dicke der entstehenden Umrandungsfläche durch den Fluss und nicht durch die Schichthöhe bestimmt. Verwenden Sie „Brim-Flussverhältnis“ zur Feinabstimmung.\n"
+"Auf einem geneigten Förderband legt jede Schicht einen Streifen des Randes, daher wird die Dicke der entstehenden Randfläche durch den Fluss und nicht durch die Schichthöhe bestimmt. Verwenden Sie „Brim-Flussverhältnis“ zur Feinabstimmung.\n"
 "\n"
 "Auf 0 setzen, um zu deaktivieren."
 
 # AI Translated
 msgid "Extra brim width"
-msgstr "Zusätzliche Umrandungsbreite"
+msgstr "Zusätzliche Randbreite"
 
 # AI Translated
 msgid ""
@@ -14772,9 +14779,9 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
-"Nur für Förderbanddrucker. Verbreitert die Umrandung SEITLICH, quer zum Förderband, ohne sie weiter vor oder hinter das Objekt zu verlängern. Verwenden Sie dies, wenn ein Teil entlang seiner Länge mehr Halt braucht, als „Randbreite“ allein bietet.\n"
+"Nur für Förderbanddrucker. Verbreitert den Rand SEITLICH, quer zum Förderband, ohne ihn weiter vor oder hinter das Objekt zu verlängern. Verwenden Sie dies, wenn ein Teil entlang seiner Länge mehr Halt braucht, als „Randbreite“ allein bietet.\n"
 "\n"
-"Gemessen auf der Förderbandoberfläche und zusätzlich zu „Randbreite“: Die Umrandung reicht „Lücke zwischen Rand und Objekt“ + „Randbreite“ + „Zusätzliche Umrandungsbreite“ zu beiden Seiten des Objekts. Um die Umrandung stattdessen vor das Objekt zu verlängern, verwenden Sie „Länge der vorderen Umrandung“.\n"
+"Gemessen auf der Förderbandoberfläche und zusätzlich zu „Randbreite“: Der Rand reicht „Lücke zwischen Rand und Objekt“ + „Randbreite“ + „Zusätzliche Randbreite“ zu beiden Seiten des Objekts. Um den Rand stattdessen vor das Objekt zu verlängern, verwenden Sie „Länge des vorderen Randes“.\n"
 "\n"
 "Auf 0 setzen, um zu deaktivieren."
 
@@ -14810,8 +14817,9 @@ msgstr ""
 "\n"
 "Hinweis: Der resultierende Wert wird nicht vom Flussverhältnis der ersten Schicht beeinflusst."
 
+# AI Translated
 msgid "Brim follows compensated outline"
-msgstr "Umrandung folgt einem kompensierten Umriss"
+msgstr "Rand folgt einem kompensierten Umriss"
 
 # AI Translated
 msgid ""
@@ -14820,10 +14828,10 @@ msgid ""
 "\n"
 "If your current setup already works well, enabling it may be unnecessary and can cause the brim to fuse with upper layers."
 msgstr ""
-"Wenn diese Option aktiviert ist, wird die Umrandung an der Umfangsgeometrie der ersten Schicht ausgerichtet, nachdem der Elefantenfußausgleich angewendet wurde.\n"
+"Wenn diese Option aktiviert ist, wird der Rand an der Umfangsgeometrie der ersten Schicht ausgerichtet, nachdem der Elefantenfußausgleich angewendet wurde.\n"
 "Diese Option ist für Fälle gedacht, in denen der Elefantenfußausgleich die Grundfläche der ersten Schicht erheblich verändert.\n"
 "\n"
-"Wenn Ihre aktuelle Konfiguration bereits gut funktioniert, ist die Aktivierung möglicherweise unnötig und kann dazu führen, dass die Umrandung mit den oberen Schichten verschmilzt."
+"Wenn Ihre aktuelle Konfiguration bereits gut funktioniert, ist die Aktivierung möglicherweise unnötig und kann dazu führen, dass der Rand mit den oberen Schichten verschmilzt."
 
 msgid "Combine brims"
 msgstr "Ränder kombinieren"

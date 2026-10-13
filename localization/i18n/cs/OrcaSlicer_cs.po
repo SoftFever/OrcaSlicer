@@ -883,8 +883,9 @@ msgstr "Úhel drážky"
 msgid "Cut position"
 msgstr "Pozice řezu"
 
+# AI Translated
 msgid "Build Volume"
-msgstr "Stavební objem"
+msgstr "Tiskový objem"
 
 msgid "Multiple"
 msgstr "Více"
@@ -14113,8 +14114,9 @@ msgstr "Základní věž vyžaduje, aby podpora měla stejnou výšku vrstvy jak
 msgid "For Organic supports, two walls are supported only with the Hollow/Default base pattern."
 msgstr "U organických podpor jsou dvě stěny podporovány pouze se základním vzorem Dutý/Výchozí."
 
+# AI Translated
 msgid "The Lightning base pattern is not supported by this support type; Rectilinear will be used instead."
-msgstr "Základní vzor Lightning není tímto typem podpor podporován; místo něj bude použit vzor Přímočarý."
+msgstr "Základní vzor Blesk není tímto typem podpor podporován; místo něj bude použit vzor Přímočarý."
 
 msgid "Organic support tree tip diameter must not be smaller than support material extrusion width."
 msgstr "Průměr špičky organického podpůrného stromu nesmí být menší než šířka extruze podpůrného materiálu."
@@ -16470,8 +16472,9 @@ msgstr "Čtvrtinový kubický"
 msgid "Support Cubic"
 msgstr "Podpůrná kostka"
 
+# AI Translated
 msgid "Lightning"
-msgstr "Osvětlení"
+msgstr "Blesk"
 
 msgid "Honeycomb"
 msgstr "Včelí plástev"
@@ -17225,11 +17228,11 @@ msgstr "Úhel šikmých čar výplně. 60° vytvoří čistý šestiúhelníkov�
 
 # AI Translated
 msgid "Lightning overhang angle"
-msgstr "Úhel převisu Lightning"
+msgstr "Úhel převisu výplně Blesk"
 
 # AI Translated
 msgid "Maximum overhang angle for Lightning infill support propagation."
-msgstr "Maximální úhel převisu pro šíření opor u výplně Lightning."
+msgstr "Maximální úhel převisu pro šíření opor u výplně Blesk."
 
 # AI Translated
 msgid "Prune angle"
@@ -17240,7 +17243,7 @@ msgid ""
 "Controls how aggressively short or unsupported Lightning branches are pruned.\n"
 "This angle is converted internally to a per-layer distance."
 msgstr ""
-"Určuje, jak agresivně se prořezávají krátké nebo nepodepřené větve výplně Lightning.\n"
+"Určuje, jak agresivně se prořezávají krátké nebo nepodepřené větve výplně Blesk.\n"
 "Tento úhel se interně převádí na vzdálenost na vrstvu."
 
 # AI Translated
@@ -17249,7 +17252,7 @@ msgstr "Úhel narovnávání"
 
 # AI Translated
 msgid "Maximum straightening angle used to simplify Lightning branches."
-msgstr "Maximální úhel narovnávání použitý pro zjednodušení větví výplně Lightning."
+msgstr "Maximální úhel narovnávání použitý pro zjednodušení větví výplně Blesk."
 
 msgid "Sparse infill anchor length"
 msgstr "Délka kotvy řídké výplně"
@@ -18017,6 +18020,7 @@ msgstr "Počet stěn každé vrstvy."
 msgid "Alternate extra wall"
 msgstr "Střídavá přídavná stěna"
 
+# AI Translated
 msgid ""
 "This setting adds an extra wall to every other layer. This way the infill gets wedged vertically between the walls, resulting in stronger prints.\n"
 "\n"
@@ -18028,7 +18032,7 @@ msgstr ""
 "\n"
 "Při zapnutí této volby je třeba vypnout možnost zajištění tloušťky svislé stěny.\n"
 "\n"
-"Použití výplně lightning současně s touto volbou se nedoporučuje, protože je k dispozici omezené množství výplně pro ukotvení dalších obvodů."
+"Použití výplně Blesk současně s touto volbou se nedoporučuje, protože je k dispozici omezené množství výplně pro ukotvení dalších obvodů."
 
 msgid "If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and they can access the Orca Slicer config settings by reading environment variables."
 msgstr "Pokud chcete výstupní G-code soubor zpracovat pomocí vlastních skriptů, uveďte zde jejich absolutní cesty. Více skriptů oddělte středníkem. Skripty obdrží jako první argument absolutní cestu ke G-code souboru a ke konfiguraci Orca Sliceru mají přístup čtením prostředí."
@@ -19102,6 +19106,7 @@ msgstr "Rychlost kontaktní plochy podpěr."
 msgid "Base pattern"
 msgstr "Základní vzor"
 
+# AI Translated
 msgid ""
 "Line pattern of support.\n"
 "\n"
@@ -19113,7 +19118,7 @@ msgstr ""
 "\n"
 "Výchozí možností pro stromové podpěry je Dutý, což znamená bez základního vzoru. Pro ostatní typy podpěr je výchozí možností vzor Rektilineární.\n"
 "\n"
-"POZNÁMKA: U organických podpěr jsou obě stěny podporovány pouze pomocí dutého/výchozího základního vzoru. Základní vzor Lightning podporují pouze stromové podpěry Slim/Strong/Hybrid. U ostatních typů podpěr bude místo Lightning použit Rektilineární vzor."
+"POZNÁMKA: U organických podpěr jsou obě stěny podporovány pouze pomocí dutého/výchozího základního vzoru. Základní vzor Blesk podporují pouze stromové podpěry Slim/Strong/Hybrid. U ostatních typů podpěr bude místo vzoru Blesk použit Rektilineární vzor."
 
 msgid "Rectilinear grid"
 msgstr "Obdélníková mřížka"
@@ -19224,7 +19229,7 @@ msgstr "Nekonečná osa Y"
 
 # AI Translated
 msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
-msgstr "Zapne nekonečnou osu Y pro pásové tiskárny. Je-li povoleno, limit stavebního objemu v ose Y se fakticky odstraní, takže lze ve směru pásu tisknout objekty libovolné délky."
+msgstr "Zapne nekonečnou osu Y pro pásové tiskárny. Je-li povoleno, limit tiskového objemu v ose Y se fakticky odstraní, takže lze ve směru pásu tisknout objekty libovolné délky."
 
 # AI Translated
 msgid "Belt tilt axis"
@@ -19542,7 +19547,7 @@ msgid ""
 msgstr ""
 "Vystředí vnitřní výplň každého dílu na něj samotný, jako by byl slicován samostatně, místo na celou sestavu. Díly, které se dotýkají nebo překrývají, jsou považovány za jedno těleso a sdílejí střed; oddělené díly (nebo samostatné 3D objekty) mají každý svůj vlastní.\n"
 "Hodí se, když sestava sdružuje několik objektů, z nichž si každý má zachovat konzistentní, na sebe vystředěnou výplň.\n"
-"Adaptivní kubická a Podpůrná kostka vždy vystředí každý díl na něj samotný a výplň Osvětlení se generuje pro celý objekt, takže ji tato volba neovlivní."
+"Adaptivní kubická a Podpůrná kostka vždy vystředí každý díl na něj samotný a výplň Blesk se generuje pro celý objekt, takže ji tato volba neovlivní."
 
 # AI Translated
 msgid "Center surface pattern on"

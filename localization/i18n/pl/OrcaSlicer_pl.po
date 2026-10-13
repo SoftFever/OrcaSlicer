@@ -5038,7 +5038,7 @@ msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
-"Tratwa (raft) i osłona przeciwprzeciągowa nie są dostępne w drukarkach taśmowych.\n"
+"Tratwa i osłona przeciwprzeciągowa nie są dostępne w drukarkach taśmowych.\n"
 "Zostały wyłączone."
 
 msgid ""
@@ -12276,8 +12276,9 @@ msgstr "Junction Deviation"
 msgid "Jerk(XY)"
 msgstr "Jerk (XY)"
 
+# AI Translated
 msgid "Raft"
-msgstr "Tratwa (raft)"
+msgstr "Tratwa"
 
 msgid "Filament for Supports"
 msgstr "Filament podpory"
@@ -14145,7 +14146,7 @@ msgstr "Tryb IDEX/IQEX „%1%” drukuje za pomocą T%2%, ale filamenty tej pły
 
 # AI Translated
 msgid "Raft is not compatible with belt printer mode."
-msgstr "Tratwa (raft) nie jest zgodna z trybem drukarki taśmowej."
+msgstr "Tratwa nie jest zgodna z trybem drukarki taśmowej."
 
 # AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
@@ -16686,8 +16687,9 @@ msgstr "Linie"
 msgid "Grid"
 msgstr "Siatka"
 
+# AI Translated
 msgid "Tri-hexagon"
-msgstr "Trójkątne"
+msgstr "Trójkątno-sześciokątne"
 
 msgid "Cubic"
 msgstr "Sześcienny"
@@ -16717,8 +16719,9 @@ msgstr "Boczny plaster miodu"
 msgid "Lateral Lattice"
 msgstr "Siatka 2D"
 
+# AI Translated
 msgid "Cross Hatch"
-msgstr "Krzyżowy podparty"
+msgstr "Kreskowanie krzyżowe"
 
 msgid "TPMS-D"
 msgstr "TPMS-D"
@@ -23857,8 +23860,9 @@ msgstr "BRAK WYCISKANIA"
 msgid "s"
 msgstr "s"
 
+# AI Translated
 msgid "Volumetric speed"
-msgstr "Prędkości Przepływu"
+msgstr "Prędkość przepływu"
 
 msgid "Step file import parameters"
 msgstr "Parametry importu pliku Step"

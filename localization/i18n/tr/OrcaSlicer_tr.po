@@ -873,8 +873,9 @@ msgstr "Oluk açısı"
 msgid "Cut position"
 msgstr "Kesim konumu"
 
+# AI Translated
 msgid "Build Volume"
-msgstr "Birim oluştur"
+msgstr "Yapı hacmi"
 
 msgid "Multiple"
 msgstr "Çoklu"
@@ -13865,8 +13866,9 @@ msgstr " Hariç tutma alanına çok yakın olduğundan yazdırma sırasında ça
 msgid " is too close to clumping detection area, there may be collisions when printing."
 msgstr " topaklanma algılama alanına çok yakın, baskı sırasında çarpışmalar meydana gelebilir."
 
+# AI Translated
 msgid "Prime Tower"
-msgstr "Başbakan Kulesi"
+msgstr "Prime Kulesi"
 
 msgid " is too close to others, and collisions may be caused.\n"
 msgstr " başkalarına çok yakın olduğundan çarpışmalara neden olabilir.\n"

@@ -3448,8 +3448,9 @@ msgstr "ไม่มี ขอบยึดชิ้นงาน"
 msgid "Outer wall speed"
 msgstr "ความเร็วผนังด้านนอก"
 
+# AI Translated
 msgid "Plate"
-msgstr "ฐานพิมพ์"
+msgstr "เพลต"
 
 msgid "Brim"
 msgstr "ขอบยึดชิ้นงาน (Brim)"
@@ -4281,7 +4282,7 @@ msgstr "โปรเจกต์ล่าสุด"
 
 # AI Translated
 msgid "Go to Plate"
-msgstr "ไปที่ฐานพิมพ์"
+msgstr "ไปที่เพลต"
 
 msgid "Device"
 msgstr "อุปกรณ์"
@@ -5950,7 +5951,7 @@ msgstr "ลำดับ"
 
 # AI Translated
 msgid "Plate center of mass"
-msgstr "จุดศูนย์กลางมวลของฐานพิมพ์"
+msgstr "จุดศูนย์กลางมวลของเพลต"
 
 # AI Translated
 msgid "Part center of mass"
@@ -6633,7 +6634,7 @@ msgstr "ส่งออก G-code"
 
 # AI Translated
 msgid "Export current plate as G-code"
-msgstr "ส่งออกแผ่นปัจจุบันเป็น G-code"
+msgstr "ส่งออกเพลตปัจจุบันเป็น G-code"
 
 msgid "Export toolpaths as OBJ"
 msgstr "ส่งออกเส้นทางเครื่องมือเป็น OBJ"
@@ -7703,7 +7704,7 @@ msgstr "โปรดดู Wiki ก่อนใช้งาน ->"
 
 # AI Translated
 msgid "Plates are a filament (FFF) feature."
-msgstr "ฐานพิมพ์เป็นคุณสมบัติสำหรับการพิมพ์ด้วยเส้นพลาสติก (FFF)"
+msgstr "เพลตเป็นคุณสมบัติสำหรับการพิมพ์ด้วยเส้นพลาสติก (FFF)"
 
 # AI Translated
 msgid "Open the 3D view first."
@@ -7875,7 +7876,7 @@ msgstr "แยกเป็นชิ้นส่วน"
 
 # AI Translated
 msgid "Center Selected on Plate"
-msgstr "จัดสิ่งที่เลือกไว้กึ่งกลางฐานพิมพ์"
+msgstr "จัดสิ่งที่เลือกไว้กึ่งกลางเพลต"
 
 # AI Translated
 msgid "Drop to Bed"
@@ -7903,35 +7904,35 @@ msgstr "ปรับทิศทางอัตโนมัติ"
 
 # AI Translated
 msgid "Add Plate"
-msgstr "เพิ่มฐานพิมพ์"
+msgstr "เพิ่มเพลต"
 
 # AI Translated
 msgid "Cannot add another plate (maximum reached)."
-msgstr "ไม่สามารถเพิ่มฐานพิมพ์ได้อีก (ถึงจำนวนสูงสุดแล้ว)"
+msgstr "ไม่สามารถเพิ่มเพลตได้อีก (ถึงจำนวนสูงสุดแล้ว)"
 
 # AI Translated
 msgid "Duplicate Plate"
-msgstr "ทำซ้ำฐานพิมพ์"
+msgstr "ทำซ้ำเพลต"
 
 # AI Translated
 msgid "Cannot duplicate a plate (maximum reached)."
-msgstr "ไม่สามารถทำซ้ำฐานพิมพ์ได้ (ถึงจำนวนสูงสุดแล้ว)"
+msgstr "ไม่สามารถทำซ้ำเพลตได้ (ถึงจำนวนสูงสุดแล้ว)"
 
 # AI Translated
 msgid "Cannot delete the only plate."
-msgstr "ไม่สามารถลบฐานพิมพ์ที่มีเพียงแผ่นเดียวได้"
+msgstr "ไม่สามารถลบเพลตที่มีเพียงแผ่นเดียวได้"
 
 # AI Translated
 msgid "Rename Plate"
-msgstr "เปลี่ยนชื่อฐานพิมพ์"
+msgstr "เปลี่ยนชื่อเพลต"
 
 # AI Translated
 msgid "Toggle Plate Lock"
-msgstr "สลับการล็อกฐานพิมพ์"
+msgstr "สลับการล็อกเพลต"
 
 # AI Translated
 msgid "No plates available."
-msgstr "ไม่มีฐานพิมพ์"
+msgstr "ไม่มีเพลต"
 
 # AI Translated
 msgid "Synchronize Filament List from AMS"
@@ -8430,7 +8431,7 @@ msgstr "G-code"
 
 # AI Translated
 msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
-msgstr "ชื่อที่ใช้แสดงโหมดนี้ในตัวเลือกโหมด IDEX/IQEX ของฐานพิมพ์ จำเป็นต้องระบุ — โหมดที่ไม่มีชื่อจะเลือกไม่ได้"
+msgstr "ชื่อที่ใช้แสดงโหมดนี้ในตัวเลือกโหมด IDEX/IQEX ของเพลต จำเป็นต้องระบุ — โหมดที่ไม่มีชื่อจะเลือกไม่ได้"
 
 # AI Translated
 msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
@@ -8466,7 +8467,7 @@ msgstr "ชื่อโหมด (จำเป็น)"
 
 # AI Translated
 msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
-msgstr "ชื่อของโหมดขนานนี้ตามที่แสดงในตัวเลือกโหมด IDEX/IQEX ของฐานพิมพ์ โปรเจกต์จัดเก็บโหมดตามชื่อ ดังนั้นการเปลี่ยนชื่อโหมดที่ฐานพิมพ์ใช้อยู่จะทำให้ฐานพิมพ์เหล่านั้นกลับไปใช้โหมดหลัก (Primary) เว้นว่างไม่ได้ — ชื่อที่ว่างจะถูกแทนที่ด้วยชื่อที่สร้างขึ้นอัตโนมัติ"
+msgstr "ชื่อของโหมดขนานนี้ตามที่แสดงในตัวเลือกโหมด IDEX/IQEX ของเพลต โปรเจกต์จัดเก็บโหมดตามชื่อ ดังนั้นการเปลี่ยนชื่อโหมดที่เพลตใช้อยู่จะทำให้เพลตเหล่านั้นกลับไปใช้โหมดหลัก (Primary) เว้นว่างไม่ได้ — ชื่อที่ว่างจะถูกแทนที่ด้วยชื่อที่สร้างขึ้นอัตโนมัติ"
 
 # AI Translated
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
@@ -8520,7 +8521,7 @@ msgstr "โหมด IDEX/IQEX: %1% (คลิกซ้ายเพื่อส�
 
 # AI Translated
 msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
-msgstr "คำเตือน: ฐานพิมพ์นี้ใช้โหมดขนาน IDEX/IQEX กับวัตถุหลายวัสดุ โปรดดำเนินการด้วยความระมัดระวัง — ตรวจสอบว่า G-code ของคุณรองรับการใช้งานร่วมกันนี้อย่างถูกต้อง"
+msgstr "คำเตือน: เพลตนี้ใช้โหมดขนาน IDEX/IQEX กับวัตถุหลายวัสดุ โปรดดำเนินการด้วยความระมัดระวัง — ตรวจสอบว่า G-code ของคุณรองรับการใช้งานร่วมกันนี้อย่างถูกต้อง"
 
 msgid "Customize current plate"
 msgstr "ปรับแต่งแผ่นปัจจุบัน"
@@ -9079,7 +9080,7 @@ msgid ""
 "Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
 "\n"
 msgstr ""
-"ฐานพิมพ์ %d เปิดใช้โหมดขนาน IDEX/IQEX อยู่ และมีข้อควรระวังดังต่อไปนี้:\n"
+"เพลต %d เปิดใช้โหมดขนาน IDEX/IQEX อยู่ และมีข้อควรระวังดังต่อไปนี้:\n"
 "\n"
 
 # AI Translated
@@ -9097,7 +9098,7 @@ msgstr "ไม่ต้องแสดงคำเตือนเหล่าน
 # AI Translated
 #, c-format, boost-format
 msgid "Plate %d:\n"
-msgstr "ฐานพิมพ์ %d:\n"
+msgstr "เพลต %d:\n"
 
 # AI Translated
 msgid ""
@@ -9152,7 +9153,7 @@ msgstr ""
 
 # AI Translated
 msgid "Plate bed types reset"
-msgstr "รีเซ็ตประเภทฐานพิมพ์แล้ว"
+msgstr "รีเซ็ตประเภทฐานพิมพ์ของเพลตแล้ว"
 
 # AI Translated
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
@@ -9971,7 +9972,7 @@ msgstr "จดจำการดำเนินการพิมพ์ล่า
 
 # AI Translated
 msgid "If enabled, OrcaSlicer will remember the last selected option in the print button's dropdown (e.g. Print, Export plate sliced file, Export G-code file) and use it as the default on next startup."
-msgstr "หากเปิดใช้งาน OrcaSlicer จะจดจำตัวเลือกล่าสุดที่เลือกในเมนูดรอปดาวน์ของปุ่มพิมพ์ (เช่น พิมพ์, ส่งออกไฟล์ฐานพิมพ์ที่สไลซ์แล้ว, ส่งออกไฟล์ G-code) และใช้เป็นค่าเริ่มต้นเมื่อเปิดโปรแกรมครั้งถัดไป"
+msgstr "หากเปิดใช้งาน OrcaSlicer จะจดจำตัวเลือกล่าสุดที่เลือกในเมนูดรอปดาวน์ของปุ่มพิมพ์ (เช่น พิมพ์, ส่งออกไฟล์เพลตที่สไลซ์แล้ว, ส่งออกไฟล์ G-code) และใช้เป็นค่าเริ่มต้นเมื่อเปิดโปรแกรมครั้งถัดไป"
 
 msgid "Touchpad"
 msgstr "ทัชแพด"
@@ -12684,9 +12685,10 @@ msgstr "หลังจากทำแผนที่แล้ว"
 msgid "After overwriting"
 msgstr "หลังจากเขียนทับแล้ว"
 
+# AI Translated
 msgctxt "Sync_AMS"
 msgid "Plate"
-msgstr "ฐานพิมพ์"
+msgstr "เพลต"
 
 msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
 msgstr "เครื่องพิมพ์ที่เชื่อมต่อไม่ตรงกับเครื่องพิมพ์ที่เลือกในปัจจุบัน กรุณาเปลี่ยนเครื่องพิมพ์ที่เลือก"
@@ -13473,12 +13475,12 @@ msgstr "ไม่สามารถพิมพ์วัตถุได้ อ�
 # AI Translated
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
-msgstr "โหมด IDEX/IQEX \"%1%\" ไม่มีเครื่องมือที่กำหนดไว้บนเครื่องพิมพ์ที่เลือก จึงพิมพ์ในโหมดหลัก (Primary) แทน กำหนดเครื่องมือของโหมดนี้ใน การตั้งค่าเครื่องพิมพ์ หรือเลือกโหมดอื่นจากปุ่ม IDEX/IQEX ของฐานพิมพ์"
+msgstr "โหมด IDEX/IQEX \"%1%\" ไม่มีเครื่องมือที่กำหนดไว้บนเครื่องพิมพ์ที่เลือก จึงพิมพ์ในโหมดหลัก (Primary) แทน กำหนดเครื่องมือของโหมดนี้ใน การตั้งค่าเครื่องพิมพ์ หรือเลือกโหมดอื่นจากปุ่ม IDEX/IQEX ของเพลต"
 
 # AI Translated
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
-msgstr "ฐานพิมพ์นี้ตั้งไว้เป็นโหมด IDEX/IQEX \"%1%\" ซึ่งเครื่องพิมพ์ที่เลือกไม่ได้กำหนดไว้ จึงพิมพ์ในโหมดหลัก (Primary) แทน เลือกโหมดจากปุ่ม IDEX/IQEX ของฐานพิมพ์ หรือกู้คืนโหมดนี้ใน การตั้งค่าเครื่องพิมพ์"
+msgstr "เพลตนี้ตั้งไว้เป็นโหมด IDEX/IQEX \"%1%\" ซึ่งเครื่องพิมพ์ที่เลือกไม่ได้กำหนดไว้ จึงพิมพ์ในโหมดหลัก (Primary) แทน เลือกโหมดจากปุ่ม IDEX/IQEX ของเพลต หรือกู้คืนโหมดนี้ใน การตั้งค่าเครื่องพิมพ์"
 
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "งานพิมพ์ของคุณอยู่ใกล้กับบริเวณรองพื้นมาก ตรวจสอบให้แน่ใจว่าไม่มีการชนกัน"
@@ -13662,7 +13664,7 @@ msgstr "โหมด IDEX/IQEX ที่ใช้งานอยู่ไม่�
 
 # AI Translated
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
-msgstr "การพิมพ์หลายสีในโหมดนี้ไม่ใช่สถานการณ์การพิมพ์แบบขนาน — เครื่องมือที่ใช้งานอยู่ทั้งหมดอยู่บนแกนทรีเดียว จึงไม่มีแกนทรีที่สองที่จะทำสำเนาหรือสะท้อนแบบกระจกเงาไปยัง สลับฐานพิมพ์เป็นโหมดหลัก (Primary) เพื่อพิมพ์หลายสีบนแกนทรีเดียว หรือกำหนดโหมด IDEX/IQEX ที่มีเครื่องมือบนแกนทรีที่สอง"
+msgstr "การพิมพ์หลายสีในโหมดนี้ไม่ใช่สถานการณ์การพิมพ์แบบขนาน — เครื่องมือที่ใช้งานอยู่ทั้งหมดอยู่บนแกนทรีเดียว จึงไม่มีแกนทรีที่สองที่จะทำสำเนาหรือสะท้อนแบบกระจกเงาไปยัง สลับเพลตเป็นโหมดหลัก (Primary) เพื่อพิมพ์หลายสีบนแกนทรีเดียว หรือกำหนดโหมด IDEX/IQEX ที่มีเครื่องมือบนแกนทรีที่สอง"
 
 # AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
@@ -13671,12 +13673,12 @@ msgstr "การพิมพ์หลายสีในโหมดขนาน
 # AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr "ในโหมด Span นี้ มีเพียง %1% ที่พิมพ์สี แต่เส้นพลาสติก %2% ไม่ได้ส่งไปยังเครื่องมือใดเลย ใช้เส้นพลาสติกที่ส่งไปยัง %1% หรือสลับฐานพิมพ์นี้เป็นโหมดหลัก (Primary)"
+msgstr "ในโหมด Span นี้ มีเพียง %1% ที่พิมพ์สี แต่เส้นพลาสติก %2% ไม่ได้ส่งไปยังเครื่องมือใดเลย ใช้เส้นพลาสติกที่ส่งไปยัง %1% หรือสลับเพลตนี้เป็นโหมดหลัก (Primary)"
 
 # AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr "ในโหมด Span นี้ มีเพียง %1% ที่พิมพ์สี แต่เส้นพลาสติก %2% ถูกส่งไปยัง T%3% ใช้เส้นพลาสติกที่ส่งไปยัง %1% หรือสลับฐานพิมพ์นี้เป็นโหมดหลัก (Primary)"
+msgstr "ในโหมด Span นี้ มีเพียง %1% ที่พิมพ์สี แต่เส้นพลาสติก %2% ถูกส่งไปยัง T%3% ใช้เส้นพลาสติกที่ส่งไปยัง %1% หรือสลับเพลตนี้เป็นโหมดหลัก (Primary)"
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -13730,7 +13732,7 @@ msgstr "ไม่มีการอัดขึ้นรูปภายใต้
 
 # AI Translated
 msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
-msgstr "โหมดขนาน IDEX/IQEX ไม่รองรับเส้นพลาสติกผสม สลับฐานพิมพ์นี้เป็นโหมดหลัก (Primary)"
+msgstr "โหมดขนาน IDEX/IQEX ไม่รองรับเส้นพลาสติกผสม สลับเพลตนี้เป็นโหมดหลัก (Primary)"
 
 # AI Translated
 msgid "no configured tool"
@@ -13739,7 +13741,7 @@ msgstr "ไม่มีเครื่องมือที่กำหนดค
 # AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
-msgstr "โหมด IDEX/IQEX \"%1%\" พิมพ์ด้วย T%2% แต่เส้นพลาสติกของฐานพิมพ์นี้อยู่บน %3% กำหนดเส้นพลาสติกที่โหลดอยู่บน T%2% หรือสลับฐานพิมพ์นี้เป็นโหมดหลัก (Primary)"
+msgstr "โหมด IDEX/IQEX \"%1%\" พิมพ์ด้วย T%2% แต่เส้นพลาสติกของเพลตนี้อยู่บน %3% กำหนดเส้นพลาสติกที่โหลดอยู่บน T%2% หรือสลับเพลตนี้เป็นโหมดหลัก (Primary)"
 
 # AI Translated
 msgid "Raft is not compatible with belt printer mode."
@@ -13797,7 +13799,7 @@ msgstr "เปิดใช้งานหอไล่เส้นบนสาย
 
 # AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr "โปรเจกต์มีหอไล่เส้นบนสายพานที่ระบบจัดการอยู่หลายหอ โหลดฐานพิมพ์ใหม่ หรือปิดแล้วเปิดหอไล่เส้นบนสายพานอีกครั้งเพื่อสร้างใหม่"
+msgstr "โปรเจกต์มีหอไล่เส้นบนสายพานที่ระบบจัดการอยู่หลายหอ โหลดเพลตใหม่ หรือปิดแล้วเปิดหอไล่เส้นบนสายพานอีกครั้งเพื่อสร้างใหม่"
 
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "การเปิดใช้งานทั้งความสูง Z ที่แม่นยำและ Prime Tower อาจทำให้เกิดข้อผิดพลาดในการแบ่งส่วน"
@@ -18483,7 +18485,7 @@ msgstr "แผนผังเส้นพลาสติกของหัวพ
 
 # AI Translated
 msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr "ค่าแทนที่ต่อฐานพิมพ์ที่จับคู่หัวจริงกับช่องเส้นพลาสติก (เริ่มนับจาก 1) เว้นว่างหมายถึงใช้ค่าเริ่มต้นจาก pem-inversion"
+msgstr "ค่าแทนที่ต่อเพลตที่จับคู่หัวจริงกับช่องเส้นพลาสติก (เริ่มนับจาก 1) เว้นว่างหมายถึงใช้ค่าเริ่มต้นจาก pem-inversion"
 
 # AI Translated
 msgid "IDEX/IQEX Mode Names"
@@ -24387,11 +24389,11 @@ msgstr "พลิกภาคตัด — แสดงอีกครึ่ง�
 
 # AI Translated
 msgid "Choose how Commit to Plate sends the bodies"
-msgstr "เลือกวิธีที่คำสั่ง ส่งไปยังฐานพิมพ์ ใช้ส่งบอดี้"
+msgstr "เลือกวิธีที่คำสั่ง ส่งไปยังเพลต ใช้ส่งบอดี้"
 
 # AI Translated
 msgid "Commit to Plate"
-msgstr "ส่งไปยังฐานพิมพ์"
+msgstr "ส่งไปยังเพลต"
 
 # AI Translated
 msgid "All bodies become one object with a part per body, keeping their relative positions"
@@ -24399,7 +24401,7 @@ msgstr "บอดี้ทั้งหมดจะรวมเป็นวัต
 
 # AI Translated
 msgid "Commit to Plate (as bodies)"
-msgstr "ส่งไปยังฐานพิมพ์ (แยกตามบอดี้)"
+msgstr "ส่งไปยังเพลต (แยกตามบอดี้)"
 
 # AI Translated
 msgid "Each body becomes its own object, placed on its own"
@@ -26619,11 +26621,11 @@ msgstr "ส่งออก STEP ล้มเหลว: %s"
 
 # AI Translated
 msgid "Commit to Plate (as bodies) — send each body to Prepare as its own object"
-msgstr "ส่งไปยังฐานพิมพ์ (แยกตามบอดี้) — ส่งแต่ละบอดี้ไปยังเตรียมพิมพ์เป็นวัตถุแยกกัน"
+msgstr "ส่งไปยังเพลต (แยกตามบอดี้) — ส่งแต่ละบอดี้ไปยังเตรียมพิมพ์เป็นวัตถุแยกกัน"
 
 # AI Translated
 msgid "Commit to Plate — send the solid to Prepare"
-msgstr "ส่งไปยังฐานพิมพ์ — ส่งทรงตันไปยังเตรียมพิมพ์"
+msgstr "ส่งไปยังเพลต — ส่งทรงตันไปยังเตรียมพิมพ์"
 
 # AI Translated
 msgid "Nothing to commit — add a feature first"
@@ -27756,7 +27758,7 @@ msgstr "มุมกล้อง - ด้านขวา"
 
 # AI Translated
 msgid "Camera view - Current plate"
-msgstr "มุมมองกล้อง - ฐานพิมพ์ปัจจุบัน"
+msgstr "มุมมองกล้อง - เพลตปัจจุบัน"
 
 msgid "Zoom in"
 msgstr "ซูมเข้า"

@@ -4416,8 +4416,9 @@ msgstr "El valor d'entrada ha de ser superior a %1% i inferior a %2%"
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Factors de Calibratge de les Dinàmiques de Flux"
 
+# AI Translated
 msgid "PA Profile"
-msgstr "Perfil PA( Pressure Advance )"
+msgstr "Perfil PA (Pressure Advance)"
 
 msgid "Factor K"
 msgstr "Factor K"
@@ -5018,12 +5019,11 @@ msgid "Adjust"
 msgstr "Ajustar"
 
 # AI Translated
-# Needs human review: Here 'Vora d'Adherència' means the raft, but the glossary uses the same rendering for Brim, which stays available on belt printers; check the message is not read as the brim being disabled.
 msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
-"La Vora d'Adherència i l'escut contra corrents d'aire no estan disponibles a les impressores de cinta.\n"
+"El rai i l'escut contra corrents d'aire no estan disponibles a les impressores de cinta.\n"
 "S'han desactivat."
 
 msgid ""
@@ -5699,8 +5699,9 @@ msgstr "Sense operació"
 msgid "Retract"
 msgstr "Retracció"
 
+# AI Translated
 msgid "Unretract"
-msgstr "Sense retracció"
+msgstr "Desretracció"
 
 msgid "Seam"
 msgstr "Costura"
@@ -6262,8 +6263,9 @@ msgstr "Totes les plaques"
 msgid "Stats"
 msgstr "Estadístiques"
 
+# AI Translated
 msgid "Slice"
-msgstr "Llesca"
+msgstr "Laminar"
 
 # AI Translated
 msgid "Review"
@@ -9365,8 +9367,8 @@ msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
-"Les proves Línia PA( Pressure Advance ) i Patró PA( Pressure Advance ) encara no estan habilitades a les impressores de cinta.\n"
-"Feu servir el mètode Torre PA( Pressure Advance )."
+"Les proves Línia PA (Pressure Advance) i Patró PA (Pressure Advance) encara no estan habilitades a les impressores de cinta.\n"
+"Feu servir el mètode Torre PA (Pressure Advance)."
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -12115,8 +12117,10 @@ msgstr "Desviació de cruïlla"
 msgid "Jerk(XY)"
 msgstr "Sacsejada( XY )-Jerk( XY )"
 
+# AI Translated
+# Needs human review: Raft renamed from 'Vora d'Adherència' (the Brim term) to 'Rai'; confirm the term.
 msgid "Raft"
-msgstr "Vora d'Adherència"
+msgstr "Rai"
 
 msgid "Filament for Supports"
 msgstr "Filament de suport"
@@ -12277,8 +12281,9 @@ msgstr "La velocitat del ventilador de refrigeració de la peça serà màxima q
 msgid "Auxiliary part cooling fan"
 msgstr "Ventilador auxiliar de refrigeració de peces"
 
+# AI Translated
 msgid "Exhaust fan"
-msgstr "Ventiladord'extracció"
+msgstr "Ventilador d'extracció"
 
 msgid "During print"
 msgstr "Durant la impressió"
@@ -13970,9 +13975,8 @@ msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are o
 msgstr "El mode IDEX/IQEX \"%1%\" imprimeix amb T%2%, però els filaments d'aquesta placa són a %3%. Assigneu un filament carregat a T%2%, o canvieu aquesta placa al mode Principal (Primary)."
 
 # AI Translated
-# Needs human review: Means the raft, but the glossary renders Raft and Brim the same ('Vora d'Adherència'), and brim is supported on belt printers; check this is not read as the brim.
 msgid "Raft is not compatible with belt printer mode."
-msgstr "La Vora d'Adherència no és compatible amb el mode d'impressora de cinta."
+msgstr "El rai no és compatible amb el mode d'impressora de cinta."
 
 # AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
@@ -14086,8 +14090,9 @@ msgstr "La Torre de Purga requereix que el \"distància de suport\" sigui múlti
 msgid "A prime tower requires that all objects have the same layer height."
 msgstr "La Torre de Purga requereix que tots els objectes tinguin les mateixes alçades de capa"
 
+# AI Translated
 msgid "A prime tower requires that all objects are printed over the same number of raft layers."
-msgstr "La Torre de Purga requereix que tots els objectes s'imprimeixin sobre el mateix nombre de capes de Vora d'Adherència"
+msgstr "La Torre de Purga requereix que tots els objectes s'imprimeixin sobre el mateix nombre de capes del rai."
 
 msgid "The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance."
 msgstr "La torre de neteja només s'admet per a diversos objectes si s'imprimeixen amb el mateix support_top_z_distance"
@@ -15453,8 +15458,9 @@ msgstr "Patró de línia del farciment de la superfície superior"
 msgid "Monotonic"
 msgstr "Monotònic"
 
+# AI Translated
 msgid "Monotonic line"
-msgstr "Línia mononotònica"
+msgstr "Línia monotònica"
 
 msgid "Rectilinear"
 msgstr "Rectilini"
@@ -16499,8 +16505,9 @@ msgstr "Panal d'abella"
 msgid "3D Honeycomb"
 msgstr "Panal d'abella 3D"
 
+# AI Translated
 msgid "Lateral Honeycomb"
-msgstr "Rusc lateral"
+msgstr "Panal d'abella lateral"
 
 msgid "Lateral Lattice"
 msgstr "Gelosia 2D"
@@ -18106,32 +18113,39 @@ msgstr "Podeu posar les vostres notes sobre la impressora aquí."
 msgid "Printer variant"
 msgstr "Model d'impressora"
 
+# AI Translated
 msgid "Raft contact Z distance"
-msgstr "Distància Z de contacte de la Vora d'Adherència"
+msgstr "Distància Z de contacte del rai"
 
+# AI Translated
 msgid "Z gap between raft and object. If Support Top Z Distance is 0, this value is ignored and the object is printed in direct contact with the raft (no gap)."
-msgstr "Espai Z entre la vora d'Adherència i l'objecte. Si la distància Z superior del suport és 0, aquest valor s'ignora i l'objecte s'imprimeix en contacte directe amb la vora d'Adherència (sense espai)."
+msgstr "Espai Z entre el rai i l'objecte. Si la distància Z superior del suport és 0, aquest valor s'ignora i l'objecte s'imprimeix en contacte directe amb el rai (sense espai)."
 
+# AI Translated
 msgid "Raft expansion"
-msgstr "Expansió de la Vora d'Adherència"
+msgstr "Expansió del rai"
 
+# AI Translated
 msgid "This expands all raft layers in XY plane."
-msgstr "Expandir totes les capes de Vora d'Adherència en el pla XY"
+msgstr "Expandir totes les capes del rai en el pla XY."
 
 msgid "First layer density"
 msgstr "Densitat de la primera capa"
 
+# AI Translated
 msgid "This is the density of the first raft or support layer."
-msgstr "Densitat de la primera Vora d'Adherència o capa de suport"
+msgstr "Densitat de la primera capa del rai o de suport."
 
 msgid "First layer expansion"
 msgstr "Expansió de la primera capa"
 
+# AI Translated
 msgid "This expands the first raft or support layer to improve bed adhesion."
-msgstr "Expandir la primera Vora d'Adherència o capa de suport per millorar l'adherència de la placa d'impressió"
+msgstr "Expandir la primera capa del rai o de suport per millorar l'adherència de la placa d'impressió."
 
+# AI Translated
 msgid "Raft layers"
-msgstr "Capes de Vora d'Adherència"
+msgstr "Capes del rai"
 
 msgid "Object will be raised by this number of support layers. Use this function to avoid warping when printing ABS."
 msgstr "L'objecte serà elevat per aquest nombre de capes de suport. Utilitzar aquesta funció per evitar deformacions( warping ) quan imprimiu ABS"
@@ -19065,16 +19079,17 @@ msgstr "Distància Z inferior"
 msgid "Z gap between the object and the support bottom. If Support Top Z Distance is 0 and the bottom has interface layers, this value is ignored and the support is printed in direct contact with the object (no gap)."
 msgstr "Espai Z entre l'objecte i la part inferior del suport. Si la distància Z superior del suport és 0 i la part inferior té capes d'interfície, aquest valor s'ignora i el suport s'imprimeix en contacte directe amb l'objecte (sense espai)."
 
+# AI Translated
 msgid "Support/raft base"
-msgstr "Base del Suport/Vora d'Adherència"
+msgstr "Base del Suport/Rai"
 
 # AI Translated
 msgid ""
 "Filament to print support base and raft.\n"
 "\"Default\" means no specific filament for support and current filament is used."
 msgstr ""
-"Filament per imprimir base del suport i Vora d'Adherència.\n"
-"\"Per defecte\" significa que no s'utilitza cap filament específic per al suport i s'usarà el filament actual"
+"Filament per imprimir la base del suport i el rai.\n"
+"\"Per defecte\" significa que no s'utilitza cap filament específic per al suport i s'usarà el filament actual."
 
 msgid "Avoid interface filament for base"
 msgstr "Evitar el filament de la interfície per a la base"
@@ -19091,8 +19106,9 @@ msgstr "La interfície usa patró de bucle"
 msgid "This covers the top contact layer of the supports with loops. It is disabled by default."
 msgstr "Cobrir la capa de contacte superior dels suports amb bucles. Desactivat per defecte."
 
+# AI Translated
 msgid "Support/raft interface"
-msgstr "Interfície de Suport/Vora d'Adherència"
+msgstr "Interfície de Suport/Rai"
 
 # AI Translated
 msgid ""
@@ -21358,8 +21374,9 @@ msgstr ""
 "Quan l'opció d'escalat està activada (recomanat), es redimensiona dinàmicament per adaptar-se al diàmetre del broquet actual i a una alçada de capa adequada, cosa que fa que la prova sigui precisa i fàcil de llegir.\n"
 "Desactiveu l'escalat només si voleu imprimir el model de referència exactament tal com és."
 
+# AI Translated
 msgid "PA Calibration"
-msgstr "Calibratge PA( Pressure Advance )"
+msgstr "Calibratge PA (Pressure Advance)"
 
 msgid "Extruder type"
 msgstr "Tipus d'extrusora"
@@ -21367,23 +21384,29 @@ msgstr "Tipus d'extrusora"
 msgid "DDE"
 msgstr "DDE( Direct Drive Extruder )"
 
+# AI Translated
 msgid "PA Tower"
-msgstr "Torre PA( Pressure Advance )"
+msgstr "Torre PA (Pressure Advance)"
 
+# AI Translated
 msgid "PA Line"
-msgstr "Línia PA( Pressure Advance )"
+msgstr "Línia PA (Pressure Advance)"
 
+# AI Translated
 msgid "PA Pattern"
-msgstr "Patró PA( Pressure Advance )"
+msgstr "Patró PA (Pressure Advance)"
 
+# AI Translated
 msgid "Start PA: "
-msgstr "Inici PA( Pressure Advance ): "
+msgstr "Inici PA (Pressure Advance): "
 
+# AI Translated
 msgid "End PA: "
-msgstr "Final PA( Pressure Advance ): "
+msgstr "Final PA (Pressure Advance): "
 
+# AI Translated
 msgid "PA step: "
-msgstr "Pas de PA( Pressure Advance ): "
+msgstr "Pas de PA (Pressure Advance): "
 
 msgid "Accelerations: "
 msgstr "Acceleracions: "
@@ -21400,6 +21423,7 @@ msgstr "Llista d'acceleracions d'impressió separades per comes"
 msgid "Comma-separated list of printing speeds"
 msgstr "Llista de velocitats d'impressió separades per comes"
 
+# AI Translated
 msgid ""
 "Please input valid values:\n"
 "Start PA: >= 0.0\n"
@@ -21407,9 +21431,9 @@ msgid ""
 "PA step: >= 0.001"
 msgstr ""
 "Introduïu valors vàlids:\n"
-"Inici PA( Pressure Advance ): >= 0,0\n"
-"Final PA( Pressure Advance ): > Inici PA\n"
-"Pas de PA( Pressure Advance ): >= 0,001 )"
+"Inici PA (Pressure Advance): >= 0,0\n"
+"Final PA (Pressure Advance): > Inici PA\n"
+"Pas de PA (Pressure Advance): >= 0,001"
 
 msgid ""
 "Acceleration values must be greater than speed values.\n"
@@ -21420,7 +21444,7 @@ msgstr ""
 
 # AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr "Encara no està habilitat a les impressores de cinta — feu servir el mètode Torre PA( Pressure Advance )."
+msgstr "Encara no està habilitat a les impressores de cinta — feu servir el mètode Torre PA (Pressure Advance)."
 
 msgid "Temperature calibration"
 msgstr "Calibratge de temperatura"

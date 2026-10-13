@@ -5064,10 +5064,11 @@ msgstr ""
 
 # AI Translated
 msgid "Brim ear radius"
-msgstr "Apvado „ausies“ spindulys"
+msgstr "Krašto „ausies“ spindulys"
 
+# AI Translated
 msgid "Brim width"
-msgstr "Pado apvado plotis"
+msgstr "Krašto plotis"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional."
 msgstr "Spiralinis režimas veikia tik tada, kai sienelės kilpų skaičius yra 1, atramos išjungtos, sulipimo aptikimas zonduojant išjungtas, viršutinių apvalkalo sluoksnių yra 0, reto užpildo tankis yra 0 %, o laiko intervalų vaizdo įrašo tipas – tradicinis."
@@ -13842,11 +13843,11 @@ msgstr "Kraštas generuojamas tik tada, kai juosta pakreipta. Nustatykite juosto
 
 # AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr "Juostiniai spausdintuvai palaiko tik išorinį ir vidinį kraštą. Kraštai „Automatiškai“, „Kampų fiksatoriai („Pelės ausys“)“ ir „Piešta“ spausdinami kaip „Tik išorinis kraštas“, naudojant parinktį „Pado apvado plotis“."
+msgstr "Juostiniai spausdintuvai palaiko tik išorinį ir vidinį kraštą. Kraštai „Automatiškai“, „Kampų fiksatoriai („Pelės ausys“)“ ir „Piešta“ spausdinami kaip „Tik išorinis kraštas“, naudojant parinktį „Krašto plotis“."
 
 # AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr "„Tarpas tarp apvado ir objekto“ atskiria priekinį kraštą nuo objekto priekinės briaunos, kurią šis kraštas turi pritvirtinti. Kai naudojate parinktį „Priekinio krašto ilgis“, nustatykite tarpą lygų 0."
+msgstr "„Tarpas tarp krašto ir objekto“ atskiria priekinį kraštą nuo objekto priekinės briaunos, kurią šis kraštas turi pritvirtinti. Kai naudojate parinktį „Priekinio krašto ilgis“, nustatykite tarpą lygų 0."
 
 # AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
@@ -14875,9 +14876,9 @@ msgid ""
 msgstr ""
 "Tik juostiniams spausdintuvams. Prailgina kraštą PRIEŠ objektą išilgai juostos, ties kiekviena žemyn nukreipta jo sąlyčio srities briauna – tiek ten, kur objektas pirmą kartą paliečia juostą, tiek ties bet kuria vėliau nusileidžiančia sala. Ši prijuostė paklojama ant juostos dar prieš objektui ją pasiekiant, todėl priekinė briauna turi už ko laikytis – už jau prilipusio pagrindo.\n"
 "\n"
-"Matuojama juostos paviršiuje ir pridedama prie „Pado apvado plotis“: kraštas siekia „Tarpas tarp apvado ir objekto“ + „Priekinio krašto ilgis“ + „Pado apvado plotis“ prieš objektą. Nustatykite „Tarpas tarp apvado ir objekto“ lygų 0, kitaip prijuostė nesilies su objektu, kurį turi pritvirtinti.\n"
+"Matuojama juostos paviršiuje ir pridedama prie „Krašto plotis“: kraštas siekia „Tarpas tarp krašto ir objekto“ + „Priekinio krašto ilgis“ + „Krašto plotis“ prieš objektą. Nustatykite „Tarpas tarp krašto ir objekto“ lygų 0, kitaip prijuostė nesilies su objektu, kurį turi pritvirtinti.\n"
 "\n"
-"Ant pakreiptos juostos kiekvienas sluoksnis pakloja vieną krašto juostelę, todėl susidariusio krašto lakšto storį lemia srautas, o ne sluoksnio aukštis. Jam derinti naudokite „Apvado srauto koeficientas“.\n"
+"Ant pakreiptos juostos kiekvienas sluoksnis pakloja vieną krašto juostelę, todėl susidariusio krašto lakšto storį lemia srautas, o ne sluoksnio aukštis. Jam derinti naudokite „Krašto srauto santykis“.\n"
 "\n"
 "Nustatykite 0, kad išjungtumėte."
 
@@ -14893,31 +14894,36 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
-"Tik juostiniams spausdintuvams. Praplatina kraštą Į ŠONUS, skersai juostos, neprailgindamas jo toliau prieš objektą ar už jo. Naudokite, kai daliai reikia daugiau sukibimo per visą jos ilgį, nei suteikia vien „Pado apvado plotis“.\n"
+"Tik juostiniams spausdintuvams. Praplatina kraštą Į ŠONUS, skersai juostos, neprailgindamas jo toliau prieš objektą ar už jo. Naudokite, kai daliai reikia daugiau sukibimo per visą jos ilgį, nei suteikia vien „Krašto plotis“.\n"
 "\n"
-"Matuojama juostos paviršiuje ir pridedama prie „Pado apvado plotis“: kraštas siekia „Tarpas tarp apvado ir objekto“ + „Pado apvado plotis“ + „Papildomas krašto plotis“ į abi objekto puses. Norėdami prailginti kraštą prieš objektą, naudokite „Priekinio krašto ilgis“.\n"
+"Matuojama juostos paviršiuje ir pridedama prie „Krašto plotis“: kraštas siekia „Tarpas tarp krašto ir objekto“ + „Krašto plotis“ + „Papildomas krašto plotis“ į abi objekto puses. Norėdami prailginti kraštą prieš objektą, naudokite „Priekinio krašto ilgis“.\n"
 "\n"
 "Nustatykite 0, kad išjungtumėte."
 
+# AI Translated
 msgid "Brim type"
-msgstr "Apvado tipas"
+msgstr "Krašto tipas"
 
+# AI Translated
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
-msgstr "Valdo apvado generavimą modelio išorinėje ir (arba) vidinėje pusėje. „Auto“ režimu apvado plotis išanalizuojamas ir apskaičiuojamas automatiškai."
+msgstr "Valdo krašto generavimą modelio išorinėje ir (arba) vidinėje pusėje. „Auto“ režimu krašto plotis išanalizuojamas ir apskaičiuojamas automatiškai."
 
 # AI Translated
 msgid "Leading edge only"
 msgstr "Tik priekinė briauna"
 
+# AI Translated
 msgid "Brim-object gap"
-msgstr "Tarpas tarp apvado ir objekto"
+msgstr "Tarpas tarp krašto ir objekto"
 
 msgid "This creates a gap between the innermost brim line and the object and can make the brim easier to remove."
 msgstr "Sukuriamas tarpas tarp vidinės krašto linijos ir objekto, todėl galima lengviau jį atskirti."
 
+# AI Translated
 msgid "Brim flow ratio"
-msgstr "Apvado srauto koeficientas"
+msgstr "Krašto srauto santykis"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for brims.\n"
 "\n"
@@ -14925,53 +14931,61 @@ msgid ""
 "\n"
 "Note: The resulting value will not be affected by the first-layer flow ratio."
 msgstr ""
-"Šis koeficientas turi įtakos pado apvadų medžiagos kiekiui.\n"
+"Šis koeficientas turi įtakos kraštų medžiagos kiekiui.\n"
 "\n"
-"Faktinis apvado srautas apskaičiuojamas padauginus šią reikšmę iš gijos srauto koeficiento ir objekto srauto koeficiento (jei jis nustatytas).\n"
+"Faktinis krašto srautas apskaičiuojamas padauginus šią reikšmę iš gijos srauto santykio ir objekto srauto santykio (jei jis nustatytas).\n"
 "\n"
-"Pastaba: gautai reikšmei pirmojo sluoksnio srauto koeficientas įtakos neturės."
+"Pastaba: gautai reikšmei pirmojo sluoksnio srauto santykis įtakos neturės."
 
+# AI Translated
 msgid "Brim follows compensated outline"
-msgstr "Apvadas atitinka kompensuotą kontūrą"
+msgstr "Kraštas atitinka kompensuotą kontūrą"
 
+# AI Translated
 msgid ""
 "When enabled, the brim is aligned with the first-layer perimeter geometry after Elephant Foot Compensation is applied.\n"
 "This option is intended for cases where Elephant Foot Compensation significantly alters the first-layer footprint.\n"
 "\n"
 "If your current setup already works well, enabling it may be unnecessary and can cause the brim to fuse with upper layers."
 msgstr ""
-"Kai įjungta, apvadas sulygiuojamas su pirmojo sluoksnio perimetro geometrija jau pritaikius „Dramblio pėdos kompensaciją“ (Elephant Foot Compensation).\n"
-"\n"
+"Kai įjungta, kraštas sulygiuojamas su pirmojo sluoksnio perimetro geometrija jau pritaikius „Dramblio pėdos kompensaciją“ (Elephant Foot Compensation).\n"
 "Ši parinktis skirta atvejams, kai dramblio pėdos kompensacija stipriai keičia pirmojo sluoksnio kontūrus.\n"
 "\n"
-"Jei dabartinė sąranka veikia gerai, šios parinkties įjungti nebūtina, nes apvadas gali per stipriai susilieti su aukštesniais sluoksniais."
+"Jei dabartinė sąranka veikia gerai, šios parinkties įjungti nebūtina, nes kraštas gali per stipriai susilieti su aukštesniais sluoksniais."
 
+# AI Translated
 msgid "Combine brims"
-msgstr "Apjungti apvadus"
+msgstr "Apjungti kraštus"
 
+# AI Translated
 msgid "Combine multiple brims into one when they are close to each other. This can improve brim adhesion."
-msgstr "Apjungia kelis arti vienas kito esančius apvadus į vieną. Tai gali pagerinti apvado sukibimą su pagrindu."
+msgstr "Apjungia kelis arti vienas kito esančius kraštus į vieną. Tai gali pagerinti krašto sukibimą su pagrindu."
 
+# AI Translated
 msgid "Brim ears"
-msgstr "Apvado „ausys“ (Brim ears)"
+msgstr "Krašto „ausys“"
 
+# AI Translated
 msgid "Only draw brim over the sharp edges of the model."
-msgstr "Generuoti apvadą tik aplink aštrius modelio kampus (kraštus)."
+msgstr "Generuoti kraštą tik aplink aštrius modelio kampus."
 
+# AI Translated
 msgid "Brim ear max angle"
-msgstr "Maksimalus apvado „ausies“ kampas"
+msgstr "Maksimalus krašto „ausies“ kampas"
 
+# AI Translated
 msgid ""
 "Maximum angle to let a brim ear appear.\n"
 "If set to 0, no brim will be created.\n"
 "If set to ~180, brim will be created on everything but straight sections."
 msgstr ""
-"Maksimalus kampas, kuriam esant dar generuojama apvado „ausis“.\n"
-"Nustačius 0, apvadas nebus kuriamas.\n"
-"Nustačius ~180, apvadas bus kuriamas visur, išskyrus visiškai tiesias atkarpas."
+"Maksimalus kampas, kuriam esant dar generuojama krašto „ausis“.\n"
+"Nustačius 0, kraštas nebus kuriamas.\n"
+"Nustačius ~180, kraštas bus kuriamas visur, išskyrus visiškai tiesias atkarpas."
 
+# AI Translated
 msgid "Brim ear detection radius"
-msgstr "Apvado „ausų“ aptikimo spindulys"
+msgstr "Krašto „ausų“ aptikimo spindulys"
 
 msgid ""
 "The geometry will be decimated before detecting sharp angles. This parameter indicates the minimum length of the deviation for the decimation.\n"
@@ -14982,7 +14996,7 @@ msgstr ""
 
 # AI Translated
 msgid "Brim ears outer only"
-msgstr "Apvado „ausys“ tik išorėje"
+msgstr "Krašto „ausys“ tik išorėje"
 
 # AI Translated
 msgid "Generate mouse ears only on the outer contour of the model, excluding holes and enclosed sections."
@@ -19176,17 +19190,21 @@ msgstr "Šakų tankis"
 msgid "Adjusts the density of the support structure used to generate the tips of the branches. A higher value results in better overhangs but the supports are harder to remove, thus it is recommended to enable top support interfaces instead of a high branch density value if dense interfaces are needed."
 msgstr "Reguliuoja atraminės struktūros tankį ties šakų viršūnėmis. Didesnė reikšmė užtikrina kokybiškesnes iškyšas, tačiau tokias atramas sunkiau pašalinti. Jei reikalingas tankus kontaktas, rekomenduojama įjungti viršutinius atramų sąsajos (interface) sluoksnius, užuot nustačius didelį šakų tankį."
 
+# AI Translated
 msgid "Auto brim width"
-msgstr "Automatinis pagrindo apvado (brim) plotis"
+msgstr "Automatinis krašto plotis"
 
+# AI Translated
 msgid "Enabling this option means the width of the brim for tree support will be automatically calculated."
-msgstr "Įjungus šią parinktį, medinių atramų pagrindo apvado (brim) plotis bus apskaičiuojamas automatiškai."
+msgstr "Įjungus šią parinktį, medinių atramų krašto (brim) plotis bus apskaičiuojamas automatiškai."
 
+# AI Translated
 msgid "Tree support brim width"
-msgstr "Atraminio medžio pagrindo apvado plotis"
+msgstr "Atraminio medžio krašto plotis"
 
+# AI Translated
 msgid "Distance from tree branch to the outermost brim line."
-msgstr "Atstumas nuo medžio šakos iki tolimiausios pagrindo apvado (brim) linijos."
+msgstr "Atstumas nuo medžio šakos iki tolimiausios krašto (brim) linijos."
 
 msgid "Tip Diameter"
 msgstr "Galo skersmuo"
@@ -19459,8 +19477,9 @@ msgstr "Valymo bokšto sukimosi kampas"
 msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Valymo bokštelio sukimosi kampas X ašies atžvilgiu."
 
+# AI Translated
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
-msgstr "Valymo bokštelio pagrindo apvado (brim) plotis. Neigiama reikšmė nurodo, kad plotis bus apskaičiuojamas automatiškai pagal valymo bokštelio aukštį."
+msgstr "Valymo bokštelio krašto (brim) plotis. Neigiama reikšmė nurodo, kad plotis bus apskaičiuojamas automatiškai pagal valymo bokštelio aukštį."
 
 msgid "Stabilization cone apex angle"
 msgstr "Stabilizavimo kūgio viršūnės kampas"

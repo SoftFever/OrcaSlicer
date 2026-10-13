@@ -9312,8 +9312,8 @@ msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
-"Тести «РА лінія» та «PA Патерн» поки що недоступні на стрічкових принтерах.\n"
-"Використовуйте натомість метод «РА Вежа»."
+"Тести «PA лінія» та «PA Патерн» поки що недоступні на стрічкових принтерах.\n"
+"Використовуйте натомість метод «Вежа PA»."
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -12438,7 +12438,7 @@ msgstr "Вежа протирання"
 
 # AI Translated
 msgid "Belt purge tower"
-msgstr "Вежа очищення стрічки"
+msgstr "Вежа очищення на стрічці"
 
 msgid "Single extruder multi-material parameters"
 msgstr "Параметри екструдеру в багато-екструдерному принтері"
@@ -14035,15 +14035,15 @@ msgstr "Виявлення налипання не підтримується, �
 
 # AI Translated
 msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
-msgstr "Вежа очищення стрічки не створюється в послідовності друку «По обʼєктах»; під час зміни філаменту очищення не виконуватиметься."
+msgstr "Вежа очищення на стрічці не створюється в послідовності друку «По обʼєктах»; під час зміни філаменту очищення не виконуватиметься."
 
 # AI Translated
 msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
-msgstr "Вежу очищення стрічки увімкнено, але в проєкті немає обʼєкта вежі очищення; під час зміни філаменту очищення не виконуватиметься. Відкрийте проєкт у застосунку, щоб створити вежу."
+msgstr "Вежу очищення на стрічці увімкнено, але в проєкті немає обʼєкта вежі очищення; під час зміни філаменту очищення не виконуватиметься. Відкрийте проєкт у застосунку, щоб створити вежу."
 
 # AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr "Проєкт містить кілька керованих веж очищення стрічки. Перезавантажте пластину або вимкніть і знову увімкніть вежу очищення стрічки, щоб створити її заново."
+msgstr "Проєкт містить кілька керованих веж очищення на стрічці. Перезавантажте пластину або вимкніть і знову увімкніть вежу очищення на стрічці, щоб створити її заново."
 
 # AI Translated
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
@@ -16560,8 +16560,9 @@ msgstr "Кубічний"
 msgid "Adaptive Cubic"
 msgstr "Адаптивний кубічний"
 
+# AI Translated
 msgid "Quarter Cubic"
-msgstr "Четверть Куба"
+msgstr "Чверть куба"
 
 msgid "Support Cubic"
 msgstr "Підтримуючий кубічний"
@@ -19535,7 +19536,7 @@ msgstr "Зміщує обчислену підлогу стрічки вгору
 
 # AI Translated
 msgid "Enable belt purge tower"
-msgstr "Увімкнути вежу очищення стрічки"
+msgstr "Увімкнути вежу очищення на стрічці"
 
 # AI Translated
 # Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); 'wipe/prime tower' rendered with the catalog's 'підготовча вежа' only.
@@ -19544,12 +19545,12 @@ msgstr "Заміна підготовчої вежі для стрічкових
 
 # AI Translated
 msgid "Belt purge tower width"
-msgstr "Ширина вежі очищення стрічки"
+msgstr "Ширина вежі очищення на стрічці"
 
 # AI Translated
 # Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); 'wipe tower' rendered with the catalog's 'підготовча вежа'.
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr "Ширина (машинна вісь X, поперек стрічки) призми очищення, яка автоматично створюється на стрічкових принтерах, коли ввімкнено вежу очищення стрічки та використовується кілька філаментів. Очищення під час зміни філаменту виконується в екструзії цієї призми замість класичної підготовчої вежі. Її висота обчислюється автоматично з найбільшого обʼєму очищення на шар: ширша призма буде нижчою."
+msgstr "Ширина (машинна вісь X, поперек стрічки) призми очищення, яка автоматично створюється на стрічкових принтерах, коли ввімкнено вежу очищення на стрічці та використовується кілька філаментів. Очищення під час зміни філаменту виконується в екструзії цієї призми замість класичної підготовчої вежі. Її висота обчислюється автоматично з найбільшого обʼєму очищення на шар: ширша призма буде нижчою."
 
 msgid "Tree support branch angle"
 msgstr "Кут гілки опори дерева"
@@ -19988,11 +19989,11 @@ msgstr "Цей обʼєкт буде використаний для очище�
 
 # AI Translated
 msgid "Belt purge tower object"
-msgstr "Обʼєкт вежі очищення стрічки"
+msgstr "Обʼєкт вежі очищення на стрічці"
 
 # AI Translated
 msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
-msgstr "Позначає автоматично створену призму очищення стрічки. Керується автоматично; не встановлюйте вручну."
+msgstr "Позначає автоматично створену призму очищення на стрічці. Керується автоматично; не встановлюйте вручну."
 
 msgid "Maximal bridging distance"
 msgstr "Максимальна мостова відстань"
@@ -21552,8 +21553,9 @@ msgstr ""
 "Коли увімкнено масштабування (рекомендовано), розмір моделі динамічно підлаштовується під діаметр вашого поточного сопла та відповідну висоту шару, завдяки чому тест є точним і легко читається.\n"
 "Вимикайте масштабування, лише якщо хочете надрукувати еталонну модель точно в первісному вигляді."
 
+# AI Translated
 msgid "PA Calibration"
-msgstr "Калібрування ВТ (РА)"
+msgstr "Калібрування ВТ (PA)"
 
 msgid "Extruder type"
 msgstr "Тип екструдера"
@@ -21561,11 +21563,13 @@ msgstr "Тип екструдера"
 msgid "DDE"
 msgstr "Директ"
 
+# AI Translated
 msgid "PA Tower"
-msgstr "РА Вежа"
+msgstr "Вежа PA"
 
+# AI Translated
 msgid "PA Line"
-msgstr "РА лінія"
+msgstr "PA лінія"
 
 msgid "PA Pattern"
 msgstr "PA Патерн"
@@ -21573,8 +21577,9 @@ msgstr "PA Патерн"
 msgid "Start PA: "
 msgstr "Початкове ВТ (PA): "
 
+# AI Translated
 msgid "End PA: "
-msgstr "Кінцеве ВТ (РА): "
+msgstr "Кінцеве ВТ (PA): "
 
 msgid "PA step: "
 msgstr "Крок ВТ (PA): "
@@ -21619,7 +21624,7 @@ msgstr ""
 
 # AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr "Поки що недоступно на стрічкових принтерах — використовуйте натомість метод «РА Вежа»."
+msgstr "Поки що недоступно на стрічкових принтерах — використовуйте натомість метод «Вежа PA»."
 
 msgid "Temperature calibration"
 msgstr "Калібрування температури"

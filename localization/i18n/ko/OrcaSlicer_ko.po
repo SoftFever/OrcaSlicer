@@ -12854,8 +12854,9 @@ msgstr ""
 msgid "Extruder count"
 msgstr "익스트루더 수"
 
+# AI Translated
 msgid "Capabilities"
-msgstr "성능"
+msgstr "기능"
 
 msgid "Show all presets (including incompatible)"
 msgstr "모든 사전 설정 표시(호환되지 않는 설정 포함)"

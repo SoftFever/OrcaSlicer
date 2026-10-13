@@ -842,8 +842,9 @@ msgstr "Artekaren angelua"
 msgid "Cut position"
 msgstr "Ebaketa-kokapena"
 
+# AI Translated
 msgid "Build Volume"
-msgstr "Eraikuntza-bulomena"
+msgstr "Inprimatze-bolumena"
 
 msgid "Multiple"
 msgstr "Anitza"
@@ -5493,8 +5494,9 @@ msgstr "Pausatu inprimaketa"
 msgid "Travel"
 msgstr "Desplazamenduak"
 
+# AI Translated
 msgid "Wipe"
-msgstr "Purgak"
+msgstr "Garbiketak"
 
 msgid "Extrude"
 msgstr "Estruitu"
@@ -17884,11 +17886,13 @@ msgstr "Barruko hormetarako alaka juntura"
 msgid "Use scarf joint for inner walls as well."
 msgstr "Erabili alaka juntura barruko hormetan ere."
 
+# AI Translated
 msgid "Role base wipe speed"
-msgstr "Eginkizunaren araberako purgatze-abiadura"
+msgstr "Eginkizunaren araberako garbitze-abiadura"
 
+# AI Translated
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
-msgstr "Purgatze-abiadura uneko estrusio-eginkizunaren abiadurak zehazten du. Adibidez, purgatze-ekintza bat kanpoko hormaren estrusioaren ondoren berehala egiten bada, kanpoko hormaren estrusio-abiadura erabiliko da purgatze-ekintzarako."
+msgstr "Garbitze-abiadura uneko estrusio-eginkizunaren abiadurak zehazten du. Adibidez, garbitze-ekintza bat kanpoko hormaren estrusioaren ondoren berehala egiten bada, kanpoko hormaren estrusio-abiadura erabiliko da garbitze-ekintzarako."
 
 msgid "Wipe on loops"
 msgstr "Garbitu begiztetan"
@@ -17898,7 +17902,7 @@ msgstr "Begizta itxiko estrusio batean josturaren ikusgarritasuna minimizatzeko,
 
 # AI Translated
 msgid "Wipe inward"
-msgstr "Purgatu barrurantz"
+msgstr "Garbitu barrurantz"
 
 # AI Translated
 msgid ""
@@ -17908,15 +17912,15 @@ msgid ""
 "\n"
 "Uses the regular wipe if no adjacent inner wall is already printed (single-wall areas or Outer/Inner wall order), or if no supported inward path can be found, for example at tight corners or seam gaps."
 msgstr ""
-"Kanpoko hormei soilik aplikatzen zaie, zuloen mugak barne. Purgatzean pita beroa jada inprimatutako barruko hormetarantz mugitzen du, inprimatu berri den plastikoa berriro berotzea eta jostura-markak murrizteko.\n"
+"Kanpoko hormei soilik aplikatzen zaie, zuloen mugak barne. Garbitzean pita beroa jada inprimatutako barruko hormetarantz mugitzen du, inprimatu berri den plastikoa berriro berotzea eta jostura-markak murrizteko.\n"
 "\n"
-"Bereziki erabilgarria da 0,1 mm-tik beherako geruza-altueretan, non purgatze-markak nabarmenago ikusten diren.\n"
+"Bereziki erabilgarria da 0,1 mm-tik beherako geruza-altueretan, non garbitze-markak nabarmenago ikusten diren.\n"
 "\n"
-"Purgatze arrunta erabiltzen du ondoko barruko hormarik jada inprimatuta ez badago (horma bakarreko eremuak edo Kanpokoa/Barrukoa hormen ordena) edo euskarria duen barrurako biderik aurkitzen ez bada, adibidez izkina estuetan edo josturako hutsuneetan."
+"Garbiketa arrunta erabiltzen du ondoko barruko hormarik jada inprimatuta ez badago (horma bakarreko eremuak edo Kanpokoa/Barrukoa hormen ordena) edo euskarria duen barrurako biderik aurkitzen ez bada, adibidez izkina estuetan edo josturako hutsuneetan."
 
 # AI Translated
 msgid "Wipe inward distance"
-msgstr "Barrurako purgatze-distantzia"
+msgstr "Barrurako garbitze-distantzia"
 
 # AI Translated
 #, no-c-format, no-boost-format
@@ -17925,7 +17929,7 @@ msgid ""
 "\n"
 "For example, 50% shifts the path by half of the outer-wall width. The effective offset is limited by both the actual outer-wall width and the available spacing to the adjacent wall, so values above 100% or an equivalent absolute distance have no additional effect. Set to 0 to disable the offset."
 msgstr ""
-"Purgatze-bidea kanpoko perimetrotik zenbat desplazatzen den, milimetrotan edo kanpoko hormaren benetako estrusio-zabaleraren ehuneko gisa adierazita.\n"
+"Garbitze-bidea kanpoko perimetrotik zenbat desplazatzen den, milimetrotan edo kanpoko hormaren benetako estrusio-zabaleraren ehuneko gisa adierazita.\n"
 "\n"
 "Adibidez, 50% bideak kanpoko hormaren zabaleraren erdia desplazatzen du. Desplazamendu eraginkorra mugatuta dago bai kanpoko hormaren benetako zabaleragatik bai ondoko hormarainoko tarte erabilgarriagatik; beraz, 100% baino handiagoko balioek edo baliokidea den distantzia absolutu batek ez dute eragin gehigarririk. Ezarri 0 desplazamendua desgaitzeko."
 
@@ -17941,11 +17945,13 @@ msgstr ""
 "\n"
 "Hau erabilgarria da Kanpoko/Barruko edo Barruko/Kanpoko/Barruko horma inprimatze ordenarekin inprimatzean; izan ere, modu horietan litekeena da kanpoko perimetro bat atzera-egitea lehengoratzeko mugimendu baten ondoren berehala inprimatzea."
 
+# AI Translated
 msgid "Wipe speed"
-msgstr "Purgatze-abiadura"
+msgstr "Garbitze-abiadura"
 
+# AI Translated
 msgid "The wipe speed is determined by the speed setting specified in this configuration. If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above. The default value for this parameter is 80%."
-msgstr "Purgatze-abiadura konfigurazio honetan zehaztutako abiadura-ezarpenak zehazten du. Balioa ehuneko gisa adierazten bada (adibidez, %80), goiko mugimendu-abiaduraren ezarpenaren arabera kalkulatuko da. Parametro honen balio lehenetsia %80 da."
+msgstr "Garbitze-abiadura konfigurazio honetan zehaztutako abiadura-ezarpenak zehazten du. Balioa ehuneko gisa adierazten bada (adibidez, %80), goiko mugimendu-abiaduraren ezarpenaren arabera kalkulatuko da. Parametro honen balio lehenetsia %80 da."
 
 msgid "Skirt distance"
 msgstr "Gonaren distantzia"
@@ -19032,6 +19038,7 @@ msgstr "Honek pita azken estrusio-bidean zehar mugitzen du atzera-egitean, pitat
 msgid "Wipe distance"
 msgstr "Garbitze-distantzia"
 
+# AI Translated
 msgid ""
 "Describe how long the nozzle will move along the last path when retracting.\n"
 "\n"
@@ -19041,7 +19048,7 @@ msgid ""
 msgstr ""
 "Atzera egitean pitak azken bidean zehar zenbat mugituko den zehazten du.\n"
 "\n"
-"Purgatze-eragiketak zenbat irauten duen eta estrusorearen/filamentuaren atzera-egite ezarpenak zein azkar eta luzeak diren kontuan hartuta, baliteke atzera-egite mugimendu bat behar izatea geratzen den filamentua atzera eramateko.\n"
+"Garbiketa-eragiketak zenbat irauten duen eta estrusorearen/filamentuaren atzera-egite ezarpenak zein azkar eta luzeak diren kontuan hartuta, baliteke atzera-egite mugimendu bat behar izatea geratzen den filamentua atzera eramateko.\n"
 "\n"
 "Beheko garbitu aurreko atzera-egite kantitatearen ezarpenean balio batezarriz gero, gehiegizko atzera-egitea garbiketa baino lehen egingo da; bestela, ondoren egingo da."
 
