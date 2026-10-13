@@ -7,6 +7,7 @@ on:
      - release/*
     paths:
      - 'deps/**'
+     - 'deps_src/**'
      - 'src/**'
      - '**/CMakeLists.txt'
      - 'version.inc'
@@ -14,8 +15,10 @@ on:
      - 'resources/**'
      - ".github/workflows/build_*.yml"
      - ".github/workflows/unit_tests*.yml"
+     - 'build_linux.sh'
      - 'build_win.bat'
      - 'scripts/test_build_win.ps1'
+     - 'build_release_macos.sh'
      - 'scripts/build_preset_cache.*'
      - 'scripts/flatpak/**'
      - 'scripts/msix/**'
@@ -54,7 +57,9 @@ on:
         default: false
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  # cancel_closed_pr_builds.yml joins this group by name, so update that file
+  # with any change here.
+  group: build-all-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   # Pushes don't cancel a running build, because only a finished branch build
   # saves caches every pull request can restore.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}

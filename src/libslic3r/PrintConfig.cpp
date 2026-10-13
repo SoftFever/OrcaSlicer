@@ -274,6 +274,7 @@ static t_config_enum_values s_keys_map_WipeTowerType {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(WipeTowerType)
 
+
 static t_config_enum_values s_keys_map_FuzzySkinMode {
     { "displacement",   int(FuzzySkinMode::Displacement) },
     { "extrusion",      int(FuzzySkinMode::Extrusion) },
@@ -363,6 +364,26 @@ static t_config_enum_values s_keys_map_SurfaceFillOrder{
     { "inward",   int(SurfaceFillOrder::Inward) },
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SurfaceFillOrder)
+
+//Orca
+static t_config_enum_values s_keys_map_TpmsAdaptiveMode{
+    { "disabled",       int(TpmsAdaptiveMode::Disabled) },
+    { "distance_warp",  int(TpmsAdaptiveMode::DistanceWarp) },
+    { "smooth_blend",   int(TpmsAdaptiveMode::SmoothBlend) },
+    { "stepped_shells", int(TpmsAdaptiveMode::SteppedShells) },
+    { "lobes",          int(TpmsAdaptiveMode::Lobes) },
+    { "normal_z",       int(TpmsAdaptiveMode::NormalZ) },
+    { "normal_y",       int(TpmsAdaptiveMode::NormalY) },
+    { "normal_x",       int(TpmsAdaptiveMode::NormalX) },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TpmsAdaptiveMode)
+
+static t_config_enum_values s_keys_map_TpmsAdaptiveGradient{
+    { "linear",      int(TpmsAdaptiveGradient::Linear) },
+    { "quadratic",   int(TpmsAdaptiveGradient::Quadratic) },
+    { "exponential", int(TpmsAdaptiveGradient::Exponential) },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TpmsAdaptiveGradient)
 
 //BBS
 static t_config_enum_values s_keys_map_PrintSequence {
@@ -699,6 +720,24 @@ static const t_config_enum_values s_keys_map_FilamentMapMode = {
     { "Nozzle Manual", fmmNozzleManual }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMapMode)
+
+// IMEX: keep the legacy hyphenated wire strings so existing presets / 3MFs
+// deserialize unchanged after the coString -> coEnum migration.
+static const t_config_enum_values s_keys_map_ImexToolLayout = {
+    { "front-left",  int(ImexToolLayout::FrontLeft)  },
+    { "front-right", int(ImexToolLayout::FrontRight) },
+    { "rear-left",   int(ImexToolLayout::RearLeft)   },
+    { "rear-right",  int(ImexToolLayout::RearRight)  }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ImexToolLayout)
+
+static const t_config_enum_values s_keys_map_ImexVizTheme = {
+    { "standard",      int(ImexVizTheme::Standard)      },
+    { "deuteranopia",  int(ImexVizTheme::Deuteranopia)  },
+    { "tritanopia",    int(ImexVizTheme::Tritanopia)    },
+    { "high_contrast", int(ImexVizTheme::HighContrast)  }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ImexVizTheme)
 
 // PrimeVolumeMode. Serialized string keys must stay stable; they round-trip through .3mf.
 static const t_config_enum_values s_keys_map_PrimeVolumeMode = {
@@ -1109,6 +1148,8 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
+    // The URL is an example of the format to type, not a link, so it stays in the text.
+    // xgettext:no-url-check
     def->tooltip = L("Orca Slicer can upload G-code files to a printer host. This field should contain "
         "the hostname, IP address or URL of the printer host instance. "
         "Print host behind HAProxy with basic auth enabled can be accessed by putting the user name and password into the URL "
@@ -3619,6 +3660,73 @@ void PrintConfigDef::init_fff_params()
     def->min = 1;
     def->max = 10; // Maximum number of lines for infill pattern
     def->set_default_value(new ConfigOptionInt(1));
+
+    def             = this->add("tpms_adaptive", coEnum);
+    def->label      = L("Adaptive density (experimental)");
+    def->category   = L("Strength");
+    def->tooltip    = L("Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the "
+                        "object towards its center. The sparse infill density is used at the surface and the interior "
+                        "density at the center.\n"
+                        "Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, "
+                        "including the top and bottom, with the interior density at the point farthest from it:\n"
+                        " - Distance warp: one continuous pattern, stretched and sheared where the distance changes "
+                        "across directions, as in plates and long parts.\n"
+                        " - Smooth blend: the patterns of neighbouring densities blended into each other, with small "
+                        "loops where they meet.\n"
+                        " - Stepped shells: shells of the regular pattern at densities about 1.5 times apart, their "
+                        "lines joined along the shell boundaries.\n"
+                        " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part "
+                        "joined to the rest by a narrower neck, is graded towards its own center.\n"
+                        " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density "
+                        "does not change along it.");
+    def->enum_keys_map = &ConfigOptionEnum<TpmsAdaptiveMode>::get_enum_values();
+    def->enum_values.push_back("disabled");
+    def->enum_values.push_back("distance_warp");
+    def->enum_values.push_back("smooth_blend");
+    def->enum_values.push_back("stepped_shells");
+    def->enum_values.push_back("lobes");
+    def->enum_values.push_back("normal_z");
+    def->enum_values.push_back("normal_y");
+    def->enum_values.push_back("normal_x");
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("Distance warp"));
+    def->enum_labels.push_back(L("Smooth blend"));
+    def->enum_labels.push_back(L("Stepped shells"));
+    def->enum_labels.push_back(L("Lobes"));
+    def->enum_labels.push_back(L("Normal Z"));
+    def->enum_labels.push_back(L("Normal Y"));
+    def->enum_labels.push_back(L("Normal X"));
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<TpmsAdaptiveMode>(TpmsAdaptiveMode::Disabled));
+
+    def             = this->add("tpms_interior_density", coPercent);
+    def->label      = L("Interior density");
+    def->category   = L("Strength");
+    def->tooltip    = L("Density of the adaptive infill at the center of the object.");
+    def->sidetext   = "%";
+    def->min        = 1;
+    def->max        = 100;
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(5));
+
+    def             = this->add("tpms_adaptive_gradient", coEnum);
+    def->label      = L("Adaptive gradient");
+    def->category   = L("Strength");
+    def->tooltip    = L("How the density changes from the surface to the center of the object.\n"
+                        "Linear: the density changes at a constant rate.\n"
+                        "Quadratic: the density stays close to the sparse infill density near the surface and "
+                        "changes faster towards the center.\n"
+                        "Exponential: the density changes quickly just below the surface and levels off towards "
+                        "the center.");
+    def->enum_keys_map = &ConfigOptionEnum<TpmsAdaptiveGradient>::get_enum_values();
+    def->enum_values.push_back("linear");
+    def->enum_values.push_back("quadratic");
+    def->enum_values.push_back("exponential");
+    def->enum_labels.push_back(L("Linear"));
+    def->enum_labels.push_back(L("Quadratic"));
+    def->enum_labels.push_back(L("Exponential"));
+    def->mode       = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<TpmsAdaptiveGradient>(TpmsAdaptiveGradient::Linear));
 
     // Z-buckling bias optimization (experimental). Tightens the gyroid wave along the Z
     // (vertical) axis at low infill density to shorten the effective column length under
@@ -6817,6 +6925,139 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
+    // IDEX/IQEX (independent X extruder) — parallel printing support for IDEX/IQEX printers.
+    // Every key in this group is read at slice time from m_config, and the two per-plate process
+    // keys (imex_parallel_mode, imex_head_filament_map) round-trip through the 3MF's
+    // model_settings.config plate metadata, so none of them needs to appear in the exported
+    // g-code. They all carry non-nil defaults, so emitting them would add a line to every
+    // printer's dump. Kept out of the g-code config block (banned_keys).
+    def = this->add("is_imex", coBool);
+    def->label = L("IDEX/IQEX Printer");
+    def->tooltip = L("Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar).");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    // Firmware-managed zones: slice the primary zone's contents at bed origin (0,0)
+    // so a center-origin printer firmware can apply its own copy/mirror offsets to
+    // each toolhead. The slicer's zone overlay, placement check, and mode signaling
+    // are unchanged; only the gcode emission frame shifts.
+    def = this->add("imex_firmware_managed_zones", coBool);
+    def->label = L("Firmware-managed zones");
+    def->tooltip = L("When enabled, the slicer emits g-code with the primary zone's "
+                     "contents centered on bed origin (0,0). The printer firmware is "
+                     "responsible for placing copies/mirrors at each physical zone "
+                     "position. Enable only on printers whose firmware applies its own "
+                     "zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX "
+                     "duplication mode). Has no effect in Primary mode.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("imex_gantry_count", coInt);
+    def->label = L("Gantry Count");
+    def->tooltip = L("Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows).");
+    def->min = 1;
+    def->max = 2;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(1));
+
+    def = this->add("imex_tools_per_gantry", coInt);
+    def->label = L("Tools per Gantry");
+    def->tooltip = L("Number of independent toolheads per gantry along X. 2 for IDEX-style.");
+    def->min = 1;
+    def->max = 4;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(2));
+
+    def = this->add("imex_tool_layout", coEnum);
+    def->label = L("Tool 0 Position");
+    def->tooltip = L("Physical position on the bed where tool T0 (index 0) is located. "
+                     "Determines how tool indices map to bed zones. "
+                     "For single-gantry setups (IDEX) only left/right matters; "
+                     "for dual-gantry setups (IQEX) all four corners are selectable "
+                     "(front = lower Y / near the operator, rear = higher Y / back of machine).");
+    def->mode = comAdvanced;
+    def->enum_keys_map = &ConfigOptionEnum<ImexToolLayout>::get_enum_values();
+    def->enum_values.push_back("front-left");
+    def->enum_values.push_back("front-right");
+    def->enum_values.push_back("rear-left");
+    def->enum_values.push_back("rear-right");
+    def->enum_labels.push_back(L("Front-left"));
+    def->enum_labels.push_back(L("Front-right"));
+    def->enum_labels.push_back(L("Rear-left"));
+    def->enum_labels.push_back(L("Rear-right"));
+    def->set_default_value(new ConfigOptionEnum<ImexToolLayout>(ImexToolLayout::FrontLeft));
+
+    def = this->add("imex_nozzle_clearance_x", coFloat);
+    def->label = L("Nozzle Clearance X");
+    def->tooltip = L("Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(30.0));
+
+    def = this->add("imex_nozzle_clearance_y", coFloat);
+    def->label = L("Nozzle Clearance Y");
+    def->tooltip = L("Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(30.0));
+
+    def = this->add("imex_carriage_margin", coFloat);
+    def->label = L("Safety Margin");
+    def->tooltip = L("Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 200;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("imex_viz_theme", coEnum);
+    def->label = L("Visualization Theme");
+    def->tooltip = L("Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed.");
+    def->mode = comAdvanced;
+    def->enum_keys_map = &ConfigOptionEnum<ImexVizTheme>::get_enum_values();
+    def->enum_values.push_back("standard");
+    def->enum_values.push_back("deuteranopia");
+    def->enum_values.push_back("tritanopia");
+    def->enum_values.push_back("high_contrast");
+    def->enum_labels.push_back(L("Standard"));
+    def->enum_labels.push_back(L("Deuteranopia / Protanopia (red-green)"));
+    def->enum_labels.push_back(L("Tritanopia (blue-yellow)"));
+    def->enum_labels.push_back(L("High Contrast"));
+    def->set_default_value(new ConfigOptionEnum<ImexVizTheme>(ImexVizTheme::Standard));
+
+    def = this->add("imex_parallel_mode", coString);
+    def->label = L("IDEX/IQEX Print Mode");
+    def->tooltip = L("Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer \u2192 Multimaterial \u2192 IDEX/IQEX Configuration).");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionString("primary"));
+
+    def = this->add("imex_head_filament_map", coString);
+    def->label = L("IDEX/IQEX head filament map");
+    def->tooltip = L("Per-plate override mapping physical heads to filament slots "
+                     "(1-based). Empty means use pem-inversion defaults.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionString(""));
+
+    def = this->add("imex_mode_names", coStrings);
+    def->label = L("IDEX/IQEX Mode Names");
+    def->tooltip = L("Display names for each user-defined IDEX/IQEX parallel print mode.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("imex_mode_active_tools", coStrings);
+    def->label = L("IDEX/IQEX Mode Active Tools");
+    def->tooltip = L("Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings());
+
+    def = this->add("imex_mode_gcodes", coStrings);
+    def->label = L("IDEX/IQEX Mode G-codes");
+    def->tooltip = L("G-code or macro call to inject at print start for each mode.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionStrings());
+
     def = this->add("manual_filament_change", coBool);
     def->label = L("Manual Filament Change");
     def->tooltip = L("Enable this option to omit the custom Change filament G-code only at the beginning of the print. "
@@ -9623,6 +9864,24 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     else if (opt_key == "wall_direction" && value == "auto") {
         value = "ccw";
+    }
+    // Orca: the IDEX/IQEX parallel printing keys shipped to testers as ixex_* before the feature
+    // was renamed IMEX, and the two clearance keys were renamed again to say what they measure:
+    // nozzle to carriage edge on the collision side, not the carriage's full width. Without this
+    // an existing printer profile loses every one of these values silently.
+    // is_ixex is the master gate: without it every other key below migrates into a feature that
+    // stays switched off, which is worse than losing them all, because the settings then look
+    // configured. ixex_primary_col/_row are the only era-1 keys with no modern counterpart (the
+    // primary is a role in the mode's tools string now); they were never in an option list, so no
+    // saved file carries them, and the has() check at the end of this function drops them anyway.
+    else if (opt_key == "is_ixex") {
+        opt_key = "is_imex";
+    } else if (opt_key.compare(0, 5, "ixex_") == 0) {
+        opt_key = "imex_" + opt_key.substr(5);
+        if (opt_key == "imex_carriage_width_x")
+            opt_key = "imex_nozzle_clearance_x";
+        else if (opt_key == "imex_carriage_width_y")
+            opt_key = "imex_nozzle_clearance_y";
     }
 
     // Ignore the following obsolete configuration keys:
@@ -12607,10 +12866,11 @@ CLITransformConfigDef::CLITransformConfigDef()
     //def->cli = "orient|o";
     def->set_default_value(new ConfigOptionInt(0));
 
-    /*def = this->add("repair", coBool);
+    def = this->add("repair", coBool);
     def->label = L("Repair");
-    def->tooltip = L("Repair the model's meshes if it is non-manifold mesh.");
-    def->set_default_value(new ConfigOptionBool(false));*/
+    def->tooltip = L("Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and "
+                     "remove self-intersections.");
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("rotate", coFloat);
     def->label = L("Rotate");
@@ -12826,7 +13086,7 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def = this->add("allow_rotations", coBool);
     def->label = L("Allow rotation when arranging");
     def->tooltip = L("If enabled, Arrange will allow rotation when placing objects.");
-    def->set_default_value(new ConfigOptionBool(true));
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("align_to_y_axis", coBool);
     def->label = L("Align to Y axis when arranging");
@@ -12977,6 +13237,9 @@ OtherSlicingStatesConfigDef::OtherSlicingStatesConfigDef()
     new_def("initial_no_support_extruder", coInt, "Initial no support extruder", "Zero-based index of the first extruder used for printing without support. Same as initial_no_support_tool.");
     new_def("in_head_wrap_detect_zone", coBool, "In head wrap detect zone", "Indicates if the first layer overlaps with the head wrap zone.");
     new_def("curr_bed_type", coString, "Current bed type", "Name of the currently selected bed plate type (e.g. 'Textured PEI Plate', 'Smooth High Temp Plate').");
+    new_def("imex_mode", coString, "IDEX/IQEX active mode", "Name of the active IDEX/IQEX parallel print mode for this plate (e.g. 'primary', 'mirror', 'copy'). Empty string if IDEX/IQEX is not enabled.");
+    new_def("imex_mode_index", coInt, "IDEX/IQEX active mode index", "Zero-based index of the active IDEX/IQEX parallel print mode within imex_mode_names.");
+    new_def("imex_mode_gcode", coString, "IDEX/IQEX active mode G-code", "The raw mode G-code template for the active IDEX/IQEX parallel print mode, after placeholder evaluation. Globals defined here flow into machine_start_gcode.");
 }
 
 PrintStatisticsConfigDef::PrintStatisticsConfigDef()

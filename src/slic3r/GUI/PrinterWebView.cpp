@@ -20,6 +20,9 @@
 #include <wx/toolbar.h>
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
+#include <slic3r/GUI/Widgets/WebViewHostDialog.hpp>
+#include "I18N.hpp"
+#include <nlohmann/json.hpp>
 #include <wx/utils.h>
 #include <wx/webview.h>
 
@@ -107,6 +110,17 @@ static void inject_vue_resize_workaround(wxWebView *webView)
 }
 #endif
 
+// The strings of the page shown when the printer has no connection set up
+// (resources/web/orca/missing_connection.html), keyed by its data-i18n ids.
+static void add_page_strings(wxWebView *webView)
+{
+    const nlohmann::json strings = {
+        {"printer_connection", _u8L("Printer Connection")},
+        {"printer_connection_setup", _u8L("Please set up your printer connection to view the device.")},
+    };
+    webView->AddUserScript(wxString::FromUTF8(WebViewHostDialog::localized_strings_script(strings)));
+}
+
 PrinterWebView::PrinterWebView(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
     , m_browser(nullptr)
@@ -161,6 +175,7 @@ PrinterWebView::~PrinterWebView()
 void PrinterWebView::create_browser()
 {
     m_browser = WebView::CreateWebView(this, "");
+    add_page_strings(m_browser);
 
 #ifdef __linux__
     inject_vue_resize_workaround(m_browser);
@@ -278,6 +293,7 @@ void PrinterWebView::SendAPIKey()
     // Re-inject the vue-resize/WebKitGTK workaround that RemoveAllUserScripts just cleared.
     inject_vue_resize_workaround(m_browser);
 #endif
+    add_page_strings(m_browser);
 
     m_browser->AddUserScript(script);
     m_browser->Reload();

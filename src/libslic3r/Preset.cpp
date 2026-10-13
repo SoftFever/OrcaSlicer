@@ -1181,6 +1181,9 @@ static std::vector<std::string> s_Preset_print_options{
     "is_infill_first",
     "sparse_infill_density",
     "fill_multiline",
+    "tpms_adaptive",
+    "tpms_interior_density",
+    "tpms_adaptive_gradient",
     "gyroid_optimized",
     "sparse_infill_pattern",
     "sparse_infill_smooth_factor",
@@ -1470,6 +1473,9 @@ static std::vector<std::string> s_Preset_print_options{
     "interlocking_boundary_avoidance",
     "interlocking_beam_width",
     "calib_flowrate_topinfill_special_order",
+    // IDEX/IQEX parallel print mode (per-print selection)
+    "imex_parallel_mode",
+    "imex_head_filament_map",
     // Z Anti-Aliasing (ZAA)
     "zaa_enabled",
     "zaa_minimize_perimeter_height",
@@ -1588,6 +1594,11 @@ static std::vector<std::string> s_Preset_printer_options {
     "z_offset",
     "disable_m73", "preferred_orientation", "emit_machine_limits_to_gcode", "pellet_modded_printer", "support_multi_bed_types", "use_3mf", "default_bed_type", "bed_mesh_min","bed_mesh_max","bed_mesh_probe_distance", "adaptive_bed_mesh_margin", "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     "bed_temperature_formula", "nozzle_flush_dataset",
+    // IDEX/IQEX (independent X extruder) — printer capability and user-defined modes
+    "is_imex", "imex_firmware_managed_zones",
+    "imex_gantry_count", "imex_tools_per_gantry", "imex_tool_layout",
+    "imex_nozzle_clearance_x", "imex_nozzle_clearance_y", "imex_carriage_margin", "imex_viz_theme",
+    "imex_mode_names", "imex_mode_active_tools", "imex_mode_gcodes",
     // Multi-nozzle count + pre-heat model printer options
     "extruder_max_nozzle_count", "group_algo_with_time", "enable_pre_heating", "hotend_heating_rate", "hotend_cooling_rate",
     "machine_hotend_change_time", "machine_prepare_compensation_time",
@@ -2153,6 +2164,16 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
         DynamicPrintConfig temp_config;
         std::vector<std::string> dirty_options = preset.config.diff(parent_preset->config);
 
+        // Send the variant layout even when it matches the parent's, as the local save does: the loader
+        // sizes the per-variant values by it and would otherwise keep only the first one.
+        std::string extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+        if (!extruder_id_name.empty())
+            dirty_options.emplace_back(extruder_id_name);
+        if (!extruder_variant_name.empty())
+            dirty_options.emplace_back(extruder_variant_name);
+
         for (auto option: dirty_options)
         {
             ConfigOption *opt_src = preset.config.option(option);
@@ -2345,7 +2366,7 @@ bool PresetCollection::reset_project_embedded_presets()
     return re_select;
 }
 
-void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time)
+void PresetCollection::set_sync_info_and_save(std::string name, std::string setting_id, std::string syncinfo, long long update_time, const std::string& user_id)
 {
     lock();
     const std::string canonical_name = this->canonical_preset_name(name);
@@ -2363,7 +2384,10 @@ void PresetCollection::set_sync_info_and_save(std::string name, std::string sett
                         preset2.save_info();
                     }
             }
-            preset->setting_id = setting_id;
+            if (!setting_id.empty())
+                preset->setting_id = setting_id;
+            if (!user_id.empty())
+                preset->user_id = user_id;
             if (update_time > 0)
                 preset->updated_time = update_time;
             if (preset->sync_info == "update")
@@ -2614,15 +2638,34 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             new_config = default_preset.config;
         }
 
+        std::string extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
+        // Older uploads left out a variant layout equal to the parent's but still sent one value per
+        // parent variant. Read those values against the parent's layout instead of cutting them to one.
+        if (inherit_preset && !cloud_config.has(extruder_variant_name)) {
+            const auto  *parent_variants = inherit_preset->config.option<ConfigOptionStrings>(extruder_variant_name);
+            const size_t variant_count   = parent_variants ? parent_variants->size() : 0;
+            bool         values_per_variant = false;
+            for (const std::string &key : cloud_config.keys()) {
+                const size_t stride = key_set2->count(key) ? 2 : key_set1->count(key) ? 1 : 0;
+                const auto  *values = dynamic_cast<const ConfigOptionVectorBase *>(cloud_config.option(key));
+                if (stride > 0 && key != extruder_id_name && values && variant_count > 1 && values->size() == variant_count * stride) {
+                    values_per_variant = true;
+                    break;
+                }
+            }
+            if (values_per_variant)
+                for (const std::string &key : {extruder_id_name, extruder_variant_name})
+                    if (!key.empty() && !cloud_config.has(key) && inherit_preset->config.has(key))
+                        cloud_config.set_key_value(key, inherit_preset->config.option(key)->clone());
+        }
+
         extend_default_config_length(cloud_config, false, {});
 
-        if (inherit_preset) {
-            std::string extruder_id_name, extruder_variant_name;
-            std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
-            Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
-
+        if (inherit_preset)
             new_config.update_diff_values_to_child_config(cloud_config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
-        }
         else{
             new_config.apply(std::move(cloud_config));
             extend_default_config_length(new_config, true, default_preset.config);
@@ -2653,6 +2696,9 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             iter->base_id = based_id;
             iter->filament_id = cloud_filament_id;
             update_alias(*iter);
+            // Persist the cloud-assigned identity to disk, mirroring the equal/newer branch
+            // above; otherwise the id stays only in memory and the next launch rewrites it.
+            iter->save_info();
             //presets_loaded.emplace_back(*it->second);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", update the user preset %1% from cloud, type %2%, setting_id %3%, base_id %4%, sync_info %5% inherits %6%, filament_id %7%")
                % iter->name %Preset::get_type_string(m_type) %iter->setting_id %iter->base_id %iter->sync_info %iter->inherits() % iter->filament_id;
