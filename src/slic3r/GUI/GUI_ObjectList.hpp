@@ -1,19 +1,30 @@
 #ifndef slic3r_GUI_ObjectList_hpp_
 #define slic3r_GUI_ObjectList_hpp_
 
+#include <cstdint>
+#include <cstddef>
+#include <functional>
 #include <map>
+#include <string>
+#include <utility>
 #include <vector>
 #include <set>
 
+#include <wx/arrstr.h>
 #include <wx/bitmap.h>
 #include <wx/dataview.h>
+#include <wx/gdicmn.h>
+#include <wx/event.h>
 #include <wx/menu.h>
+#include <wx/string.h>
+#include <wx/window.h>
 
 #include "Event.hpp"
-#include "wxExtensions.hpp"
 #include "ObjectDataViewModel.hpp"
 
 #include "libslic3r/PrintConfig.hpp"
+
+class wxBitmap;
 
 class wxBoxSizer;
 class wxBitmapComboBox;
@@ -35,9 +46,6 @@ typedef std::vector<ModelVolume*>                   ModelVolumePtrs;
 typedef double                                      coordf_t;
 typedef std::pair<coordf_t, coordf_t>               t_layer_height_range;
 typedef std::map<t_layer_height_range, ModelConfig> t_layer_config_ranges;
-
-// Manifold mesh may contain self-intersections, so we want to always allow fixing the mesh.
-#define FIX_THROUGH_CGAL_ALWAYS 1
 
 namespace GUI {
 
@@ -88,7 +96,6 @@ struct MeshErrorsInfo
 class ObjectList : public wxDataViewCtrl
 {
 public:
-
     enum SELECTION_MODE
     {
         smUndef     = 0,
@@ -305,6 +312,8 @@ public:
     void                load_generic_subobject(const std::string& type_name, const ModelVolumeType type);
     void                load_shape_object(const std::string &type_name);
     void                load_mesh_object(const TriangleMesh &mesh, const wxString &name, bool center = true);
+    // One object holding one part per mesh; the parts keep their placement relative to each other.
+    void                load_mesh_object(const std::vector<std::pair<const TriangleMesh*, wxString>> &parts, const wxString &name, bool center = true);
     // BBS
     void                switch_to_object_process();
     bool                del_object(const int obj_idx, bool refresh_immediately = true);
@@ -451,6 +460,9 @@ public:
     void split_instances();
     void rename_item();
     void fix_through_cgal();
+    // Fixes every object on the selected plate, or on all plates.
+    void fix_all_through_cgal(bool all_plates);
+    void fix_through_cgal(const std::vector<int> &obj_idxs, const std::vector<int> &vol_idxs);
     void simplify();
     void smooth_mesh();
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;

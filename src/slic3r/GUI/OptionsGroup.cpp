@@ -1,5 +1,4 @@
 #include "OptionsGroup.hpp"
-#include "ConfigExceptions.hpp"
 #include "Plater.hpp"
 #include "SettingsIndex.hpp"
 #include "GUI_App.hpp"
@@ -7,25 +6,41 @@
 #include "OG_CustomCtrl.hpp"
 #include "MsgDialog.hpp"
 #include "PluginPickerDialog.hpp"
-#include "format.hpp"
 #include "Widgets/StaticLine.hpp"
 #include "Widgets/LabeledStaticBox.hpp"
 
+#include <boost/any.hpp>
 #include <boost/log/trivial.hpp>
+#include <functional>
+#include <cstddef>
+#include <iostream>
 #include <libslic3r/Config.hpp>
+#include "slic3r/GUI/Field.hpp"
+#include "libslic3r/Preset.hpp"
+#include "slic3r/GUI/Widgets/Label.hpp"
+#include "slic3r/plugin/PluginDescriptor.hpp"
+#include "slic3r/GUI/GUI.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include <slic3r/plugin/PythonPluginInterface.hpp>
+#include <string>
 #include <utility>
+#include <vector>
 #include <wx/bookctrl.h>
+#include <wx/gdicmn.h>
+#include <wx/event.h>
 #include <wx/numformatter.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include "libslic3r/Exception.hpp"
-#include "libslic3r/Utils.hpp"
-#include "libslic3r/AppConfig.hpp"
 #include "slic3r/plugin/PluginManager.hpp"
 #include "I18N.hpp"
 #include <algorithm>
 #include <locale>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/utils.h>
+#include "libslic3r/PresetBundle.hpp"
+#include "slic3r/GUI/wxExtensions.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -260,7 +275,8 @@ void OptionsGroup::append_line(const Line& line)
             const wxString leaf = (leaf_src == L_CONTEXT("Top", "Layers") || leaf_src == L_CONTEXT("Bottom", "Layers")) ?
                                       _L_CONTEXT(leaf_src, "Layers") :
                                       _(leaf_src);
-            index.set_line_label(opt.opt_id, type, Search::compose_display_label(line.label, leaf, multi));
+            index.set_line_label(opt.opt_id, type, Search::compose_display_label(line.label, leaf, multi),
+                                 Search::compose_display_label(line.label_en, from_u8(leaf_src), multi));
         }
     }
 
@@ -635,7 +651,7 @@ Line OptionsGroup::create_single_option_line(const Option& option, const std::st
 {
     wxString tooltip = _(get_formatted_tooltip_text(option.opt, option.opt_id));
 
-    Line retval{_(option.opt.label), tooltip};
+    Line retval{from_u8(option.opt.label), tooltip};
     retval.label_path = path;
     retval.append_option(option);
 
