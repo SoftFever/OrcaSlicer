@@ -6,15 +6,20 @@
 #ifndef slic3r_AABBTreeIndirect_hpp_
 #define slic3r_AABBTreeIndirect_hpp_
 
+#include <Eigen/Core>
 #include <algorithm>
+#include <cstddef>
+#include <cassert>
 #include <limits>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include <Eigen/Geometry>
 
 #include "BoundingBox.hpp"
 #include "Utils.hpp" // for next_highest_power_of_2()
+#include "libslic3r.h"
 
 // Definition of the ray intersection hit structure.
 #include <igl/Hit.h>
@@ -229,7 +234,7 @@ public:
         m_bbox(bbox.min - Point(SCALED_EPSILON, SCALED_EPSILON), bbox.max + Point(SCALED_EPSILON, SCALED_EPSILON)) {}
     size_t             idx() const { return m_idx; }
     const BoundingBox& bbox() const { return m_bbox; }
-    Point              centroid() const { return (m_bbox.min() + m_bbox.max() / 2); }
+    Point              centroid() const { return (m_bbox.min() + m_bbox.max()) / 2; }
 private:
     size_t             m_idx;
     BoundingBox		   m_bbox;
@@ -257,7 +262,7 @@ namespace detail {
 
     template<typename VertexType, typename IndexedFaceType, typename TreeType, typename VectorType>
     struct RayIntersectorHits : RayIntersector<VertexType, IndexedFaceType, TreeType, VectorType> {
-		std::vector<igl::Hit>				 hits;
+		std::vector<igl::Hit<float> >				 hits;
 	};
 
 	//FIXME implement SSE for float AABB trees with float ray queries.
@@ -397,7 +402,7 @@ namespace detail {
         RayIntersectorType 	   &ray_intersector,
         size_t 				    node_idx,
         Scalar                  min_t,
-        igl::Hit 			   &hit)
+        igl::Hit<float>		   &hit)
 	{
         const auto &node = ray_intersector.tree.node(node_idx);
         assert(node.is_valid());
@@ -414,7 +419,7 @@ namespace detail {
 		    		ray_intersector.vertices[face(0)], ray_intersector.vertices[face(1)], ray_intersector.vertices[face(2)], 
                     t, u, v, ray_intersector.eps)
 		    	&& t > 0.) {
-                hit = igl::Hit { int(node.idx), -1, float(u), float(v), float(t) };
+                hit = igl::Hit<float> { int(node.idx), -1, float(u), float(v), float(t) };
 				return true;
 		    } else
 		    	return false;
@@ -422,8 +427,8 @@ namespace detail {
 			// Left / right child node index.
 			size_t left  = node_idx * 2 + 1;
 			size_t right = left + 1;
-			igl::Hit left_hit;
-			igl::Hit right_hit;
+			igl::Hit<float> left_hit;
+			igl::Hit<float> right_hit;
 	        bool left_ret = intersect_ray_recursive_first_hit(ray_intersector, left,  min_t, left_hit);
 			if (left_ret && left_hit.t < min_t) {
 	    		min_t = left_hit.t;
@@ -459,7 +464,7 @@ namespace detail {
 		    		ray_intersector.vertices[face(0)], ray_intersector.vertices[face(1)], ray_intersector.vertices[face(2)], 
                     t, u, v, ray_intersector.eps)
 		    	&& t > 0.) {
-                ray_intersector.hits.emplace_back(igl::Hit{ int(node.idx), -1, float(u), float(v), float(t) });
+                ray_intersector.hits.emplace_back(igl::Hit<float>{ int(node.idx), -1, float(u), float(v), float(t) });
 			}
 	  	} else {
 			// Left / right child node index.
@@ -732,7 +737,7 @@ inline bool intersect_ray_first_hit(
 	// Direction of the ray.
 	const VectorType 					&dir,
 	// First intersection of the ray with the indexed triangle set.
-	igl::Hit 							&hit,
+	igl::Hit<float> 					&hit,
 	// Epsilon for the ray-triangle intersection, it should be proportional to an average triangle edge length.
 	const double 						 eps = 0.000001)
 {
@@ -764,7 +769,7 @@ inline bool intersect_ray_all_hits(
 	// Direction of the ray.
 	const VectorType 					&dir,
 	// All intersections of the ray with the indexed triangle set, sorted by parameter t.
-	std::vector<igl::Hit> 				&hits,
+	std::vector<igl::Hit<float> > 				&hits,
 	// Epsilon for the ray-triangle intersection, it should be proportional to an average triangle edge length.
 	const double 						 eps = 0.000001)
 {

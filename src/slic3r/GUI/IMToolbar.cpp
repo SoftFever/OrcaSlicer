@@ -1,9 +1,12 @@
 #include "IMToolbar.hpp"
 
 #include "3DScene.hpp"
+#include <cstdint>
 #include <glad/gl.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/imgui.h>
+#include <string>
+#include "libslic3r/Utils.hpp"
 
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
@@ -61,8 +64,6 @@ void IMToolbar::del_stats_item()
 void IMToolbar::set_enabled(bool enable)
 {
     m_enabled = enable;
-    if (!m_enabled)
-        is_render_finish = false;
 }
 
 bool IMReturnToolbar::init()

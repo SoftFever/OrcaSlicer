@@ -1,17 +1,36 @@
 #ifndef slic3r_OG_CustomCtrl_hpp_
 #define slic3r_OG_CustomCtrl_hpp_
 
+#include <wx/panel.h>
+#include <wx/gdicmn.h>
+#include <wx/dc.h>
+#include <wx/colour.h>
+#include <cstddef>
+#include <vector>
+#include <wx/event.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/settings.h>
 
 #include <map>
 #include <functional>
+#include <wx/types.h>
+#include <wx/string.h>
+#include <wx/validate.h>
 
 #include "libslic3r/Config.hpp"
-#include "libslic3r/PrintConfig.hpp"
+
+#include "slic3r/GUI/wxExtensions.hpp"
 
 #include "OptionsGroup.hpp"
-#include "I18N.hpp"
+
+class wxColour;
+class wxDC;
+class wxMouseEvent;
+class wxPaintEvent;
+class wxSizer;
+class wxWindow;
+namespace Slic3r::GUI { class Field; }
 
 // Translate the ifdef 
 #ifdef __WXOSX__
@@ -33,6 +52,8 @@ class OG_CustomCtrl :public wxPanel
 
     wxSize  m_bmp_mode_sz;
     wxSize  m_bmp_blinking_sz;
+
+    ScalableBitmap m_bmp_multi_extruder; // ORCA multi extruder icon drawn on left margin for variant options
 
     int     m_max_win_width{0};
 
@@ -64,7 +85,7 @@ class OG_CustomCtrl :public wxPanel
         void    render(wxDC& dc, wxCoord h_pos, wxCoord v_pos);
         wxCoord draw_text      (wxDC& dc, wxPoint pos, const wxString& text, const wxColour* color, int width, bool is_url = false, bool is_main = false);
         wxPoint draw_blinking_bmp(wxDC& dc, wxPoint pos, bool is_blinking);
-        wxPoint draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id = 0);
+        wxPoint draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id = 0, bool is_main = false);
         wxCoord draw_edit_bmp(wxDC& dc, wxPoint pos, const wxBitmap& bmp_edit);
         bool    launch_browser() const;
         bool    is_separator() const { return og_line.is_separator(); }

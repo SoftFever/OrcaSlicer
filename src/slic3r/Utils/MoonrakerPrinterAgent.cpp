@@ -1,25 +1,57 @@
 #include "MoonrakerPrinterAgent.hpp"
 #include "Http.hpp"
+#include "IPrinterAgent.hpp"
+#include "NetworkAgentFactory.hpp"
+#include "bambu_networking.hpp"
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "../GUI/DeviceCore/DevStorage.h"
 #include "../GUI/DeviceCore/DevFirmware.h"
 #include "nlohmann/json.hpp"
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/asio/buffer.hpp>
 #include <boost/asio/connect.hpp>
+#include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
+#include <boost/beast/core/tcp_stream.hpp>
+#include <boost/beast/http/field.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+#include <boost/beast/core/error.hpp>
+#include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/websocket.hpp>
+#include <boost/beast/websocket/stream.hpp>
+#include <boost/beast/websocket/stream_base.hpp>
+#include <boost/beast/websocket/rfc6455.hpp>
+#include <boost/beast/websocket/error.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cctype>
+#include <ios>
+#include <functional>
+#include <exception>
+#include <map>
+#include <string>
+#include <mutex>
+#include <memory>
+#include <sstream>
+#include <set>
 #include <thread>
+#include <vector>
+#include <utility>
 
 namespace {
 
@@ -111,7 +143,7 @@ MoonrakerPrinterAgent::~MoonrakerPrinterAgent()
 
 AgentInfo MoonrakerPrinterAgent::get_agent_info_static()
 {
-    return AgentInfo{"moonraker", "Moonraker", MoonrakerPrinterAgent_VERSION, "Klipper/Moonraker printer agent"};
+    return AgentInfo{MOONRAKER_PRINTER_AGENT_ID, "Moonraker", MoonrakerPrinterAgent_VERSION, "Klipper/Moonraker printer agent"};
 }
 
 void MoonrakerPrinterAgent::set_cloud_agent(std::shared_ptr<ICloudServiceAgent> cloud)
@@ -134,9 +166,9 @@ int MoonrakerPrinterAgent::send_message_to_printer(std::string dev_id, std::stri
     return handle_request(dev_id, json_str);
 }
 
-int MoonrakerPrinterAgent::connect_printer(std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl)
+int MoonrakerPrinterAgent::connect_printer(const PrinterConnectionParams& params)
 {
-    if (dev_id.empty() || dev_ip.empty()) {
+    if (params.dev_id.empty() || params.host.empty()) {
         BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: connect_printer missing dev_id or dev_ip";
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
@@ -146,7 +178,7 @@ int MoonrakerPrinterAgent::connect_printer(std::string dev_id, std::string dev_i
     uint64_t gen;
     {
         std::lock_guard<std::recursive_mutex> lock(connect_mutex);
-        init_device_info(dev_id, dev_ip, username, password, use_ssl);
+        init_device_info(params.dev_id, params.host, params.username, params.password, params.use_ssl, params.port);
         gen = ++connect_generation;
         base_url = device_info.base_url;
         api_key  = device_info.api_key;
@@ -168,7 +200,7 @@ int MoonrakerPrinterAgent::connect_printer(std::string dev_id, std::string dev_i
     // Launch connection in background thread (capture by value to avoid data races)
     {
         std::lock_guard<std::recursive_mutex> lock(connect_mutex);
-        connect_thread = std::thread([this, dev_id, base_url, api_key, gen]() { perform_connection_async(dev_id, base_url, api_key, gen); });
+        connect_thread = std::thread([this, dev_id = params.dev_id, base_url, api_key, gen]() { perform_connection_async(dev_id, base_url, api_key, gen); });
     }
 
     return BAMBU_NETWORK_SUCCESS;
@@ -189,14 +221,6 @@ int MoonrakerPrinterAgent::disconnect_printer()
     return BAMBU_NETWORK_SUCCESS;
 }
 
-int MoonrakerPrinterAgent::check_cert() { return BAMBU_NETWORK_SUCCESS; }
-
-void MoonrakerPrinterAgent::install_device_cert(std::string dev_id, bool lan_only)
-{
-    (void) dev_id;
-    (void) lan_only;
-}
-
 bool MoonrakerPrinterAgent::start_discovery(bool start, bool sending)
 {
     (void) sending;
@@ -206,12 +230,6 @@ bool MoonrakerPrinterAgent::start_discovery(bool start, bool sending)
     return true;
 }
 
-int MoonrakerPrinterAgent::ping_bind(std::string ping_code)
-{
-    (void) ping_code;
-    return BAMBU_NETWORK_SUCCESS;
-}
-
 int MoonrakerPrinterAgent::bind_detect(std::string dev_ip, std::string sec_link, detectResult& detect)
 {
     (void) sec_link;
@@ -219,37 +237,12 @@ int MoonrakerPrinterAgent::bind_detect(std::string dev_ip, std::string sec_link,
     detect.dev_id   = device_info.dev_id.empty() ? dev_ip : device_info.dev_id;
     detect.model_id = device_info.model_id.empty() ? device_info.model_name : device_info.model_id;
     // Prefer fetched hostname, then preset model name, then generic fallback
-    detect.dev_name     = device_info.dev_name;
+    detect.dev_name     = device_info.dev_name.empty() ? dev_ip : device_info.dev_name;
     detect.model_id     = device_info.model_id;
     detect.version      = device_info.version;
     detect.connect_type = "lan";
     detect.bind_state   = "free";
 
-    return BAMBU_NETWORK_SUCCESS;
-}
-
-int MoonrakerPrinterAgent::bind(
-    std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn)
-{
-    (void) dev_ip;
-    (void) dev_id;
-    (void) sec_link;
-    (void) timezone;
-    (void) improved;
-    (void) update_fn;
-    return BAMBU_NETWORK_SUCCESS;
-}
-
-int MoonrakerPrinterAgent::unbind(std::string dev_id)
-{
-    (void) dev_id;
-    return BAMBU_NETWORK_SUCCESS;
-}
-
-int MoonrakerPrinterAgent::request_bind_ticket(std::string* ticket)
-{
-    if (ticket)
-        *ticket = "";
     return BAMBU_NETWORK_SUCCESS;
 }
 
@@ -302,7 +295,7 @@ int MoonrakerPrinterAgent::start_send_gcode_to_sdcard(PrintParams      params,
     (void) wait_fn;
 
     if (update_fn)
-        update_fn(PrintingStageCreate, 0, "Preparing...");
+        update_fn(PrintingStageCreate, 0, _u8L("Preparing..."));
 
     std::string filename = params.filename;
     if (filename.empty()) {
@@ -321,14 +314,14 @@ int MoonrakerPrinterAgent::start_send_gcode_to_sdcard(PrintParams      params,
     }
 
     if (update_fn)
-        update_fn(PrintingStageFinished, 100, "File uploaded");
+        update_fn(PrintingStageFinished, 100, _u8L("File uploaded"));
     return BAMBU_NETWORK_SUCCESS;
 }
 
 int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
 {
     if (update_fn)
-        update_fn(PrintingStageCreate, 0, "Preparing...");
+        update_fn(PrintingStageCreate, 0, _u8L("Preparing..."));
 
     // Check cancellation
     if (cancel_fn && cancel_fn()) {
@@ -359,7 +352,7 @@ int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusF
 
     // Upload file
     if (update_fn)
-        update_fn(PrintingStageUpload, 0, "Uploading G-code...");
+        update_fn(PrintingStageUpload, 0, _u8L("Uploading G-code..."));
     if (!upload_gcode(gcode_path, upload_filename, device_info.base_url, device_info.api_key, update_fn, cancel_fn)) {
         return BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED;
     }
@@ -371,14 +364,14 @@ int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusF
 
     // Start print via gcode script (simpler than JSON-RPC)
     if (update_fn)
-        update_fn(PrintingStageSending, 0, "Starting print...");
+        update_fn(PrintingStageSending, 0, _u8L("Starting print..."));
     std::string gcode = "SDCARD_PRINT_FILE FILENAME=" + upload_filename;
-    if (!send_gcode(device_info.dev_id, gcode)) {
+    if (!send_gcode_sync(device_info.dev_id, gcode)) {
         return BAMBU_NETWORK_ERR_PRINT_LP_PUBLISH_MSG_FAILED;
     }
 
     if (update_fn)
-        update_fn(PrintingStageFinished, 100, "Print started");
+        update_fn(PrintingStageFinished, 100, _u8L("Print started"));
     return BAMBU_NETWORK_SUCCESS;
 }
 
@@ -536,7 +529,7 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
     print_json["ams"] = ams_json;
 
     // Call the parser to populate DevFilaSystem
-    DevFilaSystemParser::ParseV1_0(print_json, obj, obj->GetFilaSystem(), false);
+    DevFilaSystemParser::ParseV1_0(print_json, obj, obj->GetFilaSystem().get(), false);
     BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::build_ams_payload: Parsed " << trays.size() << " trays";
 
     // Set printer_type so update_sync_status() can match it against the preset's printer type.
@@ -566,7 +559,7 @@ void MoonrakerPrinterAgent::build_ams_payload(int ams_count, int max_lane_index,
     }
 }
 
-bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id)
+bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSyncMode /*sync_mode*/)
 {
     std::vector<AmsTrayData> trays;
     int max_lane_index = 0;
@@ -609,51 +602,70 @@ std::string MoonrakerPrinterAgent::map_filament_type_to_generic_id(const std::st
 {
     const std::string upper = trim_and_upper(filament_type);
 
-    // Map to OrcaFilamentLibrary preset IDs (compatible with all printers)
-    // Source: resources/profiles/OrcaFilamentLibrary/filament/
+    // Normalize reported material names (trimmed, uppercased) to an OrcaFilamentLibrary
+    // generic family. The family's filament_id is resolved from the loaded system presets
+    // below rather than hardcoded, so profile id re-mints never require touching this table.
+    // scripts/test_moonraker_lane_data.py parses this initializer; keep the {"A", "B"} format.
+    static const std::map<std::string, std::string> type_to_ofl_family = {
+        // PLA variants
+        {"PLA", "PLA"},
+        {"PLA-CF", "PLA-CF"},
+        {"PLA SILK", "PLA Silk"},
+        {"PLA-SILK", "PLA Silk"},
+        {"PLA HIGH SPEED", "PLA High Speed"},
+        {"PLA-HS", "PLA High Speed"},
+        {"PLA HS", "PLA High Speed"},
 
-    // PLA variants
-    if (upper == "PLA")           return "OGFL99";
-    if (upper == "PLA-CF")        return "OGFL98";
-    if (upper == "PLA SILK" || upper == "PLA-SILK") return "OGFL96";
-    if (upper == "PLA HIGH SPEED" || upper == "PLA-HS" || upper == "PLA HS") return "OGFL95";
+        // ABS/ASA variants
+        {"ABS", "ABS"},
+        {"ASA", "ASA"},
 
-    // ABS/ASA variants
-    if (upper == "ABS")           return "OGFB99";
-    if (upper == "ASA")           return "OGFB98";
+        // PETG/PET variants
+        {"PETG", "PETG"},
+        {"PET", "PETG"},
+        {"PCTG", "PCTG"},
 
-    // PETG/PET variants
-    if (upper == "PETG" || upper == "PET") return "OGFG99";
-    if (upper == "PCTG")          return "OGFG97";
+        // PA/Nylon variants
+        {"PA", "PA"},
+        {"NYLON", "PA"},
+        {"PA-CF", "PA-CF"},
+        {"PPA", "PPA-CF"},
+        {"PPA-CF", "PPA-CF"},
+        {"PPA-GF", "PPA-GF"},
 
-    // PA/Nylon variants
-    if (upper == "PA" || upper == "NYLON") return "OGFN99";
-    if (upper == "PA-CF")         return "OGFN98";
-    if (upper == "PPA" || upper == "PPA-CF") return "OGFN97";
-    if (upper == "PPA-GF")        return "OGFN96";
+        // PC variants
+        {"PC", "PC"},
 
-    // PC variants
-    if (upper == "PC")            return "OGFC99";
+        // PP/PE variants
+        {"PE", "PE"},
+        {"PP", "PP"},
 
-    // PP/PE variants
-    if (upper == "PE")            return "OGFP99";
-    if (upper == "PP")            return "OGFP97";
+        // Support materials
+        {"PVA", "PVA"},
+        {"HIPS", "HIPS"},
+        {"BVOH", "BVOH"},
 
-    // Support materials
-    if (upper == "PVA")           return "OGFS99";
-    if (upper == "HIPS")          return "OGFS98";
-    if (upper == "BVOH")          return "OGFS97";
+        // TPU variants
+        {"TPU", "TPU"},
 
-    // TPU variants
-    if (upper == "TPU")           return "OGFU99";
+        // Other materials
+        {"EVA", "EVA"},
+        {"PHA", "PHA"},
+        {"COPE", "CoPE"},
+        {"SBS", "SBS"},
+    };
 
-    // Other materials
-    if (upper == "EVA")           return "OGFR99";
-    if (upper == "PHA")           return "OGFR98";
-    if (upper == "COPE")          return "OGFLC99";
-    if (upper == "SBS")           return "OFLSBS99";
+    auto it = type_to_ofl_family.find(upper);
+    if (it == type_to_ofl_family.end())
+        return UNKNOWN_FILAMENT_ID;
 
-    // Unknown material
+    if (auto* bundle = GUI::wxGetApp().preset_bundle) {
+        const Preset* preset = bundle->filaments.find_preset("Generic " + it->second + " @System");
+        if (preset != nullptr && preset->is_system && !preset->filament_id.empty())
+            return preset->filament_id;
+    }
+
+    // Unknown material, or no loaded preset data to resolve against
     return UNKNOWN_FILAMENT_ID;
 }
 
@@ -1004,14 +1016,11 @@ int MoonrakerPrinterAgent::handle_request(const std::string& dev_id, const std::
             }
             response["print"]["param"] = gcode;
 
-            if (send_gcode(dev_id, gcode)) {
-                response["print"]["result"] = "success";
+            send_gcode_async(dev_id, gcode, [this, dev_id, response](bool success) mutable {
+                response["print"]["result"] = success ? "success" : "failed";
                 dispatch_message(dev_id, response.dump());
-                return BAMBU_NETWORK_SUCCESS;
-            }
-            response["print"]["result"] = "failed";
-            dispatch_message(dev_id, response.dump());
-            return BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED;
+            });
+            return BAMBU_NETWORK_SUCCESS;
         }
 
         // Print control commands
@@ -1030,7 +1039,7 @@ int MoonrakerPrinterAgent::handle_request(const std::string& dev_id, const std::
             if (json["print"].contains("temp") && json["print"]["temp"].is_number()) {
                 int         temp  = json["print"]["temp"].get<int>();
                 std::string gcode = "SET_HEATER_TEMPERATURE HEATER=heater_bed TARGET=" + std::to_string(temp);
-                send_gcode(dev_id, gcode);
+                send_gcode_async(dev_id, gcode);
                 return BAMBU_NETWORK_SUCCESS;
             }
         }
@@ -1045,20 +1054,21 @@ int MoonrakerPrinterAgent::handle_request(const std::string& dev_id, const std::
                 }
                 std::string heater = (extruder_idx == 0) ? "extruder" : "extruder" + std::to_string(extruder_idx);
                 std::string gcode  = "SET_HEATER_TEMPERATURE HEATER=" + heater + " TARGET=" + std::to_string(temp);
-                send_gcode(dev_id, gcode);
+                send_gcode_async(dev_id, gcode);
                 return BAMBU_NETWORK_SUCCESS;
             }
         }
 
         if (cmd == "home") {
-            return send_gcode(dev_id, "G28") ? BAMBU_NETWORK_SUCCESS : BAMBU_NETWORK_ERR_SEND_MSG_FAILED;
+            send_gcode_async(dev_id, "G28");
+            return BAMBU_NETWORK_SUCCESS;
         }
     }
 
     return BAMBU_NETWORK_SUCCESS;
 }
 
-bool MoonrakerPrinterAgent::init_device_info(std::string dev_id, std::string dev_ip, std::string username, std::string password, bool use_ssl)
+bool MoonrakerPrinterAgent::init_device_info(const std::string& dev_id, const std::string& dev_ip, const std::string& username, const std::string& password, bool use_ssl, const std::string& port)
 {
     device_info         = MoonrakerDeviceInfo{};
     auto* preset_bundle = GUI::wxGetApp().preset_bundle;
@@ -1068,12 +1078,12 @@ bool MoonrakerPrinterAgent::init_device_info(std::string dev_id, std::string dev
 
     auto&       preset      = preset_bundle->printers.get_edited_preset();
     const auto& printer_cfg = preset.config;
-    device_info.dev_ip      = dev_ip;
 
+    device_info.dev_ip     = dev_ip;
     device_info.api_key    = password;
     device_info.model_name = printer_cfg.opt_string("printer_model");
     device_info.model_id   = preset.get_printer_type(preset_bundle);
-    device_info.base_url   = use_ssl ? "https://" + dev_ip : "http://" + dev_ip;
+    device_info.base_url   = normalize_base_url(use_ssl, dev_ip, port);
     device_info.dev_id     = dev_id;
     device_info.version    = "";
     device_info.dev_name   = device_info.dev_id;
@@ -1193,7 +1203,45 @@ bool MoonrakerPrinterAgent::query_printer_status(const std::string& base_url,
     return true;
 }
 
-bool MoonrakerPrinterAgent::send_gcode(const std::string& dev_id, const std::string& gcode) const
+void MoonrakerPrinterAgent::send_gcode_async(const std::string& dev_id, const std::string& gcode,
+                                             std::function<void(bool)> on_result) const
+{
+    (void) dev_id;
+    const std::string base_url = device_info.base_url;
+    const std::string api_key  = device_info.api_key;
+    auto http = Http::post(join_url(base_url, "/printer/gcode/script"));
+    if (!api_key.empty()) {
+        http.header("X-Api-Key", api_key);
+    }
+    http.header("Content-Type", "application/json")
+        .set_post_body(nlohmann::json{{"script", gcode}}.dump())
+        .timeout_connect(5)
+        .timeout_max(10)
+        .on_complete([on_result](std::string body, unsigned status_code) {
+            (void) body;
+            const bool success = status_code == 200;
+            if (!success) {
+                BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: send_gcode failed: HTTP error " << status_code;
+            }
+            if (on_result) {
+                on_result(success);
+            }
+        })
+        .on_error([on_result](std::string body, std::string err, unsigned status_code) {
+            (void) body;
+            std::string error = err;
+            if (status_code > 0) {
+                error += " (HTTP " + std::to_string(status_code) + ")";
+            }
+            BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: send_gcode failed: " << error;
+            if (on_result) {
+                on_result(false);
+            }
+        })
+        .perform();
+}
+
+bool MoonrakerPrinterAgent::send_gcode_sync(const std::string& dev_id, const std::string& gcode) const
 {
     nlohmann::json payload;
     payload["script"]       = gcode;
@@ -1325,7 +1373,7 @@ void MoonrakerPrinterAgent::announce_printhost_device()
     {
         std::lock_guard<std::recursive_mutex> lock(state_mutex);
         ssdp_fn = on_ssdp_msg_fn;
-        if (!ssdp_fn) {
+        if (!ssdp_fn || device_info.dev_id.empty() || device_info.dev_ip.empty() || device_info.base_url.empty()) {
             return;
         }
         if (ssdp_announced_host == device_info.base_url && !ssdp_announced_id.empty()) {
@@ -1345,12 +1393,6 @@ void MoonrakerPrinterAgent::announce_printhost_device()
     }
 
     const std::string model_id = device_info.model_id;
-
-    if (auto* app_config = GUI::wxGetApp().app_config) {
-        const std::string access_code = device_info.api_key.empty() ? "88888888" : device_info.api_key;
-        app_config->set_str("access_code", device_info.dev_id, access_code);
-        app_config->set_str("user_access_code", device_info.dev_id, access_code);
-    }
 
     nlohmann::json payload;
     payload["dev_name"]     = dev_name;
@@ -1984,7 +2026,7 @@ bool MoonrakerPrinterAgent::upload_gcode(const std::string& local_path,
             // Report progress via OnUpdateStatusFn
             if (update_fn && progress.ultotal > 0) {
                 int percent = static_cast<int>((progress.ulnow * 100) / progress.ultotal);
-                update_fn(PrintingStageUpload, percent, "Uploading...");
+                update_fn(PrintingStageUpload, percent, _u8L("Uploading..."));
             }
         })
         .perform_sync();
@@ -1999,17 +2041,20 @@ bool MoonrakerPrinterAgent::upload_gcode(const std::string& local_path,
 
 int MoonrakerPrinterAgent::pause_print(const std::string& dev_id)
 {
-    return send_gcode(dev_id, "PAUSE") ? BAMBU_NETWORK_SUCCESS : BAMBU_NETWORK_ERR_SEND_MSG_FAILED;
+    send_gcode_async(dev_id, "PAUSE");
+    return BAMBU_NETWORK_SUCCESS;
 }
 
 int MoonrakerPrinterAgent::resume_print(const std::string& dev_id)
 {
-    return send_gcode(dev_id, "RESUME") ? BAMBU_NETWORK_SUCCESS : BAMBU_NETWORK_ERR_SEND_MSG_FAILED;
+    send_gcode_async(dev_id, "RESUME");
+    return BAMBU_NETWORK_SUCCESS;
 }
 
 int MoonrakerPrinterAgent::cancel_print(const std::string& dev_id)
 {
-    return send_gcode(dev_id, "CANCEL_PRINT") ? BAMBU_NETWORK_SUCCESS : BAMBU_NETWORK_ERR_SEND_MSG_FAILED;
+    send_gcode_async(dev_id, "CANCEL_PRINT");
+    return BAMBU_NETWORK_SUCCESS;
 }
 
 bool MoonrakerPrinterAgent::send_jsonrpc_command(const std::string&    base_url,
@@ -2076,13 +2121,13 @@ void MoonrakerPrinterAgent::perform_connection_async(const std::string& dev_id, 
             if (is_stale()) {
                 return;
             }
-            device_info.dev_name     = fetched_info.dev_name;
+            device_info.dev_name     = fetched_info.dev_name.empty() ? dev_id : fetched_info.dev_name;
             device_info.version      = fetched_info.version;
             device_info.klippy_state = fetched_info.klippy_state;
         }
 
 // Orca todo: disable websocket for now, as we don't use MonitorPanel for Moonraker printers yet
-#if 0
+#if 1
         // Query initial status
         nlohmann::json initial_status;
         if (query_printer_status(base_url, api_key, initial_status, error_msg)) {
@@ -2123,26 +2168,11 @@ bool MoonrakerPrinterAgent::is_numeric(const std::string& value)
     return !value.empty() && std::all_of(value.begin(), value.end(), [](unsigned char c) { return std::isdigit(c) != 0; });
 }
 
-std::string MoonrakerPrinterAgent::normalize_base_url(std::string host, const std::string& port)
+std::string MoonrakerPrinterAgent::normalize_base_url(bool use_ssl, const std::string& host, const std::string& port)
 {
-    boost::trim(host);
-    if (host.empty()) {
-        return "";
-    }
-
-    std::string value = host;
-    if (is_numeric(port) && value.find("://") == std::string::npos && value.find(':') == std::string::npos) {
-        value += ":" + port;
-    }
-
-    if (!boost::istarts_with(value, "http://") && !boost::istarts_with(value, "https://")) {
-        value = "http://" + value;
-    }
-
-    if (value.size() > 1 && value.back() == '/') {
-        value.pop_back();
-    }
-
+    std::string value = use_ssl ? "https://" : "http://";
+    value += host;
+    value += port.empty() ? "" : (":" + port);
     return value;
 }
 

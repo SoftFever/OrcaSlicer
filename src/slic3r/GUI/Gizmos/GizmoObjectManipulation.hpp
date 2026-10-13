@@ -1,11 +1,16 @@
 #ifndef slic3r_GizmoObjectManipulation_hpp_
 #define slic3r_GizmoObjectManipulation_hpp_
 
+#include <cstddef>
 #include <memory>
 
 #include "libslic3r/Point.hpp"
 #include "libslic3r/Geometry.hpp"
 #include <float.h>
+#include <string>
+#include <vector>
+#include <utility>
+#include <wx/string.h>
 
 #include "slic3r/GUI/GUI_Geometry.hpp"
 
@@ -14,6 +19,7 @@
 namespace Slic3r {
 namespace GUI {
 
+class ImGuiWrapper;
 class Selection;
 class GLCanvas3D;
 
@@ -139,8 +145,8 @@ public:
     void do_render_rotate_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
     void do_render_scale_input_window(ImGuiWrapper* imgui_wrapper, std::string window_name, float x, float y, float bottom_limit);
     float max_unit_size(int number, Vec3d &vec1, Vec3d &vec2,std::string str);
-    bool reset_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size);
-    bool reset_zero_button(ImGuiWrapper *imgui_wrapper, float caption_max, float unit_size, float space_size, float end_text_size);
+    bool reset_button(ImGuiWrapper *imgui_wrapper, bool enabled);
+    bool reset_zero_button(ImGuiWrapper *imgui_wrapper, bool enabled);
     bool bbl_checkbox(const wxString &label, bool &value);
 
     void set_init_rotation(const Geometry::Transformation &value);

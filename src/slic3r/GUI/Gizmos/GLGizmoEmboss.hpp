@@ -10,6 +10,8 @@
 #include "slic3r/Utils/RaycastManager.hpp"
 #include "slic3r/Utils/EmbossStyleManager.hpp"
 
+#include <cstddef>
+#include "libslic3r/ObjectID.hpp"
 #include <optional>
 #include <memory>
 #include <atomic>
@@ -20,6 +22,11 @@
 
 #include <imgui/imgui.h>
 #include <glad/gl.h>
+#include <string>
+#include <wx/event.h>
+#include <wx/string.h>
+#include <vector>
+#include <utility>
 
 class wxFont;
 namespace Slic3r{
@@ -108,6 +115,9 @@ private:
 
     void set_volume_by_selection();
     void reset_volume();
+
+    bool is_changed_from_default_style();
+    void reset_to_default_style();
 
     // create volume from text - main functionality
     bool process(bool make_snapshot = true);

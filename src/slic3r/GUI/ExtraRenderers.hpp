@@ -3,7 +3,16 @@
 
 #include <functional>
 
+#include <wx/chartype.h>
+#include <wx/bitmap.h>
 #include <wx/dataview.h>
+#include <wx/setup.h>
+#include <wx/object.h>
+#include <wx/string.h>
+#include <wx/gdicmn.h>
+#include <wx/rtti.h>
+#include <wx/dvrenderers.h>
+#include <wx/variant.h>
 
 #if wxUSE_MARKUP
     #define SUPPORTS_MARKUP
@@ -27,6 +36,15 @@ public:
         m_text(other.m_text),
         m_bmp(other.m_bmp)
     { }
+
+    DataViewBitmapText& operator=(const DataViewBitmapText &other)
+    {
+        if (this != &other) {
+            m_text = other.m_text;
+            m_bmp = other.m_bmp;
+        }
+        return *this;
+    }
 
     void SetText(const wxString &text)      { m_text = text; }
     wxString GetText() const                { return m_text; }

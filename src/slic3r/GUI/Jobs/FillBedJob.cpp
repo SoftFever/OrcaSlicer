@@ -8,7 +8,31 @@
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "libnest2d/common.hpp"
 
+#include <algorithm>
+#include <boost/log/trivial.hpp>
+#include "libslic3r/BoundingBox.hpp"
+#include <cstddef>
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Arrange.hpp"
+#include "libslic3r/ExPolygon.hpp"
+#include <exception>
+#include "libslic3r/LifecycleEvents.hpp"
 #include <numeric>
+#include "slic3r/GUI/Jobs/ArrangeJob.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include <utility>
+#include <string>
+#include <vector>
+#include "slic3r/GUI/Jobs/Job.hpp"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/PresetBundle.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/format.hpp"
+#include "slic3r/GUI/PartPlate.hpp"
+#include "slic3r/GUI/Selection.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -184,7 +208,7 @@ void FillBedJob::prepare()
         ap.poly = m_selected.front().poly;
         ap.bed_idx = PartPlateList::MAX_PLATES_COUNT;
         ap.itemid = -1;
-        ap.setter = [this, mi, offset](const ArrangePolygon &p) {
+        ap.setter = [this, offset](const ArrangePolygon &p) {
             ModelObject *mo = m_plater->model().objects[m_object_idx];
             ModelObject *obj;
             if (m_instances) {
@@ -242,9 +266,10 @@ void FillBedJob::process(Ctl &ctl)
         return ctl.was_canceled() || do_stop;
     };
 
-    params.progressind = [this, &ctl, &statustxt](unsigned st,std::string str="") {
+    params.progressind = [this, &ctl](unsigned st,std::string str="") {
          if (st > 0)
-             ctl.update_status(st * 100 / status_range(), statustxt + " " + str);
+             // TRN Progress status of Fill bed. %1% is the name of the object being copied.
+             ctl.update_status(st * 100 / status_range(), GUI::format(_u8L("Filling %1%"), str));
     };
 
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {
@@ -347,7 +372,16 @@ void FillBedJob::finalize(bool canceled, std::exception_ptr &eptr)
             m_plater->arrange();
         }
         m_plater->update();
+
+        {
+            Slic3r::LifecycleEventContext ctx;
+            ctx.code = Slic3r::LifecycleEvtCode::Ok;
+            ctx.msg = "arranged";
+            Slic3r::fire_lifecycle_event(Slic3r::LifecycleEvent::ObjectTransformed, ctx);
+        }
     }
+
+    m_plater->mark_plate_toolbar_image_dirty();
 }
 
 }} // namespace Slic3r::GUI

@@ -1,8 +1,13 @@
 #include <catch2/catch_all.hpp>
-#include "test_utils.hpp"
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 
+#include <igl/Hit.h>
+#include <cstddef>
 #include <libslic3r/TriangleMesh.hpp>
 #include <libslic3r/AABBTreeIndirect.hpp>
+#include <vector>
+#include "libslic3r/Point.hpp"
 
 using namespace Slic3r;
 
@@ -13,7 +18,7 @@ TEST_CASE("Building a tree over a box, ray caster and closest query", "[AABBIndi
     auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(tmesh.its.vertices, tmesh.its.indices);
     REQUIRE(! tree.empty());
 
-    igl::Hit hit;
+    igl::Hit<float> hit;
 	bool intersected = AABBTreeIndirect::intersect_ray_first_hit(
 		tmesh.its.vertices, tmesh.its.indices,
 		tree,
@@ -24,7 +29,7 @@ TEST_CASE("Building a tree over a box, ray caster and closest query", "[AABBIndi
     REQUIRE(intersected);
     REQUIRE(hit.t == Catch::Approx(5.));
 
-    std::vector<igl::Hit> hits;
+    std::vector<igl::Hit<float>> hits;
 	bool intersected2 = AABBTreeIndirect::intersect_ray_all_hits(
 		tmesh.its.vertices, tmesh.its.indices,
 		tree,

@@ -1,10 +1,17 @@
 #ifndef slic3r_ExPolygon_hpp_
 #define slic3r_ExPolygon_hpp_
 
+#include "Line.hpp"
 #include "Point.hpp"
 #include "libslic3r.h"
 #include "Polygon.hpp"
 #include "Polyline.hpp"
+#include <utility>
+#include <initializer_list>
+#include <cstddef>
+#include <cstdint>
+#include <cassert>
+#include <iterator>
 #include <vector>
 
 namespace Slic3r {
@@ -192,6 +199,25 @@ inline Linesf to_unscaled_linesf(const ExPolygons &src)
     return lines;
 }
 
+inline Linesf3 to_unscaled_linesf3(const ExPolygons& src)
+{
+    Linesf3 lines;
+    lines.reserve(count_points(src));
+    for (ExPolygons::const_iterator it_expoly = src.begin(); it_expoly != src.end(); ++it_expoly) {
+        for (size_t i = 0; i <= it_expoly->holes.size(); ++i) {
+            const Points& points     = ((i == 0) ? it_expoly->contour : it_expoly->holes[i - 1]).points;
+            Vec2d         unscaled_a = unscaled(points.front());
+            Vec2d         unscaled_b = unscaled_a;
+            for (Points::const_iterator it = points.begin() + 1; it != points.end(); ++it) {
+                unscaled_b = unscaled(*(it));
+                lines.push_back(Linef3(unscaled_a, unscaled_b, 0));
+                unscaled_a = unscaled_b;
+            }
+            lines.push_back(Linef3(unscaled_a, unscaled(points.front()), 0));
+        }
+    }
+    return lines;
+}
 
 inline Points to_points(const ExPolygons &src)
 {
@@ -375,6 +401,11 @@ inline Points to_points(const ExPolygon &expoly)
 inline void translate(ExPolygons &expolys, const Point &p) {
     for (ExPolygon &expoly : expolys)
         expoly.translate(p);
+}
+
+inline void translate(Polygons &polys, const Point &p) {
+    for (Polygon &poly : polys)
+        poly.translate(p);
 }
 
 inline void polygons_append(Polygons &dst, const ExPolygon &src) 
