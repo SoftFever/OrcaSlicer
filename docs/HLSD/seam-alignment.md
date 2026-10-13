@@ -52,6 +52,9 @@ Random placement samples an outgoing edge of its selected candidate. On loops wi
 red ranges, a permitted candidate followed by a Blocked candidate contributes no outgoing
 edge length, so Random cannot sample toward the closed red boundary. A zero-length selected
 edge keeps the candidate position.
+The cumulative-length selection stops at the last viable edge and clamps its
+remaining distance to that edge, preventing float rounding from overrunning the
+candidate list or the permitted segment.
 
 If red boundary crossings cannot be paired, red paint retains its previous line-width
 proximity classification. This includes paint not crossing the layer, ambiguous contours and
@@ -106,6 +109,19 @@ Seam strings resolve the next layer's boundary before comparing seam preferences
 Each perimeter retains whether it bounds material or a hole, its layer-local index,
 and immutable candidate geometry. Occupancy does not participate in correspondence: the legacy search skips occupied
 members of the permitted set without expanding it to unrelated walls.
+
+Each layer builds an AABB tree of contour bounds once. Nearby-contour queries,
+fast bounds matching, material containment and boundary proximity use this index
+before applying their existing exact predicates. Query results are sorted by the
+original contour index, preserving deterministic tie-breaking. Index construction
+checks cancellation between layers. The index avoids scanning unrelated contours
+for each seed; overlapping global bounds can still require many exact checks.
+
+Only closed extrusion loops provide a reliable boundary role. Open paths and
+collection fallbacks retain unknown geometry rather than deriving a physical role
+from an artificial closing edge. An unknown source, or unknown geometry in either
+layer near the local query and its material probes, leaves the legacy search
+unrestricted. Distant unknown paths do not disable otherwise reliable correspondence.
 
 Bounding-box extents within one nozzle diameter plus a quarter-diameter reserve
 identify a potential fast match of the same boundary type. Acceptance also requires

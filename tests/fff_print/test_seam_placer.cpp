@@ -1430,3 +1430,22 @@ TEST_CASE("Seam alignment remains cancellable after a string is finalized", "[Se
                 throw AlignmentCanceled{};
     }), AlignmentCanceled);
 }
+
+TEST_CASE("Seam extraction preserves unknown boundary roles for open extrusion paths", "[SeamPlacer][Regression]")
+{
+    const bool open = GENERATE(false, true);
+    PipelineFixture fixture;
+    auto &object = fixture.prepare();
+    auto &region = clear_first_layer(object);
+    const auto points = fixture.points_in_layer(object, {{2,2},{18,2},{18,18}});
+    if (open) {
+        ExtrusionPath path(erExternalPerimeter, 0.08, 0.4f, 0.2f);
+        path.polyline = Polyline3(Polyline(points));
+        region.perimeters.append(path); // A path has no closed-loop role even if its points look polygonal.
+    } else append_loop(region, points);
+    SeamPlacer placer;
+    placer.init(fixture.print, [] {});
+    const auto &perimeters = placer.m_seam_per_object.at(&object).layers.front().perimeters;
+    REQUIRE(perimeters.size() == 1);
+    CHECK(perimeters.front().contour_reliable == !open);
+}

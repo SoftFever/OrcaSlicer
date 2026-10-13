@@ -44,6 +44,7 @@ enum class EnforcedBlockedSeamPoint {
 // struct representing single perimeter loop
 struct Perimeter {
   bool is_hole = false; // Preserve boundary type before candidate polygons become CCW.
+  bool contour_reliable = false; // Open paths must retain the legacy continuation search.
   size_t contour_index = 0;
   size_t start_index{};
   size_t end_index{}; //exclusive (one-past-the-end)

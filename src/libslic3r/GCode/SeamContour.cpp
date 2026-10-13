@@ -1,9 +1,11 @@
 #include "SeamContour.hpp"
 #include "libslic3r/Point.hpp"
+#include "libslic3r/AABBTreeIndirect.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <functional>
 #include <vector>
 #include <limits>
 #include <utility>
@@ -18,6 +20,13 @@ struct Witness {
     size_t contour;
     double distance;
     double angle_degrees;
+};
+struct BoxEntry {
+    size_t index;
+    AABBTreeIndirect::Tree2d::BoundingBox box;
+    size_t idx() const { return index; }
+    const AABBTreeIndirect::Tree2d::BoundingBox &bbox() const { return box; }
+    Vec2d centroid() const { return box.center(); }
 };
 
 double box_distance(const Contour &c, const Vec2d &p) {
@@ -68,9 +77,24 @@ std::vector<Vec2d> normals(const Contour &c, const Vec2d &p) {
     return result;
 }
 
-bool in_material(const std::vector<Contour> &contours, const Vec2d &p) {
+} // namespace
+
+std::vector<size_t> Resolver::query(size_t layer, const Vec2d &p, double reach) const {
+    std::vector<size_t> result;
+    const Vec2d margin = Vec2d::Constant(reach);
+    AABBTreeIndirect::traverse(m_indices[layer],
+        AABBTreeIndirect::intersecting(AABBTreeIndirect::Tree2d::BoundingBox(p - margin, p + margin)),
+        [&](const auto &node) { result.push_back(node.idx); return true; });
+    // Tree traversal order must not alter tie-breaking in the existing contour predicates.
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+bool Resolver::in_material(size_t layer, const Vec2d &p) const {
     bool inside = false;
-    for (const Contour &c : contours) {
+    for (size_t index : query(layer, p, 0.0)) {
+        const Contour &c = m_layers[layer][index];
+        if (!c.reliable) continue; // select() already falls back wherever unknown geometry can affect a probe.
         if ((p.array() < c.min.array()).any() || (p.array() > c.max.array()).any()) continue;
         for (size_t i = 0; i < c.points.size(); ++i) {
             const Vec2d &a = c.points[i], &b = c.points[(i + 1) % c.points.size()];
@@ -82,20 +106,30 @@ bool in_material(const std::vector<Contour> &contours, const Vec2d &p) {
     return inside;
 }
 
-bool near_boundary(const std::vector<Contour> &contours, const Vec2d &p, double noise) {
-    for (const Contour &c : contours)
+bool Resolver::near_boundary(size_t layer, const Vec2d &p, double noise) const {
+    for (size_t index : query(layer, p, noise)) {
+        const Contour &c = m_layers[layer][index];
         if (box_distance(c, p) <= noise && closest(c, p, noise).distance <= noise) return true;
+    }
     return false;
 }
-} // namespace
 
-Resolver::Resolver(Layers layers, Options options) : m_layers(std::move(layers)), m_options(options) {
-    for (auto &layer : m_layers)
-        for (Contour &c : layer) {
+Resolver::Resolver(Layers layers, Options options, std::function<void()> throw_if_canceled) :
+    m_layers(std::move(layers)), m_options(options) {
+    m_indices.resize(m_layers.size());
+    for (size_t i = 0; i < m_layers.size(); ++i) {
+        if (throw_if_canceled) throw_if_canceled(); // Index construction on dense objects remains cancellable.
+        std::vector<BoxEntry> boxes;
+        for (size_t j = 0; j < m_layers[i].size(); ++j) {
+            Contour &c = m_layers[i][j];
             c.min = Vec2d::Constant(std::numeric_limits<double>::infinity());
             c.max = -c.min;
             for (const Vec2d &p : c.points) { c.min = c.min.cwiseMin(p); c.max = c.max.cwiseMax(p); }
+            if (!c.points.empty()) boxes.push_back({j, AABBTreeIndirect::Tree2d::BoundingBox(c.min, c.max)});
         }
+        // Build once per layer; all seeds, reverse matches and material probes reuse the boxes.
+        m_indices[i].build(std::move(boxes));
+    }
 }
 
 Result Resolver::select(size_t layer, size_t contour, const Vec2d &p, int direction, double radius,
@@ -105,8 +139,15 @@ Result Resolver::select(size_t layer, size_t contour, const Vec2d &p, int direct
     const auto &next = m_layers[target];
     const double bounds = source.nozzle * m_options.bounds_nozzle_factor;
     const double noise = source.width * m_options.noise_width_factor;
+    const double reach = std::max({radius, bounds, noise});
+    const auto candidates = query(target, p, reach);
+    // An open path near either end or a material probe makes the geometric restriction uncertain.
+    for (size_t i : query(layer, p, reach))
+        if (!m_layers[layer][i].reliable) return {};
+    for (size_t i : candidates)
+        if (!next[i].reliable) return {};
     std::vector<size_t> fast, nearby;
-    for (size_t i = 0; i < next.size(); ++i) {
+    for (size_t i : candidates) {
         const Contour &c = next[i];
         if (c.points.size() < 3) continue;
         // A wall can become a hole when an opening closes; local geometry decides that continuation.
@@ -162,8 +203,8 @@ Result Resolver::select(size_t layer, size_t contour, const Vec2d &p, int direct
             // Three witnesses reject connectors through material (or air) shared by both layers.
             for (double t : std::array<double, 3>{0.25, 0.5, 0.75}) {
                 const Vec2d probe = p + t * (foot.point - p);
-                if (in_material(m_layers[layer], probe) == in_material(next, probe) &&
-                    !near_boundary(m_layers[layer], probe, noise) && !near_boundary(next, probe, noise)) {
+                if (in_material(layer, probe) == in_material(target, probe) &&
+                    !near_boundary(layer, probe, noise) && !near_boundary(target, probe, noise)) {
                     band = false;
                     break;
                 }
@@ -198,6 +239,7 @@ Result Resolver::resolve(size_t layer, size_t contour, size_t vertex, int direct
     Result result;
     if (direction != -1 && direction != 1) return result;
     const Contour &source = m_layers.at(layer).at(contour);
+    if (!source.reliable) return result;
     if (radius < 0.0) radius = source.width * m_options.radius_width_factor;
     if (!std::isfinite(radius)) return result;
     // Alternative seeds may have different widths; their actual KD search radii cannot share a cache entry.

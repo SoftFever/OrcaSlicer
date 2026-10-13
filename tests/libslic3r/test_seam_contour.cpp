@@ -29,6 +29,68 @@ Contour rectangle(double left, double right, double bottom, double top) {
 }
 } // namespace
 
+TEST_CASE("Indexed continuation preserves local holes among many distant contours", "[SeamPlacer][Regression]") {
+    const size_t side = GENERATE(1, 10, 40);
+    const double shrink = GENERATE(0.0, 0.1);
+    const bool reverse_order = GENERATE(false, true);
+    Layers layers(2);
+    for (size_t layer = 0; layer < 2; ++layer) {
+        layers[layer].push_back(rectangle(-2, 3*double(side), -2, 3*double(side)));
+        for (size_t y = 0; y < side; ++y)
+            for (size_t x = 0; x < side; ++x) {
+                Contour hole = circle(0.8 - layer*shrink, 3*double(x), true, 16);
+                for (auto &p : hole.points) p.y() += 3*double(y);
+                layers[layer].push_back(std::move(hole));
+            }
+        if (reverse_order) std::reverse(layers[layer].begin(), layers[layer].end());
+    }
+    Resolver resolver(std::move(layers));
+    const size_t count = side*side;
+    for (size_t hole : {size_t(0), count/2, count-1}) {
+        const size_t index = reverse_order ? count-1-hole : hole+1;
+        const auto result = resolver.resolve(0, index, 0, 1);
+        REQUIRE(result.outcome == Outcome::Unique);
+        REQUIRE(result.contours.size() == 1);
+        CHECK(result.contours.front() == index);
+    }
+}
+
+TEST_CASE("Unknown boundary geometry preserves unrestricted continuation near either layer", "[SeamPlacer][Regression]") {
+    const size_t unknown_layer = GENERATE(0, 1);
+    const bool nearby = GENERATE(false, true);
+    Layers layers{{rectangle(0, 10, 0, 10)}, {rectangle(0.2, 10.2, 0.2, 10.2)}};
+    Contour unknown = nearby ? rectangle(-1, 11, -1, 11) : rectangle(100, 110, 100, 110);
+    unknown.reliable = false; // Its artificial closing edge cannot establish a material state.
+    layers[unknown_layer].push_back(std::move(unknown));
+    Resolver resolver(std::move(layers));
+    const auto result = resolver.resolve(0, 0, 0, 1);
+    if (nearby) {
+        CHECK(result.outcome == Outcome::None);
+        CHECK(result.contours.empty());
+    } else {
+        REQUIRE(result.outcome == Outcome::Unique);
+        CHECK(result.contours.front() == 0);
+    }
+    CHECK(resolver.resolve(unknown_layer, 1, 0, unknown_layer == 0 ? 1 : -1).outcome == Outcome::None);
+}
+
+TEST_CASE("A split or merge keeps ambiguous continuations near the slit", "[SeamPlacer][Regression]") {
+    Resolver resolver({{rectangle(0, 10, 0, 10)},
+                       {rectangle(0, 4.8, 0, 10), rectangle(5.2, 10, 0, 10)}});
+    REQUIRE(resolver.resolve(0, 0, 0, 1).outcome == Outcome::Unique);
+    CHECK(resolver.resolve(0, 0, 0, 1).contours.front() == 0);
+    const auto merged = resolver.resolve(1, 0, 0, -1);
+    REQUIRE(merged.outcome == Outcome::Unique);
+    CHECK(merged.contours.front() == 0);
+    // A vertex at the slit belongs to a separate source outline with the same bottom edge.
+    Contour source = rectangle(0, 10, 0, 10);
+    source.points.insert(source.points.begin()+1, Vec2d(5,0));
+    Resolver at_slit({{source}, {rectangle(0,4.8,0,10), rectangle(5.2,10,0,10)}});
+    const auto ambiguous = at_slit.resolve(0,0,1,1);
+    CHECK(ambiguous.outcome == Outcome::Multiple);
+    CHECK(ambiguous.contours == (std::vector<size_t>{0,1}));
+}
+
 TEST_CASE("Contour continuation preserves both tube walls despite candidate ordering", "[SeamPlacer]") {
     const double thickness = GENERATE(0.8, 1.2, 2.0);
     const double shift = GENERATE(0.0, 0.1, 0.4);

@@ -2,7 +2,6 @@
 #include "SeamContour.hpp"
 
 #include "libslic3r/Point.hpp"
-#include <Eigen/Geometry>
 #include "libslic3r/AABBTreeIndirect.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Flow.hpp"
@@ -18,6 +17,7 @@
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_reduce.h"
 #include <atomic>
+#include <Eigen/Geometry>
 #include <boost/log/trivial.hpp>
 #include <boost/format.hpp>
 #include <cmath>
@@ -713,6 +713,7 @@ void process_perimeter_polygon(const Polygon &orig_polygon, float z_coord, const
   Perimeter &perimeter = result.perimeters.back();
   // The loop role is independent of the configured printing direction.
   perimeter.is_hole = boundary_hole.value_or(was_clockwise);
+  perimeter.contour_reliable = boundary_hole.has_value(); // Keep unknown roles out of geometric matching.
   perimeter.contour_index = result.perimeters.size() - 1;
 
   std::queue<Vec3f> orig_polygon_points { };
@@ -1405,10 +1406,12 @@ void pick_random_seam_point(const std::vector<SeamCandidate> &perimeter_points, 
   float picked_len = len_sum * rand;
 
   size_t point_idx = 0;
-  while (picked_len - viables[point_idx].edge_length > 0) {
+  // Float accumulation can leave a positive residual after the final edge, including a zero-length edge.
+  while (point_idx + 1 < viables.size() && picked_len - viables[point_idx].edge_length > 0) {
     picked_len = picked_len - viables[point_idx].edge_length;
     point_idx++;
   }
+  picked_len = std::clamp(picked_len, 0.0f, viables[point_idx].edge_length);
 
   Perimeter &perimeter = perimeter_points[start_index].perimeter;
   perimeter.seam_index = viables[point_idx].index;
@@ -1879,25 +1882,28 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
 
   //gather vector of all seams on the print_object - pair of layer_index and seam__index within that layer
   const std::vector<PrintObjectSeamData::LayerSeams> &layers = m_seam_per_object[po].layers;
+  // Share the largest nozzle diameter between contour bounds and corner protection.
+  double max_nozzle_diameter = 0.0;
+  for (double diameter : po->print()->config().nozzle_diameter.values)
+    max_nozzle_diameter = std::max(max_nozzle_diameter, diameter);
   // Reuse immutable contour geometry across all alternative string starts.
   std::unique_ptr<SeamContour::Resolver> contour_resolver;
   {
     SeamContour::Layers geometry(layers.size());
-    double nozzle = 0.0;
-    for (double diameter : po->print()->config().nozzle_diameter.values) nozzle = std::max(nozzle, diameter);
     for (size_t i = 0; i < layers.size(); ++i) {
       throw_if_canceled(); // Geometry copies on dense multi-island objects must remain interruptible.
       for (const Perimeter &perimeter : layers[i].perimeters) {
         SeamContour::Contour contour;
         contour.hole = perimeter.is_hole;
+        contour.reliable = perimeter.contour_reliable;
         contour.width = perimeter.flow_width;
-        contour.nozzle = nozzle;
+        contour.nozzle = max_nozzle_diameter;
         for (size_t j = perimeter.start_index; j < perimeter.end_index; ++j)
           contour.points.push_back(layers[i].points[j].position.head<2>().cast<double>());
         geometry[i].push_back(std::move(contour));
       }
     }
-    contour_resolver = std::make_unique<SeamContour::Resolver>(std::move(geometry));
+    contour_resolver = std::make_unique<SeamContour::Resolver>(std::move(geometry), SeamContour::Options{}, throw_if_canceled);
   }
   std::vector<std::pair<size_t, size_t>> seams;
   for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
@@ -1925,11 +1931,6 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
   std::vector<Vec2f> observations;
   std::vector<float> observation_points;
   std::vector<float> weights;
-
-  // Corner angles are measured on arms at least one nozzle diameter long.
-  float max_nozzle_diameter = 0.0f;
-  for (const double diameter : po->print()->config().nozzle_diameter.values)
-    max_nozzle_diameter = std::max(max_nozzle_diameter, float(diameter));
 
   int global_index = 0;
   while (global_index < int(seams.size())) {
@@ -2040,7 +2041,7 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
           final_position = current_pos;
         } else {
           // Keep the 0.4 pull toward the candidate near a measured corner only, then keep the seam on the paint.
-          float protect = std::max(candidate.perimeter.flow_width, max_nozzle_diameter);
+          float protect = std::max(candidate.perimeter.flow_width, float(max_nozzle_diameter));
           if (protect <= 0.0f)
             protect = 0.5f;
           const float corner = std::abs(candidate.local_ccw_angle) >= enforced_corner_angle_max ?
@@ -2080,7 +2081,6 @@ void SeamPlacer::align_seam_points(const PrintObject *po, const SeamPlacerImpl::
 #endif
     }
   }
-
 
 #ifdef DEBUG_FILES
   fclose(clusters);
@@ -2365,8 +2365,7 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop,
     ExtrusionLoop::ClosestPathPoint projected_point = loop.get_closest_path_and_point(seam_point, false);
     // determine depth of the seam point.
     float depth = (float) unscale(Point(seam_point - projected_point.foot_pt)).norm();
-    const float local_angle = perimeter_point.local_ccw_angle;
-    float beta_angle = cos(local_angle / 2.0f);
+    float beta_angle = cos(perimeter_point.local_ccw_angle / 2.0f);
     size_t index_of_prev =
         seam_index == perimeter_point.perimeter.start_index ?
                                                             perimeter_point.perimeter.end_index - 1 :
@@ -2377,7 +2376,7 @@ void SeamPlacer::place_seam(const Layer *layer, ExtrusionLoop &loop,
                                                               seam_index + 1;
 
     if ((seam_position - perimeter_point.position).squaredNorm() < depth && // seam is on perimeter point
-        local_angle < -EPSILON // In concave angles
+        perimeter_point.local_ccw_angle < -EPSILON // In concave angles
     ) { // In this case, we are at internal perimeter, where the external perimeter has seam in concave angle. We want to align
                                                                             // the internal seam into the concave corner, and not on the perpendicular projection on the closest edge (which is what the split_at function does)
       Vec2f dir_to_middle =
