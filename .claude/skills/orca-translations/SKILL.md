@@ -23,7 +23,9 @@ python3 $T --help
 ```
 
 Read [translation-rules.md](references/translation-rules.md) before translating. It holds the
-mechanical rules, how to pick words, style, and when to flag an entry for review.
+mechanical rules, how to pick words, style, and when to flag an entry for review. To find hard-coded
+English, strings that need a plural form or a context, or files missing from the extraction list, read
+[source-audit.md](references/source-audit.md); that work changes C++ and comes before a translation pass.
 
 ## Workflow: fill every empty translation
 
