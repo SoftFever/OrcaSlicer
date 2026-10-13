@@ -1,6 +1,7 @@
 #ifndef slic3r_TextureDisplacement_hpp_
 #define slic3r_TextureDisplacement_hpp_
 
+#include <cmath>
 #include <cstddef>
 #include <Eigen/Core>
 #include <cstdint>
@@ -387,18 +388,49 @@ struct TextureDisplacementOptions
     // image (TextureDetail::flat_colors): a texture of flat colours prints in single filaments, a
     // photograph or gradient in mixes. Off forces single filaments everywhere.
     bool         color_mix_enabled = true;
+    // The most mixes the palette may offer. Every mix a bake paints with becomes a mixed filament slot,
+    // so this is also the most slots one bake can add. The mixes themselves are picked from the
+    // texture's colours, those that improve the match the most coming first.
+    int          color_mix_count   = 8;
     // Majority-filter passes over the assigned colours. See TextureColorRequest::despeckle_passes -
     // this is the control for it, and 2 is enough to clear the salt-and-pepper an image with detail
     // finer than the mesh leaves behind, without eating features that are genuinely a facet wide.
     int          color_despeckle   = 2;
 
+    // Where the panel was left, rather than anything the bake reads. It lives with the volume because
+    // that is what it describes: reopening a project should put the user back on the layer they were
+    // editing, in the mode they were editing it in, not on slot 0 in Standard.
+    int active_slot = 0;
+    int panel_mode  = 0; // 0 Standard, 1 Pro
+
     template<class Archive> void serialize(Archive &ar)
     {
         ar(displace_border, smooth_enabled, smooth_strength, smooth_iterations, smooth_skip_border,
            pipeline_v2, v2_refine_mm, v2_regularize, v2_max_triangles_k,
-           v2_relocate, color_mix_enabled, color_despeckle);
+           v2_relocate, v2_flip_edges, color_mix_enabled, color_despeckle, color_mix_count,
+           active_slot, panel_mode);
     }
 };
+
+// Project persistence (see bbs_3mf.cpp). The layer stack and the per-volume options are written to the
+// .3mf as JSON rather than through the cereal save()/load() above: those two are positional and
+// unversioned, which is right for the undo/redo stack they serve (one session, one binary) but would
+// make every future field a project-breaking change. A JSON object tolerates both directions - an
+// unknown key is ignored, a missing one keeps the member's default - so old projects keep loading and
+// new ones degrade gracefully in older builds.
+//
+// The texture image itself is *not* in here. It is a binary blob that belongs in the archive as a file
+// of its own, exactly as EmbossShape stores its SVG; `path_in_3mf` names that file, and the caller is
+// responsible for writing it and for filling `image_data` back in on load.
+std::string texture_displacement_layers_to_json(const std::vector<TextureDisplacementLayer> &layers,
+                                                const TextureDisplacementOptions            &options);
+// Returns false and leaves both outputs untouched when the text is not a valid JSON object, a number in a
+// layer's vector, matrix, seam, island or UV-override array has the wrong type, or a layer's slot is
+// missing or outside [0, TEXTURE_DISPLACEMENT_MAX_LAYERS). Any other value of the wrong type or shape
+// keeps its default.
+bool texture_displacement_layers_from_json(const std::string                      &text,
+                                           std::vector<TextureDisplacementLayer>  &layers,
+                                           TextureDisplacementOptions             &options);
 
 // How much detail a height texture carries: central differences of the grey image, the mean gradient
 // and the share of texels steeper than 30 grey levels, mapped to how many texels one mesh edge may
@@ -480,6 +512,10 @@ struct DecodedHeightTexture
 // DecodedHeightTexture if image_data is empty or is not a PNG at all.
 DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer);
 
+// decode_height_texture(layer).has_color(), answered from the decode cache rather than from a copy of the
+// texture - cheap enough to ask every frame. Smoothing does not change it, so the raw decode is what is read.
+bool height_texture_has_color(const TextureDisplacementLayer &layer);
+
 // Maps a linear RGB colour in [0, 1] to an index into the caller's palette, or -1 for "no colour".
 //
 // Deliberately a callback rather than a function here: matching a colour to a filament is a
@@ -494,12 +530,14 @@ using ColorQuantizeFn = std::function<int(const Vec3f &)>;
 // interleaving, which the slicer does per print layer. Plain data, so it can be captured into a job.
 struct PrintableColor
 {
-    Vec3f rgb   = Vec3f::Zero(); // what it looks like; for a mix, the perceptual average of the two
+    Vec3f rgb   = Vec3f::Zero(); // what it looks like; for a mix, the colour its mixed filament slot shows
     int   a     = 0;             // filament index
     int   b     = 0;             // the second filament; == a for a pure entry
     int   num   = 1;             // a's share of the interleave, out of `den`
     int   den   = 1;
     bool  is_mix() const { return a != b; }
+    // a's share in percent, the form a mixed filament slot is created from.
+    int   a_percent() const { return int(std::lround(100.0 * double(num) / double(den))); }
 };
 
 // Everything needed to colour a mesh, captured on the main thread and handed to a job. An empty
@@ -762,9 +800,10 @@ struct TextureColorRequest
     float           min_color_region_mm2 = 0.5f;
     // Filled per *base mesh* triangle (the bake is topology-preserving, so this indexes the returned
     // mesh too): the quantize callback's index plus one, or 0 for "this triangle takes no colour from
-    // the texture". The +1 is not arbitrary - it lines up with EnforcerBlockerType, where 0 is NONE
-    // ("use the volume's own filament") and 1..16 are Extruder1..16, so the caller can hand these
-    // straight to a TriangleSelector without a second mapping table.
+    // the texture". The +1 lines up with EnforcerBlockerType, where 0 is NONE ("use the volume's own
+    // filament"): where every palette entry is a filament, these go straight to a TriangleSelector. A
+    // palette with mixes maps each index to the mix's filament slot first (see
+    // GLGizmoTextureDisplacement::palette_filaments()).
     std::vector<uint8_t> *out_triangle = nullptr;
 };
 
