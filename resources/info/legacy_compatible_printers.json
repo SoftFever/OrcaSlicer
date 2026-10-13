@@ -1,5 +1,11 @@
 {
     "presets": {
+        "Anycubic Generic ABS": [
+            "Anycubic Kobra 3 0.4 nozzle"
+        ],
+        "Anycubic Generic TPU": [
+            "Anycubic Kobra 3 0.4 nozzle"
+        ],
         "Bambu ABS @BBL P1P": [
             "Bambu Lab P1P 0.6 nozzle"
         ],
@@ -141,7 +147,7 @@
             "Bambu Lab P1S 0.6 nozzle",
             "Bambu Lab X1 Carbon 0.6 nozzle"
         ],
-        "Bambu PLA Basic @BBL X2D 0.6 nozzle": [
+        "Bambu PLA Basic @BBL X2D": [
             "Bambu Lab X2D 0.8 nozzle"
         ],
         "Bambu PLA Dynamic @BBL P1P": [
@@ -417,37 +423,37 @@
         "Bambu TPU for AMS @BBL X2D": [
             "Bambu Lab X2D 0.8 nozzle"
         ],
-        "Blocks ABS @Blocks_RD50_V2": [
+        "Blocks Generic ABS": [
             "BLOCKS RF50 0.4 nozzle",
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks ASA @Blocks_RD50_V2": [
+        "Blocks Generic ASA": [
             "BLOCKS RF50 0.4 nozzle",
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks ASA-CF @Blocks_RD50_V2": [
+        "Blocks Generic ASA-CF": [
             "BLOCKS RF50 0.4 nozzle",
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks PA @Blocks_RD50_V2": [
+        "Blocks Generic PA": [
             "BLOCKS RF50 0.4 nozzle",
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks PA-CF @Blocks_RD50_V2": [
+        "Blocks Generic PA-CF": [
             "BLOCKS RF50 0.4 nozzle",
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks PC @Blocks_RD50_V2": [
+        "Blocks Generic PC": [
             "BLOCKS RF50 0.4 nozzle",
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks PETG @Blocks_Pro_S100": [
+        "Blocks Generic PETG": [
             "BLOCKS RD50 V2 0.4 nozzle",
             "BLOCKS RD50 V2 0.6 nozzle",
             "BLOCKS RD50 V2 0.8 nozzle",
@@ -455,7 +461,7 @@
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks PLA @Blocks_Pro_S100": [
+        "Blocks Generic PLA": [
             "BLOCKS RD50 V2 0.4 nozzle",
             "BLOCKS RD50 V2 0.6 nozzle",
             "BLOCKS RD50 V2 0.8 nozzle",
@@ -463,17 +469,17 @@
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks PLA-CF @Blocks_RD50_V2": [
+        "Blocks Generic PLA-CF": [
             "BLOCKS RF50 0.4 nozzle",
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks PVA @Blocks_RD50_V2": [
+        "Blocks Generic PVA": [
             "BLOCKS RF50 0.4 nozzle",
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Blocks TPU @Blocks_Pro_S100": [
+        "Blocks Generic TPU": [
             "BLOCKS RD50 V2 0.4 nozzle",
             "BLOCKS RD50 V2 0.6 nozzle",
             "BLOCKS RD50 V2 0.8 nozzle",
@@ -481,32 +487,208 @@
             "BLOCKS RF50 0.6 nozzle",
             "BLOCKS RF50 0.8 nozzle"
         ],
-        "Cubicon ABS @Cubicon xCeler-I 0.4 nozzle": [
+        "Creality Generic ABS": [
+            "Creality CR-10 SE 0.2 nozzle",
+            "Creality CR-10 SE 0.4 nozzle",
+            "Creality CR-10 SE 0.6 nozzle",
+            "Creality CR-10 SE 0.8 nozzle",
+            "Creality CR-6 SE 0.2 nozzle",
+            "Creality CR-6 SE 0.4 nozzle",
+            "Creality CR-6 SE 0.6 nozzle",
+            "Creality CR-6 SE 0.8 nozzle",
+            "Creality CR-M4 0.4 nozzle",
+            "Creality Ender-3 V2 0.4 nozzle"
+        ],
+        "Creality Generic ABS @Ender-3V3-all": [
+            "Creality Ender-3 V3 Plus 0.4 nozzle",
+            "Creality Ender-3 V3 Plus 0.6 nozzle"
+        ],
+        "Creality Generic ABS @Hi-all": [
+            "Creality Hi 0.4 nozzle"
+        ],
+        "Creality Generic ABS @K1-all": [
+            "Creality K1 SE 0.4 nozzle",
+            "Creality K1C 0.4 nozzle"
+        ],
+        "Creality Generic ABS @K2-all": [
+            "Creality K2 0.4 nozzle",
+            "Creality K2 Plus 0.4 nozzle",
+            "Creality K2 Plus 0.6 nozzle",
+            "Creality K2 Plus 0.8 nozzle",
+            "Creality K2 Pro 0.4 nozzle"
+        ],
+        "Creality Generic ASA @Ender-3V3-all": [
+            "Creality Ender-3 V3 Plus 0.4 nozzle",
+            "Creality Ender-3 V3 Plus 0.6 nozzle"
+        ],
+        "Creality Generic ASA @K1-all": [
+            "Creality K1 SE 0.4 nozzle",
+            "Creality K1C 0.4 nozzle"
+        ],
+        "Creality Generic ASA @K2-all": [
+            "Creality K2 0.4 nozzle",
+            "Creality K2 Plus 0.4 nozzle",
+            "Creality K2 Pro 0.4 nozzle"
+        ],
+        "Creality Generic PA-CF @Ender-3V3-all": [
+            "Creality Ender-3 V3 Plus 0.4 nozzle",
+            "Creality Ender-3 V3 Plus 0.6 nozzle"
+        ],
+        "Creality Generic PA-CF @K1-all": [
+            "Creality K1C 0.4 nozzle"
+        ],
+        "Creality Generic PA-CF @K2-all": [
+            "Creality K2 Plus 0.4 nozzle",
+            "Creality K2 Plus 0.6 nozzle",
+            "Creality K2 Plus 0.8 nozzle"
+        ],
+        "Creality Generic PC @K1-all": [
+            "Creality K1C 0.4 nozzle"
+        ],
+        "Creality Generic PETG": [
+            "Creality CR-6 SE 0.2 nozzle",
+            "Creality CR-6 SE 0.4 nozzle",
+            "Creality CR-6 SE 0.6 nozzle",
+            "Creality CR-6 SE 0.8 nozzle",
+            "Creality CR-M4 0.4 nozzle"
+        ],
+        "Creality Generic PETG @Ender-3V3-all": [
+            "Creality Ender-3 V3 0.4 nozzle",
+            "Creality Ender-3 V3 0.6 nozzle",
+            "Creality Ender-3 V3 Plus 0.4 nozzle",
+            "Creality Ender-3 V3 Plus 0.6 nozzle",
+            "Creality Ender-3 V3 SE 0.2 nozzle",
+            "Creality Ender-3 V3 SE 0.4 nozzle",
+            "Creality Ender-3 V3 SE 0.6 nozzle",
+            "Creality Ender-3 V3 SE 0.8 nozzle"
+        ],
+        "Creality Generic PETG @Hi-all": [
+            "Creality Hi 0.4 nozzle"
+        ],
+        "Creality Generic PETG @K1-all": [
+            "Creality K1 SE 0.4 nozzle",
+            "Creality K1C 0.4 nozzle"
+        ],
+        "Creality Generic PETG @K2-all": [
+            "Creality K2 0.4 nozzle",
+            "Creality K2 Plus 0.4 nozzle",
+            "Creality K2 Plus 0.6 nozzle",
+            "Creality K2 Plus 0.8 nozzle",
+            "Creality K2 Pro 0.4 nozzle"
+        ],
+        "Creality Generic PLA": [
+            "Creality CR-10 SE 0.2 nozzle",
+            "Creality CR-10 SE 0.4 nozzle",
+            "Creality CR-10 SE 0.6 nozzle",
+            "Creality CR-10 SE 0.8 nozzle",
+            "Creality CR-6 SE 0.2 nozzle",
+            "Creality CR-6 SE 0.4 nozzle",
+            "Creality CR-6 SE 0.6 nozzle",
+            "Creality CR-6 SE 0.8 nozzle",
+            "Creality CR-M4 0.4 nozzle"
+        ],
+        "Creality Generic PLA @Ender-3V3-all": [
+            "Creality Ender-3 V3 0.4 nozzle",
+            "Creality Ender-3 V3 0.6 nozzle",
+            "Creality Ender-3 V3 Plus 0.4 nozzle",
+            "Creality Ender-3 V3 Plus 0.6 nozzle"
+        ],
+        "Creality Generic PLA @K1-all": [
+            "Creality K1 SE 0.4 nozzle",
+            "Creality K1C 0.4 nozzle"
+        ],
+        "Creality Generic PLA @K2-all": [
+            "Creality K2 0.4 nozzle",
+            "Creality K2 Plus 0.4 nozzle",
+            "Creality K2 Plus 0.6 nozzle",
+            "Creality K2 Plus 0.8 nozzle",
+            "Creality K2 Pro 0.4 nozzle"
+        ],
+        "Creality Generic PLA-CF @K1-all": [
+            "Creality K1 SE 0.4 nozzle",
+            "Creality K1C 0.4 nozzle"
+        ],
+        "Creality Generic PLA-CF @K2-all": [
+            "Creality K2 0.4 nozzle",
+            "Creality K2 Plus 0.4 nozzle",
+            "Creality K2 Pro 0.4 nozzle"
+        ],
+        "Creality Generic TPU": [
+            "Creality CR-10 SE 0.2 nozzle",
+            "Creality CR-10 SE 0.4 nozzle",
+            "Creality CR-10 SE 0.6 nozzle",
+            "Creality CR-10 SE 0.8 nozzle"
+        ],
+        "Creality Generic TPU @Ender-3V3-all": [
+            "Creality Ender-3 V3 0.4 nozzle",
+            "Creality Ender-3 V3 0.6 nozzle",
+            "Creality Ender-3 V3 Plus 0.4 nozzle",
+            "Creality Ender-3 V3 Plus 0.6 nozzle",
+            "Creality Ender-3 V3 SE 0.2 nozzle",
+            "Creality Ender-3 V3 SE 0.4 nozzle",
+            "Creality Ender-3 V3 SE 0.6 nozzle",
+            "Creality Ender-3 V3 SE 0.8 nozzle"
+        ],
+        "Creality Generic TPU @K1-all": [
+            "Creality K1 SE 0.4 nozzle",
+            "Creality K1C 0.4 nozzle"
+        ],
+        "Creality Generic TPU @K2-all": [
+            "Creality K2 0.4 nozzle",
+            "Creality K2 Plus 0.4 nozzle",
+            "Creality K2 Pro 0.4 nozzle"
+        ],
+        "Cubicon ABS @base": [
             "Cubicon xCeler-Plus 0.4 nozzle"
         ],
-        "Cubicon ABS-A100 @Cubicon xCeler-I 0.4 nozzle": [
+        "Cubicon ABS-A100 @base": [
             "Cubicon xCeler-Plus 0.4 nozzle"
         ],
-        "Cubicon ABSk @Cubicon xCeler-I 0.4 nozzle": [
+        "Cubicon ABSk @base": [
             "Cubicon xCeler-Plus 0.4 nozzle"
         ],
-        "Cubicon PA-CF @Cubicon xCeler-I 0.4 nozzle": [
+        "Cubicon PA-CF @base": [
             "Cubicon xCeler-Plus 0.4 nozzle"
         ],
-        "Cubicon PC @Cubicon xCeler-I 0.4 nozzle": [
+        "Cubicon PC @base": [
             "Cubicon xCeler-Plus 0.4 nozzle"
         ],
-        "Cubicon PETG @Cubicon xCeler-I 0.4 nozzle": [
+        "Cubicon PETG @base": [
             "Cubicon xCeler-Plus 0.4 nozzle"
         ],
-        "Cubicon PLA @Cubicon xCeler-I 0.4 nozzle": [
+        "Cubicon PLA @base": [
             "Cubicon xCeler-Plus 0.4 nozzle"
         ],
-        "Cubicon PLA+ @Cubicon xCeler-I 0.4 nozzle": [
+        "Cubicon PLA+ @base": [
             "Cubicon xCeler-Plus 0.4 nozzle"
         ],
-        "Cubicon PLAi21 @Cubicon xCeler-I 0.4 nozzle": [
+        "Cubicon PLAi21 @base": [
             "Cubicon xCeler-Plus 0.4 nozzle"
+        ],
+        "Flashforge Generic ABS @G3U": [
+            "Flashforge Guider 3 Ultra 0.6 Nozzle"
+        ],
+        "Flashforge Generic ASA @G3U": [
+            "Flashforge Guider 3 Ultra 0.6 Nozzle"
+        ],
+        "Flashforge Generic HIPS": [
+            "Flashforge Guider 3 Ultra 0.6 Nozzle"
+        ],
+        "Flashforge Generic PETG @G3U": [
+            "Flashforge Guider 3 Ultra 0.6 Nozzle",
+            "Flashforge Guider 3 Ultra 0.8 Nozzle"
+        ],
+        "Flashforge Generic PETG-CF @G3U": [
+            "Flashforge Guider 3 Ultra 0.6 Nozzle",
+            "Flashforge Guider 3 Ultra 0.8 Nozzle"
+        ],
+        "Flashforge Generic PLA @G3U": [
+            "Flashforge Guider 3 Ultra 0.6 Nozzle",
+            "Flashforge Guider 3 Ultra 0.8 Nozzle"
+        ],
+        "Flashforge Generic PLA-CF @G3U": [
+            "Flashforge Guider 3 Ultra 0.6 Nozzle",
+            "Flashforge Guider 3 Ultra 0.8 Nozzle"
         ],
         "Flashforge HS PLA": [
             "Flashforge AD5X 0.4 nozzle",
@@ -528,131 +710,11 @@
             "Flashforge AD5X 0.6 nozzle",
             "Flashforge AD5X 0.8 nozzle"
         ],
-        "FusRock PAHT-CF": [
+        "FusRock Generic PAHT-CF": [
             "Flashforge Guider 3 Ultra 0.6 Nozzle"
         ],
-        "FusRock PET-CF": [
+        "FusRock Generic PET-CF": [
             "Flashforge Guider 3 Ultra 0.6 Nozzle"
-        ],
-        "Generic ABS @Anycubic": [
-            "Anycubic Kobra 3 0.4 nozzle"
-        ],
-        "Generic ABS @Creality": [
-            "Creality CR-10 SE 0.2 nozzle",
-            "Creality CR-10 SE 0.4 nozzle",
-            "Creality CR-10 SE 0.6 nozzle",
-            "Creality CR-10 SE 0.8 nozzle",
-            "Creality CR-6 SE 0.2 nozzle",
-            "Creality CR-6 SE 0.4 nozzle",
-            "Creality CR-6 SE 0.6 nozzle",
-            "Creality CR-6 SE 0.8 nozzle",
-            "Creality CR-M4 0.4 nozzle",
-            "Creality Ender-3 V2 0.4 nozzle"
-        ],
-        "Generic ABS @Creality Ender-3V3-all": [
-            "Creality Ender-3 V3 Plus 0.4 nozzle",
-            "Creality Ender-3 V3 Plus 0.6 nozzle"
-        ],
-        "Generic ABS @Creality Hi-all": [
-            "Creality Hi 0.4 nozzle"
-        ],
-        "Generic ABS @Creality K1-all": [
-            "Creality K1 SE 0.4 nozzle",
-            "Creality K1C 0.4 nozzle"
-        ],
-        "Generic ABS @Creality K2-all": [
-            "Creality K2 0.4 nozzle",
-            "Creality K2 Plus 0.4 nozzle",
-            "Creality K2 Plus 0.6 nozzle",
-            "Creality K2 Plus 0.8 nozzle",
-            "Creality K2 Pro 0.4 nozzle"
-        ],
-        "Generic ABS @Flashforge G3U": [
-            "Flashforge Guider 3 Ultra 0.6 Nozzle"
-        ],
-        "Generic ASA @Creality Ender-3V3-all": [
-            "Creality Ender-3 V3 Plus 0.4 nozzle",
-            "Creality Ender-3 V3 Plus 0.6 nozzle"
-        ],
-        "Generic ASA @Creality K1-all": [
-            "Creality K1 SE 0.4 nozzle",
-            "Creality K1C 0.4 nozzle"
-        ],
-        "Generic ASA @Creality K2-all": [
-            "Creality K2 0.4 nozzle",
-            "Creality K2 Plus 0.4 nozzle",
-            "Creality K2 Pro 0.4 nozzle"
-        ],
-        "Generic ASA @Flashforge G3U": [
-            "Flashforge Guider 3 Ultra 0.6 Nozzle"
-        ],
-        "Generic HIPS @Flashforge": [
-            "Flashforge Guider 3 Ultra 0.6 Nozzle"
-        ],
-        "Generic PA @Prusa": [
-            "Prusa MINIIS 0.25 nozzle",
-            "Prusa MINIIS 0.4 nozzle",
-            "Prusa MINIIS 0.6 nozzle",
-            "Prusa MINIIS 0.8 nozzle"
-        ],
-        "Generic PA-CF @Creality Ender-3V3-all": [
-            "Creality Ender-3 V3 Plus 0.4 nozzle",
-            "Creality Ender-3 V3 Plus 0.6 nozzle"
-        ],
-        "Generic PA-CF @Creality K1-all": [
-            "Creality K1C 0.4 nozzle"
-        ],
-        "Generic PA-CF @Creality K2-all": [
-            "Creality K2 Plus 0.4 nozzle",
-            "Creality K2 Plus 0.6 nozzle",
-            "Creality K2 Plus 0.8 nozzle"
-        ],
-        "Generic PA-CF @Prusa": [
-            "Prusa MINIIS 0.25 nozzle",
-            "Prusa MINIIS 0.4 nozzle",
-            "Prusa MINIIS 0.6 nozzle",
-            "Prusa MINIIS 0.8 nozzle"
-        ],
-        "Generic PC @Creality K1-all": [
-            "Creality K1C 0.4 nozzle"
-        ],
-        "Generic PETG @Creality": [
-            "Creality CR-6 SE 0.2 nozzle",
-            "Creality CR-6 SE 0.4 nozzle",
-            "Creality CR-6 SE 0.6 nozzle",
-            "Creality CR-6 SE 0.8 nozzle",
-            "Creality CR-M4 0.4 nozzle"
-        ],
-        "Generic PETG @Creality Ender-3V3-all": [
-            "Creality Ender-3 V3 0.4 nozzle",
-            "Creality Ender-3 V3 0.6 nozzle",
-            "Creality Ender-3 V3 Plus 0.4 nozzle",
-            "Creality Ender-3 V3 Plus 0.6 nozzle",
-            "Creality Ender-3 V3 SE 0.2 nozzle",
-            "Creality Ender-3 V3 SE 0.4 nozzle",
-            "Creality Ender-3 V3 SE 0.6 nozzle",
-            "Creality Ender-3 V3 SE 0.8 nozzle"
-        ],
-        "Generic PETG @Creality Hi-all": [
-            "Creality Hi 0.4 nozzle"
-        ],
-        "Generic PETG @Creality K1-all": [
-            "Creality K1 SE 0.4 nozzle",
-            "Creality K1C 0.4 nozzle"
-        ],
-        "Generic PETG @Creality K2-all": [
-            "Creality K2 0.4 nozzle",
-            "Creality K2 Plus 0.4 nozzle",
-            "Creality K2 Plus 0.6 nozzle",
-            "Creality K2 Plus 0.8 nozzle",
-            "Creality K2 Pro 0.4 nozzle"
-        ],
-        "Generic PETG @Flashforge G3U": [
-            "Flashforge Guider 3 Ultra 0.6 Nozzle",
-            "Flashforge Guider 3 Ultra 0.8 Nozzle"
-        ],
-        "Generic PETG @Sovol Zero Hardened Steel nozzle": [
-            "Sovol Zero 0.4 nozzle"
         ],
         "Generic PETG HF @BBL X1C": [
             "Bambu Lab P1S 0.4 nozzle",
@@ -661,101 +723,30 @@
             "Bambu Lab X1 0.6 nozzle",
             "Bambu Lab X1 0.8 nozzle"
         ],
-        "Generic PETG-CF @Flashforge G3U": [
-            "Flashforge Guider 3 Ultra 0.6 Nozzle",
-            "Flashforge Guider 3 Ultra 0.8 Nozzle"
-        ],
-        "Generic PLA @Creality": [
-            "Creality CR-10 SE 0.2 nozzle",
-            "Creality CR-10 SE 0.4 nozzle",
-            "Creality CR-10 SE 0.6 nozzle",
-            "Creality CR-10 SE 0.8 nozzle",
-            "Creality CR-6 SE 0.2 nozzle",
-            "Creality CR-6 SE 0.4 nozzle",
-            "Creality CR-6 SE 0.6 nozzle",
-            "Creality CR-6 SE 0.8 nozzle",
-            "Creality CR-M4 0.4 nozzle"
-        ],
-        "Generic PLA @Creality Ender-3V3-all": [
-            "Creality Ender-3 V3 0.4 nozzle",
-            "Creality Ender-3 V3 0.6 nozzle",
-            "Creality Ender-3 V3 Plus 0.4 nozzle",
-            "Creality Ender-3 V3 Plus 0.6 nozzle"
-        ],
-        "Generic PLA @Creality K1-all": [
-            "Creality K1 SE 0.4 nozzle",
-            "Creality K1C 0.4 nozzle"
-        ],
-        "Generic PLA @Creality K2-all": [
-            "Creality K2 0.4 nozzle",
-            "Creality K2 Plus 0.4 nozzle",
-            "Creality K2 Plus 0.6 nozzle",
-            "Creality K2 Plus 0.8 nozzle",
-            "Creality K2 Pro 0.4 nozzle"
-        ],
-        "Generic PLA @Flashforge G3U": [
-            "Flashforge Guider 3 Ultra 0.6 Nozzle",
-            "Flashforge Guider 3 Ultra 0.8 Nozzle"
-        ],
         "Generic PLA @Hi-all": [
             "Creality Hi 0.4 nozzle",
             "Creality Hi 0.6 nozzle"
         ],
-        "Generic PLA @Sovol Zero Hardened Steel nozzle": [
-            "Sovol Zero 0.4 nozzle"
+        "HATCHBOX PETG @0.2 nozzle": [
+            "Qidi Q1 Pro 0.2 nozzle"
         ],
-        "Generic PLA Silk @Sovol Zero Hardened Steel nozzle": [
-            "Sovol Zero 0.4 nozzle"
-        ],
-        "Generic PLA-CF @Creality K1-all": [
-            "Creality K1 SE 0.4 nozzle",
-            "Creality K1C 0.4 nozzle"
-        ],
-        "Generic PLA-CF @Creality K2-all": [
-            "Creality K2 0.4 nozzle",
-            "Creality K2 Plus 0.4 nozzle",
-            "Creality K2 Pro 0.4 nozzle"
-        ],
-        "Generic PLA-CF @Flashforge G3U": [
-            "Flashforge Guider 3 Ultra 0.6 Nozzle",
-            "Flashforge Guider 3 Ultra 0.8 Nozzle"
-        ],
-        "Generic PLA-CF @Prusa": [
+        "Prusa Generic PA": [
             "Prusa MINIIS 0.25 nozzle",
             "Prusa MINIIS 0.4 nozzle",
             "Prusa MINIIS 0.6 nozzle",
             "Prusa MINIIS 0.8 nozzle"
         ],
-        "Generic TPU @Anycubic": [
-            "Anycubic Kobra 3 0.4 nozzle"
+        "Prusa Generic PA-CF": [
+            "Prusa MINIIS 0.25 nozzle",
+            "Prusa MINIIS 0.4 nozzle",
+            "Prusa MINIIS 0.6 nozzle",
+            "Prusa MINIIS 0.8 nozzle"
         ],
-        "Generic TPU @Creality": [
-            "Creality CR-10 SE 0.2 nozzle",
-            "Creality CR-10 SE 0.4 nozzle",
-            "Creality CR-10 SE 0.6 nozzle",
-            "Creality CR-10 SE 0.8 nozzle"
-        ],
-        "Generic TPU @Creality Ender-3V3-all": [
-            "Creality Ender-3 V3 0.4 nozzle",
-            "Creality Ender-3 V3 0.6 nozzle",
-            "Creality Ender-3 V3 Plus 0.4 nozzle",
-            "Creality Ender-3 V3 Plus 0.6 nozzle",
-            "Creality Ender-3 V3 SE 0.2 nozzle",
-            "Creality Ender-3 V3 SE 0.4 nozzle",
-            "Creality Ender-3 V3 SE 0.6 nozzle",
-            "Creality Ender-3 V3 SE 0.8 nozzle"
-        ],
-        "Generic TPU @Creality K1-all": [
-            "Creality K1 SE 0.4 nozzle",
-            "Creality K1C 0.4 nozzle"
-        ],
-        "Generic TPU @Creality K2-all": [
-            "Creality K2 0.4 nozzle",
-            "Creality K2 Plus 0.4 nozzle",
-            "Creality K2 Pro 0.4 nozzle"
-        ],
-        "HATCHBOX PETG @0.2 nozzle": [
-            "Qidi Q1 Pro 0.2 nozzle"
+        "Prusa Generic PLA-CF": [
+            "Prusa MINIIS 0.25 nozzle",
+            "Prusa MINIIS 0.4 nozzle",
+            "Prusa MINIIS 0.6 nozzle",
+            "Prusa MINIIS 0.8 nozzle"
         ],
         "QIDI PETG Basic @0.2 nozzle": [
             "Qidi Q1 Pro 0.2 nozzle"
@@ -766,27 +757,36 @@
         "QIDI PETG Translucent @0.2 nozzle": [
             "Qidi Q1 Pro 0.2 nozzle"
         ],
-        "re3D PC @0.4 nozzle": [
-            "re3D Gigabot 4 0.8 nozzle",
-            "re3D Gigabot 4 XLT 0.8 nozzle",
-            "re3D Terabot 4 0.8 nozzle"
+        "Sovol Zero PETG HS Nozzle": [
+            "Sovol Zero 0.4 nozzle"
         ],
-        "re3D PETG @0.4 nozzle": [
-            "re3D Gigabot 4 0.8 nozzle",
-            "re3D Gigabot 4 XLT 0.8 nozzle",
-            "re3D Terabot 4 0.8 nozzle"
+        "Sovol Zero PLA Basic HS Nozzle": [
+            "Sovol Zero 0.4 nozzle"
         ],
-        "re3D PLA @0.4 nozzle": [
-            "re3D Gigabot 4 0.8 nozzle",
-            "re3D Gigabot 4 XLT 0.8 nozzle",
-            "re3D Terabot 4 0.8 nozzle"
+        "Sovol Zero PLA Silk HS Nozzle": [
+            "Sovol Zero 0.4 nozzle"
         ],
-        "re3D rPETG @0.8 nozzle": [
+        "re3D Greengate rPETG": [
             "re3D GigabotX 2 1.75 nozzle",
             "re3D GigabotX 2 XLT 1.75 nozzle",
             "re3D TerabotX 2 1.75 nozzle"
         ],
-        "re3D rPP @0.8 nozzle": [
+        "re3D PC": [
+            "re3D Gigabot 4 0.8 nozzle",
+            "re3D Gigabot 4 XLT 0.8 nozzle",
+            "re3D Terabot 4 0.8 nozzle"
+        ],
+        "re3D PETG": [
+            "re3D Gigabot 4 0.8 nozzle",
+            "re3D Gigabot 4 XLT 0.8 nozzle",
+            "re3D Terabot 4 0.8 nozzle"
+        ],
+        "re3D PLA": [
+            "re3D Gigabot 4 0.8 nozzle",
+            "re3D Gigabot 4 XLT 0.8 nozzle",
+            "re3D Terabot 4 0.8 nozzle"
+        ],
+        "re3D rPP": [
             "re3D GigabotX 2 1.75 nozzle",
             "re3D GigabotX 2 XLT 1.75 nozzle",
             "re3D TerabotX 2 1.75 nozzle"

@@ -1293,7 +1293,28 @@ class TestLegacyCompat(unittest.TestCase):
         self.filament(self.base, "PETG @A-all", ["A 0.4", "A 0.6", "B 0.4"])
         self.filament(self.cur, "PETG @V A-all", ["A 0.6"], renamed_from="PETG @A-all;PETG A-all")
         self.filament(self.cur, "PETG @A 0.4", ["A 0.4"])
-        self.assertEqual(self.generate(), {"PETG @V A-all": ["A 0.4"]})
+        self.assertEqual(self.generate(), {"PETG @A-all": ["A 0.4"]})
+
+    def test_each_old_name_gets_back_only_its_own_list(self):
+        # The current "PC @0.4" existed in the base and also replaces the split "PC".
+        for tree in (self.base, self.cur):
+            for p in ("A 0.4", "A 0.8"):
+                self.printer(tree, p)
+        self.filament(self.base, "PC", ["A 0.4", "A 0.8"])
+        self.filament(self.base, "PC @0.4", ["A 0.4"])
+        self.filament(self.cur, "PC @0.4", ["A 0.4"], renamed_from="PC")
+        self.filament(self.cur, "PC @0.8", ["A 0.8"])
+        self.assertEqual(self.generate(), {"PC": ["A 0.8"]})
+
+    def test_old_name_now_a_base_preset_resolves_through_renamed_from(self):
+        for tree in (self.base, self.cur):
+            for p in ("I 0.4", "Plus 0.4"):
+                self.printer(tree, p)
+        self.filament(self.base, "PLA @base", ["I 0.4", "Plus 0.4"])
+        self.filament(self.cur, "PLA @base", [], instantiation="false")
+        self.filament(self.cur, "PLA @I 0.4", ["I 0.4"], renamed_from="PLA @base")
+        self.filament(self.cur, "PLA @Plus 0.4", ["Plus 0.4"])
+        self.assertEqual(self.generate(), {"PLA @base": ["Plus 0.4"]})
 
     def test_printer_without_a_successor_is_left_out(self):
         for tree in (self.base, self.cur):

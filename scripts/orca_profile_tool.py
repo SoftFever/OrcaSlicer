@@ -27,7 +27,7 @@ normalize supplies missing types; update-index registers presets before id
 generation.
 After renaming filament presets or narrowing their compatible_printers, also
 rerun legacy-compat --base <2.4.2 profiles> so user presets made against 2.4.2
-can be migrated back to their printers.
+can be migrated back to their printers; CI runs it with --check.
 Use trim only for deliberate cleanup, previewed with --dry-run: it judges against
 the current index and can delete newly added, unindexed presets.
 
@@ -3129,9 +3129,9 @@ def _flatten_presets(profiles_dir):
 
 
 def legacy_compatible_printers(base_dir, profiles_dir=PROFILES_DIR):
-    """Printers each current system filament preset covered in the base release
-    but no longer lists, kept only where a current preset with the same
-    filament_id still covers that printer.
+    """Printers each filament preset of the base release covered but the current
+    preset it loads as no longer lists, kept only where a current preset with
+    the same filament_id still covers that printer.
 
     User presets store only their diff, so they inherit their parent's
     compatible_printers; when a profile change narrows that list, a user preset
@@ -3141,17 +3141,26 @@ def legacy_compatible_printers(base_dir, profiles_dir=PROFILES_DIR):
     requiring a shared extruder variant keeps a printer from picking up another
     variant's values.
 
-    Keyed by the current preset name: the app resolves a renamed parent
-    before the map is consulted. Printer names are translated through the
-    printers' renamed_from. Returns {preset name: sorted printer names}.
+    Keyed by the base release's preset name, which is what such a user preset's
+    inherits still says. One current preset can stand in for several old ones
+    through renamed_from, each with its own old list, so the key tells them
+    apart. An old name resolves as the loader resolves an inherits: to the
+    current selectable preset of that name, else to one listing it in
+    renamed_from. A preset that is not instantiated never enters the loader's
+    collection, so it does not stop the renamed_from lookup. Printer names are
+    translated through the printers' renamed_from. Returns
+    {old preset name: sorted printer names}.
     """
     old_filaments, _ = _flatten_presets(base_dir)
     new_filaments, new_printers = _flatten_presets(profiles_dir)
     renamed_printer = {old: new for new, rec in new_printers.items() for old in rec["renamed_from"]}
 
-    old_by_name = {}
-    for (vendor, name), rec in old_filaments.items():
-        old_by_name.setdefault(name, []).append((vendor, rec))
+    by_name, by_old_name = {}, {}
+    for (vendor, name), rec in new_filaments.items():
+        if rec["instantiation"]:
+            by_name.setdefault(name, []).append((vendor, rec))
+            for old_name in rec["renamed_from"]:
+                by_old_name.setdefault(old_name, []).append((vendor, rec))
 
     covering = {}  # filament_id -> printers some current instantiated preset covers
     for rec in new_filaments.values():
@@ -3163,23 +3172,22 @@ def legacy_compatible_printers(base_dir, profiles_dir=PROFILES_DIR):
         return not filament["variants"] or not variants or bool(filament["variants"] & variants)
 
     result = {}
-    for (vendor, name), rec in sorted(new_filaments.items()):
-        # An empty list means every printer, so nothing can have been lost.
-        if not rec["instantiation"] or not rec["compatible_printers"]:
+    for (vendor, name), old in sorted(old_filaments.items()):
+        # Only a selectable preset can be a user preset's parent.
+        if not old["instantiation"]:
             continue
-        old_printers = set()
-        for old_name in [name] + rec["renamed_from"]:
-            candidates = old_by_name.get(old_name, [])
-            same_vendor = [r for v, r in candidates if v == vendor]
-            for old in same_vendor or [r for _, r in candidates]:
-                old_printers |= old["compatible_printers"]
-        old_printers = {renamed_printer.get(p, p) for p in old_printers}
-        lost = old_printers - rec["compatible_printers"]
+        candidates = by_name.get(name) or by_old_name.get(name, [])
+        same_vendor = [r for v, r in candidates if v == vendor]
+        rec = (same_vendor or [r for _, r in candidates] or [None])[0]
+        # An empty list means every printer, so nothing can have been lost.
+        if rec is None or not rec["compatible_printers"]:
+            continue
+        lost = {renamed_printer.get(p, p) for p in old["compatible_printers"]} - rec["compatible_printers"]
         lost &= covering.get(rec["filament_id"], set()) & set(new_printers)
         lost = {p for p in lost if shares_variant(rec, p)}
         if lost:
-            result[name] = sorted(lost)
-    return result
+            result.setdefault(name, set()).update(lost)
+    return {name: sorted(printers) for name, printers in result.items()}
 
 
 def run_legacy_compat(base_dir, profiles_dir, output, check):
@@ -3232,7 +3240,7 @@ normalize supplies missing types; update-index registers presets before id
 generation.
 After renaming filament presets or narrowing their compatible_printers, also
 rerun legacy-compat --base <2.4.2 profiles> so user presets made against 2.4.2
-can be migrated back to their printers.
+can be migrated back to their printers; CI runs it with --check.
 Use trim only for deliberate cleanup, previewed with --dry-run: it judges against
 the current index and can delete newly added, unindexed presets.
 """
@@ -3364,12 +3372,13 @@ def build_parser():
 
     legacy_cmd = add(
         "legacy-compat", [profiles_opt],
-        "write the printers user presets keep from an older release",
-        "Compare the tree with an older release's profiles and write, per current\n"
-        "filament preset, the printers it covered then and no longer lists, where a\n"
-        "preset with the same filament_id still covers them. The loader adds these\n"
-        "to user presets that inherit the preset, so a narrowed compatible_printers\n"
-        "does not hide them on printers they were made for.")
+        "write the printers user presets can be migrated back to",
+        "Compare the tree with an older release's profiles and write, per filament\n"
+        "preset of that release, the printers it covered then that the preset it now\n"
+        "loads as no longer lists, where a preset with the same filament_id still\n"
+        "covers them. The app offers to write these into user presets that inherit\n"
+        "that preset by its old name and do not set compatible_printers, so a\n"
+        "narrowed list does not hide them on printers they were made for.")
     legacy_cmd.add_argument("--base", required=True, metavar="DIR",
                             help="the older release's resources/profiles directory")
     legacy_cmd.add_argument("--output", default=LEGACY_COMPAT_PATH, metavar="FILE",
