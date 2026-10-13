@@ -62,8 +62,11 @@ public:
     // Depth in the hierarchy. External perimeter has depth = 0. An external perimeter could be both a contour and a hole.
     unsigned short                      depth;
     // ORCA: an external hole perimeter touching the next outer wall all around, with nothing between them.
+    // E.g. a 1mm tube wall with 0.5mm walls: 2 lines, the contour's outer wall and the hole's.
     bool                                is_thin_wall_hole = false;
-    // ORCA: an external hole perimeter with no room for an inner wall beside it, only for gap fill at most.
+    // ORCA: an external hole perimeter with no room for an inner wall beside it, at most gap fill. Every thin wall
+    // hole is one, and so is e.g. a 1.5mm tube wall with 0.5mm walls: 3 lines, the two outer walls and gap fill
+    // between them. A 2mm tube wall has room for an inner wall a side and is not. Only set for Inner/Outer/Inner.
     bool                                is_narrow_wall_hole = false;
     // Children contour, may be both CCW and CW oriented (outer contours or holes).
     std::vector<PerimeterGeneratorLoop> children;
