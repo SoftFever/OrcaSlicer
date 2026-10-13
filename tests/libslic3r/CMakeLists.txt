@@ -37,6 +37,9 @@ add_executable(${_TEST_NAME}_tests
     test_fill_plane_path.cpp
     test_fill_tpms_adaptive.cpp
     test_geometry.cpp
+    test_imex_arrange.cpp
+    test_imex_helpers.cpp
+    test_imex_zones.cpp
     test_multimaterial_segmentation.cpp
     test_placeholder_parser.cpp
     test_png_read_write.cpp
@@ -50,6 +53,7 @@ add_executable(${_TEST_NAME}_tests
     test_stl.cpp
     test_triangle_selector.cpp
     test_meshboolean.cpp
+    test_mesh_repair.cpp
     test_trianglemesh_slicer.cpp
     test_marchingsquares.cpp
     test_lay_on_face.cpp
