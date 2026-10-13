@@ -3752,7 +3752,8 @@ DynamicConfig GCodeProcessor::export_config_for_render() const
     config.set_key_value("filament_is_support", new ConfigOptionBools(m_parser.get_config().filament_is_support.values));
     config.set_key_value("filament_type", new ConfigOptionStrings(m_parser.get_config().filament_type.values));
     config.set_key_value("filament_map", new ConfigOptionInts(m_parser.get_config().filament_map.values));
-    config.apply(m_belt_render_config);
+    // += clones the options; apply() would need a definition this config does not have.
+    config += m_belt_render_config;
     return config;
 }
 
