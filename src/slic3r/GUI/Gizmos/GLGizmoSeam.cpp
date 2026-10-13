@@ -1,6 +1,7 @@
 #include "GLGizmoSeam.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "libslic3r/TriangleSelector.hpp"
 
 //#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
