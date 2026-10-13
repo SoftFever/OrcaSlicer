@@ -34,6 +34,8 @@ Polygon estimate_wipe_tower_first_layer_outline(const ConfigBase &config, WipeTo
 // filament_ids:  0-based filaments purged on the plate. The config cannot see custom G-code tool
 //                changes, so ids derived from the model must include them
 //                (Print::extruders(true)) or a real tower is sized as if it were never built.
+//                A mixed slot may be passed as itself or already expanded: it is sized as its
+//                physical components either way, since those are all the tower ever purges.
 // layer_height:  thinnest layer the objects are sliced at. The first layer is folded in here.
 //
 // A raft is deliberately not a reason: normalize_fdm_2 clears enable_prime_tower for a plate
