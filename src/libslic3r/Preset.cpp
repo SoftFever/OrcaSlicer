@@ -2164,6 +2164,16 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
         DynamicPrintConfig temp_config;
         std::vector<std::string> dirty_options = preset.config.diff(parent_preset->config);
 
+        // Send the variant layout even when it matches the parent's, as the local save does: the loader
+        // sizes the per-variant values by it and would otherwise keep only the first one.
+        std::string extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+        if (!extruder_id_name.empty())
+            dirty_options.emplace_back(extruder_id_name);
+        if (!extruder_variant_name.empty())
+            dirty_options.emplace_back(extruder_variant_name);
+
         for (auto option: dirty_options)
         {
             ConfigOption *opt_src = preset.config.option(option);
@@ -2628,15 +2638,34 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             new_config = default_preset.config;
         }
 
+        std::string extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
+        // Older uploads left out a variant layout equal to the parent's but still sent one value per
+        // parent variant. Read those values against the parent's layout instead of cutting them to one.
+        if (inherit_preset && !cloud_config.has(extruder_variant_name)) {
+            const auto  *parent_variants = inherit_preset->config.option<ConfigOptionStrings>(extruder_variant_name);
+            const size_t variant_count   = parent_variants ? parent_variants->size() : 0;
+            bool         values_per_variant = false;
+            for (const std::string &key : cloud_config.keys()) {
+                const size_t stride = key_set2->count(key) ? 2 : key_set1->count(key) ? 1 : 0;
+                const auto  *values = dynamic_cast<const ConfigOptionVectorBase *>(cloud_config.option(key));
+                if (stride > 0 && key != extruder_id_name && values && variant_count > 1 && values->size() == variant_count * stride) {
+                    values_per_variant = true;
+                    break;
+                }
+            }
+            if (values_per_variant)
+                for (const std::string &key : {extruder_id_name, extruder_variant_name})
+                    if (!key.empty() && !cloud_config.has(key) && inherit_preset->config.has(key))
+                        cloud_config.set_key_value(key, inherit_preset->config.option(key)->clone());
+        }
+
         extend_default_config_length(cloud_config, false, {});
 
-        if (inherit_preset) {
-            std::string extruder_id_name, extruder_variant_name;
-            std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
-            Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
-
+        if (inherit_preset)
             new_config.update_diff_values_to_child_config(cloud_config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
-        }
         else{
             new_config.apply(std::move(cloud_config));
             extend_default_config_length(new_config, true, default_preset.config);

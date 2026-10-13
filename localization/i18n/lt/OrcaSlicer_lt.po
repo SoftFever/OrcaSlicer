@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 08:37+0800\n"
+"POT-Creation-Date: 2026-10-11 16:21+0800\n"
 "PO-Revision-Date: 2026-07-02 14:13+0300\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -12871,6 +12871,119 @@ msgstr "Prisijungti nepavyko. Bandykite dar kartą."
 msgid "parse json failed"
 msgstr "nepavyko išanalizuoti json"
 
+msgid "Loading…"
+msgstr ""
+
+msgid "Welcome to Orca Slicer"
+msgstr "Pasisveikinkite su Orca Slicer"
+
+msgid "Orca Slicer will be set up in several steps. Let's start!"
+msgstr "Orca Slicer bus nustatyta per kelis žingsnius. Pradėkime!"
+
+msgid "Get Started"
+msgstr "Pradėti"
+
+msgid "Please select your login region"
+msgstr "Pasirinkite prisijungimo regioną"
+
+msgid "Finish"
+msgstr "Baigti"
+
+msgid "Printer Selection"
+msgstr "Spausdintuvo pasirinkimas"
+
+msgid "Vendors"
+msgstr ""
+
+# AI Translated
+msgid "Custom Printer"
+msgstr "Pasirinktinis spausdintuvas"
+
+msgid "Create"
+msgstr "Sukurti"
+
+msgid "Check for new printers"
+msgstr ""
+
+msgid "At least one printer must be selected."
+msgstr "Turi būti pasirinktas bent vienas spausdintuvas."
+
+msgid "New printers found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "New printer vendors installed: %s"
+msgstr ""
+
+msgid "New printer vendors were found, but installation was cancelled."
+msgstr ""
+
+msgid "No new printers found."
+msgstr ""
+
+msgid "Filament Selection"
+msgstr "Gijos pasirinkimas"
+
+msgid "System Filaments"
+msgstr "Sistemos gijos"
+
+msgid "Custom Filaments"
+msgstr "Pasirinktinės gijos"
+
+msgid "Create New"
+msgstr "Sukurti naują"
+
+msgid "Filament type"
+msgstr "Gijos tipas"
+
+msgid "Vendor"
+msgstr "Prekės ženklas"
+
+msgid "No items"
+msgstr ""
+
+msgid "Filter items"
+msgstr ""
+
+msgid "Checked"
+msgstr ""
+
+msgid "Unchecked"
+msgstr ""
+
+msgid "Select filtered"
+msgstr ""
+
+msgid "Clear all"
+msgstr "Išvalyti visus"
+
+msgid "At least one filament must be selected."
+msgstr "Turi būti pasirinkta bent viena gija."
+
+msgid "Do you want to use the default filament?"
+msgstr "Ar norite naudoti numatytąją giją?"
+
+msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
+msgstr "Išjungia visas debesijos funkcijas, įskaitant „Orca Cloud“ profilių sinchronizavimą. Naudotojai, kurie nori dirbti visiškai neprisijungę prie tinklo, gali įjungti šią parinktį."
+
+msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
+msgstr "Pastaba: kai įjungtas slaptas režimas, jūsų naudotojo profilių atsarginės kopijos nebus kuriamos „Orca Cloud“ debesyje."
+
+msgid "Enable Stealth Mode."
+msgstr "Įjungti slaptą režimą."
+
+msgid "Proprietary Plugins"
+msgstr "Patentuoti papildiniai"
+
+msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
+msgstr "Kai kurie spausdintuvų gamintojai reikalauja patentuotų papildinių, kad būtų galima bendrauti su jų spausdintuvais. Jei naudojate tokius spausdintuvus, pasirinkite atitinkamą papildinį."
+
+msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
+msgstr "Atkreipkite dėmesį, kad OrcaSlicer šių papildinių nesukuria ir neprižiūri. Juos turėtumėte naudoti savo nuožiūra ir rizika."
+
+msgid "Install Bambu Network plug-in"
+msgstr "Įdiegti Bambu tinklo papildinį"
+
 msgid "[Action Required] "
 msgstr "[Reikalingas veiksmas] "
 
@@ -15836,9 +15949,6 @@ msgstr "Gijos kaina, tik statistikai."
 
 msgid "money/kg"
 msgstr "pinigų/kg"
-
-msgid "Vendor"
-msgstr "Prekės ženklas"
 
 msgid "Vendor of filament. For show only."
 msgstr "Gijos prekės ženklas. Tik parodymui."
@@ -20284,9 +20394,6 @@ msgstr "Perkalibruoti"
 msgid "Calibrate"
 msgstr "Kalibruoti"
 
-msgid "Finish"
-msgstr "Baigti"
-
 msgid "How can I use calibration results?"
 msgstr "Kaip galiu panaudoti kalibravimo rezultatus?"
 
@@ -20832,9 +20939,6 @@ msgstr ""
 
 msgid "Temperature calibration"
 msgstr "Temperatūros kalibravimas"
-
-msgid "Filament type"
-msgstr "Gijos tipas"
 
 msgid "PLA"
 msgstr "PLA"
@@ -21415,9 +21519,6 @@ msgstr "pvz., pagrindinis, matinis, šilkinis, marmurinis"
 msgid "Filament Preset"
 msgstr "Gijos profilis"
 
-msgid "Create"
-msgstr "Sukurti"
-
 msgid "Vendor is not selected; please reselect vendor."
 msgstr "Prekės ženklas nepasirinktas; prašome pasirinkti prekės ženklą iš naujo."
 
@@ -21726,6 +21827,9 @@ msgid ""
 msgstr ""
 "Spausdintuvas ir visi jam priklausantys gijos bei proceso profiliai.\n"
 "Galima bendrinti su kitais."
+
+msgid "Include custom bed texture and model"
+msgstr ""
 
 msgid ""
 "User's filament preset set.\n"
@@ -22830,6 +22934,33 @@ msgstr "Jei įjungta, aukščiau nurodytos vertės yra išsaugomos kaip numatyto
 msgid "PresetBundle"
 msgstr "ProfiliųRinkinys"
 
+msgid "Export Presets"
+msgstr ""
+
+msgid "Open folder in explorer"
+msgstr ""
+
+msgid "Delete bundle"
+msgstr ""
+
+msgid "Unsubscribe bundle"
+msgstr ""
+
+msgid "Update available"
+msgstr ""
+
+msgid "Unauthorized bundle"
+msgstr ""
+
+msgid "Open this bundle in your browser"
+msgstr ""
+
+msgid "Subscribed"
+msgstr ""
+
+msgid "Local"
+msgstr ""
+
 msgid "Bundle folder does not exist."
 msgstr "Rinkinio aplankas neegzistuoja."
 
@@ -22862,6 +22993,12 @@ msgstr "Atsisakyti rinkinio prenumeratos"
 
 msgid "ExportPresetBundle"
 msgstr "EksportuotiProfiliųRinkinį"
+
+msgid "Export to OrcaCloud"
+msgstr ""
+
+msgid "Export to folder"
+msgstr ""
 
 msgid "Save preset bundle"
 msgstr "Išsaugoti profilių rinkinį"
@@ -28405,10 +28542,6 @@ msgid "Custom Printer Setup"
 msgstr "Pasirinktinio spausdintuvo sąranka"
 
 # AI Translated
-msgid "Custom Printer"
-msgstr "Pasirinktinis spausdintuvas"
-
-# AI Translated
 msgid "Define a custom printer profile"
 msgstr "Apibrėžti pasirinktinio spausdintuvo profilį"
 
@@ -29905,6 +30038,28 @@ msgstr "Gijų papildiniai"
 msgid "Printer plugins"
 msgstr "Spausdintuvo papildiniai"
 
+msgid "This preset does not use any plugin capabilities"
+msgstr ""
+
+msgid "Capabilities used by this preset"
+msgstr ""
+
+msgid "Capability configuration (JSON)"
+msgstr ""
+
+msgid "Plugin configuration"
+msgstr ""
+
+msgid "Discard this preset's override and use the global configuration again"
+msgstr ""
+
+# AI Translated
+msgid "Restore defaults"
+msgstr "Atkurti numatytąsias reikšmes"
+
+msgid "Invalid JSON"
+msgstr ""
+
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
 msgstr "Konfigūracija nėra tinkamas JSON. Jūsų pakeitimai neišsaugoti."
@@ -29923,10 +30078,6 @@ msgstr ""
 "Atkurti numatytąją „%s“ konfigūraciją?\n"
 "\n"
 "Tai atmes profilyje perrašytą konfigūraciją ir bus naudojama bendroji konfigūracija."
-
-# AI Translated
-msgid "Restore defaults"
-msgstr "Atkurti numatytąsias reikšmes"
 
 # AI Translated
 msgid "Using global configuration. Save the preset to persist it."
@@ -29996,6 +30147,215 @@ msgstr "Diegiamas papildinys"
 #, c-format, boost-format
 msgid "Installed \"%s\"."
 msgstr "Įdiegta: „%s“."
+
+msgid "Search plugins"
+msgstr ""
+
+msgid "Clear search"
+msgstr ""
+
+msgid "Match case"
+msgstr ""
+
+msgid "Match whole word"
+msgstr ""
+
+msgid "More plugin install options"
+msgstr ""
+
+msgid "Install plugin"
+msgstr ""
+
+msgid "Install local plugin"
+msgstr ""
+
+msgid "Activate"
+msgstr ""
+
+msgid "Sort by name"
+msgstr ""
+
+msgid "Sort by version"
+msgstr ""
+
+msgid "Plugin Version"
+msgstr ""
+
+msgid "Sort by source"
+msgstr ""
+
+msgid "Source"
+msgstr ""
+
+msgid "Sort by status"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Status"
+msgstr ""
+
+msgid "Drag to resize; double-click to reset"
+msgstr ""
+
+msgid "Resize the plugin list"
+msgstr ""
+
+msgid "Plugin details"
+msgstr ""
+
+msgid "Plugin Info"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Changelog"
+msgstr ""
+
+msgid "Diagnostics"
+msgstr ""
+
+msgid "Types"
+msgstr ""
+
+msgid "Installed Version"
+msgstr ""
+
+msgid "Latest Version"
+msgstr ""
+
+msgid "Update to the latest version"
+msgstr ""
+
+msgid "No description available"
+msgstr ""
+
+msgid "Select a plugin to configure its capabilities"
+msgstr ""
+
+msgid "Configurable capabilities"
+msgstr ""
+
+msgid "Discard the settings saved for this capability and restore the plugin's defaults"
+msgstr ""
+
+msgid "Plugin changelog"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Changes"
+msgstr ""
+
+msgid "No changelog available"
+msgstr ""
+
+msgid "No issues detected"
+msgstr ""
+
+msgid "No plugins found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "No plugins match \"%s\""
+msgstr ""
+
+msgid "Mine"
+msgstr ""
+
+msgid "Orphaned"
+msgstr ""
+
+msgid "Some plugin capabilities are enabled"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Collapse %s capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Expand %s capabilities"
+msgstr ""
+
+msgid "Collapse capabilities"
+msgstr ""
+
+msgid "Expand capabilities"
+msgstr ""
+
+msgid "Open this plugin in your browser"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Capabilities: %s"
+msgstr ""
+
+msgctxt "Plugin"
+msgid "Capabilities"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Run \"%s\""
+msgstr ""
+
+#, c-format, boost-format
+msgid "Enable %s"
+msgstr ""
+
+msgid "Unauthorized for updates"
+msgstr ""
+
+msgid "Loading the plugin…"
+msgstr ""
+
+msgid "This plugin exposes no capabilities"
+msgstr ""
+
+msgid "Activate this plugin to configure its capabilities"
+msgstr ""
+
+msgid "View on OrcaCloud <a>here</a>"
+msgstr ""
+
+msgid "Activated"
+msgstr ""
+
+msgid "Runtime error"
+msgstr ""
+
+msgid "Inactive"
+msgstr ""
+
+msgid "This plugin is active and ready to be used."
+msgstr ""
+
+msgid "This plugin is still loading."
+msgstr ""
+
+msgid "This plugin is blocked until its error is fixed."
+msgstr ""
+
+msgid "This plugin is loaded but a capability reported an error."
+msgstr ""
+
+msgid "This plugin is inactive. Activate it to install or load it."
+msgstr ""
+
+msgid "Select a plugin to view its status and details."
+msgstr ""
+
+msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
+msgstr ""
+
+msgid "A newer plugin version is available."
+msgstr ""
+
+msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
+msgstr ""
 
 # AI Translated
 #, c-format, boost-format
@@ -30213,6 +30573,54 @@ msgstr "Nepavyko iš naujo įkelti papildinio."
 msgid "Reloaded \"%s\"."
 msgstr "Iš naujo įkelta: „%s“."
 
+msgid "Printer Connection"
+msgstr ""
+
+msgid "Please set up your printer connection to view the device."
+msgstr ""
+
+msgid "No model information"
+msgstr "Nėra informacijos apie modelį"
+
+msgid "Edit Project Info"
+msgstr "Redaguoti projekto informaciją"
+
+msgid "Model Information"
+msgstr "Modelio informacija"
+
+msgid "Accessories"
+msgstr "Priedai"
+
+msgid "Profile Information"
+msgstr "Profilio informacija"
+
+msgid "Model name"
+msgstr "Modelio pavadinimas"
+
+msgid "Created by"
+msgstr "Sukurta"
+
+msgid "Remixed by"
+msgstr "Perkurta"
+
+msgid "Shared by"
+msgstr "Pasidalinta"
+
+msgid "Model description"
+msgstr "Modelio aprašymas"
+
+msgid "BOM"
+msgstr ""
+
+msgid "Profile name"
+msgstr "Profilio pavadinimas"
+
+msgid "Profile Author"
+msgstr "Profilio autorius"
+
+msgid "Profile description"
+msgstr "Profilio aprašymas"
+
 # AI Translated
 msgid "Purge Mode Settings"
 msgstr "Pravalymo režimo nustatymai"
@@ -30236,6 +30644,16 @@ msgstr "Sumažina pravalymo atliekas ir spausdina greičiau. Spalvos gali šiek 
 # AI Translated
 msgid "Terminal"
 msgstr "Terminalas"
+
+msgid "python ... or uv ..."
+msgstr ""
+
+msgid "Plugin terminal ready."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Process exited with code: %s"
+msgstr ""
 
 # AI Translated
 msgid "A command is already running."
@@ -30634,6 +31052,21 @@ msgstr ""
 msgid "Click an island on the canvas first, in Island mode."
 msgstr ""
 
+msgid "Not signed in"
+msgstr "Neprisiregistruota"
+
+msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
+msgstr "Neaptiktas Bambu tinklo papildinys. Spustelėkite <a>čia</a> jo diegimui."
+
+msgid "Create new project"
+msgstr "Sukurti naują projektą"
+
+msgid "Recently opened"
+msgstr "Neseniai atidaryti"
+
+msgid "Open Containing Folder"
+msgstr "Atidaryti katalogą, kuriame yra"
+
 # AI Translated
 msgid "Forward"
 msgstr "Pirmyn"
@@ -30801,6 +31234,30 @@ msgstr "Papildinys „%s“ prašo leidimo Python audito įvykiui „%s“."
 # AI Translated
 msgid "Plugin permission request"
 msgstr "Papildinio leidimo užklausa"
+
+msgid "Printer connection"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Analysis"
+msgstr ""
+
+msgid "Importer"
+msgstr ""
+
+msgid "Exporter"
+msgstr ""
+
+msgid "Visualization"
+msgstr ""
+
+msgid "Script"
+msgstr ""
+
+msgid "Slicing Pipeline"
+msgstr ""
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
@@ -31608,10 +32065,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Draw a closed profile to enable"
 #~ msgstr "Nubrėžkite uždarą profilį, kad įjungtumėte"
-
-# AI Translated
-#~ msgid "Clear all"
-#~ msgstr "Išvalyti viską"
 
 # AI Translated
 #~ msgid "Empty result"
