@@ -148,6 +148,9 @@ std::map<std::string, std::vector<SimpleSettingData>> SettingsFactory::PART_CATE
        {"sparse_infill_density", "", 1},
        {"fill_multiline", "", 1},
        {"sparse_infill_pattern", "", 1},
+       {"tpms_adaptive", "", 1},
+       {"tpms_interior_density", "", 1},
+       {"tpms_adaptive_gradient", "", 1},
        {"sparse_infill_smooth_factor", "", 1},
        {"lateral_lattice_angle_1", "", 1},
        {"lateral_lattice_angle_2", "", 1},
@@ -1948,6 +1951,16 @@ void MenuFactory::create_plate_menu()
             plater()->reload_all_from_disk();
         },
         "", nullptr, []() { return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty(); }, m_parent);
+
+    // fix objects on current plate
+    append_menu_item(menu, wxID_ANY, _L("Fix All"), _L("Fix all models on the current plate"),
+        [](wxCommandEvent&) { obj_list()->fix_all_through_cgal(false); }, "", nullptr,
+        []() { return !plater()->get_partplate_list().get_selected_plate()->empty(); }, m_parent);
+
+    // fix objects on all plates
+    append_menu_item(menu, wxID_ANY, _L("Fix All Plates"), _L("Fix all models on all plates"),
+        [](wxCommandEvent&) { obj_list()->fix_all_through_cgal(true); }, "", nullptr,
+        []() { return !plater()->model().objects.empty(); }, m_parent);
 
     // orient objects on current plate
     append_menu_item(menu, wxID_ANY, _L("Auto Rotate"), _L("Auto rotate current plate"),
