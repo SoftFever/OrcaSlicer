@@ -382,16 +382,22 @@ void UVEditorCanvas::update_status()
                                            _L("Pick Unwrap as a texture layer's mapping to edit its UVs here");
         else if (m_select_mode == SelectMode::Vertex)
             msg = m_sel_vertices.size() > 1 ?
-                      wxString::Format(_L("%d vertices selected  |  drag = move together, Shift/Ctrl click = add/remove"),
+                      wxString::Format(_L_PLURAL("%d vertex selected  |  drag = move together, Shift/Ctrl click = add/remove",
+                                                 "%d vertices selected  |  drag = move together, Shift/Ctrl click = add/remove",
+                                                 m_sel_vertices.size()),
                                        int(m_sel_vertices.size())) :
                       _L("Vertex mode: drag a vertex to reshape  |  Shift/Ctrl click = multi-select, wheel = zoom, Home = frame");
         else if (m_select_mode == SelectMode::Edge)
             msg = m_sel_edges.size() > 1 ?
-                      wxString::Format(_L("%d edges selected  |  drag = move together, Shift/Ctrl click = add/remove"),
+                      wxString::Format(_L_PLURAL("%d edge selected  |  drag = move together, Shift/Ctrl click = add/remove",
+                                                 "%d edges selected  |  drag = move together, Shift/Ctrl click = add/remove",
+                                                 m_sel_edges.size()),
                                        int(m_sel_edges.size())) :
                       _L("Edge mode: drag an island edge to reshape  |  Shift/Ctrl click = multi-select, wheel = zoom, Home = frame");
         else if (m_selection.size() > 1)
-            msg = wxString::Format(_L("%d islands selected  |  drag = move together, Shift/Ctrl click = add/remove, R/S = rotate/scale primary"),
+            msg = wxString::Format(_L_PLURAL("%d island selected  |  drag = move together, Shift/Ctrl click = add/remove, R/S = rotate/scale primary",
+                                             "%d islands selected  |  drag = move together, Shift/Ctrl click = add/remove, R/S = rotate/scale primary",
+                                             m_selection.size()),
                                     int(m_selection.size()));
         else if (m_selected_island >= 0)
             msg = wxString::Format(_L("Island %d selected  |  drag = move, R = rotate, S = scale, Shift/Ctrl click = multi-select, Home = frame"),
@@ -2010,8 +2016,8 @@ UVEditorPanel::UVEditorPanel(wxWindow *parent) : wxPanel(parent, wxID_ANY)
     m_layer_name->SetMinSize(wxSize(FromDIP(30), -1));
     m_tile = text(wxEmptyString, c.dim);
     m_tile->SetToolTip(_L("The active layer's tile size: how much of the model one repeat of the texture covers. The "
-                          "canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the "
-                          "layer's settings."));
+                          "canvas is measured in tiles, so one grid cell is one repeat. Change it with Tile size in "
+                          "the layer's settings."));
     header->Add(m_thumb, 0, wxALIGN_CENTER_VERTICAL);
     header->Add(m_layer_name, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, gap);
     header->Add(m_tile, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, gap);
@@ -2229,8 +2235,9 @@ void UVEditorPanel::apply_state(const UVEditorCanvas::PaneState &s)
                                                      _L("No islands have been reshaped by hand, so there is nothing to "
                                                         "discard."));
 
-    m_stats->SetLabel(s.unwrapped ? wxString::Format(_L("%d islands, %s faces"), s.island_count,
-                                                     wxString(std::to_string(s.face_count))) :
+    m_stats->SetLabel(s.unwrapped ? wxString::Format(_L_PLURAL("%d island", "%d islands", s.island_count), s.island_count) + ", " +
+                                        wxString::Format(_L_PLURAL("%s face", "%s faces", s.face_count),
+                                                         wxString(std::to_string(s.face_count))) :
                                     wxString());
     m_stats->SetToolTip(s.unwrapped ? _L("How the painted area came out of the unwrap: the number of separate pieces it "
                                          "was cut into (at the seams and at edges sharper than the seam angle), and how "

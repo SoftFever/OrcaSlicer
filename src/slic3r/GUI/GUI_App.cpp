@@ -3549,6 +3549,10 @@ bool GUI_App::on_init_inner()
     }
 
     // BBS if load user preset failed
+    // Let the libslic3r know the callback, which will translate messages on demand.
+    // Installed before the presets load so that their load errors are translated too.
+    Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
+
     //if (loaded_preset_result != 0) {
         try {
             // Enable all substitutions (in both user and system profiles), but log the substitutions in user profiles only.
@@ -3565,9 +3569,6 @@ bool GUI_App::on_init_inner()
 #ifdef WIN32
     register_win32_device_notification_event();
 #endif // WIN32
-
-    // Let the libslic3r know the callback, which will translate messages on demand.
-    Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
 #if defined(__WXGTK__) && wxHAS_EGL
     // Configure GL backend before any wxGLCanvas is created.
@@ -8582,22 +8583,23 @@ void GUI_App::refresh_plugins()
     // and report completion through the notification manager -- the speed dial needs no dialog.
     std::thread([]() {
         wxString error;
+        bool unknown_error = false;
         try {
             refresh_plugin_metadata_blocking(/*fetch_cloud=*/true);
         } catch (const std::exception& ex) {
             error = from_u8(ex.what());
         } catch (...) {
-            error = "Unknown error"; // plain literal: wx translation isn't safe off the UI thread
+            unknown_error = true; // translated in CallAfter: wx translation isn't safe off the UI thread
         }
         if (!wxTheApp)
             return;
-        wxTheApp->CallAfter([error]() {
+        wxTheApp->CallAfter([error, unknown_error]() {
             if (wxGetApp().is_closing())
                 return;
             Plater* plater = wxGetApp().plater();
             if (plater == nullptr)
                 return;
-            if (error.IsEmpty())
+            if (error.IsEmpty() && !unknown_error)
                 plater->get_notification_manager()->push_notification(
                     NotificationType::CustomNotification,
                     NotificationManager::NotificationLevel::RegularNotificationLevel,
@@ -8606,7 +8608,7 @@ void GUI_App::refresh_plugins()
                 plater->get_notification_manager()->push_notification(
                     NotificationType::CustomNotification,
                     NotificationManager::NotificationLevel::ErrorNotificationLevel,
-                    into_u8(wxString::Format(_L("Failed to refresh plugins: %s"), error)));
+                    into_u8(wxString::Format(_L("Failed to refresh plugins: %s"), unknown_error ? _L("Unknown error") : error)));
         });
     }).detach();
 }

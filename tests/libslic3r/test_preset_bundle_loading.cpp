@@ -4508,7 +4508,7 @@ TEST_CASE("Published 3MF turns a surplus slot past the printer's filament capaci
         REQUIRE(is_mixed.size() == 1);
         CHECK_FALSE(is_mixed[0]);
         REQUIRE(pub.skipped_keys.size() == 1);
-        CHECK(pub.skipped_keys.front().find("printer supports only 1") != std::string::npos);
+        CHECK(pub.skipped_keys.front().find("the printer's filament limit is 1") != std::string::npos);
     }
 
     // A payload mixed definition is exempt from the capacity gate: mixes are virtual slots
