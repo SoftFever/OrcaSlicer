@@ -3768,16 +3768,28 @@ void GLGizmoTextureDisplacement::render_tip_media(const std::vector<TipMedia> &m
     const float       cell_w  = (width - spacing * float(shown.size() - 1)) / float(shown.size());
     const ImU32       frame   = ImGui::GetColorU32(ImGuiCol_Text, 0.25f);
 
+    // A single illustration would otherwise be drawn at the tooltip's full width, and a square one at
+    // full width is a picture as tall as the text beside it is long. Capped and centred in its column.
+    const float max_h = m_imgui->scaled(10.f);
+
     ImGui::Spacing();
     for (size_t i = 0; i < shown.size(); ++i) {
         const AnimatedTexture *texture = shown[i].first;
         const TipMedia        &entry   = *shown[i].second;
+        const float            cell_x  = ImGui::GetCursorPosX();
+
+        float w = cell_w;
+        float h = std::round(cell_w * float(texture->height()) / float(texture->width()));
+        if (h > max_h) {
+            w = std::round(max_h * float(texture->width()) / float(texture->height()));
+            h = max_h;
+        }
 
         ImGui::BeginGroup();
         double             next = 0.;
         const unsigned int id   = texture->texture_id(time, &next);
-        const float        h    = std::round(cell_w * float(texture->height()) / float(texture->width()));
-        ImGui::Image((ImTextureID) (intptr_t) id, ImVec2(cell_w, h));
+        ImGui::SetCursorPosX(cell_x + std::round(0.5f * (cell_w - w)));
+        ImGui::Image((ImTextureID) (intptr_t) id, ImVec2(w, h));
         ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), frame, style.FrameRounding);
         // The canvas only redraws on demand, so an animation has to ask - and asks for exactly when its
         // next frame is due, rather than for a redraw as fast as the machine will go.
@@ -3785,10 +3797,9 @@ void GLGizmoTextureDisplacement::render_tip_media(const std::vector<TipMedia> &m
             m_parent.schedule_extra_frame(int(next * 1000.0));
 
         if (!entry.caption.empty()) {
-            // Centred under its own illustration, and never wider than it.
+            // Centred under its own illustration, and never wider than its column.
             const std::string caption = into_u8(entry.caption);
             const float       text_w  = ImGui::CalcTextSize(caption.c_str()).x;
-            const float       cell_x  = ImGui::GetCursorPosX();
             ImGui::SetCursorPosX(cell_x + std::max(0.f, (cell_w - text_w) * 0.5f));
             ImGui::PushTextWrapPos(cell_x + cell_w);
             ImGui::TextDisabled("%s", caption.c_str());
@@ -6565,11 +6576,13 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             // Depth and tile size are logarithmic, so both ends of their wide ranges stay usable.
             m_preview_params_dirty |= float_row("##depth", _L("Depth"), &layer.depth_mm, 0.01f, 10.f, "%.3f mm", true, card_pad);
             hover_tip(_u8L("Height of the relief: how far white in the texture lifts the surface, in "
-                           "millimetres. Black does not move it at all, unless Midlevel says otherwise."));
+                           "millimetres. Black does not move it at all, unless Midlevel says otherwise."),
+                      { { "depth.gif" } });
             m_preview_params_dirty |= float_row("##tile_size", _L("Tile size"), &layer.tiling_scale, 0.2f, 200.f, "%.2f mm", true, card_pad);
             hover_tip(_u8L("How wide one copy of the texture is on the model. Smaller repeats the pattern "
                            "more often and makes its detail finer; with Tile off, this is the size of the "
-                           "single copy."));
+                           "single copy."),
+                      { { "tile_size_large.png", _L("Larger") }, { "tile_size_small.png", _L("Smaller") } });
             m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f, "%.0f°", false, card_pad);
             hover_tip(_u8L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
                            "edge of the model."),
@@ -6593,7 +6606,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                "outwards; at 0.5 mid-gray stays put, so darker grays cut in and lighter ones "
                                "still push out - one image both embosses and engraves.\n\n"
                                "What cuts in has to fit: inside a sharp corner or through a thin wall, a deep "
-                               "cut can pass through the other side."));
+                               "cut can pass through the other side."),
+                          { { "midlevel.gif" } });
                 if (layer.midlevel > 0.f && layer.depth_mm > 1.f) {
                     ImGui::PushTextWrapPos(content_rx - card_pad);
                     m_imgui->warning_text(_L("Deep inward displacement may self-intersect."));
@@ -6603,12 +6617,14 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                 m_preview_params_dirty |= float_row("##smoothing", _L("Smoothing"), &layer.smoothing, 0.f, 1.f, "%.2f", false, card_pad);
                 hover_tip(_u8L("Blurs the image before it is used, which rounds off hard steps and removes "
                                "speckle from a noisy photo. Raise it if the relief looks harsh or grainy; it "
-                               "costs fine detail."));
+                               "costs fine detail."),
+                          { { "smoothing_off.png", _L("Off") }, { "smoothing_on.png", _L("On") } });
 
                 // Edge fade: the relief flattens toward the boundary of the painted area.
                 m_preview_params_dirty |= m_imgui->bbl_checkbox(_L("Edge fade") + "##edge_smoothing", layer.edge_smoothing);
                 hover_tip(_u8L("Flattens the relief as it approaches the edge of the painted area, so it "
-                               "blends into the bare surface instead of stopping at a step."));
+                               "blends into the bare surface instead of stopping at a step."),
+                          { { "edge_fade_off.png", _L("Off") }, { "edge_fade_on.png", _L("On") } });
                 ImGui::SameLine();
                 m_imgui->disabled_begin(!layer.edge_smoothing);
                 ImGui::SetNextItemWidth(-card_pad);
@@ -6623,7 +6639,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     const float x0 = ImGui::GetCursorPosX();
                     m_preview_params_dirty |= m_imgui->bbl_checkbox(_L("Invert"), layer.invert);
                     hover_tip(_u8L("Turns the relief inside out: what stood out is cut in, and the other way "
-                                   "round. The same as using a negative of the image."));
+                                   "round. The same as using a negative of the image."),
+                              { { "invert_off.png", _L("Off") }, { "invert_on.png", _L("On") } });
                     ImGui::SameLine();
                     ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + 0.5f * (ImGui::GetWindowContentRegionMax().x - card_pad - x0)));
 
@@ -6820,14 +6837,14 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
                     const wxString tile_na = layer.tile_enabled ? wxString() : _L("Turn Tile on to choose how the texture repeats.");
                     if (icon_toggle(840, "texture_displacement_tile_repeat.svg", layer.tile_method == static_cast<TextureTileMethod>(0),
-                                    icon_sm, _L("Repeat"), _L("Repeat"), tile_na)) {
+                                    icon_sm, _L("Repeat"), _L("Repeat"), tile_na, { { "tile_repeat.png" } })) {
                         layer.tile_method      = static_cast<TextureTileMethod>(0);
                         m_preview_params_dirty = true;
                     }
                     ImGui::SameLine(0.f, gap_s);
                     if (icon_toggle(841, "menu_mirror_x.svg", layer.tile_method == static_cast<TextureTileMethod>(1), icon_sm,
                                     _L("Mirrored repeat"), _L("Mirrored repeat - every other tile is flipped, so edges meet seamlessly"),
-                                    tile_na)) {
+                                    tile_na, { { "tile_mirror.png" } })) {
                         layer.tile_method      = static_cast<TextureTileMethod>(1);
                         m_preview_params_dirty = true;
                     }
@@ -6863,7 +6880,10 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                                "Subtract pile relief on or carve it away. Multiply and Divide scale "
                                                "what is underneath, which turns this layer into a mask over it - "
                                                "there, Depth acts as a strength, and 1 mm leaves white areas "
-                                               "untouched."));
+                                               "untouched."),
+                                      base_layer ? std::vector<TipMedia>{} :
+                                                   std::vector<TipMedia>{ { "blend_add.png", from_u8(blend_add) },
+                                                                          { "blend_multiply.png", from_u8(blend_multiply) } });
 
                     ImGui::SameLine(0.f, gap_s);
                     if (icon_toggle(842, "texture_displacement_adjust.svg", m_adjust_texture_mode, icon_sm, _L("Adjust placement"),

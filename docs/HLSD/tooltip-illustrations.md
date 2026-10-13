@@ -61,16 +61,28 @@ for the next through `GLCanvas3D::schedule_extra_frame()`, timed to when that fr
 ## Making one
 
 Captures of the real tool are the first choice for anything involving the model, the mesh or colour.
-Settings whose meaning is a shape can be drawn from the same arithmetic instead:
-`scripts/gen_texture_displacement_tips.py` shades a height field as a relief catching the light, and
-produces `tile_off.png`, `tile_on.png` and `rotation.gif` that way.
+Settings whose meaning is a shape are drawn from the same arithmetic instead, by
+`scripts/gen_texture_displacement_tips.py`: it shades a height field as a relief catching the light,
+and covers Depth, Tile, Tile size, Rotation, Repeat/Mirror, Midlevel, Smoothing, Edge fade, Invert and
+Blend that way.
+
+One motif - a ring inside a square frame - runs through nearly all of them, because using one shape
+everywhere is what lets two pictures be compared: whatever differs between them is the setting, since
+nothing else is.
+
+Midlevel is drawn in section rather than as a relief, and the reason generalises. Shading reads
+slopes, so a height field moved up or down as a whole shades identically to where it started; any
+setting whose meaning is *where the relief sits relative to the surface* is invisible in a top view
+and has to be drawn from the side, against the bare surface as a reference.
 
 Either way:
 
-- Square, around 256 px. The tooltip is about 20 em wide, so that is roughly native size on a 100%
-  display and downscales cleanly above it.
+- Square, around 256 px (192 for an animation, where every frame ships). The tooltip is about 20 em
+  wide, so that is roughly native size on a 100% display and downscales cleanly above it. A single
+  picture is capped at 10 em tall and centred, two side by side take half the width each.
 - Neutral grey. These say what a shape does; colour in one reads as a third thing the setting does,
   and has to work against both themes.
-- Animations loop seamlessly and stay short - a dozen frames at 100 ms, under about 250 KB. They sit
-  in `resources/`, which ships with every copy of the application.
+- Animations loop seamlessly and stay short - 16 frames at 100 ms, under about 150 KB. They sit in
+  `resources/`, which ships with every copy of the application. A sweep driven by a cosine over the
+  frame count loops with no step, since it starts and ends at the same value and the same rate.
 - No text in the picture. Captions are translated; pixels are not.
