@@ -599,6 +599,7 @@ public:
     void reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages = false);
 
     void clear_before_change_mesh(int obj_idx);
+    void notify_painting_removed();
     void changed_mesh(int obj_idx);
 
     void changed_object(ModelObject &object);
