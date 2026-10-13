@@ -1794,7 +1794,7 @@ BoundingBoxf3 ModelObject::instance_convex_hull_bounding_box(const ModelInstance
 // ModelVolume::get_convex_hull_2d(): a pure translation just shifts the contour.
 ExPolygon ModelObject::true_outline_2d_ex(const Transform3d &trafo_instance) const
 {
-    std::lock_guard<std::mutex> lock(m_true_outline_mutex);
+    std::lock_guard<CacheMutex> lock(m_true_outline_mutex);
     // assemble_transform() builds T * Rz * Ry * Rx * S, so the Z rotation commutes with
     // the XY projection and the cached base contour is shared by every instance that
     // differs only in Z rotation and position.
@@ -2905,8 +2905,9 @@ void  ModelVolume::calculate_convex_hull_2d(const Geometry::Transformation &tran
     //m_convex_hull_2d.scale(transformation.get_scaling_factor(X), transformation.get_scaling_factor(Y));
 }
 
-const Polygon& ModelVolume::get_convex_hull_2d(const Transform3d &trafo_instance) const
+Polygon ModelVolume::get_convex_hull_2d(const Transform3d &trafo_instance) const
 {
+    std::lock_guard<CacheMutex> lock(m_convex_hull_2d_mutex);
     Transform3d  new_matrix;
 
     new_matrix = trafo_instance * m_transformation.get_matrix();

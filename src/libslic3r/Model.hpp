@@ -69,6 +69,21 @@ class ModelInstance;
 class ModelMaterial;
 class ModelObject;
 class ModelVolume;
+
+// Mutex guarding a lazily filled cache of its owner. It is neither copied nor moved with the
+// owner (each copy fills and guards its own cache), so owners keep their defaulted copy operations.
+class CacheMutex
+{
+public:
+    CacheMutex() = default;
+    CacheMutex(const CacheMutex &) noexcept {}
+    CacheMutex &operator=(const CacheMutex &) noexcept { return *this; }
+    void lock() { m_mutex.lock(); }
+    void unlock() { m_mutex.unlock(); }
+
+private:
+    std::mutex m_mutex;
+};
 class ModelWipeTower;
 class Print;
 class SLAPrint;
@@ -520,7 +535,7 @@ public:
     ExPolygon true_outline_2d_ex(const Transform3d &trafo_instance) const;
     Polygon   true_outline_2d(const Transform3d &trafo_instance) const;
     void      invalidate_true_outline_2d() const {
-        std::lock_guard<std::mutex> lock(m_true_outline_mutex);
+        std::lock_guard<CacheMutex> lock(m_true_outline_mutex);
         m_true_outline_2d.clear();
         m_true_outline_base.clear();
     }
@@ -702,7 +717,7 @@ private:
     // BBS: true 2D outline cache, mirrors ModelVolume's m_convex_hull_2d trio.
     // m_true_outline_base is at zero XY offset, m_true_outline_2d at m_true_outline_trafo.
     // Guards the four members below; the cache is filled from the UI and the background threads.
-    mutable std::mutex    m_true_outline_mutex;
+    mutable CacheMutex    m_true_outline_mutex;
     mutable ExPolygon     m_true_outline_2d;
     mutable ExPolygon     m_true_outline_base;
     mutable Transform3d   m_true_outline_trafo{Transform3d::Identity()};
@@ -1051,6 +1066,7 @@ public:
 
     //Orca: cache clearing procedure to ensure that the shape is positioned accurately when manipulating it
     void clear_cache() {
+        std::lock_guard<CacheMutex> lock(m_convex_hull_2d_mutex);
         m_cached_trans_matrix = Transform3d::Identity().inverse(); // get unvelivable matrix
         m_convex_hull_2d.clear();
         m_cached_2d_polygon.clear();
@@ -1092,10 +1108,17 @@ public:
     const TriangleMesh& get_convex_hull() const;
     const std::shared_ptr<const TriangleMesh>& get_convex_hull_shared_ptr() const { return m_convex_hull; }
     //BBS: add convex_hell_2d related logic
-    const Polygon& get_convex_hull_2d(const Transform3d &trafo_instance) const;
+    // Returned by value: the cache is shared by every thread that arranges, validates or slices
+    // with this volume, so a reference into it could be overwritten while the caller still reads it.
+    Polygon get_convex_hull_2d(const Transform3d &trafo_instance) const;
     void invalidate_convex_hull_2d()
     {
-        m_convex_hull_2d.clear();
+        {
+            // Released before the object is called: the object's cache lock is taken first
+            // when it computes its outline, so holding this one here would invert the order.
+            std::lock_guard<CacheMutex> lock(m_convex_hull_2d_mutex);
+            m_convex_hull_2d.clear();
+        }
         // BBS: the object's true-outline cache is built from this mesh too.
         if (object) object->invalidate_true_outline_2d();
     }
@@ -1191,6 +1214,7 @@ private:
     // The convex hull of this model's mesh.
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     //BBS: add convex hull 2d related logic
+    mutable CacheMutex                  m_convex_hull_2d_mutex; // guards the three convex_hull_2d cache members
     mutable Polygon                     m_convex_hull_2d; //BBS, used for convex_hell_2d acceleration
     mutable Transform3d                 m_cached_trans_matrix; //BBS, used for convex_hell_2d acceleration
     mutable Polygon                     m_cached_2d_polygon;   //BBS, used for convex_hell_2d acceleration
