@@ -771,6 +771,8 @@ TEST_CASE("Outer walls of a sphere's lower half are all matched on export", "[GC
 
     const OverhangSeamStats &stats = result.overhang_seam_stats;
     REQUIRE(stats.registered > 0);
+    CHECK(stats.hand_over);
+    CHECK_FALSE(result.overhang_seam_markers_may_be_missing());
     CHECK(stats.missed == 0);
     CHECK(stats.suspect == 0);
     CHECK(stats.end_consistent == stats.registered);
@@ -804,6 +806,7 @@ TEST_CASE("An outer wall that starts on an overhang gets the seam an outer wall 
     INFO("sloped " << sloped);
     const StreamResult overhang = process_stream(mixed_wall(erOverhangPerimeter, erExternalPerimeter, sloped), {}, 1, sloped);
     const StreamResult outer    = process_stream(mixed_wall(erExternalPerimeter, erExternalPerimeter, sloped), {}, 1, sloped);
+    CHECK_FALSE(overhang.overhang_seam_stats.overhang_only_paths);
 
     const auto expected = seams_of(outer);
     const auto actual   = seams_of(overhang);
@@ -888,6 +891,121 @@ TEST_CASE("A G-code file ending on a path printed only as overhang wall is flagg
           << "G1 X10 Y10 Z0.2 F12000\n; FEATURE: Overhang wall\n"
           << "G1 X50 Y10 E2 F3000\nG1 X50 Y50 E2\nG1 X10 Y50 E2\nG1 X10 Y10 E2\nM400\nM84\n";
     CHECK(process_stream(gcode.str(), {}, 1).overhang_seam_stats.overhang_only_paths);
+}
+
+TEST_CASE("File preview notices require a closed overhang-only path", "[GCodeProcessor][OverhangSeam]")
+{
+    const double gap = GENERATE(0., 0.249, 0.25, 0.251, 10.);
+    const bool at_eof = GENERATE(false, true);
+    INFO("gap " << gap << ", ends at EOF " << at_eof);
+    // Match the detector's strict 0.25 mm closure test, also when the file ends on extrusion.
+    std::ostringstream gcode;
+    gcode << "M83\nG90\nG1 X10 Y10 Z0.2 F12000\n; FEATURE: Overhang wall\n"
+          << "G1 X50 Y10 E2 F3000\nG1 X50 Y50 E2\nG1 X10 Y50 E2\nG1 X" << 10. + gap << " Y10 E2\n";
+    if (!at_eof)
+        gcode << "G1 X80 Y80 F12000\n";
+    ScopedTemporaryFile temp(".gcode");
+    std::ofstream(temp.string(), std::ios::binary) << gcode.str();
+    const bool was_bbl_printer = GCodeProcessor::s_IsBBLPrinter;
+    const ScopeGuard restore_bbl([was_bbl_printer] { GCodeProcessor::s_IsBBLPrinter = was_bbl_printer; });
+    GCodeProcessor::s_IsBBLPrinter = true;
+    GCodeProcessor processor;
+    processor.process_file(temp.string());
+    const auto &result = processor.get_result();
+    CHECK_FALSE(result.overhang_seam_stats.hand_over);
+    CHECK(result.overhang_seam_markers_may_be_missing() == (gap < 0.25));
+}
+
+TEST_CASE("An overhang tail on an inner wall does not request a preview notice", "[GCodeProcessor][OverhangSeam]")
+{
+    const bool at_eof = GENERATE(false, true);
+    INFO("ends at EOF " << at_eof);
+    // The wall closes, but its overhang-only tail does not close back to the tail's own start.
+    std::string gcode = "M83\nG90\nG1 X10 Y10 Z0.2 F12000\n; FEATURE: Inner wall\n"
+                        "G1 X50 Y10 E2 F3000\n; FEATURE: Overhang wall\n"
+                        "G1 X50 Y50 E2\nG1 X10 Y50 E2\nG1 X10 Y10 E2\n";
+    if (!at_eof)
+        gcode += "G1 X80 Y80 F12000\n";
+    CHECK_FALSE(process_stream(gcode, {}, 1).overhang_seam_stats.overhang_only_paths);
+}
+
+TEST_CASE("Export context suppresses notices even for an unhanded closed overhang path", "[GCodeProcessor][OverhangSeam]")
+{
+    // The inner-wall ambiguity must not turn an ordinary export into a file-preview notice.
+    GCodeProcessorResult result{};
+    result.reset();
+    const std::string gcode = "M83\nG90\nG1 X10 Y10 Z0.2 F12000\n; FEATURE: Overhang wall\n"
+                              "G1 X50 Y10 E2 F3000\nG1 X50 Y50 E2\nG1 X10 Y50 E2\nG1 X10 Y10 E2\nG1 X80 Y80 F12000\n";
+    result.overhang_seam_stats = process_stream(gcode, {}, 0).overhang_seam_stats;
+    CHECK(result.overhang_seam_stats.overhang_only_paths);
+    CHECK(result.overhang_seam_stats.hand_over);
+    CHECK_FALSE(result.overhang_seam_markers_may_be_missing());
+}
+
+TEST_CASE("File reload risk survives result assignment and clears on reset", "[GCodeProcessor][OverhangSeam]")
+{
+    GCodeProcessorResult source{};
+    source.reset();
+    source.overhang_seam_stats.hand_over = true;
+    source.overhang_seam_reload_risk = true;
+    // The final preview risk is independent of the original export's statistics.
+    CHECK(source.overhang_seam_markers_may_be_missing());
+    GCodeProcessorResult copied{};
+    copied = source;
+    CHECK(copied.overhang_seam_stats.hand_over);
+    CHECK(copied.overhang_seam_reload_risk);
+    GCodeProcessorResult moved{};
+    moved = std::move(copied);
+    CHECK(moved.overhang_seam_markers_may_be_missing());
+    moved.reset();
+    CHECK_FALSE(moved.overhang_seam_stats.hand_over);
+    CHECK_FALSE(moved.overhang_seam_reload_risk);
+    CHECK_FALSE(moved.overhang_seam_markers_may_be_missing());
+}
+
+TEST_CASE("A processor reset clears the export hand-over context", "[GCodeProcessor][OverhangSeam]")
+{
+    // Zero tags still identify an export; reset restores independent file-like processing.
+    GCodeProcessor processor;
+    processor.set_overhang_seam_layer_tags(0);
+    processor.reset();
+    processor.initialize_result_moves();
+    processor.finalize(false);
+    CHECK_FALSE(processor.get_result().overhang_seam_stats.hand_over);
+}
+
+TEST_CASE("Reloading preview moves preserves export diagnostics and updates file risk", "[GCodeProcessor][OverhangSeam]")
+{
+    ScopedTemporaryFile temp(".gcode");
+    const auto write_wall = [&](bool closed) {
+        // A simple file stands in for a post-processor's final output; no export is needed.
+        std::ofstream out(temp.string(), std::ios::binary);
+        out << "M83\nG90\nG1 X10 Y10 Z0.2 F12000\n; FEATURE: Overhang wall\n"
+            << "G1 X50 Y10 E2 F3000\nG1 X50 Y50 E2\nG1 X10 Y50 E2\n";
+        if (closed)
+            out << "G1 X10 Y10 E2\n";
+        out << "G1 X80 Y80 F12000\n";
+    };
+    const bool was_bbl_printer = GCodeProcessor::s_IsBBLPrinter;
+    const ScopeGuard restore_bbl([was_bbl_printer] { GCodeProcessor::s_IsBBLPrinter = was_bbl_printer; });
+    Print print;
+    print.is_BBL_printer() = true;
+    GCodeProcessorResult result{};
+    result.reset();
+    result.filename = temp.string();
+    result.overhang_seam_stats.hand_over = true;
+    result.overhang_seam_stats.registered = 7;
+    result.overhang_seam_stats.end_consistent = 7;
+    write_wall(true);
+    print.reload_gcode_moves(&result);
+    CHECK(result.overhang_seam_reload_risk);
+    CHECK(result.overhang_seam_stats.hand_over);
+    CHECK(result.overhang_seam_stats.registered == 7);
+    CHECK(result.overhang_seam_stats.end_consistent == 7);
+    write_wall(false);
+    print.reload_gcode_moves(&result);
+    CHECK_FALSE(result.overhang_seam_reload_risk);
+    CHECK_FALSE(result.overhang_seam_markers_may_be_missing());
 }
 
 TEST_CASE("Exported overhang outer walls get the seams of outer walls", "[GCodeProcessor][OverhangSeam]")

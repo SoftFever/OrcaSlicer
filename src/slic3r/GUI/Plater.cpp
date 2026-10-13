@@ -546,6 +546,17 @@ static wxString temp_dir;
 
 namespace {
 
+void show_overhang_seam_notice(NotificationManager &manager, const GCodeProcessorResult &result)
+{
+    // Shared by file loading and completed background jobs; never reset with a project or plate.
+    static bool shown = false;
+    if (!shown && result.overhang_seam_markers_may_be_missing()) {
+        manager.push_notification(NotificationType::CustomNotification, NotificationManager::NotificationLevel::WarningNotificationLevel,
+                                  _u8L("Seam markers may be missing in the preview for outer walls that overhang all the way round. Printed seams are not affected."));
+        shown = true;
+    }
+}
+
 #ifdef __WXGTK__
 wxString sanitize_window_layout_for_wayland(const wxString& layout, bool* removed_floating_state = nullptr)
 {
@@ -13343,6 +13354,12 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         is_finished = true;
     }
 
+    // The worker has stopped: export and any BBL file reload have produced the final preview.
+    if (evt.success() && !has_error && this->printer_technology == ptFFF) {
+        if (const auto *result = this->background_process.get_current_gcode_result(); result != nullptr && !result->moves.empty())
+            show_overhang_seam_notice(*notification_manager, *result);
+    }
+
     {
         Slic3r::LifecycleEventContext ctx;
         if (const PrintBase* print = this->background_process.current_print()) {
@@ -18233,15 +18250,7 @@ void Plater::load_gcode(const wxString& filename)
         set_project_filename(_L(DEFAULT_PROJECT_NAME));
     } else {
         set_project_filename(filename);
-        // Orca: a G-code file cannot tell an outer wall that overhangs all the way round from an
-        // inner one, so it has no seam marker (docs/HLSD/overhang-seam-preview.md). Once per session.
-        static bool overhang_seam_notice_shown = false;
-        if (!overhang_seam_notice_shown && current_result->overhang_seam_stats.overhang_only_paths) {
-            overhang_seam_notice_shown = true;
-            get_notification_manager()->push_notification(NotificationType::CustomNotification,
-                                                          NotificationManager::NotificationLevel::WarningNotificationLevel,
-                                                          _u8L("Seam markers are not shown for outer walls that overhang all the way round in G-code files."));
-        }
+        show_overhang_seam_notice(*get_notification_manager(), *current_result);
     }
 
     // Orca: Fix crash when loading gcode file multiple times
