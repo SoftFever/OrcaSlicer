@@ -2138,6 +2138,8 @@ wxMenu* MenuFactory::multi_selection_menu()
         }
         append_menu_item_center(menu);
         append_menu_item_drop(menu);
+        // "Scale to build volume" makes sense just for whole objects, not for parts
+        append_menu_item_scale_selection_to_fit_print_volume(menu);
         append_menu_item_fix_through_cgal(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
