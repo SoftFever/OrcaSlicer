@@ -1,4 +1,5 @@
 #include "WebGuideDialog.hpp"
+#include "CloudProvider.hpp"
 #include "ConfigWizard.hpp"
 
 #include <algorithm>

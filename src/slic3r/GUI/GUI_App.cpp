@@ -41,6 +41,7 @@
 #include <boost/filesystem/exception.hpp>
 #include <boost/locale/encoding_utf.hpp>
 #include <boost/log/detail/native_typeof.hpp>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <cassert>
