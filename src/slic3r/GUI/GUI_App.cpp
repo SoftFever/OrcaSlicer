@@ -3925,14 +3925,12 @@ bool GUI_App::on_init_network(bool try_backup)
         if (config_version.empty()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": no version configured, need to download";
             m_networking_need_update = true;
-        }
-
-        if(!config_version.empty()) {
+        } else {
             int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
         __retry:
             if (!load_agent_dll) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
-    
+
                 std::string loaded_version = Slic3r::NetworkAgent::get_version();
                 if (app_config && !loaded_version.empty() && loaded_version != "00.00.00.00") {
                     // Self-heal only when a genuinely different series loaded than configured (e.g. the
@@ -3950,7 +3948,7 @@ bool GUI_App::on_init_network(bool try_backup)
                         app_config->save();
                     }
                 }
-    
+
                 if (check_networking_version()) {
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, compatibility version";
                     auto bambu_source = Slic3r::NetworkAgent::get_bambu_source_entry();
