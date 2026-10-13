@@ -1576,7 +1576,8 @@ void PerimeterGenerator::process_classic()
     // ORCA: neither one-wall option has a surface to act on without the shell behind it, see
     // has_top_shell_layers() / has_bottom_shell_layers(). Gated here so every use below - including the
     // topmost and first layers - sees the same answer.
-    const bool only_one_wall_top         = this->config->top_one_wall_type != TopOneWallType::None && has_top_shell_layers(*this->config);
+    const bool only_one_wall_top         = this->config->top_one_wall_type != TopOneWallType::Alltop;
+    const bool only_one_wall_topmost     = this->config->top_one_wall_type != TopOneWallType::None && has_top_shell_layers(*this->config);
     const bool only_one_wall_first_layer = this->config->only_one_wall_first_layer && has_bottom_shell_layers(*this->config);
 
     for (size_t order_idx = 0; order_idx < surface_order.size(); order_idx++) {
@@ -1590,16 +1591,15 @@ void PerimeterGenerator::process_classic()
         
         // BBS: set the topmost and bottom most layer to be one wall
         //if (this->layer_id == object_config->raft_layers && only_one_wall_first_layer)
-        if (loop_number > 0 && ((this->config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr) ||
-                                (this->config->only_one_wall_first_layer && layer_id == 0)))
+        if ((loop_number > 0 && (this->config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr)) ||
+                                (this->layer_id == object_config->raft_layers && only_one_wall_first_layer))
             loop_number = 0;
         
-        /*
+
         // Set the topmost layer to be one wall
         int loop_number2 = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
-        if (loop_number > 0 && only_one_wall_top && this->upper_slices == nullptr)
-            loop_number2 = 0;
-        */
+        if (loop_number2 > 0 && only_one_wall_topmost && this->upper_slices == nullptr)
+            loop_number = 0;
 
         // BBS's circle compensation
         /*
@@ -2739,7 +2739,7 @@ void PerimeterGenerator::process_arachne()
     // ORCA: neither one-wall option has a surface to act on without the shell behind it, see
     // has_top_shell_layers() / has_bottom_shell_layers(). Gated here so every use below - including the
     // topmost and first layers - sees the same answer.
-    const bool only_one_wall_top         = this->config->top_one_wall_type == TopOneWallType::Alltop && this->upper_slices != nullptr;
+    const bool only_one_wall_top         = this->config->top_one_wall_type == TopOneWallType::Alltop;
     const bool only_one_wall_topmost     = this->config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr;
     const bool only_one_wall_first_layer = this->config->only_one_wall_first_layer && has_bottom_shell_layers(*this->config);
     
