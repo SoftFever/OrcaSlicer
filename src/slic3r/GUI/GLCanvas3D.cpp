@@ -4959,7 +4959,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else {
             // BBS: define Alt key to enable volume selection mode
             m_selection.set_volume_selection_mode(evt.AltDown() ? Selection::Volume : Selection::Instance);
-            if (evt.LeftDown() && evt.ShiftDown() && m_picking_enabled && m_layers_editing.state != LayersEditing::Editing) {
+            // ORCA: Alt+Shift+click on a volume adds/removes to/from the selection, don't let Shift start a rectangle selection in that case
+            const bool alt_shift_volume_click = evt.AltDown() && evt.ShiftDown() && !m_hover_volume_idxs.empty();
+            if (evt.LeftDown() && evt.ShiftDown() && !alt_shift_volume_click && m_picking_enabled && m_layers_editing.state != LayersEditing::Editing) {
                 if (/*m_gizmos.get_current_type() != GLGizmosManager::SlaSupports
                     &&*/ m_gizmos.get_current_type() != GLGizmosManager::FdmSupports
                     && m_gizmos.get_current_type() != GLGizmosManager::Seam
@@ -4989,6 +4991,22 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                         if (already_selected && ctrl_down)
                             m_selection.remove(volume_idx);
+                        else if (alt_down && evt.ShiftDown()) {
+                            // ORCA: Alt+Shift toggles the clicked volume in the current volume selection.
+                            // Limited to a single object instance, Start a new selection if clicked volume belongs to another object/instance
+                            Selection::EMode mode = Selection::Volume;
+                            const GLVolume* volume = m_volumes.volumes[volume_idx];
+                            // Don't require Volume mode: update_type() switches to Instance mode as soon as
+                            // all parts of the instance are selected, which would wrongly reset the selection.
+                            const bool can_extend = !m_selection.is_empty()
+                                && !volume->is_wipe_tower
+                                && m_selection.get_object_idx() == volume->object_idx()
+                                && m_selection.get_instance_idx() == volume->instance_idx();
+                            if (already_selected && can_extend)
+                                m_selection.remove_volumes(mode, { (unsigned int)volume_idx });
+                            else
+                                m_selection.add_volumes(mode, { (unsigned int)volume_idx }, !can_extend);
+                        }
                         else if (alt_down) {
                             Selection::EMode mode = Selection::Volume;
                             if (already_selected) {
@@ -11634,6 +11652,15 @@ void GLCanvas3D::_update_volumes_hover_state()
     bool ctrl_pressed = wxGetKeyState(WXK_CONTROL); // additive select/deselect
     bool shift_pressed = wxGetKeyState(WXK_SHIFT);  // select by rectangle
     bool alt_pressed = wxGetKeyState(WXK_ALT);      // deselect by rectangle
+
+    // ORCA: Alt+Shift clicking on a volume adds/removes that single volume to/from the selection
+    if (alt_pressed && shift_pressed && !ctrl_pressed && !m_rectangle_selection.is_dragging()) {
+        for (int i : m_hover_volume_idxs) {
+            GLVolume& volume = *m_volumes.volumes[i];
+            volume.hover = volume.selected ? GLVolume::HS_Deselect : GLVolume::HS_Select;
+        }
+        return;
+    }
 
     if (alt_pressed && (shift_pressed || ctrl_pressed)) {
         // illegal combinations of keys
