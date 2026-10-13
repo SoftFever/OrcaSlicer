@@ -6474,9 +6474,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",top&&pick thumbnails, count %1%")%top_thumbnail_data.size();
 
         //BBS: add thumbnail for each plate
-        //ORCA: the relationships file may only reference thumbnail parts that really were
-        //      written -- a CLI export renders none. Track the plate the relationships will
-        //      point at: plate 1 for a whole-project export, otherwise the exported plate.
+        //ORCA: the relationships file points at plate 1's thumbnail for a whole-project export,
+        //      otherwise at the exported plate's. Track whether that thumbnail was written.
         const size_t rels_plate_idx = (export_plate_idx < 0) ? 0 : static_cast<size_t>(export_plate_idx);
         bool rels_thumbnail_written = false;
         bool rels_small_thumbnail_written = false;
@@ -7063,9 +7062,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (export_plate_idx < 0) {
                 //use cover image if have
                 if (data._3mf_thumbnail.empty()) {
-                    // ORCA: only point at the plate thumbnail if it really was written. A CLI export
-                    // renders no thumbnails, so declaring one here left every CLI-exported 3mf with a
-                    // relationship to a part that is not in the package.
+                    // ORCA: only reference the plate thumbnail if it was written
                     if (plate_thumbnail_written)
                         stream << " <Relationship Target=\"/Metadata/plate_1.png"
                                << "\" Id=\"rel-2\" Type=\"http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail\"/>\n";
