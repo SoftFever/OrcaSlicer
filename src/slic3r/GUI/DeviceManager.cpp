@@ -1,21 +1,57 @@
-#include "libslic3r/libslic3r.h"
+#include "PrinterNetworkTypes.hpp"
+#include <nlohmann/json.hpp>
 #include "DeviceManager.hpp"
 #include "HMS.hpp"
 #include "I18N.hpp"
-#include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
-#include "slic3r/plugin/PluginManager.hpp"
 #include "slic3r/Utils/NetworkAgentFactory.hpp"
-#include "GuiColor.hpp"
 
 #include "GUI_App.hpp"
-#include "MsgDialog.hpp"
 #include "DeviceErrorDialog.hpp"
 #include "Plater.hpp"
-#include "GUI_App.hpp"
 #include "ReleaseNote.hpp"
+#include <string>
+#include <boost/log/trivial.hpp>
+#include <cstdlib>
+#include <cstddef>
+#include "libslic3r/PrintConfig.hpp"
+#include <cassert>
+#include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
+#include "libslic3r/Utils.hpp"
+#include <boost/filesystem/operations.hpp>
+#include <chrono>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include <memory>
+#include "slic3r/GUI/DeviceCore/DevCalib.h"
+#include <boost/algorithm/string/predicate.hpp>
+#include <cstdint>
+#include <map>
+#include "libslic3r/calib.hpp"
+#include <ctime>
+#include "slic3r/GUI/DeviceCore/DevFilaAmsSetting.h"
+#include <cstdio>
+#include "slic3r/GUI/DeviceCore/DevFirmware.h"
+#include <optional>
+#include <exception>
+#include "libslic3r/LocalesUtils.hpp"
+#include "libslic3r/LifecycleEvents.hpp"
+#include <system_error>
+#include "libslic3r/ProjectTask.hpp"
+#include <cstring>
+#include <boost/chrono/duration.hpp>
+#include <iterator>
+#include "slic3r/GUI/UserNotification.hpp"
+#include <cctype>
+#include <algorithm>
+#include <limits>
+#include <stdexcept>
+#include "libslic3r/Config.hpp"
+#include <set>
+#include <sstream>
+#include <ios>
+#include <iomanip>
 #include <thread>
 #include <mutex>
 #include <charconv>
@@ -25,7 +61,15 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+#include <wx/colour.h>
+#include <tuple>
 #include <wx/dir.h>
+#include <wx/string.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
 #include "fast_float/fast_float.h"
 
 #include "DeviceCore/DevFilaSystem.h"
@@ -40,12 +84,10 @@
 
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevCtrl.h"
-#include "DeviceCore/DevInfo.h"
 #include "DeviceCore/DevPrintOptions.h"
 #include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevHMS.h"
 
-#include "DeviceCore/DevMapping.h"
 #include "DeviceCore/DevMappingNozzle.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevUtil.h"
@@ -57,14 +99,23 @@
 #include "DeviceCore/DevUpgrade.h"
 
 #include "IPrinterAgent.hpp"
+#include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/PresetBundle.hpp"
+#include "slic3r/GUI/Jobs/SendJob.hpp"
+
+using json = nlohmann::json;
+
+class wxWindow;
+
+namespace fs = boost::filesystem;
+using namespace std::chrono_literals;
 
 #define CALI_DEBUG
 #define MINUTE_30 1800000    //ms
 #define TIME_OUT  5000       //ms
 
 #define ORCA_NETWORK_DEBUG
-
-namespace pt = boost::property_tree;
 
 float string_to_float(const std::string& str_value) {
     float value = 0.0;
@@ -3052,7 +3103,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         DevFirmwareVersionInfo ver_info;
                         ver_info.name = (*it)["name"].get<std::string>();
                         if ((*it).contains("product_name"))
-                            ver_info.product_name = wxString::FromUTF8((*it)["product_name"].get<string>());
+                            ver_info.product_name = wxString::FromUTF8((*it)["product_name"].get<std::string>());
                         if ((*it).contains("sw_ver"))
                             ver_info.sw_ver = (*it)["sw_ver"].get<std::string>();
                         if ((*it).contains("sw_new_ver"))
@@ -4262,7 +4313,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 info = _L("Selected diameter and machine diameter do not match");
                             }
                             else if (reason == "generate auto filament cali gcode failure") {
-                                info = _L("Failed to generate cali G-code");
+                                info = _L("Failed to generate calibration G-code");
                             }
                             else {
                                 info = reason;
@@ -5696,7 +5747,7 @@ void MachineObject::update_filament_list()
     PresetBundle *preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
 
     // custom filament
-    typedef std::map<std::string, std::pair<int, int>> map_pair;
+    typedef std::map<std::string, std::pair<std::vector<int>, std::vector<int>>> map_pair;
     std::map<std::string, map_pair>                    map_list;
     for (auto &pair : m_nozzle_filament_data) {
         map_list[pair.second.printer_preset_name] = map_pair{};
@@ -5708,19 +5759,13 @@ void MachineObject::update_filament_list()
             for (const std::string &printer_str : printer_strs->values) {
                 if (map_list.find(printer_str) != map_list.end()) {
                     auto &        filament_list = map_list[printer_str];
-                    ConfigOption *opt_min  = const_cast<Preset &>(preset).config.option("nozzle_temperature_range_low");
-                    int           min_temp = -1;
-                    if (opt_min) {
-                        ConfigOptionInts *opt_min_ints = dynamic_cast<ConfigOptionInts *>(opt_min);
-                        min_temp                       = opt_min_ints->get_at(0);
-                    }
-                    ConfigOption *opt_max  = const_cast<Preset &>(preset).config.option("nozzle_temperature_range_high");
-                    int           max_temp = -1;
-                    if (opt_max) {
-                        ConfigOptionInts *opt_max_ints = dynamic_cast<ConfigOptionInts *>(opt_max);
-                        max_temp                       = opt_max_ints->get_at(0);
-                    }
-                    filament_list[preset.filament_id] = std::make_pair(min_temp, max_temp);
+                    // Every variant's range, so a change to any of them rechecks the trays
+                    std::vector<int> min_temps{-1}, max_temps{-1};
+                    if (auto *opt_min = preset.config.option<ConfigOptionInts>("nozzle_temperature_range_low"))
+                        min_temps = opt_min->values;
+                    if (auto *opt_max = preset.config.option<ConfigOptionInts>("nozzle_temperature_range_high"))
+                        max_temps = opt_max->values;
+                    filament_list[preset.filament_id] = std::make_pair(min_temps, max_temps);
                     break;
                 }
             }
@@ -5856,10 +5901,13 @@ void MachineObject::check_ams_filament_valid()
                     need_checked_filament_id[nozzle_diameter_str].insert(curr_tray->setting_id);
                     try {
                         std::string preset_setting_id;
+                        const int   extruder_id = ams->GetExtruderId();
                         bool        is_equation = preset_bundle->check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(printer_model, nozzle_diameter_str,
                                                                                                                                curr_tray->setting_id, curr_tray->tag_uid,
                                                                                                                                curr_tray->nozzle_temp_min,
-                                                                                                                               curr_tray->nozzle_temp_max, preset_setting_id);
+                                                                                                                               curr_tray->nozzle_temp_max, preset_setting_id,
+                                                                                                                               get_preset_extruder_index(extruder_id),
+                                                                                                                               DevNozzle::ToNozzleVolumeType(m_extder_system->GetNozzleFlowType(extruder_id)));
                         if (!is_equation) {
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " ams filament is not match min max temp and reset, ams_id: " << ams_id << " tray_id"
                                                     << slot_id << "filament_id: " << curr_tray->setting_id;
@@ -5924,7 +5972,9 @@ void MachineObject::check_ams_filament_valid()
                                                                                                                                this->printer_type),
                                                                                                                            nozzle_diameter_str, vt_tray.setting_id,
                                                                                                                            vt_tray.tag_uid, vt_tray.nozzle_temp_min,
-                                                                                                                           vt_tray.nozzle_temp_max, preset_setting_id);
+                                                                                                                           vt_tray.nozzle_temp_max, preset_setting_id,
+                                                                                                                           get_preset_extruder_index(index),
+                                                                                                                           DevNozzle::ToNozzleVolumeType(m_extder_system->GetNozzleFlowType(index)));
                     if (!is_equation) {
                         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__
                                                 << " vt_tray filament is not match min max temp and reset, filament_id: " << vt_tray.setting_id;

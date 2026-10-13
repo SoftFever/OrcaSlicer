@@ -1,16 +1,23 @@
 #ifndef slic3r_PresetBundle_hpp_
 #define slic3r_PresetBundle_hpp_
 
+#include "Config.hpp"
 #include "Preset.hpp"
 #include "PresetCacheFormat.hpp"
 #include "AppConfig.hpp"
+#include "PrintConfig.hpp"
 #include "PublishSettings.hpp"
+#include "Semver.hpp"
 #include "enum_bitmask.hpp"
 
+#include <climits>
+#include <functional>
+#include <cstddef>
 #include <memory>
 #include <map>
 #include <set>
 #include <shared_mutex>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <optional>
@@ -18,6 +25,8 @@
 #include <atomic>
 #include <boost/filesystem/path.hpp>
 #include <unordered_set>
+#include <vector>
+#include <utility>
 
 #define DEFAULT_USER_FOLDER_NAME "default"
 #define BUNDLE_STRUCTURE_JSON_NAME "bundle_structure.json"
@@ -238,6 +247,9 @@ public:
     // Keys a project keeps when its presets are loaded: those listed in its escaped
     // "different_settings_to_system" entry for the preset, plus the preset bookkeeping keys.
     static std::set<std::string> project_different_keys(const std::string &different_settings);
+    // A project filament saved under a name the current presets split per nozzle (e.g. H2D 0.6) is loaded from
+    // the preset that now holds its values.
+    static void convert_filament_preset_name(const std::string& machine_name, std::string& filament_name);
 
     PresetBundle();
     PresetBundle(const PresetBundle &rhs);
@@ -307,7 +319,9 @@ public:
                              ForwardCompatibilitySubstitutionRule rule,
                              int& overwrite,
                              std::vector<std::string>& result,
-                             const std::string& bundle_dir = "");
+                             const std::string& bundle_dir = "",
+                             const std::map<std::string, std::string> &bed_asset_paths = {},
+                             bool *bed_paths_loaded = nullptr);
                              
     void save_user_presets(AppConfig& config, std::map<std::string, std::string>& need_to_delete_list);
     void check_and_fix_user_presets_syncinfo(const std::string& user_id);
@@ -407,13 +421,22 @@ public:
     std::vector<Preset *> get_filament_presets_for_machine(const std::string &printer_type,
                                                            const std::string &nozzle_diameter_str,
                                                            bool               include_user_presets);
+    // Orca: the variant index of a filament preset's per-variant options on extruder extruder_id of a printer
+    // preset, with the nozzle volume type the machine reports; 0 when the filament has no such variant.
+    static int            get_filament_variant_index(const DynamicPrintConfig &filament_config,
+                                                     const DynamicPrintConfig &printer_config,
+                                                     int                       extruder_id,
+                                                     NozzleVolumeType          nozzle_volume_type);
+    // extruder_id and nozzle_volume_type identify the tray's nozzle, whose variant the temperature range is compared for.
     bool                  check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(const std::string &printer_type,
                                                                                                std::string &      nozzle_diameter_str,
                                                                                                std::string &      setting_id,
                                                                                                std::string &      tag_uid,
                                                                                                std::string &      nozzle_temp_min,
                                                                                                std::string &      nozzle_temp_max,
-                                                                                               std::string &      preset_setting_id);
+                                                                                               std::string &      preset_setting_id,
+                                                                                               int                extruder_id,
+                                                                                               NozzleVolumeType   nozzle_volume_type);
     Preset *                    get_similar_printer_preset(std::string printer_model, std::string printer_variant);
 
     PresetCollection            prints;
@@ -452,8 +475,8 @@ public:
 
     // Orca: Bundle metadata and cached preset names
     // std::map<std::string, BundleMetadata>  m_bundles;
-    fs::path dir_user_presets_local;
-    fs::path dir_user_presets_subscribed;
+    boost::filesystem::path dir_user_presets_local;
+    boost::filesystem::path dir_user_presets_subscribed;
     PresetBundleMetadata bundles;
 
         struct ObsoletePresets
@@ -830,7 +853,9 @@ private:
 
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json related logic
-    std::pair<PresetsConfigSubstitutions, std::string> load_system_presets_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule, bool allow_cache = true);
+    // Reads each vendor from its preset cache where one covers the profile, as every load does.
+    // write_caches = false keeps a read-only load from writing caches into the data directory.
+    std::pair<PresetsConfigSubstitutions, std::string> load_system_presets_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule, bool write_caches = true);
     // Update the multicolor information for filaments.
     void update_filament_multi_color();
     // Update renamed_from and alias maps of system profiles.
