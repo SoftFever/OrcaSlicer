@@ -1,3 +1,4 @@
+#include <array>
 #include <atomic>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -53,6 +54,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <mutex>
 #include <numeric>
 #include <set>
 #include <shared_mutex>

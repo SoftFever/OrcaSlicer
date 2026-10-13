@@ -8,7 +8,7 @@
 # author = "OrcaSlicer contributors"
 # version = "0.1.0"
 # ///
-"""A small interactive consumer of ``orca.host.reload_local_bundle``."""
+"""A small interactive consumer of ``orca.host.preset.bundles.reload_local``."""
 
 import json
 import os
@@ -193,7 +193,7 @@ def _reconcile(bundle, state):
         {"id": BUNDLE_ID, "name": "Reload Local Bundle Demo", "version": "0.1.0"},
     )
     _write_json_atomic(_state_path(bundle), state)
-    orca.host.reload_local_bundle(BUNDLE_ID)
+    orca.host.preset.bundles.reload_local(BUNDLE_ID)
 
 
 def _state_payload(bundle, state, message="", error=""):
@@ -213,7 +213,7 @@ def _state_payload(bundle, state, message="", error=""):
     return {
         "command": "state",
         "items": items,
-        "bundles": orca.host.list_bundle_ids(),
+        "bundles": orca.host.preset.bundles.list_ids(),
         "message": message,
         "error": error,
     }
@@ -253,7 +253,7 @@ h2 { margin: 16px 0 8px; font-size: 13px; }
 .bundle { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .bundle code { overflow-wrap: anywhere; }
 </style></head><body>
-<details class="help"><summary>How it works</summary><p>Each row controls one profile in this local bundle. A switch adds or removes its source file; Delete removes the demo record and Restore returns it disabled. Every action reloads this bundle across filament, process, and machine. Local bundles lists every bundle id that orca.host.list_bundle_ids() reports; Reload calls orca.host.reload_local_bundle() for that id.</p></details>
+<details class="help"><summary>How it works</summary><p>Each row controls one profile in this local bundle. A switch adds or removes its source file; Delete removes the demo record and Restore returns it disabled. Every action reloads this bundle across filament, process, and machine. Local bundles lists every bundle id that orca.host.preset.bundles.list_ids() reports; Reload calls orca.host.preset.bundles.reload_local() for that id.</p></details>
 <div class="profiles" id="profiles"></div>
 <h2>Local bundles</h2>
 <div class="bundles" id="bundles"></div>
@@ -377,7 +377,7 @@ class ReloadLocalBundleDemo(orca.script.ScriptPluginCapabilityBase):
                 bundle_id = message.get("bundle_id")
                 if not isinstance(bundle_id, str) or not bundle_id:
                     raise RuntimeError("A bundle id is required")
-                orca.host.reload_local_bundle(bundle_id)
+                orca.host.preset.bundles.reload_local(bundle_id)
                 self._post_state(message="Reloaded local bundle %s." % bundle_id)
                 return
             item = next((item for item in DEMO_PRESETS if item["id"] == message.get("id")), None)

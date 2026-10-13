@@ -100,11 +100,13 @@ std::vector<std::string> list_bundle_ids()
 
 void host_bindings::register_presets(py::module_& host)
 {
-    host.def("reload_local_bundle", &reload_local_bundle, py::arg("bundle_id"),
-             "Reload one local preset bundle from the active user's _local directory.");
-    host.def("list_bundle_ids", &list_bundle_ids,
-             "IDs of local preset bundles in the active user's _local directory that reload_local_bundle() accepts, "
-             "including bundles added after startup.");
+    auto preset = host.def_submodule("preset", "Preset operations");
+    auto bundles = preset.def_submodule("bundles", "Local preset bundle operations");
+    bundles.def("reload_local", &reload_local_bundle, py::arg("bundle_id"),
+                "Reload one local preset bundle from the active user's _local directory.");
+    bundles.def("list_ids", &list_bundle_ids,
+                "IDs of local preset bundles in the active user's _local directory that reload_local() accepts, "
+                "including bundles added after startup.");
 
     py::enum_<Preset::Type>(host, "PresetType")
         .value("Invalid", Preset::TYPE_INVALID)
