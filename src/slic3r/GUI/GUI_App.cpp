@@ -654,6 +654,7 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_TEX */     { L("Texture"),         { ".png"sv, ".svg"sv } },
     /* FT_SL1 */     { L("Masked SLA files"), { ".sl1"sv, ".sl1s"sv } },
     /* FT_DRC */     { L("Draco files"),     { ".drc"sv } },
+    /* FT_GLB */     { L("GLB files"),       { ".glb"sv } },
 };
 
 // This function produces a Win32 file dialog file template mask to be consumed by wxWidgets on all platforms.
@@ -2912,6 +2913,7 @@ int GUI_App::OnExit()
 
 void GUI_App::CleanUp()
 {
+    Slic3r::PluginManager::instance().set_shutting_down();
     // OnExit() does not run when OnInit() fails, and m_agent is then still set. Stop the check before
     // wxApp::CleanUp() resets wxTheApp, which a result posted from the worker would still be using.
     stop_orca_health_check(m_agent);

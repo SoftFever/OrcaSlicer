@@ -27,6 +27,7 @@
 #include "pluginTypes/pages/PagesPluginCapability.hpp"
 #include "pluginTypes/script/ScriptPluginCapability.hpp"
 #include "pluginTypes/slicingPipeline/SlicingPipelinePluginCapability.hpp"
+#include "pluginTypes/visualization/VisualizationPluginCapability.hpp"
 #include <pybind11/pytypes.h>
 #include <pybind11/gil.h>
 
@@ -526,6 +527,7 @@ void bind_python_api(pybind11::module_& m)
     PagesPluginCapability::RegisterBindings(m);
     ScriptPluginCapability::RegisterBindings(m);
     SlicingPipelinePluginCapability::RegisterBindings(m);
+    VisualizationPluginCapability::RegisterBindings(m);
     PluginHost::RegisterBindings(m);
     BOOST_LOG_TRIVIAL(debug) << "Registered ScriptPluginCapability Python bindings";
 

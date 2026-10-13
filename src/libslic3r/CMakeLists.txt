@@ -219,6 +219,8 @@ set(lisbslic3r_sources
     Format/AssembleList.hpp
     Format/DRC.cpp
     Format/DRC.hpp
+    Format/GLB.cpp
+    Format/GLB.hpp
     Format/bbs_3mf.cpp
     Format/bbs_3mf.hpp
     format.hpp

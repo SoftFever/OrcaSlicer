@@ -27,6 +27,8 @@ add_executable(${_TEST_NAME}_tests
     test_printer_agent.cpp
     test_plugin_install.cpp
     test_plugin_lifecycle.cpp
+    test_preview_geometry_snapshot.cpp
+    test_toolpath_mesh_scope.cpp
     test_plugin_printer_agent.cpp
     test_printhost.cpp
     test_slicing_pipeline_bindings.cpp

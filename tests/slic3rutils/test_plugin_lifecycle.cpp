@@ -4,29 +4,67 @@
 
 #include <ios>
 #include <libslic3r/LifecycleEvents.hpp>
+#include <libslic3r/GCode/GCodeProcessor.hpp>
 #include <memory>
 #include <slic3r/Utils/NetworkAgentFactory.hpp>
+#include <slic3r/plugin/PluginAuditManager.hpp>
 #include <slic3r/plugin/PluginDescriptor.hpp>
 #include <slic3r/plugin/PluginManager.hpp>
 #include <slic3r/plugin/PluginFsUtils.hpp>
 #include <slic3r/plugin/PythonInterpreter.hpp>
+#include <slic3r/plugin/host/PluginVisualizations.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_message.hpp>
 #include "plugin_test_utils.hpp"
+#include "test_utils.hpp"
 
 #include <boost/filesystem.hpp>
 
 #include <algorithm>
+#include <array>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <fstream>
+#include <iterator>
 #include <mutex>
 #include "slic3r/plugin/PythonPluginInterface.hpp"
 #include <string>
 #include <thread>
 #include <utility>
 #include <vector>
+#include <wx/app.h>
+#include <wx/init.h>
+#include <wx/thread.h>
+
+namespace Slic3r {
+
+// Exercise the real worker and queued dispatch without constructing an editor or an OpenGL context.
+struct PluginVisualizationsTest
+{
+    using Request = PluginVisualizations::Request;
+    using PendingResource = PluginVisualizations::PendingResource;
+    PluginVisualizations host;
+
+    void enqueue(Request request) { host.enqueue(std::move(request)); }
+    bool has_queued_requests() const
+    {
+        std::lock_guard<std::mutex> lock(host.m_mutex);
+        return !host.m_requests.empty();
+    }
+    bool worker_joinable() const { return host.m_worker.joinable(); }
+    void dispatch(Request request)
+    {
+        {
+            std::lock_guard<std::mutex> lock(host.m_mutex);
+            request.generation = ++host.m_generations[request.id];
+        }
+        host.dispatch_request(std::move(request));
+    }
+};
+
+} // namespace Slic3r
 
 using namespace Slic3r;
 namespace fs = boost::filesystem;
@@ -38,6 +76,22 @@ namespace fs = boost::filesystem;
 // interpreter singletons are brought up at most once per test.
 
 namespace {
+
+struct ScopedWxConsole
+{
+    bool initialized;
+
+    ScopedWxConsole()
+    {
+        wxApp::SetInstance(new wxAppConsole);
+        initialized = wxInitialize();
+    }
+    ~ScopedWxConsole()
+    {
+        if (initialized)
+            wxUninitialize();
+    }
+};
 
 // Brings the plugin system up, and tears it down explicitly at the end of the test.
 //
@@ -60,6 +114,54 @@ struct ScopedPluginManager
         PluginManager::instance().shutdown();
         PythonInterpreter::instance().shutdown();
     }
+};
+
+class ConcurrentVisualization final : public VisualizationPluginCapability
+{
+public:
+    std::string get_name() const override { return "Concurrent Visualization"; }
+    std::vector<VisualizationInputSpec> get_supported_inputs() override
+    {
+        return {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                 VisualizationInputs::FILE_TRANSPORT, 2, 0, 2, 0}};
+    }
+    ExecutionResult open(const VisualizationContext&) override
+    {
+        ++open_calls;
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        return ExecutionResult::success();
+    }
+    ExecutionResult update(const VisualizationContext&) override { return ExecutionResult::success(); }
+    void close() override { ++close_calls; }
+
+    std::atomic<int> open_calls{0};
+    int close_calls{0};
+};
+
+class MultiResourceVisualization final : public VisualizationPluginCapability
+{
+public:
+    std::string get_name() const override { return "Multi-resource Visualization"; }
+    std::vector<VisualizationInputSpec> get_supported_inputs() override
+    {
+        return {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                 VisualizationInputs::FILE_TRANSPORT, 2, 0, 2, 0},
+                {VisualizationInputs::MODEL, VisualizationInputs::OBJ,
+                 VisualizationInputs::FILE_TRANSPORT, 1, 0, 1, 0}};
+    }
+    std::vector<VisualizationResourceRequest> get_requested_resources() override
+    {
+        return {{VisualizationInputs::TOOLPATH, VisualizationInputs::CURRENT_PLATE},
+                {VisualizationInputs::MODEL, VisualizationInputs::PROJECT}};
+    }
+    ExecutionResult open(const VisualizationContext& context) override
+    {
+        opened = context;
+        return ExecutionResult::success();
+    }
+    ExecutionResult update(const VisualizationContext&) override { return ExecutionResult::success(); }
+
+    VisualizationContext opened;
 };
 
 // A minimal script plugin exposing exactly one capability, "Echo".
@@ -86,6 +188,119 @@ class Echo(orca.script.ScriptPluginCapabilityBase):
 class EchoPackage(orca.base):
     def register_capabilities(self):
         orca.register_capability(Echo)
+)PY";
+
+const char* const VISUALIZATION_PLUGIN_SOURCE = R"PY(# /// script
+# requires-python = ">=3.12"
+#
+# [tool.orcaslicer.plugin]
+# name = "Visualization Plugin"
+# version = "1.0"
+# type = "script"
+# ///
+from pathlib import Path
+
+import orca
+
+class DummyVisualization(orca.visualization.VisualizationPluginCapabilityBase):
+    def get_name(self):
+        return "Dummy Visualization"
+
+    def get_supported_inputs(self):
+        toolpath = orca.visualization.VisualizationInputSpec()
+        toolpath.kind = orca.visualization.INPUT_TOOLPATH
+        toolpath.format = orca.visualization.FORMAT_GLTF_BINARY
+        toolpath.transport = orca.visualization.TRANSPORT_FILE
+        toolpath.minimum_major = 2
+        toolpath.maximum_major = 2
+        model = orca.visualization.VisualizationInputSpec(
+            orca.visualization.INPUT_MODEL,
+            orca.visualization.FORMAT_OBJ,
+        )
+        model.minimum_major = 1
+        model.maximum_major = 1
+        return [toolpath, model]
+
+    def get_requested_resources(self):
+        return [
+            orca.visualization.VisualizationResourceRequest(
+                orca.visualization.INPUT_TOOLPATH,
+                orca.visualization.SCOPE_CURRENT_PLATE,
+            ),
+            orca.visualization.VisualizationResourceRequest(
+                orca.visualization.INPUT_MODEL,
+                orca.visualization.SCOPE_PROJECT,
+            ),
+        ]
+
+    def _record(self, event):
+        with open(self.events_path, "a", encoding="utf-8") as output:
+            output.write(event + "\n")
+
+    def open(self, ctx):
+        self.events_path = Path(ctx.resources[0].location).with_name("events.txt")
+        try:
+            ctx.resources[0].location = "plugin-controlled"
+            mutability = "mutable"
+        except AttributeError:
+            mutability = "readonly"
+        self._record(
+            f"open:{ctx.revision}:{ctx.metadata['plate_index']}:{ctx.resources[0].kind}:{ctx.resources[0].format}:"
+            f"{ctx.resources[0].major_version}.{ctx.resources[0].minor_version}:{len(ctx.resources)}:"
+            f"{ctx.resources[0].scope}:{ctx.orca_version}:{mutability}"
+        )
+        return orca.ExecutionResult.success()
+
+    def update(self, ctx):
+        if ctx.revision == 99:
+            raise RuntimeError("dummy update failure")
+        if ctx.revision == 100:
+            return orca.ExecutionResult.failure(orca.PluginResult.FatalError, "dummy fatal failure")
+        self._record(f"update:{ctx.revision}")
+        return orca.ExecutionResult.success()
+
+    def close(self):
+        self._record("close")
+
+@orca.plugin
+class VisualizationPackage(orca.base):
+    def register_capabilities(self):
+        orca.register_capability(DummyVisualization)
+)PY";
+
+const char* const SECOND_VISUALIZATION_PLUGIN_SOURCE = R"PY(# /// script
+# requires-python = ">=3.12"
+#
+# [tool.orcaslicer.plugin]
+# name = "Second Visualization Plugin"
+# version = "1.0"
+# type = "script"
+# ///
+import orca
+
+class SecondVisualization(orca.visualization.VisualizationPluginCapabilityBase):
+    def get_name(self):
+        return "Second Visualization"
+
+    def get_supported_inputs(self):
+        spec = orca.visualization.VisualizationInputSpec()
+        spec.kind = orca.visualization.INPUT_TOOLPATH
+        spec.format = orca.visualization.FORMAT_GLTF_BINARY
+        spec.transport = orca.visualization.TRANSPORT_FILE
+        spec.minimum_major = 2
+        spec.maximum_major = 2
+        return [spec]
+
+    def open(self, ctx):
+        return orca.ExecutionResult.success()
+
+    def update(self, ctx):
+        return orca.ExecutionResult.success()
+
+@orca.plugin
+class SecondVisualizationPackage(orca.base):
+    def register_capabilities(self):
+        orca.register_capability(SecondVisualization)
 )PY";
 
 // A minimal printer-agent plugin exposing exactly one PrinterConnection capability.
@@ -189,6 +404,13 @@ fs::path write_plugin(const ScopedDataDir& data_dir_guard, const std::string& st
     out.close();
 
     return plugin_dir;
+}
+
+// install_hook() grants data_dir() as it stood when the plugin system came up. A test data dir set
+// afterwards needs the same grant so its plugins may write to their storage folders, as in the app.
+void allow_plugin_storage(const ScopedDataDir& data_dir_guard)
+{
+    PluginAuditManager::instance().add_global_allowed_root(data_dir_guard.dir);
 }
 
 // Loads a plugin and blocks until the detached worker thread is done with it.
@@ -321,6 +543,428 @@ TEST_CASE("A discovered script plugin loads and materializes its capability", "[
     CHECK(manager.get_plugin_capability({PluginCapabilityType::Script, "Echo", "Echo_Plugin"}) == echo);
 
     manager.unload_plugin("Echo_Plugin");
+}
+
+TEST_CASE("Concurrent visualization opens create one session", "[PluginLifecycle][Visualization]")
+{
+    auto capability = std::make_shared<ConcurrentVisualization>();
+    capability->set_resolved_identity("Concurrent Visualization", PluginCapabilityType::Visualization);
+    capability->set_audit_plugin_key("concurrent-visualization");
+    capability->resolve_type_metadata();
+
+    PluginVisualizationsTest visualizations;
+    VisualizationContext context;
+    context.revision = 1;
+    context.resources = {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                          VisualizationInputs::FILE_TRANSPORT, "snapshot.glb", 2, 0}};
+
+    std::atomic<int> ready{0};
+    std::atomic<bool> start{false};
+    std::array<ExecutionResult, 2> results;
+    std::array<std::thread, 2> callers;
+    for (size_t index = 0; index < callers.size(); ++index) {
+        callers[index] = std::thread([&, index] {
+            ++ready;
+            while (!start.load(std::memory_order_acquire))
+                std::this_thread::yield();
+            results[index] = visualizations.host.open(capability, context);
+        });
+    }
+    while (ready.load(std::memory_order_acquire) != int(callers.size()))
+        std::this_thread::yield();
+    start.store(true, std::memory_order_release);
+    for (std::thread& caller : callers)
+        caller.join();
+
+    const int successes = std::count_if(results.begin(), results.end(), [](const ExecutionResult& result) {
+        return result.status == PluginResult::Success;
+    });
+    const int skipped = std::count_if(results.begin(), results.end(), [](const ExecutionResult& result) {
+        return result.status == PluginResult::Skipped;
+    });
+    CHECK(successes == 1);
+    CHECK(skipped == 1);
+    CHECK(capability->open_calls == 1);
+    visualizations.host.close(capability->identity());
+}
+
+TEST_CASE("Visualization worker failures complete on the main thread and remove snapshots", "[PluginLifecycle][Visualization]")
+{
+    REQUIRE(wxApp::GetInstance() == nullptr);
+    ScopedWxConsole app;
+    REQUIRE(app.initialized);
+    PluginVisualizationsTest visualizations;
+    ScopedTemporaryFile snapshot(".glb");
+    std::ofstream(snapshot.path().string()) << "partial snapshot";
+    REQUIRE(fs::exists(snapshot.path()));
+
+    std::atomic<bool> completed{false};
+    bool on_main_thread = false;
+    ExecutionResult result;
+    PluginVisualizationsTest::Request request;
+    request.id = {PluginCapabilityType::Visualization, "Worker failure", "worker-failure"};
+    PluginVisualizationsTest::PendingResource resource;
+    resource.snapshot_path = snapshot.path();
+    request.resources.push_back(std::move(resource)); // Missing geometry fails inside the worker.
+    request.completion = [&](ExecutionResult completion) {
+        result = std::move(completion);
+        on_main_thread = wxIsMainThread();
+        completed = true;
+    };
+    visualizations.enqueue(std::move(request));
+
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!completed && std::chrono::steady_clock::now() < deadline) {
+        wxApp::GetInstance()->ProcessPendingEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    REQUIRE(completed);
+    CHECK(on_main_thread);
+    CHECK(result.status == PluginResult::RecoverableError);
+    CHECK_FALSE(result.message.empty());
+    CHECK_FALSE(fs::exists(snapshot.path()));
+}
+
+TEST_CASE("Closing a visualization invalidates its queued dispatch", "[PluginLifecycle][Visualization]")
+{
+    REQUIRE(wxApp::GetInstance() == nullptr);
+    ScopedWxConsole app;
+    REQUIRE(app.initialized);
+    PluginVisualizationsTest visualizations;
+    ScopedTemporaryFile snapshot(".glb");
+    std::ofstream(snapshot.path().string()) << "snapshot";
+    REQUIRE(fs::exists(snapshot.path()));
+    auto capability = std::make_shared<ConcurrentVisualization>();
+    capability->set_resolved_identity("Queued Visualization", PluginCapabilityType::Visualization);
+    capability->set_audit_plugin_key("queued-visualization");
+    capability->resolve_type_metadata();
+
+    bool completed = false;
+    ExecutionResult result;
+    PluginVisualizationsTest::Request request;
+    request.id = capability->identity();
+    request.capability = capability;
+    PluginVisualizationsTest::PendingResource resource;
+    resource.snapshot_path = snapshot.path();
+    request.resources.push_back(std::move(resource));
+    request.completion = [&](ExecutionResult completion) {
+        result = std::move(completion);
+        completed = true;
+    };
+    std::thread worker([&] { visualizations.dispatch(std::move(request)); });
+    worker.join();
+    REQUIRE_FALSE(completed);
+
+    visualizations.host.close(capability->identity());
+    wxApp::GetInstance()->ProcessPendingEvents();
+
+    REQUIRE(completed);
+    CHECK(result.status == PluginResult::Skipped);
+    CHECK(result.message.empty());
+    CHECK(capability->open_calls == 0);
+    CHECK_FALSE(visualizations.host.is_active(capability->identity()));
+    CHECK_FALSE(fs::exists(snapshot.path()));
+}
+
+TEST_CASE("Visualization shutdown joins preparation and suppresses queued callbacks", "[PluginLifecycle][Visualization]")
+{
+    REQUIRE(wxApp::GetInstance() == nullptr);
+    ScopedWxConsole app;
+    REQUIRE(app.initialized);
+    PluginVisualizationsTest visualizations;
+    auto capability = std::make_shared<ConcurrentVisualization>();
+    capability->set_resolved_identity("Shutdown session", PluginCapabilityType::Visualization);
+    capability->set_audit_plugin_key("shutdown-session");
+    capability->resolve_type_metadata();
+    VisualizationContext context;
+    context.resources = {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                          VisualizationInputs::FILE_TRANSPORT, "session.glb", 2, 0}};
+    REQUIRE(visualizations.host.open(capability, context).status == PluginResult::Success);
+
+    auto source = std::make_shared<GCodeProcessorResult>();
+    source->id = 1;
+    source->filaments_count = 1;
+    source->filament_densities = {1.0f};
+    source->moves.resize(2001);
+    for (size_t i = 0; i < source->moves.size(); ++i) {
+        auto& move = source->moves[i];
+        move.type = EMoveType::Extrude;
+        move.extrusion_role = erPerimeter;
+        move.width = 0.45f;
+        move.height = 0.2f;
+        move.position = Vec3f(float(i), 0.0f, 0.2f);
+    }
+    ScopedTemporaryFile snapshot(".glb");
+    PluginVisualizationsTest::PendingResource resource;
+    resource.input.format = VisualizationInputs::GLTF_BINARY;
+    resource.snapshot_path = snapshot.path();
+    resource.toolpath = std::move(source);
+    resource.tool_colors = {"#123456"};
+    PluginVisualizationsTest::Request request;
+    request.id = {PluginCapabilityType::Visualization, "Shutdown build", "shutdown-build"};
+    request.resources.push_back(std::move(resource));
+    bool completed = false;
+    request.completion = [&](ExecutionResult) { completed = true; };
+    visualizations.enqueue(std::move(request));
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (visualizations.has_queued_requests() && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    CHECK_FALSE(visualizations.has_queued_requests());
+
+    visualizations.host.shutdown();
+    CHECK_FALSE(visualizations.worker_joinable());
+    CHECK_FALSE(visualizations.host.is_active(capability->identity()));
+    CHECK(capability->close_calls == 1);
+    wxApp::GetInstance()->ProcessPendingEvents();
+    CHECK_FALSE(completed);
+    CHECK_FALSE(fs::exists(snapshot.path()));
+    CHECK(visualizations.host.open(capability, context).status == PluginResult::Skipped);
+    visualizations.host.shutdown();
+    CHECK(capability->close_calls == 1);
+}
+
+TEST_CASE("Visualization contexts carry separately scoped resources", "[PluginLifecycle][Visualization]")
+{
+    auto capability = std::make_shared<MultiResourceVisualization>();
+    capability->set_resolved_identity("Multi-resource Visualization", PluginCapabilityType::Visualization);
+    capability->set_audit_plugin_key("multi-resource-visualization");
+    capability->resolve_type_metadata();
+
+    REQUIRE(capability->requested_resources().size() == 2);
+    CHECK(capability->requested_resources()[0].kind == VisualizationInputs::TOOLPATH);
+    CHECK(capability->requested_resources()[0].scope == VisualizationInputs::CURRENT_PLATE);
+    CHECK(capability->requested_resources()[1].kind == VisualizationInputs::MODEL);
+    CHECK(capability->requested_resources()[1].scope == VisualizationInputs::PROJECT);
+
+    VisualizationContext context;
+    context.revision = 7;
+    context.resources = {
+        {VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+         VisualizationInputs::FILE_TRANSPORT, "toolpath.glb", 2, 0,
+         VisualizationInputs::CURRENT_PLATE, {{"plate_index", "1"}}},
+        {VisualizationInputs::MODEL, VisualizationInputs::OBJ,
+         VisualizationInputs::FILE_TRANSPORT, "model.obj", 1, 0,
+         VisualizationInputs::PROJECT, {{"plate_index", "0"}}}
+    };
+
+    PluginVisualizationsTest isolated;
+    PluginVisualizations& visualizations = isolated.host;
+    REQUIRE(visualizations.open(capability, context).status == PluginResult::Success);
+    REQUIRE(capability->opened.resources.size() == 2);
+    CHECK(capability->opened.resources[0].location == "toolpath.glb");
+    CHECK(capability->opened.resources[0].scope == VisualizationInputs::CURRENT_PLATE);
+    CHECK(capability->opened.resources[1].scope == VisualizationInputs::PROJECT);
+    CHECK(capability->opened.resources[1].metadata.at("plate_index") == "0");
+    visualizations.close(capability->identity());
+}
+
+TEST_CASE("Visualization opens and updates require every requested resource", "[PluginLifecycle][Visualization]")
+{
+    auto capability = std::make_shared<MultiResourceVisualization>();
+    capability->set_resolved_identity("Required resources", PluginCapabilityType::Visualization);
+    capability->set_audit_plugin_key("required-resources");
+    capability->resolve_type_metadata();
+    PluginVisualizationsTest visualizations;
+    VisualizationContext context;
+    context.revision = 1;
+    context.resources = {{VisualizationInputs::MODEL, VisualizationInputs::OBJ,
+                          VisualizationInputs::FILE_TRANSPORT, "model.obj", 1, 0, VisualizationInputs::PROJECT}};
+    CHECK(visualizations.host.open(capability, context).status == PluginResult::Skipped);
+    CHECK_FALSE(visualizations.host.is_active(capability->identity()));
+    CHECK(capability->opened.resources.empty());
+
+    context.resources.push_back({VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                                 VisualizationInputs::FILE_TRANSPORT, "toolpath.glb", 2, 0, VisualizationInputs::PROJECT});
+    CHECK(visualizations.host.open(capability, context).status == PluginResult::Skipped);
+    context.resources.back().scope = VisualizationInputs::CURRENT_PLATE;
+    REQUIRE(visualizations.host.open(capability, context).status == PluginResult::Success);
+
+    context.revision = 2;
+    context.resources.pop_back();
+    CHECK(visualizations.host.update(capability->identity(), context).status == PluginResult::Skipped);
+    CHECK(visualizations.host.is_active(capability->identity()));
+    visualizations.host.close(capability->identity());
+}
+
+TEST_CASE("Visualization sessions dispatch lifecycle calls and close when disabled", "[PluginLifecycle][Visualization][Python]")
+{
+    ScopedPluginManager plugin_system;
+    if (!plugin_system.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+
+    ScopedDataDir data_dir_guard("visualization-lifecycle");
+    allow_plugin_storage(data_dir_guard);
+    write_plugin(data_dir_guard, "Visualization_Plugin", VISUALIZATION_PLUGIN_SOURCE);
+
+    PluginManager& manager = PluginManager::instance();
+    manager.discover_plugins(/*async=*/false, /*clear=*/true);
+
+    std::string error;
+    REQUIRE(load_and_wait(manager, "Visualization_Plugin", error));
+    INFO("load error: " << error);
+    REQUIRE(error.empty());
+
+    auto capability = std::dynamic_pointer_cast<VisualizationPluginCapability>(
+        manager.get_plugin_capability({PluginCapabilityType::Visualization, "Dummy Visualization", "Visualization_Plugin"}));
+    REQUIRE(capability != nullptr);
+    REQUIRE(capability->requested_resources().size() == 2);
+    CHECK(capability->requested_resources()[0].scope == VisualizationInputs::CURRENT_PLATE);
+    CHECK(capability->requested_resources()[1].kind == VisualizationInputs::MODEL);
+    CHECK(capability->requested_resources()[1].scope == VisualizationInputs::PROJECT);
+
+    const fs::path events_path = fs::path(manager.get_storage_dir("Visualization_Plugin")) / "events.txt";
+    VisualizationContext ctx;
+    ctx.orca_version  = "test";
+    ctx.revision      = 1;
+    ctx.metadata["plate_index"] = "0";
+    ctx.resources = {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                      VisualizationInputs::FILE_TRANSPORT, (events_path.parent_path() / "snapshot.glb").string(), 2, 0}};
+
+    ctx.resources.push_back({VisualizationInputs::MODEL, VisualizationInputs::OBJ,
+                             VisualizationInputs::FILE_TRANSPORT, "model.obj", 1, 0, VisualizationInputs::PROJECT});
+
+    PluginVisualizations& visualizations = PluginVisualizations::instance();
+    CHECK(visualizations.open(capability, ctx).status == PluginResult::Success);
+    CHECK(visualizations.is_active(capability->identity()));
+
+    CHECK(visualizations.update(capability->identity(), ctx).status == PluginResult::Skipped);
+
+    ctx.revision = 99;
+    CHECK(visualizations.update(capability->identity(), ctx).status == PluginResult::RecoverableError);
+    CHECK(visualizations.is_active(capability->identity()));
+
+    ctx.revision = 2;
+    CHECK(visualizations.update(capability->identity(), ctx).status == PluginResult::Success);
+
+    ctx.revision = 100;
+    CHECK(visualizations.update(capability->identity(), ctx).status == PluginResult::FatalError);
+    CHECK_FALSE(visualizations.is_active(capability->identity()));
+
+    ctx.revision = 3;
+    REQUIRE(visualizations.open(capability, ctx).status == PluginResult::Success);
+    REQUIRE(visualizations.is_active(capability->identity()));
+    manager.set_capability_enabled(capability->identity(), false);
+    CHECK_FALSE(visualizations.is_active(capability->identity()));
+    CHECK(manager.unload_plugin("Visualization_Plugin"));
+
+    std::ifstream events(events_path.string());
+    const std::string contents((std::istreambuf_iterator<char>(events)), std::istreambuf_iterator<char>());
+    CHECK(contents == "open:1:0:toolpath:model/gltf-binary:2.0:2:current_plate:test:readonly\nupdate:2\nclose\n"
+                      "open:3:0:toolpath:model/gltf-binary:2.0:2:current_plate:test:readonly\nclose\n");
+}
+
+TEST_CASE("Background visualization unload closes on the main thread before teardown", "[PluginLifecycle][Visualization][Python]")
+{
+    REQUIRE(wxApp::GetInstance() == nullptr);
+    ScopedWxConsole app;
+    REQUIRE(app.initialized);
+    ScopedPluginManager plugin_system;
+    if (!plugin_system.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+    ScopedDataDir data_dir_guard("visualization-background-unload");
+    allow_plugin_storage(data_dir_guard);
+    write_plugin(data_dir_guard, "Visualization_Plugin", std::string(VISUALIZATION_PLUGIN_SOURCE) + R"PY(
+import threading
+
+def close_on_main(self):
+    self._record("close-main" if threading.current_thread() is threading.main_thread() else "close-worker")
+
+def record_unload(self):
+    self._record("unload")
+
+DummyVisualization.close = close_on_main
+DummyVisualization.on_unload = record_unload
+)PY");
+    PluginManager& manager = PluginManager::instance();
+    manager.discover_plugins(/*async=*/false, /*clear=*/true);
+    std::string error;
+    REQUIRE(load_and_wait(manager, "Visualization_Plugin", error));
+    auto capability = std::dynamic_pointer_cast<VisualizationPluginCapability>(
+        manager.get_plugin_capability({PluginCapabilityType::Visualization, "Dummy Visualization", "Visualization_Plugin"}));
+    REQUIRE(capability);
+    const fs::path events_path = fs::path(manager.get_storage_dir("Visualization_Plugin")) / "events.txt";
+    VisualizationContext context;
+    context.metadata["plate_index"] = "0";
+    context.resources = {
+        {VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY, VisualizationInputs::FILE_TRANSPORT,
+         (events_path.parent_path() / "snapshot.glb").string(), 2, 0},
+        {VisualizationInputs::MODEL, VisualizationInputs::OBJ, VisualizationInputs::FILE_TRANSPORT,
+         "model.obj", 1, 0, VisualizationInputs::PROJECT}
+    };
+    REQUIRE(PluginVisualizations::instance().open(capability, context).status == PluginResult::Success);
+    std::atomic<bool> completed{false};
+    bool unloaded = false;
+    std::thread worker([&] {
+        unloaded = manager.unload_plugin("Visualization_Plugin");
+        completed.store(true, std::memory_order_release);
+    });
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (!completed.load(std::memory_order_acquire) && std::chrono::steady_clock::now() < deadline) {
+        wxApp::GetInstance()->ProcessPendingEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    const bool finished_before_timeout = completed.load(std::memory_order_acquire);
+    if (!finished_before_timeout)
+        manager.set_shutting_down();
+    worker.join();
+    REQUIRE(finished_before_timeout);
+    REQUIRE(unloaded);
+    CHECK_FALSE(PluginVisualizations::instance().is_active(capability->identity()));
+    std::ifstream events(events_path.string());
+    const std::string contents((std::istreambuf_iterator<char>(events)), std::istreambuf_iterator<char>());
+    CHECK(contents.find("close-main\nunload\n") != std::string::npos);
+    CHECK(contents.find("close-worker") == std::string::npos);
+}
+
+TEST_CASE("Unrelated visualization plugins keep independent sessions", "[PluginLifecycle][Visualization][Python]")
+{
+    ScopedPluginManager plugin_system;
+    if (!plugin_system.initialized)
+        SKIP("Bundled Python interpreter unavailable: " + PythonInterpreter::instance().last_error());
+
+    ScopedDataDir data_dir_guard("visualization-independent");
+    allow_plugin_storage(data_dir_guard);
+    write_plugin(data_dir_guard, "Visualization_First", VISUALIZATION_PLUGIN_SOURCE);
+    write_plugin(data_dir_guard, "Visualization_Second", SECOND_VISUALIZATION_PLUGIN_SOURCE);
+
+    PluginManager& manager = PluginManager::instance();
+    manager.discover_plugins(/*async=*/false, /*clear=*/true);
+    std::string error;
+    REQUIRE(load_and_wait(manager, "Visualization_First", error));
+    REQUIRE(error.empty());
+    REQUIRE(load_and_wait(manager, "Visualization_Second", error));
+    REQUIRE(error.empty());
+
+    auto first = std::dynamic_pointer_cast<VisualizationPluginCapability>(
+        manager.get_plugin_capability({PluginCapabilityType::Visualization, "Dummy Visualization", "Visualization_First"}));
+    auto second = std::dynamic_pointer_cast<VisualizationPluginCapability>(
+        manager.get_plugin_capability({PluginCapabilityType::Visualization, "Second Visualization", "Visualization_Second"}));
+    REQUIRE(first != nullptr);
+    REQUIRE(second != nullptr);
+    CHECK(manager.get_plugin_capabilities("", PluginCapabilityType::Visualization).size() == 2);
+
+    VisualizationContext first_context;
+    first_context.revision = 1;
+    first_context.metadata["plate_index"] = "0";
+    first_context.resources = {{VisualizationInputs::TOOLPATH, VisualizationInputs::GLTF_BINARY,
+                                VisualizationInputs::FILE_TRANSPORT,
+                                (fs::path(manager.get_storage_dir("Visualization_First")) / "first.glb").string(), 2, 0}};
+    first_context.resources.push_back({VisualizationInputs::MODEL, VisualizationInputs::OBJ,
+                                       VisualizationInputs::FILE_TRANSPORT, "model.obj", 1, 0, VisualizationInputs::PROJECT});
+    VisualizationContext second_context = first_context;
+    second_context.resources.resize(1);
+    second_context.resources[0].location = (fs::path(manager.get_storage_dir("Visualization_Second")) / "second.glb").string();
+
+    PluginVisualizations& visualizations = PluginVisualizations::instance();
+    REQUIRE(visualizations.open(first, first_context).status == PluginResult::Success);
+    REQUIRE(visualizations.open(second, second_context).status == PluginResult::Success);
+    visualizations.close(first->identity());
+    CHECK_FALSE(visualizations.is_active(first->identity()));
+    CHECK(visualizations.is_active(second->identity()));
+    visualizations.close(second->identity());
+
+    CHECK(manager.unload_plugin("Visualization_First"));
+    CHECK(manager.unload_plugin("Visualization_Second"));
 }
 
 TEST_CASE("A printer-agent plugin registers and deregisters with its lifecycle", "[PluginLifecycle][Python]")

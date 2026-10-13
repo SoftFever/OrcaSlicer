@@ -1,0 +1,701 @@
+#include "PluginVisualizations.hpp"
+
+#include "PreviewGeometrySnapshot.hpp"
+#include "../../GUI/GUI_App.hpp"
+#include "../../GUI/BackgroundSlicingProcess.hpp"
+#include "../../GUI/I18N.hpp"
+#include "../../GUI/format.hpp"
+#include "../../GUI/LibVGCode/LibVGCodeWrapper.hpp"
+#include "../../GUI/NotificationManager.hpp"
+#include "../../GUI/PartPlate.hpp"
+#include "../../GUI/Plater.hpp"
+#include "../../GUI/ToolpathMeshBuilder.hpp"
+#include "../PluginManager.hpp"
+
+#include "libslic3r/Model.hpp"
+#include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/libslic3r.h"
+
+#include <libvgcode/include/GCodeInputData.hpp>
+#include <libvgcode/include/Viewer.hpp>
+
+#include <boost/filesystem.hpp>
+#include <boost/log/trivial.hpp>
+
+#include <algorithm>
+#include <exception>
+#include <stdexcept>
+#include <utility>
+
+#include <wx/app.h>
+#include <wx/thread.h>
+
+namespace Slic3r {
+namespace {
+
+ExecutionResult recoverable_error(const PluginCapabilityId& id, const char* operation, const std::exception& error)
+{
+    BOOST_LOG_TRIVIAL(error) << "Visualization capability " << id.plugin_key << "/" << id.name << " failed to " << operation << ": "
+                             << error.what();
+    return ExecutionResult::failure(PluginResult::RecoverableError, error.what());
+}
+
+ExecutionResult host_skipped(const char* message)
+{
+    return ExecutionResult::skipped(wxIsMainThread() ? _u8L(message) : message);
+}
+
+bool negotiate_input(const VisualizationPluginCapability& capability, const VisualizationResourceRequest& request,
+                     VisualizationInput& input)
+{
+    for (const VisualizationInputSpec& spec : capability.supported_inputs()) {
+        if (spec.kind != request.kind || spec.transport != VisualizationInputs::FILE_TRANSPORT)
+            continue;
+        const PreviewGeometrySnapshot::Format* format = PreviewGeometrySnapshot::find_format(spec.format);
+        if (format == nullptr)
+            continue;
+        VisualizationInput candidate{request.kind, format->media_type, VisualizationInputs::FILE_TRANSPORT, {},
+                                     format->major_version, format->minor_version, request.scope, {}};
+        if (capability.supports(candidate)) {
+            input = std::move(candidate);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool has_required_resources(const std::vector<VisualizationInput>& resources,
+                            const std::vector<VisualizationResourceRequest>& requests)
+{
+    return std::all_of(requests.begin(), requests.end(), [&resources](const auto& request) {
+        return std::any_of(resources.begin(), resources.end(), [&request](const auto& resource) {
+            return resource.kind == request.kind && resource.scope == request.scope;
+        });
+    });
+}
+
+std::vector<std::pair<size_t, size_t>> model_plate_instances(GUI::PartPlate& plate, const Model& model)
+{
+    std::vector<std::pair<size_t, size_t>> instances;
+    for (size_t object_index = 0; object_index < model.objects.size(); ++object_index) {
+        const ModelObject* object = model.objects[object_index];
+        if (std::none_of(object->volumes.begin(), object->volumes.end(), [](const ModelVolume* volume) {
+                return volume->is_model_part() && !volume->mesh().empty();
+            }))
+            continue;
+        for (size_t instance_index = 0; instance_index < object->instances.size(); ++instance_index) {
+            const ModelInstance* instance = object->instances[instance_index];
+            if (plate.contain_instance(int(object_index), int(instance_index)) && instance->is_printable())
+                instances.emplace_back(object_index, instance_index);
+        }
+    }
+    return instances;
+}
+
+} // namespace
+
+PluginVisualizations& PluginVisualizations::instance()
+{
+    static PluginVisualizations visualizations;
+    return visualizations;
+}
+
+PluginVisualizations::~PluginVisualizations() { shutdown(); }
+
+void PluginVisualizations::install_callbacks(PluginManager& manager)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_stop_worker = false;
+    }
+    manager.subscribe_on_capability_load_callback([this](const PluginCapabilityId& id) {
+        if (id.type == PluginCapabilityType::Visualization) {
+            try {
+                prepare_cache(id.plugin_key, 0, 0);
+            } catch (const std::exception& error) {
+                BOOST_LOG_TRIVIAL(warning) << "Unable to initialize visualization cache for " << id.plugin_key << ": " << error.what();
+            }
+        }
+    });
+    manager.subscribe_on_capability_unload_callback([this](const PluginCapabilityId& id) {
+        if (id.type == PluginCapabilityType::Visualization)
+            close(id);
+    });
+}
+
+ExecutionResult PluginVisualizations::open(const std::shared_ptr<VisualizationPluginCapability>& capability, const VisualizationContext& ctx,
+                                           boost::filesystem::path owned_resource)
+{
+    std::vector<boost::filesystem::path> paths;
+    if (!owned_resource.empty())
+        paths.push_back(std::move(owned_resource));
+    return open_resources(capability, ctx, std::move(paths), capability ? capability->requested_resources() : std::vector<VisualizationResourceRequest>{});
+}
+
+ExecutionResult PluginVisualizations::open_resources(const std::shared_ptr<VisualizationPluginCapability>& capability,
+                                                     const VisualizationContext& ctx,
+                                                     std::vector<boost::filesystem::path> owned_resources,
+                                                     std::vector<VisualizationResourceRequest> resource_requests)
+{
+    if (!capability || !capability->is_enabled())
+        return host_skipped(L("Visualization capability is unavailable"));
+    if (ctx.resources.empty())
+        return host_skipped(L("Visualization has no resources"));
+    for (const VisualizationInput& input : ctx.resources)
+        if (!capability->supports(input))
+            return host_skipped(L("Visualization capability does not support this input"));
+
+    if (!has_required_resources(ctx.resources, resource_requests))
+        return host_skipped(L("No requested visualization resources are available"));
+
+    const PluginCapabilityId id = capability->identity();
+    ExecutionResult result;
+    try {
+        std::lock_guard<std::recursive_mutex> dispatch_lock(m_dispatch_mutex);
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_stop_worker)
+                return ExecutionResult::skipped();
+            if (m_sessions.count(id) != 0)
+                return host_skipped(L("Visualization session is already open"));
+        }
+        PluginCapabilityInterface::RefCounter ref_counter(*capability);
+        result = capability->open(ctx);
+        if (result.status == PluginResult::Success) {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_sessions.emplace(id, Session{capability, ctx.revision, std::move(owned_resources),
+                                           std::move(resource_requests)});
+        }
+    } catch (const std::exception& error) {
+        return recoverable_error(id, "open", error);
+    }
+    return result;
+}
+
+ExecutionResult PluginVisualizations::update(const PluginCapabilityId& id, const VisualizationContext& ctx,
+                                             boost::filesystem::path owned_resource)
+{
+    std::vector<boost::filesystem::path> paths;
+    if (!owned_resource.empty())
+        paths.push_back(std::move(owned_resource));
+    return update_resources(id, ctx, std::move(paths), {});
+}
+
+ExecutionResult PluginVisualizations::update_resources(const PluginCapabilityId& id, const VisualizationContext& ctx,
+                                                       std::vector<boost::filesystem::path> owned_resources,
+                                                       std::vector<VisualizationResourceRequest> resource_requests)
+{
+    std::shared_ptr<VisualizationPluginCapability> capability;
+    ExecutionResult result;
+    std::vector<boost::filesystem::path> old_snapshots;
+    if (ctx.resources.empty())
+        return host_skipped(L("Visualization has no resources"));
+    try {
+        std::lock_guard<std::recursive_mutex> dispatch_lock(m_dispatch_mutex);
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            const auto it = m_sessions.find(id);
+            if (m_stop_worker || it == m_sessions.end())
+                return host_skipped(L("Visualization session is not open"));
+            if (it->second.revision == ctx.revision)
+                return host_skipped(L("Visualization scene is unchanged"));
+            capability = it->second.capability;
+            if (resource_requests.empty())
+                resource_requests = it->second.resource_requests;
+        }
+        if (!has_required_resources(ctx.resources, resource_requests))
+            return host_skipped(L("No requested visualization resources are available"));
+        for (const VisualizationInput& input : ctx.resources)
+            if (!capability->supports(input))
+                return host_skipped(L("Visualization capability does not support this input"));
+
+        PluginCapabilityInterface::RefCounter ref_counter(*capability);
+        result = capability->update(ctx);
+        if (result.status == PluginResult::FatalError) {
+            close(id);
+            return result;
+        }
+        if (result.status == PluginResult::Success) {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            const auto it = m_sessions.find(id);
+            if (it != m_sessions.end() && it->second.capability == capability) {
+                old_snapshots = std::move(it->second.snapshot_paths);
+                it->second.revision = ctx.revision;
+                it->second.snapshot_paths = std::move(owned_resources);
+                it->second.resource_requests = std::move(resource_requests);
+            }
+        }
+    } catch (const std::exception& error) {
+        return recoverable_error(id, "update", error);
+    }
+    remove_snapshots(old_snapshots);
+    return result;
+}
+
+void PluginVisualizations::close(const PluginCapabilityId& id)
+{
+    std::lock_guard<std::recursive_mutex> dispatch_lock(m_dispatch_mutex);
+    std::shared_ptr<VisualizationPluginCapability> capability;
+    std::vector<boost::filesystem::path> snapshot_paths;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        ++m_generations[id];
+        m_requests.erase(std::remove_if(m_requests.begin(), m_requests.end(), [&id](const Request& request) { return request.id == id; }),
+                         m_requests.end());
+        const auto it = m_sessions.find(id);
+        if (it == m_sessions.end())
+            return;
+        capability = std::move(it->second.capability);
+        snapshot_paths = std::move(it->second.snapshot_paths);
+        m_sessions.erase(it);
+    }
+
+    try {
+        PluginCapabilityInterface::RefCounter ref_counter(*capability);
+        capability->close();
+    } catch (const std::exception& error) {
+        recoverable_error(id, "close", error);
+    }
+    remove_snapshots(snapshot_paths);
+}
+
+void PluginVisualizations::close_plugin(const std::string& plugin_key)
+{
+    std::vector<PluginCapabilityId> sessions;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        for (const auto& entry : m_sessions)
+            if (entry.first.plugin_key == plugin_key)
+                sessions.push_back(entry.first);
+        for (auto& generation : m_generations)
+            if (generation.first.plugin_key == plugin_key)
+                ++generation.second;
+        m_requests.erase(std::remove_if(m_requests.begin(), m_requests.end(), [&plugin_key](const Request& request) {
+            return request.id.plugin_key == plugin_key;
+        }), m_requests.end());
+    }
+    for (const PluginCapabilityId& id : sessions)
+        close(id);
+
+    try {
+        const boost::filesystem::path cache = boost::filesystem::path(PluginManager::instance().get_storage_dir(plugin_key)) / "preview_cache";
+        boost::system::error_code ignored;
+        boost::filesystem::remove_all(cache, ignored);
+    } catch (...) {
+        // Plugin rows can already be gone during teardown; individual snapshot cleanup above is sufficient.
+    }
+}
+
+void PluginVisualizations::shutdown()
+{
+    std::vector<PluginCapabilityId> sessions;
+    std::deque<Request> cancelled;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_stop_worker = true;
+        for (const auto& entry : m_sessions)
+            sessions.push_back(entry.first);
+        for (auto& generation : m_generations)
+            ++generation.second;
+        cancelled.swap(m_requests);
+    }
+    m_worker_cv.notify_all();
+    if (m_worker.joinable())
+        m_worker.join();
+    for (const Request& request : cancelled)
+        for (const PendingResource& resource : request.resources)
+            remove_snapshot(resource.snapshot_path);
+    for (const PluginCapabilityId& id : sessions)
+        close(id);
+}
+
+bool PluginVisualizations::is_active(const PluginCapabilityId& id) const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_sessions.count(id) != 0;
+}
+
+void PluginVisualizations::request_open(const std::shared_ptr<VisualizationPluginCapability>& capability,
+                                        const std::vector<VisualizationResourceRequest>& resources, Completion completion)
+{
+    auto capture = [this, capability, resources, completion = std::move(completion)]() mutable {
+        if (!capability || !capability->is_enabled()) {
+            Request request;
+            request.completion = std::move(completion);
+            finish_request(request, ExecutionResult::skipped(_u8L("Visualization capability is unavailable")));
+            return;
+        }
+        const auto requested = resources.empty() ? capability->requested_resources() : resources;
+        capture_and_enqueue(capability, requested, RequestKind::Open, std::move(completion));
+    };
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return;
+        if (wxApp::GetInstance() != nullptr && !wxIsMainThread()) {
+            wxApp::GetInstance()->CallAfter(std::move(capture));
+            return;
+        }
+    }
+    capture();
+}
+
+bool PluginVisualizations::request_update(const PluginCapabilityId& id,
+                                          const std::vector<VisualizationResourceRequest>& resources)
+{
+    std::shared_ptr<VisualizationPluginCapability> capability;
+    std::vector<VisualizationResourceRequest> requested = resources;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        const auto it = m_sessions.find(id);
+        if (m_stop_worker || it == m_sessions.end())
+            return false;
+        capability = it->second.capability;
+        if (requested.empty())
+            requested = it->second.resource_requests;
+    }
+    auto capture = [this, capability = std::move(capability), requested = std::move(requested)]() mutable {
+        capture_and_enqueue(capability, requested, RequestKind::Update);
+    };
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return false;
+        if (wxApp::GetInstance() != nullptr && !wxIsMainThread()) {
+            wxApp::GetInstance()->CallAfter(std::move(capture));
+            return true;
+        }
+    }
+    capture();
+    return true;
+}
+
+void PluginVisualizations::capture_and_enqueue(const std::shared_ptr<VisualizationPluginCapability>& capability,
+                                               const std::vector<VisualizationResourceRequest>& resource_requests,
+                                               RequestKind kind, Completion completion)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return;
+    }
+    Request request;
+    request.kind = kind;
+    request.capability = capability;
+    request.id = capability->identity();
+    request.orca_version = SoftFever_VERSION;
+    request.resource_requests = resource_requests;
+    request.completion = std::move(completion);
+    if (!wxApp::GetInstance() || GUI::wxGetApp().is_closing() || !GUI::wxGetApp().plater()) {
+        finish_request(request, ExecutionResult::skipped(_u8L("Visualization resources require the editor")));
+        return;
+    }
+    if (!capability->is_enabled()) {
+        finish_request(request, ExecutionResult::skipped(_u8L("Visualization capability is unavailable")));
+        return;
+    }
+    if (resource_requests.empty()) {
+        finish_request(request, ExecutionResult::skipped(_u8L("Visualization requested no resources")));
+        return;
+    }
+
+    GUI::Plater* plater = GUI::wxGetApp().plater();
+    GUI::PartPlateList& plate_list = plater->get_partplate_list();
+    std::shared_ptr<const Model> model_snapshot;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        request.revision = m_next_revision++;
+    }
+
+    try {
+        for (const VisualizationResourceRequest& requested : resource_requests) {
+            const size_t resources_before = request.resources.size();
+            std::vector<std::pair<int, GUI::PartPlate*>> plates;
+            if (requested.scope == VisualizationInputs::CURRENT_PLATE) {
+                plates.emplace_back(plate_list.get_curr_plate_index(), plate_list.get_curr_plate());
+            } else if (requested.scope == VisualizationInputs::PROJECT) {
+                const auto& all_plates = plate_list.get_plate_list();
+                for (size_t index = 0; index < all_plates.size(); ++index)
+                    plates.emplace_back(int(index), all_plates[index]);
+            } else {
+                throw std::runtime_error(GUI::format(_L("Unsupported visualization resource scope: %1%"), requested.scope));
+            }
+
+            for (const auto& indexed_plate : plates) {
+                const int plate_index = indexed_plate.first;
+                GUI::PartPlate* plate = indexed_plate.second;
+                PendingResource resource;
+                resource.plate_index = plate_index;
+                if (!negotiate_input(*capability, requested, resource.input))
+                    throw std::runtime_error(GUI::format(_L("Visualization capability supports no host format for %1%"), requested.kind));
+                resource.input.metadata["plate_index"] = std::to_string(plate_index);
+
+                if (requested.kind == VisualizationInputs::MODEL) {
+                    if (!model_snapshot)
+                        model_snapshot = std::make_shared<const Model>(plater->model());
+                    resource.instances = model_plate_instances(*plate, *model_snapshot);
+                    if (resource.instances.empty())
+                        continue;
+                    resource.model = model_snapshot;
+                } else if (requested.kind == VisualizationInputs::TOOLPATH) {
+                    GCodeProcessorResult* result = plate->get_slice_result();
+                    if (!plate->is_slice_result_valid() || result == nullptr)
+                        continue;
+                    // Finished plates can also be reprocessed; their validity flag alone does not protect moves.
+                    if (plater->background_process().running() && plater->background_process().get_current_plate() == plate)
+                        throw std::runtime_error(_u8L("Toolpath resources are unavailable while the plate is being processed"));
+                    auto source = std::make_shared<GCodeProcessorResult>();
+                    {
+                        std::lock_guard<std::mutex> lock(result->result_mutex);
+                        if (result->moves.empty())
+                            continue;
+                        *source = *result;
+                    }
+                    resource.tool_colors = plater->get_extruder_colors_from_plater_config(source.get());
+                    resource.printable_area = plate->get_shape();
+                    if (const Print* print = plate->fff_print())
+                        resource.model_transform = GUI::toolpath_model_transform(*source, *print);
+                    resource.toolpath = std::move(source);
+                } else {
+                    throw std::runtime_error(GUI::format(_L("Unsupported visualization resource kind: %1%"), requested.kind));
+                }
+
+                const auto* format = PreviewGeometrySnapshot::find_format(resource.input.format);
+                resource.snapshot_path = prepare_cache(request.id.plugin_key, plate_index, request.revision, format->extension);
+                resource.input.location = resource.snapshot_path.string();
+                request.resources.push_back(std::move(resource));
+            }
+            if (request.resources.size() == resources_before) {
+                finish_request(request, ExecutionResult::skipped(_u8L("No requested visualization resources are available")));
+                return;
+            }
+        }
+        if (kind == RequestKind::Open && is_active(request.id))
+            close(request.id);
+        enqueue(std::move(request));
+    } catch (const std::exception& error) {
+        finish_request(request, recoverable_error(request.id, "capture", error));
+    }
+}
+
+void PluginVisualizations::enqueue(Request request)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return;
+        if (request.kind != RequestKind::Open || m_sessions.count(request.id) == 0) {
+            request.generation = ++m_generations[request.id];
+            m_requests.erase(std::remove_if(m_requests.begin(), m_requests.end(), [&request](const Request& pending) {
+                return pending.id == request.id;
+            }), m_requests.end());
+            m_requests.push_back(std::move(request));
+            ensure_worker_locked();
+            m_worker_cv.notify_one();
+            return;
+        }
+    }
+    finish_request(request, ExecutionResult::skipped(_u8L("Visualization session is already open")));
+}
+
+void PluginVisualizations::ensure_worker_locked()
+{
+    if (!m_worker.joinable())
+        m_worker = std::thread([this] { worker_loop(); });
+}
+
+bool PluginVisualizations::is_current_locked(const Request& request) const
+{
+    const auto generation = m_generations.find(request.id);
+    return !m_stop_worker && generation != m_generations.end() && generation->second == request.generation;
+}
+
+void PluginVisualizations::worker_loop()
+{
+    for (;;) {
+        Request request;
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_worker_cv.wait(lock, [this] { return m_stop_worker || !m_requests.empty(); });
+            if (m_stop_worker && m_requests.empty())
+                return;
+            request = std::move(m_requests.front());
+            m_requests.pop_front();
+        }
+
+        bool current;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            current = is_current_locked(request);
+        }
+        if (!current) {
+            finish_request(request, ExecutionResult::skipped());
+            continue;
+        }
+        try {
+            for (PendingResource& resource : request.resources) {
+                {
+                    std::lock_guard<std::mutex> lock(m_mutex);
+                    if (!is_current_locked(request))
+                        break;
+                }
+                if (resource.toolpath) {
+                    PreviewGeometrySnapshot::Snapshot snapshot;
+                    {
+                        libvgcode::Viewer viewer;
+                        const auto data = libvgcode::convert(*resource.toolpath, resource.tool_colors, {}, viewer,
+                                                            &resource.model_transform);
+                        const auto mesh = GUI::build_preview_triangle_mesh(data);
+                        snapshot = PreviewGeometrySnapshot::capture(mesh, *resource.toolpath, resource.plate_index,
+                                                                    resource.toolpath->id, resource.tool_colors, resource.printable_area);
+                    }
+                    resource.toolpath.reset();
+                    PreviewGeometrySnapshot::write_atomic(std::move(snapshot), resource.snapshot_path, resource.input.format);
+                } else if (resource.model) {
+                    const auto mesh = PreviewGeometrySnapshot::capture_model(*resource.model, resource.instances);
+                    PreviewGeometrySnapshot::write_atomic(mesh, resource.snapshot_path, resource.input.format);
+                } else
+                    throw std::runtime_error(L("Visualization resource has no geometry"));
+                resource.model.reset();
+            }
+            dispatch_request(std::move(request));
+        } catch (const std::exception& error) {
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                current = is_current_locked(request);
+            }
+            ExecutionResult result = current ? recoverable_error(request.id, "build", error) : ExecutionResult::skipped();
+            for (const PendingResource& resource : request.resources)
+                remove_snapshot(resource.snapshot_path);
+            finish_request(request, std::move(result), current);
+        }
+    }
+}
+
+void PluginVisualizations::dispatch_request(Request request)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker) {
+            for (const PendingResource& resource : request.resources)
+                remove_snapshot(resource.snapshot_path);
+            return;
+        }
+    }
+    auto dispatch = [this, request = std::move(request)]() mutable {
+        ExecutionResult result;
+        bool current;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            current = is_current_locked(request);
+        }
+        if (!current || !wxApp::GetInstance() || GUI::wxGetApp().is_closing()) {
+            for (const PendingResource& resource : request.resources)
+                remove_snapshot(resource.snapshot_path);
+            finish_request(request, ExecutionResult::skipped());
+            return;
+        }
+        try {
+            if (PluginManager::instance().get_plugin_capability(request.id) != request.capability)
+                throw std::runtime_error(_u8L("Visualization capability is unavailable"));
+
+            VisualizationContext context;
+            context.orca_version = request.orca_version;
+            context.revision = request.revision;
+            std::vector<boost::filesystem::path> paths;
+            for (const PendingResource& resource : request.resources) {
+                context.resources.push_back(resource.input);
+                paths.push_back(resource.snapshot_path);
+            }
+            const auto& metadata = context.resources.front().metadata;
+            const auto plate = metadata.find("plate_index");
+            if (plate != metadata.end())
+                context.metadata.emplace("plate_index", plate->second);
+            if (request.kind == RequestKind::Open)
+                result = open_resources(request.capability, context, std::move(paths), request.resource_requests);
+            else
+                result = update_resources(request.id, context, std::move(paths), request.resource_requests);
+        } catch (const std::exception& error) {
+            result = recoverable_error(request.id, request.kind == RequestKind::Open ? "open" : "update", error);
+        }
+
+        if (result.status != PluginResult::Success)
+            for (const PendingResource& resource : request.resources)
+                remove_snapshot(resource.snapshot_path);
+        finish_request(request, std::move(result));
+    };
+
+    if (wxApp::GetInstance() != nullptr && !wxIsMainThread())
+        wxApp::GetInstance()->CallAfter(std::move(dispatch));
+    else
+        dispatch();
+}
+
+void PluginVisualizations::finish_request(const Request& request, ExecutionResult result, bool preparation_failed)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_stop_worker)
+            return;
+    }
+    auto finish = [this, completion = request.completion, result = std::move(result), preparation_failed]() mutable {
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            if (m_stop_worker)
+                return;
+        }
+        // Snapshot failures originate on the worker; translate them only after returning to the main thread.
+        if (preparation_failed)
+            result.message = GUI::format(_L("Failed to prepare visualization resources: %1%"), _u8L(result.message));
+        if (completion) {
+            completion(std::move(result));
+        } else if (result.status != PluginResult::Success && !result.message.empty() && wxApp::GetInstance() &&
+                   !GUI::wxGetApp().is_closing() && GUI::wxGetApp().plater()) {
+            auto* notifications = GUI::wxGetApp().plater()->get_notification_manager();
+            if (result.status == PluginResult::Skipped)
+                notifications->push_notification(result.message);
+            else
+                notifications->push_general_error_notification(result.message);
+        }
+    };
+    if (wxApp::GetInstance() && !wxIsMainThread())
+        wxApp::GetInstance()->CallAfter(std::move(finish));
+    else
+        finish();
+}
+
+boost::filesystem::path PluginVisualizations::prepare_cache(const std::string& plugin_key, int plate_index, uint64_t revision,
+                                                            const std::string& extension)
+{
+    namespace fs = boost::filesystem;
+    const fs::path cache = fs::path(PluginManager::instance().get_storage_dir(plugin_key)) / "preview_cache";
+    bool initialize = false;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        initialize = m_initialized_cache_plugins.insert(plugin_key).second;
+    }
+    if (initialize) {
+        boost::system::error_code ignored;
+        fs::remove_all(cache, ignored);
+    }
+    fs::create_directories(cache);
+    return cache / ("plate-" + std::to_string(plate_index) + "-revision-" + std::to_string(revision) +
+                    fs::unique_path("-%%%%-%%%%-%%%%").string() + extension);
+}
+
+void PluginVisualizations::remove_snapshot(const boost::filesystem::path& path)
+{
+    if (path.empty())
+        return;
+    boost::system::error_code ignored;
+    boost::filesystem::remove(path, ignored);
+}
+
+void PluginVisualizations::remove_snapshots(const std::vector<boost::filesystem::path>& paths)
+{
+    for (const boost::filesystem::path& path : paths)
+        remove_snapshot(path);
+}
+
+} // namespace Slic3r

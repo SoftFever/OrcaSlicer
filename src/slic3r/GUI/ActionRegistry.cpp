@@ -11,6 +11,7 @@
 #include "SettingsIndex.hpp"
 #include "Tab.hpp"
 #include "slic3r/plugin/PluginManager.hpp"
+#include "slic3r/plugin/host/PluginVisualizations.hpp"
 
 #include <cassert>
 #include <boost/filesystem/operations.hpp>
@@ -89,7 +90,7 @@ double frecency_score(int count, long long last, long long now)
     return count * std::pow(2.0, -age / HALF_LIFE_DAYS);
 }
 
-// ---- script-plugin action source (the one and only source) ------------------
+// ---- plugin action sources --------------------------------------------------
 
 std::string find_loaded_source_name(PluginManager& manager, const std::string& plugin_key)
 {
@@ -107,11 +108,6 @@ struct PluginScriptAction : AppAction
 
     std::string plugin_key;
     std::string capability;
-
-    // The id an action for (plugin_key, capability) would have - lets refresh_capability
-    // remove a gone capability without materialising the action.
-    static std::string id_for(const std::string& plugin_key, const std::string& capability)
-    { return AppAction::compose_id(kIdPrefix, capability.empty() ? plugin_key : capability, plugin_key); }
 
     PluginScriptAction(std::string plugin_key_in, std::string capability_in, std::string source_name)
         : AppAction(kIdPrefix,
@@ -136,17 +132,40 @@ struct PluginScriptAction : AppAction
     }
 };
 
-// Builds an action for a capability, or nullptr if it is not a currently-loaded,
-// enabled script capability.
-std::unique_ptr<AppAction> make_action(const std::string& plugin_key, const std::string& capability, const std::string& source_name)
+struct PluginVisualizationAction : AppAction
+{
+    static constexpr const char* kIdPrefix = "plugin_visualization_action";
+
+    PluginCapabilityId capability;
+
+    PluginVisualizationAction(PluginCapabilityId capability_in, std::string source_name)
+        : AppAction(kIdPrefix, capability_in.name, capability_in.plugin_key, std::move(source_name)),
+          capability(std::move(capability_in))
+    {}
+
+    AppActionRunResult run(const std::string& /*param*/) const override
+    {
+        auto resolved = std::dynamic_pointer_cast<VisualizationPluginCapability>(
+            PluginManager::instance().get_plugin_capability(capability));
+        if (!resolved)
+            return {AppActionRunResult::Level::Info, {}};
+        PluginVisualizations::instance().request_open(resolved);
+        return {AppActionRunResult::Level::Info, {}};
+    }
+};
+
+std::unique_ptr<AppAction> make_action(const std::string& plugin_key, const std::string& capability,
+                                       PluginCapabilityType type, const std::string& source_name)
 {
     PluginManager& manager = PluginManager::instance();
-    if (!manager.is_plugin_loaded(plugin_key))
+    if (!manager.is_plugin_loaded(plugin_key) ||
+        !manager.get_plugin_capability({type, capability, plugin_key}))
         return nullptr;
-    // only_enabled defaults true, so a disabled capability resolves to nullptr here.
-    if (!manager.get_plugin_capability({PluginCapabilityType::Script, capability, plugin_key}))
-        return nullptr;
-    return std::make_unique<PluginScriptAction>(plugin_key, capability, source_name);
+    if (type == PluginCapabilityType::Script)
+        return std::make_unique<PluginScriptAction>(plugin_key, capability, source_name);
+    if (type == PluginCapabilityType::Visualization)
+        return std::make_unique<PluginVisualizationAction>(PluginCapabilityId{type, capability, plugin_key}, source_name);
+    return nullptr;
 }
 
 // A plugin page capability exposed as a speed-dial action. source_key = plugin_key
@@ -420,7 +439,8 @@ void ActionRegistry::init()
         });
     };
     auto on_capability = [this](const PluginCapabilityId& capability, ActionChange change) {
-        if (capability.type != PluginCapabilityType::Script && capability.type != PluginCapabilityType::Pages)
+        if (capability.type != PluginCapabilityType::Script && capability.type != PluginCapabilityType::Visualization &&
+            capability.type != PluginCapabilityType::Pages)
             return;
         if (!wxTheApp || wxGetApp().is_closing())
             return;
@@ -430,10 +450,10 @@ void ActionRegistry::init()
         wxGetApp().CallAfter([this, type, plugin_key, name, change] {
             if (wxGetApp().is_closing())
                 return;
-            if (type == PluginCapabilityType::Script)
-                this->refresh_capability(plugin_key, name, change);
-            else
+            if (type == PluginCapabilityType::Pages)
                 this->refresh_page_capability(plugin_key, name, change);
+            else
+                this->refresh_source(plugin_key, ActionChange::Added);
         });
     };
 
@@ -447,20 +467,22 @@ void ActionRegistry::init()
     manager.subscribe_on_capability_unload_callback(
         [on_capability](const PluginCapabilityId& capability) { on_capability(capability, ActionChange::Removed); });
 
-    // enumerate current script capabilities
+    // Enumerate current plugin-backed actions.
     std::unordered_map<std::string, std::string> source_names;
     for (const PluginDescriptor& desc : manager.get_plugin_descriptors())
         if (!desc.name.empty())
             source_names.emplace(desc.plugin_key, desc.name);
 
-    for (const auto& capability : manager.get_plugin_capabilities("", PluginCapabilityType::Script)) {
-        if (!capability)
-            continue;
-        const std::string& key         = capability->audit_plugin_key();
-        auto it                        = source_names.find(key);
-        const std::string& source_name = it == source_names.end() ? key : it->second;
-        if (auto action = make_action(key, capability->name(), source_name))
-            upsert(std::move(action));
+    for (PluginCapabilityType type : {PluginCapabilityType::Script, PluginCapabilityType::Visualization}) {
+        for (const auto& capability : manager.get_plugin_capabilities("", type)) {
+            if (!capability)
+                continue;
+            const std::string& key         = capability->audit_plugin_key();
+            auto it                        = source_names.find(key);
+            const std::string& source_name = it == source_names.end() ? key : it->second;
+            if (auto action = make_action(key, capability->name(), type, source_name))
+                upsert(std::move(action));
+        }
     }
 
     for (const auto& capability : manager.get_plugin_capabilities("", PluginCapabilityType::Pages)) {
@@ -521,11 +543,13 @@ void ActionRegistry::refresh_source(const std::string& plugin_key, ActionChange 
 
     PluginManager& manager        = PluginManager::instance();
     const std::string source_name = find_loaded_source_name(manager, plugin_key);
-    for (const auto& capability : manager.get_plugin_capabilities(plugin_key, PluginCapabilityType::Script)) {
-        if (!capability)
-            continue;
-        if (auto action = make_action(plugin_key, capability->name(), source_name))
-            upsert(std::move(action));
+    for (PluginCapabilityType type : {PluginCapabilityType::Script, PluginCapabilityType::Visualization}) {
+        for (const auto& capability : manager.get_plugin_capabilities(plugin_key, type)) {
+            if (!capability)
+                continue;
+            if (auto action = make_action(plugin_key, capability->name(), type, source_name))
+                upsert(std::move(action));
+        }
     }
     for (const auto& capability : manager.get_plugin_capabilities(plugin_key, PluginCapabilityType::Pages)) {
         if (!capability)
@@ -533,23 +557,6 @@ void ActionRegistry::refresh_source(const std::string& plugin_key, ActionChange 
         if (auto action = make_page_action(plugin_key, capability->name(), source_name))
             upsert(std::move(action));
     }
-}
-
-void ActionRegistry::refresh_capability(const std::string& plugin_key, const std::string& capability, ActionChange change)
-{
-    assert(wxThread::IsMain());
-
-    const std::string id = PluginScriptAction::id_for(plugin_key, capability);
-    if (change == ActionChange::Removed) {
-        remove(id);
-        return;
-    }
-
-    PluginManager& manager = PluginManager::instance();
-    if (auto action = make_action(plugin_key, capability, find_loaded_source_name(manager, plugin_key)))
-        upsert(std::move(action));
-    else
-        remove(id);
 }
 
 void ActionRegistry::refresh_page_capability(const std::string& plugin_key, const std::string& capability, ActionChange change)
