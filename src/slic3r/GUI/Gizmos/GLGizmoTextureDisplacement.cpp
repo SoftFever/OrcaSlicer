@@ -3764,6 +3764,17 @@ void GLGizmoTextureDisplacement::panel_tooltip(const std::string &text, const st
     }
     m_tip_last_shown = now;
 
+    // ImGui hides a window on the first frame it is submitted, to measure it before showing it - and
+    // for a tooltip it does so every time one reappears, because the windows are recycled (see the
+    // Popup|Tooltip branch of Begin()). So the frame on which a tooltip is decided is never the frame
+    // on which it is seen, and one that then asks for nothing more stays invisible until the next pixel
+    // of mouse movement happens to produce another frame. Keep frames coming until it has settled.
+    const int shown_frame = ImGui::GetFrameCount();
+    m_tip_settled         = (shown_frame == m_tip_shown_frame + 1) ? m_tip_settled + 1 : 0;
+    m_tip_shown_frame     = shown_frame;
+    if (m_tip_settled < 2)
+        m_parent.request_extra_frame();
+
     const ImGuiStyle &style = ImGui::GetStyle();
     const float       gap   = m_imgui->scaled(0.5f);
     const float       wrap  = m_imgui->scaled(20.f);

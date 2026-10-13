@@ -57,7 +57,10 @@ afterwards rather than the short one: having just let go of a slider is not a re
 picture of it.
 
 A pointer resting on a control produces no events, and the canvas only renders when something asks it
-to, so the wait has to ask for its own frames, and so does an animation once one is on screen. Both use
+to, so the wait has to ask for its own frames, and so does an animation once one is on screen. So does
+a tooltip that has just appeared, animated or not: ImGui hides a window on the first frame it is
+submitted while it measures it, and does so every time a tooltip reappears because those windows are
+recycled, so the frame a tooltip is decided on is never the frame it is seen on. Both use
 `GLCanvas3D::request_extra_frame()`, which ends `on_idle()` with `evt.RequestMore()` and so obliges wx
 to deliver the next idle. `schedule_extra_frame()` is not enough on its own: it only arranges a timer
 whose event an idle event is assumed to follow, and on_idle renders nothing unless the canvas was

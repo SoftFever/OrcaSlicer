@@ -1066,6 +1066,10 @@ private:
     ImVec2 m_tip_item{-1.f, -1.f};
     double m_tip_hover_since = 0.;
     double m_tip_last_shown  = -1e9;
+    // The frame a tooltip was last drawn on, and how many it has been drawn on in a row: ImGui hides
+    // one on its first frame while it measures it, so it has to be kept on screen to be seen at all.
+    int m_tip_shown_frame = -2;
+    int m_tip_settled     = 0;
 };
 
 } // namespace Slic3r::GUI
