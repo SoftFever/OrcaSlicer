@@ -942,6 +942,39 @@ TEST_CASE("Export context suppresses notices even for an unhanded closed overhan
     CHECK_FALSE(result.overhang_seam_markers_may_be_missing());
 }
 
+TEST_CASE("Overhang path closure survives a tool change with different offsets", "[GCodeProcessor][OverhangSeam]")
+{
+    const bool closed = GENERATE(false, true);
+    const bool at_eof = GENERATE(false, true);
+    INFO("closed " << closed << ", ends at EOF " << at_eof);
+    FullPrintConfig config;
+    config.gcode_flavor.value = gcfMarlinFirmware;
+    config.filament_diameter.values = { 1.75, 1.75 };
+    config.nozzle_diameter.values = { 0.4, 0.4 };
+    config.filament_map.values = { 1, 2 };
+    config.extruder_offset.values = { Vec2d(0., 0.), Vec2d(5., 0.) };
+    config.single_extruder_multi_material.value = false;
+    const bool was_bbl_printer = GCodeProcessor::s_IsBBLPrinter;
+    const ScopeGuard restore_bbl([was_bbl_printer] { GCodeProcessor::s_IsBBLPrinter = was_bbl_printer; });
+    GCodeProcessor::s_IsBBLPrinter = true;
+    GCodeProcessor processor;
+    processor.initialize_result_moves();
+    processor.apply_config(config);
+    // Exercise both plate and filament offsets without changing the command-space loop.
+    processor.set_xy_offset(100., -20.);
+    std::string gcode = "M83\nG90\nT0\nG1 X10 Y10 Z0.2 F12000\n; FEATURE: Overhang wall\n"
+                        "G1 X50 Y10 E2 F3000\nG1 X50 Y50 E2\nG1 X10 Y50 E2\n";
+    gcode += closed ? "G1 X10 Y10 E2\n" : "G1 X15 Y10 E2\n";
+    gcode += "T1\n";
+    if (!at_eof)
+        gcode += "G1 X80 Y80 F12000\n";
+    processor.process_buffer(gcode);
+    REQUIRE(processor.get_result().moves.back().extruder_id == 1);
+    processor.finalize(false);
+    CHECK(processor.get_result().overhang_seam_stats.overhang_only_paths == closed);
+    CHECK(processor.get_result().overhang_seam_markers_may_be_missing() == closed);
+}
+
 TEST_CASE("File reload risk survives result assignment and clears on reset", "[GCodeProcessor][OverhangSeam]")
 {
     GCodeProcessorResult source{};
