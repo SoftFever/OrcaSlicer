@@ -1,6 +1,7 @@
 #include "GLGizmoImage.hpp"
 
 #include "libslic3r/Model.hpp"
+#include "libslic3r/Point.hpp"
 #include "libslic3r/TextureDisplacement.hpp"
 #include "libslic3r/format.hpp"
 
@@ -10,17 +11,22 @@
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/IconManager.hpp"
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/TextureLibrary.hpp"
 #include "slic3r/GUI/Shortcuts.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoPainterBase.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoTextureDisplacement.hpp"
 #include "slic3r/GUI/Gizmos/GLGizmoUtils.hpp"
 #include "slic3r/GUI/Jobs/Worker.hpp"
 
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <imgui.h>
 #include <optional>
 #include <string>

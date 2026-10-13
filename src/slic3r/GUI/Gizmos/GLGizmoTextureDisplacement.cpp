@@ -3780,6 +3780,7 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
     // a monochrome ("normal", grey in the current theme) and an original-colour variant.
     static const std::vector<std::string> names = {
         "texture_displacement_brush.svg", "texture_displacement_face.svg", "texture_displacement_connected_area.svg",
+        "texture_displacement_pipette.svg", // the Image panel's background dropper
         "texture_displacement_real_preview.svg", "texture_displacement_fast_preview.svg",
         "texture_displacement_checker.svg", "texture_displacement_distortion.svg",
         "texture_displacement_wireframe.svg", "texture_displacement_cross.svg",
@@ -3789,8 +3790,7 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         "texture_displacement_add.svg", "texture_displacement_add_negative.svg", "circle_paint.svg",
         "menu_obj_sphere.svg", "menu_obj_cube.svg", "menu_obj_cylinder.svg", "texture_displacement_map_unwrap.svg",
         "texture_displacement_map_view.svg", "texture_displacement_tile_repeat.svg", "menu_mirror_x.svg",
-        "texture_displacement_adjust.svg", "texture_displacement_pipette.svg", "canvas_drag.svg",
-        "texture_displacement_move_up.svg",
+        "texture_displacement_adjust.svg", "canvas_drag.svg", "texture_displacement_move_up.svg",
         "texture_displacement_move_down.svg", "texture_displacement_drag.svg",
         "texture_displacement_select_all.svg", "texture_displacement_erase_all.svg",
         // The "type a value instead" icon at the right end of every slider.
