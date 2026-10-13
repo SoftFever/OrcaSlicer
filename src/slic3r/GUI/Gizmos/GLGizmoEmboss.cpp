@@ -898,9 +898,9 @@ void GLGizmoEmboss::on_render_input_window(float x, float y, float bottom_limit)
 
     // Not known situation when could happend this is only for sure
     if (!m_is_unknown_font && !m_style_manager.is_active_font())
-        create_notification_not_valid_font("No active font in style. Select correct one.");
+        create_notification_not_valid_font(_u8L("No active font in style. Select correct one."));
     else if (!m_is_unknown_font && !m_style_manager.get_wx_font().IsOk())
-        create_notification_not_valid_font("WxFont is not loaded properly.");
+        create_notification_not_valid_font(_u8L("WxFont is not loaded properly."));
 
     double screen_scale = wxDisplay(wxGetApp().plater()).GetScaleFactor();
 

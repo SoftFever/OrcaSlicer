@@ -5,6 +5,7 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
@@ -293,7 +294,7 @@ int MoonrakerPrinterAgent::start_send_gcode_to_sdcard(PrintParams      params,
     (void) wait_fn;
 
     if (update_fn)
-        update_fn(PrintingStageCreate, 0, "Preparing...");
+        update_fn(PrintingStageCreate, 0, _u8L("Preparing..."));
 
     std::string filename = params.filename;
     if (filename.empty()) {
@@ -312,14 +313,14 @@ int MoonrakerPrinterAgent::start_send_gcode_to_sdcard(PrintParams      params,
     }
 
     if (update_fn)
-        update_fn(PrintingStageFinished, 100, "File uploaded");
+        update_fn(PrintingStageFinished, 100, _u8L("File uploaded"));
     return BAMBU_NETWORK_SUCCESS;
 }
 
 int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
 {
     if (update_fn)
-        update_fn(PrintingStageCreate, 0, "Preparing...");
+        update_fn(PrintingStageCreate, 0, _u8L("Preparing..."));
 
     // Check cancellation
     if (cancel_fn && cancel_fn()) {
@@ -350,7 +351,7 @@ int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusF
 
     // Upload file
     if (update_fn)
-        update_fn(PrintingStageUpload, 0, "Uploading G-code...");
+        update_fn(PrintingStageUpload, 0, _u8L("Uploading G-code..."));
     if (!upload_gcode(gcode_path, upload_filename, device_info.base_url, device_info.api_key, update_fn, cancel_fn)) {
         return BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED;
     }
@@ -362,14 +363,14 @@ int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusF
 
     // Start print via gcode script (simpler than JSON-RPC)
     if (update_fn)
-        update_fn(PrintingStageSending, 0, "Starting print...");
+        update_fn(PrintingStageSending, 0, _u8L("Starting print..."));
     std::string gcode = "SDCARD_PRINT_FILE FILENAME=" + upload_filename;
     if (!send_gcode_sync(device_info.dev_id, gcode)) {
         return BAMBU_NETWORK_ERR_PRINT_LP_PUBLISH_MSG_FAILED;
     }
 
     if (update_fn)
-        update_fn(PrintingStageFinished, 100, "Print started");
+        update_fn(PrintingStageFinished, 100, _u8L("Print started"));
     return BAMBU_NETWORK_SUCCESS;
 }
 
@@ -2029,7 +2030,7 @@ bool MoonrakerPrinterAgent::upload_gcode(const std::string& local_path,
             // Report progress via OnUpdateStatusFn
             if (update_fn && progress.ultotal > 0) {
                 int percent = static_cast<int>((progress.ulnow * 100) / progress.ultotal);
-                update_fn(PrintingStageUpload, percent, "Uploading...");
+                update_fn(PrintingStageUpload, percent, _u8L("Uploading..."));
             }
         })
         .perform_sync();

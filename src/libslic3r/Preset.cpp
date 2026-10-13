@@ -36,6 +36,7 @@
 #include "Semver.hpp"
 #include "PrintConfig.hpp"
 #include "libslic3r_version.h"
+#include "I18N.hpp"
 
 #ifdef _MSC_VER
     #define WIN32_LEAN_AND_MEAN
@@ -4640,10 +4641,10 @@ void PhysicalPrinterCollection::load_printers(
                     printer.loaded = true;
                 }
                 catch (const std::ifstream::failure& err) {
-                    throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + printer.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError((boost::format(_u8L("The selected preset cannot be loaded: %1%\n\tReason: %2%")) % printer.file % err.what()).str());
                 }
                 catch (const std::runtime_error& err) {
-                    throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + printer.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError((boost::format(_u8L("Failed loading the preset file: %1%\n\tReason: %2%")) % printer.file % err.what()).str());
                 }
                 printers_loaded.emplace_back(printer);
             }
