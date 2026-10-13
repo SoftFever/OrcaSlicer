@@ -4020,6 +4020,11 @@ bool GUI_App::on_init_network(bool try_backup)
     else
         m_user_manager->set_agent(m_agent);
 
+    // A hot reload deletes the agent the task manager was built with. It lives until restart, so repoint it
+    // even if multi-device has since been turned off.
+    if (m_task_manager)
+        m_task_manager->set_agent(m_agent);
+
     if (this->is_enable_multi_machine()) {
         if (!m_task_manager) {
             m_task_manager = new Slic3r::TaskManager(m_agent);
