@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2141,12 +2141,16 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
+# AI Translated
 #, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
 "Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
+"Microsoft WebView2 Runtimeをインストールできませんでした。\n"
+"インストールされるまで、セットアップウィザードを含む一部の機能が空白で表示される場合があります。\n"
+"%1% から手動でインストールし、Orca Slicerを再起動してください。"
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
@@ -4301,6 +4305,17 @@ msgstr "最近のプロジェクト"
 msgid "Go to Plate"
 msgstr "プレートへ移動"
 
+msgid "Device"
+msgstr "デバイス"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "デバイス (Web)"
+
+# AI Translated
+msgid "Multi-device"
+msgstr "マルチデバイス"
+
 msgid "AMS Materials Setting"
 msgstr "AMS素材設定"
 
@@ -4356,6 +4371,14 @@ msgstr "有効な値を入力してください（Kは%.1f～%.1f）"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "有効な値を入力してください（Kは%.1f～%.1f、Nは%.1f～%.1f）"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "お気に入りのフィラメント"
+
+# AI Translated
+msgid "All filaments"
+msgstr "すべてのフィラメント"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -4927,10 +4950,13 @@ msgstr "自動的に制限値 (%g mm) に調整しますか？"
 msgid "Adjust"
 msgstr "調整"
 
+# AI Translated
 msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
+"ベルトプリンターではラフトと保護シールドを使用できません。\n"
+"これらは無効になりました。"
 
 # AI Translated
 msgid ""
@@ -5963,42 +5989,53 @@ msgstr "編集領域を拡大/縮小"
 msgid "Sequence"
 msgstr "順番"
 
+# AI Translated
 msgid "Plate center of mass"
-msgstr ""
+msgstr "プレートの重心"
 
+# AI Translated
 msgid "Part center of mass"
-msgstr ""
+msgstr "パーツの重心"
 
+# AI Translated
 msgid "Support center of mass"
-msgstr ""
+msgstr "サポートの重心"
 
+# AI Translated
 msgid "Assembly center of mass"
-msgstr ""
+msgstr "アセンブリの重心"
 
+# AI Translated
 msgid "Object center of mass"
-msgstr ""
+msgstr "オブジェクトの重心"
 
+# AI Translated
 msgid "Finished print"
-msgstr ""
+msgstr "印刷完了時"
 
+# AI Translated
 #, boost-format
 msgid "Printed up to layer %1%"
-msgstr ""
+msgstr "%1% 層目まで印刷"
 
+# AI Translated
 msgid "Weight"
-msgstr ""
+msgstr "重量"
 
 msgid "Volume"
 msgstr "体積"
 
+# AI Translated
 msgid "Center in bounding box"
-msgstr ""
+msgstr "バウンディングボックス内の重心位置"
 
+# AI Translated
 msgid "Bounding box size"
-msgstr ""
+msgstr "バウンディングボックスのサイズ"
 
+# AI Translated
 msgid "Moment of inertia"
-msgstr ""
+msgstr "慣性モーメント"
 
 # AI Translated
 msgid "Object selection"
@@ -6218,11 +6255,13 @@ msgstr "グリッドライン"
 msgid "Labels"
 msgstr "ラベル"
 
+# AI Translated
 msgid "Center of mass"
-msgstr ""
+msgstr "重心"
 
+# AI Translated
 msgid "Show raw G-code (belt only)"
-msgstr ""
+msgstr "生のG-codeを表示 (ベルトプリンターのみ)"
 
 # AI Translated
 msgid "Move section plane"
@@ -6272,7 +6311,7 @@ msgstr "ボリューム"
 msgid "Size:"
 msgstr "サイズ:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "レイヤー%d、Z = %.2lfmmでG-codeパスの衝突が検出されました。衝突するオブジェクトをもっと離してください（%s <-> %s）。"
 
@@ -6433,19 +6472,8 @@ msgstr "準備"
 msgid "Preview"
 msgstr "プレビュー"
 
-msgid "Device"
-msgstr "デバイス"
-
-# AI Translated
-msgid "Multi-device"
-msgstr "マルチデバイス"
-
 msgid "Project"
 msgstr "プロジェクト"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "デバイス (Web)"
 
 msgid "Yes"
 msgstr "はい"
@@ -6738,11 +6766,13 @@ msgstr "グリッドラインを表示"
 msgid "Show Gridlines on plate"
 msgstr "プレート上にグリッドラインを表示"
 
+# AI Translated
 msgid "Show IDEX/IQEX Toolhead"
-msgstr ""
+msgstr "IDEX/IQEXツールヘッドを表示"
 
+# AI Translated
 msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
-msgstr ""
+msgstr "G-codeプレビューで、有効な各ノズルの周囲にIDEX/IQEXツールヘッドを表示します。"
 
 msgid "Reset Window Layout"
 msgstr "ウィンドウレイアウトをリセット"
@@ -8437,60 +8467,77 @@ msgstr "全てのオブジェクトの設定"
 msgid "Material settings"
 msgstr "材料設定"
 
+# AI Translated
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
-msgstr ""
+msgstr "各モードでは、参加するツールヘッドとそれぞれの役割を指定します。ツールボタンをクリックすると役割が切り替わります。下の色にカーソルを合わせると、各役割の説明が表示されます。"
 
+# AI Translated
 msgid "Add Mode"
-msgstr ""
+msgstr "モードを追加"
 
 # AI Translated
 msgid "Tools"
 msgstr "ツール"
 
+# AI Translated
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
+# AI Translated
 msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
-msgstr ""
+msgstr "プレートのIDEX/IQEXモードセレクターに表示されるモード名です。必須項目で、名前のないモードは選択できません。"
 
+# AI Translated
 msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
-msgstr ""
+msgstr "このモードに参加するツールヘッドと、それぞれの役割です。タイルをクリックすると役割が切り替わります。"
 
+# AI Translated
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
-msgstr ""
+msgstr "印刷開始時に実行され、プリンターをこのモードに切り替えるG-codeです (例: KlipperのSET_PRINT_MODE呼び出し)。スライサーはプライマリ (Primary) ツールのパスのみを出力し、他のツールはファームウェアが制御します。"
 
+# AI Translated
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
-msgstr ""
+msgstr "スライスされたすべてのパスを実行します。常にツール0です。ベッドのどの隅に配置するかは、上の「ツール0の位置」で選択します。グリッドから移動することはできません。"
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
-msgstr ""
+msgstr "ファームウェアレベルでプライマリ (Primary) に追従し、同じパスを自身のゾーンへオフセットして印刷します。"
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
-msgstr ""
+msgstr "ファームウェアレベルでプライマリ (Primary) に追従し、同じパスを2つのゾーンの境界で反転させて印刷します。"
 
+# AI Translated
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
-msgstr ""
+msgstr "プライマリ (Primary) と同じガントリー上のツールを、マルチカラー印刷のパートナーとして指定します。ペアガントリーモードでマルチカラー印刷を行うには必須です。"
 
+# AI Translated
 msgid "Primary"
-msgstr ""
+msgstr "プライマリ"
 
+# AI Translated
 msgid "Mode name (required)"
-msgstr ""
+msgstr "モード名 (必須)"
 
+# AI Translated
 msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
-msgstr ""
+msgstr "プレートのIDEX/IQEXモードセレクターに表示される、この並列モードの名前です。プロジェクトには名前で保存されるため、プレートで使用中のモードの名前を変更すると、それらのプレートはプライマリ (Primary) に戻ります。空にはできません。空欄の名前は自動生成された名前に置き換えられます。"
 
+# AI Translated
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
-msgstr ""
+msgstr "このモードを使用する印刷の開始時に、プリンター開始G-codeの前に一度だけ出力されるG-codeです。スライサーはプライマリ (Primary) ツールのパスのみを出力し、コピー (Copy) / ミラー (Mirror) ツールはファームウェアが制御するため、ここでプリンターを対応するファームウェアモードに切り替えます (例: KlipperのSET_PRINT_MODE呼び出しやRepRapFirmwareのM567)。プレースホルダーを使用できます。編集ボタンから一覧を参照できます。ファームウェアの設定が不要なモードでは空欄のままにしてください。"
 
+# AI Translated
 msgid "Edit G-code / browse placeholders"
-msgstr ""
+msgstr "G-codeを編集 / プレースホルダーを参照"
 
+# AI Translated
 msgid "Remove mode"
-msgstr ""
+msgstr "モードを削除"
 
+# AI Translated
 msgid "Discard in-session edits to this mode (snap back to saved value)"
-msgstr ""
+msgstr "このモードのセッション中の編集を破棄 (保存済みの値に戻す)"
 
 msgid "Remove current plate (if not last one)"
 msgstr "現在のプレートを削除（最後でない場合）"
@@ -8516,16 +8563,19 @@ msgstr "現在のプレート名を編集"
 msgid "Move plate to the front"
 msgstr "プレートを前面に移動"
 
+# AI Translated
 #, boost-format
 msgid " (process preset: %1%)"
-msgstr ""
+msgstr " (プロセスプリセット: %1%)"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
-msgstr ""
+msgstr "IDEX/IQEXモード: %1% (左クリックで切り替え、右クリックでメニュー)"
 
+# AI Translated
 msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
-msgstr ""
+msgstr "警告: このプレートでは、マルチマテリアルのオブジェクトにIDEX/IQEX並列モードを使用しています。注意して続行し、G-codeがこの組み合わせを正しく処理できることを確認してください。"
 
 msgid "Customize current plate"
 msgstr "現在のプレートをカスタマイズ"
@@ -8674,8 +8724,9 @@ msgstr "混合フィラメント"
 msgid "Remove last mixed filament"
 msgstr "最後の混合フィラメントを削除"
 
+# AI Translated
 msgid "Remove all mixed filaments"
-msgstr ""
+msgstr "すべての混合フィラメントを削除"
 
 # AI Translated
 msgid "Add mixed filament"
@@ -8699,9 +8750,10 @@ msgstr "混合フィラメントのコンポーネント参照が壊れていま
 msgid "Edit / Delete / Merge"
 msgstr "編集 / 削除 / 結合"
 
+# AI Translated
 #, boost-format
 msgid "Remove all %1% mixed filaments?"
-msgstr ""
+msgstr "%1% 個の混合フィラメントをすべて削除しますか？"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -8978,11 +9030,13 @@ msgstr "Z位置を維持するために自動ドロップを無効にします�
 msgid "Object with floating parts was detected"
 msgstr "浮いているパーツを含むオブジェクトが検出されました"
 
+# AI Translated
 msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "スライスできません: オブジェクトがIDEX/IQEX並列印刷用に予約された領域 (セカンダリゾーン、またはプライマリゾーン内のキャリッジ用クリアランス帯) と重なっています。"
 
+# AI Translated
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "スライスできません: プライムタワーがIDEX/IQEX並列印刷用に予約された領域 (セカンダリゾーン、またはプライマリゾーン内のキャリッジ用クリアランス帯) と重なっています。"
 
 msgid "Another export job is running."
 msgstr "エクスポート中です"
@@ -9068,37 +9122,49 @@ msgstr "無効なデータ"
 msgid "Slicing Canceled"
 msgstr "スライスを取消しました"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
-msgstr ""
+msgstr "ベッド温度の競合: T%d (%s) はベッドを%d°Cに設定しますが、T%d (%s) は%d°Cを必要とします。ベッドはプライマリツールが制御し、セカンダリツールはその設定温度で印刷します。"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
-msgstr ""
+msgstr "フィラメントタイプの不一致: T%d は %s、T%d は %s を使用しています。これらの材料は要件が両立せず、一緒に印刷するようには設計されていません。"
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
 "\n"
 msgstr ""
+"プレート%dではIDEX/IQEX並列モードが有効になっており、次の懸念事項があります:\n"
+"\n"
 
+# AI Translated
 msgid "Continue slicing?"
-msgstr ""
+msgstr "スライスを続行しますか？"
 
+# AI Translated
 msgid "IDEX/IQEX Parallel Mode Warning"
-msgstr ""
+msgstr "IDEX/IQEX並列モードの警告"
 
+# AI Translated
 msgid "Don't show these warnings again"
-msgstr ""
+msgstr "これらの警告を今後表示しない"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plate %d:\n"
-msgstr ""
+msgstr "プレート%d:\n"
 
+# AI Translated
 msgid ""
 "The following IDEX/IQEX parallel mode concerns were detected:\n"
 "\n"
 msgstr ""
+"次のIDEX/IQEX並列モードの懸念事項が検出されました:\n"
+"\n"
 
 msgid "Network plug-in switched successfully."
 msgstr "ネットワークプラグインの切り替えに成功しました。"
@@ -9131,8 +9197,9 @@ msgstr ""
 msgid "Sync now"
 msgstr "今すぐ同期"
 
+# AI Translated
 msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
-msgstr ""
+msgstr "処理の実行中は元に戻す/やり直しを実行できません。処理を停止するか、完了するまで待ってから再試行してください。"
 
 # AI Translated
 msgid ""
@@ -9204,10 +9271,13 @@ msgstr "ダウンロード失敗、ファイルサイズ例外。"
 msgid "Project downloaded %d%%"
 msgstr "プロジェクトをダウンロード %d%%"
 
+# AI Translated
 msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
+"PAラインとPAパターンのテストは、ベルトプリンターではまだ使用できません。\n"
+"代わりにPAタワー方式を使用してください。"
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -9235,12 +9305,14 @@ msgstr "Orca YOLO流量比キャリブレーション"
 msgid "Flowrate Test - Pass%d"
 msgstr "流量比テスト - パス%d"
 
+# AI Translated
 #, boost-format
 msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
-msgstr ""
+msgstr "%1%～%2% °Cの範囲に対応するベルト用温度タワーはありません。タワーモデルが対応する範囲 (例: 230～190) を使用してください。"
 
+# AI Translated
 msgid "Temperature tower"
-msgstr ""
+msgstr "温度タワー"
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -11733,8 +11805,9 @@ msgstr "異なる押出機の駆動方式や内腔容積タイプの同期には
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "パラメータの変更を、もう一方の押出機の対応するパラメータに同期します。"
 
+# AI Translated
 msgid "Parameters with this icon can be configurable per nozzle."
-msgstr ""
+msgstr "このアイコンが付いたパラメータは、ノズルごとに設定できます。"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "全ての変更をリセットします"
@@ -12143,11 +12216,13 @@ msgstr "造形可能領域"
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "プリンター通信用のネットワークエージェント実装を選択します。使用可能なエージェントは起動時に登録されます。"
 
+# AI Translated
 msgid "Belt printer"
-msgstr ""
+msgstr "ベルトプリンター"
 
+# AI Translated
 msgid "Machine frame transforms"
-msgstr ""
+msgstr "機械座標系の変換"
 
 #. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
@@ -12264,23 +12339,28 @@ msgstr "ノズル直径"
 msgid "Wipe tower"
 msgstr "ワイプタワー"
 
+# AI Translated
 msgid "Belt purge tower"
-msgstr ""
+msgstr "ベルトパージタワー"
 
 msgid "Single extruder multi-material parameters"
 msgstr "単一エクストルーダーのマルチマテリアルパラメーター"
 
+# AI Translated
 msgid "IDEX/IQEX Configuration"
-msgstr ""
+msgstr "IDEX/IQEX設定"
 
+# AI Translated
 msgid "Pre-slice warnings"
-msgstr ""
+msgstr "スライス前の警告"
 
+# AI Translated
 msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
-msgstr ""
+msgstr "IDEX/IQEX並列モードの懸念事項 (ベッド温度の競合、フィラメントタイプの不一致、マルチマテリアルの競合) が検出された場合、スライス前に警告ダイアログを表示します。ダイアログ上で非表示にできます。誤って非表示にした場合は、ここで再度有効にしてください。"
 
+# AI Translated
 msgid "Modes"
-msgstr ""
+msgstr "モード"
 
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
 msgstr "シングルエクストルーダーのマルチマテリアルプリンターです。すべてのエクストルーダーの径が新しい値に設定されます。続行しますか？"
@@ -12291,17 +12371,21 @@ msgstr "積層ピッチの制限"
 msgid "Z-Hop"
 msgstr "Z-ホップ"
 
+# AI Translated
 msgid "Front-left"
-msgstr ""
+msgstr "左前"
 
+# AI Translated
 msgid "Front-right"
-msgstr ""
+msgstr "右前"
 
+# AI Translated
 msgid "Rear-left"
-msgstr ""
+msgstr "左後ろ"
 
+# AI Translated
 msgid "Rear-right"
-msgstr ""
+msgstr "右後ろ"
 
 # AI Translated
 msgid ""
@@ -12415,9 +12499,10 @@ msgstr "続行"
 msgid "Don't warn again for this preset"
 msgstr "このプリセットでは今後警告しない"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 # AI Translated
 msgid "No modifications need to be copied."
@@ -12896,29 +12981,36 @@ msgstr "ログインに失敗しました。もう一度お試しください。
 msgid "parse json failed"
 msgstr "JSONの解析に失敗しました"
 
+# AI Translated
 msgid "Loading…"
-msgstr ""
+msgstr "読み込み中…"
 
+# AI Translated
 msgid "Welcome to Orca Slicer"
-msgstr ""
+msgstr "Orca Slicerへようこそ"
 
+# AI Translated
 msgid "Orca Slicer will be set up in several steps. Let's start!"
-msgstr ""
+msgstr "Orca Slicerをいくつかのステップで設定します。始めましょう！"
 
+# AI Translated
 msgid "Get Started"
-msgstr ""
+msgstr "始める"
 
+# AI Translated
 msgid "Please select your login region"
-msgstr ""
+msgstr "ログイン地域を選択してください"
 
 msgid "Finish"
 msgstr "完了"
 
+# AI Translated
 msgid "Printer Selection"
-msgstr ""
+msgstr "プリンターの選択"
 
+# AI Translated
 msgid "Vendors"
-msgstr ""
+msgstr "メーカー"
 
 # AI Translated
 msgid "Custom Printer"
@@ -12927,36 +13019,46 @@ msgstr "カスタムプリンター"
 msgid "Create"
 msgstr "作成"
 
+# AI Translated
 msgid "Check for new printers"
-msgstr ""
+msgstr "新しいプリンターを確認"
 
+# AI Translated
 msgid "At least one printer must be selected."
-msgstr ""
+msgstr "少なくとも1台のプリンターを選択する必要があります。"
 
+# AI Translated
 msgid "New printers found"
-msgstr ""
+msgstr "新しいプリンターが見つかりました"
 
+# AI Translated
 #, c-format, boost-format
 msgid "New printer vendors installed: %s"
-msgstr ""
+msgstr "新しいプリンターメーカーをインストールしました: %s"
 
+# AI Translated
 msgid "New printer vendors were found, but installation was cancelled."
-msgstr ""
+msgstr "新しいプリンターメーカーが見つかりましたが、インストールはキャンセルされました。"
 
+# AI Translated
 msgid "No new printers found."
-msgstr ""
+msgstr "新しいプリンターは見つかりませんでした。"
 
+# AI Translated
 msgid "Filament Selection"
-msgstr ""
+msgstr "フィラメントの選択"
 
+# AI Translated
 msgid "System Filaments"
-msgstr ""
+msgstr "システムフィラメント"
 
+# AI Translated
 msgid "Custom Filaments"
-msgstr ""
+msgstr "カスタムフィラメント"
 
+# AI Translated
 msgid "Create New"
-msgstr ""
+msgstr "新規作成"
 
 msgid "Filament type"
 msgstr "フィラメントタイプ"
@@ -12964,30 +13066,37 @@ msgstr "フィラメントタイプ"
 msgid "Vendor"
 msgstr "ベンダー"
 
+# AI Translated
 msgid "No items"
-msgstr ""
+msgstr "項目がありません"
 
+# AI Translated
 msgid "Filter items"
-msgstr ""
+msgstr "項目を絞り込み"
 
+# AI Translated
 msgid "Checked"
-msgstr ""
+msgstr "選択済み"
 
+# AI Translated
 msgid "Unchecked"
-msgstr ""
+msgstr "未選択"
 
+# AI Translated
 msgid "Select filtered"
-msgstr ""
+msgstr "絞り込み結果を選択"
 
 # AI Translated
 msgid "Clear all"
 msgstr "すべてクリア"
 
+# AI Translated
 msgid "At least one filament must be selected."
-msgstr ""
+msgstr "少なくとも1つのフィラメントを選択する必要があります。"
 
+# AI Translated
 msgid "Do you want to use the default filament?"
-msgstr ""
+msgstr "デフォルトのフィラメントを使用しますか？"
 
 msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
 msgstr "クラウド機能をすべて無効にします (Orca Cloudのプロファイル同期を含む)。完全にオフラインで作業したいユーザーはこのオプションを有効にできます。"
@@ -12995,20 +13104,25 @@ msgstr "クラウド機能をすべて無効にします (Orca Cloudのプロフ
 msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
 msgstr "注意: ステルスモードを有効にすると、ユーザープロファイルはOrca Cloudにバックアップされません。"
 
+# AI Translated
 msgid "Enable Stealth Mode."
-msgstr ""
+msgstr "ステルスモードを有効にする。"
 
+# AI Translated
 msgid "Proprietary Plugins"
-msgstr ""
+msgstr "独自プラグイン"
 
+# AI Translated
 msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
-msgstr ""
+msgstr "一部のプリンターメーカーでは、プリンターとの通信に独自のプラグインが必要です。そのようなプリンターを使用する場合は、対応するプラグインを選択してください。"
 
+# AI Translated
 msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
-msgstr ""
+msgstr "これらのプラグインはOrcaSlicerが開発・保守しているものではありません。ご自身の判断と責任でご使用ください。"
 
+# AI Translated
 msgid "Install Bambu Network plug-in"
-msgstr ""
+msgstr "Bambuネットワークプラグインをインストール"
 
 msgid "[Action Required] "
 msgstr "【対応が必要】 "
@@ -13479,13 +13593,15 @@ msgstr "フィラメントの押出ロール変更G-code"
 msgid "No object can be printed. It may be too small."
 msgstr "造形できるオブジェクトがありません。小さすぎる可能性があります。"
 
+# AI Translated
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
-msgstr ""
+msgstr "IDEX/IQEXモード「%1%」には、選択したプリンターでツールが割り当てられていません。代わりにプライマリ (Primary) モードで印刷します。「プリンター設定」でモードのツールを割り当てるか、プレートのIDEX/IQEXボタンから別のモードを選択してください。"
 
+# AI Translated
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
-msgstr ""
+msgstr "このプレートはIDEX/IQEXモード「%1%」に設定されていますが、選択したプリンターにはこのモードが定義されていません。代わりにプライマリ (Primary) モードで印刷します。プレートのIDEX/IQEXボタンからモードを選択するか、「プリンター設定」でモードを復元してください。"
 
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "プリントはプライミング領域に非常に近いです。 衝突がないことを確認してください。"
@@ -13660,25 +13776,31 @@ msgstr "アカウントの認証に失敗しました"
 msgid "write callback failed"
 msgstr "書込みコールバック失敗"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
-msgstr ""
+msgstr "IDEX/IQEX並列モードでのマルチカラー印刷では、各フィラメントに専用の物理押出機が必要です。使用中のフィラメントのうち2つ以上が、プリンターの物理押出機マップ (MMU/AFCマニホールド) によって同じ物理ヘッドに割り当てられており、従属するガントリーはこれに追従できません。"
 
+# AI Translated
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
-msgstr ""
+msgstr "有効なIDEX/IQEXモードにプライマリツールが定義されていないため、マルチカラー印刷をスケジュールできません。プリンター設定のIDEX/IQEXモードエディターを開き、いずれかのツールにプライマリ (Primary) の役割を割り当ててください。"
 
+# AI Translated
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
-msgstr ""
+msgstr "このモードでのマルチカラーは並列印刷になりません。有効なツールがすべて1つのガントリー上にあるため、コピーまたはミラーの対象となる2つ目のガントリーがありません。1つのガントリーでマルチカラー印刷を行うにはプレートをプライマリ (Primary) モードに切り替えるか、2つ目のガントリー上のツールを含むIDEX/IQEXモードを定義してください。"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
-msgstr ""
+msgstr "IDEX/IQEX並列モードでのマルチカラー印刷には、プライマリのガントリー上にSpanツールが必要です。Spanツールがないと、このモードには同じガントリー内のマルチカラーパートナーが定義されません。印刷を単一のフィラメントにするか、プライマリ (Primary) モードに切り替えるか、プリンター設定のIDEX/IQEXモードエディターを開いてプライマリのガントリー上のツールをSpanに指定してください。"
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "このSpanモードで色を印刷できるのは%1%のみですが、フィラメント%2%はどのツールにも割り当てられていません。%1%に割り当てられたフィラメントを使用するか、このプレートをプライマリ (Primary) モードに切り替えてください。"
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "このSpanモードで色を印刷できるのは%1%のみですが、フィラメント%2%はT%3%に割り当てられています。%1%に割り当てられたフィラメントを使用するか、このプレートをプライマリ (Primary) モードに切り替えてください。"
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -13734,42 +13856,55 @@ msgstr "それでも印刷する場合は、環境設定 / 制御 / スライス
 msgid "No extrusions under current settings."
 msgstr "現在の設定では造形しません"
 
+# AI Translated
 msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
-msgstr ""
+msgstr "混合フィラメントはIDEX/IQEX並列モードではサポートされていません。このプレートをプライマリ (Primary) モードに切り替えてください。"
 
+# AI Translated
+# Needs human review: Substituted as %3% into 'IDEX/IQEX mode "%1%" prints with T%2%, but this plate's filaments are on %3%.' (Print.cpp); check the Japanese sentence reads right with it.
 msgid "no configured tool"
-msgstr ""
+msgstr "未設定のツール"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "IDEX/IQEXモード「%1%」はT%2%で印刷しますが、このプレートのフィラメントは%3%に割り当てられています。T%2%に装填されたフィラメントを割り当てるか、このプレートをプライマリ (Primary) モードに切り替えてください。"
 
+# AI Translated
 msgid "Raft is not compatible with belt printer mode."
-msgstr ""
+msgstr "ラフトはベルトプリンターモードと互換性がありません。"
 
+# AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
-msgstr ""
+msgstr "保護シールドはベルトプリンターモードと互換性がありません。"
 
+# AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr ""
+msgstr "ベルトプリンターでは、ブリムとスパイラルモードを併用できません。どちらかを無効にしてください。"
 
+# AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr ""
+msgstr "ベルトの傾斜が急すぎるため、ブリムは生成されません。"
 
+# AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr ""
+msgstr "ブリムはベルトが傾斜している場合にのみ生成されます。ベルト傾斜角度を設定するか、ブリムの設定を解除してください。"
 
+# AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr ""
+msgstr "ベルトプリンターは外側ブリムと内側ブリムのみに対応しています。「自動」「マウスイヤー」「ペイント済み」のブリムは、「ブリム幅」を使用して「外側ブリムのみ」として印刷されます。"
 
+# AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr ""
+msgstr "「ブリムとオブジェクトの間隔」により、前縁ブリムが、本来固定すべきオブジェクトの前縁から離れてしまいます。「前縁ブリムの長さ」を使用する場合は、間隔を0に設定してください。"
 
+# AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr ""
+msgstr "「前縁ブリムの長さ」はベルトに沿って各オブジェクトの前方へ延びますが、「レイアウト」はそのスペースを確保しません。オブジェクト間に余裕を空けてください。"
 
+# AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr ""
+msgstr "「前縁のみ」のブリムはベルトプリンター用です。このプリンターでは通常の外側ブリムとして印刷されます。"
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -13781,14 +13916,17 @@ msgstr "オブジェクト順で造形するでは、この機能を使用でき
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "「オブジェクト別」シーケンスが有効な場合、クランピング検出はサポートされていません。"
 
+# AI Translated
 msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
-msgstr ""
+msgstr "造形シーケンスが「オブジェクト順」の場合、ベルトパージタワーは生成されません。フィラメント交換時のフラッシュは行われません。"
 
+# AI Translated
 msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
-msgstr ""
+msgstr "ベルトパージタワーが有効ですが、プロジェクトにパージタワーオブジェクトがありません。フィラメント交換時のフラッシュは行われません。アプリケーションでプロジェクトを開いてタワーを生成してください。"
 
+# AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr ""
+msgstr "プロジェクトに管理対象のベルトパージタワーが複数含まれています。プレートを再読み込みするか、ベルトパージタワーをオフにしてから再度オンにして再生成してください。"
 
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "正確なZ高さとプライムタワーの両方を有効にするとスライスエラーが発生する可能性があります。"
@@ -14836,9 +14974,11 @@ msgstr "内部ブリッジの速度です。値を%で指定した場合、bridg
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "一番外側のブリム線がモデルと距離です。"
 
+# AI Translated
 msgid "Leading brim length"
-msgstr ""
+msgstr "前縁ブリムの長さ"
 
+# AI Translated
 msgid ""
 "Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
 "\n"
@@ -14848,10 +14988,19 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"ベルトプリンター専用です。ベルトに沿ってオブジェクトの「前方」にブリムを延長します。対象は接地領域の下り側を向いたすべての縁で、オブジェクトが最初にベルトに接する部分と、後から接地するアイランドの両方が含まれます。このエプロンはオブジェクトが到達する前にベルト上に敷かれるため、前縁はすでに貼り付いた部分につかまることができます。\n"
+"\n"
+"ベルト面上で測定され、「ブリム幅」に加算されます。ブリムはオブジェクトの前方に「ブリムとオブジェクトの間隔」+「前縁ブリムの長さ」+「ブリム幅」の距離まで達します。「ブリムとオブジェクトの間隔」を0に設定しないと、エプロンが固定対象のオブジェクトに接しません。\n"
+"\n"
+"傾斜したベルトでは各積層がブリムを1列ずつ敷くため、できあがるブリムシートの厚さは積層ピッチではなく流量で決まります。「ブリムの流量比」で調整してください。\n"
+"\n"
+"0に設定すると無効になります。"
 
+# AI Translated
 msgid "Extra brim width"
-msgstr ""
+msgstr "追加ブリム幅"
 
+# AI Translated
 msgid ""
 "Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
 "\n"
@@ -14859,6 +15008,11 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"ベルトプリンター専用です。オブジェクトの前方や後方には延長せず、ベルトを横切る「横方向」にブリムを広げます。パーツの長さ方向に「ブリム幅」だけでは足りない保持力が必要な場合に使用します。\n"
+"\n"
+"ベルト面上で測定され、「ブリム幅」に加算されます。ブリムはオブジェクトの両側に「ブリムとオブジェクトの間隔」+「ブリム幅」+「追加ブリム幅」の距離まで達します。代わりにオブジェクトの前方へブリムを延長するには、「前縁ブリムの長さ」を使用してください。\n"
+"\n"
+"0に設定すると無効になります。"
 
 msgid "Brim type"
 msgstr "ブリムタイプ"
@@ -14867,8 +15021,9 @@ msgstr "ブリムタイプ"
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "モデルの外側および/または内側にブリムを生成する方法を制御します。自動を選ぶと、ブリム幅が解析されて自動的に計算されます。"
 
+# AI Translated
 msgid "Leading edge only"
-msgstr ""
+msgstr "前縁のみ"
 
 msgid "Brim-object gap"
 msgstr "ブリムとオブジェクトの間隔"
@@ -16173,9 +16328,12 @@ msgstr "マルチラインフィル"
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "充填パターンが対応している場合は、複数のラインを使って充填します。"
 
+# AI Translated
 msgid "Adaptive density (experimental)"
-msgstr ""
+msgstr "アダプティブ密度 (実験的)"
 
+# AI Translated
+# Needs human review: Quotes the existing 'Sparse infill density' label (充填密度), which does not follow the glossary's スパース インフィル; check the option names match their labels in the Adaptive density dropdown.
 msgid ""
 "Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
 "Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
@@ -16185,53 +16343,78 @@ msgid ""
 " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
 " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
 msgstr ""
+"オブジェクト内部のジャイロイドおよびTPMSインフィルに密度勾配を付けます。セルはオブジェクトの表面から中心に向かって大きくなります。表面では「充填密度」、中心では「内部密度」が使用されます。\n"
+"「距離ワープ」「スムーズブレンド」「段階シェル」は、上面と底面を含む最も近い表面までの距離に従い、表面から最も遠い点で内部密度になります:\n"
+" - 距離ワープ: 1つの連続したパターンで、板状や細長いパーツのように方向によって距離が変化する箇所では引き伸ばされ、せん断されます。\n"
+" - スムーズブレンド: 隣接する密度のパターンを互いに混ぜ合わせ、接する部分には小さなループができます。\n"
+" - 段階シェル: 密度が約1.5倍ずつ異なる通常パターンのシェルで、各直線はシェルの境界に沿って接続されます。\n"
+" - ローブ: 上面と底面を含むオブジェクトの3D形状に従います。より細いくびれで残りの部分とつながった各ローブは、それぞれ自身の中心に向かって勾配が付けられます。\n"
+" - 法線Z、Y、X: その軸に垂直なオブジェクトの断面に従うため、その軸方向には密度が変化しません。"
 
+# AI Translated
 msgid "Distance warp"
-msgstr ""
+msgstr "距離ワープ"
 
+# AI Translated
 msgid "Smooth blend"
-msgstr ""
+msgstr "スムーズブレンド"
 
+# AI Translated
 msgid "Stepped shells"
-msgstr ""
+msgstr "段階シェル"
 
+# AI Translated
 msgid "Lobes"
-msgstr ""
+msgstr "ローブ"
 
+# AI Translated
 msgid "Normal Z"
-msgstr ""
+msgstr "法線Z"
 
+# AI Translated
 msgid "Normal Y"
-msgstr ""
+msgstr "法線Y"
 
+# AI Translated
 msgid "Normal X"
-msgstr ""
+msgstr "法線X"
 
+# AI Translated
 msgid "Interior density"
-msgstr ""
+msgstr "内部密度"
 
+# AI Translated
 msgid "Density of the adaptive infill at the center of the object."
-msgstr ""
+msgstr "オブジェクトの中心におけるアダプティブインフィルの密度です。"
 
+# AI Translated
 msgid "Adaptive gradient"
-msgstr ""
+msgstr "アダプティブ勾配"
 
+# AI Translated
+# Needs human review: Quotes the existing 'Linear' option label (直線状); 線形 would suit a gradient better, so check the Adaptive gradient dropdown and this tooltip together.
 msgid ""
 "How the density changes from the surface to the center of the object.\n"
 "Linear: the density changes at a constant rate.\n"
 "Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
 "Exponential: the density changes quickly just below the surface and levels off towards the center."
 msgstr ""
+"オブジェクトの表面から中心に向かって密度がどのように変化するかを指定します。\n"
+"直線状: 密度が一定の割合で変化します。\n"
+"二次: 表面付近では密度が「充填密度」に近いまま保たれ、中心に向かうほど速く変化します。\n"
+"指数: 表面のすぐ内側で密度が急速に変化し、中心に向かって横ばいになります。"
 
 # AI Translated
 msgid "Linear"
 msgstr "直線状"
 
+# AI Translated
 msgid "Quadratic"
-msgstr ""
+msgstr "二次"
 
+# AI Translated
 msgid "Exponential"
-msgstr ""
+msgstr "指数"
 
 # AI Translated
 msgid "Z-buckling bias optimization (experimental)"
@@ -18687,98 +18870,130 @@ msgstr "シングルエクストルーダー・マルチマテリアル"
 msgid "Use single nozzle to print multi filament."
 msgstr "1つのノズルで複数のフィラメントを印刷します。"
 
+# AI Translated
 msgid "IDEX/IQEX Printer"
-msgstr ""
+msgstr "IDEX/IQEXプリンター"
 
+# AI Translated
 msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
-msgstr ""
+msgstr "複数の独立したキャリッジを持つプリンター (IDEX、IQEXなど) で並列印刷を有効にします。"
 
+# AI Translated
 msgid "Firmware-managed zones"
-msgstr ""
+msgstr "ファームウェア管理のゾーン"
 
+# AI Translated
 msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-msgstr ""
+msgstr "有効にすると、スライサーはプライマリゾーンの内容をベッド原点 (0,0) を中心に配置したG-codeを出力します。各物理ゾーン位置へのコピー/ミラーの配置はプリンターのファームウェアが行います。コピー/ミラーモードでファームウェアが独自のゾーンオフセットを適用するプリンター (例: RepRapFirmwareのIDEX複製モード) でのみ有効にしてください。プライマリ (Primary) モードでは効果がありません。"
 
+# AI Translated
 msgid "Gantry Count"
-msgstr ""
+msgstr "ガントリー数"
 
+# AI Translated
 msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
-msgstr ""
+msgstr "独立したY軸ガントリーの数です。IDEX/シングルレールIQEXでは1、デュアルガントリーシステムでは2 (ベッドを行に分割) です。"
 
+# AI Translated
 msgid "Tools per Gantry"
-msgstr ""
+msgstr "ガントリーあたりのツール数"
 
+# AI Translated
 msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
-msgstr ""
+msgstr "X方向に並ぶ、ガントリーあたりの独立したツールヘッドの数です。IDEX方式では2です。"
 
+# AI Translated
 msgid "Tool 0 Position"
-msgstr ""
+msgstr "ツール0の位置"
 
+# AI Translated
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
-msgstr ""
+msgstr "ツールT0 (インデックス0) が配置されているベッド上の物理的な位置です。ツールのインデックスとベッドのゾーンの対応を決定します。シングルガントリー構成 (IDEX) では左右のみが関係し、デュアルガントリー構成 (IQEX) では4隅すべてを選択できます (前 = Yが小さい側 / オペレーター側、後ろ = Yが大きい側 / マシンの奥)。"
 
+# AI Translated
 msgid "Nozzle Clearance X"
-msgstr ""
+msgstr "ノズルクリアランスX"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
-msgstr ""
+msgstr "X方向における、ノズルから衝突側のキャリッジ端までの距離 (mm) です。各X境界での衝突除外帯の幅の計算に使用されます。"
 
+# AI Translated
 msgid "Nozzle Clearance Y"
-msgstr ""
+msgstr "ノズルクリアランスY"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
-msgstr ""
+msgstr "Y方向における、ノズルから衝突側のキャリッジ端までの距離 (mm) です。各Y境界での衝突除外帯の幅の計算に使用されます。"
 
+# AI Translated
 msgid "Safety Margin"
-msgstr ""
+msgstr "安全マージン"
 
+# AI Translated
 msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
-msgstr ""
+msgstr "各キャリッジ境界でプライマリゾーンの内側に描画される、配置を妨げない注意喚起用のクリアランス帯 (mm) です。この帯の内側に置かれたパーツもスライスされます。ゾーンの端付近に余分なクリアランスを残すための視覚的な目安です。"
 
+# AI Translated
 msgid "Visualization Theme"
-msgstr ""
+msgstr "表示テーマ"
 
+# AI Translated
 msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
-msgstr ""
+msgstr "IDEX/IQEXのベッドゾーン表示に使用するカラーテーマです。必要に応じて、色覚特性に配慮したテーマを選択してください。"
 
+# AI Translated
 msgid "Deuteranopia / Protanopia (red-green)"
-msgstr ""
+msgstr "2型色覚 / 1型色覚 (赤緑)"
 
+# AI Translated
 msgid "Tritanopia (blue-yellow)"
-msgstr ""
+msgstr "3型色覚 (青黄)"
 
+# AI Translated
 msgid "High Contrast"
-msgstr ""
+msgstr "ハイコントラスト"
 
+# AI Translated
 msgid "IDEX/IQEX Print Mode"
-msgstr ""
+msgstr "IDEX/IQEX印刷モード"
 
+# AI Translated
 msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
-msgstr ""
+msgstr "有効なIDEX/IQEX並列印刷モードの名前、または単一キャリッジでの印刷の場合は \"primary\" です。プリンタープリセットで「IDEX/IQEXプリンター」が有効になっている必要があります (プリンター → マルチマテリアル → IDEX/IQEX設定)。"
 
+# AI Translated
 msgid "IDEX/IQEX head filament map"
-msgstr ""
+msgstr "IDEX/IQEXヘッドのフィラメントマップ"
 
+# AI Translated
+# Needs human review: 'pem-inversion' is developer jargon (inverse of the physical extruder map); check the wording is understandable.
 msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr ""
+msgstr "物理ヘッドをフィラメントスロットに対応付ける、プレートごとのオーバーライドです (1始まり)。空の場合はpem反転によるデフォルトを使用します。"
 
+# AI Translated
 msgid "IDEX/IQEX Mode Names"
-msgstr ""
+msgstr "IDEX/IQEXモード名"
 
+# AI Translated
 msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
-msgstr ""
+msgstr "ユーザー定義の各IDEX/IQEX並列印刷モードの表示名です。"
 
+# AI Translated
 msgid "IDEX/IQEX Mode Active Tools"
-msgstr ""
+msgstr "IDEX/IQEXモードの有効なツール"
 
+# AI Translated
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
-msgstr ""
+msgstr "各モードのツールの役割の割り当てです。形式: \"idx:P,idx:C,idx:M\" (P=プライマリ (Primary)、C=コピー (Copy)、M=ミラー (Mirror)、例: \"0:P,1:C,2:M,3:M\")。プリンタープリセットのIDEX/IQEXモードエディターで管理されます。"
 
+# AI Translated
 msgid "IDEX/IQEX Mode G-codes"
-msgstr ""
+msgstr "IDEX/IQEXモードのG-code"
 
+# AI Translated
 msgid "G-code or macro call to inject at print start for each mode."
-msgstr ""
+msgstr "各モードで印刷開始時に挿入するG-codeまたはマクロ呼び出しです。"
 
 # AI Translated
 msgid "Manual Filament Change"
@@ -19180,35 +19395,45 @@ msgstr "閾値の重複"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "しきい値角度がゼロの場合、オーバーラップがしきい値を下回るオーバーハングに対してサポートが生成されます。この値が小さいほど、サポートなしで印刷できるオーバーハングの角度が急になります。"
 
+# AI Translated
 msgid "Build plate tilt X"
-msgstr ""
+msgstr "ベッド傾斜X"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
-msgstr ""
+msgstr "X軸方向のベッドの傾斜角度です。正の値では+X側が高くなるようにベッドを傾け、重力が-X方向に移るため+X側のオーバーハングが増えます。負の値では-X側が高くなります。X軸方向に傾けない場合は0に設定します。ベルトプリンターモードでは、ベルトの角度と自動的に同期されます。"
 
+# AI Translated
 msgid "Build plate tilt Y"
-msgstr ""
+msgstr "ベッド傾斜Y"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
-msgstr ""
+msgstr "Y軸方向のベッドの傾斜角度です。正の値では+Y側が高くなるようにベッドを傾け、重力が-Y方向に移るため+Y側のオーバーハングが増えます。負の値では-Y側が高くなります。Y軸方向に傾けない場合は0に設定します。"
 
+# AI Translated
 msgid "Enable belt printing"
-msgstr ""
+msgstr "ベルト印刷を有効にする"
 
+# AI Translated
 msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
-msgstr ""
+msgstr "ベルトプリンターモードを有効にします。ベルトプリンターは、ある角度 (通常は45度) に傾けたコンベアベルトを造形面として使用します。スライサーは傾いた造形面に合わせて、スライス平面を回転させ、G-code座標を変換します。"
 
+# AI Translated
 msgid "Infinite Y axis"
-msgstr ""
+msgstr "無限Y軸"
 
+# AI Translated
 msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
-msgstr ""
+msgstr "ベルトプリンターで無限Y軸を有効にします。有効にすると、Y軸方向のビルドボリュームの制限が実質的になくなり、ベルト方向に任意の長さのオブジェクトを印刷できます。"
 
+# AI Translated
 msgid "Belt tilt axis"
-msgstr ""
+msgstr "ベルト傾斜軸"
 
+# AI Translated
 msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-msgstr ""
+msgstr "スライス前にメッシュを回転させる軸です。これはベルトプリンターの傾斜で、歪みのない等長回転です。ベッドの描画とサポートの重力方向の傾斜にも使用され、G-codeの逆変換では、機械座標系のせん断/スケールとリマップの前にこの回転が元に戻されます。一般的なガントリーの傾斜はXです (ベルトはY方向に移動)。"
 
 msgid "X"
 msgstr "X"
@@ -19220,89 +19445,119 @@ msgstr "Y"
 msgid "Z"
 msgstr "Z"
 
+# AI Translated
 msgid "Belt tilt angle"
-msgstr ""
+msgstr "ベルト傾斜角度"
 
+# AI Translated
 msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
-msgstr ""
+msgstr "ベルト面の傾斜角度 (度) です。ほとんどのベルトプリンターは45°を使用します。正の値では、正の傾斜軸に沿って見たときに反時計回りに回転します。この値の大きさは、ベッドの描画とサポートの重力方向に使用される物理的なベルトの傾斜でもあります。"
 
 msgid "°"
 msgstr "°"
 
+# AI Translated
 msgid "Decouple machine-frame tilt"
-msgstr ""
+msgstr "機械座標系の傾斜を分離"
 
+# AI Translated
 msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-msgstr ""
+msgstr "エキスパート向けの上書き設定: 機械座標系 (G-codeのせん断/スケール) の傾斜角度を、スライス前の回転角度とは独立して設定します。無効の場合、機械座標系の変換はベルト傾斜角度から導出されるため、1つの角度で両方の段階を制御します。物理的なガントリーの傾斜がスライス時の回転と異なるマシンを補正する場合にのみ有効にしてください。"
 
+# AI Translated
 msgid "Machine-frame tilt angle"
-msgstr ""
+msgstr "機械座標系の傾斜角度"
 
+# AI Translated
 msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
-msgstr ""
+msgstr "G-codeに適用する機械座標系のせん断 (cot) とスケール (1/|sin|) を導出するための傾斜角度 (度) です。「機械座標系の傾斜を分離」が有効な場合にのみ使用され、それ以外の場合はベルト傾斜角度が使用されます。"
 
+# AI Translated
 msgid "+X"
-msgstr ""
+msgstr "+X"
 
+# AI Translated
 msgid "+Y"
-msgstr ""
+msgstr "+Y"
 
+# AI Translated
 msgid "+Z"
-msgstr ""
+msgstr "+Z"
 
+# AI Translated
 msgid "-X"
-msgstr ""
+msgstr "-X"
 
+# AI Translated
 msgid "-Y"
-msgstr ""
+msgstr "-Y"
 
+# AI Translated
 msgid "-Z"
-msgstr ""
+msgstr "-Z"
 
+# AI Translated
+# Needs human review: G-code remap option; 'Rev' means reversed (max - pos), distinct from the -X option. Check the dropdown reads clearly.
 msgid "Rev X"
-msgstr ""
+msgstr "反転X"
 
+# AI Translated
 msgid "Rev Y"
-msgstr ""
+msgstr "反転Y"
 
+# AI Translated
 msgid "Rev Z"
-msgstr ""
+msgstr "反転Z"
 
+# AI Translated
 msgid "G-code remap X"
-msgstr ""
+msgstr "G-codeリマップX"
 
+# AI Translated
 msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "G-code出力でマシンのXに対応付けるスライス軸です。スライスの「後」、G-code生成時に適用されます。"
 
+# AI Translated
 msgid "G-code remap Y"
-msgstr ""
+msgstr "G-codeリマップY"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "G-code出力でマシンのYに対応付けるスライス軸です。スライスの「後」、G-code生成時に適用されます。"
 
+# AI Translated
 msgid "G-code remap Z"
-msgstr ""
+msgstr "G-codeリマップZ"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "G-code出力でマシンのZに対応付けるスライス軸です。スライスの「後」、G-code生成時に適用されます。"
 
+# AI Translated
 msgid "Support Floor Z offset"
-msgstr ""
+msgstr "サポート床面Zオフセット"
 
+# AI Translated
 msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
-msgstr ""
+msgstr "計算されたベルト床面を上下に移動します (mm)。負の値では床面が下がり、より多くのサポートが残ります。ベルト床面の計算式の問題を診断する際に使用します。"
 
+# AI Translated
 msgid "Enable belt purge tower"
-msgstr ""
+msgstr "ベルトパージタワーを有効にする"
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled; 'wipe/prime tower' and 'wipe tower' rendered as プライムタワー.
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
-msgstr ""
+msgstr "ベルトプリンター用のプライムタワーの代替です。ベルトプリンターで有効にすると、印刷するパーツの横にパージ用の角柱が自動生成され、フィラメント交換時のフラッシュはそこで行われます (従来のプライムタワーはG-codeがベルト変換を経由しないため、ベルトプリンターでは使用できません)。ベルトプリンターでのみ使用できます。"
 
+# AI Translated
 msgid "Belt purge tower width"
-msgstr ""
+msgstr "ベルトパージタワーの幅"
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled; 'classic wipe tower' rendered as 従来のプライムタワー.
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr ""
+msgstr "ベルトパージタワーが有効で複数のフィラメントを使用する場合に、ベルトプリンターで自動生成されるパージ用の角柱の幅 (マシンのX方向、ベルトを横切る方向) です。フィラメント交換時のフラッシュは、従来のプライムタワーではなくこの角柱の押し出しで行われます。高さは積層ごとの最大フラッシュ量から自動的に計算され、角柱を広くするほど低くなります。"
 
 msgid "Tree support branch angle"
 msgstr "ツリーサポート枝アングル"
@@ -19492,11 +19747,15 @@ msgstr "トップ面の厚さです、トップ面層数で決まった厚みが
 msgid "Separated infills"
 msgstr "インフィルを個別に配置"
 
+# AI Translated
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
 "Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
+"各パーツの内部インフィルを、アセンブリ全体ではなく、そのパーツ単体でスライスした場合のようにパーツ自身の中心に合わせます。接触または重なっているパーツは1つの本体として扱われ、中心を共有します。分離したパーツ (または別々の3Dオブジェクト) はそれぞれ独自の中心を持ちます。\n"
+"アセンブリが複数のオブジェクトをまとめており、それぞれに一貫した自己中心のインフィルを保ちたい場合に便利です。\n"
+"アダプティブ キュービックとキュービックサポートは常に各パーツをそれ自身の中心に合わせます。ライトニングインフィルはオブジェクト全体に対して生成されるため、影響を受けません。"
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -19741,11 +20000,13 @@ msgstr "フィラメント交換後のパージをオブジェクトのサポー
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "このオブジェクトは廃料で造形されます。時間とフィラメントの節約として有効的ですが、色の指定ができなくなります。プライムタワーが有効になる場合、この設定が無効になります。"
 
+# AI Translated
 msgid "Belt purge tower object"
-msgstr ""
+msgstr "ベルトパージタワーオブジェクト"
 
+# AI Translated
 msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
-msgstr ""
+msgstr "自動生成されたベルトのパージ用角柱を示します。自動的に管理されるため、手動で設定しないでください。"
 
 msgid "Maximal bridging distance"
 msgstr "ブリッジ最大距離"
@@ -20729,8 +20990,9 @@ msgstr "スライスに使用される物理プリンターの名前。"
 msgid "Layer number"
 msgstr "レイヤーナンバー"
 
+# AI Translated
 msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
-msgstr ""
+msgstr "現在の積層のインデックスです。0始まり (つまり最初の積層は0番) ですが、押出ロール変更G-codeでは1始まりです。"
 
 msgid "Layer Z"
 msgstr "レイヤーZ"
@@ -21428,8 +21690,9 @@ msgstr ""
 "加速度の値は速度の値より大きくなければなりません。\n"
 "入力を確認してください。"
 
+# AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr ""
+msgstr "ベルトプリンターではまだ使用できません。代わりにPAタワー方式を使用してください。"
 
 msgid "Temperature calibration"
 msgstr "温度キャリブレーション"
@@ -21458,8 +21721,9 @@ msgstr "PET-CF"
 msgid "Test model"
 msgstr "テストモデル"
 
+# AI Translated
 msgid "Overhang"
-msgstr ""
+msgstr "オーバーハング"
 
 msgid "Start temp: "
 msgstr "開始温度: "
@@ -22378,8 +22642,9 @@ msgstr ""
 "プリンターと、そのプリンターに属するすべてのフィラメントおよびプロセスのプリセットです。\n"
 "他のユーザーと共有できます。"
 
+# AI Translated
 msgid "Include custom bed texture and model"
-msgstr ""
+msgstr "カスタムベッドのテクスチャとモデルを含める"
 
 # AI Translated
 msgid ""
@@ -23590,32 +23855,41 @@ msgstr "有効にすると、上記の値が今後のSTEPインポートで使�
 msgid "PresetBundle"
 msgstr "PresetBundle"
 
+# AI Translated
 msgid "Export Presets"
-msgstr ""
+msgstr "プリセットをエクスポート"
 
+# AI Translated
 msgid "Open folder in explorer"
-msgstr ""
+msgstr "エクスプローラーでフォルダを開く"
 
+# AI Translated
 msgid "Delete bundle"
-msgstr ""
+msgstr "バンドルを削除"
 
+# AI Translated
 msgid "Unsubscribe bundle"
-msgstr ""
+msgstr "バンドルの購読を解除"
 
+# AI Translated
 msgid "Update available"
-msgstr ""
+msgstr "アップデートが利用可能"
 
+# AI Translated
 msgid "Unauthorized bundle"
-msgstr ""
+msgstr "許可されていないバンドル"
 
+# AI Translated
 msgid "Open this bundle in your browser"
-msgstr ""
+msgstr "このバンドルをブラウザーで開く"
 
+# AI Translated
 msgid "Subscribed"
-msgstr ""
+msgstr "購読済み"
 
+# AI Translated
 msgid "Local"
-msgstr ""
+msgstr "ローカル"
 
 # AI Translated
 msgid "Bundle folder does not exist."
@@ -23661,11 +23935,13 @@ msgstr "バンドルの購読を解除"
 msgid "ExportPresetBundle"
 msgstr "ExportPresetBundle"
 
+# AI Translated
 msgid "Export to OrcaCloud"
-msgstr ""
+msgstr "OrcaCloudにエクスポート"
 
+# AI Translated
 msgid "Export to folder"
-msgstr ""
+msgstr "フォルダにエクスポート"
 
 # AI Translated
 msgid "Save preset bundle"
@@ -28213,8 +28489,9 @@ msgstr "組立てる"
 msgid "Gizmo brim ears"
 msgstr "ブリム"
 
+# AI Translated
 msgid "Gizmo texture displacement painting"
-msgstr ""
+msgstr "テクスチャ変位ペイント"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "垂直スライダー"
@@ -29464,6 +29741,14 @@ msgid "Bake"
 msgstr "焼付け"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "スライダーに正確な値を入力"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "スライダー右端の編集アイコン"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "テクスチャ変位"
 
@@ -29736,6 +30021,15 @@ msgid "The painted area could not be carried onto the remeshed model, so nothing
 msgstr "ペイント領域をリメッシュ後のモデルに引き継げなかったため、何も変更されませんでした。プロモードに切り替え、ペイントする前にリメッシュしてください。"
 
 # AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "範囲: %1%～%2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "ドラッグする代わりに値を入力します。スライダーをCtrl+クリックしても同じです。"
+
+# AI Translated
 msgid "Pro"
 msgstr "プロ"
 
@@ -29840,8 +30134,9 @@ msgstr "角度しきい値 - これより鋭いエッジで塗りつぶしが止
 msgid "Click a triangle to paint it"
 msgstr "三角形をクリックしてペイント"
 
+# AI Translated
 msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
-msgstr ""
+msgstr "展開 (LSCM) でマッピングされたレイヤーのみ - このビューを使用するには、アクティブなレイヤーの「マッピング」を「展開」に設定してください。"
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -29855,15 +30150,17 @@ msgstr "高速 - 起伏は陰影で表示されるだけで実際には生成さ
 msgid "Checker"
 msgstr "チェッカー"
 
+# AI Translated
 msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "チェッカー - テクスチャの代わりにテストグリッドを表示します。正方形が正方形のままの箇所ではテクスチャは歪まず、引き伸ばされている箇所ではテクスチャも引き伸ばされます。UVエディターが閉じている場合は開きます"
 
 # AI Translated
 msgid "Distortion"
 msgstr "歪み"
 
+# AI Translated
 msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "歪み - 展開上の引き伸ばしを青から赤のヒートマップで表示します。UVエディターが閉じている場合は開きます"
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -29979,11 +30276,13 @@ msgstr "フィラメントを混合"
 msgid "Interleaves two filaments to fake the colors in between, so a handful of filaments can cover a photo or a gradient. An image of flat colors prints the same either way. Off uses one filament per area."
 msgstr "2つのフィラメントを交互に配置して中間色を擬似的に表現し、少数のフィラメントで写真やグラデーションを再現できるようにします。単色で構成された画像はどちらでも同じように印刷されます。オフの場合は、領域ごとに1つのフィラメントを使用します。"
 
+# AI Translated
 msgid "Mixed colors"
-msgstr ""
+msgstr "混合色"
 
+# AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
-msgstr ""
+msgstr "焼付けで追加できる混合フィラメントの最大数です。テクスチャの色から選ばれ、焼付けで実際に使用されるものだけが作成されます。"
 
 # AI Translated
 #, boost-format
@@ -30685,27 +30984,33 @@ msgstr "フィラメントプラグイン"
 msgid "Printer plugins"
 msgstr "プリンタープラグイン"
 
+# AI Translated
 msgid "This preset does not use any plugin capabilities"
-msgstr ""
+msgstr "このプリセットはプラグインの機能を使用しません"
 
+# AI Translated
 msgid "Capabilities used by this preset"
-msgstr ""
+msgstr "このプリセットで使用される機能"
 
+# AI Translated
 msgid "Capability configuration (JSON)"
-msgstr ""
+msgstr "機能の設定 (JSON)"
 
+# AI Translated
 msgid "Plugin configuration"
-msgstr ""
+msgstr "プラグインの設定"
 
+# AI Translated
 msgid "Discard this preset's override and use the global configuration again"
-msgstr ""
+msgstr "このプリセットの上書き設定を破棄し、グローバル設定に戻す"
 
 # AI Translated
 msgid "Restore defaults"
 msgstr "デフォルトに戻す"
 
+# AI Translated
 msgid "Invalid JSON"
-msgstr ""
+msgstr "無効なJSON"
 
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
@@ -30795,214 +31100,283 @@ msgstr "プラグインをインストール中"
 msgid "Installed \"%s\"."
 msgstr "「%s」をインストールしました。"
 
+# AI Translated
 msgid "Search plugins"
-msgstr ""
+msgstr "プラグインを検索"
 
+# AI Translated
 msgid "Clear search"
-msgstr ""
+msgstr "検索をクリア"
 
+# AI Translated
 msgid "Match case"
-msgstr ""
+msgstr "大文字と小文字を区別"
 
+# AI Translated
 msgid "Match whole word"
-msgstr ""
+msgstr "単語単位で一致"
 
+# AI Translated
 msgid "More plugin install options"
-msgstr ""
+msgstr "その他のプラグインのインストールオプション"
 
+# AI Translated
 msgid "Install plugin"
-msgstr ""
+msgstr "プラグインをインストール"
 
+# AI Translated
 msgid "Install local plugin"
-msgstr ""
+msgstr "ローカルプラグインをインストール"
 
+# AI Translated
 msgid "Activate"
-msgstr ""
+msgstr "アクティブ化"
 
+# AI Translated
 msgid "Sort by name"
-msgstr ""
+msgstr "名前で並べ替え"
 
+# AI Translated
 msgid "Sort by version"
-msgstr ""
+msgstr "バージョンで並べ替え"
 
+# AI Translated
 msgid "Plugin Version"
-msgstr ""
+msgstr "プラグインのバージョン"
 
+# AI Translated
 msgid "Sort by source"
-msgstr ""
+msgstr "入手元で並べ替え"
 
+# AI Translated
+# Needs human review: Plugins dialog column whose values are Mine / Subscribed / Orphaned / Local; check 入手元 fits the column.
 msgid "Source"
-msgstr ""
+msgstr "入手元"
 
+# AI Translated
 msgid "Sort by status"
-msgstr ""
+msgstr "ステータスで並べ替え"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Status"
-msgstr ""
+msgstr "ステータス"
 
+# AI Translated
 msgid "Drag to resize; double-click to reset"
-msgstr ""
+msgstr "ドラッグでサイズ変更、ダブルクリックでリセット"
 
+# AI Translated
 msgid "Resize the plugin list"
-msgstr ""
+msgstr "プラグインリストのサイズを変更"
 
+# AI Translated
 msgid "Plugin details"
-msgstr ""
+msgstr "プラグインの詳細"
 
+# AI Translated
 msgid "Plugin Info"
-msgstr ""
+msgstr "プラグイン情報"
 
+# AI Translated
 msgid "Description"
-msgstr ""
+msgstr "説明"
 
+# AI Translated
 msgid "Config"
-msgstr ""
+msgstr "設定"
 
+# AI Translated
 msgid "Changelog"
-msgstr ""
+msgstr "変更履歴"
 
+# AI Translated
 msgid "Diagnostics"
-msgstr ""
+msgstr "診断"
 
+# AI Translated
 msgid "Types"
-msgstr ""
+msgstr "種類"
 
+# AI Translated
 msgid "Installed Version"
-msgstr ""
+msgstr "インストール済みバージョン"
 
+# AI Translated
 msgid "Latest Version"
-msgstr ""
+msgstr "最新バージョン"
 
+# AI Translated
 msgid "Update to the latest version"
-msgstr ""
+msgstr "最新バージョンに更新"
 
+# AI Translated
 msgid "No description available"
-msgstr ""
+msgstr "説明はありません"
 
+# AI Translated
 msgid "Select a plugin to configure its capabilities"
-msgstr ""
+msgstr "機能を設定するプラグインを選択してください"
 
+# AI Translated
 msgid "Configurable capabilities"
-msgstr ""
+msgstr "設定可能な機能"
 
+# AI Translated
 msgid "Discard the settings saved for this capability and restore the plugin's defaults"
-msgstr ""
+msgstr "この機能に保存された設定を破棄し、プラグインのデフォルトに戻す"
 
+# AI Translated
 msgid "Plugin changelog"
-msgstr ""
+msgstr "プラグインの変更履歴"
 
+# AI Translated
 msgid "Date"
-msgstr ""
+msgstr "日付"
 
+# AI Translated
 msgid "Changes"
-msgstr ""
+msgstr "変更内容"
 
+# AI Translated
 msgid "No changelog available"
-msgstr ""
+msgstr "変更履歴はありません"
 
+# AI Translated
 msgid "No issues detected"
-msgstr ""
+msgstr "問題は検出されませんでした"
 
+# AI Translated
 msgid "No plugins found"
-msgstr ""
+msgstr "プラグインが見つかりません"
 
+# AI Translated
 #, c-format, boost-format
 msgid "No plugins match \"%s\""
-msgstr ""
+msgstr "「%s」に一致するプラグインはありません"
 
+# AI Translated
+# Needs human review: Plugin source badge 'Mine' (plugins the signed-in user owns on OrcaCloud), next to Subscribed / Orphaned / Local; check 自作 reads right.
 msgid "Mine"
-msgstr ""
+msgstr "自作"
 
+# AI Translated
 msgid "Orphaned"
-msgstr ""
+msgstr "孤立"
 
+# AI Translated
 msgid "Some plugin capabilities are enabled"
-msgstr ""
+msgstr "一部のプラグイン機能が有効です"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Collapse %s capabilities"
-msgstr ""
+msgstr "%sの機能を折りたたむ"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Expand %s capabilities"
-msgstr ""
+msgstr "%sの機能を展開"
 
+# AI Translated
 msgid "Collapse capabilities"
-msgstr ""
+msgstr "機能を折りたたむ"
 
+# AI Translated
 msgid "Expand capabilities"
-msgstr ""
+msgstr "機能を展開"
 
+# AI Translated
 msgid "Open this plugin in your browser"
-msgstr ""
+msgstr "このプラグインをブラウザーで開く"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Capabilities: %s"
-msgstr ""
+msgstr "機能: %s"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Capabilities"
-msgstr ""
+msgstr "機能"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Run \"%s\""
-msgstr ""
+msgstr "「%s」を実行"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Enable %s"
-msgstr ""
+msgstr "%sを有効化"
 
+# AI Translated
 msgid "Unauthorized for updates"
-msgstr ""
+msgstr "更新が許可されていません"
 
+# AI Translated
 msgid "Loading the plugin…"
-msgstr ""
+msgstr "プラグインを読み込み中…"
 
+# AI Translated
 msgid "This plugin exposes no capabilities"
-msgstr ""
+msgstr "このプラグインには機能がありません"
 
+# AI Translated
 msgid "Activate this plugin to configure its capabilities"
-msgstr ""
+msgstr "機能を設定するには、このプラグインをアクティブ化してください"
 
+# AI Translated
 msgid "View on OrcaCloud <a>here</a>"
-msgstr ""
+msgstr "OrcaCloudでの表示は<a>こちら</a>"
 
+# AI Translated
 msgid "Activated"
-msgstr ""
+msgstr "アクティブ"
 
+# AI Translated
 msgid "Runtime error"
-msgstr ""
+msgstr "実行時エラー"
 
+# AI Translated
 msgid "Inactive"
-msgstr ""
+msgstr "非アクティブ"
 
+# AI Translated
 msgid "This plugin is active and ready to be used."
-msgstr ""
+msgstr "このプラグインはアクティブで、使用できる状態です。"
 
+# AI Translated
 msgid "This plugin is still loading."
-msgstr ""
+msgstr "このプラグインはまだ読み込み中です。"
 
+# AI Translated
 msgid "This plugin is blocked until its error is fixed."
-msgstr ""
+msgstr "このプラグインは、エラーが修正されるまでブロックされます。"
 
+# AI Translated
 msgid "This plugin is loaded but a capability reported an error."
-msgstr ""
+msgstr "このプラグインは読み込まれていますが、機能がエラーを報告しました。"
 
+# AI Translated
 msgid "This plugin is inactive. Activate it to install or load it."
-msgstr ""
+msgstr "このプラグインは非アクティブです。インストールまたは読み込むにはアクティブ化してください。"
 
+# AI Translated
 msgid "Select a plugin to view its status and details."
-msgstr ""
+msgstr "ステータスと詳細を表示するプラグインを選択してください。"
 
+# AI Translated
 msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
-msgstr ""
+msgstr "孤立: このプラグインは購読されていないか、OrcaCloudで利用できなくなっています。ローカルのコピーはインストールされたままで、引き続き使用できます。"
 
+# AI Translated
 msgid "A newer plugin version is available."
-msgstr ""
+msgstr "プラグインの新しいバージョンが利用可能です。"
 
+# AI Translated
 msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
-msgstr ""
+msgstr "このプラグインは更新が許可されていないため、クラウドからの更新は利用できません。"
 
 # AI Translated
 #, c-format, boost-format
@@ -31220,53 +31594,70 @@ msgstr "プラグインの再読み込みに失敗しました。"
 msgid "Reloaded \"%s\"."
 msgstr "「%s」を再読み込みしました。"
 
+# AI Translated
 msgid "Printer Connection"
-msgstr ""
+msgstr "プリンター接続"
 
+# AI Translated
 msgid "Please set up your printer connection to view the device."
-msgstr ""
+msgstr "デバイスを表示するには、プリンター接続を設定してください。"
 
+# AI Translated
 msgid "No model information"
-msgstr ""
+msgstr "モデル情報がありません"
 
+# AI Translated
 msgid "Edit Project Info"
-msgstr ""
+msgstr "プロジェクト情報を編集"
 
+# AI Translated
 msgid "Model Information"
-msgstr ""
+msgstr "モデル情報"
 
+# AI Translated
 msgid "Accessories"
-msgstr ""
+msgstr "アクセサリー"
 
+# AI Translated
 msgid "Profile Information"
-msgstr ""
+msgstr "プロファイル情報"
 
+# AI Translated
 msgid "Model name"
-msgstr ""
+msgstr "モデル名"
 
+# AI Translated
 msgid "Created by"
-msgstr ""
+msgstr "作成者"
 
+# AI Translated
 msgid "Remixed by"
-msgstr ""
+msgstr "リミックス作成者"
 
+# AI Translated
 msgid "Shared by"
-msgstr ""
+msgstr "共有者"
 
+# AI Translated
 msgid "Model description"
-msgstr ""
+msgstr "モデルの説明"
 
+# AI Translated
+# Needs human review: Project page section 'BOM' (bill of materials) kept as the acronym; 部品表 is the Japanese term if the acronym is not clear to users.
 msgid "BOM"
-msgstr ""
+msgstr "BOM"
 
+# AI Translated
 msgid "Profile name"
-msgstr ""
+msgstr "プロファイル名"
 
+# AI Translated
 msgid "Profile Author"
-msgstr ""
+msgstr "プロファイル作成者"
 
+# AI Translated
 msgid "Profile description"
-msgstr ""
+msgstr "プロファイルの説明"
 
 # AI Translated
 msgid "Purge Mode Settings"
@@ -31292,15 +31683,18 @@ msgstr "プライムの廃材を減らし、より速く印刷します。わず
 msgid "Terminal"
 msgstr "ターミナル"
 
+# AI Translated
 msgid "python ... or uv ..."
-msgstr ""
+msgstr "python ... または uv ..."
 
+# AI Translated
 msgid "Plugin terminal ready."
-msgstr ""
+msgstr "プラグインターミナルの準備ができました。"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Process exited with code: %s"
-msgstr ""
+msgstr "プロセスが終了しました。終了コード: %s"
 
 # AI Translated
 msgid "A command is already running."
@@ -31568,8 +31962,10 @@ msgstr "  |  スナップ オン"
 msgid "Change texture - choose another one from the texture library"
 msgstr "テクスチャを変更 - テクスチャライブラリから別のテクスチャを選択"
 
+# AI Translated
+# Needs human review: The English names a 'Tiling' control, but the layer settings show 'Tile' (タイル) and 'Tile size' (タイルサイズ); check which control is meant.
 msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
-msgstr ""
+msgstr "アクティブなレイヤーのタイルサイズです。テクスチャ1回分の繰り返しがモデルのどれだけを覆うかを示します。キャンバスはタイル単位で測られるため、グリッドの1マスが1回分の繰り返しになります。レイヤー設定のタイリングで変更できます。"
 
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
@@ -31603,14 +31999,17 @@ msgstr "アイランドを接続"
 msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfolded next to each other (a cube becomes a joined net rather than six loose squares). They stay separate islands, so you can still move any of them by hand afterwards."
 msgstr "展開を連結した展開図としてレイアウトします: エッジを共有する部分が隣り合わせに展開されます (立方体はバラバラの6つの正方形ではなく、つながった展開図になります)。それぞれは別のアイランドのままなので、後から個別に手動で移動できます。"
 
+# AI Translated
 msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
-msgstr ""
+msgstr "UVアイランド - UVアイランド全体を操作します。クリックして選択し、ドラッグで移動、右ドラッグで回転します。または、Rキーで回転、Sキーで拡大縮小をマウスで行います (クリックまたはEnterで確定、Escでキャンセル)。"
 
+# AI Translated
 msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "頂点 - 頂点をドラッグしてUVアイランドの形状を手動で変更します。Shiftで選択に追加し、Ctrlで選択への追加/解除を切り替えます。"
 
+# AI Translated
 msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "エッジ - エッジをドラッグしてUVアイランドの形状を手動で変更します。Shiftで選択に追加し、Ctrlで選択への追加/解除を切り替えます。"
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -31648,13 +32047,17 @@ msgstr "UV編集をクリア - 頂点やエッジの手動移動をすべて破�
 msgid "Snap - stick islands together when dragging one against another"
 msgstr "スナップ - ドラッグ中のアイランドを他のアイランドに近づけると吸着させる"
 
+# AI Translated
 msgid ""
 "Frame all islands, fitting every one of them in view (Home or F).\n"
 "Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
 msgstr ""
+"すべてのUVアイランドがビューに収まるように全体表示します (HomeまたはF)。\n"
+"キャンバス上のその他の操作: スクロールでカーソル位置を中心にズームし、中ボタンドラッグまたは空き領域のドラッグでパンします。"
 
+# AI Translated
 msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
-msgstr ""
+msgstr "選択されている内容と、ドラッグ中の移動・回転・拡大縮小の正確な数値です。"
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -31665,8 +32068,9 @@ msgstr "「展開」でマッピングされたレイヤーがありません"
 msgid "%.1f mm tile"
 msgstr "%.1f mm タイル"
 
+# AI Translated
 msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
-msgstr ""
+msgstr "このペインはアクティブなテクスチャレイヤーに連動し、そのレイヤーは展開 (LSCM) でマッピングされている必要があります。レイヤーを追加し、その「マッピング」を「展開」に設定してください。"
 
 # AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
@@ -31676,43 +32080,54 @@ msgstr "最新ではありません - この展開の作成後に、ペイント
 msgid "Flatten the painted area into UV islands. It is computed only when you press this, not on every edit - so paint, change the seam angle or mark seams first, then press Unwrap."
 msgstr "ペイント領域を平らに広げてUVアイランドにします。計算はこのボタンを押したときのみ行われ、編集のたびには行われません - 先にペイント、シーム角度の変更、シームのマークを行ってから「展開」を押してください。"
 
+# AI Translated
 msgid "Turn Mark seams on first - Path is a quicker way of marking them."
-msgstr ""
+msgstr "先に「シームをマーク」をオンにしてください - 「パス」を使うとより素早くマークできます。"
 
+# AI Translated
 msgid "No seams are marked on this layer."
-msgstr ""
+msgstr "このレイヤーにはシームがマークされていません。"
 
+# AI Translated
 msgid "No islands have been reshaped by hand, so there is nothing to discard."
-msgstr ""
+msgstr "手動で形状を変更したUVアイランドがないため、破棄するものはありません。"
 
 # AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "UVアイランド %d 個、面 %s 個"
 
+# AI Translated
 msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
-msgstr ""
+msgstr "ペイント領域の展開結果です。分割されたピースの数 (シームと、シーム角度より鋭いエッジで分割) と、それらに含まれる三角形の総数を示します。"
 
+# AI Translated
 msgid "Press Unwrap first - there are no islands to work on yet."
-msgstr ""
+msgstr "先に「展開」を押してください - 操作できるUVアイランドがまだありません。"
 
+# AI Translated
 msgid "Click an island on the canvas first, in Island mode."
-msgstr ""
+msgstr "先にUVアイランドモードで、キャンバス上のUVアイランドをクリックしてください。"
 
+# AI Translated
 msgid "Not signed in"
-msgstr ""
+msgstr "サインインしていません"
 
+# AI Translated
 msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
-msgstr ""
+msgstr "Bambuネットワークプラグインが検出されませんでした。インストールするには<a>こちら</a>をクリックしてください。"
 
+# AI Translated
 msgid "Create new project"
-msgstr ""
+msgstr "新しいプロジェクトを作成"
 
+# AI Translated
 msgid "Recently opened"
-msgstr ""
+msgstr "最近開いた項目"
 
+# AI Translated
 msgid "Open Containing Folder"
-msgstr ""
+msgstr "ファイルの場所を開く"
 
 # AI Translated
 msgid "Forward"
@@ -31863,15 +32278,19 @@ msgstr ""
 "プラグイン「%s」が以下のコマンドの実行を要求しています:\n"
 "%s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plugin \"%s\" is requesting permission to create a thread."
-msgstr ""
+msgstr "プラグイン「%s」がスレッドの作成の許可を要求しています。"
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plugin \"%s\" is requesting to replace the running application with:\n"
 "%s"
 msgstr ""
+"プラグイン「%s」が、実行中のアプリケーションを次のものに置き換えるよう要求しています:\n"
+"%s"
 
 # AI Translated
 #, c-format, boost-format
@@ -31882,29 +32301,37 @@ msgstr "プラグイン「%s」がPython監査イベント「%s」の許可を�
 msgid "Plugin permission request"
 msgstr "プラグインの権限リクエスト"
 
+# AI Translated
 msgid "Printer connection"
-msgstr ""
+msgstr "プリンター接続"
 
+# AI Translated
 msgid "Pages"
-msgstr ""
+msgstr "ページ"
 
+# AI Translated
 msgid "Analysis"
-msgstr ""
+msgstr "解析"
 
+# AI Translated
 msgid "Importer"
-msgstr ""
+msgstr "インポーター"
 
+# AI Translated
 msgid "Exporter"
-msgstr ""
+msgstr "エクスポーター"
 
+# AI Translated
 msgid "Visualization"
-msgstr ""
+msgstr "可視化"
 
+# AI Translated
 msgid "Script"
-msgstr ""
+msgstr "スクリプト"
 
+# AI Translated
 msgid "Slicing Pipeline"
-msgstr ""
+msgstr "スライスパイプライン"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."

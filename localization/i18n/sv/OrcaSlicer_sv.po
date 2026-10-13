@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2423,12 +2423,16 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
+# AI Translated
 #, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
 "Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
+"Microsoft WebView2 Runtime kunde inte installeras.\n"
+"Vissa funktioner, bland annat installationsguiden, kan visas tomma tills den är installerad.\n"
+"Installera den manuellt från %1% och starta om Orca Slicer."
 
 # AI Translated
 #, c-format, boost-format
@@ -4728,6 +4732,17 @@ msgstr "Senaste projekt"
 msgid "Go to Plate"
 msgstr "Gå till platta"
 
+msgid "Device"
+msgstr "Enhet"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Enhet (Webb)"
+
+# AI Translated
+msgid "Multi-device"
+msgstr "Flera enheter"
+
 msgid "AMS Materials Setting"
 msgstr "AMS Material Inställning"
 
@@ -4790,6 +4805,14 @@ msgstr "Ange ett giltigt värde (K mellan %.1f~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Ange ett giltigt värde (K mellan %.1f~%.1f, N mellan %.1f~%.1f)"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "Favoritfilament"
+
+# AI Translated
+msgid "All filaments"
+msgstr "Alla filament"
 
 # AI Translated
 msgid ""
@@ -5393,10 +5416,13 @@ msgstr "Justera automatiskt till gränsvärdet (%g mm)?"
 msgid "Adjust"
 msgstr "Justera"
 
+# AI Translated
 msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
+"Raft och dragskydd är inte tillgängliga på bandskrivare.\n"
+"De har inaktiverats."
 
 msgid ""
 "Layer height too small\n"
@@ -6552,42 +6578,53 @@ msgstr "Öka/minska redigeringsområdet"
 msgid "Sequence"
 msgstr "Sekvens"
 
+# AI Translated
 msgid "Plate center of mass"
-msgstr ""
+msgstr "Plattans masscentrum"
 
+# AI Translated
 msgid "Part center of mass"
-msgstr ""
+msgstr "Delens masscentrum"
 
+# AI Translated
 msgid "Support center of mass"
-msgstr ""
+msgstr "Supportens masscentrum"
 
+# AI Translated
 msgid "Assembly center of mass"
-msgstr ""
+msgstr "Monteringens masscentrum"
 
+# AI Translated
 msgid "Object center of mass"
-msgstr ""
+msgstr "Objektets masscentrum"
 
+# AI Translated
 msgid "Finished print"
-msgstr ""
+msgstr "Färdig utskrift"
 
+# AI Translated
 #, boost-format
 msgid "Printed up to layer %1%"
-msgstr ""
+msgstr "Utskrivet till och med lager %1%"
 
+# AI Translated
 msgid "Weight"
-msgstr ""
+msgstr "Vikt"
 
 msgid "Volume"
 msgstr "Volym"
 
+# AI Translated
 msgid "Center in bounding box"
-msgstr ""
+msgstr "Centrum i begränsningsrutan"
 
+# AI Translated
 msgid "Bounding box size"
-msgstr ""
+msgstr "Begränsningsrutans storlek"
 
+# AI Translated
 msgid "Moment of inertia"
-msgstr ""
+msgstr "Tröghetsmoment"
 
 # AI Translated
 msgid "Object selection"
@@ -6822,11 +6859,13 @@ msgstr "Rutnät"
 msgid "Labels"
 msgstr "Etiketter"
 
+# AI Translated
 msgid "Center of mass"
-msgstr ""
+msgstr "Masscentrum"
 
+# AI Translated
 msgid "Show raw G-code (belt only)"
-msgstr ""
+msgstr "Visa rå G-code (endast bandskrivare)"
 
 # AI Translated
 msgid "Move section plane"
@@ -6878,7 +6917,7 @@ msgid "Size:"
 msgstr "Storlek:"
 
 # AI Translated
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Konflikter mellan G-code-banor hittades på lager %d, Z = %.2lfmm. Placera de objekt som krockar längre ifrån varandra (%s <-> %s)."
 
@@ -7065,19 +7104,8 @@ msgstr "Förbered"
 msgid "Preview"
 msgstr "Förhandsvisning"
 
-msgid "Device"
-msgstr "Enhet"
-
-# AI Translated
-msgid "Multi-device"
-msgstr "Flera enheter"
-
 msgid "Project"
 msgstr "Projekt"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Enhet (Webb)"
 
 msgid "Yes"
 msgstr "Ja"
@@ -7390,11 +7418,13 @@ msgstr "Visa rutnätslinjer"
 msgid "Show Gridlines on plate"
 msgstr "Visa rutnätslinjer på plattan"
 
+# AI Translated
 msgid "Show IDEX/IQEX Toolhead"
-msgstr ""
+msgstr "Visa IDEX/IQEX-verktygshuvud"
 
+# AI Translated
 msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
-msgstr ""
+msgstr "Visa en representation av IDEX/IQEX-verktygshuvudet runt varje aktiv nozzel i G-code-förhandsvisningen."
 
 # AI Translated
 msgid "Reset Window Layout"
@@ -9214,60 +9244,77 @@ msgstr "Se alla objektens inställningar"
 msgid "Material settings"
 msgstr "Materialinställningar"
 
+# AI Translated
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
-msgstr ""
+msgstr "Varje läge anger vilka verktygshuvuden som deltar och vilken roll vart och ett har. Klicka på en verktygsknapp för att växla dess roll — håll muspekaren över en färg nedan för att se vad varje roll gör."
 
+# AI Translated
 msgid "Add Mode"
-msgstr ""
+msgstr "Lägg till läge"
 
 # AI Translated
 msgid "Tools"
 msgstr "Verktyg"
 
+# AI Translated
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
+# AI Translated
 msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
-msgstr ""
+msgstr "Hur läget benämns i plattans IDEX/IQEX-lägesväljare. Obligatoriskt — ett läge utan namn kan inte väljas."
 
+# AI Translated
 msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
-msgstr ""
+msgstr "Vilka verktygshuvuden som deltar i läget och vilken roll vart och ett har. Klicka på en ruta för att växla dess roll."
 
+# AI Translated
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
-msgstr ""
+msgstr "G-code som körs vid utskriftsstart för att försätta skrivaren i det här läget (till exempel ett Klipper-anrop till SET_PRINT_MODE). Beredningsprogrammet genererar bara banorna för det primära verktyget (Primary); den fasta programvaran styr de övriga."
 
+# AI Translated
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
-msgstr ""
+msgstr "Styr alla banor som bereds. Alltid verktyg 0 — använd \"Position för verktyg 0\" ovan för att välja vilket hörn av byggplattan det har. Det kan inte flyttas från rutnätet."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
-msgstr ""
+msgstr "Följer det primära verktyget (Primary) via den fasta programvaran och skriver ut samma banor förskjutna in i sin egen zon."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
-msgstr ""
+msgstr "Följer det primära verktyget (Primary) via den fasta programvaran och skriver ut samma banor speglade över gränsen mellan de två zonerna."
 
+# AI Translated
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
-msgstr ""
+msgstr "Markerar ett verktyg på det primära verktygets (Primary) portal som dess flerfärgspartner. Krävs för flerfärgsutskrift i lägen med parade portaler."
 
+# AI Translated
 msgid "Primary"
-msgstr ""
+msgstr "Primär"
 
+# AI Translated
 msgid "Mode name (required)"
-msgstr ""
+msgstr "Lägesnamn (obligatoriskt)"
 
+# AI Translated
 msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
-msgstr ""
+msgstr "Namnet på det här parallella läget, som det visas i plattans IDEX/IQEX-lägesväljare. Sparas i projektet med namn, så om du byter namn på ett läge som plattor redan använder återgår de till Primär. Får inte vara tomt — ett tomt namn ersätts med ett genererat."
 
+# AI Translated
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
-msgstr ""
+msgstr "G-code som skrivs en gång i början av en utskrift som använder det här läget, före maskinens start-G-code. Här försätts skrivaren i motsvarande läge i den fasta programvaran — till exempel med ett Klipper-anrop till SET_PRINT_MODE eller ett RepRapFirmware M567 — eftersom beredningsprogrammet bara genererar banorna för det primära verktyget (Primary) och den fasta programvaran styr verktygen Kopia/Spegel (Copy/Mirror). Platshållare stöds; använd redigeringsknappen för att bläddra bland dem. Lämna tomt om läget inte kräver någon inställning i den fasta programvaran."
 
+# AI Translated
 msgid "Edit G-code / browse placeholders"
-msgstr ""
+msgstr "Redigera G-code / bläddra bland platshållare"
 
+# AI Translated
 msgid "Remove mode"
-msgstr ""
+msgstr "Ta bort läge"
 
+# AI Translated
 msgid "Discard in-session edits to this mode (snap back to saved value)"
-msgstr ""
+msgstr "Förkasta ändringarna av det här läget under sessionen (återställ till sparat värde)"
 
 # AI Translated
 msgid "Remove current plate (if not last one)"
@@ -9301,16 +9348,19 @@ msgstr "Redigera den aktuella plattans namn"
 msgid "Move plate to the front"
 msgstr "Flytta plattan längst fram"
 
+# AI Translated
 #, boost-format
 msgid " (process preset: %1%)"
-msgstr ""
+msgstr " (processförinställning: %1%)"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
-msgstr ""
+msgstr "IDEX/IQEX-läge: %1% (vänsterklicka för att växla, högerklicka för meny)"
 
+# AI Translated
 msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
-msgstr ""
+msgstr "Varning: den här plattan använder ett parallellt IDEX/IQEX-läge med objekt i flera material. Fortsätt med försiktighet — kontrollera att din G-code hanterar den här kombinationen korrekt."
 
 # AI Translated
 msgid "Customize current plate"
@@ -9477,8 +9527,9 @@ msgstr "Blandat filament"
 msgid "Remove last mixed filament"
 msgstr "Ta bort det senaste blandade filamentet"
 
+# AI Translated
 msgid "Remove all mixed filaments"
-msgstr ""
+msgstr "Ta bort alla blandade filament"
 
 # AI Translated
 msgid "Add mixed filament"
@@ -9503,9 +9554,10 @@ msgstr "Det blandade filamentet har trasiga komponentreferenser"
 msgid "Edit / Delete / Merge"
 msgstr "Redigera / Radera / Slå ihop"
 
+# AI Translated
 #, boost-format
 msgid "Remove all %1% mixed filaments?"
-msgstr ""
+msgstr "Ta bort alla %1% blandade filament?"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -9802,11 +9854,13 @@ msgstr "Vill du avaktivera automatiskt nedsläpp för att behålla Z-positionen?
 msgid "Object with floating parts was detected"
 msgstr "Ett objekt med svävande delar upptäcktes"
 
+# AI Translated
 msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Kan inte bereda: ett objekt överlappar ett område som är reserverat för IDEX/IQEX-parallellutskrift (en sekundär zon eller en frigångsremsa för en vagn inuti den primära zonen)."
 
+# AI Translated
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Kan inte bereda: prime tornet överlappar ett område som är reserverat för IDEX/IQEX-parallellutskrift (en sekundär zon eller en frigångsremsa för en vagn inuti den primära zonen)."
 
 msgid "Another export job is running."
 msgstr "En annan exportering pågår."
@@ -9900,37 +9954,49 @@ msgstr "Ogiltlig data"
 msgid "Slicing Canceled"
 msgstr "Beredning avbruten"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
-msgstr ""
+msgstr "Konflikt i byggplattans temperatur: T%d (%s) ställer in byggplattan på %d°C — T%d (%s) kräver %d°C. Det primära verktyget styr byggplattan; sekundära verktyg skriver ut vid den temperatur det ställer in."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
-msgstr ""
+msgstr "Filamenttyperna stämmer inte överens: T%d använder %s och T%d använder %s. Dessa material har oförenliga krav och är inte avsedda att skrivas ut tillsammans."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
 "\n"
 msgstr ""
+"Platta %d har parallellt IDEX/IQEX-läge aktivt med följande anmärkningar:\n"
+"\n"
 
+# AI Translated
 msgid "Continue slicing?"
-msgstr ""
+msgstr "Fortsätta beredningen?"
 
+# AI Translated
 msgid "IDEX/IQEX Parallel Mode Warning"
-msgstr ""
+msgstr "Varning för parallellt IDEX/IQEX-läge"
 
+# AI Translated
 msgid "Don't show these warnings again"
-msgstr ""
+msgstr "Visa inte dessa varningar igen"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plate %d:\n"
-msgstr ""
+msgstr "Platta %d:\n"
 
+# AI Translated
 msgid ""
 "The following IDEX/IQEX parallel mode concerns were detected:\n"
 "\n"
 msgstr ""
+"Följande anmärkningar för parallellt IDEX/IQEX-läge upptäcktes:\n"
+"\n"
 
 # AI Translated
 msgid "Network plug-in switched successfully."
@@ -9968,8 +10034,9 @@ msgstr ""
 msgid "Sync now"
 msgstr "Synkronisera nu"
 
+# AI Translated
 msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
-msgstr ""
+msgstr "Det går inte att ångra eller göra om medan en åtgärd pågår. Stoppa åtgärden, eller vänta tills den är klar och försök sedan igen."
 
 # AI Translated
 msgid ""
@@ -10043,10 +10110,13 @@ msgstr "Nedladdningen misslyckades; fel på filstorleken."
 msgid "Project downloaded %d%%"
 msgstr "Projektet har laddats ned %d%%"
 
+# AI Translated
 msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
+"Testerna PA linje och PA mönster är ännu inte aktiverade på bandskrivare.\n"
+"Använd metoden PA torn i stället."
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -10077,12 +10147,14 @@ msgstr "Orca YOLO flödeskalibrering"
 msgid "Flowrate Test - Pass%d"
 msgstr "Flödestest - omgång %d"
 
+# AI Translated
 #, boost-format
 msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
-msgstr ""
+msgstr "Det finns inget temperaturtorn för bandskrivare för intervallet %1% till %2% °C. Använd ett intervall som tornmodellerna täcker, till exempel 230 till 190."
 
+# AI Translated
 msgid "Temperature tower"
-msgstr ""
+msgstr "Temperaturtorn"
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -12783,8 +12855,9 @@ msgstr "Synkronisering mellan olika extruderdrivningar eller typer av Nozzle vol
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Synkronisera ändringen av parametrar till motsvarande parametrar för den andra extrudern."
 
+# AI Translated
 msgid "Parameters with this icon can be configurable per nozzle."
-msgstr ""
+msgstr "Parametrar med den här ikonen kan ställas in per nozzel."
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Klicka för att återställa alla inställningar till den senast sparade förinställningen."
@@ -13257,11 +13330,13 @@ msgstr "Utskriftsbar yta"
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "Välj vilken nätverksagentimplementation som ska användas för kommunikation med skrivaren. Tillgängliga agenter registreras vid start."
 
+# AI Translated
 msgid "Belt printer"
-msgstr ""
+msgstr "Bandskrivare"
 
+# AI Translated
 msgid "Machine frame transforms"
-msgstr ""
+msgstr "Transformationer till maskinkoordinatsystemet"
 
 # AI Translated
 #. TRN: The first argument is the parameter's name; the second argument is its value.
@@ -13403,24 +13478,29 @@ msgstr "Nozzel diameter"
 msgid "Wipe tower"
 msgstr "Prime torn"
 
+# AI Translated
 msgid "Belt purge tower"
-msgstr ""
+msgstr "Bandrensningstorn"
 
 # AI Translated
 msgid "Single extruder multi-material parameters"
 msgstr "Parametrar för multimaterial med en extruder"
 
+# AI Translated
 msgid "IDEX/IQEX Configuration"
-msgstr ""
+msgstr "IDEX/IQEX-konfiguration"
 
+# AI Translated
 msgid "Pre-slice warnings"
-msgstr ""
+msgstr "Varningar före beredning"
 
+# AI Translated
 msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
-msgstr ""
+msgstr "Visa en varningsdialogruta före beredning om anmärkningar för parallellt IDEX/IQEX-läge upptäcks (konflikter i byggplattans temperatur, filamenttyper som inte stämmer överens, konflikter med flera material). Kan stängas av i själva dialogrutan. Aktivera igen här om den stängts av av misstag."
 
+# AI Translated
 msgid "Modes"
-msgstr ""
+msgstr "Lägen"
 
 # AI Translated
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
@@ -13432,17 +13512,21 @@ msgstr "Lagerhöjds begränsning"
 msgid "Z-Hop"
 msgstr "Z-Hop"
 
+# AI Translated
 msgid "Front-left"
-msgstr ""
+msgstr "Främre vänster"
 
+# AI Translated
 msgid "Front-right"
-msgstr ""
+msgstr "Främre höger"
 
+# AI Translated
 msgid "Rear-left"
-msgstr ""
+msgstr "Bakre vänster"
 
+# AI Translated
 msgid "Rear-right"
-msgstr ""
+msgstr "Bakre höger"
 
 # AI Translated
 msgid ""
@@ -13562,9 +13646,10 @@ msgstr "Fortsätt"
 msgid "Don't warn again for this preset"
 msgstr "Varna inte igen för den här förinställningen"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 # AI Translated
 msgid "No modifications need to be copied."
@@ -14097,29 +14182,36 @@ msgstr "Inloggningen misslyckades. Försök igen."
 msgid "parse json failed"
 msgstr "det gick inte att tolka json"
 
+# AI Translated
 msgid "Loading…"
-msgstr ""
+msgstr "Läser in…"
 
+# AI Translated
 msgid "Welcome to Orca Slicer"
-msgstr ""
+msgstr "Välkommen till Orca Slicer"
 
+# AI Translated
 msgid "Orca Slicer will be set up in several steps. Let's start!"
-msgstr ""
+msgstr "Orca Slicer konfigureras i flera steg. Nu sätter vi igång!"
 
+# AI Translated
 msgid "Get Started"
-msgstr ""
+msgstr "Kom igång"
 
+# AI Translated
 msgid "Please select your login region"
-msgstr ""
+msgstr "Välj din inloggningsregion"
 
 msgid "Finish"
 msgstr "Slutför"
 
+# AI Translated
 msgid "Printer Selection"
-msgstr ""
+msgstr "Val av skrivare"
 
+# AI Translated
 msgid "Vendors"
-msgstr ""
+msgstr "Tillverkare"
 
 # AI Translated
 msgid "Custom Printer"
@@ -14128,36 +14220,46 @@ msgstr "Anpassad skrivare"
 msgid "Create"
 msgstr "Skapa"
 
+# AI Translated
 msgid "Check for new printers"
-msgstr ""
+msgstr "Sök efter nya skrivare"
 
+# AI Translated
 msgid "At least one printer must be selected."
-msgstr ""
+msgstr "Minst en skrivare måste väljas."
 
+# AI Translated
 msgid "New printers found"
-msgstr ""
+msgstr "Nya skrivare hittades"
 
+# AI Translated
 #, c-format, boost-format
 msgid "New printer vendors installed: %s"
-msgstr ""
+msgstr "Nya skrivartillverkare installerade: %s"
 
+# AI Translated
 msgid "New printer vendors were found, but installation was cancelled."
-msgstr ""
+msgstr "Nya skrivartillverkare hittades, men installationen avbröts."
 
+# AI Translated
 msgid "No new printers found."
-msgstr ""
+msgstr "Inga nya skrivare hittades."
 
+# AI Translated
 msgid "Filament Selection"
-msgstr ""
+msgstr "Val av filament"
 
+# AI Translated
 msgid "System Filaments"
-msgstr ""
+msgstr "Systemfilament"
 
+# AI Translated
 msgid "Custom Filaments"
-msgstr ""
+msgstr "Anpassade filament"
 
+# AI Translated
 msgid "Create New"
-msgstr ""
+msgstr "Skapa ny"
 
 msgid "Filament type"
 msgstr "Filament typ"
@@ -14165,30 +14267,37 @@ msgstr "Filament typ"
 msgid "Vendor"
 msgstr "Leverantör"
 
+# AI Translated
 msgid "No items"
-msgstr ""
+msgstr "Inga poster"
 
+# AI Translated
 msgid "Filter items"
-msgstr ""
+msgstr "Filtrera poster"
 
+# AI Translated
 msgid "Checked"
-msgstr ""
+msgstr "Markerade"
 
+# AI Translated
 msgid "Unchecked"
-msgstr ""
+msgstr "Omarkerade"
 
+# AI Translated
 msgid "Select filtered"
-msgstr ""
+msgstr "Välj filtrerade"
 
 # AI Translated
 msgid "Clear all"
 msgstr "Rensa alla"
 
+# AI Translated
 msgid "At least one filament must be selected."
-msgstr ""
+msgstr "Minst ett filament måste väljas."
 
+# AI Translated
 msgid "Do you want to use the default filament?"
-msgstr ""
+msgstr "Vill du använda standardfilamentet?"
 
 msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
 msgstr "Detta stänger av alla molnfunktioner, inklusive profilsynkronisering med Orca Cloud. Användare som föredrar att arbeta helt offline kan aktivera det här alternativet."
@@ -14196,20 +14305,25 @@ msgstr "Detta stänger av alla molnfunktioner, inklusive profilsynkronisering me
 msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
 msgstr "Obs! När Stealth-läget är aktiverat säkerhetskopieras inte dina användarprofiler till Orca Cloud."
 
+# AI Translated
 msgid "Enable Stealth Mode."
-msgstr ""
+msgstr "Aktivera Stealth-läge."
 
+# AI Translated
 msgid "Proprietary Plugins"
-msgstr ""
+msgstr "Proprietära insticksmoduler"
 
+# AI Translated
 msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
-msgstr ""
+msgstr "Vissa skrivartillverkare kräver proprietära insticksmoduler för att kommunicera med sina skrivare. Välj motsvarande insticksmodul om du använder sådana skrivare."
 
+# AI Translated
 msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
-msgstr ""
+msgstr "Observera att dessa insticksmoduler inte utvecklas eller underhålls av OrcaSlicer. De används efter eget omdöme och på egen risk."
 
+# AI Translated
 msgid "Install Bambu Network plug-in"
-msgstr ""
+msgstr "Installera insticksmodulen Bambu Network"
 
 # AI Translated
 msgid "[Action Required] "
@@ -14702,13 +14816,15 @@ msgstr "G-code vid byte av extruderingstyp för filament"
 msgid "No object can be printed. It may be too small."
 msgstr "Inget objekt kan skrivas ut. Det kan vara för litet"
 
+# AI Translated
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
-msgstr ""
+msgstr "IDEX/IQEX-läget \"%1%\" har inga verktyg tilldelade på den valda skrivaren. Skriver ut i läget Primär i stället. Tilldela lägets verktyg i Skrivarens inställningar, eller välj ett annat läge med plattans IDEX/IQEX-knapp."
 
+# AI Translated
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
-msgstr ""
+msgstr "Den här plattan är inställd på IDEX/IQEX-läget \"%1%\", som den valda skrivaren inte definierar. Skriver ut i läget Primär i stället. Välj ett läge med plattans IDEX/IQEX-knapp, eller återställ läget i Skrivarens inställningar."
 
 # AI Translated
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
@@ -14891,25 +15007,31 @@ msgstr "validering misslyckad"
 msgid "write callback failed"
 msgstr "skriv återuppringning misslyckad"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
-msgstr ""
+msgstr "Flerfärgsutskrifter i parallella IDEX/IQEX-lägen kräver att varje filament har en egen fysisk extruder. Två eller fler av de aktiva filamenten leds till samma fysiska huvud via skrivarens fysiska extruderkarta (ett MMU/AFC-fördelningsblock), vilket den slavstyrda portalen inte kan följa."
 
+# AI Translated
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
-msgstr ""
+msgstr "Det aktiva IDEX/IQEX-läget definierar inget primärt verktyg, så flerfärgsutskrift kan inte planeras. Öppna redigeraren för IDEX/IQEX-lägen i skrivarens inställningar och tilldela ett verktyg rollen Primär (Primary)."
 
+# AI Translated
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
-msgstr ""
+msgstr "Flerfärg i det här läget är inte parallellutskrift — alla aktiva verktyg sitter på en enda portal, så det finns ingen andra portal att kopiera eller spegla till. Växla plattan till läget Primär för flerfärgsutskrift på en enda portal, eller definiera ett IDEX/IQEX-läge som omfattar verktyg på en andra portal."
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
-msgstr ""
+msgstr "Flerfärgsutskrifter i parallella IDEX/IQEX-lägen kräver ett Span-verktyg på det primära verktygets portal — utan ett sådant anger läget ingen flerfärgspartner på samma portal. Minska antingen utskriften till ett enda filament, växla till läget Primär, eller öppna redigeraren för IDEX/IQEX-lägen i skrivarens inställningar och markera ett verktyg på det primära verktygets portal som Span."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "I det här Span-läget skriver bara %1% ut färger, men filament %2% är inte kopplat till något verktyg. Använd filament som är kopplade till %1%, eller växla den här plattan till läget Primär."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "I det här Span-läget skriver bara %1% ut färger, men filament %2% är kopplat till T%3%. Använd filament som är kopplade till %1%, eller växla den här plattan till läget Primär."
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -14966,42 +15088,54 @@ msgstr "Om du ändå vill skriva ut kan du aktivera alternativet i Inställninga
 msgid "No extrusions under current settings."
 msgstr "Nuvarande inställning har ingen extrudering."
 
+# AI Translated
 msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
-msgstr ""
+msgstr "Blandade filament stöds inte i parallella IDEX/IQEX-lägen. Växla den här plattan till läget Primär."
 
+# AI Translated
 msgid "no configured tool"
-msgstr ""
+msgstr "inget konfigurerat verktyg"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "IDEX/IQEX-läget \"%1%\" skriver ut med T%2%, men den här plattans filament finns på %3%. Tilldela ett filament som är laddat i T%2%, eller växla den här plattan till läget Primär."
 
+# AI Translated
 msgid "Raft is not compatible with belt printer mode."
-msgstr ""
+msgstr "Raft är inte kompatibelt med bandskrivarläget."
 
+# AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
-msgstr ""
+msgstr "Dragskydd är inte kompatibelt med bandskrivarläget."
 
+# AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr ""
+msgstr "Brim är inte kompatibelt med läget Spiral vas på en bandskrivare. Inaktivera ett av dem."
 
+# AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr ""
+msgstr "Bandet lutar för brant för brim, så ingen brim genereras."
 
+# AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr ""
+msgstr "Brim genereras bara när bandet lutar. Ange en lutningsvinkel för bandet, eller ta bort brim-inställningen."
 
+# AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr ""
+msgstr "Bandskrivare stöder endast yttre och inre brim. Auto, Musöra och Målad brim skrivs ut som \"Endast yttre brim\" med \"Brim bredd\"."
 
+# AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr ""
+msgstr "\"Avstånd mellan brim och modell\" skiljer framkantsbrim från objektets framkant, som är den kant den ska förankra. Sätt avståndet till 0 när du använder \"Längd på framkantsbrim\"."
 
+# AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr ""
+msgstr "\"Längd på framkantsbrim\" sträcker sig framför varje objekt längs bandet, och Arrangera reserverar inte det utrymmet. Lämna plats mellan objekten."
 
+# AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr ""
+msgstr "Brim av typen \"Endast framkant\" gäller bandskrivare. På den här skrivaren skrivs den ut som en vanlig yttre brim."
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -15014,14 +15148,17 @@ msgstr "Smooth läge för timelapse stöds inte när ”per objekt” -sekvens �
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "Klumpdetektering stöds inte när utskriftssekvensen \"objekt för objekt\" är aktiverad."
 
+# AI Translated
 msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
-msgstr ""
+msgstr "Bandrensningstornet genereras inte med utskriftssekvensen \"Per objekt\"; filamentbyten rensas inte."
 
+# AI Translated
 msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
-msgstr ""
+msgstr "Bandrensningstornet är aktiverat men projektet har inget rensningstornobjekt; filamentbyten rensas inte. Öppna projektet i programmet för att generera tornet."
 
+# AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr ""
+msgstr "Projektet innehåller flera hanterade bandrensningstorn. Läs in plattan igen eller stäng av och slå på bandrensningstornet för att generera om det."
 
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "Att aktivera både exakt Z-höjd och rengöringstornet kan orsaka skärningsfel."
@@ -16139,9 +16276,11 @@ msgstr "Hastighet för inre bridges. Om värdet anges i procent beräknas det ut
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "Avståndet från modellen till yttersta brim linjen"
 
+# AI Translated
 msgid "Leading brim length"
-msgstr ""
+msgstr "Längd på framkantsbrim"
 
+# AI Translated
 msgid ""
 "Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
 "\n"
@@ -16151,10 +16290,19 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Endast bandskrivare. Förlänger brim FRAMFÖR objektet längs bandet, på varje kant av kontaktytan som vetter nedför bandet - både där objektet först når bandet och vid varje ö som landar senare. Detta förkläde läggs på bandet innan objektet når dit, så att framkanten redan har något fastsittande att hålla sig i.\n"
+"\n"
+"Mäts på bandytan och läggs till utöver \"Brim bredd\": brim når \"Avstånd mellan brim och modell\" + \"Längd på framkantsbrim\" + \"Brim bredd\" framför objektet. Sätt \"Avstånd mellan brim och modell\" till 0, annars når förklädet inte fram till objektet det ska förankra.\n"
+"\n"
+"På ett lutande band lägger varje lager en remsa av brim, så tjockleken på det resulterande brim-skiktet bestäms av flödet snarare än av lagerhöjden. Använd \"Flödesförhållande för brim\" för att justera den.\n"
+"\n"
+"Sätt till 0 för att inaktivera."
 
+# AI Translated
 msgid "Extra brim width"
-msgstr ""
+msgstr "Extra brim bredd"
 
+# AI Translated
 msgid ""
 "Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
 "\n"
@@ -16162,6 +16310,11 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Endast bandskrivare. Breddar brim i SIDLED, tvärs över bandet, utan att förlänga den längre framför eller bakom objektet. Använd det när en del behöver mer grepp längs sin längd än vad \"Brim bredd\" ensamt ger.\n"
+"\n"
+"Mäts på bandytan och läggs till utöver \"Brim bredd\": brim når \"Avstånd mellan brim och modell\" + \"Brim bredd\" + \"Extra brim bredd\" ut på var sida om objektet. Använd \"Längd på framkantsbrim\" för att i stället förlänga brim framför objektet.\n"
+"\n"
+"Sätt till 0 för att inaktivera."
 
 msgid "Brim type"
 msgstr "Brim typ"
@@ -16169,8 +16322,9 @@ msgstr "Brim typ"
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "Detta styr genereringen av brim på modellens yttre och/eller inre sida. Auto innebär att brim bredd analyseras och beräknas automatiskt."
 
+# AI Translated
 msgid "Leading edge only"
-msgstr ""
+msgstr "Endast framkant"
 
 msgid "Brim-object gap"
 msgstr "Avstånd mellan brim och modell"
@@ -17584,9 +17738,11 @@ msgstr "Flerlinjig fyllning"
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "Använder flera linjer för ifyllnadsmönstret, om mönstret stöder det."
 
+# AI Translated
 msgid "Adaptive density (experimental)"
-msgstr ""
+msgstr "Adaptiv densitet (experimentell)"
 
+# AI Translated
 msgid ""
 "Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
 "Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
@@ -17596,53 +17752,77 @@ msgid ""
 " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
 " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
 msgstr ""
+"Graderar Gyroid- och TPMS-ifyllnaden inuti objektet: dess celler växer från objektets yta mot dess mitt. \"Sparsam ifyllnads densitet\" används vid ytan och \"Inre densitet\" i mitten.\n"
+"Avståndsförvrängning, Mjuk övergång och Stegvisa skal följer avståndet till närmaste yta, inklusive topp och botten, med den inre densiteten i den punkt som ligger längst bort från den:\n"
+" - Avståndsförvrängning: ett sammanhängande mönster, sträckt och skjuvat där avståndet ändras olika i olika riktningar, som i skivor och långa delar.\n"
+" - Mjuk övergång: mönstren för närliggande densiteter blandas in i varandra, med små slingor där de möts.\n"
+" - Stegvisa skal: skal av det vanliga mönstret med densiteter som skiljer sig ungefär 1,5 gånger åt, med linjerna sammanfogade längs skalens gränser.\n"
+" - Lober: följer objektets 3D-form, inklusive topp och botten. Varje lob, en del som är förenad med resten via en smalare hals, graderas mot sin egen mitt.\n"
+" - Normal Z, Y eller X: följer objektets snitt vinkelrätt mot den axeln, så att densiteten inte ändras längs den."
 
+# AI Translated
 msgid "Distance warp"
-msgstr ""
+msgstr "Avståndsförvrängning"
 
+# AI Translated
 msgid "Smooth blend"
-msgstr ""
+msgstr "Mjuk övergång"
 
+# AI Translated
 msgid "Stepped shells"
-msgstr ""
+msgstr "Stegvisa skal"
 
+# AI Translated
 msgid "Lobes"
-msgstr ""
+msgstr "Lober"
 
+# AI Translated
 msgid "Normal Z"
-msgstr ""
+msgstr "Normal Z"
 
+# AI Translated
 msgid "Normal Y"
-msgstr ""
+msgstr "Normal Y"
 
+# AI Translated
 msgid "Normal X"
-msgstr ""
+msgstr "Normal X"
 
+# AI Translated
 msgid "Interior density"
-msgstr ""
+msgstr "Inre densitet"
 
+# AI Translated
 msgid "Density of the adaptive infill at the center of the object."
-msgstr ""
+msgstr "Densitet för den adaptiva ifyllnaden i objektets mitt."
 
+# AI Translated
 msgid "Adaptive gradient"
-msgstr ""
+msgstr "Adaptiv gradient"
 
+# AI Translated
 msgid ""
 "How the density changes from the surface to the center of the object.\n"
 "Linear: the density changes at a constant rate.\n"
 "Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
 "Exponential: the density changes quickly just below the surface and levels off towards the center."
 msgstr ""
+"Hur densiteten ändras från ytan till objektets mitt.\n"
+"Linjär: densiteten ändras i jämn takt.\n"
+"Kvadratisk: densiteten håller sig nära sparsam ifyllnads densitet nära ytan och ändras snabbare mot mitten.\n"
+"Exponentiell: densiteten ändras snabbt strax under ytan och planar ut mot mitten."
 
 # AI Translated
 msgid "Linear"
 msgstr "Linjär"
 
+# AI Translated
 msgid "Quadratic"
-msgstr ""
+msgstr "Kvadratisk"
 
+# AI Translated
 msgid "Exponential"
-msgstr ""
+msgstr "Exponentiell"
 
 # AI Translated
 msgid "Z-buckling bias optimization (experimental)"
@@ -20219,98 +20399,129 @@ msgstr "Multimaterial med en extruder"
 msgid "Use single nozzle to print multi filament."
 msgstr "Använd en enda nozzel för att skriva ut med flera filament."
 
+# AI Translated
 msgid "IDEX/IQEX Printer"
-msgstr ""
+msgstr "IDEX/IQEX-skrivare"
 
+# AI Translated
 msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
-msgstr ""
+msgstr "Aktivera parallellutskrift för skrivare med flera oberoende vagnar (IDEX, IQEX och liknande)."
 
+# AI Translated
 msgid "Firmware-managed zones"
-msgstr ""
+msgstr "Zoner hanterade av fast programvara"
 
+# AI Translated
 msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-msgstr ""
+msgstr "När detta är aktiverat genererar beredningsprogrammet G-code med den primära zonens innehåll centrerat kring byggplattans origo (0,0). Skrivarens fasta programvara ansvarar för att placera kopior/speglingar på varje fysisk zonposition. Aktivera endast på skrivare vars fasta programvara tillämpar egna zonförskjutningar i läget Kopia/Spegel (t.ex. dupliceringsläget för IDEX i RepRapFirmware). Har ingen effekt i läget Primär."
 
+# AI Translated
 msgid "Gantry Count"
-msgstr ""
+msgstr "Antal portaler"
 
+# AI Translated
 msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
-msgstr ""
+msgstr "Antal oberoende portaler i Y-axeln. 1 för IDEX/IQEX med en skena. 2 för system med dubbla portaler (delar byggplattan i rader)."
 
+# AI Translated
 msgid "Tools per Gantry"
-msgstr ""
+msgstr "Verktyg per portal"
 
+# AI Translated
 msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
-msgstr ""
+msgstr "Antal oberoende verktygshuvuden per portal längs X. 2 för IDEX-typ."
 
+# AI Translated
 msgid "Tool 0 Position"
-msgstr ""
+msgstr "Position för verktyg 0"
 
+# AI Translated
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
-msgstr ""
+msgstr "Fysisk position på byggplattan där verktyget T0 (index 0) finns. Bestämmer hur verktygsindex mappas till zoner på byggplattan. För uppställningar med en portal (IDEX) spelar bara vänster/höger roll; för uppställningar med dubbla portaler (IQEX) kan alla fyra hörnen väljas (främre = lägre Y / nära operatören, bakre = högre Y / maskinens baksida)."
 
+# AI Translated
 msgid "Nozzle Clearance X"
-msgstr ""
+msgstr "Nozzelfrigång X"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
-msgstr ""
+msgstr "Avstånd (mm) från nozzeln till vagnens kant på kollisionssidan i X. Används för att beräkna bredden på den spärrade kollisionsremsan vid varje X-gräns."
 
+# AI Translated
 msgid "Nozzle Clearance Y"
-msgstr ""
+msgstr "Nozzelfrigång Y"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
-msgstr ""
+msgstr "Avstånd (mm) från nozzeln till vagnens kant på kollisionssidan i Y. Används för att beräkna bredden på den spärrade kollisionsremsan vid varje Y-gräns."
 
+# AI Translated
 msgid "Safety Margin"
-msgstr ""
+msgstr "Säkerhetsmarginal"
 
+# AI Translated
 msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
-msgstr ""
+msgstr "Icke-blockerande, rådgivande frigångsremsa (mm) som ritas inuti den primära zonen vid varje vagngräns. Delar som placeras inom remsan bereds ändå; den är en visuell påminnelse om att lämna extra frigång nära zonens kant."
 
+# AI Translated
 msgid "Visualization Theme"
-msgstr ""
+msgstr "Visualiseringstema"
 
+# AI Translated
 msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
-msgstr ""
+msgstr "Färgtema för visualisering av IDEX/IQEX-zonerna på byggplattan. Välj vid behov ett tema anpassat för färgblindhet."
 
+# AI Translated
 msgid "Deuteranopia / Protanopia (red-green)"
-msgstr ""
+msgstr "Deuteranopi / Protanopi (röd-grön)"
 
+# AI Translated
 msgid "Tritanopia (blue-yellow)"
-msgstr ""
+msgstr "Tritanopi (blå-gul)"
 
+# AI Translated
 msgid "High Contrast"
-msgstr ""
+msgstr "Hög kontrast"
 
+# AI Translated
 msgid "IDEX/IQEX Print Mode"
-msgstr ""
+msgstr "IDEX/IQEX-utskriftsläge"
 
+# AI Translated
 msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
-msgstr ""
+msgstr "Namnet på det aktiva parallella IDEX/IQEX-utskriftsläget, eller \"primary\" för utskrift med en vagn. Kräver att IDEX/IQEX-skrivare är aktiverat i skrivarförinställningen (Skrivare → Multimaterial → IDEX/IQEX-konfiguration)."
 
+# AI Translated
 msgid "IDEX/IQEX head filament map"
-msgstr ""
+msgstr "IDEX/IQEX-filamentkarta för huvuden"
 
+# AI Translated
 msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr ""
+msgstr "Åsidosättning per platta som mappar fysiska huvuden till filamentplatser (1-baserade). Tomt innebär att standardvärdena för pem-inversion används."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Names"
-msgstr ""
+msgstr "Namn på IDEX/IQEX-lägen"
 
+# AI Translated
 msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
-msgstr ""
+msgstr "Visningsnamn för varje användardefinierat parallellt IDEX/IQEX-utskriftsläge."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Active Tools"
-msgstr ""
+msgstr "Aktiva verktyg för IDEX/IQEX-lägen"
 
+# AI Translated
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
-msgstr ""
+msgstr "Verktygens rolltilldelning för varje läge. Format: \"idx:P,idx:C,idx:M\" där P=Primär (Primary), C=Kopia (Copy), M=Spegel (Mirror) (t.ex. \"0:P,1:C,2:M,3:M\"). Hanteras av redigeraren för IDEX/IQEX-lägen i skrivarförinställningen."
 
+# AI Translated
 msgid "IDEX/IQEX Mode G-codes"
-msgstr ""
+msgstr "G-code för IDEX/IQEX-lägen"
 
+# AI Translated
 msgid "G-code or macro call to inject at print start for each mode."
-msgstr ""
+msgstr "G-code eller makroanrop som infogas vid utskriftsstart för varje läge."
 
 # AI Translated
 msgid "Manual Filament Change"
@@ -20719,35 +20930,45 @@ msgstr "Tröskel för överlappning"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "Om tröskelvinkeln är noll genereras stöd för överhäng vars överlappning är under tröskeln. Ju mindre detta värde är, desto brantare är det överhäng som kan skrivas ut utan stöd."
 
+# AI Translated
 msgid "Build plate tilt X"
-msgstr ""
+msgstr "Byggplattans lutning X"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
-msgstr ""
+msgstr "Byggplattans lutningsvinkel längs X-axeln. Ett positivt värde lutar byggplattan så att +X-sidan är högre, vilket förskjuter tyngdkraften mot -X och ökar överhängen på +X-sidan. Ett negativt värde gör -X-sidan högre. Sätt till 0 för ingen lutning i X-axeln. I bandskrivarläget synkroniseras detta automatiskt med bandets vinkel."
 
+# AI Translated
 msgid "Build plate tilt Y"
-msgstr ""
+msgstr "Byggplattans lutning Y"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
-msgstr ""
+msgstr "Byggplattans lutningsvinkel längs Y-axeln. Ett positivt värde lutar byggplattan så att +Y-sidan är högre, vilket förskjuter tyngdkraften mot -Y och ökar överhängen på +Y-sidan. Ett negativt värde gör -Y-sidan högre. Sätt till 0 för ingen lutning i Y-axeln."
 
+# AI Translated
 msgid "Enable belt printing"
-msgstr ""
+msgstr "Aktivera bandutskrift"
 
+# AI Translated
 msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
-msgstr ""
+msgstr "Aktivera bandskrivarläge. Bandskrivare använder ett transportband som byggyta, lutat i en vinkel (vanligtvis 45 grader). Beredningsprogrammet roterar beredningsplanet och transformerar G-code-koordinaterna för den lutande byggytan."
 
+# AI Translated
 msgid "Infinite Y axis"
-msgstr ""
+msgstr "Oändlig Y-axel"
 
+# AI Translated
 msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
-msgstr ""
+msgstr "Aktivera oändlig Y-axel för bandskrivare. När detta är aktiverat tas byggvolymens gräns i Y-axeln i praktiken bort, så att objekt av valfri längd kan skrivas ut i bandets riktning."
 
+# AI Translated
 msgid "Belt tilt axis"
-msgstr ""
+msgstr "Bandets lutningsaxel"
 
+# AI Translated
 msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-msgstr ""
+msgstr "Axeln som meshen roteras kring före beredning. Detta är bandskrivarens lutning: en isometrisk (förvrängningsfri) rotation som även styr renderingen av byggplattan och tyngdkraftslutningen för support, och som G-code-baktransformationen inverterar före skjuvningen/skalningen och ommappningen till maskinkoordinatsystemet. X är den typiska portallutningen (bandet rör sig längs Y)."
 
 msgid "X"
 msgstr "X"
@@ -20759,89 +20980,116 @@ msgstr "Y"
 msgid "Z"
 msgstr "Z"
 
+# AI Translated
 msgid "Belt tilt angle"
-msgstr ""
+msgstr "Bandets lutningsvinkel"
 
+# AI Translated
 msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
-msgstr ""
+msgstr "Bandytans lutningsvinkel i grader. De flesta bandskrivare använder 45°. Positiva värden roterar moturs sett längs den positiva lutningsaxeln; storleken är också den fysiska bandlutning som används för renderingen av byggplattan och tyngdkraften för support."
 
 msgid "°"
 msgstr "°"
 
+# AI Translated
 msgid "Decouple machine-frame tilt"
-msgstr ""
+msgstr "Frikoppla lutningen för maskinkoordinatsystemet"
 
+# AI Translated
 msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-msgstr ""
+msgstr "Expertinställning: ange lutningsvinkeln för maskinkoordinatsystemet (G-code-skjuvning/skalning) oberoende av rotationsvinkeln före beredning. När detta är inaktiverat härleds transformationen till maskinkoordinatsystemet från bandets lutningsvinkel, så att en enda vinkel styr båda stegen. Aktivera endast för att kompensera för en maskin vars fysiska portallutning skiljer sig från beredningsrotationen."
 
+# AI Translated
 msgid "Machine-frame tilt angle"
-msgstr ""
+msgstr "Lutningsvinkel för maskinkoordinatsystemet"
 
+# AI Translated
 msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
-msgstr ""
+msgstr "Lutningsvinkel (grader) som används för att härleda skjuvningen (cot) och skalningen (1/|sin|) för maskinkoordinatsystemet som tillämpas på G-code. Används endast när 'Frikoppla lutningen för maskinkoordinatsystemet' är aktiverat; annars används bandets lutningsvinkel."
 
+# AI Translated
 msgid "+X"
-msgstr ""
+msgstr "+X"
 
+# AI Translated
 msgid "+Y"
-msgstr ""
+msgstr "+Y"
 
+# AI Translated
 msgid "+Z"
-msgstr ""
+msgstr "+Z"
 
+# AI Translated
 msgid "-X"
-msgstr ""
+msgstr "-X"
 
+# AI Translated
 msgid "-Y"
-msgstr ""
+msgstr "-Y"
 
+# AI Translated
 msgid "-Z"
-msgstr ""
+msgstr "-Z"
 
+# AI Translated
 msgid "Rev X"
-msgstr ""
+msgstr "Omvänd X"
 
+# AI Translated
 msgid "Rev Y"
-msgstr ""
+msgstr "Omvänd Y"
 
+# AI Translated
 msgid "Rev Z"
-msgstr ""
+msgstr "Omvänd Z"
 
+# AI Translated
 msgid "G-code remap X"
-msgstr ""
+msgstr "G-code-ommappning X"
 
+# AI Translated
 msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Vilken beredningsaxel som mappas till maskinens X i G-code-utdata. Tillämpas EFTER beredningen, under genereringen av G-code."
 
+# AI Translated
 msgid "G-code remap Y"
-msgstr ""
+msgstr "G-code-ommappning Y"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Vilken beredningsaxel som mappas till maskinens Y i G-code-utdata. Tillämpas EFTER beredningen, under genereringen av G-code."
 
+# AI Translated
 msgid "G-code remap Z"
-msgstr ""
+msgstr "G-code-ommappning Z"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Vilken beredningsaxel som mappas till maskinens Z i G-code-utdata. Tillämpas EFTER beredningen, under genereringen av G-code."
 
+# AI Translated
 msgid "Support Floor Z offset"
-msgstr ""
+msgstr "Z-förskjutning för supportgolv"
 
+# AI Translated
 msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
-msgstr ""
+msgstr "Flyttar det beräknade bandgolvet uppåt eller nedåt (mm). Negativa värden sänker golvet, så att mer support blir kvar. Använd detta för att felsöka problem med bandgolvsformeln."
 
+# AI Translated
 msgid "Enable belt purge tower"
-msgstr ""
+msgstr "Aktivera bandrensningstorn"
 
+# AI Translated
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
-msgstr ""
+msgstr "Bandskrivarens ersättning för prime tornet. När detta är aktiverat på en bandskrivare genereras automatiskt ett rensningsprisma bredvid de utskrivna delarna och rensningen vid filamentbyten leds dit (det klassiska prime tornet kan inte användas på bandskrivare eftersom dess G-code går förbi bandtransformationen). Endast tillgängligt på bandskrivare."
 
+# AI Translated
 msgid "Belt purge tower width"
-msgstr ""
+msgstr "Bandrensningstornets bredd"
 
+# AI Translated
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr ""
+msgstr "Bredd (maskinens X, tvärs över bandet) för rensningsprismat som genereras automatiskt på bandskrivare när bandrensningstornet är aktiverat och flera filament används. Rensningen vid filamentbyten leds in i prismats extruderingar i stället för till ett klassiskt prime torn. Dess höjd beräknas automatiskt utifrån den största rensningsvolymen per lager: ett bredare prisma blir lägre."
 
 msgid "Tree support branch angle"
 msgstr "Tree support grenarnas vinkel"
@@ -21046,11 +21294,15 @@ msgstr "Antal solida övre lager ökas när tjockleken kalkyleras och övre skal
 msgid "Separated infills"
 msgstr "Separerade ifyllnader"
 
+# AI Translated
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
 "Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
+"Centrerar den inre ifyllnaden för varje del på sig själv, som om den bereddes separat, i stället för på hela monteringen. Delar som rör vid eller överlappar varandra behandlas som en enhet och delar på ett centrum; separata delar (eller skilda 3D-objekt) får var sitt.\n"
+"Användbart när en montering grupperar flera objekt som vart och ett ska behålla en konsekvent, självcentrerad ifyllnad.\n"
+"Adaptiv Cubic och Kubik Support centrerar alltid varje del på sig själv, och Blixt-ifyllnad genereras för hela objektet och påverkas inte."
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -21313,11 +21565,13 @@ msgstr "Rensning efter filamentbyte kommer att göras inuti objektens support. D
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "Det här objektet används för att rensa nozzeln efter ett filamentbyte för att spara filament och minska utskriftstiden. Färgerna i objekten kommer att blandas som ett resultat. Det kommer inte att få effekt om inte prime tower är aktiverat."
 
+# AI Translated
 msgid "Belt purge tower object"
-msgstr ""
+msgstr "Objekt för bandrensningstorn"
 
+# AI Translated
 msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
-msgstr ""
+msgstr "Markerar det automatiskt genererade rensningsprismat för bandet. Hanteras automatiskt; ställ inte in manuellt."
 
 # AI Translated
 msgid "Maximal bridging distance"
@@ -22374,8 +22628,9 @@ msgstr "Namn på den fysiska skrivare som används vid beredningen."
 msgid "Layer number"
 msgstr "Lagernummer"
 
+# AI Translated
 msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
-msgstr ""
+msgstr "Index för det aktuella lagret. Nollbaserat (dvs. första lagret har nummer 0), utom i G-code för byte av extruderingstyp, där det är ettbaserat."
 
 # AI Translated
 msgid "Layer Z"
@@ -23102,8 +23357,9 @@ msgstr ""
 "Accelerationsvärdena måste vara större än hastighetsvärdena.\n"
 "Kontrollera dina inmatningar."
 
+# AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr ""
+msgstr "Ännu inte aktiverat på bandskrivare — använd metoden PA torn i stället."
 
 msgid "Temperature calibration"
 msgstr "Kalibrering av temperatur"
@@ -23133,8 +23389,9 @@ msgstr "PET-CF"
 msgid "Test model"
 msgstr "Testmodell"
 
+# AI Translated
 msgid "Overhang"
-msgstr ""
+msgstr "Överhäng"
 
 # AI Translated
 msgid "Start temp: "
@@ -24090,8 +24347,9 @@ msgstr ""
 "Skrivaren och alla filament- och processförinställningar som hör till skrivaren.\n"
 "Kan delas med andra."
 
+# AI Translated
 msgid "Include custom bed texture and model"
-msgstr ""
+msgstr "Inkludera anpassad textur och modell för byggplattan"
 
 msgid ""
 "User's filament preset set.\n"
@@ -25445,32 +25703,41 @@ msgstr "Om detta är aktiverat sparas värdena ovan som standard för framtida S
 msgid "PresetBundle"
 msgstr "PresetBundle"
 
+# AI Translated
 msgid "Export Presets"
-msgstr ""
+msgstr "Exportera förinställningar"
 
+# AI Translated
 msgid "Open folder in explorer"
-msgstr ""
+msgstr "Öppna mappen i filhanteraren"
 
+# AI Translated
 msgid "Delete bundle"
-msgstr ""
+msgstr "Ta bort paket"
 
+# AI Translated
 msgid "Unsubscribe bundle"
-msgstr ""
+msgstr "Avprenumerera på paket"
 
+# AI Translated
 msgid "Update available"
-msgstr ""
+msgstr "Uppdatering tillgänglig"
 
+# AI Translated
 msgid "Unauthorized bundle"
-msgstr ""
+msgstr "Obehörigt paket"
 
+# AI Translated
 msgid "Open this bundle in your browser"
-msgstr ""
+msgstr "Öppna det här paketet i webbläsaren"
 
+# AI Translated
 msgid "Subscribed"
-msgstr ""
+msgstr "Prenumererad"
 
+# AI Translated
 msgid "Local"
-msgstr ""
+msgstr "Lokal"
 
 # AI Translated
 msgid "Bundle folder does not exist."
@@ -25516,11 +25783,13 @@ msgstr "Avprenumerera på paket"
 msgid "ExportPresetBundle"
 msgstr "ExportPresetBundle"
 
+# AI Translated
 msgid "Export to OrcaCloud"
-msgstr ""
+msgstr "Exportera till OrcaCloud"
 
+# AI Translated
 msgid "Export to folder"
-msgstr ""
+msgstr "Exportera till mapp"
 
 # AI Translated
 msgid "Save preset bundle"
@@ -30088,8 +30357,9 @@ msgstr "Gizmo montera"
 msgid "Gizmo brim ears"
 msgstr "Gizmo brätte öron"
 
+# AI Translated
 msgid "Gizmo texture displacement painting"
-msgstr ""
+msgstr "Gizmo målning med texturförskjutning"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "Vertikal reglage - Flytta aktivt tryck Upp"
@@ -31343,6 +31613,14 @@ msgid "Bake"
 msgstr "Baka"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "Skriv ett exakt värde i ett reglage"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "Redigeringsikonen i reglagets högra ände"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "Texturförskjutning"
 
@@ -31615,6 +31893,15 @@ msgid "The painted area could not be carried onto the remeshed model, so nothing
 msgstr "Det målade området kunde inte föras över till den ombyggda meshen, så inget ändrades. Växla till Pro-läget och bygg om meshen innan du målar."
 
 # AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "Intervall: %1% till %2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "Skriv ett värde i stället för att dra. Ctrl+klick på reglaget gör samma sak."
+
+# AI Translated
 msgid "Pro"
 msgstr "Pro"
 
@@ -31719,8 +32006,9 @@ msgstr "Vinkeltröskel - fyllningen stannar vid kanter som är skarpare än dett
 msgid "Click a triangle to paint it"
 msgstr "Klicka på en triangel för att måla den"
 
+# AI Translated
 msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
-msgstr ""
+msgstr "Endast för ett texturlager som mappats med Veckla ut (LSCM) - ställ in det aktiva lagrets Mappning på Veckla ut för att använda den här vyn."
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -31734,15 +32022,17 @@ msgstr "Snabb - reliefen skuggas bara på, byggs inte, och bara för lagret du r
 msgid "Checker"
 msgstr "Schackmönster"
 
+# AI Translated
 msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Schackmönster - ett testrutnät i stället för texturen. Där rutorna förblir kvadratiska är texturen oförvrängd; där de sträcks ut blir även den det. Öppnar UV-redigeraren om den är stängd"
 
 # AI Translated
 msgid "Distortion"
 msgstr "Förvrängning"
 
+# AI Translated
 msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Förvrängning - värmekarta från blått till rött över utsträckningen i UV-utvecklingen. Öppnar UV-redigeraren om den är stängd"
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -31858,11 +32148,13 @@ msgstr "Blanda filament"
 msgid "Interleaves two filaments to fake the colors in between, so a handful of filaments can cover a photo or a gradient. An image of flat colors prints the same either way. Off uses one filament per area."
 msgstr "Varvar två filament för att efterlikna färgerna däremellan, så att en handfull filament kan återge ett foto eller en gradient. En bild med enhetliga färger skrivs ut likadant i båda fallen. Av använder ett filament per område."
 
+# AI Translated
 msgid "Mixed colors"
-msgstr ""
+msgstr "Blandade färger"
 
+# AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
-msgstr ""
+msgstr "Det högsta antalet blandade filament som en inbakning får lägga till. De väljs ur texturens färger, och endast de som inbakningen faktiskt använder skapas."
 
 # AI Translated
 #, boost-format
@@ -32563,27 +32855,33 @@ msgstr "Filamentinsticksmoduler"
 msgid "Printer plugins"
 msgstr "Skrivarinsticksmoduler"
 
+# AI Translated
 msgid "This preset does not use any plugin capabilities"
-msgstr ""
+msgstr "Den här förinställningen använder inga förmågor från insticksmoduler"
 
+# AI Translated
 msgid "Capabilities used by this preset"
-msgstr ""
+msgstr "Förmågor som används av den här förinställningen"
 
+# AI Translated
 msgid "Capability configuration (JSON)"
-msgstr ""
+msgstr "Konfiguration av förmåga (JSON)"
 
+# AI Translated
 msgid "Plugin configuration"
-msgstr ""
+msgstr "Konfiguration av insticksmodul"
 
+# AI Translated
 msgid "Discard this preset's override and use the global configuration again"
-msgstr ""
+msgstr "Förkasta den här förinställningens åsidosättning och använd den globala konfigurationen igen"
 
 # AI Translated
 msgid "Restore defaults"
 msgstr "Återställ standardvärden"
 
+# AI Translated
 msgid "Invalid JSON"
-msgstr ""
+msgstr "Ogiltig JSON"
 
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
@@ -32673,214 +32971,282 @@ msgstr "Installerar insticksmodul"
 msgid "Installed \"%s\"."
 msgstr "\"%s\" har installerats."
 
+# AI Translated
 msgid "Search plugins"
-msgstr ""
+msgstr "Sök insticksmoduler"
 
+# AI Translated
 msgid "Clear search"
-msgstr ""
+msgstr "Rensa sökning"
 
+# AI Translated
 msgid "Match case"
-msgstr ""
+msgstr "Matcha skiftläge"
 
+# AI Translated
 msgid "Match whole word"
-msgstr ""
+msgstr "Matcha hela ord"
 
+# AI Translated
 msgid "More plugin install options"
-msgstr ""
+msgstr "Fler installationsalternativ för insticksmoduler"
 
+# AI Translated
 msgid "Install plugin"
-msgstr ""
+msgstr "Installera insticksmodul"
 
+# AI Translated
 msgid "Install local plugin"
-msgstr ""
+msgstr "Installera lokal insticksmodul"
 
+# AI Translated
 msgid "Activate"
-msgstr ""
+msgstr "Aktivera"
 
+# AI Translated
 msgid "Sort by name"
-msgstr ""
+msgstr "Sortera efter namn"
 
+# AI Translated
 msgid "Sort by version"
-msgstr ""
+msgstr "Sortera efter version"
 
+# AI Translated
 msgid "Plugin Version"
-msgstr ""
+msgstr "Insticksmodulsversion"
 
+# AI Translated
 msgid "Sort by source"
-msgstr ""
+msgstr "Sortera efter källa"
 
+# AI Translated
 msgid "Source"
-msgstr ""
+msgstr "Källa"
 
+# AI Translated
 msgid "Sort by status"
-msgstr ""
+msgstr "Sortera efter status"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
+# AI Translated
 msgid "Drag to resize; double-click to reset"
-msgstr ""
+msgstr "Dra för att ändra storlek; dubbelklicka för att återställa"
 
+# AI Translated
 msgid "Resize the plugin list"
-msgstr ""
+msgstr "Ändra storlek på listan över insticksmoduler"
 
+# AI Translated
 msgid "Plugin details"
-msgstr ""
+msgstr "Detaljer om insticksmodul"
 
+# AI Translated
 msgid "Plugin Info"
-msgstr ""
+msgstr "Information om insticksmodul"
 
+# AI Translated
 msgid "Description"
-msgstr ""
+msgstr "Beskrivning"
 
+# AI Translated
 msgid "Config"
-msgstr ""
+msgstr "Konfiguration"
 
+# AI Translated
 msgid "Changelog"
-msgstr ""
+msgstr "Ändringslogg"
 
+# AI Translated
 msgid "Diagnostics"
-msgstr ""
+msgstr "Diagnostik"
 
+# AI Translated
 msgid "Types"
-msgstr ""
+msgstr "Typer"
 
+# AI Translated
 msgid "Installed Version"
-msgstr ""
+msgstr "Installerad version"
 
+# AI Translated
 msgid "Latest Version"
-msgstr ""
+msgstr "Senaste version"
 
+# AI Translated
 msgid "Update to the latest version"
-msgstr ""
+msgstr "Uppdatera till den senaste versionen"
 
+# AI Translated
 msgid "No description available"
-msgstr ""
+msgstr "Ingen beskrivning tillgänglig"
 
+# AI Translated
 msgid "Select a plugin to configure its capabilities"
-msgstr ""
+msgstr "Välj en insticksmodul för att konfigurera dess förmågor"
 
+# AI Translated
 msgid "Configurable capabilities"
-msgstr ""
+msgstr "Konfigurerbara förmågor"
 
+# AI Translated
 msgid "Discard the settings saved for this capability and restore the plugin's defaults"
-msgstr ""
+msgstr "Förkasta de sparade inställningarna för den här förmågan och återställ insticksmodulens standardvärden"
 
+# AI Translated
 msgid "Plugin changelog"
-msgstr ""
+msgstr "Insticksmodulens ändringslogg"
 
+# AI Translated
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
+# AI Translated
 msgid "Changes"
-msgstr ""
+msgstr "Ändringar"
 
+# AI Translated
 msgid "No changelog available"
-msgstr ""
+msgstr "Ingen ändringslogg tillgänglig"
 
+# AI Translated
 msgid "No issues detected"
-msgstr ""
+msgstr "Inga problem upptäcktes"
 
+# AI Translated
 msgid "No plugins found"
-msgstr ""
+msgstr "Inga insticksmoduler hittades"
 
+# AI Translated
 #, c-format, boost-format
 msgid "No plugins match \"%s\""
-msgstr ""
+msgstr "Inga insticksmoduler matchar \"%s\""
 
+# AI Translated
+# Needs human review: Source badge on a plugin row in the Plugins dialog (the user's own plugin, next to Subscribed/Orphaned/Local); check that 'Egen' reads right as a badge.
 msgid "Mine"
-msgstr ""
+msgstr "Egen"
 
+# AI Translated
 msgid "Orphaned"
-msgstr ""
+msgstr "Föräldralös"
 
+# AI Translated
 msgid "Some plugin capabilities are enabled"
-msgstr ""
+msgstr "Vissa förmågor hos insticksmodulen är aktiverade"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Collapse %s capabilities"
-msgstr ""
+msgstr "Fäll ihop förmågorna för %s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Expand %s capabilities"
-msgstr ""
+msgstr "Expandera förmågorna för %s"
 
+# AI Translated
 msgid "Collapse capabilities"
-msgstr ""
+msgstr "Fäll ihop förmågor"
 
+# AI Translated
 msgid "Expand capabilities"
-msgstr ""
+msgstr "Expandera förmågor"
 
+# AI Translated
 msgid "Open this plugin in your browser"
-msgstr ""
+msgstr "Öppna den här insticksmodulen i webbläsaren"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Capabilities: %s"
-msgstr ""
+msgstr "Förmågor: %s"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Capabilities"
-msgstr ""
+msgstr "Förmågor"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Run \"%s\""
-msgstr ""
+msgstr "Kör \"%s\""
 
+# AI Translated
 #, c-format, boost-format
 msgid "Enable %s"
-msgstr ""
+msgstr "Aktivera %s"
 
+# AI Translated
 msgid "Unauthorized for updates"
-msgstr ""
+msgstr "Ej behörig för uppdateringar"
 
+# AI Translated
 msgid "Loading the plugin…"
-msgstr ""
+msgstr "Läser in insticksmodulen…"
 
+# AI Translated
 msgid "This plugin exposes no capabilities"
-msgstr ""
+msgstr "Den här insticksmodulen tillhandahåller inga förmågor"
 
+# AI Translated
 msgid "Activate this plugin to configure its capabilities"
-msgstr ""
+msgstr "Aktivera den här insticksmodulen för att konfigurera dess förmågor"
 
+# AI Translated
 msgid "View on OrcaCloud <a>here</a>"
-msgstr ""
+msgstr "Visa på OrcaCloud <a>här</a>"
 
+# AI Translated
 msgid "Activated"
-msgstr ""
+msgstr "Aktiverad"
 
+# AI Translated
 msgid "Runtime error"
-msgstr ""
+msgstr "Körningsfel"
 
+# AI Translated
 msgid "Inactive"
-msgstr ""
+msgstr "Inaktiv"
 
+# AI Translated
 msgid "This plugin is active and ready to be used."
-msgstr ""
+msgstr "Den här insticksmodulen är aktiv och redo att användas."
 
+# AI Translated
 msgid "This plugin is still loading."
-msgstr ""
+msgstr "Den här insticksmodulen läses fortfarande in."
 
+# AI Translated
 msgid "This plugin is blocked until its error is fixed."
-msgstr ""
+msgstr "Den här insticksmodulen är blockerad tills dess fel har åtgärdats."
 
+# AI Translated
 msgid "This plugin is loaded but a capability reported an error."
-msgstr ""
+msgstr "Den här insticksmodulen är inläst men en förmåga rapporterade ett fel."
 
+# AI Translated
 msgid "This plugin is inactive. Activate it to install or load it."
-msgstr ""
+msgstr "Den här insticksmodulen är inaktiv. Aktivera den för att installera eller läsa in den."
 
+# AI Translated
 msgid "Select a plugin to view its status and details."
-msgstr ""
+msgstr "Välj en insticksmodul för att visa dess status och detaljer."
 
+# AI Translated
 msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
-msgstr ""
+msgstr "Föräldralös: Du prenumererar inte längre på den här insticksmodulen, eller så är den inte längre tillgänglig på OrcaCloud. Den lokala kopian förblir installerad och kan fortfarande användas."
 
+# AI Translated
 msgid "A newer plugin version is available."
-msgstr ""
+msgstr "En nyare version av insticksmodulen finns tillgänglig."
 
+# AI Translated
 msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
-msgstr ""
+msgstr "Molnuppdateringar är inte tillgängliga eftersom den här insticksmodulen inte är behörig för uppdateringar."
 
 # AI Translated
 #, c-format, boost-format
@@ -33098,53 +33464,70 @@ msgstr "Det gick inte att läsa in insticksmodulen igen."
 msgid "Reloaded \"%s\"."
 msgstr "\"%s\" har lästs in igen."
 
+# AI Translated
 msgid "Printer Connection"
-msgstr ""
+msgstr "Skrivaranslutning"
 
+# AI Translated
 msgid "Please set up your printer connection to view the device."
-msgstr ""
+msgstr "Konfigurera skrivaranslutningen för att visa enheten."
 
+# AI Translated
 msgid "No model information"
-msgstr ""
+msgstr "Ingen modellinformation"
 
+# AI Translated
 msgid "Edit Project Info"
-msgstr ""
+msgstr "Redigera projektinformation"
 
+# AI Translated
 msgid "Model Information"
-msgstr ""
+msgstr "Modellinformation"
 
+# AI Translated
 msgid "Accessories"
-msgstr ""
+msgstr "Tillbehör"
 
+# AI Translated
 msgid "Profile Information"
-msgstr ""
+msgstr "Profilinformation"
 
+# AI Translated
 msgid "Model name"
-msgstr ""
+msgstr "Modellnamn"
 
+# AI Translated
 msgid "Created by"
-msgstr ""
+msgstr "Skapad av"
 
+# AI Translated
 msgid "Remixed by"
-msgstr ""
+msgstr "Remixad av"
 
+# AI Translated
 msgid "Shared by"
-msgstr ""
+msgstr "Delad av"
 
+# AI Translated
 msgid "Model description"
-msgstr ""
+msgstr "Modellbeskrivning"
 
+# AI Translated
+# Needs human review: BOM (bill of materials) file section on the project's Model Information page; check whether 'Stycklista' or the untranslated 'BOM' reads better there.
 msgid "BOM"
-msgstr ""
+msgstr "Stycklista"
 
+# AI Translated
 msgid "Profile name"
-msgstr ""
+msgstr "Profilnamn"
 
+# AI Translated
 msgid "Profile Author"
-msgstr ""
+msgstr "Profilförfattare"
 
+# AI Translated
 msgid "Profile description"
-msgstr ""
+msgstr "Profilbeskrivning"
 
 # AI Translated
 msgid "Purge Mode Settings"
@@ -33170,15 +33553,18 @@ msgstr "Minskar spillet från priming och skriver ut snabbare. Kan orsaka lätt 
 msgid "Terminal"
 msgstr "Terminal"
 
+# AI Translated
 msgid "python ... or uv ..."
-msgstr ""
+msgstr "python ... eller uv ..."
 
+# AI Translated
 msgid "Plugin terminal ready."
-msgstr ""
+msgstr "Insticksmodulens terminal är redo."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Process exited with code: %s"
-msgstr ""
+msgstr "Processen avslutades med kod: %s"
 
 # AI Translated
 msgid "A command is already running."
@@ -33446,8 +33832,10 @@ msgstr "  |  fästning PÅ"
 msgid "Change texture - choose another one from the texture library"
 msgstr "Byt textur - välj en annan från texturbiblioteket"
 
+# AI Translated
+# Needs human review: UV editor header tooltip. The English names a 'Tiling' setting that no texture-layer control is labelled; the size control is 'Tile size' (Rutstorlek) and the checkbox is 'Tile' (Sida vid sida). Align the last sentence with whichever control is meant.
 msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
-msgstr ""
+msgstr "Det aktiva lagrets rutstorlek: hur stor del av modellen en upprepning av texturen täcker. Arbetsytan mäts i rutor, så en rutnätscell är en upprepning. Ändra den med Upprepning i lagrets inställningar."
 
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
@@ -33481,14 +33869,17 @@ msgstr "Koppla ihop öar"
 msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfolded next to each other (a cube becomes a joined net rather than six loose squares). They stay separate islands, so you can still move any of them by hand afterwards."
 msgstr "Lägg ut UV-utvecklingen som ett sammanhängande nät: bitar som delar en kant vecklas ut bredvid varandra (en kub blir ett sammanhängande nät i stället för sex lösa kvadrater). De förblir separata öar, så du kan fortfarande flytta vilken som helst av dem för hand efteråt."
 
+# AI Translated
 msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
-msgstr ""
+msgstr "Ö - arbeta med hela öar. Klicka på en för att välja den, dra sedan för att flytta den, högerdra för att rotera den, eller tryck R för att rotera och S för att skala med musen (klicka eller tryck Enter för att bekräfta, Esc för att avbryta)."
 
+# AI Translated
 msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Hörn - dra hörn för att ändra formen på en ö för hand; Skift lägger till i markeringen, Ctrl växlar ett hörn in i eller ut ur den."
 
+# AI Translated
 msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Kant - dra kanter för att ändra formen på en ö för hand; Skift lägger till i markeringen, Ctrl växlar en kant in i eller ut ur den."
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -33526,13 +33917,17 @@ msgstr "Rensa UV-ändringar - förkasta alla manuella förflyttningar av hörn/k
 msgid "Snap - stick islands together when dragging one against another"
 msgstr "Fäst - fäst öar mot varandra när du drar en mot en annan"
 
+# AI Translated
 msgid ""
 "Frame all islands, fitting every one of them in view (Home or F).\n"
 "Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
 msgstr ""
+"Visa alla öar så att var och en ryms i vyn (Home eller F).\n"
+"På andra ställen på arbetsytan: scrolla för att zooma kring markören, och dra med mittknappen - eller dra i tomt utrymme - för att panorera."
 
+# AI Translated
 msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
-msgstr ""
+msgstr "Vad som är markerat, och de exakta värdena för förflyttningen, rotationen eller skalningen medan du drar."
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -33543,8 +33938,9 @@ msgstr "Inget lager mappat med Veckla ut"
 msgid "%.1f mm tile"
 msgstr "%.1f mm ruta"
 
+# AI Translated
 msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
-msgstr ""
+msgstr "Panelen följer det aktiva texturlagret, och det lagret måste mappas med Veckla ut (LSCM). Lägg till ett lager och ställ in dess Mappning på Veckla ut."
 
 # AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
@@ -33554,43 +33950,54 @@ msgstr "Inaktuell - målningen, sömmarna eller sömvinkeln har ändrats sedan d
 msgid "Flatten the painted area into UV islands. It is computed only when you press this, not on every edit - so paint, change the seam angle or mark seams first, then press Unwrap."
 msgstr "Plana ut det målade området till UV-öar. Det beräknas bara när du trycker här, inte vid varje ändring - så måla, ändra sömvinkeln eller markera sömmar först, och tryck sedan på Veckla ut."
 
+# AI Translated
 msgid "Turn Mark seams on first - Path is a quicker way of marking them."
-msgstr ""
+msgstr "Slå på Markera sömmar först - Bana är ett snabbare sätt att markera dem."
 
+# AI Translated
 msgid "No seams are marked on this layer."
-msgstr ""
+msgstr "Inga textursömmar är markerade på det här lagret."
 
+# AI Translated
 msgid "No islands have been reshaped by hand, so there is nothing to discard."
-msgstr ""
+msgstr "Inga öar har formats om för hand, så det finns inget att förkasta."
 
 # AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "%d öar, %s ytor"
 
+# AI Translated
 msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
-msgstr ""
+msgstr "Hur det målade området blev efter utvecklingen: antalet separata bitar det delades upp i (vid textursömmarna och vid kanter skarpare än sömvinkeln), och hur många trianglar de innehåller totalt."
 
+# AI Translated
 msgid "Press Unwrap first - there are no islands to work on yet."
-msgstr ""
+msgstr "Tryck på Veckla ut först - det finns inga öar att arbeta med ännu."
 
+# AI Translated
 msgid "Click an island on the canvas first, in Island mode."
-msgstr ""
+msgstr "Klicka först på en ö på arbetsytan, i läget Ö."
 
+# AI Translated
 msgid "Not signed in"
-msgstr ""
+msgstr "Inte inloggad"
 
+# AI Translated
 msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
-msgstr ""
+msgstr "Insticksmodulen Bambu Network hittades inte. Klicka <a>här</a> för att installera den."
 
+# AI Translated
 msgid "Create new project"
-msgstr ""
+msgstr "Skapa nytt projekt"
 
+# AI Translated
 msgid "Recently opened"
-msgstr ""
+msgstr "Senast öppnade"
 
+# AI Translated
 msgid "Open Containing Folder"
-msgstr ""
+msgstr "Öppna mappen som innehåller filen"
 
 # AI Translated
 msgid "Forward"
@@ -33741,15 +34148,19 @@ msgstr ""
 "Insticksmodulen \"%s\" begär att få köra följande kommando(n):\n"
 "%s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plugin \"%s\" is requesting permission to create a thread."
-msgstr ""
+msgstr "Insticksmodulen \"%s\" begär behörighet att skapa en tråd."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plugin \"%s\" is requesting to replace the running application with:\n"
 "%s"
 msgstr ""
+"Insticksmodulen \"%s\" begär att ersätta det program som körs med:\n"
+"%s"
 
 # AI Translated
 #, c-format, boost-format
@@ -33760,29 +34171,37 @@ msgstr "Insticksmodulen \"%s\" begär behörighet för Python-granskningshändel
 msgid "Plugin permission request"
 msgstr "Behörighetsbegäran från insticksmodul"
 
+# AI Translated
 msgid "Printer connection"
-msgstr ""
+msgstr "Skrivaranslutning"
 
+# AI Translated
 msgid "Pages"
-msgstr ""
+msgstr "Sidor"
 
+# AI Translated
 msgid "Analysis"
-msgstr ""
+msgstr "Analys"
 
+# AI Translated
 msgid "Importer"
-msgstr ""
+msgstr "Importerare"
 
+# AI Translated
 msgid "Exporter"
-msgstr ""
+msgstr "Exporterare"
 
+# AI Translated
 msgid "Visualization"
-msgstr ""
+msgstr "Visualisering"
 
+# AI Translated
 msgid "Script"
-msgstr ""
+msgstr "Skript"
 
+# AI Translated
 msgid "Slicing Pipeline"
-msgstr ""
+msgstr "Beredningspipeline"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."

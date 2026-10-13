@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "PO-Revision-Date: 2025-03-15 10:55+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2190,12 +2190,16 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
+# AI Translated
 #, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
 "Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
+"No s'ha pogut instal·lar el Microsoft WebView2 Runtime.\n"
+"Algunes funcions, com ara l'auxiliar de configuració, poden aparèixer en blanc fins que estigui instal·lat.\n"
+"Instal·leu-lo manualment des de %1% i reinicieu Orca Slicer."
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
@@ -4375,6 +4379,16 @@ msgstr "Projectes recents"
 msgid "Go to Plate"
 msgstr "Anar a la placa"
 
+msgid "Device"
+msgstr "Dispositiu"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Dispositiu (Web)"
+
+msgid "Multi-device"
+msgstr "Multidispositiu"
+
 msgid "AMS Materials Setting"
 msgstr "Configuració de materials AMS"
 
@@ -4430,6 +4444,14 @@ msgstr "Introduïu un valor vàlid (K a %.1f~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Introduïu un valor vàlid (K a %.1f~%.1f, N a %.1f~%.1f)"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "Filaments preferits"
+
+# AI Translated
+msgid "All filaments"
+msgstr "Tots els filaments"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -4995,10 +5017,14 @@ msgstr "Voleu ajustar-la automàticament al límit (%g mm)?"
 msgid "Adjust"
 msgstr "Ajustar"
 
+# AI Translated
+# Needs human review: Here 'Vora d'Adherència' means the raft, but the glossary uses the same rendering for Brim, which stays available on belt printers; check the message is not read as the brim being disabled.
 msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
+"La Vora d'Adherència i l'escut contra corrents d'aire no estan disponibles a les impressores de cinta.\n"
+"S'han desactivat."
 
 msgid ""
 "Layer height too small\n"
@@ -6031,42 +6057,53 @@ msgstr "Incrementar/reduir àrea edició"
 msgid "Sequence"
 msgstr "Seqüència"
 
+# AI Translated
 msgid "Plate center of mass"
-msgstr ""
+msgstr "Centre de massa de la placa"
 
+# AI Translated
 msgid "Part center of mass"
-msgstr ""
+msgstr "Centre de massa de la peça"
 
+# AI Translated
 msgid "Support center of mass"
-msgstr ""
+msgstr "Centre de massa del suport"
 
+# AI Translated
 msgid "Assembly center of mass"
-msgstr ""
+msgstr "Centre de massa del muntatge"
 
+# AI Translated
 msgid "Object center of mass"
-msgstr ""
+msgstr "Centre de massa de l'objecte"
 
+# AI Translated
 msgid "Finished print"
-msgstr ""
+msgstr "Impressió acabada"
 
+# AI Translated
 #, boost-format
 msgid "Printed up to layer %1%"
-msgstr ""
+msgstr "Imprès fins a la capa %1%"
 
+# AI Translated
 msgid "Weight"
-msgstr ""
+msgstr "Pes"
 
 msgid "Volume"
 msgstr "Volum"
 
+# AI Translated
 msgid "Center in bounding box"
-msgstr ""
+msgstr "Centre dins la caixa delimitadora"
 
+# AI Translated
 msgid "Bounding box size"
-msgstr ""
+msgstr "Mida de la caixa delimitadora"
 
+# AI Translated
 msgid "Moment of inertia"
-msgstr ""
+msgstr "Moment d'inèrcia"
 
 msgid "Object selection"
 msgstr "Selecció d'objecte"
@@ -6284,11 +6321,13 @@ msgstr "Línies de la graella"
 msgid "Labels"
 msgstr "Etiquetes"
 
+# AI Translated
 msgid "Center of mass"
-msgstr ""
+msgstr "Centre de massa"
 
+# AI Translated
 msgid "Show raw G-code (belt only)"
-msgstr ""
+msgstr "Mostrar el G-code en brut (només cinta)"
 
 # AI Translated
 msgid "Move section plane"
@@ -6339,7 +6378,7 @@ msgid "Size:"
 msgstr "Mida:"
 
 # AI Translated
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "S'han trobat conflictes de rutes de G-code a la capa %d, Z = %.2lfmm. Si us plau, separeu els objectes conflictius més lluny ( %s <-> %s )."
 
@@ -6506,18 +6545,8 @@ msgstr "Preparació"
 msgid "Preview"
 msgstr "Previsualització"
 
-msgid "Device"
-msgstr "Dispositiu"
-
-msgid "Multi-device"
-msgstr "Multidispositiu"
-
 msgid "Project"
 msgstr "Projecte"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Dispositiu (Web)"
 
 msgid "Yes"
 msgstr "Sí"
@@ -6812,11 +6841,13 @@ msgstr "Mostra les línies de la graella"
 msgid "Show Gridlines on plate"
 msgstr "Mostra les línies de la graella a la placa"
 
+# AI Translated
 msgid "Show IDEX/IQEX Toolhead"
-msgstr ""
+msgstr "Mostrar el capçal IDEX/IQEX"
 
+# AI Translated
 msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
-msgstr ""
+msgstr "Mostra la representació del capçal IDEX/IQEX al voltant de cada broquet actiu a la previsualització del G-code."
 
 msgid "Reset Window Layout"
 msgstr "Restableix el disseny de la finestra"
@@ -8523,60 +8554,77 @@ msgstr "Veure tots els paràmetres de l'objecte"
 msgid "Material settings"
 msgstr "Configuració del Material"
 
+# AI Translated
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
-msgstr ""
+msgstr "Cada mode indica els capçals que hi participen i el rol que té cadascun. Feu clic al botó d'una eina per canviar-ne el rol cíclicament — passeu el ratolí per sobre d'un color de sota per veure què fa cada rol."
 
+# AI Translated
 msgid "Add Mode"
-msgstr ""
+msgstr "Afegir mode"
 
 # AI Translated
 msgid "Tools"
 msgstr "Eines"
 
+# AI Translated
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
+# AI Translated
 msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
-msgstr ""
+msgstr "Com s'anomena el mode al selector de mode IDEX/IQEX de la placa. Obligatori — un mode sense nom no es pot seleccionar."
 
+# AI Translated
 msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
-msgstr ""
+msgstr "Quins capçals participen en el mode i quin rol té cadascun. Feu clic en una casella per canviar-ne el rol cíclicament."
 
+# AI Translated
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
-msgstr ""
+msgstr "G-code que s'executa a l'inici de la impressió per posar la impressora en aquest mode (per exemple, una crida SET_PRINT_MODE de Klipper). El laminador només genera les trajectòries de l'eina principal (Primary); el firmware controla les altres."
 
+# AI Translated
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
-msgstr ""
+msgstr "Controla totes les trajectòries laminades. Sempre és l'eina 0 — feu servir \"Posició de l'eina 0\" a dalt per triar quina cantonada del llit ocupa. No es pot treure de la graella."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
-msgstr ""
+msgstr "Segueix l'eina principal (Primary) a nivell de firmware i imprimeix les mateixes trajectòries desplaçades a la seva pròpia zona."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
-msgstr ""
+msgstr "Segueix l'eina principal (Primary) a nivell de firmware i imprimeix les mateixes trajectòries reflectides respecte al límit entre les dues zones."
 
+# AI Translated
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
-msgstr ""
+msgstr "Marca una eina del pòrtic de l'eina principal (Primary) com a parella multicolor. Necessari per permetre la impressió multicolor en els modes amb pòrtics aparellats."
 
+# AI Translated
 msgid "Primary"
-msgstr ""
+msgstr "Principal"
 
+# AI Translated
 msgid "Mode name (required)"
-msgstr ""
+msgstr "Nom del mode (obligatori)"
 
+# AI Translated
 msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
-msgstr ""
+msgstr "Nom d'aquest mode paral·lel, tal com apareix al selector de mode IDEX/IQEX de la placa. Es desa al projecte pel nom, de manera que si canvieu el nom d'un mode que ja fan servir les plaques, aquestes tornen al mode Principal (Primary). No pot estar buit — un nom en blanc se substitueix per un de generat."
 
+# AI Translated
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
-msgstr ""
+msgstr "G-code que s'emet una vegada a l'inici d'una impressió que fa servir aquest mode, abans del G-code d'arrencada de la màquina. Aquí és on es posa la impressora en el mode de firmware corresponent — per exemple, una crida SET_PRINT_MODE de Klipper o un M567 de RepRapFirmware —, ja que el laminador només genera les trajectòries de l'eina principal (Primary) i el firmware controla les eines de còpia i de mirall (Copy / Mirror). S'admeten placeholders; feu servir el botó d'edició per explorar-los. Deixeu-ho buit si el mode no necessita cap configuració del firmware."
 
+# AI Translated
 msgid "Edit G-code / browse placeholders"
-msgstr ""
+msgstr "Editar el G-code / explorar els placeholders"
 
+# AI Translated
 msgid "Remove mode"
-msgstr ""
+msgstr "Eliminar el mode"
 
+# AI Translated
 msgid "Discard in-session edits to this mode (snap back to saved value)"
-msgstr ""
+msgstr "Descartar les modificacions d'aquesta sessió en aquest mode (tornar al valor desat)"
 
 msgid "Remove current plate (if not last one)"
 msgstr "Treure la placa actual ( si no és l'última )"
@@ -8602,16 +8650,19 @@ msgstr "Editar el nom de la placa actual"
 msgid "Move plate to the front"
 msgstr "Mou la placa cap al davant"
 
+# AI Translated
 #, boost-format
 msgid " (process preset: %1%)"
-msgstr ""
+msgstr " (perfil de processament: %1%)"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
-msgstr ""
+msgstr "Mode IDEX/IQEX: %1% (clic esquerre per canviar-lo cíclicament, clic dret per al menú)"
 
+# AI Translated
 msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
-msgstr ""
+msgstr "Avís: aquesta placa fa servir un mode IDEX/IQEX paral·lel amb objectes multimaterial. Procediu amb precaució — comproveu que el vostre G-code gestiona correctament aquesta combinació."
 
 msgid "Customize current plate"
 msgstr "Personalitzar la placa actual"
@@ -8761,8 +8812,9 @@ msgstr "Filament mixt"
 msgid "Remove last mixed filament"
 msgstr "Eliminar l'últim filament mixt"
 
+# AI Translated
 msgid "Remove all mixed filaments"
-msgstr ""
+msgstr "Eliminar tots els filaments mixtos"
 
 # AI Translated
 msgid "Add mixed filament"
@@ -8787,9 +8839,10 @@ msgstr "El filament mixt té referències de components trencades"
 msgid "Edit / Delete / Merge"
 msgstr "Editar / Esborrar / Fusionar"
 
+# AI Translated
 #, boost-format
 msgid "Remove all %1% mixed filaments?"
-msgstr ""
+msgstr "Voleu eliminar tots els %1% filaments mixtos?"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -9067,11 +9120,13 @@ msgstr "Voleu desactivar la caiguda automàtica per conservar el posicionament e
 msgid "Object with floating parts was detected"
 msgstr "S'ha detectat un objecte amb peces flotants"
 
+# AI Translated
 msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "No es pot laminar: un objecte se superposa a una àrea reservada per a la impressió en paral·lel IDEX/IQEX (una zona secundària o una franja d'espai lliure del carro dins la zona principal)."
 
+# AI Translated
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "No es pot laminar: la Torre de Purga se superposa a una àrea reservada per a la impressió en paral·lel IDEX/IQEX (una zona secundària o una franja d'espai lliure del carro dins la zona principal)."
 
 msgid "Another export job is running."
 msgstr "S'està executant un altre treball d'exportació."
@@ -9157,37 +9212,49 @@ msgstr "Les dades no són vàlides"
 msgid "Slicing Canceled"
 msgstr "Laminat cancel·lat"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
-msgstr ""
+msgstr "Conflicte de temperatura del llit: T%d (%s) fixa el llit a %d°C — T%d (%s) requereix %d°C. L'eina principal controla el llit; les eines secundàries imprimeixen a la temperatura que aquesta fixi."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
-msgstr ""
+msgstr "Els tipus de filament no coincideixen: T%d fa servir %s i T%d fa servir %s. Aquests materials tenen requisits incompatibles i no estan pensats per imprimir-se junts."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
 "\n"
 msgstr ""
+"La placa %d té actiu el mode paral·lel IDEX/IQEX amb els problemes següents:\n"
+"\n"
 
+# AI Translated
 msgid "Continue slicing?"
-msgstr ""
+msgstr "Voleu continuar amb el laminat?"
 
+# AI Translated
 msgid "IDEX/IQEX Parallel Mode Warning"
-msgstr ""
+msgstr "Avís del mode paral·lel IDEX/IQEX"
 
+# AI Translated
 msgid "Don't show these warnings again"
-msgstr ""
+msgstr "No tornis a mostrar aquests avisos"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plate %d:\n"
-msgstr ""
+msgstr "Placa %d:\n"
 
+# AI Translated
 msgid ""
 "The following IDEX/IQEX parallel mode concerns were detected:\n"
 "\n"
 msgstr ""
+"S'han detectat els problemes següents del mode paral·lel IDEX/IQEX:\n"
+"\n"
 
 msgid "Network plug-in switched successfully."
 msgstr "Connector de xarxa canviat correctament."
@@ -9220,8 +9287,9 @@ msgstr ""
 msgid "Sync now"
 msgstr "Sincronitza ara"
 
+# AI Translated
 msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
-msgstr ""
+msgstr "No es pot desfer ni refer mentre s'executa una operació. Atureu l'operació, o espereu que acabi i torneu-ho a provar."
 
 # AI Translated
 msgid ""
@@ -9292,10 +9360,13 @@ msgstr "S'ha produït un error en la baixada, excepció mida del Fitxer."
 msgid "Project downloaded %d%%"
 msgstr "Projecte descarregat %d%%"
 
+# AI Translated
 msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
+"Les proves Línia PA( Pressure Advance ) i Patró PA( Pressure Advance ) encara no estan habilitades a les impressores de cinta.\n"
+"Feu servir el mètode Torre PA( Pressure Advance )."
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -9323,12 +9394,14 @@ msgstr "Calibratge de flux YOLO d'Orca"
 msgid "Flowrate Test - Pass%d"
 msgstr "Prova de relació de flux - Passada %d"
 
+# AI Translated
 #, boost-format
 msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
-msgstr ""
+msgstr "No hi ha cap torre de temperatura per a cinta disponible per al rang de %1% a %2% °C. Feu servir un rang que cobreixin els models de torre, per exemple de 230 a 190."
 
+# AI Translated
 msgid "Temperature tower"
-msgstr ""
+msgstr "Torre de temperatura"
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -11827,8 +11900,9 @@ msgstr "No s'admet la sincronització entre transmissions d'extrusor diferents n
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Sincronitza la modificació de paràmetres amb els paràmetres corresponents d'un altre extrusor."
 
+# AI Translated
 msgid "Parameters with this icon can be configurable per nozzle."
-msgstr ""
+msgstr "Els paràmetres amb aquesta icona es poden configurar per broquet."
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Feu clic per restablir tots els paràmetres a l'última configuració desada."
@@ -12249,11 +12323,13 @@ msgstr "Espai imprimible"
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "Seleccioneu la implementació de l'agent de xarxa per a la comunicació amb la impressora. Els agents disponibles es registren a l'inici."
 
+# AI Translated
 msgid "Belt printer"
-msgstr ""
+msgstr "Impressora de cinta"
 
+# AI Translated
 msgid "Machine frame transforms"
-msgstr ""
+msgstr "Transformacions del sistema de coordenades de la màquina"
 
 #. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
@@ -12373,23 +12449,28 @@ msgstr "Diàmetre del broquet( nozzle )"
 msgid "Wipe tower"
 msgstr "Torre de Purga"
 
+# AI Translated
 msgid "Belt purge tower"
-msgstr ""
+msgstr "Torre de purga de la cinta"
 
 msgid "Single extruder multi-material parameters"
 msgstr "Paràmetres d'extrusor únic multimaterial"
 
+# AI Translated
 msgid "IDEX/IQEX Configuration"
-msgstr ""
+msgstr "Configuració IDEX/IQEX"
 
+# AI Translated
 msgid "Pre-slice warnings"
-msgstr ""
+msgstr "Avisos previs al laminat"
 
+# AI Translated
 msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
-msgstr ""
+msgstr "Mostra un quadre de diàleg d'avís abans de laminar si es detecten problemes del mode paral·lel IDEX/IQEX (conflictes de temperatura del llit, tipus de filament no coincidents, conflictes multimaterial). Es pot desactivar des del mateix quadre de diàleg. Torneu-lo a activar aquí si l'heu desactivat per error."
 
+# AI Translated
 msgid "Modes"
-msgstr ""
+msgstr "Modes"
 
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
 msgstr "Aquesta és una impressora de múltiples materials amb un sol extrusor, i els diàmetres de tots els extrusors es configuraran amb el nou valor. Vols continuar?"
@@ -12400,17 +12481,21 @@ msgstr "Límits d'alçada de capa"
 msgid "Z-Hop"
 msgstr "Z-Hop"
 
+# AI Translated
 msgid "Front-left"
-msgstr ""
+msgstr "Frontal esquerra"
 
+# AI Translated
 msgid "Front-right"
-msgstr ""
+msgstr "Frontal dreta"
 
+# AI Translated
 msgid "Rear-left"
-msgstr ""
+msgstr "Posterior esquerra"
 
+# AI Translated
 msgid "Rear-right"
-msgstr ""
+msgstr "Posterior dreta"
 
 # AI Translated
 msgid ""
@@ -12525,9 +12610,10 @@ msgstr "Continua"
 msgid "Don't warn again for this preset"
 msgstr "No tornar a avisar per a aquest perfil"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 # AI Translated
 msgid "No modifications need to be copied."
@@ -13009,8 +13095,9 @@ msgstr "L'inici de sessió ha fallat. Torneu-ho a provar."
 msgid "parse json failed"
 msgstr "l'anàlisi del json ha fallat"
 
+# AI Translated
 msgid "Loading…"
-msgstr ""
+msgstr "Carregant…"
 
 msgid "Welcome to Orca Slicer"
 msgstr "Benvingut a Orca Slicer"
@@ -13030,8 +13117,9 @@ msgstr "Acabar"
 msgid "Printer Selection"
 msgstr "Selecció d'Impressora"
 
+# AI Translated
 msgid "Vendors"
-msgstr ""
+msgstr "Fabricants"
 
 # AI Translated
 msgid "Custom Printer"
@@ -13040,24 +13128,29 @@ msgstr "Impressora personalitzada"
 msgid "Create"
 msgstr "Crear"
 
+# AI Translated
 msgid "Check for new printers"
-msgstr ""
+msgstr "Cercar impressores noves"
 
 msgid "At least one printer must be selected."
 msgstr "S'ha de seleccionar almenys una impressora."
 
+# AI Translated
 msgid "New printers found"
-msgstr ""
+msgstr "S'han trobat impressores noves"
 
+# AI Translated
 #, c-format, boost-format
 msgid "New printer vendors installed: %s"
-msgstr ""
+msgstr "Fabricants d'impressores nous instal·lats: %s"
 
+# AI Translated
 msgid "New printer vendors were found, but installation was cancelled."
-msgstr ""
+msgstr "S'han trobat fabricants d'impressores nous, però s'ha cancel·lat la instal·lació."
 
+# AI Translated
 msgid "No new printers found."
-msgstr ""
+msgstr "No s'han trobat impressores noves."
 
 msgid "Filament Selection"
 msgstr "Selecció de Filament"
@@ -13077,20 +13170,25 @@ msgstr "Tipus de filament"
 msgid "Vendor"
 msgstr "Fabricant"
 
+# AI Translated
 msgid "No items"
-msgstr ""
+msgstr "Cap element"
 
+# AI Translated
 msgid "Filter items"
-msgstr ""
+msgstr "Filtrar elements"
 
+# AI Translated
 msgid "Checked"
-msgstr ""
+msgstr "Marcats"
 
+# AI Translated
 msgid "Unchecked"
-msgstr ""
+msgstr "No marcats"
 
+# AI Translated
 msgid "Select filtered"
-msgstr ""
+msgstr "Seleccionar els filtrats"
 
 msgid "Clear all"
 msgstr "Netejar tot"
@@ -13107,8 +13205,9 @@ msgstr "Això desactiva totes les funcions al núvol, inclosa la sincronització
 msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
 msgstr "Nota: quan el Mode Sigil·lós està activat, no es farà cap còpia de seguretat dels vostres perfils d'usuari a Orca Cloud."
 
+# AI Translated
 msgid "Enable Stealth Mode."
-msgstr ""
+msgstr "Activar el Mode Sigil·lós."
 
 msgid "Proprietary Plugins"
 msgstr "Connectors propietaris"
@@ -13591,13 +13690,15 @@ msgstr "G-code de canvi de rol d'extrusió del filament"
 msgid "No object can be printed. It may be too small."
 msgstr "No es pot imprimir cap objecte. Potser que sigui massa petit"
 
+# AI Translated
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
-msgstr ""
+msgstr "El mode IDEX/IQEX \"%1%\" no té cap eina assignada a la impressora seleccionada. En lloc d'això, s'imprimeix en mode Principal (Primary). Assigneu les eines del mode a \"Configuració de la Impressora\", o trieu un altre mode amb el botó IDEX/IQEX de la placa."
 
+# AI Translated
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
-msgstr ""
+msgstr "Aquesta placa està configurada amb el mode IDEX/IQEX \"%1%\", que la impressora seleccionada no defineix. En lloc d'això, s'imprimeix en mode Principal (Primary). Trieu un mode amb el botó IDEX/IQEX de la placa, o restaureu el mode a \"Configuració de la Impressora\"."
 
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "La teva impressió és molt a prop de les regions de purga. Assegureu-vos que no hi ha col·lisions."
@@ -13775,25 +13876,31 @@ msgstr "ha fallat la validació"
 msgid "write callback failed"
 msgstr "la trucada de recuperació de l'escriptura ha fallat"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
-msgstr ""
+msgstr "Les impressions multicolor en els modes paral·lels IDEX/IQEX requereixen que cada filament tingui el seu propi extrusor físic dedicat. Dos o més dels filaments actius es dirigeixen al mateix capçal físic mitjançant el mapa d'extrusors físics de la impressora (un col·lector MMU/AFC), que el pòrtic esclau no pot seguir."
 
+# AI Translated
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
-msgstr ""
+msgstr "El mode IDEX/IQEX actiu no defineix cap eina principal, de manera que no es pot planificar la impressió multicolor. Obriu l'editor de modes IDEX/IQEX a la configuració de la impressora i assigneu el rol Principal (Primary) a una eina."
 
+# AI Translated
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
-msgstr ""
+msgstr "El multicolor en aquest mode no és un escenari d'impressió en paral·lel — totes les eines actives són en un sol pòrtic, de manera que no hi ha cap segon pòrtic que en faci la còpia o el mirall. Canvieu la placa al mode Principal (Primary) per imprimir en multicolor en un sol pòrtic, o definiu un mode IDEX/IQEX que inclogui eines d'un segon pòrtic."
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
-msgstr ""
+msgstr "Les impressions multicolor en els modes paral·lels IDEX/IQEX requereixen una eina Span al pòrtic de l'eina principal — sense ella, el mode no declara cap parella multicolor dins del pòrtic. Reduïu la impressió a un sol filament, canvieu al mode Principal (Primary), o obriu l'editor de modes IDEX/IQEX a la configuració de la impressora i marqueu una eina del pòrtic de l'eina principal com a Span."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "En aquest mode Span només s'imprimeix en color amb %1%, però el filament %2% no està assignat a cap eina. Feu servir filaments assignats a %1%, o canvieu aquesta placa al mode Principal (Primary)."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "En aquest mode Span només s'imprimeix en color amb %1%, però el filament %2% està assignat a T%3%. Feu servir filaments assignats a %1%, o canvieu aquesta placa al mode Principal (Primary)."
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -13848,42 +13955,56 @@ msgstr "Si tot i així voleu imprimir, podeu activar l'opció a Preferències / 
 msgid "No extrusions under current settings."
 msgstr "No hi ha extrusions a la configuració actual."
 
+# AI Translated
 msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
-msgstr ""
+msgstr "Els filaments mixtos no s'admeten en els modes paral·lels IDEX/IQEX. Canvieu aquesta placa al mode Principal (Primary)."
 
+# AI Translated
+# Needs human review: Substituted for %3% in 'els filaments d'aquesta placa són a %3%' (Print.cpp, IDEX/IQEX mode check); check the sentence still reads right with this value.
 msgid "no configured tool"
-msgstr ""
+msgstr "cap eina configurada"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "El mode IDEX/IQEX \"%1%\" imprimeix amb T%2%, però els filaments d'aquesta placa són a %3%. Assigneu un filament carregat a T%2%, o canvieu aquesta placa al mode Principal (Primary)."
 
+# AI Translated
+# Needs human review: Means the raft, but the glossary renders Raft and Brim the same ('Vora d'Adherència'), and brim is supported on belt printers; check this is not read as the brim.
 msgid "Raft is not compatible with belt printer mode."
-msgstr ""
+msgstr "La Vora d'Adherència no és compatible amb el mode d'impressora de cinta."
 
+# AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
-msgstr ""
+msgstr "L'escut contra corrents d'aire no és compatible amb el mode d'impressora de cinta."
 
+# AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr ""
+msgstr "La Vora d'Adherència no és compatible amb el mode Gerro en Espiral en una impressora de cinta. Desactiveu-ne una de les dues opcions."
 
+# AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr ""
+msgstr "La cinta és massa inclinada per a una Vora d'Adherència, així que no se'n generarà cap."
 
+# AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr ""
+msgstr "Només es genera una Vora d'Adherència quan la cinta està inclinada. Establiu un angle d'inclinació de la cinta, o elimineu el paràmetre de la Vora d'Adherència."
 
+# AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr ""
+msgstr "Les impressores de cinta només admeten la Vora d'Adherència exterior i interior. Les opcions Automàtic, Orella de ratolí i Pintat s'imprimeixen com a \"Només la Vora d'Adherència exterior\", amb l'\"Ample de la Vora d'Adherència\"."
 
+# AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr ""
+msgstr "\"Espai entre la Vora d'Adherència i l'objecte\" separa la Vora d'Adherència frontal de la vora d'atac de l'objecte, que és la vora que ha d'ancorar. Poseu l'espai a 0 quan feu servir la longitud de la Vora d'Adherència frontal."
 
+# AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr ""
+msgstr "\"Longitud de la Vora d'Adherència frontal\" s'estén per davant de cada objecte al llarg de la cinta, i \"Ordenar\" no reserva aquest espai. Deixeu espai entre els objectes."
 
+# AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr ""
+msgstr "La Vora d'Adherència \"Només a la vora d'atac\" s'aplica a les impressores de cinta. En aquesta impressora s'imprimeix com una Vora d'Adherència exterior normal."
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -13895,14 +14016,17 @@ msgstr "El mode suau de timelapse no està permès quan la seqüència \"Per obj
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "La detecció d'acumulació no és compatible quan la seqüència \"per objecte\" està activada."
 
+# AI Translated
 msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
-msgstr ""
+msgstr "La torre de purga de la cinta no es genera amb la seqüència d'impressió \"Objecte\"; els canvis de filament no es purgaran."
 
+# AI Translated
 msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
-msgstr ""
+msgstr "La torre de purga de la cinta està activada, però el projecte no té cap objecte de torre de purga; els canvis de filament no es purgaran. Obriu el projecte a l'aplicació per generar la torre."
 
+# AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr ""
+msgstr "El projecte conté diverses torres de purga de la cinta gestionades. Torneu a carregar la placa, o desactiveu i torneu a activar la torre de purga de la cinta per regenerar-la."
 
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "Activar tant l'alçada Z precisa com la torre de purga pot causar errors de tall."
@@ -14909,9 +15033,11 @@ msgstr "Velocitat dels ponts interns. Si el valor s'expressa com un percentatge,
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "Distància del model a la línia de la Vora d'Adherència més exterior"
 
+# AI Translated
 msgid "Leading brim length"
-msgstr ""
+msgstr "Longitud de la Vora d'Adherència frontal"
 
+# AI Translated
 msgid ""
 "Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
 "\n"
@@ -14921,10 +15047,19 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Només per a impressores de cinta. Estén la Vora d'Adherència PER DAVANT de l'objecte al llarg de la cinta, a cada vora orientada cap avall de la seva àrea de contacte - tant el primer contacte de l'objecte amb la cinta com qualsevol illa que hi arribi més tard. Aquest davantal es diposita sobre la cinta abans que l'objecte hi arribi, de manera que la vora d'atac ja té on agafar-se.\n"
+"\n"
+"Es mesura sobre la superfície de la cinta i s'afegeix a l'\"Ample de la Vora d'Adherència\": la Vora d'Adherència arriba a \"Espai entre la Vora d'Adherència i l'objecte\" + \"Longitud de la Vora d'Adherència frontal\" + \"Ample de la Vora d'Adherència\" per davant de l'objecte. Poseu \"Espai entre la Vora d'Adherència i l'objecte\" a 0; si no, el davantal no tocarà l'objecte que ha d'ancorar.\n"
+"\n"
+"En una cinta inclinada, cada capa diposita una franja de la Vora d'Adherència, de manera que el gruix de la làmina de Vora d'Adherència resultant depèn del flux i no de l'alçada de capa. Feu servir \"Relació de flux de la vora d'adherència\" per ajustar-lo.\n"
+"\n"
+"Poseu 0 per desactivar-ho."
 
+# AI Translated
 msgid "Extra brim width"
-msgstr ""
+msgstr "Ample addicional de la Vora d'Adherència"
 
+# AI Translated
 msgid ""
 "Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
 "\n"
@@ -14932,6 +15067,11 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Només per a impressores de cinta. Eixampla la Vora d'Adherència LATERALMENT, a través de la cinta, sense allargar-la més per davant ni per darrere de l'objecte. Feu-ho servir quan una peça necessita més adherència al llarg de la seva longitud que la que dona només l'\"Ample de la Vora d'Adherència\".\n"
+"\n"
+"Es mesura sobre la superfície de la cinta i s'afegeix a l'\"Ample de la Vora d'Adherència\": la Vora d'Adherència arriba a \"Espai entre la Vora d'Adherència i l'objecte\" + \"Ample de la Vora d'Adherència\" + \"Ample addicional de la Vora d'Adherència\" a cada costat de l'objecte. Per allargar la Vora d'Adherència per davant de l'objecte, feu servir \"Longitud de la Vora d'Adherència frontal\".\n"
+"\n"
+"Poseu 0 per desactivar-ho."
 
 msgid "Brim type"
 msgstr "Tipus de Vora d'Adherència"
@@ -14939,8 +15079,9 @@ msgstr "Tipus de Vora d'Adherència"
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "Això controla la generació de la vora d'adherència al costat extern i/o intern dels models. 'Automàtic' vol dir que l'amplada de la vora d'adherència s'analitza i es calcula automàticament."
 
+# AI Translated
 msgid "Leading edge only"
-msgstr ""
+msgstr "Només a la vora d'atac"
 
 msgid "Brim-object gap"
 msgstr "Espai entre la Vora d'Adherència i l'objecte"
@@ -16215,9 +16356,11 @@ msgstr "Farciment multilínia"
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "Ús de múltiples línies per al patró de farciment, si el patró de farciment ho admet."
 
+# AI Translated
 msgid "Adaptive density (experimental)"
-msgstr ""
+msgstr "Densitat adaptativa (experimental)"
 
+# AI Translated
 msgid ""
 "Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
 "Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
@@ -16227,53 +16370,77 @@ msgid ""
 " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
 " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
 msgstr ""
+"Gradua el farciment Giroide i TPMS dins de l'objecte: les seves cel·les creixen des de la superfície de l'objecte cap al seu centre. La densitat del farciment poc dens s'aplica a la superfície i la densitat interior, al centre.\n"
+"Deformació per distància, Fusió suau i Carcasses esglaonades segueixen la distància a la superfície més propera, incloses la superior i la inferior, amb la densitat interior al punt més allunyat d'aquesta:\n"
+" - Deformació per distància: un únic patró continu, estirat i cisallat allà on la distància canvia segons la direcció, com en plaques i peces llargues.\n"
+" - Fusió suau: els patrons de densitats veïnes es fonen entre ells, amb petits bucles on es troben.\n"
+" - Carcasses esglaonades: carcasses del patró normal amb densitats separades aproximadament un factor d'1,5, amb les línies unides al llarg dels límits de les carcasses.\n"
+" - Lòbuls: segueix la forma 3D de l'objecte, incloses la part superior i la inferior. Cada lòbul, una part unida a la resta per un coll més estret, es gradua cap al seu propi centre.\n"
+" - Normal a Z, Y o X: segueix les seccions de l'objecte normals a aquest eix, de manera que la densitat no canvia al llarg d'aquest."
 
+# AI Translated
 msgid "Distance warp"
-msgstr ""
+msgstr "Deformació per distància"
 
+# AI Translated
 msgid "Smooth blend"
-msgstr ""
+msgstr "Fusió suau"
 
+# AI Translated
 msgid "Stepped shells"
-msgstr ""
+msgstr "Carcasses esglaonades"
 
+# AI Translated
 msgid "Lobes"
-msgstr ""
+msgstr "Lòbuls"
 
+# AI Translated
 msgid "Normal Z"
-msgstr ""
+msgstr "Normal a Z"
 
+# AI Translated
 msgid "Normal Y"
-msgstr ""
+msgstr "Normal a Y"
 
+# AI Translated
 msgid "Normal X"
-msgstr ""
+msgstr "Normal a X"
 
+# AI Translated
 msgid "Interior density"
-msgstr ""
+msgstr "Densitat interior"
 
+# AI Translated
 msgid "Density of the adaptive infill at the center of the object."
-msgstr ""
+msgstr "Densitat del farciment adaptatiu al centre de l'objecte."
 
+# AI Translated
 msgid "Adaptive gradient"
-msgstr ""
+msgstr "Gradient adaptatiu"
 
+# AI Translated
 msgid ""
 "How the density changes from the surface to the center of the object.\n"
 "Linear: the density changes at a constant rate.\n"
 "Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
 "Exponential: the density changes quickly just below the surface and levels off towards the center."
 msgstr ""
+"Com canvia la densitat des de la superfície fins al centre de l'objecte.\n"
+"Lineal: la densitat canvia a un ritme constant.\n"
+"Quadràtic: la densitat es manté propera a la densitat del farciment poc dens prop de la superfície i canvia més ràpidament cap al centre.\n"
+"Exponencial: la densitat canvia ràpidament just per sota de la superfície i s'estabilitza cap al centre."
 
 # AI Translated
 msgid "Linear"
 msgstr "Lineal"
 
+# AI Translated
 msgid "Quadratic"
-msgstr ""
+msgstr "Quadràtic"
 
+# AI Translated
 msgid "Exponential"
-msgstr ""
+msgstr "Exponencial"
 
 # AI Translated
 msgid "Z-buckling bias optimization (experimental)"
@@ -18556,98 +18723,130 @@ msgstr "Extrusor únic multimaterial"
 msgid "Use single nozzle to print multi filament."
 msgstr "Utilitza un sol broquet per imprimir multifilament"
 
+# AI Translated
 msgid "IDEX/IQEX Printer"
-msgstr ""
+msgstr "Impressora IDEX/IQEX"
 
+# AI Translated
 msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
-msgstr ""
+msgstr "Activa la impressió en paral·lel per a impressores amb diversos carros independents (IDEX, IQEX i similars)."
 
+# AI Translated
 msgid "Firmware-managed zones"
-msgstr ""
+msgstr "Zones gestionades pel firmware"
 
+# AI Translated
 msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-msgstr ""
+msgstr "Quan està activat, el laminador genera G-code amb el contingut de la zona principal centrat a l'origen del llit (0,0). El firmware de la impressora s'encarrega de col·locar les còpies/miralls a la posició física de cada zona. Activeu-ho només en impressores el firmware de les quals aplica els seus propis desplaçaments de zona en mode de còpia/mirall (p. ex. el mode de duplicació IDEX de RepRapFirmware). No té cap efecte en mode Principal (Primary)."
 
+# AI Translated
 msgid "Gantry Count"
-msgstr ""
+msgstr "Nombre de pòrtics"
 
+# AI Translated
 msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
-msgstr ""
+msgstr "Nombre de pòrtics independents a l'eix Y. 1 per a IDEX/IQEX d'un sol rail. 2 per a sistemes de doble pòrtic (divideix el llit en files)."
 
+# AI Translated
 msgid "Tools per Gantry"
-msgstr ""
+msgstr "Eines per pòrtic"
 
+# AI Translated
 msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
-msgstr ""
+msgstr "Nombre de capçals independents per pòrtic al llarg de X. 2 per a l'estil IDEX."
 
+# AI Translated
 msgid "Tool 0 Position"
-msgstr ""
+msgstr "Posició de l'eina 0"
 
+# AI Translated
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
-msgstr ""
+msgstr "Posició física al llit on es troba l'eina T0 (índex 0). Determina com es corresponen els índexs de les eines amb les zones del llit. En configuracions d'un sol pòrtic (IDEX) només importa esquerra/dreta; en configuracions de doble pòrtic (IQEX) es poden seleccionar les quatre cantonades (frontal = Y menor / a prop de l'operador, posterior = Y major / part del darrere de la màquina)."
 
+# AI Translated
 msgid "Nozzle Clearance X"
-msgstr ""
+msgstr "Espai lliure del broquet X"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
-msgstr ""
+msgstr "Distància (mm) del broquet a la vora del carro del costat de col·lisió en X. S'utilitza per calcular l'amplada de la franja d'exclusió per col·lisió a cada límit en X."
 
+# AI Translated
 msgid "Nozzle Clearance Y"
-msgstr ""
+msgstr "Espai lliure del broquet Y"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
-msgstr ""
+msgstr "Distància (mm) del broquet a la vora del carro del costat de col·lisió en Y. S'utilitza per calcular l'amplada de la franja d'exclusió per col·lisió a cada límit en Y."
 
+# AI Translated
 msgid "Safety Margin"
-msgstr ""
+msgstr "Marge de seguretat"
 
+# AI Translated
 msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
-msgstr ""
+msgstr "Franja d'espai lliure orientativa i no bloquejant (mm) que es dibuixa dins de la zona principal a cada límit entre carros. Les peces col·locades dins d'aquesta franja es continuaran laminant; és un recordatori visual per deixar espai lliure addicional prop de la vora de la zona."
 
+# AI Translated
 msgid "Visualization Theme"
-msgstr ""
+msgstr "Tema de visualització"
 
+# AI Translated
 msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
-msgstr ""
+msgstr "Tema de colors per a la visualització de les zones del llit IDEX/IQEX. Trieu un tema apte per a daltònics si cal."
 
+# AI Translated
 msgid "Deuteranopia / Protanopia (red-green)"
-msgstr ""
+msgstr "Deuteranopia / Protanopia (vermell-verd)"
 
+# AI Translated
 msgid "Tritanopia (blue-yellow)"
-msgstr ""
+msgstr "Tritanopia (blau-groc)"
 
+# AI Translated
 msgid "High Contrast"
-msgstr ""
+msgstr "Alt contrast"
 
+# AI Translated
 msgid "IDEX/IQEX Print Mode"
-msgstr ""
+msgstr "Mode d'impressió IDEX/IQEX"
 
+# AI Translated
 msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
-msgstr ""
+msgstr "Nom del mode d'impressió paral·lel IDEX/IQEX actiu, o \"primary\" per a la impressió amb un sol carro. Requereix que \"Impressora IDEX/IQEX\" estigui activat al perfil d'impressora (Impressora → Multimaterial → Configuració IDEX/IQEX)."
 
+# AI Translated
 msgid "IDEX/IQEX head filament map"
-msgstr ""
+msgstr "Mapa de filaments dels capçals IDEX/IQEX"
 
+# AI Translated
+# Needs human review: 'pem-inversion' is developer shorthand (inverting the physical extruder map); check the wording reads right.
 msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr ""
+msgstr "Correspondència per placa que substitueix l'assignació dels capçals físics a les ranures de filament (començant per 1). Si és buida, s'utilitzen els valors per defecte de la inversió del pem."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Names"
-msgstr ""
+msgstr "Noms dels modes IDEX/IQEX"
 
+# AI Translated
 msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
-msgstr ""
+msgstr "Noms visibles de cada mode d'impressió paral·lel IDEX/IQEX definit per l'usuari."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Active Tools"
-msgstr ""
+msgstr "Eines actives dels modes IDEX/IQEX"
 
+# AI Translated
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
-msgstr ""
+msgstr "Assignació de rols de les eines per a cada mode. Format: \"idx:P,idx:C,idx:M\" on P=Principal (Primary), C=Còpia (Copy), M=Mirall (Mirror) (p. ex. \"0:P,1:C,2:M,3:M\"). Es gestiona amb l'editor de modes IDEX/IQEX del perfil d'impressora."
 
+# AI Translated
 msgid "IDEX/IQEX Mode G-codes"
-msgstr ""
+msgstr "G-codes dels modes IDEX/IQEX"
 
+# AI Translated
 msgid "G-code or macro call to inject at print start for each mode."
-msgstr ""
+msgstr "G-code o crida de macro que s'injecta a l'inici de la impressió per a cada mode."
 
 msgid "Manual Filament Change"
 msgstr "Canvi manual de filament"
@@ -19031,35 +19230,45 @@ msgstr "Superposició de llindars"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "Si l'angle del llindar és zero, es generarà suport per als voladissos el solapament dels quals estigui per sota del llindar. Com més petit sigui aquest valor, més inclinat serà el voladí que es pot imprimir sense suport."
 
+# AI Translated
 msgid "Build plate tilt X"
-msgstr ""
+msgstr "Inclinació del llit X"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
-msgstr ""
+msgstr "Angle d'inclinació del llit al llarg de l'eix X. Un valor positiu inclina el llit de manera que el costat +X quedi més alt, cosa que desplaça la gravetat cap a -X i augmenta els voladissos al costat +X. Un valor negatiu fa que el costat -X quedi més alt. Poseu 0 per no inclinar l'eix X. En mode d'impressora de cinta, se sincronitza automàticament amb l'angle de la cinta."
 
+# AI Translated
 msgid "Build plate tilt Y"
-msgstr ""
+msgstr "Inclinació del llit Y"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
-msgstr ""
+msgstr "Angle d'inclinació del llit al llarg de l'eix Y. Un valor positiu inclina el llit de manera que el costat +Y quedi més alt, cosa que desplaça la gravetat cap a -Y i augmenta els voladissos al costat +Y. Un valor negatiu fa que el costat -Y quedi més alt. Poseu 0 per no inclinar l'eix Y."
 
+# AI Translated
 msgid "Enable belt printing"
-msgstr ""
+msgstr "Activar la impressió de cinta"
 
+# AI Translated
 msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
-msgstr ""
+msgstr "Activa el mode d'impressora de cinta. Les impressores de cinta fan servir una cinta transportadora com a superfície de construcció, inclinada en un angle (normalment de 45 graus). El laminador girarà el pla de laminat i transformarà les coordenades del G-code per a la superfície de construcció inclinada."
 
+# AI Translated
 msgid "Infinite Y axis"
-msgstr ""
+msgstr "Eix Y infinit"
 
+# AI Translated
 msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
-msgstr ""
+msgstr "Activa l'eix Y infinit per a les impressores de cinta. Quan està activat, s'elimina a la pràctica el límit del volum de construcció en l'eix Y, cosa que permet imprimir objectes de qualsevol longitud en la direcció de la cinta."
 
+# AI Translated
 msgid "Belt tilt axis"
-msgstr ""
+msgstr "Eix d'inclinació de la cinta"
 
+# AI Translated
 msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-msgstr ""
+msgstr "Eix al voltant del qual es gira la malla abans de laminar. És la inclinació de la impressora de cinta: una rotació isomètrica (sense distorsió) que també determina la representació del llit i la inclinació de la gravetat dels suports, i que la transformació inversa del G-code desfà abans del cisallament/escala i la reassignació d'eixos del sistema de coordenades de la màquina. X és la inclinació típica del pòrtic (la cinta es desplaça al llarg de Y)."
 
 msgid "X"
 msgstr "X"
@@ -19071,89 +19280,116 @@ msgstr "Y"
 msgid "Z"
 msgstr "Z"
 
+# AI Translated
 msgid "Belt tilt angle"
-msgstr ""
+msgstr "Angle d'inclinació de la cinta"
 
+# AI Translated
 msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
-msgstr ""
+msgstr "Angle d'inclinació de la superfície de la cinta, en graus. La majoria d'impressores de cinta fan servir 45°. Els valors positius giren en sentit contrari a les agulles del rellotge mirant en la direcció positiva de l'eix d'inclinació; la magnitud també és la inclinació física de la cinta que s'utilitza per a la representació del llit i la gravetat dels suports."
 
 msgid "°"
 msgstr "°"
 
+# AI Translated
 msgid "Decouple machine-frame tilt"
-msgstr ""
+msgstr "Desacoblar la inclinació del sistema de coordenades de la màquina"
 
+# AI Translated
 msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-msgstr ""
+msgstr "Ajust per a experts: estableix l'angle d'inclinació del sistema de coordenades de la màquina (cisallament/escala del G-code) independentment de l'angle de rotació previ al laminat. Quan està desactivat, la transformació del sistema de coordenades de la màquina es deriva de l'angle d'inclinació de la cinta, de manera que un sol angle controla les dues etapes. Activeu-ho només per compensar una màquina la inclinació física del pòrtic de la qual difereix de la rotació de laminat."
 
+# AI Translated
 msgid "Machine-frame tilt angle"
-msgstr ""
+msgstr "Angle d'inclinació del sistema de coordenades de la màquina"
 
+# AI Translated
 msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
-msgstr ""
+msgstr "Angle d'inclinació (graus) que s'utilitza per derivar el cisallament (cot) i l'escala (1/|sin|) del sistema de coordenades de la màquina aplicats al G-code. Només s'utilitza quan 'Desacoblar la inclinació del sistema de coordenades de la màquina' està activat; altrament, s'utilitza l'angle d'inclinació de la cinta."
 
+# AI Translated
 msgid "+X"
-msgstr ""
+msgstr "+X"
 
+# AI Translated
 msgid "+Y"
-msgstr ""
+msgstr "+Y"
 
+# AI Translated
 msgid "+Z"
-msgstr ""
+msgstr "+Z"
 
+# AI Translated
 msgid "-X"
-msgstr ""
+msgstr "-X"
 
+# AI Translated
 msgid "-Y"
-msgstr ""
+msgstr "-Y"
 
+# AI Translated
 msgid "-Z"
-msgstr ""
+msgstr "-Z"
 
+# AI Translated
 msgid "Rev X"
-msgstr ""
+msgstr "X invertit"
 
+# AI Translated
 msgid "Rev Y"
-msgstr ""
+msgstr "Y invertit"
 
+# AI Translated
 msgid "Rev Z"
-msgstr ""
+msgstr "Z invertit"
 
+# AI Translated
 msgid "G-code remap X"
-msgstr ""
+msgstr "Reassignació X del G-code"
 
+# AI Translated
 msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Quin eix de laminat es correspon amb l'eix X de la màquina a la sortida del G-code. S'aplica DESPRÉS del laminat, durant la generació del G-code."
 
+# AI Translated
 msgid "G-code remap Y"
-msgstr ""
+msgstr "Reassignació Y del G-code"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Quin eix de laminat es correspon amb l'eix Y de la màquina a la sortida del G-code. S'aplica DESPRÉS del laminat, durant la generació del G-code."
 
+# AI Translated
 msgid "G-code remap Z"
-msgstr ""
+msgstr "Reassignació Z del G-code"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Quin eix de laminat es correspon amb l'eix Z de la màquina a la sortida del G-code. S'aplica DESPRÉS del laminat, durant la generació del G-code."
 
+# AI Translated
 msgid "Support Floor Z offset"
-msgstr ""
+msgstr "Desplaçament Z del terra dels suports"
 
+# AI Translated
 msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
-msgstr ""
+msgstr "Desplaça cap amunt o cap avall el terra de la cinta calculat (mm). Els valors negatius abaixen el terra, cosa que permet que es conservin més suports. Feu-ho servir per diagnosticar problemes de la fórmula del terra de la cinta."
 
+# AI Translated
 msgid "Enable belt purge tower"
-msgstr ""
+msgstr "Activar la torre de purga de la cinta"
 
+# AI Translated
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
-msgstr ""
+msgstr "Substitut de la Torre de Purga per a impressores de cinta. Quan està activat en una impressora de cinta, es genera automàticament un prisma de purga al costat de les peces impreses i la purga dels canvis de filament s'hi dirigeix (la Torre de Purga clàssica no es pot fer servir en impressores de cinta perquè el seu G-code no passa per la transformació de la cinta). Només disponible en impressores de cinta."
 
+# AI Translated
 msgid "Belt purge tower width"
-msgstr ""
+msgstr "Amplada de la torre de purga de la cinta"
 
+# AI Translated
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr ""
+msgstr "Amplada (X de la màquina, a través de la cinta) del prisma de purga que es genera automàticament en impressores de cinta quan la torre de purga de la cinta està activada i s'utilitzen diversos filaments. La purga dels canvis de filament es dirigeix a les extrusions d'aquest prisma en lloc d'una Torre de Purga clàssica. La seva alçada es calcula automàticament a partir del volum de purga màxim per capa: un prisma més ample en dona un de més baix."
 
 msgid "Tree support branch angle"
 msgstr "Angle de branca de suport en arbre"
@@ -19334,11 +19570,15 @@ msgstr "El nombre de capes sòlides superiors augmenta quan es tallen si el grui
 msgid "Separated infills"
 msgstr "Farciments separats"
 
+# AI Translated
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
 "Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
+"Centra el farciment intern de cada peça en ella mateixa, com si es laminés per separat, en lloc de fer-ho en tot el muntatge. Les peces que es toquen o se superposen es tracten com un sol cos i comparteixen centre; les peces separades (o els objectes 3D diferents) tenen cadascuna el seu.\n"
+"Útil quan un muntatge agrupa diversos objectes que han de mantenir cadascun un farciment coherent i centrat en si mateix.\n"
+"Cúbic adaptatiu i Suport Cúbic sempre centren cada peça en ella mateixa, i el farciment Llampec es genera per a tot l'objecte i no es veu afectat."
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -19572,11 +19812,13 @@ msgstr "La purga després del canvi de filament es farà dins del suport dels ob
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "Aquest objecte s'utilitzarà per purgar el broquet després d'un canvi de filament per estalviar filament i disminuir el temps d'impressió. Com a resultat, es barrejaran els colors dels objectes. No tindrà cap efecte, tret que s'habiliti la Torre de Purga."
 
+# AI Translated
 msgid "Belt purge tower object"
-msgstr ""
+msgstr "Objecte de torre de purga de la cinta"
 
+# AI Translated
 msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
-msgstr ""
+msgstr "Marca el prisma de purga de la cinta generat automàticament. Es gestiona automàticament; no el configureu manualment."
 
 msgid "Maximal bridging distance"
 msgstr "Distància màxima dels ponts"
@@ -20489,8 +20731,9 @@ msgstr "Nom de la impressora física utilitzada per laminar."
 msgid "Layer number"
 msgstr "Número de capa"
 
+# AI Translated
 msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
-msgstr ""
+msgstr "Índex de la capa actual. Comença per zero (és a dir, la primera capa és la número 0), excepte al G-code de canvi de rol d'extrusió, on comença per u."
 
 msgid "Layer Z"
 msgstr "Capa Z"
@@ -21175,8 +21418,9 @@ msgstr ""
 "Els valors d'acceleració han de ser superiors als valors de velocitat.\n"
 "Verifiqueu les entrades."
 
+# AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr ""
+msgstr "Encara no està habilitat a les impressores de cinta — feu servir el mètode Torre PA( Pressure Advance )."
 
 msgid "Temperature calibration"
 msgstr "Calibratge de temperatura"
@@ -21205,8 +21449,10 @@ msgstr "PET-CF"
 msgid "Test model"
 msgstr "Model de test"
 
+# AI Translated
+# Needs human review: Radio option for the belt temperature-tower test model (Standard / Overhang) in the temperature calibration dialog; singular of the glossary's 'Voladissos'. Check it reads right as a model name.
 msgid "Overhang"
-msgstr ""
+msgstr "Voladís"
 
 msgid "Start temp: "
 msgstr "Temperatura Inicial: "
@@ -22097,8 +22343,9 @@ msgstr ""
 "Impressora i tots els perfils de filament i de procés que pertanyen a la impressora.\n"
 "Es pot compartir amb altres persones."
 
+# AI Translated
 msgid "Include custom bed texture and model"
-msgstr ""
+msgstr "Incloure la textura i el model personalitzats del llit"
 
 msgid ""
 "User's filament preset set.\n"
@@ -23307,32 +23554,41 @@ msgstr "Si s'activa, els valors anteriors es desen com a valors per defecte per 
 msgid "PresetBundle"
 msgstr "PresetBundle"
 
+# AI Translated
 msgid "Export Presets"
-msgstr ""
+msgstr "Exportar perfils"
 
+# AI Translated
 msgid "Open folder in explorer"
-msgstr ""
+msgstr "Obrir la carpeta a l'explorador"
 
+# AI Translated
 msgid "Delete bundle"
-msgstr ""
+msgstr "Suprimir el paquet"
 
+# AI Translated
 msgid "Unsubscribe bundle"
-msgstr ""
+msgstr "Cancel·lar la subscripció al paquet"
 
+# AI Translated
 msgid "Update available"
-msgstr ""
+msgstr "Actualització disponible"
 
+# AI Translated
 msgid "Unauthorized bundle"
-msgstr ""
+msgstr "Paquet no autoritzat"
 
+# AI Translated
 msgid "Open this bundle in your browser"
-msgstr ""
+msgstr "Obrir aquest paquet al navegador"
 
+# AI Translated
 msgid "Subscribed"
-msgstr ""
+msgstr "Subscrit"
 
+# AI Translated
 msgid "Local"
-msgstr ""
+msgstr "Local"
 
 # AI Translated
 msgid "Bundle folder does not exist."
@@ -23378,11 +23634,13 @@ msgstr "Cancel·lar la subscripció al paquet"
 msgid "ExportPresetBundle"
 msgstr "ExportPresetBundle"
 
+# AI Translated
 msgid "Export to OrcaCloud"
-msgstr ""
+msgstr "Exportar a OrcaCloud"
 
+# AI Translated
 msgid "Export to folder"
-msgstr ""
+msgstr "Exportar a una carpeta"
 
 # AI Translated
 msgid "Save preset bundle"
@@ -27944,8 +28202,9 @@ msgstr "Gizmo ensamblar"
 msgid "Gizmo brim ears"
 msgstr "Gizmo orelles de la Vora d'Adherència"
 
+# AI Translated
 msgid "Gizmo texture displacement painting"
-msgstr ""
+msgstr "Gizmo de pintat de desplaçament de textura"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "Barra de desplaçament Vertical - Mou el barra de desplaçament actiu cap Amunt"
@@ -29197,6 +29456,14 @@ msgid "Bake"
 msgstr "Fixar"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "Escriure un valor exacte en un control lliscant"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "Icona d'edició a l'extrem dret d'un control lliscant"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "Desplaçament de textura"
 
@@ -29469,6 +29736,15 @@ msgid "The painted area could not be carried onto the remeshed model, so nothing
 msgstr "L'àrea pintada no s'ha pogut traslladar al model remallat, de manera que no s'ha canviat res. Canvieu al mode Pro i remalleu abans de pintar."
 
 # AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "Rang: de %1% a %2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "Escriviu un valor en lloc d'arrossegar. Ctrl+clic al control lliscant fa el mateix."
+
+# AI Translated
 msgid "Pro"
 msgstr "Pro"
 
@@ -29573,8 +29849,9 @@ msgstr "Llindar d'angle - l'emplenament s'atura a les arestes més agudes que aq
 msgid "Click a triangle to paint it"
 msgstr "Feu clic a un triangle per pintar-lo"
 
+# AI Translated
 msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
-msgstr ""
+msgstr "Només per a una capa amb mapatge Desplegar (LSCM) - establiu el Mapatge de la capa activa a Desplegar per fer servir aquesta vista."
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -29588,15 +29865,17 @@ msgstr "Ràpid - el relleu només s'ombreja, no es construeix, i només per a la
 msgid "Checker"
 msgstr "Escaquer"
 
+# AI Translated
 msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Escaquer - una quadrícula de prova en lloc de la textura. On els quadrats es mantenen quadrats, la textura no es distorsiona; on s'estiren, la textura també s'estirarà. Obre l'editor UV si està tancat"
 
 # AI Translated
 msgid "Distortion"
 msgstr "Distorsió"
 
+# AI Translated
 msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Distorsió - mapa de calor de l'estirament, de blau a vermell, sobre el desplegament. Obre l'editor UV si està tancat"
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -29712,11 +29991,13 @@ msgstr "Barrejar filaments"
 msgid "Interleaves two filaments to fake the colors in between, so a handful of filaments can cover a photo or a gradient. An image of flat colors prints the same either way. Off uses one filament per area."
 msgstr "Intercala dos filaments per simular els colors intermedis, de manera que uns quants filaments poden cobrir una foto o un degradat. Una imatge de colors plans s'imprimeix igual en tots dos casos. Desactivat, utilitza un filament per àrea."
 
+# AI Translated
 msgid "Mixed colors"
-msgstr ""
+msgstr "Colors mixtos"
 
+# AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
-msgstr ""
+msgstr "El nombre màxim de filaments mixtos que pot afegir una fixació. Es trien a partir dels colors de la textura, i només es creen els que la fixació fa servir realment."
 
 # AI Translated
 #, boost-format
@@ -30424,27 +30705,33 @@ msgstr "Connectors de filament"
 msgid "Printer plugins"
 msgstr "Connectors d'impressora"
 
+# AI Translated
 msgid "This preset does not use any plugin capabilities"
-msgstr ""
+msgstr "Aquest perfil no fa servir cap capacitat de connector"
 
+# AI Translated
 msgid "Capabilities used by this preset"
-msgstr ""
+msgstr "Capacitats que fa servir aquest perfil"
 
+# AI Translated
 msgid "Capability configuration (JSON)"
-msgstr ""
+msgstr "Configuració de la capacitat (JSON)"
 
+# AI Translated
 msgid "Plugin configuration"
-msgstr ""
+msgstr "Configuració del connector"
 
+# AI Translated
 msgid "Discard this preset's override and use the global configuration again"
-msgstr ""
+msgstr "Descartar la configuració específica d'aquest perfil i tornar a fer servir la configuració global"
 
 # AI Translated
 msgid "Restore defaults"
 msgstr "Restaurar els valors predeterminats"
 
+# AI Translated
 msgid "Invalid JSON"
-msgstr ""
+msgstr "JSON no vàlid"
 
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
@@ -30534,214 +30821,282 @@ msgstr "Instal·lant el connector"
 msgid "Installed \"%s\"."
 msgstr "S'ha instal·lat \"%s\"."
 
+# AI Translated
 msgid "Search plugins"
-msgstr ""
+msgstr "Cercar connectors"
 
+# AI Translated
 msgid "Clear search"
-msgstr ""
+msgstr "Esborrar la cerca"
 
+# AI Translated
 msgid "Match case"
-msgstr ""
+msgstr "Distingir majúscules i minúscules"
 
+# AI Translated
 msgid "Match whole word"
-msgstr ""
+msgstr "Només paraules senceres"
 
+# AI Translated
 msgid "More plugin install options"
-msgstr ""
+msgstr "Més opcions d'instal·lació de connectors"
 
+# AI Translated
 msgid "Install plugin"
-msgstr ""
+msgstr "Instal·lar el connector"
 
+# AI Translated
 msgid "Install local plugin"
-msgstr ""
+msgstr "Instal·lar un connector local"
 
+# AI Translated
 msgid "Activate"
-msgstr ""
+msgstr "Activar"
 
+# AI Translated
 msgid "Sort by name"
-msgstr ""
+msgstr "Ordenar per nom"
 
+# AI Translated
 msgid "Sort by version"
-msgstr ""
+msgstr "Ordenar per versió"
 
+# AI Translated
 msgid "Plugin Version"
-msgstr ""
+msgstr "Versió del connector"
 
+# AI Translated
 msgid "Sort by source"
-msgstr ""
+msgstr "Ordenar per origen"
 
+# AI Translated
 msgid "Source"
-msgstr ""
+msgstr "Origen"
 
+# AI Translated
 msgid "Sort by status"
-msgstr ""
+msgstr "Ordenar per estat"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Status"
-msgstr ""
+msgstr "Estat"
 
+# AI Translated
 msgid "Drag to resize; double-click to reset"
-msgstr ""
+msgstr "Arrossegueu per canviar la mida; feu doble clic per restablir-la"
 
+# AI Translated
 msgid "Resize the plugin list"
-msgstr ""
+msgstr "Canviar la mida de la llista de connectors"
 
+# AI Translated
 msgid "Plugin details"
-msgstr ""
+msgstr "Detalls del connector"
 
+# AI Translated
 msgid "Plugin Info"
-msgstr ""
+msgstr "Informació del connector"
 
+# AI Translated
 msgid "Description"
-msgstr ""
+msgstr "Descripció"
 
+# AI Translated
 msgid "Config"
-msgstr ""
+msgstr "Configuració"
 
+# AI Translated
 msgid "Changelog"
-msgstr ""
+msgstr "Registre de canvis"
 
+# AI Translated
 msgid "Diagnostics"
-msgstr ""
+msgstr "Diagnòstic"
 
+# AI Translated
 msgid "Types"
-msgstr ""
+msgstr "Tipus"
 
+# AI Translated
 msgid "Installed Version"
-msgstr ""
+msgstr "Versió instal·lada"
 
+# AI Translated
 msgid "Latest Version"
-msgstr ""
+msgstr "Última versió"
 
+# AI Translated
 msgid "Update to the latest version"
-msgstr ""
+msgstr "Actualitzar a l'última versió"
 
+# AI Translated
 msgid "No description available"
-msgstr ""
+msgstr "No hi ha cap descripció disponible"
 
+# AI Translated
 msgid "Select a plugin to configure its capabilities"
-msgstr ""
+msgstr "Seleccioneu un connector per configurar-ne les capacitats"
 
+# AI Translated
 msgid "Configurable capabilities"
-msgstr ""
+msgstr "Capacitats configurables"
 
+# AI Translated
 msgid "Discard the settings saved for this capability and restore the plugin's defaults"
-msgstr ""
+msgstr "Descartar la configuració desada per a aquesta capacitat i restaurar els valors predeterminats del connector"
 
+# AI Translated
 msgid "Plugin changelog"
-msgstr ""
+msgstr "Registre de canvis del connector"
 
+# AI Translated
 msgid "Date"
-msgstr ""
+msgstr "Data"
 
+# AI Translated
 msgid "Changes"
-msgstr ""
+msgstr "Canvis"
 
+# AI Translated
 msgid "No changelog available"
-msgstr ""
+msgstr "No hi ha cap registre de canvis disponible"
 
+# AI Translated
 msgid "No issues detected"
-msgstr ""
+msgstr "No s'ha detectat cap problema"
 
+# AI Translated
 msgid "No plugins found"
-msgstr ""
+msgstr "No s'ha trobat cap connector"
 
+# AI Translated
 #, c-format, boost-format
 msgid "No plugins match \"%s\""
-msgstr ""
+msgstr "Cap connector coincideix amb \"%s\""
 
+# AI Translated
+# Needs human review: Source badge/filter in the Plugins dialog for plugins the user published to OrcaCloud (next to Subscribed, Orphaned, Local); check 'Meu' reads right there.
 msgid "Mine"
-msgstr ""
+msgstr "Meu"
 
+# AI Translated
 msgid "Orphaned"
-msgstr ""
+msgstr "Orfe"
 
+# AI Translated
 msgid "Some plugin capabilities are enabled"
-msgstr ""
+msgstr "Algunes capacitats del connector estan activades"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Collapse %s capabilities"
-msgstr ""
+msgstr "Replegar les capacitats de %s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Expand %s capabilities"
-msgstr ""
+msgstr "Expandir les capacitats de %s"
 
+# AI Translated
 msgid "Collapse capabilities"
-msgstr ""
+msgstr "Replegar les capacitats"
 
+# AI Translated
 msgid "Expand capabilities"
-msgstr ""
+msgstr "Expandir les capacitats"
 
+# AI Translated
 msgid "Open this plugin in your browser"
-msgstr ""
+msgstr "Obrir aquest connector al navegador"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Capabilities: %s"
-msgstr ""
+msgstr "Capacitats: %s"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Capabilities"
-msgstr ""
+msgstr "Capacitats"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Run \"%s\""
-msgstr ""
+msgstr "Executar \"%s\""
 
+# AI Translated
 #, c-format, boost-format
 msgid "Enable %s"
-msgstr ""
+msgstr "Activar %s"
 
+# AI Translated
 msgid "Unauthorized for updates"
-msgstr ""
+msgstr "Sense autorització per a actualitzacions"
 
+# AI Translated
 msgid "Loading the plugin…"
-msgstr ""
+msgstr "Carregant el connector…"
 
+# AI Translated
 msgid "This plugin exposes no capabilities"
-msgstr ""
+msgstr "Aquest connector no ofereix cap capacitat"
 
+# AI Translated
 msgid "Activate this plugin to configure its capabilities"
-msgstr ""
+msgstr "Activeu aquest connector per configurar-ne les capacitats"
 
+# AI Translated
 msgid "View on OrcaCloud <a>here</a>"
-msgstr ""
+msgstr "Vegeu-ho a OrcaCloud <a>aquí</a>"
 
+# AI Translated
 msgid "Activated"
-msgstr ""
+msgstr "Activat"
 
+# AI Translated
 msgid "Runtime error"
-msgstr ""
+msgstr "Error d'execució"
 
+# AI Translated
 msgid "Inactive"
-msgstr ""
+msgstr "Inactiu"
 
+# AI Translated
 msgid "This plugin is active and ready to be used."
-msgstr ""
+msgstr "Aquest connector està actiu i a punt per fer-se servir."
 
+# AI Translated
 msgid "This plugin is still loading."
-msgstr ""
+msgstr "Aquest connector encara s'està carregant."
 
+# AI Translated
 msgid "This plugin is blocked until its error is fixed."
-msgstr ""
+msgstr "Aquest connector està bloquejat fins que se'n corregeixi l'error."
 
+# AI Translated
 msgid "This plugin is loaded but a capability reported an error."
-msgstr ""
+msgstr "Aquest connector està carregat, però una capacitat ha informat d'un error."
 
+# AI Translated
 msgid "This plugin is inactive. Activate it to install or load it."
-msgstr ""
+msgstr "Aquest connector està inactiu. Activeu-lo per instal·lar-lo o carregar-lo."
 
+# AI Translated
 msgid "Select a plugin to view its status and details."
-msgstr ""
+msgstr "Seleccioneu un connector per veure'n l'estat i els detalls."
 
+# AI Translated
 msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
-msgstr ""
+msgstr "Orfe: aquest connector ja no està subscrit ni disponible a OrcaCloud. La còpia local continua instal·lada i encara es pot fer servir."
 
+# AI Translated
 msgid "A newer plugin version is available."
-msgstr ""
+msgstr "Hi ha disponible una versió més recent del connector."
 
+# AI Translated
 msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
-msgstr ""
+msgstr "Les actualitzacions del núvol no estan disponibles perquè aquest connector no té autorització per a actualitzacions."
 
 # AI Translated
 #, c-format, boost-format
@@ -30959,11 +31314,13 @@ msgstr "No s'ha pogut tornar a carregar el connector."
 msgid "Reloaded \"%s\"."
 msgstr "S'ha tornat a carregar \"%s\"."
 
+# AI Translated
 msgid "Printer Connection"
-msgstr ""
+msgstr "Connexió de la impressora"
 
+# AI Translated
 msgid "Please set up your printer connection to view the device."
-msgstr ""
+msgstr "Configureu la connexió de la impressora per veure el dispositiu."
 
 msgid "No model information"
 msgstr "No hi ha informació del model"
@@ -30995,8 +31352,9 @@ msgstr "Compartit per"
 msgid "Model description"
 msgstr "Descripció del model"
 
+# AI Translated
 msgid "BOM"
-msgstr ""
+msgstr "Llista de materials"
 
 msgid "Profile name"
 msgstr "Nom del perfil"
@@ -31031,15 +31389,18 @@ msgstr "Redueix els residus de purga i imprimeix més ràpid. Pot causar una lle
 msgid "Terminal"
 msgstr "Terminal"
 
+# AI Translated
 msgid "python ... or uv ..."
-msgstr ""
+msgstr "python ... o uv ..."
 
+# AI Translated
 msgid "Plugin terminal ready."
-msgstr ""
+msgstr "Terminal de connectors a punt."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Process exited with code: %s"
-msgstr ""
+msgstr "El procés ha finalitzat amb el codi: %s"
 
 # AI Translated
 msgid "A command is already running."
@@ -31307,8 +31668,9 @@ msgstr "  |  acoblament ACTIVAT"
 msgid "Change texture - choose another one from the texture library"
 msgstr "Canviar la textura - trieu-ne una altra de la biblioteca de textures"
 
+# AI Translated
 msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
-msgstr ""
+msgstr "Mida de tessel·la de la capa activa: quina part del model cobreix una repetició de la textura. El llenç es mesura en tessel·les, de manera que una cel·la de la graella és una repetició. Canvieu-la amb el tessel·lat a la configuració de la capa."
 
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
@@ -31342,14 +31704,17 @@ msgstr "Connectar les illes"
 msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfolded next to each other (a cube becomes a joined net rather than six loose squares). They stay separate islands, so you can still move any of them by hand afterwards."
 msgstr "Distribueix el desplegament com una xarxa connectada: les peces que comparteixen una aresta es despleguen l'una al costat de l'altra (un cub es converteix en una xarxa unida en lloc de sis quadrats solts). Continuen sent illes separades, així que després encara podeu moure qualsevol d'elles a mà."
 
+# AI Translated
 msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
-msgstr ""
+msgstr "Illa - treballeu amb illes senceres. Feu clic en una per seleccionar-la i després arrossegueu-la per moure-la, arrossegueu-la amb el botó dret per girar-la, o premeu R per girar-la i S per escalar-la amb el ratolí (clic o Retorn per confirmar, Esc per cancel·lar)."
 
+# AI Translated
 msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Vèrtex - arrossegueu els vèrtexs per canviar la forma d'una illa a mà; Màj afegeix a la selecció i Ctrl n'hi afegeix o en treu un."
 
+# AI Translated
 msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Aresta - arrossegueu les arestes per canviar la forma d'una illa a mà; Màj afegeix a la selecció i Ctrl n'hi afegeix o en treu una."
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -31387,13 +31752,17 @@ msgstr "Esborrar les edicions UV - descarta tots els moviments manuals de vèrte
 msgid "Snap - stick islands together when dragging one against another"
 msgstr "Acoblar - enganxa les illes entre si en arrossegar-ne una contra una altra"
 
+# AI Translated
 msgid ""
 "Frame all islands, fitting every one of them in view (Home or F).\n"
 "Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
 msgstr ""
+"Enquadrar totes les illes, de manera que totes càpiguen a la vista (Inici o F).\n"
+"En altres llocs del llenç: feu girar la roda per fer zoom al voltant del cursor, i arrossegueu amb el botó central - o arrossegueu un espai buit - per desplaçar la vista."
 
+# AI Translated
 msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
-msgstr ""
+msgstr "Què hi ha seleccionat, i les xifres exactes del moviment, la rotació o l'escala mentre n'arrossegueu un."
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -31404,8 +31773,9 @@ msgstr "Cap capa mapada amb Desplegar"
 msgid "%.1f mm tile"
 msgstr "Tessel·la de %.1f mm"
 
+# AI Translated
 msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
-msgstr ""
+msgstr "El tauler segueix la capa de textura activa, i aquesta capa ha de tenir el mapatge Desplegar (LSCM). Afegiu una capa i establiu-ne el Mapatge a Desplegar."
 
 # AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
@@ -31415,31 +31785,38 @@ msgstr "Desactualitzat - la pintura, les costures o l'angle de costura han canvi
 msgid "Flatten the painted area into UV islands. It is computed only when you press this, not on every edit - so paint, change the seam angle or mark seams first, then press Unwrap."
 msgstr "Aplana l'àrea pintada en illes UV. Només es calcula quan premeu aquest botó, no a cada edició - així que primer pinteu, canvieu l'angle de costura o marqueu costures, i després premeu Desplegar."
 
+# AI Translated
 msgid "Turn Mark seams on first - Path is a quicker way of marking them."
-msgstr ""
+msgstr "Activeu primer Marcar costures - Trajectòria és una manera més ràpida de marcar-les."
 
+# AI Translated
 msgid "No seams are marked on this layer."
-msgstr ""
+msgstr "No hi ha cap costura marcada en aquesta capa."
 
+# AI Translated
 msgid "No islands have been reshaped by hand, so there is nothing to discard."
-msgstr ""
+msgstr "No s'ha canviat a mà la forma de cap illa, així que no hi ha res a descartar."
 
 # AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "%d illes, %s cares"
 
+# AI Translated
 msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
-msgstr ""
+msgstr "Com ha quedat l'àrea pintada després del desplegament: el nombre de peces separades en què s'ha tallat (a les costures i a les arestes més agudes que l'angle de costura) i quants triangles contenen en total."
 
+# AI Translated
 msgid "Press Unwrap first - there are no islands to work on yet."
-msgstr ""
+msgstr "Premeu primer Desplegar - encara no hi ha cap illa amb què treballar."
 
+# AI Translated
 msgid "Click an island on the canvas first, in Island mode."
-msgstr ""
+msgstr "Feu clic primer en una illa del llenç, en mode Illa."
 
+# AI Translated
 msgid "Not signed in"
-msgstr ""
+msgstr "No heu iniciat sessió"
 
 msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
 msgstr "No s'ha detectat el connector Bambu Network. Fes clic <a>aquí</a> per instal·lar-lo."
@@ -31602,15 +31979,19 @@ msgstr ""
 "El connector \"%s\" sol·licita executar les ordres següents:\n"
 "%s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plugin \"%s\" is requesting permission to create a thread."
-msgstr ""
+msgstr "El connector \"%s\" demana permís per crear un fil d'execució."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plugin \"%s\" is requesting to replace the running application with:\n"
 "%s"
 msgstr ""
+"El connector \"%s\" demana substituir l'aplicació en execució per:\n"
+"%s"
 
 # AI Translated
 #, c-format, boost-format
@@ -31621,29 +32002,37 @@ msgstr "El connector \"%s\" sol·licita permís per a l'esdeveniment d'auditoria
 msgid "Plugin permission request"
 msgstr "Sol·licitud de permís del connector"
 
+# AI Translated
 msgid "Printer connection"
-msgstr ""
+msgstr "Connexió de la impressora"
 
+# AI Translated
 msgid "Pages"
-msgstr ""
+msgstr "Pàgines"
 
+# AI Translated
 msgid "Analysis"
-msgstr ""
+msgstr "Anàlisi"
 
+# AI Translated
 msgid "Importer"
-msgstr ""
+msgstr "Importador"
 
+# AI Translated
 msgid "Exporter"
-msgstr ""
+msgstr "Exportador"
 
+# AI Translated
 msgid "Visualization"
-msgstr ""
+msgstr "Visualització"
 
+# AI Translated
 msgid "Script"
-msgstr ""
+msgstr "Script"
 
+# AI Translated
 msgid "Slicing Pipeline"
-msgstr ""
+msgstr "Flux de laminat"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."

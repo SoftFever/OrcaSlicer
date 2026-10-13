@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "PO-Revision-Date: 2026-07-17 16:25+0300\n"
 "Last-Translator: Andrij Mizyk <andm1zyk@proton.me>\n"
 "Language-Team: Ukrainian\n"
@@ -2118,12 +2118,16 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "Виконання WebView2"
 
+# AI Translated
 #, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
 "Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
+"Не вдалося встановити Microsoft WebView2 Runtime.\n"
+"Деякі функції, зокрема майстер налаштування, можуть відображатися порожніми, доки його не буде встановлено.\n"
+"Встановіть його вручну зі сторінки %1% і перезапустіть Orca Slicer."
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
@@ -4245,6 +4249,16 @@ msgstr "Останні проєкти"
 msgid "Go to Plate"
 msgstr "Перейти до пластини"
 
+msgid "Device"
+msgstr "Пристрій"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Пристрій (Веб)"
+
+msgid "Multi-device"
+msgstr "Багато пристроїв"
+
 msgid "AMS Materials Setting"
 msgstr "Налаштування матеріалів AMS"
 
@@ -4302,6 +4316,14 @@ msgstr "Будь ласка введіть коректне значення (K 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Будь ласка введіть коректне значення (K в %.1f~%.1f, N в %.1f~%.1f)"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "Обрані філаменти"
+
+# AI Translated
+msgid "All filaments"
+msgstr "Усі філаменти"
 
 # AI Translated
 msgid ""
@@ -4886,10 +4908,13 @@ msgstr "Автоматично налаштувати до межі (%g мм)?"
 msgid "Adjust"
 msgstr "Налаштувати"
 
+# AI Translated
 msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
+"Підкладка та захисний екран недоступні на стрічкових принтерах.\n"
+"Їх було вимкнено."
 
 msgid ""
 "Layer height too small\n"
@@ -5941,42 +5966,53 @@ msgstr "Збільшення/зменшення області редагува�
 msgid "Sequence"
 msgstr "Послідовність"
 
+# AI Translated
 msgid "Plate center of mass"
-msgstr ""
+msgstr "Центр мас пластини"
 
+# AI Translated
 msgid "Part center of mass"
-msgstr ""
+msgstr "Центр мас частини"
 
+# AI Translated
 msgid "Support center of mass"
-msgstr ""
+msgstr "Центр мас підтримок"
 
+# AI Translated
 msgid "Assembly center of mass"
-msgstr ""
+msgstr "Центр мас збірки"
 
+# AI Translated
 msgid "Object center of mass"
-msgstr ""
+msgstr "Центр мас обʼєкта"
 
+# AI Translated
 msgid "Finished print"
-msgstr ""
+msgstr "Завершений друк"
 
+# AI Translated
 #, boost-format
 msgid "Printed up to layer %1%"
-msgstr ""
+msgstr "Надруковано до шару %1%"
 
+# AI Translated
 msgid "Weight"
-msgstr ""
+msgstr "Вага"
 
 msgid "Volume"
 msgstr "Обʼєм"
 
+# AI Translated
 msgid "Center in bounding box"
-msgstr ""
+msgstr "Центр в обмежувальній рамці"
 
+# AI Translated
 msgid "Bounding box size"
-msgstr ""
+msgstr "Розмір обмежувальної рамки"
 
+# AI Translated
 msgid "Moment of inertia"
-msgstr ""
+msgstr "Момент інерції"
 
 msgid "Object selection"
 msgstr "Вибір обʼєкта"
@@ -6195,11 +6231,13 @@ msgstr "Лінії сітки"
 msgid "Labels"
 msgstr "Підписи"
 
+# AI Translated
 msgid "Center of mass"
-msgstr ""
+msgstr "Центр мас"
 
+# AI Translated
 msgid "Show raw G-code (belt only)"
-msgstr ""
+msgstr "Показати необроблений G-code (лише стрічкові принтери)"
 
 # AI Translated
 msgid "Move section plane"
@@ -6251,7 +6289,7 @@ msgid "Size:"
 msgstr "Розмір:"
 
 # AI Translated
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Виявлено конфлікти шляхів G-code на шарі %d, Z = %.2lf мм. Будь ласка, рознесіть конфліктуючі обʼєкти далі один від одного (%s <-> %s)."
 
@@ -6429,18 +6467,8 @@ msgstr "Підготовка"
 msgid "Preview"
 msgstr "Перегляд"
 
-msgid "Device"
-msgstr "Пристрій"
-
-msgid "Multi-device"
-msgstr "Багато пристроїв"
-
 msgid "Project"
 msgstr "Проєкт"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Пристрій (Веб)"
 
 msgid "Yes"
 msgstr "Так"
@@ -6732,11 +6760,13 @@ msgstr "Показати лінії сітки"
 msgid "Show Gridlines on plate"
 msgstr "Показати лінії сітки на пластині"
 
+# AI Translated
 msgid "Show IDEX/IQEX Toolhead"
-msgstr ""
+msgstr "Показати головку IDEX/IQEX"
 
+# AI Translated
 msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
-msgstr ""
+msgstr "Показувати зображення головки IDEX/IQEX навколо кожного активного сопла в перегляді G-code."
 
 msgid "Reset Window Layout"
 msgstr "Скинути розташування вікон"
@@ -8456,60 +8486,77 @@ msgstr "Переглянути всі налаштування обʼєкта"
 msgid "Material settings"
 msgstr "Налаштування матеріалу"
 
+# AI Translated
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
-msgstr ""
+msgstr "Кожен режим визначає, які головки беруть у ньому участь і яку роль виконує кожна з них. Натисніть кнопку інструмента, щоб змінити його роль по колу, — наведіть курсор на колір нижче, щоб побачити, що робить кожна роль."
 
+# AI Translated
 msgid "Add Mode"
-msgstr ""
+msgstr "Додати режим"
 
 # AI Translated
 msgid "Tools"
 msgstr "Інструменти"
 
+# AI Translated
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
+# AI Translated
 msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
-msgstr ""
+msgstr "Назва режиму в перемикачі режимів IDEX/IQEX пластини. Обовʼязкове поле — режим без назви неможливо вибрати."
 
+# AI Translated
 msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
-msgstr ""
+msgstr "Які головки беруть участь у режимі та яку роль виконує кожна з них. Натисніть плитку, щоб змінити її роль по колу."
 
+# AI Translated
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
-msgstr ""
+msgstr "G-code, що виконується на початку друку, щоб перевести принтер у цей режим (наприклад, виклик SET_PRINT_MODE у Klipper). Слайсер генерує лише траєкторії основного інструмента (Primary); рештою керує прошивка."
 
+# AI Translated
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
-msgstr ""
+msgstr "Виконує всі нарізані траєкторії. Завжди інструмент 0 — щоб вибрати, який кут столу він займає, використайте «Положення інструмента 0» вище. Його не можна перемістити із сітки."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
-msgstr ""
+msgstr "Повторює рухи основного інструмента (Primary) на рівні прошивки, друкуючи ті самі траєкторії зі зміщенням у власну зону."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
-msgstr ""
+msgstr "Повторює рухи основного інструмента (Primary) на рівні прошивки, друкуючи ті самі траєкторії, віддзеркалені відносно межі між двома зонами."
 
+# AI Translated
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
-msgstr ""
+msgstr "Позначає інструмент на порталі основного інструмента (Primary) як його партнера для багатокольорового друку. Потрібно, щоб дозволити багатокольоровий друк у режимах зі спареними порталами."
 
+# AI Translated
 msgid "Primary"
-msgstr ""
+msgstr "Основний"
 
+# AI Translated
 msgid "Mode name (required)"
-msgstr ""
+msgstr "Назва режиму (обовʼязково)"
 
+# AI Translated
 msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
-msgstr ""
+msgstr "Назва цього паралельного режиму, як вона відображається в перемикачі режимів IDEX/IQEX пластини. Режим зберігається в проєкті за назвою, тому після перейменування режиму, який уже використовують пластини, вони повертаються до режиму «Основний». Не може бути порожньою — порожню назву буде замінено згенерованою."
 
+# AI Translated
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
-msgstr ""
+msgstr "G-code, що виводиться один раз на початку друку в цьому режимі, перед стартовим G-code. Тут принтер переводиться у відповідний режим прошивки — наприклад, викликом SET_PRINT_MODE у Klipper або M567 у RepRapFirmware, — оскільки слайсер генерує лише траєкторії основного інструмента (Primary), а інструментами копії (Copy) і дзеркала (Mirror) керує прошивка. Підтримуються заповнювачі; щоб переглянути їх, скористайтеся кнопкою редагування. Залиште порожнім, якщо режим не потребує налаштування прошивки."
 
+# AI Translated
 msgid "Edit G-code / browse placeholders"
-msgstr ""
+msgstr "Редагувати G-code / переглянути заповнювачі"
 
+# AI Translated
 msgid "Remove mode"
-msgstr ""
+msgstr "Вилучити режим"
 
+# AI Translated
 msgid "Discard in-session edits to this mode (snap back to saved value)"
-msgstr ""
+msgstr "Скасувати зміни цього режиму в поточному сеансі (повернути збережене значення)"
 
 msgid "Remove current plate (if not last one)"
 msgstr "Вилучити поточну пластину (якщо вона не остання)"
@@ -8535,16 +8582,19 @@ msgstr "Змінити назву поточної пластини"
 msgid "Move plate to the front"
 msgstr "Перемістити пластину на перед"
 
+# AI Translated
 #, boost-format
 msgid " (process preset: %1%)"
-msgstr ""
+msgstr " (пресет процесу: %1%)"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
-msgstr ""
+msgstr "Режим IDEX/IQEX: %1% (ліва кнопка миші — перемкнути, права — меню)"
 
+# AI Translated
 msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
-msgstr ""
+msgstr "Попередження: ця пластина використовує паралельний режим IDEX/IQEX з багатоматеріальними обʼєктами. Дійте обережно — переконайтеся, що ваш G-code правильно обробляє таке поєднання."
 
 msgid "Customize current plate"
 msgstr "Пристосувати поточну пластину"
@@ -8695,8 +8745,9 @@ msgstr "Змішаний філамент"
 msgid "Remove last mixed filament"
 msgstr "Вилучити останній змішаний філамент"
 
+# AI Translated
 msgid "Remove all mixed filaments"
-msgstr ""
+msgstr "Вилучити всі змішані філаменти"
 
 # AI Translated
 msgid "Add mixed filament"
@@ -8720,9 +8771,10 @@ msgstr "У змішаного філаменту пошкоджені посил
 msgid "Edit / Delete / Merge"
 msgstr "Редагувати / Видалити / Обʼєднати"
 
+# AI Translated
 #, boost-format
 msgid "Remove all %1% mixed filaments?"
-msgstr ""
+msgstr "Вилучити всі змішані філаменти (%1%)?"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -9013,11 +9065,14 @@ msgstr "Вимкнути авто-кидання, щоб зберегти роз
 msgid "Object with floating parts was detected"
 msgstr "Виявлено обʼєкт з плаваючими частинами"
 
+# AI Translated
 msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Неможливо нарізати: обʼєкт перекриває область, зарезервовану для паралельного друку IDEX/IQEX (вторинну зону або смугу зазору каретки всередині основної зони)."
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower is unsettled (⚠); used the catalog's existing 'підготовча вежа'.
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Неможливо нарізати: підготовча вежа перекриває область, зарезервовану для паралельного друку IDEX/IQEX (вторинну зону або смугу зазору каретки всередині основної зони)."
 
 msgid "Another export job is running."
 msgstr "Виконується інше завдання експорту."
@@ -9101,37 +9156,49 @@ msgstr "Неправильні дані"
 msgid "Slicing Canceled"
 msgstr "Нарізка скасована"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
-msgstr ""
+msgstr "Конфлікт температури столу: T%d (%s) встановлює для столу %d°C — T%d (%s) потребує %d°C. Столом керує основний інструмент; вторинні інструменти друкують за температурою, яку він встановлює."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
-msgstr ""
+msgstr "Невідповідність типів філаменту: T%d використовує %s, а T%d — %s. Ці матеріали мають несумісні вимоги й не призначені для спільного друку."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
 "\n"
 msgstr ""
+"На пластині %d активний паралельний режим IDEX/IQEX з такими зауваженнями:\n"
+"\n"
 
+# AI Translated
 msgid "Continue slicing?"
-msgstr ""
+msgstr "Продовжити нарізку?"
 
+# AI Translated
 msgid "IDEX/IQEX Parallel Mode Warning"
-msgstr ""
+msgstr "Попередження паралельного режиму IDEX/IQEX"
 
+# AI Translated
 msgid "Don't show these warnings again"
-msgstr ""
+msgstr "Більше не показувати ці попередження"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plate %d:\n"
-msgstr ""
+msgstr "Пластина %d:\n"
 
+# AI Translated
 msgid ""
 "The following IDEX/IQEX parallel mode concerns were detected:\n"
 "\n"
 msgstr ""
+"Виявлено такі зауваження щодо паралельного режиму IDEX/IQEX:\n"
+"\n"
 
 msgid "Network plug-in switched successfully."
 msgstr "Мережевий плагін змінено успішно."
@@ -9166,8 +9233,9 @@ msgstr ""
 msgid "Sync now"
 msgstr "Синхронізувати зараз"
 
+# AI Translated
 msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
-msgstr ""
+msgstr "Неможливо скасувати чи повторити дію, поки виконується операція. Зупиніть операцію або дочекайтеся її завершення й повторіть спробу."
 
 # AI Translated
 msgid ""
@@ -9239,10 +9307,13 @@ msgstr "Завантаження не вдалося через виняток �
 msgid "Project downloaded %d%%"
 msgstr "Проект завантажено %d%%"
 
+# AI Translated
 msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
+"Тести «РА лінія» та «PA Патерн» поки що недоступні на стрічкових принтерах.\n"
+"Використовуйте натомість метод «РА Вежа»."
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -9271,12 +9342,14 @@ msgstr "Калібрування потоку Orca YOLO"
 msgid "Flowrate Test - Pass%d"
 msgstr "Тест потоку - Прохід %d"
 
+# AI Translated
 #, boost-format
 msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
-msgstr ""
+msgstr "Для діапазону від %1% до %2% °C немає температурної вежі для стрічкових принтерів. Використайте діапазон, який охоплюють моделі веж, наприклад від 230 до 190."
 
+# AI Translated
 msgid "Temperature tower"
-msgstr ""
+msgstr "Температурна вежа"
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -11795,8 +11868,9 @@ msgstr "Синхронізація різних приводів екструд�
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Синхронізувати зміну параметрів з відповідними параметрами іншого екструдера."
 
+# AI Translated
 msgid "Parameters with this icon can be configurable per nozzle."
-msgstr ""
+msgstr "Параметри з цим значком можна налаштовувати для кожного сопла окремо."
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Натисніть, щоб скинути всі налаштування до останнього збереженого пресету."
@@ -12236,11 +12310,13 @@ msgstr "Місце для друку"
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "Виберіть реалізацію мережевого агента для звʼязку з принтером. Доступні агенти реєструються під час запуску."
 
+# AI Translated
 msgid "Belt printer"
-msgstr ""
+msgstr "Стрічковий принтер"
 
+# AI Translated
 msgid "Machine frame transforms"
-msgstr ""
+msgstr "Перетворення машинної системи координат"
 
 #. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
@@ -12360,23 +12436,28 @@ msgstr "Діаметр сопла"
 msgid "Wipe tower"
 msgstr "Вежа протирання"
 
+# AI Translated
 msgid "Belt purge tower"
-msgstr ""
+msgstr "Вежа очищення стрічки"
 
 msgid "Single extruder multi-material parameters"
 msgstr "Параметри екструдеру в багато-екструдерному принтері"
 
+# AI Translated
 msgid "IDEX/IQEX Configuration"
-msgstr ""
+msgstr "Конфігурація IDEX/IQEX"
 
+# AI Translated
 msgid "Pre-slice warnings"
-msgstr ""
+msgstr "Попередження перед нарізкою"
 
+# AI Translated
 msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
-msgstr ""
+msgstr "Показувати діалогове вікно з попередженням перед нарізкою, якщо виявлено проблеми паралельного режиму IDEX/IQEX (конфлікти температури столу, невідповідність типів філаменту, конфлікти кількох матеріалів). Його можна вимкнути в самому діалоговому вікні. Увімкніть тут знову, якщо вимкнули випадково."
 
+# AI Translated
 msgid "Modes"
-msgstr ""
+msgstr "Режими"
 
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
 msgstr "Це принтер з підтримкою декількох матеріалів одним екструдером, діаметри всіх екструдерів буде замінено новим значенням. Хочете продовжити?"
@@ -12387,17 +12468,21 @@ msgstr "Обмеження висоти шару"
 msgid "Z-Hop"
 msgstr "Стрибок-Z"
 
+# AI Translated
 msgid "Front-left"
-msgstr ""
+msgstr "Спереду ліворуч"
 
+# AI Translated
 msgid "Front-right"
-msgstr ""
+msgstr "Спереду праворуч"
 
+# AI Translated
 msgid "Rear-left"
-msgstr ""
+msgstr "Ззаду ліворуч"
 
+# AI Translated
 msgid "Rear-right"
-msgstr ""
+msgstr "Ззаду праворуч"
 
 # AI Translated
 msgid ""
@@ -12517,9 +12602,10 @@ msgstr "Продовжити"
 msgid "Don't warn again for this preset"
 msgstr "Більше не попереджати для цього пресету"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 msgid "No modifications need to be copied."
 msgstr "Немає змін для копіювання."
@@ -13012,29 +13098,36 @@ msgstr "Не вдалося ввійти. Спробуйте ще раз."
 msgid "parse json failed"
 msgstr "не вдалося зчитати json"
 
+# AI Translated
 msgid "Loading…"
-msgstr ""
+msgstr "Завантаження…"
 
+# AI Translated
 msgid "Welcome to Orca Slicer"
-msgstr ""
+msgstr "Ласкаво просимо до Orca Slicer"
 
+# AI Translated
 msgid "Orca Slicer will be set up in several steps. Let's start!"
-msgstr ""
+msgstr "Orca Slicer буде налаштовано за кілька кроків. Почнімо!"
 
+# AI Translated
 msgid "Get Started"
-msgstr ""
+msgstr "Почати"
 
+# AI Translated
 msgid "Please select your login region"
-msgstr ""
+msgstr "Виберіть регіон входу"
 
 msgid "Finish"
 msgstr "Завершити"
 
+# AI Translated
 msgid "Printer Selection"
-msgstr ""
+msgstr "Вибір принтера"
 
+# AI Translated
 msgid "Vendors"
-msgstr ""
+msgstr "Виробники"
 
 # AI Translated
 msgid "Custom Printer"
@@ -13043,36 +13136,46 @@ msgstr "Власний принтер"
 msgid "Create"
 msgstr "Створити"
 
+# AI Translated
 msgid "Check for new printers"
-msgstr ""
+msgstr "Перевірити наявність нових принтерів"
 
+# AI Translated
 msgid "At least one printer must be selected."
-msgstr ""
+msgstr "Потрібно вибрати принаймні один принтер."
 
+# AI Translated
 msgid "New printers found"
-msgstr ""
+msgstr "Знайдено нові принтери"
 
+# AI Translated
 #, c-format, boost-format
 msgid "New printer vendors installed: %s"
-msgstr ""
+msgstr "Встановлено нових виробників принтерів: %s"
 
+# AI Translated
 msgid "New printer vendors were found, but installation was cancelled."
-msgstr ""
+msgstr "Знайдено нових виробників принтерів, але встановлення скасовано."
 
+# AI Translated
 msgid "No new printers found."
-msgstr ""
+msgstr "Нових принтерів не знайдено."
 
+# AI Translated
 msgid "Filament Selection"
-msgstr ""
+msgstr "Вибір філаменту"
 
+# AI Translated
 msgid "System Filaments"
-msgstr ""
+msgstr "Системні філаменти"
 
+# AI Translated
 msgid "Custom Filaments"
-msgstr ""
+msgstr "Власні філаменти"
 
+# AI Translated
 msgid "Create New"
-msgstr ""
+msgstr "Створити новий"
 
 msgid "Filament type"
 msgstr "Тип філаменту"
@@ -13080,30 +13183,37 @@ msgstr "Тип філаменту"
 msgid "Vendor"
 msgstr "Виробник"
 
+# AI Translated
 msgid "No items"
-msgstr ""
+msgstr "Немає елементів"
 
+# AI Translated
 msgid "Filter items"
-msgstr ""
+msgstr "Фільтрувати елементи"
 
+# AI Translated
 msgid "Checked"
-msgstr ""
+msgstr "Позначені"
 
+# AI Translated
 msgid "Unchecked"
-msgstr ""
+msgstr "Непозначені"
 
+# AI Translated
 msgid "Select filtered"
-msgstr ""
+msgstr "Вибрати відфільтроване"
 
 # AI Translated
 msgid "Clear all"
 msgstr "Очистити все"
 
+# AI Translated
 msgid "At least one filament must be selected."
-msgstr ""
+msgstr "Потрібно вибрати принаймні один філамент."
 
+# AI Translated
 msgid "Do you want to use the default filament?"
-msgstr ""
+msgstr "Бажаєте використати філамент за замовчуванням?"
 
 msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
 msgstr "Це вимикає всі хмарні функції, зокрема синхронізацію профілів Orca Cloud. Користувачі, які надають перевагу повністю автономній роботі, можуть увімкнути цю опцію."
@@ -13111,20 +13221,25 @@ msgstr "Це вимикає всі хмарні функції, зокрема �
 msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
 msgstr "Примітка: коли увімкнено прихований режим, ваші профілі користувача не резервуватимуться в Orca Cloud."
 
+# AI Translated
 msgid "Enable Stealth Mode."
-msgstr ""
+msgstr "Увімкнути прихований режим."
 
+# AI Translated
 msgid "Proprietary Plugins"
-msgstr ""
+msgstr "Пропрієтарні плагіни"
 
+# AI Translated
 msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
-msgstr ""
+msgstr "Деякі виробники принтерів потребують пропрієтарних плагінів для звʼязку зі своїми принтерами. Виберіть відповідний плагін, якщо користуєтеся такими принтерами."
 
+# AI Translated
 msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
-msgstr ""
+msgstr "Зверніть увагу, що ці плагіни не розробляються й не підтримуються OrcaSlicer. Використовуйте їх на власний розсуд і ризик."
 
+# AI Translated
 msgid "Install Bambu Network plug-in"
-msgstr ""
+msgstr "Встановити мережевий плагін Bambu"
 
 msgid "[Action Required] "
 msgstr "[Необхідна дія] "
@@ -13591,13 +13706,15 @@ msgstr "G-code ролі екструзіх зміни філаменту"
 msgid "No object can be printed. It may be too small."
 msgstr "Жодний обʼєкт не може бути надрукований. Можливо, занадто маленький"
 
+# AI Translated
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
-msgstr ""
+msgstr "Режиму IDEX/IQEX «%1%» не призначено жодного інструмента на вибраному принтері. Натомість друк виконуватиметься в режимі «Основний». Призначте інструменти режиму в налаштуваннях принтера або виберіть інший режим кнопкою IDEX/IQEX на пластині."
 
+# AI Translated
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
-msgstr ""
+msgstr "Для цієї пластини встановлено режим IDEX/IQEX «%1%», який не визначено для вибраного принтера. Натомість друк виконуватиметься в режимі «Основний». Виберіть режим кнопкою IDEX/IQEX на пластині або відновіть режим у налаштуваннях принтера."
 
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "Ваша модель для друку розташована дуже близький до основних областей. Переконайтесь, що немає зіткнення."
@@ -13774,25 +13891,31 @@ msgstr "валідація не пройшла"
 msgid "write callback failed"
 msgstr "збій зворотного виклику запису"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
-msgstr ""
+msgstr "Багатокольоровий друк у паралельних режимах IDEX/IQEX потребує, щоб кожен філамент мав власний фізичний екструдер. Два або більше активних філаменти спрямовано на ту саму фізичну головку через карту фізичних екструдерів принтера (колектор MMU/AFC), чого ведений портал не може відтворити."
 
+# AI Translated
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
-msgstr ""
+msgstr "Активний режим IDEX/IQEX не визначає основного інструмента, тому багатокольоровий друк неможливо запланувати. Відкрийте редактор режимів IDEX/IQEX у налаштуваннях принтера й призначте одному інструменту роль «Основний» (Primary)."
 
+# AI Translated
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
-msgstr ""
+msgstr "Багатокольоровий друк у цьому режимі не є сценарієм паралельного друку — усі активні інструменти розташовані на одному порталі, тож немає другого порталу, на який виконувалося б копіювання чи віддзеркалення. Перемкніть пластину в режим «Основний» для багатокольорового друку на одному порталі або визначте режим IDEX/IQEX з інструментами на другому порталі."
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
-msgstr ""
+msgstr "Багатокольоровий друк у паралельних режимах IDEX/IQEX потребує інструмента Span на порталі основного інструмента — без нього режим не визначає партнера для багатокольорового друку в межах порталу. Скоротіть друк до одного філаменту, перейдіть у режим «Основний» або відкрийте редактор режимів IDEX/IQEX у налаштуваннях принтера й позначте інструмент на порталі основного інструмента як Span."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "У цьому режимі Span кольоровий друк можливий лише на %1%, але філамент %2% не спрямовано на жоден інструмент. Використовуйте філаменти, спрямовані на %1%, або перемкніть цю пластину в режим «Основний»."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "У цьому режимі Span кольоровий друк можливий лише на %1%, але філамент %2% спрямовано на T%3%. Використовуйте філаменти, спрямовані на %1%, або перемкніть цю пластину в режим «Основний»."
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -13849,42 +13972,55 @@ msgstr "Якщо ви все одно хочете друкувати, може�
 msgid "No extrusions under current settings."
 msgstr "Немає екструзій під час поточних налаштувань."
 
+# AI Translated
 msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
-msgstr ""
+msgstr "Змішані філаменти не підтримуються в паралельних режимах IDEX/IQEX. Перемкніть цю пластину в режим «Основний»."
 
+# AI Translated
+# Needs human review: Substituted as %3% into 'this plate's filaments are on %3%' (translated 'призначено на %3%'); check the full sentence reads right.
 msgid "no configured tool"
-msgstr ""
+msgstr "інструмент, якого немає в налаштуваннях"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "Режим IDEX/IQEX «%1%» друкує інструментом T%2%, але філаменти цієї пластини призначено на %3%. Призначте філамент, завантажений у T%2%, або перемкніть цю пластину в режим «Основний»."
 
+# AI Translated
 msgid "Raft is not compatible with belt printer mode."
-msgstr ""
+msgstr "Підкладка несумісна з режимом стрічкового принтера."
 
+# AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
-msgstr ""
+msgstr "Захисний екран несумісний з режимом стрічкового принтера."
 
+# AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr ""
+msgstr "Кайма несумісна з режимом спіральної вази на стрічковому принтері. Вимкніть одне з двох."
 
+# AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr ""
+msgstr "Нахил стрічки надто крутий для кайми, тому кайму не буде створено."
 
+# AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr ""
+msgstr "Кайма створюється лише тоді, коли стрічка нахилена. Задайте кут нахилу стрічки або приберіть налаштування кайми."
 
+# AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr ""
+msgstr "Стрічкові принтери підтримують лише зовнішню та внутрішню кайму. Типи «Авто», «Мишаче вушко» та «Мальована» друкуються як «Тільки зовні» з використанням параметра «Ширина кайми»."
 
+# AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr ""
+msgstr "«Зазор між каймою та обʼєктом» відокремлює передню кайму від переднього краю обʼєкта, який вона має закріплювати. Установіть зазор 0, якщо використовуєте «Довжину передньої кайми»."
 
+# AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr ""
+msgstr "«Довжина передньої кайми» подовжує кайму перед кожним обʼєктом уздовж стрічки, а «Впорядкувати» не резервує це місце. Залишайте простір між обʼєктами."
 
+# AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr ""
+msgstr "Кайма «Тільки передній край» застосовується до стрічкових принтерів. На цьому принтері вона друкується як звичайна зовнішня кайма."
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -13897,14 +14033,17 @@ msgstr "Плавний режим таймлапсу не підтримуєть
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "Виявлення налипання не підтримується, коли увімкнено послідовність «по обʼєктах»."
 
+# AI Translated
 msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
-msgstr ""
+msgstr "Вежа очищення стрічки не створюється в послідовності друку «По обʼєктах»; під час зміни філаменту очищення не виконуватиметься."
 
+# AI Translated
 msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
-msgstr ""
+msgstr "Вежу очищення стрічки увімкнено, але в проєкті немає обʼєкта вежі очищення; під час зміни філаменту очищення не виконуватиметься. Відкрийте проєкт у застосунку, щоб створити вежу."
 
+# AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr ""
+msgstr "Проєкт містить кілька керованих веж очищення стрічки. Перезавантажте пластину або вимкніть і знову увімкніть вежу очищення стрічки, щоб створити її заново."
 
 # AI Translated
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
@@ -14950,9 +15089,11 @@ msgstr "Швидкість внутрішніх мостів. Якщо знач�
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "Відстань від моделі до останньої зовнішньої лінії кайми"
 
+# AI Translated
 msgid "Leading brim length"
-msgstr ""
+msgstr "Довжина передньої кайми"
 
+# AI Translated
 msgid ""
 "Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
 "\n"
@@ -14962,10 +15103,19 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Лише для стрічкових принтерів. Подовжує кайму ПОПЕРЕДУ обʼєкта вздовж стрічки на кожному краї його області контакту, оберненому вниз за схилом, — як у місці першого контакту обʼєкта зі стрічкою, так і для будь-якого острівця, що опускається на неї пізніше. Цей фартух укладається на стрічку раніше, ніж до неї дійде обʼєкт, тож передній край має за що триматися.\n"
+"\n"
+"Вимірюється на поверхні стрічки й додається до ширини кайми: кайма сягає «Зазор між каймою та обʼєктом» + «Довжина передньої кайми» + «Ширина кайми» попереду обʼєкта. Установіть «Зазор між каймою та обʼєктом» на 0, інакше фартух не торкнеться обʼєкта, який має закріплювати.\n"
+"\n"
+"На нахиленій стрічці кожен шар укладає одну смугу кайми, тому товщина утвореного полотна кайми визначається потоком, а не висотою шару. Для її налаштування використовуйте «Коефіцієнт потоку кайми».\n"
+"\n"
+"Встановіть 0, щоб вимкнути."
 
+# AI Translated
 msgid "Extra brim width"
-msgstr ""
+msgstr "Додаткова ширина кайми"
 
+# AI Translated
 msgid ""
 "Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
 "\n"
@@ -14973,6 +15123,11 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Лише для стрічкових принтерів. Розширює кайму В БОКИ, поперек стрічки, не подовжуючи її попереду чи позаду обʼєкта. Використовуйте, коли обʼєкту потрібне сильніше зчеплення по всій довжині, ніж дає сама «Ширина кайми».\n"
+"\n"
+"Вимірюється на поверхні стрічки й додається до ширини кайми: кайма сягає «Зазор між каймою та обʼєктом» + «Ширина кайми» + «Додаткова ширина кайми» з кожного боку обʼєкта. Щоб натомість подовжити кайму попереду обʼєкта, використовуйте «Довжина передньої кайми».\n"
+"\n"
+"Встановіть 0, щоб вимкнути."
 
 msgid "Brim type"
 msgstr "Тип кайми"
@@ -14980,8 +15135,9 @@ msgstr "Тип кайми"
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "Керує генерацією кайми на зовнішніх та/або внутрішніх сторонах моделей. Авто означає, що ширина кайми аналізується та визначається автоматично."
 
+# AI Translated
 msgid "Leading edge only"
-msgstr ""
+msgstr "Тільки передній край"
 
 msgid "Brim-object gap"
 msgstr "Зазор між каймою та обʼєктом"
@@ -16275,9 +16431,12 @@ msgstr "Багатолінійне заповнення"
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "Використання кількох ліній для шаблону заповнення, якщо шаблон це підтримує."
 
+# AI Translated
 msgid "Adaptive density (experimental)"
-msgstr ""
+msgstr "Адаптивна щільність (експериментально)"
 
+# AI Translated
+# Needs human review: Option names (Деформація за відстанню, Плавне змішування, Ступінчасті оболонки, Частки, Нормаль) are new; check they read well in the Adaptive density dropdown.
 msgid ""
 "Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
 "Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
@@ -16287,53 +16446,78 @@ msgid ""
 " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
 " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
 msgstr ""
+"Поступово змінює щільність заповнення «Гіроїд» і TPMS усередині обʼєкта: його комірки збільшуються від поверхні обʼєкта до центру. Біля поверхні використовується щільність часткового заповнення, а в центрі — внутрішня щільність.\n"
+"«Деформація за відстанню», «Плавне змішування» та «Ступінчасті оболонки» враховують відстань до найближчої поверхні, зокрема верхньої та нижньої, а внутрішня щільність припадає на найвіддаленішу від неї точку:\n"
+" - Деформація за відстанню: один безперервний шаблон, розтягнутий і зсунутий там, де відстань змінюється по-різному в різних напрямках, як у пластинах і довгих частинах.\n"
+" - Плавне змішування: шаблони сусідніх щільностей плавно переходять один в одний, з невеликими петлями в місцях стику.\n"
+" - Ступінчасті оболонки: оболонки звичайного шаблону зі щільностями, що відрізняються приблизно в 1,5 раза, а їхні лінії зʼєднано вздовж меж оболонок.\n"
+" - Частки: враховує 3D-форму обʼєкта, зокрема його верхню й нижню частини. Кожна частка — частина, зʼєднана з рештою вужчою шийкою, — має власний градієнт до свого центру.\n"
+" - Нормаль Z, Y або X: враховує перерізи обʼєкта, перпендикулярні до цієї осі, тож уздовж неї щільність не змінюється."
 
+# AI Translated
 msgid "Distance warp"
-msgstr ""
+msgstr "Деформація за відстанню"
 
+# AI Translated
 msgid "Smooth blend"
-msgstr ""
+msgstr "Плавне змішування"
 
+# AI Translated
 msgid "Stepped shells"
-msgstr ""
+msgstr "Ступінчасті оболонки"
 
+# AI Translated
+# Needs human review: Adaptive density option: shape lobes joined by a narrow neck; check 'Частки' reads right in the dropdown.
 msgid "Lobes"
-msgstr ""
+msgstr "Частки"
 
+# AI Translated
 msgid "Normal Z"
-msgstr ""
+msgstr "Нормаль Z"
 
+# AI Translated
 msgid "Normal Y"
-msgstr ""
+msgstr "Нормаль Y"
 
+# AI Translated
 msgid "Normal X"
-msgstr ""
+msgstr "Нормаль X"
 
+# AI Translated
 msgid "Interior density"
-msgstr ""
+msgstr "Внутрішня щільність"
 
+# AI Translated
 msgid "Density of the adaptive infill at the center of the object."
-msgstr ""
+msgstr "Щільність адаптивного заповнення в центрі обʼєкта."
 
+# AI Translated
 msgid "Adaptive gradient"
-msgstr ""
+msgstr "Адаптивний градієнт"
 
+# AI Translated
 msgid ""
 "How the density changes from the surface to the center of the object.\n"
 "Linear: the density changes at a constant rate.\n"
 "Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
 "Exponential: the density changes quickly just below the surface and levels off towards the center."
 msgstr ""
+"Як змінюється щільність від поверхні до центру обʼєкта.\n"
+"Лінійний: щільність змінюється з постійною швидкістю.\n"
+"Квадратичний: біля поверхні щільність залишається близькою до щільності часткового заповнення й швидше змінюється ближче до центру.\n"
+"Експоненційний: щільність швидко змінюється одразу під поверхнею й вирівнюється ближче до центру."
 
 # AI Translated
 msgid "Linear"
 msgstr "Лінійний"
 
+# AI Translated
 msgid "Quadratic"
-msgstr ""
+msgstr "Квадратичний"
 
+# AI Translated
 msgid "Exponential"
-msgstr ""
+msgstr "Експоненційний"
 
 # AI Translated
 msgid "Z-buckling bias optimization (experimental)"
@@ -18688,98 +18872,129 @@ msgstr "Мульти-матеріальний (ММ) друк з одним ек
 msgid "Use single nozzle to print multi filament."
 msgstr "Використовувати одне сопло для друку декількома філаментами"
 
+# AI Translated
 msgid "IDEX/IQEX Printer"
-msgstr ""
+msgstr "Принтер IDEX/IQEX"
 
+# AI Translated
 msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
-msgstr ""
+msgstr "Увімкнути паралельний друк для принтерів із кількома незалежними каретками (IDEX, IQEX тощо)."
 
+# AI Translated
 msgid "Firmware-managed zones"
-msgstr ""
+msgstr "Зони, керовані прошивкою"
 
+# AI Translated
 msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-msgstr ""
+msgstr "Якщо увімкнено, слайсер генерує G-code із вмістом основної зони, відцентрованим відносно початку координат столу (0,0). За розміщення копій і дзеркальних відображень у кожній фізичній зоні відповідає прошивка принтера. Вмикайте лише на принтерах, прошивка яких сама застосовує зміщення зон у режимі копії чи дзеркала (наприклад, режим дублювання IDEX у RepRapFirmware). Не діє в режимі «Основний»."
 
+# AI Translated
 msgid "Gantry Count"
-msgstr ""
+msgstr "Кількість порталів"
 
+# AI Translated
 msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
-msgstr ""
+msgstr "Кількість незалежних порталів по осі Y. 1 для IDEX/однорейкових IQEX. 2 для систем із двома порталами (ділить стіл на ряди)."
 
+# AI Translated
 msgid "Tools per Gantry"
-msgstr ""
+msgstr "Інструментів на портал"
 
+# AI Translated
 msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
-msgstr ""
+msgstr "Кількість незалежних головок на одному порталі вздовж X. 2 для систем типу IDEX."
 
+# AI Translated
 msgid "Tool 0 Position"
-msgstr ""
+msgstr "Положення інструмента 0"
 
+# AI Translated
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
-msgstr ""
+msgstr "Фізичне положення на столі, де розташований інструмент T0 (індекс 0). Визначає, як індекси інструментів відповідають зонам столу. Для систем з одним порталом (IDEX) має значення лише лівий чи правий бік; для систем із двома порталами (IQEX) можна вибрати будь-який із чотирьох кутів (спереду = менший Y / ближче до оператора, ззаду = більший Y / задня частина машини)."
 
+# AI Translated
 msgid "Nozzle Clearance X"
-msgstr ""
+msgstr "Зазор сопла X"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
-msgstr ""
+msgstr "Відстань (мм) від сопла до краю каретки з боку можливого зіткнення по X. Використовується для обчислення ширини смуги виключення зіткнень на кожній межі X."
 
+# AI Translated
 msgid "Nozzle Clearance Y"
-msgstr ""
+msgstr "Зазор сопла Y"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
-msgstr ""
+msgstr "Відстань (мм) від сопла до краю каретки з боку можливого зіткнення по Y. Використовується для обчислення ширини смуги виключення зіткнень на кожній межі Y."
 
+# AI Translated
 msgid "Safety Margin"
-msgstr ""
+msgstr "Запас безпеки"
 
+# AI Translated
 msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
-msgstr ""
+msgstr "Рекомендаційна смуга зазору (мм), яка не блокує нарізку й відображається всередині основної зони на кожній межі каретки. Обʼєкти, розміщені в цій смузі, однаково буде нарізано; це лише візуальне нагадування залишати додатковий зазор біля краю зони."
 
+# AI Translated
 msgid "Visualization Theme"
-msgstr ""
+msgstr "Тема візуалізації"
 
+# AI Translated
 msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
-msgstr ""
+msgstr "Колірна тема для візуалізації зон столу IDEX/IQEX. За потреби виберіть тему, зручну для людей з порушеннями кольорового зору."
 
+# AI Translated
 msgid "Deuteranopia / Protanopia (red-green)"
-msgstr ""
+msgstr "Дейтеранопія / Протанопія (червоний-зелений)"
 
+# AI Translated
 msgid "Tritanopia (blue-yellow)"
-msgstr ""
+msgstr "Тританопія (синій-жовтий)"
 
+# AI Translated
 msgid "High Contrast"
-msgstr ""
+msgstr "Висока контрастність"
 
+# AI Translated
 msgid "IDEX/IQEX Print Mode"
-msgstr ""
+msgstr "Режим друку IDEX/IQEX"
 
+# AI Translated
 msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
-msgstr ""
+msgstr "Назва активного паралельного режиму друку IDEX/IQEX або \"primary\" для друку однією кареткою. Потребує ввімкненого параметра «Принтер IDEX/IQEX» у пресеті принтера (Принтер → Мультиматеріал → Конфігурація IDEX/IQEX)."
 
+# AI Translated
 msgid "IDEX/IQEX head filament map"
-msgstr ""
+msgstr "Карта філаментів головок IDEX/IQEX"
 
+# AI Translated
 msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr ""
+msgstr "Перевизначення для пластини, що зіставляє фізичні головки зі слотами філаменту (нумерація з 1). Порожнє значення означає типові значення з інверсії pem."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Names"
-msgstr ""
+msgstr "Назви режимів IDEX/IQEX"
 
+# AI Translated
 msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
-msgstr ""
+msgstr "Відображувані назви для кожного користувацького паралельного режиму друку IDEX/IQEX."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Active Tools"
-msgstr ""
+msgstr "Активні інструменти режимів IDEX/IQEX"
 
+# AI Translated
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
-msgstr ""
+msgstr "Призначення ролей інструментів для кожного режиму. Формат: \"idx:P,idx:C,idx:M\", де P=Primary (основний), C=Copy (копія), M=Mirror (дзеркало) (наприклад, \"0:P,1:C,2:M,3:M\"). Керується редактором режимів IDEX/IQEX у пресеті принтера."
 
+# AI Translated
 msgid "IDEX/IQEX Mode G-codes"
-msgstr ""
+msgstr "G-code режимів IDEX/IQEX"
 
+# AI Translated
 msgid "G-code or macro call to inject at print start for each mode."
-msgstr ""
+msgstr "G-code або виклик макросу, що вставляється на початку друку для кожного режиму."
 
 msgid "Manual Filament Change"
 msgstr "Ручна заміна філаменту"
@@ -19172,35 +19387,45 @@ msgstr "Поріг накладання"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "Якщо пороговий кут дорівнює нулю, підтримка буде генеруватися для нависань, перекриття яких знаходиться нижче порогу. Чим менше це значення, тим крутіше нависання можна надрукувати без підтримки."
 
+# AI Translated
 msgid "Build plate tilt X"
-msgstr ""
+msgstr "Нахил столу X"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
-msgstr ""
+msgstr "Кут нахилу столу вздовж осі X. Додатне значення нахиляє стіл так, що сторона +X стає вищою, зміщуючи напрямок сили тяжіння до -X і збільшуючи нависання на стороні +X. Відʼємне значення піднімає сторону -X. Встановіть 0, щоб не нахиляти по осі X. У режимі стрічкового принтера автоматично синхронізується з кутом нахилу стрічки."
 
+# AI Translated
 msgid "Build plate tilt Y"
-msgstr ""
+msgstr "Нахил столу Y"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
-msgstr ""
+msgstr "Кут нахилу столу вздовж осі Y. Додатне значення нахиляє стіл так, що сторона +Y стає вищою, зміщуючи напрямок сили тяжіння до -Y і збільшуючи нависання на стороні +Y. Відʼємне значення піднімає сторону -Y. Встановіть 0, щоб не нахиляти по осі Y."
 
+# AI Translated
 msgid "Enable belt printing"
-msgstr ""
+msgstr "Увімкнути стрічковий друк"
 
+# AI Translated
 msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
-msgstr ""
+msgstr "Увімкнути режим стрічкового принтера. Стрічкові принтери використовують як поверхню друку конвеєрну стрічку, нахилену під кутом (зазвичай 45 градусів). Слайсер повертає площину нарізки та перетворює координати G-code для нахиленої поверхні друку."
 
+# AI Translated
 msgid "Infinite Y axis"
-msgstr ""
+msgstr "Нескінченна вісь Y"
 
+# AI Translated
 msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
-msgstr ""
+msgstr "Увімкнути нескінченну вісь Y для стрічкових принтерів. Якщо увімкнено, обмеження робочого обʼєму по осі Y фактично знімається, що дає змогу друкувати обʼєкти будь-якої довжини вздовж напрямку стрічки."
 
+# AI Translated
 msgid "Belt tilt axis"
-msgstr ""
+msgstr "Вісь нахилу стрічки"
 
+# AI Translated
 msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-msgstr ""
+msgstr "Вісь, навколо якої сітку повертають перед нарізкою. Це нахил стрічкового принтера: ізометричне (без спотворень) обертання, яке також визначає відображення столу й нахил сили тяжіння для підтримок і яке зворотне перетворення G-code скасовує перед зсувом/масштабуванням і перепризначенням осей у машинній системі координат. X — типовий нахил порталу (стрічка рухається вздовж Y)."
 
 msgid "X"
 msgstr "X"
@@ -19212,89 +19437,119 @@ msgstr "Y"
 msgid "Z"
 msgstr "Z"
 
+# AI Translated
 msgid "Belt tilt angle"
-msgstr ""
+msgstr "Кут нахилу стрічки"
 
+# AI Translated
 msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
-msgstr ""
+msgstr "Кут нахилу поверхні стрічки в градусах. Більшість стрічкових принтерів використовує 45°. Додатні значення повертають проти годинникової стрілки, якщо дивитися вздовж додатного напрямку осі нахилу; абсолютне значення також є фізичним нахилом стрічки, що використовується для відображення столу й напрямку сили тяжіння для підтримок."
 
 msgid "°"
 msgstr "°"
 
+# AI Translated
 msgid "Decouple machine-frame tilt"
-msgstr ""
+msgstr "Відокремити нахил машинної системи координат"
 
+# AI Translated
 msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-msgstr ""
+msgstr "Експертне перевизначення: задає кут нахилу машинної системи координат (зсув/масштаб G-code) незалежно від кута повороту перед нарізкою. Якщо вимкнено, перетворення машинної системи координат обчислюється з кута нахилу стрічки, тож один кут керує обома етапами. Вмикайте лише для компенсації машини, фізичний нахил порталу якої відрізняється від повороту під час нарізки."
 
+# AI Translated
 msgid "Machine-frame tilt angle"
-msgstr ""
+msgstr "Кут нахилу машинної системи координат"
 
+# AI Translated
 msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
-msgstr ""
+msgstr "Кут нахилу (у градусах), з якого обчислюються зсув (cot) і масштаб (1/|sin|) машинної системи координат, що застосовуються до G-code. Використовується лише тоді, коли ввімкнено «Відокремити нахил машинної системи координат»; інакше використовується кут нахилу стрічки."
 
+# AI Translated
 msgid "+X"
-msgstr ""
+msgstr "+X"
 
+# AI Translated
 msgid "+Y"
-msgstr ""
+msgstr "+Y"
 
+# AI Translated
 msgid "+Z"
-msgstr ""
+msgstr "+Z"
 
+# AI Translated
 msgid "-X"
-msgstr ""
+msgstr "-X"
 
+# AI Translated
 msgid "-Y"
-msgstr ""
+msgstr "-Y"
 
+# AI Translated
 msgid "-Z"
-msgstr ""
+msgstr "-Z"
 
+# AI Translated
+# Needs human review: Remap option meaning reversed axis (max - pos); check the short label fits the dropdown.
 msgid "Rev X"
-msgstr ""
+msgstr "Обернена X"
 
+# AI Translated
 msgid "Rev Y"
-msgstr ""
+msgstr "Обернена Y"
 
+# AI Translated
 msgid "Rev Z"
-msgstr ""
+msgstr "Обернена Z"
 
+# AI Translated
 msgid "G-code remap X"
-msgstr ""
+msgstr "Перепризначення осі X у G-code"
 
+# AI Translated
 msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Яка вісь нарізки відповідає осі X машини у вихідному G-code. Застосовується ПІСЛЯ нарізки, під час генерації G-code."
 
+# AI Translated
 msgid "G-code remap Y"
-msgstr ""
+msgstr "Перепризначення осі Y у G-code"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Яка вісь нарізки відповідає осі Y машини у вихідному G-code. Застосовується ПІСЛЯ нарізки, під час генерації G-code."
 
+# AI Translated
 msgid "G-code remap Z"
-msgstr ""
+msgstr "Перепризначення осі Z у G-code"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Яка вісь нарізки відповідає осі Z машини у вихідному G-code. Застосовується ПІСЛЯ нарізки, під час генерації G-code."
 
+# AI Translated
 msgid "Support Floor Z offset"
-msgstr ""
+msgstr "Зміщення Z підлоги підтримок"
 
+# AI Translated
 msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
-msgstr ""
+msgstr "Зміщує обчислену підлогу стрічки вгору або вниз (мм). Відʼємні значення опускають підлогу, завдяки чому зберігається більше підтримок. Використовуйте для діагностики проблем формули підлоги стрічки."
 
+# AI Translated
 msgid "Enable belt purge tower"
-msgstr ""
+msgstr "Увімкнути вежу очищення стрічки"
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); 'wipe/prime tower' rendered with the catalog's 'підготовча вежа' only.
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
-msgstr ""
+msgstr "Заміна підготовчої вежі для стрічкових принтерів. Якщо ввімкнено на стрічковому принтері, поруч із друкованими частинами автоматично створюється призма очищення, і очищення під час зміни філаменту виконується в неї (класичну підготовчу вежу не можна використовувати на стрічкових принтерах, бо її G-code оминає перетворення стрічки). Доступно лише на стрічкових принтерах."
 
+# AI Translated
 msgid "Belt purge tower width"
-msgstr ""
+msgstr "Ширина вежі очищення стрічки"
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); 'wipe tower' rendered with the catalog's 'підготовча вежа'.
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr ""
+msgstr "Ширина (машинна вісь X, поперек стрічки) призми очищення, яка автоматично створюється на стрічкових принтерах, коли ввімкнено вежу очищення стрічки та використовується кілька філаментів. Очищення під час зміни філаменту виконується в екструзії цієї призми замість класичної підготовчої вежі. Її висота обчислюється автоматично з найбільшого обʼєму очищення на шар: ширша призма буде нижчою."
 
 msgid "Tree support branch angle"
 msgstr "Кут гілки опори дерева"
@@ -19484,11 +19739,15 @@ msgstr "Кількість верхніх суцільних шарів збіл
 msgid "Separated infills"
 msgstr "Роздільні заповнення"
 
+# AI Translated
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
 "Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
+"Центрує внутрішнє заповнення кожної частини відносно неї самої, ніби її нарізали окремо, а не відносно всієї збірки. Частини, що торкаються або перекриваються, вважаються одним тілом і мають спільний центр; окремі частини (або різні 3D-обʼєкти) отримують власний.\n"
+"Корисно, коли збірка обʼєднує кілька обʼєктів, кожен з яких має зберігати узгоджене заповнення з центром у ньому самому.\n"
+"«Адаптивний кубічний» і «Підтримуючий кубічний» завжди центрують кожну частину відносно неї самої, а заповнення «Блискавка» створюється для всього обʼєкта, тож цей параметр на нього не впливає."
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -19727,11 +19986,13 @@ msgstr "Очищення після зміни філаменту буде ви�
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "Цей обʼєкт буде використаний для очищення сопла після зміни філаменту для економії філаменту та зменшення часу друку. В результаті кольори обʼєктів будуть змішані. Ця опція не набуде чинності, поки не включена підготовча вежа."
 
+# AI Translated
 msgid "Belt purge tower object"
-msgstr ""
+msgstr "Обʼєкт вежі очищення стрічки"
 
+# AI Translated
 msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
-msgstr ""
+msgstr "Позначає автоматично створену призму очищення стрічки. Керується автоматично; не встановлюйте вручну."
 
 msgid "Maximal bridging distance"
 msgstr "Максимальна мостова відстань"
@@ -20655,8 +20916,9 @@ msgstr "Назва фізичного принтера, який викорис�
 msgid "Layer number"
 msgstr "Номер шару"
 
+# AI Translated
 msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
-msgstr ""
+msgstr "Індекс поточного шару. Нумерація з нуля (тобто перший шар має номер 0), окрім G-code зміни ролі екструзії, де нумерація починається з одиниці."
 
 msgid "Layer Z"
 msgstr "Шар Z"
@@ -21355,8 +21617,9 @@ msgstr ""
 "Значення прискорення мають бути більшими за значення швидкості.\n"
 "Перевірте введені дані."
 
+# AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr ""
+msgstr "Поки що недоступно на стрічкових принтерах — використовуйте натомість метод «РА Вежа»."
 
 msgid "Temperature calibration"
 msgstr "Калібрування температури"
@@ -21385,8 +21648,9 @@ msgstr "PET-CF"
 msgid "Test model"
 msgstr "Тестова модель"
 
+# AI Translated
 msgid "Overhang"
-msgstr ""
+msgstr "Нависання"
 
 msgid "Start temp: "
 msgstr "Початкова температура: "
@@ -22280,8 +22544,9 @@ msgstr ""
 "Принтер і всі нитки та налаштування процесу, які належать принтеру.\n"
 "Ними можна ділитись з іншими."
 
+# AI Translated
 msgid "Include custom bed texture and model"
-msgstr ""
+msgstr "Включити власну текстуру та модель столу"
 
 msgid ""
 "User's filament preset set.\n"
@@ -23407,32 +23672,41 @@ msgstr "Якщо дозволено, значення вище зберігат�
 msgid "PresetBundle"
 msgstr "PresetBundle"
 
+# AI Translated
 msgid "Export Presets"
-msgstr ""
+msgstr "Експортувати пресети"
 
+# AI Translated
 msgid "Open folder in explorer"
-msgstr ""
+msgstr "Відкрити теку в провіднику"
 
+# AI Translated
 msgid "Delete bundle"
-msgstr ""
+msgstr "Видалити набір"
 
+# AI Translated
 msgid "Unsubscribe bundle"
-msgstr ""
+msgstr "Відписатися від набору"
 
+# AI Translated
 msgid "Update available"
-msgstr ""
+msgstr "Доступне оновлення"
 
+# AI Translated
 msgid "Unauthorized bundle"
-msgstr ""
+msgstr "Неавторизований набір"
 
+# AI Translated
 msgid "Open this bundle in your browser"
-msgstr ""
+msgstr "Відкрити цей набір у браузері"
 
+# AI Translated
 msgid "Subscribed"
-msgstr ""
+msgstr "За підпискою"
 
+# AI Translated
 msgid "Local"
-msgstr ""
+msgstr "Локальний"
 
 msgid "Bundle folder does not exist."
 msgstr "Тека набору не існує."
@@ -23467,11 +23741,13 @@ msgstr "Відписатися від набору"
 msgid "ExportPresetBundle"
 msgstr "ExportPresetBundle"
 
+# AI Translated
 msgid "Export to OrcaCloud"
-msgstr ""
+msgstr "Експортувати в OrcaCloud"
 
+# AI Translated
 msgid "Export to folder"
-msgstr ""
+msgstr "Експортувати в теку"
 
 msgid "Save preset bundle"
 msgstr "Зберегти набір пресету"
@@ -28049,8 +28325,9 @@ msgstr "Зібрати Gizmo"
 msgid "Gizmo brim ears"
 msgstr "Краєчки Gizmo"
 
+# AI Translated
 msgid "Gizmo texture displacement painting"
-msgstr ""
+msgstr "Gizmo малювання текстурного зміщення"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "Вертикальний повзунок - рух активного великого пальця вгору"
@@ -29303,6 +29580,14 @@ msgid "Bake"
 msgstr "Запікати"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "Ввести точне значення в повзунок"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "Значок редагування на правому кінці повзунка"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "Текстурне зміщення"
 
@@ -29575,6 +29860,15 @@ msgid "The painted area could not be carried onto the remeshed model, so nothing
 msgstr "Не вдалося перенести намальовану область на модель із перебудованою сіткою, тому нічого не змінено. Перейдіть у режим Pro і перебудуйте сітку перед малюванням."
 
 # AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "Діапазон: від %1% до %2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "Введіть значення замість перетягування. Ctrl+клацання на повзунку робить те саме."
+
+# AI Translated
 msgid "Pro"
 msgstr "Pro"
 
@@ -29679,8 +29973,9 @@ msgstr "Пороговий кут - заливка зупиняється на �
 msgid "Click a triangle to paint it"
 msgstr "Клацніть трикутник, щоб замалювати його"
 
+# AI Translated
 msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
-msgstr ""
+msgstr "Лише для шару з накладанням «Розгортка (LSCM)» - щоб використати цей вигляд, встановіть для «Накладання текстури» активного шару значення «Розгортка»."
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -29694,15 +29989,17 @@ msgstr "Швидкий - рельєф лише затінюється, а не �
 msgid "Checker"
 msgstr "Шахівниця"
 
+# AI Translated
 msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Шахівниця - тестова сітка замість текстури. Там, де квадрати лишаються квадратними, текстура не спотворена; де вони розтягуються, розтягнеться й вона. Відкриває UV-редактор, якщо він закритий"
 
 # AI Translated
 msgid "Distortion"
 msgstr "Спотворення"
 
+# AI Translated
 msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Спотворення - теплова карта розтягнення від синього до червоного поверх розгортки. Відкриває UV-редактор, якщо він закритий"
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -29818,11 +30115,13 @@ msgstr "Змішувати філаменти"
 msgid "Interleaves two filaments to fake the colors in between, so a handful of filaments can cover a photo or a gradient. An image of flat colors prints the same either way. Off uses one filament per area."
 msgstr "Чергує два філаменти, щоб імітувати проміжні кольори, тож кількома філаментами можна відтворити фото або градієнт. Зображення з однотонними кольорами в обох випадках друкується однаково. Якщо вимкнено, на кожну область використовується один філамент."
 
+# AI Translated
 msgid "Mixed colors"
-msgstr ""
+msgstr "Змішані кольори"
 
+# AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
-msgstr ""
+msgstr "Найбільша кількість змішаних філаментів, яку може додати запікання. Їх вибирають із кольорів текстури, і створюються лише ті, що справді використовуються під час запікання."
 
 # AI Translated
 #, boost-format
@@ -30530,27 +30829,33 @@ msgstr "Плагіни філаменту"
 msgid "Printer plugins"
 msgstr "Плагіни принтера"
 
+# AI Translated
 msgid "This preset does not use any plugin capabilities"
-msgstr ""
+msgstr "Цей пресет не використовує жодних можливостей плагінів"
 
+# AI Translated
 msgid "Capabilities used by this preset"
-msgstr ""
+msgstr "Можливості, які використовує цей пресет"
 
+# AI Translated
 msgid "Capability configuration (JSON)"
-msgstr ""
+msgstr "Конфігурація можливості (JSON)"
 
+# AI Translated
 msgid "Plugin configuration"
-msgstr ""
+msgstr "Конфігурація плагіна"
 
+# AI Translated
 msgid "Discard this preset's override and use the global configuration again"
-msgstr ""
+msgstr "Скасувати перевизначення цього пресету й знову використовувати глобальну конфігурацію"
 
 # AI Translated
 msgid "Restore defaults"
 msgstr "Відновити типові"
 
+# AI Translated
 msgid "Invalid JSON"
-msgstr ""
+msgstr "Недійсний JSON"
 
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
@@ -30640,214 +30945,282 @@ msgstr "Встановлення плагіна"
 msgid "Installed \"%s\"."
 msgstr "Встановлено «%s»."
 
+# AI Translated
 msgid "Search plugins"
-msgstr ""
+msgstr "Пошук плагінів"
 
+# AI Translated
 msgid "Clear search"
-msgstr ""
+msgstr "Очистити пошук"
 
+# AI Translated
 msgid "Match case"
-msgstr ""
+msgstr "Враховувати регістр"
 
+# AI Translated
 msgid "Match whole word"
-msgstr ""
+msgstr "Лише ціле слово"
 
+# AI Translated
 msgid "More plugin install options"
-msgstr ""
+msgstr "Інші варіанти встановлення плагінів"
 
+# AI Translated
 msgid "Install plugin"
-msgstr ""
+msgstr "Встановити плагін"
 
+# AI Translated
 msgid "Install local plugin"
-msgstr ""
+msgstr "Встановити локальний плагін"
 
+# AI Translated
 msgid "Activate"
-msgstr ""
+msgstr "Активувати"
 
+# AI Translated
 msgid "Sort by name"
-msgstr ""
+msgstr "Сортувати за назвою"
 
+# AI Translated
 msgid "Sort by version"
-msgstr ""
+msgstr "Сортувати за версією"
 
+# AI Translated
 msgid "Plugin Version"
-msgstr ""
+msgstr "Версія плагіна"
 
+# AI Translated
 msgid "Sort by source"
-msgstr ""
+msgstr "Сортувати за джерелом"
 
+# AI Translated
 msgid "Source"
-msgstr ""
+msgstr "Джерело"
 
+# AI Translated
 msgid "Sort by status"
-msgstr ""
+msgstr "Сортувати за статусом"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
+# AI Translated
 msgid "Drag to resize; double-click to reset"
-msgstr ""
+msgstr "Перетягніть, щоб змінити розмір; двічі клацніть, щоб скинути"
 
+# AI Translated
 msgid "Resize the plugin list"
-msgstr ""
+msgstr "Змінити розмір списку плагінів"
 
+# AI Translated
 msgid "Plugin details"
-msgstr ""
+msgstr "Відомості про плагін"
 
+# AI Translated
 msgid "Plugin Info"
-msgstr ""
+msgstr "Інформація про плагін"
 
+# AI Translated
 msgid "Description"
-msgstr ""
+msgstr "Опис"
 
+# AI Translated
 msgid "Config"
-msgstr ""
+msgstr "Конфігурація"
 
+# AI Translated
 msgid "Changelog"
-msgstr ""
+msgstr "Журнал змін"
 
+# AI Translated
 msgid "Diagnostics"
-msgstr ""
+msgstr "Діагностика"
 
+# AI Translated
 msgid "Types"
-msgstr ""
+msgstr "Типи"
 
+# AI Translated
 msgid "Installed Version"
-msgstr ""
+msgstr "Встановлена версія"
 
+# AI Translated
 msgid "Latest Version"
-msgstr ""
+msgstr "Остання версія"
 
+# AI Translated
 msgid "Update to the latest version"
-msgstr ""
+msgstr "Оновити до останньої версії"
 
+# AI Translated
 msgid "No description available"
-msgstr ""
+msgstr "Опис відсутній"
 
+# AI Translated
 msgid "Select a plugin to configure its capabilities"
-msgstr ""
+msgstr "Виберіть плагін, щоб налаштувати його можливості"
 
+# AI Translated
 msgid "Configurable capabilities"
-msgstr ""
+msgstr "Налаштовувані можливості"
 
+# AI Translated
 msgid "Discard the settings saved for this capability and restore the plugin's defaults"
-msgstr ""
+msgstr "Скасувати збережені налаштування цієї можливості й відновити типові значення плагіна"
 
+# AI Translated
 msgid "Plugin changelog"
-msgstr ""
+msgstr "Журнал змін плагіна"
 
+# AI Translated
 msgid "Date"
-msgstr ""
+msgstr "Дата"
 
+# AI Translated
 msgid "Changes"
-msgstr ""
+msgstr "Зміни"
 
+# AI Translated
 msgid "No changelog available"
-msgstr ""
+msgstr "Журнал змін відсутній"
 
+# AI Translated
 msgid "No issues detected"
-msgstr ""
+msgstr "Проблем не виявлено"
 
+# AI Translated
 msgid "No plugins found"
-msgstr ""
+msgstr "Плагінів не знайдено"
 
+# AI Translated
 #, c-format, boost-format
 msgid "No plugins match \"%s\""
-msgstr ""
+msgstr "Немає плагінів, що відповідають «%s»"
 
+# AI Translated
 msgid "Mine"
-msgstr ""
+msgstr "Мій"
 
+# AI Translated
+# Needs human review: Plugin source value (no longer subscribed or available in OrcaCloud); check 'Осиротілий' reads naturally in the Source column.
 msgid "Orphaned"
-msgstr ""
+msgstr "Осиротілий"
 
+# AI Translated
 msgid "Some plugin capabilities are enabled"
-msgstr ""
+msgstr "Увімкнено деякі можливості плагіна"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Collapse %s capabilities"
-msgstr ""
+msgstr "Згорнути можливості %s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Expand %s capabilities"
-msgstr ""
+msgstr "Розгорнути можливості %s"
 
+# AI Translated
 msgid "Collapse capabilities"
-msgstr ""
+msgstr "Згорнути можливості"
 
+# AI Translated
 msgid "Expand capabilities"
-msgstr ""
+msgstr "Розгорнути можливості"
 
+# AI Translated
 msgid "Open this plugin in your browser"
-msgstr ""
+msgstr "Відкрити цей плагін у браузері"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Capabilities: %s"
-msgstr ""
+msgstr "Можливості: %s"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Capabilities"
-msgstr ""
+msgstr "Можливості"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Run \"%s\""
-msgstr ""
+msgstr "Запустити «%s»"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Enable %s"
-msgstr ""
+msgstr "Увімкнути %s"
 
+# AI Translated
 msgid "Unauthorized for updates"
-msgstr ""
+msgstr "Немає дозволу на оновлення"
 
+# AI Translated
 msgid "Loading the plugin…"
-msgstr ""
+msgstr "Завантаження плагіна…"
 
+# AI Translated
 msgid "This plugin exposes no capabilities"
-msgstr ""
+msgstr "Цей плагін не надає жодних можливостей"
 
+# AI Translated
 msgid "Activate this plugin to configure its capabilities"
-msgstr ""
+msgstr "Активуйте цей плагін, щоб налаштувати його можливості"
 
+# AI Translated
 msgid "View on OrcaCloud <a>here</a>"
-msgstr ""
+msgstr "Переглянути в OrcaCloud <a>тут</a>"
 
+# AI Translated
 msgid "Activated"
-msgstr ""
+msgstr "Активовано"
 
+# AI Translated
 msgid "Runtime error"
-msgstr ""
+msgstr "Помилка виконання"
 
+# AI Translated
 msgid "Inactive"
-msgstr ""
+msgstr "Неактивний"
 
+# AI Translated
 msgid "This plugin is active and ready to be used."
-msgstr ""
+msgstr "Цей плагін активний і готовий до використання."
 
+# AI Translated
 msgid "This plugin is still loading."
-msgstr ""
+msgstr "Цей плагін ще завантажується."
 
+# AI Translated
 msgid "This plugin is blocked until its error is fixed."
-msgstr ""
+msgstr "Цей плагін заблоковано, доки його помилку не буде виправлено."
 
+# AI Translated
 msgid "This plugin is loaded but a capability reported an error."
-msgstr ""
+msgstr "Цей плагін завантажено, але одна з його можливостей повідомила про помилку."
 
+# AI Translated
 msgid "This plugin is inactive. Activate it to install or load it."
-msgstr ""
+msgstr "Цей плагін неактивний. Активуйте його, щоб установити або завантажити."
 
+# AI Translated
 msgid "Select a plugin to view its status and details."
-msgstr ""
+msgstr "Виберіть плагін, щоб переглянути його статус і відомості."
 
+# AI Translated
 msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
-msgstr ""
+msgstr "Осиротілий: підписка на цей плагін більше не діє або він більше не доступний в OrcaCloud. Локальна копія залишається встановленою, і нею можна користуватися далі."
 
+# AI Translated
 msgid "A newer plugin version is available."
-msgstr ""
+msgstr "Доступна новіша версія плагіна."
 
+# AI Translated
 msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
-msgstr ""
+msgstr "Оновлення з хмари недоступні, оскільки для цього плагіна немає дозволу на оновлення."
 
 # AI Translated
 #, c-format, boost-format
@@ -31065,53 +31438,71 @@ msgstr "Не вдалося перезавантажити плагін."
 msgid "Reloaded \"%s\"."
 msgstr "Перезавантажено «%s»."
 
+# AI Translated
 msgid "Printer Connection"
-msgstr ""
+msgstr "Підключення принтера"
 
+# AI Translated
 msgid "Please set up your printer connection to view the device."
-msgstr ""
+msgstr "Налаштуйте підключення принтера, щоб переглянути пристрій."
 
+# AI Translated
 msgid "No model information"
-msgstr ""
+msgstr "Немає інформації про модель"
 
+# AI Translated
 msgid "Edit Project Info"
-msgstr ""
+msgstr "Редагувати інформацію про проєкт"
 
+# AI Translated
 msgid "Model Information"
-msgstr ""
+msgstr "Інформація про модель"
 
+# AI Translated
+# Needs human review: Project page section that holds BOM, Assembly Guide and Other files; check 'Додаткові матеріали' fits that section header.
 msgid "Accessories"
-msgstr ""
+msgstr "Додаткові матеріали"
 
+# AI Translated
 msgid "Profile Information"
-msgstr ""
+msgstr "Інформація про профіль"
 
+# AI Translated
 msgid "Model name"
-msgstr ""
+msgstr "Назва моделі"
 
+# AI Translated
 msgid "Created by"
-msgstr ""
+msgstr "Автор"
 
+# AI Translated
 msgid "Remixed by"
-msgstr ""
+msgstr "Автор реміксу"
 
+# AI Translated
+# Needs human review: Project page label shown before a user name (with Created by / Remixed by); check it reads right next to the name.
 msgid "Shared by"
-msgstr ""
+msgstr "Поширено користувачем"
 
+# AI Translated
 msgid "Model description"
-msgstr ""
+msgstr "Опис моделі"
 
+# AI Translated
 msgid "BOM"
-msgstr ""
+msgstr "Відомість матеріалів"
 
+# AI Translated
 msgid "Profile name"
-msgstr ""
+msgstr "Назва профілю"
 
+# AI Translated
 msgid "Profile Author"
-msgstr ""
+msgstr "Автор профілю"
 
+# AI Translated
 msgid "Profile description"
-msgstr ""
+msgstr "Опис профілю"
 
 # AI Translated
 msgid "Purge Mode Settings"
@@ -31137,15 +31528,18 @@ msgstr "Зменшує відходи підготовки та пришвидш
 msgid "Terminal"
 msgstr "Термінал"
 
+# AI Translated
 msgid "python ... or uv ..."
-msgstr ""
+msgstr "python ... або uv ..."
 
+# AI Translated
 msgid "Plugin terminal ready."
-msgstr ""
+msgstr "Термінал плагіна готовий."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Process exited with code: %s"
-msgstr ""
+msgstr "Процес завершився з кодом: %s"
 
 # AI Translated
 msgid "A command is already running."
@@ -31413,8 +31807,10 @@ msgstr "  |  привʼязку УВІМКНЕНО"
 msgid "Change texture - choose another one from the texture library"
 msgstr "Змінити текстуру - вибрати іншу з бібліотеки текстур"
 
+# AI Translated
+# Needs human review: The English names a 'Tiling' control that does not exist; rendered as the 'Плитка' (Tile) section. Check against the layer settings in the texture displacement gizmo.
 msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
-msgstr ""
+msgstr "Розмір плитки активного шару текстури: яку частину моделі покриває одне повторення текстури. Полотно вимірюється в плитках, тож одна клітинка сітки — це одне повторення. Змініть його в розділі «Плитка» налаштувань шару."
 
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
@@ -31448,14 +31844,17 @@ msgstr "Зʼєднувати острови"
 msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfolded next to each other (a cube becomes a joined net rather than six loose squares). They stay separate islands, so you can still move any of them by hand afterwards."
 msgstr "Розкладати розгортку звʼязно: частини зі спільним ребром розгортаються поруч (куб стає суцільною розгорткою, а не шістьма окремими квадратами). Вони лишаються окремими островами, тож згодом будь-який із них можна перемістити вручну."
 
+# AI Translated
 msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
-msgstr ""
+msgstr "Острів - робота з цілими островами. Клацніть острів, щоб вибрати його, потім перетягуйте, щоб перемістити, перетягуйте правою кнопкою, щоб повернути, або натисніть R для обертання чи S для масштабування мишею (клацання або Enter — підтвердити, Esc — скасувати)."
 
+# AI Translated
 msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Вершина - перетягуйте вершини, щоб вручну змінити форму острова; Shift додає до виділення, Ctrl додає вершину до виділення або вилучає з нього."
 
+# AI Translated
 msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Ребро - перетягуйте ребра, щоб вручну змінити форму острова; Shift додає до виділення, Ctrl додає ребро до виділення або вилучає з нього."
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -31493,13 +31892,17 @@ msgstr "Скинути UV-правки - відкинути всі ручні п
 msgid "Snap - stick islands together when dragging one against another"
 msgstr "Привʼязка - зліплювати острови, коли один перетягується впритул до іншого"
 
+# AI Translated
 msgid ""
 "Frame all islands, fitting every one of them in view (Home or F).\n"
 "Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
 msgstr ""
+"Показати всі острови, умістивши кожен із них у вигляд (Home або F).\n"
+"В іншому місці полотна: прокручуйте, щоб масштабувати навколо курсора, і перетягуйте середньою кнопкою - або перетягуйте порожнє місце, - щоб панорамувати."
 
+# AI Translated
 msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
-msgstr ""
+msgstr "Що вибрано, а також точні значення переміщення, обертання чи масштабування під час перетягування."
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -31510,8 +31913,9 @@ msgstr "Немає шару з проєкцією «Розгортка»"
 msgid "%.1f mm tile"
 msgstr "плитка %.1f мм"
 
+# AI Translated
 msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
-msgstr ""
+msgstr "Панель відповідає активному шару текстури, і цей шар має використовувати накладання «Розгортка (LSCM)». Додайте шар і встановіть для його «Накладання текстури» значення «Розгортка»."
 
 # AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
@@ -31521,43 +31925,54 @@ msgstr "Застаріло - малювання, шви або кут шва з�
 msgid "Flatten the painted area into UV islands. It is computed only when you press this, not on every edit - so paint, change the seam angle or mark seams first, then press Unwrap."
 msgstr "Розпрямити намальовану область в UV-острови. Обчислюється лише після натискання цієї кнопки, а не при кожній зміні - тож спочатку малюйте, змініть кут шва або позначте шви, а потім натисніть «Розгорнути»."
 
+# AI Translated
 msgid "Turn Mark seams on first - Path is a quicker way of marking them."
-msgstr ""
+msgstr "Спочатку увімкніть «Позначити шви» - «Шлях» дає змогу позначати їх швидше."
 
+# AI Translated
 msgid "No seams are marked on this layer."
-msgstr ""
+msgstr "На цьому шарі не позначено жодного шва розгортки."
 
+# AI Translated
 msgid "No islands have been reshaped by hand, so there is nothing to discard."
-msgstr ""
+msgstr "Форму жодного острова не змінено вручну, тож скасовувати нічого."
 
 # AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "Островів: %d, граней: %s"
 
+# AI Translated
 msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
-msgstr ""
+msgstr "Результат розгортки намальованої області: кількість окремих частин, на які її розрізано (по швах і по ребрах, гостріших за кут шва), і загальна кількість трикутників у них."
 
+# AI Translated
 msgid "Press Unwrap first - there are no islands to work on yet."
-msgstr ""
+msgstr "Спочатку натисніть «Розгорнути» - островів для роботи ще немає."
 
+# AI Translated
 msgid "Click an island on the canvas first, in Island mode."
-msgstr ""
+msgstr "Спочатку клацніть острів на полотні в режимі «Острів»."
 
+# AI Translated
 msgid "Not signed in"
-msgstr ""
+msgstr "Вхід не виконано"
 
+# AI Translated
 msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
-msgstr ""
+msgstr "Мережевий плагін Bambu не виявлено. Натисніть <a>тут</a>, щоб установити його."
 
+# AI Translated
 msgid "Create new project"
-msgstr ""
+msgstr "Створити новий проєкт"
 
+# AI Translated
 msgid "Recently opened"
-msgstr ""
+msgstr "Нещодавно відкриті"
 
+# AI Translated
 msgid "Open Containing Folder"
-msgstr ""
+msgstr "Відкрити теку з файлом"
 
 # AI Translated
 msgid "Forward"
@@ -31708,15 +32123,19 @@ msgstr ""
 "Плагін «%s» запитує дозвіл на виконання таких команд:\n"
 "%s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plugin \"%s\" is requesting permission to create a thread."
-msgstr ""
+msgstr "Плагін «%s» запитує дозвіл на створення потоку."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plugin \"%s\" is requesting to replace the running application with:\n"
 "%s"
 msgstr ""
+"Плагін «%s» запитує заміну запущеного застосунку на:\n"
+"%s"
 
 # AI Translated
 #, c-format, boost-format
@@ -31727,29 +32146,37 @@ msgstr "Плагін «%s» запитує дозвіл на подію ауди
 msgid "Plugin permission request"
 msgstr "Запит дозволу плагіна"
 
+# AI Translated
 msgid "Printer connection"
-msgstr ""
+msgstr "Підключення принтера"
 
+# AI Translated
 msgid "Pages"
-msgstr ""
+msgstr "Сторінки"
 
+# AI Translated
 msgid "Analysis"
-msgstr ""
+msgstr "Аналіз"
 
+# AI Translated
 msgid "Importer"
-msgstr ""
+msgstr "Імпорт"
 
+# AI Translated
 msgid "Exporter"
-msgstr ""
+msgstr "Експорт"
 
+# AI Translated
 msgid "Visualization"
-msgstr ""
+msgstr "Візуалізація"
 
+# AI Translated
 msgid "Script"
-msgstr ""
+msgstr "Скрипт"
 
+# AI Translated
 msgid "Slicing Pipeline"
-msgstr ""
+msgstr "Конвеєр нарізки"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3999,6 +3999,15 @@ msgstr ""
 msgid "Go to Plate"
 msgstr ""
 
+msgid "Device"
+msgstr ""
+
+msgid "Device (Web)"
+msgstr ""
+
+msgid "Multi-device"
+msgstr ""
+
 msgid "AMS Materials Setting"
 msgstr ""
 
@@ -4053,6 +4062,12 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr ""
+
+msgid "Favorite filaments"
+msgstr ""
+
+msgid "All filaments"
 msgstr ""
 
 msgid ""
@@ -5825,7 +5840,7 @@ msgstr ""
 msgid "Size:"
 msgstr ""
 
-#, possible-boost-format
+#, possible-c-format, possible-boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 
@@ -5985,16 +6000,7 @@ msgstr ""
 msgid "Preview"
 msgstr ""
 
-msgid "Device"
-msgstr ""
-
-msgid "Multi-device"
-msgstr ""
-
 msgid "Project"
-msgstr ""
-
-msgid "Device (Web)"
 msgstr ""
 
 msgid "Yes"
@@ -25376,6 +25382,12 @@ msgctxt "Texture Displacement"
 msgid "Bake"
 msgstr ""
 
+msgid "Type an exact value into a slider"
+msgstr ""
+
+msgid "Edit icon at a slider's right end"
+msgstr ""
+
 msgid "Texture displacement"
 msgstr ""
 
@@ -25577,6 +25589,13 @@ msgid "Write every captured stage out as an OBJ file, so they can be opened side
 msgstr ""
 
 msgid "The painted area could not be carried onto the remeshed model, so nothing was changed. Switch to Pro mode and remesh before painting."
+msgstr ""
+
+#, possible-boost-format
+msgid "Range: %1% to %2%"
+msgstr ""
+
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
 msgstr ""
 
 msgid "Pro"

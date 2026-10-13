@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "PO-Revision-Date: 2025-10-02 17:43+0700\n"
 "Last-Translator: \n"
 "Language-Team: hainguyen.ts13@gmail.com\n"
@@ -2230,12 +2230,16 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
+# AI Translated
 #, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
 "Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
+"Không thể cài đặt Microsoft WebView2 Runtime.\n"
+"Một số tính năng, bao gồm trình hướng dẫn thiết lập, có thể hiển thị trống cho đến khi nó được cài đặt.\n"
+"Vui lòng cài đặt thủ công từ %1% rồi khởi động lại Orca Slicer."
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
@@ -4503,6 +4507,16 @@ msgstr "Dự án gần đây"
 msgid "Go to Plate"
 msgstr "Đi tới plate"
 
+msgid "Device"
+msgstr "Thiết bị"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Thiết bị (Web)"
+
+msgid "Multi-device"
+msgstr "Nhiều thiết bị"
+
 msgid "AMS Materials Setting"
 msgstr "Cài đặt vật liệu AMS"
 
@@ -4562,6 +4576,14 @@ msgstr "Vui lòng nhập giá trị hợp lệ (K trong %.1f~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Vui lòng nhập giá trị hợp lệ (K trong %.1f~%.1f, N trong %.1f~%.1f)"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "Filament yêu thích"
+
+# AI Translated
+msgid "All filaments"
+msgstr "Tất cả filament"
 
 # AI Translated
 msgid ""
@@ -5156,10 +5178,13 @@ msgstr "Tự động điều chỉnh về giới hạn (%g mm)?"
 msgid "Adjust"
 msgstr "Điều chỉnh"
 
+# AI Translated
 msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
+"Bè và tấm chắn gió không khả dụng trên máy in băng chuyền.\n"
+"Chúng đã bị tắt."
 
 msgid ""
 "Layer height too small\n"
@@ -6278,42 +6303,53 @@ msgstr "Tăng/giảm vùng chỉnh sửa"
 msgid "Sequence"
 msgstr "Trình tự"
 
+# AI Translated
 msgid "Plate center of mass"
-msgstr ""
+msgstr "Trọng tâm của plate"
 
+# AI Translated
 msgid "Part center of mass"
-msgstr ""
+msgstr "Trọng tâm của phần"
 
+# AI Translated
 msgid "Support center of mass"
-msgstr ""
+msgstr "Trọng tâm của support"
 
+# AI Translated
 msgid "Assembly center of mass"
-msgstr ""
+msgstr "Trọng tâm của cụm lắp ráp"
 
+# AI Translated
 msgid "Object center of mass"
-msgstr ""
+msgstr "Trọng tâm của vật thể"
 
+# AI Translated
 msgid "Finished print"
-msgstr ""
+msgstr "Bản in hoàn chỉnh"
 
+# AI Translated
 #, boost-format
 msgid "Printed up to layer %1%"
-msgstr ""
+msgstr "Đã in đến lớp %1%"
 
+# AI Translated
 msgid "Weight"
-msgstr ""
+msgstr "Trọng lượng"
 
 msgid "Volume"
 msgstr "Thể tích"
 
+# AI Translated
 msgid "Center in bounding box"
-msgstr ""
+msgstr "Tâm trong hộp giới hạn"
 
+# AI Translated
 msgid "Bounding box size"
-msgstr ""
+msgstr "Kích thước hộp giới hạn"
 
+# AI Translated
 msgid "Moment of inertia"
-msgstr ""
+msgstr "Mô-men quán tính"
 
 # AI Translated
 msgid "Object selection"
@@ -6549,11 +6585,13 @@ msgstr "Đường lưới"
 msgid "Labels"
 msgstr "Nhãn"
 
+# AI Translated
 msgid "Center of mass"
-msgstr ""
+msgstr "Trọng tâm"
 
+# AI Translated
 msgid "Show raw G-code (belt only)"
-msgstr ""
+msgstr "Hiển thị G-code thô (chỉ băng chuyền)"
 
 # AI Translated
 msgid "Move section plane"
@@ -6603,7 +6641,7 @@ msgstr "Thể tích:"
 msgid "Size:"
 msgstr "Kích thước:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Đã tìm thấy xung đột đường đi G-code tại lớp %d, Z = %.2lfmm. Vui lòng tách các vật thể xung đột ra xa hơn (%s <-> %s)."
 
@@ -6789,18 +6827,8 @@ msgstr "Chuẩn bị"
 msgid "Preview"
 msgstr "Xem trước"
 
-msgid "Device"
-msgstr "Thiết bị"
-
-msgid "Multi-device"
-msgstr "Nhiều thiết bị"
-
 msgid "Project"
 msgstr "Dự án"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Thiết bị (Web)"
 
 msgid "Yes"
 msgstr "Có"
@@ -7098,11 +7126,13 @@ msgstr "Hiện đường lưới"
 msgid "Show Gridlines on plate"
 msgstr "Hiện đường lưới trên plate"
 
+# AI Translated
 msgid "Show IDEX/IQEX Toolhead"
-msgstr ""
+msgstr "Hiển thị đầu công cụ IDEX/IQEX"
 
+# AI Translated
 msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
-msgstr ""
+msgstr "Hiển thị hình đầu công cụ IDEX/IQEX quanh mỗi đầu phun đang hoạt động trong bản xem trước G-code."
 
 msgid "Reset Window Layout"
 msgstr "Đặt lại bố cục cửa sổ"
@@ -8867,60 +8897,77 @@ msgstr "Xem tất cả cài đặt của đối tượng"
 msgid "Material settings"
 msgstr "Cài đặt vật liệu"
 
+# AI Translated
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
-msgstr ""
+msgstr "Mỗi chế độ chỉ định các đầu công cụ tham gia và vai trò của từng đầu. Nhấn vào nút công cụ để chuyển vòng vai trò của nó — di chuột lên một màu bên dưới để xem chức năng của từng vai trò."
 
+# AI Translated
 msgid "Add Mode"
-msgstr ""
+msgstr "Thêm chế độ"
 
 # AI Translated
 msgid "Tools"
 msgstr "Công cụ"
 
+# AI Translated
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
+# AI Translated
 msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
-msgstr ""
+msgstr "Tên hiển thị của chế độ trong bộ chọn chế độ IDEX/IQEX của plate. Bắt buộc — không thể chọn một chế độ không có tên."
 
+# AI Translated
 msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
-msgstr ""
+msgstr "Các đầu công cụ tham gia chế độ và vai trò của từng đầu. Nhấn vào một ô để chuyển vòng vai trò của nó."
 
+# AI Translated
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
-msgstr ""
+msgstr "G-code chạy khi bắt đầu in để đưa máy in vào chế độ này (ví dụ một lệnh gọi SET_PRINT_MODE của Klipper). Phần mềm slice chỉ xuất đường chạy của công cụ Chính (Primary); firmware điều khiển các công cụ còn lại."
 
+# AI Translated
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
-msgstr ""
+msgstr "Điều khiển mọi đường chạy đã slice. Luôn là công cụ 0 — dùng Vị trí công cụ 0 ở trên để chọn góc bàn in mà nó chiếm. Không thể di chuyển nó khỏi lưới."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
-msgstr ""
+msgstr "Đi theo công cụ Chính (Primary) ở cấp firmware, in cùng các đường chạy nhưng dịch sang vùng riêng của nó."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
-msgstr ""
+msgstr "Đi theo công cụ Chính (Primary) ở cấp firmware, in cùng các đường chạy nhưng đối xứng qua ranh giới giữa hai vùng."
 
+# AI Translated
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
-msgstr ""
+msgstr "Đánh dấu một công cụ trên giàn trục của công cụ Chính (Primary) làm cộng sự in nhiều màu của nó. Bắt buộc để cho phép in nhiều màu trong các chế độ giàn trục ghép cặp."
 
+# AI Translated
 msgid "Primary"
-msgstr ""
+msgstr "Chính"
 
+# AI Translated
 msgid "Mode name (required)"
-msgstr ""
+msgstr "Tên chế độ (bắt buộc)"
 
+# AI Translated
 msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
-msgstr ""
+msgstr "Tên của chế độ song song này, như hiển thị trong bộ chọn chế độ IDEX/IQEX của plate. Được lưu trong dự án theo tên, nên đổi tên một chế độ mà các plate đang dùng sẽ khiến chúng quay về chế độ Chính. Không được để trống — tên trống sẽ được thay bằng một tên tự tạo."
 
+# AI Translated
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
-msgstr ""
+msgstr "G-code được xuất một lần khi bắt đầu bản in dùng chế độ này, trước G-code bắt đầu máy. Đây là nơi đưa máy in vào chế độ firmware tương ứng — ví dụ một lệnh gọi SET_PRINT_MODE của Klipper hoặc M567 của RepRapFirmware — vì phần mềm slice chỉ xuất đường chạy của công cụ Chính (Primary) và firmware điều khiển các công cụ Sao chép (Copy) / Gương (Mirror). Hỗ trợ trình giữ chỗ; dùng nút chỉnh sửa để duyệt chúng. Để trống nếu chế độ không cần thiết lập firmware."
 
+# AI Translated
 msgid "Edit G-code / browse placeholders"
-msgstr ""
+msgstr "Chỉnh sửa G-code / duyệt trình giữ chỗ"
 
+# AI Translated
 msgid "Remove mode"
-msgstr ""
+msgstr "Xóa chế độ"
 
+# AI Translated
 msgid "Discard in-session edits to this mode (snap back to saved value)"
-msgstr ""
+msgstr "Hủy các chỉnh sửa trong phiên cho chế độ này (trở về giá trị đã lưu)"
 
 msgid "Remove current plate (if not last one)"
 msgstr "Xóa bản hiện tại (nếu không phải bản cuối)"
@@ -8947,16 +8994,19 @@ msgstr "Chỉnh sửa tên bản hiện tại"
 msgid "Move plate to the front"
 msgstr "Di chuyển bản ra phía trước"
 
+# AI Translated
 #, boost-format
 msgid " (process preset: %1%)"
-msgstr ""
+msgstr " (cài đặt sẵn quy trình: %1%)"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
-msgstr ""
+msgstr "Chế độ IDEX/IQEX: %1% (nhấn chuột trái để chuyển vòng, nhấn chuột phải để mở menu)"
 
+# AI Translated
 msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
-msgstr ""
+msgstr "Cảnh báo: plate này dùng chế độ IDEX/IQEX song song với các vật thể đa vật liệu. Hãy thận trọng — kiểm tra rằng G-code của bạn xử lý đúng tổ hợp này."
 
 msgid "Customize current plate"
 msgstr "Tùy chỉnh bản hiện tại"
@@ -9121,8 +9171,9 @@ msgstr "Filament pha trộn"
 msgid "Remove last mixed filament"
 msgstr "Xóa filament pha trộn cuối cùng"
 
+# AI Translated
 msgid "Remove all mixed filaments"
-msgstr ""
+msgstr "Xóa tất cả filament pha trộn"
 
 # AI Translated
 msgid "Add mixed filament"
@@ -9146,9 +9197,10 @@ msgstr "Filament pha trộn có tham chiếu thành phần bị lỗi"
 msgid "Edit / Delete / Merge"
 msgstr "Chỉnh sửa / Xóa / Gộp"
 
+# AI Translated
 #, boost-format
 msgid "Remove all %1% mixed filaments?"
-msgstr ""
+msgstr "Xóa tất cả %1% filament pha trộn?"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -9434,11 +9486,13 @@ msgstr "Tắt Tự động thả để giữ nguyên vị trí Z?\n"
 msgid "Object with floating parts was detected"
 msgstr "Đã phát hiện vật thể có phần lơ lửng"
 
+# AI Translated
 msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Không thể slice: một vật thể chồng lên khu vực dành riêng cho in song song IDEX/IQEX (một vùng phụ, hoặc một dải khoảng hở của xe trượt bên trong vùng chính)."
 
+# AI Translated
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Không thể slice: prime tower chồng lên khu vực dành riêng cho in song song IDEX/IQEX (một vùng phụ, hoặc một dải khoảng hở của xe trượt bên trong vùng chính)."
 
 msgid "Another export job is running."
 msgstr "Một tác vụ xuất khác đang chạy."
@@ -9532,37 +9586,49 @@ msgstr "Dữ liệu không hợp lệ"
 msgid "Slicing Canceled"
 msgstr "Đã hủy slice"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
-msgstr ""
+msgstr "Xung đột nhiệt độ bàn in: T%d (%s) đặt bàn in ở %d°C — T%d (%s) yêu cầu %d°C. Công cụ chính điều khiển bàn in; các công cụ phụ in ở nhiệt độ mà nó đặt, dù là bao nhiêu."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
-msgstr ""
+msgstr "Loại filament không khớp: T%d dùng %s và T%d dùng %s. Các vật liệu này có yêu cầu không tương thích và không được thiết kế để in cùng nhau."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
 "\n"
 msgstr ""
+"Plate %d đang bật chế độ song song IDEX/IQEX với các vấn đề sau:\n"
+"\n"
 
+# AI Translated
 msgid "Continue slicing?"
-msgstr ""
+msgstr "Tiếp tục slice?"
 
+# AI Translated
 msgid "IDEX/IQEX Parallel Mode Warning"
-msgstr ""
+msgstr "Cảnh báo chế độ song song IDEX/IQEX"
 
+# AI Translated
 msgid "Don't show these warnings again"
-msgstr ""
+msgstr "Không hiển thị lại các cảnh báo này"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plate %d:\n"
-msgstr ""
+msgstr "Plate %d:\n"
 
+# AI Translated
 msgid ""
 "The following IDEX/IQEX parallel mode concerns were detected:\n"
 "\n"
 msgstr ""
+"Đã phát hiện các vấn đề sau của chế độ song song IDEX/IQEX:\n"
+"\n"
 
 # AI Translated
 msgid "Network plug-in switched successfully."
@@ -9600,8 +9666,9 @@ msgstr ""
 msgid "Sync now"
 msgstr "Đồng bộ ngay"
 
+# AI Translated
 msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
-msgstr ""
+msgstr "Không thể hoàn tác hoặc làm lại khi đang có thao tác chạy. Hãy dừng thao tác, hoặc đợi nó hoàn tất rồi thử lại."
 
 # AI Translated
 msgid ""
@@ -9672,10 +9739,13 @@ msgstr "Tải xuống thất bại, kích thước file bất thường."
 msgid "Project downloaded %d%%"
 msgstr "Dự án đã tải xuống %d%%"
 
+# AI Translated
 msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
+"Các bài kiểm tra Đường PA và Mẫu PA chưa được bật trên máy in băng chuyền.\n"
+"Vui lòng dùng phương pháp Tháp PA thay thế."
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -9703,12 +9773,14 @@ msgstr "Hiệu chỉnh lưu lượng Orca YOLO"
 msgid "Flowrate Test - Pass%d"
 msgstr "Kiểm tra lưu lượng - Lượt %d"
 
+# AI Translated
 #, boost-format
 msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
-msgstr ""
+msgstr "Không có tháp nhiệt độ băng chuyền nào cho khoảng %1% đến %2% °C. Hãy dùng khoảng mà các mô hình tháp hỗ trợ, ví dụ 230 đến 190."
 
+# AI Translated
 msgid "Temperature tower"
-msgstr ""
+msgstr "Tháp nhiệt độ"
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -12341,8 +12413,9 @@ msgstr "Không hỗ trợ đồng bộ giữa các loại truyền động extru
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Đồng bộ thay đổi tham số sang tham số tương ứng của extruder còn lại."
 
+# AI Translated
 msgid "Parameters with this icon can be configurable per nozzle."
-msgstr ""
+msgstr "Các thông số có biểu tượng này có thể được cấu hình riêng cho từng đầu phun."
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Nhấp để đặt lại tất cả cài đặt về preset đã lưu cuối cùng."
@@ -12762,11 +12835,13 @@ msgstr "Không gian in"
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "Chọn cách triển khai tác nhân mạng cho việc giao tiếp với máy in. Các tác nhân khả dụng được đăng ký khi khởi động."
 
+# AI Translated
 msgid "Belt printer"
-msgstr ""
+msgstr "Máy in băng chuyền"
 
+# AI Translated
 msgid "Machine frame transforms"
-msgstr ""
+msgstr "Phép biến đổi hệ tọa độ máy"
 
 #. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
@@ -12888,23 +12963,28 @@ msgstr "Đường kính đầu phun"
 msgid "Wipe tower"
 msgstr "Wipe tower"
 
+# AI Translated
 msgid "Belt purge tower"
-msgstr ""
+msgstr "Tháp xả băng chuyền"
 
 msgid "Single extruder multi-material parameters"
 msgstr "Tham số đa vật liệu extruder đơn"
 
+# AI Translated
 msgid "IDEX/IQEX Configuration"
-msgstr ""
+msgstr "Cấu hình IDEX/IQEX"
 
+# AI Translated
 msgid "Pre-slice warnings"
-msgstr ""
+msgstr "Cảnh báo trước khi slice"
 
+# AI Translated
 msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
-msgstr ""
+msgstr "Hiển thị hộp thoại cảnh báo trước khi slice nếu phát hiện vấn đề của chế độ song song IDEX/IQEX (xung đột nhiệt độ bàn in, loại filament không khớp, xung đột đa vật liệu). Có thể tắt ngay từ hộp thoại. Bật lại ở đây nếu lỡ tắt."
 
+# AI Translated
 msgid "Modes"
-msgstr ""
+msgstr "Chế độ"
 
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
 msgstr "Đây là máy in đa vật liệu extruder đơn, đường kính của tất cả extruder sẽ được đặt thành giá trị mới. Bạn có muốn tiếp tục?"
@@ -12915,17 +12995,21 @@ msgstr "Giới hạn chiều cao lớp"
 msgid "Z-Hop"
 msgstr "Z-Hop"
 
+# AI Translated
 msgid "Front-left"
-msgstr ""
+msgstr "Trước-trái"
 
+# AI Translated
 msgid "Front-right"
-msgstr ""
+msgstr "Trước-phải"
 
+# AI Translated
 msgid "Rear-left"
-msgstr ""
+msgstr "Sau-trái"
 
+# AI Translated
 msgid "Rear-right"
-msgstr ""
+msgstr "Sau-phải"
 
 # AI Translated
 msgid ""
@@ -13040,9 +13124,10 @@ msgstr "Tiếp tục"
 msgid "Don't warn again for this preset"
 msgstr "Không cảnh báo lại cho cài đặt sẵn này"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 # AI Translated
 msgid "No modifications need to be copied."
@@ -13561,29 +13646,36 @@ msgstr "Đăng nhập thất bại. Vui lòng thử lại."
 msgid "parse json failed"
 msgstr "phân tích json thất bại"
 
+# AI Translated
 msgid "Loading…"
-msgstr ""
+msgstr "Đang tải…"
 
+# AI Translated
 msgid "Welcome to Orca Slicer"
-msgstr ""
+msgstr "Chào mừng đến với Orca Slicer"
 
+# AI Translated
 msgid "Orca Slicer will be set up in several steps. Let's start!"
-msgstr ""
+msgstr "Orca Slicer sẽ được thiết lập qua vài bước. Hãy bắt đầu nào!"
 
+# AI Translated
 msgid "Get Started"
-msgstr ""
+msgstr "Bắt đầu"
 
+# AI Translated
 msgid "Please select your login region"
-msgstr ""
+msgstr "Vui lòng chọn khu vực đăng nhập của bạn"
 
 msgid "Finish"
 msgstr "Hoàn thành"
 
+# AI Translated
 msgid "Printer Selection"
-msgstr ""
+msgstr "Chọn máy in"
 
+# AI Translated
 msgid "Vendors"
-msgstr ""
+msgstr "Nhà cung cấp"
 
 # AI Translated
 msgid "Custom Printer"
@@ -13592,36 +13684,46 @@ msgstr "Máy in tùy chỉnh"
 msgid "Create"
 msgstr "Tạo"
 
+# AI Translated
 msgid "Check for new printers"
-msgstr ""
+msgstr "Kiểm tra máy in mới"
 
+# AI Translated
 msgid "At least one printer must be selected."
-msgstr ""
+msgstr "Phải chọn ít nhất một máy in."
 
+# AI Translated
 msgid "New printers found"
-msgstr ""
+msgstr "Đã tìm thấy máy in mới"
 
+# AI Translated
 #, c-format, boost-format
 msgid "New printer vendors installed: %s"
-msgstr ""
+msgstr "Đã cài đặt nhà cung cấp máy in mới: %s"
 
+# AI Translated
 msgid "New printer vendors were found, but installation was cancelled."
-msgstr ""
+msgstr "Đã tìm thấy nhà cung cấp máy in mới, nhưng việc cài đặt đã bị hủy."
 
+# AI Translated
 msgid "No new printers found."
-msgstr ""
+msgstr "Không tìm thấy máy in mới."
 
+# AI Translated
 msgid "Filament Selection"
-msgstr ""
+msgstr "Chọn filament"
 
+# AI Translated
 msgid "System Filaments"
-msgstr ""
+msgstr "Filament hệ thống"
 
+# AI Translated
 msgid "Custom Filaments"
-msgstr ""
+msgstr "Filament tùy chỉnh"
 
+# AI Translated
 msgid "Create New"
-msgstr ""
+msgstr "Tạo mới"
 
 msgid "Filament type"
 msgstr "Loại filament"
@@ -13629,30 +13731,37 @@ msgstr "Loại filament"
 msgid "Vendor"
 msgstr "Nhà cung cấp"
 
+# AI Translated
 msgid "No items"
-msgstr ""
+msgstr "Không có mục nào"
 
+# AI Translated
 msgid "Filter items"
-msgstr ""
+msgstr "Lọc mục"
 
+# AI Translated
 msgid "Checked"
-msgstr ""
+msgstr "Đã chọn"
 
+# AI Translated
 msgid "Unchecked"
-msgstr ""
+msgstr "Chưa chọn"
 
+# AI Translated
 msgid "Select filtered"
-msgstr ""
+msgstr "Chọn mục đã lọc"
 
 # AI Translated
 msgid "Clear all"
 msgstr "Xóa tất cả"
 
+# AI Translated
 msgid "At least one filament must be selected."
-msgstr ""
+msgstr "Phải chọn ít nhất một filament."
 
+# AI Translated
 msgid "Do you want to use the default filament?"
-msgstr ""
+msgstr "Bạn có muốn dùng filament mặc định không?"
 
 msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
 msgstr "Tùy chọn này tắt toàn bộ tính năng cloud, bao gồm cả đồng bộ hồ sơ Orca Cloud. Người dùng muốn làm việc hoàn toàn ngoại tuyến có thể bật tùy chọn này."
@@ -13660,20 +13769,25 @@ msgstr "Tùy chọn này tắt toàn bộ tính năng cloud, bao gồm cả đ�
 msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
 msgstr "Lưu ý: Khi Chế độ ẩn danh được bật, hồ sơ người dùng của bạn sẽ không được sao lưu lên Orca Cloud."
 
+# AI Translated
 msgid "Enable Stealth Mode."
-msgstr ""
+msgstr "Bật Chế độ ẩn danh."
 
+# AI Translated
 msgid "Proprietary Plugins"
-msgstr ""
+msgstr "Plugin độc quyền"
 
+# AI Translated
 msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
-msgstr ""
+msgstr "Một số nhà cung cấp máy in yêu cầu plugin độc quyền để giao tiếp với máy in của họ. Vui lòng chọn plugin tương ứng nếu bạn dùng những máy in như vậy."
 
+# AI Translated
 msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
-msgstr ""
+msgstr "Xin lưu ý rằng các plugin này không do OrcaSlicer phát triển hay duy trì. Bạn tự cân nhắc và tự chịu rủi ro khi sử dụng chúng."
 
+# AI Translated
 msgid "Install Bambu Network plug-in"
-msgstr ""
+msgstr "Cài đặt plug-in mạng Bambu"
 
 # AI Translated
 msgid "[Action Required] "
@@ -14158,13 +14272,15 @@ msgstr "G-code đổi vai trò đùn (filament)"
 msgid "No object can be printed. It may be too small."
 msgstr "Không có đối tượng nào có thể in. Có thể quá nhỏ"
 
+# AI Translated
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
-msgstr ""
+msgstr "Chế độ IDEX/IQEX \"%1%\" không có công cụ nào được gán trên máy in đã chọn. Thay vào đó sẽ in ở chế độ Chính. Hãy gán công cụ cho chế độ trong Cài đặt máy in, hoặc chọn chế độ khác từ nút IDEX/IQEX của plate."
 
+# AI Translated
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
-msgstr ""
+msgstr "Plate này được đặt ở chế độ IDEX/IQEX \"%1%\", nhưng máy in đã chọn không định nghĩa chế độ này. Thay vào đó sẽ in ở chế độ Chính. Hãy chọn một chế độ từ nút IDEX/IQEX của plate, hoặc khôi phục chế độ trong Cài đặt máy in."
 
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "Bản in của bạn rất gần vùng priming. Hãy chắc chắn rằng không có va chạm."
@@ -14343,25 +14459,31 @@ msgstr "xác thực thất bại"
 msgid "write callback failed"
 msgstr "gọi lại ghi thất bại"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
-msgstr ""
+msgstr "Bản in nhiều màu trong các chế độ song song IDEX/IQEX yêu cầu mỗi filament có extruder vật lý riêng. Hai hoặc nhiều filament đang dùng được định tuyến đến cùng một đầu vật lý thông qua bản đồ extruder vật lý của máy in (một bộ chia MMU/AFC), điều mà giàn trục đi theo không thể làm theo."
 
+# AI Translated
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
-msgstr ""
+msgstr "Chế độ IDEX/IQEX đang dùng không định nghĩa công cụ chính, nên không thể sắp xếp in nhiều màu. Hãy mở trình chỉnh sửa Chế độ IDEX/IQEX trong cài đặt máy in và gán vai trò Chính (Primary) cho một công cụ."
 
+# AI Translated
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
-msgstr ""
+msgstr "In nhiều màu ở chế độ này không phải là in song song — tất cả công cụ đang dùng đều nằm trên một giàn trục, nên không có giàn trục thứ hai nào để sao chép hoặc đối xứng sang. Hãy chuyển plate sang chế độ Chính để in nhiều màu trên một giàn trục, hoặc định nghĩa một chế độ IDEX/IQEX có các công cụ trên giàn trục thứ hai."
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
-msgstr ""
+msgstr "Bản in nhiều màu trong các chế độ song song IDEX/IQEX yêu cầu một công cụ Span trên giàn trục của công cụ chính — nếu không có, chế độ này không khai báo cộng sự in nhiều màu trong cùng giàn trục. Hãy giảm bản in xuống một filament, chuyển sang chế độ Chính, hoặc mở trình chỉnh sửa Chế độ IDEX/IQEX trong cài đặt máy in và đánh dấu một công cụ trên giàn trục của công cụ chính là Span."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "Trong chế độ Span này chỉ %1% in màu, nhưng filament %2% không được định tuyến đến công cụ nào. Hãy dùng các filament được định tuyến đến %1%, hoặc chuyển plate này sang chế độ Chính."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "Trong chế độ Span này chỉ %1% in màu, nhưng filament %2% được định tuyến đến T%3%. Hãy dùng các filament được định tuyến đến %1%, hoặc chuyển plate này sang chế độ Chính."
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -14419,42 +14541,54 @@ msgstr "Nếu bạn vẫn muốn in, bạn có thể bật tùy chọn trong Tù
 msgid "No extrusions under current settings."
 msgstr "Không có đùn dưới cài đặt hiện tại."
 
+# AI Translated
 msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
-msgstr ""
+msgstr "Filament pha trộn không được hỗ trợ trong các chế độ song song IDEX/IQEX. Hãy chuyển plate này sang chế độ Chính."
 
+# AI Translated
 msgid "no configured tool"
-msgstr ""
+msgstr "không có công cụ nào được cấu hình"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "Chế độ IDEX/IQEX \"%1%\" in bằng T%2%, nhưng các filament của plate này nằm trên %3%. Hãy gán một filament được nạp trên T%2%, hoặc chuyển plate này sang chế độ Chính."
 
+# AI Translated
 msgid "Raft is not compatible with belt printer mode."
-msgstr ""
+msgstr "Bè không tương thích với chế độ máy in băng chuyền."
 
+# AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
-msgstr ""
+msgstr "Tấm chắn gió không tương thích với chế độ máy in băng chuyền."
 
+# AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr ""
+msgstr "Brim không tương thích với chế độ bình xoắn ốc trên máy in băng chuyền. Hãy tắt một trong hai."
 
+# AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr ""
+msgstr "Băng chuyền quá dốc để tạo brim, nên sẽ không có brim nào được tạo."
 
+# AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr ""
+msgstr "Brim chỉ được tạo khi băng chuyền nghiêng. Hãy đặt góc nghiêng băng chuyền, hoặc bỏ cài đặt brim."
 
+# AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr ""
+msgstr "Máy in băng chuyền chỉ hỗ trợ brim ngoài và brim trong. Các loại brim \"Tự động\", \"Tai chuột\" và \"Đã vẽ\" được in như \"Chỉ brim ngoài\", dùng \"Độ rộng brim\"."
 
+# AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr ""
+msgstr "Khoảng cách brim-đối tượng tách brim phía trước khỏi cạnh trước của vật thể, chính là cạnh mà brim cần neo giữ. Hãy đặt khoảng cách này bằng 0 khi dùng chiều dài brim phía trước."
 
+# AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr ""
+msgstr "Chiều dài brim phía trước kéo dài brim ra phía trước mỗi vật thể dọc theo băng chuyền, và Sắp xếp không chừa khoảng trống đó. Hãy chừa khoảng cách giữa các vật thể."
 
+# AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr ""
+msgstr "Brim \"Chỉ cạnh trước\" áp dụng cho máy in băng chuyền. Trên máy in này, nó được in như brim ngoài thông thường."
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -14467,14 +14601,17 @@ msgstr "Chế độ mượt của timelapse không được hỗ trợ khi trìn
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "Không hỗ trợ phát hiện vón cục khi trình tự \"theo vật thể\" được bật."
 
+# AI Translated
 msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
-msgstr ""
+msgstr "Tháp xả băng chuyền không được tạo ở trình tự in \"Theo đối tượng\"; các lần đổi filament sẽ không được xả."
 
+# AI Translated
 msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
-msgstr ""
+msgstr "Tháp xả băng chuyền đã được bật nhưng dự án không có vật thể tháp xả; các lần đổi filament sẽ không được xả. Hãy mở dự án trong ứng dụng để tạo tháp."
 
+# AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr ""
+msgstr "Dự án chứa nhiều tháp xả băng chuyền được quản lý. Hãy tải lại plate hoặc tắt rồi bật lại tháp xả băng chuyền để tạo lại nó."
 
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "Bật cả chiều cao Z chính xác và tháp mồi có thể gây ra lỗi cắt lớp."
@@ -15510,9 +15647,11 @@ msgstr "Tốc độ của cầu bên trong. Nếu giá trị được biểu th�
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "Khoảng cách từ model đến đường brim ngoài cùng."
 
+# AI Translated
 msgid "Leading brim length"
-msgstr ""
+msgstr "Chiều dài brim phía trước"
 
+# AI Translated
 msgid ""
 "Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
 "\n"
@@ -15522,10 +15661,19 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Chỉ dành cho máy in băng chuyền. Kéo dài brim RA PHÍA TRƯỚC vật thể dọc theo băng chuyền, trên mọi cạnh hướng xuống dốc của vùng tiếp xúc - cả lần tiếp xúc đầu tiên của vật thể với băng chuyền lẫn mọi vùng tách rời chạm xuống sau đó. Phần đệm này được đặt lên băng chuyền trước khi vật thể đến đó, nên cạnh trước đã có sẵn một phần dính chặt để bám vào.\n"
+"\n"
+"Đo trên bề mặt băng chuyền và cộng thêm vào Độ rộng brim: brim vươn ra phía trước vật thể một khoảng Khoảng cách brim-đối tượng + Chiều dài brim phía trước + Độ rộng brim. Hãy đặt Khoảng cách brim-đối tượng bằng 0, nếu không phần đệm sẽ không chạm vào vật thể mà nó cần neo giữ.\n"
+"\n"
+"Trên băng chuyền nghiêng, mỗi lớp đặt một dải của brim, nên độ dày của tấm brim tạo thành được quyết định bởi lưu lượng chứ không phải chiều cao lớp. Dùng Tỷ lệ lưu lượng brim để tinh chỉnh.\n"
+"\n"
+"Đặt 0 để tắt."
 
+# AI Translated
 msgid "Extra brim width"
-msgstr ""
+msgstr "Độ rộng brim bổ sung"
 
+# AI Translated
 msgid ""
 "Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
 "\n"
@@ -15533,6 +15681,11 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Chỉ dành cho máy in băng chuyền. Mở rộng brim SANG HAI BÊN, ngang qua băng chuyền, mà không kéo dài thêm về phía trước hay phía sau vật thể. Dùng khi một phần cần bám chắc hơn dọc theo chiều dài của nó so với mức mà riêng Độ rộng brim mang lại.\n"
+"\n"
+"Đo trên bề mặt băng chuyền và cộng thêm vào Độ rộng brim: brim vươn ra mỗi bên vật thể một khoảng Khoảng cách brim-đối tượng + Độ rộng brim + Độ rộng brim bổ sung. Để kéo dài brim ra phía trước vật thể, hãy dùng Chiều dài brim phía trước.\n"
+"\n"
+"Đặt 0 để tắt."
 
 msgid "Brim type"
 msgstr "Loại brim"
@@ -15540,8 +15693,9 @@ msgstr "Loại brim"
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "Điều này điều khiển việc tạo brim ở bên ngoài và/hoặc bên trong của model. Tự động có nghĩa là độ rộng brim được phân tích và tính tự động."
 
+# AI Translated
 msgid "Leading edge only"
-msgstr ""
+msgstr "Chỉ cạnh trước"
 
 msgid "Brim-object gap"
 msgstr "Khoảng cách brim-đối tượng"
@@ -16841,9 +16995,11 @@ msgstr "Lấp nhiều đường"
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "Sử dụng nhiều đường cho mẫu infill, nếu được hỗ trợ bởi mẫu infill."
 
+# AI Translated
 msgid "Adaptive density (experimental)"
-msgstr ""
+msgstr "Mật độ thích ứng (thử nghiệm)"
 
+# AI Translated
 msgid ""
 "Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
 "Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
@@ -16853,53 +17009,77 @@ msgid ""
 " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
 " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
 msgstr ""
+"Phân cấp infill Gyroid và TPMS bên trong vật thể: các ô của nó lớn dần từ bề mặt vật thể vào tâm. Mật độ infill thưa được dùng ở bề mặt và mật độ bên trong được dùng ở tâm.\n"
+"Biến dạng theo khoảng cách, Hòa trộn mượt và Lớp vỏ bậc thang dựa theo khoảng cách đến bề mặt gần nhất, kể cả mặt trên và mặt dưới, với mật độ bên trong tại điểm xa bề mặt nhất:\n"
+" - Biến dạng theo khoảng cách: một mẫu liên tục, bị kéo giãn và xô lệch ở nơi khoảng cách thay đổi theo các hướng, như trong các tấm phẳng và các phần dài.\n"
+" - Hòa trộn mượt: các mẫu của những mật độ lân cận được hòa trộn vào nhau, với các vòng nhỏ ở chỗ chúng gặp nhau.\n"
+" - Lớp vỏ bậc thang: các lớp vỏ của mẫu thông thường với mật độ chênh nhau khoảng 1,5 lần, các đường của chúng được nối dọc theo ranh giới lớp vỏ.\n"
+" - Thùy: theo hình dạng 3D của vật thể, kể cả mặt trên và mặt dưới. Mỗi thùy, tức một phần nối với phần còn lại qua một cổ hẹp hơn, được phân cấp về phía tâm riêng của nó.\n"
+" - Pháp tuyến Z, Y hoặc X: theo các mặt cắt của vật thể vuông góc với trục đó, nên mật độ không thay đổi dọc theo trục này."
 
+# AI Translated
 msgid "Distance warp"
-msgstr ""
+msgstr "Biến dạng theo khoảng cách"
 
+# AI Translated
 msgid "Smooth blend"
-msgstr ""
+msgstr "Hòa trộn mượt"
 
+# AI Translated
 msgid "Stepped shells"
-msgstr ""
+msgstr "Lớp vỏ bậc thang"
 
+# AI Translated
 msgid "Lobes"
-msgstr ""
+msgstr "Thùy"
 
+# AI Translated
 msgid "Normal Z"
-msgstr ""
+msgstr "Pháp tuyến Z"
 
+# AI Translated
 msgid "Normal Y"
-msgstr ""
+msgstr "Pháp tuyến Y"
 
+# AI Translated
 msgid "Normal X"
-msgstr ""
+msgstr "Pháp tuyến X"
 
+# AI Translated
 msgid "Interior density"
-msgstr ""
+msgstr "Mật độ bên trong"
 
+# AI Translated
 msgid "Density of the adaptive infill at the center of the object."
-msgstr ""
+msgstr "Mật độ của infill thích ứng tại tâm vật thể."
 
+# AI Translated
 msgid "Adaptive gradient"
-msgstr ""
+msgstr "Gradient thích ứng"
 
+# AI Translated
 msgid ""
 "How the density changes from the surface to the center of the object.\n"
 "Linear: the density changes at a constant rate.\n"
 "Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
 "Exponential: the density changes quickly just below the surface and levels off towards the center."
 msgstr ""
+"Cách mật độ thay đổi từ bề mặt vào tâm vật thể.\n"
+"Tuyến tính: mật độ thay đổi với tốc độ không đổi.\n"
+"Bậc hai: mật độ giữ gần với mật độ infill thưa ở gần bề mặt và thay đổi nhanh hơn khi vào gần tâm.\n"
+"Hàm mũ: mật độ thay đổi nhanh ngay dưới bề mặt và chững lại khi vào gần tâm."
 
 # AI Translated
 msgid "Linear"
 msgstr "Tuyến tính"
 
+# AI Translated
 msgid "Quadratic"
-msgstr ""
+msgstr "Bậc hai"
 
+# AI Translated
 msgid "Exponential"
-msgstr ""
+msgstr "Hàm mũ"
 
 # AI Translated
 msgid "Z-buckling bias optimization (experimental)"
@@ -19208,98 +19388,130 @@ msgstr "Extruder đơn đa vật liệu"
 msgid "Use single nozzle to print multi filament."
 msgstr "Sử dụng đầu phun đơn để in nhiều filament."
 
+# AI Translated
 msgid "IDEX/IQEX Printer"
-msgstr ""
+msgstr "Máy in IDEX/IQEX"
 
+# AI Translated
 msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
-msgstr ""
+msgstr "Bật in song song cho các máy in có nhiều xe trượt độc lập (IDEX, IQEX và tương tự)."
 
+# AI Translated
 msgid "Firmware-managed zones"
-msgstr ""
+msgstr "Vùng do firmware quản lý"
 
+# AI Translated
 msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-msgstr ""
+msgstr "Khi bật, phần mềm slice xuất G-code với nội dung của vùng chính được căn giữa tại gốc tọa độ bàn in (0,0). Firmware máy in chịu trách nhiệm đặt các bản sao/bản đối xứng tại vị trí vật lý của từng vùng. Chỉ bật trên máy in có firmware tự áp dụng độ lệch vùng ở chế độ Sao chép (Copy)/Gương (Mirror) (ví dụ chế độ nhân bản IDEX của RepRapFirmware). Không có tác dụng ở chế độ Chính."
 
+# AI Translated
 msgid "Gantry Count"
-msgstr ""
+msgstr "Số giàn trục"
 
+# AI Translated
 msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
-msgstr ""
+msgstr "Số giàn trục độc lập theo trục Y. 1 cho IDEX/IQEX một ray. 2 cho hệ thống hai giàn trục (chia bàn in thành các hàng)."
 
+# AI Translated
 msgid "Tools per Gantry"
-msgstr ""
+msgstr "Số công cụ mỗi giàn trục"
 
+# AI Translated
 msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
-msgstr ""
+msgstr "Số đầu công cụ độc lập trên mỗi giàn trục theo trục X. 2 cho kiểu IDEX."
 
+# AI Translated
 msgid "Tool 0 Position"
-msgstr ""
+msgstr "Vị trí công cụ 0"
 
+# AI Translated
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
-msgstr ""
+msgstr "Vị trí vật lý trên bàn in nơi đặt công cụ T0 (chỉ số 0). Xác định cách các chỉ số công cụ ánh xạ đến các vùng trên bàn in. Với thiết lập một giàn trục (IDEX), chỉ trái/phải có ý nghĩa; với thiết lập hai giàn trục (IQEX), có thể chọn cả bốn góc (trước = Y thấp hơn / gần người vận hành, sau = Y cao hơn / phía sau máy)."
 
+# AI Translated
 msgid "Nozzle Clearance X"
-msgstr ""
+msgstr "Khoảng hở đầu phun X"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
-msgstr ""
+msgstr "Khoảng cách (mm) từ đầu phun đến mép xe trượt ở phía va chạm theo trục X. Dùng để tính độ rộng của dải loại trừ va chạm tại mỗi ranh giới X."
 
+# AI Translated
 msgid "Nozzle Clearance Y"
-msgstr ""
+msgstr "Khoảng hở đầu phun Y"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
-msgstr ""
+msgstr "Khoảng cách (mm) từ đầu phun đến mép xe trượt ở phía va chạm theo trục Y. Dùng để tính độ rộng của dải loại trừ va chạm tại mỗi ranh giới Y."
 
+# AI Translated
 msgid "Safety Margin"
-msgstr ""
+msgstr "Lề an toàn"
 
+# AI Translated
 msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
-msgstr ""
+msgstr "Dải khoảng hở khuyến nghị (mm), không chặn, được vẽ bên trong vùng chính tại mỗi ranh giới xe trượt. Các phần đặt trong dải này vẫn được slice; dải chỉ là lời nhắc trực quan để chừa thêm khoảng hở gần mép vùng."
 
+# AI Translated
 msgid "Visualization Theme"
-msgstr ""
+msgstr "Chủ đề hiển thị"
 
+# AI Translated
 msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
-msgstr ""
+msgstr "Bảng màu cho việc hiển thị vùng bàn in IDEX/IQEX. Chọn chủ đề thân thiện với người mù màu nếu cần."
 
+# AI Translated
 msgid "Deuteranopia / Protanopia (red-green)"
-msgstr ""
+msgstr "Mù màu lục / Mù màu đỏ (đỏ-lục)"
 
+# AI Translated
 msgid "Tritanopia (blue-yellow)"
-msgstr ""
+msgstr "Mù màu lam (lam-vàng)"
 
+# AI Translated
 msgid "High Contrast"
-msgstr ""
+msgstr "Độ tương phản cao"
 
+# AI Translated
 msgid "IDEX/IQEX Print Mode"
-msgstr ""
+msgstr "Chế độ in IDEX/IQEX"
 
+# AI Translated
 msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
-msgstr ""
+msgstr "Tên của chế độ in song song IDEX/IQEX đang dùng, hoặc \"primary\" khi in bằng một xe trượt. Yêu cầu bật Máy in IDEX/IQEX trong cài đặt sẵn máy in (Máy in → Đa vật liệu → Cấu hình IDEX/IQEX)."
 
+# AI Translated
 msgid "IDEX/IQEX head filament map"
-msgstr ""
+msgstr "Bản đồ filament theo đầu IDEX/IQEX"
 
+# AI Translated
+# Needs human review: "pem-inversion" is developer jargon (physical extruder map inversion) kept in English; check it reads acceptably in this Printer/plate setting tooltip.
 msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr ""
+msgstr "Ghi đè theo từng plate, ánh xạ các đầu vật lý đến khe filament (đánh số từ 1). Để trống nghĩa là dùng giá trị mặc định pem-inversion."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Names"
-msgstr ""
+msgstr "Tên chế độ IDEX/IQEX"
 
+# AI Translated
 msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
-msgstr ""
+msgstr "Tên hiển thị cho từng chế độ in song song IDEX/IQEX do người dùng định nghĩa."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Active Tools"
-msgstr ""
+msgstr "Công cụ hoạt động của chế độ IDEX/IQEX"
 
+# AI Translated
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
-msgstr ""
+msgstr "Phân vai trò công cụ cho từng chế độ. Định dạng: \"idx:P,idx:C,idx:M\" trong đó P=Primary (Chính), C=Copy (Sao chép), M=Mirror (Gương) (ví dụ \"0:P,1:C,2:M,3:M\"). Được quản lý bởi trình chỉnh sửa Chế độ IDEX/IQEX trong cài đặt sẵn máy in."
 
+# AI Translated
 msgid "IDEX/IQEX Mode G-codes"
-msgstr ""
+msgstr "G-code của chế độ IDEX/IQEX"
 
+# AI Translated
 msgid "G-code or macro call to inject at print start for each mode."
-msgstr ""
+msgstr "G-code hoặc lệnh gọi macro để chèn vào khi bắt đầu in cho từng chế độ."
 
 msgid "Manual Filament Change"
 msgstr "Thay filament thủ công"
@@ -19687,35 +19899,45 @@ msgstr "Chồng lấp ngưỡng"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "Nếu góc ngưỡng là không, support sẽ được tạo cho phần nhô có chồng lấp dưới ngưỡng. Giá trị này càng nhỏ, phần nhô càng dốc có thể được in mà không cần support."
 
+# AI Translated
 msgid "Build plate tilt X"
-msgstr ""
+msgstr "Độ nghiêng bàn in X"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
-msgstr ""
+msgstr "Góc nghiêng của bàn in theo trục X. Giá trị dương làm nghiêng bàn in sao cho phía +X cao hơn, dịch trọng lực về phía -X và làm tăng phần nhô ở phía +X. Giá trị âm làm phía -X cao hơn. Đặt 0 để không nghiêng theo trục X. Ở chế độ máy in băng chuyền, giá trị này được tự động đồng bộ với góc băng chuyền."
 
+# AI Translated
 msgid "Build plate tilt Y"
-msgstr ""
+msgstr "Độ nghiêng bàn in Y"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
-msgstr ""
+msgstr "Góc nghiêng của bàn in theo trục Y. Giá trị dương làm nghiêng bàn in sao cho phía +Y cao hơn, dịch trọng lực về phía -Y và làm tăng phần nhô ở phía +Y. Giá trị âm làm phía -Y cao hơn. Đặt 0 để không nghiêng theo trục Y."
 
+# AI Translated
 msgid "Enable belt printing"
-msgstr ""
+msgstr "Bật in băng chuyền"
 
+# AI Translated
 msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
-msgstr ""
+msgstr "Bật chế độ máy in băng chuyền. Máy in băng chuyền dùng băng tải làm bề mặt in, nghiêng một góc (thường là 45 độ). Phần mềm slice sẽ xoay mặt phẳng slice và biến đổi tọa độ G-code cho bề mặt in nghiêng."
 
+# AI Translated
 msgid "Infinite Y axis"
-msgstr ""
+msgstr "Trục Y vô hạn"
 
+# AI Translated
 msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
-msgstr ""
+msgstr "Bật trục Y vô hạn cho máy in băng chuyền. Khi bật, giới hạn thể tích in theo trục Y gần như được loại bỏ, cho phép in vật thể có chiều dài bất kỳ dọc theo hướng băng chuyền."
 
+# AI Translated
 msgid "Belt tilt axis"
-msgstr ""
+msgstr "Trục nghiêng băng chuyền"
 
+# AI Translated
 msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-msgstr ""
+msgstr "Trục mà lưới được xoay quanh trước khi slice. Đây là độ nghiêng của máy in băng chuyền: một phép xoay đẳng cự (không biến dạng), đồng thời điều khiển việc hiển thị bàn in và độ nghiêng trọng lực cho support, và được phép biến đổi ngược G-code đảo lại trước bước trượt/co giãn và ánh xạ lại của hệ tọa độ máy. X là độ nghiêng giàn trục thông thường (băng chuyền chạy dọc theo Y)."
 
 msgid "X"
 msgstr "X"
@@ -19727,89 +19949,116 @@ msgstr "Y"
 msgid "Z"
 msgstr "Z"
 
+# AI Translated
 msgid "Belt tilt angle"
-msgstr ""
+msgstr "Góc nghiêng băng chuyền"
 
+# AI Translated
 msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
-msgstr ""
+msgstr "Góc nghiêng của bề mặt băng chuyền, tính bằng độ. Hầu hết máy in băng chuyền dùng 45°. Giá trị dương xoay ngược chiều kim đồng hồ khi nhìn dọc theo chiều dương của trục nghiêng; độ lớn cũng là độ nghiêng vật lý của băng chuyền dùng cho việc hiển thị bàn in và trọng lực của support."
 
 msgid "°"
 msgstr "°"
 
+# AI Translated
 msgid "Decouple machine-frame tilt"
-msgstr ""
+msgstr "Tách riêng độ nghiêng hệ tọa độ máy"
 
+# AI Translated
 msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-msgstr ""
+msgstr "Ghi đè cho chuyên gia: đặt góc nghiêng hệ tọa độ máy (trượt/co giãn G-code) độc lập với góc xoay trước khi slice. Khi tắt, phép biến đổi hệ tọa độ máy được suy ra từ góc nghiêng băng chuyền, nên một góc duy nhất điều khiển cả hai bước. Chỉ bật để bù cho máy có độ nghiêng giàn trục vật lý khác với góc xoay khi slice."
 
+# AI Translated
 msgid "Machine-frame tilt angle"
-msgstr ""
+msgstr "Góc nghiêng hệ tọa độ máy"
 
+# AI Translated
 msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
-msgstr ""
+msgstr "Góc nghiêng (độ) dùng để suy ra hệ số trượt (cot) và co giãn (1/|sin|) của hệ tọa độ máy áp dụng cho G-code. Chỉ dùng khi bật 'Tách riêng độ nghiêng hệ tọa độ máy'; nếu không thì dùng góc nghiêng băng chuyền."
 
+# AI Translated
 msgid "+X"
-msgstr ""
+msgstr "+X"
 
+# AI Translated
 msgid "+Y"
-msgstr ""
+msgstr "+Y"
 
+# AI Translated
 msgid "+Z"
-msgstr ""
+msgstr "+Z"
 
+# AI Translated
 msgid "-X"
-msgstr ""
+msgstr "-X"
 
+# AI Translated
 msgid "-Y"
-msgstr ""
+msgstr "-Y"
 
+# AI Translated
 msgid "-Z"
-msgstr ""
+msgstr "-Z"
 
+# AI Translated
 msgid "Rev X"
-msgstr ""
+msgstr "Đảo X"
 
+# AI Translated
 msgid "Rev Y"
-msgstr ""
+msgstr "Đảo Y"
 
+# AI Translated
 msgid "Rev Z"
-msgstr ""
+msgstr "Đảo Z"
 
+# AI Translated
 msgid "G-code remap X"
-msgstr ""
+msgstr "Ánh xạ lại G-code X"
 
+# AI Translated
 msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Trục slice nào ánh xạ tới trục X của máy trong G-code xuất ra. Được áp dụng SAU khi slice, trong lúc tạo G-code."
 
+# AI Translated
 msgid "G-code remap Y"
-msgstr ""
+msgstr "Ánh xạ lại G-code Y"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Trục slice nào ánh xạ tới trục Y của máy trong G-code xuất ra. Được áp dụng SAU khi slice, trong lúc tạo G-code."
 
+# AI Translated
 msgid "G-code remap Z"
-msgstr ""
+msgstr "Ánh xạ lại G-code Z"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Trục slice nào ánh xạ tới trục Z của máy trong G-code xuất ra. Được áp dụng SAU khi slice, trong lúc tạo G-code."
 
+# AI Translated
 msgid "Support Floor Z offset"
-msgstr ""
+msgstr "Độ lệch Z của sàn support"
 
+# AI Translated
 msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
-msgstr ""
+msgstr "Dịch sàn băng chuyền đã tính lên hoặc xuống (mm). Giá trị âm hạ thấp sàn, cho phép giữ lại nhiều support hơn. Dùng để chẩn đoán lỗi của công thức sàn băng chuyền."
 
+# AI Translated
 msgid "Enable belt purge tower"
-msgstr ""
+msgstr "Bật tháp xả băng chuyền"
 
+# AI Translated
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
-msgstr ""
+msgstr "Thay thế wipe tower/prime tower cho máy in băng chuyền. Khi bật trên máy in băng chuyền, một lăng trụ xả được tự động tạo cạnh các phần được in và việc xả khi đổi filament được chuyển vào đó (wipe tower truyền thống không thể dùng trên máy in băng chuyền vì G-code của nó bỏ qua phép biến đổi băng chuyền). Chỉ khả dụng trên máy in băng chuyền."
 
+# AI Translated
 msgid "Belt purge tower width"
-msgstr ""
+msgstr "Độ rộng tháp xả băng chuyền"
 
+# AI Translated
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr ""
+msgstr "Độ rộng (theo trục X của máy, ngang qua băng chuyền) của lăng trụ xả được tự động tạo trên máy in băng chuyền khi bật tháp xả băng chuyền và dùng nhiều filament. Việc xả khi đổi filament được chuyển vào các đường đùn của lăng trụ này thay vì wipe tower truyền thống. Chiều cao của nó được tính tự động từ thể tích xả lớn nhất trên mỗi lớp: lăng trụ càng rộng thì càng thấp."
 
 msgid "Tree support branch angle"
 msgstr "Góc nhánh support cây"
@@ -19990,11 +20239,15 @@ msgstr "Số lượng lớp đặc trên được tăng lên khi slice nếu đ�
 msgid "Separated infills"
 msgstr "Infill tách biệt"
 
+# AI Translated
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
 "Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
+"Căn giữa infill bên trong của mỗi phần theo chính nó, như thể nó được slice riêng, thay vì theo toàn bộ cụm lắp ráp. Các phần chạm hoặc chồng lên nhau được coi là một khối và dùng chung một tâm; các phần tách rời (hoặc các vật thể 3D riêng biệt) mỗi cái có tâm riêng.\n"
+"Hữu ích khi một cụm lắp ráp gồm nhiều vật thể mà mỗi vật thể cần giữ infill nhất quán, căn giữa theo chính nó.\n"
+"Khối lập phương thích ứng và Support khối luôn căn giữa mỗi phần theo chính nó, còn infill Tia chớp được tạo cho toàn bộ vật thể và không bị ảnh hưởng."
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -20240,11 +20493,13 @@ msgstr "Xả sau khi thay filament sẽ được thực hiện bên trong suppor
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "Đối tượng này sẽ được sử dụng để xả đầu phun sau khi thay filament để tiết kiệm filament và giảm thời gian in. Màu sắc của các đối tượng sẽ được trộn lẫn. Nó sẽ không có hiệu lực trừ khi prime tower được bật."
 
+# AI Translated
 msgid "Belt purge tower object"
-msgstr ""
+msgstr "Vật thể tháp xả băng chuyền"
 
+# AI Translated
 msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
-msgstr ""
+msgstr "Đánh dấu lăng trụ xả băng chuyền được tạo tự động. Được quản lý tự động; không đặt thủ công."
 
 msgid "Maximal bridging distance"
 msgstr "Khoảng cách nối cầu tối đa"
@@ -21172,8 +21427,9 @@ msgstr "Tên của máy in vật lý được sử dụng để slice."
 msgid "Layer number"
 msgstr "Số lớp"
 
+# AI Translated
 msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
-msgstr ""
+msgstr "Chỉ số của lớp hiện tại. Bắt đầu từ 0 (tức lớp đầu tiên là số 0), ngoại trừ trong G-code đổi vai trò đùn, nơi chỉ số bắt đầu từ 1."
 
 msgid "Layer Z"
 msgstr "Lớp Z"
@@ -21873,8 +22129,9 @@ msgstr ""
 "Giá trị gia tốc phải lớn hơn giá trị tốc độ.\n"
 "Vui lòng kiểm tra lại dữ liệu nhập."
 
+# AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr ""
+msgstr "Chưa được bật trên máy in băng chuyền — hãy dùng phương pháp Tháp PA thay thế."
 
 msgid "Temperature calibration"
 msgstr "Hiệu chỉnh nhiệt độ"
@@ -21903,8 +22160,9 @@ msgstr "PET-CF"
 msgid "Test model"
 msgstr "Model kiểm tra"
 
+# AI Translated
 msgid "Overhang"
-msgstr ""
+msgstr "Phần nhô"
 
 msgid "Start temp: "
 msgstr "Nhiệt độ bắt đầu: "
@@ -22815,8 +23073,9 @@ msgstr ""
 "Máy in và tất cả các loại sợi in 3D cùng các cài đặt quy trình đi kèm với máy in.\n"
 "Có thể chia sẻ với người khác."
 
+# AI Translated
 msgid "Include custom bed texture and model"
-msgstr ""
+msgstr "Bao gồm kết cấu và mô hình bàn in tùy chỉnh"
 
 msgid ""
 "User's filament preset set.\n"
@@ -24092,32 +24351,41 @@ msgstr "Nếu bật, các giá trị ở trên sẽ được lưu làm mặc đ�
 msgid "PresetBundle"
 msgstr "PresetBundle"
 
+# AI Translated
 msgid "Export Presets"
-msgstr ""
+msgstr "Xuất cài đặt sẵn"
 
+# AI Translated
 msgid "Open folder in explorer"
-msgstr ""
+msgstr "Mở thư mục trong trình quản lý file"
 
+# AI Translated
 msgid "Delete bundle"
-msgstr ""
+msgstr "Xóa gói"
 
+# AI Translated
 msgid "Unsubscribe bundle"
-msgstr ""
+msgstr "Hủy đăng ký gói"
 
+# AI Translated
 msgid "Update available"
-msgstr ""
+msgstr "Có bản cập nhật"
 
+# AI Translated
 msgid "Unauthorized bundle"
-msgstr ""
+msgstr "Gói chưa được cấp phép"
 
+# AI Translated
 msgid "Open this bundle in your browser"
-msgstr ""
+msgstr "Mở gói này trong trình duyệt"
 
+# AI Translated
 msgid "Subscribed"
-msgstr ""
+msgstr "Đã đăng ký"
 
+# AI Translated
 msgid "Local"
-msgstr ""
+msgstr "Cục bộ"
 
 # AI Translated
 msgid "Bundle folder does not exist."
@@ -24163,11 +24431,13 @@ msgstr "Hủy đăng ký gói"
 msgid "ExportPresetBundle"
 msgstr "ExportPresetBundle"
 
+# AI Translated
 msgid "Export to OrcaCloud"
-msgstr ""
+msgstr "Xuất lên OrcaCloud"
 
+# AI Translated
 msgid "Export to folder"
-msgstr ""
+msgstr "Xuất ra thư mục"
 
 # AI Translated
 msgid "Save preset bundle"
@@ -28721,8 +28991,9 @@ msgstr "Gizmo lắp ráp"
 msgid "Gizmo brim ears"
 msgstr "Gizmo tai viền"
 
+# AI Translated
 msgid "Gizmo texture displacement painting"
-msgstr ""
+msgstr "Gizmo vẽ dịch chuyển kết cấu"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "Thanh trượt dọc - Di chuyển nút hoạt động lên"
@@ -29974,6 +30245,14 @@ msgid "Bake"
 msgstr "Nướng"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "Nhập giá trị chính xác vào thanh trượt"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "Biểu tượng chỉnh sửa ở đầu phải thanh trượt"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "Dịch chuyển kết cấu"
 
@@ -30246,6 +30525,15 @@ msgid "The painted area could not be carried onto the remeshed model, so nothing
 msgstr "Không thể chuyển vùng đã vẽ sang mô hình đã tạo lại lưới, nên không có gì thay đổi. Hãy chuyển sang chế độ Pro và tạo lại lưới trước khi vẽ."
 
 # AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "Phạm vi: %1% đến %2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "Nhập giá trị thay vì kéo. Ctrl+nhấn vào thanh trượt cũng có tác dụng tương tự."
+
+# AI Translated
 msgid "Pro"
 msgstr "Pro"
 
@@ -30350,8 +30638,9 @@ msgstr "Ngưỡng góc - vùng tô dừng lại ở các cạnh sắc hơn góc 
 msgid "Click a triangle to paint it"
 msgstr "Nhấn vào một tam giác để vẽ nó"
 
+# AI Translated
 msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
-msgstr ""
+msgstr "Chỉ dành cho lớp kết cấu được ánh xạ bằng Trải phẳng (LSCM) - đặt Ánh xạ của lớp kết cấu đang hoạt động thành Trải phẳng để dùng chế độ xem này."
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -30365,15 +30654,17 @@ msgstr "Nhanh - phần nổi chỉ được tô bóng, không được dựng th
 msgid "Checker"
 msgstr "Ô bàn cờ"
 
+# AI Translated
 msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Ô bàn cờ - một lưới kiểm tra thay cho kết cấu. Nơi các ô vẫn vuông thì kết cấu không bị méo; nơi chúng bị kéo giãn thì kết cấu cũng vậy. Mở trình chỉnh sửa UV nếu nó đang đóng"
 
 # AI Translated
 msgid "Distortion"
 msgstr "Độ méo"
 
+# AI Translated
 msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Độ méo - bản đồ nhiệt thể hiện mức kéo giãn, từ xanh lam đến đỏ, trên phần trải phẳng. Mở trình chỉnh sửa UV nếu nó đang đóng"
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -30489,11 +30780,13 @@ msgstr "Trộn filament"
 msgid "Interleaves two filaments to fake the colors in between, so a handful of filaments can cover a photo or a gradient. An image of flat colors prints the same either way. Off uses one filament per area."
 msgstr "Đan xen hai filament để mô phỏng các màu trung gian, nhờ đó chỉ vài filament cũng có thể thể hiện một bức ảnh hoặc dải chuyển màu. Ảnh có màu phẳng sẽ in ra giống nhau dù bật hay tắt. Tắt thì mỗi vùng dùng một filament."
 
+# AI Translated
 msgid "Mixed colors"
-msgstr ""
+msgstr "Màu pha trộn"
 
+# AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
-msgstr ""
+msgstr "Số filament pha trộn tối đa mà một lần nướng có thể thêm. Chúng được chọn từ các màu của kết cấu, và chỉ những filament mà lần nướng thực sự dùng mới được tạo."
 
 # AI Translated
 #, boost-format
@@ -31201,27 +31494,33 @@ msgstr "Plugin filament"
 msgid "Printer plugins"
 msgstr "Plugin máy in"
 
+# AI Translated
 msgid "This preset does not use any plugin capabilities"
-msgstr ""
+msgstr "Cài đặt sẵn này không dùng khả năng nào của plugin"
 
+# AI Translated
 msgid "Capabilities used by this preset"
-msgstr ""
+msgstr "Các khả năng được cài đặt sẵn này sử dụng"
 
+# AI Translated
 msgid "Capability configuration (JSON)"
-msgstr ""
+msgstr "Cấu hình khả năng (JSON)"
 
+# AI Translated
 msgid "Plugin configuration"
-msgstr ""
+msgstr "Cấu hình plugin"
 
+# AI Translated
 msgid "Discard this preset's override and use the global configuration again"
-msgstr ""
+msgstr "Hủy ghi đè của cài đặt sẵn này và dùng lại cấu hình chung"
 
 # AI Translated
 msgid "Restore defaults"
 msgstr "Khôi phục mặc định"
 
+# AI Translated
 msgid "Invalid JSON"
-msgstr ""
+msgstr "JSON không hợp lệ"
 
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
@@ -31311,214 +31610,281 @@ msgstr "Đang cài đặt plugin"
 msgid "Installed \"%s\"."
 msgstr "Đã cài đặt \"%s\"."
 
+# AI Translated
 msgid "Search plugins"
-msgstr ""
+msgstr "Tìm kiếm plugin"
 
+# AI Translated
 msgid "Clear search"
-msgstr ""
+msgstr "Xóa tìm kiếm"
 
+# AI Translated
 msgid "Match case"
-msgstr ""
+msgstr "Phân biệt chữ hoa/thường"
 
+# AI Translated
 msgid "Match whole word"
-msgstr ""
+msgstr "Khớp toàn bộ từ"
 
+# AI Translated
 msgid "More plugin install options"
-msgstr ""
+msgstr "Thêm tùy chọn cài đặt plugin"
 
+# AI Translated
 msgid "Install plugin"
-msgstr ""
+msgstr "Cài đặt plugin"
 
+# AI Translated
 msgid "Install local plugin"
-msgstr ""
+msgstr "Cài đặt plugin cục bộ"
 
+# AI Translated
 msgid "Activate"
-msgstr ""
+msgstr "Kích hoạt"
 
+# AI Translated
 msgid "Sort by name"
-msgstr ""
+msgstr "Sắp xếp theo tên"
 
+# AI Translated
 msgid "Sort by version"
-msgstr ""
+msgstr "Sắp xếp theo phiên bản"
 
+# AI Translated
 msgid "Plugin Version"
-msgstr ""
+msgstr "Phiên bản plugin"
 
+# AI Translated
 msgid "Sort by source"
-msgstr ""
+msgstr "Sắp xếp theo nguồn"
 
+# AI Translated
 msgid "Source"
-msgstr ""
+msgstr "Nguồn"
 
+# AI Translated
 msgid "Sort by status"
-msgstr ""
+msgstr "Sắp xếp theo trạng thái"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Status"
-msgstr ""
+msgstr "Trạng thái"
 
+# AI Translated
 msgid "Drag to resize; double-click to reset"
-msgstr ""
+msgstr "Kéo để đổi kích thước; nhấp đúp để đặt lại"
 
+# AI Translated
 msgid "Resize the plugin list"
-msgstr ""
+msgstr "Đổi kích thước danh sách plugin"
 
+# AI Translated
 msgid "Plugin details"
-msgstr ""
+msgstr "Chi tiết plugin"
 
+# AI Translated
 msgid "Plugin Info"
-msgstr ""
+msgstr "Thông tin plugin"
 
+# AI Translated
 msgid "Description"
-msgstr ""
+msgstr "Mô tả"
 
+# AI Translated
 msgid "Config"
-msgstr ""
+msgstr "Cấu hình"
 
+# AI Translated
 msgid "Changelog"
-msgstr ""
+msgstr "Nhật ký thay đổi"
 
+# AI Translated
 msgid "Diagnostics"
-msgstr ""
+msgstr "Chẩn đoán"
 
+# AI Translated
 msgid "Types"
-msgstr ""
+msgstr "Loại"
 
+# AI Translated
 msgid "Installed Version"
-msgstr ""
+msgstr "Phiên bản đã cài"
 
+# AI Translated
 msgid "Latest Version"
-msgstr ""
+msgstr "Phiên bản mới nhất"
 
+# AI Translated
 msgid "Update to the latest version"
-msgstr ""
+msgstr "Cập nhật lên phiên bản mới nhất"
 
+# AI Translated
 msgid "No description available"
-msgstr ""
+msgstr "Không có mô tả"
 
+# AI Translated
 msgid "Select a plugin to configure its capabilities"
-msgstr ""
+msgstr "Chọn một plugin để cấu hình các khả năng của nó"
 
+# AI Translated
 msgid "Configurable capabilities"
-msgstr ""
+msgstr "Các khả năng có thể cấu hình"
 
+# AI Translated
 msgid "Discard the settings saved for this capability and restore the plugin's defaults"
-msgstr ""
+msgstr "Hủy các cài đặt đã lưu cho khả năng này và khôi phục giá trị mặc định của plugin"
 
+# AI Translated
 msgid "Plugin changelog"
-msgstr ""
+msgstr "Nhật ký thay đổi của plugin"
 
+# AI Translated
 msgid "Date"
-msgstr ""
+msgstr "Ngày"
 
+# AI Translated
 msgid "Changes"
-msgstr ""
+msgstr "Thay đổi"
 
+# AI Translated
 msgid "No changelog available"
-msgstr ""
+msgstr "Không có nhật ký thay đổi"
 
+# AI Translated
 msgid "No issues detected"
-msgstr ""
+msgstr "Không phát hiện vấn đề nào"
 
+# AI Translated
 msgid "No plugins found"
-msgstr ""
+msgstr "Không tìm thấy plugin nào"
 
+# AI Translated
 #, c-format, boost-format
 msgid "No plugins match \"%s\""
-msgstr ""
+msgstr "Không có plugin nào khớp với \"%s\""
 
+# AI Translated
 msgid "Mine"
-msgstr ""
+msgstr "Của tôi"
 
+# AI Translated
 msgid "Orphaned"
-msgstr ""
+msgstr "Mồ côi"
 
+# AI Translated
 msgid "Some plugin capabilities are enabled"
-msgstr ""
+msgstr "Một số khả năng của plugin đang được bật"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Collapse %s capabilities"
-msgstr ""
+msgstr "Thu gọn các khả năng của %s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Expand %s capabilities"
-msgstr ""
+msgstr "Mở rộng các khả năng của %s"
 
+# AI Translated
 msgid "Collapse capabilities"
-msgstr ""
+msgstr "Thu gọn các khả năng"
 
+# AI Translated
 msgid "Expand capabilities"
-msgstr ""
+msgstr "Mở rộng các khả năng"
 
+# AI Translated
 msgid "Open this plugin in your browser"
-msgstr ""
+msgstr "Mở plugin này trong trình duyệt"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Capabilities: %s"
-msgstr ""
+msgstr "Khả năng: %s"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Capabilities"
-msgstr ""
+msgstr "Khả năng"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Run \"%s\""
-msgstr ""
+msgstr "Chạy \"%s\""
 
+# AI Translated
 #, c-format, boost-format
 msgid "Enable %s"
-msgstr ""
+msgstr "Bật %s"
 
+# AI Translated
 msgid "Unauthorized for updates"
-msgstr ""
+msgstr "Không được cấp phép cập nhật"
 
+# AI Translated
 msgid "Loading the plugin…"
-msgstr ""
+msgstr "Đang tải plugin…"
 
+# AI Translated
 msgid "This plugin exposes no capabilities"
-msgstr ""
+msgstr "Plugin này không cung cấp khả năng nào"
 
+# AI Translated
 msgid "Activate this plugin to configure its capabilities"
-msgstr ""
+msgstr "Kích hoạt plugin này để cấu hình các khả năng của nó"
 
+# AI Translated
 msgid "View on OrcaCloud <a>here</a>"
-msgstr ""
+msgstr "Xem trên OrcaCloud <a>tại đây</a>"
 
+# AI Translated
 msgid "Activated"
-msgstr ""
+msgstr "Đã kích hoạt"
 
+# AI Translated
 msgid "Runtime error"
-msgstr ""
+msgstr "Lỗi khi chạy"
 
+# AI Translated
 msgid "Inactive"
-msgstr ""
+msgstr "Chưa kích hoạt"
 
+# AI Translated
 msgid "This plugin is active and ready to be used."
-msgstr ""
+msgstr "Plugin này đang hoạt động và sẵn sàng để sử dụng."
 
+# AI Translated
 msgid "This plugin is still loading."
-msgstr ""
+msgstr "Plugin này vẫn đang tải."
 
+# AI Translated
 msgid "This plugin is blocked until its error is fixed."
-msgstr ""
+msgstr "Plugin này bị chặn cho đến khi lỗi của nó được khắc phục."
 
+# AI Translated
 msgid "This plugin is loaded but a capability reported an error."
-msgstr ""
+msgstr "Plugin này đã được tải nhưng một khả năng đã báo lỗi."
 
+# AI Translated
 msgid "This plugin is inactive. Activate it to install or load it."
-msgstr ""
+msgstr "Plugin này chưa được kích hoạt. Hãy kích hoạt để cài đặt hoặc tải nó."
 
+# AI Translated
 msgid "Select a plugin to view its status and details."
-msgstr ""
+msgstr "Chọn một plugin để xem trạng thái và chi tiết của nó."
 
+# AI Translated
 msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
-msgstr ""
+msgstr "Mồ côi: Plugin này không còn được đăng ký hoặc không còn khả dụng trên OrcaCloud. Bản cục bộ vẫn được cài đặt và vẫn có thể sử dụng."
 
+# AI Translated
 msgid "A newer plugin version is available."
-msgstr ""
+msgstr "Đã có phiên bản plugin mới hơn."
 
+# AI Translated
 msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
-msgstr ""
+msgstr "Không thể cập nhật từ cloud vì plugin này không được cấp phép cập nhật."
 
 # AI Translated
 #, c-format, boost-format
@@ -31736,53 +32102,69 @@ msgstr "Tải lại plugin thất bại."
 msgid "Reloaded \"%s\"."
 msgstr "Đã tải lại \"%s\"."
 
+# AI Translated
 msgid "Printer Connection"
-msgstr ""
+msgstr "Kết nối máy in"
 
+# AI Translated
 msgid "Please set up your printer connection to view the device."
-msgstr ""
+msgstr "Vui lòng thiết lập kết nối máy in để xem thiết bị."
 
+# AI Translated
 msgid "No model information"
-msgstr ""
+msgstr "Không có thông tin mô hình"
 
+# AI Translated
 msgid "Edit Project Info"
-msgstr ""
+msgstr "Chỉnh sửa thông tin dự án"
 
+# AI Translated
 msgid "Model Information"
-msgstr ""
+msgstr "Thông tin mô hình"
 
+# AI Translated
 msgid "Accessories"
-msgstr ""
+msgstr "Phụ kiện"
 
+# AI Translated
 msgid "Profile Information"
-msgstr ""
+msgstr "Thông tin hồ sơ"
 
+# AI Translated
 msgid "Model name"
-msgstr ""
+msgstr "Tên mô hình"
 
+# AI Translated
 msgid "Created by"
-msgstr ""
+msgstr "Tạo bởi"
 
+# AI Translated
 msgid "Remixed by"
-msgstr ""
+msgstr "Phối lại bởi"
 
+# AI Translated
 msgid "Shared by"
-msgstr ""
+msgstr "Chia sẻ bởi"
 
+# AI Translated
 msgid "Model description"
-msgstr ""
+msgstr "Mô tả mô hình"
 
+# AI Translated
 msgid "BOM"
-msgstr ""
+msgstr "Danh sách vật liệu"
 
+# AI Translated
 msgid "Profile name"
-msgstr ""
+msgstr "Tên hồ sơ"
 
+# AI Translated
 msgid "Profile Author"
-msgstr ""
+msgstr "Tác giả hồ sơ"
 
+# AI Translated
 msgid "Profile description"
-msgstr ""
+msgstr "Mô tả hồ sơ"
 
 # AI Translated
 msgid "Purge Mode Settings"
@@ -31808,15 +32190,18 @@ msgstr "Giảm lượng nhựa xả bỏ và in nhanh hơn. Có thể gây lẫn
 msgid "Terminal"
 msgstr "Terminal"
 
+# AI Translated
 msgid "python ... or uv ..."
-msgstr ""
+msgstr "python ... hoặc uv ..."
 
+# AI Translated
 msgid "Plugin terminal ready."
-msgstr ""
+msgstr "Terminal plugin đã sẵn sàng."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Process exited with code: %s"
-msgstr ""
+msgstr "Tiến trình đã thoát với mã: %s"
 
 # AI Translated
 msgid "A command is already running."
@@ -32084,8 +32469,10 @@ msgstr "  |  bắt dính BẬT"
 msgid "Change texture - choose another one from the texture library"
 msgstr "Đổi kết cấu - chọn kết cấu khác từ thư viện kết cấu"
 
+# AI Translated
+# Needs human review: The English names a "Tiling" setting, but the layer settings only have "Tile" (Xếp ô) and "Tile size" (Kích thước ô); check which control is meant and quote its label (UV editor header tooltip).
 msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
-msgstr ""
+msgstr "Kích thước ô của lớp kết cấu đang hoạt động: phạm vi trên mô hình mà một lần lặp kết cấu bao phủ. Khung vẽ được đo bằng ô, nên một ô lưới là một lần lặp. Thay đổi nó bằng Xếp ô trong cài đặt của lớp kết cấu."
 
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
@@ -32119,14 +32506,17 @@ msgstr "Nối các mảnh"
 msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfolded next to each other (a cube becomes a joined net rather than six loose squares). They stay separate islands, so you can still move any of them by hand afterwards."
 msgstr "Bố trí phần trải phẳng thành một hình khai triển liền: các mảnh chung cạnh được trải cạnh nhau (một khối lập phương trở thành một hình khai triển liền thay vì sáu hình vuông rời). Chúng vẫn là các mảnh riêng, nên sau đó bạn vẫn có thể tự di chuyển bất kỳ mảnh nào."
 
+# AI Translated
 msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
-msgstr ""
+msgstr "Mảnh - thao tác trên toàn bộ mảnh. Nhấn vào một mảnh để chọn, rồi kéo để di chuyển, kéo chuột phải để xoay, hoặc nhấn R để xoay và S để co giãn bằng chuột (nhấn chuột hoặc Enter để xác nhận, Esc để hủy)."
 
+# AI Translated
 msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Đỉnh - kéo các đỉnh để định hình lại một mảnh bằng tay; Shift thêm vào vùng chọn, Ctrl bật/tắt chọn từng đỉnh."
 
+# AI Translated
 msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Cạnh - kéo các cạnh để định hình lại một mảnh bằng tay; Shift thêm vào vùng chọn, Ctrl bật/tắt chọn từng cạnh."
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -32164,13 +32554,17 @@ msgstr "Xóa chỉnh sửa UV - hủy mọi thao tác di chuyển đỉnh/cạnh
 msgid "Snap - stick islands together when dragging one against another"
 msgstr "Bắt dính - gắn các mảnh vào nhau khi kéo một mảnh sát vào mảnh khác"
 
+# AI Translated
 msgid ""
 "Frame all islands, fitting every one of them in view (Home or F).\n"
 "Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
 msgstr ""
+"Đưa tất cả các mảnh vào khung nhìn, hiển thị vừa đủ từng mảnh (Home hoặc F).\n"
+"Ở nơi khác trên khung vẽ: cuộn để thu phóng quanh con trỏ, và kéo chuột giữa - hoặc kéo vùng trống - để di chuyển khung nhìn."
 
+# AI Translated
 msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
-msgstr ""
+msgstr "Những gì đang được chọn, và số liệu chính xác của thao tác di chuyển, xoay hoặc co giãn khi bạn kéo."
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -32181,8 +32575,9 @@ msgstr "Không có lớp nào được ánh xạ bằng Trải phẳng"
 msgid "%.1f mm tile"
 msgstr "ô %.1f mm"
 
+# AI Translated
 msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
-msgstr ""
+msgstr "Khung này theo lớp kết cấu đang hoạt động, và lớp đó phải được ánh xạ bằng Trải phẳng (LSCM). Hãy thêm một lớp kết cấu và đặt Ánh xạ của nó thành Trải phẳng."
 
 # AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
@@ -32192,43 +32587,54 @@ msgstr "Đã lỗi thời - phần vẽ, các đường cắt hoặc góc đư�
 msgid "Flatten the painted area into UV islands. It is computed only when you press this, not on every edit - so paint, change the seam angle or mark seams first, then press Unwrap."
 msgstr "Làm phẳng vùng đã vẽ thành các mảnh UV. Việc này chỉ được tính khi bạn nhấn nút này, không phải sau mỗi lần chỉnh sửa - vì vậy hãy vẽ, đổi góc đường cắt hoặc đánh dấu đường cắt trước, rồi nhấn Trải phẳng."
 
+# AI Translated
 msgid "Turn Mark seams on first - Path is a quicker way of marking them."
-msgstr ""
+msgstr "Hãy bật Đánh dấu đường cắt trước - Đường đi là cách đánh dấu chúng nhanh hơn."
 
+# AI Translated
 msgid "No seams are marked on this layer."
-msgstr ""
+msgstr "Không có đường cắt UV nào được đánh dấu trên lớp kết cấu này."
 
+# AI Translated
 msgid "No islands have been reshaped by hand, so there is nothing to discard."
-msgstr ""
+msgstr "Chưa có mảnh nào được định hình lại bằng tay, nên không có gì để hủy."
 
 # AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "%d mảnh, %s mặt"
 
+# AI Translated
 msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
-msgstr ""
+msgstr "Kết quả trải phẳng vùng đã vẽ: số mảnh riêng biệt mà nó được cắt thành (tại các đường cắt và tại các cạnh sắc hơn góc đường cắt), và tổng số tam giác mà chúng chứa."
 
+# AI Translated
 msgid "Press Unwrap first - there are no islands to work on yet."
-msgstr ""
+msgstr "Hãy nhấn Trải phẳng trước - hiện chưa có mảnh nào để thao tác."
 
+# AI Translated
 msgid "Click an island on the canvas first, in Island mode."
-msgstr ""
+msgstr "Hãy nhấn vào một mảnh trên khung vẽ trước, ở chế độ Mảnh."
 
+# AI Translated
 msgid "Not signed in"
-msgstr ""
+msgstr "Chưa đăng nhập"
 
+# AI Translated
 msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
-msgstr ""
+msgstr "Không phát hiện plug-in mạng Bambu. Nhấn <a>vào đây</a> để cài đặt."
 
+# AI Translated
 msgid "Create new project"
-msgstr ""
+msgstr "Tạo dự án mới"
 
+# AI Translated
 msgid "Recently opened"
-msgstr ""
+msgstr "Mở gần đây"
 
+# AI Translated
 msgid "Open Containing Folder"
-msgstr ""
+msgstr "Mở thư mục chứa"
 
 # AI Translated
 msgid "Forward"
@@ -32379,15 +32785,19 @@ msgstr ""
 "Plugin \"%s\" đang yêu cầu chạy (các) lệnh sau:\n"
 "%s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plugin \"%s\" is requesting permission to create a thread."
-msgstr ""
+msgstr "Plugin \"%s\" đang yêu cầu quyền tạo một luồng."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plugin \"%s\" is requesting to replace the running application with:\n"
 "%s"
 msgstr ""
+"Plugin \"%s\" đang yêu cầu thay thế ứng dụng đang chạy bằng:\n"
+"%s"
 
 # AI Translated
 #, c-format, boost-format
@@ -32398,29 +32808,37 @@ msgstr "Plugin \"%s\" đang yêu cầu quyền cho sự kiện audit Python \"%s
 msgid "Plugin permission request"
 msgstr "Yêu cầu quyền của plugin"
 
+# AI Translated
 msgid "Printer connection"
-msgstr ""
+msgstr "Kết nối máy in"
 
+# AI Translated
 msgid "Pages"
-msgstr ""
+msgstr "Trang"
 
+# AI Translated
 msgid "Analysis"
-msgstr ""
+msgstr "Phân tích"
 
+# AI Translated
 msgid "Importer"
-msgstr ""
+msgstr "Trình nhập"
 
+# AI Translated
 msgid "Exporter"
-msgstr ""
+msgstr "Trình xuất"
 
+# AI Translated
 msgid "Visualization"
-msgstr ""
+msgstr "Trực quan hóa"
 
+# AI Translated
 msgid "Script"
-msgstr ""
+msgstr "Script"
 
+# AI Translated
 msgid "Slicing Pipeline"
-msgstr ""
+msgstr "Quy trình slice"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."

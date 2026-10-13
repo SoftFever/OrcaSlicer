@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "PO-Revision-Date: 2026-06-11 12:37-0300\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -4162,6 +4162,16 @@ msgstr "最近的项目"
 msgid "Go to Plate"
 msgstr "转到盘"
 
+msgid "Device"
+msgstr "设备"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "设备（网页）"
+
+msgid "Multi-device"
+msgstr "多设备"
+
 msgid "AMS Materials Setting"
 msgstr "AMS 材料设置"
 
@@ -4217,6 +4227,14 @@ msgstr "请输入有效的数值（K的范围为%.1f~%.1f）"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "收藏的耗材丝"
+
+# AI Translated
+msgid "All filaments"
+msgstr "所有耗材丝"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -6131,7 +6149,7 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "发现G-code路径在层%d，高度为%.2lf mm处有冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
 
@@ -6298,18 +6316,8 @@ msgstr "准备"
 msgid "Preview"
 msgstr "预览"
 
-msgid "Device"
-msgstr "设备"
-
-msgid "Multi-device"
-msgstr "多设备"
-
 msgid "Project"
 msgstr "项目"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "设备（网页）"
 
 msgid "Yes"
 msgstr "是"
@@ -28727,6 +28735,14 @@ msgid "Bake"
 msgstr "烘焙"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "在滑块中输入精确数值"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "滑块右端的编辑图标"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "纹理置换"
 
@@ -28997,6 +29013,15 @@ msgstr "将每个已捕获的阶段写出为 OBJ 文件，以便在网格查看�
 # AI Translated
 msgid "The painted area could not be carried onto the remeshed model, so nothing was changed. Switch to Pro mode and remesh before painting."
 msgstr "绘制区域无法转移到重新网格化后的模型上，因此未作任何更改。请切换到专业模式，并在绘制前进行重新网格化。"
+
+# AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "范围：%1% 至 %2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "输入数值，而不是拖动。按住 Ctrl 单击滑块效果相同。"
 
 # AI Translated
 msgid "Pro"

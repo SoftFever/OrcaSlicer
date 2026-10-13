@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "PO-Revision-Date: 2026-08-21 23:18+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
@@ -2151,12 +2151,16 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Çalışma Zamanı"
 
+# AI Translated
 #, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
 "Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
+"Microsoft WebView2 Runtime yüklenemedi.\n"
+"Kurulum sihirbazı dahil bazı özellikler, yüklenene kadar boş görünebilir.\n"
+"Lütfen %1% adresinden elle yükleyin ve Orca Slicer'ı yeniden başlatın."
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
@@ -4331,6 +4335,16 @@ msgstr "Son Projeler"
 msgid "Go to Plate"
 msgstr "Plakaya Git"
 
+msgid "Device"
+msgstr "Cihaz"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Cihaz (Web)"
+
+msgid "Multi-device"
+msgstr "Çoklu cihaz"
+
 msgid "AMS Materials Setting"
 msgstr "AMS Malzeme Ayarı"
 
@@ -4388,6 +4402,14 @@ msgstr "Lütfen geçerli bir değer girin (K %.1f~%.1f içinde)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Lütfen geçerli bir değer girin (K %.1f~%.1f içinde, N %.1f~%.1f içinde)"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "Favori filamentler"
+
+# AI Translated
+msgid "All filaments"
+msgstr "Tüm filamentler"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -4954,10 +4976,13 @@ msgstr "Otomatik olarak sınır değerine (%g mm) ayarlansın mı?"
 msgid "Adjust"
 msgstr "Ayarla"
 
+# AI Translated
 msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
+"Raft ve rüzgarlık bant yazıcılarda kullanılamaz.\n"
+"Devre dışı bırakıldılar."
 
 msgid ""
 "Layer height too small\n"
@@ -5987,42 +6012,53 @@ msgstr "Düzenleme alanını artır/azalt"
 msgid "Sequence"
 msgstr "Sekans"
 
+# AI Translated
 msgid "Plate center of mass"
-msgstr ""
+msgstr "Plaka kütle merkezi"
 
+# AI Translated
 msgid "Part center of mass"
-msgstr ""
+msgstr "Parça kütle merkezi"
 
+# AI Translated
 msgid "Support center of mass"
-msgstr ""
+msgstr "Destek kütle merkezi"
 
+# AI Translated
 msgid "Assembly center of mass"
-msgstr ""
+msgstr "Montaj kütle merkezi"
 
+# AI Translated
 msgid "Object center of mass"
-msgstr ""
+msgstr "Nesne kütle merkezi"
 
+# AI Translated
 msgid "Finished print"
-msgstr ""
+msgstr "Tamamlanmış baskı"
 
+# AI Translated
 #, boost-format
 msgid "Printed up to layer %1%"
-msgstr ""
+msgstr "%1%. katmana kadar basıldı"
 
+# AI Translated
 msgid "Weight"
-msgstr ""
+msgstr "Ağırlık"
 
 msgid "Volume"
 msgstr "Hacim"
 
+# AI Translated
 msgid "Center in bounding box"
-msgstr ""
+msgstr "Sınırlayıcı kutu içindeki merkez"
 
+# AI Translated
 msgid "Bounding box size"
-msgstr ""
+msgstr "Sınırlayıcı kutu boyutu"
 
+# AI Translated
 msgid "Moment of inertia"
-msgstr ""
+msgstr "Eylemsizlik momenti"
 
 # AI Translated
 msgid "Object selection"
@@ -6243,11 +6279,13 @@ msgstr "Kılavuz çizgileri"
 msgid "Labels"
 msgstr "Etiketler"
 
+# AI Translated
 msgid "Center of mass"
-msgstr ""
+msgstr "Kütle merkezi"
 
+# AI Translated
 msgid "Show raw G-code (belt only)"
-msgstr ""
+msgstr "Ham G-code'u göster (yalnızca bant)"
 
 # AI Translated
 msgid "Move section plane"
@@ -6297,7 +6335,7 @@ msgstr "Hacim:"
 msgid "Size:"
 msgstr "Boyut:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "%d katmanında G-code yollarında çakışmalar bulundu, Z = %.2lfmm. Lütfen çakışan nesneleri daha uzağa ayırın (%s <-> %s)."
 
@@ -6465,18 +6503,8 @@ msgstr "Hazırlık"
 msgid "Preview"
 msgstr "Ön İzleme"
 
-msgid "Device"
-msgstr "Cihaz"
-
-msgid "Multi-device"
-msgstr "Çoklu cihaz"
-
 msgid "Project"
 msgstr "Proje"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Cihaz (Web)"
 
 msgid "Yes"
 msgstr "Evet"
@@ -6768,11 +6796,13 @@ msgstr "Kılavuz çizgilerini göster"
 msgid "Show Gridlines on plate"
 msgstr "Kılavuz Çizgilerini plaka üzerinde göster"
 
+# AI Translated
 msgid "Show IDEX/IQEX Toolhead"
-msgstr ""
+msgstr "IDEX/IQEX Baskı Kafasını Göster"
 
+# AI Translated
 msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
-msgstr ""
+msgstr "G-code önizlemesinde her etkin nozulun çevresinde IDEX/IQEX baskı kafası temsilini gösterir."
 
 msgid "Reset Window Layout"
 msgstr "Pencere düzenini sıfırla"
@@ -8469,60 +8499,78 @@ msgstr "Nesnenin tüm ayarları"
 msgid "Material settings"
 msgstr "Malzeme ayarları"
 
+# AI Translated
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
-msgstr ""
+msgstr "Her mod, katılan baskı kafalarını ve her birinin üstlendiği rolü belirtir. Rolleri arasında sırayla geçiş yapmak için bir araç düğmesine tıklayın — her rolün ne yaptığını görmek için aşağıdaki bir rengin üzerine gelin."
 
+# AI Translated
 msgid "Add Mode"
-msgstr ""
+msgstr "Mod Ekle"
 
 # AI Translated
 msgid "Tools"
 msgstr "Araçlar"
 
+# AI Translated
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
+# AI Translated
 msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
-msgstr ""
+msgstr "Modun, plakanın IDEX/IQEX mod seçicisinde nasıl adlandırıldığı. Zorunludur — adı olmayan bir mod seçilemez."
 
+# AI Translated
 msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
-msgstr ""
+msgstr "Modda hangi baskı kafalarının yer aldığı ve her birinin hangi rolü üstlendiği. Rolleri arasında sırayla geçiş yapmak için bir kutucuğa tıklayın."
 
+# AI Translated
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
-msgstr ""
+msgstr "Yazıcıyı bu moda geçirmek için baskı başlangıcında çalıştırılan G-code (örneğin bir Klipper SET_PRINT_MODE çağrısı). Dilimleyici yalnızca Birincil (Primary) aracın yollarını üretir; diğerlerini ürün yazılımı yönetir."
 
+# AI Translated
+# Needs human review: "grid" here is the role-tile grid of the IDEX/IQEX Modes editor (Printer Settings), not the Grid pattern, so it is "Izgara" rather than the glossary "Kafes"; check it reads right next to the tiles.
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
-msgstr ""
+msgstr "Tüm dilimlenmiş yolları yürütür. Her zaman araç 0'dır — yatağın hangi köşesinde bulunacağını seçmek için yukarıdaki Araç 0 Konumu ayarını kullanın. Izgarada yeri değiştirilemez."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
-msgstr ""
+msgstr "Ürün yazılımı düzeyinde Birincil (Primary) aracı izler; aynı yolları kendi bölgesine kaydırarak basar."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
-msgstr ""
+msgstr "Ürün yazılımı düzeyinde Birincil (Primary) aracı izler; aynı yolları iki bölge arasındaki sınıra göre yansıtarak basar."
 
+# AI Translated
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
-msgstr ""
+msgstr "Birincil (Primary) aracın portalındaki bir aracı, onun çok renkli baskı ortağı olarak işaretler. Eşleştirilmiş portal modlarında çok renkli baskıya izin vermek için gereklidir."
 
+# AI Translated
 msgid "Primary"
-msgstr ""
+msgstr "Birincil"
 
+# AI Translated
 msgid "Mode name (required)"
-msgstr ""
+msgstr "Mod adı (zorunlu)"
 
+# AI Translated
 msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
-msgstr ""
+msgstr "Bu paralel modun, plakanın IDEX/IQEX mod seçicisinde görünen adı. Projede adıyla saklanır; bu nedenle plakaların zaten kullandığı bir modu yeniden adlandırmak, bu plakaların Birincil moda geri dönmesine neden olur. Boş bırakılamaz — boş bir ad, otomatik oluşturulan bir adla değiştirilir."
 
+# AI Translated
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
-msgstr ""
+msgstr "Bu modu kullanan bir baskının başında, Yazıcı Başlangıç G-code'undan önce bir kez yazılan G-code. Yazıcı burada ilgili ürün yazılımı moduna geçirilir — örneğin bir Klipper SET_PRINT_MODE çağrısı veya bir RepRapFirmware M567 komutu — çünkü dilimleyici yalnızca Birincil (Primary) aracın yollarını üretir ve Kopya (Copy) / Ayna (Mirror) araçlarını ürün yazılımı yönetir. Yer tutucular desteklenir; bunlara göz atmak için düzenle düğmesini kullanın. Mod herhangi bir ürün yazılımı kurulumu gerektirmiyorsa boş bırakın."
 
+# AI Translated
 msgid "Edit G-code / browse placeholders"
-msgstr ""
+msgstr "G-code'u düzenle / yer tutuculara göz at"
 
+# AI Translated
 msgid "Remove mode"
-msgstr ""
+msgstr "Modu kaldır"
 
+# AI Translated
 msgid "Discard in-session edits to this mode (snap back to saved value)"
-msgstr ""
+msgstr "Bu modda oturum içinde yapılan düzenlemeleri at (kayıtlı değere geri dön)"
 
 msgid "Remove current plate (if not last one)"
 msgstr "Mevcut plakayı kaldırın (eğer sonuncusu değilse)"
@@ -8548,16 +8596,19 @@ msgstr "Mevcut plaka adını düzenle"
 msgid "Move plate to the front"
 msgstr "Plakayı öne doğru hareket ettirin"
 
+# AI Translated
 #, boost-format
 msgid " (process preset: %1%)"
-msgstr ""
+msgstr " (işlem ön ayarı: %1%)"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
-msgstr ""
+msgstr "IDEX/IQEX modu: %1% (sırayla değiştirmek için sol tık, menü için sağ tık)"
 
+# AI Translated
 msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
-msgstr ""
+msgstr "Uyarı: bu plaka, çoklu malzemeli nesnelerle paralel bir IDEX/IQEX modu kullanıyor. Dikkatli ilerleyin — G-code'unuzun bu kombinasyonu doğru şekilde işlediğini doğrulayın."
 
 msgid "Customize current plate"
 msgstr "Mevcut plakayı özelleştir"
@@ -8706,8 +8757,9 @@ msgstr "Karışık Filament"
 msgid "Remove last mixed filament"
 msgstr "Son karışık filamenti kaldır"
 
+# AI Translated
 msgid "Remove all mixed filaments"
-msgstr ""
+msgstr "Tüm karışık filamentleri kaldır"
 
 # AI Translated
 msgid "Add mixed filament"
@@ -8731,9 +8783,10 @@ msgstr "Karışık filamentin bileşen referansları bozuk"
 msgid "Edit / Delete / Merge"
 msgstr "Düzenle / Sil / Birleştir"
 
+# AI Translated
 #, boost-format
 msgid "Remove all %1% mixed filaments?"
-msgstr ""
+msgstr "%1% karışık filamentin tümü kaldırılsın mı?"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -9008,11 +9061,14 @@ msgstr "Z konumunu korumak için Otomatik düşürme devre dışı bırakılsın
 msgid "Object with floating parts was detected"
 msgstr "Havada duran parçalara sahip nesne algılandı"
 
+# AI Translated
 msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Dilimlenemiyor: bir nesne, IDEX/IQEX paralel baskısı için ayrılmış bir alanla çakışıyor (ikincil bir bölge veya birincil bölge içindeki bir taşıyıcı boşluk şeridi)."
 
+# AI Translated
+# Needs human review: Prime tower glossary cell is unsettled (Prime Kulesi / Silme kulesi); used Prime Kulesi as the setting label does.
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Dilimlenemiyor: Prime Kulesi, IDEX/IQEX paralel baskısı için ayrılmış bir alanla çakışıyor (ikincil bir bölge veya birincil bölge içindeki bir taşıyıcı boşluk şeridi)."
 
 msgid "Another export job is running."
 msgstr "Başka bir ihracat işi yürütülüyor."
@@ -9098,37 +9154,49 @@ msgstr "Geçersiz veri"
 msgid "Slicing Canceled"
 msgstr "Dilimleme İptal Edildi"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
-msgstr ""
+msgstr "Yatak sıcaklığı çakışması: T%d (%s) yatağı %d°C'ye ayarlıyor — T%d (%s) ise %d°C gerektiriyor. Yatağı birincil araç kontrol eder; ikincil araçlar onun ayarladığı sıcaklıkta basar."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
-msgstr ""
+msgstr "Filament türü uyuşmazlığı: T%d %s, T%d ise %s kullanıyor. Bu malzemelerin gereksinimleri uyumsuzdur ve birlikte basılmak üzere tasarlanmamıştır."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
 "\n"
 msgstr ""
+"Plaka %d üzerinde IDEX/IQEX paralel modu etkin ve şu sorunlar var:\n"
+"\n"
 
+# AI Translated
 msgid "Continue slicing?"
-msgstr ""
+msgstr "Dilimlemeye devam edilsin mi?"
 
+# AI Translated
 msgid "IDEX/IQEX Parallel Mode Warning"
-msgstr ""
+msgstr "IDEX/IQEX Paralel Mod Uyarısı"
 
+# AI Translated
 msgid "Don't show these warnings again"
-msgstr ""
+msgstr "Bu uyarıları bir daha gösterme"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plate %d:\n"
-msgstr ""
+msgstr "Plaka %d:\n"
 
+# AI Translated
 msgid ""
 "The following IDEX/IQEX parallel mode concerns were detected:\n"
 "\n"
 msgstr ""
+"Aşağıdaki IDEX/IQEX paralel mod sorunları tespit edildi:\n"
+"\n"
 
 msgid "Network plug-in switched successfully."
 msgstr "Ağ eklentisi başarıyla değiştirildi."
@@ -9161,8 +9229,9 @@ msgstr ""
 msgid "Sync now"
 msgstr "Şimdi senkronize et"
 
+# AI Translated
 msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
-msgstr ""
+msgstr "Bir işlem çalışırken geri alma veya yineleme yapılamaz. İşlemi durdurun ya da bitmesini bekleyip yeniden deneyin."
 
 # AI Translated
 msgid ""
@@ -9233,10 +9302,13 @@ msgstr "İndirme başarısız oldu, Dosya boyutu sorunlu."
 msgid "Project downloaded %d%%"
 msgstr "Proje %d%% indirildi"
 
+# AI Translated
 msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
+"PA Çizgi ve PA Deseni testleri bant yazıcılarda henüz etkin değil.\n"
+"Lütfen bunun yerine PA Kulesi yöntemini kullanın."
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -9264,12 +9336,14 @@ msgstr "Orca YOLO Akış Kalibrasyonu"
 msgid "Flowrate Test - Pass%d"
 msgstr "Akış Hızı Testi - %d. Geçiş"
 
+# AI Translated
 #, boost-format
 msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
-msgstr ""
+msgstr "%1% ile %2% °C aralığı için bant sıcaklık kulesi mevcut değil. Kule modellerinin kapsadığı bir aralık kullanın, örneğin 230 ile 190."
 
+# AI Translated
 msgid "Temperature tower"
-msgstr ""
+msgstr "Sıcaklık kulesi"
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -11769,8 +11843,9 @@ msgstr "Farklı ekstruder tahrikleri veya nozul hacmi tipleri arasında eşitlem
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Parametre değişikliklerini diğer ekstruderin ilgili parametreleriyle eşitleyin."
 
+# AI Translated
 msgid "Parameters with this icon can be configurable per nozzle."
-msgstr ""
+msgstr "Bu simgeye sahip parametreler nozul başına yapılandırılabilir."
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Tüm ayarları en son kaydedilen ön ayara sıfırlamak için tıklayın."
@@ -12193,11 +12268,13 @@ msgstr "Plaka Ayarı"
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "Yazıcı iletişimi için ağ aracısı uygulamasını seçin. Kullanılabilir aracılar başlangıçta kaydedilir."
 
+# AI Translated
 msgid "Belt printer"
-msgstr ""
+msgstr "Bant yazıcı"
 
+# AI Translated
 msgid "Machine frame transforms"
-msgstr ""
+msgstr "Makine koordinat sistemi dönüşümleri"
 
 #. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
@@ -12317,23 +12394,28 @@ msgstr "Nozul çapı"
 msgid "Wipe tower"
 msgstr "Silme kulesi"
 
+# AI Translated
 msgid "Belt purge tower"
-msgstr ""
+msgstr "Bant yıkama kulesi"
 
 msgid "Single extruder multi-material parameters"
 msgstr "Tek Ekstruder Çoklu Malzeme Parametreleri"
 
+# AI Translated
 msgid "IDEX/IQEX Configuration"
-msgstr ""
+msgstr "IDEX/IQEX Yapılandırması"
 
+# AI Translated
 msgid "Pre-slice warnings"
-msgstr ""
+msgstr "Dilimleme öncesi uyarılar"
 
+# AI Translated
 msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
-msgstr ""
+msgstr "IDEX/IQEX paralel mod sorunları tespit edilirse (yatak sıcaklığı çakışmaları, filament türü uyuşmazlıkları, çoklu malzeme çakışmaları) dilimlemeden önce bir uyarı iletişim kutusu gösterir. İletişim kutusunun kendisinden kapatılabilir. Yanlışlıkla kapatıldıysa buradan yeniden etkinleştirin."
 
+# AI Translated
 msgid "Modes"
-msgstr ""
+msgstr "Modlar"
 
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
 msgstr "Bu tek ekstruderli çok malzemeli bir yazıcıdır, tüm ekstruderlerin çapları yeni değere ayarlanacaktır. Devam etmek istiyor musunuz?"
@@ -12344,17 +12426,21 @@ msgstr "Katman Yüksekliği Sınırları"
 msgid "Z-Hop"
 msgstr "Z Sıçraması"
 
+# AI Translated
 msgid "Front-left"
-msgstr ""
+msgstr "Sol ön"
 
+# AI Translated
 msgid "Front-right"
-msgstr ""
+msgstr "Sağ ön"
 
+# AI Translated
 msgid "Rear-left"
-msgstr ""
+msgstr "Sol arka"
 
+# AI Translated
 msgid "Rear-right"
-msgstr ""
+msgstr "Sağ arka"
 
 # AI Translated
 msgid ""
@@ -12469,9 +12555,10 @@ msgstr "Devam etmek"
 msgid "Don't warn again for this preset"
 msgstr "Bu ön ayar için bir daha uyarma"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 # AI Translated
 msgid "No modifications need to be copied."
@@ -12973,8 +13060,9 @@ msgstr "Bitir"
 msgid "Printer Selection"
 msgstr "Yazıcı Seçimi"
 
+# AI Translated
 msgid "Vendors"
-msgstr ""
+msgstr "Satıcılar"
 
 # AI Translated
 msgid "Custom Printer"
@@ -12983,24 +13071,29 @@ msgstr "Özel Yazıcı"
 msgid "Create"
 msgstr "Oluştur"
 
+# AI Translated
 msgid "Check for new printers"
-msgstr ""
+msgstr "Yeni yazıcıları kontrol et"
 
 msgid "At least one printer must be selected."
 msgstr "En az bir yazıcı seçilmelidir."
 
+# AI Translated
 msgid "New printers found"
-msgstr ""
+msgstr "Yeni yazıcılar bulundu"
 
+# AI Translated
 #, c-format, boost-format
 msgid "New printer vendors installed: %s"
-msgstr ""
+msgstr "Yeni yazıcı satıcıları yüklendi: %s"
 
+# AI Translated
 msgid "New printer vendors were found, but installation was cancelled."
-msgstr ""
+msgstr "Yeni yazıcı satıcıları bulundu ancak yükleme iptal edildi."
 
+# AI Translated
 msgid "No new printers found."
-msgstr ""
+msgstr "Yeni yazıcı bulunamadı."
 
 msgid "Filament Selection"
 msgstr "Filament Seçimi"
@@ -13020,20 +13113,25 @@ msgstr "Filament türü"
 msgid "Vendor"
 msgstr "Satıcı"
 
+# AI Translated
 msgid "No items"
-msgstr ""
+msgstr "Öğe yok"
 
+# AI Translated
 msgid "Filter items"
-msgstr ""
+msgstr "Öğeleri filtrele"
 
+# AI Translated
 msgid "Checked"
-msgstr ""
+msgstr "Seçili"
 
+# AI Translated
 msgid "Unchecked"
-msgstr ""
+msgstr "Seçili olmayan"
 
+# AI Translated
 msgid "Select filtered"
-msgstr ""
+msgstr "Filtrelenenleri seç"
 
 msgid "Clear all"
 msgstr "Hepsini temizle"
@@ -13053,8 +13151,9 @@ msgstr "Not: Gizli Mod etkinken kullanıcı profilleriniz Orca Cloud'a yedeklenm
 msgid "Enable Stealth Mode."
 msgstr "Gizli Modu etkinleştirin."
 
+# AI Translated
 msgid "Proprietary Plugins"
-msgstr ""
+msgstr "Özel Eklentiler"
 
 msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
 msgstr "Bazı yazıcı üreticileri, yazıcılarıyla iletişim için özel eklentilere ihtiyaç duyar. Bu tür yazıcılar kullanıyorsanız lütfen ilgili eklentiyi seçin."
@@ -13532,13 +13631,15 @@ msgstr "Filament ekstrüzyon rolü değişim G-code'u"
 msgid "No object can be printed. It may be too small."
 msgstr "Hiçbir nesne basılamıyor. Nesne çok küçük olabilir."
 
+# AI Translated
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
-msgstr ""
+msgstr "\"%1%\" IDEX/IQEX modunun seçili yazıcıda atanmış aracı yok. Bunun yerine Birincil modda basılıyor. Modun araçlarını Yazıcı Ayarları'nda atayın veya plakanın IDEX/IQEX düğmesinden başka bir mod seçin."
 
+# AI Translated
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
-msgstr ""
+msgstr "Bu plaka, seçili yazıcının tanımlamadığı \"%1%\" IDEX/IQEX moduna ayarlı. Bunun yerine Birincil modda basılıyor. Plakanın IDEX/IQEX düğmesinden bir mod seçin veya modu Yazıcı Ayarları'nda geri yükleyin."
 
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "Baskınız hazırlama bölgelerine çok yakın. Çarpışma olmadığından emin olun."
@@ -13716,25 +13817,31 @@ msgstr "doğrulama başarısız"
 msgid "write callback failed"
 msgstr "geri arama yazma başarısız oldu"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
-msgstr ""
+msgstr "IDEX/IQEX paralel modlarında çok renkli baskılar, her filamentin kendine ayrılmış fiziksel bir ekstruderi olmasını gerektirir. Etkin filamentlerden iki veya daha fazlası, yazıcının fiziksel ekstruder eşlemesi (bir MMU/AFC dağıtıcısı) üzerinden aynı fiziksel kafaya yönlendirilmiş; bağımlı portal bunu izleyemez."
 
+# AI Translated
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
-msgstr ""
+msgstr "Etkin IDEX/IQEX modu birincil bir araç tanımlamıyor, bu nedenle çok renkli baskı planlanamıyor. Yazıcı ayarlarındaki IDEX/IQEX Modlar düzenleyicisini açın ve bir araca Birincil (Primary) rolünü atayın."
 
+# AI Translated
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
-msgstr ""
+msgstr "Bu moddaki çok renkli baskı bir paralel baskı senaryosu değil — tüm etkin araçlar tek bir portal üzerinde, dolayısıyla kopyalanacak veya aynalanacak ikinci bir portal yok. Tek portalda çok renkli baskı için plakayı Birincil moda geçirin veya ikinci bir portaldaki araçları içeren bir IDEX/IQEX modu tanımlayın."
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
-msgstr ""
+msgstr "IDEX/IQEX paralel modlarında çok renkli baskılar, birincil aracın portalında bir Span aracı gerektirir — bu olmadan mod, portal içi bir çok renkli baskı ortağı tanımlamaz. Baskıyı tek bir filamente indirin, Birincil moda geçin ya da yazıcı ayarlarındaki IDEX/IQEX Modlar düzenleyicisini açıp birincil aracın portalındaki bir aracı Span olarak işaretleyin."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "Bu Span modunda renkleri yalnızca %1% basar, ancak filament %2% hiçbir araca yönlendirilmemiş. %1% aracına yönlendirilmiş filamentleri kullanın veya bu plakayı Birincil moda geçirin."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "Bu Span modunda renkleri yalnızca %1% basar, ancak filament %2%, T%3% aracına yönlendirilmiş. %1% aracına yönlendirilmiş filamentleri kullanın veya bu plakayı Birincil moda geçirin."
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -13789,42 +13896,55 @@ msgstr "Yine de yazdırmak istiyorsanız Tercihler / Denetim / Dilimleme / Karı
 msgid "No extrusions under current settings."
 msgstr "Mevcut ayarlarda ekstrüzyon yok."
 
+# AI Translated
 msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
-msgstr ""
+msgstr "Karışık filamentler IDEX/IQEX paralel modlarında desteklenmez. Bu plakayı Birincil moda geçirin."
 
+# AI Translated
 msgid "no configured tool"
-msgstr ""
+msgstr "yapılandırılmış araç yok"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "\"%1%\" IDEX/IQEX modu T%2% ile basar, ancak bu plakanın filamentlerinin bulunduğu yer: %3%. T%2% üzerine yüklü bir filament atayın veya bu plakayı Birincil moda geçirin."
 
+# AI Translated
 msgid "Raft is not compatible with belt printer mode."
-msgstr ""
+msgstr "Raft, bant yazıcı moduyla uyumlu değil."
 
+# AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
-msgstr ""
+msgstr "Rüzgarlık, bant yazıcı moduyla uyumlu değil."
 
+# AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr ""
+msgstr "Kenar, bant yazıcıda spiral vazo moduyla uyumlu değil. Bunlardan birini devre dışı bırakın."
 
+# AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr ""
+msgstr "Bant, kenar için çok dik olduğundan kenar oluşturulmayacak."
 
+# AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr ""
+msgstr "Kenar yalnızca bant eğik olduğunda oluşturulur. Bir bant eğim açısı ayarlayın veya kenar ayarını kaldırın."
 
+# AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr ""
+msgstr "Bant yazıcılar yalnızca dış ve iç kenarı destekler. Otomatik, Fare kulağı ve Boyalı kenar türleri, Kenar genişliği kullanılarak Yalnızca dış kenar olarak basılır."
 
+# AI Translated
+# Needs human review: Brim and edge are both "kenar" in Turkish: the leading brim is rendered "ileri kenar" to keep it apart from the leading edge ("ön kenar", glossary). Check the sentence stays clear.
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr ""
+msgstr "Kenar-nesne boşluğu, ileri kenarı nesnenin ön kenarından, yani sabitlemesi gereken kenardan ayırır. İleri kenar uzunluğu kullanılırken boşluğu 0'a ayarlayın."
 
+# AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr ""
+msgstr "İleri kenar uzunluğu, her nesnenin önünde bant boyunca uzanır ve Hizala bu alanı ayırmaz. Nesneler arasında boşluk bırakın."
 
+# AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr ""
+msgstr "\"Yalnızca ön kenar\" kenar türü bant yazıcılar için geçerlidir. Bu yazıcıda sıradan bir dış kenar olarak basılır."
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -13836,14 +13956,17 @@ msgstr "\"Nesneye göre\" dizisi etkinleştirildiğinde, hızlandırılmış çe
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "\"Nesneye göre\" sırası etkinleştirildiğinde kümelenme tespiti desteklenmez."
 
+# AI Translated
 msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
-msgstr ""
+msgstr "Bant yıkama kulesi \"Nesneye göre\" yazdırma sırasında oluşturulmaz; filament değişimlerinde yıkama yapılmayacak."
 
+# AI Translated
 msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
-msgstr ""
+msgstr "Bant yıkama kulesi etkin ancak projede yıkama kulesi nesnesi yok; filament değişimlerinde yıkama yapılmayacak. Kuleyi oluşturmak için projeyi uygulamada açın."
 
+# AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr ""
+msgstr "Proje, yönetilen birden fazla bant yıkama kulesi içeriyor. Kuleyi yeniden oluşturmak için plakayı yeniden yükleyin veya bant yıkama kulesini kapatıp yeniden açın."
 
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "Hem hassas Z yüksekliğini hem de hazırlık kulesini etkinleştirmek dilimleme hatalarına neden olabilir."
@@ -14848,9 +14971,12 @@ msgstr "İç köprülerin hızı. Değer yüzde olarak ifade edilirse köprü h�
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "Modelden en dış kenar çizgisine kadar olan mesafe."
 
+# AI Translated
+# Needs human review: Label of the belt-printer leading brim. "Ön kenar" is taken by Leading edge, so the leading brim is "ileri kenar"; check it is understood as the brim laid ahead of the object.
 msgid "Leading brim length"
-msgstr ""
+msgstr "İleri kenar uzunluğu"
 
+# AI Translated
 msgid ""
 "Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
 "\n"
@@ -14860,10 +14986,19 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Yalnızca bant yazıcılar. Kenarı, nesnenin temas alanının yokuş aşağı bakan her kenarında, bant boyunca nesnenin ÖNÜNE doğru uzatır - hem nesnenin bantla ilk teması hem de daha sonra banda inen her ada için. Bu önlük, nesne gelmeden önce banda serilir; böylece ön kenarın tutunabileceği, önceden yapışmış bir zemin olur.\n"
+"\n"
+"Bant yüzeyinde ölçülür ve Kenar genişliği'ne eklenir: kenar, nesnenin önünde Kenar-nesne boşluğu + İleri kenar uzunluğu + Kenar genişliği kadar uzanır. Kenar-nesne boşluğu'nu 0'a ayarlayın; aksi halde önlük, sabitlemesi gereken nesneye değmez.\n"
+"\n"
+"Eğik bir bantta her katman kenarın bir şeridini serer; bu nedenle oluşan kenar tabakasının kalınlığını katman yüksekliği değil akış belirler. Bunu ayarlamak için Kenar akış oranı'nı kullanın.\n"
+"\n"
+"Devre dışı bırakmak için 0'a ayarlayın."
 
+# AI Translated
 msgid "Extra brim width"
-msgstr ""
+msgstr "Ekstra kenar genişliği"
 
+# AI Translated
 msgid ""
 "Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
 "\n"
@@ -14871,6 +15006,11 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Yalnızca bant yazıcılar. Kenarı, nesnenin önüne veya arkasına doğru daha fazla uzatmadan, bandın enine doğru YANLARA genişletir. Bir parçanın uzunluğu boyunca tek başına Kenar genişliği'nin sağladığından daha fazla tutunmaya ihtiyacı olduğunda kullanın.\n"
+"\n"
+"Bant yüzeyinde ölçülür ve Kenar genişliği'ne eklenir: kenar, nesnenin her iki yanında Kenar-nesne boşluğu + Kenar genişliği + Ekstra kenar genişliği kadar uzanır. Bunun yerine kenarı nesnenin önüne doğru uzatmak için İleri kenar uzunluğu'nu kullanın.\n"
+"\n"
+"Devre dışı bırakmak için 0'a ayarlayın."
 
 msgid "Brim type"
 msgstr "Kenar tipi"
@@ -14878,8 +15018,9 @@ msgstr "Kenar tipi"
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "Bu, modellerin dış ve/veya iç kısmındaki Kenar oluşumunu kontrol eder. Otomatik, kenar genişliğinin otomatik olarak analiz edilip hesaplandığı anlamına gelir."
 
+# AI Translated
 msgid "Leading edge only"
-msgstr ""
+msgstr "Yalnızca ön kenar"
 
 msgid "Brim-object gap"
 msgstr "Kenar-nesne boşluğu"
@@ -16151,9 +16292,11 @@ msgstr "Çok çizgili dolgu"
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "Dolgu deseni tarafından destekleniyorsa, dolgu deseni için birden fazla çizgi kullanılması."
 
+# AI Translated
 msgid "Adaptive density (experimental)"
-msgstr ""
+msgstr "Uyarlanabilir yoğunluk (deneysel)"
 
+# AI Translated
 msgid ""
 "Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
 "Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
@@ -16163,53 +16306,77 @@ msgid ""
 " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
 " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
 msgstr ""
+"Nesnenin içindeki Jiroid ve TPMS dolgusunu kademelendirir: hücreleri nesnenin yüzeyinden merkezine doğru büyür. Yüzeyde dolgu yoğunluğu, merkezde ise iç yoğunluk kullanılır.\n"
+"Mesafe bükümü, Yumuşak geçiş ve Kademeli kabuklar, üst ve alt dahil en yakın yüzeye olan mesafeyi izler; iç yoğunluk bu yüzeye en uzak noktada kullanılır:\n"
+" - Mesafe bükümü: tek ve kesintisiz bir desen; levhalarda ve uzun parçalarda olduğu gibi mesafenin yönlere göre değiştiği yerlerde gerilir ve çarpılır.\n"
+" - Yumuşak geçiş: komşu yoğunlukların desenleri birbirine karışır; buluştukları yerlerde küçük döngüler oluşur.\n"
+" - Kademeli kabuklar: yoğunlukları yaklaşık 1,5 kat farklı olan normal desen kabukları; çizgileri kabuk sınırları boyunca birleştirilir.\n"
+" - Loblar: üstü ve altı dahil nesnenin 3D şeklini izler. Her lob, yani geri kalanına daha dar bir boyunla bağlanan her parça, kendi merkezine doğru kademelendirilir.\n"
+" - Normal Z, Y veya X: nesnenin o eksene dik kesitlerini izler, böylece yoğunluk bu eksen boyunca değişmez."
 
+# AI Translated
 msgid "Distance warp"
-msgstr ""
+msgstr "Mesafe bükümü"
 
+# AI Translated
 msgid "Smooth blend"
-msgstr ""
+msgstr "Yumuşak geçiş"
 
+# AI Translated
 msgid "Stepped shells"
-msgstr ""
+msgstr "Kademeli kabuklar"
 
+# AI Translated
 msgid "Lobes"
-msgstr ""
+msgstr "Loblar"
 
+# AI Translated
 msgid "Normal Z"
-msgstr ""
+msgstr "Normal Z"
 
+# AI Translated
 msgid "Normal Y"
-msgstr ""
+msgstr "Normal Y"
 
+# AI Translated
 msgid "Normal X"
-msgstr ""
+msgstr "Normal X"
 
+# AI Translated
 msgid "Interior density"
-msgstr ""
+msgstr "İç yoğunluk"
 
+# AI Translated
 msgid "Density of the adaptive infill at the center of the object."
-msgstr ""
+msgstr "Nesnenin merkezindeki uyarlanabilir dolgunun yoğunluğu."
 
+# AI Translated
 msgid "Adaptive gradient"
-msgstr ""
+msgstr "Uyarlanabilir gradyan"
 
+# AI Translated
 msgid ""
 "How the density changes from the surface to the center of the object.\n"
 "Linear: the density changes at a constant rate.\n"
 "Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
 "Exponential: the density changes quickly just below the surface and levels off towards the center."
 msgstr ""
+"Yoğunluğun nesnenin yüzeyinden merkezine doğru nasıl değiştiği.\n"
+"Doğrusal: yoğunluk sabit bir hızla değişir.\n"
+"Karesel: yoğunluk yüzeye yakın yerlerde dolgu yoğunluğuna yakın kalır ve merkeze doğru daha hızlı değişir.\n"
+"Üstel: yoğunluk yüzeyin hemen altında hızla değişir ve merkeze doğru sabitlenir."
 
 # AI Translated
 msgid "Linear"
 msgstr "Doğrusal"
 
+# AI Translated
 msgid "Quadratic"
-msgstr ""
+msgstr "Karesel"
 
+# AI Translated
 msgid "Exponential"
-msgstr ""
+msgstr "Üstel"
 
 # AI Translated
 msgid "Z-buckling bias optimization (experimental)"
@@ -18495,98 +18662,129 @@ msgstr "Tek ekstruder çoklu malzeme"
 msgid "Use single nozzle to print multi filament."
 msgstr "Çoklu filament basmak için tek nozul kullan."
 
+# AI Translated
 msgid "IDEX/IQEX Printer"
-msgstr ""
+msgstr "IDEX/IQEX Yazıcı"
 
+# AI Translated
 msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
-msgstr ""
+msgstr "Birden fazla bağımsız taşıyıcıya sahip yazıcılar (IDEX, IQEX ve benzerleri) için paralel baskıyı etkinleştirir."
 
+# AI Translated
 msgid "Firmware-managed zones"
-msgstr ""
+msgstr "Ürün yazılımı tarafından yönetilen bölgeler"
 
+# AI Translated
 msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-msgstr ""
+msgstr "Etkinleştirildiğinde dilimleyici, birincil bölgenin içeriğini yatak orijininde (0,0) ortalanmış şekilde G-code üretir. Kopyaları/ayna görüntülerini her fiziksel bölge konumuna yerleştirmekten yazıcının ürün yazılımı sorumludur. Yalnızca ürün yazılımı kopya/ayna modunda kendi bölge ofsetlerini uygulayan yazıcılarda etkinleştirin (ör. RepRapFirmware IDEX çoğaltma modu). Birincil modda etkisi yoktur."
 
+# AI Translated
 msgid "Gantry Count"
-msgstr ""
+msgstr "Portal Sayısı"
 
+# AI Translated
 msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
-msgstr ""
+msgstr "Bağımsız Y ekseni portallarının sayısı. IDEX/tek raylı IQEX için 1. Çift portallı sistemler için 2 (yatağı satırlara böler)."
 
+# AI Translated
 msgid "Tools per Gantry"
-msgstr ""
+msgstr "Portal Başına Araç"
 
+# AI Translated
 msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
-msgstr ""
+msgstr "X boyunca portal başına bağımsız baskı kafası sayısı. IDEX tipi için 2."
 
+# AI Translated
 msgid "Tool 0 Position"
-msgstr ""
+msgstr "Araç 0 Konumu"
 
+# AI Translated
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
-msgstr ""
+msgstr "T0 aracının (indeks 0) yatak üzerindeki fiziksel konumu. Araç indekslerinin yatak bölgelerine nasıl eşleneceğini belirler. Tek portallı kurulumlarda (IDEX) yalnızca sol/sağ önemlidir; çift portallı kurulumlarda (IQEX) dört köşenin tümü seçilebilir (ön = düşük Y / operatöre yakın, arka = yüksek Y / makinenin arkası)."
 
+# AI Translated
 msgid "Nozzle Clearance X"
-msgstr ""
+msgstr "Nozul Boşluğu X"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
-msgstr ""
+msgstr "X yönünde nozul ile taşıyıcının çarpışma tarafındaki kenarı arasındaki mesafe (mm). Her X sınırındaki çarpışma dışlama şeridinin genişliğini hesaplamak için kullanılır."
 
+# AI Translated
 msgid "Nozzle Clearance Y"
-msgstr ""
+msgstr "Nozul Boşluğu Y"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
-msgstr ""
+msgstr "Y yönünde nozul ile taşıyıcının çarpışma tarafındaki kenarı arasındaki mesafe (mm). Her Y sınırındaki çarpışma dışlama şeridinin genişliğini hesaplamak için kullanılır."
 
+# AI Translated
 msgid "Safety Margin"
-msgstr ""
+msgstr "Güvenlik Payı"
 
+# AI Translated
 msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
-msgstr ""
+msgstr "Birincil bölge içinde her taşıyıcı sınırında çizilen, engelleyici olmayan, uyarı amaçlı boşluk şeridi (mm). Bu şeridin içine yerleştirilen parçalar yine de dilimlenir; bölge kenarının yakınında ekstra boşluk bırakmak için görsel bir hatırlatmadır."
 
+# AI Translated
 msgid "Visualization Theme"
-msgstr ""
+msgstr "Görselleştirme Teması"
 
+# AI Translated
 msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
-msgstr ""
+msgstr "IDEX/IQEX yatak bölgesi görselleştirmesi için renk teması. Gerekirse renk körlüğüne uygun bir tema seçin."
 
+# AI Translated
 msgid "Deuteranopia / Protanopia (red-green)"
-msgstr ""
+msgstr "Döteranopi / Protanopi (kırmızı-yeşil)"
 
+# AI Translated
 msgid "Tritanopia (blue-yellow)"
-msgstr ""
+msgstr "Tritanopi (mavi-sarı)"
 
+# AI Translated
 msgid "High Contrast"
-msgstr ""
+msgstr "Yüksek Kontrast"
 
+# AI Translated
 msgid "IDEX/IQEX Print Mode"
-msgstr ""
+msgstr "IDEX/IQEX Baskı Modu"
 
+# AI Translated
 msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
-msgstr ""
+msgstr "Etkin IDEX/IQEX paralel baskı modunun adı veya tek taşıyıcılı baskı için \"primary\". Yazıcı ön ayarında IDEX/IQEX Yazıcı seçeneğinin etkin olmasını gerektirir (Yazıcı → Çoklu Malzeme → IDEX/IQEX Yapılandırması)."
 
+# AI Translated
 msgid "IDEX/IQEX head filament map"
-msgstr ""
+msgstr "IDEX/IQEX kafa filament eşlemesi"
 
+# AI Translated
 msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr ""
+msgstr "Fiziksel kafaları filament yuvalarına eşleyen plaka başına geçersiz kılma (1 tabanlı). Boş bırakılırsa pem-inversion varsayılanları kullanılır."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Names"
-msgstr ""
+msgstr "IDEX/IQEX Mod Adları"
 
+# AI Translated
 msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
-msgstr ""
+msgstr "Kullanıcı tanımlı her IDEX/IQEX paralel baskı modu için görünen adlar."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Active Tools"
-msgstr ""
+msgstr "IDEX/IQEX Modu Etkin Araçları"
 
+# AI Translated
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
-msgstr ""
+msgstr "Her mod için araç rolü atamaları. Biçim: \"idx:P,idx:C,idx:M\"; burada P=Primary (Birincil), C=Copy (Kopya), M=Mirror (Ayna) (ör. \"0:P,1:C,2:M,3:M\"). Yazıcı ön ayarındaki IDEX/IQEX Modlar düzenleyicisi tarafından yönetilir."
 
+# AI Translated
 msgid "IDEX/IQEX Mode G-codes"
-msgstr ""
+msgstr "IDEX/IQEX Modu G-code'ları"
 
+# AI Translated
 msgid "G-code or macro call to inject at print start for each mode."
-msgstr ""
+msgstr "Her mod için baskı başlangıcında eklenecek G-code veya makro çağrısı."
 
 msgid "Manual Filament Change"
 msgstr "Manuel filament değişimi"
@@ -18970,35 +19168,45 @@ msgstr "Eşik çakışması"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "Eşik açısı sıfır ise örtüşmesi eşiğin altında olan çıkıntılar için destek oluşturulacaktır. Bu değer ne kadar küçük olursa, desteksiz yazdırılabilecek çıkıntı da o kadar dik olur."
 
+# AI Translated
 msgid "Build plate tilt X"
-msgstr ""
+msgstr "Yatak eğimi X"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
-msgstr ""
+msgstr "Yatağın X ekseni boyunca eğim açısı. Pozitif bir değer, yatağı +X tarafı daha yüksek olacak şekilde eğer; bu, yerçekimini -X yönüne kaydırır ve +X tarafındaki çıkıntıları artırır. Negatif bir değer -X tarafını yükseltir. X ekseninde eğim olmaması için 0'a ayarlayın. Bant yazıcı modunda bu değer bant açısıyla otomatik olarak eşitlenir."
 
+# AI Translated
 msgid "Build plate tilt Y"
-msgstr ""
+msgstr "Yatak eğimi Y"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
-msgstr ""
+msgstr "Yatağın Y ekseni boyunca eğim açısı. Pozitif bir değer, yatağı +Y tarafı daha yüksek olacak şekilde eğer; bu, yerçekimini -Y yönüne kaydırır ve +Y tarafındaki çıkıntıları artırır. Negatif bir değer -Y tarafını yükseltir. Y ekseninde eğim olmaması için 0'a ayarlayın."
 
+# AI Translated
 msgid "Enable belt printing"
-msgstr ""
+msgstr "Bant baskısını etkinleştir"
 
+# AI Translated
 msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
-msgstr ""
+msgstr "Bant yazıcı modunu etkinleştirir. Bant yazıcılar, baskı yüzeyi olarak belirli bir açıyla (genellikle 45 derece) eğilmiş bir konveyör bant kullanır. Dilimleyici, eğik baskı yüzeyi için dilimleme düzlemini döndürür ve G-code koordinatlarını dönüştürür."
 
+# AI Translated
 msgid "Infinite Y axis"
-msgstr ""
+msgstr "Sonsuz Y ekseni"
 
+# AI Translated
 msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
-msgstr ""
+msgstr "Bant yazıcılar için sonsuz Y eksenini etkinleştirir. Etkinleştirildiğinde Y ekseni baskı hacmi sınırı fiilen kaldırılır ve bant yönü boyunca her uzunlukta nesne basılabilir."
 
+# AI Translated
 msgid "Belt tilt axis"
-msgstr ""
+msgstr "Bant eğim ekseni"
 
+# AI Translated
 msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-msgstr ""
+msgstr "Dilimlemeden önce mesh'in etrafında döndürüldüğü eksen. Bu, bant yazıcının eğimidir: yatak görüntülemesini ve destek yerçekimi eğimini de belirleyen izometrik (bozulmasız) bir dönüş; G-code geri dönüşümü bunu, makine koordinat sistemi kesme/ölçekleme ve yeniden eşleme işlemlerinden önce tersine çevirir. Tipik portal eğimi X'tir (bant Y boyunca ilerler)."
 
 msgid "X"
 msgstr "X"
@@ -19010,89 +19218,119 @@ msgstr "Y"
 msgid "Z"
 msgstr "Z"
 
+# AI Translated
 msgid "Belt tilt angle"
-msgstr ""
+msgstr "Bant eğim açısı"
 
+# AI Translated
 msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
-msgstr ""
+msgstr "Bant yüzeyinin derece cinsinden eğim açısı. Çoğu bant yazıcı 45° kullanır. Pozitif değerler, pozitif eğim ekseni boyunca bakıldığında saat yönünün tersine döndürür; büyüklük aynı zamanda yatak görüntülemesi ve destek yerçekimi için kullanılan fiziksel bant eğimidir."
 
 msgid "°"
 msgstr "°/s"
 
+# AI Translated
 msgid "Decouple machine-frame tilt"
-msgstr ""
+msgstr "Makine koordinat sistemi eğimini ayır"
 
+# AI Translated
 msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-msgstr ""
+msgstr "Uzman geçersiz kılması: makine koordinat sistemi (G-code kesme/ölçekleme) eğim açısını dilimleme öncesi dönüş açısından bağımsız olarak ayarlar. Devre dışı bırakıldığında makine koordinat sistemi dönüşümü bant eğim açısından türetilir; böylece tek bir açı her iki aşamayı da belirler. Yalnızca fiziksel portal eğimi dilimleme dönüşünden farklı olan bir makineyi telafi etmek için etkinleştirin."
 
+# AI Translated
 msgid "Machine-frame tilt angle"
-msgstr ""
+msgstr "Makine koordinat sistemi eğim açısı"
 
+# AI Translated
 msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
-msgstr ""
+msgstr "G-code'a uygulanan makine koordinat sistemi kesmesini (cot) ve ölçeğini (1/|sin|) türetmek için kullanılan eğim açısı (derece). Yalnızca 'Makine koordinat sistemi eğimini ayır' etkinleştirildiğinde kullanılır; aksi halde bant eğim açısı kullanılır."
 
+# AI Translated
 msgid "+X"
-msgstr ""
+msgstr "+X"
 
+# AI Translated
 msgid "+Y"
-msgstr ""
+msgstr "+Y"
 
+# AI Translated
 msgid "+Z"
-msgstr ""
+msgstr "+Z"
 
+# AI Translated
 msgid "-X"
-msgstr ""
+msgstr "-X"
 
+# AI Translated
 msgid "-Y"
-msgstr ""
+msgstr "-Y"
 
+# AI Translated
 msgid "-Z"
-msgstr ""
+msgstr "-Z"
 
+# AI Translated
+# Needs human review: Rev = reversed axis (max minus position), a different option from -X (negated) in the same G-code remap dropdown; check the two read as distinct.
 msgid "Rev X"
-msgstr ""
+msgstr "Ters X"
 
+# AI Translated
 msgid "Rev Y"
-msgstr ""
+msgstr "Ters Y"
 
+# AI Translated
 msgid "Rev Z"
-msgstr ""
+msgstr "Ters Z"
 
+# AI Translated
 msgid "G-code remap X"
-msgstr ""
+msgstr "G-code yeniden eşleme X"
 
+# AI Translated
 msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "G-code çıktısında hangi dilimleme ekseninin makine X eksenine eşleneceği. Dilimlemeden SONRA, G-code oluşturma sırasında uygulanır."
 
+# AI Translated
 msgid "G-code remap Y"
-msgstr ""
+msgstr "G-code yeniden eşleme Y"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "G-code çıktısında hangi dilimleme ekseninin makine Y eksenine eşleneceği. Dilimlemeden SONRA, G-code oluşturma sırasında uygulanır."
 
+# AI Translated
 msgid "G-code remap Z"
-msgstr ""
+msgstr "G-code yeniden eşleme Z"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "G-code çıktısında hangi dilimleme ekseninin makine Z eksenine eşleneceği. Dilimlemeden SONRA, G-code oluşturma sırasında uygulanır."
 
+# AI Translated
 msgid "Support Floor Z offset"
-msgstr ""
+msgstr "Destek Tabanı Z ofseti"
 
+# AI Translated
 msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
-msgstr ""
+msgstr "Hesaplanan bant tabanını yukarı veya aşağı kaydırır (mm). Negatif değerler tabanı alçaltır ve daha fazla desteğin korunmasını sağlar. Bant tabanı formülü sorunlarını teşhis etmek için kullanın."
 
+# AI Translated
 msgid "Enable belt purge tower"
-msgstr ""
+msgstr "Bant yıkama kulesini etkinleştir"
 
+# AI Translated
+# Needs human review: Prime tower glossary cell is unsettled (Prime Kulesi / Silme kulesi); "wipe/prime tower" rendered once as Prime Kulesi, as the setting label is.
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
-msgstr ""
+msgstr "Prime Kulesi'nin bant yazıcılardaki karşılığı. Bant yazıcıda etkinleştirildiğinde, basılan parçaların yanında otomatik olarak bir yıkama prizması oluşturulur ve filament değişimi yıkaması buraya yönlendirilir (klasik Prime Kulesi bant yazıcılarda kullanılamaz, çünkü onun G-code'u bant dönüşümünü atlar). Yalnızca bant yazıcılarda kullanılabilir."
 
+# AI Translated
 msgid "Belt purge tower width"
-msgstr ""
+msgstr "Bant yıkama kulesi genişliği"
 
+# AI Translated
+# Needs human review: Prime tower glossary cell is unsettled (Prime Kulesi / Silme kulesi); used Prime Kulesi as the setting label does.
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr ""
+msgstr "Bant yıkama kulesi etkinken ve birden fazla filament kullanıldığında bant yazıcılarda otomatik olarak oluşturulan yıkama prizmasının genişliği (makine X'i, bandın enine). Filament değişimi yıkaması, klasik bir Prime Kulesi yerine bu prizmanın ekstrüzyonlarına yönlendirilir. Yüksekliği, katman başına en kötü durumdaki yıkama hacminden otomatik olarak hesaplanır: daha geniş bir prizma daha kısa olur."
 
 msgid "Tree support branch angle"
 msgstr "Ağaç desteği dal açısı"
@@ -19274,11 +19512,15 @@ msgstr "Üst kabuk katmanları tarafından hesaplanan kalınlık bu değerden da
 msgid "Separated infills"
 msgstr "Ayrık dolgular"
 
+# AI Translated
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
 "Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
+"Her parçanın iç dolgusunu, tüm montaj yerine, tek başına dilimleniyormuş gibi kendi üzerinde ortalar. Birbirine değen veya çakışan parçalar tek bir gövde olarak ele alınır ve ortak bir merkez kullanır; ayrı parçaların (veya farklı 3D nesnelerin) her biri kendi merkezini alır.\n"
+"Bir montajın, her biri tutarlı ve kendi merkezli bir dolguyu koruması gereken birkaç nesneyi grupladığı durumlarda kullanışlıdır.\n"
+"Uyarlanabilir kübik ve Destek kübik her parçayı daima kendi üzerinde ortalar; Yıldırım dolgusu ise tüm nesne için oluşturulur ve bundan etkilenmez."
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -19513,11 +19755,13 @@ msgstr "Filament değişiminden sonra temizleme, nesnelerin desteğinin içinde 
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "Bu nesne, filamentten tasarruf etmek ve baskı süresini azaltmak için filament değişiminden sonra nozulu temizlemek için kullanılacaktır. Sonuç olarak nesnelerin renkleri karıştırılacaktır. Prime tower etkinleştirilmediği sürece etkili olmayacaktır."
 
+# AI Translated
 msgid "Belt purge tower object"
-msgstr ""
+msgstr "Bant yıkama kulesi nesnesi"
 
+# AI Translated
 msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
-msgstr ""
+msgstr "Otomatik oluşturulan bant yıkama prizmasını işaretler. Otomatik olarak yönetilir; elle ayarlamayın."
 
 msgid "Maximal bridging distance"
 msgstr "Maksimum köprüleme mesafesi"
@@ -20430,8 +20674,9 @@ msgstr "Dilimleme için kullanılan fiziksel yazıcının adı."
 msgid "Layer number"
 msgstr "Katman numarası"
 
+# AI Translated
 msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
-msgstr ""
+msgstr "Geçerli katmanın indeksi. Sıfır tabanlıdır (yani ilk katman 0 numaralıdır); ancak ekstrüzyon rolü değişim G-code'unda bir tabanlıdır."
 
 msgid "Layer Z"
 msgstr "Z katmanı"
@@ -21116,8 +21361,9 @@ msgstr ""
 "Hızlanma değerleri hız değerlerinden büyük olmalıdır.\n"
 "Lütfen girişleri doğrulayın."
 
+# AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr ""
+msgstr "Bant yazıcılarda henüz etkin değil — bunun yerine PA Kulesi yöntemini kullanın."
 
 msgid "Temperature calibration"
 msgstr "Sıcaklık kalibrasyonu"
@@ -21147,8 +21393,9 @@ msgstr "PET-CF"
 msgid "Test model"
 msgstr "Test modeli"
 
+# AI Translated
 msgid "Overhang"
-msgstr ""
+msgstr "Çıkıntı"
 
 msgid "Start temp: "
 msgstr "Başlangıç sıcaklığı: "
@@ -22036,8 +22283,9 @@ msgstr ""
 "Yazıcı ve yazıcıya ait tüm filament ve işlem ön ayarları.\n"
 "Başkalarıyla paylaşılabilir."
 
+# AI Translated
 msgid "Include custom bed texture and model"
-msgstr ""
+msgstr "Özel yatak dokusunu ve modelini dahil et"
 
 msgid ""
 "User's filament preset set.\n"
@@ -23245,32 +23493,41 @@ msgstr "Etkinleştirildiğinde yukarıdaki değerler, gelecekteki STEP içe akta
 msgid "PresetBundle"
 msgstr "PresetBundle"
 
+# AI Translated
 msgid "Export Presets"
-msgstr ""
+msgstr "Ön Ayarları Dışa Aktar"
 
+# AI Translated
 msgid "Open folder in explorer"
-msgstr ""
+msgstr "Klasörü dosya gezgininde aç"
 
+# AI Translated
 msgid "Delete bundle"
-msgstr ""
+msgstr "Paketi sil"
 
+# AI Translated
 msgid "Unsubscribe bundle"
-msgstr ""
+msgstr "Paket aboneliğinden çık"
 
+# AI Translated
 msgid "Update available"
-msgstr ""
+msgstr "Güncelleme mevcut"
 
+# AI Translated
 msgid "Unauthorized bundle"
-msgstr ""
+msgstr "Yetkisiz paket"
 
+# AI Translated
 msgid "Open this bundle in your browser"
-msgstr ""
+msgstr "Bu paketi tarayıcınızda aç"
 
+# AI Translated
 msgid "Subscribed"
-msgstr ""
+msgstr "Abone olunan"
 
+# AI Translated
 msgid "Local"
-msgstr ""
+msgstr "Yerel"
 
 # AI Translated
 msgid "Bundle folder does not exist."
@@ -23316,11 +23573,13 @@ msgstr "Paket Aboneliğinden Çık"
 msgid "ExportPresetBundle"
 msgstr "ExportPresetBundle"
 
+# AI Translated
 msgid "Export to OrcaCloud"
-msgstr ""
+msgstr "OrcaCloud'a dışa aktar"
 
+# AI Translated
 msgid "Export to folder"
-msgstr ""
+msgstr "Klasöre dışa aktar"
 
 # AI Translated
 msgid "Save preset bundle"
@@ -27880,8 +28139,9 @@ msgstr "Gizmo birleştir"
 msgid "Gizmo brim ears"
 msgstr "Gizmo lenarlık kulakları"
 
+# AI Translated
 msgid "Gizmo texture displacement painting"
-msgstr ""
+msgstr "Gizmo doku yer değiştirme boyama"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "Dikey kaydırıcı - Etkin başparmağı yukarı hareket ettir"
@@ -29136,6 +29396,14 @@ msgid "Bake"
 msgstr "Pişir"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "Kaydırıcıya kesin bir değer yaz"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "Kaydırıcının sağ ucundaki düzenleme simgesi"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "Doku yer değiştirme"
 
@@ -29408,6 +29676,15 @@ msgid "The painted area could not be carried onto the remeshed model, so nothing
 msgstr "Boyalı alan, mesh'i yeniden oluşturulan modele aktarılamadı; bu nedenle hiçbir şey değiştirilmedi. Pro moduna geçin ve boyamadan önce mesh'i yeniden oluşturun."
 
 # AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "Aralık: %1% - %2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "Sürüklemek yerine bir değer yazın. Kaydırıcıya Ctrl+tıklamak da aynı işi yapar."
+
+# AI Translated
 msgid "Pro"
 msgstr "Pro"
 
@@ -29512,8 +29789,9 @@ msgstr "Açı eşiği - doldurma bundan daha keskin kenarlarda durur"
 msgid "Click a triangle to paint it"
 msgstr "Boyamak için bir üçgene tıklayın"
 
+# AI Translated
 msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
-msgstr ""
+msgstr "Yalnızca Açınım (LSCM) ile haritalanmış bir katman için - bu görünümü kullanmak için etkin katmanın Haritalama ayarını Açınım olarak belirleyin."
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -29527,15 +29805,17 @@ msgstr "Hızlı - kabartma oluşturulmaz, yalnızca gölgelendirmeyle gösterili
 msgid "Checker"
 msgstr "Dama"
 
+# AI Translated
 msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Dama - doku yerine bir test ızgarası. Karelerin kare kaldığı yerlerde doku bozulmamıştır; karelerin gerildiği yerlerde doku da gerilecektir. Kapalıysa UV düzenleyiciyi açar"
 
 # AI Translated
 msgid "Distortion"
 msgstr "Bozulma"
 
+# AI Translated
 msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Bozulma - açınım üzerinde maviden kırmızıya gerilme ısı haritası. Kapalıysa UV düzenleyiciyi açar"
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -29651,11 +29931,13 @@ msgstr "Filamentleri karıştır"
 msgid "Interleaves two filaments to fake the colors in between, so a handful of filaments can cover a photo or a gradient. An image of flat colors prints the same either way. Off uses one filament per area."
 msgstr "Aradaki renkleri taklit etmek için iki filamenti dönüşümlü kullanır; böylece birkaç filament bir fotoğrafı veya bir gradyanı karşılayabilir. Düz renklerden oluşan bir görüntü her iki durumda da aynı yazdırılır. Kapalıyken her alan için tek filament kullanılır."
 
+# AI Translated
 msgid "Mixed colors"
-msgstr ""
+msgstr "Karışık renkler"
 
+# AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
-msgstr ""
+msgstr "Bir pişirmenin ekleyebileceği en fazla karışık filament sayısı. Bunlar dokunun renklerinden seçilir ve yalnızca pişirmenin gerçekten kullandıkları oluşturulur."
 
 # AI Translated
 #, boost-format
@@ -30363,27 +30645,33 @@ msgstr "Filament eklentileri"
 msgid "Printer plugins"
 msgstr "Yazıcı eklentileri"
 
+# AI Translated
 msgid "This preset does not use any plugin capabilities"
-msgstr ""
+msgstr "Bu ön ayar hiçbir eklenti yeteneği kullanmıyor"
 
+# AI Translated
 msgid "Capabilities used by this preset"
-msgstr ""
+msgstr "Bu ön ayarın kullandığı yetenekler"
 
+# AI Translated
 msgid "Capability configuration (JSON)"
-msgstr ""
+msgstr "Yetenek yapılandırması (JSON)"
 
+# AI Translated
 msgid "Plugin configuration"
-msgstr ""
+msgstr "Eklenti yapılandırması"
 
+# AI Translated
 msgid "Discard this preset's override and use the global configuration again"
-msgstr ""
+msgstr "Bu ön ayarın geçersiz kılmasını at ve yeniden genel yapılandırmayı kullan"
 
 # AI Translated
 msgid "Restore defaults"
 msgstr "Varsayılanları geri yükle"
 
+# AI Translated
 msgid "Invalid JSON"
-msgstr ""
+msgstr "Geçersiz JSON"
 
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
@@ -30473,214 +30761,282 @@ msgstr "Eklenti yükleniyor"
 msgid "Installed \"%s\"."
 msgstr "\"%s\" yüklendi."
 
+# AI Translated
 msgid "Search plugins"
-msgstr ""
+msgstr "Eklentilerde ara"
 
+# AI Translated
 msgid "Clear search"
-msgstr ""
+msgstr "Aramayı temizle"
 
+# AI Translated
 msgid "Match case"
-msgstr ""
+msgstr "Büyük/küçük harf eşleştir"
 
+# AI Translated
 msgid "Match whole word"
-msgstr ""
+msgstr "Tam sözcük eşleştir"
 
+# AI Translated
 msgid "More plugin install options"
-msgstr ""
+msgstr "Diğer eklenti yükleme seçenekleri"
 
+# AI Translated
 msgid "Install plugin"
-msgstr ""
+msgstr "Eklenti yükle"
 
+# AI Translated
 msgid "Install local plugin"
-msgstr ""
+msgstr "Yerel eklenti yükle"
 
+# AI Translated
 msgid "Activate"
-msgstr ""
+msgstr "Etkinleştir"
 
+# AI Translated
 msgid "Sort by name"
-msgstr ""
+msgstr "Ada göre sırala"
 
+# AI Translated
 msgid "Sort by version"
-msgstr ""
+msgstr "Sürüme göre sırala"
 
+# AI Translated
 msgid "Plugin Version"
-msgstr ""
+msgstr "Eklenti Sürümü"
 
+# AI Translated
 msgid "Sort by source"
-msgstr ""
+msgstr "Kaynağa göre sırala"
 
+# AI Translated
 msgid "Source"
-msgstr ""
+msgstr "Kaynak"
 
+# AI Translated
 msgid "Sort by status"
-msgstr ""
+msgstr "Duruma göre sırala"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Status"
-msgstr ""
+msgstr "Durum"
 
+# AI Translated
 msgid "Drag to resize; double-click to reset"
-msgstr ""
+msgstr "Yeniden boyutlandırmak için sürükleyin; sıfırlamak için çift tıklayın"
 
+# AI Translated
 msgid "Resize the plugin list"
-msgstr ""
+msgstr "Eklenti listesini yeniden boyutlandır"
 
+# AI Translated
 msgid "Plugin details"
-msgstr ""
+msgstr "Eklenti ayrıntıları"
 
+# AI Translated
 msgid "Plugin Info"
-msgstr ""
+msgstr "Eklenti Bilgisi"
 
+# AI Translated
 msgid "Description"
-msgstr ""
+msgstr "Açıklama"
 
+# AI Translated
 msgid "Config"
-msgstr ""
+msgstr "Yapılandırma"
 
+# AI Translated
 msgid "Changelog"
-msgstr ""
+msgstr "Değişiklik Günlüğü"
 
+# AI Translated
 msgid "Diagnostics"
-msgstr ""
+msgstr "Tanılama"
 
+# AI Translated
 msgid "Types"
-msgstr ""
+msgstr "Türler"
 
+# AI Translated
 msgid "Installed Version"
-msgstr ""
+msgstr "Yüklü Sürüm"
 
+# AI Translated
 msgid "Latest Version"
-msgstr ""
+msgstr "En Son Sürüm"
 
+# AI Translated
 msgid "Update to the latest version"
-msgstr ""
+msgstr "En son sürüme güncelle"
 
+# AI Translated
 msgid "No description available"
-msgstr ""
+msgstr "Açıklama yok"
 
+# AI Translated
 msgid "Select a plugin to configure its capabilities"
-msgstr ""
+msgstr "Yeteneklerini yapılandırmak için bir eklenti seçin"
 
+# AI Translated
 msgid "Configurable capabilities"
-msgstr ""
+msgstr "Yapılandırılabilir yetenekler"
 
+# AI Translated
 msgid "Discard the settings saved for this capability and restore the plugin's defaults"
-msgstr ""
+msgstr "Bu yetenek için kaydedilen ayarları at ve eklentinin varsayılanlarını geri yükle"
 
+# AI Translated
 msgid "Plugin changelog"
-msgstr ""
+msgstr "Eklenti değişiklik günlüğü"
 
+# AI Translated
 msgid "Date"
-msgstr ""
+msgstr "Tarih"
 
+# AI Translated
 msgid "Changes"
-msgstr ""
+msgstr "Değişiklikler"
 
+# AI Translated
 msgid "No changelog available"
-msgstr ""
+msgstr "Değişiklik günlüğü yok"
 
+# AI Translated
 msgid "No issues detected"
-msgstr ""
+msgstr "Sorun tespit edilmedi"
 
+# AI Translated
 msgid "No plugins found"
-msgstr ""
+msgstr "Eklenti bulunamadı"
 
+# AI Translated
 #, c-format, boost-format
 msgid "No plugins match \"%s\""
-msgstr ""
+msgstr "\"%s\" ile eşleşen eklenti yok"
 
+# AI Translated
+# Needs human review: Source badge in the Plugins dialog for plugins the user owns on OrcaCloud (next to Subscribed, Orphaned, Local); check "Benim" reads right as a short pill.
 msgid "Mine"
-msgstr ""
+msgstr "Benim"
 
+# AI Translated
 msgid "Orphaned"
-msgstr ""
+msgstr "Sahipsiz"
 
+# AI Translated
 msgid "Some plugin capabilities are enabled"
-msgstr ""
+msgstr "Bazı eklenti yetenekleri etkin"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Collapse %s capabilities"
-msgstr ""
+msgstr "%s yeteneklerini daralt"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Expand %s capabilities"
-msgstr ""
+msgstr "%s yeteneklerini genişlet"
 
+# AI Translated
 msgid "Collapse capabilities"
-msgstr ""
+msgstr "Yetenekleri daralt"
 
+# AI Translated
 msgid "Expand capabilities"
-msgstr ""
+msgstr "Yetenekleri genişlet"
 
+# AI Translated
 msgid "Open this plugin in your browser"
-msgstr ""
+msgstr "Bu eklentiyi tarayıcınızda aç"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Capabilities: %s"
-msgstr ""
+msgstr "Yetenekler: %s"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Capabilities"
-msgstr ""
+msgstr "Yetenekler"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Run \"%s\""
-msgstr ""
+msgstr "\"%s\" öğesini çalıştır"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Enable %s"
-msgstr ""
+msgstr "%s öğesini etkinleştir"
 
+# AI Translated
 msgid "Unauthorized for updates"
-msgstr ""
+msgstr "Güncellemeler için yetkisiz"
 
+# AI Translated
 msgid "Loading the plugin…"
-msgstr ""
+msgstr "Eklenti yükleniyor…"
 
+# AI Translated
 msgid "This plugin exposes no capabilities"
-msgstr ""
+msgstr "Bu eklenti hiçbir yetenek sunmuyor"
 
+# AI Translated
 msgid "Activate this plugin to configure its capabilities"
-msgstr ""
+msgstr "Yeteneklerini yapılandırmak için bu eklentiyi etkinleştirin"
 
+# AI Translated
 msgid "View on OrcaCloud <a>here</a>"
-msgstr ""
+msgstr "OrcaCloud'da <a>buradan</a> görüntüleyin"
 
+# AI Translated
 msgid "Activated"
-msgstr ""
+msgstr "Etkinleştirildi"
 
+# AI Translated
 msgid "Runtime error"
-msgstr ""
+msgstr "Çalışma zamanı hatası"
 
+# AI Translated
 msgid "Inactive"
-msgstr ""
+msgstr "Etkin değil"
 
+# AI Translated
 msgid "This plugin is active and ready to be used."
-msgstr ""
+msgstr "Bu eklenti etkin ve kullanıma hazır."
 
+# AI Translated
 msgid "This plugin is still loading."
-msgstr ""
+msgstr "Bu eklenti hâlâ yükleniyor."
 
+# AI Translated
 msgid "This plugin is blocked until its error is fixed."
-msgstr ""
+msgstr "Bu eklenti, hatası düzeltilene kadar engellendi."
 
+# AI Translated
 msgid "This plugin is loaded but a capability reported an error."
-msgstr ""
+msgstr "Bu eklenti yüklendi ancak bir yetenek hata bildirdi."
 
+# AI Translated
 msgid "This plugin is inactive. Activate it to install or load it."
-msgstr ""
+msgstr "Bu eklenti etkin değil. Kurmak veya yüklemek için etkinleştirin."
 
+# AI Translated
 msgid "Select a plugin to view its status and details."
-msgstr ""
+msgstr "Durumunu ve ayrıntılarını görüntülemek için bir eklenti seçin."
 
+# AI Translated
 msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
-msgstr ""
+msgstr "Sahipsiz: Bu eklentiye artık abone olunmuyor veya eklenti artık OrcaCloud'da mevcut değil. Yerel kopya yüklü kalır ve kullanılmaya devam edilebilir."
 
+# AI Translated
 msgid "A newer plugin version is available."
-msgstr ""
+msgstr "Daha yeni bir eklenti sürümü mevcut."
 
+# AI Translated
 msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
-msgstr ""
+msgstr "Bu eklenti güncellemeler için yetkisiz olduğundan bulut güncellemeleri kullanılamıyor."
 
 # AI Translated
 #, c-format, boost-format
@@ -30898,11 +31254,13 @@ msgstr "Eklenti yeniden yüklenemedi."
 msgid "Reloaded \"%s\"."
 msgstr "\"%s\" yeniden yüklendi."
 
+# AI Translated
 msgid "Printer Connection"
-msgstr ""
+msgstr "Yazıcı Bağlantısı"
 
+# AI Translated
 msgid "Please set up your printer connection to view the device."
-msgstr ""
+msgstr "Cihazı görüntülemek için lütfen yazıcı bağlantınızı kurun."
 
 msgid "No model information"
 msgstr "Model bilgisi yok"
@@ -30970,15 +31328,18 @@ msgstr "Prime atığını azaltır ve daha hızlı yazdırır. Hafif renk karı�
 msgid "Terminal"
 msgstr "Terminal"
 
+# AI Translated
 msgid "python ... or uv ..."
-msgstr ""
+msgstr "python ... veya uv ..."
 
+# AI Translated
 msgid "Plugin terminal ready."
-msgstr ""
+msgstr "Eklenti terminali hazır."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Process exited with code: %s"
-msgstr ""
+msgstr "İşlem şu kodla sonlandı: %s"
 
 # AI Translated
 msgid "A command is already running."
@@ -31246,8 +31607,10 @@ msgstr "  |  yaslama AÇIK"
 msgid "Change texture - choose another one from the texture library"
 msgstr "Dokuyu değiştir - doku kütüphanesinden başka bir doku seçin"
 
+# AI Translated
+# Needs human review: The English names a "Tiling" setting, but the layer settings only have "Tile" (Döşeme) and "Tile size" (Döşeme boyutu); rendered as the tiling options. Check against the texture-displacement layer card.
 msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
-msgstr ""
+msgstr "Etkin katmanın döşeme boyutu: dokunun bir tekrarının modelin ne kadarını kapladığı. Tuval döşemelerle ölçülür; bu nedenle bir ızgara hücresi bir tekrara karşılık gelir. Bunu katmanın ayarlarındaki döşeme seçeneklerinden değiştirin."
 
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
@@ -31281,14 +31644,17 @@ msgstr "Adaları bağla"
 msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfolded next to each other (a cube becomes a joined net rather than six loose squares). They stay separate islands, so you can still move any of them by hand afterwards."
 msgstr "Açınımı bağlı bir ağ olarak yerleştirir: kenar paylaşan parçalar yan yana açılır (bir küp altı ayrı kare yerine birleşik bir açınım olur). Ayrı adalar olarak kalırlar; böylece daha sonra herhangi birini yine elle taşıyabilirsiniz."
 
+# AI Translated
 msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
-msgstr ""
+msgstr "Ada - adaların tamamı üzerinde çalışın. Seçmek için birine tıklayın, ardından taşımak için sürükleyin, döndürmek için sağ tuşla sürükleyin ya da fareyle döndürmek için R'ye, ölçeklemek için S'ye basın (onaylamak için tıklayın veya Enter'a basın, iptal etmek için Esc'ye basın)."
 
+# AI Translated
 msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Tepe noktası - bir adayı elle yeniden şekillendirmek için tepe noktalarını sürükleyin; Shift seçime ekler, Ctrl bir tepe noktasını seçime ekler veya seçimden çıkarır."
 
+# AI Translated
 msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Kenar - bir adayı elle yeniden şekillendirmek için kenarları sürükleyin; Shift seçime ekler, Ctrl bir kenarı seçime ekler veya seçimden çıkarır."
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -31326,13 +31692,17 @@ msgstr "UV düzenlemelerini temizle - tüm manuel tepe noktası/kenar taşımala
 msgid "Snap - stick islands together when dragging one against another"
 msgstr "Yasla - bir adayı diğerine doğru sürüklerken adaları birbirine yapıştırır"
 
+# AI Translated
 msgid ""
 "Frame all islands, fitting every one of them in view (Home or F).\n"
 "Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
 msgstr ""
+"Tüm adaları çerçevele; hepsini görünüme sığdırır (Home veya F).\n"
+"Tuvalin başka bir yerinde: imlecin etrafında yakınlaştırmak için fare tekerleğini çevirin; görünümü kaydırmak için orta tuşla sürükleyin - veya boş alanı sürükleyin."
 
+# AI Translated
 msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
-msgstr ""
+msgstr "Neyin seçili olduğu ve sürüklerken taşıma, döndürme veya ölçeklemenin kesin değerleri."
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -31343,8 +31713,9 @@ msgstr "Açınım ile haritalanmış katman yok"
 msgid "%.1f mm tile"
 msgstr "%.1f mm karo"
 
+# AI Translated
 msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
-msgstr ""
+msgstr "Panel etkin doku katmanını izler ve bu katmanın Açınım (LSCM) ile haritalanmış olması gerekir. Bir katman ekleyin ve Haritalama ayarını Açınım olarak belirleyin."
 
 # AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
@@ -31354,31 +31725,38 @@ msgstr "Güncel değil - bu açınım oluşturulduktan sonra boya, kesim çizgil
 msgid "Flatten the painted area into UV islands. It is computed only when you press this, not on every edit - so paint, change the seam angle or mark seams first, then press Unwrap."
 msgstr "Boyalı alanı UV adalarına düzleştirir. Her düzenlemede değil, yalnızca buna bastığınızda hesaplanır - bu yüzden önce boyayın, kesim açısını değiştirin veya kesim çizgilerini işaretleyin, ardından Açınım'a basın."
 
+# AI Translated
 msgid "Turn Mark seams on first - Path is a quicker way of marking them."
-msgstr ""
+msgstr "Önce Kesim çizgisi işaretle aracını açın - Yol, bunları işaretlemenin daha hızlı bir yoludur."
 
+# AI Translated
 msgid "No seams are marked on this layer."
-msgstr ""
+msgstr "Bu katmanda işaretli kesim çizgisi yok."
 
+# AI Translated
 msgid "No islands have been reshaped by hand, so there is nothing to discard."
-msgstr ""
+msgstr "Hiçbir ada elle yeniden şekillendirilmedi, bu nedenle atılacak bir şey yok."
 
 # AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "%d ada, %s yüz"
 
+# AI Translated
 msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
-msgstr ""
+msgstr "Boyalı alanın açınımdan nasıl çıktığı: kesildiği ayrı parçaların sayısı (kesim çizgilerinde ve kesim açısından daha keskin kenarlarda) ve bu parçaların toplamda kaç üçgen içerdiği."
 
+# AI Translated
 msgid "Press Unwrap first - there are no islands to work on yet."
-msgstr ""
+msgstr "Önce Açınım'a basın - henüz üzerinde çalışılacak ada yok."
 
+# AI Translated
 msgid "Click an island on the canvas first, in Island mode."
-msgstr ""
+msgstr "Önce Ada modunda tuval üzerindeki bir adaya tıklayın."
 
+# AI Translated
 msgid "Not signed in"
-msgstr ""
+msgstr "Oturum açılmadı"
 
 msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
 msgstr "Bambu Ağı eklentisi algılanmadı. Yüklemek için <a>burayı</a> tıklayın."
@@ -31541,15 +31919,19 @@ msgstr ""
 "\"%s\" eklentisi aşağıdaki komutları çalıştırmak istiyor:\n"
 "%s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plugin \"%s\" is requesting permission to create a thread."
-msgstr ""
+msgstr "\"%s\" eklentisi bir iş parçacığı oluşturmak için izin istiyor."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plugin \"%s\" is requesting to replace the running application with:\n"
 "%s"
 msgstr ""
+"\"%s\" eklentisi çalışan uygulamayı şununla değiştirmek istiyor:\n"
+"%s"
 
 # AI Translated
 #, c-format, boost-format
@@ -31560,29 +31942,37 @@ msgstr "\"%s\" eklentisi \"%s\" Python denetim olayı için izin istiyor."
 msgid "Plugin permission request"
 msgstr "Eklenti izin isteği"
 
+# AI Translated
 msgid "Printer connection"
-msgstr ""
+msgstr "Yazıcı bağlantısı"
 
+# AI Translated
 msgid "Pages"
-msgstr ""
+msgstr "Sayfalar"
 
+# AI Translated
 msgid "Analysis"
-msgstr ""
+msgstr "Analiz"
 
+# AI Translated
 msgid "Importer"
-msgstr ""
+msgstr "İçe aktarıcı"
 
+# AI Translated
 msgid "Exporter"
-msgstr ""
+msgstr "Dışa aktarıcı"
 
+# AI Translated
 msgid "Visualization"
-msgstr ""
+msgstr "Görselleştirme"
 
+# AI Translated
 msgid "Script"
-msgstr ""
+msgstr "Betik"
 
+# AI Translated
 msgid "Slicing Pipeline"
-msgstr ""
+msgstr "Dilimleme Hattı"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."

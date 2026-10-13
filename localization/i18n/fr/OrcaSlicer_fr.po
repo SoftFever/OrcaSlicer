@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -2114,12 +2114,16 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 Runtime"
 
+# AI Translated
 #, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
 "Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
+"Le runtime Microsoft WebView2 n’a pas pu être installé.\n"
+"Certaines fonctionnalités, dont l’assistant de configuration, peuvent apparaître vides tant qu’il n’est pas installé.\n"
+"Veuillez l’installer manuellement depuis %1% et redémarrer Orca Slicer."
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
@@ -4195,6 +4199,16 @@ msgstr "Projets récents"
 msgid "Go to Plate"
 msgstr "Aller à la plaque"
 
+msgid "Device"
+msgstr "Appareil"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "Appareil (Web)"
+
+msgid "Multi-device"
+msgstr "Multi-appareils"
+
 msgid "AMS Materials Setting"
 msgstr "Réglage des matériaux AMS"
 
@@ -4252,6 +4266,14 @@ msgstr "Veuillez saisir une valeur valide (K entre %.1f~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Veuillez saisir une valeur valide (K entre %.1f~%.1f, N entre %.1f~%.1f)"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "Filaments favoris"
+
+# AI Translated
+msgid "All filaments"
+msgstr "Tous les filaments"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -4808,10 +4830,13 @@ msgstr "L’ajuster automatiquement à la limite (%g mm) ?"
 msgid "Adjust"
 msgstr "Ajuster"
 
+# AI Translated
 msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
+"Le radeau et le paravent ne sont pas disponibles sur les imprimantes à tapis.\n"
+"Ils ont été désactivés."
 
 msgid ""
 "Layer height too small\n"
@@ -5837,42 +5862,53 @@ msgstr "Augmenter/diminuer la zone d'édition"
 msgid "Sequence"
 msgstr "Séquence"
 
+# AI Translated
 msgid "Plate center of mass"
-msgstr ""
+msgstr "Centre de masse de la plaque"
 
+# AI Translated
 msgid "Part center of mass"
-msgstr ""
+msgstr "Centre de masse de la pièce"
 
+# AI Translated
 msgid "Support center of mass"
-msgstr ""
+msgstr "Centre de masse des supports"
 
+# AI Translated
 msgid "Assembly center of mass"
-msgstr ""
+msgstr "Centre de masse de l'assemblage"
 
+# AI Translated
 msgid "Object center of mass"
-msgstr ""
+msgstr "Centre de masse de l'objet"
 
+# AI Translated
 msgid "Finished print"
-msgstr ""
+msgstr "Impression terminée"
 
+# AI Translated
 #, boost-format
 msgid "Printed up to layer %1%"
-msgstr ""
+msgstr "Imprimé jusqu'à la couche %1%"
 
+# AI Translated
 msgid "Weight"
-msgstr ""
+msgstr "Poids"
 
 msgid "Volume"
 msgstr "Volume"
 
+# AI Translated
 msgid "Center in bounding box"
-msgstr ""
+msgstr "Centre dans la boîte de délimitation"
 
+# AI Translated
 msgid "Bounding box size"
-msgstr ""
+msgstr "Taille de la boîte de délimitation"
 
+# AI Translated
 msgid "Moment of inertia"
-msgstr ""
+msgstr "Moment d'inertie"
 
 msgid "Object selection"
 msgstr "Sélection d’objet"
@@ -6087,11 +6123,13 @@ msgstr "Quadrillage"
 msgid "Labels"
 msgstr "Étiquettes"
 
+# AI Translated
 msgid "Center of mass"
-msgstr ""
+msgstr "Centre de masse"
 
+# AI Translated
 msgid "Show raw G-code (belt only)"
-msgstr ""
+msgstr "Afficher le G-code brut (tapis uniquement)"
 
 # AI Translated
 msgid "Move section plane"
@@ -6141,7 +6179,7 @@ msgstr "Volume :"
 msgid "Size:"
 msgstr "Taille :"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Des conflits de chemins G-code ont été trouvés au niveau de la couche %d, z = %.2lfmm. Veuillez séparer davantage les objets en conflit (%s <-> %s)."
 
@@ -6308,18 +6346,8 @@ msgstr "Préparer"
 msgid "Preview"
 msgstr "Aperçu"
 
-msgid "Device"
-msgstr "Appareil"
-
-msgid "Multi-device"
-msgstr "Multi-appareils"
-
 msgid "Project"
 msgstr "Projet"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "Appareil (Web)"
 
 msgid "Yes"
 msgstr "Oui"
@@ -6612,11 +6640,13 @@ msgstr "Afficher le quadrillage"
 msgid "Show Gridlines on plate"
 msgstr "Afficher le quadrillage sur la plaque"
 
+# AI Translated
 msgid "Show IDEX/IQEX Toolhead"
-msgstr ""
+msgstr "Afficher la tête d'outil IDEX/IQEX"
 
+# AI Translated
 msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
-msgstr ""
+msgstr "Affiche la représentation de la tête d'outil IDEX/IQEX autour de chaque buse active dans l'aperçu du G-code."
 
 msgid "Reset Window Layout"
 msgstr "Réinitialiser la présentation de la fenêtre"
@@ -8263,60 +8293,77 @@ msgstr "Afficher tous les paramètres de l'objet"
 msgid "Material settings"
 msgstr "Réglages des matériaux"
 
+# AI Translated
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
-msgstr ""
+msgstr "Chaque mode indique les têtes d'outil qui y participent et le rôle de chacune. Cliquez sur le bouton d'un outil pour faire défiler ses rôles — survolez une couleur ci-dessous pour voir ce que fait chaque rôle."
 
+# AI Translated
 msgid "Add Mode"
-msgstr ""
+msgstr "Ajouter un mode"
 
 # AI Translated
 msgid "Tools"
 msgstr "Outils"
 
+# AI Translated
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
+# AI Translated
 msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
-msgstr ""
+msgstr "Nom du mode tel qu'il apparaît dans le sélecteur de mode IDEX/IQEX de la plaque. Obligatoire — un mode sans nom ne peut pas être sélectionné."
 
+# AI Translated
 msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
-msgstr ""
+msgstr "Les têtes d'outil qui participent au mode et le rôle de chacune. Cliquez sur une case pour faire défiler son rôle."
 
+# AI Translated
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
-msgstr ""
+msgstr "G-code exécuté au début de l'impression pour placer l'imprimante dans ce mode (par exemple un appel Klipper SET_PRINT_MODE). Le logiciel de découpe ne génère que les parcours de l'outil Principal (Primary) ; le firmware pilote les autres."
 
+# AI Translated
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
-msgstr ""
+msgstr "Pilote tous les parcours découpés. Toujours l'outil 0 — utilisez « Position de l'outil 0 » ci-dessus pour choisir le coin du plateau qu'il occupe. Il ne peut pas être modifié depuis la grille."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
-msgstr ""
+msgstr "Suit l'outil Principal (Primary) au niveau du firmware, en imprimant les mêmes parcours décalés dans sa propre zone."
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
-msgstr ""
+msgstr "Suit l'outil Principal (Primary) au niveau du firmware, en imprimant les mêmes parcours en symétrie par rapport à la limite entre les deux zones."
 
+# AI Translated
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
-msgstr ""
+msgstr "Désigne un outil du portique de l'outil Principal (Primary) comme son partenaire multicolore. Requis pour permettre l'impression multicolore dans les modes à portiques appariés."
 
+# AI Translated
 msgid "Primary"
-msgstr ""
+msgstr "Principal"
 
+# AI Translated
 msgid "Mode name (required)"
-msgstr ""
+msgstr "Nom du mode (obligatoire)"
 
+# AI Translated
 msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
-msgstr ""
+msgstr "Nom de ce mode parallèle, tel qu'il apparaît dans le sélecteur de mode IDEX/IQEX de la plaque. Le projet l'enregistre par son nom : renommer un mode déjà utilisé par des plaques les fait revenir au mode Principal (Primary). Ne peut pas être vide — un nom vide est remplacé par un nom généré."
 
+# AI Translated
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
-msgstr ""
+msgstr "G-code émis une seule fois au début d'une impression utilisant ce mode, avant le G-code de démarrage de la machine. C'est ici que l'imprimante est placée dans le mode firmware correspondant — par exemple un appel Klipper SET_PRINT_MODE ou un M567 RepRapFirmware — car le logiciel de découpe ne génère que les parcours de l'outil Principal (Primary) et le firmware pilote les outils Copie (Copy) / Miroir (Mirror). Les placeholders sont pris en charge ; utilisez le bouton d'édition pour les parcourir. Laissez vide si le mode ne nécessite aucune configuration du firmware."
 
+# AI Translated
 msgid "Edit G-code / browse placeholders"
-msgstr ""
+msgstr "Modifier le G-code / parcourir les placeholders"
 
+# AI Translated
 msgid "Remove mode"
-msgstr ""
+msgstr "Supprimer le mode"
 
+# AI Translated
 msgid "Discard in-session edits to this mode (snap back to saved value)"
-msgstr ""
+msgstr "Annuler les modifications de ce mode faites pendant la session (revenir à la valeur enregistrée)"
 
 msgid "Remove current plate (if not last one)"
 msgstr "Retirer la plaque actuelle (si elle n'est pas la dernière)"
@@ -8342,16 +8389,19 @@ msgstr "Modifier le nom de la plaque actuelle"
 msgid "Move plate to the front"
 msgstr "Déplacer la plaque vers l’avant"
 
+# AI Translated
 #, boost-format
 msgid " (process preset: %1%)"
-msgstr ""
+msgstr " (préréglage de traitement : %1%)"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
-msgstr ""
+msgstr "Mode IDEX/IQEX : %1% (clic gauche pour changer, clic droit pour le menu)"
 
+# AI Translated
 msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
-msgstr ""
+msgstr "Avertissement : cette plaque utilise un mode parallèle IDEX/IQEX avec des objets multi-matériaux. Procédez avec prudence — vérifiez que votre G-code gère correctement cette combinaison."
 
 msgid "Customize current plate"
 msgstr "Personnaliser la plaque actuelle"
@@ -8500,8 +8550,9 @@ msgstr "Filament mixte"
 msgid "Remove last mixed filament"
 msgstr "Supprimer le dernier filament mixte"
 
+# AI Translated
 msgid "Remove all mixed filaments"
-msgstr ""
+msgstr "Supprimer tous les filaments mixtes"
 
 # AI Translated
 msgid "Add mixed filament"
@@ -8525,9 +8576,10 @@ msgstr "Le filament mixte comporte des références de composants invalides"
 msgid "Edit / Delete / Merge"
 msgstr "Éditer / Supprimer / Fusionner"
 
+# AI Translated
 #, boost-format
 msgid "Remove all %1% mixed filaments?"
-msgstr ""
+msgstr "Supprimer les %1% filaments mixtes ?"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -8796,11 +8848,14 @@ msgstr "Désactiver le dépôt automatique pour préserver le positionnement en 
 msgid "Object with floating parts was detected"
 msgstr "Un objet comportant des parties flottantes a été détecté"
 
+# AI Translated
 msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Découpage impossible : un objet chevauche une zone réservée à l'impression parallèle IDEX/IQEX (une zone secondaire, ou une bande de dégagement de chariot dans la zone principale)."
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’amorçage.
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "Découpage impossible : la tour d’amorçage chevauche une zone réservée à l'impression parallèle IDEX/IQEX (une zone secondaire, ou une bande de dégagement de chariot dans la zone principale)."
 
 msgid "Another export job is running."
 msgstr "Une autre tâche d'exportation est en cours d'exécution."
@@ -8884,37 +8939,49 @@ msgstr "Donnée non valide"
 msgid "Slicing Canceled"
 msgstr "Découpe annulée"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
-msgstr ""
+msgstr "Conflit de température du plateau : T%d (%s) règle le plateau à %d°C — T%d (%s) nécessite %d°C. L'outil principal contrôle le plateau ; les outils secondaires impriment à la température qu'il définit."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
-msgstr ""
+msgstr "Types de filament incompatibles : T%d utilise %s et T%d utilise %s. Ces matériaux ont des exigences contradictoires et ne sont pas conçus pour être imprimés ensemble."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
 "\n"
 msgstr ""
+"Le mode parallèle IDEX/IQEX est actif sur la plaque %d, avec les points d'attention suivants :\n"
+"\n"
 
+# AI Translated
 msgid "Continue slicing?"
-msgstr ""
+msgstr "Continuer le découpage ?"
 
+# AI Translated
 msgid "IDEX/IQEX Parallel Mode Warning"
-msgstr ""
+msgstr "Avertissement du mode parallèle IDEX/IQEX"
 
+# AI Translated
 msgid "Don't show these warnings again"
-msgstr ""
+msgstr "Ne plus afficher ces avertissements"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plate %d:\n"
-msgstr ""
+msgstr "Plaque %d :\n"
 
+# AI Translated
 msgid ""
 "The following IDEX/IQEX parallel mode concerns were detected:\n"
 "\n"
 msgstr ""
+"Les points d'attention suivants ont été détectés pour le mode parallèle IDEX/IQEX :\n"
+"\n"
 
 msgid "Network plug-in switched successfully."
 msgstr "Plug-in réseau changé avec succès."
@@ -8947,8 +9014,9 @@ msgstr ""
 msgid "Sync now"
 msgstr "Synchroniser maintenant"
 
+# AI Translated
 msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
-msgstr ""
+msgstr "Impossible d'annuler ou de rétablir pendant qu'une opération est en cours. Arrêtez l'opération, ou attendez qu'elle se termine, puis réessayez."
 
 # AI Translated
 msgid ""
@@ -9019,10 +9087,13 @@ msgstr "Le téléchargement a échoué, exception de taille de fichier."
 msgid "Project downloaded %d%%"
 msgstr "Projet téléchargé à %d%%"
 
+# AI Translated
 msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
+"Les tests Ligne PA et Motif PA ne sont pas encore disponibles sur les imprimantes à tapis.\n"
+"Veuillez plutôt utiliser la méthode Tour PA."
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -9050,12 +9121,14 @@ msgstr "Calibration du débit Orca YOLO"
 msgid "Flowrate Test - Pass%d"
 msgstr "Test de débit - Passe %d"
 
+# AI Translated
 #, boost-format
 msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
-msgstr ""
+msgstr "Aucune tour de température pour tapis n'est disponible pour la plage de %1% à %2% °C. Utilisez une plage couverte par les modèles de tour, par exemple de 230 à 190."
 
+# AI Translated
 msgid "Temperature tower"
-msgstr ""
+msgstr "Tour de température"
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -11465,8 +11538,9 @@ msgstr "La synchronisation entre des entraînements d’extrudeur ou des types d
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Synchroniser la modification des paramètres avec les paramètres correspondants d’un autre extrudeur."
 
+# AI Translated
 msgid "Parameters with this icon can be configurable per nozzle."
-msgstr ""
+msgstr "Les paramètres affichant cette icône peuvent être configurés par buse."
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Cliquez pour rétablir tous les paramètres au dernier préréglage enregistré."
@@ -11877,11 +11951,13 @@ msgstr "Espace imprimable"
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "Sélectionner l'implémentation de l'agent réseau pour la communication avec l'imprimante. Les agents disponibles sont enregistrés au démarrage."
 
+# AI Translated
 msgid "Belt printer"
-msgstr ""
+msgstr "Imprimante à tapis"
 
+# AI Translated
 msgid "Machine frame transforms"
-msgstr ""
+msgstr "Transformations du repère machine"
 
 #. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
@@ -11996,23 +12072,28 @@ msgstr "Diamètre de la buse"
 msgid "Wipe tower"
 msgstr "Tour d’essuyage"
 
+# AI Translated
 msgid "Belt purge tower"
-msgstr ""
+msgstr "Tour de purge du tapis"
 
 msgid "Single extruder multi-material parameters"
 msgstr "Paramètres multi-matériaux pour extrudeur unique"
 
+# AI Translated
 msgid "IDEX/IQEX Configuration"
-msgstr ""
+msgstr "Configuration IDEX/IQEX"
 
+# AI Translated
 msgid "Pre-slice warnings"
-msgstr ""
+msgstr "Avertissements avant découpage"
 
+# AI Translated
 msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
-msgstr ""
+msgstr "Affiche une boîte de dialogue d'avertissement avant le découpage si des points d'attention du mode parallèle IDEX/IQEX sont détectés (conflits de température du plateau, types de filament incompatibles, conflits multi-matériaux). Peut être désactivé depuis la boîte de dialogue elle-même. Réactivez-le ici en cas de désactivation accidentelle."
 
+# AI Translated
 msgid "Modes"
-msgstr ""
+msgstr "Modes"
 
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
 msgstr "Il s’agit d’une imprimante mono extrudeur multimatériaux, les diamètres de tous les extrudeurs seront réglés sur la nouvelle valeur. Voulez-vous continuer ?"
@@ -12023,17 +12104,21 @@ msgstr "Limites de hauteur de couche"
 msgid "Z-Hop"
 msgstr "Saut en Z"
 
+# AI Translated
 msgid "Front-left"
-msgstr ""
+msgstr "Avant gauche"
 
+# AI Translated
 msgid "Front-right"
-msgstr ""
+msgstr "Avant droit"
 
+# AI Translated
 msgid "Rear-left"
-msgstr ""
+msgstr "Arrière gauche"
 
+# AI Translated
 msgid "Rear-right"
-msgstr ""
+msgstr "Arrière droit"
 
 msgid ""
 "The Retract before wipe option could be only 100% when using the Firmware Retraction mode.\n"
@@ -12140,9 +12225,10 @@ msgstr "Continuer"
 msgid "Don't warn again for this preset"
 msgstr "Ne plus avertir pour ce préréglage"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 msgid "No modifications need to be copied."
 msgstr "Aucune modification à copier."
@@ -12631,8 +12717,9 @@ msgstr "Terminer"
 msgid "Printer Selection"
 msgstr "Sélection de l'imprimante"
 
+# AI Translated
 msgid "Vendors"
-msgstr ""
+msgstr "Fabricants"
 
 # AI Translated
 msgid "Custom Printer"
@@ -12641,24 +12728,29 @@ msgstr "Imprimante personnalisée"
 msgid "Create"
 msgstr "Créer"
 
+# AI Translated
 msgid "Check for new printers"
-msgstr ""
+msgstr "Rechercher de nouvelles imprimantes"
 
 msgid "At least one printer must be selected."
 msgstr "Au moins une imprimante doit être sélectionnée."
 
+# AI Translated
 msgid "New printers found"
-msgstr ""
+msgstr "Nouvelles imprimantes trouvées"
 
+# AI Translated
 #, c-format, boost-format
 msgid "New printer vendors installed: %s"
-msgstr ""
+msgstr "Nouveaux fabricants d'imprimantes installés : %s"
 
+# AI Translated
 msgid "New printer vendors were found, but installation was cancelled."
-msgstr ""
+msgstr "De nouveaux fabricants d'imprimantes ont été trouvés, mais l'installation a été annulée."
 
+# AI Translated
 msgid "No new printers found."
-msgstr ""
+msgstr "Aucune nouvelle imprimante trouvée."
 
 msgid "Filament Selection"
 msgstr "Sélection des filaments"
@@ -12678,20 +12770,25 @@ msgstr "Filament"
 msgid "Vendor"
 msgstr "Fabricant"
 
+# AI Translated
 msgid "No items"
-msgstr ""
+msgstr "Aucun élément"
 
+# AI Translated
 msgid "Filter items"
-msgstr ""
+msgstr "Filtrer les éléments"
 
+# AI Translated
 msgid "Checked"
-msgstr ""
+msgstr "Cochés"
 
+# AI Translated
 msgid "Unchecked"
-msgstr ""
+msgstr "Non cochés"
 
+# AI Translated
 msgid "Select filtered"
-msgstr ""
+msgstr "Sélectionner les éléments filtrés"
 
 # AI Translated
 msgid "Clear all"
@@ -12709,14 +12806,17 @@ msgstr "Ceci désactive toutes les fonctionnalités cloud, y compris la synchron
 msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
 msgstr "Remarque : lorsque le mode furtif est activé, vos profils utilisateur ne sont pas sauvegardés dans Orca Cloud."
 
+# AI Translated
 msgid "Enable Stealth Mode."
-msgstr ""
+msgstr "Activer le mode furtif."
 
+# AI Translated
 msgid "Proprietary Plugins"
-msgstr ""
+msgstr "Plugins propriétaires"
 
+# AI Translated
 msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
-msgstr ""
+msgstr "Certains fabricants d'imprimantes nécessitent des plugins propriétaires pour communiquer avec leurs imprimantes. Veuillez sélectionner le plugin correspondant si vous utilisez ces imprimantes."
 
 msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
 msgstr "Veuillez noter que ces plugins ne sont pas développés ou maintenus par OrcaSlicer. Ils doivent être utilisés à votre propre discrétion et à vos propres risques."
@@ -13171,13 +13271,15 @@ msgstr "G-code de changement du rôle de l’extrusion (filament)"
 msgid "No object can be printed. It may be too small."
 msgstr "Aucun objet ne peut être imprimé. Peut-être trop petit"
 
+# AI Translated
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
-msgstr ""
+msgstr "Le mode IDEX/IQEX « %1% » n'a aucun outil attribué sur l'imprimante sélectionnée. Impression en mode Principal (Primary) à la place. Attribuez les outils du mode dans les paramètres de l'imprimante, ou choisissez un autre mode avec le bouton IDEX/IQEX de la plaque."
 
+# AI Translated
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
-msgstr ""
+msgstr "Cette plaque est réglée sur le mode IDEX/IQEX « %1% », que l'imprimante sélectionnée ne définit pas. Impression en mode Principal (Primary) à la place. Choisissez un mode avec le bouton IDEX/IQEX de la plaque, ou rétablissez le mode dans les paramètres de l'imprimante."
 
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "Votre impression est très proche des régions d’amorçage. Assurez-vous qu’il n’y a pas de collision."
@@ -13351,25 +13453,31 @@ msgstr "échec de la validation"
 msgid "write callback failed"
 msgstr "échec du rappel d'écriture"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
-msgstr ""
+msgstr "Les impressions multicolores en modes parallèles IDEX/IQEX exigent que chaque filament dispose de son propre extrudeur physique dédié. Au moins deux des filaments actifs sont acheminés vers la même tête physique via la table des extrudeurs physiques de l'imprimante (un collecteur MMU/AFC), ce que le portique asservi ne peut pas suivre."
 
+# AI Translated
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
-msgstr ""
+msgstr "Le mode IDEX/IQEX actif ne définit pas d'outil principal, l'impression multicolore ne peut donc pas être planifiée. Ouvrez l'éditeur des modes IDEX/IQEX dans les paramètres de l'imprimante et attribuez le rôle Principal (Primary) à un outil."
 
+# AI Translated
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
-msgstr ""
+msgstr "Le multicolore dans ce mode n'est pas un cas d'impression parallèle — tous les outils actifs se trouvent sur un seul portique, il n'y a donc pas de second portique vers lequel copier ou refléter. Passez la plaque en mode Principal (Primary) pour l'impression multicolore sur un seul portique, ou définissez un mode IDEX/IQEX qui inclut des outils sur un second portique."
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
-msgstr ""
+msgstr "Les impressions multicolores en modes parallèles IDEX/IQEX nécessitent un outil Span sur le portique de l'outil principal — sans lui, le mode ne déclare aucun partenaire multicolore sur le même portique. Réduisez l'impression à un seul filament, passez en mode Principal (Primary), ou ouvrez l'éditeur des modes IDEX/IQEX dans les paramètres de l'imprimante et marquez un outil du portique de l'outil principal comme Span."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "Dans ce mode Span, seuls les outils %1% impriment les couleurs, mais le filament %2% n'est acheminé vers aucun outil. Utilisez des filaments acheminés vers %1%, ou passez cette plaque en mode Principal (Primary)."
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "Dans ce mode Span, seuls les outils %1% impriment les couleurs, mais le filament %2% est acheminé vers T%3%. Utilisez des filaments acheminés vers %1%, ou passez cette plaque en mode Principal (Primary)."
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -13421,42 +13529,54 @@ msgstr "Si vous souhaitez tout de même imprimer, vous pouvez activer l’option
 msgid "No extrusions under current settings."
 msgstr "Aucune extrusion dans les paramètres actuels."
 
+# AI Translated
 msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
-msgstr ""
+msgstr "Les filaments mixtes ne sont pas pris en charge dans les modes parallèles IDEX/IQEX. Passez cette plaque en mode Principal (Primary)."
 
+# AI Translated
 msgid "no configured tool"
-msgstr ""
+msgstr "aucun outil configuré"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "Le mode IDEX/IQEX « %1% » imprime avec T%2%, mais les filaments de cette plaque sont sur %3%. Attribuez un filament chargé sur T%2%, ou passez cette plaque en mode Principal (Primary)."
 
+# AI Translated
 msgid "Raft is not compatible with belt printer mode."
-msgstr ""
+msgstr "Le radeau n'est pas compatible avec le mode imprimante à tapis."
 
+# AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
-msgstr ""
+msgstr "Le paravent n'est pas compatible avec le mode imprimante à tapis."
 
+# AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr ""
+msgstr "La bordure n'est pas compatible avec le mode vase spirale sur une imprimante à tapis. Désactivez l'un des deux."
 
+# AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr ""
+msgstr "Le tapis est trop incliné pour une bordure ; aucune bordure ne sera générée."
 
+# AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr ""
+msgstr "Une bordure n'est générée que si le tapis est incliné. Définissez un angle d'inclinaison du tapis, ou supprimez le réglage de bordure."
 
+# AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr ""
+msgstr "Les imprimantes à tapis ne prennent en charge que les bordures extérieure et intérieure. Les bordures « Auto », « Sur les angles uniquement » et « Peint » sont imprimées comme « Bordure extérieure uniquement », avec la « Largeur de la bordure »."
 
+# AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr ""
+msgstr "« Écart bord-objet » sépare la bordure d'attaque du bord d'attaque de l'objet, c'est-à-dire du bord qu'elle doit ancrer. Réglez l'écart sur 0 lorsque vous utilisez « Longueur de bordure d'attaque »."
 
+# AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr ""
+msgstr "« Longueur de bordure d'attaque » prolonge la bordure en avant de chaque objet le long du tapis, et « Organiser » ne réserve pas cet espace. Laissez de la place entre les objets."
 
+# AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr ""
+msgstr "La bordure « Bord d'attaque uniquement » s'applique aux imprimantes à tapis. Sur cette imprimante, elle est imprimée comme une bordure extérieure ordinaire."
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -13468,14 +13588,17 @@ msgstr "Le mode fluide du timelapse n'est pas pris en charge lorsque le mode d'i
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "La détection d'agglomération n'est pas prise en charge lorsque la séquence \"par objet\" est activée."
 
+# AI Translated
 msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
-msgstr ""
+msgstr "La tour de purge du tapis n'est pas générée avec la séquence d'impression « Par objet » ; les changements de filament ne seront pas purgés."
 
+# AI Translated
 msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
-msgstr ""
+msgstr "La tour de purge du tapis est activée mais le projet ne contient aucun objet tour de purge ; les changements de filament ne seront pas purgés. Ouvrez le projet dans l'application pour générer la tour."
 
+# AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr ""
+msgstr "Le projet contient plusieurs tours de purge du tapis gérées. Rechargez la plaque ou désactivez puis réactivez la tour de purge du tapis pour la régénérer."
 
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "L'activation simultanée de la hauteur Z précise et de la tour d'amorçage peut provoquer des erreurs de tranchage."
@@ -14454,9 +14577,11 @@ msgstr "Vitesse des ponts internes. Si la valeur est exprimée en pourcentage, e
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "Distance du modèle à la ligne de bord la plus externe"
 
+# AI Translated
 msgid "Leading brim length"
-msgstr ""
+msgstr "Longueur de bordure d'attaque"
 
+# AI Translated
 msgid ""
 "Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
 "\n"
@@ -14466,10 +14591,19 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Imprimantes à tapis uniquement. Prolonge la bordure EN AVANT de l'objet le long du tapis, sur chaque bord de sa zone de contact tourné vers le bas de la pente — aussi bien le premier contact de l'objet avec le tapis que tout îlot qui s'y pose plus tard. Ce tablier est déposé sur le tapis avant que l'objet ne l'atteigne, de sorte que le bord d'attaque dispose déjà d'un appui collé auquel s'accrocher.\n"
+"\n"
+"Mesurée sur la surface du tapis, et ajoutée à « Largeur de la bordure » : la bordure s'étend jusqu'à « Écart bord-objet » + « Longueur de bordure d'attaque » + « Largeur de la bordure » en avant de l'objet. Réglez « Écart bord-objet » sur 0, sinon le tablier ne touchera pas l'objet qu'il doit ancrer.\n"
+"\n"
+"Sur un tapis incliné, chaque couche dépose une bande de la bordure, si bien que l'épaisseur de la nappe de bordure obtenue dépend du débit plutôt que de la hauteur de couche. Utilisez « Rapport de débit de la bordure » pour l'ajuster.\n"
+"\n"
+"Réglez sur 0 pour désactiver."
 
+# AI Translated
 msgid "Extra brim width"
-msgstr ""
+msgstr "Largeur de bordure supplémentaire"
 
+# AI Translated
 msgid ""
 "Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
 "\n"
@@ -14477,6 +14611,11 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"Imprimantes à tapis uniquement. Élargit la bordure LATÉRALEMENT, en travers du tapis, sans la prolonger davantage en avant ou en arrière de l'objet. Utile lorsqu'une pièce a besoin de plus d'adhérence sur sa longueur que ce que fournit « Largeur de la bordure » seule.\n"
+"\n"
+"Mesurée sur la surface du tapis, et ajoutée à « Largeur de la bordure » : la bordure s'étend jusqu'à « Écart bord-objet » + « Largeur de la bordure » + « Largeur de bordure supplémentaire » de chaque côté de l'objet. Pour prolonger plutôt la bordure en avant de l'objet, utilisez « Longueur de bordure d'attaque ».\n"
+"\n"
+"Réglez sur 0 pour désactiver."
 
 msgid "Brim type"
 msgstr "Type de bordure"
@@ -14484,8 +14623,9 @@ msgstr "Type de bordure"
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "Cela permet de contrôler la génération de bordure extérieur et/ou intérieur des modèles. Auto signifie que la largeur de bordure est analysée et calculée automatiquement."
 
+# AI Translated
 msgid "Leading edge only"
-msgstr ""
+msgstr "Bord d'attaque uniquement"
 
 msgid "Brim-object gap"
 msgstr "Écart bord-objet"
@@ -15723,9 +15863,11 @@ msgstr "Remplissage multiligne"
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "Utilisation de lignes multiples pour le motif de remplissage, si pris en charge par le motif."
 
+# AI Translated
 msgid "Adaptive density (experimental)"
-msgstr ""
+msgstr "Densité adaptative (expérimental)"
 
+# AI Translated
 msgid ""
 "Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
 "Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
@@ -15735,53 +15877,77 @@ msgid ""
 " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
 " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
 msgstr ""
+"Applique un dégradé au remplissage Gyroïde et TPMS à l'intérieur de l'objet : ses cellules grossissent de la surface de l'objet vers son centre. La densité de remplissage s'applique à la surface et la densité intérieure au centre.\n"
+"Déformation selon la distance, Fondu lisse et Coques étagées suivent la distance à la surface la plus proche, y compris les surfaces supérieure et inférieure, la densité intérieure étant atteinte au point le plus éloigné de celle-ci :\n"
+" - Déformation selon la distance : un seul motif continu, étiré et cisaillé là où la distance varie selon les directions, comme dans les plaques et les pièces longues.\n"
+" - Fondu lisse : les motifs des densités voisines se fondent les uns dans les autres, avec de petites boucles là où ils se rejoignent.\n"
+" - Coques étagées : des coques du motif régulier à des densités espacées d'un facteur d'environ 1,5, leurs lignes étant reliées le long des limites des coques.\n"
+" - Lobes : suit la forme 3D de l'objet, y compris ses surfaces supérieure et inférieure. Chaque lobe, une partie reliée au reste par un col plus étroit, reçoit un dégradé vers son propre centre.\n"
+" - Normale Z, Y ou X : suit les sections de l'objet perpendiculaires à cet axe, de sorte que la densité ne varie pas le long de celui-ci."
 
+# AI Translated
 msgid "Distance warp"
-msgstr ""
+msgstr "Déformation selon la distance"
 
+# AI Translated
 msgid "Smooth blend"
-msgstr ""
+msgstr "Fondu lisse"
 
+# AI Translated
 msgid "Stepped shells"
-msgstr ""
+msgstr "Coques étagées"
 
+# AI Translated
 msgid "Lobes"
-msgstr ""
+msgstr "Lobes"
 
+# AI Translated
 msgid "Normal Z"
-msgstr ""
+msgstr "Normale Z"
 
+# AI Translated
 msgid "Normal Y"
-msgstr ""
+msgstr "Normale Y"
 
+# AI Translated
 msgid "Normal X"
-msgstr ""
+msgstr "Normale X"
 
+# AI Translated
 msgid "Interior density"
-msgstr ""
+msgstr "Densité intérieure"
 
+# AI Translated
 msgid "Density of the adaptive infill at the center of the object."
-msgstr ""
+msgstr "Densité du remplissage adaptatif au centre de l'objet."
 
+# AI Translated
 msgid "Adaptive gradient"
-msgstr ""
+msgstr "Dégradé adaptatif"
 
+# AI Translated
 msgid ""
 "How the density changes from the surface to the center of the object.\n"
 "Linear: the density changes at a constant rate.\n"
 "Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
 "Exponential: the density changes quickly just below the surface and levels off towards the center."
 msgstr ""
+"Manière dont la densité varie de la surface vers le centre de l'objet.\n"
+"Linéaire : la densité varie à un rythme constant.\n"
+"Quadratique : la densité reste proche de la densité de remplissage près de la surface et varie plus vite vers le centre.\n"
+"Exponentiel : la densité varie rapidement juste sous la surface et se stabilise vers le centre."
 
 # AI Translated
 msgid "Linear"
 msgstr "Linéaire"
 
+# AI Translated
 msgid "Quadratic"
-msgstr ""
+msgstr "Quadratique"
 
+# AI Translated
 msgid "Exponential"
-msgstr ""
+msgstr "Exponentiel"
 
 msgid "Z-buckling bias optimization (experimental)"
 msgstr "Optimisation du biais de flambage en Z (expérimental)"
@@ -17996,98 +18162,129 @@ msgstr "Multi-matériaux pour extrudeur unique"
 msgid "Use single nozzle to print multi filament."
 msgstr "Utiliser une seule buse pour imprimer plusieurs filaments"
 
+# AI Translated
 msgid "IDEX/IQEX Printer"
-msgstr ""
+msgstr "Imprimante IDEX/IQEX"
 
+# AI Translated
 msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
-msgstr ""
+msgstr "Active l'impression parallèle pour les imprimantes à plusieurs chariots indépendants (IDEX, IQEX et similaires)."
 
+# AI Translated
 msgid "Firmware-managed zones"
-msgstr ""
+msgstr "Zones gérées par le firmware"
 
+# AI Translated
 msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-msgstr ""
+msgstr "Si activé, le logiciel de découpe génère un G-code dont le contenu de la zone principale est centré sur l'origine du plateau (0,0). Le firmware de l'imprimante se charge de placer les copies et les images miroir à la position physique de chaque zone. N'activez cette option que sur les imprimantes dont le firmware applique ses propres décalages de zone en mode copie/miroir (par ex. le mode duplication IDEX de RepRapFirmware). Sans effet en mode Principal (Primary)."
 
+# AI Translated
 msgid "Gantry Count"
-msgstr ""
+msgstr "Nombre de portiques"
 
+# AI Translated
 msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
-msgstr ""
+msgstr "Nombre de portiques indépendants sur l'axe Y. 1 pour l'IDEX ou l'IQEX à rail unique. 2 pour les systèmes à double portique (divise le plateau en rangées)."
 
+# AI Translated
 msgid "Tools per Gantry"
-msgstr ""
+msgstr "Outils par portique"
 
+# AI Translated
 msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
-msgstr ""
+msgstr "Nombre de têtes d'outil indépendantes par portique le long de X. 2 pour le type IDEX."
 
+# AI Translated
 msgid "Tool 0 Position"
-msgstr ""
+msgstr "Position de l'outil 0"
 
+# AI Translated
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
-msgstr ""
+msgstr "Position physique de l'outil T0 (indice 0) sur le plateau. Détermine la correspondance entre les indices d'outil et les zones du plateau. Pour les configurations à un seul portique (IDEX), seuls gauche/droite comptent ; pour les configurations à double portique (IQEX), les quatre coins peuvent être sélectionnés (avant = Y le plus bas / près de l'opérateur, arrière = Y le plus haut / fond de la machine)."
 
+# AI Translated
 msgid "Nozzle Clearance X"
-msgstr ""
+msgstr "Dégagement de buse X"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
-msgstr ""
+msgstr "Distance (mm) entre la buse et le bord du chariot côté collision en X. Sert à calculer la largeur de la bande d'exclusion anti-collision à chaque limite X."
 
+# AI Translated
 msgid "Nozzle Clearance Y"
-msgstr ""
+msgstr "Dégagement de buse Y"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
-msgstr ""
+msgstr "Distance (mm) entre la buse et le bord du chariot côté collision en Y. Sert à calculer la largeur de la bande d'exclusion anti-collision à chaque limite Y."
 
+# AI Translated
 msgid "Safety Margin"
-msgstr ""
+msgstr "Marge de sécurité"
 
+# AI Translated
 msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
-msgstr ""
+msgstr "Bande de dégagement indicative et non bloquante (mm) affichée dans la zone principale à chaque limite de chariot. Les pièces placées dans cette bande seront tout de même découpées ; il s'agit d'un rappel visuel pour laisser un dégagement supplémentaire près du bord de la zone."
 
+# AI Translated
 msgid "Visualization Theme"
-msgstr ""
+msgstr "Thème de visualisation"
 
+# AI Translated
 msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
-msgstr ""
+msgstr "Thème de couleurs pour la visualisation des zones du plateau IDEX/IQEX. Choisissez au besoin un thème adapté aux daltoniens."
 
+# AI Translated
 msgid "Deuteranopia / Protanopia (red-green)"
-msgstr ""
+msgstr "Deutéranopie / Protanopie (rouge-vert)"
 
+# AI Translated
 msgid "Tritanopia (blue-yellow)"
-msgstr ""
+msgstr "Tritanopie (bleu-jaune)"
 
+# AI Translated
 msgid "High Contrast"
-msgstr ""
+msgstr "Contraste élevé"
 
+# AI Translated
 msgid "IDEX/IQEX Print Mode"
-msgstr ""
+msgstr "Mode d'impression IDEX/IQEX"
 
+# AI Translated
 msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
-msgstr ""
+msgstr "Nom du mode d'impression parallèle IDEX/IQEX actif, ou « primary » pour l'impression avec un seul chariot. Nécessite l'activation de « Imprimante IDEX/IQEX » dans le préréglage d'imprimante (Imprimante → Multi-matériaux → Configuration IDEX/IQEX)."
 
+# AI Translated
 msgid "IDEX/IQEX head filament map"
-msgstr ""
+msgstr "Correspondance têtes-filaments IDEX/IQEX"
 
+# AI Translated
 msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr ""
+msgstr "Remplacement, par plaque, de la correspondance entre têtes physiques et emplacements de filament (numérotés à partir de 1). Vide signifie utiliser les valeurs par défaut obtenues par inversion de la table pem."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Names"
-msgstr ""
+msgstr "Noms des modes IDEX/IQEX"
 
+# AI Translated
 msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
-msgstr ""
+msgstr "Noms affichés de chaque mode d'impression parallèle IDEX/IQEX défini par l'utilisateur."
 
+# AI Translated
 msgid "IDEX/IQEX Mode Active Tools"
-msgstr ""
+msgstr "Outils actifs des modes IDEX/IQEX"
 
+# AI Translated
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
-msgstr ""
+msgstr "Attribution des rôles d'outil pour chaque mode. Format : \"idx:P,idx:C,idx:M\" où P=Principal (Primary), C=Copie (Copy), M=Miroir (Mirror) (par ex. \"0:P,1:C,2:M,3:M\"). Géré par l'éditeur des modes IDEX/IQEX dans le préréglage d'imprimante."
 
+# AI Translated
 msgid "IDEX/IQEX Mode G-codes"
-msgstr ""
+msgstr "G-codes des modes IDEX/IQEX"
 
+# AI Translated
 msgid "G-code or macro call to inject at print start for each mode."
-msgstr ""
+msgstr "G-code ou appel de macro à insérer au début de l'impression pour chaque mode."
 
 msgid "Manual Filament Change"
 msgstr "Changement manuel du filament"
@@ -18465,35 +18662,45 @@ msgstr "Chevauchement du seuil"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "Si l’angle seuil est égal à zéro, le support sera généré pour les surplombs dont le chevauchement est inférieur au seuil. Plus cette valeur est petite, plus la pente du surplomb qui peut être imprimé sans support est importante."
 
+# AI Translated
 msgid "Build plate tilt X"
-msgstr ""
+msgstr "Inclinaison du plateau X"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
-msgstr ""
+msgstr "Angle d'inclinaison du plateau le long de l'axe X. Une valeur positive incline le plateau de sorte que le côté +X soit plus haut, ce qui déplace la gravité vers -X et augmente les surplombs du côté +X. Une valeur négative relève le côté -X. Réglez sur 0 pour aucune inclinaison en X. En mode imprimante à tapis, cette valeur est automatiquement synchronisée avec l'angle du tapis."
 
+# AI Translated
 msgid "Build plate tilt Y"
-msgstr ""
+msgstr "Inclinaison du plateau Y"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
-msgstr ""
+msgstr "Angle d'inclinaison du plateau le long de l'axe Y. Une valeur positive incline le plateau de sorte que le côté +Y soit plus haut, ce qui déplace la gravité vers -Y et augmente les surplombs du côté +Y. Une valeur négative relève le côté -Y. Réglez sur 0 pour aucune inclinaison en Y."
 
+# AI Translated
 msgid "Enable belt printing"
-msgstr ""
+msgstr "Activer l'impression sur tapis"
 
+# AI Translated
 msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
-msgstr ""
+msgstr "Active le mode imprimante à tapis. Les imprimantes à tapis utilisent un tapis convoyeur comme surface d'impression, incliné selon un angle (généralement 45 degrés). Le logiciel de découpe fait pivoter le plan de découpe et transforme les coordonnées du G-code pour la surface d'impression inclinée."
 
+# AI Translated
 msgid "Infinite Y axis"
-msgstr ""
+msgstr "Axe Y infini"
 
+# AI Translated
 msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
-msgstr ""
+msgstr "Active l'axe Y infini pour les imprimantes à tapis. Si activé, la limite du volume d'impression sur l'axe Y est de fait supprimée, ce qui permet d'imprimer des objets de n'importe quelle longueur dans le sens du tapis."
 
+# AI Translated
 msgid "Belt tilt axis"
-msgstr ""
+msgstr "Axe d'inclinaison du tapis"
 
+# AI Translated
 msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-msgstr ""
+msgstr "Axe autour duquel le maillage pivote avant le découpage. Il s'agit de l'inclinaison de l'imprimante à tapis : une rotation isométrique (sans distorsion) qui détermine aussi le rendu du plateau et l'inclinaison de la gravité pour les supports, et que la transformation inverse du G-code annule avant le cisaillement/la mise à l'échelle et le remappage dans le repère machine. X correspond à l'inclinaison habituelle du portique (le tapis avance le long de Y)."
 
 msgid "X"
 msgstr "X"
@@ -18505,89 +18712,121 @@ msgstr "Y"
 msgid "Z"
 msgstr "Z"
 
+# AI Translated
 msgid "Belt tilt angle"
-msgstr ""
+msgstr "Angle d'inclinaison du tapis"
 
+# AI Translated
 msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
-msgstr ""
+msgstr "Angle d'inclinaison de la surface du tapis, en degrés. La plupart des imprimantes à tapis utilisent 45°. Les valeurs positives font pivoter dans le sens antihoraire en regardant le long de l'axe d'inclinaison positif ; la valeur absolue correspond aussi à l'inclinaison physique du tapis utilisée pour le rendu du plateau et la gravité des supports."
 
 msgid "°"
 msgstr "°"
 
+# AI Translated
 msgid "Decouple machine-frame tilt"
-msgstr ""
+msgstr "Découpler l'inclinaison du repère machine"
 
+# AI Translated
 msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-msgstr ""
+msgstr "Réglage expert : définit l'angle d'inclinaison du repère machine (cisaillement/mise à l'échelle du G-code) indépendamment de l'angle de rotation avant découpage. Si désactivé, la transformation du repère machine est dérivée de l'angle d'inclinaison du tapis, de sorte qu'un seul angle pilote les deux étapes. N'activez cette option que pour compenser une machine dont l'inclinaison physique du portique diffère de la rotation de découpage."
 
+# AI Translated
 msgid "Machine-frame tilt angle"
-msgstr ""
+msgstr "Angle d'inclinaison du repère machine"
 
+# AI Translated
 msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
-msgstr ""
+msgstr "Angle d'inclinaison (degrés) servant à calculer le cisaillement (cot) et la mise à l'échelle (1/|sin|) du repère machine appliqués au G-code. Utilisé uniquement lorsque « Découpler l'inclinaison du repère machine » est activé ; sinon, l'angle d'inclinaison du tapis est utilisé."
 
+# AI Translated
 msgid "+X"
-msgstr ""
+msgstr "+X"
 
+# AI Translated
 msgid "+Y"
-msgstr ""
+msgstr "+Y"
 
+# AI Translated
 msgid "+Z"
-msgstr ""
+msgstr "+Z"
 
+# AI Translated
 msgid "-X"
-msgstr ""
+msgstr "-X"
 
+# AI Translated
 msgid "-Y"
-msgstr ""
+msgstr "-Y"
 
+# AI Translated
 msgid "-Z"
-msgstr ""
+msgstr "-Z"
 
+# AI Translated
+# Needs human review: G-code remap option (Printer settings, belt printer): 'Rev' means reversed (max − position), distinct from '-X' (negated). Check that 'X inversé' is not confused with '-X'.
 msgid "Rev X"
-msgstr ""
+msgstr "X inversé"
 
+# AI Translated
+# Needs human review: G-code remap option (Printer settings, belt printer): 'Rev' means reversed (max − position), distinct from '-Y' (negated). Check that 'Y inversé' is not confused with '-Y'.
 msgid "Rev Y"
-msgstr ""
+msgstr "Y inversé"
 
+# AI Translated
+# Needs human review: G-code remap option (Printer settings, belt printer): 'Rev' means reversed (max − position), distinct from '-Z' (negated). Check that 'Z inversé' is not confused with '-Z'.
 msgid "Rev Z"
-msgstr ""
+msgstr "Z inversé"
 
+# AI Translated
 msgid "G-code remap X"
-msgstr ""
+msgstr "Remappage G-code X"
 
+# AI Translated
 msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Axe de découpage qui correspond à l'axe X de la machine dans le G-code généré. Appliqué APRÈS le découpage, lors de la génération du G-code."
 
+# AI Translated
 msgid "G-code remap Y"
-msgstr ""
+msgstr "Remappage G-code Y"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Axe de découpage qui correspond à l'axe Y de la machine dans le G-code généré. Appliqué APRÈS le découpage, lors de la génération du G-code."
 
+# AI Translated
 msgid "G-code remap Z"
-msgstr ""
+msgstr "Remappage G-code Z"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "Axe de découpage qui correspond à l'axe Z de la machine dans le G-code généré. Appliqué APRÈS le découpage, lors de la génération du G-code."
 
+# AI Translated
 msgid "Support Floor Z offset"
-msgstr ""
+msgstr "Décalage Z du plancher des supports"
 
+# AI Translated
 msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
-msgstr ""
+msgstr "Déplace vers le haut ou vers le bas le plancher calculé du tapis (mm). Les valeurs négatives abaissent le plancher, ce qui permet de conserver davantage de supports. Utilisez ce réglage pour diagnostiquer les problèmes de la formule du plancher du tapis."
 
+# AI Translated
 msgid "Enable belt purge tower"
-msgstr ""
+msgstr "Activer la tour de purge du tapis"
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’essuyage / Tour d’amorçage.
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
-msgstr ""
+msgstr "Remplacement de la tour d’essuyage/d’amorçage pour les imprimantes à tapis. Lorsque cette option est activée sur une imprimante à tapis, un prisme de purge est généré automatiquement à côté des pièces imprimées et la purge lors des changements de filament y est dirigée (la tour d’essuyage classique ne peut pas être utilisée sur les imprimantes à tapis, car son G-code contourne la transformation du tapis). Disponible uniquement sur les imprimantes à tapis."
 
+# AI Translated
 msgid "Belt purge tower width"
-msgstr ""
+msgstr "Largeur de la tour de purge du tapis"
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’essuyage for 'wipe tower'.
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr ""
+msgstr "Largeur (X machine, en travers du tapis) du prisme de purge généré automatiquement sur les imprimantes à tapis lorsque la tour de purge du tapis est activée et que plusieurs filaments sont utilisés. La purge lors des changements de filament est dirigée vers les extrusions de ce prisme au lieu d'une tour d’essuyage classique. Sa hauteur est calculée automatiquement à partir du volume de purge le plus défavorable par couche : un prisme plus large sera moins haut."
 
 msgid "Tree support branch angle"
 msgstr "Angle de branche support arborescent"
@@ -18765,11 +19004,15 @@ msgstr "Le nombre de couches solides supérieures est augmenté lors du découpa
 msgid "Separated infills"
 msgstr "Remplissages séparés"
 
+# AI Translated
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
 "Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
+"Centre le remplissage interne de chaque pièce sur elle-même, comme si elle était découpée seule, plutôt que sur l'ensemble de l'assemblage. Les pièces qui se touchent ou se chevauchent sont traitées comme un seul corps et partagent un centre ; les pièces séparées (ou les objets 3D distincts) ont chacune le leur.\n"
+"Utile lorsqu'un assemblage regroupe plusieurs objets qui doivent chacun conserver un remplissage cohérent, centré sur eux-mêmes.\n"
+"Cubique adaptatif et Support Cubique centrent toujours chaque pièce sur elle-même, et le remplissage Lightning est généré pour l'objet entier et n'est pas affecté."
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -19002,11 +19245,13 @@ msgstr "La purge après le changement de filament se fera à l'intérieur du sup
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "Cet objet sera utilisé pour purger la buse après un changement de filament afin d'économiser du filament et de réduire le temps d'impression. Les couleurs des objets seront mélangées en conséquence. Cela ne prendra effet que si la tour d’amorçage est activée."
 
+# AI Translated
 msgid "Belt purge tower object"
-msgstr ""
+msgstr "Objet tour de purge du tapis"
 
+# AI Translated
 msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
-msgstr ""
+msgstr "Identifie le prisme de purge du tapis généré automatiquement. Géré automatiquement ; ne pas définir manuellement."
 
 msgid "Maximal bridging distance"
 msgstr "Distance de pont maximale"
@@ -19886,8 +20131,9 @@ msgstr "Nom de l’imprimante physique utilisé pour la découpe."
 msgid "Layer number"
 msgstr "Numéro de couche"
 
+# AI Translated
 msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
-msgstr ""
+msgstr "Indice de la couche actuelle. Commence à zéro (la première couche porte le numéro 0), sauf dans le G-code de changement du rôle de l’extrusion, où il commence à un."
 
 msgid "Layer Z"
 msgstr "Couche z"
@@ -20568,8 +20814,9 @@ msgstr ""
 "Les valeurs d'accélération doivent être supérieures aux valeurs de vitesse.\n"
 "Veuillez vérifier les entrées."
 
+# AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr ""
+msgstr "Pas encore disponible sur les imprimantes à tapis — utilisez plutôt la méthode Tour PA."
 
 msgid "Temperature calibration"
 msgstr "Calibration de Température"
@@ -20598,8 +20845,9 @@ msgstr "PET-CF"
 msgid "Test model"
 msgstr "Modèle de test"
 
+# AI Translated
 msgid "Overhang"
-msgstr ""
+msgstr "Surplomb"
 
 msgid "Start temp: "
 msgstr "Temp. de début: "
@@ -21458,8 +21706,9 @@ msgstr ""
 "Imprimante et tous les préréglages de filament et de traitement qui appartiennent à l’imprimante.\n"
 "Peut être partagé avec d’autres."
 
+# AI Translated
 msgid "Include custom bed texture and model"
-msgstr ""
+msgstr "Inclure la texture et le modèle personnalisés du plateau"
 
 msgid ""
 "User's filament preset set.\n"
@@ -22563,32 +22812,42 @@ msgstr "Si activé, les valeurs ci-dessus sont stockées comme valeurs par défa
 msgid "PresetBundle"
 msgstr "Paquet de préréglages"
 
+# AI Translated
 msgid "Export Presets"
-msgstr ""
+msgstr "Exporter les préréglages"
 
+# AI Translated
 msgid "Open folder in explorer"
-msgstr ""
+msgstr "Ouvrir le dossier dans l'explorateur"
 
+# AI Translated
 msgid "Delete bundle"
-msgstr ""
+msgstr "Supprimer le paquet"
 
+# AI Translated
 msgid "Unsubscribe bundle"
-msgstr ""
+msgstr "Se désabonner du paquet"
 
+# AI Translated
 msgid "Update available"
-msgstr ""
+msgstr "Mise à jour disponible"
 
+# AI Translated
 msgid "Unauthorized bundle"
-msgstr ""
+msgstr "Paquet non autorisé"
 
+# AI Translated
 msgid "Open this bundle in your browser"
-msgstr ""
+msgstr "Ouvrir ce paquet dans votre navigateur"
 
+# AI Translated
+# Needs human review: Shared label: preset bundle type (Subscribed / Local / Default) and plugin source (Mine / Subscribed / Orphaned / Local). Check that the noun 'Abonnement' reads right in both lists.
 msgid "Subscribed"
-msgstr ""
+msgstr "Abonnement"
 
+# AI Translated
 msgid "Local"
-msgstr ""
+msgstr "Local"
 
 msgid "Bundle folder does not exist."
 msgstr "Le dossier du paquet n’existe pas."
@@ -22623,11 +22882,13 @@ msgstr "Se désabonner du paquet"
 msgid "ExportPresetBundle"
 msgstr "Exporter le paquet de préréglages"
 
+# AI Translated
 msgid "Export to OrcaCloud"
-msgstr ""
+msgstr "Exporter vers OrcaCloud"
 
+# AI Translated
 msgid "Export to folder"
-msgstr ""
+msgstr "Exporter vers un dossier"
 
 msgid "Save preset bundle"
 msgstr "Enregistrer le paquet de préréglages"
@@ -26853,8 +27114,9 @@ msgstr "Gizmo assembler"
 msgid "Gizmo brim ears"
 msgstr "Gizmo bordure à oreilles"
 
+# AI Translated
 msgid "Gizmo texture displacement painting"
-msgstr ""
+msgstr "Gizmo de peinture de déplacement de texture"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "Barre de défilement verticale - Déplacer le curseur actif vers le Haut"
@@ -28101,6 +28363,14 @@ msgid "Bake"
 msgstr "Intégrer"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "Saisir une valeur exacte dans un curseur"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "Icône de modification à l'extrémité droite d'un curseur"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "Déplacement de texture"
 
@@ -28373,6 +28643,15 @@ msgid "The painted area could not be carried onto the remeshed model, so nothing
 msgstr "La zone peinte n’a pas pu être reportée sur le modèle remaillé, donc rien n’a été modifié. Passez en mode Pro et remaillez avant de peindre."
 
 # AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "Plage : %1% à %2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "Saisissez une valeur au lieu de faire glisser. Ctrl+clic sur le curseur a le même effet."
+
+# AI Translated
 msgid "Pro"
 msgstr "Pro"
 
@@ -28477,8 +28756,9 @@ msgstr "Seuil d’angle - le remplissage s’arrête aux arêtes plus vives que 
 msgid "Click a triangle to paint it"
 msgstr "Cliquez sur un triangle pour le peindre"
 
+# AI Translated
 msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
-msgstr ""
+msgstr "Uniquement pour un calque projeté avec Déplier (LSCM) - réglez le « Mappage » du calque actif sur « Déplier » pour utiliser cette vue."
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -28492,15 +28772,17 @@ msgstr "Rapide - le relief est seulement ombré, pas construit, et uniquement po
 msgid "Checker"
 msgstr "Damier"
 
+# AI Translated
 msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Damier - une grille de test à la place de la texture. Là où les carrés restent carrés, la texture n’est pas déformée ; là où ils s’étirent, elle le sera aussi. Ouvre l’éditeur UV s’il est fermé"
 
 # AI Translated
 msgid "Distortion"
 msgstr "Distorsion"
 
+# AI Translated
 msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "Distorsion - carte thermique de l’étirement, du bleu au rouge, sur le dépliage. Ouvre l’éditeur UV s’il est fermé"
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -28616,11 +28898,13 @@ msgstr "Mélanger les filaments"
 msgid "Interleaves two filaments to fake the colors in between, so a handful of filaments can cover a photo or a gradient. An image of flat colors prints the same either way. Off uses one filament per area."
 msgstr "Entrelace deux filaments pour simuler les couleurs intermédiaires, afin qu’une poignée de filaments puisse reproduire une photo ou un dégradé. Une image en aplats de couleur s’imprime de la même façon dans les deux cas. Désactivé, un seul filament est utilisé par zone."
 
+# AI Translated
 msgid "Mixed colors"
-msgstr ""
+msgstr "Couleurs mixtes"
 
+# AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
-msgstr ""
+msgstr "Nombre maximal de filaments mixtes qu'une intégration peut ajouter. Ils sont choisis parmi les couleurs de la texture, et seuls ceux réellement utilisés par l'intégration sont créés."
 
 # AI Translated
 #, boost-format
@@ -29321,27 +29605,33 @@ msgstr "Plugins de filament"
 msgid "Printer plugins"
 msgstr "Plugins d’imprimante"
 
+# AI Translated
 msgid "This preset does not use any plugin capabilities"
-msgstr ""
+msgstr "Ce préréglage n'utilise aucune capacité de plugin"
 
+# AI Translated
 msgid "Capabilities used by this preset"
-msgstr ""
+msgstr "Capacités utilisées par ce préréglage"
 
+# AI Translated
 msgid "Capability configuration (JSON)"
-msgstr ""
+msgstr "Configuration de la capacité (JSON)"
 
+# AI Translated
 msgid "Plugin configuration"
-msgstr ""
+msgstr "Configuration du plugin"
 
+# AI Translated
 msgid "Discard this preset's override and use the global configuration again"
-msgstr ""
+msgstr "Abandonner le remplacement propre à ce préréglage et réutiliser la configuration globale"
 
 # AI Translated
 msgid "Restore defaults"
 msgstr "Restaurer les valeurs par défaut"
 
+# AI Translated
 msgid "Invalid JSON"
-msgstr ""
+msgstr "JSON non valide"
 
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
@@ -29431,214 +29721,282 @@ msgstr "Installation du plugin"
 msgid "Installed \"%s\"."
 msgstr "« %s » installé."
 
+# AI Translated
 msgid "Search plugins"
-msgstr ""
+msgstr "Rechercher des plugins"
 
+# AI Translated
 msgid "Clear search"
-msgstr ""
+msgstr "Effacer la recherche"
 
+# AI Translated
 msgid "Match case"
-msgstr ""
+msgstr "Respecter la casse"
 
+# AI Translated
 msgid "Match whole word"
-msgstr ""
+msgstr "Mot entier uniquement"
 
+# AI Translated
 msgid "More plugin install options"
-msgstr ""
+msgstr "Plus d'options d'installation de plugin"
 
+# AI Translated
 msgid "Install plugin"
-msgstr ""
+msgstr "Installer un plugin"
 
+# AI Translated
 msgid "Install local plugin"
-msgstr ""
+msgstr "Installer un plugin local"
 
+# AI Translated
 msgid "Activate"
-msgstr ""
+msgstr "Activer"
 
+# AI Translated
 msgid "Sort by name"
-msgstr ""
+msgstr "Trier par nom"
 
+# AI Translated
 msgid "Sort by version"
-msgstr ""
+msgstr "Trier par version"
 
+# AI Translated
 msgid "Plugin Version"
-msgstr ""
+msgstr "Version du plugin"
 
+# AI Translated
 msgid "Sort by source"
-msgstr ""
+msgstr "Trier par source"
 
+# AI Translated
 msgid "Source"
-msgstr ""
+msgstr "Source"
 
+# AI Translated
 msgid "Sort by status"
-msgstr ""
+msgstr "Trier par état"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Status"
-msgstr ""
+msgstr "État"
 
+# AI Translated
 msgid "Drag to resize; double-click to reset"
-msgstr ""
+msgstr "Faites glisser pour redimensionner ; double-cliquez pour réinitialiser"
 
+# AI Translated
 msgid "Resize the plugin list"
-msgstr ""
+msgstr "Redimensionner la liste des plugins"
 
+# AI Translated
 msgid "Plugin details"
-msgstr ""
+msgstr "Détails du plugin"
 
+# AI Translated
 msgid "Plugin Info"
-msgstr ""
+msgstr "Infos du plugin"
 
+# AI Translated
 msgid "Description"
-msgstr ""
+msgstr "Description"
 
+# AI Translated
 msgid "Config"
-msgstr ""
+msgstr "Configuration"
 
+# AI Translated
 msgid "Changelog"
-msgstr ""
+msgstr "Journal des modifications"
 
+# AI Translated
 msgid "Diagnostics"
-msgstr ""
+msgstr "Diagnostics"
 
+# AI Translated
 msgid "Types"
-msgstr ""
+msgstr "Types"
 
+# AI Translated
 msgid "Installed Version"
-msgstr ""
+msgstr "Version installée"
 
+# AI Translated
 msgid "Latest Version"
-msgstr ""
+msgstr "Dernière version"
 
+# AI Translated
 msgid "Update to the latest version"
-msgstr ""
+msgstr "Mettre à jour vers la dernière version"
 
+# AI Translated
 msgid "No description available"
-msgstr ""
+msgstr "Aucune description disponible"
 
+# AI Translated
 msgid "Select a plugin to configure its capabilities"
-msgstr ""
+msgstr "Sélectionnez un plugin pour configurer ses capacités"
 
+# AI Translated
 msgid "Configurable capabilities"
-msgstr ""
+msgstr "Capacités configurables"
 
+# AI Translated
 msgid "Discard the settings saved for this capability and restore the plugin's defaults"
-msgstr ""
+msgstr "Abandonner les réglages enregistrés pour cette capacité et restaurer les valeurs par défaut du plugin"
 
+# AI Translated
 msgid "Plugin changelog"
-msgstr ""
+msgstr "Journal des modifications du plugin"
 
+# AI Translated
 msgid "Date"
-msgstr ""
+msgstr "Date"
 
+# AI Translated
 msgid "Changes"
-msgstr ""
+msgstr "Modifications"
 
+# AI Translated
 msgid "No changelog available"
-msgstr ""
+msgstr "Aucun journal des modifications disponible"
 
+# AI Translated
 msgid "No issues detected"
-msgstr ""
+msgstr "Aucun problème détecté"
 
+# AI Translated
 msgid "No plugins found"
-msgstr ""
+msgstr "Aucun plugin trouvé"
 
+# AI Translated
 #, c-format, boost-format
 msgid "No plugins match \"%s\""
-msgstr ""
+msgstr "Aucun plugin ne correspond à « %s »"
 
+# AI Translated
+# Needs human review: Plugin source value in the Plugins dialog list (Mine / Subscribed / Orphaned / Local): a plugin the user published. Check 'Personnel' reads right next to 'Abonnement', 'Orphelin', 'Local'.
 msgid "Mine"
-msgstr ""
+msgstr "Personnel"
 
+# AI Translated
 msgid "Orphaned"
-msgstr ""
+msgstr "Orphelin"
 
+# AI Translated
 msgid "Some plugin capabilities are enabled"
-msgstr ""
+msgstr "Certaines capacités du plugin sont activées"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Collapse %s capabilities"
-msgstr ""
+msgstr "Réduire les capacités de %s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Expand %s capabilities"
-msgstr ""
+msgstr "Développer les capacités de %s"
 
+# AI Translated
 msgid "Collapse capabilities"
-msgstr ""
+msgstr "Réduire les capacités"
 
+# AI Translated
 msgid "Expand capabilities"
-msgstr ""
+msgstr "Développer les capacités"
 
+# AI Translated
 msgid "Open this plugin in your browser"
-msgstr ""
+msgstr "Ouvrir ce plugin dans votre navigateur"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Capabilities: %s"
-msgstr ""
+msgstr "Capacités : %s"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Capabilities"
-msgstr ""
+msgstr "Capacités"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Run \"%s\""
-msgstr ""
+msgstr "Exécuter « %s »"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Enable %s"
-msgstr ""
+msgstr "Activer %s"
 
+# AI Translated
 msgid "Unauthorized for updates"
-msgstr ""
+msgstr "Non autorisé pour les mises à jour"
 
+# AI Translated
 msgid "Loading the plugin…"
-msgstr ""
+msgstr "Chargement du plugin…"
 
+# AI Translated
 msgid "This plugin exposes no capabilities"
-msgstr ""
+msgstr "Ce plugin n'expose aucune capacité"
 
+# AI Translated
 msgid "Activate this plugin to configure its capabilities"
-msgstr ""
+msgstr "Activez ce plugin pour configurer ses capacités"
 
+# AI Translated
 msgid "View on OrcaCloud <a>here</a>"
-msgstr ""
+msgstr "Voir sur OrcaCloud <a>ici</a>"
 
+# AI Translated
 msgid "Activated"
-msgstr ""
+msgstr "Activé"
 
+# AI Translated
 msgid "Runtime error"
-msgstr ""
+msgstr "Erreur d'exécution"
 
+# AI Translated
 msgid "Inactive"
-msgstr ""
+msgstr "Inactif"
 
+# AI Translated
 msgid "This plugin is active and ready to be used."
-msgstr ""
+msgstr "Ce plugin est actif et prêt à être utilisé."
 
+# AI Translated
 msgid "This plugin is still loading."
-msgstr ""
+msgstr "Ce plugin est encore en cours de chargement."
 
+# AI Translated
 msgid "This plugin is blocked until its error is fixed."
-msgstr ""
+msgstr "Ce plugin est bloqué jusqu'à ce que son erreur soit corrigée."
 
+# AI Translated
 msgid "This plugin is loaded but a capability reported an error."
-msgstr ""
+msgstr "Ce plugin est chargé, mais une capacité a signalé une erreur."
 
+# AI Translated
 msgid "This plugin is inactive. Activate it to install or load it."
-msgstr ""
+msgstr "Ce plugin est inactif. Activez-le pour l'installer ou le charger."
 
+# AI Translated
 msgid "Select a plugin to view its status and details."
-msgstr ""
+msgstr "Sélectionnez un plugin pour afficher son état et ses détails."
 
+# AI Translated
 msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
-msgstr ""
+msgstr "Orphelin : vous n'êtes plus abonné à ce plugin ou il n'est plus disponible sur OrcaCloud. La copie locale reste installée et peut toujours être utilisée."
 
+# AI Translated
 msgid "A newer plugin version is available."
-msgstr ""
+msgstr "Une version plus récente du plugin est disponible."
 
+# AI Translated
 msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
-msgstr ""
+msgstr "Les mises à jour depuis le cloud ne sont pas disponibles, car ce plugin n'est pas autorisé pour les mises à jour."
 
 # AI Translated
 #, c-format, boost-format
@@ -29856,11 +30214,13 @@ msgstr "Échec du rechargement du plugin."
 msgid "Reloaded \"%s\"."
 msgstr "« %s » rechargé."
 
+# AI Translated
 msgid "Printer Connection"
-msgstr ""
+msgstr "Connexion à l'imprimante"
 
+# AI Translated
 msgid "Please set up your printer connection to view the device."
-msgstr ""
+msgstr "Veuillez configurer la connexion de votre imprimante pour afficher l'appareil."
 
 msgid "No model information"
 msgstr "Pas d'information sur le modèle"
@@ -29892,8 +30252,9 @@ msgstr "Partagé par"
 msgid "Model description"
 msgstr "Description du modèle"
 
+# AI Translated
 msgid "BOM"
-msgstr ""
+msgstr "Nomenclature"
 
 msgid "Profile name"
 msgstr "Nom du profil"
@@ -29928,15 +30289,18 @@ msgstr "Réduit les déchets d’amorçage et imprime plus vite. Peut provoquer 
 msgid "Terminal"
 msgstr "Terminal"
 
+# AI Translated
 msgid "python ... or uv ..."
-msgstr ""
+msgstr "python ... ou uv ..."
 
+# AI Translated
 msgid "Plugin terminal ready."
-msgstr ""
+msgstr "Terminal des plugins prêt."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Process exited with code: %s"
-msgstr ""
+msgstr "Le processus s'est terminé avec le code : %s"
 
 # AI Translated
 msgid "A command is already running."
@@ -30204,8 +30568,10 @@ msgstr "  |  aimantation ACTIVÉE"
 msgid "Change texture - choose another one from the texture library"
 msgstr "Changer la texture - en choisir une autre dans la bibliothèque de textures"
 
+# AI Translated
+# Needs human review: UV editor tooltip: the English names a 'Tiling' setting that does not exist; the layer settings show 'Tile' (Mosaïque) and 'Tile size' (Taille de tuile). Check the last sentence once the source names the right label.
 msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
-msgstr ""
+msgstr "Taille de tuile du calque actif : la part du modèle que couvre une répétition de la texture. Le canevas est mesuré en tuiles, donc une case de la grille correspond à une répétition. Modifiez-la avec les réglages de mosaïque du calque."
 
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
@@ -30239,14 +30605,17 @@ msgstr "Connecter les îlots"
 msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfolded next to each other (a cube becomes a joined net rather than six loose squares). They stay separate islands, so you can still move any of them by hand afterwards."
 msgstr "Dispose le dépliage en patron connecté : les morceaux qui partagent une arête sont dépliés les uns à côté des autres (un cube devient un patron d’un seul tenant plutôt que six carrés séparés). Ils restent des îlots distincts, vous pouvez donc toujours déplacer chacun d’eux à la main ensuite."
 
+# AI Translated
 msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
-msgstr ""
+msgstr "Îlot - travailler sur des îlots entiers. Cliquez sur un îlot pour le sélectionner, puis faites-le glisser pour le déplacer, glissez avec le bouton droit pour le faire pivoter, ou appuyez sur R pour le faire pivoter et sur S pour le mettre à l’échelle avec la souris (clic ou Entrée pour valider, Échap pour annuler)."
 
+# AI Translated
 msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Sommet - faites glisser des sommets pour remodeler un îlot à la main ; Maj ajoute à la sélection, Ctrl ajoute ou retire un élément de la sélection."
 
+# AI Translated
 msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "Arête - faites glisser des arêtes pour remodeler un îlot à la main ; Maj ajoute à la sélection, Ctrl ajoute ou retire un élément de la sélection."
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -30284,13 +30653,17 @@ msgstr "Effacer les modifications UV - annuler tous les déplacements manuels de
 msgid "Snap - stick islands together when dragging one against another"
 msgstr "Aimanter - coller les îlots entre eux lorsqu’on en fait glisser un contre un autre"
 
+# AI Translated
 msgid ""
 "Frame all islands, fitting every one of them in view (Home or F).\n"
 "Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
 msgstr ""
+"Cadrer tous les îlots, en les faisant tous tenir dans la vue (Début ou F).\n"
+"Ailleurs sur le canevas : faites défiler pour zoomer autour du curseur, et glissez avec le bouton central - ou faites glisser un espace vide - pour faire un panoramique."
 
+# AI Translated
 msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
-msgstr ""
+msgstr "Ce qui est sélectionné, et les valeurs exactes du déplacement, de la rotation ou de la mise à l’échelle pendant que vous en effectuez un."
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -30301,8 +30674,9 @@ msgstr "Aucun calque mappé avec Dépliage"
 msgid "%.1f mm tile"
 msgstr "tuile de %.1f mm"
 
+# AI Translated
 msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
-msgstr ""
+msgstr "Le panneau suit le calque de texture actif, et ce calque doit être projeté avec Déplier (LSCM). Ajoutez un calque et réglez son « Mappage » sur « Déplier »."
 
 # AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
@@ -30312,31 +30686,38 @@ msgstr "Obsolète - la peinture, les coutures ou l’angle de couture ont chang�
 msgid "Flatten the painted area into UV islands. It is computed only when you press this, not on every edit - so paint, change the seam angle or mark seams first, then press Unwrap."
 msgstr "Aplatit la zone peinte en îlots UV. Le calcul n’a lieu que lorsque vous appuyez ici, pas à chaque modification - peignez, changez l’angle de couture ou marquez les coutures d’abord, puis appuyez sur Déplier."
 
+# AI Translated
 msgid "Turn Mark seams on first - Path is a quicker way of marking them."
-msgstr ""
+msgstr "Activez d’abord « Marquer les coutures » - « Chemin » est un moyen plus rapide de les marquer."
 
+# AI Translated
 msgid "No seams are marked on this layer."
-msgstr ""
+msgstr "Aucune couture n’est marquée sur ce calque."
 
+# AI Translated
 msgid "No islands have been reshaped by hand, so there is nothing to discard."
-msgstr ""
+msgstr "Aucun îlot n’a été remodelé à la main, il n’y a donc rien à annuler."
 
 # AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "%d îlots, %s faces"
 
+# AI Translated
 msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
-msgstr ""
+msgstr "Résultat du dépliage de la zone peinte : le nombre de morceaux distincts en lesquels elle a été découpée (aux coutures et aux arêtes plus vives que l’angle de couture), et le nombre total de triangles qu’ils contiennent."
 
+# AI Translated
 msgid "Press Unwrap first - there are no islands to work on yet."
-msgstr ""
+msgstr "Appuyez d’abord sur « Déplier » - il n’y a encore aucun îlot sur lequel travailler."
 
+# AI Translated
 msgid "Click an island on the canvas first, in Island mode."
-msgstr ""
+msgstr "Cliquez d’abord sur un îlot dans le canevas, en mode Îlot."
 
+# AI Translated
 msgid "Not signed in"
-msgstr ""
+msgstr "Non connecté"
 
 msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
 msgstr "Le plug-in Bambu Network n'est pas détecté. Cliquez <a>ici</a> pour l'installer."
@@ -30499,15 +30880,19 @@ msgstr ""
 "Le plugin « %s » demande à exécuter la ou les commandes suivantes :\n"
 "%s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plugin \"%s\" is requesting permission to create a thread."
-msgstr ""
+msgstr "Le plugin « %s » demande l'autorisation de créer un thread."
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plugin \"%s\" is requesting to replace the running application with:\n"
 "%s"
 msgstr ""
+"Le plugin « %s » demande à remplacer l'application en cours d'exécution par :\n"
+"%s"
 
 # AI Translated
 #, c-format, boost-format
@@ -30518,29 +30903,37 @@ msgstr "Le plugin « %s » demande l’autorisation pour l’événement d’aud
 msgid "Plugin permission request"
 msgstr "Demande d’autorisation d’un plugin"
 
+# AI Translated
 msgid "Printer connection"
-msgstr ""
+msgstr "Connexion à l'imprimante"
 
+# AI Translated
 msgid "Pages"
-msgstr ""
+msgstr "Pages"
 
+# AI Translated
 msgid "Analysis"
-msgstr ""
+msgstr "Analyse"
 
+# AI Translated
 msgid "Importer"
-msgstr ""
+msgstr "Importateur"
 
+# AI Translated
 msgid "Exporter"
-msgstr ""
+msgstr "Exportateur"
 
+# AI Translated
 msgid "Visualization"
-msgstr ""
+msgstr "Visualisation"
 
+# AI Translated
 msgid "Script"
-msgstr ""
+msgstr "Script"
 
+# AI Translated
 msgid "Slicing Pipeline"
-msgstr ""
+msgstr "Pipeline de découpage"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."

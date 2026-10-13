@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-12 21:29-0300\n"
 "PO-Revision-Date: 2026-06-19 13:40+0700\n"
 "Last-Translator: Icezaza\n"
 "Language-Team: Thai\n"
@@ -2146,12 +2146,16 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "รันไทม์ WebView2"
 
+# AI Translated
 #, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
 "Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
+"ไม่สามารถติดตั้ง Microsoft WebView2 Runtime ได้\n"
+"คุณสมบัติบางอย่าง รวมถึงวิซาร์ดการตั้งค่า อาจแสดงเป็นหน้าว่างจนกว่าจะติดตั้ง\n"
+"โปรดติดตั้งด้วยตนเองจาก %1% แล้วรีสตาร์ท Orca Slicer"
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
@@ -4279,6 +4283,16 @@ msgstr "โปรเจกต์ล่าสุด"
 msgid "Go to Plate"
 msgstr "ไปที่ฐานพิมพ์"
 
+msgid "Device"
+msgstr "อุปกรณ์"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "อุปกรณ์ (เว็บ)"
+
+msgid "Multi-device"
+msgstr "หลายอุปกรณ์"
+
 msgid "AMS Materials Setting"
 msgstr "การตั้งค่าวัสดุ AMS"
 
@@ -4336,6 +4350,14 @@ msgstr "โปรดป้อนค่าที่ถูกต้อง (K อ�
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "โปรดป้อนค่าที่ถูกต้อง (K ใน %.1f~%.1f, N ใน %.1f~%.1f)"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "เส้นพลาสติกโปรด"
+
+# AI Translated
+msgid "All filaments"
+msgstr "เส้นพลาสติกทั้งหมด"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -4894,10 +4916,13 @@ msgstr "ปรับเป็นค่าขีดจำกัด (%g mm) โด
 msgid "Adjust"
 msgstr "ปรับ"
 
+# AI Translated
 msgid ""
 "Raft and draft shield are not available on belt printers.\n"
 "They have been disabled."
 msgstr ""
+"ฐานรองชิ้นงานและแนวป้องกันลม (Draft Shield) ใช้ไม่ได้กับเครื่องพิมพ์สายพาน\n"
+"จึงถูกปิดใช้งานแล้ว"
 
 msgid ""
 "Layer height too small\n"
@@ -5923,42 +5948,53 @@ msgstr "เพิ่ม/ลดพื้นที่แก้ไข"
 msgid "Sequence"
 msgstr "ลำดับ"
 
+# AI Translated
 msgid "Plate center of mass"
-msgstr ""
+msgstr "จุดศูนย์กลางมวลของฐานพิมพ์"
 
+# AI Translated
 msgid "Part center of mass"
-msgstr ""
+msgstr "จุดศูนย์กลางมวลของชิ้นส่วน"
 
+# AI Translated
 msgid "Support center of mass"
-msgstr ""
+msgstr "จุดศูนย์กลางมวลของส่วนรองรับ"
 
+# AI Translated
 msgid "Assembly center of mass"
-msgstr ""
+msgstr "จุดศูนย์กลางมวลของชุดประกอบ"
 
+# AI Translated
 msgid "Object center of mass"
-msgstr ""
+msgstr "จุดศูนย์กลางมวลของวัตถุ"
 
+# AI Translated
 msgid "Finished print"
-msgstr ""
+msgstr "งานพิมพ์ที่เสร็จสมบูรณ์"
 
+# AI Translated
 #, boost-format
 msgid "Printed up to layer %1%"
-msgstr ""
+msgstr "พิมพ์ถึงเลเยอร์ %1%"
 
+# AI Translated
 msgid "Weight"
-msgstr ""
+msgstr "น้ำหนัก"
 
 msgid "Volume"
 msgstr "ปริมาณ"
 
+# AI Translated
 msgid "Center in bounding box"
-msgstr ""
+msgstr "ตำแหน่งจุดศูนย์กลางในกล่องขอบเขต"
 
+# AI Translated
 msgid "Bounding box size"
-msgstr ""
+msgstr "ขนาดกล่องขอบเขต"
 
+# AI Translated
 msgid "Moment of inertia"
-msgstr ""
+msgstr "โมเมนต์ความเฉื่อย"
 
 msgid "Object selection"
 msgstr "การเลือกวัตถุ"
@@ -6176,11 +6212,13 @@ msgstr "เส้นกริด"
 msgid "Labels"
 msgstr "ป้ายชื่อ"
 
+# AI Translated
 msgid "Center of mass"
-msgstr ""
+msgstr "จุดศูนย์กลางมวล"
 
+# AI Translated
 msgid "Show raw G-code (belt only)"
-msgstr ""
+msgstr "แสดง G-code ดิบ (เฉพาะสายพาน)"
 
 # AI Translated
 msgid "Move section plane"
@@ -6231,7 +6269,7 @@ msgid "Size:"
 msgstr "ขนาด:"
 
 # AI Translated
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "พบความขัดแย้งของเส้นทาง G-code ที่เลเยอร์ %d, Z = %.2lfmm โปรดแยกวัตถุที่ขัดแย้งกันให้ไกลออกไป (%s <-> %s)"
 
@@ -6399,18 +6437,8 @@ msgstr "เตรียมพิมพ์"
 msgid "Preview"
 msgstr "พรีวิว"
 
-msgid "Device"
-msgstr "อุปกรณ์"
-
-msgid "Multi-device"
-msgstr "หลายอุปกรณ์"
-
 msgid "Project"
 msgstr "โปรเจกต์"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "อุปกรณ์ (เว็บ)"
 
 msgid "Yes"
 msgstr "ใช่"
@@ -6703,11 +6731,13 @@ msgstr "แสดงเส้นกริด"
 msgid "Show Gridlines on plate"
 msgstr "แสดงเส้นตารางบนจาน"
 
+# AI Translated
 msgid "Show IDEX/IQEX Toolhead"
-msgstr ""
+msgstr "แสดงหัวพิมพ์ IDEX/IQEX"
 
+# AI Translated
 msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
-msgstr ""
+msgstr "แสดงภาพหัวพิมพ์ IDEX/IQEX รอบหัวฉีดที่ใช้งานอยู่แต่ละหัวในการแสดงตัวอย่าง G-code"
 
 msgid "Reset Window Layout"
 msgstr "รีเซ็ตเค้าโครงหน้าต่าง"
@@ -8382,60 +8412,77 @@ msgstr "ดูการตั้งค่าของวัตถุทั้ง
 msgid "Material settings"
 msgstr "การตั้งค่าวัสดุ"
 
+# AI Translated
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
-msgstr ""
+msgstr "แต่ละโหมดระบุหัวพิมพ์ที่เข้าร่วมและบทบาทของแต่ละหัว คลิกปุ่มเครื่องมือเพื่อสลับบทบาทไปทีละแบบ — วางเมาส์เหนือสีด้านล่างเพื่อดูว่าแต่ละบทบาททำอะไร"
 
+# AI Translated
 msgid "Add Mode"
-msgstr ""
+msgstr "เพิ่มโหมด"
 
 # AI Translated
 msgid "Tools"
 msgstr "เครื่องมือ"
 
+# AI Translated
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
+# AI Translated
 msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
-msgstr ""
+msgstr "ชื่อที่ใช้แสดงโหมดนี้ในตัวเลือกโหมด IDEX/IQEX ของฐานพิมพ์ จำเป็นต้องระบุ — โหมดที่ไม่มีชื่อจะเลือกไม่ได้"
 
+# AI Translated
 msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
-msgstr ""
+msgstr "หัวพิมพ์ใดบ้างที่เข้าร่วมในโหมดนี้และแต่ละหัวมีบทบาทอะไร คลิกที่ช่องเพื่อสลับบทบาท"
 
+# AI Translated
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
-msgstr ""
+msgstr "G-code ที่รันเมื่อเริ่มพิมพ์เพื่อให้เครื่องพิมพ์เข้าสู่โหมดนี้ (เช่น การเรียก SET_PRINT_MODE ของ Klipper) สไลเซอร์สร้างเฉพาะเส้นทางของเครื่องมือหลัก (Primary) เท่านั้น ส่วนเครื่องมืออื่นเฟิร์มแวร์เป็นผู้ควบคุม"
 
+# AI Translated
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
-msgstr ""
+msgstr "ควบคุมทุกเส้นทางที่สไลซ์ เป็นเครื่องมือ 0 เสมอ — ใช้ ตำแหน่งเครื่องมือ 0 ด้านบนเพื่อเลือกว่าเครื่องมือนี้อยู่ที่มุมใดของฐานพิมพ์ ไม่สามารถย้ายออกจากตารางได้"
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
-msgstr ""
+msgstr "ทำงานตามเครื่องมือหลัก (Primary) ในระดับเฟิร์มแวร์ โดยพิมพ์เส้นทางเดียวกันที่เลื่อนไปอยู่ในโซนของตัวเอง"
 
+# AI Translated
 msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
-msgstr ""
+msgstr "ทำงานตามเครื่องมือหลัก (Primary) ในระดับเฟิร์มแวร์ โดยพิมพ์เส้นทางเดียวกันแบบสะท้อนข้ามเส้นแบ่งระหว่างสองโซน"
 
+# AI Translated
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
-msgstr ""
+msgstr "กำหนดเครื่องมือบนแกนทรีของเครื่องมือหลัก (Primary) ให้เป็นคู่สำหรับพิมพ์หลายสี จำเป็นสำหรับการพิมพ์หลายสีในโหมดแกนทรีคู่"
 
+# AI Translated
 msgid "Primary"
-msgstr ""
+msgstr "หลัก"
 
+# AI Translated
 msgid "Mode name (required)"
-msgstr ""
+msgstr "ชื่อโหมด (จำเป็น)"
 
+# AI Translated
 msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
-msgstr ""
+msgstr "ชื่อของโหมดขนานนี้ตามที่แสดงในตัวเลือกโหมด IDEX/IQEX ของฐานพิมพ์ โปรเจกต์จัดเก็บโหมดตามชื่อ ดังนั้นการเปลี่ยนชื่อโหมดที่ฐานพิมพ์ใช้อยู่จะทำให้ฐานพิมพ์เหล่านั้นกลับไปใช้โหมดหลัก (Primary) เว้นว่างไม่ได้ — ชื่อที่ว่างจะถูกแทนที่ด้วยชื่อที่สร้างขึ้นอัตโนมัติ"
 
+# AI Translated
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
-msgstr ""
+msgstr "G-code ที่ส่งออกครั้งเดียวเมื่อเริ่มงานพิมพ์ที่ใช้โหมดนี้ ก่อน G-code เริ่มต้นของเครื่อง ส่วนนี้ใช้ตั้งเครื่องพิมพ์ให้เข้าสู่โหมดเฟิร์มแวร์ที่ตรงกัน — เช่น การเรียก SET_PRINT_MODE ของ Klipper หรือ M567 ของ RepRapFirmware — เนื่องจากสไลเซอร์สร้างเฉพาะเส้นทางของเครื่องมือหลัก (Primary) และเฟิร์มแวร์เป็นผู้ควบคุมเครื่องมือสำเนา (Copy) / กระจกเงา (Mirror) รองรับตัวยึดตำแหน่ง ใช้ปุ่มแก้ไขเพื่อเรียกดู เว้นว่างไว้หากโหมดนี้ไม่ต้องตั้งค่าเฟิร์มแวร์"
 
+# AI Translated
 msgid "Edit G-code / browse placeholders"
-msgstr ""
+msgstr "แก้ไข G-code / เรียกดูตัวยึดตำแหน่ง"
 
+# AI Translated
 msgid "Remove mode"
-msgstr ""
+msgstr "ลบโหมด"
 
+# AI Translated
 msgid "Discard in-session edits to this mode (snap back to saved value)"
-msgstr ""
+msgstr "ทิ้งการแก้ไขโหมดนี้ในเซสชันปัจจุบัน (กลับไปใช้ค่าที่บันทึกไว้)"
 
 msgid "Remove current plate (if not last one)"
 msgstr "ลบแผ่นปัจจุบัน (ถ้าไม่ใช่แผ่นสุดท้าย)"
@@ -8461,16 +8508,19 @@ msgstr "แก้ไขชื่อป้ายทะเบียนปัจจ
 msgid "Move plate to the front"
 msgstr "ย้ายจานไปด้านหน้า"
 
+# AI Translated
 #, boost-format
 msgid " (process preset: %1%)"
-msgstr ""
+msgstr " (พรีเซ็ตกระบวนการ: %1%)"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
-msgstr ""
+msgstr "โหมด IDEX/IQEX: %1% (คลิกซ้ายเพื่อสลับ คลิกขวาเพื่อเปิดเมนู)"
 
+# AI Translated
 msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
-msgstr ""
+msgstr "คำเตือน: ฐานพิมพ์นี้ใช้โหมดขนาน IDEX/IQEX กับวัตถุหลายวัสดุ โปรดดำเนินการด้วยความระมัดระวัง — ตรวจสอบว่า G-code ของคุณรองรับการใช้งานร่วมกันนี้อย่างถูกต้อง"
 
 msgid "Customize current plate"
 msgstr "ปรับแต่งแผ่นปัจจุบัน"
@@ -8619,8 +8669,9 @@ msgstr "เส้นพลาสติกผสม"
 msgid "Remove last mixed filament"
 msgstr "ลบเส้นพลาสติกผสมล่าสุด"
 
+# AI Translated
 msgid "Remove all mixed filaments"
-msgstr ""
+msgstr "ลบเส้นพลาสติกผสมทั้งหมด"
 
 # AI Translated
 msgid "Add mixed filament"
@@ -8644,9 +8695,10 @@ msgstr "เส้นพลาสติกผสมมีการอ้างอ
 msgid "Edit / Delete / Merge"
 msgstr "แก้ไข / ลบ / รวม"
 
+# AI Translated
 #, boost-format
 msgid "Remove all %1% mixed filaments?"
-msgstr ""
+msgstr "ลบเส้นพลาสติกผสมทั้งหมด %1% รายการหรือไม่?"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -8919,11 +8971,13 @@ msgstr "ปิดการใช้งานการวางอัตโนม
 msgid "Object with floating parts was detected"
 msgstr "ตรวจพบวัตถุที่มีชิ้นส่วนลอยอยู่"
 
+# AI Translated
 msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "ไม่สามารถสไลซ์ได้: มีวัตถุทับซ้อนพื้นที่ที่สงวนไว้สำหรับการพิมพ์แบบขนาน IDEX/IQEX (โซนรอง หรือแถบระยะเว้นของแคร่ภายในโซนหลัก)"
 
+# AI Translated
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
-msgstr ""
+msgstr "ไม่สามารถสไลซ์ได้: Prime Tower ทับซ้อนพื้นที่ที่สงวนไว้สำหรับการพิมพ์แบบขนาน IDEX/IQEX (โซนรอง หรือแถบระยะเว้นของแคร่ภายในโซนหลัก)"
 
 msgid "Another export job is running."
 msgstr "งานส่งออกอื่นกำลังทำงานอยู่"
@@ -9009,37 +9063,49 @@ msgstr "ข้อมูลไม่ถูกต้อง"
 msgid "Slicing Canceled"
 msgstr "ยกเลิกการสไลซ์แล้ว"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
-msgstr ""
+msgstr "อุณหภูมิฐานพิมพ์ขัดแย้งกัน: T%d (%s) ตั้งฐานพิมพ์ไว้ที่ %d°C — T%d (%s) ต้องการ %d°C เครื่องมือหลักเป็นผู้ควบคุมฐานพิมพ์ เครื่องมือรองจะพิมพ์ที่อุณหภูมิใดก็ตามที่เครื่องมือหลักตั้งไว้"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
-msgstr ""
+msgstr "ประเภทเส้นพลาสติกไม่ตรงกัน: T%d ใช้ %s และ T%d ใช้ %s วัสดุเหล่านี้มีข้อกำหนดที่เข้ากันไม่ได้และไม่ได้ออกแบบมาให้พิมพ์ร่วมกัน"
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
 "\n"
 msgstr ""
+"ฐานพิมพ์ %d เปิดใช้โหมดขนาน IDEX/IQEX อยู่ และมีข้อควรระวังดังต่อไปนี้:\n"
+"\n"
 
+# AI Translated
 msgid "Continue slicing?"
-msgstr ""
+msgstr "สไลซ์ต่อหรือไม่?"
 
+# AI Translated
 msgid "IDEX/IQEX Parallel Mode Warning"
-msgstr ""
+msgstr "คำเตือนโหมดขนาน IDEX/IQEX"
 
+# AI Translated
 msgid "Don't show these warnings again"
-msgstr ""
+msgstr "ไม่ต้องแสดงคำเตือนเหล่านี้อีก"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plate %d:\n"
-msgstr ""
+msgstr "ฐานพิมพ์ %d:\n"
 
+# AI Translated
 msgid ""
 "The following IDEX/IQEX parallel mode concerns were detected:\n"
 "\n"
 msgstr ""
+"ตรวจพบข้อควรระวังของโหมดขนาน IDEX/IQEX ดังต่อไปนี้:\n"
+"\n"
 
 msgid "Network plug-in switched successfully."
 msgstr "สลับปลั๊กอินเครือข่ายสำเร็จแล้ว"
@@ -9072,8 +9138,9 @@ msgstr ""
 msgid "Sync now"
 msgstr "ซิงค์เลย"
 
+# AI Translated
 msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
-msgstr ""
+msgstr "ไม่สามารถเลิกทำหรือทำซ้ำได้ขณะที่มีการดำเนินการอยู่ หยุดการดำเนินการ หรือรอให้เสร็จแล้วลองอีกครั้ง"
 
 # AI Translated
 msgid ""
@@ -9144,10 +9211,14 @@ msgstr "ดาวน์โหลดล้มเหลว มีข้อยก�
 msgid "Project downloaded %d%%"
 msgstr "ดาวน์โหลดโครงการแล้ว %d%%"
 
+# AI Translated
+# Needs human review: Quotes the existing 'PA Line' label (สายพีเอ), which does not use the glossary Line (เส้น); if that label is corrected to e.g. เส้นพีเอ, update this sentence too.
 msgid ""
 "PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
 "Please use the PA Tower method instead."
 msgstr ""
+"การทดสอบ สายพีเอ และ รูปแบบ PA ยังไม่เปิดใช้งานบนเครื่องพิมพ์สายพาน\n"
+"โปรดใช้วิธี พีเอ ทาวเวอร์ แทน"
 
 # AI Translated
 msgid "Pressure Advance Test"
@@ -9175,12 +9246,14 @@ msgstr "ปรับเทียบอัตราการไหล Orca YOLO"
 msgid "Flowrate Test - Pass%d"
 msgstr "การทดสอบอัตราการไหล - รอบ %d"
 
+# AI Translated
 #, boost-format
 msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
-msgstr ""
+msgstr "ไม่มีทาวเวอร์อุณหภูมิสำหรับสายพานในช่วง %1% ถึง %2% °C ใช้ช่วงที่โมเดลทาวเวอร์ครอบคลุม เช่น 230 ถึง 190"
 
+# AI Translated
 msgid "Temperature tower"
-msgstr ""
+msgstr "ทาวเวอร์อุณหภูมิ"
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -11629,8 +11702,9 @@ msgstr "ไม่รองรับการซิงโครไนซ์ปร
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "ซิงโครไนซ์การแก้ไขพารามิเตอร์ไปยังพารามิเตอร์ที่สอดคล้องกันของชุดดันเส้นอีกตัวหนึ่ง"
 
+# AI Translated
 msgid "Parameters with this icon can be configurable per nozzle."
-msgstr ""
+msgstr "พารามิเตอร์ที่มีไอคอนนี้สามารถกำหนดค่าแยกตามหัวฉีดได้"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "คลิกเพื่อรีเซ็ตการตั้งค่าทั้งหมดเป็นค่าที่ตั้งไว้ล่วงหน้าที่บันทึกไว้ล่าสุด"
@@ -12042,11 +12116,13 @@ msgstr "พื้นที่ที่สามารถพิมพ์ได้
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "เลือกการใช้งานตัวแทนเครือข่ายสำหรับการสื่อสารของเครื่องพิมพ์ ตัวแทนที่มีอยู่จะได้รับการลงทะเบียนเมื่อเริ่มต้น"
 
+# AI Translated
 msgid "Belt printer"
-msgstr ""
+msgstr "เครื่องพิมพ์สายพาน"
 
+# AI Translated
 msgid "Machine frame transforms"
-msgstr ""
+msgstr "การแปลงระบบพิกัดเครื่อง"
 
 #. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
@@ -12164,23 +12240,28 @@ msgstr "เส้นผ่านศูนย์กลางหัวฉีด"
 msgid "Wipe tower"
 msgstr "Wipe Tower"
 
+# AI Translated
 msgid "Belt purge tower"
-msgstr ""
+msgstr "หอไล่เส้นบนสายพาน"
 
 msgid "Single extruder multi-material parameters"
 msgstr "พารามิเตอร์วัสดุหลายชุดดันเส้นเดี่ยว"
 
+# AI Translated
 msgid "IDEX/IQEX Configuration"
-msgstr ""
+msgstr "การกำหนดค่า IDEX/IQEX"
 
+# AI Translated
 msgid "Pre-slice warnings"
-msgstr ""
+msgstr "คำเตือนก่อนสไลซ์"
 
+# AI Translated
 msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
-msgstr ""
+msgstr "แสดงกล่องโต้ตอบคำเตือนก่อนสไลซ์หากตรวจพบข้อควรระวังของโหมดขนาน IDEX/IQEX (อุณหภูมิฐานพิมพ์ขัดแย้งกัน ประเภทเส้นพลาสติกไม่ตรงกัน ความขัดแย้งของหลายวัสดุ) ปิดได้จากกล่องโต้ตอบนั้นเอง เปิดใช้งานอีกครั้งได้ที่นี่หากปิดไปโดยไม่ได้ตั้งใจ"
 
+# AI Translated
 msgid "Modes"
-msgstr ""
+msgstr "โหมด"
 
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
 msgstr "นี่คือเครื่องพิมพ์หลายวัสดุที่ใช้ชุดดันเส้นเดี่ยว โดยเส้นผ่านศูนย์กลางของชุดดันเส้นทั้งหมดจะถูกตั้งค่าเป็นค่าใหม่ คุณต้องการดำเนินการต่อหรือไม่?"
@@ -12191,17 +12272,21 @@ msgstr "การจำกัดความสูงของเลเยอร
 msgid "Z-Hop"
 msgstr "ยกแกน Z"
 
+# AI Translated
 msgid "Front-left"
-msgstr ""
+msgstr "ด้านหน้าซ้าย"
 
+# AI Translated
 msgid "Front-right"
-msgstr ""
+msgstr "ด้านหน้าขวา"
 
+# AI Translated
 msgid "Rear-left"
-msgstr ""
+msgstr "ด้านหลังซ้าย"
 
+# AI Translated
 msgid "Rear-right"
-msgstr ""
+msgstr "ด้านหลังขวา"
 
 msgid ""
 "The Retract before wipe option could be only 100% when using the Firmware Retraction mode.\n"
@@ -12305,9 +12390,10 @@ msgstr "ดำเนินการต่อ"
 msgid "Don't warn again for this preset"
 msgstr "ไม่ต้องเตือนอีกสำหรับค่าที่กำหนดล่วงหน้านี้"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%s %s"
-msgstr ""
+msgstr "%s %s"
 
 # AI Translated
 msgid "No modifications need to be copied."
@@ -12782,29 +12868,36 @@ msgstr "การเข้าสู่ระบบล้มเหลว โป�
 msgid "parse json failed"
 msgstr "แยกวิเคราะห์ json ไม่สำเร็จ"
 
+# AI Translated
 msgid "Loading…"
-msgstr ""
+msgstr "กำลังโหลด…"
 
+# AI Translated
 msgid "Welcome to Orca Slicer"
-msgstr ""
+msgstr "ยินดีต้อนรับสู่ Orca Slicer"
 
+# AI Translated
 msgid "Orca Slicer will be set up in several steps. Let's start!"
-msgstr ""
+msgstr "Orca Slicer จะได้รับการตั้งค่าในไม่กี่ขั้นตอน เริ่มกันเลย!"
 
+# AI Translated
 msgid "Get Started"
-msgstr ""
+msgstr "เริ่มต้นใช้งาน"
 
+# AI Translated
 msgid "Please select your login region"
-msgstr ""
+msgstr "โปรดเลือกภูมิภาคสำหรับเข้าสู่ระบบ"
 
 msgid "Finish"
 msgstr "เสร็จ"
 
+# AI Translated
 msgid "Printer Selection"
-msgstr ""
+msgstr "เลือกเครื่องพิมพ์"
 
+# AI Translated
 msgid "Vendors"
-msgstr ""
+msgstr "ผู้ขาย"
 
 # AI Translated
 msgid "Custom Printer"
@@ -12813,36 +12906,46 @@ msgstr "เครื่องพิมพ์แบบกำหนดเอง"
 msgid "Create"
 msgstr "สร้าง"
 
+# AI Translated
 msgid "Check for new printers"
-msgstr ""
+msgstr "ตรวจหาเครื่องพิมพ์ใหม่"
 
+# AI Translated
 msgid "At least one printer must be selected."
-msgstr ""
+msgstr "ต้องเลือกเครื่องพิมพ์อย่างน้อยหนึ่งเครื่อง"
 
+# AI Translated
 msgid "New printers found"
-msgstr ""
+msgstr "พบเครื่องพิมพ์ใหม่"
 
+# AI Translated
 #, c-format, boost-format
 msgid "New printer vendors installed: %s"
-msgstr ""
+msgstr "ติดตั้งผู้ขายเครื่องพิมพ์ใหม่แล้ว: %s"
 
+# AI Translated
 msgid "New printer vendors were found, but installation was cancelled."
-msgstr ""
+msgstr "พบผู้ขายเครื่องพิมพ์ใหม่ แต่การติดตั้งถูกยกเลิก"
 
+# AI Translated
 msgid "No new printers found."
-msgstr ""
+msgstr "ไม่พบเครื่องพิมพ์ใหม่"
 
+# AI Translated
 msgid "Filament Selection"
-msgstr ""
+msgstr "เลือกเส้นพลาสติก"
 
+# AI Translated
 msgid "System Filaments"
-msgstr ""
+msgstr "เส้นพลาสติกของระบบ"
 
+# AI Translated
 msgid "Custom Filaments"
-msgstr ""
+msgstr "เส้นพลาสติกที่กำหนดเอง"
 
+# AI Translated
 msgid "Create New"
-msgstr ""
+msgstr "สร้างใหม่"
 
 msgid "Filament type"
 msgstr "ชนิดเส้นพลาสติก"
@@ -12850,30 +12953,37 @@ msgstr "ชนิดเส้นพลาสติก"
 msgid "Vendor"
 msgstr "ผู้ขาย"
 
+# AI Translated
 msgid "No items"
-msgstr ""
+msgstr "ไม่มีรายการ"
 
+# AI Translated
 msgid "Filter items"
-msgstr ""
+msgstr "กรองรายการ"
 
+# AI Translated
 msgid "Checked"
-msgstr ""
+msgstr "ที่เลือกไว้"
 
+# AI Translated
 msgid "Unchecked"
-msgstr ""
+msgstr "ที่ไม่ได้เลือก"
 
+# AI Translated
 msgid "Select filtered"
-msgstr ""
+msgstr "เลือกที่กรองไว้"
 
 # AI Translated
 msgid "Clear all"
 msgstr "ล้างทั้งหมด"
 
+# AI Translated
 msgid "At least one filament must be selected."
-msgstr ""
+msgstr "ต้องเลือกเส้นพลาสติกอย่างน้อยหนึ่งรายการ"
 
+# AI Translated
 msgid "Do you want to use the default filament?"
-msgstr ""
+msgstr "คุณต้องการใช้เส้นพลาสติกเริ่มต้นหรือไม่?"
 
 msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
 msgstr "ตัวเลือกนี้จะปิดการใช้งานฟีเจอร์คลาวด์ทั้งหมด รวมถึงการซิงก์โปรไฟล์ Orca Cloud ผู้ใช้ที่ต้องการทำงานแบบออฟไลน์ทั้งหมดสามารถเปิดตัวเลือกนี้ได้"
@@ -12881,20 +12991,25 @@ msgstr "ตัวเลือกนี้จะปิดการใช้งา
 msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
 msgstr "หมายเหตุ: เมื่อเปิดโหมดซ่อนตัว โปรไฟล์ผู้ใช้ของคุณจะไม่ถูกสำรองไปยัง Orca Cloud"
 
+# AI Translated
 msgid "Enable Stealth Mode."
-msgstr ""
+msgstr "เปิดใช้งานโหมดซ่อนตัว"
 
+# AI Translated
 msgid "Proprietary Plugins"
-msgstr ""
+msgstr "ปลั๊กอินที่เป็นกรรมสิทธิ์"
 
+# AI Translated
 msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
-msgstr ""
+msgstr "ผู้ขายเครื่องพิมพ์บางรายต้องใช้ปลั๊กอินที่เป็นกรรมสิทธิ์ในการสื่อสารกับเครื่องพิมพ์ของตน โปรดเลือกปลั๊กอินที่ตรงกันหากคุณใช้เครื่องพิมพ์ดังกล่าว"
 
+# AI Translated
 msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
-msgstr ""
+msgstr "โปรดทราบว่าปลั๊กอินเหล่านี้ไม่ได้พัฒนาหรือดูแลโดย OrcaSlicer ควรใช้ตามดุลยพินิจและความเสี่ยงของคุณเอง"
 
+# AI Translated
 msgid "Install Bambu Network plug-in"
-msgstr ""
+msgstr "ติดตั้งปลั๊กอินเครือข่าย Bambu"
 
 msgid "[Action Required] "
 msgstr "[ต้องดำเนินการ]"
@@ -13355,13 +13470,15 @@ msgstr "เส้นพลาสติกเปลี่ยนประเภท
 msgid "No object can be printed. It may be too small."
 msgstr "ไม่สามารถพิมพ์วัตถุได้ อาจจะเล็กเกินไป"
 
+# AI Translated
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
-msgstr ""
+msgstr "โหมด IDEX/IQEX \"%1%\" ไม่มีเครื่องมือที่กำหนดไว้บนเครื่องพิมพ์ที่เลือก จึงพิมพ์ในโหมดหลัก (Primary) แทน กำหนดเครื่องมือของโหมดนี้ใน การตั้งค่าเครื่องพิมพ์ หรือเลือกโหมดอื่นจากปุ่ม IDEX/IQEX ของฐานพิมพ์"
 
+# AI Translated
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
-msgstr ""
+msgstr "ฐานพิมพ์นี้ตั้งไว้เป็นโหมด IDEX/IQEX \"%1%\" ซึ่งเครื่องพิมพ์ที่เลือกไม่ได้กำหนดไว้ จึงพิมพ์ในโหมดหลัก (Primary) แทน เลือกโหมดจากปุ่ม IDEX/IQEX ของฐานพิมพ์ หรือกู้คืนโหมดนี้ใน การตั้งค่าเครื่องพิมพ์"
 
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "งานพิมพ์ของคุณอยู่ใกล้กับบริเวณรองพื้นมาก ตรวจสอบให้แน่ใจว่าไม่มีการชนกัน"
@@ -13535,25 +13652,31 @@ msgstr "การตรวจสอบล้มเหลว"
 msgid "write callback failed"
 msgstr "การเขียนการโทรกลับล้มเหลว"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
-msgstr ""
+msgstr "การพิมพ์หลายสีในโหมดขนาน IDEX/IQEX ต้องให้เส้นพลาสติกแต่ละเส้นมีชุดดันเส้นจริงเป็นของตัวเอง มีเส้นพลาสติกที่ใช้งานอยู่ตั้งแต่สองเส้นขึ้นไปถูกส่งไปยังหัวจริงเดียวกันผ่านแผนผังชุดดันเส้นจริงของเครื่องพิมพ์ (ชุดรวมเส้น MMU/AFC) ซึ่งแกนทรีที่ทำงานตามไม่สามารถทำตามได้"
 
+# AI Translated
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
-msgstr ""
+msgstr "โหมด IDEX/IQEX ที่ใช้งานอยู่ไม่ได้กำหนดเครื่องมือหลัก จึงไม่สามารถจัดลำดับการพิมพ์หลายสีได้ เปิดตัวแก้ไขโหมด IDEX/IQEX ในการตั้งค่าเครื่องพิมพ์ แล้วกำหนดบทบาทหลัก (Primary) ให้กับเครื่องมือหนึ่งตัว"
 
+# AI Translated
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
-msgstr ""
+msgstr "การพิมพ์หลายสีในโหมดนี้ไม่ใช่สถานการณ์การพิมพ์แบบขนาน — เครื่องมือที่ใช้งานอยู่ทั้งหมดอยู่บนแกนทรีเดียว จึงไม่มีแกนทรีที่สองที่จะทำสำเนาหรือสะท้อนแบบกระจกเงาไปยัง สลับฐานพิมพ์เป็นโหมดหลัก (Primary) เพื่อพิมพ์หลายสีบนแกนทรีเดียว หรือกำหนดโหมด IDEX/IQEX ที่มีเครื่องมือบนแกนทรีที่สอง"
 
+# AI Translated
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
-msgstr ""
+msgstr "การพิมพ์หลายสีในโหมดขนาน IDEX/IQEX ต้องมีเครื่องมือ Span บนแกนทรีของเครื่องมือหลัก — หากไม่มี โหมดนี้จะไม่ได้ระบุคู่พิมพ์หลายสีภายในแกนทรีเดียวกัน ให้ลดงานพิมพ์เหลือเส้นพลาสติกเดียว สลับไปใช้โหมดหลัก (Primary) หรือเปิดตัวแก้ไขโหมด IDEX/IQEX ในการตั้งค่าเครื่องพิมพ์ แล้วกำหนดเครื่องมือบนแกนทรีของเครื่องมือหลักเป็น Span"
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "ในโหมด Span นี้ มีเพียง %1% ที่พิมพ์สี แต่เส้นพลาสติก %2% ไม่ได้ส่งไปยังเครื่องมือใดเลย ใช้เส้นพลาสติกที่ส่งไปยัง %1% หรือสลับฐานพิมพ์นี้เป็นโหมดหลัก (Primary)"
 
+# AI Translated
 #, boost-format
 msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "ในโหมด Span นี้ มีเพียง %1% ที่พิมพ์สี แต่เส้นพลาสติก %2% ถูกส่งไปยัง T%3% ใช้เส้นพลาสติกที่ส่งไปยัง %1% หรือสลับฐานพิมพ์นี้เป็นโหมดหลัก (Primary)"
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -13605,42 +13728,54 @@ msgstr "หากคุณยังต้องการพิมพ์ คุ�
 msgid "No extrusions under current settings."
 msgstr "ไม่มีการอัดขึ้นรูปภายใต้การตั้งค่าปัจจุบัน"
 
+# AI Translated
 msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
-msgstr ""
+msgstr "โหมดขนาน IDEX/IQEX ไม่รองรับเส้นพลาสติกผสม สลับฐานพิมพ์นี้เป็นโหมดหลัก (Primary)"
 
+# AI Translated
 msgid "no configured tool"
-msgstr ""
+msgstr "ไม่มีเครื่องมือที่กำหนดค่าไว้"
 
+# AI Translated
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
-msgstr ""
+msgstr "โหมด IDEX/IQEX \"%1%\" พิมพ์ด้วย T%2% แต่เส้นพลาสติกของฐานพิมพ์นี้อยู่บน %3% กำหนดเส้นพลาสติกที่โหลดอยู่บน T%2% หรือสลับฐานพิมพ์นี้เป็นโหมดหลัก (Primary)"
 
+# AI Translated
 msgid "Raft is not compatible with belt printer mode."
-msgstr ""
+msgstr "ฐานรองชิ้นงานใช้ร่วมกับโหมดเครื่องพิมพ์สายพานไม่ได้"
 
+# AI Translated
 msgid "Draft shield is not compatible with belt printer mode."
-msgstr ""
+msgstr "แนวป้องกันลม (Draft Shield) ใช้ร่วมกับโหมดเครื่องพิมพ์สายพานไม่ได้"
 
+# AI Translated
 msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
-msgstr ""
+msgstr "ขอบยึดชิ้นงานใช้ร่วมกับโหมดแจกันเกลียวบนเครื่องพิมพ์สายพานไม่ได้ ปิดใช้งานอย่างใดอย่างหนึ่ง"
 
+# AI Translated
 msgid "The belt is too steep for a brim, so no brim will be generated."
-msgstr ""
+msgstr "สายพานชันเกินไปสำหรับขอบยึดชิ้นงาน จึงจะไม่สร้างขอบยึดชิ้นงาน"
 
+# AI Translated
 msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
-msgstr ""
+msgstr "ขอบยึดชิ้นงานจะสร้างขึ้นเฉพาะเมื่อสายพานเอียงเท่านั้น ตั้งค่ามุมเอียงสายพาน หรือลบการตั้งค่าขอบยึดชิ้นงาน"
 
+# AI Translated
 msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
-msgstr ""
+msgstr "เครื่องพิมพ์สายพานรองรับเฉพาะขอบยึดชิ้นงานด้านนอกและด้านใน ขอบยึดชิ้นงานแบบ อัตโนมัติ, หูหนู และ ทาสี จะพิมพ์เป็น ขอบยึดชิ้นงานด้านนอกเท่านั้น โดยใช้ ความกว้าง ขอบยึดชิ้นงาน"
 
+# AI Translated
 msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
-msgstr ""
+msgstr "ช่องว่าง ขอบยึดชิ้นงาน กับชิ้นงาน จะแยกขอบยึดชิ้นงานด้านนำออกจากขอบนำของวัตถุ ซึ่งเป็นขอบที่ขอบยึดชิ้นงานนี้มีไว้ยึด ตั้งช่องว่างเป็น 0 เมื่อใช้ ความยาวขอบยึดชิ้นงานด้านนำ"
 
+# AI Translated
 msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
-msgstr ""
+msgstr "ความยาวขอบยึดชิ้นงานด้านนำ จะยื่นออกไปข้างหน้าของแต่ละวัตถุตามแนวสายพาน และ จัดเรียง จะไม่เว้นพื้นที่ส่วนนั้นไว้ เว้นระยะระหว่างวัตถุไว้ด้วย"
 
+# AI Translated
 msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
-msgstr ""
+msgstr "ขอบยึดชิ้นงานแบบ \"เฉพาะขอบนำ\" ใช้กับเครื่องพิมพ์สายพาน บนเครื่องพิมพ์นี้จะพิมพ์เป็นขอบยึดชิ้นงานด้านนอกตามปกติ"
 
 # AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
@@ -13652,14 +13787,17 @@ msgstr "ไม่รองรับโหมดไทม์แลปส์แบ
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "ไม่รองรับการตรวจจับการจับกันเป็นก้อนเมื่อเปิดใช้งานลำดับ \"ตามวัตถุ\""
 
+# AI Translated
 msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
-msgstr ""
+msgstr "จะไม่สร้างหอไล่เส้นบนสายพานในลำดับการพิมพ์ \"ตามวัตถุ\" การเปลี่ยนเส้นพลาสติกจะไม่มีการไล่เส้น"
 
+# AI Translated
 msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
-msgstr ""
+msgstr "เปิดใช้งานหอไล่เส้นบนสายพานอยู่ แต่โปรเจกต์ไม่มีวัตถุหอไล่เส้น การเปลี่ยนเส้นพลาสติกจะไม่มีการไล่เส้น เปิดโปรเจกต์ในแอปพลิเคชันเพื่อสร้างหอ"
 
+# AI Translated
 msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
-msgstr ""
+msgstr "โปรเจกต์มีหอไล่เส้นบนสายพานที่ระบบจัดการอยู่หลายหอ โหลดฐานพิมพ์ใหม่ หรือปิดแล้วเปิดหอไล่เส้นบนสายพานอีกครั้งเพื่อสร้างใหม่"
 
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "การเปิดใช้งานทั้งความสูง Z ที่แม่นยำและ Prime Tower อาจทำให้เกิดข้อผิดพลาดในการแบ่งส่วน"
@@ -14639,9 +14777,11 @@ msgstr "ความเร็วของสะพานภายใน หา�
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "ระยะห่างจากแบบจำลองถึงเส้นขอบยึดชิ้นงานด้านนอกสุด"
 
+# AI Translated
 msgid "Leading brim length"
-msgstr ""
+msgstr "ความยาวขอบยึดชิ้นงานด้านนำ"
 
+# AI Translated
 msgid ""
 "Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
 "\n"
@@ -14651,10 +14791,19 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"เฉพาะเครื่องพิมพ์สายพานเท่านั้น ขยายขอบยึดชิ้นงานไปข้างหน้าวัตถุตามแนวสายพาน บนทุกขอบที่หันลงทางลาดของพื้นที่สัมผัส — ทั้งจุดที่วัตถุสัมผัสสายพานครั้งแรก และเกาะใดๆ ที่ลงสัมผัสภายหลัง แผ่นรองนี้จะถูกวางลงบนสายพานก่อนที่วัตถุจะมาถึง เพื่อให้ขอบนำมีสิ่งที่ยึดติดอยู่แล้วให้เกาะ\n"
+"\n"
+"วัดบนพื้นผิวสายพาน และบวกเพิ่มจาก ความกว้าง ขอบยึดชิ้นงาน: ขอบยึดชิ้นงานจะยื่นไปข้างหน้าวัตถุเป็นระยะ ช่องว่าง ขอบยึดชิ้นงาน กับชิ้นงาน + ความยาวขอบยึดชิ้นงานด้านนำ + ความกว้าง ขอบยึดชิ้นงาน ตั้ง ช่องว่าง ขอบยึดชิ้นงาน กับชิ้นงาน เป็น 0 มิฉะนั้นแผ่นรองจะไม่สัมผัสวัตถุที่ต้องการยึด\n"
+"\n"
+"บนสายพานที่เอียง แต่ละเลเยอร์จะวางขอบยึดชิ้นงานหนึ่งแถบ ดังนั้นความหนาของแผ่นขอบยึดชิ้นงานที่ได้จึงขึ้นอยู่กับการไหล ไม่ใช่ความสูงเลเยอร์ ใช้ อัตราส่วนการไหล ขอบยึดชิ้นงาน เพื่อปรับ\n"
+"\n"
+"ตั้งค่าเป็น 0 เพื่อปิดใช้งาน"
 
+# AI Translated
 msgid "Extra brim width"
-msgstr ""
+msgstr "ความกว้างขอบยึดชิ้นงานเพิ่มเติม"
 
+# AI Translated
 msgid ""
 "Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
 "\n"
@@ -14662,6 +14811,11 @@ msgid ""
 "\n"
 "Set to 0 to disable."
 msgstr ""
+"เฉพาะเครื่องพิมพ์สายพานเท่านั้น ขยายขอบยึดชิ้นงานไปด้านข้าง ขวางสายพาน โดยไม่ขยายไปข้างหน้าหรือข้างหลังวัตถุเพิ่ม ใช้เมื่อชิ้นส่วนต้องการการยึดเกาะตามความยาวมากกว่าที่ ความกว้าง ขอบยึดชิ้นงาน เพียงอย่างเดียวให้ได้\n"
+"\n"
+"วัดบนพื้นผิวสายพาน และบวกเพิ่มจาก ความกว้าง ขอบยึดชิ้นงาน: ขอบยึดชิ้นงานจะยื่นออกไปแต่ละด้านของวัตถุเป็นระยะ ช่องว่าง ขอบยึดชิ้นงาน กับชิ้นงาน + ความกว้าง ขอบยึดชิ้นงาน + ความกว้างขอบยึดชิ้นงานเพิ่มเติม หากต้องการขยายขอบยึดชิ้นงานไปข้างหน้าวัตถุแทน ให้ใช้ ความยาวขอบยึดชิ้นงานด้านนำ\n"
+"\n"
+"ตั้งค่าเป็น 0 เพื่อปิดใช้งาน"
 
 msgid "Brim type"
 msgstr "ชนิด ขอบยึดชิ้นงาน"
@@ -14669,8 +14823,9 @@ msgstr "ชนิด ขอบยึดชิ้นงาน"
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "วิธีนี้จะควบคุมการสร้างขอบยึดชิ้นงานที่ด้านนอกและ/หรือด้านในของรุ่น อัตโนมัติหมายถึงความกว้างของขอบยึดชิ้นงานได้รับการวิเคราะห์และคำนวณโดยอัตโนมัติ"
 
+# AI Translated
 msgid "Leading edge only"
-msgstr ""
+msgstr "เฉพาะขอบนำ"
 
 msgid "Brim-object gap"
 msgstr "ช่องว่าง ขอบยึดชิ้นงาน กับชิ้นงาน"
@@ -15915,9 +16070,12 @@ msgstr "ไส้ในหลายบรรทัด"
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "การใช้หลายบรรทัดสำหรับรูปแบบ ไส้ใน หากรองรับโดยรูปแบบ ไส้ใน"
 
+# AI Translated
 msgid "Adaptive density (experimental)"
-msgstr ""
+msgstr "ความหนาแน่นแบบปรับได้ (ทดลอง)"
 
+# AI Translated
+# Needs human review: 'shells' here are nested density zones of the infill, neither the slicer Shell (ผนัง) nor the Design Shell; rendered เปลือก, matching the Stepped shells option label. 'plates' means plate-shaped parts, not the build plate.
 msgid ""
 "Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
 "Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
@@ -15927,53 +16085,78 @@ msgid ""
 " - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
 " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
 msgstr ""
+"ไล่ระดับไส้ในแบบไจรอยด์และ TPMS ภายในวัตถุ: เซลล์จะขยายใหญ่ขึ้นจากผิวของวัตถุเข้าหาจุดศูนย์กลาง ใช้ความหนาแน่นไส้ในแบบโปร่งที่ผิว และใช้ความหนาแน่นภายในที่จุดศูนย์กลาง\n"
+"บิดตามระยะ, ผสมแบบนุ่มนวล และ เปลือกแบบขั้นบันได จะอิงตามระยะห่างถึงพื้นผิวที่ใกล้ที่สุด รวมถึงด้านบนและด้านล่าง โดยใช้ความหนาแน่นภายในที่จุดที่ไกลจากพื้นผิวที่สุด:\n"
+" - บิดตามระยะ: รูปแบบต่อเนื่องเพียงรูปแบบเดียว ซึ่งถูกยืดและเฉือนในบริเวณที่ระยะเปลี่ยนแปลงต่างกันในแต่ละทิศทาง เช่น ในชิ้นงานแบบแผ่นและชิ้นส่วนที่ยาว\n"
+" - ผสมแบบนุ่มนวล: รูปแบบของความหนาแน่นที่อยู่ติดกันผสมเข้าหากัน โดยมีวงเล็กๆ ตรงจุดที่มาบรรจบกัน\n"
+" - เปลือกแบบขั้นบันได: เปลือกของรูปแบบปกติที่ความหนาแน่นต่างกันประมาณ 1.5 เท่า โดยเส้นจะเชื่อมกันตามแนวขอบเปลือก\n"
+" - กลีบ: อิงตามรูปทรง 3 มิติของวัตถุ รวมถึงด้านบนและด้านล่าง ทุกกลีบ ซึ่งคือส่วนที่ต่อกับส่วนที่เหลือด้วยคอที่แคบกว่า จะถูกไล่ระดับเข้าหาจุดศูนย์กลางของตัวเอง\n"
+" - ตั้งฉาก Z, Y หรือ X: อิงตามหน้าตัดของวัตถุที่ตั้งฉากกับแกนนั้น ดังนั้นความหนาแน่นจะไม่เปลี่ยนแปลงตามแกนนั้น"
 
+# AI Translated
 msgid "Distance warp"
-msgstr ""
+msgstr "บิดตามระยะ"
 
+# AI Translated
 msgid "Smooth blend"
-msgstr ""
+msgstr "ผสมแบบนุ่มนวล"
 
+# AI Translated
+# Needs human review: Adaptive density option: 'shells' are nested infill density zones, not the slicer Shell (ผนัง, walls plus top/bottom); check เปลือก reads right in the dropdown.
 msgid "Stepped shells"
-msgstr ""
+msgstr "เปลือกแบบขั้นบันได"
 
+# AI Translated
 msgid "Lobes"
-msgstr ""
+msgstr "กลีบ"
 
+# AI Translated
 msgid "Normal Z"
-msgstr ""
+msgstr "ตั้งฉาก Z"
 
+# AI Translated
 msgid "Normal Y"
-msgstr ""
+msgstr "ตั้งฉาก Y"
 
+# AI Translated
 msgid "Normal X"
-msgstr ""
+msgstr "ตั้งฉาก X"
 
+# AI Translated
 msgid "Interior density"
-msgstr ""
+msgstr "ความหนาแน่นภายใน"
 
+# AI Translated
 msgid "Density of the adaptive infill at the center of the object."
-msgstr ""
+msgstr "ความหนาแน่นของไส้ในแบบปรับได้ที่จุดศูนย์กลางของวัตถุ"
 
+# AI Translated
 msgid "Adaptive gradient"
-msgstr ""
+msgstr "การไล่ระดับแบบปรับได้"
 
+# AI Translated
 msgid ""
 "How the density changes from the surface to the center of the object.\n"
 "Linear: the density changes at a constant rate.\n"
 "Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
 "Exponential: the density changes quickly just below the surface and levels off towards the center."
 msgstr ""
+"ลักษณะการเปลี่ยนแปลงความหนาแน่นจากผิวไปยังจุดศูนย์กลางของวัตถุ\n"
+"เชิงเส้น: ความหนาแน่นเปลี่ยนแปลงในอัตราคงที่\n"
+"กำลังสอง: ความหนาแน่นจะคงใกล้เคียงกับความหนาแน่นไส้ในแบบโปร่งบริเวณใกล้ผิว และเปลี่ยนเร็วขึ้นเมื่อเข้าใกล้จุดศูนย์กลาง\n"
+"เอกซ์โพเนนเชียล: ความหนาแน่นเปลี่ยนแปลงอย่างรวดเร็วใต้ผิวเล็กน้อย และค่อยๆ คงที่เมื่อเข้าใกล้จุดศูนย์กลาง"
 
 # AI Translated
 msgid "Linear"
 msgstr "เชิงเส้น"
 
+# AI Translated
 msgid "Quadratic"
-msgstr ""
+msgstr "กำลังสอง"
 
+# AI Translated
 msgid "Exponential"
-msgstr ""
+msgstr "เอกซ์โพเนนเชียล"
 
 msgid "Z-buckling bias optimization (experimental)"
 msgstr "การปรับชดเชยการโก่งตัวตามแกน Z ให้เหมาะสม (ทดลอง)"
@@ -18202,98 +18385,129 @@ msgstr "ชุดดันเส้นเดี่ยวหลายวัสด
 msgid "Use single nozzle to print multi filament."
 msgstr "ใช้หัวฉีดเดี่ยวเพื่อพิมพ์เส้นพลาสติกหลายเส้น"
 
+# AI Translated
 msgid "IDEX/IQEX Printer"
-msgstr ""
+msgstr "เครื่องพิมพ์ IDEX/IQEX"
 
+# AI Translated
 msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
-msgstr ""
+msgstr "เปิดใช้งานการพิมพ์แบบขนานสำหรับเครื่องพิมพ์ที่มีแคร่อิสระหลายตัว (IDEX, IQEX และที่คล้ายกัน)"
 
+# AI Translated
 msgid "Firmware-managed zones"
-msgstr ""
+msgstr "โซนที่จัดการโดยเฟิร์มแวร์"
 
+# AI Translated
 msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-msgstr ""
+msgstr "เมื่อเปิดใช้งาน สไลเซอร์จะสร้าง G-code โดยให้เนื้อหาของโซนหลักอยู่กึ่งกลางที่จุดกำเนิดของฐานพิมพ์ (0,0) เฟิร์มแวร์ของเครื่องพิมพ์จะรับผิดชอบการวางสำเนา/ภาพกระจกเงาที่ตำแหน่งของแต่ละโซนจริง เปิดใช้งานเฉพาะกับเครื่องพิมพ์ที่เฟิร์มแวร์ใช้ค่าออฟเซ็ตโซนของตัวเองในโหมดสำเนา/กระจกเงา (เช่น โหมด duplication ของ IDEX ใน RepRapFirmware) ไม่มีผลในโหมดหลัก (Primary)"
 
+# AI Translated
 msgid "Gantry Count"
-msgstr ""
+msgstr "จำนวนแกนทรี"
 
+# AI Translated
 msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
-msgstr ""
+msgstr "จำนวนแกนทรีแกน Y ที่อิสระต่อกัน 1 สำหรับ IDEX/IQEX แบบรางเดี่ยว 2 สำหรับระบบแกนทรีคู่ (แบ่งฐานพิมพ์เป็นแถว)"
 
+# AI Translated
 msgid "Tools per Gantry"
-msgstr ""
+msgstr "เครื่องมือต่อแกนทรี"
 
+# AI Translated
 msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
-msgstr ""
+msgstr "จำนวนหัวพิมพ์อิสระต่อแกนทรีตามแนวแกน X 2 สำหรับแบบ IDEX"
 
+# AI Translated
 msgid "Tool 0 Position"
-msgstr ""
+msgstr "ตำแหน่งเครื่องมือ 0"
 
+# AI Translated
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
-msgstr ""
+msgstr "ตำแหน่งจริงบนฐานพิมพ์ที่เครื่องมือ T0 (ดัชนี 0) อยู่ ใช้กำหนดว่าดัชนีเครื่องมือจับคู่กับโซนบนฐานพิมพ์อย่างไร สำหรับระบบแกนทรีเดี่ยว (IDEX) มีผลเฉพาะซ้าย/ขวา สำหรับระบบแกนทรีคู่ (IQEX) เลือกได้ทั้งสี่มุม (ด้านหน้า = Y ต่ำกว่า / ใกล้ผู้ใช้งาน, ด้านหลัง = Y สูงกว่า / ด้านหลังเครื่อง)"
 
+# AI Translated
 msgid "Nozzle Clearance X"
-msgstr ""
+msgstr "ระยะเว้นหัวฉีด X"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
-msgstr ""
+msgstr "ระยะ (มม.) จากหัวฉีดถึงขอบแคร่ด้านที่อาจเกิดการชนในแนว X ใช้คำนวณความกว้างของแถบกันชนที่แต่ละขอบเขต X"
 
+# AI Translated
 msgid "Nozzle Clearance Y"
-msgstr ""
+msgstr "ระยะเว้นหัวฉีด Y"
 
+# AI Translated
 msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
-msgstr ""
+msgstr "ระยะ (มม.) จากหัวฉีดถึงขอบแคร่ด้านที่อาจเกิดการชนในแนว Y ใช้คำนวณความกว้างของแถบกันชนที่แต่ละขอบเขต Y"
 
+# AI Translated
 msgid "Safety Margin"
-msgstr ""
+msgstr "ระยะเผื่อความปลอดภัย"
 
+# AI Translated
 msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
-msgstr ""
+msgstr "แถบระยะเว้นแบบแนะนำ (มม.) ที่ไม่ขัดขวางการสไลซ์ ซึ่งวาดไว้ภายในโซนหลักที่แต่ละขอบเขตของแคร่ ชิ้นส่วนที่วางอยู่ภายในแถบนี้ยังคงสไลซ์ได้ แถบนี้เป็นเพียงตัวเตือนให้เว้นระยะเพิ่มใกล้ขอบโซน"
 
+# AI Translated
 msgid "Visualization Theme"
-msgstr ""
+msgstr "ธีมการแสดงผล"
 
+# AI Translated
 msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
-msgstr ""
+msgstr "ธีมสีสำหรับการแสดงโซนบนฐานพิมพ์ของ IDEX/IQEX เลือกธีมที่เหมาะกับผู้มีภาวะตาบอดสีหากจำเป็น"
 
+# AI Translated
 msgid "Deuteranopia / Protanopia (red-green)"
-msgstr ""
+msgstr "ตาบอดสีเขียว / ตาบอดสีแดง (แดง-เขียว)"
 
+# AI Translated
 msgid "Tritanopia (blue-yellow)"
-msgstr ""
+msgstr "ตาบอดสีน้ำเงิน (น้ำเงิน-เหลือง)"
 
+# AI Translated
 msgid "High Contrast"
-msgstr ""
+msgstr "คอนทราสต์สูง"
 
+# AI Translated
 msgid "IDEX/IQEX Print Mode"
-msgstr ""
+msgstr "โหมดการพิมพ์ IDEX/IQEX"
 
+# AI Translated
 msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
-msgstr ""
+msgstr "ชื่อของโหมดการพิมพ์แบบขนาน IDEX/IQEX ที่ใช้งานอยู่ หรือ \"primary\" สำหรับการพิมพ์ด้วยแคร่เดียว ต้องเปิดใช้งาน เครื่องพิมพ์ IDEX/IQEX ในพรีเซ็ตเครื่องพิมพ์ (เครื่องพิมพ์ → หลากหลายวัสดุ → การกำหนดค่า IDEX/IQEX)"
 
+# AI Translated
 msgid "IDEX/IQEX head filament map"
-msgstr ""
+msgstr "แผนผังเส้นพลาสติกของหัวพิมพ์ IDEX/IQEX"
 
+# AI Translated
 msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr ""
+msgstr "ค่าแทนที่ต่อฐานพิมพ์ที่จับคู่หัวจริงกับช่องเส้นพลาสติก (เริ่มนับจาก 1) เว้นว่างหมายถึงใช้ค่าเริ่มต้นจาก pem-inversion"
 
+# AI Translated
 msgid "IDEX/IQEX Mode Names"
-msgstr ""
+msgstr "ชื่อโหมด IDEX/IQEX"
 
+# AI Translated
 msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
-msgstr ""
+msgstr "ชื่อที่แสดงของโหมดการพิมพ์แบบขนาน IDEX/IQEX แต่ละโหมดที่ผู้ใช้กำหนด"
 
+# AI Translated
 msgid "IDEX/IQEX Mode Active Tools"
-msgstr ""
+msgstr "เครื่องมือที่ใช้งานในโหมด IDEX/IQEX"
 
+# AI Translated
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
-msgstr ""
+msgstr "การกำหนดบทบาทของเครื่องมือสำหรับแต่ละโหมด รูปแบบ: \"idx:P,idx:C,idx:M\" โดย P=Primary (หลัก), C=Copy (สำเนา), M=Mirror (กระจกเงา) (เช่น \"0:P,1:C,2:M,3:M\") จัดการโดยตัวแก้ไขโหมด IDEX/IQEX ในพรีเซ็ตเครื่องพิมพ์"
 
+# AI Translated
 msgid "IDEX/IQEX Mode G-codes"
-msgstr ""
+msgstr "G-code ของโหมด IDEX/IQEX"
 
+# AI Translated
 msgid "G-code or macro call to inject at print start for each mode."
-msgstr ""
+msgstr "G-code หรือการเรียกมาโครที่จะแทรกเมื่อเริ่มพิมพ์สำหรับแต่ละโหมด"
 
 msgid "Manual Filament Change"
 msgstr "การเปลี่ยนเส้นพลาสติกด้วยตนเอง"
@@ -18667,35 +18881,45 @@ msgstr "การทับซ้อนกันของเกณฑ์"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "หากมุมเกณฑ์เป็นศูนย์ ระบบจะสร้างส่วนรองรับสำหรับส่วนยื่นที่มีการทับซ้อนกันต่ำกว่าเกณฑ์ ยิ่งค่านี้น้อยลง ระยะยื่นที่สามารถพิมพ์โดยไม่ต้องรองรับก็จะยิ่งชันมากขึ้น"
 
+# AI Translated
 msgid "Build plate tilt X"
-msgstr ""
+msgstr "การเอียงฐานพิมพ์ X"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
-msgstr ""
+msgstr "มุมเอียงของฐานพิมพ์ตามแกน X ค่าบวกจะเอียงฐานพิมพ์ให้ด้าน +X สูงขึ้น ทำให้แรงโน้มถ่วงเลื่อนไปทาง -X และเพิ่มส่วนยื่นทางด้าน +X ค่าลบจะเอียงให้ด้าน -X สูงขึ้น ตั้งค่าเป็น 0 หากไม่ต้องการเอียงแกน X ในโหมดเครื่องพิมพ์สายพาน ค่านี้จะซิงค์กับมุมของสายพานโดยอัตโนมัติ"
 
+# AI Translated
 msgid "Build plate tilt Y"
-msgstr ""
+msgstr "การเอียงฐานพิมพ์ Y"
 
+# AI Translated
 msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
-msgstr ""
+msgstr "มุมเอียงของฐานพิมพ์ตามแกน Y ค่าบวกจะเอียงฐานพิมพ์ให้ด้าน +Y สูงขึ้น ทำให้แรงโน้มถ่วงเลื่อนไปทาง -Y และเพิ่มส่วนยื่นทางด้าน +Y ค่าลบจะเอียงให้ด้าน -Y สูงขึ้น ตั้งค่าเป็น 0 หากไม่ต้องการเอียงแกน Y"
 
+# AI Translated
 msgid "Enable belt printing"
-msgstr ""
+msgstr "เปิดใช้งานการพิมพ์บนสายพาน"
 
+# AI Translated
 msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
-msgstr ""
+msgstr "เปิดใช้งานโหมดเครื่องพิมพ์สายพาน เครื่องพิมพ์สายพานใช้สายพานลำเลียงเป็นพื้นผิวพิมพ์ ซึ่งเอียงเป็นมุม (โดยทั่วไป 45 องศา) สไลเซอร์จะหมุนระนาบการสไลซ์และแปลงพิกัด G-code ให้เหมาะกับพื้นผิวพิมพ์ที่เอียง"
 
+# AI Translated
 msgid "Infinite Y axis"
-msgstr ""
+msgstr "แกน Y ไม่จำกัด"
 
+# AI Translated
 msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
-msgstr ""
+msgstr "เปิดใช้งานแกน Y ไม่จำกัดสำหรับเครื่องพิมพ์สายพาน เมื่อเปิดใช้งาน ขีดจำกัดปริมาตรการพิมพ์ (Build volume) ในแกน Y จะถูกยกเลิก ทำให้พิมพ์วัตถุที่มีความยาวเท่าใดก็ได้ตามทิศทางของสายพาน"
 
+# AI Translated
 msgid "Belt tilt axis"
-msgstr ""
+msgstr "แกนเอียงสายพาน"
 
+# AI Translated
 msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-msgstr ""
+msgstr "แกนที่ใช้หมุนเมชก่อนการสไลซ์ นี่คือการเอียงของเครื่องพิมพ์สายพาน: การหมุนแบบไอโซเมตริก (ไม่บิดเบี้ยว) ซึ่งยังใช้กำหนดการแสดงผลฐานพิมพ์และการเอียงแรงโน้มถ่วงของส่วนรองรับ และการแปลงกลับของ G-code จะย้อนการหมุนนี้ก่อนการเฉือน/ปรับสเกลและการแมปแกนของระบบพิกัดเครื่อง X คือการเอียงแกนทรีที่ใช้ทั่วไป (สายพานเคลื่อนที่ตามแนว Y)"
 
 msgid "X"
 msgstr "X"
@@ -18707,89 +18931,116 @@ msgstr "Y"
 msgid "Z"
 msgstr "Z"
 
+# AI Translated
 msgid "Belt tilt angle"
-msgstr ""
+msgstr "มุมเอียงสายพาน"
 
+# AI Translated
 msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
-msgstr ""
+msgstr "มุมเอียงของพื้นผิวสายพาน หน่วยเป็นองศา เครื่องพิมพ์สายพานส่วนใหญ่ใช้ 45° ค่าบวกจะหมุนทวนเข็มนาฬิกาเมื่อมองลงตามแกนเอียงด้านบวก ขนาดของค่านี้ยังเป็นมุมเอียงจริงของสายพานที่ใช้สำหรับการแสดงผลฐานพิมพ์และแรงโน้มถ่วงของส่วนรองรับ"
 
 msgid "°"
 msgstr "°"
 
+# AI Translated
 msgid "Decouple machine-frame tilt"
-msgstr ""
+msgstr "แยกการเอียงของระบบพิกัดเครื่อง"
 
+# AI Translated
 msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-msgstr ""
+msgstr "การแทนที่สำหรับผู้เชี่ยวชาญ: ตั้งมุมเอียงของระบบพิกัดเครื่อง (การเฉือน/ปรับสเกล G-code) แยกจากมุมหมุนก่อนสไลซ์ เมื่อปิดใช้งาน การแปลงระบบพิกัดเครื่องจะคำนวณจากมุมเอียงสายพาน ดังนั้นมุมเดียวจะควบคุมทั้งสองขั้นตอน เปิดใช้งานเฉพาะเพื่อชดเชยเครื่องที่การเอียงจริงของแกนทรีต่างจากการหมุนสำหรับสไลซ์"
 
+# AI Translated
 msgid "Machine-frame tilt angle"
-msgstr ""
+msgstr "มุมเอียงของระบบพิกัดเครื่อง"
 
+# AI Translated
 msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
-msgstr ""
+msgstr "มุมเอียง (องศา) ที่ใช้คำนวณการเฉือน (cot) และสเกล (1/|sin|) ของระบบพิกัดเครื่องที่ใช้กับ G-code ใช้เฉพาะเมื่อเปิดใช้งาน 'แยกการเอียงของระบบพิกัดเครื่อง' มิฉะนั้นจะใช้มุมเอียงสายพาน"
 
+# AI Translated
 msgid "+X"
-msgstr ""
+msgstr "+X"
 
+# AI Translated
 msgid "+Y"
-msgstr ""
+msgstr "+Y"
 
+# AI Translated
 msgid "+Z"
-msgstr ""
+msgstr "+Z"
 
+# AI Translated
 msgid "-X"
-msgstr ""
+msgstr "-X"
 
+# AI Translated
 msgid "-Y"
-msgstr ""
+msgstr "-Y"
 
+# AI Translated
 msgid "-Z"
-msgstr ""
+msgstr "-Z"
 
+# AI Translated
 msgid "Rev X"
-msgstr ""
+msgstr "X กลับทิศ"
 
+# AI Translated
 msgid "Rev Y"
-msgstr ""
+msgstr "Y กลับทิศ"
 
+# AI Translated
 msgid "Rev Z"
-msgstr ""
+msgstr "Z กลับทิศ"
 
+# AI Translated
 msgid "G-code remap X"
-msgstr ""
+msgstr "การแมปแกน X ของ G-code"
 
+# AI Translated
 msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "แกนการสไลซ์ใดที่จับคู่กับแกน X ของเครื่องในเอาต์พุต G-code ใช้หลังการสไลซ์ ระหว่างการสร้าง G-code"
 
+# AI Translated
 msgid "G-code remap Y"
-msgstr ""
+msgstr "การแมปแกน Y ของ G-code"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "แกนการสไลซ์ใดที่จับคู่กับแกน Y ของเครื่องในเอาต์พุต G-code ใช้หลังการสไลซ์ ระหว่างการสร้าง G-code"
 
+# AI Translated
 msgid "G-code remap Z"
-msgstr ""
+msgstr "การแมปแกน Z ของ G-code"
 
+# AI Translated
 msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
-msgstr ""
+msgstr "แกนการสไลซ์ใดที่จับคู่กับแกน Z ของเครื่องในเอาต์พุต G-code ใช้หลังการสไลซ์ ระหว่างการสร้าง G-code"
 
+# AI Translated
 msgid "Support Floor Z offset"
-msgstr ""
+msgstr "ออฟเซ็ต Z ของพื้นส่วนรองรับ"
 
+# AI Translated
 msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
-msgstr ""
+msgstr "เลื่อนพื้นสายพานที่คำนวณได้ขึ้นหรือลง (มม.) ค่าลบจะลดระดับพื้นลง ทำให้ส่วนรองรับถูกคงไว้มากขึ้น ใช้ค่านี้เพื่อวิเคราะห์ปัญหาของสูตรคำนวณพื้นสายพาน"
 
+# AI Translated
 msgid "Enable belt purge tower"
-msgstr ""
+msgstr "เปิดใช้งานหอไล่เส้นบนสายพาน"
 
+# AI Translated
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
-msgstr ""
+msgstr "ทางเลือกแทน Wipe Tower / Prime Tower สำหรับเครื่องพิมพ์สายพาน เมื่อเปิดใช้งานบนเครื่องพิมพ์สายพาน ปริซึมไล่เส้นจะถูกสร้างขึ้นโดยอัตโนมัติข้างชิ้นส่วนที่พิมพ์ และการไล่เส้นเมื่อเปลี่ยนเส้นพลาสติกจะถูกส่งไปที่ปริซึมนี้ (ไม่สามารถใช้ Wipe Tower แบบดั้งเดิมบนเครื่องพิมพ์สายพานได้ เนื่องจาก G-code ของมันข้ามการแปลงของสายพาน) ใช้ได้เฉพาะบนเครื่องพิมพ์สายพานเท่านั้น"
 
+# AI Translated
 msgid "Belt purge tower width"
-msgstr ""
+msgstr "ความกว้างหอไล่เส้นบนสายพาน"
 
+# AI Translated
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr ""
+msgstr "ความกว้าง (แกน X ของเครื่อง ขวางสายพาน) ของปริซึมไล่เส้นที่สร้างขึ้นโดยอัตโนมัติบนเครื่องพิมพ์สายพานเมื่อเปิดใช้งานหอไล่เส้นบนสายพานและใช้เส้นพลาสติกหลายเส้น การไล่เส้นเมื่อเปลี่ยนเส้นพลาสติกจะถูกส่งไปยังเส้นที่อัดออกของปริซึมนี้แทน Wipe Tower แบบดั้งเดิม ความสูงของปริซึมคำนวณโดยอัตโนมัติจากปริมาณการไล่เส้นต่อเลเยอร์ในกรณีที่มากที่สุด: ปริซึมที่กว้างขึ้นจะเตี้ยลง"
 
 msgid "Tree support branch angle"
 msgstr "มุมกิ่งกิ่งรองรับต้นไม้"
@@ -18970,11 +19221,15 @@ msgstr "จำนวนชั้นทึบด้านบนจะเพิ่
 msgid "Separated infills"
 msgstr "ไส้ในแบบแยก"
 
+# AI Translated
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
 "Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
+"จัดกึ่งกลางไส้ในภายในของแต่ละชิ้นส่วนบนตัวมันเอง เสมือนว่าถูกสไลซ์แยกเดี่ยว แทนที่จะอิงกับชุดประกอบทั้งหมด ชิ้นส่วนที่สัมผัสหรือซ้อนทับกันจะถือเป็นวัตถุเดียวและใช้จุดศูนย์กลางร่วมกัน ส่วนชิ้นส่วนแยก (หรือวัตถุ 3D ที่แยกจากกัน) จะได้จุดศูนย์กลางของตัวเอง\n"
+"มีประโยชน์เมื่อชุดประกอบรวมหลายวัตถุที่แต่ละชิ้นควรคงไส้ในที่จัดกึ่งกลางตัวเองอย่างสม่ำเสมอ\n"
+"ลูกบาศก์แบบปรับได้ และ รองรับคิวบิก จะจัดกึ่งกลางแต่ละชิ้นส่วนบนตัวมันเองเสมอ ส่วนไส้ในแบบฟ้าผ่าจะสร้างขึ้นสำหรับทั้งวัตถุและไม่ได้รับผลกระทบ"
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -19210,11 +19465,13 @@ msgstr "การล้างข้อมูลหลังจากเปลี
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "วัตถุนี้จะใช้ในการล้างหัวฉีดหลังจากเปลี่ยนเส้นพลาสติกเพื่อประหยัดเส้นพลาสติกและลดเวลาในการพิมพ์ สีของวัตถุจะผสมกัน มันจะไม่มีผลเว้นแต่จะเปิดใช้งาน Prime Tower"
 
+# AI Translated
 msgid "Belt purge tower object"
-msgstr ""
+msgstr "วัตถุหอไล่เส้นบนสายพาน"
 
+# AI Translated
 msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
-msgstr ""
+msgstr "ทำเครื่องหมายปริซึมไล่เส้นบนสายพานที่สร้างขึ้นอัตโนมัติ ระบบจัดการโดยอัตโนมัติ อย่าตั้งค่าด้วยตนเอง"
 
 msgid "Maximal bridging distance"
 msgstr "ระยะเชื่อมต่อสูงสุด"
@@ -20120,8 +20377,9 @@ msgstr "ชื่อของเครื่องพิมพ์ฟิสิค
 msgid "Layer number"
 msgstr "หมายเลขเลเยอร์"
 
+# AI Translated
 msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
-msgstr ""
+msgstr "ดัชนีของเลเยอร์ปัจจุบัน เริ่มนับจาก 0 (เช่น เลเยอร์แรกคือหมายเลข 0) ยกเว้นใน G-code เปลี่ยนประเภทการพิมพ์ (Extrusion role) ซึ่งจะเริ่มนับจาก 1"
 
 msgid "Layer Z"
 msgstr "เลเยอร์ Z"
@@ -20805,8 +21063,9 @@ msgstr ""
 "ค่าความเร่งต้องมากกว่าค่าความเร็ว\n"
 "โปรดตรวจสอบอินพุต"
 
+# AI Translated
 msgid "Not enabled yet on belt printers — use the PA Tower method instead."
-msgstr ""
+msgstr "ยังไม่เปิดใช้งานบนเครื่องพิมพ์สายพาน — ใช้วิธี พีเอ ทาวเวอร์ แทน"
 
 msgid "Temperature calibration"
 msgstr "การปรับเทียบอุณหภูมิ"
@@ -20835,8 +21094,9 @@ msgstr "PET-CF"
 msgid "Test model"
 msgstr "แบบทดสอบ"
 
+# AI Translated
 msgid "Overhang"
-msgstr ""
+msgstr "ส่วนยื่น"
 
 msgid "Start temp: "
 msgstr "อุณหภูมิเริ่มต้น:"
@@ -21692,8 +21952,9 @@ msgstr ""
 "เครื่องพิมพ์และเส้นพลาสติกและค่าที่ตั้งล่วงหน้ากระบวนการทั้งหมดที่เป็นของเครื่องพิมพ์\n"
 "สามารถแบ่งปันกับผู้อื่นได้"
 
+# AI Translated
 msgid "Include custom bed texture and model"
-msgstr ""
+msgstr "รวมพื้นผิวและโมเดลแบบกำหนดเองของฐานพิมพ์"
 
 msgid ""
 "User's filament preset set.\n"
@@ -22842,32 +23103,41 @@ msgstr "หากเปิดใช้งาน ค่าด้านบนจ�
 msgid "PresetBundle"
 msgstr "ชุดค่าที่ตั้งไว้ล่วงหน้า"
 
+# AI Translated
 msgid "Export Presets"
-msgstr ""
+msgstr "ส่งออกพรีเซ็ต"
 
+# AI Translated
 msgid "Open folder in explorer"
-msgstr ""
+msgstr "เปิดโฟลเดอร์ในตัวจัดการไฟล์"
 
+# AI Translated
 msgid "Delete bundle"
-msgstr ""
+msgstr "ลบชุด"
 
+# AI Translated
 msgid "Unsubscribe bundle"
-msgstr ""
+msgstr "ยกเลิกการติดตามชุด"
 
+# AI Translated
 msgid "Update available"
-msgstr ""
+msgstr "มีอัปเดต"
 
+# AI Translated
 msgid "Unauthorized bundle"
-msgstr ""
+msgstr "ชุดที่ไม่ได้รับอนุญาต"
 
+# AI Translated
 msgid "Open this bundle in your browser"
-msgstr ""
+msgstr "เปิดชุดนี้ในเบราว์เซอร์ของคุณ"
 
+# AI Translated
 msgid "Subscribed"
-msgstr ""
+msgstr "ติดตามแล้ว"
 
+# AI Translated
 msgid "Local"
-msgstr ""
+msgstr "ในเครื่อง"
 
 msgid "Bundle folder does not exist."
 msgstr "ไม่มีโฟลเดอร์ชุด"
@@ -22902,11 +23172,13 @@ msgstr "ยกเลิกการติดตามชุด"
 msgid "ExportPresetBundle"
 msgstr "ส่งออกชุดค่าที่ตั้งไว้ล่วงหน้า"
 
+# AI Translated
 msgid "Export to OrcaCloud"
-msgstr ""
+msgstr "ส่งออกไปยัง OrcaCloud"
 
+# AI Translated
 msgid "Export to folder"
-msgstr ""
+msgstr "ส่งออกไปยังโฟลเดอร์"
 
 msgid "Save preset bundle"
 msgstr "บันทึกชุดค่าที่ตั้งไว้ล่วงหน้า"
@@ -27439,8 +27711,9 @@ msgstr "กิสโมประกอบ"
 msgid "Gizmo brim ears"
 msgstr "Gizmo หูขอบยึดชิ้นงาน (Brim Ears)"
 
+# AI Translated
 msgid "Gizmo texture displacement painting"
-msgstr ""
+msgstr "กิสโม่ระบายการกระจัดพื้นผิว"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "แถบเลื่อนแนวตั้ง - เลื่อนนิ้วโป้งที่ใช้งานอยู่ขึ้น"
@@ -28693,6 +28966,14 @@ msgid "Bake"
 msgstr "อบ"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "พิมพ์ค่าที่แน่นอนลงในแถบเลื่อน"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "ไอคอนแก้ไขที่ปลายด้านขวาของแถบเลื่อน"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "การกระจัดพื้นผิว"
 
@@ -28965,6 +29246,15 @@ msgid "The painted area could not be carried onto the remeshed model, so nothing
 msgstr "ไม่สามารถถ่ายโอนบริเวณที่ระบายไปยังโมเดลที่รีเมชแล้วได้ จึงไม่มีการเปลี่ยนแปลงใด ๆ สลับไปที่โหมดโปรแล้วรีเมชก่อนระบาย"
 
 # AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "ช่วง: %1% ถึง %2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "พิมพ์ค่าแทนการลาก การกด Ctrl+คลิกบนแถบเลื่อนก็ให้ผลเหมือนกัน"
+
+# AI Translated
 msgid "Pro"
 msgstr "โปร"
 
@@ -29069,8 +29359,9 @@ msgstr "เกณฑ์มุม - การเติมจะหยุดที
 msgid "Click a triangle to paint it"
 msgstr "คลิกสามเหลี่ยมเพื่อระบาย"
 
+# AI Translated
 msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
-msgstr ""
+msgstr "ใช้ได้เฉพาะกับเลเยอร์พื้นผิวที่แมปด้วย คลี่ UV (LSCM) - ตั้ง การแมป ของเลเยอร์ที่ใช้งานอยู่เป็น คลี่ UV เพื่อใช้มุมมองนี้"
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -29084,15 +29375,17 @@ msgstr "เร็ว - ลายนูนแสดงด้วยการแร
 msgid "Checker"
 msgstr "ตาหมากรุก"
 
+# AI Translated
 msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "ตาหมากรุก - ตารางทดสอบแทนพื้นผิว บริเวณที่ช่องยังเป็นสี่เหลี่ยมจัตุรัส พื้นผิวจะไม่บิดเบี้ยว บริเวณที่ช่องยืด พื้นผิวก็จะยืดเช่นกัน เปิดตัวแก้ไข UV หากปิดอยู่"
 
 # AI Translated
 msgid "Distortion"
 msgstr "ความบิดเบี้ยว"
 
+# AI Translated
 msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
-msgstr ""
+msgstr "ความบิดเบี้ยว - แผนที่ความร้อนแสดงการยืดจากสีน้ำเงินถึงสีแดงบนผลการคลี่ UV เปิดตัวแก้ไข UV หากปิดอยู่"
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -29208,11 +29501,13 @@ msgstr "ผสมเส้นพลาสติก"
 msgid "Interleaves two filaments to fake the colors in between, so a handful of filaments can cover a photo or a gradient. An image of flat colors prints the same either way. Off uses one filament per area."
 msgstr "สลับใช้เส้นพลาสติกสองเส้นเพื่อจำลองสีที่อยู่ระหว่างกัน ทำให้เส้นพลาสติกเพียงไม่กี่สีครอบคลุมภาพถ่ายหรือการไล่ระดับสีได้ ภาพที่เป็นสีเรียบจะพิมพ์ออกมาเหมือนกันไม่ว่าแบบใด เมื่อปิดจะใช้เส้นพลาสติกหนึ่งเส้นต่อหนึ่งบริเวณ"
 
+# AI Translated
 msgid "Mixed colors"
-msgstr ""
+msgstr "สีผสม"
 
+# AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
-msgstr ""
+msgstr "จำนวนเส้นพลาสติกผสมสูงสุดที่การอบอาจเพิ่มได้ โดยเลือกจากสีของพื้นผิว และจะสร้างเฉพาะเส้นที่การอบใช้จริงเท่านั้น"
 
 # AI Translated
 #, boost-format
@@ -29920,27 +30215,33 @@ msgstr "ปลั๊กอินเส้นพลาสติก"
 msgid "Printer plugins"
 msgstr "ปลั๊กอินเครื่องพิมพ์"
 
+# AI Translated
 msgid "This preset does not use any plugin capabilities"
-msgstr ""
+msgstr "พรีเซ็ตนี้ไม่ได้ใช้ความสามารถของปลั๊กอินใดๆ"
 
+# AI Translated
 msgid "Capabilities used by this preset"
-msgstr ""
+msgstr "ความสามารถที่พรีเซ็ตนี้ใช้"
 
+# AI Translated
 msgid "Capability configuration (JSON)"
-msgstr ""
+msgstr "การกำหนดค่าความสามารถ (JSON)"
 
+# AI Translated
 msgid "Plugin configuration"
-msgstr ""
+msgstr "การกำหนดค่าปลั๊กอิน"
 
+# AI Translated
 msgid "Discard this preset's override and use the global configuration again"
-msgstr ""
+msgstr "ทิ้งค่าแทนที่ของพรีเซ็ตนี้และกลับไปใช้การกำหนดค่าส่วนกลางอีกครั้ง"
 
 # AI Translated
 msgid "Restore defaults"
 msgstr "คืนค่าเริ่มต้น"
 
+# AI Translated
 msgid "Invalid JSON"
-msgstr ""
+msgstr "JSON ไม่ถูกต้อง"
 
 # AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
@@ -30030,214 +30331,282 @@ msgstr "กำลังติดตั้งปลั๊กอิน"
 msgid "Installed \"%s\"."
 msgstr "ติดตั้ง \"%s\" แล้ว"
 
+# AI Translated
 msgid "Search plugins"
-msgstr ""
+msgstr "ค้นหาปลั๊กอิน"
 
+# AI Translated
 msgid "Clear search"
-msgstr ""
+msgstr "ล้างการค้นหา"
 
+# AI Translated
 msgid "Match case"
-msgstr ""
+msgstr "ตรงตามตัวพิมพ์เล็ก/ใหญ่"
 
+# AI Translated
 msgid "Match whole word"
-msgstr ""
+msgstr "ตรงทั้งคำ"
 
+# AI Translated
 msgid "More plugin install options"
-msgstr ""
+msgstr "ตัวเลือกการติดตั้งปลั๊กอินเพิ่มเติม"
 
+# AI Translated
 msgid "Install plugin"
-msgstr ""
+msgstr "ติดตั้งปลั๊กอิน"
 
+# AI Translated
 msgid "Install local plugin"
-msgstr ""
+msgstr "ติดตั้งปลั๊กอินจากเครื่อง"
 
+# AI Translated
 msgid "Activate"
-msgstr ""
+msgstr "เปิดใช้งาน"
 
+# AI Translated
 msgid "Sort by name"
-msgstr ""
+msgstr "เรียงตามชื่อ"
 
+# AI Translated
 msgid "Sort by version"
-msgstr ""
+msgstr "เรียงตามเวอร์ชัน"
 
+# AI Translated
 msgid "Plugin Version"
-msgstr ""
+msgstr "เวอร์ชันปลั๊กอิน"
 
+# AI Translated
 msgid "Sort by source"
-msgstr ""
+msgstr "เรียงตามแหล่งที่มา"
 
+# AI Translated
 msgid "Source"
-msgstr ""
+msgstr "แหล่งที่มา"
 
+# AI Translated
 msgid "Sort by status"
-msgstr ""
+msgstr "เรียงตามสถานะ"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Status"
-msgstr ""
+msgstr "สถานะ"
 
+# AI Translated
 msgid "Drag to resize; double-click to reset"
-msgstr ""
+msgstr "ลากเพื่อปรับขนาด ดับเบิลคลิกเพื่อรีเซ็ต"
 
+# AI Translated
 msgid "Resize the plugin list"
-msgstr ""
+msgstr "ปรับขนาดรายการปลั๊กอิน"
 
+# AI Translated
 msgid "Plugin details"
-msgstr ""
+msgstr "รายละเอียดปลั๊กอิน"
 
+# AI Translated
 msgid "Plugin Info"
-msgstr ""
+msgstr "ข้อมูลปลั๊กอิน"
 
+# AI Translated
 msgid "Description"
-msgstr ""
+msgstr "คำอธิบาย"
 
+# AI Translated
 msgid "Config"
-msgstr ""
+msgstr "การกำหนดค่า"
 
+# AI Translated
 msgid "Changelog"
-msgstr ""
+msgstr "บันทึกการเปลี่ยนแปลง"
 
+# AI Translated
 msgid "Diagnostics"
-msgstr ""
+msgstr "การวินิจฉัย"
 
+# AI Translated
 msgid "Types"
-msgstr ""
+msgstr "ประเภท"
 
+# AI Translated
 msgid "Installed Version"
-msgstr ""
+msgstr "เวอร์ชันที่ติดตั้ง"
 
+# AI Translated
 msgid "Latest Version"
-msgstr ""
+msgstr "เวอร์ชันล่าสุด"
 
+# AI Translated
 msgid "Update to the latest version"
-msgstr ""
+msgstr "อัปเดตเป็นเวอร์ชันล่าสุด"
 
+# AI Translated
 msgid "No description available"
-msgstr ""
+msgstr "ไม่มีคำอธิบาย"
 
+# AI Translated
 msgid "Select a plugin to configure its capabilities"
-msgstr ""
+msgstr "เลือกปลั๊กอินเพื่อกำหนดค่าความสามารถของปลั๊กอิน"
 
+# AI Translated
 msgid "Configurable capabilities"
-msgstr ""
+msgstr "ความสามารถที่กำหนดค่าได้"
 
+# AI Translated
 msgid "Discard the settings saved for this capability and restore the plugin's defaults"
-msgstr ""
+msgstr "ทิ้งการตั้งค่าที่บันทึกไว้สำหรับความสามารถนี้และคืนค่าเริ่มต้นของปลั๊กอิน"
 
+# AI Translated
 msgid "Plugin changelog"
-msgstr ""
+msgstr "บันทึกการเปลี่ยนแปลงของปลั๊กอิน"
 
+# AI Translated
 msgid "Date"
-msgstr ""
+msgstr "วันที่"
 
+# AI Translated
 msgid "Changes"
-msgstr ""
+msgstr "การเปลี่ยนแปลง"
 
+# AI Translated
 msgid "No changelog available"
-msgstr ""
+msgstr "ไม่มีบันทึกการเปลี่ยนแปลง"
 
+# AI Translated
 msgid "No issues detected"
-msgstr ""
+msgstr "ไม่พบปัญหา"
 
+# AI Translated
 msgid "No plugins found"
-msgstr ""
+msgstr "ไม่พบปลั๊กอิน"
 
+# AI Translated
 #, c-format, boost-format
 msgid "No plugins match \"%s\""
-msgstr ""
+msgstr "ไม่มีปลั๊กอินที่ตรงกับ \"%s\""
 
+# AI Translated
 msgid "Mine"
-msgstr ""
+msgstr "ของฉัน"
 
+# AI Translated
+# Needs human review: Plugin source label for a plugin no longer subscribed or available in OrcaCloud but still installed locally; check ตกค้าง reads right next to ของฉัน / ติดตามแล้ว / ในเครื่อง.
 msgid "Orphaned"
-msgstr ""
+msgstr "ตกค้าง"
 
+# AI Translated
 msgid "Some plugin capabilities are enabled"
-msgstr ""
+msgstr "เปิดใช้งานความสามารถของปลั๊กอินบางส่วนอยู่"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Collapse %s capabilities"
-msgstr ""
+msgstr "ยุบความสามารถของ %s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Expand %s capabilities"
-msgstr ""
+msgstr "ขยายความสามารถของ %s"
 
+# AI Translated
 msgid "Collapse capabilities"
-msgstr ""
+msgstr "ยุบความสามารถ"
 
+# AI Translated
 msgid "Expand capabilities"
-msgstr ""
+msgstr "ขยายความสามารถ"
 
+# AI Translated
 msgid "Open this plugin in your browser"
-msgstr ""
+msgstr "เปิดปลั๊กอินนี้ในเบราว์เซอร์ของคุณ"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Capabilities: %s"
-msgstr ""
+msgstr "ความสามารถ: %s"
 
+# AI Translated
 msgctxt "Plugin"
 msgid "Capabilities"
-msgstr ""
+msgstr "ความสามารถ"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Run \"%s\""
-msgstr ""
+msgstr "เรียกใช้ \"%s\""
 
+# AI Translated
 #, c-format, boost-format
 msgid "Enable %s"
-msgstr ""
+msgstr "เปิดใช้งาน %s"
 
+# AI Translated
 msgid "Unauthorized for updates"
-msgstr ""
+msgstr "ไม่ได้รับอนุญาตให้อัปเดต"
 
+# AI Translated
 msgid "Loading the plugin…"
-msgstr ""
+msgstr "กำลังโหลดปลั๊กอิน…"
 
+# AI Translated
 msgid "This plugin exposes no capabilities"
-msgstr ""
+msgstr "ปลั๊กอินนี้ไม่มีความสามารถให้ใช้"
 
+# AI Translated
 msgid "Activate this plugin to configure its capabilities"
-msgstr ""
+msgstr "เปิดใช้งานปลั๊กอินนี้เพื่อกำหนดค่าความสามารถ"
 
+# AI Translated
 msgid "View on OrcaCloud <a>here</a>"
-msgstr ""
+msgstr "ดูบน OrcaCloud <a>ที่นี่</a>"
 
+# AI Translated
 msgid "Activated"
-msgstr ""
+msgstr "เปิดใช้งานแล้ว"
 
+# AI Translated
 msgid "Runtime error"
-msgstr ""
+msgstr "ข้อผิดพลาดขณะทำงาน"
 
+# AI Translated
 msgid "Inactive"
-msgstr ""
+msgstr "ไม่ได้ใช้งาน"
 
+# AI Translated
 msgid "This plugin is active and ready to be used."
-msgstr ""
+msgstr "ปลั๊กอินนี้เปิดใช้งานอยู่และพร้อมใช้งาน"
 
+# AI Translated
 msgid "This plugin is still loading."
-msgstr ""
+msgstr "ปลั๊กอินนี้ยังโหลดอยู่"
 
+# AI Translated
 msgid "This plugin is blocked until its error is fixed."
-msgstr ""
+msgstr "ปลั๊กอินนี้ถูกบล็อกจนกว่าจะแก้ไขข้อผิดพลาด"
 
+# AI Translated
 msgid "This plugin is loaded but a capability reported an error."
-msgstr ""
+msgstr "ปลั๊กอินนี้โหลดแล้ว แต่ความสามารถหนึ่งรายงานข้อผิดพลาด"
 
+# AI Translated
 msgid "This plugin is inactive. Activate it to install or load it."
-msgstr ""
+msgstr "ปลั๊กอินนี้ไม่ได้ใช้งาน เปิดใช้งานเพื่อติดตั้งหรือโหลดปลั๊กอิน"
 
+# AI Translated
 msgid "Select a plugin to view its status and details."
-msgstr ""
+msgstr "เลือกปลั๊กอินเพื่อดูสถานะและรายละเอียด"
 
+# AI Translated
 msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
-msgstr ""
+msgstr "ตกค้าง: ปลั๊กอินนี้ไม่ได้ติดตามแล้วหรือไม่มีใน OrcaCloud อีกต่อไป สำเนาในเครื่องยังคงติดตั้งอยู่และยังใช้งานได้"
 
+# AI Translated
 msgid "A newer plugin version is available."
-msgstr ""
+msgstr "มีปลั๊กอินเวอร์ชันใหม่กว่า"
 
+# AI Translated
 msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
-msgstr ""
+msgstr "ไม่สามารถอัปเดตผ่านคลาวด์ได้ เนื่องจากปลั๊กอินนี้ไม่ได้รับอนุญาตให้อัปเดต"
 
 # AI Translated
 #, c-format, boost-format
@@ -30455,53 +30824,69 @@ msgstr "ไม่สามารถโหลดปลั๊กอินใหม
 msgid "Reloaded \"%s\"."
 msgstr "โหลด \"%s\" ใหม่แล้ว"
 
+# AI Translated
 msgid "Printer Connection"
-msgstr ""
+msgstr "การเชื่อมต่อเครื่องพิมพ์"
 
+# AI Translated
 msgid "Please set up your printer connection to view the device."
-msgstr ""
+msgstr "โปรดตั้งค่าการเชื่อมต่อเครื่องพิมพ์เพื่อดูอุปกรณ์"
 
+# AI Translated
 msgid "No model information"
-msgstr ""
+msgstr "ไม่มีข้อมูลโมเดล"
 
+# AI Translated
 msgid "Edit Project Info"
-msgstr ""
+msgstr "แก้ไขข้อมูลโปรเจกต์"
 
+# AI Translated
 msgid "Model Information"
-msgstr ""
+msgstr "ข้อมูลโมเดล"
 
+# AI Translated
 msgid "Accessories"
-msgstr ""
+msgstr "อุปกรณ์เสริม"
 
+# AI Translated
 msgid "Profile Information"
-msgstr ""
+msgstr "ข้อมูลโปรไฟล์"
 
+# AI Translated
 msgid "Model name"
-msgstr ""
+msgstr "ชื่อโมเดล"
 
+# AI Translated
 msgid "Created by"
-msgstr ""
+msgstr "สร้างโดย"
 
+# AI Translated
 msgid "Remixed by"
-msgstr ""
+msgstr "รีมิกซ์โดย"
 
+# AI Translated
 msgid "Shared by"
-msgstr ""
+msgstr "แชร์โดย"
 
+# AI Translated
 msgid "Model description"
-msgstr ""
+msgstr "คำอธิบายโมเดล"
 
+# AI Translated
 msgid "BOM"
-msgstr ""
+msgstr "รายการวัสดุ"
 
+# AI Translated
 msgid "Profile name"
-msgstr ""
+msgstr "ชื่อโปรไฟล์"
 
+# AI Translated
 msgid "Profile Author"
-msgstr ""
+msgstr "ผู้เขียนโปรไฟล์"
 
+# AI Translated
 msgid "Profile description"
-msgstr ""
+msgstr "คำอธิบายโปรไฟล์"
 
 # AI Translated
 msgid "Purge Mode Settings"
@@ -30527,15 +30912,18 @@ msgstr "ลดเส้นพลาสติกที่เสียจากก
 msgid "Terminal"
 msgstr "เทอร์มินัล"
 
+# AI Translated
 msgid "python ... or uv ..."
-msgstr ""
+msgstr "python ... หรือ uv ..."
 
+# AI Translated
 msgid "Plugin terminal ready."
-msgstr ""
+msgstr "เทอร์มินัลปลั๊กอินพร้อมใช้งาน"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Process exited with code: %s"
-msgstr ""
+msgstr "โปรเซสสิ้นสุดด้วยรหัส: %s"
 
 # AI Translated
 msgid "A command is already running."
@@ -30803,8 +31191,10 @@ msgstr "  |  สแนป เปิด"
 msgid "Change texture - choose another one from the texture library"
 msgstr "เปลี่ยนพื้นผิว - เลือกพื้นผิวอื่นจากคลังพื้นผิว"
 
+# AI Translated
+# Needs human review: 'Tiling' names a control in the texture layer's settings, but no 'Tiling' label exists (the checkbox is 'Tile' = ไทล์, the field 'Tile size' = ขนาดไทล์); rendered generically as การเรียงไทล์. Check which control it means and quote that label.
 msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
-msgstr ""
+msgstr "ขนาดไทล์ของเลเยอร์พื้นผิวที่ใช้งานอยู่: พื้นที่ของโมเดลที่พื้นผิวหนึ่งรอบการทำซ้ำครอบคลุม แคนวาสวัดเป็นหน่วยไทล์ ดังนั้นช่องตารางหนึ่งช่องคือการทำซ้ำหนึ่งรอบ เปลี่ยนค่านี้ได้ด้วยการเรียงไทล์ในการตั้งค่าของเลเยอร์"
 
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
@@ -30838,14 +31228,17 @@ msgstr "เชื่อมเกาะ"
 msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfolded next to each other (a cube becomes a joined net rather than six loose squares). They stay separate islands, so you can still move any of them by hand afterwards."
 msgstr "จัดวางผลการคลี่ UV เป็นรูปคลี่ที่เชื่อมต่อกัน: ชิ้นที่ใช้ขอบร่วมกันจะถูกคลี่ออกติดกัน (ลูกบาศก์จะกลายเป็นรูปคลี่ที่ต่อกันแทนที่จะเป็นสี่เหลี่ยมหกชิ้นแยกกัน) ชิ้นเหล่านี้ยังคงเป็นเกาะแยกกัน คุณจึงยังย้ายชิ้นใดก็ได้ด้วยตนเองภายหลัง"
 
+# AI Translated
 msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
-msgstr ""
+msgstr "เกาะ - ทำงานกับเกาะ UV ทั้งเกาะ คลิกเกาะเพื่อเลือก จากนั้นลากเพื่อย้าย ลากด้วยปุ่มขวาเพื่อหมุน หรือกด R เพื่อหมุนและ S เพื่อปรับสเกลด้วยเมาส์ (คลิกหรือ Enter เพื่อยืนยัน, Esc เพื่อยกเลิก)"
 
+# AI Translated
 msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "จุดยอด - ลากจุดยอดเพื่อปรับรูปทรงของเกาะ UV ด้วยตนเอง Shift เพื่อเพิ่มในส่วนที่เลือก Ctrl เพื่อสลับเพิ่มหรือนำออกจากส่วนที่เลือก"
 
+# AI Translated
 msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
-msgstr ""
+msgstr "ขอบ - ลากขอบเพื่อปรับรูปทรงของเกาะ UV ด้วยตนเอง Shift เพื่อเพิ่มในส่วนที่เลือก Ctrl เพื่อสลับเพิ่มหรือนำออกจากส่วนที่เลือก"
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -30883,13 +31276,17 @@ msgstr "ล้างการแก้ไข UV - ทิ้งการย้า
 msgid "Snap - stick islands together when dragging one against another"
 msgstr "สแนป - ให้เกาะติดกันเมื่อลากเกาะหนึ่งชิดอีกเกาะ"
 
+# AI Translated
 msgid ""
 "Frame all islands, fitting every one of them in view (Home or F).\n"
 "Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
 msgstr ""
+"จัดเกาะ UV ทั้งหมดให้พอดีกรอบ โดยให้ทุกเกาะอยู่ในมุมมอง (Home หรือ F)\n"
+"ที่ส่วนอื่นของแคนวาส: เลื่อนล้อเมาส์เพื่อซูมรอบเคอร์เซอร์ และลากด้วยปุ่มกลาง - หรือลากในพื้นที่ว่าง - เพื่อแพน"
 
+# AI Translated
 msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
-msgstr ""
+msgstr "สิ่งที่เลือกอยู่ และค่าที่แน่นอนของการย้าย การหมุน หรือการปรับสเกลขณะที่คุณลาก"
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -30900,8 +31297,9 @@ msgstr "ไม่มีเลเยอร์ที่แมปด้วย ค�
 msgid "%.1f mm tile"
 msgstr "ไทล์ %.1f มม."
 
+# AI Translated
 msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
-msgstr ""
+msgstr "แผงนี้ติดตามเลเยอร์พื้นผิวที่ใช้งานอยู่ และเลเยอร์นั้นต้องแมปด้วย คลี่ UV (LSCM) เพิ่มเลเยอร์แล้วตั้ง การแมป เป็น คลี่ UV"
 
 # AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
@@ -30911,43 +31309,54 @@ msgstr "ล้าสมัย - การระบาย เส้นตัด �
 msgid "Flatten the painted area into UV islands. It is computed only when you press this, not on every edit - so paint, change the seam angle or mark seams first, then press Unwrap."
 msgstr "แผ่บริเวณที่ระบายให้แบนเป็นเกาะ UV ระบบจะคำนวณเฉพาะเมื่อคุณกดปุ่มนี้ ไม่ใช่ทุกครั้งที่แก้ไข - ดังนั้นให้ระบาย เปลี่ยนมุมเส้นตัด หรือทำเครื่องหมายเส้นตัดก่อน แล้วจึงกด คลี่ UV"
 
+# AI Translated
 msgid "Turn Mark seams on first - Path is a quicker way of marking them."
-msgstr ""
+msgstr "เปิด ทำเครื่องหมายเส้นตัด ก่อน - เส้นทาง เป็นวิธีทำเครื่องหมายเส้นตัด UV ที่เร็วกว่า"
 
+# AI Translated
 msgid "No seams are marked on this layer."
-msgstr ""
+msgstr "ไม่มีเส้นตัด UV ที่ทำเครื่องหมายไว้บนเลเยอร์นี้"
 
+# AI Translated
 msgid "No islands have been reshaped by hand, so there is nothing to discard."
-msgstr ""
+msgstr "ไม่มีเกาะ UV ที่ถูกปรับรูปทรงด้วยตนเอง จึงไม่มีอะไรให้ทิ้ง"
 
 # AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "%d เกาะ, %s ผิวหน้า"
 
+# AI Translated
 msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
-msgstr ""
+msgstr "ผลของบริเวณที่ระบายหลังการคลี่ UV: จำนวนชิ้นที่แยกออกจากกัน (ตัดที่เส้นตัด UV และที่ขอบที่คมกว่ามุมเส้นตัด) และจำนวนสามเหลี่ยมทั้งหมดในชิ้นเหล่านั้น"
 
+# AI Translated
 msgid "Press Unwrap first - there are no islands to work on yet."
-msgstr ""
+msgstr "กด คลี่ UV ก่อน - ยังไม่มีเกาะ UV ให้ทำงาน"
 
+# AI Translated
 msgid "Click an island on the canvas first, in Island mode."
-msgstr ""
+msgstr "คลิกเกาะ UV บนแคนวาสก่อน ในโหมดเกาะ"
 
+# AI Translated
 msgid "Not signed in"
-msgstr ""
+msgstr "ยังไม่ได้เข้าสู่ระบบ"
 
+# AI Translated
 msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
-msgstr ""
+msgstr "ตรวจไม่พบปลั๊กอิน Bambu Network คลิก <a>ที่นี่</a> เพื่อติดตั้ง"
 
+# AI Translated
 msgid "Create new project"
-msgstr ""
+msgstr "สร้างโปรเจกต์ใหม่"
 
+# AI Translated
 msgid "Recently opened"
-msgstr ""
+msgstr "เปิดล่าสุด"
 
+# AI Translated
 msgid "Open Containing Folder"
-msgstr ""
+msgstr "เปิดโฟลเดอร์ที่เก็บไฟล์"
 
 # AI Translated
 msgid "Forward"
@@ -31098,15 +31507,19 @@ msgstr ""
 "ปลั๊กอิน \"%s\" กำลังขอเรียกใช้คำสั่งต่อไปนี้:\n"
 "%s"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Plugin \"%s\" is requesting permission to create a thread."
-msgstr ""
+msgstr "ปลั๊กอิน \"%s\" กำลังขออนุญาตสร้างเธรด"
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plugin \"%s\" is requesting to replace the running application with:\n"
 "%s"
 msgstr ""
+"ปลั๊กอิน \"%s\" กำลังขอแทนที่แอปพลิเคชันที่กำลังทำงานด้วย:\n"
+"%s"
 
 # AI Translated
 #, c-format, boost-format
@@ -31117,29 +31530,37 @@ msgstr "ปลั๊กอิน \"%s\" กำลังขอสิทธิ์�
 msgid "Plugin permission request"
 msgstr "คำขอสิทธิ์ของปลั๊กอิน"
 
+# AI Translated
 msgid "Printer connection"
-msgstr ""
+msgstr "การเชื่อมต่อเครื่องพิมพ์"
 
+# AI Translated
 msgid "Pages"
-msgstr ""
+msgstr "หน้า"
 
+# AI Translated
 msgid "Analysis"
-msgstr ""
+msgstr "การวิเคราะห์"
 
+# AI Translated
 msgid "Importer"
-msgstr ""
+msgstr "ตัวนำเข้า"
 
+# AI Translated
 msgid "Exporter"
-msgstr ""
+msgstr "ตัวส่งออก"
 
+# AI Translated
 msgid "Visualization"
-msgstr ""
+msgstr "การแสดงผล"
 
+# AI Translated
 msgid "Script"
-msgstr ""
+msgstr "สคริปต์"
 
+# AI Translated
 msgid "Slicing Pipeline"
-msgstr ""
+msgstr "ไปป์ไลน์การสไลซ์"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
