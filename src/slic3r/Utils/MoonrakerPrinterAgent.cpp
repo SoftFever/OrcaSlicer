@@ -6,6 +6,9 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/miniz_extension.hpp"
+#include "libslic3r/GCode/ToolRemap.hpp"
+#include "libslic3r/GCode/ZmodHeader.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
@@ -35,6 +38,7 @@
 #include <boost/beast/websocket/rfc6455.hpp>
 #include <boost/beast/websocket/error.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/nowide/fstream.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
@@ -44,6 +48,7 @@
 #include <cctype>
 #include <ios>
 #include <functional>
+#include <iterator>
 #include <exception>
 #include <map>
 #include <string>
@@ -381,6 +386,24 @@ int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusF
         source_path = extracted;
     }
 
+    // Edits on a copy of the G-code, never on the plate's live file:
+    // - the Zmod header, for a printer on the Zmod agent;
+    // - for a tool changer that assigns filaments to tools at print time, on firmware that cannot
+    //   remap tool numbers itself, the tools renumbered to the physical ones the print dialog chose.
+    fs::path   remapped;
+    const auto tool_map    = upload_tool_map(params);
+    const bool zmod_header = GUI::wxGetApp().preset_bundle &&
+                             printer_wants_zmod_header(GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config);
+    if (!tool_map.empty() || zmod_header) {
+        remapped = source_path;
+        remapped.replace_extension(".prepared.gcode");
+        if (!write_prepared_gcode(gcode_path, remapped.string(), tool_map, zmod_header)) {
+            BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: failed to write " << remapped.string();
+            return BAMBU_NETWORK_ERR_FILE_NOT_EXIST;
+        }
+        gcode_path = remapped.string();
+    }
+
     // Extract filename for upload (relative to gcodes root); prefer the job name the dialog shows
     // over the temp file's name.
     std::string upload_filename = params.project_name.empty() ? source_path.filename().string() : params.project_name;
@@ -391,9 +414,10 @@ int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusF
     upload_filename = sanitize_filename(upload_filename);
 
     const int result = upload_and_start(params, gcode_path, upload_filename, update_fn, cancel_fn);
-    if (!extracted.empty()) {
+    for (const fs::path& temp : {extracted, remapped}) {
         boost::system::error_code ec;
-        fs::remove(extracted, ec);
+        if (!temp.empty())
+            fs::remove(temp, ec);
     }
     if (result == BAMBU_NETWORK_SUCCESS && update_fn)
         update_fn(PrintingStageFinished, 100, _u8L("Print started"));
@@ -436,6 +460,35 @@ std::map<int, int> MoonrakerPrinterAgent::parse_tool_mapping(const std::string& 
             tool_map[int(filament)] = tool;
     }
     return tool_map;
+}
+
+std::map<int, int> MoonrakerPrinterAgent::upload_tool_map(const PrintParams& params) const
+{
+    if (firmware_maps_tools() || !GUI::wxGetApp().preset_bundle)
+        return {};
+    const DynamicPrintConfig& printer = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    const auto*               mapping = printer.option<ConfigOptionBool>("filament_tool_mapping");
+    const auto*               nozzles = printer.option<ConfigOptionFloats>("nozzle_diameter");
+    if (mapping == nullptr || !mapping->value || nozzles == nullptr)
+        return {};
+    return parse_tool_mapping(params.ams_mapping, int(nozzles->size()));
+}
+
+bool MoonrakerPrinterAgent::write_prepared_gcode(const std::string& source, const std::string& target, const std::map<int, int>& tool_map, bool zmod_header) const
+{
+    boost::nowide::ifstream in(source, std::ios::binary);
+    if (!in)
+        return false;
+    std::string gcode((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    // The header first: its colour data describes the project's filaments, which the renumbering
+    // then moves onto the physical tools along with the tool changes, refreshing the MD5.
+    if (zmod_header)
+        gcode = add_zmod_header(gcode);
+    if (!tool_map.empty())
+        gcode = remap_gcode_tools(gcode, tool_map, [&tool_map](std::string& line) { remap_zmod_color_data(line, tool_map); });
+    boost::nowide::ofstream out(target, std::ios::binary);
+    out.write(gcode.data(), std::streamsize(gcode.size()));
+    return bool(out);
 }
 
 int MoonrakerPrinterAgent::start_uploaded_print(const PrintParams& /*params*/, const std::string& filename)

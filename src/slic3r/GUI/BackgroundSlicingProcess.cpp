@@ -39,6 +39,9 @@
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/Utils.hpp"
 #include "PostProcessor.hpp"
+#include "libslic3r/GCode/ZmodHeader.hpp"
+
+#include <boost/algorithm/string/predicate.hpp>
 #include "libslic3r/Format/SL1.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/libslic3r.h"
@@ -907,6 +910,12 @@ void BackgroundSlicingProcess::finalize_gcode()
         break;
     }
 
+    // Orca: for a printer on the Zmod agent, the Zmod header goes last, over the exported copy, so it
+    // covers what the post-processing scripts produced and never touches the G-code the preview maps.
+    if (printer_wants_zmod_header(m_fff_print->full_print_config()) && boost::iends_with(export_path, ".gcode") &&
+        !add_zmod_header_to_file(export_path))
+        throw Slic3r::ExportError(GUI::format(_L("Adding the Zmod file header to %1% failed."), export_path));
+
     m_print->set_status(100, GUI::format(_L("G-code file exported to %1%"), export_path));
 }
 
@@ -995,6 +1004,11 @@ void BackgroundSlicingProcess::prepare_upload()
                                              m_fff_print->full_print_config());
                 if (post_process)
                     m_upload_job.upload_data.upload_path = output_name_str;
+                // Orca: after the scripts, like a file export; source_path is the upload's own copy.
+                if (printer_wants_zmod_header(m_fff_print->full_print_config()) &&
+                    boost::iends_with(m_upload_job.upload_data.upload_path.string(), ".gcode") &&
+                    !add_zmod_header_to_file(source_path_str))
+                    throw Slic3r::RuntimeError(_utf8(L("Adding the Zmod file header to the uploaded G-code failed.")));
             }
         }
     } else {
