@@ -1,6 +1,19 @@
+#include <cstddef>
+#include <cstdio>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/file_status.hpp>
 #include <exception>
+#include <cstdint>
 
 #include "miniz_extension.hpp"
+#include "Utils.hpp"
+
+#include <boost/filesystem.hpp>
+#include <boost/log/trivial.hpp>
+#include <string>
+#include <miniz.h>
+#include <stdio.h>
 
 #if defined(_MSC_VER) || defined(__MINGW64__)
 #include "boost/nowide/cstdio.hpp"
@@ -15,6 +28,33 @@
 namespace Slic3r {
 
 namespace {
+std::string decode_zip_unicode_path_extra_field(const std::string& extra, const std::string& path)
+{
+    size_t offset = 0;
+    const mz_uint32 path_crc = mz_crc32(0, reinterpret_cast<const unsigned char*>(path.data()), path.size());
+
+    while (offset + 4 <= extra.size()) {
+        const unsigned char* field = reinterpret_cast<const unsigned char*>(extra.data() + offset);
+        const std::uint16_t len = field[2] | (static_cast<std::uint16_t>(field[3]) << 8);
+        if (offset + 4 + len > extra.size())
+            break;
+
+        if (field[0] == 0x75 && field[1] == 0x70 && len >= 5 && field[4] == 0x01) {
+            const mz_uint32 stored_crc =
+                static_cast<mz_uint32>(field[5]) |
+                (static_cast<mz_uint32>(field[6]) << 8) |
+                (static_cast<mz_uint32>(field[7]) << 16) |
+                (static_cast<mz_uint32>(field[8]) << 24);
+            if (stored_crc == path_crc)
+                return std::string(extra.data() + offset + 9, extra.data() + offset + 4 + len);
+        }
+
+        offset += 4 + len;
+    }
+
+    return Slic3r::decode_path(path.c_str());
+}
+
 bool open_zip(mz_zip_archive *zip, const char *fname, bool isread)
 {
     if (!zip) return false;
@@ -76,6 +116,76 @@ bool open_zip_writer(mz_zip_archive *zip, const std::string &fname)
 bool close_zip_reader(mz_zip_archive *zip) { return close_zip(zip, true); }
 bool close_zip_writer(mz_zip_archive *zip) { return close_zip(zip, false); }
 
+std::string decode_archive_entry_path(mz_zip_archive *zip, const mz_zip_archive_file_stat &stat)
+{
+    if (stat.m_is_utf8)
+        return stat.m_filename;
+
+    std::string extra(1024, 0);
+    const size_t extra_size = mz_zip_reader_get_extra(zip, stat.m_file_index, extra.data(), extra.size());
+    return decode_zip_unicode_path_extra_field(extra.substr(0, extra_size > 0 ? extra_size - 1 : 0), stat.m_filename);
+}
+
+bool extract_archive_confined(const std::string &zip_path_utf8, const std::string &dest_dir)
+{
+    mz_zip_archive archive;
+    mz_zip_zero_struct(&archive);
+
+    if (!open_zip_reader(&archive, zip_path_utf8)) {
+        BOOST_LOG_TRIVIAL(error) << "Unable to open zip reader for " << zip_path_utf8;
+        return false;
+    }
+
+    const mz_uint num_entries = mz_zip_reader_get_num_files(&archive);
+    mz_zip_archive_file_stat stat;
+
+    // Validate every entry first so an archive with a single escaping entry leaves no partial output behind.
+    const boost::filesystem::path root(dest_dir);
+    for (mz_uint i = 0; i < num_entries; ++i) {
+        if (mz_zip_reader_file_stat(&archive, i, &stat) && !is_path_within_root(stat.m_filename, root)) {
+            BOOST_LOG_TRIVIAL(error) << "Unzip: rejecting " << zip_path_utf8 << ", entry " << stat.m_filename << " resolves outside " << dest_dir;
+            close_zip_reader(&archive);
+            return false;
+        }
+    }
+
+    for (mz_uint i = 0; i < num_entries; ++i) {
+        if (!mz_zip_reader_file_stat(&archive, i, &stat)) {
+            BOOST_LOG_TRIVIAL(warning) << "Unzip: read file stat failed";
+            continue;
+        }
+        const std::string dest_file = dest_dir + "/" + stat.m_filename;
+        try {
+            if (stat.m_is_directory) {
+                const boost::filesystem::path dest_path(dest_file);
+                if (!boost::filesystem::exists(dest_path))
+                    boost::filesystem::create_directories(dest_path);
+                continue;
+            }
+            if (stat.m_uncomp_size == 0) {
+                BOOST_LOG_TRIVIAL(warning) << "Unzip: invalid size for file " << stat.m_filename;
+                continue;
+            }
+            // Replace a symlink at the destination rather than writing through it.
+            const boost::filesystem::path dest_path(dest_file);
+            if (boost::filesystem::is_symlink(boost::filesystem::symlink_status(dest_path)))
+                boost::filesystem::remove(dest_path);
+            if (!mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_file.c_str(), 0)) {
+                BOOST_LOG_TRIVIAL(error) << "Unzip: extract file " << stat.m_filename << " to dest " << dest_file << " failed";
+                close_zip_reader(&archive);
+                return false;
+            }
+            BOOST_LOG_TRIVIAL(info) << "Unzip: successfully extract file " << stat.m_file_index << " to " << dest_file;
+        } catch (const std::exception &e) {
+            close_zip_reader(&archive);
+            BOOST_LOG_TRIVIAL(error) << "Unzip: archive read exception: " << e.what();
+            return false;
+        }
+    }
+    close_zip_reader(&archive);
+    return true;
+}
+
 MZ_Archive::MZ_Archive()
 {
     mz_zip_zero_struct(&arch);
@@ -92,7 +202,7 @@ std::string MZ_Archive::get_errorstr(mz_zip_error mz_err)
     case MZ_ZIP_TOO_MANY_FILES:
         return L("too many files");
     case MZ_ZIP_FILE_TOO_LARGE:
-        return L("file too large");
+        return L("File too large");
     case MZ_ZIP_UNSUPPORTED_METHOD:
         return L("unsupported method");
     case MZ_ZIP_UNSUPPORTED_ENCRYPTION:
@@ -106,7 +216,7 @@ std::string MZ_Archive::get_errorstr(mz_zip_error mz_err)
     case MZ_ZIP_INVALID_HEADER_OR_CORRUPTED:
         return L("invalid header or corrupted");
     case MZ_ZIP_UNSUPPORTED_MULTIDISK:
-        return L("unsupported multidisk");
+        return L("Saving to RAID is not supported.");
     case MZ_ZIP_DECOMPRESSION_FAILED:
         return L("decompression failed");
     case MZ_ZIP_COMPRESSION_FAILED:
@@ -138,13 +248,13 @@ std::string MZ_Archive::get_errorstr(mz_zip_error mz_err)
     case MZ_ZIP_INVALID_FILENAME:
         return L("invalid filename");
     case MZ_ZIP_BUF_TOO_SMALL:
-        return L("buffer too small");
+        return L("Buffer too small");
     case MZ_ZIP_INTERNAL_ERROR:
         return L("internal error");
     case MZ_ZIP_FILE_NOT_FOUND:
         return L("file not found");
     case MZ_ZIP_ARCHIVE_TOO_LARGE:
-        return L("archive too large");
+        return L("Archive too large");
     case MZ_ZIP_VALIDATION_FAILED:
         return L("validation failed");
     case MZ_ZIP_WRITE_CALLBACK_FAILED:
@@ -153,7 +263,7 @@ std::string MZ_Archive::get_errorstr(mz_zip_error mz_err)
         break;
     }
 
-    return "unknown error";
+    return L("unknown error");
 }
 
 } // namespace Slic3r

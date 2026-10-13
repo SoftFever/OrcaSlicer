@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "GLTexture.hpp"
-#include "Event.hpp"
 #include <imgui/imgui.h>
 
 #define DEFAULT_TOOLBAR_BUTTON_WIDTH    80.0f
@@ -51,7 +50,6 @@ public:
     float icon_height;
     bool is_display_scrollbar;
     bool show_stats_item{ false };
-    bool is_render_finish{false};
     IMToolbar() {
         icon_width = DEFAULT_TOOLBAR_BUTTON_WIDTH;
         icon_height = DEFAULT_TOOLBAR_BUTTON_HEIGHT;

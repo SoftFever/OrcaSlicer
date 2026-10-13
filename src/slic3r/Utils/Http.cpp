@@ -1,7 +1,23 @@
 #include "Http.hpp"
+#include "libslic3r_version.h"
 
+#include <algorithm>
+#include <atomic>
+#include <boost/filesystem/operations.hpp>
+#include <cassert>
 #include <cstdlib>
+#include <curl/curlver.h>
+#include <fstream>
 #include <functional>
+#include <memory>
+#include <string>
+#include <stdlib.h>
+#include <map>
+#include <mutex>
+#include <ios>
+#include "libslic3r/Exception.hpp"
+#include <iterator>
+#include <ostream>
 #include <thread>
 #include <deque>
 #include <sstream>
@@ -13,6 +29,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <curl/curl.h>
+#include <utility>
 
 #ifdef OPENSSL_CERT_OVERRIDE
 #include <openssl/x509.h>
@@ -53,10 +70,14 @@ struct CurlGlobalInit
             ssl_cafile = X509_get_default_cert_file();
 
         int replace = true;
-        if (!ssl_cafile || !fs::exists(fs::path(ssl_cafile))) {
+        // ORCA: non-throwing overload; fs_ec is deliberately unread. An existing but unreadable
+        //       path (a static build's baked-in OPENSSLDIR run as another user, say) must fall
+        //       through to CA_BUNDLES, not throw out of this constructor.
+        boost::system::error_code fs_ec;
+        if (!ssl_cafile || !fs::exists(fs::path(ssl_cafile), fs_ec)) {
             const char * bundle = nullptr;
             for (const char * b : CA_BUNDLES) {
-                if (fs::exists(fs::path(b))) {
+                if (fs::exists(fs::path(b), fs_ec)) {
                     ::setenv(SSL_CA_FILE, bundle = b, replace);
                     break;
                 }
@@ -122,7 +143,7 @@ struct Http::priv
 	std::string error_buffer;    // Used for CURLOPT_ERRORBUFFER
     std::string headers;
 	size_t limit;
-	bool cancel;
+	std::atomic_bool cancel;
     std::unique_ptr<form_file> putFile;
 
 	std::thread io_thread;
@@ -254,17 +275,15 @@ int Http::priv::xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_o
 	bool cb_cancel = false;
 
 	if (self->progressfn) {
-		double speed;
+		double speed = 0.;
         curl_easy_getinfo(self->curl, CURLINFO_SPEED_UPLOAD, &speed);
-		if (speed > 0.01)
-			speed = speed;
 		Progress progress(dltotal, dlnow, ultotal, ulnow, self->buffer, speed);
 		self->progressfn(progress, cb_cancel);
 	}
 
-	if (cb_cancel) { self->cancel = true; }
+	if (cb_cancel) { self->cancel.store(true); }
 
-	return self->cancel;
+	return self->cancel.load();
 }
 
 int Http::priv::xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow)
@@ -323,8 +342,10 @@ void Http::priv::form_add_file(const char *name, const fs::path &path, const cha
 	// We can't use CURLFORM_FILECONTENT, because curl doesn't support Unicode filenames on Windows
 	// and so we use CURLFORM_STREAM with boost ifstream to read the file.
 
+	std::string filename_str;
 	if (filename == nullptr) {
-		filename = path.string().c_str();
+		filename_str = path.string();
+		filename = filename_str.c_str();
 	}
 
 	form_files.emplace_back(path, offset, length);
@@ -473,7 +494,7 @@ void Http::priv::http_perform()
 
 	if (res != CURLE_OK) {
 		if (res == CURLE_ABORTED_BY_CALLBACK) {
-			if (cancel) {
+			if (cancel.load()) {
 				// The abort comes from the request being cancelled programatically
 				Progress dummyprogress(0, 0, 0, 0, std::string());
 				bool cancel = true;
@@ -570,6 +591,21 @@ Http& Http::header(std::string name, const std::string &value)
 	return *this;
 }
 
+Http& Http::headers_reset()
+{
+	if (!p) { return *this; }
+
+	::curl_slist_free_all(p->headerlist);
+	p->headerlist = nullptr;
+	p->headerlist = curl_slist_append(p->headerlist, "Expect:");
+
+	std::lock_guard<std::mutex> l(g_mutex);
+	for (auto it = extra_headers.begin(); it != extra_headers.end(); ++it)
+		this->header(it->first, it->second);
+
+	return *this;
+}
+
 Http& Http::remove_header(std::string name)
 {
 	if (p) {
@@ -605,6 +641,16 @@ Http& Http::ca_file(const std::string &name)
 		::curl_easy_setopt(p->curl, CURLOPT_CAINFO, name.c_str());
 	}
 
+	return *this;
+}
+
+Http& Http::tls_verify(bool enable)
+{
+	if (p) {
+		::curl_easy_setopt(p->curl, CURLOPT_SSL_VERIFYPEER, enable ? 1L : 0L);
+		::curl_easy_setopt(p->curl, CURLOPT_SSL_VERIFYHOST, enable ? 2L : 0L);
+		::curl_easy_setopt(p->curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
+	}
 	return *this;
 }
 
@@ -759,7 +805,7 @@ void Http::perform_sync()
 
 void Http::cancel()
 {
-	if (p) { p->cancel = true; }
+	if (p) { p->cancel.store(true); }
 }
 
 void Http::print() const
@@ -905,13 +951,12 @@ std::string Http::tls_global_init()
 
 std::string Http::tls_system_cert_store()
 {
-    std::string ret;
-
 #ifdef OPENSSL_CERT_OVERRIDE
-    ret = ::getenv(X509_get_default_cert_file_env());
+    if (const char *cert_file = ::getenv(X509_get_default_cert_file_env()))
+        return cert_file;
 #endif
 
-    return ret;
+    return {};
 }
 
 std::string Http::url_encode(const std::string &str)
@@ -951,6 +996,51 @@ std::string Http::get_filename_from_url(const std::string &url)
 	int start_pos = path_url.find_last_of("/");
 	if (start_pos < 0) return "";
 	return path_url.substr(start_pos + 1, path_url.length() - start_pos - 1);
+}
+
+std::string Http::get_host_from_url(const std::string &url_in, std::string *port)
+{
+    std::string url = url_in;
+    if (url.find("//") == std::string::npos)
+        url = "http://" + url;
+
+    if (port)
+        port->clear();
+    std::string out = url_in;
+    CURLU *hurl = curl_url();
+    if (hurl) {
+        CURLUcode rc = curl_url_set(hurl, CURLUPART_URL, url.c_str(), 0);
+        if (rc == CURLUE_OK) {
+            char *host;
+            rc = curl_url_get(hurl, CURLUPART_HOST, &host, 0);
+            if (rc == CURLUE_OK) {
+                out = host;
+                curl_free(host);
+                if (port) {
+                    char *pstr;
+                    rc = curl_url_get(hurl, CURLUPART_PORT, &pstr, 0);
+                    if (rc == CURLUE_OK && pstr) {
+                        *port = pstr;
+                        curl_free(pstr);
+                    }
+                }
+            } else
+                BOOST_LOG_TRIVIAL(error) << "Http::get_host_from_url: failed to get host from URL " << url;
+        } else
+            BOOST_LOG_TRIVIAL(error) << "Http::get_host_from_url: failed to parse URL " << url;
+        curl_url_cleanup(hurl);
+    } else
+        BOOST_LOG_TRIVIAL(error) << "Http::get_host_from_url: failed to allocate curl_url";
+    return out;
+}
+
+std::string Http::get_host_header_value(const std::string &url)
+{
+    std::string port;
+    std::string host = get_host_from_url(url, &port);
+    if (!port.empty())
+        host += ":" + port;
+    return host;
 }
 
 std::ostream& operator<<(std::ostream &os, const Http::Progress &progress)

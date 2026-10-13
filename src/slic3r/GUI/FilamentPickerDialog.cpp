@@ -4,15 +4,37 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "EncodedFilament.hpp"
-#include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/StateColor.hpp"
 #include "Widgets/DialogButtons.hpp"
 #include "wxExtensions.hpp"
+#include <wx/colour.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/timer.h>
+#include <string>
+#include "slic3r/GUI/GUI_Utils.hpp"
+#include <wx/frame.h>
+#include <wx/nonownedwnd.h>
+#include <wx/scrolwin.h>
+#include <wx/event.h>
+#include <wx/dcmemory.h>
+#include <boost/log/trivial.hpp>
+#include <vector>
+#include "slic3r/GUI/FilamentBitmapUtils.hpp"
+#include <wx/font.h>
+#include <wx/panel.h>
+#include <wx/anybutton.h>
+#include <wx/settings.h>
+#include <wx/colourdata.h>
+#include <wx/utils.h>
+#include <wx/dcclient.h>
+#include <wx/window.h>
 #include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/button.h>
+#include <cstddef>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -73,7 +95,7 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
     wxString color_name = m_color_query->GetFilaColorName(fila_id, fila_color);
     m_cur_color_name = new wxString(color_name);
 
-    wxBoxSizer *container_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *container_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // Preview panel (always present)
@@ -94,20 +116,19 @@ FilamentPickerDialog::FilamentPickerDialog(wxWindow *parent, const wxString& fil
 
     // "More colours" button (always present)
     CreateMoreInfoButton();
-    main_sizer->Add(m_more_btn, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(8));
-    main_sizer->AddSpacer(FromDIP(8));
+    main_sizer->Add(m_more_btn, 0, wxEXPAND | wxTOP, FromDIP(8));
+    //main_sizer->AddSpacer(FromDIP(8));
 
     // OK / Cancel buttons
     auto dlg_btns = new DialogButtons(this, {"OK", "Cancel"});
     m_ok_btn = dlg_btns->GetOK();
     m_cancel_btn = dlg_btns->GetCANCEL();
 
-    main_sizer->Add(dlg_btns, 0, wxEXPAND);
-    container_sizer->Add(main_sizer, 1, wxEXPAND | wxALL, FromDIP(16));
+    container_sizer->Add(main_sizer, 1, wxEXPAND | wxALL, FromDIP(10));
+    container_sizer->Add(dlg_btns, 0, wxEXPAND);
 
-    SetSizer(container_sizer);
+    SetSizerAndFit(container_sizer);
     Layout();
-    container_sizer->Fit(this);
 
     // Position the dialog relative to the parent window
     if (GetParent()) {
@@ -427,11 +448,11 @@ wxScrolledWindow* FilamentPickerDialog::CreateColorGrid()
                 });
 
                 // Hover highlight
-                btn->Bind(wxEVT_ENTER_WINDOW, [btn](wxMouseEvent& evt) {
+                btn->Bind(wxEVT_ENTER_WINDOW, [](wxMouseEvent& evt) {
                     evt.Skip();
                 });
 
-                btn->Bind(wxEVT_LEAVE_WINDOW, [btn](wxMouseEvent& evt) {
+                btn->Bind(wxEVT_LEAVE_WINDOW, [](wxMouseEvent& evt) {
                     evt.Skip();
                 });
 
@@ -533,17 +554,7 @@ void FilamentPickerDialog::UpdateButtonStates(wxBitmapButton* selected_btn)
 void FilamentPickerDialog::CreateMoreInfoButton()
 {
     m_more_btn = new Button(this, "+ " + _L("More Colors"));
-    m_more_btn->SetMinSize(wxSize(-1, FromDIP(36)));
-
-    StateColor btn_bg(
-        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal)
-    );
-
-
-    m_more_btn->SetBackgroundColor(btn_bg);
-    m_more_btn->SetBorderStyle(wxPENSTYLE_SHORT_DASH);
-    m_more_btn->SetCornerRadius(FromDIP(0));
+    m_more_btn->SetStyle(ButtonStyle::Regular, ButtonType::Expanded);
 }
 
 wxColourData FilamentPickerDialog::GetSingleColorData()

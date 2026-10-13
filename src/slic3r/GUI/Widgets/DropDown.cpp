@@ -1,18 +1,36 @@
 #include "DropDown.hpp"
 #include "Label.hpp"
 
+#include <cassert>
+#include <algorithm>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <cstdio>
+#include "slic3r/GUI/Widgets/PopupWindow.hpp"
+#include <vector>
+#include <utility>
+#include <iterator>
+#include <wx/dc.h>
+#include <wx/dcclient.h>
 #include <wx/display.h>
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
+#include <wx/event.h>
+#include <wx/popupwin.h>
+#include <wx/stattext.h>
+#include <wx/gdicmn.h>
+#include <wx/window.h>
 
 #ifdef __WXGTK__
 #include <gtk/gtk.h>
 #endif
 
 #include <set>
+#include "slic3r/GUI/Widgets/StateColor.hpp"
+#include "slic3r/GUI/Widgets/StateHandler.hpp"
+#include "slic3r/GUI/wxExtensions.hpp"
 
 wxDEFINE_EVENT(EVT_DISMISS, wxCommandEvent);
+wxDEFINE_EVENT(EVT_DROPDOWN_ITEM_ACTION, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(DropDown, PopupWindow)
 
@@ -167,6 +185,30 @@ bool DropDown::HasDismissLongTime()
         (now - dismissTime).total_milliseconds() >= 20;
 }
 
+void DropDown::Popup(wxWindow *focus)
+{
+#ifdef __WXGTK__
+    if (!mainDropDown && m_widget) {
+        // Data-view cell editors can receive focus before wxGTK infers a
+        // native popup parent, so provide the current toplevel explicitly.
+        GtkWindow *transient_parent = nullptr;
+        for (wxWindow *win = GetParent(); win; win = win->GetParent()) {
+            GtkWidget *widget = static_cast<GtkWidget *>(win->GetHandle());
+            if (!widget)
+                continue;
+            GtkWidget *top = gtk_widget_get_toplevel(widget);
+            if (GTK_IS_WINDOW(top)) {
+                transient_parent = GTK_WINDOW(top);
+                break;
+            }
+        }
+        if (transient_parent)
+            gtk_window_set_transient_for(GTK_WINDOW(m_widget), transient_parent);
+    }
+#endif
+    PopupWindow::Popup(focus);
+}
+
 void DropDown::paintEvent(wxPaintEvent& evt)
 {
     // depending on your system you may need to look at double-buffered dcs
@@ -199,6 +241,19 @@ static wxSize GetBmpSize(wxBitmap & bmp)
 #else
     return bmp.GetSize();
 #endif
+}
+
+// The x-range [first, second) of the column at the right of the rows that holds the items' action
+// icons, empty when no item has one. render() draws the icons in it and mouseReleased() hit-tests
+// clicks against it, so the drawn icon and its clickable area always match.
+std::pair<int, int> DropDown::actionColumn() const
+{
+    if (actionIconWidth <= 0)
+        return {0, 0};
+    int right = rowSize.x;
+    if (rowSize.y * count > GetSize().y) // position bar
+        right -= 6;
+    return {right - actionIconWidth - FromDIP(16), right};
 }
 
 static void _DrawSplitItem(const wxWindow* w, wxDC& dc, wxString split_text, wxPoint start_pt, int item_width, int item_height)
@@ -330,6 +385,10 @@ void DropDown::render(wxDC &dc)
         rcContent.width -= szBmp.x + 5;
     }
 
+    const auto action_column = actionColumn();
+    if (action_column.second > action_column.first)
+        rcContent.width = action_column.first - rcContent.x;
+
     std::set<wxString> groups;
     // draw texts & icons
     int index = 0;
@@ -340,14 +399,14 @@ void DropDown::render(wxDC &dc)
             states2 &= ~StateColor::Enabled;
         // Skip by group
         if (group.IsEmpty()) {
-            if (!item.group.IsEmpty()) {
-                if (groups.find(item.group) != groups.end())
+            if (!item.group_key.IsEmpty()) {
+                if (groups.find(item.group_key) != groups.end())
                     continue;
-                groups.insert(item.group);
-                if (!item.group.IsEmpty()) {
+                groups.insert(item.group_key);
+                if (!item.group_key.IsEmpty()) {
                     bool disabled = true;
                     for (int j = i + 1; j < items.size(); ++j) {
-                        if (items[i].group != item.group && (items[j].style & DD_ITEM_STYLE_DISABLED) == 0) {
+                        if (items[j].group_key == item.group_key && (items[j].style & DD_ITEM_STYLE_DISABLED) == 0) {
                             disabled = false;
                             break;
                         }
@@ -357,7 +416,7 @@ void DropDown::render(wxDC &dc)
                 }
             }
         } else {
-            if (item.group != group)
+            if (item.group_key != group)
                 continue;
         }
         bool is_hover = index == hover_item;
@@ -391,21 +450,35 @@ void DropDown::render(wxDC &dc)
             pt.y = rcContent.y;
         }
         auto text = group.IsEmpty()
-                        ? (item.group.IsEmpty() ? item.text : item.group)
-                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
+                        ? (item.group_key.IsEmpty() ? item.text : item.group_label)
+                        : item.text;
+        if (item.action_icon.IsOk()) {
+            auto action_size = GetBmpSize(item.action_icon);
+            wxPoint action_pt(action_column.second - action_size.x - FromDIP(8),
+                              rcContent.y + (rcContent.height - action_size.y) / 2);
+            dc.DrawBitmap(item.action_icon, action_pt);
+        }
+
         if (!text_off && !text.IsEmpty()) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
-                if (is_hover && item.tip.IsEmpty())
-                    SetToolTip(text);
-                text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END,
-                                            rcContent.GetRight() - pt.x);
+                int max_text_width = rcContent.GetRight() - pt.x;
+                if (max_text_width <= 0) {
+                    text.clear();
+                } else {
+                    if (is_hover && item.tip.IsEmpty())
+                        SetToolTip(text);
+                    text = wxControl::Ellipsize(text, dc, wxELLIPSIZE_END, max_text_width);
+                }
             }
             pt.y += (rcContent.height - textSize.y) / 2;
             dc.SetFont(GetFont());
-            dc.SetTextForeground(text_color.colorForStates(states2));
+            // Dimmed items stay selectable, so they only borrow the disabled text tone rather
+            // than taking the disabled state itself.
+            const int text_states = (item.style & DD_ITEM_STYLE_DIMMED) ? (states2 & ~StateColor::Enabled) : states2;
+            dc.SetTextForeground(text_color.colorForStates(text_states));
             dc.DrawText(text, pt);
-            if (group.IsEmpty() && !item.group.IsEmpty()) {
+            if (group.IsEmpty() && !item.group_key.IsEmpty()) {
                 auto szBmp = arrow_bitmap.GetBmpSize();
                 pt.x = rcContent.GetRight() - szBmp.x - 5;
                 pt.y = rcContent.y + (rcContent.height - szBmp.y) / 2;
@@ -430,18 +503,18 @@ int DropDown::hoverIndex()
         auto &item = items[i];
         // Skip by group
         if (group.IsEmpty()) {
-            if (!item.group.IsEmpty()) {
-                if (groups.find(item.group) == groups.end())
-                    groups.insert(item.group);
+            if (!item.group_key.IsEmpty()) {
+                if (groups.find(item.group_key) == groups.end())
+                    groups.insert(item.group_key);
                 else
                     continue;
             }
         } else {
-            if (item.group != group)
+            if (item.group_key != group)
                 continue;
         }
         if (++index == hover_item)
-            return (item.group.IsEmpty() || !group.IsEmpty()) ? i : -i - 2;
+            return (item.group_key.IsEmpty() || !group.IsEmpty()) ? i : -i - 2;
     }
     return -1;
 }
@@ -455,7 +528,7 @@ int DropDown::selectedItem()
     if (count == items.size() && subDropDown == nullptr)
         return selection;
     auto & sel = items[selection];
-    if (group.IsEmpty() ? !sel.group.IsEmpty() : sel.group != group)
+    if (group.IsEmpty() ? !sel.group_key.IsEmpty() : sel.group_key != group)
         return -1;
     if (selection == 0)
         return 0;
@@ -465,14 +538,14 @@ int DropDown::selectedItem()
         auto &item = items[i];
         // Skip by group
         if (group.IsEmpty()) {
-            if (!item.group.IsEmpty()) {
-                if (groups.find(item.group) == groups.end())
-                    groups.insert(item.group);
+            if (!item.group_key.IsEmpty()) {
+                if (groups.find(item.group_key) == groups.end())
+                    groups.insert(item.group_key);
                 else
                     continue;
             }
         } else {
-            if (item.group != group)
+            if (item.group_key != group)
                 continue;
         }
         ++index;
@@ -485,6 +558,7 @@ void DropDown::messureSize()
     if (!need_sync) return;
     textSize = wxSize();
     iconSize = wxSize();
+    actionIconWidth = 0;
     count = 0;
     wxClientDC dc(GetParent() ? GetParent() : this);
     dc.SetFont(GetFont());
@@ -493,24 +567,24 @@ void DropDown::messureSize()
         auto &item = items[i];
         // Skip by group
         if (group.IsEmpty()) {
-            if (!item.group.IsEmpty()) {
-                if (groups.find(item.group) == groups.end())
-                    groups.insert(item.group);
+            if (!item.group_key.IsEmpty()) {
+                if (groups.find(item.group_key) == groups.end())
+                    groups.insert(item.group_key);
                 else
                     continue;
             }
         } else {
-            if (item.group != group)
+            if (item.group_key != group)
                 continue;
         }
         ++count;
         wxSize size1;
         if (!text_off) {
             auto text = group.IsEmpty()
-                        ? (item.group.IsEmpty() ? item.text : item.group)
-                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
+                        ? (item.group_key.IsEmpty() ? item.text : item.group_label)
+                        : item.text;
             size1 = dc.GetMultiLineTextExtent(text);
-            if (group.IsEmpty() && !item.group.IsEmpty())
+            if (group.IsEmpty() && !item.group_key.IsEmpty())
                 size1.x += 5 + arrow_bitmap.GetBmpWidth();
         }
         if (item.icon.IsOk()) {
@@ -521,11 +595,16 @@ void DropDown::messureSize()
                 size1.x += size2.x + (text_off ? 0 : 5);
             }
         }
+        if (item.action_icon.IsOk())
+            actionIconWidth = std::max(actionIconWidth, GetBmpSize(item.action_icon).x);
         if (size1.x > textSize.x) textSize = size1;
     }
+    // Every row leaves room for the action column, as render() and actionColumn() lay it out.
+    if (actionIconWidth > 0)
+        textSize.x += actionIconWidth + FromDIP(16);
     if (!align_icon) iconSize.x = 0;
     wxSize szContent = textSize;
-    if (szContent.x < FromDIP(120))
+    if (szContent.x < FromDIP(120) && !use_content_width)
         szContent.x = FromDIP(120);
     szContent.x += 10;
     if (check_bitmap.bmp().IsOk()) {
@@ -554,7 +633,8 @@ void DropDown::messureSize()
     wxWindow::SetSize(szContent);
 #ifdef __WXGTK__
     // Gtk has a wrapper window for popup widget
-    gtk_window_resize (GTK_WINDOW (m_widget), szContent.x, szContent.y);
+    if (szContent.x > 0 && szContent.y > 0)
+        gtk_window_resize (GTK_WINDOW (m_widget), szContent.x, szContent.y);
 #endif
     if (!groups.empty() && subDropDown == nullptr) {
         subDropDown = new DropDown(items);
@@ -563,7 +643,35 @@ void DropDown::messureSize()
         subDropDown->text_off          = text_off;
         subDropDown->use_content_width = true;
         subDropDown->Create(GetParent());
+#ifdef __WXGTK__
+        // Orca: On Wayland, while the sub holds an xdg_popup grab, motion events for
+        // the cursor over main may not be delivered (Mutter drops motion
+        // outside the grabbing surface). Poll on idle and synthesize a
+        // mouseMove on main so its hover highlight tracks and it can dismiss
+        // the sub when the cursor leaves the parent (group) item.
+        DropDown* sub = subDropDown;
+        sub->Bind(wxEVT_IDLE, [sub](wxIdleEvent& e) {
+            e.Skip();
+            if (!sub->IsShown() || !sub->mainDropDown->IsShown())
+                return;
+            wxPoint screen_pt = wxGetMousePosition();
+            if (sub->GetScreenRect().Contains(screen_pt) || !sub->mainDropDown->GetScreenRect().Contains(screen_pt))
+                return;
+            wxPoint main_pt = sub->mainDropDown->ScreenToClient(screen_pt);
+            wxMouseEvent ev(wxEVT_MOTION);
+            ev.SetEventObject(sub->mainDropDown);
+            ev.m_x = main_pt.x;
+            ev.m_y = main_pt.y;
+            sub->mainDropDown->mouseMove(ev);
+            e.RequestMore();
+        });
+#endif
         subDropDown->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
+            e.SetEventObject(this);
+            e.SetId(GetId());
+            GetEventHandler()->ProcessEvent(e);
+        });
+        subDropDown->Bind(EVT_DROPDOWN_ITEM_ACTION, [this](wxCommandEvent &e) {
             e.SetEventObject(this);
             e.SetId(GetId());
             GetEventHandler()->ProcessEvent(e);
@@ -608,8 +716,11 @@ void DropDown::autoPosition()
         // may exceed
         auto drect = wxDisplay(GetParent()).GetGeometry();
         if (GetPosition().y + size.y + 10 > drect.GetBottom()) {
+            int available_height = drect.GetBottom() - GetPosition().y - 10;
+            if (available_height < rowSize.y * 2)
+                return;
             if (use_content_width && count <= 15) size.x += 6;
-            size.y = drect.GetBottom() - GetPosition().y - 10;
+            size.y = available_height;
             wxWindow::SetSize(size);
             if (selection >= 0) {
                 if (offset.y + rowSize.y * (selection + 1) > size.y)
@@ -643,6 +754,15 @@ void DropDown::mouseReleased(wxMouseEvent& event)
         if (hover_item < 0)
             return;
         if (hover_item >= 0 && (subDropDown == nullptr || subDropDown->group.empty())) { // not moved
+            int index = hoverIndex();
+            if (index >= 0 && items[index].action_icon.IsOk()) {
+                const auto action_column = actionColumn();
+                if (event.GetX() >= action_column.first && event.GetX() < action_column.second) {
+                    sendDropDownActionEvent(index);
+                    paintNow();
+                    return;
+                }
+            }
             sendDropDownEvent();
             if (mainDropDown)
                 mainDropDown->hover_item = -1; // To Dismiss mainDropDown
@@ -696,9 +816,16 @@ void DropDown::mouseMove(wxMouseEvent &event)
         int index  = hoverIndex();
         if (index < -1) {
             auto & drop = *subDropDown;
-            drop.group  = items[-index - 2].group;
+            drop.group  = items[-index - 2].group_key;
             drop.need_sync = true;
             drop.messureSize();
+#ifdef __WXGTK__
+            // wxGTK wraps popup contents in a native GtkWindow. Make the submenu
+            // transient for the currently mapped parent popup window before
+            // positioning/showing it, so wlroots/Hyprland sees the topmost parent.
+            if (m_widget && drop.m_widget)
+                gtk_window_set_transient_for(GTK_WINDOW(drop.m_widget), GTK_WINDOW(m_widget));
+#endif
             drop.autoPosition();
             drop.paintNow();
             if (!drop.IsShown())
@@ -752,11 +879,31 @@ void DropDown::sendDropDownEvent()
     GetEventHandler()->ProcessEvent(event);
 }
 
+void DropDown::sendDropDownActionEvent(int index)
+{
+    if (index < 0 || index >= int(items.size()) || (items[index].style & DD_ITEM_STYLE_DISABLED))
+        return;
+    wxCommandEvent event(EVT_DROPDOWN_ITEM_ACTION, GetId());
+    event.SetEventObject(this);
+    event.SetInt(index);
+    event.SetString(items[index].text);
+    GetEventHandler()->ProcessEvent(event);
+}
+
 void DropDown::Dismiss()
 {
     if (subDropDown && subDropDown->IsShown())
         return;
     PopupWindow::Dismiss();
+}
+
+bool DropDown::ShouldDismissOnTopWindowDeactivate()
+{
+    // On Wayland, mapping a chained xdg_popup with grab makes the parent
+    // toplevel inactive, which would otherwise cascade-dismiss the whole
+    // chain. Skip when our chain peer is shown.
+    return !((mainDropDown && mainDropDown->IsShown()) ||
+             (subDropDown  && subDropDown->IsShown()));
 }
 
 void DropDown::OnDismiss()

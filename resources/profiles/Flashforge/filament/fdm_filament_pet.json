@@ -28,6 +28,12 @@
 	"textured_plate_temp_initial_layer": [
 		"85"
 	],
+	"supertack_plate_temp": [
+		"60"
+	],
+	"supertack_plate_temp_initial_layer": [
+		"60"
+	],
 	"slow_down_for_layer_cooling": [
 		"1"
 	],
@@ -38,7 +44,7 @@
 		"15"
 	],
 	"filament_max_volumetric_speed": [
-		"0"
+		"8"
 	],
 	"filament_type": [
 		"PETG"
