@@ -36,6 +36,7 @@
 
 #include "3DScene.hpp"
 #include "BitmapCache.hpp"
+#include "GLCanvas3D.hpp"
 #include "GLShader.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
@@ -1324,8 +1325,13 @@ void UVEditorCanvas::on_size(wxSizeEvent &evt)
     // Update() flushes it immediately - still through the normal paint path (unlike calling
     // render() directly), which matters because this canvas shares the app's one GL context with
     // the 3D view and must not hijack it outside its own paint.
+    // Not while a 3D canvas frame is in progress, though: wxGTK delivers this size event synchronously
+    // when the texture displacement gizmo relays out the pane from its ImGui panel, i.e. from inside
+    // that frame, and flushing the paint there would take the shared context away from it. The Refresh()
+    // then runs the paint once the frame is over.
     Refresh();
-    Update();
+    if (!GLCanvas3D::is_frame_in_progress())
+        Update();
 }
 
 void UVEditorCanvas::on_leave(wxMouseEvent &evt)
@@ -1346,6 +1352,16 @@ void UVEditorCanvas::render()
 {
     if (m_context == nullptr || !IsShownOnScreen())
         return;
+    // Painted from inside a 3D canvas frame - a modal dialog the gizmo opened from its ImGui panel runs
+    // this paint, as does any other synchronous event raised there. Making this surface current now
+    // would take the shared context away from that canvas mid-frame: its remaining draws would land
+    // here and, on Mesa/X11, its SwapBuffers() would be a fatal BadMatch. Skip, but ask for another
+    // paint so the skipped one is not simply lost. The pane stays stale for as long as a nested modal
+    // loop keeps a frame on the stack, which is behind the dialog anyway.
+    if (GLCanvas3D::is_frame_in_progress()) {
+        Refresh();
+        return;
+    }
 
     // wxGLCanvas::SetCurrent() genuinely fails (returns false) on a canvas that isn't shown on
     // screen, and can also fail on a pixel-format mismatch with the context - and every GL call
