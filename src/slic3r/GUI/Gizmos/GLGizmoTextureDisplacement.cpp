@@ -3701,6 +3701,106 @@ void GLGizmoTextureDisplacement::ensure_panel_icons()
         m_panel_icon_map[names[i]] = icons[i];
 }
 
+void GLGizmoTextureDisplacement::panel_tooltip(const wxString &text, const std::vector<TipMedia> &media)
+{
+    panel_tooltip(into_u8(text), media);
+}
+
+void GLGizmoTextureDisplacement::panel_tooltip(const std::string &text, const std::vector<TipMedia> &media)
+{
+    const ImGuiStyle &style = ImGui::GetStyle();
+    const float       gap   = m_imgui->scaled(0.5f);
+    const float       wrap  = m_imgui->scaled(20.f);
+    // The width has to be known here, not left to ImGui, because the tooltip is placed by its left edge
+    // (below) and an illustration has to be laid out against something. One carrying illustrations takes
+    // the full wrap width; a plain one takes exactly what its text needs, as it did when ImGui sized it,
+    // so a two-word tooltip is not a wide box with two words in it.
+    const float text_w = ImGui::CalcTextSize(text.c_str(), nullptr, false, wrap).x;
+    const float width  = (media.empty() ? std::min(wrap, std::ceil(text_w)) : wrap) + 2.f * style.WindowPadding.x;
+
+    // Beside the anchor (the panel, or the texture picker when the tooltip comes from inside it), never
+    // over it - the same reasoning, and the same placement, as the picker popup itself. ImGui normally
+    // keeps a tooltip glued to the mouse; it honours a position set here instead (see the Orca branch in
+    // imgui's Begin()), and still clamps the result inside the canvas.
+    const bool  left = m_tooltip_anchor_min.x - gap - width >= 0.f;
+    const float x    = left ? m_tooltip_anchor_min.x - gap - width : m_tooltip_anchor_max.x + gap;
+    ImGui::SetNextWindowPos(ImVec2(x, ImGui::GetItemRectMin().y)); // level with the control it explains
+    ImGui::SetNextWindowSize(ImVec2(width, 0.f));                  // height still follows the content
+
+    ImGui::BeginTooltip();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
+    ImGui::PushTextWrapPos(0.f); // the window's own edge, which is what the fixed width above sets
+    ImGui::TextUnformatted(text.c_str());
+    ImGui::PopTextWrapPos();
+    ImGui::PopStyleColor();
+    render_tip_media(media, width - 2.f * style.WindowPadding.x);
+    ImGui::EndTooltip();
+}
+
+void GLGizmoTextureDisplacement::render_tip_media(const std::vector<TipMedia> &media, float width)
+{
+    // Collect what is actually there first: the layout divides the width between the illustrations, so
+    // one that is missing has to drop out of the count rather than leave a gap.
+    std::vector<std::pair<const AnimatedTexture *, const TipMedia *>> shown;
+    std::string                                                       key;
+    for (const TipMedia &m : media) {
+        const AnimatedTexture *texture =
+            m_tip_media.get((boost::filesystem::path(resources_dir()) / "images" / "texture_displacement" / m.file).string());
+        if (texture != nullptr && texture->is_valid() && texture->width() > 0 && texture->height() > 0) {
+            shown.emplace_back(texture, &m);
+            key += m.file + "|";
+        }
+    }
+    if (shown.empty())
+        return;
+
+    // Each animation plays from its first frame when its tooltip opens: these are short loops showing
+    // one setting going from one value to another, and joining one halfway through shows the user the
+    // end of a change they never saw the start of.
+    if (key != m_tip_media_key) {
+        m_tip_media_key   = key;
+        m_tip_media_start = ImGui::GetTime();
+    }
+    const double time = ImGui::GetTime() - m_tip_media_start;
+
+    const ImGuiStyle &style   = ImGui::GetStyle();
+    const float       spacing = style.ItemSpacing.x;
+    const float       cell_w  = (width - spacing * float(shown.size() - 1)) / float(shown.size());
+    const ImU32       frame   = ImGui::GetColorU32(ImGuiCol_Text, 0.25f);
+
+    ImGui::Spacing();
+    for (size_t i = 0; i < shown.size(); ++i) {
+        const AnimatedTexture *texture = shown[i].first;
+        const TipMedia        &entry   = *shown[i].second;
+
+        ImGui::BeginGroup();
+        double             next = 0.;
+        const unsigned int id   = texture->texture_id(time, &next);
+        const float        h    = std::round(cell_w * float(texture->height()) / float(texture->width()));
+        ImGui::Image((ImTextureID) (intptr_t) id, ImVec2(cell_w, h));
+        ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), frame, style.FrameRounding);
+        // The canvas only redraws on demand, so an animation has to ask - and asks for exactly when its
+        // next frame is due, rather than for a redraw as fast as the machine will go.
+        if (texture->is_animated())
+            m_parent.schedule_extra_frame(int(next * 1000.0));
+
+        if (!entry.caption.empty()) {
+            // Centred under its own illustration, and never wider than it.
+            const std::string caption = into_u8(entry.caption);
+            const float       text_w  = ImGui::CalcTextSize(caption.c_str()).x;
+            const float       cell_x  = ImGui::GetCursorPosX();
+            ImGui::SetCursorPosX(cell_x + std::max(0.f, (cell_w - text_w) * 0.5f));
+            ImGui::PushTextWrapPos(cell_x + cell_w);
+            ImGui::TextDisabled("%s", caption.c_str());
+            ImGui::PopTextWrapPos();
+        }
+        ImGui::EndGroup();
+
+        if (i + 1 < shown.size())
+            ImGui::SameLine(0.f, spacing);
+    }
+}
+
 void GLGizmoTextureDisplacement::add_texture_layer()
 {
     ModelVolume *mv = texture_volume();
@@ -3845,6 +3945,14 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         return;
     }
 
+    // While this popup is up its own tooltips belong beside it, not beside the panel it is already
+    // covering the left of. Restored before every exit below.
+    const ImVec2 prev_anchor_min = m_tooltip_anchor_min;
+    const ImVec2 prev_anchor_max = m_tooltip_anchor_max;
+    m_tooltip_anchor_min         = ImGui::GetWindowPos();
+    m_tooltip_anchor_max         = ImVec2(m_tooltip_anchor_min.x + ImGui::GetWindowSize().x,
+                                          m_tooltip_anchor_min.y + ImGui::GetWindowSize().y);
+
     m_imgui->push_bold_font();
     m_imgui->text(_L("Choose a texture"));
     m_imgui->pop_bold_font();
@@ -3903,7 +4011,7 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
             if (entry.path == layer->path)
                 dl->AddRect(ImVec2(a.x - 1.f, a.y - 1.f), ImVec2(b.x + 1.f, b.y + 1.f), selected_col, 0.f, 0, 2.f);
             if (ImGui::IsItemHovered())
-                m_imgui->tooltip(entry.name, m_imgui->scaled(18.f));
+                panel_tooltip(entry.name);
 
             if (user && ImGui::IsMouseHoveringRect(a, b)) {
                 const float  r = std::round(tile * 0.17f);
@@ -3916,7 +4024,7 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
                 dl->AddLine(ImVec2(c.x - k, c.y - k), ImVec2(c.x + k, c.y + k), IM_COL32_WHITE, 1.5f);
                 dl->AddLine(ImVec2(c.x - k, c.y + k), ImVec2(c.x + k, c.y - k), IM_COL32_WHITE, 1.5f);
                 if (hot)
-                    m_imgui->tooltip(_u8L("Remove from My textures"), m_imgui->scaled(18.f));
+                    panel_tooltip(_u8L("Remove from My textures"));
                 if (remove_clicked)
                     to_remove = entry;
             }
@@ -3943,10 +4051,9 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         if (ImGui::Button("+##import_texture", ImVec2(tile, tile)))
             import_clicked = true;
         if (ImGui::IsItemHovered())
-            m_imgui->tooltip(_u8L("Import your own image as a height map. It is converted to the format the slicer "
-                                  "bakes from and saved to your personal texture folder, kept separate from the "
-                                  "textures shipped with OrcaSlicer."),
-                             m_imgui->scaled(20.f));
+            panel_tooltip(_u8L("Import your own image as a height map. It is converted to the format the slicer "
+                               "bakes from and saved to your personal texture folder, kept separate from the "
+                               "textures shipped with OrcaSlicer."));
         end_grid(origin, count + 1);
     }
 
@@ -3956,6 +4063,8 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
 
     if (chosen || import_clicked)
         ImGui::CloseCurrentPopup();
+    m_tooltip_anchor_min = prev_anchor_min;
+    m_tooltip_anchor_max = prev_anchor_max;
     ImGui::EndPopup();
 
     // Only once the loop over the library is done: importing, picking (which reorders the recently used)
@@ -5587,18 +5696,16 @@ void GLGizmoTextureDisplacement::render_debug_stage_panel(ModelVolume *mv)
         run_stage_debug();
     m_imgui->disabled_end();
     if (ImGui::IsItemHovered())
-        m_imgui->tooltip(_u8L("Run the same bake the Bake button runs, keeping the mesh after every "
-                              "stage, and step through them here. Nothing is committed to the model - "
-                              "this is for finding which stage a bad result came from."),
-                          m_imgui->scaled(20.f));
+        panel_tooltip(_u8L("Run the same bake the Bake button runs, keeping the mesh after every "
+                           "stage, and step through them here. Nothing is committed to the model - "
+                           "this is for finding which stage a bad result came from."));
 
     ImGui::SameLine();
     m_imgui->bbl_checkbox(_L("Check topology"), m_debug_check_topology);
     if (ImGui::IsItemHovered())
-        m_imgui->tooltip(_u8L("Count open and non-manifold edges after each stage, which is how a stage "
-                              "that tore the mesh is spotted. It scans every edge, so it adds noticeably "
-                              "to the capture on a fine bake."),
-                          m_imgui->scaled(20.f));
+        panel_tooltip(_u8L("Count open and non-manifold edges after each stage, which is how a stage "
+                           "that tore the mesh is spotted. It scans every edge, so it adds noticeably "
+                           "to the capture on a fine bake."));
 
     if (m_debug_stages.empty())
         return;
@@ -5666,9 +5773,8 @@ void GLGizmoTextureDisplacement::render_debug_stage_panel(ModelVolume *mv)
             show_error(nullptr, _u8L("Could not write the stage meshes."));
     }
     if (ImGui::IsItemHovered())
-        m_imgui->tooltip(_u8L("Write every captured stage out as an OBJ file, so they can be opened "
-                              "side by side in a mesh viewer."),
-                          m_imgui->scaled(20.f));
+        panel_tooltip(_u8L("Write every captured stage out as an OBJ file, so they can be opened "
+                           "side by side in a mesh viewer."));
 }
 
 void GLGizmoTextureDisplacement::queue_prepare(const TextureDisplacementPrepareParams &params,
@@ -5793,6 +5899,12 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
     ImGuiWrapper::push_toolbar_style(m_parent.get_scale());
     GizmoImguiBegin(get_name(), flags);
+    // Where this frame's tooltips place themselves (see panel_tooltip()). The size is last frame's -
+    // this window auto-resizes, so its height is only known once its content has been laid out - which
+    // is close enough for a tooltip that needs a frame of hovering to appear in the first place.
+    m_tooltip_anchor_min = ImGui::GetWindowPos();
+    m_tooltip_anchor_max = ImVec2(m_tooltip_anchor_min.x + ImGui::GetWindowSize().x,
+                                  m_tooltip_anchor_min.y + ImGui::GetWindowSize().y);
     ensure_panel_icons();
     process_uv_commands(); // clicks from the UV editor pane, run here where the GL context is current
     const float previous_body_h   = m_panel_body_h;
@@ -5816,7 +5928,6 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     const float       gap_s    = std::round(m_imgui->scaled(0.4f));
     const float       label_w  = m_imgui->scaled(4.8f); // label column of a label + slider row
     const float       card_pad = std::round(m_imgui->scaled(0.55f));
-    const float       wrap_w   = m_imgui->scaled(20.f);
     const ImVec4      orca     = ImGuiWrapper::COL_ORCA;
     const ImVec4      col_link = ImGuiWrapper::COL_ORCA;
     const ImVec4      col_frame = ImGui::GetStyleColorVec4(ImGuiCol_Separator);
@@ -5830,9 +5941,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         ImGuiWrapper::pop_combo_style();
         return changed;
     };
-    const auto hover_tip = [&](const auto &text) {
+    const auto hover_tip = [&](const auto &text, const std::vector<TipMedia> &media = {}) {
         if (ImGui::IsItemHovered())
-            m_imgui->tooltip(text, wrap_w);
+            panel_tooltip(text, media);
     };
 
     // Framed icon toggle: a 1 px frame, and when on a teal frame over a teal tint with the icon in its
@@ -5840,7 +5951,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     // `unavailable`, when not empty, draws it faded but still hoverable, so the tooltip can say why it
     // cannot be used - a disabled ImGui item would swallow the hover and leave the user guessing.
     const auto icon_toggle = [&](int uid, const std::string &iconfile, bool active, float sz, const wxString &label,
-                                 const wxString &tip_text, const wxString &unavailable = wxString()) -> bool {
+                                 const wxString &tip_text, const wxString &unavailable = wxString(),
+                                 const std::vector<TipMedia> &media = {}) -> bool {
         const bool  na      = !unavailable.empty();
         const auto  it      = m_panel_icon_map.find(iconfile);
         const float pad     = std::max(1.f, std::round(sz * 0.14f));
@@ -5867,12 +5979,12 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         ImGui::PopStyleVar(2);
         ImGui::PopID();
         if (ImGui::IsItemHovered())
-            m_imgui->tooltip(na ? tip_text + "\n\n" + unavailable : tip_text, wrap_w);
+            panel_tooltip(na ? tip_text + "\n\n" + unavailable : tip_text, media);
         return clicked && !na;
     };
     // Borderless icon button (non-toggle): always the grey monochrome variant.
     const auto icon_button = [&](int uid, const std::string &iconfile, float sz, const wxString &label,
-                                 const wxString &tip_text) -> bool {
+                                 const wxString &tip_text, const std::vector<TipMedia> &media = {}) -> bool {
         const auto  it      = m_panel_icon_map.find(iconfile);
         const float pad     = std::max(1.f, std::round(sz * 0.14f));
         bool        clicked = false;
@@ -5890,7 +6002,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         ImGui::PopStyleVar();
         ImGui::PopID();
         if (!tip_text.empty() && ImGui::IsItemHovered())
-            m_imgui->tooltip(tip_text, wrap_w);
+            panel_tooltip(tip_text, media);
         return clicked;
     };
     // A short vertical rule between groups of buttons on one row; call it right after an item.
@@ -6460,7 +6572,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                            "single copy."));
             m_preview_params_dirty |= float_row("##rotation", _L("Rotation"), &layer.rotation_deg, 0.f, 360.f, "%.0f°", false, card_pad);
             hover_tip(_u8L("Turns the texture on the surface, in degrees - for lining a pattern up with an "
-                           "edge of the model."));
+                           "edge of the model."),
+                      { { "rotation.gif" } });
 
             if (m_layer_expanded[size_t(layer.slot)]) {
                 {
@@ -6526,13 +6639,12 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     }
                     m_imgui->disabled_end();
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        m_imgui->tooltip(has_color ?
-                                             _u8L("Prints the painted area in the texture's colors as well as its "
-                                                  "relief. Each color is matched to the nearest of your loaded "
-                                                  "filaments; anything you did not paint keeps the object's own.") :
-                                             _u8L("This texture is a grayscale height map, so it has no colors to "
-                                                  "apply. Import a color image to use this."),
-                                         wrap_w);
+                        panel_tooltip(has_color ?
+                                          _u8L("Prints the painted area in the texture's colors as well as its "
+                                               "relief. Each color is matched to the nearest of your loaded "
+                                               "filaments; anything you did not paint keeps the object's own.") :
+                                          _u8L("This texture is a grayscale height map, so it has no colors to "
+                                               "apply. Import a color image to use this."));
 
                     // The rest of colour belongs to the whole stack, not to this layer, so it only appears once -
                     // under whichever layer turned colour on.
@@ -6702,7 +6814,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     const float x0 = ImGui::GetCursorPosX();
                     m_preview_params_dirty |= m_imgui->bbl_checkbox(_L("Tile") + "##tile_enabled", layer.tile_enabled);
                     hover_tip(_u8L("Repeats the texture across the painted area. Off places one copy, like a decal, "
-                                    "at the size set by Tile size."));
+                                    "at the size set by Tile size."),
+                              { { "tile_off.png", _L("Off") }, { "tile_on.png", _L("On") } });
                     ImGui::SameLine();
                     ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x0 + label_w));
                     const wxString tile_na = layer.tile_enabled ? wxString() : _L("Turn Tile on to choose how the texture repeats.");
@@ -6744,14 +6857,13 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                     }
                     m_imgui->disabled_end();
                     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                        m_imgui->tooltip(base_layer ?
-                                             _u8L("The base layer has nothing beneath it to combine with, so it always adds.") :
-                                             _u8L("What this layer does where it overlaps the ones below. Add and "
-                                                  "Subtract pile relief on or carve it away. Multiply and Divide scale "
-                                                  "what is underneath, which turns this layer into a mask over it - "
-                                                  "there, Depth acts as a strength, and 1 mm leaves white areas "
-                                                  "untouched."),
-                                         wrap_w);
+                        panel_tooltip(base_layer ?
+                                          _u8L("The base layer has nothing beneath it to combine with, so it always adds.") :
+                                          _u8L("What this layer does where it overlaps the ones below. Add and "
+                                               "Subtract pile relief on or carve it away. Multiply and Divide scale "
+                                               "what is underneath, which turns this layer into a mask over it - "
+                                               "there, Depth acts as a strength, and 1 mm leaves white areas "
+                                               "untouched."));
 
                     ImGui::SameLine(0.f, gap_s);
                     if (icon_toggle(842, "texture_displacement_adjust.svg", m_adjust_texture_mode, icon_sm, _L("Adjust placement"),
@@ -7405,18 +7517,17 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         m_imgui->pop_bold_font();
         GLGizmoUtils::pop_orca_button_style();
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            m_imgui->tooltip(mv != nullptr && !mv->is_texture_displacement_painted() ?
-                                 (m_seam_edit_mode ? _u8L("Nothing is painted yet. The UV editor's seam tool is on, so "
-                                                          "strokes on the model mark seams instead of painting - turn "
-                                                          "it off in the pane to paint.") :
-                                                     _u8L("Nothing is painted yet.")) :
-                             pro_mode() ?
-                                 _u8L("Turn the painted height maps into real geometry, by moving the vertices that are "
-                                      "already there. Use Subdivide first if the mesh is too coarse to show the detail.") :
-                                 _u8L("Turn the painted height maps into real geometry. The mesh is remeshed to an even "
-                                      "density and refined where the texture bends first, so the detail has vertices to "
-                                      "land on - all in one step."),
-                             wrap_w);
+            panel_tooltip(mv != nullptr && !mv->is_texture_displacement_painted() ?
+                              (m_seam_edit_mode ? _u8L("Nothing is painted yet. The UV editor's seam tool is on, so "
+                                                       "strokes on the model mark seams instead of painting - turn "
+                                                       "it off in the pane to paint.") :
+                                                  _u8L("Nothing is painted yet.")) :
+                          pro_mode() ?
+                              _u8L("Turn the painted height maps into real geometry, by moving the vertices that are "
+                                   "already there. Use Subdivide first if the mesh is too coarse to show the detail.") :
+                              _u8L("Turn the painted height maps into real geometry. The mesh is remeshed to an even "
+                                   "density and refined where the texture bends first, so the detail has vertices to "
+                                   "land on - all in one step."));
 
         ImGui::SameLine();
         if (busy) {
