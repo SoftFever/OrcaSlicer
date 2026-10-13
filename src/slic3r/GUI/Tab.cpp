@@ -4725,7 +4725,7 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("fan_max_speed", 0));
         line.append_option(optgroup->get_option("slow_down_layer_time"));
         optgroup->append_line(line);
-        optgroup->append_single_option_line("cooling_policy", "material_cooling#cooling-policy", 0);
+        optgroup->append_single_option_line("cooling_policy", "material_cooling#cooling-policy");
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "material_cooling#slow-printing-down-for-better-layer-cooling");
         optgroup->append_single_option_line("dont_slow_down_outer_wall", "material_cooling#dont-slow-down-outer-walls");
         optgroup->append_single_option_line("slow_down_min_speed", "material_cooling#min-print-speed");
@@ -4938,7 +4938,7 @@ void TabFilament::toggle_options()
         if (m_config->has("cooling_policy")) {
             auto cp_opt = dynamic_cast<const ConfigOptionEnumsGeneric*>(m_config->option("cooling_policy"));
             if (cp_opt && !cp_opt->values.empty()) {
-                policy = (CoolingPolicy) cp_opt->get_at(variant_index < cp_opt->values.size() ? variant_index : 0);
+                policy = (CoolingPolicy) cp_opt->get_at(0);
             }
         } 
         if (policy == CoolingPolicy::AlwaysOff) {
