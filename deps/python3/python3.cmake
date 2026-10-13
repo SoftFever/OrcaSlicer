@@ -88,8 +88,45 @@ if(WIN32)
     # release python3xx.lib; Py_DEBUG could not load release plugin modules.
     set(_python_pcbuild_config Release)
 
+    # CPython's own libraries, fetched here instead of by get_externals.bat, which ignores failed
+    # downloads. Must match PCbuild/get_externals.bat for _python_version.
+    set(_python_externals
+        # repo       folder                 commit                                    sha256 of the archive
+        source-deps  bzip2-1.0.8            05301997b2f9590f49c672cf3dfd3d3dfa7ad521  44b15bede52b32f8673a2976621a847258b041243c003e30f4d9a05214785fe5
+        source-deps  sqlite-3.49.1.0        cb7a3997059739fe9c63b2819aeda7c6907510ef  586fe469463f5b27b749f9eef1938baa8e8a12030341e96160a371356c2d6759
+        source-deps  xz-5.2.5               c6bc0c612605622aaef101a33a751f9de2ecc193  d99882a8f9fd48be0e605e27e3c077e5eaab370f6f52ebcc8ff754480ffdf0bc
+        source-deps  zlib-1.3.1             4dc98e1909830e2bdc2a9cc2236e3c5d5037335b  39d867c083ebc37c77cf03a442f87c0f83db006eb64343bd4a19f1c84c26f50c
+        bin-deps     libffi-3.4.4           94cb9a1c7feb608adf2b9f8fe2dbd6925ffbf90d  6b0f53490e0dd958708bff32df689cf2163c214147fcb8edb76a403fa6a877ca
+        bin-deps     openssl-bin-3.0.16.2   1174fd43d858425c345b16d631716fb98ba492ea  b741fd1411a36cb899fee2c39b70a4492f4bc1c6e2301d67df32e9754118a63b
+    )
+    set(_python_externals_dir "${CMAKE_CURRENT_BINARY_DIR}/dep_python3_externals")
+    list(LENGTH _python_externals _python_externals_len)
+    math(EXPR _python_externals_last "${_python_externals_len} - 1")
+    foreach(_i RANGE 0 ${_python_externals_last} 4)
+        math(EXPR _j "${_i} + 1")
+        math(EXPR _k "${_i} + 2")
+        math(EXPR _l "${_i} + 3")
+        list(GET _python_externals ${_i} _ext_repo)
+        list(GET _python_externals ${_j} _ext_name)
+        list(GET _python_externals ${_k} _ext_commit)
+        list(GET _python_externals ${_l} _ext_sha256)
+        ExternalProject_Add(dep_python3_ext_${_ext_name}
+            URL "https://github.com/python/cpython-${_ext_repo}/archive/${_ext_commit}.zip"
+            URL_HASH SHA256=${_ext_sha256}
+            DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/python3
+            DOWNLOAD_NAME cpython-${_ext_repo}-${_ext_name}.zip
+            SOURCE_DIR "${_python_externals_dir}/${_ext_name}"
+            CONFIGURE_COMMAND ""
+            BUILD_COMMAND ""
+            INSTALL_COMMAND ""
+        )
+        list(APPEND _python_depends dep_python3_ext_${_ext_name})
+    endforeach()
+    file(TO_NATIVE_PATH "${_python_externals_dir}" _python_externals_native)
+
     # PCbuild runs PYTHON without -E, so PYTHONHOME and PYTHONPATH are cleared.
     set(_python_env_args --unset=PYTHONHOME --unset=PYTHONPATH "PYTHON=${_python_host}"
+        "EXTERNALS_DIR=${_python_externals_native}"
         "GIT_CEILING_DIRECTORIES=<SOURCE_DIR>/..")
 
     # CPython's PCbuild needs a 64-bit-hosted toolchain: find_msbuild.bat picks the
