@@ -385,13 +385,13 @@ static wxString get_color_display_name(const wxString& hex_in)
 
     struct NamedColor { const char* name; int r, g, b; };
     static const NamedColor table[] = {
-        {"Black", 0, 0, 0},        {"White", 255, 255, 255},   {"Gray", 128, 128, 128},
-        {"Silver", 192, 192, 192}, {"Red", 220, 20, 20},       {"Dark Red", 139, 0, 0},
-        {"Orange", 255, 140, 0},   {"Yellow", 240, 225, 40},   {"Gold", 212, 175, 55},
-        {"Green", 30, 160, 60},    {"Dark Green", 0, 100, 0},  {"Lime", 160, 210, 60},
-        {"Cyan", 0, 200, 200},     {"Blue", 30, 80, 200},      {"Navy", 20, 30, 90},
-        {"Sky Blue", 110, 170, 220}, {"Purple", 128, 0, 128},  {"Magenta", 200, 40, 160},
-        {"Pink", 240, 150, 180},   {"Brown", 120, 70, 40},     {"Beige", 225, 210, 170},
+        {L("Black"), 0, 0, 0},        {L("White"), 255, 255, 255},   {L("Gray"), 128, 128, 128},
+        {L("Silver"), 192, 192, 192}, {L("Red"), 220, 20, 20},       {L("Dark Red"), 139, 0, 0},
+        {L("Orange"), 255, 140, 0},   {L("Yellow"), 240, 225, 40},   {L("Gold"), 212, 175, 55},
+        {L("Green"), 30, 160, 60},    {L("Dark Green"), 0, 100, 0},  {L("Lime"), 160, 210, 60},
+        {L("Cyan"), 0, 200, 200},     {L("Blue"), 30, 80, 200},      {L("Navy"), 20, 30, 90},
+        {L("Sky Blue"), 110, 170, 220}, {L("Purple"), 128, 0, 128},  {L("Magenta"), 200, 40, 160},
+        {L("Pink"), 240, 150, 180},   {L("Brown"), 120, 70, 40},     {L("Beige"), 225, 210, 170},
     };
 
     long best_dist = 2000000000L;
@@ -406,7 +406,7 @@ static wxString get_color_display_name(const wxString& hex_in)
             best_name = nc.name;
         }
     }
-    return wxString::FromUTF8(best_name);
+    return best_name[0] ? _L(best_name) : wxString();
 }
 
 // for each project filament (0-based), the AMS tray it is loaded in (e.g. "A1", "HT-B",
