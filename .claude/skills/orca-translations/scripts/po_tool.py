@@ -5,7 +5,7 @@ Standard library only. Edits a catalog in place, rewriting just the entries it
 changes in the layout `msgmerge --no-wrap` writes, so every other byte stays put.
 
     status     [--lang L ...]                  per-catalog counts
-    pending    --lang L [--offset N --limit N] [--out FILE] [--include-fuzzy]
+    pending    --lang L [--offset N --limit N] [--out FILE] [--no-include-fuzzy]   (adds similar earlier translations)
     apply      --lang L --input FILE [--overwrite] [--dry-run]    adds "# AI Translated"
     check      [--lang L ...] [--scope ai|all] [--warnings]
     lookup     --lang L PATTERN [--msgstr]     existing translations with ids, obsolete ones included
@@ -474,11 +474,31 @@ def cmd_status(a):
         print(f"{lang:7} {len(act):7} {empty:6} {plural:6} {sum(e.fuzzy for e in act):6} {sum(e.ai for e in act):6} {sum(bool(e.review) for e in act):6}")
 
 
+def similar_entries(c, e, pool, cutoff=0.72):
+    """The closest earlier translation of a similar English text: obsolete entries and translated
+    active ones. A reworded or split string usually still has one, and reusing it keeps the wording."""
+    import difflib
+    sm = difflib.SequenceMatcher(autojunk=False)
+    sm.set_seq2(e.msgid)
+    best = []
+    for other, msgstr, obsolete in pool:
+        sm.set_seq1(other)
+        if sm.real_quick_ratio() < cutoff or sm.quick_ratio() < cutoff:
+            continue
+        r = sm.ratio()
+        if r >= cutoff and other != e.msgid:
+            best.append((r, other, msgstr, obsolete))
+    best.sort(key=lambda t: -t[0])
+    return [{"msgid": o, "msgstr": s, "obsolete": ob, "similarity": round(r, 2)} for r, o, s, ob in best[:2]]
+
+
 def cmd_pending(a):
     c = Catalog(catalog_path(a.lang))
     g = Glossary(a.wiki)
     todo = [e for e in c.active() if needs_translation(e, c.nplurals, a.include_fuzzy)]
     batch = todo[a.offset:a.offset + a.limit] if a.limit else todo[a.offset:]
+    pool = [(x.msgid, x.msgstrs()[0], x.obsolete) for x in c.entries
+            if not x.is_header and x.msgstrs() and x.msgstrs()[0] and not x.fuzzy and 8 < len(x.msgid) < 600]
     items = []
     for e in batch:
         item = {"id": e.id(), "msgctxt": e.msgctxt, "msgid": e.msgid}
@@ -494,6 +514,12 @@ def cmd_pending(a):
             item["flags"] = flags
         if e.fuzzy:
             item["fuzzy"] = True
+            if e.msgstrs()[0]:
+                item["previous_translation"] = e.msgstrs()[0]
+        if len(e.msgid) > 8:
+            sim = similar_entries(c, e, pool)
+            if sim:
+                item["similar"] = sim
         hints = g.hints(e.msgid + "\n" + (e.msgid_plural or ""), a.lang)
         if hints:
             # Descriptions only where the sense must be chosen or no rendering exists yet.
@@ -787,7 +813,8 @@ def main():
     s.add_argument("--offset", type=int, default=0)
     s.add_argument("--limit", type=int, default=60)
     s.add_argument("--out")
-    s.add_argument("--include-fuzzy", action="store_true")
+    s.add_argument("--include-fuzzy", action=argparse.BooleanOptionalAction, default=True,
+                   help="list fuzzy entries too (default): users never see them")
     s.set_defaults(func=cmd_pending)
 
     s = sub.add_parser("apply")
