@@ -58,6 +58,7 @@
 #include "IMEXHelpers.hpp"
 #include "IMEXZones.hpp"
 #include "Print.hpp"
+#include "Arrange.hpp"
 #include "BoundingBox.hpp"
 #include "Brim.hpp"
 #include "ClipperUtils.hpp"
@@ -1479,7 +1480,8 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
         // BBS: exclusion check once per instance on the true footprint, not per
         // volume on the hull -- a concave or rotated part whose hull clips the
         // exclusion zone can still be clear of it.
-        if (inst->model_instance->footprint_intersects(
+        // Only with the sparrow packer; otherwise the per-volume hull test below applies.
+        if (arrangement::sparrow_available() && inst->model_instance->footprint_intersects(
                 exclude_polys,
                 Geometry::assemble_transform(Vec3d::Zero(), inst->model_instance->get_rotation(),
                                              inst->model_instance->get_scaling_factor(), inst->model_instance->get_mirror()),
@@ -1495,6 +1497,14 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
             auto volume_hull = v->get_convex_hull_2d(Geometry::assemble_transform(Vec3d::Zero(), inst->model_instance->get_rotation(),
                                                                                   inst->model_instance->get_scaling_factor(), inst->model_instance->get_mirror()));
             volume_hull.translate(inst->shift - inst->print_object->center_offset());
+
+            if (!arrangement::sparrow_available() && !intersection(exclude_polys, volume_hull).empty()) {
+                // return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n",
+                //        inst->model_instance->get_object()};
+                //ORCA: Pass ModelInstance instead of ModelObject
+                return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n",
+                        inst->model_instance};
+            }
 
             if (print_config.enable_wrapping_detection.value && !intersection(wrapping_poly, volume_hull).empty()) {
                 // return {inst->model_instance->get_object()->name + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n",

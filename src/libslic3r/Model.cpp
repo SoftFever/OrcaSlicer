@@ -3689,6 +3689,11 @@ bool ModelInstance::footprint_intersects(const Polygons &polys, const Transform3
     if (intersection(polys, hull).empty())
         return false;
 
+    // Without the sparrow packer nothing places concave outlines near the region, so the hull
+    // stays the criterion and behaviour is unchanged.
+    if (!arrangement::sparrow_available())
+        return true;
+
     // Hull crosses the region: a concave or rotated part may still be clear.
     ExPolygon outline = true_outline_2d_ex(trafo_instance);
     outline.translate(offset);
