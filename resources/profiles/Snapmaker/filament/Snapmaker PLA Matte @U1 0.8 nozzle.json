@@ -128,12 +128,8 @@
     "filament_flow_support": [
         "standard"
     ],
-    "graphic_effect_plate_temp": [
-        "0"
-    ],
-    "graphic_effect_plate_temp_initial_layer": [
-        "0"
-    ],
+    "graphic_effect_plate_temp": ["65"],
+    "graphic_effect_plate_temp_initial_layer": ["65"],
     "supertack_plate_temp": [
         "35"
     ],

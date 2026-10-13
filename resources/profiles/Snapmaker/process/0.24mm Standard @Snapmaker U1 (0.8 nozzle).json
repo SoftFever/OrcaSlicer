@@ -5,7 +5,7 @@
     "inherits": "fdm_process_U1_0.24_nozzle_0.8",
     "from": "system",
     "bottom_color_penetration_layers": "3",
-    "top_color_penetration_layers": "3",
+    "top_color_penetration_layers": "4",
     "setting_id": "GP029",
     "instantiation": "true",
     "description": "Compared with the default profile of a 0.6 mm nozzle, it has a smaller layer height, and results in less apparent layer lines and slight higher printing quality, but longer printing time.",

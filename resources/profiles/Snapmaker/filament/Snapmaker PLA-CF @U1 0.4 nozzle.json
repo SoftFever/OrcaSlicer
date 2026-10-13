@@ -88,5 +88,7 @@
     "pellet_flow_coefficient": [
         "0.4157"
     ],
-    "slow_down_layer_time": ["8"]
+    "slow_down_layer_time": ["8"],
+    "graphic_effect_plate_temp": ["0"],
+    "graphic_effect_plate_temp_initial_layer": ["0"]
 }

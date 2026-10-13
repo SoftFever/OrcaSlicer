@@ -1,6 +1,6 @@
 {
 	"vendor": "Snapmaker",
-	"updated_date": "2026-08-28",
+	"updated_date": "2026-10-08",
 	"filaments": [
 		{
 			"filament_id": "1682237920",
@@ -369,6 +369,126 @@
 					"color_name": {
 						"en": "Light Pink",
 						"zh_CN": "浅粉色"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34171",
+					"mode": 0,
+					"filament_color": [
+						"#7E2D40"
+					],
+					"color_name": {
+						"en": "Maroon",
+						"zh_CN": "栗红色"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34172",
+					"mode": 0,
+					"filament_color": [
+						"#A3B2A4"
+					],
+					"color_name": {
+						"en": "Sage Green",
+						"zh_CN": "鼠尾草绿"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34173",
+					"mode": 0,
+					"filament_color": [
+						"#B1E4E3"
+					],
+					"color_name": {
+						"en": "Ice Blue",
+						"zh_CN": "冰蓝色"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34174",
+					"mode": 0,
+					"filament_color": [
+						"#4EC3E0"
+					],
+					"color_name": {
+						"en": "Ocean Blue",
+						"zh_CN": "海洋蓝"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34175",
+					"mode": 0,
+					"filament_color": [
+						"#685BC7"
+					],
+					"color_name": {
+						"en": "Iris Purple",
+						"zh_CN": "鸢尾紫"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34152",
+					"mode": 0,
+					"filament_color": [
+						"#9DF48F"
+					],
+					"color_name": {
+						"en": "Apple Green",
+						"zh_CN": "青苹果绿"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34153",
+					"mode": 0,
+					"filament_color": [
+						"#436E42"
+					],
+					"color_name": {
+						"en": "Avocado Green",
+						"zh_CN": "牛油果绿"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34154",
+					"mode": 0,
+					"filament_color": [
+						"#53EECA"
+					],
+					"color_name": {
+						"en": "Aquamarine",
+						"zh_CN": "湖水蓝"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34155",
+					"mode": 0,
+					"filament_color": [
+						"#4895F9"
+					],
+					"color_name": {
+						"en": "Cornflower Blue",
+						"zh_CN": "矢车菊蓝"
+					},
+					"enabled": true
+				},
+				{
+					"sku": "34156",
+					"mode": 0,
+					"filament_color": [
+						"#1A4E8A"
+					],
+					"color_name": {
+						"en": "Ink Blue",
+						"zh_CN": "墨蓝色"
 					},
 					"enabled": true
 				}

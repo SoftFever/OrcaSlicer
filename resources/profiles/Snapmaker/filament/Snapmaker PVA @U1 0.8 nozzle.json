@@ -44,15 +44,9 @@
   "filament_soluble": [
     "1"
   ],
-  "graphic_effect_plate_temp": [
-    "65"
-  ],
-  "graphic_effect_plate_temp_initial_layer": [
-    "65"
-  ],
-  "hot_plate_temp_initial_layer": [
-    "65"
-  ],
+  "graphic_effect_plate_temp": ["70"],
+  "graphic_effect_plate_temp_initial_layer": ["70"],
+  "hot_plate_temp_initial_layer": ["70"],
   "nozzle_temperature": [
     "225"
   ],
@@ -68,12 +62,8 @@
   "slow_down_layer_time": [
     "7"
   ],
-  "textured_plate_temp": [
-    "65"
-  ],
-  "textured_plate_temp_initial_layer": [
-    "65"
-  ],
+  "textured_plate_temp": ["70"],
+  "textured_plate_temp_initial_layer": ["70"],
   "filament_cooling_final_speed": [
     "3.4"
   ],
@@ -118,5 +108,6 @@
   ],
   "pellet_flow_coefficient": [
     "0.4157"
-  ]
+  ],
+  "hot_plate_temp": ["70"]
 }

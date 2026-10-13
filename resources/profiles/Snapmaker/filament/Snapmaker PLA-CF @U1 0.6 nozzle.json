@@ -85,5 +85,7 @@
   ],
   "supertack_plate_temp_initial_layer": [
     "35"
-  ]
+  ],
+  "graphic_effect_plate_temp": ["0"],
+  "graphic_effect_plate_temp_initial_layer": ["0"]
 }

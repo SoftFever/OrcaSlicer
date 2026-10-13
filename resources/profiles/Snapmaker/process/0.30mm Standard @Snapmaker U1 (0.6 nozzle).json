@@ -5,7 +5,7 @@
     "inherits": "fdm_process_U1_0.30_nozzle_0.6",
     "from": "system",
     "bottom_color_penetration_layers": "3",
-    "top_color_penetration_layers": "3",
+    "top_color_penetration_layers": "4",
     "setting_id": "GP010",
     "instantiation": "true",
     "description": "It has a big layer height, and results in apparent layer lines and ordinary printing quality and printing time.",

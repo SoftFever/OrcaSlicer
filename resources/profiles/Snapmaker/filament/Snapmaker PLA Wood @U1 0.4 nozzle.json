@@ -22,12 +22,8 @@
         "0.6"
     ],
     "pressure_advance": ["0.025", "0.024"],
-    "graphic_effect_plate_temp": [
-        "65"
-    ],
-    "graphic_effect_plate_temp_initial_layer": [
-        "65"
-    ],
+    "graphic_effect_plate_temp": ["70"],
+    "graphic_effect_plate_temp_initial_layer": ["70"],
     "supertack_plate_temp": [
         "40"
     ],

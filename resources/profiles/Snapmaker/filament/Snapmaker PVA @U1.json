@@ -76,15 +76,9 @@
   "filament_z_hop_types": [
     "Slope Lift"
   ],
-  "graphic_effect_plate_temp": [
-    "65"
-  ],
-  "graphic_effect_plate_temp_initial_layer": [
-    "65"
-  ],
-  "hot_plate_temp_initial_layer": [
-    "65"
-  ],
+  "graphic_effect_plate_temp": ["70"],
+  "graphic_effect_plate_temp_initial_layer": ["70"],
+  "hot_plate_temp_initial_layer": ["70"],
   "nozzle_temperature": [
     "240"
   ],
@@ -92,12 +86,8 @@
     "240"
   ],
   "slow_down_layer_time": ["7"],
-  "textured_plate_temp": [
-    "65"
-  ],
-  "textured_plate_temp_initial_layer": [
-    "65"
-  ],
+  "textured_plate_temp": ["70"],
+  "textured_plate_temp_initial_layer": ["70"],
   "filament_type": [
     "PVA"
   ],
@@ -133,9 +123,7 @@
   "filament_vendor": [
     "Snapmaker"
   ],
-  "hot_plate_temp": [
-    "65"
-  ],
+  "hot_plate_temp": ["70"],
   "pellet_flow_coefficient": [
     "0.4157"
   ],

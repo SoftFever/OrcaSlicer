@@ -35,12 +35,8 @@
     "filament_flow_support": [
         "standard"
     ],
-    "graphic_effect_plate_temp": [
-        "0"
-    ],
-    "graphic_effect_plate_temp_initial_layer": [
-        "0"
-    ],
+    "graphic_effect_plate_temp": ["70"],
+    "graphic_effect_plate_temp_initial_layer": ["70"],
     "pellet_flow_coefficient": [
         "0.4157"
     ],

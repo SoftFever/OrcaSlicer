@@ -6,7 +6,7 @@
     "setting_id": "GP009",
     "instantiation": "true",
     "bottom_color_penetration_layers": "3",
-    "top_color_penetration_layers": "5",
+    "top_color_penetration_layers": "3",
     "description": "It has a very big layer height, and results in very apparent layer lines, low printing quality and general printing time.",
     "elefant_foot_compensation": "0.15",
     "smooth_coefficient": "150",

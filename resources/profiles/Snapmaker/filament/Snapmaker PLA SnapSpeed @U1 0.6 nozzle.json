@@ -26,12 +26,8 @@
     "filament_max_volumetric_speed": [
         "20"
     ],
-    "hot_plate_temp": [
-        "55"
-    ],
-    "hot_plate_temp_initial_layer": [
-        "55"
-    ],
+    "hot_plate_temp": ["65"],
+    "hot_plate_temp_initial_layer": ["65"],
     "nozzle_temperature": [
         "220"
     ],

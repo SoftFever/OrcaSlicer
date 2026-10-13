@@ -34,12 +34,8 @@
   "filament_max_volumetric_speed": [
     "16"
   ],
-  "graphic_effect_plate_temp": [
-    "80"
-  ],
-  "graphic_effect_plate_temp_initial_layer": [
-    "80"
-  ],
+  "graphic_effect_plate_temp": ["0"],
+  "graphic_effect_plate_temp_initial_layer": ["0"],
   "hot_plate_temp": [
     "80"
   ],

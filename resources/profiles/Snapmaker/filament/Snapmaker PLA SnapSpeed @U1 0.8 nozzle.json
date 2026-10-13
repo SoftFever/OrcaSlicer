@@ -32,12 +32,8 @@
     "filament_z_hop_types": [
         "nil"
     ],
-    "hot_plate_temp": [
-        "55"
-    ],
-    "hot_plate_temp_initial_layer": [
-        "55"
-    ],
+    "hot_plate_temp": ["65"],
+    "hot_plate_temp_initial_layer": ["65"],
     "pellet_flow_coefficient": [
         "0.4157"
     ]

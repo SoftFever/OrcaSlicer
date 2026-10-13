@@ -137,12 +137,8 @@
     "filament_retract_length_toolchange": [
         "5"
     ],
-    "graphic_effect_plate_temp": [
-        "65"
-    ],
-    "graphic_effect_plate_temp_initial_layer": [
-        "65"
-    ],
+    "graphic_effect_plate_temp": ["70"],
+    "graphic_effect_plate_temp_initial_layer": ["70"],
     "supertack_plate_temp": [
         "40"
     ],
@@ -151,5 +147,6 @@
     ],
     "filament_flow_support": [
         "standard"
-    ]
+    ],
+    "close_fan_the_first_x_layers": ["3"]
 }
