@@ -110,6 +110,8 @@ void set_nozzle_volume_type(size_t nozzle_idx, const std::string &volume_type)
     for (const std::string &t : types)
         opt->values.push_back(filament_volume_type_from_string(t));
     save_nozzle_volume_types_to_app_config();
+    if (Plater *plater = wxGetApp().plater())
+        plater->get_partplate_list().set_filament_group_dirty(true);
     notify_plater();
 }
 
