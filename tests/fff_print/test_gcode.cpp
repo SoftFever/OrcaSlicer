@@ -79,19 +79,16 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
     model.objects[0]->instances.front()->set_offset(Vec3d(plate_offset_x + 50.0, 50.0, 0.0));
     model.objects[1]->instances.front()->set_offset(Vec3d(plate_offset_x + 80.0, 50.0, 0.0));
 
-    arrange_objects(model,
-        BoundingBox{Point::new_scale(0., 0.), Point::new_scale(500., 500.)},
-        ArrangeParams{scaled(min_object_distance(config))});
     print.apply(model, config);
 
     const std::string gcode = Test::gcode(print);
 
-    const std::string marker = ";TC_PLACEHOLDER X";
-    const size_t marker_pos = gcode.find(marker);
+    const std::string marker                = ";TC_PLACEHOLDER X";
+    const std::string::size_type marker_pos = gcode.find(marker);
     REQUIRE(marker_pos != std::string::npos);
 
-    const size_t x_start = marker_pos + marker.length();
-    const size_t x_end   = gcode.find(" Y", x_start);
+    const std::string::size_type x_start = marker_pos + marker.length();
+    const std::string::size_type x_end   = gcode.find(" Y", x_start);
     REQUIRE(x_end != std::string::npos);
     const double x_val = std::stod(gcode.substr(x_start, x_end - x_start));
 

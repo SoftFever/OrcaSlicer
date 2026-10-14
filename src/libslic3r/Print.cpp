@@ -4363,6 +4363,16 @@ int Print::get_hrc_by_nozzle_type(const NozzleType&type)
         boost::nowide::ifstream in(file_path.string());
         //std::ifstream in(file_path.string());
         json j;
+        if (!in.is_open()) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": nozzle_info.json not found at: " << file_path.string();
+            nozzle_type_to_hrc = {
+                {"hardened_steel",55},
+                {"stainless_steel",20},
+                {"tungsten_carbide", 85},
+                {"brass",2},
+                {"undefine",0}
+            };
+        } else {
         try {
             j = json::parse(in);
             in.close();
