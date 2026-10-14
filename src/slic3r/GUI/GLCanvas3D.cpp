@@ -4978,7 +4978,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 // Don't deselect a volume if layer editing is enabled or any gizmo is active. We want the object to stay selected
                 // during the scene manipulation.
 
-                if (m_picking_enabled && (!any_gizmo_active || !evt.CmdDown()) && (!m_hover_volume_idxs.empty())) {
+                if (m_picking_enabled && (m_gizmos.is_allow_multi_select_parts_or_objects() || !evt.CmdDown()) && (!m_hover_volume_idxs.empty())) {
                     if (evt.LeftDown() && !m_hover_volume_idxs.empty()) {
                         int volume_idx = get_first_hover_volume_idx();
                         bool already_selected = m_selection.contains_volume(volume_idx);
@@ -4988,7 +4988,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                         if (already_selected && ctrl_down)
                             m_selection.remove(volume_idx);
+                        else if (alt_down && m_gizmos.is_allow_multi_select_parts_or_objects() && m_selection.get_mode() == Selection::Volume &&
+                                 m_selection.get_object_idx() == m_volumes.volumes[volume_idx]->object_idx() &&
+                                 m_selection.get_instance_idx() == m_volumes.volumes[volume_idx]->instance_idx()) {
+                            // Alt+click on another part of the selected parts' instance adds it, and on a selected
+                            // part removes it, unless it is the only one.
+                            if (!already_selected)
+                                m_selection.add_volumes(Selection::Volume, {(unsigned int) volume_idx}, false);
+                            else if (curr_idxs.size() > 1)
+                                m_selection.remove_volumes(Selection::Volume, {(unsigned int) volume_idx});
+                        }
                         else if (alt_down) {
+                            // Select just the clicked part, also when an object is selected.
                             Selection::EMode mode = Selection::Volume;
                             if (already_selected) {
                                 std::vector<unsigned int> volume_idxs;
@@ -5520,7 +5531,7 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip)
         m_tooltip.set_text(tooltip);
 }
 
-void GLCanvas3D::do_move(const std::string& snapshot_type)
+void GLCanvas3D::do_move(const std::string& snapshot_type, bool force_volume_move)
 {
     if (m_model == nullptr)
         return;
@@ -5552,24 +5563,24 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
 
             // Move instances/volumes
             ModelObject* model_object = m_model->objects[object_idx];
-            if (model_object == nullptr) 
+            if (model_object == nullptr)
                 continue;
 
-            if (selection_mode == Selection::Instance) {
+            if (force_volume_move || selection_mode == Selection::Volume) {
+                auto cur_mv = model_object->volumes[volume_idx];
+                if (cur_mv->get_transformation() != v->get_volume_transformation()) {
+                    cur_mv->set_transformation(v->get_volume_transformation());
+                    // BBS: backup
+                    Slic3r::save_object_mesh(*model_object);
+                }
+            }
+            else if (selection_mode == Selection::Instance) {
                 if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
                     if ((model_object->instances[instance_idx]->get_assemble_offset() - v->get_instance_offset()).norm() > 1e-2) {
                         model_object->instances[instance_idx]->set_assemble_transformation(v->get_instance_transformation());
                     }
                 } else {
                     model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
-                }
-            }
-            else if (selection_mode == Selection::Volume) {
-                auto cur_mv = model_object->volumes[volume_idx];
-                if (cur_mv->get_transformation() != v->get_volume_transformation()) {
-                    cur_mv->set_transformation(v->get_volume_transformation());
-                    // BBS: backup
-                    Slic3r::save_object_mesh(*model_object);
                 }
             }
 
@@ -5588,13 +5599,14 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
     // parts moved. Notifying a plate about an instance that stayed put invalidates its slice
     // result, and notifying instance 0 alone left a moved copy unregistered on its new plate.
     {
+        const bool parts_moved = force_volume_move || selection_mode == Selection::Volume;
         std::set<std::pair<int, int>> notified;
         for (unsigned int i : m_selection.get_volume_idxs()) {
             const GLVolume* v          = m_volumes.volumes[i];
             const int       object_idx = v->object_idx();
             if (object_idx < 0 || object_idx >= static_cast<int>(m_model->objects.size()))
                 continue;
-            const std::pair<int, int> key(object_idx, selection_mode == Selection::Volume ? -1 : v->instance_idx());
+            const std::pair<int, int> key(object_idx, parts_moved ? -1 : v->instance_idx());
             if (notified.insert(key).second)
                 m_selection.notify_instance_update(key.first, key.second);
         }
@@ -7962,8 +7974,8 @@ void GLCanvas3D::_picking_pass()
             if (0 <= hit.raycaster_id && hit.raycaster_id < (int)m_volumes.volumes.size()) {
                 const GLVolume* volume = m_volumes.volumes[hit.raycaster_id];
                 if (volume->is_active && !volume->disabled && (volume->composite_id.volume_id >= 0 || m_render_sla_auxiliaries)) {
-                    // do not add the volume id if any gizmo is active and CTRL is pressed
-                    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
+                    // do not add the volume id if CTRL is pressed while a gizmo that does not allow Ctrl+click selection is active
+                    if (m_gizmos.is_allow_multi_select_parts_or_objects() || !wxGetKeyState(WXK_CONTROL))
                         m_hover_volume_idxs.emplace_back(hit.raycaster_id);
                     m_gizmos.set_hover_id(-1);
                 }
