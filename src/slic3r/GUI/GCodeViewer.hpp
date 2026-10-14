@@ -226,6 +226,8 @@ private:
     //BBS: extruder dispensing filament
     std::vector<ExtruderFilament> m_left_extruder_filament;
     std::vector<ExtruderFilament> m_right_extruder_filament;
+    // filament_type of each filament in the printed preset, for the legend labels
+    std::vector<std::string> m_filament_types;
     size_t m_nozzle_nums;
 
     // bounding box of toolpaths
