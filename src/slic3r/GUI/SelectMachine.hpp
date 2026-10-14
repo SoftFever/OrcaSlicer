@@ -317,8 +317,6 @@ private:
     bool                                m_use_plate_changer_all{ false };
     // Per-plate inclusion for plate-changer \"all plates\" (same length as get_plate_count() when active).
     std::vector<bool>                   m_plate_changer_plate_included;
-    bool                                m_start_with_new_plate{ false };
-    bool                                m_end_with_new_plate{ false };
     int                                 m_print_plate_total{0};
     int                                 m_timeout_count{0};
     int                                 m_print_error_code{0};

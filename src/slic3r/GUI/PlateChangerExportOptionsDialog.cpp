@@ -74,6 +74,7 @@ PlateChangerExportOptionsDialog::PlateChangerExportOptionsDialog(wxWindow* paren
     grid->Add(m_opt_end_with_new_plate, 0, wxEXPAND);
 
     auto* panel_sizer = new wxBoxSizer(wxVERTICAL);
+    panel_sizer->Add(hint, 0, wxEXPAND | wxBOTTOM, FromDIP(12));
 
     if (m_plater) {
         m_plate_stats_panel = new wxPanel(panel, wxID_ANY);

@@ -3160,16 +3160,16 @@ void MainFrame::init_menubar_as_editor()
         };
         append_menu_item(print_send_menu, wxID_ANY, _L("Print all"), _L("Print all plates"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL)); }, "", nullptr,
-            [this, support_print_all_fn, can_print_or_send_all_fn]() { try { return support_print_all_fn() && can_print_or_send_all_fn(); } catch (...) { return false; } }, this);
+            [support_print_all_fn, can_print_or_send_all_fn]() { try { return support_print_all_fn() && can_print_or_send_all_fn(); } catch (...) { return false; } }, this);
         append_menu_item(print_send_menu, wxID_ANY, _L("Print all (plate changer)"), _L("Print all plates with plate change G-code between plates"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_PRINT_ALL_PLATE_CHANGER)); }, "", nullptr,
-            [this, support_print_all_fn, can_print_or_send_all_fn, has_plate_change_gcode_fn]() { try { return has_plate_change_gcode_fn() && support_print_all_fn() && can_print_or_send_all_fn(); } catch (...) { return false; } }, this);
+            [support_print_all_fn, can_print_or_send_all_fn, has_plate_change_gcode_fn]() { try { return has_plate_change_gcode_fn() && support_print_all_fn() && can_print_or_send_all_fn(); } catch (...) { return false; } }, this);
         append_menu_item(print_send_menu, wxID_ANY, _L("Send all"), _L("Send all plates to printer"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL)); }, "", nullptr,
-            [this, support_send_fn, can_print_or_send_all_fn]() { try { return support_send_fn() && can_print_or_send_all_fn(); } catch (...) { return false; } }, this);
+            [support_send_fn, can_print_or_send_all_fn]() { try { return support_send_fn() && can_print_or_send_all_fn(); } catch (...) { return false; } }, this);
         append_menu_item(print_send_menu, wxID_ANY, _L("Send all (plate changer)"), _L("Send all plates with plate change G-code between plates"),
             [this](wxCommandEvent&) { if (m_plater) wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SEND_TO_PRINTER_ALL_PLATE_CHANGER)); }, "", nullptr,
-            [this, support_send_fn, can_print_or_send_all_fn, has_plate_change_gcode_fn]() { try { return has_plate_change_gcode_fn() && support_send_fn() && can_print_or_send_all_fn(); } catch (...) { return false; } }, this);
+            [support_send_fn, can_print_or_send_all_fn, has_plate_change_gcode_fn]() { try { return has_plate_change_gcode_fn() && support_send_fn() && can_print_or_send_all_fn(); } catch (...) { return false; } }, this);
         append_submenu(fileMenu, print_send_menu, wxID_ANY, _L("Print & Send"), "");
 
         fileMenu->AppendSeparator();

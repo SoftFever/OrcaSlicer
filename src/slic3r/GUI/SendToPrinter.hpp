@@ -69,9 +69,6 @@ private:
     int                                 m_print_plate_idx;
     bool                                m_use_plate_changer_all{ false };
     std::vector<bool>                   m_plate_changer_plate_included;
-    bool                                m_start_with_new_plate{ false };
-    bool                                m_end_with_new_plate{ false };
-    int                                 m_current_filament_id;
     int                                 m_print_error_code = 0;
     int                                 timeout_count = 0;
     int                                 m_connect_try_times = 0;

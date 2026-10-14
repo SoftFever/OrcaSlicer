@@ -5641,7 +5641,7 @@ void TabPrinter::build_fff()
                 update_changed_ui();
             };
 
-            preset_line.widget = [this, apply_preset](wxWindow* parent) {
+            preset_line.widget = [apply_preset](wxWindow* parent) {
                 auto sizer = new wxBoxSizer(wxHORIZONTAL);
                 auto label = new wxStaticText(parent, wxID_ANY, _L("Insert preset for:"));
                 label->SetFont(wxGetApp().normal_font());
