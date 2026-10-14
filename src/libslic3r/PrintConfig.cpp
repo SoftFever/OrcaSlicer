@@ -2675,7 +2675,7 @@ void PrintConfigDef::init_fff_params()
                     "This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. "
                     "If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above.");
     def->sidetext = L("mm/s or %");
-    def->ratio_over = "outer_wall_speed";
+    def->ratio_over = "support_speed";
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatsOrPercentsNullable{FloatOrPercent(50, true)});
