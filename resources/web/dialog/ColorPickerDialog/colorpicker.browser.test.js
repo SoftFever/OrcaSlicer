@@ -168,10 +168,10 @@ test("Document language and escaped labels preserve untranslated English fallbac
   assert.deepEqual(await page.evaluate(() => ColorPickerDialog.exportSelection()), {type: "solid", colors: ["#012345FF"]});
 });
 
-test("Live app theme overrides the opposite system scheme without changing colors", options, async t => {
+test("Global control colors follow the system while host semantic colors follow the app", options, async t => {
   const {page, ready, send} = await open(t); await send({...init(ready, true, true), selection: {type: "gradient", colors: ["#FF000001", "#0000FF80"]}});
   const initial = await page.evaluate(() => ({selection: ColorPickerDialog.exportSelection(), spectrum: document.getElementById("spectrum").toDataURL()}));
-  for (const [theme, system, background] of [["light", "dark", "rgb(255, 255, 255)"], ["dark", "light", "rgb(45, 45, 49)"]]) {
+  for (const theme of ["light", "dark"]) for (const system of ["light", "dark"]) {
     await page.emulateMedia({colorScheme: system});
     await page.evaluate(value => {
       document.documentElement.dataset.orcaTheme = value;
@@ -179,8 +179,27 @@ test("Live app theme overrides the opposite system scheme without changing color
       for (const [key, color] of Object.entries(colors)) document.documentElement.style.setProperty("--orca-" + key, color);
       document.documentElement.style.setProperty("--orca-accent-fg", "#ffffff");
     }, theme);
-    assert.equal(await page.locator("body").evaluate(element => getComputedStyle(element).backgroundColor), background);
-    assert.equal(await page.locator("html").evaluate(element => getComputedStyle(element).colorScheme), theme);
+    await page.evaluate(async () => {
+      await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})));
+    });
+    const colors = await page.evaluate(() => {
+      const body = getComputedStyle(document.body);
+      const tokenColor = token => {
+        const probe = document.createElement("span"); probe.style.cssText = `position:absolute;visibility:hidden;color:var(${token})`;
+        document.body.appendChild(probe); const color = getComputedStyle(probe).color; probe.remove(); return color;
+      };
+      const mode = document.querySelector("label[for=modeSwitch]");
+      return {background: body.backgroundColor, foreground: body.color,
+        modeBackground: getComputedStyle(mode).backgroundColor,
+        accent: getComputedStyle(mode, "::before").backgroundColor,
+        hostPanel: tokenColor("--panel"), hostText: tokenColor("--text")};
+    });
+    assert.equal(colors.background, system === "light" ? "rgb(255, 255, 255)" : "rgb(45, 45, 49)", `${theme} app / ${system} system body`);
+    assert.equal(colors.foreground, system === "light" ? "rgb(38, 46, 48)" : "rgb(239, 239, 240)");
+    assert.equal(colors.modeBackground, system === "light" ? "rgb(240, 240, 240)" : "rgb(36, 36, 40)");
+    assert.equal(colors.accent, theme === "light" ? "rgb(0, 150, 136)" : "rgb(0, 103, 91)", "shared accent follows the injected app theme");
+    assert.equal(colors.hostPanel, theme === "light" ? "rgb(255, 255, 255)" : "rgb(45, 45, 49)");
+    assert.equal(colors.hostText, theme === "light" ? "rgb(38, 46, 48)" : "rgb(239, 239, 240)");
     assert.deepEqual(await page.evaluate(() => ({selection: ColorPickerDialog.exportSelection(), spectrum: document.getElementById("spectrum").toDataURL()})), initial);
     for (const id of ["modeSwitch"]) for (const checked of [false, true]) {
       if (await page.locator("#" + id).isChecked() !== checked) await page.locator(`label[for=${id}]`).click();
@@ -197,8 +216,10 @@ test("Live app theme overrides the opposite system scheme without changing color
           unselected: getComputedStyle(labels[selected ? 0 : 1]).color,
           accentForeground: tokenColor("--button-fg-light"), mutedForeground: tokenColor("--fg-color-label")};
       }, checked);
-      assert.equal(result.selected, result.accentForeground, `${theme} ${id} selected text uses the accent foreground`);
-      assert.equal(result.unselected, result.mutedForeground, `${theme} ${id} unselected text stays muted`);
+      assert.equal(result.selected, result.accentForeground, `${theme} app / ${system} system ${id} selected text uses the accent foreground`);
+      assert.equal(result.selected, "rgb(254, 254, 254)", "global selected text stays light in both system schemes");
+      assert.equal(result.unselected, result.mutedForeground, `${theme} app / ${system} system ${id} unselected text stays muted`);
+      assert.equal(result.unselected, system === "light" ? "rgb(54, 54, 54)" : "rgb(178, 179, 181)");
       const selected = await page.evaluate(() => ColorPickerDialog.exportSelection());
       assert.equal(selected.type, checked ? "gradient" : "solid");
       if (checked) assert.deepEqual(selected, initial.selection, "returning to gradient keeps ordered endpoint byte alpha");
