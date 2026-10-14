@@ -6724,6 +6724,7 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         R"(\s(VELOCITY|ACCEL|ACCEL_TO_DECEL|SQUARE_CORNER_VELOCITY|MINIMUM_CRUISE_RATIO)\s*=\s*([+]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)(?=\s|;|$))",
         std::regex::icase);
     const std::string command = line.raw().substr(0, line.raw().find(';'));
+    std::vector<std::pair<std::string, float>> parameters;
     for (std::sregex_iterator it(command.begin(), command.end(), parameter_pattern), end; it != end; ++it) {
         float value;
         try {
@@ -6731,9 +6732,14 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
         } catch (const std::exception&) {
             continue;
         }
-        if (!std::isfinite(value))
-            continue;
-        const std::string name = boost::to_upper_copy((*it)[1].str());
+        if (std::isfinite(value))
+            parameters.emplace_back(boost::to_upper_copy((*it)[1].str()), value);
+    }
+    // Klipper 0.13 converts ACCEL_TO_DECEL only when the line has no MINIMUM_CRUISE_RATIO, and later
+    // releases ignore it, so a line carrying both (as Orca writes) is planned with the cruise ratio.
+    const bool has_cruise_ratio = std::any_of(parameters.begin(), parameters.end(),
+        [](const auto& parameter) { return parameter.first == "MINIMUM_CRUISE_RATIO" && parameter.second >= 0.0f && parameter.second < 1.0f; });
+    for (const auto& [name, value] : parameters) {
         for (size_t i = 0; i < m_time_processor.machines.size(); ++i) {
             TimeMachine& machine = m_time_processor.machines[i];
             // Klipper replaces its single live max_accel for print and travel; the profile-clamping
@@ -6745,7 +6751,7 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
                     machine.klipper_junction_flush -= 1.0f;
                 machine.minimum_cruise_ratio = value;
                 machine.requested_accel_to_decel = -1.0f;
-            } else if (name == "ACCEL_TO_DECEL" && value > 0.0f) {
+            } else if (name == "ACCEL_TO_DECEL" && value > 0.0f && !has_cruise_ratio) {
                 if (machine.klipper_queue_priming && machine.requested_accel_to_decel < 0.0f)
                     machine.klipper_junction_flush += 1.0f;
                 machine.requested_accel_to_decel = value;
