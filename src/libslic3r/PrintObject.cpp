@@ -885,7 +885,8 @@ void PrintObject::contour_z()
 
                 std::scoped_lock lock(mtx);
                 completed++;
-                std::string msg = (boost::format("Z contoured layer %d/%d (%d%%)") % (completed) % m_layers.size() % int(double(completed) / m_layers.size() * 100)).str();
+                // TRN Slicing status: layers done, total layers, percentage done.
+                std::string msg = (boost::format(L("Z contoured layer %d/%d (%d%%)")) % (completed) % m_layers.size() % int(double(completed) / m_layers.size() * 100)).str();
                 m_print->set_status(40, msg);
             }
         }
@@ -958,12 +959,11 @@ void PrintObject::generate_support_material(bool with_belt_brim)
             BOOST_LOG_TRIVIAL(info) << std::fixed << std::setprecision(0) << "is_support_necessary takes " << duration << " secs.";
 
             if (sntype != NoNeedSupp) {
-                std::map<SupportNecessaryType, std::string> reasons = {
-                    {SharpTail,L("floating regions")},
-                    {Cantilever,L("floating cantilever")},
-                    {LargeOverhang,L("large overhangs")} };
-                std::string warning_message = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
-                    this->model_object()->name, reasons[sntype]);
+                std::map<SupportNecessaryType, std::string> messages = {
+                    {SharpTail,L("It seems object %1% has floating regions. Please re-orient the object or enable support generation.")},
+                    {Cantilever,L("It seems object %1% has a floating cantilever. Please re-orient the object or enable support generation.")},
+                    {LargeOverhang,L("It seems object %1% has large overhangs. Please re-orient the object or enable support generation.")} };
+                std::string warning_message = Slic3r::format(messages[sntype], this->model_object()->name);
                 this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
 
@@ -982,6 +982,9 @@ void PrintObject::generate_support_material(bool with_belt_brim)
             this->_generate_support_material();
             m_print->throw_if_canceled();
         }
+        // Orca: the tree support collision/avoidance caches and support nodes are only used while this step runs
+        // (detect_overhangs() rebuilds them from scratch), so don't keep them resident until the next slice.
+        this->clear_tree_support_preview_cache();
         // Belt brim rides here rather than in the brim step because its apron
         // prologue introduces print_z values below the object's first layer, and
         // those must exist before ToolOrdering is built at psWipeTower - one step

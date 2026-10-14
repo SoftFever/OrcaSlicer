@@ -4,6 +4,7 @@
 #include "GLGizmoPainterBase.hpp"
 #include "libslic3r/TextureBake/TextureBakeDebug.hpp"
 #include "libslic3r/TextureDisplacement.hpp"
+#include "slic3r/GUI/AnimatedTexture.hpp"
 #include "slic3r/GUI/GLModel.hpp"
 #include "slic3r/GUI/GLTexture.hpp"
 #include "slic3r/GUI/I18N.hpp"
@@ -23,6 +24,7 @@
 #include "libslic3r/Point.hpp"
 #include <imgui.h>
 #include <map>
+#include <future>
 #include <memory>
 #include <optional>
 #include "slic3r/GUI/Gizmos/GLGizmoBase.hpp"
@@ -61,6 +63,12 @@ public:
     static TextureDisplacementPrepareResult prepare_mesh(const indexed_triangle_set                  &base,
                                                          const TextureDisplacementFacetsData         &masks,
                                                          const std::vector<TextureDisplacementLayer> &layers,
+                                                         // `base`'s own UV channel, when it has one
+                                                         // (ModelVolume::texture_uv). Resampled onto
+                                                         // the result and reported back in it, and fed
+                                                         // to the samplers so a ModelUV layer drives
+                                                         // the refinement through its own layout.
+                                                         const std::vector<Vec2f>                    &model_uv,
                                                          const TextureDisplacementPrepareParams      &params,
                                                          const TextureColorSettings                  &color_settings,
                                                          const DisplacementProgressFn                &progress,
@@ -197,6 +205,27 @@ public:
     };
     static PaintedColors painted_colors(const TriangleMesh &mesh, const TriangleSelector::TriangleSplittingData &paint);
 
+    // The view while the UV editor's selected islands are highlighted on the model. The highlight lies on the
+    // undisplaced surface, so the Normal view's relief hides it wherever it rises: Normal gives way to Fast
+    // while islands are selected and comes back once none are. A view the user clicks in the View row is
+    // theirs - the pane's background buttons are not a pick, Height only meaning "the texture view".
+    struct IslandViewFollow
+    {
+        bool shown       = false; // the highlight, as of the last step()
+        bool switched    = false; // Fast was switched on for the highlight, so Normal comes back once it is gone
+        bool keep_normal = false; // the user picked Normal in the View row while the highlight was shown
+        // The view to apply this frame (0 Normal, 1 Fast), or -1 for none. `view` is the one on screen, numbered as
+        // apply_view_mode() takes it; `debug_open` a debug stage on screen, which holds Normal itself.
+        int  step(bool shown_now, int view, bool debug_open);
+        // A View row button clicked, the active one included. The row is drawn after step() in the same frame,
+        // so `shown` is this frame's.
+        void picked(int view)
+        {
+            switched    = false;
+            keep_normal = shown && view == 0;
+        }
+    };
+
     void render_painter_gizmo() override;
 
     // Intercepts mouse input while "Adjust Texture" mode is on (dragging the on-canvas offset/
@@ -262,6 +291,9 @@ private:
     // Standard is active so what Preview shows is always what Bake will do. Returns true if it actually
     // changed something, so the caller can invalidate the preview.
     bool apply_standard_mode_presets(ModelVolume *mv);
+    // Copies the panel's own state (active layer, Standard/Pro) onto the volume, so the project file
+    // can carry it. Cheap and idempotent - called wherever either of the two changes.
+    void store_panel_state();
     // Standard mode's Bake: remesh to an even density, refine where the texture bends, then displace.
     // The order matters and is the whole reason this is one button - a height map can only move
     // existing vertices, so the mesh has to be prepared first, and remeshing after painting would drop
@@ -404,6 +436,77 @@ private:
     // Per slot: whether the layer's card shows every setting or only Depth, Tile size and Rotation.
     // Panel state only, not saved with the project.
     std::array<bool, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_layer_expanded{};
+    // The slider whose edit icon was just clicked, as its ImGui id, and the frame it was clicked on.
+    // The row acts on it on the next frame - ImGui's keyboard-focus request only takes effect a frame
+    // later - and clears it; the frame number is what retires a request whose row has gone off screen
+    // in the meantime. Panel state only, not saved with the project.
+    std::string m_slider_type_request;
+    int         m_slider_type_request_frame = 0;
+
+    // ---- The image-adjustment panel ----
+    //
+    // Brightness/contrast/sharpness/blur/hue over one layer's image, shown on the image itself and
+    // updating as the sliders move. What it produces is not a set of layer parameters: it replaces the
+    // layer's *image*, so the adjusted pixels feed the colour and the displacement together and a
+    // brightness change moves the relief too (see TextureAdjustments).
+    //
+    // An ordinary floating window rather than a popup, and deliberately so. A popup dims the canvas
+    // behind it and closes on any click outside itself, which between them make it impossible to watch the
+    // relief change on the model - which is the whole point of adjusting the image here rather than in an
+    // image editor. A window leaves the 3D view live, clickable and orbitable while the panel is open.
+    void render_image_adjust_window(const ImVec2 &panel_min, const ImVec2 &panel_max);
+    // Opens the panel for `layer`, decoding its image into m_adjust_source. Sliders never re-decode
+    // the PNG.
+    void open_image_adjust(const TextureDisplacementLayer &layer);
+    // Reads `layer`'s stored image into the panel's source buffers and records which image it came from.
+    // Called when the panel opens and again whenever the layer's image is swapped under it, which is why
+    // it leaves the slider values alone. False when the image cannot be decoded.
+    bool load_image_adjust_source(const TextureDisplacementLayer &layer);
+    // Resolves the panel: writes the adjusted image into the user's texture library as a new file and
+    // points `layer` at it, which is the only way an adjustment becomes permanent. Closes the panel.
+    void commit_image_adjust(TextureDisplacementLayer &layer);
+    // Closes the panel and reverts the layer's live preview_adjust to identity, so every exit that is not
+    // a commit - Cancel, the window's close button, the gizmo closing - leaves the layer as it was found.
+    void close_image_adjust();
+    // Collects a finished preview and starts one for the current slider values. One at a time, so a drag
+    // coalesces into "whatever the sliders last said" instead of a queue of superseded frames.
+    void update_image_adjust_preview();
+
+    int                m_adjust_slot = -1; // the layer the panel is open for; -1 when closed
+    TextureAdjustments m_adjust;           // what the sliders currently say
+    // What the layer's live preview_adjust was last set from, so a slider move can be told from a frame in
+    // which nothing happened and only the former asks the displacement to be recomputed.
+    TextureAdjustments m_adjust_applied;
+
+    // The layer's image as it was when the panel opened, and a small copy of it. The sliders are applied
+    // to the small copy for the live preview and to the full-size one exactly once, on commit. Measured on
+    // a 1024x1024 with every knob engaged, a full-size pass costs 13-19 ms grayscale and 40-60 ms in
+    // colour (130-190 ms at 2048 in colour) - far too much to repeat per slider frame. The same pass on a
+    // 384 px copy is 3-4 ms / 9-12 ms, and that is all the preview box can show anyway.
+    DecodedHeightTexture m_adjust_source;
+    DecodedHeightTexture m_adjust_preview_source;
+    // Which image_data the two buffers above were decoded from, so the panel can notice the layer's image
+    // being swapped from the texture picker while it is open and re-read it. Compared, never dereferenced.
+    const void          *m_adjust_source_image = nullptr;
+    // And which volume the panel was opened on. Slot numbers are per volume, so without this a change of
+    // selection would silently rebind the open panel to whichever layer happens to hold the same slot on
+    // the newly selected object - a different image, under a panel the user opened for this one.
+    size_t               m_adjust_volume_id = 0;
+    // The preview image on screen, re-uploaded whenever a background pass finishes.
+    std::unique_ptr<GLTexture> m_adjust_preview_tex;
+
+    // The live preview runs on its own thread rather than on the UI thread or on the plater's job
+    // worker. Not the UI thread because even the small pass is milliseconds and this runs while a slider
+    // is being dragged; not the job worker because that is a single FIFO shared with Bake and the
+    // displacement preview (see queue_preview_job()), where a per-frame image filter would sit behind -
+    // and delay - multi-second mesh work.
+    std::future<DecodedHeightTexture> m_adjust_preview_job;
+    TextureAdjustments                m_adjust_preview_running; // what the in-flight pass is computing
+    TextureAdjustments                m_adjust_preview_shown;   // what m_adjust_preview_tex holds
+    bool                              m_adjust_preview_valid = false;
+    // Drops the GPU copies of the layer's image so the next frame rebuilds them from the decode, which
+    // is where the live adjustment is applied. Called whenever the panel moves or reverts it.
+    void invalidate_adjust_textures();
 
     // "Adjust Texture" mode: instead of painting, dragging an on-canvas handle changes the active
     // layer's offset. The handle is a flat panel lying in the paint patch's own tangent plane
@@ -423,8 +526,8 @@ private:
     // obvious whether the next stroke adds paint (default) or erases it (Shift). Uses ImGui's
     // foreground draw list, so it must be called from inside the gizmo's ImGui frame.
     void render_paint_cursor_hint();
-    // Mesh-local tangent-plane basis at m_adjust_anchor_normal, matching project_planar()'s
-    // dominant-axis convention so dragging on-canvas maps consistently onto offset.
+    // Mesh-local tangent-plane basis at m_adjust_anchor_normal: box_projection_axes(), so dragging
+    // on-canvas maps consistently onto offset whichever face the anchor is on.
     void adjust_tangent_basis(Vec3f &u_axis, Vec3f &v_axis) const;
 
     // The plane a drag is measured against: the paint patch's anchor, lifted clear of the surface.
@@ -504,6 +607,11 @@ private:
     // The panel's view modes: 0 Normal, 1 Fast, 2 Checker, 3 Distortion. Shared by the View row and the pane's
     // background buttons, so both switch views the same way.
     void apply_view_mode(int mode);
+    // The view on screen, numbered as apply_view_mode() takes it.
+    int  view_mode() const;
+    // Run once a frame, after the pane's commands: switches the view as m_island_view says.
+    void             follow_island_highlight();
+    IslandViewFollow m_island_view;
     // The pane header's thumbnail of the active layer's texture, rebuilt only when its image changes.
     static constexpr int       UV_THUMB_PX       = 64;
     const void                *m_uv_thumb_source = nullptr;
@@ -735,6 +843,8 @@ private:
     // in place. Rebuilt whenever the pane's selection differs from the one it was built for.
     GLModel          m_island_overlay_glmodel;
     std::vector<int> m_island_overlay_selection;
+    // The pane's selection while the overlay applies - the pane open over an unwrapped LSCM layer - else null.
+    const std::vector<int> *island_highlight_selection();
     void             rebuild_island_overlay(const std::vector<int> &selection);
     void             render_island_overlay();
     // Set on every paint event, cleared when the overlay is rebuilt in render_painter_gizmo(). Kept
@@ -818,18 +928,31 @@ private:
     // Merges chart `b`'s join group into chart `a`'s (materialising `groups` to `chart_count` first).
     static void      join_island_groups(std::vector<int> &groups, int a, int b, int chart_count);
     // Final per-vertex texture uv for the projections the shader can't reconstruct itself - LSCM (an
-    // unwrap) and ViewProjected (a projector plane the shader doesn't know). One entry per patch/base
-    // vertex, already through apply_uv_transform(). Empty for Triplanar/Cylindrical/Spherical, which
-    // the shader projects on its own. Shared by the shaded preview and the UV-check overlay.
+    // unwrap), ModelUV (the model's own channel) and ViewProjected (a projector plane the shader
+    // doesn't know). One entry per patch/base vertex, already through apply_uv_transform(). Empty for
+    // Triplanar/Cylindrical/Spherical, which the shader projects on its own. Shared by the shaded
+    // preview and the UV-check overlay.
+    //
+    // `patch_source` maps each patch triangle back to its base-mesh triangle
+    // (TriangleSelector::get_facets_strict()'s out_source). Only ModelUV needs it - its channel is per
+    // base triangle - and without it a ModelUV layer reports no uvs and the preview falls back.
     std::vector<Vec2f> compute_layer_vertex_uvs(const indexed_triangle_set &patch,
-                                                const TextureDisplacementLayer &layer) const;
+                                                const TextureDisplacementLayer &layer,
+                                                const std::vector<int> *patch_source = nullptr) const;
     // The same, but three UVs per patch triangle (corner 0..2 of triangle i at 3i..3i+2). This is what
     // the flat, unshared-vertex preview meshes actually want: under LSCM a seam vertex has a different
     // UV in each island it borders, so collapsing to one per vertex handed a triangle at an unjoined
     // seam its neighbour's placement - one visibly skewed triangle per face. Every other projection is
     // single-valued per point, so there a corner's UV is just its vertex's.
     std::vector<Vec2f> compute_layer_corner_uvs(const indexed_triangle_set &patch,
-                                                const TextureDisplacementLayer &layer) const;
+                                                const TextureDisplacementLayer &layer,
+                                                const std::vector<int> *patch_source = nullptr) const;
+    // The model's own channel over `local_patch`, already through apply_uv_transform() - three per
+    // patch triangle. Empty when the volume has no channel, or when `patch_source` is missing. Shared
+    // by the two functions above so the per-vertex and per-corner forms can never disagree.
+    std::vector<Vec2f> model_uv_corners(const indexed_triangle_set &local_patch,
+                                        const TextureDisplacementLayer &layer,
+                                        const std::vector<int> *patch_source) const;
     // The in-shader projection for `layer` (0 Triplanar, 1 Cylindrical, 2 Spherical) plus, for the two
     // wrapping ones, the patch centroid and cylinder axis they wrap around - in the texture frame the
     // shaders project in. Taken from the bake's own texture_displacement_patch_frame(), so a preview
@@ -878,6 +1001,7 @@ private:
     enum class UVBackground { None, Height, Checker };
     UVBackground m_uv_editor_bg = UVBackground::None;
     float        m_uv_editor_bg_smoothing = -1.f; // smoothing the height backdrop was uploaded at
+    TextureAdjustments m_uv_editor_bg_adjust;        // and the live image adjustment it was uploaded at
     const void  *m_uv_editor_bg_image     = nullptr; // the layer image it was uploaded from
     // Per-chart distortion heatmap colour for the UV pane (#7/#14), computed once when the unwrap is
     // re-solved (relative stretch doesn't change when islands are merely moved), fed to the canvas only
@@ -915,25 +1039,26 @@ private:
     bool m_preview_job_pending = false;
     void queue_preview_job();
 
-    // Per-slot GPU thumbnail cache for the layer list panel, keyed by the image_data pointer that
-    // was current the last time each thumbnail was built (see get_layer_thumbnail()).
-    std::array<std::unique_ptr<GLTexture>, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_thumbnails;
-    std::array<const void *, TEXTURE_DISPLACEMENT_MAX_LAYERS>               m_thumbnail_source{};
+    // Per-slot GPU thumbnail cache for the layer list panel, each keyed by the image_data it was built from
+    // (see get_layer_thumbnail()). Held weakly rather than by address, as decode_height_texture()'s cache is:
+    // an image freed and replaced by another at the same address must not pass for it.
+    std::array<std::unique_ptr<GLTexture>, TEXTURE_DISPLACEMENT_MAX_LAYERS>                       m_thumbnails;
+    std::array<std::weak_ptr<const std::vector<unsigned char>>, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_thumbnail_source;
     // The smoothing each cached thumbnail was built at, so a smoothing change re-uploads it.
-    std::array<float, TEXTURE_DISPLACEMENT_MAX_LAYERS>                      m_thumbnail_smoothing{};
+    std::array<float, TEXTURE_DISPLACEMENT_MAX_LAYERS>                                            m_thumbnail_smoothing{};
 
     // Full-resolution height texture for the preview shader, keyed the same way (see
     // get_layer_height_texture()). A smoothing change re-uploads it, so the fast preview shows the
     // blur the bake will apply.
-    std::unique_ptr<GLTexture> m_height_tex;
-    const void                *m_height_tex_source    = nullptr;
-    float                      m_height_tex_smoothing = -1.f;
+    std::unique_ptr<GLTexture>                      m_height_tex;
+    std::weak_ptr<const std::vector<unsigned char>> m_height_tex_source;
+    float                                           m_height_tex_smoothing = -1.f;
 
     // The same, for the layer's *colour*, which the fast preview quantizes per fragment so it shows
     // the image at texel resolution rather than at the mesh's. Null for a grayscale texture.
-    std::unique_ptr<GLTexture> m_color_tex;
-    const void                *m_color_tex_source    = nullptr;
-    float                      m_color_tex_smoothing = -1.f;
+    std::unique_ptr<GLTexture>                      m_color_tex;
+    std::weak_ptr<const std::vector<unsigned char>> m_color_tex_source;
+    float                                           m_color_tex_smoothing = -1.f;
 
     // Library textures the picker has shown at least once, keyed by file path (see LibraryTexture).
     std::map<std::string, LibraryTexture> m_library_textures;
@@ -971,9 +1096,12 @@ private:
     PatchUnwrap m_uv_editor_unwrap;
 
     // When set, the panel is a free-floating window the user can drag anywhere (with a title bar to
-    // grab), instead of being pinned to the right of the gizmo toolbar. Persisted across gizmo
-    // open/close within a session, so the choice sticks while working.
+    // grab), instead of being pinned to the right of the gizmo toolbar. Kept in the application
+    // config rather than in the project: it describes the user's window, not the model, so opening
+    // someone else's project must not move their panel.
     bool m_undocked = false;
+    // The config key behind m_undocked.
+    static constexpr const char *UNDOCKED_CONFIG_KEY = "texture_displacement_panel_undocked";
 
     // Smooth scrolling for the panel body (everything between the header and the pinned Bake footer).
     // ImGui jumps a fixed number of lines per wheel notch, which on tall layer cards reads as a hard
@@ -1016,6 +1144,9 @@ private:
     std::vector<std::pair<wxString, wxString>> m_shortcuts_bucket_fill;
     // Contains all shortcuts in the format of {shortcut, description}, e.g. {alt + _L("Left mouse button"), _L("Part_selection")}
     std::vector<std::pair<wxString, wxString>> m_shortcuts_gap_fill;
+    // The two ways every slider in the panel takes a typed value. They hold whatever tool is selected,
+    // so they are tacked onto each of the lists above and stand on their own when no tool is active.
+    std::vector<std::pair<wxString, wxString>> m_shortcuts_sliders;
 
     // Icons for the panel's icon buttons (tools, views, mapping, tiling, layer actions). Loaded through IconManager with
     // the same colour/monochrome variants the main toolbar uses, so an inactive button shows the icon in
@@ -1025,6 +1156,50 @@ private:
     std::map<std::string, IconManager::Icons>  m_panel_icon_map; // file name -> [normal, colour, disabled]
     bool                                       m_panel_icons_tried = false;
     void                                       ensure_panel_icons();
+
+    // One illustration under a tooltip's text: a still image or an animation (see AnimatedTexture),
+    // named by file within resources/images/texture_displacement, with a caption under it. Several of
+    // them in one tooltip are laid out side by side, which is how a setting is shown as a comparison -
+    // the same model at two values of it.
+    struct TipMedia
+    {
+        std::string file;
+        wxString    caption;
+    };
+
+    // Every tooltip the panel shows. Placed beside the panel rather than under the mouse: the panel is
+    // pinned to the right edge of the canvas, so a tooltip left to follow the mouse covers the control
+    // it is explaining, and one carrying an illustration covers most of the panel with it.
+    //
+    // `media` is drawn under the text, at the tooltip's full width; files that are missing or will not
+    // decode are skipped, so a tooltip whose illustration has not been drawn yet is exactly the text
+    // tooltip it was before.
+    void panel_tooltip(const std::string &text, const std::vector<TipMedia> &media = {});
+    void panel_tooltip(const wxString &text, const std::vector<TipMedia> &media = {});
+    void render_tip_media(const std::vector<TipMedia> &media, float width);
+
+    // Screen rectangle a tooltip places itself beside: the panel window, or - while the texture picker
+    // is up and tooltips are coming from inside it - the picker popup, which already sits beside the
+    // panel. Both are set from the window's own rectangle as it is drawn.
+    ImVec2 m_tooltip_anchor_min{0.f, 0.f};
+    ImVec2 m_tooltip_anchor_max{0.f, 0.f};
+    // Illustrations any tooltip has shown, decoded and uploaded once (see AnimatedTexture.hpp).
+    AnimatedTextureCache m_tip_media;
+    // Which tooltip's illustrations are on screen, and when they first appeared: an animation plays
+    // from its first frame each time its tooltip opens, rather than from wherever a free-running clock
+    // happened to be.
+    std::string m_tip_media_key;
+    double      m_tip_media_start  = 0.;
+    int         m_tip_media_frame  = -2; // the frame it was last drawn on, to spot the tooltip reopening
+    // How long the pointer has rested on the control a tooltip belongs to, and when one was last on
+    // screen, both on the real clock tip_now() keeps (see the .cpp for why ImGui's own will not do).
+    ImVec2 m_tip_item{-1.f, -1.f};
+    double m_tip_hover_since = 0.;
+    double m_tip_last_shown  = -1e9;
+    // The frame a tooltip was last drawn on, and how many it has been drawn on in a row: ImGui hides
+    // one on its first frame while it measures it, so it has to be kept on screen to be seen at all.
+    int m_tip_shown_frame = -2;
+    int m_tip_settled     = 0;
 };
 
 } // namespace Slic3r::GUI
