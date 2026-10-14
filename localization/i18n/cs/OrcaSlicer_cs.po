@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl\n"
 "Language-Team: \n"
@@ -3246,6 +3246,62 @@ msgstr "(Ztracená barva)"
 
 msgid "Center"
 msgstr "Střed"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Rozmístit vlevo-vpravo"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Rozmístit vpředu-vzadu"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Rozmístit nahoře-dole"
+
+# AI Translated
+msgid "Align left"
+msgstr "Zarovnat vlevo"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Zarovnat na střed vlevo-vpravo"
+
+# AI Translated
+msgid "Align right"
+msgstr "Zarovnat vpravo"
+
+# AI Translated
+msgid "Align front"
+msgstr "Zarovnat dopředu"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Zarovnat na střed vpředu-vzadu"
+
+# AI Translated
+msgid "Align back"
+msgstr "Zarovnat dozadu"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Zarovnat dolů"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Zarovnat na střed nahoře-dole"
+
+# AI Translated
+msgid "Align top"
+msgstr "Zarovnat nahoru"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Zarovnat/Rozmístit"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Zarovnat a rozmístit objekty"
 
 msgid "Drop"
 msgstr "Pustit"

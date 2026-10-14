@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3212,6 +3212,63 @@ msgstr "(Elveszett szín)"
 
 msgid "Center"
 msgstr "Közép"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Elosztás bal-jobb irányban"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Elosztás előre-hátra irányban"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Elosztás fel-le irányban"
+
+# AI Translated
+msgid "Align left"
+msgstr "Igazítás balra"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Igazítás középre bal-jobb irányban"
+
+# AI Translated
+msgid "Align right"
+msgstr "Igazítás jobbra"
+
+# AI Translated
+# Needs human review: Object menu item that aligns the objects' front edges (-Y on the plate); check that 'előre' is not read as 'in advance'.
+msgid "Align front"
+msgstr "Igazítás előre"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Igazítás középre előre-hátra irányban"
+
+# AI Translated
+msgid "Align back"
+msgstr "Igazítás hátra"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Igazítás alulra"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Igazítás középre fel-le irányban"
+
+# AI Translated
+msgid "Align top"
+msgstr "Igazítás felülre"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Igazítás/Elosztás"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Objektumok igazítása és elosztása"
 
 msgid "Drop"
 msgstr "Lehelyezés"

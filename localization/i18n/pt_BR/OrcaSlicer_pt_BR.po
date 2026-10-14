@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2026-10-11 16:22-0300\n"
 "Last-Translator: Alexandre Folle de Menezes\n"
 "Language-Team: Portuguese, Brazilian\n"
@@ -3090,6 +3090,62 @@ msgstr "(Cor perdida)"
 
 msgid "Center"
 msgstr "Centralizar"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Distribuir esquerda-direita"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Distribuir frente-trás"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Distribuir cima-baixo"
+
+# AI Translated
+msgid "Align left"
+msgstr "Alinhar à esquerda"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Alinhar ao centro esquerda-direita"
+
+# AI Translated
+msgid "Align right"
+msgstr "Alinhar à direita"
+
+# AI Translated
+msgid "Align front"
+msgstr "Alinhar à frente"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Alinhar ao centro frente-trás"
+
+# AI Translated
+msgid "Align back"
+msgstr "Alinhar atrás"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Alinhar embaixo"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Alinhar ao centro cima-baixo"
+
+# AI Translated
+msgid "Align top"
+msgstr "Alinhar em cima"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Alinhar/Distribuir"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Alinhar e distribuir objetos"
 
 msgid "Drop"
 msgstr "Descartar"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2026-07-20 13:33+0200\n"
 "Last-Translator: Manu Goiogana <mgoiogana@gmail.com>\n"
 "Language-Team: \n"
@@ -3134,6 +3134,66 @@ msgstr "(Kolorea galdu da)"
 
 msgid "Center"
 msgstr "Zentratu"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Banatu ezker-eskuin norabidean"
+
+# AI Translated
+# Needs human review: Object menu item that spaces objects evenly along the plate's front-back (Y) axis; check that the 'aurre-atze' compound reads naturally.
+msgid "Distribute front-back"
+msgstr "Banatu aurre-atze norabidean"
+
+# AI Translated
+# Needs human review: Object menu item that spaces objects evenly along the vertical (Z) axis; check that the 'goi-behe' compound reads naturally.
+msgid "Distribute top-bottom"
+msgstr "Banatu goi-behe norabidean"
+
+# AI Translated
+msgid "Align left"
+msgstr "Lerrokatu ezkerrean"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Lerrokatu erdian ezker-eskuin norabidean"
+
+# AI Translated
+msgid "Align right"
+msgstr "Lerrokatu eskuinean"
+
+# AI Translated
+msgid "Align front"
+msgstr "Lerrokatu aurrean"
+
+# AI Translated
+# Needs human review: Object menu item that aligns object centers on the plate's front-back (Y) axis; check that the 'aurre-atze' compound reads naturally.
+msgid "Align front-back center"
+msgstr "Lerrokatu erdian aurre-atze norabidean"
+
+# AI Translated
+msgid "Align back"
+msgstr "Lerrokatu atzean"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Lerrokatu behean"
+
+# AI Translated
+# Needs human review: Object menu item that aligns object centers on the vertical (Z) axis; check that the 'goi-behe' compound reads naturally.
+msgid "Align top-bottom center"
+msgstr "Lerrokatu erdian goi-behe norabidean"
+
+# AI Translated
+msgid "Align top"
+msgstr "Lerrokatu goian"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Lerrokatu/Banatu"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Lerrokatu eta banatu objektuak"
 
 msgid "Drop"
 msgstr "Askatu"

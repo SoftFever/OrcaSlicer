@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3220,6 +3220,62 @@ msgstr "(Colore perso)"
 
 msgid "Center"
 msgstr "Centro"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Distribuisci sinistra-destra"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Distribuisci davanti-dietro"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Distribuisci alto-basso"
+
+# AI Translated
+msgid "Align left"
+msgstr "Allinea a sinistra"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Allinea al centro sinistra-destra"
+
+# AI Translated
+msgid "Align right"
+msgstr "Allinea a destra"
+
+# AI Translated
+msgid "Align front"
+msgstr "Allinea davanti"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Allinea al centro davanti-dietro"
+
+# AI Translated
+msgid "Align back"
+msgstr "Allinea dietro"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Allinea in basso"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Allinea al centro alto-basso"
+
+# AI Translated
+msgid "Align top"
+msgstr "Allinea in alto"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Allinea/Distribuisci"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Allinea e distribuisci gli oggetti"
 
 msgid "Drop"
 msgstr "Lascia"

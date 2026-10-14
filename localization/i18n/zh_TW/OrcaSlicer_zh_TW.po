@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2025-11-28 13:48-0600\n"
 "Last-Translator: tntchn <15895303+tntchn@users.noreply.github.com>\n"
 "Language-Team: \n"
@@ -3171,6 +3171,62 @@ msgstr "（失去顏色）"
 
 msgid "Center"
 msgstr "居中"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "左右平均分布"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "前後平均分布"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "上下平均分布"
+
+# AI Translated
+msgid "Align left"
+msgstr "靠左對齊"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "左右置中對齊"
+
+# AI Translated
+msgid "Align right"
+msgstr "靠右對齊"
+
+# AI Translated
+msgid "Align front"
+msgstr "靠前對齊"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "前後置中對齊"
+
+# AI Translated
+msgid "Align back"
+msgstr "靠後對齊"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "靠下對齊"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "上下置中對齊"
+
+# AI Translated
+msgid "Align top"
+msgstr "靠上對齊"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "對齊/分布"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "對齊及分布物件"
 
 msgid "Drop"
 msgstr "下降"

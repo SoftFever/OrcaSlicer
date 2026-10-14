@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2025-10-02 17:43+0700\n"
 "Last-Translator: \n"
 "Language-Team: hainguyen.ts13@gmail.com\n"
@@ -3351,6 +3351,63 @@ msgstr "(Mất màu)"
 
 msgid "Center"
 msgstr "Căn giữa"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Phân bố trái-phải"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Phân bố trước-sau"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Phân bố trên-dưới"
+
+# AI Translated
+msgid "Align left"
+msgstr "Căn trái"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Căn giữa trái-phải"
+
+# AI Translated
+msgid "Align right"
+msgstr "Căn phải"
+
+# AI Translated
+msgid "Align front"
+msgstr "Căn trước"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Căn giữa trước-sau"
+
+# AI Translated
+# Needs human review: Align/Distribute menu (object right-click), Y axis: check 'Căn trước'/'Căn sau' read as aligning the front/back edges, not 'align first/later'.
+msgid "Align back"
+msgstr "Căn sau"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Căn dưới"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Căn giữa trên-dưới"
+
+# AI Translated
+msgid "Align top"
+msgstr "Căn trên"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Căn chỉnh/Phân bố"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Căn chỉnh và phân bố vật thể"
 
 msgid "Drop"
 msgstr "Thả xuống"

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer 2.3.0-rc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Krzysztof Morga <<tlumaczeniebs@gmail.com>>\n"
 "Language-Team: \n"
@@ -3281,6 +3281,62 @@ msgstr "(Utracony kolor)"
 
 msgid "Center"
 msgstr "Wyśrodkuj"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Rozłóż lewo-prawo"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Rozłóż przód-tył"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Rozłóż góra-dół"
+
+# AI Translated
+msgid "Align left"
+msgstr "Wyrównaj do lewej"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Wyrównaj do środka lewo-prawo"
+
+# AI Translated
+msgid "Align right"
+msgstr "Wyrównaj do prawej"
+
+# AI Translated
+msgid "Align front"
+msgstr "Wyrównaj do przodu"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Wyrównaj do środka przód-tył"
+
+# AI Translated
+msgid "Align back"
+msgstr "Wyrównaj do tyłu"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Wyrównaj do dołu"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Wyrównaj do środka góra-dół"
+
+# AI Translated
+msgid "Align top"
+msgstr "Wyrównaj do góry"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Wyrównaj/Rozłóż"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Wyrównaj i rozłóż obiekty"
 
 msgid "Drop"
 msgstr "Upuść"

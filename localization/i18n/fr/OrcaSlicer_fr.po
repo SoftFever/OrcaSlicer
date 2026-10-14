@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -3159,6 +3159,62 @@ msgstr "(Couleur perdue)"
 
 msgid "Center"
 msgstr "Centrer"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Répartir gauche-droite"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Répartir avant-arrière"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Répartir haut-bas"
+
+# AI Translated
+msgid "Align left"
+msgstr "Aligner à gauche"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Aligner au centre gauche-droite"
+
+# AI Translated
+msgid "Align right"
+msgstr "Aligner à droite"
+
+# AI Translated
+msgid "Align front"
+msgstr "Aligner à l’avant"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Aligner au centre avant-arrière"
+
+# AI Translated
+msgid "Align back"
+msgstr "Aligner à l’arrière"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Aligner en bas"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Aligner au centre haut-bas"
+
+# AI Translated
+msgid "Align top"
+msgstr "Aligner en haut"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Aligner/Répartir"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Aligner et répartir les objets"
 
 msgid "Drop"
 msgstr "Déposer"

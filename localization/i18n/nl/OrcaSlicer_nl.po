@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3475,6 +3475,62 @@ msgstr "(Kleur verloren)"
 
 msgid "Center"
 msgstr "Centreren"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Links-rechts verdelen"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Voor-achter verdelen"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Boven-onder verdelen"
+
+# AI Translated
+msgid "Align left"
+msgstr "Links uitlijnen"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Links-rechts gecentreerd uitlijnen"
+
+# AI Translated
+msgid "Align right"
+msgstr "Rechts uitlijnen"
+
+# AI Translated
+msgid "Align front"
+msgstr "Vooraan uitlijnen"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Voor-achter gecentreerd uitlijnen"
+
+# AI Translated
+msgid "Align back"
+msgstr "Achteraan uitlijnen"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Onderaan uitlijnen"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Boven-onder gecentreerd uitlijnen"
+
+# AI Translated
+msgid "Align top"
+msgstr "Bovenaan uitlijnen"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Uitlijnen/Verdelen"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Objecten uitlijnen en verdelen"
 
 msgid "Drop"
 msgstr "Neerzetten"

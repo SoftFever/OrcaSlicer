@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2959,6 +2959,48 @@ msgid "(Lost color)"
 msgstr ""
 
 msgid "Center"
+msgstr ""
+
+msgid "Distribute left-right"
+msgstr ""
+
+msgid "Distribute front-back"
+msgstr ""
+
+msgid "Distribute top-bottom"
+msgstr ""
+
+msgid "Align left"
+msgstr ""
+
+msgid "Align left-right center"
+msgstr ""
+
+msgid "Align right"
+msgstr ""
+
+msgid "Align front"
+msgstr ""
+
+msgid "Align front-back center"
+msgstr ""
+
+msgid "Align back"
+msgstr ""
+
+msgid "Align bottom"
+msgstr ""
+
+msgid "Align top-bottom center"
+msgstr ""
+
+msgid "Align top"
+msgstr ""
+
+msgid "Align/Distribute"
+msgstr ""
+
+msgid "Align and distribute objects"
 msgstr ""
 
 msgid "Drop"

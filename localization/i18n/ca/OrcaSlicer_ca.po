@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2025-03-15 10:55+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3276,6 +3276,62 @@ msgstr "(Color perdut)"
 
 msgid "Center"
 msgstr "Centre"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Distribuir esquerra-dreta"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Distribuir davant-darrere"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Distribuir dalt-baix"
+
+# AI Translated
+msgid "Align left"
+msgstr "Alinear a l'esquerra"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Alinear al centre esquerra-dreta"
+
+# AI Translated
+msgid "Align right"
+msgstr "Alinear a la dreta"
+
+# AI Translated
+msgid "Align front"
+msgstr "Alinear al davant"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Alinear al centre davant-darrere"
+
+# AI Translated
+msgid "Align back"
+msgstr "Alinear al darrere"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Alinear a baix"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Alinear al centre dalt-baix"
+
+# AI Translated
+msgid "Align top"
+msgstr "Alinear a dalt"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Alinear/Distribuir"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Alinear i distribuir objectes"
 
 msgid "Drop"
 msgstr "Deixar anar"

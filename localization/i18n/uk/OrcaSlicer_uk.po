@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2026-07-17 16:25+0300\n"
 "Last-Translator: Andrij Mizyk <andm1zyk@proton.me>\n"
 "Language-Team: Ukrainian\n"
@@ -3183,6 +3183,63 @@ msgstr "(Втрачений колір)"
 
 msgid "Center"
 msgstr "Центр"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Розподілити за шириною"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Розподілити за глибиною"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Розподілити за висотою"
+
+# AI Translated
+msgid "Align left"
+msgstr "Вирівняти за лівим краєм"
+
+# AI Translated
+# Needs human review: Align/Distribute menu (object right-click): left-right/front-back/top-bottom are rendered as за шириною/глибиною/висотою (the menu appends X/Y/Z); check it reads as aligning the objects' centers along that axis.
+msgid "Align left-right center"
+msgstr "Вирівняти центри за шириною"
+
+# AI Translated
+msgid "Align right"
+msgstr "Вирівняти за правим краєм"
+
+# AI Translated
+msgid "Align front"
+msgstr "Вирівняти за переднім краєм"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Вирівняти центри за глибиною"
+
+# AI Translated
+msgid "Align back"
+msgstr "Вирівняти за заднім краєм"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Вирівняти за нижнім краєм"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Вирівняти центри за висотою"
+
+# AI Translated
+msgid "Align top"
+msgstr "Вирівняти за верхнім краєм"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Вирівняти/Розподілити"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Вирівняти та розподілити обʼєкти"
 
 msgid "Drop"
 msgstr "Кинути"
