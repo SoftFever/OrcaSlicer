@@ -439,16 +439,12 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (gcodegen.m_print != nullptr && !gcodegen.m_print->tool_ordering().empty()) {
             coordf_t current_z        = gcodegen.layer() ? gcodegen.layer()->print_z : gcodegen.writer().get_position().z();
             const auto& tool_ordering = gcodegen.m_print->tool_ordering();
-            const auto& phys_map      = gcodegen.config().physical_extruder_map.values;
-
-            auto heater_done = [&](int heater) {
-                for (size_t f = 0; f < phys_map.size(); ++f)
-                    if (phys_map[f] == heater && !tool_ordering.is_last_extrusion_layer(current_z, static_cast<unsigned int>(f)))
-                        return false;
-                return true;
-            };
-
-            is_last_use = phys_map.empty() ? tool_ordering.is_last_extrusion_layer(current_z, extruder_id) : heater_done(gcodegen.config().physical_extruder_map.get_at(extruder_id));
+            const auto& cfg           = gcodegen.config();
+            const int heater          = imex_physical_heater_for(cfg.is_imex.value, cfg.physical_extruder_map, int(extruder_id));
+            is_last_use               = tool_ordering.is_last_extrusion_layer(current_z, extruder_id);
+            for (unsigned int f : tool_ordering.all_extruders())
+                if (is_last_use && imex_physical_heater_for(cfg.is_imex.value, cfg.physical_extruder_map, int(f)) == heater)
+                    is_last_use = tool_ordering.is_last_extrusion_layer(current_z, f);
         }
 
         int temp = 0;
