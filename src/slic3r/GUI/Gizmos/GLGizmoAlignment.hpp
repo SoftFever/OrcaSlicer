@@ -77,6 +77,8 @@ public:
     // World bounding box aligned to with align_parent: the instance of a parts selection, or the plate holding the
     // selected instances, up to their top.
     BoundingBoxf3                 get_parent_box() const;
+    // Number of items the operation would move, or 0 when it cannot move them; why_not then gets the reason, if any.
+    size_t                        get_items_count(AlignType type, bool align_parent, std::string *why_not = nullptr) const;
 
 private:
     GLCanvas3D& m_canvas;
@@ -92,7 +94,6 @@ private:
     bool take_snapshot(const std::string& name);
     void apply_transformation(int obj_idx, int inst_idx, const Vec3d& displacement);
     void       finish_operation(bool force_volume_move = false);
-    size_t     get_items_count(AlignType type, bool align_parent) const;
 };
 
 } // namespace GUI

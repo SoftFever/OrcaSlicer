@@ -2,6 +2,7 @@
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/Selection.hpp"
@@ -627,8 +628,10 @@ BoundingBoxf3 GLGizmoAlignment::get_parent_box() const
         PartPlate *plate = plate_list.get_plate(plate_list.find_instance(obj_idx, *inst_idxs.begin()));
         if (plate == nullptr)
             break;
+        BoundingBoxf3 instances_box;
+        get_selected_objects_info(instances_box);
         box          = plate->get_plate_box();
-        box.max.z()  = get_items_box().max.z();
+        box.max.z()  = instances_box.max.z();
         // Keep the aligned objects off the plate edge.
         box.min     += Vec3d(0.1, 0.1, 0.1);
         box.max     -= Vec3d(0.1, 0.1, 0.1);
@@ -663,10 +666,18 @@ void GLGizmoAlignment::finish_operation(bool force_volume_move)
     m_canvas.do_move("", force_volume_move);
 }
 
-size_t GLGizmoAlignment::get_items_count(AlignType type, bool align_parent) const
+size_t GLGizmoAlignment::get_items_count(AlignType type, bool align_parent, std::string *why_not) const
 {
-    if (is_parts_selection(align_parent))
-        return get_selected_part_volumes().size();
+    auto cannot_move = [why_not](const std::string &reason) {
+        if (why_not != nullptr)
+            *why_not = reason;
+        return size_t(0);
+    };
+
+    if (is_parts_selection(align_parent)) {
+        const size_t count = get_selected_part_volumes().size();
+        return count > 0 ? count : cannot_move(_u8L("Parts of a cut object cannot be moved"));
+    }
 
     // Instances are moved through their instance offsets, which do_move() commits only from an Instance selection.
     const Selection &selection = get_selection();
@@ -677,7 +688,7 @@ size_t GLGizmoAlignment::get_items_count(AlignType type, bool align_parent) cons
                       type == AlignType::DISTRIBUTE_Z;
     // The plate gives no Z target, and aligning to its bottom would duplicate Drop.
     if (is_z && align_parent)
-        return 0;
+        return cannot_move(_u8L("Aligning to the plate is available in X and Y only"));
 
     PartPlateList &plate_list = wxGetApp().plater()->get_partplate_list();
     int            plate_idx  = -1;
@@ -687,13 +698,13 @@ size_t GLGizmoAlignment::get_items_count(AlignType type, bool align_parent) cons
             continue;
         // Auto-drop would put a raised object back on the bed and leave a lowered one sunk.
         if (is_z && selection.get_model()->objects[obj_idx]->auto_drop)
-            return 0;
+            return cannot_move(_u8L("Turn off Auto-Drop for the selected objects to move them in Z"));
         if (align_parent) {
             // The plate holding the selection is the target, so it must hold all of it.
             for (int inst_idx : inst_idxs) {
                 const int idx = plate_list.find_instance(obj_idx, inst_idx);
                 if (idx == -1 || (plate_idx != -1 && idx != plate_idx))
-                    return 0;
+                    return cannot_move(_u8L("All selected objects must be on the same plate"));
                 plate_idx = idx;
             }
         }
