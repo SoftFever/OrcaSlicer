@@ -2312,6 +2312,13 @@ void PreferencesDialog::create_items()
     auto item_show_unsupported = create_item_checkbox(_L("Show unsupported presets"), _L("Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."), "show_unsupported_presets");
     g_sizer->Add(item_show_unsupported);
 
+    auto item_export_statistics = create_item_checkbox(_L("Export statistics with G-code"),
+                                                       _L("If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, "
+                                                          "and an exported sliced 3MF file holds them inside: print time, filament and feature totals, "
+                                                          "and the same per layer and per object."),
+                                                       "export_statistics");
+    g_sizer->Add(item_export_statistics);
+
     //// DEVELOPER > Experimental Features
     g_sizer->Add(create_item_title(_L("Experimental Features")), 1, wxEXPAND);
 

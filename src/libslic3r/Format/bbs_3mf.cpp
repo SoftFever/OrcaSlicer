@@ -9053,6 +9053,16 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%\n") % src_gcode_file % gcode_in_3mf;
         }
     });
+    for (const PlateData *plate_data : plate_data_list2) {
+        if (plate_data->statistics.empty())
+            continue;
+        const std::string statistics_in_3mf = (boost::format(STATISTICS_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+        if (!mz_zip_writer_add_mem(&archive, statistics_in_3mf.c_str(), plate_data->statistics.data(), plate_data->statistics.size(),
+                                   MZ_DEFAULT_COMPRESSION)) {
+            add_error("Unable to add statistics file to archive");
+            result = false;
+        }
+    }
     return result;
 }
 

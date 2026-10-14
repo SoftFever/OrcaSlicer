@@ -2625,8 +2625,15 @@ static void set_mass_locator(GCodeProcessor &processor, const Print &print)
         }
         Object &o = objects.emplace_back(Object{ object, int(object_masses.size()), count, bodies_total, {}, std::move(bodies), {}, {} });
         object_masses.resize(object_masses.size() + object->instances().size());
-        for (size_t instance = 0; instance < object->instances().size(); ++instance)
-            object_masses[o.first_instance + instance].assembly = assembly;
+        const ModelInstancePtrs &model_instances = object->model_object()->instances;
+        for (size_t instance = 0; instance < object->instances().size(); ++instance) {
+            GCodeProcessorResult::ObjectMass &mass = object_masses[o.first_instance + instance];
+            mass.assembly                          = assembly;
+            mass.name                              = object->model_object()->name;
+            // Copies of another rotation or scale slice as objects of their own, so number them in the model object.
+            mass.instance = int(std::find(model_instances.begin(), model_instances.end(), object->instances()[instance].model_instance) -
+                                model_instances.begin());
+        }
         bodies_total += int(count * object->instances().size());
         for (const Layer *layer : layers) {
             o.print_zs.emplace_back(layer->print_z);

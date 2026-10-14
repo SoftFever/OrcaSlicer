@@ -410,6 +410,44 @@ static bool load_project(const std::string& path, Model& model, const ScopedTemp
     return loaded;
 }
 
+TEST_CASE("A plate's G-code statistics are stored next to its G-code", "[3mf]")
+{
+    const bool with_statistics = GENERATE(false, true);
+    ScopedTemporaryFile gcode(".gcode");
+    save_string_file(gcode.path(), "G1 X10 Y10 E1\n");
+
+    Model        model;
+    ModelObject* object = model.add_object();
+    object->add_volume(make_cube(10., 10., 10.));
+    object->add_instance();
+    ScopedTemporaryDir backup_dir("orca_statistics_src");
+    model.set_backup_path(backup_dir.string());
+
+    // A sliced plate's info reads the printer settings.
+    DynamicPrintConfig cfg = DynamicPrintConfig::full_print_config();
+    PlateData          plate;
+    plate.plate_index     = 0;
+    plate.gcode_file      = gcode.string();
+    plate.is_sliced_valid = true;
+    if (with_statistics)
+        plate.statistics = R"({ "version": 1 })";
+    ScopedTemporaryFile file(".3mf");
+    const std::string   path = file.string();
+    StoreParams         sp;
+    sp.path     = path.c_str();
+    sp.model    = &model;
+    sp.config   = &cfg;
+    sp.strategy = SaveStrategy::Zip64 | SaveStrategy::Silence | SaveStrategy::WithGcode;
+    sp.plate_data_list.push_back(&plate);
+    REQUIRE(store_bbs_3mf(sp));
+
+    std::string stored;
+    REQUIRE(read_cad_recipe_entry(path, stored, "Metadata/plate_1.gcode"));
+    CHECK(read_cad_recipe_entry(path, stored, "Metadata/plate_1.statistics.json") == with_statistics);
+    if (with_statistics)
+        CHECK(stored == plate.statistics);
+}
+
 TEST_CASE("A project with a plate id below 1 fails to load", "[3mf][Regression]")
 {
     const int plate_id = GENERATE(0, -1);
