@@ -12420,14 +12420,14 @@ msgstr "Jednoczesne włączenie precyzyjnej wysokości Z i wieży czyszczącej m
 
 # AI Translated
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "Płynny timelapse wymaga wieży czyszczącej na każdej warstwie, co nie jest zgodne z opcją \"Warstwy bez czyszczenia\". Opcja \"Warstwy bez czyszczenia\" została wyłączona."
+msgstr "Płynny timelapse wymaga wieży czyszczącej na każdej warstwie, co nie jest zgodne z opcją \"Bez rzadkich warstw\". Opcja \"Bez rzadkich warstw\" została wyłączona."
 
 msgid "A prime tower is required for smooth timelapse mode. There may be flaws on the model without prime tower. Do you want to enable the prime tower?"
 msgstr "Wieża czyszcząca jest wymagana dla płynnego timelapse. Możliwe są wady na modelu bez wieży czyszczącej. Czy włączyć wieżę czyszczącą?"
 
 # AI Translated
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-msgstr "Opcja \"Warstwy bez czyszczenia\" nie jest zgodna z płynnym timelapse, który wymaga wieży czyszczącej na każdej warstwie. Timelapse został przełączony w tryb tradycyjny."
+msgstr "Opcja \"Bez rzadkich warstw\" nie jest zgodna z płynnym timelapse, który wymaga wieży czyszczącej na każdej warstwie. Timelapse został przełączony w tryb tradycyjny."
 
 msgid "Still print by object?"
 msgstr "Czy nadal drukować według obiektu?"
@@ -14624,7 +14624,7 @@ msgstr "%1% jest zbyt wysoki, mogą wystąpić kolizje."
 
 # AI Translated
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr "Wzajemne położenie modelu i wieży czyszczącej nie spełnia wymagań funkcji \"Warstwy bez czyszczenia\". Zmień ich wzajemne położenie, zmniejsz wysokość modelu albo wyłącz opcję \"Warstwy bez czyszczenia\"."
+msgstr "Wzajemne położenie modelu i wieży czyszczącej nie spełnia wymagań funkcji \"Bez rzadkich warstw\". Zmień ich wzajemne położenie, zmniejsz wysokość modelu albo wyłącz opcję \"Bez rzadkich warstw\"."
 
 # AI Translated
 #, boost-format
@@ -19288,7 +19288,7 @@ msgstr "Zastosuj szwy ukośne również do wewnętrznych obrysów."
 
 # AI Translated
 msgid "Role based wipe speed"
-msgstr "Prędkość wycierania dyszy w oparciu o rolę ekstruzji"
+msgstr "Prędkość wycierania zależna od trybu ekstruzji"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr "Szybkość wycierania dyszy drukującej jest ustalana na podstawie prędkości aktualnie używanej w procesie ekstruzji. Na przykład, jeżeli wycieranie jest przeprowadzane zaraz po wydrukowaniu zewnętrznej ścianki modelu, to dla wycierania dyszy wykorzystywana jest prędkość, która została zastosowana przy drukowaniu tej ścianki."
@@ -19729,8 +19729,9 @@ msgstr "Czekaj na temperaturę na wieży czyszczącej"
 msgid "Pick up the new tool without waiting for it to reach printing temperature, travel to the wipe tower, and wait for the temperature there, right before purging. Ooze from the heat-up lands on the tower instead of the model, and the travel overlaps with the heating. Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. The firmware or tool change macro must not wait for the temperature itself. When disabled, the temperature wait is issued right after the tool change command."
 msgstr "Pobiera nowe narzędzie bez czekania, aż osiągnie temperaturę druku, przejeżdża do wieży czyszczącej i tam czeka na temperaturę, tuż przed płukaniem. Materiał wyciekający podczas nagrzewania trafia na wieżę zamiast na model, a przejazd nakłada się na nagrzewanie. Dotyczy wyłącznie drukarek z wieloma ekstruderami (wieloma głowicami) używających wieży czyszczącej typu 2. Firmware ani makro zmiany narzędzia nie mogą samodzielnie czekać na temperaturę. Gdy opcja jest wyłączona, oczekiwanie na temperaturę jest wysyłane bezpośrednio po poleceniu zmiany narzędzia."
 
+# AI Translated
 msgid "No sparse layers (beta)"
-msgstr "Warstwy bez czyszczenia (beta)"
+msgstr "Bez rzadkich warstw (beta)"
 
 # AI Translated
 msgid "If enabled, the wipe tower will not be printed on layers with no tool changes. On layers with a tool change, extruder will travel downward to print the wipe tower, so the tower ends up below the model and the toolhead has to reach down to it. Layouts where that would collide with an already printed object are rejected. Has no effect with smooth timelapse or clumping detection, which need a tower on every layer."
@@ -19752,7 +19753,7 @@ msgstr ""
 "\n"
 "Łączone są tylko całe warstwy i nigdy powyżej maksymalnej wysokości warstwy dyszy drukującej wieżę (trzech czwartych średnicy dyszy, gdy pozostawiono 0). Dlatego co najmniej dwie warstwy muszą zmieścić się w tym limicie, zanim cokolwiek się zmieni: przy wysokości warstwy 0,2 mm i maksimum 0,3 mm nic nie jest łączone, a przy 0,1 mm trzy warstwy stają się jedną.\n"
 "\n"
-"W przeciwieństwie do opcji „Warstwy bez czyszczenia” wieża nadal podąża za modelem, więc głowica nigdy nie musi po nią sięgać w dół. Nie działa z opcją „Warstwy bez czyszczenia”, płynnym timelapse ani wykrywaniem zlepiania, które wymagają wieży na każdej warstwie."
+"W przeciwieństwie do opcji „Bez rzadkich warstw” wieża nadal podąża za modelem, więc głowica nigdy nie musi po nią sięgać w dół. Nie działa z opcją „Bez rzadkich warstw”, płynnym timelapse ani wykrywaniem zlepiania, które wymagają wieży na każdej warstwie."
 
 msgid "Prime all printing extruders"
 msgstr "Wyczyść wszystkie używane ekstrudery"

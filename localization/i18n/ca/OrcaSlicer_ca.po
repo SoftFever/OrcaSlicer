@@ -5394,8 +5394,9 @@ msgstr "Pausa (coberta frontal despresa)"
 msgid "Calibrating the micro lidar"
 msgstr "Calibrant el micro lidar"
 
+# AI Translated
 msgid "Calibrating flow ratio"
-msgstr "Calibrant proporció de flux"
+msgstr "Calibrant la relació de flux"
 
 msgid "Pause (nozzle temperature malfunction)"
 msgstr "Pausa (mal funcionament de temperatura del broquet)"
@@ -15238,8 +15239,9 @@ msgstr ""
 "\n"
 "Aquesta opció funciona especialment bé combinada amb l'opció de segon pont intern sobre el farciment, per millorar encara més els ponts abans d'extrudir el farciment sòlid."
 
+# AI Translated
 msgid "Bridge flow ratio"
-msgstr "Ratio de flux del pont"
+msgstr "Relació de flux del pont"
 
 # AI Translated
 msgid ""
@@ -15256,7 +15258,6 @@ msgstr ""
 "El flux de pont real utilitzat es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
 # AI Translated
-# Needs human review: Quotes the existing label of Bridge flow ratio (Ratio de flux del pont), which differs from the glossary rendering Relació de flux; decide whether the label or the glossary wins.
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
@@ -15265,13 +15266,14 @@ msgid ""
 "If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Amplada de línia del pont. Si s'expressa en %, es calcularà sobre el diàmetre del broquet.\n"
-"Es recomana utilitzar-la amb una densitat de pont o una ratio de flux del pont més altes.\n"
+"Es recomana utilitzar-la amb una densitat de pont o una relació de flux del pont més altes.\n"
 "\n"
 "El valor màxim és el 100% o el diàmetre del broquet.\n"
 "Si s'estableix a 0, l'amplada de línia coincidirà amb l'amplada del farciment sòlid intern, o amb el diàmetre del broquet en els ponts gruixuts."
 
+# AI Translated
 msgid "Internal bridge flow ratio"
-msgstr "Ratio de flux del pont intern"
+msgstr "Relació de flux del pont intern"
 
 # AI Translated
 msgid ""
@@ -15287,8 +15289,9 @@ msgstr ""
 "\n"
 "El flux de pont real utilitzat es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Top surface flow ratio"
-msgstr "Ratio de flux superficial superior"
+msgstr "Relació de flux superficial superior"
 
 msgid ""
 "This factor affects the amount of material for top solid infill. You can decrease it slightly to have smooth surface finish.\n"
@@ -15299,8 +15302,9 @@ msgstr ""
 "\n"
 "El flux real de la superfície superior s'utilitza calculant la multiplicació d'aquest valor amb la relació de flux del filament i, si està configurada, la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Bottom surface flow ratio"
-msgstr "Ratio de flux superficial inferior"
+msgstr "Relació de flux superficial inferior"
 
 msgid ""
 "This factor affects the amount of material for bottom solid infill.\n"
@@ -15311,15 +15315,19 @@ msgstr ""
 "\n"
 "El cabal de farciment sòlid inferior real utilitzat es calcula multiplicant aquest valor per la relació de flux de filament i, si s'estableix, la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Set other flow ratios"
-msgstr "Estableix altres proporcions de flux"
+msgstr "Estableix altres relacions de flux"
 
+# AI Translated
 msgid "Change flow ratios for other extrusion path types."
-msgstr "Canvia les proporcions de flux per a altres tipus de camí d'extrusió."
+msgstr "Canvia les relacions de flux per a altres tipus de camí d'extrusió."
 
+# AI Translated
 msgid "First layer flow ratio"
-msgstr "Proporció de flux de la primera capa"
+msgstr "Relació de flux de la primera capa"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material on the first layer for the extrusion path roles listed in this section.\n"
 "\n"
@@ -15327,11 +15335,13 @@ msgid ""
 msgstr ""
 "Aquest factor afecta la quantitat de material a la primera capa per als rols de camí d'extrusió llistats en aquesta secció.\n"
 "\n"
-"Per a la primera capa, la proporció de flux real per a cada rol de camí (no afecta vores i faldilles) es multiplicarà per aquest valor."
+"Per a la primera capa, la relació de flux real per a cada rol de camí (no afecta vores i faldilles) es multiplicarà per aquest valor."
 
+# AI Translated
 msgid "Outer wall flow ratio"
-msgstr "Proporció de flux de la paret exterior"
+msgstr "Relació de flux de la paret exterior"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for outer walls.\n"
 "\n"
@@ -15339,11 +15349,13 @@ msgid ""
 msgstr ""
 "Aquest factor afecta la quantitat de material per a les parets exteriors.\n"
 "\n"
-"El flux real de la paret exterior es calcula multiplicant aquest valor per la proporció de flux del filament i, si està establert, per la proporció de flux de l'objecte."
+"El flux real de la paret exterior es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Inner wall flow ratio"
-msgstr "Proporció de flux de la paret interior"
+msgstr "Relació de flux de la paret interior"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for inner walls.\n"
 "\n"
@@ -15351,11 +15363,13 @@ msgid ""
 msgstr ""
 "Aquest factor afecta la quantitat de material per a les parets interiors.\n"
 "\n"
-"El flux real de la paret interior es calcula multiplicant aquest valor per la proporció de flux del filament i, si està establert, per la proporció de flux de l'objecte."
+"El flux real de la paret interior es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Overhang flow ratio"
-msgstr "Proporció de flux per a voladissos"
+msgstr "Relació de flux per a voladissos"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for overhangs.\n"
 "\n"
@@ -15363,11 +15377,13 @@ msgid ""
 msgstr ""
 "Aquest factor afecta la quantitat de material per als voladissos.\n"
 "\n"
-"El flux real dels voladissos es calcula multiplicant aquest valor per la proporció de flux del filament i, si està establert, per la proporció de flux de l'objecte."
+"El flux real dels voladissos es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Sparse infill flow ratio"
-msgstr "Proporció de flux del farciment dispers"
+msgstr "Relació de flux del farciment dispers"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for sparse infill.\n"
 "\n"
@@ -15375,11 +15391,13 @@ msgid ""
 msgstr ""
 "Aquest factor afecta la quantitat de material per al farciment dispers.\n"
 "\n"
-"El flux real del farciment dispers es calcula multiplicant aquest valor per la proporció de flux del filament i, si està establert, per la proporció de flux de l'objecte."
+"El flux real del farciment dispers es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Internal solid infill flow ratio"
-msgstr "Proporció de flux del farciment sòlid intern"
+msgstr "Relació de flux del farciment sòlid intern"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for internal solid infill.\n"
 "\n"
@@ -15387,11 +15405,13 @@ msgid ""
 msgstr ""
 "Aquest factor afecta la quantitat de material per al farciment sòlid intern.\n"
 "\n"
-"El flux real del farciment sòlid intern es calcula multiplicant aquest valor per la proporció de flux del filament i, si està establert, per la proporció de flux de l'objecte."
+"El flux real del farciment sòlid intern es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Gap fill flow ratio"
-msgstr "Proporció de flux del farciment d'espais"
+msgstr "Relació de flux del farciment d'espais"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for filling the gaps.\n"
 "\n"
@@ -15399,11 +15419,13 @@ msgid ""
 msgstr ""
 "Aquest factor afecta la quantitat de material per al farciment d'espais.\n"
 "\n"
-"El flux real del farciment d'espais es calcula multiplicant aquest valor per la proporció de flux del filament i, si està establert, per la proporció de flux de l'objecte."
+"El flux real del farciment d'espais es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Support flow ratio"
-msgstr "Proporció de flux del suport"
+msgstr "Relació de flux del suport"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for support.\n"
 "\n"
@@ -15411,11 +15433,13 @@ msgid ""
 msgstr ""
 "Aquest factor afecta la quantitat de material per al suport.\n"
 "\n"
-"El flux real del suport es calcula multiplicant aquest valor per la proporció de flux del filament i, si està establert, per la proporció de flux de l'objecte."
+"El flux real del suport es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
+# AI Translated
 msgid "Support interface flow ratio"
-msgstr "Proporció de flux de la interfície de suport"
+msgstr "Relació de flux de la interfície de suport"
 
+# AI Translated
 msgid ""
 "This factor affects the amount of material for the support interface.\n"
 "\n"
@@ -15423,7 +15447,7 @@ msgid ""
 msgstr ""
 "Aquest factor afecta la quantitat de material per a la interfície de suport.\n"
 "\n"
-"El flux real de la interfície de suport es calcula multiplicant aquest valor per la proporció de flux del filament i, si està establert, per la proporció de flux de l'objecte."
+"El flux real de la interfície de suport es calcula multiplicant aquest valor per la relació de flux del filament i, si està establerta, per la relació de flux de l'objecte."
 
 msgid "Precise wall"
 msgstr "Perímetre precís"
@@ -22500,14 +22524,17 @@ msgstr "Desar Perfil de Filament"
 msgid "Record Factor"
 msgstr "Factor de guardat"
 
+# AI Translated
 msgid "We found the best flow ratio for you"
-msgstr "Hem trobat la millor Ratio de Flux per a tú"
+msgstr "Hem trobat la millor relació de flux per a tu"
 
+# AI Translated
 msgid "Flow Ratio"
-msgstr "Ratio de Flux"
+msgstr "Relació de Flux"
 
+# AI Translated
 msgid "Please input a valid value (0.0 < flow ratio < 2.0)"
-msgstr "Introduïu un valor vàlid ( 0.0 < Ratio de Flux < 2.0 )"
+msgstr "Introduïu un valor vàlid ( 0.0 < relació de flux < 2.0 )"
 
 msgid "Please enter the name of the preset you want to save."
 msgstr "Introduïu el nom del perfil que voleu desar."
@@ -22527,9 +22554,10 @@ msgstr "Emplenar el valor que hi ha a sobre del bloc amb la superfície superior
 msgid "Skip Calibration2"
 msgstr "Saltar calibratge2"
 
+# AI Translated
 #, c-format, boost-format
 msgid "flow ratio : %s "
-msgstr "ratio de flux : %s "
+msgstr "relació de flux : %s "
 
 msgid "Please choose a block with smoothest top surface."
 msgstr "Trieu un bloc amb la superfície superior més llisa."
@@ -22543,8 +22571,9 @@ msgstr "Tipus de calibratge"
 msgid "Complete Calibration"
 msgstr "Calibratge Complet"
 
+# AI Translated
 msgid "Fine Calibration based on flow ratio"
-msgstr "Calibratge Fi basat en la Ratio de Flux"
+msgstr "Calibratge Fi basat en la relació de flux"
 
 msgid "Title"
 msgstr "Títol"

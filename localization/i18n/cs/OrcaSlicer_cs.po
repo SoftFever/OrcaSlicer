@@ -12233,6 +12233,7 @@ msgid "Enabling both precise Z height and the prime tower may cause slicing erro
 msgstr "Povolení přesné výšky Z i čistící věže může způsobit chyby slicování. Chcete přesto povolit přesnou výšku Z?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "čistící věž"; align it once the term is settled.
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
 msgstr "Plynulý časosběr vyžaduje čistící věž na každé vrstvě, což není slučitelné s možností \"Žádné řídké vrstvy\". Možnost \"Žádné řídké vrstvy\" byla vypnuta."
 
@@ -12240,6 +12241,7 @@ msgid "A prime tower is required for smooth timelapse mode. There may be flaws o
 msgstr "Pro hladký časosběr je potřeba základní věž. Model může mít vady bez základní věže. Chcete povolit základní věž?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "čistící věž"; align it once the term is settled.
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
 msgstr "Možnost \"Žádné řídké vrstvy\" není slučitelná s plynulým časosběrem, který vyžaduje čistící věž na každé vrstvě. Časosběr byl přepnut do tradičního režimu."
 
@@ -14100,6 +14102,7 @@ msgid "Open G-code file:"
 msgstr "Otevřít G-code soubor:"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Wipe tower generation failed, possibly due to empty first layer."
 msgstr "Generování věže na očištění trysky se nezdařilo, pravděpodobně kvůli prázdné první vrstvě."
 
@@ -14465,6 +14468,7 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% je příliš vysoký, může dojít ke kolizím."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "čistící věž"; align it once the term is settled.
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
 msgstr "Vzájemná poloha modelu a čistící věže nesplňuje požadavky funkce \"Žádné řídké vrstvy\". Upravte prosím jejich vzájemnou polohu, snižte výšku modelu nebo vypněte možnost \"Žádné řídké vrstvy\"."
 
@@ -14474,26 +14478,32 @@ msgid "%1% is too close to the clumping detection area. There may be collisions 
 msgstr "%1% je příliš blízko oblasti detekce shlukování, při tisku může dojít ke kolizím."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to others, and collisions may be caused.\n"
 msgstr "Základní věž je příliš blízko ostatním, může dojít ke kolizím.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area, and collisions will be caused.\n"
 msgstr "Základní věž je příliš blízko vyhrazené oblasti a dojde ke kolizi.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area, and collisions will be caused.\n"
 msgstr "Základní věž je příliš blízko oblasti detekce shlukování a dojde ke kolizi.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area. There may be collisions when printing."
 msgstr "Základní věž je příliš blízko vyhrazené oblasti, při tisku může dojít ke kolizím."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area. There may be collisions when printing."
 msgstr "Základní věž je příliš blízko oblasti detekce shlukování, při tisku může dojít ke kolizím."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is partially outside the printable area, and it cannot be printed.\n"
 msgstr "Základní věž je částečně mimo tisknutelnou oblast a nelze ji vytisknout.\n"
 
@@ -14614,6 +14624,7 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Proměnná výška vrstvy není podporována s organickými podporami."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "The wipe tower filament cannot be a mixed filament."
 msgstr "Filament věže na očištění trysky nemůže být míchaný filament."
 
@@ -19237,6 +19248,7 @@ msgid "Farthest point timelapse"
 msgstr "Časosběr v nejvzdálenějším bodě"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
 msgstr "Je-li zapnuto, pořizuje se časosběrný snímek v bodě nejvzdálenějším od kamery, místo přejezdu k věži na očištění trysky nebo k výhozovému žlabu. Účinné pouze v tradičním režimu časosběru na tiskárnách jiné konstrukce než I3."
 
@@ -19434,18 +19446,22 @@ msgid "Enable filament ramming"
 msgstr "Povolit protlačování filamentu"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Tool change on wipe tower"
 msgstr "Výměna nástroje na věži na očištění trysky"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Force the toolhead to travel to the wipe tower before issuing the tool change command (Tx). Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. By default Orca skips the travel on multi-toolhead machines because the firmware handles the head swap, which can result in the Tx command being issued above the printed part. Enable this option if you want the tool change to always be issued above the wipe tower instead."
 msgstr "Vynutí přejezd tiskové hlavy k věži na očištění trysky před vydáním příkazu k výměně nástroje (Tx). Týká se pouze tiskáren s více extrudery (více tiskovými hlavami), které používají věž na očištění trysky typu 2. Ve výchozím nastavení Orca na strojích s více tiskovými hlavami tento přejezd vynechává, protože výměnu hlavy řeší firmware, což může vést k vydání příkazu Tx nad tištěným dílem. Zapněte tuto volbu, chcete-li, aby byla výměna nástroje vždy vydána nad věží na očištění trysky."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Wait for temperature on wipe tower"
 msgstr "Čekat na teplotu na věži na očištění trysky"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Pick up the new tool without waiting for it to reach printing temperature, travel to the wipe tower, and wait for the temperature there, right before purging. Ooze from the heat-up lands on the tower instead of the model, and the travel overlaps with the heating. Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. The firmware or tool change macro must not wait for the temperature itself. When disabled, the temperature wait is issued right after the tool change command."
 msgstr "Vyzvedne nový nástroj, aniž by čekal na dosažení tiskové teploty, přejede na věž na očištění trysky a počká na teplotu tam, těsně před čištěním. Materiál vytékající při ohřevu skončí na věži místo na modelu a přejezd se překrývá s ohřevem. Relevantní pouze pro tiskárny s více extrudery (více tiskovými hlavami) používající věž na očištění trysky typu 2. Firmware ani makro pro změnu nástroje nesmí na teplotu čekat samo. Pokud je vypnuto, čekání na teplotu se vloží hned po příkazu ke změně nástroje."
 
@@ -19453,6 +19469,7 @@ msgid "No sparse layers (beta)"
 msgstr "Žádné řídké vrstvy (beta)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "čistící věž"; align it once the term is settled.
 msgid "If enabled, the wipe tower will not be printed on layers with no tool changes. On layers with a tool change, extruder will travel downward to print the wipe tower, so the tower ends up below the model and the toolhead has to reach down to it. Layouts where that would collide with an already printed object are rejected. Has no effect with smooth timelapse or clumping detection, which need a tower on every layer."
 msgstr "Pokud je povoleno, čistící věž se nebude tisknout na vrstvách bez změny nástroje. Na vrstvách se změnou nástroje extruder sjede dolů, aby čistící věž vytiskl, takže věž skončí pod modelem a tisková hlava k ní musí dosáhnout dolů. Rozvržení, kde by to znamenalo kolizi s již vytištěným objektem, jsou odmítnuta. Nemá vliv při plynulém časosběru ani při detekci nánosů na trysce, které vyžadují věž na každé vrstvě."
 
@@ -19461,6 +19478,7 @@ msgid "Combine sparse layers"
 msgstr "Kombinovat řídké vrstvy"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid ""
 "If enabled, consecutive layers on which the prime tower has no filament change are printed as a single thicker tower layer instead of one thin layer each, the same way infill combination merges sparse infill. The merged layer is printed at the top of the run, at the height of everything it covers.\n"
 "\n"
@@ -20240,6 +20258,7 @@ msgid "Prime volume mode"
 msgstr "Režim objemu základní věže"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Selects how the wipe-tower prime and flush volumes are computed on multi-extruder printers."
 msgstr "Určuje, jak se na tiskárnách s více extrudery počítají objemy naplnění a čištění na věži na očištění trysky."
 
@@ -20273,6 +20292,7 @@ msgid "Maximum wipe tower print speed"
 msgstr "Maximální rychlost tisku věže na očištění trysky"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
@@ -20298,6 +20318,7 @@ msgid "Wall type"
 msgstr "Typ stěny"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid ""
 "Wipe tower outer wall type.\n"
 "1. Rectangle: A rectangle with fixed width and height.\n"
@@ -20399,6 +20420,7 @@ msgid "Extra flow for purging"
 msgstr "Dodatečný průtok pro pročištění"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
 msgstr "Dodatečný průtok použitý pro pročišťovací linie na věži na očištění trysky. Tím budou pročišťovací linie silnější, než by byly obvykle. Rozestup je nastaven automaticky."
 
@@ -21313,6 +21335,7 @@ msgid "Size of the print bed bounding box"
 msgstr "Velikost ohraničujícího boxu tiskové podložky"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "First layer center without wipe tower"
 msgstr "Střed první vrstvy bez věže na očištění trysky"
 

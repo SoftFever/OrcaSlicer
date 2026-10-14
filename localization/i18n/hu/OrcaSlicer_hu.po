@@ -20212,7 +20212,6 @@ msgid "Wall type"
 msgstr "Fal típusa"
 
 # AI Translated
-# Needs human review: Option 1 uses the catalog label for 'Rectangle' ('Négyzet' = square) so it matches the dropdown, while the description says 'téglalap'; if the label is corrected to 'Téglalap', update this line.
 msgid ""
 "Wipe tower outer wall type.\n"
 "1. Rectangle: A rectangle with fixed width and height.\n"
@@ -20220,12 +20219,13 @@ msgid ""
 "3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "A törlőtorony külső falának típusa.\n"
-"1. Négyzet: Rögzített szélességű és magasságú téglalap.\n"
+"1. Téglalap: Rögzített szélességű és magasságú téglalap.\n"
 "2. Kúp: Alul lekerekített kúp, amely segít stabilizálni a törlőtoronyt.\n"
 "3. Borda: Az alapértelmezett faltípus, amely négy bordát ad a torony falához a nagyobb stabilitás érdekében."
 
+# AI Translated
 msgid "Rectangle"
-msgstr "Négyzet"
+msgstr "Téglalap"
 
 msgid "Rib"
 msgstr "Borda"

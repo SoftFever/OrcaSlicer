@@ -5784,8 +5784,9 @@ msgstr "Innere massive Füllung"
 msgid "Top surface"
 msgstr "Obere Oberfläche"
 
+# AI Translated
 msgid "Bridge"
-msgstr "Überbrückung"
+msgstr "Brücke"
 
 msgid "Gap infill"
 msgstr "Lückenfüllung"
@@ -14956,19 +14957,26 @@ msgstr ""
 "\n"
 "Diese Option funktioniert besonders gut in Kombination mit der zweiten internen Brücke über Füllungsoption, um die Brückenbildung weiter zu verbessern, bevor die obere feste Füllung extrudiert wird."
 
+# AI Translated
 msgid "Bridge flow ratio"
-msgstr "Brücken Flussrate"
+msgstr "Brücken Flussverhältnis"
 
+# AI Translated
 msgid ""
 "This value governs the thickness of the external (visible) bridge layer.\n"
 "Values above 1.0: Increase the amount of material while maintaining line spacing. This can improve line contact and strength.\n"
 "Values below 1.0: Reduce the amount of material while adjusting line spacing to maintain contact. This can improve sagging.\n"
 "\n"
 "The actual bridge flow used is calculated by multiplying this value with the filament flow ratio, and if set, the object's flow ratio."
-msgstr "Der tatsächliche Brückenfluss wird berechnet, indem dieser Wert mit dem Filamentflussverhältnis und, falls festgelegt, dem Objektflussverhältnis multipliziert wird."
+msgstr ""
+"Dieser Wert steuert die Dicke der externen (sichtbaren) Brückenlage.\n"
+"Werte über 1.0: Erhöhen die Materialmenge bei gleichbleibendem Linienabstand. Dies kann den Linienkontakt und die Festigkeit verbessern.\n"
+"Werte unter 1.0: Reduzieren die Materialmenge bei Anpassung des Linienabstands, um den Kontakt aufrechtzuerhalten. Dies kann das Durchhängen verbessern.\n"
+"\n"
+"Der tatsächliche Brückenfluss wird berechnet, indem dieser Wert mit dem Filamentflussverhältnis und, falls festgelegt, dem Objektflussverhältnis multipliziert wird."
 
 # AI Translated
-# Needs human review: 'Brücken Flussrate' quotes the existing label for 'Bridge flow ratio', but the glossary renders Flow ratio as 'Flussverhältnis'; 'Brückendichte' is generic (the labels are 'Externe/Interne Brücken Dichte'). 'Überbrückung' follows the glossary/label for 'Bridge', while the rest of the catalog mostly says 'Brücke'.
+# Needs human review: 'Brückendichte' is generic (the labels are 'Externe/Interne Brücken Dichte').
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
@@ -14976,14 +14984,15 @@ msgid ""
 "The maximum value is 100% or the nozzle diameter.\n"
 "If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
-"Linienbreite der Überbrückung. Wenn als Prozentwert (%) angegeben, wird sie über den Düsendurchmesser berechnet.\n"
-"Empfohlen in Verbindung mit einer höheren Brückendichte oder einer höheren Brücken Flussrate.\n"
+"Linienbreite der Brücke. Wenn als Prozentwert (%) angegeben, wird sie über den Düsendurchmesser berechnet.\n"
+"Empfohlen in Verbindung mit einer höheren Brückendichte oder einem höheren Brücken Flussverhältnis.\n"
 "\n"
 "Der maximale Wert beträgt 100% oder der Düsendurchmesser.\n"
 "Wenn auf 0 gesetzt, entspricht die Linienbreite der Breite der inneren massiven Füllung bzw. bei dicken Brücken dem Düsendurchmesser."
 
+# AI Translated
 msgid "Internal bridge flow ratio"
-msgstr "Interne Brücken Flussrate"
+msgstr "Interne Brücken Flussverhältnis"
 
 msgid ""
 "This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill so increasing it may increase strength and upper layer quality.\n"
@@ -15651,8 +15660,9 @@ msgstr "Begrenzte Filterung"
 msgid "No filtering"
 msgstr "Keine Filterung"
 
+# AI Translated
 msgid "Max bridge length"
-msgstr "Max Überbrückungslänge"
+msgstr "Max Brückenlänge"
 
 msgid "This is the maximum length of bridges that don't need support. Set it to 0 if you want all bridges to be supported, and set it to a very large value if you don't want any bridges to be supported."
 msgstr "Maximale Länge der Brücken, die keine Unterstützung benötigen. Setzen Sie den Wert auf 0, wenn alle Brücken unterstützt werden sollen und legen Sie einen sehr großen Wert fest, wenn keine Brücken unterstützt werden sollen."
@@ -15748,7 +15758,7 @@ msgid ""
 "Useful for cases where the top surface is interrupted by a raised feature, such as text on a plane. Expanding it removes the holes beneath these features and creates a continuous path with a better finish for printing on top. The expansion is applied to the original top surface, before any other processing such as bridging or overhang detection."
 msgstr ""
 "Erweitert die oberen Oberflächen um diese Distanz, um separate obere Oberflächen zu verbinden und Lücken zu füllen.\n"
-"Nützlich in Fällen, in denen die obere Oberfläche durch ein erhabenes Merkmal unterbrochen wird, wie z. B. Text auf einer Ebene. Die Erweiterung entfernt die Löcher unter diesen Merkmalen und erzeugt einen durchgehenden Pfad mit besserer Oberfläche zum Darüberdrucken. Die Erweiterung wird auf die ursprüngliche obere Oberfläche angewendet, vor jeder anderen Verarbeitung wie Überbrückung oder Überhangerkennung."
+"Nützlich in Fällen, in denen die obere Oberfläche durch ein erhabenes Merkmal unterbrochen wird, wie z. B. Text auf einer Ebene. Die Erweiterung entfernt die Löcher unter diesen Merkmalen und erzeugt einen durchgehenden Pfad mit besserer Oberfläche zum Darüberdrucken. Die Erweiterung wird auf die ursprüngliche obere Oberfläche angewendet, vor jeder anderen Verarbeitung wie Brückenbildung oder Überhangerkennung."
 
 # AI Translated
 msgid "Top expansion wall margin"
@@ -15894,9 +15904,9 @@ msgstr ""
 "\n"
 "Verwenden Sie Innen/Außen für die besten Überhänge. Dies liegt daran, dass die überhängenden Wände beim Drucken an einen benachbarten Umfang haften können. Diese Option führt jedoch zu einer geringfügig reduzierten Oberflächenqualität, da die Außenwand durch das Zusammendrücken gegen die Innenwand verformt wird.\n"
 "\n"
-"Verwenden Sie Innenwand/Außenwand/Innenwand für die beste Oberflächenqualität und dimensionale Genauigkeit, da die Außenwand ungestört von einer inneren Wand gedruckt wird. Die Überhangsleistung wird jedoch verringert, da keine innere Wand vorhanden ist, an der die Außenwand gedruckt werden kann. Diese Option erfordert ein Minimum von 3 Wänden, um wirksam zu sein, da die inneren Wände ab dem 3. Umfang zuerst gedruckt werden, dann der äußere Umfang und schließlich der erste innere Umfang. Diese Option wird in den meisten Fällen gegenüber der Option Außen/Innen empfohlen.\n"
+"Verwenden Sie Innen/Außen/Innen für die beste Oberflächenqualität und dimensionale Genauigkeit, da die Außenwand ungestört von einer inneren Wand gedruckt wird. Die Überhangsleistung wird jedoch verringert, da keine innere Wand vorhanden ist, an der die Außenwand gedruckt werden kann. Diese Option erfordert ein Minimum von 3 Wänden, um wirksam zu sein, da die inneren Wände ab dem 3. Umfang zuerst gedruckt werden, dann der äußere Umfang und schließlich der erste innere Umfang. Diese Option wird in den meisten Fällen gegenüber der Option Außen/Innen empfohlen.\n"
 "\n"
-"Verwenden Sie Außen/Innen für die gleiche externe Wandqualität und dimensionale Genauigkeit wie die Option Innenwand/Außenwand/Innenwand. Die Z-Nähte werden jedoch weniger konsistent erscheinen, da die erste Extrusion einer neuen Schicht auf einer sichtbaren Oberfläche beginnt."
+"Verwenden Sie Außen/Innen für die gleiche externe Wandqualität und dimensionale Genauigkeit wie die Option Innen/Außen/Innen. Die Z-Nähte werden jedoch weniger konsistent erscheinen, da die erste Extrusion einer neuen Schicht auf einer sichtbaren Oberfläche beginnt."
 
 msgid "Inner/Outer"
 msgstr "Innen/Außen"
@@ -15904,8 +15914,9 @@ msgstr "Innen/Außen"
 msgid "Outer/Inner"
 msgstr "Außen/Innen"
 
+# AI Translated
 msgid "Inner/Outer/Inner"
-msgstr "Innenwand/Außenwand/Innenwand"
+msgstr "Innen/Außen/Innen"
 
 msgid "Print infill first"
 msgstr "Drucke zuerst die Füllung"
@@ -16588,7 +16599,7 @@ msgid ""
 "Aligns infill, bridge, ironing, and top/bottom surface directions to follow the model's orientation on the build plate.\n"
 "When enabled, these directions rotate together with the model so the printed features keep their intended orientation relative to the part, preserving optimal strength and surface characteristics regardless of how the model is placed."
 msgstr ""
-"Richtet die Richtungen von Füllung, Überbrückung, Glätten und oberer/unterer Oberfläche so aus, dass sie der Ausrichtung des Modells auf dem Druckbett folgen.\n"
+"Richtet die Richtungen von Füllung, Brücken, Glätten und oberer/unterer Oberfläche so aus, dass sie der Ausrichtung des Modells auf dem Druckbett folgen.\n"
 "Wenn aktiviert, drehen sich diese Richtungen zusammen mit dem Modell, sodass die gedruckten Merkmale ihre beabsichtigte Ausrichtung relativ zum Teil beibehalten und optimale Festigkeit sowie Oberflächeneigenschaften unabhängig von der Platzierung des Modells erhalten bleiben."
 
 msgid "Insert solid layers"
@@ -18216,7 +18227,7 @@ msgid ""
 msgstr ""
 "Wandschleifen, die vollständig in der Luft liegen, werden erst gedruckt, wenn etwas sie halten kann:\n"
 "Sie werden nach den übrigen Wänden ihrer Insel extrudiert, die innerste zuerst, unabhängig von der Wandreihenfolge.\n"
-"Eine Schleife, die nur von den Überbrückungen dieser Schicht verankert werden kann, wartet, bis diese Überbrückungen gedruckt sind, während eine Schleife, die neben einer gestützten Wand verläuft, ihren Platz vor der Füllung behält, die sie als Verankerung benötigt."
+"Eine Schleife, die nur von den Brücken dieser Schicht verankert werden kann, wartet, bis diese Brücken gedruckt sind, während eine Schleife, die neben einer gestützten Wand verläuft, ihren Platz vor der Füllung behält, die sie als Verankerung benötigt."
 
 msgid "Outer walls"
 msgstr "Äußere Wände"
@@ -18650,9 +18661,8 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "Verwenden Sie Schrägnaht auch für innere Wände."
 
 # AI Translated
-# Needs human review: Kept 'Wipe' like the sibling label 'Wipe speed' = 'Wipe Geschwindigkeit'; the glossary renders Wipe as 'Reinigen'. Check which wording is wanted for both labels.
 msgid "Role based wipe speed"
-msgstr "Rollenbasierte Wipe Geschwindigkeit"
+msgstr "Wipe Geschwindigkeit nach Extrusionsart"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr ""

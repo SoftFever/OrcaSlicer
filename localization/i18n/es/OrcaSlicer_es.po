@@ -2337,7 +2337,7 @@ msgstr "Actualización de política de privacidad"
 
 # AI Translated
 msgid "All your filament presets are available on the printers they were made for."
-msgstr "Todos tus perfiles de filamento están disponibles en las impresoras para las que se crearon."
+msgstr "Todos sus perfiles de filamento están disponibles en las impresoras para las que se crearon."
 
 # AI Translated
 msgid "Migrate Filament Presets"
@@ -2349,9 +2349,9 @@ msgid ""
 "\n"
 "Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
 msgstr ""
-"OrcaSlicer 2.5.0 reestructuró muchos perfiles de filamento del sistema para corregir perfiles incorrectos y preparar futuras funciones. Como resultado, los perfiles que aparecen a continuación ya no se muestran en algunas de las impresoras para las que se crearon. Disculpa las molestias; es una corrección única.\n"
+"OrcaSlicer 2.5.0 reestructuró muchos perfiles de filamento del sistema para corregir perfiles incorrectos y preparar futuras funciones. Como resultado, los perfiles que aparecen a continuación ya no se muestran en algunas de las impresoras para las que se crearon. Disculpe las molestias; es una corrección única.\n"
 "\n"
-"¿Quieres volver a añadir esas impresoras a tus perfiles ahora? Antes se hará una copia de seguridad de tus perfiles. También puedes hacerlo más tarde desde Ayuda > Migrar perfiles de filamento."
+"¿Desea volver a añadir esas impresoras a sus perfiles ahora? Antes se hará una copia de seguridad de sus perfiles. También puede hacerlo más tarde desde Ayuda > Migrar perfiles de filamento."
 
 # AI Translated
 #, boost-format
@@ -2363,11 +2363,11 @@ msgstr "No me recuerdes de nuevo"
 
 # AI Translated
 msgid "Your presets could not be backed up, so they were not migrated."
-msgstr "No se pudo hacer una copia de seguridad de tus perfiles, por lo que no se migraron."
+msgstr "No se pudo hacer una copia de seguridad de sus perfiles, por lo que no se migraron."
 
 # AI Translated
 msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
-msgstr "No se pudo bloquear la carpeta de perfiles de usuario, por lo que no se migró nada. Puede que otra instancia de OrcaSlicer esté guardando perfiles; inténtalo de nuevo más tarde desde Ayuda > Migrar perfiles de filamento."
+msgstr "No se pudo bloquear la carpeta de perfiles de usuario, por lo que no se migró nada. Puede que otra instancia de OrcaSlicer esté guardando perfiles; inténtelo de nuevo más tarde desde Ayuda > Migrar perfiles de filamento."
 
 # AI Translated
 #, boost-format
@@ -2375,7 +2375,7 @@ msgid ""
 "Your filament presets could not be migrated. A backup of your presets was saved to:\n"
 "%1%"
 msgstr ""
-"No se pudieron migrar tus perfiles de filamento. Se guardó una copia de seguridad de tus perfiles en:\n"
+"No se pudieron migrar sus perfiles de filamento. Se guardó una copia de seguridad de sus perfiles en:\n"
 "%1%"
 
 # AI Translated
@@ -2386,9 +2386,9 @@ msgid ""
 "A backup of your presets was saved to:\n"
 "%1%"
 msgstr ""
-"Tus perfiles de filamento se migraron. Vuelve a seleccionarlos en la lista de filamentos donde los usabas.\n"
+"Sus perfiles de filamento se migraron. Vuelva a seleccionarlos en la lista de filamentos donde los usaba.\n"
 "\n"
-"Se guardó una copia de seguridad de tus perfiles en:\n"
+"Se guardó una copia de seguridad de sus perfiles en:\n"
 "%1%"
 
 # AI Translated
@@ -6517,7 +6517,7 @@ msgstr "Mostrar Carpeta de Configuración"
 
 # AI Translated
 msgid "Bring back filament presets that a profile update removed from printers they were made for"
-msgstr "Recupera los perfiles de filamento que una actualización de perfiles eliminó de las impresoras para las que se crearon"
+msgstr "Recuperar los perfiles de filamento que una actualización de perfiles eliminó de las impresoras para las que se crearon"
 
 msgid "Troubleshoot Center"
 msgstr "Centro de resolución de problemas"
@@ -17330,7 +17330,7 @@ msgid ""
 msgstr ""
 "Reduce la altura de los perímetros de la superficie superior para que coincida con la altura del borde del modelo.\n"
 "Afecta a los perímetros con una pendiente superior a este ángulo (grados).\n"
-"Un valor razonable es 35. Establece el valor en 0 para desactivar esta opción."
+"Un valor razonable es 35. Establezca el valor en 0 para desactivar esta opción."
 
 msgid "Don't alternate fill direction"
 msgstr "No alternar la dirección de relleno"

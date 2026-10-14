@@ -5082,8 +5082,9 @@ msgstr ""
 msgid "The recommended nozzle temperature for this filament type is [%d, %d] degrees Celsius."
 msgstr "Rekomenduojama šio tipo gijos purkštuko temperatūra yra [%d, %d] laipsnių Celsijaus."
 
+# AI Translated
 msgid "Adaptive Pressure Advance model validation failed:\n"
-msgstr "Nepavyko patvirtinti adaptyviojo slėgio išankstinio (Pressure Advance) modelio:\n"
+msgstr "Nepavyko patvirtinti adaptyviojo Pressure Advance modelio:\n"
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -5799,8 +5800,9 @@ msgstr "Sluoksnio laikas"
 msgid "Layer Time (log)"
 msgstr "Sluoksnio laikas (log)"
 
+# AI Translated
 msgid "Pressure Advance"
-msgstr "Slėgio išankstinis valdymas (Pressure Advance)"
+msgstr "Pressure Advance"
 
 msgid "Noop"
 msgstr "Tuščia operacija (Noop)"
@@ -7057,8 +7059,9 @@ msgstr "Temperatūros kalibravimas"
 msgid "Max flowrate"
 msgstr "Maksimalus tūrinis srautas"
 
+# AI Translated
 msgid "Pressure advance"
-msgstr "Slėgio kompensavimas (Pressure Advance)"
+msgstr "Pressure Advance"
 
 msgid "Flow ratio"
 msgstr "Srauto santykis"
@@ -14605,8 +14608,9 @@ msgstr ""
 msgid "The precise wall option will be ignored for outer-inner or inner-outer-inner wall sequences."
 msgstr "Tikslios sienelės (precise wall) parinktis bus ignoruojama esant išorinės–vidinės arba vidinės–išorinės–vidinės sienelių spausdinimo sekai."
 
+# AI Translated
 msgid "The Adaptive Pressure Advance model for one or more extruders may contain invalid values."
-msgstr "Vieno ar kelių ekstruderių „Adaptive Pressure Advance“ modelis gali turėti netinkamų reikšmių."
+msgstr "Vieno ar kelių ekstruderių adaptyviojo Pressure Advance modelis gali turėti netinkamų reikšmių."
 
 msgid "Filament shrinkage will not be used because filament shrinkage for the used filaments does not match."
 msgstr "Gijų susitraukimas nenaudojamas, nes naudojamų gijų susitraukimas labai skiriasi."
@@ -16164,14 +16168,17 @@ msgstr ""
 "\n"
 "Galutinis objekto srauto koeficientas gaunamas šią reikšmę padauginus iš plastiko srauto koeficiento (filament flow ratio)."
 
+# AI Translated
 msgid "Enable pressure advance"
-msgstr "Įjungti slėgio kompensavimą (Pressure Advance)"
+msgstr "Įjungti Pressure Advance"
 
+# AI Translated
 msgid "Enable pressure advance, auto calibration result will be overwritten once enabled."
-msgstr "Įjungia slėgio kompensavimą (Pressure Advance). Jį aktyvavus, automatinio kalibravimo rezultatai bus nepaisomi."
+msgstr "Įjungia Pressure Advance. Jį aktyvavus, automatinio kalibravimo rezultatai bus nepaisomi."
 
+# AI Translated
 msgid "Pressure advance (Klipper) AKA Linear advance factor (Marlin)."
-msgstr "Slėgio kompensavimas (Pressure Advance „Klipper“ mikroprogramoje) arba linijinis kompensavimas (Linear Advance „Marlin“ mikroprogramoje)."
+msgstr "Pressure Advance („Klipper“ mikroprogramoje), dar vadinamas Linear Advance koeficientu („Marlin“ mikroprogramoje)."
 
 # AI Translated
 msgid "Enable adaptive pressure advance (beta)"
@@ -16196,6 +16203,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr "Adaptyviojo Pressure Advance matavimai (beta)"
 
+# AI Translated
 #, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and accelerations they were measured at, separated by a comma. One set of values per line. For example\n"
@@ -16209,7 +16217,7 @@ msgid ""
 "2. Take note of the optimal PA value for each volumetric flow speed and acceleration. You can find the flow number by selecting flow from the color scheme drop down and move the horizontal slider over the PA pattern lines. The number should be visible at the bottom of the page. The ideal PA value should be decreasing the higher the volumetric flow is. If it is not, confirm that your extruder is functioning correctly. The slower and with less acceleration you print, the larger the range of acceptable PA values. If no difference is visible, use the PA value from the faster test\n"
 "3. Enter the triplets of PA values, Flow and Accelerations in the text box here and save your filament profile."
 msgstr ""
-"Įveskite slėgio kompensavimo (PA) reikšmių rinkinius, nurodydami tūrinį srautą bei pagreitį, prie kurių jie buvo išmatuoti, atskirdami kableliais. Vienoje eilutėje – vienas trejetas. Pavyzdžiui:\n"
+"Įveskite Pressure Advance (PA) reikšmių rinkinius, nurodydami tūrinį srautą bei pagreitį, prie kurių jie buvo išmatuoti, atskirdami kableliais. Vienoje eilutėje – vienas trejetas. Pavyzdžiui:\n"
 "0.04,3.96,3000\n"
 "0.033,3.96,10000\n"
 "0.029,7.91,3000\n"
@@ -16232,7 +16240,7 @@ msgid ""
 "\n"
 "This is an experimental option, as if the PA profile is not set accurately, it will cause uniformity issues."
 msgstr ""
-"Įjunkite „Adaptive PA“, kai elemente pasikeičia srautas, pavyzdžiui, keičiantis linijos pločiui kampuose arba iškyšose.\n"
+"Įjunkite adaptyvųjį PA, kai elemente pasikeičia srautas, pavyzdžiui, keičiantis linijos pločiui kampuose arba iškyšose.\n"
 "\n"
 "Nėra suderinama su „Prusa“ spausdintuvais, nes jie pristabdo darbą PA pakeitimams apdoroti, o tai sukelia vėlavimą ir defektus.\n"
 "\n"
@@ -18212,9 +18220,9 @@ msgstr ""
 "\n"
 "Reikšmė 0 išjungia šią funkciją.\n"
 "\n"
-"Spartiems, didelio srauto tiesioginės pavaros (Direct Drive) spausdintuvams (tokiems kaip „Bambu Lab“ arba „Voron“) ši reikšmė paprastai nėra būtina. Vis dėlto ji gali duoti nedidelės naudos tais atvejais, kai spausdinimo elementų greičiai labai skiriasi – pavyzdžiui, esant žymiems sulėtėjimams ties iškyšomis. Tokiais atvejais rekomenduojama didelė reikšmė (apie 300–350 mm³/s²), kuri užtikrina pakankamą išlyginimą, padedantį slėgio kompensavimo (Pressure Advance) algoritmui pasiekti sklandesnį srauto perėjimą.\n"
+"Spartiems, didelio srauto tiesioginės pavaros (Direct Drive) spausdintuvams (tokiems kaip „Bambu Lab“ arba „Voron“) ši reikšmė paprastai nėra būtina. Vis dėlto ji gali duoti nedidelės naudos tais atvejais, kai spausdinimo elementų greičiai labai skiriasi – pavyzdžiui, esant žymiems sulėtėjimams ties iškyšomis. Tokiais atvejais rekomenduojama didelė reikšmė (apie 300–350 mm³/s²), kuri užtikrina pakankamą išlyginimą, padedantį Pressure Advance algoritmui pasiekti sklandesnį srauto perėjimą.\n"
 "\n"
-"Lėtesniems spausdintuvams be slėgio kompensavimo (Pressure Advance) šią reikšmę reikėtų nustatyti gerokai mažesnę. Tiesioginės pavaros (Direct Drive) ekstruderiams gera pradinė reikšmė yra 10–15 mm³/s², o „Bowden“ tipo – 5–10 mm³/s².\n"
+"Lėtesniems spausdintuvams be Pressure Advance šią reikšmę reikėtų nustatyti gerokai mažesnę. Tiesioginės pavaros (Direct Drive) ekstruderiams gera pradinė reikšmė yra 10–15 mm³/s², o „Bowden“ tipo – 5–10 mm³/s².\n"
 "\n"
 "„PrusaSlicer“ programoje ši funkcija vadinama „Pressure Equalizer“.\n"
 "\n"
@@ -34749,6 +34757,7 @@ msgstr ""
 "Suskirstykite spaudinius į pagrindus\n"
 "Ar žinojote, kad daug dalių turintį modelį galite padalyti į atskirus, spausdinimui paruoštus pagrindus? Tai supaprastins visų dalių sekimo procesą."
 
+# AI Translated
 #: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
 #: Height]
 msgid ""
@@ -34756,7 +34765,7 @@ msgid ""
 "Did you know that you can print a model even faster by using the Adaptive Layer Height option? Check it out!"
 msgstr ""
 "Paspartinkite spausdinimą naudodami prisitaikantį sluoksnio aukštį\n"
-"Ar žinojote, kad naudodami prisitaikančio sluoksnio aukščio (Adaptive Layer Height) parinktį modelį galite atspausdinti dar greičiau? Išbandykite!"
+"Ar žinojote, kad naudodami prisitaikančio sluoksnio aukščio parinktį modelį galite atspausdinti dar greičiau? Išbandykite!"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""
