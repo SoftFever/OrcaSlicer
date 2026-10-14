@@ -30,6 +30,9 @@ REQUIRED_DEV_PACKAGES=(
     webkitgtk3-devel
     wget
     libcurl-devel
+    pkgconf
+    yasm
+    nasm
 )
 
 if [[ -n "$UPDATE_LIB" ]]

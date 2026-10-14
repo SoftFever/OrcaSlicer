@@ -2,12 +2,56 @@
 #include "ExtrusionCalibration.hpp"
 #include "MsgDialog.hpp"
 #include "GUI_App.hpp"
+#include "GUI.hpp"
+#include "slic3r/Utils/NetworkAgent.hpp"
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
 #include <algorithm>
 #include <boost/log/trivial.hpp>
+#include <string>
+#include <sstream>
+#include <ios>
+#include <iomanip>
+#include <wx/anybutton.h>
+#include <wx/checklst.h>
+#include "slic3r/GUI/GUI_Utils.hpp"
+#include "slic3r/GUI/Widgets/Button.hpp"
+#include "slic3r/GUI/Widgets/DropDown.hpp"
+#include "slic3r/GUI/Widgets/Label.hpp"
+#include <utility>
+#include "slic3r/GUI/wxExtensions.hpp"
+#include <cstdlib>
+#include <cstdio>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include "libslic3r/calib.hpp"
+#include "libslic3r/Config.hpp"
+#include <vector>
+#include <unordered_map>
+#include <wx/arrstr.h>
+#include <set>
+#include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
+#include <cstddef>
+#include <climits>
+#include "libslic3r/PrintConfig.hpp"
+#include <cmath>
+#include "slic3r/GUI/Widgets/PopupWindow.hpp"
+#include "slic3r/GUI/Widgets/StaticBox.hpp"
 #include <wx/colordlg.h>
+#include <wx/dcclient.h>
+#include <wx/dc.h>
+#include <wx/colour.h>
+#include <wx/colourdata.h>
 #include <wx/dcgraph.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/toplevel.h>
+#include <wx/panel.h>
+#include <wx/textctrl.h>
+#include <wx/string.h>
+#include <wx/utils.h>
+#include <wx/valtext.h>
+#include <wx/sizer.h>
+#include <wx/peninfobase.h>
 #include "CalibUtils.hpp"
 #include "../Utils/ColorSpaceConvert.hpp"
 #include "EncodedFilament.hpp"
@@ -60,6 +104,14 @@ void AMSMaterialsSetting::create()
 
     m_sizer_button->Add(0, 0, 1, wxEXPAND, 0);
 
+    // Orca: link to the Orca Slicer pressure-advance wiki (region-agnostic).
+    m_wiki_ctrl = new Button(this, "", "toolbar_wiki", 0, 15);
+    auto wiki_url = "https://www.orcaslicer.com/wiki/pressure_advance_calib";
+    m_wiki_ctrl->SetToolTip(_L("Wiki Guide") + "\n" + wiki_url);
+    m_wiki_ctrl->SetStyle(ButtonStyle::Confirm, ButtonType::Circle);
+    m_wiki_ctrl->SetCanFocus(false);
+    m_wiki_ctrl->Bind(wxEVT_LEFT_DOWN, ([wiki_url](auto& e) {wxLaunchDefaultBrowser(wiki_url);}));
+
     m_button_confirm = new Button(this, _L("Confirm"));
     m_button_confirm->SetStyle(ButtonStyle::Confirm, ButtonType::Choice);
     m_button_confirm->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_select_ok, this);
@@ -72,8 +124,9 @@ void AMSMaterialsSetting::create()
     m_button_close->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
     m_button_close->Bind(wxEVT_BUTTON, &AMSMaterialsSetting::on_select_close, this);
 
-    m_sizer_button->Add(m_button_confirm, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
-    m_sizer_button->Add(m_button_reset, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
+    m_sizer_button->Add(m_wiki_ctrl, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
+    m_sizer_button->Add(m_button_confirm, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
+    m_sizer_button->Add(m_button_reset, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
     m_sizer_button->Add(m_button_close, 0, wxALIGN_CENTER, 0);
 
     m_sizer_main->Add(m_panel_normal, 0, wxALL, FromDIP(2));
@@ -120,7 +173,26 @@ void AMSMaterialsSetting::create()
 
     Bind(wxEVT_PAINT, &AMSMaterialsSetting::paintEvent, this);
     Bind(EVT_SELECTED_COLOR, &AMSMaterialsSetting::on_picker_color, this);
-     m_comboBox_filament->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
+    m_comboBox_filament->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
+    m_comboBox_filament->Bind(EVT_DROPDOWN_ITEM_ACTION, &AMSMaterialsSetting::on_toggle_favorite_filament, this);
+
+    // Favorites toggled in the open list are regrouped just before it opens again, so rows never move
+    // under the cursor. These handlers run ahead of ComboBox's own, which then measure and show the
+    // rebuilt rows; wxEVT_COMBOBOX_DROPDOWN would be too late, as ComboBox sends it after showing the list.
+    auto regroup_favorites = [this]() {
+        if (!m_favorites_regroup || m_comboBox_filament->is_drop_down())
+            return;
+        const FilamentInfos* info        = selected_filament_info();
+        const std::string    filament_id = info ? info->filament_id : std::string();
+        rebuild_filament_dropdown_items(filament_id);
+    };
+    m_comboBox_filament->Bind(wxEVT_LEFT_DOWN, [regroup_favorites](wxMouseEvent& e) { regroup_favorites(); e.Skip(); });
+    m_comboBox_filament->Bind(wxEVT_LEFT_DCLICK, [regroup_favorites](wxMouseEvent& e) { regroup_favorites(); e.Skip(); });
+    m_comboBox_filament->Bind(wxEVT_KEY_DOWN, [regroup_favorites](wxKeyEvent& e) {
+        if (e.GetKeyCode() == WXK_RETURN || e.GetKeyCode() == WXK_SPACE) // the keys that open the list
+            regroup_favorites();
+        e.Skip();
+    });
 
     m_comboBox_cali_result->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_cali_result), NULL, this);
 }
@@ -139,11 +211,9 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     m_sizer_filament->Add(0, 0, 0, wxEXPAND, 0);
 
-#ifdef __APPLE__
-    m_comboBox_filament = new wxComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
-#else
     m_comboBox_filament = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
-#endif
+    m_star_filled = ScalableBitmap(this, "score_star_light", 16);
+    m_star_empty  = ScalableBitmap(this, "score_star_outline", 16);
 
     m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
 
@@ -297,11 +367,7 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_ratio_text->SetForegroundColour(wxColour(50, 58, 61));
     m_ratio_text->SetFont(Label::Head_14);
 
-    // Orca: link to the Orca Slicer pressure-advance wiki (region-agnostic).
-    wxString link_url = "https://www.orcaslicer.com/wiki/pressure_advance_calib";
-    m_wiki_ctrl = new HyperLink(parent, _L("Wiki Guide"), link_url);
     cali_title_sizer->Add(m_ratio_text, 0, wxALIGN_CENTER_VERTICAL);
-    cali_title_sizer->Add(m_wiki_ctrl, 0, wxALIGN_CENTER_VERTICAL);
 
     wxBoxSizer *m_sizer_cali_resutl = new wxBoxSizer(wxHORIZONTAL);
     // pa profile
@@ -372,6 +438,7 @@ void AMSMaterialsSetting::paintEvent(wxPaintEvent &evt)
 AMSMaterialsSetting::~AMSMaterialsSetting()
 {
     m_comboBox_filament->Disconnect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_filament), NULL, this);
+    m_comboBox_filament->Unbind(EVT_DROPDOWN_ITEM_ACTION, &AMSMaterialsSetting::on_toggle_favorite_filament, this);
     m_comboBox_cali_result->Disconnect(wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler(AMSMaterialsSetting::on_select_cali_result), NULL, this);
 }
 
@@ -483,10 +550,9 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     std::string   selected_ams_id;
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
+        const FilamentInfos* selected_info = selected_filament_info();
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            auto        filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
-            std::string filament_id   = filament_item.filament_id;
-            if (it->filament_id.compare(filament_id) == 0) {
+            if (selected_info && it->filament_id.compare(selected_info->filament_id) == 0) {
                 selected_ams_id = it->filament_id;
                 break;
             }
@@ -634,12 +700,13 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     ams_setting_id = "";
 
     // the combobox item
-    auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+    const FilamentInfos* selected_info = selected_filament_info();
+    const std::string    filament_id   = selected_info ? selected_info->filament_id : std::string();
 
     // check filament info (rack-gated per-nozzle blacklist evaluation)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const auto& fila_check_res = sCheckFilamentInfo(preset_bundle, obj, ams_id, slot_id,
-                                                    filament_item.filament_id, ams_filament_id, ams_setting_id);
+                                                    filament_id, ams_filament_id, ams_setting_id);
 
     if (const auto& prohibit_items = fila_check_res.get_items_by_action("prohibition"); !prohibit_items.empty()) {
         wxString info_msg;
@@ -680,6 +747,19 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         return;
     }
 
+
+    // Orca: log the tray payload this dialog hands the printer, so the filament_id resolved from the
+    // dropdown selection can be checked against the tray_info_idx the AMS actually receives. A
+    // BBL-tagged (RFID) tray is read-only here, so nothing is published for it.
+    BOOST_LOG_TRIVIAL(info) << "ams_materials_setting: " << (m_is_third ? "sending" : "NOT sending (BBL RFID tray, read-only)")
+                            << ", ams_id = " << ams_id << ", slot_id = " << slot_id
+                            << ", selected = " << m_comboBox_filament->GetValue().ToStdString()
+                            << ", tray_info_idx (filament_id) = " << ams_filament_id
+                            << ", setting_id = " << ams_setting_id
+                            << ", tray_type = " << m_filament_type
+                            << ", tray_color = " << col_buf
+                            << ", nozzle_temp_min = " << nozzle_temp_min_int
+                            << ", nozzle_temp_max = " << nozzle_temp_max_int;
 
     // set filament
     if (m_is_third) {
@@ -802,7 +882,10 @@ void AMSMaterialsSetting::set_color(wxColour color)
     fila_color.m_colors.insert(color);
     fila_color.EndSet(m_clr_picker->ctype);
     auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
-    m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));
+    // ams_filament_id is our OF id; GetFilaColorName looks up filaments_color_codes.json,
+    // downloaded from Bambu and keyed by the printer's own ids, so translate for this lookup only.
+    auto* agent = GUI::wxGetApp().getAgent();
+    m_clr_name->SetLabelText(clr_query->GetFilaColorName(agent ? agent->from_orca_filament_id(ams_filament_id) : ams_filament_id, fila_color));
 }
 
 void AMSMaterialsSetting::set_empty_color(wxColour color)
@@ -823,7 +906,10 @@ void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
         for (const auto& clr : colors) { fila_color.m_colors.insert(clr); }
         fila_color.EndSet(m_clr_picker->ctype);
         auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
-        m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));
+        // ams_filament_id is our OF id; GetFilaColorName looks up filaments_color_codes.json,
+        // downloaded from Bambu and keyed by the printer's own ids, so translate for this lookup only.
+        auto* agent = GUI::wxGetApp().getAgent();
+        m_clr_name->SetLabelText(clr_query->GetFilaColorName(agent ? agent->from_orca_filament_id(ams_filament_id) : ams_filament_id, fila_color));
     }
 }
 
@@ -912,11 +998,138 @@ bool AMSMaterialsSetting::Show(bool show)
 
 static void _collect_filament_info(const wxString& shown_name,
                                    const Preset& filament,
-                                   unordered_map<wxString, wxString>& query_filament_vendors,
-                                   unordered_map<wxString, wxString>& query_filament_types)
+                                   std::unordered_map<wxString, wxString>& query_filament_vendors,
+                                   std::unordered_map<wxString, wxString>& query_filament_types)
 {
     query_filament_vendors[shown_name] = filament.config.get_filament_vendor();
     query_filament_types[shown_name] = filament.config.get_filament_type();
+}
+
+static const char* AMS_FAVORITE_FILAMENT_IDS_KEY = "ams_favorite_filament_ids";
+
+const AMSMaterialsSetting::FilamentInfos* AMSMaterialsSetting::selected_filament_info() const
+{
+    const int selection = m_comboBox_filament->GetSelection();
+    if (selection < 0 || selection >= int(m_filament_list_items.size()) || !m_filament_list_items[selection].is_filament)
+        return nullptr;
+    return &m_filament_list_items[selection].filament;
+}
+
+std::set<std::string> AMSMaterialsSetting::load_favorite_filament_ids() const
+{
+    std::set<std::string> favorite_ids;
+    std::vector<std::string> values;
+    const std::string serialized = wxGetApp().app_config->get(AMS_FAVORITE_FILAMENT_IDS_KEY);
+    if (!serialized.empty() && Slic3r::unescape_strings_cstyle(serialized, values)) {
+        favorite_ids.insert(values.begin(), values.end());
+    }
+    return favorite_ids;
+}
+
+void AMSMaterialsSetting::save_favorite_filament_ids(const std::set<std::string>& favorite_ids)
+{
+    std::vector<std::string> values(favorite_ids.begin(), favorite_ids.end());
+    wxGetApp().app_config->set(AMS_FAVORITE_FILAMENT_IDS_KEY, Slic3r::escape_strings_cstyle(values));
+    wxGetApp().app_config->save();
+}
+
+void AMSMaterialsSetting::rebuild_filament_dropdown_items(const std::string& selected_filament_id)
+{
+    std::vector<DropDown::Item> items;
+    m_filament_list_items.clear();
+
+    auto append_header = [&items, this](const wxString& label) {
+        DropDown::Item item;
+        item.text = label;
+        item.style = DD_ITEM_STYLE_SPLIT_ITEM | DD_ITEM_STYLE_DISABLED;
+        items.push_back(item);
+        m_filament_list_items.push_back(FilamentListItem{});
+    };
+
+    auto append_filament = [&items, this](const wxString& name) {
+        auto info_it = map_filament_items.find(name);
+        if (info_it == map_filament_items.end())
+            return;
+
+        DropDown::Item item;
+        item.text = name;
+        items.push_back(item);
+        m_filament_list_items.push_back(FilamentListItem{info_it->second, true});
+    };
+
+    // Favorites are listed again at the top under their own header. Without any, the list is the
+    // plain filament list.
+    const std::set<std::string> favorite_ids = load_favorite_filament_ids();
+    std::vector<wxString>       favorites;
+    for (const wxString& name : m_sorted_filament_items) {
+        auto info_it = map_filament_items.find(name);
+        if (info_it != map_filament_items.end() && favorite_ids.count(info_it->second.filament_id) > 0)
+            favorites.push_back(name);
+    }
+    if (!favorites.empty()) {
+        append_header(_L("Favorite filaments"));
+        for (const wxString& name : favorites)
+            append_filament(name);
+        append_header(_L("All filaments"));
+    }
+    for (const wxString& name : m_sorted_filament_items)
+        append_filament(name);
+
+    int selection_idx = -1;
+    if (!selected_filament_id.empty()) {
+        for (int i = 0; i < int(m_filament_list_items.size()); ++i) {
+            if (m_filament_list_items[i].is_filament && m_filament_list_items[i].filament.filament_id == selected_filament_id) {
+                selection_idx = i;
+                break;
+            }
+        }
+    }
+
+    // Clear() first: SetItems() keeps the old selection, and SetSelection() ignores an index equal to it,
+    // which would leave the previous filament's name on the combo.
+    m_comboBox_filament->Clear();
+    m_comboBox_filament->SetItems(items);
+    update_favorite_stars();
+    m_comboBox_filament->SetSelection(selection_idx);
+    m_favorites_regroup = false;
+}
+
+void AMSMaterialsSetting::update_favorite_stars()
+{
+    const std::set<std::string> favorite_ids = load_favorite_filament_ids();
+    for (size_t i = 0; i < m_filament_list_items.size(); ++i) {
+        const FilamentListItem& row = m_filament_list_items[i];
+        if (row.is_filament) {
+            const bool favorite = favorite_ids.count(row.filament.filament_id) > 0;
+            m_comboBox_filament->SetItemActionBitmap(i, favorite ? m_star_filled.bmp() : m_star_empty.bmp());
+        }
+    }
+}
+
+void AMSMaterialsSetting::toggle_favorite_filament(const std::string& filament_id)
+{
+    if (filament_id.empty())
+        return;
+
+    std::set<std::string> favorite_ids = load_favorite_filament_ids();
+    auto iter = favorite_ids.find(filament_id);
+    if (iter == favorite_ids.end())
+        favorite_ids.insert(filament_id);
+    else
+        favorite_ids.erase(iter);
+
+    save_favorite_filament_ids(favorite_ids);
+}
+
+void AMSMaterialsSetting::on_toggle_favorite_filament(wxCommandEvent& evt)
+{
+    const int index = evt.GetInt();
+    if (index < 0 || index >= int(m_filament_list_items.size()) || !m_filament_list_items[index].is_filament)
+        return;
+
+    toggle_favorite_filament(m_filament_list_items[index].filament.filament_id);
+    update_favorite_stars();
+    m_favorites_regroup = true;
 }
 
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
@@ -932,14 +1145,15 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_input_k_val->GetTextCtrl()->SetValue(k);
     m_input_n_val->GetTextCtrl()->SetValue(n);
 
-    int idx = 0;
-    wxArrayString filament_items;
     wxString bambu_filament_name;
-    wxString hint_filament_name; // the hint type to be selected
     std::unordered_map<wxString, wxString> query_filament_vendors;// some information for sort
     std::unordered_map<wxString, wxString> query_filament_types;  //
 
     std::set<std::string> filament_id_set;
+    m_sorted_filament_items.clear();
+    // The alias keyed map has to start empty: it is a member, so a stale alias left by an earlier
+    // popup (a different printer, a different nozzle) would resolve to that printer's filament_id.
+    map_filament_items.clear();
     PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
     std::ostringstream    stream;
     // Defensive: this dialog is opened only from StatusPanel (BBL-only) today, so the fallback fires
@@ -948,87 +1162,55 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     float machine_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
     if (machine_diameter == 0.0f && preset_bundle) {
         const ConfigOption *opt = preset_bundle->printers.get_selected_preset().config.option("nozzle_diameter");
-        if (opt) machine_diameter = static_cast<const ConfigOptionFloats *>(opt)->values[0];
+        if (opt) {
+            const auto &nd = static_cast<const ConfigOptionFloats *>(opt)->values;
+            if (!nd.empty()) machine_diameter = nd.size() > 1 ? nd[1] : nd[0];
+        }
     }
     stream << std::fixed << std::setprecision(1) << machine_diameter;
     std::string nozzle_diameter_str = stream.str();
-    std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
 
     if (preset_bundle) {
         BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << preset_bundle->filaments.size();
-        for (auto filament_it = preset_bundle->filaments.begin(); filament_it != preset_bundle->filaments.end(); filament_it++) {
-            //filter by system preset
-            Preset& preset = *filament_it;
-            /*The situation where the user preset is not displayed is as follows:
-                1. Not a root preset
-                2. Not system preset and the printer firmware does not support user preset */
-            if (preset_bundle->filaments.get_preset_base(*filament_it) != &preset || (!filament_it->is_system && !obj->is_support_user_preset)) {
+        for (Preset *filament_it : preset_bundle->get_filament_presets_for_machine(
+                 DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str, obj->is_support_user_preset)) {
+            if (!filament_id_set.insert(filament_it->filament_id).second)
                 continue;
-            }
+            const std::string alias = preset_bundle->filaments.get_preset_alias(*filament_it, true);
+            if (alias.empty())
+                continue;
 
-            ConfigOption *       printer_opt  = filament_it->config.option("compatible_printers");
-            ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
-            for (auto printer_str : printer_strs->values) {
-                if (printer_names.find(printer_str) != printer_names.end()) {
-                    if (filament_id_set.find(filament_it->filament_id) != filament_id_set.end()) {
-                        continue;
-                    } else {
-                        filament_id_set.insert(filament_it->filament_id);
-                        // name matched
-                        if (filament_it->is_system) {
-                            filament_items.push_back(filament_it->alias);
-                            _collect_filament_info(filament_it->alias, preset, query_filament_vendors, query_filament_types);
+            m_sorted_filament_items.push_back(alias);
+            _collect_filament_info(alias, *filament_it, query_filament_vendors, query_filament_types);
 
-                            FilamentInfos filament_infos;
-                            filament_infos.filament_id             = filament_it->filament_id;
-                            filament_infos.setting_id              = filament_it->setting_id;
-                            map_filament_items[filament_it->alias] = filament_infos;
-                        } else {
-                            char   target = '@';
-                            size_t pos    = filament_it->name.find(target);
-                            if (pos != std::string::npos) {
-                                std::string user_preset_alias    = filament_it->name.substr(0, pos - 1);
-                                wxString    wx_user_preset_alias = wxString(user_preset_alias.c_str(), wxConvUTF8);
-                                user_preset_alias                = wx_user_preset_alias.ToStdString();
+            FilamentInfos filament_infos;
+            filament_infos.filament_id = filament_it->filament_id;
+            filament_infos.setting_id  = filament_it->setting_id;
+            map_filament_items[alias]  = filament_infos;
 
-                                filament_items.push_back(user_preset_alias);
-                                _collect_filament_info(user_preset_alias, preset, query_filament_vendors, query_filament_types);
-
-                                FilamentInfos filament_infos;
-                                filament_infos.filament_id            = filament_it->filament_id;
-                                filament_infos.setting_id             = filament_it->setting_id;
-                                map_filament_items[user_preset_alias] = filament_infos;
-                            }
-                        }
-
-                        if (filament_it->filament_id == ams_filament_id) {
-                            hint_filament_name = from_u8(filament_it->alias);
-                            bambu_filament_name = from_u8(filament_it->alias);
+            if (filament_it->filament_id == ams_filament_id) {
+                bambu_filament_name = from_u8(alias);
 
 
-                            // update if nozzle_temperature_range is found
-                            ConfigOption *opt_min = filament_it->config.option("nozzle_temperature_range_low");
-                            if (opt_min) {
-                                ConfigOptionInts *opt_min_ints = dynamic_cast<ConfigOptionInts *>(opt_min);
-                                if (opt_min_ints) {
-                                    wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
-                                    m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
-                                }
-                            }
-                            ConfigOption *opt_max = filament_it->config.option("nozzle_temperature_range_high");
-                            if (opt_max) {
-                                ConfigOptionInts *opt_max_ints = dynamic_cast<ConfigOptionInts *>(opt_max);
-                                if (opt_max_ints) {
-                                    wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
-                                    m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
-                                }
-                            }
-                        }
-                        idx++;
+                // update if nozzle_temperature_range is found
+                const int variant_index = get_filament_variant_index(*filament_it, nozzle_diameter_str);
+                ConfigOption *opt_min = filament_it->config.option("nozzle_temperature_range_low");
+                if (opt_min) {
+                    ConfigOptionInts *opt_min_ints = dynamic_cast<ConfigOptionInts *>(opt_min);
+                    if (opt_min_ints) {
+                        wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(variant_index));
+                        m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
+                    }
+                }
+                ConfigOption *opt_max = filament_it->config.option("nozzle_temperature_range_high");
+                if (opt_max) {
+                    ConfigOptionInts *opt_max_ints = dynamic_cast<ConfigOptionInts *>(opt_max);
+                    if (opt_max_ints) {
+                        wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(variant_index));
+                        m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
                     }
                 }
             }
-
         }
     }
 
@@ -1177,24 +1359,11 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             return name_compare != 0 ? name_compare < 0 : left < right;
         };
 
-        std::sort(filament_items.begin(), filament_items.end(), _filament_sorter);
+        std::sort(m_sorted_filament_items.begin(), m_sorted_filament_items.end(), _filament_sorter);
     }
 
-    // traverse the hint selection idx
-    int selection_idx = -1;
-    {
-        for(int i = 0; i < filament_items.size(); i++)
-        {
-            if (hint_filament_name == filament_items[i])
-            {
-                selection_idx = i;
-                break;
-            }
-        }
-    }
-
-    m_comboBox_filament->Set(filament_items);
-    m_comboBox_filament->SetSelection(selection_idx);
+    rebuild_filament_dropdown_items(ams_filament_id);
+    int selection_idx = m_comboBox_filament->GetSelection();
     post_select_event(selection_idx);
 
     if (selection_idx < 0) {
@@ -1230,12 +1399,28 @@ void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)
     }
 }
 
+int AMSMaterialsSetting::get_filament_variant_index(const Preset &filament, const std::string &nozzle_diameter_str)
+{
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!obj || !preset_bundle)
+        return 0;
+    const std::set<std::string> printer_names =
+        preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
+    const Preset *printer = printer_names.empty() ? nullptr : preset_bundle->printers.find_preset(*printer_names.begin());
+    if (!printer)
+        return 0;
+    const int extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+    return PresetBundle::get_filament_variant_index(filament.config, printer->config, obj->get_preset_extruder_index(extruder_id),
+                                                    DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id)));
+}
+
 void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 {
     // Get the flag whether to open the filament setting dialog from the device page
     int* from_printer = static_cast<int*>(m_comboBox_filament->GetClientData());
 
     m_filament_type = "";
+    const FilamentInfos* selected_info = selected_filament_info();
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         std::ostringstream stream;
@@ -1246,61 +1431,55 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             float machine_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
             if (machine_diameter == 0.0f) {
                 const ConfigOption *opt = preset_bundle->printers.get_selected_preset().config.option("nozzle_diameter");
-                if (opt) machine_diameter = static_cast<const ConfigOptionFloats *>(opt)->values[0];
+                if (opt) {
+                    const auto &nd = static_cast<const ConfigOptionFloats *>(opt)->values;
+                    if (!nd.empty()) machine_diameter = nd.size() > 1 ? nd[1] : nd[0];
+                }
             }
             stream << std::fixed << std::setprecision(1) << machine_diameter;
         }
         std::string nozzle_diameter_str = stream.str();
-        std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type),
-                                                                                                          nozzle_diameter_str);
-        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            if (!m_comboBox_filament->GetValue().IsEmpty()) {
-                auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
-                std::string filament_id   = filament_item.filament_id;
-                if (it->filament_id.compare(filament_id) == 0) {
-                    ConfigOption *       printer_opt  = it->config.option("compatible_printers");
-                    ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
-                    bool has_compatible_printer = false;
-                    for (auto printer_str : printer_strs->values) {
-                        if (printer_names.find(printer_str) != printer_names.end()) {
-                            has_compatible_printer = true;
-                            break;
-                        }
+        // Resolve the selection against the same list Popup() built the dropdown from, so the two
+        // halves of the dialog cannot disagree about which filaments this machine can use.
+        if (selected_info) {
+            const std::string& filament_id = selected_info->filament_id;
+            for (Preset *it : preset_bundle->get_filament_presets_for_machine(
+                     DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str, obj->is_support_user_preset)) {
+                if (it->filament_id != filament_id)
+                    continue;
+                // ) if nozzle_temperature_range is found
+                const int variant_index = get_filament_variant_index(*it, nozzle_diameter_str);
+                ConfigOption* opt_min = it->config.option("nozzle_temperature_range_low");
+                if (opt_min) {
+                    ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);
+                    if (opt_min_ints) {
+                        wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(variant_index));
+                        m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
                     }
-                    if (!it->is_system && !has_compatible_printer) continue;
-                    // ) if nozzle_temperature_range is found
-                    ConfigOption* opt_min = it->config.option("nozzle_temperature_range_low");
-                    if (opt_min) {
-                        ConfigOptionInts* opt_min_ints = dynamic_cast<ConfigOptionInts*>(opt_min);
-                        if (opt_min_ints) {
-                            wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
-                            m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
-                        }
-                    }
-                    ConfigOption* opt_max = it->config.option("nozzle_temperature_range_high");
-                    if (opt_max) {
-                        ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max);
-                        if (opt_max_ints) {
-                            wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
-                            m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
-                        }
-                    }
-                    ConfigOption* opt_type = it->config.option("filament_type");
-                    bool found_filament_type = false;
-                    if (opt_type) {
-                        ConfigOptionStrings* opt_type_strs = dynamic_cast<ConfigOptionStrings*>(opt_type);
-                        if (opt_type_strs) {
-                            found_filament_type = true;
-                            //m_filament_type = opt_type_strs->get_at(0);
-                            std::string display_filament_type;
-                            m_filament_type = it->config.get_filament_type(display_filament_type);
-                        }
-                    }
-                    if (!found_filament_type)
-                        m_filament_type = "";
-
-                    break;
                 }
+                ConfigOption* opt_max = it->config.option("nozzle_temperature_range_high");
+                if (opt_max) {
+                    ConfigOptionInts* opt_max_ints = dynamic_cast<ConfigOptionInts*>(opt_max);
+                    if (opt_max_ints) {
+                        wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(variant_index));
+                        m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
+                    }
+                }
+                ConfigOption* opt_type = it->config.option("filament_type");
+                bool found_filament_type = false;
+                if (opt_type) {
+                    ConfigOptionStrings* opt_type_strs = dynamic_cast<ConfigOptionStrings*>(opt_type);
+                    if (opt_type_strs) {
+                        found_filament_type = true;
+                        //m_filament_type = opt_type_strs->get_at(0);
+                        std::string display_filament_type;
+                        m_filament_type = it->config.get_filament_type(display_filament_type);
+                    }
+                }
+                if (!found_filament_type)
+                    m_filament_type = "";
+
+                break;
             }
         }
     }
@@ -1316,7 +1495,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     //reset cali
     int cali_select_idx = -1;
 
-    if ( !this->obj || m_filament_selection < 0) {
+    if ( !this->obj || m_filament_selection < 0 || !selected_info) {
         m_input_k_val->Enable(false);
         m_input_n_val->Enable(false);
         m_button_confirm->Disable(); // ORCA No need to change style
@@ -1335,21 +1514,9 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     ams_filament_id = "";
     ams_setting_id = "";
 
-    if (preset_bundle) {
-        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            auto itor = map_filament_items.find(m_comboBox_filament->GetValue().ToStdString());
-            if ( itor != map_filament_items.end()) {
-                ams_filament_id = itor->second.filament_id;
-                ams_setting_id  = itor->second.setting_id;
-                break;
-            }
-
-            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
-                ams_filament_id = it->filament_id;
-                ams_setting_id = it->setting_id;
-                break;
-            }
-        }
+    if (selected_info) {
+        ams_filament_id = selected_info->filament_id;
+        ams_setting_id  = selected_info->setting_id;
     }
 
     wxArrayString items;
@@ -1481,6 +1648,11 @@ void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
     m_button_reset->Rescale(); // ORCA
     m_button_confirm->Rescale(); // ORCA
     m_button_close->Rescale(); // ORCA
+    // An open list would keep the measurements of the old stars, so close it before replacing them.
+    m_comboBox_filament->CloseDropdown();
+    m_star_filled.msw_rescale();
+    m_star_empty.msw_rescale();
+    update_favorite_stars();
     this->Refresh();
 }
 
@@ -1937,11 +2109,6 @@ void ColorPickerPopup::paintEvent(wxPaintEvent& evt)
 }
 
 void ColorPickerPopup::OnDismiss() {}
-
-void ColorPickerPopup::Popup()
-{
-    PopupWindow::Popup();
-}
 
 bool ColorPickerPopup::ProcessLeftDown(wxMouseEvent& event) {
     return PopupWindow::ProcessLeftDown(event);

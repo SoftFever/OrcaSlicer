@@ -4,16 +4,26 @@
 #include "libslic3r/miniz_extension.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/directory.hpp>
+#include <boost/filesystem/file_status.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include "PluginAuditManager.hpp"
 #include "PythonInterpreter.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/format.hpp"
 
+#include <exception>
+#include <miniz.h>
 #include <nlohmann/json.hpp>
 
 #include <chrono>
 #include <filesystem>
+#include <string>
+#include "slic3r/plugin/PluginDescriptor.hpp"
 #include <utility>
 #include <algorithm>
 #include <cctype>
@@ -85,7 +95,7 @@ bool resolve_allowed_plugin_root(const PluginDescriptor& descriptor,
 
     const fs::path plugin_root = resolve_plugin_root_from_descriptor(descriptor);
     if (plugin_root.empty()) {
-        error = "Plugin folder could not be determined.";
+        error = _u8L("Plugin folder could not be determined.");
         return false;
     }
 
@@ -96,7 +106,7 @@ bool resolve_allowed_plugin_root(const PluginDescriptor& descriptor,
         resolved_root = fs::absolute(plugin_root, ec);
     }
     if (ec || resolved_root.empty()) {
-        error = "Failed to resolve plugin folder: " + plugin_root.string();
+        error = GUI::format(_u8L("Failed to resolve plugin folder: %1%"), plugin_root.string());
         return false;
     }
 
@@ -115,7 +125,8 @@ bool delete_plugin_root(const boost::filesystem::path& resolved_root, const std:
     boost::system::error_code ec;
     const auto removed_count = fs::remove_all(resolved_root, ec);
     if (ec) {
-        error = "Failed to delete plugin folder " + resolved_root.string() + ": " + ec.message();
+        // TRN %1% is a folder path, %2% the system error message.
+        error = GUI::format(_u8L("Failed to delete plugin folder %1%: %2%"), resolved_root.string(), ec.message());
         return false;
     }
 
@@ -631,7 +642,7 @@ void parse_metadata_rfc822(const std::string& content,
 bool is_ignored_plugin_directory(const boost::filesystem::path& path)
 {
     const std::string name = path.filename().string();
-    return name.empty() || name[0] == '.' || name.rfind("__", 0) == 0 || name == PLUGIN_SUBSCRIBED_DIR;
+    return name.empty() || name[0] == '.' || name.rfind("__", 0) == 0 || name == PLUGIN_SUBSCRIBED_DIR || name == PLUGIN_DATA_DIR;
 }
 
 bool is_safe_relative_path(const boost::filesystem::path& path)
@@ -746,7 +757,14 @@ bool read_install_state(const boost::filesystem::path& plugin_dir, PluginDescrip
     // truth for a cloud plugin's installed version: it records the version fetched from
     // the cloud at install time, independent of the (possibly stale) manifest/PEP723
     // header that scan_directory parses into entry.version.
-    if (!state.installed_version.empty())
+    //
+    // A local plugin has no cloud copy to diverge from: the entry file's own header is the only
+    // source of truth for its version. Trusting the sidecar there would pin the version shown
+    // in the UI to whatever it was at first install, even after the file is edited.
+    const bool is_local_install = state.installed_from == "local" && state.cloud_uuid.empty();
+    if (is_local_install && !entry.version.empty())
+        entry.installed_version = entry.version;
+    else if (!state.installed_version.empty())
         entry.installed_version = state.installed_version;
     if (!state.cloud_uuid.empty())
         entry.cloud = CloudPluginState{state.cloud_uuid, true, false, false};
@@ -784,6 +802,24 @@ bool read_install_state(const boost::filesystem::path& plugin_dir, PluginInstall
             parsed.plugin_name = state["plugin_name"].get<std::string>();
         if (state.contains("cloud_uuid") && state["cloud_uuid"].is_string())
             parsed.cloud_uuid = state["cloud_uuid"].get<std::string>();
+
+        if (state.contains("permissions") && state["permissions"].is_object()) {
+            const auto& permissions = state["permissions"];
+            auto read_string_list = [&permissions](const char* key, std::vector<std::string>& out) {
+                if (!permissions.contains(key) || !permissions[key].is_array())
+                    return;
+                for (const auto& entry : permissions[key])
+                    if (entry.is_string())
+                        out.push_back(entry.get<std::string>());
+            };
+            read_string_list("fs_read", parsed.permissions.fs_read);
+            read_string_list("fs_readwrite", parsed.permissions.fs_readwrite);
+            read_string_list("network_http", parsed.permissions.network_http);
+            read_string_list("network_socket", parsed.permissions.network_socket);
+            read_string_list("process", parsed.permissions.process);
+            read_string_list("threading", parsed.permissions.threading);
+        }
+
         if (state.contains("enabled") && state["enabled"].is_boolean())
             parsed.enabled = state["enabled"].get<bool>();
 
@@ -819,6 +855,15 @@ bool write_install_state(const boost::filesystem::path& plugin_dir, const Plugin
     if (!state.cloud_uuid.empty())
         json["cloud_uuid"] = state.cloud_uuid;
 
+    json["permissions"] = {
+        {"fs_read", state.permissions.fs_read},
+        {"fs_readwrite", state.permissions.fs_readwrite},
+        {"network_http", state.permissions.network_http},
+        {"network_socket", state.permissions.network_socket},
+        {"process", state.permissions.process},
+        {"threading", state.permissions.threading},
+    };
+
     nlohmann::json capabilities = nlohmann::json::array();
     for (const auto& [name, enabled] : state.capabilities)
         capabilities.push_back(nlohmann::json{{name, enabled}});
@@ -836,6 +881,9 @@ bool write_install_state(const boost::filesystem::path& plugin_dir, const Plugin
                          const std::vector<std::pair<std::string, bool>>& capabilities)
 {
     PluginInstallState state;
+    // Loading a plugin updates its lifecycle/capability state, but must retain permissions granted
+    // during register_capabilities() or by a previous runtime audit prompt.
+    read_install_state(plugin_dir, state);
     state.installed_from    = entry.is_cloud_plugin() ? "cloud" : "local";
     // Prefer the descriptor's recorded installed_version (the version fetched from the cloud
     // at install time, preserved across sidecar re-writes) so a stale manifest/PEP723 header
@@ -852,10 +900,16 @@ bool write_install_state(const boost::filesystem::path& plugin_dir, const Plugin
 bool write_install_state(const boost::filesystem::path& plugin_dir, const PluginDescriptor& entry)
 {
     // Install-time writer: the package is not loaded, so its capabilities are not known yet and the
-    // sidecar is (re)initialized to "auto-load, nothing disabled". PluginManager writes the real
-    // per-capability flags once the package is loaded, via the (dir, entry, enabled, capabilities)
-    // overload.
-    return write_install_state(plugin_dir, entry, true, {});
+    // sidecar is (re)initialized to "auto-load, nothing disabled". This intentionally resets
+    // permissions on a fresh install/reinstall. PluginManager writes the real per-capability flags
+    // while preserving permissions once the package is loaded, via the overload above.
+    PluginInstallState state;
+    state.installed_from    = entry.is_cloud_plugin() ? "cloud" : "local";
+    state.installed_version = !entry.installed_version.empty() ? entry.installed_version : entry.version;
+    state.plugin_name       = entry.name;
+    state.cloud_uuid        = entry.cloud_uuid();
+    state.enabled           = true;
+    return write_install_state(plugin_dir, state);
 }
 
 bool read_python_plugin_metadata(const boost::filesystem::path& py_path, PluginDescriptor& descriptor, std::string& error)
@@ -1153,7 +1207,7 @@ boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::pat
     namespace fs = boost::filesystem;
 
     if (!fs::exists(plugin_dir) || !fs::is_directory(plugin_dir)) {
-        error = "Plugin directory does not exist: " + plugin_dir.string();
+        error = GUI::format(_u8L("Plugin directory does not exist: %1%"), plugin_dir.string());
         return {};
     }
 
@@ -1169,15 +1223,17 @@ boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::pat
         const fs::path ext = it->path().extension();
         if (ext == ".py") {
             if (!py_entry.empty()) {
-                error = "Plugin directory contains multiple .py files: " + py_entry.filename().string() +
-                        " and " + it->path().filename().string();
+                // TRN %1% and %2% are file names.
+                error = GUI::format(_u8L("Plugin directory contains multiple .py files: %1% and %2%"),
+                                    py_entry.filename().string(), it->path().filename().string());
                 return {};
             }
             py_entry = it->path();
         } else if (ext == ".whl") {
             if (!whl_entry.empty()) {
-                error = "Plugin directory contains multiple .whl files: " + whl_entry.filename().string() +
-                        " and " + it->path().filename().string();
+                // TRN %1% and %2% are file names.
+                error = GUI::format(_u8L("Plugin directory contains multiple .whl files: %1% and %2%"),
+                                    whl_entry.filename().string(), it->path().filename().string());
                 return {};
             }
             whl_entry = it->path();
@@ -1185,7 +1241,7 @@ boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::pat
     }
 
     if (!py_entry.empty() && !whl_entry.empty()) {
-        error = "Plugin directory contains both .py and .whl entry files";
+        error = _u8L("Plugin directory contains both .py and .whl entry files");
         return {};
     }
 
@@ -1195,7 +1251,7 @@ boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::pat
     if (!whl_entry.empty())
         return whl_entry;
 
-    error = "Plugin directory does not contain a .py or .whl entry file";
+    error = _u8L("Plugin directory does not contain a .py or .whl entry file");
     return {};
 }
 

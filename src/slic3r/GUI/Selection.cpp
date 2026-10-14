@@ -4,7 +4,6 @@
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
 #include "GUI_App.hpp"
-#include "GUI.hpp"
 #include "GUI_ObjectList.hpp"
 #include "Gizmos/GLGizmoBase.hpp"
 #include "Camera.hpp"
@@ -14,6 +13,32 @@
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/Technologies.hpp"
+#include "libslic3r/Color.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Geometry.hpp"
+#include "slic3r/GUI/GLModel.hpp"
+#include <string>
+#include <vector>
+#include <cstdlib>
+#include "slic3r/GUI/Event.hpp"
+#include <set>
+#include <utility>
+#include <cstddef>
+#include <algorithm>
+#include <cassert>
+#include <optional>
+#include "slic3r/GUI/GUI_Geometry.hpp"
+#include <cfloat>
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/GCode/WipeTower.hpp"
+#include "libslic3r/Geometry/Circle.hpp"
+#include "slic3r/GUI/ObjectDataViewModel.hpp"
+#include <map>
+#include "slic3r/GUI/OpenGLManager.hpp"
+#include <array>
+#include "libslic3r/Config.hpp"
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
 #include "libslic3r/BuildVolume.hpp"
 #endif // ENABLE_ENHANCED_PRINT_VOLUME_FIT
@@ -26,6 +51,16 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Min_sphere_of_spheres_d.h>
 #include <CGAL/Min_sphere_of_points_d_traits_3.h>
+#include "libslic3r/CutUtils.hpp"
+#include "libslic3r/ObjectID.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/TextConfiguration.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "slic3r/GUI/GLShader.hpp"
+#include "slic3r/GUI/Gizmos/GizmoObjectManipulation.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/PartPlate.hpp"
 
 static const Slic3r::ColorRGBA UNIFORM_SCALE_COLOR     = Slic3r::ColorRGBA::ORANGE();
 static const Slic3r::ColorRGBA SOLID_PLANE_COLOR       = {0.0f, 174.0f / 255.0f, 66.0f / 255.0f, 1.0f};
@@ -67,7 +102,7 @@ bool Selection::Clipboard::is_sla_compliant() const
             return false;
 
         for (const ModelVolume* v : o->volumes) {
-            if (v->is_modifier())
+            if (v->is_modifier() || v->is_precise_seam()) // Precise Seam not supported in SLA
                 return false;
         }
     }
@@ -603,26 +638,21 @@ void Selection::set_printable(bool printable)
 }
 
 bool Selection::get_auto_drop() const {
-    // The wipe tower is not a ModelObject and has no per-instance auto_drop;
+    // The wipe tower is not a ModelObject and has no auto_drop state;
     // return the default to avoid indexing m_model->objects with its synthetic id.
     if (!m_valid || is_wipe_tower())
         return true;
 
-    std::set<std::pair<int, int>> instances_idxs;
+    std::set<int> object_idxs;
     for (const auto& [obj_idx, inst_list] : m_cache.content) {
-        for (int inst_idx : inst_list) {
-            instances_idxs.insert({obj_idx, inst_idx});
-        }
+        object_idxs.insert(obj_idx);
     }
 
-    // return false, if one of the instances in the selection has auto_drop disabled, otherwise return true
-    for (const auto& [obj_idx, inst_idx] : instances_idxs) {
+    // Return false if one selected object has auto_drop disabled.
+    for (int obj_idx : object_idxs) {
         ModelObject* object = m_model->objects[obj_idx];
-        for (const auto* inst : object->instances) {
-            if (!inst->auto_drop) {
-                return false;
-            }
-        }
+        if (!object->auto_drop)
+            return false;
     }
 
     return true;
@@ -633,22 +663,18 @@ void Selection::set_auto_drop(bool enabled)
     if (!m_valid)
         return;
 
-    std::set<std::pair<int, int>> instances_idxs;
+    std::set<int> object_idxs;
     for (const auto& [obj_idx, inst_list] : m_cache.content) {
-        for (int inst_idx : inst_list) {
-            instances_idxs.insert({obj_idx, inst_idx});
-        }
+        object_idxs.insert(obj_idx);
     }
 
     std::string snapshot_text = (boost::format("%1%") % (enabled ? "Set Selection Auto-Drop Enabled" : "Set Selection Auto-Drop Disabled")).str();
     wxGetApp().plater()->take_snapshot(snapshot_text);
 
-    // set auto_drop value for all instances in object
-    for (const auto& [obj_idx, inst_idx] : instances_idxs) {
+    // auto_drop is shared by all instances of an object.
+    for (int obj_idx : object_idxs) {
         ModelObject* object = m_model->objects[obj_idx];
-        for (auto* inst : object->instances) {
-            inst->auto_drop = enabled;
-        }
+        object->auto_drop = enabled;
     }
 
     // update scene
@@ -1273,10 +1299,9 @@ void Selection::translate(const Vec3d &displacement, TransformationType transfor
                 const Polygons bed_polys{wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->get_shared_printable_polygon()};
                 Vec3d         tower_origin        = m_cache.volumes_data[i].get_volume_position();
                 Vec3d         actual_displacement = displacement;
-                bool show_read_wipe_tower = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx)->fff_print()->is_step_done(psWipeTower);
-                float brim_width = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("prime_tower_brim_width");
-
-                const double margin = show_read_wipe_tower ? WIPE_TOWER_MARGIN : brim_width + 0.5; // 0.5 is the line width of wipe tower
+                // Both preview volumes carry the brim in their bounding box, and the release
+                // clamp holds it WIPE_TOWER_MARGIN inside — same margin, so drops don't snap.
+                const double margin = WIPE_TOWER_MARGIN;
 
                 actual_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() *
                                         m_cache.volumes_data[i].get_instance_mirror_matrix())
@@ -3054,8 +3079,9 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
             else if (sync_rotation_type != SyncRotationType::NONE || mirrored)
                 new_inst_trafo_j.linear() = (old_inst_trafo_j.linear() * old_inst_trafo_i.linear().inverse()) * curr_inst_trafo_i.linear();
 
-            bool should_synchronize_z = m_model->objects[volume_j->object_idx()]->instances[volume_j->instance_idx()]->auto_drop == false;
-            if (should_synchronize_z && wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+            // Instances of the same object must remain at the same height. auto_drop
+            // only controls snapping after the move, not the instance transform itself.
+            if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
                 new_inst_trafo_j.translation().z() = curr_inst_trafo_i.translation().z();
 
             assert(is_rotation_xy_synchronized(curr_inst_trafo_i, new_inst_trafo_j));
@@ -3102,9 +3128,7 @@ void Selection::ensure_on_bed()
     for (size_t i = 0; i < m_volumes->size(); ++i) {
         GLVolume* volume    = (*m_volumes)[i];
         ModelObject*   mo   = m_model->objects[volume->object_idx()];
-        ModelInstance* mi   = mo->instances[volume->instance_idx()];
-
-        if (mi->auto_drop == false
+        if (mo->auto_drop == false
             || volume->is_wipe_tower 
             || volume->is_modifier 
             || std::find(m_cache.sinking_volumes.begin(), m_cache.sinking_volumes.end(), i) != m_cache.sinking_volumes.end()) 
