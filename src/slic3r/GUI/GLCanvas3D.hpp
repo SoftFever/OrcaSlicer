@@ -643,6 +643,8 @@ private:
 #endif
     unsigned int m_last_w, m_last_h;
     bool m_in_render;
+    // How many canvases are inside _render_frame() right now - see is_frame_in_progress().
+    static int s_frames_in_progress;
     wxTimer m_timer;
     wxTimer m_timer_set_color;
     // Armed by each frame that draws the FPS overlay; its tick requests an overlay-only frame.
@@ -776,6 +778,9 @@ private:
     //BBS:add plate related logic
     mutable std::vector<int> m_hover_volume_idxs;
     std::vector<int> m_hover_plate_idxs;
+    // IMEX ghost hover state (plate-owned transparent ghost volumes).
+    int m_hover_ghost_head  { -1 };  // physical head index, -1 when not hovering a ghost
+    int m_hover_ghost_plate { -1 };  // plate index for the hovered ghost, -1 when none
     //BBS if explosion_ratio is changed, need to update volume bounding box
     mutable float m_explosion_ratio = 1.0;
     mutable Vec3d m_rotation_center{ 0.0, 0.0, 0.0};
@@ -971,6 +976,11 @@ public:
     void on_change_color_mode(bool is_dark, bool reinit = true);
     const bool get_dark_mode_status() { return m_is_dark; }
     void set_as_dirty() { m_dirty = true; }
+    // True while any GLCanvas3D is inside _render_frame(). The other surfaces that share the app's one
+    // GL context (the UV editor canvas) check this before making themselves current: a frame interrupted
+    // by another surface finishes drawing into that surface and then presents a window the context no
+    // longer belongs to, which on Mesa/X11 is a fatal X error (BadMatch) rather than a no-op.
+    static bool is_frame_in_progress() { return s_frames_in_progress > 0; }
     void requires_check_outside_state() { m_requires_check_outside_state = true; }
 
     unsigned int get_volumes_count() const { return (unsigned int)m_volumes.volumes.size(); }
@@ -1295,7 +1305,7 @@ public:
     void set_tooltip(const std::string& tooltip);
 
     // the following methods add a snapshot to the undo/redo stack, unless the given string is empty
-    void do_move(const std::string& snapshot_type);
+    void do_move(const std::string& snapshot_type, bool force_volume_move = false);
     void do_rotate(const std::string& snapshot_type);
     void do_scale(const std::string& snapshot_type);
     void do_center();
@@ -1313,6 +1323,8 @@ public:
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
+    int get_hover_ghost_head()  const { return m_hover_ghost_head; }
+    int get_hover_ghost_plate() const { return m_hover_ghost_plate; }
     void set_selected_extruder(int extruder) { m_selected_extruder = extruder;}
 
     class WipeTowerInfo {
@@ -1480,6 +1492,8 @@ private:
 
     void _picking_pass();
     void _rectangular_selection_picking_pass();
+    // IMEX ghost picking (ray vs. ghost bbox). Runs at the end of _picking_pass.
+    void _picking_pass_imex_ghosts();
     bool _is_fxaa_enabled() const;
     bool _is_realistic_view_enabled() const;
     bool _is_ssao_enabled() const;
@@ -1521,6 +1535,12 @@ private:
     void _render_cad_grid(const Transform3d& view_matrix, const Transform3d& projection_matrix);
     //BBS: add outline drawing logic
     void _render_objects(GLVolumeCollection::ERenderType type, bool with_outline = true);
+    // IMEX ghost volumes owned by PartPlate, drawn through the shader the caller bound:
+    // the shaded pass's transparent half, or the X-Ray pass below.
+    void _render_imex_ghosts(bool xray_pass = false);
+    void _render_imex_ghosts_xray();
+    // IMEX ghost hover tooltip: filament swatch + label drawn as an ImGui overlay.
+    void _render_imex_ghost_tooltip();
     void _render_section_view_caps();
     void _render_wireframe_overlay();
     bool _is_xray_view_active() const;

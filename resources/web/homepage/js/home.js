@@ -6,6 +6,10 @@ function OnInit()
 {
 	//-----Official-----
     TranslatePage();
+    let pluginTip = document.getElementById("NoPluginText");
+    if (pluginTip)
+        AppendTemplate(pluginTip, T("plugin_not_detected", "Bambu Network plug-in not detected. Click <a>here</a> to install it."),
+                       pluginTip.querySelector("a"));
 
 	SendMsg_GetLoginInfo();
 	SendMsg_GetBambuLoginInfo();
@@ -311,7 +315,7 @@ function ShowRecentFileList( pList )
 		//let index=sPath.lastIndexOf('\\')>0?sPath.lastIndexOf('\\'):sPath.lastIndexOf('\/');
 		//let sShortName=sPath.substring(index+1,sPath.length);
 		
-		let sBadge=sPublished? '<span class="FilePublishedBadge">PUB</span>':'';
+		let sBadge=sPublished? '<span class="FilePublishedBadge">'+T("published_badge", "PUB")+'</span>':'';
 		let sLogoBadge=sPublished? '<img class="FileLogoBadge" src="../../images/OrcaSlicer_gradient_circle.svg" alt="" />':'';
 
 		let TmpHtml='<div class="FileItem"  fpath="'+sPath+'"  >'+

@@ -420,7 +420,10 @@ void GLGizmosManager::refresh_on_off_state()
 
 void GLGizmosManager::reset_all_states()
 {
-    if (! m_enabled || m_serializing)
+    // The restore/new-project event can run before deferred OpenGL resource
+    // loading has populated the gizmo list.  There is nothing to reset until
+    // initialization completes.
+    if (! m_enabled || m_serializing || m_gizmos.empty())
         return;
 
     const EType current = get_current_type();
@@ -435,6 +438,9 @@ void GLGizmosManager::reset_all_states()
 
 bool GLGizmosManager::open_gizmo(EType type)
 {
+    if (m_gizmos.empty())
+        return false;
+
     int idx = static_cast<int>(type);
 
     // re-open same type cause closing
@@ -462,6 +468,37 @@ bool GLGizmosManager::check_gizmos_closed_except(EType type) const
         return false;
     }
     return true;
+}
+
+// Switches the active plate to the one containing the first selected object,
+// so that subsequent operations (align/distribute) act on a plate the user
+// can actually see.
+void GLGizmosManager::check_object_located_outside_plate(bool change_plate)
+{
+    PartPlateList& plate_list       = wxGetApp().plater()->get_partplate_list();
+    auto           curr_plate_index = plate_list.get_curr_plate_index();
+    Selection&     selection        = m_parent.get_selection();
+    auto           idxs             = selection.get_volume_idxs();
+    if (idxs.empty())
+        return;
+
+    const GLVolume* v          = selection.get_volume(*idxs.begin());
+    int             object_idx = v->object_idx();
+    const Model*    model      = m_parent.get_model();
+    if (object_idx < 0 || object_idx >= (int) model->objects.size())
+        return;
+
+    ModelObject* model_object = model->objects[object_idx];
+    for (size_t i = 0; i < plate_list.get_plate_count(); ++i) {
+        auto plate = plate_list.get_plate(i);
+        for (auto object : plate->get_objects_on_this_plate()) {
+            if (model_object == object) {
+                if (change_plate && curr_plate_index != (int) i)
+                    plate_list.select_plate(i);
+                return;
+            }
+        }
+    }
 }
 
 void GLGizmosManager::set_hover_id(int id)
@@ -522,7 +559,7 @@ bool GLGizmosManager::is_running() const
 
 bool GLGizmosManager::open_gizmo_by_shortcut(Shortcut shortcut)
 {
-    if (!m_enabled)
+    if (!m_enabled || m_gizmos.empty())
         return false;
 
     // The text tool opens without a selection because it creates its own object.
@@ -1427,10 +1464,12 @@ void GLGizmosManager::update_hover_state(const EType &type)
 
 bool GLGizmosManager::activate_gizmo(EType type)
 {
-    assert(!m_gizmos.empty());
-
     // already activated
-    if (m_current == type) return true;
+    if (m_current == type)
+        return true;
+
+    if (m_gizmos.empty())
+        return false;
 
     if (m_current != Undefined) {
         // clean up previous gizmo

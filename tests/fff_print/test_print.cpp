@@ -26,6 +26,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "libslic3r/Print.hpp"
+#include "libslic3r/Slicing.hpp"
 #include "libslic3r/Layer.hpp"
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/Support/TreeModelVolumes.hpp"
@@ -43,6 +44,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "libslic3r/Exception.hpp"
 #include "libslic3r/LifecycleEvents.hpp"
+#include "libslic3r/Utils.hpp"
 
 #include "test_helpers.hpp"
 #include "test_utils.hpp"
@@ -154,6 +156,81 @@ SCENARIO("Changing the number of solid shell layers does not make all surfaces i
             }
         }
     }
+}
+
+// Two copies of one object share a single slice. When a copy that has sliced itself becomes identical to an
+// earlier object, it keeps its own layers while that object slices and only then takes the shared layers over.
+TEST_CASE("An object that starts sharing another object's slices keeps its own layers until it takes them over", "[Print][Regression]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "layer_height",               0.2 },
+        { "initial_layer_print_height", 0.2 },
+        { "raft_layers",                1 }, // each object gets support layers of its own
+        { "sparse_infill_density",      "20%" }, // object_a's override below differs from this
+    });
+    // Activates the slicing-pipeline hook installed for the second slice below.
+    config.set_key_value("slicing_pipeline_plugin", new ConfigOptionStrings({"probe"}));
+
+    Print print;
+    Model model;
+    init_print({cube(20)}, print, model, config);
+    ModelObject *object_a = model.objects.front();
+    // add_object() gives the copy extruder 1, and objects only share slices when their configs match.
+    object_a->config.set_key_value("extruder", new ConfigOptionInt(1));
+    ModelObject *object_b = model.add_object(*object_a); // shares object_a's mesh
+    for (ModelInstance *instance : object_b->instances)
+        instance->set_offset(instance->get_offset() + Vec3d(40., 0., 0.));
+    // A per-object override makes the objects differ, so each slices itself.
+    object_a->config.set_key_value("sparse_infill_density", new ConfigOptionPercent(40));
+
+    print.apply(model, config);
+    print.process();
+    REQUIRE(print.objects().size() == 2);
+    // The non-const accessors hand out the layer vectors themselves, which the checks below compare.
+    PrintObject *print_b = print.get_object(1);
+    REQUIRE(print_b->model_object()->id() == object_b->id()); // Print slices its own copy of the model
+    REQUIRE(print_b->get_shared_object() == nullptr);
+    const LayerPtrs        own_layers         = print_b->layers();
+    const SupportLayerPtrs own_support_layers = print_b->support_layers();
+    REQUIRE(!own_layers.empty());
+    REQUIRE(!own_support_layers.empty());
+
+    // Without the override the objects are identical again: print_a redoes the steps the setting invalidated,
+    // and print_b shares it.
+    object_a->config.erase("sparse_infill_density");
+    print.apply(model, config);
+    REQUIRE(print.objects().size() == 2);
+    PrintObject *print_a = print.get_object(0);
+
+    // Erasing the override invalidates print_a's posPrepareInfill and the steps after it. Its hook is the first one
+    // print_a fires, and it runs after print_b starts sharing but before print_b takes the shared layers over.
+    bool hook_fired          = false;
+    bool shared_while_a_runs = false;
+    bool kept_layers         = false;
+    bool kept_support_layers = false;
+    {
+        Print::set_slicing_pipeline_hook_fn([&](Print &, const PrintObject *object, SlicingPipelineStepPlugin) {
+            if (object != print_a || hook_fired)
+                return;
+            hook_fired          = true;
+            shared_while_a_runs = print_b->get_shared_object() == print_a;
+            kept_layers         = print_b->layers() == own_layers;
+            kept_support_layers = print_b->support_layers() == own_support_layers;
+        });
+        const ScopeGuard reset_hook([] { Print::set_slicing_pipeline_hook_fn(nullptr); });
+        print.process();
+    }
+
+    REQUIRE(hook_fired);
+    CHECK(print.objects()[1] == print_b);
+    CHECK(shared_while_a_runs);
+    CHECK(kept_layers);
+    CHECK(kept_support_layers);
+    CHECK(print_b->get_shared_object() == print_a);
+    REQUIRE(!print_a->layers().empty());
+    CHECK(print_b->layers() == print_a->layers());
+    CHECK(print_b->support_layers() == print_a->support_layers());
 }
 
 // ---------------------------------------------------------------------------
@@ -1519,4 +1596,59 @@ TEST_CASE("Belt supports reach the belt under a leading overhang", "[Print][belt
         CHECK(lowest->print_z - floor_under_lowest < 4. * 0.2 + EPSILON);
         CHECK(lowest->print_z - floor_under_lowest > -0.2 - EPSILON);
     }
+}
+
+TEST_CASE("The build height check counts the Z shrinkage compensation once", "[Print][validate][Regression]")
+{
+    // printable_height is 100 mm and Z shrinks to 95 %, so the object is sliced 100 / 95 times taller.
+    // 92 mm become about 96.8 mm and fit; 97 mm become about 102.1 mm and only the compensation makes them too tall; 101 mm are too tall on their own.
+    const auto [height, expected] = GENERATE(table<double, std::string>({
+        { 92., "" },
+        { 97., "because of material shrinkage compensation" },
+        { 101., "exceeds the maximum build volume height." },
+    }));
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "printable_height", 100. },
+        { "filament_shrinkage_compensation_z", "95%" },
+        { "layer_height", 0.2 },
+        { "initial_layer_print_height", 0.2 },
+        { "layer_change_gcode", "G92 E0\n" }, // validate() relative-E reset
+    });
+
+    Print print;
+    Model model;
+    init_print({ make_cube(20., 20., height) }, print, model, config);
+    const std::string error = print.validate().string;
+    INFO(error);
+    if (expected.empty())
+        CHECK(error.empty());
+    else
+        CHECK(error.find(expected) != std::string::npos);
+}
+
+TEST_CASE("The build height check counts the raft", "[Print][validate][Regression]")
+{
+    // printable_height is 100 mm; three raft layers lift the object by 0.9 mm.
+    const auto [height, fits] = GENERATE(table<double, bool>({ { 98.8, true }, { 99.8, false } }));
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "printable_height", 100. },
+        { "raft_layers", 3 },
+        { "layer_height", 0.2 },
+        { "initial_layer_print_height", 0.2 },
+        { "layer_change_gcode", "G92 E0\n" }, // validate() relative-E reset
+    });
+
+    Print print;
+    Model model;
+    init_print({ make_cube(20., 20., height) }, print, model, config);
+    const SlicingParameters &slicing_params = print.objects().front()->slicing_parameters();
+    REQUIRE_THAT(slicing_params.object_print_z_min, Catch::Matchers::WithinAbs(0.9, EPSILON));
+    const std::string error = print.validate().string;
+    INFO(error);
+    if (fits)
+        CHECK(error.empty());
+    else
+        CHECK(error.find("maximum build volume height") != std::string::npos);
 }
