@@ -53,15 +53,18 @@ TEST_CASE("Klipper object labels name each copy without the characters Klipper c
 TEST_CASE("Object label comments number each object and copy with or without exclude object", "[GCode]")
 {
     // repetier has no exclude-object commands, so set_object_info() writes nothing for it.
-    const auto [flavor, exclude_object] = GENERATE(table<std::string, std::string>({
-        {"marlin2", "0"},
-        {"klipper", "0"},
-        {"klipper", "1"},
-        {"repetier", "1"},
+    // BBL printers write M624/M625 skip blocks whatever exclude_object is set to.
+    const auto [flavor, exclude_object, bbl] = GENERATE(table<std::string, std::string, bool>({
+        {"marlin2", "0", false},
+        {"klipper", "0", false},
+        {"klipper", "1", false},
+        {"repetier", "1", false},
+        {"marlin2", "0", true},
     }));
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
     config.set_deserialize_strict({{"gcode_flavor", flavor}, {"exclude_object", exclude_object}, {"gcode_label_objects", "1"}});
     Print print;
+    print.is_BBL_printer() = bbl;
     Model model;
     Test::init_print(std::vector<TriangleMesh>{Test::cube(20.), Test::cube(20.)}, print, model, config, nullptr, false, 2);
     arrange_objects(model, BoundingBox{Point::new_scale(0., 0.), Point::new_scale(500., 500.)},
@@ -69,10 +72,19 @@ TEST_CASE("Object label comments number each object and copy with or without exc
     print.apply(model, config);
 
     const std::string gcode = Test::gcode(print);
+    INFO(flavor << ", exclude_object " << exclude_object << ", BBL " << bbl);
     for (const char *label : {"id:0 copy 0", "id:0 copy 1", "id:1 copy 0", "id:1 copy 1"}) {
-        INFO(flavor << ", exclude_object " << exclude_object << ": " << label);
+        INFO(label);
         CHECK(gcode.find("; printing object object.stl " + std::string(label) + "\n") != std::string::npos);
     }
+    if (bbl)
+        for (const PrintObject *object : print.objects())
+            for (const PrintInstance &instance : object->instances()) {
+                const std::string label_id = std::to_string(instance.model_instance->get_labeled_id());
+                INFO("label id " << label_id);
+                CHECK(gcode.find("; start printing object, unique label id: " + label_id + "\nM624 ") != std::string::npos);
+                CHECK(gcode.find("; stop printing object, unique label id: " + label_id + "\nM625\n") != std::string::npos);
+            }
 }
 
 TEST_CASE("An exported G-code's settings load back as the settings it was sliced with", "[GCode]")

@@ -11057,7 +11057,7 @@ inline std::string polygon_to_string(const Polygon &polygon, Print *print, bool 
     gcode << "]";
     return gcode.str();
 }
-// Numbers the objects in print order, and their instances both within each object (id) and across the print
+// Numbers the objects, and their instances both within each object (id) and across the print
 // (unique_id). The "; printing object" comments and the exclude-object commands label objects with these ids.
 void GCode::assign_object_label_ids(Print &print)
 {
