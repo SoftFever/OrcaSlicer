@@ -15,7 +15,8 @@ namespace Slic3r {
 // Flashforge's own screen a print starts through Zmod's PRINT_ZCOLOR, which assigns the file's
 // tools to slots and takes the dialog's bed leveling and Auto PA choices; with that screen,
 // Flashforge's app runs the printer, and the print goes to the app's local API the way
-// Flashforge's slicer sends it.
+// Flashforge's slicer sends it. The dialog's Timelapse option is Zmod's Timelapse plugin, offered
+// while the plugin is enabled.
 class ZmodPrinterAgent final : public MoonrakerPrinterAgent
 {
 public:
@@ -35,10 +36,13 @@ protected:
                           const WasCancelledFn&   cancel_fn) override;
     int  start_uploaded_print(const PrintParams& params, const std::string& filename) override;
     bool supports_flow_calibration() const override { return true; }
+    bool supports_timelapse() const override;
     void rewrite_mapped_comment(std::string& line, const std::map<int, int>& tool_map) const override;
 
 private:
     bool           moonraker_get(const std::string& path, std::string& body) const;
+    // Turns the Timelapse plugin (moonraker-timelapse) on or off for the next print.
+    void           set_timelapse_plugin(bool enabled) const;
     // Zmod's zmod_color status: its slots, and whether Flashforge's screen runs ("display").
     nlohmann::json zmod_color_status() const;
     // Where Flashforge's app serves its local API: the printer's Wi-Fi address.

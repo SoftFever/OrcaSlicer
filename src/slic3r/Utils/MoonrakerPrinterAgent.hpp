@@ -122,6 +122,9 @@ protected:
     virtual bool supports_flow_calibration() const { return false; }
     virtual bool supports_timelapse() const { return false; }
 
+    // Whether Klipper listed the printer object `name` (e.g. "gcode_macro FOO") on connect.
+    bool has_klipper_object(const std::string& name) const;
+
     // One JSON-RPC request over a short-lived websocket, for methods Moonraker registers for
     // websocket clients only. On success `result` holds the response's result (or error) object.
     bool call_jsonrpc_ws(const std::string& method, const nlohmann::json& params, nlohmann::json& result, std::string& error) const;

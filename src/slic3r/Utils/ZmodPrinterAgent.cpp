@@ -28,6 +28,10 @@ constexpr const char* ZMOD_AGENT_VERSION = "0.0.1";
 // Zmod's spool slots, numbered from 1; a slot feeds the tool of the same index.
 constexpr int ZMOD_SLOTS = 4;
 
+// Zmod's Timelapse plugin (https://github.com/ghzserg/timelapse) is moonraker-timelapse; its Klipper
+// macros are loaded only while the plugin is enabled.
+constexpr const char* TIMELAPSE_MACRO = "gcode_macro TIMELAPSE_TAKE_FRAME";
+
 // Flashforge's config files carry /* */ comments, which JSON does not allow.
 std::string strip_block_comments(std::string text)
 {
@@ -67,6 +71,31 @@ bool ZmodPrinterAgent::moonraker_get(const std::string& path, std::string& body)
     if (!success)
         BOOST_LOG_TRIVIAL(warning) << "ZmodPrinterAgent: GET " << path << " failed: " << http_error;
     return success;
+}
+
+bool ZmodPrinterAgent::supports_timelapse() const { return has_klipper_object(TIMELAPSE_MACRO); }
+
+void ZmodPrinterAgent::set_timelapse_plugin(bool enabled) const
+{
+    std::string http_error;
+    bool        success = false;
+    auto        http    = Http::post(join_url(device_info.base_url, "/machine/timelapse/settings"));
+    if (!device_info.api_key.empty())
+        http.header("X-Api-Key", device_info.api_key);
+    http.header("Content-Type", "application/json")
+        .set_post_body(nlohmann::json{{"enabled", enabled}}.dump())
+        .timeout_connect(5)
+        .timeout_max(10)
+        .on_complete([&](std::string /*body*/, unsigned status) {
+            success = status == 200;
+            if (!success)
+                http_error = "HTTP error: " + std::to_string(status);
+        })
+        .on_error([&](std::string /*body*/, std::string err, unsigned /*status*/) { http_error = std::move(err); })
+        .perform_sync();
+    // A timelapse is not worth failing the print over; the plugin keeps its previous setting.
+    if (!success)
+        BOOST_LOG_TRIVIAL(warning) << "ZmodPrinterAgent: setting timelapse enabled=" << enabled << " failed: " << http_error;
 }
 
 nlohmann::json ZmodPrinterAgent::zmod_color_status() const
@@ -140,6 +169,11 @@ int ZmodPrinterAgent::upload_and_start(const PrintParams&      params,
                                        const OnUpdateStatusFn& update_fn,
                                        const WasCancelledFn&   cancel_fn)
 {
+    // The plugin keeps its setting in Moonraker until changed, so every print sets it, whichever
+    // way the print then starts.
+    if (supports_timelapse())
+        set_timelapse_plugin(params.task_record_timelapse);
+
     // With Flashforge's own screen, Flashforge's app runs the printer and takes the print the way
     // Flashforge's slicer sends it; Zmod's PRINT_ZCOLOR is for running without that screen.
     const nlohmann::json status = zmod_color_status();
@@ -208,13 +242,15 @@ int ZmodPrinterAgent::upload_to_flashforge_app(const PrintParams&      params,
     host_config.set_key_value("printhost_apikey", new ConfigOptionString(check_code));
     const Flashforge flashforge(&host_config);
 
+    // Flashforge's own timelapse records from the screen's camera, which Zmod has users turn off
+    // in favour of its own camera; the dialog's Timelapse option is the plugin's.
     PrintHostUpload upload;
     upload.source_path   = gcode_path;
     upload.upload_path   = filename;
     upload.post_action   = PrintHostPostUploadAction::StartPrint;
     upload.extended_info = {{"levelingBeforePrint", params.task_bed_leveling ? "1" : "0"},
                             {"flowCalibration", params.task_flow_cali ? "1" : "0"},
-                            {"timeLapseVideo", params.task_record_timelapse ? "1" : "0"},
+                            {"timeLapseVideo", "0"},
                             {"useMatlStation", "1"},
                             {"gcodeToolCnt", std::to_string(mappings.size())},
                             {"materialMappings", mappings.dump()}};

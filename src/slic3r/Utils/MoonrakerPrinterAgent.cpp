@@ -468,6 +468,12 @@ std::map<int, int> MoonrakerPrinterAgent::upload_tool_map(const PrintParams& par
     return parse_tool_mapping(params.ams_mapping, int(nozzles->size()));
 }
 
+bool MoonrakerPrinterAgent::has_klipper_object(const std::string& name) const
+{
+    std::lock_guard<std::recursive_mutex> lock(payload_mutex);
+    return available_objects.count(name) != 0;
+}
+
 bool MoonrakerPrinterAgent::write_remapped_gcode(const std::string& source, const std::string& target, const std::map<int, int>& tool_map) const
 {
     boost::nowide::ifstream in(source, std::ios::binary);
