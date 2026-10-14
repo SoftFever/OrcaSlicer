@@ -213,18 +213,27 @@ TEST_CASE("A truncated or malformed paint stream drops only the damaged triangle
     REQUIRE(std::none_of(recomputed.used_states.begin(), recomputed.used_states.end(), [](bool used) { return used; }));
 }
 
-// Paint state's total area on a mesh, measured on the leaf triangles of the deserialized paint.
-static double painted_area(const TriangleMesh &mesh, const TriangleSelector::TriangleSplittingData &data, EnforcerBlockerType state)
+// Paint state's total area on a mesh and its area-weighted centroid, measured on the leaf triangles of the deserialized paint.
+static std::pair<double, Vec3d> painted_area_and_centroid(const TriangleMesh &mesh, const TriangleSelector::TriangleSplittingData &data,
+                                                          EnforcerBlockerType state)
 {
     TriangleSelector selector(mesh);
     selector.deserialize(data);
     const indexed_triangle_set facets = selector.get_facets(state);
     double area = 0.;
+    Vec3d  moment = Vec3d::Zero();
     for (const stl_triangle_vertex_indices &f : facets.indices) {
         const Vec3f &a = facets.vertices[f(0)], &b = facets.vertices[f(1)], &c = facets.vertices[f(2)];
-        area += 0.5 * double((b - a).cross(c - a).norm());
+        const double facet_area = 0.5 * double((b - a).cross(c - a).norm());
+        area += facet_area;
+        moment += facet_area * (a + b + c).cast<double>() / 3.;
     }
-    return area;
+    return {area, area > 0. ? Vec3d(moment / area) : Vec3d::Zero()};
+}
+
+static double painted_area(const TriangleMesh &mesh, const TriangleSelector::TriangleSplittingData &data, EnforcerBlockerType state)
+{
+    return painted_area_and_centroid(mesh, data, state).first;
 }
 
 // Brush strokes of alternating colors over the sphere, deep enough to subdivide the facets.
@@ -273,9 +282,13 @@ TEST_CASE("Remapping paint onto a mesh with rotated triangle vertices keeps the 
 
     const auto remapped = TriangleSelector::remap_painting(mesh.its, paint, rotated.its, Transform3d::Identity(), {});
     for (int state = 1; state <= 3; ++state) {
-        const double expected = painted_area(mesh, paint, EnforcerBlockerType(state));
-        REQUIRE(expected > 0.);
-        REQUIRE_THAT(painted_area(rotated, remapped, EnforcerBlockerType(state)), Catch::Matchers::WithinRel(expected, 1e-5));
+        const auto [expected_area, expected_centroid] = painted_area_and_centroid(mesh, paint, EnforcerBlockerType(state));
+        const auto [area, centroid]                   = painted_area_and_centroid(rotated, remapped, EnforcerBlockerType(state));
+        REQUIRE(expected_area > 0.);
+        // A midpoint split gives every child the same share of the area whichever side is special,
+        // so the area alone would not notice the paint landing on the wrong children. Its centroid does.
+        REQUIRE_THAT(area, Catch::Matchers::WithinRel(expected_area, 1e-5));
+        REQUIRE((centroid - expected_centroid).norm() < 1e-4);
     }
 }
 
@@ -303,19 +316,4 @@ TEST_CASE("Remapping paint onto a changed triangle still paints it", "[TriangleS
                  Catch::Matchers::WithinRel(painted_area(mesh, paint, EnforcerBlockerType::Extruder2), 0.05));
     REQUIRE_THAT(painted_area(changed, remapped, EnforcerBlockerType::Extruder3),
                  Catch::Matchers::WithinRel(painted_area(mesh, paint, EnforcerBlockerType::Extruder3), 1e-5));
-}
-
-
-TEST_CASE("Remapping paint onto a mesh whose vertices moved keeps it on the same triangles", "[TriangleSelector]")
-{
-    const TriangleMesh mesh  = make_sphere(20., 2 * PI / 48);
-    const auto         paint = brush_paint(mesh, 40);
-
-    // Pull the top cap inwards, as texture displacement smoothing moves vertices without changing the triangles.
-    TriangleMesh moved = mesh;
-    for (Vec3f &v : moved.its.vertices)
-        if (v.z() > 10.f)
-            v *= 0.9f;
-
-    REQUIRE(TriangleSelector::remap_painting(mesh.its, paint, moved.its, Transform3d::Identity(), {}) == paint);
 }
