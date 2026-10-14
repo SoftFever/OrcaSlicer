@@ -293,7 +293,8 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
 {
     const Selection& selection = m_glcanvas.get_selection();
 
-    m_enable_drop_to_bed = selection.can_drop();
+    // Disable it for assembly view because it has it uses its own selection and not updates instances (for now)
+    m_enable_drop_to_bed = m_glcanvas.get_canvas_type() == GLCanvas3D::ECanvasType::CanvasView3D && selection.can_drop();
 
     if (selection.is_single_full_instance() || selection.is_single_volume_or_modifier()) {
         const GLVolume *               volume = selection.get_first_volume();
@@ -916,13 +917,13 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     GLGizmoUtils::render_tooltip_button(imgui_wrapper, m_glcanvas, m_shortcuts_move, x, y);
 
-    // ORCA use exiting function for drop and show button on bottom bar to keep gizmo compact
+    // ORCA use existing function for drop and show button on bottom bar to keep gizmo compact
     imgui_wrapper->disabled_begin(m_enable_drop_to_bed);
-    ImGui::SameLine(0, space_size * 1.5f);
-    if (imgui_wrapper->button(_L("Drop"))){
-        wxGetApp().plater()->drop_selection();
-        UpdateAndShow(true);
-    }
+        ImGui::SameLine(0, space_size * 1.5f);
+        if (imgui_wrapper->button(_L("Drop"))){
+            wxGetApp().plater()->drop_selection();
+            UpdateAndShow(true);
+        }
     imgui_wrapper->disabled_end();
     if(ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip("%s", _u8L("Move the selection along Z so that its lowest point touches the bed.").c_str());
