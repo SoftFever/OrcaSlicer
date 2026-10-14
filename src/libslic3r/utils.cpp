@@ -404,7 +404,6 @@ std::string debug_out_path(const char *name, ...)
 }
 
 namespace logging = boost::log;
-namespace src = boost::log::sources;
 namespace expr = boost::log::expressions;
 namespace keywords = boost::log::keywords;
 namespace attrs = boost::log::attributes;
@@ -892,7 +891,6 @@ int copy_file_linux_read_write(int infile, int outfile, uintmax_t file_size)
 // and only features supported by Linux 3.10 (on our build server with CentOS 7) are kept, namely sendfile with ranges and statx() are not supported.
 bool copy_file_linux(const boost::filesystem::path &from, const boost::filesystem::path &to, boost::system::error_code &ec)
 {
-	using namespace boost::filesystem;
 
 	struct fd_wrapper
 	{
@@ -1746,9 +1744,7 @@ std::string format_diameter_to_str(double diameter, int precision)
     return oss.str();
 }
 
-// Returns platform-specific string to be used as log output or parsed in SysInfoDialog.
-// The latter parses the string with (semi)colons as separators, it should look about as
-// "desc1: value1; desc2: value2" or similar (spaces should not matter).
+// Returns platform-specific string to be used as log output.
 std::string log_memory_info(bool ignore_loglevel)
 {
     std::string out;
@@ -1952,7 +1948,7 @@ void copy_directory_recursively(const boost::filesystem::path& source,
             if (cfr != CopyFileResult::SUCCESS) {
                 BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
                 throw Slic3r::CriticalException(Slic3r::format(
-                    ("Copying directory %1% to %2% failed: %3%"),
+                    _u8L("Copying directory %1% to %2% failed: %3%"),
                     source, target, error_message));
             }
         }

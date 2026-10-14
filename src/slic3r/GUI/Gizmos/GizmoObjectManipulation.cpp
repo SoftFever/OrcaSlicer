@@ -44,6 +44,8 @@
 #define MAX_NUM 9999.99
 #define MAX_SIZE std::string_view{"9999.99"}
 
+using namespace std::string_view_literals;
+
 namespace Slic3r
 {
 namespace GUI
@@ -923,8 +925,9 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
 
     m_last_active_item = current_active_id;
     last_move_input_window_width = ImGui::GetWindowWidth();
+    ImGui::PopStyleVar();
     imgui_wrapper->end();
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar();
     ImGuiWrapper::pop_toolbar_style();
 }
 
@@ -1129,10 +1132,11 @@ void GizmoObjectManipulation::do_render_rotate_window(ImGuiWrapper *imgui_wrappe
 
     m_last_active_item = current_active_id;
     last_rotate_input_window_width = ImGui::GetWindowWidth();
+    ImGui::PopStyleVar();
     imgui_wrapper->end();
 
     // BBS
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar();
     ImGuiWrapper::pop_toolbar_style();
 }
 

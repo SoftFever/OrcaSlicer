@@ -30,6 +30,7 @@
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
+#include "libslic3r/Point.hpp"
 
 #include <vector>
 #include <utility>
@@ -372,6 +373,7 @@ public:
     std::string     get_local_models_path();
     bool            OnInit() override;
     int             OnExit() override;
+    void            CleanUp() override;
     bool            initialized() const { return m_initialized; }
     inline bool     is_enable_multi_machine() { return this->app_config&& this->app_config->get("enable_multi_machine") == "true"; }
 #ifdef SLIC3R_CAD
@@ -395,6 +397,8 @@ public:
     Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
     HMSQuery* get_hms_query() { return hms_query; }
     NetworkAgent* getAgent() { return m_agent; }
+    // Version that wrote the app config before this run; empty when there was no app config.
+    const boost::optional<Semver>& last_config_version() const { return m_last_config_version; }
 
     // Reconcile the live printer agent with the stored preset selection.
     void switch_printer_agent();
@@ -433,6 +437,9 @@ public:
 
     bool show_outline() const { return app_config->get_bool("show_outline"); }
     void toggle_show_outline() const { app_config->set_bool("show_outline", !show_outline()); }
+
+    bool show_center_of_mass() const { return app_config->get_bool("show_center_of_mass"); }
+    void toggle_show_center_of_mass() const { app_config->set_bool("show_center_of_mass", !show_center_of_mass()); }
 
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
@@ -512,7 +519,6 @@ public:
     void            check_printer_presets();
 
     void            recreate_GUI(const wxString& message);
-    void            system_info();
     void            keyboard_shortcuts(ShortcutContext page, wxWindow* parent = nullptr);   // the main frame when null
     void            troubleshoot();
     void            load_project(wxWindow *parent, wxString& input_file) const;
@@ -561,6 +567,10 @@ public:
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_new_version_sf(bool show_tips = false, int by_user = 0);
+    // Offers to migrate user filament presets made against an older release that lost printers their parent
+    // listed then. At startup it asks on every start that finds such presets, unless the user chose not to be
+    // reminded; by_user also reports when there is nothing to migrate.
+    void            check_legacy_user_filament_presets(bool by_user);
     bool            process_network_msg(std::string dev_id, std::string msg);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
@@ -878,6 +888,8 @@ bool is_support_filament(int extruder_id, bool strict_check = true);
 bool is_soluble_filament(int extruder_id);
 // check if the filament for model is in the list
 bool has_filaments(const std::vector<std::string>& model_filaments);
+// Up direction of the edited printer's tilted build plate (+Z when untilted).
+Vec3d build_plate_tilt_up_direction();
 } // namespace GUI
 } // Slic3r
 

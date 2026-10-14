@@ -644,9 +644,9 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
 
         for (const auto& extruder : curr_obj->GetExtderSystem()->GetExtruders()) {
             if (extruder.GetNozzleType() == NozzleType::ntUndefine) {
-                wxString name = _L("left");
-                if (extruder.GetExtId() == 0) { name = _L("right"); }
-                wxString msg = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
+                wxString msg = extruder.GetExtId() == 0 ?
+                    _L("Printer right nozzle information has not been set. Please configure it before proceeding with the calibration.") :
+                    _L("Printer left nozzle information has not been set. Please configure it before proceeding with the calibration.");
                 MessageDialog msg_dlg(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
                 msg_dlg.ShowModal();
                 break;
@@ -1307,7 +1307,7 @@ void CalibrationPresetPage::stripWhiteSpace(std::string& str)
 {
     if (str == "") { return; }
 
-    string::iterator cur_it;
+    std::string::iterator cur_it;
     cur_it = str.begin();
 
     while (cur_it != str.end()) {
@@ -2597,7 +2597,7 @@ void CalibrationPresetPage::update_multi_extruder_filament_combobox(const std::s
     int ams_id_int = 0;
     try {
         if (!ams_id.empty())
-            ams_id_int = stoi(ams_id.c_str());
+            ams_id_int = std::stoi(ams_id.c_str());
 
     } catch (...) {}
 
@@ -2685,7 +2685,7 @@ void CalibrationPresetPage::update_filament_combobox(std::string ams_id)
     int ams_id_int = 0;
     try {
         if (!ams_id.empty())
-            ams_id_int = stoi(ams_id.c_str());
+            ams_id_int = std::stoi(ams_id.c_str());
 
     } catch (...) {}
 
@@ -2815,7 +2815,7 @@ MaxVolumetricSpeedPresetPage::MaxVolumetricSpeedPresetPage(
         wxArrayString titles;
         titles.push_back(_L("From Volumetric Speed"));
         titles.push_back(_L("To Volumetric Speed"));
-        titles.push_back(_L("Step"));
+        titles.push_back(_L_CONTEXT("Step", "Increment"));
         m_custom_range_panel->set_titles(titles);
 
         m_custom_range_panel->set_unit(_L("mm³/s"));

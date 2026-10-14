@@ -62,7 +62,7 @@
 #include <cstdio>
 #include <cstddef>
 #include "libslic3r/Config.hpp"
-#include "slic3r/GUI/Printer/PrinterFileSystem.h"
+#include <nlohmann/json.hpp>
 #include <exception>
 #include <cstdlib>
 #include <map>
@@ -133,6 +133,8 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include <boost/filesystem.hpp>
 
+using json = nlohmann::json;
+
 namespace Slic3r { class PrintBase; }
 
 namespace fs = boost::filesystem;
@@ -180,7 +182,7 @@ std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_t
 static int s_nozzle_mapping_last_request_time = 0;
 
 std::vector<wxString> SelectMachineDialog::MACHINE_BED_TYPE_STRING;
-std::vector<string> SelectMachineDialog::MachineBedTypeString;
+std::vector<std::string> SelectMachineDialog::MachineBedTypeString;
 void                SelectMachineDialog::init_machine_bed_types()
 {
     if (MACHINE_BED_TYPE_STRING.size() == 0) {
@@ -944,7 +946,7 @@ void SelectMachineDialog::init_bind()
             if (!obj) return;
 
             if (obj->get_dev_id() == e.GetString()) {
-                m_printer_box->SetPrinterName(wxString::FromUTF8(obj->get_dev_name()) + "(LAN)");
+                m_printer_box->SetPrinterName(wxString::FromUTF8(obj->get_dev_name()) + _L("(LAN)"));
             }
         }
     });
@@ -2746,8 +2748,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     std::vector<ConfirmBeforeSendInfo> confirm_text;
 
     // check more than one using in same external spool
-    std::unordered_set<string> main_external_spool_filas;
-    std::unordered_set<string> deputy_external_spool_filas;
+    std::unordered_set<std::string> main_external_spool_filas;
+    std::unordered_set<std::string> deputy_external_spool_filas;
     for (const auto& mapping_info : m_ams_mapping_result) {
         if (mapping_info.ams_id == VIRTUAL_AMS_MAIN_ID_STR){
             main_external_spool_filas.insert(mapping_info.filament_id);
@@ -4356,7 +4358,9 @@ void SelectMachineDialog::update_filament_change_count()
         m_mapping_sugs_sizer->Show(true);
         m_change_filament_times_sizer->Show(true);
         m_txt_change_filament_times->Show(true);
-        m_txt_change_filament_times->SetLabel(wxString::Format(_L("Cost %dg filament and %d changes more than optimal grouping."), saving_weight, hand_changes_count));
+        m_txt_change_filament_times->SetLabel(wxString::Format(_L_PLURAL("Cost %dg filament and %d change more than optimal grouping.",
+                                                                         "Cost %dg filament and %d changes more than optimal grouping.", hand_changes_count),
+                                                               saving_weight, hand_changes_count));
         m_txt_change_filament_times->Wrap(FromDIP(580));
         m_txt_change_filament_times->Layout();
     }
@@ -5237,7 +5241,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
 
     /*Check high temperture slicing*/
     if (m_print_type == PrintFromType::FROM_NORMAL) {
-        std::set<string>  high_temp_filaments;
+        std::set<std::string> high_temp_filaments;
         std::unordered_set<int> known_fila_soften_extruders;
         std::unordered_set<int> unknown_fila_soften_extruders;
         auto preset_full_config = wxGetApp().preset_bundle->full_config();
@@ -7060,7 +7064,7 @@ void PrinterInfoBox::SetPrinters(const std::vector<MachineObject*>& sorted_print
     {
         wxString shown_dev_name = wxString::FromUTF8(obj->get_dev_name());
         if (obj->is_lan_mode_printer()) {
-            shown_dev_name += "(LAN)";
+            shown_dev_name += _L("(LAN)");
         }
 
         DropDown::Item drop_item;
