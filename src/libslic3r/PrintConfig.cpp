@@ -388,6 +388,9 @@ static t_config_enum_values s_keys_map_SupportType{
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SupportType)
 
+static t_config_enum_values s_keys_map_FinSupportFallback{{"none", fsfNone}, {"tree", fsfTree}, {"normal", fsfNormal}};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FinSupportFallback)
+
 static t_config_enum_values s_keys_map_SeamPosition {
     { "nearest",        spNearest },
     { "aligned",        spAligned },
@@ -6802,7 +6805,8 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Normal (auto) and Tree (auto) are used to generate support automatically. "
                      "If Normal (manual) or Tree (manual) is selected, only support enforcers are generated.\n"
                      "Fins are thin breakaway walls standing beside the object wherever the object hangs over the bed, "
-                     "fused to it by single-layer tines. They hold parts printed tilted onto an edge and do not use the overhang threshold.");
+                     "fused to it by single-layer tines. They hold parts printed tilted onto an edge. The overhang threshold applies only "
+                     "to supplemental tree or normal supports when Fins is selected.");
     def->enum_keys_map = &ConfigOptionEnum<SupportType>::get_enum_values();
     def->enum_values.push_back("normal(auto)");
     def->enum_values.push_back("tree(auto)");
@@ -7198,12 +7202,26 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
+    def                = this->add("support_fin_fallback", coEnum);
+    def->label         = L("Supplemental supports");
+    def->category      = L("Support");
+    def->tooltip       = L("Add supports in regions the fins cannot reach. Tree uses organic branches; Normal uses grid or snug supports. "
+                           "Regions are assigned to fins or supplemental supports to avoid overlapping structures. "
+                           "The overhang threshold and build-plate-only settings apply to supplemental supports. "
+                           "Both use the same support filament, interface filament, interface layers, pattern and spacing. "
+                           "Off preserves fins-only behavior.");
+    def->enum_keys_map = &ConfigOptionEnum<FinSupportFallback>::get_enum_values();
+    def->enum_values   = {"none", "tree", "normal"};
+    def->enum_labels   = {L("Off"), L("Tree (organic)"), L("Normal")};
+    def->mode          = comSimple;
+    def->set_default_value(new ConfigOptionEnum<FinSupportFallback>(fsfTree));
+
     def = this->add("support_fin_interface_layers", coInt);
     def->label = L("Interface layers");
     def->category = L("Support");
-    def->tooltip = L("Number of solid layers printed across the tops of the fins where the object rests on them, "
+    def->tooltip = L("Number of interface layers printed across the tops of the fins where the object rests on them, "
                      "so an overhang sits on a flat deck instead of the fin edges. They use the support interface "
-                     "filament, pattern and spacing. Set to 0 to disable.");
+                     "filament, pattern and spacing. Also sets the top interface layer count for supplemental supports. Set to 0 to disable.");
     def->sidetext = L("layers");
     def->min = 0;
     def->mode = comAdvanced;

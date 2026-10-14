@@ -1129,7 +1129,7 @@ static std::vector<std::string> s_Preset_print_options{
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_expansion", "support_style",
     "support_fin_spacing", "support_fin_thickness", "support_fin_tine_spacing", "support_fin_tine_base_rows", "support_fin_tine_depth", "support_fin_height", "support_fin_lean_side_only",
-    "support_fin_cross_spacing", "support_fin_interface_layers",
+    "support_fin_cross_spacing", "support_fin_interface_layers", "support_fin_fallback",
     // BBS
     "print_extruder_id",
     "print_extruder_variant",

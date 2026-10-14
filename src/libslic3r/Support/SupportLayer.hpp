@@ -73,6 +73,7 @@ public:
         	else if (src && ! src->empty())
     			*dst = union_(*dst, std::move(*src));
         };
+        merge(this->fin_contact_polygons, rhs.fin_contact_polygons);
         merge(this->contact_polygons,  rhs.contact_polygons);
         merge(this->overhang_polygons, rhs.overhang_polygons);
         merge(this->enforcer_polygons, rhs.enforcer_polygons);
@@ -105,6 +106,8 @@ public:
 
 	// Polygons to be filled by the support pattern.
 	Polygons polygons;
+    // Fin attachments use interface material while their surrounding wall uses base material.
+    std::unique_ptr<Polygons> fin_contact_polygons;
 	// Currently for the contact layers only.
 	std::unique_ptr<Polygons> contact_polygons;
 	std::unique_ptr<Polygons> overhang_polygons;

@@ -76,7 +76,7 @@ struct SupportParameters {
         for (auto layer : object.layers())
             this->support_layer_height_min = std::min(this->support_layer_height_min, std::max(0.01, layer->height));
         
-        if (this->num_top_interface_layers == 0 && this->num_bottom_interface_layers == 0) {
+        if (this->num_top_interface_layers == 0 && this->num_bottom_interface_layers == 0 && !(object_config.support_type.value == stFins && object_config.support_fin_tine_spacing.value > 0.)) {
             // No interface layers allowed, print everything with the base support pattern.
             this->support_material_interface_flow = this->support_material_flow;
         }

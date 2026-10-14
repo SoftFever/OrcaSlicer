@@ -67,7 +67,7 @@ static SettingsFactory::Bundle FREQ_SETTINGS_BUNDLE_FFF =
                                     "support_base_pattern_spacing", "support_expansion",
                                     "support_fin_spacing", "support_fin_thickness", "support_fin_tine_spacing", "support_fin_tine_base_rows",
                                     "support_fin_tine_depth", "support_fin_height", "support_fin_lean_side_only",
-                                    "support_fin_cross_spacing", "support_fin_interface_layers"}},
+                                    "support_fin_cross_spacing", "support_fin_interface_layers", "support_fin_fallback"}},
     //BBS
     { L("Flush options")         , { "flush_into_infill", "flush_into_objects", "flush_into_support"} }
 };

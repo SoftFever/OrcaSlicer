@@ -1344,6 +1344,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_fin_lean_side_only"
             || opt_key == "support_fin_cross_spacing"
             || opt_key == "support_fin_interface_layers"
+            || opt_key == "support_fin_fallback"
             || opt_key == "support_object_xy_distance"
             || opt_key == "support_object_first_layer_gap"
             || opt_key == "support_base_pattern_spacing"
@@ -1705,7 +1706,11 @@ void PrintObject::detect_surfaces_type()
                 if (m_config.support_type.value == stNormalAuto)
                     bottom_is_fully_supported &= !m_config.bridge_no_support.value;
                 else if (m_config.support_type.value == stTreeAuto) {
-                    bottom_is_fully_supported &= (m_config.support_interface_top_layers.value > 0 && m_config.max_bridge_length.value == 0 && m_config.support_critical_regions_only.value==false);
+                    bottom_is_fully_supported &= ((m_config.support_type.value == stFins ?
+                                                       m_config.support_fin_interface_layers.value :
+                                                       m_config.support_interface_top_layers.value) > 0 &&
+                                                  m_config.max_bridge_length.value == 0 &&
+                                                  m_config.support_critical_regions_only.value == false);
                 }
                 SurfaceType surface_type_bottom_other = bottom_is_fully_supported ? stBottom : stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
@@ -4541,13 +4546,68 @@ void PrintObject::combine_infill()
 
 void PrintObject::_generate_support_material()
 {
+    m_fin_support_reserved.clear();
     // Fins stand on the bed. A raft (rejected with fins by Print::validate, but still built when support
     // is off) and enforced support layers go through the classic generator, which builds them alone.
     if (m_config.enable_support && m_config.support_type.value == stFins && ! this->has_raft()) {
-        if (generate_fin_support(*this))
+        const auto fallback = m_config.support_fin_fallback.value;
+        if (generate_fin_support(*this, fallback == fsfNone ? nullptr : &m_fin_support_reserved))
             this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
                 Slic3r::format(L("Some fins on object %s are more than 10 times taller than they are long and may wobble or break during printing. "
                                  "Consider tree support, a lower fin height, or a support blocker."), this->model_object()->name));
+        if (fallback != fsfNone) {
+            // Each generator owns its layers while running. Restore the object configuration
+            // even when canceled; keep the fin layers alive until fallback generation succeeds.
+            SupportLayerPtrs fin_layers;
+            fin_layers.swap(m_support_layers);
+            const PrintObjectConfig original_config = m_config;
+            try {
+                m_config.support_type.value = fallback == fsfTree ? stTreeAuto : stNormalAuto;
+                if (fallback == fsfTree)
+                    m_config.support_style.value = smsTreeOrganic;
+                m_config.support_interface_top_layers.value = original_config.support_fin_interface_layers.value;
+                if (fallback == fsfTree) {
+                    TreeSupport tree_support(*this, m_slicing_params);
+                    tree_support.throw_on_cancel = [this]() { this->throw_if_canceled(); };
+                    tree_support.generate();
+                } else {
+                    PrintObjectSupportMaterial support_material(this, m_slicing_params);
+                    support_material.generate(*this);
+                }
+            } catch (...) {
+                m_config = original_config;
+                m_fin_support_reserved.clear();
+                this->clear_support_layers();
+                m_support_layers.swap(fin_layers);
+                throw;
+            }
+            m_config = original_config;
+            m_fin_support_reserved.clear();
+            // Both generators can emit the same Z. Combine those layers so G-code has one
+            // support-layer entry per height, preserving the paths' interface/material roles.
+            m_support_layers.insert(m_support_layers.end(), fin_layers.begin(), fin_layers.end());
+            std::sort(m_support_layers.begin(), m_support_layers.end(),
+                      [](const SupportLayer* a, const SupportLayer* b) { return a->print_z < b->print_z; });
+            SupportLayerPtrs merged;
+            for (SupportLayer* layer : m_support_layers) {
+                if (!merged.empty() && std::abs(merged.back()->print_z - layer->print_z) < EPSILON) {
+                    SupportLayer& dst   = *merged.back();
+                    dst.height          = std::max(dst.height, layer->height);
+                    dst.support_islands = union_ex(dst.support_islands, layer->support_islands);
+                    dst.lslices         = union_ex(dst.lslices, layer->lslices);
+                    dst.support_fills.append(std::move(layer->support_fills));
+                    delete layer;
+                } else {
+                    merged.push_back(layer);
+                }
+            }
+            m_support_layers.swap(merged);
+            for (size_t i = 0; i < m_support_layers.size(); ++i) {
+                m_support_layers[i]->set_id(i);
+                m_support_layers[i]->lower_layer = i > 0 ? m_support_layers[i - 1] : nullptr;
+                m_support_layers[i]->upper_layer = i + 1 < m_support_layers.size() ? m_support_layers[i + 1] : nullptr;
+            }
+        }
     }
     else if (is_tree(m_config.support_type.value)) {
         TreeSupport tree_support(*this, m_slicing_params);

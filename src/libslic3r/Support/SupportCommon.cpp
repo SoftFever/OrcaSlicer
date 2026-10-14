@@ -1643,10 +1643,15 @@ void generate_support_toolpaths(
                         base_layer = std::move(top_contact_layer);
                 }
             } else {
-                if (support_params.ironing && !top_contact_layer.empty()) {
-                    // Orca: save the top surface to be ironed later
+                if (support_params.ironing && (!top_contact_layer.empty() || (fins && !interface_layer.empty()))) {
+                    // Orca: save the top surface to be ironed later.
+                    // Fin decks have interface layers but no separate contact layer. Covered
+                    // areas are removed below before ironing, leaving only the exposed deck.
                     layer_cache.ironing_angle = support_interface_angle; // TODO: should we rotate 90 degrees?
-                    layer_cache.polys_to_iron = top_contact_layer.polygons_to_extrude();
+                    if (!top_contact_layer.empty())
+                        layer_cache.polys_to_iron = top_contact_layer.polygons_to_extrude();
+                    if (fins && !interface_layer.empty())
+                        append(layer_cache.polys_to_iron, interface_layer.polygons_to_extrude());
                 }
 
                 loop_interface_processor.generate(top_contact_layer, support_params.support_material_interface_flow);
@@ -1827,12 +1832,23 @@ void generate_support_toolpaths(
                     tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params2);
                     done = true;
                 }
+                Polygons base_polygons = base_layer.polygons_to_extrude();
+                if (fins && base_layer.layer->fin_contact_polygons) {
+                    const Polygons contacts = intersection(base_polygons, *base_layer.layer->fin_contact_polygons);
+                    base_polygons           = diff(base_polygons, contacts);
+                    const Flow contact_flow = support_params.support_material_interface_flow.with_height(float(base_layer.layer->height));
+                    std::unique_ptr<Fill> contact_filler(Fill::new_from_type(ipConcentric));
+                    contact_filler->set_bounding_box(bbox_object);
+                    contact_filler->spacing = contact_flow.spacing();
+                    fill_expolygons_generate_paths(base_layer.extrusions, union_ex(contacts), contact_filler.get(), 1.f,
+                                                   ExtrusionRole::erSupportMaterialInterface, contact_flow);
+                }
                 if (! done)
                     fill_expolygons_with_sheath_generate_paths(
                         // Destination
                         base_layer.extrusions,
                         // Regions to fill
-                        base_layer.polygons_to_extrude(),
+                        base_polygons,
                         // Filler and its parameters
                         filler, density,
                         // Extrusion parameters

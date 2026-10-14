@@ -31,7 +31,7 @@
 //     support_fin_tine_depth into the object slice. Tine rows are support_fin_tine_spacing apart; with
 //     support_fin_tine_base_rows, extra rows are packed just above the foot, where the object is least
 //     stable (Slant3D). Spacing by distance keeps the number of tines proportional to the fin height.
-//  5. With support_fin_interface_layers, the fin region right under the object is printed as solid
+//  5. With support_fin_interface_layers, the fin region right under the object is printed as
 //     interface layers across the fin tops.
 // The result is printed through the common support toolpath generator.
 
@@ -214,7 +214,7 @@ static void keep_lean_side(const LayerPtrs &layers, std::vector<Polygons> &regio
             region = intersection(region, keep);
 }
 
-bool generate_fin_support(PrintObject &object)
+bool generate_fin_support(PrintObject& object, Polygons* reserved_columns)
 {
     const PrintObjectConfig &config         = object.config();
     const SlicingParameters &slicing_params = object.slicing_parameters();
@@ -286,6 +286,28 @@ bool generate_fin_support(PrintObject &object)
     if (config.support_fin_lean_side_only.value)
         keep_lean_side(layers, regions);
 
+    // Give supplemental supports complete vertical columns wherever a real overhang
+    // cannot be reached by a fin. Reserving whole columns keeps both generators from
+    // cutting the other one's load-bearing path to the bed.
+    if (reserved_columns != nullptr) {
+        reserved_columns->clear();
+        Polygons    uncovered;
+        size_t      support_idx = 0;
+        const float bead        = float(support_params.support_material_flow.scaled_spacing());
+        for (size_t i = 1; i < num_layers; ++i) {
+            const double support_z = layers[i]->bottom_z() - top_gap;
+            while (support_idx + 1 < i && layers[support_idx + 1]->print_z <= support_z + EPSILON)
+                ++support_idx;
+            Polygons overhang = diff(outlines[i], offset(outlines[i - 1], 0.5f * bead));
+            if (layers[support_idx]->print_z <= support_z + EPSILON)
+                overhang = diff(overhang, offset(regions[support_idx], float(scale_(support_params.gap_xy)) + bead));
+            append(uncovered, overhang);
+        }
+        uncovered = offset(union_(uncovered), 0.5f * bead);
+        for (Polygons& region : regions)
+            region = diff(region, uncovered);
+    }
+
     BoundingBox bbox;
     for (const Polygons &region : regions)
         if (! region.empty())
@@ -346,18 +368,15 @@ bool generate_fin_support(PrintObject &object)
     const float    depth       = float(scale_(config.support_fin_tine_depth.value));
 
     const int      interface_layers = config.support_fin_interface_layers.value;
-    // The deck is solid, with lines across the fins (a fill angle is the line direction), so its
-    // first layer bridges from fin to fin and every layer above it rests on the one below.
-    support_params.support_interface_pattern = smipRectilinear;
-    support_params.support_style             = smsGrid; // snug would turn the interface lines by 45 degrees
-    support_params.interface_angle           = float(angle + 0.5 * M_PI);
-    support_params.top_interface_spacing     = support_params.support_material_interface_flow.spacing();
-    support_params.top_interface_density     = 1.;
-    support_params.interface_fill_pattern    = ipRectilinear;
+    // Orient line-based interfaces across the fins so they can bridge from fin to fin.
+    // Keep the normal interface filament, pattern, spacing and ironing settings.
+    support_params.support_style          = smsGrid; // grid style prints interfaces at interface_angle
+    support_params.interface_angle        = float(angle + 0.5 * M_PI);
     const coordf_t top_gap_below    = config.support_top_z_distance.value;
 
     std::vector<Polygons> shaped(num_layers);
     std::vector<Polygons> interfaces(num_layers);
+    std::vector<Polygons> tine_contacts(num_layers);
     tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&](const tbb::blocked_range<size_t> &range) {
         for (size_t i = range.begin(); i < range.end(); ++ i) {
             if (regions[i].empty())
@@ -386,12 +405,14 @@ bool generate_fin_support(PrintObject &object)
                     const BoundingBox b = along.bounding_box();
                     return double(b.max.x() - b.min.x()) > 3. * (gap + depth + float(spacing));
                 }), tines.end());
-                if (! tines.empty())
+                if (!tines.empty()) {
                     out = union_(out, tines);
+                    tine_contacts[i] = std::move(tines);
+                }
             }
 
             // 5. Interface: the part of the fin region within interface_layers layers under the object
-            // (above the top Z gap) becomes a solid deck; the fins stop under it.
+            // (below the top Z gap) becomes an interface deck; the fins stop under it.
             if (interface_layers > 0) {
                 Polygons over;
                 for (size_t j = i + 1; j < num_layers && layers[j]->bottom_z() < layer.print_z + top_gap_below + interface_layers * layer.height - EPSILON; ++ j)
@@ -405,6 +426,14 @@ bool generate_fin_support(PrintObject &object)
             shaped[i] = std::move(out);
         }
     });
+    if (reserved_columns != nullptr) {
+        for (size_t i = 0; i < num_layers; ++i)
+            if (!shaped[i].empty() || !interfaces[i].empty()) {
+                append(*reserved_columns, regions[i]);
+                append(*reserved_columns, shaped[i]);
+            }
+        *reserved_columns = offset(union_(*reserved_columns), 0.5f * float(spacing));
+    }
     regions.clear();
 
     // A fin much taller than it is long is a free-standing blade that can wobble or snap mid-print,
@@ -454,6 +483,8 @@ bool generate_fin_support(PrintObject &object)
             support_layer.bottom_z = layers[i]->bottom_z();
             support_layer.height   = layers[i]->height;
             support_layer.polygons = std::move(shaped[i]);
+            if (!tine_contacts[i].empty())
+                support_layer.fin_contact_polygons = std::make_unique<Polygons>(std::move(tine_contacts[i]));
             base_layers.push_back(&support_layer);
         }
     if (base_layers.empty() && interface_layers_out.empty())
