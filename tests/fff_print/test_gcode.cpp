@@ -3,17 +3,25 @@
 
 #include <catch2/catch_message.hpp>
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Config.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/PresetBundle.hpp"
 
 #include "test_helpers.hpp"
+#include "test_utils.hpp"
 
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Point.hpp"
+#include <fstream>
+#include <ios>
 #include <string>
 #include <vector>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 using namespace Slic3r;
 
@@ -65,4 +73,40 @@ TEST_CASE("Object label comments number each object and copy with or without exc
         INFO(flavor << ", exclude_object " << exclude_object << ": " << label);
         CHECK(gcode.find("; printing object object.stl " + std::string(label) + "\n") != std::string::npos);
     }
+}
+
+TEST_CASE("An exported G-code's settings load back as the settings it was sliced with", "[GCode]")
+{
+    // Two filaments, so the config block carries the flush matrix already multiplied by flush_multiplier.
+    const DynamicPrintConfig config = Test::multifilament_config(2, {
+        { "flush_multiplier", "0.5" },
+        { "printable_area", "0x0,250x0,250x210,0x210" },
+        { "printable_height", "180" },
+    });
+    Print print;
+    Model model;
+    Test::init_print(std::vector<TriangleMesh>{ Test::cube(20.) }, print, model, config, nullptr, false);
+    ScopedTemporaryFile file(".gcode");
+    {
+        std::ofstream os(file.string(), std::ios::binary);
+        os << Test::gcode(print);
+        REQUIRE(os.good());
+    }
+
+    PresetBundle bundle;
+    // The config block leaves prime_volume_mode out, so the receiver's choice has to survive the load.
+    bundle.project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value = PrimeVolumeMode::pvmFast;
+    ConfigSubstitutions substitutions;
+    bundle.load_config_model(file.string(), bundle.config_from_gcode(file.string(), ForwardCompatibilitySubstitutionRule::Enable, substitutions));
+
+    const DynamicPrintConfig &printer = bundle.printers.get_edited_preset().config;
+    CHECK(printer.opt_serialize("printable_area") == config.opt_serialize("printable_area"));
+    CHECK_THAT(printer.opt_float("printable_height"), Catch::Matchers::WithinAbs(180., 1e-6));
+    // The purge between the two filaments is what the slice used: 280 at a 0.5 multiplier.
+    const std::vector<double> &matrix     = bundle.project_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
+    const std::vector<double> &multiplier = bundle.project_config.option<ConfigOptionFloats>("flush_multiplier")->values;
+    REQUIRE(matrix.size() == 4);
+    REQUIRE(multiplier.size() == 1);
+    CHECK_THAT(matrix[1] * multiplier[0], Catch::Matchers::WithinAbs(140., 1e-6));
+    CHECK(bundle.project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == PrimeVolumeMode::pvmFast);
 }

@@ -7,6 +7,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/miniz_extension.hpp"
@@ -28,16 +29,24 @@
 #include <miniz.h>
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/TriangleSelector.hpp"
+#include "libslic3r/TextureDisplacement.hpp"
 #include <memory>
 #include <cstdint>
 #include <ios>
 #include <nlohmann/json.hpp>
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/file_status.hpp>   // no_perms, owner_all
 #include <boost/nowide/fstream.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <algorithm>
 #include <functional>
+#include <initializer_list>
+
+#include <fstream>
+#ifndef _WIN32
+#include <unistd.h> // geteuid
+#endif
 
 #include <catch2/catch_tostring.hpp>
 #include <Eigen/Core>
@@ -349,6 +358,24 @@ static bool replace_in_3mf_entry(const std::string& path, const std::string& suf
     return replaced;
 }
 
+// Stores `model` as a one-plate project.
+static void store_project(Model& model, const std::string& path, SaveStrategy strategy)
+{
+    ScopedTemporaryDir backup_dir("orca_paint_src");
+    model.set_backup_path(backup_dir.string());
+
+    DynamicPrintConfig cfg;
+    PlateData          plate;
+    plate.plate_index = 0;
+    StoreParams sp;
+    sp.path     = path.c_str();
+    sp.model    = &model;
+    sp.config   = &cfg;
+    sp.strategy = strategy;
+    sp.plate_data_list.push_back(&plate);
+    REQUIRE(store_bbs_3mf(sp));
+}
+
 // Stores a one-plate project holding a cube whose first two facets are painted Extruder2 and
 // Extruder3, which the exporter writes as paint_color="8" and paint_color="0C".
 static void store_painted_cube(const std::string& path)
@@ -363,19 +390,7 @@ static void store_painted_cube(const std::string& path)
         selector.set_facet(1, EnforcerBlockerType::Extruder3);
         REQUIRE(volume->mmu_segmentation_facets.set(selector));
     }
-    ScopedTemporaryDir backup_dir("orca_paint_src");
-    model.set_backup_path(backup_dir.string());
-
-    DynamicPrintConfig cfg;
-    PlateData          plate;
-    plate.plate_index = 0;
-    StoreParams sp;
-    sp.path     = path.c_str();
-    sp.model    = &model;
-    sp.config   = &cfg;
-    sp.strategy = SaveStrategy::Zip64 | SaveStrategy::Silence;
-    sp.plate_data_list.push_back(&plate);
-    REQUIRE(store_bbs_3mf(sp));
+    store_project(model, path, SaveStrategy::Zip64 | SaveStrategy::Silence);
 }
 
 // Loads `path` through the BBS importer into `model`, releasing the plates it returns. The
@@ -499,6 +514,163 @@ TEST_CASE("A project with malformed paint data loads without the damaged facet",
     REQUIRE_NOTHROW(selector.deserialize(data));
     REQUIRE(selector.num_facets(EnforcerBlockerType::Extruder2) == 0);
     REQUIRE(selector.num_facets(EnforcerBlockerType::Extruder3) == 1);
+}
+
+// Paints `triangles` of `volume` on texture displacement layer slot `slot`.
+static void paint_texture_slot(ModelVolume& volume, int slot, std::initializer_list<int> triangles)
+{
+    TriangleSelector selector(volume.mesh());
+    for (const int triangle : triangles)
+        selector.set_facet(triangle, EnforcerBlockerType::ENFORCER);
+    REQUIRE(volume.texture_displacement_facet(slot).set(selector));
+}
+
+// Every triangle's texture paint on every slot, in the form the exporter writes it, so two volumes
+// compare equal only when the same triangles are painted on the same slots.
+static std::vector<std::string> texture_paint(const ModelVolume& volume)
+{
+    std::vector<std::string> paint;
+    for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot)
+        for (size_t i = 0; i < volume.mesh().its.indices.size(); ++i)
+            paint.push_back(volume.texture_displacement_facet(slot).get_triangle_as_string(int(i)));
+    return paint;
+}
+
+// A cube with one texture displacement layer in slot 2 and texture paint on gapped triangles of two
+// slots. The layer's image bytes need not decode: the archive stores them as they are.
+static ModelVolume& add_texture_displaced_cube(Model& model)
+{
+    ModelObject* object = model.add_object();
+    ModelVolume* volume = object->add_volume(make_cube(10., 10., 10.));
+    object->add_instance();
+
+    TextureDisplacementLayer layer;
+    layer.slot       = 2;
+    layer.name       = "Bark";
+    layer.depth_mm   = 1.25f;
+    layer.image_data = std::make_shared<std::vector<unsigned char>>(std::vector<unsigned char>{ 0x89, 'P', 'N', 'G', 1, 2, 3 });
+    volume->texture_displacement_layers.push_back(layer);
+    volume->texture_displacement_options.active_slot = 2;
+
+    paint_texture_slot(*volume, 2, { 3, 7 });
+    paint_texture_slot(*volume, 5, { 10 });
+    return *volume;
+}
+
+TEST_CASE("Texture displacement layers, textures and paint survive a project round trip", "[3mf]")
+{
+    // A single model file, and one file per object (read by a separate importer).
+    const SaveStrategy strategy = GENERATE(SaveStrategy::Zip64 | SaveStrategy::Silence,
+                                           SaveStrategy::Zip64 | SaveStrategy::Silence | SaveStrategy::SplitModel);
+    INFO("save strategy " << int(strategy));
+
+    ScopedTemporaryFile temp(".3mf");
+    Model               source;
+    const ModelVolume&  painted = add_texture_displaced_cube(source);
+    const std::vector<std::string> paint = texture_paint(painted);
+    REQUIRE(std::count_if(paint.begin(), paint.end(), [](const std::string& s) { return !s.empty(); }) == 3);
+    store_project(source, temp.string(), strategy);
+
+    ScopedTemporaryDir backup_dir("orca_texdisp_dst");
+    Model              model;
+    REQUIRE(load_project(temp.string(), model, backup_dir));
+    REQUIRE(model.objects.size() == 1);
+    const ModelVolume& volume = *model.objects.front()->volumes.front();
+
+    REQUIRE(volume.texture_displacement_layers.size() == 1);
+    const TextureDisplacementLayer& layer = volume.texture_displacement_layers.front();
+    CHECK(layer.slot == 2);
+    CHECK(layer.name == "Bark");
+    CHECK_THAT(layer.depth_mm, Catch::Matchers::WithinAbs(1.25f, 1e-6f));
+    REQUIRE(layer.image_data);
+    CHECK(*layer.image_data == *painted.texture_displacement_layers.front().image_data);
+    CHECK(volume.texture_displacement_options.active_slot == 2);
+    CHECK(texture_paint(volume) == paint);
+}
+
+TEST_CASE("Volumes sharing a mesh keep their own texture displacement paint", "[3mf]")
+{
+    Model        source;
+    ModelObject* first_object = source.add_object();
+    ModelVolume* first        = first_object->add_volume(make_cube(10., 10., 10.));
+    first_object->add_instance();
+    ModelVolume* second = source.add_object(*first_object)->volumes.front();
+    REQUIRE(second->mesh_ptr() == first->mesh_ptr());
+    paint_texture_slot(*first, 0, { 3 });
+    paint_texture_slot(*second, 0, { 7 });
+
+    // What a project save from the app uses: one file per object, an identical mesh written once.
+    ScopedTemporaryFile temp(".3mf");
+    store_project(source, temp.string(),
+                  SaveStrategy::Zip64 | SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::ShareMesh);
+
+    ScopedTemporaryDir backup_dir("orca_texdisp_dst");
+    Model              model;
+    REQUIRE(load_project(temp.string(), model, backup_dir));
+    REQUIRE(model.objects.size() == 2);
+    CHECK(texture_paint(*model.objects[0]->volumes.front()) == texture_paint(*first));
+    CHECK(texture_paint(*model.objects[1]->volumes.front()) == texture_paint(*second));
+}
+
+TEST_CASE("A texture displacement layer never loads its image from outside the project", "[3mf]")
+{
+    // A file the layer names, on the machine opening the project, that the project did not carry.
+    ScopedTemporaryFile texture(".png");
+    {
+        boost::nowide::ofstream file(texture.string(), std::ios::binary);
+        file << "not part of the project";
+    }
+    REQUIRE(boost::filesystem::file_size(texture.path()) > 0);
+
+    Model        source;
+    ModelObject* object = source.add_object();
+    ModelVolume* volume = object->add_volume(make_cube(10., 10., 10.));
+    object->add_instance();
+    TextureDisplacementLayer layer;
+    layer.slot     = 0;
+    layer.name     = "Elsewhere";
+    layer.path     = texture.string();
+    layer.depth_mm = 0.75f;
+    volume->texture_displacement_layers.push_back(layer);
+
+    ScopedTemporaryFile temp(".3mf");
+    store_project(source, temp.string(), SaveStrategy::Zip64 | SaveStrategy::Silence);
+
+    ScopedTemporaryDir backup_dir("orca_texdisp_dst");
+    Model              model;
+    REQUIRE(load_project(temp.string(), model, backup_dir));
+    REQUIRE(model.objects.size() == 1);
+    const std::vector<TextureDisplacementLayer>& layers = model.objects.front()->volumes.front()->texture_displacement_layers;
+    REQUIRE(layers.size() == 1);
+    CHECK(layers.front().name == "Elsewhere");
+    CHECK_THAT(layers.front().depth_mm, Catch::Matchers::WithinAbs(0.75f, 1e-6f));
+    CHECK_FALSE(layers.front().image_data);
+}
+
+TEST_CASE("A project with a malformed texture displacement value still loads", "[3mf][Regression]")
+{
+    const auto [from, to] = GENERATE(table<std::string, std::string>({
+        { "\"islands\":[]", "\"islands\":[[null,0,0,1]]" }, // a number that is null
+        { "\"slot\":2", "\"slot\":8" },                     // a slot past the last
+    }));
+    INFO(from << " -> " << to);
+
+    ScopedTemporaryFile temp(".3mf");
+    Model               source;
+    const ModelVolume&  painted = add_texture_displaced_cube(source);
+    store_project(source, temp.string(), SaveStrategy::Zip64 | SaveStrategy::Silence);
+    REQUIRE(replace_in_3mf_entry(temp.string(), ".json", from, to));
+
+    ScopedTemporaryDir backup_dir("orca_texdisp_dst");
+    Model              model;
+    bool               loaded = false;
+    REQUIRE_NOTHROW(loaded = load_project(temp.string(), model, backup_dir));
+    REQUIRE(loaded);
+    REQUIRE(model.objects.size() == 1);
+    const ModelVolume& volume = *model.objects.front()->volumes.front();
+    // The layer stack is dropped as a whole; the paint, stored apart from it, still loads.
+    CHECK(volume.texture_displacement_layers.empty());
+    CHECK(texture_paint(volume) == texture_paint(painted));
 }
 
 // The recipe lives only in the BBS-native backend, because that is the only one that runs:
@@ -2080,3 +2252,114 @@ TEST_CASE("Loading a gcode.3mf from a stream keeps the plate's pick and pattern 
     CHECK(dst_plates.front()->pattern_bbox_file == "Metadata/plate_1.json");
     release_PlateData_list(dst_plates);
 }
+
+// A relationship must name a part the package actually contains. The writer used to fall
+// back to /Metadata/plate_1.png whenever no cover image was set, so an export that wrote no
+// plate thumbnail still declared one -- a dangling relationship a strict OPC reader may reject.
+SCENARIO("thumbnail relationships are declared only for thumbnails that were written", "[3mf]")
+{
+    GIVEN("a project with one plate") {
+        Model model;
+        const std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl";
+        REQUIRE(load_stl(src_file.c_str(), &model));
+        model.add_default_instances();
+
+        ScopedTemporaryDir backup_dir("orca_rels");
+        model.set_backup_path(backup_dir.string());
+
+        PlateData     plate;
+        plate.plate_index = 0;
+        PlateDataPtrs plates{ &plate };
+
+        auto store = [&](const std::string &path, std::vector<ThumbnailData *> thumbnails) {
+            DynamicPrintConfig cfg;
+            StoreParams        sp;
+            sp.path            = path.c_str();
+            sp.model           = &model;
+            sp.config          = &cfg;
+            sp.plate_data_list = plates;
+            sp.thumbnail_data  = std::move(thumbnails);
+            sp.strategy        = SaveStrategy::Zip64 | SaveStrategy::Silence;
+            REQUIRE(store_bbs_3mf(sp));
+        };
+
+        WHEN("no thumbnail is rendered") {
+            ScopedTemporaryFile temp(".3mf");
+            ThumbnailData       none;   // left invalid: nothing was rendered
+            REQUIRE_FALSE(none.is_valid());
+            store(temp.string(), { &none });
+
+            THEN("the package declares no thumbnail relationship") {
+                std::string rels;
+                REQUIRE(read_cad_recipe_entry(temp.string(), rels, "_rels/.rels"));
+                CHECK(rels.find("3dmodel") != std::string::npos);        // the model is still declared
+                CHECK(rels.find("plate_1.png") == std::string::npos);
+                CHECK(rels.find("thumbnail") == std::string::npos);
+            }
+        }
+
+        WHEN("a plate thumbnail is rendered") {
+            ScopedTemporaryFile temp(".3mf");
+            ThumbnailData       rendered;
+            rendered.set(16, 16);
+            rendered.pixels.assign(16 * 16 * 4, static_cast<unsigned char>(0xff));
+            REQUIRE(rendered.is_valid());
+            store(temp.string(), { &rendered });
+
+            THEN("the relationships name it, and the parts are in the package") {
+                std::string rels;
+                REQUIRE(read_cad_recipe_entry(temp.string(), rels, "_rels/.rels"));
+                CHECK(rels.find("/Metadata/plate_1.png") != std::string::npos);
+                CHECK(rels.find("/Metadata/plate_1_small.png") != std::string::npos);
+
+                std::string part;
+                CHECK(read_cad_recipe_entry(temp.string(), part, "Metadata/plate_1.png"));
+                CHECK(read_cad_recipe_entry(temp.string(), part, "Metadata/plate_1_small.png"));
+            }
+        }
+    }
+}
+// has_restore_data() runs from the queued EVT_RESTORE_PROJECT handler, whose try starts after
+// the call, so a filesystem_error from probing the stored backup path aborts the application.
+// The realistic trigger is an absolute path from another user's config whose home is not
+// searchable, so the parent, not the backup directory, is what blocks.
+#ifndef _WIN32
+TEST_CASE("has_restore_data reports no restore data for a path it cannot probe", "[3mf]") {
+    if (::geteuid() == 0)
+        SKIP("root ignores the directory permissions this test depends on");
+
+    ScopedTemporaryDir      outer("orca_restore");
+    boost::filesystem::path backup = outer.path() / "backup";
+    REQUIRE(boost::filesystem::create_directory(backup));
+    std::ofstream((backup / ".3mf").string()) << "stand-in for the backed-up project";
+    std::ofstream((backup / "origin.txt").string()) << "project.3mf";
+
+    // Control: while the path is readable the session is found, so the false below really is
+    // the probe failing and not a mis-built fixture.
+    std::string readable = backup.string(), origin;
+    REQUIRE(has_restore_data(readable, origin));
+    REQUIRE(readable == (backup / ".3mf").string());
+    REQUIRE(origin == "project.3mf");
+
+    // Puts the permissions back before ~ScopedTemporaryDir needs them to clean up, and does so
+    // even if an assertion below throws.
+    struct Searchable {
+        boost::filesystem::path dir;
+        ~Searchable() { boost::system::error_code ec;
+                        boost::filesystem::permissions(dir, boost::filesystem::owner_all, ec); }
+    } restore{ outer.path() };
+
+    // Non-throwing here too: a filesystem that refuses the mode change has to reach the skip
+    // below rather than fail the test. The probe then still succeeds, which is that same case.
+    boost::system::error_code probe_ec;
+    boost::filesystem::permissions(outer.path(), boost::filesystem::no_perms, probe_ec);
+    if (boost::filesystem::exists(backup / ".3mf", probe_ec) || !probe_ec)
+        SKIP("the backup path could not be made unprobeable here");
+
+    std::string unprobeable = backup.string(), origin2;
+    bool        has         = true;
+    REQUIRE_NOTHROW(has = has_restore_data(unprobeable, origin2));
+    CHECK_FALSE(has);
+    CHECK(unprobeable == backup.string());   // not rewritten to the .3mf it could not confirm
+}
+#endif // _WIN32

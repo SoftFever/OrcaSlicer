@@ -14,7 +14,7 @@
 #include "Widgets/StateColor.hpp"
 #include "Widgets/StaticLine.hpp"
 #include "libslic3r/ColorDecomposeRecipe.hpp"
-#include "libslic3r/MeshBoolean.hpp"
+#include "libslic3r/MeshRepair.hpp"
 #include "libslic3r/TriangleSelector.hpp"
 
 #include <utility>
@@ -633,7 +633,9 @@ public:
         decompose_label->SetCursor(wxCursor(add_enabled ? wxCURSOR_HAND : wxCURSOR_ARROW));
         if (!add_enabled)
             add_label->SetToolTip(wxString::Format(
-                _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+                _L_PLURAL("The project supports up to %d filament. Extra filaments will be discarded.",
+                          "The project supports up to %d filaments. Extra filaments will be discarded.",
+                          (int)EnforcerBlockerType::ExtruderMax),
                 (int)EnforcerBlockerType::ExtruderMax));
         decompose_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
             if (m_can_add_filament && !m_can_add_filament())
@@ -2324,7 +2326,9 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
 {
     m_drop_warning_label = new wxStaticText(this, wxID_ANY,
         wxString::Format(
-            _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+            _L_PLURAL("The project supports up to %d filament. Extra filaments will be discarded.",
+                      "The project supports up to %d filaments. Extra filaments will be discarded.",
+                      (int)max_filament_count()),
             (int)max_filament_count()));
     m_drop_warning_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#FF6F00")));
     m_drop_warning_label->SetFont(texture_import_section_title_font(this));
@@ -2436,25 +2440,25 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
     settings.target_colors_num = auto_color ? 0 : (size_t)m_param_color_count;
     settings.smooth_weight     = m_param_smooth / 10.0;
     settings.mesh_repair_decision = m_mesh_repair_decision;
-    // BBS repairs the mesh through the Windows 3D SDK, which is only available on Windows
-    // builds that ship the SDK. Orca's CGAL-based repair (MeshBoolean::cgal::repair) works
-    // on all three platforms, so use that instead.
     settings.mesh_repair_callback = [](const indexed_triangle_set& mesh,
                                        indexed_triangle_set&       repaired_mesh,
                                        std::function<void(const char*, unsigned)> progress_callback,
                                        std::function<bool()>       cancel_callback,
                                        std::string*                error_message) -> bool {
-        if (cancel_callback && cancel_callback())
-            return false;
         if (progress_callback)
             progress_callback(_u8L("Repairing mesh").c_str(), 0);
 
+        struct Canceled {};
         TriangleMesh tm(mesh);
-        if (!MeshBoolean::cgal::repair(tm, nullptr, error_message))
+        try {
+            if (!repair_mesh(tm, nullptr, error_message, [&cancel_callback](int) {
+                    if (cancel_callback && cancel_callback())
+                        throw Canceled();
+                }))
+                return false;
+        } catch (const Canceled &) {
             return false;
-
-        if (cancel_callback && cancel_callback())
-            return false;
+        }
         repaired_mesh = tm.its;
         if (progress_callback)
             progress_callback(_u8L("Repairing mesh").c_str(), 100);
@@ -2683,12 +2687,12 @@ void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
         m_progress_dlg = nullptr;
     }
 
-#ifdef HAS_WIN10SDK
     Slic3r::GUI::MessageDialog dlg(initial ? GetParent() : this,
-        _L("The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."),
-        _L("Mesh repair"), wxYES_NO | wxICON_WARNING | wxYES_DEFAULT);
+        _L("The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."),
+        _L("Mesh repair"), wxYES_NO | wxCANCEL | wxICON_WARNING | wxYES_DEFAULT);
     dlg.SetButtonLabel(wxID_YES, _L("Import without repair"));
     dlg.SetButtonLabel(wxID_NO, _L("Repair and import"), true);
+    dlg.SetButtonLabel(wxID_CANCEL, _L("Cancel"));
     // "Repair and import" is the recommended action here, so the accent moves off the default YES
     // button onto NO. MsgDialog::add_button already styled both as ButtonType::Choice, so restyling
     // with the same type swaps only the palette and leaves the geometry alone.
@@ -2704,17 +2708,7 @@ void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
     dlg.Fit();
     dlg.CenterOnParent();
     int ret = dlg.ShowModal();
-    m_mesh_repair_decision = (ret == wxID_NO)
-        ? Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport
-        : Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
-#else
-    Slic3r::GUI::MessageDialog dlg(initial ? GetParent() : this,
-        _L("Please note that the mesh has non-manifold geometry or open boundaries."),
-        _L("Mesh issue"), wxOK | wxCANCEL | wxICON_WARNING | wxOK_DEFAULT);
-    dlg.SetButtonLabel(wxID_OK, _L("Continue"), true);
-    dlg.SetButtonLabel(wxID_CANCEL, _L("Cancel"));
-    int ret = dlg.ShowModal();
-    if (ret != wxID_OK) {
+    if (ret == wxID_CANCEL) {
         m_cancel_flag = true;
         if (initial) {
             m_initial_computation_cancelled = true;
@@ -2727,8 +2721,9 @@ void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
         }
         return;
     }
-    m_mesh_repair_decision = Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
-#endif
+    m_mesh_repair_decision = (ret == wxID_NO)
+        ? Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport
+        : Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
 
     start_computation(auto_color, initial);
 }
