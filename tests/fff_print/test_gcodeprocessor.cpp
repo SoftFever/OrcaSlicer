@@ -564,6 +564,7 @@ TEST_CASE("Each extrusion weighs its filament's density", "[GCodeProcessor]")
 
 namespace {
 
+// Use Bambu layer tags explicitly: fixtures are built before process_stream sets the printer context.
 // One layer with a closed square wall printed in `role`, then an inner-wall move that closes the
 // seam candidate. `outer_tag_first` puts an "Outer wall" tag with no move before the wall's own
 // tag, which leaves the seam detector active without a first vertex. `sloped` starts the wall
@@ -571,7 +572,7 @@ namespace {
 std::string square_wall(ExtrusionRole role, bool outer_tag_first, bool sloped)
 {
     std::ostringstream gcode;
-    gcode << "M83\nG90\n;" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) << "\n"
+    gcode << "M83\nG90\n; CHANGE_LAYER\n"
           << "G1 X10 Y10 Z0.2 F12000\n";
     if (outer_tag_first)
         gcode << "; FEATURE: Outer wall\n";
@@ -724,7 +725,7 @@ TEST_CASE("A handed-over loop merged into the previous seam candidate is suspect
     // Two walls with no move between them: the detector keeps the first wall's candidate.
     const auto two_walls = [](ExtrusionRole second) {
         std::ostringstream gcode;
-        gcode << "M83\nG90\n;" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) << "\n"
+        gcode << "M83\nG90\n; CHANGE_LAYER\n"
               << "G1 X10 Y10 Z0.2 F12000\n; FEATURE: Outer wall\n"
               << "G1 X50 Y10 E2 F3000\nG1 X50 Y50 E2\nG1 X10 Y50 E2\nG1 X10 Y10 E2\n"
               << "; FEATURE: " << ExtrusionEntity::role_to_string(second) << "\n"
@@ -785,7 +786,7 @@ namespace {
 std::string mixed_wall(ExtrusionRole start, ExtrusionRole rest, bool sloped)
 {
     std::ostringstream gcode;
-    gcode << "M83\nG90\n;" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) << "\n"
+    gcode << "M83\nG90\n; CHANGE_LAYER\n"
           << "G1 X10 Y10 Z0.2 F12000\n; FEATURE: " << ExtrusionEntity::role_to_string(start) << "\n";
     if (sloped)
         gcode << "G1 X10.1 Y10 Z0.3 E0.01 F3000\nG1 X50 Y10 E2\n";
@@ -838,7 +839,7 @@ TEST_CASE("A path printed only as overhang wall is flagged for G-code files", "[
     // The path ends with a travel while still printed as "Overhang wall".
     const auto wall_then_travel = [](ExtrusionRole rest) {
         std::ostringstream gcode;
-        gcode << "M83\nG90\n;" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) << "\n"
+        gcode << "M83\nG90\n; CHANGE_LAYER\n"
               << "G1 X10 Y10 Z0.2 F12000\n; FEATURE: Overhang wall\nG1 X50 Y10 E2 F3000\n"
               << "; FEATURE: " << ExtrusionEntity::role_to_string(rest) << "\n"
               << "G1 X50 Y50 E2\nG1 X10 Y50 E2\nG1 X10 Y10 E2\nG1 X80 Y80 F12000\n";
@@ -887,7 +888,7 @@ TEST_CASE("The warning names an object's earliest problem layer", "[GCodeProcess
 TEST_CASE("A G-code file ending on a path printed only as overhang wall is flagged", "[GCodeProcessor][OverhangSeam]")
 {
     std::ostringstream gcode;
-    gcode << "M83\nG90\n;" << GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) << "\n"
+    gcode << "M83\nG90\n; CHANGE_LAYER\n"
           << "G1 X10 Y10 Z0.2 F12000\n; FEATURE: Overhang wall\n"
           << "G1 X50 Y10 E2 F3000\nG1 X50 Y50 E2\nG1 X10 Y50 E2\nG1 X10 Y10 E2\nM400\nM84\n";
     CHECK(process_stream(gcode.str(), {}, 1).overhang_seam_stats.overhang_only_paths);
