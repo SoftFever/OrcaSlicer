@@ -122,7 +122,7 @@ std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format
     } catch (std::exception& ex) {
         error = ex.what();
     } catch (...) {
-        error = "Unknown C++ exception.";
+        error = _u8L("Unknown C++ exception.");
     }
     return std::make_pair(std::move(error), std::vector<size_t>{monospace});
 }

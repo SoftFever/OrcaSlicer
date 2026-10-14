@@ -7,6 +7,7 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/miniz_extension.hpp"
@@ -35,11 +36,17 @@
 #include <nlohmann/json.hpp>
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/file_status.hpp>   // no_perms, owner_all
 #include <boost/nowide/fstream.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <algorithm>
 #include <functional>
 #include <initializer_list>
+
+#include <fstream>
+#ifndef _WIN32
+#include <unistd.h> // geteuid
+#endif
 
 #include <catch2/catch_tostring.hpp>
 #include <Eigen/Core>
@@ -2245,3 +2252,114 @@ TEST_CASE("Loading a gcode.3mf from a stream keeps the plate's pick and pattern 
     CHECK(dst_plates.front()->pattern_bbox_file == "Metadata/plate_1.json");
     release_PlateData_list(dst_plates);
 }
+
+// A relationship must name a part the package actually contains. The writer used to fall
+// back to /Metadata/plate_1.png whenever no cover image was set, so an export that wrote no
+// plate thumbnail still declared one -- a dangling relationship a strict OPC reader may reject.
+SCENARIO("thumbnail relationships are declared only for thumbnails that were written", "[3mf]")
+{
+    GIVEN("a project with one plate") {
+        Model model;
+        const std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl";
+        REQUIRE(load_stl(src_file.c_str(), &model));
+        model.add_default_instances();
+
+        ScopedTemporaryDir backup_dir("orca_rels");
+        model.set_backup_path(backup_dir.string());
+
+        PlateData     plate;
+        plate.plate_index = 0;
+        PlateDataPtrs plates{ &plate };
+
+        auto store = [&](const std::string &path, std::vector<ThumbnailData *> thumbnails) {
+            DynamicPrintConfig cfg;
+            StoreParams        sp;
+            sp.path            = path.c_str();
+            sp.model           = &model;
+            sp.config          = &cfg;
+            sp.plate_data_list = plates;
+            sp.thumbnail_data  = std::move(thumbnails);
+            sp.strategy        = SaveStrategy::Zip64 | SaveStrategy::Silence;
+            REQUIRE(store_bbs_3mf(sp));
+        };
+
+        WHEN("no thumbnail is rendered") {
+            ScopedTemporaryFile temp(".3mf");
+            ThumbnailData       none;   // left invalid: nothing was rendered
+            REQUIRE_FALSE(none.is_valid());
+            store(temp.string(), { &none });
+
+            THEN("the package declares no thumbnail relationship") {
+                std::string rels;
+                REQUIRE(read_cad_recipe_entry(temp.string(), rels, "_rels/.rels"));
+                CHECK(rels.find("3dmodel") != std::string::npos);        // the model is still declared
+                CHECK(rels.find("plate_1.png") == std::string::npos);
+                CHECK(rels.find("thumbnail") == std::string::npos);
+            }
+        }
+
+        WHEN("a plate thumbnail is rendered") {
+            ScopedTemporaryFile temp(".3mf");
+            ThumbnailData       rendered;
+            rendered.set(16, 16);
+            rendered.pixels.assign(16 * 16 * 4, static_cast<unsigned char>(0xff));
+            REQUIRE(rendered.is_valid());
+            store(temp.string(), { &rendered });
+
+            THEN("the relationships name it, and the parts are in the package") {
+                std::string rels;
+                REQUIRE(read_cad_recipe_entry(temp.string(), rels, "_rels/.rels"));
+                CHECK(rels.find("/Metadata/plate_1.png") != std::string::npos);
+                CHECK(rels.find("/Metadata/plate_1_small.png") != std::string::npos);
+
+                std::string part;
+                CHECK(read_cad_recipe_entry(temp.string(), part, "Metadata/plate_1.png"));
+                CHECK(read_cad_recipe_entry(temp.string(), part, "Metadata/plate_1_small.png"));
+            }
+        }
+    }
+}
+// has_restore_data() runs from the queued EVT_RESTORE_PROJECT handler, whose try starts after
+// the call, so a filesystem_error from probing the stored backup path aborts the application.
+// The realistic trigger is an absolute path from another user's config whose home is not
+// searchable, so the parent, not the backup directory, is what blocks.
+#ifndef _WIN32
+TEST_CASE("has_restore_data reports no restore data for a path it cannot probe", "[3mf]") {
+    if (::geteuid() == 0)
+        SKIP("root ignores the directory permissions this test depends on");
+
+    ScopedTemporaryDir      outer("orca_restore");
+    boost::filesystem::path backup = outer.path() / "backup";
+    REQUIRE(boost::filesystem::create_directory(backup));
+    std::ofstream((backup / ".3mf").string()) << "stand-in for the backed-up project";
+    std::ofstream((backup / "origin.txt").string()) << "project.3mf";
+
+    // Control: while the path is readable the session is found, so the false below really is
+    // the probe failing and not a mis-built fixture.
+    std::string readable = backup.string(), origin;
+    REQUIRE(has_restore_data(readable, origin));
+    REQUIRE(readable == (backup / ".3mf").string());
+    REQUIRE(origin == "project.3mf");
+
+    // Puts the permissions back before ~ScopedTemporaryDir needs them to clean up, and does so
+    // even if an assertion below throws.
+    struct Searchable {
+        boost::filesystem::path dir;
+        ~Searchable() { boost::system::error_code ec;
+                        boost::filesystem::permissions(dir, boost::filesystem::owner_all, ec); }
+    } restore{ outer.path() };
+
+    // Non-throwing here too: a filesystem that refuses the mode change has to reach the skip
+    // below rather than fail the test. The probe then still succeeds, which is that same case.
+    boost::system::error_code probe_ec;
+    boost::filesystem::permissions(outer.path(), boost::filesystem::no_perms, probe_ec);
+    if (boost::filesystem::exists(backup / ".3mf", probe_ec) || !probe_ec)
+        SKIP("the backup path could not be made unprobeable here");
+
+    std::string unprobeable = backup.string(), origin2;
+    bool        has         = true;
+    REQUIRE_NOTHROW(has = has_restore_data(unprobeable, origin2));
+    CHECK_FALSE(has);
+    CHECK(unprobeable == backup.string());   // not rewritten to the .3mf it could not confirm
+}
+#endif // _WIN32

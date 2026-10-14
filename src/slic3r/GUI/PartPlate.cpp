@@ -2147,13 +2147,6 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
                         std::string cur = get_imex_mode();
                         const std::string effective = get_effective_imex_mode();
                         if (cur == kImexPrimaryMode) cur = _u8L("Primary");
-                        if (effective != get_imex_mode()) {
-                            try {
-                                cur += (boost::format(_u8L(" (process preset: %1%)")) % effective).str();
-                            } catch (const std::exception&) {
-                                cur += (boost::format(" (process preset: %1%)") % effective).str();
-                            }
-                        }
                         // One format string, not two catalog fragments concatenated around a
                         // runtime value: translators need to move the mode name within the
                         // sentence, and the space-padded fragments were untranslatable alone.
@@ -2162,10 +2155,19 @@ void PartPlate::render_icons(bool bottom, bool only_name, int hover_id)
                         // TRANSLATED string drops or malforms %1%, and an exception escaping here
                         // would take down the frame rather than show a wrong tooltip. The English
                         // literal is the fallback and cannot itself throw.
-                        try {
-                            hover_tip = (boost::format(_u8L("IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)")) % cur).str();
-                        } catch (const std::exception&) {
-                            hover_tip = (boost::format("IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)") % cur).str();
+                        if (effective != get_imex_mode()) {
+                            try {
+                                // TRN Plate icon tooltip. %1% is the plate's IDEX/IQEX mode, %2% the mode its process preset sets.
+                                hover_tip = (boost::format(_u8L("IDEX/IQEX mode: %1% (process preset: %2%) (left-click to cycle, right-click for menu)")) % cur % effective).str();
+                            } catch (const std::exception&) {
+                                hover_tip = (boost::format("IDEX/IQEX mode: %1% (process preset: %2%) (left-click to cycle, right-click for menu)") % cur % effective).str();
+                            }
+                        } else {
+                            try {
+                                hover_tip = (boost::format(_u8L("IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)")) % cur).str();
+                            } catch (const std::exception&) {
+                                hover_tip = (boost::format("IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)") % cur).str();
+                            }
                         }
                     } else {
                         render_icon_texture(m_imex_mode_icon.model, m_partplate_list->m_imex_mode_textures[kind]);
@@ -3034,8 +3036,8 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             int filament_printable_status = filament_printables[filament_id];
             int extruder_idx = filament_map[filament_id] - 1;
             if (!(filament_printable_status >> extruder_idx & 1)) {
-                wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message  = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
+                error_message = wxString::Format(extruder_idx == 0 ? _L("The left nozzle cannot print %s.") : _L("The right nozzle cannot print %s."),
+                                                 filament_type);
                 return false;
             }
         }
@@ -3228,9 +3230,8 @@ bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig
     auto get_nozzle_msg = [](const float nozzle_diameter, const NozzleVolumeType volume_type) -> std::string {
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(1) << nozzle_diameter;
-        std::string nozzle_msg = oss.str();
-        ((nozzle_msg += "mm ") += _u8L(get_nozzle_volume_type_string(volume_type))) += _u8L(" nozzle");
-        return nozzle_msg;
+        // TRN %1% is the nozzle diameter, %2% the nozzle volume type, for example "Standard" or "High Flow".
+        return Slic3r::format(_u8L("%1%mm %2% nozzle"), oss.str(), _u8L(get_nozzle_volume_type_string(volume_type)));
     };
 
     auto get_incompatible_filament_msg = [](const std::set<std::string> &incompatible_selected_filaments) -> std::string {
@@ -3261,7 +3262,9 @@ bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig
         auto             elem                  = incompatible_selected_map.begin();
         NozzleVolumeType volume_type           = elem->first;
         auto             incompatible_selected = elem->second;
-        error_msg = GUI::format(_L("It is not recommended to print the following filament(s) with %1%: %2%\n"), get_nozzle_msg(nozzle_diameter, volume_type),
+        error_msg = GUI::format(_L_PLURAL("It is not recommended to print the following filament with %1%: %2%\n",
+                                          "It is not recommended to print the following filaments with %1%: %2%\n", incompatible_selected.size()),
+                                get_nozzle_msg(nozzle_diameter, volume_type),
                                 get_incompatible_filament_msg(incompatible_selected));
     } else {
         std::string warning_msg = _u8L("It is not recommended to use the following nozzle and filament combinations:\n");
@@ -4669,8 +4672,8 @@ void PartPlate::update_slice_context(BackgroundSlicingProcess & process)
 		Slic3r::SlicingStatusEvent *event = new Slic3r::SlicingStatusEvent(EVT_SLICING_UPDATE, 0, status);
 		//BBS: GUI refactor: add plate info befor message
 		if (status.message_type == Slic3r::PrintStateBase::SlicingDefaultNotification) {
-			auto temp = Slic3r::format(_u8L(" plate %1%:"), std::to_string(m_plate_index + 1));
-			event->status.text = temp + event->status.text;
+			// TRN Slicing progress. %1% is the plate number, %2% the current slicing step.
+			event->status.text = Slic3r::format(_u8L("Slicing plate %1%: %2%"), m_plate_index + 1, event->status.text);
 		}
 		wxQueueEvent(m_plater, event);
 	};

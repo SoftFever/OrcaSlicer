@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <cstdlib>
 #include <future>
 #include <mutex>
@@ -501,9 +502,9 @@ bool PluginAuditManager::request_filesystem_read_permissions(const std::string& 
 
         wxMessageDialog dialog(
             nullptr,
-            wxString::Format("Plugin \"%s\" requests filesystem read access to:\n%s",
+            wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
                              wxString::FromUTF8(descriptor.name.c_str()), requested_paths),
-            "Plugin permissions",
+            _L("Plugin permissions"),
             wxYES_NO | wxICON_WARNING);
         return dialog.ShowModal() == wxID_YES;
     };
@@ -521,9 +522,9 @@ bool PluginAuditManager::request_filesystem_read_permissions(const std::string& 
 
             wxMessageDialog dialog(
                 nullptr,
-                wxString::Format("Plugin \"%s\" requests filesystem read access to:\n%s",
+                wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
                                  wxString::FromUTF8(descriptor_name.c_str()), requested_paths),
-                "Plugin permissions",
+                _L("Plugin permissions"),
                 wxYES_NO | wxICON_WARNING);
             result->set_value(dialog.ShowModal() == wxID_YES);
         });
@@ -842,7 +843,7 @@ int report_denied(PluginAuditManager&            mgr,
 }
 
 wxString audit_message(AuditEventCategory category, const wxString& plugin_name, const wxString& event_name,
-                       const wxString& target_list)
+                       const wxString& target_list, size_t target_count)
 {
     if (target_list.IsEmpty())
         return wxString::Format(
@@ -852,19 +853,29 @@ wxString audit_message(AuditEventCategory category, const wxString& plugin_name,
 
     switch (category) {
     case AuditEventCategory::FsRead:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to read the following file(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to read the following file:\n%s",
+                                          "Plugin \"%s\" is requesting to read the following files:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::FsReadWrite:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to read/write the following file(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to read/write the following file:\n%s",
+                                          "Plugin \"%s\" is requesting to read/write the following files:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::FsCreate:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to create the following file(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to create the following file:\n%s",
+                                          "Plugin \"%s\" is requesting to create the following files:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::FsDelete:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to delete the following file(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to delete the following file:\n%s",
+                                          "Plugin \"%s\" is requesting to delete the following files:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::Http:
         return wxString::Format(_L("Plugin \"%s\" is requesting to make an HTTP request to:\n%s"), plugin_name, target_list);
     case AuditEventCategory::Socket:
         return wxString::Format(_L("Plugin \"%s\" is requesting to open a network connection to:\n%s"), plugin_name, target_list);
     case AuditEventCategory::ProcessCreate:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to run the following command(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to run the following command:\n%s",
+                                          "Plugin \"%s\" is requesting to run the following commands:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::Threading:
         return wxString::Format(_L("Plugin \"%s\" is requesting permission to create a thread."), plugin_name);
     case AuditEventCategory::ProcessReplace:
@@ -884,7 +895,7 @@ bool prompt_for_targets(AuditEventCategory category, const std::string& plugin_n
 
     wxMessageDialog dialog(nullptr,
                            audit_message(category, wxString::FromUTF8(plugin_name.c_str()),
-                                        wxString::FromUTF8(event_name.c_str()), target_list),
+                                        wxString::FromUTF8(event_name.c_str()), target_list, unresolved.size()),
                            _L("Plugin permission request"), wxYES_NO | wxICON_WARNING);
     return dialog.ShowModal() == wxID_YES;
 }
