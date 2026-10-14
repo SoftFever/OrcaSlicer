@@ -327,21 +327,16 @@ function clearCookie(name) {
 /*--------Studio WX Message-------*/
 function IsInSlicer()
 {
-	let bMatch=navigator.userAgent.match(  RegExp('BBL-Slicer','i') );
-	
-	return bMatch;
+	// window.wx is the host's message handler, registered on every webview OrcaSlicer creates.
+	return !!(window.wx && window.wx.postMessage);
 }
 
 
 
 function SendWXMessage( strMsg )
 {
-	let bCheck=IsInSlicer();
-	
-	if(bCheck!=null)
-	{
+	if( IsInSlicer() )
 		window.wx.postMessage(strMsg);
-	}
 }
 
 function SendWXDebugInfo( strMsg )
@@ -365,63 +360,14 @@ function OpenUrlInLocalBrowser( strUrl )
 }
 
 
-/*------CSS Link Control----*/
-function RemoveCssLink( LinkPath )
-{
-	let pNow=$("head link[href='"+LinkPath+"']");
-	
-	let nTotal=pNow.length;
-    for( let n=0;n<nTotal;n++ )
-	{
-		pNow[n].remove();
-	}	
-}
-
-function AddCssLink( LinkPath )
-{	
-	var head = document.getElementsByTagName('head')[0];
-	var link = document.createElement('link');
-	link.href = LinkPath;
-	link.rel = 'stylesheet';
-	link.type = 'text/css';
-	head.appendChild(link);
-}
-
-function CheckCssLinkExist( LinkPath )
-{
-	let pNow=$("head link[href='"+LinkPath+"']");
-	let nTotal=pNow.length;
-	
-	return nTotal;
-}
-
-
 /*------Dark Mode------*/
-
-function SwitchDarkMode( DarkCssPath )
-{		
-	ExecuteDarkMode( DarkCssPath );
-    setInterval("ExecuteDarkMode('"+DarkCssPath+"')",1000);	
-}
-
-function ExecuteDarkMode( DarkCssPath )
+// The host sets window.__orcaTheme at document start (WebView::AddHostThemeScript) and reloads the
+// page when the theme changes. Every legacy page links its dark.css up front; it is switched on and
+// off here instead of being added and removed, so the page's own path to it does not matter.
+function ExecuteDarkMode()
 {
-    let nMode=0;
-	let bDarkMode=navigator.userAgent.match(  RegExp('dark','i') );	
-	if( bDarkMode!=null )
-		nMode=1;
-	
-	let nNow=CheckCssLinkExist(DarkCssPath);
-	if( nMode==0 )
-	{
-		if(nNow>0)
-			RemoveCssLink(DarkCssPath);
-	}
-	else
-	{
-		if(nNow==0)
-			AddCssLink(DarkCssPath);
-	}	
+	let bDarkMode = window.__orcaTheme === "dark";
+	document.querySelectorAll('head link[href$="dark.css"]').forEach( function(link) { link.disabled = !bDarkMode; } );
 }
 
-SwitchDarkMode( "./css/dark.css" );
+ExecuteDarkMode();

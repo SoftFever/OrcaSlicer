@@ -284,6 +284,25 @@ static WebViewRef *webview_ref(wxWebView *webView)
     return webView ? static_cast<WebViewRef *>(webView->GetRefData()) : nullptr;
 }
 
+#ifndef __linux__
+// The User-Agent Windows and macOS have always sent, with the app's version, dark mode and language
+// appended. No bundled page reads it any more (they get the theme from the script below), so Linux
+// sends WebKitGTK's own, which Cloudflare accepts on third-party print-host pages.
+static wxString tagged_user_agent(bool dark)
+{
+    const wxString language_code = Slic3r::GUI::wxGetApp().current_language_code().BeforeFirst('_');
+    return wxString::Format("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) BBL-Slicer/v%s (%s) BBL-Language/%s",
+                            Slic3r::GUI::wxGetApp().get_bbl_client_version(), dark ? "dark" : "light", language_code);
+}
+#endif
+
+// Document-start script the legacy pages read their theme from (globalapi.js). Plugin pages have
+// their own, richer contract in WebViewHostDialog.
+static wxString host_theme_script()
+{
+    return wxString::Format("window.__orcaTheme=\"%s\";", Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light");
+}
+
 wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
 {
 #if wxUSE_WEBVIEW_EDGE
@@ -314,9 +333,8 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     if (webView) {
         webView->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
-        wxString language_code = Slic3r::GUI::wxGetApp().current_language_code().BeforeFirst('_');
-        language_code          = language_code.ToStdString();
 #ifdef __WIN32__
+        const wxString language_code = Slic3r::GUI::wxGetApp().current_language_code().BeforeFirst('_');
         webView->SetUserAgent(wxString::Format("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.52 BBL-Slicer/v%s (%s) BBL-Language/%s",
                                                Slic3r::GUI::wxGetApp().get_bbl_client_version(), Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
@@ -337,10 +355,10 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         }
         webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 #ifndef __linux__
-        webView->SetUserAgent(wxString::Format("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) BBL-Slicer/v%s (%s) BBL-Language/%s",
-                                               Slic3r::GUI::wxGetApp().get_bbl_client_version(), Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
+        webView->SetUserAgent(tagged_user_agent(Slic3r::GUI::wxGetApp().dark_mode()));
 #endif
 #endif
+        WebView::AddHostThemeScript(webView);
 #ifdef __WXMAC__
         WKWebView * wkWebView = (WKWebView *) webView->GetNativeBackend();
         Slic3r::GUI::WKWebView_setTransparentBackground(wkWebView);
@@ -391,6 +409,11 @@ void WebView::MarkScriptMessageHandlerAdded(wxWebView * webView)
 {
     if (WebViewRef *ref = webview_ref(webView))
         ref->m_script_handler_added = true;
+}
+
+void WebView::AddHostThemeScript(wxWebView *webView)
+{
+    webView->AddUserScript(host_theme_script(), wxWEBVIEW_INJECT_AT_DOCUMENT_START);
 }
 
 bool WebView::NeedsRecreateOnShow()
@@ -468,14 +491,16 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
 
 void WebView::RecreateAll()
 {
-    auto dark = Slic3r::GUI::wxGetApp().dark_mode();
-    wxString language_code = Slic3r::GUI::wxGetApp().current_language_code().BeforeFirst('_');
-    language_code          = language_code.ToStdString();
+#ifndef __linux__
+    const wxString user_agent = tagged_user_agent(Slic3r::GUI::wxGetApp().dark_mode());
+#endif
     for (auto webView : g_webviews) {
 #ifndef __linux__
-        webView->SetUserAgent(wxString::Format("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) BBL-Slicer/v%s (%s) BBL-Language/%s",
-                                               Slic3r::GUI::wxGetApp().get_bbl_client_version(), dark ? "dark" : "light", language_code.mb_str()));
+        webView->SetUserAgent(user_agent);
 #endif
+        // User scripts run in the order they were added, so the newest theme assignment wins on the
+        // reload below; the earlier ones are a few bytes each.
+        AddHostThemeScript(webView);
         // A host-themed WebViewHostDialog re-themes in place (no reload). If it handles
         // the event, skip the reload; legacy pages fall through and reload as before
         // (their own dark.css swap re-themes them on reload).

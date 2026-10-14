@@ -26,6 +26,10 @@ public:
     // Marks "wx" as registered so CreateWebView's deferred add skips the duplicate.
     static void MarkScriptMessageHandlerAdded(wxWebView * webView);
 
+    // Tells the page the app's theme at document start (window.__orcaTheme). Added by CreateWebView and
+    // again on a theme change; a view that cleared its user scripts has to add it back.
+    static void AddHostThemeScript(wxWebView *webView);
+
     // On Windows, a WebView2 backend created during a GUI rebuild (language switch) can come up
     // ignoring every navigation. A panel that gets true here recreates its view on first Show().
     static bool NeedsRecreateOnShow();
