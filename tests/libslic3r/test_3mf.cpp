@@ -2361,5 +2361,96 @@ TEST_CASE("has_restore_data reports no restore data for a path it cannot probe",
     REQUIRE_NOTHROW(has = has_restore_data(unprobeable, origin2));
     CHECK_FALSE(has);
     CHECK(unprobeable == backup.string());   // not rewritten to the .3mf it could not confirm
+    CHECK(origin2 == "<lock>");              // and the caller is told not to remove it
 }
 #endif // _WIN32
+
+// Every "return false" that leaves origin empty is an instruction to the caller to
+// remove_all() the backup directory (Plater.cpp's EVT_RESTORE_PROJECT handler), so the
+// distinction these cases draw is between a backup that is spent and one whose state could
+// not be established. Only the first may be collected.
+TEST_CASE("has_restore_data claims the lock when lock.txt cannot be interpreted", "[3mf]") {
+    ScopedTemporaryDir      outer("orca_lock");
+    boost::filesystem::path backup = outer.path() / "backup";
+    REQUIRE(boost::filesystem::create_directory(backup));
+    std::ofstream((backup / ".3mf").string()) << "stand-in for the backed-up project";
+
+    SECTION("an empty lock.txt holds no pid") {
+        std::ofstream lock((backup / "lock.txt").string());
+        lock.close();   // created, left zero length
+        REQUIRE(boost::filesystem::file_size(backup / "lock.txt") == 0);
+
+        std::string path = backup.string(), origin;
+        bool        has  = true;
+        REQUIRE_NOTHROW(has = has_restore_data(path, origin));
+        CHECK_FALSE(has);
+        CHECK(origin == "<lock>");
+    }
+
+    SECTION("lock.txt holds something that is not a pid") {
+        std::ofstream((backup / "lock.txt").string()) << "not-a-pid";
+
+        std::string path = backup.string(), origin;
+        bool        has  = true;
+        REQUIRE_NOTHROW(has = has_restore_data(path, origin));
+        CHECK_FALSE(has);
+        CHECK(origin == "<lock>");
+    }
+}
+
+#ifndef _WIN32
+TEST_CASE("has_restore_data claims the lock when lock.txt cannot be read", "[3mf]") {
+    if (::geteuid() == 0)
+        SKIP("root ignores the file permissions this test depends on");
+
+    ScopedTemporaryDir      outer("orca_lock");
+    boost::filesystem::path backup = outer.path() / "backup";
+    REQUIRE(boost::filesystem::create_directory(backup));
+    std::ofstream((backup / ".3mf").string()) << "stand-in for the backed-up project";
+    std::ofstream((backup / "lock.txt").string()) << "1";
+    boost::system::error_code mode_ec;   // a filesystem that refuses the mode change must skip below
+    boost::filesystem::permissions(backup / "lock.txt", boost::filesystem::no_perms, mode_ec);
+
+    boost::nowide::ifstream probe((backup / "lock.txt").string());
+    if (probe.good())
+        SKIP("this filesystem does not enforce file read permissions");
+
+    // load_string_file() throws here.
+    std::string path = backup.string(), origin;
+    bool        has  = true;
+    REQUIRE_NOTHROW(has = has_restore_data(path, origin));
+    CHECK_FALSE(has);
+    CHECK(origin == "<lock>");
+}
+#endif // _WIN32
+
+// The negative control for the three cases above: claiming the lock whenever anything is
+// amiss would strand every spent backup on disk forever, so a readable directory that
+// simply has nothing to restore must still come back collectable.
+TEST_CASE("has_restore_data leaves a spent backup collectable", "[3mf]") {
+    ScopedTemporaryDir      outer("orca_spent");
+    boost::filesystem::path backup = outer.path() / "backup";
+    REQUIRE(boost::filesystem::create_directory(backup));
+
+    SECTION("no lock and no project") {
+        std::string path = backup.string(), origin;
+        CHECK_FALSE(has_restore_data(path, origin));
+        CHECK(origin.empty());
+    }
+
+    SECTION("a lock from a process that is not us, and no project") {
+        // get_process_name() compares executable names and answers empty for a pid it cannot
+        // read, so pid 1 never matches this process and the lock must not be claimed.
+        std::ofstream((backup / "lock.txt").string()) << "1";
+
+        std::string path = backup.string(), origin;
+        CHECK_FALSE(has_restore_data(path, origin));
+        CHECK(origin.empty());
+    }
+
+    SECTION("the directory does not exist at all") {
+        std::string path = (outer.path() / "gone").string(), origin;
+        CHECK_FALSE(has_restore_data(path, origin));
+        CHECK(origin.empty());
+    }
+}

@@ -3739,7 +3739,8 @@ void GLGizmoTextureDisplacement::update_from_model_object(bool first_update)
                 break;
             }
         m_triangle_selectors.emplace_back(std::make_unique<TriangleSelectorPatch>(*mesh, ebt_colors));
-        m_triangle_selectors.back()->deserialize(data, false);
+        // The mask uses a single state (ENFORCER): a higher state in the file is reset to NONE.
+        m_triangle_selectors.back()->deserialize(data, false, EnforcerBlockerType::ENFORCER);
         m_triangle_selectors.back()->request_update_render_data();
     }
 
