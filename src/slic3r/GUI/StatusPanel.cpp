@@ -1255,7 +1255,7 @@ void PrintingTaskPanel::update_left_time(int mc_left_time)
     std::string end_time;
     wxString    end_time_text = NA_STR;
     try {
-        end_time = get_bbl_monitor_end_time_dhm(mc_left_time);
+        end_time = get_bbl_monitor_end_time_dhm(mc_left_time, wxGetApp().app_config->get_bool("use_12h_time_format"));
     } catch (...) {
         ;
     }

@@ -738,19 +738,27 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
     return buffer;
 }
 
-inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs)
+// Clock time as "HH:MM" (24 h) or "hh:MM AM/PM" (12 h); ":SS" is added when second >= 0.
+inline std::string format_clock_time(int hour, int minute, bool use_12h_format, int second = -1)
+{
+    std::ostringstream stream;
+    stream << std::setfill('0') << std::setw(2) << (use_12h_format ? (hour % 12 == 0 ? 12 : hour % 12) : hour)
+           << ':' << std::setw(2) << minute;
+    if (second >= 0)
+        stream << ':' << std::setw(2) << second;
+    if (use_12h_format)
+        stream << (hour >= 12 ? " PM" : " AM");
+    return stream.str();
+}
+
+inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs, bool use_12h_format = false)
 {
     if (time_in_secs == 0.0f)
         return {};
 
-    std::stringstream stream;
-    boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
-    auto endTime = now + boost::posix_time::seconds(static_cast<int>(time_in_secs));
-    auto facet = new boost::posix_time::time_facet("%H:%M");//%Y-%m-%d %H:%M:%S
-    stream.imbue(std::locale(std::locale::classic(), facet));
-    stream << endTime;
-
-    return stream.str();
+    const auto end_time = boost::posix_time::second_clock::local_time() + boost::posix_time::seconds(static_cast<int>(time_in_secs));
+    const auto time_of_day = end_time.time_of_day();
+    return format_clock_time(int(time_of_day.hours()), int(time_of_day.minutes()), use_12h_format);
 }
 
 inline std::string get_bbl_remain_time_dhms(float time_in_secs)
