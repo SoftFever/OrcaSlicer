@@ -560,8 +560,10 @@ void Selection::center()
 
 double Selection::get_drop_min_z() const
 {
-    if (!m_valid)         return 0.;
-    if (m_mode == Volume) return get_bounding_box().min.z();
+    if (!m_valid)
+        return 0.;
+    if (m_mode == Volume)
+        return get_bounding_box().min.z();
 
     double min_z = DBL_MAX;
     for (const auto& [obj_idx, inst_idxs] : m_cache.content) {

@@ -56,24 +56,6 @@ const double GizmoObjectManipulation::mm_to_in = 0.0393700787;
 const double GizmoObjectManipulation::oz_to_g = 28.34952;
 const double GizmoObjectManipulation::g_to_oz = 0.035274;
 
-// Helper function to be used by drop to bed button. Returns lowest point of this
-// volume in world coordinate system.
-static double get_volume_min_z(const GLVolume* volume)
-{
-    const Transform3f& world_matrix = volume->world_matrix().cast<float>();
-
-    // need to get the ModelVolume pointer
-    const ModelObject* mo = wxGetApp().model().objects[volume->composite_id.object_id];
-    const ModelVolume* mv = mo->volumes[volume->composite_id.volume_id];
-    const TriangleMesh& hull = mv->get_convex_hull();
-
-    float min_z = std::numeric_limits<float>::max();
-    for (const stl_vertex& vert : hull.its.vertices) {
-        min_z = std::min(min_z, Vec3f::UnitZ().dot(world_matrix * vert));
-    }
-    return min_z;
-}
-
 GizmoObjectManipulation::GizmoObjectManipulation(GLCanvas3D& glcanvas)
     : m_glcanvas(glcanvas)
 {
@@ -293,7 +275,7 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
 {
     const Selection& selection = m_glcanvas.get_selection();
 
-    // Disable it for assembly view because it has it uses its own selection and not updates instances (for now)
+    // Assembly view has its own selection and transformations, which drop_selection() doesn't update
     m_enable_drop_to_bed = m_glcanvas.get_canvas_type() == GLCanvas3D::ECanvasType::CanvasView3D && selection.can_drop();
 
     if (selection.is_single_full_instance() || selection.is_single_volume_or_modifier()) {
@@ -918,15 +900,15 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     GLGizmoUtils::render_tooltip_button(imgui_wrapper, m_glcanvas, m_shortcuts_move, x, y);
 
     // ORCA use existing function for drop and show button on bottom bar to keep gizmo compact
-    imgui_wrapper->disabled_begin(m_enable_drop_to_bed);
-        ImGui::SameLine(0, space_size * 1.5f);
-        if (imgui_wrapper->button(_L("Drop"))){
-            wxGetApp().plater()->drop_selection();
-            UpdateAndShow(true);
-        }
+    imgui_wrapper->disabled_begin(!m_enable_drop_to_bed);
+    ImGui::SameLine(0, space_size * 1.5f);
+    if (imgui_wrapper->button(_L("Drop"))){
+        wxGetApp().plater()->drop_selection();
+        UpdateAndShow(true);
+    }
     imgui_wrapper->disabled_end();
     if(ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-        ImGui::SetTooltip("%s", _u8L("Move the selection along Z so that its lowest point touches the bed.").c_str());
+        imgui_wrapper->tooltip(_L("Move the selection along Z so that its lowest point touches the bed."), ImGui::GetFontSize() * 20.0f);
 
     ImGui::SameLine();
     GLGizmoUtils::begin_right_aligned_buttons({ _L("Done") });
