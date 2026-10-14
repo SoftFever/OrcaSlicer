@@ -85,6 +85,9 @@ body {
   user-select: text;
 }
 .palette-filter::-webkit-search-cancel-button { -webkit-appearance: none }
+.palette-filter:focus-visible{
+  background-color: var(--focus-bg-box);
+}
 
 .palette-search-button {
   display: flex;
