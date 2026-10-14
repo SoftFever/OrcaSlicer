@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-13 21:06-0300\n"
 "PO-Revision-Date: 2025-11-28 13:48-0600\n"
 "Last-Translator: tntchn <15895303+tntchn@users.noreply.github.com>\n"
 "Language-Team: \n"
@@ -2394,6 +2394,66 @@ msgstr "網路外掛程式限制"
 
 msgid "Privacy Policy Update"
 msgstr "隱私協定更新"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "您所有的線材預設都可在其對應的列印裝置上使用。"
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "遷移線材預設"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 重構了許多系統線材預設，以修正不正確的設定檔，並為未來功能做準備。因此，下列預設不再顯示於部分原本適用的列印裝置上。造成不便，敬請見諒；這是一次性修正。\n"
+"\n"
+"現在要將這些列印裝置加回您的預設嗎？操作前會先備份您的預設。您也可以稍後從 幫助 > 遷移線材預設 執行此操作。"
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1%（基於 %2%）"
+
+msgid "Don't remind me again"
+msgstr "不要再提醒我"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "無法備份您的預設，因此未進行遷移。"
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "無法鎖定使用者預設資料夾，因此未遷移任何內容。可能有另一個 OrcaSlicer 實例正在儲存預設；請稍後從 幫助 > 遷移線材預設 再試一次。"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"無法遷移您的線材預設。預設的備份已儲存到：\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"您的線材預設已遷移。請在原本使用它們的線材清單中重新選擇。\n"
+"\n"
+"預設的備份已儲存到：\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "無法遷移這些預設："
 
 #, c-format, boost-format
 msgid "your Orca Cloud profile (user ID: \"%s\")"
@@ -6596,6 +6656,10 @@ msgstr "設定精靈"
 
 msgid "Show Configuration Folder"
 msgstr "開啟設定檔的資料夾"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "找回因設定檔更新而從原本適用的列印裝置上移除的線材預設"
 
 msgid "Troubleshoot Center"
 msgstr "疑難排解中心"
@@ -13890,6 +13954,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "某道外牆完全位於修改器內部，修改器未套用於其上（%1%）"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "「%3%」的%1%修改器「%2%」覆蓋整道外牆"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "「%3%」的%1%修改器「%2%」（共 %4% 個）覆蓋整道外牆"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "「%2%」的修改器「%1%」對接縫沒有作用（可能未觸及所列印外牆的中心線）"
@@ -14875,18 +14951,20 @@ msgstr ""
 "\n"
 "實際使用的橋接流量是將此數值乘以線材流量比例計算得出，若有設定，還會乘以物件的流量比例。"
 
+# AI Translated
+# Needs human review: Quotes the existing label 橋接流量 for 'Bridge flow ratio' (glossary Flow ratio is 流量比例), so the tooltip matches the GUI; if the label is changed to 橋接流量比例, update here
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "橋接的線寬。如果以 % 表示，將以噴嘴直徑為基準計算。\n"
-"建議搭配較高的橋接密度或橋接流量比例使用。\n"
+"建議搭配較高的橋接密度或橋接流量使用。\n"
 "\n"
 "最大值為 100% 或噴嘴直徑。\n"
-"如果設為 0，線寬將與內部實心填充寬度相同。"
+"如果設為 0，線寬將與內部實心填充寬度相同；增厚橋接則與噴嘴直徑相同。"
 
 msgid "Internal bridge flow ratio"
 msgstr "內部橋接流量"
@@ -15130,6 +15208,7 @@ msgstr "開啟這個選項將降低不同懸空程度的走線的列印速度"
 msgid "Slow down for curled perimeters"
 msgstr "翹邊處降速"
 
+# AI Translated
 #, no-c-format, no-boost-format
 msgid ""
 "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
@@ -15145,34 +15224,35 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "啟用此選項可在牆可能向上捲曲的區域降低列印速度。\n"
 "例如，在列印像 Benchy 船體前端這類尖角上的懸空時，會套用額外的減速，以減少在多個層上不斷累積的捲曲。\n"
 "\n"
 "一般建議開啟此選項，除非您的列印裝置冷卻能力夠強，或列印速度夠慢，使得牆不會發生捲曲。 \n"
-"若以較高的外牆速度列印，此參數在減速時可能會產生牆面瑕疵，這是因為列印速度的差異可能過大，導致擠出機無法跟上所要求的流量變化。\n"
-"這些瑕疵的根本原因很可能是 PA 調校略有偏差，尤其是搭配較高的 PA 平滑時間時。\n"
+"若以較高的外牆速度列印，此參數在減速時可能會產生牆面缺陷，這是因為列印速度的差異可能過大，導致擠出機無法跟上所要求的流量變化。\n"
+"這些缺陷的根本原因很可能是 PA 調校略有偏差，尤其是搭配較高的 PA 平滑時間時。\n"
 "\n"
 "啟用此選項時的建議：\n"
 "1. 將 Pressure Advance 平滑時間降低至 0.015 - 0.02，讓擠出機能快速回應速度變化。\n"
 "2. 提高最小列印速度，以限制減速的幅度，並減少快慢區段之間的差異。\n"
-"3. 若仍出現瑕疵，請啟用平滑擠出率 (ERS) 以進一步平滑流量轉換。\n"
+"3. 若仍出現缺陷，請啟用平滑擠出率 (ERS) 以進一步平滑流量轉換。\n"
 "\n"
 "注意：啟用此選項時，懸空牆會被視為懸空，這表示即使懸空牆屬於橋接的一部分，仍會套用懸空列印速度。\n"
-"例如，當牆 100% 懸空、下方沒有牆支撐時，將會套用 100% 懸空列印速度。"
+"例如，當牆 100% 懸空、下方沒有牆支撐時，將會套用 75% 的懸空列印速度，並受橋接速度限制。"
 
 msgid "mm/s or %"
 msgstr "mm/s 或 %"
 
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
-"外部可見橋接擠出的列印速度\n"
+"外部可見橋接擠出的列印速度。\n"
 "\n"
-"如果停用了『翹邊處降速』或啟用了『經典懸空模式』，則對支撐率低於 13% 的懸空牆（無論是橋接的一部分還是懸空結構）將使用該列印速度。"
+"此外，如果停用了「翹邊處降速」，則對支撐率低於 13% 的懸空牆（無論是橋接的一部分還是懸空結構）將使用該列印速度。"
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "內部橋接速度。如果該值以百分比表示，將基於 bridge_speed 進行計算。預設值為 150%。"
@@ -15737,8 +15817,9 @@ msgstr "外牆的列印速度。它通常比內壁速度慢，以獲得更好的
 msgid "Small perimeters"
 msgstr "微小部位"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "此獨立設定將影響半徑小於或等於 small_perimeter_threshold 的外牆列印速度（通常指孔洞）。若設定為百分比（如 80%），將基於上述外牆速度進行計算。設定為 0 表示自動調整。"
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "此獨立設定將影響半徑小於或等於 small_perimeter_threshold 的外牆列印速度（通常指孔洞）。若設定為百分比（如 80%），將基於上述外牆速度進行計算。"
 
 msgid "Small perimeters threshold"
 msgstr "微小部位周長臨界值"
@@ -15751,8 +15832,8 @@ msgid "Small support perimeters"
 msgstr "小型支撐周長"
 
 # AI Translated
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "與「Small perimeters」相同，但用於支撐。此獨立設定會影響面積 <= `small_support_perimeter_threshold` 的支撐速度。若以百分比表示（例如：80%），則會依上方的支撐或支撐介面速度設定計算。設為零表示自動。"
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "與「微小部位」相同，但用於支撐。此獨立設定會影響面積 <= `small_support_perimeter_threshold` 的支撐速度。若以百分比表示（例如：80%），則會依上方的支撐或支撐面速度設定計算。"
 
 # AI Translated
 msgid "Small support perimeters threshold"
@@ -15765,19 +15846,23 @@ msgstr "這會設定小型支撐周長長度的門檻。預設門檻為 0mm。"
 msgid "Walls printing order"
 msgstr "牆列印順序"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
-"『內牆』與『外牆』牆體的列印順序。\n"
-"使用『內牆/外牆』順序可獲得最佳的懸空效果。這是因為懸空牆體在列印時可以附著到相鄰的牆。然而，此選項會略微降低表面品質，因為外牆被壓到內牆上而變形。\n"
-"使用『內牆/外牆/內牆』順序可獲得最佳的外表面光潔度和尺寸精度，因為外牆的列印不會受到內牆影響。然而，因為外牆缺少內牆的支撐，懸空性能會有所降低。此選項需要至少 3 層牆才能生效，它會先從第 3 層牆開始列印內牆，接著列印外部周邊，最後列印最內層的內牆。在大多數情況下，建議選擇此選項，而不是外牆/內牆的順序設定。\n"
-"採用『外牆/內牆』順序可以達到與『內牆/外牆/內牆』設定相同的外牆表面品質與尺寸精度。然而，Z 軸接縫的均勻性會稍差，因為新層的首次擠出會在可見的表面開始。"
+"內牆與外牆的列印順序。\n"
+"\n"
+"使用「內牆/外牆」可獲得最佳的懸空效果。這是因為懸空牆體在列印時可以附著到相鄰的牆。然而，此選項會略微降低表面品質，因為外牆被壓到內牆上而變形。\n"
+"\n"
+"使用「內牆/外牆/內牆」可獲得最佳的外表面光潔度和尺寸精度，因為外牆的列印不會受到內牆影響。然而，因為外牆缺少內牆的支撐，懸空性能會有所降低。此選項需要至少 3 層牆才能生效，它會先從第 3 層牆開始列印內牆，接著列印外牆，最後列印最內層的內牆。在大多數情況下，建議選擇此選項，而不是「外牆/內牆」。\n"
+"\n"
+"使用「外牆/內牆」可以達到與「內牆/外牆/內牆」相同的外牆表面品質與尺寸精度。然而，Z 軸接縫的均勻性會稍差，因為新層的首次擠出會在可見的表面開始。"
 
 msgid "Inner/Outer"
 msgstr "內牆/外牆"
@@ -16716,14 +16801,16 @@ msgstr "首層層高"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "首層層高。加厚首層層高有助於提高列印板附著力。"
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "首層除實心填充之外的其他部分的列印速度"
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "首層的牆和 Brim 的列印速度。"
 
 msgid "First layer infill"
 msgstr "首層填充"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "首層實心填充的列印速度"
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "首層中除牆和 Brim 以外部分的列印速度，例如填充、縫隙填充和支撐。"
 
 msgid "First layer travel speed"
 msgstr "首層空駛速度"
@@ -17415,16 +17502,18 @@ msgstr "內部稀疏填充的線寬。如果以%表示，它將以噴嘴直徑�
 msgid "Infill/wall overlap"
 msgstr "填充/牆 重疊"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "為了增強填充與周邊的結合，填充區域會略微擴大，與周邊產生重疊。此百分比值是基於稀疏填充的線寬來計算的。建議將該值設定在 10-15% 左右，以減少過擠出或材料堆積的可能性從而避免列印出粗糙的頂部表面。"
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "為了增強填充與周邊的結合，填充區域會略微擴大，與周邊產生重疊。此百分比值是基於內牆線寬來計算的。建議將該值設定在 10-15% 左右，以減少過擠出或材料堆積的可能性從而避免列印出粗糙的頂部表面。"
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "頂部/底部實心填充部分和周邊重疊區域設定"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "頂部實心填充的區域會略微擴大，與周邊部分重疊，以增強結合效果並減少填充與周邊接合處出現針孔的可能性。建議從 25-30% 的設定值開始，這通常能有效減少針孔現象。此百分比值是基於稀疏填充的線寬來計算的"
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "頂部實心填充的區域會略微擴大，與周邊部分重疊，以增強結合效果並減少填充與周邊接合處出現針孔的可能性。建議從 25-30% 的設定值開始，這通常能有效減少針孔現象。此百分比值是基於內牆線寬來計算的。"
 
 msgid "This is the speed for internal sparse infill."
 msgstr "內部稀疏填充的列印速度"
@@ -17450,8 +17539,9 @@ msgstr "分隔區域的最大寬度。零表示停用此功能。"
 msgid "Interlocking depth of a segmented region"
 msgstr "分隔區域的互鎖深度"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr "設定分隔區域的互鎖深度。如果「mmu_segmented_region_max_width」設定為 0，或者「mmu_segmented_region_interlocking_depth」的值大於「mmu_segmented_region_max_width」，此功能將被忽略。將此值設為 0 可完全關閉該功能。"
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "分隔區域的互鎖深度。每隔一層，分隔區域會被限制在此深度內。若啟用「interlocking_beam」，此設定將被忽略。設為 0 可停用此功能。"
 
 msgid "Use beam interlocking"
 msgstr "使用梁式互鎖"
@@ -17557,13 +17647,14 @@ msgstr "啟用 Z 層輪廓處理（又稱 Z 層抗鋸齒）。"
 msgid "Minimize wall height angle"
 msgstr "最小化牆高角度"
 
+# AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "降低頂面牆的高度，使其與模型邊緣高度相符。\n"
-"影響坡度小於此角度（度）的牆。\n"
+"影響坡度大於此角度（度）的牆。\n"
 "合理值為 35。設為 0 可停用。"
 
 msgid "Don't alternate fill direction"
@@ -18532,7 +18623,9 @@ msgstr "內牆的斜接縫"
 msgid "Use scarf joint for inner walls as well."
 msgstr "內牆同樣使用斜接縫。"
 
-msgid "Role base wipe speed"
+# AI Translated
+# Needs human review: Earlier wording kept (English only fixes 'base' to 'based'): check that 自動 reads as 'speed follows the current extrusion role', as the tooltip below explains
+msgid "Role based wipe speed"
 msgstr "自動擦拭速度"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
@@ -18619,16 +18712,15 @@ msgstr "在首層之後，將環形裙邊或隔風罩限制為單層牆。這在
 msgid "Draft shield"
 msgstr "防風罩"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
-"防風罩可有效保護 ABS 或 ASA 列印物免受氣流影響，避免翹曲或脫離列印床。通常僅在開放式框架的列印裝置（即無外殼）中需要使用。\n"
+"防風罩可有效保護 ABS 或 ASA 列印物免受氣流影響，避免翹曲或脫離列印板。通常僅在開放式框架的列印裝置（即無外殼）中需要使用。\n"
 "\n"
-"啟用後，Skirt 的高度將與列印物的最高點相同。若未啟用，則使用『Skirt 高度』的設定值。\n"
-"注意：啟用擋風護盾時，Skirt 會按照設定的 Skirt 距離列印於物體周圍。如果同時啟用了耳狀 Brim，Skirt 可能會與其重疊。為避免此問題，請增加 Skirt 距離的設定值。\n"
+"啟用後，Skirt 的高度將與列印物的最高點相同。若未啟用，則使用「Skirt 高度」的設定值。"
 
 msgid "Enabled"
 msgstr "啟用"
@@ -19762,40 +19854,42 @@ msgstr "圓錐體頂點處的角度，用於穩定換料塔。 更大的角度�
 msgid "Maximum wipe tower print speed"
 msgstr "換料塔最快列印速度"
 
+# AI Translated
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
-"在換料塔中沖刷和列印換料塔稀疏層時的最大列印速度。沖刷時，如果稀疏填充速度或根據線材最大體積速度計算出的速度較低，則將使用較低的速度。\n"
+"在換料塔中沖刷和列印換料塔稀疏層時的最大列印速度。沖刷時，如果稀疏填充速度或根據線材最大體積流量計算出的速度較低，則將使用較低的速度。\n"
 "\n"
-"列印稀疏層時，如果內牆速度或根據線材最大體積速度計算出的速度較低，則將使用較低的速度。\n"
+"列印稀疏層時，如果稀疏填充速度或根據線材最大體積流量計算出的速度較低，則將使用較低的速度。\n"
 "\n"
 "提高此速度可能會影響換料塔的穩定性，並增加噴嘴與換料塔上凸起物的碰撞力。\n"
 "\n"
-"在將此參數提高到預設值 90 mm/s 以上之前，請確保您的列印裝置能夠在更高的速度下可靠地進行橋接，且工具更換時的溢出能被良好控制。\n"
+"在將此參數提高到預設值 90 mm/s 以上之前，請確保您的列印裝置能夠在更高的速度下可靠地進行橋接，且換料時的防止漏料已受到良好控制。\n"
 "\n"
-"換料塔外牆始終使用內牆速度，不受此設定影響。"
+"換料塔外牆使用內牆速度，同時也受此設定限制。"
 
 msgid "Wall type"
 msgstr "牆體類型"
 
+# AI Translated
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "換料塔外牆類型。\n"
-"1. 矩形：預設牆體類型，具有固定寬度和高度的矩形。\n"
-"2. 圓錐：底部帶圓角的圓錐形，有助於穩定換料塔。\n"
-"3. 肋條：為換料塔牆體添加四條肋條以增強穩定性"
+"1. 矩形：具有固定寬度和高度的矩形。\n"
+"2. 錐體：底部帶圓角的圓錐形，有助於穩定換料塔。\n"
+"3. 肋條：預設牆體類型，為換料塔牆體添加四條肋條以增強穩定性。"
 
 msgid "Rectangle"
 msgstr "矩形"
@@ -19886,8 +19980,9 @@ msgstr "換料塔上的線距。"
 msgid "Extra flow for purging"
 msgstr "額外換料流量"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "讓換料塔在清理時輸出額外流量。這會使列印線比正常情況更粗或更細。間距會自動調整。"
+# AI Translated
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "讓換料塔在清理時輸出額外流量。這會使列印線比正常情況更粗。間距會自動調整。"
 
 msgid "Idle temperature"
 msgstr "閒置溫度"
@@ -20008,11 +20103,15 @@ msgstr ""
 msgid "Minimum wall length"
 msgstr "最短牆長"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
-msgstr "調整此參數以避免列印短小且未封閉的牆體，這可能會延長列印時間。參數值越高，移除的牆體會越多且越長。注意：為避免模型外表面出現視覺裂縫，此設定不會影響頂面和底面。若需調整頂面判定的靈敏度，可修改進階設定中的『單層牆門檻值』。『單層牆門檻值』僅在此設定超過預設值 0.5 或啟用了單層牆頂面功能時可用。"
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+msgstr ""
+"調整此參數以避免列印短小且未封閉的牆體，這可能會延長列印時間。此值為牆寬的倍數。參數值越高，移除的牆體會越多且越長。\n"
+"\n"
+"注意：為避免模型外表面出現視覺裂縫，此設定不會影響頂面和底面。若需調整頂面判定的靈敏度，可修改下方「牆與表面」設定中的「單層牆門檻值」。「單層牆門檻值」僅在此設定超過預設值 0.5 或啟用了單層牆頂面功能時可用。"
 
 msgid "Maximum wall resolution"
 msgstr "最大牆解析度"
@@ -23965,9 +24064,6 @@ msgstr "啟用智慧線材指派：將一種線材指派給多個噴嘴以最大
 # AI Translated
 msgid "File Saving"
 msgstr "檔案儲存"
-
-msgid "Don't remind me again"
-msgstr "不要再提醒我"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "不會再出現任何彈出視窗。您可以在“偏好設定”中重新開啟它"
@@ -34445,6 +34541,162 @@ msgid ""
 msgstr ""
 "避免翹曲\n"
 "您知道嗎？當列印容易翹曲的材料（如 ABS）時，適當提高熱床溫度可以降低翹曲的機率。"
+
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "橋接的線寬。如果以 % 表示，將以噴嘴直徑為基準計算。\n"
+#~ "建議搭配較高的橋接密度或橋接流量比例使用。\n"
+#~ "\n"
+#~ "最大值為 100% 或噴嘴直徑。\n"
+#~ "如果設為 0，線寬將與內部實心填充寬度相同。"
+
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "啟用此選項可在牆可能向上捲曲的區域降低列印速度。\n"
+#~ "例如，在列印像 Benchy 船體前端這類尖角上的懸空時，會套用額外的減速，以減少在多個層上不斷累積的捲曲。\n"
+#~ "\n"
+#~ "一般建議開啟此選項，除非您的列印裝置冷卻能力夠強，或列印速度夠慢，使得牆不會發生捲曲。 \n"
+#~ "若以較高的外牆速度列印，此參數在減速時可能會產生牆面瑕疵，這是因為列印速度的差異可能過大，導致擠出機無法跟上所要求的流量變化。\n"
+#~ "這些瑕疵的根本原因很可能是 PA 調校略有偏差，尤其是搭配較高的 PA 平滑時間時。\n"
+#~ "\n"
+#~ "啟用此選項時的建議：\n"
+#~ "1. 將 Pressure Advance 平滑時間降低至 0.015 - 0.02，讓擠出機能快速回應速度變化。\n"
+#~ "2. 提高最小列印速度，以限制減速的幅度，並減少快慢區段之間的差異。\n"
+#~ "3. 若仍出現瑕疵，請啟用平滑擠出率 (ERS) 以進一步平滑流量轉換。\n"
+#~ "\n"
+#~ "注意：啟用此選項時，懸空牆會被視為懸空，這表示即使懸空牆屬於橋接的一部分，仍會套用懸空列印速度。\n"
+#~ "例如，當牆 100% 懸空、下方沒有牆支撐時，將會套用 100% 懸空列印速度。"
+
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "外部可見橋接擠出的列印速度\n"
+#~ "\n"
+#~ "如果停用了『翹邊處降速』或啟用了『經典懸空模式』，則對支撐率低於 13% 的懸空牆（無論是橋接的一部分還是懸空結構）將使用該列印速度。"
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "此獨立設定將影響半徑小於或等於 small_perimeter_threshold 的外牆列印速度（通常指孔洞）。若設定為百分比（如 80%），將基於上述外牆速度進行計算。設定為 0 表示自動調整。"
+
+# AI Translated
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "與「Small perimeters」相同，但用於支撐。此獨立設定會影響面積 <= `small_support_perimeter_threshold` 的支撐速度。若以百分比表示（例如：80%），則會依上方的支撐或支撐介面速度設定計算。設為零表示自動。"
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "『內牆』與『外牆』牆體的列印順序。\n"
+#~ "使用『內牆/外牆』順序可獲得最佳的懸空效果。這是因為懸空牆體在列印時可以附著到相鄰的牆。然而，此選項會略微降低表面品質，因為外牆被壓到內牆上而變形。\n"
+#~ "使用『內牆/外牆/內牆』順序可獲得最佳的外表面光潔度和尺寸精度，因為外牆的列印不會受到內牆影響。然而，因為外牆缺少內牆的支撐，懸空性能會有所降低。此選項需要至少 3 層牆才能生效，它會先從第 3 層牆開始列印內牆，接著列印外部周邊，最後列印最內層的內牆。在大多數情況下，建議選擇此選項，而不是外牆/內牆的順序設定。\n"
+#~ "採用『外牆/內牆』順序可以達到與『內牆/外牆/內牆』設定相同的外牆表面品質與尺寸精度。然而，Z 軸接縫的均勻性會稍差，因為新層的首次擠出會在可見的表面開始。"
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "首層除實心填充之外的其他部分的列印速度"
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "首層實心填充的列印速度"
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "為了增強填充與周邊的結合，填充區域會略微擴大，與周邊產生重疊。此百分比值是基於稀疏填充的線寬來計算的。建議將該值設定在 10-15% 左右，以減少過擠出或材料堆積的可能性從而避免列印出粗糙的頂部表面。"
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "頂部實心填充的區域會略微擴大，與周邊部分重疊，以增強結合效果並減少填充與周邊接合處出現針孔的可能性。建議從 25-30% 的設定值開始，這通常能有效減少針孔現象。此百分比值是基於稀疏填充的線寬來計算的"
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr "設定分隔區域的互鎖深度。如果「mmu_segmented_region_max_width」設定為 0，或者「mmu_segmented_region_interlocking_depth」的值大於「mmu_segmented_region_max_width」，此功能將被忽略。將此值設為 0 可完全關閉該功能。"
+
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "降低頂面牆的高度，使其與模型邊緣高度相符。\n"
+#~ "影響坡度小於此角度（度）的牆。\n"
+#~ "合理值為 35。設為 0 可停用。"
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "自動擦拭速度"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "防風罩可有效保護 ABS 或 ASA 列印物免受氣流影響，避免翹曲或脫離列印床。通常僅在開放式框架的列印裝置（即無外殼）中需要使用。\n"
+#~ "\n"
+#~ "啟用後，Skirt 的高度將與列印物的最高點相同。若未啟用，則使用『Skirt 高度』的設定值。\n"
+#~ "注意：啟用擋風護盾時，Skirt 會按照設定的 Skirt 距離列印於物體周圍。如果同時啟用了耳狀 Brim，Skirt 可能會與其重疊。為避免此問題，請增加 Skirt 距離的設定值。\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "在換料塔中沖刷和列印換料塔稀疏層時的最大列印速度。沖刷時，如果稀疏填充速度或根據線材最大體積速度計算出的速度較低，則將使用較低的速度。\n"
+#~ "\n"
+#~ "列印稀疏層時，如果內牆速度或根據線材最大體積速度計算出的速度較低，則將使用較低的速度。\n"
+#~ "\n"
+#~ "提高此速度可能會影響換料塔的穩定性，並增加噴嘴與換料塔上凸起物的碰撞力。\n"
+#~ "\n"
+#~ "在將此參數提高到預設值 90 mm/s 以上之前，請確保您的列印裝置能夠在更高的速度下可靠地進行橋接，且工具更換時的溢出能被良好控制。\n"
+#~ "\n"
+#~ "換料塔外牆始終使用內牆速度，不受此設定影響。"
+
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "換料塔外牆類型。\n"
+#~ "1. 矩形：預設牆體類型，具有固定寬度和高度的矩形。\n"
+#~ "2. 圓錐：底部帶圓角的圓錐形，有助於穩定換料塔。\n"
+#~ "3. 肋條：為換料塔牆體添加四條肋條以增強穩定性"
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "讓換料塔在清理時輸出額外流量。這會使列印線比正常情況更粗或更細。間距會自動調整。"
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr "調整此參數以避免列印短小且未封閉的牆體，這可能會延長列印時間。參數值越高，移除的牆體會越多且越長。注意：為避免模型外表面出現視覺裂縫，此設定不會影響頂面和底面。若需調整頂面判定的靈敏度，可修改進階設定中的『單層牆門檻值』。『單層牆門檻值』僅在此設定超過預設值 0.5 或啟用了單層牆頂面功能時可用。"
 
 # AI Translated
 #, boost-format

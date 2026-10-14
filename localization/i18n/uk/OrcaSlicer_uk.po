@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-13 21:06-0300\n"
 "PO-Revision-Date: 2026-07-17 16:25+0300\n"
 "Last-Translator: Andrij Mizyk <andm1zyk@proton.me>\n"
 "Language-Team: Ukrainian\n"
@@ -2412,6 +2412,66 @@ msgstr "Розширення мережевого плагіну"
 
 msgid "Privacy Policy Update"
 msgstr "Оновлення політики конфіденційності"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "Усі ваші пресети філаменту доступні на принтерах, для яких вони були створені."
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "Переміщення пресетів філаменту"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 змінив структуру багатьох системних пресетів філаменту, щоб виправити некоректні профілі та підготуватися до майбутніх функцій. Через це наведені нижче пресети більше не відображаються на деяких принтерах, для яких вони були створені. Вибачте за незручності: це одноразове виправлення.\n"
+"\n"
+"Додати ці принтери назад до ваших пресетів зараз? Спочатку буде створено резервну копію ваших пресетів. Це також можна зробити пізніше через Допомога > Переміщення пресетів філаменту."
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (на основі %2%)"
+
+msgid "Don't remind me again"
+msgstr "Не нагадувати мені більше"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "Не вдалося створити резервну копію ваших пресетів, тому їх не було переміщено."
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "Не вдалося заблокувати теку пресетів користувача, тому нічого не було переміщено. Можливо, інший екземпляр OrcaSlicer зберігає пресети; спробуйте ще раз пізніше через Допомога > Переміщення пресетів філаменту."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Не вдалося перемістити ваші пресети філаменту. Резервну копію ваших пресетів збережено в:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Ваші пресети філаменту переміщено. Виберіть їх знову у списку філаментів там, де ви їх використовували.\n"
+"\n"
+"Резервну копію ваших пресетів збережено в:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "Не вдалося перемістити ці пресети:"
 
 #, c-format, boost-format
 msgid "your Orca Cloud profile (user ID: \"%s\")"
@@ -6684,6 +6744,10 @@ msgstr "Майстер налаштувань"
 
 msgid "Show Configuration Folder"
 msgstr "Показати папку конфігурації"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "Повернути пресети філаменту, які оновлення профілів прибрало з принтерів, для яких вони були створені"
 
 msgid "Troubleshoot Center"
 msgstr "Центр вирішення проблем"
@@ -14212,6 +14276,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "периметр повністю всередині модифікатора, модифікатор до нього не застосовано (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "Модифікатор «%2%» (%1%) обʼєкта «%3%» охоплює весь периметр"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "Модифікатор «%2%» (%1%) обʼєкта «%3%» (усього %4%) охоплює весь периметр"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "модифікатор \"%1%\" обʼєкта \"%2%\" не вплинув на шов (можливо, він не досягає осьової лінії надрукованого периметра)"
@@ -15253,13 +15329,13 @@ msgid ""
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Ширина лінії моста. Якщо задано у %, вона обчислюється відносно діаметра сопла.\n"
-"Рекомендується використовувати з вищою щільністю моста або вищим коефіцієнтом потоку моста.\n"
+"Рекомендується використовувати з вищими значеннями «Щільність зовнішніх мостів» або «Коефіцієнт потоку мостів».\n"
 "\n"
 "Максимальне значення — 100% або діаметр сопла.\n"
-"Якщо встановлено 0, ширина лінії відповідатиме ширині внутрішнього суцільного заповнення."
+"Якщо встановлено 0, ширина лінії відповідатиме ширині внутрішнього суцільного заповнення, а для товстих мостів — діаметру сопла."
 
 msgid "Internal bridge flow ratio"
 msgstr "Коефіцієнт потоку внутрішніх мостів"
@@ -15565,7 +15641,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "Увімкніть цю опцію, щоб уповільнювати друк у зонах, де периметри могли загнутися вгору.\n"
 "Наприклад, додаткове уповільнення застосовуватиметься під час друку нависань на гострих кутах, як-от ніс корпусу Benchy, зменшуючи загинання, що накопичується протягом кількох шарів.\n"
@@ -15577,22 +15653,23 @@ msgstr ""
 "Рекомендації при увімкненні цієї опції:\n"
 "1. Зменште час згладжування Pressure Advance до 0.015 - 0.02, щоб екструдер швидко реагував на зміни швидкості.\n"
 "2. Збільште мінімальні швидкості друку, щоб обмежити величину уповільнення та зменшити різницю між швидкими й повільними ділянками.\n"
-"3. Якщо артефакти все ще зʼявляються, увімкніть згладжування швидкості екструзії (ERS), щоб додатково згладити переходи потоку.\n"
+"3. Якщо артефакти все ще зʼявляються, увімкніть «Вирівнювання швидкості екструзії» (ERS), щоб додатково згладити переходи потоку.\n"
 "\n"
 "Примітка: коли цю опцію увімкнено, периметри нависань обробляються як нависання, тобто швидкість нависання застосовується навіть тоді, коли нависаючий периметр є частиною моста.\n"
-"Наприклад, коли периметри нависають на 100% і під ними немає стінки-опори, буде застосовано швидкість для 100% нависання."
+"Наприклад, коли периметри нависають на 100% і під ними немає стінки-опори, буде застосовано швидкість нависання 75%, обмежену швидкістю моста."
 
 msgid "mm/s or %"
 msgstr "мм/с або %"
 
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "Швидкість екструзії мостів, які видно ззовні.\n"
 "\n"
-"Крім того, якщо параметр 'Уповільнення для закручених периметрів' вимкнено або увімкнено 'Класичний режим нависань', ця швидкість буде використовуватися для друку стінок з нависанням, які підтримуються менш ніж на 13%, незалежно від того, чи є вони частиною мосту або звичайного нависання."
+"Крім того, якщо параметр «Уповільнення для нависаючих периметрів» вимкнено, ця швидкість буде використовуватися для друку стінок з нависанням, які підтримуються менш ніж на 13%, незалежно від того, чи є вони частиною мосту або звичайного нависання."
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "Швидкість внутрішніх мостів. Якщо значення вказано у відсотках, воно буде розраховане на основі bridge_speed. Значення за замовчуванням: 150%."
@@ -16160,8 +16237,9 @@ msgstr "Швидкість друку зовнішніх стінок детал
 msgid "Small perimeters"
 msgstr "Маленькі периметри"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "Це окреме налаштування впливає на швидкість периметрів, що мають радіус < = small_perimeter_threshold (зазвичай отворів). Якщо він виражений у відсотках(наприклад, 80%), то він розраховуватиметься на зазначеній вище швидкостіЗовнішній периметр. Встановіть нульове значення для автоматичного налаштування."
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "Це окреме налаштування впливає на швидкість периметрів, що мають радіус <= small_perimeter_threshold (зазвичай отворів). Якщо задано у відсотках (наприклад, 80%), воно обчислюється відносно наведеного вище налаштування швидкості зовнішньої стінки."
 
 msgid "Small perimeters threshold"
 msgstr "Поріг малих периметрів"
@@ -16174,8 +16252,8 @@ msgid "Small support perimeters"
 msgstr "Малі периметри підтримок"
 
 # AI Translated
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "Те саме, що й «Малі периметри», але для підтримок. Це окреме налаштування впливає на швидкість підтримок для областей <= `small_support_perimeter_threshold`. Якщо задано у відсотках (наприклад, 80%), воно обчислюється відносно наведеного вище налаштування швидкості підтримок або інтерфейсу підтримок. Встановіть нуль для автоматичного значення."
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "Те саме, що й «Маленькі периметри», але для підтримок. Це окреме налаштування впливає на швидкість підтримок для областей <= `small_support_perimeter_threshold`. Якщо задано у відсотках (наприклад, 80%), воно обчислюється відносно наведеного вище налаштування швидкості підтримок або інтерфейсу підтримок."
 
 # AI Translated
 msgid "Small support perimeters threshold"
@@ -16188,22 +16266,23 @@ msgstr "Задає поріг довжини малого периметра п�
 msgid "Walls printing order"
 msgstr "Послідовність друку стінок"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
-"Послідовність друку внутрішніх (inner) та зовнішніх (outer) стін.\n"
+"Послідовність друку внутрішніх і зовнішніх стінок.\n"
 "\n"
-"Використовуйте внутрішню/зовнішню для найкращих виступів. Це повʼязано з тим, що стіни, які виступають, можуть прилипати до сусіднього периметра під час друку. Однак цей параметр призводить до деякого зниження якості поверхні, оскільки зовнішній периметр деформується, притискаючись до внутрішнього.\n"
+"Використовуйте «Внутрішня/Зовнішня» для найкращих нависань. Це тому, що нависаючі стінки під час друку можуть зчіплюватися із сусіднім периметром. Однак цей варіант трохи погіршує якість поверхні, оскільки зовнішній периметр деформується, будучи притиснутим до внутрішнього.\n"
 "\n"
-"Використовуйте Внутрішній/Зовнішній/Внутрішній для найкращої якості зовнішньої поверхні та точності розмірів, оскільки зовнішня стіна друкується без порушень від внутрішнього периметра. Однак, продуктивність на виході зменшиться, оскільки немає внутрішнього периметра, до якого можна було б притискати зовнішню стіну. Для ефективної роботи цієї опції потрібно щонайменше 3 стіни, оскільки спочатку друкуються внутрішні стіни, починаючи з 3-го периметра, потім зовнішній периметр і, нарешті, перший внутрішній периметр. У більшості випадків цей параметр рекомендується використовувати замість параметра Зовнішній/Внутрішній.\n"
+"Використовуйте «Внутрішня/Зовнішня/Внутрішня» для найкращої обробки зовнішньої поверхні та точності розмірів, оскільки зовнішня стінка друкується без впливу внутрішнього периметра. Однак якість нависань погіршиться, бо немає внутрішнього периметра, до якого можна друкувати зовнішню стінку. Для ефективності цей варіант потребує щонайменше 3 стінок: спочатку друкуються внутрішні стінки, починаючи з 3-го периметра, потім зовнішній периметр і, нарешті, перший внутрішній периметр. У більшості випадків цей варіант рекомендується замість «Зовнішня/Внутрішня».\n"
 "\n"
-"Використовуйте опцію Зовнішня/Внутрішня для отримання такої ж якості зовнішньої стіни і точності розмірів, як і в опції Внутрішня/Зовнішня/Внутрішня. Однак шви по Z будуть виглядати менш рівномірними, оскільки перша екструзія нового шару починається на видимій поверхні "
+"Використовуйте «Зовнішня/Внутрішня», щоб отримати таку саму якість зовнішньої стінки та точність розмірів, як і у варіанта «Внутрішня/Зовнішня/Внутрішня». Однак Z-шви виглядатимуть менш однорідно, оскільки перше видавлювання нового шару починається на видимій поверхні."
 
 msgid "Inner/Outer"
 msgstr "Внутрішня/Зовнішня"
@@ -17192,14 +17271,16 @@ msgstr "Висота першого шару"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "Висота першого шару. Невелике збільшення висоти першого шару може покращити прилипання до робочої пластини"
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "Швидкість першого шару, за винятком зони суцільного заповнення"
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "Швидкість периметрів і кайми першого шару."
 
 msgid "First layer infill"
 msgstr "Заповнення першого шару"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "Швидкість зони суцільного заповнення першого шару"
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "Швидкість першого шару, за винятком периметрів і кайми, як-от заповнення, заповнення прогалин і підтримки."
 
 msgid "First layer travel speed"
 msgstr "Швидкість переміщення першого шару"
@@ -17952,16 +18033,18 @@ msgstr "Ширина лінії внутрішнього розрідженог�
 msgid "Infill/wall overlap"
 msgstr "Накладання заповнення/стінки"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "Область заповнення дещо збільшена, щоб перекривати стіну для кращого зчеплення. Значення у відсотках відносно ширини лінії розрідженого заповнення. Встановіть це значення на рівні ~10-15%, щоб мінімізувати можливість надмірного видавлювання та накопичення матеріалу, що призводить до шорсткості верхньої поверхні."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "Область заповнення дещо збільшена, щоб перекривати стіну для кращого зчеплення. Значення у відсотках відносно ширини лінії внутрішньої стінки. Встановіть це значення на рівні ~10-15%, щоб мінімізувати можливість надмірного видавлювання та накопичення матеріалу, що призводить до шорсткості верхньої поверхні."
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "Накладання суцільного заповнення на стінки зверху та знизу"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "Площа верхнього суцільного заповнення злегка збільшується, щоб накладатися на стінку для кращого зчеплення та зменшення прогалин у місцях прилягання верхнього заповнення до стінок. Значення 25-30% є хорошим початком для мінімізації таких прогалин. Значення у відсотках відносно ширини лінії часткового заповнення"
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "Площа верхнього суцільного заповнення злегка збільшується, щоб накладатися на стінку для кращого зчеплення та зменшення прогалин у місцях прилягання верхнього заповнення до стінок. Значення 25-30% є хорошим початком для мінімізації таких прогалин. Значення у відсотках відносно ширини лінії внутрішньої стінки."
 
 msgid "This is the speed for internal sparse infill."
 msgstr "Швидкість внутрішнього часткового заповнення"
@@ -17987,11 +18070,9 @@ msgstr "Максимальна ширина сегментованої обла�
 msgid "Interlocking depth of a segmented region"
 msgstr "Глибина взаємного взаємодії сегментованої області"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr ""
-"Глибина зчеплення сегментованої області. Буде ігноруватися, якщо \"mmu_segmented_region_max_width\" дорівнює нулю або якщо \"mmu_segmented_region_interlocking_depth\" більший за \"mmu_segmented_region_max_width\".\n"
-"\n"
-"Нульове значення вимикає цю функцію."
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "Глибина зчеплення сегментованої області. На кожному другому шарі сегментована область обмежується цією глибиною. Ігнорується, якщо ввімкнено \"interlocking_beam\". Нульове значення вимикає цю функцію."
 
 msgid "Use beam interlocking"
 msgstr "Використовувати зчеплення балками"
@@ -18112,11 +18193,11 @@ msgstr "Кут мінімізації висоти стінки"
 # AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "Зменшує висоту периметрів верхньої поверхні відповідно до висоти краю моделі.\n"
-"Впливає на периметри з нахилом, меншим за цей кут (у градусах).\n"
+"Впливає на периметри з нахилом, більшим за цей кут (у градусах).\n"
 "Розумне значення — 35. Встановіть 0, щоб вимкнути."
 
 # AI Translated
@@ -19122,7 +19203,8 @@ msgstr "З’єднання з шарфом для внутрішніх стін
 msgid "Use scarf joint for inner walls as well."
 msgstr "Використовувати з’єднання з шарфом також для внутрішніх стін."
 
-msgid "Role base wipe speed"
+# AI Translated
+msgid "Role based wipe speed"
 msgstr "Швидкість протирання залежно від типу"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
@@ -19214,16 +19296,15 @@ msgstr "Обмежує петлі спідниці/захисного екран
 msgid "Draft shield"
 msgstr "Захисний екран"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
-"Захисний екран буде корисним для захисту друку ABS або ASA від викривлення та відлипання від столу в наслідок протягу повітря. Зазвичай він потрібен для відкритих принтерів, які не мають закритої камери.\n"
+"Захисний екран буде корисним для захисту друку ABS або ASA від викривлення та відлипання від столу внаслідок протягу повітря. Зазвичай він потрібен для відкритих принтерів, які не мають закритої камери.\n"
 "\n"
-"Увімкнено = Спідниця буде тої ж висоти що і найвищий обʼєкт друку. Інакше буде застосовано параметр \"Висота спідниці\"\n"
-"До уваги: При увімкненому захисному екрані, спідниця буде надрукована на відстані від обʼєкту. Тому, якщо увімкнена кайма, вони можуть перетинатися. Щоб запобігти цьому, збільшіть значення відстані спідниці.\n"
+"Увімкнено = спідниця буде такої ж висоти, як і найвищий обʼєкт друку. Інакше буде застосовано параметр «Висота спідниці»."
 
 msgid "Enabled"
 msgstr "Увімкнуто"
@@ -20398,41 +20479,44 @@ msgstr "Кут на вершині конуса, який використову
 msgid "Maximum wipe tower print speed"
 msgstr "Максимальна швидкість друку вежі протирання"
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (two renderings); used 'вежа протирання' as in the existing labels (Wipe tower, Wipe tower parameters). Check it against the final term.
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
-"Максимальна швидкість друку під час продування у башті витирання та друку розріджених шарів у башті витирання. Якщо під час продування швидкість розрідженого заповнення або розрахована швидкість на основі максимальної обʼємної швидкості нитки нижча, замість неї використовуватиметься найнижча швидкість.\n"
+"Максимальна швидкість друку під час очищення на вежі протирання та друку розріджених шарів вежі протирання. Якщо під час очищення швидкість часткового заповнення або розрахована швидкість на основі максимальної обʼємної швидкості філаменту нижча, замість неї використовуватиметься найнижча швидкість.\n"
 "\n"
-"Під час друку розріджених шарів, якщо швидкість по внутрішньому периметру або розрахована швидкість на основі максимальної обʼємної швидкості нитки нижча, буде використовуватися найнижча швидкість.\n"
+"Під час друку розріджених шарів, якщо швидкість часткового заповнення або розрахована швидкість на основі максимальної обʼємної швидкості філаменту нижча, буде використовуватися найнижча швидкість.\n"
 "\n"
-"Збільшення цієї швидкості може вплинути на стабільність башти, а також збільшити силу, з якою сопло стикається з будь-якими згустками, що можуть утворитися на башті витирання.\n"
+"Збільшення цієї швидкості може вплинути на стабільність вежі, а також збільшити силу, з якою сопло стикається з будь-якими згустками, що могли утворитися на вежі протирання.\n"
 "\n"
-"Перш ніж збільшувати цей параметр понад значення за замовчуванням 90 мм/с, переконайтеся, що принтер може надійно працювати на підвищених швидкостях і що витікання під час заміни інструменту добре контролюється.\n"
+"Перш ніж збільшувати цей параметр понад значення за замовчуванням 90 мм/с, переконайтеся, що принтер може надійно друкувати мости на підвищених швидкостях і що просочування під час заміни інструмента добре контролюється.\n"
 "\n"
-"Для зовнішніх периметрів вежі витирання використовується швидкість внутрішнього периметра незалежно від цього параметра."
+"Для зовнішніх периметрів вежі протирання використовується швидкість внутрішнього периметра, яка також обмежується цим параметром."
 
 msgid "Wall type"
 msgstr "Тип стіни"
 
 # AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (two renderings); used 'вежа протирання' as in the existing labels (Wipe tower, Wipe tower parameters). Check it against the final term.
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "Тип зовнішньої стінки вежі протирання.\n"
-"1. Прямокутник: типовий тип стінки, прямокутник з фіксованою шириною та висотою.\n"
+"1. Прямокутник: прямокутник з фіксованою шириною та висотою.\n"
 "2. Конус: конус із заокругленням унизу, що допомагає стабілізувати вежу протирання.\n"
-"3. Ребро: додає до стінки вежі чотири ребра для більшої стійкості."
+"3. Ребро: типовий тип стінки, що додає до стінки вежі чотири ребра для більшої стійкості."
 
 msgid "Rectangle"
 msgstr "Прямокутник"
@@ -20533,8 +20617,10 @@ msgstr "Відстань між лініями очищення на вежі п
 msgid "Extra flow for purging"
 msgstr "Додатковий потік для очищення"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "Додатковий потік для ліній очистки на вежі протирання. Це робить лінії очистки товщими або вужчими, ніж зазвичай. Відстань між лініями налаштовується автоматично."
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (two renderings); used 'вежа протирання' as in the existing labels (Wipe tower, Wipe tower parameters). Check it against the final term.
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "Додатковий потік для ліній очищення на вежі протирання. Це робить лінії очищення товщими, ніж зазвичай. Відстань між лініями налаштовується автоматично."
 
 msgid "Idle temperature"
 msgstr "Температура очікування"
@@ -20656,11 +20742,15 @@ msgstr "Мінімальна товщина тонких елементів. Е�
 msgid "Minimum wall length"
 msgstr "Мінімальна довжина стінок"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
-msgstr "Налаштуйте це значення, щоб запобігти друкуванню коротких незакритих стін, що може збільшити час друку. Вищі значення видаляють більше і довші стіни."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+msgstr ""
+"Налаштуйте це значення, щоб запобігти друкуванню коротких незакритих стін, що може збільшити час друку. Значення задається як множник ширини стінки. Вищі значення видаляють більше і довші стіни.\n"
+"\n"
+"ПРИМІТКА: нижні та верхні поверхні не зазнають впливу цього значення, щоб уникнути видимих прогалин зовні моделі. Налаштуйте «Поріг в одну стіну» в налаштуваннях «Стінки та поверхні» нижче, щоб змінити чутливість визначення верхньої поверхні. «Поріг в одну стіну» видимий лише тоді, коли це налаштування вище за типове значення 0.5 або коли ввімкнено «Тільки одна стінка на верхніх поверхнях»."
 
 # AI Translated
 msgid "Maximum wall resolution"
@@ -24670,9 +24760,6 @@ msgstr "Дозволити розумне призначення філамен�
 # AI Translated
 msgid "File Saving"
 msgstr "Збереження файлу"
-
-msgid "Don't remind me again"
-msgstr "Не нагадувати мені більше"
 
 # AI Translated
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -35342,6 +35429,172 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури столу може зменшити ймовірність деформації?"
+
+# AI Translated
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "Ширина лінії моста. Якщо задано у %, вона обчислюється відносно діаметра сопла.\n"
+#~ "Рекомендується використовувати з вищою щільністю моста або вищим коефіцієнтом потоку моста.\n"
+#~ "\n"
+#~ "Максимальне значення — 100% або діаметр сопла.\n"
+#~ "Якщо встановлено 0, ширина лінії відповідатиме ширині внутрішнього суцільного заповнення."
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "Увімкніть цю опцію, щоб уповільнювати друк у зонах, де периметри могли загнутися вгору.\n"
+#~ "Наприклад, додаткове уповільнення застосовуватиметься під час друку нависань на гострих кутах, як-от ніс корпусу Benchy, зменшуючи загинання, що накопичується протягом кількох шарів.\n"
+#~ "\n"
+#~ "Загалом рекомендується тримати цю опцію увімкненою, якщо тільки охолодження вашого принтера не є достатньо потужним або швидкість друку достатньо низькою, щоб загинання периметрів не виникало. \n"
+#~ "Під час друку з високою швидкістю зовнішнього периметра цей параметр може спричинити артефакти на стінках під час уповільнення через потенційно велику різницю швидкостей друку, коли екструдер не встигає за потрібною зміною потоку.\n"
+#~ "Корінна причина цих артефактів — найімовірніше, дещо неточне налаштування PA, особливо в поєднанні з великим часом згладжування PA.\n"
+#~ "\n"
+#~ "Рекомендації при увімкненні цієї опції:\n"
+#~ "1. Зменште час згладжування Pressure Advance до 0.015 - 0.02, щоб екструдер швидко реагував на зміни швидкості.\n"
+#~ "2. Збільште мінімальні швидкості друку, щоб обмежити величину уповільнення та зменшити різницю між швидкими й повільними ділянками.\n"
+#~ "3. Якщо артефакти все ще зʼявляються, увімкніть згладжування швидкості екструзії (ERS), щоб додатково згладити переходи потоку.\n"
+#~ "\n"
+#~ "Примітка: коли цю опцію увімкнено, периметри нависань обробляються як нависання, тобто швидкість нависання застосовується навіть тоді, коли нависаючий периметр є частиною моста.\n"
+#~ "Наприклад, коли периметри нависають на 100% і під ними немає стінки-опори, буде застосовано швидкість для 100% нависання."
+
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "Швидкість екструзії мостів, які видно ззовні.\n"
+#~ "\n"
+#~ "Крім того, якщо параметр 'Уповільнення для закручених периметрів' вимкнено або увімкнено 'Класичний режим нависань', ця швидкість буде використовуватися для друку стінок з нависанням, які підтримуються менш ніж на 13%, незалежно від того, чи є вони частиною мосту або звичайного нависання."
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "Це окреме налаштування впливає на швидкість периметрів, що мають радіус < = small_perimeter_threshold (зазвичай отворів). Якщо він виражений у відсотках(наприклад, 80%), то він розраховуватиметься на зазначеній вище швидкостіЗовнішній периметр. Встановіть нульове значення для автоматичного налаштування."
+
+# AI Translated
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "Те саме, що й «Малі периметри», але для підтримок. Це окреме налаштування впливає на швидкість підтримок для областей <= `small_support_perimeter_threshold`. Якщо задано у відсотках (наприклад, 80%), воно обчислюється відносно наведеного вище налаштування швидкості підтримок або інтерфейсу підтримок. Встановіть нуль для автоматичного значення."
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "Послідовність друку внутрішніх (inner) та зовнішніх (outer) стін.\n"
+#~ "\n"
+#~ "Використовуйте внутрішню/зовнішню для найкращих виступів. Це повʼязано з тим, що стіни, які виступають, можуть прилипати до сусіднього периметра під час друку. Однак цей параметр призводить до деякого зниження якості поверхні, оскільки зовнішній периметр деформується, притискаючись до внутрішнього.\n"
+#~ "\n"
+#~ "Використовуйте Внутрішній/Зовнішній/Внутрішній для найкращої якості зовнішньої поверхні та точності розмірів, оскільки зовнішня стіна друкується без порушень від внутрішнього периметра. Однак, продуктивність на виході зменшиться, оскільки немає внутрішнього периметра, до якого можна було б притискати зовнішню стіну. Для ефективної роботи цієї опції потрібно щонайменше 3 стіни, оскільки спочатку друкуються внутрішні стіни, починаючи з 3-го периметра, потім зовнішній периметр і, нарешті, перший внутрішній периметр. У більшості випадків цей параметр рекомендується використовувати замість параметра Зовнішній/Внутрішній.\n"
+#~ "\n"
+#~ "Використовуйте опцію Зовнішня/Внутрішня для отримання такої ж якості зовнішньої стіни і точності розмірів, як і в опції Внутрішня/Зовнішня/Внутрішня. Однак шви по Z будуть виглядати менш рівномірними, оскільки перша екструзія нового шару починається на видимій поверхні "
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "Швидкість першого шару, за винятком зони суцільного заповнення"
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "Швидкість зони суцільного заповнення першого шару"
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "Область заповнення дещо збільшена, щоб перекривати стіну для кращого зчеплення. Значення у відсотках відносно ширини лінії розрідженого заповнення. Встановіть це значення на рівні ~10-15%, щоб мінімізувати можливість надмірного видавлювання та накопичення матеріалу, що призводить до шорсткості верхньої поверхні."
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "Площа верхнього суцільного заповнення злегка збільшується, щоб накладатися на стінку для кращого зчеплення та зменшення прогалин у місцях прилягання верхнього заповнення до стінок. Значення 25-30% є хорошим початком для мінімізації таких прогалин. Значення у відсотках відносно ширини лінії часткового заповнення"
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr ""
+#~ "Глибина зчеплення сегментованої області. Буде ігноруватися, якщо \"mmu_segmented_region_max_width\" дорівнює нулю або якщо \"mmu_segmented_region_interlocking_depth\" більший за \"mmu_segmented_region_max_width\".\n"
+#~ "\n"
+#~ "Нульове значення вимикає цю функцію."
+
+# AI Translated
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "Зменшує висоту периметрів верхньої поверхні відповідно до висоти краю моделі.\n"
+#~ "Впливає на периметри з нахилом, меншим за цей кут (у градусах).\n"
+#~ "Розумне значення — 35. Встановіть 0, щоб вимкнути."
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "Швидкість протирання залежно від типу"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "Захисний екран буде корисним для захисту друку ABS або ASA від викривлення та відлипання від столу в наслідок протягу повітря. Зазвичай він потрібен для відкритих принтерів, які не мають закритої камери.\n"
+#~ "\n"
+#~ "Увімкнено = Спідниця буде тої ж висоти що і найвищий обʼєкт друку. Інакше буде застосовано параметр \"Висота спідниці\"\n"
+#~ "До уваги: При увімкненому захисному екрані, спідниця буде надрукована на відстані від обʼєкту. Тому, якщо увімкнена кайма, вони можуть перетинатися. Щоб запобігти цьому, збільшіть значення відстані спідниці.\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "Максимальна швидкість друку під час продування у башті витирання та друку розріджених шарів у башті витирання. Якщо під час продування швидкість розрідженого заповнення або розрахована швидкість на основі максимальної обʼємної швидкості нитки нижча, замість неї використовуватиметься найнижча швидкість.\n"
+#~ "\n"
+#~ "Під час друку розріджених шарів, якщо швидкість по внутрішньому периметру або розрахована швидкість на основі максимальної обʼємної швидкості нитки нижча, буде використовуватися найнижча швидкість.\n"
+#~ "\n"
+#~ "Збільшення цієї швидкості може вплинути на стабільність башти, а також збільшити силу, з якою сопло стикається з будь-якими згустками, що можуть утворитися на башті витирання.\n"
+#~ "\n"
+#~ "Перш ніж збільшувати цей параметр понад значення за замовчуванням 90 мм/с, переконайтеся, що принтер може надійно працювати на підвищених швидкостях і що витікання під час заміни інструменту добре контролюється.\n"
+#~ "\n"
+#~ "Для зовнішніх периметрів вежі витирання використовується швидкість внутрішнього периметра незалежно від цього параметра."
+
+# AI Translated
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "Тип зовнішньої стінки вежі протирання.\n"
+#~ "1. Прямокутник: типовий тип стінки, прямокутник з фіксованою шириною та висотою.\n"
+#~ "2. Конус: конус із заокругленням унизу, що допомагає стабілізувати вежу протирання.\n"
+#~ "3. Ребро: додає до стінки вежі чотири ребра для більшої стійкості."
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "Додатковий потік для ліній очистки на вежі протирання. Це робить лінії очистки товщими або вужчими, ніж зазвичай. Відстань між лініями налаштовується автоматично."
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr "Налаштуйте це значення, щоб запобігти друкуванню коротких незакритих стін, що може збільшити час друку. Вищі значення видаляють більше і довші стіни."
 
 # AI Translated
 #, boost-format
