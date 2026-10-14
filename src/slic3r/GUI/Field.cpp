@@ -2623,7 +2623,9 @@ void PluginConfigField::msw_rescale()
 
 void ColourPicker::BUILD()
 {
-    wxSize size(def_width_wider() * m_em_unit, -1);
+    // An empty borderless wxButton is created with zero height on macOS. Give the bitmap
+    // field the same height as other parameter buttons before drawing its swatch.
+    wxSize size(def_width_wider() * m_em_unit, m_parent->FromDIP(26));
     if (m_opt.height >= 0) size.SetHeight(m_opt.height*m_em_unit);
     if (m_opt.width >= 0) size.SetWidth(m_opt.width*m_em_unit);
 
@@ -2725,7 +2727,7 @@ void ColourPicker::apply_user_color(const std::optional<wxColour>& color)
 void ColourPicker::msw_rescale()
 {
     Field::msw_rescale();
-    wxSize size(def_width_wider() * m_em_unit, -1);
+    wxSize size(def_width_wider() * m_em_unit, m_parent->FromDIP(26));
     if (m_opt.height >= 0)
         size.SetHeight(m_opt.height * m_em_unit);
     else if (parent_is_custom_ctrl && opt_height > 0)
