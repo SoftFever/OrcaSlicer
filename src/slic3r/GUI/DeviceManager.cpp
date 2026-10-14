@@ -1,21 +1,58 @@
-#include "libslic3r/libslic3r.h"
+#include "PrinterNetworkTypes.hpp"
+#include <nlohmann/json.hpp>
 #include "DeviceManager.hpp"
 #include "HMS.hpp"
 #include "I18N.hpp"
-#include "libslic3r/Time.hpp"
 #include "libslic3r/Thread.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
-#include "slic3r/plugin/PluginManager.hpp"
 #include "slic3r/Utils/NetworkAgentFactory.hpp"
-#include "GuiColor.hpp"
 
 #include "GUI_App.hpp"
-#include "MsgDialog.hpp"
 #include "DeviceErrorDialog.hpp"
 #include "Plater.hpp"
-#include "GUI_App.hpp"
 #include "ReleaseNote.hpp"
+#include <string>
+#include <boost/log/trivial.hpp>
+#include <cstdlib>
+#include <cstddef>
+#include "libslic3r/PrintConfig.hpp"
+#include <cassert>
+#include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
+#include "libslic3r/Utils.hpp"
+#include <boost/filesystem/operations.hpp>
+#include <chrono>
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include <memory>
+#include "slic3r/GUI/DeviceCore/DevCalib.h"
+#include <boost/algorithm/string/predicate.hpp>
+#include <cstdint>
+#include <map>
+#include "libslic3r/calib.hpp"
+#include <ctime>
+#include "slic3r/GUI/DeviceCore/DevFilaAmsSetting.h"
+#include <cstdio>
+#include "slic3r/GUI/DeviceCore/DevFirmware.h"
+#include <optional>
+#include <exception>
+#include "libslic3r/LocalesUtils.hpp"
+#include "libslic3r/LifecycleEvents.hpp"
+#include <system_error>
+#include "libslic3r/ProjectTask.hpp"
+#include <cstring>
+#include <boost/chrono/duration.hpp>
+#include <iterator>
+#include "slic3r/GUI/UserNotification.hpp"
+#include <cctype>
+#include <algorithm>
+#include <limits>
+#include <stdexcept>
+#include "libslic3r/Config.hpp"
+#include <set>
+#include <sstream>
+#include <ios>
+#include <iomanip>
 #include <thread>
 #include <mutex>
 #include <charconv>
@@ -25,7 +62,16 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+#include <wx/colour.h>
+#include <tuple>
+#include <wx/app.h>
 #include <wx/dir.h>
+#include <wx/string.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
 #include "fast_float/fast_float.h"
 
 #include "DeviceCore/DevFilaSystem.h"
@@ -40,12 +86,10 @@
 
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevCtrl.h"
-#include "DeviceCore/DevInfo.h"
 #include "DeviceCore/DevPrintOptions.h"
 #include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevHMS.h"
 
-#include "DeviceCore/DevMapping.h"
 #include "DeviceCore/DevMappingNozzle.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevUtil.h"
@@ -57,14 +101,23 @@
 #include "DeviceCore/DevUpgrade.h"
 
 #include "IPrinterAgent.hpp"
+#include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/PresetBundle.hpp"
+#include "slic3r/GUI/Jobs/SendJob.hpp"
+
+using json = nlohmann::json;
+
+class wxWindow;
+
+namespace fs = boost::filesystem;
+using namespace std::chrono_literals;
 
 #define CALI_DEBUG
 #define MINUTE_30 1800000    //ms
 #define TIME_OUT  5000       //ms
 
 #define ORCA_NETWORK_DEBUG
-
-namespace pt = boost::property_tree;
 
 float string_to_float(const std::string& str_value) {
     float value = 0.0;
@@ -476,6 +529,18 @@ bool MachineObject::HasRecentLanMessage()
     return diff.count() < 5000;
 }
 
+bool MachineObject::has_access_right() const
+{
+    return !m_access_revoked && (printer_agent_id == MOONRAKER_PRINTER_AGENT_ID || !get_access_code().empty());
+}
+
+void MachineObject::revoke_access()
+{
+    // UI panels retain this object; revoke its binding without invalidating their pointers.
+    access_code.clear();
+    m_access_revoked = true;
+}
+
 std::string MachineObject::get_access_code() const
 {
     return access_code;
@@ -484,6 +549,7 @@ std::string MachineObject::get_access_code() const
 void MachineObject::set_access_code(std::string code, bool only_refresh)
 {
     this->access_code = code;
+    m_access_revoked = false;
     if (only_refresh) {
         AppConfig* config = m_manager ? m_manager->get_app_config() : GUI::wxGetApp().app_config;
         if (config) {
@@ -497,25 +563,10 @@ void MachineObject::set_access_code(std::string code, bool only_refresh)
                 // session boundary, since parse_user_print_info() always overwrites their code
                 // fresh from the cloud API's current response, so there's no cross-agent leakage
                 // risk to guard against there.
-                if (!code.empty()) {
+                if (has_access_right()) {
                     DeviceManager::update_local_machine(*this, config);
                 } else {
-                    // Only patch an existing record's code - don't persist a brand-new
-                    // never-bound entry just because set_access_code("") was called on it.
-                    const auto& machines = config->get_local_machines();
-                    auto        it       = machines.find(get_dev_id());
-                    if (it != machines.end()) {
-                        BBLocalMachine local_machine = it->second;
-                        local_machine.access_code    = "";
-                        config->update_local_machine(local_machine);
-                    }
-                    // Also clear the pre-scoping flat legacy key when unbinding under BBL, so an
-                    // old BBL-era code can't silently "re-bind" this device again via
-                    // get_access_code_with_legacy_fallback()'s legacy fallback.
-                    if (printer_agent_id == BBL_PRINTER_AGENT_ID || printer_agent_id.empty()) {
-                        config->erase("access_code", get_dev_id());
-                        config->erase("user_access_code", get_dev_id());
-                    }
+                    config->clear_local_machine_access_code(get_dev_id(), printer_agent_id);
                 }
             } else {
                 if (!code.empty())
@@ -2627,7 +2678,7 @@ void MachineObject::update_print_progress(const json& value)
 
 int MachineObject::connect()
 {
-    if (get_dev_ip().empty()) return -1;
+    if (m_access_revoked || get_dev_ip().empty()) return -1;
     std::string username = m_agent ? m_agent->default_lan_username() : std::string();
     std::string password = get_access_code();
 
@@ -2640,16 +2691,24 @@ int MachineObject::connect()
     std::string host = Http::get_host_from_url(input, &port);
     std::string ca_file;
 
-    if (GUI::wxGetApp().preset_bundle) {
+    if (wxTheApp && GUI::wxGetApp().preset_bundle) {
         const auto& config = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
         if (port.empty())
             port = config.opt_string("printhost_port");
         ca_file = config.opt_string("printhost_cafile");
+
+        // Refresh credentials from the matching preset for connections that bypass GUI_App::select_machine().
+        const std::string print_host = config.opt_string("print_host");
+        if (printer_agent_id == MOONRAKER_PRINTER_AGENT_ID && config.opt_string("printer_agent") == MOONRAKER_PRINTER_AGENT_ID &&
+            !print_host.empty() && dev_id_from_address(print_host, config.opt_string("printhost_port")) == get_dev_id()) {
+            password = config.opt_string("printhost_apikey");
+            if (password != get_access_code())
+                set_access_code(password);
+        }
     }
 
     if (host.empty())
         host = get_dev_ip();
-
 
     if (m_agent) {
         try {
@@ -3052,7 +3111,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         DevFirmwareVersionInfo ver_info;
                         ver_info.name = (*it)["name"].get<std::string>();
                         if ((*it).contains("product_name"))
-                            ver_info.product_name = wxString::FromUTF8((*it)["product_name"].get<string>());
+                            ver_info.product_name = wxString::FromUTF8((*it)["product_name"].get<std::string>());
                         if ((*it).contains("sw_ver"))
                             ver_info.sw_ver = (*it)["sw_ver"].get<std::string>();
                         if ((*it).contains("sw_new_ver"))
@@ -4262,7 +4321,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 info = _L("Selected diameter and machine diameter do not match");
                             }
                             else if (reason == "generate auto filament cali gcode failure") {
-                                info = _L("Failed to generate cali G-code");
+                                info = _L("Failed to generate calibration G-code");
                             }
                             else {
                                 info = reason;

@@ -5,7 +5,7 @@ How wx 3.3.2 popups and menus behave on each port, and the Orca wrappers built o
 `append_menu_item`, `Plater::PopupMenu` and the macOS menubar versus `BBLTopbar`. Read it before you add
 or change anything that opens over other UI and must close by itself, or any context menu or menubar item.
 
-wx cites are relative to the wx tree root (`deps/build/<arch>/dep_wxWidgets-prefix/src/dep_wxWidgets`).
+wx cites are relative to the wx tree root (located as in `SKILL.md` §Ground truth).
 **[source]** marks behaviour derived from the implementation that the wx docs do not state or contradict.
 Orca builds wx with `wxBUILD_DEBUG_LEVEL=0`, so every "asserts" below means "fails silently in Orca".
 "GTK" means wxGTK3 (X11 and Wayland), the default Linux build; GTK2 is only an opt-out (`-DDEP_WX_GTK3=OFF`).
@@ -57,8 +57,9 @@ Contents: [Rules](#rules) · [1. Choosing the window kind](#1-choosing-the-windo
 17. Don't shrink a dropdown below two rows to fit the screen. (§7)
 18. Content that needs typing focus or hosts a `wxWebView` uses a frameless `wxDialog` that hides on
     deactivation, not a transient popup. (§10)
-19. Display-only overlays (HUDs, toasts) use a plain `wxPopupWindow`: it never takes focus and never
-    auto-dismisses. (§4, §10)
+19. Display-only overlays (HUDs, toasts) use a plain `wxPopupWindow`: `Show()` never gives it focus and it
+    never auto-dismisses. Never `Raise()` any `wxPopupWindow`: `Raise()` is for top-level windows only, and on
+    macOS it makes the popup the key window. (§4, §5, §10)
 20. On MSW, don't `SetFocus()` another window on hover while `wxCurrentPopupWindow` is non-null. (§8)
 21. Menu items use `wxID_ANY` and read `item->GetId()`. `wxNewId()` is deprecated. (§13)
 22. Set a menu item's bitmap before `Append`. Don't expect icons on check or radio items. Never call
@@ -356,6 +357,13 @@ compensates for (§6).
   with `ShowWithoutActivating` → `setHidesOnDeactivate:YES` + `orderFront` (`src/osx/carbon/popupwin.cpp:56-75`,
   `nonownedwnd.mm:938-945`). When the app deactivates, Cocoa hides the panel and shows it again on reactivation.
   wx never calls `OnDismiss`, and `IsShown()` stays true. This applies to plain `wxPopupWindow` overlays too.
+- `Raise()` activates the popup. It is `makeKeyAndOrderFront` (`src/osx/nonownedwnd_osx.cpp:289-295`,
+  `nonownedwnd.mm:897-899`), and `wxNSPanel` answers `canBecomeKeyWindow` with YES (`nonownedwnd.mm:271`), so
+  the popup becomes the key window. Keys go to it, and the frame loses key status: `windowDidResignKey` →
+  `HandleActivated(0, false)` → `wxEVT_ACTIVATE(false)` on the frame (`nonownedwnd.mm:567-576`,
+  `nonownedwnd_osx.cpp:303-310`). Hiding the key popup gives key back to the frame, which then gets
+  `wxEVT_ACTIVATE(true)` (observed; AppKit behaviour, not in the wx tree). A popup at `NSPopUpMenuWindowLevel`
+  is already above its frame, so `Raise()` buys nothing.
 - Capture: `Show(true)` makes `m_child` capture the mouse ("Assume that the mouse is outside the popup to begin
   with", `popupcmn.cpp:421-426`). `OnIdle` releases the capture while the cursor is inside and re-captures it
   outside, but only when the mouse position has changed since the last idle pass. `s_posLast` is a
@@ -562,6 +570,11 @@ Details [source] (`Widgets/PopupWindow.cpp`).
   - On GTK the sub binds an idle handler. While both are shown and the cursor is over main but not over the
     sub, it builds a `wxMouseEvent(wxEVT_MOTION)` from `wxGetMousePosition()`, calls `mainDropDown->mouseMove(ev)`
     **directly** (nothing is posted), and calls `e.RequestMore()` to keep polling.
+  - On GTK the sub also receives the wheel events the user raises over main: GDK sends a `wl_pointer.axis` only
+    to the surface the pointer is over, and GTK then hands that `GDK_SCROLL` to the chain's grab widget, which is
+    the sub. The sub installs a `GtkWidget::event` handler that replays the event on main with
+    `gtk_propagate_event(main->GetConnectWidget(), event)` when the event's GDK window belongs to main
+    (`DropDown::messureSize`).
 - **GTK wrapper sizing.** `messureSize` calls `gtk_window_resize` on `m_widget` after `SetSize`, because wxGTK's
   `DoSetSize` only uses `gtk_widget_set_size_request` ("gtk_window_resize does not work for GTK_WINDOW_POPUP",
   `src/gtk/popupwin.cpp:181-188`).
@@ -599,6 +612,32 @@ Details [source] (`Widgets/PopupWindow.cpp`).
   ```
   Cite: c0ae2bda99, b9ff15054f (`DropDown::mouseMove`, `DropDown::messureSize`, `DropDown::ShouldDismissOnTopWindowDeactivate`,
   `PopupWindow::ShouldDismissOnTopWindowDeactivate`).
+- **Rule:** On GTK, route a chained popup's wheel event by the GDK window it names, not by the grab widget and not
+  by the global cursor position.
+  **Why:** While the sub holds the grab, `gtk_main_do_event` hands every `GDK_SCROLL` of the chain to the grab
+  widget (the sub) with its original, un-rebased coordinates [source] (`gtkmain.c:1789-1792`, 1923-1924), while
+  GDK Wayland sends the axis to the surface under the pointer only (`pointer_handle_axis` → `create_scroll_event`,
+  `gdkdevice-wayland.c:1929, 1527`). The sub therefore sees and consumes wheel events raised over main, so the
+  main list never scrolls, on X11 and Wayland alike. A hit test against `wxGetMousePosition()` cannot replace the
+  window test: global coordinates are unreliable on Wayland (`mouse-keyboard-focus.md`). `DropDown` connects a
+  `GtkWidget::event` handler on the sub's `GtkWindow` (its `m_widget`), which is emitted before wx's
+  `::scroll-event` handler on the same widget and suppresses it when it returns TRUE (`gtkwidget.c:7696`), then
+  delivers the event with `gtk_propagate_event(main->GetConnectWidget(), event)`. Returning TRUE there also stops
+  the parent-chain propagation.
+  ```cpp
+  // Wrong: emitted on the popup's outer GtkWindow, where wx has no handlers at all
+  g_signal_emit_by_name(main->m_widget, "scroll-event", event, &handled);
+  // Right (wxGTK): replay GTK's own delivery on the widget wx listens to
+  gtk_propagate_event(main->GetConnectWidget(), event);
+  ```
+  **Where wx listens [source].** `wxPopupWindow::Create` builds a popup from two widgets: `m_widget` is the outer
+  `GtkWindow` and `m_wxwindow` is a `wxPizza` child added to it. `wxWindowGTK::GetConnectWidget()` is
+  `m_wxwindow ? m_wxwindow : m_widget`, and `ConnectWidget()` — which binds `button_press_event`, `motion_notify_event`
+  and `scroll_event` — is called on that widget (`src/gtk/window.cpp` `Create`, `GetConnectWidget`). A signal emitted
+  on the outer `GtkWindow` therefore reaches no wx handler; only events GTK delivers to the inner widget, or to a
+  descendant of the grab widget, are seen by wx. `GTKGetConnectWindow()`/`GTKGetMainWindow()` are the matching
+  GdkWindows.
+  Cite: `DropDown::messureSize`, `DropDown::mouseWheelMoved`.
 - **Rule:** When shrinking a dropdown to fit above the display bottom, give up if fewer than two rows would
   remain.
   **Why:** On Wayland the popup can land where almost no vertical space is left. Clamping to that sliver made an
@@ -739,8 +778,26 @@ created with `wxBORDER_NONE | wxFRAME_NO_TASKBAR | wxFRAME_FLOAT_ON_PARENT | wxF
 - **Rule:** For overlays that must never take keyboard focus (above a GL surface), use a plain
   `wxPopupWindow(top, wxBORDER_NONE)`, not a `wxFrame`.
   **Why:** A frame took the X input focus and swallowed every shortcut until the user clicked the canvas. A popup
-  window cannot take focus. On macOS these overlays hide while the app is inactive (§5).
+  window does not take focus when shown. On macOS these overlays hide while the app is inactive (§5).
   Cite: `CAD/DesignCanvas.cpp` (`m_hud`, `m_status_hud`).
+- **Rule:** Never `Raise()` a `wxPopupWindow`. To bring an overlay up, `Show()` it if it is hidden, then
+  `Move()` it.
+  **Why:** `Raise()` is documented for top-level windows only (`interface/wx/window.h:3028-3029`), and a popup
+  derives from `wxNonOwnedWindow`, not `wxTopLevelWindow` (`include/wx/popupwin.h:33`). On macOS it makes the
+  popup the key window (§5): the popup takes the keys meant for the window below it, and the frame receives
+  `wxEVT_ACTIVATE(false)`. A frame activate handler that hides the overlay on deactivation and re-places it on
+  activation then loops: each `Raise()` deactivates the frame, the hide reactivates it, and the re-place raises
+  again, recursing until the main thread's stack overflows. A popup's `Show()` is `ShowWithoutActivating`
+  and is safe.
+  ```cpp
+  // Wrong
+  if (!overlay->IsShown()) overlay->Show();
+  overlay->Move(pos);
+  overlay->Raise();
+  // Right
+  if (!overlay->IsShown()) overlay->Show();
+  overlay->Move(pos);
+  ```
 
 ## 11. wxComboCtrl / wxComboPopup
 

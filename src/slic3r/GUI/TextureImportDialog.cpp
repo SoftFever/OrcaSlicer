@@ -1,8 +1,12 @@
+#include <array>
+#include <cstdlib>
+#include <functional>
 #include <glad/gl.h>
 #include "OpenGLManager.hpp"
 
 #include "TextureImportDialog.hpp"
 #include "I18N.hpp"
+#include "format.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "ColorDecomposeDialog.hpp"
@@ -10,19 +14,49 @@
 #include "Widgets/StateColor.hpp"
 #include "Widgets/StaticLine.hpp"
 #include "libslic3r/ColorDecomposeRecipe.hpp"
-#include "libslic3r/MeshBoolean.hpp"
+#include "libslic3r/MeshRepair.hpp"
 #include "libslic3r/TriangleSelector.hpp"
 
+#include <utility>
+#include <string>
+#include "libslic3r/Config.hpp"
+#include "slic3r/GUI/Widgets/PopupWindow.hpp"
+#include <vector>
+#include "slic3r/GUI/wxExtensions.hpp"
+#include <math.h>
+#include "slic3r/GUI/GUI_Utils.hpp"
+#include "libslic3r/TexturePainting.hpp"
+#include "slic3r/GUI/Widgets/SpinInput.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include <memory>
+#include <mutex>
 #include <wx/button.h>
 #include <wx/colour.h>
 #include <wx/colordlg.h>
+#include <wx/dc.h>
+#include <wx/colourdata.h>
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
+#include <wx/dialog.h>
 #include <wx/display.h>
+#include <wx/event.h>
 #include <wx/evtloop.h>
+#include <wx/settings.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/popupwin.h>
+#include <wx/glcanvas.h>
+#include <wx/image.h>
+#include <wx/sizer.h>
+#include <wx/object.h>
+#include <wx/spinctrl.h>
+#include <wx/progdlg.h>
+#include <wx/peninfobase.h>
 #include <wx/statline.h>
 #include <wx/scrolwin.h>
 #include <wx/msgdlg.h>
+#include <wx/string.h>
+#include <wx/toplevel.h>
 #include <wx/utils.h>
 #include <wx/valtext.h>
 
@@ -36,6 +70,8 @@
 #include <sstream>
 
 #include <boost/log/trivial.hpp>
+#include <wx/window.h>
+#include <wx/busycursor.h>
 
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE = "PLA Basic";
 static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_SHORT_TYPE = "PLA";
@@ -597,7 +633,9 @@ public:
         decompose_label->SetCursor(wxCursor(add_enabled ? wxCURSOR_HAND : wxCURSOR_ARROW));
         if (!add_enabled)
             add_label->SetToolTip(wxString::Format(
-                _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+                _L_PLURAL("The project supports up to %d filament. Extra filaments will be discarded.",
+                          "The project supports up to %d filaments. Extra filaments will be discarded.",
+                          (int)EnforcerBlockerType::ExtruderMax),
                 (int)EnforcerBlockerType::ExtruderMax));
         decompose_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
             if (m_can_add_filament && !m_can_add_filament())
@@ -711,7 +749,7 @@ private:
             : wxColour(128, 128, 128);
 
         wxString name_str = (idx < m_names.size()) ? filament_name_to_wx_string(m_names[idx])
-                                                    : wxString::Format("Filament %d", display_number((int)idx));
+                                                    : wxString::Format(_L("Filament %d"), display_number((int)idx));
         row->SetToolTip(name_str);
 
         row->Bind(wxEVT_PAINT, [this, idx, sq, sq_r, sq_x, gap1, fil_clr, name_str, row_bg, hover_bg, name_fg](wxPaintEvent& e) {
@@ -794,7 +832,7 @@ private:
         row->SetBackgroundColour(row_bg);
         row->SetBackgroundStyle(wxBG_STYLE_PAINT);
         row->SetCursor(wxCursor(wxCURSOR_HAND));
-        row->SetToolTip(entry.name.empty() ? wxString::Format("Filament %d", display_number(idx)) : filament_name_to_wx_string(entry.name));
+        row->SetToolTip(entry.name.empty() ? wxString::Format(_L("Filament %d"), display_number(idx)) : filament_name_to_wx_string(entry.name));
 
         row->Bind(wxEVT_PAINT, [this, entry, idx, row_bg, hover_bg, name_fg](wxPaintEvent& e) {
             auto* p = static_cast<wxPanel*>(e.GetEventObject());
@@ -1756,7 +1794,7 @@ TextureImportDialog::TextureImportDialog(
         entry.dialog_index = (int)i;
         entry.color_hex = texture_normalize_color_hex(entry.color_hex);
         if (entry.name.empty())
-            entry.name = "Filament " + std::to_string(i + 1);
+            entry.name = GUI::format(_u8L("Filament %d"), i + 1);
         m_filament_color_strs.push_back(entry.color_hex);
         m_filament_names.push_back(entry.name);
         m_filament_colors_rgba.push_back(parse_color_string(entry.color_hex));
@@ -2288,7 +2326,9 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
 {
     m_drop_warning_label = new wxStaticText(this, wxID_ANY,
         wxString::Format(
-            _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+            _L_PLURAL("The project supports up to %d filament. Extra filaments will be discarded.",
+                      "The project supports up to %d filaments. Extra filaments will be discarded.",
+                      (int)max_filament_count()),
             (int)max_filament_count()));
     m_drop_warning_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#FF6F00")));
     m_drop_warning_label->SetFont(texture_import_section_title_font(this));
@@ -2400,25 +2440,25 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
     settings.target_colors_num = auto_color ? 0 : (size_t)m_param_color_count;
     settings.smooth_weight     = m_param_smooth / 10.0;
     settings.mesh_repair_decision = m_mesh_repair_decision;
-    // BBS repairs the mesh through the Windows 3D SDK, which is only available on Windows
-    // builds that ship the SDK. Orca's CGAL-based repair (MeshBoolean::cgal::repair) works
-    // on all three platforms, so use that instead.
     settings.mesh_repair_callback = [](const indexed_triangle_set& mesh,
                                        indexed_triangle_set&       repaired_mesh,
                                        std::function<void(const char*, unsigned)> progress_callback,
                                        std::function<bool()>       cancel_callback,
                                        std::string*                error_message) -> bool {
-        if (cancel_callback && cancel_callback())
-            return false;
         if (progress_callback)
             progress_callback(_u8L("Repairing mesh").c_str(), 0);
 
+        struct Canceled {};
         TriangleMesh tm(mesh);
-        if (!MeshBoolean::cgal::repair(tm, nullptr, error_message))
+        try {
+            if (!repair_mesh(tm, nullptr, error_message, [&cancel_callback](int) {
+                    if (cancel_callback && cancel_callback())
+                        throw Canceled();
+                }))
+                return false;
+        } catch (const Canceled &) {
             return false;
-
-        if (cancel_callback && cancel_callback())
-            return false;
+        }
         repaired_mesh = tm.its;
         if (progress_callback)
             progress_callback(_u8L("Repairing mesh").c_str(), 100);
@@ -2551,7 +2591,7 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent&)
         m_filament_entries[i].color_hex = i < m_filament_color_strs.size() ?
             texture_normalize_color_hex(m_filament_color_strs[i]) : "#808080";
         m_filament_entries[i].name = i < m_filament_names.size() ?
-            m_filament_names[i] : "Filament " + std::to_string(i + 1);
+            m_filament_names[i] : GUI::format(_u8L("Filament %d"), i + 1);
     }
     m_new_filament_colors.clear();
     m_new_filament_preset_names.clear();
@@ -2647,12 +2687,12 @@ void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
         m_progress_dlg = nullptr;
     }
 
-#ifdef HAS_WIN10SDK
     Slic3r::GUI::MessageDialog dlg(initial ? GetParent() : this,
-        _L("The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."),
-        _L("Mesh repair"), wxYES_NO | wxICON_WARNING | wxYES_DEFAULT);
+        _L("The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."),
+        _L("Mesh repair"), wxYES_NO | wxCANCEL | wxICON_WARNING | wxYES_DEFAULT);
     dlg.SetButtonLabel(wxID_YES, _L("Import without repair"));
     dlg.SetButtonLabel(wxID_NO, _L("Repair and import"), true);
+    dlg.SetButtonLabel(wxID_CANCEL, _L("Cancel"));
     // "Repair and import" is the recommended action here, so the accent moves off the default YES
     // button onto NO. MsgDialog::add_button already styled both as ButtonType::Choice, so restyling
     // with the same type swaps only the palette and leaves the geometry alone.
@@ -2668,17 +2708,7 @@ void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
     dlg.Fit();
     dlg.CenterOnParent();
     int ret = dlg.ShowModal();
-    m_mesh_repair_decision = (ret == wxID_NO)
-        ? Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport
-        : Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
-#else
-    Slic3r::GUI::MessageDialog dlg(initial ? GetParent() : this,
-        _L("Please note that the mesh has non-manifold geometry or open boundaries."),
-        _L("Mesh issue"), wxOK | wxCANCEL | wxICON_WARNING | wxOK_DEFAULT);
-    dlg.SetButtonLabel(wxID_OK, _L("Continue"), true);
-    dlg.SetButtonLabel(wxID_CANCEL, _L("Cancel"));
-    int ret = dlg.ShowModal();
-    if (ret != wxID_OK) {
+    if (ret == wxID_CANCEL) {
         m_cancel_flag = true;
         if (initial) {
             m_initial_computation_cancelled = true;
@@ -2691,8 +2721,9 @@ void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
         }
         return;
     }
-    m_mesh_repair_decision = Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
-#endif
+    m_mesh_repair_decision = (ret == wxID_NO)
+        ? Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport
+        : Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
 
     start_computation(auto_color, initial);
 }
@@ -2954,7 +2985,7 @@ void TextureImportDialog::compact_used_virtual_filaments()
     for (size_t i = 0; i < existing_count; ++i) {
         compact_colors.push_back(old_colors[i]);
         compact_color_strs.push_back(i < old_color_strs.size() ? old_color_strs[i] : "");
-        compact_names.push_back(i < old_names.size() ? old_names[i] : "Filament " + std::to_string(i + 1));
+        compact_names.push_back(i < old_names.size() ? old_names[i] : GUI::format(_u8L("Filament %d"), i + 1));
         TextureFilamentEntry entry = i < old_entries.size() ? old_entries[i] : TextureFilamentEntry{};
         entry.dialog_index = (int)i;
         entry.color_hex = texture_normalize_color_hex(compact_color_strs.back());
@@ -3480,7 +3511,7 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
         if (m_mapping_rows[row_index].target_panel) {
             wxString label = (idx >= 0 && idx < (int)m_filament_names.size())
                 ? filament_name_to_wx_string(m_filament_names[idx])
-                : wxString::Format("Filament %d", display_number(idx));
+                : wxString::Format(_L("Filament %d"), display_number(idx));
             m_mapping_rows[row_index].target_panel->SetToolTip(label);
             m_mapping_rows[row_index].target_panel->Refresh();
         }
@@ -3629,7 +3660,7 @@ void TextureImportDialog::do_auto_match()
         // Match clusters to closest existing filaments
         std::vector<std::string> names;
         for (size_t i = 0; i < m_existing_filament_count; ++i)
-            names.push_back(m_filament_names.size() > i ? m_filament_names[i] : "Filament " + std::to_string(i + 1));
+            names.push_back(m_filament_names.size() > i ? m_filament_names[i] : GUI::format(_u8L("Filament %d"), i + 1));
 
         std::vector<std::array<float, 4>> existing_filament_colors(
             m_filament_colors_rgba.begin(),
@@ -3726,7 +3757,7 @@ void TextureImportDialog::rebuild_mapping_rows()
     auto get_filament_label = [this, display_number](int idx) -> wxString {
         if (idx >= 0 && idx < (int)m_filament_names.size())
             return filament_name_to_wx_string(m_filament_names[idx]);
-        return wxString::Format("Filament %d", display_number(idx));
+        return wxString::Format(_L("Filament %d"), display_number(idx));
     };
 
     const wxColour dash_clr   = StateColor::darkModeColorFor(wxColour("#ACACAC"));

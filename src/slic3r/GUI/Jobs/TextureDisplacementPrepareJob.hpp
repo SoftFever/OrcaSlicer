@@ -1,16 +1,16 @@
 #ifndef slic3r_TextureDisplacementPrepareJob_hpp_
 #define slic3r_TextureDisplacementPrepareJob_hpp_
 
+#include <exception>
 #include <functional>
 #include <string>
 #include <vector>
 
 #include "Job.hpp"
 
-#include "libslic3r/Color.hpp"
 #include "libslic3r/ObjectID.hpp"
+#include "libslic3r/Point.hpp"
 #include "libslic3r/TextureDisplacement.hpp"
-#include "libslic3r/TriangleMesh.hpp"
 
 namespace Slic3r {
 class ModelVolume;
@@ -48,6 +48,10 @@ struct TextureDisplacementPrepareInput
     // skips the colour criterion entirely. Only the *quantizer* is used here: refinement follows
     // perceived colour, never the interleaving that realises a mix.
     TextureColorSettings                  color;
+    // The volume's own UV channel (ModelVolume::texture_uv), empty when it has none. prepare_mesh()
+    // resamples it onto the mesh it produces, and the commit puts it back - like the masks, it is
+    // indexed by triangle and so cannot survive the stages on its own.
+    std::vector<Vec2f>                    model_uv;
     // The undo step the commit opens. Standard mode's Bake names it after the bake, because the
     // displacement job that follows commits into this same step rather than pushing its own.
     std::string                           snapshot_name;
