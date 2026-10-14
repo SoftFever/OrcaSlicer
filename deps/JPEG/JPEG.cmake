@@ -4,5 +4,5 @@ orcaslicer_add_cmake_project(JPEG
     CMAKE_ARGS
         -DENABLE_SHARED=OFF
         -DENABLE_STATIC=ON
-        -DCMAKE_POLICY_VERSION_MINIMUM=3.10
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.15
 )
