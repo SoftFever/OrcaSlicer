@@ -296,12 +296,21 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
     m_show_drop_to_bed = selection.can_drop();
 
     if (selection.is_single_full_instance() || selection.is_single_volume_or_modifier()) {
-        const GLVolume* volume = selection.get_first_volume();
+        const GLVolume *               volume = selection.get_first_volume();
 
-        const Vec3d rotation = selection.is_single_full_instance()
-            ? volume->get_instance_rotation()
-            : volume->get_volume_rotation();
+        Vec3d rotation;
+        Vec3d scale;
+        double min_z = 0.;
 
+        if (selection.is_single_full_instance()) {
+            rotation = volume->get_instance_rotation();
+            scale = volume->get_instance_scaling_factor();
+        }
+        else {
+            rotation = volume->get_volume_rotation();
+            scale = volume->get_volume_scaling_factor();
+            min_z = get_volume_min_z(volume);
+        }
         m_show_clear_rotation = !rotation.isApprox(m_init_rotation);
         m_show_reset_0_rotation = !rotation.isApprox(Vec3d::Zero());
         m_show_clear_scale = (m_cache.scale / 100.0f - Vec3d::Ones()).norm() > 0.001;
