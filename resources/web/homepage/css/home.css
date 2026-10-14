@@ -548,6 +548,20 @@ body
 	overflow-y:auto;
 }
 
+/*---- Cloud mode: OrcaCloud is a native pane to the right of the app panel, so this page
+      is reduced to its left nav column (the class is toggled by SetCloudMode in js/home.js). ----*/
+body.cloud-mode #RightBoard
+{
+	display: none;
+}
+
+body.cloud-mode #LeftBoard
+{
+	/*---- 262px of column plus its 1px separator is the width the app gives the nav. ----*/
+	height: 100%;
+	overflow-y: auto;
+}
+
 #ContentBoard
 {
 	overflow-y:auto;
