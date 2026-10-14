@@ -59,7 +59,8 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
         {"single_extruder_multi_material", "1"},
         {"enable_prime_tower",             "0"},
         {"gcode_skip_config_block",        "1"},
-        {"change_filament_gcode",          ";TC_PLACEHOLDER X[x_after_toolchange] Y[y_after_toolchange]\n"},
+        {"change_filament_gcode",
+            "{if previous_extruder != -1}\n;TC_PLACEHOLDER X[x_after_toolchange] Y[y_after_toolchange]\n{endif}\n"},
         {"printable_area",                 "0x0,250x0,250x210,0x210"},
         {"printable_height",               "180"}
     });
@@ -79,7 +80,6 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
     model.objects[1]->volumes.front()->config.set_key_value("extruder", new ConfigOptionInt(2));
 
     constexpr double plate_offset_x = 350.0;
-
     model.objects[0]->instances.front()->set_offset(Vec3d(plate_offset_x + 30.0, 30.0, 0.0));
     model.objects[1]->instances.front()->set_offset(Vec3d(plate_offset_x + 80.0, 30.0, 0.0));
 
@@ -90,15 +90,8 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
 
     const std::string gcode = Test::gcode(print);
 
-    const std::string marker = ";TC_PLACEHOLDER X";
-    std::string::size_type marker_pos = 0;
-    while ((marker_pos = gcode.find(marker, marker_pos)) != std::string::npos) {
-        if (marker_pos >= 24 && gcode.substr(marker_pos - 24, 24) == "change_filament_gcode = ") {
-            marker_pos += marker.length();
-            continue;
-        }
-        break;
-    }
+    const std::string marker                 = ";TC_PLACEHOLDER X";
+    const std::string::size_type marker_pos  = gcode.find(marker);
     REQUIRE(marker_pos != std::string::npos);
 
     const std::string::size_type x_start = marker_pos + marker.length();
@@ -107,7 +100,6 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
 
     const std::string x_token = gcode.substr(x_start, x_end - x_start);
     INFO("x_after_toolchange token: '" << x_token << "'");
-
     REQUIRE(x_token != "[x_after_toolchange]");
 
     double x_val = 0.0;

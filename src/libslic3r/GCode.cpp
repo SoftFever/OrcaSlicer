@@ -5211,7 +5211,7 @@ std::string GCode::placeholder_parser_process(const std::string &name, const std
 
 PlaceholderParserIntegration &ppi = m_placeholder_parser_integration;
     try {
-        const Vec3d plate_origin = m_print ? m_print->get_plate_origin() : Vec3d::Zero();
+        const Vec3d plate_origin = (m_last_pos_defined && m_print) ? m_print->get_plate_origin() : Vec3d::Zero();
         const Vec2d plate_origin_xy(plate_origin.x(), plate_origin.y());
         ppi.update_from_gcodewriter(m_writer, plate_origin_xy);
         std::string output = ppi.parser.process(templ, current_filament_id, config_override, &ppi.output_config, &ppi.context);
@@ -10819,10 +10819,10 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("old_filament_temp", new ConfigOptionInt(old_filament_temp));
     dyn_config.set_key_value("new_filament_temp", new ConfigOptionInt(new_filament_temp));
     // Subtract the active plate origin so placeholders are in machine/bed coordinates.
-    const Vec3d plate_origin = m_print ? m_print->get_plate_origin() : Vec3d::Zero();
+    const Vec3d plate_origin = (m_last_pos_defined && m_print) ? m_print->get_plate_origin() : Vec3d::Zero();
     dyn_config.set_key_value("x_after_toolchange", new ConfigOptionFloat(nozzle_pos(0) - plate_origin(0)));
     dyn_config.set_key_value("y_after_toolchange", new ConfigOptionFloat(nozzle_pos(1) - plate_origin(1)));
-    dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2))); // Z is not plate-offset
+    dyn_config.set_key_value("z_after_toolchange", new ConfigOptionFloat(nozzle_pos(2)));
     dyn_config.set_key_value("first_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
     dyn_config.set_key_value("second_flush_volume", new ConfigOptionFloat(wipe_length / 2.f));
     dyn_config.set_key_value("old_filament_e_feedrate", new ConfigOptionInt(old_filament_e_feedrate));
