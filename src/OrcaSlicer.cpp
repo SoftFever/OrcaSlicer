@@ -1154,9 +1154,10 @@ int CLI::run(int argc, char **argv)
     // opt-in path. The ~2020-era WebKit2GTK XWayland compositor bug it
     // worked around appears fixed in WebKit2GTK >= 2.42; leaving it
     // unset preserves WebKit hardware acceleration on Device / Setup
-    // Wizard / login / store. The default path applies it only on
-    // XWayland sessions and only when the linked WebKitGTK predates the
-    // fix (< 2.42), as a conservative fallback for older WebKit.
+    // Wizard / login / store. The default path applies it only where it
+    // forces GDK_BACKEND=x11 below (a build without EGL, so the app really
+    // runs through XWayland), and only when the linked WebKitGTK predates
+    // the fix (< 2.42), as a conservative fallback for older WebKit.
     // ------------------------------------------------------------------
     {
         const char* gdk_backend = ::getenv("GDK_BACKEND");
@@ -1211,26 +1212,17 @@ int CLI::run(int argc, char **argv)
                 if (wayland_env && *wayland_env) {
                     BOOST_LOG_TRIVIAL(warning) << "Wayland detected but wxWidgets has no EGL support (wxHAS_EGL is OFF). Forcing X11 backend.";
                     ::setenv("GDK_BACKEND", "x11", true);
+
+                    // GTK will use X11 in a Wayland session here, which is the
+                    // one default-path case that really runs through XWayland.
+                    // WebKit2GTK accelerated compositing could fail silently
+                    // there on releases before 2.42, so force it off. Disabling
+                    // it also turns off threaded scrolling, hence the gate.
+                    if (WebView::NeedsCompositingWorkaround())
+                        ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
                 }
             }
             #endif
-
-            // WebKit2GTK accelerated compositing could fail under XWayland
-            // on WebKit releases before 2.42. Disable it only then, and only
-            // when both DISPLAY and WAYLAND_DISPLAY are set. Those two mean the
-            // session offers XWayland, not that GTK picked X11 for this
-            // process: a native Wayland app inherits both. The default path
-            // runs X11 here only in a build without EGL, which is what the
-            // forced GDK_BACKEND=x11 above produces. Disabling compositing also
-            // turns off threaded scrolling, so on newer WebKit it only costs
-            // performance.
-            {
-                const char* display_env_wk = ::getenv("DISPLAY");
-                const char* wayland_env_wk = ::getenv("WAYLAND_DISPLAY");
-                if (WebView::NeedsCompositingWorkaround() && display_env_wk && *display_env_wk && wayland_env_wk && *wayland_env_wk) {
-                    ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
-                }
-            }
 
             // XInitThreads is needed before GStreamer may use Xlib. On
             // native Wayland without DISPLAY, GStreamer uses waylandsink

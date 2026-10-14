@@ -61,8 +61,8 @@ available; GTK2/WebKit1 is an opt-out configuration the GUI does not support.
 11. A web host that re-themes in place handles `EVT_WEBVIEW_RECREATED` without `Skip()`; one that
     needs a reload lets it through. §[Orca wrapper](#orca-webview-wrapper-widgetswebview)
 12. Keep `WebViewWebKit`'s destructor removing the `"wx"` handler. §[Orca wrapper](#orca-webview-wrapper-widgetswebview)
-13. Do not widen `WEBKIT_DISABLE_COMPOSITING_MODE` beyond Orca's default-path XWayland case for
-    WebKitGTK older than 2.42, and never
+13. Do not widen `WEBKIT_DISABLE_COMPOSITING_MODE` beyond the no-EGL default path where Orca forces
+    `GDK_BACKEND=x11`, for WebKitGTK older than 2.42, and never
     make a page's progress depend only on a C++→JS callback. §[WebKitGTK on Linux](#webkitgtk-on-linux-sessions)
 14. GL attribute lists: legacy `int[]` lists end with `0` and spell out `WX_GL_RGBA` and
     `WX_GL_DOUBLEBUFFER`; `wxGLAttributes`/`wxGLContextAttrs` end with `EndList()`; MSAA is requested
@@ -576,11 +576,12 @@ sets the NVIDIA DMABUF workaround and then branches on `GDK_BACKEND`:
   accelerated compositing instead of dropping it; `WEBKIT_FORCE_DMABUF_RENDERER` clears the
   Debian/Ubuntu/openSUSE `isNVIDIA()` early return, which otherwise returns before the FORCE_SHM check.
 - **Default path** (`GDK_BACKEND` unset or not starting with `x11`): if wx lacks EGL (`!wxHAS_EGL`) and
-  `WAYLAND_DISPLAY` is set, it forces `GDK_BACKEND=x11`; it sets `WEBKIT_DISABLE_COMPOSITING_MODE=1`
-  non-replacing **only** when the linked WebKitGTK predates 2.42 (`WebView::NeedsCompositingWorkaround()`)
-  **and** both `DISPLAY` and `WAYLAND_DISPLAY` are non-empty (a Wayland session with
-  XWayland available — the session, not the backend GTK will pick); `XInitThreads()` runs only when
-  `DISPLAY` is set.
+  `WAYLAND_DISPLAY` is set, it forces `GDK_BACKEND=x11`, and in that same branch it sets
+  `WEBKIT_DISABLE_COMPOSITING_MODE=1` non-replacing when the linked WebKitGTK predates 2.42
+  (`WebView::NeedsCompositingWorkaround()`). That forced X11 backend in a Wayland session is the only
+  default-path case that really runs through XWayland; `DISPLAY` and `WAYLAND_DISPLAY` alone do not
+  identify it, because a native Wayland app inherits both. `XInitThreads()` runs only when `DISPLAY` is
+  set.
 - **`GDK_BACKEND=x11…` opt-in path**: sets `DRI_PRIME=1` (and the NVIDIA PRIME variables when
   `/proc/driver/nvidia/version` exists), calls `XInitThreads()`, and deliberately does **not** disable
   compositing, which keeps hardware acceleration for Device / Setup Wizard / login pages.
@@ -613,8 +614,9 @@ Runtime backend detection elsewhere uses Orca's `is_running_on_wayland()` / `is_
   ```
   Cite: WebKit 2.52.6 `Source/WebKit/UIProcess/gtk/AcceleratedBackingStore.cpp`
   (`rendererBufferTransportMode()`), Debian `disable-nvidia-dmabuf.patch`, WebKit bug 262607.
-- **Rule:** Set `WEBKIT_DISABLE_COMPOSITING_MODE` only on the default path in Wayland sessions,
-  non-replacing (`setenv(..., false)`, so a value the user already exported wins), before GTK
+- **Rule:** Set `WEBKIT_DISABLE_COMPOSITING_MODE` only on the default path, in the branch where wx
+  lacks EGL and Orca forces `GDK_BACKEND=x11`, non-replacing (`setenv(..., false)`, so a value the user
+  already exported wins), before GTK
   initialises; never unconditionally, and only for the WebKitGTK releases that need it (older than
   2.42, `WebView::NeedsCompositingWorkaround()`). Keep JS-side fallbacks so a page never
   waits forever for a C++→JS call.
@@ -626,8 +628,9 @@ Runtime backend detection elsewhere uses Orca's `is_running_on_wayland()` / `is_
   // Wrong: unconditional, kills HW acceleration everywhere
   ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", false);
   // Right (default path only): non-replacing, before GTK init, WebKitGTK < 2.42,
-  // Wayland session with XWayland
-  if (WebView::NeedsCompositingWorkaround() && display && *display && wayland && *wayland)
+  // and only in the branch that forces GDK_BACKEND=x11 (wx without EGL), the
+  // case that runs through XWayland
+  if (WebView::NeedsCompositingWorkaround() && wayland && *wayland)
       ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /*replace*/ false);
   ```
   Cite: c12912e0df (`src/OrcaSlicer.cpp`; `resources/web/guide/0/load.js` `OnInit`
