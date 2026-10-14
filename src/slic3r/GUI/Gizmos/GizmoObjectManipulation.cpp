@@ -293,14 +293,13 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
 {
     const Selection& selection = m_glcanvas.get_selection();
 
-    m_show_drop_to_bed = selection.can_drop();
+    m_enable_drop_to_bed = selection.can_drop();
 
     if (selection.is_single_full_instance() || selection.is_single_volume_or_modifier()) {
         const GLVolume *               volume = selection.get_first_volume();
 
         Vec3d rotation;
         Vec3d scale;
-        double min_z = 0.;
 
         if (selection.is_single_full_instance()) {
             rotation = volume->get_instance_rotation();
@@ -309,7 +308,6 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
         else {
             rotation = volume->get_volume_rotation();
             scale = volume->get_volume_scaling_factor();
-            min_z = get_volume_min_z(volume);
         }
         m_show_clear_rotation = !rotation.isApprox(m_init_rotation);
         m_show_reset_0_rotation = !rotation.isApprox(Vec3d::Zero());
@@ -919,7 +917,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     GLGizmoUtils::render_tooltip_button(imgui_wrapper, m_glcanvas, m_shortcuts_move, x, y);
 
     // ORCA use exiting function for drop and show button on bottom bar to keep gizmo compact
-    imgui_wrapper->disabled_begin(!m_show_drop_to_bed);
+    imgui_wrapper->disabled_begin(m_enable_drop_to_bed);
     ImGui::SameLine(0, space_size * 1.5f);
     if (imgui_wrapper->button(_L("Drop"))){
         wxGetApp().plater()->drop_selection();
