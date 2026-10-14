@@ -38,6 +38,7 @@
 #include "libslic3r/Config.hpp"
 #include <map>
 #include <memory>
+#include <optional>
 #include <regex>
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PublishSettings.hpp"
@@ -7491,4 +7492,159 @@ TEST_CASE("Migrating the selected user filament keeps a printer list edit pendin
     CHECK(edited_printers() == expected_edited);
     // What marks the project as having unsaved preset changes.
     CHECK(filaments.saved_is_dirty() == expected_dirty);
+}
+
+namespace {
+
+// The settings a file sliced on another machine carries: print, printer and filament presets this
+// bundle does not have installed.
+DynamicPrintConfig sender_config(size_t filament_count)
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.opt<ConfigOptionFloats>("filament_diameter")->values.assign(filament_count, 1.75);
+    config.opt<ConfigOptionStrings>("filament_colour")->values.assign(filament_count, "#FF0000");
+    Preset::normalize(config);
+    config.opt_string("print_settings_id", true)   = "Sender Process";
+    config.opt_string("printer_settings_id", true) = "Sender Printer";
+    std::vector<std::string> &filaments = config.option<ConfigOptionStrings>("filament_settings_id", true)->values;
+    for (size_t i = 0; i < filament_count; ++i)
+        filaments.push_back("Sender Filament " + std::to_string(i + 1));
+    return config;
+}
+
+size_t project_preset_count(const PresetBundle &bundle)
+{
+    size_t count = 0;
+    for (const PresetCollection *presets : std::initializer_list<const PresetCollection *>{ &bundle.prints, &bundle.filaments, &bundle.printers })
+        count += std::count_if(presets->begin(), presets->end(), [](const Preset &preset) { return preset.is_project_embedded; });
+    return count;
+}
+
+size_t files_under(const fs::path &dir)
+{
+    size_t count = 0;
+    for (const fs::directory_entry &entry : fs::recursive_directory_iterator(dir))
+        count += fs::is_regular_file(entry.path());
+    return count;
+}
+
+} // namespace
+
+TEST_CASE("Presets a G-code names but the receiver lacks load as temporary project presets", "[Preset][Bundle]")
+{
+    // A G-code's settings select presets the way a .gcode.3mf's do, without adding to the user's library.
+    const std::string source = GENERATE("part.gcode", "part.gcode.3mf");
+    CAPTURE(source);
+    ScopedTemporaryDir dir;
+    ScopedDataDir      data(dir.path());
+    PresetBundle       bundle;
+    bundle.update_user_presets_directory(DEFAULT_USER_FOLDER_NAME);
+
+    bundle.load_config_model(source, sender_config(1));
+
+    for (const PresetCollection *presets : std::initializer_list<const PresetCollection *>{ &bundle.prints, &bundle.filaments, &bundle.printers }) {
+        CAPTURE(presets->get_selected_preset_name());
+        CHECK(presets->get_selected_preset().is_project_embedded);
+    }
+    CHECK(files_under(dir.path()) == 0);
+
+    bundle.reset_project_embedded_presets();
+    CHECK(project_preset_count(bundle) == 0);
+}
+
+TEST_CASE("Restoring a selection undoes an import that failed part-way", "[Preset][Bundle]")
+{
+    ScopedTemporaryDir dir;
+    ScopedDataDir      data(dir.path());
+    PresetBundle       bundle;
+    bundle.update_user_presets_directory(DEFAULT_USER_FOLDER_NAME);
+    add_inmemory_preset(bundle.prints, "My Process");
+    add_inmemory_preset(bundle.prints, "Sender Process");
+    // The file names an installed but hidden process, which the import makes visible.
+    bundle.prints.find_preset("Sender Process", false, true)->is_visible = false;
+    REQUIRE(bundle.prints.select_preset_by_name("My Process", true));
+    // An unsaved edit that the saved baseline already holds, as new_project leaves it.
+    bundle.prints.get_edited_preset().config.opt_float("layer_height") = 0.12;
+    bundle.prints.update_dirty();
+    bundle.prints.update_saved_preset_from_current_preset();
+    REQUIRE(bundle.prints.get_edited_preset().is_dirty);
+    REQUIRE_FALSE(bundle.prints.saved_is_dirty());
+
+    const std::string              printer_before   = bundle.printers.get_selected_preset_name();
+    const std::vector<std::string> filaments_before = bundle.filament_presets;
+    const DynamicPrintConfig       project_before   = bundle.project_config;
+    const std::optional<PresetBundle::Selection> previous = bundle.selection();
+    REQUIRE(previous);
+
+    // Two filaments, one with a per-filament list the filament split cannot read: the load throws after
+    // the print and printer presets are selected.
+    DynamicPrintConfig config = sender_config(2);
+    config.option<ConfigOptionStrings>("filament_dev_ams_drying_ams_limitations", true)->values.clear();
+    REQUIRE_THROWS_AS(bundle.load_config_model("part.gcode", std::move(config)), ConfigurationError);
+    REQUIRE(bundle.prints.get_selected_preset_name() == "Sender Process");
+
+    bundle.restore_selection(*previous);
+
+    CHECK(bundle.prints.get_selected_preset_name() == "My Process");
+    CHECK_THAT(bundle.prints.get_edited_preset().config.opt_float("layer_height"), Catch::Matchers::WithinAbs(0.12, 1e-9));
+    CHECK(bundle.prints.get_edited_preset().is_dirty);
+    CHECK_FALSE(bundle.prints.saved_is_dirty());
+    CHECK_FALSE(bundle.prints.find_preset("Sender Process", false, true)->is_visible);
+    CHECK(bundle.printers.get_selected_preset_name() == printer_before);
+    CHECK_FALSE(bundle.printers.saved_is_dirty());
+    CHECK(bundle.filament_presets == filaments_before);
+    CHECK(bundle.project_config == project_before);
+    CHECK(project_preset_count(bundle) == 0);
+}
+
+TEST_CASE("A selection is not taken while project presets are loaded", "[Preset][Bundle]")
+{
+    // Restoring drops every project-embedded preset, which would lose those of the project loaded now.
+    ScopedTemporaryDir dir;
+    ScopedDataDir      data(dir.path());
+    PresetBundle       bundle;
+    bundle.update_user_presets_directory(DEFAULT_USER_FOLDER_NAME);
+    bundle.load_config_model("project.3mf", sender_config(1));
+    REQUIRE(project_preset_count(bundle) > 0);
+
+    CHECK_FALSE(bundle.selection());
+}
+
+TEST_CASE("Selections reach the app config only while no export blocker lives", "[Preset][Bundle]")
+{
+    PresetBundle bundle;
+    AppConfig    app_config;
+    {
+        PresetBundle::SelectionExportBlocker blocker(bundle);
+        bundle.export_selections(app_config);
+        CHECK(app_config.get("presets", PRESET_PRINTER_NAME).empty());
+    }
+    bundle.export_selections(app_config);
+    CHECK(app_config.get("presets", PRESET_PRINTER_NAME) == bundle.printers.get_selected_preset_name());
+}
+
+TEST_CASE("An empty choice list in a G-code's settings keeps the value it had before the file was read", "[Preset][Bundle]")
+{
+    // A G-code written by a tool rather than from presets can leave nozzle_volume_type empty, and the settings
+    // tabs index it per extruder. A blank text list is a value of its own and stays blank.
+    const DynamicPrintConfig block = DynamicPrintConfig::full_print_config();
+    ScopedTemporaryFile      file(".gcode");
+    {
+        std::ofstream os(file.string());
+        os << "; generated by OrcaSlicer\n; CONFIG_BLOCK_START\n";
+        for (const std::string &key : block.keys())
+            if (key != "nozzle_volume_type" && key != "filament_multi_colour")
+                os << "; " << key << " = " << block.opt_serialize(key) << '\n';
+        os << "; nozzle_volume_type = \n; filament_multi_colour = \n; CONFIG_BLOCK_END\n";
+        REQUIRE(os.good());
+    }
+
+    PresetBundle bundle;
+    bundle.project_config.set_deserialize_strict("nozzle_volume_type", "High Flow");
+    bundle.project_config.option<ConfigOptionStrings>("filament_multi_colour", true)->values = { "#FF0000 #0000FF" };
+    ConfigSubstitutions      substitutions;
+    const DynamicPrintConfig config = bundle.config_from_gcode(file.string(), ForwardCompatibilitySubstitutionRule::Enable, substitutions);
+
+    CHECK(config.opt_serialize("nozzle_volume_type") == "High Flow");
+    CHECK(config.option<ConfigOptionStrings>("filament_multi_colour")->values.empty());
 }
