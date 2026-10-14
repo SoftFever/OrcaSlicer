@@ -1,6 +1,6 @@
 {
 	"name": "OrcaFilamentLibrary",
-	"version": "02.04.00.15",
+	"version": "02.04.00.16",
 	"force_update": "0",
 	"description": "Orca Filament Library",
 	"filament_list": [
@@ -1393,11 +1393,12 @@
 			"sub_path": "filament/FDplast/FDplast ABS @System.json"
 		},
 		{
-			"name": "Goofoo ABS @base",
-			"sub_path": "filament/Goofoo/Goofoo ABS @base.json"},
-    {
 			"name": "addnorth ABS rABS",
 			"sub_path": "filament/addnorth/BBL/addnorth ABS rABS.json"
+		},
+		{
+			"name": "Goofoo ABS @base",
+			"sub_path": "filament/Goofoo/Goofoo ABS @base.json"
 		},
 		{
 			"name": "NIT ABS @System",
@@ -1486,6 +1487,22 @@
 		{
 			"name": "Goofoo ASA @base",
 			"sub_path": "filament/Goofoo/Goofoo ASA @base.json"
+		},
+		{
+			"name": "Overture ASA @BBL X1",
+			"sub_path": "filament/Overture/BBL/Overture ASA @BBL X1.json"
+		},
+		{
+			"name": "Overture ASA @BBL X1 0.2 nozzle",
+			"sub_path": "filament/Overture/BBL/Overture ASA @BBL X1 0.2 nozzle.json"
+		},
+		{
+			"name": "Overture ASA @BBL X1C",
+			"sub_path": "filament/Overture/BBL/Overture ASA @BBL X1C.json"
+		},
+		{
+			"name": "Overture ASA @BBL X1C 0.2 nozzle",
+			"sub_path": "filament/Overture/BBL/Overture ASA @BBL X1C 0.2 nozzle.json"
 		},
 		{
 			"name": "Overture ASA @System",
@@ -1608,8 +1625,32 @@
 			"sub_path": "filament/Polymaker/Fiberon PA612-CF @System.json"
 		},
 		{
+			"name": "Fiberon PA612-CF15 @BBL X1",
+			"sub_path": "filament/Polymaker/BBL/Fiberon PA612-CF15 @BBL X1.json"
+		},
+		{
+			"name": "addnorth PA Adura",
+			"sub_path": "filament/addnorth/BBL/addnorth PA Adura.json"
+		},
+		{
+			"name": "addnorth PA Adura FDA",
+			"sub_path": "filament/addnorth/BBL/addnorth PA Adura FDA.json"
+		},
+		{
+			"name": "addnorth PA6 Addlantis",
+			"sub_path": "filament/addnorth/BBL/addnorth PA6 Addlantis.json"
+		},
+		{
+			"name": "addnorth PVDF Adamant S1",
+			"sub_path": "filament/addnorth/BBL/addnorth PVDF Adamant S1.json"
+		},
+		{
 			"name": "Goofoo PA @base",
 			"sub_path": "filament/Goofoo/Goofoo PA @base.json"
+		},
+		{
+			"name": "addnorth PA-CF Adura X",
+			"sub_path": "filament/addnorth/BBL/addnorth PA-CF Adura X.json"
 		},
 		{
 			"name": "Goofoo PA-CF @base",
@@ -1660,16 +1701,12 @@
 			"sub_path": "filament/Elegoo/Elegoo PC-FR @base.json"
 		},
 		{
-			"name": "COEX PCTG PRIME @System",
-			"sub_path": "filament/COEX/COEX PCTG PRIME @System.json"
+			"name": "addnorth PC BLend HT LCF",
+			"sub_path": "filament/addnorth/BBL/addnorth PC BLend HT LCF.json"
 		},
 		{
-			"name": "Goofoo PE @base",
-			"sub_path": "filament/Goofoo/Goofoo PE @base.json"
-		},
-		{
-			"name": "Generic PE-CF @System",
-			"sub_path": "filament/Generic PE-CF @System.json"
+			"name": "COEX PCTG PRIME @BBL A1",
+			"sub_path": "filament/COEX/BBL/COEX PCTG PRIME @BBL A1.json"
 		},
 		{
 			"name": "COEX PCTG PRIME @BBL A1 0.2 nozzle",
@@ -1694,6 +1731,10 @@
 		{
 			"name": "COEX PCTG PRIME @System",
 			"sub_path": "filament/COEX/COEX PCTG PRIME @System.json"
+		},
+		{
+			"name": "Goofoo PE @base",
+			"sub_path": "filament/Goofoo/Goofoo PE @base.json"
 		},
 		{
 			"name": "Generic PE-CF @System",
@@ -2136,6 +2177,30 @@
 			"sub_path": "filament/FilAr/FilAr PETG Rojo Carmesi.json"
 		},
 		{
+			"name": "addnorth PETG Base",
+			"sub_path": "filament/addnorth/BBL/addnorth PETG Base.json"
+		},
+		{
+			"name": "addnorth PETG ESD",
+			"sub_path": "filament/addnorth/BBL/addnorth PETG ESD.json"
+		},
+		{
+			"name": "addnorth PETG Economy",
+			"sub_path": "filament/addnorth/BBL/addnorth PETG Economy.json"
+		},
+		{
+			"name": "addnorth PETG Flame v0",
+			"sub_path": "filament/addnorth/BBL/addnorth PETG Flame v0.json"
+		},
+		{
+			"name": "addnorth PETG PRO Matte",
+			"sub_path": "filament/addnorth/BBL/addnorth PETG PRO Matte.json"
+		},
+		{
+			"name": "addnorth PETG rPETG Matte",
+			"sub_path": "filament/addnorth/BBL/addnorth PETG rPETG Matte.json"
+		},
+		{
 			"name": "Goofoo PETG @base",
 			"sub_path": "filament/Goofoo/Goofoo PETG @base.json"
 		},
@@ -2202,6 +2267,10 @@
 		{
 			"name": "Goofoo PHA @base",
 			"sub_path": "filament/Goofoo/Goofoo PHA @base.json"
+		},
+		{
+			"name": "AliZ PLA @P1-X1",
+			"sub_path": "filament/AliZ/BBL/AliZ PLA @P1-X1.json"
 		},
 		{
 			"name": "AliZ PLA @System",
@@ -3084,6 +3153,10 @@
 			"sub_path": "filament/addnorth/BBL/addnorth PLA rPLA RE-ADD.json"
 		},
 		{
+			"name": "Goofoo PLA @base",
+			"sub_path": "filament/Goofoo/Goofoo PLA @base.json"
+		},
+		{
 			"name": "addnorth PLA X-PLA High Speed",
 			"sub_path": "filament/addnorth/BBL/addnorth PLA X-PLA High Speed.json"
 		},
@@ -3098,6 +3171,10 @@
 		{
 			"name": "addnorth PLA-CF Carbon Fiber",
 			"sub_path": "filament/addnorth/BBL/addnorth PLA-CF Carbon Fiber.json"
+		},
+		{
+			"name": "Goofoo PLA-CF @base",
+			"sub_path": "filament/Goofoo/Goofoo PLA-CF @base.json"
 		},
 		{
 			"name": "INSLOGIC PLA Pro @BBL P2S",
@@ -3784,6 +3861,10 @@
 			"sub_path": "filament/FILL3D/FILL3D PPCF @System.json"
 		},
 		{
+			"name": "Goofoo PP @base",
+			"sub_path": "filament/Goofoo/Goofoo PP @base.json"
+		},
+		{
 			"name": "Generic PP-CF @System",
 			"sub_path": "filament/Generic PP-CF @System.json"
 		},
@@ -3802,6 +3883,10 @@
 		{
 			"name": "Bambu PVA @System",
 			"sub_path": "filament/Bambu/Bambu PVA @System.json"
+		},
+		{
+			"name": "Goofoo PVA @base",
+			"sub_path": "filament/Goofoo/Goofoo PVA @base.json"
 		},
 		{
 			"name": "FDplast SBS @System",
@@ -4076,6 +4161,14 @@
 			"sub_path": "filament/addnorth/BBL/addnorth TPU Pro Matte 95A.json"
 		},
 		{
+			"name": "Goofoo 90A TPU @base",
+			"sub_path": "filament/Goofoo/Goofoo 90A TPU @base.json"
+		},
+		{
+			"name": "Goofoo 95A TPU @base",
+			"sub_path": "filament/Goofoo/Goofoo 95A TPU @base.json"
+		},
+		{
 			"name": "Overture TPU @BBL A1",
 			"sub_path": "filament/Overture/BBL/Overture TPU @BBL A1.json"
 		},
@@ -4120,8 +4213,28 @@
 			"sub_path": "filament/Overture/Overture TPU @System.json"
 		},
 		{
+			"name": "Goofoo ABS @System",
+			"sub_path": "filament/Goofoo/Goofoo ABS @System.json"
+		},
+		{
 			"name": "Elegoo ASA-CF @System",
 			"sub_path": "filament/Elegoo/Elegoo ASA-CF @System.json"
+		},
+		{
+			"name": "Goofoo ASA @System",
+			"sub_path": "filament/Goofoo/Goofoo ASA @System.json"
+		},
+		{
+			"name": "Goofoo PA @System",
+			"sub_path": "filament/Goofoo/Goofoo PA @System.json"
+		},
+		{
+			"name": "Goofoo PA-CF @System",
+			"sub_path": "filament/Goofoo/Goofoo PA-CF @System.json"
+		},
+		{
+			"name": "Goofoo PA-GF10 @System",
+			"sub_path": "filament/Goofoo/Goofoo PA-GF10 @System.json"
 		},
 		{
 			"name": "Elegoo PC-FR @System",
@@ -4138,6 +4251,14 @@
 		{
 			"name": "COEX PCTG PRIME @BBL A1M 0.8 nozzle",
 			"sub_path": "filament/COEX/BBL/COEX PCTG PRIME @BBL A1M 0.8 nozzle.json"
+		},
+		{
+			"name": "Goofoo PE @System",
+			"sub_path": "filament/Goofoo/Goofoo PE @System.json"
+		},
+		{
+			"name": "Goofoo PE-CF @base",
+			"sub_path": "filament/Goofoo/Goofoo PE-CF @base.json"
 		},
 		{
 			"name": "AliZ PETG-CF @P1-X1",
@@ -4200,8 +4321,24 @@
 			"sub_path": "filament/Polymaker/BBL/Fiberon PETG-ESD @BBL X1.json"
 		},
 		{
+			"name": "Goofoo PETG @System",
+			"sub_path": "filament/Goofoo/Goofoo PETG @System.json"
+		},
+		{
+			"name": "Goofoo PETG HF @base",
+			"sub_path": "filament/Goofoo/Goofoo PETG HF @base.json"
+		},
+		{
 			"name": "addnorth PETG-CF Rigid X",
 			"sub_path": "filament/addnorth/BBL/addnorth PETG-CF Rigid X.json"
+		},
+		{
+			"name": "Goofoo PETG-CF @base",
+			"sub_path": "filament/Goofoo/Goofoo PETG-CF @base.json"
+		},
+		{
+			"name": "Goofoo PHA @System",
+			"sub_path": "filament/Goofoo/Goofoo PHA @System.json"
 		},
 		{
 			"name": "COEX PLA @BBL A1M 0.2 nozzle",
@@ -4266,6 +4403,14 @@
 		{
 			"name": "Elegoo Rapid PLA+ @System",
 			"sub_path": "filament/Elegoo/Elegoo Rapid PLA+ @System.json"
+		},
+		{
+			"name": "Goofoo PLA @System",
+			"sub_path": "filament/Goofoo/Goofoo PLA @System.json"
+		},
+		{
+			"name": "Goofoo PLA-CF @System",
+			"sub_path": "filament/Goofoo/Goofoo PLA-CF @System.json"
 		},
 		{
 			"name": "Numakers PLA+ @BBL A1",
@@ -4720,20 +4865,12 @@
 			"sub_path": "filament/Polymaker/BBL/Panchroma PLA Neon @BBL A1M 0.2 nozzle.json"
 		},
 		{
-			"name": "Goofoo PLA @base",
-			"sub_path": "filament/Goofoo/Goofoo PLA @base.json"
+			"name": "Panchroma PLA Neon @BBL P1P",
+			"sub_path": "filament/Polymaker/BBL/Panchroma PLA Neon @BBL P1P.json"
 		},
 		{
-			"name": "Generic PLA Matte @System",
-			"sub_path": "filament/Generic PLA Matte @System.json"
-		},
-		{
-			"name": "Goofoo PLA-CF @base",
-			"sub_path": "filament/Goofoo/Goofoo PLA-CF @base.json"
-		},
-		{
-			"name": "INSLOGIC PLA Pro @BBL P2S",
-			"sub_path": "filament/INSLOGIC/BBL/INSLOGIC PLA Pro @BBL P2S.json"
+			"name": "Panchroma PLA Neon @BBL P1P 0.2 nozzle",
+			"sub_path": "filament/Polymaker/BBL/Panchroma PLA Neon @BBL P1P 0.2 nozzle.json"
 		},
 		{
 			"name": "Panchroma PLA Neon @BBL X1",
@@ -4988,12 +5125,8 @@
 			"sub_path": "filament/Polymaker/BBL/Panchroma PLA UV Shift @BBL X1C.json"
 		},
 		{
-			"name": "Goofoo PP @base",
-			"sub_path": "filament/Goofoo/Goofoo PP @base.json"
-		},
-		{
-			"name": "Generic PP-CF @System",
-			"sub_path": "filament/Generic PP-CF @System.json"
+			"name": "Panchroma PLA UV Shift @BBL X1C 0.2 nozzle",
+			"sub_path": "filament/Polymaker/BBL/Panchroma PLA UV Shift @BBL X1C 0.2 nozzle.json"
 		},
 		{
 			"name": "PolyLite Dual PLA @System",
@@ -5012,12 +5145,8 @@
 			"sub_path": "filament/Polymaker/BBL/PolyLite PLA Pro @BBL A1M.json"
 		},
 		{
-			"name": "Goofoo PVA @base",
-			"sub_path": "filament/Goofoo/Goofoo PVA @base.json"
-		},
-		{
-			"name": "FDplast SBS @System",
-			"sub_path": "filament/FDplast/FDplast SBS @System.json"
+			"name": "PolyLite PLA Pro @BBL A1M 0.2 nozzle",
+			"sub_path": "filament/Polymaker/BBL/PolyLite PLA Pro @BBL A1M 0.2 nozzle.json"
 		},
 		{
 			"name": "PolyLite PLA Pro @BBL P1P",
@@ -5060,56 +5189,20 @@
 			"sub_path": "filament/Polymaker/BBL/Polymaker HT-PLA @BBL A1M 0.2 nozzle.json"
 		},
 		{
-			"name": "Goofoo 90A TPU @base",
-			"sub_path": "filament/Goofoo/Goofoo 90A TPU @base.json"
+			"name": "Polymaker HT-PLA @BBL P1P",
+			"sub_path": "filament/Polymaker/BBL/Polymaker HT-PLA @BBL P1P.json"
 		},
 		{
-			"name": "Goofoo 95A TPU @base",
-			"sub_path": "filament/Goofoo/Goofoo 95A TPU @base.json"
+			"name": "Polymaker HT-PLA @BBL P1P 0.2 nozzle",
+			"sub_path": "filament/Polymaker/BBL/Polymaker HT-PLA @BBL P1P 0.2 nozzle.json"
 		},
 		{
-			"name": "Overture TPU @System",
-			"sub_path": "filament/Overture/Overture TPU @System.json"
+			"name": "Polymaker HT-PLA @BBL X1",
+			"sub_path": "filament/Polymaker/BBL/Polymaker HT-PLA @BBL X1.json"
 		},
 		{
-			"name": "Goofoo ABS @System",
-			"sub_path": "filament/Goofoo/Goofoo ABS @System.json"
-		},
-		{
-			"name": "Elegoo ASA-CF @System",
-			"sub_path": "filament/Elegoo/Elegoo ASA-CF @System.json"
-		},
-		{
-			"name": "Goofoo ASA @System",
-			"sub_path": "filament/Goofoo/Goofoo ASA @System.json"
-		},
-		{
-			"name": "Goofoo PA @System",
-			"sub_path": "filament/Goofoo/Goofoo PA @System.json"
-		},
-		{
-			"name": "Goofoo PA-CF @System",
-			"sub_path": "filament/Goofoo/Goofoo PA-CF @System.json"
-		},
-		{
-			"name": "Goofoo PA-GF10 @System",
-			"sub_path": "filament/Goofoo/Goofoo PA-GF10 @System.json"
-		},
-		{
-			"name": "Elegoo PC-FR @System",
-			"sub_path": "filament/Elegoo/Elegoo PC-FR @System.json"
-		},
-		{
-			"name": "Goofoo PE @System",
-			"sub_path": "filament/Goofoo/Goofoo PE @System.json"
-		},
-		{
-			"name": "Goofoo PE-CF @base",
-			"sub_path": "filament/Goofoo/Goofoo PE-CF @base.json"
-		},
-		{
-			"name": "AliZ PETG-CF @System",
-			"sub_path": "filament/AliZ/AliZ PETG-CF @System.json"
+			"name": "Polymaker HT-PLA @BBL X1 0.2 nozzle",
+			"sub_path": "filament/Polymaker/BBL/Polymaker HT-PLA @BBL X1 0.2 nozzle.json"
 		},
 		{
 			"name": "Polymaker HT-PLA @BBL X1C",
@@ -5144,24 +5237,8 @@
 			"sub_path": "filament/Polymaker/BBL/Polymaker HT-PLA-GF @BBL P1P 0.2 nozzle.json"
 		},
 		{
-			"name": "Goofoo PETG @System",
-			"sub_path": "filament/Goofoo/Goofoo PETG @System.json"
-		},
-		{
-			"name": "Goofoo PETG HF @base",
-			"sub_path": "filament/Goofoo/Goofoo PETG HF @base.json"
-		},
-		{
-			"name": "Goofoo PETG-CF @base",
-			"sub_path": "filament/Goofoo/Goofoo PETG-CF @base.json"
-		},
-		{
-			"name": "Goofoo PHA @System",
-			"sub_path": "filament/Goofoo/Goofoo PHA @System.json"
-		},
-		{
-			"name": "Elegoo PLA Basic @System",
-			"sub_path": "filament/Elegoo/Elegoo PLA Basic @System.json"
+			"name": "Polymaker HT-PLA-GF @BBL X1",
+			"sub_path": "filament/Polymaker/BBL/Polymaker HT-PLA-GF @BBL X1.json"
 		},
 		{
 			"name": "Polymaker HT-PLA-GF @BBL X1 0.2 nozzle",
@@ -5212,16 +5289,8 @@
 			"sub_path": "filament/COEX/BBL/COEX PLA+Silk @BBL X1C.json"
 		},
 		{
-			"name": "Goofoo PLA @System",
-			"sub_path": "filament/Goofoo/Goofoo PLA @System.json"
-		},
-		{
-			"name": "Goofoo PLA-CF @System",
-			"sub_path": "filament/Goofoo/Goofoo PLA-CF @System.json"
-		},
-		{
-			"name": "PolyLite Dual PLA @System",
-			"sub_path": "filament/Polymaker/PolyLite Dual PLA @System.json"
+			"name": "COEX PLA+Silk @BBL X1C 0.2 nozzle",
+			"sub_path": "filament/COEX/BBL/COEX PLA+Silk @BBL X1C 0.2 nozzle.json"
 		},
 		{
 			"name": "COEX PLA+Silk @System",

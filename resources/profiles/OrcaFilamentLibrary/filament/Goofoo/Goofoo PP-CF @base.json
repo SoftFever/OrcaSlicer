@@ -1,14 +1,14 @@
 {
-  "type": "filament",
-  "name": "Goofoo PP-CF @base",
-  "from": "system",
-  "instantiation": "false",
-  "inherits": "Generic PP-CF @System",
-  "filament_id": "OFUUiuIV",
-  "filament_vendor": [
-    "Goofoo"
-  ],
-  "filament_type": [
-    "PP-CF"
-  ]
+	"type": "filament",
+	"name": "Goofoo PP-CF @base",
+	"inherits": "Generic PP-CF @System",
+	"from": "system",
+	"filament_id": "OFUUiuIV",
+	"instantiation": "false",
+	"filament_vendor": [
+		"Goofoo"
+	],
+	"filament_type": [
+		"PP-CF"
+	]
 }

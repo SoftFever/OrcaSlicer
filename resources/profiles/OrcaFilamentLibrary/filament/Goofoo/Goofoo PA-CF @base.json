@@ -1,17 +1,17 @@
 {
-  "type": "filament",
-  "name": "Goofoo PA-CF @base",
-  "from": "system",
-  "instantiation": "false",
-  "inherits": "Generic PA-CF @System",
-  "filament_max_volumetric_speed": [
-    "12"
-  ],
-  "filament_id": "OF7skcRj",
-  "filament_vendor": [
-    "Goofoo"
-  ],
-  "filament_type": [
-    "PA-CF"
-  ]
+	"type": "filament",
+	"name": "Goofoo PA-CF @base",
+	"inherits": "Generic PA-CF @System",
+	"from": "system",
+	"filament_id": "OF7skcRj",
+	"instantiation": "false",
+	"filament_max_volumetric_speed": [
+		"12"
+	],
+	"filament_vendor": [
+		"Goofoo"
+	],
+	"filament_type": [
+		"PA-CF"
+	]
 }
