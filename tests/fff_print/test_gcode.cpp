@@ -16,6 +16,7 @@
 
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Point.hpp"
+#include <exception>
 #include <fstream>
 #include <ios>
 #include <string>
