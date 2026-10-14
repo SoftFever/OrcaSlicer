@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-13 21:06-0300\n"
 "PO-Revision-Date: 2026-06-19 13:40+0700\n"
 "Last-Translator: Icezaza\n"
 "Language-Team: Thai\n"
@@ -2424,6 +2424,66 @@ msgstr "ข้อจำกัดปลั๊กอินเครือข่า
 
 msgid "Privacy Policy Update"
 msgstr "การปรับปรุงนโยบายความเป็นส่วนตัว"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "พรีเซ็ตเส้นพลาสติกทั้งหมดของคุณใช้งานได้บนเครื่องพิมพ์ที่พรีเซ็ตนั้นถูกสร้างมาเพื่อใช้งานด้วย"
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "ย้ายพรีเซ็ตเส้นพลาสติก"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 ปรับโครงสร้างพรีเซ็ตเส้นพลาสติกของระบบหลายรายการ เพื่อแก้ไขโปรไฟล์ที่ไม่ถูกต้องและเตรียมพร้อมสำหรับฟีเจอร์ในอนาคต ส่งผลให้พรีเซ็ตด้านล่างไม่แสดงบนเครื่องพิมพ์บางรุ่นที่พรีเซ็ตนั้นถูกสร้างมาเพื่อใช้งานด้วยอีกต่อไป ขออภัยในความไม่สะดวก นี่เป็นการแก้ไขเพียงครั้งเดียว\n"
+"\n"
+"ต้องการเพิ่มเครื่องพิมพ์เหล่านั้นกลับเข้าไปในพรีเซ็ตของคุณตอนนี้หรือไม่ พรีเซ็ตของคุณจะถูกสำรองไว้ก่อน คุณยังทำภายหลังได้จาก ช่วยเหลือ > ย้ายพรีเซ็ตเส้นพลาสติก"
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (อิงจาก %2%)"
+
+msgid "Don't remind me again"
+msgstr "ไม่ต้องเตือนฉันอีก"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "ไม่สามารถสำรองพรีเซ็ตของคุณได้ จึงไม่ได้ย้ายพรีเซ็ตเหล่านั้น"
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "ไม่สามารถล็อกโฟลเดอร์พรีเซ็ตของผู้ใช้ได้ จึงไม่ได้ย้ายสิ่งใดเลย อาจมีอินสแตนซ์อื่นของ OrcaSlicer กำลังบันทึกพรีเซ็ตอยู่ โปรดลองอีกครั้งในภายหลังจาก ช่วยเหลือ > ย้ายพรีเซ็ตเส้นพลาสติก"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"ไม่สามารถย้ายพรีเซ็ตเส้นพลาสติกของคุณได้ บันทึกข้อมูลสำรองของพรีเซ็ตไว้ที่:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"ย้ายพรีเซ็ตเส้นพลาสติกของคุณแล้ว โปรดเลือกพรีเซ็ตเหล่านั้นอีกครั้งในรายการเส้นพลาสติกที่คุณเคยใช้\n"
+"\n"
+"บันทึกข้อมูลสำรองของพรีเซ็ตไว้ที่:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "ไม่สามารถย้ายพรีเซ็ตเหล่านี้ได้:"
 
 #, c-format, boost-format
 msgid "your Orca Cloud profile (user ID: \"%s\")"
@@ -6614,6 +6674,10 @@ msgstr "วิซาร์ดการตั้งค่า"
 
 msgid "Show Configuration Folder"
 msgstr "แสดงโฟลเดอร์การกำหนดค่า"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "นำพรีเซ็ตเส้นพลาสติกกลับมายังเครื่องพิมพ์ที่พรีเซ็ตนั้นถูกสร้างมาเพื่อใช้งานด้วย หลังจากถูกนำออกเพราะการอัปเดตโปรไฟล์"
 
 msgid "Troubleshoot Center"
 msgstr "ศูนย์แก้ปัญหา"
@@ -13910,6 +13974,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "เส้นรอบวงอยู่ภายในตัวปรับแต่งทั้งหมด จึงไม่ได้ใช้ตัวปรับแต่งกับเส้นรอบวงนั้น (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "ตัวปรับแต่ง %1% \"%2%\" ของ \"%3%\" ครอบคลุมเส้นรอบวงทั้งเส้น"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "ตัวปรับแต่ง %1% \"%2%\" ของ \"%3%\" (ทั้งหมด %4% รายการ) ครอบคลุมเส้นรอบวงทั้งเส้น"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "ตัวปรับแต่ง \"%1%\" ของ \"%2%\" ไม่มีผลต่อรอยตะเข็บ (อาจไม่ถึงเส้นกึ่งกลางของเส้นรอบวงที่พิมพ์)"
@@ -14899,18 +14975,19 @@ msgstr ""
 "\n"
 "อัตราการไหลของสะพานจริงคำนวณจากค่านี้คูณอัตราการไหลของเส้นพลาสติก และหากตั้งค่าไว้ อัตราการไหลของวัตถุ"
 
+# AI Translated
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "ความกว้างเส้นของสะพาน หากระบุเป็น % จะคำนวณจากเส้นผ่านศูนย์กลางหัวฉีด\n"
-"แนะนำให้ใช้ร่วมกับความหนาแน่นสะพานหรืออัตราการไหลสะพานที่สูงขึ้น\n"
+"แนะนำให้ใช้ร่วมกับความหนาแน่นสะพานหรืออัตราส่วนการไหลสะพานที่สูงขึ้น\n"
 "\n"
 "ค่าสูงสุดคือ 100% หรือเส้นผ่านศูนย์กลางหัวฉีด\n"
-"หากตั้งเป็น 0 ความกว้างเส้นจะเท่ากับความกว้างไส้ในแบบทึบภายใน"
+"หากตั้งเป็น 0 ความกว้างเส้นจะเท่ากับความกว้างไส้ในแบบทึบ หรือเท่ากับเส้นผ่านศูนย์กลางหัวฉีดสำหรับสะพานหนา"
 
 msgid "Internal bridge flow ratio"
 msgstr "อัตราส่วนการไหลสะพานภายใน"
@@ -15177,6 +15254,7 @@ msgstr "เปิดตัวเลือกนี้เพื่อลดคว
 msgid "Slow down for curled perimeters"
 msgstr "ชะลอความเร็วลงสำหรับขอบเขตที่โค้งงอ"
 
+# AI Translated
 #, no-c-format, no-boost-format
 msgid ""
 "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
@@ -15192,34 +15270,35 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "เปิดใช้งานตัวเลือกนี้เพื่อชะลอการพิมพ์ในพื้นที่ที่เส้นรอบวงอาจงอขึ้น\n"
-"ตัวอย่างเช่น จะชะลอเพิ่มเติมเมื่อพิมพ์ส่วนยื่นที่มุมแหลม เช่นด้านหน้าของตัวเรือ Benchy ช่วยลดการงอที่สะสมข้ามหลายชั้น\n"
+"ตัวอย่างเช่น จะชะลอเพิ่มเติมเมื่อพิมพ์ส่วนยื่นที่มุมแหลม เช่นด้านหน้าของตัวเรือ Benchy ช่วยลดการงอที่สะสมข้ามหลายเลเยอร์\n"
 "\n"
 "โดยทั่วไปแนะนำให้เปิดใช้งาน เว้นแต่ระบบระบายความร้อนของเครื่องพิมพ์แรงพอ หรือความเร็วพิมพ์ช้าพอที่เส้นรอบวงจะไม่งอ\n"
-"หากพิมพ์ด้วยความเร็วเส้นรอบวงด้านนอกสูง พารามิเตอร์นี้อาจทำให้เกิดข้อบกพร่องบนผนังเมื่อชะลอ เนื่องจากความแตกต่างของความเร็วพิมพ์ที่อาจมาก ทำให้ชุดดันเส้นตอบสนองการเปลี่ยนอัตราการไหลไม่ทัน\n"
-"สาเหตุหลักของข้อบกพร่องเหล่านี้มักมาจากการปรับ PA คลาดเคลื่อนเล็กน้อย โดยเฉพาะเมื่อใช้ร่วมกับ PA smooth time ที่สูง\n"
+"หากพิมพ์ด้วยความเร็วเส้นรอบวงด้านนอกสูง พารามิเตอร์นี้อาจทำให้เกิดสิ่งแปลกปลอมบนผนังเมื่อชะลอ เนื่องจากความแตกต่างของความเร็วพิมพ์ที่อาจมาก ทำให้ชุดดันเส้นตอบสนองการเปลี่ยนอัตราการไหลไม่ทัน\n"
+"สาเหตุหลักของสิ่งแปลกปลอมเหล่านี้มักมาจากการปรับ PA คลาดเคลื่อนเล็กน้อย โดยเฉพาะเมื่อใช้ร่วมกับ PA smooth time ที่สูง\n"
 "\n"
 "คำแนะนำเมื่อเปิดใช้งานตัวเลือกนี้:\n"
 "1. ลด Pressure Advance smooth time เป็น 0.015 - 0.02 เพื่อให้ชุดดันเส้นตอบสนองการเปลี่ยนความเร็วได้เร็วขึ้น\n"
 "2. เพิ่มความเร็วพิมพ์ขั้นต่ำเพื่อจำกัดขนาดการชะลอและลดความแตกต่างระหว่างช่วงเร็วและช้า\n"
-"3. หากยังมีข้อบกพร่อง ให้เปิดใช้งาน Extrusion Rate Smoothing (ERS) เพื่อปรับการเปลี่ยนอัตราการไหลให้เรียบขึ้น\n"
+"3. หากยังมีสิ่งแปลกปลอม ให้เปิดใช้งานอัตราการอัดรีดให้เรียบ (ERS) เพื่อปรับการเปลี่ยนอัตราการไหลให้เรียบขึ้น\n"
 "\n"
 "หมายเหตุ: เมื่อเปิดใช้งานตัวเลือกนี้ เส้นรอบวงส่วนยื่นจะถูกจัดเป็นส่วนยื่น หมายความว่าจะใช้ความเร็วส่วนยื่นแม้เส้นรอบวงนั้นเป็นส่วนหนึ่งของสะพาน\n"
-"ตัวอย่างเช่น เมื่อเส้นรอบวงยื่น 100% โดยไม่มีผนังรองรับจากด้านล่าง จะใช้ความเร็วส่วนยื่น 100%"
+"ตัวอย่างเช่น เมื่อเส้นรอบวงยื่น 100% โดยไม่มีผนังรองรับจากด้านล่าง จะใช้ความเร็วส่วนยื่น 75% โดยจำกัดด้วยความเร็วสะพาน"
 
 msgid "mm/s or %"
 msgstr "มิลลิเมตร/วินาที หรือ %"
 
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "ความเร็วของการอัดขึ้นรูปสะพานที่มองเห็นได้จากภายนอก\n"
 "\n"
-"นอกจากนี้ หากปิดใช้งานการชะลอความเร็วสำหรับขอบม้วนงอหรือเปิดใช้งานโหมดระยะยื่นแบบคลาสสิก มันจะเป็นความเร็วในการพิมพ์ของผนังส่วนยื่นที่รองรับน้อยกว่า 13% ไม่ว่าจะเป็นส่วนหนึ่งของสะพานหรือส่วนยื่นก็ตาม"
+"นอกจากนี้ หากปิดใช้งาน \"ชะลอความเร็วลงสำหรับขอบเขตที่โค้งงอ\" จะเป็นความเร็วในการพิมพ์ของผนังส่วนยื่นที่รองรับน้อยกว่า 13% ไม่ว่าจะเป็นส่วนหนึ่งของสะพานหรือส่วนยื่นก็ตาม"
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "ความเร็วของสะพานภายใน หากค่าแสดงเป็นเปอร์เซ็นต์ ค่าดังกล่าวจะถูกคำนวณตาม bridge_speed ค่าเริ่มต้นคือ 150%"
@@ -15777,8 +15856,9 @@ msgstr "ความเร็วของผนังด้านนอกซึ
 msgid "Small perimeters"
 msgstr "เส้นรอบวงเล็ก"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "การตั้งค่าแยกนี้จะส่งผลต่อความเร็วของเส้นรอบวงที่มีรัศมี <= small_perimeter_threshold (โดยปกติคือรู) หากแสดงเป็นเปอร์เซ็นต์ (เช่น 80%) ระบบจะคำนวณตามการตั้งค่าความเร็วผนังด้านนอกด้านบน ตั้งค่าเป็นศูนย์สำหรับรถยนต์"
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "การตั้งค่าแยกนี้จะส่งผลต่อความเร็วของเส้นรอบวงที่มีรัศมี <= small_perimeter_threshold (โดยปกติคือรู) หากแสดงเป็นเปอร์เซ็นต์ (เช่น 80%) ระบบจะคำนวณตามการตั้งค่าความเร็วผนังด้านนอกข้างต้น"
 
 msgid "Small perimeters threshold"
 msgstr "เกณฑ์ขอบเขตขนาดเล็ก"
@@ -15791,8 +15871,8 @@ msgid "Small support perimeters"
 msgstr "เส้นรอบรูปส่วนรองรับขนาดเล็ก"
 
 # AI Translated
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "เช่นเดียวกับ \"Small perimeters\" แต่สำหรับส่วนรองรับ การตั้งค่าแยกนี้จะส่งผลต่อความเร็วของส่วนรองรับสำหรับพื้นที่ <= `small_support_perimeter_threshold` หากแสดงเป็นเปอร์เซ็นต์ (เช่น 80%) จะคำนวณจากการตั้งค่าความเร็วส่วนรองรับหรืออินเทอร์เฟซส่วนรองรับด้านบน ตั้งเป็นศูนย์เพื่อใช้อัตโนมัติ"
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "เช่นเดียวกับ \"เส้นรอบวงเล็ก\" แต่สำหรับส่วนรองรับ การตั้งค่าแยกนี้จะส่งผลต่อความเร็วของส่วนรองรับสำหรับพื้นที่ <= `small_support_perimeter_threshold` หากแสดงเป็นเปอร์เซ็นต์ (เช่น 80%) จะคำนวณจากการตั้งค่าความเร็วส่วนรองรับหรือผิวสัมผัสส่วนรองรับข้างต้น"
 
 # AI Translated
 msgid "Small support perimeters threshold"
@@ -15805,22 +15885,23 @@ msgstr "ตั้งค่าเกณฑ์สำหรับความยา
 msgid "Walls printing order"
 msgstr "สั่งพิมพ์ผนัง"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
 "ลำดับการพิมพ์ของผนังภายใน (ด้านใน) และภายนอก (ด้านนอก)\n"
 "\n"
-"ใช้ด้านใน/ด้านนอกเพื่อให้ได้ระยะยื่นที่ดีที่สุด เนื่องจากผนังที่ยื่นออกมาสามารถยึดติดกับปริมณฑลใกล้เคียงขณะพิมพ์ได้ อย่างไรก็ตาม ตัวเลือกนี้ส่งผลให้คุณภาพพื้นผิวลดลงเล็กน้อย เนื่องจากเส้นรอบวงภายนอกเสียรูปเนื่องจากการถูกแบนไปยังเส้นรอบวงภายใน\n"
+"ใช้ ภายใน/ภายนอก เพื่อให้ได้ส่วนยื่นที่ดีที่สุด เนื่องจากผนังที่ยื่นออกมาสามารถยึดติดกับเส้นรอบวงที่อยู่ติดกันขณะพิมพ์ได้ อย่างไรก็ตาม ตัวเลือกนี้ทำให้คุณภาพพื้นผิวลดลงเล็กน้อย เนื่องจากเส้นรอบวงภายนอกเสียรูปจากการถูกกดทับเข้ากับเส้นรอบวงภายใน\n"
 "\n"
-"ใช้ด้านใน/ด้านนอก/ด้านในเพื่อให้ได้พื้นผิวภายนอกที่ดีที่สุดและความแม่นยำของขนาด เนื่องจากผนังภายนอกถูกพิมพ์โดยไม่ถูกรบกวนจากขอบเขตภายใน อย่างไรก็ตาม ประสิทธิภาพส่วนยื่นจะลดลงเนื่องจากไม่มีขอบเขตภายในให้พิมพ์ติดกับผนังภายนอก ตัวเลือกนี้ต้องใช้ผนังอย่างน้อย 3 แผ่นจึงจะมีประสิทธิภาพ เนื่องจากจะพิมพ์ผนังภายในจากปริมณฑลที่ 3 เป็นต้นไป จากนั้นจึงพิมพ์ปริมณฑลภายนอก และสุดท้ายคือปริมณฑลภายในแรก แนะนำให้ใช้ตัวเลือกนี้กับตัวเลือกด้านนอก/ด้านในในกรณีส่วนใหญ่\n"
+"ใช้ ภายใน/ภายนอก/ภายใน เพื่อให้ได้พื้นผิวภายนอกที่ดีที่สุดและความแม่นยำของขนาด เนื่องจากผนังภายนอกถูกพิมพ์โดยไม่ถูกรบกวนจากเส้นรอบวงภายใน อย่างไรก็ตาม ประสิทธิภาพของส่วนยื่นจะลดลงเนื่องจากไม่มีเส้นรอบวงภายในให้พิมพ์ผนังภายนอกยึดติด ตัวเลือกนี้ต้องใช้ผนังอย่างน้อย 3 รอบจึงจะได้ผล เนื่องจากจะพิมพ์ผนังภายในตั้งแต่เส้นรอบวงที่ 3 เป็นต้นไปก่อน จากนั้นจึงพิมพ์เส้นรอบวงภายนอก และสุดท้ายคือเส้นรอบวงภายในเส้นแรก ในกรณีส่วนใหญ่แนะนำให้ใช้ตัวเลือกนี้แทน ด้านนอก/ด้านใน\n"
 "\n"
-"ใช้ด้านนอก/ด้านในเพื่อคุณภาพผนังภายนอกที่เหมือนกันและประโยชน์ด้านความแม่นยำของมิติของตัวเลือกด้านใน/ด้านนอก/ด้านใน อย่างไรก็ตาม รอยตะเข็บ Z จะดูสม่ำเสมอน้อยลงเนื่องจากการอัดขึ้นรูปชั้นใหม่ครั้งแรกเริ่มต้นบนพื้นผิวที่มองเห็นได้"
+"ใช้ ด้านนอก/ด้านใน เพื่อให้ได้คุณภาพผนังภายนอกและความแม่นยำของขนาดเท่ากับ ภายใน/ภายนอก/ภายใน อย่างไรก็ตาม รอยตะเข็บ Z จะดูสม่ำเสมอน้อยลง เนื่องจากการอัดขึ้นรูปครั้งแรกของเลเยอร์ใหม่เริ่มต้นบนพื้นผิวที่มองเห็นได้"
 
 msgid "Inner/Outer"
 msgstr "ภายใน/ภายนอก"
@@ -16761,14 +16842,16 @@ msgstr "ความสูงของชั้นแรก"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "ความสูงของชั้นแรก การเพิ่มความหนาของชั้นแรกสามารถช่วยให้ยึดเกาะกับฐานพิมพ์ได้ดีขึ้น"
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "ความเร็วของชั้นแรก ยกเว้นส่วน ไส้ใน ที่เป็นของแข็ง"
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "นี่คือความเร็วสำหรับผนังและขอบยึดชิ้นงานของเลเยอร์แรก"
 
 msgid "First layer infill"
 msgstr "ไส้ในชั้นแรก"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "ความเร็วของส่วน ไส้ใน ที่เป็นของแข็งของชั้นแรก"
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "นี่คือความเร็วสำหรับเลเยอร์แรกยกเว้นผนังและขอบยึดชิ้นงาน เช่น ไส้ใน เติมช่องว่าง และส่วนรองรับ"
 
 msgid "First layer travel speed"
 msgstr "ความเร็วในการเดินทางชั้นแรก"
@@ -17469,16 +17552,18 @@ msgstr "ความกว้างของเส้นของไส้ใน
 msgid "Infill/wall overlap"
 msgstr "ไส้ในซ้อนทับผนัง"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "พื้นที่ไส้ในจะขยายใหญ่ขึ้นเล็กน้อยเพื่อให้ทับซ้อนกับผนังเพื่อการยึดเกาะที่ดีขึ้น ค่าเปอร์เซ็นต์สัมพันธ์กับความกว้างของเส้นของไส้ในแบบกระจัดกระจาย ตั้งค่านี้เป็น ~10-15% เพื่อลดโอกาสเกิดการอัดขึ้นรูปและการสะสมของวัสดุ ส่งผลให้พื้นผิวด้านบนขรุขระ"
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "พื้นที่ไส้ในจะขยายใหญ่ขึ้นเล็กน้อยเพื่อให้ทับซ้อนกับผนังเพื่อการยึดเกาะที่ดีขึ้น ค่าเปอร์เซ็นต์สัมพันธ์กับความกว้างของเส้นของผนังด้านใน ตั้งค่านี้เป็น ~10-15% เพื่อลดโอกาสเกิดการอัดขึ้นรูปเกินและการสะสมของวัสดุ ส่งผลให้พื้นผิวด้านบนขรุขระ"
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "ด้านบน/ด้านล่างของช่องทึบ/ผนังทับซ้อนกัน"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "พื้นที่ไส้ในของแข็งด้านบนจะถูกขยายให้ใหญ่ขึ้นเล็กน้อยเพื่อให้ทับซ้อนกับผนังเพื่อการยึดเกาะที่ดีขึ้น และเพื่อลดการเกิดรูเข็มที่ซึ่งอินฟิลด้านบนบรรจบกับผนัง ค่า 25-30% ถือเป็นจุดเริ่มต้นที่ดี โดยช่วยลดการเกิดรูเข็มให้เหลือน้อยที่สุด ค่าเปอร์เซ็นต์สัมพันธ์กับความกว้างของเส้นของไส้ในแบบกระจัดกระจาย"
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "พื้นที่ไส้ในแบบทึบด้านบนจะถูกขยายให้ใหญ่ขึ้นเล็กน้อยเพื่อให้ทับซ้อนกับผนังเพื่อการยึดเกาะที่ดีขึ้น และเพื่อลดการเกิดรูเข็มที่ซึ่งไส้ในด้านบนบรรจบกับผนัง ค่า 25-30% ถือเป็นจุดเริ่มต้นที่ดี โดยช่วยลดการเกิดรูเข็มให้เหลือน้อยที่สุด ค่าเปอร์เซ็นต์สัมพันธ์กับความกว้างของเส้นของผนังด้านใน"
 
 msgid "This is the speed for internal sparse infill."
 msgstr "ความเร็วของ ไส้ใน เบาบางภายใน"
@@ -17504,8 +17589,9 @@ msgstr "ความกว้างสูงสุดของขอบเขต
 msgid "Interlocking depth of a segmented region"
 msgstr "ความลึกที่ประสานกันของภูมิภาคที่แบ่งส่วน"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr "ความลึกที่ประสานกันของภูมิภาคที่แบ่งส่วน ระบบจะไม่สนใจหาก \"mmu_segmented_region_max_width\" เป็นศูนย์ หรือหาก \"mmu_segmented_region_interlocking_detail\" ใหญ่กว่า \"mmu_segmented_region_max_width\" ศูนย์ปิดใช้งานคุณลักษณะนี้"
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "ความลึกที่ประสานกันของภูมิภาคที่แบ่งส่วน ในเลเยอร์เว้นเลเยอร์ ภูมิภาคที่แบ่งส่วนจะถูกจำกัดไว้ที่ความลึกนี้ ระบบจะไม่สนใจหากเปิดใช้งาน \"interlocking_beam\" หากตั้งเป็นศูนย์จะปิดใช้งานฟีเจอร์นี้"
 
 msgid "Use beam interlocking"
 msgstr "ใช้การประสานลำแสง"
@@ -17606,13 +17692,14 @@ msgstr "เปิดใช้งานคอนทัวร์เลเยอร
 msgid "Minimize wall height angle"
 msgstr "ลดมุมความสูงของผนังให้เล็กที่สุด"
 
+# AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "ลดความสูงของเส้นรอบวงพื้นผิวด้านบนเพื่อให้ตรงกับความสูงของขอบโมเดล\n"
-"ส่งผลต่อเส้นรอบวงที่มีความชันน้อยกว่ามุมนี้ (องศา)\n"
+"ส่งผลต่อเส้นรอบวงที่มีความชันมากกว่ามุมนี้ (องศา)\n"
 "ค่าที่เหมาะสมคือ 35 ตั้งค่าเป็น 0 เพื่อปิดใช้งาน"
 
 msgid "Don't alternate fill direction"
@@ -18584,8 +18671,9 @@ msgstr "รอยต่อ Scarf สำหรับผนังด้านใ�
 msgid "Use scarf joint for inner walls as well."
 msgstr "ใช้รอยต่อ Scarf กับผนังด้านในด้วย"
 
-msgid "Role base wipe speed"
-msgstr "ความเร็ว Wipe ตามประเภทการพิมพ์"
+# AI Translated
+msgid "Role based wipe speed"
+msgstr "ความเร็วเช็ดหัวฉีดตามประเภทการพิมพ์"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr "ความเร็ว Wipe จะอิงจากความเร็วของประเภทการพิมพ์ปัจจุบัน เช่น หากการ Wipe เกิดขึ้นทันทีหลังจากพิมพ์ผนังด้านนอก ความเร็วของผนังด้านนอกจะถูกใช้สำหรับการ Wipe"
@@ -18674,16 +18762,15 @@ msgstr "จำกัดห่วงสเกิร์ต/แนวป้อง�
 msgid "Draft shield"
 msgstr "แนวป้องกันลม (Draft Shield)"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
 "แนวป้องกันลม (Draft Shield) มีประโยชน์ในการปกป้องงานพิมพ์ ABS หรือ ASA จากการบิดงอและการหลุดออกจากฐานพิมพ์เนื่องจากกระแสลม โดยทั่วไปจำเป็นต้องใช้กับเครื่องพิมพ์แบบเปิดเฟรมเท่านั้น กล่าวคือ ไม่มีกล่องหุ้ม\n"
 "\n"
-"Enabled = เส้นล้อมชิ้นงานสูงเท่ากับวัตถุที่พิมพ์สูงสุด มิฉะนั้น จะใช้ 'ความสูงของเส้นล้อมชิ้นงาน'\n"
-"หมายเหตุ: เมื่อใช้งานแนวป้องกันลม (Draft Shield) เส้นล้อมชิ้นงานจะถูกพิมพ์ที่ระยะห่างจากวัตถุ ดังนั้นหากขอบยึดชิ้นงานยังทำงานอยู่ ขอบยึดชิ้นงานอาจตัดกัน เพื่อหลีกเลี่ยงปัญหานี้ ให้เพิ่มค่าระยะห่างของเส้นล้อมชิ้นงาน\n"
+"เปิดใช้งาน = เส้นล้อมชิ้นงานสูงเท่ากับวัตถุที่พิมพ์สูงสุด มิฉะนั้น จะใช้ 'ความสูงของเส้นล้อมชิ้นงาน'"
 
 msgid "Enabled"
 msgstr "เปิดใช้"
@@ -19823,26 +19910,27 @@ msgstr "มุมที่ปลายกรวยที่ใช้เพื่
 msgid "Maximum wipe tower print speed"
 msgstr "ความเร็วการพิมพ์ Wipe Tower สูงสุด"
 
+# AI Translated
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
-"ความเร็วในการพิมพ์สูงสุดเมื่อทำการล้างข้อมูลใน Wipe Tower และการพิมพ์ Wipe Tower บางเลเยอร์ เมื่อทำการไล่ล้าง หากความเร็วไส้ในแบบโปร่งหรือความเร็วที่คำนวณจากความเร็วปริมาตรสูงสุดของเส้นพลาสติกต่ำกว่า ความเร็วต่ำสุดจะถูกนำมาใช้แทน\n"
+"ความเร็วในการพิมพ์สูงสุดเมื่อไล่เส้นใน Wipe Tower และเมื่อพิมพ์เลเยอร์กระจัดกระจายของ Wipe Tower เมื่อไล่เส้น หากความเร็วไส้ในแบบโปร่งหรือความเร็วที่คำนวณจากความเร็วปริมาตรสูงสุดของเส้นพลาสติกต่ำกว่า ความเร็วต่ำสุดจะถูกนำมาใช้แทน\n"
 "\n"
-"เมื่อพิมพ์ชั้นเบาบาง หากความเร็วเส้นรอบวงภายในหรือความเร็วที่คำนวณจากความเร็วปริมาตรสูงสุดของเส้นพลาสติกต่ำกว่า ความเร็วต่ำสุดจะถูกนำมาใช้แทน\n"
+"เมื่อพิมพ์เลเยอร์กระจัดกระจาย หากความเร็วไส้ในแบบโปร่งหรือความเร็วที่คำนวณจากความเร็วปริมาตรสูงสุดของเส้นพลาสติกต่ำกว่า ความเร็วต่ำสุดจะถูกนำมาใช้แทน\n"
 "\n"
 "การเพิ่มความเร็วนี้อาจส่งผลต่อเสถียรภาพของทาวเวอร์ รวมทั้งเพิ่มแรงที่หัวฉีดชนกับหยดใดๆ ที่อาจก่อตัวบน Wipe Tower\n"
 "\n"
-"ก่อนที่จะเพิ่มพารามิเตอร์นี้เกินกว่าค่าเริ่มต้นที่ 90 มม./วินาที ตรวจสอบให้แน่ใจว่าเครื่องพิมพ์ของคุณสามารถเชื่อมต่อที่ความเร็วที่เพิ่มขึ้นได้อย่างน่าเชื่อถือ และจะมีการควบคุมอย่างดีเมื่อเปลี่ยนเครื่องมือ\n"
+"ก่อนที่จะเพิ่มพารามิเตอร์นี้เกินกว่าค่าเริ่มต้นที่ 90 mm/s ตรวจสอบให้แน่ใจว่าเครื่องพิมพ์ของคุณพิมพ์สะพานที่ความเร็วที่เพิ่มขึ้นได้อย่างน่าเชื่อถือ และการป้องกันน้ำซึมขณะเปลี่ยนเครื่องมือทำงานได้ดี\n"
 "\n"
-"สำหรับปริมณฑลภายนอกของ Wipe Tower ความเร็วของปริมณฑลภายในจะถูกใช้โดยไม่คำนึงถึงการตั้งค่านี้"
+"สำหรับเส้นรอบวงภายนอกของ Wipe Tower จะใช้ความเร็วเส้นรอบวงภายใน โดยถูกจำกัดด้วยการตั้งค่านี้ด้วย"
 
 msgid "Wall type"
 msgstr "ชนิดติดผนัง"
@@ -19850,14 +19938,14 @@ msgstr "ชนิดติดผนัง"
 # AI Translated
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "Wipe Tower ชนิดผนังด้านนอก\n"
-"1. สี่เหลี่ยมผืนผ้า: ประเภทผนังเริ่มต้น ซึ่งเป็นสี่เหลี่ยมผืนผ้าที่มีความกว้างและความสูงคงที่\n"
-"2. กรวย: กรวยที่มีมุมมนอยู่ด้านล่างเพื่อช่วยรักษาเสถียรภาพของ Wipe Tower\n"
-"3. ซี่โครง: เพิ่มสี่ซี่โครงเข้ากับผนัง Wipe Tower เพื่อเพิ่มความมั่นคง"
+"1. สี่เหลี่ยมผืนผ้า: สี่เหลี่ยมผืนผ้าที่มีความกว้างและความสูงคงที่\n"
+"2. ทรงกรวย: ทรงกรวยที่ด้านล่างมีการลบมุมมนเพื่อช่วยรักษาเสถียรภาพของ Wipe Tower\n"
+"3. ซี่โครง: ประเภทผนังเริ่มต้น ซึ่งเพิ่มสี่ซี่โครงเข้ากับผนัง Wipe Tower เพื่อเพิ่มความมั่นคง"
 
 msgid "Rectangle"
 msgstr "สี่เหลี่ยมผืนผ้า"
@@ -19950,8 +20038,9 @@ msgstr "ระยะห่างของเส้นไล่ล้างบน
 msgid "Extra flow for purging"
 msgstr "กระแสพิเศษสำหรับการล้าง"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "การไหลพิเศษที่ใช้สำหรับท่อไล่ล้างบน Wipe Tower ซึ่งจะทำให้เส้นการล้างหนาหรือแคบกว่าปกติ ระยะห่างจะถูกปรับโดยอัตโนมัติ"
+# AI Translated
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "การไหลพิเศษที่ใช้สำหรับเส้นไล่ล้างบน Wipe Tower ซึ่งจะทำให้เส้นไล่ล้างหนากว่าปกติ ระยะห่างจะถูกปรับโดยอัตโนมัติ"
 
 msgid "Idle temperature"
 msgstr "อุณหภูมิว่าง"
@@ -20069,14 +20158,15 @@ msgstr "ความหนาขั้นต่ำของคุณสมบั
 msgid "Minimum wall length"
 msgstr "ความยาวผนังขั้นต่ำ"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"ปรับค่านี้เพื่อป้องกันการพิมพ์ผนังที่สั้นและไม่ปิด ซึ่งอาจเพิ่มเวลาในการพิมพ์ ค่าที่สูงกว่าจะลบผนังที่ยาวขึ้นเรื่อยๆ\n"
+"ปรับค่านี้เพื่อป้องกันการพิมพ์ผนังที่สั้นและไม่ปิด ซึ่งอาจเพิ่มเวลาในการพิมพ์ ค่านี้เป็นตัวคูณของความกว้างผนัง ค่าที่สูงขึ้นจะลบผนังได้มากขึ้นและยาวขึ้น\n"
 "\n"
-"หมายเหตุ: พื้นผิวด้านล่างและด้านบนจะไม่ได้รับผลกระทบจากค่านี้ เพื่อป้องกันช่องว่างการมองเห็นด้านนอกของแบบจำลอง ปรับ 'เกณฑ์ผนังด้านเดียว' ในการตั้งค่าขั้นสูงด้านล่างเพื่อปรับความไวของสิ่งที่ถือเป็นพื้นผิวด้านบน 'เกณฑ์ผนังด้านเดียว' จะมองเห็นได้ก็ต่อเมื่อการตั้งค่านี้ตั้งไว้สูงกว่าค่าเริ่มต้นที่ 0.5 หรือหากเปิดใช้งานพื้นผิวด้านบนแบบผนังเดียว"
+"หมายเหตุ: พื้นผิวด้านล่างและด้านบนจะไม่ได้รับผลกระทบจากค่านี้ เพื่อป้องกันช่องว่างที่มองเห็นได้ด้านนอกของโมเดล ปรับ 'เกณฑ์ผนังด้านหนึ่ง' ในการตั้งค่า 'ผนังและพื้นผิว' ด้านล่างเพื่อปรับความไวของสิ่งที่ถือเป็นพื้นผิวด้านบน 'เกณฑ์ผนังด้านหนึ่ง' จะแสดงก็ต่อเมื่อการตั้งค่านี้สูงกว่าค่าเริ่มต้นที่ 0.5 หรือเมื่อเปิดใช้งาน 'มีเพียงผนังเดียวบนพื้นผิวด้านบน'"
 
 msgid "Maximum wall resolution"
 msgstr "ความละเอียดผนังสูงสุด"
@@ -24032,9 +24122,6 @@ msgstr "เปิดใช้การกำหนดเส้นพลาสต
 # AI Translated
 msgid "File Saving"
 msgstr "การบันทึกไฟล์"
-
-msgid "Don't remind me again"
-msgstr "ไม่ต้องเตือนฉันอีก"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "จะไม่มีป๊อปอัปเพิ่มเติมปรากฏขึ้น คุณสามารถเปิดใหม่ได้ใน 'การตั้งค่า'"
@@ -34489,6 +34576,169 @@ msgid ""
 msgstr ""
 "หลีกเลี่ยงการบิดเบี้ยว\n"
 "คุณรู้หรือไม่ว่าเมื่อพิมพ์วัสดุที่มีแนวโน้มที่จะเกิดการบิดเบี้ยว เช่น ABS การเพิ่มอุณหภูมิฐานพิมพ์อย่างเหมาะสมสามารถลดความน่าจะเป็นของการบิดเบี้ยวได้"
+
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "ความกว้างเส้นของสะพาน หากระบุเป็น % จะคำนวณจากเส้นผ่านศูนย์กลางหัวฉีด\n"
+#~ "แนะนำให้ใช้ร่วมกับความหนาแน่นสะพานหรืออัตราการไหลสะพานที่สูงขึ้น\n"
+#~ "\n"
+#~ "ค่าสูงสุดคือ 100% หรือเส้นผ่านศูนย์กลางหัวฉีด\n"
+#~ "หากตั้งเป็น 0 ความกว้างเส้นจะเท่ากับความกว้างไส้ในแบบทึบภายใน"
+
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "เปิดใช้งานตัวเลือกนี้เพื่อชะลอการพิมพ์ในพื้นที่ที่เส้นรอบวงอาจงอขึ้น\n"
+#~ "ตัวอย่างเช่น จะชะลอเพิ่มเติมเมื่อพิมพ์ส่วนยื่นที่มุมแหลม เช่นด้านหน้าของตัวเรือ Benchy ช่วยลดการงอที่สะสมข้ามหลายชั้น\n"
+#~ "\n"
+#~ "โดยทั่วไปแนะนำให้เปิดใช้งาน เว้นแต่ระบบระบายความร้อนของเครื่องพิมพ์แรงพอ หรือความเร็วพิมพ์ช้าพอที่เส้นรอบวงจะไม่งอ\n"
+#~ "หากพิมพ์ด้วยความเร็วเส้นรอบวงด้านนอกสูง พารามิเตอร์นี้อาจทำให้เกิดข้อบกพร่องบนผนังเมื่อชะลอ เนื่องจากความแตกต่างของความเร็วพิมพ์ที่อาจมาก ทำให้ชุดดันเส้นตอบสนองการเปลี่ยนอัตราการไหลไม่ทัน\n"
+#~ "สาเหตุหลักของข้อบกพร่องเหล่านี้มักมาจากการปรับ PA คลาดเคลื่อนเล็กน้อย โดยเฉพาะเมื่อใช้ร่วมกับ PA smooth time ที่สูง\n"
+#~ "\n"
+#~ "คำแนะนำเมื่อเปิดใช้งานตัวเลือกนี้:\n"
+#~ "1. ลด Pressure Advance smooth time เป็น 0.015 - 0.02 เพื่อให้ชุดดันเส้นตอบสนองการเปลี่ยนความเร็วได้เร็วขึ้น\n"
+#~ "2. เพิ่มความเร็วพิมพ์ขั้นต่ำเพื่อจำกัดขนาดการชะลอและลดความแตกต่างระหว่างช่วงเร็วและช้า\n"
+#~ "3. หากยังมีข้อบกพร่อง ให้เปิดใช้งาน Extrusion Rate Smoothing (ERS) เพื่อปรับการเปลี่ยนอัตราการไหลให้เรียบขึ้น\n"
+#~ "\n"
+#~ "หมายเหตุ: เมื่อเปิดใช้งานตัวเลือกนี้ เส้นรอบวงส่วนยื่นจะถูกจัดเป็นส่วนยื่น หมายความว่าจะใช้ความเร็วส่วนยื่นแม้เส้นรอบวงนั้นเป็นส่วนหนึ่งของสะพาน\n"
+#~ "ตัวอย่างเช่น เมื่อเส้นรอบวงยื่น 100% โดยไม่มีผนังรองรับจากด้านล่าง จะใช้ความเร็วส่วนยื่น 100%"
+
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "ความเร็วของการอัดขึ้นรูปสะพานที่มองเห็นได้จากภายนอก\n"
+#~ "\n"
+#~ "นอกจากนี้ หากปิดใช้งานการชะลอความเร็วสำหรับขอบม้วนงอหรือเปิดใช้งานโหมดระยะยื่นแบบคลาสสิก มันจะเป็นความเร็วในการพิมพ์ของผนังส่วนยื่นที่รองรับน้อยกว่า 13% ไม่ว่าจะเป็นส่วนหนึ่งของสะพานหรือส่วนยื่นก็ตาม"
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "การตั้งค่าแยกนี้จะส่งผลต่อความเร็วของเส้นรอบวงที่มีรัศมี <= small_perimeter_threshold (โดยปกติคือรู) หากแสดงเป็นเปอร์เซ็นต์ (เช่น 80%) ระบบจะคำนวณตามการตั้งค่าความเร็วผนังด้านนอกด้านบน ตั้งค่าเป็นศูนย์สำหรับรถยนต์"
+
+# AI Translated
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "เช่นเดียวกับ \"Small perimeters\" แต่สำหรับส่วนรองรับ การตั้งค่าแยกนี้จะส่งผลต่อความเร็วของส่วนรองรับสำหรับพื้นที่ <= `small_support_perimeter_threshold` หากแสดงเป็นเปอร์เซ็นต์ (เช่น 80%) จะคำนวณจากการตั้งค่าความเร็วส่วนรองรับหรืออินเทอร์เฟซส่วนรองรับด้านบน ตั้งเป็นศูนย์เพื่อใช้อัตโนมัติ"
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "ลำดับการพิมพ์ของผนังภายใน (ด้านใน) และภายนอก (ด้านนอก)\n"
+#~ "\n"
+#~ "ใช้ด้านใน/ด้านนอกเพื่อให้ได้ระยะยื่นที่ดีที่สุด เนื่องจากผนังที่ยื่นออกมาสามารถยึดติดกับปริมณฑลใกล้เคียงขณะพิมพ์ได้ อย่างไรก็ตาม ตัวเลือกนี้ส่งผลให้คุณภาพพื้นผิวลดลงเล็กน้อย เนื่องจากเส้นรอบวงภายนอกเสียรูปเนื่องจากการถูกแบนไปยังเส้นรอบวงภายใน\n"
+#~ "\n"
+#~ "ใช้ด้านใน/ด้านนอก/ด้านในเพื่อให้ได้พื้นผิวภายนอกที่ดีที่สุดและความแม่นยำของขนาด เนื่องจากผนังภายนอกถูกพิมพ์โดยไม่ถูกรบกวนจากขอบเขตภายใน อย่างไรก็ตาม ประสิทธิภาพส่วนยื่นจะลดลงเนื่องจากไม่มีขอบเขตภายในให้พิมพ์ติดกับผนังภายนอก ตัวเลือกนี้ต้องใช้ผนังอย่างน้อย 3 แผ่นจึงจะมีประสิทธิภาพ เนื่องจากจะพิมพ์ผนังภายในจากปริมณฑลที่ 3 เป็นต้นไป จากนั้นจึงพิมพ์ปริมณฑลภายนอก และสุดท้ายคือปริมณฑลภายในแรก แนะนำให้ใช้ตัวเลือกนี้กับตัวเลือกด้านนอก/ด้านในในกรณีส่วนใหญ่\n"
+#~ "\n"
+#~ "ใช้ด้านนอก/ด้านในเพื่อคุณภาพผนังภายนอกที่เหมือนกันและประโยชน์ด้านความแม่นยำของมิติของตัวเลือกด้านใน/ด้านนอก/ด้านใน อย่างไรก็ตาม รอยตะเข็บ Z จะดูสม่ำเสมอน้อยลงเนื่องจากการอัดขึ้นรูปชั้นใหม่ครั้งแรกเริ่มต้นบนพื้นผิวที่มองเห็นได้"
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "ความเร็วของชั้นแรก ยกเว้นส่วน ไส้ใน ที่เป็นของแข็ง"
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "ความเร็วของส่วน ไส้ใน ที่เป็นของแข็งของชั้นแรก"
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "พื้นที่ไส้ในจะขยายใหญ่ขึ้นเล็กน้อยเพื่อให้ทับซ้อนกับผนังเพื่อการยึดเกาะที่ดีขึ้น ค่าเปอร์เซ็นต์สัมพันธ์กับความกว้างของเส้นของไส้ในแบบกระจัดกระจาย ตั้งค่านี้เป็น ~10-15% เพื่อลดโอกาสเกิดการอัดขึ้นรูปและการสะสมของวัสดุ ส่งผลให้พื้นผิวด้านบนขรุขระ"
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "พื้นที่ไส้ในของแข็งด้านบนจะถูกขยายให้ใหญ่ขึ้นเล็กน้อยเพื่อให้ทับซ้อนกับผนังเพื่อการยึดเกาะที่ดีขึ้น และเพื่อลดการเกิดรูเข็มที่ซึ่งอินฟิลด้านบนบรรจบกับผนัง ค่า 25-30% ถือเป็นจุดเริ่มต้นที่ดี โดยช่วยลดการเกิดรูเข็มให้เหลือน้อยที่สุด ค่าเปอร์เซ็นต์สัมพันธ์กับความกว้างของเส้นของไส้ในแบบกระจัดกระจาย"
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr "ความลึกที่ประสานกันของภูมิภาคที่แบ่งส่วน ระบบจะไม่สนใจหาก \"mmu_segmented_region_max_width\" เป็นศูนย์ หรือหาก \"mmu_segmented_region_interlocking_detail\" ใหญ่กว่า \"mmu_segmented_region_max_width\" ศูนย์ปิดใช้งานคุณลักษณะนี้"
+
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "ลดความสูงของเส้นรอบวงพื้นผิวด้านบนเพื่อให้ตรงกับความสูงของขอบโมเดล\n"
+#~ "ส่งผลต่อเส้นรอบวงที่มีความชันน้อยกว่ามุมนี้ (องศา)\n"
+#~ "ค่าที่เหมาะสมคือ 35 ตั้งค่าเป็น 0 เพื่อปิดใช้งาน"
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "ความเร็ว Wipe ตามประเภทการพิมพ์"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "แนวป้องกันลม (Draft Shield) มีประโยชน์ในการปกป้องงานพิมพ์ ABS หรือ ASA จากการบิดงอและการหลุดออกจากฐานพิมพ์เนื่องจากกระแสลม โดยทั่วไปจำเป็นต้องใช้กับเครื่องพิมพ์แบบเปิดเฟรมเท่านั้น กล่าวคือ ไม่มีกล่องหุ้ม\n"
+#~ "\n"
+#~ "Enabled = เส้นล้อมชิ้นงานสูงเท่ากับวัตถุที่พิมพ์สูงสุด มิฉะนั้น จะใช้ 'ความสูงของเส้นล้อมชิ้นงาน'\n"
+#~ "หมายเหตุ: เมื่อใช้งานแนวป้องกันลม (Draft Shield) เส้นล้อมชิ้นงานจะถูกพิมพ์ที่ระยะห่างจากวัตถุ ดังนั้นหากขอบยึดชิ้นงานยังทำงานอยู่ ขอบยึดชิ้นงานอาจตัดกัน เพื่อหลีกเลี่ยงปัญหานี้ ให้เพิ่มค่าระยะห่างของเส้นล้อมชิ้นงาน\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "ความเร็วในการพิมพ์สูงสุดเมื่อทำการล้างข้อมูลใน Wipe Tower และการพิมพ์ Wipe Tower บางเลเยอร์ เมื่อทำการไล่ล้าง หากความเร็วไส้ในแบบโปร่งหรือความเร็วที่คำนวณจากความเร็วปริมาตรสูงสุดของเส้นพลาสติกต่ำกว่า ความเร็วต่ำสุดจะถูกนำมาใช้แทน\n"
+#~ "\n"
+#~ "เมื่อพิมพ์ชั้นเบาบาง หากความเร็วเส้นรอบวงภายในหรือความเร็วที่คำนวณจากความเร็วปริมาตรสูงสุดของเส้นพลาสติกต่ำกว่า ความเร็วต่ำสุดจะถูกนำมาใช้แทน\n"
+#~ "\n"
+#~ "การเพิ่มความเร็วนี้อาจส่งผลต่อเสถียรภาพของทาวเวอร์ รวมทั้งเพิ่มแรงที่หัวฉีดชนกับหยดใดๆ ที่อาจก่อตัวบน Wipe Tower\n"
+#~ "\n"
+#~ "ก่อนที่จะเพิ่มพารามิเตอร์นี้เกินกว่าค่าเริ่มต้นที่ 90 มม./วินาที ตรวจสอบให้แน่ใจว่าเครื่องพิมพ์ของคุณสามารถเชื่อมต่อที่ความเร็วที่เพิ่มขึ้นได้อย่างน่าเชื่อถือ และจะมีการควบคุมอย่างดีเมื่อเปลี่ยนเครื่องมือ\n"
+#~ "\n"
+#~ "สำหรับปริมณฑลภายนอกของ Wipe Tower ความเร็วของปริมณฑลภายในจะถูกใช้โดยไม่คำนึงถึงการตั้งค่านี้"
+
+# AI Translated
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "Wipe Tower ชนิดผนังด้านนอก\n"
+#~ "1. สี่เหลี่ยมผืนผ้า: ประเภทผนังเริ่มต้น ซึ่งเป็นสี่เหลี่ยมผืนผ้าที่มีความกว้างและความสูงคงที่\n"
+#~ "2. กรวย: กรวยที่มีมุมมนอยู่ด้านล่างเพื่อช่วยรักษาเสถียรภาพของ Wipe Tower\n"
+#~ "3. ซี่โครง: เพิ่มสี่ซี่โครงเข้ากับผนัง Wipe Tower เพื่อเพิ่มความมั่นคง"
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "การไหลพิเศษที่ใช้สำหรับท่อไล่ล้างบน Wipe Tower ซึ่งจะทำให้เส้นการล้างหนาหรือแคบกว่าปกติ ระยะห่างจะถูกปรับโดยอัตโนมัติ"
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr ""
+#~ "ปรับค่านี้เพื่อป้องกันการพิมพ์ผนังที่สั้นและไม่ปิด ซึ่งอาจเพิ่มเวลาในการพิมพ์ ค่าที่สูงกว่าจะลบผนังที่ยาวขึ้นเรื่อยๆ\n"
+#~ "\n"
+#~ "หมายเหตุ: พื้นผิวด้านล่างและด้านบนจะไม่ได้รับผลกระทบจากค่านี้ เพื่อป้องกันช่องว่างการมองเห็นด้านนอกของแบบจำลอง ปรับ 'เกณฑ์ผนังด้านเดียว' ในการตั้งค่าขั้นสูงด้านล่างเพื่อปรับความไวของสิ่งที่ถือเป็นพื้นผิวด้านบน 'เกณฑ์ผนังด้านเดียว' จะมองเห็นได้ก็ต่อเมื่อการตั้งค่านี้ตั้งไว้สูงกว่าค่าเริ่มต้นที่ 0.5 หรือหากเปิดใช้งานพื้นผิวด้านบนแบบผนังเดียว"
 
 # AI Translated
 #, boost-format

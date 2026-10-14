@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-13 21:06-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2641,6 +2641,67 @@ msgstr "Beperking netwerkplug-in"
 # AI Translated
 msgid "Privacy Policy Update"
 msgstr "Update privacybeleid"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "Al uw filamentvoorinstellingen zijn beschikbaar op de printers waarvoor ze zijn gemaakt."
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "Filamentvoorinstellingen migreren"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 heeft veel systeemfilamentvoorinstellingen herstructureerd om onjuiste profielen te corrigeren en voor te bereiden op toekomstige functies. Hierdoor worden de onderstaande voorinstellingen niet meer weergegeven op sommige printers waarvoor ze zijn gemaakt. Onze excuses voor het ongemak; dit is een eenmalige oplossing.\n"
+"\n"
+"Deze printers nu weer toevoegen aan uw voorinstellingen? Van uw voorinstellingen wordt eerst een back-up gemaakt. U kunt dit ook later doen via Hulp > Filamentvoorinstellingen migreren."
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (gebaseerd op %2%)"
+
+# AI Translated
+msgid "Don't remind me again"
+msgstr "Herinner mij niet meer"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "Er kon geen back-up van uw voorinstellingen worden gemaakt, dus ze zijn niet gemigreerd."
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "De map met gebruikersvoorinstellingen kon niet worden vergrendeld, dus er is niets gemigreerd. Mogelijk slaat een andere OrcaSlicer-instantie op dit moment voorinstellingen op; probeer het later opnieuw via Hulp > Filamentvoorinstellingen migreren."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Uw filamentvoorinstellingen konden niet worden gemigreerd. Een back-up van uw voorinstellingen is opgeslagen in:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Uw filamentvoorinstellingen zijn gemigreerd. Selecteer ze opnieuw in de filamentlijst waar u ze gebruikte.\n"
+"\n"
+"Een back-up van uw voorinstellingen is opgeslagen in:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "Deze voorinstellingen konden niet worden gemigreerd:"
 
 # AI Translated
 #, c-format, boost-format
@@ -7183,6 +7244,10 @@ msgstr "Installatiewizard"
 
 msgid "Show Configuration Folder"
 msgstr "Toon de configuratie map"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "Filamentvoorinstellingen terugbrengen die door een profielupdate zijn verwijderd van de printers waarvoor ze zijn gemaakt"
 
 # AI Translated
 msgid "Troubleshoot Center"
@@ -15048,6 +15113,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "een perimeter ligt volledig binnen een aanpasser, de aanpasser is er niet op toegepast (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "Aanpasser \"%2%\" (%1%) van \"%3%\" bedekt een volledige perimeter"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "Aanpasser \"%2%\" (%1%) van \"%3%\" (%4% in totaal) bedekt een volledige perimeter"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "aanpasser \"%1%\" van \"%2%\" had geen effect op de naad (mogelijk reikt deze niet tot de middellijn van de geprinte perimeter)"
@@ -16116,18 +16193,19 @@ msgstr ""
 "De daadwerkelijk gebruikte brugflow wordt berekend door deze waarde te vermenigvuldigen met de flow verhouding van het filament en, indien ingesteld, met de flow verhouding van het object."
 
 # AI Translated
+# Needs human review: 'Brugflow' quotes the existing label for 'Bridge flow ratio', but the glossary renders Flow ratio as 'Flow verhouding'; 'brugdichtheid' is generic (the labels are 'Dichtheid van externe/interne bruggen').
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
-"Lijnbreedte van de brug. Als dit als % wordt uitgedrukt, wordt het berekend over de mondstukdiameter.\n"
-"Aanbevolen in combinatie met een hogere brugdichtheid of een hogere flow verhouding voor bruggen.\n"
+"Lijnbreedte van de brug. Als dit als percentage (%) wordt uitgedrukt, wordt het berekend over de mondstukdiameter.\n"
+"Aanbevolen in combinatie met een hogere brugdichtheid of Brugflow.\n"
 "\n"
 "De maximale waarde is 100% of de mondstukdiameter.\n"
-"Als dit op 0 wordt ingesteld, komt de lijnbreedte overeen met de breedte van de interne solide vulling."
+"Als dit op 0 wordt ingesteld, komt de lijnbreedte overeen met de breedte van de interne solide vulling, of met de mondstukdiameter bij dikke bruggen."
 
 # AI Translated
 msgid "Internal bridge flow ratio"
@@ -16456,7 +16534,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "Schakel deze optie in om af te remmen in gebieden waar perimeters omhoog gekruld kunnen zijn.\n"
 "Zo wordt er extra afgeremd bij het printen van overhangen op scherpe hoeken, zoals de voorkant van de Benchy-romp, wat het omkrullen vermindert dat zich over meerdere lagen opstapelt.\n"
@@ -16468,10 +16546,10 @@ msgstr ""
 "Aanbevelingen bij het inschakelen van deze optie:\n"
 "1. Verlaag de smoothtijd van Pressure Advance tot 0,015 - 0,02, zodat de extruder snel op de snelheidsveranderingen reageert.\n"
 "2. Verhoog de minimale printsnelheden om de omvang van de vertraging te beperken en het verschil tussen snelle en trage segmenten te verkleinen.\n"
-"3. Als er nog steeds artefacten optreden, schakel dan Extrusion Rate Smoothing (ERS) in om de flowovergangen verder af te vlakken.\n"
+"3. Als er nog steeds artefacten optreden, schakel dan Afvlakking van de extrusiesnelheid (ERS) in om de flowovergangen verder af te vlakken.\n"
 "\n"
 "Let op: wanneer deze optie is ingeschakeld, worden overhangende perimeters als overhangen behandeld, wat betekent dat de overhangsnelheid wordt toegepast, zelfs als de overhangende perimeter deel uitmaakt van een brug.\n"
-"Bijvoorbeeld: wanneer de perimeters voor 100% overhangen en er geen wand is die ze van onderaf ondersteunt, wordt de overhangsnelheid voor 100% toegepast."
+"Bijvoorbeeld: wanneer de perimeters voor 100% overhangen en er geen wand is die ze van onderaf ondersteunt, wordt de overhangsnelheid voor 75% toegepast, beperkt door de brugsnelheid."
 
 msgid "mm/s or %"
 msgstr "mm/s of %"
@@ -16480,11 +16558,11 @@ msgstr "mm/s of %"
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "Snelheid van de extern zichtbare brugextrusies.\n"
 "\n"
-"Als bovendien Afremmen voor omgekrulde perimeters is uitgeschakeld of de klassieke overhangmodus is ingeschakeld, is dit de printsnelheid van overhangende wanden die voor minder dan 13% worden ondersteund, ongeacht of ze deel uitmaken van een brug of een overhang."
+"Als bovendien Afremmen voor omgekrulde perimeters is uitgeschakeld, is dit de printsnelheid van overhangende wanden met een ondersteuning van minder dan 13%, ongeacht of ze deel uitmaken van een brug of een overhang."
 
 # AI Translated
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
@@ -17093,8 +17171,8 @@ msgid "Small perimeters"
 msgstr "Kleine omtrek"
 
 # AI Translated
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "Deze afzonderlijke instelling beïnvloedt de snelheid van perimeters met een straal <= small_perimeter_threshold (meestal gaten). Als dit als percentage wordt uitgedrukt (bijvoorbeeld: 80%), wordt het berekend op basis van de bovenstaande instelling voor de snelheid van de buitenste wand. Zet op nul voor automatisch."
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "Deze afzonderlijke instelling beïnvloedt de snelheid van perimeters met een straal <= small_perimeter_threshold (meestal gaten). Als dit als percentage wordt uitgedrukt (bijvoorbeeld: 80%), wordt het berekend op basis van de bovenstaande instelling voor de snelheid van de buitenste wand."
 
 # AI Translated
 msgid "Small perimeters threshold"
@@ -17108,8 +17186,8 @@ msgid "Small support perimeters"
 msgstr "Kleine ondersteuningsperimeters"
 
 # AI Translated
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "Hetzelfde als \"Kleine perimeters\", maar voor ondersteuningen. Deze afzonderlijke instelling beïnvloedt de ondersteuningssnelheid voor gebieden <= `small_support_perimeter_threshold`. Als dit als percentage wordt uitgedrukt (bijvoorbeeld: 80%), wordt het berekend op basis van de bovenstaande instelling voor de snelheid van de ondersteuning of de ondersteuningsinterface. Zet op nul voor automatisch."
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "Hetzelfde als \"Kleine omtrek\", maar voor ondersteuningen. Deze afzonderlijke instelling beïnvloedt de ondersteuningssnelheid voor gebieden <= `small_support_perimeter_threshold`. Als dit als percentage wordt uitgedrukt (bijvoorbeeld: 80%), wordt het berekend op basis van de bovenstaande instelling voor de snelheid van de ondersteuning of de ondersteuningsinterface."
 
 # AI Translated
 msgid "Small support perimeters threshold"
@@ -17129,7 +17207,7 @@ msgid ""
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
@@ -18191,14 +18269,16 @@ msgstr "Laaghoogte van de eerste laag"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "Dit is de hoogte van de eerste laag. Door de hoogte van de eerste laag hoger te maken, kan de hechting op het printbed worden verbeterd."
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "Dit is de snelheid voor de eerste laag behalve solide vulling (infill) delen"
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "Dit is de snelheid voor de wanden en de rand van de eerste laag."
 
 msgid "First layer infill"
 msgstr "Vulling (infill) van de eerste laag"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "Dit is de snelheid voor de solide vulling (infill) delen van de eerste laag."
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "Dit is de snelheid voor de eerste laag, behalve voor wanden en rand, zoals vulling, gatvulling en ondersteuning."
 
 # AI Translated
 msgid "First layer travel speed"
@@ -19006,8 +19086,8 @@ msgstr "Vulling (infill)/wand overlap"
 
 # AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "Hiermee kan het vulgebied iets worden vergroot zodat het overlapt met de wanden voor een betere hechting. De percentagewaarde is relatief ten opzichte van de lijnbreedte van de dunne vulling (infill). Stel deze waarde in op ~10-15% om mogelijke overextrusie en materiaalophoping, die ruwe bovenoppervlakken veroorzaken, te beperken."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "Hiermee kan het vulgebied iets worden vergroot zodat het overlapt met de wanden voor een betere hechting. De percentagewaarde is relatief ten opzichte van de lijnbreedte van de binnenste wand. Stel deze waarde in op ~10-15% om mogelijke overextrusie en materiaalophoping, die ruwe bovenoppervlakken veroorzaken, te beperken."
 
 # AI Translated
 msgid "Top/Bottom solid infill/wall overlap"
@@ -19015,8 +19095,8 @@ msgstr "Overlap van solide vulling boven/onder met de wand"
 
 # AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "Het gebied van de solide vulling aan de bovenzijde wordt iets vergroot zodat het met de wand overlapt voor een betere hechting en om speldenprikgaatjes waar de bovenvulling de wanden raakt zoveel mogelijk te voorkomen. Een waarde van 25-30% is een goed startpunt om speldenprikgaatjes te beperken. De percentagewaarde is relatief ten opzichte van de lijnbreedte van de dunne vulling (infill)."
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "Het gebied van de solide vulling aan de bovenzijde wordt iets vergroot zodat het met de wand overlapt voor een betere hechting en om speldenprikgaatjes waar de bovenvulling de wanden raakt zoveel mogelijk te voorkomen. Een waarde van 25-30% is een goed startpunt om speldenprikgaatjes te beperken. De percentagewaarde is relatief ten opzichte van de lijnbreedte van de binnenste wand."
 
 msgid "This is the speed for internal sparse infill."
 msgstr "Dit is de snelheid voor de dunne vulling (infill)"
@@ -19047,8 +19127,8 @@ msgid "Interlocking depth of a segmented region"
 msgstr "Insluitdiepte van een gesegmenteerde regio"
 
 # AI Translated
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr "Vergrendeldiepte van een gesegmenteerd gebied. Dit wordt genegeerd als \"mmu_segmented_region_max_width\" nul is of als \"mmu_segmented_region_interlocking_depth\" groter is dan \"mmu_segmented_region_max_width\". Nul schakelt deze functie uit."
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "Insluitdiepte van een gesegmenteerde regio. Op elke tweede laag is de gesegmenteerde regio beperkt tot deze diepte. Wordt genegeerd als \"interlocking_beam\" is ingeschakeld. Nul schakelt deze functie uit."
 
 # AI Translated
 msgid "Use beam interlocking"
@@ -19176,11 +19256,11 @@ msgstr "Hoek voor het minimaliseren van de wandhoogte"
 # AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "Verlaag de hoogte van de perimeters van het bovenoppervlak zodat deze overeenkomt met de hoogte van de modelrand.\n"
-"Heeft invloed op perimeters met een helling kleiner dan deze hoek (graden).\n"
+"Heeft invloed op perimeters met een helling groter dan deze hoek (graden).\n"
 "Een redelijke waarde is 35. Zet op 0 om uit te schakelen."
 
 # AI Translated
@@ -20258,7 +20338,7 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "Gebruik de schuine naad ook voor de binnenste wanden."
 
 # AI Translated
-msgid "Role base wipe speed"
+msgid "Role based wipe speed"
 msgstr "Veegsnelheid op basis van het extrusietype"
 
 # AI Translated
@@ -20364,13 +20444,11 @@ msgstr "Tochtscherm"
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
 "Een tochtscherm is nuttig om een ABS- of ASA-print te beschermen tegen kromtrekken en loskomen van het printbed door tocht. Meestal is dit alleen nodig bij printers met een open frame, dus zonder behuizing.\n"
 "\n"
-"Ingeschakeld = de skirt is even hoog als het hoogste geprinte object. Anders wordt 'Hoogte van de skirt' gebruikt.\n"
-"Let op: met een actief tochtscherm wordt de skirt op de skirt-afstand van het object geprint. Als er randen actief zijn, kan hij daarmee overlappen. Verhoog de waarde voor de skirt-afstand om dit te voorkomen.\n"
+"Ingeschakeld = de skirt is even hoog als het hoogste geprinte object. Anders wordt 'Hoogte van de skirt' gebruikt."
 
 msgid "Enabled"
 msgstr "Aan"
@@ -21608,23 +21686,23 @@ msgstr "Maximale printsnelheid van het afveegblok"
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
 "De maximale printsnelheid bij het spoelen in het afveegblok en het printen van de dunne lagen van het afveegblok. Als bij het spoelen de snelheid van de dunne vulling (infill) of de uit de maximale volumetrische snelheid van het filament berekende snelheid lager is, wordt de laagste van beide gebruikt.\n"
 "\n"
-"Als bij het printen van de dunne lagen de snelheid van de interne perimeter of de uit de maximale volumetrische snelheid van het filament berekende snelheid lager is, wordt de laagste van beide gebruikt.\n"
+"Als bij het printen van de dunne lagen de snelheid van de dunne vulling (infill) of de uit de maximale volumetrische snelheid van het filament berekende snelheid lager is, wordt de laagste van beide gebruikt.\n"
 "\n"
 "Het verhogen van deze snelheid kan de stabiliteit van de toren beïnvloeden en de kracht vergroten waarmee het mondstuk botst met eventuele blobs die zich op het afveegblok hebben gevormd.\n"
 "\n"
-"Controleer, voordat u deze parameter boven de standaardwaarde van 90 mm/s verhoogt, of uw printer bij de hogere snelheden betrouwbaar kan overbruggen en of het druipen bij toolwissels goed onder controle is.\n"
+"Controleer, voordat u deze parameter boven de standaardwaarde van 90 mm/s verhoogt, of uw printer bij de hogere snelheden betrouwbaar kan overbruggen en of het druipen bij gereedschapswissels goed onder controle is.\n"
 "\n"
-"Voor de externe perimeters van het afveegblok wordt ongeacht deze instelling de snelheid van de interne perimeter gebruikt."
+"Voor de externe perimeters van het afveegblok wordt de snelheid van de interne perimeter gebruikt, ook beperkt door deze instelling."
 
 # AI Translated
 msgid "Wall type"
@@ -21633,14 +21711,14 @@ msgstr "Wandtype"
 # AI Translated
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "Type buitenwand van het afveegblok.\n"
-"1. Rechthoek: het standaardwandtype, een rechthoek met vaste breedte en hoogte.\n"
+"1. Rechthoek: een rechthoek met vaste breedte en hoogte.\n"
 "2. Kegel: een kegel met een afronding aan de onderkant om het afveegblok te helpen stabiliseren.\n"
-"3. Rib: voegt vier ribben aan de wand van de toren toe voor extra stabiliteit."
+"3. Rib: het standaardwandtype, dat vier ribben aan de wand van de toren toevoegt voor extra stabiliteit."
 
 msgid "Rectangle"
 msgstr "Rechthoek"
@@ -21751,8 +21829,8 @@ msgid "Extra flow for purging"
 msgstr "Extra flow voor het spoelen"
 
 # AI Translated
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "Extra flow die wordt gebruikt voor de spoellijnen op het afveegblok. Hierdoor worden de spoellijnen dikker of dunner dan ze normaal zouden zijn. De afstand wordt automatisch aangepast."
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "Extra flow die wordt gebruikt voor de spoellijnen op het afveegblok. Hierdoor worden de spoellijnen dikker dan ze normaal zouden zijn. De afstand wordt automatisch aangepast."
 
 # AI Translated
 msgid "Idle temperature"
@@ -21881,13 +21959,13 @@ msgstr "Minimale wandlengte"
 
 # AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"Pas deze waarde aan om te voorkomen dat er korte, niet-gesloten wanden worden geprint, wat de printtijd kan verlengen. Hogere waarden verwijderen meer en langere wanden.\n"
+"Pas deze waarde aan om te voorkomen dat korte, niet-gesloten wanden worden geprint, wat de printtijd kan verlengen. De waarde is een veelvoud van de wandbreedte. Hogere waarden verwijderen meer en langere wanden.\n"
 "\n"
-"LET OP: onder- en bovenoppervlakken worden niet door deze waarde beïnvloed, om zichtbare gaten aan de buitenzijde van het model te voorkomen. Pas 'Drempel voor één wand' in de geavanceerde instellingen hieronder aan om te bepalen wat als bovenoppervlak wordt beschouwd. 'Drempel voor één wand' is alleen zichtbaar als deze instelling boven de standaardwaarde van 0,5 staat of als bovenoppervlakken met één wand zijn ingeschakeld."
+"LET OP: onder- en bovenoppervlakken worden niet door deze waarde beïnvloed, om zichtbare gaten aan de buitenzijde van het model te voorkomen. Pas 'Drempel voor één wand' in de instellingen 'Wanden en oppervlakten' hieronder aan om de gevoeligheid van wat als bovenoppervlak wordt beschouwd aan te passen. 'Drempel voor één wand' is alleen zichtbaar als deze instelling boven de standaardwaarde van 0,5 staat of als bovenoppervlakken met één wand zijn ingeschakeld."
 
 # AI Translated
 msgid "Maximum wall resolution"
@@ -26171,10 +26249,6 @@ msgstr "Slimme filamenttoewijzing inschakelen: wijs één filament aan meerdere 
 # AI Translated
 msgid "File Saving"
 msgstr "Bestand opslaan"
-
-# AI Translated
-msgid "Don't remind me again"
-msgstr "Herinner mij niet meer"
 
 # AI Translated
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -36833,6 +36907,183 @@ msgid ""
 msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
+
+# AI Translated
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "Lijnbreedte van de brug. Als dit als % wordt uitgedrukt, wordt het berekend over de mondstukdiameter.\n"
+#~ "Aanbevolen in combinatie met een hogere brugdichtheid of een hogere flow verhouding voor bruggen.\n"
+#~ "\n"
+#~ "De maximale waarde is 100% of de mondstukdiameter.\n"
+#~ "Als dit op 0 wordt ingesteld, komt de lijnbreedte overeen met de breedte van de interne solide vulling."
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "Schakel deze optie in om af te remmen in gebieden waar perimeters omhoog gekruld kunnen zijn.\n"
+#~ "Zo wordt er extra afgeremd bij het printen van overhangen op scherpe hoeken, zoals de voorkant van de Benchy-romp, wat het omkrullen vermindert dat zich over meerdere lagen opstapelt.\n"
+#~ "\n"
+#~ "Het is over het algemeen aan te raden deze optie ingeschakeld te laten, tenzij de koeling van uw printer krachtig genoeg is of de printsnelheid laag genoeg is om omkrullen van perimeters te voorkomen. \n"
+#~ "Bij printen met een hoge snelheid voor de externe perimeter kan deze parameter tijdens het afremmen wandartefacten veroorzaken, doordat de mogelijk grote verschillen in printsnelheid ervoor zorgen dat de extruder de gevraagde flowverandering niet kan bijhouden.\n"
+#~ "De oorzaak van deze artefacten is meestal een licht afwijkende PA-afstelling, vooral in combinatie met een hoge PA-smoothtijd.\n"
+#~ "\n"
+#~ "Aanbevelingen bij het inschakelen van deze optie:\n"
+#~ "1. Verlaag de smoothtijd van Pressure Advance tot 0,015 - 0,02, zodat de extruder snel op de snelheidsveranderingen reageert.\n"
+#~ "2. Verhoog de minimale printsnelheden om de omvang van de vertraging te beperken en het verschil tussen snelle en trage segmenten te verkleinen.\n"
+#~ "3. Als er nog steeds artefacten optreden, schakel dan Extrusion Rate Smoothing (ERS) in om de flowovergangen verder af te vlakken.\n"
+#~ "\n"
+#~ "Let op: wanneer deze optie is ingeschakeld, worden overhangende perimeters als overhangen behandeld, wat betekent dat de overhangsnelheid wordt toegepast, zelfs als de overhangende perimeter deel uitmaakt van een brug.\n"
+#~ "Bijvoorbeeld: wanneer de perimeters voor 100% overhangen en er geen wand is die ze van onderaf ondersteunt, wordt de overhangsnelheid voor 100% toegepast."
+
+# AI Translated
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "Snelheid van de extern zichtbare brugextrusies.\n"
+#~ "\n"
+#~ "Als bovendien Afremmen voor omgekrulde perimeters is uitgeschakeld of de klassieke overhangmodus is ingeschakeld, is dit de printsnelheid van overhangende wanden die voor minder dan 13% worden ondersteund, ongeacht of ze deel uitmaken van een brug of een overhang."
+
+# AI Translated
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "Deze afzonderlijke instelling beïnvloedt de snelheid van perimeters met een straal <= small_perimeter_threshold (meestal gaten). Als dit als percentage wordt uitgedrukt (bijvoorbeeld: 80%), wordt het berekend op basis van de bovenstaande instelling voor de snelheid van de buitenste wand. Zet op nul voor automatisch."
+
+# AI Translated
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "Hetzelfde als \"Kleine perimeters\", maar voor ondersteuningen. Deze afzonderlijke instelling beïnvloedt de ondersteuningssnelheid voor gebieden <= `small_support_perimeter_threshold`. Als dit als percentage wordt uitgedrukt (bijvoorbeeld: 80%), wordt het berekend op basis van de bovenstaande instelling voor de snelheid van de ondersteuning of de ondersteuningsinterface. Zet op nul voor automatisch."
+
+# AI Translated
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "Printvolgorde van de interne (binnenste) en externe (buitenste) wanden.\n"
+#~ "\n"
+#~ "Gebruik Binnen/Buiten voor de beste overhangen. Dat komt doordat de overhangende wanden tijdens het printen kunnen hechten aan een naastgelegen perimeter. Deze optie levert echter een iets mindere oppervlaktekwaliteit op, omdat de externe perimeter vervormt doordat hij tegen de interne perimeter wordt aangedrukt.\n"
+#~ "\n"
+#~ "Gebruik Binnen/Buiten/Binnen voor de beste afwerking van het buitenoppervlak en de beste maatnauwkeurigheid, omdat de buitenwand ongestoord door een interne perimeter wordt geprint. De prestaties bij overhangen nemen echter af, omdat er geen interne perimeter is om de buitenwand tegenaan te printen. Voor deze optie zijn minimaal 3 wanden nodig om effectief te zijn, omdat eerst de interne wanden vanaf de 3e perimeter worden geprint, daarna de externe perimeter en ten slotte de eerste interne perimeter. Deze optie wordt in de meeste gevallen aanbevolen boven de optie Buiten/Binnen.\n"
+#~ "\n"
+#~ "Gebruik Buiten/Binnen voor dezelfde voordelen op het gebied van kwaliteit van de buitenwand en maatnauwkeurigheid als bij de optie Binnen/Buiten/Binnen. De Z-naden zullen echter minder consistent lijken, omdat de eerste extrusie van een nieuwe laag op een zichtbaar oppervlak begint."
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "Dit is de snelheid voor de eerste laag behalve solide vulling (infill) delen"
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "Dit is de snelheid voor de solide vulling (infill) delen van de eerste laag."
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "Hiermee kan het vulgebied iets worden vergroot zodat het overlapt met de wanden voor een betere hechting. De percentagewaarde is relatief ten opzichte van de lijnbreedte van de dunne vulling (infill). Stel deze waarde in op ~10-15% om mogelijke overextrusie en materiaalophoping, die ruwe bovenoppervlakken veroorzaken, te beperken."
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "Het gebied van de solide vulling aan de bovenzijde wordt iets vergroot zodat het met de wand overlapt voor een betere hechting en om speldenprikgaatjes waar de bovenvulling de wanden raakt zoveel mogelijk te voorkomen. Een waarde van 25-30% is een goed startpunt om speldenprikgaatjes te beperken. De percentagewaarde is relatief ten opzichte van de lijnbreedte van de dunne vulling (infill)."
+
+# AI Translated
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr "Vergrendeldiepte van een gesegmenteerd gebied. Dit wordt genegeerd als \"mmu_segmented_region_max_width\" nul is of als \"mmu_segmented_region_interlocking_depth\" groter is dan \"mmu_segmented_region_max_width\". Nul schakelt deze functie uit."
+
+# AI Translated
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "Verlaag de hoogte van de perimeters van het bovenoppervlak zodat deze overeenkomt met de hoogte van de modelrand.\n"
+#~ "Heeft invloed op perimeters met een helling kleiner dan deze hoek (graden).\n"
+#~ "Een redelijke waarde is 35. Zet op 0 om uit te schakelen."
+
+# AI Translated
+#~ msgid "Role base wipe speed"
+#~ msgstr "Veegsnelheid op basis van het extrusietype"
+
+# AI Translated
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "Een tochtscherm is nuttig om een ABS- of ASA-print te beschermen tegen kromtrekken en loskomen van het printbed door tocht. Meestal is dit alleen nodig bij printers met een open frame, dus zonder behuizing.\n"
+#~ "\n"
+#~ "Ingeschakeld = de skirt is even hoog als het hoogste geprinte object. Anders wordt 'Hoogte van de skirt' gebruikt.\n"
+#~ "Let op: met een actief tochtscherm wordt de skirt op de skirt-afstand van het object geprint. Als er randen actief zijn, kan hij daarmee overlappen. Verhoog de waarde voor de skirt-afstand om dit te voorkomen.\n"
+
+# AI Translated
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "De maximale printsnelheid bij het spoelen in het afveegblok en het printen van de dunne lagen van het afveegblok. Als bij het spoelen de snelheid van de dunne vulling (infill) of de uit de maximale volumetrische snelheid van het filament berekende snelheid lager is, wordt de laagste van beide gebruikt.\n"
+#~ "\n"
+#~ "Als bij het printen van de dunne lagen de snelheid van de interne perimeter of de uit de maximale volumetrische snelheid van het filament berekende snelheid lager is, wordt de laagste van beide gebruikt.\n"
+#~ "\n"
+#~ "Het verhogen van deze snelheid kan de stabiliteit van de toren beïnvloeden en de kracht vergroten waarmee het mondstuk botst met eventuele blobs die zich op het afveegblok hebben gevormd.\n"
+#~ "\n"
+#~ "Controleer, voordat u deze parameter boven de standaardwaarde van 90 mm/s verhoogt, of uw printer bij de hogere snelheden betrouwbaar kan overbruggen en of het druipen bij toolwissels goed onder controle is.\n"
+#~ "\n"
+#~ "Voor de externe perimeters van het afveegblok wordt ongeacht deze instelling de snelheid van de interne perimeter gebruikt."
+
+# AI Translated
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "Type buitenwand van het afveegblok.\n"
+#~ "1. Rechthoek: het standaardwandtype, een rechthoek met vaste breedte en hoogte.\n"
+#~ "2. Kegel: een kegel met een afronding aan de onderkant om het afveegblok te helpen stabiliseren.\n"
+#~ "3. Rib: voegt vier ribben aan de wand van de toren toe voor extra stabiliteit."
+
+# AI Translated
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "Extra flow die wordt gebruikt voor de spoellijnen op het afveegblok. Hierdoor worden de spoellijnen dikker of dunner dan ze normaal zouden zijn. De afstand wordt automatisch aangepast."
+
+# AI Translated
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr ""
+#~ "Pas deze waarde aan om te voorkomen dat er korte, niet-gesloten wanden worden geprint, wat de printtijd kan verlengen. Hogere waarden verwijderen meer en langere wanden.\n"
+#~ "\n"
+#~ "LET OP: onder- en bovenoppervlakken worden niet door deze waarde beïnvloed, om zichtbare gaten aan de buitenzijde van het model te voorkomen. Pas 'Drempel voor één wand' in de geavanceerde instellingen hieronder aan om te bepalen wat als bovenoppervlak wordt beschouwd. 'Drempel voor één wand' is alleen zichtbaar als deze instelling boven de standaardwaarde van 0,5 staat of als bovenoppervlakken met één wand zijn ingeschakeld."
 
 # AI Translated
 #, boost-format

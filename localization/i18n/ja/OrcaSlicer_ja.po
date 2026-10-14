@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-13 21:06-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2429,6 +2429,66 @@ msgstr "ネットワークプラグイン制限"
 
 msgid "Privacy Policy Update"
 msgstr "プライバシーポリシーの更新"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "すべてのフィラメントプリセットは、対象のプリンターで利用できます。"
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "フィラメントプリセットを移行"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 では、誤ったプロファイルの修正と今後の機能への備えのため、多くのシステムフィラメントプリセットを再構成しました。その結果、以下のプリセットが、作成元のプリンターの一部で表示されなくなっています。ご不便をおかけして申し訳ありません。これは1回限りの修正です。\n"
+"\n"
+"これらのプリンターをプリセットに今すぐ再度追加しますか？プリセットは事前にバックアップされます。後から ヘルプ > フィラメントプリセットを移行 で実行することもできます。"
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (%2%ベース)"
+
+msgid "Don't remind me again"
+msgstr "再度通知しない"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "プリセットをバックアップできなかったため、移行しませんでした。"
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "ユーザープリセットフォルダーをロックできなかったため、何も移行されませんでした。別のOrcaSlicerのインスタンスがプリセットを保存している可能性があります。しばらくしてから、ヘルプ > フィラメントプリセットを移行 からもう一度お試しください。"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"フィラメントプリセットを移行できませんでした。プリセットのバックアップを次の場所に保存しました:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"フィラメントプリセットを移行しました。使用していたフィラメントリストで、もう一度選択してください。\n"
+"\n"
+"プリセットのバックアップを次の場所に保存しました:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "次のプリセットは移行できませんでした:"
 
 # AI Translated
 #, c-format, boost-format
@@ -6648,6 +6708,10 @@ msgstr "セットアップ ウィザード"
 
 msgid "Show Configuration Folder"
 msgstr "構成フォルダを表示"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "プロファイルの更新により作成元のプリンターから外れたフィラメントプリセットを元に戻します"
 
 # AI Translated
 msgid "Troubleshoot Center"
@@ -14036,6 +14100,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "外周がモディファイアの内部に完全に含まれているため、モディファイアは適用されませんでした (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "「%3%」の %1% モディファイア「%2%」は外周全体を覆っています"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "「%3%」の %1% モディファイア「%2%」(合計%4%個) は外周全体を覆っています"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "「%2%」のモディファイア「%1%」は継ぎ目に影響しませんでした (印刷される外周の中心線に届いていない可能性があります)"
@@ -15072,18 +15148,19 @@ msgstr ""
 "実際に使用されるブリッジ流量は、この値にフィラメントの流量比を掛け、設定されている場合はオブジェクトの流量比も掛けて計算されます。"
 
 # AI Translated
+# Needs human review: Quotes the GUI label of 'Bridge flow ratio' exactly (ブリッジ流量); glossary 'Flow ratio' is 流量比, so the label itself may lack 比 - check both together.
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "ブリッジのライン幅です。%で指定した場合、ノズル径に対して計算されます。\n"
-"ブリッジ密度やブリッジ流量比を高めに設定して使用することをおすすめします。\n"
+"ブリッジ密度やブリッジ流量を高めに設定して使用することをおすすめします。\n"
 "\n"
 "最大値は100%またはノズル径です。\n"
-"0に設定すると、ライン幅は内部ソリッドインフィルの幅と同じになります。"
+"0に設定すると、ライン幅は内部ソリッド インフィルの幅と同じになります。厚いブリッジの場合はノズル径と同じになります。"
 
 msgid "Internal bridge flow ratio"
 msgstr "内部ブリッジフロー率"
@@ -15387,7 +15464,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "外周が上向きにカールしている可能性がある領域で、印刷を減速させる場合にこのオプションを有効にします。\n"
 "例えば、Benchyの船首のような鋭角部のオーバーハングを印刷する際に追加の減速が適用され、複数の層にわたって蓄積するカールを抑えられます。\n"
@@ -15399,10 +15476,10 @@ msgstr ""
 "このオプションを有効にする際の推奨事項:\n"
 "1. Pressure Advanceのスムーズ時間を0.015〜0.02に下げ、押出機が速度変化に素早く反応するようにします。\n"
 "2. 最小印刷速度を上げて減速の幅を抑え、速い区間と遅い区間の差を小さくします。\n"
-"3. それでもアーティファクトが出る場合は、Extrusion Rate Smoothing (ERS) を有効にして流量の遷移をさらに滑らかにします。\n"
+"3. それでもアーティファクトが出る場合は、押出レートスムージング (ERS) を有効にして流量の遷移をさらに滑らかにします。\n"
 "\n"
 "注意: このオプションを有効にすると、オーバーハング外周はオーバーハングとして扱われるため、オーバーハングする外周がブリッジの一部であってもオーバーハング速度が適用されます。\n"
-"例えば、外周が100%オーバーハングで下に支える壁がない場合、100%オーバーハング時の速度が適用されます。"
+"例えば、外周が100%オーバーハングで下に支える壁がない場合、75%のオーバーハング速度が適用され、ブリッジ速度で制限されます。"
 
 msgid "mm/s or %"
 msgstr "mm/s 或は %"
@@ -15411,11 +15488,11 @@ msgstr "mm/s 或は %"
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "外部から見えるブリッジ押出の速度です。\n"
 "\n"
-"さらに、「カールした外周で減速」が無効、またはクラシックオーバーハングモードが有効な場合、ブリッジかオーバーハングかに関わらず、支持率13%未満のオーバーハング壁の印刷速度になります。"
+"さらに、「カールした外周のスローダウン」が無効な場合、ブリッジかオーバーハングかに関わらず、支持率13%未満のオーバーハング壁の印刷速度になります。"
 
 # AI Translated
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
@@ -15998,8 +16075,8 @@ msgid "Small perimeters"
 msgstr "小さな外周"
 
 # AI Translated
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "この個別の設定は、半径がsmall_perimeter_threshold以下の外周 (通常は穴) の速度に影響します。パーセント (例: 80%) で指定した場合、上の外壁速度の設定を基準に計算されます。自動にするには0を設定してください。"
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "この個別の設定は、半径がsmall_perimeter_threshold以下の外周 (通常は穴) の速度に影響します。パーセント (例: 80%) で指定した場合、上の外壁速度の設定を基準に計算されます。"
 
 msgid "Small perimeters threshold"
 msgstr "小さな外周のしきい値"
@@ -16013,8 +16090,8 @@ msgid "Small support perimeters"
 msgstr "小さなサポート外周"
 
 # AI Translated
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "「小さな外周」と同様ですが、サポート用です。この個別の設定は、`small_support_perimeter_threshold`以下の領域のサポート速度に影響します。パーセント (例: 80%) で指定した場合、上のサポートまたはサポートインターフェースの速度設定を基準に計算されます。自動にするには0を設定してください。"
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "「小さな外周」と同様ですが、サポート用です。この個別の設定は、`small_support_perimeter_threshold`以下の領域のサポート速度に影響します。パーセント (例: 80%) で指定した場合、上のサポートまたはサポート接触面の速度設定を基準に計算されます。"
 
 # AI Translated
 msgid "Small support perimeters threshold"
@@ -16033,17 +16110,17 @@ msgid ""
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
 "内壁と外壁の印刷順序です。\n"
 "\n"
-"オーバーハングを最良にするには内壁→外壁を使用します。オーバーハングする壁が印刷中に隣接する外周に密着できるためです。ただし、外周が内周に押し付けられて変形するため、表面品質はわずかに低下します。\n"
+"オーバーハングを最良にするには内側/外側を使用します。オーバーハングする壁が印刷中に隣接する外周に密着できるためです。ただし、外周が内周に押し付けられて変形するため、表面品質はわずかに低下します。\n"
 "\n"
-"外面の仕上がりと寸法精度を最良にするには内壁→外壁→内壁を使用します。外壁が内周に乱されずに印刷されるためです。ただし、外壁を印刷する際に支えとなる内周がないため、オーバーハング性能は低下します。このオプションは3本目以降の内壁を先に印刷し、次に外壁、最後に1本目の内壁を印刷するため、効果を得るには最低3本の壁が必要です。多くの場合、外壁→内壁よりこのオプションをおすすめします。\n"
+"外面の仕上がりと寸法精度を最良にするには内側/外側/内側を使用します。外壁が内周に乱されずに印刷されるためです。ただし、外壁を印刷する際に支えとなる内周がないため、オーバーハング性能は低下します。このオプションは3本目以降の内壁を先に印刷し、次に外壁、最後に1本目の内壁を印刷するため、効果を得るには最低3本の壁が必要です。多くの場合、外側/内側よりこのオプションをおすすめします。\n"
 "\n"
-"外壁→内壁は内壁→外壁→内壁と同様に外壁の品質と寸法精度の利点がありますが、新しい層の最初の押出が見える面から始まるため、Zシームの一貫性が低く見えます。"
+"外側/内側は内側/外側/内側と同様に外壁の品質と寸法精度の利点がありますが、新しい層の最初の押出が見える面から始まるため、継ぎ目の一貫性が低く見えます。"
 
 msgid "Inner/Outer"
 msgstr "内側/外側"
@@ -17037,14 +17114,16 @@ msgstr "1層目の高さ"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "1層目の高さです。高さを大きくすればプレートとの接着性が良くなります。"
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "1層目を造形時に、ソリッド インフィル以外の部分の造形速度です。"
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "1層目の壁とブリムの造形速度です。"
 
 msgid "First layer infill"
 msgstr "1層目インフィル"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "1層目のソリッド インフィルの造形速度です。"
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "1層目の壁とブリムを除く部分 (インフィル、隙間充填、サポートなど) の造形速度です。"
 
 # AI Translated
 msgid "First layer travel speed"
@@ -17819,8 +17898,8 @@ msgstr "インフィル/壁面 オーバーラップ"
 
 # AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "インフィル領域をわずかに広げて壁面と重ねることで、接着を改善します。パーセント値はスパース インフィルのライン幅に対する相対値です。過剰押出や材料の蓄積による上面のざらつきを最小限に抑えるには、この値を10〜15%程度に設定します。"
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "インフィル領域をわずかに広げて壁面と重ねることで、接着を改善します。パーセント値は内壁のライン幅に対する相対値です。過剰押出や材料の蓄積による上面のざらつきを最小限に抑えるには、この値を10〜15%程度に設定します。"
 
 # AI Translated
 msgid "Top/Bottom solid infill/wall overlap"
@@ -17828,8 +17907,8 @@ msgstr "上面/底面ソリッドインフィルと壁面の重なり"
 
 # AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "上面ソリッドインフィルの領域をわずかに広げて壁面と重ねることで、接着を改善し、上面インフィルと壁面の境目にできるピンホールを目立たなくします。25〜30%が良い出発点で、ピンホールを目立たなくできます。パーセント値はスパース インフィルのライン幅に対する相対値です。"
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "上面ソリッドインフィルの領域をわずかに広げて壁面と重ねることで、接着を改善し、上面インフィルと壁面の境目にできるピンホールを目立たなくします。25〜30%が良い出発点で、ピンホールを目立たなくできます。パーセント値は内壁のライン幅に対する相対値です。"
 
 msgid "This is the speed for internal sparse infill."
 msgstr "スパース インフィルの造形速度です。"
@@ -17856,8 +17935,9 @@ msgstr "セグメント化された領域の最大幅。値が 0 の場合、こ
 msgid "Interlocking depth of a segmented region"
 msgstr "分割領域のかみ合わせ深さ"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr "セグメント化された領域の連動深さ。mmu_segmented_region_max_width \"が0か、\"mmu_segmented_region_interlocking_depth \"が \"mmu_segmented_region_max_width \"より大きい場合は無視される。ゼロはこの機能を無効にする。"
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "分割領域のかみ合わせ深さです。1層おきに、分割領域がこの深さに制限されます。「interlocking_beam」が有効な場合は無視されます。0にすると、この機能は無効になります。"
 
 msgid "Use beam interlocking"
 msgstr "インターロックビームを使用する"
@@ -17970,11 +18050,11 @@ msgstr "壁面高さ最小化の角度"
 # AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "上面の外周の高さを下げて、モデルの縁の高さに合わせます。\n"
-"この角度 (度) 未満の傾斜を持つ外周に影響します。\n"
+"この角度 (度) を超える傾斜を持つ外周に影響します。\n"
 "35程度が妥当な値です。0にすると無効になります。"
 
 # AI Translated
@@ -19033,8 +19113,8 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "内壁にも斜め継ぎ目を使用"
 
 # AI Translated
-msgid "Role base wipe speed"
-msgstr "ロール基準のワイプ速度"
+msgid "Role based wipe speed"
+msgstr "ロール基準の拭き上げ速度"
 
 # AI Translated
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
@@ -19138,13 +19218,11 @@ msgstr "保護シールド"
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
 "保護シールドは、ABSやASAの印刷物が風によって反ったりベッドから剥がれたりするのを防ぐのに役立ちます。通常はエンクロージャーのないオープンフレームのプリンターでのみ必要です。\n"
 "\n"
-"有効 = スカートは最も高い印刷オブジェクトと同じ高さになります。それ以外の場合は「スカートの高さ」が使用されます。\n"
-"注意: 保護シールドが有効な場合、スカートはオブジェクトからスカート距離だけ離して印刷されます。そのため、ブリムが有効だと交差する可能性があります。これを避けるには、スカート距離の値を大きくしてください。\n"
+"有効 = スカートは最も高い印刷オブジェクトと同じ高さになります。それ以外の場合は「スカートの高さ」が使用されます。"
 
 msgid "Enabled"
 msgstr "有効"
@@ -20356,23 +20434,23 @@ msgstr "ワイプタワーの最大印刷速度"
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
 "ワイプタワーでのパージ時、およびワイプタワーのスパース層を印刷する際の最大印刷速度です。パージ時に、スパース インフィル速度やフィラメントの最大体積速度から計算された速度の方が低い場合は、最も低い速度が使用されます。\n"
 "\n"
-"スパース層の印刷時に、内周速度やフィラメントの最大体積速度から計算された速度の方が低い場合は、最も低い速度が使用されます。\n"
+"スパース層の印刷時に、スパース インフィル速度やフィラメントの最大体積速度から計算された速度の方が低い場合は、最も低い速度が使用されます。\n"
 "\n"
 "この速度を上げるとタワーの安定性に影響する可能性があり、ワイプタワーにできたブロブにノズルが衝突する際の力も大きくなります。\n"
 "\n"
 "このパラメータをデフォルトの90 mm/sより大きくする前に、上げた速度でもプリンターが安定してブリッジでき、ツール交換時の垂れ出しが十分に制御できていることを確認してください。\n"
 "\n"
-"ワイプタワーの外周には、この設定に関わらず内周の速度が使用されます。"
+"ワイプタワーの外周には内周の速度が使用され、この設定による上限も受けます。"
 
 msgid "Wall type"
 msgstr "壁タイプ"
@@ -20380,14 +20458,14 @@ msgstr "壁タイプ"
 # AI Translated
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "ワイプタワーの外壁タイプです。\n"
-"1. 長方形: デフォルトの壁タイプで、幅と高さが固定された長方形です。\n"
+"1. 長方形: 幅と高さが固定された長方形です。\n"
 "2. コーン: 底部にフィレットを持つ円錐形で、ワイプタワーの安定に役立ちます。\n"
-"3. リブ: タワーの壁に4本のリブを追加して安定性を高めます。"
+"3. リブ: デフォルトの壁タイプで、タワーの壁に4本のリブを追加して安定性を高めます。"
 
 msgid "Rectangle"
 msgstr "長方形"
@@ -20484,8 +20562,9 @@ msgstr "ワイプタワーのパージラインの間隔。"
 msgid "Extra flow for purging"
 msgstr "パージ用の余分の量"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "ワイプタワーのパージラインで使用される余分の量。 これによって、パージラインが通常よりも太くなったり、細くなったりします。 間隔は自動的に調整されます。"
+# AI Translated
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "ワイプタワーのパージラインで使用される余分の量。 これによって、パージラインが通常よりも太くなります。 間隔は自動的に調整されます。"
 
 msgid "Idle temperature"
 msgstr "アイドリング温度"
@@ -20621,13 +20700,13 @@ msgstr "最小壁長さ"
 
 # AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"短く閉じていない壁が印刷されて印刷時間が増えるのを防ぐため、この値を調整します。値を大きくすると、より多くの、より長い壁が取り除かれます。\n"
+"短く閉じていない壁が印刷されて印刷時間が増えるのを防ぐため、この値を調整します。値は壁幅の倍数です。値を大きくすると、より多くの、より長い壁が取り除かれます。\n"
 "\n"
-"注意: モデル外側に視覚的な隙間が生じるのを防ぐため、底面と上面はこの値の影響を受けません。上面と見なす判定の感度は、下の詳細設定にある「1本壁のしきい値」で調整してください。「1本壁のしきい値」は、この設定がデフォルト値の0.5より大きい場合、または上面1本壁が有効な場合にのみ表示されます。"
+"注意: モデル外側に視覚的な隙間が生じるのを防ぐため、底面と上面はこの値の影響を受けません。上面と見なす判定の感度は、下の「壁と表面」の設定にある「1壁しきい値」で調整してください。「1壁しきい値」は、この設定がデフォルト値の0.5より大きい場合、または「トップ面に1層」が有効な場合にのみ表示されます。"
 
 # AI Translated
 msgid "Maximum wall resolution"
@@ -24736,9 +24815,6 @@ msgstr "スマートフィラメント割り当てを有効にする: 1つのフ
 # AI Translated
 msgid "File Saving"
 msgstr "ファイル保存"
-
-msgid "Don't remind me again"
-msgstr "再度通知しない"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "今後ポップアップは表示されません。「設定」から再度開くことができます"
@@ -35264,6 +35340,181 @@ msgid ""
 msgstr ""
 "反りを避ける\n"
 "ABSのような反りやすい素材を印刷する場合、ヒートベッドの温度を適切に上げることで、反りが発生する確率を下げることができることをご存知ですか？"
+
+# AI Translated
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "ブリッジのライン幅です。%で指定した場合、ノズル径に対して計算されます。\n"
+#~ "ブリッジ密度やブリッジ流量比を高めに設定して使用することをおすすめします。\n"
+#~ "\n"
+#~ "最大値は100%またはノズル径です。\n"
+#~ "0に設定すると、ライン幅は内部ソリッドインフィルの幅と同じになります。"
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "外周が上向きにカールしている可能性がある領域で、印刷を減速させる場合にこのオプションを有効にします。\n"
+#~ "例えば、Benchyの船首のような鋭角部のオーバーハングを印刷する際に追加の減速が適用され、複数の層にわたって蓄積するカールを抑えられます。\n"
+#~ "\n"
+#~ "プリンターの冷却が十分に強力であるか、印刷速度が十分に遅く外周のカールが起きない場合を除き、通常はこのオプションを有効にすることをおすすめします。 \n"
+#~ "外壁速度が高い状態で印刷している場合、印刷速度の差が大きくなり押出機が要求された流量変化に追随できなくなるため、減速時に壁面のアーティファクトが生じることがあります。\n"
+#~ "これらのアーティファクトの根本原因は、多くの場合PAの調整がわずかにずれていることであり、特にPAスムーズ時間が長い場合に顕著です。\n"
+#~ "\n"
+#~ "このオプションを有効にする際の推奨事項:\n"
+#~ "1. Pressure Advanceのスムーズ時間を0.015〜0.02に下げ、押出機が速度変化に素早く反応するようにします。\n"
+#~ "2. 最小印刷速度を上げて減速の幅を抑え、速い区間と遅い区間の差を小さくします。\n"
+#~ "3. それでもアーティファクトが出る場合は、Extrusion Rate Smoothing (ERS) を有効にして流量の遷移をさらに滑らかにします。\n"
+#~ "\n"
+#~ "注意: このオプションを有効にすると、オーバーハング外周はオーバーハングとして扱われるため、オーバーハングする外周がブリッジの一部であってもオーバーハング速度が適用されます。\n"
+#~ "例えば、外周が100%オーバーハングで下に支える壁がない場合、100%オーバーハング時の速度が適用されます。"
+
+# AI Translated
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "外部から見えるブリッジ押出の速度です。\n"
+#~ "\n"
+#~ "さらに、「カールした外周で減速」が無効、またはクラシックオーバーハングモードが有効な場合、ブリッジかオーバーハングかに関わらず、支持率13%未満のオーバーハング壁の印刷速度になります。"
+
+# AI Translated
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "この個別の設定は、半径がsmall_perimeter_threshold以下の外周 (通常は穴) の速度に影響します。パーセント (例: 80%) で指定した場合、上の外壁速度の設定を基準に計算されます。自動にするには0を設定してください。"
+
+# AI Translated
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "「小さな外周」と同様ですが、サポート用です。この個別の設定は、`small_support_perimeter_threshold`以下の領域のサポート速度に影響します。パーセント (例: 80%) で指定した場合、上のサポートまたはサポートインターフェースの速度設定を基準に計算されます。自動にするには0を設定してください。"
+
+# AI Translated
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "内壁と外壁の印刷順序です。\n"
+#~ "\n"
+#~ "オーバーハングを最良にするには内壁→外壁を使用します。オーバーハングする壁が印刷中に隣接する外周に密着できるためです。ただし、外周が内周に押し付けられて変形するため、表面品質はわずかに低下します。\n"
+#~ "\n"
+#~ "外面の仕上がりと寸法精度を最良にするには内壁→外壁→内壁を使用します。外壁が内周に乱されずに印刷されるためです。ただし、外壁を印刷する際に支えとなる内周がないため、オーバーハング性能は低下します。このオプションは3本目以降の内壁を先に印刷し、次に外壁、最後に1本目の内壁を印刷するため、効果を得るには最低3本の壁が必要です。多くの場合、外壁→内壁よりこのオプションをおすすめします。\n"
+#~ "\n"
+#~ "外壁→内壁は内壁→外壁→内壁と同様に外壁の品質と寸法精度の利点がありますが、新しい層の最初の押出が見える面から始まるため、Zシームの一貫性が低く見えます。"
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "1層目を造形時に、ソリッド インフィル以外の部分の造形速度です。"
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "1層目のソリッド インフィルの造形速度です。"
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "インフィル領域をわずかに広げて壁面と重ねることで、接着を改善します。パーセント値はスパース インフィルのライン幅に対する相対値です。過剰押出や材料の蓄積による上面のざらつきを最小限に抑えるには、この値を10〜15%程度に設定します。"
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "上面ソリッドインフィルの領域をわずかに広げて壁面と重ねることで、接着を改善し、上面インフィルと壁面の境目にできるピンホールを目立たなくします。25〜30%が良い出発点で、ピンホールを目立たなくできます。パーセント値はスパース インフィルのライン幅に対する相対値です。"
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr "セグメント化された領域の連動深さ。mmu_segmented_region_max_width \"が0か、\"mmu_segmented_region_interlocking_depth \"が \"mmu_segmented_region_max_width \"より大きい場合は無視される。ゼロはこの機能を無効にする。"
+
+# AI Translated
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "上面の外周の高さを下げて、モデルの縁の高さに合わせます。\n"
+#~ "この角度 (度) 未満の傾斜を持つ外周に影響します。\n"
+#~ "35程度が妥当な値です。0にすると無効になります。"
+
+# AI Translated
+#~ msgid "Role base wipe speed"
+#~ msgstr "ロール基準のワイプ速度"
+
+# AI Translated
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "保護シールドは、ABSやASAの印刷物が風によって反ったりベッドから剥がれたりするのを防ぐのに役立ちます。通常はエンクロージャーのないオープンフレームのプリンターでのみ必要です。\n"
+#~ "\n"
+#~ "有効 = スカートは最も高い印刷オブジェクトと同じ高さになります。それ以外の場合は「スカートの高さ」が使用されます。\n"
+#~ "注意: 保護シールドが有効な場合、スカートはオブジェクトからスカート距離だけ離して印刷されます。そのため、ブリムが有効だと交差する可能性があります。これを避けるには、スカート距離の値を大きくしてください。\n"
+
+# AI Translated
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "ワイプタワーでのパージ時、およびワイプタワーのスパース層を印刷する際の最大印刷速度です。パージ時に、スパース インフィル速度やフィラメントの最大体積速度から計算された速度の方が低い場合は、最も低い速度が使用されます。\n"
+#~ "\n"
+#~ "スパース層の印刷時に、内周速度やフィラメントの最大体積速度から計算された速度の方が低い場合は、最も低い速度が使用されます。\n"
+#~ "\n"
+#~ "この速度を上げるとタワーの安定性に影響する可能性があり、ワイプタワーにできたブロブにノズルが衝突する際の力も大きくなります。\n"
+#~ "\n"
+#~ "このパラメータをデフォルトの90 mm/sより大きくする前に、上げた速度でもプリンターが安定してブリッジでき、ツール交換時の垂れ出しが十分に制御できていることを確認してください。\n"
+#~ "\n"
+#~ "ワイプタワーの外周には、この設定に関わらず内周の速度が使用されます。"
+
+# AI Translated
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "ワイプタワーの外壁タイプです。\n"
+#~ "1. 長方形: デフォルトの壁タイプで、幅と高さが固定された長方形です。\n"
+#~ "2. コーン: 底部にフィレットを持つ円錐形で、ワイプタワーの安定に役立ちます。\n"
+#~ "3. リブ: タワーの壁に4本のリブを追加して安定性を高めます。"
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "ワイプタワーのパージラインで使用される余分の量。 これによって、パージラインが通常よりも太くなったり、細くなったりします。 間隔は自動的に調整されます。"
+
+# AI Translated
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr ""
+#~ "短く閉じていない壁が印刷されて印刷時間が増えるのを防ぐため、この値を調整します。値を大きくすると、より多くの、より長い壁が取り除かれます。\n"
+#~ "\n"
+#~ "注意: モデル外側に視覚的な隙間が生じるのを防ぐため、底面と上面はこの値の影響を受けません。上面と見なす判定の感度は、下の詳細設定にある「1本壁のしきい値」で調整してください。「1本壁のしきい値」は、この設定がデフォルト値の0.5より大きい場合、または上面1本壁が有効な場合にのみ表示されます。"
 
 # AI Translated
 #, boost-format
