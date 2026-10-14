@@ -2606,7 +2606,10 @@ void GUI_App::init_download_path()
     }
     else {
         fs::path dp(down_path);
-        if (!fs::exists(dp)) {
+        // ORCA: non-throwing probe; ec is deliberately unread, a download_path that cannot be
+        //       probed falls back to the default like a missing one instead of failing startup.
+        boost::system::error_code ec;
+        if (!fs::exists(dp, ec)) {
 
             std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
             app_config->set("download_path", user_down_path);
@@ -3913,80 +3916,73 @@ bool GUI_App::on_init_network(bool try_backup)
         if (config_version.empty()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": no version configured, need to download";
             m_networking_need_update = true;
+        } else {
+            int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
+        __retry:
+            if (!load_agent_dll) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
 
-            if (!m_device_manager)
-                m_device_manager = new Slic3r::DeviceManager();
-            if (!m_user_manager)
-                m_user_manager = new Slic3r::UserManager();
-
-            return false;
-        }
-
-        int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
-    __retry:
-        if (!load_agent_dll) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
-
-            std::string loaded_version = Slic3r::NetworkAgent::get_version();
-            if (app_config && !loaded_version.empty() && loaded_version != "00.00.00.00") {
-                // Self-heal only when a genuinely different series loaded than configured (e.g. the
-                // configured build was unavailable and a fallback loaded). Within a series the
-                // loaded build (02.08.01.53) differs from the series config (02.08.01) by design, so
-                // compare series, not the raw string, and store the managed series form - a custom
-                // config (02.08.01_custom) keeps its own name.
-                std::string config_version = app_config->get_network_plugin_version();
-                std::string loaded_series  = network_plugin_series(loaded_version);
-                if (network_plugin_series(config_version) != loaded_series) {
-                    std::string synced = is_series_managed_version(loaded_version) ? loaded_series : loaded_version;
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": syncing config version from " << config_version
-                                            << " to loaded " << loaded_version << " (stored as " << synced << ")";
-                    app_config->set_network_plugin_version(synced);
-                    app_config->save();
+                std::string loaded_version = Slic3r::NetworkAgent::get_version();
+                if (app_config && !loaded_version.empty() && loaded_version != "00.00.00.00") {
+                    // Self-heal only when a genuinely different series loaded than configured (e.g. the
+                    // configured build was unavailable and a fallback loaded). Within a series the
+                    // loaded build (02.08.01.53) differs from the series config (02.08.01) by design, so
+                    // compare series, not the raw string, and store the managed series form - a custom
+                    // config (02.08.01_custom) keeps its own name.
+                    std::string config_version = app_config->get_network_plugin_version();
+                    std::string loaded_series  = network_plugin_series(loaded_version);
+                    if (network_plugin_series(config_version) != loaded_series) {
+                        std::string synced = is_series_managed_version(loaded_version) ? loaded_series : loaded_version;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": syncing config version from " << config_version
+                                                << " to loaded " << loaded_version << " (stored as " << synced << ")";
+                        app_config->set_network_plugin_version(synced);
+                        app_config->save();
+                    }
                 }
-            }
 
-            if (check_networking_version()) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, compatibility version";
-                auto bambu_source = Slic3r::NetworkAgent::get_bambu_source_entry();
-                if (!bambu_source) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not get bambu source module!";
-                    m_networking_compatible = false;
+                if (check_networking_version()) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, compatibility version";
+                    auto bambu_source = Slic3r::NetworkAgent::get_bambu_source_entry();
+                    if (!bambu_source) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not get bambu source module!";
+                        m_networking_compatible = false;
+                        if (should_load_networking_plugin) {
+                            m_networking_need_update = true;
+                        }
+                    }
+                } else {
+                    if (try_backup) {
+                        int result = Slic3r::NetworkAgent::unload_network_module();
+                        BOOST_LOG_TRIVIAL(info) << "on_init_network, version mismatch, unload_network_module, result = " << result;
+                        load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(true, config_version);
+                        try_backup     = false;
+                        goto __retry;
+                    }
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
                     if (should_load_networking_plugin) {
                         m_networking_need_update = true;
                     }
                 }
             } else {
-                if (try_backup) {
-                    int result = Slic3r::NetworkAgent::unload_network_module();
-                    BOOST_LOG_TRIVIAL(info) << "on_init_network, version mismatch, unload_network_module, result = " << result;
-                    load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(true, config_version);
-                    try_backup     = false;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll failed";
+                // A failed install can leave the config naming a build that never made it to disk;
+                // fall back to the installed latest instead of dropping the user into the re-download
+                // flow. Only when the configured library is genuinely absent, though - a pinned series
+                // that is on disk but failed to load once must keep its pin, not be rewritten for good.
+                std::string latest = get_latest_network_version();
+                if (config_version != latest && !BBLNetworkPlugin::versioned_library_exists(config_version)
+                    && BBLNetworkPlugin::versioned_library_exists(latest)) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": falling back to installed " << latest;
+                    config_version = latest;
+                    app_config->set_network_plugin_version(latest);
+                    app_config->save();
+                    load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
                     goto __retry;
                 }
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
                 if (should_load_networking_plugin) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
                     m_networking_need_update = true;
                 }
-            }
-        } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll failed";
-            // A failed install can leave the config naming a build that never made it to disk;
-            // fall back to the installed latest instead of dropping the user into the re-download
-            // flow. Only when the configured library is genuinely absent, though - a pinned series
-            // that is on disk but failed to load once must keep its pin, not be rewritten for good.
-            std::string latest = get_latest_network_version();
-            if (config_version != latest && !BBLNetworkPlugin::versioned_library_exists(config_version)
-                && BBLNetworkPlugin::versioned_library_exists(latest)) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": falling back to installed " << latest;
-                config_version = latest;
-                app_config->set_network_plugin_version(latest);
-                app_config->save();
-                load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
-                goto __retry;
-            }
-            if (should_load_networking_plugin) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
-                m_networking_need_update = true;
             }
         }
     }
@@ -4014,6 +4010,11 @@ bool GUI_App::on_init_network(bool try_backup)
         m_user_manager = new Slic3r::UserManager(m_agent);
     else
         m_user_manager->set_agent(m_agent);
+
+    // A hot reload deletes the agent the task manager was built with. It lives until restart, so repoint it
+    // even if multi-device has since been turned off.
+    if (m_task_manager)
+        m_task_manager->set_agent(m_agent);
 
     if (this->is_enable_multi_machine()) {
         if (!m_task_manager) {
@@ -10132,7 +10133,9 @@ void GUI_App::start_download(std::string url)
     }
     //lets always init so if the download dest folder was changed, new dest is used
     boost::filesystem::path dest_folder(app_config->get("download_path"));
-    if (dest_folder.empty() || !boost::filesystem::is_directory(dest_folder)) {
+    // ORCA: non-throwing probe, as in init_download_path(); ec is deliberately unread.
+    boost::system::error_code ec;
+    if (dest_folder.empty() || !boost::filesystem::is_directory(dest_folder, ec)) {
         std::string msg = _u8L("Could not start URL download. Destination folder is not set. Please choose destination folder in Configuration Wizard.");
         BOOST_LOG_TRIVIAL(error) << msg;
         show_error(nullptr, msg);
