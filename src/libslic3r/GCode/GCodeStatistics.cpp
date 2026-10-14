@@ -179,7 +179,8 @@ std::string gcode_statistics_path(const std::string &gcode_path)
 
 void export_gcode_statistics(const GCodeProcessorResult &result, const std::string &path)
 {
-    boost::nowide::ofstream file(path, std::ios::out | std::ios::trunc);
+    // Binary, so the file reads the same on every platform and inside a 3MF.
+    boost::nowide::ofstream file(path, std::ios::out | std::ios::binary | std::ios::trunc);
     file << gcode_statistics_json(result);
     file.close();
     if (file.fail())

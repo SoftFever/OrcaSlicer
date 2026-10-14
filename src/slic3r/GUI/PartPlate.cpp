@@ -19,6 +19,7 @@
 #include "libslic3r/GCode/WipeTower.hpp"
 #include "libslic3r/CustomGCode.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/GCode/GCodeStatistics.hpp"
 #include <ios>
 #include <iomanip>
 #include "libslic3r/Arrange.hpp"
@@ -7539,7 +7540,7 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates, bool ex
 	return ret;
 }
 
-int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info, int plate_idx)
+int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool with_slice_info, int plate_idx, bool with_statistics)
 {
 	int ret = 0;
 
@@ -7613,6 +7614,8 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 					}
 					//parse filament info
 					plate_data_item->parse_filament_info(m_plate_list[i]->get_slice_result());
+					if (with_statistics)
+						plate_data_item->statistics = gcode_statistics_json(*m_plate_list[i]->get_slice_result());
 
 					// Record mixed (virtual) filaments actually used on this plate.
 					// Source is ToolOrdering::used_mixed_filaments (slots that appeared in

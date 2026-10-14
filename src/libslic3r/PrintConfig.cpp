@@ -13042,8 +13042,9 @@ CLIMiscConfigDef::CLIMiscConfigDef()
 
     def = this->add("export_statistics", coBool);
     def->label = L("Export statistics");
-    def->tooltip = L("Write the statistics of each sliced plate as JSON to plate_N.statistics.json in the output directory: "
-                     "print time, filament and feature totals, and the same per layer and per object.");
+    def->tooltip = L("Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output "
+                     "directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer "
+                     "and per object.");
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("debug", coInt);

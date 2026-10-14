@@ -1541,6 +1541,9 @@ int CLI::run(int argc, char **argv)
     if (allow_mix_temp_option)
         allow_mix_temp = allow_mix_temp_option->value;
 
+    const ConfigOptionBool* export_statistics_option = m_config.option<ConfigOptionBool>("export_statistics");
+    const bool              export_statistics        = export_statistics_option != nullptr && export_statistics_option->value;
+
     ConfigOptionBool* avoid_extrusion_cali_region_option = m_config.option<ConfigOptionBool>("avoid_extrusion_cali_region");
     if (avoid_extrusion_cali_region_option)
         avoid_extrusion_cali_region = avoid_extrusion_cali_region_option->value;
@@ -7083,13 +7086,10 @@ int CLI::run(int argc, char **argv)
                                         record_exit_reson(outfile_dir, CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, index + 1, cli_errors[CLI_GCODE_PATH_IN_UNPRINTABLE_AREA], sliced_info);
                                         flush_and_exit(CLI_GCODE_PATH_IN_UNPRINTABLE_AREA);
                                     }
-                                    if (const ConfigOptionBool *export_statistics = m_config.option<ConfigOptionBool>("export_statistics");
-                                        export_statistics != nullptr && export_statistics->value) {
-                                        // Without an output directory the G-code is a temporary file, so the statistics go to the working directory.
-                                        const std::string statistics_file = (outfile_dir.empty() ? std::string() : outfile_dir + "/") + "plate_" +
-                                                                            std::to_string(index + 1) + ".statistics.json";
+                                    // Without an output directory the G-code is a temporary file, kept only in an exported 3MF.
+                                    if (export_statistics && !outfile_dir.empty()) {
                                         try {
-                                            export_gcode_statistics(*gcode_result, statistics_file);
+                                            export_gcode_statistics(*gcode_result, gcode_statistics_path(outfile));
                                         } catch (const std::exception &ex) {
                                             BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": " << ex.what();
                                             record_exit_reson(outfile_dir, CLI_EXPORT_STATISTICS_ERROR, index + 1, cli_errors[CLI_EXPORT_STATISTICS_ERROR], sliced_info);
@@ -7224,7 +7224,7 @@ int CLI::run(int argc, char **argv)
         std::vector<ThumbnailData *> thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails;
         std::vector<PlateBBoxData*> plate_bboxes;
         PlateDataPtrs plate_data_list;
-        partplate_list.store_to_3mf_structure(plate_data_list);
+        partplate_list.store_to_3mf_structure(plate_data_list, true, -1, export_statistics);
 
         if (sliced_plate == -1) {
             for (int i = 0; i < plate_data_list.size(); i++) {
