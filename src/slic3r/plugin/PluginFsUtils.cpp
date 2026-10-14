@@ -9,6 +9,7 @@
 #include <boost/filesystem/directory.hpp>
 #include <boost/filesystem/file_status.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/nowide/fstream.hpp>
 
 #include "PluginAuditManager.hpp"
@@ -1253,6 +1254,78 @@ boost::filesystem::path find_installed_plugin_entry(const boost::filesystem::pat
 
     error = _u8L("Plugin directory does not contain a .py or .whl entry file");
     return {};
+}
+
+std::vector<std::string> collect_resource_texture_files(const std::string& dir,
+                                                        const std::string& plugin_root,
+                                                        std::string& error)
+{
+    namespace fs = boost::filesystem;
+
+    // Picker sanity bound, not a security control: the popup draws every entry in its grid.
+    constexpr size_t kMaxResourceTextureFiles = 64;
+
+    std::vector<std::string> files;
+    error.clear();
+
+    if (dir.empty()) {
+        error = _u8L("Resource texture directory is not set");
+        return files;
+    }
+    if (plugin_root.empty()) {
+        error = _u8L("Plugin folder could not be determined.");
+        return files;
+    }
+
+    boost::system::error_code ec;
+    const fs::path resolved_dir = fs::weakly_canonical(fs::path(dir), ec);
+    if (ec) {
+        error = _u8L("Resource texture directory could not be resolved");
+        return files;
+    }
+
+    if (!fs::is_directory(resolved_dir, ec) || ec) {
+        error = _u8L("Resource texture path is not a directory");
+        return files;
+    }
+
+    const fs::path resolved_root = fs::weakly_canonical(fs::path(plugin_root), ec);
+    if (ec) {
+        error = _u8L("Plugin folder could not be resolved");
+        return files;
+    }
+
+    if (!is_inside_allowed_root(resolved_dir, resolved_root)) {
+        error = _u8L("Resource texture directory is outside the plugin folder");
+        return files;
+    }
+
+    for (fs::directory_iterator it(resolved_dir, ec), end; it != end && !ec; it.increment(ec)) {
+        const fs::path& path = it->path();
+
+        if (!fs::is_regular_file(path, ec) || ec)
+            continue;
+
+        std::string ext = path.extension().string();
+        boost::algorithm::to_lower(ext);
+        if (ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".bmp")
+            continue;
+
+        // Re-check per file: a symlink inside the pack must not resolve outside it.
+        if (!is_inside_allowed_root(path, resolved_root))
+            continue;
+
+        files.push_back(path.string());
+        if (files.size() >= kMaxResourceTextureFiles)
+            break;
+    }
+
+    if (ec) {
+        error = _u8L("Resource texture directory could not be read");
+        return {};
+    }
+
+    return files;
 }
 
 } // namespace Slic3r

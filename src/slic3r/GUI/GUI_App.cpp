@@ -251,9 +251,11 @@
 #include "slic3r/GUI/ParamsDialog.hpp"
 #include "slic3r/GUI/ParamsPanel.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
+#include "slic3r/GUI/TextureLibrary.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/plugin/host/PluginPages.hpp"
+#include "slic3r/plugin/host/PluginResourceTextures.hpp"
 #include <wx/defs.h>
 #include "slic3r/GUI/Widgets/WebView.hpp"
 #include <cwchar>
@@ -3053,6 +3055,37 @@ void GUI_App::init_plugin_gui_wiring()
             refresh_plugins_dialog();
             switch_printer_agent_after_unload(capability.plugin_key);
         });
+    plugin_mgr.subscribe_on_load_callback([](const std::string& plugin_key) {
+        if (wxTheApp == nullptr || wxGetApp().is_closing())
+            return;
+        PluginResourceTextures::instance().on_plugin_register(plugin_key);
+        Slic3r::GUI::bump_texture_library_generation();
+    });
+    plugin_mgr.subscribe_on_unload_callback([](const std::string& plugin_key) {
+        if (wxTheApp == nullptr || wxGetApp().is_closing())
+            return;
+        PluginResourceTextures::instance().on_plugin_deregister(plugin_key);
+        Slic3r::GUI::bump_texture_library_generation();
+    });
+    plugin_mgr.subscribe_on_capability_load_callback([](const PluginCapabilityId& capability) {
+        if (capability.type != PluginCapabilityType::ResourceTexture)
+            return;
+        if (wxTheApp == nullptr || wxGetApp().is_closing())
+            return;
+        PluginResourceTextures::instance().on_cap_register(capability);
+        Slic3r::GUI::bump_texture_library_generation();
+    });
+    plugin_mgr.subscribe_on_capability_unload_callback([](const PluginCapabilityId& capability) {
+        if (capability.type != PluginCapabilityType::ResourceTexture)
+            return;
+        if (wxTheApp == nullptr || wxGetApp().is_closing())
+            return;
+        PluginResourceTextures::instance().on_cap_deregister(capability);
+        Slic3r::GUI::bump_texture_library_generation();
+    });
+    // Packs already loaded before this wiring, or in tests where no callback fires.
+    PluginResourceTextures::instance().initial_sweep();
+    Slic3r::GUI::bump_texture_library_generation();
 }
 
 bool GUI_App::on_init_inner()

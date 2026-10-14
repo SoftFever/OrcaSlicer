@@ -1061,6 +1061,8 @@ private:
 
     // Library textures the picker has shown at least once, keyed by file path (see LibraryTexture).
     std::map<std::string, LibraryTexture> m_library_textures;
+    // Generation of the library the above were cached against; a change clears them.
+    uint64_t                              m_library_generation = 0;
 
     // Everything the *unwrap* depends on. update_uv_editor() runs from rebuild_preview(), i.e. on
     // every stroke end and every slider release - but depth/tiling/rotation/offset/blend change
