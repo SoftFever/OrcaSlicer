@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-13 21:06-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2246,6 +2246,48 @@ msgid "Network Plug-in Restriction"
 msgstr ""
 
 msgid "Privacy Policy Update"
+msgstr ""
+
+msgid "All your filament presets are available on the printers they were made for."
+msgstr ""
+
+msgid "Migrate Filament Presets"
+msgstr ""
+
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+
+#, possible-boost-format
+msgid "%1% (based on %2%)"
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr ""
+
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr ""
+
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+
+msgid "These presets could not be migrated:"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -6145,6 +6187,9 @@ msgid "Setup Wizard"
 msgstr ""
 
 msgid "Show Configuration Folder"
+msgstr ""
+
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
 msgstr ""
 
 msgid "Troubleshoot Center"
@@ -13538,7 +13583,7 @@ msgid ""
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 
 msgid "Internal bridge flow ratio"
@@ -13766,7 +13811,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 
 msgid "mm/s or %"
@@ -13775,7 +13820,7 @@ msgstr ""
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
@@ -14224,7 +14269,7 @@ msgstr ""
 msgid "Small perimeters"
 msgstr ""
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
 msgstr ""
 
 msgid "Small perimeters threshold"
@@ -14236,7 +14281,7 @@ msgstr ""
 msgid "Small support perimeters"
 msgstr ""
 
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
 msgstr ""
 
 msgid "Small support perimeters threshold"
@@ -14253,7 +14298,7 @@ msgid ""
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
@@ -15077,13 +15122,13 @@ msgstr ""
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr ""
 
-msgid "This is the speed for the first layer except for solid infill sections."
+msgid "This is the speed for the walls and brim of the first layer."
 msgstr ""
 
 msgid "First layer infill"
 msgstr ""
 
-msgid "This is the speed for solid infill parts of the first layer."
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
 msgstr ""
 
 msgid "First layer travel speed"
@@ -15702,14 +15747,14 @@ msgid "Infill/wall overlap"
 msgstr ""
 
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
 msgstr ""
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr ""
 
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
 msgstr ""
 
 msgid "This is the speed for internal sparse infill."
@@ -15736,7 +15781,7 @@ msgstr ""
 msgid "Interlocking depth of a segmented region"
 msgstr ""
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
 msgstr ""
 
 msgid "Use beam interlocking"
@@ -15840,7 +15885,7 @@ msgstr ""
 
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 
@@ -16716,7 +16761,7 @@ msgstr ""
 msgid "Use scarf joint for inner walls as well."
 msgstr ""
 
-msgid "Role base wipe speed"
+msgid "Role based wipe speed"
 msgstr ""
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
@@ -16794,8 +16839,7 @@ msgstr ""
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
 
 msgid "Enabled"
@@ -17775,13 +17819,13 @@ msgstr ""
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
 
 msgid "Wall type"
@@ -17789,9 +17833,9 @@ msgstr ""
 
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 
 msgid "Rectangle"
@@ -17881,7 +17925,7 @@ msgstr ""
 msgid "Extra flow for purging"
 msgstr ""
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
 msgstr ""
 
 msgid "Idle temperature"
@@ -17992,9 +18036,9 @@ msgid "Minimum wall length"
 msgstr ""
 
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
 
 msgid "Maximum wall resolution"
@@ -21452,9 +21496,6 @@ msgid "Enable smart filament assign: Assign one filament to multiple nozzles to 
 msgstr ""
 
 msgid "File Saving"
-msgstr ""
-
-msgid "Don't remind me again"
 msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
