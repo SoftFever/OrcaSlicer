@@ -1879,12 +1879,6 @@ void PreferencesDialog::create_items()
     auto item_remember_print_action = create_item_checkbox(_L("Remember last print action"), _L("If enabled, OrcaSlicer will remember the last selected option in the print button's dropdown (e.g. Print, Export plate sliced file, Export G-code file) and use it as the default on next startup."), "remember_print_action");
     g_sizer->Add(item_remember_print_action);
 
-    auto item_export_statistics = create_item_checkbox(_L("Export statistics with G-code"),
-                                                       _L("If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json: "
-                                                          "print time, filament and feature totals, and the same per layer and per object."),
-                                                       "export_statistics");
-    g_sizer->Add(item_export_statistics);
-
     //// CONTROL > Camera
     g_sizer->Add(create_item_title(_L("Camera")), 1, wxEXPAND);
 
@@ -2317,6 +2311,12 @@ void PreferencesDialog::create_items()
   
     auto item_show_unsupported = create_item_checkbox(_L("Show unsupported presets"), _L("Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."), "show_unsupported_presets");
     g_sizer->Add(item_show_unsupported);
+
+    auto item_export_statistics = create_item_checkbox(_L("Export statistics with G-code"),
+                                                       _L("If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json: "
+                                                          "print time, filament and feature totals, and the same per layer and per object."),
+                                                       "export_statistics");
+    g_sizer->Add(item_export_statistics);
 
     //// DEVELOPER > Experimental Features
     g_sizer->Add(create_item_title(_L("Experimental Features")), 1, wxEXPAND);
