@@ -2981,7 +2981,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("skeleton_infill_line_width", "strength_settings_patterns#locked-zag");
         optgroup->append_single_option_line("symmetric_infill_y_axis", "strength_settings_infill#symmetric-infill-y-axis");
         optgroup->append_single_option_line("infill_complete_top", "strength_settings_patterns#fill-pattern-tops");
-        optgroup->append_single_option_line("infill_shift_step", "strength_settings_patterns#cross-hatch");
+        optgroup->append_single_option_line("infill_shift_step", "strength_settings_patterns#cross-zag");
         optgroup->append_single_option_line("lateral_lattice_angle_1", "strength_settings_patterns#lateral-lattice");
         optgroup->append_single_option_line("lateral_lattice_angle_2", "strength_settings_patterns#lateral-lattice");
         optgroup->append_single_option_line("infill_overhang_angle", "strength_settings_patterns#lateral-honeycomb");
@@ -3248,8 +3248,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("enable_wrapping_detection");
 
         optgroup = page->new_optgroup(L("Fuzzy skin"), L"fuzzy_skin");
-        optgroup->append_single_option_line("fuzzy_skin", "others_settings_fuzzy_skin");
-        optgroup->append_single_option_line("fuzzy_skin_mode", "others_settings_fuzzy_skin#fuzzy-skin-mode");
+        optgroup->append_single_option_line("fuzzy_skin", "others_settings_fuzzy_skin#fuzzy-skin-mode");
+        optgroup->append_single_option_line("fuzzy_skin_mode", "others_settings_fuzzy_skin#fuzzy-skin-generator-mode");
         optgroup->append_single_option_line("fuzzy_skin_noise_type", "others_settings_fuzzy_skin#noise-type");
         optgroup->append_single_option_line("fuzzy_skin_point_distance", "others_settings_fuzzy_skin#point-distance");
         optgroup->append_single_option_line("fuzzy_skin_thickness", "others_settings_fuzzy_skin#skin-thickness");
@@ -3283,7 +3283,7 @@ void TabPrint::build()
         option.opt.full_width = true;
         option.opt.is_code = true;
         option.opt.height = 15;
-        optgroup->append_single_option_line(option);
+        optgroup->append_single_option_line(option, "others_settings_g_code_output#change-extrusion-role-g-code");
 
         optgroup = page->new_optgroup(L("Post-processing Scripts"), L"param_gcode", 0);
         option = optgroup->get_option("post_process");
@@ -3296,7 +3296,7 @@ void TabPrint::build()
         optgroup->hide_labels();
         option = optgroup->get_option("slicing_pipeline_plugin");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option, "others_settings_plugin_picker");
+        optgroup->append_single_option_line(option, "plugins_types#slicing-pipeline");
 
         // Its own group: the one above hides its labels, and this row needs its label — and the revert
         // arrow beside it — to show. No label-width override either, as a 0 there means "no label column".
@@ -3547,7 +3547,7 @@ void TabPrintModel::build()
         auto optgroup = page->new_optgroup("");
             optgroup->append_single_option_line("layer_height", "quality_settings_layer_height");
             optgroup->append_single_option_line("sparse_infill_density", "strength_settings_infill#sparse-infill-density");
-            optgroup->append_single_option_line("wall_loops", "strength_settings_walls");
+            optgroup->append_single_option_line("wall_loops", "strength_settings_walls#wall-loops");
             optgroup->append_single_option_line("enable_support", "support_settings_support");
     m_pages.pop_back();
     m_pages.insert(m_pages.begin(), page);
