@@ -208,14 +208,14 @@ test("Live app theme overrides the opposite system scheme without changing color
 
 test("Sidebar resizes from a compact viewport and shrinks after every collapse", options, async t => {
   const {page, ready, send} = await open(t);
-  await page.setViewportSize({width: 342, height: 382});
+  await page.setViewportSize({width: 340, height: 380});
   await send({...init(ready, true, true), ui: {sidebar_open: false, palette: "basic"}});
   const selection = await page.evaluate(() => ColorPickerDialog.exportSelection());
   for (const [index, sidebarOpen] of [false, true, false, true, false].entries()) {
-    const width = sidebarOpen ? 512 : 342;
+    const width = sidebarOpen ? 510 : 340;
     await page.waitForFunction(expected => messages.filter(message => message.command === "resize").at(-1)?.width === expected, width);
     const size = await page.evaluate(() => messages.filter(message => message.command === "resize").at(-1));
-    assert.equal(size.height, 382);
+    assert.equal(size.height, 380);
     await page.setViewportSize({width: size.width, height: size.height});
     await page.waitForTimeout(100);
     assert(await page.evaluate(() => {
