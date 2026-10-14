@@ -156,6 +156,19 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             total_seam_gap_distance = 0.0f;
             total_seam_scarf_distance = 0.0f;
         }
+
+        // Volume of a filament extruded within the G-code layers first_layer..last_layer (inclusive,
+        // support, wipe tower and flush included), from layer_volumes_per_extruder. Entry k of that
+        // series is the cumulative volume at the end of layer k, so the range is the entry of its last
+        // layer minus the entry of the layer before its first. Empty when no series covers the range.
+        std::optional<double> layers_volume(size_t extruder_id, size_t first_layer, size_t last_layer) const
+        {
+            const auto series = layer_volumes_per_extruder.find(extruder_id);
+            if (series == layer_volumes_per_extruder.end() || first_layer > last_layer || last_layer >= series->second.size())
+                return std::nullopt;
+            const std::vector<double>& cumulative = series->second;
+            return cumulative[last_layer] - (first_layer > 0 ? cumulative[first_layer - 1] : 0.0);
+        }
     };
 
     struct ConflictResult

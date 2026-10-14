@@ -589,4 +589,27 @@ TEST_CASE("Cumulative filament usage per layer grows layer by layer and ends at 
             CHECK(layers.size() == entries);
         }
     }
+
+    // A range of layers is the difference of two cumulative entries, so splitting the plate at any
+    // layer gives two parts that add up to the filament's total.
+    for (const auto &[filament_id, total] : stats.total_volumes_per_extruder) {
+        const size_t last = stats.layer_volumes_per_extruder.at(filament_id).size() - 1;
+        const std::optional<double> all = stats.layers_volume(filament_id, 0, last);
+        REQUIRE(all.has_value());
+        CHECK_THAT(*all, Catch::Matchers::WithinRel(total, 1e-9));
+
+        const size_t middle = last / 2;
+        const std::optional<double> lower = stats.layers_volume(filament_id, 0, middle);
+        const std::optional<double> upper = stats.layers_volume(filament_id, middle + 1, last);
+        REQUIRE(lower.has_value());
+        REQUIRE(upper.has_value());
+        CHECK_THAT(*lower + *upper, Catch::Matchers::WithinRel(total, 1e-9));
+        CHECK(*lower >= 0.);
+        CHECK(*upper >= 0.);
+
+        // No series covers a range past the last layer or one that runs backwards.
+        CHECK_FALSE(stats.layers_volume(filament_id, 0, last + 1).has_value());
+        CHECK_FALSE(stats.layers_volume(filament_id, middle + 1, middle).has_value());
+    }
+    CHECK_FALSE(stats.layers_volume(99, 0, 0).has_value());
 }
