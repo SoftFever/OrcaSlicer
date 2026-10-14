@@ -246,6 +246,7 @@
 #include "Widgets/MultiNozzleSync.hpp"           // NozzleOption, tryPopUpMultiNozzleDialog, setExtruderNozzleCount
 #include "DeviceCore/DevNozzleSystem.h"          // DevNozzle, GetExtNozzles / GetRackNozzles
 #include "ProjectDirtyStateManager.hpp"
+#include "Gizmos/GLGizmoAlignment.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
 #include "Gizmos/GLGizmoSVG.hpp" // Drop SVG file
 #include "Gizmos/GizmoObjectManipulation.hpp"
@@ -1687,7 +1688,7 @@ ExtruderGroup::NozzleRow ExtruderGroup::create_nozzle_row()
             plater->update_machine_sync_status();
         }
     });
-    combo_flow->SetToolTip(_L("Flow"));
+    combo_flow->SetToolTip(_L_CONTEXT("Flow", "Nozzle Flow"));
     row.flow = combo_flow;
     use_nozzle_row_font(combo_flow);
 
@@ -4126,13 +4127,12 @@ void Sidebar::update_presets(Preset::Type preset_type)
                 std::vector<NozzleType> nozzle_types(cfg_nozzle_type->size());
                 for (size_t idx = 0; idx < cfg_nozzle_type->size(); ++idx)
                     nozzle_types[idx] = NozzleType(cfg_nozzle_type->values[idx]);
-                nozzle_type = _L( // NEEDFIX this part can be replaced with shorter names
-                    nozzle_types[0] == ntHardenedSteel   ? "Hardened Steel" :
-                    nozzle_types[0] == ntStainlessSteel  ? "Stainless Steel" :
-                    nozzle_types[0] == ntTungstenCarbide ? "Tungsten Carbide" :
-                    nozzle_types[0] == ntBrass           ? "Brass"
-                                                         : "-" // Undefined
-                );
+                // NEEDFIX this part can be replaced with shorter names
+                nozzle_type = nozzle_types[0] == ntHardenedSteel   ? _L("Hardened Steel") :
+                              nozzle_types[0] == ntStainlessSteel  ? _L("Stainless Steel") :
+                              nozzle_types[0] == ntTungstenCarbide ? _L("Tungsten Carbide") :
+                              nozzle_types[0] == ntBrass           ? _L("Brass")
+                                                                   : wxString("-"); // Undefined
             }
             p->label_nozzle_type->SetLabel(nozzle_type);
             p->label_nozzle_type->SetToolTip(nozzle_type == "-" ? "" : nozzle_type);
@@ -4966,7 +4966,7 @@ void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_str
 
     for (size_t i = 0; i < num_physical; ++i) {
         auto* combo = p->combos_filament[i];
-        names.push_back(combo ? into_u8(combo->GetValue()) : "Filament " + std::to_string(i + 1));
+        names.push_back(into_u8(combo ? combo->GetValue() : wxString::Format(_L("Filament %d"), int(i + 1))));
     }
 
     auto& preset_bundle = *wxGetApp().preset_bundle;
@@ -5334,7 +5334,7 @@ void Sidebar::remove_all_mixed_filaments()
 
     // Worth a confirmation: this drops filament slots the model may be painted with, and anything
     // painted in one falls back to a plain filament.
-    MessageDialog dlg(this, format_wxstr(_L("Remove all %1% mixed filaments?"), count), _L("Mixed Filament"),
+    MessageDialog dlg(this, format_wxstr(_L_PLURAL("Remove %1% mixed filament?", "Remove all %1% mixed filaments?", count), count), _L("Mixed Filament"),
                       wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
     if (dlg.ShowModal() != wxID_YES)
         return;
@@ -6015,7 +6015,8 @@ void Sidebar::add_custom_filament(wxColour new_col, const std::string& preset_na
 
 bool Sidebar::is_new_project_in_gcode3mf()
 {
-    if (p->plater->using_exported_file()) {
+    // A .gcode previewed with its own settings shows them here too, and is closed the same way.
+    if (p->plater->using_exported_file() || p->plater->gcode_settings_loaded()) {
         auto          filename = p->plater->get_preview_only_filename();
         auto          text     = wxString::Format(_L("After completing your operation, %s project will be closed and create a new project."), filename);
         MessageDialog dlg(wxGetApp().plater(), text, _L("Warning"),
@@ -7399,6 +7400,9 @@ struct Plater::priv
     void enable_sidebar(bool enabled);
     void collapse_sidebar(bool collapse);
     void update_sidebar(bool force_update = false);
+    // The sidebar shows the selected presets, which a G-code previewed without its own settings has nothing to do
+    // with, so it stays hidden then. With the file's settings loaded it shows them, as for a .gcode.3mf.
+    bool gcode_preview_without_settings() const { return q->m_only_gcode && !q->m_gcode_settings_loaded; }
     void reset_window_layout();
     Sidebar::DockingState get_sidebar_docking_state();
     void add_dock_pane(wxWindow* window, const std::string& name, const wxString& caption, const std::string& dock,
@@ -7512,6 +7516,18 @@ struct Plater::priv
     void delete_all_objects_from_model();
     void reset(bool apply_presets_change = false, bool reload_presets = true);
     void center_selection();
+    void distribute_selection_x();
+    void distribute_selection_y();
+    void distribute_selection_z();
+    void align_selection_x_min();
+    void align_selection_x_center();
+    void align_selection_x_max();
+    void align_selection_y_min();
+    void align_selection_y_center();
+    void align_selection_y_max();
+    void align_selection_z_min();
+    void align_selection_z_center();
+    void align_selection_z_max();
     void drop_selection();
     void mirror(Axis axis);
     void split_object(bool auto_drop = true);
@@ -8624,7 +8640,7 @@ void Plater::priv::select_next_view_3D()
 
 void Plater::priv::enable_sidebar(bool enabled)
 {
-    if (q->m_only_gcode)
+    if (gcode_preview_without_settings())
         enabled = false;
 
     sidebar_layout.is_enabled = enabled;
@@ -8633,7 +8649,7 @@ void Plater::priv::enable_sidebar(bool enabled)
 
 void Plater::priv::collapse_sidebar(bool collapse)
 {
-    if (q->m_only_gcode)
+    if (gcode_preview_without_settings())
         return;
 
     sidebar_layout.is_collapsed = collapse;
@@ -8894,6 +8910,64 @@ static void log_substitutions(const PresetsConfigSubstitutions& substitutions, c
 {
     for (const PresetConfigSubstitutions& preset : substitutions)
         log_substitutions(preset.substitutions, source + " (preset " + preset.preset_name + ")");
+}
+
+// After the settings of a project or a G-code were loaded into the presets: size the per-filament project
+// lists to the loaded filament count, and drop state only a connected printer may set.
+static void sync_loaded_project_filament_config(DynamicConfig& proj_cfg)
+{
+    ConfigOptionStrings* filament_color = proj_cfg.opt<ConfigOptionStrings>("filament_colour");
+    if (filament_color) {
+        size_t filament_count = filament_color->size();
+
+        // Sync filament map
+        ConfigOptionInts* filament_map = proj_cfg.opt<ConfigOptionInts>("filament_map", true);
+        if (filament_map->size() != filament_count) {
+            filament_map->values.resize(filament_count, 1);
+        }
+
+        ConfigOptionInts* filament_nozzle_map = proj_cfg.opt<ConfigOptionInts>("filament_nozzle_map", true);
+        if (filament_nozzle_map->size() != filament_count) {
+            filament_nozzle_map->values.resize(filament_count, 0);
+        }
+
+        ConfigOptionInts* filament_volume_map = proj_cfg.opt<ConfigOptionInts>("filament_volume_map", true);
+        if (filament_volume_map->size() != filament_count) {
+            filament_volume_map->values.resize(filament_count, static_cast<int>(NozzleVolumeType::nvtStandard));
+        }
+
+        // Sync filament multi colour
+        ConfigOptionStrings* filament_multi_color = proj_cfg.opt<ConfigOptionStrings>("filament_multi_colour", true);
+        if (filament_multi_color->size() != filament_count) {
+            filament_multi_color->values.resize(filament_count);
+        }
+        // If there is no multi-color data or color is not match, use single color as default value
+        for (size_t i = 0; i < filament_count; i++) {
+            std::vector<std::string> colors = Slic3r::split_string(filament_multi_color->values[i], ' ');
+            if (i >= filament_multi_color->values.size() || colors.empty() || colors[0] != filament_color->values[i] ) {
+                filament_multi_color->values[i] = filament_color->values[i];
+            }
+        }
+        // Sync filament colour type
+        ConfigOptionStrings* filament_color_type = proj_cfg.opt<ConfigOptionStrings>("filament_colour_type", true);
+        if (filament_color_type && filament_color_type->size() != filament_count) {
+            filament_color_type->values.resize(filament_count);
+
+            for (size_t i = 0; i < filament_count; i++) {
+                if (i >= filament_color_type->values.size() || filament_color_type->values[i].empty()) {
+                    filament_color_type->values[i] = "1";
+                }
+            }
+        }
+    }
+
+    // Filament Track Switch state is derived live from the connected
+    // printer; a loaded project must not carry a stale installed/active
+    // flag, so clear both and let device sync re-derive them.
+    if (auto* has_switcher = proj_cfg.opt<ConfigOptionBool>("has_filament_switcher"))
+        has_switcher->value = false;
+    if (auto* dynamic_map = proj_cfg.opt<ConfigOptionBool>("enable_filament_dynamic_map"))
+        dynamic_map->value = false;
 }
 
 // BBS: backup & restore
@@ -9712,58 +9786,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 if (file_wipe_tower_y)
                                     *wipe_tower_y = *file_wipe_tower_y;
 
-                                ConfigOptionStrings* filament_color = proj_cfg.opt<ConfigOptionStrings>("filament_colour");
-                                if (filament_color) {
-                                    size_t filament_count = filament_color->size();
-
-                                    // Sync filament map
-                                    ConfigOptionInts* filament_map = proj_cfg.opt<ConfigOptionInts>("filament_map", true);
-                                    if (filament_map->size() != filament_count) {
-                                        filament_map->values.resize(filament_count, 1);
-                                    }
-
-                                    ConfigOptionInts* filament_nozzle_map = proj_cfg.opt<ConfigOptionInts>("filament_nozzle_map", true);
-                                    if (filament_nozzle_map->size() != filament_count) {
-                                        filament_nozzle_map->values.resize(filament_count, 0);
-                                    }
-
-                                    ConfigOptionInts* filament_volume_map = proj_cfg.opt<ConfigOptionInts>("filament_volume_map", true);
-                                    if (filament_volume_map->size() != filament_count) {
-                                        filament_volume_map->values.resize(filament_count, static_cast<int>(NozzleVolumeType::nvtStandard));
-                                    }
-
-                                    // Sync filament multi colour
-                                    ConfigOptionStrings* filament_multi_color = proj_cfg.opt<ConfigOptionStrings>("filament_multi_colour", true);
-                                    if (filament_multi_color->size() != filament_count) {
-                                        filament_multi_color->values.resize(filament_count);
-                                    }
-                                    // If there is no multi-color data or color is not match, use single color as default value
-                                    for (size_t i = 0; i < filament_count; i++) {
-                                        std::vector<std::string> colors = Slic3r::split_string(filament_multi_color->values[i], ' ');
-                                        if (i >= filament_multi_color->values.size() || colors.empty() || colors[0] != filament_color->values[i] ) {
-                                            filament_multi_color->values[i] = filament_color->values[i];
-                                        }
-                                    }
-                                    // Sync filament colour type
-                                    ConfigOptionStrings* filament_color_type = proj_cfg.opt<ConfigOptionStrings>("filament_colour_type", true);
-                                    if (filament_color_type && filament_color_type->size() != filament_count) {
-                                        filament_color_type->values.resize(filament_count);
-
-                                        for (size_t i = 0; i < filament_count; i++) {
-                                            if (i >= filament_color_type->values.size() || filament_color_type->values[i].empty()) {
-                                                filament_color_type->values[i] = "1";
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // Filament Track Switch state is derived live from the connected
-                                // printer; a loaded project must not carry a stale installed/active
-                                // flag, so clear both and let device sync re-derive them.
-                                if (auto* has_switcher = proj_cfg.opt<ConfigOptionBool>("has_filament_switcher"))
-                                    has_switcher->value = false;
-                                if (auto* dynamic_map = proj_cfg.opt<ConfigOptionBool>("enable_filament_dynamic_map"))
-                                    dynamic_map->value = false;
+                                sync_loaded_project_filament_config(proj_cfg);
                             }
                             // Update filament combobox after loading config
                             if (published_config.published) {
@@ -10391,10 +10414,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
         }
 
         if (!auto_drop) {
-            for (size_t i = 0; i < object->instances.size(); ++i) {
-                ModelInstance* instance  = object->instances[i];
-                instance->auto_drop = auto_drop;
-            }
+            object->auto_drop = false;
 
             // if under the bed, move over the bed
             double dist_to_bed = std::min(object->min_z(), double(0));
@@ -10937,6 +10957,78 @@ void Plater::priv::center_selection()
     view3D->center_selected();
 }
 
+void Plater::priv::distribute_selection_x()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.distribute_objects(GLGizmoAlignment::AlignType::DISTRIBUTE_X);
+}
+
+void Plater::priv::distribute_selection_y()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.distribute_objects(GLGizmoAlignment::AlignType::DISTRIBUTE_Y);
+}
+
+void Plater::priv::distribute_selection_z()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.distribute_objects(GLGizmoAlignment::AlignType::DISTRIBUTE_Z);
+}
+
+void Plater::priv::align_selection_x_min()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.align_objects(GLGizmoAlignment::AlignType::X_MIN);
+}
+
+void Plater::priv::align_selection_x_center()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.align_objects(GLGizmoAlignment::AlignType::CENTER_X);
+}
+
+void Plater::priv::align_selection_x_max()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.align_objects(GLGizmoAlignment::AlignType::X_MAX);
+}
+
+void Plater::priv::align_selection_y_min()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.align_objects(GLGizmoAlignment::AlignType::Y_MIN);
+}
+
+void Plater::priv::align_selection_y_center()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.align_objects(GLGizmoAlignment::AlignType::CENTER_Y);
+}
+
+void Plater::priv::align_selection_y_max()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.align_objects(GLGizmoAlignment::AlignType::Y_MAX);
+}
+
+void Plater::priv::align_selection_z_min()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.align_objects(GLGizmoAlignment::AlignType::Z_MIN);
+}
+
+void Plater::priv::align_selection_z_center()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.align_objects(GLGizmoAlignment::AlignType::CENTER_Z);
+}
+
+void Plater::priv::align_selection_z_max()
+{
+    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
+    alignment_helper.align_objects(GLGizmoAlignment::AlignType::Z_MAX);
+}
+
 void Plater::priv::drop_selection()
 {
     view3D->drop_selected();
@@ -11023,7 +11115,7 @@ void Plater::priv::split_object(int obj_idx, bool auto_drop /* = true */)
             return false;
         };
         bool split_auto_drop = auto_drop;
-        if (current_model_object->instances[0]->auto_drop && is_atleast_one_floating()) {
+        if (current_model_object->auto_drop && is_atleast_one_floating()) {
             MessageDialog dlg(q, _L("Disable Auto-Drop to preserve Z positioning?\n"),
                                   _L("Object with floating parts was detected"), wxICON_QUESTION | wxYES_NO);
 
@@ -12187,7 +12279,7 @@ void Plater::priv::reload_from_disk()
             }
         }
         else {
-            wxString      message = _L("Do you want to replace it") + " ?";
+            wxString      message = _L("Do you want to replace it?");
             MessageDialog dlg(q, message, _L("Message"), wxYES_NO | wxYES_DEFAULT | wxICON_QUESTION);
             if (dlg.ShowModal() == wxID_YES)
 #if ENABLE_RELOAD_FROM_DISK_REWORK
@@ -12595,7 +12687,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
     // Add sidebar and toolbar collapse logic
     if (panel == view3D || panel == preview) {
-        this->enable_sidebar(!q->only_gcode_mode());
+        this->enable_sidebar(true);
     }
     if (panel == preview) {
         if (q->only_gcode_mode()) {
@@ -13096,9 +13188,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, percent %2%, text %3%") % evt.GetEventType() % evt.status.percent % evt.status.text;
-    //BBS: add slice project logic
-    std::string title_text = _u8L("Slicing");
-    evt.status.text = title_text + evt.status.text;
+    // The plate's status callback has already prefixed the text with "Slicing plate N:".
     if (evt.status.percent >= 0) {
          if (!m_worker.is_idle()) {
             // Avoid a race condition
@@ -13666,8 +13756,8 @@ static std::vector<wxString> collect_imex_warnings(PartPlate* plate)
             const int secondary_bed_temp = bed_temps->values[secondary_logical];
             if (secondary_bed_temp > 0 && std::abs(secondary_bed_temp - primary_bed_temp) > 5) {
                 warnings.push_back(wxString::Format(
-                    _L("Bed temperature conflict: T%d (%s) sets the bed to %d\u00B0C \u2014 "
-                       "T%d (%s) requires %d\u00B0C. The primary tool controls the bed; "
+                    _L("Bed temperature conflict: T%d (%s) sets the bed to %d℃ \u2014 "
+                       "T%d (%s) requires %d℃. The primary tool controls the bed; "
                        "secondary tools print at whatever temperature it sets."),
                     primary_tool, primary_display_type, primary_bed_temp,
                     tool_idx, secondary_display_type, secondary_bed_temp));
@@ -15015,24 +15105,8 @@ bool Plater::priv::can_fix_through_cgal() const
     std::vector<int> obj_idxs, vol_idxs;
     sidebar->obj_list()->get_selection_indexes(obj_idxs, vol_idxs);
 
-#if FIX_THROUGH_CGAL_ALWAYS
-    // Fixing always.
+    // A closed mesh may still self-intersect, so fixing is always allowed.
     return ! obj_idxs.empty() || ! vol_idxs.empty();
-#else // FIX_THROUGH_CGAL_ALWAYS
-    // Fixing only if the model is not manifold.
-    if (vol_idxs.empty()) {
-        for (auto obj_idx : obj_idxs)
-            if (model.objects[obj_idx]->get_repaired_errors_count() > 0)
-                return true;
-        return false;
-    }
-
-    int obj_idx = obj_idxs.front();
-    for (auto vol_idx : vol_idxs)
-        if (model.objects[obj_idx]->get_repaired_errors_count(vol_idx) > 0)
-            return true;
-    return false;
-#endif // FIX_THROUGH_CGAL_ALWAYS
 }
 
 bool Plater::priv::can_simplify() const
@@ -15745,7 +15819,7 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
                     name = preset->label(false);
             }
             if (name.empty())
-                name = "Filament " + std::to_string(i + 1);
+                name = into_u8(wxString::Format(_L("Filament %d"), int(i + 1)));
             entry.name = name;
 
             if (entry.kind == TextureFilamentKind::ExistingMixed) {
@@ -16873,7 +16947,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
     if (accels.empty()) {
         accels.assign({accel});
         const auto msg{_L("INFO:") + "\n" +
-                       _L("No accelerations provided for calibration. Use default acceleration value ") + std::to_string(long(accel)) + _L(u8"mm/s²")};
+                       format_wxstr(_L("No accelerations provided for calibration. Use default acceleration value %1%mm/s²"), long(accel))};
         get_notification_manager()->push_notification(msg.utf8_string());
     } else {
         // set max acceleration in case of batch mode to get correct test pattern size
@@ -16938,7 +17012,7 @@ void Plater::_calib_pa_pattern(const Calib_Params& params)
 
         speeds.assign({speed});
         const auto msg{_L("INFO:") + "\n" +
-                       _L("No speeds provided for calibration. Use default optimal speed ") + std::to_string(long(speed)) + _L("mm/s")};
+                       format_wxstr(_L("No speeds provided for calibration. Use default optimal speed %1%mm/s"), long(speed))};
         get_notification_manager()->push_notification(msg.utf8_string());
     } else if (speeds.size() == 1) {
         // If we have single value provided, set speed using global configuration.
@@ -17362,7 +17436,7 @@ void Plater::calib_temp(const Calib_Params& params) {
         if (printer_config.has("belt_printer") && printer_config.opt_bool("belt_printer") &&
             ! boost::filesystem::exists(belt_temp_tower_asset(params))) {
             MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
-                              format_wxstr(_L("No belt temperature tower is available for the range %1% to %2% °C. "
+                              format_wxstr(_L("No belt temperature tower is available for the range %1% to %2%℃. "
                                               "Use a range the tower models cover, for example 230 to 190."),
                                            (int) lround(params.start), (int) lround(params.end)),
                               _L("Temperature tower"), wxICON_ERROR | wxOK);
@@ -18120,11 +18194,80 @@ void Plater::load_gcode(const wxString& filename)
 
     m_last_loaded_gcode = filename;
 
+    // An OrcaSlicer G-code carries the settings it was sliced with. They replace the selected presets as a
+    // .gcode.3mf's do, so unsaved preset changes get the save-or-discard choice of opening a project rather
+    // than the new project's choice to keep them.
+    PresetBundle*                     preset_bundle = wxGetApp().preset_bundle;
+    const std::string                 path          = into_u8(filename);
+    std::optional<DynamicPrintConfig> file_config;
+    ConfigSubstitutions               substitutions;
+    {
+        wxBusyCursor wait;
+        try {
+            file_config = preset_bundle->config_from_gcode(path, ForwardCompatibilitySubstitutionRule::Enable, substitutions);
+        } catch (const std::exception& ex) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": no settings to load from " << path << ": " << ex.what();
+        }
+    }
+
     // BSS: create a new project when load_gcode, force close previous one
-    if (new_project(false, true) != wxID_YES)
+    if (file_config) {
+        auto check = [](bool yes_or_no) {
+            return yes_or_no || wxGetApp().check_and_save_current_preset_changes(_L("Load project"), _L("Some presets are modified."));
+        };
+        if (close_with_confirm(check) == wxID_CANCEL || new_project(true, true) != wxID_YES)
+            return;
+    } else if (new_project(false, true) != wxID_YES)
         return;
 
     m_only_gcode = true;
+    m_gcode_settings_loaded = false;
+    // A previewed G-code's settings are not the selection the app should remember.
+    PresetBundle::SelectionExportBlocker no_selection_export(*preset_bundle);
+    // What loading the file's settings replaces, to put back if that load fails or the file is rejected.
+    std::optional<PresetBundle::Selection> previous;
+    if (file_config) {
+        previous = preset_bundle->selection();
+        if (!previous)
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": project presets are still loaded, not loading the settings of " << path;
+    }
+    auto unload_file_settings = [this, preset_bundle, &previous]() {
+        if (!previous)
+            return;
+        preset_bundle->restore_selection(*previous);
+        wxGetApp().load_current_presets(false, false);
+        // Switching back to the previous printer re-derives some project settings (TabPrinter::on_preset_loaded),
+        // and only the printer refresh shows them in the sidebar's flow selectors.
+        preset_bundle->project_config = std::move(previous->project_config);
+        sidebar().update_presets(Preset::TYPE_PRINTER);
+        reset_project_dirty_initial_presets();
+        update_project_dirty_from_presets();
+        m_gcode_settings_loaded = false;
+        // The rejections after the switch to the preview have already shown the sidebar with the file's settings.
+        enable_sidebar(false);
+        previous.reset();
+    };
+    if (previous) {
+        try {
+            preset_bundle->load_config_model(path, std::move(*file_config));
+            m_gcode_settings_loaded = true;
+        } catch (const std::exception& ex) {
+            unload_file_settings();
+            get_notification_manager()->push_notification(NotificationType::CustomNotification,
+                                                          NotificationManager::NotificationLevel::WarningNotificationLevel,
+                                                          GUI::format(_L("Failed loading file \"%1%\". An invalid configuration was found."), path) +
+                                                              "\n" + ex.what());
+        }
+    }
+    if (m_gcode_settings_loaded) {
+        wxGetApp().load_current_presets(false, false);
+        sync_loaded_project_filament_config(preset_bundle->project_config);
+        sidebar().update_presets(Preset::TYPE_FILAMENT);
+        reset_project_dirty_initial_presets();
+        update_project_dirty_from_presets();
+        if (!substitutions.empty())
+            show_substitutions_info(substitutions, path);
+    }
 
     // cleanup view before to start loading/processing
     //BBS: update gcode to current partplate's
@@ -18152,6 +18295,7 @@ void Plater::load_gcode(const wxString& filename)
     }
     catch (const std::exception& ex)
     {
+        unload_file_settings();
         show_error(this, ex.what());
         return;
     }
@@ -18199,7 +18343,8 @@ void Plater::load_gcode(const wxString& filename)
     p->preview->get_canvas3d()->zoom_to_plate(0);
 
     if (p->preview->get_canvas3d()->get_gcode_layers_zs().empty()) {
-        MessageDialog(this, _L("The selected file") + ":\n" + filename + "\n" + _L("Does not contain valid G-code."),
+        unload_file_settings();
+        MessageDialog(this, format_wxstr(_L("The selected file:\n%1%\ndoes not contain valid G-code."), filename),
             wxString(GCODEVIEWER_APP_NAME) + " - " + _L("An Error has occurred while loading the G-code file."), wxCLOSE | wxICON_WARNING | wxCENTRE).ShowModal();
         set_project_filename(_L(DEFAULT_PROJECT_NAME));
     } else {
@@ -22072,13 +22217,16 @@ void Plater::clear_before_change_mesh(int obj_idx)
         mv->mmu_segmentation_facets.reset();
         mv->fuzzy_skin_facets.reset();
     }
-    if (paint_removed) {
-        // snapshot_time is captured by copy so the lambda knows where to undo/redo to.
-        get_notification_manager()->push_notification(
-                    NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
-                    NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
-                    _u8L("Custom supports and color painting were removed before repairing."));
-    }
+    if (paint_removed)
+        notify_painting_removed();
+}
+
+void Plater::notify_painting_removed()
+{
+    get_notification_manager()->push_notification(
+                NotificationType::CustomSupportsAndSeamRemovedAfterRepair,
+                NotificationManager::NotificationLevel::PrintInfoNotificationLevel,
+                _u8L("Custom supports and color painting were removed before repairing."));
 }
 
 void Plater::changed_mesh(int obj_idx)
@@ -22194,6 +22342,18 @@ void Plater::suppress_background_process(const bool stop_background_process)
 BackgroundSlicingProcess& Plater::background_process() { return p->background_process; }
 
 void Plater::center_selection()             { p->center_selection(); }
+void Plater::distribute_selection_x()       { p->distribute_selection_x(); }
+void Plater::distribute_selection_y()       { p->distribute_selection_y(); }
+void Plater::distribute_selection_z()       { p->distribute_selection_z(); }
+void Plater::align_selection_x_min()        { p->align_selection_x_min(); }
+void Plater::align_selection_x_center()     { p->align_selection_x_center(); }
+void Plater::align_selection_x_max()        { p->align_selection_x_max(); }
+void Plater::align_selection_y_min()        { p->align_selection_y_min(); }
+void Plater::align_selection_y_center()     { p->align_selection_y_center(); }
+void Plater::align_selection_y_max()        { p->align_selection_y_max(); }
+void Plater::align_selection_z_min()        { p->align_selection_z_min(); }
+void Plater::align_selection_z_center()     { p->align_selection_z_center(); }
+void Plater::align_selection_z_max()        { p->align_selection_z_max(); }
 void Plater::drop_selection()               { p->drop_selection(); }
 void Plater::mirror(Axis axis)              { p->mirror(axis); }
 void Plater::split_object(bool auto_drop)   { p->split_object(auto_drop); }
@@ -23924,7 +24084,7 @@ Plater::ImexGhostTooltip Plater::format_imex_ghost_tooltip(int physical_head) co
 
     const PartPlate* plate = p->partplate_list.get_curr_plate();
     if (!plate) {
-        t.label = "T" + std::to_string(physical_head) + " -> (no plate)";
+        t.label = Slic3r::format(_u8L("T%1% -> (no plate)"), physical_head);
         return t;
     }
 
@@ -23935,8 +24095,8 @@ Plater::ImexGhostTooltip Plater::format_imex_ghost_tooltip(int physical_head) co
         // No filament slot resolves to this physical head. Usually means the printer's
         // extruder count is understated relative to the filament palette (user added a
         // filament without extending printer_extruder_id in the Machine tab).
-        t.label = "T" + std::to_string(physical_head) + " — no filament routed\n"
-                  "Add an extruder in the Machine tab so this head has a filament slot.";
+        // TRN IDEX/IQEX ghost tooltip. %1% is the number of the physical print head.
+        t.label = Slic3r::format(_u8L("T%1% — no filament routed\nAdd an extruder in the Machine tab so this head has a filament slot."), physical_head);
         return t;
     }
     t.filament_slot_1based = logical + 1;
@@ -23944,8 +24104,8 @@ Plater::ImexGhostTooltip Plater::format_imex_ghost_tooltip(int physical_head) co
     // from one resolution, not two.
     t.swatch = plate->get_imex_head_filament_color(physical_head, pem, map);
     t.swatch.a(1.0f);  // tooltip swatch opaque
-    t.label  = "T" + std::to_string(physical_head) +
-               " -> filament " + std::to_string(t.filament_slot_1based);
+    // TRN IDEX/IQEX ghost tooltip. %1% is the number of the physical print head, %2% the filament it prints.
+    t.label  = Slic3r::format(_u8L("T%1% -> filament %2%"), physical_head, t.filament_slot_1based);
     return t;
 }
 

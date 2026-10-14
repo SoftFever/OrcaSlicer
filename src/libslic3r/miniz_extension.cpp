@@ -263,7 +263,7 @@ std::string MZ_Archive::get_errorstr(mz_zip_error mz_err)
         break;
     }
 
-    return "unknown error";
+    return L("unknown error");
 }
 
 } // namespace Slic3r

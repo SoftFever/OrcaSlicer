@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 16:21+0800\n"
+"POT-Creation-Date: 2026-10-13 09:55-0300\n"
 "PO-Revision-Date: 2026-06-11 12:37-0300\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -349,8 +349,11 @@ msgstr "读取中 "
 msgid "Please wait"
 msgstr "请稍候"
 
-msgid "Reading"
-msgstr "读取中"
+# AI Translated
+#. TRN %d/%d is the hotend being read and the number of hotends to read.
+#, c-format, boost-format
+msgid "Induction Hotend Rack: Reading %d/%d"
+msgstr "感应热端架：正在读取 %d/%d"
 
 msgid "Running..."
 msgstr "运行中..."
@@ -503,9 +506,11 @@ msgstr "选择底面"
 msgid "Lay on Face"
 msgstr "选择底面"
 
+# AI Translated
 #, boost-format
-msgid "Filament count exceeds the maximum number that painting tool supports. Only the first %1% filaments will be available in painting tool."
-msgstr "耗材丝数量超过涂色工具支持的最大值，仅前%1%个耗材丝可在涂色工具中使用。"
+msgid "Filament count exceeds the maximum number that painting tool supports. Only the first %1% filament will be available in painting tool."
+msgid_plural "Filament count exceeds the maximum number that painting tool supports. Only the first %1% filaments will be available in painting tool."
+msgstr[0] "耗材丝数量超过涂色工具支持的最大值，仅前 %1% 个耗材丝可在涂色工具中使用。"
 
 msgid "Color Painting"
 msgstr "涂色"
@@ -557,8 +562,10 @@ msgctxt "Keyboard Shortcut"
 msgid "Enter"
 msgstr "Enter"
 
-msgid "Shortcut Key "
-msgstr "快捷键 "
+# AI Translated
+#, c-format, boost-format
+msgid "Shortcut Key %d"
+msgstr "快捷键 %d"
 
 msgid "Triangle"
 msgstr "三角形"
@@ -818,9 +825,6 @@ msgstr "凹槽角"
 msgid "Cut position"
 msgstr "切割位置"
 
-msgid "Build Volume"
-msgstr "打印体积"
-
 msgid "Multiple"
 msgstr "多个"
 
@@ -1000,11 +1004,15 @@ msgstr "连接件"
 # AI Translated
 #, boost-format
 msgid ""
-"Objects(%1%) have duplicated connectors. Some connectors may be missing in slicing result.\n"
+"Object (%1%) has duplicated connectors. Some connectors may be missing in slicing result.\n"
 "Please report to the OrcaSlicer team in which scenario this issue happened.\n"
 "Thank you."
-msgstr ""
-"物体(%1%)存在重复的连接件。切片结果中可能会缺少部分连接件。\n"
+msgid_plural ""
+"Objects (%1%) have duplicated connectors. Some connectors may be missing in slicing result.\n"
+"Please report to the OrcaSlicer team in which scenario this issue happened.\n"
+"Thank you."
+msgstr[0] ""
+"对象 (%1%) 存在重复的连接件。切片结果中可能会缺少部分连接件。\n"
 "请向 OrcaSlicer 团队报告此问题出现的场景。\n"
 "谢谢。"
 
@@ -1069,9 +1077,11 @@ msgstr "低"
 msgid "Extra low"
 msgstr "非常低"
 
-#, c-format, boost-format
-msgid "%d triangles"
-msgstr "%d 个三角形"
+# AI Translated
+#, boost-format
+msgid "%1% triangle"
+msgid_plural "%1% triangles"
+msgstr[0] "%1% 个三角形"
 
 msgid "Show wireframe"
 msgstr "显示线框"
@@ -1081,6 +1091,17 @@ msgstr "处理预览的过程中无法应用。"
 
 msgid "Operation already cancelling. Please wait a few seconds."
 msgstr "操作已在取消中，请等待片刻。"
+
+# AI Translated
+msgid "Model simplification has been canceled"
+msgstr "模型简化已取消"
+
+msgid "Wiki Guide"
+msgstr "维基指南"
+
+# AI Translated
+msgid "Video Guide"
+msgstr "视频指南"
 
 msgid "Enforce seam"
 msgstr "添加Z缝"
@@ -1131,6 +1152,14 @@ msgstr "放置于表面"
 
 msgid "Emboss"
 msgstr "浮雕"
+
+# AI Translated
+msgid "No active font in style. Select correct one."
+msgstr "样式中没有活动字体。请选择正确的字体。"
+
+# AI Translated
+msgid "WxFont is not loaded properly."
+msgstr "WxFont 未正确加载。"
 
 msgid "NORMAL"
 msgstr "常规"
@@ -1787,11 +1816,25 @@ msgstr "直径"
 msgid "Length"
 msgstr "长度"
 
-msgid "Selection"
-msgstr "选中"
+# AI Translated
+msgid "Face 1 (Fixed)"
+msgstr "面 1（固定）"
 
-msgid " (Moving)"
-msgstr "(活动的)"
+# AI Translated
+msgid "Face 2 (Moving)"
+msgstr "面 2（移动）"
+
+# AI Translated
+msgid "Point 1 (Fixed)"
+msgstr "点 1（固定）"
+
+# AI Translated
+msgid "Point 2 (Moving)"
+msgstr "点 2（移动）"
+
+# AI Translated
+msgid "Selection 1"
+msgstr "选中项 1"
 
 msgid ""
 "Select 2 faces on objects and \n"
@@ -1807,14 +1850,9 @@ msgstr ""
 "在两个物体上选择两个点或圆 \n"
 "并指定它们之间的距离。"
 
-msgid "Face"
-msgstr "面"
-
-msgid " (Fixed)"
-msgstr "(固定的)"
-
-msgid "Point"
-msgstr "点"
+# AI Translated
+msgid "Selection 2"
+msgstr "选中项 2"
 
 msgid ""
 "Feature 1 has been reset, \n"
@@ -2428,6 +2466,9 @@ msgstr "插件已刷新。"
 msgid "Failed to refresh plugins: %s"
 msgstr "刷新插件失败：%s"
 
+msgid "Unknown error"
+msgstr "未知错误"
+
 # AI Translated
 msgid "Select plugin package"
 msgstr "选择插件包"
@@ -2956,6 +2997,22 @@ msgstr "重新加载全部"
 msgid "Reload all from disk"
 msgstr "从磁盘重新加载全部"
 
+# AI Translated
+msgid "Fix All"
+msgstr "全部修复"
+
+# AI Translated
+msgid "Fix all models on the current plate"
+msgstr "修复当前盘上的所有模型"
+
+# AI Translated
+msgid "Fix All Plates"
+msgstr "修复所有盘"
+
+# AI Translated
+msgid "Fix all models on all plates"
+msgstr "修复所有盘上的所有模型"
+
 msgid "Auto Rotate"
 msgstr "自动朝向"
 
@@ -3284,6 +3341,12 @@ msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model objects"
 msgstr[0] "以下模型对象修复失败"
 
+# AI Translated
+#, c-format, boost-format
+msgid "%1$d model object needed no repair."
+msgid_plural "%1$d model objects needed no repair."
+msgstr[0] "%1$d个模型对象无需修复。"
+
 msgid "Repairing was canceled"
 msgstr "修复被取消"
 
@@ -3440,9 +3503,6 @@ msgstr "添加自定义模板"
 msgid "Insert template custom G-code at the beginning of this layer."
 msgstr "在该层的起始位置插入模板自定义G-code。"
 
-msgid "Filament "
-msgstr "耗材丝"
-
 msgid "Change filament at the beginning of this layer."
 msgstr "在该层的起始位置更换耗材丝。"
 
@@ -3530,6 +3590,8 @@ msgstr "继续更改"
 msgid "Off"
 msgstr "关"
 
+# AI Translated
+msgctxt "air_duct"
 msgid "Filter"
 msgstr "过滤"
 
@@ -3643,11 +3705,20 @@ msgstr "确认挤出"
 msgid "Check filament location"
 msgstr "检查耗材丝位置"
 
-msgid "Switch"
-msgstr "切换"
+# AI Translated
+msgctxt "Verb"
+msgid "Pause"
+msgstr "暂停"
 
-msgid "hotend"
-msgstr "热端"
+# AI Translated
+#. TRN Filament change step: the printer switches to the other extruder.
+msgid "Switch extruder"
+msgstr "切换挤出机"
+
+# AI Translated
+#. TRN Filament change step: the printer switches to another hotend.
+msgid "Switch hotend"
+msgstr "切换热端"
 
 msgid "Wait for AMS cooling"
 msgstr "等待 AMS 冷却"
@@ -3809,8 +3880,10 @@ msgid "Arranging"
 msgstr "自动摆放"
 
 # AI Translated
-msgid "Arranging "
-msgstr "自动摆放 "
+#. TRN Progress status. %1% is the name of the object being arranged.
+#, boost-format
+msgid "Arranging %1%"
+msgstr "自动摆放 %1%"
 
 msgid "Arranging canceled."
 msgstr "已取消自动摆放。"
@@ -3849,14 +3922,23 @@ msgstr ""
 msgid "Orienting..."
 msgstr "自动朝向中..."
 
-msgid "Orienting"
-msgstr "自动朝向中..."
+# AI Translated
+#. TRN Progress status. %1% is the name of the object being oriented.
+#, boost-format
+msgid "Orienting %1%"
+msgstr "自动朝向 %1%"
 
 msgid "Orienting canceled."
 msgstr "自动朝向已取消。"
 
 msgid "Filling"
 msgstr "正在填充"
+
+# AI Translated
+#. TRN Progress status of Fill bed. %1% is the name of the object being copied.
+#, boost-format
+msgid "Filling %1%"
+msgstr "正在填充 %1%"
 
 msgid "Bed filling canceled."
 msgstr "填充热床已取消。"
@@ -3872,6 +3954,34 @@ msgstr "方向搜索已取消。"
 
 msgid "Orientation found."
 msgstr "找到方向。"
+
+# AI Translated
+msgid "Best surface quality"
+msgstr "最佳表面质量"
+
+# AI Translated
+msgid "Optimize object rotation for best surface quality."
+msgstr "优化对象旋转以获得最佳表面质量。"
+
+# AI Translated
+msgid "Reduced overhang slopes"
+msgstr "减少悬垂斜面"
+
+# AI Translated
+msgid ""
+"Optimize object rotation to have minimum amount of overhangs needing support structures.\n"
+"Note that this method will try to find the best surface of the object for touching the print bed if no elevation is set."
+msgstr ""
+"优化对象旋转，使需要支撑结构的悬垂最少。\n"
+"注意：如果未设置抬高，此方法会尝试找到对象最适合接触热床的表面。"
+
+# AI Translated
+msgid "Lowest Z height"
+msgstr "最低 Z 高度"
+
+# AI Translated
+msgid "Rotate the model to have the lowest z height for faster print time."
+msgstr "旋转模型使 Z 高度最低，以缩短打印时间。"
 
 msgid "Logging in"
 msgstr "登录中"
@@ -4162,11 +4272,18 @@ msgstr "最近的项目"
 msgid "Go to Plate"
 msgstr "转到盘"
 
+msgid "Device"
+msgstr "设备"
+
+# AI Translated
+msgid "Device (Web)"
+msgstr "设备（网页）"
+
+msgid "Multi-device"
+msgstr "多设备"
+
 msgid "AMS Materials Setting"
 msgstr "AMS 材料设置"
-
-msgid "Wiki Guide"
-msgstr "维基指南"
 
 msgid "Close"
 msgstr "关闭"
@@ -4217,6 +4334,14 @@ msgstr "请输入有效的数值（K的范围为%.1f~%.1f）"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
+
+# AI Translated
+msgid "Favorite filaments"
+msgstr "收藏的耗材丝"
+
+# AI Translated
+msgid "All filaments"
+msgstr "所有耗材丝"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -4531,11 +4656,11 @@ msgstr "网络插件已安装但无法加载。请重新启动应用程序。"
 msgid "Restart Required"
 msgstr "需要重新启动"
 
-msgid "Please home all axes (click "
-msgstr "请先执行回原点（点击"
-
-msgid ") to locate the toolhead's position. This prevents device moving beyond the printable boundary and causing equipment wear."
-msgstr "）操作以定位当前工具头位置，以防止轴移动时超出边界造成设备磨损"
+# AI Translated
+#. TRN %1% marks where the Home button icon is drawn; keep it in the translation.
+#, boost-format
+msgid "Please home all axes (click %1%) to locate the toolhead's position. This prevents device moving beyond the printable boundary and causing equipment wear."
+msgstr "请先对所有轴执行回原点（点击 %1%）以定位工具头位置，防止设备移动超出可打印范围而造成设备磨损。"
 
 msgid "Go Home"
 msgstr "回原点"
@@ -4549,6 +4674,10 @@ msgstr "发生致命错误：\"%1%\""
 
 msgid "Please save your project and restart the application."
 msgstr "请保存项目并重启程序。"
+
+# AI Translated
+msgid "Unknown C++ exception."
+msgstr "未知的 C++ 异常。"
 
 # AI Translated
 msgid "Processing G-Code from previous file…"
@@ -5628,29 +5757,41 @@ msgstr "提示："
 msgid "Current grouping of slice result is not optimal."
 msgstr "当前切片结果的分组不是最佳的。"
 
+# AI Translated
 #, boost-format
-msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr "与最佳分组相比，增加 %1%g 耗材丝和 %2% 变化。"
+msgid "Increase %1%g filament and %2% change compared to optimal grouping."
+msgid_plural "Increase %1%g filament and %2% changes compared to optimal grouping."
+msgstr[0] "与最佳分组相比，增加 %1%g 耗材丝和 %2% 次换料。"
 
+# AI Translated
 #, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-msgstr "与最佳分组相比，增加 %1%g 耗材丝并节省 %2% 变化。"
+msgid "Increase %1%g filament and save %2% change compared to optimal grouping."
+msgid_plural "Increase %1%g filament and save %2% changes compared to optimal grouping."
+msgstr[0] "与最佳分组相比，增加 %1%g 耗材丝，节省 %2% 次换料。"
 
+# AI Translated
 #, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-msgstr "与最佳分组相比，节省 %1%g 耗材丝并增加 %2% 变化。"
+msgid "Save %1%g filament and increase %2% change compared to optimal grouping."
+msgid_plural "Save %1%g filament and increase %2% changes compared to optimal grouping."
+msgstr[0] "与最佳分组相比，节省 %1%g 耗材丝，增加 %2% 次换料。"
 
+# AI Translated
 #, boost-format
-msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-msgstr "与具有一个喷嘴的打印机相比，可节省 %1%g 耗材和 %2% 变化。"
+msgid "Save %1%g filament and %2% change compared to a printer with one nozzle."
+msgid_plural "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+msgstr[0] "与具有一个喷嘴的打印机相比，节省 %1%g 耗材丝和 %2% 次换料。"
 
+# AI Translated
 #, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-msgstr "与具有一个喷嘴的打印机相比，节省 %1%g 耗材并增加 %2% 变化。"
+msgid "Save %1%g filament and increase %2% change compared to a printer with one nozzle."
+msgid_plural "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+msgstr[0] "与具有一个喷嘴的打印机相比，节省 %1%g 耗材丝，增加 %2% 次换料。"
 
+# AI Translated
 #, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr "与具有一个喷嘴的打印机相比，增加 %1%g 耗材并节省 %2% 变化。"
+msgid "Increase %1%g filament and save %2% change compared to a printer with one nozzle."
+msgid_plural "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+msgstr[0] "与具有一个喷嘴的打印机相比，增加 %1%g 耗材丝，节省 %2% 次换料。"
 
 msgid "Set to Optimal"
 msgstr "设置为最佳"
@@ -5858,8 +5999,9 @@ msgstr "转动惯量"
 msgid "Object selection"
 msgstr "对象选择"
 
-msgid "number keys"
-msgstr "数字键"
+# AI Translated
+msgid "1~16 number keys"
+msgstr "1~16 数字键"
 
 msgid "Number keys can quickly change the color of objects"
 msgstr "数字键可以快速更改对象颜色"
@@ -6131,7 +6273,7 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "发现G-code路径在层%d，高度为%.2lf mm处有冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
 
@@ -6151,21 +6293,17 @@ msgstr "不支持打印 2 根或更多 TPU 丝。"
 msgid "Tool %d"
 msgstr "工具%d"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
-msgstr "耗材丝 %s 放置在 %s 中，但生成的 G-code 路径超出了 %s 的可打印范围。"
+msgid_plural "Filaments %s are placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+msgstr[0] "耗材丝 %s 放置在 %s 中，但生成的 G-code 路径超出了 %s 的可打印范围。"
 
-#, c-format, boost-format
-msgid "Filaments %s are placed in the %s, but the generated G-code path exceeds the printable range of the %s."
-msgstr "耗材丝 %s 放置在 %s 中，但生成的 G-code 路径超出了 %s 的可打印范围。"
-
+# AI Translated
 #, c-format, boost-format
 msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s."
-msgstr "耗材丝 %s 放置在 %s 中，但生成的 G-code 路径超出了 %s 的可打印高度。"
-
-#, c-format, boost-format
-msgid "Filaments %s are placed in the %s, but the generated G-code path exceeds the printable height of the %s."
-msgstr "耗材丝 %s 放置在 %s 中，但生成的 G-code 路径超出了 %s 的可打印高度。"
+msgid_plural "Filaments %s are placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+msgstr[0] "耗材丝 %s 放置在 %s 中，但生成的 G-code 路径超出了 %s 的可打印高度。"
 
 msgid "Open wiki for more information."
 msgstr "打开维基百科了解更多信息。"
@@ -6173,9 +6311,11 @@ msgstr "打开维基百科了解更多信息。"
 msgid "Only the object being edited is visible."
 msgstr "只有正在编辑的对象是可见的。"
 
+# AI Translated
 #, c-format, boost-format
-msgid "Filaments %s cannot be printed directly on the surface of this plate."
-msgstr "耗材 %s 不能直接打印在该板的表面上。"
+msgid "Filament %s cannot be printed directly on the surface of this plate."
+msgid_plural "Filaments %s cannot be printed directly on the surface of this plate."
+msgstr[0] "耗材丝 %s 不能直接打印在该盘的表面上。"
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "混合物中检测到 PLA 和 PETG 耗材。根据 Wiki 调整参数以保证打印质量。"
@@ -6298,18 +6438,8 @@ msgstr "准备"
 msgid "Preview"
 msgstr "预览"
 
-msgid "Device"
-msgstr "设备"
-
-msgid "Multi-device"
-msgstr "多设备"
-
 msgid "Project"
 msgstr "项目"
-
-# AI Translated
-msgid "Device (Web)"
-msgstr "设备（网页）"
 
 msgid "Yes"
 msgstr "是"
@@ -6317,8 +6447,11 @@ msgstr "是"
 msgid "No"
 msgstr "否"
 
-msgid "will be closed before creating a new model. Do you want to continue?"
-msgstr "将会被关闭以创建新模型，是否继续?"
+# AI Translated
+#. TRN %s is a file name.
+#, c-format, boost-format
+msgid "%s will be closed before creating a new model. Do you want to continue?"
+msgstr "%s 将在创建新模型前关闭，是否继续？"
 
 msgid "Print all"
 msgstr "打印所有盘"
@@ -7238,6 +7371,8 @@ msgstr "评分"
 msgid "Calculating..."
 msgstr "正在计算..."
 
+# AI Translated
+msgctxt "Printer camera"
 msgid "Camera"
 msgstr "摄像机"
 
@@ -7318,9 +7453,11 @@ msgstr "下载中..."
 msgid "Cloud Slicing..."
 msgstr "云切片中..."
 
+# AI Translated
 #, c-format, boost-format
-msgid "In Cloud Slicing Queue, there are %s tasks ahead of you."
-msgstr "前面还有%s个任务在云端切片队列中"
+msgid "In Cloud Slicing Queue, there is %d task ahead of you."
+msgid_plural "In Cloud Slicing Queue, there are %d tasks ahead of you."
+msgstr[0] "云端切片队列中，您前面还有 %d 个任务。"
 
 #, c-format, boost-format
 msgid "Layer: %s"
@@ -7350,6 +7487,11 @@ msgstr "仅在打印过程中生效"
 
 msgid "Silent"
 msgstr "静音"
+
+# AI Translated
+msgctxt "Mode"
+msgid "Standard"
+msgstr "标准"
 
 msgid "Sport"
 msgstr "运动"
@@ -7407,17 +7549,29 @@ msgstr "上传图片"
 msgid "Number of images successfully uploaded"
 msgstr "图像上传成功"
 
-msgid " upload failed"
-msgstr "上传失败"
+# AI Translated
+#. TRN %s is the path of an image file.
+#, c-format, boost-format
+msgid "%s upload failed"
+msgstr "%s 上传失败"
 
-msgid " upload config prase failed\n"
-msgstr "上传配置解析失败\n"
+# AI Translated
+#. TRN %s is the path of an image file.
+#, c-format, boost-format
+msgid "%s upload config parse failed"
+msgstr "%s 上传配置解析失败"
 
-msgid " No corresponding storage bucket\n"
-msgstr "没有相应的存储桶\n"
+# AI Translated
+#. TRN %s is the path of an image file.
+#, c-format, boost-format
+msgid "%s: No corresponding storage bucket"
+msgstr "%s：没有相应的存储桶"
 
-msgid " cannot be opened\n"
-msgstr "无法打开\n"
+# AI Translated
+#. TRN %s is the path of an image file.
+#, c-format, boost-format
+msgid "%s cannot be opened"
+msgstr "无法打开 %s"
 
 msgid ""
 "The following issues occurred during the process of uploading images. Do you want to ignore them?\n"
@@ -7433,26 +7587,22 @@ msgstr "上传失败\n"
 msgid "Obtaining instance_id failed\n"
 msgstr "获取instance_id失败\n"
 
+# AI Translated
+#, c-format, boost-format
 msgid ""
 "Your comment result cannot be uploaded due to the following reasons:\n"
 "\n"
-"  error code: "
-msgstr ""
-"由于某些原因，您的评论结果无法上传。如下所示：\n"
-"\n"
-"错误代码："
-
-msgid "error message: "
-msgstr "错误消息："
-
-msgid ""
-"\n"
+"  error code: %d\n"
+"  error message: %s\n"
 "\n"
 "Would you like to redirect to the webpage to give a rating?"
 msgstr ""
+"由于以下原因，您的评价结果无法上传：\n"
 "\n"
+"  错误代码：%d\n"
+"  错误信息：%s\n"
 "\n"
-"您是否想要重定向到评分网页？"
+"是否跳转到网页进行评分？"
 
 msgid "Some of your images failed to upload. Would you like to redirect to the webpage to give a rating?"
 msgstr "您的一些图像上传失败。您是否想要重定向到评分网页？"
@@ -8291,6 +8441,37 @@ msgid "G-code run at print start to put the printer into this mode (for example 
 msgstr "打印开始时运行的 G-code，用于将打印机切换到此模式（例如调用 Klipper 的 SET_PRINT_MODE）。切片软件只生成主工具头的路径，其余工具头由固件控制。"
 
 # AI Translated
+#. TRN IDEX/IQEX role of a tool head that takes no part in the mode.
+msgctxt "IDEX/IQEX role"
+msgid "Inactive"
+msgstr "未激活"
+
+# AI Translated
+# Needs human review: IDEX/IQEX role tile label: glossary renders Primary as the single character 主; check it reads right as a standalone tile in the Modes editor.
+#. TRN IDEX/IQEX role: the tool head the slicer generates paths for.
+msgctxt "IDEX/IQEX role"
+msgid "Primary"
+msgstr "主"
+
+# AI Translated
+#. TRN IDEX/IQEX role: the tool head prints a copy of the Primary's paths.
+msgctxt "IDEX/IQEX role"
+msgid "Copy"
+msgstr "复制"
+
+# AI Translated
+#. TRN IDEX/IQEX role: the tool head prints a mirror image of the Primary's paths.
+msgctxt "IDEX/IQEX role"
+msgid "Mirror"
+msgstr "镜像"
+
+# AI Translated
+#. TRN IDEX/IQEX role: multicolor partner of the Primary on the same gantry.
+msgctxt "IDEX/IQEX role"
+msgid "Span"
+msgstr "Span"
+
+# AI Translated
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
 msgstr "打印全部切片路径。始终为工具头 0，可通过上方的“工具头 0 位置”选择它位于热床的哪个角。它无法从网格中移除。"
 
@@ -8359,9 +8540,10 @@ msgid "Move plate to the front"
 msgstr "将当前盘移到最前面"
 
 # AI Translated
+#. TRN Plate icon tooltip. %1% is the plate's IDEX/IQEX mode, %2% the mode its process preset sets.
 #, boost-format
-msgid " (process preset: %1%)"
-msgstr " （工艺预设：%1%）"
+msgid "IDEX/IQEX mode: %1% (process preset: %2%) (left-click to cycle, right-click for menu)"
+msgstr "IDEX/IQEX 模式：%1%（工艺预设：%2%）（左键单击循环切换，右键单击打开菜单）"
 
 # AI Translated
 #, boost-format
@@ -8375,9 +8557,15 @@ msgstr "警告：此盘包含多材料对象，同时使用了 IDEX/IQEX 并行�
 msgid "Customize current plate"
 msgstr "自定义当前盘"
 
+# AI Translated
 #, c-format, boost-format
-msgid "The %s nozzle can not print %s."
-msgstr "%s 喷嘴无法打印 %s。"
+msgid "The left nozzle cannot print %s."
+msgstr "左喷嘴无法打印 %s。"
+
+# AI Translated
+#, c-format, boost-format
+msgid "The right nozzle cannot print %s."
+msgstr "右喷嘴无法打印 %s。"
 
 # AI Translated
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
@@ -8387,12 +8575,17 @@ msgstr "在单挤出机打印机上打印混色耗材丝需要频繁换料和冲
 msgid "Mixing %1% with %2% in printing is not recommended.\n"
 msgstr "不建议在打印时将 %1% 与 %2% 混合。\n"
 
-msgid " nozzle"
-msgstr "喷嘴"
-
+# AI Translated
+#. TRN %1% is the nozzle diameter, %2% the nozzle volume type, for example "Standard" or "High Flow".
 #, boost-format
-msgid "It is not recommended to print the following filament(s) with %1%: %2%\n"
-msgstr "不建议使用 %1% 打印以下耗材： %2%\n"
+msgid "%1%mm %2% nozzle"
+msgstr "%1% mm %2% 喷嘴"
+
+# AI Translated
+#, boost-format
+msgid "It is not recommended to print the following filament with %1%: %2%\n"
+msgid_plural "It is not recommended to print the following filaments with %1%: %2%\n"
+msgstr[0] "不建议使用 %1% 打印以下耗材丝：%2%\n"
 
 msgid "It is not recommended to use the following nozzle and filament combinations:\n"
 msgstr "不建议使用以下喷嘴和耗材丝组合：\n"
@@ -8401,9 +8594,11 @@ msgstr "不建议使用以下喷嘴和耗材丝组合：\n"
 msgid "%1% with %2%\n"
 msgstr "%1% 与 %2%\n"
 
+# AI Translated
+#. TRN Slicing progress. %1% is the plate number, %2% the current slicing step.
 #, boost-format
-msgid " plate %1%:"
-msgstr "盘%1%："
+msgid "Slicing plate %1%: %2%"
+msgstr "正在切片盘 %1%：%2%"
 
 msgid "Invalid name, the following characters are not allowed:"
 msgstr "无效名称，不允许使用以下字符："
@@ -8547,8 +8742,9 @@ msgstr "编辑 / 删除 / 合并"
 
 # AI Translated
 #, boost-format
-msgid "Remove all %1% mixed filaments?"
-msgstr "是否移除全部 %1% 个混合耗材丝？"
+msgid "Remove %1% mixed filament?"
+msgid_plural "Remove all %1% mixed filaments?"
+msgstr[0] "是否移除全部 %1% 个混合耗材丝？"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -8880,8 +9076,9 @@ msgstr "替换的卷"
 msgid "Please select a file"
 msgstr "请选择一个文件"
 
-msgid "Do you want to replace it"
-msgstr "您想要替换它吗"
+# AI Translated
+msgid "Do you want to replace it?"
+msgstr "您想要替换它吗？"
 
 msgid "Message"
 msgstr "消息"
@@ -8912,8 +9109,8 @@ msgstr "切片已取消"
 
 # AI Translated
 #, c-format, boost-format
-msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
-msgstr "热床温度冲突：T%d（%s）将热床设为 %d°C，而 T%d（%s）需要 %d°C。热床温度由主工具头决定，副工具头只能沿用该温度。"
+msgid "Bed temperature conflict: T%d (%s) sets the bed to %d℃ — T%d (%s) requires %d℃. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
+msgstr "热床温度冲突：T%d（%s）将热床设为 %d℃，而 T%d（%s）需要 %d℃。热床温度由主工具头决定，副工具头只能沿用该温度。"
 
 # AI Translated
 #, c-format, boost-format
@@ -9074,11 +9271,15 @@ msgstr "Pressure Advance 测试"
 msgid "INFO:"
 msgstr "信息："
 
-msgid "No accelerations provided for calibration. Use default acceleration value "
-msgstr "未提供校准加速度。使用默认加速度值"
+# AI Translated
+#, boost-format
+msgid "No accelerations provided for calibration. Use default acceleration value %1%mm/s²"
+msgstr "未提供校准加速度。使用默认加速度值 %1% mm/s²"
 
-msgid "No speeds provided for calibration. Use default optimal speed "
-msgstr "未提供校准速度。使用默认最佳速度"
+# AI Translated
+#, boost-format
+msgid "No speeds provided for calibration. Use default optimal speed %1%mm/s"
+msgstr "未提供校准速度。使用默认最佳速度 %1% mm/s"
 
 # AI Translated
 msgid "Orca YOLO Flow Calibration - Perfectionist version"
@@ -9095,8 +9296,8 @@ msgstr "流量测试 - 第 %d 轮"
 
 # AI Translated
 #, boost-format
-msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
-msgstr "没有适用于 %1% 至 %2% °C 的传送带温度塔。请使用温度塔模型支持的温度范围，例如 230 至 190。"
+msgid "No belt temperature tower is available for the range %1% to %2%℃. Use a range the tower models cover, for example 230 to 190."
+msgstr "没有适用于 %1% 至 %2%℃ 的传送带温度塔。请使用温度塔模型支持的温度范围，例如 230 至 190。"
 
 # AI Translated
 msgid "Temperature tower"
@@ -9125,11 +9326,16 @@ msgstr "转角测试"
 msgid "Import SLA archive"
 msgstr "导入 SLA 存档"
 
-msgid "The selected file"
-msgstr "已选择的文件"
-
-msgid "Does not contain valid G-code."
-msgstr "不包含有效的G-code文件。"
+# AI Translated
+#, boost-format
+msgid ""
+"The selected file:\n"
+"%1%\n"
+"does not contain valid G-code."
+msgstr ""
+"所选文件：\n"
+"%1%\n"
+"不包含有效的 G-code。"
 
 msgid "An Error has occurred while loading the G-code file."
 msgstr "加载G-code文件时遇到错误"
@@ -9403,6 +9609,28 @@ msgid "Not available"
 msgstr "无法使用"
 
 # AI Translated
+#, boost-format
+msgid "T%1% -> (no plate)"
+msgstr "T%1% -> （无盘）"
+
+# AI Translated
+# Needs human review: Ghost tooltip in the IDEX/IQEX plate mode editor; check the Machine tab is named 打印机 in the app and that 'head' reads right as 工具头.
+#. TRN IDEX/IQEX ghost tooltip. %1% is the number of the physical print head.
+#, boost-format
+msgid ""
+"T%1% — no filament routed\n"
+"Add an extruder in the Machine tab so this head has a filament slot."
+msgstr ""
+"T%1% — 未分配耗材丝\n"
+"请在“打印机”选项卡中添加挤出机，使该工具头拥有耗材丝槽位。"
+
+# AI Translated
+#. TRN IDEX/IQEX ghost tooltip. %1% is the number of the physical print head, %2% the filament it prints.
+#, boost-format
+msgid "T%1% -> filament %2%"
+msgstr "T%1% -> 耗材丝 %2%"
+
+# AI Translated
 msgid "isometric"
 msgstr "等轴测"
 
@@ -9447,8 +9675,10 @@ msgstr "欧洲"
 msgid "North America"
 msgstr "北美"
 
+# AI Translated
+msgctxt "Region"
 msgid "Others"
-msgstr "其他"
+msgstr "其他地区"
 
 msgid "Changing the region will log you out of your account.\n"
 msgstr "修改区域会自动登出您的账号。\n"
@@ -9514,11 +9744,17 @@ msgstr "无法重新加载网络插件。请重新启动应用程序。"
 msgid "Reload Failed"
 msgstr "重新加载失败"
 
-msgid "Associate"
-msgstr "相关的"
+# AI Translated
+#. TRN %s is a URL scheme, for example "prusaslicer".
+#, c-format, boost-format
+msgid "Associate %s://"
+msgstr "关联 %s://"
 
-msgid "with OrcaSlicer so that Orca can open models from"
-msgstr "与OrcaSlicer一起使用，以便Orca可以从...打开模型"
+# AI Translated
+#. TRN The first %s is a URL scheme, for example "prusaslicer"; the second is a website name.
+#, c-format, boost-format
+msgid "Associate %s:// with OrcaSlicer so that Orca can open models from %s"
+msgstr "将 %s:// 与 OrcaSlicer 关联，以便 Orca 能够打开来自 %s 的模型"
 
 msgid "Current Association: "
 msgstr "当前相关项"
@@ -9817,6 +10053,9 @@ msgstr "记住上次的打印操作"
 # AI Translated
 msgid "If enabled, OrcaSlicer will remember the last selected option in the print button's dropdown (e.g. Print, Export plate sliced file, Export G-code file) and use it as the default on next startup."
 msgstr "启用后，OrcaSlicer 将记住打印按钮下拉菜单中上次选择的选项（例如打印、导出单盘切片文件、导出 G-code 文件），并在下次启动时将其作为默认选项。"
+
+msgid "Camera"
+msgstr "摄像机"
 
 msgid "Touchpad"
 msgstr "触控板"
@@ -10250,6 +10489,9 @@ msgstr "网络插件版本"
 msgid "Select the network plug-in version to use"
 msgstr "选择要使用的网络插件版本"
 
+msgid "Associate"
+msgstr "相关的"
+
 msgid "Associate files to OrcaSlicer"
 msgstr "逆戟鲸切片器文件关联"
 
@@ -10584,10 +10826,6 @@ msgid "Select which settings to be published in the 3MF file"
 msgstr "选择要在 3MF 文件中发布的设置"
 
 # AI Translated
-msgid "Video Guide"
-msgstr "视频指南"
-
-# AI Translated
 msgid "Mixed filament - published as a whole when \"Enable\" above is selected"
 msgstr "混合耗材丝 - 在上方选择“开启”后将整体发布"
 
@@ -10752,6 +10990,12 @@ msgid "Simple"
 msgstr "简单"
 
 # AI Translated
+#. TRN Screen-reader label of a Speed Dial action: the first %s is the action name, the second where it comes from (a menu, tab or settings group). Keep the two %s in this order.
+#, c-format, boost-format
+msgid "%s from %s"
+msgstr "%s（来自 %s）"
+
+# AI Translated
 msgid "Search actions"
 msgstr "搜索操作"
 
@@ -10867,6 +11111,10 @@ msgstr "显示详情"
 # AI Translated
 msgid "Hide details"
 msgstr "隐藏详情"
+
+# AI Translated
+msgid "Web view is unavailable."
+msgstr "网页视图不可用。"
 
 # AI Translated
 #, c-format, boost-format
@@ -11129,9 +11377,11 @@ msgstr "发送失败"
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
 
+# AI Translated
 #, c-format, boost-format
-msgid "Cost %dg filament and %d changes more than optimal grouping."
-msgstr "成本 %dg 耗材和 %d 的变化超过最佳分组。"
+msgid "Cost %dg filament and %d change more than optimal grouping."
+msgid_plural "Cost %dg filament and %d changes more than optimal grouping."
+msgstr[0] "比最佳分组多耗费 %dg 耗材丝，多 %d 次换料。"
 
 # AI Translated
 msgid "Right-Ext"
@@ -11211,6 +11461,9 @@ msgstr "部分耗材在打印过程中可能会在挤出机之间切换。手动
 # AI Translated
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr "此文件中存在易拉丝的耗材。为获得最佳打印质量，我们建议将喷嘴结块检测切换为自动模式。"
+
+msgid "Switch"
+msgstr "切换"
 
 # AI Translated
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
@@ -11519,7 +11772,7 @@ msgid "Synchronize the modification of parameters to the corresponding parameter
 msgstr "将参数的修改同步到另一个挤出机的相应参数。"
 
 # AI Translated
-msgid "Parameters with this icon can be configurable per nozzle."
+msgid "Parameters with this icon can be configured per nozzle."
 msgstr "带有此图标的参数可以按喷嘴分别设置。"
 
 msgid "Click to reset all settings to the last saved preset."
@@ -11752,6 +12005,9 @@ msgstr "特征用耗材"
 msgid "Ooze prevention"
 msgstr "Ooze 预防"
 
+msgid "Others"
+msgstr "其他"
+
 msgid "Special mode"
 msgstr "特殊模式"
 
@@ -11789,8 +12045,11 @@ msgstr[0] ""
 "以下行%s包含保留关键字。\n"
 "请将其移除，否则将影响G-code可视化和打印时间估算。"
 
-msgid "Reserved keywords found"
-msgstr "检测到保留的关键字"
+# AI Translated
+#. TRN %1% is the name of the custom G-code setting, e.g. "Machine start G-code".
+#, boost-format
+msgid "Reserved keywords found in %1%"
+msgstr "在 %1% 中检测到保留的关键字"
 
 msgid "Setting Overrides"
 msgstr "参数覆盖"
@@ -11940,6 +12199,7 @@ msgid "Machine frame transforms"
 msgstr "机器坐标系变换"
 
 #. TRN: The first argument is the parameter's name; the second argument is its value.
+#. TRN %1% is a parameter name, %2% its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
 msgstr "参数%1%提供了无效值：%2%"
@@ -12121,21 +12381,34 @@ msgstr "使用修改值"
 msgid "Detached"
 msgstr "分离的"
 
+# AI Translated
+#. TRN %1% is "N filament preset(s)", %2% is "N process preset(s)".
+#, boost-format
+msgid "%1% and %2% are attached to this printer. Those presets would be deleted if the printer is deleted."
+msgstr "该打印机下已关联 %1% 与 %2%。如删除该打印机，这些预设将一并删除。"
+
+# AI Translated
 #, c-format, boost-format
-msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
-msgstr "该打印机下已关联 %d 个材料预设与 %d 个工艺预设。如删除该打印机，材料与工艺预设将一并删除。"
+msgid "%d filament preset"
+msgid_plural "%d filament presets"
+msgstr[0] "%d 个耗材预设"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%d process preset"
+msgid_plural "%d process presets"
+msgstr[0] "%d 个工艺预设"
 
 msgid "Presets inherited by other presets cannot be deleted!"
 msgstr "不能删除被其他预设继承的预设！"
 
-msgid "The following presets inherit this preset."
-msgid_plural "The following preset inherits this preset."
+# AI Translated
+msgid "The following preset inherits this preset."
+msgid_plural "The following presets inherit this preset."
 msgstr[0] "以下预设继承此预设。"
 
-#. TRN  Remove/Delete
-#, boost-format
-msgid "%1% Preset"
-msgstr "%1% 预设"
+msgid "Delete Preset"
+msgstr "删除预设"
 
 msgid "The following preset will be deleted too:"
 msgid_plural "The following presets will be deleted too:"
@@ -12148,9 +12421,9 @@ msgstr ""
 "确定要删除所选预设吗？\n"
 "如果预设对应当前在您的打印机上使用的材料，请重新设置该槽位的材料信息。"
 
-#, boost-format
-msgid "Are you sure you want to %1% the selected preset?"
-msgstr "确定要%1%所选预设吗？"
+# AI Translated
+msgid "Are you sure you want to delete the selected preset?"
+msgstr "确定要删除所选预设吗？"
 
 msgid "Select printers"
 msgstr "选择打印机"
@@ -12203,9 +12476,40 @@ msgstr "继续"
 msgid "Don't warn again for this preset"
 msgstr "不再为此预设警告"
 
-#, c-format, boost-format
-msgid "%s %s"
-msgstr "%s %s"
+# AI Translated
+# Needs human review: Narrow nozzle flow type switch tag in the Printer/Filament tab; abbreviation of 标准流量, check it fits and reads right.
+#. TRN Short tag for the Standard nozzle flow type.
+msgctxt "Nozzle flow type"
+msgid "SF"
+msgstr "标准"
+
+# AI Translated
+# Needs human review: Narrow nozzle flow type switch tag; abbreviation of 高流量, check it fits and reads right.
+#. TRN Short tag for the High Flow nozzle flow type.
+msgctxt "Nozzle flow type"
+msgid "HF"
+msgstr "高流"
+
+# AI Translated
+# Needs human review: Narrow nozzle flow type switch tag; abbreviation of TPU 高流量, check it fits and reads right.
+#. TRN Short tag for the TPU High Flow nozzle flow type.
+msgctxt "Nozzle flow type"
+msgid "TPU HF"
+msgstr "TPU 高流"
+
+# AI Translated
+# Needs human review: Narrow nozzle flow type switch tag; abbreviation of E3D 高流量, check it fits and reads right.
+#. TRN Short tag for the E3D High Flow nozzle flow type.
+msgctxt "Nozzle flow type"
+msgid "E3D HF"
+msgstr "E3D 高流"
+
+# AI Translated
+# Needs human review: Narrow nozzle flow type switch tag; abbreviation of 超高流量, check it fits and reads right.
+#. TRN Short tag for the Extra High Flow nozzle flow type.
+msgctxt "Nozzle flow type"
+msgid "XHF"
+msgstr "超高流"
 
 # AI Translated
 msgid "No modifications need to be copied."
@@ -12408,6 +12712,12 @@ msgstr "其中一个预设不存在"
 msgid "Compared presets has different printer technology"
 msgstr "所比较的预设具有不同的打印机技术"
 
+# AI Translated
+#. TRN Header of a preset comparison: the two preset names.
+#, boost-format
+msgid "\"%1%\" vs \"%2%\""
+msgstr "“%1%” 对比 “%2%”"
+
 msgid "Add File"
 msgstr "添加文件"
 
@@ -12432,6 +12742,22 @@ msgstr "物料清单"
 
 msgid "Assembly Guide"
 msgstr "组装指南"
+
+# AI Translated
+msgid "Image files"
+msgstr "图像文件"
+
+# AI Translated
+msgid "TXT files"
+msgstr "TXT 文件"
+
+# AI Translated
+msgid "EXCEL files"
+msgstr "EXCEL 文件"
+
+# AI Translated
+msgid "PDF files"
+msgstr "PDF 文件"
 
 msgid "Author"
 msgstr "作者"
@@ -12659,6 +12985,11 @@ msgstr "乘数"
 msgid "Flushing volumes for filament change"
 msgstr "耗材丝更换时的冲刷体积"
 
+# AI Translated
+#. TRN Corner header of the flushing volume table: rows are the filament flushed from, columns the filament changed to.
+msgid "from/to"
+msgstr "从/到"
+
 msgid "Please choose the filament color"
 msgstr "请选择耗材丝颜色"
 
@@ -12683,6 +13014,12 @@ msgstr "解析 json 失败"
 
 msgid "Loading…"
 msgstr "正在加载……"
+
+# AI Translated
+#. TRN Sidebar entry of the printer selection page for the group of custom (user-defined) printers.
+msgctxt "Printer vendor"
+msgid "Custom"
+msgstr "自定义"
 
 msgid "Welcome to Orca Slicer"
 msgstr "欢迎使用 Orca Slicer"
@@ -13211,26 +13548,19 @@ msgstr "当前固件版本异常，需要进行修复升级，否则无法继续
 msgid "Extension Board"
 msgstr "扩展板"
 
-#, boost-format
-msgid "Split into %1% parts"
-msgstr "拆分为 %1% 个零件"
-
 msgid "Repair finished"
 msgstr "修复已完成"
-
-msgid "Repair failed"
-msgstr "修复失败"
-
-msgid "Repair canceled"
-msgstr "修复被取消"
 
 #, boost-format
 msgid "Copying of file %1% to %2% failed: %3%"
 msgstr "从%1%拷贝文件到%2%失败：%3%"
 
 # AI Translated
-msgid "Downloading new vendor profile(s): "
-msgstr "正在下载新的供应商配置： "
+#. TRN %1% is a comma-separated list of vendor names.
+#, boost-format
+msgid "Downloading new vendor profile: %1%..."
+msgid_plural "Downloading new vendor profiles: %1%..."
+msgstr[0] "正在下载新的供应商配置：%1%..."
 
 # AI Translated
 #, boost-format
@@ -13238,14 +13568,21 @@ msgid "Configuration package: %1% updated to %2%"
 msgstr "配置包：%1% 已更新到 %2%"
 
 # AI Translated
-msgid "Failed to download vendor profile(s): "
-msgstr "下载供应商配置失败： "
+#. TRN %1% is a comma-separated list of vendor names.
+#, boost-format
+msgid "Failed to download vendor profile: %1%"
+msgid_plural "Failed to download vendor profiles: %1%"
+msgstr[0] "下载供应商配置失败：%1%"
 
 msgid "Please check any unsaved changes before updating the configuration."
 msgstr "需要在配置更新之前检查没有保存的参数修改。"
 
 msgid "Open G-code file:"
 msgstr "打开G-code文件："
+
+# AI Translated
+msgid "Wipe tower generation failed, possibly due to empty first layer."
+msgstr "擦拭塔生成失败，可能是第一层为空。"
 
 msgid "One object has an empty first layer and can't be printed. Please Cut the bottom or enable supports."
 msgstr "模型出现空层无法打印。请切掉底部或打开支撑。"
@@ -13267,6 +13604,44 @@ msgstr "工艺挤出类型更换 G-code"
 msgid "Filament change extrusion role G-code"
 msgstr "耗材挤出类型更换 G-code"
 
+# AI Translated
+#. TRN %1% is a file path.
+#, boost-format
+msgid ""
+"G-code export to %1% failed.\n"
+"Cannot open the file for writing."
+msgstr ""
+"导出 G-code 到 %1% 失败。\n"
+"无法打开文件进行写入。"
+
+# AI Translated
+#. TRN %1% is a folder path.
+#, boost-format
+msgid "The folder %1% does not exist."
+msgstr "文件夹 %1% 不存在。"
+
+# AI Translated
+#. TRN %1% is a file path.
+#, boost-format
+msgid ""
+"G-code export to %1% failed.\n"
+"Is the disk full?"
+msgstr ""
+"导出 G-code 到 %1% 失败。\n"
+"磁盘是否已满？"
+
+# AI Translated
+#. TRN %1% is the temporary file path, %2% the output file path, %3% the system error message.
+#, boost-format
+msgid ""
+"Failed to rename the output G-code file from %1% to %2%.\n"
+"Error: %3%\n"
+"Is %1% locked?"
+msgstr ""
+"无法将输出的 G-code 文件从 %1% 重命名为 %2%。\n"
+"错误：%3%\n"
+"%1% 是否被占用？"
+
 msgid "No object can be printed. It may be too small."
 msgstr "没有可打印的对象。可能是因为尺寸过小。"
 
@@ -13279,6 +13654,10 @@ msgstr "所选打印机上的 IDEX/IQEX 模式“%1%”没有分配工具头，�
 #, boost-format
 msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
 msgstr "此盘设置为 IDEX/IQEX 模式“%1%”，但所选打印机未定义该模式，将改用主模式打印。请通过盘上的 IDEX/IQEX 按钮选择模式，或在打印机设置中恢复该模式。"
+
+# AI Translated
+msgid "Invalid thumbnails value:"
+msgstr "缩略图值无效："
 
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "你的指纹非常接近启动区域。确保没有碰撞。"
@@ -13324,6 +13703,10 @@ msgid "Grouping error: %1% cannot be placed in the right nozzle"
 msgstr "分组错误：%1% 无法放入右喷嘴"
 
 # AI Translated
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr "未找到有效的喷嘴。请检查喷嘴数量。"
+
+# AI Translated
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "手动模式下分组错误。请检查喷嘴数量或重新分组。"
 
@@ -13358,6 +13741,40 @@ msgstr "接缝位置可能与预期不同。"
 
 msgid "Internal Bridge"
 msgstr "内部搭桥"
+
+# AI Translated
+msgid "Flow::spacing() produced negative spacing. Did you set some extrusion width too small?"
+msgstr "Flow::spacing() 产生了负间距。是否将某个挤出宽度设置得过小？"
+
+# AI Translated
+msgid "Flow::mm3_per_mm() produced negative flow. Did you set some extrusion width too small?"
+msgstr "Flow::mm3_per_mm() 产生了负流量。是否将某个挤出宽度设置得过小？"
+
+# AI Translated
+#. TRN %1% and %2% are names of settings.
+#, boost-format
+msgid "Failed to calculate line width of %1%. Cannot get value of \"%2%\"."
+msgstr "计算 %1% 的线宽失败。无法获取“%2%”的值。"
+
+msgid "Invalid spacing supplied to Flow::with_spacing(), check your layer height and extrusion width."
+msgstr "提供给 Flow::with_spacing() 的间距无效，请检查层高和挤出宽度"
+
+# AI Translated
+#, boost-format
+msgid "The selected 3mf file has been saved with a newer version of %1% and is not compatible."
+msgstr "所选 3mf 文件由更新版本的 %1% 保存，与当前版本不兼容。"
+
+# AI Translated
+msgid "The selected 3MF contains FDM supports painted object using a newer version of PrusaSlicer and is not compatible."
+msgstr "所选 3MF 包含使用较新版本 PrusaSlicer 绘制了 FDM 支撑的对象，不兼容。"
+
+# AI Translated
+msgid "The selected 3MF contains seam painted object using a newer version of PrusaSlicer and is not compatible."
+msgstr "所选 3MF 包含使用较新版本 PrusaSlicer 绘制了接缝的对象，不兼容。"
+
+# AI Translated
+msgid "The selected 3MF contains multi-material painted object using a newer version of PrusaSlicer and is not compatible."
+msgstr "所选 3MF 包含使用较新版本 PrusaSlicer 绘制了多材料的对象，不兼容。"
 
 msgid "undefined error"
 msgstr "未定义错误"
@@ -13453,6 +13870,10 @@ msgid "write callback failed"
 msgstr "写入回调失败"
 
 # AI Translated
+msgid "unknown error"
+msgstr "未知错误"
+
+# AI Translated
 # Needs human review: MMU/AFC manifold → 合流器: confirm the term Chinese users use for a multi-input filament merger (合料器?).
 msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
 msgstr "IDEX/IQEX 并行模式下进行多色打印时，每种耗材丝都必须有专用的物理挤出机。当前有两种或以上使用中的耗材丝经由打印机的物理挤出机映射（MMU/AFC 合流器）送入同一个物理工具头，从动龙门无法跟随这种切换。"
@@ -13470,14 +13891,34 @@ msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the
 msgstr "IDEX/IQEX 并行模式下进行多色打印时，主工具头所在的龙门上必须有一个 Span 工具头，否则该模式没有指定同一龙门内的多色搭档。请改为只使用一种耗材丝，或切换到主模式，或打开打印机设置中的 IDEX/IQEX 模式编辑器，将主工具头所在龙门上的一个工具头标记为 Span。"
 
 # AI Translated
+#. TRN %1% is a list of tools such as "T0/T1", %2% a filament number.
 #, boost-format
-msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
+msgid "In this Span mode, colors are printed only by %1%, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
 msgstr "在此 Span 模式下，只有 %1% 参与多色打印，但耗材丝 %2% 未分配给任何工具头。请使用分配给 %1% 的耗材丝，或将此盘切换为主模式。"
 
 # AI Translated
+#. TRN %1% is a list of tools such as "T0/T1", %2% a filament number, %3% a tool number.
 #, boost-format
-msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
+msgid "In this Span mode, colors are printed only by %1%, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
 msgstr "在此 Span 模式下，只有 %1% 参与多色打印，但耗材丝 %2% 分配给了 T%3%。请使用分配给 %1% 的耗材丝，或将此盘切换为主模式。"
+
+# AI Translated
+#, boost-format
+msgid ""
+"The selected preset cannot be loaded: %1%\n"
+"\tReason: %2%"
+msgstr ""
+"无法加载所选预设：%1%\n"
+"\t原因：%2%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Failed loading the preset file: %1%\n"
+"\tReason: %2%"
+msgstr ""
+"加载预设文件失败：%1%\n"
+"\t原因：%2%"
 
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
@@ -13495,27 +13936,34 @@ msgstr "%1%太高，会发生碰撞。"
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
 msgstr "模型与擦拭塔的相对位置不满足“无稀疏层”功能的要求。请调整两者的相对位置、降低模型高度，或关闭“无稀疏层”。"
 
-msgid " is too close to exclusion area, there may be collisions when printing."
-msgstr "离不可打印区域太近，打印时可能会发生碰撞。"
-
-msgid " is too close to clumping detection area, there may be collisions when printing."
-msgstr "距离结块检测区域太近，打印时可能会发生碰撞。"
-
-msgid "Prime Tower"
-msgstr "擦拭塔"
-
-msgid " is too close to others, and collisions may be caused.\n"
-msgstr "离其它对象太近，可能会发生碰撞。\n"
-
-msgid " is too close to an exclusion area, and collisions will be caused.\n"
-msgstr "离不可打印区域太近，会发生碰撞。\n"
-
-msgid " is too close to clumping detection area, and collisions will be caused.\n"
-msgstr "距离聚集检测区域太近，会引起碰撞。\n"
+# AI Translated
+#, boost-format
+msgid "%1% is too close to the clumping detection area. There may be collisions when printing."
+msgstr "%1% 距离结块检测区域太近，打印时可能会发生碰撞。"
 
 # AI Translated
-msgid " is partially outside the printable area, and it cannot be printed.\n"
-msgstr "有部分超出可打印区域，无法打印。\n"
+msgid "Prime tower is too close to others, and collisions may be caused.\n"
+msgstr "擦拭塔离其他对象太近，可能会发生碰撞。\n"
+
+# AI Translated
+msgid "Prime tower is too close to an exclusion area, and collisions will be caused.\n"
+msgstr "擦拭塔离屏蔽区域太近，会发生碰撞。\n"
+
+# AI Translated
+msgid "Prime tower is too close to the clumping detection area, and collisions will be caused.\n"
+msgstr "擦拭塔距离结块检测区域太近，会发生碰撞。\n"
+
+# AI Translated
+msgid "Prime tower is too close to an exclusion area. There may be collisions when printing."
+msgstr "擦拭塔离屏蔽区域太近，打印时可能会发生碰撞。"
+
+# AI Translated
+msgid "Prime tower is too close to the clumping detection area. There may be collisions when printing."
+msgstr "擦拭塔距离结块检测区域太近，打印时可能会发生碰撞。"
+
+# AI Translated
+msgid "Prime tower is partially outside the printable area, and it cannot be printed.\n"
+msgstr "擦拭塔有部分超出可打印区域，无法打印。\n"
 
 msgid "Selected nozzle temperatures are incompatible. Each filament's nozzle temperature must fall within the recommended nozzle temperature range of the other filaments. Otherwise, nozzle clogging or printer damage may occur."
 msgstr "所选的喷嘴温度不兼容。每种耗材的喷嘴温度都必须落在其他耗材的推荐喷嘴温度范围内。否则可能会发生喷嘴堵塞或打印机损坏。"
@@ -13534,10 +13982,13 @@ msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch thi
 msgstr "IDEX/IQEX 并行模式不支持混合耗材丝。请将此盘切换为主模式。"
 
 # AI Translated
-msgid "no configured tool"
-msgstr "未配置的工具头"
+#. TRN %1% is the IDEX/IQEX mode name, %2% the tool number.
+#, boost-format
+msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but none of this plate's filaments are on a configured tool. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
+msgstr "IDEX/IQEX 模式“%1%”使用 T%2% 打印，但此盘的耗材丝都不在已配置的工具头上。请改用装在 T%2% 上的耗材丝，或将此盘切换为主模式。"
 
 # AI Translated
+#. TRN %1% is the IDEX/IQEX mode name, %2% the tool number, %3% a list of tools such as "T1, T2".
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
 msgstr "IDEX/IQEX 模式“%1%”使用 T%2% 打印，但此盘的耗材丝在 %3% 上。请改用装在 T%2% 上的耗材丝，或将此盘切换为主模式。"
@@ -13779,6 +14230,10 @@ msgstr "一个或多个挤出机的自适应 Pressure Advance 模型可能包含
 msgid "Filament shrinkage will not be used because filament shrinkage for the used filaments does not match."
 msgstr "不会使用耗材收缩率，因为所用耗材的耗材收缩率不匹配。"
 
+# AI Translated
+msgid "The print is empty. The model is not printable with current print settings."
+msgstr "打印内容为空。当前打印设置下无法打印该模型。"
+
 msgid "Generating skirt & brim"
 msgstr "正在生成裙边和brim"
 
@@ -13796,6 +14251,17 @@ msgstr "正在导出G-code"
 
 msgid "Generating G-code"
 msgstr "正在生成G-code"
+
+# AI Translated
+#. TRN %1% is a file path.
+#, boost-format
+msgid "Failed to process the G-code file %1% from the previous 3MF file."
+msgstr "处理来自上一个 3MF 文件的 G-code 文件 %1% 失败。"
+
+# AI Translated
+#, boost-format
+msgid "The belt purge tower cannot absorb the full purge volume: %1% mm³ in total could not be purged (worst layer: %2% mm³ at height %3%). The print may show color bleeding. Increase the belt purge tower width, or reduce flushing volumes."
+msgstr "传送带冲刷塔无法容纳全部冲刷体积：共有 %1% mm³ 无法冲刷（最差层：高度 %3% 处的 %2% mm³）。打印可能出现混色。请增大传送带冲刷塔的宽度，或减小冲刷体积。"
 
 msgid "Processing of the filename_format template failed."
 msgstr "处理文件名格式模板失败。"
@@ -14877,6 +15343,9 @@ msgstr ""
 "2. 有限过滤 - 在严重倾斜的表面上创建内部桥接，同时避免不必要的桥接。这对大多数困难的模型效果良好\n"
 "3. 不过滤 - 在每个潜在的内部悬垂上创建内部桥接。此选项对严重倾斜的顶面模型有用；但是，在大多数情况下，它会创建太多不必要的桥接"
 
+msgid "Filter"
+msgstr "过滤"
+
 msgid "Limited filtering"
 msgstr "有限保留"
 
@@ -14892,8 +15361,9 @@ msgstr "不需要支撑的桥接的最大长度。如果希望支持所有桥接
 msgid "End G-code"
 msgstr "结尾G-code"
 
-msgid "Add end G-Code when finishing the entire print."
-msgstr "所有打印结束时的结尾G-code"
+# AI Translated
+msgid "Add end G-code when finishing the entire print."
+msgstr "完成整个打印时添加的结尾 G-code。"
 
 # AI Translated
 msgid "Between Object G-code"
@@ -16541,6 +17011,10 @@ msgstr "G-code风格"
 msgid "What kind of G-code the printer is compatible with."
 msgstr "打印机兼容的G-code风格'"
 
+# AI Translated
+msgid "Marlin (legacy)"
+msgstr "Marlin（旧版）"
+
 msgid "Klipper"
 msgstr "Klipper固件"
 
@@ -16988,17 +17462,21 @@ msgstr "Z最大速度"
 msgid "Maximum speed E"
 msgstr "E最大速度"
 
-msgid "Maximum X speed"
-msgstr "X最大速度"
+# AI Translated
+msgid "Maximum speed of the X axis"
+msgstr "X 轴最大速度"
 
-msgid "Maximum Y speed"
-msgstr "Y最大速度"
+# AI Translated
+msgid "Maximum speed of the Y axis"
+msgstr "Y 轴最大速度"
 
-msgid "Maximum Z speed"
-msgstr "Z最大速度"
+# AI Translated
+msgid "Maximum speed of the Z axis"
+msgstr "Z 轴最大速度"
 
-msgid "Maximum E speed"
-msgstr "E最大速度"
+# AI Translated
+msgid "Maximum speed of the E axis"
+msgstr "E 轴最大速度"
 
 msgid "Maximum acceleration X"
 msgstr "X最大加速度"
@@ -17509,7 +17987,7 @@ msgid "Plugin capabilities referenced by this preset, stored as name;uuid;capabi
 msgstr "此预设引用的插件功能，以 name;uuid;capability 形式存储。"
 
 # AI Translated
-msgid "Python plugin(s) invoked at each slicing pipeline step to read and modify intermediate slicing data, including a final G-code post-processing step. Research/experimental."
+msgid "Python plugins invoked at each slicing pipeline step to read and modify intermediate slicing data, including a final G-code post-processing step. Research/experimental."
 msgstr "在每个切片流水线步骤中调用的 Python 插件，用于读取和修改中间切片数据，包括最终的 G-code 后处理步骤。研究/实验性。"
 
 msgid "Printer type"
@@ -18155,7 +18633,7 @@ msgid "Firmware-managed zones"
 msgstr "固件管理区域"
 
 # AI Translated
-msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
+msgid "When enabled, the slicer emits G-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
 msgstr "启用后，切片软件输出的 G-code 会以热床原点 (0,0) 为中心放置主区域的内容，由打印机固件负责把复制件/镜像件放到各个物理区域。仅当打印机固件在复制/镜像模式下会自行应用区域偏移时才启用（例如 RepRapFirmware 的 IDEX 复制模式）。主模式下无效。"
 
 # AI Translated
@@ -18239,9 +18717,8 @@ msgid "IDEX/IQEX head filament map"
 msgstr "IDEX/IQEX 工具头耗材丝映射"
 
 # AI Translated
-# Needs human review: "pem-inversion defaults": confirm pem is the physical extruder map and that the default is its inverse.
-msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
-msgstr "按盘单独设置物理工具头到耗材丝槽位的映射（从 1 开始编号），覆盖默认映射。留空则使用由物理挤出机映射（pem）反推的默认值。"
+msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means each head uses the first filament that the printer's physical extruder map routes to it."
+msgstr "按盘单独设置物理工具头到耗材丝槽位的映射（从 1 开始编号）。留空则每个工具头使用打印机物理挤出机映射分配给它的第一个耗材丝。"
 
 # AI Translated
 msgid "IDEX/IQEX Mode Names"
@@ -18682,7 +19159,7 @@ msgid "Belt tilt axis"
 msgstr "传送带倾斜轴"
 
 # AI Translated
-msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
+msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the G-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
 msgstr "切片前模型网格的旋转轴。这一旋转即传送带打印机的倾斜：它是保距（无畸变）旋转，同时用于热床渲染和支撑的重力倾斜；生成 G-code 时，逆变换会先还原这一旋转，再进行机器坐标系剪切/缩放和重映射。X 是典型的龙门倾斜轴（传送带沿 Y 方向移动）。"
 
 msgid "X"
@@ -18711,7 +19188,7 @@ msgid "Decouple machine-frame tilt"
 msgstr "解耦机器坐标系倾角"
 
 # AI Translated
-msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
+msgid "Expert override: set the machine-frame (G-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
 msgstr "专家选项：单独设置机器坐标系（G-code 剪切/缩放）的倾斜角度，与切片前的旋转角度互不影响。禁用时，机器坐标系变换由传送带倾斜角度推导，两个阶段使用同一个角度。仅当机器实际的龙门倾角与切片旋转角度不一致时，才需启用此项进行补偿。"
 
 # AI Translated
@@ -19378,7 +19855,8 @@ msgstr "此值决定墙体线段的最小长度（毫米）。此值设置得越
 msgid "Maximum wall deviation"
 msgstr "最大墙体偏差"
 
-msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
+# AI Translated
+msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
 msgstr "在为“最大墙体分辨率”设置降低分辨率时所允许的最大偏差。如果增大此值，打印精度会降低，但 G-code 会更小。“最大墙体偏差”会限制“最大墙体分辨率”，因此当两者冲突时，以“最大墙体偏差”为准。"
 
 msgid "First layer minimum wall width"
@@ -19474,8 +19952,11 @@ msgstr "桥接线宽不得超过喷嘴直径："
 msgid "too large line width "
 msgstr "线宽过大"
 
-msgid " not in range "
-msgstr " 不在合理范围内"
+# AI Translated
+#. TRN %1% is the current value, %2% and %3% the lowest and highest allowed values.
+#, boost-format
+msgid "%1% not in range [%2%, %3%]"
+msgstr "%1% 不在范围 [%2%, %3%] 内"
 
 msgid "This exports the project as a 3MF file."
 msgstr "导出项目为 3MF。"
@@ -19624,6 +20105,14 @@ msgstr "朝向选项"
 
 msgid "Orient options: 0-disable, 1-enable, others-auto"
 msgstr "朝向选项：0-禁用，1-启用，其他-自动"
+
+# AI Translated
+msgid "Repair"
+msgstr "修复"
+
+# AI Translated
+msgid "Repair the meshes of the models as Fix Model does: close holes and cracks, orient them outward and remove self-intersections."
+msgstr "像“修复模型”一样修复模型的网格：封闭孔洞和裂缝，使其朝向外侧，并消除自相交。"
 
 msgid "Rotation angle around the Z axis in degrees."
 msgstr "绕 Z 轴的旋转角度（以度为单位）。"
@@ -19898,6 +20387,55 @@ msgstr "单挤出机多材料预挤出"
 msgid "Are the extra multi-material priming regions used in this print?"
 msgstr "此打印中是否使用额外的多材料预注区域？"
 
+# AI Translated
+msgid "Initial no support extruder"
+msgstr "初始无支撑挤出机"
+
+# AI Translated
+msgid "Zero-based index of the first extruder used for printing without support. Same as initial_no_support_tool."
+msgstr "不含支撑打印时使用的第一个挤出机的从零开始的索引。与 initial_no_support_tool 相同。"
+
+# AI Translated
+# Needs human review: 'Head wrap' here appears to mean filament wrapping around the nozzle (see the wrapping detection options); check the term is right for the placeholder name in_head_wrap_detect_zone.
+msgid "In head wrap detect zone"
+msgstr "位于包裹检测区域内"
+
+# AI Translated
+msgid "Indicates if the first layer overlaps with the head wrap zone."
+msgstr "指示第一层是否与包裹检测区域重叠。"
+
+# AI Translated
+msgid "Current bed type"
+msgstr "当前热床类型"
+
+# AI Translated
+msgid "Name of the currently selected bed plate type (e.g. 'Textured PEI Plate', 'Smooth High Temp Plate')."
+msgstr "当前所选热床类型的名称（例如 'Textured PEI Plate'、'Smooth High Temp Plate'）。"
+
+# AI Translated
+msgid "IDEX/IQEX active mode"
+msgstr "IDEX/IQEX 当前模式"
+
+# AI Translated
+msgid "Name of the active IDEX/IQEX parallel print mode for this plate (e.g. 'primary', 'mirror', 'copy'). Empty string if IDEX/IQEX is not enabled."
+msgstr "此盘当前启用的 IDEX/IQEX 并行打印模式名称（例如 'primary'、'mirror'、'copy'）。未启用 IDEX/IQEX 时为空字符串。"
+
+# AI Translated
+msgid "IDEX/IQEX active mode index"
+msgstr "IDEX/IQEX 当前模式索引"
+
+# AI Translated
+msgid "Zero-based index of the active IDEX/IQEX parallel print mode within imex_mode_names."
+msgstr "当前 IDEX/IQEX 并行打印模式在 imex_mode_names 中的从零开始的索引。"
+
+# AI Translated
+msgid "IDEX/IQEX active mode G-code"
+msgstr "IDEX/IQEX 当前模式 G-code"
+
+# AI Translated
+msgid "The raw mode G-code template for the active IDEX/IQEX parallel print mode, after placeholder evaluation. Globals defined here flow into machine_start_gcode."
+msgstr "当前 IDEX/IQEX 并行打印模式的原始模式 G-code 模板（占位符求值之后）。在此定义的全局变量会传入 machine_start_gcode。"
+
 msgid "Volume per extruder"
 msgstr "各挤出机的体积"
 
@@ -20043,6 +20581,18 @@ msgstr "输入文件名（无扩展名）"
 msgid "Source filename of the first object, without extension."
 msgstr "第一个对象的源文件名，无扩展名。"
 
+# AI Translated
+msgid "Full input filename"
+msgstr "完整输入文件名"
+
+# AI Translated
+msgid "Source filename of the first object."
+msgstr "第一个对象的源文件名。"
+
+# AI Translated
+msgid "Name of the plate sliced."
+msgstr "所切片盘的名称。"
+
 msgid "The vector has two elements: X and Y coordinate of the point. Values in mm."
 msgstr "该向量有两个元素：点的 X 坐标和 Y 坐标。值以毫米为单位。"
 
@@ -20072,6 +20622,58 @@ msgstr "热床边界框的右上角"
 
 msgid "Size of the print bed bounding box"
 msgstr "热床边界框"
+
+# AI Translated
+msgid "First layer center without wipe tower"
+msgstr "无擦拭塔时的首层中心"
+
+# AI Translated
+msgid "Height of the first layer."
+msgstr "首层高度。"
+
+# AI Translated
+msgid "Vector of bed temperatures for each extruder/filament."
+msgstr "每个挤出机/耗材丝的热床温度向量。"
+
+# AI Translated
+msgid "Vector of first layer bed temperatures for each extruder/filament. Provides the same value as first_layer_bed_temperature."
+msgstr "每个挤出机/耗材丝的首层热床温度向量。与 first_layer_bed_temperature 的值相同。"
+
+# AI Translated
+msgid "First layer bed temperature (initial extruder)"
+msgstr "首层热床温度（初始挤出机）"
+
+# AI Translated
+msgid "First layer bed temperature for the initial extruder. Same as bed_temperature_initial_layer[initial_extruder]"
+msgstr "初始挤出机的首层热床温度。与 bed_temperature_initial_layer[initial_extruder] 相同"
+
+# AI Translated
+msgid "Vector of chamber temperatures for each extruder/filament."
+msgstr "每个挤出机/耗材丝的机箱温度向量。"
+
+# AI Translated
+msgid "Vector of minimal chamber temperatures for each extruder/filament."
+msgstr "每个挤出机/耗材丝的最低机箱温度向量。"
+
+# AI Translated
+msgid "Overall chamber temperature"
+msgstr "整体机箱温度"
+
+# AI Translated
+msgid "Overall chamber temperature. This value is the maximum chamber temperature of any extruder/filament used."
+msgstr "整体机箱温度。该值为所用挤出机/耗材丝中的最高机箱温度。"
+
+# AI Translated
+msgid "Vector of first layer bed temperatures for each extruder/filament. Provides the same value as bed_temperature_initial_layer."
+msgstr "每个挤出机/耗材丝的首层热床温度向量。与 bed_temperature_initial_layer 的值相同。"
+
+# AI Translated
+msgid "First layer temperature"
+msgstr "首层温度"
+
+# AI Translated
+msgid "Vector of first layer temperatures for each extruder/filament."
+msgstr "每个挤出机/耗材丝的首层温度向量。"
 
 msgid "Timestamp"
 msgstr "时间戳"
@@ -20140,6 +20742,252 @@ msgstr "耗材挤出机ID"
 msgid "The current extruder ID. The same as current_extruder."
 msgstr "当前挤出机ID，与current_extruder相同"
 
+# AI Translated
+msgid "Previous extruder"
+msgstr "上一个挤出机"
+
+# AI Translated
+msgid "Index of the extruder that is being unloaded. The index is zero based (first extruder has index 0)."
+msgstr "正在卸载的挤出机的索引。索引从零开始（第一个挤出机的索引为 0）。"
+
+# AI Translated
+msgid "Next extruder"
+msgstr "下一个挤出机"
+
+# AI Translated
+msgid "Index of the extruder that is being loaded. The index is zero based (first extruder has index 0)."
+msgstr "正在装载的挤出机的索引。索引从零开始（第一个挤出机的索引为 0）。"
+
+# AI Translated
+msgid "Relative e-axis"
+msgstr "相对 E 轴"
+
+# AI Translated
+msgid "Indicates if relative positioning is being used."
+msgstr "指示是否使用相对定位。"
+
+# AI Translated
+msgid "Toolchange count"
+msgstr "换工具头次数"
+
+# AI Translated
+msgid "The number of toolchanges throughout the print."
+msgstr "整个打印过程中的换工具头次数。"
+
+# AI Translated
+msgid "Old retract length"
+msgstr "旧回抽长度"
+
+# AI Translated
+msgid "The retraction length of the previous filament."
+msgstr "上一个耗材丝的回抽长度。"
+
+# AI Translated
+msgid "New retract length"
+msgstr "新回抽长度"
+
+# AI Translated
+msgid "The retraction length of the new filament."
+msgstr "新耗材丝的回抽长度。"
+
+# AI Translated
+msgid "Old retract length toolchange"
+msgstr "旧回抽长度（换工具头）"
+
+# AI Translated
+msgid "The toolchange retraction length of the previous filament."
+msgstr "上一个耗材丝的换工具头回抽长度。"
+
+# AI Translated
+msgid "New retract length toolchange"
+msgstr "新回抽长度（换工具头）"
+
+# AI Translated
+msgid "The toolchange retraction length of the new filament."
+msgstr "新耗材丝的换工具头回抽长度。"
+
+# AI Translated
+msgid "Old filament temp"
+msgstr "旧耗材丝温度"
+
+# AI Translated
+msgid "The old filament temp."
+msgstr "旧耗材丝的温度。"
+
+# AI Translated
+msgid "New filament temp"
+msgstr "新耗材丝温度"
+
+# AI Translated
+msgid "The new filament temp."
+msgstr "新耗材丝的温度。"
+
+# AI Translated
+msgid "X after toolchange"
+msgstr "换工具头后的 X"
+
+# AI Translated
+msgid "The X pos after toolchange."
+msgstr "换工具头后的 X 位置。"
+
+# AI Translated
+msgid "Y after toolchange"
+msgstr "换工具头后的 Y"
+
+# AI Translated
+msgid "The Y pos after toolchange."
+msgstr "换工具头后的 Y 位置。"
+
+# AI Translated
+msgid "Z after toolchange"
+msgstr "换工具头后的 Z"
+
+# AI Translated
+msgid "The Z pos after toolchange."
+msgstr "换工具头后的 Z 位置。"
+
+# AI Translated
+msgid "First flush volume"
+msgstr "第一次冲刷体积"
+
+# AI Translated
+msgid "The first flush volume."
+msgstr "第一次冲刷体积。"
+
+# AI Translated
+msgid "Second flush volume"
+msgstr "第二次冲刷体积"
+
+# AI Translated
+msgid "The second flush volume."
+msgstr "第二次冲刷体积。"
+
+# AI Translated
+msgid "Old filament e feedrate"
+msgstr "旧耗材丝 E 进给速率"
+
+# AI Translated
+msgid "The old filament extruder feedrate."
+msgstr "旧耗材丝的挤出机进给速率。"
+
+# AI Translated
+msgid "New filament e feedrate"
+msgstr "新耗材丝 E 进给速率"
+
+# AI Translated
+msgid "The new filament extruder feedrate."
+msgstr "新耗材丝的挤出机进给速率。"
+
+# AI Translated
+msgid "Travel point 1 X"
+msgstr "空驶点 1 X"
+
+# AI Translated
+msgid "The travel point 1 X."
+msgstr "空驶点 1 的 X 坐标。"
+
+# AI Translated
+msgid "Travel point 1 Y"
+msgstr "空驶点 1 Y"
+
+# AI Translated
+msgid "The travel point 1 Y."
+msgstr "空驶点 1 的 Y 坐标。"
+
+# AI Translated
+msgid "Travel point 2 X"
+msgstr "空驶点 2 X"
+
+# AI Translated
+msgid "The travel point 2 X."
+msgstr "空驶点 2 的 X 坐标。"
+
+# AI Translated
+msgid "Travel point 2 Y"
+msgstr "空驶点 2 Y"
+
+# AI Translated
+msgid "The travel point 2 Y."
+msgstr "空驶点 2 的 Y 坐标。"
+
+# AI Translated
+msgid "Travel point 3 X"
+msgstr "空驶点 3 X"
+
+# AI Translated
+msgid "The travel point 3 X."
+msgstr "空驶点 3 的 X 坐标。"
+
+# AI Translated
+msgid "Travel point 3 Y"
+msgstr "空驶点 3 Y"
+
+# AI Translated
+msgid "The travel point 3 Y."
+msgstr "空驶点 3 的 Y 坐标。"
+
+# AI Translated
+msgid "Flush Length 1"
+msgstr "冲刷长度 1"
+
+# AI Translated
+msgid "The first flush length."
+msgstr "第一次冲刷长度。"
+
+# AI Translated
+msgid "Flush Length 2"
+msgstr "冲刷长度 2"
+
+# AI Translated
+msgid "The second flush length."
+msgstr "第二次冲刷长度。"
+
+# AI Translated
+msgid "Flush Length 3"
+msgstr "冲刷长度 3"
+
+# AI Translated
+msgid "The third flush length."
+msgstr "第三次冲刷长度。"
+
+# AI Translated
+msgid "Flush Length 4"
+msgstr "冲刷长度 4"
+
+# AI Translated
+msgid "The fourth flush length."
+msgstr "第四次冲刷长度。"
+
+# AI Translated
+msgid "Extrusion role"
+msgstr "挤出类型"
+
+# AI Translated
+#. TRN The quoted values are G-code identifiers; keep them in English.
+msgid ""
+"The new extrusion role/type that is going to be used\n"
+"Possible values:\n"
+"[\"Perimeter\", \"ExternalPerimeter\", \"OverhangPerimeter\", \"InternalInfill\", \"SolidInfill\", \"TopSolidInfill\", \"BottomSurface\", \"BridgeInfill\", \"GapFill\", \"Ironing\", \"Skirt\", \"Brim\", \"SupportMaterial\", \"SupportMaterialInterface\", \"SupportTransition\", \"WipeTower\", \"Mixed\"]"
+msgstr ""
+"即将使用的新挤出类型\n"
+"可能的值：\n"
+"[\"Perimeter\", \"ExternalPerimeter\", \"OverhangPerimeter\", \"InternalInfill\", \"SolidInfill\", \"TopSolidInfill\", \"BottomSurface\", \"BridgeInfill\", \"GapFill\", \"Ironing\", \"Skirt\", \"Brim\", \"SupportMaterial\", \"SupportMaterialInterface\", \"SupportTransition\", \"WipeTower\", \"Mixed\"]"
+
+# AI Translated
+msgid "Last extrusion role"
+msgstr "上一个挤出类型"
+
+# AI Translated
+#. TRN The quoted values are G-code identifiers; keep them in English.
+msgid ""
+"The previously used extrusion role/type\n"
+"Possible values:\n"
+"[\"Perimeter\", \"ExternalPerimeter\", \"OverhangPerimeter\", \"InternalInfill\", \"SolidInfill\", \"TopSolidInfill\", \"BottomSurface\", \"BridgeInfill\", \"GapFill\", \"Ironing\", \"Skirt\", \"Brim\", \"SupportMaterial\", \"SupportMaterialInterface\", \"SupportTransition\", \"WipeTower\", \"Mixed\"]"
+msgstr ""
+"上一次使用的挤出类型\n"
+"可能的值：\n"
+"[\"Perimeter\", \"ExternalPerimeter\", \"OverhangPerimeter\", \"InternalInfill\", \"SolidInfill\", \"TopSolidInfill\", \"BottomSurface\", \"BridgeInfill\", \"GapFill\", \"Ironing\", \"Skirt\", \"Brim\", \"SupportMaterial\", \"SupportMaterialInterface\", \"SupportTransition\", \"WipeTower\", \"Mixed\"]"
+
 msgid "Error in zip archive"
 msgstr "zip文件中存在错误"
 
@@ -20152,24 +21000,32 @@ msgstr "正在生成填充区域"
 msgid "Generating infill toolpath"
 msgstr "正在生成填充路径"
 
+# AI Translated
+#. TRN Slicing status: layers done, total layers, percentage done.
+#, c-format, boost-format
+msgid "Z contoured layer %d/%d (%d%%)"
+msgstr "Z 层抗锯齿：层 %d/%d (%d%%)"
+
 msgid "Detect overhangs for auto-lift"
 msgstr "为自动抬升检测悬垂区域"
 
 msgid "Checking support necessity"
 msgstr "正在检查支撑必要性"
 
-msgid "floating regions"
-msgstr "悬空区域"
+# AI Translated
+#, boost-format
+msgid "It seems object %1% has floating regions. Please re-orient the object or enable support generation."
+msgstr "对象 %1% 似乎存在悬空区域。请重新调整对象方向，或启用支撑生成。"
 
-msgid "floating cantilever"
-msgstr "悬空悬臂"
+# AI Translated
+#, boost-format
+msgid "It seems object %1% has a floating cantilever. Please re-orient the object or enable support generation."
+msgstr "对象 %1% 似乎存在悬空悬臂。请重新调整对象方向，或启用支撑生成。"
 
-msgid "large overhangs"
-msgstr "大面积悬垂"
-
-#, c-format, boost-format
-msgid "It seems object %s has %s. Please re-orient the object or enable support generation."
-msgstr "%s 对象可能有 %s。请重新调整对象方向，或启用支持生成。"
+# AI Translated
+#, boost-format
+msgid "It seems object %1% has large overhangs. Please re-orient the object or enable support generation."
+msgstr "对象 %1% 似乎存在较大的悬垂。请重新调整对象方向，或启用支撑生成。"
 
 msgid "Generating support"
 msgstr "正在生成支撑"
@@ -20180,8 +21036,9 @@ msgstr "正在优化工具头路径"
 msgid "Slicing mesh"
 msgstr "正在对网格切片"
 
-msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
-msgstr "没有检测到层。您可能需要修复STL文件，或检查模型尺寸、厚度等，之后再重试。\n"
+# AI Translated
+msgid "No layers were detected. You might want to repair the model or check its size or thickness and retry.\n"
+msgstr "没有检测到层。您可能需要修复模型，或检查其尺寸、厚度等，之后再重试。\n"
 
 msgid ""
 "An object's XY size compensation will not be used because it is also color-painted.\n"
@@ -20200,6 +21057,398 @@ msgstr ""
 msgid "Object name"
 msgstr "对象名称"
 
+# AI Translated
+msgid "Cannot apply unary minus operator."
+msgstr "无法应用一元负号运算符。"
+
+# AI Translated
+msgid "Cannot convert to integer."
+msgstr "无法转换为整数。"
+
+# AI Translated
+msgid "Cannot round a non-numeric value."
+msgstr "无法对非数值进行四舍五入。"
+
+# AI Translated
+msgid "Cannot floor a non-numeric value."
+msgstr "无法对非数值向下取整。"
+
+# AI Translated
+msgid "Cannot ceil a non-numeric value."
+msgstr "无法对非数值向上取整。"
+
+# AI Translated
+msgid "Cannot apply a not operator."
+msgstr "无法应用非运算符。"
+
+# AI Translated
+msgid "Cannot add non-numeric types."
+msgstr "无法对非数值类型执行加法。"
+
+# AI Translated
+msgid "Cannot subtract non-numeric types."
+msgstr "无法对非数值类型执行减法。"
+
+# AI Translated
+msgid "Cannot multiply with non-numeric type."
+msgstr "无法与非数值类型相乘。"
+
+# AI Translated
+msgid "Cannot divide a non-numeric type."
+msgstr "无法对非数值类型执行除法。"
+
+# AI Translated
+msgid "Cannot divide with a non-numeric type."
+msgstr "无法除以非数值类型。"
+
+# AI Translated
+msgid "Division by zero"
+msgstr "除以零"
+
+# AI Translated
+msgid "Not a boolean expression"
+msgstr "不是布尔表达式"
+
+# AI Translated
+msgid "Cannot compare the types."
+msgstr "无法比较这些类型。"
+
+# AI Translated
+msgid "Not a numeric type."
+msgstr "不是数值类型。"
+
+# AI Translated
+msgid "digits: second parameter must be integer"
+msgstr "digits：第二个参数必须为整数"
+
+# AI Translated
+msgid "digits: third parameter must be integer"
+msgstr "digits：第三个参数必须为整数"
+
+# AI Translated
+msgid "Left hand side of a regex match must be a string."
+msgstr "正则匹配的左侧必须是字符串。"
+
+# AI Translated
+#, boost-format
+msgid "Regular expression compilation failed: %1%"
+msgstr "正则表达式编译失败：%1%"
+
+# AI Translated
+msgid "regex_replace() first parameter must be a string."
+msgstr "regex_replace() 的第一个参数必须是字符串。"
+
+# AI Translated
+msgid "one_of(): First parameter (the string to match against) has to be a string value"
+msgstr "one_of()：第一个参数（要匹配的字符串）必须是字符串值"
+
+# AI Translated
+# Needs human review: Here 'Pattern' is a regex pattern, not the infill/surface Pattern (图案); check 模式 reads right.
+msgid "one_of(): Pattern has to be a string value"
+msgstr "one_of()：模式必须是字符串值"
+
+# AI Translated
+msgid "Regular expression compilation failed"
+msgstr "正则表达式编译失败"
+
+# AI Translated
+msgid "Cannot apply logical operation to non-boolean operands."
+msgstr "无法对非布尔操作数应用逻辑运算。"
+
+# AI Translated
+msgid "Trying to index a scalar variable"
+msgstr "试图对标量变量进行索引"
+
+# AI Translated
+msgid "Invalid vector index"
+msgstr "无效的向量索引"
+
+# AI Translated
+msgid "Variable does not exist (in an inactive branch)"
+msgstr "变量不存在（位于未激活的分支中）"
+
+# AI Translated
+msgid "Variable does not exist"
+msgstr "变量不存在"
+
+# AI Translated
+msgid "Trying to reference an undefined (nil) optional variable"
+msgstr "试图引用未定义 (nil) 的可选变量"
+
+# AI Translated
+msgid "Indexing an empty vector variable"
+msgstr "对空向量变量进行索引"
+
+# AI Translated
+msgid "Trying to reference an undefined (nil) element of vector of optional values"
+msgstr "试图引用可选值向量中未定义 (nil) 的元素"
+
+# AI Translated
+msgid "Indexing variable has to be integer"
+msgstr "索引变量必须是整数"
+
+# AI Translated
+msgid "Negative vector index"
+msgstr "向量索引为负"
+
+# AI Translated
+msgid "Not a variable name"
+msgstr "不是变量名"
+
+# AI Translated
+msgid "Not a variable name (in an inactive branch)"
+msgstr "不是变量名（位于未激活的分支中）"
+
+# AI Translated
+msgid "FloatOrPercent variable failed to resolve the \"ratio_over\" dependencies"
+msgstr "FloatOrPercent 变量无法解析“ratio_over”依赖项"
+
+# AI Translated
+msgid "Unsupported scalar variable type"
+msgstr "不支持的标量变量类型"
+
+# AI Translated
+msgid "Referencing a vector variable when scalar is expected"
+msgstr "需要标量时引用了向量变量"
+
+# AI Translated
+msgid "Unsupported vector variable type"
+msgstr "不支持的向量变量类型"
+
+# AI Translated
+msgid "Cannot modify a read-only variable"
+msgstr "无法修改只读变量"
+
+# AI Translated
+msgid "Right side is not a numeric expression"
+msgstr "右侧不是数值表达式"
+
+# AI Translated
+msgid "Expected number of elements to fill a vector with."
+msgstr "需要用于填充向量的元素数量。"
+
+# AI Translated
+msgid "Negative number of elements specified."
+msgstr "指定的元素数量为负。"
+
+# AI Translated
+msgid "Right side is not a boolean expression"
+msgstr "右侧不是布尔表达式"
+
+# AI Translated
+msgid "Unsupported output scalar variable type"
+msgstr "不支持的输出标量变量类型"
+
+# AI Translated
+msgid "Referencing an output vector variable when scalar is expected"
+msgstr "需要标量时引用了输出向量变量"
+
+# AI Translated
+msgid "Index out of range"
+msgstr "索引超出范围"
+
+# AI Translated
+msgid "Unsupported output vector variable type"
+msgstr "不支持的输出向量变量类型"
+
+# AI Translated
+msgid "Symbol is already defined in read-only system dictionary"
+msgstr "符号已在只读系统字典中定义"
+
+# AI Translated
+msgid "Symbol is already defined as system output variable"
+msgstr "符号已被定义为系统输出变量"
+
+# AI Translated
+msgid "Global variables are not available in this context"
+msgstr "此上下文中不可使用全局变量"
+
+# AI Translated
+msgid "Variable name already defined in local scope"
+msgstr "变量名已在局部作用域中定义"
+
+# AI Translated
+msgid "Variable name already defined in global scope"
+msgstr "变量名已在全局作用域中定义"
+
+# AI Translated
+msgid "Cannot assign a scalar value to a vector variable."
+msgstr "无法将标量值赋给向量变量。"
+
+# AI Translated
+msgid "Cannot assign a vector value to a scalar variable."
+msgstr "无法将向量值赋给标量变量。"
+
+# AI Translated
+msgid "Cannot create vector variable from an empty initializer list, because its type cannot be deduced."
+msgstr "无法由空的初始化列表创建向量变量，因为无法推断其类型。"
+
+# AI Translated
+msgid "Right side is not valid: Mixing numeric and boolean types."
+msgstr "右侧无效：混用了数值和布尔类型。"
+
+# AI Translated
+msgid "Cannot assign scalar to a vector"
+msgstr "无法将标量赋给向量"
+
+# AI Translated
+msgid "Some elements of the right hand side vector variable of optional values are undefined (nil)"
+msgstr "右侧可选值向量变量的部分元素未定义 (nil)"
+
+# AI Translated
+msgid "Left hand side is a float vector, while the right hand side is not."
+msgstr "左侧是浮点向量，而右侧不是。"
+
+# AI Translated
+msgid "Left hand side is an int vector, while the right hand side is not."
+msgstr "左侧是整数向量，而右侧不是。"
+
+# AI Translated
+msgid "Left hand side is a string vector, while the right hand side is not."
+msgstr "左侧是字符串向量，而右侧不是。"
+
+# AI Translated
+msgid "Left hand side is a bool vector, while the right hand side is not."
+msgstr "左侧是布尔向量，而右侧不是。"
+
+# AI Translated
+msgid "Left hand side / right hand side vectors are not compatible."
+msgstr "左侧/右侧向量不兼容。"
+
+# AI Translated
+msgid "Duplicating this type of vector variable is not supported"
+msgstr "不支持复制此类型的向量变量"
+
+# AI Translated
+msgid "parameter of empty() is not a vector variable"
+msgstr "empty() 的参数不是向量变量"
+
+# AI Translated
+msgid "parameter of size() is not a vector variable"
+msgstr "size() 的参数不是向量变量"
+
+# AI Translated
+msgid "Non-integer index is not allowed to address a vector variable."
+msgstr "不允许使用非整数索引来访问向量变量。"
+
+# AI Translated
+msgid "Random number generator not available in this context."
+msgstr "此上下文中无法使用随机数生成器。"
+
+# AI Translated
+#. TRN Custom G-code error. %1% is the line number, %2% the reason.
+#, boost-format
+msgid "Parsing error at line %1%: %2%"
+msgstr "第 %1% 行解析错误：%2%"
+
+# AI Translated
+#. TRN Custom G-code error. %1% is the line number, %2% the name of a grammar rule.
+#, boost-format
+msgid "Parsing error at line %1%. Expecting tag %2%"
+msgstr "第 %1% 行解析错误。应为标签 %2%"
+
+# AI Translated
+#. TRN Custom G-code error. %1% is the line number, %2% the reason.
+#, boost-format
+msgid "Parsing error at line %1%. %2%"
+msgstr "第 %1% 行解析错误。%2%"
+
+# AI Translated
+msgid "Interpolation value must be a number."
+msgstr "插值必须是数字。"
+
+# AI Translated
+msgid "X value of a table point must be a number."
+msgstr "表格点的 X 值必须是数字。"
+
+# AI Translated
+msgid "Y value of a table point must be a number."
+msgstr "表格点的 Y 值必须是数字。"
+
+# AI Translated
+msgid "X coordinates of the table must be increasing"
+msgstr "表格的 X 坐标必须递增"
+
+# AI Translated
+msgid "Interpolation value is outside the table range"
+msgstr "插值超出表格范围"
+
+# AI Translated
+msgid "Unknown syntax error"
+msgstr "未知语法错误"
+
+# AI Translated
+msgid "Invalid text."
+msgstr "无效的文本。"
+
+# AI Translated
+msgid "Invalid text block."
+msgstr "无效的文本块。"
+
+# AI Translated
+msgid "Invalid macro."
+msgstr "无效的宏。"
+
+# AI Translated
+msgid "Not an {if}{else}{endif} macro."
+msgstr "不是 {if}{else}{endif} 宏。"
+
+# AI Translated
+msgid "Not a {switch} macro."
+msgstr "不是 {switch} 宏。"
+
+# AI Translated
+msgid "Expecting a legacy variable expansion format"
+msgstr "应为旧式变量展开格式"
+
+# AI Translated
+msgid "Expecting an identifier."
+msgstr "应为标识符。"
+
+# AI Translated
+msgid "Expecting a conditional expression."
+msgstr "应为条件表达式。"
+
+# AI Translated
+msgid "Expecting a boolean expression."
+msgstr "应为布尔表达式。"
+
+# AI Translated
+msgid "Expecting an expression."
+msgstr "应为表达式。"
+
+# AI Translated
+msgid "Expecting a closing brace or an optional parameter."
+msgstr "应为右花括号或可选参数。"
+
+# AI Translated
+msgid "Expecting a list of string patterns (simple text or regexp)"
+msgstr "应为字符串模式列表（纯文本或正则表达式）"
+
+# AI Translated
+msgid "Expecting a variable reference."
+msgstr "应为变量引用。"
+
+# AI Translated
+msgid "Expecting a variable name."
+msgstr "应为变量名。"
+
+# AI Translated
+msgid "Expecting a regular expression."
+msgstr "应为正则表达式。"
+
+# AI Translated
+msgid "Invalid utf8 sequence"
+msgstr "无效的 utf8 序列"
+
+# AI Translated
+msgid "Non-ASCII7 characters are only allowed inside text blocks and string literals, not inside code blocks."
+msgstr "非 ASCII7 字符只允许出现在文本块和字符串字面量中，不允许出现在代码块中。"
+
+# AI Translated
+msgid "Invalid escape sequence"
+msgstr "无效的转义序列"
+
 msgid "Support: generate contact points"
 msgstr "支撑：正在生成接触点"
 
@@ -20215,6 +21464,10 @@ msgstr "无法读取提供的文件，因为该文件内容为空。"
 # AI Translated
 msgid "The file format is incompatible and cannot be parsed."
 msgstr "文件格式不兼容，无法解析。"
+
+# AI Translated
+msgid "Failed to convert asset to STL via ModelIO."
+msgstr "通过 ModelIO 将资源转换为 STL 失败。"
 
 msgid "Unknown file format: input file must have .stl, .obj, or .amf(.xml) extension."
 msgstr "未知的文件格式。输入文件的扩展名必须为 .stl、.obj 或 .amf（.xml）。"
@@ -20360,9 +21613,11 @@ msgstr ""
 "在同一挤出机内，耗材类型、喷嘴直径和喷嘴流量相同时，名称（%s）必须是唯一的。\n"
 "您确定要覆盖历史结果吗？"
 
+# AI Translated
 #, c-format, boost-format
-msgid "This machine type can only hold %d historical results per nozzle. This result will not be saved."
-msgstr "该机型的每个喷嘴最多只能保存 %d 个历史结果, 该结果将不会被保存"
+msgid "This machine type can only hold %d historical result per nozzle. This result will not be saved."
+msgid_plural "This machine type can only hold %d historical results per nozzle. This result will not be saved."
+msgstr[0] "该机型的每个喷嘴最多只能保存 %d 个历史结果，该结果将不会被保存。"
 
 msgid "Connecting to printer..."
 msgstr "正在连接到打印机..."
@@ -20586,9 +21841,13 @@ msgstr "同步喷嘴和 AMS 信息"
 msgid "Please connect the printer first before synchronizing."
 msgstr "请先连接打印机，然后再同步。"
 
-#, c-format, boost-format
-msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
-msgstr "%s 打印机的喷嘴信息尚未设置。请在进行校准之前对其进行配置。"
+# AI Translated
+msgid "Printer right nozzle information has not been set. Please configure it before proceeding with the calibration."
+msgstr "尚未设置打印机右喷嘴信息。请在进行校准之前对其进行配置。"
+
+# AI Translated
+msgid "Printer left nozzle information has not been set. Please configure it before proceeding with the calibration."
+msgstr "尚未设置打印机左喷嘴信息。请在进行校准之前对其进行配置。"
 
 msgid "AMS and nozzle information are synced"
 msgstr "AMS 和喷嘴信息同步"
@@ -20651,6 +21910,11 @@ msgstr "从体积流量"
 msgid "To Volumetric Speed"
 msgstr "至体积流量"
 
+# AI Translated
+msgctxt "Increment"
+msgid "Step"
+msgstr "步长"
+
 msgid "Are you sure you want to cancel this print?"
 msgstr "你确定要取消这次打印吗？"
 
@@ -20676,9 +21940,11 @@ msgstr "注意：%s上的热端编号与刀架绑定。当热端移动至新刀�
 msgid "Action"
 msgstr "操作"
 
+# AI Translated
 #, c-format, boost-format
-msgid "This machine type can only hold %d historical results per nozzle."
-msgstr "该机型每个喷嘴最多只能保存%d个历史结果"
+msgid "This machine type can only hold %d historical result per nozzle."
+msgid_plural "This machine type can only hold %d historical results per nozzle."
+msgstr[0] "该机型的每个喷嘴最多只能保存 %d 个历史结果。"
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "编辑动态流量校准"
@@ -20837,6 +22103,12 @@ msgid "Test model"
 msgstr "测试模型"
 
 # AI Translated
+msgctxt "Test model"
+msgid "Standard"
+msgstr "标准"
+
+# AI Translated
+msgctxt "Test model"
 msgid "Overhang"
 msgstr "悬垂"
 
@@ -20994,8 +22266,13 @@ msgstr ""
 msgid "Frequency (Start / End): "
 msgstr "频率（开始/结束）："
 
-msgid "Start / End"
-msgstr "开始 / 结束"
+# AI Translated
+msgid "X Start / End: "
+msgstr "X 开始 / 结束： "
+
+# AI Translated
+msgid "Y Start / End: "
+msgstr "Y 开始 / 结束： "
 
 msgid "Frequency settings"
 msgstr "频率设置"
@@ -21032,8 +22309,13 @@ msgstr "检查固件兼容性。"
 msgid "Frequency: "
 msgstr "频率："
 
-msgid "Damp"
-msgstr "阻尼"
+# AI Translated
+msgid "Frequency X / Y: "
+msgstr "频率 X / Y： "
+
+# AI Translated
+msgid "Damp (Start / End): "
+msgstr "阻尼（开始 / 结束）： "
 
 msgid "RepRap firmware uses the same frequency for both axes."
 msgstr "RepRap 固件将对两个轴使用相同的频率。"
@@ -21157,9 +22439,11 @@ msgstr "延时摄影"
 msgid "Enable IFS"
 msgstr "启用 IFS"
 
+# AI Translated
 #, c-format, boost-format
-msgid "Detected %d IFS slots on printer."
-msgstr "在打印机上检测到 %d 个 IFS 槽位。"
+msgid "Detected %d IFS slot on printer."
+msgid_plural "Detected %d IFS slots on printer."
+msgstr[0] "在打印机上检测到 %d 个 IFS 槽位。"
 
 msgid "This printer does not report a material station."
 msgstr "此打印机未报告材料站。"
@@ -21277,8 +22561,10 @@ msgstr "从中减去"
 msgid "Subtract with"
 msgstr "与之相减"
 
-msgid "selected"
-msgstr "已选中"
+# AI Translated
+#. TRN Mesh Boolean button label once one volume is picked.
+msgid "1 selected"
+msgstr "已选 1 个"
 
 msgid "Part 1"
 msgstr "零件 1"
@@ -21749,13 +23035,6 @@ msgstr "注意：如果在该耗材下仅有的预设被删除，在关闭对话
 msgid "Presets inherited by other presets cannot be deleted"
 msgstr "附属于其他预设的预设不能被删除。"
 
-msgid "The following presets inherits this preset."
-msgid_plural "The following preset inherits this preset."
-msgstr[0] "以下预设继承此预设。"
-
-msgid "Delete Preset"
-msgstr "删除预设"
-
 msgid "Are you sure to delete the selected preset?"
 msgstr "你确定要删除所选预设？"
 
@@ -21832,10 +23111,12 @@ msgstr "起始、结束或者步长输入值无效。"
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "挤出机数量与所选择进行校准的打印机不匹配。"
 
+#. TRN %s is "left" or "right".
 #, c-format, boost-format
 msgid "The nozzle diameter of %s extruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr "%s 挤出机的喷嘴直径为 0.2 mm，不支持自动流体动力学校准。"
 
+#. TRN %s is "left" or "right".
 #, c-format, boost-format
 msgid ""
 "The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
@@ -21851,6 +23132,12 @@ msgstr ""
 "喷嘴直径与实际打印机喷嘴直径不匹配。\n"
 "请单击上面的同步按钮并重新启动校准。"
 
+#. TRN %s is "left" or "right".
+#, c-format, boost-format
+msgid "Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."
+msgstr "%s 打印机的喷嘴信息尚未设置。请在进行校准之前对其进行配置。"
+
+#. TRN %s is "left" or "right".
 #, c-format, boost-format
 msgid ""
 "The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
@@ -21926,6 +23213,11 @@ msgid "Click Scan to look for K-series printers on your network."
 msgstr "点击“扫描”以在您的网络中查找 K 系列打印机。"
 
 # AI Translated
+msgctxt "Printer model"
+msgid "Model"
+msgstr "型号"
+
+# AI Translated
 msgid "Scan"
 msgstr "扫描"
 
@@ -21947,8 +23239,9 @@ msgstr "未找到 K 系列打印机。请确保打印机连接在同一网络中
 
 # AI Translated
 #, c-format
-msgid "Found %zu Creality printer(s). Select one and click Use Selected."
-msgstr "找到 %zu 台 Creality 打印机。请选择一台并点击“使用所选”。"
+msgid "Found %zu Creality printer. Select it and click Use Selected."
+msgid_plural "Found %zu Creality printers. Select one and click Use Selected."
+msgstr[0] "找到 %zu 台 Creality 打印机。请选择一台并点击“使用所选”。"
 
 # AI Translated
 msgid "Active"
@@ -22067,8 +23360,11 @@ msgid "Failed to launch a new instance."
 msgstr "启动新实例失败。"
 
 # AI Translated
-msgid "log(s)"
-msgstr "日志"
+#. TRN Number of log files, then their total size and its unit (KB or MB).
+#, c-format, boost-format
+msgid "%d log (%.2f %s)"
+msgid_plural "%d logs (%.2f %s)"
+msgstr[0] "%d 个日志（%.2f %s）"
 
 # AI Translated
 msgid "Choose where to save the exported JSON file"
@@ -22115,14 +23411,34 @@ msgstr "未找到打印机类型，请手动选择。"
 msgid "Authorizing..."
 msgstr "正在授权..."
 
-msgid "Error. Can't get API token for authorization"
-msgstr "错误。无法获取用于授权的 API 令牌"
+# AI Translated
+msgid "Maximum login retries exceeded"
+msgstr "已超过最大登录重试次数"
+
+# AI Translated
+#. TRN %1% is an HTTP status code.
+#, boost-format
+msgid "HTTP error: %1%"
+msgstr "HTTP 错误：%1%"
 
 msgid "Could not parse server response."
 msgstr "无法解析服务器响应。"
 
+msgid "Error. Can't get API token for authorization"
+msgstr "错误。无法获取用于授权的 API 令牌"
+
 msgid "Error saving session to file"
 msgstr "保存会话到文件时出错"
+
+# AI Translated
+msgid "Connection to 3DPrinterOS cloud works correctly."
+msgstr "与 3DPrinterOS 云的连接正常。"
+
+# AI Translated
+#. TRN %1% is the 3DPrinterOS account (e-mail address).
+#, boost-format
+msgid "Logged in as user: %1%"
+msgstr "已登录用户：%1%"
 
 msgid "Error session check"
 msgstr "会话检查出错"
@@ -22157,6 +23473,42 @@ msgstr "密码错误。"
 
 msgid "Could not get resources to create a new connection"
 msgstr "无法获取资源以创建新连接。"
+
+# AI Translated
+msgid "Connection to UltiMaker works correctly."
+msgstr "与 UltiMaker 的连接正常。"
+
+# AI Translated
+msgid "Could not connect to UltiMaker"
+msgstr "无法连接到 UltiMaker"
+
+# AI Translated
+msgid "Error generating credentials! See the log for details."
+msgstr "生成凭据时出错！详情请查看日志。"
+
+# AI Translated
+#. TRN %1% and %2% are the ID and KEY returned by the printer.
+#, boost-format
+msgid "ERROR: Either ID or KEY is empty. ID=%1% KEY=%2%"
+msgstr "错误：ID 或 KEY 为空。ID=%1% KEY=%2%"
+
+# AI Translated
+#. TRN Generated API credentials. %1% is the username, %2% the password.
+#, boost-format
+msgid "Username: %1%  Password: %2%"
+msgstr "用户名：%1%  密码：%2%"
+
+# AI Translated
+msgid "Authentication credentials are waiting for approval. Please approve access via the dialog box on the printer's screen."
+msgstr "认证凭据正在等待批准。请在打印机屏幕上的对话框中批准访问。"
+
+# AI Translated
+msgid "Invalid authentication credentials"
+msgstr "认证凭据无效"
+
+# AI Translated
+msgid "Error: No authentication credentials found!"
+msgstr "错误：未找到认证凭据！"
 
 msgid "Upload not enabled on FlashAir card."
 msgstr "FlashAir 卡未启用上传。"
@@ -22273,6 +23625,14 @@ msgstr ""
 "无法枚举打印机主机。\n"
 "错误消息：\"%1%\" 错误：\"%2%\""
 
+# AI Translated
+msgid "Connection to ESP3D is working correctly."
+msgstr "与 ESP3D 的连接正常。"
+
+# AI Translated
+msgid "Could not connect to ESP3D"
+msgstr "无法连接到 ESP3D"
+
 msgid "No AMS"
 msgstr "没有AMS"
 
@@ -22344,6 +23704,11 @@ msgstr "可以选择的打印机数量最多为 %d。"
 msgid "No task"
 msgstr "没有任务"
 
+# AI Translated
+msgctxt "Verb"
+msgid "View"
+msgstr "查看"
+
 msgid "Edit Printers"
 msgstr "编辑打印机"
 
@@ -22384,6 +23749,11 @@ msgstr "打印失败"
 
 msgid "Printing Pause"
 msgstr "打印暂停"
+
+# AI Translated
+msgctxt "Device status"
+msgid "Prepare"
+msgstr "准备中"
 
 msgid "Pending"
 msgstr "等待中"
@@ -22448,9 +23818,20 @@ msgid "(Sync with printer)"
 msgstr "（与打印机同步）"
 
 # AI Translated
-#, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr "错误：%s 挤出机没有可用的 %s 喷嘴，当前分组结果无效。"
+msgid "Error: Left extruder has no available Standard nozzle, current group result is invalid."
+msgstr "错误：左挤出机没有可用的标准喷嘴，当前分组结果无效。"
+
+# AI Translated
+msgid "Error: Left extruder has no available High Flow nozzle, current group result is invalid."
+msgstr "错误：左挤出机没有可用的高流量喷嘴，当前分组结果无效。"
+
+# AI Translated
+msgid "Error: Right extruder has no available Standard nozzle, current group result is invalid."
+msgstr "错误：右挤出机没有可用的标准喷嘴，当前分组结果无效。"
+
+# AI Translated
+msgid "Error: Right extruder has no available High Flow nozzle, current group result is invalid."
+msgstr "错误：右挤出机没有可用的高流量喷嘴，当前分组结果无效。"
 
 msgid "We will slice according to this grouping method:"
 msgstr "我们将按照这种分组方法进行切片："
@@ -22493,14 +23874,21 @@ msgstr "无法连接到SimplyPrint"
 msgid "Internal error"
 msgstr "内部错误"
 
-msgid "Unknown error"
-msgstr "未知错误"
-
 msgid "SimplyPrint account not linked. Go to Connect options to set it up."
 msgstr "尚未连接到SimplyPrint账户，前往连接选项来进行配置。"
 
 msgid "Flashforge returned an invalid JSON response."
 msgstr "Flashforge 返回了无效的 JSON 响应。"
+
+# AI Translated
+msgid "Request failed"
+msgstr "请求失败"
+
+# AI Translated
+#. TRN %1% is the error code returned by the printer, %2% its error message.
+#, boost-format
+msgid "Flashforge local API error %1%: %2%"
+msgstr "Flashforge 本地 API 错误 %1%：%2%"
 
 msgid "No Flashforge printers were discovered on the local network."
 msgstr "在本地网络中未发现任何 Flashforge 打印机。"
@@ -22647,8 +24035,11 @@ msgstr "警告：Brim类型未设置为绘制模式，耳状Brim将不会生效�
 msgid "Set the brim type of this object to \"painted\""
 msgstr "将此对象的边缘类型设置为\"绘制\""
 
-msgid "invalid brim ears"
-msgstr "无效的圆盘"
+# AI Translated
+#, c-format, boost-format
+msgid "%d invalid brim ear"
+msgid_plural "%d invalid brim ears"
+msgstr[0] "%d 个无效的耳状 Brim"
 
 msgid "Brim Ears"
 msgstr "耳状帽檐"
@@ -22674,6 +24065,7 @@ msgstr "加载跳过对象信息失败。请再试一次。"
 msgid "Failed to create the temporary folder."
 msgstr "创建临时文件夹失败。"
 
+#. TRN Shown right after the number of selected objects, which is a separate label: "3/10 Selected". %d is the total number of objects.
 #, c-format, boost-format
 msgid "/%d Selected"
 msgstr "/%d 已选择"
@@ -22693,9 +24085,11 @@ msgstr "跳过所有对象。"
 msgid "The printing job will be stopped. Continue?"
 msgstr "打印作业将停止。继续？"
 
+# AI Translated
 #, c-format, boost-format
-msgid "Skipping %d objects."
-msgstr "跳过 %d 对象。"
+msgid "Skipping %d object."
+msgid_plural "Skipping %d objects."
+msgstr[0] "跳过 %d 个对象。"
 
 msgid "This action cannot be undone. Continue?"
 msgstr "此操作无法撤消。继续？"
@@ -22848,8 +24242,8 @@ msgid "Export Presets"
 msgstr "导出预设"
 
 # AI Translated
-msgid "Open folder in explorer"
-msgstr "打开所在文件夹"
+msgid "Show in folder"
+msgstr "在文件夹中显示"
 
 # AI Translated
 msgid "Delete bundle"
@@ -23006,6 +24400,11 @@ msgstr "AMS 干燥控制"
 # AI Translated
 msgid "Filament Drying Settings"
 msgstr "耗材干燥设置"
+
+# AI Translated
+msgctxt "Hours unit"
+msgid "H"
+msgstr "小时"
 
 # AI Translated
 msgid "Stopping"
@@ -23186,6 +24585,11 @@ msgstr "开始：检查进气口"
 msgid "Starting: Checking air vent"
 msgstr "开始：检查排气口"
 
+# AI Translated
+#, boost-format
+msgid "Unable to create directory %1%"
+msgstr "无法创建目录 %1%"
+
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
 msgstr "此耗材可能于当前设备设置不兼容，将使用通用耗材预设。"
 
@@ -23200,6 +24604,105 @@ msgstr "此耗材可能与当前设备设置不兼容，将使用随机耗材预
 
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "此耗材可能于当前设备设置不兼容，将使用随机耗材预设。"
+
+# AI Translated
+#, boost-format
+msgid "Unknown configuration file: %1%"
+msgstr "未知的配置文件：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Invalid configuration file: %1%"
+msgstr "无效的配置文件：%1%"
+
+# AI Translated
+#, boost-format
+msgid "slot %1% -> slot %2%: mixed filament"
+msgstr "槽位 %1% -> 槽位 %2%：混合耗材丝"
+
+# AI Translated
+msgid "mixed filament definition: filament slot limit reached"
+msgstr "混合耗材丝定义：已达到耗材丝槽位上限"
+
+# AI Translated
+msgid "filament slot limit reached"
+msgstr "已达到耗材丝槽位上限"
+
+# AI Translated
+#, boost-format
+msgid "the printer's filament limit is %1%"
+msgstr "打印机的耗材丝数量上限为 %1%"
+
+# AI Translated
+#, boost-format
+msgid "slot %1% -> slot %2%: unassigned mixed filament (the printer's filament limit is %3%)"
+msgstr "槽位 %1% -> 槽位 %2%：未分配的混合耗材丝（打印机的耗材丝数量上限为 %3%）"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: unassigned mixed filament (the printer's filament limit is %2%)"
+msgstr "槽位 %1%：未分配的混合耗材丝（打印机的耗材丝数量上限为 %2%）"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: %2% -> %3%"
+msgstr "槽位 %1%：%2% -> %3%"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: mixed filament definition could not be imported"
+msgstr "槽位 %1%：无法导入混合耗材丝定义"
+
+# AI Translated
+msgid "needs at least two components"
+msgstr "至少需要两个组分"
+
+# AI Translated
+msgid "components reference missing slots"
+msgstr "组分引用了不存在的槽位"
+
+# AI Translated
+#, boost-format
+msgid "mixed filament definition: %1%"
+msgstr "混合耗材丝定义：%1%"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: mixed filament definition could not be imported (%2%)"
+msgstr "槽位 %1%：无法导入混合耗材丝定义（%2%）"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: %2% -> %3% (substitute)"
+msgstr "槽位 %1%：%2% -> %3%（替代）"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Failed loading configuration file %1%\n"
+"Suggest cleaning the directory %2% first"
+msgstr ""
+"加载配置文件 %1% 失败\n"
+"建议先清理目录 %2%"
+
+# AI Translated
+#. TRN %1% is the vendor name, %2% the version found in its profile, %3% the profile directory.
+#, boost-format
+msgid ""
+"Vendor %1%'s config version: %2% invalid\n"
+"Suggest cleaning the directory %3% first"
+msgstr ""
+"供应商 %1% 的配置版本：%2% 无效\n"
+"建议先清理目录 %3%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Failed loading configuration file %1%: %2%\n"
+"Suggest cleaning the directory %3% first"
+msgstr ""
+"加载配置文件 %1% 失败：%2%\n"
+"建议先清理目录 %3%"
 
 # AI Translated
 msgid "Hide reference planes and axes"
@@ -23515,6 +25018,11 @@ msgid "Datum / Curve (plane / axis / coord sys / helix / project)"
 msgstr "基准 / 曲线（平面 / 轴 / 坐标系 / 螺旋线 / 投影）"
 
 # AI Translated
+msgctxt "Design"
+msgid "Plane"
+msgstr "平面"
+
+# AI Translated
 msgid "Reference plane (offset / tilt / midplane / tangent / two edges / coincident)"
 msgstr "基准面（偏移 / 倾斜 / 中间平面 / 相切 / 两条边 / 重合）"
 
@@ -23579,6 +25087,11 @@ msgstr "移动和/或旋转现有实体"
 # AI Translated
 msgid "Transform needs a body — add or import one first"
 msgstr "变换需要一个实体 — 请先添加或导入实体"
+
+# AI Translated
+msgctxt "Design"
+msgid "Mirror"
+msgstr "镜像"
 
 # AI Translated
 msgid "Reflect a body about a plane"
@@ -23674,6 +25187,11 @@ msgid "Hole / thread"
 msgstr "孔 / 螺纹"
 
 # AI Translated
+msgctxt "Design"
+msgid "Hole"
+msgstr "孔"
+
+# AI Translated
 msgid "Drill a hole, centered on a picked face or placed on a plane"
 msgstr "钻孔，以选取的面为中心或放置在平面上"
 
@@ -23716,6 +25234,11 @@ msgstr "单击 2 个点或一条直线 / 圆 / 圆弧以放置尺寸"
 # AI Translated
 msgid "Line / polyline"
 msgstr "直线 / 多段线"
+
+# AI Translated
+msgctxt "Design"
+msgid "Line"
+msgstr "直线"
 
 # AI Translated
 msgid "Click start, then end — then set the exact length"
@@ -23853,6 +25376,9 @@ msgstr "样条曲线"
 msgid "Click control points; double-click, right-click or Enter to finish"
 msgstr "单击控制点；双击、右键单击或按 Enter 完成"
 
+msgid "Point"
+msgstr "点"
+
 # AI Translated
 msgid "Click to place a point"
 msgstr "单击放置点"
@@ -23971,16 +25497,15 @@ msgstr "选取图元，拖动总角度控制柄，单击数量值；单击空白
 
 # AI Translated
 #, c-format, boost-format
-msgid "Click center then a vertex — %d sides, %s"
-msgstr "单击中心，然后单击一个顶点 — %d 条边，%s"
+msgid "Click center then a vertex — %d side, circumscribed"
+msgid_plural "Click center then a vertex — %d sides, circumscribed"
+msgstr[0] "单击中心，然后单击一个顶点 — %d 条边，外接"
 
 # AI Translated
-msgid "circumscribed"
-msgstr "外切"
-
-# AI Translated
-msgid "inscribed"
-msgstr "内接"
+#, c-format, boost-format
+msgid "Click center then a vertex — %d side, inscribed"
+msgid_plural "Click center then a vertex — %d sides, inscribed"
+msgstr[0] "单击中心，然后单击一个顶点 — %d 条边，内接"
 
 # AI Translated
 msgid "Polygon"
@@ -24318,6 +25843,11 @@ msgid "Thread plane"
 msgstr "螺纹平面"
 
 # AI Translated
+msgctxt "Thread standard"
+msgid "Standard"
+msgstr "标准"
+
+# AI Translated
 msgid "Pitch"
 msgstr "螺距"
 
@@ -24503,6 +26033,9 @@ msgstr "选取一个实体面作为开口，然后设置壁厚。"
 # AI Translated
 msgid "(pick a side face)"
 msgstr "（选取一个侧面）"
+
+msgid "Face"
+msgstr "面"
 
 # AI Translated
 msgid "Draft"
@@ -24882,8 +26415,9 @@ msgstr "草图已更新"
 
 # AI Translated
 #, c-format
-msgid "Sketch created (%zu driving dims) — select it, then right-click to Extrude"
-msgstr "草图已创建（%zu 个驱动尺寸） — 选择它，然后右键单击进行拉伸"
+msgid "Sketch created (%zu driving dim) — select it, then right-click to Extrude"
+msgid_plural "Sketch created (%zu driving dims) — select it, then right-click to Extrude"
+msgstr[0] "草图已创建（%zu 个驱动尺寸） — 选择它，然后右键单击进行拉伸"
 
 # AI Translated
 #, c-format, boost-format
@@ -25017,8 +26551,9 @@ msgstr "正在编辑：草图 %d   ·   N = 正视于平面   ·   在工具栏�
 
 # AI Translated
 #, c-format
-msgid "OK — %zu triangles"
-msgstr "完成 — %zu 个三角形"
+msgid "OK — %zu triangle"
+msgid_plural "OK — %zu triangles"
+msgstr[0] "完成 — %zu 个三角形"
 
 # AI Translated
 msgid "Edit the text — Enter applies, Esc keeps it as it was"
@@ -25103,10 +26638,14 @@ msgstr "网格不包含任何三角形"
 # AI Translated
 #, c-format, boost-format
 msgid ""
+"This mesh has %d triangle. Every triangle becomes a B-rep face before coplanar merging, so importing it may take a long time and leave a body that is slow to edit. Decimating the mesh first is usually better.\n"
+"\n"
+"Import anyway?"
+msgid_plural ""
 "This mesh has %d triangles. Every triangle becomes a B-rep face before coplanar merging, so importing it may take a long time and leave a body that is slow to edit. Decimating the mesh first is usually better.\n"
 "\n"
 "Import anyway?"
-msgstr ""
+msgstr[0] ""
 "此网格包含 %d 个三角形。在合并共面之前，每个三角形都会成为一个 B-rep 面，因此导入可能需要很长时间，且生成的实体编辑起来会很慢。通常最好先简化网格。\n"
 "\n"
 "仍要导入吗？"
@@ -25135,8 +26674,8 @@ msgstr "网格导入失败：%s"
 
 # AI Translated
 #, c-format, boost-format
-msgid "Imported solid — %d triangles → %d faces, volume %.2f mm³. Pick a face or edge, then Fillet / Cut / Shell to modify"
-msgstr "已导入实体 — %d 个三角形 → %d 个面，体积 %.2f mm³。选取一个面或边，然后使用圆角 / 切割 / 抽壳进行修改"
+msgid "Imported solid — triangles: %d → faces: %d, volume %.2f mm³. Pick a face or edge, then Fillet / Cut / Shell to modify"
+msgstr "已导入实体 — 三角形：%d → 面：%d，体积 %.2f mm³。选取一个面或边，然后使用圆角 / 切割 / 抽壳进行修改"
 
 # AI Translated
 #, c-format, boost-format
@@ -25153,8 +26692,10 @@ msgid "%s added to the sketch — Confirm to commit it"
 msgstr "%s 已添加到草图 — 单击“确定”提交"
 
 # AI Translated
-msgid " — drag to place/size, then Confirm"
-msgstr " — 拖动以放置/调整大小，然后单击“确定”"
+#. TRN Design tab status; %s is the inserted item, such as "Text" or "SVG".
+#, c-format, boost-format
+msgid "%s — drag to place/size, then Confirm"
+msgstr "%s — 拖动以放置/调整大小，然后单击“确定”"
 
 # AI Translated
 msgid "Insert canceled"
@@ -25360,9 +26901,11 @@ msgid "a geometry operation failed"
 msgstr "几何运算失败"
 
 # AI Translated
+#. TRN Appended to a sketch tool prompt; %d is the number of picked entities.
 #, c-format, boost-format
 msgid "  ·  %d picked"
-msgstr "  ·  已选取 %d 个"
+msgid_plural "  ·  %d picked"
+msgstr[0] "  ·  已选取 %d 个"
 
 # AI Translated
 #, c-format, boost-format
@@ -25377,7 +26920,8 @@ msgstr "选择 — 单击图元进行选取  ·  拖动端点或中心可移动 
 # AI Translated
 #, c-format, boost-format
 msgid "%d picked  ·  now choose a constraint (Horizontal, Parallel, Tangent, Equal…)"
-msgstr "已选取 %d 个  ·  现在选择一个约束（水平、平行、相切、相等…）"
+msgid_plural "%d picked  ·  now choose a constraint (Horizontal, Parallel, Tangent, Equal…)"
+msgstr[0] "已选取 %d 个  ·  现在选择一个约束（水平、平行、相切、相等…）"
 
 # AI Translated
 msgid "Constrain — click one or two entities, then choose a constraint"
@@ -25638,7 +27182,8 @@ msgstr "镜像 — 已设置镜像轴  ·  现在单击要镜像的图元  ·  �
 # AI Translated
 #, c-format, boost-format
 msgid "Mirror — axis set  ·  %d to mirror  ·  click another to add or remove it  ·  Enter applies"
-msgstr "镜像 — 已设置镜像轴  ·  待镜像 %d 个  ·  单击其他图元可添加或移除  ·  按 Enter 应用"
+msgid_plural "Mirror — axis set  ·  %d to mirror  ·  click another to add or remove it  ·  Enter applies"
+msgstr[0] "镜像 — 已设置镜像轴  ·  待镜像 %d 个  ·  单击其他图元可添加或移除  ·  按 Enter 应用"
 
 # AI Translated
 msgid "Move — click the entities to move"
@@ -25760,8 +27305,9 @@ msgstr "草图点"
 
 # AI Translated
 #, c-format, boost-format
-msgid "%d sketch entities"
-msgstr "%d 个草图图元"
+msgid "%d sketch entity"
+msgid_plural "%d sketch entities"
+msgstr[0] "%d 个草图图元"
 
 # AI Translated
 msgid "select something first"
@@ -26296,8 +27842,10 @@ msgid "Applied edit"
 msgstr "已应用编辑"
 
 # AI Translated
-msgid " — type a value, press Enter (or Confirm)"
-msgstr " — 输入数值，按 Enter（或单击“确定”）"
+#. TRN Design tab status; %s is the value being asked for, such as "Fillet radius".
+#, c-format, boost-format
+msgid "%s — type a value, press Enter (or Confirm)"
+msgstr "%s — 输入数值，按 Enter（或单击“确定”）"
 
 # AI Translated
 msgid "Pick a segment in the viewport first"
@@ -26370,8 +27918,21 @@ msgid "Nothing to commit — add a feature first"
 msgstr "没有可提交的内容 — 请先添加特征"
 
 # AI Translated
+#, c-format, boost-format
+msgid "Design Body %d"
+msgstr "设计实体 %d"
+
+# AI Translated
 msgid "All bodies hidden — show one before committing"
 msgstr "所有实体均已隐藏 — 请在提交前显示至少一个实体"
+
+# AI Translated
+msgid "Design Assembly"
+msgstr "设计组合体"
+
+# AI Translated
+msgid "Design Body"
+msgstr "设计实体"
 
 # AI Translated
 #, c-format
@@ -26438,8 +27999,9 @@ msgstr "无效：%s"
 
 # AI Translated
 #, c-format
-msgid "Preview — %zu triangles"
-msgstr "预览 — %zu 个三角形"
+msgid "Preview — %zu triangle"
+msgid_plural "Preview — %zu triangles"
+msgstr[0] "预览 — %zu 个三角形"
 
 # AI Translated
 #, c-format, boost-format
@@ -26539,8 +28101,9 @@ msgstr "无法满足该尺寸 — 草图过约束"
 
 # AI Translated
 #, boost-format
-msgid "%1% constraint(s) cannot act on this geometry (an ellipse or spline curve, or a zero-size circle) and are ignored"
-msgstr "%1% 个约束无法作用于此几何图形（椭圆或样条曲线，或大小为零的圆），已被忽略"
+msgid "%1% constraint cannot act on this geometry (an ellipse or spline curve, or a zero-size circle) and is ignored"
+msgid_plural "%1% constraints cannot act on this geometry (an ellipse or spline curve, or a zero-size circle) and are ignored"
+msgstr[0] "%1% 个约束无法作用于此几何图形（椭圆或样条曲线，或大小为零的圆），已被忽略"
 
 # AI Translated
 msgid "This profile crosses or folds back on itself at the red mark, so it does not bound one region"
@@ -26598,8 +28161,9 @@ msgstr "倒角：距离超出了其中一条边的长度，或两条直线未在
 
 # AI Translated
 #, boost-format
-msgid "%1% constraint(s) the fillet/chamfer invalidated were removed"
-msgstr "已移除 %1% 个因圆角/倒角而失效的约束"
+msgid "%1% constraint the fillet/chamfer invalidated was removed"
+msgid_plural "%1% constraints the fillet/chamfer invalidated were removed"
+msgstr[0] "已移除 %1% 个因圆角/倒角而失效的约束"
 
 # AI Translated
 msgid "Offset: an ellipse or a spline has no parallel of its own kind — pick lines, arcs or circles"
@@ -26619,8 +28183,9 @@ msgstr "副本数必须是大于或等于 2 的整数"
 
 # AI Translated
 #, boost-format
-msgid "%1% constraint(s) released by the transform"
-msgstr "变换解除了 %1% 个约束"
+msgid "%1% constraint released by the transform"
+msgid_plural "%1% constraints released by the transform"
+msgstr[0] "变换解除了 %1% 个约束"
 
 # AI Translated
 msgid "The array copies are unconstrained — the solver refused every binding"
@@ -26773,11 +28338,6 @@ msgstr "加厚曲面需要一个曲面实体 — 请先使用曲面工具创建"
 
 # AI Translated
 msgctxt "Design"
-msgid "Hole"
-msgstr "孔"
-
-# AI Translated
-msgctxt "Design"
 msgid "Thread"
 msgstr "螺纹"
 
@@ -26862,11 +28422,6 @@ msgstr "绕轴重复实体 — 设置数量和总角度"
 
 # AI Translated
 msgctxt "Design"
-msgid "Mirror"
-msgstr "镜像"
-
-# AI Translated
-msgctxt "Design"
 msgid "Pattern on Curve"
 msgstr "沿曲线阵列"
 
@@ -26900,11 +28455,6 @@ msgstr "对齐需要一个实体 — 请先添加或导入实体"
 # AI Translated
 msgid "Align the body to a picked face or plane"
 msgstr "将实体对齐到选取的面或平面"
-
-# AI Translated
-msgctxt "Design"
-msgid "Plane"
-msgstr "平面"
 
 # AI Translated
 msgctxt "Design"
@@ -27010,11 +28560,6 @@ msgstr "删除实体"
 # AI Translated
 msgid "Delete this whole body — removes the feature it was made from"
 msgstr "删除整个实体 — 将移除创建它的特征"
-
-# AI Translated
-msgctxt "Design"
-msgid "Line"
-msgstr "直线"
 
 # AI Translated
 msgctxt "Design"
@@ -27561,6 +29106,9 @@ msgstr "打开快捷面板"
 msgid "Slicing and printing"
 msgstr "切片与打印"
 
+msgid "Selection"
+msgstr "选中"
+
 # AI Translated
 msgid "Editing"
 msgstr "编辑"
@@ -27713,6 +29261,12 @@ msgid "needs a cylindrical face at both ends — connector %1% is on a curved fa
 msgstr "两端都需要圆柱面 — 连接器 %1% 位于曲面上"
 
 # AI Translated
+#. TRN Datum plane entry in the reference plane list. %1% is the plane name.
+#, boost-format
+msgid "%1% (base plane missing)"
+msgstr "%1%（缺少基准面）"
+
+# AI Translated
 msgid "two points are coincident"
 msgstr "两点重合"
 
@@ -27741,8 +29295,29 @@ msgid "zero-length direction"
 msgstr "方向长度为零"
 
 # AI Translated
+#, boost-format
+msgid "a feature works on body %1%, which does not exist at that point in the history"
+msgstr "某个特征作用于实体 %1%，而该实体在历史中的此处并不存在"
+
+# AI Translated
+#, boost-format
+msgid "\"%1%\" works on a body made by a feature that was deleted or hidden"
+msgstr "“%1%”作用于由已删除或已隐藏的特征所创建的实体"
+
+# AI Translated
+#, boost-format
+msgid "\"%1%\" works on a body that does not exist at that point in the history"
+msgstr "“%1%”作用于在历史中的此处并不存在的实体"
+
+# AI Translated
 msgid "feature is used by a later feature"
 msgstr "该特征被后续特征引用"
+
+# AI Translated
+#. TRN Feature reorder error. %1% is the moved feature, %2% the feature it depends on.
+#, boost-format
+msgid "\"%1%\" uses \"%2%\", so it cannot come before it"
+msgstr "“%1%”使用了“%2%”，因此不能排在它之前"
 
 # AI Translated
 msgid "sketch entities do not form a closed loop"
@@ -27754,9 +29329,18 @@ msgid "Open at (%.3f, %.3f)"
 msgstr "开放端点位于 (%.3f, %.3f)"
 
 # AI Translated
+#. TRN Follows a list of open sketch ends. %1% is how many more were not listed.
 #, boost-format
-msgid "...and %1% more open end(s)"
-msgstr "...以及另外 %1% 个开放端点"
+msgid "Open ends not shown: %1%"
+msgstr "未显示的开放端点：%1%"
+
+# AI Translated
+msgid "revolve: the axis line is no longer in the sketch — pick the axis again"
+msgstr "旋转：轴线已不在草图中 — 请重新选取轴"
+
+# AI Translated
+msgid "revolve: the axis line has no length"
+msgstr "旋转：轴线没有长度"
 
 # AI Translated
 msgid "sketch has entities but they do not form a single closed wire — a closed entity (circle/ellipse) combined with other entities, or several closed entities, is not supported yet"
@@ -27905,6 +29489,30 @@ msgid "hole cut failed"
 msgstr "孔切除失败"
 
 # AI Translated
+msgid "thread: the diameter must be at least 1 mm"
+msgstr "螺纹：直径至少为 1 mm"
+
+# AI Translated
+msgid "thread: the pitch must be more than 0.1 mm"
+msgstr "螺纹：螺距必须大于 0.1 mm"
+
+# AI Translated
+msgid "thread: the depth must be between 0 and 0.7 x the pitch"
+msgstr "螺纹：牙深必须在 0 到 0.7 倍螺距之间"
+
+# AI Translated
+msgid "thread: the depth is too large for this diameter"
+msgstr "螺纹：牙深相对此直径过大"
+
+# AI Translated
+msgid "thread: the length must be more than half a pitch"
+msgstr "螺纹：长度必须大于半个螺距"
+
+# AI Translated
+msgid "thread: too many turns (length / pitch must stay under 400)"
+msgstr "螺纹：圈数过多（长度 / 螺距 必须小于 400）"
+
+# AI Translated
 msgid "internal thread needs a body"
 msgstr "内螺纹需要一个实体"
 
@@ -27963,6 +29571,22 @@ msgstr "删除面失败"
 # AI Translated
 msgid "delete_face produced no geometry"
 msgstr "删除面未生成任何几何体"
+
+# AI Translated
+msgid "boolean: no target body"
+msgstr "布尔：没有目标实体"
+
+# AI Translated
+msgid "boolean: no tool body — pick a second body"
+msgstr "布尔：没有工具实体 — 请选取第二个实体"
+
+# AI Translated
+msgid "boolean: the target and the tool are the same body"
+msgstr "布尔：目标与工具是同一个实体"
+
+# AI Translated
+msgid "boolean: a body has no geometry"
+msgstr "布尔：有实体没有几何体"
 
 # AI Translated
 msgid "boolean operation failed"
@@ -28292,6 +29916,10 @@ msgid "Auxiliaries"
 msgstr "附件"
 
 # AI Translated
+msgid "Belt Purge Tower"
+msgstr "传送带冲刷塔"
+
+# AI Translated
 msgid "Project Filament List"
 msgstr "项目耗材丝列表"
 
@@ -28325,8 +29953,16 @@ msgstr "分解至少需要两种相同材料类型的耗材丝"
 
 # AI Translated
 #, boost-format
-msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr "材料列表最多支持 %1% 种颜色。进行 %2% 分解后，材料数量将超过 %1%。请先在主界面删除未使用的耗材丝，再进行分解。"
+msgid "The material list supports at most %1% color. After Material List decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgid_plural "The material list supports at most %1% colors. After Material List decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr[0] "材料列表最多支持 %1% 种颜色。进行材料列表分解后，材料数量将超过 %1%。请先在主界面删除未使用的耗材丝，再进行分解。"
+
+# AI Translated
+#. TRN %2% is the decomposition mode name, "CMYW" or "RYBW"
+#, boost-format
+msgid "The material list supports at most %1% color. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgid_plural "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr[0] "材料列表最多支持 %1% 种颜色。进行 %2% 分解后，材料数量将超过 %1%。请先在主界面删除未使用的耗材丝，再进行分解。"
 
 # AI Translated
 msgid "Cyan"
@@ -28357,13 +29993,21 @@ msgid "Blue"
 msgstr "蓝色"
 
 # AI Translated
+#. TRN %1% is a color name such as "Cyan", %2% is a filament type such as "PLA Basic"
+#, boost-format
+msgctxt "Color and filament type"
+msgid "%1% %2%"
+msgstr "%1% %2%"
+
+# AI Translated
 msgid ", "
 msgstr "、 "
 
 # AI Translated
 #, c-format, boost-format
 msgid "The current filament list does not contain %s. A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr "当前耗材丝列表中不包含 %s。分解后将自动创建混合耗材丝所需的项目耗材丝。"
+msgid_plural "The current filament list does not contain %s. Project filaments required by the mixed filament will be created automatically after decomposition."
+msgstr[0] "当前耗材丝列表中不包含 %s。分解后将自动创建混合耗材丝所需的项目耗材丝。"
 
 # AI Translated
 msgid "Alternate nozzles:"
@@ -28727,6 +30371,14 @@ msgid "Bake"
 msgstr "烘焙"
 
 # AI Translated
+msgid "Type an exact value into a slider"
+msgstr "在滑块中输入精确数值"
+
+# AI Translated
+msgid "Edit icon at a slider's right end"
+msgstr "滑块右端的编辑图标"
+
+# AI Translated
 msgid "Texture displacement"
 msgstr "纹理置换"
 
@@ -28863,6 +30515,50 @@ msgid "Remove texture"
 msgstr "移除纹理"
 
 # AI Translated
+msgid "Adjust image"
+msgstr "调整图像"
+
+# AI Translated
+msgid "Brightness"
+msgstr "亮度"
+
+# AI Translated
+msgid "Contrast"
+msgstr "对比度"
+
+# AI Translated
+msgid "Sharpness"
+msgstr "锐度"
+
+# AI Translated
+msgid "Blur"
+msgstr "模糊"
+
+# AI Translated
+msgid "Hue"
+msgstr "色相"
+
+# AI Translated
+msgid "Brings out the finest detail in the image. Applied after Blur, so the two can be used together: blur away the speckle, then sharpen the edges that remain."
+msgstr "突出图像中最精细的细节。在“模糊”之后应用，因此两者可配合使用：先模糊掉斑点，再锐化剩余的边缘。"
+
+# AI Translated
+msgid "Blurs the image itself. The layer's own Smoothing slider softens the relief without altering the image, and is the one to reach for first."
+msgstr "模糊图像本身。图层自带的“平滑”滑块可在不改变图像的情况下柔化起伏，应优先使用。"
+
+# AI Translated
+msgid "This texture is grayscale, so it has no hue to shift."
+msgstr "此纹理为灰度图，没有可偏移的色相。"
+
+# AI Translated
+msgid "The model updates when you release a slider. Save as copy writes the adjusted image to your texture library and points this layer at it."
+msgstr "松开滑块时模型才会更新。“另存为副本”会将调整后的图像写入您的纹理库，并让此图层使用该图像。"
+
+# AI Translated
+msgid "Save as copy"
+msgstr "另存为副本"
+
+# AI Translated
 msgid "Remove texture displacement layer"
 msgstr "移除纹理置换图层"
 
@@ -28997,6 +30693,15 @@ msgstr "将每个已捕获的阶段写出为 OBJ 文件，以便在网格查看�
 # AI Translated
 msgid "The painted area could not be carried onto the remeshed model, so nothing was changed. Switch to Pro mode and remesh before painting."
 msgstr "绘制区域无法转移到重新网格化后的模型上，因此未作任何更改。请切换到专业模式，并在绘制前进行重新网格化。"
+
+# AI Translated
+#, boost-format
+msgid "Range: %1% to %2%"
+msgstr "范围：%1% 至 %2%"
+
+# AI Translated
+msgid "Type a value instead of dragging. Ctrl+click on the slider does the same."
+msgstr "输入数值，而不是拖动。按住 Ctrl 单击滑块效果相同。"
 
 # AI Translated
 msgid "Pro"
@@ -29156,6 +30861,10 @@ msgid "not painted"
 msgstr "未绘制"
 
 # AI Translated
+msgid "Brightness, contrast, sharpness, blur and hue, shown on the image and on the model as you set them. Save as copy writes the result to your texture library and points this layer at it."
+msgstr "亮度、对比度、锐度、模糊和色相，设置时会同步显示在图像和模型上。“另存为副本”会将结果写入您的纹理库，并让此图层使用该结果。"
+
+# AI Translated
 msgid "Move up - applied earlier"
 msgstr "上移 - 更早应用"
 
@@ -29174,6 +30883,10 @@ msgstr "起伏的高度：纹理中的白色将表面抬起多少，单位为毫
 # AI Translated
 msgid "Tile size"
 msgstr "平铺尺寸"
+
+# AI Translated
+msgid "Mapped by the model's own UV layout, which is already the placement - one copy of the texture covers it exactly, so there is no tile size to set."
+msgstr "按模型自身的 UV 布局映射，该布局本身就是放置方式 - 纹理的一个副本即可精确覆盖，因此无需设置平铺尺寸。"
 
 # AI Translated
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
@@ -29254,9 +30967,18 @@ msgid "The most mixed filaments a bake may add. They are picked from the texture
 msgstr "烘焙时最多可添加的混合耗材丝数量。混合耗材丝从纹理颜色中选取，且只会创建烘焙实际用到的那些。"
 
 # AI Translated
+#. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
 #, boost-format
-msgid "%1% printable colors from %2% filaments"
-msgstr "%1% 种可打印颜色，来自 %2% 种耗材丝"
+msgid "from %1% filament"
+msgid_plural "from %1% filaments"
+msgstr[0] "来自 %1% 种耗材丝"
+
+# AI Translated
+#. TRN %1% is the number of printable colors, %2% is "from N filaments".
+#, boost-format
+msgid "%1% printable color %2%"
+msgid_plural "%1% printable colors %2%"
+msgstr[0] "%1% 种可打印颜色，%2%"
 
 # AI Translated
 msgid "Denoise"
@@ -29308,6 +31030,18 @@ msgid "From view - projects straight onto the painted area from where you are lo
 msgstr "从视图 - 从您当前观察的方向直接投影到绘制区域上，就像幻灯机一样。"
 
 # AI Translated
+msgid "Model UV"
+msgstr "模型 UV"
+
+# AI Translated
+msgid "Model UV - uses the texture coordinates the model itself came with, so a texture made for that model lands exactly where it was painted. Nothing is unwrapped, and Tile size does not apply: the model's own layout is the placement."
+msgstr "模型 UV - 使用模型自带的纹理坐标，因此为该模型制作的纹理会精确落在其绘制的位置。不会进行展开，“平铺尺寸”也不适用：模型自身的布局就是放置方式。"
+
+# AI Translated
+msgid "This model carries no texture coordinates of its own. Only a model imported with a UV channel - a textured OBJ, say - can be mapped by them."
+msgstr "此模型没有自带纹理坐标。只有导入时带有 UV 通道的模型（例如带纹理的 OBJ）才能按其进行映射。"
+
+# AI Translated
 msgid "Open UV editor"
 msgstr "打开 UV 编辑器"
 
@@ -29321,8 +31055,9 @@ msgstr "尚未展开"
 
 # AI Translated
 #, boost-format
-msgid "%1% islands"
-msgstr "%1% 个岛"
+msgid "%1% island"
+msgid_plural "%1% islands"
+msgstr[0] "%1% 个 UV 岛"
 
 # AI Translated
 msgid "Capture current view"
@@ -29411,6 +31146,11 @@ msgstr "添加"
 
 # AI Translated
 msgctxt "Texture Displacement"
+msgid "Override"
+msgstr "覆盖"
+
+# AI Translated
+msgctxt "Texture Displacement"
 msgid "Subtract"
 msgstr "相减"
 
@@ -29428,8 +31168,8 @@ msgid "The base layer has nothing beneath it to combine with, so it always adds.
 msgstr "基础图层下方没有可与之组合的内容，因此始终使用“添加”。"
 
 # AI Translated
-msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
-msgstr "此图层与下方图层重叠处的作用方式。“添加”和“相减”会堆叠或削减起伏。“相乘”和“相除”会缩放下方的内容，使此图层成为其上的遮罩 - 此时“深度”相当于强度，1 mm 时白色区域保持不变。"
+msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Override replaces them, so only this layer's relief is left where it is painted. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+msgstr "此图层与下方图层重叠处的作用方式。“添加”和“相减”会堆叠或削减起伏。“覆盖”会取代下方图层，因此在绘制处只保留此图层的起伏。“相乘”和“相除”会缩放下方的内容，使此图层成为其上的遮罩 - 此时“深度”相当于强度，1 mm 时白色区域保持不变。"
 
 # AI Translated
 msgid "Adjust placement"
@@ -29453,8 +31193,9 @@ msgstr "更多设置"
 
 # AI Translated
 #, boost-format
-msgid "All %1% layers used"
-msgstr "已使用全部 %1% 个图层"
+msgid "All %1% layer used"
+msgid_plural "All %1% layers used"
+msgstr[0] "已使用全部 %1% 个图层"
 
 # AI Translated
 msgid "Add layer"
@@ -29534,8 +31275,9 @@ msgstr "三角形预算：在下方的“三角形”中设置。"
 
 # AI Translated
 #, boost-format
-msgid "Preview: %1% triangles"
-msgstr "预览：%1% 个三角形"
+msgid "Preview: %1% triangle"
+msgid_plural "Preview: %1% triangles"
+msgstr[0] "预览：%1% 个三角形"
 
 # AI Translated
 msgid "Steps"
@@ -29749,29 +31491,37 @@ msgid "%1% k"
 msgstr "%1% k"
 
 # AI Translated
+#. TRN %1% is a triangle count, either exact or rounded to thousands such as "120 k".
 #, boost-format
-msgid "Model: %1% triangles - the bake refines to the resolution above, up to its budget"
-msgstr "模型：%1% 个三角形 - 烘焙会细化到上方的分辨率，直至达到预算"
+msgid "Model: %1% triangle - the bake refines to the resolution above, up to its budget"
+msgid_plural "Model: %1% triangles - the bake refines to the resolution above, up to its budget"
+msgstr[0] "模型：%1% 个三角形 - 烘焙会细化到上方的分辨率，直至达到预算"
+
+# AI Translated
+#. TRN %1% is a triangle count, either exact or rounded to thousands such as "120 k".
+#, boost-format
+msgid "Bake moves existing vertices - the model stays at %1% triangle"
+msgid_plural "Bake moves existing vertices - the model stays at %1% triangles"
+msgstr[0] "烘焙会移动现有顶点 - 模型保持 %1% 个三角形"
 
 # AI Translated
 #, boost-format
-msgid "Bake moves existing vertices - the model stays at %1% triangles"
-msgstr "烘焙会移动现有顶点 - 模型保持 %1% 个三角形"
+msgid "Bake result up to ~%1% k triangle"
+msgid_plural "Bake result up to ~%1% k triangles"
+msgstr[0] "烘焙结果最多约 %1% k 个三角形"
 
 # AI Translated
 #, boost-format
-msgid "Bake result up to ~%1% k triangles"
-msgstr "烘焙结果最多约 %1% k 个三角形"
+msgid "%1% layer not painted, skipped"
+msgid_plural "%1% layers not painted, skipped"
+msgstr[0] "%1% 个图层未绘制，已跳过"
 
 # AI Translated
-#, boost-format
-msgid "%1% layers not painted, skipped"
-msgstr "%1% 个图层未绘制，已跳过"
-
-# AI Translated
+#. TRN %1% is one layer name, or two names separated by a comma.
 #, boost-format
 msgid "%1% not painted, skipped"
-msgstr "%1% 未绘制，已跳过"
+msgid_plural "%1% not painted, skipped"
+msgstr[0] "%1% 未绘制，已跳过"
 
 # AI Translated
 msgid "Entering Texture displacement painting"
@@ -29788,6 +31538,10 @@ msgstr "纹理置换编辑"
 # AI Translated
 msgid "Choose SLA archive:"
 msgstr "选择 SLA 存档文件："
+
+# AI Translated
+msgid "SL1 / SL1S archive files"
+msgstr "SL1 / SL1S 归档文件"
 
 # AI Translated
 msgid "Import file"
@@ -30032,16 +31786,16 @@ msgid "Overwrite Plugin"
 msgstr "覆盖插件"
 
 # AI Translated
-msgid "Show in folder"
-msgstr "在文件夹中显示"
-
-# AI Translated
 msgid "Reinstall"
 msgstr "重新安装"
 
 # AI Translated
 msgid "Delete cache and reload"
 msgstr "删除缓存并重新加载"
+
+# AI Translated
+msgid "No description."
+msgstr "无描述。"
 
 # AI Translated
 msgid "Select a .py or .whl plugin package."
@@ -30234,8 +31988,18 @@ msgid "Mine"
 msgstr "我的"
 
 # AI Translated
+msgctxt "Plugin"
+msgid "Subscribed"
+msgstr "已订阅"
+
+# AI Translated
 msgid "Orphaned"
 msgstr "孤立"
+
+# AI Translated
+msgctxt "Plugin"
+msgid "Local"
+msgstr "本地"
 
 # AI Translated
 msgid "Some plugin capabilities are enabled"
@@ -30700,8 +32464,9 @@ msgstr "新混合耗材丝"
 
 # AI Translated
 #, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr "项目最多支持 %d 种耗材丝。多余的耗材丝将被丢弃。"
+msgid "The project supports up to %d filament. Extra filaments will be discarded."
+msgid_plural "The project supports up to %d filaments. Extra filaments will be discarded."
+msgstr[0] "项目最多支持 %d 种耗材丝。多余的耗材丝将被丢弃。"
 
 # AI Translated
 msgid "Import Model"
@@ -30788,8 +32553,8 @@ msgid "Computation failed. Please adjust parameters and retry."
 msgstr "计算失败。请调整参数后重试。"
 
 # AI Translated
-msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr "网格存在非流形几何体或开放边界。您可以按原样导入，或在导入前使用 Windows 3D 修复服务进行修复。"
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it before importing."
+msgstr "网格存在非流形几何体或开放边界。您可以按原样导入，或在导入前进行修复。"
 
 # AI Translated
 msgid "Mesh repair"
@@ -30804,20 +32569,20 @@ msgid "Repair and import"
 msgstr "修复并导入"
 
 # AI Translated
-msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr "请注意，该网格存在非流形几何体或开放边界。"
-
-# AI Translated
-msgid "Mesh issue"
-msgstr "网格问题"
-
-# AI Translated
 msgid "The selected image is empty."
 msgstr "所选图像为空。"
 
 # AI Translated
 msgid "Failed to prepare the texture for use."
 msgstr "准备纹理以供使用失败。"
+
+# AI Translated
+msgid "Could not create the folder for imported textures."
+msgstr "无法创建用于存放导入纹理的文件夹。"
+
+# AI Translated
+msgid "Failed to save the imported texture."
+msgstr "保存导入的纹理失败。"
 
 # AI Translated
 msgid "Only your own imported textures can be removed."
@@ -30828,16 +32593,8 @@ msgid "Could not delete the texture file."
 msgstr "无法删除纹理文件。"
 
 # AI Translated
-msgid "Could not create the folder for imported textures."
-msgstr "无法创建用于存放导入纹理的文件夹。"
-
-# AI Translated
 msgid "Could not load the selected image."
 msgstr "无法加载所选图像。"
-
-# AI Translated
-msgid "Failed to save the imported texture."
-msgstr "保存导入的纹理失败。"
 
 # AI Translated
 msgid "Could not read the texture file."
@@ -30882,8 +32639,9 @@ msgstr "将纹理图层的映射方式选为“展开”，即可在此编辑其
 
 # AI Translated
 #, c-format, boost-format
-msgid "%d vertices selected  |  drag = move together, Shift/Ctrl click = add/remove"
-msgstr "已选择 %d 个顶点  |  拖动 = 一起移动，Shift/Ctrl 单击 = 添加/移除"
+msgid "%d vertex selected  |  drag = move together, Shift/Ctrl click = add/remove"
+msgid_plural "%d vertices selected  |  drag = move together, Shift/Ctrl click = add/remove"
+msgstr[0] "已选择 %d 个顶点  |  拖动 = 一起移动，Shift/Ctrl 单击 = 添加/移除"
 
 # AI Translated
 msgid "Vertex mode: drag a vertex to reshape  |  Shift/Ctrl click = multi-select, wheel = zoom, Home = frame"
@@ -30891,8 +32649,9 @@ msgstr "顶点模式：拖动顶点以调整形状  |  Shift/Ctrl 单击 = 多�
 
 # AI Translated
 #, c-format, boost-format
-msgid "%d edges selected  |  drag = move together, Shift/Ctrl click = add/remove"
-msgstr "已选择 %d 条边  |  拖动 = 一起移动，Shift/Ctrl 单击 = 添加/移除"
+msgid "%d edge selected  |  drag = move together, Shift/Ctrl click = add/remove"
+msgid_plural "%d edges selected  |  drag = move together, Shift/Ctrl click = add/remove"
+msgstr[0] "已选择 %d 条边  |  拖动 = 一起移动，Shift/Ctrl 单击 = 添加/移除"
 
 # AI Translated
 msgid "Edge mode: drag an island edge to reshape  |  Shift/Ctrl click = multi-select, wheel = zoom, Home = frame"
@@ -30900,8 +32659,9 @@ msgstr "边模式：拖动岛的边以调整形状  |  Shift/Ctrl 单击 = 多�
 
 # AI Translated
 #, c-format, boost-format
-msgid "%d islands selected  |  drag = move together, Shift/Ctrl click = add/remove, R/S = rotate/scale primary"
-msgstr "已选择 %d 个岛  |  拖动 = 一起移动，Shift/Ctrl 单击 = 添加/移除，R/S = 旋转/缩放主岛"
+msgid "%d island selected  |  drag = move together, Shift/Ctrl click = add/remove, R/S = rotate/scale primary"
+msgid_plural "%d islands selected  |  drag = move together, Shift/Ctrl click = add/remove, R/S = rotate/scale primary"
+msgstr[0] "已选择 %d 个 UV 岛  |  拖动 = 一起移动，Shift/Ctrl 单击 = 添加/移除，R/S = 旋转/缩放主岛"
 
 # AI Translated
 #, c-format, boost-format
@@ -30921,8 +32681,8 @@ msgid "Change texture - choose another one from the texture library"
 msgstr "更换纹理 - 从纹理库中选择另一个纹理"
 
 # AI Translated
-msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
-msgstr "当前图层的平铺尺寸，即纹理每重复一次在模型上覆盖的范围。画布以平铺为单位，一个网格单元即一次重复。可在图层的平铺设置中修改。"
+msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tile size in the layer's settings."
+msgstr "当前图层的平铺尺寸，即纹理每重复一次在模型上覆盖的范围。画布以平铺为单位，一个网格单元即一次重复。可在图层设置的“平铺尺寸”中修改。"
 
 # AI Translated
 msgid "Height map - show the layer's texture under the islands"
@@ -31051,8 +32811,15 @@ msgstr "尚未手动调整任何 UV 岛的形状，没有可放弃的修改。"
 
 # AI Translated
 #, c-format, boost-format
-msgid "%d islands, %s faces"
-msgstr "%d 个岛，%s 个面"
+msgid "%d island"
+msgid_plural "%d islands"
+msgstr[0] "%d 个 UV 岛"
+
+# AI Translated
+#, c-format, boost-format
+msgid "%s face"
+msgid_plural "%s faces"
+msgstr[0] "%s 个面"
 
 # AI Translated
 msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
@@ -31065,6 +32832,12 @@ msgstr "请先单击“展开”，目前还没有可操作的 UV 岛。"
 # AI Translated
 msgid "Click an island on the canvas first, in Island mode."
 msgstr "请先在岛模式下单击画布上的一个 UV 岛。"
+
+# AI Translated
+# Needs human review: Short badge on a recent project (published 3MF); source asks for about three letters, check 已发布 fits the badge.
+#. TRN Short badge on a recent project that was published (a published 3MF). Keep it about three letters long.
+msgid "PUB"
+msgstr "已发布"
 
 # AI Translated
 msgid "Not signed in"
@@ -31158,6 +32931,75 @@ msgid "Load %s"
 msgstr "装载 %s"
 
 # AI Translated
+#. TRN %1% is the printer agent name, %2% its ID, %3% the capability and %4% the plugin already using that ID.
+#, boost-format
+msgid "Printer-agent '%1%' could not be enabled: agent ID '%2%' is already registered by capability '%3%' from plugin '%4%'."
+msgstr "无法启用打印机代理“%1%”：代理 ID“%2%”已被插件“%4%”的功能“%3%”注册。"
+
+# AI Translated
+#. TRN %1% is the printer agent name, %2% its ID and %3% the printer agent already using that ID.
+#, boost-format
+msgid "Printer-agent '%1%' could not be enabled: agent ID '%2%' is already registered by '%3%'."
+msgstr "无法启用打印机代理“%1%”：代理 ID“%2%”已被“%3%”注册。"
+
+# AI Translated
+msgid "File uploaded"
+msgstr "文件已上传"
+
+# AI Translated
+msgid "Uploading G-code..."
+msgstr "正在上传 G-code..."
+
+# AI Translated
+msgid "Starting print..."
+msgstr "正在启动打印..."
+
+# AI Translated
+msgid "Print started"
+msgstr "打印已开始"
+
+# AI Translated
+msgid "Uploading..."
+msgstr "正在上传..."
+
+# AI Translated
+msgid "Network library version not specified"
+msgstr "未指定网络库版本"
+
+# AI Translated
+msgid "Network library not found"
+msgstr "未找到网络库"
+
+# AI Translated
+msgid "Failed to load network library"
+msgstr "加载网络库失败"
+
+# AI Translated
+msgid "Network library failed to load"
+msgstr "网络库加载失败"
+
+# AI Translated
+msgid "An older plug-in series. Features that need newer plug-in support, such as print-failure snapshots in the device error dialog, are unavailable."
+msgstr "旧版插件系列。需要较新插件支持的功能（例如设备错误对话框中的打印失败快照）不可用。"
+
+# AI Translated
+msgid "unknown name"
+msgstr "未知名称"
+
+# AI Translated
+#, c-format, boost-format
+msgid ""
+"Plugin \"%s\" requests filesystem read access to:\n"
+"%s"
+msgstr ""
+"插件“%s”请求读取文件系统中的以下位置：\n"
+"%s"
+
+# AI Translated
+msgid "Plugin permissions"
+msgstr "插件权限"
+
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Plugin \"%s\" is requesting permission for the Python audit event \"%s\".\n"
@@ -31171,36 +33013,48 @@ msgstr ""
 # AI Translated
 #, c-format, boost-format
 msgid ""
-"Plugin \"%s\" is requesting to read the following file(s):\n"
+"Plugin \"%s\" is requesting to read the following file:\n"
 "%s"
-msgstr ""
+msgid_plural ""
+"Plugin \"%s\" is requesting to read the following files:\n"
+"%s"
+msgstr[0] ""
 "插件“%s”正在请求读取以下文件：\n"
 "%s"
 
 # AI Translated
 #, c-format, boost-format
 msgid ""
-"Plugin \"%s\" is requesting to read/write the following file(s):\n"
+"Plugin \"%s\" is requesting to read/write the following file:\n"
 "%s"
-msgstr ""
+msgid_plural ""
+"Plugin \"%s\" is requesting to read/write the following files:\n"
+"%s"
+msgstr[0] ""
 "插件“%s”正在请求读写以下文件：\n"
 "%s"
 
 # AI Translated
 #, c-format, boost-format
 msgid ""
-"Plugin \"%s\" is requesting to create the following file(s):\n"
+"Plugin \"%s\" is requesting to create the following file:\n"
 "%s"
-msgstr ""
+msgid_plural ""
+"Plugin \"%s\" is requesting to create the following files:\n"
+"%s"
+msgstr[0] ""
 "插件“%s”正在请求创建以下文件：\n"
 "%s"
 
 # AI Translated
 #, c-format, boost-format
 msgid ""
-"Plugin \"%s\" is requesting to delete the following file(s):\n"
+"Plugin \"%s\" is requesting to delete the following file:\n"
 "%s"
-msgstr ""
+msgid_plural ""
+"Plugin \"%s\" is requesting to delete the following files:\n"
+"%s"
+msgstr[0] ""
 "插件“%s”正在请求删除以下文件：\n"
 "%s"
 
@@ -31225,9 +33079,12 @@ msgstr ""
 # AI Translated
 #, c-format, boost-format
 msgid ""
-"Plugin \"%s\" is requesting to run the following command(s):\n"
+"Plugin \"%s\" is requesting to run the following command:\n"
 "%s"
-msgstr ""
+msgid_plural ""
+"Plugin \"%s\" is requesting to run the following commands:\n"
+"%s"
+msgstr[0] ""
 "插件“%s”正在请求运行以下命令：\n"
 "%s"
 
@@ -31253,6 +33110,14 @@ msgstr "插件“%s”正在请求 Python 审计事件“%s”的权限。"
 # AI Translated
 msgid "Plugin permission request"
 msgstr "插件权限请求"
+
+# AI Translated
+msgid "The preset stores invalid plugin capability configuration JSON."
+msgstr "该预设存储的插件功能配置 JSON 无效。"
+
+# AI Translated
+msgid "The preset's plugin capability configuration is not an array and cannot be edited."
+msgstr "该预设的插件功能配置不是数组，无法编辑。"
 
 # AI Translated
 msgid "Printer connection"
@@ -31308,8 +33173,344 @@ msgid "The configuration could not be written to disk. Nothing was changed."
 msgstr "无法将配置写入磁盘。未作任何更改。"
 
 # AI Translated
-msgid "Plugin installation failed"
-msgstr "插件安装失败"
+#, boost-format
+msgid "Plugin installation failed: %1%"
+msgstr "插件安装失败：%1%"
+
+# AI Translated
+#. TRN %1% is the plugin's cloud ID.
+#, boost-format
+msgid "%1%: installed plugin was not found in the catalog."
+msgstr "%1%：在目录中未找到已安装的插件。"
+
+# AI Translated
+msgid "Cloud plugin key is missing UUID."
+msgstr "云端插件密钥缺少 UUID。"
+
+# AI Translated
+msgid "Failed to subscribe to cloud plugin, see logs for more info."
+msgstr "订阅云端插件失败，详情请查看日志。"
+
+# AI Translated
+msgid "Only cloud plugins can be unsubscribed."
+msgstr "只能取消订阅云端插件。"
+
+# AI Translated
+msgid "Failed to unsubscribe plugin, see logs for more info."
+msgstr "取消订阅插件失败，详情请查看日志。"
+
+# AI Translated
+#. TRN %1% is the numeric result code returned by the cloud service.
+#, boost-format
+msgid "Failed to fetch the plugin download URL (result %1%)."
+msgstr "获取插件下载地址失败（结果 %1%）。"
+
+# AI Translated
+msgid "You are not authorized to download this cloud plugin."
+msgstr "您无权下载此云端插件。"
+
+# AI Translated
+msgid "No plugin package is available for this operating system."
+msgstr "没有适用于此操作系统的插件包。"
+
+# AI Translated
+msgid "The selected plugin version was not found."
+msgstr "未找到所选的插件版本。"
+
+# AI Translated
+#, boost-format
+msgid "Plugin version %1% was not found."
+msgstr "未找到插件版本 %1%。"
+
+# AI Translated
+msgid "Cloud plugin was not found."
+msgstr "未找到云端插件。"
+
+# AI Translated
+#. TRN %1% is the reason reported by the cloud service, in English.
+#, boost-format
+msgid "Cloud plugin download was not found: %1%."
+msgstr "未找到云端插件下载：%1%。"
+
+# AI Translated
+msgid "Cloud plugin download was not found."
+msgstr "未找到云端插件下载。"
+
+# AI Translated
+msgid "No download URL is available for this plugin. Please check the logs for errors."
+msgstr "此插件没有可用的下载地址。请查看日志了解错误信息。"
+
+# AI Translated
+#, boost-format
+msgid "Failed to download plugin: %1%"
+msgstr "下载插件失败：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Plugin download failed with HTTP status %1%."
+msgstr "插件下载失败，HTTP 状态码 %1%。"
+
+# AI Translated
+msgid "Plugin download returned empty data."
+msgstr "插件下载返回了空数据。"
+
+# AI Translated
+msgid "Failed to create temporary file for plugin download."
+msgstr "无法为插件下载创建临时文件。"
+
+# AI Translated
+msgid "Failed to write plugin data to temporary file."
+msgstr "无法将插件数据写入临时文件。"
+
+# AI Translated
+#, boost-format
+msgid "Failed to resolve plugin folder: %1%"
+msgstr "无法解析插件文件夹：%1%"
+
+# AI Translated
+#. TRN %1% is a folder path, %2% the system error message.
+#, boost-format
+msgid "Failed to delete plugin folder %1%: %2%"
+msgstr "删除插件文件夹 %1% 失败：%2%"
+
+# AI Translated
+#, boost-format
+msgid "Plugin directory does not exist: %1%"
+msgstr "插件目录不存在：%1%"
+
+# AI Translated
+#. TRN %1% and %2% are file names.
+#, boost-format
+msgid "Plugin directory contains multiple .py files: %1% and %2%"
+msgstr "插件目录包含多个 .py 文件：%1% 和 %2%"
+
+# AI Translated
+#. TRN %1% and %2% are file names.
+#, boost-format
+msgid "Plugin directory contains multiple .whl files: %1% and %2%"
+msgstr "插件目录包含多个 .whl 文件：%1% 和 %2%"
+
+# AI Translated
+msgid "Plugin directory contains both .py and .whl entry files"
+msgstr "插件目录同时包含 .py 和 .whl 入口文件"
+
+# AI Translated
+msgid "Plugin directory does not contain a .py or .whl entry file"
+msgstr "插件目录不包含 .py 或 .whl 入口文件"
+
+# AI Translated
+#, boost-format
+msgid "Slicing pipeline plugin '%1%' error: %2%"
+msgstr "切片流水线插件“%1%”出错：%2%"
+
+# AI Translated
+#, boost-format
+msgid "Plugin package must be a .py or .whl file, got: %1%"
+msgstr "插件包必须是 .py 或 .whl 文件，实际为：%1%"
+
+# AI Translated
+#. TRN %1% is the dependency file, %2% the error detail.
+#, boost-format
+msgid "Failed to extract plugin .whl dependency %1%: %2%"
+msgstr "提取插件 .whl 依赖项 %1% 失败：%2%"
+
+# AI Translated
+#, boost-format
+msgid "Failed to add .whl dependency to sys.path: %1%"
+msgstr "无法将 .whl 依赖项添加到 sys.path：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Python interpreter not initialized: %1%"
+msgstr "Python 解释器未初始化：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Plugin manifest is invalid: %1%"
+msgstr "插件清单无效：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Failed to install plugin dependencies: %1%"
+msgstr "安装插件依赖项失败：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Failed to load plugin module: %1%"
+msgstr "加载插件模块失败：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Plugin registration failed: %1%"
+msgstr "插件注册失败：%1%"
+
+# AI Translated
+msgid "Plugin module did not register any capabilities"
+msgstr "插件模块未注册任何功能"
+
+# AI Translated
+#. TRN %1% is the capability name, %2% the capability type (e.g. Script).
+#, boost-format
+msgid "Plugin declares duplicate capability '%1%' for type %2%"
+msgstr "插件为类型 %2% 声明了重复的功能“%1%”"
+
+# AI Translated
+#, boost-format
+msgid "Plugin capability materialization failed: %1%"
+msgstr "插件功能实例化失败：%1%"
+
+# AI Translated
+msgid "Plugin capability materialization failed"
+msgstr "插件功能实例化失败"
+
+# AI Translated
+#. TRN on_load is the name of the plugin's startup function; keep it untranslated.
+#, boost-format
+msgid "Plugin on_load failed: %1%"
+msgstr "插件 on_load 失败：%1%"
+
+# AI Translated
+msgid "Plugin on_load failed"
+msgstr "插件 on_load 失败"
+
+# AI Translated
+#, boost-format
+msgid "Plugin package is not a file: %1%"
+msgstr "插件包不是文件：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Cloud plugin UUID is not a valid identifier: %1%"
+msgstr "云端插件 UUID 不是有效的标识符：%1%"
+
+# AI Translated
+#. TRN %1% is a folder path, %2% the system error message.
+#, boost-format
+msgid "Failed to create plugin directory %1%: %2%"
+msgstr "创建插件目录 %1% 失败：%2%"
+
+# AI Translated
+#. TRN %1% is a folder path, %2% the system error message.
+#, boost-format
+msgid "Failed to back up existing plugin %1%: %2%"
+msgstr "备份现有插件 %1% 失败：%2%"
+
+# AI Translated
+#. TRN %1% is a file path, %2% the system error message.
+#, boost-format
+msgid "Failed to copy plugin file to %1%: %2%"
+msgstr "复制插件文件到 %1% 失败：%2%"
+
+# AI Translated
+#, boost-format
+msgid "Failed to write plugin install state: %1%"
+msgstr "写入插件安装状态失败：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Plugin package is already loaded: %1%"
+msgstr "插件包已加载：%1%"
+
+# AI Translated
+#. TRN %1% is the capability type (e.g. Script), %2% the capability name.
+#, boost-format
+msgid "Capability collision for type %1% and name '%2%'"
+msgstr "类型 %1% 与名称“%2%”的功能冲突"
+
+# AI Translated
+#, boost-format
+msgid "Duplicate plugin key discovered: %1%"
+msgstr "发现重复的插件密钥：%1%"
+
+# AI Translated
+msgid "Plugin load is still in progress"
+msgstr "插件仍在加载中"
+
+# AI Translated
+#, boost-format
+msgid "Plugin is invalid: %1%"
+msgstr "插件无效：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Plugin not found: %1%"
+msgstr "未找到插件：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Unexpected plugin load failure: %1%"
+msgstr "插件加载出现意外失败：%1%"
+
+# AI Translated
+msgid "Unexpected plugin load failure"
+msgstr "插件加载出现意外失败"
+
+# AI Translated
+#, boost-format
+msgid "Plugin manifest not found: %1%"
+msgstr "未找到插件清单：%1%"
+
+# AI Translated
+msgid "Failed to fetch plugins from the cloud. See logs for details."
+msgstr "从云端获取插件失败。详情请查看日志。"
+
+# AI Translated
+msgid "Sign in to OrcaCloud to install this plugin."
+msgstr "请登录 OrcaCloud 以安装此插件。"
+
+# AI Translated
+msgid "Subscribed cloud plugin was not returned by OrcaCloud."
+msgstr "OrcaCloud 未返回已订阅的云端插件。"
+
+# AI Translated
+msgid "Failed to download cloud plugin."
+msgstr "下载云端插件失败。"
+
+# AI Translated
+msgid "Failed to install cloud plugin."
+msgstr "安装云端插件失败。"
+
+# AI Translated
+msgid "Only cloud plugins can be updated."
+msgstr "只能更新云端插件。"
+
+# AI Translated
+msgid "No update is available for this plugin."
+msgstr "此插件没有可用更新。"
+
+# AI Translated
+msgid "Refusing to delete a plugin outside the known plugin directories."
+msgstr "拒绝删除已知插件目录之外的插件。"
+
+# AI Translated
+msgid "Refusing to update a plugin outside the known plugin directories."
+msgstr "拒绝更新已知插件目录之外的插件。"
+
+# AI Translated
+#, boost-format
+msgid "Cannot keep plugin local: local plugin key already exists: %1%"
+msgstr "无法保留为本地插件：本地插件密钥已存在：%1%"
+
+# AI Translated
+#, boost-format
+msgid "Failed to update plugin install state: %1%"
+msgstr "更新插件安装状态失败：%1%"
+
+# AI Translated
+msgid "Cannot unsubscribe your own plugins."
+msgstr "无法取消订阅您自己的插件。"
+
+# AI Translated
+msgid "Only cloud plugins can be deleted and unsubscribed."
+msgstr "只能删除并取消订阅云端插件。"
+
+# AI Translated
+msgid "Cannot unsubscribe your own plugins. Use Delete to remove the local files."
+msgstr "无法取消订阅您自己的插件。请使用“删除”来移除本地文件。"
+
+# AI Translated
+msgid "Plugin filesystem read permission request denied"
+msgstr "插件文件系统读取权限请求被拒绝"
 
 # AI Translated
 msgid "Profile has fewer than 2 points"
@@ -31342,6 +33543,10 @@ msgstr "两侧拉伸融合失败"
 # AI Translated
 msgid "imported regions produced no extrudable geometry"
 msgstr "导入的区域未生成可拉伸的几何体"
+
+# AI Translated
+msgid "the profile crosses the revolve axis — it must lie on one side of it"
+msgstr "轮廓跨越了旋转轴 — 它必须位于轴的一侧"
 
 # AI Translated
 msgid "Failed to revolve"
@@ -31380,6 +33585,10 @@ msgid "Pocket cut failed"
 msgstr "凹槽切除失败"
 
 # AI Translated
+msgid "the profile crosses or folds back on itself, so it does not bound one region"
+msgstr "轮廓自相交或折返，因此无法围成单一区域"
+
+# AI Translated
 msgid "sketch has no closed loop"
 msgstr "草图中没有闭合环"
 
@@ -31412,8 +33621,24 @@ msgid "mesh_to_brep: every triangle was rejected as degenerate (try a smaller to
 msgstr "mesh_to_brep：所有三角形均因退化而被剔除（请尝试更小的容差）"
 
 # AI Translated
+msgid "the fillet radius must be greater than 0"
+msgstr "圆角半径必须大于 0"
+
+# AI Translated
+msgid "no edges to fillet in that group"
+msgstr "该组中没有可倒圆角的边"
+
+# AI Translated
 msgid "fillet radius too large for this geometry"
 msgstr "圆角半径对于此几何体过大"
+
+# AI Translated
+msgid "the chamfer distance must be greater than 0"
+msgstr "倒角距离必须大于 0"
+
+# AI Translated
+msgid "no edges to chamfer in that group"
+msgstr "该组中没有可倒角的边"
 
 # AI Translated
 msgid "chamfer distance too large for this geometry"
@@ -31426,6 +33651,153 @@ msgstr "apply_fillet：OCCT 圆角失败"
 # AI Translated
 msgid "apply_chamfer: OCCT chamfer failed"
 msgstr "apply_chamfer：OCCT 倒角失败"
+
+# AI Translated
+msgid "empty component list"
+msgstr "组分列表为空"
+
+# AI Translated
+msgid "empty component index"
+msgstr "组分索引为空"
+
+# AI Translated
+#, boost-format
+msgid "component index must be >= 1 (got %1%)"
+msgstr "组分索引必须 >= 1（当前为 %1%）"
+
+# AI Translated
+#, boost-format
+msgid "invalid component index \"%1%\""
+msgstr "无效的组分索引“%1%”"
+
+# AI Translated
+#, boost-format
+msgid "at least 2 components required (got %1%)"
+msgstr "至少需要 2 个组分（当前为 %1%）"
+
+# AI Translated
+#, boost-format
+msgid "duplicate component index %1%"
+msgstr "重复的组分索引 %1%"
+
+# AI Translated
+msgid "empty ratio value"
+msgstr "比例值为空"
+
+# AI Translated
+#, boost-format
+msgid "ratio must be positive (got %1%)"
+msgstr "比例必须为正数（当前为 %1%）"
+
+# AI Translated
+#, boost-format
+msgid "invalid ratio \"%1%\""
+msgstr "无效的比例“%1%”"
+
+# AI Translated
+#. TRN %1% is the expected number of ratios, %2% the number found.
+#, boost-format
+msgid "the ratio count must match the component count: expected %1%, got %2%"
+msgstr "比例数量必须与组分数量一致：应为 %1%，当前为 %2%"
+
+# AI Translated
+msgid "expected two comma-separated floats, e.g. \"0.10,0.90\""
+msgstr "应为两个以逗号分隔的浮点数，例如“0.10,0.90”"
+
+# AI Translated
+msgid "start and end ratios must be in (0, 1)"
+msgstr "起始和结束比例必须在 (0, 1) 范围内"
+
+# AI Translated
+#, boost-format
+msgid "array size %1% does not match filament slot count %2%"
+msgstr "数组大小 %1% 与耗材丝槽位数量 %2% 不一致"
+
+# AI Translated
+msgid "must be set when mixed filament parameters are specified"
+msgstr "指定混合耗材丝参数时必须设置"
+
+# AI Translated
+#. TRN Mixed filament validation error. %1% is the filament slot number, %2% the reason.
+#, boost-format
+msgid "slot %1%: %2%"
+msgstr "槽位 %1%：%2%"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: component %2% out of range (max physical filament index is %3%)"
+msgstr "槽位 %1%：组分 %2% 超出范围（物理耗材丝索引上限为 %3%）"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: cannot reference itself as a component"
+msgstr "槽位 %1%：不能将自身引用为组分"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: component %2% references a mixed filament slot"
+msgstr "槽位 %1%：组分 %2% 引用了混合耗材丝槽位"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: gradient requires exactly 2 components"
+msgstr "槽位 %1%：渐变需要恰好 2 个组分"
+
+# AI Translated
+#, boost-format
+msgid "slot %1%: invalid curve (need at least 2 valid control points)"
+msgstr "槽位 %1%：曲线无效（至少需要 2 个有效控制点）"
+
+# AI Translated
+#, boost-format
+msgid "Failed loading configuration file \"%1%\": %2%"
+msgstr "加载配置文件“%1%”失败：%2%"
+
+# AI Translated
+#. TRN %1% is the application name.
+#, boost-format
+msgid "Not a gcode file generated by %1%."
+msgstr "不是由 %1% 生成的 G-code 文件。"
+
+# AI Translated
+#. TRN %1% is a tag in the G-code file that must not be translated.
+#, boost-format
+msgid "Config tag \"%1%\" not found"
+msgstr "未找到配置标签“%1%”"
+
+# AI Translated
+#, boost-format
+msgid "Suspiciously low number of configuration values extracted from %1%: %2%"
+msgstr "从 %1% 提取的配置值数量异常偏少：%2%"
+
+# AI Translated
+msgid ""
+"Load step file failed.\n"
+"Cannot open file for reading.\n"
+msgstr ""
+"加载 STEP 文件失败。\n"
+"无法打开文件进行读取。\n"
+
+# AI Translated
+msgid "import svg failed: could not open svg."
+msgstr "导入 SVG 失败：无法打开 SVG。"
+
+# AI Translated
+msgid "import svg failed: could not parse imported svg data."
+msgstr "导入 SVG 失败：无法解析导入的 SVG 数据。"
+
+# AI Translated
+msgid "Custom G-code reports negative z_retracted."
+msgstr "自定义 G-code 报告 z_retracted 为负。"
+
+# AI Translated
+msgid "Custom G-code reports negative z_restart_extra."
+msgstr "自定义 G-code 报告 z_restart_extra 为负。"
+
+# AI Translated
+#, boost-format
+msgid "Copying directory %1% to %2% failed: %3%"
+msgstr "复制目录 %1% 到 %2% 失败：%3%"
 
 # AI Translated
 msgid "Authentication complete"
@@ -31871,6 +34243,618 @@ msgid ""
 msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
+
+# AI Translated
+#, boost-format
+#~ msgid "Split into %1% part"
+#~ msgid_plural "Split into %1% parts"
+#~ msgstr[0] "拆分为 %1% 个零件"
+
+#~ msgid "Repair failed"
+#~ msgstr "修复失败"
+
+#~ msgid "Repair canceled"
+#~ msgstr "修复被取消"
+
+# AI Translated
+#~ msgid "What this layer does where it overlaps the ones below. Add and Subtract pile relief on or carve it away. Multiply and Divide scale what is underneath, which turns this layer into a mask over it - there, Depth acts as a strength, and 1 mm leaves white areas untouched."
+#~ msgstr "此图层与下方图层重叠处的作用方式。“添加”和“相减”会堆叠或削减起伏。“相乘”和“相除”会缩放下方的内容，使此图层成为其上的遮罩 - 此时“深度”相当于强度，1 mm 时白色区域保持不变。"
+
+# AI Translated
+#~ msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+#~ msgstr "网格存在非流形几何体或开放边界。您可以按原样导入，或在导入前使用 Windows 3D 修复服务进行修复。"
+
+# AI Translated
+#~ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+#~ msgstr "请注意，该网格存在非流形几何体或开放边界。"
+
+# AI Translated
+#~ msgid "Mesh issue"
+#~ msgstr "网格问题"
+
+# AI Translated
+#~ msgid "Repair failed: mesh still open after hole filling."
+#~ msgstr "修复失败：填补孔洞后网格仍未封闭。"
+
+# AI Translated
+#~ msgid "Cannot apply logical operation to non-boolean operators."
+#~ msgstr "无法对非布尔操作数应用逻辑运算。"
+
+#~ msgid "Reading"
+#~ msgstr "读取中"
+
+#, boost-format
+#~ msgid "Filament count exceeds the maximum number that painting tool supports. Only the first %1% filaments will be available in painting tool."
+#~ msgstr "耗材丝数量超过涂色工具支持的最大值，仅前%1%个耗材丝可在涂色工具中使用。"
+
+#~ msgid "Shortcut Key "
+#~ msgstr "快捷键 "
+
+#~ msgid "Build Volume"
+#~ msgstr "打印体积"
+
+# AI Translated
+#, boost-format
+#~ msgid ""
+#~ "Objects(%1%) have duplicated connectors. Some connectors may be missing in slicing result.\n"
+#~ "Please report to the OrcaSlicer team in which scenario this issue happened.\n"
+#~ "Thank you."
+#~ msgstr ""
+#~ "物体(%1%)存在重复的连接件。切片结果中可能会缺少部分连接件。\n"
+#~ "请向 OrcaSlicer 团队报告此问题出现的场景。\n"
+#~ "谢谢。"
+
+#, c-format, boost-format
+#~ msgid "%d triangles"
+#~ msgstr "%d 个三角形"
+
+#~ msgid " (Moving)"
+#~ msgstr "(活动的)"
+
+#~ msgid " (Fixed)"
+#~ msgstr "(固定的)"
+
+#~ msgid "Filament "
+#~ msgstr "耗材丝"
+
+#~ msgid "hotend"
+#~ msgstr "热端"
+
+# AI Translated
+#~ msgid "Arranging "
+#~ msgstr "自动摆放 "
+
+#~ msgid "Orienting"
+#~ msgstr "自动朝向中..."
+
+#~ msgid "Please home all axes (click "
+#~ msgstr "请先执行回原点（点击"
+
+#~ msgid ") to locate the toolhead's position. This prevents device moving beyond the printable boundary and causing equipment wear."
+#~ msgstr "）操作以定位当前工具头位置，以防止轴移动时超出边界造成设备磨损"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
+#~ msgstr "与最佳分组相比，增加 %1%g 耗材丝和 %2% 变化。"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
+#~ msgstr "与最佳分组相比，增加 %1%g 耗材丝并节省 %2% 变化。"
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
+#~ msgstr "与最佳分组相比，节省 %1%g 耗材丝并增加 %2% 变化。"
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+#~ msgstr "与具有一个喷嘴的打印机相比，可节省 %1%g 耗材和 %2% 变化。"
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+#~ msgstr "与具有一个喷嘴的打印机相比，节省 %1%g 耗材并增加 %2% 变化。"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+#~ msgstr "与具有一个喷嘴的打印机相比，增加 %1%g 耗材并节省 %2% 变化。"
+
+#~ msgid "number keys"
+#~ msgstr "数字键"
+
+#, c-format, boost-format
+#~ msgid "Filaments %s are placed in the %s, but the generated G-code path exceeds the printable range of the %s."
+#~ msgstr "耗材丝 %s 放置在 %s 中，但生成的 G-code 路径超出了 %s 的可打印范围。"
+
+#, c-format, boost-format
+#~ msgid "Filaments %s are placed in the %s, but the generated G-code path exceeds the printable height of the %s."
+#~ msgstr "耗材丝 %s 放置在 %s 中，但生成的 G-code 路径超出了 %s 的可打印高度。"
+
+#, c-format, boost-format
+#~ msgid "Filaments %s cannot be printed directly on the surface of this plate."
+#~ msgstr "耗材 %s 不能直接打印在该板的表面上。"
+
+#~ msgid "will be closed before creating a new model. Do you want to continue?"
+#~ msgstr "将会被关闭以创建新模型，是否继续?"
+
+#, c-format, boost-format
+#~ msgid "In Cloud Slicing Queue, there are %s tasks ahead of you."
+#~ msgstr "前面还有%s个任务在云端切片队列中"
+
+#~ msgid " upload failed"
+#~ msgstr "上传失败"
+
+#~ msgid " upload config prase failed\n"
+#~ msgstr "上传配置解析失败\n"
+
+#~ msgid " No corresponding storage bucket\n"
+#~ msgstr "没有相应的存储桶\n"
+
+#~ msgid " cannot be opened\n"
+#~ msgstr "无法打开\n"
+
+#~ msgid ""
+#~ "Your comment result cannot be uploaded due to the following reasons:\n"
+#~ "\n"
+#~ "  error code: "
+#~ msgstr ""
+#~ "由于某些原因，您的评论结果无法上传。如下所示：\n"
+#~ "\n"
+#~ "错误代码："
+
+#~ msgid "error message: "
+#~ msgstr "错误消息："
+
+#~ msgid ""
+#~ "\n"
+#~ "\n"
+#~ "Would you like to redirect to the webpage to give a rating?"
+#~ msgstr ""
+#~ "\n"
+#~ "\n"
+#~ "您是否想要重定向到评分网页？"
+
+# AI Translated
+#, boost-format
+#~ msgid " (process preset: %1%)"
+#~ msgstr " （工艺预设：%1%）"
+
+#, c-format, boost-format
+#~ msgid "The %s nozzle can not print %s."
+#~ msgstr "%s 喷嘴无法打印 %s。"
+
+#~ msgid " nozzle"
+#~ msgstr "喷嘴"
+
+#, boost-format
+#~ msgid "It is not recommended to print the following filament(s) with %1%: %2%\n"
+#~ msgstr "不建议使用 %1% 打印以下耗材： %2%\n"
+
+#, boost-format
+#~ msgid " plate %1%:"
+#~ msgstr "盘%1%："
+
+# AI Translated
+#, boost-format
+#~ msgid "Remove all %1% mixed filaments?"
+#~ msgstr "是否移除全部 %1% 个混合耗材丝？"
+
+#~ msgid "Do you want to replace it"
+#~ msgstr "您想要替换它吗"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
+#~ msgstr "热床温度冲突：T%d（%s）将热床设为 %d°C，而 T%d（%s）需要 %d°C。热床温度由主工具头决定，副工具头只能沿用该温度。"
+
+#~ msgid "No accelerations provided for calibration. Use default acceleration value "
+#~ msgstr "未提供校准加速度。使用默认加速度值"
+
+#~ msgid "No speeds provided for calibration. Use default optimal speed "
+#~ msgstr "未提供校准速度。使用默认最佳速度"
+
+# AI Translated
+#, boost-format
+#~ msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
+#~ msgstr "没有适用于 %1% 至 %2% °C 的传送带温度塔。请使用温度塔模型支持的温度范围，例如 230 至 190。"
+
+#~ msgid "The selected file"
+#~ msgstr "已选择的文件"
+
+#~ msgid "Does not contain valid G-code."
+#~ msgstr "不包含有效的G-code文件。"
+
+#~ msgid "with OrcaSlicer so that Orca can open models from"
+#~ msgstr "与OrcaSlicer一起使用，以便Orca可以从...打开模型"
+
+#, c-format, boost-format
+#~ msgid "Cost %dg filament and %d changes more than optimal grouping."
+#~ msgstr "成本 %dg 耗材和 %d 的变化超过最佳分组。"
+
+# AI Translated
+#~ msgid "Parameters with this icon can be configurable per nozzle."
+#~ msgstr "带有此图标的参数可以按喷嘴分别设置。"
+
+#~ msgid "Reserved keywords found"
+#~ msgstr "检测到保留的关键字"
+
+#, c-format, boost-format
+#~ msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
+#~ msgstr "该打印机下已关联 %d 个材料预设与 %d 个工艺预设。如删除该打印机，材料与工艺预设将一并删除。"
+
+#~ msgid "The following presets inherit this preset."
+#~ msgid_plural "The following preset inherits this preset."
+#~ msgstr[0] "以下预设继承此预设。"
+
+#, boost-format
+#~ msgid "%1% Preset"
+#~ msgstr "%1% 预设"
+
+#, boost-format
+#~ msgid "Are you sure you want to %1% the selected preset?"
+#~ msgstr "确定要%1%所选预设吗？"
+
+#, c-format, boost-format
+#~ msgid "%s %s"
+#~ msgstr "%s %s"
+
+#, boost-format
+#~ msgid "Split into %1% parts"
+#~ msgstr "拆分为 %1% 个零件"
+
+# AI Translated
+#~ msgid "Downloading new vendor profile(s): "
+#~ msgstr "正在下载新的供应商配置： "
+
+# AI Translated
+#~ msgid "Failed to download vendor profile(s): "
+#~ msgstr "下载供应商配置失败： "
+
+# AI Translated
+#, boost-format
+#~ msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
+#~ msgstr "在此 Span 模式下，只有 %1% 参与多色打印，但耗材丝 %2% 未分配给任何工具头。请使用分配给 %1% 的耗材丝，或将此盘切换为主模式。"
+
+# AI Translated
+#, boost-format
+#~ msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
+#~ msgstr "在此 Span 模式下，只有 %1% 参与多色打印，但耗材丝 %2% 分配给了 T%3%。请使用分配给 %1% 的耗材丝，或将此盘切换为主模式。"
+
+#~ msgid " is too close to exclusion area, there may be collisions when printing."
+#~ msgstr "离不可打印区域太近，打印时可能会发生碰撞。"
+
+#~ msgid " is too close to clumping detection area, there may be collisions when printing."
+#~ msgstr "距离结块检测区域太近，打印时可能会发生碰撞。"
+
+#~ msgid "Prime Tower"
+#~ msgstr "擦拭塔"
+
+#~ msgid " is too close to others, and collisions may be caused.\n"
+#~ msgstr "离其它对象太近，可能会发生碰撞。\n"
+
+#~ msgid " is too close to an exclusion area, and collisions will be caused.\n"
+#~ msgstr "离不可打印区域太近，会发生碰撞。\n"
+
+#~ msgid " is too close to clumping detection area, and collisions will be caused.\n"
+#~ msgstr "距离聚集检测区域太近，会引起碰撞。\n"
+
+# AI Translated
+#~ msgid " is partially outside the printable area, and it cannot be printed.\n"
+#~ msgstr "有部分超出可打印区域，无法打印。\n"
+
+# AI Translated
+#~ msgid "no configured tool"
+#~ msgstr "未配置的工具头"
+
+#~ msgid "Add end G-Code when finishing the entire print."
+#~ msgstr "所有打印结束时的结尾G-code"
+
+#~ msgid "Maximum X speed"
+#~ msgstr "X最大速度"
+
+#~ msgid "Maximum Y speed"
+#~ msgstr "Y最大速度"
+
+#~ msgid "Maximum Z speed"
+#~ msgstr "Z最大速度"
+
+#~ msgid "Maximum E speed"
+#~ msgstr "E最大速度"
+
+# AI Translated
+#~ msgid "Python plugin(s) invoked at each slicing pipeline step to read and modify intermediate slicing data, including a final G-code post-processing step. Research/experimental."
+#~ msgstr "在每个切片流水线步骤中调用的 Python 插件，用于读取和修改中间切片数据，包括最终的 G-code 后处理步骤。研究/实验性。"
+
+# AI Translated
+#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
+#~ msgstr "启用后，切片软件输出的 G-code 会以热床原点 (0,0) 为中心放置主区域的内容，由打印机固件负责把复制件/镜像件放到各个物理区域。仅当打印机固件在复制/镜像模式下会自行应用区域偏移时才启用（例如 RepRapFirmware 的 IDEX 复制模式）。主模式下无效。"
+
+# AI Translated
+# Needs human review: "pem-inversion defaults": confirm pem is the physical extruder map and that the default is its inverse.
+#~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
+#~ msgstr "按盘单独设置物理工具头到耗材丝槽位的映射（从 1 开始编号），覆盖默认映射。留空则使用由物理挤出机映射（pem）反推的默认值。"
+
+# AI Translated
+#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
+#~ msgstr "切片前模型网格的旋转轴。这一旋转即传送带打印机的倾斜：它是保距（无畸变）旋转，同时用于热床渲染和支撑的重力倾斜；生成 G-code 时，逆变换会先还原这一旋转，再进行机器坐标系剪切/缩放和重映射。X 是典型的龙门倾斜轴（传送带沿 Y 方向移动）。"
+
+# AI Translated
+#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
+#~ msgstr "专家选项：单独设置机器坐标系（G-code 剪切/缩放）的倾斜角度，与切片前的旋转角度互不影响。禁用时，机器坐标系变换由传送带倾斜角度推导，两个阶段使用同一个角度。仅当机器实际的龙门倾角与切片旋转角度不一致时，才需启用此项进行补偿。"
+
+#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
+#~ msgstr "在为“最大墙体分辨率”设置降低分辨率时所允许的最大偏差。如果增大此值，打印精度会降低，但 G-code 会更小。“最大墙体偏差”会限制“最大墙体分辨率”，因此当两者冲突时，以“最大墙体偏差”为准。"
+
+#~ msgid " not in range "
+#~ msgstr " 不在合理范围内"
+
+#~ msgid "floating regions"
+#~ msgstr "悬空区域"
+
+#~ msgid "floating cantilever"
+#~ msgstr "悬空悬臂"
+
+#~ msgid "large overhangs"
+#~ msgstr "大面积悬垂"
+
+#, c-format, boost-format
+#~ msgid "It seems object %s has %s. Please re-orient the object or enable support generation."
+#~ msgstr "%s 对象可能有 %s。请重新调整对象方向，或启用支持生成。"
+
+#~ msgid "No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"
+#~ msgstr "没有检测到层。您可能需要修复STL文件，或检查模型尺寸、厚度等，之后再重试。\n"
+
+#, c-format, boost-format
+#~ msgid "This machine type can only hold %d historical results per nozzle. This result will not be saved."
+#~ msgstr "该机型的每个喷嘴最多只能保存 %d 个历史结果, 该结果将不会被保存"
+
+#, c-format, boost-format
+#~ msgid "This machine type can only hold %d historical results per nozzle."
+#~ msgstr "该机型每个喷嘴最多只能保存%d个历史结果"
+
+# AI Translated
+#~ msgid "Overhang"
+#~ msgstr "悬垂"
+
+#~ msgid "Start / End"
+#~ msgstr "开始 / 结束"
+
+#~ msgid "Damp"
+#~ msgstr "阻尼"
+
+#, c-format, boost-format
+#~ msgid "Detected %d IFS slots on printer."
+#~ msgstr "在打印机上检测到 %d 个 IFS 槽位。"
+
+#~ msgid "selected"
+#~ msgstr "已选中"
+
+#~ msgid "The following presets inherits this preset."
+#~ msgid_plural "The following preset inherits this preset."
+#~ msgstr[0] "以下预设继承此预设。"
+
+# AI Translated
+#, c-format
+#~ msgid "Found %zu Creality printer(s). Select one and click Use Selected."
+#~ msgstr "找到 %zu 台 Creality 打印机。请选择一台并点击“使用所选”。"
+
+# AI Translated
+#~ msgid "log(s)"
+#~ msgstr "日志"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+#~ msgstr "错误：%s 挤出机没有可用的 %s 喷嘴，当前分组结果无效。"
+
+#~ msgid "invalid brim ears"
+#~ msgstr "无效的圆盘"
+
+#, c-format, boost-format
+#~ msgid "Skipping %d objects."
+#~ msgstr "跳过 %d 对象。"
+
+# AI Translated
+#~ msgid "Open folder in explorer"
+#~ msgstr "打开所在文件夹"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "Click center then a vertex — %d sides, %s"
+#~ msgstr "单击中心，然后单击一个顶点 — %d 条边，%s"
+
+# AI Translated
+#~ msgid "circumscribed"
+#~ msgstr "外切"
+
+# AI Translated
+#~ msgid "inscribed"
+#~ msgstr "内接"
+
+# AI Translated
+#, c-format
+#~ msgid "Sketch created (%zu driving dims) — select it, then right-click to Extrude"
+#~ msgstr "草图已创建（%zu 个驱动尺寸） — 选择它，然后右键单击进行拉伸"
+
+# AI Translated
+#, c-format
+#~ msgid "OK — %zu triangles"
+#~ msgstr "完成 — %zu 个三角形"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid ""
+#~ "This mesh has %d triangles. Every triangle becomes a B-rep face before coplanar merging, so importing it may take a long time and leave a body that is slow to edit. Decimating the mesh first is usually better.\n"
+#~ "\n"
+#~ "Import anyway?"
+#~ msgstr ""
+#~ "此网格包含 %d 个三角形。在合并共面之前，每个三角形都会成为一个 B-rep 面，因此导入可能需要很长时间，且生成的实体编辑起来会很慢。通常最好先简化网格。\n"
+#~ "\n"
+#~ "仍要导入吗？"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "Imported solid — %d triangles → %d faces, volume %.2f mm³. Pick a face or edge, then Fillet / Cut / Shell to modify"
+#~ msgstr "已导入实体 — %d 个三角形 → %d 个面，体积 %.2f mm³。选取一个面或边，然后使用圆角 / 切割 / 抽壳进行修改"
+
+# AI Translated
+#~ msgid " — drag to place/size, then Confirm"
+#~ msgstr " — 拖动以放置/调整大小，然后单击“确定”"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "%d sketch entities"
+#~ msgstr "%d 个草图图元"
+
+# AI Translated
+#~ msgid " — type a value, press Enter (or Confirm)"
+#~ msgstr " — 输入数值，按 Enter（或单击“确定”）"
+
+# AI Translated
+#, c-format
+#~ msgid "Preview — %zu triangles"
+#~ msgstr "预览 — %zu 个三角形"
+
+# AI Translated
+#, boost-format
+#~ msgid "%1% constraint(s) cannot act on this geometry (an ellipse or spline curve, or a zero-size circle) and are ignored"
+#~ msgstr "%1% 个约束无法作用于此几何图形（椭圆或样条曲线，或大小为零的圆），已被忽略"
+
+# AI Translated
+#, boost-format
+#~ msgid "%1% constraint(s) the fillet/chamfer invalidated were removed"
+#~ msgstr "已移除 %1% 个因圆角/倒角而失效的约束"
+
+# AI Translated
+#, boost-format
+#~ msgid "%1% constraint(s) released by the transform"
+#~ msgstr "变换解除了 %1% 个约束"
+
+# AI Translated
+#, boost-format
+#~ msgid "...and %1% more open end(s)"
+#~ msgstr "...以及另外 %1% 个开放端点"
+
+# AI Translated
+#, boost-format
+#~ msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+#~ msgstr "材料列表最多支持 %1% 种颜色。进行 %2% 分解后，材料数量将超过 %1%。请先在主界面删除未使用的耗材丝，再进行分解。"
+
+# AI Translated
+#, boost-format
+#~ msgid "%1% printable colors from %2% filaments"
+#~ msgstr "%1% 种可打印颜色，来自 %2% 种耗材丝"
+
+# AI Translated
+#, boost-format
+#~ msgid "%1% islands"
+#~ msgstr "%1% 个岛"
+
+# AI Translated
+#, boost-format
+#~ msgid "All %1% layers used"
+#~ msgstr "已使用全部 %1% 个图层"
+
+# AI Translated
+#, boost-format
+#~ msgid "Preview: %1% triangles"
+#~ msgstr "预览：%1% 个三角形"
+
+# AI Translated
+#, boost-format
+#~ msgid "Model: %1% triangles - the bake refines to the resolution above, up to its budget"
+#~ msgstr "模型：%1% 个三角形 - 烘焙会细化到上方的分辨率，直至达到预算"
+
+# AI Translated
+#, boost-format
+#~ msgid "Bake moves existing vertices - the model stays at %1% triangles"
+#~ msgstr "烘焙会移动现有顶点 - 模型保持 %1% 个三角形"
+
+# AI Translated
+#, boost-format
+#~ msgid "Bake result up to ~%1% k triangles"
+#~ msgstr "烘焙结果最多约 %1% k 个三角形"
+
+# AI Translated
+#, boost-format
+#~ msgid "%1% layers not painted, skipped"
+#~ msgstr "%1% 个图层未绘制，已跳过"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+#~ msgstr "项目最多支持 %d 种耗材丝。多余的耗材丝将被丢弃。"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "%d vertices selected  |  drag = move together, Shift/Ctrl click = add/remove"
+#~ msgstr "已选择 %d 个顶点  |  拖动 = 一起移动，Shift/Ctrl 单击 = 添加/移除"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "%d edges selected  |  drag = move together, Shift/Ctrl click = add/remove"
+#~ msgstr "已选择 %d 条边  |  拖动 = 一起移动，Shift/Ctrl 单击 = 添加/移除"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "%d islands selected  |  drag = move together, Shift/Ctrl click = add/remove, R/S = rotate/scale primary"
+#~ msgstr "已选择 %d 个岛  |  拖动 = 一起移动，Shift/Ctrl 单击 = 添加/移除，R/S = 旋转/缩放主岛"
+
+# AI Translated
+#~ msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
+#~ msgstr "当前图层的平铺尺寸，即纹理每重复一次在模型上覆盖的范围。画布以平铺为单位，一个网格单元即一次重复。可在图层的平铺设置中修改。"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "%d islands, %s faces"
+#~ msgstr "%d 个岛，%s 个面"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid ""
+#~ "Plugin \"%s\" is requesting to read the following file(s):\n"
+#~ "%s"
+#~ msgstr ""
+#~ "插件“%s”正在请求读取以下文件：\n"
+#~ "%s"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid ""
+#~ "Plugin \"%s\" is requesting to read/write the following file(s):\n"
+#~ "%s"
+#~ msgstr ""
+#~ "插件“%s”正在请求读写以下文件：\n"
+#~ "%s"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid ""
+#~ "Plugin \"%s\" is requesting to create the following file(s):\n"
+#~ "%s"
+#~ msgstr ""
+#~ "插件“%s”正在请求创建以下文件：\n"
+#~ "%s"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid ""
+#~ "Plugin \"%s\" is requesting to delete the following file(s):\n"
+#~ "%s"
+#~ msgstr ""
+#~ "插件“%s”正在请求删除以下文件：\n"
+#~ "%s"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid ""
+#~ "Plugin \"%s\" is requesting to run the following command(s):\n"
+#~ "%s"
+#~ msgstr ""
+#~ "插件“%s”正在请求运行以下命令：\n"
+#~ "%s"
+
+# AI Translated
+#~ msgid "Plugin installation failed"
+#~ msgstr "插件安装失败"
 
 #~ msgid ""
 #~ "The Microsoft WebView2 Runtime could not be installed.\n"
@@ -33686,9 +36670,6 @@ msgstr ""
 #, boost-format
 #~ msgid "Failed to calculate line width of %1%. Cannot get value of “%2%”."
 #~ msgstr "计算 %1%的线宽失败。无法获得 \"%2%\" 的值"
-
-#~ msgid "Invalid spacing supplied to Flow::with_spacing(), check your layer height and extrusion width."
-#~ msgstr "提供给 Flow::with_spacing() 的间距无效，请检查层高和挤出宽度"
 
 #~ msgid "Renders cast shadows on the plate in realistic view."
 #~ msgstr "在写实渲染中渲染投射到打印板上的阴影。"

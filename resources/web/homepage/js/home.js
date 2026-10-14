@@ -315,7 +315,7 @@ function ShowRecentFileList( pList )
 		//let index=sPath.lastIndexOf('\\')>0?sPath.lastIndexOf('\\'):sPath.lastIndexOf('\/');
 		//let sShortName=sPath.substring(index+1,sPath.length);
 		
-		let sBadge=sPublished? '<span class="FilePublishedBadge">PUB</span>':'';
+		let sBadge=sPublished? '<span class="FilePublishedBadge">'+T("published_badge", "PUB")+'</span>':'';
 		let sLogoBadge=sPublished? '<img class="FileLogoBadge" src="../../images/OrcaSlicer_gradient_circle.svg" alt="" />':'';
 
 		let TmpHtml='<div class="FileItem"  fpath="'+sPath+'"  >'+

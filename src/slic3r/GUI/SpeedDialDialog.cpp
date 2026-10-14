@@ -3,6 +3,7 @@
 #include "ActionRegistry.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "I18N.hpp"
 #include "MainFrame.hpp"
 #include "MsgDialog.hpp"
 #include "NotificationManager.hpp"
@@ -93,6 +94,8 @@ nlohmann::json speed_dial_ui_strings()
     const std::string alt  = GUI::shortkey_alt_prefix();
     const std::string ctrl = GUI::shortkey_ctrl_prefix();
     return {
+        // TRN Screen-reader label of a Speed Dial action: the first %s is the action name, the second where it comes from (a menu, tab or settings group). Keep the two %s in this order.
+        {"sd_action_from", _u8L("%s from %s")},
         {"shortcut_alt", alt},
         {"shortcut_ctrl", ctrl},
 
@@ -155,7 +158,7 @@ SpeedDialWebDialog::SpeedDialWebDialog(wxWindow* parent)
     if (!create_webview("web/dialog/SpeedDial/index.html", wxEmptyString, wxSize(kPopupWidth, kPopupMaxHeight),
                         wxSize(kPopupWidth, kPopupMinHeight))) {
         auto* sizer = new wxBoxSizer(wxVERTICAL);
-        sizer->Add(new wxStaticText(this, wxID_ANY, wxS("wxWebView unavailable")), wxSizerFlags().Border(wxALL, 20));
+        sizer->Add(new wxStaticText(this, wxID_ANY, _L("Web view is unavailable.")), wxSizerFlags().Border(wxALL, 20));
         SetSizer(sizer);
         SetClientSize(FromDIP(wxSize(kPopupWidth, kPopupMinHeight)));
     }

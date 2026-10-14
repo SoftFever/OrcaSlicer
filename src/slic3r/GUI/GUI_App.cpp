@@ -1109,6 +1109,8 @@ void GUI_App::post_init()
             }
 
             this->check_new_version_sf();
+            if (!cw_showed)
+                this->check_legacy_user_filament_presets(false);
             const auto cloud_provider = get_printer_cloud_provider();
             if (is_user_login(cloud_provider) && !app_config->get_stealth_mode()) {
               // this->check_privacy_version(0);
@@ -1147,14 +1149,8 @@ void GUI_App::post_init()
     if(!m_networking_need_update && m_agent) {
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
-                if (is_closing()) {
-                    return;
-                }
-                GUI::wxGetApp().CallAfter([this, json_str] {
-                    if (m_device_manager) {
-                        m_device_manager->on_machine_alive(json_str);
-                    }
-                    });
+                if (!is_closing() && m_device_manager)
+                    m_device_manager->on_machine_alive(json_str);
             }
         );
         m_agent->set_on_http_error_fn([this](CloudEvent event, unsigned int status, std::string body) {
@@ -1812,14 +1808,8 @@ void GUI_App::restart_networking()
         init_networking_callbacks();
         m_agent->set_on_ssdp_msg_fn(
             [this](std::string json_str) {
-                if (is_closing()) {
-                    return;
-                }
-                GUI::wxGetApp().CallAfter([this, json_str] {
-                    if (m_device_manager) {
-                        m_device_manager->on_machine_alive(json_str);
-                    }
-                    });
+                if (!is_closing() && m_device_manager)
+                    m_device_manager->on_machine_alive(json_str);
             }
         );
         m_agent->set_on_http_error_fn([this](CloudEvent event, unsigned int status, std::string body) {
@@ -2616,7 +2606,10 @@ void GUI_App::init_download_path()
     }
     else {
         fs::path dp(down_path);
-        if (!fs::exists(dp)) {
+        // ORCA: non-throwing probe; ec is deliberately unread, a download_path that cannot be
+        //       probed falls back to the default like a missing one instead of failing startup.
+        boost::system::error_code ec;
+        if (!fs::exists(dp, ec)) {
 
             std::string user_down_path = wxStandardPaths::Get().GetUserDir(wxStandardPaths::Dir_Downloads).ToUTF8().data();
             app_config->set("download_path", user_down_path);
@@ -3549,6 +3542,10 @@ bool GUI_App::on_init_inner()
     }
 
     // BBS if load user preset failed
+    // Let the libslic3r know the callback, which will translate messages on demand.
+    // Installed before the presets load so that their load errors are translated too.
+    Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
+
     //if (loaded_preset_result != 0) {
         try {
             // Enable all substitutions (in both user and system profiles), but log the substitutions in user profiles only.
@@ -3565,9 +3562,6 @@ bool GUI_App::on_init_inner()
 #ifdef WIN32
     register_win32_device_notification_event();
 #endif // WIN32
-
-    // Let the libslic3r know the callback, which will translate messages on demand.
-    Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
 #if defined(__WXGTK__) && wxHAS_EGL
     // Configure GL backend before any wxGLCanvas is created.
@@ -3922,80 +3916,73 @@ bool GUI_App::on_init_network(bool try_backup)
         if (config_version.empty()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": no version configured, need to download";
             m_networking_need_update = true;
+        } else {
+            int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
+        __retry:
+            if (!load_agent_dll) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
 
-            if (!m_device_manager)
-                m_device_manager = new Slic3r::DeviceManager();
-            if (!m_user_manager)
-                m_user_manager = new Slic3r::UserManager();
-
-            return false;
-        }
-
-        int load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
-    __retry:
-        if (!load_agent_dll) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
-
-            std::string loaded_version = Slic3r::NetworkAgent::get_version();
-            if (app_config && !loaded_version.empty() && loaded_version != "00.00.00.00") {
-                // Self-heal only when a genuinely different series loaded than configured (e.g. the
-                // configured build was unavailable and a fallback loaded). Within a series the
-                // loaded build (02.08.01.53) differs from the series config (02.08.01) by design, so
-                // compare series, not the raw string, and store the managed series form - a custom
-                // config (02.08.01_custom) keeps its own name.
-                std::string config_version = app_config->get_network_plugin_version();
-                std::string loaded_series  = network_plugin_series(loaded_version);
-                if (network_plugin_series(config_version) != loaded_series) {
-                    std::string synced = is_series_managed_version(loaded_version) ? loaded_series : loaded_version;
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": syncing config version from " << config_version
-                                            << " to loaded " << loaded_version << " (stored as " << synced << ")";
-                    app_config->set_network_plugin_version(synced);
-                    app_config->save();
+                std::string loaded_version = Slic3r::NetworkAgent::get_version();
+                if (app_config && !loaded_version.empty() && loaded_version != "00.00.00.00") {
+                    // Self-heal only when a genuinely different series loaded than configured (e.g. the
+                    // configured build was unavailable and a fallback loaded). Within a series the
+                    // loaded build (02.08.01.53) differs from the series config (02.08.01) by design, so
+                    // compare series, not the raw string, and store the managed series form - a custom
+                    // config (02.08.01_custom) keeps its own name.
+                    std::string config_version = app_config->get_network_plugin_version();
+                    std::string loaded_series  = network_plugin_series(loaded_version);
+                    if (network_plugin_series(config_version) != loaded_series) {
+                        std::string synced = is_series_managed_version(loaded_version) ? loaded_series : loaded_version;
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": syncing config version from " << config_version
+                                                << " to loaded " << loaded_version << " (stored as " << synced << ")";
+                        app_config->set_network_plugin_version(synced);
+                        app_config->save();
+                    }
                 }
-            }
 
-            if (check_networking_version()) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, compatibility version";
-                auto bambu_source = Slic3r::NetworkAgent::get_bambu_source_entry();
-                if (!bambu_source) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not get bambu source module!";
-                    m_networking_compatible = false;
+                if (check_networking_version()) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, compatibility version";
+                    auto bambu_source = Slic3r::NetworkAgent::get_bambu_source_entry();
+                    if (!bambu_source) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not get bambu source module!";
+                        m_networking_compatible = false;
+                        if (should_load_networking_plugin) {
+                            m_networking_need_update = true;
+                        }
+                    }
+                } else {
+                    if (try_backup) {
+                        int result = Slic3r::NetworkAgent::unload_network_module();
+                        BOOST_LOG_TRIVIAL(info) << "on_init_network, version mismatch, unload_network_module, result = " << result;
+                        load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(true, config_version);
+                        try_backup     = false;
+                        goto __retry;
+                    }
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
                     if (should_load_networking_plugin) {
                         m_networking_need_update = true;
                     }
                 }
             } else {
-                if (try_backup) {
-                    int result = Slic3r::NetworkAgent::unload_network_module();
-                    BOOST_LOG_TRIVIAL(info) << "on_init_network, version mismatch, unload_network_module, result = " << result;
-                    load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(true, config_version);
-                    try_backup     = false;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll failed";
+                // A failed install can leave the config naming a build that never made it to disk;
+                // fall back to the installed latest instead of dropping the user into the re-download
+                // flow. Only when the configured library is genuinely absent, though - a pinned series
+                // that is on disk but failed to load once must keep its pin, not be rewritten for good.
+                std::string latest = get_latest_network_version();
+                if (config_version != latest && !BBLNetworkPlugin::versioned_library_exists(config_version)
+                    && BBLNetworkPlugin::versioned_library_exists(latest)) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": falling back to installed " << latest;
+                    config_version = latest;
+                    app_config->set_network_plugin_version(latest);
+                    app_config->save();
+                    load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
                     goto __retry;
                 }
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
                 if (should_load_networking_plugin) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
                     m_networking_need_update = true;
                 }
-            }
-        } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll failed";
-            // A failed install can leave the config naming a build that never made it to disk;
-            // fall back to the installed latest instead of dropping the user into the re-download
-            // flow. Only when the configured library is genuinely absent, though - a pinned series
-            // that is on disk but failed to load once must keep its pin, not be rewritten for good.
-            std::string latest = get_latest_network_version();
-            if (config_version != latest && !BBLNetworkPlugin::versioned_library_exists(config_version)
-                && BBLNetworkPlugin::versioned_library_exists(latest)) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": falling back to installed " << latest;
-                config_version = latest;
-                app_config->set_network_plugin_version(latest);
-                app_config->save();
-                load_agent_dll = Slic3r::NetworkAgent::initialize_network_module(false, config_version);
-                goto __retry;
-            }
-            if (should_load_networking_plugin) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
-                m_networking_need_update = true;
             }
         }
     }
@@ -4023,6 +4010,11 @@ bool GUI_App::on_init_network(bool try_backup)
         m_user_manager = new Slic3r::UserManager(m_agent);
     else
         m_user_manager->set_agent(m_agent);
+
+    // A hot reload deletes the agent the task manager was built with. It lives until restart, so repoint it
+    // even if multi-device has since been turned off.
+    if (m_task_manager)
+        m_task_manager->set_agent(m_agent);
 
     if (this->is_enable_multi_machine()) {
         if (!m_task_manager) {
@@ -4228,8 +4220,10 @@ void GUI_App::switch_printer_agent()
             const std::string print_host = config.opt_string("print_host");
             if (!print_host.empty()) {
                 const std::string dev_id = MachineObject::dev_id_from_address(print_host, config.opt_string("printhost_port"));
-                MachineObject*    sel    = m_device_manager->get_selected_machine();
-                if (!sel || sel->get_dev_id() != dev_id)
+                MachineObject* sel = m_device_manager->get_selected_machine();
+                const bool access_code_changed = effective_agent_id == MOONRAKER_PRINTER_AGENT_ID && sel &&
+                                                 sel->get_access_code() != config.opt_string("printhost_apikey");
+                if (!sel || sel->get_dev_id() != dev_id || access_code_changed)
                     select_machine(effective_agent_id);
             }
         }
@@ -4271,6 +4265,9 @@ void GUI_App::select_machine(const std::string& agent_id)
         return;
     }
     std::string port = host_cfg->opt_string("printhost_port");
+    std::string access_code = host_cfg->opt_string("printhost_apikey");
+    if (access_code.empty() && agent_id != MOONRAKER_PRINTER_AGENT_ID)
+        access_code = "88888888";
 
     // Generate dev_id from host and port
     std::string dev_id = MachineObject::dev_id_from_address(print_host, port);
@@ -4297,11 +4294,6 @@ void GUI_App::select_machine(const std::string& agent_id)
         machine.dev_ip = dev_id;
         machine.dev_name = dev_id;
         machine.printer_type = preset.config.opt_string("printer_model");
-        auto access_code = preset.config.opt_string("printhost_apikey");
-        // Orca expect non empty access code
-        if (access_code.empty()) {
-            access_code = "88888888";
-        }
 
         existing = m_device_manager->insert_local_device(
             machine, "lan", "free", "", access_code);
@@ -4311,6 +4303,9 @@ void GUI_App::select_machine(const std::string& agent_id)
             return;
         }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": created new machine dev_id=" << dev_id;
+    } else if (agent_id == MOONRAKER_PRINTER_AGENT_ID && existing->printer_agent_id == agent_id &&
+               (!existing->has_access_right() || existing->get_access_code() != access_code)) {
+        existing->set_access_code(access_code);
     }
     existing->local_use_ssl = boost::istarts_with(print_host, "https://");
 
@@ -6816,6 +6811,71 @@ void GUI_App::reload_settings()
     }
 }
 
+void GUI_App::check_legacy_user_filament_presets(bool by_user)
+{
+    if (!by_user && app_config->get_bool("legacy_user_filament_presets_dont_remind"))
+        return;
+    const std::vector<LegacyUserFilamentPreset> legacy_presets = preset_bundle->legacy_user_filament_presets();
+    if (legacy_presets.empty()) {
+        if (by_user)
+            MessageDialog(mainframe, _L("All your filament presets are available on the printers they were made for."),
+                          _L("Migrate Filament Presets"), wxOK | wxICON_INFORMATION).ShowModal();
+        return;
+    }
+
+    wxString message = _L("OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare "
+                          "for future features. As a result, the presets below no longer show on some printers they were made "
+                          "for. Sorry for the trouble; this is a one-time fix.\n\n"
+                          "Add those printers back to your presets now? Your presets are backed up first. You can also do this "
+                          "later from Help > Migrate Filament Presets.") + "\n";
+    for (const LegacyUserFilamentPreset &legacy : legacy_presets) {
+        message += "\n" + format_wxstr(_L("%1% (based on %2%)"), legacy.preset, legacy.parent);
+        for (const std::string &printer : legacy.printers)
+            message += "\n    " + from_u8(printer);
+    }
+    RichMessageDialog dlg(mainframe, message, _L("Migrate Filament Presets"), wxYES | wxNO | wxICON_QUESTION);
+    if (!by_user)
+        dlg.ShowCheckBox(_L("Don't remind me again"));
+    const bool migrate = dlg.ShowModal() == wxID_YES;
+    if (dlg.IsCheckBoxChecked())
+        app_config->set_bool("legacy_user_filament_presets_dont_remind", true);
+    if (!migrate)
+        return;
+
+    const PresetBundle::LegacyUserFilamentPresetMigration migration = preset_bundle->migrate_legacy_user_filament_presets(legacy_presets);
+    const std::string              &backup = migration.backup;
+    const std::vector<std::string> &failed = migration.failed;
+    if (backup.empty()) {
+        show_error(mainframe, _L("Your presets could not be backed up, so they were not migrated."));
+        return;
+    }
+    if (!migration.locked) {
+        // The lock is also refused for a while after a miss, and when the lock file itself cannot be opened.
+        show_error(mainframe, _L("The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer "
+                                 "instance may be saving presets; try again later from Help > Migrate Filament Presets."));
+        return;
+    }
+    if (failed.size() == legacy_presets.size()) {
+        show_error(mainframe, format_wxstr(_L("Your filament presets could not be migrated. A backup of your presets was saved to:\n%1%"), backup));
+        return;
+    }
+    preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
+    mainframe->update_side_preset_ui();
+    for (auto tab : tabs_list) {
+        tab->reload_config();
+        tab->update_changed_ui();
+    }
+
+    message = format_wxstr(_L("Your filament presets were migrated. Select them again in the filament list where you used them.\n\n"
+                              "A backup of your presets was saved to:\n%1%"), backup);
+    if (!failed.empty()) {
+        message += "\n\n" + _L("These presets could not be migrated:");
+        for (const std::string &name : failed)
+            message += "\n" + from_u8(name);
+    }
+    MessageDialog(mainframe, message, _L("Migrate Filament Presets"), wxOK | (failed.empty() ? wxICON_INFORMATION : wxICON_WARNING)).ShowModal();
+}
+
 //BBS reload when logout
 void GUI_App::remove_user_presets()
 {
@@ -8582,22 +8642,23 @@ void GUI_App::refresh_plugins()
     // and report completion through the notification manager -- the speed dial needs no dialog.
     std::thread([]() {
         wxString error;
+        bool unknown_error = false;
         try {
             refresh_plugin_metadata_blocking(/*fetch_cloud=*/true);
         } catch (const std::exception& ex) {
             error = from_u8(ex.what());
         } catch (...) {
-            error = "Unknown error"; // plain literal: wx translation isn't safe off the UI thread
+            unknown_error = true; // translated in CallAfter: wx translation isn't safe off the UI thread
         }
         if (!wxTheApp)
             return;
-        wxTheApp->CallAfter([error]() {
+        wxTheApp->CallAfter([error, unknown_error]() {
             if (wxGetApp().is_closing())
                 return;
             Plater* plater = wxGetApp().plater();
             if (plater == nullptr)
                 return;
-            if (error.IsEmpty())
+            if (error.IsEmpty() && !unknown_error)
                 plater->get_notification_manager()->push_notification(
                     NotificationType::CustomNotification,
                     NotificationManager::NotificationLevel::RegularNotificationLevel,
@@ -8606,7 +8667,7 @@ void GUI_App::refresh_plugins()
                 plater->get_notification_manager()->push_notification(
                     NotificationType::CustomNotification,
                     NotificationManager::NotificationLevel::ErrorNotificationLevel,
-                    into_u8(wxString::Format(_L("Failed to refresh plugins: %s"), error)));
+                    into_u8(wxString::Format(_L("Failed to refresh plugins: %s"), unknown_error ? _L("Unknown error") : error)));
         });
     }).detach();
 }
@@ -10072,7 +10133,9 @@ void GUI_App::start_download(std::string url)
     }
     //lets always init so if the download dest folder was changed, new dest is used
     boost::filesystem::path dest_folder(app_config->get("download_path"));
-    if (dest_folder.empty() || !boost::filesystem::is_directory(dest_folder)) {
+    // ORCA: non-throwing probe, as in init_download_path(); ec is deliberately unread.
+    boost::system::error_code ec;
+    if (dest_folder.empty() || !boost::filesystem::is_directory(dest_folder, ec)) {
         std::string msg = _u8L("Could not start URL download. Destination folder is not set. Please choose destination folder in Configuration Wizard.");
         BOOST_LOG_TRIVIAL(error) << msg;
         show_error(nullptr, msg);
