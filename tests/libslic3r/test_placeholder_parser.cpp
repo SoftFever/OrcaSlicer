@@ -244,6 +244,8 @@ SCENARIO("Placeholder parser variables", "[PlaceholderParser]") {
 SCENARIO("Placeholder parser coFloatsOrPercents vector access", "[PlaceholderParser]") {
     PlaceholderParser parser;
     auto config = DynamicPrintConfig::full_print_config();
+    if (config.option<ConfigOptionFloatsOrPercentsNullable>("small_perimeter_speed") == nullptr)
+        SKIP("small_perimeter_speed is a scalar on the 2.4 branch; no option here has the coFloatsOrPercents type");
 
     // outer_wall_speed is the ratio_over target for small_perimeter_speed.
     // Different values per extruder to verify parent resolves at the same element index.

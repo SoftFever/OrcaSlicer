@@ -50,27 +50,11 @@ jobs:
           fail-on-cache-miss: true
 
       - uses: lukka/get-cmake@latest
-        # The windows-11-arm runner needs CMake <= 3.31 (handled in the next step).
-        if: ${{ !(runner.os == 'Windows' && inputs.arch == 'arm64') }}
         with:
           cmakeVersion: "~4.3.0"  # use most recent 4.3.x version
           useLocalCache: true         # <--= Use the local cache (default is 'false').
           useCloudCache: true
 
-      - name: Install CMake 3.31.x (Windows ARM64)
-        # windows-11-arm ships CMake 4.x, which removed pre-3.5 policy
-        # compatibility AND has incomplete ASM_ARMASM linker modules
-        # (breaks Boost.Context on ARM64). Pin to the last 3.x release.
-        if: runner.os == 'Windows' && inputs.arch == 'arm64'
-        shell: pwsh
-        run: |
-          $ver = "3.31.6"
-          $url = "https://github.com/Kitware/CMake/releases/download/v$ver/cmake-$ver-windows-arm64.zip"
-          Invoke-WebRequest -Uri $url -OutFile "$env:RUNNER_TEMP\cmake.zip"
-          Expand-Archive -Path "$env:RUNNER_TEMP\cmake.zip" -DestinationPath "$env:RUNNER_TEMP\cmake" -Force
-          $cmakeBin = "$env:RUNNER_TEMP\cmake\cmake-$ver-windows-arm64\bin"
-          if (-not (Test-Path "$cmakeBin\cmake.exe")) { throw "cmake.exe not found at $cmakeBin" }
-          Add-Content -Path $env:GITHUB_PATH -Value $cmakeBin
 
       - name: Get the version and date on Ubuntu and macOS
         if: runner.os != 'Windows'
@@ -324,9 +308,26 @@ jobs:
 
       - name: Install nsis
         if: runner.os == 'Windows' && !vars.SELF_HOSTED
+        shell: pwsh
+        # The Chocolatey community feed intermittently 504s, and `choco install`
+        # exits 0 when package resolution fails that way. Unchecked, the job then
+        # builds for ~25 minutes before `cpack -G NSIS` reports a missing makensis.
+        # Retry the install and verify makensis itself, so a real failure stops here.
         run: |
           dir "C:/Program Files (x86)/Windows Kits/10/Include"
-          choco install nsis
+          $nsisDir = Join-Path ${env:ProgramFiles(x86)} 'NSIS'
+          $makensis = Join-Path $nsisDir 'makensis.exe'
+          for ($attempt = 1; $attempt -le 3 -and -not (Test-Path $makensis); $attempt++) {
+            if ($attempt -gt 1) { Start-Sleep -Seconds (15 * $attempt) }
+            Write-Host "::group::choco install nsis (attempt $attempt)"
+            choco install nsis --yes --no-progress
+            Write-Host "::endgroup::"
+          }
+          if (-not (Test-Path $makensis)) {
+            throw "NSIS install failed: $makensis not found after 3 attempts."
+          }
+          & $makensis /VERSION
+          $nsisDir | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
       - name: Build slicer Win
         if: runner.os == 'Windows'
@@ -482,9 +483,12 @@ jobs:
         timeout-minutes: 20
         shell: bash
         run: |
+          # The test repo tracks main's CLI. Pin it to the commit current at the 2.4.2 release.
           test_repo_dir="${{ runner.temp }}/orca-test-repo"
           rm -rf "$test_repo_dir"
-          git clone --depth 1 https://github.com/OrcaSlicer/orca-test-repo.git "$test_repo_dir"
+          git init -q "$test_repo_dir"
+          git -C "$test_repo_dir" fetch -q --depth 1 https://github.com/OrcaSlicer/orca-test-repo.git 0dfd8df467895d7093d50b267c7209fd53f43a40
+          git -C "$test_repo_dir" checkout -q FETCH_HEAD
           python3 "$test_repo_dir/run_test.py" "${{ github.workspace }}/build/package/bin/orca-slicer"
 
       - name: Build orca_custom_preset_tests

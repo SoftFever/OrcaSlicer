@@ -3051,7 +3051,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
         auto used_filaments = print.get_slice_used_filaments(false);
         this->placeholder_parser().set("is_all_bbl_filament", std::all_of(used_filaments.begin(), used_filaments.end(), [&](auto idx) {
-            return m_config.filament_vendor.values[idx] == "Bambu Lab";
+            return m_config.filament_vendor.get_at(idx) == "Bambu Lab";
             }));
 
         //add during_print_exhaust_fan_speed
@@ -3066,7 +3066,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         this->placeholder_parser().set("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
 
         auto first_layer_filaments = print.get_slice_used_filaments(true);
-        bool has_tpu_in_first_layer = std::any_of(first_layer_filaments.begin(), first_layer_filaments.end(), [&](unsigned int idx) { return m_config.filament_type.values[idx] == "TPU"; });
+        bool has_tpu_in_first_layer = std::any_of(first_layer_filaments.begin(), first_layer_filaments.end(), [&](unsigned int idx) { return m_config.filament_type.get_at(idx) == "TPU"; });
         this->placeholder_parser().set("has_tpu_in_first_layer", new ConfigOptionBool(has_tpu_in_first_layer));
 
         if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
@@ -5617,6 +5617,7 @@ void GCode::append_full_config(const Print &print, std::string &str)
     static const std::set<std::string_view> banned_keys( {
         "compatible_printers"sv,
         "compatible_prints"sv,
+        "filament_colour_type"sv,
         "print_host"sv,
         "print_host_webui"sv,
         "printhost_apikey"sv,
@@ -7829,12 +7830,14 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             if (old_filament_id_in_new_extruder == -1)
                 wipe_volume = 0;
             else {
-                wipe_volume = flush_matrix[old_filament_id_in_new_extruder * number_of_extruders + new_filament_id];
+                size_t flush_idx = size_t(old_filament_id_in_new_extruder) * number_of_extruders + new_filament_id;
+                wipe_volume = flush_idx < flush_matrix.size() ? flush_matrix[flush_idx] : 0.f;
                 wipe_volume *= m_config.flush_multiplier.get_at(new_extruder_id);
             }
         }
         else {
-            wipe_volume = flush_matrix[old_filament_id * number_of_extruders + new_filament_id];
+            size_t flush_idx = size_t(old_filament_id) * number_of_extruders + new_filament_id;
+            wipe_volume = flush_idx < flush_matrix.size() ? flush_matrix[flush_idx] : 0.f;
             wipe_volume *= m_config.flush_multiplier.get_at(new_extruder_id);  // if is multi_extruder only use the fist extruder matrix
         }
         wipe_volume = std::max(0.f, wipe_volume-grab_purge_volume);

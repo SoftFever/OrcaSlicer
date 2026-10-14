@@ -19,6 +19,15 @@ endif()
 if(WIN32)
     set(_conf_cmd perl Configure )
     set(_cross_comp_prefix_line "")
+    if("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "ARM64")
+        # OpenSSL's VC configs pass /Gs0, which puts a __chkstk probe in every
+        # function. MSVC 14.51 and 14.52 (VS 2026) for ARM64 emit that call
+        # before the prologue saves LR, so the function returns into itself;
+        # in tls_parse_all_extensions that breaks every TLS handshake. 14.44
+        # (VS 2022) is unaffected. Restore cl's default threshold: Configure
+        # appends /Gs4096 after /Gs0, and the later option wins.
+        set(_openssl_extra_cflags /Gs4096)
+    endif()
     set(_make_cmd nmake)
     set(_install_cmd nmake install_sw )
 else()
@@ -53,6 +62,7 @@ ExternalProject_Add(dep_OpenSSL
         "--openssldir=${DESTDIR}"
         "--prefix=${DESTDIR}"
         ${_cross_comp_prefix_line}
+        ${_openssl_extra_cflags}
         no-shared
         no-asm
         no-ssl3-method
