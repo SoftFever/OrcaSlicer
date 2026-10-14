@@ -278,6 +278,8 @@ protected:
         GAP_FILL,
         // ORCA: paints the swept region between two clicked points.
         LINE,
+        // ORCA: fills a screen-space box marked by two clicked corners.
+        RECTANGLE,
     };
 
     struct ProjectedMousePosition
@@ -304,6 +306,18 @@ protected:
     Vec3f    m_line_first_hit             = Vec3f::Zero();
     int      m_line_first_mesh_idx        = -1;
     int      m_line_first_facet_idx       = -1;
+
+    // ORCA: the RECTANGLE tool's first corner in canvas pixels, kept until the second
+    //       click fills the box. Spacing is in pixels too, so density does not change
+    //       with the zoom.
+    bool     m_rect_pending               = false;
+    Vec2d    m_rect_first_screen          = Vec2d::Zero();
+    float    m_rect_spacing_px            = 8.f;
+    static constexpr float RectSpacingMin = 2.f;
+    static constexpr float RectSpacingMax = 64.f;
+    // Each sample costs a raycast and a select_patch on the UI thread. Past this count the
+    // step widens, so a large box at fine spacing fills coarsely instead of stalling.
+    static constexpr int   RectMaxSamples = 20000;
 
     bool     m_paint_on_overhangs_only          = false;
     float    m_highlight_by_angle_threshold_deg = 0.f;

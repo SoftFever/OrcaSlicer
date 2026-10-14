@@ -83,6 +83,7 @@ void GLGizmoPainterBase::data_changed(bool is_serializing)
         update_from_model_object(!m_schedule_update);
         // ORCA: the rebuilt selectors renumber the facets a LINE anchor points at.
         m_line_pending = false;
+        m_rect_pending = false;
 
         m_old_mo_id = mo->id();
         m_old_volumes_size = mo->volumes.size();
@@ -215,12 +216,25 @@ bool GLGizmoPainterBase::render_follows_cursor() const
 
 void GLGizmoPainterBase::render_tool_preview()
 {
-    // ORCA: the LINE anchor and its rubber band.
+    // ORCA: the rubber band of a two-click tool - the LINE anchor, or the RECTANGLE corner.
     //
     // This runs from the gizmo's input window rather than from render_cursor(), which the canvas
     // calls during the 3D pass: a frame rendered there is not guaranteed to reach the screen with
     // the ImGui foreground list it filled, and the canvas stops redrawing once the cursor leaves
     // the part. Both together left the band on screen only while the cursor was over the mesh.
+    const ImU32 ghost_color = IM_COL32(0, 150, 136, 220);
+
+    if (m_tool_type == ToolType::RECTANGLE && m_rect_pending) {
+        const Vec2d  mouse = m_parent.get_local_mouse_position();
+        const ImVec2 a(float(m_rect_first_screen.x()), float(m_rect_first_screen.y()));
+        const ImVec2 b(float(mouse.x()), float(mouse.y()));
+        ImDrawList  *draw = ImGui::GetForegroundDrawList();
+        draw->AddRect(ImVec2(std::min(a.x, b.x), std::min(a.y, b.y)),
+                      ImVec2(std::max(a.x, b.x), std::max(a.y, b.y)), ghost_color, 0.0f, 0, 2.0f);
+        draw->AddCircleFilled(a, 4.0f, ghost_color);
+        return;
+    }
+
     if (m_tool_type != ToolType::LINE || !m_line_pending || m_line_first_mesh_idx < 0)
         return;
     if (m_c->selection_info() == nullptr || m_c->selection_info()->model_object() == nullptr)
@@ -246,11 +260,10 @@ void GLGizmoPainterBase::render_tool_preview()
     const Vec3d  ndc      = clip.head<3>() / clip.w();
     const ImVec2 anchor(float(0.5 * (ndc.x() + 1.0) * double(cnv_size.get_width())),
                         float(0.5 * (1.0 - ndc.y()) * double(cnv_size.get_height())));
-    const Vec2d  mouse = m_parent.get_local_mouse_position();
-    const ImU32  color = IM_COL32(0, 150, 136, 220);
-    ImDrawList  *draw  = ImGui::GetForegroundDrawList();
-    draw->AddLine(anchor, ImVec2(float(mouse.x()), float(mouse.y())), color, 2.0f);
-    draw->AddCircleFilled(anchor, 4.0f, color);
+    const Vec2d mouse = m_parent.get_local_mouse_position();
+    ImDrawList *draw  = ImGui::GetForegroundDrawList();
+    draw->AddLine(anchor, ImVec2(float(mouse.x()), float(mouse.y())), ghost_color, 2.0f);
+    draw->AddCircleFilled(anchor, 4.0f, ghost_color);
 }
 
 void GLGizmoPainterBase::render_cursor()
@@ -266,8 +279,9 @@ void GLGizmoPainterBase::render_cursor()
     if (m_rr.mesh_id == -1)
         return;
 
-    // ORCA: LINE reuses the brush preview, so the second click lands where the operator sees it.
-    if (m_tool_type == ToolType::BRUSH || m_tool_type == ToolType::LINE) {
+    // ORCA: LINE and RECTANGLE reuse the brush preview, so the second click lands where the
+    //       operator sees it.
+    if (m_tool_type == ToolType::BRUSH || m_tool_type == ToolType::LINE || m_tool_type == ToolType::RECTANGLE) {
         if (m_cursor_type == TriangleSelector::SPHERE)
             render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
         else if (m_cursor_type == TriangleSelector::CIRCLE)
@@ -906,6 +920,56 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return true;
         }
 
+        // ORCA: RECTANGLE marks opposite corners of a screen-space box with two clicks and
+        //       paints every sample inside it that hits a mesh. It runs before the on-mesh
+        //       return below, because a corner is usually off the part.
+        if (m_tool_type == ToolType::RECTANGLE) {
+            if (!m_rect_pending) {
+                m_rect_first_screen = _mouse_position;
+                m_rect_pending      = true;
+                m_last_mouse_click  = _mouse_position;
+                return true;
+            }
+            m_rect_pending = false;
+
+            const Vec2d  a    = m_rect_first_screen;
+            const double xmin = std::min(a.x(), _mouse_position.x()), xmax = std::max(a.x(), _mouse_position.x());
+            const double ymin = std::min(a.y(), _mouse_position.y()), ymax = std::max(a.y(), _mouse_position.y());
+            const double area = std::max(1.0, (xmax - xmin) * (ymax - ymin));
+            const double step = std::max(double(std::max(RectSpacingMin, m_rect_spacing_px)),
+                                         std::sqrt(area / double(RectMaxSamples)));
+
+            std::vector<bool> touched(m_triangle_selectors.size(), false);
+            for (double y = ymin; y <= ymax + 0.5; y += step)
+                for (double x = xmin; x <= xmax + 0.5; x += step) {
+                    update_raycast_cache(Vec2d(x, y), camera, trafo_matrices);
+                    if (m_rr.mesh_id < 0)
+                        continue;
+                    const int                              mesh_idx   = m_rr.mesh_id;
+                    const Transform3d                     &trafo      = trafo_matrices[mesh_idx];
+                    const Vec3f                            camera_pos = (trafo.inverse() * camera.get_position()).cast<float>();
+                    const TriangleSelector::ClippingPlane &clp        = this->get_clipping_plane_in_volume_coordinates(trafo);
+                    std::unique_ptr<TriangleSelector::Cursor> cursor = TriangleSelector::SinglePointCursor::cursor_factory(
+                        m_rr.hit, camera_pos, m_cursor_radius, TriangleSelector::CursorType::CIRCLE, trafo, clp);
+                    m_triangle_selectors[mesh_idx]->select_patch(int(m_rr.facet), std::move(cursor), new_state,
+                                                                 trafo_matrices_not_translate[mesh_idx], m_triangle_splitting_enabled,
+                                                                 m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f,
+                                                                 get_tilt_up_direction());
+                    touched[mesh_idx] = true;
+                }
+
+            for (size_t mesh_idx = 0; mesh_idx < touched.size(); ++mesh_idx)
+                if (touched[mesh_idx])
+                    m_triangle_selectors[mesh_idx]->request_update_render_data(true);
+
+            // LeftUp takes the undo snapshot and calls update_model_object(), but only when a
+            // button is down. Without this the fill renders and is never committed.
+            if (m_button_down == Button::None)
+                m_button_down = action == SLAGizmoEventType::LeftDown ? Button::Left : Button::Right;
+            m_last_mouse_click = _mouse_position;
+            return true;
+        }
+
         if (action == SLAGizmoEventType::Dragging && m_tool_type == ToolType::BRUSH ){
             if(m_vertical_only)
                 _mouse_position.x() = m_last_mouse_click.x();
@@ -1277,6 +1341,7 @@ void GLGizmoPainterBase::on_set_state()
         m_last_mouse_click = Vec2d::Zero();
         // ORCA: same for a LINE anchor, whose facet index only means anything to the selectors it was taken from.
         m_line_pending     = false;
+        m_rect_pending     = false;
 
         //Camera& camera = wxGetApp().plater()->get_camera();
         //camera.look_at(camera.get_position(), m_previous_target, Vec3d::UnitZ());
