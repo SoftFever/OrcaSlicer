@@ -1228,7 +1228,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         // m_result.nozzle_group_result, which is handed over only after the stream for the
         // pre-heat injector's second pass and gates the richer change-time model.
         std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> m_nozzle_group_result;
-        bool m_manual_filament_change;
+        bool m_manual_filament_change{ false };
 
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };
@@ -1280,6 +1280,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         bool m_detect_layer_based_on_tag {false};
         int m_seams_count;
         bool m_measure_g29_time {false};
+        bool m_g29_time_added {false};
         bool m_single_extruder_multi_material;
         float m_preheat_time;
         int m_preheat_steps;

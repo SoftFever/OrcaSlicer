@@ -1184,7 +1184,8 @@ void TroubleshootDialog::UpdateLogsStorage()
     }
 
     bool is_mb = total_bytes >= 1024 * 1024;
-    wxString label = total_bytes > 0 ? wxString::Format("%d %s (%.2f %s)", file_count, _L("log(s)"), total_bytes / (1024.0 * (is_mb ? 1024.0 : 1.0)), is_mb ? "MB" : "KB") : "";
+    // TRN Number of log files, then their total size and its unit (KB or MB).
+    wxString label = total_bytes > 0 ? wxString::Format(_L_PLURAL("%d log (%.2f %s)", "%d logs (%.2f %s)", file_count), file_count, total_bytes / (1024.0 * (is_mb ? 1024.0 : 1.0)), is_mb ? "MB" : "KB") : "";
     m_logs_storage->SetLabel(label);
 }
 
