@@ -15,6 +15,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/format.hpp"
 
+#include <slic3r/GUI/AnimatedTexture.hpp>
 #include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/CameraUtils.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
