@@ -558,15 +558,35 @@ void Selection::center()
     return;
 }
 
+double Selection::get_drop_min_z() const
+{
+    if (!m_valid)         return 0.;
+    if (m_mode == Volume) return get_bounding_box().min.z();
+
+    double min_z = DBL_MAX;
+    for (const auto& [obj_idx, inst_idxs] : m_cache.content) {
+        if (obj_idx >= (int)m_model->objects.size())
+            continue; // wipe tower
+        for (int inst_idx : inst_idxs)
+            min_z = std::min(min_z, m_model->objects[obj_idx]->get_instance_min_z(inst_idx));
+    }
+    return min_z == DBL_MAX ? 0. : min_z;
+}
+
+bool Selection::can_drop() const
+{
+    return std::abs(get_drop_min_z()) > -SINKING_Z_THRESHOLD;
+}
+
 void Selection::drop()
 {
-    if (std::abs(this->get_bounding_box().min.z()) < -SINKING_Z_THRESHOLD) {
-        return; // shouldnt happen, but better check anyways, already checked in append_menu_item_drop()
-    }
+    const double min_z = get_drop_min_z();
+    if (std::abs(min_z) < -SINKING_Z_THRESHOLD)
+        return; // already checked in can_drop()
 
     wxGetApp().plater()->take_snapshot(L("Move object"));
 
-    this->move_to_center(Vec3d(0, 0, -this->get_bounding_box().min.z()));
+    this->move_to_center(Vec3d(0, 0, -min_z));
 
     for (unsigned int i : m_list) {
         GLVolume&    volume = *(*m_volumes)[i];

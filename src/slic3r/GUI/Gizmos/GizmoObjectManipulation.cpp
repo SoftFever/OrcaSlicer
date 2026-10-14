@@ -289,23 +289,11 @@ void GizmoObjectManipulation::update_if_dirty()
     m_dirty = false;
 }
 
-// Lowest point of the current selection in world coordinates. Only a single full instance
-// or a single part / modifier is supported, anything else reports no offset.
-double GizmoObjectManipulation::get_selection_min_z() const
-{
-    const Selection& selection = m_glcanvas.get_selection();
-    if (selection.is_single_full_instance())
-        return selection.get_scaled_instance_bounding_box().min.z();
-    if (selection.is_single_volume_or_modifier())
-        return get_volume_min_z(selection.get_first_volume());
-    return 0.;
-}
-
 void GizmoObjectManipulation::update_reset_buttons_visibility()
 {
     const Selection& selection = m_glcanvas.get_selection();
 
-    m_show_drop_to_bed = false;
+    m_show_drop_to_bed = selection.can_drop();
 
     if (selection.is_single_full_instance() || selection.is_single_volume_or_modifier()) {
         const GLVolume* volume = selection.get_first_volume();
@@ -317,7 +305,6 @@ void GizmoObjectManipulation::update_reset_buttons_visibility()
         m_show_clear_rotation = !rotation.isApprox(m_init_rotation);
         m_show_reset_0_rotation = !rotation.isApprox(Vec3d::Zero());
         m_show_clear_scale = (m_cache.scale / 100.0f - Vec3d::Ones()).norm() > 0.001;
-        m_show_drop_to_bed = std::abs(get_selection_min_z()) > EPSILON;
     }
 }
 
@@ -582,31 +569,6 @@ void GizmoObjectManipulation::reset_position_value()
 
     // Copy position values from GLVolumes into Model (ModelInstance / ModelVolume), trigger background processing.
     wxGetApp().plater()->take_snapshot(_u8L("Reset position"), UndoRedo::SnapshotType::GizmoAction);
-    m_glcanvas.do_move("");
-
-    UpdateAndShow(true);
-}
-
-void GizmoObjectManipulation::drop_to_bed()
-{
-    Selection& selection = m_glcanvas.get_selection();
-
-    if (!selection.is_single_full_instance() && !selection.is_single_volume_or_modifier())
-        return;
-
-    const double min_z = get_selection_min_z();
-    if (std::abs(min_z) <= EPSILON)
-        return;
-
-    selection.setup_cache();
-
-    TransformationType transformation_type;
-    transformation_type.set_relative();
-
-    // Drop along the global Z axis regardless of the coordinate system shown in the panel.
-    selection.translate(-min_z * Vec3d::UnitZ(), transformation_type);
-
-    wxGetApp().plater()->take_snapshot(_u8L("Drop to Bed"), UndoRedo::SnapshotType::GizmoAction);
     m_glcanvas.do_move("");
 
     UpdateAndShow(true);
@@ -927,9 +889,6 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     }
     // the init position values are not zero, won't add reset button
 
-    if (m_show_drop_to_bed && imgui_wrapper->button(_L("Drop to Bed"), _L("Move the selection along Z so that its lowest point touches the bed.")))
-        drop_to_bed();
-
     // send focus to m_glcanvas
     bool focued_on_text = false;
     for (int j = 0; j < 3; j++) {
@@ -949,6 +908,15 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 4.0f * f_scale));
 
     GLGizmoUtils::render_tooltip_button(imgui_wrapper, m_glcanvas, m_shortcuts_move, x, y);
+
+    // ORCA use exiting function for drop and show button on bottom bar to keep gizmo compact
+    imgui_wrapper->disabled_begin(!m_show_drop_to_bed);
+    ImGui::SameLine(0, space_size * 1.5f);
+    if (imgui_wrapper->button(_L("Drop"), _L("Move the selection along Z so that its lowest point touches the bed."))){
+        wxGetApp().plater()->drop_selection();
+        UpdateAndShow(true);
+    }
+    imgui_wrapper->disabled_end();
 
     ImGui::SameLine();
     GLGizmoUtils::begin_right_aligned_buttons({ _L("Done") });
