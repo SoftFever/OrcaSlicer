@@ -921,11 +921,13 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     // ORCA use exiting function for drop and show button on bottom bar to keep gizmo compact
     imgui_wrapper->disabled_begin(!m_show_drop_to_bed);
     ImGui::SameLine(0, space_size * 1.5f);
-    if (imgui_wrapper->button(_L("Drop"), _L("Move the selection along Z so that its lowest point touches the bed."))){
+    if (imgui_wrapper->button(_L("Drop"))){
         wxGetApp().plater()->drop_selection();
         UpdateAndShow(true);
     }
     imgui_wrapper->disabled_end();
+    if(ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip("%s", _u8L("Move the selection along Z so that its lowest point touches the bed.").c_str());
 
     ImGui::SameLine();
     GLGizmoUtils::begin_right_aligned_buttons({ _L("Done") });
