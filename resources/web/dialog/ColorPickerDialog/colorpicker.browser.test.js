@@ -1,18 +1,20 @@
 // Optional real-DOM regressions. Use an existing Playwright installation:
 // ORCA_PLAYWRIGHT_MODULE=<module path> ORCA_BROWSER_EXECUTABLE=<browser path>
+// ORCA_BROWSER_ENGINE=webkit exercises the macOS WebView layout engine.
 // node --test resources/web/dialog/ColorPickerDialog/colorpicker.browser.test.js
 const {test, before, after} = require("node:test");
 const assert = require("node:assert/strict");
 const {readFileSync} = require("node:fs");
 const {resolve} = require("node:path");
 const {pathToFileURL} = require("node:url");
-let chromium;
-try { ({chromium} = require(process.env.ORCA_PLAYWRIGHT_MODULE || "playwright")); }
+const engineName = process.env.ORCA_BROWSER_ENGINE || "chromium";
+let engine;
+try { engine = require(process.env.ORCA_PLAYWRIGHT_MODULE || "playwright")[engineName]; }
 catch (error) { if (error.code !== "MODULE_NOT_FOUND") throw error; }
-const options = {skip: chromium ? false : "Use an existing Playwright installation via ORCA_PLAYWRIGHT_MODULE"};
+const options = {skip: engine ? false : "Use an existing Playwright installation via ORCA_PLAYWRIGHT_MODULE"};
 const url = pathToFileURL(resolve(__dirname, "index.html")).href;
 let browser;
-before(async () => { if (chromium) browser = await chromium.launch({headless: true, ...(process.env.ORCA_BROWSER_EXECUTABLE ? {executablePath: process.env.ORCA_BROWSER_EXECUTABLE} : {})}); });
+before(async () => { if (engine) browser = await engine.launch({headless: true, ...(process.env.ORCA_BROWSER_EXECUTABLE ? {executablePath: process.env.ORCA_BROWSER_EXECUTABLE} : {})}); });
 after(async () => { if (browser) await browser.close(); });
 async function open(t, strings = {}, language = "") {
   const page = await browser.newPage({viewport: {width: 600, height: 660}}), errors = [];
@@ -201,6 +203,31 @@ test("Live app theme overrides the opposite system scheme without changing color
       assert.equal(selected.type, checked ? "gradient" : "solid");
       if (checked) assert.deepEqual(selected, initial.selection, "returning to gradient keeps ordered endpoint byte alpha");
     }
+  }
+});
+
+test("Sidebar resizes from a compact viewport and shrinks after every collapse", options, async t => {
+  const {page, ready, send} = await open(t);
+  await page.setViewportSize({width: 342, height: 382});
+  await send({...init(ready, true, true), ui: {sidebar_open: false, palette: "basic"}});
+  const selection = await page.evaluate(() => ColorPickerDialog.exportSelection());
+  for (const [index, sidebarOpen] of [false, true, false, true, false].entries()) {
+    const width = sidebarOpen ? 512 : 342;
+    await page.waitForFunction(expected => messages.filter(message => message.command === "resize").at(-1)?.width === expected, width);
+    const size = await page.evaluate(() => messages.filter(message => message.command === "resize").at(-1));
+    assert.equal(size.height, 382);
+    await page.setViewportSize({width: size.width, height: size.height});
+    await page.waitForTimeout(100);
+    assert(await page.evaluate(() => {
+      const body = document.body.getBoundingClientRect();
+      const picker = document.querySelector(".right-panel").getBoundingClientRect();
+      return body.width === innerWidth && picker.right <= body.right && picker.bottom <= body.bottom;
+    }), "the host viewport contains the full picker");
+    const resizes = await count(page, "resize");
+    await page.waitForTimeout(100);
+    assert.equal(await count(page, "resize"), resizes, "fitting the host does not cause a resize loop");
+    assert.deepEqual(await page.evaluate(() => ColorPickerDialog.exportSelection()), selection);
+    if (index < 4) await page.locator("#paletteToggle").click();
   }
 });
 

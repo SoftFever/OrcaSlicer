@@ -18,7 +18,9 @@
 }
 
 html, body {
-  width: fit-content;
+  /* Report the full content width even before the native host expands its viewport.
+     WebKit's fit-content can clip the sidebar and retain the expanded width on close. */
+  width: max-content;
   overflow: hidden;
 }
 
@@ -149,6 +151,8 @@ body {
 /* ---------- Picker ---------- */
 .right-panel {
   flex: 0 0 320px;
+  /* WebKit uses width, rather than flex-basis, for the parent's intrinsic width. */
+  width: 320px;
   display: flex;
   flex-direction: column;
 }
