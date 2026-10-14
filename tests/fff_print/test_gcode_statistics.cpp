@@ -6,6 +6,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "libslic3r/GCode/GCodeStatistics.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/Point.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Utils.hpp"
@@ -16,6 +17,8 @@
 #include <nlohmann/json.hpp>
 
 #include <cstddef>
+#include <initializer_list>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -62,6 +65,15 @@ TEST_CASE("The statistics of a sliced plate add up per layer, feature and object
     CHECK_THAT(time, Catch::Matchers::WithinAbs(summary["time"].get<double>(), 0.1));
     CHECK_THAT(volume, Catch::Matchers::WithinAbs(summary["volume"].get<double>(), 0.1));
     CHECK_THAT(summary["weight"].get<double>(), Catch::Matchers::WithinRel(summary["volume"].get<double>() * 1.25 / 1000., 1e-4));
+    CHECK(summary.contains("filament_cost"));
+
+    // The filament splits by use as the preview's table does.
+    REQUIRE(summary["filaments"].size() == 1);
+    const nlohmann::json &filament = summary["filaments"].front();
+    double used = 0.;
+    for (const char *use : { "model", "support", "prime_tower", "flush" })
+        used += filament[use]["volume"].get<double>();
+    CHECK_THAT(used, Catch::Matchers::WithinAbs(filament["volume"].get<double>(), 0.01));
 
     const nlohmann::json &features = summary["features"];
     CHECK(features.contains("Outer wall"));
@@ -81,6 +93,28 @@ TEST_CASE("The statistics of a sliced plate add up per layer, feature and object
         objects_volume += objects[i]["volume"].get<double>();
     }
     CHECK_THAT(objects_volume, Catch::Matchers::WithinAbs(model_volume, 0.1));
+}
+
+TEST_CASE("Copies sliced as objects of their own keep their number in the model object", "[GCodeStatistics]")
+{
+    // A copy of another scale slices as a print object of its own.
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({ { "skirt_loops", 0 }, { "brim_type", "no_brim" } });
+    Print print;
+    Model model;
+    Test::init_print({ Test::cube(20) }, print, model, config, nullptr, true, 2);
+    model.objects.front()->instances.back()->set_scaling_factor(Vec3d(0.5, 0.5, 0.5));
+    model.objects.front()->ensure_on_bed();
+    print.apply(model, config);
+    REQUIRE(print.objects().size() == 2);
+    GCodeProcessorResult result;
+    Test::gcode(print, &result);
+
+    const nlohmann::json objects = nlohmann::json::parse(gcode_statistics_json(result))["objects"];
+    std::set<int>        instances;
+    for (const nlohmann::json &object : objects)
+        instances.insert(object["instance"].get<int>());
+    CHECK(instances == std::set<int>{ 0, 1 });
 }
 
 TEST_CASE("The statistics file takes the G-code's name with the statistics extension", "[GCodeStatistics]")

@@ -32,6 +32,14 @@ double rounded(double value, int decimals)
     return std::round(value * scale) / scale;
 }
 
+// As the object masses weigh it, at the default density for a filament without one.
+double weight_of(const GCodeProcessorResult &result, size_t filament, double volume)
+{
+    const bool has_density = filament < result.filament_densities.size() && result.filament_densities[filament] > 0.f;
+    // mm³ at g/cm³ weigh mg.
+    return 0.001 * volume * (has_density ? result.filament_densities[filament] : DEFAULT_FILAMENT_DENSITY);
+}
+
 struct Usage
 {
     double time{ 0. };
@@ -69,14 +77,8 @@ std::string gcode_statistics_json(const GCodeProcessorResult &result)
         Usage                          total;
         std::map<ExtrusionRole, Usage> features;
     };
-    struct Filament
-    {
-        double length{ 0. };
-        Usage  usage;
-    };
     std::vector<Layer>             layers;
     std::map<ExtrusionRole, Usage> features;
-    std::map<size_t, Filament>     filaments;
     double                         travel_time = 0.;
 
     // As the preview sums them: a layer takes the time of all its moves, a feature that of its extrusions.
@@ -95,48 +97,55 @@ std::string gcode_statistics_json(const GCodeProcessorResult &result)
             continue;
         if (move.extrusion_role != erCustom)
             layer.z = move.position.z();
-        const size_t filament = move.extruder_id;
-        const bool   has_density = filament < result.filament_densities.size() && result.filament_densities[filament] > 0.f;
-        Usage        usage;
+        Usage usage;
         usage.time   = time;
-        usage.volume = double(move.delta_extruder) * M_PI * sqr(0.5 * double(result.filament_diameters[filament]));
-        // mm³ at g/cm³ weigh mg.
-        usage.weight = 0.001 * usage.volume * (has_density ? result.filament_densities[filament] : DEFAULT_FILAMENT_DENSITY);
+        usage.volume = double(move.delta_extruder) * M_PI * sqr(0.5 * double(result.filament_diameters[move.extruder_id]));
+        usage.weight = weight_of(result, move.extruder_id, usage.volume);
         layer.total.volume += usage.volume;
         layer.total.weight += usage.weight;
         layer.features[move.extrusion_role].add(usage);
         features[move.extrusion_role].add(usage);
-        filaments[filament].length += move.delta_extruder;
-        filaments[filament].usage.add(usage);
     }
 
-    double volume = 0., weight = 0., cost = 0.;
-    json   filaments_json = json::array();
-    for (const auto &[id, filament] : filaments) {
+    // As the preview's filament table, which counts the flush too.
+    const PrintEstimatedStatistics &stats  = result.print_statistics;
+    double                          volume = 0., weight = 0., cost = 0.;
+    json                            filaments_json = json::array();
+    for (const auto &entry : stats.total_volumes_per_extruder) {
+        const size_t filament = entry.first;
+        const auto   use      = [&result, filament](const std::map<size_t, double> &volumes) {
+            const auto   it   = volumes.find(filament);
+            const double used = it == volumes.end() ? 0. : it->second;
+            return json{ { "volume", rounded(used, 3) }, { "weight", rounded(weight_of(result, filament, used), 4) } };
+        };
+        const double filament_weight = weight_of(result, filament, entry.second);
         // Priced per kilogram.
-        const double filament_cost = id < result.filament_costs.size() ? 0.001 * filament.usage.weight * result.filament_costs[id] : 0.;
-        volume += filament.usage.volume;
-        weight += filament.usage.weight;
+        const double filament_cost = filament < result.filament_costs.size() ? 0.001 * filament_weight * result.filament_costs[filament] : 0.;
+        volume += entry.second;
+        weight += filament_weight;
         cost += filament_cost;
-        filaments_json.push_back(json{ { "id", id + 1 },
-                                       { "length", rounded(filament.length, 2) },
-                                       { "volume", rounded(filament.usage.volume, 3) },
-                                       { "weight", rounded(filament.usage.weight, 4) },
-                                       { "cost", rounded(filament_cost, 2) } });
+        filaments_json.push_back(json{ { "id", filament + 1 },
+                                       { "length", rounded(entry.second / (M_PI * sqr(0.5 * double(result.filament_diameters[filament]))), 2) },
+                                       { "volume", rounded(entry.second, 3) },
+                                       { "weight", rounded(filament_weight, 4) },
+                                       { "cost", rounded(filament_cost, 2) },
+                                       { "model", use(stats.model_volumes_per_extruder) },
+                                       { "support", use(stats.support_volumes_per_extruder) },
+                                       { "prime_tower", use(stats.wipe_tower_volumes_per_extruder) },
+                                       { "flush", use(stats.flush_per_filament) } });
     }
 
-    const PrintEstimatedStatistics &stats   = result.print_statistics;
-    json                            summary = json{ { "time", rounded(stats.modes[normal].time, 3) },
-                                                    { "prepare_time", rounded(stats.modes[normal].prepare_time, 3) },
-                                                    { "travel_time", rounded(travel_time, 3) },
-                                                    { "travel_distance", rounded(stats.total_travel_distance, 2) },
-                                                    { "layer_count", layers.size() },
-                                                    { "volume", rounded(volume, 3) },
-                                                    { "weight", rounded(weight, 4) },
-                                                    { "cost", rounded(cost, 2) },
-                                                    { "filament_changes", stats.total_filament_changes },
-                                                    { "filaments", filaments_json },
-                                                    { "features", features_json(features) } };
+    json summary = json{ { "time", rounded(stats.modes[normal].time, 3) },
+                         { "prepare_time", rounded(stats.modes[normal].prepare_time, 3) },
+                         { "travel_time", rounded(travel_time, 3) },
+                         { "travel_distance", rounded(stats.total_travel_distance, 2) },
+                         { "layer_count", layers.size() },
+                         { "volume", rounded(volume, 3) },
+                         { "weight", rounded(weight, 4) },
+                         { "filament_cost", rounded(cost, 2) },
+                         { "filament_changes", stats.total_filament_changes },
+                         { "filaments", filaments_json },
+                         { "features", features_json(features) } };
 
     json layers_json = json::array();
     for (const Layer &layer : layers)
@@ -163,6 +172,7 @@ std::string gcode_statistics_json(const GCodeProcessorResult &result)
                                      { "support_weight", rounded(0.001 * support.mass, 4) } });
     }
 
+    // The version goes up only when a key is removed, renamed or changes meaning.
     const json out = json{ { "version", 1 },
                            { "generator", std::string(SLIC3R_APP_NAME) + " " + SoftFever_VERSION },
                            { "units", json{ { "time", "s" }, { "length", "mm" }, { "volume", "mm3" }, { "weight", "g" } } },

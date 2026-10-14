@@ -298,7 +298,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             BoundingBoxf3    box;
             // Of an object, whether it is an assembly.
             bool assembly{ false };
-            // Of an object instance, the object's name and the instance's index in it.
+            // Of an object instance, its model object's name and its index among that object's instances.
             std::string name;
             int         instance{ -1 };
 
