@@ -1700,7 +1700,7 @@ TEST_CASE("Shared heater on IMEX printer stays hot until all filaments on it are
         }
     });
 
-    // Filaments 1 and 5 share T0 and both print up to 10mm.
+    // Filaments 1 and 2 share head 0, and filament 1 prints up to 10mm.
     // T0 must not shut down at ~4mm when filament 2 finishes.
     CHECK_FALSE(premature_s0_t0);
 }
