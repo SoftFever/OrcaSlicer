@@ -20,8 +20,7 @@
 #include <ios>
 #include <string>
 #include <vector>
-#include <catch2/matchers/catch_matchers.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <cstddef>
 
 using namespace Slic3r;
 
