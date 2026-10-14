@@ -2728,7 +2728,7 @@ void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer)
             cur_block_depth[m_filpar[new_filament].category] = block->start_depth;
         process_depth = cur_block_depth[m_filpar[new_filament].category];
         if (!m_filament_map.empty() && new_filament < m_filament_map.size() && m_filament_map[old_filament] != m_filament_map[new_filament]) {
-            if (m_filament_categories[new_filament] == m_filament_categories[old_filament])
+            if (get_filament_category(new_filament) == get_filament_category(old_filament))
                 process_depth += nozzle_change_depth;
             else {
                 if (!cur_block_depth.count(m_filpar[old_filament].category)) {
@@ -3853,7 +3853,7 @@ int WipeTower::get_wall_filament_for_all_layer()
     int filament_id    = -1;
     int filament_count = 0;
     for (auto iter = filament_counts.begin(); iter != filament_counts.end(); ++iter) {
-        if (m_filament_categories[iter->first] == selected_category && iter->second > filament_count) {
+        if (get_filament_category(iter->first) == selected_category && iter->second > filament_count) {
             filament_id    = iter->first;
             filament_count = iter->second;
         }
