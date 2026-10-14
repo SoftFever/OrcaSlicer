@@ -99,6 +99,7 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/GCode.hpp"
+#include "libslic3r/MeshRepair.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Platform.hpp"
@@ -143,6 +144,7 @@
 #include "libslic3r/ExPolygon.hpp"
 #include "libslic3r/Exception.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/GCode/GCodeStatistics.hpp"
 #include "libslic3r/GCode/ToolOrdering.hpp"
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -206,7 +208,8 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_ORIENT_FAILED, "An error occurred when auto-orienting object(s)."},
     {CLI_MODIFIED_PARAMS_TO_PRINTER, "Found modified parameter in printer preset in the 3mf file, which should not be changed."},
         {CLI_FILE_VERSION_NOT_SUPPORTED, "Unsupported 3MF version. Please make sure the 3MF file was created with the official version of Bambu Studio, not a beta version."},
-    {CLI_NO_SUITABLE_OBJECTS, "One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Orca Slicer before uploading."},
+    {CLI_EXPORT_STATISTICS_ERROR, "Failed exporting the G-code statistics."},
+    {CLI_NO_SUITABLE_OBJECTS, "The plate has nothing to slice: it is empty, or no object on it is both printable and fully inside the print volume."},
     {CLI_VALIDATE_ERROR, "There are some incorrect slicing parameters in the 3mf. Please verify the slicing of all plates in Orca Slicer before uploading."},
     {CLI_OBJECTS_PARTLY_INSIDE, "Some objects are located over the boundary of the heated bed."},
     {CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED, "Failed creating directory when exporting cache data."},
@@ -1537,6 +1540,9 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* allow_mix_temp_option = m_config.option<ConfigOptionBool>("allow_mix_temp");
     if (allow_mix_temp_option)
         allow_mix_temp = allow_mix_temp_option->value;
+
+    const ConfigOptionBool* export_statistics_option = m_config.option<ConfigOptionBool>("export_statistics");
+    const bool              export_statistics        = export_statistics_option != nullptr && export_statistics_option->value;
 
     ConfigOptionBool* avoid_extrusion_cali_region_option = m_config.option<ConfigOptionBool>("avoid_extrusion_cali_region");
     if (avoid_extrusion_cali_region_option)
@@ -5130,9 +5136,19 @@ int CLI::run(int argc, char **argv)
                 }
             }
         } else if (opt_key == "repair") {
-            // Models are repaired by default.
-            //for (auto &model : m_models)
-            //    model.repair();
+            if (m_config.opt_bool(opt_key))
+                for (Model &model : m_models)
+                    for (ModelObject *object : model.objects) {
+                        for (ModelVolume *volume : object->volumes) {
+                            MeshRepairStats stats;
+                            std::string     error;
+                            if (!volume->repair(true, &stats, &error))
+                                BOOST_LOG_TRIVIAL(warning) << "repair of " << object->name << " / " << volume->name << " failed: " << error;
+                            else if (stats.modified)
+                                BOOST_LOG_TRIVIAL(info) << "repaired " << object->name << " / " << volume->name;
+                        }
+                        object->invalidate_bounding_box();
+                    }
         } else {
             boost::nowide::cerr << "error: option not implemented yet: " << opt_key << std::endl;
             record_exit_reson(outfile_dir, CLI_UNSUPPORTED_OPERATION, 0, cli_errors[CLI_UNSUPPORTED_OPERATION], sliced_info);
@@ -7070,6 +7086,16 @@ int CLI::run(int argc, char **argv)
                                         record_exit_reson(outfile_dir, CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, index + 1, cli_errors[CLI_GCODE_PATH_IN_UNPRINTABLE_AREA], sliced_info);
                                         flush_and_exit(CLI_GCODE_PATH_IN_UNPRINTABLE_AREA);
                                     }
+                                    // Without an output directory the G-code is a temporary file, kept only in an exported 3MF.
+                                    if (export_statistics && !outfile_dir.empty()) {
+                                        try {
+                                            export_gcode_statistics(*gcode_result, gcode_statistics_path(outfile));
+                                        } catch (const std::exception &ex) {
+                                            BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": " << ex.what();
+                                            record_exit_reson(outfile_dir, CLI_EXPORT_STATISTICS_ERROR, index + 1, cli_errors[CLI_EXPORT_STATISTICS_ERROR], sliced_info);
+                                            flush_and_exit(CLI_EXPORT_STATISTICS_ERROR);
+                                        }
+                                    }
 
 
                                     //outfile_final = (dynamic_cast<Print*>(print))->print_statistics().finalize_output_path(outfile);
@@ -7198,7 +7224,7 @@ int CLI::run(int argc, char **argv)
         std::vector<ThumbnailData *> thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails;
         std::vector<PlateBBoxData*> plate_bboxes;
         PlateDataPtrs plate_data_list;
-        partplate_list.store_to_3mf_structure(plate_data_list);
+        partplate_list.store_to_3mf_structure(plate_data_list, true, -1, export_statistics);
 
         if (sliced_plate == -1) {
             for (int i = 0; i < plate_data_list.size(); i++) {

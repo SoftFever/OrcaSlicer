@@ -20,6 +20,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/FilamentLoad.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
+    GUI/AnimatedTexture.cpp
+    GUI/AnimatedTexture.hpp
     GUI/AmsMappingPopup.cpp
     GUI/AmsMappingPopupUpdate.cpp
     GUI/AmsMappingPopup.hpp
@@ -174,6 +176,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoAssembly.hpp
     GUI/Gizmos/GLGizmoBase.cpp
     GUI/Gizmos/GLGizmoBase.hpp
+    GUI/Gizmos/GLGizmoAlignment.cpp
+    GUI/Gizmos/GLGizmoAlignment.hpp
     GUI/Gizmos/GLGizmoBrimEars.cpp
     GUI/Gizmos/GLGizmoBrimEars.hpp
     GUI/Gizmos/GLGizmoCut.cpp

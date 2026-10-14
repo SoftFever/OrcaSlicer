@@ -1979,7 +1979,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
                 if (m_layer_idx < (int) m_tool_changes.size()) {
                     if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
-                        throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+                        throw Slic3r::RuntimeError(_(L("Wipe tower generation failed, possibly due to empty first layer.")));
 
                     // Calculate where the wipe tower layer will be printed. -1 means that print z will not change,
                     // resulting in a wipe tower with sparse layers.
@@ -2018,7 +2018,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
             if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
                 if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
-                    throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+                    throw Slic3r::RuntimeError(_(L("Wipe tower generation failed, possibly due to empty first layer.")));
 
                 if (!ignore_sparse)
                     gcode += append_tcr(gcodegen, m_tool_changes[m_layer_idx][m_tool_change_idx++], extruder_id, wipe_tower_z);
@@ -2044,7 +2044,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         if (gcodegen.writer().need_toolchange(extruder_id) || finish_layer) {
             if (!(size_t(m_tool_change_idx) < m_tool_changes[m_layer_idx].size()))
-                throw Slic3r::RuntimeError("Wipe tower generation failed, possibly due to empty first layer.");
+                throw Slic3r::RuntimeError(_(L("Wipe tower generation failed, possibly due to empty first layer.")));
 
             if (!ignore_sparse) {
                 return false;
@@ -2625,8 +2625,15 @@ static void set_mass_locator(GCodeProcessor &processor, const Print &print)
         }
         Object &o = objects.emplace_back(Object{ object, int(object_masses.size()), count, bodies_total, {}, std::move(bodies), {}, {} });
         object_masses.resize(object_masses.size() + object->instances().size());
-        for (size_t instance = 0; instance < object->instances().size(); ++instance)
-            object_masses[o.first_instance + instance].assembly = assembly;
+        const ModelInstancePtrs &model_instances = object->model_object()->instances;
+        for (size_t instance = 0; instance < object->instances().size(); ++instance) {
+            GCodeProcessorResult::ObjectMass &mass = object_masses[o.first_instance + instance];
+            mass.assembly                          = assembly;
+            mass.name                              = object->model_object()->name;
+            // Copies of another rotation or scale slice as objects of their own, so number them in the model object.
+            mass.instance = int(std::find(model_instances.begin(), model_instances.end(), object->instances()[instance].model_instance) -
+                                model_instances.begin());
+        }
         bodies_total += int(count * object->instances().size());
         for (const Layer *layer : layers) {
             o.print_zs.emplace_back(layer->print_z);
@@ -2792,11 +2799,13 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     m_processor.set_print(print);
     GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor);
     if (! file.is_open()) {
-        std::string err_msg = std::string("G-code export to ") + path + " failed.\nCannot open the file for writing.\n";
+        // TRN %1% is a file path.
+        std::string err_msg = Slic3r::format(_(L("G-code export to %1% failed.\nCannot open the file for writing.")), path) + "\n";
         BOOST_LOG_TRIVIAL(error) << err_msg << std::endl;
         if (!fs::exists(folder)) {
             //fs::create_directory(folder);
-            std::string add_err_msg = "the parent path " + folder.string() +" is not there!!!";
+            // TRN %1% is a folder path.
+            std::string add_err_msg = Slic3r::format(_(L("The folder %1% does not exist.")), folder.string());
             BOOST_LOG_TRIVIAL(error) << add_err_msg << std::endl;
             err_msg += add_err_msg;
         }
@@ -2818,7 +2827,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         if (file.is_error()) {
             file.close();
             boost::nowide::remove(path_tmp.c_str());
-            throw Slic3r::RuntimeError(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
+            // TRN %1% is a file path.
+            throw Slic3r::RuntimeError(Slic3r::format(_(L("G-code export to %1% failed.\nIs the disk full?")), path) + "\n");
         }
     } catch (std::exception &ex) {
         // Rethrow on any exception. std::runtime_exception and CanceledException are expected to be thrown.
@@ -2949,8 +2959,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
             fire_lifecycle_event(LifecycleEvent::GCodeExportFinished, ctx);
         }
         throw Slic3r::RuntimeError(
-            std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' + "error code " + ret.message() + '\n' +
-            "Is " + path_tmp + " locked?" + '\n');
+            // TRN %1% is the temporary file path, %2% the output file path, %3% the system error message.
+            Slic3r::format(_(L("Failed to rename the output G-code file from %1% to %2%.\nError: %3%\nIs %1% locked?")),
+                           path_tmp, path, ret.message()) + '\n');
     }
     else {
         BOOST_LOG_TRIVIAL(info) << boost::format("rename_file from %1% to %2% successfully")% path_tmp % path;
@@ -3559,6 +3570,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     print.throw_if_canceled();
 
+    // Taken before the object loop, which reassigns initial_extruder_id when printing by object.
+    const int compat_first_layer_bed_temp = m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp ?
+                                                get_highest_bed_temperature(true, print) :
+                                                get_bed_temperature(initial_extruder_id, true, print.config().curr_bed_type);
+    const int compat_first_layer_nozzle_temp =
+        print.config().nozzle_temperature_initial_layer.get_at(get_filament_config_index((int) initial_extruder_id));
+
     int extruder_id = get_extruder_id(initial_extruder_id);
 
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
@@ -4149,19 +4167,15 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 file.write(full_config);
 
             // SoftFever: write compatiple image
-            int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
-            file.write_format("; first_layer_bed_temperature = %d\n",
-                                first_layer_bed_temperature);
-            file.write_format(
-                "; first_layer_temperature = %d\n",
-                print.config().nozzle_temperature_initial_layer.get_at(0));
+            file.write_format("; first_layer_bed_temperature = %d\n", compat_first_layer_bed_temp);
+            file.write_format("; first_layer_temperature = %d\n", compat_first_layer_nozzle_temp);
             file.write("; CONFIG_BLOCK_END\n\n");
         } else if (thumbnail_cb != nullptr) {
             // generate the thumbnails
             auto [thumbnails, errors] = GCodeThumbnails::make_and_check_thumbnail_list(print.full_print_config());
 
             if (errors != enum_bitmask<ThumbnailError>()) {
-                std::string error_str = format("Invalid thumbnails value:");
+                std::string error_str = _(L("Invalid thumbnails value:"));
                 error_str += GCodeThumbnails::get_error_string(errors);
                 throw Slic3r::ExportError(error_str);
             }
@@ -4197,6 +4211,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     file.write_format("; EXECUTABLE_BLOCK_START\n");
 
+    // Set for every printer, as the object label comments use these ids too.
+    assign_object_label_ids(print);
     // SoftFever
     if( m_enable_exclude_object)
         file.write(set_object_info(&print));
@@ -4262,7 +4278,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
             config.set_key_value("nozzle_volume_types", new ConfigOptionStrings(get_nozzle_volume_types_by_nozzle_id(group_result.get())));
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-            std::string filament_start_gcode = this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values.at(initial_non_support_extruder_id), initial_non_support_extruder_id,&config);
+            std::string filament_start_gcode = this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.get_at(initial_non_support_extruder_id), initial_non_support_extruder_id,&config);
             file.writeln(filament_start_gcode);
             // Mark the first filament used in print. Multi-nozzle printers (H2C) get ";VT%d H%d" where
             // H = dynamic ? nozzle_id : -1; existing single-nozzle printers keep the bare ";VT%d" so their
@@ -4737,10 +4753,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
           file.write(full_config);
 
         // SoftFever: write compatiple info
-        int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
-        file.write_format("; first_layer_bed_temperature = %d\n", first_layer_bed_temperature);
+        file.write_format("; first_layer_bed_temperature = %d\n", compat_first_layer_bed_temp);
         file.write_format("; bed_shape = %s\n", print.full_print_config().opt_serialize("printable_area").c_str());
-        file.write_format("; first_layer_temperature = %d\n", print.config().nozzle_temperature_initial_layer.get_at(0));
+        file.write_format("; first_layer_temperature = %d\n", compat_first_layer_nozzle_temp);
         file.write_format("; first_layer_height = %.3f\n", print.config().initial_layer_print_height.value);
 
           //SF TODO
@@ -11054,15 +11069,30 @@ inline std::string polygon_to_string(const Polygon &polygon, Print *print, bool 
     gcode << "]";
     return gcode.str();
 }
-// this function iterator PrintObject and assign a seqential id to each object.
-// this id is used to generate unique object id for each object.
+// Numbers the objects, and their instances both within each object (id) and across the print
+// (unique_id). The "; printing object" comments and the exclude-object commands label objects with these ids.
+void GCode::assign_object_label_ids(Print &print)
+{
+    m_instance_names.clear();
+    size_t object_id = 0;
+    size_t unique_id = 0;
+    for (PrintObject *object : print.objects()) {
+        object->set_id(object_id++);
+        size_t inst_id = 0;
+        for (PrintInstance &inst : object->instances()) {
+            inst.id        = inst_id++;
+            inst.unique_id = unique_id++;
+        }
+    }
+}
+
+// Writes the exclude-object definitions for the ids assign_object_label_ids() set.
 std::string GCode::set_object_info(Print *print) {
     const auto gflavor = print->config().gcode_flavor.value;
     if (print->is_BBL_printer() ||
         (gflavor != gcfKlipper && gflavor != gcfMarlinLegacy && gflavor != gcfMarlinFirmware && gflavor != gcfRepRapFirmware))
         return "";
     std::ostringstream gcode;
-    size_t object_id = 0;
     // Orca: check if we are in pa calib mode
     if (print->calib_mode() == CalibMode::Calib_PA_Pattern) {
         BoundingBoxf bbox_bed(print->config().printable_area.values);
@@ -11078,14 +11108,8 @@ std::string GCode::set_object_info(Print *print) {
     } else if (print->calib_mode() == CalibMode::Calib_PA_Line) {
         // PA_Line has only one object, no EXCLUDE_OBJECT_DEFINE needed
     } else {
-        size_t unique_id = 0;
-        m_instance_names.clear();
         for (PrintObject* object : print->objects()) {
-            object->set_id(object_id++);
-            size_t inst_id = 0;
             for (PrintInstance& inst : object->instances()) {
-                inst.unique_id = unique_id++;
-                inst.id        = inst_id++;
                 // Outlines are in plate coordinates. On a belt printer that is the frame after
                 // the slicing rotation has been undone and before the G-code axis remap and
                 // machine-frame shear: where the object stands on the belt, which is what an
