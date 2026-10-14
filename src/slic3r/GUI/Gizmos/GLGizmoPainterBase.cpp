@@ -84,6 +84,7 @@ void GLGizmoPainterBase::data_changed(bool is_serializing)
         // ORCA: the rebuilt selectors renumber the facets a LINE anchor points at.
         m_line_pending = false;
         m_rect_pending = false;
+        m_polygon_points.clear();
 
         m_old_mo_id = mo->id();
         m_old_volumes_size = mo->volumes.size();
@@ -216,7 +217,8 @@ bool GLGizmoPainterBase::render_follows_cursor() const
 
 void GLGizmoPainterBase::render_tool_preview()
 {
-    // ORCA: the rubber band of a two-click tool - the LINE anchor, or the RECTANGLE corner.
+    // ORCA: the in-progress shape of a two-click tool - the LINE anchor, the RECTANGLE corner,
+    //       or the POLYGON outline so far.
     //
     // This runs from the gizmo's input window rather than from render_cursor(), which the canvas
     // calls during the 3D pass: a frame rendered there is not guaranteed to reach the screen with
@@ -232,6 +234,22 @@ void GLGizmoPainterBase::render_tool_preview()
         draw->AddRect(ImVec2(std::min(a.x, b.x), std::min(a.y, b.y)),
                       ImVec2(std::max(a.x, b.x), std::max(a.y, b.y)), ghost_color, 0.0f, 0, 2.0f);
         draw->AddCircleFilled(a, 4.0f, ghost_color);
+        return;
+    }
+
+    if (m_tool_type == ToolType::POLYGON && !m_polygon_points.empty()) {
+        const Vec2d  mouse = m_parent.get_local_mouse_position();
+        const ImVec2 cur(float(mouse.x()), float(mouse.y()));
+        ImDrawList  *draw = ImGui::GetForegroundDrawList();
+        auto         at   = [](const Vec2d &p) { return ImVec2(float(p.x()), float(p.y())); };
+        for (size_t i = 0; i + 1 < m_polygon_points.size(); ++i)
+            draw->AddLine(at(m_polygon_points[i]), at(m_polygon_points[i + 1]), ghost_color, 2.0f);
+        draw->AddLine(at(m_polygon_points.back()), cur, IM_COL32(0, 150, 136, 120), 2.0f);
+        // Faint line back to the first corner, so the shape the panel would close is visible.
+        if (m_polygon_points.size() >= 2)
+            draw->AddLine(cur, at(m_polygon_points.front()), IM_COL32(0, 150, 136, 60), 1.5f);
+        for (const Vec2d &p : m_polygon_points)
+            draw->AddCircleFilled(at(p), 4.0f, ghost_color);
         return;
     }
 
@@ -279,9 +297,10 @@ void GLGizmoPainterBase::render_cursor()
     if (m_rr.mesh_id == -1)
         return;
 
-    // ORCA: LINE and RECTANGLE reuse the brush preview, so the second click lands where the
+    // ORCA: the two-click tools reuse the brush preview, so the next click lands where the
     //       operator sees it.
-    if (m_tool_type == ToolType::BRUSH || m_tool_type == ToolType::LINE || m_tool_type == ToolType::RECTANGLE) {
+    if (m_tool_type == ToolType::BRUSH || m_tool_type == ToolType::LINE || m_tool_type == ToolType::RECTANGLE ||
+        m_tool_type == ToolType::POLYGON) {
         if (m_cursor_type == TriangleSelector::SPHERE)
             render_cursor_sphere(trafo_matrices[m_rr.mesh_id]);
         else if (m_cursor_type == TriangleSelector::CIRCLE)
@@ -920,6 +939,18 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             return true;
         }
 
+        // ORCA: POLYGON collects corners. A left click adds one, a right click abandons the
+        //       shape, and the panel closes it. Both clicks are swallowed here so the on-mesh
+        //       return below cannot drop a corner placed off the part.
+        if (m_tool_type == ToolType::POLYGON) {
+            if (action == SLAGizmoEventType::RightDown)
+                m_polygon_points.clear();
+            else
+                m_polygon_points.emplace_back(_mouse_position);
+            m_last_mouse_click = _mouse_position;
+            return true;
+        }
+
         // ORCA: RECTANGLE marks opposite corners of a screen-space box with two clicks and
         //       paints every sample inside it that hits a mesh. It runs before the on-mesh
         //       return below, because a corner is usually off the part.
@@ -936,8 +967,8 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
             const double xmin = std::min(a.x(), _mouse_position.x()), xmax = std::max(a.x(), _mouse_position.x());
             const double ymin = std::min(a.y(), _mouse_position.y()), ymax = std::max(a.y(), _mouse_position.y());
             const double area = std::max(1.0, (xmax - xmin) * (ymax - ymin));
-            const double step = std::max(double(std::max(RectSpacingMin, m_rect_spacing_px)),
-                                         std::sqrt(area / double(RectMaxSamples)));
+            const double step = std::max(double(std::max(FillSpacingMin, m_fill_spacing_px)),
+                                         std::sqrt(area / double(FillMaxSamples)));
 
             std::vector<bool> touched(m_triangle_selectors.size(), false);
             for (double y = ymin; y <= ymax + 0.5; y += step)
@@ -1342,6 +1373,7 @@ void GLGizmoPainterBase::on_set_state()
         // ORCA: same for a LINE anchor, whose facet index only means anything to the selectors it was taken from.
         m_line_pending     = false;
         m_rect_pending     = false;
+        m_polygon_points.clear();
 
         //Camera& camera = wxGetApp().plater()->get_camera();
         //camera.look_at(camera.get_position(), m_previous_target, Vec3d::UnitZ());
@@ -2062,6 +2094,81 @@ void TriangleSelectorGUI::update_paint_contour()
 
     if (!init_data.is_empty())
         m_paint_contour.init_from(std::move(init_data));
+}
+
+// ORCA: even-odd ray-casting test, so a concave or self-crossing outline still behaves
+//       predictably rather than being rejected.
+static bool point_in_polygon(const Vec2d &p, const std::vector<Vec2d> &poly)
+{
+    bool inside = false;
+    for (size_t i = 0, j = poly.size() - 1; i < poly.size(); j = i++) {
+        const double xi = poly[i].x(), yi = poly[i].y();
+        const double xj = poly[j].x(), yj = poly[j].y();
+        if (((yi > p.y()) != (yj > p.y())) && (p.x() < (xj - xi) * (p.y() - yi) / (yj - yi) + xi))
+            inside = !inside;
+    }
+    return inside;
+}
+
+bool GLGizmoPainterBase::close_and_paint_polygon(bool enforcer)
+{
+    if (m_polygon_points.size() < 3 || m_triangle_selectors.empty())
+        return false;
+
+    const Camera        &camera    = wxGetApp().plater()->get_camera();
+    const Selection     &selection = m_parent.get_selection();
+    const ModelObject   *mo        = m_c->selection_info()->model_object();
+    const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
+
+    // mesh_trafo_matrices() also covers the assemble view; only the no-offset list is local.
+    const std::vector<Transform3d> trafo_matrices = mesh_trafo_matrices();
+    std::vector<Transform3d>       trafo_matrices_not_translate;
+    for (const ModelVolume *mv : mo->volumes)
+        if (mv->is_model_part())
+            trafo_matrices_not_translate.emplace_back(mi->get_transformation().get_matrix_no_offset() * mv->get_matrix_no_offset());
+
+    Vec2d pmin = m_polygon_points.front(), pmax = m_polygon_points.front();
+    for (const Vec2d &p : m_polygon_points) {
+        pmin = pmin.cwiseMin(p);
+        pmax = pmax.cwiseMax(p);
+    }
+    const double area = std::max(1.0, (pmax.x() - pmin.x()) * (pmax.y() - pmin.y()));
+    const double step = std::max(double(std::max(FillSpacingMin, m_fill_spacing_px)),
+                                 std::sqrt(area / double(FillMaxSamples)));
+
+    const EnforcerBlockerType new_state = enforcer ? get_left_button_state_type() : get_right_button_state_type();
+    std::vector<bool>         touched(m_triangle_selectors.size(), false);
+    for (double y = pmin.y(); y <= pmax.y() + 0.5; y += step)
+        for (double x = pmin.x(); x <= pmax.x() + 0.5; x += step) {
+            const Vec2d sample(x, y);
+            if (!point_in_polygon(sample, m_polygon_points))
+                continue;
+            update_raycast_cache(sample, camera, trafo_matrices);
+            if (m_rr.mesh_id < 0)
+                continue;
+            const int                              mesh_idx   = m_rr.mesh_id;
+            const Transform3d                     &trafo      = trafo_matrices[mesh_idx];
+            const Vec3f                            camera_pos = (trafo.inverse() * camera.get_position()).cast<float>();
+            const TriangleSelector::ClippingPlane &clp        = this->get_clipping_plane_in_volume_coordinates(trafo);
+            std::unique_ptr<TriangleSelector::Cursor> cursor = TriangleSelector::SinglePointCursor::cursor_factory(
+                m_rr.hit, camera_pos, m_cursor_radius, TriangleSelector::CursorType::CIRCLE, trafo, clp);
+            m_triangle_selectors[mesh_idx]->select_patch(int(m_rr.facet), std::move(cursor), new_state,
+                                                         trafo_matrices_not_translate[mesh_idx], m_triangle_splitting_enabled,
+                                                         m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f,
+                                                         get_tilt_up_direction());
+            touched[mesh_idx] = true;
+        }
+
+    bool painted = false;
+    for (size_t mesh_idx = 0; mesh_idx < touched.size(); ++mesh_idx)
+        if (touched[mesh_idx]) {
+            m_triangle_selectors[mesh_idx]->request_update_render_data(true);
+            painted = true;
+        }
+
+    m_polygon_points.clear();
+    m_parent.set_as_dirty();
+    return painted;
 }
 
 void TriangleSelectorGUI::render_paint_contour(const Transform3d& matrix)

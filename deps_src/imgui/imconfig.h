@@ -182,6 +182,8 @@ namespace ImGui
     const wchar_t LineToolDarkIcon         = 0x082B; // ORCA
     const wchar_t RectToolIcon             = 0x082C; // ORCA
     const wchar_t RectToolDarkIcon         = 0x082D; // ORCA
+    const wchar_t PolygonToolIcon          = 0x082E; // ORCA
+    const wchar_t PolygonToolDarkIcon      = 0x082F; // ORCA
 
     const wchar_t MinimalizeDarkButton           = 0x081C;
     const wchar_t MinimalizeHoverDarkButton      = 0x081D;

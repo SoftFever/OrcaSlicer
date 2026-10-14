@@ -127,6 +127,9 @@ bool GLGizmoFdmSupports::on_init()
     m_desc["gap_fill"]           = _L("Gap fill");
     m_desc["cursor_size"]        = _L("Brush size");
     m_desc["fill_spacing"]       = _L("Fill spacing");
+    m_desc["polygon_corners"]     = _L("Corners: %d");
+    m_desc["polygon_paint"]     = _L("Close and paint");
+    m_desc["polygon_erase"]     = _L("Close and erase");
     m_desc["smart_fill_angle"]   = _L("Smart fill angle");
     m_desc["gap_area"]           = _L("Gap area");
 
@@ -282,14 +285,14 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
 
     ImGui::AlignTextToFramePadding();
     m_imgui->text(m_desc.at("tool_type"));
-    std::array<wchar_t, 6> tool_ids = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon, ImGui::LineToolIcon, ImGui::RectToolIcon };
-    std::array<wchar_t, 6> icons;
+    std::array<wchar_t, 7> tool_ids = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon, ImGui::LineToolIcon, ImGui::RectToolIcon, ImGui::PolygonToolIcon };
+    std::array<wchar_t, 7> icons;
     if (m_is_dark_mode)
-        icons = { ImGui::CircleButtonDarkIcon, ImGui::SphereButtonDarkIcon, ImGui::FillButtonDarkIcon, ImGui::GapFillDarkIcon, ImGui::LineToolDarkIcon, ImGui::RectToolDarkIcon };
+        icons = { ImGui::CircleButtonDarkIcon, ImGui::SphereButtonDarkIcon, ImGui::FillButtonDarkIcon, ImGui::GapFillDarkIcon, ImGui::LineToolDarkIcon, ImGui::RectToolDarkIcon, ImGui::PolygonToolDarkIcon };
     else
-        icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon, ImGui::LineToolIcon, ImGui::RectToolIcon };
+        icons = { ImGui::CircleButtonIcon, ImGui::SphereButtonIcon, ImGui::FillButtonIcon, ImGui::GapFillIcon, ImGui::LineToolIcon, ImGui::RectToolIcon, ImGui::PolygonToolIcon };
 
-    std::array<wxString, 6> tool_tips = { _L("Circle"), _L("Sphere"), _L("Fill"), _L("Gap Fill"), _L("Line"), _L("Rectangle") };
+    std::array<wxString, 7> tool_tips = { _L("Circle"), _L("Sphere"), _L("Fill"), _L("Gap Fill"), _L("Line"), _L("Rectangle"), _L("Polygon") };
     for (int i = 0; i < tool_ids.size(); i++) {
         //std::string  str_label = std::string("##");
         //std::wstring btn_name = icons[i] + boost::nowide::widen(str_label);
@@ -423,10 +426,46 @@ void GLGizmoFdmSupports::on_render_input_window(float x, float y, float bottom_l
         m_imgui->text(m_desc.at("fill_spacing"));
         ImGui::SameLine(sliders_left_width);
         ImGui::PushItemWidth(sliders_width);
-        m_imgui->bbl_slider_float_style("##fill_spacing", &m_rect_spacing_px, RectSpacingMin, RectSpacingMax, "%.0f", 1.0f, true);
+        m_imgui->bbl_slider_float_style("##fill_spacing", &m_fill_spacing_px, FillSpacingMin, FillSpacingMax, "%.0f", 1.0f, true);
         ImGui::SameLine(drag_left_width + sliders_left_width);
         ImGui::PushItemWidth(1.5 * slider_icon_width);
-        ImGui::BBLDragFloat("##fill_spacing_input", &m_rect_spacing_px, 1.f, 0.0f, 0.0f, "%.0f");
+        ImGui::BBLDragFloat("##fill_spacing_input", &m_fill_spacing_px, 1.f, 0.0f, 0.0f, "%.0f");
+    } else if (m_current_tool == ImGui::PolygonToolIcon) {
+        m_cursor_type = TriangleSelector::CursorType::CIRCLE;
+        m_tool_type   = ToolType::POLYGON;
+
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc.at("cursor_size"));
+        ImGui::SameLine(sliders_left_width);
+        ImGui::PushItemWidth(sliders_width);
+        m_imgui->bbl_slider_float_style("##cursor_radius", &m_cursor_radius, CursorRadiusMin, CursorRadiusMax, "%.2f", 1.0f, true);
+        ImGui::SameLine(drag_left_width + sliders_left_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##cursor_radius_input", &m_cursor_radius, 0.05f, 0.0f, 0.0f, "%.2f");
+
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(m_desc.at("fill_spacing"));
+        ImGui::SameLine(sliders_left_width);
+        ImGui::PushItemWidth(sliders_width);
+        m_imgui->bbl_slider_float_style("##fill_spacing", &m_fill_spacing_px, FillSpacingMin, FillSpacingMax, "%.0f", 1.0f, true);
+        ImGui::SameLine(drag_left_width + sliders_left_width);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        ImGui::BBLDragFloat("##fill_spacing_input", &m_fill_spacing_px, 1.f, 0.0f, 0.0f, "%.0f");
+
+        m_imgui->text(wxString::Format(m_desc.at("polygon_corners"), int(m_polygon_points.size())));
+        m_imgui->disabled_begin(m_polygon_points.size() < 3);
+        if (m_imgui->button(m_desc.at("polygon_paint"))) {
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Polygon paint", UndoRedo::SnapshotType::GizmoAction);
+            close_and_paint_polygon(true);
+            update_model_object();
+        }
+        ImGui::SameLine();
+        if (m_imgui->button(m_desc.at("polygon_erase"))) {
+            Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Polygon erase", UndoRedo::SnapshotType::GizmoAction);
+            close_and_paint_polygon(false);
+            update_model_object();
+        }
+        m_imgui->disabled_end();
     } else if (m_current_tool == ImGui::GapFillIcon) {
         m_tool_type = ToolType::GAP_FILL;
         m_cursor_type = TriangleSelector::CursorType::POINTER;
@@ -543,6 +582,8 @@ void GLGizmoFdmSupports::tool_changed(wchar_t old_tool, wchar_t new_tool)
         m_line_pending = false;
     if (old_tool == ImGui::RectToolIcon || new_tool == ImGui::RectToolIcon)
         m_rect_pending = false;
+    if (old_tool == ImGui::PolygonToolIcon || new_tool == ImGui::PolygonToolIcon)
+        m_polygon_points.clear();
 
     if ((old_tool == ImGui::GapFillIcon && new_tool == ImGui::GapFillIcon) ||
         (old_tool != ImGui::GapFillIcon && new_tool != ImGui::GapFillIcon))

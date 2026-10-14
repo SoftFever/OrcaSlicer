@@ -280,6 +280,8 @@ protected:
         LINE,
         // ORCA: fills a screen-space box marked by two clicked corners.
         RECTANGLE,
+        // ORCA: fills a screen-space polygon closed from any number of clicked corners.
+        POLYGON,
     };
 
     struct ProjectedMousePosition
@@ -312,12 +314,22 @@ protected:
     //       with the zoom.
     bool     m_rect_pending               = false;
     Vec2d    m_rect_first_screen          = Vec2d::Zero();
-    float    m_rect_spacing_px            = 8.f;
-    static constexpr float RectSpacingMin = 2.f;
-    static constexpr float RectSpacingMax = 64.f;
+    float    m_fill_spacing_px            = 8.f;
+    static constexpr float FillSpacingMin = 2.f;
+    static constexpr float FillSpacingMax = 64.f;
     // Each sample costs a raycast and a select_patch on the UI thread. Past this count the
     // step widens, so a large box at fine spacing fills coarsely instead of stalling.
-    static constexpr int   RectMaxSamples = 20000;
+    static constexpr int   FillMaxSamples = 20000;
+
+    // ORCA: the POLYGON tool's clicked corners in canvas pixels. The shape stays open until
+    //       the panel closes it, so the operator can place as many corners as they need.
+    std::vector<Vec2d> m_polygon_points;
+
+    // ORCA: paint everything inside the pending polygon and clear it. `enforcer` selects the
+    //       left-button state, otherwise the right-button one, matching the brush. Returns
+    //       whether anything was painted. The caller owns the undo snapshot, because a panel
+    //       button has no mouse-up to pair with.
+    bool close_and_paint_polygon(bool enforcer);
 
     bool     m_paint_on_overhangs_only          = false;
     float    m_highlight_by_angle_threshold_deg = 0.f;
