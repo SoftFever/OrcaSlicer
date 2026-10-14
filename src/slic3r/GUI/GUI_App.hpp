@@ -361,6 +361,11 @@ private:
     bool             m_side_popup_status{false};
     bool             m_show_http_error_msgdlg{false};
     std::chrono::steady_clock::time_point m_last_401_error_time;
+    // OrcaCloud webview session handoff: the newest request_web_session state from the cloud pane
+    // and a generation counter so a superseded mint/login result is dropped (guide §5, "only the
+    // newest request counts").
+    std::string      m_cloud_handoff_state;
+    uint64_t         m_cloud_handoff_gen { 0 };
     bool             m_show_error_msgdlg{false};
     wxString         m_info_dialog_content;
     HttpServer       m_http_server;
@@ -431,6 +436,8 @@ public:
 
     bool show_plate_gridlines() const { return app_config->get_bool("show_plate_gridlines"); }
     void toggle_show_plate_gridlines() const { app_config->set_bool("show_plate_gridlines", !show_plate_gridlines()); }
+    bool focus_mode() const { return app_config->get_bool("focus_mode"); }
+    void toggle_focus_mode() const { app_config->set_bool("focus_mode", !focus_mode()); }
 
     bool show_canvas_zoom_button() const { return app_config->get_bool("show_canvas_zoom_button"); }
     void toggle_canvas_zoom_button() const { app_config->set_bool("show_canvas_zoom_button", !show_canvas_zoom_button()); }
@@ -540,7 +547,11 @@ public:
 
     void            request_user_login(int online_login = 0, const std::string& provider = ORCA_CLOUD_PROVIDER);
     void            request_user_handle(int online_login = 0, const std::string& provider = ORCA_CLOUD_PROVIDER);
-    void            request_user_logout(const std::string& provider = ORCA_CLOUD_PROVIDER);
+    // `user_initiated` distinguishes a user sign-out from the desktop losing its session on its
+    // own (refresh failed, 401). Only an explicit sign-out also ends the cloud webview's own
+    // session; an involuntary one leaves the webview alone (guide §8). Defaults to the safe
+    // direction: a new caller that forgets the flag will not silently sign the webview out.
+    void            request_user_logout(const std::string& provider = ORCA_CLOUD_PROVIDER, bool user_initiated = false);
     void            post_logout_to_webview(const std::string& provider);
     int             request_user_unbind(std::string dev_id, const std::string& provider = ORCA_CLOUD_PROVIDER);
     std::string     handle_web_request(std::string cmd);
@@ -556,6 +567,15 @@ public:
     void            on_update_machine_list(wxCommandEvent& evt);
     void            on_user_login(wxCommandEvent &evt);
     void            on_user_login_handle(wxCommandEvent& evt);
+    // OrcaCloud webview session handoff (guide §5/§7). cloud_webview_handoff builds the cloud
+    // pane's Start URL (with the desktop user_id while signed in). request_cloud_web_session is
+    // called from the pane when the page asks for a session; it opens the desktop login dialog if
+    // signed out, otherwise mints a one-time token on a worker thread and loads the Complete URL
+    // in the same webview.
+    wxString        cloud_webview_handoff();
+    void            request_cloud_web_session(const std::string& state);
+    void            mint_cloud_web_session(const std::string& state, uint64_t gen);
+    void            on_cloud_web_session_minted(const std::string& state, uint64_t gen, const std::string& token_hash);
     void            enable_user_preset_folder(bool enable);
 
     // BBS
