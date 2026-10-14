@@ -436,6 +436,8 @@ public:
 
     bool show_plate_gridlines() const { return app_config->get_bool("show_plate_gridlines"); }
     void toggle_show_plate_gridlines() const { app_config->set_bool("show_plate_gridlines", !show_plate_gridlines()); }
+    bool focus_mode() const { return app_config->get_bool("focus_mode"); }
+    void toggle_focus_mode() const { app_config->set_bool("focus_mode", !focus_mode()); }
 
     bool show_canvas_zoom_button() const { return app_config->get_bool("show_canvas_zoom_button"); }
     void toggle_canvas_zoom_button() const { app_config->set_bool("show_canvas_zoom_button", !show_canvas_zoom_button()); }
