@@ -557,3 +557,38 @@ TEST_CASE("Each extrusion weighs its filament's density", "[GCodeProcessor]")
     const Vec3d dense = center_of(masses[1]->total());
     CHECK_THAT((plate - light).dot(dense - light) / (dense - light).squaredNorm(), Catch::Matchers::WithinAbs(0.75, 0.01));
 }
+
+TEST_CASE("Cumulative filament usage per layer grows layer by layer and ends at each filament's total", "[GCodeProcessor]")
+{
+    // Two cubes, one per filament, so the second filament's series has to line up with the first's.
+    DynamicPrintConfig config = Test::multifilament_config(2, { { "skirt_loops", 0 }, { "brim_type", "no_brim" } });
+    const std::vector<std::vector<ConfigBase::SetDeserializeItem>> overrides{ { { "extruder", 1 } }, { { "extruder", 2 } } };
+    Print print;
+    Model model;
+    Test::init_print({ Test::cube(20), Test::cube(20) }, print, model, config, &overrides);
+    GCodeProcessorResult result;
+    Test::gcode(print, &result);
+
+    const PrintEstimatedStatistics &stats = result.print_statistics;
+    REQUIRE(stats.total_volumes_per_extruder.size() == 2);
+    REQUIRE(stats.layer_volumes_per_extruder.size() == 2);
+
+    size_t entries = 0;
+    for (const auto &[filament_id, total] : stats.total_volumes_per_extruder) {
+        DYNAMIC_SECTION("filament " << filament_id)
+        {
+            const auto series = stats.layer_volumes_per_extruder.find(filament_id);
+            REQUIRE(series != stats.layer_volumes_per_extruder.end());
+            const std::vector<double> &layers = series->second;
+            // Entry 0 is what was extruded before the first layer, so there is one more than there are layers.
+            REQUIRE(layers.size() > 2);
+            CHECK(std::is_sorted(layers.begin(), layers.end()));
+            CHECK_THAT(layers.back(), Catch::Matchers::WithinRel(total, 1e-9));
+            CHECK(layers.front() < layers.back());
+            // Every filament has an entry for every layer, however late it was first used.
+            if (entries == 0)
+                entries = layers.size();
+            CHECK(layers.size() == entries);
+        }
+    }
+}
