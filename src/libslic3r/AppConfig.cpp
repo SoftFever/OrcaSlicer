@@ -544,6 +544,10 @@ void AppConfig::set_defaults()
         set_bool("remember_print_action", false);
     }
 
+    if (get("export_statistics").empty()) {
+        set_bool("export_statistics", false);
+    }
+
     if (get("ignore_ext_filament_in_filament_map").empty()){
         set_bool("ignore_ext_filament_in_filament_map", false);
     }

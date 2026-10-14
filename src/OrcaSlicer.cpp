@@ -144,6 +144,7 @@
 #include "libslic3r/ExPolygon.hpp"
 #include "libslic3r/Exception.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/GCode/GCodeStatistics.hpp"
 #include "libslic3r/GCode/ToolOrdering.hpp"
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -207,6 +208,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_ORIENT_FAILED, "An error occurred when auto-orienting object(s)."},
     {CLI_MODIFIED_PARAMS_TO_PRINTER, "Found modified parameter in printer preset in the 3mf file, which should not be changed."},
         {CLI_FILE_VERSION_NOT_SUPPORTED, "Unsupported 3MF version. Please make sure the 3MF file was created with the official version of Bambu Studio, not a beta version."},
+    {CLI_EXPORT_STATISTICS_ERROR, "Failed exporting the G-code statistics."},
     {CLI_NO_SUITABLE_OBJECTS, "The plate has nothing to slice: it is empty, or no object on it is both printable and fully inside the print volume."},
     {CLI_VALIDATE_ERROR, "There are some incorrect slicing parameters in the 3mf. Please verify the slicing of all plates in Orca Slicer before uploading."},
     {CLI_OBJECTS_PARTLY_INSIDE, "Some objects are located over the boundary of the heated bed."},
@@ -7080,6 +7082,19 @@ int CLI::run(int argc, char **argv)
                                                 << gcode_result->gcode_check_result.error_code << std::endl;
                                         record_exit_reson(outfile_dir, CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, index + 1, cli_errors[CLI_GCODE_PATH_IN_UNPRINTABLE_AREA], sliced_info);
                                         flush_and_exit(CLI_GCODE_PATH_IN_UNPRINTABLE_AREA);
+                                    }
+                                    if (const ConfigOptionBool *export_statistics = m_config.option<ConfigOptionBool>("export_statistics");
+                                        export_statistics != nullptr && export_statistics->value) {
+                                        // Without an output directory the G-code is a temporary file, so the statistics go to the working directory.
+                                        const std::string statistics_file = (outfile_dir.empty() ? std::string() : outfile_dir + "/") + "plate_" +
+                                                                            std::to_string(index + 1) + ".statistics.json";
+                                        try {
+                                            export_gcode_statistics(*gcode_result, statistics_file);
+                                        } catch (const std::exception &ex) {
+                                            BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": " << ex.what();
+                                            record_exit_reson(outfile_dir, CLI_EXPORT_STATISTICS_ERROR, index + 1, cli_errors[CLI_EXPORT_STATISTICS_ERROR], sliced_info);
+                                            flush_and_exit(CLI_EXPORT_STATISTICS_ERROR);
+                                        }
                                     }
 
 

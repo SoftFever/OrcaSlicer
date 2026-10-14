@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <exception>
+#include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Config.hpp"
 #include <cstdint>
 #include <functional>
@@ -57,6 +58,7 @@
 #include "libslic3r_version.h"
 #include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/GCode/GCodeStatistics.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
@@ -781,6 +783,7 @@ void BackgroundSlicingProcess::schedule_export(const std::string& path, bool exp
     this->invalidate_step(bspsGCodeFinalize);
     m_export_path                    = path;
     m_export_path_on_removable_media = export_path_on_removable_media;
+    m_export_statistics              = GUI::wxGetApp().app_config->get_bool("export_statistics");
 }
 
 void BackgroundSlicingProcess::schedule_upload(Slic3r::PrintHostJob upload_job)
@@ -906,6 +909,8 @@ void BackgroundSlicingProcess::finalize_gcode()
         BOOST_LOG_TRIVIAL(error) << "Unexpected fail code(" << (int) copy_ret_val << ") durring copy_file() to " << export_path << ".";
         break;
     }
+    if (m_export_statistics)
+        export_gcode_statistics(*m_gcode_result, gcode_statistics_path(export_path));
 
     m_print->set_status(100, GUI::format(_L("G-code file exported to %1%"), export_path));
 }
@@ -953,6 +958,8 @@ void BackgroundSlicingProcess::export_gcode()
         // throw Slic3r::ExportError(_utf8(L("Unknown error when exporting G-code.")));
         break;
     }
+    if (m_export_statistics)
+        export_gcode_statistics(*m_gcode_result, gcode_statistics_path(export_path));
 
     // BBS
     auto evt                  = new wxCommandEvent(m_event_export_finished_id, GUI::wxGetApp().mainframe->m_plater->GetId());
