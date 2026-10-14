@@ -157,9 +157,9 @@ body {
 
 /* ---------- Picker ---------- */
 .right-panel {
-  flex: 0 0 320px;
+  flex: 0 0 330px;
   /* WebKit uses width, rather than flex-basis, for the parent's intrinsic width. */
-  width: 320px;
+  width: 330px;
   display: flex;
   flex-direction: column;
 }

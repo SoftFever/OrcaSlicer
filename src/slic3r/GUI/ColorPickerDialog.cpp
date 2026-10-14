@@ -283,11 +283,11 @@ namespace {
 // saved, and its presence alone marks favorites as already migrated.
 constexpr const char* COLOR_PICKER_UI_SECTION = "color_picker_ui";
 
-// The page's own size in DIP (style.css): body padding 10 + border 1 on each side around the
-// 320 x 360 picker, and the 160px sidebar plus its 10px gap. Opening at this size means the
+// The page's own size in DIP (style.css): body padding 10 oneach side around the 330 x 360 picker, 
+// and the 160px sidebar plus its 10px gap. Opening at this size means the
 // first resize message from the page normally changes nothing, so the window doesn't jump.
-constexpr int COLOR_PICKER_PAGE_WIDTH    = 320 + 2 * 11;
-constexpr int COLOR_PICKER_PAGE_HEIGHT   = 360 + 2 * 11;
+constexpr int COLOR_PICKER_PAGE_WIDTH    = 330 + 2 * 10;
+constexpr int COLOR_PICKER_PAGE_HEIGHT   = 360 + 2 * 10;
 constexpr int COLOR_PICKER_SIDEBAR_WIDTH = 160 + 10;
 
 // Palette ids are short lowercase words defined by the page (basic, orca, ral, gradient, ...).
@@ -778,7 +778,7 @@ ColorPickerDialog::ColorPickerDialog(wxWindow* parent, const ColorSelection& ini
         if (const std::string palette = config.get(COLOR_PICKER_UI_SECTION, "palette"); valid_palette_id(palette))
             m_palette = palette;
     }
-    m_content_width = COLOR_PICKER_PAGE_WIDTH + (m_sidebar_open ? COLOR_PICKER_SIDEBAR_WIDTH : 0);
+    m_content_width  = COLOR_PICKER_PAGE_WIDTH + (m_sidebar_open ? COLOR_PICKER_SIDEBAR_WIDTH : 0);
     m_content_height = COLOR_PICKER_PAGE_HEIGHT;
     if (!normalized || !create_webview("web/dialog/ColorPickerDialog/index.html", _L("Color Picker"),
                                       wxSize(m_content_width, m_content_height),
