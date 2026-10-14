@@ -5588,13 +5588,14 @@ void GLCanvas3D::do_move(const std::string& snapshot_type, bool force_volume_mov
     // parts moved. Notifying a plate about an instance that stayed put invalidates its slice
     // result, and notifying instance 0 alone left a moved copy unregistered on its new plate.
     {
+        const bool parts_moved = force_volume_move || selection_mode == Selection::Volume;
         std::set<std::pair<int, int>> notified;
         for (unsigned int i : m_selection.get_volume_idxs()) {
             const GLVolume* v          = m_volumes.volumes[i];
             const int       object_idx = v->object_idx();
             if (object_idx < 0 || object_idx >= static_cast<int>(m_model->objects.size()))
                 continue;
-            const std::pair<int, int> key(object_idx, selection_mode == Selection::Volume ? -1 : v->instance_idx());
+            const std::pair<int, int> key(object_idx, parts_moved ? -1 : v->instance_idx());
             if (notified.insert(key).second)
                 m_selection.notify_instance_update(key.first, key.second);
         }
