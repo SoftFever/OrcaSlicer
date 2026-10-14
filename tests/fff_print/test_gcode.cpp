@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 #include <cstddef>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 using namespace Slic3r;
 
@@ -98,6 +100,7 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
     CHECK(x_val >= 0.0);
     CHECK(x_val <  bed_width);
 }
+
 TEST_CASE("An exported G-code's settings load back as the settings it was sliced with", "[GCode]")
 {
     // Two filaments, so the config block carries the flush matrix already multiplied by flush_multiplier.
