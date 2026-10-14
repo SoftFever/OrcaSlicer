@@ -37,6 +37,7 @@ struct Result {
     Outcome outcome = Outcome::None;
     Method method = Method::Local;
     std::vector<size_t> contours; // Empty means no geometric restriction on the legacy search.
+    bool uncertain = false; // Reverse checks must propagate unknown geometry, not reject one candidate.
 };
 
 class Resolver {

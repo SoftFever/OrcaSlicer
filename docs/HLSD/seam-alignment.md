@@ -119,9 +119,14 @@ for each seed; overlapping global bounds can still require many exact checks.
 
 Only closed extrusion loops provide a reliable boundary role. Open paths and
 collection fallbacks retain unknown geometry rather than deriving a physical role
-from an artificial closing edge. An unknown source, or unknown geometry in either
-layer near the local query and its material probes, leaves the legacy search
-unrestricted. Distant unknown paths do not disable otherwise reliable correspondence.
+from an artificial closing edge. An unknown source, or an unknown path whose
+bounding box intersects the local query box in either layer, leaves the legacy
+search unrestricted. This conservative box test also covers the material probes;
+it may disable the filter even when the path's segments are farther away.
+Unknown geometry encountered around a candidate's foot during reverse confirmation
+also leaves the entire legacy search unrestricted, rather than discarding only
+that candidate. A reliable reverse rejection still excludes the candidate.
+Unknown paths outside these query boxes do not disable reliable correspondence.
 
 Bounding-box extents within one nozzle diameter plus a quarter-diameter reserve
 identify a potential fast match of the same boundary type. Acceptance also requires

@@ -143,9 +143,9 @@ Result Resolver::select(size_t layer, size_t contour, const Vec2d &p, int direct
     const auto candidates = query(target, p, reach);
     // An open path near either end or a material probe makes the geometric restriction uncertain.
     for (size_t i : query(layer, p, reach))
-        if (!m_layers[layer][i].reliable) return {};
+        if (!m_layers[layer][i].reliable) return {Outcome::None, Method::Local, {}, true};
     for (size_t i : candidates)
-        if (!next[i].reliable) return {};
+        if (!next[i].reliable) return {Outcome::None, Method::Local, {}, true};
     std::vector<size_t> fast, nearby;
     for (size_t i : candidates) {
         const Contour &c = next[i];
@@ -187,6 +187,8 @@ Result Resolver::select(size_t layer, size_t contour, const Vec2d &p, int direct
             if (!competing) {
                 if (!check_reverse) return {Outcome::Unique, Method::Bounds, {index}};
                 const Result back = select(target, index, foot.point, -direction, radius, false);
+                // An uncertain certificate must leave the entire legacy candidate set unrestricted.
+                if (back.uncertain) return back;
                 if (std::find(back.contours.begin(), back.contours.end(), contour) != back.contours.end())
                     return {Outcome::Unique, Method::Bounds, {index}};
             }
@@ -213,6 +215,7 @@ Result Resolver::select(size_t layer, size_t contour, const Vec2d &p, int direct
         if (!band) continue;
         if (check_reverse) {
             const Result back = select(target, i, foot.point, -direction, radius, false);
+            if (back.uncertain) return back;
             // Several reverse continuations are valid if they still include the source wall.
             if (std::find(back.contours.begin(), back.contours.end(), contour) == back.contours.end()) continue;
         }
@@ -239,7 +242,7 @@ Result Resolver::resolve(size_t layer, size_t contour, size_t vertex, int direct
     Result result;
     if (direction != -1 && direction != 1) return result;
     const Contour &source = m_layers.at(layer).at(contour);
-    if (!source.reliable) return result;
+    if (!source.reliable) return {Outcome::None, Method::Local, {}, true};
     if (radius < 0.0) radius = source.width * m_options.radius_width_factor;
     if (!std::isfinite(radius)) return result;
     // Alternative seeds may have different widths; their actual KD search radii cannot share a cache entry.

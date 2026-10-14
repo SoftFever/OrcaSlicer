@@ -74,6 +74,55 @@ TEST_CASE("Unknown boundary geometry preserves unrestricted continuation near ei
     CHECK(resolver.resolve(unknown_layer, 1, 0, unknown_layer == 0 ? 1 : -1).outcome == Outcome::None);
 }
 
+TEST_CASE("Unknown reverse geometry preserves both split continuations for the legacy search", "[SeamPlacer][Regression]") {
+    const bool mirrored = GENERATE(false, true);
+    const bool descending = GENERATE(false, true);
+    const size_t unknown_layer = GENERATE(0, 1);
+    Contour source = rectangle(0, 10, 0, 10);
+    source.points.insert(source.points.begin() + 1, Vec2d(5, 0));
+    Layers layers{{source}, {rectangle(0, mirrored ? 3.8 : 4.9, 0, 10),
+                              rectangle(mirrored ? 5.1 : 6.2, 10, 0, 10)}};
+    if (descending) std::reverse(layers.begin(), layers.end());
+    const size_t source_layer = descending ? 1 : 0;
+    const int direction = descending ? -1 : 1;
+    // Both reliable walls remain eligible before the unknown path is introduced.
+    const auto baseline = Resolver(layers).resolve(source_layer, 0, 1, direction);
+    REQUIRE(baseline.outcome == Outcome::Multiple);
+    REQUIRE(baseline.contours == (std::vector<size_t>{0, 1}));
+    Contour unknown;
+    const double x = mirrored ? 2.8 : 7.2;
+    unknown.points = {Vec2d(x, -0.2), Vec2d(x, 0.2)};
+    unknown.reliable = false;
+    // Outside the direct query, this path is near only one candidate's reverse query.
+    layers[unknown_layer].push_back(std::move(unknown));
+    const auto result = Resolver(std::move(layers)).resolve(source_layer, 0, 1, direction);
+    CHECK(result.outcome == Outcome::None);
+    CHECK(result.contours.empty());
+}
+
+TEST_CASE("Unknown reverse geometry invalidates a bounds certificate for the legacy search", "[SeamPlacer][Regression]") {
+    const bool descending = GENERATE(false, true);
+    const size_t unknown_layer = GENERATE(0, 1);
+    Layers layers{{rectangle(0, 10, 0, 10)},
+                  {rectangle(0.02, 10.02, 0.02, 10.02), rectangle(-10, -0.08, 0, 10)}};
+    if (descending) std::reverse(layers.begin(), layers.end());
+    const size_t source_layer = descending ? 1 : 0;
+    const int direction = descending ? -1 : 1;
+    // The near-coincident wall wins the reliable fast path, without a competing noise-band wall.
+    const auto baseline = Resolver(layers).resolve(source_layer, 0, 0, direction);
+    REQUIRE(baseline.outcome == Outcome::Unique);
+    REQUIRE(baseline.method == Method::Bounds);
+    REQUIRE(baseline.contours == (std::vector<size_t>{0}));
+    Contour unknown;
+    unknown.points = {Vec2d(1.61, 0), Vec2d(1.61, 0.04)};
+    unknown.reliable = false;
+    // The shifted foot sees this path; the direct query and the alternative foot do not.
+    layers[unknown_layer].push_back(std::move(unknown));
+    const auto result = Resolver(std::move(layers)).resolve(source_layer, 0, 0, direction);
+    CHECK(result.outcome == Outcome::None);
+    CHECK(result.contours.empty());
+}
+
 TEST_CASE("A split or merge keeps ambiguous continuations near the slit", "[SeamPlacer][Regression]") {
     Resolver resolver({{rectangle(0, 10, 0, 10)},
                        {rectangle(0, 4.8, 0, 10), rectangle(5.2, 10, 0, 10)}});
