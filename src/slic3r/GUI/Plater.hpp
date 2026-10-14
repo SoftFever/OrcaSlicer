@@ -418,6 +418,9 @@ public:
     bool is_gcode_3mf() { return m_exported_file; }
     bool only_gcode_mode() { return m_only_gcode; }
     void set_only_gcode(bool only_gcode) { m_only_gcode = only_gcode; }
+    // The previewed G-code's own settings were loaded into the presets, as a .gcode.3mf's are: the bed already is the
+    // one it was sliced for, and the sidebar shows them.
+    bool gcode_settings_loaded() const { return m_only_gcode && m_gcode_settings_loaded; }
 
     //BBS: add only gcode mode
     bool using_exported_file() { return m_exported_file; }
@@ -599,6 +602,7 @@ public:
     void reslice_SLA_until_step(SLAPrintObjectStep step, const ModelObject &object, bool postpone_error_messages = false);
 
     void clear_before_change_mesh(int obj_idx);
+    void notify_painting_removed();
     void changed_mesh(int obj_idx);
 
     void changed_object(ModelObject &object);
@@ -758,6 +762,18 @@ public:
     //BBS: add clone logic
     void clone_selection();
     void center_selection();
+    void distribute_selection_x();
+    void distribute_selection_y();
+    void distribute_selection_z();
+    void align_selection_x_min();
+    void align_selection_x_center();
+    void align_selection_x_max();
+    void align_selection_y_min();
+    void align_selection_y_center();
+    void align_selection_y_max();
+    void align_selection_z_min();
+    void align_selection_z_center();
+    void align_selection_z_max();
     void drop_selection();
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
@@ -1081,6 +1097,8 @@ private:
     wxString m_last_loaded_gcode;
     //BBS: add only gcode mode
     bool m_only_gcode { false };//just for .gcode file not for .gcode.3mf
+    // Set by load_gcode() for the file it previews, so it means nothing once m_only_gcode is cleared.
+    bool m_gcode_settings_loaded { false };
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
     bool m_loading_project { false };

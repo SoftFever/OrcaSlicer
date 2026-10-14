@@ -99,6 +99,7 @@
 #include "libslic3r/Preset.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/GCode.hpp"
+#include "libslic3r/MeshRepair.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/Platform.hpp"
@@ -206,7 +207,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_ORIENT_FAILED, "An error occurred when auto-orienting object(s)."},
     {CLI_MODIFIED_PARAMS_TO_PRINTER, "Found modified parameter in printer preset in the 3mf file, which should not be changed."},
         {CLI_FILE_VERSION_NOT_SUPPORTED, "Unsupported 3MF version. Please make sure the 3MF file was created with the official version of Bambu Studio, not a beta version."},
-    {CLI_NO_SUITABLE_OBJECTS, "One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Orca Slicer before uploading."},
+    {CLI_NO_SUITABLE_OBJECTS, "The plate has nothing to slice: it is empty, or no object on it is both printable and fully inside the print volume."},
     {CLI_VALIDATE_ERROR, "There are some incorrect slicing parameters in the 3mf. Please verify the slicing of all plates in Orca Slicer before uploading."},
     {CLI_OBJECTS_PARTLY_INSIDE, "Some objects are located over the boundary of the heated bed."},
     {CLI_EXPORT_CACHE_DIRECTORY_CREATE_FAILED, "Failed creating directory when exporting cache data."},
@@ -5130,9 +5131,19 @@ int CLI::run(int argc, char **argv)
                 }
             }
         } else if (opt_key == "repair") {
-            // Models are repaired by default.
-            //for (auto &model : m_models)
-            //    model.repair();
+            if (m_config.opt_bool(opt_key))
+                for (Model &model : m_models)
+                    for (ModelObject *object : model.objects) {
+                        for (ModelVolume *volume : object->volumes) {
+                            MeshRepairStats stats;
+                            std::string     error;
+                            if (!volume->repair(true, &stats, &error))
+                                BOOST_LOG_TRIVIAL(warning) << "repair of " << object->name << " / " << volume->name << " failed: " << error;
+                            else if (stats.modified)
+                                BOOST_LOG_TRIVIAL(info) << "repaired " << object->name << " / " << volume->name;
+                        }
+                        object->invalidate_bounding_box();
+                    }
         } else {
             boost::nowide::cerr << "error: option not implemented yet: " << opt_key << std::endl;
             record_exit_reson(outfile_dir, CLI_UNSUPPORTED_OPERATION, 0, cli_errors[CLI_UNSUPPORTED_OPERATION], sliced_info);
