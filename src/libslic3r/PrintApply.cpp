@@ -1318,10 +1318,7 @@ void Print::update_shrinkage_compensation(size_t num_extruders, std::vector<int>
     this->append_tool_change_extruders(extruders);
     // A mixed slot prints with its physical components.
     const auto expand_and_sort = [this, &extruders]() {
-        if (has_any_mixed_filament(m_config.filament_is_mixed.values))
-            extruders = expand_mixed_filaments(extruders, m_config.filament_is_mixed.values, m_config.filament_mixed_components.values);
-        else
-            sort_remove_duplicates(extruders);
+        extruders = expand_mixed_filaments(extruders, m_config.filament_is_mixed.values, m_config.filament_mixed_components.values);
     };
     expand_and_sort();
     // The wipe tower filament may also be flushed into the objects.
