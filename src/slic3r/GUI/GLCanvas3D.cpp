@@ -477,8 +477,11 @@ void GLCanvas3D::LayersEditing::render_variable_layer_height_dialog(GLCanvas3D& 
         imgui.bbl_checkbox("##each_separately", m_each_separately);
         ImGui::SameLine();
         ImGui::AlignTextToFramePadding();
+        // TRN Variable layer height tool, checkbox shown with several objects selected: give each object its own
+        // layer heights instead of one profile they all share.
         imgui.text(_L("Each object separately"));
         if (m_bar_object_ids.size() > 1)
+            // TRN Variable layer height tool: each selected object has a layer height bar at the right edge of the 3D view.
             imgui.text(_L("Point at a bar to edit its object."));
     }
 
@@ -604,6 +607,7 @@ int GLCanvas3D::LayersEditing::choose_shown_object(const GLCanvas3D& canvas, con
     const bool bars_notice = m_each_separately && object_ids.size() > MAX_BARS;
     if (bars_notice != m_bars_notice_shown) {
         m_bars_notice_shown = bars_notice;
+        // TRN "Adaptive", "Smooth" and "Reset" are the buttons of the variable layer height tool.
         const std::string notice_text = _u8L("Variable layer height: only the three tallest selected objects have a bar. The others still take Adaptive, Smooth and Reset.");
         NotificationManager& notification_manager = *wxGetApp().plater()->get_notification_manager();
         if (bars_notice)

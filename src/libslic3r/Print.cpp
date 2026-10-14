@@ -2159,6 +2159,7 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
     }
 
     if (m_precise_z_height_overridden)
+        // TRN "Precise Z height" is a print setting, "prime tower" the tower that purges the nozzle between filaments.
         warn(L("Precise Z height is not applied: with the prime tower, objects of different heights that use variable layer height have to share their layers."), "precise_z_height");
     else if (m_config.enable_prime_tower) {
         for (const PrintObject* object : m_objects) {

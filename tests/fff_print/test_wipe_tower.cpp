@@ -7,6 +7,7 @@
 #include "libslic3r/Polygon.hpp"
 #include <cstddef>
 #include "libslic3r/Model.hpp"
+#include "libslic3r/Layer.hpp"
 #include "libslic3r/Print.hpp"
 #include <string>
 #include <vector>
@@ -328,6 +329,47 @@ TEST_CASE("Height range modifiers that leave the layers alone keep the prime tow
 TEST_CASE("Height range modifiers that put the objects on different layers are rejected with the prime tower", "[WipeTower]")
 {
     CHECK_THAT(validate_two_heights_with_height_ranges(0.1), Catch::Matchers::ContainsSubstring("same variable layer height"));
+}
+
+TEST_CASE("Objects of different heights sharing a profile are sliced on the same layers under the prime tower", "[WipeTower]")
+{
+    // What the prime tower needs is that the objects are sliced at the same Z, which this checks on the
+    // sliced layers rather than on validate() alone. The lower box is 10.05 mm tall, between two layers
+    // of the shared profile, so precise Z height would fit its last layers to that height and move them
+    // off the tall box's; the print leaves it out instead.
+    const DynamicPrintConfig config = multifilament_config(2, {
+        { "enable_prime_tower",         "1"         },
+        { "wipe_tower_x",               "50"        },
+        { "wipe_tower_y",               "50"        },
+        { "layer_change_gcode",         "G92 E0\n" },
+        { "layer_height",               "0.2"       },
+        { "initial_layer_print_height", "0.2"       },
+        { "precise_z_height",           "1"         },
+        { "raft_layers",                "0"         } });
+    const std::vector<std::vector<ConfigBase::SetDeserializeItem>> overrides{ { { "extruder", "1" } }, { { "extruder", "2" } } };
+    const std::vector<coordf_t> profile = { 0., 0.2, 5., 0.2, 10., 0.1, 20., 0.1 };
+
+    Print print;
+    Model model;
+    init_print(std::vector<TriangleMesh>{ make_cube(20, 20, 20), make_cube(20, 20, 10.05) }, print, model, config, &overrides);
+    model.objects[0]->layer_height_profile.set(profile);
+    model.objects[1]->layer_height_profile.set(layer_height_profile_fit_to_height(profile, 10.05));
+    print.apply(model, config);
+    REQUIRE(print.has_wipe_tower());
+    REQUIRE(print.validate().string.empty());
+
+    print.process();
+    REQUIRE(print.is_step_done(psWipeTower));
+    REQUIRE(print.objects().size() == 2);
+
+    const PrintObject &tall  = *print.objects()[0];
+    const PrintObject &lower = *print.objects()[1];
+    REQUIRE(lower.layer_count() > 50);
+    REQUIRE(lower.layer_count() < tall.layer_count());
+    for (size_t idx = 0; idx < lower.layer_count(); ++idx) {
+        INFO("layer " << idx);
+        CHECK_THAT(lower.get_layer(int(idx))->print_z, Catch::Matchers::WithinAbs(tall.get_layer(int(idx))->print_z, 1e-6));
+    }
 }
 
 TEST_CASE("Validation is given the tower's effective width, not the configured one", "[WipeTower]")
