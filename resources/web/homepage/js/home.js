@@ -374,7 +374,7 @@ function ShowRecentFileList( pList )
 						'<div class="FileNamePack">'+sBadge+'<div class="FileName TextS1">'+sName+'</div></div>'+
 						'<div class="FileDate">'+sTime+'</div>'+
 						'<div class="FileActions">'+
-							'<div class="FileActionsReveal '+btnStyle+' ButtonTypeWindow trans" fpath="'+btnPath+'">Show in folder</div>'+
+							'<div class="FileActionsReveal '+btnStyle+' ButtonTypeWindow trans" fpath="'+btnPath+'" data-i18n="show_in_folder">Show in folder</div>'+
 							'<div class="FileActionsRemove ButtonStyleAlert ButtonTypeWindow" fpath="'+sPath+'">'+
 								'<div class="icon16"/></div>'+
 							'</div>'+
