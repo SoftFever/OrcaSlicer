@@ -8,6 +8,7 @@
 #include "libslic3r/TriangleSelector.hpp"
 
 #include <cmath>
+#include <cstddef>
 
 using namespace Slic3r;
 
