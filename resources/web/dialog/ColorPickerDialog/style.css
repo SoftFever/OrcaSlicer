@@ -387,7 +387,8 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-left: 12px;
+  margin-left: 10px;
+  margin-right: 4px;
 }
 .gradient-step-button {
   display: flex;
