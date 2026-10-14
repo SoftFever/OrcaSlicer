@@ -1,18 +1,13 @@
 #include "ColorPickerDialog.hpp"
 #include "Widgets/WebViewHostDialog.hpp"
+#include "Widgets/WebView.hpp"
 #include <wx/dialog.h>
 #include <wx/button.h>
 #include <wx/stattext.h>
 #include <wx/toplevel.h>
 #include <wx/frame.h>
-#include <wx/nonownedwnd.h>
-#include <wx/bitmap.h>
-#include <wx/brush.h>
 #include <wx/colour.h>
-#include <wx/dcmemory.h>
 #include <wx/display.h>
-#include <wx/pen.h>
-#include <wx/region.h>
 #include <algorithm>
 #include <cmath>
 #include <wx/webview.h>
@@ -41,10 +36,6 @@
 #include <gtk/gtk.h>
 #endif
 
-#ifdef __WXMSW__
-#include <dwmapi.h>
-#pragma comment(lib, "dwmapi.lib")
-#endif
 
 #include "libslic3r/Color.hpp"
 #include <optional>
@@ -324,6 +315,8 @@ nlohmann::json color_picker_ui_strings()
         {"Remove color", _u8L("Remove color")},
         {"Saturation", _u8L("Saturation")},
         {"Original color", _u8L("Original color")},
+        // TRN: Clicking the current color preview adds it to the saved favorites.
+        {"Save current color", _u8L("Save current color")},
         {"Palettes", _u8L("Palettes")},
         {"Search colors", _u8L("Search colors")},
         {"Filter colors", _u8L("Filter colors")},
@@ -750,7 +743,7 @@ wxPoint color_picker_panel_position(const wxRect& anchor, const wxRect& work_are
 ColorPickerDialog::ColorPickerDialog(wxWindow* parent, const ColorSelection& initial, ColorPickerOptions options,
                                    bool preserve_multi_color, wxWindow* anchor)
     : WebViewHostDialog(parent, wxID_ANY, _L("Color Picker"), wxDefaultPosition, wxDefaultSize,
-                        wxBORDER_NONE | wxFRAME_NO_TASKBAR | wxFRAME_SHAPED),
+                        wxCAPTION | wxSYSTEM_MENU | wxCLOSE_BOX | wxFRAME_NO_TASKBAR),
       m_initial(initial), m_options(options), m_preserve_multi_color(preserve_multi_color)
 {
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent&) { finish(wxID_CANCEL); });
@@ -761,6 +754,7 @@ ColorPickerDialog::ColorPickerDialog(wxWindow* parent, const ColorSelection& ini
             event.Skip();
     });
     SetBackgroundColour(wxGetApp().get_window_default_clr());
+    wxGetApp().UpdateDlgDarkUI(this);
 #ifdef __WXGTK__
     // wxGTK dialogs default to CENTER_ON_PARENT, which conflicts with the anchor.
     gtk_window_set_position(GTK_WINDOW(GetHandle()), GTK_WIN_POS_NONE);
@@ -795,20 +789,26 @@ ColorPickerDialog::ColorPickerDialog(wxWindow* parent, const ColorSelection& ini
         SetSizerAndFit(sizer);
         Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { finish(wxID_CANCEL); }, wxID_CANCEL);
         Bind(wxEVT_SHOW, [this](wxShowEvent& event) {
-            if (event.IsShown()) {
+            if (event.IsShown() && !m_initial_positioned) {
                 move_to_anchor();
-                apply_rounded_shape();
                 wxGetApp().CallAfter([this, alive = m_alive] {
-                    if (alive->load(std::memory_order_acquire) && !m_closing)
+                    if (alive->load(std::memory_order_acquire) && !m_closing) {
                         move_to_anchor();
+                        m_initial_positioned = true;
+                    }
                 });
             }
             event.Skip();
         });
+        wxGetApp().UpdateDlgDarkUI(this);
         move_to_anchor();
         return;
     }
     browser()->EnableBrowserAcceleratorKeys(false);
+    browser()->Bind(EVT_WEBVIEW_RECREATED, [this](wxCommandEvent& event) {
+        wxGetApp().UpdateDlgDarkUI(this);
+        event.Skip(); // The shared host updates the page theme.
+    });
     Bind(wxEVT_ACTIVATE, [this](wxActivateEvent& event) {
         if (event.GetActive() && IsShown() && !m_closing)
             focus_webview();
@@ -825,24 +825,23 @@ ColorPickerDialog::ColorPickerDialog(wxWindow* parent, const ColorSelection& ini
     // SetSizeHints may fit the window to the WebView's small initial best size.
     // Restore the intended dialog size only after applying the layout hints.
     resize_to_content(m_content_height);
-    Bind(wxEVT_SIZE, [this](wxSizeEvent& event) {
-        event.Skip();
-        apply_rounded_shape();
-    });
+    move_to_anchor();
     Bind(wxEVT_SHOW, [this](wxShowEvent& event) {
-        if (event.IsShown()) {
+        if (event.IsShown() && !m_initial_positioned) {
             resize_to_content(m_content_height);
-            // GTK can require a realized window before applying its shape.
+            move_to_anchor();
+            // GTK may ignore the requested position until the window is shown.
             wxGetApp().CallAfter([this, alive = m_alive] {
                 if (alive->load(std::memory_order_acquire) && !m_closing) {
                     resize_to_content(m_content_height);
+                    move_to_anchor();
+                    m_initial_positioned = true;
                     focus_webview();
                 }
             });
         }
         event.Skip();
     });
-    apply_rounded_shape();
 }
 
 ColorPickerDialog::~ColorPickerDialog() { m_alive->store(false, std::memory_order_release); }
@@ -854,12 +853,13 @@ void ColorPickerDialog::position_panel()
     m_positioning = true;
     // Both dimensions come from the page: width changes when the palette sidebar opens or closes.
     wxSize size = FromDIP(wxSize(m_content_width, m_content_height));
-    size.x = std::min(size.x, m_work_area.width);
-    size.y = std::min(size.y, std::max(1, m_work_area.height - FromDIP(16)));
+    // The work-area limit includes the native title bar and fixed frame.
+    const wxSize frame = GetSize() - GetClientSize();
+    size.x = std::min(size.x, std::max(1, m_work_area.width - frame.x));
+    size.y = std::min(size.y, std::max(1, m_work_area.height - frame.y - FromDIP(16)));
     SetMinSize(wxSize(std::min(FromDIP(320), size.x), std::min(FromDIP(360), size.y)));
     if (size != GetClientSize())
         SetClientSize(size);
-    move_to_anchor();
     m_positioning = false;
 }
 
@@ -885,7 +885,6 @@ void ColorPickerDialog::resize_to_content(int height)
     if (wxWebView* view = browser())
         view->SetSize(GetClientSize());
 #endif
-    apply_rounded_shape();
     repaint_webview();
 }
 
@@ -928,52 +927,9 @@ void ColorPickerDialog::on_dpi_changed(const wxRect&)
     Refresh();
 }
 
-void ColorPickerDialog::apply_rounded_shape()
+void ColorPickerDialog::on_sys_color_changed()
 {
-    // wxOSX SetShape resizes NSWindow and synchronously fires wxEVT_SIZE.
-    // Like SpeedDial, clip its native layer instead and guard shape re-entry.
-    if (m_applying_shape)
-        return;
-
-#ifdef __WXMSW__
-    HWND hwnd = GetHWND();
-    // Rounded corners plus the system border and shadow, the same as a native window.
-    DWM_WINDOW_CORNER_PREFERENCE pref = DWMWCP_ROUND;          // or DWMWCP_ROUNDSMALL, as menus use
-    const bool rounded = SUCCEEDED(DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &pref, sizeof(pref)));
-    if (!rounded) {                                             // Windows 10: square corners, shadow only
-        DWMNCRENDERINGPOLICY policy = DWMNCRP_ENABLED;
-        DwmSetWindowAttribute(hwnd, DWMWA_NCRENDERING_POLICY, &policy, sizeof(policy));
-        const MARGINS margins{0, 0, 0, 1};                      // 1px of DWM frame
-        DwmExtendFrameIntoClientArea(hwnd, &margins);
-    }
-    return;
-#endif
-
-    const wxSize size = GetClientSize();
-    if (size.x <= 0 || size.y <= 0)
-        return;
-    m_applying_shape = true;
-#ifdef __WXOSX__
-    // Reapply after showing: the native view layer may not exist at construction.
-    set_window_corner_radius(this, FromDIP(m_corner_radius));
-#else
-    m_shape_bmp.Create(size.x, size.y, 32);
-    if (m_shape_bmp.IsOk()) {
-        wxMemoryDC dc(m_shape_bmp);
-        if (dc.IsOk()) {
-            dc.SetBackground(wxBrush(*wxBLACK));
-            dc.Clear();
-            dc.SetBrush(wxBrush(*wxWHITE));
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(m_corner_radius));
-            dc.SelectObject(wxNullBitmap);
-            const wxRegion region(m_shape_bmp, *wxBLACK);
-            if (region.IsOk())
-                SetShape(region);
-        }
-    }
-#endif
-    m_applying_shape = false;
+    wxGetApp().UpdateDlgDarkUI(this);
 }
 
 void ColorPickerDialog::add_user_scripts()

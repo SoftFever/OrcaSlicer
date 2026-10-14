@@ -5,9 +5,9 @@ The color picker is a local HTML dialog hosted by `ColorPickerDialog`, a
 selection contract and shared filament conversion. Bridge validation, favorites
 persistence, placement and gettext strings remain private to the implementation.
 Its colors use the existing `ColorRGBA` utility.
-It appears as a rounded, borderless floating panel. macOS rounds the native view
-layer instead of calling `SetShape`, which synchronously resizes its window;
-other platforms use a validated shape region with a reentry guard.
+It uses a native title bar and fixed window border, allowing dragging but no
+manual resizing or maximization. Native title-bar colors use the application's
+shared dialog dark-theme update on creation and theme changes.
 Like SpeedDial, the host disables browser zoom accelerators, restores native
 WebView focus on activation and readiness, and synchronizes layout and the macOS
 viewport before repainting the backend. Activation never dismisses this modal
@@ -20,8 +20,9 @@ page observes content rather than viewport height, so resizing does not create
 a feedback loop; oversized content remains scrollable.
 The panel snapshots the triggering color or More Colors button's screen rectangle.
 It aligns below the button, flips above when needed, and clamps to that button's
-display work area. Content and DPI changes reuse the same anchor and display;
-later mouse movement does not affect placement. wxGTK clears the dialog's default
+display work area on initial display. Later content and DPI changes update only
+the client size, preserving the position chosen by dragging the title bar.
+wxGTK clears the dialog's default
 parent-centering constraint and reapplies its native position after showing,
 bypassing wxGTK's requested-position cache. Absolute top-level placement remains
 subject to the window manager; Wayland compositors control it. The official filament palette's

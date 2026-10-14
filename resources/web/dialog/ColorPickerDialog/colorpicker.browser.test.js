@@ -32,6 +32,7 @@ async function open(t, strings = {}, language = "") {
 function init(ready, gradient = false, alpha = false) {
   return {command: "init", page_id: ready.page_id, options: {allow_gradient: gradient, allow_alpha: alpha},
     selection: {type: "solid", colors: ["#01234567"]},
+    ui: {sidebar_open: true, palette: "basic"},
     favorites: [{type: "gradient", colors: ["#FF000040", "#0000FF90"]}, {type: "solid", colors: ["#ABCDEF40"]}]};
 }
 async function count(page, command) { return page.evaluate(value => messages.filter(message => message.command === value).length, command); }
@@ -43,7 +44,7 @@ for (const gradient of [false, true]) for (const alpha of [false, true]) {
     assert.equal(await send({...init(ready), options: {allow_gradient: "yes", allow_alpha: alpha}}), false);
     assert.equal(await send({...init(ready), page_id: "stale"}), false);
     assert.equal(await send(init(ready, gradient, alpha)), true);
-    assert.equal(await page.locator("label[for=tab2]").isVisible(), gradient);
+    assert.equal(await page.locator("#modeControls").isVisible(), gradient);
     assert.equal(await page.locator("#alphaControls").isVisible(), alpha);
     assert.equal(await page.locator("#userColors button:not(.empty)").count(), gradient ? 2 : 1);
     await page.locator("#userColors button:not(.empty)").last().click();
@@ -51,7 +52,7 @@ for (const gradient of [false, true]) for (const alpha of [false, true]) {
     assert.deepEqual(selection, {type: "solid", colors: [alpha ? "#ABCDEF40" : "#ABCDEFFF"]});
     assert.equal(await send(init(ready, gradient, alpha)), true);
     assert.deepEqual(await page.evaluate(() => ColorPickerDialog.exportSelection()), selection, "repeated ready/init retains edits");
-    await page.locator("#saveColorBtn").click();
+    await page.locator("#colorPreview").click();
     const favorites = await page.evaluate(() => messages.at(-1).favorites);
     assert(favorites.some(favorite => favorite.colors[0] === "#ABCDEF40"), "original favorites retain their alpha");
     assert(favorites.some(favorite => favorite.type === "gradient"), "filtered gradients remain stored");
@@ -62,36 +63,51 @@ for (const gradient of [false, true]) for (const alpha of [false, true]) {
 
 test("Visible incomplete editors block confirmation and favorites until recovery", options, async t => {
   const {page, ready, send} = await open(t); await send(init(ready, true, true));
-  for (const [id, value, valid] of [["rValue", "999", "20"], ["rValue", "", "21"], ["aValue", "101", "50"], ["hexInput", "GG", "12345680"]]) {
+  for (const [id, value, valid] of [["rValue", "", "21"], ["oValue", "", "50"], ["hexInput", "GG", "12345680"]]) {
     await page.locator("#" + id).fill(value);
     const confirms = await count(page, "confirm"), saves = await count(page, "update_favorites");
-    await page.locator("#confirmBtn").click(); await page.locator("#saveColorBtn").click();
+    await page.locator("#confirmBtn").evaluate(element => element.click()); await page.locator("#colorPreview").click();
     assert.equal(await count(page, "confirm"), confirms); assert.equal(await count(page, "update_favorites"), saves);
     await page.locator("#" + id).fill(valid); await page.locator("#" + id).press("Enter");
     assert.equal(await count(page, "confirm"), confirms + 1);
   }
-  await page.locator("#hValue").evaluate(element => { element.value = ""; }); // Hidden HSL input must not block RGB confirmation.
+  await page.locator("#hValue").fill(""); // HSL is now visible beside RGB, so incomplete HSL must block.
+  const hslConfirms = await count(page, "confirm");
+  await page.locator("#confirmBtn").evaluate(element => element.click());
+  assert.equal(await count(page, "confirm"), hslConfirms);
+  await page.locator("#hValue").fill("100");
   const confirms = await count(page, "confirm"); await page.locator("#confirmBtn").click();
   assert.equal(await count(page, "confirm"), confirms + 1);
   await page.locator("#rValue").fill(""); await page.locator("#rValue").press("Escape");
   assert.equal(await page.evaluate(() => messages.at(-1).command), "cancel");
 });
 
+test("Numeric channel and opacity edits clamp to their field bounds", options, async t => {
+  const {page, ready, send} = await open(t); await send(init(ready, true, true));
+  for (const [id, input, expected] of [["rValue", "999", "255"], ["rValue", "-1", "0"],
+                                     ["hValue", "361", "360"], ["oValue", "101", "100"], ["oValue", "-1", "0"]]) {
+    await page.locator("#" + id).fill(input);
+    assert.equal(await page.locator("#" + id).inputValue(), expected);
+    assert.equal(await page.locator("#" + id).evaluate(element => element.checkValidity()), true);
+  }
+  assert.equal((await page.evaluate(() => ColorPickerDialog.exportSelection())).colors[0].slice(-2), "00");
+});
+
 test("Endpoint edits and favorites retain ordered byte alpha", options, async t => {
   const {page, ready, send} = await open(t);
   await send({...init(ready, true, true), selection: {type: "gradient", colors: ["#FF000001", "#0000FF80"]}});
-  await page.locator("label[for=gradientSwitch]").click();
+  await page.locator(".gradient-thumb[data-index='1']").click();
   await page.locator('.color-item[title="Red"]').first().click();
   assert.deepEqual(await page.evaluate(() => ColorPickerDialog.exportSelection()), {type: "gradient", colors: ["#FF000001", "#FF000080"]});
-  await page.locator("#hexInput").fill("0000FF80"); await page.locator("label[for=gradientSwitch]").click();
+  await page.locator("#hexInput").fill("0000FF80"); await page.locator(".gradient-thumb[data-index='0']").click();
   assert.equal(await page.locator("#hexInput").inputValue(), "FF000001");
-  await page.locator("#saveColorBtn").click();
+  await page.locator("#colorPreview").click();
   assert.deepEqual(await page.evaluate(() => messages.at(-1).favorites[0]), {type: "gradient", colors: ["#FF000001", "#0000FF80"]});
 });
 
 test("Read-only favorites remain selectable and late documents cannot initialize", options, async t => {
   const {page, ready, send} = await open(t); await send({...init(ready), favorites_writable: false});
-  assert.equal(await page.locator("#saveColorBtn").isDisabled(), true);
+  assert.equal(await page.locator("#colorPreview").isDisabled(), true);
   await page.locator("#userColors button:not(.empty)").first().click();
   assert.equal(await page.locator("#hexInput").inputValue(), "ABCDEF");
   await page.reload();
@@ -102,11 +118,11 @@ test("Document strings translate palette names and editor errors while retaining
   const source = readFileSync(resolve(__dirname, "../../../../src/slic3r/GUI/ColorPickerDialog.cpp"), "utf8");
   const keys = [...source.matchAll(/_u8L\("([^"\n]+)"\)/g)].map(match => match[1]);
   const strings = Object.fromEntries(keys.map(key => [key, "Translated: " + key]));
-  const {page, ready, send} = await open(t, strings); await send({...init(ready, true, true), preserve_multi_color: true});
+  const {page, ready, send} = await open(t, strings); await send({...init(ready, true, true), options: {allow_gradient: true, allow_alpha: true, max_gradient_colors: 7}, preserve_multi_color: true});
   assert.equal(await page.title(), strings["Color Picker"]);
   for (const element of await page.locator("[data-i18n]").all()) assert.equal(await element.textContent(), strings[await element.getAttribute("data-i18n")]);
   for (const attribute of ["aria-label", "title"]) for (const element of await page.locator(`[data-i18n-${attribute}]`).all())
-    assert.equal(await element.getAttribute(attribute), strings[await element.getAttribute(`data-i18n-${attribute}`)]);
+    assert.equal((await element.getAttribute(attribute)).split("\n")[0], strings[await element.getAttribute(`data-i18n-${attribute}`)]);
   assert.equal(await page.locator("#selectionNotice").textContent(), strings["The current multi-color selection is kept until you choose a different color."]);
   for (const palette of ["basic", "orca", "ral", "gradient"]) {
     await page.selectOption("#paletteCombo", palette);
@@ -118,12 +134,12 @@ test("Document strings translate palette names and editor errors while retaining
   await page.locator("#hexInput").fill("bad");
   assert.equal(await page.locator("#hexInput").evaluate(element => element.validationMessage), strings["Enter a complete hexadecimal color"]);
   await page.locator("#hexInput").fill("12345680");
-  for (const [id, invalid, valid, key] of [["rValue", "999", "18", "Value is out of range."],
-                                         ["rValue", "", "18", "Invalid input"],
-                                         ["aValue", "101", "50", "Value is out of range."]]) {
+  for (const [id, invalid, valid, key] of [["rValue", "", "18", "Invalid input"],
+                                         ["oValue", "", "50", "Invalid input"]]) {
     const confirms = await count(page, "confirm");
     await page.locator("#" + id).fill(invalid);
-    await page.locator("#confirmBtn").click();
+    await page.locator("#confirmBtn").evaluate(element => element.click());
+    await page.locator("#colorPreview").click(); // Saving invokes the same translated validation while OK is disabled.
     assert.equal(await count(page, "confirm"), confirms);
     assert.equal(await page.locator("#" + id).evaluate(element => element.validationMessage), strings[key]);
     await page.locator("#" + id).fill(valid);
@@ -131,10 +147,9 @@ test("Document strings translate palette names and editor errors while retaining
     await page.locator("#confirmBtn").click();
     assert.equal(await count(page, "confirm"), confirms + 1);
   }
-  await page.locator("label[for=modeSwitch]").click();
   await page.locator("#hValue").fill("361");
-  await page.locator("#saveColorBtn").click();
-  assert.equal(await page.locator("#hValue").evaluate(element => element.validationMessage), strings["Value is out of range."]);
+  await page.locator("#colorPreview").click();
+  assert.equal(await page.locator("#hValue").inputValue(), "360", "out-of-range hue clamps at its boundary");
   await page.locator(".color-item").first().click();
   assert.equal(await page.locator("#hValue").evaluate(element => element.validationMessage), "", "a new palette selection clears the previous editor error");
 });
@@ -147,7 +162,7 @@ test("Document language and escaped labels preserve untranslated English fallbac
   assert.equal(await page.locator("#cancelBtn").textContent(), cancel);
   assert.equal(await page.title(), "Color Picker");
   assert.equal(await page.locator(".color-name").first().textContent(), "Red");
-  assert.deepEqual(await page.locator("#slider-type-switch .switch-label").allTextContents(), ["RGB", "HSL"]);
+  assert.deepEqual(await page.locator("label[for=hValue],label[for=sValue],label[for=lValue],label[for=rValue],label[for=gValue],label[for=bValue]").allTextContents(), ["H", "S", "L", "R", "G", "B"]);
   assert.deepEqual(await page.evaluate(() => ColorPickerDialog.exportSelection()), {type: "solid", colors: ["#012345FF"]});
 });
 
@@ -165,7 +180,7 @@ test("Live app theme overrides the opposite system scheme without changing color
     assert.equal(await page.locator("body").evaluate(element => getComputedStyle(element).backgroundColor), background);
     assert.equal(await page.locator("html").evaluate(element => getComputedStyle(element).colorScheme), theme);
     assert.deepEqual(await page.evaluate(() => ({selection: ColorPickerDialog.exportSelection(), spectrum: document.getElementById("spectrum").toDataURL()})), initial);
-    for (const id of ["modeSwitch", "gradientSwitch"]) for (const checked of [false, true]) {
+    for (const id of ["modeSwitch"]) for (const checked of [false, true]) {
       if (await page.locator("#" + id).isChecked() !== checked) await page.locator(`label[for=${id}]`).click();
       await page.evaluate(async () => {
         await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})));
@@ -182,7 +197,9 @@ test("Live app theme overrides the opposite system scheme without changing color
       }, checked);
       assert.equal(result.selected, result.accentForeground, `${theme} ${id} selected text uses the accent foreground`);
       assert.equal(result.unselected, result.mutedForeground, `${theme} ${id} unselected text stays muted`);
-      assert.deepEqual(await page.evaluate(() => ColorPickerDialog.exportSelection()), initial.selection, "switching editors/endpoints keeps color and byte alpha");
+      const selected = await page.evaluate(() => ColorPickerDialog.exportSelection());
+      assert.equal(selected.type, checked ? "gradient" : "solid");
+      if (checked) assert.deepEqual(selected, initial.selection, "returning to gradient keeps ordered endpoint byte alpha");
     }
   }
 });
@@ -207,7 +224,7 @@ test("Floating panel fits capabilities and wrapped translations without a resize
     assert.equal(await count(page, "resize"), resizes, "extra viewport height never changes intrinsic content height");
     const controls = await page.evaluate(() => {
       const body = document.body.getBoundingClientRect();
-      return ["confirmBtn", "cancelBtn", ...(document.getElementById("alphaControls").classList.contains("hidden") ? [] : ["aValue"])].map(id => {
+      return ["confirmBtn", "cancelBtn", ...(document.getElementById("alphaControls").classList.contains("hidden") ? [] : ["oValue"])].map(id => {
         const rect = document.getElementById(id).getBoundingClientRect();
         return rect.left >= body.left && rect.right <= body.right && rect.bottom <= body.bottom;
       });
@@ -219,12 +236,12 @@ test("Floating panel fits capabilities and wrapped translations without a resize
     });
     await page.waitForFunction(previous => messages.filter(message => message.command === "resize").length > previous, resizes);
     assert.deepEqual(await page.evaluate(() => ColorPickerDialog.exportSelection()), edited, "content resize leaves the selection untouched");
-    await page.setViewportSize({width: 550, height: 300}); // Native work-area cap keeps long content scrollable.
+    // The compact layout now puts saved swatches to the right of both previews.
     assert(await page.evaluate(() => {
       const favorites = document.getElementById("userColors").getBoundingClientRect();
       const preview = document.getElementById("colorPreview").getBoundingClientRect();
-      return favorites.right <= preview.left;
-    }), "scrollbars do not overlap favorites and preview");
+      return favorites.left >= preview.right;
+    }), "favorites do not overlap the preview");
     await page.locator("#confirmBtn").scrollIntoViewIfNeeded();
     assert.equal(await page.locator("#confirmBtn").isVisible(), true);
   }

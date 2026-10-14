@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 #include <wx/gdicmn.h>
-#include <wx/bitmap.h>
 
 class wxWindow;
 
@@ -61,13 +60,13 @@ private:
     void handle_web_command(const nlohmann::json& payload);
     void send_initial_state();
     void finish(int return_code);
-    void apply_rounded_shape();
     void position_panel();
     void move_to_anchor();
     void resize_to_content(int height);
     void focus_webview();
     void repaint_webview();
     void on_dpi_changed(const wxRect& suggested_rect) override;
+    void on_sys_color_changed() override;
 
     ColorSelection m_initial;
     ColorPickerOptions m_options;
@@ -81,9 +80,7 @@ private:
     bool m_favorites_writable = false;
     bool m_sidebar_open = false;
     std::string m_palette;
-    int m_corner_radius{8};
-    wxBitmap m_shape_bmp;
-    bool m_applying_shape{false};
+    bool m_initial_positioned = false;
     wxRect m_anchor_rect;
     wxRect m_work_area;
     int m_content_height = 360;
