@@ -6,8 +6,8 @@
 	"setting_id": "iWjynhCcvbF8MWev",
 	"instantiation": "true",
 	"compatible_printers": [
-		"Goofoo Velo+ 0.2 nozzle",
-		"Goofoo Velo+ 0.4 nozzle"
+		"Goofoo Velo+ 0.4 nozzle",
+		"Goofoo Velo+ Tool 0.4"
 	],
 	"layer_height": "0.2",
 	"initial_layer_print_height": "0.2",

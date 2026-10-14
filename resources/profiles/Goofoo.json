@@ -45,6 +45,10 @@
 		{
 			"name": "0.30mm Standard @Goofoo Velo+",
 			"sub_path": "process/0.30mm Standard @Goofoo Velo+.json"
+		},
+		{
+			"name": "0.10mm Standard @Goofoo Velo+",
+			"sub_path": "process/0.10mm Standard @Goofoo Velo+.json"
 		}
 	],
 	"filament_list": [],
