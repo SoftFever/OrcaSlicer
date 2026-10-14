@@ -2502,8 +2502,16 @@ const double TriangleCursor::facet_angle_limit = cos(Geometry::deg2rad(5.0));
 // For each target face that is a source face, possibly with its vertices rotated, returns the source face
 // and the rotation: vertex i of the target face is vertex (i + rotation) % 3 of the source face.
 // Returns {-1, 0} for every other target face. Vertices closer than a fraction of a micron are the same.
+// When the triangle list is unchanged and only vertices moved (texture displacement smoothing), every face is itself.
 static std::vector<std::pair<int, int>> match_unchanged_faces(const indexed_triangle_set& source_its, const indexed_triangle_set& target_its)
 {
+    if (source_its.indices == target_its.indices) {
+        std::vector<std::pair<int, int>> out(target_its.indices.size());
+        for (size_t i = 0; i < out.size(); ++i)
+            out[i] = {int(i), 0};
+        return out;
+    }
+
     constexpr float max_dist_sqr = 1e-4f * 1e-4f;
 
     auto coord_fn = [&source_its](size_t idx, size_t dim) { return source_its.vertices[idx][dim]; };

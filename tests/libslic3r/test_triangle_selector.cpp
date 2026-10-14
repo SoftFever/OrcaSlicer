@@ -304,3 +304,18 @@ TEST_CASE("Remapping paint onto a changed triangle still paints it", "[TriangleS
     REQUIRE_THAT(painted_area(changed, remapped, EnforcerBlockerType::Extruder3),
                  Catch::Matchers::WithinRel(painted_area(mesh, paint, EnforcerBlockerType::Extruder3), 1e-5));
 }
+
+
+TEST_CASE("Remapping paint onto a mesh whose vertices moved keeps it on the same triangles", "[TriangleSelector]")
+{
+    const TriangleMesh mesh  = make_sphere(20., 2 * PI / 48);
+    const auto         paint = brush_paint(mesh, 40);
+
+    // Pull the top cap inwards, as texture displacement smoothing moves vertices without changing the triangles.
+    TriangleMesh moved = mesh;
+    for (Vec3f &v : moved.its.vertices)
+        if (v.z() > 10.f)
+            v *= 0.9f;
+
+    REQUIRE(TriangleSelector::remap_painting(mesh.its, paint, moved.its, Transform3d::Identity(), {}) == paint);
+}
