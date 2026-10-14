@@ -60,6 +60,8 @@ static json home_page_strings()
 {
     return {
         {"login", _u8L("Login")},
+        // TRN Short badge on a recent project that was published (a published 3MF). Keep it about three letters long.
+        {"published_badge", _u8L("PUB")},
         {"not_signed_in", _u8L("Not signed in")},
         {"plugin_not_detected", _u8L("Bambu Network plug-in not detected. Click <a>here</a> to install it.")},
         {"log_out", _u8L("Log Out")},
