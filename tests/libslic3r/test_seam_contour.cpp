@@ -123,6 +123,36 @@ TEST_CASE("Unknown reverse geometry invalidates a bounds certificate for the leg
     CHECK(result.contours.empty());
 }
 
+TEST_CASE("Unknown geometry near a rejected tube wall preserves the reliable continuation", "[SeamPlacer][Regression]") {
+    const bool descending = GENERATE(false, true);
+    const size_t unknown_layer = GENERATE(0, 1);
+    const double width = 0.4, outer_radius = 4.0, inner_radius = 3.0, shift = 0.3;
+    Options options;
+    options.radius_width_factor = 4.0;
+    const double radius = width * options.radius_width_factor;
+    Layers layers{{circle(outer_radius, 0), circle(inner_radius, 0, true)},
+                  {circle(outer_radius, shift, false, 97), circle(inner_radius, shift, true, 93)}};
+    for (auto &layer : layers)
+        for (auto &contour : layer) contour.width = contour.nozzle = width;
+    if (descending) std::reverse(layers.begin(), layers.end());
+    const size_t source_layer = descending ? 1 : 0;
+    const int direction = descending ? -1 : 1;
+    // The shifted outer wall is a local match; the hole's opposing normal rejects it first.
+    const auto baseline = Resolver(layers, options).resolve(source_layer, 0, 0, direction, radius);
+    REQUIRE(baseline.outcome == Outcome::Unique);
+    REQUIRE(baseline.method == Method::Local);
+    REQUIRE(baseline.contours == (std::vector<size_t>{0}));
+    Contour unknown;
+    const double x = inner_radius + shift - radius + 0.2;
+    // Only a premature reverse query from the rejected hole would encounter this path.
+    unknown.points = {Vec2d(x, -0.05), Vec2d(x, 0.05)};
+    unknown.reliable = false;
+    layers[unknown_layer].push_back(std::move(unknown));
+    const auto result = Resolver(std::move(layers), options).resolve(source_layer, 0, 0, direction, radius);
+    CHECK(result.outcome == Outcome::Unique);
+    CHECK(result.contours == (std::vector<size_t>{0}));
+}
+
 TEST_CASE("A split or merge keeps ambiguous continuations near the slit", "[SeamPlacer][Regression]") {
     Resolver resolver({{rectangle(0, 10, 0, 10)},
                        {rectangle(0, 4.8, 0, 10), rectangle(5.2, 10, 0, 10)}});

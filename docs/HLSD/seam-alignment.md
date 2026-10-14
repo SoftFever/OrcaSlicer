@@ -123,7 +123,9 @@ from an artificial closing edge. An unknown source, or an unknown path whose
 bounding box intersects the local query box in either layer, leaves the legacy
 search unrestricted. This conservative box test also covers the material probes;
 it may disable the filter even when the path's segments are farther away.
-Unknown geometry encountered around a candidate's foot during reverse confirmation
+Reverse confirmation applies only to candidates that pass the applicable distance
+and normal checks, plus material checks on the local path outside the noise band.
+Unknown geometry encountered around such a candidate's foot during reverse confirmation
 also leaves the entire legacy search unrestricted, rather than discarding only
 that candidate. A reliable reverse rejection still excludes the candidate.
 Unknown paths outside these query boxes do not disable reliable correspondence.
