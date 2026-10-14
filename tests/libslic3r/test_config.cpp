@@ -1578,36 +1578,6 @@ TEST_CASE("Static print configs compare, order and hash by their option values",
     }
 }
 
-TEST_CASE("A minimum cruise ratio of 100% is rejected only where Klipper would refuse it", "[Config]")
-{
-    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
-    config.set_deserialize_strict("gcode_flavor", "klipper");
-    config.set("minimum_cruise_ratio_enable", true);
-    config.set_key_value("minimum_cruise_ratio", new ConfigOptionPercent(100.));
-    REQUIRE(config.validate().count("minimum_cruise_ratio") == 1);
-
-    SECTION("a value at 99% is accepted") {
-        config.set_key_value("minimum_cruise_ratio", new ConfigOptionPercent(99.));
-        const auto errors = config.validate();
-        CAPTURE(errors.empty() ? "none" : errors.begin()->first, errors.empty() ? "" : errors.begin()->second);
-        REQUIRE(errors.count("minimum_cruise_ratio") == 0);
-    }
-    SECTION("the value is not checked while the option is disabled") {
-        config.set_key_value("minimum_cruise_ratio", new ConfigOptionPercent(50.));
-        config.set("minimum_cruise_ratio_enable", false);
-        const auto errors = config.validate();
-        CAPTURE(errors.empty() ? "none" : errors.begin()->first, errors.empty() ? "" : errors.begin()->second);
-        REQUIRE(errors.count("minimum_cruise_ratio") == 0);
-    }
-    SECTION("the value is not checked on another flavor") {
-        config.set_key_value("minimum_cruise_ratio", new ConfigOptionPercent(50.));
-        config.set_deserialize_strict("gcode_flavor", "marlin2");
-        const auto errors = config.validate();
-        CAPTURE(errors.empty() ? "none" : errors.begin()->first, errors.empty() ? "" : errors.begin()->second);
-        REQUIRE(errors.count("minimum_cruise_ratio") == 0);
-    }
-}
-
 namespace {
 
 // Keys whose values differ between two full configs, compared as text so enum names count too.

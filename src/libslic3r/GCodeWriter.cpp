@@ -456,10 +456,7 @@ std::string GCodeWriter::set_acceleration_internal(Acceleration type, unsigned i
         gcode.reserve(96);
         gcode += "SET_VELOCITY_LIMIT ACCEL=";
         gcode += value;
-        if (this->config.minimum_cruise_ratio_enable) {
-            gcode += " MINIMUM_CRUISE_RATIO=";
-            gcode += float_to_string_decimal_point(this->config.minimum_cruise_ratio.value / 100);
-        } else if (this->config.accel_to_decel_enable) {
+        if (this->config.accel_to_decel_enable) {
             gcode += " ACCEL_TO_DECEL=";
             gcode += float_to_string_decimal_point(acceleration * this->config.accel_to_decel_factor / 100);
             if (GCodeWriter::full_gcode_comment)
@@ -556,10 +553,7 @@ std::string GCodeWriter::set_accel_and_jerk(unsigned int acceleration, double je
     if (set_acceleration) {
         gcode += " ACCEL=";
         gcode += std::to_string(acceleration);
-        if (this->config.minimum_cruise_ratio_enable) {
-            gcode += " MINIMUM_CRUISE_RATIO=";
-            gcode += float_to_string_decimal_point(this->config.minimum_cruise_ratio.value / 100);
-        } else if (this->config.accel_to_decel_enable) {
+        if (this->config.accel_to_decel_enable) {
             gcode += " ACCEL_TO_DECEL=";
             gcode += float_to_string_decimal_point(acceleration * this->config.accel_to_decel_factor / 100);
         }

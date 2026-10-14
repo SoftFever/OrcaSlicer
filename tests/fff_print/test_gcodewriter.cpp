@@ -1272,29 +1272,6 @@ TEST_CASE("Custom G-code motion limits are restored before generated moves", "[G
     REQUIRE(gcode.find("M205 X8 Y8 ; adjust jerk", custom_gcode_pos) != std::string::npos);
 }
 
-TEST_CASE("Klipper acceleration commands carry the cruise ratio, else the legacy ACCEL_TO_DECEL", "[GCodeWriter]")
-{
-    GCodeWriter writer;
-    writer.config.gcode_flavor.value = gcfKlipper;
-    writer.config.accel_to_decel_enable.value = true;
-    writer.config.accel_to_decel_factor.value = 50;
-    writer.config.minimum_cruise_ratio.value = 25;
-
-    SECTION("the legacy option alone") {
-        REQUIRE_THAT(writer.set_print_acceleration(2000),
-                     Catch::Matchers::StartsWith("SET_VELOCITY_LIMIT ACCEL=2000 ACCEL_TO_DECEL=1000"));
-        REQUIRE_THAT(writer.set_accel_and_jerk(3000, 0.0),
-                     Catch::Matchers::StartsWith("SET_VELOCITY_LIMIT ACCEL=3000 ACCEL_TO_DECEL=1500"));
-    }
-    SECTION("the cruise ratio takes precedence") {
-        writer.config.minimum_cruise_ratio_enable.value = true;
-        REQUIRE_THAT(writer.set_print_acceleration(2000),
-                     Catch::Matchers::StartsWith("SET_VELOCITY_LIMIT ACCEL=2000 MINIMUM_CRUISE_RATIO=0.25"));
-        REQUIRE_THAT(writer.set_accel_and_jerk(3000, 0.0),
-                     Catch::Matchers::StartsWith("SET_VELOCITY_LIMIT ACCEL=3000 MINIMUM_CRUISE_RATIO=0.25"));
-    }
-}
-
 // Regression test for the belt-printer "illegal gantry move at print start" bug.
 //
 // On a belt printer the layer-change z-hop is deferred (lazy_lift) and consumed

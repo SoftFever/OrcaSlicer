@@ -783,7 +783,6 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             float max_travel_acceleration; // mm/s^2
             float extrude_factor_override_percentage;
             bool klipper{ false };
-            bool klipper_modern{ false };
             float minimum_cruise_ratio{ 0.5f };
             float requested_accel_to_decel{ -1.0f };
             float klipper_junction_flush{ 1.0f };

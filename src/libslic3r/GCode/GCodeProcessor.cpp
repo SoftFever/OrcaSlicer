@@ -367,7 +367,6 @@ void GCodeProcessor::TimeMachine::reset()
     max_travel_acceleration = 0.0f;
     extrude_factor_override_percentage = 1.0f;
     klipper = false;
-    klipper_modern = false;
     minimum_cruise_ratio = 0.5f;
     requested_accel_to_decel = -1.0f;
     klipper_junction_flush = 1.0f;
@@ -3119,8 +3118,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_parser.apply_config(config);
 
     m_flavor = config.gcode_flavor;
-    for (TimeMachine& machine : m_time_processor.machines)
-        machine.klipper_modern = config.minimum_cruise_ratio_enable.value;
     m_printer_model = config.printer_model.value;
 
     m_single_extruder_multi_material = config.single_extruder_multi_material;
@@ -3399,9 +3396,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionEnum<GCodeFlavor>* gcode_flavor = config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
     if (gcode_flavor != nullptr)
         m_flavor = gcode_flavor->value;
-    if (const auto* modern = config.option<ConfigOptionBool>("minimum_cruise_ratio_enable"))
-        for (TimeMachine& machine : m_time_processor.machines)
-            machine.klipper_modern = modern->value;
 
     const ConfigOptionPoints* printable_area = config.option<ConfigOptionPoints>("printable_area");
     if (printable_area != nullptr)
@@ -6751,7 +6745,7 @@ void GCodeProcessor::process_SET_VELOCITY_LIMIT(const GCodeReader::GCodeLine& li
                     machine.klipper_junction_flush -= 1.0f;
                 machine.minimum_cruise_ratio = value;
                 machine.requested_accel_to_decel = -1.0f;
-            } else if (name == "ACCEL_TO_DECEL" && value > 0.0f && !machine.klipper_modern) {
+            } else if (name == "ACCEL_TO_DECEL" && value > 0.0f) {
                 if (machine.klipper_queue_priming && machine.requested_accel_to_decel < 0.0f)
                     machine.klipper_junction_flush += 1.0f;
                 machine.requested_accel_to_decel = value;

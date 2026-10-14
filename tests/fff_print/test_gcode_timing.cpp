@@ -852,15 +852,6 @@ TEST_CASE("SET_VELOCITY_LIMIT applies every limit on the line and ignores the co
                  WithinRel(rest_to_rest_time(20.0, 80.0, 500.0, 500.0 * (1.0 - 0.2)), 1e-6));
 }
 
-TEST_CASE("ACCEL_TO_DECEL is ignored once the minimum cruise ratio is enabled", "[GCodeTiming][Klipper]")
-{
-    // Current Klipper no longer reads the parameter, so a legacy value in custom G-code changes nothing.
-    auto config = make_junction_config(gcfKlipper, 5.0, 0.0);
-    config.minimum_cruise_ratio_enable.value = true;
-    REQUIRE_THAT(klipper_time("SET_VELOCITY_LIMIT ACCEL_TO_DECEL=100\nG1 X40 F30000\n", config),
-                 WithinRel(rest_to_rest_time(40.0, 500.0, klipper_accel, klipper_pseudo_accel), 1e-6));
-}
-
 TEST_CASE("M400 without a delay waits for the queue to drain", "[GCodeTiming][Klipper]")
 {
     REQUIRE_THAT(klipper_time("G90\nG1 X40 F30000\nM400\nG1 X80\n"),
