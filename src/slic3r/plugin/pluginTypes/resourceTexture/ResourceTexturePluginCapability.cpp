@@ -7,6 +7,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <memory>
+#include <slic3r/plugin/PythonPluginInterface.hpp>
 #include <string>
 
 namespace py = pybind11;

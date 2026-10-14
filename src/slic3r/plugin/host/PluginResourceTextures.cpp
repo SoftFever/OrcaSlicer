@@ -8,6 +8,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <slic3r/plugin/PythonPluginInterface.hpp>
 #include <string>
 #include <utility>
 #include <vector>
