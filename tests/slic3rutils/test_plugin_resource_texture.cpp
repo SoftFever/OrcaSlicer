@@ -258,13 +258,17 @@ std::vector<unsigned char> make_gray_bmp(int width, int height, uint8_t value)
     return bmp;
 }
 
-// The app calls wxInitAllImageHandlers() during startup; the test binary has no app.
+// The app calls wxInitAllImageHandlers() during startup and, before that, wxEntryStart() runs the
+// wxImageModule, which registers the standard handlers. wxInitAllImageHandlers() adds PNG, JPEG and
+// the rest but NOT the BMP handler, so a test binary without a wxApp must add the standard set too or
+// a .bmp texture cannot be loaded here at all.
 void ensure_wx_image_handlers()
 {
     static bool initialized = false;
     if (initialized)
         return;
     initialized = true;
+    wxImage::InitStandardHandlers();
     wxInitAllImageHandlers();
 }
 
