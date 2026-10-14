@@ -7060,6 +7060,7 @@ msgid "PLA and PETG filaments detected in the mixture. Adjust parameters accordi
 msgstr "Er zijn PLA- en PETG-filamenten in de combinatie gedetecteerd. Pas de parameters aan volgens de wiki om de printkwaliteit te waarborgen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "De prime toren steekt buiten de rand van het printbed uit."
 
@@ -9333,6 +9334,7 @@ msgid "Material settings"
 msgstr "Materiaalinstellingen"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
 msgstr "Elke modus noemt de printkoppen die meedoen en de rol die elk ervan speelt. Klik op een gereedschapsknop om de rol te wisselen — beweeg over een kleur hieronder om te zien wat elke rol doet."
 
@@ -9357,6 +9359,7 @@ msgid "Which tool heads take part in the mode and what role each one plays. Clic
 msgstr "Welke printkoppen aan de modus deelnemen en welke rol elk ervan speelt. Klik op een tegel om de rol te wisselen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
 msgstr "G-code die bij de start van de print wordt uitgevoerd om de printer in deze modus te zetten (bijvoorbeeld een Klipper SET_PRINT_MODE-aanroep). De slicer genereert alleen de paden van het primaire gereedschap (Primary); de firmware stuurt de andere aan."
 
@@ -9391,6 +9394,7 @@ msgid "Span"
 msgstr "Span"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
 msgstr "Stuurt elk geslicet pad aan. Altijd gereedschap 0 — gebruik Positie gereedschap 0 hierboven om te kiezen welke hoek van het printbed het inneemt. Het kan niet uit het raster worden verplaatst."
 
@@ -9403,6 +9407,7 @@ msgid "Follows the Primary at the firmware level, printing the same paths reflec
 msgstr "Volgt de primaire (Primary) op firmwareniveau en print dezelfde paden, gespiegeld over de grens tussen de twee zones."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
 msgstr "Markeert een gereedschap op het portaal van de primaire (Primary) als diens partner voor meerdere kleuren. Vereist om printen in meerdere kleuren mogelijk te maken in modi met gekoppelde portalen."
 
@@ -9419,6 +9424,7 @@ msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode s
 msgstr "Naam van deze parallelle modus, zoals die in de IDEX/IQEX-moduskeuze van het printbed verschijnt. Wordt op naam in het project opgeslagen; als u een modus hernoemt die printbedden al gebruiken, vallen die terug op Primair. Mag niet leeg zijn — een lege naam wordt vervangen door een gegenereerde naam."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
 msgstr "G-code die eenmaal wordt uitgevoerd aan het begin van een print die deze modus gebruikt, vóór de start-G-code van de machine. Hier wordt de printer in de bijbehorende firmwaremodus gezet — bijvoorbeeld met een Klipper SET_PRINT_MODE-aanroep of een RepRapFirmware M567 — omdat de slicer alleen de paden van het primaire gereedschap (Primary) genereert en de firmware de gereedschappen Kopie (Copy) / Spiegel (Mirror) aanstuurt. Plaatshouders worden ondersteund; gebruik de bewerkknop om ze te bekijken. Laat leeg als de modus geen firmware-instelling nodig heeft."
 
@@ -9756,6 +9762,7 @@ msgid "Enabling traditional timelapse photography may cause surface imperfection
 msgstr "Het inschakelen van traditionele timelapse-fotografie kan oneffenheden in het oppervlak veroorzaken. Het wordt aanbevolen om over te schakelen naar de vloeiende modus."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "De vloeiende modus voor timelapse is ingeschakeld, maar de prime toren staat uit, wat printfouten kan veroorzaken. Schakel de prime toren in, slice opnieuw en print nogmaals."
 
@@ -9992,7 +9999,7 @@ msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel 
 msgstr "Kan niet slicen: een object overlapt een gebied dat is gereserveerd voor IDEX/IQEX-parallel printen (een secundaire zone, of een vrijloopstrook voor de wagen binnen de primaire zone)."
 
 # AI Translated
-# Needs human review: Prime tower glossary cell is unsettled (Prime toren / Afveegblok); used 'prime toren' as in other AI entries.
+# Needs human review: Prime tower glossary cell is unsettled (Prime toren / Afveegblok); used 'prime toren' as in other AI entries
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
 msgstr "Kan niet slicen: de prime toren overlapt een gebied dat is gereserveerd voor IDEX/IQEX-parallel printen (een secundaire zone, of een vrijloopstrook voor de wagen binnen de primaire zone)."
 
@@ -10090,6 +10097,7 @@ msgid "Slicing Canceled"
 msgstr "Slicing Geannuleerd"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 #, c-format, boost-format
 msgid "Bed temperature conflict: T%d (%s) sets the bed to %d℃ — T%d (%s) requires %d℃. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
 msgstr "Conflict in bedtemperatuur: T%d (%s) stelt het printbed in op %d℃ — T%d (%s) vereist %d℃. Het primaire gereedschap regelt het printbed; secundaire gereedschappen printen op de temperatuur die het instelt."
@@ -13017,6 +13025,7 @@ msgid "A prime tower is required for smooth timelapse mode. There may be flaws o
 msgstr "Een Prime-toren is vereist voor een vloeiende timeplase-modus. Er kunnen gebreken ontstaan aan het model zonder prime-toren. Weet je zeker dat je de prime-toren wilt uitschakelen?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "A prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Voor klontdetectie is een prime toren vereist. Zonder prime toren kunnen er onvolkomenheden op het model ontstaan. Weet u zeker dat u de prime toren wilt uitschakelen?"
 
@@ -13024,6 +13033,7 @@ msgid "Enabling both precise Z height and the prime tower may cause slicing erro
 msgstr "Het inschakelen van zowel precieze Z-hoogte als de spoeltoren kan slicefouten veroorzaken. Wilt u nog steeds inschakelen?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "A prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
 msgstr "Voor klontdetectie is een prime toren vereist. Zonder prime toren kunnen er onvolkomenheden op het model ontstaan. Wilt u klontdetectie toch inschakelen?"
 
@@ -13031,6 +13041,7 @@ msgid "Enabling both precise Z height and the prime tower may cause slicing erro
 msgstr "Het inschakelen van zowel precieze Z-hoogte als de spoeltoren kan slicefouten veroorzaken. Wilt u precieze Z-hoogte nog steeds inschakelen?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
 msgstr "Vloeiende timelapse heeft op elke laag een prime toren nodig, wat niet samengaat met \"Geen dunne lagen\". \"Geen dunne lagen\" is uitgeschakeld."
 
@@ -13038,6 +13049,7 @@ msgid "A prime tower is required for smooth timelapse mode. There may be flaws o
 msgstr "Een prime-toren is vereist voor een vloeiende timelapse-modus. Er kunnen gebreken ontstaan aan het model zonder prime-toren. Wilt u de prime-toren inschakelen?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
 msgstr "\"Geen dunne lagen\" gaat niet samen met vloeiende timelapse, die op elke laag een prime toren nodig heeft. De timelapse is overgeschakeld naar de traditionele modus."
 
@@ -13425,6 +13437,7 @@ msgid "Set"
 msgstr "Instellen"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Tool change parameters with multi extruder MM printers"
 msgstr "Toolwisselparameters voor multi-materialprinters met meerdere extruders"
 
@@ -14961,6 +14974,7 @@ msgid "Open G-code file:"
 msgstr "Open G-code bestand:"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Wipe tower generation failed, possibly due to empty first layer."
 msgstr "Het genereren van de prime toren is mislukt, mogelijk door een lege eerste laag."
 
@@ -15029,6 +15043,7 @@ msgid "No object can be printed. It may be too small."
 msgstr "Er kunnen geen objecten geprint worden. Het kan zijn dat ze te klein zijn."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
 msgstr "Aan de IDEX/IQEX-modus \"%1%\" zijn op de geselecteerde printer geen gereedschappen toegewezen. Er wordt in plaats daarvan in de modus Primair geprint. Wijs de gereedschappen van de modus toe in Printer instellingen, of kies een andere modus via de IDEX/IQEX-knop van het printbed."
@@ -15279,18 +15294,22 @@ msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to h
 msgstr "Prints in meerdere kleuren in parallelle IDEX/IQEX-modi vereisen dat elk filament een eigen, toegewezen fysieke extruder heeft. Twee of meer van de actieve filamenten worden via de fysieke extruderkoppeling van de printer (een MMU/AFC-verdeelstuk) naar dezelfde fysieke kop geleid, en dat kan het meelopende portaal niet volgen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
 msgstr "De actieve IDEX/IQEX-modus definieert geen primair gereedschap, dus printen in meerdere kleuren kan niet worden gepland. Open de IDEX/IQEX-moduseditor in de printerinstellingen en wijs aan één gereedschap de rol Primair (Primary) toe."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
 msgstr "Meerdere kleuren in deze modus is geen situatie voor parallel printen — alle actieve gereedschappen zitten op één portaal, dus er is geen tweede portaal waarnaar wordt gekopieerd of gespiegeld. Zet het printbed in de modus Primair om in meerdere kleuren op één portaal te printen, of definieer een IDEX/IQEX-modus met gereedschappen op een tweede portaal."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
 msgstr "Prints in meerdere kleuren in parallelle IDEX/IQEX-modi vereisen een Span-gereedschap op het portaal van de primaire (Primary) — zonder dat declareert de modus geen partner voor meerdere kleuren binnen hetzelfde portaal. Beperk de print tot één filament, schakel over naar de modus Primair, of open de IDEX/IQEX-moduseditor in de printerinstellingen en markeer een gereedschap op het portaal van de primaire als Span."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 #. TRN %1% is a list of tools such as "T0/T1", %2% a filament number.
 #, boost-format
 msgid "In this Span mode, colors are printed only by %1%, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
@@ -15333,6 +15352,7 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% is te hoog en er kunnen botsingen ontstaan."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
 msgstr "De onderlinge positie van het model en de prime toren voldoet niet aan de eisen van de functie \"Geen dunne lagen\". Pas hun onderlinge posities aan, verlaag de modelhoogte of schakel \"Geen dunne lagen\" uit."
 
@@ -15342,26 +15362,32 @@ msgid "%1% is too close to the clumping detection area. There may be collisions 
 msgstr "%1% ligt te dicht bij het gebied voor klontdetectie. Er kunnen botsingen optreden tijdens het printen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Prime tower is too close to others, and collisions may be caused.\n"
 msgstr "De prime toren staat te dicht bij andere objecten en er kunnen botsingen worden veroorzaakt.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area, and collisions will be caused.\n"
 msgstr "De prime toren bevindt zich te dicht bij het uitsluitingsgebied en er zullen botsingen worden veroorzaakt.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area, and collisions will be caused.\n"
 msgstr "De prime toren ligt te dicht bij het gebied voor klontdetectie, waardoor er botsingen zullen ontstaan.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area. There may be collisions when printing."
 msgstr "De prime toren bevindt zich te dicht bij het uitsluitingsgebied. Er kunnen botsingen optreden tijdens het printen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area. There may be collisions when printing."
 msgstr "De prime toren ligt te dicht bij het gebied voor klontdetectie. Er kunnen botsingen optreden tijdens het printen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Prime tower is partially outside the printable area, and it cannot be printed.\n"
 msgstr "De prime toren ligt gedeeltelijk buiten het printbare gebied en kan niet worden geprint.\n"
 
@@ -15385,6 +15411,7 @@ msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch thi
 msgstr "Gemengde filamenten worden niet ondersteund in parallelle IDEX/IQEX-modi. Zet dit printbed in de modus Primair."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 #. TRN %1% is the IDEX/IQEX mode name, %2% the tool number.
 #, boost-format
 msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but none of this plate's filaments are on a configured tool. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
@@ -15459,6 +15486,7 @@ msgid "Enabling both precise Z height and the prime tower may cause slicing erro
 msgstr "Het inschakelen van zowel precieze Z-hoogte als de spoeltoren kan slicefouten veroorzaken."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "A prime tower is required for clumping detection; otherwise, there may be flaws on the model."
 msgstr "Voor klontdetectie is een prime toren vereist; anders kunnen er onvolkomenheden op het model ontstaan."
 
@@ -15491,10 +15519,12 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Variabele laaghoogte wordt niet ondersteund met organische steunen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "The wipe tower filament cannot be a mixed filament."
 msgstr "Het filament van het afveegblok mag geen gemengd filament zijn."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Different nozzle diameters and different filament diameters may not work well when the prime tower is enabled. It's very experimental, so please proceed with caution."
 msgstr "Verschillende mondstukdiameters en verschillende filamentdiameters werken mogelijk niet goed wanneer de prime toren is ingeschakeld. Dit is zeer experimenteel; ga daarom voorzichtig te werk."
 
@@ -15502,6 +15532,7 @@ msgid "The Wipe Tower is currently only supported with the relative extruder add
 msgstr "De Wipe Tower wordt momenteel alleen ondersteund met de relatieve extruderadressering (use_relative_e_distances=1)."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Ooze prevention is only supported with the wipe tower when 'single_extruder_multi_material' is off."
 msgstr "Druippreventie wordt bij het afveegblok alleen ondersteund wanneer 'single_extruder_multi_material' uit staat."
 
@@ -15512,6 +15543,7 @@ msgid "A prime tower is not supported in “By object” print."
 msgstr "Een prime-toren wordt niet ondersteund bij het \"per object\" printen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "A prime tower is not supported when adaptive layer height is on. It requires that all objects have the same layer height."
 msgstr "Een prime toren wordt niet ondersteund wanneer adaptieve laaghoogte is ingeschakeld. Hiervoor moeten alle objecten dezelfde laaghoogte hebben."
 
@@ -15525,6 +15557,7 @@ msgid "A prime tower requires that all objects are printed over the same number 
 msgstr "Een prime-toren vereist dat alle objecten op hetzelfde aantal raftlagen worden afgedrukt."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance."
 msgstr "De prime toren wordt bij meerdere objecten alleen ondersteund als ze met dezelfde support_top_z_distance worden geprint."
 
@@ -16175,8 +16208,9 @@ msgstr ""
 "\n"
 "Deze optie werkt bijzonder goed in combinatie met de optie voor een tweede interne brug over de vulling, om de overbrugging verder te verbeteren voordat de solide vulling wordt geëxtrudeerd."
 
+# AI Translated
 msgid "Bridge flow ratio"
-msgstr "Brugflow"
+msgstr "Flow verhouding brug"
 
 # AI Translated
 msgid ""
@@ -16193,7 +16227,7 @@ msgstr ""
 "De daadwerkelijk gebruikte brugflow wordt berekend door deze waarde te vermenigvuldigen met de flow verhouding van het filament en, indien ingesteld, met de flow verhouding van het object."
 
 # AI Translated
-# Needs human review: 'Brugflow' quotes the existing label for 'Bridge flow ratio', but the glossary renders Flow ratio as 'Flow verhouding'; 'brugdichtheid' is generic (the labels are 'Dichtheid van externe/interne bruggen').
+# Needs human review: 'brugdichtheid' is generic (the labels are 'Dichtheid van externe/interne bruggen').
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
@@ -16202,7 +16236,7 @@ msgid ""
 "If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Lijnbreedte van de brug. Als dit als percentage (%) wordt uitgedrukt, wordt het berekend over de mondstukdiameter.\n"
-"Aanbevolen in combinatie met een hogere brugdichtheid of Brugflow.\n"
+"Aanbevolen in combinatie met een hogere brugdichtheid of Flow verhouding brug.\n"
 "\n"
 "De maximale waarde is 100% of de mondstukdiameter.\n"
 "Als dit op 0 wordt ingesteld, komt de lijnbreedte overeen met de breedte van de interne solide vulling, of met de mondstukdiameter bij dikke bruggen."
@@ -16737,6 +16771,7 @@ msgid "Intra-layer order"
 msgstr "Volgorde binnen een laag"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid ""
 "Order in which object instances are visited within a single layer, which controls how much travel is spent moving between them.\n"
 "\n"
@@ -17373,6 +17408,7 @@ msgid "Enable adaptive pressure advance (beta)"
 msgstr "Adaptieve Pressure Advance inschakelen (bèta)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 #, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through the nozzle) and increasing accelerations, it has been observed that the effective PA value typically decreases. This means that a single PA value is not always 100% optimal for all features and a compromise value is usually used that does not cause too much bulging on features with lower flow speed and accelerations while also not causing gaps on faster features.\n"
@@ -17560,6 +17596,7 @@ msgid "Filament load time"
 msgstr "Filament laadt tijd"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Time to load new filament when switch filament. It's usually applicable for single-extruder multi-material machines. For tool changers or multi-tool machines, it's typically 0. For statistics only."
 msgstr "Tijd om nieuw filament te laden bij het wisselen van filament. Dit geldt meestal voor multi-materialmachines met één extruder. Voor toolchangers of machines met meerdere tools is dit doorgaans 0. Alleen voor statistieken."
 
@@ -17567,14 +17604,17 @@ msgid "Filament unload time"
 msgstr "Tijd die nodig is om filament te ontladen"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Time to unload old filament when switch filament. It's usually applicable for single-extruder multi-material machines. For tool changers or multi-tool machines, it's typically 0. For statistics only."
 msgstr "Tijd om oud filament te ontladen bij het wisselen van filament. Dit geldt meestal voor multi-materialmachines met één extruder. Voor toolchangers of machines met meerdere tools is dit doorgaans 0. Alleen voor statistieken."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Tool change time"
 msgstr "Tijd voor toolwissel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Time taken to switch tools. It's usually applicable for tool changers or multi-tool machines. For single-extruder multi-material machines, it's typically 0. For statistics only."
 msgstr "Tijd die nodig is om van tool te wisselen. Dit geldt meestal voor toolchangers of machines met meerdere tools. Voor multi-materialmachines met één extruder is dit doorgaans 0. Alleen voor statistieken."
 
@@ -17725,6 +17765,7 @@ msgid "Minimal purge on wipe tower"
 msgstr "Minimale filament reiniging op de wipe tower"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "After a tool change, the exact position of the newly loaded filament inside the nozzle may not be known, and the filament pressure is likely not yet stable. Before purging the print head into an infill or a sacrificial object, Orca Slicer will always prime this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably."
 msgstr "Na een toolwissel is de exacte positie van het pas geladen filament in het mondstuk mogelijk niet bekend en is de filamentdruk waarschijnlijk nog niet stabiel. Voordat de printkop in een vulling of een offerobject wordt gespoeld, drukt Orca Slicer altijd deze hoeveelheid materiaal in het afveegblok, zodat de daaropvolgende extrusies in de vulling of het offerobject betrouwbaar zijn."
 
@@ -17739,6 +17780,7 @@ msgid "Interface layer pre-extrusion distance"
 msgstr "Voorextrusieafstand overgangslaag"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
 msgstr "Voorextrusieafstand voor de overgangslaag van de prime toren (waar verschillende materialen samenkomen)."
 
@@ -17747,14 +17789,17 @@ msgid "Interface layer pre-extrusion length"
 msgstr "Voorextrusielengte overgangslaag"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
 msgstr "Voorextrusielengte voor de overgangslaag van de prime toren (waar verschillende materialen samenkomen)."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "toren"; align it once the term is settled.
 msgid "Tower ironing area"
 msgstr "Strijkgebied van de toren"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Ironing area for prime tower interface layer (where different materials meet)."
 msgstr "Strijkgebied voor de overgangslaag van de prime toren (waar verschillende materialen samenkomen)."
 
@@ -17766,6 +17811,7 @@ msgid "Interface layer purge length"
 msgstr "Spoellengte overgangslaag"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Purge length for prime tower interface layer (where different materials meet)."
 msgstr "Spoellengte voor de overgangslaag van de prime toren (waar verschillende materialen samenkomen)."
 
@@ -17774,6 +17820,7 @@ msgid "Interface layer print temperature"
 msgstr "Printtemperatuur overgangslaag"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
 msgstr "Printtemperatuur voor de overgangslaag van de prime toren (waar verschillende materialen samenkomen). Bij -1 wordt de maximaal aanbevolen mondstuktemperatuur gebruikt."
 
@@ -17790,26 +17837,32 @@ msgid "This string is edited by RammingDialog and contains ramming specific para
 msgstr "Deze frase is bewerkt door het Rammingdialoog en bevat parameters voor de ramming."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Enable ramming for multi-tool setups"
 msgstr "Ramming inschakelen voor opstellingen met meerdere tools"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Perform ramming when using multi-tool printer (i.e. when the 'Single Extruder Multimaterial' in Printer Settings is unchecked). When checked, a small amount of filament is rapidly extruded on the wipe tower just before the tool change. This option is only used when the wipe tower is enabled."
 msgstr "Voer ramming uit bij gebruik van een printer met meerdere tools (d.w.z. wanneer 'Single Extruder Multimaterial' in de printerinstellingen niet is aangevinkt). Indien aangevinkt wordt er vlak voor de toolwissel een kleine hoeveelheid filament snel op het afveegblok geëxtrudeerd. Deze optie wordt alleen gebruikt wanneer het afveegblok is ingeschakeld."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Multi-tool ramming volume"
 msgstr "Rammingvolume bij meerdere tools"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "The volume to be rammed before the tool change."
 msgstr "Het volume dat vóór de toolwissel moet worden gerammd."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Multi-tool ramming flow"
 msgstr "Rammingflow bij meerdere tools"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Flow used for ramming the filament before the tool change."
 msgstr "Flow die wordt gebruikt voor het rammen van het filament vóór de toolwissel."
 
@@ -20031,10 +20084,12 @@ msgid "Retraction distance when extruder change"
 msgstr "Terugtrekafstand bij extruderwissel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Retraction Length (Toolchange)"
 msgstr "Terugtreklengte (Gereedschapswissel)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder)."
 msgstr "Wanneer het terugtrekken vóór een gereedschapswissel wordt geactiveerd, wordt het filament met de opgegeven hoeveelheid teruggetrokken (de lengte wordt gemeten op het onbewerkte filament, voordat het de extruder ingaat)."
 
@@ -20153,6 +20208,7 @@ msgid "When the retraction is compensated after the travel move, the extruder wi
 msgstr "Als retracten wordt gecompenseerd na een beweging, wordt deze extra hoeveelheid filament geëxtrudeerd. Deze instelling is zelden van toepassing."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Extra length on restart (Toolchange)"
 msgstr "Extra lengte bij herstart (Gereedschapswissel)"
 
@@ -20585,6 +20641,7 @@ msgid "Farthest point timelapse"
 msgstr "Timelapse op het verste punt"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
 msgstr "Indien ingeschakeld wordt de timelapsemomentopname genomen op het punt dat het verst van de camera ligt, in plaats van naar het afveegblok of de afvoerschacht te verplaatsen. Alleen van toepassing in de traditionele timelapsemodus op niet-i3-printers."
 
@@ -20604,6 +20661,7 @@ msgid "Preheat time"
 msgstr "Voorverwarmtijd"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "To reduce the waiting time after tool change, Orca can preheat the next tool while the current tool is still in use. This setting specifies the time in seconds to preheat the next tool. Orca will insert a M104 command to preheat the tool in advance."
 msgstr "Om de wachttijd na een toolwissel te verkorten, kan Orca de volgende tool voorverwarmen terwijl de huidige tool nog in gebruik is. Deze instelling bepaalt de tijd in seconden om de volgende tool voor te verwarmen. Orca voegt een M104-opdracht in om de tool alvast op te warmen."
 
@@ -20661,6 +20719,7 @@ msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for
 msgstr "Aantal onafhankelijke Y-as-portalen. 1 voor IDEX/IQEX met één rail. 2 voor systemen met twee portalen (verdeelt het printbed in rijen)."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Tools per Gantry"
 msgstr "Gereedschappen per portaal"
 
@@ -20669,10 +20728,12 @@ msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
 msgstr "Aantal onafhankelijke printkoppen per portaal langs X. 2 voor IDEX-opstellingen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Tool 0 Position"
 msgstr "Positie gereedschap 0"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
 msgstr "Fysieke positie op het printbed waar gereedschap T0 (index 0) zich bevindt. Bepaalt hoe gereedschapsindexen aan zones van het printbed worden gekoppeld. Bij opstellingen met één portaal (IDEX) telt alleen links/rechts; bij opstellingen met twee portalen (IQEX) zijn alle vier de hoeken te kiezen (voor = lagere Y / dicht bij de gebruiker, achter = hogere Y / achterkant van de machine)."
 
@@ -20745,10 +20806,12 @@ msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
 msgstr "Weergavenamen voor elke door de gebruiker gedefinieerde parallelle IDEX/IQEX-printmodus."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "IDEX/IQEX Mode Active Tools"
 msgstr "Actieve gereedschappen IDEX/IQEX-modus"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
 msgstr "Roltoewijzingen van de gereedschappen voor elke modus. Formaat: \"idx:P,idx:C,idx:M\" waarbij P=Primary (Primair), C=Copy (Kopie), M=Mirror (Spiegel) (bijv. \"0:P,1:C,2:M,3:M\"). Beheerd door de IDEX/IQEX-moduseditor in de printervoorinstelling."
 
@@ -20765,6 +20828,7 @@ msgid "Manual Filament Change"
 msgstr "Handmatige filamentwissel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Enable this option to omit the custom Change filament G-code only at the beginning of the print. The tool change command (e.g., T0) will be skipped throughout the entire print. This is useful for manual multi-material printing, where we use M600/PAUSE to trigger the manual filament change action."
 msgstr "Schakel deze optie in om de aangepaste G-code voor het wisselen van filament alleen aan het begin van de print weg te laten. De opdracht voor de toolwissel (bijv. T0) wordt gedurende de hele print overgeslagen. Dit is nuttig voor handmatig multi-materialprinten, waarbij M600/PAUSE wordt gebruikt om de handmatige filamentwissel te activeren."
 
@@ -20772,6 +20836,7 @@ msgid "Wipe tower type"
 msgstr "Type spoeltoren"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Choose the wipe tower implementation for multi-material prints. Type 1 is recommended for Bambu and Qidi printers with a filament cutter. Type 2 offers better compatibility with multi-tool and MMU printers and provide overall better compatibility."
 msgstr "Kies de implementatie van het afveegblok voor multi-materialprints. Type 1 wordt aanbevolen voor Bambu- en Qidi-printers met een filamentsnijder. Type 2 biedt betere compatibiliteit met multi-tool- en MMU-printers en over het geheel genomen een betere compatibiliteit."
 
@@ -20784,10 +20849,12 @@ msgid "Type 2"
 msgstr "Type 2"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Purge in prime tower"
 msgstr "Spoelen in de prime toren"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Purge remaining filament into prime tower."
 msgstr "Spoel het resterende filament in de prime toren."
 
@@ -20796,18 +20863,22 @@ msgid "Enable filament ramming"
 msgstr "Filament-ramming inschakelen"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Tool change on wipe tower"
 msgstr "Toolwissel op het afveegblok"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Force the toolhead to travel to the wipe tower before issuing the tool change command (Tx). Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. By default Orca skips the travel on multi-toolhead machines because the firmware handles the head swap, which can result in the Tx command being issued above the printed part. Enable this option if you want the tool change to always be issued above the wipe tower instead."
 msgstr "Dwing de printkop naar het afveegblok te bewegen voordat de opdracht voor de toolwissel (Tx) wordt gegeven. Alleen relevant voor printers met meerdere extruders (meerdere printkoppen) die een afveegblok van type 2 gebruiken. Standaard slaat Orca deze verplaatsing op machines met meerdere printkoppen over, omdat de firmware de kopwissel afhandelt, waardoor de Tx-opdracht boven het geprinte onderdeel kan worden gegeven. Schakel deze optie in als u wilt dat de toolwissel altijd boven het afveegblok wordt uitgevoerd."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Wait for temperature on wipe tower"
 msgstr "Wachten op temperatuur bij het afveegblok"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "Pick up the new tool without waiting for it to reach printing temperature, travel to the wipe tower, and wait for the temperature there, right before purging. Ooze from the heat-up lands on the tower instead of the model, and the travel overlaps with the heating. Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. The firmware or tool change macro must not wait for the temperature itself. When disabled, the temperature wait is issued right after the tool change command."
 msgstr "Pakt het nieuwe gereedschap op zonder te wachten tot het de printtemperatuur bereikt, verplaatst zich naar het afveegblok en wacht daar op de temperatuur, vlak voor het spoelen. Het materiaal dat tijdens het opwarmen uitloopt komt op het blok terecht in plaats van op het model, en de verplaatsing overlapt met het opwarmen. Alleen relevant voor printers met meerdere extruders (meerdere printkoppen) die een afveegblok van type 2 gebruiken. De firmware of de gereedschapswisselmacro mag niet zelf op de temperatuur wachten. Wanneer dit is uitgeschakeld, wordt het wachten op de temperatuur direct na het gereedschapswisselcommando uitgevoerd."
 
@@ -20816,6 +20887,7 @@ msgid "No sparse layers (beta)"
 msgstr "Geen dunne lagen (bèta)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid "If enabled, the wipe tower will not be printed on layers with no tool changes. On layers with a tool change, extruder will travel downward to print the wipe tower, so the tower ends up below the model and the toolhead has to reach down to it. Layouts where that would collide with an already printed object are rejected. Has no effect with smooth timelapse or clumping detection, which need a tower on every layer."
 msgstr "Indien ingeschakeld wordt het afveegblok niet geprint op lagen zonder gereedschapswissels. Op lagen met een gereedschapswissel beweegt de extruder omlaag om het afveegblok te printen, zodat het blok onder het model uitkomt en de printkop ernaartoe omlaag moet reiken. Opstellingen waarbij dat zou botsen met een al geprint voorwerp worden afgewezen. Heeft geen effect bij vloeiende timelapse of klontdetectie, die op elke laag een blok nodig hebben."
 
@@ -20824,6 +20896,7 @@ msgid "Combine sparse layers"
 msgstr "Dunne lagen combineren"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid ""
 "If enabled, consecutive layers on which the prime tower has no filament change are printed as a single thicker tower layer instead of one thin layer each, the same way infill combination merges sparse infill. The merged layer is printed at the top of the run, at the height of everything it covers.\n"
 "\n"
@@ -20844,10 +20917,12 @@ msgid "If enabled, all printing extruders will be primed at the front edge of th
 msgstr "Alle extruders worden afgeveegd aan de voorzijde van het printbed aan het begin van de print als dit is ingeschakeld."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Toolchange ordering"
 msgstr "Volgorde van toolwissels"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid ""
 "Determines the order of tool changes on each layer.\n"
 "- Default: Starts with the last used extruder to minimize tool changes.\n"
@@ -20866,6 +20941,7 @@ msgid "Cyclic order"
 msgstr "Cyclische volgorde"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid ""
 "Custom filament sequence used by the cyclic toolchange ordering, as filament numbers separated by commas (e.g. \"3,2,1,4\").\n"
 "Each layer prints its filaments following this sequence; filaments not listed are printed last, in ascending order.\n"
@@ -20880,6 +20956,7 @@ msgid "Apply cyclic order to first layer"
 msgstr "Cyclische volgorde toepassen op de eerste laag"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid ""
 "Applies the cyclic toolchange order to the first layer as well.\n"
 "By default this is disabled, because the first layer is instead ordered for the best bed adhesion: filaments that print small, fragile first-layer features are printed last, so the following tool changes and travel moves are less likely to knock those weakly anchored parts loose. This first-layer order also honors a custom first layer filament sequence when one is set. The cyclic order's benefit (extra tool changes give each layer more time to cool) does not apply to the first layer, which is printed slowly and hot for adhesion.\n"
@@ -21149,6 +21226,7 @@ msgid "Independent support layer height"
 msgstr "Onafhankelijke support laaghoogte"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Support layer uses layer height independent with object layer. This is to support customizing Z-gap and save print time. This option will be invalid when the prime tower is enabled."
 msgstr "De ondersteuningslaag gebruikt een laaghoogte die onafhankelijk is van die van het object. Zo kunt u de Z-ruimte aanpassen en printtijd besparen. Deze optie is ongeldig wanneer de prime toren is ingeschakeld."
 
@@ -21319,7 +21397,7 @@ msgid "Enable belt purge tower"
 msgstr "Band-spoeltoren inschakelen"
 
 # AI Translated
-# Needs human review: Prime tower glossary cell is unsettled (Prime toren / Afveegblok); 'wipe/prime tower' rendered as 'prime toren'.
+# Needs human review: Prime tower glossary cell is unsettled (Prime toren / Afveegblok); 'wipe/prime tower' rendered as 'prime toren'
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
 msgstr "Vervanging van de prime toren voor bandprinters. Indien ingeschakeld op een bandprinter wordt automatisch een spoelprisma naast de geprinte onderdelen gegenereerd en wordt het spoelen bij filamentwissels daarin geleid (de klassieke prime toren kan niet op bandprinters worden gebruikt, omdat de G-code ervan de bandtransformatie omzeilt). Alleen beschikbaar op bandprinters."
 
@@ -21328,7 +21406,7 @@ msgid "Belt purge tower width"
 msgstr "Breedte band-spoeltoren"
 
 # AI Translated
-# Needs human review: Prime tower glossary cell is unsettled (Prime toren / Afveegblok); 'wipe tower' rendered as 'prime toren'.
+# Needs human review: Prime tower glossary cell is unsettled (Prime toren / Afveegblok); 'wipe tower' rendered as 'prime toren'
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
 msgstr "Breedte (machine-X, dwars over de band) van het spoelprisma dat automatisch op bandprinters wordt gegenereerd wanneer de band-spoeltoren is ingeschakeld en er meerdere filamenten worden gebruikt. Het spoelen bij filamentwissels wordt in de extrusies van dit prisma geleid in plaats van in een klassieke prime toren. De hoogte wordt automatisch berekend uit het ongunstigste spoelvolume per laag: een breder prisma wordt lager."
 
@@ -21615,6 +21693,7 @@ msgid "Internal ribs"
 msgstr "Interne ribben"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Enable internal ribs to increase the stability of the prime tower."
 msgstr "Schakel interne ribben in om de stabiliteit van de prime toren te vergroten."
 
@@ -21646,6 +21725,7 @@ msgid "Prime volume mode"
 msgstr "Modus voor primingvolume"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Selects how the wipe-tower prime and flush volumes are computed on multi-extruder printers."
 msgstr "Bepaalt hoe de priming- en spoelvolumes van het afveegblok worden berekend op printers met meerdere extruders."
 
@@ -21667,6 +21747,7 @@ msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Rotatie van het afveegblok ten opzichte van de X-as."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr "Randbreedte van de prime toren; een negatief getal betekent dat de breedte automatisch wordt berekend op basis van de hoogte van de prime toren."
 
@@ -21675,14 +21756,17 @@ msgid "Stabilization cone apex angle"
 msgstr "Tophoek van de stabilisatiekegel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Angle at the apex of the cone that is used to stabilize the wipe tower. Larger angle means wider base."
 msgstr "Hoek aan de top van de kegel die wordt gebruikt om het afveegblok te stabiliseren. Een grotere hoek betekent een bredere basis."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Maximum wipe tower print speed"
 msgstr "Maximale printsnelheid van het afveegblok"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "gereedschap"; align it once the term is settled.
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
@@ -21709,6 +21793,7 @@ msgid "Wall type"
 msgstr "Wandtype"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid ""
 "Wipe tower outer wall type.\n"
 "1. Rectangle: A rectangle with fixed width and height.\n"
@@ -21740,6 +21825,7 @@ msgid "Rib width"
 msgstr "Ribbreedte"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Rib width is always less than half the prime tower side length."
 msgstr "De ribbreedte is altijd kleiner dan de helft van de zijdelengte van de prime toren."
 
@@ -21748,10 +21834,12 @@ msgid "Fillet wall"
 msgstr "Afgeronde wand"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "The wall of prime tower will fillet."
 msgstr "De wand van de prime toren wordt afgerond."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "The extruder to use when printing perimeter of the wipe tower. Set to 0 to use the one that is available (non-soluble would be preferred)."
 msgstr "De extruder die wordt gebruikt bij het printen van de perimeter van het afveegblok. Zet op 0 om de beschikbare extruder te gebruiken (niet-oplosbaar heeft de voorkeur)."
 
@@ -21766,22 +21854,27 @@ msgid "Skip points"
 msgstr "Punten overslaan"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "The wall of prime tower will skip the start points of wipe path."
 msgstr "De wand van de prime toren slaat de startpunten van het veegpad over."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "toren"; align it once the term is settled.
 msgid "Enable tower interface features"
 msgstr "Overgangsfuncties van de toren inschakelen"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Enable optimized prime tower interface behavior when different materials meet."
 msgstr "Schakel geoptimaliseerd gedrag van de overgangslaag van de prime toren in wanneer verschillende materialen samenkomen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "Cool down from interface boost during prime tower"
 msgstr "Afkoelen na de temperatuurverhoging van de overgangslaag tijdens de prime toren"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "When interface-layer temperature boost is active, set the nozzle back to print temperature at the start of the prime tower so it cools down during the tower."
 msgstr "Wanneer de temperatuurverhoging voor de overgangslaag actief is, wordt het mondstuk aan het begin van de prime toren teruggezet naar de printtemperatuur, zodat het tijdens de toren afkoelt."
 
@@ -21817,10 +21910,12 @@ msgid "Maximal distance between supports on sparse infill sections."
 msgstr "Maximale afstand tussen support op dunne vullingsdelen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Wipe tower purge lines spacing"
 msgstr "Afstand tussen spoellijnen op het afveegblok"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Spacing of purge lines on the wipe tower."
 msgstr "Afstand tussen de spoellijnen op het afveegblok."
 
@@ -21829,6 +21924,7 @@ msgid "Extra flow for purging"
 msgstr "Extra flow voor het spoelen"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
 msgstr "Extra flow die wordt gebruikt voor de spoellijnen op het afveegblok. Hierdoor worden de spoellijnen dikker dan ze normaal zouden zijn. De afstand wordt automatisch aangepast."
 
@@ -21837,6 +21933,7 @@ msgid "Idle temperature"
 msgstr "Temperatuur bij inactiviteit"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Nozzle temperature when the tool is currently not used in multi-tool setups. This is only used when 'Ooze prevention' is active in Print Settings. Set to 0 to disable."
 msgstr "Mondstuktemperatuur wanneer de tool in opstellingen met meerdere tools niet in gebruik is. Dit wordt alleen gebruikt wanneer 'Druippreventie' actief is in de printinstellingen. Zet op 0 om uit te schakelen."
 
@@ -22044,6 +22141,7 @@ msgid "Filament change"
 msgstr "Filamentwissel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "toren"; align it once the term is settled.
 msgid "The volume of material required to prime the extruder on the tower, excluding a hotend change."
 msgstr "Het materiaalvolume dat nodig is om de extruder op de toren te primen, exclusief een hotendwissel."
 
@@ -22540,10 +22638,12 @@ msgid "Specific for sequential printing. Zero-based index of currently printed o
 msgstr "Specifiek voor sequentieel printen. Nulgebaseerde index van het momenteel geprinte object."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Has wipe tower"
 msgstr "Heeft afveegblok"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Whether or not wipe tower is being generated in the print."
 msgstr "Of er in de print wel of geen afveegblok wordt gegenereerd."
 
@@ -22556,6 +22656,7 @@ msgid "Zero-based index of the first extruder used in the print. Same as initial
 msgstr "Nulgebaseerde index van de eerste extruder die in de print wordt gebruikt. Hetzelfde als initial_tool."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Initial tool"
 msgstr "Eerste tool"
 
@@ -22644,10 +22745,12 @@ msgid "Total filament volume extruded per extruder during the entire print."
 msgstr "Totaal geëxtrudeerd filamentvolume per extruder tijdens de hele print."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Total tool changes"
 msgstr "Totaal aantal toolwissels"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Number of tool changes during the print."
 msgstr "Aantal toolwissels tijdens de print."
 
@@ -22708,18 +22811,22 @@ msgid "Total cost of all material used in the print. Calculated from filament_co
 msgstr "Totale kosten van al het materiaal dat in de print is gebruikt. Berekend uit de waarde filament_cost in de filamentinstellingen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Total wipe tower cost"
 msgstr "Totale kosten van het afveegblok"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Total cost of the material wasted on the wipe tower. Calculated from filament_cost value in Filament Settings."
 msgstr "Totale kosten van het materiaal dat op het afveegblok verloren gaat. Berekend uit de waarde filament_cost in de filamentinstellingen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Wipe tower volume"
 msgstr "Volume van het afveegblok"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "afveegblok"; align it once the term is settled.
 msgid "Total filament volume extruded on the wipe tower."
 msgstr "Totaal filamentvolume dat op het afveegblok is geëxtrudeerd."
 
@@ -22867,6 +22974,7 @@ msgid "Size of the print bed bounding box"
 msgstr "Grootte van het omhullende kader van het printbed"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime toren"; align it once the term is settled.
 msgid "First layer center without wipe tower"
 msgstr "Midden van de eerste laag zonder prime toren"
 
@@ -23026,10 +23134,12 @@ msgid "Indicates if relative positioning is being used."
 msgstr "Geeft aan of relatieve positionering wordt gebruikt."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Toolchange count"
 msgstr "Aantal toolwissels"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "The number of toolchanges throughout the print."
 msgstr "Het aantal toolwissels tijdens de print."
 
@@ -23050,18 +23160,22 @@ msgid "The retraction length of the new filament."
 msgstr "De terugtreklengte van het nieuwe filament."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Old retract length toolchange"
 msgstr "Oude terugtreklengte toolwissel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "The toolchange retraction length of the previous filament."
 msgstr "De terugtreklengte bij toolwissel van het vorige filament."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "New retract length toolchange"
 msgstr "Nieuwe terugtreklengte toolwissel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "The toolchange retraction length of the new filament."
 msgstr "De terugtreklengte bij toolwissel van het nieuwe filament."
 
@@ -23082,26 +23196,32 @@ msgid "The new filament temp."
 msgstr "De nieuwe filamenttemperatuur."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "X after toolchange"
 msgstr "X na toolwissel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "The X pos after toolchange."
 msgstr "De X-positie na de toolwissel."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Y after toolchange"
 msgstr "Y na toolwissel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "The Y pos after toolchange."
 msgstr "De Y-positie na de toolwissel."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "Z after toolchange"
 msgstr "Z na toolwissel"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "The Z pos after toolchange."
 msgstr "De Z-positie na de toolwissel."
 
@@ -24805,6 +24925,7 @@ msgid "Slice the plate first to get project material information."
 msgstr "Slice eerst het printbed om informatie over het projectmateriaal te krijgen."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "tool"; align it once the term is settled.
 msgid "This plate uses multiple materials. Enable IFS and assign each tool to a printer slot."
 msgstr "Dit printbed gebruikt meerdere materialen. Schakel IFS in en wijs elke tool aan een slot van de printer toe."
 

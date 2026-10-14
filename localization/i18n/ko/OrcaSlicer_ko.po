@@ -2705,8 +2705,9 @@ msgstr "채우기"
 msgid "Support"
 msgstr "서포트"
 
+# AI Translated
 msgid "Flush options"
-msgstr "버리기 옵션"
+msgstr "플러시 옵션"
 
 msgid "Speed"
 msgstr "속도"
@@ -2977,17 +2978,21 @@ msgstr "출력 가능 영역에 맞게 확장"
 msgid "Scale an object to fit the build volume"
 msgstr "출력 가능 영역에 맞게 객체 크기 조정"
 
+# AI Translated
 msgid "Flush Options"
-msgstr "버리기 옵션"
+msgstr "플러시 옵션"
 
+# AI Translated
 msgid "Flush into objects' infill"
-msgstr "객체의 채우기에서 버리기"
+msgstr "객체의 채우기에서 플러시"
 
+# AI Translated
 msgid "Flush into this object"
-msgstr "객체에서 버리기"
+msgstr "객체에서 플러시"
 
+# AI Translated
 msgid "Flush into objects' support"
-msgstr "객체의 서포트에서 버리기"
+msgstr "객체의 서포트에서 플러시"
 
 msgid "Edit in Parameter Table"
 msgstr "객체/부품 설정에서 편집"
@@ -3893,8 +3898,9 @@ msgstr "새로운 필라멘트를 압출기에 밀어 넣습니다"
 msgid "Grab new filament"
 msgstr "새 필라멘트 가져오기"
 
+# AI Translated
 msgid "Purge old filament"
-msgstr "오래된 필라멘트 제거"
+msgstr "이전 필라멘트 플러시"
 
 msgid "Confirm extruded"
 msgstr "압출 확인"
@@ -5975,8 +5981,9 @@ msgstr "모든 플레이트 통계"
 msgid "Display"
 msgstr "표시"
 
+# AI Translated
 msgid "Flushed"
-msgstr "버리기"
+msgstr "플러시"
 
 msgid "Tower"
 msgstr "타워"
@@ -6577,8 +6584,9 @@ msgstr "PLA와 PETG 필라멘트의 혼합이 감지되었습니다. 인쇄 품�
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "프라임 타워가 플레이트 경계를 초과합니다."
 
+# AI Translated
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please readjust flushing settings."
-msgstr "부분 플러싱 볼륨이 0으로 설정되었습니다. 멀티컬러 인쇄 시 모델에 색상 혼합이 발생할 수 있습니다. 플러싱 설정을 재조정하세요."
+msgstr "부분 플러시 볼륨이 0으로 설정되었습니다. 멀티컬러 출력 시 모델에 색상 혼합이 발생할 수 있습니다. 플러시 설정을 재조정하세요."
 
 msgid "Click Wiki for help."
 msgstr "도움말은 위키를 클릭하세요."
@@ -6586,8 +6594,9 @@ msgstr "도움말은 위키를 클릭하세요."
 msgid "Click here to regroup"
 msgstr "재그룹핑하려면 여기를 클릭하세요"
 
+# AI Translated
 msgid "Flushing Volume"
-msgstr "플러싱 볼륨"
+msgstr "플러시 볼륨"
 
 msgid "Calibration step selection"
 msgstr "교정 단계 선택"
@@ -8990,8 +8999,9 @@ msgstr "프로젝트 필라멘트"
 msgid "Purge mode"
 msgstr "플러시 모드"
 
+# AI Translated
 msgid "Flushing volumes"
-msgstr "버리기 볼륨"
+msgstr "플러시 볼륨"
 
 msgid "Add one filament"
 msgstr "필라멘트 한개 추가"
@@ -10407,7 +10417,7 @@ msgstr "다음 변경 후 자동 플러시..."
 
 # AI Translated
 msgid "Auto calculate flushing volumes when selected values changed"
-msgstr "선택한 값이 변경되면 플러시 용량을 자동으로 계산합니다"
+msgstr "선택한 값이 변경되면 플러시 볼륨을 자동으로 계산합니다"
 
 msgid "Auto arrange plate after cloning"
 msgstr "복제 후 플레이트 자동 정렬"
@@ -13503,14 +13513,16 @@ msgstr "채워넣기 선"
 
 # AI Translated
 msgid "Orca would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Orca Slicer > Preferences"
-msgstr "Orca는 필라멘트 색상이 바뀌거나 필라멘트가 변경될 때마다 플러시 용량을 다시 계산합니다. Orca Slicer > 기본 설정에서 자동 계산을 비활성화할 수 있습니다"
+msgstr "Orca는 필라멘트 색상이 바뀌거나 필라멘트가 변경될 때마다 플러시 볼륨을 다시 계산합니다. Orca Slicer > 기본 설정에서 자동 계산을 비활성화할 수 있습니다"
 
+# AI Translated
 msgid "Flushing volume (mm³) for each filament pair."
-msgstr "각 필라멘트 쌍에 대한 버리기 볼륨(mm³)."
+msgstr "각 필라멘트 쌍에 대한 플러시 볼륨(mm³)."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
-msgstr "제안: [%d, %d] 범위의 버리기 볼륨"
+msgstr "제안: [%d, %d] 범위의 플러시 볼륨"
 
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
@@ -13522,8 +13534,9 @@ msgstr "다시 계산"
 msgid "Multiplier"
 msgstr "승수"
 
+# AI Translated
 msgid "Flushing volumes for filament change"
-msgstr "필라멘트 교체를 위한 버리기 볼륨"
+msgstr "필라멘트 교체를 위한 플러시 볼륨"
 
 # AI Translated
 # Needs human review: Corner header of the flushing volume table (rows = filament flushed from, columns = changed to); check it reads right in the table.
@@ -14670,8 +14683,9 @@ msgstr "프라임 타워를 활성화하면 노즐 직경과 필라멘트 직경
 msgid "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
 msgstr "프라임 타워는 현재 관련 압출기에서만 지원됩니다.주소 지정(use_relative_e_distances=1)."
 
+# AI Translated
 msgid "Ooze prevention is only supported with the wipe tower when 'single_extruder_multi_material' is off."
-msgstr "흘러내림 방지는 'single_extruder_multi_material'이 꺼져 있을 때만 와이프 타워에서 지원됩니다."
+msgstr "흘러내림 방지는 'single_extruder_multi_material'이 꺼져 있을 때만 프라임 타워에서 지원됩니다."
 
 # AI Translated
 msgid "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors."
@@ -14856,7 +14870,7 @@ msgstr "이전 3MF 파일의 G-code 파일 %1%을(를) 처리하지 못했습니
 # AI Translated
 #, boost-format
 msgid "The belt purge tower cannot absorb the full purge volume: %1% mm³ in total could not be purged (worst layer: %2% mm³ at height %3%). The print may show color bleeding. Increase the belt purge tower width, or reduce flushing volumes."
-msgstr "벨트 퍼지 타워가 전체 플러시 부피를 흡수할 수 없습니다: 총 %1% mm³를 플러시하지 못했습니다(최악의 레이어: 높이 %3%에서 %2% mm³). 출력물에 색 번짐이 나타날 수 있습니다. 벨트 퍼지 타워 너비를 늘리거나 플러시 부피를 줄이세요."
+msgstr "벨트 퍼지 타워가 전체 플러시 볼륨을 흡수할 수 없습니다: 총 %1% mm³를 플러시하지 못했습니다(최악의 레이어: 높이 %3%에서 %2% mm³). 출력물에 색 번짐이 나타날 수 있습니다. 벨트 퍼지 타워 너비를 늘리거나 플러시 볼륨을 줄이세요."
 
 # AI Translated
 msgid "Processing of the filename_format template failed."
@@ -16770,14 +16784,17 @@ msgstr "첫 번째 냉각 이동 속도"
 msgid "Cooling moves are gradually accelerating beginning at this speed."
 msgstr "이 속도부터 냉각 동작이 점차 가속됩니다."
 
+# AI Translated
 msgid "Minimal purge on wipe tower"
-msgstr "프라임 타워의 최소 청소"
+msgstr "프라임 타워의 최소 플러시"
 
+# AI Translated
 msgid "After a tool change, the exact position of the newly loaded filament inside the nozzle may not be known, and the filament pressure is likely not yet stable. Before purging the print head into an infill or a sacrificial object, Orca Slicer will always prime this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably."
-msgstr "툴 체인지 후 노즐 내부에 새로 로드된 필라멘트의 정확한 위치를 알 수 없으며 필라멘트 압력이 아직 안정적이지 않을 수 있습니다. 프린트 헤드를 채우기 또는 희생 객체로 청소하기 전에 Orca Slicer은 항상 이 양의 재료를 프라임 타워로 프라이밍하여 연속적인 채우기 또는 희생 물체 압출을 안정적으로 생성합니다."
+msgstr "툴 체인지 후 노즐 내부에 새로 로드된 필라멘트의 정확한 위치를 알 수 없으며 필라멘트 압력이 아직 안정적이지 않을 수 있습니다. 프린트 헤드를 채우기 또는 희생 객체로 플러시하기 전에 OrcaSlicer는 항상 이 양의 재료를 프라임 타워로 프라이밍하여 연속적인 채우기 또는 희생 객체 압출을 안정적으로 생성합니다."
 
+# AI Translated
 msgid "Wipe tower cooling"
-msgstr "와이프 타워 냉각"
+msgstr "프라임 타워 냉각"
 
 msgid "Temperature drop before entering filament tower"
 msgstr "필라멘트 타워 진입 전 온도 강하"
@@ -17808,7 +17825,7 @@ msgstr "객체 이름표"
 # AI Translated
 # Wipe into this object;s infill/Wipe into this object
 msgid "Enable this to add comments into the G-code labeling print moves with what object they belong to, which is useful for the Octoprint CancelObject plug-in. This setting is NOT compatible with Single Extruder Multi Material setup and Wipe into Object / Wipe into Infill."
-msgstr "출력 이동이 어느 객체에 속하는지 표시하는 주석을 G-code에 추가하려면 이 옵션을 활성화하세요. 이는 Octoprint CancelObject 플러그인에 유용합니다. 이 설정은 단일 압출기 다중 재료 설정 및 객체에서 버리기 / 채우기에서 버리기와 호환되지 않습니다."
+msgstr "출력 이동이 어느 객체에 속하는지 표시하는 주석을 G-code에 추가하려면 이 옵션을 활성화하세요. 이는 Octoprint CancelObject 플러그인에 유용합니다. 이 설정은 단일 압출기 다중 재료 설정 및 객체에서 플러시 / 채우기에서 플러시와 호환되지 않습니다."
 
 msgid "Exclude objects"
 msgstr "객체 제외"
@@ -19609,8 +19626,9 @@ msgstr "수동 필라멘트 교체"
 msgid "Enable this option to omit the custom Change filament G-code only at the beginning of the print. The tool change command (e.g., T0) will be skipped throughout the entire print. This is useful for manual multi-material printing, where we use M600/PAUSE to trigger the manual filament change action."
 msgstr "출력 시작 시에만 사용자 정의 필라멘트 변경 G-code를 생략하려면 이 옵션을 활성화합니다. 툴 변경 명령(예: T0)은 전체 출력 과정에서 건너뜁니다. 이는 M600/PAUSE를 사용하여 수동 필라멘트 교체 작업을 실행하는 수동 다중 재료 출력에 유용합니다."
 
+# AI Translated
 msgid "Wipe tower type"
-msgstr "와이프 타워 유형"
+msgstr "프라임 타워 유형"
 
 # AI Translated
 msgid "Choose the wipe tower implementation for multi-material prints. Type 1 is recommended for Bambu and Qidi printers with a filament cutter. Type 2 offers better compatibility with multi-tool and MMU printers and provide overall better compatibility."
@@ -19622,11 +19640,13 @@ msgstr "유형 1"
 msgid "Type 2"
 msgstr "유형 2"
 
+# AI Translated
 msgid "Purge in prime tower"
-msgstr "프라임 타워에서 청소"
+msgstr "프라임 타워에서 플러시"
 
+# AI Translated
 msgid "Purge remaining filament into prime tower."
-msgstr "남은 필라멘트를 프라임 타워에서 제거"
+msgstr "남은 필라멘트를 프라임 타워에 플러시합니다."
 
 msgid "Enable filament ramming"
 msgstr "필라멘트 채워넣기 활성화"
@@ -19645,7 +19665,7 @@ msgstr "프라임 타워에서 온도 대기"
 
 # AI Translated
 msgid "Pick up the new tool without waiting for it to reach printing temperature, travel to the wipe tower, and wait for the temperature there, right before purging. Ooze from the heat-up lands on the tower instead of the model, and the travel overlaps with the heating. Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. The firmware or tool change macro must not wait for the temperature itself. When disabled, the temperature wait is issued right after the tool change command."
-msgstr "출력 온도에 도달할 때까지 기다리지 않고 새 툴을 집은 뒤 프라임 타워로 이동하여, 퍼지 직전에 그곳에서 온도를 기다립니다. 가열 중 흘러나온 재료는 모델이 아닌 타워에 떨어지고, 이동 시간이 가열 시간과 겹칩니다. 타입 2 프라임 타워를 사용하는 다중 압출기(다중 툴헤드) 프린터에만 해당합니다. 펌웨어나 툴 체인지 매크로가 직접 온도를 기다려서는 안 됩니다. 비활성화하면 툴 체인지 명령 직후에 온도 대기가 실행됩니다."
+msgstr "출력 온도에 도달할 때까지 기다리지 않고 새 툴을 집은 뒤 프라임 타워로 이동하여, 플러시 직전에 그곳에서 온도를 기다립니다. 가열 중 흘러나온 재료는 모델이 아닌 타워에 떨어지고, 이동 시간이 가열 시간과 겹칩니다. 타입 2 프라임 타워를 사용하는 다중 압출기(다중 툴헤드) 프린터에만 해당합니다. 펌웨어나 툴 체인지 매크로가 직접 온도를 기다려서는 안 됩니다. 비활성화하면 툴 체인지 명령 직후에 온도 대기가 실행됩니다."
 
 msgid "No sparse layers (beta)"
 msgstr "희소 레이어 없음(베타)"
@@ -20149,7 +20169,7 @@ msgstr "벨트 퍼지 타워 너비"
 
 # AI Translated
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr "벨트 퍼지 타워가 활성화되고 여러 필라멘트를 사용할 때 벨트 프린터에서 자동으로 생성되는 퍼지 프리즘의 너비(기계 X, 벨트를 가로지르는 방향)입니다. 필라멘트 교체 시 플러시는 기존 프라임 타워 대신 이 프리즘의 압출로 이루어집니다. 높이는 레이어당 최악의 경우의 플러시 부피로부터 자동 계산되며, 프리즘이 넓을수록 높이가 낮아집니다."
+msgstr "벨트 퍼지 타워가 활성화되고 여러 필라멘트를 사용할 때 벨트 프린터에서 자동으로 생성되는 퍼지 프리즘의 너비(기계 X, 벨트를 가로지르는 방향)입니다. 필라멘트 교체 시 플러시는 기존 프라임 타워 대신 이 프리즘의 압출로 이루어집니다. 높이는 레이어당 최악의 경우의 플러시 볼륨으로부터 자동 계산되며, 프리즘이 넓을수록 높이가 낮아집니다."
 
 msgid "Tree support branch angle"
 msgstr "트리 서포트 가지 각도"
@@ -20389,6 +20409,7 @@ msgstr "노즐에서 흘러내린된 재료를 청소하기 위해 후퇴할 때
 msgid "Wipe distance"
 msgstr "노즐 청소 거리"
 
+# AI Translated
 msgid ""
 "Describe how long the nozzle will move along the last path when retracting.\n"
 "\n"
@@ -20398,9 +20419,9 @@ msgid ""
 msgstr ""
 "후퇴할 때 노즐이 마지막 경로를 따라 얼마나 오래 움직일지 설명합니다.\n"
 "\n"
-"와이프 작업의 지속 시간, 압출기/필라멘트 후퇴 설정의 속도와 길이에 따라 남은 필라멘트를 후퇴시키기 위해 후퇴 동작이 필요할 수 있습니다.\n"
+"노즐 청소 작업의 지속 시간, 압출기/필라멘트 후퇴 설정의 속도와 길이에 따라 남은 필라멘트를 후퇴시키기 위해 후퇴 동작이 필요할 수 있습니다.\n"
 "\n"
-"아래의 와이프 전 후퇴량 설정에서 값을 설정하면 와이프 전에 초과 후퇴가 수행되고, 그렇지 않으면 와이프 후에 수행됩니다."
+"아래의 노즐 청소 전 후퇴량 설정에서 값을 설정하면 노즐 청소 전에 초과 후퇴가 수행되고, 그렇지 않으면 노즐 청소 후에 수행됩니다."
 
 # AI Translated
 msgid "Mixed color sublayer"
@@ -20419,28 +20440,32 @@ msgstr "내부 갈비"
 msgid "Enable internal ribs to increase the stability of the prime tower."
 msgstr "프라임 타워의 안정성을 높이기 위해 내부 리브를 활성화합니다."
 
+# AI Translated
 msgid "Purging volumes"
-msgstr "버리기 볼륨"
+msgstr "플러시 볼륨"
 
+# AI Translated
 msgid "Flush multiplier"
-msgstr "버리기 승수"
+msgstr "플러시 승수"
 
+# AI Translated
 msgid "The actual flushing volumes is equal to the flush multiplier value multiplied by the flushing volumes in the table."
-msgstr "실제 버리기 볼륨은 버리기 승수에 테이블의 버리기 볼륨을 곱한 것과 같습니다."
+msgstr "실제 플러시 볼륨은 플러시 승수에 테이블의 플러시 볼륨을 곱한 것과 같습니다."
 
 # AI Translated
 msgid "Flush multiplier (Fast mode)"
-msgstr "플러시 배수(고속 모드)"
+msgstr "플러시 승수(고속 모드)"
 
 # AI Translated
 msgid "The flush multiplier used in fast purge mode."
-msgstr "고속 플러시 모드에서 사용하는 플러시 배수입니다."
+msgstr "고속 플러시 모드에서 사용하는 플러시 승수입니다."
 
 msgid "Prime volume"
 msgstr "프라임양"
 
+# AI Translated
 msgid "This is the volume of material to prime the extruder with on the tower."
-msgstr "탑에서 압출을 실행할 재료의 부피."
+msgstr "타워에서 압출기를 프라임하는 데 사용할 재료의 부피입니다."
 
 # AI Translated
 msgid "Prime volume mode"
@@ -20448,7 +20473,7 @@ msgstr "프라임 용량 모드"
 
 # AI Translated
 msgid "Selects how the wipe-tower prime and flush volumes are computed on multi-extruder printers."
-msgstr "다중 압출기 프린터에서 프라임 타워의 프라임 및 플러시 용량을 계산하는 방식을 선택합니다."
+msgstr "다중 압출기 프린터에서 프라임 타워의 프라임 용량과 플러시 볼륨을 계산하는 방식을 선택합니다."
 
 # AI Translated
 msgid "Saving"
@@ -20491,7 +20516,7 @@ msgid ""
 "\n"
 "For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
-"프라임 타워에서 버리기를 하고 프라임 타워의 희소 레이어를 출력할 때의 최대 출력 속도입니다. 버리기 시 드문 채우기 속도 또는 필라멘트 최대 압출 속도에서 계산된 속도가 더 낮은 경우 가장 낮은 속도가 대신 사용됩니다.\n"
+"프라임 타워에서 플러시를 하고 프라임 타워의 희소 레이어를 출력할 때의 최대 출력 속도입니다. 플러시 시 드문 채우기 속도 또는 필라멘트 최대 압출 속도에서 계산된 속도가 더 낮은 경우 가장 낮은 속도가 대신 사용됩니다.\n"
 "\n"
 "희소 레이어를 출력할 때 드문 채우기 속도 또는 필라멘트 최대 압출 속도에서 계산된 속도가 더 낮은 경우 가장 낮은 속도가 대신 사용됩니다.\n"
 "\n"
@@ -20529,7 +20554,7 @@ msgstr "추가 리브 길이"
 
 # AI Translated
 msgid "Positive values can increase the size of the rib wall, while negative values can reduce the size. However, the size of the rib wall can not be smaller than that determined by the cleaning volume."
-msgstr "양수 값은 리브 벽의 크기를 키우고 음수 값은 크기를 줄입니다. 다만 리브 벽의 크기는 청소 용량으로 결정되는 크기보다 작아질 수 없습니다."
+msgstr "양수 값은 리브 벽의 크기를 키우고 음수 값은 크기를 줄입니다. 다만 리브 벽의 크기는 플러시 볼륨으로 결정되는 크기보다 작아질 수 없습니다."
 
 msgid "Rib width"
 msgstr "리브 너비"
@@ -20547,11 +20572,13 @@ msgstr "프라임 타워의 벽에 필렛을 적용합니다."
 msgid "The extruder to use when printing perimeter of the wipe tower. Set to 0 to use the one that is available (non-soluble would be preferred)."
 msgstr "프라임 타워의 둘레를 출력할 때 사용하는 압출기입니다. 사용 가능한 압출기를 사용하려면 0으로 설정하세요 (비가용성 재료가 적절합니다)."
 
+# AI Translated
 msgid "Purging volumes - load/unload volumes"
-msgstr "버리기량 - 로드/언로드량"
+msgstr "플러시 볼륨 - 로드/언로드 볼륨"
 
+# AI Translated
 msgid "This vector saves required volumes to change from/to each tool used on the wipe tower. These values are used to simplify creation of the full purging volumes below."
-msgstr "이 벡터는 프라임 타워에서 사용되는 각 툴을 교체하는 데 필요한 부피을 저장합니다. 이러한 값은 아래의 전체 청소 부피 생성을 단순화하는 데 사용됩니다."
+msgstr "이 벡터는 프라임 타워에서 사용되는 각 툴을 교체하는 데 필요한 볼륨을 저장합니다. 이러한 값은 아래의 전체 플러시 볼륨 생성을 단순화하는 데 사용됩니다."
 
 msgid "Skip points"
 msgstr "포인트 건너뛰기"
@@ -20582,14 +20609,17 @@ msgstr "인필 갭"
 msgid "Infill gap."
 msgstr "채우기 간격입니다."
 
+# AI Translated
 msgid "Purging after filament change will be done inside objects' infills. This may lower the amount of waste and decrease the print time. If the walls are printed with transparent filament, the mixed color infill will be visible. It will not take effect unless the prime tower is enabled."
-msgstr "필라멘트 교체 후 버리기는 객체의 채우기 내부에서 수행됩니다. 이렇게 하면 낭비되는 양이 줄어들고 출력 시간이 단축될 수 있습니다. 벽이 투명 필라멘트로 출력된 경우 혼합 색상 충전재가 외부에 보입니다. 프라임 타워가 활성화되지 않으면 적용되지 않습니다."
+msgstr "필라멘트 교체 후 플러시는 객체의 채우기 내부에서 수행됩니다. 이렇게 하면 낭비되는 양이 줄어들고 출력 시간이 단축될 수 있습니다. 벽이 투명 필라멘트로 출력된 경우 혼합 색상 충전재가 외부에 보입니다. 프라임 타워가 활성화되지 않으면 적용되지 않습니다."
 
+# AI Translated
 msgid "Purging after filament change will be done inside objects' support. This may lower the amount of waste and decrease the print time. It will not take effect unless a prime tower is enabled."
-msgstr "필라멘트 변경 후 버리기는 객체의 서포트 내부에서 수행됩니다. 이렇게 하면 낭비되는 양이 줄어들고 출력 시간이 단축될 수 있습니다. 프라임 타워가 활성화되지 않으면 적용되지 않습니다."
+msgstr "필라멘트 변경 후 플러시는 객체의 서포트 내부에서 수행됩니다. 이렇게 하면 낭비되는 양이 줄어들고 출력 시간이 단축될 수 있습니다. 프라임 타워가 활성화되지 않으면 적용되지 않습니다."
 
+# AI Translated
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
-msgstr "이 객체는 필라멘트를 절약하고 출력 시간을 줄이기 위해 필라멘트 변경 후 노즐에 남은 잔류물을 제거하는 데 사용됩니다. 결과적으로 객체의 색상이 혼합됩니다. 기본 타워가 활성화되지 않으면 적용되지 않습니다."
+msgstr "이 객체는 필라멘트를 절약하고 출력 시간을 줄이기 위해 필라멘트 변경 후 노즐을 플러시하는 데 사용됩니다. 결과적으로 객체의 색상이 혼합됩니다. 프라임 타워가 활성화되지 않으면 적용되지 않습니다."
 
 # AI Translated
 msgid "Belt purge tower object"
@@ -20605,18 +20635,21 @@ msgstr "최대 브릿지 거리"
 msgid "Maximal distance between supports on sparse infill sections."
 msgstr "드문 채우기 부분의 서포트 사이의 최대 거리."
 
+# AI Translated
 msgid "Wipe tower purge lines spacing"
-msgstr "프라임 타워 청소 선 간격"
+msgstr "프라임 타워 플러시 선 간격"
 
+# AI Translated
 msgid "Spacing of purge lines on the wipe tower."
-msgstr "프라임 타워의 청소 선 간격입니다."
+msgstr "프라임 타워의 플러시 선 간격입니다."
 
+# AI Translated
 msgid "Extra flow for purging"
-msgstr "퍼지를 위한 추가 흐름"
+msgstr "플러시를 위한 추가 흐름"
 
 # AI Translated
 msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
-msgstr "프라임 타워의 퍼지 선에 추가 흐름이 사용됩니다. 이렇게 하면 퍼지 선이 평소보다 두꺼워집니다. 간격은 자동으로 조정됩니다."
+msgstr "프라임 타워의 플러시 선에 추가 흐름이 사용됩니다. 이렇게 하면 플러시 선이 평소보다 두꺼워집니다. 간격은 자동으로 조정됩니다."
 
 msgid "Idle temperature"
 msgstr "공회전 온도"
@@ -20695,8 +20728,9 @@ msgstr "G-code 미리보기 포맷: 최고 품질은 PNG, 최소 크기는 JPG, 
 msgid "Use relative E distances"
 msgstr "상대적 E 거리 사용"
 
+# AI Translated
 msgid "Relative extrusion is recommended when using \"label_objects\" option. Some extruders work better with this option unchecked (absolute extrusion mode). Wipe tower is only compatible with relative mode. It is recommended on most printers. Default is checked."
-msgstr "\"label_objects\" 옵션을 사용할 때는 상대 압출을 권장합니다. 일부 압출기는 이 옵션을 선택하지 않은 경우(절대 압출 모드) 더 잘 작동합니다. 와이프 타워는 상대 모드와만 호환됩니다. 대부분의 프린터에 권장됩니다. 기본값이 선택되어 있습니다"
+msgstr "\"label_objects\" 옵션을 사용할 때는 상대 압출을 권장합니다. 일부 압출기는 이 옵션을 선택하지 않은 경우(절대 압출 모드) 더 잘 작동합니다. 프라임 타워는 상대 모드와만 호환됩니다. 대부분의 프린터에 권장됩니다. 기본값이 선택되어 있습니다."
 
 msgid "The classic wall generator produces walls with constant extrusion width and for very thin areas, gap-fill is used. The Arachne engine produces walls with variable extrusion width."
 msgstr "클래식 벽 생성기는 돌출 폭이 일정한 벽을 생성하며 매우 얇은 영역에는 간격 채움이 사용됩니다. 아라크네 엔진은 압출 폭이 가변적인 벽을 생성합니다."
@@ -20818,7 +20852,7 @@ msgstr "고속 플러시 모드 지원"
 
 # AI Translated
 msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
-msgstr "이 프린터가 최적화된 온도와 배수를 사용하는 고속 플러시 모드를 지원하는지 여부입니다."
+msgstr "이 프린터가 최적화된 온도와 승수를 사용하는 고속 플러시 모드를 지원하는지 여부입니다."
 
 # AI Translated
 msgid "Filament change"
@@ -21266,11 +21300,13 @@ msgstr "현재 객체 인덱스"
 msgid "Specific for sequential printing. Zero-based index of currently printed object."
 msgstr "순차 출력에만 해당됩니다. 현재 출력된 객체의 0 기반 인덱스입니다."
 
+# AI Translated
 msgid "Has wipe tower"
-msgstr "와이프 타워 있음"
+msgstr "프라임 타워 있음"
 
+# AI Translated
 msgid "Whether or not wipe tower is being generated in the print."
-msgstr "출력물에 와이프타워가 생성되는지 여부입니다."
+msgstr "출력물에 프라임 타워가 생성되는지 여부입니다."
 
 msgid "Initial extruder"
 msgstr "초기 압출기"
@@ -21778,19 +21814,19 @@ msgstr "툴 체인지 후 Z 위치입니다."
 
 # AI Translated
 msgid "First flush volume"
-msgstr "첫 번째 플러시 부피"
+msgstr "첫 번째 플러시 볼륨"
 
 # AI Translated
 msgid "The first flush volume."
-msgstr "첫 번째 플러시 부피입니다."
+msgstr "첫 번째 플러시 볼륨입니다."
 
 # AI Translated
 msgid "Second flush volume"
-msgstr "두 번째 플러시 부피"
+msgstr "두 번째 플러시 볼륨"
 
 # AI Translated
 msgid "The second flush volume."
-msgstr "두 번째 플러시 부피입니다."
+msgstr "두 번째 플러시 볼륨입니다."
 
 # AI Translated
 msgid "Old filament e feedrate"
@@ -33483,7 +33519,7 @@ msgstr "최상의 출력 품질을 위해 속도 및 온도 전환과 함께 완
 
 # AI Translated
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
-msgstr "더 빠른 플러시를 위해 최적화된 플러시 온도와 배수, 더 강한 압출을 사용합니다. 일부 극단적인 경우 색상이 약간 섞일 수 있습니다."
+msgstr "더 빠른 플러시를 위해 최적화된 플러시 온도와 승수, 더 강한 압출을 사용합니다. 일부 극단적인 경우 색상이 약간 섞일 수 있습니다."
 
 # AI Translated
 msgid "Prime Saving"

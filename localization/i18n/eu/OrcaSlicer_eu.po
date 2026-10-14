@@ -12429,12 +12429,13 @@ msgstr "Atze-ezkerra"
 msgid "Rear-right"
 msgstr "Atze-eskuina"
 
+# AI Translated
 msgid ""
 "The Retract before wipe option could be only 100% when using the Firmware Retraction mode.\n"
 "\n"
 "Shall I set it to 100% in order to enable Firmware Retraction?"
 msgstr ""
-"'Garbitu aurretik atzera egin' aukerak %100 izan behar du firmware bidezko atzera-egite modua erabiltzean.\n"
+"'Garbiketa aurreko atzera-egite kantitatea' aukerak %100 izan behar du firmware bidezko atzera-egite modua erabiltzean.\n"
 "\n"
 "%100ean ezarri nahi duzu firmware bidezko atzera-egitea gaitzeko?"
 
@@ -18162,14 +18163,17 @@ msgstr "Mugimendu-distantziaren atalasea"
 msgid "Only trigger retraction when the travel distance is longer than this threshold."
 msgstr "Aktibatu atzera-egitea mugimendu-distantzia atalase hau baino handiagoa denean bakarrik."
 
+# AI Translated
 msgid "Retract amount before wipe"
-msgstr "Garbitu aurreko atzera-egite kantitatea"
+msgstr "Garbiketa aurreko atzera-egite kantitatea"
 
+# AI Translated
 msgid "This is the length of fast retraction before a wipe, relative to retraction length."
-msgstr "Hau da garbitu aurreko atzera-egite azkarraren luzera, atzera-egitearen luzerarekiko."
+msgstr "Hau da garbiketa aurreko atzera-egite azkarraren luzera, atzera-egitearen luzerarekiko."
 
+# AI Translated
 msgid "Retract amount after wipe"
-msgstr "Garbitu ondorengo atzera-egite kantitatea"
+msgstr "Garbiketa ondorengo atzera-egite kantitatea"
 
 #, no-c-format, no-boost-format
 msgid ""
@@ -18468,11 +18472,11 @@ msgstr "Erabili alaka juntura barruko hormetan ere."
 
 # AI Translated
 msgid "Role based wipe speed"
-msgstr "Eginkizunaren araberako garbitze-abiadura"
+msgstr "Rolaren araberako garbiketa-abiadura"
 
 # AI Translated
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
-msgstr "Garbitze-abiadura uneko estrusio-eginkizunaren abiadurak zehazten du. Adibidez, garbitze-ekintza bat kanpoko hormaren estrusioaren ondoren berehala egiten bada, kanpoko hormaren estrusio-abiadura erabiliko da garbitze-ekintzarako."
+msgstr "Garbiketa-abiadura uneko estrusio-rolaren abiadurak zehazten du. Adibidez, garbiketa-ekintza bat kanpoko hormaren estrusioaren ondoren berehala egiten bada, kanpoko hormaren estrusio-abiadura erabiliko da garbiketa-ekintzarako."
 
 msgid "Wipe on loops"
 msgstr "Garbitu begiztetan"
@@ -18494,13 +18498,13 @@ msgid ""
 msgstr ""
 "Kanpoko hormei soilik aplikatzen zaie, zuloen mugak barne. Garbitzean pita beroa jada inprimatutako barruko hormetarantz mugitzen du, inprimatu berri den plastikoa berriro berotzea eta jostura-markak murrizteko.\n"
 "\n"
-"Bereziki erabilgarria da 0,1 mm-tik beherako geruza-altueretan, non garbitze-markak nabarmenago ikusten diren.\n"
+"Bereziki erabilgarria da 0,1 mm-tik beherako geruza-altueretan, non garbiketa-markak nabarmenago ikusten diren.\n"
 "\n"
 "Garbiketa arrunta erabiltzen du ondoko barruko hormarik jada inprimatuta ez badago (horma bakarreko eremuak edo Kanpokoa/Barrukoa hormen ordena) edo euskarria duen barrurako biderik aurkitzen ez bada, adibidez izkina estuetan edo josturako hutsuneetan."
 
 # AI Translated
 msgid "Wipe inward distance"
-msgstr "Barrurako garbitze-distantzia"
+msgstr "Barrurako garbiketa-distantzia"
 
 # AI Translated
 #, no-c-format, no-boost-format
@@ -18509,9 +18513,9 @@ msgid ""
 "\n"
 "For example, 50% shifts the path by half of the outer-wall width. The effective offset is limited by both the actual outer-wall width and the available spacing to the adjacent wall, so values above 100% or an equivalent absolute distance have no additional effect. Set to 0 to disable the offset."
 msgstr ""
-"Garbitze-bidea kanpoko perimetrotik zenbat desplazatzen den, milimetrotan edo kanpoko hormaren benetako estrusio-zabaleraren ehuneko gisa adierazita.\n"
+"Garbiketa-ibilbidea kanpoko perimetrotik zenbat desplazatzen den, milimetrotan edo kanpoko hormaren benetako estrusio-zabaleraren ehuneko gisa adierazita.\n"
 "\n"
-"Adibidez, 50% bideak kanpoko hormaren zabaleraren erdia desplazatzen du. Desplazamendu eraginkorra mugatuta dago bai kanpoko hormaren benetako zabaleragatik bai ondoko hormarainoko tarte erabilgarriagatik; beraz, 100% baino handiagoko balioek edo baliokidea den distantzia absolutu batek ez dute eragin gehigarririk. Ezarri 0 desplazamendua desgaitzeko."
+"Adibidez, 50% ibilbideak kanpoko hormaren zabaleraren erdia desplazatzen du. Desplazamendu eraginkorra mugatuta dago bai kanpoko hormaren benetako zabaleragatik bai ondoko hormarainoko tarte erabilgarriagatik; beraz, 100% baino handiagoko balioek edo baliokidea den distantzia absolutu batek ez dute eragin gehigarririk. Ezarri 0 desplazamendua desgaitzeko."
 
 msgid "Wipe before external loop"
 msgstr "Garbitu kanpoko begizta baino lehen"
@@ -18527,11 +18531,11 @@ msgstr ""
 
 # AI Translated
 msgid "Wipe speed"
-msgstr "Garbitze-abiadura"
+msgstr "Garbiketa-abiadura"
 
 # AI Translated
 msgid "The wipe speed is determined by the speed setting specified in this configuration. If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above. The default value for this parameter is 80%."
-msgstr "Garbitze-abiadura konfigurazio honetan zehaztutako abiadura-ezarpenak zehazten du. Balioa ehuneko gisa adierazten bada (adibidez, %80), goiko mugimendu-abiaduraren ezarpenaren arabera kalkulatuko da. Parametro honen balio lehenetsia %80 da."
+msgstr "Garbiketa-abiadura konfigurazio honetan zehaztutako abiadura-ezarpenak zehazten du. Balioa ehuneko gisa adierazten bada (adibidez, %80), goiko mugimendu-abiaduraren ezarpenaren arabera kalkulatuko da. Parametro honen balio lehenetsia %80 da."
 
 msgid "Skirt distance"
 msgstr "Gonaren distantzia"
@@ -19614,8 +19618,9 @@ msgstr "Garbitu atzera-egitean"
 msgid "This moves the nozzle along the last extrusion path when retracting to clean any leaked material on the nozzle. This can minimize blobs when printing a new part after traveling."
 msgstr "Honek pita azken estrusio-bidean zehar mugitzen du atzera-egitean, pitatik isuritako materiala garbitzeko. Horrek pikorrak murriztu ditzake pieza berri bat inprimatzean."
 
+# AI Translated
 msgid "Wipe distance"
-msgstr "Garbitze-distantzia"
+msgstr "Garbiketa-distantzia"
 
 # AI Translated
 msgid ""
@@ -19629,7 +19634,7 @@ msgstr ""
 "\n"
 "Garbiketa-eragiketak zenbat irauten duen eta estrusorearen/filamentuaren atzera-egite ezarpenak zein azkar eta luzeak diren kontuan hartuta, baliteke atzera-egite mugimendu bat behar izatea geratzen den filamentua atzera eramateko.\n"
 "\n"
-"Beheko garbitu aurreko atzera-egite kantitatearen ezarpenean balio batezarriz gero, gehiegizko atzera-egitea garbiketa baino lehen egingo da; bestela, ondoren egingo da."
+"Beheko garbiketa aurreko atzera-egite kantitatearen ezarpenean balio bat ezarriz gero, gehiegizko atzera-egitea garbiketa baino lehen egingo da; bestela, ondoren egingo da."
 
 # AI Translated
 msgid "Mixed color sublayer"

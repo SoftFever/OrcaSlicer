@@ -18856,14 +18856,15 @@ msgstr ""
 msgid "Wipe before external loop"
 msgstr "Spurgo prima del perimetro esterno"
 
+# AI Translated
 msgid ""
 "To minimize visibility of potential overextrusion at the start of an external perimeter when printing with Outer/Inner or Inner/Outer/Inner wall print order, the de-retraction is performed slightly on the inside from the start of the external perimeter. That way any potential over extrusion is hidden from the outside surface.\n"
 "\n"
 "This is useful when printing with Outer/Inner or Inner/Outer/Inner wall print order as in these modes it is more likely an external perimeter is printed immediately after a de-retraction move."
 msgstr ""
-"Per ridurre al minimo la visibilità di una potenziale sovraestrusione all'inizio di un perimetro esterno quando si stampa con l'ordine Esterno/Interno o Interno/Esterno/Interno, la de-retrazione viene eseguita leggermente verso l'interno, a partire dall'inizio del perimetro esterno. In questo modo qualsiasi potenziale sovraestrusione viene nascosta dalla superficie esterna.\n"
+"Per ridurre al minimo la visibilità di una potenziale sovraestrusione all'inizio di un perimetro esterno quando si stampa con l'ordine Esterna/Interna o Interna/Esterna/Interna, la de-retrazione viene eseguita leggermente verso l'interno, a partire dall'inizio del perimetro esterno. In questo modo qualsiasi potenziale sovraestrusione viene nascosta dalla superficie esterna.\n"
 "\n"
-"Ciò è utile quando si stampa con l'ordine Esterno/Interno o Interno/Esterno/Interno, poiché in queste modalità è più probabile che venga stampato un perimetro esterno immediatamente dopo un movimento di de-retrazione."
+"Ciò è utile quando si stampa con l'ordine Esterna/Interna o Interna/Esterna/Interna, poiché in queste modalità è più probabile che venga stampato un perimetro esterno immediatamente dopo un movimento di de-retrazione."
 
 msgid "Wipe speed"
 msgstr "Velocità di spurgo"

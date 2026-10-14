@@ -14767,8 +14767,9 @@ msgstr ""
 "\n"
 "此选项与“在填充上方增加第二层内部桥接”选项结合使用时效果尤佳，可在挤出实心填充之前进一步改善桥接。"
 
+# AI Translated
 msgid "Bridge flow ratio"
-msgstr "桥接流量"
+msgstr "桥接流量比例"
 
 msgid ""
 "This value governs the thickness of the external (visible) bridge layer.\n"
@@ -14784,7 +14785,6 @@ msgstr ""
 "实际使用的桥接流量是将此值乘以耗材流量比，以及（如已设置）对象的流量比计算得出的。"
 
 # AI Translated
-# Needs human review: Quotes the existing label 桥接流量 for 'Bridge flow ratio' (glossary Flow ratio is 流量比例), so tooltip matches the GUI; if the label is changed to 桥接流量比例, update here
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
@@ -14793,13 +14793,14 @@ msgid ""
 "If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "桥接线的线宽。如果以百分比表示，将根据喷嘴直径计算。\n"
-"建议与较高的桥接密度或桥接流量配合使用。\n"
+"建议与较高的桥接密度或桥接流量比例配合使用。\n"
 "\n"
 "最大值为 100% 或喷嘴直径。\n"
 "如果设置为 0，线宽将与内部实心填充宽度一致，厚桥则与喷嘴直径一致。"
 
+# AI Translated
 msgid "Internal bridge flow ratio"
-msgstr "内部搭桥流量比例"
+msgstr "内部桥接流量比例"
 
 msgid ""
 "This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill so increasing it may increase strength and upper layer quality.\n"
@@ -18445,9 +18446,8 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "同时应用斜拼接缝于内墙"
 
 # AI Translated
-# Needs human review: Earlier wording kept (English only fixes 'base' to 'based'): check that 自动 reads as 'speed follows the current extrusion role', as the tooltip below explains
 msgid "Role based wipe speed"
-msgstr "自动擦拭速度"
+msgstr "基于挤出类型的擦拭速度"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr "擦拭速度由当前挤出类型的速度决定。例如，如果擦拭动作紧随外墙，擦拭速度将使用外墙的速度。"

@@ -1307,8 +1307,9 @@ msgstr "Kes"
 msgid "Click to change part type into negative volume."
 msgstr "Parça tipini negatif hacme değiştirmek için tıklayın."
 
+# AI Translated
 msgid "Modifier"
-msgstr "Değiştir"
+msgstr "Değiştirici"
 
 msgid "Click to change part type into modifier."
 msgstr "Parça tipini değiştiriciye değiştirmek için tıklayın."
@@ -5790,8 +5791,9 @@ msgstr "Özet"
 msgid "Layer Height"
 msgstr "Katman Yüksekliği"
 
+# AI Translated
 msgid "Line Width"
-msgstr "Katman Genişliği"
+msgstr "Çizgi Genişliği"
 
 msgid "Actual Speed"
 msgstr "Gerçek Hız"
@@ -8718,6 +8720,7 @@ msgid "Material settings"
 msgstr "Malzeme ayarları"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
 msgstr "Her mod, katılan baskı kafalarını ve her birinin üstlendiği rolü belirtir. Rolleri arasında sırayla geçiş yapmak için bir araç düğmesine tıklayın — her rolün ne yaptığını görmek için aşağıdaki bir rengin üzerine gelin."
 
@@ -8726,6 +8729,7 @@ msgid "Add Mode"
 msgstr "Mod Ekle"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "Araçlar"; align it once the term is settled.
 msgid "Tools"
 msgstr "Araçlar"
 
@@ -8742,6 +8746,7 @@ msgid "Which tool heads take part in the mode and what role each one plays. Clic
 msgstr "Modda hangi baskı kafalarının yer aldığı ve her birinin hangi rolü üstlendiği. Rolleri arasında sırayla geçiş yapmak için bir kutucuğa tıklayın."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
 msgstr "Yazıcıyı bu moda geçirmek için baskı başlangıcında çalıştırılan G-code (örneğin bir Klipper SET_PRINT_MODE çağrısı). Dilimleyici yalnızca Birincil (Primary) aracın yollarını üretir; diğerlerini ürün yazılımı yönetir."
 
@@ -8776,7 +8781,7 @@ msgid "Span"
 msgstr "Span"
 
 # AI Translated
-# Needs human review: "grid" here is the role-tile grid of the IDEX/IQEX Modes editor (Printer Settings), not the Grid pattern, so it is "Izgara" rather than the glossary "Kafes"; check it reads right next to the tiles.
+# Needs human review: "grid" here is the role-tile grid of the IDEX/IQEX Modes editor (Printer Settings), not the Grid pattern, so it is "Izgara" rather than the glossary "Kafes"; check it reads right next to the tiles; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
 msgstr "Tüm dilimlenmiş yolları yürütür. Her zaman araç 0'dır — yatağın hangi köşesinde bulunacağını seçmek için yukarıdaki Araç 0 Konumu ayarını kullanın. Izgarada yeri değiştirilemez."
 
@@ -8789,6 +8794,7 @@ msgid "Follows the Primary at the firmware level, printing the same paths reflec
 msgstr "Ürün yazılımı düzeyinde Birincil (Primary) aracı izler; aynı yolları iki bölge arasındaki sınıra göre yansıtarak basar."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
 msgstr "Birincil (Primary) aracın portalındaki bir aracı, onun çok renkli baskı ortağı olarak işaretler. Eşleştirilmiş portal modlarında çok renkli baskıya izin vermek için gereklidir."
 
@@ -8805,6 +8811,7 @@ msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode s
 msgstr "Bu paralel modun, plakanın IDEX/IQEX mod seçicisinde görünen adı. Projede adıyla saklanır; bu nedenle plakaların zaten kullandığı bir modu yeniden adlandırmak, bu plakaların Birincil moda geri dönmesine neden olur. Boş bırakılamaz — boş bir ad, otomatik oluşturulan bir adla değiştirilir."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
 msgstr "Bu modu kullanan bir baskının başında, Yazıcı Başlangıç G-code'undan önce bir kez yazılan G-code. Yazıcı burada ilgili ürün yazılımı moduna geçirilir — örneğin bir Klipper SET_PRINT_MODE çağrısı veya bir RepRapFirmware M567 komutu — çünkü dilimleyici yalnızca Birincil (Primary) aracın yollarını üretir ve Kopya (Copy) / Ayna (Mirror) araçlarını ürün yazılımı yönetir. Yer tutucular desteklenir; bunlara göz atmak için düzenle düğmesini kullanın. Mod herhangi bir ürün yazılımı kurulumu gerektirmiyorsa boş bırakın."
 
@@ -12176,10 +12183,12 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "Tüm ayarları en son kaydedilen ön ayara sıfırlamak için tıklayın."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Prime Kulesi"; align it once the term is settled.
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Nozul değişimi için Prime Kulesi gereklidir. Prime Kulesi olmadan modelde kusurlar oluşabilir. Prime Kulesi'ni devre dışı bırakmak istediğinizden emin misiniz?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Prime Tower" and "Prime tower"; align it once the term is settled.
 msgid "A prime tower is required for smooth timelapse mode. There may be flaws on the model without a prime tower. Are you sure you want to disable the prime tower?"
 msgstr "Sorunsuz timelapse modu için Prime Tower gereklidir. Prime tower olmayan modelde kusurlar olabilir. Prime tower'ı devre dışı bırakmak istediğinizden emin misiniz?"
 
@@ -12196,6 +12205,7 @@ msgid "Enabling both precise Z height and the prime tower may cause slicing erro
 msgstr "Hem hassas Z yüksekliğini hem de hazırlık kulesini etkinleştirmek dilimleme hatalarına neden olabilir. Yine de hassas Z yüksekliğini etkinleştirmek istiyor musunuz?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime kulesi"; align it once the term is settled.
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
 msgstr "Pürüzsüz timelapse her katmanda bir prime kulesi gerektirir; bu da \"Seyrek katman yok\" ile bağdaşmaz. \"Seyrek katman yok\" kapatıldı."
 
@@ -12203,6 +12213,7 @@ msgid "A prime tower is required for smooth timelapse mode. There may be flaws o
 msgstr "Sorunsuz hızlandırılmış çekim için Prime Tower gereklidir. Prime tower olmayan modelde kusurlar olabilir. Prime tower'ı etkinleştirmek istiyor musunuz?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime kulesi"; align it once the term is settled.
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
 msgstr "\"Seyrek katman yok\", her katmanda bir prime kulesi gerektiren pürüzsüz timelapse ile bağdaşmaz. Timelapse geleneksel moda geçirildi."
 
@@ -12335,8 +12346,9 @@ msgstr "tam profil adı"
 msgid "symbolic profile name"
 msgstr "sembolik profil adı"
 
+# AI Translated
 msgid "Line width"
-msgstr "Katman Genişliği"
+msgstr "Çizgi Genişliği"
 
 msgid "Precision"
 msgstr "Hassasiyet"
@@ -14083,6 +14095,7 @@ msgid "No object can be printed. It may be too small."
 msgstr "Hiçbir nesne basılamıyor. Nesne çok küçük olabilir."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 #, boost-format
 msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
 msgstr "\"%1%\" IDEX/IQEX modunun seçili yazıcıda atanmış aracı yok. Bunun yerine Birincil modda basılıyor. Modun araçlarını Yazıcı Ayarları'nda atayın veya plakanın IDEX/IQEX düğmesinden başka bir mod seçin."
@@ -14331,14 +14344,17 @@ msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to h
 msgstr "IDEX/IQEX paralel modlarında çok renkli baskılar, her filamentin kendine ayrılmış fiziksel bir ekstruderi olmasını gerektirir. Etkin filamentlerden iki veya daha fazlası, yazıcının fiziksel ekstruder eşlemesi (bir MMU/AFC dağıtıcısı) üzerinden aynı fiziksel kafaya yönlendirilmiş; bağımlı portal bunu izleyemez."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
 msgstr "Etkin IDEX/IQEX modu birincil bir araç tanımlamıyor, bu nedenle çok renkli baskı planlanamıyor. Yazıcı ayarlarındaki IDEX/IQEX Modlar düzenleyicisini açın ve bir araca Birincil (Primary) rolünü atayın."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
 msgstr "Bu moddaki çok renkli baskı bir paralel baskı senaryosu değil — tüm etkin araçlar tek bir portal üzerinde, dolayısıyla kopyalanacak veya aynalanacak ikinci bir portal yok. Tek portalda çok renkli baskı için plakayı Birincil moda geçirin veya ikinci bir portaldaki araçları içeren bir IDEX/IQEX modu tanımlayın."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
 msgstr "IDEX/IQEX paralel modlarında çok renkli baskılar, birincil aracın portalında bir Span aracı gerektirir — bu olmadan mod, portal içi bir çok renkli baskı ortağı tanımlamaz. Baskıyı tek bir filamente indirin, Birincil moda geçin ya da yazıcı ayarlarındaki IDEX/IQEX Modlar düzenleyicisini açıp birincil aracın portalındaki bir aracı Span olarak işaretleyin."
 
@@ -14387,6 +14403,7 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% çok uzun ve çarpışmalara neden olacak."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime kulesi"; align it once the term is settled.
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
 msgstr "Modelin ve prime kulesinin göreli konumu \"Seyrek katman yok\" özelliğinin gereksinimlerini karşılamıyor. Lütfen göreli konumlarını ayarlayın, model yüksekliğini azaltın veya \"Seyrek katman yok\" seçeneğini kapatın."
 
@@ -14547,6 +14564,7 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Değişken katman yüksekliği Organik desteklerle desteklenmez."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Silme kulesi"; align it once the term is settled.
 msgid "The wipe tower filament cannot be a mixed filament."
 msgstr "Silme kulesi filamenti karışık filament olamaz."
 
@@ -16285,6 +16303,7 @@ msgid "Enable adaptive pressure advance (beta)"
 msgstr "Uyarlanabilir Pressure Advance'ı etkinleştir (beta)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 #, no-c-format, no-boost-format
 msgid ""
 "With increasing print speeds (and hence increasing volumetric flow through the nozzle) and increasing accelerations, it has been observed that the effective PA value typically decreases. This means that a single PA value is not always 100% optimal for all features and a compromise value is usually used that does not cause too much bulging on features with lower flow speed and accelerations while also not causing gaps on faster features.\n"
@@ -16604,10 +16623,12 @@ msgid "After a tool change, the exact position of the newly loaded filament insi
 msgstr "Bir takım değişiminden sonra, yeni yüklenen filamentin nozul içindeki kesin konumu bilinmeyebilir ve filament basıncı muhtemelen henüz stabil değildir. Yazdırma kafasını bir dolguya veya kurban nesneye boşaltmadan önce Orca Slicer, ardışık dolgu veya kurban nesne ekstrüzyonlarını güvenilir bir şekilde üretmek için her zaman bu miktardaki malzemeyi silme kulesine hazırlayacaktır."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Silme kulesi"; align it once the term is settled.
 msgid "Wipe tower cooling"
 msgstr "Silme kulesi soğutması"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Filament kulesi"; align it once the term is settled.
 msgid "Temperature drop before entering filament tower"
 msgstr "Filament kulesine girmeden önceki sıcaklık düşüşü"
 
@@ -18715,10 +18736,12 @@ msgid "Retraction distance when extruder change"
 msgstr "Ekstruder değiştiğinde geri çekilme mesafesi"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Retraction Length (Toolchange)"
 msgstr "Geri çekme uzunluğu (Takım değişimi)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "When retraction is triggered before changing tool, filament is pulled back by the specified amount (the length is measured on raw filament, before it enters the extruder)."
 msgstr "Takım değişiminden önce geri çekme tetiklendiğinde, filament belirtilen miktarda geri çekilir (uzunluk, ekstrudere girmeden önce ham filament üzerinde ölçülür)."
 
@@ -18826,6 +18849,7 @@ msgid "When the retraction is compensated after the travel move, the extruder wi
 msgstr "İlerleme hareketinden sonra geri çekilme telafi edildiğinde, ekstruder bu ek filament miktarını itecektir. Bu ayara nadiren ihtiyaç duyulur."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Extra length on restart (Toolchange)"
 msgstr "Yeniden başlatma sırasında ekstra uzunluk (Takım değişimi)"
 
@@ -18980,9 +19004,8 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "İç duvarlarda da atkı dikişi kullan."
 
 # AI Translated
-# Needs human review: Reuses the earlier human translation of the typo-fixed 'Role base wipe speed'; it does not mention the extrusion role (a literal rendering would be 'Ekstrüzyon rolüne göre temizleme hızı'). Check which wording is preferred.
 msgid "Role based wipe speed"
-msgstr "Otomatik temizleme hızı"
+msgstr "Ekstrüzyon rolüne göre temizleme hızı"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr "Temizleme hızı mevcut ekstrüzyon rolünün hızına göre belirlenir; bir dış duvar ekstrüzyonunun hemen ardından bir silme eylemi yürütülürse, silme eylemi için dış duvar ekstrüzyonunun hızı kullanılacaktır."
@@ -19202,6 +19225,7 @@ msgid "Farthest point timelapse"
 msgstr "En uzak noktada timelapse"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "silme kulesi"; align it once the term is settled.
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
 msgstr "Etkinleştirildiğinde timelapse anlık görüntüsü, silme kulesine veya atık oluğuna gitmek yerine kameradan en uzak noktada alınır. Yalnızca I3 olmayan yazıcılarda geleneksel timelapse modunda etkilidir."
 
@@ -19271,6 +19295,7 @@ msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for
 msgstr "Bağımsız Y ekseni portallarının sayısı. IDEX/tek raylı IQEX için 1. Çift portallı sistemler için 2 (yatağı satırlara böler)."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "Tools per Gantry"
 msgstr "Portal Başına Araç"
 
@@ -19279,10 +19304,12 @@ msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
 msgstr "X boyunca portal başına bağımsız baskı kafası sayısı. IDEX tipi için 2."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "Tool 0 Position"
 msgstr "Araç 0 Konumu"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
 msgstr "T0 aracının (indeks 0) yatak üzerindeki fiziksel konumu. Araç indekslerinin yatak bölgelerine nasıl eşleneceğini belirler. Tek portallı kurulumlarda (IDEX) yalnızca sol/sağ önemlidir; çift portallı kurulumlarda (IQEX) dört köşenin tümü seçilebilir (ön = düşük Y / operatöre yakın, arka = yüksek Y / makinenin arkası)."
 
@@ -19355,10 +19382,12 @@ msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
 msgstr "Kullanıcı tanımlı her IDEX/IQEX paralel baskı modu için görünen adlar."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "IDEX/IQEX Mode Active Tools"
 msgstr "IDEX/IQEX Modu Etkin Araçları"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
 msgstr "Her mod için araç rolü atamaları. Biçim: \"idx:P,idx:C,idx:M\"; burada P=Primary (Birincil), C=Copy (Kopya), M=Mirror (Ayna) (ör. \"0:P,1:C,2:M,3:M\"). Yazıcı ön ayarındaki IDEX/IQEX Modlar düzenleyicisi tarafından yönetilir."
 
@@ -19398,18 +19427,22 @@ msgid "Enable filament ramming"
 msgstr "Filament sıkıştırmayı etkinleştir"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Silme kulesi"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Tool change on wipe tower"
 msgstr "Silme kulesinde takım değişimi"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "silme kulesi"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Force the toolhead to travel to the wipe tower before issuing the tool change command (Tx). Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. By default Orca skips the travel on multi-toolhead machines because the firmware handles the head swap, which can result in the Tx command being issued above the printed part. Enable this option if you want the tool change to always be issued above the wipe tower instead."
 msgstr "Takım değişimi komutu (Tx) verilmeden önce baskı kafasını silme kulesine gitmeye zorlar. Yalnızca Tip 2 silme kulesi kullanan çok ekstruderli (çok baskı kafalı) yazıcılar için geçerlidir. Orca, çok baskı kafalı makinelerde bu seyahati varsayılan olarak atlar çünkü kafa değişimini ürün yazılımı yönetir; bu da Tx komutunun yazdırılan parçanın üzerinde verilmesine yol açabilir. Takım değişiminin her zaman silme kulesinin üzerinde verilmesini istiyorsanız bu seçeneği etkinleştirin."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Silme kulesi"; align it once the term is settled.
 msgid "Wait for temperature on wipe tower"
 msgstr "Silme kulesinde sıcaklığı bekle"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "silme kulesi"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Pick up the new tool without waiting for it to reach printing temperature, travel to the wipe tower, and wait for the temperature there, right before purging. Ooze from the heat-up lands on the tower instead of the model, and the travel overlaps with the heating. Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. The firmware or tool change macro must not wait for the temperature itself. When disabled, the temperature wait is issued right after the tool change command."
 msgstr "Yeni takımı baskı sıcaklığına ulaşmasını beklemeden alır, silme kulesine gider ve sıcaklığı orada, yıkamadan hemen önce bekler. Isınma sırasında sızan malzeme modele değil kuleye düşer ve hareket ısınmayla çakışır. Yalnızca 2. tip silme kulesi kullanan çok ekstruderli (çok baskı kafalı) yazıcılar için geçerlidir. Donanım yazılımı veya takım değişimi makrosu sıcaklığı kendisi beklememelidir. Devre dışı bırakıldığında, sıcaklık bekleme komutu takım değişimi komutundan hemen sonra verilir."
 
@@ -19417,6 +19450,7 @@ msgid "No sparse layers (beta)"
 msgstr "Seyrek katman yok (beta)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "silme kulesi"; align it once the term is settled; Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid "If enabled, the wipe tower will not be printed on layers with no tool changes. On layers with a tool change, extruder will travel downward to print the wipe tower, so the tower ends up below the model and the toolhead has to reach down to it. Layouts where that would collide with an already printed object are rejected. Has no effect with smooth timelapse or clumping detection, which need a tower on every layer."
 msgstr "Etkinleştirilirse, silme kulesi araç değişimi olmayan katmanlarda yazdırılmaz. Araç değişimi olan katmanlarda ekstruder silme kulesini yazdırmak için aşağı doğru hareket eder; böylece kule modelin altında kalır ve baskı kafasının ona uzanması gerekir. Bunun daha önce yazdırılmış bir nesneyle çarpışmasına yol açacak yerleşimler reddedilir. Her katmanda bir kule gerektiren pürüzsüz timelapse veya nozul birikme algılamayla birlikte etkisi yoktur."
 
@@ -19425,6 +19459,7 @@ msgid "Combine sparse layers"
 msgstr "Seyrek katmanları birleştir"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "prime kulesi"; align it once the term is settled.
 msgid ""
 "If enabled, consecutive layers on which the prime tower has no filament change are printed as a single thicker tower layer instead of one thin layer each, the same way infill combination merges sparse infill. The merged layer is printed at the top of the run, at the height of everything it covers.\n"
 "\n"
@@ -19445,10 +19480,12 @@ msgid "If enabled, all printing extruders will be primed at the front edge of th
 msgstr "Etkinleştirilirse, tüm baskı ekstruderleri baskının başlangıcında baskı yatağının ön kenarında temizlenecektir."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Toolchange ordering"
 msgstr "Takım değişimi sıralaması"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid ""
 "Determines the order of tool changes on each layer.\n"
 "- Default: Starts with the last used extruder to minimize tool changes.\n"
@@ -19467,6 +19504,7 @@ msgid "Cyclic order"
 msgstr "Döngüsel sıra"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid ""
 "Custom filament sequence used by the cyclic toolchange ordering, as filament numbers separated by commas (e.g. \"3,2,1,4\").\n"
 "Each layer prints its filaments following this sequence; filaments not listed are printed last, in ascending order.\n"
@@ -19481,6 +19519,7 @@ msgid "Apply cyclic order to first layer"
 msgstr "Döngüsel sırayı ilk katmana uygula"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "araç"; align it once the term is settled.
 msgid ""
 "Applies the cyclic toolchange order to the first layer as well.\n"
 "By default this is disabled, because the first layer is instead ordered for the best bed adhesion: filaments that print small, fragile first-layer features are printed last, so the following tool changes and travel moves are less likely to knock those weakly anchored parts loose. This first-layer order also honors a custom first layer filament sequence when one is set. The cyclic order's benefit (extra tool changes give each layer more time to cool) does not apply to the first layer, which is printed slowly and hot for adhesion.\n"
@@ -20204,6 +20243,7 @@ msgid "Prime volume mode"
 msgstr "Prime hacmi modu"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "silme kulesi"; align it once the term is settled.
 msgid "Selects how the wipe-tower prime and flush volumes are computed on multi-extruder printers."
 msgstr "Çok ekstruderli yazıcılarda silme kulesi prime ve yıkama hacimlerinin nasıl hesaplanacağını seçer."
 
@@ -20237,6 +20277,7 @@ msgid "Maximum wipe tower print speed"
 msgstr "Maksimum silme kulesi yazdırma hızı"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Silme kulesi"; align it once the term is settled.
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
@@ -20262,6 +20303,7 @@ msgid "Wall type"
 msgstr "Duvar tipi"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Silme kulesi"; align it once the term is settled.
 msgid ""
 "Wipe tower outer wall type.\n"
 "1. Rectangle: A rectangle with fixed width and height.\n"
@@ -20364,6 +20406,7 @@ msgid "Extra flow for purging"
 msgstr "Temizleme için ekstra akış"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Silme kulesi"; align it once the term is settled.
 msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
 msgstr "Silme kulesindeki temizleme hatları için ekstra akış kullanılır. Bu, temizleme hatlarının normalde olduğundan daha kalın olmasına neden olur. Aralık otomatik olarak ayarlanır."
 
@@ -20592,6 +20635,7 @@ msgid "Preheat temperature delta"
 msgstr "Ön ısıtma sıcaklık farkı"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Temperature delta applied during pre-heating before tool change."
 msgstr "Takım değişiminden önce ön ısıtma sırasında uygulanan sıcaklık farkı."
 
@@ -21289,6 +21333,7 @@ msgid "Size of the print bed bounding box"
 msgstr "Baskı yatağı sınırlama kutusunun boyutu"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "Silme kulesi"; align it once the term is settled.
 msgid "First layer center without wipe tower"
 msgstr "Silme kulesi olmadan ilk katman merkezi"
 
@@ -21433,10 +21478,12 @@ msgid "Indicates if relative positioning is being used."
 msgstr "Göreli konumlandırmanın kullanılıp kullanılmadığını belirtir."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Toolchange count"
 msgstr "Takım değişimi sayısı"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "The number of toolchanges throughout the print."
 msgstr "Baskı boyunca takım değişimi sayısı."
 
@@ -21457,18 +21504,22 @@ msgid "The retraction length of the new filament."
 msgstr "Yeni filamentin geri çekme uzunluğu."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Old retract length toolchange"
 msgstr "Takım değişiminde eski geri çekme uzunluğu"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "The toolchange retraction length of the previous filament."
 msgstr "Önceki filamentin takım değişimi geri çekme uzunluğu."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "New retract length toolchange"
 msgstr "Takım değişiminde yeni geri çekme uzunluğu"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "The toolchange retraction length of the new filament."
 msgstr "Yeni filamentin takım değişimi geri çekme uzunluğu."
 
@@ -21489,26 +21540,32 @@ msgid "The new filament temp."
 msgstr "Yeni filament sıcaklığı."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "X after toolchange"
 msgstr "Takım değişiminden sonra X"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "The X pos after toolchange."
 msgstr "Takım değişiminden sonra X konumu."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Y after toolchange"
 msgstr "Takım değişiminden sonra Y"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "The Y pos after toolchange."
 msgstr "Takım değişiminden sonra Y konumu."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "Z after toolchange"
 msgstr "Takım değişiminden sonra Z"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "The Z pos after toolchange."
 msgstr "Takım değişiminden sonra Z konumu."
 
@@ -23142,6 +23199,7 @@ msgid "Slice the plate first to get project material information."
 msgstr "Proje malzeme bilgilerini almak için önce plakayı dilimleyin."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Tool (printer)": this entry uses "takım"; align it once the term is settled.
 msgid "This plate uses multiple materials. Enable IFS and assign each tool to a printer slot."
 msgstr "Bu plaka birden çok malzeme kullanıyor. IFS'yi etkinleştirin ve her takımı bir yazıcı yuvasına atayın."
 

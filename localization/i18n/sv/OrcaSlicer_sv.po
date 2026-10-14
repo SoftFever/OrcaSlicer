@@ -16407,8 +16407,9 @@ msgstr ""
 "\n"
 "Det här alternativet fungerar särskilt bra tillsammans med alternativet andra inre bridge över ifyllnad, för att förbättra bridging ytterligare innan solid ifyllnad extruderas."
 
+# AI Translated
 msgid "Bridge flow ratio"
-msgstr "Bridge/Brygg flöde"
+msgstr "Flödesförhållande för bridge"
 
 # AI Translated
 msgid ""
@@ -16425,7 +16426,7 @@ msgstr ""
 "Det faktiska bridge-flödet beräknas genom att detta värde multipliceras med filamentets flödesförhållande och, om det är angivet, objektets flödesförhållande."
 
 # AI Translated
-# Needs human review: 'Bridge/Brygg flöde' quotes the existing label for 'Bridge flow ratio' (slash form), while the glossary renders Flow ratio as 'Flödesförhållande'; 'bridge-densitet' is generic (the labels are 'Densitet för yttre/inre bridge'). The printf-style warning for '% e' after 100 is a false positive (the entry is not c-format).
+# Needs human review: 'bridge-densitet' is generic (the labels are 'Densitet för yttre/inre bridge'). The printf-style warning for '% e' after 100 is a false positive (the entry is not c-format).
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
@@ -16434,7 +16435,7 @@ msgid ""
 "If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Linjebredd för Bridge/bro. Om värdet anges i procent (%) beräknas det utifrån nozzeldiametern.\n"
-"Rekommenderas att användas med högre bridge-densitet eller Bridge/Brygg flöde.\n"
+"Rekommenderas att användas med högre bridge-densitet eller Flödesförhållande för bridge.\n"
 "\n"
 "Maxvärdet är 100% eller nozzeldiametern.\n"
 "Om det sätts till 0 motsvarar linjebredden bredden på invändig solid fyllnad, eller nozzeldiametern för tjocka bridges."

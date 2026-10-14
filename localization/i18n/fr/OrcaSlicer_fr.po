@@ -9121,7 +9121,7 @@ msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel 
 msgstr "Découpage impossible : un objet chevauche une zone réservée à l'impression parallèle IDEX/IQEX (une zone secondaire, ou une bande de dégagement de chariot dans la zone principale)."
 
 # AI Translated
-# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’amorçage.
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’amorçage
 msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
 msgstr "Découpage impossible : la tour d’amorçage chevauche une zone réservée à l'impression parallèle IDEX/IQEX (une zone secondaire, ou une bande de dégagement de chariot dans la zone principale)."
 
@@ -11890,6 +11890,7 @@ msgid "Enabling both precise Z height and the prime tower may cause slicing erro
 msgstr "L'activation simultanée de la hauteur Z précise et de la tour d'amorçage peut provoquer des erreurs de tranchage. Voulez-vous quand même activer la hauteur Z précise ?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
 msgstr "Le timelapse fluide nécessite une tour d’amorçage à chaque couche, ce qui est incompatible avec « Pas de couches éparses ». « Pas de couches éparses » a été désactivé."
 
@@ -11897,6 +11898,7 @@ msgid "A prime tower is required for smooth timelapse mode. There may be flaws o
 msgstr "Une tour d’amorçage est requise pour le mode timelapse fluide. Le modèle peut présenter des défauts sans tour d’amorçage. Voulez-vous activer la tour d’amorçage ?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
 msgstr "« Pas de couches éparses » est incompatible avec le timelapse fluide, qui nécessite une tour d’amorçage à chaque couche. Le timelapse est repassé en mode traditionnel."
 
@@ -13658,6 +13660,7 @@ msgid "Open G-code file:"
 msgstr "Ouvrir un fichier G-code :"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Wipe tower generation failed, possibly due to empty first layer."
 msgstr "Échec de la génération de la tour d’essuyage, peut-être à cause d’une première couche vide."
 
@@ -14021,6 +14024,7 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% est trop grand, cela pourrait provoquer des collisions."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
 msgstr "La position relative du modèle et de la tour d’amorçage ne répond pas aux exigences de la fonction « Pas de couches éparses ». Veuillez ajuster leurs positions relatives, réduire la hauteur du modèle ou désactiver « Pas de couches éparses »."
 
@@ -14030,26 +14034,32 @@ msgid "%1% is too close to the clumping detection area. There may be collisions 
 msgstr "%1% est trop proche de la zone de détection d’agglomération. Des collisions peuvent survenir lors de l’impression."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid "Prime tower is too close to others, and collisions may be caused.\n"
 msgstr "La tour d’amorçage est trop proche des autres, ce qui risque de provoquer des collisions.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area, and collisions will be caused.\n"
 msgstr "La tour d’amorçage est trop proche d’une zone d’exclusion, ce qui provoquera des collisions.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area, and collisions will be caused.\n"
 msgstr "La tour d’amorçage est trop proche de la zone de détection d’agglomération, ce qui provoquera des collisions.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area. There may be collisions when printing."
 msgstr "La tour d’amorçage est trop proche d’une zone d’exclusion. Des collisions peuvent survenir lors de l’impression."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area. There may be collisions when printing."
 msgstr "La tour d’amorçage est trop proche de la zone de détection d’agglomération. Des collisions peuvent survenir lors de l’impression."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid "Prime tower is partially outside the printable area, and it cannot be printed.\n"
 msgstr "La tour d’amorçage est partiellement en dehors de la zone imprimable et ne peut pas être imprimée.\n"
 
@@ -14170,6 +14180,7 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "La hauteur de couche variable n’est pas prise en charge avec les supports organiques."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "The wipe tower filament cannot be a mixed filament."
 msgstr "Le filament de la tour d’essuyage ne peut pas être un filament mixte."
 
@@ -14787,8 +14798,9 @@ msgstr ""
 "\n"
 "Cette option fonctionne particulièrement bien combinée à l’option de second pont interne au-dessus du remplissage, pour améliorer encore les ponts avant l’extrusion du remplissage plein."
 
+# AI Translated
 msgid "Bridge flow ratio"
-msgstr "Débit des ponts"
+msgstr "Rapport de débit du pont"
 
 msgid ""
 "This value governs the thickness of the external (visible) bridge layer.\n"
@@ -14804,7 +14816,7 @@ msgstr ""
 "Le débit de pont réellement utilisé est calculé en multipliant cette valeur par le rapport de débit du filament et, s’il est défini, par celui de l’objet."
 
 # AI Translated
-# Needs human review: Setting names are quoted from the GUI labels: 'Bridge flow ratio' is 'Débit des ponts' there (the glossary says 'Rapport de débit' for Flow ratio), and the English says 'Bridge density' where the GUI labels are 'External/Internal bridge density' (the external one is quoted). Check both.
+# Needs human review: Setting names are quoted from the GUI labels: the English says 'Bridge density' where the GUI labels are 'External/Internal bridge density' (the external one is quoted). Check it.
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
@@ -14813,7 +14825,7 @@ msgid ""
 "If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Largeur de ligne du pont. Si elle est exprimée en %, elle sera calculée sur le diamètre de la buse.\n"
-"Recommandé avec une densité du pont externe ou un débit des ponts plus élevés.\n"
+"Recommandé avec une densité du pont externe ou un rapport de débit du pont plus élevés.\n"
 "\n"
 "La valeur maximale est 100 % ou le diamètre de la buse.\n"
 "Si réglée à 0, la largeur de ligne correspond à celle du remplissage plein interne, ou au diamètre de la buse pour les ponts épais."
@@ -15723,15 +15735,16 @@ msgstr ""
 "\n"
 "Utilisez Intérieur/Extérieur pour obtenir les meilleurs surplombs. En effet, les parois en surplomb peuvent adhérer à un périmètre voisin lors de l'impression. Toutefois, cette option entraîne une légère diminution de la qualité de la surface, car le périmètre externe est déformé par l'écrasement du périmètre interne.\n"
 "\n"
-"Utilisez l’option Intérieur/Extérieur/Intérieur pour obtenir la meilleure finition de surface externe et la meilleure précision dimensionnelle, car la paroi externe est imprimée sans être dérangée par un périmètre interne. Cependant, les performances de la paroi en surplomb seront réduites car il n’y a pas de périmètre interne contre lequel imprimer la paroi externe. Cette option nécessite un minimum de trois parois pour être efficace, car elle imprime d’abord les parois internes à partir du troisième périmètre, puis le périmètre externe et, enfin, le premier périmètre interne. Cette option est recommandée par rapport à l’option Extérieur/intérieur dans la plupart des cas.\n"
+"Utilisez l’option Intérieur/Extérieur/Intérieur pour obtenir la meilleure finition de surface externe et la meilleure précision dimensionnelle, car la paroi externe est imprimée sans être dérangée par un périmètre interne. Cependant, les performances de la paroi en surplomb seront réduites car il n’y a pas de périmètre interne contre lequel imprimer la paroi externe. Cette option nécessite un minimum de trois parois pour être efficace, car elle imprime d’abord les parois internes à partir du troisième périmètre, puis le périmètre externe et, enfin, le premier périmètre interne. Cette option est recommandée par rapport à l’option Extérieur/Intérieur dans la plupart des cas.\n"
 "\n"
-"Utilisez l’option Extérieur/intérieur pour bénéficier de la même qualité de paroi externe et de la même précision dimensionnelle que l’option Intérieur/Extérieur/Intérieur. Cependant, les coutures en Z paraîtront moins cohérentes car la première extrusion d’une nouvelle couche commence sur une surface visible."
+"Utilisez l’option Extérieur/Intérieur pour bénéficier de la même qualité de paroi externe et de la même précision dimensionnelle que l’option Intérieur/Extérieur/Intérieur. Cependant, les coutures en Z paraîtront moins cohérentes car la première extrusion d’une nouvelle couche commence sur une surface visible."
 
 msgid "Inner/Outer"
 msgstr "Intérieur/Extérieur"
 
+# AI Translated
 msgid "Outer/Inner"
-msgstr "Extérieur/intérieur"
+msgstr "Extérieur/Intérieur"
 
 msgid "Inner/Outer/Inner"
 msgstr "Intérieur/Extérieur/Intérieur"
@@ -18698,8 +18711,9 @@ msgid "Farthest point timelapse"
 msgstr "Timelapse au point le plus éloigné"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
-msgstr "Lorsque cette option est activée, l'instantané du timelapse est pris au point le plus éloigné de la caméra au lieu de se déplacer vers la tour d'essuyage ou la goulotte d'évacuation. Efficace uniquement en mode timelapse traditionnel sur les imprimantes non-I3."
+msgstr "Lorsque cette option est activée, l’instantané du timelapse est pris au point le plus éloigné de la caméra au lieu de se déplacer vers la tour d’essuyage ou la goulotte d’évacuation. Efficace uniquement en mode timelapse traditionnel sur les imprimantes non-I3."
 
 msgid "Temperature variation"
 msgstr "Variation de température"
@@ -18899,10 +18913,12 @@ msgid "Force the toolhead to travel to the wipe tower before issuing the tool ch
 msgstr "Force la tête d’outil à se déplacer vers la tour d’essuyage avant d’émettre la commande de changement d’outil (Tx). Pertinent uniquement pour les imprimantes multi-extrudeurs (à têtes d’outil multiples) utilisant une tour d’essuyage de type 2. Par défaut, Orca omet ce déplacement sur les machines à têtes d’outil multiples car le firmware gère le changement de tête, ce qui peut entraîner l’émission de la commande Tx au-dessus de la pièce imprimée. Activez cette option si vous préférez que le changement d’outil soit toujours émis au-dessus de la tour d’essuyage."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Wait for temperature on wipe tower"
 msgstr "Attendre la température sur la tour d’essuyage"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Pick up the new tool without waiting for it to reach printing temperature, travel to the wipe tower, and wait for the temperature there, right before purging. Ooze from the heat-up lands on the tower instead of the model, and the travel overlaps with the heating. Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. The firmware or tool change macro must not wait for the temperature itself. When disabled, the temperature wait is issued right after the tool change command."
 msgstr "Prend le nouvel outil sans attendre qu’il atteigne la température d’impression, se déplace vers la tour d’essuyage et y attend la température, juste avant la purge. Le suintement dû à la chauffe se dépose sur la tour plutôt que sur le modèle, et le déplacement se superpose à la chauffe. Uniquement pertinent pour les imprimantes multi-extrudeurs (multi-têtes) utilisant une tour d’essuyage de type 2. Le firmware ou la macro de changement d’outil ne doivent pas attendre la température eux-mêmes. Lorsque cette option est désactivée, l’attente de température est émise juste après la commande de changement d’outil."
 
@@ -18910,14 +18926,16 @@ msgid "No sparse layers (beta)"
 msgstr "Pas de couches éparses (beta)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "If enabled, the wipe tower will not be printed on layers with no tool changes. On layers with a tool change, extruder will travel downward to print the wipe tower, so the tower ends up below the model and the toolhead has to reach down to it. Layouts where that would collide with an already printed object are rejected. Has no effect with smooth timelapse or clumping detection, which need a tower on every layer."
-msgstr "Si cette option est activée, la tour d'essuyage n'est pas imprimée sur les couches sans changement d'outil. Sur les couches comportant un changement d'outil, l'extrudeur descend pour imprimer la tour d'essuyage : la tour se retrouve donc sous le modèle et la tête d'outil doit descendre jusqu'à elle. Les dispositions où cela entrerait en collision avec un objet déjà imprimé sont rejetées. Sans effet avec le timelapse fluide ou la détection d'agglomération de la buse, qui nécessitent une tour à chaque couche."
+msgstr "Si cette option est activée, la tour d’essuyage n’est pas imprimée sur les couches sans changement d’outil. Sur les couches comportant un changement d’outil, l’extrudeur descend pour imprimer la tour d’essuyage : la tour se retrouve donc sous le modèle et la tête d’outil doit descendre jusqu’à elle. Les dispositions où cela entrerait en collision avec un objet déjà imprimé sont rejetées. Sans effet avec le timelapse fluide ou la détection d’agglomération de la buse, qui nécessitent une tour à chaque couche."
 
 # AI Translated
 msgid "Combine sparse layers"
 msgstr "Combiner les couches éparses"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’amorçage"; align it once the term is settled.
 msgid ""
 "If enabled, consecutive layers on which the prime tower has no filament change are printed as a single thicker tower layer instead of one thin layer each, the same way infill combination merges sparse infill. The merged layer is printed at the top of the run, at the height of everything it covers.\n"
 "\n"
@@ -19394,7 +19412,7 @@ msgid "Enable belt purge tower"
 msgstr "Activer la tour de purge du tapis"
 
 # AI Translated
-# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’essuyage / Tour d’amorçage.
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’essuyage / Tour d’amorçage
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
 msgstr "Remplacement de la tour d’essuyage/d’amorçage pour les imprimantes à tapis. Lorsque cette option est activée sur une imprimante à tapis, un prisme de purge est généré automatiquement à côté des pièces imprimées et la purge lors des changements de filament y est dirigée (la tour d’essuyage classique ne peut pas être utilisée sur les imprimantes à tapis, car son G-code contourne la transformation du tapis). Disponible uniquement sur les imprimantes à tapis."
 
@@ -19403,7 +19421,7 @@ msgid "Belt purge tower width"
 msgstr "Largeur de la tour de purge du tapis"
 
 # AI Translated
-# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’essuyage for 'wipe tower'.
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’essuyage for 'wipe tower'
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
 msgstr "Largeur (X machine, en travers du tapis) du prisme de purge généré automatiquement sur les imprimantes à tapis lorsque la tour de purge du tapis est activée et que plusieurs filaments sont utilisés. La purge lors des changements de filament est dirigée vers les extrusions de ce prisme au lieu d'une tour d’essuyage classique. Sa hauteur est calculée automatiquement à partir du volume de purge le plus défavorable par couche : un prisme plus large sera moins haut."
 
@@ -19691,8 +19709,9 @@ msgid "Prime volume mode"
 msgstr "Mode de volume d'amorçage"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Selects how the wipe-tower prime and flush volumes are computed on multi-extruder printers."
-msgstr "Sélectionne la manière dont les volumes d'amorçage et de purge de la tour d'essuyage sont calculés sur les imprimantes multi-extrudeurs."
+msgstr "Sélectionne la manière dont les volumes d’amorçage et de purge de la tour d’essuyage sont calculés sur les imprimantes multi-extrudeurs."
 
 # AI Translated
 msgid "Saving"
@@ -19724,6 +19743,7 @@ msgid "Maximum wipe tower print speed"
 msgstr "Vitesse maximale d’impression de la tour d’essuyage"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
@@ -19749,6 +19769,7 @@ msgid "Wall type"
 msgstr "Type de paroi"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid ""
 "Wipe tower outer wall type.\n"
 "1. Rectangle: A rectangle with fixed width and height.\n"
@@ -19850,6 +19871,7 @@ msgid "Extra flow for purging"
 msgstr "Débit supplémentaire pour purger"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
 msgstr "Débit supplémentaire utilisé pour les lignes de purge de la tour d’essuyage. Cela rend les lignes de purge plus épaisses qu’elles ne le seraient normalement. L’espacement est ajusté automatiquement."
 
@@ -20744,6 +20766,7 @@ msgid "Size of the print bed bounding box"
 msgstr "Taille du plateau d’impression"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "First layer center without wipe tower"
 msgstr "Centre de la première couche sans tour d’essuyage"
 

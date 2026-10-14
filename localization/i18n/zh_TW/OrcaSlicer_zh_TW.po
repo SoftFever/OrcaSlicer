@@ -14935,8 +14935,9 @@ msgstr ""
 "\n"
 "此選項與「在填充上方增加第二層內部橋接」選項搭配使用時效果尤佳，可在擠出實心填充前進一步改善橋接。"
 
+# AI Translated
 msgid "Bridge flow ratio"
-msgstr "橋接流量"
+msgstr "橋接流量比例"
 
 msgid ""
 "This value governs the thickness of the external (visible) bridge layer.\n"
@@ -14952,7 +14953,6 @@ msgstr ""
 "實際使用的橋接流量是將此數值乘以線材流量比例計算得出，若有設定，還會乘以物件的流量比例。"
 
 # AI Translated
-# Needs human review: Quotes the existing label 橋接流量 for 'Bridge flow ratio' (glossary Flow ratio is 流量比例), so the tooltip matches the GUI; if the label is changed to 橋接流量比例, update here
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
@@ -14961,13 +14961,14 @@ msgid ""
 "If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "橋接的線寬。如果以 % 表示，將以噴嘴直徑為基準計算。\n"
-"建議搭配較高的橋接密度或橋接流量使用。\n"
+"建議搭配較高的橋接密度或橋接流量比例使用。\n"
 "\n"
 "最大值為 100% 或噴嘴直徑。\n"
 "如果設為 0，線寬將與內部實心填充寬度相同；增厚橋接則與噴嘴直徑相同。"
 
+# AI Translated
 msgid "Internal bridge flow ratio"
-msgstr "內部橋接流量"
+msgstr "內部橋接流量比例"
 
 msgid ""
 "This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill so increasing it may increase strength and upper layer quality.\n"
@@ -18624,12 +18625,12 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "內牆同樣使用斜接縫。"
 
 # AI Translated
-# Needs human review: Earlier wording kept (English only fixes 'base' to 'based'): check that 自動 reads as 'speed follows the current extrusion role', as the tooltip below explains
 msgid "Role based wipe speed"
-msgstr "自動擦拭速度"
+msgstr "依據擠出機任務的擦拭速度"
 
+# AI Translated
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
-msgstr "拭的速度由目前擠出任務的速度決定。例如，若擦拭操作緊接著外牆的擠出執行，則將使用外牆擠出的速度進行擦拭。"
+msgstr "擦拭的速度由目前擠出機任務的速度決定。例如，若擦拭操作緊接著外牆的擠出執行，則將使用外牆擠出的速度進行擦拭。"
 
 msgid "Wipe on loops"
 msgstr "閉環擦拭"
