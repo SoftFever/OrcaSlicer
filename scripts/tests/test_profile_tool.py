@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for the tree-maintenance half of scripts/orca_profile_tool.py: the
-normalize, trim, update-index and check commands, and the subcommand dispatch that
-reaches them (stdlib unittest, no external deps).
+normalize, trim, update-index, fix-variant and check commands, and the subcommand
+dispatch that reaches them (stdlib unittest, no external deps).
 
 The id halves are covered by test_filament_id.py and test_setting_id.py.
 
@@ -138,6 +138,28 @@ class TestObsoleteKeys(unittest.TestCase):
         self.assertIsNotNone(match, "Could not locate the loader's obsolete-key set")
         keys = re.sub(r"//[^\n]*|/\*.*?\*/", "", match.group(1), flags=re.DOTALL)
         self.assertEqual(apt.OBSOLETE_KEYS, set(re.findall(r'"([^"\n]+)"', keys)))
+
+
+class TestVariantScheme(unittest.TestCase):
+    def test_the_key_sets_are_read_from_the_engine(self):
+        scheme = apt._variant_scheme()
+        self.assertEqual(scheme["machine"][1]["retraction_length"], 1)
+        self.assertEqual(scheme["machine"][1]["machine_max_speed_x"], 2)
+        self.assertIn("outer_wall_speed", scheme["process"][1])
+        self.assertIn("nozzle_temperature", scheme["filament"][1])
+        # Commented out of its initializer, so not a member.
+        self.assertNotIn("filament_extruder_id", scheme["filament"][1])
+        for list_key, strides in scheme.values():
+            self.assertEqual(strides[list_key], 1)
+
+    def test_the_variant_names_are_read_from_the_engine(self):
+        extruder_types, volume_types, legacy, extruder_legacy = apt._variant_names()
+        self.assertEqual(extruder_types, {"Direct Drive", "Bowden"})
+        self.assertEqual(volume_types, {"Standard", "High Flow", "TPU High Flow", "E3D High Flow", "Extra High Flow"})
+        # Hybrid is an enum value no variant string may name.
+        self.assertNotIn("Hybrid", volume_types)
+        self.assertEqual(legacy, {"Normal": "Standard", "Big Traffic": "High Flow"})
+        self.assertEqual(extruder_legacy, {"DirectDrive": "Direct Drive"})
 
 
 class TestNormalize(TreeCase):
@@ -917,10 +939,442 @@ class TestNormalized(TreeCase):
 # CLI dispatch
 # ---------------------------------------------------------------------------
 
+class TestFixVariant(TreeCase):
+    def test_cooling_arrays_require_one_value_per_declared_variant(self):
+        keys = ("fan_min_speed", "fan_max_speed", "additional_cooling_fan_speed")
+        variants = ["Direct Drive Standard", "Direct Drive High Flow", "Bowden Standard"]
+        for width in (1, 2, 3, 4):
+            with self.subTest(width=width):
+                self.preset("filament/F.json", instantiation="true",
+                            filament_extruder_variant=variants,
+                            **{key: ["20"] * width for key in keys})
+                apt.load_vendor_configs.cache_clear()
+                errors, out = self.width_errors()
+                self.assertEqual(errors, 0 if width == 3 else len(keys), out)
+                if width != 3:
+                    for key in keys:
+                        self.assertIn(f'"{key}" has {width} values', out)
+
+    def preset(self, rel, **data):
+        name = os.path.splitext(os.path.basename(rel))[0]
+        self.t.write("V", rel, {"type": rel.split("/")[0], "name": name, **data})
+        self.t.index("V", rel.split("/")[0], name, rel)
+
+    def processes(self, common):
+        """outer_wall_speed written once in a list-less base, reached by list-less
+        presets through one base and by two-variant presets through another."""
+        dual = ["Direct Drive Standard", "Direct Drive High Flow"]
+        self.preset("process/common.json", instantiation="false", outer_wall_speed=common)
+        self.preset("process/single.json", inherits="common", instantiation="false")
+        self.preset("process/dual.json", inherits="common", instantiation="false",
+                    print_extruder_variant=dual, print_extruder_id=["1", "1"])
+        for name, base in (("S1", "single"), ("S2", "single"), ("D1", "dual")):
+            self.preset(f"process/{name}.json", inherits=base, instantiation="true")
+
+    def width_errors(self, *strict):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            errors, _warnings = apt.check_variant_arrays(self.t.profiles, "V", bool(strict))
+        return errors, buf.getvalue()
+
+    def test_a_machine_without_a_variant_list_has_one_variant_per_extruder(self):
+        # extruder_variant_list defaults to one "Direct Drive Standard" per extruder.
+        self.preset("machine/M.json", instantiation="true", nozzle_diameter=["0.4", "0.4"],
+                    retraction_length=["0.8", "1.2"], z_hop=["0.4"],
+                    machine_max_speed_x=["500", "200"])
+        errors, out = self.width_errors()
+        self.assertEqual(errors, 2, out)
+        self.assertIn('M.json: "z_hop" has 1 values for variant length 2 (no '
+                      'printer_extruder_variant, so one default variant per extruder) at stride 1, '
+                      'which takes 2', out)
+        self.assertIn('M.json: "machine_max_speed_x" has 2 values for variant length 2', out)
+        self.assertNotIn("retraction_length", out)
+
+    def test_one_value_is_an_error_where_the_list_has_more_variants(self):
+        self.preset("process/P.json", instantiation="true", outer_wall_speed=["30"],
+                    print_extruder_id=["1", "1"],
+                    print_extruder_variant=["Direct Drive Standard", "Direct Drive High Flow"])
+        errors, out = self.width_errors()
+        self.assertEqual(errors, 1, out)
+        self.assertIn('P.json: "outer_wall_speed" has 1 values for variant length 2 at stride 1, '
+                      'which takes 2', out)
+
+    def test_one_value_is_padded_to_every_variant(self):
+        self.preset("machine/M.json", instantiation="true", nozzle_diameter=["0.4"] * 3,
+                    retraction_length=["0.8"], machine_max_speed_x=["500", "200"])
+        rc, out = self.run_command("fix-variant")
+        self.assertEqual(rc, 0, out)
+        machine = self.t.read("V", "machine/M.json")
+        self.assertEqual(machine["retraction_length"], ["0.8"] * 3)
+        self.assertEqual(machine["machine_max_speed_x"], ["500", "200"] * 3)
+        self.assertEqual(self.width_errors()[0], 0)
+
+    def test_extruder_ids_are_left_to_check(self):
+        self.preset("process/P.json", instantiation="true", print_extruder_id=["1"],
+                    print_extruder_variant=["Direct Drive Standard", "Direct Drive High Flow"])
+        self.run_command("fix-variant")
+        self.assertEqual(self.t.read("V", "process/P.json")["print_extruder_id"], ["1"])
+        errors, out = self.width_errors()
+        self.assertEqual(errors, 1, out)
+        self.assertIn("print_extruder_id has 1 entries for the 2 entries", out)
+
+    def test_a_base_is_judged_only_where_its_array_reaches_a_preset(self):
+        # A leaf overriding the base's one-value limit passes in both modes.
+        self.preset("machine/common.json", instantiation="false", machine_max_speed_x=["500"])
+        self.preset("machine/M.json", inherits="common", instantiation="true",
+                    machine_max_speed_x=["500", "200"])
+        self.assertEqual(self.width_errors()[0], 0)
+        self.assertEqual(self.width_errors("strict")[0], 0)
+
+    def test_a_shared_array_is_fixed_in_the_base_whose_presets_agree(self):
+        self.processes(["30", "40"])
+        self.assertEqual(self.width_errors()[0], 0)
+        errors, out = self.width_errors("strict")
+        self.assertEqual(errors, 2, out)
+        self.assertIn('process/S1.json: "outer_wall_speed" has 2 values for variant length 1', out)
+        rc, out = self.run_command("fix-variant", "--strict")
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(self.t.read("V", "process/single.json")["outer_wall_speed"], ["30"])
+        self.assertEqual(self.t.read("V", "process/common.json")["outer_wall_speed"],
+                         ["30", "40"])
+        self.assertNotIn("outer_wall_speed", self.t.read("V", "process/S1.json"))
+        self.assertEqual(self.width_errors("strict")[0], 0)
+
+    def test_an_inherited_array_is_checked_and_restated_only_when_strict(self):
+        self.processes(["30"])
+        self.assertEqual(self.width_errors()[0], 0)
+        errors, out = self.width_errors("strict")
+        self.assertEqual(errors, 1, out)
+        self.assertIn('process/D1.json: "outer_wall_speed" has 1 values for variant length 2 at '
+                      'stride 1, which takes 2 (it comes from V/process/common.json)', out)
+        before = self.t.bytes_map()
+        self.run_command("fix-variant")
+        self.assertEqual(self.t.bytes_map(), before)
+        rc, out = self.run_command("fix-variant", "--strict")
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(self.t.read("V", "process/dual.json")["outer_wall_speed"], ["30", "30"])
+        self.assertEqual(self.t.read("V", "process/common.json")["outer_wall_speed"], ["30"])
+        self.assertEqual(self.width_errors("strict")[0], 0)
+
+    def test_a_strict_array_never_lands_in_a_file_of_another_width(self):
+        # common is list-less (width 1) and D2 inherits it directly, so D2 takes it.
+        self.processes(["30"])
+        self.preset("process/D2.json", inherits="common", instantiation="true",
+                    print_extruder_variant=["Direct Drive Standard", "Direct Drive High Flow"],
+                    print_extruder_id=["1", "1"])
+        self.run_command("fix-variant", "--strict")
+        self.assertEqual(self.t.read("V", "process/D2.json")["outer_wall_speed"], ["30", "30"])
+        self.assertEqual(self.t.read("V", "process/common.json")["outer_wall_speed"], ["30"])
+        self.assertEqual(self.width_errors("strict")[0], 0)
+
+    def test_extra_values_are_dropped_where_they_are_written(self):
+        self.preset("process/base.json", instantiation="false", outer_wall_speed=["30", "0"])
+        self.preset("process/P1.json", inherits="base", instantiation="true",
+                    inner_wall_speed=["40", "0"])
+        self.preset("process/P2.json", inherits="base", instantiation="true")
+        self.run_command("fix-variant")
+        self.assertEqual(self.t.read("V", "process/P1.json")["inner_wall_speed"], ["40"])
+        self.assertEqual(self.t.read("V", "process/base.json")["outer_wall_speed"], ["30", "0"])
+        self.run_command("fix-variant", "--strict")
+        self.assertEqual(self.t.read("V", "process/base.json")["outer_wall_speed"], ["30"])
+        self.assertNotIn("outer_wall_speed", self.t.read("V", "process/P1.json"))
+
+    def test_the_rest_of_the_file_keeps_its_bytes(self):
+        self.t.write_raw("V", "process/P.json", b'{\n  "type": "process", "name": "P",\n'
+                         b'  "instantiation": "true",\n  "outer_wall_speed": ["30", "0"],\n'
+                         b'  "inner_wall_speed": [\n    "40",\n    "0"\n  ]\n}\n')
+        self.t.index("V", "process", "P", "process/P.json")
+        self.run_command("fix-variant")
+        self.assertEqual(self.t.raw("V", "process/P.json"),
+                         b'{\n  "type": "process", "name": "P",\n'
+                         b'  "instantiation": "true",\n  "outer_wall_speed": ["30"],\n'
+                         b'  "inner_wall_speed": [\n    "40"\n  ]\n}\n')
+
+    def test_a_dry_run_writes_nothing(self):
+        self.processes(["30"])
+        before = self.t.bytes_map()
+        rc, out = self.run_command("fix-variant", "--strict", "--dry-run")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("would resize V/process/dual.json: outer_wall_speed added -> 2", out)
+        self.assertEqual(self.t.bytes_map(), before)
+
+    def test_padding_repeats_the_last_value_or_pair(self):
+        self.assertEqual(apt._fit_width(["a", "b"], 4, 1), ["a", "b", "b", "b"])
+        self.assertEqual(apt._fit_width(["a", "b", "c"], 6, 2), ["a", "b"] * 3)
+        self.assertEqual(apt._fit_width(["a", "b", "c"], 2, 2), ["a", "b"])
+        self.assertEqual(apt._fit_width(["a"], 4, 2), ["a"] * 4)
+
+
+class TestVariantNames(TreeCase):
+    def preset(self, rel, vendor="V", **data):
+        section = rel.split("/")[0]
+        name = os.path.splitext(os.path.basename(rel))[0]
+        self.t.write(vendor, rel, {"type": section, "name": name, **data})
+        self.t.index(vendor, section, name, rel)
+
+    def names(self, vendor="V"):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            errors = apt.check_variant_names(self.t.profiles, vendor)
+        return errors, buf.getvalue()
+
+    def test_a_legal_variant_layout_passes(self):
+        self.preset("machine/M.json", instantiation="true", nozzle_diameter=["0.4"],
+                    extruder_type=["Direct Drive"],
+                    extruder_variant_list=["Direct Drive Standard,Direct Drive High Flow"],
+                    printer_extruder_id=["1", "1"],
+                    printer_extruder_variant=["Direct Drive Standard",
+                                              "Direct Drive High Flow"],
+                    nozzle_volume_type=["High Flow"],
+                    default_nozzle_volume_type=["Standard"])
+        self.preset("process/P.json", instantiation="true", print_extruder_id=["1", "1"],
+                    print_extruder_variant=["Direct Drive Standard",
+                                            "Direct Drive High Flow"])
+        self.preset("filament/F.json", instantiation="true",
+                    filament_extruder_variant=["Direct Drive Standard", "Bowden High Flow"])
+        self.assertEqual(self.names()[0], 0, self.names()[1])
+
+    def test_a_variant_the_enum_cannot_build_is_an_error(self):
+        # An unknown volume type, in a list and in a menu, an extruder type that is not
+        # one, and the legacy extruder spelling that is rewritten in extruder_type alone.
+        cases = (("process/P1.json", "print_extruder_variant", "Direct Drive Fast",
+                  'entry 1 holds "Direct Drive Fast"',
+                  "not a nozzle volume type the enum has"),
+                 ("machine/M.json", "extruder_variant_list",
+                  "Direct Drive Standard,Direct Drive Fast",
+                  'extruder 1 holds "Direct Drive Fast"',
+                  "not a nozzle volume type the enum has"),
+                 ("process/P2.json", "print_extruder_variant", "DD Standard",
+                  'entry 1 holds "DD Standard"',
+                  "does not start with an extruder type the enum has"),
+                 ("filament/F.json", "filament_extruder_variant", "DirectDrive Standard",
+                  'entry 1 holds "DirectDrive Standard"',
+                  "does not start with an extruder type the enum has"))
+        for rel, key, value, _held, _why in cases:
+            self.preset(rel, instantiation="false", **{key: [value]})
+        errors, out = self.names()
+        self.assertEqual(errors, len(cases), out)
+        for rel, key, _value, held, why in cases:
+            self.assertIn(f"V/{rel}: {key} {held}", out)
+            self.assertIn(why, out)
+
+    def test_the_legacy_names_the_loader_rewrites_are_errors(self):
+        self.preset("machine/M.json", extruder_type=["DirectDrive"],
+                    nozzle_volume_type=["Big Traffic"],
+                    default_nozzle_volume_type=["Normal"],
+                    printer_extruder_variant=["Direct Drive Big Traffic"])
+        errors, out = self.names()
+        self.assertEqual(errors, 4, out)
+        self.assertIn('extruder_type spells the legacy name "DirectDrive"; the loader '
+                      'still rewrites it to "Direct Drive"', out)
+        self.assertIn('V/machine/M.json: nozzle_volume_type spells the legacy name '
+                      '"Big Traffic"', out)
+        self.assertIn('default_nozzle_volume_type spells the legacy name "Normal"', out)
+        self.assertIn('holds the legacy variant "Direct Drive Big Traffic"', out)
+        self.assertIn('a profile writes the enum name: "Direct Drive High Flow"', out)
+
+    def test_an_empty_entry_is_an_error(self):
+        self.preset("filament/F.json",
+                    filament_extruder_variant=["Direct Drive Standard", ""])
+        errors, out = self.names()
+        self.assertEqual(errors, 1, out)
+        self.assertIn("filament_extruder_variant entry 2 is empty", out)
+
+    def test_hybrid_is_runtime_only(self):
+        self.preset("machine/M.json", nozzle_volume_type=["Hybrid"],
+                    default_nozzle_volume_type=["Hybrid"],
+                    printer_extruder_variant=["Direct Drive Hybrid"])
+        errors, out = self.names()
+        self.assertEqual(errors, 3, out)
+        self.assertIn("Hybrid names the sub-nozzles of one hybrid extruder at runtime", out)
+        self.assertIn('V/machine/M.json: nozzle_volume_type names "Hybrid"', out)
+        self.assertIn('default_nozzle_volume_type names "Hybrid"', out)
+
+    def test_bbl_is_held_to_the_enums_like_every_bundle(self):
+        # E3D High Flow passes because the engine's enum has it; TPU285 is a name no enum has.
+        self.preset("machine/M.json", vendor="BBL", extruder_type=["Direct Drive"],
+                    extruder_variant_list=["Direct Drive Standard,Direct Drive E3D High Flow"],
+                    printer_extruder_id=["1", "1"],
+                    printer_extruder_variant=["Direct Drive Standard",
+                                              "Direct Drive E3D High Flow"])
+        self.preset("process/P.json", vendor="BBL", instantiation="true",
+                    print_extruder_variant=["Direct Drive TPU285"])
+        errors, out = self.names("BBL")
+        self.assertEqual(errors, 1, out)
+        self.assertNotIn('holds "Direct Drive E3D High Flow"', out)
+        self.assertIn('"TPU285" is not a nozzle volume type the enum has', out)
+
+    def test_a_list_may_not_name_one_variant_twice(self):
+        self.preset("filament/F.json",
+                    filament_extruder_variant=["Direct Drive Standard",
+                                               "Direct Drive High Flow",
+                                               "Direct Drive Standard"])
+        self.preset("machine/M.json",
+                    extruder_variant_list=["Direct Drive Standard,Direct Drive Standard,"
+                                           "Direct Drive High Flow"])
+        self.preset("process/P.json", print_extruder_id=["1", "1", "1"],
+                    print_extruder_variant=["Direct Drive Standard", "Direct Drive High Flow",
+                                            "Direct Drive Standard"])
+        errors, out = self.names()
+        self.assertEqual(errors, 3, out)
+        self.assertIn('filament_extruder_variant lists "Direct Drive Standard" 2 times', out)
+        self.assertIn('extruder_variant_list extruder 1 lists "Direct Drive Standard" 2 '
+                      "times", out)
+        self.assertIn('print_extruder_variant lists the pair (extruder 1, "Direct Drive '
+                      'Standard") 2 times', out)
+
+    def test_one_variant_on_two_extruders_is_two_pairs_not_a_repeat(self):
+        self.preset("process/P.json", print_extruder_id=["1", "2"],
+                    print_extruder_variant=["Direct Drive Standard",
+                                            "Direct Drive Standard"])
+        self.assertEqual(self.names()[0], 0, self.names()[1])
+
+    def test_an_unknown_enum_value_fails_the_bundle(self):
+        self.preset("machine/M.json", extruder_type=["Direct Drive", "Magnetic Drive"],
+                    nozzle_volume_type=["Turbo"],
+                    default_nozzle_volume_type=["Fast Flow"])
+        errors, out = self.names()
+        self.assertEqual(errors, 3, out)
+        self.assertIn('extruder_type "Magnetic Drive" is not one of (Bowden, Direct Drive)',
+                      out)
+        self.assertIn('V/machine/M.json: nozzle_volume_type "Turbo" is not one of (E3D High '
+                      "Flow, Extra High Flow, High Flow, Standard, TPU High Flow)", out)
+        self.assertIn('default_nozzle_volume_type "Fast Flow" is not one of (E3D High Flow, '
+                      "Extra High Flow, High Flow, Standard, TPU High Flow)", out)
+
+    def test_a_file_no_list_references_is_not_judged(self):
+        # It never loads, so its variant names cannot reach anything;
+        # check_index_coverage reports the file itself.
+        self.t.write("V", "machine/M.json", {"type": "machine", "name": "M",
+                                             "printer_extruder_variant": ["Direct Drive Fast"]})
+        self.assertEqual(self.names()[0], 0, self.names()[1])
+
+    def test_check_runs_it(self):
+        self.preset("filament/F.json", instantiation="false",
+                    filament_extruder_variant=["Direct Drive Normal"])
+        self.run_command("update-index")  # so nothing but the name check can fail
+        rc, out = self.run_command("check")
+        self.assertEqual(rc, 1, out)
+        self.assertIn('holds the legacy variant "Direct Drive Normal"', out)
+
+
+# ---------------------------------------------------------------------------
+# legacy-compat
+# ---------------------------------------------------------------------------
+
+class TestLegacyCompat(unittest.TestCase):
+    """A base release and the current tree, each with one vendor."""
+
+    def setUp(self):
+        self.base, self.cur = Tree(), Tree()
+        self.addCleanup(self.base.cleanup)
+        self.addCleanup(self.cur.cleanup)
+
+    @staticmethod
+    def printer(tree, name, **extra):
+        tree.write("V", f"machine/{name}.json",
+                   {"type": "machine", "name": name, "instantiation": "true", **extra})
+        tree.index("V", "machine", name, f"machine/{name}.json")
+
+    @staticmethod
+    def filament(tree, name, printers, filament_id="OFpetg01", **extra):
+        tree.write("V", f"filament/{name}.json",
+                   {"type": "filament", "name": name, "instantiation": "true",
+                    "filament_id": filament_id, "compatible_printers": printers, **extra})
+        tree.index("V", "filament", name, f"filament/{name}.json")
+
+    def generate(self):
+        return apt.legacy_compatible_printers(self.base.profiles, self.cur.profiles)
+
+    def test_renamed_and_narrowed_preset_keeps_printers_a_same_id_sibling_covers(self):
+        for tree in (self.base, self.cur):
+            for p in ("A 0.4", "A 0.6", "B 0.4"):
+                self.printer(tree, p)
+        self.filament(self.base, "PETG @A-all", ["A 0.4", "A 0.6", "B 0.4"])
+        self.filament(self.cur, "PETG @V A-all", ["A 0.6"], renamed_from="PETG @A-all;PETG A-all")
+        self.filament(self.cur, "PETG @A 0.4", ["A 0.4"])
+        self.assertEqual(self.generate(), {"PETG @A-all": ["A 0.4"]})
+
+    def test_each_old_name_gets_back_only_its_own_list(self):
+        # The current "PC @0.4" existed in the base and also replaces the split "PC".
+        for tree in (self.base, self.cur):
+            for p in ("A 0.4", "A 0.8"):
+                self.printer(tree, p)
+        self.filament(self.base, "PC", ["A 0.4", "A 0.8"])
+        self.filament(self.base, "PC @0.4", ["A 0.4"])
+        self.filament(self.cur, "PC @0.4", ["A 0.4"], renamed_from="PC")
+        self.filament(self.cur, "PC @0.8", ["A 0.8"])
+        self.assertEqual(self.generate(), {"PC": ["A 0.8"]})
+
+    def test_old_name_now_a_base_preset_resolves_through_renamed_from(self):
+        for tree in (self.base, self.cur):
+            for p in ("I 0.4", "Plus 0.4"):
+                self.printer(tree, p)
+        self.filament(self.base, "PLA @base", ["I 0.4", "Plus 0.4"])
+        self.filament(self.cur, "PLA @base", [], instantiation="false")
+        self.filament(self.cur, "PLA @I 0.4", ["I 0.4"], renamed_from="PLA @base")
+        self.filament(self.cur, "PLA @Plus 0.4", ["Plus 0.4"])
+        self.assertEqual(self.generate(), {"PLA @base": ["Plus 0.4"]})
+
+    def test_printer_without_a_successor_is_left_out(self):
+        for tree in (self.base, self.cur):
+            for p in ("A 0.4", "A 0.6"):
+                self.printer(tree, p)
+        self.filament(self.base, "PETG @A", ["A 0.4", "A 0.6"])
+        self.filament(self.cur, "PETG @A", ["A 0.6"])
+        self.filament(self.cur, "Other @A", ["A 0.4"], filament_id="OFother1")
+        self.assertEqual(self.generate(), {})
+
+    def test_printer_names_follow_printer_renames(self):
+        self.printer(self.base, "Old 0.4")
+        self.printer(self.base, "A 0.6")
+        self.printer(self.cur, "New 0.4", renamed_from="Old 0.4")
+        self.printer(self.cur, "A 0.6")
+        self.filament(self.base, "PETG @A", ["Old 0.4", "A 0.6"])
+        self.filament(self.cur, "PETG @A", ["A 0.6"])
+        self.filament(self.cur, "PETG @New", ["New 0.4"])
+        self.assertEqual(self.generate(), {"PETG @A": ["New 0.4"]})
+
+    def test_printer_without_a_shared_extruder_variant_is_left_out(self):
+        for tree in (self.base, self.cur):
+            self.printer(tree, "Direct 0.4", printer_extruder_variant=["Direct Drive Standard"])
+            self.printer(tree, "Bowden 0.4", printer_extruder_variant=["Bowden Standard"])
+        self.filament(self.base, "PETG @all", ["Direct 0.4", "Bowden 0.4"])
+        self.filament(self.cur, "PETG @all", ["Direct 0.4"],
+                      filament_extruder_variant=["Direct Drive Standard"])
+        self.filament(self.cur, "PETG @Bowden", ["Bowden 0.4"])
+        self.assertEqual(self.generate(), {})
+
+    def test_preset_now_listing_no_printer_is_skipped(self):
+        for tree in (self.base, self.cur):
+            self.printer(tree, "A 0.4")
+        self.filament(self.base, "PETG @A", ["A 0.4"])
+        self.filament(self.cur, "PETG @A", [])
+        self.assertEqual(self.generate(), {})
+
+    def test_check_passes_on_a_current_map_and_fails_on_a_stale_one(self):
+        for tree in (self.base, self.cur):
+            for p in ("A 0.4", "A 0.6"):
+                self.printer(tree, p)
+        self.filament(self.base, "PETG @A", ["A 0.4", "A 0.6"])
+        self.filament(self.cur, "PETG @A", ["A 0.6"])
+        self.filament(self.cur, "PETG @A 0.4", ["A 0.4"])
+        output = os.path.join(self.cur.dir, "map.json")
+        argv = ["legacy-compat", "--base", self.base.profiles, "--profiles", self.cur.profiles,
+                "--output", output]
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(apt.main(argv), 0)
+            self.assertEqual(apt.main(argv + ["--check"]), 0)
+            with open(output, "w", encoding="utf-8") as f:
+                json.dump({"presets": {}}, f)
+            self.assertEqual(apt.main(argv + ["--check"]), 1)
+
+
 class TestDispatch(TreeCase):
     def test_each_command_reaches_its_own_writer(self):
         self.t.write("V", "filament/A.json", {"type": "filament", "name": "A"})
         for command, expected in (("normalize", "normalized"),
+                                  ("fix-variant", "resized"),
                                   ("trim", "unreferenced"),
                                   ("update-index", "vendor index")):
             with self.subTest(command=command):
@@ -931,7 +1385,8 @@ class TestDispatch(TreeCase):
     def test_an_option_belongs_to_one_command_only(self):
         for argv in (["trim", "--force"],
                      ["update-index", "--filament-id"],
-                     ["check", "--profile-type", "filament"]):
+                     ["check", "--profile-type", "filament"],
+                     ["normalize", "--strict"]):
             with self.subTest(argv=argv):
                 with self.assertRaises(SystemExit) as cm, \
                         contextlib.redirect_stdout(io.StringIO()), \

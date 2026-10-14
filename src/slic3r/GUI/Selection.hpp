@@ -5,8 +5,20 @@
 #include "GUI_Geometry.hpp"
 #include "GLModel.hpp"
 
+#include "libslic3r/Technologies.hpp"
+#include "libslic3r/Point.hpp"
+#include <map>
+#include <memory>
+#include "libslic3r/BoundingBox.hpp"
+#include <array>
+#include <cstddef>
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/Color.hpp"
 #include <set>
 #include <optional>
+#include <vector>
+#include <utility>
+#include <string>
 
 namespace Slic3r {
 
@@ -348,7 +360,8 @@ public:
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
     void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
-    void translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement);
+    // local: true (default) if displacement is already in instance-local space; false treats it as world-space delta (L^-1 applied).
+    void translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement, bool local = true);
 
     void rotate(unsigned int object_idx, unsigned int instance_idx, const Transform3d &overwrite_tran);
     void rotate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Transform3d &overwrite_tran);
