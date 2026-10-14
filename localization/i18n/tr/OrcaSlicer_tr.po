@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2026-08-21 23:18+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
@@ -3236,6 +3236,63 @@ msgstr "(Renk kaybı)"
 
 msgid "Center"
 msgstr "Merkez"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Sol-sağ yönünde dağıt"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Ön-arka yönünde dağıt"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Üst-alt yönünde dağıt"
+
+# AI Translated
+msgid "Align left"
+msgstr "Sola hizala"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Sol-sağ yönünde merkeze hizala"
+
+# AI Translated
+msgid "Align right"
+msgstr "Sağa hizala"
+
+# AI Translated
+msgid "Align front"
+msgstr "Öne hizala"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Ön-arka yönünde merkeze hizala"
+
+# AI Translated
+msgid "Align back"
+msgstr "Arkaya hizala"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Alta hizala"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Üst-alt yönünde merkeze hizala"
+
+# AI Translated
+msgid "Align top"
+msgstr "Üste hizala"
+
+# AI Translated
+# Needs human review: This catalog also renders 'Arrange' as 'Hizala' (e.g. 'Arrange all objects' = 'Tüm nesneleri hizala'); check this Align/Distribute submenu stays distinguishable from Arrange.
+msgid "Align/Distribute"
+msgstr "Hizala/Dağıt"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Nesneleri hizala ve dağıt"
 
 msgid "Drop"
 msgstr "Düşür"

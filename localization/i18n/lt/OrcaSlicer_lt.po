@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2026-07-02 14:13+0300\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -3207,6 +3207,62 @@ msgstr "(Prarasta spalva)"
 
 msgid "Center"
 msgstr "Centras"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Paskirstyti kairės-dešinės kryptimi"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Paskirstyti priekio-galo kryptimi"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Paskirstyti viršaus-apačios kryptimi"
+
+# AI Translated
+msgid "Align left"
+msgstr "Sulygiuoti pagal kairįjį kraštą"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Sulygiuoti centrus kairės-dešinės kryptimi"
+
+# AI Translated
+msgid "Align right"
+msgstr "Sulygiuoti pagal dešinįjį kraštą"
+
+# AI Translated
+msgid "Align front"
+msgstr "Sulygiuoti pagal priekinį kraštą"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Sulygiuoti centrus priekio-galo kryptimi"
+
+# AI Translated
+msgid "Align back"
+msgstr "Sulygiuoti pagal galinį kraštą"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Sulygiuoti pagal apatinį kraštą"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Sulygiuoti centrus viršaus-apačios kryptimi"
+
+# AI Translated
+msgid "Align top"
+msgstr "Sulygiuoti pagal viršutinį kraštą"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Sulygiuoti/Paskirstyti"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Sulygiuoti ir paskirstyti objektus"
 
 msgid "Drop"
 msgstr "Nuleisti"

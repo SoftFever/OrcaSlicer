@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2025-06-02 17:12+0900\n"
 "Last-Translator: crwusiz <crwusiz@gmail.com>\n"
 "Language-Team: \n"
@@ -3237,6 +3237,63 @@ msgstr "(색상 손실)"
 
 msgid "Center"
 msgstr "중앙"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "좌우 균등 분배"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "앞뒤 균등 분배"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "상하 균등 분배"
+
+# AI Translated
+msgid "Align left"
+msgstr "왼쪽 정렬"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "좌우 중앙 정렬"
+
+# AI Translated
+msgid "Align right"
+msgstr "오른쪽 정렬"
+
+# AI Translated
+msgid "Align front"
+msgstr "앞쪽 정렬"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "앞뒤 중앙 정렬"
+
+# AI Translated
+msgid "Align back"
+msgstr "뒤쪽 정렬"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "아래쪽 정렬"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "상하 중앙 정렬"
+
+# AI Translated
+msgid "Align top"
+msgstr "위쪽 정렬"
+
+# AI Translated
+# Needs human review: 정렬 is also this catalog's rendering of Arrange; check the submenu in the object right-click menu is not mistaken for Arrange.
+msgid "Align/Distribute"
+msgstr "정렬/분배"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "객체 정렬 및 분배"
 
 msgid "Drop"
 msgstr "내리기"

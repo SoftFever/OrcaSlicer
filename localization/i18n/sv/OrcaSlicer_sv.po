@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3565,6 +3565,62 @@ msgstr "(Färg förlorad)"
 # AI Translated
 msgid "Center"
 msgstr "Centrera"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Fördela i sidled"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Fördela i djupled"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Fördela i höjdled"
+
+# AI Translated
+msgid "Align left"
+msgstr "Justera vänsterkant"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Justera mitten i sidled"
+
+# AI Translated
+msgid "Align right"
+msgstr "Justera högerkant"
+
+# AI Translated
+msgid "Align front"
+msgstr "Justera framkant"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Justera mitten i djupled"
+
+# AI Translated
+msgid "Align back"
+msgstr "Justera bakkant"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Justera nederkant"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Justera mitten i höjdled"
+
+# AI Translated
+msgid "Align top"
+msgstr "Justera överkant"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Justera/Fördela"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Justera och fördela objekt"
 
 msgid "Drop"
 msgstr "Släpp"

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3225,6 +3225,62 @@ msgstr "（色が失われました）"
 
 msgid "Center"
 msgstr "センター"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "左右に均等配置"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "前後に均等配置"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "上下に均等配置"
+
+# AI Translated
+msgid "Align left"
+msgstr "左端揃え"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "左右中央揃え"
+
+# AI Translated
+msgid "Align right"
+msgstr "右端揃え"
+
+# AI Translated
+msgid "Align front"
+msgstr "前端揃え"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "前後中央揃え"
+
+# AI Translated
+msgid "Align back"
+msgstr "後端揃え"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "下端揃え"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "上下中央揃え"
+
+# AI Translated
+msgid "Align top"
+msgstr "上端揃え"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "整列/均等配置"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "オブジェクトの整列と均等配置"
 
 msgid "Drop"
 msgstr "ドロップ"

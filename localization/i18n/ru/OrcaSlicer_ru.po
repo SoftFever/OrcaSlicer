@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2026-02-25 13:38+0300\n"
 "Last-Translator: Felix14_v2\n"
 "Language-Team: Felix14_v2 (ДС/ТГ: @felix14_v2, почта: aleks111001@list.ru), Andylg <andylg@yandex.ru>\n"
@@ -3187,6 +3187,63 @@ msgstr " (с потерей цвета)"
 
 msgid "Center"
 msgstr "По центру"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Распределить по ширине"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Распределить по глубине"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Распределить по высоте"
+
+# AI Translated
+msgid "Align left"
+msgstr "Выровнять по левому краю"
+
+# AI Translated
+# Needs human review: Align/Distribute menu (object right-click): left-right/front-back/top-bottom are rendered as по ширине/глубине/высоте (the menu appends X/Y/Z); check it reads as aligning the objects' centers along that axis.
+msgid "Align left-right center"
+msgstr "Выровнять центры по ширине"
+
+# AI Translated
+msgid "Align right"
+msgstr "Выровнять по правому краю"
+
+# AI Translated
+msgid "Align front"
+msgstr "Выровнять по переднему краю"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Выровнять центры по глубине"
+
+# AI Translated
+msgid "Align back"
+msgstr "Выровнять по заднему краю"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Выровнять по нижнему краю"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Выровнять центры по высоте"
+
+# AI Translated
+msgid "Align top"
+msgstr "Выровнять по верхнему краю"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Выровнять/Распределить"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Выровнять и распределить модели"
 
 msgid "Drop"
 msgstr "Опустить на стол"

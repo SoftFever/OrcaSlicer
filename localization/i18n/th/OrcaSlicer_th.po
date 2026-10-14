@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 21:06-0300\n"
+"POT-Creation-Date: 2026-10-14 10:04-0300\n"
 "PO-Revision-Date: 2026-06-19 13:40+0700\n"
 "Last-Translator: Icezaza\n"
 "Language-Team: Thai\n"
@@ -3206,6 +3206,62 @@ msgstr "(สีที่หายไป)"
 
 msgid "Center"
 msgstr "กึ่งกลาง"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "กระจายในแนวซ้าย-ขวา"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "กระจายในแนวหน้า-หลัง"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "กระจายในแนวบน-ล่าง"
+
+# AI Translated
+msgid "Align left"
+msgstr "จัดชิดซ้าย"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "จัดกึ่งกลางซ้าย-ขวา"
+
+# AI Translated
+msgid "Align right"
+msgstr "จัดชิดขวา"
+
+# AI Translated
+msgid "Align front"
+msgstr "จัดชิดด้านหน้า"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "จัดกึ่งกลางหน้า-หลัง"
+
+# AI Translated
+msgid "Align back"
+msgstr "จัดชิดด้านหลัง"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "จัดชิดด้านล่าง"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "จัดกึ่งกลางบน-ล่าง"
+
+# AI Translated
+msgid "Align top"
+msgstr "จัดชิดด้านบน"
+
+# AI Translated
+msgid "Align/Distribute"
+msgstr "จัดแนว/กระจาย"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "จัดแนวและกระจายวัตถุ"
 
 msgid "Drop"
 msgstr "วางลงฐานพิมพ์"
