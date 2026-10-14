@@ -573,7 +573,8 @@ TEST_CASE("Cumulative filament usage per layer grows layer by layer and ends at 
     REQUIRE(stats.total_volumes_per_extruder.size() == 2);
     REQUIRE(stats.layer_volumes_per_extruder.size() == 2);
 
-    size_t entries = 0;
+    // Every filament has an entry for every layer, however late it was first used.
+    const size_t entries = stats.layer_volumes_per_extruder.begin()->second.size();
     for (const auto &[filament_id, total] : stats.total_volumes_per_extruder) {
         DYNAMIC_SECTION("filament " << filament_id)
         {
@@ -585,9 +586,6 @@ TEST_CASE("Cumulative filament usage per layer grows layer by layer and ends at 
             CHECK(std::is_sorted(layers.begin(), layers.end()));
             CHECK_THAT(layers.back(), Catch::Matchers::WithinRel(total, 1e-9));
             CHECK(layers.front() < layers.back());
-            // Every filament has an entry for every layer, however late it was first used.
-            if (entries == 0)
-                entries = layers.size();
             CHECK(layers.size() == entries);
         }
     }
