@@ -790,6 +790,8 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     ImGuiWrapper::push_toolbar_style(m_glcanvas.get_scale());
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0, 6.0));
 
+    const ImGuiStyle &style         = ImGui::GetStyle();
+
     std::string name = this->m_new_title_string + "##" + window_name;
     imgui_wrapper->begin(_L(name), ImGuiWrapper::TOOLBAR_WINDOW_FLAGS);
 
@@ -820,10 +822,10 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         imgui_wrapper->calc_text_size(_L("Relative")).x
     });
     if (show_align) {
-        coord_combo_width = std::max({coord_combo_width, imgui_wrapper->calc_text_size(_L("Align selected")).x,
-                                      imgui_wrapper->calc_text_size(_L("Align to object")).x,
-                                      imgui_wrapper->calc_text_size(_L("Align to plate")).x});
-        label_max         = std::max(label_max, imgui_wrapper->calc_text_size(_L("Align/Distribute")).x);
+        coord_combo_width = std::max({coord_combo_width, imgui_wrapper->calc_text_size(_L("Selection")).x,
+                                      imgui_wrapper->calc_text_size(_L("Object")).x,
+                                      imgui_wrapper->calc_text_size(_L("Plate")).x});
+        label_max         = std::max(label_max, imgui_wrapper->calc_text_size(_L("Distribute")).x);
     }
     coord_combo_width += imgui_wrapper->calc_text_size("xxx"sv).x + imgui_wrapper->scaled(3.5f);
     float caption_max = std::max(label_max, coord_combo_width - 3 * space_size);
@@ -840,10 +842,12 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     // Rotation
     float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     // Four align buttons sit under each axis' input, a space before the next axis, so the inputs widen to hold them.
-    const float align_icon_size   = ImGui::GetFrameHeight() * 1.2f;
-    const float align_button_size = align_icon_size + 2 * ImGui::GetStyle().FramePadding.x;
-    if (show_align)
-        unit_size = std::max(unit_size, 4 * align_button_size);
+    const float align_icon_size   = 16.f * m_glcanvas.get_scale(); // ORCA use 16px icons
+    const float align_button_size = align_icon_size + 2.f * style.FramePadding.x;  // ORCA
+    if (show_align) {
+        unit_size = std::max(unit_size, 3.f * align_button_size);
+        unit_size = std::round(unit_size); // ORCA keep columns on whole pixels
+    }
     int   index      = 1;
     int   index_unit = 1;
 
@@ -941,9 +945,27 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         ImGui::Separator();
         ImGui::Spacing();
 
+        // Each row is row_height tall, separated by ItemSpacing.y. Every control is centered vertically in its row.
+        const float       row_y         = ImGui::GetCursorPosY();
+        const float       button_height = align_icon_size + 2.f * style.FramePadding.y;
+        ImGuiWrapper::push_combo_style(m_glcanvas.get_scale());
+        const float combo_height = ImGui::GetFrameHeight();
+        ImGuiWrapper::pop_combo_style();
+        const float row_height = std::max({ImGui::GetTextLineHeight(), button_height, combo_height});
+        const float row_gap    = style.ItemSpacing.y;
+        int         row        = 0;
+        auto row_top       = [&](int r) { return row_y + r * (row_height + row_gap); };
+        // Snap to whole pixels to avoid blurry icons
+        auto center_in_row = [&](int r, float item_height) { return std::floor(row_top(r) + (row_height - item_height) * 0.5f); };
+
+        // Row 0: align mode combo in the caption column.
+        ImGui::SetCursorPosY(center_in_row(row, combo_height));
+
         // The last mode aligns to the parent. Aligning within the selection needs two items.
-        std::vector<std::string> align_modes = {_u8L("Align selected"),
-                                                m_alignment_helper.is_parts_selection(true) ? _u8L("Align to object") : _u8L("Align to plate")};
+        std::vector<std::string> align_modes = {
+            _u8L("Selection"),
+            m_alignment_helper.is_parts_selection(true) ? _u8L("Object") : _u8L("Plate")
+        };
         if (!m_alignment_helper.can_align(AlignType::X_MIN)) {
             align_modes.erase(align_modes.begin());
             m_align_to_parent = true;
@@ -955,15 +977,11 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         if (render_combo(imgui_wrapper, "", align_modes, align_mode_idx, 0, coord_combo_width))
             m_align_to_parent = align_mode_idx + 1 == align_modes.size();
         ImGui::PopID();
+        if (ImGui::IsItemHovered()) {
+            wxString tooltip_str = _L("Reference for alignment");
+            imgui_wrapper->tooltip(tooltip_str, imgui_wrapper->calc_text_size(tooltip_str).x + 3 * space_size);
+        }
         ImGuiWrapper::pop_combo_style();
-
-        // The label in the caption column and each axis' buttons from the left edge of its input, both centered
-        // vertically in the row.
-        const float row_y         = ImGui::GetCursorPosY();
-        const float button_height = align_icon_size + 2 * ImGui::GetStyle().FramePadding.y;
-        const float row_height    = std::max(ImGui::GetTextLineHeight(), button_height);
-        ImGui::SetCursorPosY(row_y + (row_height - ImGui::GetTextLineHeight()) * 0.5f);
-        imgui_wrapper->text(_L("Align/Distribute"));
 
         const bool dark_mode    = wxGetApp().dark_mode();
         int        current_axis = -1;
@@ -974,9 +992,9 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
                                     distribute        ? m_alignment_helper.can_distribute(type) :
                                                         m_alignment_helper.can_align(type);
             if (axis != current_axis) {
-                ImGui::SameLine(caption_max + (axis + 1) * space_size + axis * unit_size);
+                ImGui::SameLine(int(caption_max + (axis + 1) * space_size + axis * unit_size)); // ORCA ensure placement snaps to pixel to fix blur
                 if (current_axis < 0)
-                    ImGui::SetCursorPosY(row_y + (row_height - button_height) * 0.5f);
+                    ImGui::SetCursorPosY(center_in_row(row, button_height));
                 current_axis = axis;
             } else
                 ImGui::SameLine(0, 0);
@@ -1018,20 +1036,26 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         align_icon(0, AlignType::X_MIN, GLGizmosManager::IC_ALIGN_X_MIN, GLGizmosManager::IC_ALIGN_X_MIN_DARK, _L("Align left") + " (-X)");
         align_icon(0, AlignType::CENTER_X, GLGizmosManager::IC_ALIGN_X_CENTER, GLGizmosManager::IC_ALIGN_X_CENTER_DARK, _L("Align left-right center") + " (X)");
         align_icon(0, AlignType::X_MAX, GLGizmosManager::IC_ALIGN_X_MAX, GLGizmosManager::IC_ALIGN_X_MAX_DARK, _L("Align right") + " (+X)");
-        if (!m_align_to_parent)
-            align_icon(0, AlignType::DISTRIBUTE_X, GLGizmosManager::IC_DISTRIBUTE_X, GLGizmosManager::IC_DISTRIBUTE_X_DARK, _L("Distribute left-right") + " (X)");
+
         align_icon(1, AlignType::Y_MIN, GLGizmosManager::IC_ALIGN_Y_MIN, GLGizmosManager::IC_ALIGN_Y_MIN_DARK, _L("Align front") + " (-Y)");
         align_icon(1, AlignType::CENTER_Y, GLGizmosManager::IC_ALIGN_Y_CENTER, GLGizmosManager::IC_ALIGN_Y_CENTER_DARK, _L("Align front-back center") + " (Y)");
         align_icon(1, AlignType::Y_MAX, GLGizmosManager::IC_ALIGN_Y_MAX, GLGizmosManager::IC_ALIGN_Y_MAX_DARK, _L("Align back") + " (+Y)");
-        if (!m_align_to_parent)
-            align_icon(1, AlignType::DISTRIBUTE_Y, GLGizmosManager::IC_DISTRIBUTE_Y, GLGizmosManager::IC_DISTRIBUTE_Y_DARK, _L("Distribute front-back") + " (Y)");
+
         align_icon(2, AlignType::Z_MIN, GLGizmosManager::IC_ALIGN_Z_MIN, GLGizmosManager::IC_ALIGN_Z_MIN_DARK, _L("Align bottom") + " (-Z)");
         align_icon(2, AlignType::CENTER_Z, GLGizmosManager::IC_ALIGN_Z_CENTER, GLGizmosManager::IC_ALIGN_Z_CENTER_DARK, _L("Align top-bottom center") + " (Z)");
         align_icon(2, AlignType::Z_MAX, GLGizmosManager::IC_ALIGN_Z_MAX, GLGizmosManager::IC_ALIGN_Z_MAX_DARK, _L("Align top") + " (+Z)");
-        if (!m_align_to_parent)
+
+        if (!m_align_to_parent) {
+            row          = 1;
+            current_axis = -1;
+            ImGui::SetCursorPosY(center_in_row(row, ImGui::GetTextLineHeight()));
+            imgui_wrapper->text(_L("Distribute"));
+            align_icon(0, AlignType::DISTRIBUTE_X, GLGizmosManager::IC_DISTRIBUTE_X, GLGizmosManager::IC_DISTRIBUTE_X_DARK, _L("Distribute left-right") + " (X)");
+            align_icon(1, AlignType::DISTRIBUTE_Y, GLGizmosManager::IC_DISTRIBUTE_Y, GLGizmosManager::IC_DISTRIBUTE_Y_DARK, _L("Distribute front-back") + " (Y)");
             align_icon(2, AlignType::DISTRIBUTE_Z, GLGizmosManager::IC_DISTRIBUTE_Z, GLGizmosManager::IC_DISTRIBUTE_Z_DARK, _L("Distribute top-bottom") + " (Z)");
+        }
         ImGui::PopStyleVar();
-        ImGui::SetCursorPosY(row_y + row_height + ImGui::GetStyle().ItemSpacing.y);
+        ImGui::SetCursorPosY(row_top(row + 1));
     }
     // The Move gizmo draws the preview with the scene, which an ImGui-only frame does not redraw.
     if (hovered_align_type != m_hovered_align_type || m_align_to_parent != old_align_to_parent) {

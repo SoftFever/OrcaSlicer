@@ -2349,33 +2349,39 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
             alignment_helper.align_objects(type);
     };
 
-    // NONE adds a separator.
-    const std::pair<wxString, AlignType> items[] = {
-        {_L("Distribute left-right") + " (X)", AlignType::DISTRIBUTE_X},
-        {_L("Distribute front-back") + " (Y)", AlignType::DISTRIBUTE_Y},
-        {_L("Distribute top-bottom") + " (Z)", AlignType::DISTRIBUTE_Z},
-        {wxString(), AlignType::NONE},
-        {_L("Align left") + " (-X)", AlignType::X_MIN},
-        {_L("Align left-right center") + " (X)", AlignType::CENTER_X},
-        {_L("Align right") + " (+X)", AlignType::X_MAX},
-        {wxString(), AlignType::NONE},
-        {_L("Align front") + " (-Y)", AlignType::Y_MIN},
-        {_L("Align front-back center") + " (Y)", AlignType::CENTER_Y},
-        {_L("Align back") + " (+Y)", AlignType::Y_MAX},
-        {wxString(), AlignType::NONE},
-        {_L("Align bottom") + " (-Z)", AlignType::Z_MIN},
-        {_L("Align top-bottom center") + " (Z)", AlignType::CENTER_Z},
-        {_L("Align top") + " (+Z)", AlignType::Z_MAX},
+    struct AlignMenuItem
+    {
+        wxString    label;
+        AlignType   type;
+        std::string icon;
+    };
+    const AlignMenuItem items[] = {
+        // icons shared with caanvas. BitmapCache converts colors dark to light. so dark variations used for proper colors
+        {_L("Distribute left-right")   + " (X)" , AlignType::DISTRIBUTE_X, "distribute_x_dark"},
+        {_L("Distribute front-back")   + " (Y)" , AlignType::DISTRIBUTE_Y, "distribute_y_dark"},
+        {_L("Distribute top-bottom")   + " (Z)" , AlignType::DISTRIBUTE_Z, "distribute_z_dark"},
+        {wxString(),                              AlignType::NONE,         ""},
+        {_L("Align left")              + " (-X)", AlignType::X_MIN,        "align_x_min_dark"},
+        {_L("Align left-right center") + " (X)" , AlignType::CENTER_X,     "align_x_center_dark"},
+        {_L("Align right")             + " (+X)", AlignType::X_MAX,        "align_x_max_dark"},
+        {wxString(),                              AlignType::NONE,         ""},
+        {_L("Align front")             + " (-Y)", AlignType::Y_MIN,        "align_y_min_dark"},
+        {_L("Align front-back center") + " (Y)" , AlignType::CENTER_Y,     "align_y_center_dark"},
+        {_L("Align back")              + " (+Y)", AlignType::Y_MAX,        "align_y_max_dark"},
+        {wxString(),                              AlignType::NONE,         ""},
+        {_L("Align bottom")            + " (-Z)", AlignType::Z_MIN,        "align_z_min_dark"},
+        {_L("Align top-bottom center") + " (Z)" , AlignType::CENTER_Z,     "align_z_center_dark"},
+        {_L("Align top")               + " (+Z)", AlignType::Z_MAX,        "align_z_max_dark"},
     };
 
     wxMenu* align_distribute_menu = new wxMenu();
-    for (const auto &item : items) {
-        const AlignType type = item.second;
+    for (const AlignMenuItem &item : items) {
+        const AlignType type = item.type;
         if (type == AlignType::NONE)
             align_distribute_menu->AppendSeparator();
         else
             append_menu_item(
-                align_distribute_menu, wxID_ANY, item.first, "", [run, type](wxCommandEvent &) { run(type); }, "", nullptr,
+                align_distribute_menu, wxID_ANY, item.label, "", [run, type](wxCommandEvent &) { run(type); }, item.icon, nullptr,
                 [can, type]() { return can(type); }, m_parent);
     }
 

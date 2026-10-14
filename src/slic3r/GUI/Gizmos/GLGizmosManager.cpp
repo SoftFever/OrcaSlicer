@@ -367,20 +367,27 @@ bool GLGizmosManager::init_icon_textures()
              { IC_CANVAS_SECTION, "canvas_section" }, { IC_CANVAS_SECTION_HOVER, "canvas_section_hover" },
              { IC_CANVAS_SECTION_DARK, "canvas_section_dark" }, { IC_CANVAS_SECTION_DARK_HOVER, "canvas_section_dark_hover" },
              { IC_CANVAS_SECTION_ACTIVE, "canvas_section_active" }, { IC_CANVAS_SECTION_ACTIVE_HOVER, "canvas_section_active_hover" },
-             { IC_CANVAS_SECTION_ACTIVE_DARK, "canvas_section_active_dark" }, { IC_CANVAS_SECTION_ACTIVE_DARK_HOVER, "canvas_section_active_dark_hover" },
-             { IC_ALIGN_X_MIN, "align_x_min" }, { IC_ALIGN_X_MIN_DARK, "align_x_min_dark" },
-             { IC_ALIGN_X_CENTER, "align_x_center" }, { IC_ALIGN_X_CENTER_DARK, "align_x_center_dark" },
-             { IC_ALIGN_X_MAX, "align_x_max" }, { IC_ALIGN_X_MAX_DARK, "align_x_max_dark" },
-             { IC_ALIGN_Y_MIN, "align_y_min" }, { IC_ALIGN_Y_MIN_DARK, "align_y_min_dark" },
-             { IC_ALIGN_Y_CENTER, "align_y_center" }, { IC_ALIGN_Y_CENTER_DARK, "align_y_center_dark" },
-             { IC_ALIGN_Y_MAX, "align_y_max" }, { IC_ALIGN_Y_MAX_DARK, "align_y_max_dark" },
-             { IC_ALIGN_Z_MIN, "align_z_min" }, { IC_ALIGN_Z_MIN_DARK, "align_z_min_dark" },
-             { IC_ALIGN_Z_CENTER, "align_z_center" }, { IC_ALIGN_Z_CENTER_DARK, "align_z_center_dark" },
-             { IC_ALIGN_Z_MAX, "align_z_max" }, { IC_ALIGN_Z_MAX_DARK, "align_z_max_dark" },
-             { IC_DISTRIBUTE_X, "distribute_x" }, { IC_DISTRIBUTE_X_DARK, "distribute_x_dark" },
-             { IC_DISTRIBUTE_Y, "distribute_y" }, { IC_DISTRIBUTE_Y_DARK, "distribute_y_dark" },
-             { IC_DISTRIBUTE_Z, "distribute_z" }, { IC_DISTRIBUTE_Z_DARK, "distribute_z_dark" } }) {
+             { IC_CANVAS_SECTION_ACTIVE_DARK, "canvas_section_active_dark" }, { IC_CANVAS_SECTION_ACTIVE_DARK_HOVER, "canvas_section_active_dark_hover" } }) {
         if (!IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/" + name + ".svg", 72, 72, texture_id))
+            return false;
+        icon_list.insert(std::make_pair((int) icon, texture_id));
+    }
+
+    for (const auto& [icon, name] : std::initializer_list<std::pair<MENU_ICON_NAME, const char*>>{
+        { IC_ALIGN_X_MIN   , "align_x_min"    }, { IC_ALIGN_X_MIN_DARK   , "align_x_min_dark"    },
+        { IC_ALIGN_X_CENTER, "align_x_center" }, { IC_ALIGN_X_CENTER_DARK, "align_x_center_dark" },
+        { IC_ALIGN_X_MAX   , "align_x_max"    }, { IC_ALIGN_X_MAX_DARK   , "align_x_max_dark"    },
+        { IC_ALIGN_Y_MIN   , "align_y_min"    }, { IC_ALIGN_Y_MIN_DARK   , "align_y_min_dark"    },
+        { IC_ALIGN_Y_CENTER, "align_y_center" }, { IC_ALIGN_Y_CENTER_DARK, "align_y_center_dark" },
+        { IC_ALIGN_Y_MAX   , "align_y_max"    }, { IC_ALIGN_Y_MAX_DARK   , "align_y_max_dark"    },
+        { IC_ALIGN_Z_MIN   , "align_z_min"    }, { IC_ALIGN_Z_MIN_DARK   , "align_z_min_dark"    },
+        { IC_ALIGN_Z_CENTER, "align_z_center" }, { IC_ALIGN_Z_CENTER_DARK, "align_z_center_dark" },
+        { IC_ALIGN_Z_MAX   , "align_z_max"    }, { IC_ALIGN_Z_MAX_DARK   , "align_z_max_dark"    },
+        { IC_DISTRIBUTE_X  , "distribute_x"   }, { IC_DISTRIBUTE_X_DARK  , "distribute_x_dark"   },
+        { IC_DISTRIBUTE_Y  , "distribute_y"   }, { IC_DISTRIBUTE_Y_DARK  , "distribute_y_dark"   },
+        { IC_DISTRIBUTE_Z  , "distribute_z"   }, { IC_DISTRIBUTE_Z_DARK  , "distribute_z_dark"   }
+    }) {
+        if (!IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/" + name + ".svg", 16, 16, texture_id))
             return false;
         icon_list.insert(std::make_pair((int) icon, texture_id));
     }
