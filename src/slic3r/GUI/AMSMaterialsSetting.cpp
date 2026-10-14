@@ -1765,7 +1765,8 @@ void ColorPicker::doRender(wxDC& dc)
     }
 
     if (m_selected) {
-        dc.SetPen(wxPen(m_colour));
+        // a fully transparent colour would draw an invisible outline
+        dc.SetPen(wxPen(alpha == 0 ? wxColour("#6B6B6B") : m_colour));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawCircle(size.x / 2, size.y / 2, size.x / 2);
     }
@@ -1834,6 +1835,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     :PopupWindow(parent, wxBORDER_NONE)
 {
     m_def_colors.clear();
+    m_def_colors.push_back(wxColour(0, 0, 0, 0)); // transparent / clear, shown in its own section
     m_def_colors.push_back(wxColour("#FFFFFF"));
     m_def_colors.push_back(wxColour("#fff144"));
     m_def_colors.push_back(wxColour("#DCF478"));
@@ -1894,13 +1896,20 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     fg_sizer->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 
 
+    wxBoxSizer* transparent_picker_sizer = new wxBoxSizer(wxHORIZONTAL);
+
     for (wxColour col : m_def_colors) {
         auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         cp->set_color(col);
         cp->set_selected(false);
         cp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238,238,238)));
         m_color_pickers.push_back(cp);
-        fg_sizer->Add(cp, 0, wxALL, FromDIP(3));
+        if (col.Alpha() == 0) {
+            cp->SetToolTip(_L("Transparent / Clear"));
+            transparent_picker_sizer->Add(cp, 0, wxALL, FromDIP(3));
+        } else {
+            fg_sizer->Add(cp, 0, wxALL, FromDIP(3));
+        }
         cp->Bind(wxEVT_LEFT_DOWN, [this, cp](auto& e) {
             set_def_colour(cp->m_colour);
 
@@ -1910,6 +1919,18 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
             wxPostEvent(GetParent(), evt);
         });
     }
+
+    // keep transparent / clear apart from the regular colour presets
+    wxBoxSizer* m_sizer_transparent = new wxBoxSizer(wxHORIZONTAL);
+    auto m_title_transparent = new wxStaticText(m_def_color_box, wxID_ANY, _L("Transparent / Clear"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_transparent->SetFont(::Label::Body_14);
+    m_title_transparent->SetBackgroundColour(wxColour(238, 238, 238));
+    m_sizer_transparent->Add(m_title_transparent, 0, wxALL, 5);
+    auto transparent_line = new wxPanel(m_def_color_box, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    transparent_line->SetBackgroundColour(wxColour("#CECECE"));
+    transparent_line->SetMinSize(wxSize(-1, 1));
+    transparent_line->SetMaxSize(wxSize(-1, 1));
+    m_sizer_transparent->Add(transparent_line, 1, wxALIGN_CENTER, 0);
 
     wxBoxSizer* m_sizer_other = new wxBoxSizer(wxHORIZONTAL);
     auto m_title_other = new wxStaticText(m_def_color_box, wxID_ANY, _L("Other Color"), wxDefaultPosition, wxDefaultSize, 0);
@@ -1971,6 +1992,8 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     m_sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_box->Add(m_sizer_ams, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(m_ams_fg_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
+    m_sizer_box->Add(m_sizer_transparent, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
+    m_sizer_box->Add(transparent_picker_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(m_sizer_other, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(fg_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(m_sizer_custom, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
