@@ -1217,9 +1217,13 @@ int CLI::run(int argc, char **argv)
 
             // WebKit2GTK accelerated compositing could fail under XWayland
             // on WebKit releases before 2.42. Disable it only then, and only
-            // when both DISPLAY and WAYLAND_DISPLAY are set (an XWayland
-            // session). Disabling it also turns off threaded scrolling, so on
-            // newer WebKit it only costs performance.
+            // when both DISPLAY and WAYLAND_DISPLAY are set. Those two mean the
+            // session offers XWayland, not that GTK picked X11 for this
+            // process: a native Wayland app inherits both. The default path
+            // runs X11 here only in a build without EGL, which is what the
+            // forced GDK_BACKEND=x11 above produces. Disabling compositing also
+            // turns off threaded scrolling, so on newer WebKit it only costs
+            // performance.
             {
                 const char* display_env_wk = ::getenv("DISPLAY");
                 const char* wayland_env_wk = ::getenv("WAYLAND_DISPLAY");
