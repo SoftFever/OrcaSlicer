@@ -4861,7 +4861,7 @@ void TabFilament::build()
 
         option = optgroup->get_option("compatible_printers_condition");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option, "material_dependencies#compatible-printers");
+        optgroup->append_single_option_line(option, "material_dependencies#printer-condition");
 
         optgroup = page->new_optgroup(L("Compatible process profiles"), "param_dependencies_presets");
         create_line_with_widget(optgroup.get(), "compatible_prints", "", [this](wxWindow* parent) {
@@ -4870,7 +4870,7 @@ void TabFilament::build()
 
         option = optgroup->get_option("compatible_prints_condition");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option, "material_dependencies#compatible-process-profiles");
+        optgroup->append_single_option_line(option, "material_dependencies#process-condition");
 
     page = add_options_page(L("Notes"), "custom-gcode_note"); // ORCA: icon only visible on placeholders
         optgroup = page->new_optgroup(L("Notes"),"note", 0);
@@ -6063,7 +6063,7 @@ if (is_marlin_flavor)
             optgroup->append_single_option_line("extruder_printable_height", "printer_extruder_basic_information#extruder-layer-height-limits", extruder_idx);
             Option option         = optgroup->get_option("extruder_printable_area", extruder_idx);
             option.opt.full_width = true;
-            optgroup->append_single_option_line(option, "printer_extruder_basic_information#extruder-offset-position");
+            optgroup->append_single_option_line(option, "printer_extruder_basic_information#extruder-printable-area");
 
             optgroup->m_on_change = [this](const t_config_option_key& opt_key, boost::any value)
             {
