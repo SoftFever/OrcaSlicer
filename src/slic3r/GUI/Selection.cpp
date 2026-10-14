@@ -1757,50 +1757,27 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
 
     //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj %1%, instance %2%") % object_idx % instance_idx;
     //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
-    for (unsigned int i : m_list) {
-        GLVolume& v = *(*m_volumes)[i];
-        if (v.object_idx() == (int)object_idx && v.instance_idx() == (int)instance_idx)
-            v.set_instance_offset(v.get_instance_offset() + displacement);
-    }
-
-    std::set<unsigned int> done;  // prevent processing volumes twice
-    done.insert(m_list.begin(), m_list.end());
-
-    for (unsigned int i : m_list) {
-        if (done.size() == m_volumes->size())
-            break;
-
-        int object_idx = (*m_volumes)[i]->object_idx();
-        if (object_idx >= 1000)
-            continue;
-
-        // Process unselected volumes of the object.
-        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j) {
-            if (done.size() == m_volumes->size())
-                break;
-
-            if (done.find(j) != done.end())
-                continue;
-
-            GLVolume& v = *(*m_volumes)[j];
-            if (v.object_idx() != object_idx || v.instance_idx() != (int)instance_idx)
-                continue;
-
-            v.set_instance_offset(v.get_instance_offset() + displacement);
-            done.insert(j);
-        }
+    // Every volume of the instance, selected or not, so that the instance moves as a whole.
+    for (GLVolume* v : *m_volumes) {
+        if (v->object_idx() == (int)object_idx && v->instance_idx() == (int)instance_idx)
+            v->set_instance_offset(v->get_instance_offset() + displacement);
     }
 
     this->set_bounding_boxes_dirty();
 }
 
-void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement) {
+void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement, bool local)
+{
     if (!m_valid) return;
 
     for (unsigned int i : m_list) {
         GLVolume &v = *(*m_volumes)[i];
-        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx)
-            v.set_volume_offset(v.get_volume_offset() + displacement);
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx) {
+            Vec3d local_displacement = displacement;
+            if (!local)
+                local_displacement = v.get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
+            v.set_volume_offset(v.get_volume_offset() + local_displacement);
+        }
     }
 
     this->set_bounding_boxes_dirty();
