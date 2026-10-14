@@ -55,9 +55,9 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
 {
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
     config.set_deserialize_strict({
-        {"gcode_flavor",                    "marlin"},
-        {"single_extruder_multi_material",  "1"},
-        {"enable_prime_tower",              "0"},
+        {"gcode_flavor",                   "marlin"},
+        {"single_extruder_multi_material", "1"},
+        {"enable_prime_tower",             "0"},
         {"change_filament_gcode",
             ";TC_PLACEHOLDER X[x_after_toolchange] Y[y_after_toolchange]\n"}
     });
@@ -65,32 +65,42 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
     Print print;
     Model model;
 
-    Test::init_print(
-        std::vector<TriangleMesh>{Test::cube(20.), Test::cube(20.)},
-        print, model, config, nullptr, false, 1);
+    TriangleMesh mesh = Test::cube(20.);
+    Test::init_print(std::vector<TriangleMesh>{mesh}, print, model, config, nullptr, false, 1);
 
-    REQUIRE(model.objects.size() >= 2);
-    model.objects[0]->volumes.front()->config.set_key_value("extruder", new ConfigOptionInt(1));
-    model.objects[1]->volumes.front()->config.set_key_value("extruder", new ConfigOptionInt(2));
+    REQUIRE(!model.objects.empty());
+    ModelObject *obj = model.objects.front();
+
+    ModelVolume *vol2 = obj->add_volume(Test::cube(20.));
+    vol2->config.set_key_value("extruder", new ConfigOptionInt(2));
+    obj->volumes.front()->config.set_key_value("extruder", new ConfigOptionInt(1));
 
     constexpr double plate_offset_x = 350.0;
     print.set_plate_origin(Vec3d(plate_offset_x, 0.0, 0.0));
-
-    model.objects[0]->instances.front()->set_offset(Vec3d(plate_offset_x + 50.0, 50.0, 0.0));
-    model.objects[1]->instances.front()->set_offset(Vec3d(plate_offset_x + 80.0, 50.0, 0.0));
+    obj->instances.front()->set_offset(Vec3d(plate_offset_x + 50.0, 50.0, 0.0));
 
     print.apply(model, config);
-
     const std::string gcode = Test::gcode(print);
 
-    const std::string marker                = ";TC_PLACEHOLDER X";
-    const std::string::size_type marker_pos = gcode.find(marker);
+    REQUIRE(gcode.find("[x_after_toolchange]") == std::string::npos);
+
+    const std::string marker                 = ";TC_PLACEHOLDER X";
+    const std::string::size_type marker_pos  = gcode.find(marker);
     REQUIRE(marker_pos != std::string::npos);
 
     const std::string::size_type x_start = marker_pos + marker.length();
     const std::string::size_type x_end   = gcode.find(" Y", x_start);
     REQUIRE(x_end != std::string::npos);
-    const double x_val = std::stod(gcode.substr(x_start, x_end - x_start));
+
+    const std::string x_token = gcode.substr(x_start, x_end - x_start);
+    INFO("x_after_toolchange token: '" << x_token << "'");
+
+    double x_val = 0.0;
+    try {
+        x_val = std::stod(x_token);
+    } catch (const std::exception &e) {
+        FAIL("x_after_toolchange token is not numeric: '" + x_token + "' : " + e.what());
+    }
 
     constexpr double bed_width = 250.0;
     INFO("x_after_toolchange = " << x_val << " (must be in [0, " << bed_width << "])");
