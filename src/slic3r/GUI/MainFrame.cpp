@@ -15,6 +15,7 @@
 #include "libslic3r/Preset.hpp"
 #include <functional>
 #include <wx/busycursor.h>
+#include <wx/datetime.h>
 #include <cstddef>
 #include "slic3r/GUI/Project.hpp"
 #include <wx/bookctrl.h>
