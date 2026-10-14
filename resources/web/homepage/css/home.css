@@ -506,36 +506,12 @@ body
 	height: 20px;
 }
 
-.BtnShortcut
-{
-	padding-right: 18px;
-}
-
 .ShortcutBrandIcon
 {
 	width: 20px;
 	height: 20px;
 	border-radius: 5px;
 	display: block;
-}
-
-.ShortcutTextRow
-{
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	width: 100%;
-	min-width: 0;
-}
-
-.ShortcutMark
-{
-	width: 14px;
-	height: 14px;
-	margin-left: auto;
-	color: currentColor;
-	opacity: 0.72;
-	flex: 0 0 auto;
 }
 
 
