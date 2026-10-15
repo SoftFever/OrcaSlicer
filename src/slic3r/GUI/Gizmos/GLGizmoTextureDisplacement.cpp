@@ -8363,6 +8363,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         const int   base_k = mv != nullptr ? int((mv->mesh().facets_count() + 500) / 1000) : 0;
         const bool  v2     = mv != nullptr && opts.pipeline_v2;
 
+        ImGui::Separator();
+
         if (!m_show_resolution) 
             ImGui::SetNextTreeNodeOpen(false);
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_FramePadding;
@@ -8503,7 +8505,6 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             m_imgui->set_requires_extra_frame();
         }
         ImGui::PopStyleVar(1); // ImGuiStyleVar_IndentSpacing
-        ImGui::Separator();
 
         const float button_h = std::round(frame_h * 1.25f);
         const float button_w = std::max({
