@@ -1646,7 +1646,7 @@ static FilamentGroupContext build_filament_group_context(
     context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
 
     if (context.nozzle_info.nozzle_list.empty())
-        throw Slic3r::RuntimeError("No valid nozzle found. Please check nozzle count.");
+        throw Slic3r::RuntimeError(_L("No valid nozzle found. Please check nozzle count."));
 
     if (!nozzle_status.empty())
         context.nozzle_info.nozzle_status = nozzle_status;

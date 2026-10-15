@@ -61,6 +61,7 @@ class Line : public UndoValueUIManager
 	bool		m_is_separator{ false };
 public:
     wxString	label;
+    wxString	label_en; // untranslated English of `label`, searchable by the Speed Dial in any UI language
     wxString	label_tooltip;
 	std::string	label_path;
     bool        undo_to_sys{false}; // BBS: object config
@@ -86,12 +87,16 @@ public:
 	void append_widget(const widget_t widget) {
 		m_extra_widgets.push_back(widget);
     }
+	// `label` and `tooltip` are the untranslated English msgids; they are translated for display.
 	Line(wxString label, wxString tooltip) :
-		label(_(label)), label_tooltip(_(tooltip)) {}
+		label(_(label)), label_en(label), label_tooltip(_(tooltip)) {}
 	Line() : m_is_separator(true) {}
 
+    // `new_label` is the untranslated English msgid (an L("...") string), like the ctor's label:
+    // it is translated for display and kept as label_en.
     void set_label(const wxString& new_label) {
-        label = new_label;
+        label    = _(new_label);
+        label_en = new_label;
         if (label_widget != nullptr) {
             label_widget->SetLabel(label + (label.IsEmpty() ? "" : ": "));
             label_widget->Refresh();

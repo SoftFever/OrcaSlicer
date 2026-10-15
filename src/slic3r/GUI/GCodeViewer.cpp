@@ -1815,7 +1815,9 @@ void GCodeViewer::load_as_gcode(const GCodeProcessorResult& gcode_result, const 
     }
     else {*/
     //BBS: add only gcode mode
-    if (m_only_gcode_in_preview) {
+    // When the file's own settings were loaded into the presets, the bed already is the file's, with the
+    // model and texture of a user or custom printer too, which the lookup below cannot resolve.
+    if (m_only_gcode_in_preview && !wxGetApp().plater()->gcode_settings_loaded()) {
         Pointfs printable_area;
         //BBS: add bed exclude area
         Pointfs bed_exclude_area = Pointfs();
@@ -3995,17 +3997,17 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             imgui.text(_u8L("Current grouping of slice result is not optimal."));
             wxString tip;
             if (delta_weight_to_best >= 0 && delta_change_to_best >= 0)
-                tip = from_u8((boost::format(_u8L("Increase %1%g filament and %2% changes compared to optimal grouping."))
-                    % number_format(delta_weight_to_best)
-                    % delta_change_to_best).str());
+                tip = format_wxstr(_L_PLURAL("Increase %1%g filament and %2% change compared to optimal grouping.",
+                                             "Increase %1%g filament and %2% changes compared to optimal grouping.", delta_change_to_best),
+                                   number_format(delta_weight_to_best), delta_change_to_best);
             else if (delta_weight_to_best >= 0 && delta_change_to_best < 0)
-                tip = from_u8((boost::format(_u8L("Increase %1%g filament and save %2% changes compared to optimal grouping."))
-                    % number_format(delta_weight_to_best)
-                    % std::abs(delta_change_to_best)).str());
+                tip = format_wxstr(_L_PLURAL("Increase %1%g filament and save %2% change compared to optimal grouping.",
+                                             "Increase %1%g filament and save %2% changes compared to optimal grouping.", std::abs(delta_change_to_best)),
+                                   number_format(delta_weight_to_best), std::abs(delta_change_to_best));
             else if (delta_weight_to_best < 0 && delta_change_to_best >= 0)
-                tip = from_u8((boost::format(_u8L("Save %1%g filament and increase %2% changes compared to optimal grouping."))
-                    % number_format(std::abs(delta_weight_to_best))
-                    % delta_change_to_best).str());
+                tip = format_wxstr(_L_PLURAL("Save %1%g filament and increase %2% change compared to optimal grouping.",
+                                             "Save %1%g filament and increase %2% changes compared to optimal grouping.", delta_change_to_best),
+                                   number_format(std::abs(delta_weight_to_best)), delta_change_to_best);
 
             imgui.text_wrapped(tip, parent_width);
             ImGui::PopStyleColor(1);
@@ -4014,17 +4016,17 @@ void GCodeViewer::render_legend_color_arr_recommen(float window_padding)
             ImGui::Dummy({window_padding, window_padding});
             wxString tip;
             if (delta_weight_to_single_ext >= 0 && delta_change_to_single_ext >= 0)
-                tip = from_u8((boost::format(_u8L("Save %1%g filament and %2% changes compared to a printer with one nozzle."))
-                    % number_format(delta_weight_to_single_ext)
-                    % delta_change_to_single_ext).str());
+                tip = format_wxstr(_L_PLURAL("Save %1%g filament and %2% change compared to a printer with one nozzle.",
+                                             "Save %1%g filament and %2% changes compared to a printer with one nozzle.", delta_change_to_single_ext),
+                                   number_format(delta_weight_to_single_ext), delta_change_to_single_ext);
             else if (delta_weight_to_single_ext >= 0 && delta_change_to_single_ext < 0)
-                tip = from_u8((boost::format(_u8L("Save %1%g filament and increase %2% changes compared to a printer with one nozzle."))
-                    % number_format(delta_weight_to_single_ext)
-                    % std::abs(delta_change_to_single_ext)).str());
+                tip = format_wxstr(_L_PLURAL("Save %1%g filament and increase %2% change compared to a printer with one nozzle.",
+                                             "Save %1%g filament and increase %2% changes compared to a printer with one nozzle.", std::abs(delta_change_to_single_ext)),
+                                   number_format(delta_weight_to_single_ext), std::abs(delta_change_to_single_ext));
             else if (delta_weight_to_single_ext < 0 && delta_change_to_single_ext >= 0)
-                tip = from_u8((boost::format(_u8L("Increase %1%g filament and save %2% changes compared to a printer with one nozzle."))
-                    % number_format(std::abs(delta_weight_to_single_ext))
-                    % delta_change_to_single_ext).str());
+                tip = format_wxstr(_L_PLURAL("Increase %1%g filament and save %2% change compared to a printer with one nozzle.",
+                                             "Increase %1%g filament and save %2% changes compared to a printer with one nozzle.", delta_change_to_single_ext),
+                                   number_format(std::abs(delta_weight_to_single_ext)), delta_change_to_single_ext);
 
             imgui.text_wrapped(tip, parent_width);
         }

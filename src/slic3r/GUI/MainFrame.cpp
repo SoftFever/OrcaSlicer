@@ -1746,7 +1746,8 @@ bool MainFrame::preview_only_hint()
         confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
         auto filename = m_plater->get_preview_only_filename();
 
-        confirm_dlg.update_text(filename + " " + _L("will be closed before creating a new model. Do you want to continue?"));
+        // TRN %s is a file name.
+        confirm_dlg.update_text(wxString::Format(_L("%s will be closed before creating a new model. Do you want to continue?"), from_u8(filename)));
         confirm_dlg.on_show();
         if (preview_only_to_editor) {
             m_plater->new_project();
@@ -2309,12 +2310,6 @@ wxBoxSizer* MainFrame::create_side_tools()
 
             bool slice = true;
 
-            // The Slice-plate hover popup is a transient popup that keeps grabbing
-            // the mouse capture while shown. Left behind the modal grouping dialog it
-            // would starve that dialog of mouse events, so close it synchronously first.
-            if (m_filament_group_popup)
-                m_filament_group_popup->Dismiss();
-
             auto curr_plate = m_plater->get_partplate_list().get_curr_plate();
             #ifdef __linux__
                 PresetBundle* preset = wxGetApp().preset_bundle;
@@ -2832,6 +2827,10 @@ wxMenu* MainFrame::generate_help_menu()
     // Open Config Folder
     append_menu_item(helpMenu, wxID_ANY, _L("Show Configuration Folder"), _L("Show Configuration Folder"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
+
+    append_menu_item(helpMenu, wxID_ANY, _L("Migrate Filament Presets"),
+        _L("Bring back filament presets that a profile update removed from printers they were made for"),
+        [](wxCommandEvent&) { wxGetApp().check_legacy_user_filament_presets(true); });
 
     helpMenu->AppendSeparator();
 

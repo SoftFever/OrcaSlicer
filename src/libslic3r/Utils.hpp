@@ -66,6 +66,7 @@
 #define CLI_OBJECT_ORIENT_FAILED       -22
 #define CLI_MODIFIED_PARAMS_TO_PRINTER -23
 #define CLI_FILE_VERSION_NOT_SUPPORTED -24
+#define CLI_EXPORT_STATISTICS_ERROR    -25
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -109,7 +110,6 @@ extern std::string format_memsize_MB(size_t n);
 extern std::string format_memsize(size_t bytes, unsigned int decimals = 1);
 // Return string to be added to the boost::log output to inform about the current process memory allocation.
 // The string is non-empty if the loglevel >= info (3) or ignore_loglevel==true.
-// Latter is used to get the memory info from SysInfoDialog.
 extern std::string log_memory_info(bool ignore_loglevel = false);
 extern void disable_multi_threading();
 // Returns the size of physical memory (RAM) in bytes.

@@ -299,6 +299,9 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             BoundingBoxf3    box;
             // Of an object, whether it is an assembly.
             bool assembly{ false };
+            // Of an object instance, its model object's name and its index among that object's instances.
+            std::string name;
+            int         instance{ -1 };
 
             Sum  total() const { return printed_up_to_layer.empty() ? Sum{} : printed_up_to_layer.back(); }
             void add(const Sum &sum, const BoundingBoxf3 &extent, size_t layer);
@@ -1229,7 +1232,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         // m_result.nozzle_group_result, which is handed over only after the stream for the
         // pre-heat injector's second pass and gates the richer change-time model.
         std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> m_nozzle_group_result;
-        bool m_manual_filament_change;
+        bool m_manual_filament_change{ false };
 
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };
@@ -1282,6 +1285,7 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
         bool m_detect_layer_based_on_tag {false};
         int m_seams_count;
         bool m_measure_g29_time {false};
+        bool m_g29_time_added {false};
         bool m_single_extruder_multi_material;
         float m_preheat_time;
         int m_preheat_steps;
