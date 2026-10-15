@@ -29,6 +29,7 @@
 #include "pluginTypes/slicingPipeline/SlicingPipelinePluginCapability.hpp"
 #include <pybind11/pytypes.h>
 #include <pybind11/gil.h>
+#include "slic3r/GUI/I18N.hpp"
 
 namespace py = pybind11;
 
@@ -191,7 +192,7 @@ std::vector<CapturedCapability> PythonPluginBridge::finalize_plugin_capture(cons
                     granted = PluginAuditManager::instance().request_filesystem_read_permissions(plugin_key, fs_read_permissions);
                 }
                 if (!granted) {
-                    error = "Plugin filesystem read permission request denied";
+                    error = _u8L("Plugin filesystem read permission request denied");
                     BOOST_LOG_TRIVIAL(warning) << error << " for key " << plugin_key;
                     discard_pending_for_key();
                     clear_active_key();

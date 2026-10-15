@@ -1036,6 +1036,11 @@ bool GLGizmoPainterBase::on_mouse(const wxMouseEvent &mouse_event)
     Vec2d mouse_pos = mouse_coord.cast<double>();
 
     if (mouse_event.Moving()) {
+        // No button is down, yet a stroke is still open: its release went elsewhere, as a paint drag does not
+        // capture the mouse. End the stroke as that release would have.
+        if (m_button_down != Button::None)
+            gizmo_event(m_button_down == Button::Left ? SLAGizmoEventType::LeftUp : SLAGizmoEventType::RightUp, mouse_pos,
+                        mouse_event.ShiftDown(), mouse_event.AltDown(), false);
         gizmo_event(SLAGizmoEventType::Moving, mouse_pos, mouse_event.ShiftDown(), mouse_event.AltDown(), false);
         return false;
     }
@@ -1205,6 +1210,10 @@ void GLGizmoPainterBase::on_set_state()
         m_old_mo_id = -1;
         //m_iva.release_geometry();
         m_triangle_selectors.clear();
+        // A stroke still open goes with the selectors. Its state must not carry into the next session, where the
+        // first move would end it as if released and the first press would paint a line from its last position.
+        m_button_down      = Button::None;
+        m_last_mouse_click = Vec2d::Zero();
 
         //Camera& camera = wxGetApp().plater()->get_camera();
         //camera.look_at(camera.get_position(), m_previous_target, Vec3d::UnitZ());

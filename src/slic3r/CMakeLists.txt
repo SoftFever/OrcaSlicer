@@ -20,6 +20,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/FilamentLoad.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
+    GUI/AnimatedTexture.cpp
+    GUI/AnimatedTexture.hpp
     GUI/AmsMappingPopup.cpp
     GUI/AmsMappingPopupUpdate.cpp
     GUI/AmsMappingPopup.hpp
@@ -127,6 +129,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Shortcuts.hpp
     GUI/SpeedDialDialog.cpp
     GUI/SpeedDialDialog.hpp
+    GUI/ColorPickerDialog.cpp
+    GUI/ColorPickerDialog.hpp
     GUI/ActionRegistry.cpp
     GUI/ActionRegistry.hpp
     GUI/NativeCommands.cpp
@@ -174,6 +178,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoAssembly.hpp
     GUI/Gizmos/GLGizmoBase.cpp
     GUI/Gizmos/GLGizmoBase.hpp
+    GUI/Gizmos/GLGizmoAlignment.cpp
+    GUI/Gizmos/GLGizmoAlignment.hpp
     GUI/Gizmos/GLGizmoBrimEars.cpp
     GUI/Gizmos/GLGizmoBrimEars.hpp
     GUI/Gizmos/GLGizmoCut.cpp
@@ -416,8 +422,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/MultiSendMachineModel.hpp
     GUI/MultiTaskManagerPage.cpp
     GUI/MultiTaskManagerPage.hpp
-    GUI/MultiTaskModel.cpp
-    GUI/MultiTaskModel.hpp
     GUI/NetworkTestDialog.cpp
     GUI/NetworkTestDialog.hpp
     GUI/Notebook.cpp
@@ -802,7 +806,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/PrintHost.hpp
     Utils/Process.cpp
     Utils/Process.hpp
-    Utils/Profile.hpp
     Utils/RaycastManager.cpp
     Utils/RaycastManager.hpp
     Utils/Repetier.cpp
