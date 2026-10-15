@@ -1,5 +1,6 @@
 #include "Plater.hpp"
 #include "../Utils/NetworkAgent.hpp"
+#include "slic3r/Utils/NetworkAgentFactory.hpp"
 #include "IPrinterAgent.hpp"
 #include "CalibUtils.hpp"
 #include "Flashforge.hpp"
@@ -6289,8 +6290,37 @@ void Sidebar::load_ams_list(MachineObject* obj)
     p->combo_printer->update();
 }
 
+static void check_curve_path_and_disable_arc_fitting()
+{
+    auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
+    if (!obj)
+        return;
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle)
+        return;
+
+    // Disable arc fitting when curve planning enhancement support is detected on a Bambu Lab printer,
+    if (obj->is_support_curve_path && (obj->printer_agent_id == BBL_PRINTER_AGENT_ID || obj->printer_agent_id.empty())) {
+        Preset &process_preset = preset_bundle->prints.get_edited_preset();
+        // Ensure arc fitting is only disabled and notification sent when arc fitting is currently enabled (not disabled already)
+        if (process_preset.config.opt_bool("enable_arc_fitting")) {
+            process_preset.config.set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
+            if (auto print_tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+                print_tab->update_dirty();
+                print_tab->reload_config();
+            }
+            if (auto plater = wxGetApp().plater()) {
+                plater->get_notification_manager()->push_notification(
+                    _u8L("Curve planning enhancement support detected on your printer. Arc fitting has been disabled to ensure this feature functions correctly."));
+            }
+        }
+    }
+}
+
 void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
 {
+    check_curve_path_and_disable_arc_fitting();
     wxBusyCursor cursor;
     // Force load ams list
     auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
@@ -6706,6 +6736,7 @@ bool Sidebar::is_multifilament()
 }
 
 void Sidebar::deal_btn_sync() {
+    check_curve_path_and_disable_arc_fitting();
     m_begin_sync_printer_status = true;
     bool only_external_material;
     // Manual "sync machine" button: is_manual=true so an H2C pops the MultiNozzleSyncDialog to pick a nozzle option.
