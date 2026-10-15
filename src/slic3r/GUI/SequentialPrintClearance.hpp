@@ -38,7 +38,6 @@ inline void sort_sequential_clearance_instances(
 }
 
 // Input follows object-list order with validated print order within each object.
-// Sorting by X for overlapping Y ranges and by Y otherwise is not a strict weak ordering.
 inline std::vector<std::pair<Polygon, float>> sequential_clearance_height_polygons(
     const std::vector<SequentialClearanceInstance>& instances, double printable_height, double height_to_lid, double height_to_rod)
 {
