@@ -38,6 +38,7 @@
 #include <boost/log/trivial.hpp>
 #include <algorithm>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <cctype>
 #include <ios>
