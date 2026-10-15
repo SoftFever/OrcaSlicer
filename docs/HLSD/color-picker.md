@@ -50,6 +50,11 @@ single colors, gradients and multicolor layouts composite over the same checkerb
 as AMS custom colors. Two- and three-color stripes and four-color quadrants retain
 their layouts. Icon caches distinguish gradient and segmented modes and include
 every RGBA component; label contrast uses the composited color for single colors.
+All composited filament preview bitmaps use opaque RGB storage, including single,
+gradient, segmented and vertical-ramp swatches. The color's alpha affects its
+appearance over the checkerboard; the finished preview carries no alpha channel.
+On Windows this also prevents GDI label drawing from leaving alpha bytes that
+native menu conversion treats as transparent text.
 Opaque colors use `#RRGGBB`; nonopaque colors use `#RRGGBBAA`, including fully
 transparent alpha `00`. Initial selections, alpha-only edits and cancellation
 retain stored alpha. Ordered

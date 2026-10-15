@@ -49,6 +49,7 @@ enum class FilamentRenderMode {
 
 // Create a colour swatch bitmap. The render mode is chosen automatically from the
 // number of colours unless force_gradient is true.
+// Composites RGBA over a checkerboard and returns an opaque RGB bitmap.
 wxBitmap create_filament_bitmap(const std::vector<wxColour>& colors,
                               const wxSize& size,
                               bool force_gradient = false);
@@ -81,7 +82,7 @@ Slic3r::GradientCurve mixed_gradient_curve(const Slic3r::DynamicPrintConfig& cfg
 // Fill rect with a ramp, ramp.front() along the bottom edge.
 void fill_gradient_ramp_rect(wxDC& dc, const wxRect& rect, const std::vector<wxColour>& ramp);
 
-// Swatch bitmap for a gradient mixed filament, drawn bottom to top from the ramp.
+// Opaque RGB swatch for a gradient mixed filament, drawn bottom to top over a checkerboard.
 wxBitmap create_gradient_ramp_bitmap(const std::vector<wxColour>& ramp, const wxSize& size);
 
 // Recompute blended representative colors for mixed (virtual) filament slots.

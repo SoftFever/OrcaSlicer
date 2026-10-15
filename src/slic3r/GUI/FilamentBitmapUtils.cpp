@@ -294,10 +294,10 @@ struct BitmapDC {
     wxMemoryDC dc;
     std::unique_ptr<wxGCDC> graphics;
 
-    BitmapDC(const wxSize& size, bool alpha) : bitmap(size){
-#ifdef __WXOSX__
-        bitmap.UseAlpha();
-#endif
+    // All previews are opaque after checkerboard compositing. RGB storage also
+    // prevents Windows GDI labels from leaving invalid alpha bytes for menus.
+    BitmapDC(const wxSize& size, bool alpha) : bitmap(size, 24)
+    {
         dc.SelectObject(bitmap);
         // Don't set white background - let the color patterns fill the entire area
         dc.SetPen(*wxTRANSPARENT_PEN);

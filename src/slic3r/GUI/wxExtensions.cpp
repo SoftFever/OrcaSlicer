@@ -712,7 +712,7 @@ wxBitmap *get_extruder_color_icon(std::vector<std::string> colors, bool is_gradi
             int text_y = (icon_height - size.y) / 2;
 
             // Draw very thin border with lighter color and fewer directions
-            dc.SetTextForeground(wxColor("262E30")); // Semi-transparent dark gray
+            dc.SetTextForeground(wxColour("#262E30")); // Dark outline
             dc.DrawText(label, text_x - 1, text_y);     // Left
             dc.DrawText(label, text_x + 1, text_y);     // Right
             dc.DrawText(label, text_x, text_y - 1);     // Up
@@ -753,10 +753,9 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
         wxColor clr(color);
         const bool alpha = clr.Alpha() < 255;
         const wxBitmap base = alpha ? Slic3r::GUI::create_filament_bitmap({clr}, wxSize(icon_width, icon_height))
-                                    : wxBitmap(icon_width, icon_height);
+                                    : wxBitmap(icon_width, icon_height, 24);
         bitmap = bmp_cache.insert(bitmap_key, base);
 #ifdef __WXOSX__
-        bitmap->UseAlpha();
         wxMemoryDC dc(*bitmap);
 #elif defined(__WXMSW__)
         wxClientDC cdc(win);

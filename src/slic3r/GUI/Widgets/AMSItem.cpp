@@ -1082,7 +1082,7 @@ void AMSLib::render(wxDC &dc)
 #ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
-    wxBitmap   bmp(size.x, size.y);
+    wxBitmap   bmp(size.x, size.y, 24);
     memdc.SelectObject(bmp);
     memdc.Blit({0, 0}, size, &dc, {0, 0});
 
@@ -2731,7 +2731,7 @@ void AMSPreview::render(wxDC &dc)
 #ifdef __WXMSW__
     wxSize     size = GetSize();
     wxMemoryDC memdc;
-    wxBitmap   bmp(size.x, size.y);
+    wxBitmap   bmp(size.x, size.y, 24);
     memdc.SelectObject(bmp);
     memdc.Blit({0, 0}, size, &dc, {0, 0});
 

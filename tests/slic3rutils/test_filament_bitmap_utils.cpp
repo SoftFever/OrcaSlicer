@@ -30,7 +30,9 @@
 #include <wx/dc.h>
 #include <wx/dcgraph.h>
 #include <wx/dcmemory.h>
+#include <wx/font.h>
 #include <wx/gdicmn.h>
+#include <wx/menuitem.h>
 #include <wx/string.h>
 #include <cstdlib>
 #include <utility>
@@ -583,8 +585,10 @@ TEST_CASE("Filament single color icons composite every RGBA channel over both ch
     REQUIRE(int(color.Alpha()) == alpha);
     const wxBitmap bitmap = Slic3r::GUI::create_filament_bitmap({color}, wxSize(width * scale, 20 * scale));
     REQUIRE(bitmap.IsOk());
+    REQUIRE_FALSE(bitmap.HasAlpha());
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
+    REQUIRE_FALSE(image.HasAlpha());
     const int y = 10 * scale;
     for (const auto& channels : {std::vector<int>{32, image.GetRed(6 * scale, y), image.GetRed(10 * scale, y)},
                                  std::vector<int>{64, image.GetGreen(6 * scale, y), image.GetGreen(10 * scale, y)},
@@ -604,8 +608,10 @@ TEST_CASE("Filament gradient icons reveal interior alpha while retaining opaque 
         std::reverse(colors.begin(), colors.end());
     const wxBitmap bitmap = Slic3r::GUI::create_filament_bitmap(colors, wxSize(121, 20), true);
     REQUIRE(bitmap.IsOk());
+    REQUIRE_FALSE(bitmap.HasAlpha());
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
+    REQUIRE_FALSE(image.HasAlpha());
     const int first = image.GetRed(60, 6), second = image.GetRed(60, 10);
     REQUIRE(std::abs(std::min(first, second) - 217 * (255 - alpha) / 255) <= 1);
     REQUIRE(std::abs(std::max(first, second) - (255 - alpha)) <= 1);
@@ -623,8 +629,10 @@ TEST_CASE("Filament segmented icons preserve stripes and quadrants over a contin
     const std::vector<wxColour> colors(all.begin(), all.begin() + count);
     const wxBitmap bitmap = Slic3r::GUI::create_filament_bitmap(colors, wxSize(44 * scale, 20 * scale), false);
     REQUIRE(bitmap.IsOk());
+    REQUIRE_FALSE(bitmap.HasAlpha());
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
+    REQUIRE_FALSE(image.HasAlpha());
     for (int i = 0; i < count; ++i) {
         const int x = (count == 4 ? 22 * (i % 2) + 5 : (44 / count) * i + 5) * scale;
         const int y = (count == 4 ? 10 * (i / 2) + 5 : 10) * scale;
@@ -645,13 +653,58 @@ TEST_CASE("Vertical filament ramps composite alpha over the same checkerboard as
     const std::vector<wxColour> ramp{wxColour(255, 0, 0), wxColour(0, 0, 255, 128), wxColour(0, 255, 0, 0)};
     const wxBitmap bitmap = Slic3r::GUI::create_gradient_ramp_bitmap(ramp, wxSize(44, 21));
     REQUIRE(bitmap.IsOk());
+    REQUIRE_FALSE(bitmap.HasAlpha());
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
+    REQUIRE_FALSE(image.HasAlpha());
     REQUIRE(std::min(image.GetRed(6, 0), image.GetRed(10, 0)) == 217);
     REQUIRE(std::max(image.GetRed(6, 0), image.GetRed(10, 0)) == 255);
     REQUIRE(std::abs(int(std::min(image.GetRed(6, 10), image.GetRed(10, 10))) - 108) <= 1);
     REQUIRE(std::abs(int(std::max(image.GetRed(6, 10), image.GetRed(10, 10))) - 127) <= 1);
     require_same_rgb(wxColour(image.GetRed(6, 20), image.GetGreen(6, 20), image.GetBlue(6, 20)), ramp.front());
+}
+
+TEST_CASE("Windows menu gradient labels retain opaque pixels after native text drawing", "[FilamentBitmapUtils][Regression]")
+{
+    const int alpha = GENERATE(0, 128, 255);
+    const double scale = GENERATE(1.0, 1.5, 2.0);
+    const wxString label = GENERATE("3", "10");
+    const int size = static_cast<int>(20 * scale);
+    wxBitmap bitmap = Slic3r::GUI::create_filament_bitmap({wxColour(0, 0, 255, alpha), wxColour(255, 0, 0, alpha)},
+                                                         wxSize(size, size), true);
+    REQUIRE(bitmap.IsOk());
+    bitmap.SetScaleFactor(scale);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetFont(wxFont(wxFontInfo(wxSize(0, static_cast<int>(14 * scale))).Family(wxFONTFAMILY_SWISS)));
+        dc.SetBackgroundMode(wxTRANSPARENT);
+        const wxSize text = dc.GetTextExtent(label);
+        const int x = (size - text.x) / 2, y = (size - text.y) / 2;
+        dc.SetTextForeground(wxColour("#262E30"));
+        dc.DrawText(label, x - 1, y);
+        dc.DrawText(label, x + 1, y);
+        dc.DrawText(label, x, y - 1);
+        dc.DrawText(label, x, y + 1);
+        dc.SetTextForeground(*wxWHITE);
+        dc.DrawText(label, x, y);
+    }
+    wxMenuItem item(nullptr, wxID_ANY, "Filament");
+    item.SetBitmap(bitmap);
+    const wxImage image = item.GetBitmap().ConvertToImage();
+    REQUIRE(image.IsOk());
+    REQUIRE(image.HasAlpha());
+    std::size_t nonopaque = 0, foreground = 0;
+    for (int y = 0; y < image.GetHeight(); ++y) {
+        for (int x = 0; x < image.GetWidth(); ++x) {
+            if (image.GetAlpha(x, y) != 255)
+                ++nonopaque;
+            if (image.GetRed(x, y) > 230 && image.GetGreen(x, y) > 230 && image.GetBlue(x, y) > 230)
+                ++foreground;
+        }
+    }
+    CAPTURE(alpha, scale, label, bitmap.GetDepth(), bitmap.HasAlpha());
+    REQUIRE(nonopaque == 0);
+    REQUIRE(foreground > 0);
 }
 
 #endif // __WXMSW__
