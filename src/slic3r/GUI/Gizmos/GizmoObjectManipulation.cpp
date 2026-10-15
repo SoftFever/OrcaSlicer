@@ -753,6 +753,11 @@ void GizmoObjectManipulation::reset_align_state()
 
 void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper, std::string window_name, float x, float y, float bottom_limit)
 {
+    float scale = m_glcanvas.get_scale();
+#ifdef WIN32
+    scale *= (float)get_dpi_for_window(wxGetApp().GetTopWindow()) / (float)DPI_DEFAULT;
+#endif // WIN32
+
     // BBS: GUI refactor: move gizmo to the right
     if (abs(last_move_input_window_width) > 0.01f) {
         if (x + last_move_input_window_width > m_glcanvas.get_canvas_size().get_width()) {
@@ -824,7 +829,7 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     // Rotation
     float unit_size = imgui_wrapper->calc_text_size(MAX_SIZE).x + space_size;
     // Four align buttons sit under each axis' input, a space before the next axis, so the inputs widen to hold them.
-    const float align_icon_size   = 16.f * m_glcanvas.get_scale(); // ORCA use 16px icons
+    const float align_icon_size   = 16.f * scale;
     const float align_button_size = align_icon_size + 2.f * style.FramePadding.x;  // ORCA
     if (show_align) {
         unit_size = std::max(unit_size, 3.f * align_button_size);
