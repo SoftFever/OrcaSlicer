@@ -10,6 +10,7 @@
 #include "libslic3r/Layer.hpp"
 #include "libslic3r/Print.hpp"
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
