@@ -335,6 +335,23 @@ static std::shared_ptr<OrcaCloudServiceAgent> get_orca_cloud_agent(NetworkAgent*
     return agent ? std::dynamic_pointer_cast<OrcaCloudServiceAgent>(agent->get_cloud_agent()) : nullptr;
 }
 
+// Full {web} page URL for a same-site OrcaCloud path, or empty when it cannot be built. An already
+// open cloud pane is navigated straight to it, without re-running the session handoff.
+static wxString cloud_page_url(NetworkAgent* agent, const std::string& path)
+{
+    if (path.empty())
+        return {};
+    auto orca = get_orca_cloud_agent(agent);
+    if (!orca)
+        return {};
+    std::string base = orca->get_cloud_base_url();
+    while (!base.empty() && base.back() == '/')
+        base.pop_back();
+    if (base.empty())
+        return {};
+    return from_u8(base + path);
+}
+
 void start_ping_test()
 {
     return;
@@ -5628,7 +5645,7 @@ void GUI_App::open_orca_cloud(const std::string& next)
         // The Home page is built lazily, so the tab switch may not have created it yet: ensure() builds
         // it if needed, matching what showing the tab does, rather than dropping the open request.
         if (WebViewPanel* home = WebViewPanel::ensure())
-            home->set_cloud_mode(true, cloud_webview_handoff(m_cloud_open_path));
+            home->set_cloud_mode(true, cloud_webview_handoff(m_cloud_open_path), cloud_page_url(m_agent, m_cloud_open_path));
     });
 }
 

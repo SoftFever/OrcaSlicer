@@ -468,8 +468,8 @@ public:
 #if wxUSE_WEBVIEW_EDGE
     void            init_webview_runtime();
 #endif
-    // Switches to the Home tab and opens the OrcaCloud pane beside the homepage; work is deferred
-    // internally. `next` is a same-site OrcaCloud path (empty = the page's default).
+    // Switches to the Home tab and opens the OrcaCloud pane beside the homepage on `next`, a
+    // same-site OrcaCloud path (empty = the page's default). Work is deferred internally.
     void            open_orca_cloud(const std::string& next = std::string());
     static unsigned get_colour_approx_luma(const wxColour& colour);
     static bool     dark_mode();
