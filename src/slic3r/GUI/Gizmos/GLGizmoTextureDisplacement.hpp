@@ -550,7 +550,12 @@ private:
         std::array<Vec2d, 4> arm_base{};
         std::array<Vec2d, 4> arm_tip{};
         std::array<Vec2d, 4> arm_dir{}; // unit, pointing outward from the centre
-        Vec2d rotate_at = Vec2d::Zero();
+        // A ring is placed off every corner, but only one is drawn and only that one can be picked:
+        // four marks for a single operation is clutter, and whichever corner the cursor is near is
+        // the one worth offering. `rotate_shown` says which, and see update_rotate_corner() for why
+        // it does not simply track the nearest.
+        std::array<Vec2d, 4> rotate_at{};
+        int                  rotate_shown = 0;
         // The tile projects to less than ADJUST_MIN_TILE_PX across, so the frame was drawn at that
         // floor instead. It is dashed to say so, and the readout still gives the true millimetres.
         bool clamped = false;
@@ -564,6 +569,13 @@ private:
     };
 
     bool update_adjust_anchor(); // recomputes m_adjust_anchor_pos/normal; false if nothing painted
+    // The selected instance's volume-to-world transform, which the bake frame is derived from.
+    bool adjust_volume_to_world(Transform3d &out) const;
+    // The anchor, carried from mesh-local into the bake frame. Converted on every use rather than
+    // stored converted: the object can be moved, rotated or scaled while this mode is open, and a
+    // stored copy would quietly describe the shape it used to be. The expensive part - finding the
+    // paint patch's centroid - stays cached in the local members.
+    bool adjust_anchor_in_frame(Vec3f &pos, Vec3f &normal) const;
     // Drops every scrap of live gizmo state. Called from each of the several ways out of the mode -
     // the panel's toggle, collapsing the card, switching to seam marking, closing the gizmo - so a
     // stale hover highlight or a half-finished drag cannot survive into the next time it is opened.
@@ -575,6 +587,10 @@ private:
     // Which handle is under `mouse`, with `index` set to the arm or corner it belongs to. Tested
     // outermost first; see the hit-area board of the design for the order and the radii.
     AdjustHandle adjust_pick(const Vec2d &mouse, const AdjustFrame &f, int &index) const;
+    // Chooses which corner carries the rotate ring. The nearest to the cursor, but it only moves once
+    // the newcomer is clearly nearer, because without that margin the ring flits between two corners
+    // every time the cursor wanders along the line equidistant from both. Never moves during a drag.
+    void update_rotate_corner(const AdjustFrame &f, const Vec2d &mouse);
 
     // Where the tile's centre sits, in planar mm relative to the anchor, for a layer's placement.
     // Not the patch centroid: the gizmo *is* the texture's placement, so it has to travel as the
@@ -605,7 +621,7 @@ private:
     // obvious whether the next stroke adds paint (default) or erases it (Shift). Uses ImGui's
     // foreground draw list, so it must be called from inside the gizmo's ImGui frame.
     void render_paint_cursor_hint();
-    // Mesh-local tangent-plane basis at m_adjust_anchor_normal: box_projection_axes(), so dragging
+    // Bake-frame tangent-plane basis at m_adjust_anchor_normal: box_projection_axes(), so dragging
     // on-canvas maps consistently onto offset whichever face the anchor is on.
     void adjust_tangent_basis(Vec3f &u_axis, Vec3f &v_axis) const;
 
@@ -1197,12 +1213,21 @@ private:
     // See the "Adjust Texture" block of private methods above.
     bool  m_adjust_texture_mode      = false;
     bool  m_adjust_anchor_valid      = false;
-    Vec3f m_adjust_anchor_pos        = Vec3f::Zero();  // mesh-local
-    Vec3f m_adjust_anchor_normal     = Vec3f::UnitZ(); // mesh-local
+    // Mesh-local, as compute_layer_paint_anchor() produces them. Everything else about the gizmo
+    // works in the bake frame - world orientation and scale, origin at the volume's own, which is
+    // where the texture is projected (texture_displacement_bake_frame()) - so these go through
+    // adjust_anchor_in_frame() at the point of use. A tile is so many *printed* millimetres whatever
+    // the instance's scale, which is why measuring the gizmo in mesh-local millimetres made its tile
+    // differ from the rendered one by exactly that scale.
+    Vec3f m_adjust_anchor_pos        = Vec3f::Zero();
+    Vec3f m_adjust_anchor_normal     = Vec3f::UnitZ();
 
     // What the cursor is over, and what is being dragged. `index` picks the arm or the corner
     // (0..3, in AdjustFrame's order); it is -1 for Move and Rotate, which have only one of each.
     // Only ever one of each is set, so two handles can never both look live.
+    // Which corner currently carries the rotate ring. Persists between frames, which is what gives
+    // update_rotate_corner() something to apply its margin against.
+    int          m_adjust_rotate_corner = 0;
     AdjustHandle m_adjust_hover_kind  = AdjustHandle::None;
     int          m_adjust_hover_index = -1;
     AdjustHandle m_adjust_drag_kind   = AdjustHandle::None;
