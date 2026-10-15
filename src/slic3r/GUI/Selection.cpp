@@ -479,20 +479,15 @@ void Selection::add_curr_plate()
     clear();
 
     PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    if (!plate) {
-        update_type();
-        this->set_bounding_boxes_dirty();
-        return;
-    }
-
-    for (int obj_idx = 0; obj_idx < (int)m_model->objects.size(); obj_idx++) {
-        const ModelObject* obj = m_model->objects[obj_idx];
-        for (int inst_idx = 0; inst_idx < (int)obj->instances.size(); inst_idx++) {
-            // on this plate AND still overlapping it in some way (fully inside OR oversized/partly outside)
-            if (plate->contain_instance(obj_idx, inst_idx) &&
-                (plate->contain_instance_totally(obj_idx, inst_idx) || plate->intersect_instance(obj_idx, inst_idx))) {
-                std::vector<unsigned int> volume_idxs = get_volume_idxs_from_instance(obj_idx, inst_idx);
-                do_add_volumes(volume_idxs);
+    if (plate) {
+        for (int obj_idx = 0; obj_idx < (int)m_model->objects.size(); obj_idx++) {
+            const ModelObject* obj = m_model->objects[obj_idx];
+            for (int inst_idx = 0; inst_idx < (int)obj->instances.size(); inst_idx++) {
+                // on this plate AND still overlapping it in some way (fully inside OR oversized/partly outside)
+                // Plain membership: unlike contain_instance_totally(), this keeps instances
+                // that are oversized or partly outside the bed (instance_outside_set).
+                if (plate->contain_instance(obj_idx, inst_idx) || plate->intersect_instance(obj_idx, inst_idx))
+                    do_add_volumes(get_volume_idxs_from_instance(obj_idx, inst_idx));
             }
         }
     }
