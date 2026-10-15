@@ -512,17 +512,19 @@ void Selection::remove_curr_plate()
         return;
 
     PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    if (plate->empty())
+    if (!plate) // plate->empty() > plate returns empty while object oversized / partly outside
         return;
 
     wxGetApp().plater()->take_snapshot(std::string("Selection-Delete Curr Plate All"));
     m_mode = Instance;
     clear();
 
-    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-        if (plate && plate->contain_instance(obj_idx, 0)) {
-            std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
-            do_add_volumes(volume_idxs);
+    for (int obj_idx = 0; obj_idx < (int)m_model->objects.size(); obj_idx++) {
+        const ModelObject* obj = m_model->objects[obj_idx];
+        for (int inst_idx = 0; inst_idx < (int)obj->instances.size(); inst_idx++) {
+            // on this plate AND still overlapping it in some way (fully inside OR oversized/partly outside)
+            if (plate->contain_instance(obj_idx, inst_idx) || plate->intersect_instance(obj_idx, inst_idx))
+                do_add_volumes(get_volume_idxs_from_instance(obj_idx, inst_idx));
         }
     }
 
