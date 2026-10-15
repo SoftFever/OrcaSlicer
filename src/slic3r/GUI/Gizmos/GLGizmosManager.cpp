@@ -308,13 +308,18 @@ bool GLGizmosManager::init_icon_textures()
     else
         return false;
 
-    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip.svg", 25, 25, texture_id)) // ORCA: Use same resolution with gizmos to prevent blur on icon
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip.svg", 15, 15, texture_id)) // ORCA: Use same resolution with gizmos to prevent blur on icon
         icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP, texture_id));
     else
         return false;
 
-    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_tooltip_hover.svg", 25, 25, texture_id)) // ORCA: Use same resolution with gizmos to prevent blur on icon
-        icon_list.insert(std::make_pair((int)IC_TOOLBAR_TOOLTIP_HOVER, texture_id));
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_wiki.svg", 15, 15, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TOOLBAR_WIKI_GUIDE, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/toolbar_video_guide.svg", 15, 15, texture_id))
+        icon_list.insert(std::make_pair((int)IC_TOOLBAR_VIDEO_GUIDE, texture_id));
     else
         return false;
 
@@ -415,7 +420,10 @@ void GLGizmosManager::refresh_on_off_state()
 
 void GLGizmosManager::reset_all_states()
 {
-    if (! m_enabled || m_serializing)
+    // The restore/new-project event can run before deferred OpenGL resource
+    // loading has populated the gizmo list.  There is nothing to reset until
+    // initialization completes.
+    if (! m_enabled || m_serializing || m_gizmos.empty())
         return;
 
     const EType current = get_current_type();
@@ -430,6 +438,9 @@ void GLGizmosManager::reset_all_states()
 
 bool GLGizmosManager::open_gizmo(EType type)
 {
+    if (m_gizmos.empty())
+        return false;
+
     int idx = static_cast<int>(type);
 
     // re-open same type cause closing
@@ -517,7 +528,7 @@ bool GLGizmosManager::is_running() const
 
 bool GLGizmosManager::open_gizmo_by_shortcut(Shortcut shortcut)
 {
-    if (!m_enabled)
+    if (!m_enabled || m_gizmos.empty())
         return false;
 
     // The text tool opens without a selection because it creates its own object.
@@ -1422,10 +1433,12 @@ void GLGizmosManager::update_hover_state(const EType &type)
 
 bool GLGizmosManager::activate_gizmo(EType type)
 {
-    assert(!m_gizmos.empty());
-
     // already activated
-    if (m_current == type) return true;
+    if (m_current == type)
+        return true;
+
+    if (m_gizmos.empty())
+        return false;
 
     if (m_current != Undefined) {
         // clean up previous gizmo
