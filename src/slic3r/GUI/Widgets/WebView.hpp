@@ -21,6 +21,10 @@ public:
 #endif
     static void LoadUrl(wxWebView * webView, wxString const &url);
 
+    // Returns the URL truncated at the first '?' or '#', so a query/fragment carrying secrets
+    // (e.g. a session-handoff token) is never written to a log.
+    static wxString RedactUrl(const wxString& url);
+
     static bool RunScript(wxWebView * webView, wxString const & msg);
 
     // Marks "wx" as registered so CreateWebView's deferred add skips the duplicate.

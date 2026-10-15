@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "libslic3r/TextureDisplacement.hpp"
+
 namespace Slic3r::GUI {
 
 // One selectable height-map texture in the texture-displacement gizmo's texture picker.
@@ -56,6 +58,14 @@ std::optional<TextureLibraryEntry> import_texture_to_library(const std::string &
 // by hand - is converted on the fly, so a valid image never silently produces a blank layer.
 // Returns nullptr with `error` set if the file cannot be read or decoded at all.
 std::shared_ptr<std::vector<unsigned char>> load_texture_image_data(const std::string &path, std::string &error);
+
+// Writes `image` into user_texture_dir() as a new PNG named after `stem` (uniquified if taken, so an
+// existing texture is never overwritten) and returns its library entry. The in-memory counterpart of
+// import_texture_to_library(), for an image that was edited rather than read off disk.
+//
+// Returns nullopt with `error` set on failure.
+std::optional<TextureLibraryEntry> save_texture_to_library(const DecodedHeightTexture &image, const std::string &stem,
+                                                           std::string &error);
 
 } // namespace Slic3r::GUI
 

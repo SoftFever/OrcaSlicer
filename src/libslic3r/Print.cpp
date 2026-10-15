@@ -149,6 +149,8 @@ void Print::clear()
     m_print_regions.clear();
     m_model.clear_objects();
     m_statistics_by_extruder_count.clear();
+    m_same_shrinkage_compensations = false;
+    m_shrinkage_compensation = Vec3d::Ones();
 }
 
 bool Print::has_tpu_filament() const
@@ -584,30 +586,34 @@ std::vector<unsigned int> Print::object_extruders() const
 		for (const PrintRegion &region : object->all_regions())
         	region.collect_object_printing_extruders(*this, extruders);
 
-    for (const PrintObject* object : m_objects) {
-        const ModelObject* mo = object->model_object();
-        for (const ModelVolume* mv : mo->volumes) {
-            std::vector<int> volume_extruders = mv->get_extruders();
-            for (int extruder : volume_extruders) {
-                assert(extruder > 0);
-                extruders.push_back(extruder - 1);
-            }
-        }
-
-        // layer range
-        for (auto layer_range : mo->layer_config_ranges) {
-            if (layer_range.second.has("extruder")) {
-                //BBS: actually when user doesn't change filament by height range(value is default 0), height range should not save key "extruder".
-                //Don't know why height range always save key "extruder" because of no change(should only save difference)...
-                //Add protection here to avoid overflow
-                auto value = layer_range.second.option("extruder")->getInt();
-                if (value > 0)
-                    extruders.push_back(value - 1);
-            }
-        }
-    }
+    for (const PrintObject* object : m_objects)
+        append_model_object_extruders(*object->model_object(), extruders);
     sort_remove_duplicates(extruders);
     return extruders;
+}
+
+// Appends 0-based indices of the filaments assigned to the volumes of model_object (painting included) and to its height ranges.
+void Print::append_model_object_extruders(const ModelObject &mo, std::vector<unsigned int> &extruders)
+{
+    for (const ModelVolume* mv : mo.volumes) {
+        std::vector<int> volume_extruders = mv->get_extruders();
+        for (int extruder : volume_extruders) {
+            assert(extruder > 0);
+            extruders.push_back(extruder - 1);
+        }
+    }
+
+    // layer range
+    for (auto layer_range : mo.layer_config_ranges) {
+        if (layer_range.second.has("extruder")) {
+            //BBS: actually when user doesn't change filament by height range(value is default 0), height range should not save key "extruder".
+            //Don't know why height range always save key "extruder" because of no change(should only save difference)...
+            //Add protection here to avoid overflow
+            auto value = layer_range.second.option("extruder")->getInt();
+            if (value > 0)
+                extruders.push_back(value - 1);
+        }
+    }
 }
 
 // returns 0-based indices of used extruders
@@ -619,22 +625,8 @@ std::vector<unsigned int> Print::support_material_extruders() const
     auto num_extruders = (unsigned int)m_config.filament_diameter.size();
 
     for (PrintObject *object : m_objects) {
-        if (object->has_support_material()) {
-        	assert(object->config().support_filament >= 0);
-            if (object->config().support_filament == 0)
-                support_uses_current_extruder = true;
-            else {
-            	unsigned int i = (unsigned int)object->config().support_filament - 1;
-                extruders.emplace_back((i >= num_extruders) ? 0 : i);
-            }
-        	assert(object->config().support_interface_filament >= 0);
-            if (object->config().support_interface_filament == 0)
-                support_uses_current_extruder = true;
-            else {
-            	unsigned int i = (unsigned int)object->config().support_interface_filament - 1;
-                extruders.emplace_back((i >= num_extruders) ? 0 : i);
-            }
-        }
+        if (object->has_support_material() && append_support_extruders(object->config(), num_extruders, extruders))
+            support_uses_current_extruder = true;
     }
 
     if (support_uses_current_extruder)
@@ -645,31 +637,61 @@ std::vector<unsigned int> Print::support_material_extruders() const
     return extruders;
 }
 
+// Appends 0-based indices of the support and support interface filaments of an object printing support material.
+// Returns true if support or support interface is printed with the filament of the object.
+bool Print::append_support_extruders(const PrintObjectConfig &config, unsigned int num_extruders, std::vector<unsigned int> &extruders)
+{
+    bool uses_current_extruder = false;
+    assert(config.support_filament >= 0);
+    if (config.support_filament == 0)
+        uses_current_extruder = true;
+    else {
+        unsigned int i = (unsigned int)config.support_filament - 1;
+        extruders.emplace_back((i >= num_extruders) ? 0 : i);
+    }
+    assert(config.support_interface_filament >= 0);
+    if (config.support_interface_filament == 0)
+        uses_current_extruder = true;
+    else {
+        unsigned int i = (unsigned int)config.support_interface_filament - 1;
+        extruders.emplace_back((i >= num_extruders) ? 0 : i);
+    }
+    return uses_current_extruder;
+}
+
 // returns 0-based indices of used extruders
 std::vector<unsigned int> Print::extruders(bool conside_custom_gcode) const
 {
     std::vector<unsigned int> extruders = this->object_extruders();
     append(extruders, this->support_material_extruders());
 
-    if (conside_custom_gcode) {
-        //BBS
-        int num_extruders = m_config.filament_colour.size();
-        if (m_model.plates_custom_gcodes.find(m_model.curr_plate_index) != m_model.plates_custom_gcodes.end()) {
-            for (auto item : m_model.plates_custom_gcodes.at(m_model.curr_plate_index).gcodes) {
-                if (item.type == CustomGCode::Type::ToolChange && item.extruder <= num_extruders)
-                    extruders.push_back((unsigned int)(item.extruder - 1));
-            }
+    if (conside_custom_gcode)
+        this->append_tool_change_extruders(extruders);
+    this->append_wipe_tower_extruder(extruders);
+    sort_remove_duplicates(extruders);
+    return extruders;
+}
+
+// Appends 0-based indices of the filaments the tool changes of the current plate switch to.
+void Print::append_tool_change_extruders(std::vector<unsigned int> &extruders) const
+{
+    //BBS
+    int num_extruders = m_config.filament_colour.size();
+    if (m_model.plates_custom_gcodes.find(m_model.curr_plate_index) != m_model.plates_custom_gcodes.end()) {
+        for (auto item : m_model.plates_custom_gcodes.at(m_model.curr_plate_index).gcodes) {
+            if (item.type == CustomGCode::Type::ToolChange && item.extruder <= num_extruders)
+                extruders.push_back((unsigned int)(item.extruder - 1));
         }
     }
+}
 
+void Print::append_wipe_tower_extruder(std::vector<unsigned int> &extruders) const
+{
     // If a wipe tower filament is explicitly set, ensure it participates in tool ordering.
     if (has_wipe_tower() && config().wipe_tower_filament != 0 && extruders.size() > 1) {
         assert(config().wipe_tower_filament > 0 && config().wipe_tower_filament <= int(config().filament_diameter.size()));
         extruders.emplace_back(config().wipe_tower_filament - 1); // config value is 1-based
     }
-
-    sort_remove_duplicates(extruders);
-    return extruders;
 }
 
 unsigned int Print::num_object_instances() const
@@ -1484,7 +1506,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
                 // return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n",
                 //        inst->model_instance->get_object()};
                 //ORCA: Pass ModelInstance instead of ModelObject
-                return {inst->model_instance->get_object()->name + L(" is too close to exclusion area, there may be collisions when printing.") + "\n",
+                return {(boost::format(L("%1% is too close to exclusion area. There may be collisions when printing.")) % inst->model_instance->get_object()->name).str() + "\n",
                         inst->model_instance};
             }
 
@@ -1492,7 +1514,7 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
                 // return {inst->model_instance->get_object()->name + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n",
                 //        inst->model_instance->get_object()};
                 //ORCA: Pass ModelInstance instead of ModelObject
-                return {inst->model_instance->get_object()->name + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n",
+                return {(boost::format(L("%1% is too close to the clumping detection area. There may be collisions when printing.")) % inst->model_instance->get_object()->name).str() + "\n",
                         inst->model_instance};
             }
             current_instance_hulls.emplace_back(volume_hull);
@@ -1577,20 +1599,20 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     // many setups that print fine.
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
-            warning->string += L("Prime Tower") + L(" is too close to others, and collisions may be caused.\n");
+            warning->string += L("Prime tower is too close to others, and collisions may be caused.\n");
         }
     }
     if (!intersection(exclude_polys, tower_polys_checked).empty()) {
-        return {L("Prime Tower") + L(" is too close to an exclusion area, and collisions will be caused.\n")};
+        return {L("Prime tower is too close to an exclusion area, and collisions will be caused.\n")};
     }
     if (print_config.enable_wrapping_detection.value && !intersection({wrapping_poly}, tower_polys_checked).empty()) {
-        return {L("Prime Tower") + L(" is too close to clumping detection area, and collisions will be caused.\n")};
+        return {L("Prime tower is too close to the clumping detection area, and collisions will be caused.\n")};
     }
     if (warning && !intersection(exclude_polys, tower_polys_estimated).empty()) {
-        warning->string += L("Prime Tower") + L(" is too close to exclusion area, there may be collisions when printing.") + "\n";
+        warning->string += L("Prime tower is too close to an exclusion area. There may be collisions when printing.") + "\n";
     }
     if (warning && print_config.enable_wrapping_detection.value && !intersection({wrapping_poly}, tower_polys_estimated).empty()) {
-        warning->string += L("Prime Tower") + L(" is too close to clumping detection area, there may be collisions when printing.") + "\n";
+        warning->string += L("Prime tower is too close to the clumping detection area. There may be collisions when printing.") + "\n";
     }
     // No gate on "is there a tower": one that is not printed estimates to zero, so the hulls
     // are degenerate and every check passes. Re-deriving it here missed the wrapping-detection
@@ -1600,9 +1622,9 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
     for (Polygon &p : printable_polys)
         p.translate(plate_shift);
     if (!diff(tower_polys_checked, printable_polys).empty())
-        return {L("Prime Tower") + L(" is partially outside the printable area, and it cannot be printed.\n")};
+        return {L("Prime tower is partially outside the printable area, and it cannot be printed.\n")};
     if (warning && !diff(tower_polys_estimated, printable_polys).empty())
-        warning->string += L("Prime Tower") + L(" is partially outside the printable area, and it cannot be printed.\n");
+        warning->string += L("Prime tower is partially outside the printable area, and it cannot be printed.\n");
     return {};
 }
 
@@ -1969,14 +1991,19 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
                 // What is left is a printer with more filaments than logical extruders, where
                 // the tail slots fall outside the map. Narrow, but without this the sentence
                 // ends in a dangling "on .".
-                if (routed_list.empty())
-                    routed_list = L("no configured tool");
-
                 StringObjectException err;
-                err.string = Slic3r::format(
-                    L("IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. "
-                      "Assign a filament loaded on T%2%, or switch this plate to Primary mode."),
-                    parallel_mode, routing.primary_phys, routed_list);
+                if (routed_list.empty())
+                    err.string = Slic3r::format(
+                        // TRN %1% is the IDEX/IQEX mode name, %2% the tool number.
+                        L("IDEX/IQEX mode \"%1%\" prints with T%2%, but none of this plate's filaments are on a configured tool. "
+                          "Assign a filament loaded on T%2%, or switch this plate to Primary mode."),
+                        parallel_mode, routing.primary_phys);
+                else
+                    err.string = Slic3r::format(
+                        // TRN %1% is the IDEX/IQEX mode name, %2% the tool number, %3% a list of tools such as "T1, T2".
+                        L("IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. "
+                          "Assign a filament loaded on T%2%, or switch this plate to Primary mode."),
+                        parallel_mode, routing.primary_phys, routed_list);
                 // Gives the notification a "Jump to <object>" link, which selects the object
                 // and switches to Prepare -- directly enabling the first suggested remedy.
                 err.object = m_objects.front();
@@ -2230,9 +2257,11 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
             //FIXME It is quite expensive to generate object layers just to get the print height!
             auto layers = generate_object_layers(print_object.slicing_parameters(), layer_height_profile(print_object_idx), print_object.config().precise_z_height.value);
             if (!layers.empty()) {
-                effective_max_z      = layers.back();
+                // The object layers start above the raft.
+                const double raft_z  = print_object.slicing_parameters().object_print_z_min;
+                effective_max_z      = raft_z + layers.back();
                 last_layer_below_max = layers.size() >= 2 &&
-                    0.5 * (layers[layers.size() - 2] + layers.back()) <= this->config().printable_height + EPSILON;
+                    raft_z + 0.5 * (layers[layers.size() - 2] + layers.back()) <= this->config().printable_height + EPSILON;
                 have_height          = true;
             }
         }
@@ -2240,7 +2269,11 @@ StringObjectException Print::validate(std::vector<StringObjectException> *warnin
         if (!have_height)
             continue;
 
-        if (shrinkage_compensation_z != 1. && effective_max_z > (this->config().printable_height / shrinkage_compensation_z + EPSILON)) {
+        // The layers of a regular printer already carry the Z shrinkage compensation, the belt height does not.
+        const double compensated_max_z   = belt_printer ? effective_max_z * shrinkage_compensation_z : effective_max_z;
+        const double uncompensated_max_z = belt_printer ? effective_max_z : print_object.slicing_parameters().object_print_z_uncompensated_max;
+        if (shrinkage_compensation_z != 1. && compensated_max_z > this->config().printable_height + EPSILON &&
+            uncompensated_max_z <= this->config().printable_height + EPSILON) {
             // The object exceeds the maximum build volume height because of shrinkage compensation.
             return StringObjectException{
                 Slic3r::format(_u8L("While the object %1% itself fits the build volume, it exceeds the maximum build volume height because of material shrinkage compensation."), print_object.model_object()->name),
@@ -2991,6 +3024,15 @@ void  PrintObject::clear_shared_object()
 void  PrintObject::copy_layers_from_shared_object()
 {
     if (m_shared_object) {
+        // Orca: Print::process() calls this once per slice for each sharing object, after clear_shared_object() has
+        // emptied any earlier alias, so the vectors hold only layers this object sliced itself before it started sharing
+        // (or nothing). Free them here, as clear_support_layers() / clear_layers() would; those skip deletion while
+        // m_shared_object is set. The belt-only data they also free is always empty here, because belt printers never
+        // share layers.
+        for (SupportLayer *layer : m_support_layers)
+            delete layer;
+        for (Layer *layer : m_layers)
+            delete layer;
         m_layers.clear();
         m_support_layers.clear();
 
@@ -3449,7 +3491,7 @@ void Print::process(long long *time_cost_with_cache, bool use_cache)
             m_tool_ordering = ToolOrdering(*this, -1, false);
             m_tool_ordering.sort_and_build_data(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
-                throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
+                throw Slic3r::SlicingError(L("The print is empty. The model is not printable with current print settings."));
 
         }
         this->set_done(psWipeTower);
@@ -5398,11 +5440,11 @@ void Print::_make_wipe_tower()
             BOOST_LOG_TRIVIAL(error) << boost::format("wipe tower footprint [%1%,%2%]-[%3%,%4%] leaves printable [%5%,%6%]-[%7%,%8%]") %
                 unscaled(fp.min.x()) % unscaled(fp.min.y()) % unscaled(fp.max.x()) % unscaled(fp.max.y()) %
                 unscaled(pr.min.x()) % unscaled(pr.min.y()) % unscaled(pr.max.x()) % unscaled(pr.max.y());
-            throw Slic3r::SlicingError(L("Prime Tower") + L(" is partially outside the printable area, and it cannot be printed.\n"));
+            throw Slic3r::SlicingError(L("Prime tower is partially outside the printable area, and it cannot be printed.\n"));
         }
         // The cutter/purge corner is a physical obstacle — the brim must stay out like the body.
         if (!intersection(get_bed_excluded_area(m_config), Polygons{footprint}).empty())
-            throw Slic3r::SlicingError(L("Prime Tower") + L(" is too close to an exclusion area, and collisions will be caused.\n"));
+            throw Slic3r::SlicingError(L("Prime tower is too close to an exclusion area, and collisions will be caused.\n"));
     }
 }
 
@@ -5517,7 +5559,8 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
             fire_lifecycle_event(LifecycleEvent::GCodeExportFinished, ctx);
         }
         throw Slic3r::RuntimeError(
-            std::string("Failed to process the G-code file ") + file + " from previous 3mf\n");
+            // TRN %1% is a file path.
+            Slic3r::format(L("Failed to process the G-code file %1% from the previous 3MF file."), file) + "\n");
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ <<  boost::format(":  process the G-code file %1% successfully")%file.c_str();
@@ -5629,44 +5672,6 @@ std::string PrintStatistics::finalize_output_path(const std::string &path_in) co
         final_path = path_in;
     }
     return final_path;
-}
-
-// Orca: Implement prusa's filament shrink compensation approach
-// Returns if all used filaments have same shrinkage compensations.
- bool Print::has_same_shrinkage_compensations() const {
-     const std::vector<unsigned int> extruders = this->extruders();
-     if (extruders.empty())
-         return false;
-
-     const double filament_shrinkage_compensation_xy = m_config.filament_shrink.get_at(extruders.front());
-     const double filament_shrinkage_compensation_z  = m_config.filament_shrinkage_compensation_z.get_at(extruders.front());
-
-     for (unsigned int extruder : extruders) {
-         if (filament_shrinkage_compensation_xy != m_config.filament_shrink.get_at(extruder) ||
-             filament_shrinkage_compensation_z  != m_config.filament_shrinkage_compensation_z.get_at(extruder)) {
-             return false;
-         }
-     }
-
-     return true;
- }
-
-// Orca: Implement prusa's filament shrink compensation approach, but amended so 100% from the user is the equivalent to 0 in orca.
- // Returns scaling for each axis representing shrinkage compensations in each axis.
-Vec3d Print::shrinkage_compensation() const
-{
-    if (!this->has_same_shrinkage_compensations())
-        return Vec3d::Ones();
-
-    const unsigned int first_extruder = this->extruders().front();
-
-    const double xy_shrinkage_percent = m_config.filament_shrink.get_at(first_extruder);
-    const double z_shrinkage_percent  = m_config.filament_shrinkage_compensation_z.get_at(first_extruder);
-
-    const double xy_compensation = 100.0 / xy_shrinkage_percent;
-    const double z_compensation  = 100.0 / z_shrinkage_percent;
-
-    return { xy_compensation, xy_compensation, z_compensation };
 }
 
 const std::string PrintStatistics::FilamentUsedG     = "filament used [g]";

@@ -8,7 +8,7 @@ SCRIPT_PATH=$(dirname "$(readlink -f "${0}")")
 pushd "${SCRIPT_PATH}" > /dev/null
 
 function usage() {
-    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-D][-e][-F][-g][-h][-i][-j N][-J N][-p][-r][-s][-t][-u][-l][-L]"
+    echo "Usage: ./${SCRIPT_NAME} [-1][-b][-c][-d][-D][-e][-F][-g][-h][-i][-j N][-J N][-p][-r][-s][-t][-u][-l][-L] [-- CMAKE_ARGS...]"
     echo "   -1: limit builds to one core (where possible)"
     echo "   -j N: limit builds to N cores (where possible)"
     echo "   -J N: build up to N dependencies at a time, each still using -j jobs (default: 1)"
@@ -29,11 +29,15 @@ function usage() {
     echo "   -u: install system dependencies (asks for sudo password; build prerequisite)"
     echo "   -l: use Clang instead of GCC (default: GCC)"
     echo "   -L: use ld.lld as linker (if available)"
+    echo "   -- CMAKE_ARGS...: pass everything after '--' to the cmake configure step of the deps (-d) and OrcaSlicer (-s/-t) builds,"
+    echo "       e.g. -DCMAKE_CXX_FLAGS=\"-O2 -march=native\", -DCMAKE_CXX_COMPILER=g++-14, -DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=mold."
+    echo "       They come last on the cmake command line, so they override what -l and -L set."
     echo "For a first use, you want to './${SCRIPT_NAME} -u'"
     echo "   and then './${SCRIPT_NAME} -dsi'"
     echo "For a GitHub Actions-like Linux build locally, use './${SCRIPT_NAME} -g -istrlL'"
     echo "Use './${SCRIPT_NAME} -gF -istrlL' to rebuild the cached runner image first."
     echo "Set ORCA_CONTAINER_CLI, ORCA_DOCKER_IMAGE, ORCA_DOCKER_BASE_IMAGE, or ORCA_DOCKER_CMAKE_VERSION to override the container runtime, cached image tag, base image, or CMake version."
+    echo "DEPS_EXTRA_BUILD_ARGS and ORCA_EXTRA_BUILD_ARGS add whitespace-separated cmake configure arguments to the deps and OrcaSlicer builds; prefer '--' for arguments that contain spaces."
 }
 
 SLIC3R_PRECOMPILED_HEADERS="ON"
@@ -130,6 +134,20 @@ while getopts ":1j:J:bcCdDeFghiprstulL" opt ; do
 	;;
   esac
 done
+
+# getopts stops at '--'; whatever follows is handed to cmake unchanged.
+if [[ ${OPTIND} -le $# ]] ; then
+    separator_index=$((OPTIND-1))
+    if [[ "${!separator_index}" != "--" ]] ; then
+        echo "Unexpected argument '${!OPTIND}': cmake arguments must follow '--', aborting."
+        exit 1
+    fi
+fi
+shift $((OPTIND-1))
+EXTRA_CMAKE_ARGS=("$@")
+if [[ ${#EXTRA_CMAKE_ARGS[@]} -gt 0 ]] ; then
+    FORWARDED_ARGS+=("--" "${EXTRA_CMAKE_ARGS[@]}")
+fi
 
 if [ ${OPTIND} -eq 1 ] ; then
     usage
@@ -547,7 +565,7 @@ if [[ -n "${BUILD_DEPS}" ]] ; then
         BUILD_ARGS+=(-DCMAKE_BUILD_TYPE="${BUILD_CONFIG}")
     fi
 
-    print_and_run cmake -S deps -B deps/$BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" "${CMAKE_CCACHE_ARGS[@]}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS[@]}"
+    print_and_run cmake -S deps -B deps/$BUILD_DIR "${CMAKE_C_CXX_COMPILER_CLANG[@]}" "${CMAKE_LLD_LINKER_ARGS[@]}" "${CMAKE_CCACHE_ARGS[@]}" -G Ninja "${COLORED_OUTPUT}" "${BUILD_ARGS[@]}" "${EXTRA_CMAKE_ARGS[@]}"
     # The top-level build runs one dependency at a time by default, which keeps the console
     # output readable and lets that dependency's own build use all of CMAKE_BUILD_PARALLEL_LEVEL.
     # -J raises the top level instead, and -j still applies in full to every dependency, so the
@@ -593,7 +611,8 @@ if [[ -n "${BUILD_ORCA}" ]] || [[ -n "${BUILD_TESTS}" ]] ; then
 -DSLIC3R_PCH=${SLIC3R_PRECOMPILED_HEADERS} \
 -DORCA_TOOLS=ON \
 "${COLORED_OUTPUT}" \
-"${BUILD_ARGS[@]}"
+"${BUILD_ARGS[@]}" \
+"${EXTRA_CMAKE_ARGS[@]}"
     echo "done"
     if [[ -n "${BUILD_ORCA}" ]]; then
 	echo "Building OrcaSlicer ..."
