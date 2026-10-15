@@ -5,6 +5,7 @@
 #include "libslic3r/Polygon.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <map>
 #include <utility>
 #include <vector>
