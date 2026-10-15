@@ -689,6 +689,8 @@ set(SLIC3R_GUI_SOURCES
     plugin/host/PluginHostUi.hpp
     plugin/host/PluginPages.cpp
     plugin/host/PluginPages.hpp
+    plugin/host/PluginResourceTextures.cpp
+    plugin/host/PluginResourceTextures.hpp
     plugin/CloudPluginService.cpp
     plugin/CloudPluginService.hpp
     plugin/PluginFsUtils.cpp
@@ -712,6 +714,9 @@ set(SLIC3R_GUI_SOURCES
     plugin/pluginTypes/pages/PagesPluginCapability.hpp
     plugin/pluginTypes/pages/PagesPluginCapability.cpp
     plugin/pluginTypes/pages/PagesPluginCapabilityTrampoline.hpp
+    plugin/pluginTypes/resourceTexture/ResourceTexturePluginCapability.hpp
+    plugin/pluginTypes/resourceTexture/ResourceTexturePluginCapability.cpp
+    plugin/pluginTypes/resourceTexture/ResourceTexturePluginCapabilityTrampoline.hpp
     plugin/pluginTypes/script/ScriptPluginCapability.hpp
     plugin/pluginTypes/script/ScriptPluginCapability.cpp
     plugin/pluginTypes/script/ScriptPluginCapabilityTrampoline.hpp

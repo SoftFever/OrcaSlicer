@@ -252,9 +252,11 @@
 #include "slic3r/GUI/ParamsDialog.hpp"
 #include "slic3r/GUI/ParamsPanel.hpp"
 #include "slic3r/GUI/PartPlate.hpp"
+#include "slic3r/GUI/TextureLibrary.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/plugin/host/PluginPages.hpp"
+#include "slic3r/plugin/host/PluginResourceTextures.hpp"
 #include <wx/defs.h>
 #include "slic3r/GUI/Widgets/WebView.hpp"
 #include <cwchar>
@@ -331,6 +333,23 @@ class MainFrame;
 static std::shared_ptr<OrcaCloudServiceAgent> get_orca_cloud_agent(NetworkAgent* agent)
 {
     return agent ? std::dynamic_pointer_cast<OrcaCloudServiceAgent>(agent->get_cloud_agent()) : nullptr;
+}
+
+// Full {web} page URL for a same-site OrcaCloud path, or empty when it cannot be built. An already
+// open cloud pane is navigated straight to it, without re-running the session handoff.
+static wxString cloud_page_url(NetworkAgent* agent, const std::string& path)
+{
+    if (path.empty())
+        return {};
+    auto orca = get_orca_cloud_agent(agent);
+    if (!orca)
+        return {};
+    std::string base = orca->get_cloud_base_url();
+    while (!base.empty() && base.back() == '/')
+        base.pop_back();
+    if (base.empty())
+        return {};
+    return from_u8(base + path);
 }
 
 void start_ping_test()
@@ -3063,6 +3082,37 @@ void GUI_App::init_plugin_gui_wiring()
             refresh_plugins_dialog();
             switch_printer_agent_after_unload(capability.plugin_key);
         });
+    plugin_mgr.subscribe_on_load_callback([](const std::string& plugin_key) {
+        if (wxTheApp == nullptr || wxGetApp().is_closing())
+            return;
+        PluginResourceTextures::instance().on_plugin_register(plugin_key);
+        Slic3r::GUI::bump_texture_library_generation();
+    });
+    plugin_mgr.subscribe_on_unload_callback([](const std::string& plugin_key) {
+        if (wxTheApp == nullptr || wxGetApp().is_closing())
+            return;
+        PluginResourceTextures::instance().on_plugin_deregister(plugin_key);
+        Slic3r::GUI::bump_texture_library_generation();
+    });
+    plugin_mgr.subscribe_on_capability_load_callback([](const PluginCapabilityId& capability) {
+        if (capability.type != PluginCapabilityType::ResourceTexture)
+            return;
+        if (wxTheApp == nullptr || wxGetApp().is_closing())
+            return;
+        PluginResourceTextures::instance().on_cap_register(capability);
+        Slic3r::GUI::bump_texture_library_generation();
+    });
+    plugin_mgr.subscribe_on_capability_unload_callback([](const PluginCapabilityId& capability) {
+        if (capability.type != PluginCapabilityType::ResourceTexture)
+            return;
+        if (wxTheApp == nullptr || wxGetApp().is_closing())
+            return;
+        PluginResourceTextures::instance().on_cap_deregister(capability);
+        Slic3r::GUI::bump_texture_library_generation();
+    });
+    // Packs already loaded before this wiring, or in tests where no callback fires.
+    PluginResourceTextures::instance().initial_sweep();
+    Slic3r::GUI::bump_texture_library_generation();
 }
 
 bool GUI_App::on_init_inner()
@@ -5434,12 +5484,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 this->request_open_project({});
             }
             else if (command_str.compare("homepage_open_cloud") == 0) {
-                // Deferred: set_cloud_mode() may create a second native webview, which must
-                // not run inside this webview's script-message callback.
-                CallAfter([this]() {
-                    if (WebViewPanel* home = WebViewPanel::if_built())
-                        home->set_cloud_mode(true, cloud_webview_handoff());
-                });
+                this->open_orca_cloud();
             }
             else if (command_str.compare("homepage_close_cloud") == 0) {
                 CallAfter([]() {
@@ -5586,6 +5631,22 @@ std::string GUI_App::handle_web_request(std::string cmd)
         return "";
     }
     return "";
+}
+
+void GUI_App::open_orca_cloud(const std::string& next)
+{
+    // Remembered so a login while the pane is open re-seeds the same page rather than the default.
+    m_cloud_open_path = next;
+    // Deferred: set_cloud_mode() may create the second native webview, so this must not run inside
+    // the caller's frame (a webview script-message callback or an ImGui frame).
+    CallAfter([this]() {
+        if (mainframe != nullptr)
+            mainframe->select_tab(TAB_ID_HOME);
+        // The Home page is built lazily, so the tab switch may not have created it yet: ensure() builds
+        // it if needed, matching what showing the tab does, rather than dropping the open request.
+        if (WebViewPanel* home = WebViewPanel::ensure())
+            home->set_cloud_mode(true, cloud_webview_handoff(m_cloud_open_path), cloud_page_url(m_agent, m_cloud_open_path));
+    });
 }
 
 void GUI_App::handle_script_message(std::string msg, const std::string& provider)
@@ -5865,7 +5926,7 @@ void GUI_App::on_update_machine_list(wxCommandEvent &evt)
      }*/
 }
 
-wxString GUI_App::cloud_webview_handoff()
+wxString GUI_App::cloud_webview_handoff(const std::string& next)
 {
     // The cloud pane loads the Start URL, not a token: the page checks the webview's own session
     // and asks for a handoff itself (guide §4). Signed out, user_id is omitted and the page will
@@ -5873,7 +5934,7 @@ wxString GUI_App::cloud_webview_handoff()
     auto orca = get_orca_cloud_agent(m_agent);
     if (!orca)
         return {};
-    return from_u8(orca->build_web_session_start_url());
+    return from_u8(orca->build_web_session_start_url(next));
 }
 
 void GUI_App::request_cloud_web_session(const std::string& state)
@@ -6016,7 +6077,7 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
     m_cloud_handoff_state.clear();
     if (WebViewPanel* home = WebViewPanel::if_built())
         if (home->cloud_mode_active())
-            home->set_cloud_mode(true, cloud_webview_handoff());
+            home->set_cloud_mode(true, cloud_webview_handoff(m_cloud_open_path));
 }
 
 
