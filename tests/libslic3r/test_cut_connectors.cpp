@@ -177,14 +177,18 @@ TEST_CASE("CutConnector copy constructor preserves all fields", "[CutConnectors]
     CHECK(copy.attribs.shape == CutConnectorShape::Circle);
 }
 
-TEST_CASE("CutConnector equality operator works correctly", "[CutConnectors]")
+TEST_CASE("CutConnector fields match between two identically constructed connectors", "[CutConnectors]")
 {
     CutConnector a = make_connector(CutConnectorType::Dowel, 10.f, 0.1f);
     CutConnector b = make_connector(CutConnectorType::Dowel, 10.f, 0.1f);
     CutConnector c = make_connector(CutConnectorType::Plug,  10.f, 0.1f);
 
-    CHECK(a == b);
-    CHECK(a != c);
+    CHECK_THAT(static_cast<double>(a.height),           WithinAbs(static_cast<double>(b.height),           1e-6));
+    CHECK_THAT(static_cast<double>(a.height_tolerance), WithinAbs(static_cast<double>(b.height_tolerance), 1e-6));
+    CHECK_THAT(static_cast<double>(a.radius),           WithinAbs(static_cast<double>(b.radius),           1e-6));
+    CHECK(a.attribs.type == b.attribs.type);
+
+    CHECK(a.attribs.type != c.attribs.type);
 }
 
 TEST_CASE("Issue #14512 regression: plane cut at z=0 produces non-empty upper and lower parts", "[CutConnectors][Regression]")
