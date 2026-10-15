@@ -34,6 +34,9 @@ struct TextureDisplacementBakeInput
     // writes the volume's mmu_segmentation_facets - the same per-triangle filament assignment the MMU
     // paint gizmo writes - alongside the displaced geometry.
     TextureColorSettings                  color;
+    // The volume's own UV channel (ModelVolume::texture_uv), empty when it has none: what a ModelUV
+    // layer maps through, and what the commit puts back on the baked mesh.
+    std::vector<Vec2f>                    model_uv;
     // Whether this job pushes its own undo step when it commits. False when the caller has already
     // taken one that is meant to cover the displacement as well - Standard mode's Bake, which remeshes
     // and subdivides first and has to undo as a single action.
@@ -56,8 +59,9 @@ private:
     TriangleMesh                 m_result;
     // What the bake spent, for the message it leaves behind when the budget capped the detail.
     TextureBakeStats m_stats;
-    // Per triangle of m_result: the filament to print it in, as an EnforcerBlockerType value
-    // (0 = leave alone). Empty unless a layer asked for colour. See TextureColorRequest.
+    // Per triangle of m_result: the palette entry to print it in, as its index + 1 (0 = leave alone).
+    // Empty unless a layer asked for colour. See TextureColorRequest; finalize() turns these into
+    // filaments.
     std::vector<uint8_t>         m_triangle_color;
     std::function<void()>        m_on_finished;
 };
