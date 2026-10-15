@@ -81,6 +81,7 @@ TEST_CASE("Infill priming works without a prime tower", "[InfillPriming]")
         {"change_filament_gcode",
          "{if previous_extruder >= 0 && previous_extruder != next_extruder}; REMAINING_PURGE {flush_length}\n{endif}T[next_extruder]\n"},
     });
+    config.set_num_extruders(shared_nozzle ? 1 : 2);
     Test::size_flush_to_nozzles(config);
     if (mode == 3)
         config.set_deserialize_strict("filament_soluble", "0,1");
