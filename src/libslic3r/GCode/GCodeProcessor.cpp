@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <array>
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/constants.hpp>
 #include <boost/log/trivial.hpp>
