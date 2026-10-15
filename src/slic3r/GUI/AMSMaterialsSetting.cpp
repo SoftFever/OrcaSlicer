@@ -1092,7 +1092,8 @@ void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
         unsigned int color_num = event.GetInt();
         colors.emplace_back(color_num >> 24 & 0xFF, color_num >> 16 & 0xFF, color_num >> 8 & 0xFF, color_num & 0xFF);
     }
-    if (colors.size() > 1 && (!obj || !obj->is_support_filament_manual_multi_color))
+    if (colors.size() > ColorPickerPopup::MAX_EDITABLE_COLORS ||
+        (colors.size() > 1 && (!obj || !obj->is_support_filament_manual_multi_color)))
         return;
 
     set_ctype(m_color_picker_popup.get_selected_ctype());
@@ -2171,7 +2172,7 @@ std::optional<ColorSelection> ColorPickerPopup::ColorItem::picker_selection(bool
         const wxColour& color = colors.front();
         return ColorRGBA(color.Red(), color.Green(), color.Blue(), color.Alpha());
     }
-    if (!allow_gradient || ctype != 0 || colors.size() > COLOR_PICKER_MAX_GRADIENT_COLORS)
+    if (ctype != 0 || !ColorPickerOptions{allow_gradient, true, MAX_EDITABLE_COLORS}.supports_gradient(colors.size()))
         return std::nullopt;
     ColorGradient gradient;
     for (const wxColour& color : colors)
@@ -2209,7 +2210,8 @@ void ColorPickerPopup::on_custom_clr_picker(wxMouseEvent& /*event*/)
         const wxColour& first = m_def_cols.empty() ? m_def_col : m_def_cols.front();
         const ColorSelection initial = exact ? *exact : ColorSelection{ColorRGBA(first.Red(), first.Green(), first.Blue(), first.Alpha())};
         // Snapshot the custom control's anchor before releasing the transient popup grab.
-        ColorPickerDialog dialog(GetParent(), initial, {m_allow_multi_color, true}, !exact && m_def_cols.size() > 1, m_custom_cp);
+        ColorPickerDialog dialog(GetParent(), initial, {m_allow_multi_color, true, MAX_EDITABLE_COLORS},
+                                 !exact && m_def_cols.size() > 1, m_custom_cp);
         Dismiss();
         // Unchanged fallback seeds must not replace a multi-color or oversized selection.
         confirmed = dialog.ShowModal() == wxID_OK;
@@ -2252,7 +2254,7 @@ void ColorPickerPopup::set_ams_colours(const std::vector<ColorItem>& ams)
     m_ams_color_items = ams;
     for (const ColorItem& item : m_ams_color_items) {
         if (item.colors.empty()) continue;
-        if (!m_allow_multi_color && item.colors.size() > 1) continue;
+        if (item.colors.size() > MAX_EDITABLE_COLORS || (!m_allow_multi_color && item.colors.size() > 1)) continue;
 
         auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         cp->set_color(item.colors.front());
@@ -2295,7 +2297,7 @@ void ColorPickerPopup::set_preset_colours(const std::vector<ColorItem>& preset_c
 
     for (const ColorItem& item : preset_colors) {
         if (item.colors.empty()) continue;
-        if (!m_allow_multi_color && item.colors.size() > 1) continue;
+        if (item.colors.size() > MAX_EDITABLE_COLORS || (!m_allow_multi_color && item.colors.size() > 1)) continue;
 
         auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         cp->set_color(item.colors.front());

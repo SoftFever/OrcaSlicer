@@ -18,6 +18,7 @@
 #include "slic3r/Utils/CalibUtils.hpp"
 #include <wx/anybutton.h>
 #include <wx/colour.h>
+#include <cstddef>
 #include <vector>
 #include <wx/checklst.h>
 #include <wx/gdicmn.h>
@@ -84,6 +85,9 @@ public:
 class ColorPickerPopup : public PopupWindow
 {
 public:
+    // Manual AMS color writes support at most four components.
+    static constexpr std::size_t MAX_EDITABLE_COLORS = 4;
+
     struct ColorItem
     {
         std::vector<wxColour> colors;

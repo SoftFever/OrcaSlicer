@@ -32,6 +32,10 @@ A solid selection contains one color; a gradient contains two through
 represents these as `{"type":"solid|gradient",
 "colors":["#RRGGBBAA", ...]}`. RGB input is also accepted and becomes opaque.
 Native validation rejects malformed hex and incorrect cardinality.
+`ColorPickerOptions::max_gradient_colors` lets each caller lower the editing limit;
+it defaults to seven and is clamped to two through seven. Native selection validation
+and the page use the same effective limit. Shared favorites retain up to seven colors
+regardless of the current caller's limit.
 
 The project filament color action and the official filament picker's More Colors
 action enable ordered gradients and independent alpha for each color. The preset
@@ -65,7 +69,10 @@ writes legacy favorites.
 AMS material settings retain their fixed/AMS swatches and first-level popup. Only
 its custom-color action opens the editor with alpha enabled, anchored to that custom
 control. Firmware advertising manual multi-color support (`fun2[23]`) also enables
-ordered gradients. Other printers only offer single-color swatches and favorites.
+ordered gradients with at most four colors, matching the AMS manual-write limit.
+AMS and preset swatches exceeding four colors are unavailable for selection;
+the editor also filters oversized palette entries and favorites without deleting them.
+Other printers only offer single-color swatches and favorites.
 The transient popup releases its grab while the modal is open and returns
 to the same selection on cancellation. Unchanged confirmation is a no-op. Existing striped
 or oversized selections start from their first color with the preservation notice.

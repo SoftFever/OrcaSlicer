@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <optional>
+#include <string>
 #include <variant>
 #include <vector>
 #include <wx/colour.h>
@@ -37,7 +38,7 @@ TEST_CASE("AMS custom gradients retain repeated nodes direction and independent 
                                       wxColour(255, 255, 0, 254), wxColour(0, 255, 255, 255),
                                       wxColour(128, 64, 32, 80)};
     const bool reverse = GENERATE(false, true);
-    for (size_t count = 2; count <= std::min(colors.size(), COLOR_PICKER_MAX_GRADIENT_COLORS); ++count) {
+    for (size_t count = 2; count <= std::min(colors.size(), ColorPickerPopup::MAX_EDITABLE_COLORS); ++count) {
         ColorItem original{{colors.begin(), colors.begin() + count}, 0};
         if (reverse)
             std::reverse(original.colors.begin(), original.colors.end());
@@ -59,8 +60,18 @@ TEST_CASE("AMS custom editing only accepts representable gradients on capable fi
     REQUIRE_FALSE(ColorItem{colors, 0}.picker_selection(false));
     REQUIRE_FALSE(ColorItem{colors, 1}.picker_selection(true));
     REQUIRE_FALSE(ColorItem{colors, 2}.picker_selection(true));
-    REQUIRE_FALSE(ColorItem{std::vector<wxColour>(COLOR_PICKER_MAX_GRADIENT_COLORS + 1, colors.front()), 0}.picker_selection(true));
+    REQUIRE_FALSE(ColorItem{std::vector<wxColour>(ColorPickerPopup::MAX_EDITABLE_COLORS + 1, colors.front()), 0}.picker_selection(true));
     REQUIRE(ColorItem{colors, 0}.picker_selection(true));
+}
+
+TEST_CASE("AMS editing rejects five through seven colors while project editing retains them", "[AMSMaterialsSetting]")
+{
+    const auto count = GENERATE(std::size_t{5}, std::size_t{6}, COLOR_PICKER_MAX_GRADIENT_COLORS);
+    const ColorItem original{std::vector<wxColour>(count, wxColour(12, 34, 56, 78)), 0};
+    REQUIRE_FALSE(original.picker_selection(true));
+    const auto project_selection = filament_color_picker_selection({std::vector<std::string>(count, "#0C22384E"), true});
+    REQUIRE(project_selection);
+    REQUIRE(ColorItem::from_picker_selection(*project_selection).colors == original.colors);
 }
 
 TEST_CASE("AMS alpha only edits and switching a gradient to solid replace the complete selection", "[AMSMaterialsSetting]")
