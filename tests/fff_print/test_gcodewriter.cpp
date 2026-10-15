@@ -1279,6 +1279,13 @@ TEST_CASE("Klipper acceleration commands send accel_to_decel both as ACCEL_TO_DE
     GCodeWriter writer;
     writer.config.gcode_flavor.value = gcfKlipper;
     writer.config.accel_to_decel_enable.value = true;
+    // The writer appends "; adjust ..." comments by default; keep them out so the line ends at the ratio.
+    struct CommentGuard
+    {
+        bool saved = GCodeWriter::full_gcode_comment;
+        ~CommentGuard() { GCodeWriter::full_gcode_comment = saved; }
+    } comment_guard;
+    GCodeWriter::full_gcode_comment = false;
 
     SECTION("a 25% factor") {
         writer.config.accel_to_decel_factor.value = 25;
