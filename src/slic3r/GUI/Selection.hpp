@@ -248,6 +248,9 @@ public:
     void clone(int numbers = 1);
     void center();
     void drop();
+    bool can_drop() const;
+    // Lowest world Z that drop() moves to the bed; whole objects count model parts only, as auto drop does.
+    double get_drop_min_z() const;
     void center_plate(const int plate_idx);
     void set_printable(bool printable);
     bool get_auto_drop() const;
@@ -360,7 +363,8 @@ public:
 
     void translate(unsigned int object_idx, const Vec3d& displacement);
     void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
-    void translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement);
+    // local: true (default) if displacement is already in instance-local space; false treats it as world-space delta (L^-1 applied).
+    void translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement, bool local = true);
 
     void rotate(unsigned int object_idx, unsigned int instance_idx, const Transform3d &overwrite_tran);
     void rotate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Transform3d &overwrite_tran);

@@ -298,6 +298,9 @@ inline constexpr float DEFAULT_FILAMENT_DENSITY = 1.245f;
             BoundingBoxf3    box;
             // Of an object, whether it is an assembly.
             bool assembly{ false };
+            // Of an object instance, its model object's name and its index among that object's instances.
+            std::string name;
+            int         instance{ -1 };
 
             Sum  total() const { return printed_up_to_layer.empty() ? Sum{} : printed_up_to_layer.back(); }
             void add(const Sum &sum, const BoundingBoxf3 &extent, size_t layer);

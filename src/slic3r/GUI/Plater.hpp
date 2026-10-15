@@ -434,6 +434,7 @@ public:
     bool is_new_project_and_check_state() { return m_new_project_and_check_state; }
     wxString get_project_name();
     void update_all_plate_thumbnails(bool force_update = false);
+    void update_plate_thumbnails(int plate_idx, bool force_update);
     void update_obj_preview_thumbnail(ModelObject *, int obj_idx, int vol_idx, std::vector<Slic3r::ColorRGBA> colors, int camera_view_angle_type);
     void invalid_all_plate_thumbnails();
     void force_update_all_plate_thumbnails();
@@ -1071,6 +1072,8 @@ public:
     void mark_plate_toolbar_image_dirty();
     bool is_plate_toolbar_image_dirty() const;
     void clear_plate_toolbar_image_dirty();
+    // Bumped each time the plate thumbnails go stale, so each consumer can track it on its own.
+    unsigned plate_toolbar_image_version() const { return m_plate_toolbar_image_version; }
 
 private:
     struct priv;
@@ -1095,6 +1098,7 @@ private:
     int m_valid_plates_count { 0 };
     int m_check_status = 0; // 0 not check, 1 check success, 2 check failed
     bool m_b_plate_toolbar_image_dirty{ true };
+    unsigned m_plate_toolbar_image_version{ 0 };
 
     void suppress_snapshots();
     void allow_snapshots();
