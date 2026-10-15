@@ -516,6 +516,13 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                     ams_id_set.insert(it->first);
                 }
 
+                // Bambu trays index their exist bit as ams_id*4+tray_id; a generic (non-Bambu) unit
+                // reports its own lane count, so its trays carry a cumulative lane index instead.
+                // Same index DevFilaSystem::GetTrayIndexMap() builds and the agent sets bits with.
+                const bool is_bbl_vendor = wxTheApp != nullptr && GUI::wxGetApp().preset_bundle != nullptr &&
+                                           GUI::wxGetApp().preset_bundle->is_bbl_vendor();
+                int generic_tray_base = 0;
+
                 for (auto it = j_ams.begin(); it != j_ams.end(); it++)
                 {
                     if (!it->contains("id")) continue;
@@ -855,7 +862,18 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
 
                                     if (type_id < 4)
                                     {
-                                        curr_tray->is_exists = (obj->tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
+                                        if (is_bbl_vendor)
+                                        {
+                                            curr_tray->is_exists = (obj->tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
+                                        }
+                                        else
+                                        {
+                                            // A generic unit is not four slots wide, so its trays carry a
+                                            // cumulative lane index across units instead of ams_id*4+tray_id.
+                                            const int tray_bit = generic_tray_base + tray_id_int;
+                                            curr_tray->is_exists = tray_bit >= 0 && tray_bit < 32 &&
+                                                                   (obj->tray_exist_bits & (1UL << tray_bit)) != 0;
+                                        }
                                     }
                                     else if (type_id == DevAms::AMS_LITE_MIXED)
                                     {
@@ -910,6 +928,9 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                                 BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id << ", tray_id=" << tray_id;
                             }
                         }
+                    }
+                    if (!is_bbl_vendor && it->contains("tray") && (*it)["tray"].is_array()) {
+                        generic_tray_base += static_cast<int>((*it)["tray"].size());
                     }
                 }
                 // remove not in amsList
