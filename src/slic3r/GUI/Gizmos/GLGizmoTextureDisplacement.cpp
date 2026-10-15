@@ -4492,7 +4492,7 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         return !collapsed;
     };
 
-    // Built-in is first, plugin packs are grouped under Resource Texture, and My
+    // Built-in is first, plugin packs are grouped under Texture libraries, and My
     // textures stays last so its import tile and help line describe that group. Pack names identify both
     // their child section and state.
     struct Section
@@ -4537,7 +4537,7 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
     for (size_t i = 1; i + 1 < sections.size(); ++i)
         subscribed_count += sections[i].entries.size();
 
-    const std::string subscribed_title = _u8L("Resource Texture");
+    const std::string subscribed_title = _u8L("Texture libraries");
     if (section_header("subscribed:", subscribed_title, subscribed_count, 0.f, {}, subscribed_title)) {
         for (size_t i = 1; i + 1 < sections.size(); ++i) {
             const Section &pack = sections[i];
@@ -4550,7 +4550,7 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         }
 
         ImGui::Dummy(ImVec2(0.f, spacing));
-        const std::string download_label = _u8L("Download from OrcaCloud");
+        const std::string download_label = _u8L("Explore more texture libraries");
         if (ImGui::Button(download_label.c_str(), ImVec2(grid_w, frame_h)))
             download_clicked = true;
         if (ImGui::IsItemHovered())
