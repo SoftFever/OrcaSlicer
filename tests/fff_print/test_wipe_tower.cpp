@@ -336,8 +336,9 @@ TEST_CASE("Objects of different heights sharing a profile are sliced on the same
 {
     // What the prime tower needs is that the objects are sliced at the same Z, which this checks on the
     // sliced layers rather than on validate() alone. The lower box is 10.05 mm tall, between two layers
-    // of the shared profile, so precise Z height would fit its last layers to that height and move them
-    // off the tall box's; the print leaves it out instead.
+    // of the shared profile: with precise Z height on, its last layers would be fitted to end at
+    // 10.05 mm and leave the tall box's, if only by a micrometre or so. The print leaves precise Z height
+    // out, so they must not.
     const DynamicPrintConfig config = multifilament_config(2, {
         { "enable_prime_tower",         "1"         },
         { "wipe_tower_x",               "50"        },
@@ -357,20 +358,26 @@ TEST_CASE("Objects of different heights sharing a profile are sliced on the same
     model.objects[1]->layer_height_profile.set(layer_height_profile_fit_to_height(profile, 10.05));
     print.apply(model, config);
     REQUIRE(print.has_wipe_tower());
+    REQUIRE(print.precise_z_height_overridden());
     REQUIRE(print.validate().string.empty());
-
-    print.process();
-    REQUIRE(print.is_step_done(psWipeTower));
     REQUIRE(print.objects().size() == 2);
 
-    const PrintObject &tall  = *print.objects()[0];
-    const PrintObject &lower = *print.objects()[1];
+    // Slicing the objects is where precise Z height would act, so their layers are compared right
+    // after it, before the tower is generated from them.
+    PrintObject &tall  = *print.get_object(0);
+    PrintObject &lower = *print.get_object(1);
+    tall.slice();
+    lower.slice();
     REQUIRE(lower.layer_count() > 50);
     REQUIRE(lower.layer_count() < tall.layer_count());
     for (size_t idx = 0; idx < lower.layer_count(); ++idx) {
         INFO("layer " << idx);
         CHECK_THAT(lower.get_layer(int(idx))->print_z, Catch::Matchers::WithinAbs(tall.get_layer(int(idx))->print_z, 1e-6));
     }
+
+    // And the tower is generated from those layers.
+    print.process();
+    CHECK(print.is_step_done(psWipeTower));
 }
 
 TEST_CASE("Validation is given the tower's effective width, not the configured one", "[WipeTower]")
