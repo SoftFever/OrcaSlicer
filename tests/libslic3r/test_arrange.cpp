@@ -14,6 +14,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/catch_message.hpp>
 #include "libslic3r/Arrange.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/ClipperUtils.hpp"
@@ -260,18 +261,163 @@ TEST_CASE("Arrange without final alignment keeps items disjoint", "[Arrange]")
     require_no_overlap(items);
 }
 
-TEST_CASE("Arrange aligns the pile to a custom center", "[Arrange]")
+TEST_CASE("Arrange centers a pile that fits on the custom alignment point", "[Arrange]")
 {
-    // align_center != (0.5, 0.5) selects Alignment::USER_DEFINED.
-    ArrangePolygons items  = squares(5, 30.);
+    ArrangePolygons items  = squares(4, 30.);
     ArrangeParams   params = quiet_params(scaled(2.));
     params.align_center    = Vec2d(0.3, 0.7);
 
     arrange(items, bed(250, 250), params);
 
-    for (const ArrangePolygon &ap : items)
+    BoundingBox pile;
+    for (const ArrangePolygon &ap : items) {
         REQUIRE(ap.bed_idx == 0);
+        pile.merge(ap.transformed_poly().contour.bounding_box());
+    }
+    // best_object_pos is align_center scaled to the bed.
+    const Point expected(scaled(250. * 0.3), scaled(250. * 0.7));
+    REQUIRE(std::abs(pile.center().x() - expected.x()) <= scaled(0.5));
+    REQUIRE(std::abs(pile.center().y() - expected.y()) <= scaled(0.5));
     require_no_overlap(items);
+}
+
+// A row of four 40 mm parts centred on the 30% mark of a 200 x 50 mm bed would start 24 mm
+// left of it (#15727). The pile stops at the left edge instead.
+TEST_CASE("Arrange keeps a custom-aligned pile within the bed", "[Arrange]")
+{
+    const BoundingBox bed_   = bed(200, 50);
+    ArrangePolygons   items  = squares(4, 40.);
+    ArrangeParams     params = quiet_params(scaled(2.));
+    params.align_center      = Vec2d(0.3, 0.5);
+
+    arrange(items, bed_, params);
+
+    coord_t leftmost = std::numeric_limits<coord_t>::max();
+    for (const ArrangePolygon &ap : items) {
+        REQUIRE(ap.bed_idx == 0);
+        const BoundingBox bb = ap.transformed_poly().contour.bounding_box();
+        CHECK(bed_.contains(bb));
+        leftmost = std::min(leftmost, bb.min.x());
+    }
+    // Stopped at the edge it was aimed at, not re-centred.
+    CHECK(leftmost < scaled(10.));
+    require_no_overlap(items);
+}
+
+// Arranging a selection leaves the unselected parts where they are, but the final alignment
+// centres the box around both, so the selection does not move by its own centring. The check
+// against the bed and the fixed part must test where the selection actually lands.
+TEST_CASE("Arrange keeps a selection on the bed and clear of a fixed part", "[Arrange]")
+{
+    ArrangePolygons fixed = squares(1, 40.);
+    fixed.front().translation = {scaled(80.), scaled(80.)};
+    ArrangePolygons items = squares(3, 40.);
+    for (ArrangePolygon &ap : items)
+        ap.inflation = scaled(1.);
+
+    arrange(items, fixed, bed(200, 200), quiet_params());
+
+    for (const ArrangePolygon &ap : items) {
+        REQUIRE(ap.bed_idx == 0);
+        REQUIRE(bed(200, 200).contains(ap.transformed_poly().contour.bounding_box()));
+    }
+    items.insert(items.end(), fixed.begin(), fixed.end());
+    require_no_overlap(items);
+}
+
+// A belt printer starts its parts at the leading end of the belt (best_object_pos 0.5, 0.05).
+// Centring a pile on a point that close to the edge pushed everything longer than the room
+// around it off the bed: four 90 mm parts on a 95 x 500 mm belt ended with one across the
+// edge and one outside, with 290 mm of belt free behind them. The pile stops at the edge.
+TEST_CASE("Arrange keeps a pile aligned near an edge on the bed", "[Arrange][belt]")
+{
+    const BoundingBox belt   = bed(95, 500);
+    ArrangePolygons   items  = squares(4, 90.);
+    ArrangeParams     params = quiet_params(scaled(2.));
+    params.align_center      = Vec2d(0.5, 0.05);
+    params.is_belt           = true;
+    params.belt_axis         = 1;
+    params.belt_tilt_slope   = 1.f;
+
+    arrange(items, belt, params);
+
+    coord_t lowest = std::numeric_limits<coord_t>::max();
+    for (const ArrangePolygon &ap : items) {
+        REQUIRE(ap.bed_idx == 0);
+        const BoundingBox bb = ap.transformed_poly().contour.bounding_box();
+        CHECK(belt.contains(bb));
+        lowest = std::min(lowest, bb.min.y());
+    }
+    // Snapped to the edge it was aimed at, less the spacing margin, not re-centred.
+    CHECK(lowest < scaled(10.));
+    require_no_overlap(items);
+}
+
+// Flat-bed printers with an off-centre best_object_pos (the A1 mini and the H2 family) get
+// the same clamp: centring the pile on that point used to push it off the bed (#15727).
+TEST_CASE("Arrange keeps a flat-bed pile aligned near an edge on the bed", "[Arrange]")
+{
+    const BoundingBox bed_   = bed(95, 500);
+    ArrangePolygons   items  = squares(4, 90.);
+    ArrangeParams     params = quiet_params(scaled(2.));
+    params.align_center      = Vec2d(0.5, 0.05);
+
+    arrange(items, bed_, params);
+
+    coord_t lowest = std::numeric_limits<coord_t>::max();
+    for (const ArrangePolygon &ap : items) {
+        REQUIRE(ap.bed_idx == 0);
+        const BoundingBox bb = ap.transformed_poly().contour.bounding_box();
+        CHECK(bed_.contains(bb));
+        lowest = std::min(lowest, bb.min.y());
+    }
+    // Stopped at the edge it was aimed at, not re-centred.
+    CHECK(lowest < scaled(10.));
+    require_no_overlap(items);
+}
+
+// On a belt the parts print in belt order, so two colours that alternate along the
+// belt, or sit side by side, cost a filament change on every shared layer. Arrange
+// keeps each colour together: no part shares belt length with a part of another
+// colour, counting the tilted layers that run cot(angle) * height past its far edge,
+// whichever end of the belt prints first.
+TEST_CASE("Arrange groups the colours of a belt print along the belt", "[Arrange][belt]")
+{
+    const bool reversed = GENERATE(false, true);
+    CAPTURE(reversed);
+    const BoundingBox belt   = bed(95, 500);
+    ArrangePolygons   items  = squares(6, 30., 20.);
+    for (size_t i = 0; i < items.size(); ++i)
+        items[i].extrude_ids = { int(i % 3) + 1 };   // three colours, two parts each
+    ArrangeParams params     = quiet_params(scaled(2.));
+    params.align_center      = Vec2d(0.5, 0.05);
+    params.is_belt           = true;
+    params.belt_axis         = 1;
+    params.belt_reversed     = reversed;
+    params.belt_tilt_slope   = 1.f;   // 45 degrees
+
+    arrange(items, belt, params);
+    require_no_overlap(items);
+
+    // Belt position in print order, so the same check serves both directions.
+    const coord_t dir = reversed ? -1 : 1;
+    auto start = [&](const ArrangePolygon &ap) { const BoundingBox bb = ap.transformed_poly().contour.bounding_box(); return dir * (reversed ? bb.max.y() : bb.min.y()); };
+    auto end   = [&](const ArrangePolygon &ap) { const BoundingBox bb = ap.transformed_poly().contour.bounding_box(); return dir * (reversed ? bb.min.y() : bb.max.y()) + scaled(ap.height * params.belt_tilt_slope); };
+
+    for (const ArrangePolygon &ap : items) {
+        REQUIRE(ap.bed_idx == 0);
+        CHECK(belt.contains(ap.transformed_poly().contour.bounding_box()));
+    }
+    for (const ArrangePolygon &a : items)
+        for (const ArrangePolygon &b : items) {
+            if (a.extrude_ids == b.extrude_ids)
+                continue;
+            // The part printed later starts after the earlier one has finished.
+            const coord_t earlier_end = start(a) <= start(b) ? end(a) : end(b);
+            const coord_t later_start = std::max(start(a), start(b));
+            INFO("colour " << a.extrude_ids.front() << " vs " << b.extrude_ids.front());
+            CHECK(earlier_end <= later_start);
+        }
 }
 
 TEST_CASE("Sequential print floors the object distance by object height", "[Arrange]")

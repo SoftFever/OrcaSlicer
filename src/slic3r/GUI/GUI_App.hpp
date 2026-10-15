@@ -30,6 +30,7 @@
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "../Utils/PrintHost.hpp"
+#include "libslic3r/Point.hpp"
 
 #include <vector>
 #include <utility>
@@ -360,6 +361,11 @@ private:
     bool             m_side_popup_status{false};
     bool             m_show_http_error_msgdlg{false};
     std::chrono::steady_clock::time_point m_last_401_error_time;
+    // OrcaCloud webview session handoff: the newest request_web_session state from the cloud pane
+    // and a generation counter so a superseded mint/login result is dropped (guide §5, "only the
+    // newest request counts").
+    std::string      m_cloud_handoff_state;
+    uint64_t         m_cloud_handoff_gen { 0 };
     bool             m_show_error_msgdlg{false};
     wxString         m_info_dialog_content;
     HttpServer       m_http_server;
@@ -372,6 +378,7 @@ public:
     std::string     get_local_models_path();
     bool            OnInit() override;
     int             OnExit() override;
+    void            CleanUp() override;
     bool            initialized() const { return m_initialized; }
     inline bool     is_enable_multi_machine() { return this->app_config&& this->app_config->get("enable_multi_machine") == "true"; }
 #ifdef SLIC3R_CAD
@@ -395,6 +402,8 @@ public:
     Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
     HMSQuery* get_hms_query() { return hms_query; }
     NetworkAgent* getAgent() { return m_agent; }
+    // Version that wrote the app config before this run; empty when there was no app config.
+    const boost::optional<Semver>& last_config_version() const { return m_last_config_version; }
 
     // Reconcile the live printer agent with the stored preset selection.
     void switch_printer_agent();
@@ -427,12 +436,17 @@ public:
 
     bool show_plate_gridlines() const { return app_config->get_bool("show_plate_gridlines"); }
     void toggle_show_plate_gridlines() const { app_config->set_bool("show_plate_gridlines", !show_plate_gridlines()); }
+    bool focus_mode() const { return app_config->get_bool("focus_mode"); }
+    void toggle_focus_mode() const { app_config->set_bool("focus_mode", !focus_mode()); }
 
     bool show_canvas_zoom_button() const { return app_config->get_bool("show_canvas_zoom_button"); }
     void toggle_canvas_zoom_button() const { app_config->set_bool("show_canvas_zoom_button", !show_canvas_zoom_button()); }
 
     bool show_outline() const { return app_config->get_bool("show_outline"); }
     void toggle_show_outline() const { app_config->set_bool("show_outline", !show_outline()); }
+
+    bool show_center_of_mass() const { return app_config->get_bool("show_center_of_mass"); }
+    void toggle_show_center_of_mass() const { app_config->set_bool("show_center_of_mass", !show_center_of_mass()); }
 
     wxString get_inf_dialog_contect () {return m_info_dialog_content;};
 
@@ -512,7 +526,6 @@ public:
     void            check_printer_presets();
 
     void            recreate_GUI(const wxString& message);
-    void            system_info();
     void            keyboard_shortcuts(ShortcutContext page, wxWindow* parent = nullptr);   // the main frame when null
     void            troubleshoot();
     void            load_project(wxWindow *parent, wxString& input_file) const;
@@ -534,7 +547,11 @@ public:
 
     void            request_user_login(int online_login = 0, const std::string& provider = ORCA_CLOUD_PROVIDER);
     void            request_user_handle(int online_login = 0, const std::string& provider = ORCA_CLOUD_PROVIDER);
-    void            request_user_logout(const std::string& provider = ORCA_CLOUD_PROVIDER);
+    // `user_initiated` distinguishes a user sign-out from the desktop losing its session on its
+    // own (refresh failed, 401). Only an explicit sign-out also ends the cloud webview's own
+    // session; an involuntary one leaves the webview alone (guide §8). Defaults to the safe
+    // direction: a new caller that forgets the flag will not silently sign the webview out.
+    void            request_user_logout(const std::string& provider = ORCA_CLOUD_PROVIDER, bool user_initiated = false);
     void            post_logout_to_webview(const std::string& provider);
     int             request_user_unbind(std::string dev_id, const std::string& provider = ORCA_CLOUD_PROVIDER);
     std::string     handle_web_request(std::string cmd);
@@ -550,6 +567,15 @@ public:
     void            on_update_machine_list(wxCommandEvent& evt);
     void            on_user_login(wxCommandEvent &evt);
     void            on_user_login_handle(wxCommandEvent& evt);
+    // OrcaCloud webview session handoff (guide §5/§7). cloud_webview_handoff builds the cloud
+    // pane's Start URL (with the desktop user_id while signed in). request_cloud_web_session is
+    // called from the pane when the page asks for a session; it opens the desktop login dialog if
+    // signed out, otherwise mints a one-time token on a worker thread and loads the Complete URL
+    // in the same webview.
+    wxString        cloud_webview_handoff();
+    void            request_cloud_web_session(const std::string& state);
+    void            mint_cloud_web_session(const std::string& state, uint64_t gen);
+    void            on_cloud_web_session_minted(const std::string& state, uint64_t gen, const std::string& token_hash);
     void            enable_user_preset_folder(bool enable);
 
     // BBS
@@ -561,6 +587,10 @@ public:
     void            check_update(bool show_tips, int by_user);
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_new_version_sf(bool show_tips = false, int by_user = 0);
+    // Offers to migrate user filament presets made against an older release that lost printers their parent
+    // listed then. At startup it asks on every start that finds such presets, unless the user chose not to be
+    // reminded; by_user also reports when there is nothing to migrate.
+    void            check_legacy_user_filament_presets(bool by_user);
     bool            process_network_msg(std::string dev_id, std::string msg);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
@@ -878,6 +908,8 @@ bool is_support_filament(int extruder_id, bool strict_check = true);
 bool is_soluble_filament(int extruder_id);
 // check if the filament for model is in the list
 bool has_filaments(const std::vector<std::string>& model_filaments);
+// Up direction of the edited printer's tilted build plate (+Z when untilted).
+Vec3d build_plate_tilt_up_direction();
 } // namespace GUI
 } // Slic3r
 
