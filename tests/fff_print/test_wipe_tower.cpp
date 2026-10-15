@@ -380,6 +380,38 @@ TEST_CASE("Objects of different heights sharing a profile are sliced on the same
     CHECK(print.is_step_done(psWipeTower));
 }
 
+TEST_CASE("Precise Z height still fits objects of different heights when there is no prime tower", "[WipeTower]")
+{
+    // The same plate as above without the tower: nothing asks the objects to share their layers, so
+    // precise Z height stays on and fits the last layers of the 10.05 mm box to end at its top, where
+    // the shared profile alone would stop at about 10.0515 mm.
+    const DynamicPrintConfig config = multifilament_config(2, {
+        { "enable_prime_tower",         "0"         },
+        { "layer_change_gcode",         "G92 E0\n" },
+        { "layer_height",               "0.2"       },
+        { "initial_layer_print_height", "0.2"       },
+        { "precise_z_height",           "1"         },
+        { "raft_layers",                "0"         } });
+    const std::vector<std::vector<ConfigBase::SetDeserializeItem>> overrides{ { { "extruder", "1" } }, { { "extruder", "2" } } };
+    const std::vector<coordf_t> profile = { 0., 0.2, 5., 0.2, 10., 0.1, 20., 0.1 };
+
+    Print print;
+    Model model;
+    init_print(std::vector<TriangleMesh>{ make_cube(20, 20, 20), make_cube(20, 20, 10.05) }, print, model, config, &overrides);
+    model.objects[0]->layer_height_profile.set(profile);
+    model.objects[1]->layer_height_profile.set(layer_height_profile_fit_to_height(profile, 10.05));
+    print.apply(model, config);
+    REQUIRE_FALSE(print.has_wipe_tower());
+    REQUIRE_FALSE(print.precise_z_height_overridden());
+    REQUIRE(print.objects().size() == 2);
+
+    PrintObject &lower = *print.get_object(1);
+    CHECK(lower.precise_z_height());
+    lower.slice();
+    REQUIRE(lower.layer_count() > 50);
+    CHECK_THAT(lower.get_layer(int(lower.layer_count()) - 1)->print_z, Catch::Matchers::WithinAbs(10.05, 1e-4));
+}
+
 TEST_CASE("Validation is given the tower's effective width, not the configured one", "[WipeTower]")
 {
     // A rib wall squares the tower, so its width is its depth. Validation reads this rather
