@@ -1,3 +1,19 @@
+// why: keep the Windows headers ahead of libslic3r. Model.hpp pulls in Format/STEP.hpp, and
+// OCCT's Standard_Macro.hxx defines NOUSER and NOGDI on Windows so that windows.h does not
+// collide with OCCT's identifiers. Defined that early they also hide the USER and GDI
+// declarations, and the wx MSW headers Field.hpp reaches (wx/wxprec.h -> wx/msw/private.h)
+// need WNDPROC, RGB and the ::GetWindowRect family. Including windows.h first, as
+// libslic3r_gui does through pchheader.hpp or win_platform.hpp, keeps them.
+#ifdef WIN32
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
+    #include <Windows.h>
+#endif
+
 #include <catch2/catch_all.hpp>
 
 #include <cstddef>
