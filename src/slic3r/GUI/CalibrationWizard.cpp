@@ -1,4 +1,5 @@
 #include "CalibrationWizard.hpp"
+#include "CalibUtils.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -7,6 +8,34 @@
 #include "../../libslic3r/calib.hpp"
 #include "Tabbook.hpp"
 #include "CaliHistoryDialog.hpp"
+#include <wx/event.h>
+#include <wx/string.h>
+#include <map>
+#include "libslic3r/Preset.hpp"
+#include <utility>
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/libslic3r.h"
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/colour.h>
+#include <wx/scrolwin.h>
+#include <functional>
+#include <boost/log/trivial.hpp>
+#include <string>
+#include "libslic3r/Config.hpp"
+#include "slic3r/GUI/CalibrationWizardPresetPage.hpp"
+#include <vector>
+#include "slic3r/GUI/ReleaseNote.hpp"
+#include <cassert>
+#include "slic3r/GUI/CalibrationWizardStartPage.hpp"
+#include "slic3r/GUI/CalibrationWizardCaliPage.hpp"
+#include "slic3r/GUI/CalibrationWizardSavePage.hpp"
+#include "slic3r/GUI/DeviceCore/DevCalib.h"
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include <wx/arrstr.h>
+#include <algorithm>
+#include "slic3r/GUI/GUI.hpp"
+#include "libslic3r/ParameterUtils.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -944,7 +973,7 @@ bool PressureAdvanceWizard::can_save_cali_result(const std::vector<PACalibResult
     }
 
     if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
-        MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold %d historical results per nozzle. This result will not be saved."), MAX_PA_HISTORY_RESULTS_NUMS),
+        MessageDialog msg_dlg(nullptr, wxString::Format(_L_PLURAL("This machine type can only hold %d historical result per nozzle. This result will not be saved.", "This machine type can only hold %d historical results per nozzle. This result will not be saved.", MAX_PA_HISTORY_RESULTS_NUMS), MAX_PA_HISTORY_RESULTS_NUMS),
                               wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;

@@ -1,3 +1,8 @@
+#include <cstddef>
+#include <cstdio>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/file_status.hpp>
 #include <exception>
 #include <cstdint>
 
@@ -6,6 +11,9 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#include <string>
+#include <miniz.h>
+#include <stdio.h>
 
 #if defined(_MSC_VER) || defined(__MINGW64__)
 #include "boost/nowide/cstdio.hpp"
@@ -255,7 +263,7 @@ std::string MZ_Archive::get_errorstr(mz_zip_error mz_err)
         break;
     }
 
-    return "unknown error";
+    return L("unknown error");
 }
 
 } // namespace Slic3r
