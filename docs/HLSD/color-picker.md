@@ -37,6 +37,8 @@ action enable two-endpoint gradients and independent endpoint alpha. The preset
 combo box reads project colors in their stored vector order locally and applies
 changes through `sync_colour_config`,
 retaining the existing RGB/RGBA profile/project formats and dirty marking.
+Sidebar gradient and segmented multicolor swatches draw colors in the supplied
+order without sorting them.
 Opaque colors use `#RRGGBB`; nonopaque colors use `#RRGGBBAA`, including fully
 transparent alpha `00`. Initial selections, alpha-only edits and cancellation
 retain stored alpha. Ordered
