@@ -98,6 +98,43 @@ namespace {
 // bigger jump than the whole useful region.
 constexpr float ImGuiLogSlider = float(ImGuiSliderFlags_Logarithmic);
 
+// The scrollbar of the panel's scrolling areas (the panel body and the texture library). ImGui's stock
+// scrollbar is a wide, square-cornered slab in a tinted track - against the flat panel it reads as a raw
+// widget bolted onto the edge - so it is slimmed to a rounded thumb over an invisible track. The child
+// background goes transparent with it, so the area reads as part of the panel.
+void push_slim_scrollbar_style(float width, bool dark)
+{
+    const ImVec4 grab = dark ? ImVec4(1.f, 1.f, 1.f, 0.26f) : ImVec4(0.f, 0.f, 0.f, 0.26f);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, width);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 0.5f * width);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.f, 0.f, 0.f, 0.f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, grab);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(grab.x, grab.y, grab.z, 0.45f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(grab.x, grab.y, grab.z, 0.65f));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.f, 0.f, 0.f, 0.f));
+}
+
+void pop_slim_scrollbar_style()
+{
+    ImGui::PopStyleColor(5);
+    ImGui::PopStyleVar(2);
+}
+
+// Cuts a UTF-8 string down to `max_w` pixels, ending it in "..." when it had to be cut.
+std::string ellipsize(std::string s, float max_w)
+{
+    if (ImGui::CalcTextSize(s.c_str()).x <= max_w)
+        return s;
+    while (!s.empty() && ImGui::CalcTextSize((s + "...").c_str()).x > max_w) {
+        unsigned char c;
+        do { // a whole code point at a time
+            c = static_cast<unsigned char>(s.back());
+            s.pop_back();
+        } while (!s.empty() && (c & 0xC0) == 0x80);
+    }
+    return s + "...";
+}
+
 // Uploads decoded 8-bit grayscale height data as an RGBA GPU texture for display in the panel.
 // Shared by the per-layer thumbnail and the picker's library entries, which differ only in where
 // their pixels came from.
@@ -2920,8 +2957,9 @@ void GLGizmoTextureDisplacement::run_uv_command(int cmd, float value)
     }
     else if (cmd == int(Command::PickTexture)) {
         // The same texture library the layer card opens; the panel renders it this frame.
-        m_picker_slot         = m_active_layer_slot;
-        m_picker_open_request = true;
+        m_picker_slot            = m_active_layer_slot;
+        m_picker_open_request    = true;
+        m_picker_reveal_selected = true;
     } else if (cmd == int(Command::Unwrap)) {
         // The solve runs only on this - painting, the seam angle and seam marking never trigger it.
         m_uv_unwrap_pending      = true;
@@ -4130,6 +4168,40 @@ void GLGizmoTextureDisplacement::import_custom_texture(TextureDisplacementLayer 
     set_layer_texture(layer, *entry);
 }
 
+void GLGizmoTextureDisplacement::ease_wheel_scroll(float &target, float &applied)
+{
+    ImGuiIO    &io         = ImGui::GetIO();
+    const float scroll_now = ImGui::GetScrollY();
+    const float scroll_max = ImGui::GetScrollMaxY();
+
+    // Anything that moved the scroll without us - dragging the grab, a keyboard/gamepad nav step, the
+    // content shrinking under a clamped offset, a SetScroll*() call - has to re-seed the target, or the
+    // easing below would immediately drag the view back to where it last animated to.
+    if (applied < 0.f || std::abs(scroll_now - applied) > 0.5f)
+        target = scroll_now;
+
+    if (io.MouseWheel != 0.f && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))
+        target -= io.MouseWheel * ImGui::GetFontSize() * 4.f;
+    // Whole pixels: ImGui floors whatever SetScrollY() is given, so a fractional target could never be
+    // reached and the "still gliding" test below would stay true forever, repainting the canvas for good.
+    target = std::floor(std::clamp(target, 0.f, scroll_max));
+
+    const float delta = target - scroll_now;
+    if (std::abs(delta) >= 1.f) {
+        // Exponential ease, formulated against the frame time so the glide takes the same wall time
+        // whether the canvas is running at 30 or 144 fps. The last sub-pixel step would be floored
+        // away, so land on the target outright once the remainder is that small.
+        const float t    = 1.f - std::exp(-20.f * std::clamp(io.DeltaTime, 1.f / 240.f, 1.f / 15.f));
+        const float step = (std::abs(delta * t) < 1.f) ? delta : delta * t;
+        const float next = std::floor(scroll_now + step);
+        ImGui::SetScrollY(next);
+        applied = next;
+        m_parent.set_as_dirty(); // nothing else would redraw mid-glide once the mouse stops
+    } else {
+        applied = scroll_now;
+    }
+}
+
 void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &panel_min, const ImVec2 &panel_max)
 {
     ModelVolume              *mv    = texture_volume();
@@ -4146,37 +4218,35 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
             ImGui::OpenPopup(popup_id);
     }
 
-    const float tile    = std::round(m_imgui->scaled(3.2f));
-    const float spacing = std::round(m_imgui->scaled(0.4f));
-    const float grid_w  = 4.f * tile + 3.f * spacing;
-    const float gap     = m_imgui->scaled(0.5f);
-    const ImGuiStyle &style = ImGui::GetStyle();
+    const float       tile        = std::round(m_imgui->scaled(3.2f));
+    const float       spacing     = std::round(m_imgui->scaled(0.4f));
+    const float       grid_w      = 4.f * tile + 3.f * spacing;
+    const float       gap         = m_imgui->scaled(0.5f);
+    const float       scrollbar_w = m_imgui->scaled(0.5f);
+    const float       ring_w      = std::max(2.f, std::round(m_imgui->scaled(0.1f))); // the current texture's ring
+    const float       frame_h     = ImGui::GetFrameHeight();
+    const ImVec4      orca        = ImGuiWrapper::COL_ORCA;
+    const ImGuiStyle &style       = ImGui::GetStyle();
 
-    // A fixed size rather than a fit-to-content one. The width is the four-column grid plus the window
-    // padding and the scrollbar gutter, so the columns always fit and no horizontal scrollbar is needed.
-    // The height is a share of the window, not of the content, so it does not jump as packs load or
-    // sections collapse; the width derives from scaled values, so it tracks the DPI like the rest.
-    const float fixed_w = grid_w + 2.f * style.WindowPadding.x + style.ScrollbarSize;
+    // A fixed size rather than a fit-to-content one. The width is the four-column grid, a gutter and the
+    // slim scrollbar beside it, plus the window padding, so the columns always fit and no horizontal
+    // scrollbar is needed; it derives from scaled values, so it tracks the DPI like the rest.
+    const float fixed_w = grid_w + spacing + scrollbar_w + 2.f * style.WindowPadding.x;
 
     // BeginPopup() ORs in ImGuiWindowFlags_AlwaysAutoResize (deps_src/imgui/imgui.cpp:8371) and no flag
     // turns it back off. A SetNextWindowSize() overrides it for each axis it sets (imgui.cpp:5983-5996),
-    // so an explicit size is the only way to fix the popup's size; the window then scrolls its content.
+    // so an explicit size is the only way to fix the popup's size; the grid child below then scrolls.
     //
-    // About 70% of the window, fixed for a given window, shortened only enough to keep a gap above and
-    // below, and floored at two frame heights so a very short window still shows something usable.
-    const ImGuiViewport *viewport = ImGui::GetMainViewport();
-    const float          height   = std::max(std::min(0.70f * viewport->Size.y, viewport->Size.y - 2.f * gap),
-                                             2.f * ImGui::GetFrameHeight());
-
-    // A 70%-tall popup cannot hang off the panel's top: anchored there, the side it grows to holds only
-    // about half the window. It uses the whole column beside the panel instead, filling from the top or
-    // the bottom of the viewport depending on which side of the panel's top has more room.
-    const float popup_top   = panel_min.y + m_imgui->scaled(4.f);
-    const float space_below = viewport->Pos.y + viewport->Size.y - popup_top - gap;
-    const float space_above = popup_top - viewport->Pos.y - gap;
-    const bool  grow_down   = space_below >= space_above;
-    const float popup_y     = grow_down ? viewport->Pos.y + gap
-                                        : viewport->Pos.y + viewport->Size.y - gap - height;
+    // Top-aligned with the panel, which keeps it clear of the gizmo toolbar above a docked panel, and as
+    // tall as the panel or 70% of the window, whichever is taller, while keeping a gap inside the window.
+    // The height follows the window and the panel, never the content, so it does not jump as packs load or
+    // sections collapse.
+    const ImGuiViewport *viewport  = ImGui::GetMainViewport();
+    const float          vp_top    = viewport->Pos.y + gap;
+    const float          vp_bottom = viewport->Pos.y + viewport->Size.y - gap;
+    const float          height    = std::max(std::min(std::max(0.70f * viewport->Size.y, panel_max.y - panel_min.y), vp_bottom - vp_top),
+                                              2.f * frame_h);
+    const float          popup_y   = std::max(vp_top, std::min(panel_min.y, vp_bottom - height));
     // Beside the panel rather than over it, so the layer being retextured stays in view: to its left when
     // there is room (the docked panel sits against the right edge of the canvas), otherwise to its right.
     const float width   = viewport->Size.x > 0.f ? std::min(fixed_w, viewport->Size.x) : fixed_w;
@@ -4185,7 +4255,18 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
     // Cond_Always, not Appearing: a viewport resize while the popup is open must move and resize it too.
     ImGui::SetNextWindowPos(ImVec2(popup_x, popup_y), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
-    if (!ImGui::BeginPopup(popup_id))
+    // Drawn as the panel's own sheet: its opaque background and rounding, no border. A popup is filled with
+    // PopupBg, which the panel's toolbar style leaves at ImGui's translucent near-black - a dark window
+    // beside a light panel, with whatever it covers showing through. Only Begin reads these, so they are
+    // popped at once and the tooltips shown from inside keep their own look.
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg));
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, style.WindowRounding);
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.f);
+    // The window itself never scrolls; the grid child below does.
+    const bool open = ImGui::BeginPopup(popup_id, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor();
+    if (!open)
         return;
     if (layer == nullptr) {
         ImGui::CloseCurrentPopup();
@@ -4201,9 +4282,29 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
     m_tooltip_anchor_max         = ImVec2(m_tooltip_anchor_min.x + ImGui::GetWindowSize().x,
                                           m_tooltip_anchor_min.y + ImGui::GetWindowSize().y);
 
-    m_imgui->push_bold_font();
-    m_imgui->text(_L("Choose a texture"));
-    m_imgui->pop_bold_font();
+    // The header stays put while the grid scrolls under it: the title says what the popup is for, and the
+    // close button is there for anyone who does not know that a click outside closes it.
+    bool close_clicked = false;
+    {
+        ImDrawList  *hdl = ImGui::GetWindowDrawList();
+        const ImVec2 row = ImGui::GetCursorScreenPos();
+        ImGui::SetCursorScreenPos(ImVec2(row.x, row.y + 0.5f * (frame_h - ImGui::GetTextLineHeight())));
+        m_imgui->bold_text(_u8L("Choose a texture"));
+        const ImVec2 btn(ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x - frame_h, row.y);
+        ImGui::SetCursorScreenPos(btn);
+        close_clicked       = ImGui::InvisibleButton("##close", ImVec2(frame_h, frame_h));
+        const bool   hot    = ImGui::IsItemHovered();
+        const ImVec2 c(btn.x + 0.5f * frame_h, btn.y + 0.5f * frame_h);
+        const float  k      = std::round(0.18f * frame_h);
+        const float  line_w = std::max(1.f, std::round(m_imgui->scaled(0.08f)));
+        const ImU32  x_col  = ImGui::GetColorU32(ImGuiCol_Text, hot ? 1.f : 0.6f);
+        if (hot)
+            hdl->AddCircleFilled(c, 0.5f * frame_h, ImGui::GetColorU32(ImGuiCol_Text, 0.08f));
+        hdl->AddLine(ImVec2(c.x - k, c.y - k), ImVec2(c.x + k, c.y + k), x_col, line_w);
+        hdl->AddLine(ImVec2(c.x - k, c.y + k), ImVec2(c.x + k, c.y - k), x_col, line_w);
+        ImGui::SetCursorScreenPos(ImVec2(row.x, row.y + frame_h + style.ItemSpacing.y));
+        ImGui::Separator();
+    }
 
     const std::vector<TextureLibraryEntry> &library      = texture_library();
     // A reinstalled pack can drop new bytes at a path already cached on this gizmo, and get_library_texture()
@@ -4212,11 +4313,17 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         m_library_textures.clear();
         m_library_generation = generation;
     }
-    ImDrawList                             *dl           = ImGui::GetWindowDrawList();
-    const ImU32                             selected_col = ImGui::GetColorU32(ImGuiWrapper::COL_ORCA);
-    std::optional<TextureLibraryEntry>      chosen;
-    std::optional<TextureLibraryEntry>      to_remove;
-    bool                                    import_clicked = false;
+
+    // The grid scrolls as the panel body does: the same slim scrollbar, and the wheel eased by
+    // ease_wheel_scroll() instead of ImGui's five-line jumps (hence NoScrollWithMouse).
+    push_slim_scrollbar_style(scrollbar_w, wxGetApp().dark_mode());
+    ImGui::BeginChild("##texture_grid", ImVec2(0.f, 0.f), false, ImGuiWindowFlags_NoScrollWithMouse);
+    ease_wheel_scroll(m_picker_scroll_target, m_picker_scroll_applied);
+
+    ImDrawList                        *dl = ImGui::GetWindowDrawList(); // the child's, so tiles clip to the grid
+    std::optional<TextureLibraryEntry> chosen;
+    std::optional<TextureLibraryEntry> to_remove;
+    bool                               import_clicked = false;
 
     // Tiles are placed on the four-column grid explicitly rather than flowed with SameLine(): a user tile
     // overlays a remove button on its corner, and that button would otherwise be "the previous item" the
@@ -4260,13 +4367,23 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
             }
             if (removable)
                 ImGui::SetItemAllowOverlap(); // the remove button drawn over its corner takes its own clicks
-            const ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax();
-            if (entry->path == layer->path)
-                dl->AddRect(ImVec2(a.x - 1.f, a.y - 1.f), ImVec2(b.x + 1.f, b.y + 1.f), selected_col, 0.f, 0, 2.f);
-            if (ImGui::IsItemHovered())
+            const ImVec2 a       = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax();
+            const bool   current = entry->path == layer->path;
+            const bool   hovered = ImGui::IsItemHovered();
+            // The layer's current texture carries an accent ring, and the tile under the pointer a thinner,
+            // fainter one. Both are drawn inside the tile, where the grid's clip rect never cuts them.
+            if (current || hovered) {
+                const float w = current ? ring_w : std::round(0.5f * ring_w);
+                dl->AddRect(ImVec2(a.x + 0.5f * w, a.y + 0.5f * w), ImVec2(b.x - 0.5f * w, b.y - 0.5f * w),
+                            ImGui::GetColorU32(current ? orca : ImVec4(orca.x, orca.y, orca.z, 0.6f)), 0.f, 0, w);
+            }
+            // Centred, as far as the scroll range allows, so the textures around it are in view too.
+            if (current && m_picker_reveal_selected)
+                ImGui::SetScrollFromPosY(0.5f * (a.y + b.y) - ImGui::GetWindowPos().y, 0.5f);
+            if (hovered)
                 panel_tooltip(entry->name);
 
-            // Clipped by the window's own clip rect, so a tile scrolled under the heading or the scrollbar
+            // Clipped by the grid's clip rect, so a tile scrolled out of the grid or under its scrollbar
             // does not offer its remove button. IsMouseHoveringRect() clips by default.
             if (removable && ImGui::IsMouseHoveringRect(a, b)) {
                 const float  r = std::round(tile * 0.17f);
@@ -4299,24 +4416,40 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
     // while the popup closes and reopens, reset on restart.
     static std::map<std::string, bool> s_section_collapsed; // true = collapsed; absent = expanded
 
-    // A section heading with its collapse control at the right edge of the grid: the triangle points
-    // down while the section is open and right while it is collapsed, and toggles it when clicked.
+    // A section heading, one row as wide as the grid: a click anywhere on it collapses or expands the
+    // section. The chevron takes the accent of the panel's More settings link, and the count at the right
+    // says what a collapsed section holds. The grid follows closer than the next heading does, so each
+    // heading reads as part of its own grid.
     // Returns true when the section is open, so the caller knows whether to draw its grid.
-    const auto section_header = [&](const std::string &key, const std::string &title) {
+    const auto section_header = [&](const std::string &key, const std::string &title, size_t count) {
         bool        &collapsed = s_section_collapsed[key]; // default-inserts false -> expanded
         const ImVec2 row       = ImGui::GetCursorScreenPos();
-        const float  row_h     = ImGui::GetFrameHeight();
-        ImGui::SetCursorScreenPos(ImVec2(row.x, row.y + (row_h - ImGui::GetTextLineHeight()) * 0.5f));
-        ImGui::TextDisabled("%s", title.c_str());
-        const bool clipped = ImGui::CalcTextSize(title.c_str()).x > grid_w - row_h - spacing;
-        if (clipped && ImGui::IsItemHovered())
-            panel_tooltip(title); // a long plugin-supplied name, cut by the fixed width
-        ImGui::SetCursorScreenPos(ImVec2(row.x + grid_w - row_h, row.y));
-        ImGui::PushID(key.c_str());
-        if (ImGui::ArrowButton("##collapse", collapsed ? ImGuiDir_Right : ImGuiDir_Down))
+        const ImVec2 row_max(row.x + grid_w, row.y + frame_h);
+        if (ImGui::InvisibleButton(key.c_str(), ImVec2(grid_w, frame_h)))
             collapsed = !collapsed;
-        ImGui::PopID();
-        ImGui::SetCursorScreenPos(ImVec2(row.x, row.y + row_h + ImGui::GetStyle().ItemSpacing.y));
+        const bool hovered = ImGui::IsItemHovered();
+        if (hovered)
+            dl->AddRectFilled(row, row_max, ImGui::GetColorU32(ImGuiCol_Text, 0.05f), style.FrameRounding);
+
+        const float inset = std::round(0.25f * frame_h);
+        const float arrow = std::round(ImGui::GetFontSize() * 0.55f);
+        const float cx = row.x + inset + 0.5f * arrow, cy = row.y + 0.5f * frame_h, hs = 0.3f * arrow;
+        const ImU32 accent = ImGui::GetColorU32(orca);
+        if (collapsed)
+            dl->AddTriangleFilled(ImVec2(cx - 0.5f * hs, cy - hs), ImVec2(cx + 0.5f * hs, cy), ImVec2(cx - 0.5f * hs, cy + hs), accent);
+        else
+            dl->AddTriangleFilled(ImVec2(cx - hs, cy - 0.5f * hs), ImVec2(cx + hs, cy - 0.5f * hs), ImVec2(cx, cy + 0.5f * hs), accent);
+
+        const std::string n     = std::to_string(count);
+        const float       n_w   = ImGui::CalcTextSize(n.c_str()).x;
+        const float       ty    = row.y + 0.5f * (frame_h - ImGui::GetTextLineHeight());
+        const float       tx    = row.x + inset + arrow + spacing;
+        const std::string shown = ellipsize(title, std::max(0.f, row_max.x - inset - n_w - spacing - tx));
+        dl->AddText(ImVec2(tx, ty), ImGui::GetColorU32(ImGuiCol_Text), shown.c_str());
+        dl->AddText(ImVec2(row_max.x - inset - n_w, ty), ImGui::GetColorU32(ImGuiCol_TextDisabled), n.c_str());
+        if (hovered && shown != title)
+            panel_tooltip(title); // a long plugin-supplied name, cut by the fixed width
+        ImGui::SetCursorScreenPos(ImVec2(row.x, row_max.y + spacing));
         return !collapsed;
     };
 
@@ -4355,7 +4488,7 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
             sections.back().entries.push_back(&entry);
 
     for (const Section &section : sections) {
-        if (!section_header(section.key, section.title))
+        if (!section_header(section.key, section.title, section.entries.size()))
             continue;
         const ImVec2 origin = ImGui::GetCursorScreenPos();
         const int    count  = grid(origin, section.entries, section.source == TextureSource::User);
@@ -4379,8 +4512,12 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
                 ImGui::TextDisabled("%s", _u8L("No textures found.").c_str());
         }
     }
+    // Done whether or not the current texture was drawn: one in a collapsed section stays where it is.
+    m_picker_reveal_selected = false;
+    ImGui::EndChild();
+    pop_slim_scrollbar_style();
 
-    if (chosen || import_clicked)
+    if (chosen || import_clicked || close_clicked)
         ImGui::CloseCurrentPopup();
     m_tooltip_anchor_min = prev_anchor_min;
     m_tooltip_anchor_max = prev_anchor_max;
@@ -6687,19 +6824,6 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
         m_imgui->text(text);
         m_imgui->pop_bold_font();
     };
-    // Cuts a UTF-8 string down to `max_w` pixels, ending it in "..." when it had to be cut.
-    const auto ellipsize = [](std::string s, float max_w) {
-        if (ImGui::CalcTextSize(s.c_str()).x <= max_w)
-            return s;
-        while (!s.empty() && ImGui::CalcTextSize((s + "...").c_str()).x > max_w) {
-            unsigned char c;
-            do { // a whole code point at a time
-                c = static_cast<unsigned char>(s.back());
-                s.pop_back();
-            } while (!s.empty() && (c & 0xC0) == 0x80);
-        }
-        return s + "...";
-    };
     // Label column + a slider filling the rest of the row, value printed inside the track.
     // `right_inset` keeps a layer card's inner padding.
     const auto slider_label = [&](const wxString &label) {
@@ -6892,52 +7016,11 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                                                  style.WindowPadding.y - style.ItemSpacing.y);
     const float body_h     = m_panel_body_h > 0.f ? std::min(m_panel_body_h + 1.f, max_body_h) : max_body_h;
 
-    // ImGui's stock scrollbar is a wide, square-cornered slab in a tinted track - against this flat panel
-    // it reads as a raw widget bolted onto the edge. Slim it to a rounded thumb over an invisible track.
-    const float  scrollbar_w = m_imgui->scaled(0.5f);
-    const ImVec4 grab        = dark ? ImVec4(1.f, 1.f, 1.f, 0.26f) : ImVec4(0.f, 0.f, 0.f, 0.26f);
-    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_w);
-    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 0.5f * scrollbar_w);
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.f, 0.f, 0.f, 0.f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, grab);
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(grab.x, grab.y, grab.z, 0.45f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(grab.x, grab.y, grab.z, 0.65f));
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.f, 0.f, 0.f, 0.f));
-    // NoScrollWithMouse: the wheel is handled below so the scroll can be eased instead of teleporting
-    // five text lines per notch, which on blocks this tall lost the reader's place.
+    push_slim_scrollbar_style(m_imgui->scaled(0.5f), dark);
+    // NoScrollWithMouse: ease_wheel_scroll() eases the scroll instead of teleporting five text lines per
+    // notch, which on blocks this tall lost the reader's place.
     ImGui::BeginChild("##td_body", ImVec2(panel_w, body_h), false, ImGuiWindowFlags_NoScrollWithMouse);
-    {
-        ImGuiIO    &io         = ImGui::GetIO();
-        const float scroll_now = ImGui::GetScrollY();
-        const float scroll_max = ImGui::GetScrollMaxY();
-
-        // Anything that moved the scroll without us - dragging the grab, a keyboard/gamepad nav step, the
-        // content shrinking under a clamped offset - has to re-seed the target, or the easing below would
-        // immediately drag the view back to where it last animated to.
-        if (m_panel_scroll_applied < 0.f || std::abs(scroll_now - m_panel_scroll_applied) > 0.5f)
-            m_panel_scroll_target = scroll_now;
-
-        if (io.MouseWheel != 0.f && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))
-            m_panel_scroll_target -= io.MouseWheel * ImGui::GetFontSize() * 4.f;
-        // Whole pixels: ImGui floors whatever SetScrollY() is given, so a fractional target could never be
-        // reached and the "still gliding" test below would stay true forever, repainting the canvas for good.
-        m_panel_scroll_target = std::floor(std::clamp(m_panel_scroll_target, 0.f, scroll_max));
-
-        const float delta = m_panel_scroll_target - scroll_now;
-        if (std::abs(delta) >= 1.f) {
-            // Exponential ease, formulated against the frame time so the glide takes the same wall time
-            // whether the canvas is running at 30 or 144 fps. The last sub-pixel step would be floored
-            // away, so land on the target outright once the remainder is that small.
-            const float t    = 1.f - std::exp(-20.f * std::clamp(io.DeltaTime, 1.f / 240.f, 1.f / 15.f));
-            const float step = (std::abs(delta * t) < 1.f) ? delta : delta * t;
-            const float next = std::floor(scroll_now + step);
-            ImGui::SetScrollY(next);
-            m_panel_scroll_applied = next;
-            m_parent.set_as_dirty(); // nothing else would redraw mid-glide once the mouse stops
-        } else {
-            m_panel_scroll_applied = scroll_now;
-        }
-    }
+    ease_wheel_scroll(m_panel_scroll_target, m_panel_scroll_applied);
 
     // Everything that changes the layer list is deferred until the list is no longer being drawn:
     // removing or reordering shifts mv->texture_displacement_layers under the pointers the loop holds,
@@ -7182,8 +7265,9 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
 
     // Opens the texture library for a layer, making it the active one too (after the loop).
     const auto open_picker = [&](int slot) {
-        m_picker_slot         = slot;
-        m_picker_open_request = true;
+        m_picker_slot            = slot;
+        m_picker_open_request    = true;
+        m_picker_reveal_selected = true;
     };
     // The six-dot drag icon, drawn into `list` over [x, x + w] x [y, y + h].
     const auto draw_drag_icon = [&](ImDrawList *list, float x, float y, float w, float h, ImU32 tint) {
@@ -8178,8 +8262,7 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     // height of everything above, whether or not it is scrolled.
     m_panel_body_h = ImGui::GetCursorPosY() - style.ItemSpacing.y;
     ImGui::EndChild();
-    ImGui::PopStyleColor(5);
-    ImGui::PopStyleVar(2);
+    pop_slim_scrollbar_style();
 
     // The layer-list changes deferred from the loop above.
     if (slot_to_remove >= 0)
