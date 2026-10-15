@@ -2843,32 +2843,7 @@ void AMSPreview::doRender(wxDC &dc)
             const wxSize swatch_size = m_ams_item_type == AMSModel::N3S_AMS ? AMS_ITEM_CUBE_SIZE : AMS_ITEM_CUBE_SIZE2;
             const wxRect rect((size.x - swatch_size.x) / 2, (size.y - swatch_size.y) / 2, swatch_size.x, swatch_size.y);
             const int radius = m_ams_item_type == AMSModel::N3S_AMS ? 0 : FromDIP(3);
-            std::unique_ptr<wxGraphicsContext> owned_gc;
-            wxGraphicsContext* gc = dc.GetGraphicsContext();
-            if (!gc) {
-                owned_gc.reset(wxGraphicsContext::CreateFromUnknownDC(dc));
-                gc = owned_gc.get();
-            }
-            if (gc) {
-                wxGraphicsGradientStops stops(iter.material_cols.front(), iter.material_cols.back());
-                const size_t count = iter.material_cols.size();
-                if (iter.ctype == 0) {
-                    for (size_t i = 1; i + 1 < count; ++i)
-                        stops.Add(iter.material_cols[i], static_cast<float>(i) / (count - 1));
-                } else {
-                    // Two stops at each boundary keep multicolour bands distinct.
-                    for (size_t i = 1; i < count; ++i) {
-                        const float position = static_cast<float>(i) / count;
-                        stops.Add(iter.material_cols[i - 1], position);
-                        stops.Add(iter.material_cols[i], position);
-                    }
-                }
-                gc->PushState();
-                gc->SetPen(*wxTRANSPARENT_PEN);
-                gc->SetBrush(gc->CreateLinearGradientBrush(rect.x, rect.y, rect.x + rect.width, rect.y, stops));
-                gc->DrawRoundedRectangle(rect.x, rect.y, rect.width, rect.height, radius);
-                gc->PopState();
-            } else {
+            if (!draw_rounded_filament_swatch(dc, rect, iter.material_cols, iter.ctype == 0, radius)) {
                 dc.SetPen(*wxTRANSPARENT_PEN);
                 dc.SetBrush(iter.material_colour);
                 dc.DrawRoundedRectangle(rect, radius);

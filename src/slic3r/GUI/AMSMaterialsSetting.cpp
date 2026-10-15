@@ -1,5 +1,6 @@
 #include "AMSMaterialsSetting.hpp"
 #include "ColorPickerDialog.hpp"
+#include "FilamentBitmapUtils.hpp"
 #include "libslic3r/Color.hpp"
 #include <optional>
 #include <variant>
@@ -44,6 +45,9 @@
 #include <wx/dcclient.h>
 #include <wx/dc.h>
 #include <wx/colour.h>
+#include <wx/brush.h>
+#include <wx/pen.h>
+#include <wx/window.h>
 #include <wx/dcgraph.h>
 #include <wx/graphics.h>
 #include <wx/event.h>
@@ -59,6 +63,7 @@
 #include "CalibUtils.hpp"
 #include "../Utils/ColorSpaceConvert.hpp"
 #include "EncodedFilament.hpp"
+#include "Widgets/StateHandler.hpp"
 
 
 #include "DeviceCore/DevConfig.h"
@@ -75,6 +80,41 @@
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
+
+namespace {
+
+class CustomColorSwatch final : public StaticBox
+{
+public:
+    CustomColorSwatch(wxWindow* parent, const std::vector<wxColour>& colors, const int& ctype)
+        : StaticBox(parent), m_colors(colors), m_ctype(ctype) {}
+
+private:
+    void doRender(wxDC& dc) override
+    {
+        if (m_colors.size() <= 1) {
+            StaticBox::doRender(dc);
+            return;
+        }
+        // Transparent stops reveal the popup background, never a previous paint or the first color.
+        dc.SetBackground(wxBrush(GetBackgroundColour()));
+        dc.Clear();
+        const wxRect rect = GetClientRect();
+        const double corner_radius = std::max(0.0, radius - border_width);
+        if (!draw_rounded_filament_swatch(dc, rect, m_colors, m_ctype == 0, corner_radius)) {
+            StaticBox::doRender(dc);
+            return;
+        }
+        dc.SetPen(wxPen(border_color.colorForStates(state_handler.states()), border_width, border_style));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(rect, corner_radius);
+    }
+
+    const std::vector<wxColour>& m_colors;
+    const int& m_ctype;
+};
+
+} // namespace
 
 static std::string float_to_string_with_precision(float value, int precision = 3)
 {
@@ -2071,7 +2111,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     m_sizer_custom->Add(m_title_custom, 0, wxALL, 5);
     m_sizer_custom->Add(custom_line, 1, wxALIGN_CENTER, 0);
 
-    m_custom_cp =  new StaticBox(m_def_color_box);
+    m_custom_cp = new CustomColorSwatch(m_def_color_box, m_def_cols, m_def_ctype);
     m_custom_cp->SetSize(FromDIP(60), FromDIP(25));
     m_custom_cp->SetMinSize(wxSize(FromDIP(60), FromDIP(25)));
     m_custom_cp->SetMaxSize(wxSize(FromDIP(60), FromDIP(25)));
@@ -2316,13 +2356,15 @@ void ColorPickerPopup::set_def_colour(wxColour col, std::vector<wxColour> cols, 
         }
     }
 
-    if (m_def_col.Alpha() == 0) {
+    if (m_def_cols.size() == 1 && m_def_col.Alpha() == 0) {
         m_ts_stbitmap_custom->Show();
     }
     else {
         m_ts_stbitmap_custom->Hide();
         m_custom_cp->SetBackgroundColor(m_def_col);
     }
+    // A different stop or color type can change while the representative first color stays the same.
+    m_custom_cp->Refresh();
 
     Dismiss();
 }

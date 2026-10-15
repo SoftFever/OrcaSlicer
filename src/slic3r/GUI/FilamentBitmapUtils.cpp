@@ -15,12 +15,14 @@
 #include <wx/font.h>
 #include <wx/graphics.h>
 #include <wx/peninfobase.h>
+#include <wx/pen.h>
 #include <wx/settings.h>
 #include <wx/string.h>
 #include <wx/window.h>
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <string>
 #include <tuple>
@@ -116,6 +118,41 @@ void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const std::vector<wxC
         }
     }
     fill_gradient_rect_east(dc, rect, colors.data(), colors.size());
+}
+
+bool draw_rounded_filament_swatch(wxDC& dc, const wxRect& rect, const std::vector<wxColour>& colors,
+                                  bool gradient, double radius)
+{
+    if (colors.empty() || rect.width <= 0 || rect.height <= 0)
+        return false;
+    std::unique_ptr<wxGraphicsContext> owned_gc;
+    wxGraphicsContext* gc = dc.GetGraphicsContext();
+    if (!gc) {
+        owned_gc.reset(wxGraphicsContext::CreateFromUnknownDC(dc));
+        gc = owned_gc.get();
+    }
+    if (!gc)
+        return false;
+
+    wxGraphicsGradientStops stops(colors.front(), colors.back());
+    const size_t count = colors.size();
+    if (gradient) {
+        for (size_t i = 1; i + 1 < count; ++i)
+            stops.Add(colors[i], static_cast<float>(i) / (count - 1));
+    } else {
+        // Repeated boundary stops keep segmented multi-color selections distinct.
+        for (size_t i = 1; i < count; ++i) {
+            const float position = static_cast<float>(i) / count;
+            stops.Add(colors[i - 1], position);
+            stops.Add(colors[i], position);
+        }
+    }
+    gc->PushState();
+    gc->SetPen(*wxTRANSPARENT_PEN);
+    gc->SetBrush(gc->CreateLinearGradientBrush(rect.x, rect.y, rect.x + rect.width, rect.y, stops));
+    gc->DrawRoundedRectangle(rect.x, rect.y, rect.width, rect.height, radius);
+    gc->PopState();
+    return true;
 }
 
 static std::string to_hex(const wxColour& c)

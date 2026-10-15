@@ -277,6 +277,77 @@ TEST_CASE("sample_gradient_ramp returns nothing without a usable curve or step c
 // The headless GTK/macOS suite does not initialize GUI display/font stock objects.
 // Exercise native bitmap pixels on Windows without adding that dependency elsewhere.
 #ifdef __WXMSW__
+TEST_CASE("Rounded custom swatches display every gradient stop in order", "[FilamentBitmapUtils][AMSMaterialsSetting]")
+{
+    const int count = GENERATE(3, 7);
+    const bool reverse = GENERATE(false, true);
+    std::vector<wxColour> colors = count == 3 ? std::vector<wxColour>{wxColour(255, 0, 0), wxColour(0, 255, 0), wxColour(0, 0, 255)}
+                                             : std::vector<wxColour>{wxColour(255, 0, 0), wxColour(255, 128, 0), wxColour(255, 255, 0),
+                                                                     wxColour(0, 255, 0), wxColour(0, 255, 255), wxColour(0, 0, 255), wxColour(255, 0, 255)};
+    if (reverse)
+        std::reverse(colors.begin(), colors.end());
+    const wxColour background(40, 40, 40);
+    const wxRect rect(2, 2, 120, 25);
+    wxBitmap bitmap(124, 29, 24);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetBackground(wxBrush(background));
+        dc.Clear();
+        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, 7));
+    }
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    // Allow two raster pixels of native gradient alignment error within one color interval.
+    const int tolerance = (2 * 255 * (count - 1) + rect.width - 1) / rect.width;
+    for (int i = 0; i < count; ++i) {
+        const int x = std::clamp(rect.x + rect.width * i / (count - 1), rect.x + 1, rect.GetRight());
+        CAPTURE(count, reverse, i, x);
+        REQUIRE(std::abs(int(image.GetRed(x, 14)) - colors[i].Red()) <= tolerance);
+        REQUIRE(std::abs(int(image.GetGreen(x, 14)) - colors[i].Green()) <= tolerance);
+        REQUIRE(std::abs(int(image.GetBlue(x, 14)) - colors[i].Blue()) <= tolerance);
+    }
+    require_same_rgb(wxColour(image.GetRed(rect.x, rect.y), image.GetGreen(rect.x, rect.y), image.GetBlue(rect.x, rect.y)), background);
+}
+
+TEST_CASE("Rounded custom swatches retain visible stops after a transparent first color", "[FilamentBitmapUtils][AMSMaterialsSetting]")
+{
+    const wxColour background(40, 40, 40);
+    const std::vector<wxColour> colors{wxColour(255, 0, 0, 0), wxColour(0, 255, 0, 128), wxColour(0, 0, 255, 255)};
+    wxBitmap bitmap(124, 29, 24);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetBackground(wxBrush(background));
+        dc.Clear();
+        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, wxRect(2, 2, 120, 25), colors, true, 7));
+    }
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    for (const auto& sample : {std::pair<int, wxColour>{3, background}, {62, wxColour(20, 148, 20)}, {121, wxColour(0, 0, 255)}}) {
+        REQUIRE(std::abs(int(image.GetRed(sample.first, 14)) - sample.second.Red()) <= 8);
+        REQUIRE(std::abs(int(image.GetGreen(sample.first, 14)) - sample.second.Green()) <= 8);
+        REQUIRE(std::abs(int(image.GetBlue(sample.first, 14)) - sample.second.Blue()) <= 8);
+    }
+    require_same_rgb(wxColour(image.GetRed(2, 2), image.GetGreen(2, 2), image.GetBlue(2, 2)), background);
+}
+
+TEST_CASE("Rounded custom swatches keep segmented colors distinct from gradients", "[FilamentBitmapUtils][AMSMaterialsSetting]")
+{
+    const std::vector<wxColour> colors{wxColour(255, 0, 0), wxColour(0, 255, 0), wxColour(0, 0, 255)};
+    wxBitmap bitmap(120, 25, 24);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetBackground(*wxWHITE_BRUSH);
+        dc.Clear();
+        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, wxRect(0, 0, 120, 25), colors, false, 7));
+    }
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    for (int i = 0; i < 3; ++i) {
+        const int x = 20 + 40 * i;
+        require_same_rgb(wxColour(image.GetRed(x, 12), image.GetGreen(x, 12), image.GetBlue(x, 12)), colors[i]);
+    }
+}
+
 TEST_CASE("Ordered gradient fills preserve middle nodes and cover narrow swatches", "[FilamentBitmapUtils][AMSMaterialsSetting]")
 {
     const int width = GENERATE(1, 2, 3, 7, 13, 17);

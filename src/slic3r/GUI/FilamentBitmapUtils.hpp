@@ -34,6 +34,11 @@ void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from,
 // Ordered, evenly spaced RGBA stops, including when the rect is narrower than the stop count.
 void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const std::vector<wxColour>& colors);
 
+// Draw ordered RGBA colors as a rounded gradient or segmented swatch on the existing background.
+// Returns false if a graphics context is unavailable, leaving fallback drawing to the caller.
+bool draw_rounded_filament_swatch(wxDC& dc, const wxRect& rect, const std::vector<wxColour>& colors,
+                                  bool gradient, double radius);
+
 enum class FilamentRenderMode {
     Single,
     Dual,
