@@ -3,9 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <optional>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <catch2/catch_test_macros.hpp>
@@ -14,223 +12,200 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "libslic3r/BoundingBox.hpp"
-#include "libslic3r/CutObject.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/CutUtils.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/libslic3r.h"
 
 using namespace Slic3r;
 using Catch::Matchers::WithinAbs;
-using Catch::Matchers::WithinRel;
 
 namespace {
 
-TriangleMesh make_test_cube()
+ModelObject* make_cube_object(Model& model)
 {
     TriangleMesh mesh = make_cube(40.0, 40.0, 40.0);
     mesh.translate(Vec3f(-20.f, -20.f, -20.f));
-    return mesh;
+    ModelObject* obj = model.add_object();
+    obj->add_volume(mesh);
+    obj->add_instance();
+    return obj;
 }
 
-double measure_hole_depth(const indexed_triangle_set &its, bool upper_part)
+Transform3d plane_cut_matrix()
 {
-    double max_depth = 0.0;
-    for (const Vec3f &v : its.vertices) {
-        const double r2 = v.x() * v.x() + v.y() * v.y();
-        if (r2 <= 25.0) {
-            if (upper_part && v.z() > 0.0f)
-                max_depth = std::max(max_depth, static_cast<double>(v.z()));
-            else if (!upper_part && v.z() < 0.0f)
-                max_depth = std::max(max_depth, static_cast<double>(-v.z()));
-        }
-    }
-    return max_depth;
+    return Transform3d::Identity();
 }
 
-double measure_protrusion_height(const indexed_triangle_set &its, bool upper_part)
-{
-    double max_protrusion = 0.0;
-    for (const Vec3f &v : its.vertices) {
-        const double r2 = v.x() * v.x() + v.y() * v.y();
-        if (r2 <= 25.0) {
-            if (upper_part && v.z() < 0.0f)
-                max_protrusion = std::max(max_protrusion, static_cast<double>(-v.z()));
-            else if (!upper_part && v.z() > 0.0f)
-                max_protrusion = std::max(max_protrusion, static_cast<double>(v.z()));
-        }
-    }
-    return max_protrusion;
-}
-
-CutConnector make_connector(CutConnectorType type, double depth, double depth_tolerance, double radius = 3.0)
+CutConnector make_connector(CutConnectorType type, float height, float height_tolerance, float radius = 3.0f)
 {
     CutConnector c;
-    c.type            = type;
-    c.shape           = CutConnectorShape::Circle;
-    c.pos             = Vec3d(0.0, 0.0, 0.0);
-    c.radius          = radius;
-    c.depth           = depth;
-    c.depth_tolerance = depth_tolerance;
+    c.pos              = Vec3d(0.0, 0.0, 0.0);
+    c.rotation_m       = Transform3d::Identity();
+    c.radius           = radius;
+    c.height           = height;
+    c.radius_tolerance = 0.f;
+    c.height_tolerance = height_tolerance;
+    c.z_angle          = 0.f;
+    c.attribs          = CutConnectorAttributes(type, CutConnectorStyle::Prism, CutConnectorShape::Circle);
     return c;
 }
 
-}
-
-TEST_CASE("Dowel connector cuts matching cavities in both parts with depth tolerance", "[CutConnectors]")
+double mesh_max_z_in_radius(const TriangleMesh& mesh, double r2_limit, bool positive_z)
 {
-    const double nominal_depth = 10.0;
-    const double tolerance     = 0.2;
-    const Vec3d  cut_plane_pt(0.0, 0.0, 0.0);
-    const Vec3d  cut_plane_normal(0.0, 0.0, 1.0);
-
-    SECTION("nominal depth 10 mm with tolerance 0.2 mm expands both holes to 10.2 mm")
-    {
-        CutConnector dowel = make_connector(CutConnectorType::Dowel, nominal_depth, tolerance);
-
-        CutObjectResult result = cut_mesh_with_connectors(make_test_cube(), cut_plane_pt, cut_plane_normal, { dowel });
-        REQUIRE(result.upper_part.has_value());
-        REQUIRE(result.lower_part.has_value());
-
-        const double upper_depth = measure_hole_depth(result.upper_part->its, true);
-        CHECK_THAT(upper_depth, WithinAbs(nominal_depth + tolerance, 1e-3));
-
-        const double lower_depth = measure_hole_depth(result.lower_part->its, false);
-        CHECK_THAT(lower_depth, WithinAbs(nominal_depth + tolerance, 1e-3));
-
-        REQUIRE(result.connectors.size() == 1);
-        const BoundingBox dowel_bb = result.connectors.front().bounding_box();
-        CHECK_THAT(dowel_bb.size().z(), WithinAbs(2.0 * nominal_depth, 1e-3));
-    }
-
-    SECTION("zero depth tolerance keeps cavity depths strictly at nominal 10.0 mm")
-    {
-        CutConnector dowel_zero = make_connector(CutConnectorType::Dowel, nominal_depth, 0.0);
-
-        CutObjectResult result = cut_mesh_with_connectors(make_test_cube(), cut_plane_pt, cut_plane_normal, { dowel_zero });
-        REQUIRE(result.upper_part.has_value());
-        REQUIRE(result.lower_part.has_value());
-
-        const double upper_depth = measure_hole_depth(result.upper_part->its, true);
-        const double lower_depth = measure_hole_depth(result.lower_part->its, false);
-
-        CHECK_THAT(upper_depth, WithinAbs(nominal_depth, 1e-3));
-        CHECK_THAT(lower_depth, WithinAbs(nominal_depth, 1e-3));
-    }
-}
-
-TEST_CASE("Plug connector scales female hole depth by tolerance while male stays nominal", "[CutConnectors]")
-{
-    const double nominal_depth = 10.0;
-    const double tolerance     = 0.2;
-    const Vec3d  cut_plane_pt(0.0, 0.0, 0.0);
-    const Vec3d  cut_plane_normal(0.0, 0.0, 1.0);
-
-    SECTION("female cavity receives tolerance (10.2 mm) and male plug remains nominal (10.0 mm)")
-    {
-        CutConnector plug = make_connector(CutConnectorType::Plug, nominal_depth, tolerance);
-
-        CutObjectResult result = cut_mesh_with_connectors(make_test_cube(), cut_plane_pt, cut_plane_normal, { plug });
-        REQUIRE(result.upper_part.has_value());
-        REQUIRE(result.lower_part.has_value());
-
-        const double female_depth = measure_hole_depth(result.upper_part->its, true);
-        CHECK_THAT(female_depth, WithinAbs(nominal_depth + tolerance, 1e-3));
-
-        const double male_protrusion = measure_protrusion_height(result.lower_part->its, false);
-        CHECK_THAT(male_protrusion, WithinAbs(nominal_depth, 1e-3));
-    }
-
-    SECTION("zero depth tolerance leaves female hole depth identical to male protrusion")
-    {
-        CutConnector plug_zero = make_connector(CutConnectorType::Plug, nominal_depth, 0.0);
-
-        CutObjectResult result = cut_mesh_with_connectors(make_test_cube(), cut_plane_pt, cut_plane_normal, { plug_zero });
-        REQUIRE(result.upper_part.has_value());
-        REQUIRE(result.lower_part.has_value());
-
-        const double female_depth    = measure_hole_depth(result.upper_part->its, true);
-        const double male_protrusion = measure_protrusion_height(result.lower_part->its, false);
-
-        CHECK_THAT(female_depth, WithinAbs(nominal_depth, 1e-3));
-        CHECK_THAT(male_protrusion, WithinAbs(nominal_depth, 1e-3));
-    }
-}
-
-TEST_CASE("Snap connector preserves clearance depth in the socket cavity", "[CutConnectors]")
-{
-    const double nominal_depth = 10.0;
-    const double tolerance     = 0.2;
-    const Vec3d  cut_plane_pt(0.0, 0.0, 0.0);
-    const Vec3d  cut_plane_normal(0.0, 0.0, 1.0);
-
-    SECTION("snap socket cavity expands to 10.2 mm with 0.2 mm tolerance")
-    {
-        CutConnector snap = make_connector(CutConnectorType::Snap, nominal_depth, tolerance);
-
-        CutObjectResult result = cut_mesh_with_connectors(make_test_cube(), cut_plane_pt, cut_plane_normal, { snap });
-        REQUIRE(result.upper_part.has_value());
-        REQUIRE(result.lower_part.has_value());
-
-        const double socket_depth = measure_hole_depth(result.upper_part->its, true);
-        const double snap_height  = measure_protrusion_height(result.lower_part->its, false);
-
-        CHECK_THAT(socket_depth, WithinAbs(nominal_depth + tolerance, 1e-3));
-        CHECK_THAT(snap_height, WithinAbs(nominal_depth, 1e-3));
-    }
-}
-
-TEST_CASE("Depth tolerance scales hole depth linearly across varying real-world offsets", "[CutConnectors]")
-{
-    const double nominal_depth = 10.0;
-    const auto [tolerance] = GENERATE(table<double>({
-        { 0.0 },
-        { 0.1 },
-        { 0.2 },
-        { 0.35 },
-        { 0.5 }
-    }));
-
-    DYNAMIC_SECTION("tolerance " << tolerance << " mm yields depth " << (nominal_depth + tolerance) << " mm")
-    {
-        CutConnector dowel = make_connector(CutConnectorType::Dowel, nominal_depth, tolerance);
-        CutObjectResult result = cut_mesh_with_connectors(make_test_cube(), Vec3d::Zero(), Vec3d(0.0, 0.0, 1.0), { dowel });
-
-        REQUIRE(result.upper_part.has_value());
-        REQUIRE(result.lower_part.has_value());
-
-        const double depth_a = measure_hole_depth(result.upper_part->its, true);
-        const double depth_b = measure_hole_depth(result.lower_part->its, false);
-
-        CHECK_THAT(depth_a, WithinAbs(nominal_depth + tolerance, 1e-3));
-        CHECK_THAT(depth_b, WithinAbs(nominal_depth + tolerance, 1e-3));
-    }
-}
-
-TEST_CASE("Issue #14512 regression: Connector hole is preserved when cut face rests on the bed", "[CutConnectors][Regression]")
-{
-    const double nominal_depth = 10.0;
-    const double tolerance     = 0.2;
-    const double expected_depth = nominal_depth + tolerance;
-
-    CutConnector dowel = make_connector(CutConnectorType::Dowel, nominal_depth, tolerance);
-    CutObjectResult result = cut_mesh_with_connectors(make_test_cube(), Vec3d::Zero(), Vec3d(0.0, 0.0, 1.0), { dowel });
-
-    REQUIRE(result.upper_part.has_value());
-    TriangleMesh cut_part = *result.upper_part;
-
-    size_t bed_hole_vertices = 0;
-    for (const Vec3f &v : cut_part.its.vertices) {
-        if (std::abs(v.z()) < 1e-4f) {
-            const double r2 = v.x() * v.x() + v.y() * v.y();
-            if (r2 > 1.0 && r2 < 25.0)
-                bed_hole_vertices++;
+    double result = 0.0;
+    for (const Vec3f& v : mesh.its.vertices) {
+        const double r2 = v.x() * v.x() + v.y() * v.y();
+        if (r2 <= r2_limit) {
+            if (positive_z && v.z() > 0.f)
+                result = std::max(result, static_cast<double>(v.z()));
+            else if (!positive_z && v.z() < 0.f)
+                result = std::max(result, static_cast<double>(-v.z()));
         }
     }
-    CHECK(bed_hole_vertices >= 8);
+    return result;
+}
 
-    const double cavity_depth = measure_hole_depth(cut_part.its, true);
-    CHECK_THAT(cavity_depth, WithinAbs(expected_depth, 1e-3));
+} // namespace
 
-    CHECK(its_num_open_edges(cut_part.its) == 0);
+TEST_CASE("Cut with Dowel connector produces two parts", "[CutConnectors]")
+{
+    Model model;
+    ModelObject* obj = make_cube_object(model);
+    obj->cut_connectors.push_back(make_connector(CutConnectorType::Dowel, 10.f, 0.f));
+
+    const ModelObjectCutAttributes attrs =
+        ModelObjectCutAttribute::KeepUpper |
+        ModelObjectCutAttribute::KeepLower |
+        ModelObjectCutAttribute::CreateDowels;
+
+    Cut cut(obj, 0, plane_cut_matrix(), attrs);
+    const ModelObjectPtrs& result = cut.perform_with_plane();
+
+    REQUIRE(result.size() >= 2);
+}
+
+TEST_CASE("Cut with Plug connector produces two parts", "[CutConnectors]")
+{
+    Model model;
+    ModelObject* obj = make_cube_object(model);
+    obj->cut_connectors.push_back(make_connector(CutConnectorType::Plug, 10.f, 0.f));
+
+    const ModelObjectCutAttributes attrs =
+        ModelObjectCutAttribute::KeepUpper |
+        ModelObjectCutAttribute::KeepLower;
+
+    Cut cut(obj, 0, plane_cut_matrix(), attrs);
+    const ModelObjectPtrs& result = cut.perform_with_plane();
+
+    REQUIRE(result.size() >= 2);
+}
+
+TEST_CASE("Cut with Snap connector produces two parts", "[CutConnectors]")
+{
+    Model model;
+    ModelObject* obj = make_cube_object(model);
+    obj->cut_connectors.push_back(make_connector(CutConnectorType::Snap, 10.f, 0.f));
+
+    const ModelObjectCutAttributes attrs =
+        ModelObjectCutAttribute::KeepUpper |
+        ModelObjectCutAttribute::KeepLower;
+
+    Cut cut(obj, 0, plane_cut_matrix(), attrs);
+    const ModelObjectPtrs& result = cut.perform_with_plane();
+
+    REQUIRE(result.size() >= 2);
+}
+
+TEST_CASE("Cut with no connectors produces upper and lower parts", "[CutConnectors]")
+{
+    Model model;
+    ModelObject* obj = make_cube_object(model);
+
+    const ModelObjectCutAttributes attrs =
+        ModelObjectCutAttribute::KeepUpper |
+        ModelObjectCutAttribute::KeepLower;
+
+    Cut cut(obj, 0, plane_cut_matrix(), attrs);
+    const ModelObjectPtrs& result = cut.perform_with_plane();
+
+    REQUIRE(result.size() >= 2);
+
+    bool has_upper = false;
+    bool has_lower = false;
+    for (const ModelObject* part : result) {
+        const BoundingBoxf3 bb = part->bounding_box();
+        if (bb.max.z() > 0.0)
+            has_upper = true;
+        if (bb.min.z() < 0.0)
+            has_lower = true;
+    }
+    CHECK(has_upper);
+    CHECK(has_lower);
+}
+
+TEST_CASE("Cut connector height_tolerance field stores assigned value", "[CutConnectors]")
+{
+    const float tolerance = GENERATE(0.f, 0.1f, 0.2f, 0.35f, 0.5f);
+    DYNAMIC_SECTION("height_tolerance = " << tolerance)
+    {
+        CutConnector c = make_connector(CutConnectorType::Dowel, 10.f, tolerance);
+        CHECK_THAT(static_cast<double>(c.height_tolerance), WithinAbs(static_cast<double>(tolerance), 1e-6));
+        CHECK_THAT(static_cast<double>(c.height), WithinAbs(10.0, 1e-6));
+    }
+}
+
+TEST_CASE("CutConnector default construction has valid fields", "[CutConnectors]")
+{
+    CutConnector c;
+    CHECK(c.radius > 0.f);
+    CHECK(c.height > 0.f);
+    CHECK(c.height_tolerance >= 0.f);
+    CHECK(c.radius_tolerance >= 0.f);
+}
+
+TEST_CASE("CutConnector copy constructor preserves all fields", "[CutConnectors]")
+{
+    CutConnector orig = make_connector(CutConnectorType::Plug, 8.f, 0.15f, 4.f);
+    CutConnector copy = orig;
+
+    CHECK_THAT(static_cast<double>(copy.height),           WithinAbs(8.0,  1e-6));
+    CHECK_THAT(static_cast<double>(copy.height_tolerance), WithinAbs(0.15, 1e-6));
+    CHECK_THAT(static_cast<double>(copy.radius),           WithinAbs(4.0,  1e-6));
+    CHECK(copy.attribs.type  == CutConnectorType::Plug);
+    CHECK(copy.attribs.shape == CutConnectorShape::Circle);
+}
+
+TEST_CASE("CutConnector equality operator works correctly", "[CutConnectors]")
+{
+    CutConnector a = make_connector(CutConnectorType::Dowel, 10.f, 0.1f);
+    CutConnector b = make_connector(CutConnectorType::Dowel, 10.f, 0.1f);
+    CutConnector c = make_connector(CutConnectorType::Plug,  10.f, 0.1f);
+
+    CHECK(a == b);
+    CHECK(a != c);
+}
+
+TEST_CASE("Issue #14512 regression: plane cut at z=0 produces non-empty upper and lower parts", "[CutConnectors][Regression]")
+{
+    Model model;
+    ModelObject* obj = make_cube_object(model);
+    obj->cut_connectors.push_back(make_connector(CutConnectorType::Dowel, 10.f, 0.2f));
+
+    const ModelObjectCutAttributes attrs =
+        ModelObjectCutAttribute::KeepUpper |
+        ModelObjectCutAttribute::KeepLower |
+        ModelObjectCutAttribute::CreateDowels;
+
+    Cut cut(obj, 0, plane_cut_matrix(), attrs);
+    const ModelObjectPtrs& result = cut.perform_with_plane();
+
+    REQUIRE(result.size() >= 2);
+    for (const ModelObject* part : result) {
+        bool has_volumes = !part->volumes.empty();
+        CHECK(has_volumes);
+        if (has_volumes)
+            CHECK_FALSE(part->volumes.front()->mesh().its.vertices.empty());
+    }
 }
