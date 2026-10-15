@@ -2,6 +2,7 @@
 #define slic3r_AMSMaterialsSetting_hpp_
 
 #include "libslic3r/Preset.hpp"
+#include "ColorPickerDialog.hpp"
 #include "wxExtensions.hpp"
 #include "GUI_Utils.hpp"
 #include "DeviceManager.hpp"
@@ -32,6 +33,7 @@
 #include <wx/panel.h>
 #include <map>
 #include <set>
+#include <optional>
 
 #define AMS_MATERIALS_SETTING_DEF_COLOUR wxColour(255, 255, 255)
 #define AMS_MATERIALS_SETTING_GREY900 wxColour(38, 46, 48)
@@ -60,7 +62,7 @@ public:
     bool            m_selected{false};
     bool            m_show_full{false};
     bool            m_is_empty{false};
-    int             ctype;
+    int             ctype = 2;
 
     bool            transparent_changed{false};
 
@@ -87,6 +89,9 @@ public:
         std::vector<wxColour> colors;
         int                   ctype = 2;
         wxString              name;
+
+        std::optional<ColorSelection> picker_selection(bool allow_gradient) const;
+        static ColorItem from_picker_selection(const ColorSelection& selection);
     };
 
     ScalableBitmap m_ts_bitmap_custom;
@@ -105,6 +110,7 @@ public:
     ColorPickerPopup(wxWindow* parent);
     ~ColorPickerPopup() {};
     void on_custom_clr_picker(wxMouseEvent& event);
+    void set_allow_multi_color(bool allow) { m_allow_multi_color = allow; }
     void set_ams_colours(const std::vector<ColorItem>& ams);
     void set_preset_colours(const std::vector<ColorItem>& preset_colors);
     void set_def_colour(wxColour col, std::vector<wxColour> cols = {}, int ctype = 2);
@@ -119,6 +125,7 @@ private:
     std::vector<ColorPicker*> m_preset_color_pickers;
     std::vector<wxColour> m_def_cols;
     int m_def_ctype = 2;
+    bool m_allow_multi_color = false;
 };
 
 

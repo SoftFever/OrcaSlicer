@@ -45,6 +45,7 @@
 #include <wx/dc.h>
 #include <wx/colour.h>
 #include <wx/dcgraph.h>
+#include <wx/graphics.h>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/toplevel.h>
@@ -1016,6 +1017,8 @@ void AMSMaterialsSetting::set_empty_color(wxColour color)
 {
     m_clr_picker->is_empty(true);
     m_clr_picker->set_color(color);
+    m_clr_picker->set_colors({});
+    m_clr_picker->ctype = 2;
     m_clr_name->SetLabelText(wxEmptyString);
 }
 
@@ -1049,6 +1052,8 @@ void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
         unsigned int color_num = event.GetInt();
         colors.emplace_back(color_num >> 24 & 0xFF, color_num >> 16 & 0xFF, color_num >> 8 & 0xFF, color_num & 0xFF);
     }
+    if (colors.size() > 1 && (!obj || !obj->is_support_filament_manual_multi_color))
+        return;
 
     set_ctype(m_color_picker_popup.get_selected_ctype());
     set_color(colors.front());
@@ -1067,6 +1072,7 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
         }
     }
 
+    m_color_picker_popup.set_allow_multi_color(obj->is_support_filament_manual_multi_color);
     m_color_picker_popup.set_ams_colours(collect_ams_color_items(obj->GetFilaSystem().get()));
     m_color_picker_popup.set_preset_colours(collect_preset_color_items(ams_filament_id));
     m_color_picker_popup.set_def_colour(m_clr_picker->m_colour, m_clr_picker->m_cols, m_clr_picker->ctype);
@@ -1850,6 +1856,13 @@ void ColorPicker::render(wxDC& dc)
     memdc.SelectObject(wxNullBitmap);
     dc.DrawBitmap(bmp, 0, 0);
 #else
+    if (m_show_full && m_cols.size() > 1) {
+        if (auto* context = wxGraphicsContext::CreateFromUnknownDC(dc)) {
+            wxGCDC graphics(context);
+            doRender(graphics);
+            return;
+        }
+    }
     doRender(dc);
 #endif
 }
@@ -2110,32 +2123,70 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     wxGetApp().UpdateDarkUIWin(this);
 }
 
+std::optional<ColorSelection> ColorPickerPopup::ColorItem::picker_selection(bool allow_gradient) const
+{
+    if (colors.empty())
+        return std::nullopt;
+    if (colors.size() == 1) {
+        const wxColour& color = colors.front();
+        return ColorRGBA(color.Red(), color.Green(), color.Blue(), color.Alpha());
+    }
+    if (!allow_gradient || ctype != 0 || colors.size() > COLOR_PICKER_MAX_GRADIENT_COLORS)
+        return std::nullopt;
+    ColorGradient gradient;
+    for (const wxColour& color : colors)
+        gradient.emplace_back(color.Red(), color.Green(), color.Blue(), color.Alpha());
+    return gradient;
+}
+
+ColorPickerPopup::ColorItem ColorPickerPopup::ColorItem::from_picker_selection(const ColorSelection& selection)
+{
+    ColorItem item;
+    auto append = [&item](const ColorRGBA& color) {
+        item.colors.emplace_back(static_cast<unsigned char>(std::lround(color.r() * 255.f)),
+                                 static_cast<unsigned char>(std::lround(color.g() * 255.f)),
+                                 static_cast<unsigned char>(std::lround(color.b() * 255.f)),
+                                 static_cast<unsigned char>(std::lround(color.a() * 255.f)));
+    };
+    if (const auto* solid = std::get_if<ColorRGBA>(&selection)) {
+        append(*solid);
+    } else {
+        for (const ColorRGBA& color : std::get<ColorGradient>(selection))
+            append(color);
+        item.ctype = 0;
+    }
+    return item;
+}
+
 void ColorPickerPopup::on_custom_clr_picker(wxMouseEvent& /*event*/)
 {
     const bool was_shown = IsShown();
-    std::optional<wxColour> picker_color;
+    bool confirmed = false;
+    std::optional<ColorItem> picker_color;
     {
-        const ColorRGBA initial(m_def_col.Red(), m_def_col.Green(), m_def_col.Blue(), static_cast<unsigned char>(255));
+        const ColorItem current{m_def_cols, m_def_ctype};
+        const auto exact = current.picker_selection(m_allow_multi_color);
+        const wxColour& first = m_def_cols.empty() ? m_def_col : m_def_cols.front();
+        const ColorSelection initial = exact ? *exact : ColorSelection{ColorRGBA(first.Red(), first.Green(), first.Blue(), first.Alpha())};
         // Snapshot the custom control's anchor before releasing the transient popup grab.
-        ColorPickerDialog dialog(GetParent(), initial, {}, false, m_custom_cp);
+        ColorPickerDialog dialog(GetParent(), initial, {m_allow_multi_color, true}, !exact && m_def_cols.size() > 1, m_custom_cp);
         Dismiss();
-        if (dialog.ShowModal() == wxID_OK && dialog.selection()) {
-            const auto& result = std::get<ColorRGBA>(*dialog.selection());
-            picker_color = wxColour(static_cast<unsigned char>(std::lround(result.r() * 255.f)),
-                                    static_cast<unsigned char>(std::lround(result.g() * 255.f)),
-                                    static_cast<unsigned char>(std::lround(result.b() * 255.f)));
-        }
+        // Unchanged fallback seeds must not replace a multi-color or oversized selection.
+        confirmed = dialog.ShowModal() == wxID_OK;
+        if (confirmed && filament_color_picker_changed(initial, dialog.selection()))
+            picker_color = ColorItem::from_picker_selection(*dialog.selection());
     } // Destroy the modal before restoring the first-level popup and its focus/grab.
     if (!picker_color) {
-        if (was_shown) Popup();
+        if (was_shown && !confirmed) Popup();
         return;
     }
 
-    set_def_colour(*picker_color);
+    const wxColour& primary = picker_color->colors.front();
+    set_def_colour(primary, picker_color->colors, picker_color->ctype);
     wxCommandEvent evt(EVT_SELECTED_COLOR);
-    const std::uint32_t packed = (std::uint32_t(picker_color->Red()) << 24) |
-                                 (std::uint32_t(picker_color->Green()) << 16) |
-                                 (std::uint32_t(picker_color->Blue()) << 8) | 255u;
+    const std::uint32_t packed = (std::uint32_t(primary.Red()) << 24) |
+                                 (std::uint32_t(primary.Green()) << 16) |
+                                 (std::uint32_t(primary.Blue()) << 8) | std::uint32_t(primary.Alpha());
     evt.SetInt(static_cast<int>(packed));
     wxPostEvent(GetParent(), evt);
 }
@@ -2161,6 +2212,7 @@ void ColorPickerPopup::set_ams_colours(const std::vector<ColorItem>& ams)
     m_ams_color_items = ams;
     for (const ColorItem& item : m_ams_color_items) {
         if (item.colors.empty()) continue;
+        if (!m_allow_multi_color && item.colors.size() > 1) continue;
 
         auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         cp->set_color(item.colors.front());
@@ -2203,6 +2255,7 @@ void ColorPickerPopup::set_preset_colours(const std::vector<ColorItem>& preset_c
 
     for (const ColorItem& item : preset_colors) {
         if (item.colors.empty()) continue;
+        if (!m_allow_multi_color && item.colors.size() > 1) continue;
 
         auto cp = new ColorPicker(m_def_color_box, wxID_ANY, wxDefaultPosition, wxDefaultSize);
         cp->set_color(item.colors.front());

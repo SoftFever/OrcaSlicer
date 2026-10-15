@@ -1393,7 +1393,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
         temp_bitmap_brand = m_bitmap_readonly;
     }
 
-    if (tmp_lib_colour.Alpha() == 0) {
+    if (tmp_lib_colour.Alpha() == 0 && m_info.material_cols.size() <= 1) {
         temp_bitmap_third = m_bitmap_editable;
         temp_bitmap_brand = m_bitmap_readonly;
 
@@ -1413,7 +1413,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
     if (m_info.material_cols.size() > 1) {
         wxRect color_rect(FromDIP(10), FromDIP(10), libsize.x - FromDIP(18), libsize.y - FromDIP(18));
         if (m_info.ctype == 0) {
-            fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
+            fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
         }
         else {
             int cols_size = m_info.material_cols.size();
@@ -1514,9 +1514,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
 
     if (m_ams_model == EXT_AMS){
         wxRect color_rect(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1));
-        if ((m_info.ctype == 0 || m_info.ctype == 1) && m_info.material_cols.size() > 1 && alpha != 0) {
+        const bool multi_color = (m_info.ctype == 0 || m_info.ctype == 1) && m_info.material_cols.size() > 1;
+        if (multi_color) {
             if (m_info.ctype == 0) {
-                fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
+                fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
             }
             else {
                 int cols_size = static_cast<int>(m_info.material_cols.size());
@@ -1534,10 +1535,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
         else {
             dc.DrawRoundedRectangle(color_rect.x, color_rect.y, color_rect.width, color_rect.height, m_radius - 1);
         }
-        if (alpha == 0) {
+        if (!multi_color && alpha == 0) {
             dc.DrawBitmap(m_bitmap_transparent_def.bmp(), FromDIP(2), FromDIP(2));
         }
-        else if (alpha != 255 && alpha != 254) {
+        else if (!multi_color && alpha != 255 && alpha != 254) {
             if (transparent_changed) {
                 transparent_changed = false;
             }
@@ -1595,10 +1596,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
     if (curr_height >= FromDIP(1)) {
 
         //transparent
-        if (alpha == 0) {
+        if (m_info.material_cols.size() <= 1 && alpha == 0) {
             dc.DrawBitmap(m_bitmap_transparent_def.bmp(), FromDIP(2), FromDIP(2));
         }
-        else if (alpha != 255 && alpha != 254) {
+        else if (m_info.material_cols.size() <= 1 && alpha != 255 && alpha != 254) {
             if (transparent_changed) {
                 std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
                 if (rgb.size() == 9) {
@@ -1618,25 +1619,14 @@ void AMSLib::render_generic_lib(wxDC &dc)
         }
         //gradient
         if (m_info.material_cols.size() > 1) {
-            auto left = FromDIP(2);
-            float total_width = size.x - FromDIP(4);
-            int gwidth = std::round(total_width / (m_info.material_cols.size() - 1));
             //gradient
             if (m_info.ctype == 0) {
-                for (int i = 0; i < m_info.material_cols.size() - 1; i++) {
-
-                    if ((left + gwidth) > (size.x)) {
-                        gwidth = (size.x) - left;
-                    }
-
-                    auto rect = wxRect(left, height - curr_height, gwidth, curr_height);
-                    fill_gradient_rect_east(dc, rect, m_info.material_cols[i], m_info.material_cols[i + 1]);
-                    left += gwidth;
-                }
+                fill_gradient_rect_east(dc, wxRect(FromDIP(2), height - curr_height, size.x - FromDIP(4), curr_height), m_info.material_cols);
             }
             else {
                 //multicolour
-                gwidth = std::round(total_width / m_info.material_cols.size());
+                auto left = FromDIP(2);
+                int gwidth = std::round(float(size.x - FromDIP(4)) / m_info.material_cols.size());
                 for (int i = 0; i < m_info.material_cols.size(); i++) {
                     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
                     dc.SetBrush(wxBrush(m_info.material_cols[i]));
@@ -2791,19 +2781,8 @@ void AMSPreview::doRender(wxDC &dc)
                 dc.SetBrush(AMS_CONTROL_DISABLE_COLOUR);
             }
             if (iter->material_cols.size() > 1) {
-                int fleft = left;
-
-                int gwidth = (AMS_ITEM_CUBE_SIZE.x / (iter->material_cols.size() - 1));
                 if (iter->ctype == 0) {
-                    for (int i = 0; i < iter->material_cols.size() - 1; i++) {
-                        if (fleft + gwidth > (AMS_ITEM_CUBE_SIZE.x)) {
-                            gwidth = fleft + AMS_ITEM_CUBE_SIZE.x - fleft;
-                        }
-
-                        auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
-                        fill_gradient_rect_east(dc, rect, iter->material_cols[i], iter->material_cols[i + 1]);
-                        fleft += gwidth;
-                    }
+                    fill_gradient_rect_east(dc, wxRect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y), iter->material_cols);
                 }
                 else {
                     int cols_size = iter->material_cols.size();

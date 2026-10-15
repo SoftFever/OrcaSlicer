@@ -1,4 +1,6 @@
 #include <wx/colour.h>
+#include <wx/brush.h>
+#include <wx/dc.h>
 #include <vector>
 #include <cstddef>
 #include "libslic3r/Config.hpp"
@@ -73,9 +75,9 @@ TriPoint tri_clamp(TriPoint p, TriPoint v0, TriPoint v1, TriPoint v2)
             w0 * v0.y + w1 * v1.y + w2 * v2.y};
 }
 
-void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from, const wxColour& to)
+static void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour* colors, size_t count)
 {
-    if (rect.width <= 0 || rect.height <= 0) return;
+    if (rect.width <= 0 || rect.height <= 0 || count == 0) return;
 
     auto mix_channel = [](unsigned char a, unsigned char b, double t) {
         return static_cast<unsigned char>(a + (b - a) * t + 0.5);
@@ -83,7 +85,11 @@ void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from,
 
     dc.SetPen(*wxTRANSPARENT_PEN);
     for (int x = 0; x < rect.width; ++x) {
-        const double t = rect.width > 1 ? static_cast<double>(x) / (rect.width - 1) : 0.0;
+        const double position = rect.width > 1 ? static_cast<double>(x) * (count - 1) / (rect.width - 1) : 0.0;
+        const size_t index = std::min(static_cast<size_t>(position), count - 1);
+        const wxColour& from = colors[index];
+        const wxColour& to = colors[std::min(index + 1, count - 1)];
+        const double t = position - index;
         const wxColour col(mix_channel(from.Red(), to.Red(), t),
                            mix_channel(from.Green(), to.Green(), t),
                            mix_channel(from.Blue(), to.Blue(), t),
@@ -91,6 +97,25 @@ void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from,
         dc.SetBrush(wxBrush(col));
         dc.DrawRectangle(rect.x + x, rect.y, 1, rect.height);
     }
+}
+
+void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from, const wxColour& to)
+{
+    const std::array<wxColour, 2> colors{from, to};
+    fill_gradient_rect_east(dc, rect, colors.data(), colors.size());
+}
+
+void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const std::vector<wxColour>& colors)
+{
+    // Plain GTK DCs can ignore brush alpha; use the graphics backend for transparent stops.
+    if (!dc.GetGraphicsContext() && std::any_of(colors.begin(), colors.end(), [](const wxColour& color) { return color.Alpha() != 255; })) {
+        if (auto* context = wxGraphicsContext::CreateFromUnknownDC(dc)) {
+            wxGCDC graphics(context);
+            fill_gradient_rect_east(graphics, rect, colors.data(), colors.size());
+            return;
+        }
+    }
+    fill_gradient_rect_east(dc, rect, colors.data(), colors.size());
 }
 
 static std::string to_hex(const wxColour& c)

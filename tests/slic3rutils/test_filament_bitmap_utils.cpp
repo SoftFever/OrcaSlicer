@@ -20,11 +20,17 @@
 #include <catch2/catch_all.hpp>
 
 #include <cmath>
+#include <algorithm>
 
 #include <wx/colour.h>
 #ifdef __WXMSW__
 #include <wx/bitmap.h>
+#include <wx/brush.h>
 #include <wx/image.h>
+#include <wx/dc.h>
+#include <wx/dcgraph.h>
+#include <wx/dcmemory.h>
+#include <wx/gdicmn.h>
 #include <cstdlib>
 #include <utility>
 #include <catch2/generators/catch_generators.hpp>
@@ -271,6 +277,52 @@ TEST_CASE("sample_gradient_ramp returns nothing without a usable curve or step c
 // The headless GTK/macOS suite does not initialize GUI display/font stock objects.
 // Exercise native bitmap pixels on Windows without adding that dependency elsewhere.
 #ifdef __WXMSW__
+TEST_CASE("Ordered gradient fills preserve middle nodes and cover narrow swatches", "[FilamentBitmapUtils][AMSMaterialsSetting]")
+{
+    const int width = GENERATE(1, 2, 3, 7, 13, 17);
+    const bool reverse = GENERATE(false, true);
+    std::vector<wxColour> colors{wxColour(255, 0, 0), wxColour(0, 255, 0), wxColour(0, 0, 255)};
+    if (reverse)
+        std::reverse(colors.begin(), colors.end());
+    wxBitmap bitmap(width + 4, 5, 24);
+    {
+        wxMemoryDC dc(bitmap);
+        Slic3r::GUI::fill_gradient_rect_east(dc, wxRect(2, 1, width, 3), colors);
+    }
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    auto color_at = [&image](int x) { return wxColour(image.GetRed(x, 2), image.GetGreen(x, 2), image.GetBlue(x, 2)); };
+    require_same_rgb(color_at(2), colors.front());
+    require_same_rgb(color_at(width + 1), width == 1 ? colors.front() : colors.back());
+    if (width >= 3)
+        require_same_rgb(color_at(2 + width / 2), colors[1]);
+}
+
+TEST_CASE("Ordered gradients composite independent node alpha over the existing background", "[FilamentBitmapUtils][AMSMaterialsSetting]")
+{
+    const bool graphics_dc = GENERATE(false, true);
+    const std::vector<wxColour> colors{wxColour(255, 0, 0, 0), wxColour(0, 255, 0, 128), wxColour(0, 0, 255, 255)};
+    wxBitmap bitmap(9, 3, 24);
+    {
+        wxMemoryDC memory(bitmap);
+        memory.SetBackground(*wxWHITE_BRUSH);
+        memory.Clear();
+        if (graphics_dc) {
+            wxGCDC dc(memory);
+            Slic3r::GUI::fill_gradient_rect_east(dc, wxRect(0, 0, 9, 3), colors);
+        } else {
+            Slic3r::GUI::fill_gradient_rect_east(memory, wxRect(0, 0, 9, 3), colors);
+        }
+    }
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    require_same_rgb(wxColour(image.GetRed(0, 1), image.GetGreen(0, 1), image.GetBlue(0, 1)), wxColour(255, 255, 255));
+    REQUIRE(std::abs(int(image.GetRed(4, 1)) - 127) <= 1);
+    REQUIRE(image.GetGreen(4, 1) == 255);
+    REQUIRE(std::abs(int(image.GetBlue(4, 1)) - 127) <= 1);
+    require_same_rgb(wxColour(image.GetRed(8, 1), image.GetGreen(8, 1), image.GetBlue(8, 1)), wxColour(0, 0, 255));
+}
+
 TEST_CASE("Filament gradient pixels follow both endpoint directions without changing input", "[FilamentBitmapUtils]")
 {
     const bool reverse = GENERATE(false, true);

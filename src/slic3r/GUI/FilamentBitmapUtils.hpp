@@ -31,6 +31,8 @@ TriPoint tri_clamp(TriPoint p, TriPoint v0, TriPoint v1, TriPoint v2);
 // Use instead of wxDC::GradientFillLinear, whose CoreGraphics (CGShading) backend
 // fails to render on some macOS builds; solid fills are unaffected.
 void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from, const wxColour& to);
+// Ordered, evenly spaced RGBA stops, including when the rect is narrower than the stop count.
+void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const std::vector<wxColour>& colors);
 
 enum class FilamentRenderMode {
     Single,
