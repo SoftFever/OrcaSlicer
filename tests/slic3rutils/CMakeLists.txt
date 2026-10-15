@@ -43,6 +43,7 @@ add_executable(${_TEST_NAME}_tests
     test_texture_color_palette.cpp
     test_texture_island_view.cpp
     test_file_url.cpp
+    test_imgui_wrapper.cpp
     test_user_manager.cpp
     ../fff_print/test_helpers.cpp
     )
