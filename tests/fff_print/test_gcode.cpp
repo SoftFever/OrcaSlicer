@@ -16,12 +16,12 @@
 
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Point.hpp"
-#include <exception>
 #include <fstream>
 #include <ios>
 #include <string>
 #include <vector>
 #include <cstddef>
+#include <exception>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
