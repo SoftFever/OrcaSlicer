@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <fstream>
 #include <initializer_list>
+#include <optional>
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Point.hpp"
 #include <sstream>
