@@ -36,6 +36,11 @@ uniform int       palette_b[64];
 uniform float     prefer_pure_de; // PREFER_PURE_DE: how much better than a single filament a mix must be
 uniform sampler2D color_tex;     // the layer's colour image, sampled at the same uv as the height
 uniform bool      has_color_tex;
+// False means the texture is a single placement, not a repeat. The sampler's wrap mode can express
+// that for the *height* - a zero border reads as no displacement - but not for colour, because a
+// zero border is indistinguishable from the image genuinely being black there. So the uv is tested
+// instead, which is what sample_layer_color() does on the CPU side.
+uniform bool      tile_enabled;
 uniform bool volume_mirrored;
 
 uniform mat4 view_model_matrix;
@@ -62,6 +67,12 @@ uniform bool       invert;
 uniform float      midlevel;      // the height that means "don't move"; needed by the parallax step
 uniform vec3       eye_model_pos; // camera position in the texture frame (world minus tex_anchor)
 uniform vec3       tex_anchor;    // the volume's origin in world space: the texture frame's origin
+// The placement's rotation and its inverse, so this shader turns a world position into the texture
+// frame exactly as texture_displacement_bake_frame() does. Both are passed rather than one
+// transposed here, because GLSL 110 has no transpose(). Identity leaves the old world-aligned
+// behaviour, which is what an unset uniform gives.
+uniform mat3       tex_rot;     // world -> texture frame
+uniform mat3       tex_rot_inv; // texture frame -> world
 uniform bool       use_vertex_uv;
 // 2x3 affine (lin = (m00, m01, m10, m11), tr = (m02, m12)) applied to the dragged island's uv; see the
 // 140 variant. Identity when nothing is dragged.
@@ -261,9 +272,12 @@ void main()
 
     // World millimetres throughout, like the bake - see the 140 variant.
     vec3 triangle_normal = normalize(cross(dFdx(world_pos.xyz), dFdy(world_pos.xyz)));
-    vec3 tex_pos = world_pos.xyz - tex_anchor; // the frame the texture is projected in, as the bake does
+    vec3 tex_pos = tex_rot * (world_pos.xyz - tex_anchor); // the frame the texture is projected in, as the bake does
     if (volume_mirrored)
         triangle_normal = -triangle_normal;
+    // The same normal in that frame. triangle_normal itself stays in world, because the lighting at
+    // the end of this shader needs it there.
+    vec3 tex_normal = tex_rot * triangle_normal;
 
     // Where the colour is read from. Both branches below already compute the uv this fragment's
     // *height* came from - including the parallax-marched one on the triplanar path - and the colour
@@ -294,14 +308,14 @@ void main()
     } else if (weight > 0.0) {
         vec3 t, b;
         vec2 units_per_mm;
-        projection_axes(tex_pos, triangle_normal, t, b, units_per_mm);
+        projection_axes(tex_pos, tex_normal, t, b, units_per_mm);
 
         // Parallax occlusion mapping: march the view ray through the height shell and shade at the
         // first point where it drops below the displaced surface (see header).
         float amp      = (invert ? -1.0 : 1.0) * depth_mm * clamp(weight, 0.0, 1.0);
-        vec3  view_dir = normalize(eye_model_pos - tex_pos);
-        float v_dot_n  = dot(view_dir, triangle_normal);
-        vec2  uv       = project_uv(tex_pos, triangle_normal);
+        vec3  view_dir = normalize(tex_rot * eye_model_pos - tex_pos);
+        float v_dot_n  = dot(view_dir, tex_normal);
+        vec2  uv       = project_uv(tex_pos, tex_normal);
 
         // The shell the displaced surface lives inside, as signed heights along the normal. Taken from
         // both ends of h in [0, 1] so it stays correct for an inverted layer or a raised midlevel,
@@ -313,18 +327,18 @@ void main()
         // How far, in mm, sweeping the ray across the shell slides the sample point sideways. Below half
         // a texel there is no parallax to find and the march would be pure cost - which is the common
         // case of looking straight down at a surface.
-        float sweep = length(view_dir - triangle_normal * v_dot_n) * (h_hi - h_lo) / max(v_dot_n, 1e-4);
+        float sweep = length(view_dir - tex_normal * v_dot_n) * (h_hi - h_lo) / max(v_dot_n, 1e-4);
         if (v_dot_n > 0.05 && sweep > 0.5 * min(tile_mm().x, tile_mm().y) * height_tex_texel.x) {
             // A point at ray parameter s (model_pos + view_dir * s) sits at height s * v_dot_n above the
             // undisplaced surface. Start at the top of the shell, where the ray is outside the surface
             // by construction, and step inward; the crossing is what this pixel actually sees.
             float s        = h_hi / v_dot_n;
             float ds       = (h_hi - h_lo) / (v_dot_n * float(PARALLAX_STEPS));
-            vec2  prev_uv  = project_uv(tex_pos + view_dir * s, triangle_normal);
+            vec2  prev_uv  = project_uv(tex_pos + view_dir * s, tex_normal);
             float prev_gap = h_hi - amp * (H_AT(prev_uv) - midlevel); // >= 0 by construction
             for (int i = 0; i < PARALLAX_STEPS; ++i) {
                 s -= ds;
-                vec2  cur_uv = project_uv(tex_pos + view_dir * s, triangle_normal);
+                vec2  cur_uv = project_uv(tex_pos + view_dir * s, tex_normal);
                 float gap    = s * v_dot_n - amp * (H_AT(cur_uv) - midlevel);
                 if (gap <= 0.0) {
                     // Crossed between the last two samples - interpolating the hit is what stops it
@@ -360,7 +374,9 @@ void main()
         // ...and back out of raw-projection units into millimetres along t / b; see the 140 variant.
         vec2  slope = amplitude * vec2(g.x * cs + g.y * sn, -g.x * sn + g.y * cs) * units_per_mm;
 
-        vec3 gradient = slope.x * t + slope.y * b;
+        // t and b came out of the texture frame, so the gradient is in it too and has to come back
+        // to world before it perturbs the normal the lighting uses.
+        vec3 gradient = tex_rot_inv * (slope.x * t + slope.y * b);
         gradient -= triangle_normal * dot(triangle_normal, gradient);
         triangle_normal = normalize(triangle_normal - gradient);
     }
@@ -380,7 +396,9 @@ void main()
     // Only the albedo - the specular term (intensity.y) stays white - so a coloured fragment reads as
     // the same material under the same light, and the relief this preview exists to show is unaffected.
     vec3 albedo = uniform_color.rgb;
-    if (palette_count > 0 && has_color_tex && have_uv && weight > 0.0)
+    bool uv_covered = tile_enabled ||
+                      (all(greaterThanEqual(color_uv, vec2(0.0))) && all(lessThan(color_uv, vec2(1.0))));
+    if (palette_count > 0 && has_color_tex && have_uv && weight > 0.0 && uv_covered)
         albedo = palette_rgb[nearest_palette_entry(texture2D(color_tex, color_uv).rgb)];
     gl_FragColor = vec4(vec3(intensity.y) + albedo * intensity.x, uniform_color.a);
 }

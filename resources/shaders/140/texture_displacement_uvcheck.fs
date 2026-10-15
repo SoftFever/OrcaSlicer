@@ -32,6 +32,9 @@ uniform float tiling_scale_v;
 uniform bool  mirror_u;
 uniform bool  mirror_v;
 uniform vec3  tex_anchor; // the volume's origin in world space
+// The placement's rotation, so this overlay projects the same frame the bake does. Identity, which
+// is what an unset uniform gives, leaves the old world-aligned behaviour.
+uniform mat3  tex_rot;    // world -> texture frame
 uniform float rotation_rad;
 uniform vec2  uv_offset;
 uniform bool  use_vertex_uv;
@@ -140,7 +143,7 @@ void main()
 
     // World space anchored at the volume's origin, like the bake and the shaded preview.
     vec3 triangle_normal = normalize(cross(dFdx(world_pos.xyz), dFdy(world_pos.xyz)));
-    vec3 tex_pos = world_pos.xyz - tex_anchor;
+    vec3 tex_pos = tex_rot * (world_pos.xyz - tex_anchor);
     if (volume_mirrored)
         triangle_normal = -triangle_normal;
 
@@ -148,7 +151,7 @@ void main()
     if (mode == 1) {
         base = heatmap(distortion);
     } else {
-        vec2 uv = use_vertex_uv ? vertex_uv : project_uv(tex_pos, triangle_normal);
+        vec2 uv = use_vertex_uv ? vertex_uv : project_uv(tex_pos, tex_rot * triangle_normal);
         vec2 c  = floor(uv * checker_freq);
         float check = mod(c.x + c.y, 2.0);
         // Two distinct greys, plus a faint tint on one set so orientation is readable at a glance.

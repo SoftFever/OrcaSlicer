@@ -1,6 +1,7 @@
 #include "TextureDisplacement.hpp"
 
 #include <Eigen/Core>
+#include <Eigen/SVD>
 #include <Eigen/Geometry>
 #include <algorithm>
 #include <array>
@@ -3599,13 +3600,36 @@ void texture_displacement_patch_frame(const indexed_triangle_set &patch, const s
            (an.y() <= an.x() && an.y() <= an.z()) ? Vec3f::UnitY() : Vec3f::UnitZ();
 }
 
+Matrix3d texture_displacement_frame_rotation(const Transform3d &volume_to_world)
+{
+    // Separated out by polar decomposition rather than by assuming the linear part is a clean
+    // rotation times a scale: a sheared or mirrored placement is legal here. A reflection is left
+    // behind with the scale on purpose, so a mirrored instance still makes the bake frame's
+    // determinant negative and the bake still knows to flip the normals it derives.
+    const Matrix3d                   linear = volume_to_world.linear();
+    Eigen::JacobiSVD<Matrix3d>       svd(linear, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Matrix3d                         rotation = svd.matrixU() * svd.matrixV().transpose();
+    if (rotation.determinant() < 0.0) {
+        Matrix3d u = svd.matrixU();
+        u.col(2) *= -1.0;
+        rotation = u * svd.matrixV().transpose();
+    }
+    return rotation.transpose(); // world -> texture frame
+}
+
 Transform3d texture_displacement_bake_frame(const Transform3d &volume_to_world)
 {
-    // World orientation and scale, but the origin moved to where the volume's own origin sits: the
-    // texture then rides with the model when it is moved about the plate (and a single, untiled stamp
-    // starts on the model rather than at the plate's corner), while a tile is still `tiling_scale`
-    // printed millimetres whatever the instance's scale.
-    return Eigen::Translation3d(-volume_to_world.translation()) * volume_to_world;
+    // The model's own orientation, world scale, and the origin moved to where the volume's origin
+    // sits. So the texture rides with the model however it is moved *and* however it is turned,
+    // while a tile is still `tiling_scale` printed millimetres whatever the instance's scale, and a
+    // single untiled stamp starts on the model rather than at the plate's corner.
+    //
+    // Orientation used to come from the world too, which meant turning a part on the plate slid the
+    // decoration across its surface. Turning a part is a print-time decision - clearance, supports,
+    // warping - and it should not be a design one.
+    Transform3d unrotate = Transform3d::Identity();
+    unrotate.linear()    = texture_displacement_frame_rotation(volume_to_world);
+    return unrotate * Eigen::Translation3d(-volume_to_world.translation()) * volume_to_world;
 }
 
 Transform3d texture_displacement_volume_to_world(const ModelVolume &volume)

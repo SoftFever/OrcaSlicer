@@ -1082,6 +1082,10 @@ indexed_triangle_set build_texture_displacement(const indexed_triangle_set      
 Transform3d texture_displacement_volume_to_world(const ModelVolume &volume);
 // The frame the bake and the previews project the texture in: `volume_to_world` with its translation
 // removed, i.e. world orientation and scale about the volume's own origin. See build_texture_displacement().
+// The rotation that carries a world direction into the texture's frame, i.e. the inverse of the
+// placement's own rotation. Exposed because the preview shaders rebuild the frame themselves from a
+// world position and have to turn it the same way the bake does, or the two disagree.
+Matrix3d texture_displacement_frame_rotation(const Transform3d &volume_to_world);
 Transform3d texture_displacement_bake_frame(const Transform3d &volume_to_world);
 
 // Area-weighted vertex normals of `its` - the directions the bake both projects and displaces along.

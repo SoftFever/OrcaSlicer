@@ -1609,14 +1609,20 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
     const GLint wrap = !layer->tile_enabled                                      ? no_tile_wrap :
                        (layer->tile_method == TextureTileMethod::MirroredRepeat) ? GL_MIRRORED_REPEAT :
                                                                                    GL_REPEAT;
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap));
-    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap));
+    // The colour image is a second texture on its own unit, sampled at the same uv, so it needs the
+    // same wrap or the two disagree: the relief stops at one placement while the colour carries on
+    // repeating around it, which is what "Tile off still tiles" looked like.
+    const auto set_tile_wrap = [wrap]() {
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap));
+        glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap));
 #if !SLIC3R_OPENGL_ES
-    if (wrap == GL_CLAMP_TO_BORDER) {
-        static const GLfloat border[4] = { 0.f, 0.f, 0.f, 0.f };
-        glsafe(::glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border));
-    }
+        if (wrap == GL_CLAMP_TO_BORDER) {
+            static const GLfloat border[4] = { 0.f, 0.f, 0.f, 0.f };
+            glsafe(::glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border));
+        }
 #endif // !SLIC3R_OPENGL_ES
+    };
+    set_tile_wrap();
     shader->set_uniform("height_tex", 0);
     shader->set_uniform("height_tex_texel", Vec2f(1.f / float(tex->get_width()), 1.f / float(tex->get_height())));
     shader->set_uniform("depth_mm", layer->depth_mm);
@@ -1624,6 +1630,9 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
     shader->set_uniform("tiling_scale_v", layer_tile_mm(*layer).y());
     shader->set_uniform("mirror_u", layer->mirror_u);
     shader->set_uniform("mirror_v", layer->mirror_v);
+    // The wrap mode above covers the height; the colour needs to be told as well, since "no texture
+    // here" and "the texture is black here" are the same sample but not the same result.
+    shader->set_uniform("tile_enabled", layer->tile_enabled);
     // Read off the uploaded texture rather than the decoded one: they are the same image, and this is
     // the aspect the sampler will actually see.
     shader->set_uniform("tex_aspect", float(tex->get_width()) / float(tex->get_height()));
@@ -1641,6 +1650,12 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
     const Vec3d tex_anchor = trafo_matrix.translation();
     shader->set_uniform("tex_anchor", Vec3f(tex_anchor.cast<float>()));
     shader->set_uniform("eye_model_pos", Vec3f((camera.get_position() - tex_anchor).cast<float>()));
+    // The same turn texture_displacement_bake_frame() makes, so the preview projects the frame the
+    // bake will. Both directions: the shader needs the inverse to bring its gradient back to world,
+    // and GLSL 110 has no transpose().
+    const Matrix3d tex_rot = texture_displacement_frame_rotation(trafo_matrix);
+    shader->set_uniform("tex_rot", Matrix3f(tex_rot.cast<float>()));
+    shader->set_uniform("tex_rot_inv", Matrix3f(tex_rot.transpose().cast<float>()));
     // When set, the shader samples at the per-vertex uv baked into the mesh (LSCM) rather than
     // projecting; see rebuild_shaded_preview_mesh().
     shader->set_uniform("use_vertex_uv", m_shaded_preview_uses_vertex_uv);
@@ -1676,6 +1691,7 @@ void GLGizmoTextureDisplacement::render_shaded_preview_mesh()
         shader->set_uniform("color_tex", 1);
         glsafe(::glActiveTexture(GL_TEXTURE1));
         glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint) color_tex->get_id()));
+        set_tile_wrap(); // the same tiling the height is sampled with, see above
         glsafe(::glActiveTexture(GL_TEXTURE0));
     }
     // The live UV-editor island drag rides this 2x3 affine (identity except mid-drag); only the flagged
@@ -2182,6 +2198,7 @@ void GLGizmoTextureDisplacement::render_uvcheck_mesh()
     shader->set_uniform("view_normal_matrix", view_normal_matrix);
     shader->set_uniform("volume_mirrored", trafo_matrix.matrix().determinant() < 0.0);
     shader->set_uniform("tex_anchor", Vec3f(trafo_matrix.translation().cast<float>())); // see the preview shader
+    shader->set_uniform("tex_rot", Matrix3f(texture_displacement_frame_rotation(trafo_matrix).cast<float>()));
     shader->set_uniform("mode", m_uv_check_mode == UVCheckMode::Distortion ? 1 : 0);
     shader->set_uniform("checker_freq", 4.f); // squares per texture tile
     shader->set_uniform("tiling_scale", layer->tiling_scale);
@@ -3574,18 +3591,37 @@ bool GLGizmoTextureDisplacement::adjust_basis(Transform3d &trafo, Vec3f &u_axis,
 {
     if (!m_adjust_anchor_valid)
         return false;
-    const ModelObject *mo = m_c->selection_info()->model_object();
-    const ModelVolume *mv = texture_volume();
-    if (mo == nullptr || mv == nullptr || active_layer() == nullptr)
+    const ModelObject              *mo    = m_c->selection_info()->model_object();
+    const ModelVolume              *mv    = texture_volume();
+    const TextureDisplacementLayer *layer = active_layer();
+    if (mo == nullptr || mv == nullptr || layer == nullptr)
+        return false;
+    // The two mappings that take their uv from a *layout* rather than from a projection. An unwrap
+    // cuts the surface into islands and packs them, and a model's own UV channel is whatever its
+    // author drew, so one uv tile lands on the surface as an arbitrary curved region - there is no
+    // rectangle there for a handle to be, and drawing one would claim a placement that does not
+    // exist. Those have the UV editor and the model's own layout instead.
+    //
+    // Box is exact. Cylinder and Sphere share the planar frame but curve it around an axis, so the
+    // handle is an approximation there: it moves the texture correctly, the frame is only roughly
+    // where the tile falls.
+    //
+    // Gating here rather than at the button means a mapping changed while the mode is open simply
+    // stops drawing, instead of drawing somewhere wrong.
+    if (layer->projection_method == TextureProjectionMethod::LSCM ||
+        layer->projection_method == TextureProjectionMethod::ModelUV)
         return false;
     Transform3d volume_to_world;
     if (!adjust_volume_to_world(volume_to_world))
         return false;
-    // Everything the gizmo computes is already in the bake frame, and that frame is the world one
-    // with its origin moved to the volume's: so getting a point of it onto the screen is a
-    // translation and nothing more. No rotation or scale here is the whole point - they are what the
-    // tile's millimetres must not be measured through.
+    // Everything the gizmo computes is already in the bake frame, so this is only what carries a
+    // point of that frame back out to world space for projection: the placement's rotation, and the
+    // origin. Deliberately no scale - that is what a tile's millimetres must not be measured
+    // through, and leaving it out here is what keeps the drawn tile the size the texture actually
+    // tiles at. The rotation has to be here, though, since the frame itself now carries the model's
+    // orientation; when it did not, this was a pure translation.
     trafo               = Transform3d::Identity();
+    trafo.linear()      = texture_displacement_frame_rotation(volume_to_world).transpose();
     trafo.translation() = volume_to_world.translation();
     adjust_tangent_basis(u_axis, v_axis);
     base = adjust_plane_point();
@@ -8318,11 +8354,28 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                                                           { "blend_multiply.png", from_u8(blend_multiply) } });
 
                     ImGui::SameLine(0.f, gap_s);
+                    // See adjust_basis(): the handle is a tile of a planar projection, which only Box
+                    // mapping is. Leaving the mode switched on under another mapping would show a
+                    // control that cannot move anything, so it is dropped here too.
+                    const bool adjust_na = layer.projection_method == TextureProjectionMethod::LSCM ||
+                                           layer.projection_method == TextureProjectionMethod::ModelUV;
+                    if (adjust_na && m_adjust_texture_mode) {
+                        m_adjust_texture_mode = false;
+                        end_adjust_texture_mode();
+                    }
                     if (icon_toggle(842, "texture_displacement_adjust.svg", m_adjust_texture_mode, icon_sm, _L("Adjust placement"),
                                     _L("Adjust placement - drag the tile on the model to move the texture, "
                                        "its edges to set the tile's width and height, a corner for both, "
                                        "or the ring to rotate it. Shift holds a move to one axis, and holds "
-                                       "a corner's proportions."))) {
+                                       "a corner's proportions."),
+                                    {},
+                                    adjust_na ? _L("Not for a mapping that comes from a UV layout. An unwrap "
+                                                   "cuts the surface into islands and packs them, and a model's "
+                                                   "own UV channel is whatever its author drew, so one tile "
+                                                   "lands on the surface as an arbitrary curved patch with no "
+                                                   "rectangle to take hold of. Place it in the UV editor "
+                                                   "instead, or with Tile size and Rotation.") :
+                                                wxString())) {
                         if (!m_adjust_texture_mode) {
                             update_model_object(); // flush any pending strokes before anchoring
                             if (update_adjust_anchor())
