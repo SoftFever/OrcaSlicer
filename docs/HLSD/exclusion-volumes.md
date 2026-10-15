@@ -24,10 +24,9 @@ to collision volumes in toolhead-relative mode. The existing bed area never move
 or disappears when collision volumes are configured.
 
 The printer settings expose the bed area as a normal editable field with Orca's
-standard reset controls. Collision volumes occupy a separate advanced settings
-group. Copying a bed area creates a full-height volume with the same polygon and
-preserves the source, existing volumes and selected nozzle mode. In individual
-mode, a copy is added to each extruder's definition. Pasted volume syntax in the
+standard reset controls. Collision volumes appear directly below it in Printable
+space, as a separate field. A bed-area polygon can be manually copied into this
+field to define a full-height collision volume. Pasted volume syntax in the
 area field requires confirmation before it is added to the volume settings;
 declining or invalid input leaves the stored area intact.
 

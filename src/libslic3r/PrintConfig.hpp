@@ -2519,9 +2519,6 @@ int bed_exclusion_extruder_for_filament(size_t filament_id, const std::vector<in
                                         size_t extruder_count);
 bool is_bed_exclusion_volume_syntax(const std::string &value);
 bool is_valid_bed_exclude_volumes_string(const std::string &value, double printable_height);
-// Copy an existing bed-area polygon as a full-height collision volume, without
-// changing its shape. Returns an empty string for an invalid definition.
-std::string legacy_bed_exclude_area_to_volumes(const Pointfs &points);
 // Add shared definitions without replacing existing volumes or changing the
 // configured multi-nozzle mode. In individual mode the new definitions are
 // applied to every physical extruder.

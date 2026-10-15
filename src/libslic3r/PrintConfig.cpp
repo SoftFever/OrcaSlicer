@@ -13928,19 +13928,6 @@ bool is_valid_bed_exclude_volumes_string(const std::string &value, const double 
     return found_nonempty;
 }
 
-std::string legacy_bed_exclude_area_to_volumes(const Pointfs &points)
-{
-    // Copy the polygon as resolved by get_bed_excluded_regions(). Inferring
-    // four-point groups would change the shape of non-rectangular bed areas.
-    if (points.size() < 3)
-        return {};
-    if (std::any_of(points.begin(), points.end(), [](const Vec2d &point) { return !point.allFinite(); }))
-        return {};
-
-    const std::string definition = ConfigOptionPoints(points).serialize();
-    return is_valid_bed_exclude_volumes_string(definition, std::numeric_limits<double>::max()) ? definition : std::string{};
-}
-
 void append_bed_exclude_volumes(DynamicPrintConfig &config, const std::string &definition)
 {
     if (definition.empty())

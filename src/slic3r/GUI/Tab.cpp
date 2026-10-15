@@ -5291,53 +5291,16 @@ void TabPrinter::build_fff()
         option.opt.full_width = true;
         optgroup->append_single_option_line(option, "printer_basic_information_printable_space#excluded-bed-area");
 
-        optgroup->append_single_option_line("printable_height", "printer_basic_information_printable_space#printable-height");
-        optgroup->append_single_option_line("support_multi_bed_types", "printer_basic_information_printable_space#support-multi-bed-types");
-        optgroup->append_single_option_line("best_object_pos", "printer_basic_information_printable_space#best-object-position");
-        optgroup->append_single_option_line("z_offset", "printer_basic_information_printable_space#z-offset");
-        optgroup->append_single_option_line("preferred_orientation", "printer_basic_information_printable_space#preferred-orientation");
-
-        optgroup = page->new_optgroup(L("Toolhead collision volumes"), "param_printable_space");
         option = optgroup->get_option("bed_exclude_volumes");
         option.opt.full_width = true;
         optgroup->append_single_option_line(option);
         optgroup->append_single_option_line("bed_exclude_volume_mode");
 
-        // Keep the area as a normal field so its edit/reset controls work for
-        // every existing profile. Copying only changes the volume settings.
-        Line copy_line{ "", "" };
-        copy_line.full_width = 1;
-        copy_line.append_widget([this](wxWindow *parent) {
-            Button *button = new Button(parent, _L("Copy bed area to collision volumes") + " " + dots);
-            button->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
-            button->SetToolTip(_L("Copy the excluded bed area into a full-height collision volume. The bed area, existing collision volumes and selected multi-nozzle behaviour are preserved."));
-            wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(button, 0, wxALIGN_CENTER_VERTICAL);
-            button->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) {
-                const ConfigOptionPoints *area = m_config->option<ConfigOptionPoints>("bed_exclude_area");
-                const std::string definition = area != nullptr ?
-                    legacy_bed_exclude_area_to_volumes(area->values) : std::string{};
-                if (definition.empty()) {
-                    show_error(wxGetApp().plater(), _L("Configure a valid excluded bed area before copying it. The bed area has not been changed; you can edit it directly or configure collision volumes separately."));
-                    return;
-                }
-
-                MessageDialog dialog(
-                    wxGetApp().plater(),
-                    _L("Copy the excluded bed area into full-height collision volumes? The copies will be checked against G-code and used for travel avoidance. The original bed area and current multi-nozzle behaviour will be preserved."),
-                    _L("Copy collision volumes"), wxICON_QUESTION | wxYES | wxNO);
-                if (dialog.ShowModal() != wxID_YES)
-                    return;
-
-                DynamicPrintConfig converted = *m_config;
-                append_bed_exclude_volumes(converted, definition);
-                load_config(converted);
-                on_presets_changed();
-                wxGetApp().plater()->update();
-            });
-            return sizer;
-        });
-        optgroup->append_line(copy_line);
+        optgroup->append_single_option_line("printable_height", "printer_basic_information_printable_space#printable-height");
+        optgroup->append_single_option_line("support_multi_bed_types", "printer_basic_information_printable_space#support-multi-bed-types");
+        optgroup->append_single_option_line("best_object_pos", "printer_basic_information_printable_space#best-object-position");
+        optgroup->append_single_option_line("z_offset", "printer_basic_information_printable_space#z-offset");
+        optgroup->append_single_option_line("preferred_orientation", "printer_basic_information_printable_space#preferred-orientation");
 
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
 
