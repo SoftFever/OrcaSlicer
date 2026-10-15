@@ -133,18 +133,6 @@ static std::string colour_to_ams_string(const wxColour& color)
     return col_buf;
 }
 
-static wxColour mix_colour(const wxColour& left, const wxColour& right, double ratio)
-{
-    ratio = std::max(0.0, std::min(1.0, ratio));
-    auto mix_channel = [ratio](unsigned char l, unsigned char r) {
-        return static_cast<unsigned char>(std::round(l + (r - l) * ratio));
-    };
-    return wxColour(mix_channel(left.Red(), right.Red()),
-                    mix_channel(left.Green(), right.Green()),
-                    mix_channel(left.Blue(), right.Blue()),
-                    mix_channel(left.Alpha(), right.Alpha()));
-}
-
 static std::vector<ColorPickerPopup::ColorItem> collect_ams_color_items(DevFilaSystem* fila_system)
 {
     std::vector<ColorPickerPopup::ColorItem> items;
@@ -1917,26 +1905,11 @@ void ColorPicker::doRender(wxDC& dc)
 
     if (m_show_full && m_cols.size() > 1) {
         if (ctype == 0) {
-            const double center_x = size.x / 2.0;
-            const double center_y = size.y / 2.0;
-            const double draw_radius = radius;
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            for (int x = 0; x < size.x; ++x) {
-                const double dx = x + 0.5 - center_x;
-                if (std::abs(dx) > draw_radius) continue;
-
-                const double half_height = std::sqrt(std::max(0.0, draw_radius * draw_radius - dx * dx));
-                const int top = std::max(0, static_cast<int>(std::ceil(center_y - half_height)));
-                const int bottom = std::min(size.y - 1, static_cast<int>(std::floor(center_y + half_height)));
-                const double pos = size.x > 1 ? static_cast<double>(x) / (size.x - 1) : 0.0;
-                const double scaled = pos * (m_cols.size() - 1);
-                const size_t idx = std::min(static_cast<size_t>(scaled), m_cols.size() - 2);
-                const double ratio = scaled - idx;
-
-                if (top <= bottom) {
-                    dc.SetBrush(wxBrush(mix_colour(m_cols[idx], m_cols[idx + 1], ratio)));
-                    dc.DrawRectangle(x, top, 1, bottom - top + 1);
-                }
+            const wxRect rect(size.x / 2 - radius, size.y / 2 - radius, 2 * radius, 2 * radius);
+            if (!draw_rounded_filament_swatch(dc, rect, m_cols, true, radius)) {
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                dc.SetBrush(wxBrush(m_colour));
+                dc.DrawCircle(size.x / 2, size.y / 2, radius);
             }
         }
         else {

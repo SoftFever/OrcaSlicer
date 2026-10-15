@@ -1413,7 +1413,8 @@ void AMSLib::render_lite_lib(wxDC& dc)
     if (m_info.material_cols.size() > 1) {
         wxRect color_rect(FromDIP(10), FromDIP(10), libsize.x - FromDIP(18), libsize.y - FromDIP(18));
         if (m_info.ctype == 0) {
-            fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
+            if (!draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0))
+                fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
         }
         else {
             int cols_size = m_info.material_cols.size();
@@ -1517,7 +1518,8 @@ void AMSLib::render_generic_lib(wxDC &dc)
         const bool multi_color = (m_info.ctype == 0 || m_info.ctype == 1) && m_info.material_cols.size() > 1;
         if (multi_color) {
             if (m_info.ctype == 0) {
-                fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
+                if (!draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0))
+                    fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
             }
             else {
                 int cols_size = static_cast<int>(m_info.material_cols.size());
@@ -1621,7 +1623,9 @@ void AMSLib::render_generic_lib(wxDC &dc)
         if (m_info.material_cols.size() > 1) {
             //gradient
             if (m_info.ctype == 0) {
-                fill_gradient_rect_east(dc, wxRect(FromDIP(2), height - curr_height, size.x - FromDIP(4), curr_height), m_info.material_cols);
+                const wxRect color_rect(FromDIP(2), height - curr_height, size.x - FromDIP(4), curr_height);
+                if (!draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0))
+                    fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
             }
             else {
                 //multicolour
@@ -2782,7 +2786,9 @@ void AMSPreview::doRender(wxDC &dc)
             }
             if (iter->material_cols.size() > 1) {
                 if (iter->ctype == 0) {
-                    fill_gradient_rect_east(dc, wxRect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y), iter->material_cols);
+                    const wxRect rect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
+                    if (!draw_rounded_filament_swatch(dc, rect, iter->material_cols, true, 0))
+                        fill_gradient_rect_east(dc, rect, iter->material_cols);
                 }
                 else {
                     int cols_size = iter->material_cols.size();

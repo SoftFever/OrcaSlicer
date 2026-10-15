@@ -401,6 +401,69 @@ TEST_CASE("Rounded custom swatches keep segmented colors distinct from gradients
     }
 }
 
+TEST_CASE("Circular AMS gradients reveal interior alpha and leave their surrounding corners clear", "[FilamentBitmapUtils][AMSMaterialsSetting]")
+{
+    const int alpha = GENERATE(0, 128, 255);
+    const int scale = GENERATE(1, 2);
+    const bool selected = GENERATE(false, true);
+    const wxSize size(25 * scale, 25 * scale);
+    const int radius = size.x / 2 - scale - (selected ? scale : 0);
+    const wxRect rect(size.x / 2 - radius, size.y / 2 - radius, 2 * radius, 2 * radius);
+    const wxColour background(40, 40, 40);
+    const std::vector<wxColour> colors{wxColour(255, 0, 0), wxColour(0, 0, 255, alpha), wxColour(0, 255, 0)};
+    wxBitmap bitmap(size.x, size.y, 24);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetBackground(wxBrush(background));
+        dc.Clear();
+        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, radius));
+    }
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    const int x = size.x / 2, y = size.y / 2;
+    const int cell = std::max(1, rect.height / 5);
+    const int contrast = std::abs(int(image.GetRed(x, y)) - int(image.GetRed(x, y + cell)));
+    if (alpha == 255)
+        REQUIRE(contrast == 0);
+    else
+        REQUIRE(contrast >= (alpha == 0 ? 24 : 12));
+    REQUIRE(image.GetBlue(x, y) >= image.GetRed(x, y));
+    for (const wxPoint& point : {wxPoint(0, 0), wxPoint(size.x - 1, 0), wxPoint(0, size.y - 1), wxPoint(size.x - 1, size.y - 1)})
+        require_same_rgb(wxColour(image.GetRed(point.x, point.y), image.GetGreen(point.x, point.y), image.GetBlue(point.x, point.y)), background);
+}
+
+TEST_CASE("AMS card gradient checkerboards stay inside the remaining material region", "[FilamentBitmapUtils][AMSItem]")
+{
+    const int alpha = GENERATE(0, 128, 255);
+    const int scale = GENERATE(1, 2);
+    const int remaining = GENERATE(35, 100);
+    const wxSize size(52 * scale, 80 * scale);
+    const int height = size.y * remaining / 100;
+    const wxRect rect(2 * scale, size.y - height, size.x - 4 * scale, height);
+    const wxColour background(40, 40, 40);
+    const std::vector<wxColour> colors{wxColour(255, 0, 0), wxColour(0, 0, 255, alpha), wxColour(0, 255, 0)};
+    wxBitmap bitmap(size.x, size.y, 24);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetBackground(wxBrush(background));
+        dc.Clear();
+        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, 0));
+    }
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    const int cell = std::max(1, rect.height / 5);
+    const int x = size.x / 2, y = rect.y + cell + 1;
+    const int contrast = std::abs(int(image.GetRed(x, y)) - int(image.GetRed(x, y + cell)));
+    if (alpha == 255)
+        REQUIRE(contrast == 0);
+    else
+        REQUIRE(contrast >= (alpha == 0 ? 24 : 12));
+    if (rect.y > 0)
+        require_same_rgb(wxColour(image.GetRed(x, rect.y - 1), image.GetGreen(x, rect.y - 1), image.GetBlue(x, rect.y - 1)), background);
+    require_same_rgb(wxColour(image.GetRed(0, y), image.GetGreen(0, y), image.GetBlue(0, y)), background);
+    require_same_rgb(wxColour(image.GetRed(size.x - 1, y), image.GetGreen(size.x - 1, y), image.GetBlue(size.x - 1, y)), background);
+}
+
 TEST_CASE("Ordered gradient fills preserve middle nodes and cover narrow swatches", "[FilamentBitmapUtils][AMSMaterialsSetting]")
 {
     const int width = GENERATE(1, 2, 3, 7, 13, 17);

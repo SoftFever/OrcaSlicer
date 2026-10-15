@@ -89,8 +89,11 @@ for `tray_color` and, on capable firmware, `cols`, with `ctype=0` for gradients 
 `ctype=2` for single colors. The edited tray updates locally while device status
 is pending. AMS custom swatches interpolate every gradient stop. Single colors,
 gradients and segmented swatches with any nonopaque component composite over a
-rounded checkerboard, including the shared AMS preview renderer. Opaque swatches
-retain their existing background.
+rounded checkerboard, including the shared AMS preview renderer. The circular
+settings and palette previews and the device panel's gradient cards also use this
+renderer, including AMS Lite, external spools, remaining-material regions and
+four-slot thumbnails. Each keeps its existing shape and material bounds.
+Opaque swatches retain their existing background.
 
 Texture import's color-mapping Add Material action opens a solid, opaque editor
 anchored to the mapping row. The existing filament limit is checked before opening.
