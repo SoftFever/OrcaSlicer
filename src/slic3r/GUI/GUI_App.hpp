@@ -355,6 +355,9 @@ private:
     std::atomic<bool>    m_restart_sync_pending {false};
     std::atomic<bool>    m_sync_user_preset_dlg_active {false}; // a manual "Sync Presets" progress dialog is on screen (see restart_sync_user_preset)
     std::atomic<bool>    m_sync_user_presets_now {false}; // request the sync loop to push user presets on its next tick
+    bool                 m_user_preset_pull_pending {false}; // set when a sync thread starts, cleared once its pull is applied; a failed pull or a stopped sync leaves it set
+    bool                 m_legacy_filament_check_due {false}; // the startup check waits for that pull
+    bool                 m_legacy_filament_check_running {false}; // a check is in progress, its dialog may be open
     std::atomic<bool>    m_migration_retry_pending {false};
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
@@ -589,7 +592,8 @@ public:
     void            check_new_version_sf(bool show_tips = false, int by_user = 0);
     // Offers to migrate user filament presets made against an older release that lost printers their parent
     // listed then. At startup it asks on every start that finds such presets, unless the user chose not to be
-    // reminded; by_user also reports when there is nothing to migrate.
+    // reminded; while the user presets sync with the cloud, it waits until they have been pulled. by_user also
+    // reports when there is nothing to migrate.
     void            check_legacy_user_filament_presets(bool by_user);
     bool            process_network_msg(std::string dev_id, std::string msg);
     void            request_new_version(int by_user);
@@ -600,7 +604,8 @@ public:
     std::string     format_IP(const std::string& ip);
     void            show_dialog(wxString msg);
     void            push_notification(const MachineObject* obj, wxString msg, wxString title = wxEmptyString, UserNotificationStyle style = UserNotificationStyle::UNS_NORMAL);
-    void            reload_settings();
+    // Returns false when the cloud presets could not be fetched, so nothing was reloaded.
+    bool            reload_settings();
     void            remove_user_presets();
 
     bool            maybe_migrate_user_presets_on_login();

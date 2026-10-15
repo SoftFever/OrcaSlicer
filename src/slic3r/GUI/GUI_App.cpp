@@ -6863,7 +6863,7 @@ void  GUI_App::push_notification(const MachineObject* obj, wxString msg, wxStrin
     }
 }
 
-void GUI_App::reload_settings()
+bool GUI_App::reload_settings()
 {
     if (preset_bundle && m_agent) {
         // Load user's personal presets
@@ -6871,7 +6871,7 @@ void GUI_App::reload_settings()
         int result = m_agent->get_user_presets(&user_presets);
         if (result != 0) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": get_user_presets failed with code " << result << ", skipping sync";
-            return;
+            return false;
         }
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " cloud user preset number is: " << user_presets.size();
         auto refresh_synced_ui = [this, user_presets = std::move(user_presets)]() mutable {
@@ -6946,13 +6946,30 @@ void GUI_App::reload_settings()
             refresh_synced_ui();
         else
             CallAfter(refresh_synced_ui);
+        return true;
     }
+    return false;
 }
 
 void GUI_App::check_legacy_user_filament_presets(bool by_user)
 {
+    // One check at a time: the startup check can come due while the manual one is open, and on macOS the menu bar
+    // stays usable while a modal dialog is up.
+    if (m_legacy_filament_check_running)
+        return;
     if (!by_user && app_config->get_bool("legacy_user_filament_presets_dont_remind"))
         return;
+    // The local copies may be older than the cloud ones another machine changed: migrating them would push changes
+    // made against stale copies and conflict with the cloud. The startup check waits for the presets to be pulled.
+    if (!by_user && m_user_preset_pull_pending) {
+        m_legacy_filament_check_due = true;
+        return;
+    }
+    // This check also answers a startup check that is still waiting.
+    m_legacy_filament_check_due = false;
+    m_legacy_filament_check_running = true;
+    ScopeGuard running_guard([this] { m_legacy_filament_check_running = false; });
+
     const std::vector<LegacyUserFilamentPreset> legacy_presets = preset_bundle->legacy_user_filament_presets();
     if (legacy_presets.empty()) {
         if (by_user)
@@ -6997,6 +7014,9 @@ void GUI_App::check_legacy_user_filament_presets(bool by_user)
         show_error(mainframe, format_wxstr(_L("Your filament presets could not be migrated. A backup of your presets was saved to:\n%1%"), backup));
         return;
     }
+    // Ask the sync loop to push on its next pass instead of its next 60 s round, which shortens the time the migrated
+    // presets stay unpushed.
+    m_sync_user_presets_now.store(true, std::memory_order_release);
     preset_bundle->update_compatible(PresetSelectCompatibleType::Never);
     mainframe->update_side_preset_ui();
     for (auto tab : tabs_list) {
@@ -7763,6 +7783,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
     BOOST_LOG_TRIVIAL(info) << "start_sync_service...";
     // BBS
     m_user_sync_token.reset(new int(0));
+    m_user_preset_pull_pending = true;
     if (with_progress_dlg) {
         // Mark a manual progress dialog as active so restart_sync_user_preset() ignores
         // repeat triggers while it is on screen (prevents stacking modal dialogs).
@@ -7836,8 +7857,16 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
 
             finishFn(ret == 0);
 
-            if (ret == 0 && m_agent && !t.expired())
-                reload_settings();
+            // Queued after the refresh reload_settings() queues, so it runs once the pulled presets are loaded.
+            if (ret == 0 && m_agent && !t.expired() && reload_settings())
+                CallAfter([this, t] {
+                    // A stopped or restarted sync: the next sync, if one starts, pulls the presets again.
+                    if (t.expired() || is_closing())
+                        return;
+                    m_user_preset_pull_pending = false;
+                    if (m_legacy_filament_check_due)
+                        check_legacy_user_filament_presets(false);
+                });
 
             // For orca specific syncing
             auto orca_agent = std::dynamic_pointer_cast<OrcaCloudServiceAgent>(m_agent->get_cloud_agent());
@@ -7852,8 +7881,11 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
             // Sync once immediately, then every 60 seconds.
             while (!t.expired()) {
                 ++tick_tock;
-                // Sync once immediately, then every 60s, or right away when a force-push asked for it.
-                if (tick_tock % 120 == 0 || m_sync_user_presets_now.exchange(false, std::memory_order_acq_rel)) {
+                // Sync once immediately, then every 60s, or right away when a force-push or a preset migration asked
+                // for it. The request is consumed on every tick, so one made before a scheduled pass is served by it
+                // instead of running a second pass straight after.
+                const bool push_now = m_sync_user_presets_now.exchange(false, std::memory_order_acq_rel);
+                if (tick_tock % 120 == 0 || push_now) {
                     tick_tock = 0;
                     if (m_agent) {
                         if (!m_agent->is_user_login()) {
