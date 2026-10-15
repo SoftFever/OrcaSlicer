@@ -432,27 +432,36 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
     std::string OozePrevention::pre_toolchange(GCode& gcodegen)
     {
-        std::string gcode;
-
         unsigned int extruder_id = gcodegen.writer().filament()->id();
-        const auto& filament_idle_temp = gcodegen.config().idle_temperature;
-        if (filament_idle_temp.get_at(extruder_id) == 0) {
-            // There is no idle temperature defined in filament settings.
-            // Use the delta value from print config.
-            if (gcodegen.config().standby_temperature_delta.value != 0) {
-                // we assume that heating is always slower than cooling, so no need to block
-                gcode += gcodegen.writer().set_temperature
-                (this->_get_temp(gcodegen) + gcodegen.config().standby_temperature_delta.value, false, extruder_id);
-                gcode.pop_back();
-                gcode += " ;cooldown\n"; // this is a marker for GCodeProcessor, so it can supress the commands when needed
-            }
-        } else {
-            // Use the value from filament settings. That one is absolute, not delta.
-            gcode += gcodegen.writer().set_temperature(filament_idle_temp.get_at(extruder_id), false, extruder_id);
-            gcode.pop_back();
-            gcode += " ;cooldown\n"; // this is a marker for GCodeProcessor, so it can supress the commands when needed
+
+        // Check if this tool will ever be used again in this print.
+        bool is_last_use = false;
+        if (gcodegen.m_print != nullptr && !gcodegen.m_print->tool_ordering().empty()) {
+            coordf_t current_z        = gcodegen.layer() ? gcodegen.layer()->print_z : gcodegen.writer().get_position().z();
+            const auto& tool_ordering = gcodegen.m_print->tool_ordering();
+            const auto& cfg           = gcodegen.config();
+            const int heater          = imex_physical_heater_for(cfg.is_imex.value, cfg.physical_extruder_map, int(extruder_id));
+            is_last_use               = tool_ordering.is_last_extrusion_layer(current_z, extruder_id);
+            for (unsigned int f : tool_ordering.all_extruders())
+                if (is_last_use && imex_physical_heater_for(cfg.is_imex.value, cfg.physical_extruder_map, int(f)) == heater)
+                    is_last_use = tool_ordering.is_last_extrusion_layer(current_z, f);
         }
 
+        int temp = 0;
+        if (!is_last_use) {
+            const auto& filament_idle_temp = gcodegen.config().idle_temperature;
+            if (filament_idle_temp.get_at(extruder_id) == 0) {
+                if (gcodegen.config().standby_temperature_delta.value == 0)
+                    return std::string();
+                temp = this->_get_temp(gcodegen) + gcodegen.config().standby_temperature_delta.value;
+            } else {
+                temp = filament_idle_temp.get_at(extruder_id);
+            }
+        }
+
+        std::string gcode = gcodegen.writer().set_temperature(temp, false, extruder_id);
+        gcode.pop_back();
+        gcode += " ;cooldown\n"; // this is a marker for GCodeProcessor, so it can supress the commands when needed
         return gcode;
     }
 
@@ -3570,6 +3579,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     print.throw_if_canceled();
 
+    // Taken before the object loop, which reassigns initial_extruder_id when printing by object.
+    const int compat_first_layer_bed_temp = m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp ?
+                                                get_highest_bed_temperature(true, print) :
+                                                get_bed_temperature(initial_extruder_id, true, print.config().curr_bed_type);
+    const int compat_first_layer_nozzle_temp =
+        print.config().nozzle_temperature_initial_layer.get_at(get_filament_config_index((int) initial_extruder_id));
+
     int extruder_id = get_extruder_id(initial_extruder_id);
 
     m_cooling_buffer = make_unique<CoolingBuffer>(*this);
@@ -4160,12 +4176,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 file.write(full_config);
 
             // SoftFever: write compatiple image
-            int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
-            file.write_format("; first_layer_bed_temperature = %d\n",
-                                first_layer_bed_temperature);
-            file.write_format(
-                "; first_layer_temperature = %d\n",
-                print.config().nozzle_temperature_initial_layer.get_at(0));
+            file.write_format("; first_layer_bed_temperature = %d\n", compat_first_layer_bed_temp);
+            file.write_format("; first_layer_temperature = %d\n", compat_first_layer_nozzle_temp);
             file.write("; CONFIG_BLOCK_END\n\n");
         } else if (thumbnail_cb != nullptr) {
             // generate the thumbnails
@@ -4750,10 +4762,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
           file.write(full_config);
 
         // SoftFever: write compatiple info
-        int first_layer_bed_temperature = get_bed_temperature(0, true, print.config().curr_bed_type);
-        file.write_format("; first_layer_bed_temperature = %d\n", first_layer_bed_temperature);
+        file.write_format("; first_layer_bed_temperature = %d\n", compat_first_layer_bed_temp);
         file.write_format("; bed_shape = %s\n", print.full_print_config().opt_serialize("printable_area").c_str());
-        file.write_format("; first_layer_temperature = %d\n", print.config().nozzle_temperature_initial_layer.get_at(0));
+        file.write_format("; first_layer_temperature = %d\n", compat_first_layer_nozzle_temp);
         file.write_format("; first_layer_height = %.3f\n", print.config().initial_layer_print_height.value);
 
           //SF TODO
