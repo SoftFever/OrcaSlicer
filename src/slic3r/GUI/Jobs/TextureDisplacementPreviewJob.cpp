@@ -32,9 +32,6 @@ void TextureDisplacementPreviewJob::process(Ctl &ctl)
         color_request.quantize = GLGizmoTextureDisplacement::make_palette_quantizer(m_input.color.palette);
         if (!m_input.color.palette_pure.empty())
             color_request.quantize_pure = GLGizmoTextureDisplacement::make_palette_quantizer(m_input.color.palette_pure);
-        color_request.resolve  = GLGizmoTextureDisplacement::make_mix_resolver(
-            m_input.color.palette, m_input.color.mix_mode, m_input.color.layer_height,
-            m_input.color.dither_cell_mm);
         color_request.despeckle_passes = m_input.color.despeckle_passes;
         color_request.out_triangle     = &m_result.triangle_color;
         if (color_request.quantize)
@@ -51,7 +48,8 @@ void TextureDisplacementPreviewJob::process(Ctl &ctl)
                                                      (!m_current_generation ||
                                                       m_current_generation->load() == m_generation);
                                           },
-                                          color, m_input.volume_to_world);
+                                          color, m_input.volume_to_world, nullptr, nullptr,
+                                          m_input.model_uv.empty() ? nullptr : &m_input.model_uv);
 }
 
 void TextureDisplacementPreviewJob::finalize(bool canceled, std::exception_ptr &eptr)

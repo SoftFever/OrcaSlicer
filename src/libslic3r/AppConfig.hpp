@@ -15,8 +15,6 @@
 #include "libslic3r/Semver.hpp"
 #include "calib.hpp"
 
-using namespace nlohmann;
-
 #define ENV_DEV_HOST		"0"
 #define ENV_QAT_HOST		"1"
 #define ENV_PRE_HOST		"2"
@@ -308,6 +306,8 @@ public:
             m_dirty = true;
         }
     }
+
+    void clear_local_machine_access_code(const std::string& dev_id, const std::string& agent_id);
 
     const std::vector<std::string> &get_filament_presets() const { return m_filament_presets; }
     void set_filament_presets(const std::vector<std::string> &filament_presets){
