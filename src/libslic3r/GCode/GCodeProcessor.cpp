@@ -18,6 +18,7 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
+#include "libslic3r/I18N.hpp"
 #include "libslic3r_version.h"
 #include "GCodeProcessor.hpp"
 
@@ -89,7 +90,6 @@ static const float DEFAULT_TRAVEL_ACCELERATION = 1250.0f;
 static const size_t MIN_EXTRUDERS_COUNT = 5;
 static const float DEFAULT_FILAMENT_DIAMETER = 1.75f;
 static const int   DEFAULT_FILAMENT_HRC = 0;
-static const float DEFAULT_FILAMENT_DENSITY = 1.245f;
 static const float DEFAULT_FILAMENT_COST = 29.99f;
 static const int   DEFAULT_FILAMENT_VITRIFICATION_TEMPERATURE = 0;
 static const Slic3r::Vec3f DEFAULT_EXTRUDER_OFFSET = Slic3r::Vec3f::Zero();
@@ -1067,13 +1067,13 @@ void GCodeProcessor::run_post_process()
 {
     FilePtr in{ boost::nowide::fopen(m_result.filename.c_str(), "rb") };
     if (in.f == nullptr)
-        throw Slic3r::RuntimeError(std::string("GCode processor post process export failed.\nCannot open file for reading.\n"));
+        throw Slic3r::RuntimeError(_u8L("G-code processor post-process export failed.\nCannot open file for reading.\n"));
 
     // temporary file to contain modified gcode
     std::string out_path = m_result.filename + ".postprocess";
     FilePtr out{ boost::nowide::fopen(out_path.c_str(), "wb") };
     if (out.f == nullptr)
-        throw Slic3r::RuntimeError(std::string("GCode processor post process export failed.\nCannot open file for writing.\n"));
+        throw Slic3r::RuntimeError(_u8L("G-code processor post-process export failed.\nCannot open file for writing.\n"));
 
     std::vector<double> filament_mm(m_result.filaments_count, 0.0);
     std::vector<double> filament_cm3(m_result.filaments_count, 0.0);
@@ -1468,10 +1468,10 @@ void GCodeProcessor::run_post_process()
                     // found an invalid value, clamp it to a valid one
                     tool_number = std::clamp<int>(0, m_filament_nozzle_temp.size() - 1, tool_number);
                     // emit warning
-                    std::string warning = "GCode Post-Processor encountered an invalid toolchange, maybe from a custom gcode:";
+                    std::string warning = _u8L("The G-code post-processor encountered an invalid tool change, maybe from custom G-code:");
                     warning += "\n> ";
                     warning += gcode_line;
-                    warning += "Generated M104 lines may be incorrect.";
+                    warning += _u8L("Generated M104 lines may be incorrect.");
                     BOOST_LOG_TRIVIAL(error) << warning;
                     // Orca todo
                     if (m_print != nullptr)
@@ -1713,7 +1713,7 @@ void GCodeProcessor::run_post_process()
         for (;;) {
             size_t cnt_read = ::fread(buffer.data(), 1, buffer.size(), in.f);
             if (::ferror(in.f))
-                throw Slic3r::RuntimeError(std::string("GCode processor post process export failed.\nError while reading from file.\n"));
+                throw Slic3r::RuntimeError(_u8L("G-code processor post-process export failed.\nError while reading from file.\n"));
             bool eof       = cnt_read == 0;
             auto it        = buffer.begin();
             auto it_bufend = buffer.begin() + cnt_read;
@@ -1878,8 +1878,9 @@ void GCodeProcessor::run_post_process()
     }
 
     if (rename_file(out_path, result_filename))
-        throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + out_path + " to " + result_filename + '\n' +
-            "Is " + out_path + " locked?" + '\n');
+        // TRN %1% is the temporary file path, %2% the output file path.
+        throw Slic3r::RuntimeError(Slic3r::format(_u8L("Failed to rename the output G-code file from %1% to %2%.\nIs %1% locked?"),
+                                                  out_path, result_filename) + '\n');
 }
 
 // Additive second file-rewrite pass for the pre-heat/pre-cool injector. The single-pass
@@ -1980,12 +1981,12 @@ void GCodeProcessor::run_second_pass_injection()
 
     FilePtr in{ boost::nowide::fopen(m_result.filename.c_str(), "rb") };
     if (in.f == nullptr)
-        throw Slic3r::RuntimeError(std::string("GCode processor pre-heat injection pass failed.\nCannot open file for reading.\n"));
+        throw Slic3r::RuntimeError(_u8L("G-code processor pre-heat injection pass failed.\nCannot open file for reading.\n"));
 
     const std::string out_path = m_result.filename + ".preheat";
     FilePtr out{ boost::nowide::fopen(out_path.c_str(), "wb") };
     if (out.f == nullptr)
-        throw Slic3r::RuntimeError(std::string("GCode processor pre-heat injection pass failed.\nCannot open file for writing.\n"));
+        throw Slic3r::RuntimeError(_u8L("G-code processor pre-heat injection pass failed.\nCannot open file for writing.\n"));
 
     // The rewrite may shift byte positions (once the injector inserts lines), so rebuild lines_ends from scratch.
     // With an empty map the scanned '\n' offsets reproduce the current lines_ends exactly.
@@ -2003,7 +2004,7 @@ void GCodeProcessor::run_second_pass_injection()
     for (;;) {
         size_t cnt_read = ::fread(buffer.data(), 1, buffer.size(), in.f);
         if (::ferror(in.f))
-            throw Slic3r::RuntimeError(std::string("GCode processor pre-heat injection pass failed.\nError while reading from file.\n"));
+            throw Slic3r::RuntimeError(_u8L("G-code processor pre-heat injection pass failed.\nError while reading from file.\n"));
         bool eof       = cnt_read == 0;
         auto it        = buffer.begin();
         auto it_bufend = buffer.begin() + cnt_read;
@@ -2054,8 +2055,9 @@ void GCodeProcessor::run_second_pass_injection()
     handle_offsets_of_second_process(inserted_operation_lines);
 
     if (rename_file(out_path, m_result.filename))
-        throw Slic3r::RuntimeError(std::string("Failed to rename the output G-code file from ") + out_path + " to " + m_result.filename + '\n' +
-            "Is " + out_path + " locked?" + '\n');
+        // TRN %1% is the temporary file path, %2% the output file path.
+        throw Slic3r::RuntimeError(Slic3r::format(_u8L("Failed to rename the output G-code file from %1% to %2%.\nIs %1% locked?"),
+                                                  out_path, m_result.filename) + '\n');
 }
 
 // Every move whose gcode_id sits at or after an inserted line is pushed down by the running count of
@@ -2603,8 +2605,13 @@ void GCodeProcessorResult::reset() {
     //BBS: add mutex for protection of gcode result
     lock();
 
-    moves.clear();
-    lines_ends.clear();
+    // moves and lines_ends grow with the print: free them, as no reset result reuses the capacity.
+    clear_and_shrink(moves);
+    plate_mass = {};
+    object_masses.clear();
+    body_masses.clear();
+    support_masses.clear();
+    clear_and_shrink(lines_ends);
     printable_area = Pointfs();
     //BBS: add bed exclude area
     bed_exclude_area = Pointfs();
@@ -3606,6 +3613,10 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     if (has_scarf_joint_seam != nullptr)
         m_detect_layer_based_on_tag = m_detect_layer_based_on_tag || has_scarf_joint_seam->value;
 
+    const ConfigOptionBool* manual_filament_change = config.option<ConfigOptionBool>("manual_filament_change");
+    if (manual_filament_change != nullptr)
+        m_manual_filament_change = manual_filament_change->value;
+
     const ConfigOptionEnumGeneric *bed_type = config.option<ConfigOptionEnumGeneric>("curr_bed_type");
     if (bed_type != nullptr)
         m_result.bed_type = (BedType)bed_type->value;
@@ -3717,6 +3728,7 @@ void GCodeProcessor::reset()
     m_g1_line_id = 0;
     m_layer_id = 0;
     m_cp_color.reset();
+    m_mass_locator = nullptr;
 
     m_producer = EProducer::Unknown;
 
@@ -3733,6 +3745,7 @@ void GCodeProcessor::reset()
     m_detect_layer_based_on_tag = false;
 
     m_seams_count = 0;
+    m_g29_time_added = false;
     m_preheat_time = 0.f;
     m_preheat_steps = 1;
 }
@@ -3754,7 +3767,8 @@ DynamicConfig GCodeProcessor::export_config_for_render() const
     config.set_key_value("filament_is_support", new ConfigOptionBools(m_parser.get_config().filament_is_support.values));
     config.set_key_value("filament_type", new ConfigOptionStrings(m_parser.get_config().filament_type.values));
     config.set_key_value("filament_map", new ConfigOptionInts(m_parser.get_config().filament_map.values));
-    config.apply(m_belt_render_config);
+    // += clones the options; apply() would need a definition this config does not have.
+    config += m_belt_render_config;
     return config;
 }
 
@@ -3890,6 +3904,7 @@ void GCodeProcessor::update_exclusion_volume_path_check_result()
 void GCodeProcessor::finalize(bool post_process)
 {
     m_result.z_offset = m_z_offset;
+    finalize_object_masses();
 
     // update width/height of wipe moves
     for (GCodeProcessorResult::MoveVertex& move : m_result.moves) {
@@ -3981,7 +3996,7 @@ ConfigSubstitutions load_from_superslicer_gcode_file(const std::string& filename
     key_value_pairs = ConfigBase::load_from_gcode_string_legacy(config, data.data(), substitutions_ctxt);
 
     if (key_value_pairs < 80)
-        throw Slic3r::RuntimeError(format("Suspiciously low number of configuration values extracted from %1%: %2%", filename, key_value_pairs));
+        throw Slic3r::RuntimeError(format(_u8L("Suspiciously low number of configuration values extracted from %1%: %2%"), filename, key_value_pairs));
 
     return std::move(substitutions_ctxt.substitutions);
 }
@@ -5579,6 +5594,9 @@ void GCodeProcessor::process_G1(const std::array<std::optional<double>, 4>& axes
         m_seams_detector.set_first_vertex(m_result.moves.back().position - m_extruder_offsets[filament_id] - plate_offset);
     }
 
+    if (type == EMoveType::Extrude)
+        add_object_mass(filament_id, area_filament_cross_section * delta_pos[E]);
+
     // store move
     store_move_vertex(type);
 }
@@ -6229,15 +6247,12 @@ void GCodeProcessor::process_G4(const GCodeReader::GCodeLine& line)
 //BBS
 void GCodeProcessor::process_G29(const GCodeReader::GCodeLine& line)
 {
-    //BBS: hardcode 260 seconds for G29
-    //Todo: use a machine related setting when we have second kind of BBL printer
-    const float value_s = 260.0;
-    if (s_IsBBLPrinter){
-        if(m_measure_g29_time)
-            simulate_st_synchronize(value_s);
-    }
-    else{
-        simulate_st_synchronize(value_s);
+    // Firmware may split one bed-leveling sequence across multiple G29 subcommands.
+    constexpr float g29_time = 260.0f;
+    const bool should_add_time = !s_IsBBLPrinter || m_measure_g29_time;
+    if (should_add_time && !m_g29_time_added) {
+        simulate_st_synchronize(g29_time);
+        m_g29_time_added = true;
     }
 }
 
@@ -7440,6 +7455,73 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type, 
             machine.stop_times.push_back({ m_g1_line_id, 0.0f });
         }
     }
+}
+
+void GCodeProcessorResult::ObjectMass::add(const Sum &sum, const BoundingBoxf3 &extent, size_t layer)
+{
+    box.merge(extent);
+    if (printed_up_to_layer.size() <= layer)
+        printed_up_to_layer.resize(layer + 1);
+    printed_up_to_layer[layer].add(sum);
+}
+
+void GCodeProcessor::add_object_mass(int filament_id, float volume)
+{
+    // Skirt, prime tower and custom G-code belong to no object.
+    const ExtrusionRole role = m_extrusion_role;
+    if (volume <= 0.f || role == erNone || role == erSkirt || role == erWipeTower || role == erCustom || role == erMixed)
+        return;
+
+    const bool   has_density = size_t(filament_id) < m_result.filament_densities.size() && m_result.filament_densities[filament_id] > 0.f;
+    const double mass        = double(volume) * (has_density ? m_result.filament_densities[filament_id] : DEFAULT_FILAMENT_DENSITY);
+    // In the frame of the stored moves, the bead's center half its height below the nozzle, from the move's start to its end.
+    const Vec3d half_height = 0.5 * double(m_height) * Vec3d::UnitZ();
+    const Vec3d offset      = Vec3d(m_x_offset, m_y_offset, -m_z_offset) - half_height + m_extruder_offsets[filament_id].cast<double>();
+    const Vec3d start       = Vec3d(m_start_position[X], m_start_position[Y], m_start_position[Z]) + offset;
+    const Vec3d end         = Vec3d(m_end_position[X], m_end_position[Y], m_end_position[Z]) + offset;
+    // The second moments of a uniform segment.
+    const GCodeProcessorResult::ObjectMass::Sum sum{ mass, double(volume), 0.5 * mass * (start + end),
+                                                     mass / 3. * (start.cwiseProduct(start) + start.cwiseProduct(end) + end.cwiseProduct(end)) };
+    // Of the bead's center line and its height, as its width is only estimated. Merged, as a wall along an axis is flat.
+    BoundingBoxf3 extent;
+    extent.merge(start.cwiseMin(end) - half_height);
+    extent.merge(start.cwiseMax(end) + half_height);
+    const bool   part  = role != erBrim && !is_support(role);
+    const size_t layer = std::max<unsigned int>(1, m_layer_id) - 1;
+
+    m_result.plate_mass.add(sum, extent, layer);
+    // The brim belongs to the plate alone.
+    if (role == erBrim || !m_mass_locator)
+        return;
+    const auto add = [&sum, &extent, layer](std::vector<GCodeProcessorResult::ObjectMass> &masses, int index) {
+        if (index < 0)
+            return;
+        if (masses.size() <= size_t(index))
+            masses.resize(index + 1);
+        masses[index].add(sum, extent, layer);
+    };
+    // At the nozzle's height, which the layers print at.
+    const MassLocation location = m_mass_locator(0.5 * (start + end) + half_height, !part);
+    if (part) {
+        add(m_result.object_masses, location.object);
+        add(m_result.body_masses, location.body);
+    } else
+        add(m_result.support_masses, location.object);
+}
+
+void GCodeProcessor::finalize_object_masses()
+{
+    const auto accumulate = [](GCodeProcessorResult::ObjectMass &object) {
+        for (size_t i = 1; i < object.printed_up_to_layer.size(); ++i)
+            object.printed_up_to_layer[i].add(object.printed_up_to_layer[i - 1]);
+    };
+    accumulate(m_result.plate_mass);
+    for (GCodeProcessorResult::ObjectMass &object : m_result.object_masses)
+        accumulate(object);
+    for (GCodeProcessorResult::ObjectMass &body : m_result.body_masses)
+        accumulate(body);
+    for (GCodeProcessorResult::ObjectMass &support : m_result.support_masses)
+        accumulate(support);
 }
 
 void GCodeProcessor::set_extrusion_role(ExtrusionRole role)

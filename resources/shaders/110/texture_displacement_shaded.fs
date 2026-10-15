@@ -29,13 +29,11 @@ uniform vec3      palette_lab[64];
 uniform vec3      palette_rgb[64];
 uniform int       palette_count;
 uniform bool      pure_only;      // match against single filaments only (flat-colour image)
-// How each entry prints. Every entry names a single filament: a mix is given its own mixed filament
-// slot, whose components the slicer alternates per print layer, so the fragment just looks that slot's
-// colour up.
+// The entry's two filaments, equal for a single filament - only so a mix can be told apart. An entry's
+// palette_rgb is already the colour it prints in (for a mix, its mixed filament slot's).
 uniform int       palette_a[64];
 uniform int       palette_b[64];
-uniform vec3      filament_rgb[16];
-uniform int       filament_count;
+uniform float     prefer_pure_de; // PREFER_PURE_DE: how much better than a single filament a mix must be
 uniform sampler2D color_tex;     // the layer's colour image, sampled at the same uv as the height
 uniform bool      has_color_tex;
 uniform bool volume_mirrored;
@@ -74,16 +72,20 @@ varying float weight;
 varying float island_active;
 varying vec2  vertex_uv;
 
-// The cylinder's own frame, built exactly as libslic3r's project_cylindrical() builds it - including
-// the handedness, which comes out left-handed for an axis of +Z. Copied rather than "corrected", so
-// the preview wraps the texture the same way round as the bake.
+// The cylinder's own frame, built exactly as libslic3r's project_cylindrical() builds it - right
+// handed, so the angle taken from it grows anticlockwise about the axis, which seen from outside the
+// cylinder is to the viewer's right rather than mirrored.
 void cylinder_frame(out vec3 up, out vec3 right, out vec3 fwd)
 {
     up = (length(patch_axis) > 1e-8) ? normalize(patch_axis) : vec3(0.0, 0.0, 1.0);
     vec3 arbitrary = (abs(up.z) < 0.9) ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
     right = normalize(cross(up, arbitrary));
-    fwd   = normalize(cross(right, up));
+    fwd   = normalize(cross(up, right));
 }
+
+// Which side of a world plane a face is on, with zero counting as the positive side. Not GLSL's own
+// sign(), which returns 0 there and would collapse the coordinate onto a line.
+float box_face_sign(float n) { return n >= 0.0 ? 1.0 : -1.0; }
 
 // The raw, millimetre-valued projection of `p` (a position in the texture frame), before the layer's
 // tiling/rotation/aspect/offset - a term-for-term transcription of libslic3r's project_planar(),
@@ -96,7 +98,7 @@ vec2 projection_raw(vec3 p, vec3 n)
         vec3  rel = p - patch_center;
         float x   = dot(rel, right);
         float y   = dot(rel, fwd);
-        return vec2(atan(y, x) * sqrt(x * x + y * y), dot(rel, up));
+        return vec2(atan(y, x) * sqrt(x * x + y * y), -dot(rel, up));
     }
     if (projection_mode == 2) {                 // Spherical: (longitude, latitude) * radius
         vec3  rel    = p - patch_center;
@@ -104,10 +106,18 @@ vec2 projection_raw(vec3 p, vec3 n)
         if (radius < 1e-8)
             return vec2(0.0);
         vec3 dir = rel / radius;
-        return vec2(atan(dir.y, dir.x), asin(clamp(dir.z, -1.0, 1.0))) * radius;
+        return vec2(atan(dir.y, dir.x), -asin(clamp(dir.z, -1.0, 1.0))) * radius;
     }
-    vec3 an = abs(n);                           // Triplanar: drop the dominant normal axis
-    return (an.x >= an.y && an.x >= an.z) ? p.yz : ((an.y >= an.x && an.y >= an.z) ? p.xz : p.xy);
+    // Triplanar: drop the dominant normal axis. v is negated so the image's first pixel row (v = 0)
+    // sits at the top of the model instead of upside down, and u is flipped on the far side of each
+    // plane so the two faces sharing it are not mirror images. libslic3r's box_plane_yz() and its two
+    // siblings, term for term.
+    vec3 an = abs(n);
+    if (an.x >= an.y && an.x >= an.z)
+        return vec2(box_face_sign(n.x) * p.y, -p.z);
+    if (an.y >= an.x && an.y >= an.z)
+        return vec2(-box_face_sign(n.y) * p.x, -p.z);
+    return vec2(box_face_sign(n.z) * p.x, -p.y);
 }
 
 // The two surface directions projection_raw()'s u and v run along at `p`, plus how many raw units one
@@ -126,7 +136,7 @@ void projection_axes(vec3 p, vec3 n, out vec3 t, out vec3 b, out vec2 units_per_
         vec2  xy  = vec2(dot(rel, right), dot(rel, fwd));
         float r   = length(xy);
         t = (r > 1e-6) ? (fwd * xy.x - right * xy.y) / r : right; // circumferential: u runs along it
-        b = up;                                                   // v is the distance along the axis
+        b = -up;                                                  // v is the distance *against* the axis
         return;
     }
     if (projection_mode == 2) {
@@ -135,20 +145,20 @@ void projection_axes(vec3 p, vec3 n, out vec3 t, out vec3 b, out vec2 units_per_
         vec3  dir = (r > 1e-8) ? rel / r : vec3(0.0, 0.0, 1.0);
         float c   = length(dir.xy);                               // cos(latitude)
         t = (c > 1e-6) ? vec3(-dir.y, dir.x, 0.0) / c : vec3(1.0, 0.0, 0.0);
-        b = cross(dir, t);                                        // increasing latitude, unit length
+        b = -cross(dir, t);                                       // v grows away from the pole, unit length
         units_per_mm = vec2(1.0 / max(c, 1e-3), 1.0);
         return;
     }
-    vec3 an = abs(n);
-    if (an.x >= an.y && an.x >= an.z) {        // planar = p.yz
-        t = vec3(0.0, 1.0, 0.0);
-        b = vec3(0.0, 0.0, 1.0);
-    } else if (an.y >= an.x && an.y >= an.z) { // planar = p.xz
-        t = vec3(1.0, 0.0, 0.0);
-        b = vec3(0.0, 0.0, 1.0);
-    } else {                                   // planar = p.xy
-        t = vec3(1.0, 0.0, 0.0);
-        b = vec3(0.0, 1.0, 0.0);
+    vec3 an = abs(n);                          // the same signed basis projection_raw() uses
+    if (an.x >= an.y && an.x >= an.z) {        // planar = (+-y, -z)
+        t = vec3(0.0, box_face_sign(n.x), 0.0);
+        b = vec3(0.0, 0.0, -1.0);
+    } else if (an.y >= an.x && an.y >= an.z) { // planar = (+-x, -z)
+        t = vec3(-box_face_sign(n.y), 0.0, 0.0);
+        b = vec3(0.0, 0.0, -1.0);
+    } else {                                   // planar = (+-x, -y)
+        t = vec3(box_face_sign(n.z), 0.0, 0.0);
+        b = vec3(0.0, -1.0, 0.0);
     }
 }
 
@@ -210,29 +220,14 @@ int nearest_palette_entry(vec3 rgb)
             best = i;
         }
     }
-    // The same bias make_palette_quantizer() applies (PREFER_PURE_DE = 10): a mix is an interleave, so
-    // it is only worth taking when it beats the nearest single filament by a visible step. Without it
-    // this picked a mix for almost every fragment - with four filaments the palette is 4 pure entries
-    // against 30 mixes - while the bake picked a single filament for most of them, so the preview
-    // interleaved the whole wall where the bake interleaves only patches. Compared on the distances
-    // rather than their squares, so the threshold means the same thing as it does on the CPU (up to
-    // CIE76 against CIEDE2000, the approximation already noted above).
-    if (best_pure >= 0 && palette_a[best] != palette_b[best] && sqrt(bd_pure) - sqrt(bd) < 10.0)
+    // The same bias make_palette_quantizer() applies: a mix is an interleave, so it is only worth taking
+    // when it beats the nearest single filament by a visible step - otherwise the preview shows mixes
+    // where the bake prints a single filament. Compared on the distances rather than their squares, so
+    // the margin means the same thing as it does on the CPU (up to CIE76 against CIEDE2000, the
+    // approximation already noted above).
+    if (best_pure >= 0 && palette_a[best] != palette_b[best] && sqrt(bd_pure) - sqrt(bd) < prefer_pure_de)
         best = best_pure;
     return best;
-}
-
-// One 2x2 Bayer cell, {0, 2; 3, 1}, for x and y in {0, 1}.
-
-// The colour the printer lays down at world point `pos` for palette entry `index`. Every entry names a
-// single filament: a mix is given its own mixed filament slot, whose components the slicer alternates
-// per print layer, so there is nothing left to interleave here.
-vec3 printed_color(int index)
-{
-    int a = palette_a[index];
-    if (a < 0 || a >= filament_count)
-        return palette_rgb[index]; // no filament to resolve to: the entry's own colour
-    return filament_rgb[a];
 }
 
 void main()
@@ -354,16 +349,11 @@ void main()
     NdotL = max(dot(eye_normal, LIGHT_FRONT_DIR), 0.0);
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
-    // Diffuse albedo: the image's colour at this fragment, snapped to the nearest printable colour -
-    // and, where that is a mix, the filament the interleave puts here, so the pattern that prints shows.
+    // Diffuse albedo: the image's colour at this fragment, snapped to the nearest printable colour.
     // Only the albedo - the specular term (intensity.y) stays white - so a coloured fragment reads as
     // the same material under the same light, and the relief this preview exists to show is unaffected.
     vec3 albedo = uniform_color.rgb;
     if (palette_count > 0 && has_color_tex && have_uv && weight > 0.0)
-        // tex_pos, not world_pos: the bake resolves the interleave in the bake frame (world
-        // orientation and scale about the volume's origin, see texture_displacement_bake_frame()), so
-        // measuring z from the bed instead shifted the band phase by the volume origin's height - a
-        // different filament in the same place than the bake produces.
-        albedo = printed_color(nearest_palette_entry(texture2D(color_tex, color_uv).rgb));
+        albedo = palette_rgb[nearest_palette_entry(texture2D(color_tex, color_uv).rgb)];
     gl_FragColor = vec4(vec3(intensity.y) + albedo * intensity.x, uniform_color.a);
 }

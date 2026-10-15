@@ -275,7 +275,8 @@ void OptionsGroup::append_line(const Line& line)
             const wxString leaf = (leaf_src == L_CONTEXT("Top", "Layers") || leaf_src == L_CONTEXT("Bottom", "Layers")) ?
                                       _L_CONTEXT(leaf_src, "Layers") :
                                       _(leaf_src);
-            index.set_line_label(opt.opt_id, type, Search::compose_display_label(line.label, leaf, multi));
+            index.set_line_label(opt.opt_id, type, Search::compose_display_label(line.label, leaf, multi),
+                                 Search::compose_display_label(line.label_en, from_u8(leaf_src), multi));
         }
     }
 
@@ -650,7 +651,7 @@ Line OptionsGroup::create_single_option_line(const Option& option, const std::st
 {
     wxString tooltip = _(get_formatted_tooltip_text(option.opt, option.opt_id));
 
-    Line retval{_(option.opt.label), tooltip};
+    Line retval{from_u8(option.opt.label), tooltip};
     retval.label_path = path;
     retval.append_option(option);
 

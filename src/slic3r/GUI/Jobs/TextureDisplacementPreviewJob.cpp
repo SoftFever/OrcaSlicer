@@ -48,7 +48,8 @@ void TextureDisplacementPreviewJob::process(Ctl &ctl)
                                                      (!m_current_generation ||
                                                       m_current_generation->load() == m_generation);
                                           },
-                                          color, m_input.volume_to_world);
+                                          color, m_input.volume_to_world, nullptr, nullptr,
+                                          m_input.model_uv.empty() ? nullptr : &m_input.model_uv);
 }
 
 void TextureDisplacementPreviewJob::finalize(bool canceled, std::exception_ptr &eptr)
