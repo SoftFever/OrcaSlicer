@@ -11,7 +11,6 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/CutUtils.hpp"
 #include "libslic3r/Point.hpp"
@@ -135,11 +134,12 @@ TEST_CASE("Cut with no connectors produces upper and lower parts", "[CutConnecto
     bool has_upper = false;
     bool has_lower = false;
     for (const ModelObject* part : result) {
-        const BoundingBoxf3 bb = part->bounding_box();
-        if (bb.max.z() > 0.0)
-            has_upper = true;
-        if (bb.min.z() < 0.0)
-            has_lower = true;
+        for (const ModelVolume* vol : part->volumes) {
+            for (const Vec3f& v : vol->mesh().its.vertices) {
+                if (v.z() > 0.f) has_upper = true;
+                if (v.z() < 0.f) has_lower = true;
+            }
+        }
     }
     CHECK(has_upper);
     CHECK(has_lower);
