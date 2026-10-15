@@ -1676,6 +1676,7 @@ TEST_CASE("Shared heater on IMEX printer stays hot until all filaments on it are
     cfg.set_deserialize_strict({
         {"ooze_prevention", 1},
         {"preheat_time", 0},
+        {"single_extruder_multi_material", 0},
     });
     imex_7x4_printer(cfg);
 
