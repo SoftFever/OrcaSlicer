@@ -4,8 +4,9 @@
 #include "libslic3r/Point.hpp"
 #include "libslic3r/BoundingBox.hpp"
 #include "slic3r/GUI/Selection.hpp"
+#include <cstddef>
+#include <string>
 #include <vector>
-#include <functional>
 
 namespace Slic3r {
 namespace GUI {
@@ -58,14 +59,26 @@ public:
     bool distribute_y();
     bool distribute_z();
 
-    bool can_align(AlignType type) const;
+    bool can_align(AlignType type, bool align_parent = false) const;
     bool can_distribute(AlignType type) const;
 
     std::vector<ObjectInfo> get_selected_objects_info(BoundingBoxf3 &big_bb) const;
     double                  get_current_coord(std::string operation_name, BoundingBoxf3 &bbox);
     Vec3d                   generate_displacement(std::string operation_name, double offset);
-    bool                    is_part_align_parent();
-    void                    set_parent_box(const BoundingBoxf3 &bb);
+
+    // A parts selection (one instance of one object) aligns the parts inside it; anything else aligns whole instances.
+    // With align_parent, only a Volume-mode selection counts as parts: a whole instance aligns to its plate instead.
+    bool                          is_parts_selection(bool align_parent) const;
+    // The volumes a parts operation moves: the selected volumes, or only the model parts when a whole instance is
+    // selected. Empty for a cut object, whose parts must keep their place.
+    std::vector<const GLVolume *> get_selected_part_volumes() const;
+    // World bounding box of the items an operation moves, the reference of every non-parent operation.
+    BoundingBoxf3                 get_items_box() const;
+    // World bounding box aligned to with align_parent: the instance of a parts selection, or the plate holding the
+    // selected instances, up to their top.
+    BoundingBoxf3                 get_parent_box() const;
+    // Number of items the operation would move, or 0 when it cannot move them; why_not then gets the reason, if any.
+    size_t                        get_items_count(AlignType type, bool align_parent, std::string *why_not = nullptr) const;
 
 private:
     GLCanvas3D& m_canvas;
@@ -80,13 +93,7 @@ private:
     Selection& get_selection() const;
     bool take_snapshot(const std::string& name);
     void apply_transformation(int obj_idx, int inst_idx, const Vec3d& displacement);
-    void       finish_operation(const std::string &operation_name, bool force_volume_move = false);
-
-    bool validate_selection_for_align() const;
-    bool validate_selection_for_distribute() const;
-
-private:
-    BoundingBoxf3 m_parent_box;
+    void       finish_operation(bool force_volume_move = false);
 };
 
 } // namespace GUI

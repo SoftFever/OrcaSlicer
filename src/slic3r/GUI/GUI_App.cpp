@@ -41,6 +41,7 @@
 #include <boost/filesystem/exception.hpp>
 #include <boost/locale/encoding_utf.hpp>
 #include <boost/log/detail/native_typeof.hpp>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <cassert>
@@ -324,6 +325,13 @@ namespace Slic3r {
 namespace GUI {
 
 class MainFrame;
+
+// The OrcaCloud agent behind the shared NetworkAgent, or null when networking/OrcaCloud is not
+// available (e.g. stealth mode or the network plugin still loading).
+static std::shared_ptr<OrcaCloudServiceAgent> get_orca_cloud_agent(NetworkAgent* agent)
+{
+    return agent ? std::dynamic_pointer_cast<OrcaCloudServiceAgent>(agent->get_cloud_agent()) : nullptr;
+}
 
 void start_ping_test()
 {
@@ -2262,7 +2270,9 @@ void GUI_App::init_networking_callbacks()
             if (return_code == 5) {
                 GUI::wxGetApp().CallAfter([this, provider = event.provider] {
                     BOOST_LOG_TRIVIAL(info) << "logout: login expired";
-                    this->request_user_logout(provider);
+                    // Involuntary: the desktop lost its session on its own. Leave the webview's
+                    // own session alone (guide §8).
+                    this->request_user_logout(provider, /*user_initiated=*/false);
                     MessageDialog msg_dlg(nullptr, _L("Login information expired. Please login again."), "", wxAPPLY | wxOK);
                     if (msg_dlg.ShowModal() == wxOK) {
                         return;
@@ -5238,7 +5248,7 @@ void GUI_App::post_logout_to_webview(const std::string& provider)
     }
 }
 
-void GUI_App::request_user_logout(const std::string& provider/* = ORCA_CLOUD_PROVIDER*/)
+void GUI_App::request_user_logout(const std::string& provider/* = ORCA_CLOUD_PROVIDER*/, bool user_initiated)
 {
     if (m_agent && m_agent->is_user_login(provider)) {
         m_agent->user_logout(true, provider);
@@ -5251,6 +5261,21 @@ void GUI_App::request_user_logout(const std::string& provider/* = ORCA_CLOUD_PRO
         }
 
         if (provider == ORCA_CLOUD_PROVIDER) {
+            // Invalidate any handoff still in flight, so a token minted for the signed-out
+            // account is never loaded into the pane.
+            ++m_cloud_handoff_gen;
+            m_cloud_handoff_state.clear();
+
+            // An explicit user sign-out also ends the webview's own cloud session (guide §8).
+            // A session the desktop lost on its own must NOT do this: a 2FA user would otherwise
+            // loop through the code prompt on every desktop re-login.
+            if (user_initiated) {
+                if (auto orca = get_orca_cloud_agent(m_agent)) {
+                    if (WebViewPanel* home = WebViewPanel::if_built())
+                        home->cloud_signed_out(from_u8(orca->build_web_session_signout_url()));
+                }
+            }
+
             /* delete old user settings */
             bool     transfer_preset_changes = false;
             wxString header = _L("Some presets are modified.") + "\n" +
@@ -5372,7 +5397,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_logout") == 0) {
                 CallAfter([this] {
                     BOOST_LOG_TRIVIAL(info) << "logout: homepage_logout";
-                    request_user_logout();
+                    request_user_logout(ORCA_CLOUD_PROVIDER, /*user_initiated=*/true);
                 });
             }
             else if (command_str.compare("get_orca_login_info") == 0) {
@@ -5387,7 +5412,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_bambu_logout") == 0) {
                 CallAfter([this] {
                     BOOST_LOG_TRIVIAL(info) << "logout: homepage_bambu_logout";
-                    request_user_logout(BBL_CLOUD_PROVIDER);
+                    request_user_logout(BBL_CLOUD_PROVIDER, /*user_initiated=*/true);
                 });
             }
             else if (command_str.compare("homepage_orca_login_or_register") == 0) {
@@ -5396,7 +5421,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("homepage_orca_logout") == 0) {
                 CallAfter([this] {
                     BOOST_LOG_TRIVIAL(info) << "logout: homepage_orca_logout";
-                    request_user_logout(ORCA_CLOUD_PROVIDER);
+                    request_user_logout(ORCA_CLOUD_PROVIDER, /*user_initiated=*/true);
                 });
             }
             else if (command_str.compare("homepage_modeldepot") == 0) {
@@ -5407,6 +5432,20 @@ std::string GUI_App::handle_web_request(std::string cmd)
             }
             else if (command_str.compare("homepage_openproject") == 0) {
                 this->request_open_project({});
+            }
+            else if (command_str.compare("homepage_open_cloud") == 0) {
+                // Deferred: set_cloud_mode() may create a second native webview, which must
+                // not run inside this webview's script-message callback.
+                CallAfter([this]() {
+                    if (WebViewPanel* home = WebViewPanel::if_built())
+                        home->set_cloud_mode(true, cloud_webview_handoff());
+                });
+            }
+            else if (command_str.compare("homepage_close_cloud") == 0) {
+                CallAfter([]() {
+                    if (WebViewPanel* home = WebViewPanel::if_built())
+                        home->set_cloud_mode(false);
+                });
             }
             else if (command_str.compare("get_recent_projects") == 0) {
                 if (mainframe) {
@@ -5680,7 +5719,9 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
             if (!provider.empty() && m_agent->is_user_login(provider)) {
                 if (std::chrono::steady_clock::now() - m_last_401_error_time > 30s) {
                     BOOST_LOG_TRIVIAL(warning) << "logout: http error 401.";
-                    this->request_user_logout(provider);
+                    // Involuntary: a 401 means the desktop session was rejected. Leave the
+                    // webview's own session alone (guide §8).
+                    this->request_user_logout(provider, /*user_initiated=*/false);
 
                     if (!m_show_http_error_msgdlg) {
                         MessageDialog msg_dlg(nullptr, _L("Login information expired. Please login again."), "", wxAPPLY | wxOK);
@@ -5824,6 +5865,93 @@ void GUI_App::on_update_machine_list(wxCommandEvent &evt)
      }*/
 }
 
+wxString GUI_App::cloud_webview_handoff()
+{
+    // The cloud pane loads the Start URL, not a token: the page checks the webview's own session
+    // and asks for a handoff itself (guide §4). Signed out, user_id is omitted and the page will
+    // post request_web_session, which is what opens the desktop login dialog.
+    auto orca = get_orca_cloud_agent(m_agent);
+    if (!orca)
+        return {};
+    return from_u8(orca->build_web_session_start_url());
+}
+
+void GUI_App::request_cloud_web_session(const std::string& state)
+{
+    if (state.empty())
+        return;
+
+    // Only the newest request counts: a newer state supersedes any mint or login still in flight.
+    m_cloud_handoff_state = state;
+    const uint64_t gen    = ++m_cloud_handoff_gen;
+
+    auto orca = get_orca_cloud_agent(m_agent);
+    if (!orca || !orca->is_user_login()) {
+        // Desktop signed out: open the desktop login dialog and stop here. On success
+        // on_user_login_handle reloads the Start URL, which makes the page request again; on
+        // cancel nothing happens (the guide's "on cancel, do nothing"). The newest state is
+        // already stored, so a repeat request while the dialog is open is dropped rather than
+        // stacking another dialog.
+        if (!login_dlg || !login_dlg->IsShown())
+            request_login(true, ORCA_CLOUD_PROVIDER);
+        return;
+    }
+
+    mint_cloud_web_session(state, gen);
+}
+
+void GUI_App::mint_cloud_web_session(const std::string& state, uint64_t gen)
+{
+    auto orca = get_orca_cloud_agent(m_agent);
+    if (!orca)
+        return;
+
+    // The endpoint call blocks on network I/O (and possibly a cross-process token refresh), so
+    // it must not run on the UI thread. Hand off to a worker and marshal the token back.
+    boost::thread([this, orca, state, gen]() {
+        std::string  token_hash;
+        std::string  error_code;
+        unsigned int http_code = 0;
+        orca->request_web_session_handoff(token_hash, error_code, http_code);
+
+        if (is_closing())
+            return;
+
+        if (token_hash.empty()) {
+            // No token: 401 after retry, 409/429/503 or a transport error. The page owns its own
+            // "Sign-in link expired"/"Try again" UI; the desktop stays silent. Never log the body
+            // (it may echo account data), only the status/error code.
+            BOOST_LOG_TRIVIAL(warning) << "cloud web session handoff not minted - http_code=" << http_code
+                                       << " error_code=" << error_code;
+            return;
+        }
+
+        GUI::wxGetApp().CallAfter([this, state, gen, token_hash]() {
+            on_cloud_web_session_minted(state, gen, token_hash);
+        });
+    }).detach();
+}
+
+void GUI_App::on_cloud_web_session_minted(const std::string& state, uint64_t gen, const std::string& token_hash)
+{
+    if (is_closing())
+        return;
+    // Drop a result for a superseded request (a newer request_web_session, login or sign-out).
+    if (gen != m_cloud_handoff_gen || state != m_cloud_handoff_state)
+        return;
+    if (token_hash.empty())
+        return;
+
+    auto orca = get_orca_cloud_agent(m_agent);
+    if (!orca)
+        return;
+
+    // Load the Complete URL in the SAME webview that posted request_web_session, because the
+    // state lives in that webview's session storage (guide §3/§7).
+    if (WebViewPanel* home = WebViewPanel::if_built())
+        home->load_cloud_url(from_u8(orca->build_web_session_complete_url(token_hash, state)));
+}
+
 void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 {
     if (!m_agent) { return; }
@@ -5879,6 +6007,16 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
     if (app_config->get("sync_user_preset") == "true") {
         start_sync_user_preset();
     }
+
+    // Re-seed the embedded OrcaCloud pane if it is already open, so it picks up the new session
+    // without waiting for the next open. On a fresh login or account switch this invalidates any
+    // in-flight handoff for the previous account and loads the Start URL with the new user_id, so
+    // the page drops the old account and re-requests (guide §8).
+    ++m_cloud_handoff_gen;
+    m_cloud_handoff_state.clear();
+    if (WebViewPanel* home = WebViewPanel::if_built())
+        if (home->cloud_mode_active())
+            home->set_cloud_mode(true, cloud_webview_handoff());
 }
 
 
@@ -8012,8 +8150,11 @@ void GUI_App::on_stealth_mode_enter()
 {
     stop_sync_user_preset();
     BOOST_LOG_TRIVIAL(info) << "logout: on_stealth_mode_enter";
-    request_user_logout(ORCA_CLOUD_PROVIDER);
-    request_user_logout(BBL_CLOUD_PROVIDER);
+    // Stealth mode forces a desktop logout, but the user did not choose "Sign out": guide §8 ties
+    // ?signout=1 to the explicit desktop sign-out only. Leave the cloud webview's own session
+    // alone, so it is re-checked (and re-seeded with the right account) on the next open.
+    request_user_logout(ORCA_CLOUD_PROVIDER, /*user_initiated=*/false);
+    request_user_logout(BBL_CLOUD_PROVIDER, /*user_initiated=*/false);
     if (WebViewPanel* home = WebViewPanel::if_built()) {
         home->SendCloudProvidersInfo();
     }

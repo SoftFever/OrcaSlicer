@@ -245,7 +245,6 @@
 #include "Widgets/MultiNozzleSync.hpp"           // NozzleOption, tryPopUpMultiNozzleDialog, setExtruderNozzleCount
 #include "DeviceCore/DevNozzleSystem.h"          // DevNozzle, GetExtNozzles / GetRackNozzles
 #include "ProjectDirtyStateManager.hpp"
-#include "Gizmos/GLGizmoAlignment.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
 #include "Gizmos/GLGizmoSVG.hpp" // Drop SVG file
 #include "Gizmos/GizmoObjectManipulation.hpp"
@@ -437,6 +436,7 @@ void Plater::show_illegal_characters_warning(wxWindow* parent)
 void Plater::mark_plate_toolbar_image_dirty()
 {
     m_b_plate_toolbar_image_dirty = true;
+    ++m_plate_toolbar_image_version;
 }
 
 bool Plater::is_plate_toolbar_image_dirty() const
@@ -7485,18 +7485,6 @@ struct Plater::priv
     void delete_all_objects_from_model();
     void reset(bool apply_presets_change = false, bool reload_presets = true);
     void center_selection();
-    void distribute_selection_x();
-    void distribute_selection_y();
-    void distribute_selection_z();
-    void align_selection_x_min();
-    void align_selection_x_center();
-    void align_selection_x_max();
-    void align_selection_y_min();
-    void align_selection_y_center();
-    void align_selection_y_max();
-    void align_selection_z_min();
-    void align_selection_z_center();
-    void align_selection_z_max();
     void drop_selection();
     void mirror(Axis axis);
     void split_object(bool auto_drop = true);
@@ -10924,78 +10912,6 @@ void Plater::priv::reset(bool apply_presets_change, bool reload_presets)
 void Plater::priv::center_selection()
 {
     view3D->center_selected();
-}
-
-void Plater::priv::distribute_selection_x()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.distribute_objects(GLGizmoAlignment::AlignType::DISTRIBUTE_X);
-}
-
-void Plater::priv::distribute_selection_y()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.distribute_objects(GLGizmoAlignment::AlignType::DISTRIBUTE_Y);
-}
-
-void Plater::priv::distribute_selection_z()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.distribute_objects(GLGizmoAlignment::AlignType::DISTRIBUTE_Z);
-}
-
-void Plater::priv::align_selection_x_min()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.align_objects(GLGizmoAlignment::AlignType::X_MIN);
-}
-
-void Plater::priv::align_selection_x_center()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.align_objects(GLGizmoAlignment::AlignType::CENTER_X);
-}
-
-void Plater::priv::align_selection_x_max()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.align_objects(GLGizmoAlignment::AlignType::X_MAX);
-}
-
-void Plater::priv::align_selection_y_min()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.align_objects(GLGizmoAlignment::AlignType::Y_MIN);
-}
-
-void Plater::priv::align_selection_y_center()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.align_objects(GLGizmoAlignment::AlignType::CENTER_Y);
-}
-
-void Plater::priv::align_selection_y_max()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.align_objects(GLGizmoAlignment::AlignType::Y_MAX);
-}
-
-void Plater::priv::align_selection_z_min()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.align_objects(GLGizmoAlignment::AlignType::Z_MIN);
-}
-
-void Plater::priv::align_selection_z_center()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.align_objects(GLGizmoAlignment::AlignType::CENTER_Z);
-}
-
-void Plater::priv::align_selection_z_max()
-{
-    GLGizmoAlignment alignment_helper(*view3D->get_canvas3d());
-    alignment_helper.align_objects(GLGizmoAlignment::AlignType::Z_MAX);
 }
 
 void Plater::priv::drop_selection()
@@ -18353,16 +18269,20 @@ wxString Plater::get_project_name()
 
 void Plater::update_all_plate_thumbnails(bool force_update)
 {
-    for (int i = 0; i < get_partplate_list().get_plate_count(); i++) {
-        PartPlate* plate = get_partplate_list().get_plate(i);
-        ThumbnailsParams thumbnail_params = { {}, false, true, true, true, i};
-        if (force_update || !plate->thumbnail_data.is_valid()) {
-            get_view3D_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
-        }
-        if (force_update || !plate->no_light_thumbnail_data.is_valid()) {
-            get_view3D_canvas3D()->render_thumbnail(plate->no_light_thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
-                                                    Camera::EType::Ortho, Camera::ViewAngleType::Iso, false, true);
-        }
+    for (int i = 0; i < get_partplate_list().get_plate_count(); i++)
+        update_plate_thumbnails(i, force_update);
+}
+
+void Plater::update_plate_thumbnails(int plate_idx, bool force_update)
+{
+    PartPlate* plate = get_partplate_list().get_plate(plate_idx);
+    ThumbnailsParams thumbnail_params = { {}, false, true, true, true, plate_idx};
+    if (force_update || !plate->thumbnail_data.is_valid()) {
+        get_view3D_canvas3D()->render_thumbnail(plate->thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho);
+    }
+    if (force_update || !plate->no_light_thumbnail_data.is_valid()) {
+        get_view3D_canvas3D()->render_thumbnail(plate->no_light_thumbnail_data, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
+                                                Camera::EType::Ortho, Camera::ViewAngleType::Iso, false, true);
     }
 }
 
@@ -19649,7 +19569,10 @@ void Plater::export_gcode_3mf(bool export_all)
         int plate_idx = get_partplate_list().get_curr_plate_index();
         if (export_all)
             plate_idx = PLATE_ALL_IDX;
-        export_3mf(output_path, SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode | SaveStrategy::SkipModel, plate_idx); // BBS: silence
+        SaveStrategy strategy = SaveStrategy::Silence | SaveStrategy::SplitModel | SaveStrategy::WithGcode | SaveStrategy::SkipModel; // BBS: silence
+        if (wxGetApp().app_config->get_bool("export_statistics"))
+            strategy = strategy | SaveStrategy::WithStatistics;
+        export_3mf(output_path, strategy, plate_idx);
 
         RemovableDriveManager& removable_drive_manager = *wxGetApp().removable_drive_manager();
 
@@ -20503,7 +20426,8 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     //BBS: add bbs 3mf logic
     PlateDataPtrs plate_data_list;
-    p->partplate_list.store_to_3mf_structure(plate_data_list, (strategy & SaveStrategy::WithGcode || strategy & SaveStrategy::WithSliceInfo), export_plate_idx);
+    p->partplate_list.store_to_3mf_structure(plate_data_list, (strategy & SaveStrategy::WithGcode || strategy & SaveStrategy::WithSliceInfo), export_plate_idx,
+                                             strategy & SaveStrategy::WithStatistics);
 
     // BBS: backup
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
@@ -22311,18 +22235,6 @@ void Plater::suppress_background_process(const bool stop_background_process)
 BackgroundSlicingProcess& Plater::background_process() { return p->background_process; }
 
 void Plater::center_selection()             { p->center_selection(); }
-void Plater::distribute_selection_x()       { p->distribute_selection_x(); }
-void Plater::distribute_selection_y()       { p->distribute_selection_y(); }
-void Plater::distribute_selection_z()       { p->distribute_selection_z(); }
-void Plater::align_selection_x_min()        { p->align_selection_x_min(); }
-void Plater::align_selection_x_center()     { p->align_selection_x_center(); }
-void Plater::align_selection_x_max()        { p->align_selection_x_max(); }
-void Plater::align_selection_y_min()        { p->align_selection_y_min(); }
-void Plater::align_selection_y_center()     { p->align_selection_y_center(); }
-void Plater::align_selection_y_max()        { p->align_selection_y_max(); }
-void Plater::align_selection_z_min()        { p->align_selection_z_min(); }
-void Plater::align_selection_z_center()     { p->align_selection_z_center(); }
-void Plater::align_selection_z_max()        { p->align_selection_z_max(); }
 void Plater::drop_selection()               { p->drop_selection(); }
 void Plater::mirror(Axis axis)              { p->mirror(axis); }
 void Plater::split_object(bool auto_drop)   { p->split_object(auto_drop); }

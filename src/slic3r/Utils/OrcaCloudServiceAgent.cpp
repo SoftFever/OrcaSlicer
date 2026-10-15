@@ -109,6 +109,10 @@ constexpr const char* ORCA_CLOUD_PRINTER       = "/api/v1/printers";
 
 constexpr const char* ORCA_CLOUD_LOGIN_PATH = "/orcaslicer-login";
 
+// Gateway endpoint that mints a one-time web-session handoff token for the signed-in desktop
+// user. The cloud pane reloads the returned token into the webview (see build_web_session_*).
+constexpr const char* ORCA_WEB_SESSION_HANDOFF_PATH = "/api/v1/account/web-session-handoff";
+
 constexpr const char* CONFIG_ORCA_API_URL   = "orca_api_url";
 constexpr const char* CONFIG_ORCA_AUTH_URL  = "orca_auth_url";
 constexpr const char* CONFIG_ORCA_CLOUD_URL = "orca_cloud_url";
@@ -3017,6 +3021,148 @@ std::string OrcaCloudServiceAgent::get_cloud_login_url(const std::string& langua
         url += "?lang=" + language;
     }
     return url;
+}
+
+// Percent-encodes every byte outside the RFC 3986 unreserved set (A-Za-z0-9-._~), so token values
+// survive fragment parsing intact. Deliberately tiny: no URL-encoder dependency.
+static std::string percent_encode_unreserved(const std::string& s)
+{
+    static const char* const hex = "0123456789ABCDEF";
+    std::string out;
+    out.reserve(s.size());
+    for (unsigned char c : s) {
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+            c == '-' || c == '.' || c == '_' || c == '~') {
+            out.push_back(static_cast<char>(c));
+        } else {
+            out.push_back('%');
+            out.push_back(hex[c >> 4]);
+            out.push_back(hex[c & 0x0F]);
+        }
+    }
+    return out;
+}
+
+std::string OrcaCloudServiceAgent::build_web_session_start_url(const std::string& next) const
+{
+    if (cloud_base_url.empty())
+        return "";
+
+    // The page replaces a `next` that is not a same-site path with /app/profiles, so pass a
+    // same-site path (the guide's default) and let it validate.
+    std::string url = cloud_base_url + "/auth/handoff?next=" +
+                      percent_encode_unreserved(next.empty() ? "/app/profiles" : next);
+
+    std::lock_guard<std::mutex> lock(session_mutex);
+    if (session.logged_in && !session.user_id.empty())
+        url += "&user_id=" + percent_encode_unreserved(session.user_id);
+    return url;
+}
+
+std::string OrcaCloudServiceAgent::build_web_session_complete_url(const std::string& token_hash,
+                                                                  const std::string& state) const
+{
+    if (cloud_base_url.empty() || token_hash.empty() || state.empty())
+        return "";
+
+    // Fragment (not query) so the one-time token never reaches a server or a log.
+    return cloud_base_url + "/auth/handoff#token_hash=" + percent_encode_unreserved(token_hash) +
+           "&state=" + percent_encode_unreserved(state);
+}
+
+std::string OrcaCloudServiceAgent::build_web_session_signout_url() const
+{
+    if (cloud_base_url.empty())
+        return "";
+    return cloud_base_url + "/auth/handoff?signout=1";
+}
+
+// Extracts the machine-readable code from a handoff error body. 401 uses {"error":"<code>"};
+// the other statuses use {"error":{"code":"<code>","message":"..."}}.
+static std::string handoff_error_code(const std::string& body)
+{
+    const json j = json::parse(body, nullptr, false);
+    if (j.is_discarded() || !j.is_object() || !j.contains("error"))
+        return "";
+    const auto& err = j["error"];
+    if (err.is_string())
+        return err.get<std::string>();
+    if (err.is_object() && err.contains("code") && err["code"].is_string())
+        return err["code"].get<std::string>();
+    return "";
+}
+
+int OrcaCloudServiceAgent::request_web_session_handoff(std::string& token_hash, std::string& error_code,
+                                                       unsigned int& http_code)
+{
+    token_hash.clear();
+    error_code.clear();
+    http_code = 0;
+
+    const std::string url = api_base_url + ORCA_WEB_SESSION_HANDOFF_PATH;
+    BOOST_LOG_TRIVIAL(trace) << "OrcaCloudServiceAgent: POST " << ORCA_WEB_SESSION_HANDOFF_PATH;
+
+    // Refresh the desktop token the usual way before minting (newest access token).
+    ensure_token_fresh("web_session_handoff");
+
+    auto perform = [&]() {
+        HttpResult result;
+        try {
+            auto http = Http::post(url);
+            http.tls_verify(true);
+
+            const std::string token = get_access_token();
+
+            auto headers = data_headers();
+            for (const auto& pair : headers) {
+                http.header(pair.first, pair.second);
+            }
+            if (!token.empty()) {
+                http.header("Authorization", "Bearer " + token);
+            }
+
+            // No request body: the endpoint identifies the user by the bearer token alone.
+            http.on_complete([&](std::string resp_body, unsigned resp_status) {
+                    result.success = true;
+                    result.status  = resp_status;
+                    result.body    = resp_body;
+                })
+                .on_error([&](std::string resp_body, std::string error, unsigned resp_status) {
+                    result.success = false;
+                    result.status  = resp_status == 0 ? 404 : resp_status;
+                    result.body    = resp_body;
+                    BOOST_LOG_TRIVIAL(error) << "OrcaCloudServiceAgent: web-session-handoff HTTP error - " << error;
+                })
+                .timeout_max(30)
+                .perform_sync();
+
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "OrcaCloudServiceAgent: web-session-handoff exception - " << e.what();
+        }
+        return result;
+    };
+
+    HttpResult res = perform();
+    // Reuse the shared 401 policy (refresh once, then retry), exactly like http_get/http_post:
+    // `suppress` is true for a transient refresh failure (keep the session and token, no logout)
+    // and false when the refresh token was rejected — so a 401 that remains after the refresh
+    // surfaces through the generic HTTP-error callback and drives the normal desktop logout.
+    // Every other handoff status (409/429/503/transport) stays silent here, so the page can
+    // offer "Try again" instead of the desktop showing a generic cloud error.
+    const bool suppress = resolve_unauthorized(res, perform, "web_session_handoff");
+    if (!suppress && res.status == 401)
+        invoke_http_error_callback(res.status, res.body);
+
+    http_code = res.status;
+    if (res.status == 200) {
+        const json j = json::parse(res.body, nullptr, false);
+        if (!j.is_discarded() && j.is_object() && j.contains("token_hash") && j["token_hash"].is_string())
+            token_hash = j["token_hash"].get<std::string>();
+    } else {
+        error_code = handoff_error_code(res.body);
+    }
+
+    return (res.success && res.status == 200) ? BAMBU_NETWORK_SUCCESS : BAMBU_NETWORK_ERR_CONNECT_FAILED;
 }
 
 int OrcaCloudServiceAgent::get_mw_user_preference(std::function<void(std::string)> callback)
