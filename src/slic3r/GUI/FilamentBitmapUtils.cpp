@@ -11,6 +11,7 @@
 #include <array>
 #include <wx/dcmemory.h>
 #include <wx/dcgraph.h>
+#include <wx/debug.h>
 #include <wx/gdicmn.h>
 #include <wx/geometry.h>
 #include <wx/font.h>
@@ -112,11 +113,10 @@ void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const std::vector<wxC
 {
     // Plain GTK DCs can ignore brush alpha; use the graphics backend for transparent stops.
     if (!dc.GetGraphicsContext() && std::any_of(colors.begin(), colors.end(), [](const wxColour& color) { return color.Alpha() != 255; })) {
-        if (auto* context = wxGraphicsContext::CreateFromUnknownDC(dc)) {
-            wxGCDC graphics(context);
-            fill_gradient_rect_east(graphics, rect, colors.data(), colors.size());
-            return;
-        }
+        wxGCDC graphics(wxGraphicsContext::CreateFromUnknownDC(dc));
+        wxCHECK_RET(graphics.IsOk(), "Filament alpha rendering requires a graphics context");
+        fill_gradient_rect_east(graphics, rect, colors.data(), colors.size());
+        return;
     }
     fill_gradient_rect_east(dc, rect, colors.data(), colors.size());
 }
@@ -141,19 +141,18 @@ static wxBrush checkerboard_brush(int square_size)
     return wxBrush(checkerboard);
 }
 
-bool draw_rounded_filament_swatch(wxDC& dc, const wxRect& rect, const std::vector<wxColour>& colors,
+void draw_rounded_filament_swatch(wxDC& dc, const wxRect& rect, const std::vector<wxColour>& colors,
                                   bool gradient, double radius)
 {
     if (colors.empty() || rect.width <= 0 || rect.height <= 0)
-        return false;
+        return;
     std::unique_ptr<wxGraphicsContext> owned_gc;
     wxGraphicsContext* gc = dc.GetGraphicsContext();
     if (!gc) {
         owned_gc.reset(wxGraphicsContext::CreateFromUnknownDC(dc));
         gc = owned_gc.get();
     }
-    if (!gc)
-        return false;
+    wxCHECK_RET(gc, "Rounded filament swatches require a graphics context");
 
     wxGraphicsGradientStops stops(colors.front(), colors.back());
     const size_t count = colors.size();
@@ -178,7 +177,6 @@ bool draw_rounded_filament_swatch(wxDC& dc, const wxRect& rect, const std::vecto
     gc->SetBrush(gc->CreateLinearGradientBrush(rect.x, rect.y, rect.x + rect.width, rect.y, stops));
     gc->DrawRoundedRectangle(rect.x, rect.y, rect.width, rect.height, radius);
     gc->PopState();
-    return true;
 }
 
 static std::string to_hex(const wxColour& c)
@@ -302,8 +300,7 @@ struct BitmapDC {
         // Don't set white background - let the color patterns fill the entire area
         dc.SetPen(*wxTRANSPARENT_PEN);
         if (alpha) {
-            if (auto* context = wxGraphicsContext::CreateFromUnknownDC(dc))
-                graphics = std::make_unique<wxGCDC>(context);
+            graphics = std::make_unique<wxGCDC>(wxGraphicsContext::CreateFromUnknownDC(dc));
             wxDC& paint = paint_dc();
             paint.SetPen(*wxTRANSPARENT_PEN);
             paint.SetBrush(checkerboard_brush(std::max(1, size.GetHeight() / 5)));

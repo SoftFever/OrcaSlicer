@@ -32,7 +32,9 @@
 #include <wx/dcmemory.h>
 #include <wx/font.h>
 #include <wx/gdicmn.h>
+#include <wx/graphics.h>
 #include <wx/menuitem.h>
+#include <wx/pen.h>
 #include <wx/string.h>
 #include <cstdlib>
 #include <utility>
@@ -296,7 +298,7 @@ TEST_CASE("Rounded custom swatches display every gradient stop in order", "[Fila
         wxMemoryDC dc(bitmap);
         dc.SetBackground(wxBrush(background));
         dc.Clear();
-        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, 7));
+        Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, 7);
     }
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
@@ -321,7 +323,7 @@ TEST_CASE("Rounded custom swatches retain visible stops after a transparent firs
         wxMemoryDC dc(bitmap);
         dc.SetBackground(wxBrush(background));
         dc.Clear();
-        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, wxRect(2, 2, 120, 25), colors, true, 7));
+        Slic3r::GUI::draw_rounded_filament_swatch(dc, wxRect(2, 2, 120, 25), colors, true, 7);
     }
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
@@ -344,7 +346,7 @@ TEST_CASE("Rounded single colors composite alpha over checkerboard cells without
         wxMemoryDC dc(bitmap);
         dc.SetBackground(wxBrush(background));
         dc.Clear();
-        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, {wxColour(0, 0, 255, alpha)}, false, 7 * scale));
+        Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, {wxColour(0, 0, 255, alpha)}, false, 7 * scale);
     }
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
@@ -372,7 +374,7 @@ TEST_CASE("Nonopaque interior colors reveal checkerboard beneath opaque endpoint
         wxMemoryDC dc(bitmap);
         dc.SetBackground(*wxBLACK_BRUSH);
         dc.Clear();
-        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, wxRect(0, 0, 120, 25), colors, gradient, 7));
+        Slic3r::GUI::draw_rounded_filament_swatch(dc, wxRect(0, 0, 120, 25), colors, gradient, 7);
     }
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
@@ -393,7 +395,7 @@ TEST_CASE("Rounded custom swatches keep segmented colors distinct from gradients
         wxMemoryDC dc(bitmap);
         dc.SetBackground(*wxWHITE_BRUSH);
         dc.Clear();
-        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, wxRect(0, 0, 120, 25), colors, false, 7));
+        Slic3r::GUI::draw_rounded_filament_swatch(dc, wxRect(0, 0, 120, 25), colors, false, 7);
     }
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
@@ -418,7 +420,7 @@ TEST_CASE("Circular AMS gradients reveal interior alpha and leave their surround
         wxMemoryDC dc(bitmap);
         dc.SetBackground(wxBrush(background));
         dc.Clear();
-        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, radius));
+        Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, radius);
     }
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
@@ -449,7 +451,7 @@ TEST_CASE("AMS card gradient checkerboards stay inside the remaining material re
         wxMemoryDC dc(bitmap);
         dc.SetBackground(wxBrush(background));
         dc.Clear();
-        REQUIRE(Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, 0));
+        Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, 0);
     }
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
@@ -662,6 +664,59 @@ TEST_CASE("Vertical filament ramps composite alpha over the same checkerboard as
     REQUIRE(std::abs(int(std::min(image.GetRed(6, 10), image.GetRed(10, 10))) - 108) <= 1);
     REQUIRE(std::abs(int(std::max(image.GetRed(6, 10), image.GetRed(10, 10))) - 127) <= 1);
     require_same_rgb(wxColour(image.GetRed(6, 20), image.GetGreen(6, 20), image.GetBlue(6, 20)), ramp.front());
+}
+
+TEST_CASE("Rounded swatches match the main AMS renderer for opaque gradients and bands", "[FilamentBitmapUtils][AMSItem]")
+{
+    const int count = GENERATE(2, 3, 7);
+    const bool gradient = GENERATE(false, true);
+    const bool graphics_dc = GENERATE(false, true);
+    const int radius = GENERATE(0, 7, 12);
+    const std::vector<wxColour> all{wxColour(255, 0, 0), wxColour(255, 128, 0), wxColour(255, 255, 0),
+                                   wxColour(0, 255, 0), wxColour(0, 255, 255), wxColour(0, 0, 255), wxColour(255, 0, 255)};
+    const std::vector<wxColour> colors(all.begin(), all.begin() + count);
+    const wxRect rect(2, 2, 96, 24);
+    wxBitmap actual(100, 28, 24), reference(100, 28, 24);
+    {
+        wxMemoryDC dc(actual);
+        dc.SetBackground(*wxBLACK_BRUSH);
+        dc.Clear();
+        if (graphics_dc) {
+            wxGCDC graphics(dc);
+            Slic3r::GUI::draw_rounded_filament_swatch(graphics, rect, colors, gradient, radius);
+        } else {
+            Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, gradient, radius);
+        }
+    }
+    {
+        wxMemoryDC memory(reference);
+        memory.SetBackground(*wxBLACK_BRUSH);
+        memory.Clear();
+        wxGCDC dc(memory);
+        wxGraphicsContext* gc = dc.GetGraphicsContext();
+        REQUIRE(gc);
+        // Baseline: AMSPreview::doRender's primary drawing path from main at d4fabbf7c8.
+        wxGraphicsGradientStops stops(colors.front(), colors.back());
+        if (gradient) {
+            for (size_t i = 1; i + 1 < colors.size(); ++i)
+                stops.Add(colors[i], static_cast<float>(i) / (colors.size() - 1));
+        } else {
+            for (size_t i = 1; i < colors.size(); ++i) {
+                const float position = static_cast<float>(i) / colors.size();
+                stops.Add(colors[i - 1], position);
+                stops.Add(colors[i], position);
+            }
+        }
+        gc->PushState();
+        gc->SetPen(*wxTRANSPARENT_PEN);
+        gc->SetBrush(gc->CreateLinearGradientBrush(rect.x, rect.y, rect.x + rect.width, rect.y, stops));
+        gc->DrawRoundedRectangle(rect.x, rect.y, rect.width, rect.height, radius);
+        gc->PopState();
+    }
+    const wxImage image = actual.ConvertToImage(), expected = reference.ConvertToImage();
+    REQUIRE(image.IsOk());
+    REQUIRE(expected.IsOk());
+    REQUIRE(std::equal(image.GetData(), image.GetData() + image.GetWidth() * image.GetHeight() * 3, expected.GetData()));
 }
 
 TEST_CASE("Windows menu gradient labels retain opaque pixels after native text drawing", "[FilamentBitmapUtils][Regression]")

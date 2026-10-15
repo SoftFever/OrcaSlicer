@@ -99,6 +99,8 @@ settings and palette previews and the device panel's gradient cards also use thi
 renderer, including AMS Lite, external spools, remaining-material regions and
 four-slot thumbnails. Each keeps its existing shape and material bounds.
 Opaque swatches retain their existing background.
+Rounded gradient and segmented swatches use the same graphics-context renderer.
+Alpha rendering requires a graphics-capable DC, and callers invoke this renderer directly.
 
 Texture import's color-mapping Add Material action opens a solid, opaque editor
 anchored to the mapping row. The existing filament limit is checked before opening.

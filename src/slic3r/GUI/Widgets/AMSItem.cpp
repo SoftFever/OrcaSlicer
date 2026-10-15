@@ -1413,8 +1413,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
     if (m_info.material_cols.size() > 1) {
         wxRect color_rect(FromDIP(10), FromDIP(10), libsize.x - FromDIP(18), libsize.y - FromDIP(18));
         if (m_info.ctype == 0) {
-            if (!draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0))
-                fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
+            draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0);
         }
         else {
             int cols_size = m_info.material_cols.size();
@@ -1518,8 +1517,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
         const bool multi_color = (m_info.ctype == 0 || m_info.ctype == 1) && m_info.material_cols.size() > 1;
         if (multi_color) {
             if (m_info.ctype == 0) {
-                if (!draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0))
-                    fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
+                draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0);
             }
             else {
                 int cols_size = static_cast<int>(m_info.material_cols.size());
@@ -1624,8 +1622,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
             //gradient
             if (m_info.ctype == 0) {
                 const wxRect color_rect(FromDIP(2), height - curr_height, size.x - FromDIP(4), curr_height);
-                if (!draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0))
-                    fill_gradient_rect_east(dc, color_rect, m_info.material_cols);
+                draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0);
             }
             else {
                 //multicolour
@@ -2787,8 +2784,7 @@ void AMSPreview::doRender(wxDC &dc)
             if (iter->material_cols.size() > 1) {
                 if (iter->ctype == 0) {
                     const wxRect rect(left, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, AMS_ITEM_CUBE_SIZE.x, AMS_ITEM_CUBE_SIZE.y);
-                    if (!draw_rounded_filament_swatch(dc, rect, iter->material_cols, true, 0))
-                        fill_gradient_rect_east(dc, rect, iter->material_cols);
+                    draw_rounded_filament_swatch(dc, rect, iter->material_cols, true, 0);
                 }
                 else {
                     int cols_size = iter->material_cols.size();
@@ -2849,11 +2845,7 @@ void AMSPreview::doRender(wxDC &dc)
             const wxSize swatch_size = m_ams_item_type == AMSModel::N3S_AMS ? AMS_ITEM_CUBE_SIZE : AMS_ITEM_CUBE_SIZE2;
             const wxRect rect((size.x - swatch_size.x) / 2, (size.y - swatch_size.y) / 2, swatch_size.x, swatch_size.y);
             const int radius = m_ams_item_type == AMSModel::N3S_AMS ? 0 : FromDIP(3);
-            if (!draw_rounded_filament_swatch(dc, rect, iter.material_cols, iter.ctype == 0, radius)) {
-                dc.SetPen(*wxTRANSPARENT_PEN);
-                dc.SetBrush(iter.material_colour);
-                dc.DrawRoundedRectangle(rect, radius);
-            }
+            draw_rounded_filament_swatch(dc, rect, iter.material_cols, iter.ctype == 0, radius);
         }
         else {
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));

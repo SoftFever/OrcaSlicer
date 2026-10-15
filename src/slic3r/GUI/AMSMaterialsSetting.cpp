@@ -101,10 +101,7 @@ private:
         dc.Clear();
         const wxRect rect = GetClientRect();
         const double corner_radius = std::max(0.0, radius - border_width);
-        if (!draw_rounded_filament_swatch(dc, rect, m_colors, m_ctype == 0, corner_radius)) {
-            StaticBox::doRender(dc);
-            return;
-        }
+        draw_rounded_filament_swatch(dc, rect, m_colors, m_ctype == 0, corner_radius);
         dc.SetPen(wxPen(border_color.colorForStates(state_handler.states()), border_width, border_style));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(rect, corner_radius);
@@ -1886,11 +1883,9 @@ void ColorPicker::render(wxDC& dc)
     dc.DrawBitmap(bmp, 0, 0);
 #else
     if (m_show_full && m_cols.size() > 1) {
-        if (auto* context = wxGraphicsContext::CreateFromUnknownDC(dc)) {
-            wxGCDC graphics(context);
-            doRender(graphics);
-            return;
-        }
+        wxGCDC graphics(wxGraphicsContext::CreateFromUnknownDC(dc));
+        doRender(graphics);
+        return;
     }
     doRender(dc);
 #endif
@@ -1906,11 +1901,7 @@ void ColorPicker::doRender(wxDC& dc)
     if (m_show_full && m_cols.size() > 1) {
         if (ctype == 0) {
             const wxRect rect(size.x / 2 - radius, size.y / 2 - radius, 2 * radius, 2 * radius);
-            if (!draw_rounded_filament_swatch(dc, rect, m_cols, true, radius)) {
-                dc.SetPen(*wxTRANSPARENT_PEN);
-                dc.SetBrush(wxBrush(m_colour));
-                dc.DrawCircle(size.x / 2, size.y / 2, radius);
-            }
+            draw_rounded_filament_swatch(dc, rect, m_cols, true, radius);
         }
         else {
             float ev_angle = 360.0 / m_cols.size();
