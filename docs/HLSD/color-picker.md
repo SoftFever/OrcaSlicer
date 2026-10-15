@@ -81,8 +81,10 @@ the existing packed RGBA event carries the representative first color. Device
 permission/status checks remain at the first-level entry. Saving uses `RRGGBBAA`
 for `tray_color` and, on capable firmware, `cols`, with `ctype=0` for gradients and
 `ctype=2` for single colors. The edited tray updates locally while device status
-is pending. AMS swatches interpolate every gradient stop and composite its alpha
-over their existing background.
+is pending. AMS custom swatches interpolate every gradient stop. Single colors,
+gradients and segmented swatches with any nonopaque component composite over a
+rounded checkerboard, including the shared AMS preview renderer. Opaque swatches
+retain their existing background.
 
 Texture import's color-mapping Add Material action opens a solid, opaque editor
 anchored to the mapping row. The existing filament limit is checked before opening.

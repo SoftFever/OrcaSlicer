@@ -92,11 +92,11 @@ public:
 private:
     void doRender(wxDC& dc) override
     {
-        if (m_colors.size() <= 1) {
+        if (m_colors.empty() || (m_colors.size() == 1 && m_colors.front().Alpha() == 255)) {
             StaticBox::doRender(dc);
             return;
         }
-        // Transparent stops reveal the popup background, never a previous paint or the first color.
+        // Clear the corners and previous paint before drawing colors over their transparency pattern.
         dc.SetBackground(wxBrush(GetBackgroundColour()));
         dc.Clear();
         const wxRect rect = GetClientRect();

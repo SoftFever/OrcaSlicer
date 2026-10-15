@@ -1,4 +1,5 @@
 #include <wx/colour.h>
+#include <wx/bitmap.h>
 #include <wx/brush.h>
 #include <wx/dc.h>
 #include <vector>
@@ -149,6 +150,22 @@ bool draw_rounded_filament_swatch(wxDC& dc, const wxRect& rect, const std::vecto
     }
     gc->PushState();
     gc->SetPen(*wxTRANSPARENT_PEN);
+    if (std::any_of(colors.begin(), colors.end(), [](const wxColour& color) { return color.Alpha() < 255; })) {
+        // A bitmap brush clips the checkerboard to the same rounded outline as the colors.
+        const int square_size = std::max(1, rect.height / 5);
+        wxBitmap checkerboard(2 * square_size, 2 * square_size, 24);
+        {
+            wxMemoryDC checker_dc(checkerboard);
+            checker_dc.SetBackground(*wxWHITE_BRUSH);
+            checker_dc.Clear();
+            checker_dc.SetPen(*wxTRANSPARENT_PEN);
+            checker_dc.SetBrush(wxBrush(wxColour(217, 217, 217)));
+            checker_dc.DrawRectangle(square_size, 0, square_size, square_size);
+            checker_dc.DrawRectangle(0, square_size, square_size, square_size);
+        }
+        gc->SetBrush(wxBrush(checkerboard));
+        gc->DrawRoundedRectangle(rect.x, rect.y, rect.width, rect.height, radius);
+    }
     gc->SetBrush(gc->CreateLinearGradientBrush(rect.x, rect.y, rect.x + rect.width, rect.y, stops));
     gc->DrawRoundedRectangle(rect.x, rect.y, rect.width, rect.height, radius);
     gc->PopState();
