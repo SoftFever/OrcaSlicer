@@ -747,8 +747,9 @@ Print::ApplyStatus BackgroundSlicingProcess::apply(const Model& model, const Dyn
 
     // Orca: prevent resetting under gcode viewer mode
     if (invalidated != PrintBase::APPLY_STATUS_UNCHANGED) {
-        const auto mainframe = GUI::wxGetApp().mainframe;
-        const auto plater = mainframe ? mainframe->m_plater : nullptr;
+        // Use the app’s plater accessor instead of going through mainframe, otherwise anything during startup that reaches apply() 
+        // (loading presets, config or input files, e.g. from the CLI) therefore dereferences a null `mainframe` and crashes.
+        const auto plater = GUI::wxGetApp().plater();
         if (plater && plater->only_gcode_mode()) {
             invalidated = PrintBase::APPLY_STATUS_UNCHANGED;
         }
