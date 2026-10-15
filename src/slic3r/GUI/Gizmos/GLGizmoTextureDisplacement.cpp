@@ -7390,7 +7390,8 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                 const bool flat = std::any_of(mv->texture_displacement_layers.begin(),
                                                               mv->texture_displacement_layers.end(),
                                                               [](const TextureDisplacementLayer &l) {
-                                                                  return layer_shows_color(l) &&
+                                                                  return l.color_enabled && !l.empty() &&
+                                                                         height_texture_has_color(l) &&
                                                                          analyze_texture_detail(l).flat_colors;
                                                               });
                                 ImGui::PushTextWrapPos(content_rx - card_pad);
