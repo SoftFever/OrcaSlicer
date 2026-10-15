@@ -1656,7 +1656,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
                      "Recommended to use with a higher Bridge density or Bridge flow ratio.\n\n"
                      "The maximum value is 100% or the nozzle diameter.\n"
-                     "If set to 0, the line width will match the Internal solid infill width.");
+                     "If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges.");
     def->sidetext = L("mm or %");
     def->ratio_over = "nozzle_diameter";
     def->min = 0;
@@ -1919,7 +1919,7 @@ void PrintConfigDef::init_fff_params()
                      "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n\n"
                      "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is "
                      "applied even if the overhanging perimeter is part of a bridge.\n"
-                     "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied.");
+                     "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed.");
     def->mode = comAdvanced;
     def->nullable = true;
     def->set_default_value(new ConfigOptionBoolsNullable{ false });
@@ -1980,7 +1980,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("External");
     def->category = L("Speed");
     def->tooltip = L("Speed of the externally visible bridge extrusions.\n\n"
-                     "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, "
+                     "In addition, if Slow down for curled perimeters is disabled, "
                      "it will be the print speed of overhang walls that are supported by less than 13%, "
                      "whether they are part of a bridge or an overhang.");
     def->sidetext = L("mm/s");	// millimeters per second, CIS languages need translation
@@ -2650,7 +2650,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Speed");
     def->tooltip = L("This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold "
                    "(usually holes). If expressed as percentage (for example: 80%) it will be calculated "
-                   "on the outer wall speed setting above. Set to zero for auto.");
+                   "on the outer wall speed setting above.");
     def->sidetext = L("mm/s or %");
     def->ratio_over = "outer_wall_speed";
     def->min = 1;
@@ -2673,10 +2673,9 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Speed");
     def->tooltip = L("Same as \"Small perimeters\", but for supports. "
                     "This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. "
-                    "If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. "
-                    "Set to zero for auto.");
+                    "If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above.");
     def->sidetext = L("mm/s or %");
-    def->ratio_over = "outer_wall_speed";
+    def->ratio_over = "support_speed";
     def->min = 1;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloatsOrPercentsNullable{FloatOrPercent(50, true)});
@@ -2700,7 +2699,7 @@ void PrintConfigDef::init_fff_params()
                      "However, overhang performance will reduce as there is no internal perimeter to print the external wall against. "
                      "This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, "
                      "then the external perimeter and, finally, the first internal perimeter. "
-                     "This option is recommended against the Outer/Inner option in most cases.\n\n"
+                     "This option is recommended over the Outer/Inner option in most cases.\n\n"
                      "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. "
                      "However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface.");
     def->enum_keys_map = &ConfigOptionEnum<WallSequence>::get_enum_values();
@@ -4012,7 +4011,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("initial_layer_speed", coFloats);
     def->label = L("First layer");
-    def->tooltip = L("This is the speed for the first layer except for solid infill sections.");
+    def->tooltip = L("This is the speed for the walls and brim of the first layer.");
     def->sidetext = L("mm/s");	// millimeters per second, CIS languages need translation
     def->min = 1;
     def->mode = comAdvanced;
@@ -4021,7 +4020,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("initial_layer_infill_speed", coFloats);
     def->label = L("First layer infill");
-    def->tooltip = L("This is the speed for solid infill parts of the first layer.");
+    def->tooltip = L("This is the speed for the first layer except for walls and brim, such as infill, gap fill and support.");
     def->sidetext = L("mm/s");	// millimeters per second, CIS languages need translation
     def->min = 1;
     def->mode = comAdvanced;
@@ -4935,7 +4934,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Infill/wall overlap");
     def->category = L("Strength");
     // xgettext:no-c-format, no-boost-format
-    def->tooltip = L("This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces.");
+    def->tooltip = L("This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces.");
     def->sidetext = "%";
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
@@ -4948,7 +4947,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Top solid infill area is enlarged slightly to overlap with wall for better bonding "
                      "and to minimize the appearance of pinholes where the top infill meets the walls. "
                      "A value of 25-30% is a good starting point, minimizing the appearance of pinholes. "
-                     "The percentage value is relative to line width of sparse infill.");
+                     "The percentage value is relative to the inner wall line width.");
     def->sidetext = "%";
     def->ratio_over = "inner_wall_line_width";
     def->mode = comAdvanced;
@@ -4998,9 +4997,9 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("mmu_segmented_region_interlocking_depth", coFloat);
     def->label    = L("Interlocking depth of a segmented region");
-    def->tooltip  = L("Interlocking depth of a segmented region. It will be ignored if "
-                    "\"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" "
-                    "is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature.");
+    def->tooltip  = L("Interlocking depth of a segmented region. On every other layer, the segmented region "
+                    "is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. "
+                    "Zero disables this feature.");
     def->sidetext = L("mm");	// millimeters, CIS languages need translation 
     def->min      = 0;
     def->category = L("Advanced");
@@ -5168,7 +5167,7 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Minimize wall height angle");
     def->category = L("Quality");
     def->tooltip  = L("Reduce the height of top-surface perimeters to match the model edge height.\n"
-                      "Affects perimeters with a slope less than this angle (degrees).\n"
+                      "Affects perimeters with a slope greater than this angle (degrees).\n"
                       "A reasonable value is 35. Set to 0 to disable.");
     def->sidetext = u8"°";	// degrees, don't need translation
     def->min      = 0;
@@ -6560,7 +6559,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("role_based_wipe_speed", coBool);
-    def->label = L("Role base wipe speed");
+    def->label = L("Role based wipe speed");
     def->category = L("Speed");
     def->tooltip = L("The wipe speed is determined by the speed of the current extrusion role. "
                      "e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action.");
@@ -6664,9 +6663,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Draft shield");
     def->tooltip = L("A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. "
                      "It is usually needed only with open frame printers, i.e. without an enclosure.\n\n"
-                     "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-                     "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. "
-                     "Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n");
+                     "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.");
     def->enum_keys_map = &ConfigOptionEnum<DraftShield>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("enabled");
@@ -8274,10 +8271,10 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Maximum wipe tower print speed");
     def->tooltip = L("The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. "
                      "When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
-                     "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
+                     "When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n\n"
                      "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n\n"
                      "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n\n"
-                     "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting.");
+                     "For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting.");
     def->sidetext = L("mm/s");	// millimeters per second, CIS languages need translation
     def->mode = comAdvanced;
     def->min = 10;
@@ -8286,9 +8283,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("wipe_tower_wall_type", coEnum);
     def->label = L("Wall type");
     def->tooltip = L("Wipe tower outer wall type.\n"
-                    "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+                    "1. Rectangle: A rectangle with fixed width and height.\n"
                     "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-                    "3. Rib: Adds four ribs to the tower wall for enhanced stability.");
+                    "3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability.");
     def->enum_keys_map = &ConfigOptionEnum<WipeTowerWallType>::get_enum_values();
     def->enum_values.emplace_back("rectangle");
     def->enum_values.emplace_back("cone");
@@ -8419,7 +8416,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_tower_extra_flow", coPercent);
     def->label = L("Extra flow for purging");
-    def->tooltip = L("Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower "
+    def->tooltip = L("Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker "
                      "than they normally would be. The spacing is adjusted automatically.");
     def->sidetext = "%";
     def->mode = comAdvanced;
@@ -8596,11 +8593,10 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Minimum wall length");
     def->category = L("Quality");
     def->tooltip = L("Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. "
-    "Higher values remove more and longer walls.\n\n"
+    "The value is a multiple of the wall width. Higher values remove more and longer walls.\n\n"
     "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. "
-    "Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. "
+    "Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. "
     "'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled.");
-    def->sidetext = L("mm");	// millimeters, CIS languages need translation
     def->mode = comAdvanced;
     def->min = 0.0;
     def->max = 25.0;
@@ -13043,6 +13039,13 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = L("This is the output directory for exported files.");
     def->cli_params = "dir";
     def->set_default_value(new ConfigOptionString());
+
+    def = this->add("export_statistics", coBool);
+    def->label = L("Export statistics");
+    def->tooltip = L("Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output "
+                     "directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer "
+                     "and per object.");
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("debug", coInt);
     def->label = L("Debug level");
