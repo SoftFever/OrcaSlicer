@@ -522,9 +522,13 @@ void ArrangeJob::prepare_partplate(bool only_selection) {
                 ap.itemid = cont.size();
                 cont.emplace_back(std::move(ap));
             }
-            else if (only_selection && in_plate && mo->instances[inst_idx]->printable && ap.bed_idx == current_plate_index)
+            else if (only_selection && in_plate && mo->instances[inst_idx]->printable)
             {
-                // Not selected but on this plate: an obstacle at its plate-local position that is never moved
+                // Not selected but on this plate: an obstacle at its plate-local position that is never moved.
+                // The locked preprocessing above may have used another plate (an object overlapping two plates),
+                // so take the position relative to the current plate from a fresh polygon.
+                ap = prepare_arrange_polygon(mo->instances[inst_idx]);
+                ap.translation -= Vec2crd(scaled(plate->get_origin().x()), scaled(plate->get_origin().y()));
                 ap.bed_idx = 0;
                 ap.setter  = nullptr;
                 ap.itemid  = m_unselected.size();

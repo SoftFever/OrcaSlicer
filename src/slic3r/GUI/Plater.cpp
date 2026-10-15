@@ -8063,14 +8063,15 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ARRANGE_SELECTION, [this](SimpleEvent& evt) {
             // The job only looks at the current plate: switch to the plate holding the selection first
+            int plate_idx = -1;
             for (const auto& [obj_idx, inst_idxs] : this->get_selection().get_content()) {
-                const int plate_idx = inst_idxs.empty() ? -1 : this->partplate_list.find_instance(obj_idx, *inst_idxs.begin());
-                if (plate_idx >= 0) {
-                    if (plate_idx != this->partplate_list.get_curr_plate_index())
-                        this->partplate_list.select_plate(plate_idx);
+                if (!inst_idxs.empty() && (plate_idx = this->partplate_list.find_instance(obj_idx, *inst_idxs.begin())) >= 0)
                     break;
-                }
             }
+            if (plate_idx < 0)
+                return; // nothing selected sits on a plate (e.g. only the wipe tower)
+            if (plate_idx != this->partplate_list.get_curr_plate_index())
+                this->partplate_list.select_plate(plate_idx);
             this->q->set_prepare_state(Job::PREPARE_STATE_SELECTION);
             this->q->arrange(); });
         view3D_canvas->Bind(EVT_GLCANVAS_ORIENT, [this](SimpleEvent& evt) {
