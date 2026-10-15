@@ -484,8 +484,6 @@ void Selection::add_curr_plate()
             const ModelObject* obj = m_model->objects[obj_idx];
             for (int inst_idx = 0; inst_idx < (int)obj->instances.size(); inst_idx++) {
                 // on this plate AND still overlapping it in some way (fully inside OR oversized/partly outside)
-                // Plain membership: unlike contain_instance_totally(), this keeps instances
-                // that are oversized or partly outside the bed (instance_outside_set).
                 if (plate->contain_instance(obj_idx, inst_idx) || plate->intersect_instance(obj_idx, inst_idx))
                     do_add_volumes(get_volume_idxs_from_instance(obj_idx, inst_idx));
             }
