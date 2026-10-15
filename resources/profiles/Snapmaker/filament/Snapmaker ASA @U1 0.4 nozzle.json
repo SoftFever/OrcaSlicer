@@ -131,9 +131,7 @@
   "filament_wipe_distance": [
     "nil"
   ],
-  "hot_plate_temp": [
-    "110"
-  ],
+  "hot_plate_temp": ["100"],
   "pellet_flow_coefficient": [
     "0.4157"
   ],
