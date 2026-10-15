@@ -1566,70 +1566,32 @@ bool PrintObject::invalidate_state_by_config_options(
             	// See GH #1482 for details.
 	            steps.emplace_back(posSlice);
 	        }
-        } else if (
-        	   opt_key == "support_type"
-            || opt_key == "support_angle"
-            || opt_key == "support_on_build_plate_only"
-            || opt_key == "support_critical_regions_only"
-            || opt_key == "support_remove_small_overhang"
-            || opt_key == "enforce_support_layers"
-            || opt_key == "support_filament"
-            || opt_key == "support_line_width"
-            || opt_key == "support_interface_top_layers"
-            || opt_key == "support_interface_bottom_layers"
-            || opt_key == "support_interface_pattern"
-            || opt_key == "support_interface_loop_pattern"
-            || opt_key == "support_interface_filament"
-            || opt_key == "support_interface_not_for_body"
-            || opt_key == "support_interface_spacing"
-            || opt_key == "support_bottom_interface_spacing" //BBS
-            || opt_key == "support_base_pattern"
-            || opt_key == "support_style"
-            || opt_key == "support_fin_spacing"
-            || opt_key == "support_fin_thickness"
-            || opt_key == "support_fin_tine_spacing"
-            || opt_key == "support_fin_tine_base_rows"
-            || opt_key == "support_fin_tine_depth"
-            || opt_key == "support_fin_height"
-            || opt_key == "support_fin_lean_side_only"
-            || opt_key == "support_fin_cross_spacing"
-            || opt_key == "support_fin_interface_layers"
-            || opt_key == "support_fin_fallback"
-            || opt_key == "support_object_xy_distance"
-            || opt_key == "support_object_first_layer_gap"
-            || opt_key == "support_base_pattern_spacing"
-            || opt_key == "support_expansion"
-            || opt_key == "independent_support_layer_height" // Orca
-            || opt_key == "support_threshold_angle"
-            || opt_key == "support_threshold_overlap"
-            || opt_key == "support_ironing"
-            || opt_key == "support_ironing_pattern"
-            || opt_key == "support_ironing_flow"
-            || opt_key == "support_ironing_spacing"
-            || opt_key == "raft_expansion"
-            || opt_key == "raft_first_layer_density"
-            || opt_key == "raft_first_layer_expansion"
-            || opt_key == "bridge_no_support"
-            || opt_key == "max_bridge_length"
-            || opt_key == "initial_layer_line_width"
-            || opt_key == "tree_support_auto_brim"
-            || opt_key == "tree_support_brim_width"
-            || opt_key == "tree_support_top_rate"
-            || opt_key == "tree_support_branch_distance"
-            || opt_key == "tree_support_branch_distance_organic"
-            || opt_key == "tree_support_tip_diameter"
-            || opt_key == "tree_support_branch_diameter"
-            || opt_key == "tree_support_branch_diameter_organic"
-            || opt_key == "tree_support_branch_diameter_angle"
-            || opt_key == "tree_support_branch_angle"
-            || opt_key == "tree_support_branch_angle_organic"
-            || opt_key == "tree_support_angle_slow"
-            || opt_key == "tree_support_wall_count") {
+        } else if (opt_key == "support_type" || opt_key == "support_angle" || opt_key == "support_on_build_plate_only" ||
+                   opt_key == "support_critical_regions_only" || opt_key == "support_remove_small_overhang" ||
+                   opt_key == "enforce_support_layers" || opt_key == "support_filament" || opt_key == "support_line_width" ||
+                   opt_key == "support_interface_top_layers" || opt_key == "support_interface_bottom_layers" ||
+                   opt_key == "support_interface_pattern" || opt_key == "support_interface_loop_pattern" ||
+                   opt_key == "support_interface_filament" || opt_key == "support_interface_not_for_body" ||
+                   opt_key == "support_interface_spacing" || opt_key == "support_bottom_interface_spacing" // BBS
+                   || opt_key == "support_base_pattern" || opt_key == "support_style" || opt_key == "support_fin_spacing" ||
+                   opt_key == "support_fin_thickness" || opt_key == "support_fin_tine_spacing" || opt_key == "support_fin_tine_base_rows" ||
+                   opt_key == "support_fin_tine_depth" || opt_key == "support_fin_height" || opt_key == "support_fin_lean_side_only" ||
+                   opt_key == "support_fin_cross_spacing" || opt_key == "support_fin_interface_layers" ||
+                   opt_key == "support_fin_fallback" || opt_key == "support_object_xy_distance" ||
+                   opt_key == "support_object_first_layer_gap" || opt_key == "support_base_pattern_spacing" ||
+                   opt_key == "support_expansion" || opt_key == "independent_support_layer_height" // Orca
+                   || opt_key == "support_threshold_angle" || opt_key == "support_threshold_overlap" || opt_key == "support_ironing" ||
+                   opt_key == "support_ironing_pattern" || opt_key == "support_ironing_flow" || opt_key == "support_ironing_spacing" ||
+                   opt_key == "raft_expansion" || opt_key == "raft_first_layer_density" || opt_key == "raft_first_layer_expansion" ||
+                   opt_key == "bridge_no_support" || opt_key == "max_bridge_length" || opt_key == "initial_layer_line_width" ||
+                   opt_key == "tree_support_auto_brim" || opt_key == "tree_support_brim_width" || opt_key == "tree_support_top_rate" ||
+                   opt_key == "tree_support_branch_distance" || opt_key == "tree_support_branch_distance_organic" ||
+                   opt_key == "tree_support_tip_diameter" || opt_key == "tree_support_branch_diameter" ||
+                   opt_key == "tree_support_branch_diameter_organic" || opt_key == "tree_support_branch_diameter_angle" ||
+                   opt_key == "tree_support_branch_angle" || opt_key == "tree_support_branch_angle_organic" ||
+                   opt_key == "tree_support_angle_slow" || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
-        } else if (
-               opt_key == "bottom_shell_layers"
-            || opt_key == "top_shell_layers") {
-
+        } else if (opt_key == "bottom_shell_layers" || opt_key == "top_shell_layers") {
             steps.emplace_back(posSlice);
 #if (0)
             const auto *old_shell_layers = old_config.option<ConfigOptionInt>(opt_key);
@@ -4864,12 +4826,14 @@ void PrintObject::_generate_support_material()
     m_fin_support_reserved.clear();
     // Fins stand on the bed. A raft (rejected with fins by Print::validate, but still built when support
     // is off) and enforced support layers go through the classic generator, which builds them alone.
-    if (m_config.enable_support && m_config.support_type.value == stFins && ! this->has_raft()) {
+    if (m_config.enable_support && m_config.support_type.value == stFins && !this->has_raft()) {
         const auto fallback = m_config.support_fin_fallback.value;
         if (generate_fin_support(*this, fallback == fsfNone ? nullptr : &m_fin_support_reserved))
             this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
-                Slic3r::format(L("Some fins on object %s are more than 10 times taller than they are long and may wobble or break during printing. "
-                                 "Consider tree support, a lower fin height, or a support blocker."), this->model_object()->name));
+                                          Slic3r::format(L("Some fins on object %s are more than 10 times taller than they are long and "
+                                                           "may wobble or break during printing. "
+                                                           "Consider tree support, a lower fin height, or a support blocker."),
+                                                         this->model_object()->name));
         if (fallback != fsfNone) {
             // Each generator owns its layers while running. Restore the object configuration
             // even when canceled; keep the fin layers alive until fallback generation succeeds.
@@ -4923,8 +4887,7 @@ void PrintObject::_generate_support_material()
                 m_support_layers[i]->upper_layer = i + 1 < m_support_layers.size() ? m_support_layers[i + 1] : nullptr;
             }
         }
-    }
-    else if (is_tree(m_config.support_type.value)) {
+    } else if (is_tree(m_config.support_type.value)) {
         TreeSupport tree_support(*this, m_slicing_params);
         tree_support.throw_on_cancel = [this]() { this->throw_if_canceled(); };
         tree_support.generate();

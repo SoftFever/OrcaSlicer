@@ -112,8 +112,8 @@ public:
 	Polygons polygons;
     // Fin attachments use interface material while their surrounding wall uses base material.
     std::unique_ptr<Polygons> fin_contact_polygons;
-	// Currently for the contact layers only.
-	std::unique_ptr<Polygons> contact_polygons;
+    // Currently for the contact layers only.
+    std::unique_ptr<Polygons> contact_polygons;
 	std::unique_ptr<Polygons> overhang_polygons;
 	// Enforcers need to be propagated independently in case the "support on build plate only" option is enabled.
 	std::unique_ptr<Polygons> enforcer_polygons;
