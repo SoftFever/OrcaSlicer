@@ -44,6 +44,12 @@ changes through `sync_colour_config`,
 retaining the existing RGB/RGBA profile/project formats and dirty marking.
 Sidebar gradient and segmented multicolor swatches draw colors in the supplied
 order without sorting them.
+The filament rack, Change Filament menus, object-list icons and selectors, and
+feature-filament selectors share the numbered extruder-color icons. Nonopaque
+single colors, gradients and multicolor layouts composite over the same checkerboard
+as AMS custom colors. Two- and three-color stripes and four-color quadrants retain
+their layouts. Icon caches distinguish gradient and segmented modes and include
+every RGBA component; label contrast uses the composited color for single colors.
 Opaque colors use `#RRGGBB`; nonopaque colors use `#RRGGBBAA`, including fully
 transparent alpha `00`. Initial selections, alpha-only edits and cancellation
 retain stored alpha. Ordered

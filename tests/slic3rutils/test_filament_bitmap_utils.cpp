@@ -31,6 +31,7 @@
 #include <wx/dcgraph.h>
 #include <wx/dcmemory.h>
 #include <wx/gdicmn.h>
+#include <wx/string.h>
 #include <cstdlib>
 #include <utility>
 #include <catch2/generators/catch_generators.hpp>
@@ -507,6 +508,87 @@ TEST_CASE("Four color filament quadrants retain caller order", "[FilamentBitmapU
         require_same_rgb(wxColour(image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y)), colors[i]);
     }
     REQUIRE(colors == original);
+}
+
+TEST_CASE("Filament single color icons composite every RGBA channel over both checker shades", "[FilamentBitmapUtils]")
+{
+    const int alpha = GENERATE(0, 1, 128, 254);
+    const int width = GENERATE(20, 44);
+    const int scale = GENERATE(1, 2);
+    const wxColour color(wxString::Format("#204080%02X", alpha));
+    REQUIRE(color.IsOk());
+    REQUIRE(int(color.Alpha()) == alpha);
+    const wxBitmap bitmap = Slic3r::GUI::create_filament_bitmap({color}, wxSize(width * scale, 20 * scale));
+    REQUIRE(bitmap.IsOk());
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    const int y = 10 * scale;
+    for (const auto& channels : {std::vector<int>{32, image.GetRed(6 * scale, y), image.GetRed(10 * scale, y)},
+                                 std::vector<int>{64, image.GetGreen(6 * scale, y), image.GetGreen(10 * scale, y)},
+                                 std::vector<int>{128, image.GetBlue(6 * scale, y), image.GetBlue(10 * scale, y)}}) {
+        const auto composite = [&](int background) { return (channels[0] * alpha + background * (255 - alpha) + 127) / 255; };
+        REQUIRE(std::abs(std::min(channels[1], channels[2]) - composite(217)) <= 1);
+        REQUIRE(std::abs(std::max(channels[1], channels[2]) - composite(255)) <= 1);
+    }
+}
+
+TEST_CASE("Filament gradient icons reveal interior alpha while retaining opaque endpoints", "[FilamentBitmapUtils]")
+{
+    const int alpha = GENERATE(0, 128);
+    const bool reverse = GENERATE(false, true);
+    std::vector<wxColour> colors{wxColour(255, 0, 0), wxColour(0, 0, 255, alpha), wxColour(0, 255, 0)};
+    if (reverse)
+        std::reverse(colors.begin(), colors.end());
+    const wxBitmap bitmap = Slic3r::GUI::create_filament_bitmap(colors, wxSize(121, 20), true);
+    REQUIRE(bitmap.IsOk());
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    const int first = image.GetRed(60, 6), second = image.GetRed(60, 10);
+    REQUIRE(std::abs(std::min(first, second) - 217 * (255 - alpha) / 255) <= 1);
+    REQUIRE(std::abs(std::max(first, second) - (255 - alpha)) <= 1);
+    REQUIRE(std::abs(int(image.GetBlue(60, 6)) - (first + alpha)) <= 1);
+    require_same_rgb(wxColour(image.GetRed(0, 10), image.GetGreen(0, 10), image.GetBlue(0, 10)), colors.front());
+    require_same_rgb(wxColour(image.GetRed(120, 10), image.GetGreen(120, 10), image.GetBlue(120, 10)), colors.back());
+}
+
+TEST_CASE("Filament segmented icons preserve stripes and quadrants over a continuous checkerboard", "[FilamentBitmapUtils]")
+{
+    const int count = GENERATE(2, 3, 4);
+    const int scale = GENERATE(1, 2);
+    const std::vector<wxColour> all{wxColour(255, 0, 0), wxColour(0, 0, 255, 128),
+                                   wxColour(0, 255, 0, 0), wxColour(255, 255, 0)};
+    const std::vector<wxColour> colors(all.begin(), all.begin() + count);
+    const wxBitmap bitmap = Slic3r::GUI::create_filament_bitmap(colors, wxSize(44 * scale, 20 * scale), false);
+    REQUIRE(bitmap.IsOk());
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    for (int i = 0; i < count; ++i) {
+        const int x = (count == 4 ? 22 * (i % 2) + 5 : (44 / count) * i + 5) * scale;
+        const int y = (count == 4 ? 10 * (i / 2) + 5 : 10) * scale;
+        CAPTURE(count, scale, i);
+        for (const auto& channels : {std::vector<int>{colors[i].Red(), image.GetRed(x, y), image.GetRed(x + 4 * scale, y)},
+                                     std::vector<int>{colors[i].Green(), image.GetGreen(x, y), image.GetGreen(x + 4 * scale, y)},
+                                     std::vector<int>{colors[i].Blue(), image.GetBlue(x, y), image.GetBlue(x + 4 * scale, y)}}) {
+            const int opacity = colors[i].Alpha();
+            const auto composite = [&](int background) { return (channels[0] * opacity + background * (255 - opacity) + 127) / 255; };
+            REQUIRE(std::abs(std::min(channels[1], channels[2]) - composite(217)) <= 1);
+            REQUIRE(std::abs(std::max(channels[1], channels[2]) - composite(255)) <= 1);
+        }
+    }
+}
+
+TEST_CASE("Vertical filament ramps composite alpha over the same checkerboard as other icons", "[FilamentBitmapUtils]")
+{
+    const std::vector<wxColour> ramp{wxColour(255, 0, 0), wxColour(0, 0, 255, 128), wxColour(0, 255, 0, 0)};
+    const wxBitmap bitmap = Slic3r::GUI::create_gradient_ramp_bitmap(ramp, wxSize(44, 21));
+    REQUIRE(bitmap.IsOk());
+    const wxImage image = bitmap.ConvertToImage();
+    REQUIRE(image.IsOk());
+    REQUIRE(std::min(image.GetRed(6, 0), image.GetRed(10, 0)) == 217);
+    REQUIRE(std::max(image.GetRed(6, 0), image.GetRed(10, 0)) == 255);
+    REQUIRE(std::abs(int(std::min(image.GetRed(6, 10), image.GetRed(10, 10))) - 108) <= 1);
+    REQUIRE(std::abs(int(std::max(image.GetRed(6, 10), image.GetRed(10, 10))) - 127) <= 1);
+    require_same_rgb(wxColour(image.GetRed(6, 20), image.GetGreen(6, 20), image.GetBlue(6, 20)), ramp.front());
 }
 
 #endif // __WXMSW__
