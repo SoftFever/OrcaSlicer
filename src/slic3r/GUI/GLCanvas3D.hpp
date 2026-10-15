@@ -660,6 +660,10 @@ private:
     mutable GLToolbar m_main_toolbar;
     mutable GLToolbar m_separator_toolbar;
     mutable IMToolbar m_sel_plate_toolbar;
+    // Thumbnails of the plate switcher (Focus mode), refreshed when the plater's version changes.
+    std::vector<std::unique_ptr<IMToolbarItem>> m_plate_switcher_items;
+    unsigned m_plate_switcher_version{ unsigned(-1) };
+    bool     m_plate_switcher_scrollbar{ false };
     mutable GLToolbar m_assemble_view_toolbar;
     mutable IMReturnToolbar m_return_toolbar;
     mutable Vec2i32 m_canvas_toolbar_pos = {140, 5};
@@ -778,6 +782,8 @@ private:
     //BBS:add plate related logic
     mutable std::vector<int> m_hover_volume_idxs;
     std::vector<int> m_hover_plate_idxs;
+    // Some volume or plate raycaster may still be hidden with the inactive plates.
+    bool m_inactive_plates_hidden{ false };
     // IMEX ghost hover state (plate-owned transparent ghost volumes).
     int m_hover_ghost_head  { -1 };  // physical head index, -1 when not hovering a ghost
     int m_hover_ghost_plate { -1 };  // plate index for the hovered ghost, -1 when none
@@ -1305,7 +1311,7 @@ public:
     void set_tooltip(const std::string& tooltip);
 
     // the following methods add a snapshot to the undo/redo stack, unless the given string is empty
-    void do_move(const std::string& snapshot_type);
+    void do_move(const std::string& snapshot_type, bool force_volume_move = false);
     void do_rotate(const std::string& snapshot_type);
     void do_scale(const std::string& snapshot_type);
     void do_center();
@@ -1527,6 +1533,9 @@ private:
     void _render_shadows(const Transform3d& view_matrix, const Transform3d& projection_matrix);
     //BBS: add part plate related logic
     void _render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body = false, int hover_id = -1, bool render_cali = false, bool show_grid = true);
+    bool _hides_inactive_plates() const;
+    // Returns whether what the scene shows changed.
+    bool _update_inactive_plates_visibility();
     // The current plate's box (XY, at z = 0); in the Design tab, its own bed's.
     BoundingBoxf3 _current_plate_box() const;
     // Design tab: draw the CAD grid (minor 10 mm + major 50 mm) in place of the plate's
@@ -1565,6 +1574,8 @@ private:
     void _render_gizmos_overlay();
     void _render_main_toolbar();
     void _render_imgui_select_plate_toolbar();
+    // Prepare: picks the plate to show while the inactive ones are hidden.
+    void _render_plate_switcher();
     void _render_assemble_view_toolbar() const;
     void _render_return_toolbar() const;
     void _render_canvas_toolbar();

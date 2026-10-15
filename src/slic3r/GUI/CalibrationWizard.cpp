@@ -973,7 +973,7 @@ bool PressureAdvanceWizard::can_save_cali_result(const std::vector<PACalibResult
     }
 
     if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->pa_calib_tab.size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
-        MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold %d historical results per nozzle. This result will not be saved."), MAX_PA_HISTORY_RESULTS_NUMS),
+        MessageDialog msg_dlg(nullptr, wxString::Format(_L_PLURAL("This machine type can only hold %d historical result per nozzle. This result will not be saved.", "This machine type can only hold %d historical results per nozzle. This result will not be saved.", MAX_PA_HISTORY_RESULTS_NUMS), MAX_PA_HISTORY_RESULTS_NUMS),
                               wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
