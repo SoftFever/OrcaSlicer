@@ -286,6 +286,14 @@ constexpr float PREFER_PURE_DE = 2.f;
 // the quantizer's lookup cube.
 constexpr size_t MIX_TARGET_SAMPLES = size_t(1) << 20;
 constexpr size_t MIX_TARGET_BINS    = 256;
+// The longest interleave cycle a mix may use, as the denominator of its ratio. The slicer alternates
+// a mix layer by layer, so the cycle is how many layers one repeat spans; past this it stops reading
+// as a colour and starts reading as bands of its two filaments. It also sets how many mixes exist at
+// all - the coprime ratios per pair of filaments - so it is what decides how finely a gradient can be
+// stepped. Ten gives 33 ratios per pair against the 11 of six: measured on four filaments, a
+// green-to-red gradient goes from 11 usable mixes to 16, and the shipped Colour Bricks from 6 to 10.
+constexpr int MIX_MAX_DENOMINATOR = 10;
+
 // rank_mixes() stops once the best remaining mix would improve the match by less than this FRACTION
 // of what the best mix bought: a mix that only touches a few stray pixels is not worth a filament
 // slot. Relative rather than a fixed amount of CIEDE2000, because the gains decay smoothly and a
@@ -5355,7 +5363,7 @@ std::vector<GLGizmoTextureDisplacement::PaletteEntry> GLGizmoTextureDisplacement
     std::vector<PaletteEntry> candidates;
     for (int i = 0; i < n; ++i)
         for (int j = i + 1; j < n; ++j)
-            for (int den = 2; den <= 6; ++den)
+            for (int den = 2; den <= MIX_MAX_DENOMINATOR; ++den)
                 for (int num = 1; num < den; ++num) {
                     if (std::gcd(num, den) != 1)
                         continue; // 2/4 is 1/2, already there

@@ -2653,6 +2653,33 @@ TEST_CASE("TextureDisplacement: a texture of flat colours is told apart from a c
     CHECK(d.flat_share < 0.85f);
 }
 
+TEST_CASE("A mirrored tile folds at its seam instead of wrapping to the far edge", "[TextureDisplacement]")
+{
+    // Mirrored repeat exists so a tile edge lines up with itself, which means the texel past the edge
+    // is the edge again. Wrapping the bilinear neighbour instead blends the image's two opposite edges
+    // together: on a ramp from black to white it turned the white edge into near-black at every seam,
+    // a visible line and a disagreement with the preview, where the GPU binds GL_MIRRORED_REPEAT.
+    TextureDisplacementLayer layer;
+    layer.image_data = make_rgb_png(8, 8, [](size_t x, size_t) {
+        const uint8_t v = uint8_t(x * 36); // 0 at the left edge, 252 at the right
+        return std::array<uint8_t, 3>{ v, v, v };
+    });
+    const DecodedHeightTexture tex = decode_height_texture(layer);
+    REQUIRE(tex.width == 8);
+    const float bright = 252.f / 255.f;
+
+    // Either side of a seam the fold puts the bright edge, not a blend with the dark one.
+    for (const float u : { 0.999f, 1.001f, 2.999f, 3.001f }) {
+        INFO("u = " << u);
+        CHECK_THAT(tex.sample(Vec2f(u, 0.5f), true, TextureTileMethod::MirroredRepeat),
+                   WithinAbs(bright, 0.02f));
+    }
+
+    // Plain repeat is the opposite case and must keep wrapping: its next tile really does start at the
+    // far edge, so just inside the seam the neighbour is the dark one.
+    CHECK(tex.sample(Vec2f(0.999f, 0.5f), true, TextureTileMethod::Repeat) < 0.1f);
+}
+
 TEST_CASE("A two-colour ramp is not mistaken for an image of flat colours", "[TextureDisplacement]")
 {
     // The histogram alone cannot tell these two apart: a ramp between two colours visits as few
