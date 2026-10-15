@@ -28,7 +28,6 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Polygon.hpp"
-#include "slic3r/GUI/GUI_ObjectLayers.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/MultiPoint.hpp"
 #include "libslic3r/TriangleMeshSlicer.hpp"
@@ -45,6 +44,15 @@
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/ExPolygon.hpp"
 #include "GLGizmoUtils.hpp"
+#include "libslic3r/MultiMaterialSegmentation.hpp"
+#include "libslic3r/ObjectID.hpp"
+#include "libslic3r/Preset.hpp"
+#include "libslic3r/PresetBundle.hpp"
+#include "slic3r/GUI/GLSelectionRectangle.hpp"
+#include "slic3r/GUI/GLShader.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/ImGuiWrapper.hpp"
+#include "slic3r/GUI/ObjectDataViewModel.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -810,7 +818,8 @@ void GLGizmoBrimEars::on_render_input_window(float x, float y, float bottom_limi
         }
 
         if (has_invalid_ears) {
-            wxString out = _L("Warning") + ": " + std::to_string(m_single_brim.size()) + " " + _L("invalid brim ears");
+            const int n_invalid = int(m_single_brim.size());
+            wxString out = _L("Warning") + ": " + wxString::Format(_L_PLURAL("%d invalid brim ear", "%d invalid brim ears", n_invalid), n_invalid);
             m_imgui->text_wrapped(out, parent_width);
         }
 

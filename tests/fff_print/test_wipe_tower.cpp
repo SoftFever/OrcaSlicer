@@ -33,6 +33,8 @@
 #include "libslic3r/PrintConfig.hpp"
 
 #include "test_helpers.hpp"
+#include "libslic3r/PrintBase.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::Test;
