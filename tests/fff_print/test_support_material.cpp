@@ -547,6 +547,7 @@ static TriangleMesh support_table()
 static DynamicPrintConfig fin_multifilament_config(std::initializer_list<ConfigBase::SetDeserializeItem> options)
 {
     DynamicPrintConfig config = Test::multifilament_config(2, options);
+    config.set_num_extruders(2);
     Test::size_flush_to_nozzles(config);
     return config;
 }
