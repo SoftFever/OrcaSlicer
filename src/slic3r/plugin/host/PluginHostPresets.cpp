@@ -17,6 +17,7 @@
 #include <slic3r/GUI/GUI_App.hpp>
 #include <slic3r/GUI/MainFrame.hpp>
 #include <slic3r/GUI/Plater.hpp>
+#include <slic3r/GUI/PresetComboBoxes.hpp> // TabPresetComboBox::set_filament_idx
 #include <slic3r/GUI/Tab.hpp>
 
 #include <pybind11/stl.h>
@@ -46,6 +47,110 @@ py::list current_filament_presets(PresetBundle& bundle)
 PresetCollection& printer_presets(PresetBundle& bundle)
 {
     return static_cast<PresetCollection&>(bundle.printers);
+}
+
+// Handle to one category of currently edited preset. It is a category, not a snapshot: it always
+// resolves the preset the matching tab edits now, so it stays valid across preset switches.
+struct PresetEditor
+{
+    Preset::Type type = Preset::TYPE_INVALID;
+};
+
+const char* preset_tab_name(Preset::Type type)
+{
+    switch (type) {
+    case Preset::TYPE_PRINT:    return "process";
+    case Preset::TYPE_FILAMENT: return "filament";
+    case Preset::TYPE_PRINTER:  return "printer";
+    default:                    return "preset";
+    }
+}
+
+void update_edited_preset(Preset::Type type, const std::string& key, const std::string& value)
+{
+    PluginHostUi::run_on_ui_thread([&] {
+        GUI::GUI_App& app = GUI::wxGetApp();
+        if (app.is_closing())
+            throw std::runtime_error("OrcaSlicer is closing");
+        if (app.preset_bundle == nullptr)
+            throw std::runtime_error("Preset bundle is not available");
+        if (app.plater() == nullptr)
+            throw std::runtime_error("OrcaSlicer main window is not available");
+
+        GUI::Tab* tab = app.get_tab(type);
+        if (tab == nullptr)
+            throw std::runtime_error(std::string("The ") + preset_tab_name(type) + " preset tab is not available");
+        // The tab for this preset type exists, but the selected printer's technology may not use it
+        // (the print tab no-ops under SLA); refuse instead of writing a value the UI cannot apply.
+        if (!tab->supports_printer_technology(app.preset_bundle->printers.get_selected_preset().printer_technology()))
+            throw std::runtime_error(std::string("The ") + preset_tab_name(type)
+                                     + " preset is not available for the selected printer technology");
+
+        tab->apply_preset_config_value(key, value);
+    });
+}
+
+// Slot-addressed filament update. `slot_number` is 1-based, matching the GUI's filament slots and
+// the values PresetBundle::filament_presets holds. The slot's assigned preset is resolved to its
+// internal name; when that is not the preset the filament tab edits, the tab is switched through
+// Tab::select_preset() - the normal UI preselection flow, so a dirty edited preset still prompts
+// the user and a declined prompt cancels the call with a clear error and no change.
+void update_filament_slot(int slot_number, const std::string& key, const std::string& value)
+{
+    PluginHostUi::run_on_ui_thread([&] {
+        GUI::GUI_App& app = GUI::wxGetApp();
+        if (app.is_closing())
+            throw std::runtime_error("OrcaSlicer is closing");
+        if (app.preset_bundle == nullptr)
+            throw std::runtime_error("Preset bundle is not available");
+        if (app.plater() == nullptr)
+            throw std::runtime_error("OrcaSlicer main window is not available");
+
+        PresetBundle& bundle = *app.preset_bundle;
+        if (slot_number < 1 || static_cast<size_t>(slot_number) > bundle.filament_presets.size())
+            throw std::out_of_range("Filament slot " + std::to_string(slot_number) + " is out of range; slot numbers are 1-based and this printer has "
+                                    + std::to_string(bundle.filament_presets.size()) + " filament slot(s)");
+
+        const std::string& assigned_name = bundle.filament_presets[static_cast<size_t>(slot_number) - 1];
+        if (assigned_name.empty())
+            throw std::runtime_error("Filament slot " + std::to_string(slot_number) + " has no assigned filament preset");
+
+        // Resolve the assigned name the way the app does, so a renamed/aliased entry maps to the
+        // internal preset it now identifies. Copy the name out before selecting anything: the
+        // collection can be reallocated while switching.
+        Preset* slot_preset = bundle.filaments.find_preset(assigned_name);
+        if (slot_preset == nullptr)
+            throw std::runtime_error("Filament slot " + std::to_string(slot_number) + " is assigned \"" + assigned_name
+                                     + "\", which does not resolve to a filament preset");
+        const std::string target_name = slot_preset->name;
+
+        GUI::Tab* tab = app.get_tab(Preset::TYPE_FILAMENT);
+        if (tab == nullptr)
+            throw std::runtime_error("The filament preset tab is not available");
+        if (!tab->supports_printer_technology(bundle.printers.get_selected_preset().printer_technology()))
+            throw std::runtime_error("The filament preset is not available for the selected printer technology");
+
+        // Switch to the slot's preset through the normal preset selection, never a forced one, so the
+        // user's unsaved-changes prompt is honoured. A declined prompt returns false here.
+        if (bundle.filaments.get_edited_preset().name != target_name) {
+            if (!tab->select_preset(target_name))
+                throw std::runtime_error("Switching the edited filament preset to \"" + target_name + "\" for filament slot "
+                                         + std::to_string(slot_number) + " was canceled; the setting was not changed");
+        }
+
+        // select_preset() can still leave a different preset edited (e.g. the target disappeared), so
+        // re-check before writing anything.
+        if (bundle.filaments.get_edited_preset().name != target_name)
+            throw std::runtime_error("The edited filament preset is \"" + bundle.filaments.get_edited_preset().name
+                                     + "\", not \"" + target_name + "\"; the setting was not changed");
+
+        // Match PlaterPresetComboBox::switch_to_tab(): record which 0-based filament slot this tab
+        // combobox now edits, so the GUI shows the slot the value was written for.
+        if (GUI::TabPresetComboBox* combo = tab->get_combo_box())
+            combo->set_filament_idx(slot_number - 1);
+
+        tab->apply_preset_config_value(key, value);
+    });
 }
 
 void reload_local_bundle(const std::string& bundle_id)
@@ -118,6 +223,47 @@ void host_bindings::register_presets(py::module_& host)
         .value("PhysicalPrinter", Preset::TYPE_PHYSICAL_PRINTER)
         .value("Plate", Preset::TYPE_PLATE)
         .value("Model", Preset::TYPE_MODEL);
+
+    py::class_<PresetEditor>(preset, "PresetEditor",
+                             "Handle to a category of currently edited preset. It is not a snapshot: it always "
+                             "resolves the preset the matching tab edits now, so it stays usable across preset "
+                             "switches. update() edits the preset in place; the change is not saved to disk.")
+        .def_readonly("type", &PresetEditor::type)
+        .def(
+            "update",
+            [](const PresetEditor& editor, const std::string& key, const std::string& value) {
+                update_edited_preset(editor.type, key, value);
+            },
+            py::arg("key"), py::arg("value"),
+            "Set one setting of the currently edited preset and run the same committed-change path as "
+            "editing the setting in the GUI; the edited preset becomes dirty until saved/exported. "
+            "key must be a setting of this preset category and value its serialized string form, "
+            "otherwise ValueError is raised and nothing is written. A setting edited through a field "
+            "runs that field's validation even before its page has been opened; one the GUI edits "
+            "outside a field (such as compatible printers) also recomputes preset compatibility.")
+        .def(
+            "update",
+            [](const PresetEditor& editor, int slot_number, const std::string& key, const std::string& value) {
+                if (editor.type != Preset::TYPE_FILAMENT)
+                    throw std::invalid_argument("The slot_number form of update() is only available on "
+                                                "orca.host.preset.filament; call update(key, value) on this editor");
+                update_filament_slot(slot_number, key, value);
+            },
+            py::arg("slot_number"), py::arg("key"), py::arg("value"),
+            "Set one setting of the filament preset assigned to a 1-based filament slot. When that preset "
+            "is not the one currently edited the call switches to it through the normal preset-selection "
+            "flow, so an unsaved edited preset still prompts the user and a declined prompt cancels the "
+            "call with an error and no change. An out-of-range, empty or unresolved slot is rejected with "
+            "a clear error. Other preset editors accept only update(key, value); this form raises "
+            "ValueError on them.");
+
+    // The three preset categories edited by the main tabs. `process` is the print/process preset,
+    // `printer` the machine preset and `filament` the currently edited filament preset (its
+    // 3-argument form addresses a 1-based filament slot); each only accepts its own settings, so a
+    // printer setting passed to `process` is rejected instead of written silently.
+    preset.attr("process")  = py::cast(PresetEditor{Preset::TYPE_PRINT});
+    preset.attr("printer")  = py::cast(PresetEditor{Preset::TYPE_PRINTER});
+    preset.attr("filament") = py::cast(PresetEditor{Preset::TYPE_FILAMENT});
 
     py::class_<Preset, std::unique_ptr<Preset, py::nodelete>>(host, "Preset")
         .def_readonly("type", &Preset::type)

@@ -46,6 +46,7 @@
 #include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
 #include <deque>
 #include <exception>
+#include <stdexcept>
 #include "libslic3r/LifecycleEvents.hpp"
 #include "libslic3r/Point.hpp"
 #include "slic3r/GUI/SettingsIndex.hpp"
@@ -1642,6 +1643,101 @@ void Tab::load_config(const DynamicPrintConfig& config)
         //# Initialize UI components with the config values.
         reload_config();
         update();
+    }
+}
+
+// The option keys a preset of `type` may hold. The tab's config shares the global
+// print_config_def with every other preset type, so membership has to be checked against the
+// preset type's own key list instead of the config definition, or a printer setting could be
+// written into the process preset.
+static const std::vector<std::string>& preset_type_options(Preset::Type type)
+{
+    static const std::vector<std::string> none;
+    switch (type) {
+    case Preset::TYPE_PRINT:    return Preset::print_options();
+    case Preset::TYPE_FILAMENT: return Preset::filament_options();
+    case Preset::TYPE_PRINTER:  return Preset::printer_options();
+    default:                    return none;
+    }
+}
+
+static const char* preset_type_name(Preset::Type type)
+{
+    switch (type) {
+    case Preset::TYPE_PRINT:    return "process";
+    case Preset::TYPE_FILAMENT: return "filament";
+    case Preset::TYPE_PRINTER:  return "printer";
+    default:                    return "preset";
+    }
+}
+
+// Set one option of the currently edited preset from its serialized string form, then run the
+// same update path a hand edit runs. The edited preset is not saved: it only becomes dirty,
+// exactly as if the field had been edited by hand.
+void Tab::apply_preset_config_value(const std::string& opt_key, const std::string& value)
+{
+    if (m_config == nullptr)
+        throw std::runtime_error("The preset configuration is not available");
+    if (wxGetApp().plater() == nullptr)
+        throw std::runtime_error("OrcaSlicer main window is not available");
+
+    const std::vector<std::string>& options = preset_type_options(m_type);
+    if (std::find(options.begin(), options.end(), opt_key) == options.end())
+        throw std::invalid_argument(format("Unknown %1% preset setting \"%2%\"", preset_type_name(m_type), opt_key));
+
+    // Parse strictly, keeping a backup: the strict deserializer can already have mutated the option
+    // when it rejects a bad value, so a failed update has to restore the preset it was given.
+    const ConfigOption*           previous_option = m_config->option(opt_key);
+    std::unique_ptr<ConfigOption> previous(previous_option != nullptr ? previous_option->clone() : nullptr);
+    try {
+        m_config->set_deserialize_strict(opt_key, value);
+    } catch (const ConfigurationError& err) {
+        if (previous)
+            m_config->set_key_value(opt_key, previous.release());
+        else
+            m_config->erase(opt_key);
+        throw std::invalid_argument(err.what());
+    }
+
+    // Run the same commit path the GUI runs for this setting, so its key-specific behaviour
+    // (ConfigOptionsGroup::on_change_OG, including the printer_agent canonicalization, the group's
+    // pre-checks and Tab::on_value_change()) runs exactly as for a hand edit. A built field supplies
+    // the field's typed/clamped value; otherwise the owning ConfigOptionsGroup builds the value from
+    // the config it edits and dispatches the same on_change_OG(). The field is refreshed from the
+    // config just committed first, so it reports the committed value rather than a stale one.
+    bool committed = false;
+    if (Page* field_page = nullptr; Field* field = get_field(opt_key, &field_page)) {
+        field_page->reload_config();
+        field->field_changed();
+        committed = true;
+    } else {
+        for (const PageShp& page : m_pages) {
+            for (const ConfigOptionsGroupShp& group : page->m_optgroups) {
+                if (group->commit_config_value(opt_key)) {
+                    committed = true;
+                    break;
+                }
+            }
+            if (committed)
+                break;
+        }
+    }
+
+    if (committed) {
+        // The commit path already ran update_dirty() (dirty flag, preset combo and, on the printer
+        // tab, the printer-agent switch); refresh the visible page and push the config to the plater.
+        reload_config();
+        update();
+    } else {
+        // The GUI edits this setting through a custom widget rather than a group (e.g.
+        // compatible_printers), so take the same shared no-field commit path the widget uses. Saved
+        // mode skips the value write (the strict parse above already did it) and keeps the path's
+        // compatibility recompute, dirty flag, preset-combo and plater updates.
+        load_key_value(opt_key, boost::any(), /*saved_value=*/true);
+        // The widget itself normally re-reads its value after load_key_value(); with no widget to do
+        // that, sync the visible page so a custom widget (the compatible-printers row) reflects the
+        // new value.
+        reload_config();
     }
 }
 

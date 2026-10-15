@@ -424,6 +424,17 @@ public:
 	//BBS update plater presets if update_plater_presets = true
 	void			update_tab_ui(bool update_plater_presets = false);
 	void			load_config(const DynamicPrintConfig& config);
+	// Host/plugin API: set one option of this tab's currently edited preset from its serialized
+	// string value, then run the same committed-change path a field edit runs. `opt_key` must be a
+	// setting of this tab's preset type, so a key of another preset type (e.g. a printer setting
+	// passed to the process tab) is rejected instead of written silently. `value` is parsed by the
+	// strict config deserializer, which raises std::invalid_argument for an unknown key or a value
+	// the option cannot parse, and leaves the preset unchanged. The key-specific behaviour runs
+	// through its ConfigOptionsGroup::on_change_OG(): with the option's built field it uses the
+	// field's typed value, otherwise the owning group builds the value and dispatches the same call,
+	// so a not-yet-built field still gets it. A key the GUI edits through a custom widget instead
+	// takes the shared no-field commit path, Tab::load_key_value() in saved mode.
+	void			apply_preset_config_value(const std::string& opt_key, const std::string& value);
 	virtual void	reload_config();
     void            update_mode();
     void            update_visibility();
