@@ -570,6 +570,11 @@ Details [source] (`Widgets/PopupWindow.cpp`).
   - On GTK the sub binds an idle handler. While both are shown and the cursor is over main but not over the
     sub, it builds a `wxMouseEvent(wxEVT_MOTION)` from `wxGetMousePosition()`, calls `mainDropDown->mouseMove(ev)`
     **directly** (nothing is posted), and calls `e.RequestMore()` to keep polling.
+  - On GTK the sub also receives the wheel events the user raises over main: GDK sends a `wl_pointer.axis` only
+    to the surface the pointer is over, and GTK then hands that `GDK_SCROLL` to the chain's grab widget, which is
+    the sub. The sub installs a `GtkWidget::event` handler that replays the event on main with
+    `gtk_propagate_event(main->GetConnectWidget(), event)` when the event's GDK window belongs to main
+    (`DropDown::messureSize`).
 - **GTK wrapper sizing.** `messureSize` calls `gtk_window_resize` on `m_widget` after `SetSize`, because wxGTK's
   `DoSetSize` only uses `gtk_widget_set_size_request` ("gtk_window_resize does not work for GTK_WINDOW_POPUP",
   `src/gtk/popupwin.cpp:181-188`).
@@ -607,6 +612,32 @@ Details [source] (`Widgets/PopupWindow.cpp`).
   ```
   Cite: c0ae2bda99, b9ff15054f (`DropDown::mouseMove`, `DropDown::messureSize`, `DropDown::ShouldDismissOnTopWindowDeactivate`,
   `PopupWindow::ShouldDismissOnTopWindowDeactivate`).
+- **Rule:** On GTK, route a chained popup's wheel event by the GDK window it names, not by the grab widget and not
+  by the global cursor position.
+  **Why:** While the sub holds the grab, `gtk_main_do_event` hands every `GDK_SCROLL` of the chain to the grab
+  widget (the sub) with its original, un-rebased coordinates [source] (`gtkmain.c:1789-1792`, 1923-1924), while
+  GDK Wayland sends the axis to the surface under the pointer only (`pointer_handle_axis` → `create_scroll_event`,
+  `gdkdevice-wayland.c:1929, 1527`). The sub therefore sees and consumes wheel events raised over main, so the
+  main list never scrolls, on X11 and Wayland alike. A hit test against `wxGetMousePosition()` cannot replace the
+  window test: global coordinates are unreliable on Wayland (`mouse-keyboard-focus.md`). `DropDown` connects a
+  `GtkWidget::event` handler on the sub's `GtkWindow` (its `m_widget`), which is emitted before wx's
+  `::scroll-event` handler on the same widget and suppresses it when it returns TRUE (`gtkwidget.c:7696`), then
+  delivers the event with `gtk_propagate_event(main->GetConnectWidget(), event)`. Returning TRUE there also stops
+  the parent-chain propagation.
+  ```cpp
+  // Wrong: emitted on the popup's outer GtkWindow, where wx has no handlers at all
+  g_signal_emit_by_name(main->m_widget, "scroll-event", event, &handled);
+  // Right (wxGTK): replay GTK's own delivery on the widget wx listens to
+  gtk_propagate_event(main->GetConnectWidget(), event);
+  ```
+  **Where wx listens [source].** `wxPopupWindow::Create` builds a popup from two widgets: `m_widget` is the outer
+  `GtkWindow` and `m_wxwindow` is a `wxPizza` child added to it. `wxWindowGTK::GetConnectWidget()` is
+  `m_wxwindow ? m_wxwindow : m_widget`, and `ConnectWidget()` — which binds `button_press_event`, `motion_notify_event`
+  and `scroll_event` — is called on that widget (`src/gtk/window.cpp` `Create`, `GetConnectWidget`). A signal emitted
+  on the outer `GtkWindow` therefore reaches no wx handler; only events GTK delivers to the inner widget, or to a
+  descendant of the grab widget, are seen by wx. `GTKGetConnectWindow()`/`GTKGetMainWindow()` are the matching
+  GdkWindows.
+  Cite: `DropDown::messureSize`, `DropDown::mouseWheelMoved`.
 - **Rule:** When shrinking a dropdown to fit above the display bottom, give up if fewer than two rows would
   remain.
   **Why:** On Wayland the popup can land where almost no vertical space is left. Clamping to that sliver made an

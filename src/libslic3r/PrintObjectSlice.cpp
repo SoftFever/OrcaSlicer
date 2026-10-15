@@ -956,7 +956,7 @@ void PrintObject::slice()
             }
         });
     if (m_layers.empty())
-        throw Slic3r::SlicingError(L("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"));
+        throw Slic3r::SlicingError(L("No layers were detected. You might want to repair the model or check its size or thickness and retry.\n"));
 
     // Belt printer: offset all layer Z values so objects at different positions
     // along the belt print at different heights on the tilted belt.  This is a

@@ -1,4 +1,5 @@
 #include "WebGuideDialog.hpp"
+#include "CloudProvider.hpp"
 #include "ConfigWizard.hpp"
 
 #include <algorithm>
@@ -92,6 +93,8 @@ static json guide_strings()
 {
     return {
         {"loading", _u8L("Loading…")},
+        // TRN Sidebar entry of the printer selection page for the group of custom (user-defined) printers.
+        {"custom_vendor", _u8L_CONTEXT("Custom", "Printer vendor")},
         {"welcome", _u8L("Welcome to Orca Slicer")},
         {"setup_intro", _u8L("Orca Slicer will be set up in several steps. Let's start!")},
         {"get_started", _u8L("Get Started")},
@@ -100,7 +103,7 @@ static json guide_strings()
         {"china", _u8L("China")},
         {"europe", _u8L("Europe")},
         {"north_america", _u8L("North America")},
-        {"others", _u8L("Others")},
+        {"others", _u8L_CONTEXT("Others", "Region")},
         {"back", _u8L_CONTEXT("Back", "Navigation")},
         {"next", _u8L("Next")},
         {"finish", _u8L("Finish")},
@@ -753,7 +756,7 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
                     if (wxGetApp().is_user_login()) {
                         BOOST_LOG_TRIVIAL(info) << "logout: user_logout on user_guide_finish";
                         // agent->user_logout();
-                        wxGetApp().request_user_logout();
+                        wxGetApp().request_user_logout(ORCA_CLOUD_PROVIDER, /*user_initiated=*/true);
                     }
                 }
             }

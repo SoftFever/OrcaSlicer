@@ -36,6 +36,7 @@
 #include "Semver.hpp"
 #include "PrintConfig.hpp"
 #include "libslic3r_version.h"
+#include "I18N.hpp"
 
 #ifdef _MSC_VER
     #define WIN32_LEAN_AND_MEAN
@@ -81,6 +82,7 @@
 #include "LifecycleEvents.hpp"
 #include "Utils.hpp"
 #include "InstanceLock.hpp"
+#include "nlohmann/json.hpp"
 
 #include <sstream>
 #include "PlaceholderParser.hpp"
@@ -1820,7 +1822,7 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
     const boost::filesystem::path &file, const std::string &canonical_name,
     const PresetOrigin &load_origin, ForwardCompatibilitySubstitutionRule substitution_rule,
     const std::string &extruder_id_name, const std::string &extruder_variant_name,
-    std::set<std::string> *key_set1, std::set<std::string> *key_set2) const
+    std::set<std::string> *key_set1, std::set<std::string> *key_set2, bool read_only) const
 {
     UserPresetLoad out;
     out.preset = Preset(m_type, canonical_name, false);
@@ -1854,7 +1856,10 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
 
         std::string version_str = key_values[BBL_JSON_KEY_VERSION];
         boost::optional<Semver> version = Semver::parse(version_str);
-        if (!version) return out;
+        if (!version) {
+            out.errors.push_back((boost::format("invalid version %1% in config %2%") % version_str % preset.file).str());
+            return out;
+        }
         preset.version = *version;
 
         if (key_values.find(BBL_JSON_KEY_FILAMENT_ID) != key_values.end())
@@ -1875,6 +1880,12 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
             // Orca: try to find if the parent preset has been renamed
             inherit_preset = this->find_preset2(inherits_value);
             Preset::normalize_inherits(config, inherit_preset);
+        }
+        // Local hot reload only supports FFF; no SLA default printer is installed.
+        if (read_only && load_origin.kind == PresetOrigin::Kind::LocalBundle && m_type == Preset::TYPE_PRINTER &&
+            Preset::printer_technology(config) != ptFFF) {
+            out.errors.push_back((boost::format("local bundle printer %1% is not FFF") % preset.file).str());
+            return out;
         }
         const Preset& default_preset = this->default_preset_for(config);
         if (inherit_preset) {
@@ -2040,7 +2051,7 @@ void PresetCollection::load_presets(
     resolve_then_commit<CNumericLocalesSetter>(files.size(),
         [&](size_t i) {
             return this->resolve_user_preset(files[i].path, files[i].canonical_name, resolved_origin, substitution_rule,
-                                             extruder_id_name, extruder_variant_name, key_set1, key_set2);
+                                             extruder_id_name, extruder_variant_name, key_set1, key_set2, read_only);
         },
         [&](size_t i, UserPresetLoad &&loaded) {
             // Resolve read the files without the lock, so another instance may have saved
@@ -2060,7 +2071,7 @@ void PresetCollection::load_presets(
                 if (! (on_disk == loaded.on_disk)) {
                     CNumericLocalesSetter locales_setter;
                     loaded = this->resolve_user_preset(files[i].path, files[i].canonical_name, resolved_origin, substitution_rule,
-                                                       extruder_id_name, extruder_variant_name, key_set1, key_set2);
+                                                       extruder_id_name, extruder_variant_name, key_set1, key_set2, read_only);
                 }
             }
             const bool leave_files = read_only || (! lock_path.empty() && ! instance_lock.locked());
@@ -2163,6 +2174,16 @@ int PresetCollection::get_differed_values_to_update(Preset& preset, std::map<std
     if (parent_preset) {
         DynamicPrintConfig temp_config;
         std::vector<std::string> dirty_options = preset.config.diff(parent_preset->config);
+
+        // Send the variant layout even when it matches the parent's, as the local save does: the loader
+        // sizes the per-variant values by it and would otherwise keep only the first one.
+        std::string extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+        if (!extruder_id_name.empty())
+            dirty_options.emplace_back(extruder_id_name);
+        if (!extruder_variant_name.empty())
+            dirty_options.emplace_back(extruder_variant_name);
 
         for (auto option: dirty_options)
         {
@@ -2628,15 +2649,34 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             new_config = default_preset.config;
         }
 
+        std::string extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
+        // Older uploads left out a variant layout equal to the parent's but still sent one value per
+        // parent variant. Read those values against the parent's layout instead of cutting them to one.
+        if (inherit_preset && !cloud_config.has(extruder_variant_name)) {
+            const auto  *parent_variants = inherit_preset->config.option<ConfigOptionStrings>(extruder_variant_name);
+            const size_t variant_count   = parent_variants ? parent_variants->size() : 0;
+            bool         values_per_variant = false;
+            for (const std::string &key : cloud_config.keys()) {
+                const size_t stride = key_set2->count(key) ? 2 : key_set1->count(key) ? 1 : 0;
+                const auto  *values = dynamic_cast<const ConfigOptionVectorBase *>(cloud_config.option(key));
+                if (stride > 0 && key != extruder_id_name && values && variant_count > 1 && values->size() == variant_count * stride) {
+                    values_per_variant = true;
+                    break;
+                }
+            }
+            if (values_per_variant)
+                for (const std::string &key : {extruder_id_name, extruder_variant_name})
+                    if (!key.empty() && !cloud_config.has(key) && inherit_preset->config.has(key))
+                        cloud_config.set_key_value(key, inherit_preset->config.option(key)->clone());
+        }
+
         extend_default_config_length(cloud_config, false, {});
 
-        if (inherit_preset) {
-            std::string extruder_id_name, extruder_variant_name;
-            std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
-            Preset::get_extruder_names_and_keysets(m_type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
-
+        if (inherit_preset)
             new_config.update_diff_values_to_child_config(cloud_config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
-        }
         else{
             new_config.apply(std::move(cloud_config));
             extend_default_config_length(new_config, true, default_preset.config);
@@ -2726,6 +2766,118 @@ void PresetCollection::update_after_user_presets_loaded()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", after sort, type %1%, selected_idx %2%") %m_type %m_idx_selected;
 
     return;
+}
+
+// A user preset file as written: it holds only the keys the preset sets itself, and an inherits that names a
+// renamed parent by the old name the preset was made against. Throws if the file can not be read or parsed.
+static json read_user_preset_file(const std::string &file)
+{
+    boost::nowide::ifstream in(file);
+    return json::parse(in);
+}
+
+std::vector<LegacyUserFilamentPreset> PresetCollection::legacy_user_filament_presets(const std::map<std::string, std::vector<std::string>> &printers_by_parent)
+{
+    auto has_entry = [&printers_by_parent](const std::string &name) { return printers_by_parent.count(name) > 0; };
+    std::vector<LegacyUserFilamentPreset> legacy_presets;
+    // The preset sync thread can add or delete presets meanwhile.
+    lock();
+    for (const Preset &preset : m_presets) {
+        if (!preset.is_user() || preset.inherits().empty())
+            continue;
+        const Preset *parent = get_preset_parent(preset);
+        if (parent == nullptr || !parent->is_system)
+            continue;
+        // An empty list already covers every printer.
+        const std::vector<std::string> &own = preset.config.option<ConfigOptionStrings>("compatible_printers")->values;
+        if (own.empty())
+            continue;
+        // The parent's name in the older release is its current name or one in its renamed_from, so only the
+        // files of presets whose parent has an entry under one of those are read.
+        if (!has_entry(parent->name) && std::none_of(parent->renamed_from.begin(), parent->renamed_from.end(), has_entry))
+            continue;
+        LegacyUserFilamentPreset legacy{preset.name, parent->name, {}, {}, preset.file, own};
+        try {
+            const json j = read_user_preset_file(preset.file);
+            // A preset whose file sets compatible_printers, even to an empty list, was given its printers on
+            // purpose and keeps exactly those.
+            if (j.contains("compatible_printers"))
+                continue;
+            legacy.inherits = j.value(BBL_JSON_KEY_INHERITS, std::string());
+        } catch (const std::exception &err) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": can not read " << preset.file << ": " << err.what();
+            continue;
+        }
+        auto it = printers_by_parent.find(legacy.inherits);
+        if (it == printers_by_parent.end())
+            continue;
+        for (const std::string &printer : it->second)
+            if (std::find(own.begin(), own.end(), printer) == own.end()) {
+                legacy.printers.push_back(printer);
+                legacy.compatible_printers.push_back(printer);
+            }
+        if (!legacy.printers.empty())
+            legacy_presets.push_back(std::move(legacy));
+    }
+    unlock();
+    return legacy_presets;
+}
+
+bool PresetCollection::write_legacy_user_filament_preset(const LegacyUserFilamentPreset &legacy)
+{
+    // Only compatible_printers changes in the file. Saving the whole preset would also rewrite an inherits that
+    // names a renamed parent by its old name, the only name older releases know it by.
+    try {
+        json j = read_user_preset_file(legacy.file);
+        // Changed by hand or by another instance since the preset was found: a list of its own stands, and
+        // another parent would need other printers.
+        if (j.contains("compatible_printers") || j.value(BBL_JSON_KEY_INHERITS, std::string()) != legacy.inherits)
+            return false;
+        j["compatible_printers"] = legacy.compatible_printers;
+        if (const std::error_code ec = write_file_atomically(legacy.file, j.dump(1, '\t') + "\n")) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to save " << legacy.file << ": " << ec.message();
+            return false;
+        }
+    } catch (const std::exception &err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": can not migrate " << legacy.file << ": " << err.what();
+        return false;
+    }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": user preset " << legacy.preset << " gets " << legacy.printers.size()
+                            << " printer(s) its parent listed in an older release";
+    return true;
+}
+
+void PresetCollection::apply_legacy_user_filament_presets(const std::vector<LegacyUserFilamentPreset> &written)
+{
+    lock();
+    for (const LegacyUserFilamentPreset &legacy : written) {
+        auto it = this->find_preset_internal(legacy.preset);
+        if (it == m_presets.end() || it->name != legacy.preset)
+            continue; // deleted by the preset sync thread meanwhile
+        std::vector<std::string> &saved  = it->config.option<ConfigOptionStrings>("compatible_printers", true)->values;
+        std::vector<std::string> &edited = m_edited_preset.config.option<ConfigOptionStrings>("compatible_printers", true)->values;
+        // Added to the list the preset holds now rather than replacing it: the cloud sync may have given the
+        // preset a newer list since it was found, and that list is still to be written out.
+        std::vector<std::string> printers = saved;
+        for (const std::string &printer : legacy.printers)
+            if (std::find(printers.begin(), printers.end(), printer) == printers.end())
+                printers.push_back(printer);
+        // A change to the list pending in the settings tab stays pending. Without one, the edited copy and the
+        // snapshot unsaved changes are measured against take the written list, so nothing reads as modified.
+        if (m_idx_selected == static_cast<size_t>(it - m_presets.begin()) && edited == saved) {
+            edited = printers;
+            if (m_saved_preset.name == it->name)
+                m_saved_preset.config.option<ConfigOptionStrings>("compatible_printers", true)->values = printers;
+        }
+        saved = printers;
+        // Push the change to the cloud copy, as an edit in the settings tab would. A sync already pending for
+        // the preset (a download waiting to be saved, a deletion) keeps its state.
+        if (!it->setting_id.empty() && it->sync_info.empty()) {
+            it->sync_info = "update";
+            it->save_info();
+        }
+    }
+    unlock();
 }
 
 //BBS: validate_preset
@@ -2992,7 +3144,9 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     }
     // Insert a new profile.
     //BBS: add project embedded preset logic
-    bool from_project = boost::algorithm::iends_with(name, ".3mf");
+    // A G-code's settings are shown like a project's, so a preset made from them lives with the project
+    // rather than in the user's library.
+    bool from_project = boost::algorithm::iends_with(name, ".3mf") || is_gcode_file(name);
     if (m_type == Preset::TYPE_PRINT)
         cfg.option<ConfigOptionString >("print_settings_id", true)->value  = new_name;
     else if (m_type == Preset::TYPE_FILAMENT)
@@ -4611,10 +4765,10 @@ void PhysicalPrinterCollection::load_printers(
                     printer.loaded = true;
                 }
                 catch (const std::ifstream::failure& err) {
-                    throw Slic3r::RuntimeError(std::string("The selected preset cannot be loaded: ") + printer.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError((boost::format(_u8L("The selected preset cannot be loaded: %1%\n\tReason: %2%")) % printer.file % err.what()).str());
                 }
                 catch (const std::runtime_error& err) {
-                    throw Slic3r::RuntimeError(std::string("Failed loading the preset file: ") + printer.file + "\n\tReason: " + err.what());
+                    throw Slic3r::RuntimeError((boost::format(_u8L("Failed loading the preset file: %1%\n\tReason: %2%")) % printer.file % err.what()).str());
                 }
                 printers_loaded.emplace_back(printer);
             }
