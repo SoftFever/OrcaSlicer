@@ -4690,7 +4690,7 @@ void EditFilamentPresetDialog::delete_preset()
             if (count > 0) {
                 msg = _L("Presets inherited by other presets cannot be deleted");
                 msg += "\n";
-                msg += _L_PLURAL("The following presets inherits this preset.", "The following preset inherits this preset.", count);
+                msg += _L_PLURAL("The following preset inherits this preset.", "The following presets inherit this preset.", count);
                 wxString title = _L("Delete Preset");
                 MessageDialog(this, msg + presets, title, wxOK | wxICON_ERROR).ShowModal();
                 m_selected_printer.clear();
