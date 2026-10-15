@@ -90,8 +90,8 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
 
     const std::string gcode = Test::gcode(print);
 
-    const std::string marker                = ";TC_PLACEHOLDER X";
-    const std::string::size_type marker_pos = gcode.find(marker);
+    const std::string marker                 = ";TC_PLACEHOLDER X";
+    const std::string::size_type marker_pos  = gcode.find(marker);
     REQUIRE(marker_pos != std::string::npos);
 
     const std::string::size_type x_start = marker_pos + marker.length();
@@ -102,7 +102,12 @@ TEST_CASE("x_after_toolchange and position placeholders use machine coordinates 
     INFO("x_after_toolchange token: '" << x_token << "'");
     REQUIRE(x_token != "[x_after_toolchange]");
 
-    const double x_val = std::stod(x_token);
+    double x_val = 0.0;
+    try {
+        x_val = std::stod(x_token);
+    } catch (const std::exception &e) {
+        FAIL("x_after_toolchange is not numeric: '" + x_token + "' error: " + e.what());
+    }
 
     constexpr double bed_width = 250.0;
     INFO("x_after_toolchange = " << x_val << " (must be in [0, " << bed_width << "])");
