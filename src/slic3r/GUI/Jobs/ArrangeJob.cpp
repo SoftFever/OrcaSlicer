@@ -478,7 +478,27 @@ void ArrangeJob::prepare_partplate(bool only_selection) {
     current_plate_index = plate_list.get_curr_plate_index();
     assert(plate != nullptr);
 
-    if (plate->empty())
+    Model& model = m_plater->model();
+
+    std::vector<const Selection::InstanceIdxsList*> obj_sel(model.objects.size(), nullptr);
+    if (only_selection) {
+        for (const auto& s : m_plater->get_selection().get_content())
+            if (s.first >= 0 && s.first < int(obj_sel.size()))
+                obj_sel[size_t(s.first)] = &s.second;
+    }
+
+    // A selected instance that belongs to no plate is put on the current one by arranging the selection.
+    auto is_unassigned_selected = [&](size_t oidx, size_t inst_idx) {
+        return only_selection && obj_sel[oidx] != nullptr && obj_sel[oidx]->count(int(inst_idx)) > 0 &&
+               plate_list.find_instance(int(oidx), int(inst_idx)) < 0;
+    };
+    bool has_unassigned_selected = false;
+    if (only_selection)
+        for (size_t oidx = 0; oidx < model.objects.size() && !has_unassigned_selected; ++oidx)
+            for (size_t inst_idx = 0; inst_idx < model.objects[oidx]->instances.size() && !has_unassigned_selected; ++inst_idx)
+                has_unassigned_selected = is_unassigned_selected(oidx, inst_idx);
+
+    if (plate->empty() && !has_unassigned_selected)
     {
         //no instances on this plate
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": no instances in current plate!");
@@ -492,15 +512,6 @@ void ArrangeJob::prepare_partplate(bool only_selection) {
         return;
     }
 
-    Model& model = m_plater->model();
-
-    std::vector<const Selection::InstanceIdxsList*> obj_sel(model.objects.size(), nullptr);
-    if (only_selection) {
-        for (const auto& s : m_plater->get_selection().get_content())
-            if (s.first >= 0 && s.first < int(obj_sel.size()))
-                obj_sel[size_t(s.first)] = &s.second;
-    }
-
     // Go through the objects and check if inside the selection
     for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
     {
@@ -510,7 +521,8 @@ void ArrangeJob::prepare_partplate(bool only_selection) {
         for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
         {
             bool             in_plate = plate->contain_instance(oidx, inst_idx) || plate->intersect_instance(oidx, inst_idx);
-            const bool       is_selected = in_plate && (!only_selection || (obj_sel[oidx] != nullptr && obj_sel[oidx]->count(int(inst_idx)) > 0));
+            const bool       is_selected = is_unassigned_selected(oidx, inst_idx) ||
+                                           (in_plate && (!only_selection || (obj_sel[oidx] != nullptr && obj_sel[oidx]->count(int(inst_idx)) > 0)));
             ArrangePolygon&& ap = prepare_arrange_polygon(mo->instances[inst_idx]);
 
             ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
