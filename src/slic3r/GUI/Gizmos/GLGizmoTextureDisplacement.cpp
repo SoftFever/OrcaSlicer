@@ -40,6 +40,7 @@
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "GLGizmoUtils.hpp"
 
+#include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -121,11 +122,16 @@ void pop_slim_scrollbar_style()
 }
 
 // Cuts a UTF-8 string down to `max_w` pixels, ending it in "..." when it had to be cut.
-std::string ellipsize(std::string s, float max_w)
+std::string ellipsize(std::string s, float max_w, float font_size = 0.f)
 {
-    if (ImGui::CalcTextSize(s.c_str()).x <= max_w)
+    const auto text_width = [&](const std::string &text) {
+        return font_size > 0.f
+                   ? ImGui::GetFont()->CalcTextSizeA(font_size, std::numeric_limits<float>::max(), 0.f, text.c_str()).x
+                   : ImGui::CalcTextSize(text.c_str()).x;
+    };
+    if (text_width(s) <= max_w)
         return s;
-    while (!s.empty() && ImGui::CalcTextSize((s + "...").c_str()).x > max_w) {
+    while (!s.empty() && text_width(s + "...") > max_w) {
         unsigned char c;
         do { // a whole code point at a time
             c = static_cast<unsigned char>(s.back());
@@ -4324,6 +4330,7 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
     std::optional<TextureLibraryEntry> chosen;
     std::optional<TextureLibraryEntry> to_remove;
     bool                               import_clicked = false;
+    bool                               download_clicked = false;
 
     // Tiles are placed on the four-column grid explicitly rather than flowed with SameLine(): a user tile
     // overlays a remove button on its corner, and that button would otherwise be "the previous item" the
@@ -4407,25 +4414,48 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         return n;
     };
 
-    // Every section collapses; the state is remembered for the app run. Looked up by section name - the
-    // fixed Built-in / My textures keys, or a pack's display name. A capability name is unique per type
-    // across loaded packages (PluginManager::check_registry_locked, PluginManager.cpp:211-225), and it is
-    // stable across reinstalls, unlike the plugin_key, which is the wheel filename stem and so carries the
-    // version: keying on that would silently reset the user's collapse choice on every pack upgrade. A
-    // function-local static lives exactly as long as the app and never touches app_config: remembered
-    // while the popup closes and reopens, reset on restart.
+    // Every section collapses; the state is remembered for the app run. Pack keys use pack_name, a
+    // capability name unique per type across loaded packages and stable across reinstalls. This function-local
+    // static survives popup closes, never touches app_config, and resets on restart.
     static std::map<std::string, bool> s_section_collapsed; // true = collapsed; absent = expanded
 
+    const auto split_pack_title = [](const std::string &title) -> std::pair<std::string, std::string> {
+        size_t split = std::string::npos;
+        for (size_t i = 0; i + 3 < title.size(); ++i)
+            if (title[i] == ' ' && (title[i + 1] == 'b' || title[i + 1] == 'B') &&
+                (title[i + 2] == 'y' || title[i + 2] == 'Y') && title[i + 3] == ' ')
+                split = i;
+        if (split == std::string::npos)
+            return { title, {} };
+
+        std::string name = title.substr(0, split);
+        while (!name.empty() && std::isspace(static_cast<unsigned char>(name.back())))
+            name.pop_back();
+        std::string attribution = title.substr(split);
+        size_t      first         = 0;
+        while (first < attribution.size() && std::isspace(static_cast<unsigned char>(attribution[first])))
+            ++first;
+        attribution.erase(0, first);
+        if (name.empty() || attribution.empty())
+            return { title, {} };
+        return { name, attribution };
+    };
+
     // A section heading, one row as wide as the grid: a click anywhere on it collapses or expands the
-    // section. The chevron takes the accent of the panel's More settings link, and the count at the right
-    // says what a collapsed section holds. The grid follows closer than the next heading does, so each
-    // heading reads as part of its own grid.
-    // Returns true when the section is open, so the caller knows whether to draw its grid.
-    const auto section_header = [&](const std::string &key, const std::string &title, size_t count) {
+    // section. Child headings indent their contents while keeping their counts right-aligned. Attribution
+    // lines use a smaller disabled style; the grid follows closer than the next heading does.
+    // Returns true when the section is open, so the caller knows whether to draw its contents.
+    const auto section_header = [&](const std::string &key, const std::string &title, size_t count, float indent,
+                                    const std::string &attribution, const std::string &full_title) {
         bool        &collapsed = s_section_collapsed[key]; // default-inserts false -> expanded
         const ImVec2 row       = ImGui::GetCursorScreenPos();
-        const ImVec2 row_max(row.x + grid_w, row.y + frame_h);
-        if (ImGui::InvisibleButton(key.c_str(), ImVec2(grid_w, frame_h)))
+        const bool   two_lines = !attribution.empty();
+        const float  line_h          = ImGui::GetTextLineHeight();
+        const float  small_font_size = ImGui::GetFontSize() * 0.8f;
+        const float  small_line_h    = line_h * 0.8f;
+        const float  row_h           = two_lines ? std::max(frame_h, line_h + small_line_h + spacing) : frame_h;
+        const ImVec2 row_max(row.x + grid_w, row.y + row_h);
+        if (ImGui::InvisibleButton(key.c_str(), ImVec2(grid_w, row_h)))
             collapsed = !collapsed;
         const bool hovered = ImGui::IsItemHovered();
         if (hovered)
@@ -4433,7 +4463,9 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
 
         const float inset = std::round(0.25f * frame_h);
         const float arrow = std::round(ImGui::GetFontSize() * 0.55f);
-        const float cx = row.x + inset + 0.5f * arrow, cy = row.y + 0.5f * frame_h, hs = 0.3f * arrow;
+        const float cx = row.x + inset + indent + 0.5f * arrow;
+        const float cy = row.y + 0.5f * row_h;
+        const float hs = 0.3f * arrow;
         const ImU32 accent = ImGui::GetColorU32(orca);
         if (collapsed)
             dl->AddTriangleFilled(ImVec2(cx - 0.5f * hs, cy - hs), ImVec2(cx + 0.5f * hs, cy), ImVec2(cx - 0.5f * hs, cy + hs), accent);
@@ -4442,34 +4474,36 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
 
         const std::string n     = std::to_string(count);
         const float       n_w   = ImGui::CalcTextSize(n.c_str()).x;
-        const float       ty    = row.y + 0.5f * (frame_h - ImGui::GetTextLineHeight());
-        const float       tx    = row.x + inset + arrow + spacing;
-        const std::string shown = ellipsize(title, std::max(0.f, row_max.x - inset - n_w - spacing - tx));
-        dl->AddText(ImVec2(tx, ty), ImGui::GetColorU32(ImGuiCol_Text), shown.c_str());
-        dl->AddText(ImVec2(row_max.x - inset - n_w, ty), ImGui::GetColorU32(ImGuiCol_TextDisabled), n.c_str());
-        if (hovered && shown != title)
-            panel_tooltip(title); // a long plugin-supplied name, cut by the fixed width
+        const float       tx    = row.x + inset + indent + arrow + spacing;
+        const float       max_text_w = std::max(0.f, row_max.x - inset - n_w - spacing - tx);
+        const std::string shown = ellipsize(title, max_text_w);
+        const std::string shown_attribution = two_lines ? ellipsize(attribution, max_text_w, small_font_size) : std::string{};
+        const float       title_y            = two_lines ? row.y + 0.5f * (row_h - line_h - small_line_h)
+                                                         : row.y + 0.5f * (frame_h - line_h);
+        const float       count_y            = row.y + 0.5f * (row_h - line_h);
+        dl->AddText(ImVec2(tx, title_y), ImGui::GetColorU32(ImGuiCol_Text), shown.c_str());
+        if (two_lines)
+            dl->AddText(ImGui::GetFont(), small_font_size, ImVec2(tx, title_y + line_h),
+                        ImGui::GetColorU32(ImGuiCol_TextDisabled), shown_attribution.c_str());
+        dl->AddText(ImVec2(row_max.x - inset - n_w, count_y), ImGui::GetColorU32(ImGuiCol_TextDisabled), n.c_str());
+        if (hovered && (shown != title || shown_attribution != attribution))
+            panel_tooltip(full_title); // a long plugin-supplied name, cut by the fixed width
         ImGui::SetCursorScreenPos(ImVec2(row.x, row_max.y + spacing));
         return !collapsed;
     };
 
-    // One section per source: Built-in first, then one per pack, then My textures last (so the import tile
-    // and the help line keep describing the group they sit in). Pack entries are grouped by pack_name,
-    // which is the capability's get_name(): unique per capability type across loaded packages
-    // (PluginManager::check_registry_locked, PluginManager.cpp:211-225), so it identifies a pack both for
-    // grouping and for the remembered collapse state, and stands in for the section title. A section is
-    // identified by `builtin:`, `user:` or `pack:<name>`, so a pack named "builtin" cannot collide with
-    // the fixed Built-in section.
+    // Built-in is first, plugin packs are grouped under Resource Texture, and My
+    // textures stays last so its import tile and help line describe that group. Pack names identify both
+    // their child section and state.
     struct Section
     {
         std::string                              key;
         std::string                              title;
-        TextureSource                            source;
         std::vector<const TextureLibraryEntry *> entries;
     };
     std::vector<Section>          sections;
     std::map<std::string, size_t> pack_section; // pack_name -> index in `sections`
-    sections.push_back({ "builtin:", _u8L("Built-in"), TextureSource::Shipped, {} });
+    sections.push_back({ "builtin:", _u8L("Built-in"), {} });
     for (const TextureLibraryEntry &entry : library) {
         if (entry.source == TextureSource::Shipped) {
             sections.front().entries.push_back(&entry); // the section exists even when the library is empty
@@ -4477,51 +4511,83 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         }
         if (entry.source == TextureSource::User)
             continue; // added below, so My textures stays last
+        if (entry.source != TextureSource::Plugin)
+            continue;
         const auto [it, inserted] = pack_section.emplace(entry.pack_name, sections.size());
         if (inserted)
-            sections.push_back({ "pack:" + entry.pack_name, entry.pack_name, TextureSource::Plugin, {} });
+            sections.push_back({ "pack:" + entry.pack_name, entry.pack_name, {} });
         sections[it->second].entries.push_back(&entry);
     }
-    sections.push_back({ "user:", _u8L("My textures"), TextureSource::User, {} });
+    sections.push_back({ "user:", _u8L("My textures"), {} });
     for (const TextureLibraryEntry &entry : library)
         if (entry.source == TextureSource::User)
             sections.back().entries.push_back(&entry);
 
-    for (const Section &section : sections) {
-        if (!section_header(section.key, section.title, section.entries.size()))
-            continue;
+    const float child_indent = std::round(m_imgui->scaled(0.8f));
+    const Section &built_in = sections.front();
+    if (section_header(built_in.key, built_in.title, built_in.entries.size(), 0.f, {}, built_in.title)) {
         const ImVec2 origin = ImGui::GetCursorScreenPos();
-        const int    count  = grid(origin, section.entries, section.source == TextureSource::User);
-        if (section.source == TextureSource::User) {
-            ImGui::SetCursorScreenPos(tile_pos(origin, count));
-            if (ImGui::Button("+##import_texture", ImVec2(tile, tile)))
-                import_clicked = true;
-            if (ImGui::IsItemHovered())
-                panel_tooltip(_u8L("Import your own image as a height map. It is converted to the format the slicer "
-                                   "bakes from and saved to your personal texture folder, kept separate from the "
-                                   "textures shipped with OrcaSlicer."));
-            end_grid(origin, count + 1);
-            // Belongs to this section: it describes the import tile and the remove-on-hover tiles, both of
-            // which live here, so it is hidden with them rather than left describing controls off-screen.
-            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + grid_w);
-            ImGui::TextDisabled("%s", _u8L("PNG, JPG or BMP - converted to a height map on import. Hover one of yours to remove it.").c_str());
-            ImGui::PopTextWrapPos();
-        } else {
+        const int    count  = grid(origin, built_in.entries, false);
+        end_grid(origin, count);
+        if (count == 0)
+            ImGui::TextDisabled("%s", _u8L("No textures found.").c_str());
+    }
+
+    size_t subscribed_count = 0;
+    for (size_t i = 1; i + 1 < sections.size(); ++i)
+        subscribed_count += sections[i].entries.size();
+
+    const std::string subscribed_title = _u8L("Resource Texture");
+    if (section_header("subscribed:", subscribed_title, subscribed_count, 0.f, {}, subscribed_title)) {
+        for (size_t i = 1; i + 1 < sections.size(); ++i) {
+            const Section &pack = sections[i];
+            const auto [name, attribution] = split_pack_title(pack.title);
+            if (!section_header(pack.key, name, pack.entries.size(), child_indent, attribution, pack.title))
+                continue;
+            const ImVec2 origin = ImGui::GetCursorScreenPos();
+            const int    count  = grid(origin, pack.entries, false);
             end_grid(origin, count);
-            if (section.source == TextureSource::Shipped && count == 0)
-                ImGui::TextDisabled("%s", _u8L("No textures found.").c_str());
         }
+
+        ImGui::Dummy(ImVec2(0.f, spacing));
+        const std::string download_label = _u8L("Download from OrcaCloud");
+        if (ImGui::Button(download_label.c_str(), ImVec2(grid_w, frame_h)))
+            download_clicked = true;
+        if (ImGui::IsItemHovered())
+            panel_tooltip(_u8L("Opens OrcaCloud in the Home page to browse for plugins."));
+    }
+
+    const Section &user = sections.back();
+    if (section_header(user.key, user.title, user.entries.size(), 0.f, {}, user.title)) {
+        const ImVec2 origin = ImGui::GetCursorScreenPos();
+        const int    count  = grid(origin, user.entries, true);
+        ImGui::SetCursorScreenPos(tile_pos(origin, count));
+        if (ImGui::Button("+##import_texture", ImVec2(tile, tile)))
+            import_clicked = true;
+        if (ImGui::IsItemHovered())
+            panel_tooltip(_u8L("Import your own image as a height map. It is converted to the format the slicer "
+                               "bakes from and saved to your personal texture folder, kept separate from the "
+                               "textures shipped with OrcaSlicer."));
+        end_grid(origin, count + 1);
+        // Belongs to this section: it describes the import tile and the remove-on-hover tiles, both of
+        // which live here, so it is hidden with them rather than left describing controls off-screen.
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + grid_w);
+        ImGui::TextDisabled("%s", _u8L("PNG, JPG or BMP - converted to a height map on import. Hover one of yours to remove it.").c_str());
+        ImGui::PopTextWrapPos();
     }
     // Done whether or not the current texture was drawn: one in a collapsed section stays where it is.
     m_picker_reveal_selected = false;
     ImGui::EndChild();
     pop_slim_scrollbar_style();
 
-    if (chosen || import_clicked || close_clicked)
+    if (chosen || import_clicked || close_clicked || download_clicked)
         ImGui::CloseCurrentPopup();
     m_tooltip_anchor_min = prev_anchor_min;
     m_tooltip_anchor_max = prev_anchor_max;
     ImGui::EndPopup();
+    // The OrcaCloud plugin hub filtered to resource textures; the pane's session handoff redirects here.
+    if (download_clicked)
+        wxGetApp().open_orca_cloud("/app/plugins/plugin-hub?types=resource-textures");
 
     // Only once the loop over the library is done: importing, picking (which reorders the recently used)
     // and removing all change the library the loop was iterating.

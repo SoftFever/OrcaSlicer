@@ -5467,12 +5467,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 this->request_open_project({});
             }
             else if (command_str.compare("homepage_open_cloud") == 0) {
-                // Deferred: set_cloud_mode() may create a second native webview, which must
-                // not run inside this webview's script-message callback.
-                CallAfter([this]() {
-                    if (WebViewPanel* home = WebViewPanel::if_built())
-                        home->set_cloud_mode(true, cloud_webview_handoff());
-                });
+                this->open_orca_cloud();
             }
             else if (command_str.compare("homepage_close_cloud") == 0) {
                 CallAfter([]() {
@@ -5619,6 +5614,22 @@ std::string GUI_App::handle_web_request(std::string cmd)
         return "";
     }
     return "";
+}
+
+void GUI_App::open_orca_cloud(const std::string& next)
+{
+    // Remembered so a login while the pane is open re-seeds the same page rather than the default.
+    m_cloud_open_path = next;
+    // Deferred: set_cloud_mode() may create the second native webview, so this must not run inside
+    // the caller's frame (a webview script-message callback or an ImGui frame).
+    CallAfter([this]() {
+        if (mainframe != nullptr)
+            mainframe->select_tab(TAB_ID_HOME);
+        // The Home page is built lazily, so the tab switch may not have created it yet: ensure() builds
+        // it if needed, matching what showing the tab does, rather than dropping the open request.
+        if (WebViewPanel* home = WebViewPanel::ensure())
+            home->set_cloud_mode(true, cloud_webview_handoff(m_cloud_open_path));
+    });
 }
 
 void GUI_App::handle_script_message(std::string msg, const std::string& provider)
@@ -5898,7 +5909,7 @@ void GUI_App::on_update_machine_list(wxCommandEvent &evt)
      }*/
 }
 
-wxString GUI_App::cloud_webview_handoff()
+wxString GUI_App::cloud_webview_handoff(const std::string& next)
 {
     // The cloud pane loads the Start URL, not a token: the page checks the webview's own session
     // and asks for a handoff itself (guide §4). Signed out, user_id is omitted and the page will
@@ -5906,7 +5917,7 @@ wxString GUI_App::cloud_webview_handoff()
     auto orca = get_orca_cloud_agent(m_agent);
     if (!orca)
         return {};
-    return from_u8(orca->build_web_session_start_url());
+    return from_u8(orca->build_web_session_start_url(next));
 }
 
 void GUI_App::request_cloud_web_session(const std::string& state)
@@ -6049,7 +6060,7 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
     m_cloud_handoff_state.clear();
     if (WebViewPanel* home = WebViewPanel::if_built())
         if (home->cloud_mode_active())
-            home->set_cloud_mode(true, cloud_webview_handoff());
+            home->set_cloud_mode(true, cloud_webview_handoff(m_cloud_open_path));
 }
 
 

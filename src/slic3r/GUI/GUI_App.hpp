@@ -365,6 +365,8 @@ private:
     // and a generation counter so a superseded mint/login result is dropped (guide §5, "only the
     // newest request counts").
     std::string      m_cloud_handoff_state;
+    // The OrcaCloud path the open requests target, remembered so a login re-seed keeps the same page.
+    std::string      m_cloud_open_path;
     uint64_t         m_cloud_handoff_gen { 0 };
     bool             m_show_error_msgdlg{false};
     wxString         m_info_dialog_content;
@@ -466,6 +468,9 @@ public:
 #if wxUSE_WEBVIEW_EDGE
     void            init_webview_runtime();
 #endif
+    // Switches to the Home tab and opens the OrcaCloud pane beside the homepage; work is deferred
+    // internally. `next` is a same-site OrcaCloud path (empty = the page's default).
+    void            open_orca_cloud(const std::string& next = std::string());
     static unsigned get_colour_approx_luma(const wxColour& colour);
     static bool     dark_mode();
     const wxColour  get_label_default_clr_system();
@@ -572,7 +577,7 @@ public:
     // called from the pane when the page asks for a session; it opens the desktop login dialog if
     // signed out, otherwise mints a one-time token on a worker thread and loads the Complete URL
     // in the same webview.
-    wxString        cloud_webview_handoff();
+    wxString        cloud_webview_handoff(const std::string& next = std::string());
     void            request_cloud_web_session(const std::string& state);
     void            mint_cloud_web_session(const std::string& state, uint64_t gen);
     void            on_cloud_web_session_minted(const std::string& state, uint64_t gen, const std::string& token_hash);

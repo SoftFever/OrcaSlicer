@@ -556,6 +556,10 @@ void WebViewPanel::set_cloud_mode(bool on, const wxString& url)
             load_cloud_after_signout(url);
         }
         m_cloud_browser->Show();
+        // The homepage shell owns the nav highlight and the cloud-mode layout class. A native open
+        // (not the page's own GotoCloud) must ask it to switch; the page's SetCloudMode no-ops if it
+        // already did. OnDocumentLoaded re-applies this when the homepage was still loading.
+        RunScript("SetCloudMode(true)");
     } else if (m_cloud_browser) {
         // Closing keeps the pane alive with its session, so re-opening does not have to sign in
         // again (guide §10). Nothing is cleared here.
