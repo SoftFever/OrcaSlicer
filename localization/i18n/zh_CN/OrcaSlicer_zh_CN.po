@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 15:16-0300\n"
+"POT-Creation-Date: 2026-10-11 16:21+0800\n"
 "PO-Revision-Date: 2026-06-11 12:37-0300\n"
 "Last-Translator: Handle <mail@bysb.net>\n"
 "Language-Team: \n"
@@ -455,8 +455,9 @@ msgstr "自动支撑角度阈值："
 msgid "Circle"
 msgstr "圆"
 
+# AI Translated
 msgid "Sphere"
-msgstr "球"
+msgstr "球体"
 
 msgid "Fill"
 msgstr "填充"
@@ -474,8 +475,9 @@ msgstr "水平"
 msgid "Allows painting only on facets selected by: \"%1%\""
 msgstr "绘制仅对由%1%选中的面片生效"
 
+# AI Translated
 msgid "Highlight faces according to overhang angle."
-msgstr "根据当前设置的悬垂角度来高亮片面。"
+msgstr "根据当前设置的悬垂角度高亮显示面片。"
 
 msgid "No auto support"
 msgstr "无自动支撑"
@@ -616,14 +618,16 @@ msgstr "移动"
 msgid "Please select at least one object."
 msgstr "请至少选中一个对象。"
 
+# AI Translated
 msgid "Gizmo-Move"
-msgstr "Gizmo-移动"
+msgstr "移动"
 
 msgid "Rotate"
 msgstr "旋转"
 
+# AI Translated
 msgid "Gizmo-Rotate"
-msgstr "Gizmo-旋转"
+msgstr "旋转"
 
 msgid "Optimize orientation"
 msgstr "优化朝向"
@@ -632,8 +636,9 @@ msgctxt "Verb"
 msgid "Scale"
 msgstr "缩放"
 
+# AI Translated
 msgid "Gizmo-Scale"
-msgstr "缩放工具"
+msgstr "缩放"
 
 msgid "Error: Please close all toolbar menus first"
 msgstr "错误：请先关闭所有工具栏菜单"
@@ -828,24 +833,27 @@ msgstr "间隙"
 msgid "Spacing"
 msgstr "间距"
 
+# AI Translated
 msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane"
 msgstr ""
-"单击以翻转剖切面\n"
-"拖动以移动剖切面"
+"单击以翻转切割平面\n"
+"拖动以移动切割平面"
 
+# AI Translated
 msgid ""
 "Click to flip the cut plane\n"
 "Drag to move the cut plane\n"
 "Right-click a part to assign it to the other side"
 msgstr ""
-"单击以翻转剖切面\n"
-"拖动以移动剖切面\n"
-"在零件上单击鼠标右键以将其指定给另一侧"
+"单击以翻转切割平面\n"
+"拖动以移动切割平面\n"
+"右键单击零件可将其分配到另一侧"
 
+# AI Translated
 msgid "Move cut plane"
-msgstr "移动剖切面"
+msgstr "移动切割平面"
 
 msgid "Mode"
 msgstr "模式"
@@ -862,8 +870,9 @@ msgstr "拖拽"
 msgid "Move cut line"
 msgstr "移动切割线"
 
+# AI Translated
 msgid "Draw cut line"
-msgstr "绘制切线"
+msgstr "绘制切割线"
 
 msgid "Add connector"
 msgstr "添加连接件"
@@ -888,8 +897,9 @@ msgctxt "Cut tool"
 msgid "Cut"
 msgstr "切割"
 
+# AI Translated
 msgid "Rotate cut plane"
-msgstr "旋转剖切面"
+msgstr "旋转切割平面"
 
 msgid "Remove connectors"
 msgstr "删除所有连接件"
@@ -909,8 +919,9 @@ msgstr "与半径相关的间隔比例"
 msgid "Confirm connectors"
 msgstr "确认"
 
+# AI Translated
 msgid "Flip cut plane"
-msgstr "翻转剖切面"
+msgstr "翻转切割平面"
 
 msgid "Groove change"
 msgstr "槽变化"
@@ -975,11 +986,13 @@ msgstr "存在连接件相互重叠"
 msgid "Select at least one object to keep after cutting."
 msgstr "切割后至少选择一个要保留的对象。"
 
+# AI Translated
 msgid "Cut plane is placed out of object"
-msgstr "剖切面放置在对象之外"
+msgstr "切割平面位于对象之外"
 
+# AI Translated
 msgid "Cut plane with groove is invalid"
-msgstr "槽所在的切割平面无效"
+msgstr "带槽的切割平面无效"
 
 msgid "Connector"
 msgstr "连接件"
@@ -1389,20 +1402,23 @@ msgstr "撤销粗细调整"
 msgid "Tiny / Wide glyphs"
 msgstr "细小/粗大的字形"
 
+# AI Translated
 msgid "Undo letter's skew"
-msgstr "撤消字母的斜体效果"
+msgstr "撤销字母的斜体效果"
 
 msgid "Italic strength ratio"
 msgstr "倾斜强度比"
 
+# AI Translated
 msgid "Undo translation"
-msgstr "撤消翻译"
+msgstr "撤销平移"
 
 msgid "Distance of the center of the text to the model surface."
 msgstr "文字中心到模型曲面的距离。"
 
+# AI Translated
 msgid "Undo rotation"
-msgstr "撤消旋转"
+msgstr "撤销旋转"
 
 msgid "Rotate text Clockwise."
 msgstr "顺时针旋转文本。"
@@ -1416,11 +1432,13 @@ msgstr "沿对象曲面移动文本时，锁定文本的旋转。"
 msgid "Select from True Type Collection."
 msgstr "从True Type集合中选择。"
 
+# AI Translated
 msgid "Set text to face camera"
-msgstr "文字面向摄像头"
+msgstr "文字朝向相机"
 
+# AI Translated
 msgid "Orient the text towards the camera."
-msgstr "选择文字使其面向摄像头"
+msgstr "使文字朝向相机。"
 
 #, boost-format
 msgid "Font \"%1%\" can't be used. Please select another."
@@ -1584,8 +1602,9 @@ msgstr "浮雕形状中缺少 SVG 文件"
 msgid "Missing data of svg file"
 msgstr "缺少 SVG 文件数据"
 
+# AI Translated
 msgid "Face the camera"
-msgstr "面向摄像机"
+msgstr "朝向相机"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -2065,14 +2084,16 @@ msgstr ""
 msgid "WebView2 Runtime"
 msgstr "WebView2 运行库"
 
+# AI Translated
+#, boost-format
 msgid ""
 "The Microsoft WebView2 Runtime could not be installed.\n"
 "Some features, including the setup wizard, may appear blank until it is installed.\n"
-"Please install it manually from https://developer.microsoft.com/microsoft-edge/webview2/ and restart Orca Slicer."
+"Please install it manually from %1% and restart Orca Slicer."
 msgstr ""
 "无法安装 Microsoft WebView2 运行库。\n"
-"在安装之前，包括设置向导在内的部分功能可能显示为空白。\n"
-"请从 https://developer.microsoft.com/microsoft-edge/webview2/ 手动安装，然后重启 Orca Slicer。"
+"安装完成前，设置向导等部分功能可能显示为空白。\n"
+"请从 %1% 手动安装，然后重启 Orca Slicer。"
 
 #, c-format, boost-format
 msgid "Resources path does not exist or is not a directory: %s"
@@ -2586,14 +2607,16 @@ msgstr "立方体"
 msgid "Cylinder"
 msgstr "圆柱体"
 
+# AI Translated
 msgid "Cone"
-msgstr "锥体"
+msgstr "圆锥体"
 
 msgid "Disc"
 msgstr "圆盘"
 
+# AI Translated
 msgid "Torus"
-msgstr "环面"
+msgstr "圆环体"
 
 msgid "Orca Cube"
 msgstr "Orca方块"
@@ -3028,18 +3051,20 @@ msgid "%1$d error repaired"
 msgid_plural "%1$d errors repaired"
 msgstr[0] "%1$d个错误已修复"
 
+# AI Translated
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge."
 msgid_plural "Error: %1$d non-manifold edges."
-msgstr[0] "错误: %1$d 存在非流形边."
+msgstr[0] "错误：%1$d 条非流形边。"
 
 msgid "Remaining errors"
 msgstr "剩余错误"
 
+# AI Translated
 #, c-format, boost-format
 msgid "%1$d non-manifold edge"
 msgid_plural "%1$d non-manifold edges"
-msgstr[0] "%1$d 存在非流形边"
+msgstr[0] "%1$d 条非流形边"
 
 msgid "Click the icon to repair model object"
 msgstr "点击图标修复模型对象"
@@ -4140,6 +4165,9 @@ msgstr "转到盘"
 msgid "AMS Materials Setting"
 msgstr "AMS 材料设置"
 
+msgid "Wiki Guide"
+msgstr "维基指南"
+
 msgid "Close"
 msgstr "关闭"
 
@@ -4160,9 +4188,6 @@ msgstr "输入的范围应当在 %1% 和 %2% 之间"
 
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "动态流量校准系数"
-
-msgid "Wiki Guide"
-msgstr "维基指南"
 
 msgid "PA Profile"
 msgstr "PA 配置文件"
@@ -4249,9 +4274,10 @@ msgstr "校准完成。如下图中的示例，请在您的热床上找到最均
 msgid "Save"
 msgstr "保存"
 
+# AI Translated
 msgctxt "Navigation"
 msgid "Back"
-msgstr "背面"
+msgstr "返回"
 
 msgid "Example"
 msgstr "示例"
@@ -4747,6 +4773,14 @@ msgstr "是否自动调整到限制值（%g mm）？"
 
 msgid "Adjust"
 msgstr "调整"
+
+# AI Translated
+msgid ""
+"Raft and draft shield are not available on belt printers.\n"
+"They have been disabled."
+msgstr ""
+"传送带打印机不支持筏层和风挡。\n"
+"已自动禁用。"
 
 # AI Translated
 msgid ""
@@ -5585,9 +5619,6 @@ msgstr "根据最佳耗材丝分组自动重新切片，切片后显示分组结
 msgid "Filament Grouping"
 msgstr "耗材丝分组"
 
-msgid "Why this grouping"
-msgstr "为什么这样分组"
-
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "请根据分组结果将耗材放置在打印机上。"
 
@@ -5776,6 +5807,54 @@ msgstr "增加/减小编辑区域"
 msgid "Sequence"
 msgstr "顺序"
 
+# AI Translated
+msgid "Plate center of mass"
+msgstr "整盘质心"
+
+# AI Translated
+msgid "Part center of mass"
+msgstr "零件质心"
+
+# AI Translated
+msgid "Support center of mass"
+msgstr "支撑质心"
+
+# AI Translated
+msgid "Assembly center of mass"
+msgstr "装配体质心"
+
+# AI Translated
+msgid "Object center of mass"
+msgstr "对象质心"
+
+# AI Translated
+msgid "Finished print"
+msgstr "完整打印件"
+
+# AI Translated
+#, boost-format
+msgid "Printed up to layer %1%"
+msgstr "已打印至第 %1% 层"
+
+# AI Translated
+msgid "Weight"
+msgstr "重量"
+
+msgid "Volume"
+msgstr "体积"
+
+# AI Translated
+msgid "Center in bounding box"
+msgstr "在边界框中的位置"
+
+# AI Translated
+msgid "Bounding box size"
+msgstr "边界框尺寸"
+
+# AI Translated
+msgid "Moment of inertia"
+msgstr "转动惯量"
+
 msgid "Object selection"
 msgstr "对象选择"
 
@@ -5813,8 +5892,9 @@ msgstr "右喷嘴：X：%1%-%2%，Y：%3%-%4%，Z：%5%-%6%"
 msgid "Tool move"
 msgstr "工具 移动"
 
+# AI Translated
 msgid "Tool Rotate"
-msgstr "工具 旋转"
+msgstr "旋转"
 
 msgid "Move object"
 msgstr "移动对象"
@@ -5866,31 +5946,34 @@ msgstr "X"
 # AI Translated
 msgctxt "Camera View"
 msgid "Front"
-msgstr "前面"
+msgstr "前视"
 
+# AI Translated
 msgctxt "Camera View"
 msgid "Back"
-msgstr "背面"
+msgstr "后视"
 
 # AI Translated
 #. TRN To be shown in the main menu View->Top
 msgctxt "Camera View"
 msgid "Top"
-msgstr "顶部"
+msgstr "俯视"
 
 # AI Translated
 #. TRN To be shown in the main menu View->Bottom
 msgctxt "Camera View"
 msgid "Bottom"
-msgstr "底部"
+msgstr "仰视"
 
+# AI Translated
 msgctxt "Camera View"
 msgid "Left"
-msgstr "左"
+msgstr "左视"
 
+# AI Translated
 msgctxt "Camera View"
 msgid "Right"
-msgstr "右"
+msgstr "右视"
 
 msgid "Add plate"
 msgstr "添加新盘"
@@ -5952,8 +6035,9 @@ msgstr "画布工具栏"
 msgid "Section view"
 msgstr "剖面视图"
 
+# AI Translated
 msgid "Fit camera to scene or selected object."
-msgstr "让相机适合场景或选定的对象。"
+msgstr "缩放视图以完整显示场景或所选对象。"
 
 msgid "3D Navigator"
 msgstr "3D 导航器"
@@ -5990,6 +6074,14 @@ msgstr "网格线"
 
 msgid "Labels"
 msgstr "标签"
+
+# AI Translated
+msgid "Center of mass"
+msgstr "质心"
+
+# AI Translated
+msgid "Show raw G-code (belt only)"
+msgstr "显示原始 G-code（仅限传送带打印机）"
 
 # AI Translated
 msgid "Move section plane"
@@ -6039,7 +6131,7 @@ msgstr "体积："
 msgid "Size:"
 msgstr "尺寸："
 
-#, c-format, boost-format
+#, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "发现G-code路径在层%d，高度为%.2lf mm处有冲突。请将有冲突的对象分离得更远(%s <-> %s)。"
 
@@ -6304,11 +6396,13 @@ msgstr "下载模型"
 msgid "Default View"
 msgstr "默认视图"
 
+# AI Translated
 msgid "Top View"
-msgstr "顶部视图"
+msgstr "俯视图"
 
+# AI Translated
 msgid "Bottom View"
-msgstr "底部视图"
+msgstr "仰视图"
 
 msgid "Front View"
 msgstr "前视图"
@@ -6316,7 +6410,7 @@ msgstr "前视图"
 # AI Translated
 msgctxt "Camera View"
 msgid "Rear"
-msgstr "背面"
+msgstr "后视"
 
 msgid "Rear View"
 msgstr "后视图"
@@ -6488,8 +6582,9 @@ msgstr "使用正交视角"
 msgid "Auto Perspective"
 msgstr "自动透视"
 
+# AI Translated
 msgid "Automatically switch between orthographic and perspective when changing from top/bottom/side views."
-msgstr "当从顶部/底部/侧视图更改时，自动在正交和透视之间切换。"
+msgstr "从俯视图、仰视图或侧视图切换时，自动在正交和透视之间切换。"
 
 msgid "Show &G-code Window"
 msgstr "显示G-code窗口"
@@ -6508,6 +6603,14 @@ msgstr "显示网格线"
 
 msgid "Show Gridlines on plate"
 msgstr "在盘上显示网格线"
+
+# AI Translated
+msgid "Show IDEX/IQEX Toolhead"
+msgstr "显示 IDEX/IQEX 工具头"
+
+# AI Translated
+msgid "Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."
+msgstr "在 G-code 预览中显示每个使用中喷嘴周围的 IDEX/IQEX 工具头示意模型。"
 
 msgid "Reset Window Layout"
 msgstr "重置窗口布局"
@@ -6995,8 +7098,9 @@ msgstr "死区："
 msgid "Options:"
 msgstr "选项："
 
+# AI Translated
 msgid "Zoom"
-msgstr "视角缩放"
+msgstr "缩放"
 
 msgid "Translation/Zoom"
 msgstr "平移/缩放"
@@ -7374,7 +7478,7 @@ msgid "Update"
 msgstr "更新"
 
 msgid "Assistant(HMS)"
-msgstr "助理（HMS）"
+msgstr "助手(HMS)"
 
 #, c-format, boost-format
 msgid "Network plug-in v%s"
@@ -7579,35 +7683,35 @@ msgstr "VFA 校准"
 
 # AI Translated
 msgid "View: Top"
-msgstr "视图：顶部"
+msgstr "视图：俯视图"
 
 # AI Translated
 msgid "View: Bottom"
-msgstr "视图：底部"
+msgstr "视图：仰视图"
 
 # AI Translated
 msgid "View: Front"
-msgstr "视图：前面"
+msgstr "视图：前视图"
 
 # AI Translated
 msgid "View: Rear"
-msgstr "视图：背面"
+msgstr "视图：后视图"
 
 # AI Translated
 msgid "View: Left"
-msgstr "视图：左"
+msgstr "视图：左视图"
 
 # AI Translated
 msgid "View: Right"
-msgstr "视图：右"
+msgstr "视图：右视图"
 
 # AI Translated
 msgid "View: Isometric"
-msgstr "视图：等距"
+msgstr "视图：等轴测视图"
 
 # AI Translated
 msgid "View: Default"
-msgstr "视图：默认"
+msgstr "视图：默认视图"
 
 # AI Translated
 msgid "Fit Bed to View"
@@ -7926,14 +8030,18 @@ msgstr "请升级您的显卡驱动。"
 msgid "Unsupported OpenGL version"
 msgstr "不支持的OpenGL版本"
 
+# AI Translated
 #, c-format, boost-format
 msgid ""
 "Unable to load shaders:\n"
 "%s"
-msgstr "无法加载Shader: %s"
+msgstr ""
+"无法加载着色器：\n"
+"%s"
 
+# AI Translated
 msgid "Error loading shaders"
-msgstr "加载shader程序时发生错误"
+msgstr "加载着色器时出错"
 
 msgctxt "Layers"
 msgid "Top"
@@ -8155,6 +8263,77 @@ msgstr "查看所有对象的配置"
 msgid "Material settings"
 msgstr "材料设置"
 
+# AI Translated
+msgid "Each mode names the tool heads that take part and the role each one plays. Click a tool button to cycle its role — hover a color below for what each role does."
+msgstr "每个模式都规定了哪些工具头参与以及各自的角色。单击工具头按钮可循环切换角色；将鼠标悬停在下方颜色上可查看各角色的作用。"
+
+# AI Translated
+msgid "Add Mode"
+msgstr "添加模式"
+
+# AI Translated
+msgid "Tools"
+msgstr "工具"
+
+msgid "G-code"
+msgstr "G-code"
+
+# AI Translated
+msgid "How the mode is labeled in the plate's IDEX/IQEX mode selector. Required — a mode with no name cannot be selected."
+msgstr "该模式在盘的 IDEX/IQEX 模式选择器中显示的名称。必填，未命名的模式无法选择。"
+
+# AI Translated
+msgid "Which tool heads take part in the mode and what role each one plays. Click a tile to cycle its role."
+msgstr "参与该模式的工具头及其各自的角色。单击方块可循环切换角色。"
+
+# AI Translated
+msgid "G-code run at print start to put the printer into this mode (for example a Klipper SET_PRINT_MODE call). The slicer only emits the Primary tool's paths; the firmware drives the others."
+msgstr "打印开始时运行的 G-code，用于将打印机切换到此模式（例如调用 Klipper 的 SET_PRINT_MODE）。切片软件只生成主工具头的路径，其余工具头由固件控制。"
+
+# AI Translated
+msgid "Drives every sliced path. Always tool 0 — use Tool 0 Position above to choose which corner of the bed it occupies. It cannot be moved from the grid."
+msgstr "打印全部切片路径。始终为工具头 0，可通过上方的“工具头 0 位置”选择它位于热床的哪个角。它无法从网格中移除。"
+
+# AI Translated
+msgid "Follows the Primary at the firmware level, printing the same paths offset into its own zone."
+msgstr "由固件控制跟随主工具头，在自己的区域内偏移打印相同的路径。"
+
+# AI Translated
+msgid "Follows the Primary at the firmware level, printing the same paths reflected across the boundary between the two zones."
+msgstr "由固件控制跟随主工具头，沿两个区域之间的分界线镜像打印相同的路径。"
+
+# AI Translated
+msgid "Marks a tool on the Primary's gantry as its multicolor partner. Required to allow multi-color printing in paired-gantry modes."
+msgstr "把主工具头所在龙门上的一个工具头标记为它的多色搭档。在龙门配对模式下多色打印时必须设置此项。"
+
+# AI Translated
+msgid "Primary"
+msgstr "主模式"
+
+# AI Translated
+msgid "Mode name (required)"
+msgstr "模式名称（必填）"
+
+# AI Translated
+msgid "Name of this parallel mode, as it appears in the plate's IDEX/IQEX mode selector. Stored in the project by name, so renaming a mode that plates already use makes them fall back to Primary. Cannot be empty — a blank name is replaced with a generated one."
+msgstr "此并行模式在盘的 IDEX/IQEX 模式选择器中显示的名称。项目按名称记录所用的模式，因此重命名已被盘使用的模式后，这些盘会回退到主模式。不能为空，留空时会自动生成名称。"
+
+# AI Translated
+msgid "G-code emitted once at the start of a print that uses this mode, before the machine start G-code. This is where the printer is put into the matching firmware mode — for example a Klipper SET_PRINT_MODE call or a RepRapFirmware M567 — since the slicer only emits the Primary tool's paths and the firmware drives the Copy / Mirror tools. Placeholders are supported; use the edit button to browse them. Leave empty if the mode needs no firmware setup."
+msgstr "使用此模式的打印开始时输出一次的 G-code，位于打印机起始G-code 之前。打印机在此切换到对应的固件模式（例如调用 Klipper 的 SET_PRINT_MODE 或 RepRapFirmware 的 M567），因为切片软件只生成主工具头的路径，复制（Copy）/镜像（Mirror）工具头由固件控制。支持占位符，可通过编辑按钮浏览。如果该模式无需固件设置，请留空。"
+
+# AI Translated
+msgid "Edit G-code / browse placeholders"
+msgstr "编辑 G-code / 浏览占位符"
+
+# AI Translated
+msgid "Remove mode"
+msgstr "删除此模式"
+
+# AI Translated
+msgid "Discard in-session edits to this mode (snap back to saved value)"
+msgstr "放弃对此模式所做的未保存修改（恢复为已保存的值）"
+
 msgid "Remove current plate (if not last one)"
 msgstr "移除当前盘（如果不是最后一个）"
 
@@ -8178,6 +8357,20 @@ msgstr "编辑当前盘名"
 
 msgid "Move plate to the front"
 msgstr "将当前盘移到最前面"
+
+# AI Translated
+#, boost-format
+msgid " (process preset: %1%)"
+msgstr " （工艺预设：%1%）"
+
+# AI Translated
+#, boost-format
+msgid "IDEX/IQEX mode: %1% (left-click to cycle, right-click for menu)"
+msgstr "IDEX/IQEX 模式：%1%（左键单击循环切换，右键单击打开菜单）"
+
+# AI Translated
+msgid "Warning: this plate uses a parallel IDEX/IQEX mode with multi-material objects. Proceed with caution — verify your G-code handles this combination correctly."
+msgstr "警告：此盘包含多材料对象，同时使用了 IDEX/IQEX 并行模式。请谨慎操作，并确认您的 G-code 能正确处理这种组合。"
 
 msgid "Customize current plate"
 msgstr "自定义当前盘"
@@ -8244,12 +8437,6 @@ msgstr "AMS(1 槽)"
 
 msgid "Not installed"
 msgstr "未安装"
-
-msgid "The software does not support using different diameter of nozzles for one print. If the left and right nozzles are inconsistent, we can only proceed with single-head printing. Please confirm which nozzle you would like to use for this project."
-msgstr "该软件不支持在一次打印中使用不同直径的喷嘴。如果左右喷嘴不一致，就只能进行单头打印。请确认您想在该项目中使用哪种喷嘴。"
-
-msgid "Switch diameter"
-msgstr "开关直径"
 
 msgid "Configuration incompatible"
 msgstr "配置不兼容"
@@ -8333,6 +8520,10 @@ msgid "Remove last mixed filament"
 msgstr "移除最后一个混合耗材丝"
 
 # AI Translated
+msgid "Remove all mixed filaments"
+msgstr "移除所有混合耗材丝"
+
+# AI Translated
 msgid "Add mixed filament"
 msgstr "添加混合耗材丝"
 
@@ -8353,6 +8544,11 @@ msgstr "混合耗材丝的组分引用已失效"
 # AI Translated
 msgid "Edit / Delete / Merge"
 msgstr "编辑 / 删除 / 合并"
+
+# AI Translated
+#, boost-format
+msgid "Remove all %1% mixed filaments?"
+msgstr "是否移除全部 %1% 个混合耗材丝？"
 
 # AI Translated
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -8428,9 +8624,6 @@ msgstr "加载文件：%s"
 msgid "Load 3MF"
 msgstr "加载 3MF"
 
-msgid "BambuStudio Project"
-msgstr "BambuStudio 项目"
-
 msgid "The 3MF is not supported by OrcaSlicer, loading geometry data only."
 msgstr "该 3MF 不受 OrcaSlicer 支持，仅加载几何数据。"
 
@@ -8459,17 +8652,6 @@ msgstr "建议升级您的软件版本。\n"
 #, c-format, boost-format
 msgid "The 3MF file version %s is newer than %s's version %s, we suggest to upgrade your software."
 msgstr "该 3MF 文件版本 %s 比 %s 的版本 %s 新，建议升级您的软件。"
-
-#, c-format, boost-format
-msgid "The 3MF was created by BambuStudio (version %s), which is newer than the compatible version %s. Found unrecognized settings:"
-msgstr "该 3MF 由 BambuStudio（版本 %s）创建，其版本高于兼容版本 %s。发现无法识别的设置："
-
-#, c-format, boost-format
-msgid "The 3MF was created by BambuStudio (version %s), which is newer than the compatible version %s. Some settings may not be fully compatible."
-msgstr "该 3MF 由 BambuStudio（版本 %s）创建，其版本高于兼容版本 %s。部分设置可能无法完全兼容。"
-
-msgid "The 3MF was created by BambuStudio. Some settings may differ from OrcaSlicer."
-msgstr "该 3MF 由 BambuStudio 创建。部分设置可能与 OrcaSlicer 不同。"
 
 msgid "Invalid values found in the 3MF:"
 msgstr "在3mf文件中发现无效值："
@@ -8638,6 +8820,14 @@ msgstr "禁用自动落板以保留 Z 轴定位？\n"
 msgid "Object with floating parts was detected"
 msgstr "检测到含有悬空零件的对象"
 
+# AI Translated
+msgid "Cannot slice: an object overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
+msgstr "无法切片：有对象与 IDEX/IQEX 并行打印的预留区域（副区域或主区域内的滑车避让带）重叠。"
+
+# AI Translated
+msgid "Cannot slice: the prime tower overlaps an area reserved for IDEX/IQEX parallel printing (a secondary zone, or a carriage clearance strip inside the primary zone)."
+msgstr "无法切片：擦拭塔与 IDEX/IQEX 并行打印的预留区域（副区域或主区域内的滑车避让带）重叠。"
+
 msgid "Another export job is running."
 msgstr "有其他导出任务正在进行中。"
 
@@ -8720,6 +8910,50 @@ msgstr "无效数据"
 msgid "Slicing Canceled"
 msgstr "切片已取消"
 
+# AI Translated
+#, c-format, boost-format
+msgid "Bed temperature conflict: T%d (%s) sets the bed to %d°C — T%d (%s) requires %d°C. The primary tool controls the bed; secondary tools print at whatever temperature it sets."
+msgstr "热床温度冲突：T%d（%s）将热床设为 %d°C，而 T%d（%s）需要 %d°C。热床温度由主工具头决定，副工具头只能沿用该温度。"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Filament type mismatch: T%d uses %s and T%d uses %s. These materials have incompatible requirements and are not designed to print together."
+msgstr "耗材丝类型不匹配：T%d 使用 %s，而 T%d 使用 %s。这些材料的打印条件互不兼容，不宜一起打印。"
+
+# AI Translated
+#, c-format, boost-format
+msgid ""
+"Plate %d has IDEX/IQEX parallel mode active with the following concerns:\n"
+"\n"
+msgstr ""
+"盘 %d 启用了 IDEX/IQEX 并行模式，存在以下问题：\n"
+"\n"
+
+# AI Translated
+msgid "Continue slicing?"
+msgstr "是否继续切片？"
+
+# AI Translated
+msgid "IDEX/IQEX Parallel Mode Warning"
+msgstr "IDEX/IQEX 并行模式警告"
+
+# AI Translated
+msgid "Don't show these warnings again"
+msgstr "不再显示这些警告"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Plate %d:\n"
+msgstr "盘 %d：\n"
+
+# AI Translated
+msgid ""
+"The following IDEX/IQEX parallel mode concerns were detected:\n"
+"\n"
+msgstr ""
+"检测到以下 IDEX/IQEX 并行模式问题：\n"
+"\n"
+
 msgid "Network plug-in switched successfully."
 msgstr "网络插件切换成功。"
 
@@ -8752,8 +8986,8 @@ msgid "Sync now"
 msgstr "立即同步"
 
 # AI Translated
-msgid "Cannot undo or redo while an operation is running. Stop it first."
-msgstr "操作正在进行时无法撤销或重做。请先停止该操作。"
+msgid "Cannot undo or redo while an operation is running. Stop the operation, or wait for it to finish and then retry."
+msgstr "有操作正在进行，无法撤销或重做。请停止该操作，或等其完成后再试。"
 
 # AI Translated
 msgid ""
@@ -8826,6 +9060,14 @@ msgid "Project downloaded %d%%"
 msgstr "项目已下载%d%%"
 
 # AI Translated
+msgid ""
+"PA Line and PA Pattern tests are not enabled yet on belt printers.\n"
+"Please use the PA Tower method instead."
+msgstr ""
+"传送带打印机暂不支持“划线模式”和“V形模式”PA 测试。\n"
+"请改用“PA塔”方法。"
+
+# AI Translated
 msgid "Pressure Advance Test"
 msgstr "Pressure Advance 测试"
 
@@ -8850,6 +9092,15 @@ msgstr "Orca YOLO 流量校准"
 #, c-format, boost-format
 msgid "Flowrate Test - Pass%d"
 msgstr "流量测试 - 第 %d 轮"
+
+# AI Translated
+#, boost-format
+msgid "No belt temperature tower is available for the range %1% to %2% °C. Use a range the tower models cover, for example 230 to 190."
+msgstr "没有适用于 %1% 至 %2% °C 的传送带温度塔。请使用温度塔模型支持的温度范围，例如 230 至 190。"
+
+# AI Translated
+msgid "Temperature tower"
+msgstr "温度塔"
 
 # AI Translated
 msgid "Nozzle temperature test"
@@ -9151,23 +9402,29 @@ msgstr "目前，对象配置表单不能与多挤出机打印机一起使用。
 msgid "Not available"
 msgstr "无法使用"
 
+# AI Translated
 msgid "isometric"
-msgstr "等距"
+msgstr "等轴测"
 
+# AI Translated
 msgid "top_front"
-msgstr "顶面"
+msgstr "前上方"
 
+# AI Translated
 msgid "top"
-msgstr "顶部"
+msgstr "俯视"
 
+# AI Translated
 msgid "bottom"
-msgstr "底部"
+msgstr "仰视"
 
+# AI Translated
 msgid "front"
-msgstr "正面"
+msgstr "前视"
 
+# AI Translated
 msgid "rear"
-msgstr "后部"
+msgstr "后视"
 
 msgid "Switching languages requires the application to restart.\n"
 msgstr "切换语言需要重启应用程序。\n"
@@ -9567,26 +9824,31 @@ msgstr "触控板"
 msgid "Camera style"
 msgstr "视角控制模式"
 
+# AI Translated
 msgid ""
 "Select camera navigation style.\n"
 "Default: LMB+move for rotation, RMB/MMB+move for panning.\n"
 "Touchpad: Alt+move for rotation, Shift+move for panning."
 msgstr ""
-"触摸板：Alt+移动进行旋转，Shift+移动进行平移选择摄像机的导航模式。\n"
-"默认：鼠标左键+拖动 旋转，鼠标右键+拖动 平移；\n"
-"触控板：Alt+拖动 旋转，Shift+拖动 平移。"
+"选择视角控制模式。\n"
+"默认：鼠标左键拖动旋转，鼠标右键/中键拖动平移。\n"
+"触控板：Alt+移动旋转，Shift+移动平移。"
 
+# AI Translated
 msgid "Orbit speed multiplier"
-msgstr "轨道速度倍数"
+msgstr "环绕速度倍率"
 
+# AI Translated
 msgid "Multiplies the orbit speed for finer or coarser camera movement."
-msgstr "乘以轨道速度以获得更精细或更粗略的相机移动"
+msgstr "调整相机环绕的速度倍率，数值越小转动越精细，越大转动越快。"
 
+# AI Translated
 msgid "Zoom to mouse position"
-msgstr "放大到鼠标位置"
+msgstr "以鼠标位置为中心缩放"
 
+# AI Translated
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
-msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
+msgstr "在 3D 视图中以鼠标指针位置为中心缩放，而不是以窗口中心缩放。"
 
 msgid "Use free camera"
 msgstr "使用自由视角"
@@ -11256,6 +11518,10 @@ msgstr "不支持同步不同的挤出机传动方式或喷嘴内腔体积类型
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "将参数的修改同步到另一个挤出机的相应参数。"
 
+# AI Translated
+msgid "Parameters with this icon can be configurable per nozzle."
+msgstr "带有此图标的参数可以按喷嘴分别设置。"
+
 msgid "Click to reset all settings to the last saved preset."
 msgstr "点击以将所有设置还原到最后一次保存的版本。"
 
@@ -11665,6 +11931,14 @@ msgstr "可打印区域"
 msgid "Select the network agent implementation for printer communication. Available agents are registered at startup."
 msgstr "为打印机通信选择网络代理。可用的代理将在启动时列出。"
 
+# AI Translated
+msgid "Belt printer"
+msgstr "传送带打印机"
+
+# AI Translated
+msgid "Machine frame transforms"
+msgstr "机器坐标系变换"
+
 #. TRN: The first argument is the parameter's name; the second argument is its value.
 #, boost-format
 msgid "Invalid value provided for parameter %1%: %2%"
@@ -11778,8 +12052,28 @@ msgstr "喷嘴直径"
 msgid "Wipe tower"
 msgstr "擦拭塔"
 
+# AI Translated
+msgid "Belt purge tower"
+msgstr "传送带冲刷塔"
+
 msgid "Single extruder multi-material parameters"
 msgstr "单挤出机多材料参数"
+
+# AI Translated
+msgid "IDEX/IQEX Configuration"
+msgstr "IDEX/IQEX 配置"
+
+# AI Translated
+msgid "Pre-slice warnings"
+msgstr "切片前警告"
+
+# AI Translated
+msgid "Show a warning dialog before slicing if IDEX/IQEX parallel mode concerns are detected (bed temperature conflicts, filament type mismatches, multi-material conflicts). Can be suppressed from the dialog itself. Re-enable here if suppressed accidentally."
+msgstr "检测到 IDEX/IQEX 并行模式问题（热床温度冲突、耗材丝类型不匹配、多材料冲突）时，在切片前显示警告对话框。可在对话框中选择不再显示；若误关，可在此处重新启用。"
+
+# AI Translated
+msgid "Modes"
+msgstr "模式"
 
 msgid "This is a single extruder multi-material printer, diameters of all extruders will be set to the new value. Do you want to proceed?"
 msgstr "这是一台单挤出机多材料打印机，所有挤出机的直径都将被设置为新值。您想继续吗？"
@@ -11789,6 +12083,22 @@ msgstr "层高限制"
 
 msgid "Z-Hop"
 msgstr "Z轴抬升"
+
+# AI Translated
+msgid "Front-left"
+msgstr "左前"
+
+# AI Translated
+msgid "Front-right"
+msgstr "右前"
+
+# AI Translated
+msgid "Rear-left"
+msgstr "左后"
+
+# AI Translated
+msgid "Rear-right"
+msgstr "右后"
 
 msgid ""
 "The Retract before wipe option could be only 100% when using the Firmware Retraction mode.\n"
@@ -11893,10 +12203,9 @@ msgstr "继续"
 msgid "Don't warn again for this preset"
 msgstr "不再为此预设警告"
 
-# AI Translated
 #, c-format, boost-format
-msgid "%s: %s"
-msgstr "%s: %s"
+msgid "%s %s"
+msgstr "%s %s"
 
 # AI Translated
 msgid "No modifications need to be copied."
@@ -12324,9 +12633,6 @@ msgstr "ms"
 msgid "Total ramming"
 msgstr "总冲刷量"
 
-msgid "Volume"
-msgstr "体积"
-
 msgid "Ramming line"
 msgstr "预冲刷线"
 
@@ -12375,6 +12681,133 @@ msgstr "登录失败。请重试。"
 msgid "parse json failed"
 msgstr "解析 json 失败"
 
+msgid "Loading…"
+msgstr "正在加载……"
+
+msgid "Welcome to Orca Slicer"
+msgstr "欢迎使用 Orca Slicer"
+
+# AI Translated
+msgid "Orca Slicer will be set up in several steps. Let's start!"
+msgstr "Orca Slicer 将通过几个步骤完成设置。让我们开始吧！"
+
+msgid "Get Started"
+msgstr "开始"
+
+msgid "Please select your login region"
+msgstr "请选择登录区域"
+
+msgid "Finish"
+msgstr "完成"
+
+msgid "Printer Selection"
+msgstr "选择打印机"
+
+# AI Translated
+msgid "Vendors"
+msgstr "供应商"
+
+# AI Translated
+msgid "Custom Printer"
+msgstr "自定义打印机"
+
+msgid "Create"
+msgstr "创建"
+
+# AI Translated
+msgid "Check for new printers"
+msgstr "检查新打印机"
+
+msgid "At least one printer must be selected."
+msgstr "至少需要选择一款打印机。"
+
+# AI Translated
+msgid "New printers found"
+msgstr "发现新打印机"
+
+# AI Translated
+#, c-format, boost-format
+msgid "New printer vendors installed: %s"
+msgstr "已安装新的打印机供应商：%s"
+
+# AI Translated
+msgid "New printer vendors were found, but installation was cancelled."
+msgstr "发现了新的打印机供应商，但安装已取消。"
+
+# AI Translated
+msgid "No new printers found."
+msgstr "未发现新打印机。"
+
+msgid "Filament Selection"
+msgstr "选择耗材丝"
+
+msgid "System Filaments"
+msgstr "系统耗材丝"
+
+msgid "Custom Filaments"
+msgstr "自建耗材丝"
+
+msgid "Create New"
+msgstr "新建"
+
+msgid "Filament type"
+msgstr "耗材类型"
+
+msgid "Vendor"
+msgstr "供应商"
+
+# AI Translated
+msgid "No items"
+msgstr "无项目"
+
+# AI Translated
+msgid "Filter items"
+msgstr "筛选项目"
+
+# AI Translated
+msgid "Checked"
+msgstr "已勾选"
+
+# AI Translated
+msgid "Unchecked"
+msgstr "未勾选"
+
+# AI Translated
+msgid "Select filtered"
+msgstr "选择筛选项"
+
+msgid "Clear all"
+msgstr "清空"
+
+msgid "At least one filament must be selected."
+msgstr "至少要选择一款耗材丝。"
+
+msgid "Do you want to use the default filament?"
+msgstr "你希望使用默认的耗材丝列表吗？"
+
+msgid "This disables all cloud features, including Orca Cloud profile syncing. Users who prefer to work entirely offline can enable this option."
+msgstr "这将禁用所有云功能，包括 Orca Cloud 配置文件同步。希望完全离线工作的用户可以启用此选项。"
+
+msgid "Note: When Stealth Mode is enabled, your user profiles will not be backed up to Orca Cloud."
+msgstr "注意：启用局域网模式后，您的用户配置文件将不会备份到 Orca Cloud。"
+
+# AI Translated
+msgid "Enable Stealth Mode."
+msgstr "启用局域网模式。"
+
+# AI Translated
+msgid "Proprietary Plugins"
+msgstr "专有插件"
+
+msgid "Some printer vendors require proprietary plugins for communication with their printers. Please select the corresponding plugin if you use such printers."
+msgstr "一些打印机供应商需要安装他们的专有插件才能与打印机通信。如果您使用这类打印机，请选择相应的插件。"
+
+msgid "Please be aware that these plugins are not developed or maintained by OrcaSlicer. They should be used at your own discretion and risk."
+msgstr "注意：这些插件不是由 OrcaSlicer 开发或维护的。使用它们需自担风险。"
+
+msgid "Install Bambu Network plug-in"
+msgstr "安装 Bambu 网络插件"
+
 msgid "[Action Required] "
 msgstr "[需要操作] "
 
@@ -12395,11 +12828,13 @@ msgstr "参数配置包在之前的配置向导中发生了变更"
 msgid "Configuration package changed"
 msgstr "参数配置包发生变更"
 
+# AI Translated
 msgid "Pan View"
-msgstr "移动视角"
+msgstr "平移视图"
 
+# AI Translated
 msgid "Rotate View"
-msgstr "旋转视角"
+msgstr "旋转视图"
 
 # AI Translated
 #, c-format, boost-format
@@ -12466,8 +12901,9 @@ msgstr "鼠标中键"
 msgid "Right mouse"
 msgstr "鼠标右键"
 
+# AI Translated
 msgid "Zoom View"
-msgstr "缩放视角"
+msgstr "缩放视图"
 
 # AI Translated
 msgid "Painting"
@@ -12834,6 +13270,16 @@ msgstr "耗材挤出类型更换 G-code"
 msgid "No object can be printed. It may be too small."
 msgstr "没有可打印的对象。可能是因为尺寸过小。"
 
+# AI Translated
+#, boost-format
+msgid "The IDEX/IQEX mode \"%1%\" has no tools assigned on the selected printer. Printing in Primary mode instead. Assign the mode's tools in Printer Settings, or pick another mode from the plate's IDEX/IQEX button."
+msgstr "所选打印机上的 IDEX/IQEX 模式“%1%”没有分配工具头，将改用主模式打印。请在打印机设置中为该模式分配工具头，或通过盘上的 IDEX/IQEX 按钮选择其他模式。"
+
+# AI Translated
+#, boost-format
+msgid "This plate is set to the IDEX/IQEX mode \"%1%\", which the selected printer does not define. Printing in Primary mode instead. Pick a mode from the plate's IDEX/IQEX button, or restore the mode in Printer Settings."
+msgstr "此盘设置为 IDEX/IQEX 模式“%1%”，但所选打印机未定义该模式，将改用主模式打印。请通过盘上的 IDEX/IQEX 按钮选择模式，或在打印机设置中恢复该模式。"
+
 msgid "Your print is very close to the priming regions. Make sure there is no collision."
 msgstr "你的指纹非常接近启动区域。确保没有碰撞。"
 
@@ -13006,6 +13452,33 @@ msgstr "验证失败"
 msgid "write callback failed"
 msgstr "写入回调失败"
 
+# AI Translated
+# Needs human review: MMU/AFC manifold → 合流器: confirm the term Chinese users use for a multi-input filament merger (合料器?).
+msgid "Multi-color prints in IDEX/IQEX parallel modes require each filament to have its own dedicated physical extruder. Two or more of the active filaments are routed to the same physical head via the printer's physical extruder map (an MMU/AFC manifold), which the slaved gantry cannot follow."
+msgstr "IDEX/IQEX 并行模式下进行多色打印时，每种耗材丝都必须有专用的物理挤出机。当前有两种或以上使用中的耗材丝经由打印机的物理挤出机映射（MMU/AFC 合流器）送入同一个物理工具头，从动龙门无法跟随这种切换。"
+
+# AI Translated
+msgid "The active IDEX/IQEX mode does not define a primary tool, so multi-color printing cannot be scheduled. Open the printer settings IDEX/IQEX Modes editor and assign a Primary role to one tool."
+msgstr "当前 IDEX/IQEX 模式没有定义主工具头，因此无法安排多色打印。请打开打印机设置中的 IDEX/IQEX 模式编辑器，为某个工具头分配主工具头（Primary）角色。"
+
+# AI Translated
+msgid "Multi-color in this mode isn't a parallel-print scenario — all of the active tools sit on a single gantry, so there's no second gantry being copied or mirrored to. Switch the plate to Primary mode for multi-color printing on a single gantry, or define an IDEX/IQEX mode that includes tools on a second gantry."
+msgstr "此模式下的多色打印不属于并行打印：所有使用中的工具头都在同一个龙门上，没有第二个龙门可供复制或镜像。若要在单个龙门上多色打印，请将此盘切换为主模式；或定义一个包含第二个龙门上工具头的 IDEX/IQEX 模式。"
+
+# AI Translated
+msgid "Multi-color prints in IDEX/IQEX parallel modes require a Span tool on the primary's gantry — without one, the mode doesn't declare a within-gantry multicolor partner. Either reduce the print to a single filament, switch to Primary mode, or open the printer settings IDEX/IQEX Modes editor and mark a tool on the primary's gantry as Span."
+msgstr "IDEX/IQEX 并行模式下进行多色打印时，主工具头所在的龙门上必须有一个 Span 工具头，否则该模式没有指定同一龙门内的多色搭档。请改为只使用一种耗材丝，或切换到主模式，或打开打印机设置中的 IDEX/IQEX 模式编辑器，将主工具头所在龙门上的一个工具头标记为 Span。"
+
+# AI Translated
+#, boost-format
+msgid "In this Span mode only %1% print colors, but filament %2% isn't routed to any tool. Use filaments routed to %1%, or switch this plate to Primary mode."
+msgstr "在此 Span 模式下，只有 %1% 参与多色打印，但耗材丝 %2% 未分配给任何工具头。请使用分配给 %1% 的耗材丝，或将此盘切换为主模式。"
+
+# AI Translated
+#, boost-format
+msgid "In this Span mode only %1% print colors, but filament %2% is routed to T%3%. Use filaments routed to %1%, or switch this plate to Primary mode."
+msgstr "在此 Span 模式下，只有 %1% 参与多色打印，但耗材丝 %2% 分配给了 T%3%。请使用分配给 %1% 的耗材丝，或将此盘切换为主模式。"
+
 #, boost-format
 msgid "%1% is too close to exclusion area. There may be collisions when printing."
 msgstr "%1%离屏蔽区域太近，可能会发生碰撞。"
@@ -13057,6 +13530,55 @@ msgid "No extrusions under current settings."
 msgstr "根据当前设置，不会生成任何打印。"
 
 # AI Translated
+msgid "Mixed filaments are not supported in IDEX/IQEX parallel modes. Switch this plate to Primary mode."
+msgstr "IDEX/IQEX 并行模式不支持混合耗材丝。请将此盘切换为主模式。"
+
+# AI Translated
+msgid "no configured tool"
+msgstr "未配置的工具头"
+
+# AI Translated
+#, boost-format
+msgid "IDEX/IQEX mode \"%1%\" prints with T%2%, but this plate's filaments are on %3%. Assign a filament loaded on T%2%, or switch this plate to Primary mode."
+msgstr "IDEX/IQEX 模式“%1%”使用 T%2% 打印，但此盘的耗材丝在 %3% 上。请改用装在 T%2% 上的耗材丝，或将此盘切换为主模式。"
+
+# AI Translated
+msgid "Raft is not compatible with belt printer mode."
+msgstr "筏层与传送带打印机模式不兼容。"
+
+# AI Translated
+msgid "Draft shield is not compatible with belt printer mode."
+msgstr "风挡与传送带打印机模式不兼容。"
+
+# AI Translated
+msgid "Brim is not compatible with spiral vase mode on a belt printer. Disable one of them."
+msgstr "在传送带打印机上，Brim 与旋转花瓶模式不兼容。请禁用其中之一。"
+
+# AI Translated
+msgid "The belt is too steep for a brim, so no brim will be generated."
+msgstr "传送带倾角过大，不适合使用 Brim，将不会生成 Brim。"
+
+# AI Translated
+msgid "A brim is only generated when the belt is tilted. Set a belt tilt angle, or remove the brim setting."
+msgstr "仅当传送带倾斜时才会生成 Brim。请设置传送带倾斜角度，或移除 Brim 设置。"
+
+# AI Translated
+msgid "Belt printers support outer and inner brim only. Auto, Mouse ear and Painted brim are printed as Outer brim only, using Brim width."
+msgstr "传送带打印机仅支持外侧和内侧 Brim。“自动”“圆盘”和“绘制”类型的 Brim 将按“仅外侧”打印，宽度取“Brim宽度”。"
+
+# AI Translated
+msgid "Brim-object gap separates the leading brim from the object's leading edge, which is the edge it is meant to anchor. Set the gap to 0 when using leading brim length."
+msgstr "“Brim与模型的间隙”会让前缘 Brim 与对象的前缘分离，而前缘 Brim 正是用来固定这条边的。使用“前缘 Brim 长度”时，请将该间隙设为 0。"
+
+# AI Translated
+msgid "Leading brim length extends ahead of each object along the belt, and Arrange does not reserve that space. Leave room between objects."
+msgstr "“前缘 Brim 长度”会使 Brim 沿传送带向每个对象前方延伸，而“自动摆放”不会为此预留空间。请在对象之间留出足够的间距。"
+
+# AI Translated
+msgid "\"Leading edge only\" brim applies to belt printers. On this printer it is printed as an ordinary outer brim."
+msgstr "“仅前缘”Brim 仅适用于传送带打印机，在此打印机上将按普通外侧 Brim 打印。"
+
+# AI Translated
 msgid "A gradient mixed filament is used, but 'Mixed color sublayer' is disabled. The gradient will not be printed."
 msgstr "使用了渐变混合耗材丝，但“混色子层”已关闭。渐变将不会被打印。"
 
@@ -13065,6 +13587,18 @@ msgstr "平滑模式的延时摄影不支持在逐件打印模式下使用。"
 
 msgid "Clumping detection is not supported when \"by object\" sequence is enabled."
 msgstr "启用“按对象”序列时，不支持结块检测。"
+
+# AI Translated
+msgid "The belt purge tower is not generated in \"By object\" print sequence; filament changes will not be purged."
+msgstr "“逐件”打印顺序下不会生成传送带冲刷塔，换料时将不会冲刷。"
+
+# AI Translated
+msgid "The belt purge tower is enabled but the project has no purge tower object; filament changes will not be purged. Open the project in the application to generate the tower."
+msgstr "已启用传送带冲刷塔，但项目中没有冲刷塔对象，换料时将不会冲刷。请在应用程序中打开该项目以生成冲刷塔。"
+
+# AI Translated
+msgid "The project contains multiple managed belt purge towers. Reload the plate or toggle the belt purge tower off and on to regenerate it."
+msgstr "项目中包含多个自动管理的传送带冲刷塔。请重新加载此盘，或将传送带冲刷塔关闭后再开启，以重新生成。"
 
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "同时启用精确Z高度和擦拭塔可能会导致切片错误。"
@@ -13083,15 +13617,15 @@ msgid "While the object %1% itself fits the build volume, it exceeds the maximum
 msgstr "虽然对象 %1% 本身适合构建体积，但由于材料收缩补偿，它超出了最大构建体积高度。"
 
 #, boost-format
-msgid "The object %1% exceeds the maximum build volume height."
-msgstr "对象 %1% 超过了最大构建体积高度"
-
-#, boost-format
 msgid "While the object %1% itself fits the build volume, its last layer exceeds the maximum build volume height."
 msgstr "对象 %1% 自身虽然构建体积合适，但最后一层却超过了最大构建体积高度"
 
 msgid "You might want to reduce the size of your model or change current print settings and retry."
 msgstr "或许您想要缩小模型的尺寸，或者更改当前打印设置，然后重试"
+
+#, boost-format
+msgid "The object %1% exceeds the maximum build volume height."
+msgstr "对象 %1% 超过了最大构建体积高度"
 
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Organic支撑不支持可变层高。"
@@ -14002,11 +14536,55 @@ msgstr "内部桥接的速度。如果该值以百分比表示，将基于桥接
 msgid "This is the distance from the model to the outermost brim line."
 msgstr "从模型到最外圈brim走线的距离"
 
+# AI Translated
+msgid "Leading brim length"
+msgstr "前缘 Brim 长度"
+
+# AI Translated
+msgid ""
+"Belt printers only. Extends the brim AHEAD of the object along the belt, on every downhill-facing edge of its contact area - both the object's first contact with the belt and any island that lands later. This apron is laid onto the belt before the object reaches it, so the leading edge has something already stuck down to hold on to.\n"
+"\n"
+"Measured on the belt surface, and added on top of Brim width: the brim reaches Brim-object gap + Leading brim length + Brim width ahead of the object. Set Brim-object gap to 0, or the apron will not touch the object it is meant to anchor.\n"
+"\n"
+"On a tilted belt each layer lays one strip of the brim, so the thickness of the resulting brim sheet is set by flow rather than by layer height. Use Brim flow ratio to tune it.\n"
+"\n"
+"Set to 0 to disable."
+msgstr ""
+"仅适用于传送带打印机。将 Brim 沿传送带向对象前方延伸，覆盖其接触区域中每一条朝下坡方向的边，包括对象首次接触传送带的位置，以及之后才落到传送带上的岛屿。这条前置 Brim 带会先于对象铺在传送带上，使前缘有已经粘牢的部分可以依附。\n"
+"\n"
+"在传送带表面上测量，并在“Brim宽度”的基础上叠加：Brim 在对象前方延伸的距离为“Brim与模型的间隙”+“前缘 Brim 长度”+“Brim宽度”。请将“Brim与模型的间隙”设为 0，否则这条前置 Brim 带将接触不到它要固定的对象。\n"
+"\n"
+"在倾斜的传送带上，每层铺设一条 Brim，因此最终 Brim 片的厚度由流量而非层高决定，可通过“Brim流量比”调节。\n"
+"\n"
+"设置为 0 以禁用。"
+
+# AI Translated
+msgid "Extra brim width"
+msgstr "额外 Brim 宽度"
+
+# AI Translated
+msgid ""
+"Belt printers only. Widens the brim SIDEWAYS, across the belt, without extending it further ahead of or behind the object. Use it when a part needs more grip along its length than Brim width alone gives.\n"
+"\n"
+"Measured on the belt surface, and added on top of Brim width: the brim reaches Brim-object gap + Brim width + Extra brim width to either side of the object. To extend the brim ahead of the object instead, use Leading brim length.\n"
+"\n"
+"Set to 0 to disable."
+msgstr ""
+"仅适用于传送带打印机。沿横跨传送带的方向将 Brim 向两侧加宽，而不会使其在对象前方或后方进一步延伸。当零件沿长度方向需要比单靠“Brim宽度”更强的附着力时使用。\n"
+"\n"
+"在传送带表面上测量，并在“Brim宽度”的基础上叠加：Brim 在对象两侧延伸的距离为“Brim与模型的间隙”+“Brim宽度”+“额外 Brim 宽度”。若要让 Brim 向对象前方延伸，请改用“前缘 Brim 长度”。\n"
+"\n"
+"设置为 0 以禁用。"
+
 msgid "Brim type"
 msgstr "Brim类型"
 
 msgid "This controls the generation of the brim at outer and/or inner side of models. Auto means the brim width is analyzed and calculated automatically."
 msgstr "该参数控制在模型的外侧和/或内侧生成brim。自动是指自动分析和计算边框的宽度。"
+
+# AI Translated
+msgid "Leading edge only"
+msgstr "仅前缘"
 
 msgid "Brim-object gap"
 msgstr "Brim与模型的间隙"
@@ -15189,9 +15767,6 @@ msgstr "耗材丝的价格。只用于统计信息。"
 msgid "money/kg"
 msgstr "金额/kg"
 
-msgid "Vendor"
-msgstr "供应商"
-
 msgid "Vendor of filament. For show only."
 msgstr "打印耗材的供应商。仅用于展示。"
 
@@ -15264,6 +15839,92 @@ msgstr "填充多线"
 
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
 msgstr "如果填充图案支持，使用多线进行填充。"
+
+# AI Translated
+msgid "Adaptive density (experimental)"
+msgstr "自适应密度（实验性）"
+
+# AI Translated
+msgid ""
+"Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the object towards its center. The sparse infill density is used at the surface and the interior density at the center.\n"
+"Distance warp, Smooth blend and Stepped shells follow the distance to the nearest surface, including the top and bottom, with the interior density at the point farthest from it:\n"
+" - Distance warp: one continuous pattern, stretched and sheared where the distance changes across directions, as in plates and long parts.\n"
+" - Smooth blend: the patterns of neighbouring densities blended into each other, with small loops where they meet.\n"
+" - Stepped shells: shells of the regular pattern at densities about 1.5 times apart, their lines joined along the shell boundaries.\n"
+" - Lobes: follows the 3D shape of the object, including its top and bottom. Every lobe, a part joined to the rest by a narrower neck, is graded towards its own center.\n"
+" - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density does not change along it."
+msgstr ""
+"让对象内部的螺旋体和 TPMS 填充密度渐变：填充单元从对象表面向中心逐渐变大。表面处使用稀疏填充密度，中心处使用内部密度。\n"
+"距离扭曲、平滑混合和阶梯壳层按到最近表面（包括顶部和底部）的距离渐变，离表面最远处使用内部密度：\n"
+" - 距离扭曲：单一连续的图案，在距离随方向变化不一的地方（如板状和长条形零件）被拉伸和剪切。\n"
+" - 平滑混合：相邻密度的图案相互融合，交界处会出现小环。\n"
+" - 阶梯壳层：由常规图案组成的多层壳，相邻壳层中较高的密度约为较低密度的 1.5 倍，各层线条沿壳层边界相连。\n"
+" - 分瓣：跟随对象的三维形状（包括顶部和底部）。每个瓣（通过较窄的颈部与其余部分相连的部分）都朝其自身中心渐变。\n"
+" - 垂直于 Z、Y 或 X：跟随对象垂直于该轴的截面，因此密度沿该轴不变。"
+
+# AI Translated
+msgid "Distance warp"
+msgstr "距离扭曲"
+
+# AI Translated
+msgid "Smooth blend"
+msgstr "平滑混合"
+
+# AI Translated
+msgid "Stepped shells"
+msgstr "阶梯壳层"
+
+# AI Translated
+msgid "Lobes"
+msgstr "分瓣"
+
+# AI Translated
+msgid "Normal Z"
+msgstr "垂直于 Z"
+
+# AI Translated
+msgid "Normal Y"
+msgstr "垂直于 Y"
+
+# AI Translated
+msgid "Normal X"
+msgstr "垂直于 X"
+
+# AI Translated
+msgid "Interior density"
+msgstr "内部密度"
+
+# AI Translated
+msgid "Density of the adaptive infill at the center of the object."
+msgstr "对象中心处的自适应填充密度。"
+
+# AI Translated
+msgid "Adaptive gradient"
+msgstr "自适应渐变"
+
+# AI Translated
+msgid ""
+"How the density changes from the surface to the center of the object.\n"
+"Linear: the density changes at a constant rate.\n"
+"Quadratic: the density stays close to the sparse infill density near the surface and changes faster towards the center.\n"
+"Exponential: the density changes quickly just below the surface and levels off towards the center."
+msgstr ""
+"密度从对象表面到中心的变化方式。\n"
+"线性：密度均匀变化。\n"
+"二次：表面附近的密度接近稀疏填充密度，越靠近中心变化越快。\n"
+"指数：密度在表面以下迅速变化，越靠近中心越趋于平稳。"
+
+# AI Translated
+msgid "Linear"
+msgstr "线性"
+
+# AI Translated
+msgid "Quadratic"
+msgstr "二次"
+
+# AI Translated
+msgid "Exponential"
+msgstr "指数"
 
 msgid "Z-buckling bias optimization (experimental)"
 msgstr "Z 轴屈曲偏置优化（实验性）"
@@ -17025,11 +17686,13 @@ msgstr "仅顶面"
 msgid "Bottom Only"
 msgstr "仅底面"
 
+# AI Translated
 msgid "Top and Bottom"
-msgstr "顶面和地面"
+msgstr "顶面和底面"
 
+# AI Translated
 msgid "Direct Drive"
-msgstr "直驱（近程）"
+msgstr "近程挤出机"
 
 msgid "Bowden"
 msgstr "远程挤出机"
@@ -17479,6 +18142,131 @@ msgstr "单挤出机多材料"
 msgid "Use single nozzle to print multi filament."
 msgstr "使用单喷嘴打印多耗材"
 
+# AI Translated
+msgid "IDEX/IQEX Printer"
+msgstr "IDEX/IQEX 打印机"
+
+# AI Translated
+msgid "Enable parallel printing for printers with multiple independent carriages (IDEX, IQEX, and similar)."
+msgstr "为具有多个独立滑车的打印机（IDEX、IQEX 等）启用并行打印。"
+
+# AI Translated
+msgid "Firmware-managed zones"
+msgstr "固件管理区域"
+
+# AI Translated
+msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
+msgstr "启用后，切片软件输出的 G-code 会以热床原点 (0,0) 为中心放置主区域的内容，由打印机固件负责把复制件/镜像件放到各个物理区域。仅当打印机固件在复制/镜像模式下会自行应用区域偏移时才启用（例如 RepRapFirmware 的 IDEX 复制模式）。主模式下无效。"
+
+# AI Translated
+msgid "Gantry Count"
+msgstr "龙门数量"
+
+# AI Translated
+msgid "Number of independent Y-axis gantries. 1 for IDEX/single-rail IQEX. 2 for dual-gantry systems (divides bed into rows)."
+msgstr "独立 Y 轴龙门的数量。IDEX/单导轨 IQEX 为 1，双龙门系统为 2（将热床分成多排）。"
+
+# AI Translated
+msgid "Tools per Gantry"
+msgstr "每个龙门的工具头数"
+
+# AI Translated
+msgid "Number of independent toolheads per gantry along X. 2 for IDEX-style."
+msgstr "每个龙门上沿 X 方向独立运动的工具头数量。IDEX 类机型为 2。"
+
+# AI Translated
+msgid "Tool 0 Position"
+msgstr "工具头 0 位置"
+
+# AI Translated
+msgid "Physical position on the bed where tool T0 (index 0) is located. Determines how tool indices map to bed zones. For single-gantry setups (IDEX) only left/right matters; for dual-gantry setups (IQEX) all four corners are selectable (front = lower Y / near the operator, rear = higher Y / back of machine)."
+msgstr "工具头 T0（索引 0）在热床上的物理位置，决定工具头索引与热床区域的对应关系。单龙门配置（IDEX）只区分左右；双龙门配置（IQEX）可选择全部四个角（前 = Y 值较小 / 靠近操作者，后 = Y 值较大 / 机器后部）。"
+
+# AI Translated
+msgid "Nozzle Clearance X"
+msgstr "喷嘴避让距离 X"
+
+# AI Translated
+msgid "Distance (mm) from the nozzle to the collision-side carriage edge in X. Used to calculate the width of the collision exclusion strip at each X boundary."
+msgstr "X 方向上喷嘴到滑车碰撞侧边缘的距离（mm），用于计算每条 X 边界处防碰撞屏蔽带的宽度。"
+
+# AI Translated
+msgid "Nozzle Clearance Y"
+msgstr "喷嘴避让距离 Y"
+
+# AI Translated
+msgid "Distance (mm) from the nozzle to the collision-side carriage edge in Y. Used to calculate the width of the collision exclusion strip at each Y boundary."
+msgstr "Y 方向上喷嘴到滑车碰撞侧边缘的距离（mm），用于计算每条 Y 边界处防碰撞屏蔽带的宽度。"
+
+# AI Translated
+msgid "Safety Margin"
+msgstr "安全边距"
+
+# AI Translated
+msgid "Non-blocking advisory clearance strip (mm) drawn inside the primary zone at each carriage boundary. Parts placed within this strip will still slice; it is a visual reminder to leave extra clearance near the zone edge."
+msgstr "在主区域内每条滑车边界处显示的提示性避让带宽度（mm），不会阻止切片。放在此带内的零件仍可正常切片，它仅用于提醒您在区域边缘附近多留间隙。"
+
+# AI Translated
+msgid "Visualization Theme"
+msgstr "可视化主题"
+
+# AI Translated
+msgid "Color theme for IDEX/IQEX bed zone visualization. Choose a colorblind-friendly theme if needed."
+msgstr "IDEX/IQEX 热床区域显示的配色主题。如有需要，可选择色盲友好主题。"
+
+# AI Translated
+msgid "Deuteranopia / Protanopia (red-green)"
+msgstr "绿色盲 / 红色盲（红绿色盲）"
+
+# AI Translated
+msgid "Tritanopia (blue-yellow)"
+msgstr "蓝色盲（蓝黄色盲）"
+
+# AI Translated
+msgid "High Contrast"
+msgstr "高对比度"
+
+# AI Translated
+msgid "IDEX/IQEX Print Mode"
+msgstr "IDEX/IQEX 打印模式"
+
+# AI Translated
+msgid "Name of the active IDEX/IQEX parallel print mode, or \"primary\" for single-carriage printing. Requires IDEX/IQEX Printer enabled in the Printer preset (Printer → Multimaterial → IDEX/IQEX Configuration)."
+msgstr "当前 IDEX/IQEX 并行打印模式的名称；单滑车打印时为 \"primary\"。需在打印机预设中启用“IDEX/IQEX 打印机”（打印机 → 材料 → IDEX/IQEX 配置）。"
+
+# AI Translated
+msgid "IDEX/IQEX head filament map"
+msgstr "IDEX/IQEX 工具头耗材丝映射"
+
+# AI Translated
+# Needs human review: "pem-inversion defaults": confirm pem is the physical extruder map and that the default is its inverse.
+msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
+msgstr "按盘单独设置物理工具头到耗材丝槽位的映射（从 1 开始编号），覆盖默认映射。留空则使用由物理挤出机映射（pem）反推的默认值。"
+
+# AI Translated
+msgid "IDEX/IQEX Mode Names"
+msgstr "IDEX/IQEX 模式名称"
+
+# AI Translated
+msgid "Display names for each user-defined IDEX/IQEX parallel print mode."
+msgstr "每个用户定义的 IDEX/IQEX 并行打印模式的显示名称。"
+
+# AI Translated
+msgid "IDEX/IQEX Mode Active Tools"
+msgstr "IDEX/IQEX 模式启用的工具头"
+
+# AI Translated
+msgid "Tool role assignments for each mode. Format: \"idx:P,idx:C,idx:M\" where P=Primary, C=Copy, M=Mirror (e.g. \"0:P,1:C,2:M,3:M\"). Managed by the IDEX/IQEX Modes editor in the Printer preset."
+msgstr "每个模式中各工具头的角色分配。格式为 \"idx:P,idx:C,idx:M\"，例如 \"0:P,1:C,2:M,3:M\"，其中 P=主工具头（Primary），C=复制（Copy），M=镜像（Mirror）。由打印机预设中的 IDEX/IQEX 模式编辑器管理。"
+
+# AI Translated
+msgid "IDEX/IQEX Mode G-codes"
+msgstr "IDEX/IQEX 模式 G-code"
+
+# AI Translated
+msgid "G-code or macro call to inject at print start for each mode."
+msgstr "每个模式在打印开始时插入的 G-code 或宏调用。"
+
 msgid "Manual Filament Change"
 msgstr "手动更换丝材"
 
@@ -17857,6 +18645,161 @@ msgstr "阈值支撑比例"
 msgid "If threshold angle is zero, support will be generated for overhangs whose overlap is below the threshold. The smaller this value is, the steeper the overhang that can be printed without support."
 msgstr "如果阈值角为零，将会为重叠度低于阈值的悬垂部分生成支撑。若该值越小，则可打印而无需支撑的悬垂角度就越陡。"
 
+# AI Translated
+msgid "Build plate tilt X"
+msgstr "热床倾斜 X"
+
+# AI Translated
+msgid "Tilt angle of the build plate along the X axis. A positive value tilts the plate so the +X side is higher, shifting gravity toward -X and increasing overhangs on the +X side. A negative value tilts the -X side higher. Set to 0 for no X-axis tilt. In belt printer mode, this is automatically synced to the belt angle."
+msgstr "热床沿 X 轴的倾斜角度。正值使热床 +X 侧抬高，重力偏向 -X，+X 侧的悬垂增多；负值使 -X 侧抬高。设为 0 表示 X 方向不倾斜。在传送带打印机模式下，此值会自动与传送带角度同步。"
+
+# AI Translated
+msgid "Build plate tilt Y"
+msgstr "热床倾斜 Y"
+
+# AI Translated
+msgid "Tilt angle of the build plate along the Y axis. A positive value tilts the plate so the +Y side is higher, shifting gravity toward -Y and increasing overhangs on the +Y side. A negative value tilts the -Y side higher. Set to 0 for no Y-axis tilt."
+msgstr "热床沿 Y 轴的倾斜角度。正值使热床 +Y 侧抬高，重力偏向 -Y，+Y 侧的悬垂增多；负值使 -Y 侧抬高。设为 0 表示 Y 方向不倾斜。"
+
+# AI Translated
+msgid "Enable belt printing"
+msgstr "启用传送带打印"
+
+# AI Translated
+msgid "Enable belt printer mode. Belt printers use a conveyor belt as the build surface, tilted at an angle (typically 45 degrees). The slicer will rotate the slicing plane and transform G-code coordinates for the tilted build surface."
+msgstr "启用传送带打印机模式。传送带打印机以倾斜一定角度（通常为 45 度）的传送带作为打印表面。切片软件会旋转切片平面，并针对倾斜的打印表面变换 G-code 坐标。"
+
+# AI Translated
+msgid "Infinite Y axis"
+msgstr "无限 Y 轴"
+
+# AI Translated
+msgid "Enable infinite Y axis for belt printers. When enabled, the Y axis build volume limit is effectively removed, allowing objects of any length to be printed along the belt direction."
+msgstr "为传送带打印机启用无限 Y 轴。启用后，Y 轴方向的打印尺寸限制实际上被取消，可沿传送带方向打印任意长度的对象。"
+
+# AI Translated
+msgid "Belt tilt axis"
+msgstr "传送带倾斜轴"
+
+# AI Translated
+msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
+msgstr "切片前模型网格的旋转轴。这一旋转即传送带打印机的倾斜：它是保距（无畸变）旋转，同时用于热床渲染和支撑的重力倾斜；生成 G-code 时，逆变换会先还原这一旋转，再进行机器坐标系剪切/缩放和重映射。X 是典型的龙门倾斜轴（传送带沿 Y 方向移动）。"
+
+msgid "X"
+msgstr "X"
+
+msgid "Y"
+msgstr "Y"
+
+# AI Translated
+msgid "Z"
+msgstr "Z"
+
+# AI Translated
+msgid "Belt tilt angle"
+msgstr "传送带倾斜角度"
+
+# AI Translated
+msgid "Tilt angle of the belt surface, in degrees. Most belt printers use 45°. Positive values rotate counter-clockwise looking down the positive tilt axis; the magnitude is also the physical belt tilt used for bed rendering and support gravity."
+msgstr "传送带表面的倾斜角度，单位为度。大多数传送带打印机为 45°。从倾斜轴正端朝原点看，正值为逆时针旋转；其绝对值同时也是热床渲染和支撑重力所用的实际传送带倾角。"
+
+msgid "°"
+msgstr "°"
+
+# AI Translated
+msgid "Decouple machine-frame tilt"
+msgstr "解耦机器坐标系倾角"
+
+# AI Translated
+msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
+msgstr "专家选项：单独设置机器坐标系（G-code 剪切/缩放）的倾斜角度，与切片前的旋转角度互不影响。禁用时，机器坐标系变换由传送带倾斜角度推导，两个阶段使用同一个角度。仅当机器实际的龙门倾角与切片旋转角度不一致时，才需启用此项进行补偿。"
+
+# AI Translated
+msgid "Machine-frame tilt angle"
+msgstr "机器坐标系倾斜角度"
+
+# AI Translated
+msgid "Tilt angle (degrees) used to derive the machine-frame shear (cot) and scale (1/|sin|) applied to G-code. Only used when 'Decouple machine-frame tilt' is enabled; otherwise the belt tilt angle is used."
+msgstr "用于推导应用于 G-code 的机器坐标系剪切（cot）和缩放（1/|sin|）的倾斜角度（度）。仅在启用“解耦机器坐标系倾角”时使用，否则使用传送带倾斜角度。"
+
+msgid "+X"
+msgstr "+X"
+
+msgid "+Y"
+msgstr "+Y"
+
+msgid "+Z"
+msgstr "+Z"
+
+msgid "-X"
+msgstr "-X"
+
+msgid "-Y"
+msgstr "-Y"
+
+msgid "-Z"
+msgstr "-Z"
+
+# AI Translated
+msgid "Rev X"
+msgstr "反转 X"
+
+# AI Translated
+msgid "Rev Y"
+msgstr "反转 Y"
+
+# AI Translated
+msgid "Rev Z"
+msgstr "反转 Z"
+
+# AI Translated
+msgid "G-code remap X"
+msgstr "G-code 重映射 X"
+
+# AI Translated
+msgid "Which slicing axis maps to machine X in G-code output. Applied AFTER slicing, during G-code generation."
+msgstr "指定在 G-code 输出中映射到机器 X 轴的切片坐标轴。在切片之后、生成 G-code 时应用。"
+
+# AI Translated
+msgid "G-code remap Y"
+msgstr "G-code 重映射 Y"
+
+# AI Translated
+msgid "Which slicing axis maps to machine Y in G-code output. Applied AFTER slicing, during G-code generation."
+msgstr "指定在 G-code 输出中映射到机器 Y 轴的切片坐标轴。在切片之后、生成 G-code 时应用。"
+
+# AI Translated
+msgid "G-code remap Z"
+msgstr "G-code 重映射 Z"
+
+# AI Translated
+msgid "Which slicing axis maps to machine Z in G-code output. Applied AFTER slicing, during G-code generation."
+msgstr "指定在 G-code 输出中映射到机器 Z 轴的切片坐标轴。在切片之后、生成 G-code 时应用。"
+
+# AI Translated
+msgid "Support Floor Z offset"
+msgstr "支撑底面 Z 偏移"
+
+# AI Translated
+msgid "Shifts the computed belt floor up or down (mm). Negative values lower the floor, allowing more supports to survive. Use this to diagnose belt floor formula issues."
+msgstr "将计算出的传送带底面上移或下移（mm）。负值会降低底面，从而保留更多支撑。可用于诊断传送带底面公式的问题。"
+
+# AI Translated
+msgid "Enable belt purge tower"
+msgstr "启用传送带冲刷塔"
+
+# AI Translated
+msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
+msgstr "传送带打印机上擦拭塔的替代方案。在传送带打印机上启用后，会在打印零件旁自动生成一个冲刷棱柱，换料冲刷将在其中进行（传统擦拭塔的 G-code 会绕过传送带坐标变换，因此无法用于传送带打印机）。仅适用于传送带打印机。"
+
+# AI Translated
+msgid "Belt purge tower width"
+msgstr "传送带冲刷塔宽度"
+
+# AI Translated
+msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
+msgstr "冲刷棱柱的宽度（机器 X 方向，即横跨传送带的方向）。在传送带打印机上启用传送带冲刷塔并使用多种耗材丝时，会自动生成该棱柱，换料冲刷会改为挤出到棱柱中，而不是传统擦拭塔。棱柱高度根据每层最大冲刷体积自动计算：棱柱越宽，高度越低。"
+
 msgid "Tree support branch angle"
 msgstr "树状支撑分支角度"
 
@@ -18033,13 +18976,11 @@ msgstr "分离式填充"
 msgid ""
 "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
 "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
-"Affects line and grid patterns and rotation-template infills.\n"
-"Patterns locked to global coordinates (Gyroid, Honeycomb, TPMS, ...) are unaffected."
+"Adaptive Cubic and Support Cubic always center each part on itself, and Lightning infill is generated for the whole object and is unaffected."
 msgstr ""
-"将每个零件的内部填充以其自身为中心，就好像它是单独切片的一样，而不是以整个装配体为中心。相互接触或重叠的零件被视为一个整体并共享一个中心；分离的零件（或不同的 3D 物体）各自拥有自己的中心。\n"
-"当一个装配体将多个物体分为一组、而每个物体都应保持一致的自我居中填充时，此选项很有用。\n"
-"会影响直线和网格图案以及旋转模板填充。\n"
-"锁定到全局坐标的图案（螺旋体、蜂窝、TPMS 等）不受影响。"
+"使每个零件的内部填充以零件自身为中心，如同单独切片一样，而不是以整个装配体为中心。相互接触或重叠的零件视为一个整体，共用一个中心；彼此分离的零件（或不同的 3D 对象）各有各的中心。\n"
+"适用于装配体中组合了多个对象、且每个对象都需要各自居中的一致填充的情况。\n"
+"自适应立方体和支撑立方体始终以各零件自身为中心；闪电填充针对整个对象生成，不受此选项影响。"
 
 # AI Translated
 msgid "Center surface pattern on"
@@ -18272,6 +19213,14 @@ msgstr "换料后的过渡料会被用来打印对象的支撑。这样可以减
 
 msgid "This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colors of the objects will be mixed as a result. It will not take effect unless the prime tower is enabled."
 msgstr "换料后的过渡料会被用来打印这个对象。这样可以减少材料浪费和缩短打印时间，但是这个对象的外观会是混色的。该功能只有在启用料塔的时候才生效。"
+
+# AI Translated
+msgid "Belt purge tower object"
+msgstr "传送带冲刷塔对象"
+
+# AI Translated
+msgid "Marks the auto-generated belt purge prism. Managed automatically; do not set manually."
+msgstr "标记自动生成的传送带冲刷棱柱。由程序自动管理，请勿手动设置。"
 
 msgid "Maximal bridging distance"
 msgstr "最大桥接距离"
@@ -18693,7 +19642,7 @@ msgstr "绕 Y 轴的旋转角度（以度为单位）"
 
 # AI Translated
 msgid "Ground largest face"
-msgstr "以最大面着床"
+msgstr "以最大面贴合热床"
 
 # AI Translated
 msgid "Lay each object on the largest face of its convex hull and drop it onto the bed. Of equally large faces, the one already facing down is kept. Objects without a face large enough to rest on are left as they are. Transforms run in command-line order, so rotations given before this option are respected. --orient 1 runs after all transforms and replaces the orientation."
@@ -18701,7 +19650,7 @@ msgstr "将每个对象以其凸包的最大面放置，并落到热床上。若
 
 # AI Translated
 msgid "Ground face by normal"
-msgstr "按法线以指定面着床"
+msgstr "按法线选择面贴合热床"
 
 # AI Translated
 msgid "Lay each object on the convex hull face whose outward normal is closest to the direction NX,NY,NZ and drop it onto the bed. The direction is in object coordinates, which include the rotations given before this option and match the plate axes unless the input file rotates the object. For example, 1,0,0 stands the object on its +X side. --orient 1 runs after all transforms and replaces the orientation."
@@ -18709,7 +19658,7 @@ msgstr "将每个对象以其凸包中外法线最接近方向 NX,NY,NZ 的面�
 
 # AI Translated
 msgid "Ground face at point"
-msgstr "以指定点所在面着床"
+msgstr "以指定点所在的面贴合热床"
 
 # AI Translated
 msgid "Lay each object on the convex hull face that contains the point X,Y,Z and drop it onto the bed. The point is in object coordinates, which include the rotations given before this option; --inspect-mesh reports face centers in them. Objects without such a face are left as they are, and the run fails if no object has one. --orient 1 runs after all transforms and replaces the orientation."
@@ -19169,8 +20118,9 @@ msgstr "用于切片的，实际的打印机的名字。"
 msgid "Layer number"
 msgstr "层编号"
 
-msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
-msgstr "当前层编号。从 1 开始编号（即第一层编号为 1）。"
+# AI Translated
+msgid "Index of the current layer. Zero-based (i.e. first layer is number 0), except in extrusion role change G-code, where it is one-based."
+msgstr "当前层的索引。从 0 开始（即第一层为 0），但在挤出类型更换 G-code 中从 1 开始。"
 
 msgid "Layer Z"
 msgstr "层的 Z 坐标"
@@ -19314,9 +20264,6 @@ msgstr "重新校准"
 
 msgid "Calibrate"
 msgstr "校准"
-
-msgid "Finish"
-msgstr "完成"
 
 msgid "How can I use calibration results?"
 msgstr "如何使用校准结果？"
@@ -19805,8 +20752,9 @@ msgstr "PA 校准"
 msgid "Extruder type"
 msgstr "挤出机类型"
 
+# AI Translated
 msgid "DDE"
-msgstr "直驱/近程挤出机"
+msgstr "近程挤出机"
 
 msgid "PA Tower"
 msgstr "PA塔"
@@ -19857,11 +20805,12 @@ msgid ""
 "Please verify the inputs."
 msgstr "加速度值必须大于速度值，请验证输入。"
 
+# AI Translated
+msgid "Not enabled yet on belt printers — use the PA Tower method instead."
+msgstr "传送带打印机暂不支持此功能，请改用“PA塔”方法。"
+
 msgid "Temperature calibration"
 msgstr "温度校准"
-
-msgid "Filament type"
-msgstr "耗材类型"
 
 msgid "PLA"
 msgstr "PLA"
@@ -19883,6 +20832,13 @@ msgstr "PA-CF"
 
 msgid "PET-CF"
 msgstr "PET-CF"
+
+msgid "Test model"
+msgstr "测试模型"
+
+# AI Translated
+msgid "Overhang"
+msgstr "悬垂"
 
 msgid "Start temp: "
 msgstr "起始温度: "
@@ -20008,9 +20964,6 @@ msgstr "起始回抽长度"
 
 msgid "End retraction length: "
 msgstr "结束回抽长度"
-
-msgid "Test model"
-msgstr "测试模型"
 
 msgid "Ringing Tower"
 msgstr "振纹塔"
@@ -20438,9 +21391,6 @@ msgstr "例如：Basic, Matte, Silk, Marble"
 msgid "Filament Preset"
 msgstr "耗材预设"
 
-msgid "Create"
-msgstr "创建"
-
 msgid "Vendor is not selected; please reselect vendor."
 msgstr "未选择供应商，请重新选择供应商。"
 
@@ -20747,6 +21697,10 @@ msgid ""
 msgstr ""
 "打印机和属于打印机的所有的耗材和工艺预设。\n"
 "可与他人分享。"
+
+# AI Translated
+msgid "Include custom bed texture and model"
+msgstr "包含自定义热床纹理和模型"
 
 msgid ""
 "User's filament preset set.\n"
@@ -21490,9 +22444,6 @@ msgstr "手动将耗材分配到左侧或右侧喷嘴"
 msgid "Global settings"
 msgstr "全局设置"
 
-msgid "Video tutorial"
-msgstr "视频指南"
-
 msgid "(Sync with printer)"
 msgstr "（与打印机同步）"
 
@@ -21892,6 +22843,42 @@ msgstr "如果启用，上述值将被存储为将来 STEP 导入所用的默认
 msgid "PresetBundle"
 msgstr "预设包"
 
+# AI Translated
+msgid "Export Presets"
+msgstr "导出预设"
+
+# AI Translated
+msgid "Open folder in explorer"
+msgstr "打开所在文件夹"
+
+# AI Translated
+msgid "Delete bundle"
+msgstr "删除预设包"
+
+# AI Translated
+msgid "Unsubscribe bundle"
+msgstr "取消订阅预设包"
+
+# AI Translated
+msgid "Update available"
+msgstr "有可用更新"
+
+# AI Translated
+msgid "Unauthorized bundle"
+msgstr "未授权的预设包"
+
+# AI Translated
+msgid "Open this bundle in your browser"
+msgstr "在浏览器中打开此预设包"
+
+# AI Translated
+msgid "Subscribed"
+msgstr "已订阅"
+
+# AI Translated
+msgid "Local"
+msgstr "本地"
+
 msgid "Bundle folder does not exist."
 msgstr "预设包文件夹不存在。"
 
@@ -21924,6 +22911,14 @@ msgstr "取消订阅预设包"
 
 msgid "ExportPresetBundle"
 msgstr "导出预设包"
+
+# AI Translated
+msgid "Export to OrcaCloud"
+msgstr "导出到 OrcaCloud"
+
+# AI Translated
+msgid "Export to folder"
+msgstr "导出到文件夹"
 
 msgid "Save preset bundle"
 msgstr "保存预设包"
@@ -26336,213 +27331,6 @@ msgid "Size: %.1f × %.1f mm"
 msgstr "大小：%.1f × %.1f mm"
 
 # AI Translated
-msgid "Primitive"
-msgstr "标准模型"
-
-# AI Translated
-msgid "Empty mesh generated"
-msgstr "生成了空网格"
-
-# AI Translated
-#. TRN Default name of an object created from the box primitive shape.
-msgid "Box"
-msgstr "长方体"
-
-# AI Translated
-#. TRN Primitive gizmo: label in front of the preset cube size buttons
-msgid "Quick:"
-msgstr "快速："
-
-# AI Translated
-msgid "Width (X)"
-msgstr "宽度 (X)"
-
-# AI Translated
-msgid "Depth (Y)"
-msgstr "深度 (Y)"
-
-# AI Translated
-msgid "Height (Z)"
-msgstr "高度 (Z)"
-
-# AI Translated
-#. TRN Primitive gizmo: bottom radius of a cone ("Top R" is the top radius)
-msgid "Bottom R"
-msgstr "底面半径"
-
-# AI Translated
-msgid "Top R"
-msgstr "顶面半径"
-
-# AI Translated
-#. TRN Primitive gizmo: major radius of a torus ("Minor R" is the tube radius)
-msgid "Major R"
-msgstr "大半径"
-
-# AI Translated
-msgid "Minor R"
-msgstr "小半径"
-
-# AI Translated
-msgid "All edges"
-msgstr "所有边"
-
-# AI Translated
-msgid "Top edges"
-msgstr "顶部边"
-
-# AI Translated
-msgid "Bottom edges"
-msgstr "底部边"
-
-# AI Translated
-msgid "Lateral edges"
-msgstr "侧边"
-
-# AI Translated
-msgid "Mesh resolution"
-msgstr "网格精度"
-
-# AI Translated
-msgid "Add Shape"
-msgstr "添加形状"
-
-# AI Translated
-msgid "No outer profile"
-msgstr "没有外轮廓"
-
-# AI Translated
-msgid "Failed to make outer face"
-msgstr "无法生成外轮廓面"
-
-# AI Translated
-msgid "Failed to build face with holes"
-msgstr "无法生成带孔的面"
-
-# AI Translated
-msgid "Revolve failed"
-msgstr "旋转失败"
-
-# AI Translated
-msgid "Profile"
-msgstr "轮廓"
-
-# AI Translated
-msgid "Start new profile (for holes)"
-msgstr "开始新轮廓（用于孔）"
-
-# AI Translated
-msgid "Segments"
-msgstr "段数"
-
-# AI Translated
-msgid "Sides"
-msgstr "边数"
-
-# AI Translated
-msgid "Click on canvas to draw"
-msgstr "单击画布进行绘制"
-
-# AI Translated
-msgid "Snap to grid"
-msgstr "吸附到网格"
-
-# AI Translated
-msgid "Grid step"
-msgstr "网格间距"
-
-# AI Translated
-msgid "Outer"
-msgstr "外轮廓"
-
-# AI Translated
-msgid "closed"
-msgstr "已闭合"
-
-# AI Translated
-#. TRN Sketch gizmo profile list: "Outer" or "Hole", profile number, point count, "closed" or nothing
-#, boost-format
-msgid "%1% %2%: %3% points %4%"
-msgstr "%1% %2%：%3% 个点 %4%"
-
-# AI Translated
-msgid "XY (Top)"
-msgstr "XY（顶部）"
-
-# AI Translated
-msgid "XZ (Front)"
-msgstr "XZ（前面）"
-
-# AI Translated
-msgid "YZ (Side)"
-msgstr "YZ（侧面）"
-
-# AI Translated
-msgid "Revolve deg"
-msgstr "旋转角度"
-
-# AI Translated
-msgid "Set to 0 for extrude, >0 for revolve"
-msgstr "设为 0 则拉伸，大于 0 则旋转"
-
-# AI Translated
-msgid "Pocket (cut)"
-msgstr "凹槽（切除）"
-
-# AI Translated
-#, c-format
-msgid "%zu closed profile"
-msgid_plural "%zu closed profiles"
-msgstr[0] "%zu 个闭合轮廓"
-
-# AI Translated
-msgid "Draw a closed profile to enable"
-msgstr "绘制一个闭合轮廓以启用"
-
-# AI Translated
-msgid "Clear all"
-msgstr "全部清除"
-
-# AI Translated
-msgid "Empty result"
-msgstr "结果为空"
-
-# AI Translated
-#, boost-format
-msgid "Extrude: %1%"
-msgstr "拉伸：%1%"
-
-# AI Translated
-#, boost-format
-msgid "Revolve: %1%"
-msgstr "旋转：%1%"
-
-# AI Translated
-msgid "No object selected"
-msgstr "未选择对象"
-
-# AI Translated
-msgid "Face failed"
-msgstr "生成面失败"
-
-# AI Translated
-msgid "Face with holes failed"
-msgstr "生成带孔的面失败"
-
-# AI Translated
-msgid "Tool mesh empty"
-msgstr "工具网格为空"
-
-# AI Translated
-msgid "Pocket added (negative volume)"
-msgstr "已添加凹槽（负体积）"
-
-# AI Translated
-#, boost-format
-msgid "Pocket: %1%"
-msgstr "凹槽：%1%"
-
-# AI Translated
 msgctxt "Keyboard Shortcut"
 msgid "Ins"
 msgstr "Ins"
@@ -26593,8 +27381,9 @@ msgstr "从STL/STEP/3MF/OBJ/AMF文件中导入几何数据"
 msgid "Select all objects"
 msgstr "选择所有对象"
 
+# AI Translated
 msgid "Paste from clipboard"
-msgstr "从剪切板粘贴"
+msgstr "从剪贴板粘贴"
 
 msgid "Toggle printable for object/part"
 msgstr "切换对象/零件的可打印状态"
@@ -26627,15 +27416,17 @@ msgstr "将所选项顺时针旋转 45 度"
 msgid "Gizmo move"
 msgstr "移动小工具"
 
+# AI Translated
 msgid "Gizmo rotate"
-msgstr "旋转物件"
+msgstr "旋转小工具"
 
 # AI Translated
 msgid "Gizmo scale"
 msgstr "缩放小工具"
 
+# AI Translated
 msgid "Gizmo place face on bed"
-msgstr "选择底面"
+msgstr "选择底面小工具"
 
 # AI Translated
 msgid "Gizmo cut"
@@ -26643,7 +27434,7 @@ msgstr "切割小工具"
 
 # AI Translated
 msgid "Gizmo mesh boolean"
-msgstr "网格布尔操作小工具"
+msgstr "网格布尔运算小工具"
 
 # AI Translated
 msgid "Gizmo FDM paint-on supports"
@@ -26652,8 +27443,9 @@ msgstr "FDM 手绘支撑小工具"
 msgid "Gizmo FDM paint-on seam"
 msgstr "FDM涂装接缝"
 
+# AI Translated
 msgid "Gizmo FDM paint-on fuzzy skin"
-msgstr "Gizmo FDM手绘绒毛表面"
+msgstr "手绘绒毛表面小工具"
 
 # AI Translated
 msgid "Gizmo multi-material painting"
@@ -26669,11 +27461,15 @@ msgstr "测量小工具"
 
 # AI Translated
 msgid "Gizmo assemble"
-msgstr "组合小工具"
+msgstr "装配小工具"
 
 # AI Translated
 msgid "Gizmo brim ears"
 msgstr "耳状帽檐小工具"
+
+# AI Translated
+msgid "Gizmo texture displacement painting"
+msgstr "纹理置换绘制小工具"
 
 msgid "Vertical slider - Move active thumb Up"
 msgstr "垂直滑动条 - 向上移动一层"
@@ -26693,30 +27489,37 @@ msgstr "水平滑块 - 移动到起始位置"
 msgid "Horizontal slider - Move to last position"
 msgstr "水平滑块 - 移动到末尾位置"
 
+# AI Translated
 msgid "Camera view - Default"
-msgstr "摄像机视角 - 默认"
+msgstr "视图 - 默认视图"
 
+# AI Translated
 msgid "Camera view - Top"
-msgstr "摄像机视角 - 顶部"
+msgstr "视图 - 俯视图"
 
+# AI Translated
 msgid "Camera view - Bottom"
-msgstr "摄像机视角 - 底部"
+msgstr "视图 - 仰视图"
 
+# AI Translated
 msgid "Camera view - Front"
-msgstr "摄像机视角 - 正面"
+msgstr "视图 - 前视图"
 
+# AI Translated
 msgid "Camera view - Behind"
-msgstr "摄像机视角 - 后面"
+msgstr "视图 - 后视图"
 
+# AI Translated
 msgid "Camera Angle - Left side"
-msgstr "摄像机视角 - 左面"
+msgstr "视图 - 左视图"
 
+# AI Translated
 msgid "Camera Angle - Right side"
-msgstr "摄像机视角 - 右面"
+msgstr "视图 - 右视图"
 
 # AI Translated
 msgid "Camera view - Current plate"
-msgstr "相机视图 - 当前盘"
+msgstr "视图 - 当前盘"
 
 msgid "Zoom in"
 msgstr "放大"
@@ -27657,10 +28460,6 @@ msgid "Custom Printer Setup"
 msgstr "自定义打印机设置"
 
 # AI Translated
-msgid "Custom Printer"
-msgstr "自定义打印机"
-
-# AI Translated
 msgid "Define a custom printer profile"
 msgstr "定义自定义打印机配置文件"
 
@@ -28305,8 +29104,8 @@ msgid "Click a triangle to paint it"
 msgstr "单击三角形以进行绘制"
 
 # AI Translated
-msgid "Needs the active layer mapped with Unwrap (LSCM)."
-msgstr "需要当前图层使用“展开 (LSCM)”映射。"
+msgid "Only for a layer mapped with Unwrap (LSCM) - set the active layer's Mapping to Unwrap to use this view."
+msgstr "仅适用于映射为“展开 (LSCM)”的图层，将当前图层的映射设为“展开”即可使用此视图。"
 
 # AI Translated
 msgid "Normal - the real geometry, exactly what Bake will produce. Slower to update"
@@ -28321,16 +29120,16 @@ msgid "Checker"
 msgstr "棋盘格"
 
 # AI Translated
-msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too"
-msgstr "棋盘格 - 用测试网格代替纹理。方格保持正方形的地方纹理没有变形；方格被拉伸的地方，纹理也会被拉伸"
+msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too. Opens the UV editor if it is closed"
+msgstr "棋盘格 - 用测试网格代替纹理显示。方格保持方正处，纹理无变形；方格被拉伸处，纹理也会被拉伸。若 UV 编辑器未打开，将自动打开"
 
 # AI Translated
 msgid "Distortion"
 msgstr "畸变"
 
 # AI Translated
-msgid "Distortion - blue-to-red stretch heatmap over the unwrap"
-msgstr "畸变 - 在展开上叠加由蓝到红的拉伸热力图"
+msgid "Distortion - blue-to-red stretch heatmap over the unwrap. Opens the UV editor if it is closed"
+msgstr "畸变 - 在展开图上叠加由蓝到红的拉伸热力图。若 UV 编辑器未打开，将自动打开"
 
 # AI Translated
 msgid "Wireframe - overlay the mesh edges; independent of the view above"
@@ -28447,23 +29246,12 @@ msgid "Interleaves two filaments to fake the colors in between, so a handful of 
 msgstr "交替使用两种耗材丝来模拟它们之间的颜色，从而用少量耗材丝呈现照片或渐变。纯色图像无论是否开启，打印效果都相同。关闭时每个区域只使用一种耗材丝。"
 
 # AI Translated
-msgid "Mix by"
-msgstr "混合方式"
+msgid "Mixed colors"
+msgstr "混色数量"
 
 # AI Translated
-msgctxt "Texture Displacement"
-msgid "Surface"
-msgstr "表面"
-
-# AI Translated
-msgid ""
-"Layers: the two filaments alternate between print layers, which blends smoothly on upright surfaces but disappears on flat-facing ones, where a whole layer is a single band.\n"
-"Surface: a fine checkerboard across the surface, which works at any angle but can read as texture rather than as a blend.\n"
-"Automatic: layers on upright faces; flat-facing faces take the nearer single filament, since a checkerboard there shows as a pattern."
-msgstr ""
-"层：两种耗材丝在打印层之间交替，在竖直表面上过渡平滑，但在朝上或朝下的平坦表面上会失效，因为那里整层只是一条色带。\n"
-"表面：在表面上形成细密的棋盘格，适用于任何角度，但看起来可能更像纹理而非混色。\n"
-"自动：竖直面按层混合；平坦面采用较接近的单一耗材丝，因为棋盘格在那里会显现为图案。"
+msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
+msgstr "烘焙时最多可添加的混合耗材丝数量。混合耗材丝从纹理颜色中选取，且只会创建烘焙实际用到的那些。"
 
 # AI Translated
 #, boost-format
@@ -28924,14 +29712,6 @@ msgid "How many thousand triangles the refinement may add to the model. The tria
 msgstr "细化过程最多可向模型添加多少千个三角形。最不贴合的三角形总是优先拆分，因此即使用完全部预算，也是用在最明显的地方。如果起伏看起来仍然粗糙，请调高此值。"
 
 # AI Translated
-msgid "Stops the bake. Whatever it had already finished stays on the model, and can be undone."
-msgstr "停止烘焙。已完成的部分会保留在模型上，并且可以撤销。"
-
-# AI Translated
-msgid "Closes the tool without baking. Your paint, layers and settings stay with the model."
-msgstr "不烘焙并关闭工具。您的绘制、图层和设置都会保留在模型中。"
-
-# AI Translated
 msgid "Preparing..."
 msgstr "正在准备..."
 
@@ -28954,6 +29734,14 @@ msgstr "通过移动现有的顶点，将绘制的高度图转换为真实的几
 # AI Translated
 msgid "Turn the painted height maps into real geometry. The mesh is remeshed to an even density and refined where the texture bends first, so the detail has vertices to land on - all in one step."
 msgstr "将绘制的高度图转换为真实的几何体。网格会先被重新网格化为均匀密度，并在纹理弯折处进行细化，使细节有顶点可落 - 一步完成。"
+
+# AI Translated
+msgid "Stops the bake. Whatever it had already finished stays on the model, and can be undone."
+msgstr "停止烘焙。已完成的部分会保留在模型上，并且可以撤销。"
+
+# AI Translated
+msgid "Closes the tool without baking. Your paint, layers and settings stay with the model."
+msgstr "不烘焙并关闭工具。您的绘制、图层和设置都会保留在模型中。"
 
 # AI Translated
 #, boost-format
@@ -29172,6 +29960,34 @@ msgid "Printer plugins"
 msgstr "打印机插件"
 
 # AI Translated
+msgid "This preset does not use any plugin capabilities"
+msgstr "此预设未使用任何插件功能"
+
+# AI Translated
+msgid "Capabilities used by this preset"
+msgstr "此预设使用的功能"
+
+# AI Translated
+msgid "Capability configuration (JSON)"
+msgstr "功能配置（JSON）"
+
+# AI Translated
+msgid "Plugin configuration"
+msgstr "插件配置"
+
+# AI Translated
+msgid "Discard this preset's override and use the global configuration again"
+msgstr "放弃此预设的覆盖配置，重新使用全局配置"
+
+# AI Translated
+msgid "Restore defaults"
+msgstr "恢复默认"
+
+# AI Translated
+msgid "Invalid JSON"
+msgstr "无效的 JSON"
+
+# AI Translated
 msgid "The configuration is not valid JSON. Your changes were not saved."
 msgstr "配置不是有效的 JSON。您的更改未保存。"
 
@@ -29189,10 +30005,6 @@ msgstr ""
 "恢复“%s”的默认配置？\n"
 "\n"
 "这将放弃该预设的覆盖设置，并使用全局配置。"
-
-# AI Translated
-msgid "Restore defaults"
-msgstr "恢复默认"
 
 # AI Translated
 msgid "Using global configuration. Save the preset to persist it."
@@ -29262,6 +30074,282 @@ msgstr "正在安装插件"
 #, c-format, boost-format
 msgid "Installed \"%s\"."
 msgstr "已安装“%s”。"
+
+# AI Translated
+msgid "Search plugins"
+msgstr "搜索插件"
+
+# AI Translated
+msgid "Clear search"
+msgstr "清除搜索"
+
+# AI Translated
+msgid "Match case"
+msgstr "区分大小写"
+
+# AI Translated
+msgid "Match whole word"
+msgstr "全字匹配"
+
+# AI Translated
+msgid "More plugin install options"
+msgstr "更多插件安装选项"
+
+# AI Translated
+msgid "Install plugin"
+msgstr "安装插件"
+
+# AI Translated
+msgid "Install local plugin"
+msgstr "安装本地插件"
+
+# AI Translated
+msgid "Activate"
+msgstr "激活"
+
+# AI Translated
+msgid "Sort by name"
+msgstr "按名称排序"
+
+# AI Translated
+msgid "Sort by version"
+msgstr "按版本排序"
+
+# AI Translated
+msgid "Plugin Version"
+msgstr "插件版本"
+
+# AI Translated
+msgid "Sort by source"
+msgstr "按来源排序"
+
+# AI Translated
+msgid "Source"
+msgstr "来源"
+
+# AI Translated
+msgid "Sort by status"
+msgstr "按状态排序"
+
+# AI Translated
+msgctxt "Plugin"
+msgid "Status"
+msgstr "状态"
+
+# AI Translated
+msgid "Drag to resize; double-click to reset"
+msgstr "拖动以调整大小；双击以重置"
+
+# AI Translated
+msgid "Resize the plugin list"
+msgstr "调整插件列表大小"
+
+# AI Translated
+msgid "Plugin details"
+msgstr "插件详情"
+
+# AI Translated
+msgid "Plugin Info"
+msgstr "插件信息"
+
+# AI Translated
+msgid "Description"
+msgstr "描述"
+
+# AI Translated
+msgid "Config"
+msgstr "配置"
+
+# AI Translated
+msgid "Changelog"
+msgstr "更新日志"
+
+# AI Translated
+msgid "Diagnostics"
+msgstr "诊断"
+
+# AI Translated
+msgid "Types"
+msgstr "类型"
+
+# AI Translated
+msgid "Installed Version"
+msgstr "已安装版本"
+
+# AI Translated
+msgid "Latest Version"
+msgstr "最新版本"
+
+# AI Translated
+msgid "Update to the latest version"
+msgstr "更新到最新版本"
+
+# AI Translated
+msgid "No description available"
+msgstr "暂无描述"
+
+# AI Translated
+msgid "Select a plugin to configure its capabilities"
+msgstr "选择一个插件以配置其功能"
+
+# AI Translated
+msgid "Configurable capabilities"
+msgstr "可配置的功能"
+
+# AI Translated
+msgid "Discard the settings saved for this capability and restore the plugin's defaults"
+msgstr "放弃为此功能保存的设置，恢复插件的默认配置"
+
+# AI Translated
+msgid "Plugin changelog"
+msgstr "插件更新日志"
+
+# AI Translated
+msgid "Date"
+msgstr "日期"
+
+# AI Translated
+msgid "Changes"
+msgstr "更新内容"
+
+# AI Translated
+msgid "No changelog available"
+msgstr "暂无更新日志"
+
+# AI Translated
+msgid "No issues detected"
+msgstr "未检测到问题"
+
+# AI Translated
+msgid "No plugins found"
+msgstr "未找到插件"
+
+# AI Translated
+#, c-format, boost-format
+msgid "No plugins match \"%s\""
+msgstr "没有与“%s”匹配的插件"
+
+# AI Translated
+msgid "Mine"
+msgstr "我的"
+
+# AI Translated
+msgid "Orphaned"
+msgstr "孤立"
+
+# AI Translated
+msgid "Some plugin capabilities are enabled"
+msgstr "已启用部分插件功能"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Collapse %s capabilities"
+msgstr "收起 %s 的功能"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Expand %s capabilities"
+msgstr "展开 %s 的功能"
+
+# AI Translated
+msgid "Collapse capabilities"
+msgstr "收起功能"
+
+# AI Translated
+msgid "Expand capabilities"
+msgstr "展开功能"
+
+# AI Translated
+msgid "Open this plugin in your browser"
+msgstr "在浏览器中打开此插件"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Capabilities: %s"
+msgstr "功能：%s"
+
+# AI Translated
+msgctxt "Plugin"
+msgid "Capabilities"
+msgstr "功能"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Run \"%s\""
+msgstr "运行“%s”"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Enable %s"
+msgstr "启用 %s"
+
+# AI Translated
+msgid "Unauthorized for updates"
+msgstr "未获更新授权"
+
+# AI Translated
+msgid "Loading the plugin…"
+msgstr "正在加载插件…"
+
+# AI Translated
+msgid "This plugin exposes no capabilities"
+msgstr "此插件未提供任何功能"
+
+# AI Translated
+msgid "Activate this plugin to configure its capabilities"
+msgstr "激活此插件后即可配置其功能"
+
+# AI Translated
+msgid "View on OrcaCloud <a>here</a>"
+msgstr "点击<a>此处</a>前往 OrcaCloud 查看"
+
+# AI Translated
+msgid "Activated"
+msgstr "已激活"
+
+# AI Translated
+msgid "Runtime error"
+msgstr "运行时错误"
+
+# AI Translated
+msgid "Inactive"
+msgstr "未激活"
+
+# AI Translated
+msgid "This plugin is active and ready to be used."
+msgstr "此插件已激活，可以使用。"
+
+# AI Translated
+msgid "This plugin is still loading."
+msgstr "此插件仍在加载中。"
+
+# AI Translated
+msgid "This plugin is blocked until its error is fixed."
+msgstr "此插件存在错误，修复之前无法使用。"
+
+# AI Translated
+msgid "This plugin is loaded but a capability reported an error."
+msgstr "此插件已加载，但有功能报告了错误。"
+
+# AI Translated
+msgid "This plugin is inactive. Activate it to install or load it."
+msgstr "此插件未激活。激活后即可安装或加载。"
+
+# AI Translated
+msgid "Select a plugin to view its status and details."
+msgstr "选择一个插件以查看其状态和详细信息。"
+
+# AI Translated
+msgid "Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used."
+msgstr "孤立：此插件已不再订阅，或已无法在 OrcaCloud 中获取。本地副本仍保持安装，可以继续使用。"
+
+# AI Translated
+msgid "A newer plugin version is available."
+msgstr "插件有新版本可用。"
+
+# AI Translated
+msgid "Cloud updates are unavailable because this plugin is unauthorized for updates."
+msgstr "此插件未获更新授权，无法获取云端更新。"
 
 # AI Translated
 #, c-format, boost-format
@@ -29480,6 +30568,56 @@ msgid "Reloaded \"%s\"."
 msgstr "已重新加载“%s”。"
 
 # AI Translated
+msgid "Printer Connection"
+msgstr "打印机连接"
+
+# AI Translated
+msgid "Please set up your printer connection to view the device."
+msgstr "请先设置打印机连接以查看设备。"
+
+msgid "No model information"
+msgstr "该模型没有相关信息"
+
+msgid "Edit Project Info"
+msgstr "编辑项目信息"
+
+msgid "Model Information"
+msgstr "模型信息"
+
+msgid "Accessories"
+msgstr "附件"
+
+msgid "Profile Information"
+msgstr "配置信息"
+
+msgid "Model name"
+msgstr "模型名称"
+
+msgid "Created by"
+msgstr "创作"
+
+msgid "Remixed by"
+msgstr "修改"
+
+msgid "Shared by"
+msgstr "分享"
+
+msgid "Model description"
+msgstr "模型介绍"
+
+msgid "BOM"
+msgstr "物料清单"
+
+msgid "Profile name"
+msgstr "配置名称"
+
+msgid "Profile Author"
+msgstr "配置作者"
+
+msgid "Profile description"
+msgstr "配置介绍"
+
+# AI Translated
 msgid "Purge Mode Settings"
 msgstr "冲刷模式设置"
 
@@ -29502,6 +30640,19 @@ msgstr "减少冲刷浪费并加快打印。可能导致轻微混色或细小的
 # AI Translated
 msgid "Terminal"
 msgstr "终端"
+
+# AI Translated
+msgid "python ... or uv ..."
+msgstr "python ... 或 uv ..."
+
+# AI Translated
+msgid "Plugin terminal ready."
+msgstr "插件终端已就绪。"
+
+# AI Translated
+#, c-format, boost-format
+msgid "Process exited with code: %s"
+msgstr "进程已退出，退出代码：%s"
 
 # AI Translated
 msgid "A command is already running."
@@ -29770,6 +30921,10 @@ msgid "Change texture - choose another one from the texture library"
 msgstr "更换纹理 - 从纹理库中选择另一个纹理"
 
 # AI Translated
+msgid "The active layer's tile size: how much of the model one repeat of the texture covers. The canvas is measured in tiles, so one grid cell is one repeat. Change it with Tiling in the layer's settings."
+msgstr "当前图层的平铺尺寸，即纹理每重复一次在模型上覆盖的范围。画布以平铺为单位，一个网格单元即一次重复。可在图层的平铺设置中修改。"
+
+# AI Translated
 msgid "Height map - show the layer's texture under the islands"
 msgstr "高度图 - 在岛下方显示图层的纹理"
 
@@ -29802,16 +30957,16 @@ msgid "Lay the unwrap out as a connected net: pieces that share an edge are unfo
 msgstr "将展开布局为相连的展开图：共享边的块会相邻展开（立方体会变成相连的展开图，而不是六个分散的正方形）。它们仍是独立的岛，因此之后仍可手动移动其中任何一个。"
 
 # AI Translated
-msgid "Island - move, rotate and scale whole islands"
-msgstr "岛 - 移动、旋转和缩放整个岛"
+msgid "Island - work on whole islands. Click one to select it, then drag to move it, right-drag to rotate it, or press R to rotate and S to scale with the mouse (click or Enter to confirm, Esc to cancel)."
+msgstr "岛 - 以整个 UV 岛为单位操作。单击选中一个岛，然后拖动可移动，右键拖动可旋转，也可按 R 或 S 后用鼠标旋转或缩放（单击或按 Enter 确认，按 Esc 取消）。"
 
 # AI Translated
-msgid "Vertex - drag vertices to reshape; Shift/Ctrl to multi-select"
-msgstr "顶点 - 拖动顶点以调整形状；按住 Shift/Ctrl 可多选"
+msgid "Vertex - drag vertices to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
+msgstr "顶点 - 拖动顶点，手动调整 UV 岛的形状；按住 Shift 可加选，按住 Ctrl 可切换单个顶点的选中状态。"
 
 # AI Translated
-msgid "Edge - drag edges to reshape; Shift/Ctrl to multi-select"
-msgstr "边 - 拖动边以调整形状；按住 Shift/Ctrl 可多选"
+msgid "Edge - drag edges to reshape an island by hand; Shift adds to the selection, Ctrl toggles one in or out of it."
+msgstr "边 - 拖动边，手动调整 UV 岛的形状；按住 Shift 可加选，按住 Ctrl 可切换单条边的选中状态。"
 
 # AI Translated
 msgid "Mark seams - click edges on the model to cut the unwrap along them. The edge under the cursor is highlighted yellow; click to mark it red, click a red edge again to unmark it. Painting is paused while this is on."
@@ -29850,8 +31005,16 @@ msgid "Snap - stick islands together when dragging one against another"
 msgstr "吸附 - 将一个岛拖向另一个岛时使它们贴合在一起"
 
 # AI Translated
-msgid "Frame all islands (Home)"
-msgstr "框显所有岛 (Home)"
+msgid ""
+"Frame all islands, fitting every one of them in view (Home or F).\n"
+"Elsewhere on the canvas: scroll to zoom around the cursor, and middle-drag - or drag empty space - to pan."
+msgstr ""
+"全部适配视图，使所有 UV 岛都显示在视图内（Home 或 F）。\n"
+"在画布其他位置：滚动滚轮以光标为中心缩放；按住中键拖动或拖动空白处可平移。"
+
+# AI Translated
+msgid "What is selected, and the exact figures of the move, rotation or scale while you drag one."
+msgstr "当前选中的内容，以及拖动时移动、旋转或缩放的精确数值。"
 
 # AI Translated
 msgid "No layer mapped with Unwrap"
@@ -29863,6 +31026,10 @@ msgid "%.1f mm tile"
 msgstr "%.1f mm 平铺"
 
 # AI Translated
+msgid "The pane follows the active texture layer, and that layer has to be mapped with Unwrap (LSCM). Add a layer and set its Mapping to Unwrap."
+msgstr "此面板对应当前纹理图层，该图层的映射必须为“展开 (LSCM)”。请添加一个图层，并将其映射设为“展开”。"
+
+# AI Translated
 msgid "Out of date - the paint, the seams or the seam angle changed since this unwrap was made. Press to unwrap again."
 msgstr "已过期 - 自生成此展开以来，绘制、切缝或切缝角度已更改。按下以重新展开。"
 
@@ -29871,17 +31038,53 @@ msgid "Flatten the painted area into UV islands. It is computed only when you pr
 msgstr "将绘制区域展平为 UV 岛。仅在您按下此按钮时才会计算，而不是每次编辑都计算 - 因此请先绘制、更改切缝角度或标记切缝，然后再按“展开”。"
 
 # AI Translated
+msgid "Turn Mark seams on first - Path is a quicker way of marking them."
+msgstr "请先开启“标记切缝”；使用“路径”可以更快地标记切缝。"
+
+# AI Translated
+msgid "No seams are marked on this layer."
+msgstr "此图层上未标记任何切缝。"
+
+# AI Translated
+msgid "No islands have been reshaped by hand, so there is nothing to discard."
+msgstr "尚未手动调整任何 UV 岛的形状，没有可放弃的修改。"
+
+# AI Translated
 #, c-format, boost-format
 msgid "%d islands, %s faces"
 msgstr "%d 个岛，%s 个面"
 
 # AI Translated
-msgid "Forward"
-msgstr "前进"
+msgid "How the painted area came out of the unwrap: the number of separate pieces it was cut into (at the seams and at edges sharper than the seam angle), and how many triangles they hold in total."
+msgstr "绘制区域的展开结果：切分出的独立块数（在切缝处及比切缝角度更尖锐的边处切开），以及这些块包含的三角形总数。"
 
 # AI Translated
-msgid "Tools"
-msgstr "工具"
+msgid "Press Unwrap first - there are no islands to work on yet."
+msgstr "请先单击“展开”，目前还没有可操作的 UV 岛。"
+
+# AI Translated
+msgid "Click an island on the canvas first, in Island mode."
+msgstr "请先在岛模式下单击画布上的一个 UV 岛。"
+
+# AI Translated
+msgid "Not signed in"
+msgstr "未登录"
+
+msgid "Bambu Network plug-in not detected. Click <a>here</a> to install it."
+msgstr "没有发现 Bambu 网络插件，请<a>下载</a>并安装。"
+
+msgid "Create new project"
+msgstr "创建一个新项目"
+
+msgid "Recently opened"
+msgstr "近期打开文件"
+
+msgid "Open Containing Folder"
+msgstr "打开所在的文件夹"
+
+# AI Translated
+msgid "Forward"
+msgstr "前进"
 
 # AI Translated
 msgid "View Source"
@@ -30030,12 +31233,58 @@ msgstr ""
 
 # AI Translated
 #, c-format, boost-format
+msgid "Plugin \"%s\" is requesting permission to create a thread."
+msgstr "插件“%s”正在请求创建线程的权限。"
+
+# AI Translated
+#, c-format, boost-format
+msgid ""
+"Plugin \"%s\" is requesting to replace the running application with:\n"
+"%s"
+msgstr ""
+"插件“%s”正在请求将正在运行的应用程序替换为：\n"
+"%s"
+
+# AI Translated
+#, c-format, boost-format
 msgid "Plugin \"%s\" is requesting permission for the Python audit event \"%s\"."
 msgstr "插件“%s”正在请求 Python 审计事件“%s”的权限。"
 
 # AI Translated
 msgid "Plugin permission request"
 msgstr "插件权限请求"
+
+# AI Translated
+msgid "Printer connection"
+msgstr "打印机连接"
+
+# AI Translated
+msgid "Pages"
+msgstr "页面"
+
+# AI Translated
+msgid "Analysis"
+msgstr "分析"
+
+# AI Translated
+msgid "Importer"
+msgstr "导入器"
+
+# AI Translated
+msgid "Exporter"
+msgstr "导出器"
+
+# AI Translated
+msgid "Visualization"
+msgstr "可视化"
+
+# AI Translated
+msgid "Script"
+msgstr "脚本"
+
+# AI Translated
+msgid "Slicing Pipeline"
+msgstr "切片流水线"
 
 # AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
@@ -30623,6 +31872,310 @@ msgstr ""
 "避免翘曲\n"
 "您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。"
 
+#~ msgid ""
+#~ "The Microsoft WebView2 Runtime could not be installed.\n"
+#~ "Some features, including the setup wizard, may appear blank until it is installed.\n"
+#~ "Please install it manually from https://developer.microsoft.com/microsoft-edge/webview2/ and restart Orca Slicer."
+#~ msgstr ""
+#~ "无法安装 Microsoft WebView2 运行库。\n"
+#~ "在安装之前，包括设置向导在内的部分功能可能显示为空白。\n"
+#~ "请从 https://developer.microsoft.com/microsoft-edge/webview2/ 手动安装，然后重启 Orca Slicer。"
+
+#~ msgid "Why this grouping"
+#~ msgstr "为什么这样分组"
+
+#~ msgid "The software does not support using different diameter of nozzles for one print. If the left and right nozzles are inconsistent, we can only proceed with single-head printing. Please confirm which nozzle you would like to use for this project."
+#~ msgstr "该软件不支持在一次打印中使用不同直径的喷嘴。如果左右喷嘴不一致，就只能进行单头打印。请确认您想在该项目中使用哪种喷嘴。"
+
+#~ msgid "Switch diameter"
+#~ msgstr "开关直径"
+
+#~ msgid "BambuStudio Project"
+#~ msgstr "BambuStudio 项目"
+
+#, c-format, boost-format
+#~ msgid "The 3MF was created by BambuStudio (version %s), which is newer than the compatible version %s. Found unrecognized settings:"
+#~ msgstr "该 3MF 由 BambuStudio（版本 %s）创建，其版本高于兼容版本 %s。发现无法识别的设置："
+
+#, c-format, boost-format
+#~ msgid "The 3MF was created by BambuStudio (version %s), which is newer than the compatible version %s. Some settings may not be fully compatible."
+#~ msgstr "该 3MF 由 BambuStudio（版本 %s）创建，其版本高于兼容版本 %s。部分设置可能无法完全兼容。"
+
+#~ msgid "The 3MF was created by BambuStudio. Some settings may differ from OrcaSlicer."
+#~ msgstr "该 3MF 由 BambuStudio 创建。部分设置可能与 OrcaSlicer 不同。"
+
+# AI Translated
+#~ msgid "Cannot undo or redo while an operation is running. Stop it first."
+#~ msgstr "操作正在进行时无法撤销或重做。请先停止该操作。"
+
+# AI Translated
+#, c-format, boost-format
+#~ msgid "%s: %s"
+#~ msgstr "%s: %s"
+
+# AI Translated
+#~ msgid ""
+#~ "Centers the internal infill of each part on itself, as if it were sliced on its own, instead of on the whole assembly. Parts that touch or overlap are treated as one body and share a center; separate parts (or distinct 3D objects) each get their own.\n"
+#~ "Useful when an assembly groups several objects that should each keep a consistent, self-centered infill.\n"
+#~ "Affects line and grid patterns and rotation-template infills.\n"
+#~ "Patterns locked to global coordinates (Gyroid, Honeycomb, TPMS, ...) are unaffected."
+#~ msgstr ""
+#~ "将每个零件的内部填充以其自身为中心，就好像它是单独切片的一样，而不是以整个装配体为中心。相互接触或重叠的零件被视为一个整体并共享一个中心；分离的零件（或不同的 3D 物体）各自拥有自己的中心。\n"
+#~ "当一个装配体将多个物体分为一组、而每个物体都应保持一致的自我居中填充时，此选项很有用。\n"
+#~ "会影响直线和网格图案以及旋转模板填充。\n"
+#~ "锁定到全局坐标的图案（螺旋体、蜂窝、TPMS 等）不受影响。"
+
+#~ msgid "Index of the current layer. One-based (i.e. first layer is number 1)."
+#~ msgstr "当前层编号。从 1 开始编号（即第一层编号为 1）。"
+
+#~ msgid "Video tutorial"
+#~ msgstr "视频指南"
+
+# AI Translated
+#~ msgid "Primitive"
+#~ msgstr "标准模型"
+
+# AI Translated
+#~ msgid "Empty mesh generated"
+#~ msgstr "生成了空网格"
+
+# AI Translated
+#~ msgid "Box"
+#~ msgstr "长方体"
+
+# AI Translated
+#~ msgid "Quick:"
+#~ msgstr "快速："
+
+# AI Translated
+#~ msgid "Width (X)"
+#~ msgstr "宽度 (X)"
+
+# AI Translated
+#~ msgid "Depth (Y)"
+#~ msgstr "深度 (Y)"
+
+# AI Translated
+#~ msgid "Height (Z)"
+#~ msgstr "高度 (Z)"
+
+# AI Translated
+#~ msgid "Bottom R"
+#~ msgstr "底面半径"
+
+# AI Translated
+#~ msgid "Top R"
+#~ msgstr "顶面半径"
+
+# AI Translated
+#~ msgid "Major R"
+#~ msgstr "大半径"
+
+# AI Translated
+#~ msgid "Minor R"
+#~ msgstr "小半径"
+
+# AI Translated
+#~ msgid "All edges"
+#~ msgstr "所有边"
+
+# AI Translated
+#~ msgid "Top edges"
+#~ msgstr "顶部边"
+
+# AI Translated
+#~ msgid "Bottom edges"
+#~ msgstr "底部边"
+
+# AI Translated
+#~ msgid "Lateral edges"
+#~ msgstr "侧边"
+
+# AI Translated
+#~ msgid "Mesh resolution"
+#~ msgstr "网格精度"
+
+# AI Translated
+#~ msgid "Add Shape"
+#~ msgstr "添加形状"
+
+# AI Translated
+#~ msgid "No outer profile"
+#~ msgstr "没有外轮廓"
+
+# AI Translated
+#~ msgid "Failed to make outer face"
+#~ msgstr "无法生成外轮廓面"
+
+# AI Translated
+#~ msgid "Failed to build face with holes"
+#~ msgstr "无法生成带孔的面"
+
+# AI Translated
+#~ msgid "Revolve failed"
+#~ msgstr "旋转失败"
+
+# AI Translated
+#~ msgid "Profile"
+#~ msgstr "轮廓"
+
+# AI Translated
+#~ msgid "Start new profile (for holes)"
+#~ msgstr "开始新轮廓（用于孔）"
+
+# AI Translated
+#~ msgid "Segments"
+#~ msgstr "段数"
+
+# AI Translated
+#~ msgid "Sides"
+#~ msgstr "边数"
+
+# AI Translated
+#~ msgid "Click on canvas to draw"
+#~ msgstr "单击画布进行绘制"
+
+# AI Translated
+#~ msgid "Snap to grid"
+#~ msgstr "吸附到网格"
+
+# AI Translated
+#~ msgid "Grid step"
+#~ msgstr "网格间距"
+
+# AI Translated
+#~ msgid "Outer"
+#~ msgstr "外轮廓"
+
+# AI Translated
+#~ msgid "closed"
+#~ msgstr "已闭合"
+
+# AI Translated
+#, boost-format
+#~ msgid "%1% %2%: %3% points %4%"
+#~ msgstr "%1% %2%：%3% 个点 %4%"
+
+# AI Translated
+#~ msgid "XY (Top)"
+#~ msgstr "XY（顶部）"
+
+# AI Translated
+#~ msgid "XZ (Front)"
+#~ msgstr "XZ（前面）"
+
+# AI Translated
+#~ msgid "YZ (Side)"
+#~ msgstr "YZ（侧面）"
+
+# AI Translated
+#~ msgid "Revolve deg"
+#~ msgstr "旋转角度"
+
+# AI Translated
+#~ msgid "Set to 0 for extrude, >0 for revolve"
+#~ msgstr "设为 0 则拉伸，大于 0 则旋转"
+
+# AI Translated
+#~ msgid "Pocket (cut)"
+#~ msgstr "凹槽（切除）"
+
+# AI Translated
+#, c-format
+#~ msgid "%zu closed profile"
+#~ msgid_plural "%zu closed profiles"
+#~ msgstr[0] "%zu 个闭合轮廓"
+
+# AI Translated
+#~ msgid "Draw a closed profile to enable"
+#~ msgstr "绘制一个闭合轮廓以启用"
+
+# AI Translated
+#~ msgid "Empty result"
+#~ msgstr "结果为空"
+
+# AI Translated
+#, boost-format
+#~ msgid "Extrude: %1%"
+#~ msgstr "拉伸：%1%"
+
+# AI Translated
+#, boost-format
+#~ msgid "Revolve: %1%"
+#~ msgstr "旋转：%1%"
+
+# AI Translated
+#~ msgid "No object selected"
+#~ msgstr "未选择对象"
+
+# AI Translated
+#~ msgid "Face failed"
+#~ msgstr "生成面失败"
+
+# AI Translated
+#~ msgid "Face with holes failed"
+#~ msgstr "生成带孔的面失败"
+
+# AI Translated
+#~ msgid "Tool mesh empty"
+#~ msgstr "工具网格为空"
+
+# AI Translated
+#~ msgid "Pocket added (negative volume)"
+#~ msgstr "已添加凹槽（负体积）"
+
+# AI Translated
+#, boost-format
+#~ msgid "Pocket: %1%"
+#~ msgstr "凹槽：%1%"
+
+# AI Translated
+#~ msgid "Needs the active layer mapped with Unwrap (LSCM)."
+#~ msgstr "需要当前图层使用“展开 (LSCM)”映射。"
+
+# AI Translated
+#~ msgid "Checker - a test grid instead of the texture. Where the squares stay square the texture is undistorted; where they stretch, it will too"
+#~ msgstr "棋盘格 - 用测试网格代替纹理。方格保持正方形的地方纹理没有变形；方格被拉伸的地方，纹理也会被拉伸"
+
+# AI Translated
+#~ msgid "Distortion - blue-to-red stretch heatmap over the unwrap"
+#~ msgstr "畸变 - 在展开上叠加由蓝到红的拉伸热力图"
+
+# AI Translated
+#~ msgid "Mix by"
+#~ msgstr "混合方式"
+
+# AI Translated
+#~ msgctxt "Texture Displacement"
+#~ msgid "Surface"
+#~ msgstr "表面"
+
+# AI Translated
+#~ msgid ""
+#~ "Layers: the two filaments alternate between print layers, which blends smoothly on upright surfaces but disappears on flat-facing ones, where a whole layer is a single band.\n"
+#~ "Surface: a fine checkerboard across the surface, which works at any angle but can read as texture rather than as a blend.\n"
+#~ "Automatic: layers on upright faces; flat-facing faces take the nearer single filament, since a checkerboard there shows as a pattern."
+#~ msgstr ""
+#~ "层：两种耗材丝在打印层之间交替，在竖直表面上过渡平滑，但在朝上或朝下的平坦表面上会失效，因为那里整层只是一条色带。\n"
+#~ "表面：在表面上形成细密的棋盘格，适用于任何角度，但看起来可能更像纹理而非混色。\n"
+#~ "自动：竖直面按层混合；平坦面采用较接近的单一耗材丝，因为棋盘格在那里会显现为图案。"
+
+# AI Translated
+#~ msgid "Island - move, rotate and scale whole islands"
+#~ msgstr "岛 - 移动、旋转和缩放整个岛"
+
+# AI Translated
+#~ msgid "Vertex - drag vertices to reshape; Shift/Ctrl to multi-select"
+#~ msgstr "顶点 - 拖动顶点以调整形状；按住 Shift/Ctrl 可多选"
+
+# AI Translated
+#~ msgid "Edge - drag edges to reshape; Shift/Ctrl to multi-select"
+#~ msgstr "边 - 拖动边以调整形状；按住 Shift/Ctrl 可多选"
+
+# AI Translated
+#~ msgid "Frame all islands (Home)"
+#~ msgstr "框显所有岛 (Home)"
+
 # AI Translated
 #~ msgid "(Experimental) Use printer agents instead of print hosts"
 #~ msgstr "（实验性）使用打印机代理替代打印主机"
@@ -30655,16 +32208,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Click a face or a reference plane, then pick a drawing tool"
 #~ msgstr "单击一个面或基准面，然后选取绘图工具"
-
-#~ msgid "X"
-#~ msgstr "X"
-
-#~ msgid "Y"
-#~ msgstr "Y"
-
-# AI Translated
-#~ msgid "Z"
-#~ msgstr "Z"
 
 # AI Translated
 #~ msgid "XY"
@@ -30721,10 +32264,6 @@ msgstr ""
 # AI Translated
 #~ msgid "Vertical distance"
 #~ msgstr "竖直距离"
-
-# AI Translated
-#~ msgid "Linear"
-#~ msgstr "线性"
 
 #~ msgid "Face recognition"
 #~ msgstr "外观面检测"
@@ -32409,9 +33948,6 @@ msgstr ""
 
 #~ msgid "part selection"
 #~ msgstr "零件选择"
-
-#~ msgid "°"
-#~ msgstr "°"
 
 #~ msgid ""
 #~ "Controls the density (spacing) of external bridge lines. Default is 100%.\n"

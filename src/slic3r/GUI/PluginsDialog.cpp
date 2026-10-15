@@ -175,7 +175,7 @@ nlohmann::json build_plugin_payload_item(const PluginDialogItem& dialog_item)
     for (const PluginCapabilityView& capability : dialog_item.capabilities) {
         nlohmann::json c;
         c["name"]          = capability.id.name;
-        c["type"]          = plugin_capability_type_display_name(capability.id.type);
+        c["type"]          = PluginConfig::capability_type_label(capability.id.type);
         c["type_key"]      = plugin_capability_type_to_string(capability.id.type);
         c["enabled"]       = capability.enabled;
         c["can_toggle"]    = capability.can_toggle;
@@ -326,7 +326,7 @@ PluginDialogItem build_plugin_dialog_item(const PluginDescriptor& descriptor)
                 item.type_labels.push_back(label);
     } else {
         for (const auto& capability : capabilities) {
-            const std::string label = plugin_capability_type_display_name(capability->type());
+            const std::string label = PluginConfig::capability_type_label(capability->type());
             if (std::find(item.type_labels.begin(), item.type_labels.end(), label) == item.type_labels.end())
                 item.type_labels.push_back(label);
         }
@@ -585,6 +585,97 @@ bool install_local_plugin_package(const boost::filesystem::path& package_file, w
 PluginsDialog::PluginsDialog(wxWindow* parent, wxWindowID id, const wxString&, const wxPoint& pos, const wxSize& size, long style)
     : WebViewHostDialog(parent, id, _L("Plugins"), pos, size, style)
 { create_webview("web/dialog/PluginsDialog/index.html", _L("Plugins"), wxSize(900, 820), wxSize(760, 715)); }
+
+nlohmann::json PluginsDialog::localized_strings() const
+{
+    return {
+        {"search_plugins", _u8L("Search plugins")},
+        {"clear", _u8L("Clear")},
+        {"clear_search", _u8L("Clear search")},
+        {"match_case", _u8L("Match case")},
+        {"match_whole_word", _u8L("Match whole word")},
+        {"refresh", _u8L("Refresh")},
+        {"install_options", _u8L("More plugin install options")},
+        {"install_plugin", _u8L("Install plugin")},
+        {"install_local_plugin", _u8L("Install local plugin")},
+        {"activate", _u8L("Activate")},
+        {"sort_by_name", _u8L("Sort by name")},
+        {"name", _u8L("Name")},
+        {"sort_by_version", _u8L("Sort by version")},
+        {"plugin_version", _u8L("Plugin Version")},
+        {"sort_by_source", _u8L("Sort by source")},
+        {"source", _u8L("Source")},
+        {"sort_by_status", _u8L("Sort by status")},
+        {"status", _u8L_CONTEXT("Status", "Plugin")},
+        {"resize_hint", _u8L("Drag to resize; double-click to reset")},
+        {"resize_list", _u8L("Resize the plugin list")},
+        {"details_label", _u8L("Plugin details")},
+        {"tab_info", _u8L("Plugin Info")},
+        {"description", _u8L("Description")},
+        {"tab_config", _u8L("Config")},
+        {"tab_changelog", _u8L("Changelog")},
+        {"tab_diagnostics", _u8L("Diagnostics")},
+        {"types", _u8L("Types")},
+        {"author", _u8L("Author")},
+        {"installed_version", _u8L("Installed Version")},
+        {"latest_version", _u8L("Latest Version")},
+        {"update_available", _u8L("Update available")},
+        {"update_title", _u8L("Update to the latest version")},
+        {"update", _u8L("Update")},
+        {"no_description", _u8L("No description available")},
+        {"config_select_plugin", _u8L("Select a plugin to configure its capabilities")},
+        {"configurable_capabilities", _u8L("Configurable capabilities")},
+        {"config_json_label", _u8L("Capability configuration (JSON)")},
+        {"config_frame_title", _u8L("Plugin configuration")},
+        {"restore_title", _u8L("Discard the settings saved for this capability and restore the plugin's defaults")},
+        {"restore_defaults", _u8L("Restore defaults")},
+        {"save", _u8L("Save")},
+        {"changelog_label", _u8L("Plugin changelog")},
+        {"version", _u8L("Version")},
+        {"date", _u8L("Date")},
+        {"changes", _u8L("Changes")},
+        {"no_changelog", _u8L("No changelog available")},
+        {"no_issues", _u8L("No issues detected")},
+        {"no_plugins", _u8L("No plugins found")},
+        {"no_match", _u8L("No plugins match \"%s\"")},
+        {"source_mine", _u8L("Mine")},
+        {"source_subscribed", _u8L("Subscribed")},
+        {"source_orphaned", _u8L("Orphaned")},
+        {"source_local", _u8L("Local")},
+        {"mixed_capabilities", _u8L("Some plugin capabilities are enabled")},
+        {"collapse_named", _u8L("Collapse %s capabilities")},
+        {"expand_named", _u8L("Expand %s capabilities")},
+        {"collapse", _u8L("Collapse capabilities")},
+        {"expand", _u8L("Expand capabilities")},
+        {"open_in_browser", _u8L("Open this plugin in your browser")},
+        {"capability_count", _u8L("Capabilities: %s")},
+        {"capabilities", _u8L_CONTEXT("Capabilities", "Plugin")},
+        {"run_named", _u8L("Run \"%s\"")},
+        {"enable_named", _u8L("Enable %s")},
+        {"not_available", _u8L("N/A")},
+        {"unauthorized", _u8L("Unauthorized for updates")},
+        {"not_installed", _u8L("Not installed")},
+        {"config_loading", _u8L("Loading the plugin…")},
+        {"config_no_capabilities", _u8L("This plugin exposes no capabilities")},
+        {"config_activate", _u8L("Activate this plugin to configure its capabilities")},
+        {"invalid_json", _u8L("Invalid JSON")},
+        {"view_on_cloud", _u8L("View on OrcaCloud <a>here</a>")},
+        {"status_activated", _u8L("Activated")},
+        {"status_loading", _u8L("Loading")},
+        {"status_error", _u8L("Error")},
+        {"status_runtime_error", _u8L("Runtime error")},
+        {"status_inactive", _u8L("Inactive")},
+        {"status_activated_desc", _u8L("This plugin is active and ready to be used.")},
+        {"status_loading_desc", _u8L("This plugin is still loading.")},
+        {"status_error_desc", _u8L("This plugin is blocked until its error is fixed.")},
+        {"status_runtime_error_desc", _u8L("This plugin is loaded but a capability reported an error.")},
+        {"status_inactive_desc", _u8L("This plugin is inactive. Activate it to install or load it.")},
+        {"select_plugin", _u8L("Select a plugin to view its status and details.")},
+        {"orphaned_note", _u8L("Orphaned: This plugin is no longer subscribed or available in OrcaCloud. The local copy remains installed and can still be used.")},
+        {"newer_version_note", _u8L("A newer plugin version is available.")},
+        {"unauthorized_note", _u8L("Cloud updates are unavailable because this plugin is unauthorized for updates.")},
+    };
+}
 
 PluginsDialog::~PluginsDialog() { m_alive->store(false, std::memory_order_release); }
 

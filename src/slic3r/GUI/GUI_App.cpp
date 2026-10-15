@@ -121,6 +121,7 @@
 // This is the only place where we want to allow that, so define an override macro.
 #define SLIC3R_ALLOW_LIBSLIC3R_I18N_IN_SLIC3R
 #include "libslic3r/I18N.hpp"
+#include "libslic3r/Point.hpp"
 #undef SLIC3R_ALLOW_LIBSLIC3R_I18N_IN_SLIC3R
 #include "slic3r/GUI/I18N.hpp"
 
@@ -171,13 +172,12 @@
 #include <openssl/evp.h>
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Geometry.hpp"
 #include "libslic3r/Model.hpp"
-#include "libslic3r/I18N.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/InstanceLock.hpp"
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/miniz_extension.hpp"
-#include "libslic3r/Utils.hpp"
 #include "slic3r/plugin/PluginManager.hpp"
 #include "slic3r/plugin/host/PluginHostUi.hpp"
 #include "slic3r/plugin/PythonInterpreter.hpp"
@@ -1861,6 +1861,17 @@ namespace {
     constexpr int FINAL_DRAIN_TIMEOUT_MS      = 100;  // Final event processing before destruction
     constexpr int POLL_INTERVAL_MS            = 50;   // Polling interval for state checks
     constexpr int MAX_YIELD_ITERATIONS        = 20;   // Maximum wxYield calls per drain cycle
+
+    // The Orca agent's health check reports into GUI_App from a worker thread, and the agent can
+    // outlive GUI_App's use of it (the plugin service keeps a reference), so stop the check before
+    // the agent is deleted or replaced. The cast is null when no Orca agent is attached.
+    void stop_orca_health_check(NetworkAgent* agent)
+    {
+        if (!agent)
+            return;
+        if (auto orca_agent = std::dynamic_pointer_cast<OrcaCloudServiceAgent>(agent->get_cloud_agent()))
+            orca_agent->stop_health_check();
+    }
 }
 
 // Process pending wx events with bounded iteration count
@@ -1993,6 +2004,10 @@ bool GUI_App::hot_reload_network_plugin()
     }
 
     if (m_agent) {
+        // Stop the health check first: a result it posts after the Phase 2 drain would run while
+        // m_agent is null or replaced.
+        stop_orca_health_check(m_agent);
+
         // Phase 1: Clear all callbacks (stops new invocations)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Phase 1 - clearing callbacks";
         m_agent->set_on_ssdp_msg_fn(nullptr);
@@ -2639,9 +2654,10 @@ void GUI_App::init_webview_runtime()
         BOOST_LOG_TRIVIAL(info) << "WebView2 runtime installed successfully.";
     } else {
         BOOST_LOG_TRIVIAL(error) << "WebView2 runtime installation failed or still not detected.";
-        wxMessageBox(_L("The Microsoft WebView2 Runtime could not be installed.\n"
-                        "Some features, including the setup wizard, may appear blank until it is installed.\n"
-                        "Please install it manually from https://developer.microsoft.com/microsoft-edge/webview2/ and restart Orca Slicer."),
+        wxMessageBox(format_wxstr(_L("The Microsoft WebView2 Runtime could not be installed.\n"
+                                     "Some features, including the setup wizard, may appear blank until it is installed.\n"
+                                     "Please install it manually from %1% and restart Orca Slicer."),
+                                  "https://developer.microsoft.com/microsoft-edge/webview2/"),
                      _L("WebView2 Runtime"), wxOK | wxICON_WARNING);
     }
 }
@@ -2860,6 +2876,7 @@ int GUI_App::OnExit()
     NetworkAgentFactory::clear_printer_agent_cache();
 
     if (m_agent) {
+        stop_orca_health_check(m_agent);
         // BBS avoid a crash on mac platform
 #ifdef __WINDOWS__
         m_agent->start_discovery(false, false);
@@ -2891,6 +2908,14 @@ int GUI_App::OnExit()
     }
 
     return wxApp::OnExit();
+}
+
+void GUI_App::CleanUp()
+{
+    // OnExit() does not run when OnInit() fails, and m_agent is then still set. Stop the check before
+    // wxApp::CleanUp() resets wxTheApp, which a result posted from the worker would still be using.
+    stop_orca_health_check(m_agent);
+    wxApp::CleanUp();
 }
 
 class wxBoostLog : public wxLog
@@ -3115,9 +3140,11 @@ bool GUI_App::on_init_inner()
     // OnExit() and ~GUI_App() never run. Shut the plugins and Python down here as ~GUI_App() does. Left to
     // PluginManager's static destructor, the shutdown locks hook state that has already been destroyed and aborts.
     // Unload the Bambu network plugin too. Its static destructors abort if its agent's threads are still running.
+    // Stop the Orca Cloud health check as OnExit() does, so no request is in flight while exit() tears down.
     wxGetApp().Bind(wxEVT_END_SESSION, [this](wxCloseEvent &e) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "received wxEVT_END_SESSION";
         stop_sync_user_preset();
+        stop_orca_health_check(m_agent);
         Slic3r::NetworkAgent::unload_network_module();
         Slic3r::PluginManager::instance().shutdown();
         Slic3r::PythonInterpreter::instance().shutdown();
@@ -3205,9 +3232,16 @@ bool GUI_App::on_init_inner()
 #ifdef _MSW_DARK_MODE
 
 #ifndef __WINDOWS__
+    // The label colours and the dark mode flag were set above from the saved mode. When the system theme
+    // differs from it, refresh them, or dialogs that map their colours stay in the old mode for this session.
+    const bool saved_dark_mode = dark_mode();
     wxSystemAppearance app = wxSystemSettings::GetAppearance();
     GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
     GUI::wxGetApp().app_config->save();
+    if (dark_mode() != saved_dark_mode) {
+        init_label_colours();
+        Update_dark_mode_flag();
+    }
 #endif // __APPLE__
 
 
@@ -3975,6 +4009,9 @@ bool GUI_App::on_init_network(bool try_backup)
 
     // m_agent = new Slic3r::NetworkAgent(data_directory);
     std::unique_ptr<Slic3r::NetworkAgent> agent_ptr = Slic3r::create_agent_from_config(data_directory, app_config);
+    // A direct restart_networking() replaces m_agent without deleting it, so a health check in flight
+    // on the old agent would still report into the GUI.
+    stop_orca_health_check(m_agent);
     m_agent = agent_ptr.release();
 
     if (!m_device_manager)
@@ -4823,12 +4860,6 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     m_is_recreating_gui = false;
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
-}
-
-void GUI_App::system_info()
-{
-    //SysInfoDialog dlg;
-    //dlg.ShowModal();
 }
 
 void GUI_App::keyboard_shortcuts(ShortcutContext page, wxWindow* parent)
@@ -7204,11 +7235,11 @@ void GUI_App::sync_preset(Preset* preset, bool force)
 
         BOOST_LOG_TRIVIAL(trace) << "sync_preset: sync operation: " << preset->sync_info << " success! preset = " << preset->name;
         if (preset->type == Preset::Type::TYPE_FILAMENT) {
-            preset_bundle->filaments.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time);
+            preset_bundle->filaments.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time, m_agent->get_user_id());
         } else if (preset->type == Preset::Type::TYPE_PRINT) {
-            preset_bundle->prints.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time);
+            preset_bundle->prints.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time, m_agent->get_user_id());
         } else if (preset->type == Preset::Type::TYPE_PRINTER) {
-            preset_bundle->printers.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time);
+            preset_bundle->printers.set_sync_info_and_save(preset->name, setting_id, updated_info, update_time, m_agent->get_user_id());
         }
     }
 }
@@ -7907,7 +7938,7 @@ void GUI_App::force_push_conflicting_preset(const std::string& setting_id)
                 ? OrcaCloudServiceAgent::generate_uuid_for_setting_id(preset.name, user_id)
                 : preset.setting_id;
             if (preset_id == setting_id) {
-                coll->set_sync_info_and_save(preset.name, setting_id, "update", 0);
+                coll->set_sync_info_and_save(preset.name, setting_id, "update", 0, user_id);
                 break;
             }
         }
@@ -10114,6 +10145,18 @@ bool is_support_filament(int extruder_id, bool strict_check)
     if (support_option == nullptr) return false;
     return support_option->get_at(0);
 };
+
+Vec3d build_plate_tilt_up_direction()
+{
+    const DynamicPrintConfig &cfg    = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    const auto               *opt_x  = cfg.option<ConfigOptionFloat>("build_plate_tilt_x");
+    const auto               *opt_y  = cfg.option<ConfigOptionFloat>("build_plate_tilt_y");
+    const double              tilt_x = opt_x != nullptr ? opt_x->value : 0.;
+    const double              tilt_y = opt_y != nullptr ? opt_y->value : 0.;
+    if (tilt_x == 0. && tilt_y == 0.)
+        return Vec3d::UnitZ();
+    return Vec3d(std::tan(Geometry::deg2rad(tilt_y)), std::tan(Geometry::deg2rad(tilt_x)), 1.).normalized();
+}
 
 } // GUI
 } //Slic3r
