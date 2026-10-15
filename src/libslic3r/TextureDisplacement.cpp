@@ -754,7 +754,9 @@ TextureDetail analyze_texture_detail(const TextureDisplacementLayer &layer)
 
         // Both signals, because either alone misreads a common case: the histogram calls a
         // two-colour gradient flat (measured 0.90 on a green-to-red ramp, and 0.96 on a painted
-        // model texture), while coverage alone would call a noisy two-colour logo a gradient.
+        // model texture), while coverage alone would call a noisy two-colour logo a gradient. An
+        // image whose axis could not be measured keeps coverage at 0, so the flat-share test decides
+        // alone - which is what an image of a single colour needs.
         out.flat_colors = out.flat_share >= 0.85f && out.axis_coverage < 0.25f;
     }
     std::lock_guard<std::mutex> lock(g_texture_detail_cache.mutex);

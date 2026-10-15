@@ -508,7 +508,11 @@ struct TextureDetail
     // covers it end to end; a few flat colours sit in spikes with gaps between them. The histogram
     // above cannot tell those apart - a two-colour gradient occupies as few bins as the two colours
     // on their own - so both are needed before an image counts as flat.
-    float axis_coverage = 1.f;
+    //
+    // Zero when there was nothing to measure: an image of one colour, or too few pixels to fit an
+    // axis through. That is the right default, because it leaves the flat-share test deciding on its
+    // own, exactly as it did before this signal existed.
+    float axis_coverage = 0.f;
     bool  flat_colors = false;
 };
 TextureDetail analyze_texture_detail(const TextureDisplacementLayer &layer);
