@@ -15,6 +15,7 @@
 #include <vector>
 #include <cstddef>
 #include <string>
+#include <functional>
 #include <memory>
 #include <utility>
 
@@ -316,4 +317,18 @@ TEST_CASE("Remapping paint onto a changed triangle still paints it", "[TriangleS
                  Catch::Matchers::WithinRel(painted_area(mesh, paint, EnforcerBlockerType::Extruder2), 0.05));
     REQUIRE_THAT(painted_area(changed, remapped, EnforcerBlockerType::Extruder3),
                  Catch::Matchers::WithinRel(painted_area(mesh, paint, EnforcerBlockerType::Extruder3), 1e-5));
+}
+
+TEST_CASE("Remapping ignores existing paint whose triangle index is out of range", "[TriangleSelector][Regression]")
+{
+    const TriangleMesh mesh  = make_sphere(20., 2 * PI / 48);
+    const auto         paint = brush_paint(mesh, 40);
+
+    // deserialize() rejects this stream as a whole, so it must not keep any face from being copied either.
+    TriangleSelector::TriangleSplittingData existing;
+    existing.triangles_to_split.emplace_back(paint.triangles_to_split.front().triangle_idx, 0);
+    existing.triangles_to_split.emplace_back(int(mesh.its.indices.size()) + 100, 4);
+    existing.bitstream = pack_nibbles({1, 1});
+
+    REQUIRE(TriangleSelector::remap_painting(mesh.its, paint, mesh.its, Transform3d::Identity(), std::cref(existing)) == paint);
 }

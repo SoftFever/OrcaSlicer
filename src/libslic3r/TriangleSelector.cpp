@@ -2657,8 +2657,13 @@ TriangleSelector::TriangleSplittingData TriangleSelector::remap_painting(
     if (existing_painting) {
         // Restore existing painting first, if given
         target_selector.deserialize(existing_painting->get(), false);
-        for (const TriangleBitStreamMapping& m : existing_painting->get().triangles_to_split)
-            has_existing_paint[m.triangle_idx] = true;
+        // deserialize() drops the whole stream if any index is out of range, so treat it as no paint then.
+        const auto& existing = existing_painting->get().triangles_to_split;
+        if (std::all_of(existing.begin(), existing.end(), [&](const TriangleBitStreamMapping& m) {
+                return m.triangle_idx >= 0 && size_t(m.triangle_idx) < has_existing_paint.size();
+            }))
+            for (const TriangleBitStreamMapping& m : existing)
+                has_existing_paint[m.triangle_idx] = true;
     }
 
     // 4. Most faces are left unchanged by a repair, a split or a cut. Copy their paint tree as it is, which is
