@@ -291,7 +291,7 @@ TEST_CASE("Painted seams prefer the longer candidate patch regardless of contour
 
 TEST_CASE("Full surface paint preserves unpainted candidates and placed seams", "[SeamPlacer][Regression]")
 {
-    const std::string mode = GENERATE("back", "aligned");
+    const std::string mode = GENERATE("back", "aligned", "random");
     const bool bevel = GENERATE(false, true);
     CAPTURE(mode, bevel);
     std::vector<std::vector<Vec3f>> expected_candidates;
@@ -603,6 +603,61 @@ TEST_CASE("Painted ranges end exactly where the paint contour crosses the layer"
     CHECK_THAT(first, Catch::Matchers::WithinAbs(unscale<double>(face[0].x()), 1e-3));
     CHECK_THAT(last, Catch::Matchers::WithinAbs(unscale<double>(face[1].x()), 1e-3));
     CHECK(centers == 1);
+}
+
+TEST_CASE("Random seams stay inside exact green ranges and keep varying", "[SeamPlacer][Regression]")
+{
+    const bool wrap = GENERATE(false, true);
+    const bool partial_blocker = GENERATE(false, true);
+    CAPTURE(wrap, partial_blocker);
+    // One hundred layers exercise the outgoing edge of the last green sample at many random offsets.
+    PipelineFixture fixture(false, 20.0f);
+    fixture.config.set_deserialize_strict("seam_position", "random");
+    paint_front_face(fixture);
+    if (partial_blocker) {
+        const auto *part = fixture.model.objects.front()->volumes.front();
+        const Vec3d center = part->get_matrix() * (part->mesh().bounding_box().min + Vec3d(10, 0, 10));
+        auto *modifier = fixture.model.objects.front()->add_volume(make_cube(4, 4, 22));
+        modifier->set_type(ModelVolumeType::PRECISE_SEAM_BLOCKED);
+        modifier->set_offset(center); // Block x = 8..12 on the green face, throughout the object's height.
+        fixture.print.apply(fixture.model, fixture.config);
+    }
+    PrintObject &object = fixture.prepare();
+    REQUIRE(object.layers().size() == 100);
+    set_loop_on_every_layer(object, [&](size_t) {
+        auto outline = fixture.points_in_layer(object, {{-5, 0.2}, {10, 0.2}, {25, 0.2}, {25, 10}, {-5, 10}});
+        if (wrap)
+            std::rotate(outline.begin(), outline.begin() + 1, outline.end()); // Green crosses the loop origin.
+        return outline;
+    });
+    SeamPlacer placer;
+    placer.init(fixture.print, [] {});
+    for (const auto &layer : placer.m_seam_per_object.at(&object).layers) {
+        REQUIRE(layer.perimeters.size() == 1);
+        CHECK(layer.perimeters.front().exact_enforced_ends);
+        if (partial_blocker)
+            CHECK(std::any_of(layer.points.begin(), layer.points.end(), [](const auto &candidate) {
+                return candidate.type == SeamType::Blocked;
+            }));
+    }
+    const auto bounds = fixture.points_in_layer(object, {{0, 0.2}, {20, 0.2}, {8, 0.2}, {12, 0.2}});
+    const Vec2d first = unscale(bounds[0]), last = unscale(bounds[1]);
+    const double blocked_begin = unscale<double>(bounds[2].x()), blocked_end = unscale<double>(bounds[3].x());
+    double min_x = std::numeric_limits<double>::max(), max_x = std::numeric_limits<double>::lowest();
+    // Check the actual split loop start: an Enforced candidate alone does not constrain Random's edge.
+    for (const Vec2d &seam : placed_seams(placer, object)) {
+        CAPTURE(seam.x(), seam.y());
+        CHECK_THAT(seam.y(), Catch::Matchers::WithinAbs(first.y(), 1e-3));
+        CHECK(seam.x() >= first.x() - 1e-3);
+        CHECK(seam.x() <= last.x() + 1e-3);
+        if (partial_blocker) {
+            const bool inside_blocker = seam.x() > blocked_begin + 1e-3 && seam.x() < blocked_end - 1e-3;
+            CHECK_FALSE(inside_blocker);
+        }
+        min_x = std::min(min_x, seam.x());
+        max_x = std::max(max_x, seam.x());
+    }
+    CHECK(max_x - min_x > 1.0); // Reject a false fix that pins every layer to one green endpoint.
 }
 
 TEST_CASE("Projected paint boundaries do not color a distant contour detour", "[SeamPlacer][Regression]")

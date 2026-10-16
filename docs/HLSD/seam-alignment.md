@@ -49,16 +49,25 @@ penalty or change to candidate ranking is introduced. Existing Precise Seam modi
 still applies after paint classification.
 
 Random placement samples an outgoing edge of its selected candidate. On loops with exact
-red ranges, a permitted candidate followed by a Blocked candidate contributes no outgoing
+green ranges, an Enforced candidate followed by a non-Enforced candidate contributes no outgoing
+edge length: the endpoint belongs to the paint, but the following segment leaves the permitted run.
+This also respects weak modifiers that retype part of a painted run as Blocked or Neutral.
+On loops with exact red ranges, a permitted candidate followed by a Blocked candidate contributes no outgoing
 edge length, so Random cannot sample toward the closed red boundary. A zero-length selected
 edge keeps the candidate position.
 The cumulative-length selection stops at the last viable edge and clamps its
 remaining distance to that edge, preventing float rounding from overrunning the
 candidate list or the permitted segment.
 
-If red boundary crossings cannot be paired, red paint retains its previous line-width
-proximity classification. This includes paint not crossing the layer, ambiguous contours and
-a completely red surface without boundary crossings. In the all-blocked case the existing
+Exact green and red ends bound the seam center position without expanding the painted range
+along the contour by the line width. A seam can therefore approach a red edge without the old
+line-width clearance. Paint can be extended to request a larger clearance; the boundary does not
+guarantee that the finite-width extrusion or a seam blemish stays entirely outside red paint.
+
+If boundary crossings cannot be paired, the corresponding color retains its previous line-width
+proximity classification, including its possible fringe beyond the paint edge. The fallback is
+independent for each color and loop. For red this includes paint not crossing the layer,
+ambiguous contours and a completely red surface without boundary crossings. In the all-blocked case the existing
 best-effort placement continues to produce a seam; red paint does not suppress extrusion.
 An exact red reconstruction does not suppress legacy green oversampling when green
 boundaries remain uncertain.

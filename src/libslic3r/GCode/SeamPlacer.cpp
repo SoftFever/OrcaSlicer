@@ -1366,6 +1366,11 @@ void pick_random_seam_point(const std::vector<SeamCandidate> &perimeter_points, 
 
   const auto edge_from = [&](size_t index) -> Vec3f {
     const size_t next = index == end_index - 1 ? start_index : index + 1;
+    // The exact green endpoint is Enforced, but its outgoing edge leaves the permitted painted run.
+    if (perimeter_points[index].perimeter.exact_enforced_ends &&
+        perimeter_points[index].type == EnforcedBlockedSeamPoint::Enforced &&
+        perimeter_points[next].type != EnforcedBlockedSeamPoint::Enforced)
+      return Vec3f::Zero();
     // Random samples the outgoing edge, not just the candidate; do not sample toward a closed red boundary.
     if (perimeter_points[index].perimeter.exact_blocked_ends &&
         perimeter_points[index].type != EnforcedBlockedSeamPoint::Blocked &&
