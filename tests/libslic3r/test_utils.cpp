@@ -1,5 +1,14 @@
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/directory.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/file_status.hpp>
 #include <catch2/catch_all.hpp>
 
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/catch_message.hpp>
 #include "libslic3r/Utils.hpp"
 
 #include "test_utils.hpp"
@@ -8,8 +17,14 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <fstream>
+#include <ios>
+#include <iterator>
 #include <string>
+#include <thread>
+#include <system_error>
+#include <utility>
 
 #ifndef _WIN32
 #include <unistd.h>     // getuid
@@ -60,6 +75,113 @@ TEST_CASE("per-user temp root is unchanged on Windows, isolated elsewhere", "[ut
     REQUIRE(root != base);
     REQUIRE_THAT(root, Catch::Matchers::StartsWith(base + "/orcaslicer_"));
 #endif
+}
+
+TEST_CASE("write_file_atomically replaces the target and leaves no temporary file", "[utils]") {
+    ScopedTemporaryDir dir;
+    const boost::filesystem::path target = dir.path() / "preset.json";
+
+    REQUIRE_FALSE(write_file_atomically(target.string(), "first"));
+    REQUIRE_FALSE(write_file_atomically(target.string(), "second"));
+
+    std::string content;
+    load_string_file(target, content);
+    REQUIRE(content == "second");
+    size_t entries = 0;
+    for (auto &entry : boost::filesystem::directory_iterator(dir.path())) {
+        (void) entry;
+        ++entries;
+    }
+    REQUIRE(entries == 1);
+}
+
+TEST_CASE("write_file_atomically reports a missing directory and writes nothing", "[utils]") {
+    ScopedTemporaryDir dir;
+    const boost::filesystem::path target = dir.path() / "missing" / "preset.json";
+
+    const std::error_code ec = write_file_atomically(target.string(), "x");
+    REQUIRE(ec == std::errc::no_such_file_or_directory);
+    REQUIRE_FALSE(boost::filesystem::exists(target));
+}
+
+#ifndef _WIN32
+// The read-only bit on a directory stops file creation only on POSIX.
+TEST_CASE("write_file_atomically writes in place when no temporary can be created beside an existing target", "[utils]") {
+    if (::geteuid() == 0)
+        SKIP("a read-only directory does not stop root");
+    ScopedTemporaryDir dir;
+    const boost::filesystem::path target = dir.path() / "preset.json";
+    REQUIRE_FALSE(write_file_atomically(target.string(), "first"));
+    boost::filesystem::permissions(dir.path(), boost::filesystem::owner_read | boost::filesystem::owner_exe);
+
+    const std::error_code replaced = write_file_atomically(target.string(), "second");
+    const std::error_code created  = write_file_atomically((dir.path() / "new.json").string(), "x");
+    // Restored before any assertion, so a failure never leaves an unremovable directory behind.
+    boost::filesystem::permissions(dir.path(), boost::filesystem::owner_all);
+
+    REQUIRE_FALSE(replaced);
+    REQUIRE(created == std::errc::permission_denied);
+    std::string content;
+    load_string_file(target, content);
+    REQUIRE(content == "second");
+}
+#endif
+
+TEST_CASE("write_file_atomically keeps bytes intact in binary mode", "[utils]") {
+    ScopedTemporaryDir dir;
+    const boost::filesystem::path target = dir.path() / "blob.bin";
+    const std::string bytes("a\r\nb\0c", 6);
+
+    REQUIRE_FALSE(write_file_atomically(target.string(), bytes, /*binary=*/true));
+    REQUIRE(boost::filesystem::file_size(target) == bytes.size());
+}
+
+#ifndef _WIN32
+TEST_CASE("write_file_atomically writes through a symlink and keeps the target's permissions", "[utils]") {
+    ScopedTemporaryDir dir;
+    const boost::filesystem::path real = dir.path() / "real.json";
+    const boost::filesystem::path link = dir.path() / "link.json";
+    REQUIRE_FALSE(write_file_atomically(real.string(), "first"));
+    boost::filesystem::permissions(real, boost::filesystem::owner_read | boost::filesystem::owner_write);
+    boost::filesystem::create_symlink(real, link);
+
+    REQUIRE_FALSE(write_file_atomically(link.string(), "second"));
+
+    REQUIRE(boost::filesystem::is_symlink(boost::filesystem::symlink_status(link)));
+    std::string content;
+    load_string_file(real, content);
+    REQUIRE(content == "second");
+
+    REQUIRE_FALSE(write_file_atomically(real.string(), "third"));
+    const auto perms = boost::filesystem::status(real).permissions() & boost::filesystem::all_all;
+    REQUIRE(perms == (boost::filesystem::owner_read | boost::filesystem::owner_write));
+}
+#endif
+
+TEST_CASE("write_file_atomically survives two threads writing one target", "[utils]") {
+    ScopedTemporaryDir dir;
+    const boost::filesystem::path target = dir.path() / "shared.json";
+    const std::string a(20000, 'a'), b(20000, 'b');
+
+    std::thread other([&] {
+        for (int i = 0; i < 50; ++i)
+            write_file_atomically(target.string(), a);
+    });
+    for (int i = 0; i < 50; ++i)
+        write_file_atomically(target.string(), b);
+    other.join();
+
+    std::string content;
+    load_string_file(target, content);
+    const bool whole = content == a || content == b;
+    REQUIRE(whole);
+    // No temporary may be left; a scanner on Windows may briefly hold the old
+    // file under another name, so only the temporaries are counted.
+    size_t temporaries = 0;
+    for (auto &entry : boost::filesystem::directory_iterator(dir.path()))
+        if (entry.path().extension() == ".tmp")
+            ++temporaries;
+    REQUIRE(temporaries == 0);
 }
 
 TEST_CASE("copy_file reports the OS error when the destination cannot be written", "[utils]") {
@@ -386,4 +508,62 @@ TEST_CASE("is_safe_to_open_file_name rejects programs and anything it does not k
         "readme", "pdf", "data.xyz", "", "...", "Manual.pdf.", "Manual.pdf ", "setup.exe:note.txt", "dir.pdf/readme");
     INFO(unsafe);
     CHECK_FALSE(is_safe_to_open_file_name(unsafe));
+}
+
+TEST_CASE("ascii_iequals compares ASCII letters regardless of case", "[Utils]") {
+    CHECK(ascii_iequals("set_velocity_limit", "SET_VELOCITY_LIMIT"));
+    CHECK(ascii_iequals("G28", "g28"));
+    CHECK(ascii_iequals("", ""));
+    CHECK_FALSE(ascii_iequals("G28", "G29"));
+    CHECK_FALSE(ascii_iequals("G2", "G28"));
+    CHECK_FALSE(ascii_iequals("G28", "G2"));
+    // Non-letters 0x20 apart are not equal.
+    CHECK_FALSE(ascii_iequals("[", "{"));
+    CHECK_FALSE(ascii_iequals("@", "`"));
+}
+
+TEST_CASE("extended_path turns a Windows path into its long-path form", "[Utils]") {
+#ifdef _WIN32
+    namespace fs = boost::filesystem;
+
+    SECTION("a normal absolute drive path is prefixed") {
+        CHECK(extended_path(fs::path(R"(C:\models\model.3mf)")).wstring() == LR"(\\?\C:\models\model.3mf)");
+    }
+    SECTION("separators are made native") {
+        CHECK(extended_path(fs::path("C:/models/model.3mf")).wstring() == LR"(\\?\C:\models\model.3mf)");
+    }
+    SECTION("dot segments are collapsed before prefixing") {
+        // The "\\?\" prefix disables Win32 normalisation, so "." and ".." must be gone beforehand.
+        CHECK(extended_path(fs::path(R"(C:\models\..\model.3mf)")).wstring() == LR"(\\?\C:\model.3mf)");
+    }
+    SECTION("a trailing separator is dropped, not turned into a dot element") {
+        CHECK(extended_path(fs::path(R"(C:\models\)")).wstring() == LR"(\\?\C:\models)");
+    }
+    SECTION("a UNC path becomes an extended UNC path") {
+        CHECK(extended_path(fs::path(R"(\\server\share\model.3mf)")).wstring() == LR"(\\?\UNC\server\share\model.3mf)");
+    }
+    SECTION("an already extended path is returned unchanged") {
+        const fs::path extended(R"(\\?\C:\models\model.3mf)");
+        CHECK(extended_path(extended) == extended);
+    }
+    SECTION("a device path is returned unchanged") {
+        const fs::path device(R"(\\.\C:\models\model.3mf)");
+        CHECK(extended_path(device) == device);
+    }
+    SECTION("a bare device path without a root directory is returned unchanged") {
+        // Not "absolute" by Boost's rules, so it must be recognized before absolutizing.
+        const fs::path device(R"(\\.\PhysicalDrive0)");
+        CHECK(extended_path(device) == device);
+    }
+    SECTION("a relative path is completed against the working directory") {
+        const fs::path result = extended_path(fs::path("model.3mf"));
+        CHECK(result.wstring().rfind(L"\\\\?\\", 0) == 0);
+        CHECK(result.filename() == fs::path("model.3mf"));
+    }
+#else
+    SECTION("non-Windows returns the path unchanged") {
+        const boost::filesystem::path p = boost::filesystem::temp_directory_path() / "model.3mf";
+        CHECK(extended_path(p) == p);
+    }
+#endif
 }

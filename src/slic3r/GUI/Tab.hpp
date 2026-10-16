@@ -15,6 +15,16 @@
 //	   Slic3r::GUI::Tab::Preset;
 //	       - Single preset item: name, file is default or external.
 
+#include "libslic3r/PrintConfig.hpp"
+#include <cstddef>
+#include "libslic3r/Config.hpp"
+#include <functional>
+#include "slic3r/GUI/Field.hpp"
+#include <boost/any.hpp>
+#include <string>
+#include <wx/event.h>
+#include <utility>
+#include <wx/anybutton.h>
 #include <wx/panel.h>
 #include <wx/notebook.h>
 #include <wx/listbook.h>
@@ -22,6 +32,7 @@
 #include <wx/sizer.h>
 #include <wx/bmpcbox.h>
 #include <wx/bmpbuttn.h>
+#include <wx/string.h>
 #include <wx/treectrl.h>
 #include <wx/imaglist.h>
 
@@ -39,6 +50,7 @@
 #include "ParamsPanel.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/CheckBox.hpp" // ORCA
+#include "Widgets/ComboBox.hpp"
 
 class TabCtrl;
 class ModeSwitchButton;
@@ -320,6 +332,10 @@ public:
     MultiSwitchButton *  m_variant_combo   = nullptr;
     ScalableButton *m_extruder_sync   = nullptr;
 	wxPanel *       m_extruder_sync_box  = nullptr;
+    // Orca: whether m_extruder_switch switches nozzle variants (it then offers sync between them).
+    // The printer tab also enables the switch for printers without variants, to choose the extruder
+    // its Extruder and Motion ability pages edit.
+    bool            m_extruder_switch_variants = false;
     std::vector<NozzleVolumeType> m_actual_nozzle_volumes;
 
 public:
@@ -376,13 +392,24 @@ public:
     void        update_changed_tree_ui();
 	void		update_undo_buttons();
     void        update_extruder_switch_colors();
+    // Whether the variant switch (m_extruder_switch / m_variant_combo) is enabled: on the printer tab for
+    // any multi-extruder printer, on the other tabs when it switches nozzle variants.
+    bool        variant_switch_active() const;
+    // Orca: whether `page` is the printer tab's single "Extruder" page, which edits the extruder selected on the switch.
+    bool        is_printer_extruder_page(const Page* page) const { return m_type == Preset::TYPE_PRINTER && page && page->title() == "Extruder"; }
+    // Shows the variant switch row on pages with options that follow it.
+    void        update_variant_sizer_visibility();
     void        update_all_extruder_options_status();
     void        check_extruder_options_status(int index, bool &sys_extruder, bool &modified_extruder, const std::vector<PageShp>& pages_to_check);
 
 	void		on_roll_back_value(const bool to_sys = false);
 
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
-	static wxString translate_category(const wxString& title, Preset::Type preset_type);
+	// The name a category is displayed under. A few printer pages are renamed for display (BBL
+	// "Extruder 1/2" -> "Left/Right Extruder", the shared "Extruder" page -> "Extruders" when there are
+	// several). With `translate` false the same name is returned untranslated, i.e. as an English UI
+	// displays it.
+	static wxString translate_category(const wxString& title, Preset::Type preset_type, bool translate = true);
 
 	virtual void	OnActivate();
 	virtual void	on_preset_loaded() {}
@@ -409,6 +436,8 @@ public:
     Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
     void            toggle_option(const std::string &opt_key, bool toggle, int opt_index = -1);
     void            toggle_line(const std::string &opt_key, bool toggle, int opt_index = -1); // BBS: hide some line
+    // Renames the row that owns the option. `label` is the untranslated English msgid (an L("...")
+    // string); it is translated for display and kept as the row's English search alias.
     void            set_option_label(const std::string &opt_key, const wxString &label, int opt_index = -1);
 
     // Live state of the settings row that owns an option, read from the built pages.
@@ -416,6 +445,7 @@ public:
     {
         bool     visible{true}; // false when ConfigManipulation hides the row
         wxString label;         // Line::label the row draws (may change at runtime)
+        wxString label_en;      // Line::label_en, the untranslated English of label
         bool     multi{false};  // row packs several options, so label is precomposed
     };
     SettingRowState setting_row_state(const std::string &opt_id) const;
@@ -433,7 +463,7 @@ public:
 	virtual void    on_value_change(const std::string& opt_key, const boost::any& value);
 
     void            update_wiping_button_visibility();
-	void			activate_option(const std::string& opt_key, const wxString& category);
+	virtual void	activate_option(const std::string& opt_key, const wxString& category);
     void			apply_searcher();
 	void			cache_config_diff(const std::vector<std::string>& selected_options, const DynamicPrintConfig* config = nullptr);
 	void			apply_config_from_cache();
@@ -616,6 +646,8 @@ private:
     void            add_filament_overrides_page();
     void            update_filament_overrides_page(const DynamicPrintConfig* printers_config);
 	void 			update_volumetric_flow_preset_hints();
+    // The variant index the variant switch shows, 0 without one.
+    unsigned int    selected_variant_index() const;
 
     std::map<std::string, ::CheckBox*> m_overrides_options;
 
@@ -640,6 +672,8 @@ public:
     void				set_custom_gcode(const t_config_option_key& opt_key, const std::string& value) override;
 };
 
+class IMEXModesCtrl;
+
 class TabPrinter : public Tab
 {
 private:
@@ -648,10 +682,17 @@ private:
 	bool		m_rebuild_kinematics_page = false;
 	void        update_input_shaper_menu(GCodeFlavor flavor);
 
+	// R8: track the belt->non-belt transition so update_fff() only clears the belt-derived
+	// build_plate_tilt on a genuine in-place belt-off toggle, never on a manual tilt or a
+	// preset switch. m_belt_synced_tilt_{x,y} hold the exact values belt-sync last wrote.
+	bool		m_was_belt_printer = false;
+	double		m_belt_synced_tilt_x = 0.;
+	double		m_belt_synced_tilt_y = 0.;
 
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;
 
+    IMEXModesCtrl*      m_imex_modes_ctrl               {nullptr};
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
 
@@ -697,6 +738,25 @@ public:
 	void		cache_extruder_cnt(const DynamicPrintConfig* config = nullptr);
 	bool		apply_extruder_cnt_from_cache();
 	void		refresh_printer_agent_dropdown() const;
+
+	// Orca: a single "Extruder" page for all extruders. Its controls are created once (index 0) and
+	// switch_excluder() re-targets them to the extruder selected on m_extruder_switch.
+	Page*		extruder_page() const;
+	// Config index an "Extruder" page field (e.g. "retraction_length#0") currently edits, -1 if not on that page.
+	int			extruder_page_data_index(const std::string& field_id) const;
+	// Config index of an extruder's per-variant options (Retraction, Z-Hop, ...): its variant column
+	// for the nozzle selected on the switch, or the extruder index on a printer without variants.
+	int			extruder_variant_index(int extruder);
+	// After the config was restored (roll back): follow its extruder count, if it differs.
+	void		sync_extruders_count();
+	// Search jump to "Extruder N" / "key#N": selects extruder N on the switch, then activates the
+	// page's own field on the "Extruder" page.
+	void		activate_option(const std::string& opt_key, const wxString& category) override;
+
+protected:
+	// Orca: values of extruders added by raising the extruder count have no saved / system value to
+	// revert to; the change is shown on "extruders_count", not on each of their parameters.
+	void		update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) override;
 };
 
 class TabSLAMaterial : public Tab
