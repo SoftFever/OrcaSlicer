@@ -2,6 +2,10 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include "libslic3r/Time.hpp"
+#include "libslic3r/Utils.hpp"
+
+#include <boost/date_time/gregorian/gregorian_types.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 #include <ctime>
 #include <sstream>
@@ -47,4 +51,14 @@ TEST_CASE("Slic3r_UTC_Time_Format", "[Timeutils]") {
     std::string date = Slic3r::Utils::utc_timestamp(t);
     
     REQUIRE(date == mydate);
+}
+
+TEST_CASE("The print end time carries the number of days it is away", "[Timeutils]") {
+    using namespace boost::posix_time;
+    const ptime now(boost::gregorian::date(2026, 10, 16), hours(10) + minutes(0));
+
+    CHECK(Slic3r::get_bbl_monitor_end_time_dhm(3600.f, now) == "11:00");
+    CHECK(Slic3r::get_bbl_monitor_end_time_dhm(15 * 3600.f, now) == "01:00 +1");
+    CHECK(Slic3r::get_bbl_monitor_end_time_dhm(63 * 3600.f, now) == "01:00 +3");
+    CHECK(Slic3r::get_bbl_monitor_end_time_dhm(0.f, now).empty());
 }

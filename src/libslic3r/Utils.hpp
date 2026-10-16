@@ -739,19 +739,28 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
     return buffer;
 }
 
-inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs)
+// The time of day a print ends, followed by "+N" when that is N days after `now`, e.g. "14:30 +1".
+inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs, const boost::posix_time::ptime& now)
 {
     if (time_in_secs == 0.0f)
         return {};
 
     std::stringstream stream;
-    boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
     auto endTime = now + boost::posix_time::seconds(static_cast<int>(time_in_secs));
     auto facet = new boost::posix_time::time_facet("%H:%M");//%Y-%m-%d %H:%M:%S
     stream.imbue(std::locale(std::locale::classic(), facet));
     stream << endTime;
 
+    const long day_offset = (endTime.date() - now.date()).days();
+    if (day_offset != 0)
+        stream << " +" << day_offset;
+
     return stream.str();
+}
+
+inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs)
+{
+    return get_bbl_monitor_end_time_dhm(time_in_secs, boost::posix_time::second_clock::local_time());
 }
 
 inline std::string get_bbl_remain_time_dhms(float time_in_secs)
