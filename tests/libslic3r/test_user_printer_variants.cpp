@@ -9,11 +9,21 @@
 // After loading we mark the system presets is_system=true, reproducing the exact collection state
 // the code under test inspects, without the vendor loader.
 
-#include <catch2/catch_all.hpp>
+#include <catch2/catch_test_macros.hpp>
 
-#include <boost/filesystem.hpp>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+
+#include "libslic3r/AppConfig.hpp"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/Preset.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 using namespace Slic3r;
 

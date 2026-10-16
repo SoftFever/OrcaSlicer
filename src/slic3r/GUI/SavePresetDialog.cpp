@@ -1,5 +1,6 @@
 #include "SavePresetDialog.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <boost/algorithm/string/predicate.hpp>
 #include <cstddef>

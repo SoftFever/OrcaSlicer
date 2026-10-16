@@ -1,13 +1,29 @@
 #include "AddNozzleSizeDialog.hpp"
 
+#include <cstddef>
+#include <string>
+#include <vector>
+
+#include <wx/arrstr.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <wx/toplevel.h>
+
 #include "libslic3r/Preset.hpp"        // format_printer_variant
 #include "libslic3r/LocalesUtils.hpp"  // string_to_double_decimal_point
 
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "GUI_Utils.hpp"
+#include "I18N.hpp"
 #include "MainFrame.hpp"
+#include "Widgets/CheckList.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/DialogButtons.hpp"
+#include "Widgets/TextInput.hpp"
 
 namespace Slic3r { namespace GUI {
 

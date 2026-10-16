@@ -76,6 +76,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include "libslic3r/libslic3r.h"
 #include "slic3r/GUI/OptionsGroup.hpp"
 #include "wxExtensions.hpp"
