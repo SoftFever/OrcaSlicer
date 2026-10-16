@@ -690,6 +690,29 @@ std::string MoonrakerPrinterAgent::map_creality_material_id(const std::string& m
     return it == types.end() ? std::string() : it->second;
 }
 
+// K2-family firmware reports branded/RFID spools with ids outside the generic
+// 0000xx range (a Creality CR-Silk PLA reports "005001"). Those printers also
+// publish the resolved name in box.same_material, whose entries are
+// [material_id, color, [slots], type_name] - use it as a fallback so a slot is
+// not dropped just because its id is missing from the static table above.
+static std::map<std::string, std::string> creality_same_material_types(const nlohmann::json& box)
+{
+    std::map<std::string, std::string> types;
+    auto it = box.find("same_material");
+    if (it == box.end() || !it->is_array())
+        return types;
+
+    for (const auto& entry : *it) {
+        if (!entry.is_array() || entry.size() < 4 || !entry[0].is_string() || !entry[3].is_string())
+            continue;
+        const std::string id   = entry[0].get<std::string>();
+        const std::string type = entry[3].get<std::string>();
+        if (!id.empty() && !type.empty())
+            types.emplace(id, type);
+    }
+    return types;
+}
+
 bool MoonrakerPrinterAgent::parse_creality_cfs_response(const std::string& response,
                                                        std::vector<CrealityCfsSlot>& slots)
 {
@@ -702,6 +725,7 @@ bool MoonrakerPrinterAgent::parse_creality_cfs_response(const std::string& respo
         return false;
 
     const auto& box = json["result"]["status"]["box"];
+    const auto same_material_types = creality_same_material_types(box);
     for (int tray_idx = 1; tray_idx <= 4; ++tray_idx) {
         auto it = box.find("T" + std::to_string(tray_idx));
         if (it == box.end() || !it->is_object() || safe_json_string(*it, "state") != "connect")
@@ -710,8 +734,14 @@ bool MoonrakerPrinterAgent::parse_creality_cfs_response(const std::string& respo
         const auto& tray = *it;
         const int base_slot = (tray_idx - 1) * 4;
         for (int slot_i = 0; slot_i < 4; ++slot_i) {
-            const std::string type = map_creality_material_id(
-                tray.contains("material_type") ? safe_array_string(tray["material_type"], slot_i) : "");
+            const std::string material_id =
+                tray.contains("material_type") ? safe_array_string(tray["material_type"], slot_i) : "";
+            std::string type = map_creality_material_id(material_id);
+            if (type.empty()) {
+                auto same_it = same_material_types.find(material_id);
+                if (same_it != same_material_types.end())
+                    type = same_it->second;
+            }
             if (type.empty())
                 continue;
 

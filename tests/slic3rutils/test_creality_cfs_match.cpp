@@ -121,6 +121,53 @@ TEST_CASE("The Creality Hi CFS parser skips unknown material IDs", "[CFS][Creali
     CHECK(slots[0].material_type == "PETG");
 }
 
+// K2-family firmware reports branded/RFID spools with ids outside the generic 0000xx range: a
+// Creality CR-Silk PLA (RFID 05001) reports "005001". The printer resolves the name itself in
+// box.same_material, so a slot is only dropped when the printer cannot name it either.
+TEST_CASE("The Creality K2 Plus CFS parser resolves branded IDs via same_material", "[CFS][Creality]")
+{
+    const std::string response = R"({"result":{"status":{"box":{
+        "same_material":[["005001","0ffffff",["T1A"],"PLA"]],
+        "T1":{"state":"connect","material_type":["005001","-1","-1","-1"],
+              "color_value":["0ffffff","-1","-1","-1"]},
+        "T2":{"state":"None","material_type":["-1","-1","-1","-1"],
+              "color_value":["-1","-1","-1","-1"]}
+    }}}})";
+    std::vector<MoonrakerPrinterAgent::CrealityCfsSlot> slots;
+    REQUIRE(MoonrakerPrinterAgent::parse_creality_cfs_response(response, slots));
+    REQUIRE(slots.size() == 1);
+    CHECK(slots[0].slot_index == 0);
+    CHECK(slots[0].material_type == "PLA");
+    CHECK(slots[0].color == "ffffff");
+}
+
+TEST_CASE("The Creality CFS parser skips IDs that same_material cannot name", "[CFS][Creality]")
+{
+    const std::string response = R"({"result":{"status":{"box":{
+        "same_material":[["0e1003","0fff014",["T1A"],""]],
+        "T1":{"state":"connect","material_type":["0e1003","000003","-1","-1"],
+              "color_value":["0fff014","0FF1E1E","-1","-1"]}
+    }}}})";
+    std::vector<MoonrakerPrinterAgent::CrealityCfsSlot> slots;
+    REQUIRE(MoonrakerPrinterAgent::parse_creality_cfs_response(response, slots));
+    REQUIRE(slots.size() == 1);
+    CHECK(slots[0].slot_index == 1);
+    CHECK(slots[0].material_type == "PETG");
+}
+
+TEST_CASE("The Creality CFS parser tolerates a malformed same_material list", "[CFS][Creality]")
+{
+    const std::string response = R"({"result":{"status":{"box":{
+        "same_material":[["005001"],"nonsense",[1,2,3,4]],
+        "T1":{"state":"connect","material_type":["000001","-1","-1","-1"],
+              "color_value":["0FFFFFF","-1","-1","-1"]}
+    }}}})";
+    std::vector<MoonrakerPrinterAgent::CrealityCfsSlot> slots;
+    REQUIRE(MoonrakerPrinterAgent::parse_creality_cfs_response(response, slots));
+    REQUIRE(slots.size() == 1);
+    CHECK(slots[0].material_type == "PLA");
+}
+
 // Orca: a CFS spool that names no recognised product must map to the vendor's plain generic. The
 // subtype variants ("High Speed", "Matte", "Silk") score just as well on vendor alone, and since
 // each is its own product with its own filament_id, letting one of them win sends the printer the
