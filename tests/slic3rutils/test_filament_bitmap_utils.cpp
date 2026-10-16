@@ -473,6 +473,42 @@ TEST_CASE("AMS card gradient checkerboards respect rounded corners and the remai
     require_same_rgb(wxColour(image.GetRed(size.x - 1, y), image.GetGreen(size.x - 1, y), image.GetBlue(size.x - 1, y)), background);
 }
 
+TEST_CASE("AMS solid and gradient transparency use identical checkerboard cells and outlines", "[FilamentBitmapUtils][AMSItem]")
+{
+    const int alpha = GENERATE(0, 128, 254);
+    const int count = GENERATE(2, 4);
+    const int scale = GENERATE(1, 2);
+    const double radius = GENERATE(0.0, 3.0);
+    const int remaining = GENERATE(35, 100);
+    const wxSize size(52 * scale, 80 * scale);
+    const int height = (size.y - 2 * scale) * remaining / 100;
+    const wxRect rect(2 * scale, size.y - scale - height, size.x - 4 * scale, height);
+    CAPTURE(alpha, count, scale, radius, remaining);
+    const wxColour background(40, 40, 40);
+    const wxColour solid(80, 160, 240, alpha);
+    std::vector<wxColour> gradient(count, solid);
+    if (alpha == 0) {
+        // Fully transparent endpoints must reveal the same grid regardless of their RGB values.
+        gradient.front() = wxColour(255, 0, 0, 0);
+        gradient.back() = wxColour(0, 255, 0, 0);
+    }
+    const auto render = [&](const std::vector<wxColour>& colors, bool is_gradient) {
+        wxBitmap bitmap(size.x, size.y, 24);
+        {
+            wxMemoryDC dc(bitmap);
+            dc.SetBackground(wxBrush(background));
+            dc.Clear();
+            Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, is_gradient, radius);
+        }
+        return bitmap.ConvertToImage();
+    };
+    const wxImage single = render({solid}, false);
+    const wxImage multiple = render(gradient, true);
+    REQUIRE(single.IsOk());
+    REQUIRE(multiple.IsOk());
+    REQUIRE(std::equal(single.GetData(), single.GetData() + size.x * size.y * 3, multiple.GetData()));
+}
+
 TEST_CASE("Ordered gradient fills preserve middle nodes and cover narrow swatches", "[FilamentBitmapUtils][AMSMaterialsSetting]")
 {
     const int width = GENERATE(1, 2, 3, 7, 13, 17);
