@@ -487,7 +487,6 @@ void Selection::add_curr_plate()
     this->set_bounding_boxes_dirty();
 }
 
-
 void Selection::add_object_from_idx(std::vector<int>& object_idxs) {
     if (!m_valid)
         return;
@@ -509,7 +508,7 @@ void Selection::remove_curr_plate()
     if (!m_valid)
         return;
 
-    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_plate(wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_index());
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_plate(wxGetApp().plater()->get_partplate_list().get_curr_plate_index());
     if (volume_idxs.empty())
         return;
 
