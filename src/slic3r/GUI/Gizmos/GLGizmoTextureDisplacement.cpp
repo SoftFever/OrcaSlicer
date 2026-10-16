@@ -4364,7 +4364,7 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
             // The selected tile is centred even when it is off screen, so it is drawn and loaded next frame.
             if (current && m_picker_reveal_selected) {
                 ImGui::SetScrollFromPosY(0.5f * (rect_min.y + rect_max.y) - ImGui::GetWindowPos().y, 0.5f);
-                m_parent.set_as_dirty();
+                m_parent.request_extra_frame();
             }
             if (!ImGui::IsRectVisible(rect_min, rect_max))
                 continue;
@@ -4597,7 +4597,7 @@ void GLGizmoTextureDisplacement::render_texture_library_popup(const ImVec2 &pane
         ImGui::PopTextWrapPos();
     }
     if (loads_deferred)
-        m_parent.set_as_dirty();
+        m_parent.request_extra_frame();
     // Done whether or not the current texture was drawn: one in a collapsed section stays where it is.
     m_picker_reveal_selected = false;
     ImGui::EndChild();
