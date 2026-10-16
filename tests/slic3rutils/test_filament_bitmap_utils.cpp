@@ -436,14 +436,17 @@ TEST_CASE("Circular AMS gradients reveal interior alpha and leave their surround
         require_same_rgb(wxColour(image.GetRed(point.x, point.y), image.GetGreen(point.x, point.y), image.GetBlue(point.x, point.y)), background);
 }
 
-TEST_CASE("AMS card gradient checkerboards stay inside the remaining material region", "[FilamentBitmapUtils][AMSItem]")
+TEST_CASE("AMS card gradient checkerboards respect rounded corners and the remaining material region", "[FilamentBitmapUtils][AMSItem]")
 {
     const int alpha = GENERATE(0, 128, 255);
     const int scale = GENERATE(1, 2);
     const int remaining = GENERATE(35, 100);
     const wxSize size(52 * scale, 80 * scale);
     const int height = size.y * remaining / 100;
-    const wxRect rect(2 * scale, size.y - height, size.x - 4 * scale, height);
+    const bool external = GENERATE(false, true);
+    // AMSLib uses the same geometry for gradients as its single-color card fill.
+    const wxRect rect = external ? wxRect(scale, scale, size.x - 2 * scale, size.y - scale) :
+                                  wxRect(2 * scale, scale + size.y - height, size.x - 4 * scale, height);
     const wxColour background(40, 40, 40);
     const std::vector<wxColour> colors{wxColour(255, 0, 0), wxColour(0, 0, 255, alpha), wxColour(0, 255, 0)};
     wxBitmap bitmap(size.x, size.y, 24);
@@ -451,10 +454,12 @@ TEST_CASE("AMS card gradient checkerboards stay inside the remaining material re
         wxMemoryDC dc(bitmap);
         dc.SetBackground(wxBrush(background));
         dc.Clear();
-        Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, 0);
+        Slic3r::GUI::draw_rounded_filament_swatch(dc, rect, colors, true, 3);
     }
     const wxImage image = bitmap.ConvertToImage();
     REQUIRE(image.IsOk());
+    require_same_rgb(wxColour(image.GetRed(rect.x, rect.y), image.GetGreen(rect.x, rect.y), image.GetBlue(rect.x, rect.y)), background);
+    require_same_rgb(wxColour(image.GetRed(rect.GetRight(), rect.y), image.GetGreen(rect.GetRight(), rect.y), image.GetBlue(rect.GetRight(), rect.y)), background);
     const int cell = std::max(1, rect.height / 5);
     const int x = size.x / 2, y = rect.y + cell + 1;
     const int contrast = std::abs(int(image.GetRed(x, y)) - int(image.GetRed(x, y + cell)));

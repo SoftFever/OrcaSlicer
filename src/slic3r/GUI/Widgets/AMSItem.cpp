@@ -1517,7 +1517,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
         const bool multi_color = (m_info.ctype == 0 || m_info.ctype == 1) && m_info.material_cols.size() > 1;
         if (multi_color) {
             if (m_info.ctype == 0) {
-                draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0);
+                draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, m_radius - 1);
             }
             else {
                 int cols_size = static_cast<int>(m_info.material_cols.size());
@@ -1621,8 +1621,9 @@ void AMSLib::render_generic_lib(wxDC &dc)
         if (m_info.material_cols.size() > 1) {
             //gradient
             if (m_info.ctype == 0) {
-                const wxRect color_rect(FromDIP(2), height - curr_height, size.x - FromDIP(4), curr_height);
-                draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, 0);
+                // Match the single-color fill's inset and rounded outline, including at partial remaining levels.
+                const wxRect color_rect(FromDIP(2), FromDIP(1) + top, size.x - FromDIP(4), curr_height);
+                draw_rounded_filament_swatch(dc, color_rect, m_info.material_cols, true, m_radius - 1);
             }
             else {
                 //multicolour
