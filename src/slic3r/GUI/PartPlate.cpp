@@ -4444,6 +4444,14 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
 	ModelInstance* instance = object->instances[instance_id];
 
 	BoundingBoxf3 instance_box = bounding_box? *bounding_box: object->instance_convex_hull_bounding_box(instance_id);
+	// Reuse the hull across exclusion and IMEX checks, but do not build it for
+	// instances rejected by the plate bounds or printers with no relevant zones.
+	std::optional<Polygon> instance_hull;
+	const auto get_instance_hull = [&]() -> const Polygon & {
+		if (!instance_hull)
+			instance_hull = instance->convex_hull_2d();
+		return *instance_hull;
+	};
 	BoundingBoxf3 plate_box = get_plate_box();
 	this->open_belt_y(plate_box);
 	if (instance_box.max.z() > plate_box.min.z())
@@ -4473,7 +4481,7 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
             // check the shared legacy area here, but let the newer per-extruder
             // pipeline handle nozzle-specific collision volumes.
             const Point plate_offset(scale_(m_origin.x()), scale_(m_origin.y()));
-            Polygon hull = instance->convex_hull_2d();
+            const Polygon &hull = get_instance_hull();
 
             const size_t groups_to_check = regions_by_extruder.empty() ? 0 : 1;
             for (size_t group_id = 0; group_id < groups_to_check; ++group_id) {
@@ -4505,7 +4513,7 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
         }
 
         if (!checked_config_regions && m_exclude_bounding_box.size() > 0) {
-            Polygon hull = instance->convex_hull_2d();
+            const Polygon &hull = get_instance_hull();
             for (const BoundingBoxf3 &exclude_box : m_exclude_bounding_box) {
                 Polygon p = exclude_box.polygon(true);  // instance convex hull is scaled, so we need to scale here
                 if (!intersection({ p }, { hull }).empty()) {
@@ -4520,10 +4528,8 @@ bool PartPlate::check_outside(int obj_id, int instance_id, BoundingBoxf3* boundi
     // Block objects that overlap secondary (copy/mirror) zones or the carriage
     // danger strip at the primary zone boundary.  Reuses the existing
     // outside=true → instance_outside_set → update_states() → blocks slicing path.
-    // Reuse the hull computed above: ModelInstance::convex_hull_2d() is NOT cached
-    // (Model.cpp has the validity guard commented out), so recomputing it here would
-    // cost every user a per-instance hull rebuild, including on non-IMEX printers.
-    if (!outside && imex_hull_violates(hull))
+    if (!outside && (!m_imex_secondary_zone_boxes.empty() || !m_imex_collision_zones.empty()) &&
+        imex_hull_violates(get_instance_hull()))
         outside = true;
 
 	return outside;

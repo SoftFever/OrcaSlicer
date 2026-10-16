@@ -1,4 +1,11 @@
 #include "ExclusionVolumePathCheck.hpp"
+#include "libslic3r/AABBTreeLines.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Line.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include <cstddef>
+#include <vector>
 
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/libslic3r.h"

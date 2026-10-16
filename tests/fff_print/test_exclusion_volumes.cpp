@@ -1,4 +1,20 @@
-#include <catch2/catch_all.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include "libslic3r/Config.hpp"
+#include "libslic3r/ExPolygon.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/Polyline.hpp"
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/libslic3r.h"
+#include <cstddef>
+#include <initializer_list>
+#include <iterator>
+#include <memory>
+#include <utility>
 
 #include "libslic3r/GCode/ExclusionVolumePathCheck.hpp"
 #include "libslic3r/GCode/ExclusionVolumeTravelAvoidance.hpp"

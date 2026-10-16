@@ -1,4 +1,11 @@
 #include "ExclusionVolumeTravelAvoidance.hpp"
+#include "libslic3r/ExPolygon.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/libslic3r.h"
+#include <cstddef>
+#include <optional>
+#include <vector>
 
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/ExclusionVolumeGeometry.hpp"

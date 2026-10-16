@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ExPolygon.hpp"
+#include "Polygon.hpp"
+#include "libslic3r.h"
 #include "Point.hpp"
 #include "PrintConfig.hpp"
 

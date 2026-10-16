@@ -1,4 +1,5 @@
 #include "ArcFitter.hpp"
+#include <tuple>
 #include "BoundingBox.hpp"
 #include "Circle.hpp"
 #include "Config.hpp"

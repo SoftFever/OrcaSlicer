@@ -1,4 +1,12 @@
 #include "ExclusionVolumeGeometry.hpp"
+#include "ExPolygon.hpp"
+#include "Point.hpp"
+#include "Polygon.hpp"
+#include "PrintConfig.hpp"
+#include "libslic3r.h"
+#include <cmath>
+#include <cstddef>
+#include <vector>
 
 #include "BoundingBox.hpp"
 #include "ClipperUtils.hpp"
