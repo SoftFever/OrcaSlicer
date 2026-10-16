@@ -152,6 +152,7 @@ json describe_tools()
                      json{{"name", "up_to_face"},{"type", "integer"}, {"default", -1}, {"description", "target face id (query_topology on the last body) when end=up_to_face"}},
                      json{{"name", "taper"},    {"type", "number"}, {"unit", "deg"}, {"default", 0}, {"description", "draft/taper of the side wall"}},
                      json{{"name", "flip"},     {"type", "boolean"}, {"default", false}},
+                     json{{"name", "sketch"},   {"type", "integer"}, {"description", "extrude this existing Sketch feature (sketch_commit returns sketch_index) instead of a polygon/rectangle; circles, arcs and holes included"}},
                  })}},
             json{{"name", "revolve"}, {"summary", "Revolve a profile about a plane axis. Give an explicit `profile` offset from the axis (or a rectangle) — angle degrees about axis 0=plane X / 1=plane Y."},
                  {"params", json::array({
@@ -160,6 +161,7 @@ json describe_tools()
                      json{{"name", "angle"},   {"type", "number"}, {"unit", "deg"}, {"default", 360}},
                      json{{"name", "axis"},    {"type", "integer"}, {"enum", json::array({0, 1})}, {"default", 0}},
                      json{{"name", "flip"},    {"type", "boolean"}, {"default", false}},
+                     json{{"name", "sketch"},  {"type", "integer"}, {"description", "revolve this existing Sketch feature (sketch_commit returns sketch_index) instead of a polygon/rectangle"}},
                      json{{"name", "plane"},   {"type", "string"}, {"enum", json::array({"XY", "XZ", "YZ"})}, {"default", "XY"}},
                      json{{"name", "profile"}, {"type", "array"}, {"default", json::array()}, {"description", "optional closed contour [[x,y],...] in plane mm; overrides width/height"}},
                      json{{"name", "boolean"}, {"type", "string"}, {"enum", json::array({"new", "union", "subtract", "intersect"})}, {"default", "new"}},
@@ -421,6 +423,20 @@ json describe_tools()
                  {"params", json::array({
                      json{{"name", "body"}, {"type", "integer"}, {"default", 0}},
                      json{{"name", "reference"}, {"type", "object"}},
+                 })}},
+            json{{"name", "inspect_design"}, {"summary", "One-call state of the design: features, bodies (bbox, faces/edges, volume, area, centre of mass), variables, error feature, undo/redo depth, whether a sketch is open."},
+                 {"params", json::array({
+                     json{{"name", "measure"}, {"type", "boolean"}, {"default", true}, {"description", "false skips the per-body mass properties"}},
+                 })}},
+            json{{"name", "undo"}, {"summary", "Undo the last feature-level change (one step per user action). ok is true even when there was nothing to undo; check `did`."},
+                 {"params", json::array()}},
+            json{{"name", "redo"}, {"summary", "Redo the last undone change."},
+                 {"params", json::array()}},
+            json{{"name", "batch"}, {"summary", "Run several tool calls in one turn. Stops at the first error and (rollback=true) restores the features and variables it started with. Sketch-session calls are not rolled back, so commit sketches inside the batch."},
+                 {"params", json::array({
+                     json{{"name", "commands"}, {"type", "array"}, {"description", "[{command: <tool name>, params: {...}}, ...], at most 10000"}},
+                     json{{"name", "rollback"}, {"type", "boolean"}, {"default", true}},
+                     json{{"name", "verbose"},  {"type", "boolean"}, {"default", true}, {"description", "false returns only ok per step"}},
                  })}},
         })},
     };
@@ -822,6 +838,19 @@ json validate_against(DesignPanel* panel, const json& params)
     };
 }
 
+// An existing Sketch feature to extrude/revolve instead of a fresh polygon: -1 when not given.
+// sketch_commit returns the index as `sketch_index`. Checked BEFORE any checkpoint so a bad index leaves no
+// stray undo step.
+int sketch_ref_arg(const json& params, const CadDocument& doc)
+{
+    if (!params.contains("sketch")) return -1;
+    if (!params["sketch"].is_number_integer()) throw std::runtime_error("'sketch' must be a feature index");
+    const int s = params["sketch"].get<int>();
+    if (s < 0 || s >= int(doc.features.size()) || doc.features[s].type != CadFeatureType::Sketch)
+        throw std::runtime_error("'sketch' must be the index of a Sketch feature (sketch_commit returns it as sketch_index)");
+    return s;
+}
+
 json action_extrude(DesignPanel* panel, const json& params)
 {
     const double d = params.value("distance", 10.0);
@@ -830,15 +859,17 @@ json action_extrude(DesignPanel* panel, const json& params)
     SketchPlane pl = plane_from(params, doc);
     BooleanMode mode = bool_from(params.value("boolean", std::string("new")));
 
+    const int sk = sketch_ref_arg(params, doc);
     SketchProfile prof;
-    bool has_prof = profile_from(params, prof);
+    bool has_prof = sk < 0 && profile_from(params, prof);
     double w = 0, h = 0;
-    if (!has_prof) {
+    if (!has_prof && sk < 0) {
         w = params.value("width", 20.0); h = params.value("height", 20.0);
         if (w <= 0 || h <= 0) throw std::runtime_error("width and height must be > 0");
     }
     doc.checkpoint();
-    int s = has_prof ? doc.add_sketch_profile(prof, pl, "Sketch")
+    int s = sk >= 0 ? sk
+          : has_prof ? doc.add_sketch_profile(prof, pl, "Sketch")
                      : doc.add_sketch(SketchShape::Rectangle, pl, w, h, 0.0, "Sketch");
     int e = doc.add_extrude(s, d, /*symmetric*/false, mode, "Extrude");
     // End condition (Onshape parity). apply reads extrude_end directly; the kernel `symmetric`
@@ -869,15 +900,17 @@ json action_revolve(DesignPanel* panel, const json& params)
     SketchPlane pl = plane_from(params, doc);
     BooleanMode mode = bool_from(params.value("boolean", std::string("new")));
 
+    const int sk = sketch_ref_arg(params, doc);
     SketchProfile prof;
-    bool has_prof = profile_from(params, prof);
+    bool has_prof = sk < 0 && profile_from(params, prof);
     double w = 0, h = 0;
-    if (!has_prof) {   // ponytail: rectangle centred on the axis may self-overlap; offset via `profile`
+    if (!has_prof && sk < 0) {   // ponytail: rectangle centred on the axis may self-overlap; offset via `profile`
         w = params.value("width", 20.0); h = params.value("height", 10.0);
         if (w <= 0 || h <= 0) throw std::runtime_error("width and height must be > 0");
     }
     doc.checkpoint();
-    int s = has_prof ? doc.add_sketch_profile(prof, pl, "Sketch")
+    int s = sk >= 0 ? sk
+          : has_prof ? doc.add_sketch_profile(prof, pl, "Sketch")
                      : doc.add_sketch(SketchShape::Rectangle, pl, w, h, 0.0, "Sketch");
     int r = doc.add_revolve(s, angle, axis, flip, mode, "Revolve");
     bool ok = doc.recompute();
@@ -1408,7 +1441,10 @@ json action_sketch_commit(DesignPanel* panel, const json& params)
     vp->finish_sketch();
     panel->mcp_set_sketch_mode(false);
     panel->mcp_after_change();
-    return json{{"ok", true}, {"features", int(panel->mcp_doc().features.size())}};
+    const CadDocument& cd = panel->mcp_doc();
+    const int last = int(cd.features.size()) - 1;
+    const bool is_sk = last >= 0 && cd.features[last].type == CadFeatureType::Sketch;
+    return json{{"ok", true}, {"features", int(cd.features.size())}, {"sketch_index", is_sk ? last : -1}};
 }
 
 json action_sketch_cancel(DesignPanel* panel, const json& params)
@@ -2118,6 +2154,189 @@ json action_set_feature_expr(DesignPanel* panel, const json& params)
     return json{{"ok", ok}, {"feature", fi}, {"field", field}, {"error", doc.error}};
 }
 
+// ---- undo / redo / inspect_design / batch ----------------------------------------------------------------
+struct MethodNotFound {};
+json        call_method(DesignPanel* panel, const std::string& method, const json& params);   // below
+std::string refuse_reason(DesignPanel* panel, const std::string& method);                      // below
+
+json undo_redo_state(DesignPanel* panel, bool did)
+{
+    const CadDocument& doc = panel->mcp_doc();
+    return json{{"ok", true}, {"did", did}, {"features", int(doc.features.size())}, {"bodies", int(doc.bodies.size())},
+                {"undo_depth", int(doc.undo_depth())}, {"redo_depth", int(doc.redo_depth())}, {"error", doc.error}};
+}
+json action_undo(DesignPanel* panel, const json&) { const bool did = panel->mcp_doc().undo(); panel->mcp_after_change(); return undo_redo_state(panel, did); }
+json action_redo(DesignPanel* panel, const json&) { const bool did = panel->mcp_doc().redo(); panel->mcp_after_change(); return undo_redo_state(panel, did); }
+
+// One call that answers "what is the state of this design": scene + variables + per-body mass properties and
+// topology counts (the numbers an agent checks after every step), plus undo depth and whether a sketch is open.
+json action_inspect_design(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    json out = describe_scene(panel);
+    const bool measure = params.value("measure", true);
+    for (size_t i = 0; i < doc.bodies.size() && i < out["bodies"].size(); ++i) {
+        const TopoDS_Shape& shape = doc.bodies[i].shape;
+        if (shape.IsNull()) continue;
+        json& b = out["bodies"][i];
+        b["faces"] = int(GeometryEngine::faces_of(shape).size());
+        b["edges"] = int(GeometryEngine::edges_of(shape).size());
+        if (!measure) continue;
+        const auto mp = GeometryEngine::mass_properties(shape);
+        if (!mp.valid) continue;
+        b["is_solid"] = mp.is_solid;
+        b["surface_area"] = mp.surface_area;
+        if (mp.is_solid) {
+            b["volume"] = mp.volume;
+            b["center_of_mass"] = json::array({mp.center_of_mass.x(), mp.center_of_mass.y(), mp.center_of_mass.z()});
+        }
+    }
+    json vars = json::object();
+    for (const auto& kv : doc.variables) vars[kv.first] = kv.second;
+    out["variables"]     = std::move(vars);
+    out["error_feature"] = doc.error_feature;
+    out["undo_depth"]    = int(doc.undo_depth());
+    out["redo_depth"]    = int(doc.redo_depth());
+    DesignCanvas* vp = panel->mcp_viewport();
+    out["sketch_open"] = vp != nullptr && vp->is_sketching();
+    return out;
+}
+
+// {commands:[{command, params}, ...], rollback:true, verbose:true}. Runs the calls in order on the main thread,
+// stops at the first refusal or error and (rollback) restores the features and variables it started with.
+// ponytail: the restore is a copy, not an undo walk, so it is exact even past the 200-step undo cap, but the undo
+// stack keeps the batch's intermediate steps. Sketch-session methods (sketch_begin ...) are not rolled back; run
+// sketches to completion (sketch_commit) inside the batch.
+json action_batch(DesignPanel* panel, const json& params)
+{
+    if (!params.contains("commands") || !params["commands"].is_array())
+        throw std::runtime_error("batch needs 'commands': [{command, params}, ...]");
+    const json& cmds = params["commands"];
+    if (cmds.size() > 10000) throw std::runtime_error("batch is limited to 10000 commands");
+    const bool rollback = params.value("rollback", true);
+    const bool verbose  = params.value("verbose", true);
+    CadDocument& doc = panel->mcp_doc();
+    const auto saved_features  = doc.features;
+    const auto saved_variables = doc.variables;
+    json results = json::array(), failed;
+    for (size_t i = 0; i < cmds.size() && failed.is_null(); ++i) {
+        const json& c = cmds[i];
+        const std::string name = c.is_object() ? c.value("command", c.value("method", std::string())) : std::string();
+        const json p = (c.is_object() && c.contains("params")) ? c["params"] : json::object();
+        std::string err;
+        json r;
+        if (name.empty() || name == "batch") err = "each entry needs a 'command' (and a batch cannot nest)";
+        else if (!(err = refuse_reason(panel, name)).empty()) {}
+        else {
+            try { r = call_method(panel, name, p); }
+            catch (const MethodNotFound&)    { err = "unknown command: " + name; }
+            catch (const Standard_Failure& e) { err = std::string("OCCT: ") + (*e.what() ? e.what() : "failure"); }
+            catch (const std::exception& e)   { err = e.what(); }
+        }
+        if (err.empty() && r.is_object() && r.contains("ok") && r["ok"] == false)
+            err = r.value("error", std::string("refused"));
+        if (!err.empty()) failed = json{{"index", int(i)}, {"command", name}, {"error", err}};
+        else              results.push_back(verbose ? r : json{{"ok", true}});
+    }
+    bool undone = false;
+    if (!failed.is_null() && rollback) {
+        doc.features = saved_features;
+        doc.variables = saved_variables;
+        doc.recompute();
+        panel->mcp_after_change();
+        undone = true;
+    }
+    json out{{"ok", failed.is_null()}, {"completed", int(results.size())}, {"results", std::move(results)}, {"rolled_back", undone}};
+    if (!failed.is_null()) out["failed"] = failed;
+    return out;
+}
+
+// The one dispatch point: the socket handler and `batch` both come through here.
+json call_method(DesignPanel* panel, const std::string& method, const json& params)
+{
+    if (method == "describe_tools") return describe_tools();
+    if (method == "describe_scene") return describe_scene(panel);
+    if (method == "query_topology") return query_topology(panel, params);
+    if (method == "measure")        return measure(panel, params);
+    if (method == "mass_properties") return mass_properties(panel, params);
+    if (method == "slice_body")     return slice_body(panel, params);
+    if (method == "import_step")    return import_step(panel, params);
+    if (method == "import_mesh")    return import_mesh(panel, params);
+    if (method == "validate_against") return validate_against(panel, params);
+    if (method == "extrude")        return action_extrude(panel, params);
+    if (method == "revolve")        return action_revolve(panel, params);
+    if (method == "fillet")         return action_fillet(panel, params);
+    if (method == "chamfer")        return action_chamfer(panel, params);
+    if (method == "hole")           return action_hole(panel, params);
+    if (method == "hole_styled")   return action_hole_styled(panel, params);
+    if (method == "hole_standard") return action_hole_standard(panel, params);
+    if (method == "boolean")        return action_boolean(panel, params);
+    if (method == "pattern")        return action_pattern(panel, params);
+    if (method == "pattern_on_curve") return action_pattern_on_curve(panel, params);
+    if (method == "shell")          return action_shell(panel, params);
+    if (method == "rib")            return action_rib(panel, params);
+    if (method == "draft")          return action_draft(panel, params);
+    if (method == "mirror")         return action_mirror(panel, params);
+    if (method == "sketch_begin")   return action_sketch_begin(panel, params);
+    if (method == "sketch_commit")  return action_sketch_commit(panel, params);
+    if (method == "sketch_cancel")  return action_sketch_cancel(panel, params);
+    if (method == "sketch_add")     return action_sketch_add(panel, params);
+    if (method == "sketch_select")  return action_sketch_select(panel, params);
+    if (method == "sketch_delete")  return action_sketch_delete(panel, params);
+    if (method == "sketch_construction") return action_sketch_construction(panel, params);
+    if (method == "sketch_offset")  return action_sketch_offset(panel, params);
+    if (method == "sketch_mirror")  return action_sketch_mirror(panel, params);
+    if (method == "sketch_describe") return action_sketch_describe(panel, params);
+    if (method == "sketch_validate") return action_sketch_validate(panel, params);
+    if (method == "sketch_heal")    return action_sketch_heal(panel, params);
+    if (method == "sketch_set_value") return action_sketch_set_value(panel, params);
+    if (method == "list_verbs")     return action_list_verbs(panel, params);
+    if (method == "run_verb")       return action_run_verb(panel, params);
+    if (method == "transform")      return action_transform(panel, params);
+    if (method == "thicken")        return action_thicken(panel, params);
+    if (method == "split")          return action_split(panel, params);
+    if (method == "project")        return action_project(panel, params);
+    if (method == "delete_face")    return action_delete_face(panel, params);
+    if (method == "bridge")         return action_bridge(panel, params);
+    if (method == "plane")          return action_plane(panel, params);
+    if (method == "ui_option")      return action_ui_option(panel, params);
+    if (method == "undo")           return action_undo(panel, params);
+    if (method == "redo")           return action_redo(panel, params);
+    if (method == "inspect_design") return action_inspect_design(panel, params);
+    if (method == "batch")          return action_batch(panel, params);
+    if (method == "new_document")   return action_new_document(panel, params);
+    if (method == "sketch3d")       return action_sketch3d(panel, params);
+    if (method == "use")            return action_use(panel, params);
+    if (method == "axis")           return action_axis(panel, params);
+    if (method == "coordsys")       return action_coordsys(panel, params);
+    if (method == "helix")          return action_helix(panel, params);
+    if (method == "set_variable")     return action_set_variable(panel, params);
+    if (method == "set_feature_expr") return action_set_feature_expr(panel, params);
+    if (method == "surface_extrude")  return action_surface_extrude(panel, params);
+    if (method == "surface_revolve")  return action_surface_revolve(panel, params);
+    if (method == "thicken_surface")  return action_thicken_surface(panel, params);
+    if (method == "surface_offset")   return action_surface_offset(panel, params);
+    if (method == "surface_loft")    return action_surface_loft(panel, params);
+    if (method == "surface_fill")    return action_surface_fill(panel, params);
+    if (method == "mate")          return action_mate(panel, params);
+    if (method == "check_interference") return action_check_interference(panel, params);
+    throw MethodNotFound{};
+}
+
+// Why `method` may not run now ("" = it may). Methods that only LOOK always may. Everything else changes the document
+// or the live sketch, and must not do it under a GUI editor, a sketch session it does not own, or a rebuild in
+// progress (the GUI's worker thread holds the document then).
+std::string refuse_reason(DesignPanel* panel, const std::string& method)
+{
+    static const std::set<std::string> kReadOnly = {
+        "describe_tools", "describe_scene", "query_topology", "measure", "mass_properties",
+        "slice_body", "validate_against", "list_verbs", "sketch_describe", "sketch_validate",
+        "check_interference", "inspect_design" };
+    if (kReadOnly.count(method)) return "";
+    std::string why;
+    return panel->mcp_busy(method.rfind("sketch_", 0) == 0, why) ? "Design tab busy: " + why : std::string();
+}
+
 // Dispatch one parsed request ON THE MAIN THREAD. Returns a JSON-RPC reply string.
 std::string handle_on_main(const std::string& method, const json& params, const json& id)
 {
@@ -2131,18 +2350,8 @@ std::string handle_on_main(const std::string& method, const json& params, const 
     // load it, as showing the tab would, before anything reads or writes the document.
     panel->hydrate_from_model();
 
-    // Methods that only LOOK. Everything else changes the document or the live sketch, and
-    // must not do it under a GUI editor, a sketch session it does not own, or a rebuild in
-    // progress (the GUI's worker thread holds the document then).
-    static const std::set<std::string> kReadOnly = {
-        "describe_tools", "describe_scene", "query_topology", "measure", "mass_properties",
-        "slice_body", "validate_against", "list_verbs", "sketch_describe", "sketch_validate",
-        "check_interference" };
-    if (kReadOnly.count(method) == 0) {
-        std::string why;
-        if (panel->mcp_busy(method.rfind("sketch_", 0) == 0, why))
-            return rpc_error(id, -32002, "Design tab busy: " + why);
-    }
+    if (const std::string why = refuse_reason(panel, method); !why.empty())
+        return rpc_error(id, -32002, why);
 
     // Stale-id guard, checked here rather than in each handler.
     //
@@ -2178,68 +2387,8 @@ std::string handle_on_main(const std::string& method, const json& params, const 
     }
 
     try {
-        if (method == "describe_tools") return rpc_result(id, describe_tools());
-        if (method == "describe_scene") return rpc_result(id, describe_scene(panel));
-        if (method == "query_topology") return rpc_result(id, query_topology(panel, params));
-        if (method == "measure")        return rpc_result(id, measure(panel, params));
-        if (method == "mass_properties") return rpc_result(id, mass_properties(panel, params));
-        if (method == "slice_body")     return rpc_result(id, slice_body(panel, params));
-        if (method == "import_step")    return rpc_result(id, import_step(panel, params));
-        if (method == "import_mesh")    return rpc_result(id, import_mesh(panel, params));
-        if (method == "validate_against") return rpc_result(id, validate_against(panel, params));
-        if (method == "extrude")        return rpc_result(id, action_extrude(panel, params));
-        if (method == "revolve")        return rpc_result(id, action_revolve(panel, params));
-        if (method == "fillet")         return rpc_result(id, action_fillet(panel, params));
-        if (method == "chamfer")        return rpc_result(id, action_chamfer(panel, params));
-        if (method == "hole")           return rpc_result(id, action_hole(panel, params));
-        if (method == "hole_styled")   return rpc_result(id, action_hole_styled(panel, params));
-        if (method == "hole_standard") return rpc_result(id, action_hole_standard(panel, params));
-        if (method == "boolean")        return rpc_result(id, action_boolean(panel, params));
-        if (method == "pattern")        return rpc_result(id, action_pattern(panel, params));
-        if (method == "pattern_on_curve") return rpc_result(id, action_pattern_on_curve(panel, params));
-        if (method == "shell")          return rpc_result(id, action_shell(panel, params));
-        if (method == "rib")            return rpc_result(id, action_rib(panel, params));
-        if (method == "draft")          return rpc_result(id, action_draft(panel, params));
-        if (method == "mirror")         return rpc_result(id, action_mirror(panel, params));
-        if (method == "sketch_begin")   return rpc_result(id, action_sketch_begin(panel, params));
-        if (method == "sketch_commit")  return rpc_result(id, action_sketch_commit(panel, params));
-        if (method == "sketch_cancel")  return rpc_result(id, action_sketch_cancel(panel, params));
-        if (method == "sketch_add")     return rpc_result(id, action_sketch_add(panel, params));
-        if (method == "sketch_select")  return rpc_result(id, action_sketch_select(panel, params));
-        if (method == "sketch_delete")  return rpc_result(id, action_sketch_delete(panel, params));
-        if (method == "sketch_construction") return rpc_result(id, action_sketch_construction(panel, params));
-        if (method == "sketch_offset")  return rpc_result(id, action_sketch_offset(panel, params));
-        if (method == "sketch_mirror")  return rpc_result(id, action_sketch_mirror(panel, params));
-        if (method == "sketch_describe") return rpc_result(id, action_sketch_describe(panel, params));
-        if (method == "sketch_validate") return rpc_result(id, action_sketch_validate(panel, params));
-        if (method == "sketch_heal")    return rpc_result(id, action_sketch_heal(panel, params));
-        if (method == "sketch_set_value") return rpc_result(id, action_sketch_set_value(panel, params));
-        if (method == "list_verbs")     return rpc_result(id, action_list_verbs(panel, params));
-        if (method == "run_verb")       return rpc_result(id, action_run_verb(panel, params));
-        if (method == "transform")      return rpc_result(id, action_transform(panel, params));
-        if (method == "thicken")        return rpc_result(id, action_thicken(panel, params));
-        if (method == "split")          return rpc_result(id, action_split(panel, params));
-        if (method == "project")        return rpc_result(id, action_project(panel, params));
-        if (method == "delete_face")    return rpc_result(id, action_delete_face(panel, params));
-        if (method == "bridge")         return rpc_result(id, action_bridge(panel, params));
-        if (method == "plane")          return rpc_result(id, action_plane(panel, params));
-        if (method == "ui_option")      return rpc_result(id, action_ui_option(panel, params));
-        if (method == "new_document")   return rpc_result(id, action_new_document(panel, params));
-        if (method == "sketch3d")       return rpc_result(id, action_sketch3d(panel, params));
-        if (method == "use")            return rpc_result(id, action_use(panel, params));
-        if (method == "axis")           return rpc_result(id, action_axis(panel, params));
-        if (method == "coordsys")       return rpc_result(id, action_coordsys(panel, params));
-        if (method == "helix")          return rpc_result(id, action_helix(panel, params));
-        if (method == "set_variable")     return rpc_result(id, action_set_variable(panel, params));
-        if (method == "set_feature_expr") return rpc_result(id, action_set_feature_expr(panel, params));
-        if (method == "surface_extrude")  return rpc_result(id, action_surface_extrude(panel, params));
-        if (method == "surface_revolve")  return rpc_result(id, action_surface_revolve(panel, params));
-        if (method == "thicken_surface")  return rpc_result(id, action_thicken_surface(panel, params));
-        if (method == "surface_offset")   return rpc_result(id, action_surface_offset(panel, params));
-        if (method == "surface_loft")    return rpc_result(id, action_surface_loft(panel, params));
-        if (method == "surface_fill")    return rpc_result(id, action_surface_fill(panel, params));
-        if (method == "mate")          return rpc_result(id, action_mate(panel, params));
-        if (method == "check_interference") return rpc_result(id, action_check_interference(panel, params));
+        return rpc_result(id, call_method(panel, method, params));
+    } catch (const MethodNotFound&) {
         return rpc_error(id, -32601, "Unknown method: " + method);
     } catch (const Standard_Failure& ex) {   // derives from std::exception, so it comes first
         return rpc_error(id, -32000, std::string("OCCT: ") + (*ex.what() ? ex.what() : "failure"));

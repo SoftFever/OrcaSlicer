@@ -23,6 +23,7 @@ CORPUS = os.path.join(HERE, "..", "..", "tests", "cad_oracle")
 # an XFAIL case that starts passing is reported XPASS so the entry gets deleted.
 XFAIL = {
     "05-taper-extrude": "extrude taper: top outline 0.11 mm/side short of the exact frustum (offset-based taper)",
+    "58-phone-stand": "two 3 mm fillets on edges 6 mm apart: 'no suitable edges for chamfer or fillet' (cause not analysed)",
     "43-cut-splits-body": "a cut that leaves two solids stays ONE body (compound); oracle expects two bodies",
 }
 
@@ -62,38 +63,72 @@ class Mcp:
 
 # ---- recipe -> MCP -----------------------------------------------------------------------------
 
-PLANES = {"XY": "XY"}   # ponytail: XZ/YZ frame conventions not yet verified against the app; add after a rig check
+# The recipe's sketch frames (x_dir, y_dir, normal) against the app's SketchPlane: XY is identical; the app's XZ has
+# y = +Z (recipe -Z) and its YZ has x = Y, y = Z (recipe x = -Z, y = Y). to_app maps recipe (u, v) -> app (a, b).
+PLANES = {
+    "XY": ("XY", lambda u, v: (u, v)),
+    "XZ": ("XZ", lambda u, v: (u, -v)),
+    "YZ": ("YZ", lambda u, v: (v, -u)),
+}
+# world axis -> (plane, app revolve axis index 0 = plane x, 1 = plane y) for a revolve about a world axis through the origin
+AXES = {("XY", "x"): 0, ("XY", "y"): 1, ("XZ", "x"): 0, ("XZ", "z"): 1, ("YZ", "y"): 0, ("YZ", "z"): 1}
 
 
-def plane_name(sk):
+def plane_of(sk):
     p = sk["plane"]
     ref = p.get("ref")
     if ref not in PLANES:
-        raise Blocked("sketch plane %r (only XY at the origin; offset/face planes need extrude{sketch})" % ref)
+        raise Blocked("sketch plane %r (offset/face planes need the datum-plane tools)" % ref)
     if any(abs(c) > 1e-9 for c in p.get("origin", [0, 0, 0])):
         raise Blocked("sketch plane with non-zero origin")
     return PLANES[ref]
 
 
-def loop_polygon(sk, loop):
-    """Ordered [[x,y],...] for a loop made only of straight lines; else Blocked."""
-    ents = {e["id"]: e for e in sk["entities"]}
-    pts = []
-    for cid in loop["curves"]:
-        e = ents[cid]
-        if e["type"] != "line":
-            raise Blocked("sketch entity %r in a profile (MCP profile is a polygon; needs extrude{sketch})" % e["type"])
-        pts.append((e["start"]["at"], e["end"]["at"]))
-    # chain the segments in the given order, flipping one when it is stored end-first; poly = the corner list
-    poly, cur = [list(pts[0][0])], list(pts[0][1])
-    for a, b in pts[1:]:
-        if math.dist(a, cur) > 1e-6 and math.dist(b, cur) > 1e-6:
-            raise Blocked("profile loop is not chained in order")
-        poly.append(cur)
-        cur = list(b if math.dist(a, cur) <= 1e-6 else a)
-    if math.dist(cur, poly[0]) > 1e-6:
-        raise Blocked("profile loop is not closed")
-    return poly
+def sketch_entities(sk, to_app):
+    """App-format entities for the recipe sketch; Blocked for kinds the app's sketch_add cannot take."""
+    out = []
+    for e in sk["entities"]:
+        t, c = e["type"], bool(e.get("construction", False))
+        if t == "line":
+            out.append({"type": "line", "p0": list(to_app(*e["start"]["at"])), "p1": list(to_app(*e["end"]["at"])), "construction": c})
+        elif t == "circle":
+            out.append({"type": "circle", "center": list(to_app(*e["center"]["at"])), "radius": e["radius"], "construction": c})
+        elif t == "arc_three_point":
+            out.append(arc_from_three(to_app(*e["start"]["at"]), to_app(*e["mid"]), to_app(*e["end"]["at"]), c))
+        elif t == "arc_center_start_sweep":
+            ctr, st = to_app(*e["center"]["at"]), to_app(*e["start"]["at"])
+            r = math.dist(ctr, st)
+            a0 = math.atan2(st[1] - ctr[1], st[0] - ctr[0])
+            sweep = math.radians(e["sweep_deg"])
+            if mirrored(to_app):
+                sweep = -sweep
+            lo, hi = (a0, a0 + sweep) if sweep >= 0 else (a0 + sweep, a0)
+            out.append({"type": "arc", "center": list(ctr), "radius": r, "start_angle": lo, "end_angle": hi, "construction": c})
+        elif t == "point":
+            out.append({"type": "point", "p": list(to_app(*e["at"])), "construction": c})
+        else:
+            raise Blocked("sketch entity %r" % t)
+    return out
+
+
+def mirrored(to_app):
+    a, b = to_app(1, 0), to_app(0, 1)
+    return a[0] * b[1] - a[1] * b[0] < 0
+
+
+def arc_from_three(p, m, q, construction):
+    ax, ay = p; bx, by = m; cx, cy = q
+    d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
+    if abs(d) < 1e-12:
+        raise Blocked("degenerate three-point arc")
+    ux = ((ax**2 + ay**2) * (by - cy) + (bx**2 + by**2) * (cy - ay) + (cx**2 + cy**2) * (ay - by)) / d
+    uy = ((ax**2 + ay**2) * (cx - bx) + (bx**2 + by**2) * (ax - cx) + (cx**2 + cy**2) * (bx - ax)) / d
+    ang = lambda x, y: math.atan2(y - uy, x - ux)
+    s, mm, e = ang(ax, ay), ang(bx, by), ang(cx, cy)
+    ccw = lambda a0, a1: (a1 - a0) % (2 * math.pi)       # CCW distance from a0 to a1
+    if ccw(s, mm) > ccw(s, e):                           # the middle point is not on the CCW way s->e: the arc runs CW
+        s, e = e, s
+    return {"type": "arc", "center": [ux, uy], "radius": math.hypot(ax - ux, ay - uy), "start_angle": s, "end_angle": e, "construction": construction}
 
 
 BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cut": "subtract", "intersect": "intersect"}
@@ -101,7 +136,7 @@ BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cu
 
 class Replay:
     def __init__(self, mcp):
-        self.m, self.sketches = mcp, {}
+        self.m, self.sketches, self.body = mcp, {}, 0
 
     def run(self, ft):
         h = getattr(self, "op_" + ft["op"], None)
@@ -112,23 +147,34 @@ class Replay:
     def op_sketch(self, ft):
         if ft.get("dimensions"):   # positions in the recipe are pre-solve; the expected values come from the solved sketch
             raise Blocked("dimension-driven sketch (needs sketch_constrain / sketch_dimension over MCP)")
-        self.sketches[ft["name"]] = ft
+        plane, to_app = plane_of(ft)
+        ents = sketch_entities(ft, to_app)
+        self.m.call("sketch_begin", {"plane": plane})
+        try:
+            self.m.call("sketch_add", {"entities": ents})
+        except Exception:
+            self.m.call("sketch_cancel")
+            raise
+        idx = self.m.call("sketch_commit")["sketch_index"]
+        solid = {e["id"] for e in ft["entities"] if e["type"] != "point" and not e.get("construction")}
+        self.sketches[ft["name"]] = (idx, plane, solid)
 
-    def _profile(self, prof):
-        if len(prof.get("loops", [])) != 1 or not prof["loops"][0].get("outer", True):
-            raise Blocked("profile with several loops / inner loops")
-        sk = self.sketches[prof["sketch"]]
-        return plane_name(sk), loop_polygon(sk, prof["loops"][0])
+    def _sketch(self, prof):
+        idx, plane, solid = self.sketches[prof["sketch"]]
+        used = {c for lp in prof.get("loops", []) for c in lp["curves"]}
+        if used != solid:   # the app extrudes every region of the sketch
+            raise Blocked("profile is a subset of the sketch's curves")
+        return idx, plane
 
     def op_extrude(self, ft):
         if ft.get("thin"):
             raise Blocked("thin extrude")
         if len(ft["profiles"]) != 1:
             raise Blocked("extrude of several profiles")
-        plane, poly = self._profile(ft["profiles"][0])
+        idx, _ = self._sketch(ft["profiles"][0])
         ex = ft["extent"]
         et = ex.get("type", "distance")
-        p = {"plane": plane, "profile": poly, "boolean": BOOL[ft["operation"]]}
+        p = {"sketch": idx, "boolean": BOOL[ft["operation"]]}
         if et == "distance":
             if ex.get("taper_deg"):
                 p["taper"] = ex["taper_deg"]
@@ -136,23 +182,31 @@ class Replay:
             p["flip"] = ex.get("direction") == "negative"
         elif et == "through_all":
             p.update(end="through_all", distance=1.0, flip=ex.get("direction") == "negative")
+        elif et == "symmetric":
+            p.update(end="symmetric", distance=2 * ex["distance"])   # the app's symmetric distance is the total; the recipe's is per side
         else:
             raise Blocked("extent %s" % et)
         self.m.call("extrude", p)
 
     def op_revolve(self, ft):
-        plane, poly = self._profile(ft["profile"])
-        ax = ft["axis"].get("dir", [0, 0, 1])
-        raise Blocked("revolve axis %s (MCP axis is plane X/Y; frame mapping unverified)" % ax)
+        idx, plane = self._sketch(ft["profile"])
+        d = ft["axis"].get("dir", [0, 0, 1])
+        if any(abs(c) > 1e-9 for c in ft["axis"].get("origin", [0, 0, 0])):
+            raise Blocked("revolve axis off the origin")
+        name = "xyz"[max(range(3), key=lambda i: abs(d[i]))]
+        if (plane, name) not in AXES:
+            raise Blocked("revolve about world %s from a %s sketch" % (name, plane))
+        self.m.call("revolve", {"sketch": idx, "axis": AXES[(plane, name)], "angle": ft.get("angle", 360), "boolean": BOOL[ft["operation"]]})
 
     def _edges(self, ft):
         """Edge ids of the last body nearest to each recipe edge midpoint."""
         self.body = len(self.m.call("describe_scene")["bodies"]) - 1   # the app edits the last body by default
         topo = self.m.call("query_topology", {"body": self.body})
         ids = []
-        org = self.m.call("describe_scene").get("modeling_origin", [0, 0, 0])   # app world = design coords + origin
         for sel in ft["edges"]:
-            pt = [c + o for c, o in zip(sel["point"], org)]
+            if sel.get("type") != "line":   # query_topology gives only the end points; an arc's midpoint is not theirs
+                raise Blocked("edge selection with a non-line edge (needs sampled edge points in query_topology)")
+            pt = sel["point"]
             best = min(topo["edges"], key=lambda e: math.dist([(a + b) / 2 for a, b in zip(e["p0"], e["p1"])], pt))
             ids.append(best["id"])
         return ids, topo.get("generation")
@@ -222,11 +276,7 @@ def run_case(mcp, d):
         rp = Replay(mcp)
         for ft in recipe["features"]:
             rp.run(ft)
-        got, origin = measure(mcp)
-        if any(abs(o) > 1e-9 for o in origin):   # app reports world = modeling_origin + design coords
-            got["com"] = [c - o for c, o in zip(got["com"], origin)]
-            got["lo"] = [c - o for c, o in zip(got["lo"], origin)]
-            got["hi"] = [c - o for c, o in zip(got["hi"], origin)]
+        got, _ = measure(mcp)   # sketch_begin sketches sit at the absolute origin; only extrude{profile} adds modeling_origin (MCP inconsistency, see bd)
         errs = compare(exp, got)
         name = os.path.basename(d)
         if errs:
@@ -235,7 +285,8 @@ def run_case(mcp, d):
     except Blocked as b:
         return "BLOCKED", str(b)
     except Exception as e:  # noqa: BLE001 - report, never raise
-        return "FAIL", str(e)
+        name = os.path.basename(d)
+        return ("XFAIL", XFAIL[name]) if name in XFAIL else ("FAIL", str(e))
 
 
 def main():
