@@ -4122,7 +4122,7 @@ const GLGizmoTextureDisplacement::LibraryTexture *GLGizmoTextureDisplacement::ge
     if (entry.image_data) {
         TextureDisplacementLayer probe;
         probe.image_data = entry.image_data;
-        entry.thumbnail  = upload_height_thumbnail(decode_height_texture(probe));
+        entry.thumbnail  = upload_height_thumbnail(decode_height_texture(probe, /* keep_decoded */ false));
         if (!entry.thumbnail)
             entry.image_data.reset(); // decoded to nothing usable - treat it as a failed load
     } else {
