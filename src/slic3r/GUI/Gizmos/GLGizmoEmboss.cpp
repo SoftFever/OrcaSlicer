@@ -14,7 +14,6 @@
 #include "slic3r/GUI/CameraUtils.hpp"
 #include "slic3r/GUI/Jobs/EmbossJob.hpp"
 #include "slic3r/GUI/Jobs/CreateFontNameImageJob.hpp"
-#include "slic3r/GUI/Jobs/NotificationProgressIndicator.hpp"
 #include "slic3r/Utils/WxFontUtils.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "GLGizmoUtils.hpp"
@@ -24,10 +23,7 @@
 
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Preset.hpp"
-#include "libslic3r/ClipperUtils.hpp" // union_ex
 #include "libslic3r/AppConfig.hpp"    // store/load font list
-#include "libslic3r/Format/OBJ.hpp" // load obj file for default object
-#include "libslic3r/BuildVolume.hpp"
 
 #include "imgui/imgui_stdlib.h" // using std::string for inputs
 #include <string>
@@ -902,9 +898,9 @@ void GLGizmoEmboss::on_render_input_window(float x, float y, float bottom_limit)
 
     // Not known situation when could happend this is only for sure
     if (!m_is_unknown_font && !m_style_manager.is_active_font())
-        create_notification_not_valid_font("No active font in style. Select correct one.");
+        create_notification_not_valid_font(_u8L("No active font in style. Select correct one."));
     else if (!m_is_unknown_font && !m_style_manager.get_wx_font().IsOk())
-        create_notification_not_valid_font("WxFont is not loaded properly.");
+        create_notification_not_valid_font(_u8L("WxFont is not loaded properly."));
 
     double screen_scale = wxDisplay(wxGetApp().plater()).GetScaleFactor();
 
@@ -1583,6 +1579,15 @@ void GLGizmoEmboss::draw_window(float x, float y)
  }
 
 #include "imgui/imgui_internal.h" // scroll bar existence
+#include "libslic3r/CutUtils.hpp"
+#include "libslic3r/ObjectID.hpp"
+#include "slic3r/GUI/GUI_Geometry.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmoRotate.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmosManager.hpp"
+#include "slic3r/GUI/ImGuiWrapper.hpp"
+#include "slic3r/Utils/RaycastManager.hpp"
+
+namespace Slic3r::GUI { struct Camera; }
 
 void GLGizmoEmboss::draw_text_input()
 {
