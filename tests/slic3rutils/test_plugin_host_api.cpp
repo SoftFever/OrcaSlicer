@@ -12,6 +12,7 @@
         #define NOMINMAX
     #endif
     #include <Windows.h>
+    #include <CommCtrl.h>
 #endif
 
 #include <catch2/catch_all.hpp>
