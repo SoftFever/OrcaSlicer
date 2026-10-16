@@ -584,7 +584,10 @@ TEST_CASE("Generic external spool is suppressed when its extruder has AMS filame
     FilamentInfo fila;
     fila.id    = 0;
     fila.type  = "ABS";
-    fila.color = "00FF00FF";
+    // FilamentInfo.color carries the "#RRGGBBAA" form the GUI builds for a sliced filament
+    // (SelectMachine/SyncAmsInfoDialog); tray colors are the bare RRGGBBAA DevAmsTray::decode_color
+    // consumes. A bare string here is not parsed by wxColour's hex branch and reads as black.
+    fila.color = "#00FF00FF";
 
     std::vector<bool> map_opt(4, false);
     map_opt[MappingOption::USE_LEFT_AMS]  = true;
