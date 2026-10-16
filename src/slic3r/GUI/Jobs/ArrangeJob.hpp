@@ -11,6 +11,7 @@
 #include "Job.hpp"
 #include "libslic3r/Arrange.hpp"
 #include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/Point.hpp"
 #include "libslic3r/IMEXArrange.hpp"
 
 namespace Slic3r {
