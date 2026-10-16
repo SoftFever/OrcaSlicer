@@ -18,6 +18,7 @@
 #include <fstream>
 #include <ios>
 #include <iterator>
+#include <libslic3r/Utils.hpp>
 #include <miniz.h>
 #include <string>
 #include <utility>
