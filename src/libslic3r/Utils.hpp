@@ -66,6 +66,7 @@
 #define CLI_OBJECT_ORIENT_FAILED       -22
 #define CLI_MODIFIED_PARAMS_TO_PRINTER -23
 #define CLI_FILE_VERSION_NOT_SUPPORTED -24
+#define CLI_EXPORT_STATISTICS_ERROR    -25
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -751,14 +752,26 @@ inline std::string format_clock_time(int hour, int minute, bool use_12h_format, 
     return stream.str();
 }
 
-inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs, bool use_12h_format = false)
+// The time of day a print ends (24 h, or 12 h when `use_12h_format`), followed by "+N" when that is N days
+// after `now`, e.g. "14:30 +1".
+inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs, bool use_12h_format, const boost::posix_time::ptime& now)
 {
     if (time_in_secs == 0.0f)
         return {};
 
-    const auto end_time = boost::posix_time::second_clock::local_time() + boost::posix_time::seconds(static_cast<int>(time_in_secs));
+    const auto end_time    = now + boost::posix_time::seconds(static_cast<int>(time_in_secs));
     const auto time_of_day = end_time.time_of_day();
-    return format_clock_time(int(time_of_day.hours()), int(time_of_day.minutes()), use_12h_format);
+    std::string result     = format_clock_time(int(time_of_day.hours()), int(time_of_day.minutes()), use_12h_format);
+
+    const long day_offset = (end_time.date() - now.date()).days();
+    if (day_offset != 0)
+        result += " +" + std::to_string(day_offset);
+    return result;
+}
+
+inline std::string get_bbl_monitor_end_time_dhm(float time_in_secs, bool use_12h_format = false)
+{
+    return get_bbl_monitor_end_time_dhm(time_in_secs, use_12h_format, boost::posix_time::second_clock::local_time());
 }
 
 inline std::string get_bbl_remain_time_dhms(float time_in_secs)
@@ -848,6 +861,13 @@ void save_string_file(const boost::filesystem::path& p, const std::string& str);
 void load_string_file(const boost::filesystem::path& p, std::string& str);
 
 bool check_layer_id_pattern(const std::string& pattern, int layer_id);
+
+// On Windows, return an equivalent path carrying the extended-length ("\\?\" / "\\?\UNC\")
+// prefix so the Win32 APIs accept it past MAX_PATH even when LongPathsEnabled is off. The path
+// is made absolute and lexically normalized first, because the prefix disables normalisation.
+// A path that is already extended (or a device path) is returned unchanged; on other platforms,
+// or when an absolute path cannot be formed, the input is returned unchanged.
+boost::filesystem::path extended_path(const boost::filesystem::path& path);
 
 } // namespace Slic3r
 

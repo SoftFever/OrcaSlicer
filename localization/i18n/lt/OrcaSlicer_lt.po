@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-15 17:40+0800\n"
 "PO-Revision-Date: 2026-07-02 14:13+0300\n"
 "Last-Translator: Gintaras Kučinskas <sharanchius@gmail.com>\n"
 "Language-Team: \n"
@@ -729,6 +729,9 @@ msgstr "mm."
 msgid "Part selection"
 msgstr "Detalių pasirinkimas"
 
+msgid "Select multiple objects"
+msgstr "Pasirinkite kelis objektus"
+
 msgid "Fixed step drag"
 msgstr "Vilkimas fiksuotu žingsniu"
 
@@ -789,8 +792,77 @@ msgstr "Dalis"
 msgid "Relative"
 msgstr "Santykinis"
 
+msgid "Selection"
+msgstr "Pasirinkimas"
+
+msgid "Plate"
+msgstr "Spausdinimo plokštė"
+
+msgid "Distribute"
+msgstr ""
+
 msgid "Coordinate system used for transform actions."
 msgstr "Transformavimo veiksmams naudojama koordinačių sistema."
+
+msgid "Reference for alignment"
+msgstr ""
+
+msgid "Select at least 3 parts or objects"
+msgstr ""
+
+# AI Translated
+msgid "Align left"
+msgstr "Sulygiuoti pagal kairįjį kraštą"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Sulygiuoti centrus kairės-dešinės kryptimi"
+
+# AI Translated
+msgid "Align right"
+msgstr "Sulygiuoti pagal dešinįjį kraštą"
+
+# AI Translated
+msgid "Align front"
+msgstr "Sulygiuoti pagal priekinį kraštą"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Sulygiuoti centrus priekio-galo kryptimi"
+
+# AI Translated
+msgid "Align back"
+msgstr "Sulygiuoti pagal galinį kraštą"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Sulygiuoti pagal apatinį kraštą"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Sulygiuoti centrus viršaus-apačios kryptimi"
+
+# AI Translated
+msgid "Align top"
+msgstr "Sulygiuoti pagal viršutinį kraštą"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Paskirstyti kairės-dešinės kryptimi"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Paskirstyti priekio-galo kryptimi"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Paskirstyti viršaus-apačios kryptimi"
+
+msgid "Drop"
+msgstr "Nuleisti"
+
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr ""
 
 msgid "Absolute"
 msgstr "Absoliutus"
@@ -2020,6 +2092,18 @@ msgstr "Įjungiamas surinkimo manipuliatorius"
 msgid "Leaving Assembly gizmo"
 msgstr "Išjungiamas surinkimo manipuliatorius"
 
+msgid "Parts of a cut object cannot be moved"
+msgstr ""
+
+msgid "Aligning to the plate is available in X and Y only"
+msgstr ""
+
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr ""
+
+msgid "All selected objects must be on the same plate"
+msgstr ""
+
 msgid "Shift+"
 msgstr "Shift+"
 
@@ -2430,6 +2514,66 @@ msgstr "Tinklo papildinio ribojimas"
 
 msgid "Privacy Policy Update"
 msgstr "Privatumo politikos atnaujinimas"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "Visi jūsų gijų profiliai pasiekiami spausdintuvuose, kuriems jie buvo sukurti."
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "Perkelti gijų profilius"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 versijoje pertvarkyta daug sistemos gijų profilių, kad būtų ištaisyti neteisingi profiliai ir pasiruošta būsimoms funkcijoms. Dėl to toliau nurodyti profiliai nebėra rodomi kai kuriuose spausdintuvuose, kuriems jie buvo sukurti. Atsiprašome už nepatogumus; tai vienkartinis pataisymas.\n"
+"\n"
+"Ar dabar grąžinti tuos spausdintuvus į jūsų profilius? Pirmiausia sukuriama atsarginė jūsų profilių kopija. Tai galite padaryti ir vėliau, per Pagalba > Perkelti gijų profilius."
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (pagal %2%)"
+
+msgid "Don't remind me again"
+msgstr "Daugiau neberodyti šio priminimo"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "Nepavyko sukurti atsarginės jūsų profilių kopijos, todėl jie nebuvo perkelti."
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "Nepavyko užrakinti naudotojo profilių aplanko, todėl niekas nebuvo perkelta. Galbūt kitas OrcaSlicer egzempliorius šiuo metu išsaugo profilius; bandykite vėliau per Pagalba > Perkelti gijų profilius."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Nepavyko perkelti jūsų gijų profilių. Atsarginė jūsų profilių kopija įrašyta čia:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Jūsų gijų profiliai perkelti. Pasirinkite juos iš naujo gijų sąraše ten, kur juos naudojote.\n"
+"\n"
+"Atsarginė jūsų profilių kopija įrašyta čia:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "Šių profilių nepavyko perkelti:"
 
 #, c-format, boost-format
 msgid "your Orca Cloud profile (user ID: \"%s\")"
@@ -3148,8 +3292,13 @@ msgstr "(Prarasta spalva)"
 msgid "Center"
 msgstr "Centras"
 
-msgid "Drop"
-msgstr "Nuleisti"
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Sulygiuoti/Paskirstyti"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Sulygiuoti ir paskirstyti objektus"
 
 msgid "Edit Process Settings"
 msgstr "Taisyti proceso nustatymus"
@@ -3530,9 +3679,6 @@ msgstr "Nėra krašto"
 
 msgid "Outer wall speed"
 msgstr "Išorinių sienų greitis"
-
-msgid "Plate"
-msgstr "Spausdinimo plokštė"
 
 msgid "Brim"
 msgstr "Kraštas"
@@ -5022,8 +5168,9 @@ msgstr ""
 msgid "The recommended nozzle temperature for this filament type is [%d, %d] degrees Celsius."
 msgstr "Rekomenduojama šio tipo gijos purkštuko temperatūra yra [%d, %d] laipsnių Celsijaus."
 
+# AI Translated
 msgid "Adaptive Pressure Advance model validation failed:\n"
-msgstr "Nepavyko patvirtinti adaptyviojo slėgio išankstinio (Pressure Advance) modelio:\n"
+msgstr "Nepavyko patvirtinti adaptyviojo Pressure Advance modelio:\n"
 
 msgid ""
 "Too small max volumetric speed.\n"
@@ -5739,8 +5886,9 @@ msgstr "Sluoksnio laikas"
 msgid "Layer Time (log)"
 msgstr "Sluoksnio laikas (log)"
 
+# AI Translated
 msgid "Pressure Advance"
-msgstr "Slėgio išankstinis valdymas (Pressure Advance)"
+msgstr "Pressure Advance"
 
 msgid "Noop"
 msgstr "Tuščia operacija (Noop)"
@@ -6388,6 +6536,9 @@ msgstr "Ašys"
 msgid "Gridlines"
 msgstr "Tinklelio linijos"
 
+msgid "Focus mode"
+msgstr ""
+
 msgid "Labels"
 msgstr "Etiketės (Užrašai)"
 
@@ -6448,7 +6599,7 @@ msgid "Size:"
 msgstr "Dydis:"
 
 # AI Translated
-#, c-format, boost-format
+#, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Rasta G-code trajektorijų konfliktų %d sluoksnyje, Z = %.2lfmm. Prašome labiau atskirti konfliktuojančius objektus (%s <-> %s)."
 
@@ -6679,6 +6830,10 @@ msgstr "Nustatymų vedlys"
 
 msgid "Show Configuration Folder"
 msgstr "Rodyti konfigūravimo katalogą"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "Grąžinti gijų profilius, kuriuos profilių atnaujinimas pašalino iš spausdintuvų, kuriems jie buvo sukurti"
 
 msgid "Troubleshoot Center"
 msgstr "Pagalbos centras"
@@ -6993,8 +7148,9 @@ msgstr "Temperatūros kalibravimas"
 msgid "Max flowrate"
 msgstr "Maksimalus tūrinis srautas"
 
+# AI Translated
 msgid "Pressure advance"
-msgstr "Slėgio kompensavimas (Pressure Advance)"
+msgstr "Pressure Advance"
 
 msgid "Flow ratio"
 msgstr "Srauto santykis"
@@ -10780,6 +10936,12 @@ msgstr "Rodyti nepalaikomus profilius"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Rodyti nesuderinamus / nepalaikomus profilius spausdintuvų ir gijų išskleidžiamuosiuose sąrašuose. Šių profilių pasirinkti negalima."
 
+msgid "Export statistics with G-code"
+msgstr ""
+
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
+
 msgid "Experimental Features"
 msgstr "Eksperimentinis"
 
@@ -13290,9 +13452,6 @@ msgstr "Išmetimo tūris keičiant gijas"
 msgid "from/to"
 msgstr "iš/į"
 
-msgid "Please choose the filament color"
-msgstr "Pasirinkite gijos spalvą"
-
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "Debesies agentas nepasiekiamas. Iš naujo paleiskite „OrcaSlicer“ ir bandykite vėl."
 
@@ -13510,9 +13669,6 @@ msgstr "Veikia, kai aktyvus skirtuko „Paruošimas“ 3D vaizdas."
 
 msgid "Select a part"
 msgstr "Pasirinkti dalį"
-
-msgid "Select multiple objects"
-msgstr "Pasirinkite kelis objektus"
 
 msgid "Select objects by rectangle"
 msgstr "Pasirinkti objektus stačiakampio rėmeliu"
@@ -14031,6 +14187,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "perimetras yra visiškai modifikatoriaus viduje, modifikatorius jam nepritaikytas (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "Modifikatorius %1% „%2%“ objekto „%3%“ apima visą perimetrą"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "Modifikatorius %1% „%2%“ objekto „%3%“ (iš viso %4%) apima visą perimetrą"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "objekto „%2%“ modifikatorius „%1%“ neturėjo įtakos siūlei (galbūt jis nesiekia spausdinamo perimetro vidurio linijos)"
@@ -14043,6 +14211,10 @@ msgstr "objekto „%2%“ modifikatorius „%1%“ (iš viso %3%) neturėjo įta
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "Siūlės vieta gali skirtis nuo numatytos."
+
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr ""
 
 msgid "Internal Bridge"
 msgstr "Vidinis tiltas"
@@ -14529,8 +14701,9 @@ msgstr ""
 msgid "The precise wall option will be ignored for outer-inner or inner-outer-inner wall sequences."
 msgstr "Tikslios sienelės (precise wall) parinktis bus ignoruojama esant išorinės–vidinės arba vidinės–išorinės–vidinės sienelių spausdinimo sekai."
 
+# AI Translated
 msgid "The Adaptive Pressure Advance model for one or more extruders may contain invalid values."
-msgstr "Vieno ar kelių ekstruderių „Adaptive Pressure Advance“ modelis gali turėti netinkamų reikšmių."
+msgstr "Vieno ar kelių ekstruderių adaptyviojo Pressure Advance modelis gali turėti netinkamų reikšmių."
 
 msgid "Filament shrinkage will not be used because filament shrinkage for the used filaments does not match."
 msgstr "Gijų susitraukimas nenaudojamas, nes naudojamų gijų susitraukimas labai skiriasi."
@@ -15024,18 +15197,19 @@ msgstr ""
 "\n"
 "Faktinis naudojamas tiltelio srautas apskaičiuojamas padauginus šią reikšmę iš gijos srauto koeficiento (filament flow ratio) ir objekto srauto koeficiento (jei jis nustatytas)."
 
+# AI Translated
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
-"Tiltelio linijos plotis. Jei išreikštas procentais (%), jis bus skaičiuojamas nuo purkštuko skersmens.\n"
-"Rekomenduojama naudoti su didesniu tiltelio tankiu arba išorinio tilto srauto koeficientu.\n"
+"Tilto linijos plotis. Jei išreikštas procentais (%), jis bus skaičiuojamas nuo purkštuko skersmens.\n"
+"Rekomenduojama naudoti su didesniu tilto tankiu arba išorinio tilto srauto koeficientu.\n"
 "\n"
 "Maksimali reikšmė yra 100 % arba purkštuko skersmuo.\n"
-"Nustačius 0, linijos plotas sutaps su vidinio vientiso užpildo (internal solid infill) pločiu."
+"Nustačius 0, linijos plotis sutaps su vidinio vientiso užpildo pločiu, o storų tiltų atveju – su purkštuko skersmeniu."
 
 msgid "Internal bridge flow ratio"
 msgstr "Vidinio tilto srauto koeficientas"
@@ -15301,6 +15475,7 @@ msgstr "Įjunkite šią parinktį, kad sulėtintumėte greitį spausdinant išky
 msgid "Slow down for curled perimeters"
 msgstr "Sulėtinti greitį riečiantis perimetrams"
 
+# AI Translated
 #, no-c-format, no-boost-format
 msgid ""
 "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
@@ -15316,34 +15491,35 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "Įjunkite šią parinktį, kad sumažintumėte spausdinimo greitį vietose, kur perimetrai linkę riestis į viršų.\n"
 "Pavyzdžiui, papildomas sulėtinimas bus taikomas spausdinant iškyšas ties aštriais kampais (kaip „Benchy“ laivelio priekis) – tai apsaugo nuo sluoksnių rietimosi, kuris linkęs kauptis per kelis sluoksnius.\n"
 "\n"
 "Rekomenduojama visada laikyti šią parinktį įjungtą, nebent spausdintuvo aušinimas yra itin galingas arba spausdinimo greitis toks mažas, kad perimetrų rietimasis nevyksta.\n"
-"Jei spausdinama dideliu išorinio perimetro greičiu, šis parametras lėtėjimo metu gali sukelti sienelių artefaktų (defektų), nes dėl didelių greičio šuolių ekstruderis gali nespėti sureguliuoti srauto pokyčio.\n"
+"Jei spausdinama dideliu išorinio perimetro greičiu, šis parametras lėtėjimo metu gali sukelti sienelių artefaktų, nes dėl didelių greičio šuolių ekstruderis gali nespėti sureguliuoti srauto pokyčio.\n"
 "Pagrindinė tokių artefaktų priežastis dažniausiai yra netiksliai suderintas „Pressure Advance“ (PA) parametras, ypač jei naudojama didelė „PA smooth time“ reikšmė.\n"
 "\n"
 "Rekomendacijos įjungus šią parinktį:\n"
 "1. Sumažinkite „Pressure Advance smooth time“ iki 0.015 - 0.02, kad ekstruderis greitai reaguotų į greičio pokyčius.\n"
 "2. Padidinkite minimalų spausdinimo greitį, kad apribotumėte sulėtėjimo mastą ir sumažintumėte skirtumą tarp greitų bei lėtų segmentų.\n"
-"3. Jei artefaktai išlieka, įjunkite „Ekstruzijos srauto glotninimą“ (ERS), kad sušvelgintumėte srauto perėjimus.\n"
+"3. Jei artefaktai išlieka, įjunkite „Išstūmimo greičio išlyginimas“ (ERS), kad sušvelnintumėte srauto perėjimus.\n"
 "\n"
-"Pastaba: kai ši parinktis įjungta, išsikišę perimetrai yra traktuojami kaip iškyšos, t. y. iškyšų greitis taikomas net ir tada, kai perimetras yra tiltelio dalis.\n"
-"Pavyzdžiui, kai perimetrai kyšo 100 % (apačioje nėra jokios palaikančios sienelės), bus taikomas būtent 100 % iškyšos greitis."
+"Pastaba: kai ši parinktis įjungta, išsikišę perimetrai yra traktuojami kaip iškyšos, t. y. iškyšų greitis taikomas net ir tada, kai perimetras yra tilto dalis.\n"
+"Pavyzdžiui, kai perimetrai kyšo 100 % (apačioje nėra jokios palaikančios sienelės), bus taikomas 75 % iškyšos greitis, apribotas tilto greičiu."
 
 msgid "mm/s or %"
 msgstr "mm/s arba %"
 
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
-"Išoriškai matomų tiltelio ekstruzijų greitis.\n"
+"Išoriškai matomų tilto ekstruzijų greitis.\n"
 "\n"
-"Papildomai, jei funkcija „Sulėtinti greitį riesantis perimetrams“ yra išjungta arba įjungtas „Klasikinis iškyšų režimas“, šis greitis bus taikomas iškyšų sienelėms, kurių atrama yra mažesnė nei 13 % (nesvarbu, ar jos yra tiltelio, ar iškyšos dalis)."
+"Papildomai, jei funkcija „Sulėtinti greitį riečiantis perimetrams“ yra išjungta, šis greitis bus taikomas iškyšų sienelėms, kurių atrama yra mažesnė nei 13 % (nesvarbu, ar jos yra tilto, ar iškyšos dalis)."
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "Vidinių tiltelių spausdinimo greitis. Jei reikšmė nurodoma procentais, ji apskaičiuojama pagal „bridge_speed“ (tiltelių greitį). Numatytoji reikšmė – 150 %."
@@ -15921,8 +16097,9 @@ msgstr "Tai išorinių detalių sienelių spausdinimo greitis. Siekiant aukštes
 msgid "Small perimeters"
 msgstr "Mažos trajektorijos (Small perimeters)"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "Šis nustatymas valdo perimetrų, kurių spindulys $\\le$ „Mažų perimetrų riba“ (dažniausiai tai nedidelės skylės), spausdinimo greitį. Jei nurodomas procentais (pvz., 80 %), jis apskaičiuojamas pagal viršuje nustatytą išorinės sienelės greitį. Nustačius 0, greitis parandamas automatiškai."
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "Šis atskiras nustatymas valdo perimetrų, kurių spindulys <= small_perimeter_threshold (dažniausiai tai skylės), spausdinimo greitį. Jei nurodomas procentais (pvz., 80 %), jis apskaičiuojamas pagal viršuje nustatytą išorinės sienelės greitį."
 
 msgid "Small perimeters threshold"
 msgstr "Mažų perimetrų riba"
@@ -15933,8 +16110,9 @@ msgstr "Nustato mažų perimetrų ilgio arba spindulio ribą. Numatytoji reikšm
 msgid "Small support perimeters"
 msgstr "Maži atramų perimetrai"
 
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "Tas pats, kas „Maži perimetrai“, bet skirta atramoms. Šis atskiras nustatymas turės įtakos atramų greičiui tose vietose, kurios yra ≤ `small_support_perimeter_threshold`. Jei išreikšta procentais (pavyzdžiui: 80 %), bus skaičiuojama nuo aukščiau nustatyto atramų arba atramų sąsajos greičio. Nustatykite nulį, jei norite naudoti automatinį režimą."
+# AI Translated
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "Tas pats, kas „Mažos trajektorijos (Small perimeters)“, bet skirta atramoms. Šis atskiras nustatymas turės įtakos atramų greičiui tose vietose, kurios yra <= `small_support_perimeter_threshold`. Jei išreikšta procentais (pavyzdžiui: 80 %), bus skaičiuojama nuo aukščiau nustatyto atramų arba atramų sąsajos greičio."
 
 msgid "Small support perimeters threshold"
 msgstr "Mažo atramų perimetro ribos"
@@ -15945,22 +16123,23 @@ msgstr "Nustatoma mažo atramų perimetro ilgio riba. Numatytoji riba yra 0 mm"
 msgid "Walls printing order"
 msgstr "Sienelių spausdinimo eiliškumas"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
-"Vidinių (inner) ir išorinių (outer) sienelių spausdinimo seka.\n"
+"Vidinių ir išorinių sienelių spausdinimo seka.\n"
 "\n"
-"„Vidinis / išorinis“ (Inner/Outer) užtikrina geriausią iškyšų kokybę, nes spausdinama iškyšos sienelė turi prie ko prisitvirtinti (prie vidinio perimetro). Tačiau išorinio paviršiaus kokybė gali nežymiai nukentėti, nes išorinis perimetras gali būti šiek tiek deformuojamas (išspaudžiamas) vidinio perimetro įtakos.\n"
+"„Vidinis / išorinis“ užtikrina geriausią iškyšų kokybę, nes spausdinama iškyšos sienelė turi prie ko prisitvirtinti (prie vidinio perimetro). Tačiau išorinio paviršiaus kokybė gali nežymiai nukentėti, nes išorinis perimetras gali būti šiek tiek deformuojamas (išspaudžiamas) vidinio perimetro įtakos.\n"
 "\n"
-"„Vidinis / išorinis / vidinis“ (Inner/Outer/Inner) užtikrina geriausią išorinio paviršiaus kokybę ir matmenų tikslumą, nes išorinė sienelė spausdinama netrikdomai. Visgi, iškyšų kokybė sumažėja, nes nėra pilno vidinio pagrindo išorinei sienelei prilaikyti. Šis nustatymas efektyvus tik turint bent 3 sieneles – pjaustyklė pirmiausia spausdina vidines sieneles nuo 3-iojo perimetro gilyn, tada išorinį perimetrą, ir galiausiai pirmąjį vidinį perimetrą. Daugeliu atvejų tai yra pranašesnis pasirinkimas nei „Išorinis / vidinis“.\n"
+"„Vidinis / išorinis / vidinis“ užtikrina geriausią išorinio paviršiaus kokybę ir matmenų tikslumą, nes išorinė sienelė spausdinama netrikdomai. Visgi, iškyšų kokybė sumažėja, nes nėra pilno vidinio pagrindo išorinei sienelei prilaikyti. Šis nustatymas efektyvus tik turint bent 3 sieneles – pirmiausia spausdinamos vidinės sienelės nuo 3-iojo perimetro gilyn, tada išorinis perimetras ir galiausiai pirmasis vidinis perimetras. Daugeliu atvejų tai yra pranašesnis pasirinkimas nei „Išorinis / vidinis“.\n"
 "\n"
-"„Išorinis / vidinis“ (Outer/Inner) suteikia panašų paviršiaus švarumą ir matmenų tikslumą kaip ir „Vidinis / išorinis / vidinis“, tačiau vertikalios siūlės (Z seam) gali atrodyti mažiau tvarkingos, nes naujas sluoksnis pradedamas spausdinti tiesiai ant matomo išorinio paviršiaus."
+"„Išorinis / vidinis“ suteikia panašų paviršiaus švarumą ir matmenų tikslumą kaip ir „Vidinis / išorinis / vidinis“, tačiau Z siūlės gali atrodyti mažiau tvarkingos, nes naujas sluoksnis pradedamas spausdinti tiesiai ant matomo išorinio paviršiaus."
 
 msgid "Inner/Outer"
 msgstr "Vidinis / išorinis"
@@ -16082,14 +16261,17 @@ msgstr ""
 "\n"
 "Galutinis objekto srauto koeficientas gaunamas šią reikšmę padauginus iš plastiko srauto koeficiento (filament flow ratio)."
 
+# AI Translated
 msgid "Enable pressure advance"
-msgstr "Įjungti slėgio kompensavimą (Pressure Advance)"
+msgstr "Įjungti Pressure Advance"
 
+# AI Translated
 msgid "Enable pressure advance, auto calibration result will be overwritten once enabled."
-msgstr "Įjungia slėgio kompensavimą (Pressure Advance). Jį aktyvavus, automatinio kalibravimo rezultatai bus nepaisomi."
+msgstr "Įjungia Pressure Advance. Jį aktyvavus, automatinio kalibravimo rezultatai bus nepaisomi."
 
+# AI Translated
 msgid "Pressure advance (Klipper) AKA Linear advance factor (Marlin)."
-msgstr "Slėgio kompensavimas (Pressure Advance „Klipper“ mikroprogramoje) arba linijinis kompensavimas (Linear Advance „Marlin“ mikroprogramoje)."
+msgstr "Pressure Advance („Klipper“ mikroprogramoje), dar vadinamas Linear Advance koeficientu („Marlin“ mikroprogramoje)."
 
 # AI Translated
 msgid "Enable adaptive pressure advance (beta)"
@@ -16114,6 +16296,7 @@ msgstr ""
 msgid "Adaptive pressure advance measurements (beta)"
 msgstr "Adaptyviojo Pressure Advance matavimai (beta)"
 
+# AI Translated
 #, no-c-format, no-boost-format
 msgid ""
 "Add sets of pressure advance (PA) values, the volumetric flow speeds and accelerations they were measured at, separated by a comma. One set of values per line. For example\n"
@@ -16127,7 +16310,7 @@ msgid ""
 "2. Take note of the optimal PA value for each volumetric flow speed and acceleration. You can find the flow number by selecting flow from the color scheme drop down and move the horizontal slider over the PA pattern lines. The number should be visible at the bottom of the page. The ideal PA value should be decreasing the higher the volumetric flow is. If it is not, confirm that your extruder is functioning correctly. The slower and with less acceleration you print, the larger the range of acceptable PA values. If no difference is visible, use the PA value from the faster test\n"
 "3. Enter the triplets of PA values, Flow and Accelerations in the text box here and save your filament profile."
 msgstr ""
-"Įveskite slėgio kompensavimo (PA) reikšmių rinkinius, nurodydami tūrinį srautą bei pagreitį, prie kurių jie buvo išmatuoti, atskirdami kableliais. Vienoje eilutėje – vienas trejetas. Pavyzdžiui:\n"
+"Įveskite Pressure Advance (PA) reikšmių rinkinius, nurodydami tūrinį srautą bei pagreitį, prie kurių jie buvo išmatuoti, atskirdami kableliais. Vienoje eilutėje – vienas trejetas. Pavyzdžiui:\n"
 "0.04,3.96,3000\n"
 "0.033,3.96,10000\n"
 "0.029,7.91,3000\n"
@@ -16150,7 +16333,7 @@ msgid ""
 "\n"
 "This is an experimental option, as if the PA profile is not set accurately, it will cause uniformity issues."
 msgstr ""
-"Įjunkite „Adaptive PA“, kai elemente pasikeičia srautas, pavyzdžiui, keičiantis linijos pločiui kampuose arba iškyšose.\n"
+"Įjunkite adaptyvųjį PA, kai elemente pasikeičia srautas, pavyzdžiui, keičiantis linijos pločiui kampuose arba iškyšose.\n"
 "\n"
 "Nėra suderinama su „Prusa“ spausdintuvais, nes jie pristabdo darbą PA pakeitimams apdoroti, o tai sukelia vėlavimą ir defektus.\n"
 "\n"
@@ -16900,14 +17083,16 @@ msgstr "Pirmojo sluoksnio aukštis"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "Pirmojo sluoksnio aukštis. Padarius pirmąjį sluoksnį storesnį, galima pagerinti sukibimą su pagrindu."
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "Pirmojo sluoksnio greitis, išskyrus vientiso užpildo dalį."
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "Pirmojo sluoksnio sienelių ir krašto greitis."
 
 msgid "First layer infill"
 msgstr "Pirmojo sluoksnio užpildas"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "Pirmojo sluoksnio vientiso užpildo dalies greitis."
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "Pirmojo sluoksnio greitis, išskyrus sieneles ir kraštą, pavyzdžiui, užpildą, plyšių užpildymą ir atramas."
 
 msgid "First layer travel speed"
 msgstr "Pirmojo sluoksnio tuščiosios eigos (travel) greitis"
@@ -17619,16 +17804,18 @@ msgstr "Vidinio reto užpildo linijos plotis. Jei išreiškiama procentais (%%),
 msgid "Infill/wall overlap"
 msgstr "Užpildo ir sienelės persidengimas"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "Užpildo plotas yra šiek tiek padidinamas, kad persidengtų su sienele geresniam sukibimui. Procentinė vertė yra santykinė su reto užpildo linijos pločiu. Nustatykite šią vertę ties ~10–15%, kad sumažintumėte perteklinio išspaudimo (overextrusion) ir medžiagos sankaupų riziką, dėl kurios viršutiniai paviršiai tampa šiurkštūs."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "Užpildo plotas yra šiek tiek padidinamas, kad persidengtų su sienele geresniam sukibimui. Procentinė vertė yra santykinė su vidinės sienelės linijos pločiu. Nustatykite šią vertę ties ~10-15%, kad sumažintumėte perteklinio išspaudimo ir medžiagos sankaupų riziką, dėl kurios viršutiniai paviršiai tampa šiurkštūs."
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "Viršutinio / apatinio vientiso užpildo ir sienelės persidengimas"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "Viršutinio vientiso užpildo plotas yra šiek tiek padidinamas, kad persidengtų su sienele geresniam sukibimui ir sumažintų mikroskylučių (pinholes) susidarymą sandūroje. 25–30%% vertė yra geras pradinis taškas, sumažinantis skylučių matomumą. Procentinė vertė yra santykinė su reto užpildo linijos pločiu."
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "Viršutinio vientiso užpildo plotas yra šiek tiek padidinamas, kad persidengtų su sienele geresniam sukibimui ir sumažintų mikroskylučių susidarymą sandūroje, kur viršutinis užpildas susiduria su sienelėmis. 25-30% vertė yra geras pradinis taškas, sumažinantis skylučių matomumą. Procentinė vertė yra santykinė su vidinės sienelės linijos pločiu."
 
 msgid "This is the speed for internal sparse infill."
 msgstr "Vidinio reto užpildo greitis."
@@ -17654,8 +17841,9 @@ msgstr "Didžiausias segmentuotos srities plotis. Nulis išjungia šią funkcij�
 msgid "Interlocking depth of a segmented region"
 msgstr "Segmentuotos srities susikirtimo gylis"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr "Segmentuoto regiono susikirtimo gylis. Jis bus ignoruojamas, jei „mmu_segmented_region_max_width“ yra nulis arba jei „mmu_segmented_region_interlocking_depth“ yra didesnis už „mmu_segmented_region_max_width“. Nulis išjungia šią funkciją."
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "Segmentuotos srities susikirtimo gylis. Kas antrame sluoksnyje segmentuota sritis apribojama šiuo gyliu. Bus nepaisoma, jei įjungta „interlocking_beam“. Nulis išjungia šią funkciją."
 
 msgid "Use beam interlocking"
 msgstr "Naudoti sijų sujungimą (interlocking)"
@@ -17756,13 +17944,14 @@ msgstr "Įjungti Z-sluoksnių kontūravimą (dar žinomą kaip Z-sluoksnių glot
 msgid "Minimize wall height angle"
 msgstr "Sienelės aukščio kampo minimizavimas"
 
+# AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "Sumažinti viršutinio paviršiaus perimetrų aukštį, kad jis sutaptų su modelio krašto aukščiu.\n"
-"Paveikia perimetrus, kurių nuolydis yra mažesnis už šį kampą (laipsniais).\n"
+"Paveikia perimetrus, kurių nuolydis yra didesnis už šį kampą (laipsniais).\n"
 "Protinga vertė yra 35. Nustatykite 0, kad išjungtumėte."
 
 msgid "Don't alternate fill direction"
@@ -18124,9 +18313,9 @@ msgstr ""
 "\n"
 "Reikšmė 0 išjungia šią funkciją.\n"
 "\n"
-"Spartiems, didelio srauto tiesioginės pavaros (Direct Drive) spausdintuvams (tokiems kaip „Bambu Lab“ arba „Voron“) ši reikšmė paprastai nėra būtina. Vis dėlto ji gali duoti nedidelės naudos tais atvejais, kai spausdinimo elementų greičiai labai skiriasi – pavyzdžiui, esant žymiems sulėtėjimams ties iškyšomis. Tokiais atvejais rekomenduojama didelė reikšmė (apie 300–350 mm³/s²), kuri užtikrina pakankamą išlyginimą, padedantį slėgio kompensavimo (Pressure Advance) algoritmui pasiekti sklandesnį srauto perėjimą.\n"
+"Spartiems, didelio srauto tiesioginės pavaros (Direct Drive) spausdintuvams (tokiems kaip „Bambu Lab“ arba „Voron“) ši reikšmė paprastai nėra būtina. Vis dėlto ji gali duoti nedidelės naudos tais atvejais, kai spausdinimo elementų greičiai labai skiriasi – pavyzdžiui, esant žymiems sulėtėjimams ties iškyšomis. Tokiais atvejais rekomenduojama didelė reikšmė (apie 300–350 mm³/s²), kuri užtikrina pakankamą išlyginimą, padedantį Pressure Advance algoritmui pasiekti sklandesnį srauto perėjimą.\n"
 "\n"
-"Lėtesniems spausdintuvams be slėgio kompensavimo (Pressure Advance) šią reikšmę reikėtų nustatyti gerokai mažesnę. Tiesioginės pavaros (Direct Drive) ekstruderiams gera pradinė reikšmė yra 10–15 mm³/s², o „Bowden“ tipo – 5–10 mm³/s².\n"
+"Lėtesniems spausdintuvams be Pressure Advance šią reikšmę reikėtų nustatyti gerokai mažesnę. Tiesioginės pavaros (Direct Drive) ekstruderiams gera pradinė reikšmė yra 10–15 mm³/s², o „Bowden“ tipo – 5–10 mm³/s².\n"
 "\n"
 "„PrusaSlicer“ programoje ši funkcija vadinama „Pressure Equalizer“.\n"
 "\n"
@@ -18734,7 +18923,8 @@ msgstr "Įstrižoji jungtis (Scarf joint) vidinėms sienelėms"
 msgid "Use scarf joint for inner walls as well."
 msgstr "Įstrižąją jungtį (Scarf joint) naudoti ir vidinėms sienelėms."
 
-msgid "Role base wipe speed"
+# AI Translated
+msgid "Role based wipe speed"
 msgstr "Valymo greitis pagal elemento tipą"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
@@ -18824,16 +19014,15 @@ msgstr "Po pirmojo sluoksnio apriboja apvado / apsauginio skydo kontūrus iki vi
 msgid "Draft shield"
 msgstr "Apsauginis skydas (Draft shield)"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
-"Apsauginis skydas (Draft shield) padeda apsaugoti ABS arba ASA spaudinius nuo deformavimosi ir atšokimo nuo pagrindo dėl skersvėjų. Dažniausiai jis reikalingas tik atviro tipo spausdintuvams be korpuso (enclosure).\n"
+"Apsauginis skydas (Draft shield) padeda apsaugoti ABS arba ASA spaudinius nuo deformavimosi ir atšokimo nuo pagrindo dėl skersvėjų. Dažniausiai jis reikalingas tik atviro tipo spausdintuvams be korpuso.\n"
 "\n"
-"Įjungta = apvadas bus tokio paties aukščio kaip ir aukščiausias spausdinamas objektas. Priešingu atveju naudojamas parametras „Apvado aukštis“.\n"
-"Pastaba: kai apsauginis skydas aktyvus, apvadas bus spausdinamas nurodytu „Apvado atstumu“ nuo objekto. Jei naudojami pado kraštai (brim), jie gali susikirsti. Norėdami to išvengti, padidinkite apvado atstumo reikšmę.\n"
+"Įjungta = apvadas bus tokio paties aukščio kaip ir aukščiausias spausdinamas objektas. Priešingu atveju naudojamas parametras „Apvado aukštis“."
 
 msgid "Enabled"
 msgstr "Įjungta"
@@ -19991,40 +20180,42 @@ msgstr "Kūgio, naudojamo valymo bokšteliui stabilizuoti, viršūnės kampas. D
 msgid "Maximum wipe tower print speed"
 msgstr "Didžiausias valymo bokštelio spausdinimo greitis"
 
+# AI Translated
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
-"Didžiausias spausdinimo greitis atliekant gijos pravalymą (purging) bei spausdinant valymo bokštelio retuosius (sparse) sluoksnius. Jei pravalymo metu retojo užpildo greitis arba apskaičiuotas greitis pagal maksimalų tūrinį gijos greitį yra mažesnis, bus naudojamas mažiausias iš jų.\n"
+"Didžiausias spausdinimo greitis atliekant gijos pravalymą bei spausdinant valymo bokšto retuosius sluoksnius. Jei pravalymo metu retojo užpildo greitis arba apskaičiuotas greitis pagal maksimalų tūrinį gijos greitį yra mažesnis, bus naudojamas mažiausias iš jų.\n"
 "\n"
-"Spausdinant retuosius sluoksnius, jei vidinio perimetro greitis arba apskaičiuotas greitis pagal maksimalų tūrinį gijos greitį yra mažesnis, bus naudojamas mažiausias iš jų.\n"
+"Spausdinant retuosius sluoksnius, jei retojo užpildo greitis arba apskaičiuotas greitis pagal maksimalų tūrinį gijos greitį yra mažesnis, bus naudojamas mažiausias iš jų.\n"
 "\n"
-"Padidinus šį greitį, gali nukentėti bokštelio stabilumas bei padidėti jėga, su kuria purkštukas susidurs su bet kokiais ant valymo bokštelio susidariusiais gijos gumbeliais (blobs).\n"
+"Padidinus šį greitį, gali nukentėti bokšto stabilumas bei padidėti jėga, su kuria purkštukas susidurs su bet kokiais ant valymo bokšto susidariusiais gijos gumbeliais.\n"
 "\n"
-"Prieš didindami šį parametrą virš numatytųjų 90 mm/s, įsitikinkite, kad jūsų spausdintuvas patikimai formuoja tiltelius (bridging) esant didesniam greičiui, o gijos nutekėjimas (ooze) keičiant įrankį yra gerai kontroliuojamas.\n"
+"Prieš didindami šį parametrą virš numatytųjų 90 mm/s, įsitikinkite, kad jūsų spausdintuvas patikimai formuoja tiltus esant didesniam greičiui, o gijos nutekėjimas keičiant įrankį yra gerai kontroliuojamas.\n"
 "\n"
-"Valymo bokštelio išoriniams perimetrams, nepriklausomai nuo šio nustatymo, visada naudojamas vidinio perimetro greitis."
+"Valymo bokšto išoriniams perimetrams naudojamas vidinio perimetro greitis, kurį taip pat riboja šis nustatymas."
 
 msgid "Wall type"
 msgstr "Sienelės tipas"
 
+# AI Translated
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
-"Valymo bokštelio išorinės sienelės tipas.\n"
-"1. Stačiakampis (Rectangle): numatytasis sienelės tipas – fiksuoto pločio ir aukščio stačiakampis.\n"
-"2. Kūgis (Cone): kūgis su suapvalinimu apačioje, padedantis stabilizuoti valymo bokštelį.\n"
-"3. Briauna (Rib): prie bokštelio sienelės pridedamos keturios briaunos geresniam stabilumui užtikrinti."
+"Valymo bokšto išorinės sienelės tipas.\n"
+"1. Stačiakampis: stačiakampis su fiksuotu pločiu ir aukščiu.\n"
+"2. Kūgis: kūgis su suapvalinimu apačioje, padedantis stabilizuoti valymo bokštą.\n"
+"3. Briauna (Rib): numatytasis sienelės tipas, kai prie bokšto sienelės pridedamos keturios briaunos geresniam stabilumui užtikrinti."
 
 msgid "Rectangle"
 msgstr "Stačiakampis"
@@ -20115,8 +20306,9 @@ msgstr "Valymo bokšto valymo linijų atstumai."
 msgid "Extra flow for purging"
 msgstr "Papildomas pravalymo srautas"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "Papildomas gijos srautas, naudojamas valymo bokštelio pravalymo linijoms. Jis leidžia suformuoti storesnes arba siauresnes pravalymo linijas nei įprastai. Atstumai tarp linijų pritaikomi automatiškai."
+# AI Translated
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "Papildomas gijos srautas, naudojamas valymo bokšto pravalymo linijoms. Dėl jo pravalymo linijos būna storesnės nei įprastai. Atstumai tarp linijų pritaikomi automatiškai."
 
 msgid "Idle temperature"
 msgstr "Budėjimo (idle) temperatūra"
@@ -20235,14 +20427,15 @@ msgstr "Mažiausias plonų elementų storis. Modelio elementai, plonesni už ši
 msgid "Minimum wall length"
 msgstr "Mažiausias sienelės ilgis"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"Pakoreguokite šią reikšmę, kad nebūtų spausdinamos trumpos, neuždaros sienelės, galinčios pailginti spausdinimo laiką. Didesnės reikšmės pašalina daugiau ir ilgesnes sieneles.\n"
+"Pakoreguokite šią reikšmę, kad nebūtų spausdinamos trumpos, neuždaros sienelės, galinčios pailginti spausdinimo laiką. Reikšmė yra sienelės pločio kartotinis. Didesnės reikšmės pašalina daugiau ir ilgesnes sieneles.\n"
 "\n"
-"PASTABA: Šis nustatymas neturi įtakos apatiniams ir viršutiniams paviršiams, kad modelio išorėje neatsirastų matomų tuštumų. Žemiau esančiuose išplėstiniuose nustatymuose pakeiskite parametro „Vienos sienelės slenkstis“ (One wall threshold) jautrumą, apibrėžiantį, kas laikoma viršutiniu paviršiumi. Šis slenkstis matomas tik tada, kai nustatymas viršija numatytąją 0,5 reikšmę arba kai įjungta vienos sienelės viršutinių paviršių funkcija."
+"PASTABA: Šis nustatymas neturi įtakos apatiniams ir viršutiniams paviršiams, kad modelio išorėje neatsirastų matomų tuštumų. Žemiau, grupėje „Sienos ir paviršiai“, pakeiskite parametro „Vienos sienelės slenkstis“ jautrumą, apibrėžiantį, kas laikoma viršutiniu paviršiumi. „Vienos sienelės slenkstis“ matomas tik tada, kai šis nustatymas viršija numatytąją 0,5 reikšmę arba kai įjungti vienos sienelės viršutiniai paviršiai."
 
 msgid "Maximum wall resolution"
 msgstr "Didžiausia sienelių skiriamoji geba (resolution)"
@@ -20632,6 +20825,12 @@ msgstr "Išvesties katalogas"
 
 msgid "This is the output directory for exported files."
 msgstr "Tai yra eksportuotų failų išvesties aplankas."
+
+msgid "Export statistics"
+msgstr ""
+
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
 
 msgid "Debug level"
 msgstr "Derinimo lygis"
@@ -24177,9 +24376,6 @@ msgstr "Įjungti išmanųjį gijos priskyrimą: priskirkite vieną giją keliems
 # AI Translated
 msgid "File Saving"
 msgstr "Failo įrašymas"
-
-msgid "Don't remind me again"
-msgstr "Daugiau neberodyti šio priminimo"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Iškylantieji langai daugiau nebus rodomi. Juos vėl galite įjungti „Nuostatose“"
@@ -29535,9 +29731,6 @@ msgstr "Atidaryti greituosius veiksmus"
 msgid "Slicing and printing"
 msgstr "Sluoksniavimas ir spausdinimas"
 
-msgid "Selection"
-msgstr "Pasirinkimas"
-
 # AI Translated
 msgid "Editing"
 msgstr "Redagavimas"
@@ -30446,6 +30639,1232 @@ msgstr[0] "Dabartiniame gijų sąraše nėra %s. Po išskaidymo automatiškai bu
 msgstr[1] "Dabartiniame gijų sąraše nėra %s. Po išskaidymo automatiškai bus sukurtos mišriai gijai reikalingos projekto gijos."
 msgstr[2] "Dabartiniame gijų sąraše nėra %s. Po išskaidymo automatiškai bus sukurtos mišriai gijai reikalingos projekto gijos."
 
+msgid "Color Picker"
+msgstr ""
+
+msgid "Basic Colors"
+msgstr ""
+
+msgid "Orca Palette"
+msgstr ""
+
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "RAL Classic"
+msgstr ""
+
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "Gradients"
+msgstr ""
+
+msgid "Solid"
+msgstr ""
+
+msgid "Gradient"
+msgstr ""
+
+msgid "Gradient start"
+msgstr ""
+
+msgid "Gradient end"
+msgstr ""
+
+msgid "Gradient color"
+msgstr ""
+
+msgid "Add color"
+msgstr ""
+
+msgid "Remove color"
+msgstr ""
+
+msgid "Saturation"
+msgstr ""
+
+msgid "Original color"
+msgstr ""
+
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr ""
+
+msgid "Palettes"
+msgstr ""
+
+msgid "Search colors"
+msgstr ""
+
+msgid "Filter colors"
+msgstr ""
+
+msgid "No matching colors"
+msgstr ""
+
+msgid "Hex color"
+msgstr ""
+
+# AI Translated
+msgid "Opacity"
+msgstr "Nepermatomumas"
+
+msgid "Opacity percent"
+msgstr ""
+
+msgid "Save color"
+msgstr ""
+
+msgid "Enter a complete hexadecimal color"
+msgstr ""
+
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr ""
+
+msgid "Crimson"
+msgstr ""
+
+msgid "Orange red"
+msgstr ""
+
+msgid "Tomato"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Dark orange"
+msgstr ""
+
+msgid "Gold"
+msgstr ""
+
+msgid "Burly wood"
+msgstr ""
+
+msgid "Bisque"
+msgstr ""
+
+msgid "Misty rose"
+msgstr ""
+
+msgid "Light yellow"
+msgstr ""
+
+msgid "Lemon chiffon"
+msgstr ""
+
+msgid "Beige"
+msgstr ""
+
+msgid "Light golden rod yellow"
+msgstr ""
+
+msgid "Pale golden rod"
+msgstr ""
+
+msgid "Khaki"
+msgstr ""
+
+msgid "Dark khaki"
+msgstr ""
+
+msgid "Peach puff"
+msgstr ""
+
+msgid "Moccasin"
+msgstr ""
+
+msgid "Papaya whip"
+msgstr ""
+
+msgid "Blanched almond"
+msgstr ""
+
+msgid "Antique white"
+msgstr ""
+
+msgid "Navajo white"
+msgstr ""
+
+msgid "Wheat"
+msgstr ""
+
+msgid "Golden rod"
+msgstr ""
+
+msgid "Chocolate"
+msgstr ""
+
+msgid "Peru"
+msgstr ""
+
+msgid "Fire brick"
+msgstr ""
+
+msgid "Sienna"
+msgstr ""
+
+msgid "Saddle brown"
+msgstr ""
+
+msgid "Brown"
+msgstr ""
+
+msgid "Rosy brown"
+msgstr ""
+
+msgid "Salmon"
+msgstr ""
+
+msgid "Light salmon"
+msgstr ""
+
+msgid "Dark salmon"
+msgstr ""
+
+msgid "Sandy brown"
+msgstr ""
+
+msgid "Coral"
+msgstr ""
+
+msgid "Light coral"
+msgstr ""
+
+msgid "Indian red"
+msgstr ""
+
+msgid "Dark red"
+msgstr ""
+
+msgid "Maroon"
+msgstr ""
+
+msgid "Green yellow"
+msgstr ""
+
+msgid "Yellow green"
+msgstr ""
+
+msgid "Chartreuse"
+msgstr ""
+
+msgid "Lawn green"
+msgstr ""
+
+msgid "Lime green"
+msgstr ""
+
+msgid "Spring green"
+msgstr ""
+
+msgid "Medium spring green"
+msgstr ""
+
+msgid "Lime"
+msgstr ""
+
+msgid "Forest green"
+msgstr ""
+
+msgid "Dark green"
+msgstr ""
+
+msgid "Olive drab"
+msgstr ""
+
+msgid "Olive"
+msgstr ""
+
+msgid "Dark olive green"
+msgstr ""
+
+msgid "Pale green"
+msgstr ""
+
+msgid "Light green"
+msgstr ""
+
+msgid "Medium sea green"
+msgstr ""
+
+msgid "Sea green"
+msgstr ""
+
+msgid "Dark sea green"
+msgstr ""
+
+msgid "Cadet blue"
+msgstr ""
+
+msgid "Medium aqua marine"
+msgstr ""
+
+msgid "Turquoise"
+msgstr ""
+
+msgid "Medium turquoise"
+msgstr ""
+
+msgid "Dark turquoise"
+msgstr ""
+
+msgid "Pale turquoise"
+msgstr ""
+
+msgid "Aqua"
+msgstr ""
+
+msgid "Light cyan"
+msgstr ""
+
+msgid "Mint cream"
+msgstr ""
+
+msgid "Honey dew"
+msgstr ""
+
+msgid "Aquamarine"
+msgstr ""
+
+msgid "Light sea green"
+msgstr ""
+
+msgid "Dark cyan"
+msgstr ""
+
+msgid "Teal"
+msgstr ""
+
+msgid "Dark slate gray"
+msgstr ""
+
+msgid "Light slate gray"
+msgstr ""
+
+msgid "Slate gray"
+msgstr ""
+
+msgid "Deep sky blue"
+msgstr ""
+
+msgid "Dodger Blue"
+msgstr ""
+
+msgid "Sky blue"
+msgstr ""
+
+msgid "Light sky blue"
+msgstr ""
+
+msgid "Light blue"
+msgstr ""
+
+msgid "Powder blue"
+msgstr ""
+
+msgid "Light steel blue"
+msgstr ""
+
+msgid "Steel blue"
+msgstr ""
+
+msgid "Cornflower blue"
+msgstr ""
+
+msgid "Royal blue"
+msgstr ""
+
+msgid "Medium blue"
+msgstr ""
+
+msgid "Midnight blue"
+msgstr ""
+
+msgid "Dark blue"
+msgstr ""
+
+msgid "Navy"
+msgstr ""
+
+msgid "Slate blue"
+msgstr ""
+
+msgid "Dark slate blue"
+msgstr ""
+
+msgid "Medium slate blue"
+msgstr ""
+
+msgid "Blue violet"
+msgstr ""
+
+msgid "Indigo"
+msgstr ""
+
+msgid "Dark violet"
+msgstr ""
+
+msgid "Dark orchid"
+msgstr ""
+
+msgid "Medium orchid"
+msgstr ""
+
+msgid "Orchid"
+msgstr ""
+
+msgid "Violet"
+msgstr ""
+
+msgid "Medium purple"
+msgstr ""
+
+msgid "Purple"
+msgstr ""
+
+msgid "Rebecca purple"
+msgstr ""
+
+msgid "Medium violet red"
+msgstr ""
+
+msgid "PaleV violet red"
+msgstr ""
+
+msgid "Deep pink"
+msgstr ""
+
+msgid "Hot pink"
+msgstr ""
+
+msgid "Light pink"
+msgstr ""
+
+msgid "Pink"
+msgstr ""
+
+msgid "Plum"
+msgstr ""
+
+msgid "Thistle"
+msgstr ""
+
+msgid "Fuchsia"
+msgstr ""
+
+msgid "Dark magenta"
+msgstr ""
+
+msgid "Linen"
+msgstr ""
+
+msgid "Old lace"
+msgstr ""
+
+msgid "Sea shell"
+msgstr ""
+
+msgid "Ivory"
+msgstr ""
+
+msgid "Floral white"
+msgstr ""
+
+msgid "Lavender blush"
+msgstr ""
+
+msgid "Ghost white"
+msgstr ""
+
+msgid "Alice blue"
+msgstr ""
+
+msgid "Lavender"
+msgstr ""
+
+msgid "White smoke"
+msgstr ""
+
+msgid "Gainsboro"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Coral fire"
+msgstr ""
+
+msgid "Sea anemone"
+msgstr ""
+
+msgid "Deep abyss"
+msgstr ""
+
+msgid "Lobster red"
+msgstr ""
+
+msgid "Sandy clay"
+msgstr ""
+
+msgid "Driftwood"
+msgstr ""
+
+msgid "Sea buckthorn"
+msgstr ""
+
+msgid "Sunset reef"
+msgstr ""
+
+msgid "Tiger coral"
+msgstr ""
+
+msgid "Pink coral"
+msgstr ""
+
+msgid "Seashell glow"
+msgstr ""
+
+msgid "Sand"
+msgstr ""
+
+msgid "Golden kelp"
+msgstr ""
+
+msgid "Sunlit dune"
+msgstr ""
+
+msgid "Amber nautilus"
+msgstr ""
+
+msgid "Sea lemon"
+msgstr ""
+
+msgid "Pale starfish"
+msgstr ""
+
+msgid "Spring tide"
+msgstr ""
+
+msgid "Lime algae"
+msgstr ""
+
+msgid "Sea grass"
+msgstr ""
+
+msgid "Neon plankton"
+msgstr ""
+
+msgid "Kelp forest"
+msgstr ""
+
+msgid "Emerald wave"
+msgstr ""
+
+msgid "Whale shadow"
+msgstr ""
+
+msgid "Sea turtle"
+msgstr ""
+
+msgid "Lagoon"
+msgstr ""
+
+msgid "Tropical current"
+msgstr ""
+
+msgid "Midnight trench"
+msgstr ""
+
+msgid "Dark kelp"
+msgstr ""
+
+msgid "Crystal surf"
+msgstr ""
+
+msgid "Turquoise bay"
+msgstr ""
+
+msgid "Sky over reef"
+msgstr ""
+
+msgid "Shallow sky"
+msgstr ""
+
+msgid "Electric bel"
+msgstr ""
+
+msgid "Dolphin"
+msgstr ""
+
+msgid "Ocean depths"
+msgstr ""
+
+msgid "Whale"
+msgstr ""
+
+msgid "Indigo abyss"
+msgstr ""
+
+msgid "Sea urchin"
+msgstr ""
+
+msgid "Lavender coral"
+msgstr ""
+
+msgid "Violet tide"
+msgstr ""
+
+msgid "Deep sea orchid"
+msgstr ""
+
+msgid "Neon jelly"
+msgstr ""
+
+msgid "Fuchsia coral"
+msgstr ""
+
+msgid "Pink jellyfish"
+msgstr ""
+
+msgid "Foam"
+msgstr ""
+
+msgid "Seashell white"
+msgstr ""
+
+msgid "Pebble gray"
+msgstr ""
+
+msgid "Storm cloud"
+msgstr ""
+
+msgid "Ink black"
+msgstr ""
+
+msgid "Green beige"
+msgstr ""
+
+msgid "Sand yellow"
+msgstr ""
+
+msgid "Signal yellow"
+msgstr ""
+
+msgid "Golden yellow"
+msgstr ""
+
+msgid "Honey yellow"
+msgstr ""
+
+msgid "Maize yellow"
+msgstr ""
+
+msgid "Dalmatian yellow"
+msgstr ""
+
+msgid "Brown beige"
+msgstr ""
+
+msgid "Lemon yellow"
+msgstr ""
+
+msgid "Oyster white"
+msgstr ""
+
+msgid "Light ivory"
+msgstr ""
+
+msgid "Zinc yellow"
+msgstr ""
+
+msgid "Grey beige"
+msgstr ""
+
+msgid "Olive yellow"
+msgstr ""
+
+msgid "Rape yellow"
+msgstr ""
+
+msgid "Traffic yellow"
+msgstr ""
+
+msgid "Ochre yellow"
+msgstr ""
+
+msgid "Traffic orange yellow"
+msgstr ""
+
+msgid "Curry"
+msgstr ""
+
+msgid "Melon yellow"
+msgstr ""
+
+msgid "Broom yellow"
+msgstr ""
+
+msgid "Dahlia yellow"
+msgstr ""
+
+msgid "Pastel yellow"
+msgstr ""
+
+msgid "Pearl beige"
+msgstr ""
+
+msgid "Pearl gold"
+msgstr ""
+
+msgid "Sun yellow"
+msgstr ""
+
+msgid "Yellow orange"
+msgstr ""
+
+msgid "Deep orange"
+msgstr ""
+
+msgid "Vermilion"
+msgstr ""
+
+msgid "Pearl orange"
+msgstr ""
+
+msgid "Pure orange"
+msgstr ""
+
+msgid "Luminous orange"
+msgstr ""
+
+msgid "Luminous bright orange"
+msgstr ""
+
+msgid "Bright red orange"
+msgstr ""
+
+msgid "Traffic orange"
+msgstr ""
+
+msgid "Signal orange"
+msgstr ""
+
+msgid "Salmon orange"
+msgstr ""
+
+msgid "Pearl pink"
+msgstr ""
+
+msgid "Copper orange"
+msgstr ""
+
+msgid "Signal brown"
+msgstr ""
+
+msgid "Fir orange"
+msgstr ""
+
+msgid "Signal red"
+msgstr ""
+
+msgid "Luminous red"
+msgstr ""
+
+msgid "Carmine red"
+msgstr ""
+
+msgid "Pearl carmine red"
+msgstr ""
+
+msgid "Pure red"
+msgstr ""
+
+msgid "Luminous deep red"
+msgstr ""
+
+msgid "Currant red"
+msgstr ""
+
+msgid "Pearl ruby red"
+msgstr ""
+
+msgid "Fire red"
+msgstr ""
+
+msgid "Ruby red"
+msgstr ""
+
+msgid "Purple red"
+msgstr ""
+
+msgid "Wine red"
+msgstr ""
+
+msgid "Black red"
+msgstr ""
+
+msgid "Oxide red"
+msgstr ""
+
+msgid "Brown red"
+msgstr ""
+
+msgid "Pine red"
+msgstr ""
+
+msgid "Tomato red"
+msgstr ""
+
+msgid "Antique pink"
+msgstr ""
+
+msgid "Coral red"
+msgstr ""
+
+msgid "Rose"
+msgstr ""
+
+msgid "Strawberry red"
+msgstr ""
+
+msgid "Traffic red"
+msgstr ""
+
+msgid "Salmon pink"
+msgstr ""
+
+msgid "Luminous rose"
+msgstr ""
+
+msgid "Luminous bright red"
+msgstr ""
+
+msgid "Raspberry red"
+msgstr ""
+
+msgid "Orient red"
+msgstr ""
+
+msgid "Pearl ruby"
+msgstr ""
+
+msgid "Red purple"
+msgstr ""
+
+msgid "Red violet"
+msgstr ""
+
+msgid "Heather violet"
+msgstr ""
+
+msgid "Bordeaux violet"
+msgstr ""
+
+msgid "Mahogany"
+msgstr ""
+
+msgid "Grey purple"
+msgstr ""
+
+msgid "Signal violet"
+msgstr ""
+
+msgid "Fir green"
+msgstr ""
+
+msgid "Sabine grey"
+msgstr ""
+
+msgid "Pearl violet"
+msgstr ""
+
+msgid "Pearl blackberry"
+msgstr ""
+
+msgid "Green blue"
+msgstr ""
+
+msgid "Ultramarine blue"
+msgstr ""
+
+msgid "Sapphire blue"
+msgstr ""
+
+msgid "Black blue"
+msgstr ""
+
+msgid "Signal blue"
+msgstr ""
+
+msgid "Brilliant blue"
+msgstr ""
+
+msgid "Grey blue"
+msgstr ""
+
+msgid "Azure blue"
+msgstr ""
+
+msgid "Gentian blue"
+msgstr ""
+
+msgid "Cobalt blue"
+msgstr ""
+
+msgid "Pigeon blue"
+msgstr ""
+
+msgid "Traffic blue"
+msgstr ""
+
+msgid "Turquoise blue"
+msgstr ""
+
+msgid "Capsanthin violet"
+msgstr ""
+
+msgid "Ocean blue"
+msgstr ""
+
+msgid "Water blue"
+msgstr ""
+
+msgid "Night blue"
+msgstr ""
+
+msgid "Distant blue"
+msgstr ""
+
+msgid "Pastel blue"
+msgstr ""
+
+msgid "Pearl gentian blue"
+msgstr ""
+
+msgid "Pearl midnight blue"
+msgstr ""
+
+msgid "Patina green"
+msgstr ""
+
+msgid "Emerald green"
+msgstr ""
+
+msgid "Leaf green"
+msgstr ""
+
+msgid "Olive green"
+msgstr ""
+
+msgid "Blue green"
+msgstr ""
+
+msgid "Moss green"
+msgstr ""
+
+msgid "Grey olive"
+msgstr ""
+
+msgid "Pine green"
+msgstr ""
+
+msgid "Pine brown"
+msgstr ""
+
+msgid "Grass green"
+msgstr ""
+
+msgid "Reseda green"
+msgstr ""
+
+msgid "Brown green"
+msgstr ""
+
+msgid "Reed green"
+msgstr ""
+
+msgid "Black green"
+msgstr ""
+
+msgid "Turquoise green"
+msgstr ""
+
+msgid "May green"
+msgstr ""
+
+msgid "Chrome oxide green"
+msgstr ""
+
+msgid "Traffic green"
+msgstr ""
+
+msgid "Fern green"
+msgstr ""
+
+msgid "Opal green"
+msgstr ""
+
+msgid "Mint green"
+msgstr ""
+
+msgid "Bronze green"
+msgstr ""
+
+msgid "Pearl green"
+msgstr ""
+
+msgid "Sax turquoise"
+msgstr ""
+
+msgid "Pearl turquoise"
+msgstr ""
+
+msgid "Pearl jade"
+msgstr ""
+
+msgid "Pure green"
+msgstr ""
+
+msgid "Luminous green"
+msgstr ""
+
+msgid "Squirrel grey"
+msgstr ""
+
+msgid "Silver grey"
+msgstr ""
+
+msgid "Olivestone"
+msgstr ""
+
+msgid "Moss grey"
+msgstr ""
+
+msgid "Signal grey"
+msgstr ""
+
+msgid "Mouse grey"
+msgstr ""
+
+msgid "Beige grey"
+msgstr ""
+
+msgid "Khaki grey"
+msgstr ""
+
+msgid "Green grey"
+msgstr ""
+
+msgid "Tarpaulin grey"
+msgstr ""
+
+msgid "Iron grey"
+msgstr ""
+
+msgid "Basalt grey"
+msgstr ""
+
+msgid "Brown grey"
+msgstr ""
+
+msgid "Slate grey"
+msgstr ""
+
+msgid "Anthracite grey"
+msgstr ""
+
+msgid "Light grey"
+msgstr ""
+
+msgid "Umber grey"
+msgstr ""
+
+msgid "Concrete grey"
+msgstr ""
+
+msgid "Graphite grey"
+msgstr ""
+
+msgid "Granite grey"
+msgstr ""
+
+msgid "Stone grey"
+msgstr ""
+
+msgid "Pebble grey"
+msgstr ""
+
+msgid "Cement grey"
+msgstr ""
+
+msgid "Yellow grey"
+msgstr ""
+
+msgid "Platinum grey"
+msgstr ""
+
+msgid "Dusty grey"
+msgstr ""
+
+msgid "Agate grey"
+msgstr ""
+
+msgid "Quartz grey"
+msgstr ""
+
+msgid "Window grey"
+msgstr ""
+
+msgid "Traffic grey A"
+msgstr ""
+
+msgid "Traffic grey B"
+msgstr ""
+
+msgid "Silk grey"
+msgstr ""
+
+msgid "Telegrey 1"
+msgstr ""
+
+msgid "Telegrey 2"
+msgstr ""
+
+msgid "Telegrey 4"
+msgstr ""
+
+msgid "Pearl mouse grey"
+msgstr ""
+
+msgid "Green brown"
+msgstr ""
+
+msgid "Ochre brown"
+msgstr ""
+
+msgid "Clay brown"
+msgstr ""
+
+msgid "Copper brown"
+msgstr ""
+
+msgid "Chocolate brown"
+msgstr ""
+
+msgid "Olive brown"
+msgstr ""
+
+msgid "Nut brown"
+msgstr ""
+
+msgid "Red brown"
+msgstr ""
+
+msgid "Sepia brown"
+msgstr ""
+
+msgid "Chestnut brown"
+msgstr ""
+
+msgid "Mahogany brown"
+msgstr ""
+
+msgid "Grey brown"
+msgstr ""
+
+msgid "Pearl copper"
+msgstr ""
+
+msgid "Beige brown"
+msgstr ""
+
+msgid "Pearl mocha brown"
+msgstr ""
+
+msgid "Earth brown"
+msgstr ""
+
+msgid "Pearl brown"
+msgstr ""
+
+msgid "Cream"
+msgstr ""
+
+msgid "Grey white"
+msgstr ""
+
+msgid "Signal white"
+msgstr ""
+
+msgid "Signal black"
+msgstr ""
+
+msgid "Jet black"
+msgstr ""
+
+msgid "White aluminium"
+msgstr ""
+
+msgid "Grey aluminium"
+msgstr ""
+
+msgid "Pure white"
+msgstr ""
+
+msgid "Graphite black"
+msgstr ""
+
+msgid "Traffic white"
+msgstr ""
+
+msgid "Traffic black"
+msgstr ""
+
+msgid "Papyrus white"
+msgstr ""
+
+msgid "Pearl light grey"
+msgstr ""
+
+msgid "Metal: Silver"
+msgstr ""
+
+msgid "Metal: Brass"
+msgstr ""
+
+msgid "Metal: Gold"
+msgstr ""
+
+msgid "Metal: Copper"
+msgstr ""
+
+msgid "Metal: Bronze"
+msgstr ""
+
+msgid "Nature: Pearl"
+msgstr ""
+
+msgid "Nature: Rainbow"
+msgstr ""
+
+msgid "Nature: Clear Sky"
+msgstr ""
+
+msgid "Nature: Sunset"
+msgstr ""
+
+msgid "Wood: Dark"
+msgstr ""
+
+msgid "Wood: Medium"
+msgstr ""
+
+msgid "Wood: Light"
+msgstr ""
+
 # AI Translated
 msgid "Alternate nozzles:"
 msgstr "Alternatyvūs purkštukai:"
@@ -31331,6 +32750,12 @@ msgstr "Tekstūra dedama pagal paties modelio UV išdėstymą, kuris jau nustato
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "Kokio pločio yra viena tekstūros kopija ant modelio. Mažesnė reikšmė dažniau kartoja raštą ir smulkina jo detales; išjungus „Plytelės“, tai vienintelės kopijos dydis."
 
+msgid "Larger"
+msgstr ""
+
+msgid "Smaller"
+msgstr ""
+
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Pasuka tekstūrą paviršiuje, laipsniais - kad raštą būtų galima sulygiuoti su modelio briauna."
@@ -31404,6 +32829,12 @@ msgstr "Mišrios spalvos"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Didžiausias mišrių gijų skaičius, kurį gali pridėti įkepimas. Jos parenkamos iš tekstūros spalvų, ir sukuriamos tik tos, kurias įkepimas iš tikrųjų naudoja."
+
+msgid "Few"
+msgstr ""
+
+msgid "Many"
+msgstr ""
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -31531,10 +32962,6 @@ msgstr "Projekcijos rėmelis"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Atveria langą, kurį vilkite virš modelio. Tai, kas matoma pro jį, gauna tekstūrą, o jo kraštas tampa projekcijos riba."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Nepermatomumas"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -31767,6 +33194,12 @@ msgstr "Pertinklinimas"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Trikampių dydis, kuriuo perkuriamas visas modelis, milimetrais. Reljefas geriausiai formuojamas ant tolygaus tinklelio; būtent ši parinktis iš netolygaus importuoto modelio padaro tolygų."
+
+msgid "Before"
+msgstr ""
+
+msgid "After"
+msgstr ""
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -34660,6 +36093,7 @@ msgstr ""
 "Suskirstykite spaudinius į pagrindus\n"
 "Ar žinojote, kad daug dalių turintį modelį galite padalyti į atskirus, spausdinimui paruoštus pagrindus? Tai supaprastins visų dalių sekimo procesą."
 
+# AI Translated
 #: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
 #: Height]
 msgid ""
@@ -34667,7 +36101,7 @@ msgid ""
 "Did you know that you can print a model even faster by using the Adaptive Layer Height option? Check it out!"
 msgstr ""
 "Paspartinkite spausdinimą naudodami prisitaikantį sluoksnio aukštį\n"
-"Ar žinojote, kad naudodami prisitaikančio sluoksnio aukščio (Adaptive Layer Height) parinktį modelį galite atspausdinti dar greičiau? Išbandykite!"
+"Ar žinojote, kad naudodami prisitaikančio sluoksnio aukščio parinktį modelį galite atspausdinti dar greičiau? Išbandykite!"
 
 #: resources/data/hints.ini: [hint:Support painting]
 msgid ""
@@ -34749,6 +36183,170 @@ msgid ""
 msgstr ""
 "Venkite deformacijų (warping)\n"
 "Ar žinojote, kad spausdinant medžiagas, kurios yra linkusios trauktis ir riestis (pvz., ABS), tinkamas kaitinamojo pagrindo temperatūros padidinimas gali sumažinti deformacijų (warping) tikimybę?"
+
+#~ msgid "Please choose the filament color"
+#~ msgstr "Pasirinkite gijos spalvą"
+
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "Tiltelio linijos plotis. Jei išreikštas procentais (%), jis bus skaičiuojamas nuo purkštuko skersmens.\n"
+#~ "Rekomenduojama naudoti su didesniu tiltelio tankiu arba išorinio tilto srauto koeficientu.\n"
+#~ "\n"
+#~ "Maksimali reikšmė yra 100 % arba purkštuko skersmuo.\n"
+#~ "Nustačius 0, linijos plotas sutaps su vidinio vientiso užpildo (internal solid infill) pločiu."
+
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "Įjunkite šią parinktį, kad sumažintumėte spausdinimo greitį vietose, kur perimetrai linkę riestis į viršų.\n"
+#~ "Pavyzdžiui, papildomas sulėtinimas bus taikomas spausdinant iškyšas ties aštriais kampais (kaip „Benchy“ laivelio priekis) – tai apsaugo nuo sluoksnių rietimosi, kuris linkęs kauptis per kelis sluoksnius.\n"
+#~ "\n"
+#~ "Rekomenduojama visada laikyti šią parinktį įjungtą, nebent spausdintuvo aušinimas yra itin galingas arba spausdinimo greitis toks mažas, kad perimetrų rietimasis nevyksta.\n"
+#~ "Jei spausdinama dideliu išorinio perimetro greičiu, šis parametras lėtėjimo metu gali sukelti sienelių artefaktų (defektų), nes dėl didelių greičio šuolių ekstruderis gali nespėti sureguliuoti srauto pokyčio.\n"
+#~ "Pagrindinė tokių artefaktų priežastis dažniausiai yra netiksliai suderintas „Pressure Advance“ (PA) parametras, ypač jei naudojama didelė „PA smooth time“ reikšmė.\n"
+#~ "\n"
+#~ "Rekomendacijos įjungus šią parinktį:\n"
+#~ "1. Sumažinkite „Pressure Advance smooth time“ iki 0.015 - 0.02, kad ekstruderis greitai reaguotų į greičio pokyčius.\n"
+#~ "2. Padidinkite minimalų spausdinimo greitį, kad apribotumėte sulėtėjimo mastą ir sumažintumėte skirtumą tarp greitų bei lėtų segmentų.\n"
+#~ "3. Jei artefaktai išlieka, įjunkite „Ekstruzijos srauto glotninimą“ (ERS), kad sušvelgintumėte srauto perėjimus.\n"
+#~ "\n"
+#~ "Pastaba: kai ši parinktis įjungta, išsikišę perimetrai yra traktuojami kaip iškyšos, t. y. iškyšų greitis taikomas net ir tada, kai perimetras yra tiltelio dalis.\n"
+#~ "Pavyzdžiui, kai perimetrai kyšo 100 % (apačioje nėra jokios palaikančios sienelės), bus taikomas būtent 100 % iškyšos greitis."
+
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "Išoriškai matomų tiltelio ekstruzijų greitis.\n"
+#~ "\n"
+#~ "Papildomai, jei funkcija „Sulėtinti greitį riesantis perimetrams“ yra išjungta arba įjungtas „Klasikinis iškyšų režimas“, šis greitis bus taikomas iškyšų sienelėms, kurių atrama yra mažesnė nei 13 % (nesvarbu, ar jos yra tiltelio, ar iškyšos dalis)."
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "Šis nustatymas valdo perimetrų, kurių spindulys $\\le$ „Mažų perimetrų riba“ (dažniausiai tai nedidelės skylės), spausdinimo greitį. Jei nurodomas procentais (pvz., 80 %), jis apskaičiuojamas pagal viršuje nustatytą išorinės sienelės greitį. Nustačius 0, greitis parandamas automatiškai."
+
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "Tas pats, kas „Maži perimetrai“, bet skirta atramoms. Šis atskiras nustatymas turės įtakos atramų greičiui tose vietose, kurios yra ≤ `small_support_perimeter_threshold`. Jei išreikšta procentais (pavyzdžiui: 80 %), bus skaičiuojama nuo aukščiau nustatyto atramų arba atramų sąsajos greičio. Nustatykite nulį, jei norite naudoti automatinį režimą."
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "Vidinių (inner) ir išorinių (outer) sienelių spausdinimo seka.\n"
+#~ "\n"
+#~ "„Vidinis / išorinis“ (Inner/Outer) užtikrina geriausią iškyšų kokybę, nes spausdinama iškyšos sienelė turi prie ko prisitvirtinti (prie vidinio perimetro). Tačiau išorinio paviršiaus kokybė gali nežymiai nukentėti, nes išorinis perimetras gali būti šiek tiek deformuojamas (išspaudžiamas) vidinio perimetro įtakos.\n"
+#~ "\n"
+#~ "„Vidinis / išorinis / vidinis“ (Inner/Outer/Inner) užtikrina geriausią išorinio paviršiaus kokybę ir matmenų tikslumą, nes išorinė sienelė spausdinama netrikdomai. Visgi, iškyšų kokybė sumažėja, nes nėra pilno vidinio pagrindo išorinei sienelei prilaikyti. Šis nustatymas efektyvus tik turint bent 3 sieneles – pjaustyklė pirmiausia spausdina vidines sieneles nuo 3-iojo perimetro gilyn, tada išorinį perimetrą, ir galiausiai pirmąjį vidinį perimetrą. Daugeliu atvejų tai yra pranašesnis pasirinkimas nei „Išorinis / vidinis“.\n"
+#~ "\n"
+#~ "„Išorinis / vidinis“ (Outer/Inner) suteikia panašų paviršiaus švarumą ir matmenų tikslumą kaip ir „Vidinis / išorinis / vidinis“, tačiau vertikalios siūlės (Z seam) gali atrodyti mažiau tvarkingos, nes naujas sluoksnis pradedamas spausdinti tiesiai ant matomo išorinio paviršiaus."
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "Pirmojo sluoksnio greitis, išskyrus vientiso užpildo dalį."
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "Pirmojo sluoksnio vientiso užpildo dalies greitis."
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "Užpildo plotas yra šiek tiek padidinamas, kad persidengtų su sienele geresniam sukibimui. Procentinė vertė yra santykinė su reto užpildo linijos pločiu. Nustatykite šią vertę ties ~10–15%, kad sumažintumėte perteklinio išspaudimo (overextrusion) ir medžiagos sankaupų riziką, dėl kurios viršutiniai paviršiai tampa šiurkštūs."
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "Viršutinio vientiso užpildo plotas yra šiek tiek padidinamas, kad persidengtų su sienele geresniam sukibimui ir sumažintų mikroskylučių (pinholes) susidarymą sandūroje. 25–30%% vertė yra geras pradinis taškas, sumažinantis skylučių matomumą. Procentinė vertė yra santykinė su reto užpildo linijos pločiu."
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr "Segmentuoto regiono susikirtimo gylis. Jis bus ignoruojamas, jei „mmu_segmented_region_max_width“ yra nulis arba jei „mmu_segmented_region_interlocking_depth“ yra didesnis už „mmu_segmented_region_max_width“. Nulis išjungia šią funkciją."
+
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "Sumažinti viršutinio paviršiaus perimetrų aukštį, kad jis sutaptų su modelio krašto aukščiu.\n"
+#~ "Paveikia perimetrus, kurių nuolydis yra mažesnis už šį kampą (laipsniais).\n"
+#~ "Protinga vertė yra 35. Nustatykite 0, kad išjungtumėte."
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "Valymo greitis pagal elemento tipą"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "Apsauginis skydas (Draft shield) padeda apsaugoti ABS arba ASA spaudinius nuo deformavimosi ir atšokimo nuo pagrindo dėl skersvėjų. Dažniausiai jis reikalingas tik atviro tipo spausdintuvams be korpuso (enclosure).\n"
+#~ "\n"
+#~ "Įjungta = apvadas bus tokio paties aukščio kaip ir aukščiausias spausdinamas objektas. Priešingu atveju naudojamas parametras „Apvado aukštis“.\n"
+#~ "Pastaba: kai apsauginis skydas aktyvus, apvadas bus spausdinamas nurodytu „Apvado atstumu“ nuo objekto. Jei naudojami pado kraštai (brim), jie gali susikirsti. Norėdami to išvengti, padidinkite apvado atstumo reikšmę.\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "Didžiausias spausdinimo greitis atliekant gijos pravalymą (purging) bei spausdinant valymo bokštelio retuosius (sparse) sluoksnius. Jei pravalymo metu retojo užpildo greitis arba apskaičiuotas greitis pagal maksimalų tūrinį gijos greitį yra mažesnis, bus naudojamas mažiausias iš jų.\n"
+#~ "\n"
+#~ "Spausdinant retuosius sluoksnius, jei vidinio perimetro greitis arba apskaičiuotas greitis pagal maksimalų tūrinį gijos greitį yra mažesnis, bus naudojamas mažiausias iš jų.\n"
+#~ "\n"
+#~ "Padidinus šį greitį, gali nukentėti bokštelio stabilumas bei padidėti jėga, su kuria purkštukas susidurs su bet kokiais ant valymo bokštelio susidariusiais gijos gumbeliais (blobs).\n"
+#~ "\n"
+#~ "Prieš didindami šį parametrą virš numatytųjų 90 mm/s, įsitikinkite, kad jūsų spausdintuvas patikimai formuoja tiltelius (bridging) esant didesniam greičiui, o gijos nutekėjimas (ooze) keičiant įrankį yra gerai kontroliuojamas.\n"
+#~ "\n"
+#~ "Valymo bokštelio išoriniams perimetrams, nepriklausomai nuo šio nustatymo, visada naudojamas vidinio perimetro greitis."
+
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "Valymo bokštelio išorinės sienelės tipas.\n"
+#~ "1. Stačiakampis (Rectangle): numatytasis sienelės tipas – fiksuoto pločio ir aukščio stačiakampis.\n"
+#~ "2. Kūgis (Cone): kūgis su suapvalinimu apačioje, padedantis stabilizuoti valymo bokštelį.\n"
+#~ "3. Briauna (Rib): prie bokštelio sienelės pridedamos keturios briaunos geresniam stabilumui užtikrinti."
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "Papildomas gijos srautas, naudojamas valymo bokštelio pravalymo linijoms. Jis leidžia suformuoti storesnes arba siauresnes pravalymo linijas nei įprastai. Atstumai tarp linijų pritaikomi automatiškai."
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr ""
+#~ "Pakoreguokite šią reikšmę, kad nebūtų spausdinamos trumpos, neuždaros sienelės, galinčios pailginti spausdinimo laiką. Didesnės reikšmės pašalina daugiau ir ilgesnes sieneles.\n"
+#~ "\n"
+#~ "PASTABA: Šis nustatymas neturi įtakos apatiniams ir viršutiniams paviršiams, kad modelio išorėje neatsirastų matomų tuštumų. Žemiau esančiuose išplėstiniuose nustatymuose pakeiskite parametro „Vienos sienelės slenkstis“ (One wall threshold) jautrumą, apibrėžiantį, kas laikoma viršutiniu paviršiumi. Šis slenkstis matomas tik tada, kai nustatymas viršija numatytąją 0,5 reikšmę arba kai įjungta vienos sienelės viršutinių paviršių funkcija."
 
 # AI Translated
 #, boost-format
