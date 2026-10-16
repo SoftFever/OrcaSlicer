@@ -858,11 +858,10 @@ void PrintObject::contour_z()
     BOOST_LOG_TRIVIAL(debug) << "Contouring in parallel - start";
 
     TriangleMesh mesh = this->m_model_object->raw_mesh();
-    if (m_model_object->instances.size() != 1) {
-        throw RuntimeError("ContourZ: unexpected number of instances");
-    }
-
-    ModelInstance *inst = m_model_object->instances.front();
+    // A PrintObject groups the instances that share their whole transformation but the XY shift: an
+    // instance rotated, scaled or mirrored differently is a PrintObject of its own. So the first
+    // instance stands for all of them.
+    const ModelInstance *inst = m_instances.front().model_instance;
     Point                    center_offset = this->center_offset();
     Geometry::Transformation trans = inst->get_transformation();
 

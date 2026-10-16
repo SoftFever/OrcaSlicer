@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-15 17:40+0800\n"
 "PO-Revision-Date: 2026-07-17 16:25+0300\n"
 "Last-Translator: Andrij Mizyk <andm1zyk@proton.me>\n"
 "Language-Team: Ukrainian\n"
@@ -702,6 +702,9 @@ msgstr "мм"
 msgid "Part selection"
 msgstr "Вибір частини"
 
+msgid "Select multiple objects"
+msgstr "Вибрати кілька обʼєктів"
+
 msgid "Fixed step drag"
 msgstr "Фіксоване перетягування кроками"
 
@@ -763,8 +766,78 @@ msgstr "Частина"
 msgid "Relative"
 msgstr "Відносно"
 
+msgid "Selection"
+msgstr "Вибір"
+
+msgid "Plate"
+msgstr "Пластина"
+
+msgid "Distribute"
+msgstr ""
+
 msgid "Coordinate system used for transform actions."
 msgstr "Система координат для дій перетворення."
+
+msgid "Reference for alignment"
+msgstr ""
+
+msgid "Select at least 3 parts or objects"
+msgstr ""
+
+# AI Translated
+msgid "Align left"
+msgstr "Вирівняти за лівим краєм"
+
+# AI Translated
+# Needs human review: Align/Distribute menu (object right-click): left-right/front-back/top-bottom are rendered as за шириною/глибиною/висотою (the menu appends X/Y/Z); check it reads as aligning the objects' centers along that axis.
+msgid "Align left-right center"
+msgstr "Вирівняти центри за шириною"
+
+# AI Translated
+msgid "Align right"
+msgstr "Вирівняти за правим краєм"
+
+# AI Translated
+msgid "Align front"
+msgstr "Вирівняти за переднім краєм"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Вирівняти центри за глибиною"
+
+# AI Translated
+msgid "Align back"
+msgstr "Вирівняти за заднім краєм"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Вирівняти за нижнім краєм"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Вирівняти центри за висотою"
+
+# AI Translated
+msgid "Align top"
+msgstr "Вирівняти за верхнім краєм"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Розподілити за шириною"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Розподілити за глибиною"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Розподілити за висотою"
+
+msgid "Drop"
+msgstr "Кинути"
+
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr ""
 
 msgid "Absolute"
 msgstr "Абсолютно"
@@ -2000,6 +2073,18 @@ msgstr "Вхід у gizmo-збирання"
 msgid "Leaving Assembly gizmo"
 msgstr "Вихід з gizmo-збирання"
 
+msgid "Parts of a cut object cannot be moved"
+msgstr ""
+
+msgid "Aligning to the plate is available in X and Y only"
+msgstr ""
+
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr ""
+
+msgid "All selected objects must be on the same plate"
+msgstr ""
+
 msgid "Shift+"
 msgstr "Shift+"
 
@@ -2412,6 +2497,66 @@ msgstr "Розширення мережевого плагіну"
 
 msgid "Privacy Policy Update"
 msgstr "Оновлення політики конфіденційності"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "Усі ваші пресети філаменту доступні на принтерах, для яких вони були створені."
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "Переміщення пресетів філаменту"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 змінив структуру багатьох системних пресетів філаменту, щоб виправити некоректні профілі та підготуватися до майбутніх функцій. Через це наведені нижче пресети більше не відображаються на деяких принтерах, для яких вони були створені. Вибачте за незручності: це одноразове виправлення.\n"
+"\n"
+"Додати ці принтери назад до ваших пресетів зараз? Спочатку буде створено резервну копію ваших пресетів. Це також можна зробити пізніше через Допомога > Переміщення пресетів філаменту."
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (на основі %2%)"
+
+msgid "Don't remind me again"
+msgstr "Не нагадувати мені більше"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "Не вдалося створити резервну копію ваших пресетів, тому їх не було переміщено."
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "Не вдалося заблокувати теку пресетів користувача, тому нічого не було переміщено. Можливо, інший екземпляр OrcaSlicer зберігає пресети; спробуйте ще раз пізніше через Допомога > Переміщення пресетів філаменту."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Не вдалося перемістити ваші пресети філаменту. Резервну копію ваших пресетів збережено в:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Ваші пресети філаменту переміщено. Виберіть їх знову у списку філаментів там, де ви їх використовували.\n"
+"\n"
+"Резервну копію ваших пресетів збережено в:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "Не вдалося перемістити ці пресети:"
 
 #, c-format, boost-format
 msgid "your Orca Cloud profile (user ID: \"%s\")"
@@ -3124,8 +3269,13 @@ msgstr "(Втрачений колір)"
 msgid "Center"
 msgstr "Центр"
 
-msgid "Drop"
-msgstr "Кинути"
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Вирівняти/Розподілити"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Вирівняти та розподілити обʼєкти"
 
 msgid "Edit Process Settings"
 msgstr "Змінити налаштування процесу"
@@ -3497,9 +3647,6 @@ msgstr "Без кайми"
 
 msgid "Outer wall speed"
 msgstr "Швидкість зовнішньої стінки"
-
-msgid "Plate"
-msgstr "Пластина"
 
 msgid "Brim"
 msgstr "Кайма"
@@ -6385,6 +6532,9 @@ msgstr "Осі"
 msgid "Gridlines"
 msgstr "Лінії сітки"
 
+msgid "Focus mode"
+msgstr ""
+
 msgid "Labels"
 msgstr "Підписи"
 
@@ -6446,7 +6596,7 @@ msgid "Size:"
 msgstr "Розмір:"
 
 # AI Translated
-#, c-format, boost-format
+#, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Виявлено конфлікти шляхів G-code на шарі %d, Z = %.2lf мм. Будь ласка, рознесіть конфліктуючі обʼєкти далі один від одного (%s <-> %s)."
 
@@ -6684,6 +6834,10 @@ msgstr "Майстер налаштувань"
 
 msgid "Show Configuration Folder"
 msgstr "Показати папку конфігурації"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "Повернути пресети філаменту, які оновлення профілів прибрало з принтерів, для яких вони були створені"
 
 msgid "Troubleshoot Center"
 msgstr "Центр вирішення проблем"
@@ -9075,6 +9229,7 @@ msgid "Enabling traditional timelapse photography may cause surface imperfection
 msgstr "Включення традиційної фотографії таймлапсу може призвести до дефектів на поверхні. Рекомендується перейти в режим згладжування."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Увімкнено плавний режим таймлапсу, але підготовчу вежу вимкнено, що може спричинити дефекти друку. Увімкніть підготовчу вежу, повторно наріжте та надрукуйте ще раз."
 
@@ -10134,8 +10289,9 @@ msgstr "Поведінка завантаження"
 msgid "Should printer/filament/process settings be loaded when opening a 3MF file?"
 msgstr "Чи повинні бути завантажені налаштування принтера/філаменту/процесу при відкритті файлу .3mf?"
 
+# AI Translated
 msgid "Auto backup"
-msgstr "Автобекап"
+msgstr "Автоматичне резервне копіювання"
 
 msgid "Backup your project periodically to help with restoring from an occasional crash."
 msgstr "Періодично робіть резервну копію вашого проекту для відновлення після випадкового збою."
@@ -10859,6 +11015,12 @@ msgstr "Показати непідтримувані пресети"
 
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Показати несумісні/непідтримувані пресети у випадаючому списку принтера і філаменту. Ці пресети не можна вибрати."
+
+msgid "Export statistics with G-code"
+msgstr ""
+
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
 
 msgid "Experimental Features"
 msgstr "Експериментальні функції"
@@ -12166,6 +12328,7 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "Натисніть, щоб скинути всі налаштування до останнього збереженого пресету."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Для зміни сопла потрібна підготовча вежа. Без підготовчої вежі на моделі можуть зʼявитися дефекти. Ви впевнені, що хочете вимкнути підготовчу вежу?"
 
@@ -12173,30 +12336,37 @@ msgid "A prime tower is required for smooth timelapse mode. There may be flaws o
 msgstr "Для плавного таймлапсу потребується Підготовча вежа. Без Підготовчої вежі на моделі можуть виникати дефекти. Ви впевнені, що хочете вимкнути Підготовчу вежу?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "A prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Для виявлення налипання потрібна підготовча вежа. Без підготовчої вежі на моделі можуть зʼявитися дефекти. Ви впевнені, що хочете вимкнути підготовчу вежу?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors. Do you still want to enable?"
 msgstr "Одночасне увімкнення точної висоти Z та підготовчої вежі може спричинити помилки нарізки. Ви все одно хочете увімкнути?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "A prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
 msgstr "Для виявлення налипання потрібна підготовча вежа. Без підготовчої вежі на моделі можуть зʼявитися дефекти. Ви все одно хочете увімкнути виявлення налипання?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors. Do you still want to enable precise Z height?"
 msgstr "Одночасне увімкнення точної висоти Z та підготовчої вежі може спричинити помилки нарізки. Ви все одно хочете увімкнути точну висоту Z?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
 msgstr "Плавний таймлапс потребує підготовчої вежі на кожному шарі, що несумісно з параметром «Без розріджених шарів». Параметр «Без розріджених шарів» вимкнено."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "A prime tower is required for smooth timelapse mode. There may be flaws on the model without prime tower. Do you want to enable the prime tower?"
 msgstr "Для плавного таймлапсу потрібна підготовча вежа. Без підготовчої вежі на моделі можуть виникати дефекти. Ви хочете увімкнути підготовчу вежу?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
 msgstr "Параметр «Без розріджених шарів» несумісний із плавним таймлапсом, який потребує підготовчої вежі на кожному шарі. Таймлапс перемкнено в традиційний режим."
 
@@ -13449,9 +13619,6 @@ msgstr "Обʼєми промивки для зміни філаменту"
 msgid "from/to"
 msgstr "з/на"
 
-msgid "Please choose the filament color"
-msgstr "Будь ласка, виберіть колір філаменту"
-
 # AI Translated
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "Хмарний агент недоступний. Перезапустіть OrcaSlicer і спробуйте ще раз."
@@ -13687,9 +13854,6 @@ msgstr "Доступно, коли фокус на 3D-вигляді вклад�
 
 msgid "Select a part"
 msgstr "Виберіть частину"
-
-msgid "Select multiple objects"
-msgstr "Вибрати кілька обʼєктів"
 
 msgid "Select objects by rectangle"
 msgstr "Виділити обʼєкти прямокутником"
@@ -14063,6 +14227,7 @@ msgid "Open G-code file:"
 msgstr "Відкрити файл G-code:"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "Wipe tower generation failed, possibly due to empty first layer."
 msgstr "Не вдалося створити вежу протирання, можливо, через порожній перший шар."
 
@@ -14212,6 +14377,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "периметр повністю всередині модифікатора, модифікатор до нього не застосовано (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "Модифікатор «%2%» (%1%) обʼєкта «%3%» охоплює весь периметр"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "Модифікатор «%2%» (%1%) обʼєкта «%3%» (усього %4%) охоплює весь периметр"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "модифікатор \"%1%\" обʼєкта \"%2%\" не вплинув на шов (можливо, він не досягає осьової лінії надрукованого периметра)"
@@ -14224,6 +14401,10 @@ msgstr "модифікатор \"%1%\" обʼєкта \"%2%\" (усього %3%)
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "Розташування шва може відрізнятися від очікуваного."
+
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr ""
 
 msgid "Internal Bridge"
 msgstr "Внутрішній міст"
@@ -14419,6 +14600,7 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% занадто високий, і можуть виникнути зіткнення."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
 msgstr "Взаємне розташування моделі та підготовчої вежі не відповідає вимогам функції «Без розріджених шарів». Змініть їхнє взаємне розташування, зменште висоту моделі або вимкніть параметр «Без розріджених шарів»."
 
@@ -14428,26 +14610,32 @@ msgid "%1% is too close to the clumping detection area. There may be collisions 
 msgstr "%1% розташовано занадто близько до зони виявлення налипання, під час друку можливі зіткнення."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Prime tower is too close to others, and collisions may be caused.\n"
 msgstr "Підготовча вежа розташована надто близько до інших обʼєктів, що може призвести до зіткнень.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area, and collisions will be caused.\n"
 msgstr "Підготовча вежа розташована надто близько до забороненої зони, що призведе до зіткнень.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area, and collisions will be caused.\n"
 msgstr "Підготовча вежа розташована надто близько до зони виявлення налипання, що призведе до зіткнень.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area. There may be collisions when printing."
 msgstr "Підготовча вежа розташована надто близько до забороненої зони, під час друку можливі зіткнення."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area. There may be collisions when printing."
 msgstr "Підготовча вежа розташована надто близько до зони виявлення налипання, під час друку можливі зіткнення."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Prime tower is partially outside the printable area, and it cannot be printed.\n"
 msgstr "Підготовча вежа частково виходить за межі області друку, тому її неможливо надрукувати.\n"
 
@@ -14542,10 +14730,12 @@ msgid "The project contains multiple managed belt purge towers. Reload the plate
 msgstr "Проєкт містить кілька керованих веж очищення на стрічці. Перезавантажте пластину або вимкніть і знову увімкніть вежу очищення на стрічці, щоб створити її заново."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Enabling both precise Z height and the prime tower may cause slicing errors."
 msgstr "Одночасне увімкнення точної висоти Z та підготовчої вежі може спричинити помилки нарізки."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "A prime tower is required for clumping detection; otherwise, there may be flaws on the model."
 msgstr "Для виявлення налипання потрібна підготовча вежа; інакше на моделі можуть зʼявитися дефекти."
 
@@ -14575,6 +14765,7 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Змінна висота шару не підтримується з Органічними підтримками."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "The wipe tower filament cannot be a mixed filament."
 msgstr "Філамент вежі протирання не може бути змішаним філаментом."
 
@@ -14597,8 +14788,9 @@ msgid "A prime tower is not supported when adaptive layer height is on. It requi
 msgstr "Підготовча вежа не підтримується при включеній адаптивній висоті шару. Для цього потрібно, щоб усі обʼєкти мали однакову висоту шару."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "A prime tower requires any “support gap” to be a multiple of layer height."
-msgstr "Підготовча вежа вимагає, щоб «опорний зазор» був кратним висоті шару"
+msgstr "Підготовча вежа вимагає, щоб «опорний зазор» був кратним висоті шару."
 
 msgid "A prime tower requires that all objects have the same layer height."
 msgstr "Підготовча вежа вимагає, щоб усі обʼєкти мали однакову висоту шару"
@@ -14607,10 +14799,12 @@ msgid "A prime tower requires that all objects are printed over the same number 
 msgstr "Підготовча вежа вимагає, щоб усі обʼєкти друкувалися на однаковій кількості шарів підкладки"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "The prime tower is only supported for multiple objects if they are printed with the same support_top_z_distance."
 msgstr "Підготовча вежа підтримується для кількох обʼєктів, лише якщо вони друкуються з однаковим support_top_z_distance."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "A prime tower requires that all objects are sliced with the same layer height."
 msgstr "Підготовча вежа вимагає, щоб усі обʼєкти були нарізані з однаковою висотою шару."
 
@@ -15253,13 +15447,13 @@ msgid ""
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Ширина лінії моста. Якщо задано у %, вона обчислюється відносно діаметра сопла.\n"
-"Рекомендується використовувати з вищою щільністю моста або вищим коефіцієнтом потоку моста.\n"
+"Рекомендується використовувати з вищими значеннями «Щільність зовнішніх мостів» або «Коефіцієнт потоку мостів».\n"
 "\n"
 "Максимальне значення — 100% або діаметр сопла.\n"
-"Якщо встановлено 0, ширина лінії відповідатиме ширині внутрішнього суцільного заповнення."
+"Якщо встановлено 0, ширина лінії відповідатиме ширині внутрішнього суцільного заповнення, а для товстих мостів — діаметру сопла."
 
 msgid "Internal bridge flow ratio"
 msgstr "Коефіцієнт потоку внутрішніх мостів"
@@ -15565,7 +15759,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "Увімкніть цю опцію, щоб уповільнювати друк у зонах, де периметри могли загнутися вгору.\n"
 "Наприклад, додаткове уповільнення застосовуватиметься під час друку нависань на гострих кутах, як-от ніс корпусу Benchy, зменшуючи загинання, що накопичується протягом кількох шарів.\n"
@@ -15577,22 +15771,23 @@ msgstr ""
 "Рекомендації при увімкненні цієї опції:\n"
 "1. Зменште час згладжування Pressure Advance до 0.015 - 0.02, щоб екструдер швидко реагував на зміни швидкості.\n"
 "2. Збільште мінімальні швидкості друку, щоб обмежити величину уповільнення та зменшити різницю між швидкими й повільними ділянками.\n"
-"3. Якщо артефакти все ще зʼявляються, увімкніть згладжування швидкості екструзії (ERS), щоб додатково згладити переходи потоку.\n"
+"3. Якщо артефакти все ще зʼявляються, увімкніть «Вирівнювання швидкості екструзії» (ERS), щоб додатково згладити переходи потоку.\n"
 "\n"
 "Примітка: коли цю опцію увімкнено, периметри нависань обробляються як нависання, тобто швидкість нависання застосовується навіть тоді, коли нависаючий периметр є частиною моста.\n"
-"Наприклад, коли периметри нависають на 100% і під ними немає стінки-опори, буде застосовано швидкість для 100% нависання."
+"Наприклад, коли периметри нависають на 100% і під ними немає стінки-опори, буде застосовано швидкість нависання 75%, обмежену швидкістю моста."
 
 msgid "mm/s or %"
 msgstr "мм/с або %"
 
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "Швидкість екструзії мостів, які видно ззовні.\n"
 "\n"
-"Крім того, якщо параметр 'Уповільнення для закручених периметрів' вимкнено або увімкнено 'Класичний режим нависань', ця швидкість буде використовуватися для друку стінок з нависанням, які підтримуються менш ніж на 13%, незалежно від того, чи є вони частиною мосту або звичайного нависання."
+"Крім того, якщо параметр «Уповільнення для нависаючих периметрів» вимкнено, ця швидкість буде використовуватися для друку стінок з нависанням, які підтримуються менш ніж на 13%, незалежно від того, чи є вони частиною мосту або звичайного нависання."
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "Швидкість внутрішніх мостів. Якщо значення вказано у відсотках, воно буде розраховане на основі bridge_speed. Значення за замовчуванням: 150%."
@@ -16160,8 +16355,9 @@ msgstr "Швидкість друку зовнішніх стінок детал
 msgid "Small perimeters"
 msgstr "Маленькі периметри"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "Це окреме налаштування впливає на швидкість периметрів, що мають радіус < = small_perimeter_threshold (зазвичай отворів). Якщо він виражений у відсотках(наприклад, 80%), то він розраховуватиметься на зазначеній вище швидкостіЗовнішній периметр. Встановіть нульове значення для автоматичного налаштування."
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "Це окреме налаштування впливає на швидкість периметрів, що мають радіус <= small_perimeter_threshold (зазвичай отворів). Якщо задано у відсотках (наприклад, 80%), воно обчислюється відносно наведеного вище налаштування швидкості зовнішньої стінки."
 
 msgid "Small perimeters threshold"
 msgstr "Поріг малих периметрів"
@@ -16174,8 +16370,8 @@ msgid "Small support perimeters"
 msgstr "Малі периметри підтримок"
 
 # AI Translated
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "Те саме, що й «Малі периметри», але для підтримок. Це окреме налаштування впливає на швидкість підтримок для областей <= `small_support_perimeter_threshold`. Якщо задано у відсотках (наприклад, 80%), воно обчислюється відносно наведеного вище налаштування швидкості підтримок або інтерфейсу підтримок. Встановіть нуль для автоматичного значення."
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "Те саме, що й «Маленькі периметри», але для підтримок. Це окреме налаштування впливає на швидкість підтримок для областей <= `small_support_perimeter_threshold`. Якщо задано у відсотках (наприклад, 80%), воно обчислюється відносно наведеного вище налаштування швидкості підтримок або інтерфейсу підтримок."
 
 # AI Translated
 msgid "Small support perimeters threshold"
@@ -16188,22 +16384,23 @@ msgstr "Задає поріг довжини малого периметра п�
 msgid "Walls printing order"
 msgstr "Послідовність друку стінок"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
-"Послідовність друку внутрішніх (inner) та зовнішніх (outer) стін.\n"
+"Послідовність друку внутрішніх і зовнішніх стінок.\n"
 "\n"
-"Використовуйте внутрішню/зовнішню для найкращих виступів. Це повʼязано з тим, що стіни, які виступають, можуть прилипати до сусіднього периметра під час друку. Однак цей параметр призводить до деякого зниження якості поверхні, оскільки зовнішній периметр деформується, притискаючись до внутрішнього.\n"
+"Використовуйте «Внутрішня/Зовнішня» для найкращих нависань. Це тому, що нависаючі стінки під час друку можуть зчіплюватися із сусіднім периметром. Однак цей варіант трохи погіршує якість поверхні, оскільки зовнішній периметр деформується, будучи притиснутим до внутрішнього.\n"
 "\n"
-"Використовуйте Внутрішній/Зовнішній/Внутрішній для найкращої якості зовнішньої поверхні та точності розмірів, оскільки зовнішня стіна друкується без порушень від внутрішнього периметра. Однак, продуктивність на виході зменшиться, оскільки немає внутрішнього периметра, до якого можна було б притискати зовнішню стіну. Для ефективної роботи цієї опції потрібно щонайменше 3 стіни, оскільки спочатку друкуються внутрішні стіни, починаючи з 3-го периметра, потім зовнішній периметр і, нарешті, перший внутрішній периметр. У більшості випадків цей параметр рекомендується використовувати замість параметра Зовнішній/Внутрішній.\n"
+"Використовуйте «Внутрішня/Зовнішня/Внутрішня» для найкращої обробки зовнішньої поверхні та точності розмірів, оскільки зовнішня стінка друкується без впливу внутрішнього периметра. Однак якість нависань погіршиться, бо немає внутрішнього периметра, до якого можна друкувати зовнішню стінку. Для ефективності цей варіант потребує щонайменше 3 стінок: спочатку друкуються внутрішні стінки, починаючи з 3-го периметра, потім зовнішній периметр і, нарешті, перший внутрішній периметр. У більшості випадків цей варіант рекомендується замість «Зовнішня/Внутрішня».\n"
 "\n"
-"Використовуйте опцію Зовнішня/Внутрішня для отримання такої ж якості зовнішньої стіни і точності розмірів, як і в опції Внутрішня/Зовнішня/Внутрішня. Однак шви по Z будуть виглядати менш рівномірними, оскільки перша екструзія нового шару починається на видимій поверхні "
+"Використовуйте «Зовнішня/Внутрішня», щоб отримати таку саму якість зовнішньої стінки та точність розмірів, як і у варіанта «Внутрішня/Зовнішня/Внутрішня». Однак Z-шви виглядатимуть менш однорідно, оскільки перше видавлювання нового шару починається на видимій поверхні."
 
 msgid "Inner/Outer"
 msgstr "Внутрішня/Зовнішня"
@@ -16676,6 +16873,7 @@ msgid "After a tool change, the exact position of the newly loaded filament insi
 msgstr "Після заміни інструменту точне положення новонавантаженої нитки напруженнявсередині сопла може бути невідомо, і тиск нитки розжарення, ймовірно, ще неє стабільним. Перед продуванням друкувальної головки в наповнювач або обʼєкт Orca Slicer, що витрачається, завжди буде дозувати цю кількість матеріалу в вежу для протирання, щоб забезпечити надійне послідовне заповненняабо видавлювання обʼєкта, що витрачається."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "Wipe tower cooling"
 msgstr "Охолодження вежі протирання"
 
@@ -16688,6 +16886,7 @@ msgid "Interface layer pre-extrusion distance"
 msgstr "Відстань попередньої екструзії інтерфейсного шару"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
 msgstr "Відстань попередньої екструзії для інтерфейсного шару підготовчої вежі (де зустрічаються різні матеріали)."
 
@@ -16696,6 +16895,7 @@ msgid "Interface layer pre-extrusion length"
 msgstr "Довжина попередньої екструзії інтерфейсного шару"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
 msgstr "Довжина попередньої екструзії для інтерфейсного шару підготовчої вежі (де зустрічаються різні матеріали)."
 
@@ -16704,6 +16904,7 @@ msgid "Tower ironing area"
 msgstr "Область розгладжування вежі"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Ironing area for prime tower interface layer (where different materials meet)."
 msgstr "Область розгладжування для інтерфейсного шару підготовчої вежі (де зустрічаються різні матеріали)."
 
@@ -16715,6 +16916,7 @@ msgid "Interface layer purge length"
 msgstr "Довжина очищення інтерфейсного шару"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Purge length for prime tower interface layer (where different materials meet)."
 msgstr "Довжина очищення для інтерфейсного шару підготовчої вежі (де зустрічаються різні матеріали)."
 
@@ -16723,6 +16925,7 @@ msgid "Interface layer print temperature"
 msgstr "Температура друку інтерфейсного шару"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
 msgstr "Температура друку для інтерфейсного шару підготовчої вежі (де зустрічаються різні матеріали). Якщо встановлено -1, використовується максимальна рекомендована температура сопла."
 
@@ -17192,14 +17395,16 @@ msgstr "Висота першого шару"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "Висота першого шару. Невелике збільшення висоти першого шару може покращити прилипання до робочої пластини"
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "Швидкість першого шару, за винятком зони суцільного заповнення"
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "Швидкість периметрів і кайми першого шару."
 
 msgid "First layer infill"
 msgstr "Заповнення першого шару"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "Швидкість зони суцільного заповнення першого шару"
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "Швидкість першого шару, за винятком периметрів і кайми, як-от заповнення, заповнення прогалин і підтримки."
 
 msgid "First layer travel speed"
 msgstr "Швидкість переміщення першого шару"
@@ -17952,16 +18157,18 @@ msgstr "Ширина лінії внутрішнього розрідженог�
 msgid "Infill/wall overlap"
 msgstr "Накладання заповнення/стінки"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "Область заповнення дещо збільшена, щоб перекривати стіну для кращого зчеплення. Значення у відсотках відносно ширини лінії розрідженого заповнення. Встановіть це значення на рівні ~10-15%, щоб мінімізувати можливість надмірного видавлювання та накопичення матеріалу, що призводить до шорсткості верхньої поверхні."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "Область заповнення дещо збільшена, щоб перекривати стіну для кращого зчеплення. Значення у відсотках відносно ширини лінії внутрішньої стінки. Встановіть це значення на рівні ~10-15%, щоб мінімізувати можливість надмірного видавлювання та накопичення матеріалу, що призводить до шорсткості верхньої поверхні."
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "Накладання суцільного заповнення на стінки зверху та знизу"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "Площа верхнього суцільного заповнення злегка збільшується, щоб накладатися на стінку для кращого зчеплення та зменшення прогалин у місцях прилягання верхнього заповнення до стінок. Значення 25-30% є хорошим початком для мінімізації таких прогалин. Значення у відсотках відносно ширини лінії часткового заповнення"
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "Площа верхнього суцільного заповнення злегка збільшується, щоб накладатися на стінку для кращого зчеплення та зменшення прогалин у місцях прилягання верхнього заповнення до стінок. Значення 25-30% є хорошим початком для мінімізації таких прогалин. Значення у відсотках відносно ширини лінії внутрішньої стінки."
 
 msgid "This is the speed for internal sparse infill."
 msgstr "Швидкість внутрішнього часткового заповнення"
@@ -17987,11 +18194,9 @@ msgstr "Максимальна ширина сегментованої обла�
 msgid "Interlocking depth of a segmented region"
 msgstr "Глибина взаємного взаємодії сегментованої області"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr ""
-"Глибина зчеплення сегментованої області. Буде ігноруватися, якщо \"mmu_segmented_region_max_width\" дорівнює нулю або якщо \"mmu_segmented_region_interlocking_depth\" більший за \"mmu_segmented_region_max_width\".\n"
-"\n"
-"Нульове значення вимикає цю функцію."
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "Глибина зчеплення сегментованої області. На кожному другому шарі сегментована область обмежується цією глибиною. Ігнорується, якщо ввімкнено \"interlocking_beam\". Нульове значення вимикає цю функцію."
 
 msgid "Use beam interlocking"
 msgstr "Використовувати зчеплення балками"
@@ -18112,11 +18317,11 @@ msgstr "Кут мінімізації висоти стінки"
 # AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "Зменшує висоту периметрів верхньої поверхні відповідно до висоти краю моделі.\n"
-"Впливає на периметри з нахилом, меншим за цей кут (у градусах).\n"
+"Впливає на периметри з нахилом, більшим за цей кут (у градусах).\n"
 "Розумне значення — 35. Встановіть 0, щоб вимкнути."
 
 # AI Translated
@@ -19122,7 +19327,8 @@ msgstr "З’єднання з шарфом для внутрішніх стін
 msgid "Use scarf joint for inner walls as well."
 msgstr "Використовувати з’єднання з шарфом також для внутрішніх стін."
 
-msgid "Role base wipe speed"
+# AI Translated
+msgid "Role based wipe speed"
 msgstr "Швидкість протирання залежно від типу"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
@@ -19214,16 +19420,15 @@ msgstr "Обмежує петлі спідниці/захисного екран
 msgid "Draft shield"
 msgstr "Захисний екран"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
-"Захисний екран буде корисним для захисту друку ABS або ASA від викривлення та відлипання від столу в наслідок протягу повітря. Зазвичай він потрібен для відкритих принтерів, які не мають закритої камери.\n"
+"Захисний екран буде корисним для захисту друку ABS або ASA від викривлення та відлипання від столу внаслідок протягу повітря. Зазвичай він потрібен для відкритих принтерів, які не мають закритої камери.\n"
 "\n"
-"Увімкнено = Спідниця буде тої ж висоти що і найвищий обʼєкт друку. Інакше буде застосовано параметр \"Висота спідниці\"\n"
-"До уваги: При увімкненому захисному екрані, спідниця буде надрукована на відстані від обʼєкту. Тому, якщо увімкнена кайма, вони можуть перетинатися. Щоб запобігти цьому, збільшіть значення відстані спідниці.\n"
+"Увімкнено = спідниця буде такої ж висоти, як і найвищий обʼєкт друку. Інакше буде застосовано параметр «Висота спідниці»."
 
 msgid "Enabled"
 msgstr "Увімкнуто"
@@ -19336,6 +19541,7 @@ msgid "Sets the finishing flow ratio while ending the spiral. Normally the spira
 msgstr "Задає кінцевий коефіцієнт потоку при завершенні спіралі. Зазвичай спіральний перехід плавно знижує коефіцієнт потоку від 100% до 0% під час проходу останнього контуру, що може призвести до недостатньої подачі філаменту у кінці спіралі."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, a prime tower is required for smooth mode to wipe the nozzle."
 msgstr "Якщо вибрано плавний або традиційний режим, для кожного друку буде згенеровано таймлапс-відео. Після друку кожного шару камерою термокамери робиться знімок. Усі ці знімки поєднуються в таймлапс-відео після завершення друку. Якщо вибрано плавний режим, після друку кожного шару головка переміщається до лотка для відходів і лише потім робиться знімок. Оскільки під час зйомки з сопла може витікати розплавлений філамент, для плавного режиму потрібна підготовча вежа для очищення сопла."
 
@@ -19527,10 +19733,12 @@ msgid "Enable this option to omit the custom Change filament G-code only at the 
 msgstr "Увімкніть цей параметр, щоб пропустити користувацький G-code зміни нитки лише на початку друку. Команда зміни інструмента (наприклад, T0) буде пропущена протягом усього друку. Це корисно для ручного друку на декількох матеріалах, де ми використовуємо M600/PAUSE для запуску ручної заміни нитки."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "Wipe tower type"
 msgstr "Тип вежі протирання"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "Choose the wipe tower implementation for multi-material prints. Type 1 is recommended for Bambu and Qidi printers with a filament cutter. Type 2 offers better compatibility with multi-tool and MMU printers and provide overall better compatibility."
 msgstr "Виберіть реалізацію вежі протирання для багатоматеріального друку. Тип 1 рекомендовано для принтерів Bambu та Qidi з відрізним механізмом філаменту. Тип 2 забезпечує кращу сумісність з багатоінструментальними та MMU-принтерами і загалом кращу сумісність."
 
@@ -19550,18 +19758,22 @@ msgid "Enable filament ramming"
 msgstr "Увімкнути накат нитки"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "Tool change on wipe tower"
 msgstr "Зміна інструмента на вежі протирання"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "Force the toolhead to travel to the wipe tower before issuing the tool change command (Tx). Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. By default Orca skips the travel on multi-toolhead machines because the firmware handles the head swap, which can result in the Tx command being issued above the printed part. Enable this option if you want the tool change to always be issued above the wipe tower instead."
 msgstr "Примусово переміщати головку до вежі протирання перед видачею команди зміни інструмента (Tx). Стосується лише багатоекструдерних (багатоінструментальних) принтерів з вежею протирання типу 2. Типово Orca пропускає це переміщення на багатоінструментальних машинах, оскільки заміну головки виконує прошивка, через що команда Tx може бути видана над надрукованою деталлю. Увімкніть цю опцію, якщо хочете, щоб зміна інструмента завжди відбувалася над вежею протирання."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "Wait for temperature on wipe tower"
 msgstr "Очікувати температуру на вежі протирання"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "Pick up the new tool without waiting for it to reach printing temperature, travel to the wipe tower, and wait for the temperature there, right before purging. Ooze from the heat-up lands on the tower instead of the model, and the travel overlaps with the heating. Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. The firmware or tool change macro must not wait for the temperature itself. When disabled, the temperature wait is issued right after the tool change command."
 msgstr "Бере новий інструмент, не чекаючи, доки він досягне температури друку, переміщується до вежі протирання й чекає на температуру там, безпосередньо перед промивкою. Матеріал, що витікає під час нагрівання, потрапляє на вежу, а не на модель, а переміщення збігається з нагріванням. Актуально лише для принтерів із кількома екструдерами (кількома головками), які використовують вежу протирання типу 2. Прошивка або макрос зміни інструменту не повинні самі чекати на температуру. Коли вимкнено, команда очікування температури видається одразу після команди зміни інструменту."
 
@@ -19569,6 +19781,7 @@ msgid "No sparse layers (beta)"
 msgstr "Без розріджених шарів (бета)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "If enabled, the wipe tower will not be printed on layers with no tool changes. On layers with a tool change, extruder will travel downward to print the wipe tower, so the tower ends up below the model and the toolhead has to reach down to it. Layouts where that would collide with an already printed object are rejected. Has no effect with smooth timelapse or clumping detection, which need a tower on every layer."
 msgstr "Якщо увімкнено, вежу протирання не буде надруковано на шарах без змін інструменту. На шарах зі зміною інструменту екструдер опуститься вниз, щоб надрукувати вежу протирання, тож вежа опиняється нижче моделі, і головці доводиться тягнутися до неї вниз. Компонування, за яких це призвело б до зіткнення з уже надрукованим обʼєктом, відхиляються. Не діє за плавного таймлапсу чи виявлення налипань на соплі, яким потрібна вежа на кожному шарі."
 
@@ -19577,6 +19790,7 @@ msgid "Combine sparse layers"
 msgstr "Обʼєднувати розріджені шари"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid ""
 "If enabled, consecutive layers on which the prime tower has no filament change are printed as a single thicker tower layer instead of one thin layer each, the same way infill combination merges sparse infill. The merged layer is printed at the top of the run, at the height of everything it covers.\n"
 "\n"
@@ -20334,6 +20548,7 @@ msgid "Enable mixed color sublayer splitting. When enabled, layers containing mi
 msgstr "Вмикає розбиття на підшари змішаного кольору. Коли увімкнено, шари, що містять філаменти змішаного кольору, розбиваються на підшари для отримання ефекту змішування кольорів."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "The wiping tower can be used to clean up residue on the nozzle and stabilize the chamber pressure inside the nozzle in order to avoid appearance defects when printing objects."
 msgstr "Вежа протирання може використовуватися для очищення залишків на соплі та стабілізації тиску в камері всередині сопла, щоб уникнути дефектів зовнішнього вигляду під час друку обʼєктів."
 
@@ -20386,6 +20601,7 @@ msgid "Wipe tower rotation angle with respect to X axis."
 msgstr "Кут повороту вежі протирання за віссю Х."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr "Ширина кайми підготовчої вежі; відʼємне число означає автоматично обчислену ширину на основі висоти підготовчої вежі."
 
@@ -20398,41 +20614,44 @@ msgstr "Кут на вершині конуса, який використову
 msgid "Maximum wipe tower print speed"
 msgstr "Максимальна швидкість друку вежі протирання"
 
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (two renderings); used 'вежа протирання' as in the existing labels (Wipe tower, Wipe tower parameters). Check it against the final term.
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
-"Максимальна швидкість друку під час продування у башті витирання та друку розріджених шарів у башті витирання. Якщо під час продування швидкість розрідженого заповнення або розрахована швидкість на основі максимальної обʼємної швидкості нитки нижча, замість неї використовуватиметься найнижча швидкість.\n"
+"Максимальна швидкість друку під час очищення на вежі протирання та друку розріджених шарів вежі протирання. Якщо під час очищення швидкість часткового заповнення або розрахована швидкість на основі максимальної обʼємної швидкості філаменту нижча, замість неї використовуватиметься найнижча швидкість.\n"
 "\n"
-"Під час друку розріджених шарів, якщо швидкість по внутрішньому периметру або розрахована швидкість на основі максимальної обʼємної швидкості нитки нижча, буде використовуватися найнижча швидкість.\n"
+"Під час друку розріджених шарів, якщо швидкість часткового заповнення або розрахована швидкість на основі максимальної обʼємної швидкості філаменту нижча, буде використовуватися найнижча швидкість.\n"
 "\n"
-"Збільшення цієї швидкості може вплинути на стабільність башти, а також збільшити силу, з якою сопло стикається з будь-якими згустками, що можуть утворитися на башті витирання.\n"
+"Збільшення цієї швидкості може вплинути на стабільність вежі, а також збільшити силу, з якою сопло стикається з будь-якими згустками, що могли утворитися на вежі протирання.\n"
 "\n"
-"Перш ніж збільшувати цей параметр понад значення за замовчуванням 90 мм/с, переконайтеся, що принтер може надійно працювати на підвищених швидкостях і що витікання під час заміни інструменту добре контролюється.\n"
+"Перш ніж збільшувати цей параметр понад значення за замовчуванням 90 мм/с, переконайтеся, що принтер може надійно друкувати мости на підвищених швидкостях і що просочування під час заміни інструмента добре контролюється.\n"
 "\n"
-"Для зовнішніх периметрів вежі витирання використовується швидкість внутрішнього периметра незалежно від цього параметра."
+"Для зовнішніх периметрів вежі протирання використовується швидкість внутрішнього периметра, яка також обмежується цим параметром."
 
 msgid "Wall type"
 msgstr "Тип стіни"
 
 # AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (two renderings); used 'вежа протирання' as in the existing labels (Wipe tower, Wipe tower parameters). Check it against the final term.
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "Тип зовнішньої стінки вежі протирання.\n"
-"1. Прямокутник: типовий тип стінки, прямокутник з фіксованою шириною та висотою.\n"
+"1. Прямокутник: прямокутник з фіксованою шириною та висотою.\n"
 "2. Конус: конус із заокругленням унизу, що допомагає стабілізувати вежу протирання.\n"
-"3. Ребро: додає до стінки вежі чотири ребра для більшої стійкості."
+"3. Ребро: типовий тип стінки, що додає до стінки вежі чотири ребра для більшої стійкості."
 
 msgid "Rectangle"
 msgstr "Прямокутник"
@@ -20451,6 +20670,7 @@ msgid "Rib width"
 msgstr "Ширина ребра"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Rib width is always less than half the prime tower side length."
 msgstr "Ширина ребра завжди менша за половину довжини сторони підготовчої вежі."
 
@@ -20459,6 +20679,7 @@ msgid "Fillet wall"
 msgstr "Заокруглена стінка"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "The wall of prime tower will fillet."
 msgstr "Стінка підготовчої вежі матиме заокруглення."
 
@@ -20475,6 +20696,7 @@ msgid "Skip points"
 msgstr "Пропустити точки"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "The wall of prime tower will skip the start points of wipe path."
 msgstr "Стінка підготовчої вежі пропускатиме початкові точки шляху протирання."
 
@@ -20482,14 +20704,17 @@ msgid "Enable tower interface features"
 msgstr "Дозволити можливості інтерфейсу вежі"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Enable optimized prime tower interface behavior when different materials meet."
 msgstr "Увімкнути оптимізовану поведінку інтерфейсу підготовчої вежі, коли зустрічаються різні матеріали."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "Cool down from interface boost during prime tower"
 msgstr "Охолодження після підвищення для інтерфейсу під час підготовчої вежі"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "підготовча вежа"; align it once the term is settled.
 msgid "When interface-layer temperature boost is active, set the nozzle back to print temperature at the start of the prime tower so it cools down during the tower."
 msgstr "Коли активне підвищення температури для інтерфейсного шару, повернути соплу температуру друку на початку підготовчої вежі, щоб воно охолоджувалося під час друку вежі."
 
@@ -20533,8 +20758,10 @@ msgstr "Відстань між лініями очищення на вежі п
 msgid "Extra flow for purging"
 msgstr "Додатковий потік для очищення"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "Додатковий потік для ліній очистки на вежі протирання. Це робить лінії очистки товщими або вужчими, ніж зазвичай. Відстань між лініями налаштовується автоматично."
+# AI Translated
+# Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (two renderings); used 'вежа протирання' as in the existing labels (Wipe tower, Wipe tower parameters). Check it against the final term.
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "Додатковий потік для ліній очищення на вежі протирання. Це робить лінії очищення товщими, ніж зазвичай. Відстань між лініями налаштовується автоматично."
 
 msgid "Idle temperature"
 msgstr "Температура очікування"
@@ -20656,11 +20883,15 @@ msgstr "Мінімальна товщина тонких елементів. Е�
 msgid "Minimum wall length"
 msgstr "Мінімальна довжина стінок"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
-msgstr "Налаштуйте це значення, щоб запобігти друкуванню коротких незакритих стін, що може збільшити час друку. Вищі значення видаляють більше і довші стіни."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+msgstr ""
+"Налаштуйте це значення, щоб запобігти друкуванню коротких незакритих стін, що може збільшити час друку. Значення задається як множник ширини стінки. Вищі значення видаляють більше і довші стіни.\n"
+"\n"
+"ПРИМІТКА: нижні та верхні поверхні не зазнають впливу цього значення, щоб уникнути видимих прогалин зовні моделі. Налаштуйте «Поріг в одну стіну» в налаштуваннях «Стінки та поверхні» нижче, щоб змінити чутливість визначення верхньої поверхні. «Поріг в одну стіну» видимий лише тоді, коли це налаштування вище за типове значення 0.5 або коли ввімкнено «Тільки одна стінка на верхніх поверхнях»."
 
 # AI Translated
 msgid "Maximum wall resolution"
@@ -21059,6 +21290,12 @@ msgstr "Вихідний каталог"
 msgid "This is the output directory for exported files."
 msgstr "Цільова папка для експортованих файлів."
 
+msgid "Export statistics"
+msgstr ""
+
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
+
 msgid "Debug level"
 msgstr "Рівень налагодження"
 
@@ -21334,6 +21571,7 @@ msgid "Total wipe tower cost"
 msgstr "Загальна вартість 'Вежі Очищення'"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "Total cost of the material wasted on the wipe tower. Calculated from filament_cost value in Filament Settings."
 msgstr "Загальна вартість матеріалу, витраченого на вежу протирання. Обчислюється зі значення filament_cost у налаштуваннях філаменту."
 
@@ -21467,6 +21705,7 @@ msgid "Size of the print bed bounding box"
 msgstr "Розмір обмежувальної рамки для друку"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "вежа протирання"; align it once the term is settled.
 msgid "First layer center without wipe tower"
 msgstr "Центр першого шару без вежі протирання"
 
@@ -24670,9 +24909,6 @@ msgstr "Дозволити розумне призначення філамен�
 # AI Translated
 msgid "File Saving"
 msgstr "Збереження файлу"
-
-msgid "Don't remind me again"
-msgstr "Не нагадувати мені більше"
 
 # AI Translated
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -30074,9 +30310,6 @@ msgstr "Відкрити швидкий виклик"
 msgid "Slicing and printing"
 msgstr "Нарізка та друк"
 
-msgid "Selection"
-msgstr "Вибір"
-
 # AI Translated
 msgid "Editing"
 msgstr "Редагування"
@@ -30986,6 +31219,1232 @@ msgstr[1] "Поточний список філаментів не містит�
 msgstr[2] "Поточний список філаментів не містить %s. Філаменти проєкту, потрібні для змішаного філаменту, буде створено автоматично після розкладання."
 msgstr[3] "Поточний список філаментів не містить %s. Філаменти проєкту, потрібні для змішаного філаменту, буде створено автоматично після розкладання."
 
+msgid "Color Picker"
+msgstr ""
+
+msgid "Basic Colors"
+msgstr ""
+
+msgid "Orca Palette"
+msgstr ""
+
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "RAL Classic"
+msgstr ""
+
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "Gradients"
+msgstr ""
+
+msgid "Solid"
+msgstr ""
+
+msgid "Gradient"
+msgstr ""
+
+msgid "Gradient start"
+msgstr ""
+
+msgid "Gradient end"
+msgstr ""
+
+msgid "Gradient color"
+msgstr ""
+
+msgid "Add color"
+msgstr ""
+
+msgid "Remove color"
+msgstr ""
+
+msgid "Saturation"
+msgstr ""
+
+msgid "Original color"
+msgstr ""
+
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr ""
+
+msgid "Palettes"
+msgstr ""
+
+msgid "Search colors"
+msgstr ""
+
+msgid "Filter colors"
+msgstr ""
+
+msgid "No matching colors"
+msgstr ""
+
+msgid "Hex color"
+msgstr ""
+
+# AI Translated
+msgid "Opacity"
+msgstr "Непрозорість"
+
+msgid "Opacity percent"
+msgstr ""
+
+msgid "Save color"
+msgstr ""
+
+msgid "Enter a complete hexadecimal color"
+msgstr ""
+
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr ""
+
+msgid "Crimson"
+msgstr ""
+
+msgid "Orange red"
+msgstr ""
+
+msgid "Tomato"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Dark orange"
+msgstr ""
+
+msgid "Gold"
+msgstr ""
+
+msgid "Burly wood"
+msgstr ""
+
+msgid "Bisque"
+msgstr ""
+
+msgid "Misty rose"
+msgstr ""
+
+msgid "Light yellow"
+msgstr ""
+
+msgid "Lemon chiffon"
+msgstr ""
+
+msgid "Beige"
+msgstr ""
+
+msgid "Light golden rod yellow"
+msgstr ""
+
+msgid "Pale golden rod"
+msgstr ""
+
+msgid "Khaki"
+msgstr ""
+
+msgid "Dark khaki"
+msgstr ""
+
+msgid "Peach puff"
+msgstr ""
+
+msgid "Moccasin"
+msgstr ""
+
+msgid "Papaya whip"
+msgstr ""
+
+msgid "Blanched almond"
+msgstr ""
+
+msgid "Antique white"
+msgstr ""
+
+msgid "Navajo white"
+msgstr ""
+
+msgid "Wheat"
+msgstr ""
+
+msgid "Golden rod"
+msgstr ""
+
+msgid "Chocolate"
+msgstr ""
+
+msgid "Peru"
+msgstr ""
+
+msgid "Fire brick"
+msgstr ""
+
+msgid "Sienna"
+msgstr ""
+
+msgid "Saddle brown"
+msgstr ""
+
+msgid "Brown"
+msgstr ""
+
+msgid "Rosy brown"
+msgstr ""
+
+msgid "Salmon"
+msgstr ""
+
+msgid "Light salmon"
+msgstr ""
+
+msgid "Dark salmon"
+msgstr ""
+
+msgid "Sandy brown"
+msgstr ""
+
+msgid "Coral"
+msgstr ""
+
+msgid "Light coral"
+msgstr ""
+
+msgid "Indian red"
+msgstr ""
+
+msgid "Dark red"
+msgstr ""
+
+msgid "Maroon"
+msgstr ""
+
+msgid "Green yellow"
+msgstr ""
+
+msgid "Yellow green"
+msgstr ""
+
+msgid "Chartreuse"
+msgstr ""
+
+msgid "Lawn green"
+msgstr ""
+
+msgid "Lime green"
+msgstr ""
+
+msgid "Spring green"
+msgstr ""
+
+msgid "Medium spring green"
+msgstr ""
+
+msgid "Lime"
+msgstr ""
+
+msgid "Forest green"
+msgstr ""
+
+msgid "Dark green"
+msgstr ""
+
+msgid "Olive drab"
+msgstr ""
+
+msgid "Olive"
+msgstr ""
+
+msgid "Dark olive green"
+msgstr ""
+
+msgid "Pale green"
+msgstr ""
+
+msgid "Light green"
+msgstr ""
+
+msgid "Medium sea green"
+msgstr ""
+
+msgid "Sea green"
+msgstr ""
+
+msgid "Dark sea green"
+msgstr ""
+
+msgid "Cadet blue"
+msgstr ""
+
+msgid "Medium aqua marine"
+msgstr ""
+
+msgid "Turquoise"
+msgstr ""
+
+msgid "Medium turquoise"
+msgstr ""
+
+msgid "Dark turquoise"
+msgstr ""
+
+msgid "Pale turquoise"
+msgstr ""
+
+msgid "Aqua"
+msgstr ""
+
+msgid "Light cyan"
+msgstr ""
+
+msgid "Mint cream"
+msgstr ""
+
+msgid "Honey dew"
+msgstr ""
+
+msgid "Aquamarine"
+msgstr ""
+
+msgid "Light sea green"
+msgstr ""
+
+msgid "Dark cyan"
+msgstr ""
+
+msgid "Teal"
+msgstr ""
+
+msgid "Dark slate gray"
+msgstr ""
+
+msgid "Light slate gray"
+msgstr ""
+
+msgid "Slate gray"
+msgstr ""
+
+msgid "Deep sky blue"
+msgstr ""
+
+msgid "Dodger Blue"
+msgstr ""
+
+msgid "Sky blue"
+msgstr ""
+
+msgid "Light sky blue"
+msgstr ""
+
+msgid "Light blue"
+msgstr ""
+
+msgid "Powder blue"
+msgstr ""
+
+msgid "Light steel blue"
+msgstr ""
+
+msgid "Steel blue"
+msgstr ""
+
+msgid "Cornflower blue"
+msgstr ""
+
+msgid "Royal blue"
+msgstr ""
+
+msgid "Medium blue"
+msgstr ""
+
+msgid "Midnight blue"
+msgstr ""
+
+msgid "Dark blue"
+msgstr ""
+
+msgid "Navy"
+msgstr ""
+
+msgid "Slate blue"
+msgstr ""
+
+msgid "Dark slate blue"
+msgstr ""
+
+msgid "Medium slate blue"
+msgstr ""
+
+msgid "Blue violet"
+msgstr ""
+
+msgid "Indigo"
+msgstr ""
+
+msgid "Dark violet"
+msgstr ""
+
+msgid "Dark orchid"
+msgstr ""
+
+msgid "Medium orchid"
+msgstr ""
+
+msgid "Orchid"
+msgstr ""
+
+msgid "Violet"
+msgstr ""
+
+msgid "Medium purple"
+msgstr ""
+
+msgid "Purple"
+msgstr ""
+
+msgid "Rebecca purple"
+msgstr ""
+
+msgid "Medium violet red"
+msgstr ""
+
+msgid "PaleV violet red"
+msgstr ""
+
+msgid "Deep pink"
+msgstr ""
+
+msgid "Hot pink"
+msgstr ""
+
+msgid "Light pink"
+msgstr ""
+
+msgid "Pink"
+msgstr ""
+
+msgid "Plum"
+msgstr ""
+
+msgid "Thistle"
+msgstr ""
+
+msgid "Fuchsia"
+msgstr ""
+
+msgid "Dark magenta"
+msgstr ""
+
+msgid "Linen"
+msgstr ""
+
+msgid "Old lace"
+msgstr ""
+
+msgid "Sea shell"
+msgstr ""
+
+msgid "Ivory"
+msgstr ""
+
+msgid "Floral white"
+msgstr ""
+
+msgid "Lavender blush"
+msgstr ""
+
+msgid "Ghost white"
+msgstr ""
+
+msgid "Alice blue"
+msgstr ""
+
+msgid "Lavender"
+msgstr ""
+
+msgid "White smoke"
+msgstr ""
+
+msgid "Gainsboro"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Coral fire"
+msgstr ""
+
+msgid "Sea anemone"
+msgstr ""
+
+msgid "Deep abyss"
+msgstr ""
+
+msgid "Lobster red"
+msgstr ""
+
+msgid "Sandy clay"
+msgstr ""
+
+msgid "Driftwood"
+msgstr ""
+
+msgid "Sea buckthorn"
+msgstr ""
+
+msgid "Sunset reef"
+msgstr ""
+
+msgid "Tiger coral"
+msgstr ""
+
+msgid "Pink coral"
+msgstr ""
+
+msgid "Seashell glow"
+msgstr ""
+
+msgid "Sand"
+msgstr ""
+
+msgid "Golden kelp"
+msgstr ""
+
+msgid "Sunlit dune"
+msgstr ""
+
+msgid "Amber nautilus"
+msgstr ""
+
+msgid "Sea lemon"
+msgstr ""
+
+msgid "Pale starfish"
+msgstr ""
+
+msgid "Spring tide"
+msgstr ""
+
+msgid "Lime algae"
+msgstr ""
+
+msgid "Sea grass"
+msgstr ""
+
+msgid "Neon plankton"
+msgstr ""
+
+msgid "Kelp forest"
+msgstr ""
+
+msgid "Emerald wave"
+msgstr ""
+
+msgid "Whale shadow"
+msgstr ""
+
+msgid "Sea turtle"
+msgstr ""
+
+msgid "Lagoon"
+msgstr ""
+
+msgid "Tropical current"
+msgstr ""
+
+msgid "Midnight trench"
+msgstr ""
+
+msgid "Dark kelp"
+msgstr ""
+
+msgid "Crystal surf"
+msgstr ""
+
+msgid "Turquoise bay"
+msgstr ""
+
+msgid "Sky over reef"
+msgstr ""
+
+msgid "Shallow sky"
+msgstr ""
+
+msgid "Electric bel"
+msgstr ""
+
+msgid "Dolphin"
+msgstr ""
+
+msgid "Ocean depths"
+msgstr ""
+
+msgid "Whale"
+msgstr ""
+
+msgid "Indigo abyss"
+msgstr ""
+
+msgid "Sea urchin"
+msgstr ""
+
+msgid "Lavender coral"
+msgstr ""
+
+msgid "Violet tide"
+msgstr ""
+
+msgid "Deep sea orchid"
+msgstr ""
+
+msgid "Neon jelly"
+msgstr ""
+
+msgid "Fuchsia coral"
+msgstr ""
+
+msgid "Pink jellyfish"
+msgstr ""
+
+msgid "Foam"
+msgstr ""
+
+msgid "Seashell white"
+msgstr ""
+
+msgid "Pebble gray"
+msgstr ""
+
+msgid "Storm cloud"
+msgstr ""
+
+msgid "Ink black"
+msgstr ""
+
+msgid "Green beige"
+msgstr ""
+
+msgid "Sand yellow"
+msgstr ""
+
+msgid "Signal yellow"
+msgstr ""
+
+msgid "Golden yellow"
+msgstr ""
+
+msgid "Honey yellow"
+msgstr ""
+
+msgid "Maize yellow"
+msgstr ""
+
+msgid "Dalmatian yellow"
+msgstr ""
+
+msgid "Brown beige"
+msgstr ""
+
+msgid "Lemon yellow"
+msgstr ""
+
+msgid "Oyster white"
+msgstr ""
+
+msgid "Light ivory"
+msgstr ""
+
+msgid "Zinc yellow"
+msgstr ""
+
+msgid "Grey beige"
+msgstr ""
+
+msgid "Olive yellow"
+msgstr ""
+
+msgid "Rape yellow"
+msgstr ""
+
+msgid "Traffic yellow"
+msgstr ""
+
+msgid "Ochre yellow"
+msgstr ""
+
+msgid "Traffic orange yellow"
+msgstr ""
+
+msgid "Curry"
+msgstr ""
+
+msgid "Melon yellow"
+msgstr ""
+
+msgid "Broom yellow"
+msgstr ""
+
+msgid "Dahlia yellow"
+msgstr ""
+
+msgid "Pastel yellow"
+msgstr ""
+
+msgid "Pearl beige"
+msgstr ""
+
+msgid "Pearl gold"
+msgstr ""
+
+msgid "Sun yellow"
+msgstr ""
+
+msgid "Yellow orange"
+msgstr ""
+
+msgid "Deep orange"
+msgstr ""
+
+msgid "Vermilion"
+msgstr ""
+
+msgid "Pearl orange"
+msgstr ""
+
+msgid "Pure orange"
+msgstr ""
+
+msgid "Luminous orange"
+msgstr ""
+
+msgid "Luminous bright orange"
+msgstr ""
+
+msgid "Bright red orange"
+msgstr ""
+
+msgid "Traffic orange"
+msgstr ""
+
+msgid "Signal orange"
+msgstr ""
+
+msgid "Salmon orange"
+msgstr ""
+
+msgid "Pearl pink"
+msgstr ""
+
+msgid "Copper orange"
+msgstr ""
+
+msgid "Signal brown"
+msgstr ""
+
+msgid "Fir orange"
+msgstr ""
+
+msgid "Signal red"
+msgstr ""
+
+msgid "Luminous red"
+msgstr ""
+
+msgid "Carmine red"
+msgstr ""
+
+msgid "Pearl carmine red"
+msgstr ""
+
+msgid "Pure red"
+msgstr ""
+
+msgid "Luminous deep red"
+msgstr ""
+
+msgid "Currant red"
+msgstr ""
+
+msgid "Pearl ruby red"
+msgstr ""
+
+msgid "Fire red"
+msgstr ""
+
+msgid "Ruby red"
+msgstr ""
+
+msgid "Purple red"
+msgstr ""
+
+msgid "Wine red"
+msgstr ""
+
+msgid "Black red"
+msgstr ""
+
+msgid "Oxide red"
+msgstr ""
+
+msgid "Brown red"
+msgstr ""
+
+msgid "Pine red"
+msgstr ""
+
+msgid "Tomato red"
+msgstr ""
+
+msgid "Antique pink"
+msgstr ""
+
+msgid "Coral red"
+msgstr ""
+
+msgid "Rose"
+msgstr ""
+
+msgid "Strawberry red"
+msgstr ""
+
+msgid "Traffic red"
+msgstr ""
+
+msgid "Salmon pink"
+msgstr ""
+
+msgid "Luminous rose"
+msgstr ""
+
+msgid "Luminous bright red"
+msgstr ""
+
+msgid "Raspberry red"
+msgstr ""
+
+msgid "Orient red"
+msgstr ""
+
+msgid "Pearl ruby"
+msgstr ""
+
+msgid "Red purple"
+msgstr ""
+
+msgid "Red violet"
+msgstr ""
+
+msgid "Heather violet"
+msgstr ""
+
+msgid "Bordeaux violet"
+msgstr ""
+
+msgid "Mahogany"
+msgstr ""
+
+msgid "Grey purple"
+msgstr ""
+
+msgid "Signal violet"
+msgstr ""
+
+msgid "Fir green"
+msgstr ""
+
+msgid "Sabine grey"
+msgstr ""
+
+msgid "Pearl violet"
+msgstr ""
+
+msgid "Pearl blackberry"
+msgstr ""
+
+msgid "Green blue"
+msgstr ""
+
+msgid "Ultramarine blue"
+msgstr ""
+
+msgid "Sapphire blue"
+msgstr ""
+
+msgid "Black blue"
+msgstr ""
+
+msgid "Signal blue"
+msgstr ""
+
+msgid "Brilliant blue"
+msgstr ""
+
+msgid "Grey blue"
+msgstr ""
+
+msgid "Azure blue"
+msgstr ""
+
+msgid "Gentian blue"
+msgstr ""
+
+msgid "Cobalt blue"
+msgstr ""
+
+msgid "Pigeon blue"
+msgstr ""
+
+msgid "Traffic blue"
+msgstr ""
+
+msgid "Turquoise blue"
+msgstr ""
+
+msgid "Capsanthin violet"
+msgstr ""
+
+msgid "Ocean blue"
+msgstr ""
+
+msgid "Water blue"
+msgstr ""
+
+msgid "Night blue"
+msgstr ""
+
+msgid "Distant blue"
+msgstr ""
+
+msgid "Pastel blue"
+msgstr ""
+
+msgid "Pearl gentian blue"
+msgstr ""
+
+msgid "Pearl midnight blue"
+msgstr ""
+
+msgid "Patina green"
+msgstr ""
+
+msgid "Emerald green"
+msgstr ""
+
+msgid "Leaf green"
+msgstr ""
+
+msgid "Olive green"
+msgstr ""
+
+msgid "Blue green"
+msgstr ""
+
+msgid "Moss green"
+msgstr ""
+
+msgid "Grey olive"
+msgstr ""
+
+msgid "Pine green"
+msgstr ""
+
+msgid "Pine brown"
+msgstr ""
+
+msgid "Grass green"
+msgstr ""
+
+msgid "Reseda green"
+msgstr ""
+
+msgid "Brown green"
+msgstr ""
+
+msgid "Reed green"
+msgstr ""
+
+msgid "Black green"
+msgstr ""
+
+msgid "Turquoise green"
+msgstr ""
+
+msgid "May green"
+msgstr ""
+
+msgid "Chrome oxide green"
+msgstr ""
+
+msgid "Traffic green"
+msgstr ""
+
+msgid "Fern green"
+msgstr ""
+
+msgid "Opal green"
+msgstr ""
+
+msgid "Mint green"
+msgstr ""
+
+msgid "Bronze green"
+msgstr ""
+
+msgid "Pearl green"
+msgstr ""
+
+msgid "Sax turquoise"
+msgstr ""
+
+msgid "Pearl turquoise"
+msgstr ""
+
+msgid "Pearl jade"
+msgstr ""
+
+msgid "Pure green"
+msgstr ""
+
+msgid "Luminous green"
+msgstr ""
+
+msgid "Squirrel grey"
+msgstr ""
+
+msgid "Silver grey"
+msgstr ""
+
+msgid "Olivestone"
+msgstr ""
+
+msgid "Moss grey"
+msgstr ""
+
+msgid "Signal grey"
+msgstr ""
+
+msgid "Mouse grey"
+msgstr ""
+
+msgid "Beige grey"
+msgstr ""
+
+msgid "Khaki grey"
+msgstr ""
+
+msgid "Green grey"
+msgstr ""
+
+msgid "Tarpaulin grey"
+msgstr ""
+
+msgid "Iron grey"
+msgstr ""
+
+msgid "Basalt grey"
+msgstr ""
+
+msgid "Brown grey"
+msgstr ""
+
+msgid "Slate grey"
+msgstr ""
+
+msgid "Anthracite grey"
+msgstr ""
+
+msgid "Light grey"
+msgstr ""
+
+msgid "Umber grey"
+msgstr ""
+
+msgid "Concrete grey"
+msgstr ""
+
+msgid "Graphite grey"
+msgstr ""
+
+msgid "Granite grey"
+msgstr ""
+
+msgid "Stone grey"
+msgstr ""
+
+msgid "Pebble grey"
+msgstr ""
+
+msgid "Cement grey"
+msgstr ""
+
+msgid "Yellow grey"
+msgstr ""
+
+msgid "Platinum grey"
+msgstr ""
+
+msgid "Dusty grey"
+msgstr ""
+
+msgid "Agate grey"
+msgstr ""
+
+msgid "Quartz grey"
+msgstr ""
+
+msgid "Window grey"
+msgstr ""
+
+msgid "Traffic grey A"
+msgstr ""
+
+msgid "Traffic grey B"
+msgstr ""
+
+msgid "Silk grey"
+msgstr ""
+
+msgid "Telegrey 1"
+msgstr ""
+
+msgid "Telegrey 2"
+msgstr ""
+
+msgid "Telegrey 4"
+msgstr ""
+
+msgid "Pearl mouse grey"
+msgstr ""
+
+msgid "Green brown"
+msgstr ""
+
+msgid "Ochre brown"
+msgstr ""
+
+msgid "Clay brown"
+msgstr ""
+
+msgid "Copper brown"
+msgstr ""
+
+msgid "Chocolate brown"
+msgstr ""
+
+msgid "Olive brown"
+msgstr ""
+
+msgid "Nut brown"
+msgstr ""
+
+msgid "Red brown"
+msgstr ""
+
+msgid "Sepia brown"
+msgstr ""
+
+msgid "Chestnut brown"
+msgstr ""
+
+msgid "Mahogany brown"
+msgstr ""
+
+msgid "Grey brown"
+msgstr ""
+
+msgid "Pearl copper"
+msgstr ""
+
+msgid "Beige brown"
+msgstr ""
+
+msgid "Pearl mocha brown"
+msgstr ""
+
+msgid "Earth brown"
+msgstr ""
+
+msgid "Pearl brown"
+msgstr ""
+
+msgid "Cream"
+msgstr ""
+
+msgid "Grey white"
+msgstr ""
+
+msgid "Signal white"
+msgstr ""
+
+msgid "Signal black"
+msgstr ""
+
+msgid "Jet black"
+msgstr ""
+
+msgid "White aluminium"
+msgstr ""
+
+msgid "Grey aluminium"
+msgstr ""
+
+msgid "Pure white"
+msgstr ""
+
+msgid "Graphite black"
+msgstr ""
+
+msgid "Traffic white"
+msgstr ""
+
+msgid "Traffic black"
+msgstr ""
+
+msgid "Papyrus white"
+msgstr ""
+
+msgid "Pearl light grey"
+msgstr ""
+
+msgid "Metal: Silver"
+msgstr ""
+
+msgid "Metal: Brass"
+msgstr ""
+
+msgid "Metal: Gold"
+msgstr ""
+
+msgid "Metal: Copper"
+msgstr ""
+
+msgid "Metal: Bronze"
+msgstr ""
+
+msgid "Nature: Pearl"
+msgstr ""
+
+msgid "Nature: Rainbow"
+msgstr ""
+
+msgid "Nature: Clear Sky"
+msgstr ""
+
+msgid "Nature: Sunset"
+msgstr ""
+
+msgid "Wood: Dark"
+msgstr ""
+
+msgid "Wood: Medium"
+msgstr ""
+
+msgid "Wood: Light"
+msgstr ""
+
 # AI Translated
 msgid "Alternate nozzles:"
 msgstr "Альтернативні сопла:"
@@ -31871,6 +33330,12 @@ msgstr "Накладається за власною UV-розкладкою м�
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "Ширина однієї копії текстури на моделі. Менше значення частіше повторює візерунок і робить його деталі дрібнішими; якщо «Плитка» вимкнена, це розмір єдиної копії."
 
+msgid "Larger"
+msgstr ""
+
+msgid "Smaller"
+msgstr ""
+
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Повертає текстуру на поверхні, у градусах - щоб вирівняти візерунок із краєм моделі."
@@ -31944,6 +33409,12 @@ msgstr "Змішані кольори"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Найбільша кількість змішаних філаментів, яку може додати запікання. Їх вибирають із кольорів текстури, і створюються лише ті, що справді використовуються під час запікання."
+
+msgid "Few"
+msgstr ""
+
+msgid "Many"
+msgstr ""
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -32074,10 +33545,6 @@ msgstr "Рамка проєкції"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Відкриває вікно, яке ви перетягуєте над моделлю. Усе, що видно крізь нього, отримує текстуру, а його межа стає краєм проєкції."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Непрозорість"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -32312,6 +33779,12 @@ msgstr "Перебудова сітки"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Розмір трикутника, з яким перебудовується вся модель, у міліметрах. Зміщення найкраще працює на рівномірній сітці; саме цей параметр робить її з нерівномірної імпортованої."
+
+msgid "Before"
+msgstr ""
+
+msgid "After"
+msgstr ""
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -35342,6 +36815,175 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури столу може зменшити ймовірність деформації?"
+
+#~ msgid "Please choose the filament color"
+#~ msgstr "Будь ласка, виберіть колір філаменту"
+
+# AI Translated
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "Ширина лінії моста. Якщо задано у %, вона обчислюється відносно діаметра сопла.\n"
+#~ "Рекомендується використовувати з вищою щільністю моста або вищим коефіцієнтом потоку моста.\n"
+#~ "\n"
+#~ "Максимальне значення — 100% або діаметр сопла.\n"
+#~ "Якщо встановлено 0, ширина лінії відповідатиме ширині внутрішнього суцільного заповнення."
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "Увімкніть цю опцію, щоб уповільнювати друк у зонах, де периметри могли загнутися вгору.\n"
+#~ "Наприклад, додаткове уповільнення застосовуватиметься під час друку нависань на гострих кутах, як-от ніс корпусу Benchy, зменшуючи загинання, що накопичується протягом кількох шарів.\n"
+#~ "\n"
+#~ "Загалом рекомендується тримати цю опцію увімкненою, якщо тільки охолодження вашого принтера не є достатньо потужним або швидкість друку достатньо низькою, щоб загинання периметрів не виникало. \n"
+#~ "Під час друку з високою швидкістю зовнішнього периметра цей параметр може спричинити артефакти на стінках під час уповільнення через потенційно велику різницю швидкостей друку, коли екструдер не встигає за потрібною зміною потоку.\n"
+#~ "Корінна причина цих артефактів — найімовірніше, дещо неточне налаштування PA, особливо в поєднанні з великим часом згладжування PA.\n"
+#~ "\n"
+#~ "Рекомендації при увімкненні цієї опції:\n"
+#~ "1. Зменште час згладжування Pressure Advance до 0.015 - 0.02, щоб екструдер швидко реагував на зміни швидкості.\n"
+#~ "2. Збільште мінімальні швидкості друку, щоб обмежити величину уповільнення та зменшити різницю між швидкими й повільними ділянками.\n"
+#~ "3. Якщо артефакти все ще зʼявляються, увімкніть згладжування швидкості екструзії (ERS), щоб додатково згладити переходи потоку.\n"
+#~ "\n"
+#~ "Примітка: коли цю опцію увімкнено, периметри нависань обробляються як нависання, тобто швидкість нависання застосовується навіть тоді, коли нависаючий периметр є частиною моста.\n"
+#~ "Наприклад, коли периметри нависають на 100% і під ними немає стінки-опори, буде застосовано швидкість для 100% нависання."
+
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "Швидкість екструзії мостів, які видно ззовні.\n"
+#~ "\n"
+#~ "Крім того, якщо параметр 'Уповільнення для закручених периметрів' вимкнено або увімкнено 'Класичний режим нависань', ця швидкість буде використовуватися для друку стінок з нависанням, які підтримуються менш ніж на 13%, незалежно від того, чи є вони частиною мосту або звичайного нависання."
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "Це окреме налаштування впливає на швидкість периметрів, що мають радіус < = small_perimeter_threshold (зазвичай отворів). Якщо він виражений у відсотках(наприклад, 80%), то він розраховуватиметься на зазначеній вище швидкостіЗовнішній периметр. Встановіть нульове значення для автоматичного налаштування."
+
+# AI Translated
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "Те саме, що й «Малі периметри», але для підтримок. Це окреме налаштування впливає на швидкість підтримок для областей <= `small_support_perimeter_threshold`. Якщо задано у відсотках (наприклад, 80%), воно обчислюється відносно наведеного вище налаштування швидкості підтримок або інтерфейсу підтримок. Встановіть нуль для автоматичного значення."
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "Послідовність друку внутрішніх (inner) та зовнішніх (outer) стін.\n"
+#~ "\n"
+#~ "Використовуйте внутрішню/зовнішню для найкращих виступів. Це повʼязано з тим, що стіни, які виступають, можуть прилипати до сусіднього периметра під час друку. Однак цей параметр призводить до деякого зниження якості поверхні, оскільки зовнішній периметр деформується, притискаючись до внутрішнього.\n"
+#~ "\n"
+#~ "Використовуйте Внутрішній/Зовнішній/Внутрішній для найкращої якості зовнішньої поверхні та точності розмірів, оскільки зовнішня стіна друкується без порушень від внутрішнього периметра. Однак, продуктивність на виході зменшиться, оскільки немає внутрішнього периметра, до якого можна було б притискати зовнішню стіну. Для ефективної роботи цієї опції потрібно щонайменше 3 стіни, оскільки спочатку друкуються внутрішні стіни, починаючи з 3-го периметра, потім зовнішній периметр і, нарешті, перший внутрішній периметр. У більшості випадків цей параметр рекомендується використовувати замість параметра Зовнішній/Внутрішній.\n"
+#~ "\n"
+#~ "Використовуйте опцію Зовнішня/Внутрішня для отримання такої ж якості зовнішньої стіни і точності розмірів, як і в опції Внутрішня/Зовнішня/Внутрішня. Однак шви по Z будуть виглядати менш рівномірними, оскільки перша екструзія нового шару починається на видимій поверхні "
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "Швидкість першого шару, за винятком зони суцільного заповнення"
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "Швидкість зони суцільного заповнення першого шару"
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "Область заповнення дещо збільшена, щоб перекривати стіну для кращого зчеплення. Значення у відсотках відносно ширини лінії розрідженого заповнення. Встановіть це значення на рівні ~10-15%, щоб мінімізувати можливість надмірного видавлювання та накопичення матеріалу, що призводить до шорсткості верхньої поверхні."
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "Площа верхнього суцільного заповнення злегка збільшується, щоб накладатися на стінку для кращого зчеплення та зменшення прогалин у місцях прилягання верхнього заповнення до стінок. Значення 25-30% є хорошим початком для мінімізації таких прогалин. Значення у відсотках відносно ширини лінії часткового заповнення"
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr ""
+#~ "Глибина зчеплення сегментованої області. Буде ігноруватися, якщо \"mmu_segmented_region_max_width\" дорівнює нулю або якщо \"mmu_segmented_region_interlocking_depth\" більший за \"mmu_segmented_region_max_width\".\n"
+#~ "\n"
+#~ "Нульове значення вимикає цю функцію."
+
+# AI Translated
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "Зменшує висоту периметрів верхньої поверхні відповідно до висоти краю моделі.\n"
+#~ "Впливає на периметри з нахилом, меншим за цей кут (у градусах).\n"
+#~ "Розумне значення — 35. Встановіть 0, щоб вимкнути."
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "Швидкість протирання залежно від типу"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "Захисний екран буде корисним для захисту друку ABS або ASA від викривлення та відлипання від столу в наслідок протягу повітря. Зазвичай він потрібен для відкритих принтерів, які не мають закритої камери.\n"
+#~ "\n"
+#~ "Увімкнено = Спідниця буде тої ж висоти що і найвищий обʼєкт друку. Інакше буде застосовано параметр \"Висота спідниці\"\n"
+#~ "До уваги: При увімкненому захисному екрані, спідниця буде надрукована на відстані від обʼєкту. Тому, якщо увімкнена кайма, вони можуть перетинатися. Щоб запобігти цьому, збільшіть значення відстані спідниці.\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "Максимальна швидкість друку під час продування у башті витирання та друку розріджених шарів у башті витирання. Якщо під час продування швидкість розрідженого заповнення або розрахована швидкість на основі максимальної обʼємної швидкості нитки нижча, замість неї використовуватиметься найнижча швидкість.\n"
+#~ "\n"
+#~ "Під час друку розріджених шарів, якщо швидкість по внутрішньому периметру або розрахована швидкість на основі максимальної обʼємної швидкості нитки нижча, буде використовуватися найнижча швидкість.\n"
+#~ "\n"
+#~ "Збільшення цієї швидкості може вплинути на стабільність башти, а також збільшити силу, з якою сопло стикається з будь-якими згустками, що можуть утворитися на башті витирання.\n"
+#~ "\n"
+#~ "Перш ніж збільшувати цей параметр понад значення за замовчуванням 90 мм/с, переконайтеся, що принтер може надійно працювати на підвищених швидкостях і що витікання під час заміни інструменту добре контролюється.\n"
+#~ "\n"
+#~ "Для зовнішніх периметрів вежі витирання використовується швидкість внутрішнього периметра незалежно від цього параметра."
+
+# AI Translated
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "Тип зовнішньої стінки вежі протирання.\n"
+#~ "1. Прямокутник: типовий тип стінки, прямокутник з фіксованою шириною та висотою.\n"
+#~ "2. Конус: конус із заокругленням унизу, що допомагає стабілізувати вежу протирання.\n"
+#~ "3. Ребро: додає до стінки вежі чотири ребра для більшої стійкості."
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "Додатковий потік для ліній очистки на вежі протирання. Це робить лінії очистки товщими або вужчими, ніж зазвичай. Відстань між лініями налаштовується автоматично."
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr "Налаштуйте це значення, щоб запобігти друкуванню коротких незакритих стін, що може збільшити час друку. Вищі значення видаляють більше і довші стіни."
 
 # AI Translated
 #, boost-format

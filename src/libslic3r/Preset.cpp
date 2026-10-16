@@ -1822,7 +1822,7 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
     const boost::filesystem::path &file, const std::string &canonical_name,
     const PresetOrigin &load_origin, ForwardCompatibilitySubstitutionRule substitution_rule,
     const std::string &extruder_id_name, const std::string &extruder_variant_name,
-    std::set<std::string> *key_set1, std::set<std::string> *key_set2) const
+    std::set<std::string> *key_set1, std::set<std::string> *key_set2, bool read_only) const
 {
     UserPresetLoad out;
     out.preset = Preset(m_type, canonical_name, false);
@@ -1856,7 +1856,10 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
 
         std::string version_str = key_values[BBL_JSON_KEY_VERSION];
         boost::optional<Semver> version = Semver::parse(version_str);
-        if (!version) return out;
+        if (!version) {
+            out.errors.push_back((boost::format("invalid version %1% in config %2%") % version_str % preset.file).str());
+            return out;
+        }
         preset.version = *version;
 
         if (key_values.find(BBL_JSON_KEY_FILAMENT_ID) != key_values.end())
@@ -1877,6 +1880,12 @@ PresetCollection::UserPresetLoad PresetCollection::resolve_user_preset(
             // Orca: try to find if the parent preset has been renamed
             inherit_preset = this->find_preset2(inherits_value);
             Preset::normalize_inherits(config, inherit_preset);
+        }
+        // Local hot reload only supports FFF; no SLA default printer is installed.
+        if (read_only && load_origin.kind == PresetOrigin::Kind::LocalBundle && m_type == Preset::TYPE_PRINTER &&
+            Preset::printer_technology(config) != ptFFF) {
+            out.errors.push_back((boost::format("local bundle printer %1% is not FFF") % preset.file).str());
+            return out;
         }
         const Preset& default_preset = this->default_preset_for(config);
         if (inherit_preset) {
@@ -2042,7 +2051,7 @@ void PresetCollection::load_presets(
     resolve_then_commit<CNumericLocalesSetter>(files.size(),
         [&](size_t i) {
             return this->resolve_user_preset(files[i].path, files[i].canonical_name, resolved_origin, substitution_rule,
-                                             extruder_id_name, extruder_variant_name, key_set1, key_set2);
+                                             extruder_id_name, extruder_variant_name, key_set1, key_set2, read_only);
         },
         [&](size_t i, UserPresetLoad &&loaded) {
             // Resolve read the files without the lock, so another instance may have saved
@@ -2062,7 +2071,7 @@ void PresetCollection::load_presets(
                 if (! (on_disk == loaded.on_disk)) {
                     CNumericLocalesSetter locales_setter;
                     loaded = this->resolve_user_preset(files[i].path, files[i].canonical_name, resolved_origin, substitution_rule,
-                                                       extruder_id_name, extruder_variant_name, key_set1, key_set2);
+                                                       extruder_id_name, extruder_variant_name, key_set1, key_set2, read_only);
                 }
             }
             const bool leave_files = read_only || (! lock_path.empty() && ! instance_lock.locked());
@@ -3135,7 +3144,9 @@ std::pair<Preset*, bool> PresetCollection::load_external_preset(
     }
     // Insert a new profile.
     //BBS: add project embedded preset logic
-    bool from_project = boost::algorithm::iends_with(name, ".3mf");
+    // A G-code's settings are shown like a project's, so a preset made from them lives with the project
+    // rather than in the user's library.
+    bool from_project = boost::algorithm::iends_with(name, ".3mf") || is_gcode_file(name);
     if (m_type == Preset::TYPE_PRINT)
         cfg.option<ConfigOptionString >("print_settings_id", true)->value  = new_name;
     else if (m_type == Preset::TYPE_FILAMENT)

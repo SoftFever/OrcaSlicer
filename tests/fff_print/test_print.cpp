@@ -26,6 +26,7 @@
 #include <catch2/catch_all.hpp>
 
 #include "libslic3r/Print.hpp"
+#include "libslic3r/Slicing.hpp"
 #include "libslic3r/Layer.hpp"
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/Support/TreeModelVolumes.hpp"
@@ -62,6 +63,8 @@
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/SurfaceCollection.hpp"
+#include "libslic3r/BoundingBox.hpp"
+#include "libslic3r/ExPolygon.hpp"
 
 using namespace Slic3r;
 using namespace Slic3r::Test;
@@ -1595,4 +1598,186 @@ TEST_CASE("Belt supports reach the belt under a leading overhang", "[Print][belt
         CHECK(lowest->print_z - floor_under_lowest < 4. * 0.2 + EPSILON);
         CHECK(lowest->print_z - floor_under_lowest > -0.2 - EPSILON);
     }
+}
+
+TEST_CASE("The build height check counts the Z shrinkage compensation once", "[Print][validate][Regression]")
+{
+    // printable_height is 100 mm and Z shrinks to 95 %, so the object is sliced 100 / 95 times taller.
+    // 92 mm become about 96.8 mm and fit; 97 mm become about 102.1 mm and only the compensation makes them too tall; 101 mm are too tall on their own.
+    const auto [height, expected] = GENERATE(table<double, std::string>({
+        { 92., "" },
+        { 97., "because of material shrinkage compensation" },
+        { 101., "exceeds the maximum build volume height." },
+    }));
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "printable_height", 100. },
+        { "filament_shrinkage_compensation_z", "95%" },
+        { "layer_height", 0.2 },
+        { "initial_layer_print_height", 0.2 },
+        { "layer_change_gcode", "G92 E0\n" }, // validate() relative-E reset
+    });
+
+    Print print;
+    Model model;
+    init_print({ make_cube(20., 20., height) }, print, model, config);
+    const std::string error = print.validate().string;
+    INFO(error);
+    if (expected.empty())
+        CHECK(error.empty());
+    else
+        CHECK(error.find(expected) != std::string::npos);
+}
+
+TEST_CASE("The build height check counts the raft", "[Print][validate][Regression]")
+{
+    // printable_height is 100 mm; three raft layers lift the object by 0.9 mm.
+    const auto [height, fits] = GENERATE(table<double, bool>({ { 98.8, true }, { 99.8, false } }));
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "printable_height", 100. },
+        { "raft_layers", 3 },
+        { "layer_height", 0.2 },
+        { "initial_layer_print_height", 0.2 },
+        { "layer_change_gcode", "G92 E0\n" }, // validate() relative-E reset
+    });
+
+    Print print;
+    Model model;
+    init_print({ make_cube(20., 20., height) }, print, model, config);
+    const SlicingParameters &slicing_params = print.objects().front()->slicing_parameters();
+    REQUIRE_THAT(slicing_params.object_print_z_min, Catch::Matchers::WithinAbs(0.9, EPSILON));
+    const std::string error = print.validate().string;
+    INFO(error);
+    if (fits)
+        CHECK(error.empty());
+    else
+        CHECK(error.find("maximum build volume height") != std::string::npos);
+}
+
+TEST_CASE("Filament shrinkage compensation scales the sliced object", "[Print][Regression]")
+{
+    // A 20 mm cube printed with a filament that shrinks to xy % / z % is sliced 20 * 100 / xy wide and,
+    // up to one layer, 20 * 100 / z tall.
+    const auto [xy, z] = GENERATE(table<double, double>({ { 100., 100. }, { 90., 100. }, { 100., 95. } }));
+    const double layer_height = 0.2;
+
+    Print print;
+    init_and_process_print({ cube(20.) }, print, {
+        { "filament_shrink", xy },
+        { "filament_shrinkage_compensation_z", z },
+        { "layer_height", layer_height },
+        { "initial_layer_print_height", layer_height },
+        { "precise_z_height", false },
+        { "raft_layers", 0 },
+        { "xy_contour_compensation", 0. },
+    });
+
+    const PrintObject &object = *print.objects().front();
+    const Layer &middle = *object.get_layer(int(object.layer_count() / 2));
+    const BoundingBox extents = get_extents(middle.lslices);
+    CHECK_THAT(unscale<double>(extents.size().x()), Catch::Matchers::WithinAbs(20. * 100. / xy, 0.01));
+    CHECK_THAT(unscale<double>(extents.size().y()), Catch::Matchers::WithinAbs(20. * 100. / xy, 0.01));
+    CHECK_THAT(object.layers().back()->print_z, Catch::Matchers::WithinAbs(20. * 100. / z, layer_height));
+}
+
+TEST_CASE("Filament shrinkage compensation follows the filaments the object prints with", "[Print][Regression]")
+{
+    // Filament 1 shrinks to 90 %, filament 2 not at all. An unused filament does not matter; two used filaments
+    // that disagree switch the compensation off and validate() warns about it.
+    const auto [wall_filament, expected_width] = GENERATE(table<int, double>({ { 1, 20. * 100. / 90. }, { 2, 20. } }));
+
+    Print print;
+    init_and_process_print({ cube(20.) }, print, multifilament_config(2, {
+        { "filament_shrink", "90%,100%" },
+        { "outer_wall_filament_id", wall_filament },
+        { "inner_wall_filament_id", wall_filament },
+        { "xy_contour_compensation", 0. },
+        { "layer_change_gcode", "G92 E0\n" }, // validate() relative-E reset
+    }));
+
+    const PrintObject &object = *print.objects().front();
+    const BoundingBox extents = get_extents(object.get_layer(int(object.layer_count() / 2))->lslices);
+    CHECK_THAT(unscale<double>(extents.size().x()), Catch::Matchers::WithinAbs(expected_width, 0.01));
+
+    std::vector<StringObjectException> warnings;
+    CHECK(print.validate(&warnings).string.empty());
+    const bool mismatch_warning = std::any_of(warnings.begin(), warnings.end(), [](const StringObjectException &w) {
+        return w.string.find("Filament shrinkage will not be used") != std::string::npos;
+    });
+    CHECK(mismatch_warning == (wall_filament == 2));
+}
+
+TEST_CASE("Applying the same model again keeps the filament shrinkage compensation", "[Print][Regression]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({ { "filament_shrink", "90%" }, { "xy_contour_compensation", 0. } });
+
+    Print print;
+    Model model;
+    init_print({ cube(20.) }, print, model, config);
+    const auto width = [&print]() {
+        print.process();
+        const PrintObject &object = *print.objects().front();
+        return unscale<double>(get_extents(object.get_layer(int(object.layer_count() / 2))->lslices).size().x());
+    };
+    CHECK_THAT(width(), Catch::Matchers::WithinAbs(20. * 100. / 90., 0.01));
+    print.apply(model, config);
+    CHECK_THAT(width(), Catch::Matchers::WithinAbs(20. * 100. / 90., 0.01));
+}
+
+TEST_CASE("Height ranges and modifiers count for the filament shrinkage compensation", "[Print][Regression]")
+{
+    // The model is complete before the first apply(), so no PrintRegion tells yet which filaments print.
+    enum class Setup { RangeWall, ModifierInfill, ModifierInheritingObjectFilament };
+    const Setup setup = GENERATE(Setup::RangeWall, Setup::ModifierInfill, Setup::ModifierInheritingObjectFilament);
+    // The object prints with the filament that shrinks to 90 %, the other one does not shrink.
+    const bool object_on_filament_2 = setup == Setup::ModifierInheritingObjectFilament;
+    DynamicPrintConfig config = multifilament_config(2, {
+        { "filament_shrink", object_on_filament_2 ? "100%,90%" : "90%,100%" },
+        { "xy_contour_compensation", 0. },
+        { "layer_change_gcode", "G92 E0\n" }, // validate() relative-E reset
+    });
+
+    Model model;
+    ModelObject *object = model.add_object();
+    object->add_volume(cube(20.));
+    DynamicPrintConfig override;
+    switch (setup) {
+    case Setup::RangeWall:
+        // The walls of a height range print with the other filament.
+        override.set_key_value("outer_wall_filament_id", new ConfigOptionInt(2));
+        // Every layer range must carry a layer_height (see layer_height_profile_from_ranges).
+        override.set_key_value("layer_height", new ConfigOptionFloat(0.2));
+        object->layer_config_ranges[{ 5., 10. }].assign_config(std::move(override));
+        break;
+    case Setup::ModifierInfill:
+        // The infill inside a modifier prints with the other filament.
+        override.set_key_value("sparse_infill_filament_id", new ConfigOptionInt(2));
+        object->add_volume(cube(10.), ModelVolumeType::PARAMETER_MODIFIER, false)->config.apply(override);
+        break;
+    case Setup::ModifierInheritingObjectFilament:
+        // The modifier only changes the infill density and keeps printing with the filament of the object.
+        object->config.set_key_value("extruder", new ConfigOptionInt(2));
+        override.set_key_value("sparse_infill_density", new ConfigOptionPercent(30));
+        object->add_volume(cube(10.), ModelVolumeType::PARAMETER_MODIFIER, false)->config.apply(override);
+        break;
+    }
+    object->add_instance()->set_offset(Vec3d(90., 90., 0.));
+    object->ensure_on_bed();
+
+    Print print;
+    print.apply(model, config);
+    print.process();
+
+    const PrintObject &print_object = *print.objects().front();
+    const BoundingBox extents = get_extents(print_object.get_layer(int(print_object.layer_count() / 2))->lslices);
+    const double expected_width = object_on_filament_2 ? 20. * 100. / 90. : 20.;
+    CHECK_THAT(unscale<double>(extents.size().x()), Catch::Matchers::WithinAbs(expected_width, 0.01));
+    std::vector<StringObjectException> warnings;
+    CHECK(print.validate(&warnings).string.empty());
+    const bool mismatch_warning = std::any_of(warnings.begin(), warnings.end(), [](const StringObjectException &w) {
+        return w.string.find("Filament shrinkage will not be used") != std::string::npos;
+    });
+    CHECK(mismatch_warning == ! object_on_filament_2);
 }

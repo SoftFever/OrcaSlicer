@@ -505,10 +505,12 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     io.MouseDown[0] = evt.LeftIsDown();
     io.MouseDown[1] = evt.RightIsDown();
     io.MouseDown[2] = evt.MiddleIsDown();
-    float wheel_delta = static_cast<float>(evt.GetWheelDelta());
-    if (wheel_delta != 0.0f) {
+    // Only a vertical wheel event with a direction is a wheel step. A macOS trackpad reports sideways motion
+    // as separate horizontal events, and its wheel events often carry a rotation of 0: wx truncates the
+    // sub-pixel deltas to whole ones and passes on events with no delta at all. Read as vertical steps,
+    // either kind scrolls against the gesture, and scrolling up bounces back and forth.
+    if (evt.GetWheelAxis() == wxMOUSE_WHEEL_VERTICAL && evt.GetWheelRotation() != 0)
         io.MouseWheel = evt.GetWheelRotation() > 0 ? 1.f : -1.f;
-    }
     unsigned buttons = (evt.LeftIsDown() ? 1 : 0) | (evt.RightIsDown() ? 2 : 0) | (evt.MiddleIsDown() ? 4 : 0);
     m_mouse_buttons = buttons;
 
