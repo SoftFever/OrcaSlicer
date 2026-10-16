@@ -315,6 +315,79 @@ TEST_CASE("Per-object wall filament override is honored", "[MultiFilament]")
     CHECK(tools_for_role(gcode, "infill")    == std::set<int>{ 0 }); // infill not overridden: stays on F1
 }
 
+// FanMover's guard against splitting a G1 inside custom gcode keys off the ";_FAN_MOVER_SKIP_START/END"
+// markers GCode::set_extruder() must emit around change_filament_gcode's output. Direct
+// toolchanges and Type2's wipe-tower toolchange (append_tcr2() calls set_extruder()) both go
+// through it; Type1's wipe-tower toolchange (WipeTowerIntegration::append_tcr(), append_tcr2's only
+// sibling caller of change_filament_gcode) needs the same bracketing of its own.
+TEST_CASE("Toolchange gcode is bracketed against FanMover splitting its moves", "[MultiFilament]")
+{
+    const std::string custom_gcode = "; fan full\nM106 P1 S255\nM400 S3\nG1 X77 F5000\nG1 X91 F3000\n";
+
+    // "direct": no prime tower, GCode::set_extruder() runs the toolchange. By-object sequencing
+    // with a per-object filament override is what makes one happen at all without a tower.
+    // "type1": a Type1 prime tower routes the toolchange through WipeTowerIntegration::append_tcr()
+    // instead (append_tcr2, Type2's equivalent, itself calls set_extruder() - so Type2 needs no
+    // separate case here).
+    const std::string path = GENERATE(as<std::string>{}, "direct", "type1");
+    CAPTURE(path);
+
+    std::string gcode_str;
+    if (path == "direct") {
+        const std::vector<std::vector<Slic3r::ConfigBase::SetDeserializeItem>> per_object_overrides = {
+            {}, { { "outer_wall_filament_id", "2" }, { "inner_wall_filament_id", "2" } }
+        };
+        DynamicPrintConfig config = multifilament_config(2, {
+            { "skirt_loops",           0 },
+            { "brim_type",             "no_brim" },
+            { "print_sequence",        "by object" },
+            { "change_filament_gcode", custom_gcode },
+            { "fan_speedup_time",      0.5 },
+            { "fan_kickstart",         0.1 },
+        });
+        gcode_str = slice_with_object_overrides({ cube(20), cube(20) }, config, per_object_overrides);
+    } else {
+        const std::vector<std::vector<Slic3r::ConfigBase::SetDeserializeItem>> per_object_overrides = {
+            { { "extruder", "1" } }, { { "extruder", "2" } }
+        };
+        DynamicPrintConfig config = multifilament_config(2, {
+            { "change_filament_gcode", custom_gcode },
+            { "fan_speedup_time",      0.5 },
+            { "fan_kickstart",         0.1 },
+            { "enable_prime_tower",    true },
+            { "wipe_tower_type",       "type1" },
+            { "prime_tower_width",     35 },
+            { "wipe_tower_x",          120 },
+            { "wipe_tower_y",          120 },
+            { "printable_area",        "0x0,200x0,200x200,0x200" },
+            { "skirt_loops",           0 },
+            { "brim_type",             "no_brim" },
+        });
+        gcode_str = slice_with_object_overrides({ cube(20), cube(20) }, config, per_object_overrides);
+    }
+
+    // The resolved-settings config footer echoes "change_filament_gcode = ..." with its value
+    // escaped, so drop it before counting or its own copy of "G1 X77 F5000" is miscounted.
+    const size_t footer_start = gcode_str.find("; CONFIG_BLOCK_START");
+    REQUIRE(footer_start != std::string::npos);
+    gcode_str.erase(footer_start);
+
+    auto count_occurrences = [](const std::string &haystack, const std::string &needle) {
+        size_t count = 0, pos = 0;
+        while ((pos = haystack.find(needle, pos)) != std::string::npos) {
+            ++count;
+            pos += needle.size();
+        }
+        return count;
+    };
+    const size_t total_waypoints = count_occurrences(gcode_str, "G1 X77 F5000");
+    const size_t bracketed       = count_occurrences(gcode_str, "M400 S3\nG1 X77 F5000");
+    REQUIRE(total_waypoints > 0);
+    CHECK(bracketed == total_waypoints);
+    // FanMover drops its own markers; only the start-of-print toolchange, which it never processes, keeps them.
+    CHECK(count_occurrences(gcode_str, ";_FAN_MOVER_SKIP_START") <= 1);
+}
+
 // With wait_for_temp_on_wipe_tower the blocking M109 moves from right after the Tn command to
 // a stop point parked beside the wipe tower (heat-up drool falls next to the tower, not onto
 // its top): tagged with _WAIT_FOR_TEMP_ON_WIPE_TOWER, after the toolchange and before the
@@ -1668,4 +1741,113 @@ TEST_CASE("Each filament cools with the fan speeds of its extruder variant", "[M
         CHECK(fan_speeds(gcode, "M106 P2 S") == std::set<int>{ additional_fan_speed });
         CHECK(gcode.find("; start range high " + std::to_string(range_high) + "\n") != std::string::npos);
     }
+}
+
+TEST_CASE("Shared heater on IMEX printer stays hot until all filaments on it are done", "[MultiFilament]")
+{
+    DynamicPrintConfig cfg = multifilament_config(7);
+    cfg.set_deserialize_strict({
+        {"ooze_prevention", 1},
+        {"preheat_time", 0},
+        {"single_extruder_multi_material", 0},
+    });
+    imex_7x4_printer(cfg);
+
+    const std::string gcode = slice_with_object_overrides({make_cube(20., 20., 10.), make_cube(20., 20., 4.), make_cube(20., 20., 10.)},
+                                                          cfg,
+                                                          {{{"extruder", 1}, {"layer_height", 0.30}},
+                                                           {{"extruder", 2}, {"layer_height", 0.15}},
+                                                           {{"extruder", 5}}});
+
+    bool premature_s0_t0 = false;
+    double current_z     = 0.0;
+
+    GCodeReader reader;
+    reader.parse_buffer(gcode, [&](GCodeReader& /*self*/, const GCodeReader::GCodeLine& line) {
+        if (line.has_z())
+            current_z = line.z();
+
+        const std::string raw = line.raw();
+        if (raw.find("M104 S0 T0") != std::string::npos && raw.find(";cooldown") != std::string::npos) {
+            if (current_z < 9.0)
+                premature_s0_t0 = true;
+        }
+    });
+
+    // Filaments 1 and 2 share head 0, and filament 1 prints up to 10mm.
+    // T0 must not shut down at ~4mm when filament 2 finishes.
+    CHECK_FALSE(premature_s0_t0);
+}
+
+TEST_CASE("Unused extruder turns off after its final layer on multi-object print", "[MultiFilament]")
+{
+    const std::string gcode = slice_with_object_overrides(
+        { make_cube(20., 20., 10.), make_cube(20., 20., 4.) },
+        multifilament_config(2, {
+            { "single_extruder_multi_material", 0 },
+            { "ooze_prevention",                1 },
+            { "standby_temperature_delta",      -40 },
+            { "nozzle_temperature",             "240,240" },
+        }),
+        {
+            { { "extruder", 1 }, { "layer_height", 0.20 } },
+            { { "extruder", 2 }, { "layer_height", 0.15 } }
+        });
+
+    int t1_s0_cooldown_count = 0;
+    int t0_s0_cooldown_count = 0;
+
+    std::istringstream stream(gcode);
+    for (std::string line; std::getline(stream, line);) {
+        if (line.find(";cooldown") != std::string::npos) {
+            if (line.find("M104 S0 T1") != std::string::npos)
+                ++t1_s0_cooldown_count;
+            if (line.find("M104 S0 T0") != std::string::npos)
+                ++t0_s0_cooldown_count;
+        }
+    }
+
+    // T1 (extruder 2, 4mm cube) gets exactly one S0 after its last layer.
+    // T0 (extruder 1, 10mm cube) never gets S0 mid-print.
+    CHECK(t1_s0_cooldown_count == 1);
+    CHECK(t0_s0_cooldown_count == 0);
+}
+
+TEST_CASE("Unused extruder turns off on non-IMEX three-tool print", "[MultiFilament]")
+{
+    const std::string gcode = slice_with_object_overrides(
+        { make_cube(20., 20., 4.), make_cube(20., 20., 10.), make_cube(20., 20., 10.) },
+        multifilament_config(3, {
+            { "single_extruder_multi_material", 0 },
+            { "ooze_prevention",                1 },
+            { "standby_temperature_delta",      -40 },
+            { "nozzle_temperature",             "240,240,240" },
+        }),
+        {
+            { { "extruder", 1 } },
+            { { "extruder", 2 } },
+            { { "extruder", 3 } }
+        });
+
+    bool premature_s0_t1 = false;
+    bool premature_s0_t2 = false;
+    double current_z     = 0.0;
+
+    GCodeReader reader;
+    reader.parse_buffer(gcode, [&](GCodeReader& /*self*/, const GCodeReader::GCodeLine& line) {
+        if (line.has_z())
+            current_z = line.z();
+
+        const std::string raw = line.raw();
+        if (raw.find(";cooldown") != std::string::npos && current_z < 9.0) {
+            if (raw.find("M104 S0 T1") != std::string::npos)
+                premature_s0_t1 = true;
+            if (raw.find("M104 S0 T2") != std::string::npos)
+                premature_s0_t2 = true;
+        }
+    });
+
+    // T1 and T2 print up to 10mm — neither should get S0 before that.
+    CHECK_FALSE(premature_s0_t1);
+    CHECK_FALSE(premature_s0_t2);
 }

@@ -816,6 +816,18 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
 bool MainFrame::handle_global_shortcut(const KeyChord& chord)
 {
+    // ImGui draws its text fields (the text tool's box, a sketch value field) on the GL canvas, so
+    // while one of them is typed into the focused wx window is that canvas or an in-canvas frame:
+    // neither is a wxControl, so focus_keeps_space() cannot see it and CHAR_HOOK takes the chord
+    // here first -- Space opened the Speed Dial, Ctrl+P the Preferences, and the field never saw
+    // the key. ImGui raises WantCaptureKeyboard while one of its items owns the keyboard, so leave
+    // the key to it then. A focused wxControl (text field, list, web view) is untouched: those
+    // keep their own keys, and ImGui's flag can outlive the focus moving to one of them.
+    wxWindow* const focus = wxWindow::FindFocus();
+    ImGuiWrapper* const imgui = wxGetApp().imgui();
+    if (focus != nullptr && imgui != nullptr && imgui->want_keyboard() && dynamic_cast<wxControl*>(focus) == nullptr)
+        return false;
+
     const std::optional<Shortcut> shortcut = wxGetApp().shortcuts().lookup(ShortcutContext::Global, chord);
     if (!shortcut.has_value())
         return false;
@@ -1727,6 +1739,9 @@ void MainFrame::fit_tab_labels()
     for (size_t i = count - 1; i >= 1; --i) {
         int right = ScreenToClient(m_slice_option_btn->ClientToScreen({})).x;
         int left  = sizer->GetSize().GetWidth();
+        // The overflow button sits between the tab buttons and the side tools, so it is not free space.
+        if (const wxWindow* overflow = ctrl->GetOverflowButton())
+            left += overflow->GetSize().GetWidth();
         if (right - left - FromDIP(15) > 0) return;
         ctrl->SetCompact(i, true);
         m_tabpanel->Refresh();
@@ -1746,7 +1761,8 @@ bool MainFrame::preview_only_hint()
         confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
         auto filename = m_plater->get_preview_only_filename();
 
-        confirm_dlg.update_text(filename + " " + _L("will be closed before creating a new model. Do you want to continue?"));
+        // TRN %s is a file name.
+        confirm_dlg.update_text(wxString::Format(_L("%s will be closed before creating a new model. Do you want to continue?"), from_u8(filename)));
         confirm_dlg.on_show();
         if (preview_only_to_editor) {
             m_plater->new_project();
@@ -2826,6 +2842,10 @@ wxMenu* MainFrame::generate_help_menu()
     // Open Config Folder
     append_menu_item(helpMenu, wxID_ANY, _L("Show Configuration Folder"), _L("Show Configuration Folder"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
+
+    append_menu_item(helpMenu, wxID_ANY, _L("Migrate Filament Presets"),
+        _L("Bring back filament presets that a profile update removed from printers they were made for"),
+        [](wxCommandEvent&) { wxGetApp().check_legacy_user_filament_presets(true); });
 
     helpMenu->AppendSeparator();
 

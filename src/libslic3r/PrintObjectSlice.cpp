@@ -956,7 +956,7 @@ void PrintObject::slice()
             }
         });
     if (m_layers.empty())
-        throw Slic3r::SlicingError(L("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"));
+        throw Slic3r::SlicingError(L("No layers were detected. You might want to repair the model or check its size or thickness and retry.\n"));
 
     // Belt printer: offset all layer Z values so objects at different positions
     // along the belt print at different heights on the tilted belt.  This is a
@@ -1532,7 +1532,7 @@ void PrintObject::slice_volumes()
                         if (min_growth < 0.f || elfoot > 0.f) {
                             // Apply the negative XY compensation. (the ones that is <0)
                             ExPolygons trimming;
-                            static const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
+                            const float eps = float(scale_(m_config.slice_closing_radius.value) * 1.5);
                             if (elfoot > 0.f) {
                                 ExPolygons expolygons_to_compensate = offset_ex(layer->merged(eps), -eps);
                                 lslices_elfoot_uncompensated[layer_id] = expolygons_to_compensate;
