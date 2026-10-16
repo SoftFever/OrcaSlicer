@@ -3985,6 +3985,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     this->placeholder_parser().set("print_time_minute", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Minute_Placeholder)));
     this->placeholder_parser().set("print_time_sec", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Print_Time_Sec_Placeholder)));
     this->placeholder_parser().set("used_filament_length", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Length_Placeholder)));
+    // The final print statistics are known only after the whole G-code is generated, so they are filled in during post-processing too.
+    // The running extruded_* totals are left alone; profiles use them as numbers.
+    this->placeholder_parser().set("used_filament", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Used_Filament_Length_Placeholder)));
+    this->placeholder_parser().set("print_time", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Normal_Print_Time_Placeholder)));
+    this->placeholder_parser().set("normal_print_time", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Normal_Print_Time_Placeholder)));
+    this->placeholder_parser().set("silent_print_time", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Silent_Print_Time_Placeholder)));
+    this->placeholder_parser().set("total_weight", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Weight_Placeholder)));
+    this->placeholder_parser().set("total_cost", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Cost_Placeholder)));
+    this->placeholder_parser().set("total_wipe_tower_cost", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Wipe_Tower_Cost_Placeholder)));
+    this->placeholder_parser().set("total_wipe_tower_filament", new ConfigOptionString(GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Total_Wipe_Tower_Filament_Placeholder)));
 
     // Sync variant-mapped params into placeholder_parser before processing start gcode
     update_placeholder_parser_with_variant_params();
