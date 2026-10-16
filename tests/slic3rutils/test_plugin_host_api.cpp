@@ -222,6 +222,46 @@ TEST_CASE("Plugin host API exposes the filament slot form of preset update and g
     }
 }
 
+TEST_CASE("Plugin host API exposes staged preset update transactions", "[PluginHost][Python]")
+{
+    py::object preset = import_orca_module().attr("host").attr("preset");
+    py::object transaction_type = preset.attr("PresetTransaction");
+    py::object result_type = preset.attr("PresetUpdateResult");
+    py::object selection_cancelled = preset.attr("PresetSelectionCancelled");
+    py::object runtime_error = py::module_::import("builtins").attr("RuntimeError");
+
+    CHECK(has_attr(transaction_type, "set"));
+    CHECK(has_attr(transaction_type, "commit"));
+    CHECK(py::module_::import("builtins").attr("issubclass")(selection_cancelled, runtime_error).cast<bool>());
+    CHECK(has_attr(result_type, "target_name"));
+    CHECK(has_attr(result_type, "selection_changed"));
+    CHECK(has_attr(result_type, "slot_assignment_changed"));
+    CHECK(has_attr(result_type, "shared_slots"));
+
+    for (const char* name : { "process", "printer" }) {
+        CAPTURE(name);
+        py::object editor = preset.attr(name);
+        CHECK(has_attr(editor, "begin_update"));
+        try {
+            editor.attr("begin_update")();
+            FAIL("begin_update unexpectedly succeeded without a wx application");
+        } catch (const py::error_already_set& error) {
+            CHECK(error.matches(PyExc_RuntimeError));
+            CHECK(std::string(error.what()).find("OrcaSlicer application is not initialized") != std::string::npos);
+        }
+    }
+
+    py::object filament = preset.attr("filament");
+    CHECK(has_attr(filament, "begin_update"));
+    try {
+        filament.attr("begin_update")(1);
+        FAIL("filament begin_update unexpectedly succeeded without a wx application");
+    } catch (const py::error_already_set& error) {
+        CHECK(error.matches(PyExc_RuntimeError));
+        CHECK(std::string(error.what()).find("OrcaSlicer application is not initialized") != std::string::npos);
+    }
+}
+
 TEST_CASE("A settings group resolves an option's id from its option map", "[PluginHost]")
 {
     using Slic3r::GUI::option_id_in_map;

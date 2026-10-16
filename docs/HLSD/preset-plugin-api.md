@@ -57,18 +57,22 @@ tx.set("layer_height", "0.2")
 tx.commit()
 ```
 
-The example expresses the intended API contract. The current Python bridge does not
-support this awaitable transaction shape; supporting it requires new coroutine or
-continuation handling. Any wait for a UI decision must suspend the plugin operation
-without blocking Orca's UI thread.
+The example is the API contract, and the Python bridge provides it. `begin_update()`
+is awaitable: it suspends the plugin operation until the target selection and any
+unsaved-edit dialog settle, without blocking Orca's UI thread. `set()` and `commit()`
+run synchronously on the background Script worker once the awaitable resolves.
+Awaiting `begin_update()` requires the Script worker's running asyncio loop; the
+mechanism is described in [python-plugin-async-bridge.md](python-plugin-async-bridge.md).
 
 ### Target resolution
 
 - **Filament:** `slot_number` identifies the slot. If `preset_name` is omitted,
   the transaction targets the preset currently assigned to that slot. If supplied,
   it requests that preset for the slot and selects it through the normal UI flow;
-  the name must be among the presets offered by that slot's dropdown. Selecting a
-  different preset changes the slot-to-preset mapping. In both cases the transaction
+  the name must be among the presets offered by that slot's dropdown, with one
+  exception: the preset currently assigned to the slot stays targetable even when the
+  slot's dropdown hides it (for example an incompatible-but-selected preset). Selecting
+  a different preset changes the slot-to-preset mapping. In both cases the transaction
   edits the shared preset, not an isolated slot override.
 - **Process and printer:** omitting `preset_name` targets the currently active
   preset. Supplying `preset_name` requests the preset by the name shown in its
@@ -86,21 +90,23 @@ different preset.
 
 ## Selection and user interaction
 
-`begin_update()` resolves its target, then delegates any required selection to the
-shared underlying `switch_preset` operation. It calls `switch_preset` only when the
-requested target differs from the active target; otherwise it returns a transaction
-without switching. `switch_preset` is responsible for using Orca's normal preset
-selection flow, including updating a filament slot assignment when requested. If
-the normal selection flow requires user input, it opens the relevant existing
-dialog(s), including unsaved-edit choices such as save, discard, or transfer. The
-operation is awaitable and remains pending until those interactions finish; it
-resolves with the switch result or cancellation, without applying staged settings.
-A canceled switch does not change the requested target or filament slot assignment,
-but it does not roll back decisions the user already accepted in an earlier dialog.
-`switch_preset` is a proposed implementation-level coordinator, not an existing
-function or a separate plugin API. It must use the normal type-specific selection
-paths and confirm that the requested preset actually became active; a successful
-selection request alone is not sufficient.
+`begin_update()` resolves its target through shared binding helpers
+(`bind_preset_target` for process/printer, `bind_filament_target` for filament) and
+performs the selection only when the requested target differs from the active target;
+otherwise it returns a transaction without switching. The helpers use Orca's normal
+preset selection flow, `Tab::select_preset()`, including updating a filament slot
+assignment when requested. If the normal selection flow requires user input, it opens
+the relevant existing dialog(s), including unsaved-edit choices such as save, discard,
+or transfer. The operation is awaitable and remains pending until those interactions
+finish; it resolves with the bound transaction, or with a cancellation, without
+applying staged settings. A canceled selection does not change the requested target or
+filament slot assignment, but it does not roll back decisions the user already accepted
+in an earlier dialog. Cancellation of the awaiting coroutine is separate from a user
+cancel: a selection the user already accepted is not reversed, while the remaining slot
+assignment and the transaction creation are skipped when the cancellation is observed
+before the slot is reassigned (see [python-plugin-async-bridge.md](python-plugin-async-bridge.md)). The helpers then confirm that the requested preset actually
+became the edited preset; a successful selection request alone is not sufficient. There
+is no separate `switch_preset` plugin API.
 
 If the requested target is already active, `begin_update()` returns without a
 selection prompt, apart from any UI-thread dispatch needed by the bridge. If a
@@ -120,22 +126,30 @@ the active preset is the target.
 
 `set(key, value)` stages a serialized config value and does not mutate the preset.
 The transaction is the boundary for a related group of changes, avoiding
-intermediate partially-updated states. At commit, the API validates keys and values
-against the target preset type and applies the batch through the existing tab and
-settings-group update path. Existing setting-specific validation, correction, and
-callbacks remain authoritative; plugin updates must not create a parallel setter
-with different behavior.
+intermediate partially-updated states. `commit()` runs synchronously on the background
+Script worker. At commit, the API validates keys and values against the target preset
+type and applies the batch through `Tab::apply_preset_config_values`, the existing tab
+and settings-group update path. Existing setting-specific validation, correction, and
+callbacks remain authoritative; plugin updates do not create a parallel setter with
+different behavior.
 
 A successful commit updates dirty state and downstream configuration/Plater state
-once for the batch where possible. The edited preset remains unsaved; persistence
-continues through Orca's normal save action. A validation or commit failure must
-not leave only some staged target settings applied. This all-or-nothing batch
-guarantee requires a batch-aware commit path; the current setter applies one option
-at a time and cannot provide it by simply looping over existing calls. A filament slot assignment
-made as part of target selection is not a staged setting: after the user accepts
-the selection flow, it may remain changed even if a later commit fails. The API
-does not automatically switch back or reverse the user's selection or any accepted
-transfer/discard decision for the previous preset.
+once for the batch. The edited preset remains unsaved; persistence continues through
+Orca's normal save action. A validation or commit failure restores the edited preset's
+config to its pre-batch state and recomputes the state derived from it (compatibility
+marks, the preset selector, dependent tabs, the Plater and the printer agent), so no
+staged setting is left partially applied. That guarantee is limited to the edited
+preset and its config-derived state: an `on_change` callback is a GUI method, not a pure
+function of the config, so the transaction does not reverse a preset or slot selection
+made while resolving the target, a dialog decision the user already accepted, an undo
+snapshot, a dependent preset's rewritten config, or anything already sent to a device.
+Exact all-or-nothing across those external effects is not achievable while the
+authoritative GUI callbacks run; the boundary is documented on
+`Tab::apply_preset_config_values`. A filament slot assignment made as part of target
+selection is likewise not a staged setting: after the user accepts the selection flow it
+may remain changed even if a later commit fails, and the API does not switch back or
+reverse the user's selection or any accepted transfer/discard decision for the previous
+preset.
 
 ## Outcomes and consistency
 
@@ -153,9 +167,10 @@ duplicate writes to one setting in a transaction are rejected rather than resolv
 by incidental call order.
 
 The existing one-setting filament call,
-`orca.host.preset.filament.update(slot_number, key, value)`, can remain as a
+`orca.host.preset.filament.update(slot_number, key, value)`, remains available as a
 compatibility shorthand. It shares the staged API's target resolution, selection,
-validation, and commit path.
+validation, and commit path, and it is synchronous (it blocks the background Script
+worker) rather than awaitable.
 
 ## Design principles
 
@@ -180,63 +195,61 @@ validation, and commit path.
   filament share transaction and error semantics while respecting their existing
   selection models.
 
-## Feasibility against the current codebase
+## Implementation in the current codebase
 
-The design builds on existing preset and tab behavior, but the transaction API and
-some target-selection behavior are new. The current plugin surface exposes
-per-setting `update()` calls. For filament, `update_filament_slot()` resolves the
-preset already assigned to a slot, selects it through `Tab::select_preset()`, and
-applies one setting through `Tab::apply_preset_config_value()`. It does not change
-the slot assignment. There is no current `begin_update()`, transaction type, or
-`switch_preset()` helper.
+The transaction API is implemented. The current plugin surface exposes `begin_update()`,
+`PresetTransaction` with `set()`/`commit()`, and the per-setting `update()` compatibility
+shorthand. For filament, `update_filament_slot()` resolves the preset already assigned
+to a slot, selects it through `Tab::select_preset()`, and applies one setting through
+`Tab::apply_preset_config_values()`; it does not change the slot assignment.
 
-`Tab::select_preset()` is the existing basis for switching to process, printer, or
-filament presets and for invoking the normal unsaved-edit flow. The flow is
-type-specific: a process selection can trigger compatibility handling for
-filaments, and a printer selection can involve technology changes and dependent
-preset compatibility. It may therefore show more than one dialog. Cancellation of
-a later step does not necessarily undo decisions the user already accepted in an
-earlier dialog. The plugin operation must preserve those side effects and verify
-the resulting edited target.
+`begin_update()` is awaitable through a Future-backed UI continuation
+(`begin_preset_update_async` / `begin_filament_update_async` plus `AsyncFuture`; see
+[python-plugin-async-bridge.md](python-plugin-async-bridge.md)). It posts the target
+binding to the UI thread and resolves once the selection settles, so the wait does not
+block the UI thread. The `update()` shorthand keeps the synchronous, blocking form,
+which is valid only on the background Script worker.
 
-The filament `preset_name` behavior is an additional integration, not a capability
-of `Tab::select_preset()`: selecting a different name for a slot must also update
-the slot-to-preset mapping through the Plater's normal selection behavior. That
-path updates more than the vector entry, including dependent UI/configuration state.
-The API should reuse or factor that path rather than call
-`PresetBundle::set_filament_preset()` alone. It must also define which UI-visible
-slots are valid, including whether mixed-color virtual slots are targetable.
+`Tab::select_preset()` is the basis for switching to process, printer, or filament
+presets and for invoking the normal unsaved-edit flow. The flow is type-specific: a
+process selection can trigger compatibility handling for filaments, and a printer
+selection can involve technology changes and dependent preset compatibility. It may
+therefore show more than one dialog. Cancellation of a later step does not necessarily
+undo decisions the user already accepted in an earlier dialog. Target resolution
+preserves those side effects and then verifies the resulting edited target.
 
-Process and printer dropdown choices are constrained by visibility and
-compatibility, and compatibility may depend on the active context. `Tab::select_preset()`
-performs its own compatibility and technology checks; merely finding a name in the
-collection does not prove it is an allowed dropdown choice. Target validation must
-follow the same rules as the UI.
+Filament `preset_name` is an additional integration on top of `Tab::select_preset()`:
+selecting a different name for a slot also updates the slot-to-preset mapping and its
+dependent UI/configuration state, mirroring the filament branch of the Plater's normal
+selection path (`PresetBundle::set_filament_preset()` plus the project/selection refresh,
+the dynamic filament list, the conditional support-filament flushing recalc, the slot
+combo refresh and its AMS sync badge). A mixed-color virtual slot is not targetable.
 
-The current `PluginHostUi::run_on_ui_thread()` path marshals work synchronously and
-waits for completion; modal selection dialogs block that operation until answered.
-It is not an asyncio/coroutine bridge. Thus the user-facing wait exists today, but
-the proposed Python `await` behavior does not. An awaitable `switch_preset()` needs
-new plugin scheduling/continuation support and must avoid blocking the UI thread or
-deadlocking callers running on threads that the UI itself waits for.
+Process and printer dropdown choices are constrained by visibility and compatibility,
+and compatibility may depend on the active context. Target resolution checks the tab
+dropdown's actual items before the selection flow, so a target the user cannot pick
+fails without raising that flow's unsaved-edit prompt; a name two entries carry is
+rejected as ambiguous. A filament `preset_name` resolves against the requested slot's
+own sidebar selector rather than the tab's, so that slot's compatibility filter is the
+one that applies. A name the slot's dropdown does not show is rejected unless it names
+that slot's current assignment (a hidden or incompatible-but-selected preset), which
+stays targetable.
 
-Finally, `Tab::apply_preset_config_value()` validates and commits one setting at a
-time. It backs up one option and invokes callbacks that can adjust related settings.
-A transaction that promises all-or-nothing updates and one downstream refresh needs
-a batch-aware prepare/commit mechanism that accounts for those callback effects;
-repeating the current single-setting method would allow partial updates and repeated
-refreshes. Since `begin_update()` performs target selection before the caller stages
-values, invalid staged values can still follow a user-visible selection prompt. That
-is a consequence of this API shape and should remain explicit in its behavior.
+`commit()` applies its batch through `Tab::apply_preset_config_values`, which parses and
+validates the whole batch before touching the edited preset and restores the edited
+preset and its config-derived state on failure (see "Staging and commit semantics" for
+the limit of that rollback). Since `begin_update()` performs target selection before the
+caller stages values, invalid staged values can still follow a user-visible selection
+prompt; that is a consequence of this API shape and remains explicit in its behavior.
 
 ## Integration boundary
 
 The plugin API coordinates target resolution, preset selection, staged values, and
 the settings commit path. It does not own or duplicate preset dirty-state logic,
-selection prompts, setting validation, or persistence. Target changes must flow
-through the same UI selection path so dependent behavior—such as selecting the
-printer agent—still runs. Setting changes must flow through the same UI change path
-so `on_change` and related validation/correction behavior still runs. The
-integration must bridge potential UI prompts to the Python operation
-asynchronously, reuse the normal Plater slot-selection behavior for explicit
-filament targets, then commit a batch without losing existing per-setting behavior.
+selection prompts, setting validation, or persistence. Target changes flow through
+the same UI selection path so dependent behavior—such as selecting the printer
+agent—still runs. Setting changes flow through the same UI change path so `on_change`
+and related validation/correction behavior still runs. The integration bridges UI
+prompts to the Python operation asynchronously (the awaitable `begin_update()`), reuses
+the normal Plater slot-selection behavior for explicit filament targets, and commits a
+batch without losing existing per-setting behavior.
