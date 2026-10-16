@@ -707,8 +707,10 @@ void tree_supports_generate_paths(
                                             false);
         }
         if (eec) {
-            std::reverse(eec->entities.begin(), eec->entities.end());
-            dst.emplace_back(eec.release());
+            if (!eec->empty()) {
+                std::reverse(eec->entities.begin(), eec->entities.end());
+                dst.emplace_back(eec.release());
+            }
         }
     }
 }
@@ -1825,12 +1827,7 @@ void generate_support_toolpaths(
                     no_sort = true;
                 } else if (support_params.support_style == SupportMaterialStyle::smsTreeOrganic &&
                            (config.support_base_pattern == smpNone || config.support_base_pattern == smpDefault)) {
-                    // Orca: A special case for the hollow Organic supports
-                    // Orca: If the tree supports are too tall, use a double wall to make it stronger
-                    SupportParameters support_params2 = support_params;
-                    if (support_layer.print_z > 100.0)
-                        support_params2.tree_branch_diameter_double_wall_area_scaled = 0.1;
-                    tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params2);
+                    tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params);
                     done = true;
                 }
                 if (! done)
