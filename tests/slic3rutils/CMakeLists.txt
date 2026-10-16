@@ -32,6 +32,7 @@ add_executable(${_TEST_NAME}_tests
     test_printer_agent.cpp
     test_plugin_install.cpp
     test_plugin_lifecycle.cpp
+    test_plugin_resource_texture.cpp
     test_plugin_printer_agent.cpp
     test_printhost.cpp
     test_slicing_pipeline_bindings.cpp
@@ -44,7 +45,9 @@ add_executable(${_TEST_NAME}_tests
     test_texture_color_palette.cpp
     test_texture_island_view.cpp
     test_file_url.cpp
+    test_imgui_wrapper.cpp
     test_user_manager.cpp
+    test_sequential_clearance.cpp
     ../fff_print/test_helpers.cpp
     )
 
