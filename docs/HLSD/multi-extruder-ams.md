@@ -93,19 +93,33 @@ property of the unit kind and the reported trays:
 The tray ids are the payload's slot indices; they are expected to be unique, 0-based, and contiguous
 within a unit, because the generic tray-index mapping below is cumulative.
 
-Bulk/extended spools are carried by `print.vir_slot`, which `DeviceManager` parses into
-`MachineObject::vt_slot`. Two ids are fixed: `VIRTUAL_TRAY_MAIN_ID = 255` (extruder 0) and
-`VIRTUAL_TRAY_DEPUTY_ID = 254` (extruder 1); the id convention is `vt_id = 255 - extruder_id`, so
-further extruders use 253, 252, … . The `vir_slot` parser recognises the 255/254 pair; the agent
-filament descriptor path `DevFilaSystemParser::ParseAgentFilament` is the entry that stores a fuller
-descending set in `vt_slot`.
+### External spool slots
+
+External/manual spools are virtual trays in `MachineObject::vt_slot`, separate from the trays owned
+by `DevFilaSystem`. Their stable id is `vt_id = VIRTUAL_TRAY_MAIN_ID - extruder_id`: 255 for
+extruder 0, 254 for extruder 1, then 253, 252, and so on. The index in `vt_slot` is therefore
+`VIRTUAL_TRAY_MAIN_ID - vt_id`, not the order in which a printer happens to report trays.
+
+For non-Bambu printers, slot topology comes from the live `DevExtderSystem` extruder count, not from
+external-spool telemetry. `MachineObject::ensure_external_virtual_tray_slots()` grows `vt_slot` to
+one entry per extruder and enables virtual-tray support even when the agent reports no `vir_slot`,
+`vt_tray`, or external-spool data. It only adds missing entries, so reported tray metadata is kept.
+The shared ensure runs after push-status parsing has updated the extruder count and after the generic
+AMS/agent-filament parsers. Thus agents may report external-spool metadata, but do not have to invent
+empty slots just to make each toolhead's external-spool row visible.
+
+When a payload does report virtual trays, `vir_slot` entries are placed by their id and missing
+indices are filled with placeholders. Generic agent `external` entries are likewise placed by
+extruder id, so sparse or out-of-order reports do not shift a spool onto another toolhead. An empty
+placeholder represents the slot's existence, not a claim that the printer reported a loaded spool.
+Bambu keeps its fixed 255/254 virtual-tray pair and does not use generic slot synthesis.
 
 ## Mapping
 
 Several subsystems relate AMS units, trays, and extruders, and more than one place derives a tray
-index. The Bambu mapping path (`DevMappingUtil`) computes `ams_id * 4 + slot_id` and knows only the
-Bambu unit kinds; `DevFilaSystem` provides the device model's own mapping below. The two agree for
-Bambu units and diverge for a non-Bambu unit whose slot count is not four.
+index. Bambu mapping computes `ams_id * 4 + slot_id` for its fixed-width units; generic mapping in
+`DevFilaSystem` and the sidebar matcher uses the count of lanes in preceding units plus the slot id.
+The two agree for Bambu units and differ for a non-Bambu unit whose slot count is not four.
 
 ### AMS id to extruder id
 
@@ -128,13 +142,25 @@ used for backup-slot translation, calibration addressing, and the mapping popups
 - Generic (non-Bambu): a running lane index — the count of trays in preceding units plus the slot
   id. This depends on each unit's tray ids being 0-based and contiguous.
 
+The sidebar sync matcher uses the same identities. Bambu retains its fixed left/right AMS and
+external-spool choices. For a generic printer, a full sync considers AMS units according to their
+bound extruder ids and considers every external slot by `255 - vt_id`; a split left/right mapping
+still restricts itself to the corresponding legacy extruders 0 and 1. Generic AMS lanes use the
+cumulative tray index above, while their `ams_id`/`slot_id` pair remains the address used to update
+the matching sidebar entry. The runtime filament-list configs also carry a transient device-extruder
+association so generic entries are grouped under the correct toolhead after sync; that association
+is removed before the configs enter the slicing pipeline. Bambu keeps the existing key-based
+left/right grouping.
+
 ### Virtual-slot recognition
 
 `devPrinterUtil::IsVirtualSlot()` decides whether an id denotes a virtual tray. On Bambu printers it
 is the fixed pair `{255, 254}`. On generic printers it is the descending range
-`[255 - count + 1, 255]`, where `count` is the selected printer preset's extruder count. The preset
-is expected to match the connected device; when the two disagree the virtual range is wrong, which
-is why a mismatch is reported rather than silently accepted.
+`[255 - count + 1, 255]`, where `count` is the selected printer preset's extruder count. Slot
+topology is grown from the live device extruder count, while this recognition range still uses the
+preset count; the preset is expected to match the connected device. A mismatch can therefore make
+the recognized virtual-id range disagree with `vt_slot`, and is reported by the existing count
+warning rather than silently accepted.
 
 ## Device-control UI
 
@@ -148,6 +174,9 @@ The device-control widgets follow the same device-reported counts.
   toolhead, `CreateAmsDoubleNozzle` for two, and `CreateAmsMultiNozzle` (one preview and one AMS
   simplebook per toolhead) for three or more. A two-toolhead generic printer therefore keeps the
   legacy left/right presentation; that is deliberate.
+- The status panel builds external-spool entries from `MachineObject::vt_slot`; generic slot
+  synthesis keeps one empty entry available for each live toolhead even when the printer does not
+  report external-spool state.
 - The status panel's `ExtruderImage` renders one per-toolhead state per nozzle and is resized to
   `GetTotalExtderCount()`. Non-Bambu printers choose the active toolhead through
   `m_generic_nozzle_selector` (shown when more than one toolhead exists); Bambu keeps its left/right
@@ -157,8 +186,9 @@ The device-control widgets follow the same device-reported counts.
 
 - **Single dialect.** The agent translates its protocol into this JSON; the model does not learn
   vendor protocols. Extending the model with a new unit kind or field means extending the dialect.
-- **Agent-produced counts.** Toolhead, AMS, and slot counts come from the device payload. Nothing
-  caps them at two toolheads or four slots except the Bambu contract described above.
+- **Runtime counts.** The agent reports toolhead count and AMS unit/tray data. The shared model derives
+  generic external-spool slot count from the parsed live toolhead count; nothing caps the number of
+  toolheads or generic slots except the id range and the Bambu contract described above.
 - **Extruder dialect invariants.** `device.extruder.state`'s count field must equal the length of
   `info[]`, and `info[]` must be ordered by extruder id with `id` equal to the array index: the
   parser places toolheads by array position while `GetExtderById()` indexes by id.
@@ -185,10 +215,14 @@ The device-control widgets follow the same device-reported counts.
   `device.extruder` parser
 - [`DevFilaSystem`](../../src/slic3r/GUI/DeviceCore/DevFilaSystem.h) — AMS/tray model, the AMS parser,
   and the mapping helpers
+- [`DevMapping.cpp`](../../src/slic3r/GUI/DeviceCore/DevMapping.cpp) — filament-to-device tray matching
+  for Bambu and generic external/AMS slots
+- [`PresetBundle.cpp`](../../src/libslic3r/PresetBundle.cpp) — per-extruder grouping of the transient
+  device filament list
 - [`DevDefs.h`](../../src/slic3r/GUI/DeviceCore/DevDefs.h) — `DevAmsType`, extruder ids, and virtual
   tray ids
 - [`DeviceManager.cpp`](../../src/slic3r/GUI/DeviceManager.cpp) — message dispatch, `vir_slot`
-  parsing, and device state assembly
+  parsing, external-slot topology, and device state assembly
 - [`AMSControl.cpp`](../../src/slic3r/GUI/Widgets/AMSControl.cpp) — per-toolhead AMS panes
   (`CreateAmsMultiNozzle`) and the generic layout
 - [`AMSItem.hpp`](../../src/slic3r/GUI/Widgets/AMSItem.hpp) — `AMSModel` and the variable-lane AMS
