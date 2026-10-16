@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <tuple>
+#include <math.h>
 
 const static float param_13 = 1.0f / 3.0f;
 const static float param_16116 = 16.0f / 116.0f;
