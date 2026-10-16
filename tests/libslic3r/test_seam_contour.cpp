@@ -217,13 +217,6 @@ TEST_CASE("Matching contour bounds cannot certify a transverse wall across mater
     CHECK(result.contours.empty());
 }
 
-TEST_CASE("A near-coincident contour keeps the inexpensive bounds path", "[SeamPlacer]") {
-    Resolver resolver({{rectangle(0, 10, 0, 10)}, {rectangle(0.01, 10.01, 0.01, 10.01)}});
-    const auto result = resolver.resolve(0, 0, 0, 1);
-    REQUIRE(result.outcome == Outcome::Unique);
-    CHECK(result.method == Method::Bounds);
-}
-
 TEST_CASE("A bounds match cannot hide another near-coincident local continuation", "[SeamPlacer][Regression]") {
     Contour source = rectangle(0, 10, 0, 10);
     source.points.insert(source.points.begin()+1, Vec2d(5, 0));

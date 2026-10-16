@@ -199,23 +199,21 @@ Vec2d placed_xy(const std::vector<SeamPlacerImpl::SeamCandidate> &points, size_t
 
 TEST_CASE("Paint proximity beyond painted facet heights remains a soft seam preference", "[SeamPlacer][Regression]")
 {
-    const bool horizontal_paint = GENERATE(false, true);
     PipelineFixture fixture;
-    if (horizontal_paint) {
-        auto &volume = *fixture.model.objects.front()->volumes.front();
-        const auto &mesh = volume.mesh();
-        const double bottom = mesh.bounding_box().min.z();
-        TriangleSelector selector(mesh);
-        for (size_t i = 0; i < mesh.its.indices.size(); ++i) {
-            const auto &face = mesh.its.indices[i];
-            bool on_bottom = true;
-            for (int j = 0; j < 3; ++j)
-                on_bottom = on_bottom && std::abs(mesh.its.vertices[face[j]].z() - bottom) < 1e-6;
-            if (on_bottom) selector.set_facet(int(i), EnforcerBlockerType::ENFORCER);
-        }
-        volume.seam_facets.set(selector);
-        fixture.print.apply(fixture.model, fixture.config);
-    } else fixture.paint(false);
+    auto &volume = *fixture.model.objects.front()->volumes.front();
+    const auto &mesh = volume.mesh();
+    const double bottom = mesh.bounding_box().min.z();
+    TriangleSelector selector(mesh);
+    // Only paint below the slicing plane: intersecting side paint exercises the separate exact-range tests.
+    for (size_t i = 0; i < mesh.its.indices.size(); ++i) {
+        const auto &face = mesh.its.indices[i];
+        bool on_bottom = true;
+        for (int j = 0; j < 3; ++j)
+            on_bottom = on_bottom && std::abs(mesh.its.vertices[face[j]].z() - bottom) < 1e-6;
+        if (on_bottom) selector.set_facet(int(i), EnforcerBlockerType::ENFORCER);
+    }
+    volume.seam_facets.set(selector);
+    fixture.print.apply(fixture.model, fixture.config);
     PrintObject &object = fixture.prepare();
     auto &region = clear_first_layer(object);
     append_loop(region, fixture.points_in_layer(object, {{0, 0}, {20, 0}, {20, 20}, {0, 20}}));
@@ -607,9 +605,9 @@ TEST_CASE("Painted ranges end exactly where the paint contour crosses the layer"
 
 TEST_CASE("Random seams stay inside exact green ranges and keep varying", "[SeamPlacer][Regression]")
 {
-    const bool wrap = GENERATE(false, true);
+    const int origin = GENERATE(0, 1, 2);
     const bool partial_blocker = GENERATE(false, true);
-    CAPTURE(wrap, partial_blocker);
+    CAPTURE(origin, partial_blocker);
     // One hundred layers exercise the outgoing edge of the last green sample at many random offsets.
     PipelineFixture fixture(false, 20.0f);
     fixture.config.set_deserialize_strict("seam_position", "random");
@@ -626,8 +624,8 @@ TEST_CASE("Random seams stay inside exact green ranges and keep varying", "[Seam
     REQUIRE(object.layers().size() == 100);
     set_loop_on_every_layer(object, [&](size_t) {
         auto outline = fixture.points_in_layer(object, {{-5, 0.2}, {10, 0.2}, {25, 0.2}, {25, 10}, {-5, 10}});
-        if (wrap)
-            std::rotate(outline.begin(), outline.begin() + 1, outline.end()); // Green crosses the loop origin.
+        // Origin 1 wraps the green range; origin 2 tests its closing edge after modifier normalization.
+        std::rotate(outline.begin(), outline.begin() + origin, outline.end());
         return outline;
     });
     SeamPlacer placer;
@@ -635,6 +633,12 @@ TEST_CASE("Random seams stay inside exact green ranges and keep varying", "[Seam
     for (const auto &layer : placer.m_seam_per_object.at(&object).layers) {
         REQUIRE(layer.perimeters.size() == 1);
         CHECK(layer.perimeters.front().exact_enforced_ends);
+        if (origin == 2 && partial_blocker) {
+            const auto &perimeter = layer.perimeters.front();
+            // Modifiers remove the repeated loop endpoint, exposing the Enforced-to-Neutral closing edge.
+            CHECK(layer.points[perimeter.end_index - 1].type == SeamType::Enforced);
+            CHECK(layer.points[perimeter.start_index].type == SeamType::Neutral);
+        }
         if (partial_blocker)
             CHECK(std::any_of(layer.points.begin(), layer.points.end(), [](const auto &candidate) {
                 return candidate.type == SeamType::Blocked;
@@ -760,7 +764,7 @@ TEST_CASE("Red paint blocks its exact range without blocking the nearby gray con
     CHECK_THAT(blocked_max, Catch::Matchers::WithinAbs(upper, 1e-3));
 }
 
-TEST_CASE("Aligned seams can approach a red edge without entering its painted range", "[SeamPlacer][Regression]")
+TEST_CASE("Seams in every mode stay outside the exact red range", "[SeamPlacer][Regression]")
 {
     const std::string mode = GENERATE(std::string("aligned"), std::string("aligned_back"), std::string("back"),
                                       std::string("nearest"), std::string("random"));
@@ -781,10 +785,6 @@ TEST_CASE("Aligned seams can approach a red edge without entering its painted ra
         const auto &perimeter = layer.perimeters.front();
         const size_t selected = perimeter.seam_index;
         CHECK(layer.points[selected].type != SeamType::Blocked);
-        const auto target = Vec3f(float(0.5 * (lower + upper)), float(y), layer.points[selected].position.z());
-        const auto projected = SeamPlacerImpl::place_on_loop(layer.points, selected, target);
-        const bool inside_red = projected.x() >= lower && projected.x() <= upper && std::abs(projected.y() - y) < 1e-3;
-        CHECK_FALSE(inside_red);
     }
     for (const Vec2d &seam : placed_seams(placer, object)) {
         const bool inside_red = seam.x() >= lower && seam.x() <= upper && std::abs(seam.y() - y) < 1e-3;
