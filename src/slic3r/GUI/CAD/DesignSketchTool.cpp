@@ -10689,7 +10689,7 @@ static void translate_entity(SketchEntity& e, const Vec2d& d)
 // pick still offers the multi-entity verbs.
 // ---- Scripted surface (MCP) ------------------------------------------------------------
 
-int DesignSketchTool::add_entities_scripted(const std::vector<SketchEntity>& ents)
+int DesignSketchTool::add_entities_scripted(const std::vector<SketchEntity>& ents, bool infer)
 {
     if (ents.empty()) return -1;
     const int base = int(m_entities.size());
@@ -10714,7 +10714,7 @@ int DesignSketchTool::add_entities_scripted(const std::vector<SketchEntity>& ent
     // common point up to 0.0021 mm away, because welding is TRANSITIVE and three vertices near
     // the origin chained into one. Exactly-equal endpoints still weld, which is what keeps a
     // scripted profile closed — a ring's last point IS its first point.
-    infer_auto_constraints(base, 0.0, 0.0);
+    if (infer) infer_auto_constraints(base, 0.0, 0.0);
     resolve_live();
     // A scripted add is not a drawn gesture, and draw-then-edit must not fire for it. The render
     // pass arms that on a jump in the entity count (see the m_autoedit_seen block in render()),

@@ -24,6 +24,9 @@ CORPUS = os.path.join(HERE, "..", "..", "tests", "cad_oracle")
 XFAIL = {
     "05-taper-extrude": "extrude taper: top outline 0.11 mm/side short of the exact frustum (offset-based taper)",
     "58-phone-stand": "two 3 mm fillets on edges 6 mm apart: 'no suitable edges for chamfer or fillet' (cause not analysed)",
+    "44-shell-l-bracket": "shell volume 0.18% low (15 mm3): suspected rounded rather than sharp offset joins at the corners (not verified)",
+    "26-sketch-belt": "constrained belt (2 circles + tangent lines): solver result 2 (did not converge) from the recipe's pre-solve positions; cause not analysed",
+    "65-sketch-gear-tooth": "constrained gear tooth solves to a self-crossing profile (the other solution branch); cause not analysed",
     "43-cut-splits-body": "a cut that leaves two solids stays ONE body (compound); oracle expects two bodies",
 }
 
@@ -57,7 +60,7 @@ class Mcp:
             raise RuntimeError("%s: %s" % (method, r["error"].get("message", r["error"])))
         out = r["result"]
         if isinstance(out, dict) and out.get("ok") is False:
-            raise RuntimeError("%s refused: %s" % (method, out.get("error") or out))
+            raise RuntimeError("%s refused: %s" % (method, "; ".join([out.get("error") or ""] + [str(r.get("error")) for r in out.get("rejected", [])]) or out))
         return out
 
 
@@ -85,8 +88,8 @@ def plane_of(sk):
 
 
 def sketch_entities(sk, to_app):
-    """App-format entities for the recipe sketch; Blocked for kinds the app's sketch_add cannot take."""
-    out = []
+    """(app entities, {recipe id: index}, {recipe ids of arcs whose app start/end are swapped}); Blocked for kinds sketch_add cannot take."""
+    out, swapped = [], set()
     for e in sk["entities"]:
         t, c = e["type"], bool(e.get("construction", False))
         if t == "line":
@@ -108,7 +111,31 @@ def sketch_entities(sk, to_app):
             out.append({"type": "point", "p": list(to_app(*e["at"])), "construction": c})
         else:
             raise Blocked("sketch entity %r" % t)
-    return out
+        if out[-1]["type"] == "arc":   # does the app's start (p0) sit where the recipe's start is?
+            a = out[-1]
+            want = e["start"]["at"] if t == "arc_three_point" else e["start"]["at"]
+            w = to_app(*want)
+            p0 = (a["center"][0] + a["radius"] * math.cos(a["start_angle"]), a["center"][1] + a["radius"] * math.sin(a["start_angle"]))
+            if math.dist(p0, w) > 1e-6:
+                swapped.add(e["id"])
+    return out, {e["id"]: i for i, e in enumerate(sk["entities"])}, swapped
+
+
+def ref_point(ents, token):
+    """(x, y) of a token like "3.end" / "origin" against the app-format entity list; None when it is not a point."""
+    if token == "origin":
+        return (0.0, 0.0)
+    idx, _, role = token.partition(".")
+    if not role:
+        return None
+    e = ents[int(idx)]
+    if role == "center" or e["type"] in ("circle", "point"):
+        return tuple(e.get("center") or e.get("p"))
+    if e["type"] == "line":
+        return tuple(e["p0"] if role == "start" else e["p1"])
+    c, r = e["center"], e["radius"]
+    a = e["start_angle"] if role == "start" else e["end_angle"]
+    return (c[0] + r * math.cos(a), c[1] + r * math.sin(a))
 
 
 def mirrored(to_app):
@@ -131,12 +158,25 @@ def arc_from_three(p, m, q, construction):
     return {"type": "arc", "center": [ux, uy], "radius": math.hypot(ax - ux, ay - uy), "start_angle": s, "end_angle": e, "construction": construction}
 
 
+def number(v, params):
+    """A recipe value as a float: a number, "60 mm", or the name of a recipe parameter (resolved, not linked)."""
+    if isinstance(v, (int, float)):
+        return float(v)
+    if v in params:
+        return number(params[v], params)
+    try:
+        return float(str(v).split()[0])
+    except (ValueError, IndexError):
+        raise Blocked("value %r (expression)" % (v,))
+
+
 BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cut": "subtract", "intersect": "intersect"}
 
 
 class Replay:
     def __init__(self, mcp):
         self.m, self.sketches, self.body = mcp, {}, 0
+        self.params, self.order = {}, []   # recipe parameters (name -> expression); body names in app order
 
     def run(self, ft):
         h = getattr(self, "op_" + ft["op"], None)
@@ -145,13 +185,69 @@ class Replay:
         h(ft)
 
     def op_sketch(self, ft):
-        if ft.get("dimensions"):   # positions in the recipe are pre-solve; the expected values come from the solved sketch
-            raise Blocked("dimension-driven sketch (needs sketch_constrain / sketch_dimension over MCP)")
         plane, to_app = plane_of(ft)
-        ents = sketch_entities(ft, to_app)
+        ents, idx_of, swapped = sketch_entities(ft, to_app)
+        types = {e["id"]: e["type"] for e in ft["entities"]}
+
+        def ref(tok):
+            if tok == "origin":
+                return "origin"
+            name, _, role = tok.partition(".")
+            if name not in idx_of:
+                raise Blocked("constraint reference %r" % tok)
+            if role == "":
+                return str(idx_of[name])
+            if name in swapped and role in ("start", "end"):
+                role = "end" if role == "start" else "start"
+            return "%d.%s" % (idx_of[name], role)
+
+        cons, seen = [], set()
+
+        def add(c):
+            key = (c["type"], tuple(sorted(str(c.get(k)) for k in ("a", "b", "c"))))
+            if key not in seen:
+                seen.add(key)
+                cons.append(c)
+
+        for e in ft["entities"]:   # a point given as {"ref": "l1.end"} is shared with that point
+            for role in ("start", "end", "center"):
+                pt = e.get(role)
+                if isinstance(pt, dict) and pt.get("ref"):
+                    add({"type": "coincident", "a": ref("%s.%s" % (e["id"], role)), "b": ref(pt["ref"])})
+        for c in ft.get("constraints", []):
+            d = {"type": c["type"]}
+            for k, r in zip("abc", c["refs"]):
+                d[k] = ref(r)
+            add(d)
+        for c in ft.get("dimensions", []):
+            t = c["type"]
+            if t == "offset":
+                raise Blocked("sketch dimension 'offset'")
+            d = {"type": t, "value": number(c["value"], self.params)}
+            for k, r in zip("ab", c["refs"]):
+                d[k] = ref(r)
+            if t == "distance":
+                d["orientation"] = c.get("orientation", "aligned")
+                if d["orientation"] in ("horizontal", "vertical"):   # the app's projected distance is signed (b - a): keep the drawn direction
+                    pa, pb = ref_point(ents, d["a"]), ref_point(ents, d["b"])
+                    if pa and pb:
+                        delta = (pb[0] - pa[0]) if d["orientation"] == "horizontal" else (pb[1] - pa[1])
+                        d["value"] = math.copysign(d["value"], delta if abs(delta) > 1e-9 else 1.0)
+            elif t == "angle":   # the app measures between the lines' DIRECTIONS; the recipe may mean the supplement: take the one nearer the drawn geometry
+                dirs = []
+                for r in c["refs"]:
+                    e = ents[int(ref(r))]
+                    dirs.append((e["p1"][0] - e["p0"][0], e["p1"][1] - e["p0"][1]) if e["type"] == "line" else None)
+                if all(dirs):
+                    cur = abs(math.degrees(math.atan2(dirs[0][0] * dirs[1][1] - dirs[0][1] * dirs[1][0], dirs[0][0] * dirs[1][0] + dirs[0][1] * dirs[1][1])))
+                    if abs(cur - (180.0 - d["value"])) < abs(cur - d["value"]):
+                        d["value"] = 180.0 - d["value"]
+            cons.append(d)
         self.m.call("sketch_begin", {"plane": plane})
         try:
-            self.m.call("sketch_add", {"entities": ents})
+            self.m.call("sketch_add", {"entities": ents, "infer": False})   # the recipe states its own constraints
+            if cons:
+                r = self.m.call("sketch_constrain", {"constraints": cons})
         except Exception:
             self.m.call("sketch_cancel")
             raise
@@ -187,6 +283,7 @@ class Replay:
         else:
             raise Blocked("extent %s" % et)
         self.m.call("extrude", p)
+        self._named(ft)
 
     def op_revolve(self, ft):
         idx, plane = self._sketch(ft["profile"])
@@ -197,6 +294,40 @@ class Replay:
         if (plane, name) not in AXES:
             raise Blocked("revolve about world %s from a %s sketch" % (name, plane))
         self.m.call("revolve", {"sketch": idx, "axis": AXES[(plane, name)], "angle": ft.get("angle", 360), "boolean": BOOL[ft["operation"]]})
+        self._named(ft)
+
+    def _named(self, ft):
+        """Remember the names of bodies a 'new' feature created, in app order."""
+        if ft.get("operation") == "new":
+            self.order += ft.get("result_bodies", ["?"])
+
+    def op_combine(self, ft):
+        if len(ft["tool_bodies"]) != 1:
+            raise Blocked("combine with several tool bodies")
+        t, o = self.order.index(ft["target_body"]), self.order.index(ft["tool_bodies"][0])
+        op = {"join": "union", "cut": "subtract", "intersect": "intersect"}[ft["operation"]]
+        self.m.call("boolean", {"op": op, "target": t, "tool": o, "keep_tool": bool(ft.get("keep_tools"))})
+        if not ft.get("keep_tools"):
+            self.order.pop(o)
+
+    def op_shell(self, ft):
+        if ft.get("outside_thickness"):
+            raise Blocked("shell with an outside thickness")
+        if len(ft["faces_removed"]) > 1:
+            raise Blocked("shell with several open faces (app: one)")
+        self.body = len(self.m.call("describe_scene")["bodies"]) - 1
+        topo = self.m.call("query_topology", {"body": self.body})
+        face = -1
+        if ft["faces_removed"]:
+            f0 = ft["faces_removed"][0]
+            if f0.get("type") != "plane":
+                raise Blocked("shell open face is not planar")
+            n, pt = f0["plane_normal_outward"], f0["point"]
+            cand = [f for f in topo["faces"] if f["kind"] == "planar" and sum(a * b for a, b in zip(f["normal"], n)) > 0.99]
+            if not cand:
+                raise Blocked("shell open face not found")
+            face = min(cand, key=lambda f: math.dist(f["centroid"], pt))["id"]
+        self.m.call("shell", {"thickness": ft["inside_thickness"], "face": face, "body": self.body})
 
     def _edges(self, ft):
         """Edge ids of the last body nearest to each recipe edge midpoint."""
@@ -274,6 +405,7 @@ def run_case(mcp, d):
     try:
         mcp.call("new_document")
         rp = Replay(mcp)
+        rp.params = {q["name"]: q["expression"] for q in recipe.get("parameters", [])}
         for ft in recipe["features"]:
             rp.run(ft)
         got, _ = measure(mcp)   # sketch_begin sketches sit at the absolute origin; only extrude{profile} adds modeling_origin (MCP inconsistency, see bd)

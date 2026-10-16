@@ -599,7 +599,9 @@ public:
     int  dof()      const { return m_dof; }
     bool solve_ok() const { return m_solve_ok; }
     // Append entities exactly as a finished gesture does. Returns the index of the first one.
-    int  add_entities_scripted(const std::vector<SketchEntity>& ents);
+    // infer=false skips the exact-relation inference (coincident joints, axis-aligned H/V), so a caller that states its
+    // own constraints is not rejected as redundant against ones the add would have made.
+    int  add_entities_scripted(const std::vector<SketchEntity>& ents, bool infer = true);
     // Replace the selection with these entity indices (out-of-range ones are ignored).
     bool select_indices(const std::vector<int>& idx);
     // Append candidates, live-solve, and roll back the batch if it turns the system

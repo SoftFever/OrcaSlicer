@@ -29,6 +29,7 @@
 
 #include <nlohmann/json.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem.hpp>
 #include <Standard_Failure.hxx>   // OCCT base error
 
 #include "slic3r/GUI/GUI_App.hpp"
@@ -41,6 +42,7 @@
 #include "libslic3r/CAD/CadDocument.hpp"
 #include "libslic3r/CAD/SketchEngine.hpp"
 #include "libslic3r/CAD/GeometryEngine.hpp"
+#include "libslic3r/CAD/SketchSolver.hpp"
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/Format/OBJ.hpp"
 #include <boost/algorithm/string/case_conv.hpp>
@@ -427,6 +429,16 @@ json describe_tools()
             json{{"name", "inspect_design"}, {"summary", "One-call state of the design: features, bodies (bbox, faces/edges, volume, area, centre of mass), variables, error feature, undo/redo depth, whether a sketch is open."},
                  {"params", json::array({
                      json{{"name", "measure"}, {"type", "boolean"}, {"default", true}, {"description", "false skips the per-body mass properties"}},
+                 })}},
+            json{{"name", "sketch_constrain"}, {"summary", "Add geometric constraints and dimensions to the open sketch; each is solved on its own and an inconsistent one is rejected alone (named in `rejected`). Entity refs are indices from sketch_add; points are \"3.start\", \"3.end\", \"3.center\", \"origin\"."},
+                 {"params", json::array({
+                     json{{"name", "atomic"}, {"type", "boolean"}, {"default", true}, {"description", "true: all constraints are solved as one system, all or nothing; false: each on its own, conflicting ones rejected alone"}},
+                     json{{"name", "constraints"}, {"type", "array"}, {"description", "[{type, a, b, c, value, orientation}]. types: coincident, horizontal|vertical (one line), horizontal_points|vertical_points, distance (value mm, orientation aligned|horizontal|vertical), fix, lock_x, lock_y, equal, parallel, perpendicular, collinear, tangent, concentric, midpoint (point a, line b), symmetric (points a,b about line c), symmetric_x|symmetric_y, point_on_line, point_on_object, radius, diameter (value mm), angle (two lines, value deg)"}},
+                 })}},
+            json{{"name", "export"}, {"summary", "Write the design's bodies to a STEP file (absolute path under $HOME or /tmp)."},
+                 {"params", json::array({
+                     json{{"name", "path"},   {"type", "string"}},
+                     json{{"name", "format"}, {"type", "string"}, {"enum", json::array({"step"})}, {"default", "step"}},
                  })}},
             json{{"name", "undo"}, {"summary", "Undo the last feature-level change (one step per user action). ok is true even when there was nothing to undo; check `did`."},
                  {"params", json::array()}},
@@ -1482,7 +1494,7 @@ json action_sketch_add(DesignPanel* panel, const json& params)
     } else {
         throw std::runtime_error("sketch_add needs 'entities', a single 'type', or 'rect'");
     }
-    const int base = t.add_entities_scripted(ents);
+    const int base = t.add_entities_scripted(ents, params.value("infer", true));
     panel->mcp_viewport()->request_repaint();
     return json{{"ok", base >= 0}, {"first_index", base}, {"added", int(ents.size())},
                 {"entities", int(t.entities().size())}, {"dof", t.dof()}};
@@ -2154,6 +2166,202 @@ json action_set_feature_expr(DesignPanel* panel, const json& params)
     return json{{"ok", ok}, {"feature", fi}, {"field", field}, {"error", doc.error}};
 }
 
+// ---- sketch_constrain ------------------------------------------------------------------------------------------
+// "3" (entity), "3.start" / "3.end" / "3.center" / "3.point" (an entity's point), "origin", "x_axis", "y_axis".
+struct SketchRefTok { int e{-1}; SketchPointRole r{SketchPointRole::P0}; bool has_role{false}; };
+
+SketchRefTok sketch_ref_tok(const json& j, size_t n_entities)
+{
+    SketchRefTok t;
+    std::string s = j.is_number_integer() ? std::to_string(j.get<int>()) : j.is_string() ? j.get<std::string>() : std::string();
+    if (s.empty()) throw std::runtime_error("a constraint reference must be an entity index or a string like \"3.end\"");
+    if      (s == "origin") { t.e = kSketchRefOrigin; t.has_role = true; return t; }
+    else if (s == "x_axis") { t.e = kSketchRefAxisX;  return t; }
+    else if (s == "y_axis") { t.e = kSketchRefAxisY;  return t; }
+    const size_t dot = s.find('.');
+    const std::string idx = s.substr(0, dot);
+    if (idx.empty() || idx.find_first_not_of("0123456789") != std::string::npos)
+        throw std::runtime_error("bad constraint reference '" + s + "'");
+    t.e = std::atoi(idx.c_str());
+    if (t.e >= int(n_entities)) throw std::runtime_error("constraint reference '" + s + "': no such entity (sketch has " + std::to_string(n_entities) + ")");
+    if (dot != std::string::npos) {
+        const std::string r = s.substr(dot + 1);
+        t.has_role = true;
+        if      (r == "start" || r == "point") t.r = SketchPointRole::P0;
+        else if (r == "end")                   t.r = SketchPointRole::P1;
+        else if (r == "center")                t.r = SketchPointRole::Center;
+        else throw std::runtime_error("bad point role '" + r + "' (start, end, center, point)");
+    }
+    return t;
+}
+
+// One {type, a, b, c, value[, orientation]} -> the solver's constraint record. Angles are degrees on the wire.
+SketchEntityConstraintDef sketch_constraint_from(const json& j, const std::vector<SketchEntity>& ents)
+{
+    using CT = SketchConstraintType;
+    const std::string ty = j.value("type", std::string());
+    auto ref = [&](const char* k) {
+        if (!j.contains(k)) throw std::runtime_error(ty + " needs '" + k + "'");
+        return sketch_ref_tok(j.at(k), ents.size());
+    };
+    auto point = [&](const char* k) {   // a bare entity names its natural point
+        SketchRefTok t = ref(k);
+        if (!t.has_role) throw std::runtime_error(ty + ": '" + std::string(k) + "' must name a point (\"3.start\", \"3.end\", \"3.center\", \"origin\")");
+        return t;
+    };
+    auto is_line  = [&](int i) { return i >= 0 && ents[i].type == SketchEntity::Type::Line; };
+    auto is_round = [&](int i) { return i >= 0 && (ents[i].type == SketchEntity::Type::Circle || ents[i].type == SketchEntity::Type::Arc); };
+    auto value = [&]() {
+        if (!j.contains("value") || !j["value"].is_number()) throw std::runtime_error(ty + " needs a numeric 'value'");
+        const double v = j["value"].get<double>();
+        if (!std::isfinite(v)) throw std::runtime_error(ty + ": value must be finite");
+        return v;
+    };
+    SketchEntityConstraintDef d;
+    auto pts2 = [&](CT t) { auto a = point("a"), b = point("b"); d.type = t; d.ea = a.e; d.ra = a.r; d.eb = b.e; d.rb = b.r; };
+    auto ents2 = [&](CT t) { d.type = t; d.ea = ref("a").e; d.eb = ref("b").e; };
+    if (ty == "coincident" && j.contains("b") && !sketch_ref_tok(j.at("b"), ents.size()).has_role) {
+        auto a = point("a"); auto b = ref("b");   // a point and a bare curve: the point lies on it
+        d.type = is_line(b.e) ? CT::PointOnLine : CT::PointOnObject; d.ea = a.e; d.ra = a.r; d.eb = b.e;
+    }
+    else if (ty == "coincident")         pts2(CT::Coincident);
+    else if (ty == "horizontal_points")  pts2(CT::Horizontal);
+    else if (ty == "vertical_points")    pts2(CT::Vertical);
+    else if (ty == "horizontal" || ty == "vertical") {   // one line: its two ends
+        const SketchRefTok a = ref("a");
+        if (!is_line(a.e)) throw std::runtime_error(ty + " needs a line (use " + ty + "_points for two points)");
+        d.type = ty == "horizontal" ? CT::Horizontal : CT::Vertical;
+        d.ea = d.eb = a.e; d.ra = SketchPointRole::P0; d.rb = SketchPointRole::P1;
+    }
+    else if (ty == "distance") {
+        pts2(CT::Distance);
+        const std::string o = j.value("orientation", std::string("aligned"));
+        if      (o == "horizontal") d.type = CT::DistanceX;
+        else if (o == "vertical")   d.type = CT::DistanceY;
+        else if (o != "aligned")    throw std::runtime_error("orientation must be aligned, horizontal or vertical");
+        d.value = value();
+        if (d.type == CT::Distance && d.value < 0.0) throw std::runtime_error("an aligned distance must be >= 0 (horizontal/vertical distances are signed: b - a)");
+    }
+    else if (ty == "fix")     { auto a = point("a"); d.type = CT::Fix;   d.ea = a.e; d.ra = a.r; }
+    else if (ty == "lock_x")  { auto a = point("a"); d.type = CT::LockX; d.ea = a.e; d.ra = a.r; d.value = value(); }
+    else if (ty == "lock_y")  { auto a = point("a"); d.type = CT::LockY; d.ea = a.e; d.ra = a.r; d.value = value(); }
+    else if (ty == "equal") {
+        ents2(CT::EqualLength);
+        if (is_round(d.ea) && is_round(d.eb)) d.type = CT::EqualRadius;
+        else if (!is_line(d.ea) || !is_line(d.eb)) throw std::runtime_error("equal needs two lines or two circles/arcs");
+    }
+    else if (ty == "parallel")      ents2(CT::Parallel);
+    else if (ty == "perpendicular") ents2(CT::Perpendicular);
+    else if (ty == "collinear")     ents2(CT::Collinear);
+    else if (ty == "tangent")       ents2(CT::Tangent);
+    else if (ty == "concentric")    ents2(CT::Concentric);
+    else if (ty == "midpoint")      { auto a = point("a"); auto b = ref("b"); d.type = CT::Midpoint; d.ea = a.e; d.ra = a.r; d.eb = b.e; }
+    else if (ty == "symmetric")     { pts2(CT::Symmetric); d.ec = ref("c").e; }
+    else if (ty == "symmetric_x")   pts2(CT::SymmetricAboutX);
+    else if (ty == "symmetric_y")   pts2(CT::SymmetricAboutY);
+    else if (ty == "point_on_line" || ty == "point_on_object") {
+        auto a = point("a"); auto b = ref("b");
+        d.type = ty == "point_on_line" ? CT::PointOnLine : CT::PointOnObject; d.ea = a.e; d.ra = a.r; d.eb = b.e;
+        if (j.contains("value")) d.value = value();
+    }
+    else if (ty == "radius" || ty == "diameter") {
+        d.ea = ref("a").e; d.type = ty == "radius" ? CT::Radius : CT::Diameter;
+        if (!is_round(d.ea)) throw std::runtime_error(ty + " needs a circle or arc");
+        d.value = value();
+        if (d.value <= 0.0) throw std::runtime_error(ty + " must be positive");
+    }
+    else if (ty == "angle") {
+        ents2(CT::Angle);
+        if (!is_line(d.ea) || !is_line(d.eb)) throw std::runtime_error("angle needs two lines");
+        d.value = value() * M_PI / 180.0;   // the model stores radians
+    }
+    else throw std::runtime_error("unknown constraint type '" + ty + "' (coincident, horizontal, vertical, horizontal_points, vertical_points, distance, fix, lock_x, lock_y, equal, parallel, perpendicular, collinear, tangent, concentric, midpoint, symmetric, symmetric_x, symmetric_y, point_on_line, point_on_object, radius, diameter, angle)");
+    return d;
+}
+
+// Why the solver refuses `extra` on top of the sketch's constraints: the raw libslvs result and the conflicting
+// constraints, so an agent can tell a redundant constraint from an unsolvable one.
+std::string solver_why(const DesignSketchTool& t, const std::vector<SketchEntityConstraintDef>& extra)
+{
+    std::vector<SketchEntity> ents = t.entities();
+    std::vector<SketchEntityConstraintDef> cons = t.constraints();
+    const int base = int(cons.size());
+    cons.insert(cons.end(), extra.begin(), extra.end());
+    const SketchSolveResult r = sketch_solve(ents, cons);
+    std::string s = "rejected by the solver (result " + std::to_string(r.result) + ": 1 inconsistent or redundant, 2 did not converge, 3 too many unknowns)";
+    for (size_t i = 0; i < r.bad.size(); ++i)
+        s += (i == 0 ? "; conflicting: " : ", ") + (r.bad[i] >= base ? "new#" + std::to_string(r.bad[i] - base) : "existing#" + std::to_string(r.bad[i]));
+    return s;
+}
+
+// {constraints:[{type, a, b, c, value, orientation}], atomic:true}. atomic (default): all or nothing, solved as ONE
+// system like the GUI's own batches. atomic:false: each is added and solved on its own, so one that conflicts is
+// rejected alone (named in `rejected`) and the rest are kept. Unparseable entries are always reported.
+json action_sketch_constrain(DesignPanel* panel, const json& params)
+{
+    DesignSketchTool& t = mcp_sketch(panel);
+    if (!params.contains("constraints") || !params["constraints"].is_array())
+        throw std::runtime_error("sketch_constrain needs 'constraints': [{type, a, b, value}, ...]");
+    const bool atomic = params.value("atomic", true);
+    json rejected = json::array();
+    std::vector<SketchEntityConstraintDef> defs;
+    std::vector<int> def_index;
+    const json& list = params["constraints"];
+    for (size_t i = 0; i < list.size(); ++i) {
+        try { defs.push_back(sketch_constraint_from(list[i], t.entities())); def_index.push_back(int(i)); }
+        catch (const std::exception& e) { rejected.push_back(json{{"index", int(i)}, {"error", e.what()}}); }
+    }
+    int added = 0;
+    if (atomic) {
+        if (!rejected.empty()) { /* a malformed entry: add nothing */ }
+        else if (t.try_add_constraints(defs)) added = int(defs.size());
+        else rejected.push_back(json{{"index", -1}, {"error", solver_why(t, defs) + " (atomic: none of the " + std::to_string(defs.size()) + " were added; atomic:false keeps the consistent ones)"}});
+    } else {
+        for (size_t k = 0; k < defs.size(); ++k) {
+            if (t.try_add_constraints({defs[k]})) ++added;
+            else rejected.push_back(json{{"index", def_index[k]}, {"error", solver_why(t, {defs[k]})}});
+        }
+    }
+    panel->mcp_viewport()->request_repaint();
+    return json{{"ok", rejected.empty()}, {"added", added}, {"rejected", rejected}, {"dof", t.dof()}, {"solved", t.solve_ok()},
+                {"error", rejected.empty() ? std::string() : std::string("some constraints were rejected; see 'rejected'")}};
+}
+
+// ---- export ----------------------------------------------------------------------------------------------------
+// Where an agent may write. ponytail: absolute path under $HOME or /tmp, no `..`, existing directory, canonicalised
+// so a symlink cannot lead out; the --allow-path / per-launch scope of SolidCraft's MCP is a later slice.
+std::string checked_out_path(const json& params, const char* what)
+{
+    const std::string raw = params.value("path", std::string());
+    if (raw.empty()) throw std::runtime_error(std::string(what) + " needs 'path'");
+    namespace fs = boost::filesystem;
+    const fs::path p(raw);
+    if (!p.is_absolute()) throw std::runtime_error("path must be absolute");
+    for (const auto& c : p) if (c == "..") throw std::runtime_error("path must not contain '..'");
+    boost::system::error_code ec;
+    const fs::path dir = fs::canonical(p.parent_path(), ec);
+    if (ec) throw std::runtime_error("directory does not exist: " + p.parent_path().string());
+    const char* home = std::getenv("HOME");
+    const std::string d = dir.string();
+    auto under = [&](const std::string& root) { return !root.empty() && (d == root || d.rfind(root + "/", 0) == 0); };
+    if (!under("/tmp") && !under(home ? home : ""))
+        throw std::runtime_error("path must be under $HOME or /tmp");
+    return (dir / p.filename()).string();
+}
+
+json action_export(DesignPanel* panel, const json& params)
+{
+    const std::string fmt = params.value("format", std::string("step"));
+    if (fmt != "step") throw std::runtime_error("format must be 'step' (stl/3mf/obj/iges are not wired yet)");
+    const std::string path = checked_out_path(params, "export");
+    CadDocument& doc = panel->mcp_doc();
+    if (doc.bodies.empty()) throw std::runtime_error("nothing to export - the design has no bodies");
+    const std::vector<Transform3d> xf(doc.bodies.size(), Transform3d::Identity());   // bodies as modelled, no Move-gizmo offsets
+    std::string err;
+    const bool ok = doc.export_step(path, xf, err);
+    return json{{"ok", ok}, {"path", path}, {"bodies", int(doc.bodies.size())}, {"error", err}};
+}
+
 // ---- undo / redo / inspect_design / batch ----------------------------------------------------------------
 struct MethodNotFound {};
 json        call_method(DesignPanel* panel, const std::string& method, const json& params);   // below
@@ -2300,6 +2508,8 @@ json call_method(DesignPanel* panel, const std::string& method, const json& para
     if (method == "bridge")         return action_bridge(panel, params);
     if (method == "plane")          return action_plane(panel, params);
     if (method == "ui_option")      return action_ui_option(panel, params);
+    if (method == "sketch_constrain") return action_sketch_constrain(panel, params);
+    if (method == "export")         return action_export(panel, params);
     if (method == "undo")           return action_undo(panel, params);
     if (method == "redo")           return action_redo(panel, params);
     if (method == "inspect_design") return action_inspect_design(panel, params);
@@ -2331,7 +2541,7 @@ std::string refuse_reason(DesignPanel* panel, const std::string& method)
     static const std::set<std::string> kReadOnly = {
         "describe_tools", "describe_scene", "query_topology", "measure", "mass_properties",
         "slice_body", "validate_against", "list_verbs", "sketch_describe", "sketch_validate",
-        "check_interference", "inspect_design" };
+        "check_interference", "inspect_design", "export" };
     if (kReadOnly.count(method)) return "";
     std::string why;
     return panel->mcp_busy(method.rfind("sketch_", 0) == 0, why) ? "Design tab busy: " + why : std::string();
