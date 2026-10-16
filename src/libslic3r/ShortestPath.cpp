@@ -1574,16 +1574,74 @@ std::vector<size_t> chain_points(const Points &points, const Point *start_near)
 	return out;
 }
 
+// Moves runs of up to three points of the cycle next to one of the 8 points nearest to an end of the run, reversed or not,
+// while that shortens the cycle. path[0] stays first. Returns true if any move was made.
+static bool improve_cycle_by_or_opt(std::vector<size_t> &path, const Points &points)
+{
+	const size_t pn = path.size();
+	if (pn < 5)
+		return false;
+	std::vector<Vec2d> coords(points.size());
+	for (size_t i = 0; i < points.size(); ++ i)
+		coords[i] = points[i].cast<double>();
+	const NearestPoints<8> grid(coords);
+	std::vector<size_t>    pos(points.size());
+	auto refresh = [&]() { for (size_t k = 0; k < pn; ++ k) pos[path[k]] = k; };
+	refresh();
+	auto dist = [&](size_t a, size_t b) { return (coords[path[a % pn]] - coords[path[b % pn]]).norm(); };
+	bool improved = false;
+	for (bool moved = true; moved;) {
+		moved = false;
+		for (size_t len = 1; len <= 3; ++ len)
+			for (size_t i = 1; i + len <= pn; ++ i) {
+				// The run path[i..last] goes between path[k] and path[k + 1].
+				const size_t last    = i + len - 1;
+				const double removal = dist(i - 1, i) + dist(last, last + 1) - dist(i - 1, last + 1);
+				bool         applied = removal <= SCALED_EPSILON;
+				for (size_t end : { path[i], path[last] })
+					for (size_t q : grid.query(coords[end], [end](size_t idx) { return idx != end; }))
+						for (size_t k : { q == NearestPoints<8>::npos ? pn : (pos[q] + pn - 1) % pn, q == NearestPoints<8>::npos ? pn : pos[q] }) {
+							if (applied || k == pn || (k + 1 >= i && k <= last))
+								continue;
+							const double base     = dist(k, k + 1);
+							const double kept     = dist(k, i) + dist(last, k + 1) - base;
+							const double reversed = dist(k, last) + dist(i, k + 1) - base;
+							if (std::min(kept, reversed) > removal - SCALED_EPSILON)
+								continue;
+							std::vector<size_t> run(path.begin() + i, path.begin() + last + 1);
+							if (reversed < kept)
+								std::reverse(run.begin(), run.end());
+							path.erase(path.begin() + i, path.begin() + last + 1);
+							path.insert(path.begin() + (k < i ? k + 1 : k + 1 - len), run.begin(), run.end());
+							refresh();
+							applied = moved = improved = true;
+						}
+			}
+	}
+	return improved;
+}
+
 std::vector<size_t> chain_points_with_postprocessing(const Points &points, const Point *start_near)
 {
-	std::vector<size_t> path = chain_points(points, start_near);
-	// Alternate 2-opt and crossing removal until convergence.
-	// 2-opt can create new crossings, and crossing removal can create new
-	// opportunities for 2-opt improvement. Break early if neither improves.
-	for (int iter = 0; iter < 3; ++iter) {
-		bool improved = tsp_2opt_improve(path, points);
-		improved |= tsp_remove_crossings(path, points);
-		if (!improved) break;
+	std::vector<size_t> path;
+	if (points.size() <= 10) {
+		// Orca: few points are toured exactly, from the point nearest start_near toward its nearer neighbor.
+		path = tsp_exact_cycle(points);
+		if (start_near != nullptr && path.size() > 2) {
+			auto dist = [&points](size_t a, const Point &b) { return (points[a] - b).cast<double>().squaredNorm(); };
+			std::rotate(path.begin(), std::min_element(path.begin(), path.end(), [&](size_t a, size_t b) { return dist(a, *start_near) < dist(b, *start_near); }), path.end());
+			if (dist(path.back(), points[path.front()]) < dist(path[1], points[path.front()]))
+				std::reverse(path.begin() + 1, path.end());
+		}
+	} else {
+		path = chain_points(points, start_near);
+		// Alternate 2-opt, or-opt and crossing removal: each can open moves for the others. Break early if none improves.
+		for (int iter = 0; iter < 3; ++iter) {
+			bool improved = tsp_2opt_improve(path, points);
+			improved |= improve_cycle_by_or_opt(path, points);
+			improved |= tsp_remove_crossings(path, points);
+			if (!improved) break;
+		}
 	}
     if (start_near == nullptr)
         tsp_rotate_minimize_closing(path, points);
