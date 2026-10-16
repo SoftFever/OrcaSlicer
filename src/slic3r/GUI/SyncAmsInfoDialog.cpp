@@ -37,6 +37,7 @@
 #include <vector>
 #include <wx/anybutton.h>
 #include <wx/animate.h>
+#include <wx/app.h>
 #include <wx/busycursor.h>
 #include <wx/chartype.h>
 #include <wx/arrstr.h>

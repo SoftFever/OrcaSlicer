@@ -37,6 +37,7 @@
 #include "BackgroundSlicingProcess.hpp"   // complete type for background_process().get_current_gcode_result()
 #include "DeviceCore/DevStorage.h"
 
+#include <wx/app.h>
 #include <wx/event.h>
 #include <string>
 #include "libslic3r/PrintConfig.hpp"

@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <wx/app.h>
 #include <wx/colour.h>
 #include <set>
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
