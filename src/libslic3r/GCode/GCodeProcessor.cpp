@@ -1291,11 +1291,6 @@ void GCodeProcessor::run_post_process()
                 pos = gcode_line.find(placeholder, pos + value.length());
             }
         };
-        auto format_2f = [](double value) {
-            char buf[64];
-            sprintf(buf, "%.2f", value);
-            return std::string(buf);
-        };
 
         double print_time_total_sec = m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time;
         if (print_time_total_sec < 0.0)
@@ -1313,23 +1308,26 @@ void GCodeProcessor::run_post_process()
             total_filament_mm += mm;
         }
 
-        replace_tag(ETags::Print_Time_Total_Sec_Placeholder, format_2f(print_time_total_sec));
+        replace_tag(ETags::Print_Time_Total_Sec_Placeholder, Slic3r::float_to_string_decimal_point(print_time_total_sec, 2));
         replace_tag(ETags::Print_Time_Day_Placeholder, std::to_string(print_time_day));
         replace_tag(ETags::Print_Time_Hour_Placeholder, std::to_string(print_time_hour));
         replace_tag(ETags::Print_Time_Minute_Placeholder, std::to_string(print_time_minute));
         replace_tag(ETags::Print_Time_Sec_Placeholder, std::to_string(print_time_sec));
-        replace_tag(ETags::Used_Filament_Length_Placeholder, format_2f(total_filament_mm / 1000.0)); // Convert mm to m
+        replace_tag(ETags::Used_Filament_Length_Placeholder,
+                    Slic3r::float_to_string_decimal_point(total_filament_mm / 1000.0, 2)); // Convert mm to m
         // Same values as the print statistics that filename_format gets (PrintStatistics::config(), filled in by
         // update_print_estimated_stats() in GCode.cpp), which runs only after this post-processing.
         replace_tag(ETags::Normal_Print_Time_Placeholder, get_time_dhm(PrintEstimatedStatistics::ETimeMode::Normal));
         replace_tag(ETags::Silent_Print_Time_Placeholder, is_stealth_time_estimator_enabled() ?
                                                               get_time_dhm(PrintEstimatedStatistics::ETimeMode::Stealth) :
                                                               short_time("N/A"));
-        replace_tag(ETags::Total_Weight_Placeholder, format_2f(filament_total_g));
-        replace_tag(ETags::Total_Cost_Placeholder,
-                    format_2f(filament_total_cost + m_print->config().time_cost.value * print_time_total_sec / 3600.0));
-        replace_tag(ETags::Total_Wipe_Tower_Cost_Placeholder, format_2f(m_print->print_statistics().total_wipe_tower_cost));
-        replace_tag(ETags::Total_Wipe_Tower_Filament_Placeholder, format_2f(m_print->print_statistics().total_wipe_tower_filament));
+        const double total_cost = filament_total_cost + m_print->config().time_cost.value * print_time_total_sec / 3600.0;
+        replace_tag(ETags::Total_Weight_Placeholder, Slic3r::float_to_string_decimal_point(filament_total_g, 2));
+        replace_tag(ETags::Total_Cost_Placeholder, Slic3r::float_to_string_decimal_point(total_cost, 2));
+        replace_tag(ETags::Total_Wipe_Tower_Cost_Placeholder,
+                    Slic3r::float_to_string_decimal_point(m_print->print_statistics().total_wipe_tower_cost, 2));
+        replace_tag(ETags::Total_Wipe_Tower_Filament_Placeholder,
+                    Slic3r::float_to_string_decimal_point(m_print->print_statistics().total_wipe_tower_filament, 2));
 
         return processed;
     };
