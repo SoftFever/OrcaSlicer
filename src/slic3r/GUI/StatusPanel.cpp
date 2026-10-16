@@ -1268,7 +1268,12 @@ void PrintingTaskPanel::update_left_time(int mc_left_time, bool is_printing_fini
     else
         end_time_text = NA_STR;
 
-    m_staticText_progress_end->SetLabelText(end_time_text);
+    // The text changes length ("14:30", "14:30 +1", "Almost complete"), so only touch the label when it
+    // really changed and let its parent re-layout to make room for it.
+    if (m_staticText_progress_end->GetLabelText() != end_time_text) {
+        m_staticText_progress_end->SetLabelText(end_time_text);
+        m_staticText_progress_end->GetParent()->Layout();
+    }
 
 }
 
