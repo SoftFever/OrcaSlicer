@@ -472,6 +472,7 @@ void ArrangeJob::prepare_wipe_tower()
 //BBS: prepare current part plate for arranging
 void ArrangeJob::prepare_partplate(bool only_selection) {
     clear_input();
+    m_selection_center.reset();
 
     PartPlateList& plate_list = m_plater->get_partplate_list();
     PartPlate* plate = plate_list.get_curr_plate();
@@ -542,6 +543,13 @@ void ArrangeJob::prepare_partplate(bool only_selection) {
                 //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
             }
         }
+    }
+
+    if (only_selection && !m_selected.empty()) {
+        BoundingBox sel_box;
+        for (const ArrangePolygon& ap : m_selected)
+            sel_box.merge(get_extents(ap.transformed_poly()));
+        m_selection_center = sel_box.center() - Vec2crd(scaled(plate->get_origin().x()), scaled(plate->get_origin().y()));
     }
 
     // BBS
@@ -732,6 +740,14 @@ void ArrangeJob::process(Ctl &ctl)
         for (auto item : m_unselected)
             BOOST_LOG_TRIVIAL(debug) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose()
             <<", bbox:"<<get_extents(item.poly).min.transpose()<<","<<get_extents(item.poly).max.transpose();
+    }
+
+    if (m_selection_center && params.do_final_align) {
+        // Keep the arranged selection around where it was (as a fraction of the bed)
+        const BoundingBox bed_box(bedpts);
+        if (bed_box.defined && bed_box.size().x() > 0 && bed_box.size().y() > 0)
+            params.align_center = Vec2d(std::clamp(double(m_selection_center->x() - bed_box.min.x()) / bed_box.size().x(), 0., 1.),
+                                        std::clamp(double(m_selection_center->y() - bed_box.min.y()) / bed_box.size().y(), 0., 1.));
     }
 
     const ArrangePolygons before = imex.active() ? m_selected : ArrangePolygons();

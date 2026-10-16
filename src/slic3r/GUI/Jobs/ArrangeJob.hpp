@@ -56,6 +56,10 @@ class ArrangeJob : public Job
     // BBS: add flag for whether on current part plate
     bool only_on_partplate{false};
 
+    // Arranging only the selection: where its objects were (plate-local, scaled), so the result stays
+    // around that spot instead of jumping to the plate's best object position.
+    std::optional<Vec2crd> m_selection_center;
+
     // clear m_selected and m_unselected, reserve space for next usage
     void clear_input();
 
