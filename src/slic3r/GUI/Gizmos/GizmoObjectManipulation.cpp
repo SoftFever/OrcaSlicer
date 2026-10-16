@@ -857,11 +857,12 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
     if (render_combo(imgui_wrapper, "", modes, selection_idx, 0, coord_combo_width)) {
         combox_changed = true;
     }
+    ImGuiWrapper::pop_combo_style();
+    // After pop_combo_style(): its light popup background would hide the tooltip's white text.
     if (ImGui::IsItemHovered()) {
         auto tooltip_str = _L("Coordinate system used for transform actions.");
         imgui_wrapper->tooltip(tooltip_str, imgui_wrapper->calc_text_size(tooltip_str).x + 3 * space_size);
     }
-    ImGuiWrapper::pop_combo_style();
 
     // ORCA use TextColored to match axes color
     float offset_to_center = (unit_size - ImGui::CalcTextSize("O").x) / 2;
@@ -964,11 +965,12 @@ void GizmoObjectManipulation::do_render_move_window(ImGuiWrapper *imgui_wrapper,
         if (render_combo(imgui_wrapper, "", align_modes, align_mode_idx, 0, coord_combo_width))
             m_align_to_parent = align_mode_idx + 1 == align_modes.size();
         ImGui::PopID();
+        ImGuiWrapper::pop_combo_style();
+        // After pop_combo_style(): its light popup background would hide the tooltip's white text.
         if (ImGui::IsItemHovered()) {
             wxString tooltip_str = _L("Reference for alignment");
             imgui_wrapper->tooltip(tooltip_str, imgui_wrapper->calc_text_size(tooltip_str).x + 3 * space_size);
         }
-        ImGuiWrapper::pop_combo_style();
 
         const bool dark_mode    = wxGetApp().dark_mode();
         int        current_axis = -1;
@@ -1377,11 +1379,12 @@ void GizmoObjectManipulation::do_render_scale_input_window(ImGuiWrapper* imgui_w
     if (render_combo(imgui_wrapper, "", modes, selection_idx, 0, coord_combo_width)) {
         combox_changed = true;
     }
+    ImGuiWrapper::pop_combo_style();
+    // After pop_combo_style(): its light popup background would hide the tooltip's white text.
     if (ImGui::IsItemHovered()) {
         auto tooltip_str = _L("Coordinate system used for transform actions.");
         imgui_wrapper->tooltip(tooltip_str, imgui_wrapper->calc_text_size(tooltip_str).x + 3 * space_size);
     }
-    ImGuiWrapper::pop_combo_style();
 
     // ORCA use TextColored to match axes color
     float offset_to_center = (unit_size - ImGui::CalcTextSize("O").x) / 2;
