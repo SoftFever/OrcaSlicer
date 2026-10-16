@@ -13510,7 +13510,7 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
     {"machine_pause_gcode",         {}},
     {"template_custom_gcode",       {}},
     // Filament G-code
-    {"filament_start_gcode",        {"filament_extruder_id",
+    {"filament_start_gcode",        {"layer_num", "layer_z", "max_layer_z", "filament_extruder_id",
                                       "current_filament_id", "current_extruder_id", "current_nozzle_id",
                                       "nozzle_diameter_at_nozzle_id", "nozzle_volume_types",
                                       "retraction_distance_when_cut", "long_retraction_when_cut",
@@ -13576,8 +13576,8 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
 // change_filament_gcode
     new_def("previous_extruder", coInt, L("Previous extruder"), L("Index of the extruder that is being unloaded. The index is zero based (first extruder has index 0)."));
     new_def("next_extruder", coInt, L("Next extruder"), L("Index of the extruder that is being loaded. The index is zero based (first extruder has index 0)."));
-    new_def("current_hotend", coInt, L("Current hotend"), L("Index of the hotend associated with the outgoing filament. The index is zero-based. Returns -1 when no hotend mapping is available; H2C may return a nozzle ID when dynamic nozzle mapping is enabled, while X2D returns -1."));
-    new_def("next_hotend", coInt, L("Next hotend"), L("Index of the hotend associated with the incoming filament. The index is zero-based. Returns -1 when no hotend mapping is available; H2C may return a nozzle ID when dynamic nozzle mapping is enabled, while X2D returns -1."));
+    new_def("current_hotend", coInt, L("Current hotend"), L("Zero-based extruder index of the outgoing filament. On Bambu printers it is -1, or the nozzle ID when a filament moves between nozzles across layers."));
+    new_def("next_hotend", coInt, L("Next hotend"), L("Zero-based extruder index of the incoming filament. On Bambu printers it is -1, or the nozzle ID when a filament moves between nozzles across layers."));
     new_def("next_nozzle_id", coInt, L("Next nozzle ID"), L("Index of the nozzle associated with the incoming filament. The index is zero-based (first nozzle has index 0)."));
     new_def("next_filament_id", coInt, L("Next filament ID"), L("Index of the incoming filament. The index is zero-based (first filament has index 0)."));
     new_def("old_extruder_variant", coString, L("Old extruder variant"), L("Nozzle-volume variant of the outgoing extruder."));
