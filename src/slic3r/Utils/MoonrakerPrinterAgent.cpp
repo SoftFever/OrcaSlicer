@@ -10,6 +10,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "../GUI/DeviceCore/DevStorage.h"
 #include "../GUI/DeviceCore/DevFirmware.h"
 #include "nlohmann/json.hpp"
@@ -583,8 +584,20 @@ void MoonrakerPrinterAgent::build_ams_payload_grouped(const std::vector<AmsTrayD
         ++ams_id;
     }
 
-    BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::build_ams_payload_grouped: Parsed " << trays.size()
-                            << " trays in " << boxes.size() << " extruder box(es)";
+    size_t has_filament_count = 0;
+    for (const auto& tray : trays) {
+        if (tray.has_filament) ++has_filament_count;
+    }
+    std::ostringstream box_summary;
+    bool first_box = true;
+    for (const auto& [extruder_id, lanes] : boxes) {
+        if (!first_box) box_summary << ", ";
+        box_summary << "ext" << extruder_id << ":" << lanes.size();
+        first_box = false;
+    }
+    BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::build_ams_payload_grouped: input trays " << trays.size()
+                            << " extruders " << boxes.size() << " has_filament " << has_filament_count
+                            << " boxes [" << box_summary.str() << "]";
     submit_ams_payload(ams_array, ams_exist_bits, tray_exist_bits);
 }
 
@@ -643,8 +656,42 @@ void MoonrakerPrinterAgent::submit_ams_payload(const nlohmann::json& ams_array, 
     nlohmann::json print_json = nlohmann::json::object();
     print_json["ams"] = ams_json;
 
+    // Diagnostic: log the AMS-box boundary input (box count and per-box tray counts) so what the
+    // parser produces can be compared against what the agent actually submitted.
+    std::ostringstream box_trays;
+    for (size_t i = 0; i < ams_array.size(); ++i) {
+        if (i > 0) box_trays << ", ";
+        box_trays << "box" << ams_array[i].value("id", std::string()) << ":"
+                  << ((ams_array[i].contains("tray") && ams_array[i]["tray"].is_array()) ? ams_array[i]["tray"].size() : 0);
+    }
+    BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::submit_ams_payload: boundary boxes " << ams_array.size()
+                            << " trays [" << box_trays.str() << "]";
+
     // Call the parser to populate DevFilaSystem
     DevFilaSystemParser::ParseV1_0(print_json, obj, obj->GetFilaSystem().get(), false);
+
+    // ParseV1_0 handles only the AMS boxes, so grow the external-spool slots directly here too:
+    // pull mode bypasses MachineObject::parse_json(), the only place the push-status vir_slot is
+    // applied. Each Moonraker extruder gets one empty native virtual tray (id = 255 - extruder_id),
+    // kept at its id-derived index so a non-contiguous extruder set does not shift slots. Slots that
+    // already carry reported spool metadata are left untouched (only missing slots are added).
+    const auto extruder_status = collect_extruder_status();
+    for (const auto& entry : extruder_status) {
+        const int extruder_id = entry.first;
+        if (extruder_id < 0 || extruder_id > VIRTUAL_TRAY_MAIN_ID) {
+            continue;
+        }
+        // Address the slot by its virtual tray id (VIRTUAL_TRAY_MAIN_ID - extruder_id), which places
+        // it at vector index extruder_id. Append-only, so a reported spool and the extruder
+        // association survive refreshes.
+        grow_virtual_tray_slots(obj->vt_slot, static_cast<std::size_t>(VIRTUAL_TRAY_MAIN_ID - extruder_id));
+        auto& tray = obj->vt_slot[extruder_id];
+        tray.is_slot_placeholder = !tray.is_exists && tray.setting_id.empty() && tray.m_fila_type.empty();
+    }
+    if (!extruder_status.empty()) {
+        // A native virtual tray implies external-spool support, matching parse_vt_tray().
+        obj->ams_support_virtual_tray = true;
+    }
 
     // Set printer_type so update_sync_status() can match it against the preset's printer type.
     // Without this, the comparison fails and all sync badges are cleared.
@@ -924,14 +971,30 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
     const auto& value = json["result"]["value"];
     trays.clear();
     max_lane_index = 0;
+    size_t skipped_records = 0;
 
     // The lane_data namespace carries no extruder field; read the lane -> toolhead binding from the
     // AFC printer objects so lanes on different toolheads end up in different AMS boxes.
     std::map<std::string, int> lane_extruder;
     fetch_afc_lane_extruders(lane_extruder);
 
+    // Happy Hare also writes lane_data, where the lane number is the gate index. Its mmu_machine
+    // status maps gates to units, and each unit's config maps to an extruder. Probe that mapping
+    // only when a lane has no AFC/extruder field, preserving the existing AFC/generic behavior.
+    std::map<int, int> hh_gate_extruder;
+    bool               hh_probed = false;
+    auto               hh_extruder_for_lane = [&](int lane) {
+        if (!hh_probed) {
+            hh_probed = true;
+            fetch_hh_gate_extruders(hh_gate_extruder);
+        }
+        const auto it = hh_gate_extruder.find(lane);
+        return it != hh_gate_extruder.end() ? it->second : 0;
+    };
+
     for (const auto& [lane_key, lane_obj] : value.items()) {
         if (!lane_obj.is_object()) {
+            ++skipped_records;
             continue;
         }
 
@@ -943,6 +1006,7 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
         if (lane_index < 0) {
             lane_index = lane_index_from_key(lane_key);
             if (lane_index < 0) {
+                ++skipped_records;
                 continue;
             }
         }
@@ -950,13 +1014,16 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
         AmsTrayData tray;
         tray.slot_index = lane_index;
         // AFC exposes the lane's extruder/toolhead as "extruder_index"; tolerate "extruder_id" as
-        // an alias. lane_data has neither, so fall back to the AFC lane objects and only then to
-        // the main extruder (best effort).
-        tray.extruder_id = safe_json_int_flexible(lane_obj, "extruder_index",
-                              safe_json_int_flexible(lane_obj, "extruder_id", -1));
+        // an alias. lane_data has neither, so fall back to the AFC lane objects, then to the Happy
+        // Hare unit layout, and only then to the main extruder (best effort).
+        const int source_extruder = safe_json_int_flexible(lane_obj, "extruder_index",
+                                        safe_json_int_flexible(lane_obj, "extruder_id", -1));
+        const char* source_extruder_field = lane_obj.contains("extruder_index") ? "extruder_index"
+                                           : lane_obj.contains("extruder_id") ? "extruder_id" : "none";
+        tray.extruder_id = source_extruder;
         if (tray.extruder_id < 0) {
             const auto it = lane_extruder.find(lane_key);
-            tray.extruder_id = it != lane_extruder.end() ? it->second : 0;
+            tray.extruder_id = it != lane_extruder.end() ? it->second : hh_extruder_for_lane(lane_index);
         }
         tray.tray_color = safe_json_string(lane_obj, "color");
         tray.tray_type = safe_json_string(lane_obj, "material");
@@ -970,7 +1037,17 @@ bool MoonrakerPrinterAgent::fetch_moonraker_filament_data(std::vector<AmsTrayDat
 
         max_lane_index = std::max(max_lane_index, lane_index);
         trays.push_back(tray);
+        BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::fetch_moonraker_filament_data: lane " << lane_index
+                                << " src_extruder " << source_extruder_field << "=" << source_extruder
+                                << " mapped_extruder " << tray.extruder_id
+                                << " material " << tray.tray_type
+                                << " color " << tray.tray_color
+                                << " preset_resolved " << (!tray.tray_info_idx.empty());
     }
+
+    BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::fetch_moonraker_filament_data: lane_data records " << value.size()
+                            << " parsed " << trays.size() << " skipped " << skipped_records
+                            << " max_lane_index " << max_lane_index;
 
     if (trays.empty()) {
         BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::fetch_moonraker_filament_data: No lanes found";
@@ -1063,8 +1140,12 @@ bool MoonrakerPrinterAgent::fetch_hh_filament_info(std::vector<AmsTrayData>& tra
     }
 
     // Parse gate data. Every gate becomes a lane so empty/unknown gates surface
-    // as empty AMS slots rather than vanishing. HH is single-extruder, so all
-    // lanes belong to feed group 0.
+    // as empty AMS slots rather than vanishing. Each gate is grouped by the toolhead its
+    // mmu_machine unit feeds; when the unit layout is unavailable every gate keeps the previous
+    // fallback of feed group 0.
+    std::map<int, int> gate_extruder;
+    fetch_hh_gate_extruders(gate_extruder);
+
     trays.clear();
 
     for (int gate_idx = 0; gate_idx < num_gates; ++gate_idx) {
@@ -1076,7 +1157,8 @@ bool MoonrakerPrinterAgent::fetch_hh_filament_info(std::vector<AmsTrayData>& tra
 
         AmsTrayData tray;
         tray.slot_index = gate_idx;
-        tray.extruder_id = 0;
+        const auto extruder_it = gate_extruder.find(gate_idx);
+        tray.extruder_id = extruder_it != gate_extruder.end() ? extruder_it->second : 0;
 
         if (status > 0 && !material.empty()) {
             tray.tray_type = material;
@@ -1101,6 +1183,30 @@ bool MoonrakerPrinterAgent::fetch_hh_filament_info(std::vector<AmsTrayData>& tra
     return true;
 }
 
+// GET a Moonraker path (relative to the device base URL) with the device's API key and parse the
+// response body. Returns false on a non-200 status or a body that is not valid JSON.
+bool MoonrakerPrinterAgent::http_get_json(const std::string& path, nlohmann::json& out) const
+{
+    auto http = Http::get(join_url(device_info.base_url, path));
+    if (!device_info.api_key.empty()) {
+        http.header("X-Api-Key", device_info.api_key);
+    }
+    std::string body;
+    unsigned    status_code = 0;
+    http.timeout_connect(5)
+        .timeout_max(10)
+        .on_complete([&](std::string response, unsigned status) {
+            body        = std::move(response);
+            status_code = status;
+        })
+        .perform_sync();
+    if (status_code != 200) {
+        return false;
+    }
+    out = nlohmann::json::parse(body, nullptr, false, true);
+    return !out.is_discarded();
+}
+
 // AFC writes its filament data into the lane_data database namespace, and the records of the
 // fixture/agent write path carry no extruder field, so the lane -> toolhead binding has to be read
 // from the printer objects: each AFC_lane <name>.extruder names the toolhead its lane feeds, and
@@ -1108,29 +1214,8 @@ bool MoonrakerPrinterAgent::fetch_hh_filament_info(std::vector<AmsTrayData>& tra
 // of the main extruder.
 bool MoonrakerPrinterAgent::fetch_afc_lane_extruders(std::map<std::string, int>& lane_extruder)
 {
-    auto query_objects = [this](const std::string& query_string, nlohmann::json& out) {
-        auto http = Http::get(join_url(device_info.base_url, "/printer/objects/query?" + query_string));
-        if (!device_info.api_key.empty()) {
-            http.header("X-Api-Key", device_info.api_key);
-        }
-        std::string body;
-        unsigned    status_code = 0;
-        http.timeout_connect(5)
-            .timeout_max(10)
-            .on_complete([&](std::string response, unsigned status) {
-                body        = std::move(response);
-                status_code = status;
-            })
-            .perform_sync();
-        if (status_code != 200) {
-            return false;
-        }
-        out = nlohmann::json::parse(body, nullptr, false, true);
-        return !out.is_discarded();
-    };
-
     nlohmann::json afc_json;
-    if (!query_objects("AFC", afc_json) || !afc_json.contains("result") ||
+    if (!http_get_json("/printer/objects/query?AFC", afc_json) || !afc_json.contains("result") ||
         !afc_json["result"].contains("status") || !afc_json["result"]["status"].contains("AFC")) {
         return false;
     }
@@ -1154,7 +1239,7 @@ bool MoonrakerPrinterAgent::fetch_afc_lane_extruders(std::map<std::string, int>&
     }
 
     nlohmann::json lanes_json;
-    if (!query_objects(query_string, lanes_json) || !lanes_json.contains("result") ||
+    if (!http_get_json("/printer/objects/query?" + query_string, lanes_json) || !lanes_json.contains("result") ||
         !lanes_json["result"].contains("status")) {
         return false;
     }
@@ -1175,6 +1260,111 @@ bool MoonrakerPrinterAgent::fetch_afc_lane_extruders(std::map<std::string, int>&
     }
 
     return !lane_extruder.empty();
+}
+
+// Happy Hare maps its gates to toolheads through mmu_machine units: each unit entry carries
+// {name, first_gate, num_gates}, and the matching [mmu_unit <name>] config section names the
+// extruder the unit is attached to. Only Happy Hare publishes mmu_machine, so a generic
+// lane_data / AFC printer is never reassigned from here. Best effort: returns false and leaves the
+// map empty when Happy Hare or its unit data is not available.
+bool MoonrakerPrinterAgent::fetch_hh_gate_extruders(std::map<int, int>& gate_extruder)
+{
+    gate_extruder.clear();
+
+    nlohmann::json machine_json;
+    if (!http_get_json("/printer/objects/query?mmu_machine", machine_json) ||
+        !machine_json.contains("result") || !machine_json["result"].contains("status") ||
+        !machine_json["result"]["status"].contains("mmu_machine") ||
+        !machine_json["result"]["status"]["mmu_machine"].is_object()) {
+        return false;
+    }
+
+    const auto& machine = machine_json["result"]["status"]["mmu_machine"];
+    if (machine.empty()) {
+        return false;
+    }
+
+    // Happy Hare publishes its config through the configfile object; read every unit's section from
+    // one fetch. An absent or unreadable configfile leaves every unit at the main extruder.
+    nlohmann::json sections;
+    nlohmann::json config_json;
+    if (http_get_json("/printer/objects/query?configfile", config_json) &&
+        config_json.contains("result") && config_json["result"].contains("status") &&
+        config_json["result"]["status"].contains("configfile") &&
+        config_json["result"]["status"]["configfile"].is_object()) {
+        const auto& configfile = config_json["result"]["status"]["configfile"];
+        if (configfile.contains("config") && configfile["config"].is_object()) {
+            sections = configfile["config"];
+        }
+    }
+
+    // One gate range -> extruder resolution per unit, reused for every gate the unit carries.
+    std::map<std::string, int> unit_extruder;
+
+    for (const auto& [unit_key, unit_obj] : machine.items()) {
+        // A unit entry is the one carrying a gate range; skip scalars such as num_units.
+        if (!unit_obj.is_object() || !unit_obj.contains("first_gate") || !unit_obj.contains("num_gates")) {
+            continue;
+        }
+        const int first_gate = safe_json_int_flexible(unit_obj, "first_gate", -1);
+        const int num_gates  = safe_json_int_flexible(unit_obj, "num_gates", -1);
+        if (first_gate < 0 || num_gates <= 0) {
+            continue;
+        }
+
+        // If status omits the unit name, use the unit key as a best-effort config section suffix.
+        std::string unit_name = safe_json_string(unit_obj, "name");
+        if (unit_name.empty() && unit_key.rfind("unit_", 0) == 0) {
+            unit_name = unit_key;
+        }
+        if (unit_name.empty()) {
+            continue;
+        }
+
+        auto it = unit_extruder.find(unit_name);
+        if (it == unit_extruder.end()) {
+            it = unit_extruder.emplace(unit_name, hh_unit_extruder_from_config(sections, unit_name)).first;
+        }
+        for (int gate = first_gate; gate < first_gate + num_gates; ++gate) {
+            gate_extruder[gate] = it->second;
+        }
+    }
+
+    if (gate_extruder.empty()) {
+        return false;
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << "MoonrakerPrinterAgent::fetch_hh_gate_extruders: Mapped "
+                             << gate_extruder.size() << " Happy Hare gate(s) across "
+                             << unit_extruder.size() << " unit(s)";
+    return true;
+}
+
+// Read the [mmu_unit <name>] section of a configfile.config map and map its extruder_name to a
+// toolhead index ("extruder" -> 0, "extruderN" -> N). Happy Hare v4 defaults a missing
+// extruder_name to the main extruder, so an absent setting and an absent section both fall back to
+// 0 rather than dropping the unit.
+int MoonrakerPrinterAgent::hh_unit_extruder_from_config(const nlohmann::json& sections, const std::string& unit_name)
+{
+    constexpr int default_extruder = 0;
+
+    if (!sections.is_object()) {
+        return default_extruder;
+    }
+
+    // Happy Hare names its unit sections "mmu_unit <name>" (e.g. "mmu_unit unit0").
+    const auto it = sections.find("mmu_unit " + unit_name);
+    if (it == sections.end() || !it->is_object()) {
+        return default_extruder;
+    }
+
+    const std::string extruder_name = safe_json_string(*it, "extruder_name");
+    if (extruder_name.empty()) {
+        return default_extruder;
+    }
+
+    const int extruder_index = extruder_index_from_name(extruder_name);
+    return extruder_index >= 0 ? extruder_index : default_extruder;
 }
 
 int MoonrakerPrinterAgent::handle_request(const std::string& dev_id, const std::string& json_str)
@@ -2017,6 +2207,31 @@ void MoonrakerPrinterAgent::update_status_cache(const nlohmann::json& updates)
     }
 }
 
+// Snapshot Moonraker toolhead status objects ("extruder", "extruder1", ...) keyed by extruder id.
+// An id is the suffix of the object name, so a non-contiguous set keeps its real ids.
+std::map<int, nlohmann::json> MoonrakerPrinterAgent::collect_extruder_status() const
+{
+    std::lock_guard<std::recursive_mutex> lock(payload_mutex);
+    std::map<int, nlohmann::json> extruder_status;
+    for (const auto& item : status_cache.items()) {
+        int extruder_id = -1;
+        if (item.key() == "extruder") {
+            extruder_id = 0;
+        } else if (item.key().rfind("extruder", 0) == 0 && item.key().size() > 8 &&
+                   std::all_of(item.key().begin() + 8, item.key().end(), [](unsigned char c) { return std::isdigit(c) != 0; })) {
+            try {
+                extruder_id = std::stoi(item.key().substr(8));
+            } catch (...) {
+                extruder_id = -1;
+            }
+        }
+        if (extruder_id >= 0 && item.value().is_object()) {
+            extruder_status.emplace(extruder_id, item.value());
+        }
+    }
+    return extruder_status;
+}
+
 nlohmann::json MoonrakerPrinterAgent::build_print_payload_locked() const
 {
     nlohmann::json payload;
@@ -2102,23 +2317,7 @@ nlohmann::json MoonrakerPrinterAgent::build_print_payload_locked() const
     // MachineObject::parse_new_info() only parses device.extruder when the four
     // legacy new-protocol fields are present. Moonraker has no equivalents, so
     // empty values act as compatibility markers without enabling any features.
-    std::map<int, const nlohmann::json*> extruder_status;
-    for (const auto& item : status_cache.items()) {
-        int extruder_id = -1;
-        if (item.key() == "extruder") {
-            extruder_id = 0;
-        } else if (item.key().rfind("extruder", 0) == 0 && item.key().size() > 8 &&
-                   std::all_of(item.key().begin() + 8, item.key().end(), [](unsigned char c) { return std::isdigit(c) != 0; })) {
-            try {
-                extruder_id = std::stoi(item.key().substr(8));
-            } catch (...) {
-                extruder_id = -1;
-            }
-        }
-        if (extruder_id >= 0 && item.value().is_object()) {
-            extruder_status.emplace(extruder_id, &item.value());
-        }
-    }
+    const auto extruder_status = collect_extruder_status();
 
     if (!extruder_status.empty()) {
         auto& device_extruder = payload["print"]["device"]["extruder"];
@@ -2153,8 +2352,8 @@ nlohmann::json MoonrakerPrinterAgent::build_print_payload_locked() const
         };
 
         for (const auto& [extruder_id, status] : extruder_status) {
-            const int current_temperature = encoded_temperature(*status, "temperature");
-            const int target_temperature  = encoded_temperature(*status, "target");
+            const int current_temperature = encoded_temperature(status, "temperature");
+            const int target_temperature  = encoded_temperature(status, "target");
             device_extruder["info"].push_back({
                 {"id", extruder_id},
                 {"filam_bak", nlohmann::json::array()},
@@ -2172,6 +2371,21 @@ nlohmann::json MoonrakerPrinterAgent::build_print_payload_locked() const
         payload["print"]["fun"]  = "";
         payload["print"]["aux"]  = "";
         payload["print"]["stat"] = "";
+
+        // External-spool placeholders. Moonraker reports the extruders but no external-spool
+        // filament, so emit one empty native virtual tray per extruder (id = 255 - extruder_id).
+        // Emitting vir_slot makes the parser grow vt_slot and set ams_support_virtual_tray, giving
+        // every extruder a load slot instead of only the main one. Ids come from the extruder_status
+        // map, so a non-contiguous extruder set keeps its id mapping (the parser fills the holes
+        // with placeholders) rather than shifting every slot down.
+        auto& vir_slot = payload["print"]["vir_slot"];
+        vir_slot       = nlohmann::json::array();
+        for (const auto& entry : extruder_status) {
+            if (entry.first < 0 || entry.first > VIRTUAL_TRAY_MAIN_ID) {
+                continue;
+            }
+            vir_slot.push_back({{"id", std::to_string(VIRTUAL_TRAY_MAIN_ID - entry.first)}});
+        }
     }
 
     if (status_cache.contains("heater_bed") && status_cache["heater_bed"].is_object()) {

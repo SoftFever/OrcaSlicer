@@ -4134,11 +4134,8 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                             continue;
 
                                         auto vslot = parse_vt_tray(tray_json);
+                                        grow_virtual_tray_slots(vt_slot, static_cast<std::size_t>(tray_id));
                                         const auto index = static_cast<std::vector<DevAmsTray>::size_type>(VIRTUAL_TRAY_MAIN_ID - tray_id);
-                                        while (vt_slot.size() <= index) {
-                                            const int placeholder_id = VIRTUAL_TRAY_MAIN_ID - static_cast<int>(vt_slot.size());
-                                            vt_slot.emplace_back(std::to_string(placeholder_id));
-                                        }
                                         vt_slot[index] = vslot;
                                     }
                                     catch (...) {
@@ -4173,6 +4170,13 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     try {
                         parse_new_info(jj);
                     } catch (...) {}
+
+                    // Give every live device extruder an external virtual tray even when the payload
+                    // carried no vir_slot/vt_tray data (non-Bambu), so the UI always has a slot per
+                    // extruder. Runs after parse_new_info(), which refreshes the extruder count, and
+                    // after the vir_slot/vt_tray handling above, which may have cleared the support
+                    // flag and would otherwise hide these synthetic slots.
+                    ensure_external_virtual_tray_slots();
 #pragma endregion
                 } else if (jj["command"].get<std::string>() == "gcode_line") {
                     //ack of gcode_line
@@ -5276,6 +5280,37 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
     }
 
     return vt_tray;
+}
+
+void MachineObject::ensure_external_virtual_tray_slots()
+{
+    // Without a preset bundle the vendor layout is unknown, and Bambu owns its own fixed pair
+    // (255, 254) reported through vir_slot/vt_tray; in both cases leave vt_slot untouched.
+    if (wxTheApp == nullptr || GUI::wxGetApp().preset_bundle == nullptr ||
+        GUI::wxGetApp().preset_bundle->is_bbl_vendor()) {
+        return;
+    }
+
+    const int extruder_count = m_extder_system != nullptr ? m_extder_system->GetTotalExtderCount() : 0;
+    if (extruder_count <= 0) {
+        return;
+    }
+
+    // One slot per live extruder, addressed by VIRTUAL_TRAY_MAIN_ID - extruder_id. Grow with
+    // placeholders and only fill slots that do not exist yet, so a slot already populated from a
+    // reported tray keeps its metadata and the slot -> extruder mapping never shifts.
+    for (int extruder_id = 0; extruder_id < extruder_count; ++extruder_id) {
+        const int tray_id = VIRTUAL_TRAY_MAIN_ID - extruder_id;
+        grow_virtual_tray_slots(vt_slot, static_cast<std::vector<DevAmsTray>::size_type>(tray_id));
+        auto& tray = vt_slot[extruder_id];
+        // The constructor seeds id 255 without a placeholder flag. Mark any empty generic slot as
+        // synthetic, but leave a slot carrying reported filament data eligible for sync/mapping.
+        tray.is_slot_placeholder = !tray.is_exists && tray.setting_id.empty() && tray.m_fila_type.empty();
+    }
+
+    // A printer with an external-slot layout supports virtual trays even when the payload carried
+    // no vir_slot/vt_tray data, which would otherwise clear this flag and hide the synthetic slots.
+    ams_support_virtual_tray = true;
 }
 
 bool MachineObject::contains_tray(const std::string &ams_id, const std::string &tray_id) const

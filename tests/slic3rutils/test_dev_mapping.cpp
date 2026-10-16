@@ -13,6 +13,7 @@
     #include <Windows.h>
 #endif
 
+#include <cstddef>
 #include <set>
 #include <string>
 #include <utility>
@@ -139,6 +140,53 @@ TEST_CASE("Agent filament slots preserve every extruder and AMS binding", "[DevF
     REQUIRE(tray_index_map.count(252) == 1);
     CHECK(tray_index_map.at(252).first == 252);
     CHECK(tray_index_map.at(252).second == 0);
+}
+
+TEST_CASE("External virtual tray slots cover each extruder without shifting existing data", "[DevFilaSystem]")
+{
+    std::vector<DevAmsTray> slots;
+    slots.emplace_back("255");
+    slots[0].setting_id = "main-spool";
+
+    // Ensure slots for three extruders, preserving the main spool's reported metadata.
+    for (int extruder_id = 0; extruder_id < 3; ++extruder_id) {
+        grow_virtual_tray_slots(slots, static_cast<std::size_t>(VIRTUAL_TRAY_MAIN_ID - extruder_id));
+    }
+
+    REQUIRE(slots.size() == 3);
+    CHECK(slots[0].id == "255");
+    CHECK(slots[1].id == "254");
+    CHECK(slots[2].id == "253");
+    CHECK(slots[0].setting_id == "main-spool");
+
+    // Repeating the topology update is idempotent and leaves existing tray data intact.
+    slots[2].setting_id = "third-spool";
+    for (int extruder_id = 0; extruder_id < 3; ++extruder_id) {
+        grow_virtual_tray_slots(slots, static_cast<std::size_t>(VIRTUAL_TRAY_MAIN_ID - extruder_id));
+    }
+    REQUIRE(slots.size() == 3);
+    CHECK(slots[2].setting_id == "third-spool");
+}
+
+TEST_CASE("Sparse external spool reports retain their extruder slot IDs", "[DevFilaSystem]")
+{
+    MachineObject obj(nullptr, nullptr, "test", "test_dev", "127.0.0.1");
+    const json filament = {
+        {"units", json::array()},
+        {"external", json::array({
+            {{"extruder", 2}, {"loaded", true}, {"material", "PETG"}, {"preset_id", "third-spool"}},
+            {{"extruder", 0}, {"loaded", true}, {"material", "PLA"}, {"preset_id", "main-spool"}}
+        })}
+    };
+
+    DevFilaSystemParser::ParseAgentFilament(filament, &obj, obj.GetFilaSystem().get());
+
+    REQUIRE(obj.vt_slot.size() == 3);
+    CHECK(obj.vt_slot[0].id == "255");
+    CHECK(obj.vt_slot[0].setting_id == "main-spool");
+    CHECK(obj.vt_slot[1].id == "254");
+    CHECK(obj.vt_slot[2].id == "253");
+    CHECK(obj.vt_slot[2].setting_id == "third-spool");
 }
 
 TEST_CASE("Generic AMS tray index map uses cumulative lane counts", "[DevMapping]")
@@ -391,4 +439,172 @@ TEST_CASE("Switch-bound AMS with an invalid track is excluded from mapping", "[D
     REQUIRE_FALSE(obj_no_switch.GetFilaSwitch()->IsInstalled());
     DevFilaSystemParser::ParseV1_0(print_push, &obj_no_switch, obj_no_switch.GetFilaSystem().get(), false);
     REQUIRE(obj_no_switch.GetFilaSystem()->GetAmsList().count("0") == 0);
+}
+
+TEST_CASE("Generic external spools map by their virtual tray id", "[DevMapping]")
+{
+    MachineObject obj(nullptr, nullptr, "test", "test_dev", "127.0.0.1");
+
+    // One external spool per extruder: 255 -> extruder 0, 254 -> 1, 253 -> 2, 252 -> 3.
+    const json filament = {
+        {"units", json::array()},
+        {"external", json::array({
+            {{"extruder", 0}, {"loaded", true}, {"material", "PLA"},  {"color", "FF5733FF"}, {"preset_id", "P0"}},
+            {{"extruder", 1}, {"loaded", true}, {"material", "ASA"},  {"color", "33C1FFFF"}, {"preset_id", "P1"}},
+            {{"extruder", 2}, {"loaded", true}, {"material", "ABS"},  {"color", "8D33FFFF"}, {"preset_id", "P2"}},
+            {{"extruder", 3}, {"loaded", true}, {"material", "PETG"}, {"color", "44AA22FF"}, {"preset_id", "P3"}}
+        })}
+    };
+    DevFilaSystemParser::ParseAgentFilament(filament, &obj, obj.GetFilaSystem().get());
+    REQUIRE(obj.vt_slot.size() == 4);
+    REQUIRE(obj.vt_slot[2].id == "253");
+
+    // Matches only extruder 2's external spool (ABS / 8D33FFFF).
+    FilamentInfo fila;
+    fila.id    = 0;
+    fila.type  = "ABS";
+    fila.color = "8D33FFFF";
+
+    std::vector<FilamentInfo> result;
+    std::vector<bool> map_opt(4, false);
+    map_opt[MappingOption::USE_LEFT_EXT] = true;
+    map_opt[MappingOption::USE_RIGHT_EXT] = true;
+
+    DevMappingUtil::ams_filament_mapping(&obj, {fila}, result, map_opt, {}, false);
+
+    REQUIRE(result.size() == 1);
+    // The external spool keeps its virtual tray id (253), never the AMS ams_id * 4 + slot_id form.
+    CHECK(result[0].tray_id == 253);
+    CHECK(result[0].ams_id == "253");
+}
+
+TEST_CASE("Mapping validation accepts only reported generic virtual slots", "[DevMapping]")
+{
+    MachineObject obj(nullptr, nullptr, "test", "test_dev", "127.0.0.1");
+
+    const json filament = {
+        {"units", json::array()},
+        {"external", json::array({
+            {{"extruder", 0}, {"loaded", true}, {"material", "PLA"}, {"preset_id", "P0"}},
+            {{"extruder", 1}, {"loaded", true}, {"material", "ASA"}, {"preset_id", "P1"}},
+            {{"extruder", 2}, {"loaded", true}, {"material", "ABS"}, {"preset_id", "P2"}}
+        })}
+    };
+    DevFilaSystemParser::ParseAgentFilament(filament, &obj, obj.GetFilaSystem().get());
+    REQUIRE(obj.vt_slot.size() == 3);
+
+    FilamentInfo reported;
+    reported.id      = 0;
+    reported.tray_id = 253;
+    reported.ams_id  = "253"; // extruder 2's external slot, present in vt_slot
+    reported.slot_id = "0";
+    {
+        std::vector<FilamentInfo> result{reported};
+        CHECK(DevMappingUtil::is_valid_mapping_result(&obj, result, false));
+    }
+
+    // A virtual id the printer never reported is rejected and reset.
+    FilamentInfo missing;
+    missing.id      = 1;
+    missing.tray_id = 252;
+    missing.ams_id  = "252";
+    missing.slot_id = "0";
+    {
+        std::vector<FilamentInfo> result{missing};
+        CHECK_FALSE(DevMappingUtil::is_valid_mapping_result(&obj, result, false));
+        CHECK(result[0].tray_id == -1);
+    }
+}
+
+TEST_CASE("Generic AMS units on every extruder join the mapping", "[DevMapping]")
+{
+    MachineObject obj(nullptr, nullptr, "test", "test_dev", "127.0.0.1");
+
+    const std::vector<std::string> materials = {"PLA", "ASA", "ABS", "PETG", "TPU"};
+    const std::vector<std::string> colors    = {"FF5733FF", "33C1FFFF", "8D33FFFF", "44AA22FF", "FFAA00FF"};
+
+    json filament = { {"units", json::array()}, {"external", json::array()} };
+    for (int extruder = 0; extruder < 5; ++extruder) {
+        json unit = { {"id", std::to_string(extruder)}, {"extruder", extruder}, {"slots", json::array()} };
+        unit["slots"].push_back({{"index", 0}, {"loaded", true}, {"material", materials[extruder]}, {"color", colors[extruder]}});
+        filament["units"].push_back(std::move(unit));
+    }
+    DevFilaSystemParser::ParseAgentFilament(filament, &obj, obj.GetFilaSystem().get());
+    REQUIRE(obj.GetFilaSystem()->GetAmsCount() == 5);
+
+    // PETG / 44AA22FF is extruder 3's AMS slot, with cumulative generic tray index 3.
+    FilamentInfo fila;
+    fila.id    = 0;
+    fila.type  = "PETG";
+    fila.color = "44AA22FF";
+
+    // The sidebar sync enables both legacy AMS flags, so every extruder participates.
+    std::vector<FilamentInfo> result;
+    std::vector<bool> map_opt(4, false);
+    map_opt[MappingOption::USE_LEFT_AMS]  = true;
+    map_opt[MappingOption::USE_RIGHT_AMS] = true;
+    DevMappingUtil::ams_filament_mapping(&obj, {fila}, result, map_opt, {}, false);
+    REQUIRE(result.size() == 1);
+    CHECK(result[0].ams_id == "3");
+    CHECK(result[0].tray_id == 3);
+
+    // SelectMachine's right-side split passes only the right flag: extruder 3's unit stays out and
+    // nothing in extruder 0's unit matches PETG, so the filament is left unmapped.
+    std::vector<FilamentInfo> split_result;
+    map_opt[MappingOption::USE_LEFT_AMS] = false;
+    DevMappingUtil::ams_filament_mapping(&obj, {fila}, split_result, map_opt, {}, false);
+    REQUIRE(split_result.size() == 1);
+    CHECK(split_result[0].tray_id == -1);
+}
+
+TEST_CASE("Generic external spool is suppressed when its extruder has AMS filament", "[DevMapping]")
+{
+    MachineObject obj(nullptr, nullptr, "test", "test_dev", "127.0.0.1");
+
+    // One AMS unit on extruder 2 (red ABS) plus one external spool per extruder; extruder 2's
+    // external spool is green ABS, which is what the sliced filament matches exactly.
+    const json filament = {
+        {"units", json::array({
+            {{"id", "2"}, {"extruder", 2}, {"slots", json::array({
+                {{"index", 0}, {"loaded", true}, {"material", "ABS"}, {"color", "FF0000FF"}}
+            })}}
+        })},
+        {"external", json::array({
+            {{"extruder", 0}, {"loaded", true}, {"material", "PLA"},  {"color", "FF5733FF"}},
+            {{"extruder", 1}, {"loaded", true}, {"material", "ASA"},  {"color", "33C1FFFF"}},
+            {{"extruder", 2}, {"loaded", true}, {"material", "ABS"},  {"color", "00FF00FF"}},
+            {{"extruder", 3}, {"loaded", true}, {"material", "PETG"}, {"color", "44AA22FF"}},
+            {{"extruder", 4}, {"loaded", true}, {"material", "TPU"},  {"color", "FFAA00FF"}}
+        })}
+    };
+    DevFilaSystemParser::ParseAgentFilament(filament, &obj, obj.GetFilaSystem().get());
+    REQUIRE(obj.vt_slot.size() == 5);
+    REQUIRE(obj.vt_slot[2].id == "253");
+
+    FilamentInfo fila;
+    fila.id    = 0;
+    fila.type  = "ABS";
+    fila.color = "00FF00FF";
+
+    std::vector<bool> map_opt(4, false);
+    map_opt[MappingOption::USE_LEFT_AMS]  = true;
+    map_opt[MappingOption::USE_RIGHT_AMS] = true;
+    map_opt[MappingOption::USE_LEFT_EXT]  = true;
+    map_opt[MappingOption::USE_RIGHT_EXT] = true;
+
+    // With suppression off the exact-match external spool (253) wins over the red AMS tray.
+    std::vector<FilamentInfo> result;
+    DevMappingUtil::ams_filament_mapping(&obj, {fila}, result, map_opt, {}, false);
+    REQUIRE(result.size() == 1);
+    CHECK(result[0].tray_id == 253);
+    CHECK(result[0].ams_id == "253");
+
+    // With suppression on, extruder 2 already has AMS filament in this mapping, so its external
+    // spool is dropped and the AMS tray is the only candidate left. This fixture has only that
+    // single generic unit, so its cumulative tray index is 0.
+    std::vector<FilamentInfo> suppressed;
+    DevMappingUtil::ams_filament_mapping(&obj, {fila}, suppressed, map_opt, {}, true);
+    REQUIRE(suppressed.size() == 1);
+    CHECK(suppressed[0].ams_id == "2");
+    CHECK(suppressed[0].tray_id == 0);
 }

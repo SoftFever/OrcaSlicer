@@ -145,6 +145,8 @@ private:
     void handle_ws_message(const std::string& dev_id, const std::string& payload);
     void update_status_cache(const nlohmann::json& updates);
     nlohmann::json build_print_payload_locked() const;
+    // Snapshot Moonraker "extruder"/"extruderN" status objects from the cache, keyed by extruder id.
+    std::map<int, nlohmann::json> collect_extruder_status() const;
 
     // Print control helpers
     int pause_print(const std::string& dev_id);
@@ -172,6 +174,15 @@ private:
     // Lane name -> toolhead index, read from the AFC printer objects (the lane_data database has no
     // extruder field). Returns false when AFC is not present or the objects cannot be read.
     bool fetch_afc_lane_extruders(std::map<std::string, int>& lane_extruder);
+    // Gate -> toolhead index, read from the Happy Hare mmu_machine units (gate ranges) and each
+    // unit's configured extruder_name. Returns false when Happy Hare is not present.
+    bool fetch_hh_gate_extruders(std::map<int, int>& gate_extruder);
+    // Read the extruder_name of the [mmu_unit <name>] section from a configfile.config map and map
+    // it to a toolhead index. Missing section/setting falls back to the main extruder (Happy Hare's
+    // own default).
+    static int hh_unit_extruder_from_config(const nlohmann::json& sections, const std::string& unit_name);
+    // GET a Moonraker path with the device's API key and parse the JSON body.
+    bool http_get_json(const std::string& path, nlohmann::json& out) const;
 
     // Build one BBL tray JSON object (placeholder when the tray has no filament).
     static nlohmann::json make_ams_tray_json(const std::string& tray_id, const AmsTrayData& tray);

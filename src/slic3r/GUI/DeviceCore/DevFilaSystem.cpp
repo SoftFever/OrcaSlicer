@@ -947,6 +947,21 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
             }
         }
     }
+
+    // Give every live device extruder an external virtual tray slot (non-Bambu) so a plugin agent
+    // that reaches the model only through this parser also gets the shared external-slot topology.
+    if (obj)
+        obj->ensure_external_virtual_tray_slots();
+
+    // Diagnostic: summarize the AMS state this production parse produced, so the agent boundary
+    // (submit_ams_payload) box/tray counts can be correlated with what actually landed in the model.
+    if (obj && system) {
+        size_t parsed_trays = 0;
+        for (const auto& kv : system->amsList)
+            parsed_trays += kv.second->GetTrays().size();
+        BOOST_LOG_TRIVIAL(info) << "DevFilaSystemParser::ParseV1_0: parsed units " << system->amsList.size()
+                                << " trays " << parsed_trays;
+    }
 }
 
 static DevAms::AmsType ams_type_from_string(const std::string& s)
@@ -955,6 +970,23 @@ static DevAms::AmsType ams_type_from_string(const std::string& s)
     if (s == "n3f")                          return DevAms::N3F;
     if (s == "n3s")                          return DevAms::N3S;
     return DevAms::AMS; // default
+}
+
+void grow_virtual_tray_slots(std::vector<DevAmsTray>& slots, std::size_t tray_id)
+{
+    // Address a slot by its virtual tray id, never by a raw vector index: the slot for `tray_id`
+    // lives at index VIRTUAL_TRAY_MAIN_ID - tray_id and placeholder entries carry
+    // id = VIRTUAL_TRAY_MAIN_ID - index. Append-only, so a slot that already holds reported
+    // metadata keeps it and a sparse/out-of-order report cannot shift the id <-> extruder mapping.
+    if (tray_id > static_cast<std::size_t>(VIRTUAL_TRAY_MAIN_ID))
+        return;
+    const std::size_t slot_index = static_cast<std::size_t>(VIRTUAL_TRAY_MAIN_ID) - tray_id;
+    while (slots.size() <= slot_index) {
+        slots.emplace_back(std::to_string(VIRTUAL_TRAY_MAIN_ID - static_cast<int>(slots.size())));
+        // A filler only makes the slot addressable; it is topology, not a reported spool. Callers
+        // overwrite the target entry with reported metadata, which clears this marker.
+        slots.back().is_slot_placeholder = true;
+    }
 }
 
 void DevFilaSystemParser::ParseAgentFilament(const json& data, MachineObject* obj, DevFilaSystem* system)
@@ -1084,7 +1116,6 @@ void DevFilaSystemParser::ParseAgentFilament(const json& data, MachineObject* ob
     if (obj && data.contains("external") && data["external"].is_array())
     {
         std::map<int, DevAmsTray> external_slots;
-        obj->vt_slot.clear();
         for (const auto& e : data["external"])
         {
             if (!e.is_object())
@@ -1105,9 +1136,23 @@ void DevFilaSystemParser::ParseAgentFilament(const json& data, MachineObject* ob
             external_slots.insert_or_assign(ext, std::move(tray));
         }
 
-        for (auto& entry : external_slots)
-            obj->vt_slot.push_back(std::move(entry.second));
+        // Place each reported spool at its own index (VIRTUAL_TRAY_MAIN_ID - extruder_id) instead of
+        // appending in report order: a sparse or out-of-order report must not compact the vector and
+        // shift the slot -> extruder association.
+        obj->vt_slot.clear();
+        for (const auto& entry : external_slots)
+        {
+            // entry.first is the extruder id; its virtual tray id is VIRTUAL_TRAY_MAIN_ID - extruder_id
+            // and the slot lives at vector index extruder_id (the id <-> index mapping grow applies).
+            grow_virtual_tray_slots(obj->vt_slot, static_cast<std::size_t>(VIRTUAL_TRAY_MAIN_ID - entry.first));
+            obj->vt_slot[entry.first] = entry.second;
+        }
     }
+
+    // Fill any extruder still missing a slot so the model always has one external slot per live
+    // extruder, even when the agent reported no external data at all. Preserves reported metadata.
+    if (obj)
+        obj->ensure_external_virtual_tray_slots();
 }
 
 }
