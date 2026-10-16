@@ -2254,5 +2254,45 @@ bool check_layer_id_pattern(const std::string& pattern, int layer_id){
     return mod >= 0 && mod < count;
 }
 
+boost::filesystem::path extended_path(const boost::filesystem::path& path) {
+#ifdef WIN32
+    namespace fs = boost::filesystem;
+
+    // Already extended, or an explicit device path (which is not subject to MAX_PATH and must not
+    // be absolutized or normalized): leave it alone.
+    {
+        fs::path prefix_candidate = path;
+        const std::wstring native = prefix_candidate.make_preferred().wstring();
+        if (native.rfind(L"\\\\?\\", 0) == 0 || native.rfind(L"\\\\.\\", 0) == 0)
+            return fs::path(native);
+    }
+
+    fs::path absolute = path;
+    if (!absolute.is_absolute()) {
+        boost::system::error_code ec;
+        absolute = fs::absolute(absolute, ec);
+        if (ec)
+            return path; // can't form a valid prefixed path from a relative one
+    }
+
+    // A trailing separator is redundant to the Win32 APIs, but lexically_normal() would rewrite it
+    // as a "." element, which the "\\?\" prefix (normalisation off) takes literally. Drop it first.
+    while (absolute.has_relative_path() && absolute.filename() == ".")
+        absolute = absolute.parent_path();
+
+    // The "\\?\" prefix turns off Win32 normalisation, so do it here first.
+    absolute = absolute.lexically_normal();
+
+    // Extended paths only recognize backslash separators.
+    const std::wstring native = absolute.make_preferred().wstring();
+    if (native.empty())
+        return path;
+    if (native.rfind(L"\\\\", 0) == 0)
+        return fs::path(L"\\\\?\\UNC\\" + native.substr(2)); // \\server\share\... -> \\?\UNC\server\share\...
+    return fs::path(L"\\\\?\\" + native);                    // C:\dir\... -> \\?\C:\dir\...
+#else
+    return path;
+#endif
+}
 
 }; // namespace Slic3r
