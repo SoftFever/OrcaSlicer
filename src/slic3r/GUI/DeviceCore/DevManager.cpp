@@ -1,9 +1,24 @@
 #include "DevManager.h"
+#include "libslic3r/Utils.hpp"
+#include <boost/log/trivial.hpp>
+#include <mutex>
+#include <chrono>
+#include "libslic3r/LifecycleEvents.hpp"
+#include <map>
+#include <cstdint>
+#include <algorithm>
 #include <nlohmann/json.hpp>
 
 #include <exception>
 
 #include <libslic3r/AppConfig.hpp>
+#include <string>
+#include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
+#include <utility>
+#include <vector>
+#include <set>
+#include <wx/object.h>
+#include <wx/timer.h>
 #include "CloudProvider.hpp"
 #include "DevUtil.h"
 
@@ -260,6 +275,18 @@ namespace Slic3r
             std::string printer_signal  = j["dev_signal"].get<std::string>();
             std::string connect_type    = j["connect_type"].get<std::string>();
             std::string bind_state      = j["bind_state"].get<std::string>();
+
+            // Passive discovery must not replace another agent's saved binding.
+            if (get_current_printer_agent_id() == MOONRAKER_PRINTER_AGENT_ID) {
+                if (AppConfig* config = get_app_config()) {
+                    const auto& machines = config->get_local_machines();
+                    auto it = machines.find(dev_id);
+                    if (it != machines.end() && it->second.printer_agent_id != MOONRAKER_PRINTER_AGENT_ID) {
+                        BOOST_LOG_TRIVIAL(warning) << "Ignoring Moonraker discovery for a device owned by another agent: " << dev_id;
+                        return;
+                    }
+                }
+            }
 
             if (connect_type == "farm") {
                 connect_type ="lan";

@@ -4,11 +4,26 @@
 // Implementation of the AdaptivePAProcessor class, responsible for processing G-code layers with adaptive pressure advance.
 
 #include "../GCode.hpp"
+#include "libslic3r/GCode/AdaptivePAInterpolator.hpp"
+#include "libslic3r/libslic3r.h"
 #include "AdaptivePAProcessor.hpp"
+#include <memory>
+#include <cstddef>
+#include <regex>
+#include <iosfwd>
+#include <algorithm>
+#include <exception>
 #include <sstream>
 #include <iostream>
 #include <cmath>
 #include <cctype>
+#include <string>
+#include <utility>
+#include "libslic3r/Config.hpp"
+#include "libslic3r/GCodeWriter.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/I18N.hpp"
+#include "libslic3r/format.hpp"
 
 namespace Slic3r {
 
@@ -32,6 +47,9 @@ AdaptivePAProcessor::AdaptivePAProcessor(GCode &gcodegen)
       m_pa_change_pattern(R"(; PA_CHANGE:T(\d+) MM3MM:([0-9]*\.[0-9]+) ACCEL:(\d+) BR:(\d+) RC:(\d+) OV:(\d+))"),
       m_g1_f_pattern(R"(G1 F([0-9]+))")
 {
+    const size_t indices = std::max(m_config.adaptive_pressure_advance.size(), m_config.enable_pressure_advance.size());
+    for (size_t i = 0; i < indices && !m_enabled; ++i)
+        m_enabled = m_config.adaptive_pressure_advance.get_at(i) && m_config.enable_pressure_advance.get_at(i);
 }
 
 // Method to get the interpolator for a specific filament config index.
@@ -57,6 +75,12 @@ AdaptivePAInterpolator* AdaptivePAProcessor::getInterpolator(unsigned int config
  * @return A string containing the processed G-code with adaptive pressure advance applied.
  */
 std::string AdaptivePAProcessor::process_layer(std::string &&gcode) {
+    // Without PA_CHANGE tags the loop below would only terminate the layer's last line.
+    if (!m_enabled && gcode.find("; PA_CHANGE") == std::string::npos) {
+        if (!gcode.empty() && gcode.back() != '\n')
+            gcode += '\n';
+        return std::move(gcode);
+    }
     std::istringstream stream(gcode);
     std::string line;
     std::ostringstream output;
@@ -299,8 +323,7 @@ std::string AdaptivePAProcessor::validate_adaptive_pa_model(const std::string& m
         // Only numbers, commas and dots are allowed (no letters or other characters)
         for (char c : line) {
             if (!std::isdigit(static_cast<unsigned char>(c)) && c != ',' && c != '.') {
-                return "Line " + std::to_string(line_number) +
-                       ": only numbers, commas and dots are allowed";
+                return Slic3r::format(_u8L("Line %1%: only numbers, commas and dots are allowed"), line_number);
             }
         }
 
@@ -311,8 +334,7 @@ std::string AdaptivePAProcessor::validate_adaptive_pa_model(const std::string& m
         }
         
         if (comma_count != 2) {
-            return "Line " + std::to_string(line_number) + 
-                   ": must contain exactly 3 comma-separated values (PA, flow, acceleration)";
+            return Slic3r::format(_u8L("Line %1%: must contain exactly 3 comma-separated values (PA, flow, acceleration)"), line_number);
         }
         
         // Parse and validate the values
@@ -322,31 +344,31 @@ std::string AdaptivePAProcessor::validate_adaptive_pa_model(const std::string& m
             
             // Parse PA
             if (!std::getline(line_stream, value, ','))
-                return "Line " + std::to_string(line_number) + ": missing PA value";
+                return Slic3r::format(_u8L("Line %1%: missing PA value"), line_number);
             double pa = std::stod(value);
             
             // Parse flow
             if (!std::getline(line_stream, value, ','))
-                return "Line " + std::to_string(line_number) + ": missing flow value";
+                return Slic3r::format(_u8L("Line %1%: missing flow value"), line_number);
             double flow = std::stod(value);
             
             // Parse acceleration
             if (!std::getline(line_stream, value, ','))
-                return "Line " + std::to_string(line_number) + ": missing acceleration value";
+                return Slic3r::format(_u8L("Line %1%: missing acceleration value"), line_number);
             double accel = std::stod(value);
             
             // Validate constraints
             if (pa >= 2.0) {
-                return "Line " + std::to_string(line_number) + ": PA value must be less than 2";
+                return Slic3r::format(_u8L("Line %1%: PA value must be less than 2"), line_number);
             }
             if (flow <= pa) {
-                return "Line " + std::to_string(line_number) + ": flow value must be greater than PA value";
+                return Slic3r::format(_u8L("Line %1%: flow value must be greater than PA value"), line_number);
             }
             if (accel <= flow) {
-                return "Line " + std::to_string(line_number) + ": acceleration value must be greater than flow value";
+                return Slic3r::format(_u8L("Line %1%: acceleration value must be greater than flow value"), line_number);
             }
         } catch (const std::exception&) {
-            return "Line " + std::to_string(line_number) + ": invalid numeric value";
+            return Slic3r::format(_u8L("Line %1%: invalid numeric value"), line_number);
         }
     }
     

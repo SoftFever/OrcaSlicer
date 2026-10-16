@@ -6,10 +6,33 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
-#include "slic3r/plugin/PluginManager.hpp"
 #include "libnest2d/common.hpp"
 
+#include <algorithm>
+#include <boost/log/trivial.hpp>
+#include "libslic3r/BoundingBox.hpp"
+#include <cstddef>
+#include "libslic3r/libslic3r.h"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/Point.hpp"
+#include "libslic3r/Arrange.hpp"
+#include "libslic3r/ExPolygon.hpp"
+#include <exception>
+#include "libslic3r/LifecycleEvents.hpp"
 #include <numeric>
+#include "slic3r/GUI/Jobs/ArrangeJob.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include <utility>
+#include <string>
+#include <vector>
+#include "slic3r/GUI/Jobs/Job.hpp"
+#include "libslic3r/Config.hpp"
+#include "libslic3r/Polygon.hpp"
+#include "libslic3r/PresetBundle.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/format.hpp"
+#include "slic3r/GUI/PartPlate.hpp"
+#include "slic3r/GUI/Selection.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -243,9 +266,10 @@ void FillBedJob::process(Ctl &ctl)
         return ctl.was_canceled() || do_stop;
     };
 
-    params.progressind = [this, &ctl, &statustxt](unsigned st,std::string str="") {
+    params.progressind = [this, &ctl](unsigned st,std::string str="") {
          if (st > 0)
-             ctl.update_status(st * 100 / status_range(), statustxt + " " + str);
+             // TRN Progress status of Fill bed. %1% is the name of the object being copied.
+             ctl.update_status(st * 100 / status_range(), GUI::format(_u8L("Filling %1%"), str));
     };
 
     params.on_packed = [&do_stop] (const ArrangePolygon &ap) {
