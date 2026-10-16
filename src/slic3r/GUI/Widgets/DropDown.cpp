@@ -20,6 +20,13 @@
 #include <wx/gdicmn.h>
 #include <wx/window.h>
 #include <wx/utils.h>
+#include <wx/brush.h>
+#include <wx/control.h>
+#include <wx/textctrl.h>
+#include <wx/vlbox.h>
+#include <wx/sizer.h>
+#include <wx/tokenzr.h>
+#include <wx/weakref.h>
 
 #ifdef __WXGTK__
 #include <gtk/gtk.h>
@@ -29,6 +36,118 @@
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 #include "slic3r/GUI/Widgets/StateHandler.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
+#include "slic3r/GUI/I18N.hpp"
+
+// Search results hold source indices: filtering must never change the preset IDs
+// carried by ComboBox client data or select a different material implicitly.
+class SearchableDropDownList : public wxVListBox
+{
+public:
+    const std::vector<DropDown::Item>& source;
+    std::vector<int> matches;
+    SearchableDropDownList(wxWindow* parent, const std::vector<DropDown::Item>& items)
+        : wxVListBox(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), source(items) {}
+    wxCoord OnMeasureItem(size_t) const override { return FromDIP(32); }
+    void OnDrawItem(wxDC& dc, const wxRect& rect, size_t row) const override
+    {
+        const auto& item = source[matches[row]];
+        dc.SetFont(GetFont());
+        dc.SetTextForeground(IsSelected(row) ? *wxWHITE : GetForegroundColour());
+        int x = rect.x + FromDIP(8);
+        if (item.icon.IsOk()) {
+            dc.DrawBitmap(item.icon, x, rect.y + (rect.height - item.icon.GetScaledHeight()) / 2, true);
+            x += item.icon.GetScaledWidth() + FromDIP(8);
+        }
+        wxString label = item.text;
+        if (!item.alias.empty() && item.alias != item.text) label += " — " + item.alias;
+        if (!item.group_label.empty()) label += " — " + item.group_label;
+        label = wxControl::Ellipsize(label, dc, wxELLIPSIZE_END, std::max(1, rect.GetRight() - x - FromDIP(8)));
+        dc.DrawText(label, x, rect.y + (rect.height - dc.GetCharHeight()) / 2);
+    }
+};
+
+void DropDown::EnableSearch()
+{
+    if (search_enabled) return;
+    search_enabled = true;
+    search_input = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+    search_input->SetHint(_L("Type to filter filaments"));
+    search_list = new SearchableDropDownList(this, items);
+    search_empty = new wxStaticText(this, wxID_ANY, _L("No matching filaments"));
+    auto* layout = new wxBoxSizer(wxVERTICAL);
+    layout->Add(search_input, 0, wxEXPAND | wxALL, FromDIP(6));
+    layout->Add(search_empty, 0, wxALL, FromDIP(8));
+    layout->Add(search_list, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(4));
+    SetSizerAndFit(layout);
+    search_input->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { filterSearch(); });
+    search_input->Bind(wxEVT_KEY_DOWN, &DropDown::searchKeyDown, this);
+    search_list->Bind(wxEVT_KEY_DOWN, &DropDown::searchKeyDown, this);
+    search_list->Bind(wxEVT_LISTBOX, [this](wxCommandEvent&) { acceptSearch(); });
+}
+
+void DropDown::filterSearch()
+{
+    search_list->matches.clear();
+    wxArrayString terms = wxStringTokenize(search_input->GetValue().Lower(), " \t", wxTOKEN_STRTOK);
+    for (size_t i = 0; i < items.size(); ++i) {
+        const auto& item = items[i];
+        if (item.style & (DD_ITEM_STYLE_DISABLED | DD_ITEM_STYLE_SPLIT_ITEM)) continue;
+        const wxString haystack = (item.text + " " + item.alias + " " + item.group_label).Lower();
+        bool match = true;
+        for (const auto& term : terms) if (!haystack.Contains(term)) { match = false; break; }
+        if (match) search_list->matches.push_back(static_cast<int>(i));
+    }
+    search_list->SetItemCount(search_list->matches.size());
+    int row = search_list->matches.empty() ? wxNOT_FOUND : 0;
+    if (terms.empty()) {
+        auto current = std::find(search_list->matches.begin(), search_list->matches.end(), selection);
+        if (current != search_list->matches.end()) row = int(current - search_list->matches.begin());
+    }
+    search_list->SetSelection(row);
+    search_empty->Show(search_list->matches.empty());
+    Layout();
+    search_list->Refresh();
+}
+
+void DropDown::acceptSearch()
+{
+    int row = search_list->GetSelection();
+    if (row < 0 || row >= int(search_list->matches.size())) return;
+    int index = search_list->matches[row];
+    // Copy before notifying: a selection handler may rebuild the source list.
+    wxCommandEvent event(wxEVT_COMBOBOX, GetId());
+    event.SetEventObject(this);
+    event.SetInt(index);
+    event.SetString(items[index].text);
+    wxWeakRef<DropDown> alive(this);
+    DismissAndNotify();
+    if (alive) alive->GetEventHandler()->ProcessEvent(event);
+}
+
+void DropDown::searchKeyDown(wxKeyEvent& event)
+{
+    switch (event.GetKeyCode()) {
+    case WXK_ESCAPE: DismissAndNotify(); return;
+    case WXK_RETURN: case WXK_NUMPAD_ENTER: acceptSearch(); return;
+    case WXK_UP: case WXK_DOWN: {
+        int n = int(search_list->matches.size());
+        if (n) {
+            int row = search_list->GetSelection() + (event.GetKeyCode() == WXK_UP ? -1 : 1);
+            row = std::max(0, std::min(row, n - 1));
+            search_list->SetSelection(row);
+            search_list->ScrollToRow(row);
+        }
+        return;
+    }
+    case WXK_TAB: {
+        wxWeakRef<wxWindow> parent(GetParent());
+        DismissAndNotify();
+        if (parent) parent->Navigate(!event.ShiftDown());
+        return;
+    }
+    default: event.Skip();
+    }
+}
 
 wxDEFINE_EVENT(EVT_DISMISS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DROPDOWN_ITEM_ACTION, wxCommandEvent);
@@ -100,6 +219,7 @@ void DropDown::Invalidate(bool clear)
     }
     assert(selection < (int) items.size());
     need_sync = true;
+    if (search_enabled && IsShown()) filterSearch();
 }
 
 void DropDown::SetSelection(int n)
@@ -188,6 +308,16 @@ bool DropDown::HasDismissLongTime()
 
 void DropDown::Popup(wxWindow *focus)
 {
+    if (search_enabled) {
+        search_input->SetFont(GetFont());
+        search_list->SetFont(GetFont());
+        search_list->SetBackgroundColour(StateColor::darkModeColorFor(GetBackgroundColour()));
+        search_list->SetForegroundColour(text_color.colorForStates(state_handler.states()));
+        search_input->ChangeValue(wxEmptyString);
+        filterSearch();
+        autoPosition();
+        focus = search_input;
+    }
 #ifdef __WXGTK__
     if (!mainDropDown && m_widget) {
         // Data-view cell editors can receive focus before wxGTK infers a
@@ -208,6 +338,7 @@ void DropDown::Popup(wxWindow *focus)
     }
 #endif
     PopupWindow::Popup(focus);
+    if (search_enabled) search_input->SetFocus();
 }
 
 void DropDown::paintEvent(wxPaintEvent& evt)
@@ -308,6 +439,11 @@ static void _DrawSplitItem(const wxWindow* w, wxDC& dc, wxString split_text, wxP
  */
 void DropDown::render(wxDC &dc)
 {
+    if (search_enabled) {
+        dc.SetBackground(wxBrush(StateColor::darkModeColorFor(GetBackgroundColour())));
+        dc.Clear();
+        return;
+    }
     if (items.size() == 0) return;
     int states = state_handler.states();
     if (subDropDown)
@@ -556,6 +692,13 @@ int DropDown::selectedItem()
 
 void DropDown::messureSize()
 {
+    if (search_enabled) {
+        const wxSize available = wxDisplay(GetParent()).GetClientArea().GetSize();
+        SetSize(std::min(available.x, std::max(GetParent()->GetSize().x, FromDIP(420))),
+                std::min(available.y, FromDIP(360)));
+        Layout();
+        return;
+    }
     if (!need_sync) return;
     textSize = wxSize();
     iconSize = wxSize();
@@ -712,6 +855,11 @@ void DropDown::messureSize()
 
 void DropDown::autoPosition()
 {
+    if (search_enabled) {
+        messureSize();
+        Position(GetParent()->ClientToScreen(wxPoint(0, 0)), wxSize(0, GetParent()->GetSize().y));
+        return;
+    }
     messureSize();
     wxPoint pos;
     wxSize  off;
@@ -764,6 +912,7 @@ void DropDown::autoPosition()
 
 void DropDown::mouseDown(wxMouseEvent& event)
 {
+    if (search_enabled) { event.Skip(); return; }
     // Receivce unexcepted LEFT_DOWN on Mac after OnDismiss
     if (!IsShown())
         return;
@@ -776,6 +925,7 @@ void DropDown::mouseDown(wxMouseEvent& event)
 
 void DropDown::mouseReleased(wxMouseEvent& event)
 {
+    if (search_enabled) { event.Skip(); return; }
     if (pressedDown) {
         dragStart = wxPoint();
         pressedDown = false;
@@ -810,6 +960,7 @@ void DropDown::mouseCaptureLost(wxMouseCaptureLostEvent &event)
 
 void DropDown::mouseMove(wxMouseEvent &event)
 {
+    if (search_enabled) { event.Skip(); return; }
     wxPoint pt  = event.GetPosition();
 #ifdef __WXOSX__
     if (mainDropDown) {
@@ -874,6 +1025,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
 
 void DropDown::mouseWheelMoved(wxMouseEvent &event)
 {
+    if (search_enabled) { event.Skip(); return; }
     auto delta = event.GetWheelRotation();
     wxSize  size  = GetSize();
     wxPoint pt2   = offset + wxPoint{0, delta};
@@ -929,6 +1081,10 @@ void DropDown::Dismiss()
 
 bool DropDown::ShouldDismissOnTopWindowDeactivate()
 {
+    // Moving focus into the search popup deactivates its owner on GTK.
+    // Let the transient popup handle outside clicks and focus leaving it.
+    if (search_enabled && (search_input->HasFocus() || search_list->HasFocus()))
+        return false;
     // On Wayland, mapping a chained xdg_popup with grab makes the parent
     // toplevel inactive, which would otherwise cascade-dismiss the whole
     // chain. Skip when our chain peer is shown.

@@ -18,6 +18,8 @@
 
 class wxDC;
 class wxWindow;
+class wxTextCtrl;
+class SearchableDropDownList;
 
 #define DD_NO_CHECK_ICON    0x0001
 #define DD_NO_TEXT          0x0002
@@ -52,6 +54,14 @@ public:
 private:
     std::vector<Item> &items;
     size_t             count = 0;
+    wxTextCtrl*        search_input = nullptr;
+    SearchableDropDownList* search_list = nullptr;
+    wxStaticText*      search_empty = nullptr;
+    bool               search_enabled = false;
+    void filterSearch();
+    void acceptSearch();
+    void searchKeyDown(wxKeyEvent& event);
+
     wxString           group;
     bool               need_sync  = false;
     int                selection  = -1;
@@ -93,6 +103,7 @@ public:
 
 public:
     void Invalidate(bool clear = false);
+    void EnableSearch();
 
     int GetSelection() const { return selection; }
 
