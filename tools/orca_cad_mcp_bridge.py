@@ -97,10 +97,26 @@ def handle(req):
         ver = want if want in ("2025-06-18", "2025-03-26", "2024-11-05") else "2025-06-18"
         return {"jsonrpc": "2.0", "id": rid, "result": {
             "protocolVersion": ver,
-            "capabilities": {"tools": {"listChanged": False}},
+            "capabilities": {"tools": {"listChanged": False}, "resources": {}},
             "serverInfo": SERVER_INFO}}
     if m == "ping":
         return {"jsonrpc": "2.0", "id": rid, "result": {}}
+    if m == "resources/list":
+        return {"jsonrpc": "2.0", "id": rid, "result": {"resources": [
+            {"uri": "orca-cad://design", "name": "design", "mimeType": "application/json",
+             "description": "Live state of the open design: parameters, features with errors, bodies with volume/COM/bbox, sketches, undo depth (inspect_design)."},
+            {"uri": "orca-cad://tools", "name": "tools", "mimeType": "application/json",
+             "description": "Every callable method with its parameters (describe_tools)."}]}}
+    if m == "resources/read":
+        uri = (req.get("params") or {}).get("uri")
+        method = {"orca-cad://design": "inspect_design", "orca-cad://tools": "describe_tools"}.get(uri)
+        if method is None:
+            return {"jsonrpc": "2.0", "id": rid, "error": {"code": -32602, "message": f"unknown resource: {uri}"}}
+        try:
+            body = app_call(method).get("result")
+        except Exception as e:
+            return {"jsonrpc": "2.0", "id": rid, "error": {"code": -32603, "message": f"control socket unreachable ({SOCK_PATH}): {e}"}}
+        return {"jsonrpc": "2.0", "id": rid, "result": {"contents": [{"uri": uri, "mimeType": "application/json", "text": json.dumps(body, indent=2)}]}}
     if m == "tools/list":
         return {"jsonrpc": "2.0", "id": rid, "result": {"tools": list_tools()}}
     if m == "tools/call":

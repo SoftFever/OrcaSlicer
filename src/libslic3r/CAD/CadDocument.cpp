@@ -3243,7 +3243,8 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
         // body is concave, and the shell comes out 0.2-0.4 % light against the exact offset. Arc joins stay as the
         // fallback for bodies the intersection join cannot offset.
         TopoDS_Shape shelled;
-        for (GeomAbs_JoinType join : {GeomAbs_Intersection, GeomAbs_Arc}) {
+        // (Only with an open face: a closed hollow keeps the arc joins it always had.)
+        for (GeomAbs_JoinType join : {remove.IsEmpty() ? GeomAbs_Arc : GeomAbs_Intersection, GeomAbs_Arc}) {
             BRepOffsetAPI_MakeThickSolid mts;
             mts.MakeThickSolidByJoin(result, remove, -std::abs(f.shell_thickness), 1.0e-3, BRepOffset_Skin, false, false, join);
             mts.Build();

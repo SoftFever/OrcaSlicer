@@ -9869,12 +9869,18 @@ TEST_CASE("shell of an L bracket has sharp inner corners", "[CadDocument][oracle
     sp.closed = true;
     const int sk = doc.add_sketch_profile(sp, SketchPlane::XY(), "L");
     doc.add_extrude(sk, 20.0, false, BooleanMode::New, "Extrude");
-    doc.add_shell(2.0, -1, 0, "Shell");   // closed hollow
     REQUIRE(doc.recompute());
-    // Cavity of a sharp inward offset: the L shrunk by 2 on every side (area 60*20+30*20 = 1800 -> inner polygon area computed by hand)
-    // inner L: x 2..58, y 2..18 (56x16 = 896) plus x 2..28, y 18..38 (26x20 = 520) = 1416; height 16
+    int top = -1;   // the open face: the one facing +Z at z = 20
+    const auto faces = GeometryEngine::faces_of(doc.bodies[0].shape);
+    for (size_t i = 0; i < faces.size(); ++i)
+        if (GeometryEngine::face_normal_world(faces[i]).z() > 0.99 && std::abs(GeometryEngine::face_centroid_world(faces[i]).z() - 20.0) < 1e-6) top = int(i);
+    REQUIRE(top >= 0);
+    doc.add_shell(2.0, top, 0, "Shell");
+    REQUIRE(doc.recompute());
+    // Sharp inward offset of the L by 2 on every side, open at the top: the cavity is x 2..58,y 2..18 (896) + x 2..28,y 18..38 (520)
+    // = 1416 mm2 from z = 2 up to 20 (18 mm), so the solid is 1800 * 20 - 1416 * 18
     GProp_GProps props; BRepGProp::VolumeProperties(doc.bodies[0].shape, props);
-    CHECK(props.Mass() == Approx(1800.0 * 20.0 - 1416.0 * 16.0).epsilon(1e-4));
+    CHECK(props.Mass() == Approx(1800.0 * 20.0 - 1416.0 * 18.0).epsilon(1e-4));
 }
 
 // A removal that cuts the body in two leaves two bodies.
