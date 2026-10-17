@@ -824,6 +824,7 @@ public:
         int replayed{0};                  // features rebuilt by the last recompute()
         int restored{0};                  // features taken from the cache
         std::vector<double> feature_ms;   // per feature, 0 for a restored or non-solid one
+        double mesh_ms{0};                // tessellating the finished bodies: paid on every change, whatever was cached
     } replay_stats;
     bool incremental{true};
     // The bodies as each feature last SAW them, keyed by the feature's own bytes: what its face/edge ids were written

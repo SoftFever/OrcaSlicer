@@ -3618,6 +3618,16 @@ DesignPanel::DesignPanel(wxWindow* parent)
             m_feature_counter++;
             const int sk = m_doc.add_sketch_entities(ents, plane,
                                feature_name(_L("Sketch")), cons);
+            if (m_attach_face >= 0) {   // the sketch is on a face: record it, if the committed plane really is that face's plane
+                SketchPlane fp;
+                if (m_doc.plane_of_face(m_attach_body, m_attach_face, fp)
+                    && std::abs(fp.normal.normalized().dot(plane.normal.normalized())) > 1.0 - 1e-6
+                    && std::abs((plane.origin - fp.origin).dot(fp.normal.normalized())) < 1e-6) {
+                    m_doc.features[sk].attach_body = m_attach_body;
+                    m_doc.features[sk].attach_face = m_attach_face;
+                }
+                m_attach_body = m_attach_face = -1;
+            }
             if (!cons.empty()) m_doc.solve_sketch_feature(sk);   // enforce driving dimensions
             m_doc.recompute();
             set_status(StatusKind::Info, cons.empty()
@@ -11833,6 +11843,14 @@ void DesignPanel::start_sketch_on_target(bool offer_tools)
     if (!m_viewport) return;
     wxString on;
     const SketchPlane plane = sketch_plane_from_selection(on);
+    {   // remember the face when the plane came from one
+        const int fb = (m_sel_solid_face >= 0 && m_sel_solid_body >= 0) ? m_sel_solid_body : m_pick_face_body;
+        const int fi = (m_sel_solid_face >= 0 && m_sel_solid_body >= 0) ? m_sel_solid_face : m_pick_face;
+        SketchPlane fp;
+        const bool from_face = fb >= 0 && fi >= 0 && m_doc.plane_of_face(fb, fi, fp);
+        m_attach_body = from_face ? fb : -1;
+        m_attach_face = from_face ? fi : -1;
+    }
     m_viewport->begin_sketch(plane, DesignSketchTool::Mode::Select);
     // The face or plane has been CONSUMED as the sketch plane, so drop the pick. A face left live
     // meant the next Extrude saw a selected face and push/pulled it instead of extruding the

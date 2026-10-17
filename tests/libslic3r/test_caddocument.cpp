@@ -10141,3 +10141,31 @@ TEST_CASE("a sketch attached to a face follows it", "[CadDocument][naming]")
         CHECK(back.features[boss_sk].attach_body == 0);
     }
 }
+
+// Acceptance: on a 30-feature model a tail edit replays one feature and costs a fraction of a full rebuild.
+TEST_CASE("a tail edit on a 30-feature model is much cheaper than a full rebuild", "[CadDocument][incremental]")
+{
+    CadDocument doc;
+    SketchProfile sp; sp.points = { Vec2d(0,0), Vec2d(200,0), Vec2d(200,100), Vec2d(0,100) }; sp.closed = true;
+    const int s = doc.add_sketch_profile(sp, SketchPlane::XY(), "Plate");
+    doc.add_extrude(s, 10.0, false, BooleanMode::New, "Plate");
+    int last = -1;
+    for (int i = 0; i < 29; ++i)
+        last = doc.add_hole(4.0, 10.0, true, 8.0 + 6.0 * (i % 30), 20.0 + 20.0 * (i % 4), SketchPlane::XY(), "H" + std::to_string(i));
+    using clock = std::chrono::steady_clock;
+    auto ms = [](clock::time_point a, clock::time_point b) { return std::chrono::duration<double, std::milli>(b - a).count(); };
+
+    // The feature rebuilds are what the cache removes; tessellating the finished body is paid on every change (mesh_ms).
+    auto replay_ms = [](const CadDocument& d) { double t = 0; for (double v : d.replay_stats.feature_ms) t += v; return t; };
+    REQUIRE(doc.recompute());
+    const double cold = replay_ms(doc);
+    CHECK(doc.replay_stats.replayed == 30);
+
+    doc.features[last].hole_diameter = 5.0;   // the last feature
+    REQUIRE(doc.recompute());
+    const double tail = replay_ms(doc);
+    CHECK(doc.replay_stats.replayed == 1);
+    CHECK(doc.replay_stats.restored == 29);
+    INFO("feature rebuild: cold " << cold << " ms, tail edit " << tail << " ms; tessellation " << doc.replay_stats.mesh_ms << " ms");
+    CHECK(tail * 5.0 < cold);
+}

@@ -4697,9 +4697,11 @@ bool CadDocument::recompute()
     }
 
     body = compound_of(bodies);
+    const auto mesh_t0 = std::chrono::steady_clock::now();
     display_mesh = tessellate_bodies(bodies, display_tri_face, display_tri_body,
                                      display_body_meshes,
                                      linear_deflection, angular_deflection);
+    replay_stats.mesh_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - mesh_t0).count();
     if (display_mesh.its.indices.empty() && any_solid_feature) {
         // Empty only because there are no bodies to tessellate is the same legitimate state as
         // above: a sketch-only document has nothing to draw as a solid, and that is not a fault.

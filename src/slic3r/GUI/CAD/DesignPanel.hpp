@@ -829,6 +829,10 @@ private:
     // Click-selected solid topology (whole/face/edge cycle): face id for up-to-face / dress-up.
     int               m_sel_solid_body{-1};   // which body the face/edge selection is on
     int               m_sel_solid_face{-1};
+    // The face a sketch session was started on (start_sketch_on_target): the committed Sketch records it so it follows the
+    // face through upstream edits. Checked against the committed plane before it is trusted.
+    int               m_attach_body{-1};
+    int               m_attach_face{-1};
     int               m_sel_solid_edge{-1};
     // The picked edge set (Shift/Ctrl+click), m_sel_solid_edge last. Read through dressup_edges(),
     // which drops it once m_sel_solid_edge moves on — the many places that reset the single edge
