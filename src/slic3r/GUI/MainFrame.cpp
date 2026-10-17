@@ -1739,6 +1739,9 @@ void MainFrame::fit_tab_labels()
     for (size_t i = count - 1; i >= 1; --i) {
         int right = ScreenToClient(m_slice_option_btn->ClientToScreen({})).x;
         int left  = sizer->GetSize().GetWidth();
+        // The overflow button sits between the tab buttons and the side tools, so it is not free space.
+        if (const wxWindow* overflow = ctrl->GetOverflowButton())
+            left += overflow->GetSize().GetWidth();
         if (right - left - FromDIP(15) > 0) return;
         ctrl->SetCompact(i, true);
         m_tabpanel->Refresh();
