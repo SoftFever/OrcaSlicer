@@ -40,6 +40,8 @@
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
 #include <wx/settings.h>
+#include <wx/clipbrd.h>
+#include <wx/dataobj.h>
 #include <wx/tokenzr.h>
 #include <wx/utils.h>
 #include <wx/variant.h>
@@ -1883,6 +1885,62 @@ std::array<Preset::Type, 3> DiffPresetDialog::types_list() const
     return PresetBundle::types_list(m_pr_technology);
 }
 
+static wxString diff_preset_type_name(Preset::Type type)
+{
+    switch (type) {
+    case Preset::TYPE_PRINT:    return _L("Process");
+    case Preset::TYPE_FILAMENT: return _L("Filament");
+    case Preset::TYPE_PRINTER:  return _L("Printer");
+    default:                    return _L("Preset");
+    }
+}
+
+// A value as the content of a Markdown table cell: line breaks become <br> and "|" is escaped.
+static std::string markdown_table_cell(wxString value)
+{
+    value.Replace("\r\n", "\n");
+    value.Replace("\r", "\n");
+    value.Replace("\n", "<br>");
+    value.Replace("|", "\\|");
+    return into_u8(value);
+}
+
+void DiffPresetDialog::append_diff_export_rows(Preset::Type type, const wxString& option_name, const std::vector<DiffExportValue>& values)
+{
+    if (values.empty())
+        return;
+
+    if (m_diff_export_text.empty())
+        m_diff_export_text = "| Preset type | Setting | Preset / variant | Value |\n"
+                             "| --- | --- | --- | --- |\n";
+
+    for (const DiffExportValue& entry : values)
+        m_diff_export_text += "| " + markdown_table_cell(diff_preset_type_name(type)) +
+                              " | " + markdown_table_cell(option_name) +
+                              " | " + markdown_table_cell(entry.label) +
+                              " | " + markdown_table_cell(entry.value) + " |\n";
+}
+
+void DiffPresetDialog::copy_differences_to_clipboard() const
+{
+    if (m_diff_export_text.empty())
+        return;
+
+    if (wxTheClipboard->Open()) {
+        wxTheClipboard->SetData(new wxTextDataObject(from_u8(m_diff_export_text)));
+        wxTheClipboard->Close();
+    }
+}
+
+void DiffPresetDialog::create_copy_button()
+{
+    m_copy_differences_btn = new Button(this, _L("Copy differences"));
+    m_copy_differences_btn->SetStyle(ButtonStyle::Regular, ButtonType::Choice);
+    m_copy_differences_btn->SetToolTip(_L("Copy the preset differences as a Markdown table"));
+    m_copy_differences_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { copy_differences_to_clipboard(); });
+    m_copy_differences_btn->Show(false);
+}
+
 void DiffPresetDialog::create_buttons()
 {
     m_buttons   = new wxBoxSizer(wxHORIZONTAL);
@@ -1981,6 +2039,7 @@ void DiffPresetDialog::complete_dialog_creation()
     topSizer->Add(m_presets_sizer,      0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_show_all_presets,   0, wxEXPAND | wxALL, border);
     topSizer->Add(m_tree,               1, wxEXPAND | wxALL, border);
+    topSizer->Add(m_copy_differences_btn, 0, wxALIGN_RIGHT | wxLEFT | wxRIGHT | wxBOTTOM, border);
     topSizer->Add(m_bottom_info_line,   0, wxEXPAND | wxALL, 2 * border);
     topSizer->Add(m_edit_sizer,         0, wxEXPAND);
 
@@ -2020,6 +2079,8 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     create_show_all_presets_chb();
 
     create_tree();
+
+    create_copy_button();
 
     create_edit_sizer();
 
@@ -2113,6 +2174,7 @@ void DiffPresetDialog::update_tree()
     index.sort_options_by_key();
 
     m_tree->Clear();
+    m_diff_export_text.clear();
     wxString bottom_info = "";
     bool show_tree = false;
 
@@ -2184,6 +2246,7 @@ void DiffPresetDialog::update_tree()
 
             m_tree->Append("extruders_count", type, _L("General"), _L("Capabilities"), local_label, left_val, right_val,
                 get_category_icon("Basic information"));
+            append_diff_export_rows(type, local_label, {{from_u8(left_preset->name), left_val}, {from_u8(right_preset->name), right_val}});
         }
 
         for (const std::string& opt_key : dirty_options) {
@@ -2203,8 +2266,11 @@ void DiffPresetDialog::update_tree()
             }
             m_tree->Append(opt_key, type, option.category_local, option.group_local, option.label_local,
                 left_val, right_val, get_category_icon(option.category));
+            append_diff_export_rows(type, option.label_local, {{from_u8(left_preset->name), left_val}, {from_u8(right_preset->name), right_val}});
         }
     }
+
+    m_copy_differences_btn->Show(show_tree && !m_diff_export_text.empty());
 
     bool tree_was_shown = m_tree->IsShown();
     m_tree->Show(show_tree);
