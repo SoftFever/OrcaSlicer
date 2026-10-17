@@ -58,9 +58,12 @@ public:
             dc.DrawBitmap(item.icon, x, rect.y + (rect.height - item.icon.GetScaledHeight()) / 2, true);
             x += item.icon.GetScaledWidth() + FromDIP(8);
         }
+        // A narrow literal converts to wxString through the current locale (CP1252 on
+        // Windows), which renders the UTF-8 em dash as mojibake; decode it explicitly.
+        static const wxString separator = wxString::FromUTF8(" \xE2\x80\x94 ");
         wxString label = item.text;
-        if (!item.alias.empty() && item.alias != item.text) label += " — " + item.alias;
-        if (!item.group_label.empty()) label += " — " + item.group_label;
+        if (!item.alias.empty() && item.alias != item.text) label += separator + item.alias;
+        if (!item.group_label.empty()) label += separator + item.group_label;
         label = wxControl::Ellipsize(label, dc, wxELLIPSIZE_END, std::max(1, rect.GetRight() - x - FromDIP(8)));
         dc.DrawText(label, x, rect.y + (rect.height - dc.GetCharHeight()) / 2);
     }
