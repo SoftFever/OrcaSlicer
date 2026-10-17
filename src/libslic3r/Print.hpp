@@ -1054,6 +1054,27 @@ enum FilamentCompatibilityType {
     InvalidTemperatureRange
 };
 
+// The 0-based filament slots a model's printable objects reference, grouped by how sure it is that
+// each extrudes. Collected by Print::collect_model_filaments with the slicer's own resolution
+// rules. Mixed slots are listed as themselves (not expanded); each tier is sorted and
+// deduplicated, and a slot may appear in more than one tier.
+struct ModelFilaments
+{
+    std::vector<unsigned int> parts;        // volume filaments, multi-material painting, height ranges
+    std::vector<unsigned int> features;     // per-feature filaments of the parts' regions
+    std::vector<unsigned int> wipe_tower;   // the wipe tower filament, when it is printed
+    std::vector<unsigned int> tool_changes; // the plate's layer tool changes
+    std::vector<unsigned int> support;      // support / interface filaments of objects printing support
+
+    // Every tier, sorted and deduplicated.
+    std::vector<unsigned int> all() const;
+};
+
+// AllConfigured counts every feature filament, printed or not (shrinkage compensation's rule: any
+// disagreement switches compensation off). Printed applies the slicer's feature gates, the rule
+// Print::extruders uses.
+enum class FeatureGate { AllConfigured, Printed };
+
 // The complete print tray with possibly multiple objects.
 class Print : public PrintBaseWithState<PrintStep, psCount>
 {
@@ -1134,6 +1155,15 @@ public:
     std::vector<unsigned int> object_extruders() const;
     std::vector<unsigned int> support_material_extruders() const;
     std::vector<unsigned int> extruders(bool conside_custom_gcode = false) const;
+    // Orca: the filaments `model`'s printable objects reference, by tier, resolved with the same
+    // rules the slicer uses once regions exist -- but from the model alone, so it can run before
+    // apply() builds anything. Shared by shrinkage compensation and the plate's filament set
+    // (FilamentCompaction). with_wipe_tower adds the wipe tower filament the way extruders() does.
+    static ModelFilaments collect_model_filaments(const Model &model, const PrintConfig &print_config,
+                                                  const PrintObjectConfig &default_object_config,
+                                                  const PrintRegionConfig &default_region_config,
+                                                  size_t num_extruders, std::vector<int> &variant_index,
+                                                  FeatureGate gate, bool with_wipe_tower);
     double              max_allowed_layer_height() const;
     bool                has_support_material() const;
     // Make sure the background processing has no access to this model_object during this call!
