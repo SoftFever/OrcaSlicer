@@ -54,8 +54,6 @@
 #if defined(__WXMSW__)
 #include <wx/msw/wrapwin.h>
 #include <cstdint>
-#elif defined(__WXOSX__)
-#import <AppKit/AppKit.h>
 #endif
 
 namespace Slic3r::GUI {
@@ -1550,24 +1548,10 @@ void ColorSampler::start(Callback done)
         return;
     }
     s_running = true;
-    // Owned until handler runs; handler is always called, with nil on cancel.
-    __block NSColorSampler* sampler = [[NSColorSampler alloc] init];
-    __block Callback callback = std::move(done);
-    [sampler showSamplerWithSelectionHandler:^(NSColor* picked) {
-        NSColor* srgb = picked ? [picked colorUsingColorSpace:[NSColorSpace sRGBColorSpace]] : nil;
-        std::optional<ColorRGBA> color;
-        if (srgb)
-            color = ColorRGBA(static_cast<float>([srgb redComponent]), static_cast<float>([srgb greenComponent]),
-                              static_cast<float>([srgb blueComponent]), 1.f);
-        dispatch_async(dispatch_get_main_queue(), ^{
-            s_running = false;
-            [sampler release];
-            sampler = nil;
-            Callback finished = std::move(callback);
-            callback = nullptr;
-            finished(color);
-        });
-    }];
+    sample_screen_color([done = std::move(done)](std::optional<ColorRGBA> color) {
+        s_running = false;
+        done(color);
+    });
 }
 #endif
 
