@@ -567,6 +567,12 @@ public:
     // Can a feature expression drive this numeric field? The single allow-list the evaluator
     // uses, so a caller can refuse a name before it breaks the next recompute.
     static bool is_bindable_field(const std::string& field);
+    // Variable housekeeping. rename_variable rewrites every expression that names `from` (token-wise: `w` does not touch
+    // `width`) and refuses a name that is taken, malformed or built in. The CSV is "name,expression" per line, quotes as
+    // usual; from_csv adds or replaces and returns how many rows it took, naming the first bad row in `err`.
+    bool        rename_variable(const std::string& from, const std::string& to, std::string& err);
+    std::string variables_csv() const;
+    int         variables_from_csv(const std::string& csv, std::string& err);
     // Does a feature of this type leave a body behind? Sketches, datums, the helix curve and
     // Project (which emits sketch entities) do not. The one answer recompute(), the rollback
     // rule and the GUI's preview all use.
@@ -813,6 +819,10 @@ public:
         std::vector<double> feature_ms;   // per feature, 0 for a restored or non-solid one
     } replay_stats;
     bool incremental{true};
+    // The bodies as each feature last SAW them, keyed by the feature's own bytes: what its face/edge ids were written
+    // against. When an upstream edit rebuilds those bodies the ids are carried to where their entities went (TopoRemap).
+    std::map<uint64_t, std::vector<CadBody>> m_seen_by_feature;
+    bool remap_refs{true};
     struct ReplayCache;
     std::shared_ptr<ReplayCache> m_replay_cache;
 

@@ -7,7 +7,6 @@
 #include <Bnd_Box.hxx>
 #include <TopExp.hxx>
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
-#include <TopTools_ListIteratorOfListOfShape.hxx>
 #include <TopoDS.hxx>
 #include <algorithm>
 #include <array>
@@ -101,8 +100,8 @@ Topo build(const TopoDS_Shape& s)
         if (d.kind == int(GeomAbs_Line)) d.dir = unsigned_dir(pts.back() - pts.front());
         else { GeometryEngine::CylinderFace c = GeometryEngine::circle_of_edge(e); if (c.ok) d.dir = unsigned_dir(c.axis); }
         const int idx = t.edge_faces.FindIndex(e);
-        if (idx > 0) for (TopTools_ListIteratorOfListOfShape it(t.edge_faces.FindFromIndex(idx)); it.More(); it.Next()) {
-            const int fi = face_index(t, it.Value());
+        if (idx > 0) for (const TopoDS_Shape& fs : t.edge_faces.FindFromIndex(idx)) {
+            const int fi = face_index(t, fs);
             if (fi >= 0 && t.fd[fi].kind >= 0) d.around.push_back(t.fd[fi].kind);
         }
         std::sort(d.around.begin(), d.around.end());
@@ -112,8 +111,8 @@ Topo build(const TopoDS_Shape& s)
         for (const TopoDS_Edge& e : GeometryEngine::edges_of_face(t.faces[i])) {
             const int idx = t.edge_faces.FindIndex(e);
             if (idx <= 0) continue;
-            for (TopTools_ListIteratorOfListOfShape it(t.edge_faces.FindFromIndex(idx)); it.More(); it.Next())
-                if (!it.Value().IsSame(t.faces[i])) { const int fi = face_index(t, it.Value()); if (fi >= 0) t.fd[i].around.push_back(t.fd[fi].kind); }
+            for (const TopoDS_Shape& fs : t.edge_faces.FindFromIndex(idx))
+                if (!fs.IsSame(t.faces[i])) { const int fi = face_index(t, fs); if (fi >= 0) t.fd[i].around.push_back(t.fd[fi].kind); }
         }
         std::sort(t.fd[i].around.begin(), t.fd[i].around.end());
     }

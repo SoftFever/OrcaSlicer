@@ -8852,7 +8852,9 @@ TEST_CASE("Deleting the feature that made an EARLIER body keeps later features o
     REQUIRE(doc.bodies.size() == 2);
     // Body A goes away, so B becomes body 0. "Lift B" said body 1: by index it would now name
     // nothing (and used to fall back to the last body in silence); by identity it is still B.
-    REQUIRE(doc.remove_feature(ea));
+    const bool removed = doc.remove_feature(ea);
+    INFO(doc.error);
+    REQUIRE(removed);
     REQUIRE(doc.bodies.size() == 1);
     CHECK(doc.features[lift - 1].target_body == 0);
     const auto bb = doc.display_mesh.bounding_box();
@@ -8876,7 +8878,9 @@ TEST_CASE("Hiding a body-making feature keeps later features on their body", "[C
 {
     int ea, eb, lift;
     CadDocument doc = two_boxes_and_a_lift(ea, eb, lift);
-    REQUIRE(doc.set_feature_enabled(ea, false));
+    const bool hid = doc.set_feature_enabled(ea, false);
+    INFO(doc.error);
+    REQUIRE(hid);
     REQUIRE(doc.bodies.size() == 1);
     CHECK(doc.display_mesh.bounding_box().min.z() > 49.0);
     // ...and showing it again puts the reference back where it was.
@@ -9974,4 +9978,110 @@ TEST_CASE("Expressions: unit literals and the wider function set", "[CadDocument
     CHECK(eval("n * 2") == Approx(6.0));
     doc.features[ex].expr["distance"] = "ln(0)";
     CHECK_FALSE(doc.recompute());
+}
+
+// A fillet written against "edge N" must stay on its edge when an earlier feature renumbers the topology.
+TEST_CASE("a fillet follows its edge when a hole is inserted before it", "[CadDocument][naming]")
+{
+    CadDocument doc;
+    SketchProfile sp; sp.points = { Vec2d(0,0), Vec2d(40,0), Vec2d(40,40), Vec2d(0,40) }; sp.closed = true;
+    const int s = doc.add_sketch_profile(sp, SketchPlane::XY(), "Base");
+    doc.add_extrude(s, 10.0, false, BooleanMode::New, "Base");
+    REQUIRE(doc.recompute());
+    int corner = -1;   // the vertical edge at (40, 40)
+    const auto edges = GeometryEngine::edges_of(doc.bodies[0].shape);
+    for (size_t i = 0; i < edges.size(); ++i) {
+        const auto pts = GeometryEngine::sample_edge_world(edges[i]);
+        if (pts.size() >= 2 && std::abs(pts.front().x() - 40) < 1e-6 && std::abs(pts.front().y() - 40) < 1e-6 && std::abs(pts.back().x() - 40) < 1e-6 && std::abs(pts.back().y() - 40) < 1e-6) corner = int(i);
+    }
+    REQUIRE(corner >= 0);
+    doc.add_fillet(3.0, corner, "Corner");
+    REQUIRE(doc.recompute());
+    GProp_GProps p0; BRepGProp::VolumeProperties(doc.bodies[0].shape, p0);
+    CHECK(p0.Mass() == Approx(16000.0 - (1.0 - M_PI / 4) * 9.0 * 10.0).epsilon(1e-6));
+
+    doc.add_hole(6.0, 10.0, true, 20.0, 20.0, SketchPlane::XY(), "Hole");   // appended ...
+    std::rotate(doc.features.begin() + 2, doc.features.end() - 1, doc.features.end());   // ... then moved in front of the fillet
+    REQUIRE(doc.recompute());
+    GProp_GProps p1; BRepGProp::VolumeProperties(doc.bodies[0].shape, p1);
+    CHECK(p1.Mass() == Approx(16000.0 - M_PI * 9.0 * 10.0 - (1.0 - M_PI / 4) * 9.0 * 10.0).epsilon(1e-6));
+}
+
+TEST_CASE("a sketch dimension can be bound to a variable and follows it", "[CadDocument][expr]")
+{
+    using R = SketchPointRole; using T = SketchConstraintType;
+    CadDocument doc;
+    std::vector<SketchEntity> ents = { {SketchEntity::Type::Line, Vec2d(0,0), Vec2d(10,0)} };
+    std::vector<SketchEntityConstraintDef> cons;
+    cons.push_back({T::Fix,        0, -1, R::P0, R::P0, 0.0});
+    cons.push_back({T::Horizontal, 0, -1, R::P0, R::P0, 0.0});
+    cons.push_back({T::Distance,   0,  0, R::P0, R::P1, 10.0});
+    const int sk = doc.add_sketch_entities(ents, SketchPlane::XY(), "S", cons);
+    doc.variables["len"] = "2 cm + 5";
+    doc.features[sk].expr["dim:2"] = "len";
+    REQUIRE(doc.recompute());
+    CHECK((doc.features[sk].entities[0].p1 - doc.features[sk].entities[0].p0).norm() == Approx(25.0));
+    doc.variables["len"] = "40";
+    REQUIRE(doc.recompute());
+    CHECK((doc.features[sk].entities[0].p1 - doc.features[sk].entities[0].p0).norm() == Approx(40.0));
+    CHECK(CadDocument::is_bindable_field("dim:3"));
+    doc.features[sk].expr["dim:9"] = "1";
+    CHECK_FALSE(doc.recompute());   // no such dimension
+}
+
+TEST_CASE("renaming a variable rewrites what uses it, token-wise", "[CadDocument][expr]")
+{
+    CadDocument doc;
+    const int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 10, 10, 0, "S");
+    const int ex = doc.add_extrude(sk, 5, false, BooleanMode::New, "E");
+    doc.variables["w"] = "10";
+    doc.variables["width"] = "w * 2";
+    doc.features[ex].expr["distance"] = "w + width";
+    std::string err;
+    REQUIRE(doc.rename_variable("w", "base", err));
+    CHECK(doc.variables.count("base") == 1);
+    CHECK(doc.variables["width"] == "base * 2");          // `width` itself untouched
+    CHECK(doc.features[ex].expr["distance"] == "base + width");
+    CHECK_FALSE(doc.rename_variable("base", "width", err));   // taken
+    CHECK_FALSE(doc.rename_variable("base", "sin", err));     // built in
+    CHECK_FALSE(doc.rename_variable("base", "2x", err));      // malformed
+    REQUIRE(doc.recompute());
+    CHECK(doc.features[ex].distance == Approx(30.0));
+}
+
+TEST_CASE("variables round-trip through CSV", "[CadDocument][expr]")
+{
+    CadDocument doc;
+    doc.variables["a"] = "3";
+    doc.variables["b"] = "max(a, 2) * 2";
+    const std::string csv = doc.variables_csv();
+    CadDocument other;
+    std::string err;
+    CHECK(other.variables_from_csv(csv, err) == 2);
+    CHECK(other.variables == doc.variables);
+    CHECK(other.variables_from_csv("x,1\ny,x +\n", err) == 0);   // a broken row keeps nothing
+    CHECK_FALSE(err.empty());
+    CHECK(other.variables.count("x") == 0);
+    CHECK(other.variables_from_csv("name,expression\nq,\"max(1, 2)\"\n", err) == 1);   // quoted field with a comma
+    CHECK(other.variables["q"] == "max(1, 2)");
+    CHECK(other.variables_from_csv("z,z\n", err) == 0);   // a cycle
+}
+
+TEST_CASE("the history marker survives a save", "[CadDocument][recipe]")
+{
+    CadDocument doc;
+    SketchProfile sp; sp.points = { Vec2d(0,0), Vec2d(20,0), Vec2d(20,20), Vec2d(0,20) }; sp.closed = true;
+    const int s = doc.add_sketch_profile(sp, SketchPlane::XY(), "S");
+    doc.add_extrude(s, 5.0, false, BooleanMode::New, "Base");
+    doc.add_hole(4.0, 5.0, true, 10.0, 10.0, SketchPlane::XY(), "Hole");
+    doc.rollback_index = 1;   // after the extrude, before the hole
+    REQUIRE(doc.recompute());
+    const std::string blob = doc.serialize_recipe();
+
+    CadDocument back;
+    REQUIRE(back.deserialize_recipe(blob));
+    CHECK(back.rollback_index == 1);
+    CHECK(back.features.size() == 3);
+    GProp_GProps p; BRepGProp::VolumeProperties(back.bodies[0].shape, p);
+    CHECK(p.Mass() == Approx(20.0 * 20.0 * 5.0).epsilon(1e-6));   // the hole is not built yet
 }

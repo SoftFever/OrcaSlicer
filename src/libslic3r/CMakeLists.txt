@@ -564,6 +564,8 @@ if (SLIC3R_CAD)
     list(APPEND lisbslic3r_sources
             CAD/GeometryEngine.cpp
             CAD/GeometryEngine.hpp
+            CAD/TopoRemap.cpp
+            CAD/TopoRemap.hpp
             CAD/SketchEngine.cpp
             CAD/SketchEngine.hpp
             CAD/SketchConstraints.cpp

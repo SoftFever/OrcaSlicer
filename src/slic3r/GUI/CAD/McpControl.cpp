@@ -17,6 +17,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <fstream>
 #include <thread>
 #include <future>
 #include <chrono>
@@ -163,7 +164,7 @@ bool read_only_method(const std::string& m)
     static const std::set<std::string> k = {
         "describe_tools", "describe_scene", "query_topology", "measure", "mass_properties",
         "slice_body", "validate_against", "list_verbs", "sketch_describe", "sketch_validate",
-        "check_interference", "inspect_design", "export", "save", "screenshot", "ui.inspect", "ui.worldToScreen", "ui.screenshot" };
+        "check_interference", "inspect_design", "export", "save", "screenshot", "ui.inspect", "ui.worldToScreen", "ui.screenshot", "variables_export", "sketch_dimensions" };
     return k.count(m) > 0;
 }
 
@@ -601,6 +602,12 @@ json describe_tools()
         compact_tool("ui.key", "Press a key as the keyboard delivers it (shortcut gate first, then the focused window).", {{"key", "string", "a character, or Escape|Enter|Tab|Backspace|Delete|Space|Left|Right|Up|Down|Home|End|PageUp|PageDown|F1-F12"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.text", "Type text into the focused window, one character event each.", {{"text", "string", "up to 4096 characters"}}),
         compact_tool("ui.screenshot", "Same as screenshot.", {{"path", "string", "absolute .png"}, {"view", "string", ""}, {"fit", "boolean", ""}}),
+        compact_tool("rename_variable", "Rename a variable; every expression that uses it follows (token-wise).", {{"from", "string", ""}, {"to", "string", ""}}),
+        compact_tool("variables_export", "The variables as CSV (name,expression); also written to `path` when given.", {{"path", "string", "optional absolute .csv"}}),
+        compact_tool("variables_import", "Add or replace variables from CSV text or a file; all rows are checked first.", {{"csv", "string", ""}, {"path", "string", ""}}),
+        compact_tool("sketch_dimensions", "The dimensions of a committed sketch with their index, value and bound expression. Bind one with set_feature_expr {feature: sketch, field: \"dim:<index>\", expr}.", {{"sketch", "integer", "Sketch feature index"}}),
+        compact_tool("suppress", "Suppress (or restore) a feature; downstream features rebuild without it.", {{"feature", "integer", "feature index"}, {"suppressed", "boolean", "default true"}}),
+        compact_tool("rollback", "Roll the history back to just after a feature (later ones are kept but not built); -1 restores the full history.", {{"index", "integer", "feature index or -1"}}),
         compact_tool("save", "Save the project (the design recipe travels inside the 3MF) to an absolute .3mf path under $HOME or /tmp.", {{"path", "string", ""}}),
         compact_tool("open", "Open a .3mf project, replacing the current one. Refused while it has unsaved changes unless discard:true. Applied on the next UI turn.", {{"path", "string", ""}, {"discard", "boolean", ""}}),
         compact_tool("screenshot", "PNG of the design viewport (X11 screen read-back; the window must be visible).", {{"path", "string", "absolute .png under $HOME or /tmp"}, {"view", "string", "iso|top|front|... applied first"}, {"fit", "boolean", "fit the view first"}}),
@@ -2825,6 +2832,107 @@ json ui_dispatch(const std::string& method, const json& p)
     throw std::runtime_error("unknown ui method '" + method + "' (ui.inspect, ui.worldToScreen, ui.move, ui.click, ui.drag, ui.key, ui.text)");
 }
 
+// ---- variables, sketch dimensions, suppression, rollback ---------------------------------------------------------
+json action_rename_variable(DesignPanel* panel, const json& params)
+{
+    if (!params.contains("from") || !params.contains("to") || !params["from"].is_string() || !params["to"].is_string())
+        throw std::runtime_error("rename_variable needs 'from' and 'to' (names)");
+    CadDocument& doc = panel->mcp_doc();
+    doc.checkpoint();
+    std::string err;
+    bool ok = doc.rename_variable(params["from"].get<std::string>(), params["to"].get<std::string>(), err);
+    if (ok) { ok = doc.recompute(); if (!ok) err = doc.error; }
+    if (!ok) { doc.undo(); doc.error = err; }
+    panel->mcp_after_change();
+    return json{{"ok", ok}, {"error", err}};
+}
+
+// CSV of the variables: returned, and written to `path` when given.
+json action_variables_export(DesignPanel* panel, const json& params)
+{
+    const std::string csv = panel->mcp_doc().variables_csv();
+    json out{{"ok", true}, {"csv", csv}, {"count", int(panel->mcp_doc().variables.size())}};
+    if (params.contains("path")) {
+        const std::string path = checked_out_path(params, "variables_export");
+        std::ofstream f(path, std::ios::binary);
+        if (!f) throw std::runtime_error("cannot write " + path);
+        f << csv;
+        out["path"] = path;
+    }
+    return out;
+}
+
+// Adds or replaces variables from `csv` (text) or `path` (a file). All rows are checked before any is kept.
+json action_variables_import(DesignPanel* panel, const json& params)
+{
+    std::string csv;
+    if (params.contains("csv") && params["csv"].is_string()) csv = params["csv"].get<std::string>();
+    else if (params.contains("path")) {
+        const std::string path = checked_out_path(params, "variables_import");
+        std::ifstream f(path, std::ios::binary);
+        if (!f) throw std::runtime_error("cannot read " + path);
+        csv.assign((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+    } else throw std::runtime_error("variables_import needs 'csv' or 'path'");
+    if (csv.size() > (1u << 20)) throw std::runtime_error("CSV is limited to 1 MB");
+    CadDocument& doc = panel->mcp_doc();
+    doc.checkpoint();
+    std::string err;
+    const int n = doc.variables_from_csv(csv, err);
+    bool ok = err.empty();
+    if (ok) { ok = doc.recompute(); if (!ok) err = doc.error; }
+    if (!ok) { doc.undo(); doc.error = err; }
+    panel->mcp_after_change();
+    return json{{"ok", ok}, {"imported", ok ? n : 0}, {"error", err}};
+}
+
+// The dimensions of a committed sketch: index (for set_feature_expr field "dim:<index>"), kind, value, bound expression.
+json action_sketch_dimensions(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    const int sk = sketch_ref_arg(params, doc);
+    if (sk < 0) throw std::runtime_error("sketch_dimensions needs 'sketch' (a Sketch feature index)");
+    const CadFeature& f = doc.features[sk];
+    json dims = json::array();
+    for (size_t i = 0; i < f.entity_constraints.size(); ++i) {
+        const auto& c = f.entity_constraints[i];
+        using T = SketchConstraintType;
+        if (c.type != T::Distance && c.type != T::DistanceX && c.type != T::DistanceY && c.type != T::Angle && c.type != T::Radius && c.type != T::Diameter) continue;
+        const std::string field = "dim:" + std::to_string(i);
+        const char* kind = c.type == T::Angle ? "angle" : c.type == T::Radius ? "radius" : c.type == T::Diameter ? "diameter" : c.type == T::DistanceX ? "distance_x" : c.type == T::DistanceY ? "distance_y" : "distance";
+        dims.push_back(json{{"index", int(i)}, {"field", field}, {"kind", kind}, {"value", c.value}, {"expr", f.expr.count(field) ? f.expr.at(field) : std::string()}});
+    }
+    return json{{"ok", true}, {"sketch", sk}, {"dimensions", dims}};
+}
+
+// Suppress (disable) or restore a feature; downstream features rebuild without it.
+json action_suppress(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    if (!params.contains("feature") || !params["feature"].is_number_integer()) throw std::runtime_error("suppress needs 'feature' (index)");
+    const int fi = params["feature"].get<int>();
+    if (fi < 0 || fi >= int(doc.features.size())) throw std::runtime_error("feature index out of range");
+    const bool suppressed = params.value("suppressed", true);
+    doc.checkpoint();
+    doc.features[fi].enabled = !suppressed;
+    bool ok = doc.recompute();
+    if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
+    panel->mcp_after_change();
+    return json{{"ok", ok}, {"feature", fi}, {"suppressed", suppressed}, {"error", doc.error}};
+}
+
+// Roll the history back to just after feature `index` (later features are kept, not built); index -1 = the full history.
+json action_rollback(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    if (!params.contains("index") || !params["index"].is_number_integer()) throw std::runtime_error("rollback needs 'index' (-1 = full history)");
+    const int idx = params["index"].get<int>();
+    if (idx < -1 || idx >= int(doc.features.size())) throw std::runtime_error("index out of range");
+    doc.rollback_index = idx;
+    const bool ok = doc.recompute();
+    panel->mcp_after_change();
+    return json{{"ok", ok}, {"rollback_index", doc.rollback_index}, {"bodies", int(doc.bodies.size())}, {"error", doc.error}};
+}
+
 // ---- undo / redo / inspect_design / batch ----------------------------------------------------------------
 struct MethodNotFound {};
 json        call_method(DesignPanel* panel, const std::string& method, const json& params);   // below
@@ -3001,6 +3109,12 @@ json call_method_core(DesignPanel* panel, const std::string& method, const json&
     if (method == "ui_option")      return action_ui_option(panel, params);
     if (method == "sketch_constrain") return action_sketch_constrain(panel, params);
     if (method == "export")         return action_export(panel, params);
+    if (method == "rename_variable")   return action_rename_variable(panel, params);
+    if (method == "variables_export")  return action_variables_export(panel, params);
+    if (method == "variables_import")  return action_variables_import(panel, params);
+    if (method == "sketch_dimensions") return action_sketch_dimensions(panel, params);
+    if (method == "suppress")          return action_suppress(panel, params);
+    if (method == "rollback")          return action_rollback(panel, params);
     if (method == "sweep")          return action_sweep(panel, params);
     if (method == "loft")           return action_loft(panel, params);
     if (method == "thread")         return action_thread(panel, params);

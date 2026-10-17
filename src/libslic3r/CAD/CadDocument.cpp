@@ -1,4 +1,5 @@
 #include "libslic3r/CAD/CadDocument.hpp"
+#include "libslic3r/CAD/TopoRemap.hpp"
 #include "libslic3r/I18N.hpp"
 #include "libslic3r/format.hpp"
 #include "libslic3r/Point.hpp"
@@ -519,6 +520,12 @@ evaluate_variables(const std::map<std::string, std::string>& variables)
 // for anything not in the list.
 static void assign_field(CadFeature& f, const std::string& field, double value)
 {
+    if (field.rfind("dim:", 0) == 0) {   // a sketch dimension: the value of entity_constraints[N]; the sketch is re-solved afterwards
+        const int k = std::atoi(field.c_str() + 4);
+        if (k < 0 || k >= int(f.entity_constraints.size())) throw std::runtime_error(format(_u8L("no sketch dimension %1%"), field));
+        f.entity_constraints[k].value = value;
+        return;
+    }
     // double fields (alphabetical)
     if (field == "bool_tolerance")    { f.bool_tolerance = value; return; }
     if (field == "cut_offset")        { f.cut_offset = value; return; }
@@ -586,6 +593,7 @@ bool CadDocument::produces_body(CadFeatureType t)
 
 bool CadDocument::is_bindable_field(const std::string& field)
 {
+    if (field.rfind("dim:", 0) == 0) return field.size() > 4;
     CadFeature probe;
     try { assign_field(probe, field, 0.0); return true; }
     catch (const std::exception&) { return false; }
@@ -4277,9 +4285,113 @@ void CadDocument::route_feature(std::vector<CadBody>& bodies, const CadFeature& 
 void CadDocument::bind_expressions()
 {
     std::map<std::string, double> varvals = evaluate_variables(variables);
-    for (CadFeature& f : features)
-        for (const auto& [field, e] : f.expr)
+    for (CadFeature& f : features) {
+        bool dims = false;
+        for (const auto& [field, e] : f.expr) {
             assign_field(f, field, eval_expr(e, varvals));
+            dims = dims || field.rfind("dim:", 0) == 0;
+        }
+        if (dims) {   // new dimension values: solve the sketch from where it is
+            std::vector<SketchEntity> ents = f.entities;
+            if (!solve_sketch_entities(ents, f.entity_constraints))
+                throw std::runtime_error(format(_u8L("the dimension values conflict in sketch \"%1%\""), f.name));
+            f.entities = std::move(ents);
+        }
+    }
+}
+
+// ---- variable housekeeping ---------------------------------------------------------------------------------------
+static bool valid_variable_name(const std::string& n)
+{
+    if (n.empty() || !(std::isalpha(static_cast<unsigned char>(n[0])) || n[0] == '_')) return false;
+    for (char ch : n) if (!(std::isalnum(static_cast<unsigned char>(ch)) || ch == '_')) return false;
+    return !expr_builtin(n);
+}
+
+// `expr` with every identifier token equal to `from` replaced by `to`.
+static std::string rename_identifier(const std::string& expr, const std::string& from, const std::string& to, bool& changed)
+{
+    std::string out;
+    for (size_t i = 0; i < expr.size();) {
+        const char ch = expr[i];
+        if (std::isalpha(static_cast<unsigned char>(ch)) || ch == '_') {
+            size_t j = i;
+            while (j < expr.size() && (std::isalnum(static_cast<unsigned char>(expr[j])) || expr[j] == '_')) ++j;
+            const std::string id = expr.substr(i, j - i);
+            if (id == from) { out += to; changed = true; } else out += id;
+            i = j;
+        } else if (std::isdigit(static_cast<unsigned char>(ch)) || ch == '.') {   // a number, so `2e` or `10mm` is not an identifier
+            size_t j = i;
+            while (j < expr.size() && (std::isdigit(static_cast<unsigned char>(expr[j])) || expr[j] == '.')) ++j;
+            out += expr.substr(i, j - i);
+            i = j;
+        } else { out += ch; ++i; }
+    }
+    return out;
+}
+
+bool CadDocument::rename_variable(const std::string& from, const std::string& to, std::string& err)
+{
+    err.clear();
+    if (!variables.count(from)) { err = format(_u8L("no variable named \"%1%\""), from); return false; }
+    if (!valid_variable_name(to)) { err = format(_u8L("\"%1%\" is not a valid variable name (letters, digits and _, not starting with a digit, not a built-in)"), to); return false; }
+    if (from != to && variables.count(to)) { err = format(_u8L("a variable named \"%1%\" already exists"), to); return false; }
+    bool unused = false;
+    std::map<std::string, std::string> vs;
+    for (const auto& [k, v] : variables) vs[k == from ? to : k] = rename_identifier(v, from, to, unused);
+    variables = std::move(vs);
+    for (CadFeature& f : features)
+        for (auto& [field, e] : f.expr) e = rename_identifier(e, from, to, unused);
+    return true;
+}
+
+static std::string csv_quote(const std::string& s)
+{
+    if (s.find_first_of(",\"\n") == std::string::npos) return s;
+    std::string q = "\"";
+    for (char ch : s) { if (ch == '"') q += '"'; q += ch; }
+    return q + "\"";
+}
+
+std::string CadDocument::variables_csv() const
+{
+    std::string out = "name,expression\n";
+    for (const auto& [k, v] : variables) out += csv_quote(k) + "," + csv_quote(v) + "\n";
+    return out;
+}
+
+int CadDocument::variables_from_csv(const std::string& csv, std::string& err)
+{
+    err.clear();
+    // one row = two fields; a quoted field may hold commas, doubled quotes and newlines
+    std::vector<std::vector<std::string>> rows(1);
+    std::string cur; bool quoted = false, any = false;
+    auto end_field = [&]() { rows.back().push_back(cur); cur.clear(); any = false; };
+    for (size_t i = 0; i < csv.size(); ++i) {
+        const char ch = csv[i];
+        if (quoted) { if (ch == '"') { if (i + 1 < csv.size() && csv[i + 1] == '"') { cur += '"'; ++i; } else quoted = false; } else cur += ch; }
+        else if (ch == '"') { quoted = true; any = true; }
+        else if (ch == ',') end_field();
+        else if (ch == '\n' || ch == '\r') { if (ch == '\r' && i + 1 < csv.size() && csv[i + 1] == '\n') ++i; if (!cur.empty() || any || !rows.back().empty()) { end_field(); rows.emplace_back(); } }
+        else { cur += ch; any = true; }
+    }
+    if (quoted) { err = _u8L("unterminated quote in the CSV"); return 0; }
+    if (!cur.empty() || any || !rows.back().empty()) end_field();
+    if (rows.back().empty()) rows.pop_back();
+    int taken = 0;
+    std::map<std::string, std::string> next = variables;
+    for (size_t r = 0; r < rows.size(); ++r) {
+        const auto& row = rows[r];
+        if (r == 0 && row.size() >= 1 && row[0] == "name") continue;   // header
+        if (row.size() != 2) { err = format(_u8L("row %1%: expected \"name,expression\""), int(r) + 1); return 0; }
+        if (!valid_variable_name(row[0])) { err = format(_u8L("row %1%: \"%2%\" is not a valid variable name"), int(r) + 1, row[0]); return 0; }
+        next[row[0]] = row[1];
+        ++taken;
+    }
+    try { evaluate_variables(next); }   // every expression must evaluate, with no cycles, before any of it is kept
+    catch (const std::exception& e) { err = e.what(); return 0; }
+    variables = std::move(next);
+    return taken;
 }
 
 void CadDocument::replay_feature(size_t fi, std::vector<CadBody>& built)
@@ -4351,6 +4463,19 @@ static bool replay_is_trivial(const CadFeature& f)
         || f.type == CadFeatureType::Plane || f.type == CadFeatureType::Axis || f.type == CadFeatureType::CoordSys;
 }
 
+// Carry the face/edge ids of `f` from the body it was written against (`was`) to the rebuilt one (`now`). Returns how
+// many it could not place; those keep their id. Only single-body references: a boolean's two bodies are left alone.
+static int remap_feature_refs(CadFeature& f, const TopoDS_Shape& was, const TopoDS_Shape& now)
+{
+    int lost = 0;
+    auto face = [&](int& id) { if (id < 0) return; const int n = TopoRemap::remap_face(was, now, id); if (n < 0) ++lost; else id = n; };
+    auto edge = [&](int& id) { if (id < 0) return; const int n = TopoRemap::remap_edge(was, now, id); if (n < 0) ++lost; else id = n; };
+    face(f.up_to_face); face(f.extrude_src_face); face(f.shell_face); face(f.draft_face);
+    edge(f.dressup_edge);
+    for (int& id : f.dressup_edges) edge(id);
+    return lost;
+}
+
 bool CadDocument::recompute()
 {
     error.clear();
@@ -4380,10 +4505,33 @@ bool CadDocument::recompute()
         { const uint32_t v = ORCA_CAD_RECIPE_VERSION; fp = fnv_chain(fp, &v, sizeof v); }
         fp = fnv_chain(fp, modeling_origin.data(), 3 * sizeof(double));
         fp = fnv_chain(fp, &auto_close_loops, sizeof auto_close_loops);
+        std::map<uint64_t, std::vector<CadBody>> seen_now;
+        auto own_hash = [](const CadFeature& f) {
+            std::ostringstream o; { cereal::BinaryOutputArchive a(o); a(f); }
+            const std::string s = o.str();
+            return fnv_chain(1469598103934665603ull, s.data(), s.size());
+        };
         for (size_t fi = 0; fi < features.size(); ++fi) {
             if (rollback_index >= 0 && int(fi) > rollback_index) break;   // rolled back to rollback_index
             replaying = fi;
             if (!incremental) { replay_feature(fi, built); ++replay_stats.replayed; continue; }
+            const bool solid_feature = !replay_is_trivial(features[fi]);
+            if (solid_feature && remap_refs && !m_seen_by_feature.empty()) {
+                // An upstream edit rebuilt the body this feature's ids were written against: follow them.
+                auto was = m_seen_by_feature.find(own_hash(features[fi]));
+                // not pick_body(): the reference may still be waiting to be re-pointed, and pick_body throws on a stale one
+                const int tb = features[fi].target_body;
+                const int t = tb == -1 ? int(built.size()) - 1 : tb;
+                if (was != m_seen_by_feature.end() && t >= 0 && t < int(was->second.size()) && t < int(built.size())
+                    && !was->second[t].shape.IsSame(built[t].shape)) {
+                    const int lost = remap_feature_refs(features[fi], was->second[t].shape, built[t].shape);
+                    if (lost > 0)
+                        feature_warnings.emplace_back(int(fi), format(_u8L("%1% face/edge reference(s) could not be followed through the edit and may point elsewhere"), lost));
+                }
+            }
+            std::vector<CadBody> before;
+            if (solid_feature) before = built;   // what this feature is about to see, recorded under the feature as it ends up
+            auto note = [&]() { if (solid_feature) seen_now[own_hash(features[fi])] = std::move(before); };
             {   // chain: this feature's bytes (fields already bound to the variables) on top of everything before it
                 std::ostringstream fos;
                 { cereal::BinaryOutputArchive fa(fos); fa(features[fi]); }
@@ -4397,6 +4545,7 @@ bool CadDocument::recompute()
                 features[fi] = std::move(hit.after);
                 for (const std::string& w : hit.warnings) feature_warnings.emplace_back(int(fi), w);
                 ++replay_stats.restored;
+                note();
                 continue;
             }
             const size_t nw = feature_warnings.size();
@@ -4407,7 +4556,9 @@ bool CadDocument::recompute()
             ReplayCache::Entry e{built, features[fi], {}};
             for (size_t k = nw; k < feature_warnings.size(); ++k) e.warnings.push_back(feature_warnings[k].second);
             m_replay_cache->put(fp, std::move(e));
+            note();
         }
+        if (incremental) m_seen_by_feature = std::move(seen_now);
     } catch (const std::exception& e) {
         error_feature = int(replaying);
         error = *e.what() ? e.what() : _u8L("OCCT operation failed");
@@ -4813,6 +4964,17 @@ std::string CadDocument::serialize_recipe() const
         uint32_t xlen = static_cast<uint32_t>(xb.size());
         ar(xlen);
         ar(cereal::binary_data(xb.data(), xb.size()));
+        // HISTORY MARKER, appended on the same terms: where the user rolled the timeline back to (-1 = full history), so a
+        // project reopens as it was left. Older builds stop reading before this block.
+        std::ostringstream mos;
+        {
+            cereal::BinaryOutputArchive ma(mos);
+            ma(int32_t(rollback_index));
+        }
+        std::string mb = mos.str();
+        uint32_t mlen = static_cast<uint32_t>(mb.size());
+        ar(mlen);
+        ar(cereal::binary_data(mb.data(), mb.size()));
     }
     return oss.str();
 }
@@ -4913,6 +5075,20 @@ bool CadDocument::deserialize_recipe(const std::string& blob)
             } catch (...) {
                 colours.clear();   // older project: the caller's origin stands
             }
+            int32_t marker = -1;   // history marker, when the project carries one
+            try {
+                uint32_t mlen;
+                ar(mlen);
+                std::string mbuf(mlen, '\0');
+                if (mlen > 0)
+                    ar(cereal::binary_data(&mbuf[0], mlen));
+                std::istringstream ms(mbuf);
+                cereal::BinaryInputArchive ma(ms);
+                ma(marker);
+            } catch (...) {
+                marker = -1;
+            }
+            rollback_index = (marker >= 0 && marker < int32_t(features.size())) ? int(marker) : -1;
             // AFTER the rebuild, never before: recompute() replaces the bodies vector wholesale.
             const bool ok = recompute();
             for (const auto& kv : named)
