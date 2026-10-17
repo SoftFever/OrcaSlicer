@@ -39,6 +39,7 @@
          CHECK(_actual.find(sub) != std::string::npos); } while (0)
 
 #include "libslic3r/CAD/CadDocument.hpp"
+#include "libslic3r/CAD/PaletteScore.hpp"
 #include "libslic3r/CAD/GeometryEngine.hpp"
 #include "libslic3r/CAD/SketchEngine.hpp"
 #include "libslic3r/CAD/SketchImport.hpp"
@@ -10168,4 +10169,16 @@ TEST_CASE("a tail edit on a 30-feature model is much cheaper than a full rebuild
     CHECK(doc.replay_stats.restored == 29);
     INFO("feature rebuild: cold " << cold << " ms, tail edit " << tail << " ms; tessellation " << doc.replay_stats.mesh_ms << " ms");
     CHECK(tail * 5.0 < cold);
+}
+
+// The command palette ranks prefix > word start > substring > letters in order; usable beats greyed.
+TEST_CASE("palette_score orders matches", "[CadDocument][palette]")
+{
+    CHECK(palette_score("ext", "Extrude", true) > palette_score("ext", "Surface Extrude", true));   // prefix > word start
+    CHECK(palette_score("ext", "Surface Extrude", true) > palette_score("ext", "Context", true));   // word start > substring
+    CHECK(palette_score("ext", "Context", true) > palette_score("etr", "Extrude", true));           // substring > in order
+    CHECK(palette_score("zzz", "Extrude", true) == -1);
+    CHECK(palette_score("ext", "Extrude", true) > palette_score("ext", "Extrude", false));
+    CHECK(palette_score("", "Anything", true) == 150);
+    CHECK(palette_score("EXT", "extrude", true) == palette_score("ext", "Extrude", true));          // case-blind
 }

@@ -1,4 +1,5 @@
 #include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
+#include "libslic3r/CAD/PaletteScore.hpp"
 
 #include "slic3r/GUI/ImGuiWrapper.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -513,6 +514,100 @@ void DesignOfferPopup::render(ImGuiWrapper& imgui, float scale)
     }
     theme.reset();
     ImGuiWrapper::pop_common_window_style();
+}
+
+// ---- command palette ----------------------------------------------------------------------------------
+void DesignPalette::open(float x, float y)
+{
+    m_items = items ? items() : std::vector<PaletteItem>();
+    m_x = x; m_y = y;
+    m_buf[0] = '\0';
+    m_query.clear();
+    m_cursor = 0;
+    m_move = 0;
+    m_activate = false;
+    m_open = true;
+    m_opened_now = true;
+}
+
+void DesignPalette::render(ImGuiWrapper& imgui, float scale)
+{
+    if (!m_open) return;
+    ImGuiWrapper::push_common_window_style(scale);
+    auto theme = std::make_unique<ThemeScope>();
+    const float em = imgui.get_style_scaling();
+    ImGui::SetNextWindowPos(ImVec2(m_x, m_y), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(320.f * em, 0.f));
+    const bool first = m_opened_now;
+    if (first) { ImGui::OpenPopup("##design_palette"); m_opened_now = false; }
+    if (ImGui::BeginPopup("##design_palette", ImGuiWindowFlags_NoSavedSettings)) {
+        // Focus is requested ONCE, on the frame the box opens. Asking every frame makes the field re-grab
+        // the keyboard after each key repeat and the caret never settles.
+        if (first) ImGui::SetKeyboardFocusHere();
+        const bool edited = ImGui::InputTextWithHint("##q", "Search commands", m_buf, sizeof(m_buf));
+        if (edited || first) { m_query = m_buf; m_cursor = 0; }
+
+        // Rank: recents (query empty) or score (query set).
+        std::vector<std::pair<int, size_t>> ranked;
+        std::vector<std::string> recents = (m_query.empty() && load_recents) ? load_recents() : std::vector<std::string>();
+        for (size_t i = 0; i < m_items.size(); ++i) {
+            const int s = palette_score(m_query, m_items[i].label, m_items[i].enabled);
+            if (s < 0) continue;
+            int boost = 0;
+            for (size_t r = 0; r < recents.size(); ++r) if (recents[r] == m_items[i].id) { boost = 5000 - int(r); break; }
+            ranked.emplace_back(s + boost, i);
+        }
+        std::stable_sort(ranked.begin(), ranked.end(), [](const std::pair<int, size_t>& a, const std::pair<int, size_t>& b) { return a.first > b.first; });
+        if (ranked.size() > 12) ranked.resize(12);
+        m_shown.clear();
+        for (const auto& r : ranked) m_shown.push_back(m_items[r.second].id);
+
+        const int n = int(ranked.size());
+        m_cursor = n ? std::clamp(m_cursor + m_move, 0, n - 1) : 0;   // clamp, no wrap
+        m_move = 0;
+        const bool activate = std::exchange(m_activate, false);
+
+        const PaletteItem* chosen = nullptr;
+        ImGui::Separator();
+        for (int i = 0; i < n; ++i) {
+            const PaletteItem& it = m_items[ranked[i].second];
+            const bool usable = it.enabled && it.verb != nullptr;
+            if (!usable) ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+            ImGui::PushID(i);
+            if (ImGui::Selectable(it.label.c_str(), i == m_cursor)) { m_cursor = i; chosen = &it; }
+            ImGui::PopID();
+            if (!it.shortcut.empty()) {
+                ImGui::SameLine(ImGui::GetWindowWidth() - ImGui::CalcTextSize(it.shortcut.c_str()).x - 12.f * em);
+                ImGui::TextDisabled("%s", it.shortcut.c_str());
+            }
+            if (!usable) ImGui::PopStyleVar();
+            if (!usable && !it.why.empty() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", it.why.c_str());
+        }
+        if (n == 0) ImGui::TextDisabled("No command matches");
+        if (!chosen && n && activate) chosen = &m_items[ranked[m_cursor].second];
+
+        if (chosen && chosen->enabled && chosen->verb) {   // a disabled command stays listed and does nothing: the tooltip said why
+            std::vector<std::string> rec = load_recents ? load_recents() : std::vector<std::string>();
+            rec.erase(std::remove(rec.begin(), rec.end(), chosen->id), rec.end());
+            rec.insert(rec.begin(), chosen->id);
+            if (rec.size() > 12) rec.resize(12);
+            if (save_recents) save_recents(rec);
+            const OfferVerb* v = chosen->verb;
+            ImGui::CloseCurrentPopup();
+            m_open = false;
+            if (run) run(*v);
+        }
+        ImGui::EndPopup();
+    } else {
+        m_open = false;
+    }
+    theme.reset();
+    ImGuiWrapper::pop_common_window_style();
+}
+
+bool imgui_wants_text()
+{
+    return ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantTextInput;
 }
 
 bool imgui_popup_open()

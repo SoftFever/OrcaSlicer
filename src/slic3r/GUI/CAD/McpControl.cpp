@@ -2762,10 +2762,17 @@ int ui_keycode(const std::string& k)
 
 // One key press as the keyboard delivers it: CHAR_HOOK first (the panel's shortcut gate lives there); if nobody takes it,
 // KEY_DOWN, CHAR, KEY_UP go to the focused window. `unicode` != 0 sends text instead (CHAR only).
-void ui_key(DesignPanel* panel, int code, int unicode, int mods)
+// phase: 0 = press and release together, 1 = press only, 2 = release only. ImGui samples keys once per frame,
+// so a press that is released before the next frame is invisible to it: ui.key holds the key across a frame.
+void ui_key(DesignPanel* panel, int code, int unicode, int mods, int phase = 0)
 {
     wxWindow* w = wxWindow::FindFocus();
     if (!w) w = panel->mcp_viewport()->input_window();
+    // wx's FindFocus() is a record of focus EVENTS; on a rig with no window manager it can lag the real GTK focus (a real
+    // key goes to GTK's focus widget, which open_palette/the inline editor moved to the canvas). While ImGui holds a text
+    // field, the canvas is where a real key would land, so that is where the synthetic one goes.
+    if (wxGetApp().imgui() && wxGetApp().imgui()->want_text_input() && panel->mcp_viewport()->input_window())
+        w = panel->mcp_viewport()->input_window();
     auto make = [&](wxEventType t) {
         wxKeyEvent e(t);
         e.SetEventObject(w); e.SetId(w->GetId());
@@ -2774,6 +2781,12 @@ void ui_key(DesignPanel* panel, int code, int unicode, int mods)
         e.SetTimestamp(long(wxGetLocalTimeMillis().GetLo()));
         return e;
     };
+    if (phase == 2) {   // the release also drops the modifiers, as a real keyboard does (ImGui reads Ctrl/Shift off the key events)
+        wxKeyEvent up = make(wxEVT_KEY_UP);
+        up.m_shiftDown = up.m_controlDown = up.m_altDown = false;
+        w->GetEventHandler()->ProcessEvent(up);
+        return;
+    }
     if (!unicode) {
         wxKeyEvent hook = make(wxEVT_CHAR_HOOK);
         if (w->GetEventHandler()->ProcessEvent(hook) && !hook.GetSkipped()) return;   // consumed as a shortcut
@@ -2783,7 +2796,7 @@ void ui_key(DesignPanel* panel, int code, int unicode, int mods)
     wxKeyEvent ch = make(wxEVT_CHAR);
     if (unicode) { ch.m_keyCode = unicode; ch.m_uniChar = unicode; }
     w->GetEventHandler()->ProcessEvent(ch);
-    if (!unicode) { wxKeyEvent up = make(wxEVT_KEY_UP); w->GetEventHandler()->ProcessEvent(up); }
+    if (!unicode && phase == 0) { wxKeyEvent up = make(wxEVT_KEY_UP); w->GetEventHandler()->ProcessEvent(up); }
 }
 
 int ui_mods(const json& p)
@@ -2805,8 +2818,20 @@ json ui_inspect(DesignPanel* panel)
     json out{{"ok", true}, {"sketch_open", v != nullptr && v->is_sketching()}, {"selection_kind", panel->mcp_offer_selection_kind()}};
     out["focus"] = {{"class", f ? wxString(f->GetClassInfo()->GetClassName()).utf8_string() : std::string()}, {"is_canvas", f != nullptr && f == in},
                     {"text_entry", f != nullptr && (dynamic_cast<wxTextCtrl*>(f) != nullptr)}};
+    {   // who has the keyboard, innermost first, and whether the canvas believes it is focusable: for focus bug reports
+        std::string chain;
+        for (wxWindow* c = f; c != nullptr; c = c->GetParent()) chain += (chain.empty() ? "" : " < ") + wxString(c->GetClassInfo()->GetClassName()).utf8_string() + (c == in ? "*" : "");
+        out["focus"]["chain"] = chain;
+        if (in) out["focus"]["canvas_accepts"] = in->AcceptsFocus();
+    }
     if (auto* ig = wxGetApp().imgui())
         out["imgui"] = {{"want_text_input", ig->want_text_input()}, {"want_keyboard", ig->want_keyboard()}, {"want_mouse", ig->want_mouse()}};
+    if (v) {
+        const DesignPalette& pal = v->palette();
+        json labels = json::object();
+        for (const std::string& id : pal.shown()) labels[id] = pal.label_of(id);   // translated: a rig test types from these
+        out["palette"] = {{"open", pal.is_open()}, {"query", pal.query()}, {"shown", pal.shown()}, {"labels", labels}, {"cursor", pal.cursor()}};
+    }
     if (in) {
         const wxSize sz = in->GetClientSize();
         out["canvas"] = {{"width", sz.x}, {"height", sz.y}, {"shown", in->IsShownOnScreen()}};
@@ -2852,7 +2877,9 @@ json ui_dispatch(const std::string& method, const json& p)
     if (method == "ui.key") {
         if (!p.contains("key") || !p["key"].is_string()) throw std::runtime_error("ui.key needs 'key'");
         const int code = ui_keycode(p["key"].get<std::string>());
-        on_main([=]() { ui_key(panelp(), code, 0, mods); });
+        on_main([=]() { ui_key(panelp(), code, 0, mods, 1); });
+        pause(120);   // long enough for a paint: ImGui reads the key state per frame
+        on_main([=]() { ui_key(panelp(), code, 0, mods, 2); });
         pause(60);
         return json{{"ok", true}};
     }

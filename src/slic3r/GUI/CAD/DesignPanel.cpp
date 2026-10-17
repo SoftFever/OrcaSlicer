@@ -4255,6 +4255,8 @@ DesignPanel::DesignPanel(wxWindow* parent)
         set_status(StatusKind::Info, _L("Sketch kept — Confirm to commit it, Cancel to discard"));
     });
 
+    wire_palette();
+
     // Ctrl+Z / Ctrl+Shift+Z (Ctrl+Y) from the viewport → feature-history undo/redo.
 
     // Esc = the unified Cancel everywhere. Feature cards had no key exit (only the button);
@@ -4271,7 +4273,8 @@ DesignPanel::DesignPanel(wxWindow* parent)
         // Never steal editing keys from a focused text field or an open in-canvas value field —
         // Delete/Ctrl+Z there must edit the text, not the model.
         const bool in_text = (dynamic_cast<wxTextCtrl*>(wxWindow::FindFocus()) != nullptr)
-                             || (m_viewport && m_viewport->inline_busy());
+                             || (m_viewport && m_viewport->inline_busy())
+                             || imgui_wants_text();   // the palette box, a tree rename, any ImGui field
         if (getenv("ORCA_CAD_KEYTRACE")) {
             wxWindow* fw = wxWindow::FindFocus();
             fprintf(stderr, "[KEYTRACE] key=%d ui_mode=%d is_sketching=%d in_text=%d inline_busy=%d focus=%s\n",
@@ -4291,27 +4294,21 @@ DesignPanel::DesignPanel(wxWindow* parent)
         // NOTE the position: this sits AFTER the KEYTRACE block on purpose. It returns early,
         // and putting it first made every forwarded key invisible to the tracer — the one
         // instrument that diagnosed this bug in the first place.
-        // The in-canvas value field is a borderless, always-on-top top-level frame, so whether it
-        // may take keyboard focus is the platform's decision, not ours: macOS denies key status to a
-        // borderless window, mutter's focus-stealing prevention refuses a re-mapped window, and the
-        // rig never grants it. When focus is refused, Enter/Esc/Tab are delivered HERE (to the panel)
-        // instead of the field, its own wxEVT_TEXT_ENTER / WXK_ESCAPE bindings never fire, and the
-        // queued-dimension chain (a line queues Length then Angle) becomes unwalkable. Forwarding them
-        // makes the field behave the same everywhere WITHOUT fighting the window manager for focus,
-        // which is what seven earlier attempts did unsuccessfully. When the field DOES hold focus we
-        // deliberately do nothing here, so its own bindings run and typing keeps working.
-        if (m_viewport && m_viewport->inline_busy() && !m_viewport->inline_has_focus()) {
-            if (key == WXK_RETURN || key == WXK_NUMPAD_ENTER || key == WXK_TAB) {
-                m_viewport->inline_commit();
-                return;
-            }
-            // NO forwarding here any more. The field is drawn INSIDE the GL canvas now, so it
-            // is fed the way every other ImGui widget in this app is fed: GLCanvas3D::on_char ->
-            // ImGuiWrapper::update_key_data -> io.AddInputCharacter. Re-adding a panel-side
-            // forwarder would also mask whether that path works, which is exactly what is being
-            // measured.
-            // Esc is NOT special-cased here any more: escape() routes it, and the open field is
-            // exactly what CadLevel::Transient means, so it closes the field and stops there.
+        // The command box owns the arrows and Enter while it is open (the text field keeps the letters).
+        if (m_viewport && m_viewport->palette().is_open()
+            && (key == WXK_UP || key == WXK_DOWN || key == WXK_RETURN || key == WXK_NUMPAD_ENTER)) {
+            m_viewport->palette().nav(key == WXK_UP ? -1 : key == WXK_DOWN ? 1 : 0);
+            m_viewport->request_repaint();
+            return;
+        }
+        // The in-canvas value field is drawn by ImGui inside the GL canvas, so it is fed like every
+        // other ImGui widget (GLCanvas3D::on_char -> io.AddInputCharacter) and nothing is forwarded
+        // from here. When the canvas does not hold focus, Enter/Tab still commit the open field.
+        // Esc is not special-cased: escape() routes it (the open field is CadLevel::Transient).
+        if (m_viewport && m_viewport->inline_busy() && !m_viewport->inline_has_focus()
+            && (key == WXK_RETURN || key == WXK_NUMPAD_ENTER || key == WXK_TAB)) {
+            m_viewport->inline_commit();
+            return;
         }
 
         // 3D sketch owns Tab / Enter / Backspace / S / Esc while it is live.
@@ -4411,6 +4408,12 @@ DesignPanel::DesignPanel(wxWindow* parent)
             const int up2 = (key >= 'a' && key <= 'z') ? key - 'a' + 'A' : key;
             auto it2 = m_keys_sketch.find(up2);
             if (it2 != m_keys_sketch.end()) { it2->second(); return; }
+        }
+        // Ctrl+K: the command box. S is the Slot tool while sketching, so the box gets a chord that
+        // means the same in both modes.
+        if (!in_text && ctrl && !e.ShiftDown() && (key == 'K' || key == 'k' || key == 11) && m_viewport) {
+            m_viewport->open_palette();
+            return;
         }
         // Ctrl+Shift first: the block below deliberately ignores every Ctrl-combo, which is
         // exactly what makes this layer free to use.
@@ -11768,6 +11771,63 @@ void DesignPanel::apply_tree_events(const std::vector<TreeEvent>& evs)
     }
 }
 
+DesignRibbonOverlay::VerbState DesignPanel::verb_state(const OfferVerb& v) const
+{
+    // Same rule the right-click offer uses (show_offer_menu): the selection kind, the document
+    // counts, and the mode; the reason shown is the verb's own refusal text.
+    const uint32_t bit = offer_bit(OfferSel(offer_selection_kind()));
+    const bool sketching = sketch_map_applies();
+    int sketches = 0;
+    for (const auto& f : m_doc.features) if (f.type == CadFeatureType::Sketch) ++sketches;
+    bool sheet = false;
+    for (const auto& b : m_doc.bodies) if (CadDocument::is_sheet_shape(b.shape)) { sheet = true; break; }
+    DesignRibbonOverlay::VerbState st;
+    st.enabled = v.sketch_mode == sketching && (v.accepts & bit) && v.need_bodies <= int(m_doc.bodies.size())
+                 && v.need_sketches <= sketches && (!v.need_sheet || sheet);
+    if (!st.enabled && v.sketch_mode != sketching)
+        st.why = std::string(sketching ? _u8L("Finish the sketch first") : _u8L("Open a sketch first"));
+    return st;
+}
+
+void DesignPanel::wire_palette()
+{
+    if (!m_viewport) return;
+    DesignPalette& p = m_viewport->palette();
+    p.items = [this] {
+        std::vector<PaletteItem> out;
+        for (int i = 0; i < kOfferVerbCount; ++i) {
+            const OfferVerb& v = kOfferVerbs[i];
+            if (v.action == nullptr || *v.action == '\0') continue;   // no GUI path: nothing to run
+            const DesignRibbonOverlay::VerbState st = verb_state(v);
+            PaletteItem it;
+            it.id       = v.id;
+            it.label    = std::string(I18N::translate(v.name, "Design").ToUTF8());
+            it.shortcut = v.key ? v.key : "";
+            it.enabled  = st.enabled;
+            it.why      = !st.why.empty() ? st.why
+                          : (v.refusal ? std::string(wxGetTranslation(wxString::FromUTF8(v.refusal), SLIC3R_APP_KEY).ToUTF8()) : std::string());
+            it.verb     = &v;
+            out.push_back(std::move(it));
+        }
+        return out;
+    };
+    p.run = [this](const OfferVerb& v) {
+        const std::string action = v.action ? v.action : "";
+        CallAfter([this, action] { run_offer_action(action.c_str()); });   // the router the ribbon and the offer use
+    };
+    p.load_recents = [] {
+        std::vector<std::string> r;
+        const std::string s = wxGetApp().app_config->get("design_palette_recents");
+        for (size_t a = 0; a < s.size();) { size_t b = s.find(',', a); if (b == std::string::npos) b = s.size(); if (b > a) r.push_back(s.substr(a, b - a)); a = b + 1; }
+        return r;
+    };
+    p.save_recents = [](const std::vector<std::string>& r) {
+        std::string s;
+        for (const std::string& id : r) s += (s.empty() ? "" : ",") + id;
+        wxGetApp().app_config->set("design_palette_recents", s);
+    };
+}
+
 void DesignPanel::set_imgui_ribbon(bool on)
 {
     m_imgui_ribbon = on;
@@ -11775,22 +11835,7 @@ void DesignPanel::set_imgui_ribbon(bool on)
     cfg->set_bool("design_imgui_ribbon", on);
     if (!m_viewport) return;
     DesignRibbonOverlay& r = m_viewport->ribbon_overlay();
-    r.state = [this](const OfferVerb& v) {
-        // Same rule the right-click offer uses (show_offer_menu): the selection kind, the document
-        // counts, and the mode; the reason shown is the verb's own refusal text.
-        const uint32_t bit = offer_bit(OfferSel(offer_selection_kind()));
-        const bool sketching = sketch_map_applies();
-        int sketches = 0;
-        for (const auto& f : m_doc.features) if (f.type == CadFeatureType::Sketch) ++sketches;
-        bool sheet = false;
-        for (const auto& b : m_doc.bodies) if (CadDocument::is_sheet_shape(b.shape)) { sheet = true; break; }
-        DesignRibbonOverlay::VerbState st;
-        st.enabled = v.sketch_mode == sketching && (v.accepts & bit) && v.need_bodies <= int(m_doc.bodies.size())
-                     && v.need_sketches <= sketches && (!v.need_sheet || sheet);
-        if (!st.enabled && v.sketch_mode != sketching)
-            st.why = std::string(sketching ? _u8L("Finish the sketch first") : _u8L("Open a sketch first"));
-        return st;
-    };
+    r.state = [this](const OfferVerb& v) { return verb_state(v); };
     r.run = [this](const OfferVerb& v) {
         const std::string action = v.action ? v.action : "";
         CallAfter([this, action] { run_offer_action(action.c_str()); });   // the same router the offer menu uses

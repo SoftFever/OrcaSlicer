@@ -121,6 +121,56 @@ private:
     std::vector<OfferNode> m_nodes;
 };
 
+// ---- command palette (Ctrl+K) ------------------------------------------------------------------------
+// A search box at the cursor over every command the ribbon knows. Typing ranks them (PaletteScore.hpp),
+// Up/Down move, Enter runs the highlighted one, Esc or a click away closes. With an empty query the
+// recently used commands come first. Disabled commands are listed (dimmed) and say why on hover.
+struct PaletteItem {
+    std::string      id;
+    std::string      label;
+    std::string      shortcut;
+    bool             enabled{true};
+    std::string      why;
+    const OfferVerb* verb{nullptr};
+};
+
+class DesignPalette
+{
+public:
+    std::function<std::vector<PaletteItem>()>            items;          // rebuilt on open: enabled state is live
+    std::function<void(const OfferVerb&)>                run;
+    std::function<std::vector<std::string>()>            load_recents;   // verb ids, most recent first
+    std::function<void(const std::vector<std::string>&)> save_recents;
+
+    void open(float x, float y);
+    void render(ImGuiWrapper& imgui, float scale);
+    bool is_open() const { return m_open; }
+    // Keys arrive through the panel's shortcut gate, not through ImGui's per-frame key state (a press shorter
+    // than a frame would be missed): dir = -1 / +1 moves the highlight, 0 runs it.
+    void nav(int dir) { if (dir == 0) m_activate = true; else m_move += dir; }
+    // For the rig: what the box shows right now (query, ranked ids, highlighted index).
+    const std::string&              query() const { return m_query; }
+    const std::vector<std::string>& shown() const { return m_shown; }
+    int                             cursor() const { return m_cursor; }
+    std::string label_of(const std::string& id) const { for (const PaletteItem& i : m_items) if (i.id == id) return i.label; return {}; }
+
+private:
+    bool                     m_open{false};
+    bool                     m_opened_now{false};
+    float                    m_x{0.f}, m_y{0.f};
+    char                     m_buf[128]{};
+    std::string              m_query;
+    int                      m_cursor{0};
+    int                      m_move{0};
+    bool                     m_activate{false};
+    std::vector<PaletteItem> m_items;
+    std::vector<std::string> m_shown;
+};
+
+// Does an ImGui text field hold the keyboard right now? The panel's single shortcut gate asks this next
+// to "is a wx text control focused", so a letter typed into ANY ImGui field is never also a tool key.
+bool imgui_wants_text();
+
 // An ImGui popup (ribbon dropdown, tree row menu) is open anywhere? Esc closes it, before the
 // panel's own Esc ladder, which knows nothing about ImGui.
 bool imgui_popup_open();

@@ -584,6 +584,9 @@ private:
     // The ribbon (tabs -> groups -> tools) drawn on the canvas; the wx toolbar's tool groups hide
     // while it is on (its Confirm/Cancel bar and document buttons stay).
     void              set_imgui_ribbon(bool on);
+    // Is this verb usable right now, and if not why: ONE rule for the ribbon, the palette and the offer.
+    DesignRibbonOverlay::VerbState verb_state(const struct OfferVerb& v) const;
+    void              wire_palette();   // the Ctrl+K command box: items, runner, recents
     // The right-click offer as an ImGui popup instead of a wx menu (item 3). False = not handled:
     // the caller falls back to the wx menu (the Mate palette's hover ghosts live there).
     bool              open_imgui_offer(const wxPoint& screen_pos);

@@ -203,6 +203,8 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
         if (std::getenv("ORCA_CAD_UITRACE")) std::fprintf(stderr, "[UI] overlays ribbon=%d tree=%d em=%.2f\n", int(m_ribbon_on), int(m_tree_overlay_on), double(em));
         float top = 0.f;
         m_offer_popup.render(imgui, m_canvas->get_scale());
+        m_palette.render(imgui, m_canvas->get_scale());
+        if (m_palette.is_open()) m_canvas->set_as_dirty();   // keep frames coming: the box takes focus on the frame AFTER it opens
         if (m_ribbon_on) {   // clear of the corner collapse button
             m_ribbon.render(imgui, m_canvas->get_scale(), 34.f * em, 0.f);
             top = m_ribbon.height();
@@ -1157,6 +1159,18 @@ void DesignCanvas::set_on_context_menu(std::function<void(const wxPoint&)> cb)
         }
         e.Skip();
     });
+}
+
+void DesignCanvas::open_palette()
+{
+    if (!m_canvas_widget) return;
+    const wxSize sz = m_canvas_widget->GetClientSize();
+    wxPoint p = m_canvas_widget->ScreenToClient(wxGetMousePosition());
+    if (p.x < 0 || p.y < 0 || p.x >= sz.x || p.y >= sz.y) p = wxPoint(sz.x / 2 - 160, sz.y / 4);
+    m_canvas_widget->SetFocus();
+    // ImGui is fed from the canvas: after a ribbon click focus is elsewhere and the box would take no text
+    m_palette.open(float(p.x), float(p.y));
+    request_repaint();
 }
 
 void DesignCanvas::open_offer_popup(std::string header, std::vector<OfferNode> nodes, const wxPoint& screen)
