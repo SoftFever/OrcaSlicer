@@ -1557,24 +1557,37 @@ void ColorSampler::start(Callback done)
 }
 
 #elif defined(__WXGTK__)
-// Desktop portal picker (GNOME, KDE; X11 and Wayland): the desktop shows its own picker and only the chosen sRGB color reaches Orca
+// Desktop portal picker (GNOME, KDE; X11 and Wayland): Desktop shows its own picker and only chosen sRGB color reaches Orca.
+// Every failure (no session bus, no portal, no PickColor backend, portal exiting mid-pick) ends as a cancel
 void ColorSampler::start(Callback done)
 {
     if (!done)
         return;
-    GDBusConnection* bus = s_running ? nullptr : g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr);
-    if (!bus) {
+    GDBusConnection* bus    = s_running ? nullptr : g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr);
+    const char*      unique = bus ? g_dbus_connection_get_unique_name(bus) : nullptr;
+    if (!unique) { // Already picking, no session bus, or not a message bus connection
+        if (bus)
+            g_object_unref(bus);
         done(std::nullopt);
         return;
     }
+
     struct Request
     {
         Callback         done;
         GDBusConnection* bus;
+        GCancellable*    cancellable  = g_cancellable_new();
         guint            subscription = 0;
+        guint            watch        = 0;
+        bool             portal_seen  = false;
+
+        // Unhooks everything first, so no callback can reach this request after it is deleted
         void finish(std::optional<ColorRGBA> color)
         {
+            g_cancellable_cancel(cancellable);
+            g_object_unref(cancellable);
             g_dbus_connection_signal_unsubscribe(bus, subscription);
+            g_bus_unwatch_name(watch);
             g_object_unref(bus);
             s_running = false;
             Callback callback = std::move(done);
@@ -1585,11 +1598,11 @@ void ColorSampler::start(Callback done)
     auto* request = new Request{std::move(done), bus};
     s_running     = true;
 
-    // The answer arrives as a Response signal on a Request object whose path follows from our bus name and a token;
+    // Answer arrives as a Response signal on a Request object whose path follows from our bus name and a token;
     // subscribe before calling so it can't be missed
-    static unsigned counter = 0;
-    const std::string token  = "orca_pick_" + std::to_string(++counter);
-    std::string       sender = g_dbus_connection_get_unique_name(bus) + 1; // Without the leading ':'
+    static unsigned   counter = 0;
+    const std::string token   = "orca_pick_" + std::to_string(++counter);
+    std::string       sender  = unique + 1; // Without the leading ':'
     std::replace(sender.begin(), sender.end(), '.', '_');
     const std::string path = "/org/freedesktop/portal/desktop/request/" + sender + "/" + token;
 
@@ -1601,10 +1614,20 @@ void ColorSampler::start(Callback done)
             g_variant_get(parameters, "(u@a{sv})", &response, &results);
             double r = 0., g = 0., b = 0.;
             std::optional<ColorRGBA> color;
-            if (response == 0 && g_variant_lookup(results, "color", "(ddd)", &r, &g, &b)) // 0: picked, 1: cancelled
+            if (response == 0 && g_variant_lookup(results, "color", "(ddd)", &r, &g, &b)) // 0: picked, 1: cancelled, 2: other
                 color = ColorRGBA(float(r), float(g), float(b), 1.f);
             g_variant_unref(results);
             static_cast<Request*>(data)->finish(color);
+        }, request, nullptr);
+
+    // Portal exiting mid-pick would never send Response. It starts on demand, so an inactive portal also reports
+    // vanished before the call below launches it; only a portal that was seen running counts
+    request->watch = g_bus_watch_name_on_connection(bus, "org.freedesktop.portal.Desktop", G_BUS_NAME_WATCHER_FLAGS_NONE,
+        [](GDBusConnection*, const gchar*, const gchar*, gpointer data) { static_cast<Request*>(data)->portal_seen = true; },
+        [](GDBusConnection*, const gchar*, gpointer data) {
+            auto* request = static_cast<Request*>(data);
+            if (request->portal_seen)
+                request->finish(std::nullopt);
         }, request, nullptr);
 
     GVariantBuilder options;
@@ -1612,15 +1635,19 @@ void ColorSampler::start(Callback done)
     g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
     g_dbus_connection_call(bus, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
         "org.freedesktop.portal.Screenshot", "PickColor", g_variant_new("(sa{sv})", "", &options),
-        G_VARIANT_TYPE("(o)"), G_DBUS_CALL_FLAGS_NONE, -1, nullptr,
+        G_VARIANT_TYPE("(o)"), G_DBUS_CALL_FLAGS_NONE, -1, request->cancellable,
         [](GObject* source, GAsyncResult* result, gpointer data) {
             GError*   error = nullptr;
             GVariant* reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &error);
-            if (reply) {
-                g_variant_unref(reply); // Accepted; the color comes with the Response signal
+            if (reply) { // Accepted; the color comes with the Response signal
+                g_variant_unref(reply);
                 return;
             }
-            g_error_free(error); // No portal, or no backend implementing PickColor
+            const bool cancelled = g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+            g_error_free(error);
+            if (cancelled) // Request already finished and freed
+                return;
+            m_sampler_available = false; // No portal, or no backend implementing PickColor: hide the button for this session
             static_cast<Request*>(data)->finish(std::nullopt);
         }, request);
 }
