@@ -409,6 +409,8 @@ public:
     std::vector<unsigned int> get_volume_idxs_from_instance(unsigned int object_idx, unsigned int instance_idx) const;
     // returns the idx of the volume corresponding to the volume with the given idxs
     std::vector<unsigned int> get_volume_idxs_from_volume(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx) const;
+    // returns the list of idxs of the volumes of all instances on the given plate or overlapping it. (fully inside, oversized or partly outside)
+    std::vector<unsigned int> get_volume_idxs_from_plate(const int plate_idx) const;
     // returns the list of idxs of the volumes contained in the selection but not in the given list
     std::vector<unsigned int> get_missing_volume_idxs_from(const std::vector<unsigned int>& volume_idxs) const;
     // returns the list of idxs of the volumes contained in the given list but not in the selection

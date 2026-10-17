@@ -17,6 +17,7 @@
 #include "I18N.hpp"
 #include "Layer.hpp"
 #include "MutablePolygon.hpp"
+#include "PerimeterGenerator.hpp"
 #include "PrintBase.hpp"
 #include "PrintConfig.hpp"
 #include "SLA/IndexedMesh.hpp"
@@ -1464,15 +1465,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_surface_speed") {
             // Brim is printed below supports, support invalidates brim and skirt.
             steps.emplace_back(posSupportMaterial);
-            if (opt_key == "brim_type") {
-                const auto* old_brim_type = old_config.option<ConfigOptionEnum<BrimType>>(opt_key);
-                const auto* new_brim_type = new_config.option<ConfigOptionEnum<BrimType>>(opt_key);
-                //BBS: When switch to manual brim, the object must have brim, then re-generate perimeter
-                //to make the wall order of first layer to be outer-first
-                // btLeadingEdgeOnly is printed as an outer brim (Brim.cpp, BeltBrim.cpp), so it
-                // takes part in the same first-layer wall order rule.
-                if (old_brim_type->value == btOuterOnly || new_brim_type->value == btOuterOnly ||
-                    old_brim_type->value == btLeadingEdgeOnly || new_brim_type->value == btLeadingEdgeOnly)
+            if (opt_key == "brim_type" || opt_key == "brim_width") {
+                // Regenerate the walls when the brim starts or stops putting the first layer's outer walls first.
+                auto outer_walls_first = [](const ConfigOptionResolver &config) {
+                    return brim_puts_outer_walls_first(config.option<ConfigOptionEnum<BrimType>>("brim_type")->value,
+                                                       config.option<ConfigOptionFloat>("brim_width")->value);
+                };
+                if (outer_walls_first(old_config) != outer_walls_first(new_config))
                     steps.emplace_back(posPerimeters);
             }
         } else if (
