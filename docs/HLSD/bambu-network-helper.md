@@ -2,8 +2,35 @@
 
 The Windows Bambu helper lets native Arm64 OrcaSlicer call an unchanged x64 or
 x86 networking DLL in a matching executable running under Windows emulation.
-It is opt-in at both build time and runtime. Without either opt-in, the existing
-in-process DLL loader and agent behavior are unchanged.
+The build must include the bridge, and runtime activation is still explicit.
+A packaged helper removes the need to select an executable path or launch Orca
+from a terminal. It does not yet activate automatically on Arm64.
+
+## Using a packaged Windows build
+
+A build with the bridge enabled can include `orca-bambu-network-helper.exe`
+beside the Orca executable. In that case, set the Windows **user environment
+variable** `ORCA_BAMBU_HELPER` to `1` through Windows' Environment Variables
+settings, then fully exit and relaunch Orca normally. This setting persists for
+future launches; no PowerShell session or manual helper launch is required.
+Orca starts and owns the helper process itself.
+
+The existing plugin controls still install/select the networking DLL. Select a
+supported **02.08.04** plugin and start with a LAN printer using its usual ID,
+IP address, and access code. The helper executable must match the DLL's
+architecture, normally x64, independently of Orca's Arm64 architecture.
+
+| Runtime setting | Behavior in a build with the bridge enabled |
+| --- | --- |
+| `ORCA_BAMBU_HELPER` unset or empty | Ordinary in-process DLL loader |
+| `ORCA_BAMBU_HELPER=1` | Launch `orca-bambu-network-helper.exe` beside Orca |
+| `ORCA_BAMBU_HELPER` set to an absolute executable path | Launch that external helper |
+
+Merely placing the helper beside Orca does not enable it. There is no GUI
+toggle or automatic architecture-based selection yet. Clear the variable and
+restart Orca to return to the ordinary loader; on Arm64 that loader still needs
+an architecture-compatible DLL. A helper startup failure is reported as a load
+error rather than silently falling back to in-process loading.
 
 ## Boundary and capabilities
 
@@ -70,55 +97,78 @@ again. Restart networking to establish a new session after failure.
 The pipe name uses cryptographic randomness, its DACL grants access only to the
 current user's SID, and remote pipe clients are rejected. The parent verifies the
 connected client PID against the child it launched. The helper path must be
-absolute (or `1` to select the executable beside Orca); process creation uses an explicit executable path without a shell or
-inherited handles. A kill-on-close job prevents orphan helper processes. DLL
+absolute, or selected beside Orca with `ORCA_BAMBU_HELPER=1`. Process creation
+uses an explicit executable path without a shell or inherited handles. A kill-on-close job prevents orphan helper processes. DLL
 loading uses its absolute path and restricted dependency-search flags. Print
 files are shared by path rather than copied through RPC; they must remain present
 until their job finishes. Credentials are transient RPC values, not diagnostic
 log output.
 
-## Building and enabling on Windows
+## Building and packaging on Windows
 
-Build the helper separately from Orca so it can use a different architecture:
+The integration stages and installs a **prebuilt** helper. Neither the main
+CMake build nor `build_win.bat` currently builds the foreign-architecture helper
+automatically. Package builders build it separately, or supply an existing
+compatible executable, then configure Orca to include it.
+
+### Build the helper
+
+From the repository root, using MSVC:
 
 ```powershell
-cmake -S src/slic3r/Utils/BambuBridge -B build/bambu-helper -A x64
-cmake --build build/bambu-helper --config Release
+cmake -S src/slic3r/Utils/BambuBridge -B build-bambu-helper -A x64
+cmake --build build-bambu-helper --config Release
 ```
 
-For an actual 32-bit DLL, substitute `-A Win32`. Use MSVC and a release runtime
-compatible with the DLL's C++ ABI. MinGW builds check the Windows API and transport
-code, but its STL ABI is incompatible with Bambu's MSVC DLL. Arm64EC is unnecessary:
+For an actual 32-bit DLL, substitute `-A Win32`. Use a release runtime compatible
+with the DLL's C++ ABI. MinGW builds check the Windows API and transport code,
+but its STL ABI is incompatible with Bambu's MSVC DLL. Arm64EC is unnecessary:
 the helper runs under Windows' ordinary x64/x86 emulation. Windows 11 on Arm
 supports both; Windows 10 on Arm only supports x86.
 
-Configure Orca's normal Arm64 build with
-`-DORCA_BAMBU_NETWORK_BRIDGE=ON`, then launch it from a shell with the helper path:
+### Include it in an existing Orca build
+
+For an existing Release Arm64 tree created by `build_win.bat -ds`, configure
+the two cache entries and incrementally build the slicer:
 
 ```powershell
-$env:ORCA_BAMBU_HELPER = (Resolve-Path build/bambu-helper/Release/orca-bambu-network-helper.exe).Path
-& 'C:/path/to/Arm64/OrcaSlicer.exe'
+$helper = (Resolve-Path build-bambu-helper/Release/orca-bambu-network-helper.exe).Path
+cmake -S . -B build-arm64 -DORCA_BAMBU_NETWORK_BRIDGE=ON "-DORCA_BAMBU_HELPER_EXECUTABLE=$helper"
+.\build_win.bat -s --arch arm64 --no-configure
 ```
 
-To package the separately built helper, set the main Orca build's
-`ORCA_BAMBU_HELPER_EXECUTABLE` CMake cache entry to its absolute Release executable
-path. With the bridge enabled, the build stages it beside Orca and installation
-includes it. The helper must still match the DLL's architecture; the main build
-never recompiles it as Arm64. Enable that packaged copy with:
+Run these commands in the same build environment as the original build. Use
+the original build directory, toolchain, and configuration if they differ from
+this example; retain any original `build_win.bat` toolchain flags. Dependencies
+are reused. The direct CMake invocation preserves the existing cache and avoids
+passing a `-D...=...` value through the batch argument parser.
+
+`ORCA_BAMBU_NETWORK_BRIDGE` defaults to `OFF`. When it is enabled and
+`ORCA_BAMBU_HELPER_EXECUTABLE` names an existing absolute file, a post-build step
+copies that executable beside Orca as `orca-bambu-network-helper.exe`, and
+installation includes it. The main build does not change its architecture.
+Rebuilding the helper alone does not guarantee that this post-build step runs;
+restage the updated executable beside Orca or reinstall it when testing a new
+helper without relinking Orca.
+
+Enable the packaged copy as described above. Setting the runtime variable has
+no effect in an Orca build compiled without the bridge.
+
+### Developer overrides
+
+A separate helper can be tested without packaging by configuring Orca with
+`ORCA_BAMBU_NETWORK_BRIDGE=ON` and setting its absolute path for one session:
 
 ```powershell
-$env:ORCA_BAMBU_HELPER = '1'
+$env:ORCA_BAMBU_HELPER = (Resolve-Path build-bambu-helper/Release/orca-bambu-network-helper.exe).Path
+& '.\build-arm64\src\Release\orca-slicer.exe'
 ```
 
-An absolute path continues to select an external helper. Neither form changes
-the default: no environment opt-in means ordinary in-process loading.
-
-Install/select a supported 02.08.04 networking plugin through Orca's existing
-plugin controls. The helper uses the DLL file selected by those controls. Start
-with a LAN printer; use the usual printer ID, IP address, and access code.
-Remove `ORCA_BAMBU_HELPER` to use the ordinary loader again. The experimental
-client is usable on an x64 Orca build too, allowing process-boundary debugging
-before moving to Arm64.
+Alternatively, `$env:ORCA_BAMBU_HELPER = '1'` selects the adjacent helper for that
+session. These PowerShell assignments apply to programs launched from that
+session; they do not configure future launches from the Start menu. The
+experimental client also works in an x64 Orca build for process-boundary
+debugging before moving to Arm64.
 
 ## Verification
 
