@@ -86,6 +86,26 @@ call("ui.click", at=other)                        # a different spot restarts th
 s = sel()["faces"]
 check(top2 and s and s[0] == [top2[0]["body"], top2[0]["face"]], "moving restarts the cycle at the top candidate: %s vs %s" % (s, top2[:1]))
 
+# Select Other: a press held 0.5 s opens the list instead of clicking; hover previews a row, a row takes it
 call("ui.candidates", cycle=False)
+call("ui.key", key="Escape")
+call("ui.click", at=[c["width"] - 30, 120])          # bare canvas: clears the selection
+call("ui.click", at=mid, hold_ms=800)
+time.sleep(0.5)
+st = call("ui.inspect")
+om = st["other_menu"]
+check(om["open"] and len(om["labels"]) == len(cand), "a held press opens the list with every candidate: %s" % om["labels"])
+check(st["solid_selection"]["faces"] == [], "and the held press is not also a click")
+call("ui.candidates", other_hover=1)
+time.sleep(0.5)
+check(call("ui.inspect")["other_menu"]["hover"] == 1, "hovering a row is reported")
+check(call("ui.inspect")["solid_selection"]["faces"] == [], "a preview does not select")
+call("ui.candidates", other_choose=1)
+time.sleep(0.5)
+st = call("ui.inspect")
+check(not st["other_menu"]["open"], "choosing a row closes the list")
+check(st["solid_selection"]["faces"] == [[cand[1]["body"], cand[1]["face"]]], "and takes that row: %s" % st["solid_selection"]["faces"])
+call("ui.click", at=mid)                              # a quick click still just clicks
+check(not call("ui.inspect")["other_menu"]["open"], "a quick click does not open the list")
 print("ui pick:", "PASS" if not fails else "%d FAIL" % len(fails))
 sys.exit(1 if fails else 0)

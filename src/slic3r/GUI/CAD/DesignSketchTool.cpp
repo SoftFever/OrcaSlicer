@@ -4178,6 +4178,54 @@ std::vector<DesignSketchTool::SolidPick> DesignSketchTool::candidate_picks(GLCan
     return out;
 }
 
+bool DesignSketchTool::take_hold(int& x, int& y)
+{
+    if (!m_pick_pending || m_rubber.is_dragging()) return false;
+    const long long dt = wxGetLocalTimeMillis().GetValue() - m_pick_press_ms;
+    if (dt >= 3000) { m_pick_pending = false; return false; }   // a release we never saw: stop asking
+    if (dt < 500) return false;
+    if (std::max(std::abs(m_pick_cur_x - m_pick_press_x), std::abs(m_pick_cur_y - m_pick_press_y)) > 4) return false;
+    m_pick_pending = false;
+    x = m_pick_press_x; y = m_pick_press_y;
+    return true;
+}
+
+std::vector<std::string> DesignSketchTool::open_other(GLCanvas3D& canvas, int x, int y)
+{
+    m_other = candidate_picks(canvas, x, y);
+    std::vector<std::string> labels;
+    for (const SolidPick& p : m_other) {
+        const char* k = p.kind == SolidSel::Vertex ? "Vertex" : p.kind == SolidSel::Edge ? "Edge" : "Face";
+        const int   n = p.kind == SolidSel::Edge ? p.edge : p.face;
+        labels.push_back(std::string(k) + (n >= 0 ? " " + std::to_string(n + 1) : std::string()) + "  (body " + std::to_string(p.body + 1) + ")");
+    }
+    return labels;
+}
+
+void DesignSketchTool::hover_other(int i)
+{
+    m_pre = (i >= 0 && i < int(m_other.size())) ? m_other[size_t(i)] : SolidPick{};
+}
+
+void DesignSketchTool::choose_other(int i)
+{
+    if (i < 0 || i >= int(m_other.size())) return;
+    SolidPick p = m_other[size_t(i)];
+    if (p.body < 0 || p.body >= int(m_solid_bodies->size())) return;
+    m_sel_edges_more.clear();
+    m_sel_edges_more_pts.clear();
+    m_sel_body      = p.body;
+    m_sel_shape     = (*m_solid_bodies)[p.body].shape;
+    m_sel_face      = p.face;
+    m_sel_edge      = p.edge;
+    m_sel_edge_pts  = std::move(p.edge_pts);
+    m_sel_vertex_pt = p.vertex_pt;
+    m_solid_sel     = p.kind;
+    m_pre           = SolidPick{};
+    if (on_solid_selection_changed)
+        on_solid_selection_changed(int(m_solid_sel), m_sel_body, m_sel_face, m_sel_edge);
+}
+
 std::vector<DesignSketchTool::PickCandidate> DesignSketchTool::pick_candidates(GLCanvas3D& canvas, int mx, int my) const
 {
     std::vector<PickCandidate> out;
@@ -11469,6 +11517,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
             if (update_solid_hover(canvas, evt)) canvas.set_as_dirty();
             return false;
         }
+        if (evt.LeftIsDown()) { m_pick_cur_x = evt.GetX(); m_pick_cur_y = evt.GetY(); }
         const bool left_drag_sweeps =
             evt.ShiftDown() || std::atoi(wxGetApp().app_config->get("left_mouse_drag_action").c_str()) == 0;
         if (evt.Dragging() && evt.LeftIsDown() && m_pick_pending && (left_drag_sweeps || m_rubber.is_dragging())) {
@@ -11500,6 +11549,9 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
             m_pick_press_x = evt.GetX();
             m_pick_press_y = evt.GetY();
             m_pick_pending = true;
+            m_pick_cur_x = m_pick_press_x; m_pick_cur_y = m_pick_press_y;
+            m_pick_press_ms = wxGetLocalTimeMillis().GetValue();
+            canvas.set_as_dirty();   // the overlay pass polls for the 0.5 s hold; it needs a frame to start the poll
             dp_pick_trace("down x=%d y=%d", evt.GetX(), evt.GetY());
             return false;
         }

@@ -167,6 +167,30 @@ private:
     std::vector<std::string> m_shown;
 };
 
+// Select Other: the list of everything under the pointer after a 0.5 s press-hold. Hovering a row previews that pick,
+// clicking a row takes it; a click elsewhere or Esc closes it and drops the preview.
+class DesignCandidateMenu
+{
+public:
+    std::function<void(int)> on_hover;    // row index, or -1 when no row is hovered / the menu closed
+    std::function<void(int)> on_choose;
+
+    void open(float x, float y, std::vector<std::string> labels);
+    void render(ImGuiWrapper& imgui, float scale);
+    bool is_open() const { return m_open; }
+    // For the rig: drive a row without knowing where ImGui drew it.
+    void request_hover(int i) { m_force_hover = i; }
+    void request_choose(int i) { m_force_choose = i; }
+    const std::vector<std::string>& labels() const { return m_labels; }
+    int hovered() const { return m_hover; }
+
+private:
+    bool                     m_open{false}, m_opened_now{false};
+    float                    m_x{0.f}, m_y{0.f};
+    int                      m_hover{-1}, m_force_hover{-2}, m_force_choose{-1};
+    std::vector<std::string> m_labels;
+};
+
 // Does an ImGui text field hold the keyboard right now? The panel's single shortcut gate asks this next
 // to "is a wx text control focused", so a letter typed into ANY ImGui field is never also a tool key.
 bool imgui_wants_text();

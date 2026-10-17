@@ -407,6 +407,7 @@ public:
     // having it — a socket that talked to a private copy would prove nothing about the app.
     std::vector<DesignSketchTool::PickCandidate> pick_candidates(int mx, int my) const
     { return m_canvas ? m_sketch_tool.pick_candidates(*m_canvas, mx, my) : std::vector<DesignSketchTool::PickCandidate>(); }
+    DesignCandidateMenu&    other_menu() { return m_other_menu; }
     DesignSketchTool&       mcp_sketch_tool()       { return m_sketch_tool; }
     const DesignSketchTool& mcp_sketch_tool() const { return m_sketch_tool; }
 
@@ -482,6 +483,7 @@ private:
     DesignOfferPopup    m_offer_popup;
     DesignRibbonOverlay m_ribbon;
     DesignPalette       m_palette;
+    DesignCandidateMenu m_other_menu;   // Select Other, opened by a press-hold on the solid
     bool                m_ribbon_on{false};
     DesignTreeOverlay m_tree_overlay;
     bool              m_tree_overlay_on{false};

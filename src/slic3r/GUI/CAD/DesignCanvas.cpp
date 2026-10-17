@@ -196,6 +196,8 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
     // — are drawn by the canvas itself, in the tool's ImGui pass: they go away with the canvas,
     // the tab and the window, and never take the keyboard.
     m_sketch_tool.on_readout      = [this](const std::string& s) { set_readout(s); };
+    m_other_menu.on_hover  = [this](int i) { m_sketch_tool.hover_other(i); if (m_canvas) m_canvas->set_as_dirty(); };
+    m_other_menu.on_choose = [this](int i) { m_sketch_tool.choose_other(i); if (m_canvas) m_canvas->set_as_dirty(); };
     m_sketch_tool.render_overlays = [this] {
         render_hud();
         ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -204,6 +206,16 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
         float top = 0.f;
         m_offer_popup.render(imgui, m_canvas->get_scale());
         m_palette.render(imgui, m_canvas->get_scale());
+        {   // Select Other: a press held on the solid opens the list of everything under it
+            int hx, hy;
+            if (m_sketch_tool.pick_waiting()) m_canvas->set_as_dirty();   // frames keep coming while a press may turn into a hold
+            if (m_sketch_tool.take_hold(hx, hy)) {
+                std::vector<std::string> rows = m_sketch_tool.open_other(*m_canvas, hx, hy);
+                m_other_menu.open(float(hx), float(hy), std::move(rows));
+            }
+            m_other_menu.render(imgui, m_canvas->get_scale());
+            if (m_other_menu.is_open()) m_canvas->set_as_dirty();
+        }
         if (m_palette.is_open()) m_canvas->set_as_dirty();   // keep frames coming: the box takes focus on the frame AFTER it opens
         if (m_ribbon_on) {   // clear of the corner collapse button
             m_ribbon.render(imgui, m_canvas->get_scale(), 34.f * em, 0.f);

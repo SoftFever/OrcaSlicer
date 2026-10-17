@@ -171,6 +171,14 @@ public:
     // click-cycling both come from here.
     struct PickCandidate { int kind{0}; int body{-1}, face{-1}, edge{-1}; };   // kind: SolidSel as int
     std::vector<PickCandidate> pick_candidates(GLCanvas3D& canvas, int mx, int my) const;
+
+    // Select Other. A press held ~0.5 s without moving more than 4 px asks for the list (take_hold, polled
+    // by the canvas each frame); the press is then consumed, so its release is no click.
+    bool pick_waiting() const { return m_pick_pending; }
+    bool take_hold(int& x, int& y);
+    std::vector<std::string> open_other(GLCanvas3D& canvas, int x, int y);   // fills the list, returns its row labels
+    void hover_other(int i);    // preview row i (-1 clears)
+    void choose_other(int i);   // take row i
     bool constrain_value_anchor(wxPoint& out) const; // screen anchor over the picked constrain geometry
 
     // 3D sketch (slices 8b input + 8c snapping): click points in space. The cursor rides a virtual
@@ -1365,6 +1373,9 @@ private:
     };
     bool resolve_solid_pick(GLCanvas3D& canvas, int mx, int my, SolidPick& out) const;
     std::vector<SolidPick> candidate_picks(GLCanvas3D& canvas, int mx, int my) const;
+    std::vector<SolidPick> m_other;                       // the rows of the Select Other list
+    long long  m_pick_press_ms{0};
+    int        m_pick_cur_x{0}, m_pick_cur_y{0};          // last pointer position while the press is down
     PickFilter m_pick_filter;
     bool       m_click_cycle{false};
     int        m_cyc_x{0}, m_cyc_y{0}, m_cyc_i{0}, m_cyc_n{0};   // click-cycling: where, which, of how many

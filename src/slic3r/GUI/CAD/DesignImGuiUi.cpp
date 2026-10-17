@@ -605,6 +605,49 @@ void DesignPalette::render(ImGuiWrapper& imgui, float scale)
     ImGuiWrapper::pop_common_window_style();
 }
 
+void DesignCandidateMenu::open(float x, float y, std::vector<std::string> labels)
+{
+    m_x = x; m_y = y; m_labels = std::move(labels);
+    m_hover = -1; m_force_hover = -2; m_force_choose = -1;
+    m_open = !m_labels.empty(); m_opened_now = m_open;
+}
+
+void DesignCandidateMenu::render(ImGuiWrapper& imgui, float scale)
+{
+    if (!m_open) return;
+    ImGuiWrapper::push_common_window_style(scale);
+    auto theme = std::make_unique<ThemeScope>();
+    const float em = imgui.get_style_scaling();
+    ImGui::SetNextWindowPos(ImVec2(m_x, m_y), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(200.f * em, 0.f));
+    if (m_opened_now) { ImGui::OpenPopup("##design_other"); m_opened_now = false; }
+    int hovered = -1, chosen = std::exchange(m_force_choose, -1);
+    if (ImGui::BeginPopup("##design_other", ImGuiWindowFlags_NoSavedSettings)) {
+        ImGui::TextDisabled("Select other");
+        ImGui::Separator();
+        for (int i = 0; i < int(m_labels.size()); ++i) {
+            ImGui::PushID(i);
+            if (ImGui::Selectable(m_labels[i].c_str(), false)) chosen = i;
+            if (ImGui::IsItemHovered()) hovered = i;
+            ImGui::PopID();
+        }
+        if (m_force_hover != -2) { hovered = m_force_hover; m_force_hover = -2; }
+        if (chosen >= 0) ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+    } else {
+        m_open = false;   // a click elsewhere or Esc closed it
+        chosen = -1; hovered = -1;
+    }
+    if (hovered != m_hover) { m_hover = hovered; if (on_hover) on_hover(hovered); }
+    if (chosen >= 0 && chosen < int(m_labels.size())) {
+        m_open = false;
+        if (on_hover) on_hover(-1);
+        if (on_choose) on_choose(chosen);
+    }
+    theme.reset();
+    ImGuiWrapper::pop_common_window_style();
+}
+
 bool imgui_wants_text()
 {
     return ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantTextInput;

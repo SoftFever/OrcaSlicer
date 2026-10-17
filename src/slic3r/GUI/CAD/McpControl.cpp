@@ -2836,6 +2836,8 @@ json ui_inspect(DesignPanel* panel)
     if (v) {   // what is picked on the solid right now: lets a rig test see click cycling move
         json faces = json::array();
         for (const auto& bf : v->mcp_sketch_tool().selected_faces()) faces.push_back({bf.first, bf.second});
+        const DesignCandidateMenu& om = const_cast<DesignCanvas*>(v)->other_menu();
+        out["other_menu"] = {{"open", om.is_open()}, {"labels", om.labels()}, {"hover", om.hovered()}};
         out["solid_selection"] = {{"faces", faces}, {"edges", v->mcp_sketch_tool().selected_edges()}};
     }
     if (in) {
@@ -2861,6 +2863,8 @@ json ui_dispatch(const std::string& method, const json& p)
                 t.set_pick_filter({f.value("face", true), f.value("edge", true), f.value("vertex", true)});
             }
             if (p.contains("cycle")) t.set_click_cycle(p["cycle"].get<bool>());
+            if (p.contains("other_hover"))  v->other_menu().request_hover(p["other_hover"].get<int>());    // drive a Select Other row
+            if (p.contains("other_choose")) v->other_menu().request_choose(p["other_choose"].get<int>());
             json list = json::array();
             if (p.contains("at")) {
                 const json at = p["at"];
@@ -2891,7 +2895,7 @@ json ui_dispatch(const std::string& method, const json& p)
         mouse(0, x, y); pause(60);
         if (method == "ui.move") return json{{"ok", true}};
         if (method == "ui.click") {
-            mouse(1, x, y); pause(60); mouse(2, x, y); pause(60);
+            mouse(1, x, y); pause(std::clamp(p.value("hold_ms", 60), 0, 5000)); mouse(2, x, y); pause(60);
             if (clicks == 2) { mouse(3, x, y, 2); pause(30); mouse(2, x, y); pause(60); }
             return json{{"ok", true}};
         }
