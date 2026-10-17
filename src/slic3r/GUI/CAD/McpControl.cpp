@@ -165,7 +165,7 @@ bool read_only_method(const std::string& m)
     static const std::set<std::string> k = {
         "describe_tools", "describe_scene", "query_topology", "measure", "mass_properties",
         "slice_body", "validate_against", "list_verbs", "sketch_describe", "sketch_validate",
-        "check_interference", "inspect_design", "export", "save", "screenshot", "ui.inspect", "ui.worldToScreen", "ui.screenshot", "variables_export", "sketch_dimensions" };
+        "check_interference", "inspect_design", "export", "save", "screenshot", "ui.inspect", "ui.candidates", "ui.worldToScreen", "ui.screenshot", "variables_export", "sketch_dimensions" };
     return k.count(m) > 0;
 }
 
@@ -597,7 +597,8 @@ json describe_tools()
         compact_tool("surface_loft", "Skin two or more profile sketches into an open sheet.", {{"profiles", "array", "[Sketch feature index,...]"}, {"ruled", "boolean", ""}}),
         compact_tool("surface_offset", "Offset the last sheet body.", {{"offset", "number", "signed mm"}}),
         compact_tool("thicken_surface", "Thicken the last sheet body into a solid.", {{"thickness", "number", "mm"}, {"flip", "boolean", ""}}),
-        compact_tool("ui.inspect", "GUI state: which window has keyboard focus, whether ImGui wants text/keyboard/mouse, canvas size, sketch open. For focus and click regression tests.", {}),
+        compact_tool("ui.candidates", "Select Other: what a click at at=[x,y] could take, nearest first (kind/body/face/edge). Also sets filter={face,edge,vertex} (the SELECT filter) and cycle=true|false (click cycling vs escalate-to-body).", {}),
+    compact_tool("ui.inspect", "GUI state: which window has keyboard focus, whether ImGui wants text/keyboard/mouse, canvas size, sketch open. For focus and click regression tests.", {}),
         compact_tool("ui.worldToScreen", "Pixel (canvas coordinates) of a world point under the current camera.", {{"point", "array", "[x,y,z] mm"}}),
         compact_tool("ui.move", "Move the pointer over the design canvas (canvas pixels).", {{"at", "array", "[x,y] px"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.click", "Click on the design canvas through the real event path: move, press, release (count 2 = double click).", {{"at", "array", "[x,y] px"}, {"button", "integer", "1 left, 2 middle, 3 right"}, {"count", "integer", "1|2"}, {"mods", "array", "shift|ctrl|alt"}}),
@@ -2832,6 +2833,11 @@ json ui_inspect(DesignPanel* panel)
         for (const std::string& id : pal.shown()) labels[id] = pal.label_of(id);   // translated: a rig test types from these
         out["palette"] = {{"open", pal.is_open()}, {"query", pal.query()}, {"shown", pal.shown()}, {"labels", labels}, {"cursor", pal.cursor()}};
     }
+    if (v) {   // what is picked on the solid right now: lets a rig test see click cycling move
+        json faces = json::array();
+        for (const auto& bf : v->mcp_sketch_tool().selected_faces()) faces.push_back({bf.first, bf.second});
+        out["solid_selection"] = {{"faces", faces}, {"edges", v->mcp_sketch_tool().selected_edges()}};
+    }
     if (in) {
         const wxSize sz = in->GetClientSize();
         out["canvas"] = {{"width", sz.x}, {"height", sz.y}, {"shown", in->IsShownOnScreen()}};
@@ -2845,6 +2851,27 @@ json ui_dispatch(const std::string& method, const json& p)
     auto panelp = []() { DesignPanel* d = DesignPanel::ensure(); if (!d) throw std::runtime_error("Design panel not ready"); return d; };
     const int mods = ui_mods(p);
     if (method == "ui.inspect") return on_main([=]() { return ui_inspect(panelp()); });
+    if (method == "ui.candidates") {   // what a click at "at" could take, nearest first; and sets the click mode / SELECT filter
+        return on_main([=]() {
+            DesignCanvas* v = panelp()->mcp_viewport();
+            if (!v) throw std::runtime_error("no viewport");
+            DesignSketchTool& t = v->mcp_sketch_tool();
+            if (p.contains("filter")) {
+                const json f = p["filter"];
+                t.set_pick_filter({f.value("face", true), f.value("edge", true), f.value("vertex", true)});
+            }
+            if (p.contains("cycle")) t.set_click_cycle(p["cycle"].get<bool>());
+            json list = json::array();
+            if (p.contains("at")) {
+                const json at = p["at"];
+                for (const auto& c : v->pick_candidates(jn(at, 0), jn(at, 1)))
+                    list.push_back({{"kind", c.kind == 4 ? "vertex" : c.kind == 3 ? "edge" : c.kind == 2 ? "face" : "body"},
+                                    {"body", c.body}, {"face", c.face}, {"edge", c.edge}});
+            }
+            return json{{"ok", true}, {"candidates", list}, {"cycle", t.click_cycle()},
+                        {"filter", {{"face", t.pick_filter().face}, {"edge", t.pick_filter().edge}, {"vertex", t.pick_filter().vertex}}}};
+        });
+    }
     if (method == "ui.worldToScreen") {
         const Vec3d w(jn(p.value("point", json()), 0), jn(p.value("point", json()), 1), jn(p.value("point", json()), 2));
         return on_main([=]() {
@@ -2890,7 +2917,7 @@ json ui_dispatch(const std::string& method, const json& p)
         for (const wxUniChar c : wxString::FromUTF8(t)) { const int u = int(c.GetValue()); on_main([=]() { ui_key(panelp(), u, u, 0); }); pause(25); }
         return json{{"ok", true}};
     }
-    throw std::runtime_error("unknown ui method '" + method + "' (ui.inspect, ui.worldToScreen, ui.move, ui.click, ui.drag, ui.key, ui.text)");
+    throw std::runtime_error("unknown ui method '" + method + "' (ui.inspect, ui.candidates, ui.worldToScreen, ui.move, ui.click, ui.drag, ui.key, ui.text)");
 }
 
 // ---- variables, sketch dimensions, suppression, rollback ---------------------------------------------------------

@@ -4122,20 +4122,67 @@ bool DesignSketchTool::resolve_solid_pick(GLCanvas3D& canvas, int mx, int my, So
             vtol = std::min(vtol, narrow);
             etol = std::min(etol, narrow);
         }
-        if (have_vtx && best_vd <= vtol) {
+        if (m_pick_filter.vertex && have_vtx && best_vd <= vtol) {
             out.vertex_pt = vtx;
             out.kind      = SolidSel::Vertex;
-        } else if (have_edge && best_ed <= etol) {
+        } else if (m_pick_filter.edge && have_edge && best_ed <= etol) {
             // Promote the face-relative pick to a STABLE GLOBAL edge id so dress-up ops
             // (fillet/chamfer) can target this exact edge across recomputes.
             out.edge     = GeometryEngine::edge_index_of(bshape, ed_edge);
             out.edge_pts = std::move(ed_pts);
             out.kind     = SolidSel::Edge;
-        } else {
+        } else if (m_pick_filter.face) {
             out.kind = SolidSel::Face;
+        } else {
+            out = SolidPick{};   // the only thing here is a kind the filter turned off
+            return false;
         }
     }
     return true;
+}
+
+// The picks stacked under (mx,my): what a plain click takes first, then every other face the ray
+// crosses, nearest first, one per (body, face). The Select Other list and click-cycling read this.
+std::vector<DesignSketchTool::SolidPick> DesignSketchTool::candidate_picks(GLCanvas3D& canvas, int mx, int my) const
+{
+    std::vector<SolidPick> out;
+    SolidPick top;
+    if (!resolve_solid_pick(canvas, mx, my, top)) return out;
+    out.push_back(top);
+    if (!m_pick_filter.face) return out;
+    const Linef3 r = canvas.mouse_ray(Point(mx, my));
+    const Vec3d ro = r.a, rd = r.b - r.a;
+    const indexed_triangle_set& its = m_solid_mesh->its;
+    std::map<std::pair<int, int>, double> nearest;   // (body, face) -> smallest t
+    for (size_t i = 0; i < its.indices.size(); ++i) {
+        const int body = (m_solid_tri_body && i < m_solid_tri_body->size()) ? (*m_solid_tri_body)[i] : -1;
+        const int face = (m_solid_tri_face && i < m_solid_tri_face->size()) ? (*m_solid_tri_face)[i] : -1;
+        if (body < 0 || face < 0 || body >= int(m_solid_bodies->size()) || !body_pickable(body)) continue;
+        const auto& idx = its.indices[i];
+        double t;
+        if (!ray_triangle(ro, rd, its.vertices[idx(0)].cast<double>(), its.vertices[idx(1)].cast<double>(),
+                          its.vertices[idx(2)].cast<double>(), t)) continue;
+        auto it = nearest.find({body, face});
+        if (it == nearest.end() || t < it->second) nearest[{body, face}] = t;
+    }
+    std::vector<std::pair<double, std::pair<int, int>>> order;
+    for (const auto& kv : nearest) order.push_back({kv.second, kv.first});
+    std::sort(order.begin(), order.end());
+    for (const auto& o : order) {
+        if (out.size() >= 20) break;
+        if (top.kind == SolidSel::Face && o.second.first == top.body && o.second.second == top.face) continue;
+        SolidPick f;
+        f.kind = SolidSel::Face; f.body = o.second.first; f.face = o.second.second;
+        out.push_back(std::move(f));
+    }
+    return out;
+}
+
+std::vector<DesignSketchTool::PickCandidate> DesignSketchTool::pick_candidates(GLCanvas3D& canvas, int mx, int my) const
+{
+    std::vector<PickCandidate> out;
+    for (const SolidPick& p : candidate_picks(canvas, mx, my)) out.push_back({int(p.kind), p.body, p.face, p.edge});
+    return out;
 }
 
 // A click on the solid takes the smallest thing under the cursor (vertex/edge/face). Returns
@@ -4144,7 +4191,19 @@ bool DesignSketchTool::resolve_solid_pick(GLCanvas3D& canvas, int mx, int my, So
 bool DesignSketchTool::handle_solid_click(GLCanvas3D& canvas, const wxMouseEvent& evt)
 {
     SolidPick p;
-    if (!resolve_solid_pick(canvas, evt.GetX(), evt.GetY(), p))
+    if (m_click_cycle) {
+        // Candidate mode: the same spot again (within 4 px, same model) takes the next thing under it.
+        std::vector<SolidPick> c = candidate_picks(canvas, evt.GetX(), evt.GetY());
+        if (c.empty()) { m_cyc_n = 0; return false; }
+        const size_t sig = (m_solid_mesh ? m_solid_mesh->its.indices.size() : 0) * 131 + (m_solid_bodies ? m_solid_bodies->size() : 0);
+        const bool again = m_cyc_n > 0 && sig == m_cyc_sig && std::abs(evt.GetX() - m_cyc_x) <= 4 && std::abs(evt.GetY() - m_cyc_y) <= 4;
+        m_cyc_i   = again ? (m_cyc_i + 1) % int(c.size()) : 0;
+        m_cyc_n   = int(c.size());
+        m_cyc_sig = sig;
+        if (!again) { m_cyc_x = evt.GetX(); m_cyc_y = evt.GetY(); }
+        p = std::move(c[size_t(m_cyc_i)]);
+        if (p.kind == SolidSel::Face) p.edge_pts.clear();
+    } else if (!resolve_solid_pick(canvas, evt.GetX(), evt.GetY(), p))
         return false;   // missed the solid, or no solid data — same two exits as before
 
     // What was selected BEFORE this pick — the escalation below is the only thing that reads
@@ -4225,7 +4284,7 @@ bool DesignSketchTool::handle_solid_click(GLCanvas3D& canvas, const wxMouseEvent
           : m_solid_sel == SolidSel::Edge   ? m_sel_edge == prev_edge
           : m_solid_sel == SolidSel::Face   ? m_sel_face == prev_face
                                             : true);
-    if (same_pick && m_escalate_repick) {
+    if (same_pick && m_escalate_repick && !m_click_cycle) {
         select_body(m_sel_body);   // clears face/edge/vertex, tints the whole body
         dp_pick_trace("re-pick -> escalated to whole body %d", m_sel_body);
     }

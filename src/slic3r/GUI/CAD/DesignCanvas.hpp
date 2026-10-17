@@ -405,6 +405,8 @@ public:
     // Scripted (MCP) access to the live sketch. One accessor rather than a passthrough per
     // verb: the MCP layer drives the SAME tool the mouse drives, which is the whole point of
     // having it — a socket that talked to a private copy would prove nothing about the app.
+    std::vector<DesignSketchTool::PickCandidate> pick_candidates(int mx, int my) const
+    { return m_canvas ? m_sketch_tool.pick_candidates(*m_canvas, mx, my) : std::vector<DesignSketchTool::PickCandidate>(); }
     DesignSketchTool&       mcp_sketch_tool()       { return m_sketch_tool; }
     const DesignSketchTool& mcp_sketch_tool() const { return m_sketch_tool; }
 

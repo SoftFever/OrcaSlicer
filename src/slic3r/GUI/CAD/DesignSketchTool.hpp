@@ -156,6 +156,21 @@ public:
     // whole-body pick that the armed capture then rejects. The host turns this off for as long
     // as a pick is armed.
     void set_escalate_on_repick(bool on) { m_escalate_repick = on; }
+
+    // SELECT filter: which kinds a click or hover may take. A filtered-out kind is skipped, not
+    // refused: with Vertex off, the pointer at a corner takes the edge (or the face) under it.
+    struct PickFilter { bool face{true}, edge{true}, vertex{true}; };
+    void              set_pick_filter(const PickFilter& f) { m_pick_filter = f; }
+    const PickFilter& pick_filter() const { return m_pick_filter; }
+    // Click mode. false (default): re-clicking the same thing escalates to the whole body. true:
+    // re-clicking within a few pixels steps through every candidate under the pointer, nearest first.
+    void set_click_cycle(bool on) { m_click_cycle = on; }
+    bool click_cycle() const { return m_click_cycle; }
+    // Everything a click at (mx,my) could take, nearest first, at most 20: the first entry is what a
+    // plain click takes, the rest are the faces behind it. Read-only; the Select Other list and the
+    // click-cycling both come from here.
+    struct PickCandidate { int kind{0}; int body{-1}, face{-1}, edge{-1}; };   // kind: SolidSel as int
+    std::vector<PickCandidate> pick_candidates(GLCanvas3D& canvas, int mx, int my) const;
     bool constrain_value_anchor(wxPoint& out) const; // screen anchor over the picked constrain geometry
 
     // 3D sketch (slices 8b input + 8c snapping): click points in space. The cursor rides a virtual
@@ -1349,6 +1364,11 @@ private:
         Vec3d              vertex_pt{Vec3d::Zero()};
     };
     bool resolve_solid_pick(GLCanvas3D& canvas, int mx, int my, SolidPick& out) const;
+    std::vector<SolidPick> candidate_picks(GLCanvas3D& canvas, int mx, int my) const;
+    PickFilter m_pick_filter;
+    bool       m_click_cycle{false};
+    int        m_cyc_x{0}, m_cyc_y{0}, m_cyc_i{0}, m_cyc_n{0};   // click-cycling: where, which, of how many
+    size_t     m_cyc_sig{0};                                     // model signature: a rebuild restarts the cycle
     // HOVER PRE-HIGHLIGHT (9xw part 3). Vertex-beats-edge-beats-face is a rule the user
     // cannot see until after they commit to a click; showing the outcome under the pointer is
     // what makes the precedence learnable at all, and is the charter's L5 (one click, one visible
