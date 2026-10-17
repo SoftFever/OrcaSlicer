@@ -175,6 +175,7 @@ public:
     // Select Other. A press held ~0.5 s without moving more than 4 px asks for the list (take_hold, polled
     // by the canvas each frame); the press is then consumed, so its release is no click.
     bool pick_waiting() const { return m_pick_pending; }
+    int  solid_sel_kind() const { return int(m_solid_sel); }   // SolidSel as int: 0 none, 1 whole, 2 face, 3 edge, 4 vertex
     bool take_hold(int& x, int& y);
     std::vector<std::string> open_other(GLCanvas3D& canvas, int x, int y);   // fills the list, returns its row labels
     void hover_other(int i);    // preview row i (-1 clears)

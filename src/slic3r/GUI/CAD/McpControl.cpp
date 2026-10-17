@@ -2838,7 +2838,7 @@ json ui_inspect(DesignPanel* panel)
         for (const auto& bf : v->mcp_sketch_tool().selected_faces()) faces.push_back({bf.first, bf.second});
         const DesignCandidateMenu& om = const_cast<DesignCanvas*>(v)->other_menu();
         out["other_menu"] = {{"open", om.is_open()}, {"labels", om.labels()}, {"hover", om.hovered()}};
-        out["solid_selection"] = {{"faces", faces}, {"edges", v->mcp_sketch_tool().selected_edges()}};
+        out["solid_selection"] = {{"kind", v->mcp_sketch_tool().solid_sel_kind()}, {"faces", faces}, {"edges", v->mcp_sketch_tool().selected_edges()}};
     }
     if (in) {
         const wxSize sz = in->GetClientSize();

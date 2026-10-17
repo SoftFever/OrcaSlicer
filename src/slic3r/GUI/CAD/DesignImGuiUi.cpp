@@ -631,12 +631,13 @@ void DesignCandidateMenu::render(ImGuiWrapper& imgui, float scale)
             if (ImGui::IsItemHovered()) hovered = i;
             ImGui::PopID();
         }
-        if (m_force_hover != -2) { hovered = m_force_hover; m_force_hover = -2; }
+        if (hovered < 0 && m_force_hover != -2) hovered = m_force_hover;   // a rig-driven hover holds until the menu closes
         if (chosen >= 0) ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
     } else {
         m_open = false;   // a click elsewhere or Esc closed it
         chosen = -1; hovered = -1;
+        m_force_hover = -2;
     }
     if (hovered != m_hover) { m_hover = hovered; if (on_hover) on_hover(hovered); }
     if (chosen >= 0 && chosen < int(m_labels.size())) {

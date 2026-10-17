@@ -3989,15 +3989,19 @@ void DesignSketchTool::pick_bodies_in_rectangle()
         pts.push_back(c / 3.0); owner.push_back(b);
     }
 
-    std::vector<int> hits(m_solid_bodies->size(), 0);
+    std::vector<int> hits(m_solid_bodies->size(), 0), total(m_solid_bodies->size(), 0);
+    for (int o : owner) if (o >= 0 && o < int(total.size())) ++total[o];
     if (!pts.empty())
         for (unsigned int i : m_rubber.contains(pts))
             if (i < owner.size() && owner[i] >= 0 && owner[i] < int(hits.size()))
                 ++hits[owner[i]];
 
+    // Direction decides, as in every CAD box select: dragged left-to-right is a WINDOW (a body is taken only
+    // when it lies entirely inside), right-to-left is CROSSING (touching is enough).
+    const bool window = m_pick_cur_x > m_pick_press_x;
     int best = -1, best_n = 0;
     for (int b = 0; b < int(hits.size()); ++b)
-        if (hits[b] > best_n) { best_n = hits[b]; best = b; }
+        if (hits[b] > best_n && (!window || hits[b] == total[b])) { best_n = hits[b]; best = b; }
 
     if (best < 0) clear_solid_selection();        // swept empty space -> drop the selection
     else          select_body(best);
@@ -4184,6 +4188,7 @@ bool DesignSketchTool::take_hold(int& x, int& y)
     const long long dt = wxGetLocalTimeMillis().GetValue() - m_pick_press_ms;
     if (dt >= 3000) { m_pick_pending = false; return false; }   // a release we never saw: stop asking
     if (dt < 500) return false;
+    dp_pick_trace("hold poll dt=%lld drift=%d", dt, std::max(std::abs(m_pick_cur_x - m_pick_press_x), std::abs(m_pick_cur_y - m_pick_press_y)));
     if (std::max(std::abs(m_pick_cur_x - m_pick_press_x), std::abs(m_pick_cur_y - m_pick_press_y)) > 4) return false;
     m_pick_pending = false;
     x = m_pick_press_x; y = m_pick_press_y;
@@ -11551,7 +11556,13 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
             m_pick_pending = true;
             m_pick_cur_x = m_pick_press_x; m_pick_cur_y = m_pick_press_y;
             m_pick_press_ms = wxGetLocalTimeMillis().GetValue();
-            canvas.set_as_dirty();   // the overlay pass polls for the 0.5 s hold; it needs a frame to start the poll
+            // The overlay pass polls for the 0.5 s hold, but a frame requested from INSIDE a frame is dropped, so
+            // nothing would paint in that window. A timer on the canvas window asks for the frame instead.
+            canvas.set_as_dirty();
+            GLCanvas3D* cv = &canvas;
+            auto* t = new wxTimer();
+            t->Bind(wxEVT_TIMER, [t, cv](wxTimerEvent&) { cv->set_as_dirty(); wxTheApp->CallAfter([t] { delete t; }); });
+            t->StartOnce(540);
             dp_pick_trace("down x=%d y=%d", evt.GetX(), evt.GetY());
             return false;
         }

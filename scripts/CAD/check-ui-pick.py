@@ -97,7 +97,10 @@ om = st["other_menu"]
 check(om["open"] and len(om["labels"]) == len(cand), "a held press opens the list with every candidate: %s" % om["labels"])
 check(st["solid_selection"]["faces"] == [], "and the held press is not also a click")
 call("ui.candidates", other_hover=1)
-time.sleep(0.5)
+for _ in range(10):                       # applied on the next painted frame
+    time.sleep(0.3)
+    if call("ui.inspect")["other_menu"]["hover"] == 1:
+        break
 check(call("ui.inspect")["other_menu"]["hover"] == 1, "hovering a row is reported")
 check(call("ui.inspect")["solid_selection"]["faces"] == [], "a preview does not select")
 call("ui.candidates", other_choose=1)
@@ -107,5 +110,20 @@ check(not st["other_menu"]["open"], "choosing a row closes the list")
 check(st["solid_selection"]["faces"] == [[cand[1]["body"], cand[1]["face"]]], "and takes that row: %s" % st["solid_selection"]["faces"])
 call("ui.click", at=mid)                              # a quick click still just clicks
 check(not call("ui.inspect")["other_menu"]["open"], "a quick click does not open the list")
+# Box select: left-to-right is a window (only what lies wholly inside), right-to-left is crossing (touching is enough)
+def kind():
+    time.sleep(0.4)
+    return call("ui.inspect")["solid_selection"]["kind"]
+
+call("ui.click", at=[c["width"] - 30, 120])                                   # clear
+cx, cy = mid
+call("ui.drag", **{"from": [cx - 60, cy - 60], "to": [cx + 60, cy + 60], "mods": ["shift"]})
+check(kind() != 1, "a window that only covers part of the box takes nothing")
+call("ui.drag", **{"from": [cx + 60, cy + 60], "to": [cx - 60, cy - 60], "mods": ["shift"]})
+check(kind() == 1, "the same box dragged right-to-left (crossing) takes the body")
+call("ui.click", at=[c["width"] - 30, 120])
+call("ui.drag", **{"from": [60, 60], "to": [c["width"] - 8, c["height"] - 8], "mods": ["shift"]})
+check(kind() == 1, "a window around the whole body takes it")
+
 print("ui pick:", "PASS" if not fails else "%d FAIL" % len(fails))
 sys.exit(1 if fails else 0)
