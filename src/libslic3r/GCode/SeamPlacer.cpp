@@ -1087,7 +1087,7 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po) 
                           if (prev_layer_distancer.get() != nullptr) {
                             const auto _dist = prev_layer_distancer->distance_from_lines<true>(point.cast<double>());
                             perimeter_point.overhang = _dist
-                                                       + 0.65f * perimeter_point.perimeter.flow_width
+                                                       + 0.6f * perimeter_point.perimeter.flow_width
                                                        - tan(SeamPlacer::overhang_angle_threshold)
                                                              * po->layers()[layer_idx]->height;
                             perimeter_point.overhang =
@@ -1097,7 +1097,7 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po) 
 
                           if (should_compute_layer_embedding) { // search for embedded perimeter points (points hidden inside the print ,e.g. multimaterial join, best position for seam)
                             perimeter_point.embedded_distance = current_layer_distancer->distance_from_lines<true>(point.cast<double>())
-                                                                + 0.65f * perimeter_point.perimeter.flow_width;
+                                                                + 0.6f * perimeter_point.perimeter.flow_width;
                           }
                         }
 
@@ -1164,6 +1164,13 @@ std::optional<std::pair<size_t, size_t>> SeamPlacer::find_next_seam_in_layer(
       && (next_layer_seam.position - projected_position).squaredNorm()
              < sqr(3 * max_distance)) {
     return {std::pair<size_t, size_t> {layer_idx, nearest_point.perimeter.seam_index}};
+  }
+
+  // For Back, prefer the back-most nearby point. On a nearly flat back the nearest point is always acceptable and the seam would drift sideways.
+  // Points within 0.01 mm of the back-most Y count as equally far back (tessellation noise), so the nearest one is kept and the seam does not jitter.
+  if (comparator.setup == spRear && best_nearby_point.position.y() > nearest_point.position.y() + 0.01f &&
+      comparator.is_first_not_much_worse(best_nearby_point, next_layer_seam)) {
+    return {std::pair<size_t, size_t> {layer_idx, best_nearby_point_index}};
   }
 
   // First try to align the nearest, then try the best nearby
