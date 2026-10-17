@@ -472,6 +472,8 @@ void DesignCanvas::clear_preview()
     }
 }
 
+wxWindow* DesignCanvas::input_window() const { return m_canvas_widget; }
+
 void DesignCanvas::fit_view()
 {
     if (m_canvas && !m_model.objects.empty()) {

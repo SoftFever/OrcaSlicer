@@ -9848,3 +9848,47 @@ TEST_CASE("A failing feature is named by index", "[CadDocument][rollback]")
     CHECK_FALSE(doc.recompute());
     CHECK(doc.error_feature == 0);
 }
+
+// Sharp offset joins: a tapered polygon is the exact frustum, not one with rounded top corners.
+TEST_CASE("taper extrude of a square is the exact frustum", "[CadDocument][oracle]")
+{
+    SketchPlane xy = SketchPlane::XY();
+    SketchProfile sp; sp.points = { Vec2d(-5,-5),Vec2d(5,-5),Vec2d(5,5),Vec2d(-5,5) }; sp.closed = true;
+    TopoDS_Shape s = SketchEngine::make_extrude_taper(sp.to_occt_wire(xy), xy, 10.0, 10.0);
+    GProp_GProps props; BRepGProp::VolumeProperties(s, props);
+    const double off = 10.0 * std::tan(10.0 * M_PI / 180.0), a1 = 100.0, a2 = (10.0 + 2 * off) * (10.0 + 2 * off);
+    CHECK(props.Mass() == Approx(10.0 / 3.0 * (a1 + a2 + std::sqrt(a1 * a2))).epsilon(1e-4));
+}
+
+// Sharp shell joins: an L-section shell removes exactly the offset body, not one with rounded inner corners.
+TEST_CASE("shell of an L bracket has sharp inner corners", "[CadDocument][oracle]")
+{
+    CadDocument doc;
+    SketchProfile sp;   // L: 60x40 with a 30x20 notch, 20 high
+    sp.points = { Vec2d(0,0), Vec2d(60,0), Vec2d(60,20), Vec2d(30,20), Vec2d(30,40), Vec2d(0,40) };
+    sp.closed = true;
+    const int sk = doc.add_sketch_profile(sp, SketchPlane::XY(), "L");
+    doc.add_extrude(sk, 20.0, false, BooleanMode::New, "Extrude");
+    doc.add_shell(2.0, -1, 0, "Shell");   // closed hollow
+    REQUIRE(doc.recompute());
+    // Cavity of a sharp inward offset: the L shrunk by 2 on every side (area 60*20+30*20 = 1800 -> inner polygon area computed by hand)
+    // inner L: x 2..58, y 2..18 (56x16 = 896) plus x 2..28, y 18..38 (26x20 = 520) = 1416; height 16
+    GProp_GProps props; BRepGProp::VolumeProperties(doc.bodies[0].shape, props);
+    CHECK(props.Mass() == Approx(1800.0 * 20.0 - 1416.0 * 16.0).epsilon(1e-4));
+}
+
+// A removal that cuts the body in two leaves two bodies.
+TEST_CASE("a cut through the middle of a bar yields two bodies", "[CadDocument][oracle]")
+{
+    CadDocument doc;
+    SketchProfile bar; bar.points = { Vec2d(0,0), Vec2d(60,0), Vec2d(60,10), Vec2d(0,10) }; bar.closed = true;
+    const int s1 = doc.add_sketch_profile(bar, SketchPlane::XY(), "Bar");
+    doc.add_extrude(s1, 10.0, false, BooleanMode::New, "Bar");
+    SketchProfile gap; gap.points = { Vec2d(25,-1), Vec2d(35,-1), Vec2d(35,11), Vec2d(25,11) }; gap.closed = true;
+    const int s2 = doc.add_sketch_profile(gap, SketchPlane::XY(), "Gap");
+    doc.add_extrude(s2, 10.0, false, BooleanMode::Cut, "Gap");
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.bodies.size() == 2);
+    GProp_GProps a, b; BRepGProp::VolumeProperties(doc.bodies[0].shape, a); BRepGProp::VolumeProperties(doc.bodies[1].shape, b);
+    CHECK(a.Mass() + b.Mass() == Approx(50.0 * 10.0 * 10.0).epsilon(1e-6));
+}

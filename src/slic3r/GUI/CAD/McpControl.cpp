@@ -36,6 +36,12 @@
 #include "slic3r/GUI/Plater.hpp"
 #include <wx/dcscreen.h>
 #include <wx/evtloop.h>
+#include <wx/textctrl.h>
+#include <wx/utils.h>
+#include <map>
+#include <type_traits>
+#include "slic3r/GUI/Camera.hpp"
+#include "slic3r/GUI/ImGuiWrapper.hpp"
 #include <wx/dcmemory.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
@@ -157,7 +163,7 @@ bool read_only_method(const std::string& m)
     static const std::set<std::string> k = {
         "describe_tools", "describe_scene", "query_topology", "measure", "mass_properties",
         "slice_body", "validate_against", "list_verbs", "sketch_describe", "sketch_validate",
-        "check_interference", "inspect_design", "export", "save", "screenshot" };
+        "check_interference", "inspect_design", "export", "save", "screenshot", "ui.inspect", "ui.worldToScreen", "ui.screenshot" };
     return k.count(m) > 0;
 }
 
@@ -587,6 +593,14 @@ json describe_tools()
         compact_tool("surface_loft", "Skin two or more profile sketches into an open sheet.", {{"profiles", "array", "[Sketch feature index,...]"}, {"ruled", "boolean", ""}}),
         compact_tool("surface_offset", "Offset the last sheet body.", {{"offset", "number", "signed mm"}}),
         compact_tool("thicken_surface", "Thicken the last sheet body into a solid.", {{"thickness", "number", "mm"}, {"flip", "boolean", ""}}),
+        compact_tool("ui.inspect", "GUI state: which window has keyboard focus, whether ImGui wants text/keyboard/mouse, canvas size, sketch open. For focus and click regression tests.", {}),
+        compact_tool("ui.worldToScreen", "Pixel (canvas coordinates) of a world point under the current camera.", {{"point", "array", "[x,y,z] mm"}}),
+        compact_tool("ui.move", "Move the pointer over the design canvas (canvas pixels).", {{"at", "array", "[x,y] px"}, {"mods", "array", "shift|ctrl|alt"}}),
+        compact_tool("ui.click", "Click on the design canvas through the real event path: move, press, release (count 2 = double click).", {{"at", "array", "[x,y] px"}, {"button", "integer", "1 left, 2 middle, 3 right"}, {"count", "integer", "1|2"}, {"mods", "array", "shift|ctrl|alt"}}),
+        compact_tool("ui.drag", "Press at `from`, move to `to` in `steps`, release.", {{"from", "array", "[x,y] px"}, {"to", "array", "[x,y] px"}, {"steps", "integer", "default 8"}, {"button", "integer", "1|2|3"}, {"mods", "array", "shift|ctrl|alt"}}),
+        compact_tool("ui.key", "Press a key as the keyboard delivers it (shortcut gate first, then the focused window).", {{"key", "string", "a character, or Escape|Enter|Tab|Backspace|Delete|Space|Left|Right|Up|Down|Home|End|PageUp|PageDown|F1-F12"}, {"mods", "array", "shift|ctrl|alt"}}),
+        compact_tool("ui.text", "Type text into the focused window, one character event each.", {{"text", "string", "up to 4096 characters"}}),
+        compact_tool("ui.screenshot", "Same as screenshot.", {{"path", "string", "absolute .png"}, {"view", "string", ""}, {"fit", "boolean", ""}}),
         compact_tool("save", "Save the project (the design recipe travels inside the 3MF) to an absolute .3mf path under $HOME or /tmp.", {{"path", "string", ""}}),
         compact_tool("open", "Open a .3mf project, replacing the current one. Refused while it has unsaved changes unless discard:true. Applied on the next UI turn.", {{"path", "string", ""}, {"discard", "boolean", ""}}),
         compact_tool("screenshot", "PNG of the design viewport (X11 screen read-back; the window must be visible).", {{"path", "string", "absolute .png under $HOME or /tmp"}, {"view", "string", "iso|top|front|... applied first"}, {"fit", "boolean", "fit the view first"}}),
@@ -2644,6 +2658,168 @@ json action_screenshot(DesignPanel* panel, const json& params)
     return json{{"ok", ok}, {"path", path}, {"width", sz.x}, {"height", sz.y}, {"error", ok ? std::string() : "could not write the PNG"}};
 }
 
+// ---- ui.* : synthetic input, through the same handlers a real mouse and keyboard reach --------------------------------
+// ui.move/click/drag/key/text/worldToScreen/inspect. The events are built as wx events and processed by the live widgets
+// on the MAIN thread, one step at a time with a pause between steps, so ImGui renders the frames it needs to see a press
+// before its release. The pauses are why this runs on the client's thread, not inside one main-thread call.
+template<class F> auto on_main(F f) -> decltype(f())
+{
+    using R = decltype(f());
+    auto prom = std::make_shared<std::promise<R>>();
+    auto fut  = prom->get_future();
+    wxGetApp().CallAfter([prom, f]() mutable {
+        try { if constexpr (std::is_void_v<R>) { f(); prom->set_value(); } else prom->set_value(f()); }
+        catch (...) { prom->set_exception(std::current_exception()); }
+    });
+    if (fut.wait_for(std::chrono::seconds(15)) != std::future_status::ready) throw std::runtime_error("main-thread timeout");
+    return fut.get();
+}
+
+struct UiState { int buttons{0}; };   // bit 0 left, 1 middle, 2 right: held, so a drag's motion events carry them
+UiState g_ui;
+
+void ui_mouse(DesignPanel* panel, int kind /*0 move,1 down,2 up,3 dclick*/, int button /*1 L,2 M,3 R*/, int x, int y, int mods, int clicks)
+{
+    wxWindow* w = panel->mcp_viewport()->input_window();
+    if (!w) throw std::runtime_error("no viewport");
+    const int bit = button == 1 ? 1 : button == 2 ? 2 : 4;
+    if (kind == 1 || kind == 3) g_ui.buttons |= bit;
+    if (kind == 2) g_ui.buttons &= ~bit;
+    wxEventType t = wxEVT_MOTION;
+    if (kind != 0) {
+        const bool L = button == 1, M = button == 2;
+        t = kind == 1 ? (L ? wxEVT_LEFT_DOWN : M ? wxEVT_MIDDLE_DOWN : wxEVT_RIGHT_DOWN)
+          : kind == 2 ? (L ? wxEVT_LEFT_UP   : M ? wxEVT_MIDDLE_UP   : wxEVT_RIGHT_UP)
+                      : (L ? wxEVT_LEFT_DCLICK : M ? wxEVT_MIDDLE_DCLICK : wxEVT_RIGHT_DCLICK);
+    }
+    wxMouseEvent e(t);
+    e.SetEventObject(w); e.SetId(w->GetId()); e.SetPosition(wxPoint(x, y));
+    e.m_leftDown = g_ui.buttons & 1; e.m_middleDown = g_ui.buttons & 2; e.m_rightDown = g_ui.buttons & 4;
+    e.SetShiftDown(mods & 1); e.SetControlDown(mods & 2); e.SetAltDown(mods & 4);
+    e.m_clickCount = clicks;
+    e.SetTimestamp(long(wxGetLocalTimeMillis().GetLo()));
+    w->GetEventHandler()->ProcessEvent(e);
+}
+
+int ui_keycode(const std::string& k)
+{
+    static const std::map<std::string, int> names = {
+        {"Escape", WXK_ESCAPE}, {"Esc", WXK_ESCAPE}, {"Enter", WXK_RETURN}, {"Return", WXK_RETURN}, {"Tab", WXK_TAB}, {"Backspace", WXK_BACK},
+        {"Delete", WXK_DELETE}, {"Space", WXK_SPACE}, {"Left", WXK_LEFT}, {"Right", WXK_RIGHT}, {"Up", WXK_UP}, {"Down", WXK_DOWN},
+        {"Home", WXK_HOME}, {"End", WXK_END}, {"PageUp", WXK_PAGEUP}, {"PageDown", WXK_PAGEDOWN},
+        {"F1", WXK_F1}, {"F2", WXK_F2}, {"F3", WXK_F3}, {"F4", WXK_F4}, {"F5", WXK_F5}, {"F6", WXK_F6}, {"F7", WXK_F7}, {"F8", WXK_F8}, {"F9", WXK_F9}, {"F10", WXK_F10}, {"F11", WXK_F11}, {"F12", WXK_F12}};
+    auto it = names.find(k);
+    if (it != names.end()) return it->second;
+    if (k.size() == 1) return std::toupper(static_cast<unsigned char>(k[0]));
+    throw std::runtime_error("unknown key '" + k + "' (a single character, or Escape/Enter/Tab/Backspace/Delete/Space/arrows/Home/End/PageUp/PageDown/F1-F12)");
+}
+
+// One key press as the keyboard delivers it: CHAR_HOOK first (the panel's shortcut gate lives there); if nobody takes it,
+// KEY_DOWN, CHAR, KEY_UP go to the focused window. `unicode` != 0 sends text instead (CHAR only).
+void ui_key(DesignPanel* panel, int code, int unicode, int mods)
+{
+    wxWindow* w = wxWindow::FindFocus();
+    if (!w) w = panel->mcp_viewport()->input_window();
+    auto make = [&](wxEventType t) {
+        wxKeyEvent e(t);
+        e.SetEventObject(w); e.SetId(w->GetId());
+        e.m_keyCode = code; e.m_uniChar = unicode ? unicode : (code < 128 && std::isalpha(code) && !(mods & 1) ? std::tolower(code) : code);
+        e.m_shiftDown = mods & 1; e.m_controlDown = mods & 2; e.m_altDown = mods & 4;
+        e.SetTimestamp(long(wxGetLocalTimeMillis().GetLo()));
+        return e;
+    };
+    if (!unicode) {
+        wxKeyEvent hook = make(wxEVT_CHAR_HOOK);
+        if (w->GetEventHandler()->ProcessEvent(hook) && !hook.GetSkipped()) return;   // consumed as a shortcut
+        wxKeyEvent down = make(wxEVT_KEY_DOWN);
+        w->GetEventHandler()->ProcessEvent(down);
+    }
+    wxKeyEvent ch = make(wxEVT_CHAR);
+    if (unicode) { ch.m_keyCode = unicode; ch.m_uniChar = unicode; }
+    w->GetEventHandler()->ProcessEvent(ch);
+    if (!unicode) { wxKeyEvent up = make(wxEVT_KEY_UP); w->GetEventHandler()->ProcessEvent(up); }
+}
+
+int ui_mods(const json& p)
+{
+    int m = 0;
+    if (p.contains("mods")) {
+        if (!p["mods"].is_array()) throw std::runtime_error("'mods' must be an array of shift|ctrl|alt");
+        for (const json& v : p["mods"]) { const std::string s = v.is_string() ? v.get<std::string>() : ""; m |= s == "shift" ? 1 : s == "ctrl" ? 2 : s == "alt" ? 4 : 0; }
+    }
+    return m;
+}
+int ui_int(const json& a, size_t i) { return int(std::lround(jn(a, i))); }
+
+json ui_inspect(DesignPanel* panel)
+{
+    DesignCanvas* v = panel->mcp_viewport();
+    wxWindow* in = v ? v->input_window() : nullptr;
+    wxWindow* f = wxWindow::FindFocus();
+    json out{{"ok", true}, {"sketch_open", v != nullptr && v->is_sketching()}, {"selection_kind", panel->mcp_offer_selection_kind()}};
+    out["focus"] = {{"class", f ? std::string(f->GetClassInfo()->GetClassName()) : std::string()}, {"is_canvas", f != nullptr && f == in},
+                    {"text_entry", f != nullptr && (dynamic_cast<wxTextCtrl*>(f) != nullptr)}};
+    if (auto* ig = wxGetApp().imgui())
+        out["imgui"] = {{"want_text_input", ig->want_text_input()}, {"want_keyboard", ig->want_keyboard()}, {"want_mouse", ig->want_mouse()}};
+    if (in) {
+        const wxSize sz = in->GetClientSize();
+        out["canvas"] = {{"width", sz.x}, {"height", sz.y}, {"shown", in->IsShownOnScreen()}};
+    }
+    return out;
+}
+
+json ui_dispatch(const std::string& method, const json& p)
+{
+    auto pause = [](int ms) { std::this_thread::sleep_for(std::chrono::milliseconds(ms)); };
+    auto panelp = []() { DesignPanel* d = DesignPanel::ensure(); if (!d) throw std::runtime_error("Design panel not ready"); return d; };
+    const int mods = ui_mods(p);
+    if (method == "ui.inspect") return on_main([=]() { return ui_inspect(panelp()); });
+    if (method == "ui.worldToScreen") {
+        const Vec3d w(jn(p.value("point", json()), 0), jn(p.value("point", json()), 1), jn(p.value("point", json()), 2));
+        return on_main([=]() {
+            const Camera& cam = wxGetApp().plater()->get_camera();
+            const Vec4d c = cam.get_projection_matrix().matrix() * cam.get_view_matrix().matrix() * Vec4d(w.x(), w.y(), w.z(), 1.0);
+            if (std::abs(c.w()) < 1e-12) throw std::runtime_error("point is on the camera plane");
+            const auto& vp = cam.get_viewport();
+            return json{{"ok", true}, {"x", (c.x() / c.w() + 1.0) * 0.5 * vp[2]}, {"y", (1.0 - c.y() / c.w()) * 0.5 * vp[3]}, {"in_front", c.w() > 0}};
+        });
+    }
+    if (method == "ui.move" || method == "ui.click" || method == "ui.drag") {
+        const json& at = method == "ui.drag" ? p.value("from", json()) : p;
+        const int x = ui_int(method == "ui.drag" ? at : p.value("at", json()), 0), y = ui_int(method == "ui.drag" ? at : p.value("at", json()), 1);
+        const int button = p.value("button", 1), clicks = p.value("count", 1);
+        if (button < 1 || button > 3 || clicks < 1 || clicks > 2) throw std::runtime_error("button is 1|2|3 and count is 1|2");
+        auto mouse = [&](int kind, int bx, int by, int n = 1) { on_main([=]() { ui_mouse(panelp(), kind, button, bx, by, mods, n); }); };
+        mouse(0, x, y); pause(60);
+        if (method == "ui.move") return json{{"ok", true}};
+        if (method == "ui.click") {
+            mouse(1, x, y); pause(60); mouse(2, x, y); pause(60);
+            if (clicks == 2) { mouse(3, x, y, 2); pause(30); mouse(2, x, y); pause(60); }
+            return json{{"ok", true}};
+        }
+        const int tx = ui_int(p.value("to", json()), 0), ty = ui_int(p.value("to", json()), 1), steps = std::clamp(p.value("steps", 8), 1, 200);
+        mouse(1, x, y); pause(60);
+        for (int i = 1; i <= steps; ++i) { mouse(0, x + (tx - x) * i / steps, y + (ty - y) * i / steps); pause(25); }
+        mouse(2, tx, ty); pause(60);
+        return json{{"ok", true}};
+    }
+    if (method == "ui.key") {
+        if (!p.contains("key") || !p["key"].is_string()) throw std::runtime_error("ui.key needs 'key'");
+        const int code = ui_keycode(p["key"].get<std::string>());
+        on_main([=]() { ui_key(panelp(), code, 0, mods); });
+        pause(60);
+        return json{{"ok", true}};
+    }
+    if (method == "ui.text") {
+        if (!p.contains("text") || !p["text"].is_string()) throw std::runtime_error("ui.text needs 'text'");
+        const std::string t = p["text"].get<std::string>();
+        if (t.size() > 4096) throw std::runtime_error("text is limited to 4096 characters");
+        for (const wxUniChar c : wxString::FromUTF8(t)) { const int u = int(c.GetValue()); on_main([=]() { ui_key(panelp(), u, u, 0); }); pause(25); }
+        return json{{"ok", true}};
+    }
+    throw std::runtime_error("unknown ui method '" + method + "' (ui.inspect, ui.worldToScreen, ui.move, ui.click, ui.drag, ui.key, ui.text)");
+}
+
 // ---- undo / redo / inspect_design / batch ----------------------------------------------------------------
 struct MethodNotFound {};
 json        call_method(DesignPanel* panel, const std::string& method, const json& params);   // below
@@ -2741,8 +2917,35 @@ json action_batch(DesignPanel* panel, const json& params)
     return out;
 }
 
-// The one dispatch point: the socket handler and `batch` both come through here.
+json call_method_core(DesignPanel* panel, const std::string& method, const json& params);
+
+// The one dispatch point: the socket handler and `batch` both come through here. A call that changes the design
+// reports WHAT it changed - created/changed/removed bodies, features added, warnings - so a caller need not diff
+// describe_scene after every step.
 json call_method(DesignPanel* panel, const std::string& method, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    auto bodies_now = [&]() { std::vector<const void*> v; for (const CadBody& b : doc.bodies) v.push_back(b.shape.IsNull() ? nullptr : b.shape.TShape().get()); return v; };
+    const size_t nf = doc.features.size();
+    const std::vector<const void*> before = bodies_now();
+    json r = call_method_core(panel, method, params);
+    if (!r.is_object() || !r.contains("ok") || read_only_method(method) || method.rfind("sketch_", 0) == 0 || method == "batch" || method == "undo" || method == "redo"
+        || method == "open" || method == "new_document" || method == "run_verb")
+        return r;
+    const std::vector<const void*> after = bodies_now();
+    json created = json::array(), changed = json::array();
+    for (size_t i = 0; i < after.size(); ++i) {
+        if (i >= before.size()) created.push_back(int(i));
+        else if (after[i] != before[i]) changed.push_back(int(i));
+    }
+    json warn = json::array();
+    for (const auto& w : doc.feature_warnings) if (w.first >= int(nf)) warn.push_back(w.second);
+    r["delta"] = {{"features_added", int(doc.features.size()) - int(nf)}, {"created_bodies", created}, {"changed_bodies", changed},
+                  {"removed_bodies", before.size() > after.size() ? int(before.size() - after.size()) : 0}, {"warnings", warn}};
+    return r;
+}
+
+json call_method_core(DesignPanel* panel, const std::string& method, const json& params)
 {
     if (method == "describe_tools") return describe_tools();
     if (method == "describe_scene") return describe_scene(panel);
@@ -2926,6 +3129,11 @@ std::string dispatch_request(const std::string& line)
     if (const char* tok = std::getenv("ORCA_CAD_MCP_TOKEN"); tok && *tok && (req.contains("token") && req["token"].is_string() ? req["token"].get<std::string>() : std::string()) != tok)
         return rpc_error(id, -32003, "unauthorized: this app was launched with ORCA_CAD_MCP_TOKEN; send it as \"token\"");
     // A transient refusal (a rebuild in progress) is waited out here, on the client's own thread, never on the UI thread.
+    if (method.rfind("ui.", 0) == 0 && method != "ui.screenshot") {
+        try { return json{{"jsonrpc", "2.0"}, {"id", id}, {"result", ui_dispatch(method, params)}}.dump(); }
+        catch (const std::exception& ex) { return rpc_error(id, -32000, ex.what()); }
+    }
+    if (method == "ui.screenshot") method = "screenshot";
     const auto t0 = std::chrono::steady_clock::now();
     for (;;) {
         std::string r = dispatch_once(method, params, id);

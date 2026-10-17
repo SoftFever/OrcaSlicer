@@ -61,6 +61,7 @@ public:
     void clear_preview();
 
     void fit_view();
+    wxWindow* input_window() const;   // the GL widget that real mouse and keyboard events reach (MCP ui.* posts there)
     void set_view(const std::string& view_name);
     // Frame `box` along the current view direction, as the canvas's Fit button frames a selection.
     // False, the camera left alone, when there is nothing to frame: an undefined box.
