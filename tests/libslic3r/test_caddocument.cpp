@@ -2268,6 +2268,25 @@ TEST_CASE("a v5 project still opens", "[CadDocument][recipe]")
     REQUIRE_FALSE(doc.features.empty());
 }
 
+// Do NOT regenerate cad_recipe_v6.bin: it is the last format before v7 (appended fields) and the evidence that a v7
+// build still reads what v6 builds wrote. Written by the "regenerate golden recipe fixture" case while the stamp was 6.
+TEST_CASE("a v6 project still opens", "[CadDocument][recipe]")
+{
+    std::ifstream ifs(std::string(TEST_DATA_DIR) + "/cad_recipe_v6.bin", std::ios::binary);
+    REQUIRE(ifs.is_open());
+    std::string blob((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    uint32_t stamped = 0;
+    REQUIRE(blob.size() >= sizeof(stamped));
+    std::memcpy(&stamped, blob.data(), sizeof(stamped));
+    REQUIRE(stamped == 6);
+
+    CadDocument doc;
+    doc.deserialize_recipe(blob);
+    REQUIRE(doc.error.find("older version") == std::string::npos);
+    REQUIRE(doc.error.find("newer version") == std::string::npos);
+    REQUIRE_FALSE(doc.features.empty());
+}
+
 // OCCT 7.6 wrote cad_brep_occt76.brep, so do NOT regenerate it. It holds a 30 x 30 x 5 plate
 // with a 3 x 3 grid of r3 holes, their rims filleted r0.5.
 TEST_CASE("an Import solid written by OCCT 7.6 still loads", "[CadDocument][recipe]")
