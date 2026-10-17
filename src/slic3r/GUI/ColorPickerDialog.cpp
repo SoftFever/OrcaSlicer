@@ -54,6 +54,8 @@
 #if defined(__WXMSW__)
 #include <wx/msw/wrapwin.h>
 #include <cstdint>
+#elif defined(__WXGTK__)
+#include <gio/gio.h>
 #endif
 
 namespace Slic3r::GUI {
@@ -64,13 +66,13 @@ namespace {
 //   color reaches Orca, so the Screen Recording permission is never requested.
 // - Windows: one GDI snapshot of the virtual screen in a topmost overlay with a magnifier loupe.
 //   GDI reads need no permission
-// - Other platforms: unavailable
+// - Linux: Uses XDG Screenshot portal’s PickColor method
 class ColorSampler
 {
 public:
     using Callback = std::function<void(std::optional<ColorRGBA>)>; // std::nullopt when user cancels; otherwise an opaque sRGB color
     ColorSampler() = delete;
-    #if defined(__WXOSX__) || defined(__WXMSW__)
+    #if defined(__WXOSX__) || defined(__WXMSW__) || defined(__WXGTK__)
         static inline bool m_sampler_available = true;
     #else
         static inline bool m_sampler_available = false; // No sampler: start() is left undefined, and dialog never calls it here
@@ -81,7 +83,7 @@ private:
 #ifdef __WXMSW__
     class Overlay;
 #endif
-#if defined(__WXOSX__) || defined(__WXMSW__)
+#if defined(__WXOSX__) || defined(__WXMSW__) || defined(__WXGTK__)
     static inline bool s_running = false; // Only platforms with a sampler use this
 #endif
 };
@@ -1113,7 +1115,7 @@ void ColorPickerDialog::send_initial_state()
 
 void ColorPickerDialog::sample_screen()
 {
-#if defined(__WXOSX__) || defined(__WXMSW__)
+#if defined(__WXOSX__) || defined(__WXMSW__) || defined(__WXGTK__)
     // One sampler at a time; a second click while the loupe is up is ignored
     if (m_sampling)
         return;
@@ -1552,6 +1554,75 @@ void ColorSampler::start(Callback done)
         s_running = false;
         done(color);
     });
+}
+
+#elif defined(__WXGTK__)
+// Desktop portal picker (GNOME, KDE; X11 and Wayland): the desktop shows its own picker and only the chosen sRGB color reaches Orca
+void ColorSampler::start(Callback done)
+{
+    if (!done)
+        return;
+    GDBusConnection* bus = s_running ? nullptr : g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr);
+    if (!bus) {
+        done(std::nullopt);
+        return;
+    }
+    struct Request
+    {
+        Callback         done;
+        GDBusConnection* bus;
+        guint            subscription = 0;
+        void finish(std::optional<ColorRGBA> color)
+        {
+            g_dbus_connection_signal_unsubscribe(bus, subscription);
+            g_object_unref(bus);
+            s_running = false;
+            Callback callback = std::move(done);
+            delete this;
+            callback(color);
+        }
+    };
+    auto* request = new Request{std::move(done), bus};
+    s_running     = true;
+
+    // The answer arrives as a Response signal on a Request object whose path follows from our bus name and a token;
+    // subscribe before calling so it can't be missed
+    static unsigned counter = 0;
+    const std::string token  = "orca_pick_" + std::to_string(++counter);
+    std::string       sender = g_dbus_connection_get_unique_name(bus) + 1; // Without the leading ':'
+    std::replace(sender.begin(), sender.end(), '.', '_');
+    const std::string path = "/org/freedesktop/portal/desktop/request/" + sender + "/" + token;
+
+    request->subscription = g_dbus_connection_signal_subscribe(bus, "org.freedesktop.portal.Desktop",
+        "org.freedesktop.portal.Request", "Response", path.c_str(), nullptr, G_DBUS_SIGNAL_FLAGS_NONE,
+        [](GDBusConnection*, const gchar*, const gchar*, const gchar*, const gchar*, GVariant* parameters, gpointer data) {
+            guint32   response = 2;
+            GVariant* results  = nullptr;
+            g_variant_get(parameters, "(u@a{sv})", &response, &results);
+            double r = 0., g = 0., b = 0.;
+            std::optional<ColorRGBA> color;
+            if (response == 0 && g_variant_lookup(results, "color", "(ddd)", &r, &g, &b)) // 0: picked, 1: cancelled
+                color = ColorRGBA(float(r), float(g), float(b), 1.f);
+            g_variant_unref(results);
+            static_cast<Request*>(data)->finish(color);
+        }, request, nullptr);
+
+    GVariantBuilder options;
+    g_variant_builder_init(&options, G_VARIANT_TYPE_VARDICT);
+    g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
+    g_dbus_connection_call(bus, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
+        "org.freedesktop.portal.Screenshot", "PickColor", g_variant_new("(sa{sv})", "", &options),
+        G_VARIANT_TYPE("(o)"), G_DBUS_CALL_FLAGS_NONE, -1, nullptr,
+        [](GObject* source, GAsyncResult* result, gpointer data) {
+            GError*   error = nullptr;
+            GVariant* reply = g_dbus_connection_call_finish(G_DBUS_CONNECTION(source), result, &error);
+            if (reply) {
+                g_variant_unref(reply); // Accepted; the color comes with the Response signal
+                return;
+            }
+            g_error_free(error); // No portal, or no backend implementing PickColor
+            static_cast<Request*>(data)->finish(std::nullopt);
+        }, request);
 }
 #endif
 

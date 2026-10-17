@@ -78,7 +78,7 @@ private:
     bool m_init_sent = false;
     bool m_page_ready = false;
     bool m_closing = false;
-#if defined(__WXOSX__) || defined(__WXMSW__)
+#if defined(__WXOSX__) || defined(__WXMSW__) || defined(__WXGTK__)
     bool m_sampling = false; // A screen sampler is open; only platforms with one use this.
 #endif
     bool m_favorites_writable = false;
