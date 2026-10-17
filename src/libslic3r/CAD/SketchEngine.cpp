@@ -225,10 +225,15 @@ TopoDS_Shape SketchEngine::make_extrude_taper(const TopoDS_Wire& wire, const Ske
     if (std::abs(off) < 1e-7) return straight();
     try {
         // 1) offset the planar base wire in its own plane by `off`
-        BRepOffsetAPI_MakeOffset mko(wire, GeomAbs_Arc);
-        mko.Perform(off);
-        if (!mko.IsDone()) return straight();
-        TopoDS_Shape offShape = mko.Shape();
+        // Sharp (intersection) joins: arc joins round the convex corners of an outward offset, so the top of a tapered
+        // polygon came out short of the exact frustum. Arc joins remain the fallback.
+        TopoDS_Shape offShape;
+        for (GeomAbs_JoinType join : {GeomAbs_Intersection, GeomAbs_Arc}) {
+            BRepOffsetAPI_MakeOffset mko(wire, join);
+            mko.Perform(off);
+            if (mko.IsDone() && !mko.Shape().IsNull()) { offShape = mko.Shape(); break; }
+        }
+        if (offShape.IsNull()) return straight();
         TopoDS_Wire topFlat;
         if (offShape.ShapeType() == TopAbs_WIRE) topFlat = TopoDS::Wire(offShape);
         else { for (TopExp_Explorer ex(offShape, TopAbs_WIRE); ex.More(); ex.Next()) { topFlat = TopoDS::Wire(ex.Current()); break; } }

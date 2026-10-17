@@ -22,12 +22,9 @@ CORPUS = os.path.join(HERE, "..", "..", "tests", "cad_oracle")
 # Cases that run but disagree with the oracle for a known kernel reason. Reported XFAIL (not a red gate);
 # an XFAIL case that starts passing is reported XPASS so the entry gets deleted.
 XFAIL = {
-    "05-taper-extrude": "extrude taper: top outline 0.11 mm/side short of the exact frustum (offset-based taper)",
-    "58-phone-stand": "two 3 mm fillets on edges 6 mm apart: 'no suitable edges for chamfer or fillet' (cause not analysed)",
-    "44-shell-l-bracket": "shell volume 0.18% low (15 mm3): suspected rounded rather than sharp offset joins at the corners (not verified)",
+    "58-phone-stand": "two 3 mm fillets on edges 6 mm apart: OCCT refuses ('no suitable edges'); the radii sum to the gap, so the two fillet surfaces just touch",
+    "35-fillet-curved-curved": "3 mm fillet along a cylinder/cylinder intersection (4 seam-split edges): OCCT's fillet builder fails; truck's succeeds",
     "26-sketch-belt": "constrained belt (2 circles + tangent lines): solver result 2 (did not converge) from the recipe's pre-solve positions; cause not analysed",
-    "65-sketch-gear-tooth": "constrained gear tooth solves to a self-crossing profile (the other solution branch); cause not analysed",
-    "43-cut-splits-body": "a cut that leaves two solids stays ONE body (compound); oracle expects two bodies",
 }
 
 
@@ -77,14 +74,8 @@ PLANES = {
 AXES = {("XY", "x"): 0, ("XY", "y"): 1, ("XZ", "x"): 0, ("XZ", "z"): 1, ("YZ", "y"): 0, ("YZ", "z"): 1}
 
 
-def plane_of(sk):
-    p = sk["plane"]
-    ref = p.get("ref")
-    if ref not in PLANES:
-        raise Blocked("sketch plane %r (offset/face planes need the datum-plane tools)" % ref)
-    if any(abs(c) > 1e-9 for c in p.get("origin", [0, 0, 0])):
-        raise Blocked("sketch plane with non-zero origin")
-    return PLANES[ref]
+# app plane per world axis the plane faces: (base id for `plane`, app x axis, app y axis). Offsets are along +axis.
+AXIS_BASE = {2: (0, (1, 0, 0), (0, 1, 0)), 1: (1, (1, 0, 0), (0, 0, 1)), 0: (2, (0, 1, 0), (0, 0, 1))}
 
 
 def sketch_entities(sk, to_app):
@@ -155,6 +146,7 @@ def arc_from_three(p, m, q, construction):
     ccw = lambda a0, a1: (a1 - a0) % (2 * math.pi)       # CCW distance from a0 to a1
     if ccw(s, mm) > ccw(s, e):                           # the middle point is not on the CCW way s->e: the arc runs CW
         s, e = e, s
+    e = s + (e - s) % (2 * math.pi)                      # end > start, so the app cannot read it as the other way round
     return {"type": "arc", "center": [ux, uy], "radius": math.hypot(ax - ux, ay - uy), "start_angle": s, "end_angle": e, "construction": construction}
 
 
@@ -176,7 +168,38 @@ BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cu
 class Replay:
     def __init__(self, mcp):
         self.m, self.sketches, self.body = mcp, {}, 0
-        self.params, self.order = {}, []   # recipe parameters (name -> expression); body names in app order
+        self.params, self.order, self.datums = {}, [], {}
+        self.mo = [0, 0, 0]   # modeling_origin: the app frame is the recipe frame shifted by it   # recipe parameters (name -> expression); body names in app order
+
+    def plane_for(self, p):
+        """(plane name for sketch_begin, to_app) for a recipe plane. The app frame is the recipe's shifted by modeling_origin
+        (every app plane passes through it), so a plane through the world origin is a plain XY/XZ/YZ and anything else a datum."""
+        ref, O = p.get("ref"), p.get("origin", [0, 0, 0])
+        if ref in PLANES and all(abs(c) < 1e-9 for c in O):
+            return PLANES[ref]
+        n, xd, yd = p.get("normal"), p.get("x_dir"), p.get("y_dir")
+        if not (n and xd and yd):
+            raise Blocked("sketch plane %r without a frame" % ref)
+        axis = max(range(3), key=lambda i: abs(n[i]))
+        if abs(abs(n[axis]) - 1) > 1e-6:
+            raise Blocked("tilted sketch plane")
+        if n[axis] < 0:
+            raise Blocked("sketch plane facing -%s" % "xyz"[axis])
+        base, xa, ya = AXIS_BASE[axis]
+        name = self.datum(base, O[axis])
+        dot = lambda u, v: sum(a * b for a, b in zip(u, v))
+
+        def to_app(u, v):
+            w = [O[i] + u * xd[i] + v * yd[i] for i in range(3)]
+            return (dot(w, xa), dot(w, ya))
+        return name, to_app
+
+    def datum(self, base, offset, tilt=0.0, axis=0):
+        key = (base, round(offset, 6), tilt, axis)
+        if key not in self.datums:
+            self.m.call("plane", {"base": base, "offset": offset, "tilt": tilt, "axis": axis})
+            self.datums[key] = "datum:%d" % len(self.datums)
+        return self.datums[key]
 
     def run(self, ft):
         h = getattr(self, "op_" + ft["op"], None)
@@ -185,7 +208,7 @@ class Replay:
         h(ft)
 
     def op_sketch(self, ft):
-        plane, to_app = plane_of(ft)
+        plane, to_app = self.plane_for(ft["plane"])
         ents, idx_of, swapped = sketch_entities(ft, to_app)
         types = {e["id"]: e["type"] for e in ft["entities"]}
 
@@ -265,9 +288,10 @@ class Replay:
     def op_extrude(self, ft):
         if ft.get("thin"):
             raise Blocked("thin extrude")
-        if len(ft["profiles"]) != 1:
-            raise Blocked("extrude of several profiles")
-        idx, _ = self._sketch(ft["profiles"][0])
+        if len({pr["sketch"] for pr in ft["profiles"]}) != 1:
+            raise Blocked("extrude of profiles from several sketches")
+        # several profiles of ONE sketch = the sketch's regions together, which is what the app extrudes
+        idx, _ = self._sketch({"sketch": ft["profiles"][0]["sketch"], "loops": [lp for pr in ft["profiles"] for lp in pr.get("loops", [])]})
         ex = ft["extent"]
         et = ex.get("type", "distance")
         p = {"sketch": idx, "boolean": BOOL[ft["operation"]]}
@@ -296,6 +320,64 @@ class Replay:
         self.m.call("revolve", {"sketch": idx, "axis": AXES[(plane, name)], "angle": ft.get("angle", 360), "boolean": BOOL[ft["operation"]]})
         self._named(ft)
 
+    def op_construction_plane(self, ft):
+        if ft.get("method") != "offset":
+            raise Blocked("construction plane method %s" % ft.get("method"))   # the plane itself is created when a sketch uses it
+
+    def _all_curves(self, ref):
+        idx, plane, solid = self.sketches[ref["sketch"]]
+        return idx
+
+    def op_sweep(self, ft):
+        pi, _ = self._sketch(ft["profile"])
+        path = self.sketches[ft["path"]["sketch"]]
+        if set(ft["path"]["curves"]) != path[2]:
+            raise Blocked("sweep path is a subset of its sketch")
+        if ft.get("orientation") != "perpendicular":
+            raise Blocked("sweep orientation %s" % ft.get("orientation"))
+        self.m.call("sweep", {"profile": pi, "path": path[0], "boolean": BOOL[ft["operation"]]})
+        self._named(ft)
+
+    def op_loft(self, ft):
+        if ft.get("rails") or not ft.get("solid", True) or "free" not in ft.get("end_conditions", "free"):
+            raise Blocked("loft with rails / end conditions / as a surface")
+        secs = ft["sections"]
+        if any("point" in sec for sec in secs):
+            raise Blocked("loft to a point")
+        self.m.call("loft", {"profiles": [self._sketch(sec)[0] for sec in secs], "boolean": BOOL[ft["operation"]]})
+        self._named(ft)
+
+    def op_mirror(self, ft):
+        if ft.get("mirror_of") != "bodies" or len(ft["bodies"]) != 1:
+            raise Blocked("mirror of features")
+        pl = ft["plane"]
+        if pl.get("ref") not in PLANES or any(abs(c) > 1e-9 for c in pl.get("origin", [0, 0, 0])):
+            raise Blocked("mirror plane %r" % pl.get("ref"))
+        self.m.call("mirror", {"plane": pl["ref"], "body": self.order.index(ft["bodies"][0]), "mode": "add" if ft.get("combine") else "new"})
+        if ft.get("combine"):
+            pass   # joined into the original: still one body
+
+    def op_hole(self, ft):
+        if ft.get("direction") != "into the material (-Z)":
+            raise Blocked("hole direction %r" % ft.get("direction"))
+        if "position" not in ft:
+            raise Blocked("hole positions from a sketch")
+        px, py, pz = ft["position"]
+        # the app drills along its plane normal, so a plane facing -Z (tilted 180 about X) at the entry face drills down
+        pl = self.datum(0, pz, tilt=180.0, axis=0)
+        p = {"plane": pl, "x": px, "y": -py, "diameter": ft["diameter"], "through": ft["extent"] == "through_all", "depth": ft.get("depth", 10)}
+        ht = ft["hole_type"]
+        if ht == "simple":
+            self.m.call("hole", p)
+        elif ht == "counterbore":
+            p.update(style=1, cbore_diameter=ft["counterbore_diameter"], cbore_depth=ft["counterbore_depth"])
+            self.m.call("hole_styled", p)
+        elif ht == "countersink":
+            p.update(style=2, csink_diameter=ft["countersink_diameter"], csink_angle=ft["countersink_angle"])
+            self.m.call("hole_styled", p)
+        else:
+            raise Blocked("hole type %s" % ht)
+
     def _named(self, ft):
         """Remember the names of bodies a 'new' feature created, in app order."""
         if ft.get("operation") == "new":
@@ -322,7 +404,7 @@ class Replay:
             f0 = ft["faces_removed"][0]
             if f0.get("type") != "plane":
                 raise Blocked("shell open face is not planar")
-            n, pt = f0["plane_normal_outward"], f0["point"]
+            n, pt = f0["plane_normal_outward"], [a + o for a, o in zip(f0["point"], self.mo)]
             cand = [f for f in topo["faces"] if f["kind"] == "planar" and sum(a * b for a, b in zip(f["normal"], n)) > 0.99]
             if not cand:
                 raise Blocked("shell open face not found")
@@ -335,11 +417,25 @@ class Replay:
         topo = self.m.call("query_topology", {"body": self.body})
         ids = []
         for sel in ft["edges"]:
-            if sel.get("type") != "line":   # query_topology gives only the end points; an arc's midpoint is not theirs
-                raise Blocked("edge selection with a non-line edge (needs sampled edge points in query_topology)")
-            pt = sel["point"]
-            best = min(topo["edges"], key=lambda e: math.dist([(a + b) / 2 for a, b in zip(e["p0"], e["p1"])], pt))
+            pt = [a + o for a, o in zip(sel["point"], self.mo)]   # recipe frame -> app frame
+            def near(e):   # a line is its midpoint; a curve is its arc-length midpoint and its sampled points
+                if "mid" in e:
+                    return min(math.dist(q, pt) for q in [e["mid"]] + e["samples"])
+                return math.dist([(a + b) / 2 for a, b in zip(e["p0"], e["p1"])], pt)
+            cands = [e for e in topo["edges"] if e["kind"] != "circle" and "mid" in e] if sel.get("type") == "nurbs" else topo["edges"]
+            best = min(cands, key=near)
             ids.append(best["id"])
+            if sel.get("type") == "nurbs" and math.dist(sel["start"], sel["end"]) < 1e-6:   # a closed intersection curve: the app splits it at its seams into several edges
+                ends = lambda e: (tuple(round(x, 4) for x in e["p0"]), tuple(round(x, 4) for x in e["p1"]))
+                loop, grew = {best["id"]}, True
+                byid = {e["id"]: e for e in topo["edges"] if e["kind"] != "circle" and "mid" in e}
+                while grew:
+                    grew = False
+                    pts = {q for i in loop for q in ends(byid[i])}
+                    for i, e in byid.items():
+                        if i not in loop and pts & set(ends(e)):
+                            loop.add(i); grew = True
+                ids = [i for i in ids if i != best["id"]] + sorted(loop)
         return ids, topo.get("generation")
 
     def op_fillet(self, ft):
@@ -375,6 +471,7 @@ def measure(mcp):
             lo = [min(a, c) for a, c in zip(lo, bb["min"])]
             hi = [max(a, c) for a, c in zip(hi, bb["max"])]
     com = [c / vol for c in com] if vol else com
+    lo, hi, com = [a - o for a, o in zip(lo, origin)], [a - o for a, o in zip(hi, origin)], [a - o for a, o in zip(com, origin)]   # app frame -> recipe frame
     return {"bodies": len(scene["bodies"]), "volume": vol, "area": area, "com": com, "lo": lo, "hi": hi}, origin
 
 
@@ -405,6 +502,7 @@ def run_case(mcp, d):
     try:
         mcp.call("new_document")
         rp = Replay(mcp)
+        rp.mo = mcp.call("describe_scene").get("modeling_origin", [0, 0, 0])
         rp.params = {q["name"]: q["expression"] for q in recipe.get("parameters", [])}
         for ft in recipe["features"]:
             rp.run(ft)
@@ -418,6 +516,8 @@ def run_case(mcp, d):
         return "BLOCKED", str(b)
     except Exception as e:  # noqa: BLE001 - report, never raise
         name = os.path.basename(d)
+        if "disjoint regions" in str(e) or "regioni disgiunte" in str(e):   # the kernel refuses these on purpose (the GUI makes one feature per region)
+            return "BLOCKED", "a sketch with several disjoint regions in one extrude (kernel refuses; needs per-region features)"
         return ("XFAIL", XFAIL[name]) if name in XFAIL else ("FAIL", str(e))
 
 

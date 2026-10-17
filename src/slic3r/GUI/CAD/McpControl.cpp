@@ -35,6 +35,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include <wx/dcscreen.h>
+#include <wx/evtloop.h>
 #include <wx/dcmemory.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
@@ -67,6 +68,16 @@
 #include <BRepBndLib.hxx>
 
 using json = nlohmann::json;
+
+// Element i of a JSON array as a finite number. An agent controls this input: indexing a short, missing or non-numeric
+// array with operator[] is undefined behaviour in nlohmann (it killed the app), so every [x,y,z] goes through here.
+static double jn(const json& a, size_t i)
+{
+    if (!a.is_array() || i >= a.size() || !a[i].is_number()) throw std::runtime_error("expected an array of numbers, e.g. [x, y, z]");
+    const double v = a[i].get<double>();
+    if (!std::isfinite(v)) throw std::runtime_error("numbers must be finite");
+    return v;
+}
 
 namespace Slic3r { namespace GUI {
 
@@ -117,10 +128,24 @@ std::string rpc_result(const json& id, const json& result)
 {
     return json{{"jsonrpc", "2.0"}, {"id", id}, {"result", result}}.dump();
 }
-std::string rpc_error(const json& id, int code, const std::string& msg)
+std::string rpc_error(const json& id, int code, const std::string& msg, const json& data = nullptr)
 {
-    return json{{"jsonrpc", "2.0"}, {"id", id},
-                {"error", {{"code", code}, {"message", msg}}}}.dump();
+    json e{{"code", code}, {"message", msg}};
+    if (!data.is_null()) e["data"] = data;
+    return json{{"jsonrpc", "2.0"}, {"id", id}, {"error", std::move(e)}}.dump();
+}
+
+// Which state refused a command, as data: {owner, transient, hint}. `transient` ones are waited out by the
+// dispatcher; the rest need the caller (or the user) to hand the state back.
+json busy_data(const std::string& why)
+{
+    auto has = [&](const char* k) { return why.find(k) != std::string::npos; };
+    if (has("rebuilt"))          return {{"owner", "rebuild"},     {"transient", true},  {"hint", "a rebuild is running; the command was retried for 15 s"}};
+    if (has("feature card"))     return {{"owner", "feature_card"}, {"transient", false}, {"hint", "a feature card is open in the GUI: confirm or cancel it there (run_verb 'cancel', or Esc)"}};
+    if (has("Text dialog"))      return {{"owner", "text_dialog"},  {"transient", false}, {"hint", "close the Text dialog in the GUI"}};
+    if (has("constraining"))     return {{"owner", "constrain"},    {"transient", false}, {"hint", "leave the constrain mode in the GUI (Esc)"}};
+    if (has("sketch is open"))   return {{"owner", "sketch"},       {"transient", false}, {"hint", "sketch_commit or sketch_cancel first; sketch_* methods are allowed while it is open"}};
+    return {{"owner", "unknown"}, {"transient", false}};
 }
 
 // --- the three slice-1 methods (run on the wx MAIN thread) ---------------------
@@ -531,7 +556,7 @@ json describe_tools()
     json& tools = out["tools"];
     const P kEnt{"entities", "array", "[{type:line|circle|arc|ellipse|spline|point, ...}] or indices of existing entities"};
     for (json& t : std::vector<json>{
-        compact_tool("sketch_begin", "Open a sketch on a plane (XY, XZ, YZ or datum:N). Only one sketch is open at a time.", {{"plane", "string", "XY|XZ|YZ|datum:N"}}),
+        compact_tool("sketch_begin", "Open a sketch on a plane (XY, XZ, YZ or datum:N). Every plane passes through modeling_origin (see describe_scene), so sketch coordinates are relative to the bed centre. Only one sketch is open at a time.", {{"plane", "string", "XY|XZ|YZ|datum:N"}}),
         compact_tool("sketch_add", "Add entities to the open sketch. Auto-inferred exact relations (coincident joints, H/V, origin) unless infer:false.", {
             {"entities", "array", "[{type:line,p0,p1}|{type:circle,center,radius}|{type:arc,center,radius,start_angle,end_angle}|{type:point,p}...]"},
             {"type", "string", "single-entity shorthand"}, {"rect", "array", "[x0,y0,x1,y1] rectangle shorthand"},
@@ -581,6 +606,12 @@ json describe_tools()
 SketchPlane plane_from(const json& params, const CadDocument& doc)
 {
     std::string n = params.value("plane", std::string("XY"));
+    if (n.rfind("datum:", 0) == 0) {   // "datum:N" = the Nth datum plane, as sketch_begin takes it
+        const auto datums = doc.resolve_datum_planes();
+        const int  k      = std::atoi(n.c_str() + 6);
+        if (k < 0 || k >= int(datums.size())) throw std::runtime_error("no such datum plane: " + n);
+        return datums[k].second;
+    }
     SketchPlane pl = n == "XZ" ? SketchPlane::XZ() : n == "YZ" ? SketchPlane::YZ() : SketchPlane::XY();
     pl.origin = doc.modeling_origin;   // land on the bed centre, like the GUI
     return pl;
@@ -598,7 +629,7 @@ bool profile_from(const json& params, SketchProfile& out)
 {
     if (!params.contains("profile")) return false;
     out.points.clear();
-    for (const auto& p : params["profile"]) out.points.emplace_back(p[0].get<double>(), p[1].get<double>());
+    for (const auto& p : params["profile"]) out.points.emplace_back(jn(p, 0), jn(p, 1));
     out.closed = true;
     return out.points.size() >= 3;
 }
@@ -648,6 +679,20 @@ json query_topology(DesignPanel* panel, const json& params)
                 {"kind", "line"}};
         GeometryEngine::CylinderFace circ = GeometryEngine::circle_of_edge(e);
         if (circ.ok) { je["kind"] = "circle"; je["radius"] = circ.radius; je["center"] = vec3(circ.base); }
+        if (pts.size() > 2) {   // curved: a line is fixed by its ends, a curve is not - give the midpoint by arc length and a thinned polyline
+            double acc = 0; Vec3d mid = pts.front();
+            for (size_t k = 1; k < pts.size() && acc < len * 0.5; ++k) {
+                const double seg = (pts[k] - pts[k-1]).norm();
+                mid = seg > 0 && acc + seg >= len * 0.5 ? Vec3d(pts[k-1] + (pts[k] - pts[k-1]) * ((len * 0.5 - acc) / seg)) : pts[k];
+                acc += seg;
+            }
+            je["mid"] = vec3(mid);
+            json smp = json::array();
+            const size_t step = std::max<size_t>(1, pts.size() / 12);
+            for (size_t k = 0; k < pts.size(); k += step) smp.push_back(vec3(pts[k]));
+            smp.push_back(vec3(pts.back()));
+            je["samples"] = std::move(smp);
+        }
         edges.push_back(std::move(je));
     }
     return json{{"body", params.value("body", 0)}, {"face_count", nf}, {"edge_count", ne},
@@ -662,7 +707,7 @@ json query_topology(DesignPanel* panel, const json& params)
 bool resolve_ref(const TopoDS_Shape& shape, const json& ref, Vec3d& point, Vec3d& dir, bool& has_dir)
 {
     has_dir = false;
-    if (ref.contains("point")) { auto p = ref["point"]; point = Vec3d(p[0], p[1], p[2]); return true; }
+    if (ref.contains("point")) { const json& p = ref["point"]; point = Vec3d(jn(p, 0), jn(p, 1), jn(p, 2)); return true; }
     if (ref.contains("face")) {
         TopoDS_Face f = GeometryEngine::face_by_index(shape, ref["face"].get<int>());
         if (f.IsNull()) return false;
@@ -1086,7 +1131,7 @@ json action_hole(DesignPanel* panel, const json& params)
         if (params["points"].size() > 500) throw std::runtime_error("at most 500 hole points per call");
         for (const json& p : params["points"]) {
             if (!p.is_array() || p.size() != 2 || !p[0].is_number() || !p[1].is_number()) throw std::runtime_error("each point must be [x, y]");
-            pts.emplace_back(p[0].get<double>(), p[1].get<double>());
+            pts.emplace_back(jn(p, 0), jn(p, 1));
         }
     } else pts.emplace_back(x, y);
     doc.checkpoint();
@@ -1385,7 +1430,7 @@ SketchEntity sketch_entity_from(const json& j)
         if (!j.contains(k)) return Vec2d(dx, dy);
         const json& a = j.at(k);
         if (!a.is_array() || a.size() < 2) throw std::runtime_error(std::string(k) + " must be [x, y]");
-        return Vec2d(a[0].get<double>(), a[1].get<double>());
+        return Vec2d(jn(a, 0), jn(a, 1));
     };
     e.construction = j.value("construction", false);
     // A circle and an arc are defined BY their centre, so a request that does not carry one is
@@ -1524,6 +1569,9 @@ json action_sketch_begin(DesignPanel* panel, const json& params)
         plane = datums[n].second;
     }
     else if (pl != "XY") throw std::runtime_error("plane must be XY, XZ, YZ or datum:N");
+    // Every plane passes through modeling_origin (the bed centre), as the GUI's, the datum planes', extrude{profile}'s,
+    // hole's and mirror's already do. sketch_begin alone used the world origin, so a sketch and its datum plane disagreed.
+    if (pl.rfind("datum:", 0) != 0) plane.origin = panel->mcp_doc().modeling_origin;
     vp->begin_sketch(plane, DesignSketchTool::Mode::Select);
     // The panel has to enter sketch mode too, or the app is half in it: the tool sketches, the
     // offer menu offers sketch verbs, and every sketch KEY is dead because key dispatch tests
@@ -1570,8 +1618,8 @@ json action_sketch_add(DesignPanel* panel, const json& params)
         // rather than four segments that happen to touch.
         const json& r = params.at("rect");
         if (!r.is_array() || r.size() < 4) throw std::runtime_error("rect must be [x0, y0, x1, y1]");
-        const double x0 = r[0].get<double>(), y0 = r[1].get<double>();
-        const double x1 = r[2].get<double>(), y1 = r[3].get<double>();
+        const double x0 = jn(r, 0), y0 = jn(r, 1);
+        const double x1 = jn(r, 2), y1 = jn(r, 3);
         const bool c = params.value("construction", false);
         auto seg = [&](Vec2d a, Vec2d b) { SketchEntity e; e.type = SketchEntity::Type::Line;
                                            e.p0 = a; e.p1 = b; e.construction = c; return e; };
@@ -1647,7 +1695,7 @@ json action_sketch_mirror(DesignPanel* panel, const json& params)
         if (!params.contains(k)) return Vec2d(dx, dy);
         const json& a = params.at(k);
         if (!a.is_array() || a.size() < 2) throw std::runtime_error(std::string(k) + " must be [x, y]");
-        return Vec2d(a[0].get<double>(), a[1].get<double>());
+        return Vec2d(jn(a, 0), jn(a, 1));
     };
     const Vec2d a = pt("axis_a", 0, 0), b = pt("axis_b", 0, 1);
     const std::vector<int> tgt = sketch_targets(params, t, true);
@@ -2070,7 +2118,7 @@ json action_sketch3d(DesignPanel* panel, const json& params)
     std::vector<Vec3d> pts;
     for (const auto& p : params["points"]) {
         if (!p.is_array() || p.size() < 3) throw std::runtime_error("each point must be [x, y, z]");
-        pts.emplace_back(p[0].get<double>(), p[1].get<double>(), p[2].get<double>());
+        pts.emplace_back(jn(p, 0), jn(p, 1), jn(p, 2));
     }
     doc.checkpoint();
     const int idx = doc.add_sketch3d(pts, params.value("smooth", false), params.value("closed", false), "Sketch3D");
@@ -2124,9 +2172,9 @@ json action_axis(DesignPanel* panel, const json& params)
     int idx = doc.add_axis(at, "Axis");
     CadFeature& f = doc.features[idx];
     if (params.contains("p1") && params["p1"].is_array() && params["p1"].size() >= 3)
-        f.axis_p1 = Vec3d(params["p1"][0].get<double>(), params["p1"][1].get<double>(), params["p1"][2].get<double>());
+        f.axis_p1 = Vec3d(jn(params["p1"], 0), jn(params["p1"], 1), jn(params["p1"], 2));
     if (params.contains("p2") && params["p2"].is_array() && params["p2"].size() >= 3)
-        f.axis_p2 = Vec3d(params["p2"][0].get<double>(), params["p2"][1].get<double>(), params["p2"][2].get<double>());
+        f.axis_p2 = Vec3d(jn(params["p2"], 0), jn(params["p2"], 1), jn(params["p2"], 2));
     f.axis_body     = params.value("body", -1);
     f.axis_face     = params.value("face", -1);
     f.axis_edge     = params.value("edge", -1);
@@ -2150,7 +2198,7 @@ json action_coordsys(DesignPanel* panel, const json& params)
     if (t == "face_and_direction") ct = CoordSysType::FaceAndDirection;
     Vec3d pt(0, 0, 0);
     if (params.contains("point") && params["point"].is_array() && params["point"].size() >= 3)
-        pt = Vec3d(params["point"][0].get<double>(), params["point"][1].get<double>(), params["point"][2].get<double>());
+        pt = Vec3d(jn(params["point"], 0), jn(params["point"], 1), jn(params["point"], 2));
     doc.checkpoint();
     int idx = doc.add_coordsys(ct, pt, "CoordSys");
     CadFeature& f = doc.features[idx];
@@ -2158,7 +2206,7 @@ json action_coordsys(DesignPanel* panel, const json& params)
     f.coordsys_face  = params.value("face", -1);
     f.coordsys_edge  = params.value("edge", -1);
     if (params.contains("x_hint") && params["x_hint"].is_array() && params["x_hint"].size() >= 3)
-        f.coordsys_x_hint = Vec3d(params["x_hint"][0].get<double>(), params["x_hint"][1].get<double>(), params["x_hint"][2].get<double>());
+        f.coordsys_x_hint = Vec3d(jn(params["x_hint"], 0), jn(params["x_hint"], 1), jn(params["x_hint"], 2));
     bool recompute_ok = doc.recompute();
     auto css = doc.resolve_datum_coordsys();
     std::string err = doc.error;
@@ -2418,6 +2466,29 @@ json action_sketch_constrain(DesignPanel* panel, const json& params)
 // ---- export ----------------------------------------------------------------------------------------------------
 // Where an agent may write. ponytail: absolute path under $HOME or /tmp, no `..`, existing directory, canonicalised
 // so a symlink cannot lead out; the --allow-path / per-launch scope of SolidCraft's MCP is a later slice.
+// Roots an agent may read or write: $ORCA_CAD_MCP_ALLOW (colon separated), default $HOME and /tmp. The directory is
+// canonicalised first, so `..` and symlinks cannot lead out.
+bool path_in_scope(const std::string& dir)
+{
+    std::vector<std::string> roots;
+    if (const char* a = std::getenv("ORCA_CAD_MCP_ALLOW"); a && *a) {
+        std::string cur;
+        for (const char* c = a;; ++c) {
+            if (*c == ':' || *c == 0) { if (!cur.empty()) roots.push_back(cur); cur.clear(); if (!*c) break; }
+            else cur.push_back(*c);
+        }
+    } else {
+        roots.push_back("/tmp");
+        if (const char* h = std::getenv("HOME")) roots.push_back(h);
+    }
+    for (const std::string& r0 : roots) {
+        boost::system::error_code ec;
+        const std::string r = boost::filesystem::canonical(r0, ec).string();
+        if (!ec && !r.empty() && (dir == r || dir.rfind(r + "/", 0) == 0)) return true;
+    }
+    return false;
+}
+
 std::string checked_out_path(const json& params, const char* what)
 {
     const std::string raw = params.value("path", std::string());
@@ -2429,11 +2500,7 @@ std::string checked_out_path(const json& params, const char* what)
     boost::system::error_code ec;
     const fs::path dir = fs::canonical(p.parent_path(), ec);
     if (ec) throw std::runtime_error("directory does not exist: " + p.parent_path().string());
-    const char* home = std::getenv("HOME");
-    const std::string d = dir.string();
-    auto under = [&](const std::string& root) { return !root.empty() && (d == root || d.rfind(root + "/", 0) == 0); };
-    if (!under("/tmp") && !under(home ? home : ""))
-        throw std::runtime_error("path must be under $HOME or /tmp");
+    if (!path_in_scope(dir.string())) throw std::runtime_error("path is outside the allowed roots (default $HOME and /tmp; ORCA_CAD_MCP_ALLOW overrides)");
     return (dir / p.filename()).string();
 }
 
@@ -2540,11 +2607,8 @@ json action_open(DesignPanel*, const json& params)
     if (raw.empty()) throw std::runtime_error("open needs 'path'");
     boost::system::error_code ec;
     const boost::filesystem::path p = boost::filesystem::canonical(raw, ec);
-    const char* home = std::getenv("HOME");
-    const std::string d = p.parent_path().string();
-    auto under = [&](const std::string& root) { return !root.empty() && (d == root || d.rfind(root + "/", 0) == 0); };
     if (ec || !boost::filesystem::is_regular_file(p)) throw std::runtime_error("no such file: " + raw);
-    if (!under("/tmp") && !under(home ? home : "")) throw std::runtime_error("path must be under $HOME or /tmp");
+    if (!path_in_scope(p.parent_path().string())) throw std::runtime_error("path is outside the allowed roots (default $HOME and /tmp; ORCA_CAD_MCP_ALLOW overrides)");
     if (boost::algorithm::to_lower_copy(p.extension().string()) != ".3mf") throw std::runtime_error("only .3mf projects can be opened");
     Plater* pl = wxGetApp().plater();
     if (pl->is_project_dirty()) {
@@ -2560,6 +2624,10 @@ json action_open(DesignPanel*, const json& params)
 json action_screenshot(DesignPanel* panel, const json& params)
 {
     DesignCanvas* v = panel->mcp_viewport();
+    if (!v->IsShownOnScreen()) {   // the Design tab is not the front page: bring it up and let it lay out first
+        wxGetApp().mainframe->select_tab(wxString(TAB_ID_DESIGN));
+        if (wxEventLoopBase* loop = wxEventLoopBase::GetActive()) loop->YieldFor(wxEVT_CATEGORY_UI);
+    }
     if (params.contains("view")) v->set_view(params["view"].get<std::string>());
     if (params.value("fit", false)) v->fit_view();
     v->Refresh(); v->Update();
@@ -2778,7 +2846,7 @@ std::string handle_on_main(const std::string& method, const json& params, const 
     panel->hydrate_from_model();
 
     if (const std::string why = refuse_reason(panel, method); !why.empty())
-        return rpc_error(id, -32002, why);
+        return rpc_error(id, -32002, why, busy_data(why));
 
     // Stale-id guard, checked here rather than in each handler.
     //
@@ -2824,18 +2892,50 @@ std::string handle_on_main(const std::string& method, const json& params, const 
     }
 }
 
+std::string dispatch_once(const std::string& method, const json& params, const json& id);
+
 // Marshal a request to the main thread and block (with a timeout) for the reply.
 std::string dispatch_request(const std::string& line)
 {
+    // Nesting is bounded BEFORE parsing: copying or destroying a document a few hundred thousand levels deep recurses
+    // off the end of the thread's stack, and the app dies. No real request nests past a handful of levels.
+    {
+        int depth = 0; bool in_str = false;
+        for (size_t i = 0; i < line.size(); ++i) {
+            const char c = line[i];
+            if (in_str) { if (c == '\\') ++i; else if (c == '"') in_str = false; }
+            else if (c == '"') in_str = true;
+            else if (c == '[' || c == '{') { if (++depth > 64) return rpc_error(nullptr, -32600, "request nests deeper than 64 levels"); }
+            else if (c == ']' || c == '}') --depth;
+        }
+    }
     json req;
     try { req = json::parse(line); }
     catch (const std::exception& ex) { return rpc_error(nullptr, -32700, std::string("parse error: ") + ex.what()); }
 
-    json id           = req.contains("id") ? req["id"] : json(nullptr);
-    std::string method = req.value("method", std::string());
+    // A request that parses but is not shaped like one ({"method": 5}, a bare number, ...) must be refused, not thrown:
+    // this runs on a detached client thread, where an escaping exception is std::terminate.
+    if (!req.is_object()) return rpc_error(nullptr, -32600, "a request must be a JSON object");
+    json id = req.contains("id") ? req["id"] : json(nullptr);
+    if (!req.contains("method") || !req["method"].is_string()) return rpc_error(id, -32600, "'method' must be a string");
+    std::string method = req["method"].get<std::string>();
     json params        = req.contains("params") ? req["params"] : json::object();
     if (method.empty()) return rpc_error(id, -32600, "missing method");
+    // Optional per-launch secret: when ORCA_CAD_MCP_TOKEN is set every request must carry it as "token". The socket's
+    // 0600 mode already keeps other users out; this also keeps out other processes of the same user that were not told.
+    if (const char* tok = std::getenv("ORCA_CAD_MCP_TOKEN"); tok && *tok && (req.contains("token") && req["token"].is_string() ? req["token"].get<std::string>() : std::string()) != tok)
+        return rpc_error(id, -32003, "unauthorized: this app was launched with ORCA_CAD_MCP_TOKEN; send it as \"token\"");
+    // A transient refusal (a rebuild in progress) is waited out here, on the client's own thread, never on the UI thread.
+    const auto t0 = std::chrono::steady_clock::now();
+    for (;;) {
+        std::string r = dispatch_once(method, params, id);
+        if (r.find("\"transient\":true") == std::string::npos || std::chrono::steady_clock::now() - t0 > std::chrono::seconds(15)) return r;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
 
+std::string dispatch_once(const std::string& method, const json& params, const json& id)
+{
     auto prom = std::make_shared<std::promise<std::string>>();
     auto fut  = prom->get_future();
     // 0 = queued, 1 = running, 2 = abandoned. A request that timed out while still QUEUED must
@@ -2888,7 +2988,9 @@ void serve_client(int cfd)
             std::string line = buf.substr(0, nl);
             buf.erase(0, nl + 1);
             if (line.empty()) continue;
-            std::string reply = dispatch_request(line);
+            std::string reply;
+            try { reply = dispatch_request(line); }
+            catch (...) { reply = rpc_error(nullptr, -32603, "internal error"); }   // a client thread must never throw
             reply.push_back('\n');
             // Never a bare write(): a client that hangs up between its request and our
             // reply raises SIGPIPE, whose default action kills the process — so closing
@@ -2949,7 +3051,7 @@ void server_thread(std::string sock_path)
         BOOST_LOG_TRIVIAL(error) << "MCP: cannot restrict " << sock_path << " to the owner; refusing to listen";
         ::close(sfd); ::unlink(sock_path.c_str()); return;
     }
-    if (::listen(sfd, 1) < 0) { BOOST_LOG_TRIVIAL(error) << "MCP: listen() failed"; ::close(sfd); return; }
+    if (::listen(sfd, 8) < 0) { BOOST_LOG_TRIVIAL(error) << "MCP: listen() failed"; ::close(sfd); return; }
     g_sock_path = sock_path;
     std::atexit(remove_socket_at_exit);   // do not leave the socket file behind
     BOOST_LOG_TRIVIAL(info) << "MCP control listening on " << sock_path;
@@ -2961,8 +3063,10 @@ void server_thread(std::string sock_path)
         const int on = 1;                                   // macOS/BSD equivalent of MSG_NOSIGNAL
         ::setsockopt(cfd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
 #endif
-        serve_client(cfd);
-        ::close(cfd);
+        static std::atomic<int> clients{0};
+        if (clients.load() >= 8) { ::close(cfd); continue; }   // a runaway client must not exhaust threads
+        ++clients;
+        std::thread([cfd]() { serve_client(cfd); ::close(cfd); --clients; }).detach();
     }
 }
 

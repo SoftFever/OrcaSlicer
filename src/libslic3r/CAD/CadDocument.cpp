@@ -3239,12 +3239,18 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
             TopoDS_Face fc = GeometryEngine::face_by_index(result, f.shell_face);
             if (!fc.IsNull()) remove.Append(fc);
         }
-        BRepOffsetAPI_MakeThickSolid mts;
-        mts.MakeThickSolidByJoin(result, remove, -std::abs(f.shell_thickness), 1.0e-3);
-        mts.Build();
-        if (!mts.IsDone()) throw std::runtime_error(_u8L("shell failed"));
-        result = mts.Shape();
-        if (result.IsNull()) throw std::runtime_error(_u8L("shell produced no geometry"));
+        // Sharp (intersection) joins first: with the default arc joins the cavity gets rounded corners where the
+        // body is concave, and the shell comes out 0.2-0.4 % light against the exact offset. Arc joins stay as the
+        // fallback for bodies the intersection join cannot offset.
+        TopoDS_Shape shelled;
+        for (GeomAbs_JoinType join : {GeomAbs_Intersection, GeomAbs_Arc}) {
+            BRepOffsetAPI_MakeThickSolid mts;
+            mts.MakeThickSolidByJoin(result, remove, -std::abs(f.shell_thickness), 1.0e-3, BRepOffset_Skin, false, false, join);
+            mts.Build();
+            if (mts.IsDone() && !mts.Shape().IsNull()) { shelled = mts.Shape(); break; }
+        }
+        if (shelled.IsNull()) throw std::runtime_error(_u8L("shell failed"));
+        result = shelled;
         break;
     }
     case CadFeatureType::Draft: {
@@ -4198,6 +4204,19 @@ void CadDocument::route_feature(std::vector<CadBody>& bodies, const CadFeature& 
                              " (coordinates are in the sketch plane's frame, not world)") :
                         _u8L("cut removed no material — the tool does not intersect the target body"
                              " (coordinates are in the sketch plane's frame, not world)"));
+        }
+        // A removal that cuts the body in two leaves a compound of two solids. Keep them as separate bodies, as the
+        // other CAD packages do ("result: multiple bodies"); the first stays in place, the rest follow it.
+        if (removes) {
+            std::vector<TopoDS_Shape> solids;
+            for (TopExp_Explorer ex(result, TopAbs_SOLID); ex.More(); ex.Next()) solids.push_back(ex.Current());
+            if (solids.size() > 1) {
+                const std::string base = bodies[t].name;
+                bodies[t].shape = solids[0];
+                for (size_t k = 1; k < solids.size(); ++k)
+                    bodies.push_back({ solids[k], base + " " + std::to_string(k + 1) });
+                return;
+            }
         }
         bodies[t].shape = result;
     }
