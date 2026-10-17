@@ -2625,11 +2625,16 @@ json action_open(DesignPanel*, const json& params)
     if (!path_in_scope(p.parent_path().string())) throw std::runtime_error("path is outside the allowed roots (default $HOME and /tmp; ORCA_CAD_MCP_ALLOW overrides)");
     if (boost::algorithm::to_lower_copy(p.extension().string()) != ".3mf") throw std::runtime_error("only .3mf projects can be opened");
     Plater* pl = wxGetApp().plater();
-    if (pl->is_project_dirty()) {
-        if (!params.value("discard", false)) throw std::runtime_error("the open project has unsaved changes: save first, or pass discard:true");
-        pl->reset_project_dirty_after_save();
-    }
-    wxGetApp().CallAfter([pl, p]() { pl->load_project(wxString::FromUTF8(p.string())); });   // may rebuild the panel: not inline
+    const bool discard = params.value("discard", false);
+    // The same predicate load_project asks before it opens its "save changes?" dialog, which would block the app.
+    if (!pl->up_to_date(false, false) && !discard) throw std::runtime_error("the open project has unsaved changes: save first, or pass discard:true");
+    wxGetApp().CallAfter([pl, p, discard]() {   // may rebuild the panel: not inline
+        AppConfig* cfg = wxGetApp().app_config;
+        const std::string prev = cfg->get("save_project_choise");
+        if (discard) cfg->set("save_project_choise", "no");   // "remembered choice: don't save" for the duration of this one load
+        pl->load_project(wxString::FromUTF8(p.string()));
+        if (discard) cfg->set("save_project_choise", prev);
+    });
     return json{{"ok", true}, {"path", p.string()}, {"dispatched", true}};
 }
 
@@ -2757,7 +2762,7 @@ json ui_inspect(DesignPanel* panel)
     wxWindow* in = v ? v->input_window() : nullptr;
     wxWindow* f = wxWindow::FindFocus();
     json out{{"ok", true}, {"sketch_open", v != nullptr && v->is_sketching()}, {"selection_kind", panel->mcp_offer_selection_kind()}};
-    out["focus"] = {{"class", f ? std::string(f->GetClassInfo()->GetClassName()) : std::string()}, {"is_canvas", f != nullptr && f == in},
+    out["focus"] = {{"class", f ? wxString(f->GetClassInfo()->GetClassName()).utf8_string() : std::string()}, {"is_canvas", f != nullptr && f == in},
                     {"text_entry", f != nullptr && (dynamic_cast<wxTextCtrl*>(f) != nullptr)}};
     if (auto* ig = wxGetApp().imgui())
         out["imgui"] = {{"want_text_input", ig->want_text_input()}, {"want_keyboard", ig->want_keyboard()}, {"want_mouse", ig->want_mouse()}};
