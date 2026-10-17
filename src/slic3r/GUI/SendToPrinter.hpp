@@ -140,6 +140,7 @@ private:
     std::vector<RadioBox *>             m_storage_radioBox;
     std::string                         m_selected_storage;
     bool                                m_if_has_sdcard{ false };
+    bool                                m_prefer_external_storage{ false };
     std::vector<std::string>            m_ability_list;
 
 public:
