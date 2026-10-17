@@ -144,6 +144,14 @@
       <button type="button" id="paletteToggle" class="icon-button" aria-expanded="false" aria-controls="palettePanel" title="Palettes" data-i18n-title="Palettes">
         <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="none" stroke="currentColor"/><path d="M5.5 2.5v11" stroke="currentColor"/></svg>
       </button>
+      <!-- Shown only where the host or the WebView can pick from the screen without a permission prompt. -->
+      <button type="button" id="eyedropperBtn" class="icon-button hidden" aria-pressed="false" title="Pick color from screen" data-i18n-title="Pick color from screen">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9.5 3.5l3 3"/>
+          <path d="M11 2a1.41 1.41 0 0 1 2 0l1 1a1.41 1.41 0 0 1 0 2l-1.5 1.5-3-3z"/>
+          <path d="M10.5 5.5l-6.5 6.5-.5 2-1 .5.5-1 2-.5"/>
+        </svg>
+      </button>
       <div class="stretch-spacer"></div>
       <button id="confirmBtn" class="ButtonTypeChoice ButtonStyleConfirm" data-i18n="OK">OK</button>
       <button id="cancelBtn"  class="ButtonTypeChoice ButtonStyleRegular" data-i18n="Cancel">Cancel</button>

@@ -891,6 +891,11 @@ if (APPLE)
             GUI/DeepLinkHandlerMac.h
             GUI/GUI_UtilsMac.mm
         )
+    # ColorSampler's macOS section uses AppKit (NSColorSampler), so this file is Objective-C++
+    # there. Like the .mm sources, it cannot share the C++ precompiled header.
+    set_source_files_properties(GUI/ColorPickerDialog.cpp PROPERTIES
+        COMPILE_OPTIONS "-xobjective-c++"
+        SKIP_PRECOMPILE_HEADERS ON)
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
 endif ()
 
