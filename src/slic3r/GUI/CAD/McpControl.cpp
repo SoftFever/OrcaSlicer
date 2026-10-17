@@ -510,9 +510,11 @@ json describe_scene(DesignPanel* panel)
     json features = json::array();
     for (size_t i = 0; i < doc.features.size(); ++i) {
         const CadFeature& f = doc.features[i];
-        features.push_back(json{
+        json row{
             {"index", int(i)}, {"type", feature_type_name(f.type)},
-            {"name", f.name}, {"enabled", f.enabled}});
+            {"name", f.name}, {"enabled", f.enabled}};
+        if (f.attach_face >= 0) row["attached_to"] = json{{"body", f.attach_body}, {"face", f.attach_face}};   // a sketch riding a face
+        features.push_back(std::move(row));
     }
 
     json bodies = json::array();
