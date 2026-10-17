@@ -1,14 +1,19 @@
 #include "WipeTowerEstimate.hpp"
 
+#include "libslic3r/Polygon.hpp"
 #include "WipeTower.hpp"
 #include "WipeTower2.hpp"
 #include "../Config.hpp"
+#include "../FilamentMixer.hpp"
 #include "../PrintConfig.hpp"
 #include "../libslic3r.h"
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <set>
+#include <vector>
+#include "libslic3r/clonable_ptr.hpp"
 
 namespace Slic3r {
 
@@ -22,6 +27,28 @@ static const ConfigOption *option_of(const ConfigBase &config, const char *key)
         if (const ConfigOptionDef *opt_def = def->get(key); opt_def != nullptr)
             return opt_def->default_value.get();
     return nullptr;
+}
+
+bool prime_tower_is_printed(const ConfigBase &config, int used_filaments, int num_objects, bool has_mixed_filament)
+{
+    const auto *ept = config.option<ConfigOptionBool>("enable_prime_tower");
+    if (ept == nullptr || !ept->value)
+        return false;
+    // normalize_fdm_2 only reconsiders the option when the plate uses a filament; below that it
+    // leaves the user's choice alone, and there is no tower to reason about either way.
+    if (used_filaments <= 0)
+        return true;
+
+    const ConfigOption *timelapse = option_of(config, "timelapse_type");
+    const bool smooth_timelapse = timelapse != nullptr && timelapse->getInt() == int(TimelapseType::tlSmooth);
+    const auto *wrapping = config.option<ConfigOptionBool>("enable_wrapping_detection");
+    const bool enable_wrapping = wrapping != nullptr && wrapping->value;
+    if (smooth_timelapse || enable_wrapping)
+        return true;
+
+    const ConfigOption *sequence = option_of(config, "print_sequence");
+    const bool by_object = sequence != nullptr && sequence->getInt() == int(PrintSequence::ByObject);
+    return !((used_filaments == 1 && !has_mixed_filament) || (by_object && num_objects > 1));
 }
 
 WipeTowerType resolve_wipe_tower_type(const ConfigBase &config)
@@ -48,10 +75,19 @@ Polygon estimate_wipe_tower_first_layer_outline(const ConfigBase &config, WipeTo
     return WipeTower2::cone_base_polygon(width, depth, height, cone ? cone_angle->getFloat() : 0.);
 }
 
-WipeTowerFootprint estimate_wipe_tower_footprint(const ConfigBase &config, WipeTowerType tower_type, const std::vector<unsigned int> &filament_ids, double layer_height, double max_object_height)
+WipeTowerFootprint estimate_wipe_tower_footprint(const ConfigBase &config, WipeTowerType tower_type, const std::vector<unsigned int> &filament_slots, double layer_height, double max_object_height)
 {
     WipeTowerFootprint footprint;
     footprint.height = max_object_height;
+    // A mixed slot is virtual: the tool ordering resolves it to one of its physical components
+    // on every layer, with or without colour sublayers, so the tower only ever purges those.
+    // Validation passes the slots as Print::extruders() lists them; the GUI and CLI placement
+    // expand them beforehand, which repeating here leaves unchanged.
+    std::vector<unsigned int> filament_ids = filament_slots;
+    const auto *is_mixed_opt   = dynamic_cast<const ConfigOptionBools *>(option_of(config, "filament_is_mixed"));
+    const auto *components_opt = dynamic_cast<const ConfigOptionStrings *>(option_of(config, "filament_mixed_components"));
+    if (is_mixed_opt != nullptr && components_opt != nullptr && has_any_mixed_filament(is_mixed_opt->values))
+        filament_ids = expand_mixed_filaments(filament_slots, is_mixed_opt->values, components_opt->values);
     const size_t filaments_cnt = filament_ids.size();
     if (filaments_cnt == 0 || layer_height < EPSILON)
         return footprint;

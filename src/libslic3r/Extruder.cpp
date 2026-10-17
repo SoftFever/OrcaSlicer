@@ -1,5 +1,13 @@
 #include "Extruder.hpp"
+#include "Exception.hpp"
 #include "PrintConfig.hpp"
+#include <vector>
+#include "libslic3r.h"
+#include <cassert>
+#include <algorithm>
+#include <cmath>
+#include "Config.hpp"
+#include "I18N.hpp"
 
 namespace Slic3r {
 
@@ -117,9 +125,9 @@ double Extruder::unretract()
 void Extruder::set_retracted(double retracted, double restart_extra)
 {
     if (retracted < - EPSILON)
-        throw Slic3r::RuntimeError("Custom G-code reports negative z_retracted.");
+        throw Slic3r::RuntimeError(_u8L("Custom G-code reports negative z_retracted."));
     if (restart_extra < - EPSILON)
-        throw Slic3r::RuntimeError("Custom G-code reports negative z_restart_extra.");
+        throw Slic3r::RuntimeError(_u8L("Custom G-code reports negative z_restart_extra."));
 
     if (retracted > EPSILON) {
         m_retracted     = retracted;
