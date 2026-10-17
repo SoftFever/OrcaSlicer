@@ -464,15 +464,13 @@ class DiffPresetDialog : public DPIDialog, public LazyInstance<DiffPresetDialog>
     void update_controls_visibility(Preset::Type type = Preset::TYPE_INVALID);
     void update_compatibility(const std::string& preset_name, Preset::Type type, PresetBundle* preset_bundle);
 
-    // The differences shown in the tree as a Markdown table, one row per preset and setting.
-    struct DiffExportValue
-    {
-        wxString label;     // name of the preset (or variant) the value belongs to
-        wxString value;
-    };
-    void append_diff_export_rows(Preset::Type type, const wxString& option_name, const std::vector<DiffExportValue>& values);
+    // The differences shown in the tree as Markdown: one table per compared pair of presets,
+    // with a row per setting and a column per preset.
+    void begin_diff_export_table(Preset::Type type, const wxString& left_name, const wxString& right_name);
+    void append_diff_export_row(const wxString& option_name, const wxString& left_value, const wxString& right_value);
     void copy_differences_to_clipboard() const;
     std::string m_diff_export_text;
+    std::string m_diff_export_head; // table header, written with the first row so a table is never empty
          
     void button_event(Action act);
 

@@ -1905,20 +1905,22 @@ static std::string markdown_table_cell(wxString value)
     return into_u8(value);
 }
 
-void DiffPresetDialog::append_diff_export_rows(Preset::Type type, const wxString& option_name, const std::vector<DiffExportValue>& values)
+void DiffPresetDialog::begin_diff_export_table(Preset::Type type, const wxString& left_name, const wxString& right_name)
 {
-    if (values.empty())
-        return;
+    const std::string left  = markdown_table_cell(left_name);
+    const std::string right = markdown_table_cell(right_name);
+    m_diff_export_head = (m_diff_export_text.empty() ? "" : "\n") +
+                         ("**" + markdown_table_cell(diff_preset_type_name(type)) + "**: " + left + " vs " + right + "\n\n") +
+                         "| Setting | " + left + " | " + right + " |\n"
+                         "| --- | --- | --- |\n";
+}
 
-    if (m_diff_export_text.empty())
-        m_diff_export_text = "| Preset type | Setting | Preset / variant | Value |\n"
-                             "| --- | --- | --- | --- |\n";
-
-    for (const DiffExportValue& entry : values)
-        m_diff_export_text += "| " + markdown_table_cell(diff_preset_type_name(type)) +
-                              " | " + markdown_table_cell(option_name) +
-                              " | " + markdown_table_cell(entry.label) +
-                              " | " + markdown_table_cell(entry.value) + " |\n";
+void DiffPresetDialog::append_diff_export_row(const wxString& option_name, const wxString& left_value, const wxString& right_value)
+{
+    m_diff_export_text += m_diff_export_head;
+    m_diff_export_head.clear();
+    m_diff_export_text += "| " + markdown_table_cell(option_name) + " | " + markdown_table_cell(left_value) +
+                          " | " + markdown_table_cell(right_value) + " |\n";
 }
 
 void DiffPresetDialog::copy_differences_to_clipboard() const
@@ -2175,6 +2177,7 @@ void DiffPresetDialog::update_tree()
 
     m_tree->Clear();
     m_diff_export_text.clear();
+    m_diff_export_head.clear();
     wxString bottom_info = "";
     bool show_tree = false;
 
@@ -2230,6 +2233,7 @@ void DiffPresetDialog::update_tree()
 
         // TRN Header of a preset comparison: the two preset names.
         m_tree->model->AddPreset(type, format_wxstr(_L("\"%1%\" vs \"%2%\""), left_preset->name, right_preset->name), left_pt);
+        begin_diff_export_table(type, from_u8(left_preset->name), from_u8(right_preset->name));
 
         const std::map<wxString, std::string>& category_icon_map = wxGetApp().get_tab(type)->get_category_icon_map();
         auto get_category_icon = [&category_icon_map](const wxString& key) {
@@ -2246,7 +2250,7 @@ void DiffPresetDialog::update_tree()
 
             m_tree->Append("extruders_count", type, _L("General"), _L("Capabilities"), local_label, left_val, right_val,
                 get_category_icon("Basic information"));
-            append_diff_export_rows(type, local_label, {{from_u8(left_preset->name), left_val}, {from_u8(right_preset->name), right_val}});
+            append_diff_export_row(local_label, left_val, right_val);
         }
 
         for (const std::string& opt_key : dirty_options) {
@@ -2266,7 +2270,11 @@ void DiffPresetDialog::update_tree()
             }
             m_tree->Append(opt_key, type, option.category_local, option.group_local, option.label_local,
                 left_val, right_val, get_category_icon(option.category));
-            append_diff_export_rows(type, option.label_local, {{from_u8(left_preset->name), left_val}, {from_u8(right_preset->name), right_val}});
+            // Options kept per variant share one label, so tell their rows apart by the index in the key
+            const size_t variant_pos = opt_key.find('#');
+            append_diff_export_row(variant_pos == std::string::npos ? option.label_local :
+                                       option.label_local + from_u8(" (#" + opt_key.substr(variant_pos + 1) + ")"),
+                                   left_val, right_val);
         }
     }
 
