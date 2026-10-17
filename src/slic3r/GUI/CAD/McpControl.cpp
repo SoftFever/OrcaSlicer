@@ -64,6 +64,7 @@
 
 #include <gp_Pln.hxx>
 #include <BRepAlgoAPI_Section.hxx>
+#include <BRepAdaptor_Surface.hxx>
 #include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Edge.hxx>
@@ -563,7 +564,7 @@ json describe_tools()
     json& tools = out["tools"];
     const P kEnt{"entities", "array", "[{type:line|circle|arc|ellipse|spline|point, ...}] or indices of existing entities"};
     for (json& t : std::vector<json>{
-        compact_tool("sketch_begin", "Open a sketch on a plane (XY, XZ, YZ or datum:N). Every plane passes through modeling_origin (see describe_scene), so sketch coordinates are relative to the bed centre. Only one sketch is open at a time.", {{"plane", "string", "XY|XZ|YZ|datum:N"}}),
+        compact_tool("sketch_begin", "Open a sketch on a plane (XY, XZ, YZ or datum:N). Every plane passes through modeling_origin (see describe_scene), so sketch coordinates are relative to the bed centre. Only one sketch is open at a time.", {{"plane", "string", "XY|XZ|YZ|datum:N"}, {"face", "integer", "instead of plane: sketch on this planar face id (query_topology); the sketch follows the face through upstream edits"}, {"body", "integer", "body of the face, default last"}}),
         compact_tool("sketch_add", "Add entities to the open sketch. Auto-inferred exact relations (coincident joints, H/V, origin) unless infer:false.", {
             {"entities", "array", "[{type:line,p0,p1}|{type:circle,center,radius}|{type:arc,center,radius,start_angle,end_angle}|{type:point,p}...]"},
             {"type", "string", "single-entity shorthand"}, {"rect", "array", "[x0,y0,x1,y1] rectangle shorthand"},
@@ -1573,6 +1574,10 @@ std::vector<int> sketch_targets(const json& params, DesignSketchTool& t, bool al
     return out;
 }
 
+// The face a sketch being drawn is attached to; written onto the Sketch feature by sketch_commit.
+struct PendingAttach { int body{-1}; int face{-1}; };
+PendingAttach g_pending_attach;
+
 json action_sketch_begin(DesignPanel* panel, const json& params)
 {
     DesignCanvas* vp = panel->mcp_viewport();
@@ -1580,7 +1585,29 @@ json action_sketch_begin(DesignPanel* panel, const json& params)
     if (vp->is_sketching()) throw std::runtime_error("a sketch is already open");
     const std::string pl = params.value("plane", std::string("XY"));
     SketchPlane plane = SketchPlane::XY();
-    if      (pl == "XZ") plane = SketchPlane::XZ();
+    g_pending_attach = {};
+    if (params.contains("face")) {   // sketch ON a planar face of a body: the sketch then follows that face through upstream edits
+        CadDocument& doc = panel->mcp_doc();
+        if (!params["face"].is_number_integer()) throw std::runtime_error("'face' must be a face id from query_topology");
+        const int body = params.value("body", int(doc.bodies.size()) - 1), face = params["face"].get<int>();
+        if (body < 0 || body >= int(doc.bodies.size())) throw std::runtime_error("body index out of range");
+        const TopoDS_Face fc = GeometryEngine::face_by_index(doc.bodies[body].shape, face);
+        if (fc.IsNull()) throw std::runtime_error("no such face on that body (ids expire when the model rebuilds)");
+        if (!GeometryEngine::cylinder_of_face(fc).ok && GeometryEngine::face_normal_world(fc).norm() < 1e-9) throw std::runtime_error("face is not planar");
+        BRepAdaptor_Surface surf(fc);
+        if (surf.GetType() != GeomAbs_Plane) throw std::runtime_error("sketch_begin face: the face is not planar");
+        Vec3d n = GeometryEngine::face_normal_world(fc).normalized();
+        const Vec3d p = GeometryEngine::face_centroid_world(fc), mo = doc.modeling_origin;
+        plane.normal = n;
+        plane.origin = mo - n * ((mo - p).dot(n));           // the bed-centre point nearest the face, as every other plane
+        Vec3d x = Vec3d(1, 0, 0) - n * n.x();
+        if (x.norm() < 0.3) x = Vec3d(0, 1, 0) - n * n.y();
+        x.normalize();
+        plane.x_axis = x;
+        plane.y_axis = n.cross(x);
+        g_pending_attach = {body, face};
+    }
+    else if (pl == "XZ") plane = SketchPlane::XZ();
     else if (pl == "YZ") plane = SketchPlane::YZ();
     else if (pl.rfind("datum:", 0) == 0) {
         // "datum:N" = the Nth enabled datum plane, the same row (3+N) the Plane card's base combo names.
@@ -1592,7 +1619,7 @@ json action_sketch_begin(DesignPanel* panel, const json& params)
     else if (pl != "XY") throw std::runtime_error("plane must be XY, XZ, YZ or datum:N");
     // Every plane passes through modeling_origin (the bed centre), as the GUI's, the datum planes', extrude{profile}'s,
     // hole's and mirror's already do. sketch_begin alone used the world origin, so a sketch and its datum plane disagreed.
-    if (pl.rfind("datum:", 0) != 0) plane.origin = panel->mcp_doc().modeling_origin;
+    if (pl.rfind("datum:", 0) != 0 && !params.contains("face")) plane.origin = panel->mcp_doc().modeling_origin;
     vp->begin_sketch(plane, DesignSketchTool::Mode::Select);
     // The panel has to enter sketch mode too, or the app is half in it: the tool sketches, the
     // offer menu offers sketch verbs, and every sketch KEY is dead because key dispatch tests
@@ -1610,9 +1637,11 @@ json action_sketch_commit(DesignPanel* panel, const json& params)
     vp->finish_sketch();
     panel->mcp_set_sketch_mode(false);
     panel->mcp_after_change();
-    const CadDocument& cd = panel->mcp_doc();
+    CadDocument& cd = panel->mcp_doc();
     const int last = int(cd.features.size()) - 1;
     const bool is_sk = last >= 0 && cd.features[last].type == CadFeatureType::Sketch;
+    if (is_sk && g_pending_attach.face >= 0) { cd.features[last].attach_body = g_pending_attach.body; cd.features[last].attach_face = g_pending_attach.face; }
+    g_pending_attach = {};
     return json{{"ok", true}, {"features", int(cd.features.size())}, {"sketch_index", is_sk ? last : -1}};
 }
 
@@ -1623,6 +1652,7 @@ json action_sketch_cancel(DesignPanel* panel, const json& params)
     if (vp == nullptr || !vp->is_sketching()) throw std::runtime_error("no sketch is open");
     vp->cancel_sketch();
     panel->mcp_set_sketch_mode(false);
+    g_pending_attach = {};
     return json{{"ok", true}};
 }
 

@@ -356,6 +356,11 @@ struct CadFeature {
     bool               sk3_closed{false};
     bool               sk3_smooth{false};
 
+    // Face attachment of a sketch: the body and the (global) face id the sketch was drawn on. recompute() follows that
+    // face through upstream edits (TopoRemap) and carries the sketch plane with it; -1 = a free plane.
+    int                attach_body{-1};
+    int                attach_face{-1};
+
     bool             project_from_sketch{false};
     int              project_source_sketch{-1}; // feature index; remapped on delete (orphan -> -1 = Error)
     std::vector<int> project_sketch_entities;   // entity indices of the source; empty = all
@@ -433,7 +438,8 @@ struct CadFeature {
                revolve_axis_entity,
                project_from_sketch, project_source_sketch, project_sketch_entities,
                loft_start_cond, loft_end_cond,
-               sk3_points, sk3_closed, sk3_smooth);
+               sk3_points, sk3_closed, sk3_smooth,
+               attach_body, attach_face);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -479,7 +485,8 @@ struct CadFeature {
                revolve_axis_entity,
                project_from_sketch, project_source_sketch, project_sketch_entities,
                loft_start_cond, loft_end_cond,
-               sk3_points, sk3_closed, sk3_smooth);
+               sk3_points, sk3_closed, sk3_smooth,
+               attach_body, attach_face);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature

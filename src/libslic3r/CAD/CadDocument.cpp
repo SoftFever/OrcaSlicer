@@ -4511,10 +4511,49 @@ bool CadDocument::recompute()
             const std::string s = o.str();
             return fnv_chain(1469598103934665603ull, s.data(), s.size());
         };
+        // A sketch drawn on a face follows that face: find where the face went, and move the sketch plane onto it.
+        auto attach_update = [&](size_t fi) {
+            CadFeature& f = features[fi];
+            auto warn = [&](const std::string& why) { feature_warnings.emplace_back(int(fi), why); };
+            const int tb = f.attach_body;
+            if (tb < 0 || tb >= int(built.size())) { warn(_u8L("the sketch's body no longer exists at this point; the sketch stays where it is")); return; }
+            int face = f.attach_face;
+            auto was = m_seen_by_feature.find(own_hash(f));
+            if (remap_refs && was != m_seen_by_feature.end() && tb < int(was->second.size()) && !was->second[tb].shape.IsSame(built[tb].shape)) {
+                face = TopoRemap::remap_face(was->second[tb].shape, built[tb].shape, face);
+                if (face < 0) { warn(_u8L("the sketch lost the face it was drawn on; the sketch stays where it is")); return; }
+            }
+            const TopoDS_Face fc = GeometryEngine::face_by_index(built[tb].shape, face);
+            if (fc.IsNull() || BRepAdaptor_Surface(fc).GetType() != GeomAbs_Plane) { warn(_u8L("the sketch's face is no longer planar; the sketch stays where it is")); return; }
+            Vec3d n = GeometryEngine::face_normal_world(fc);
+            if (n.norm() < 1e-9) return;
+            n.normalize();
+            if (n.dot(f.plane.normal) < 0) n = -n;                                   // the side the sketch was on
+            const Vec3d p = GeometryEngine::face_centroid_world(fc);
+            SketchPlane np = f.plane;
+            np.normal = n;
+            np.origin = f.plane.origin - n * ((f.plane.origin - p).dot(n));          // slide along the normal onto the face
+            Vec3d x = f.plane.x_axis - n * f.plane.x_axis.dot(n);
+            if (x.norm() < 1e-9) {
+                x = std::abs(n.x()) < 0.9 ? Vec3d(1, 0, 0) : Vec3d(0, 1, 0);
+                x -= n * x.dot(n);
+            }
+            x.normalize();
+            np.x_axis = x;
+            const bool right = f.plane.x_axis.cross(f.plane.y_axis).dot(f.plane.normal) > 0;   // keep the frame's handedness
+            np.y_axis = right ? Vec3d(n.cross(x)) : Vec3d(x.cross(n));
+            const bool same = (np.origin - f.plane.origin).norm() < 1e-9 && (np.normal - f.plane.normal).norm() < 1e-9 && (np.x_axis - f.plane.x_axis).norm() < 1e-9;
+            if (!same) f.plane = np;
+            f.attach_face = face;
+        };
         for (size_t fi = 0; fi < features.size(); ++fi) {
             if (rollback_index >= 0 && int(fi) > rollback_index) break;   // rolled back to rollback_index
             replaying = fi;
             if (!incremental) { replay_feature(fi, built); ++replay_stats.replayed; continue; }
+            if (features[fi].enabled && features[fi].type == CadFeatureType::Sketch && features[fi].attach_face >= 0) {
+                attach_update(fi);
+                seen_now[own_hash(features[fi])] = built;
+            }
             const bool solid_feature = !replay_is_trivial(features[fi]);
             if (solid_feature && remap_refs && !m_seen_by_feature.empty()) {
                 // An upstream edit rebuilt the body this feature's ids were written against: follow them.

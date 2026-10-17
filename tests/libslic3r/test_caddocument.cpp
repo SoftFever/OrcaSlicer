@@ -2421,7 +2421,7 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // + the loft end conditions (two ints), then the 3D sketch tail: sk3_points (an empty list: a size
     // tag), sk3_closed, sk3_smooth. Every field appended after revolve_axis_entity is counted here.
     const size_t drop = sizeof(uint32_t) + 5 * sizeof(bool) + 5 * sizeof(cereal::size_type) + sizeof(double)
-                        + 4 * sizeof(int);
+                        + 6 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
     shortened.erase(f_off[1] + 4 + f_len[1] - drop, drop);
@@ -10084,4 +10084,60 @@ TEST_CASE("the history marker survives a save", "[CadDocument][recipe]")
     CHECK(back.features.size() == 3);
     GProp_GProps p; BRepGProp::VolumeProperties(back.bodies[0].shape, p);
     CHECK(p.Mass() == Approx(20.0 * 20.0 * 5.0).epsilon(1e-6));   // the hole is not built yet
+}
+
+// A sketch drawn on a face rides that face when the body under it changes.
+TEST_CASE("a sketch attached to a face follows it", "[CadDocument][naming]")
+{
+    auto build = [](CadDocument& doc, int& base_extrude) {
+        SketchProfile sp; sp.points = { Vec2d(0,0), Vec2d(40,0), Vec2d(40,40), Vec2d(0,40) }; sp.closed = true;
+        const int s = doc.add_sketch_profile(sp, SketchPlane::XY(), "Base");
+        base_extrude = doc.add_extrude(s, 10.0, false, BooleanMode::New, "Base");
+        REQUIRE(doc.recompute());
+        int top = -1;
+        const auto faces = GeometryEngine::faces_of(doc.bodies[0].shape);
+        for (size_t i = 0; i < faces.size(); ++i)
+            if (GeometryEngine::face_normal_world(faces[i]).z() > 0.99 && std::abs(GeometryEngine::face_centroid_world(faces[i]).z() - 10.0) < 1e-6) top = int(i);
+        REQUIRE(top >= 0);
+        SketchEntity c; c.type = SketchEntity::Type::Circle; c.center = Vec2d(20, 20); c.p0 = c.center; c.radius = 5.0;
+        SketchPlane on_top = SketchPlane::XY(); on_top.origin = Vec3d(0, 0, 10);
+        const int boss_sk = doc.add_sketch_entities({c}, on_top, "Boss");
+        doc.features[boss_sk].attach_body = 0;
+        doc.features[boss_sk].attach_face = top;
+        doc.add_extrude(boss_sk, 5.0, false, BooleanMode::Add, "Boss");
+        REQUIRE(doc.recompute());
+    };
+    auto vol = [](const CadDocument& d) { GProp_GProps p; BRepGProp::VolumeProperties(d.bodies[0].shape, p); return p.Mass(); };
+    const double boss = M_PI * 25.0 * 5.0;
+
+    SECTION("the base grows taller") {
+        CadDocument doc; int base;
+        build(doc, base);
+        CHECK(vol(doc) == Approx(16000.0 + boss).epsilon(1e-6));
+        doc.features[base].distance = 15.0;
+        REQUIRE(doc.recompute());
+        CHECK(vol(doc) == Approx(40.0 * 40.0 * 15.0 + boss).epsilon(1e-6));   // the boss moved up with the face
+    }
+    SECTION("a hole inserted before renumbers the faces") {
+        CadDocument doc; int base;
+        build(doc, base);
+        const int hole = doc.add_hole(6.0, 10.0, true, 8.0, 8.0, SketchPlane::XY(), "Hole");
+        REQUIRE(doc.move_feature(hole, -1));        // ... up past the boss extrude and its sketch, to right after the base extrude
+        REQUIRE(doc.move_feature(hole - 1, -1));
+        doc.features[base].distance = 12.0;
+        REQUIRE(doc.recompute());
+        std::string w; for (const auto& fw : doc.feature_warnings) w += std::to_string(fw.first) + ": " + fw.second + " | ";
+        INFO("bodies " << doc.bodies.size() << " warnings: " << w << " attach_face " << doc.features[4].attach_face << " plane z " << doc.features[4].plane.origin.z());
+        CHECK(vol(doc) == Approx(40.0 * 40.0 * 12.0 - M_PI * 9.0 * 12.0 + boss).epsilon(1e-6));
+    }
+    SECTION("it survives a save") {
+        CadDocument doc; int base;
+        build(doc, base);
+        CadDocument back;
+        REQUIRE(back.deserialize_recipe(doc.serialize_recipe()));
+        int boss_sk = -1;
+        for (size_t i = 0; i < back.features.size(); ++i) if (back.features[i].attach_face >= 0) boss_sk = int(i);
+        REQUIRE(boss_sk >= 0);
+        CHECK(back.features[boss_sk].attach_body == 0);
+    }
 }
