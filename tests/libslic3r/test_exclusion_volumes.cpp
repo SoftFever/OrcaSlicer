@@ -16,6 +16,7 @@
 #include "libslic3r/TriangleMesh.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <limits>
 #include <map>
 #include <memory>
@@ -99,6 +100,70 @@ TEST_CASE("Legacy exclusion polygons keep their point representation", "[Exclusi
     REQUIRE(option.values.size() == 4);
     CHECK(option.serialize() == "0x0,10x0,10x10,0x10");
     CHECK_FALSE(is_bed_exclusion_volume_syntax(option.serialize()));
+}
+
+TEST_CASE("Belt material keep-outs are projected once without projecting collision volumes", "[ExclusionVolume][PrintConfig][Belt][Regression]")
+{
+    const auto [belt, axis, angle, scale_x, scale_y] = GENERATE(table<bool, BeltRotationAxis, double, double, double>({
+        {true, BeltRotationAxis::X, 60.0, 1.0, 0.5},
+        {true, BeltRotationAxis::X, -60.0, 1.0, 0.5},
+        {true, BeltRotationAxis::Y, 60.0, 0.5, 1.0},
+        {true, BeltRotationAxis::Z, 60.0, 1.0, 1.0},
+        {true, BeltRotationAxis::None, 60.0, 1.0, 1.0},
+        {false, BeltRotationAxis::X, 60.0, 1.0, 1.0},
+    }));
+    const auto mode = GENERATE(BedExcludeVolumeMode::Shared, BedExcludeVolumeMode::ToolheadOffset,
+                               BedExcludeVolumeMode::PerExtruder);
+    DynamicPrintConfig config = two_extruder_config();
+    config.set_key_value("belt_printer", new ConfigOptionBool(belt));
+    config.set_key_value("belt_slice_rotation", new ConfigOptionEnum<BeltRotationAxis>(axis));
+    config.set_key_value("belt_slice_rotation_angle", new ConfigOptionFloat(angle));
+    config.set_deserialize_strict("bed_exclude_area", "100x100,150x100,150x150,100x150");
+    config.set_key_value("bed_exclude_volume_mode", new ConfigOptionEnum<BedExcludeVolumeMode>(mode));
+    config.set_key_value("extruder_bed_exclude_volumes", new ConfigOptionStrings{
+        "10..30;0x0,10x0,10x10,0x10", "10..30;20x5,30x5,30x15,20x15"});
+
+    PrintConfig fixed;
+    fixed.apply(config, true);
+    const auto dynamic_regions = get_bed_excluded_regions_by_extruder(config);
+    const auto fixed_regions = get_bed_excluded_regions_by_extruder(fixed);
+    REQUIRE(dynamic_regions.size() == 2);
+    REQUIRE(fixed_regions.size() == 2);
+    for (size_t nozzle = 0; nozzle < dynamic_regions.size(); ++nozzle) {
+        REQUIRE(dynamic_regions[nozzle].size() == 2);
+        REQUIRE(fixed_regions[nozzle].size() == 2);
+        const BoundingBox area = bounds(dynamic_regions[nozzle][0]);
+        CHECK_THAT(unscale<double>(area.min.x()), WithinAbs(100.0 * scale_x, 1e-5));
+        CHECK_THAT(unscale<double>(area.min.y()), WithinAbs(100.0 * scale_y, 1e-5));
+        CHECK_THAT(unscale<double>(area.max.x()), WithinAbs(150.0 * scale_x, 1e-5));
+        CHECK_THAT(unscale<double>(area.max.y()), WithinAbs(150.0 * scale_y, 1e-5));
+        CHECK(dynamic_regions[nozzle][0].polygon.points == fixed_regions[nozzle][0].polygon.points);
+        const double offset_x = mode == BedExcludeVolumeMode::Shared ? 0.0 : 20.0 * nozzle;
+        const double offset_y = mode == BedExcludeVolumeMode::Shared ? 0.0 : 5.0 * nozzle;
+        CHECK(dynamic_regions[nozzle][1].polygon.points == rectangle(offset_x, offset_y, offset_x + 10.0, offset_y + 10.0).points);
+        CHECK(dynamic_regions[nozzle][1].polygon.points == fixed_regions[nozzle][1].polygon.points);
+    }
+    // The older polygon API must not apply the projection a second time.
+    const Polygons projected = get_bed_excluded_area(fixed);
+    REQUIRE(projected.size() == 1);
+    CHECK(projected.front().points == fixed_regions.front().front().polygon.points);
+    CHECK(config.option<ConfigOptionPoints>("bed_exclude_area")->serialize() == "100x100,150x100,150x150,100x150");
+}
+
+TEST_CASE("Belt object intersections use the projected bed area", "[ExclusionVolume][PrintConfig][Belt][Regression]")
+{
+    const auto [y, collides] = GENERATE(table<double, bool>({
+        {80.0, true}, {95.0, true}, {110.0, false}, {125.0, false}, {140.0, false},
+    }));
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_key_value("belt_printer", new ConfigOptionBool(true));
+    config.set_key_value("belt_slice_rotation", new ConfigOptionEnum<BeltRotationAxis>(BeltRotationAxis::X));
+    config.set_key_value("belt_slice_rotation_angle", new ConfigOptionFloat(45.0));
+    config.set_deserialize_strict("bed_exclude_area", "100x100,150x100,150x150,100x150");
+    const auto regions = get_bed_excluded_regions(config);
+    REQUIRE(regions.size() == 1);
+    CubeModel cube(Vec3d(120.0, y, 0.0), Vec3d(10.0, 10.0, 10.0));
+    CHECK(cube.instance->intersects_bed_exclude_region(regions.front()) == collides);
 }
 
 TEST_CASE("Legacy point options reject collision-volume syntax", "[ExclusionVolume][PrintConfig]")

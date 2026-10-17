@@ -23,6 +23,10 @@ Material keep-outs and collision volumes are additive. Nozzle offsets apply only
 to collision volumes in toolhead-relative mode. The existing bed area never moves
 or disappears when collision volumes are configured.
 
+On belt printers, the region resolver projects material keep-outs onto the
+tilted bed surface before placement and tower validation. Collision volumes
+remain in model coordinates; the bed-surface projection is not applied to them.
+
 The printer settings expose the bed area as a normal editable field with Orca's
 standard reset controls. Collision volumes appear directly below it in Printable
 space, as a separate field. A bed-area polygon can be manually copied into this

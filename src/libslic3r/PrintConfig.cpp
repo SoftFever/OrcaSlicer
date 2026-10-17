@@ -13912,6 +13912,28 @@ static std::vector<BedExcludeRegion> parse_master_bed_excluded_regions(
     return regions;
 }
 
+static void project_bed_material_keepouts(std::vector<BedExcludeRegion> &regions, const ConfigBase &cfg)
+{
+    const auto *belt = cfg.option<ConfigOptionBool>("belt_printer");
+    if (belt == nullptr || !belt->value)
+        return;
+
+    const auto *axis = cfg.option<ConfigOptionEnum<BeltRotationAxis>>("belt_slice_rotation");
+    const auto *angle = cfg.option<ConfigOptionFloat>("belt_slice_rotation_angle");
+    if (axis == nullptr || angle == nullptr)
+        return;
+
+    const auto tilt = BeltTransformPipeline::physical_tilt(axis->value, angle->value);
+    const double cos_x = std::cos(Geometry::deg2rad(tilt.tilt_x_deg));
+    const double cos_y = std::cos(Geometry::deg2rad(tilt.tilt_y_deg));
+    // Resolve bed-surface coordinates once, before any placement or tower
+    // consumer sees them. Collision volumes already use model coordinates.
+    for (BedExcludeRegion &region : regions)
+        if (!region.is_collision_volume())
+            for (Point &point : region.polygon.points)
+                point = Point(scale_(unscale<double>(point.x()) * cos_y), scale_(unscale<double>(point.y()) * cos_x));
+}
+
 static std::vector<BedExcludeRegion> resolve_bed_excluded_regions(
     const std::vector<BedExcludeRegion> &master_regions,
     const BedExcludeVolumeMode mode,
@@ -14030,8 +14052,9 @@ std::vector<std::vector<BedExcludeRegion>> get_bed_excluded_regions_by_extruder(
     const std::vector<std::string> per_extruder_specs = per_extruder_option != nullptr ? per_extruder_option->values : std::vector<std::string>{};
     const bool use_collision_volumes = collision_volumes_configured(shared_specs, configured_mode, per_extruder_specs);
     const BedExcludeVolumeMode active_mode = use_collision_volumes ? configured_mode : BedExcludeVolumeMode::Shared;
-    const std::vector<BedExcludeRegion> master_regions = parse_master_bed_excluded_regions(
+    std::vector<BedExcludeRegion> master_regions = parse_master_bed_excluded_regions(
         legacy_points, shared_specs, use_collision_volumes, active_mode, printable_height);
+    project_bed_material_keepouts(master_regions, cfg);
     const std::vector<Vec2d> offsets = offset_option != nullptr ? offset_option->values : std::vector<Vec2d>{};
     const size_t count = bed_exclusion_extruder_count(
         nozzle_option != nullptr ? nozzle_option->size() : 0,
@@ -14053,9 +14076,10 @@ std::vector<std::vector<BedExcludeRegion>> get_bed_excluded_regions_by_extruder(
         cfg.extruder_bed_exclude_volumes.values);
     const BedExcludeVolumeMode active_mode = use_collision_volumes ?
         cfg.bed_exclude_volume_mode.value : BedExcludeVolumeMode::Shared;
-    const std::vector<BedExcludeRegion> master_regions = parse_master_bed_excluded_regions(
+    std::vector<BedExcludeRegion> master_regions = parse_master_bed_excluded_regions(
         cfg.bed_exclude_area.values, cfg.bed_exclude_volumes.value, use_collision_volumes,
         active_mode, printable_height);
+    project_bed_material_keepouts(master_regions, cfg);
     const size_t count = bed_exclusion_extruder_count(
         cfg.nozzle_diameter.size(), cfg.extruder_offset.size(), cfg.extruder_bed_exclude_volumes.size());
     const size_t reference = cfg.master_extruder_id.value > 0 ? size_t(cfg.master_extruder_id.value - 1) : 0;
@@ -14187,17 +14211,7 @@ Polygons get_bed_excluded_area(const PrintConfig& cfg)
         if (region.z_max <= EPSILON)
             continue;
 
-        Polygon polygon = region.polygon;
-        if (cfg.belt_printer.value && !region.is_collision_volume()) {
-            // Preserve upstream's projection of material keep-outs on the belt surface.
-            const auto tilt = BeltTransformPipeline::physical_tilt(
-                cfg.belt_slice_rotation.value, cfg.belt_slice_rotation_angle.value);
-            const double cos_x = std::cos(Geometry::deg2rad(tilt.tilt_x_deg));
-            const double cos_y = std::cos(Geometry::deg2rad(tilt.tilt_y_deg));
-            for (Point &point : polygon.points)
-                point = Point(scale_(unscale<double>(point.x()) * cos_y), scale_(unscale<double>(point.y()) * cos_x));
-        }
-        excluded_polygons.emplace_back(std::move(polygon));
+        excluded_polygons.emplace_back(region.polygon);
     }
 
     return excluded_polygons;
