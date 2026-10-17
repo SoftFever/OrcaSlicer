@@ -227,12 +227,9 @@ TEST_CASE("Plugin host API exposes staged preset update transactions", "[PluginH
     py::object preset = import_orca_module().attr("host").attr("preset");
     py::object transaction_type = preset.attr("PresetTransaction");
     py::object result_type = preset.attr("PresetUpdateResult");
-    py::object selection_cancelled = preset.attr("PresetSelectionCancelled");
-    py::object runtime_error = py::module_::import("builtins").attr("RuntimeError");
 
     CHECK(has_attr(transaction_type, "set"));
     CHECK(has_attr(transaction_type, "commit"));
-    CHECK(py::module_::import("builtins").attr("issubclass")(selection_cancelled, runtime_error).cast<bool>());
     CHECK(has_attr(result_type, "target_name"));
     CHECK(has_attr(result_type, "selection_changed"));
     CHECK(has_attr(result_type, "slot_assignment_changed"));

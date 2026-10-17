@@ -143,38 +143,6 @@ std::function<void()> make_close_adapter(const CallablePtr& holder)
     };
 }
 
-// The Python-side resolver scheduled onto a plugin loop by AsyncFuture. It runs on the loop's own
-// thread with the GIL held. The cancelled() check drops the outcome of a coroutine whose task was
-// cancelled while the UI dialog was open; set_result/set_exception on a cancelled Future would
-// otherwise raise InvalidStateError on the loop.
-py::object make_future_resolver()
-{
-    return py::cpp_function([](py::object future, py::object value, bool is_error) {
-        if (future.attr("cancelled")().cast<bool>())
-            return;
-        if (is_error)
-            future.attr("set_exception")(value);
-        else
-            future.attr("set_result")(value);
-    });
-}
-
-// A done-callback on the awaitable's Future, run by the loop. If the Future was cancelled (the
-// awaiting task was cancelled, e.g. ScriptAsyncRuntime::cancel_plugin, or the coroutine cancelled
-// itself), it marks the AsyncFuture abandoned. That is what lets the UI thread -- which must never
-// touch the loop or the Future -- notice cancellation atomically, so a queued selection does not
-// start and one already inside a modal stops when the modal returns. The weak reference keeps the
-// callback from owning the AsyncFuture.
-py::object make_cancellation_watcher(const std::weak_ptr<AsyncFuture>& weak_handle)
-{
-    return py::cpp_function([weak_handle](py::object future) {
-        if (future.attr("cancelled")().cast<bool>()) {
-            if (auto handle = weak_handle.lock())
-                handle->abandon();
-        }
-    });
-}
-
 // --------------------------------------------------------------------------
 // Registry of live plugin UI resources. Keyed by an opaque id; tracks the
 // owning plugin so all of a plugin's UI can be torn down on unload.
@@ -261,66 +229,11 @@ public:
         return callbacks;
     }
 
-    // Awaitables posted to the UI thread from a plugin worker, keyed by the plugin. Held weakly so
-    // the registration never keeps a finished operation (or its Python loop/Future) alive.
-    void track_async(const std::shared_ptr<AsyncFuture>& handle, const std::string& plugin_key)
-    {
-        if (!handle)
-            return;
-        std::lock_guard<std::mutex> lk(m_mtx);
-        auto&                       weaks = m_async[plugin_key];
-        // Prune registrations whose UI callback already returned, so the list stays bounded.
-        weaks.erase(std::remove_if(weaks.begin(), weaks.end(),
-                                   [](const std::weak_ptr<AsyncFuture>& weak) { return weak.expired(); }),
-                    weaks.end());
-        weaks.push_back(handle);
-    }
-    void abandon_async(const std::string& plugin_key)
-    {
-        std::vector<std::shared_ptr<AsyncFuture>> pending;
-        {
-            std::lock_guard<std::mutex> lk(m_mtx);
-            auto                        it = m_async.find(plugin_key);
-            if (it == m_async.end())
-                return;
-            for (const std::weak_ptr<AsyncFuture>& weak : it->second) {
-                if (auto handle = weak.lock())
-                    pending.push_back(std::move(handle));
-            }
-            // The registrations are intentionally kept: pending_async_count() must still see the
-            // in-flight UI callback so PluginManager can drain it. They are pruned once the weak
-            // reference expires (the callback returned).
-        }
-        // abandon() is GIL-free and thread-safe: it only stops a later completion from touching the
-        // unloaded plugin's loop.
-        for (const std::shared_ptr<AsyncFuture>& handle : pending)
-            handle->abandon();
-    }
-
-    // Live registrations for plugin_key: their UI callback has been posted but has not returned.
-    // Expired weak references are pruned so the count reaches 0 when the last callback finishes.
-    std::size_t pending_async_count(const std::string& plugin_key)
-    {
-        std::lock_guard<std::mutex> lk(m_mtx);
-        auto                        it = m_async.find(plugin_key);
-        if (it == m_async.end())
-            return 0;
-        auto& weaks = it->second;
-        weaks.erase(std::remove_if(weaks.begin(), weaks.end(),
-                                   [](const std::weak_ptr<AsyncFuture>& weak) { return weak.expired(); }),
-                    weaks.end());
-        const std::size_t count = weaks.size();
-        if (count == 0)
-            m_async.erase(it);
-        return count;
-    }
-
 private:
     std::mutex                           m_mtx;
     std::unordered_map<int, wxWindow*>   m_resources;
     std::unordered_map<int, std::string> m_owners;
     std::unordered_map<std::string, std::vector<std::weak_ptr<GilSafeCallable>>> m_callbacks;
-    std::unordered_map<std::string, std::vector<std::weak_ptr<AsyncFuture>>>     m_async;
     int                                  m_next_id{1};
 };
 
@@ -733,113 +646,9 @@ void plater_notification(GUI::NotificationManager::NotificationLevel notificatio
 
 } // namespace
 
-// --------------------------------------------------------------------------
-// AsyncFuture: the awaitable suspension primitive (see PluginHostUi.hpp).
-// --------------------------------------------------------------------------
-std::shared_ptr<AsyncFuture> AsyncFuture::create()
-{
-    auto       handle = std::shared_ptr<AsyncFuture>(new AsyncFuture());
-    py::object loop   = py::module_::import("asyncio").attr("get_running_loop")();
-    handle->m_loop    = loop;
-    handle->m_future  = loop.attr("create_future")();
-    handle->m_bind    = make_future_resolver();
-    // Watch for task/Future cancellation on the loop, so the host UI thread sees it as an atomic.
-    handle->m_future.attr("add_done_callback")(make_cancellation_watcher(handle));
-    return handle;
-}
-
-void AsyncFuture::complete(py::object value)
-{
-    if (m_abandoned.load(std::memory_order_acquire))
-        return;
-    try {
-        m_loop.attr("call_soon_threadsafe")(m_bind, m_future, std::move(value), py::bool_(false));
-    } catch (py::error_already_set& error) {
-        // The loop closed before delivery (plugin teardown or shutdown). The awaiting task is gone
-        // with it, so the outcome is dropped.
-        BOOST_LOG_TRIVIAL(debug) << "orca.host awaitable result was not delivered: " << error.what();
-        PyErr_Clear();
-    }
-}
-
-void AsyncFuture::fail(py::object exc)
-{
-    if (m_abandoned.load(std::memory_order_acquire))
-        return;
-    try {
-        m_loop.attr("call_soon_threadsafe")(m_bind, m_future, std::move(exc), py::bool_(true));
-    } catch (py::error_already_set& error) {
-        BOOST_LOG_TRIVIAL(debug) << "orca.host awaitable error was not delivered: " << error.what();
-        PyErr_Clear();
-    }
-}
-
-bool AsyncFuture::is_cancelled() const
-{
-    if (m_abandoned.load(std::memory_order_acquire))
-        return true;
-    // Future.cancel() flips the Future's state synchronously on the loop thread, while the
-    // done-callback that sets the atomic is only scheduled afterwards; reading the Future's own
-    // state under the GIL closes that window for a caller that must decide before it starts or
-    // before it maps a slot. cancelled() is a plain flag read and never mutates the Future.
-    PythonGILState gil;
-    if (!gil || !m_future)
-        return false;
-    try {
-        return m_future.attr("cancelled")().cast<bool>();
-    } catch (py::error_already_set&) {
-        PyErr_Clear();
-        return false;
-    }
-}
-
-AsyncFuture::~AsyncFuture()
-{
-    PythonGILState gil;
-    if (gil) {
-        m_bind   = py::object();
-        m_future = py::object();
-        m_loop   = py::object();
-    } else {
-        // Interpreter is gone; leaking is the only safe option (mirrors the UI callable holders).
-        (void) m_bind.release();
-        (void) m_future.release();
-        (void) m_loop.release();
-    }
-}
-
 void PluginHostUi::run_on_ui_thread(std::function<void()> fn)
 {
     run_on_ui_blocking(std::move(fn));
-}
-
-void PluginHostUi::require_ui_application()
-{
-    if (wxTheApp == nullptr)
-        throw std::runtime_error("OrcaSlicer application is not initialized");
-}
-
-bool PluginHostUi::post_to_ui_thread(std::function<void()> fn)
-{
-    if (wxTheApp == nullptr)
-        return false;
-    GUI::wxGetApp().CallAfter(std::move(fn));
-    return true;
-}
-
-void PluginHostUi::track_pending_async(const std::shared_ptr<AsyncFuture>& handle)
-{
-    UiRegistry::instance().track_async(handle, PluginAuditManager::instance().current_plugin());
-}
-
-void PluginHostUi::abandon_pending_async(const std::string& plugin_key)
-{
-    UiRegistry::instance().abandon_async(plugin_key);
-}
-
-std::size_t PluginHostUi::pending_async_count(const std::string& plugin_key)
-{
-    return UiRegistry::instance().pending_async_count(plugin_key);
 }
 
 void PluginHostUi::RegisterBindings(pybind11::module_& host)
@@ -972,10 +781,6 @@ void PluginHostUi::close_windows_for_plugin(const std::string& plugin_key)
         return;
 
     auto teardown = [plugin_key]() {
-        // Stop resolving any awaitable still pending for this plugin before its windows go: a UI
-        // callback that runs after unload must not touch the unloaded plugin's loop.
-        UiRegistry::instance().abandon_async(plugin_key);
-
         for (auto& callback : UiRegistry::instance().take_callbacks_for_plugin(plugin_key))
             callback->disable();
 

@@ -1,8 +1,8 @@
 #include "PluginHostBindings.hpp"
 #include "PluginHostUi.hpp"
 #include "slic3r/plugin/PluginBindingUtils.hpp"
-#include "slic3r/plugin/PythonInterpreter.hpp" // PythonGILState
 
+#include <memory>
 #include <pybind11/pytypes.h>
 #include <pybind11/cast.h>
 #include <pybind11/pybind11.h>
@@ -11,8 +11,6 @@
 #include <libslic3r/AppConfig.hpp>
 #include <libslic3r/Preset.hpp>
 #include <libslic3r/PresetBundle.hpp>
-
-#include <memory>
 
 #include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/GUI_App.hpp>
@@ -25,7 +23,6 @@
 
 #include <wx/string.h>
 
-#include <functional>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -83,41 +80,12 @@ PresetCollection& collection_for(PresetBundle& bundle, Preset::Type type)
 }
 
 // Marker for a user-declined selection: Tab::select_preset() returned false. It derives from
-// std::runtime_error so the synchronous update() path keeps raising RuntimeError (pybind11 maps the
-// base), while the awaitable begin_update() path raises the distinct, documented
-// orca.host.preset.PresetSelectionCancelled.
+// std::runtime_error (pybind11 maps the base to RuntimeError), so callers see it as an ordinary
+// failed transaction and no staged setting or slot assignment is created.
 struct SelectionCancelled : std::runtime_error
 {
     using std::runtime_error::runtime_error;
 };
-
-// Marker for a selection the awaiting coroutine's cancellation overtook: the Future was cancelled
-// (task cancellation, or plugin unload) while the selection dialog was open. The user's already
-// accepted decision is not reversed; only the remaining slot assignment and the transaction
-// creation are skipped. Distinct from SelectionCancelled, which is the user declining.
-struct SelectionAbandoned : std::runtime_error
-{
-    using std::runtime_error::runtime_error;
-};
-
-// True once the awaiting coroutine's Future has been cancelled. AsyncFuture sets this from its
-// loop-thread done-callback, so this reads only an atomic and never touches Python or the loop from
-// the UI thread. Empty for the synchronous path, which cannot be cancelled.
-using CancelProbe = std::function<bool()>;
-
-// One PresetSelectionCancelled carrying `message`. The type is looked up live from the bound module
-// rather than cached in a static PyObject*: a cached reference would dangle across an interpreter
-// reset (plugin-system shutdown then re-init in one process). GIL held by the caller. Falls back to
-// RuntimeError when the binding is not present.
-py::object selection_cancelled_error(const std::string& message)
-{
-    try {
-        return py::module_::import("orca").attr("host").attr("preset").attr("PresetSelectionCancelled")(message);
-    } catch (py::error_already_set&) {
-        PyErr_Clear();
-        return py::module_::import("builtins").attr("RuntimeError")(message);
-    }
-}
 
 // --------------------------------------------------------------------------
 // The staged preset update lifecycle described in docs/HLSD/preset-plugin-api.md.
@@ -126,19 +94,15 @@ py::object selection_cancelled_error(const std::string& message)
 // the caller asked for a preset that is not already active), returns a PresetTransaction that
 // stages changes with set(), and applies them only on commit(). The transaction holds names,
 // never preset pointers, so it stays valid across reloads; a target or filament slot that changed
-// while the operation was pending is rejected instead of silently editing the new mapping.
+// between begin_update() and commit() is rejected instead of silently editing the new mapping.
 //
-// begin_update() is awaitable: called from the background Script worker (a running asyncio loop),
-// it posts the target selection to the UI thread and returns a real Future immediately, resolving
-// it thread-safely (through PluginHostUi::post_to_ui_thread / loop.call_soon_threadsafe) with a
-// name-based PresetTransaction once the selection and any unsaved-edit dialog settle, or failing
-// it with the resolution error. A user-declined selection fails it with the distinct
-// orca.host.preset.PresetSelectionCancelled rather than a generic RuntimeError; that is separate
-// from asyncio task cancellation, which cancels the Future and is dropped by the resolver, so the
-// coroutine sees asyncio.CancelledError instead. No GUI or preset pointer crosses the suspension.
-// The synchronous update() shorthand keeps the original blocking path (a cancel still raises
-// RuntimeError there) and shares the same target resolution; it is safe only from that worker,
-// never from the UI thread or a slicing pipeline hook.
+// begin_update() is synchronous: it runs on the background Script worker, marshals the target
+// selection to the UI thread with PluginHostUi::run_on_ui_thread(), and blocks that worker until
+// the selection and any unsaved-edit dialog settle. The UI thread stays responsive because the
+// Script capability owns its worker thread. No GUI or preset pointer outlives the call; the
+// returned transaction holds copied category/name/slot values. The update() shorthand shares the
+// same target resolution and is safe only from that worker, never from the UI thread or a slicing
+// pipeline hook.
 //
 // Known limits of this implementation, kept explicit rather than hidden:
 //   * A requested preset_name is resolved by the exact name its dropdown entry shows: the item's
@@ -156,16 +120,9 @@ py::object selection_cancelled_error(const std::string& message)
 //     conditional support-filament flushing recalc and the slot's AMS sync badge (read from the
 //     slot combo's own flag). The private Plater::priv::on_select_preset() path cannot be reused
 //     from here, so this mirrors its filament branch rather than calling it.
-//   * Cancellation boundary: AsyncFuture observes a cancellation two ways. Its loop-thread
-//     done-callback sets an atomic; is_cancelled() also reads the Future's own cancelled() under the
-//     GIL, so a cancel that Future.cancel() already applied is seen even before the loop schedules
-//     the done-callback. That closes the pre-start window and the after-modal window (checked before
-//     any slot mapping). A selection still queued therefore never starts, and one already inside the
-//     modal stops after the modal returns: the remaining slot assignment and the transaction are
-//     skipped. A late cancel that lands after the user already accepted a selection, or after the
-//     transaction was created, is NOT rolled back: accepted UI decisions stand. The narrow window
-//     where a cancel and the operation's start race cannot be fully eliminated, but whichever side
-//     wins the coroutine still observes asyncio.CancelledError, not a plugin error.
+//   * A user-declined selection does not undo decisions the user already accepted in an earlier
+//     dialog. It aborts before any slot assignment or transaction is created, so no staged
+//     setting is applied.
 // --------------------------------------------------------------------------
 
 // Outcome of one committed transaction. Identifies the target, whether selecting it switched
@@ -400,11 +357,8 @@ PresetUpdateResult PresetTransaction::commit()
 // Process/printer target resolution: the active preset when no name is given, otherwise the named
 // preset selected through the normal tab-selection flow (which enforces the dropdown/compatibility
 // rules and the unsaved-edit prompt). Binds only after confirming the requested preset is edited.
-// Runs on the UI thread with the GIL released; both the blocking and the awaitable entry points
-// share it (the awaitable one invokes it directly from its UI callback, never through
-// run_on_ui_thread()).
-void bind_preset_target(Preset::Type type, const std::string& preset_name, PresetTransaction& transaction,
-                        const CancelProbe& cancelled = {})
+// Runs on the UI thread with the GIL released, called from begin_preset_update().
+void bind_preset_target(Preset::Type type, const std::string& preset_name, PresetTransaction& transaction)
 {
     GUI::GUI_App&     app        = require_gui_app();
     GUI::Tab*         tab        = require_tab(app, type);
@@ -437,11 +391,6 @@ void bind_preset_target(Preset::Type type, const std::string& preset_name, Prese
             if (!tab->select_preset(target))
                 throw SelectionCancelled("Switching the edited " + std::string(preset_tab_name(type)) + " preset to \""
                                          + target + "\" was canceled; nothing was staged");
-            // A cancelled task must not go on to bind a transaction. The accepted selection is the
-            // user's decision and is left in place; only the remaining work stops.
-            if (cancelled && cancelled())
-                throw SelectionAbandoned("The edited " + std::string(preset_tab_name(type)) + " preset was switched to \""
-                                         + target + "\", but the plugin operation was cancelled; the transaction was not created");
             selection_changed = true;
         }
     }
@@ -458,7 +407,7 @@ void bind_preset_target(Preset::Type type, const std::string& preset_name, Prese
     transaction.selection_changed = selection_changed;
 }
 
-// Blocking form, used by update() and by any caller that cannot suspend.
+// Blocking form used by begin_update() and update().
 PresetTransaction begin_preset_update(Preset::Type type, const std::string& preset_name)
 {
     PresetTransaction transaction;
@@ -476,9 +425,8 @@ PresetTransaction begin_preset_update(Preset::Type type, const std::string& pres
 // current assignment, which stays targetable when the dropdown hides it. A different preset the
 // tab happens to edit is a globally edited target, not an offered choice for this slot, and is
 // rejected.
-// Runs on the UI thread with the GIL released; shared by the blocking and awaitable entry points.
-void bind_filament_target(int slot_number, const std::string& preset_name, PresetTransaction& transaction,
-                          const CancelProbe& cancelled = {})
+// Runs on the UI thread with the GIL released, called from begin_filament_update().
+void bind_filament_target(int slot_number, const std::string& preset_name, PresetTransaction& transaction)
 {
     GUI::GUI_App& app    = require_gui_app();
     PresetBundle& bundle = *app.preset_bundle;
@@ -558,14 +506,6 @@ void bind_filament_target(int slot_number, const std::string& preset_name, Prese
             throw SelectionCancelled("Switching the edited filament preset to \"" + target + "\" for filament slot "
                                      + std::to_string(slot_number)
                                      + " was canceled; neither the slot assignment nor any setting was changed");
-        // The modal above may have been open when the awaiting task was cancelled. The accepted
-        // selection stands (we do not reverse a user decision), but the remaining slot assignment
-        // and the transaction are skipped.
-        if (cancelled && cancelled())
-            throw SelectionAbandoned("The edited filament preset was switched to \"" + target
-                                     + "\", but the plugin operation was cancelled before filament slot "
-                                     + std::to_string(slot_number)
-                                     + " was reassigned; neither the slot assignment nor the transaction was created");
         if (bundle.filaments.get_edited_preset().name != target)
             throw std::runtime_error("The edited filament preset is \"" + bundle.filaments.get_edited_preset().name
                                      + "\", not \"" + target + "\"; the transaction was not created");
@@ -574,10 +514,6 @@ void bind_filament_target(int slot_number, const std::string& preset_name, Prese
 
     bool assignment_changed = false;
     if (!preset_name.empty() && target != assigned_internal) {
-        // Cancellation may also arrive on the modal-free path (the tab already edited the target).
-        if (cancelled && cancelled())
-            throw SelectionAbandoned("The plugin operation was cancelled before filament slot " + std::to_string(slot_number)
-                                     + " was reassigned; neither the slot assignment nor the transaction was created");
         if (app.app_config == nullptr)
             throw std::runtime_error("Application configuration is not available");
         // Mirror the filament branch of Plater::priv::on_select_preset() (the sidebar's normal
@@ -629,7 +565,7 @@ void bind_filament_target(int slot_number, const std::string& preset_name, Prese
     transaction.slot_assignment_snapshot = resolved_slot_preset(bundle, slot_number);
 }
 
-// Blocking form, used by the update() shorthand.
+// Blocking form used by begin_update() and update().
 PresetTransaction begin_filament_update(int slot_number, const std::string& preset_name)
 {
     PresetTransaction transaction;
@@ -651,111 +587,6 @@ void update_filament_slot(int slot_number, const std::string& key, const std::st
     PresetTransaction transaction = begin_filament_update(slot_number, std::string());
     transaction.set(key, value);
     transaction.commit();
-}
-
-// --------------------------------------------------------------------------
-// Awaitable begin_update(): see the lifecycle comment above.
-//
-// Each entry point runs on the plugin worker with the GIL held and an asyncio loop running. It
-// validates the application synchronously (so a call without a wx app fails exactly like update()),
-// creates a Future on the running loop, posts the selection to the UI thread, and returns the
-// Future at once. The UI callback runs bind_*_target() with the GIL released, then -- with the GIL
-// re-acquired -- resolves the Future with the resulting PresetTransaction, or fails it with the
-// resolution error. Nothing is staged until the caller's later set()/commit(); a canceled or
-// unavailable target changes no preset and maps no slot.
-// --------------------------------------------------------------------------
-
-// Map the failures bind_*_target() raises to the Python exceptions the awaitable path should
-// surface. A user cancellation becomes the distinct PresetSelectionCancelled (not a plain
-// RuntimeError, and not asyncio.CancelledError, which is what a cancelled task raises and is
-// dropped by the future resolver before it ever reaches the coroutine). The rest mirror what
-// pybind11 would raise for the blocking path (std::invalid_argument -> ValueError,
-// std::out_of_range -> IndexError).
-py::object preset_update_failure(const std::exception& error)
-{
-    if (dynamic_cast<const SelectionCancelled*>(&error) != nullptr)
-        return selection_cancelled_error(error.what());
-    if (dynamic_cast<const std::invalid_argument*>(&error) != nullptr)
-        return py::module_::import("builtins").attr("ValueError")(error.what());
-    if (dynamic_cast<const std::out_of_range*>(&error) != nullptr)
-        return py::module_::import("builtins").attr("IndexError")(error.what());
-    return py::module_::import("builtins").attr("RuntimeError")(error.what());
-}
-
-// Fail an awaitable whose UI work could not be posted at all (the application went away between the
-// synchronous check and post_to_ui_thread()). Called with the GIL held.
-void fail_unpostable(const std::shared_ptr<AsyncFuture>& handle, const char* message)
-{
-    handle->fail(py::module_::import("builtins").attr("RuntimeError")(message));
-}
-
-py::object begin_preset_update_async(Preset::Type type, const std::string& preset_name)
-{
-    PluginHostUi::require_ui_application();
-    std::shared_ptr<AsyncFuture> handle = AsyncFuture::create();
-    PluginHostUi::track_pending_async(handle);
-    py::object future = handle->future();
-
-    const bool posted = PluginHostUi::post_to_ui_thread([type, preset_name, handle]() {
-        // The plugin was unloaded, or the task was cancelled, before this ran: do not select. This
-        // reads the Future's own cancelled() (not only the atomic), so a cancel Future.cancel()
-        // already applied is seen even before the loop runs its done-callback.
-        if (handle->is_cancelled())
-            return;
-        PresetTransaction transaction;
-        try {
-            bind_preset_target(type, preset_name, transaction, [handle]() { return handle->is_cancelled(); });
-        } catch (const std::exception& error) {
-            PythonGILState gil;
-            if (gil)
-                handle->fail(preset_update_failure(error));
-            return;
-        }
-        // Cancelled after the bind but before delivery: the resolver would drop the result anyway.
-        if (handle->is_cancelled())
-            return;
-        PythonGILState gil;
-        if (gil)
-            handle->complete(py::cast(transaction));
-    });
-    if (!posted)
-        fail_unpostable(handle, "OrcaSlicer application is not initialized");
-    return future;
-}
-
-py::object begin_filament_update_async(int slot_number, const std::string& preset_name)
-{
-    PluginHostUi::require_ui_application();
-    std::shared_ptr<AsyncFuture> handle = AsyncFuture::create();
-    PluginHostUi::track_pending_async(handle);
-    py::object future = handle->future();
-
-    const bool posted = PluginHostUi::post_to_ui_thread([slot_number, preset_name, handle]() {
-        // The plugin was unloaded, or the task was cancelled, before this ran: do not select, so a
-        // queued UI selection never starts. This reads the Future's own cancelled() (not only the
-        // atomic), so a cancel Future.cancel() already applied is seen even before the loop runs its
-        // done-callback.
-        if (handle->is_cancelled())
-            return;
-        PresetTransaction transaction;
-        try {
-            bind_filament_target(slot_number, preset_name, transaction, [handle]() { return handle->is_cancelled(); });
-        } catch (const std::exception& error) {
-            PythonGILState gil;
-            if (gil)
-                handle->fail(preset_update_failure(error));
-            return;
-        }
-        // Cancelled after the bind but before delivery: the resolver would drop the result anyway.
-        if (handle->is_cancelled())
-            return;
-        PythonGILState gil;
-        if (gil)
-            handle->complete(py::cast(transaction));
-    });
-    if (!posted)
-        fail_unpostable(handle, "OrcaSlicer application is not initialized");
-    return future;
 }
 
 void reload_local_bundle(const std::string& bundle_id)
@@ -818,19 +649,6 @@ void host_bindings::register_presets(py::module_& host)
                 "IDs of local preset bundles in the active user's _local directory that reload_local() accepts, "
                 "including bundles added after startup.");
 
-    // The outcome of a user-declined selection in the awaitable begin_update(), told apart from an
-    // invalid/unavailable target (ValueError) and from asyncio task cancellation
-    // (asyncio.CancelledError). It subclasses RuntimeError, so a plugin catching RuntimeError still
-    // handles it, and the synchronous update() path is unchanged (it raises RuntimeError). The type
-    // is owned by the module (and looked up live when raised), not cached in a static reference, so
-    // a later interpreter reset cannot leave a stale pointer behind.
-    py::dict selection_cancelled_ns;
-    selection_cancelled_ns["__module__"] = py::str("orca.host.preset");
-    preset.attr("PresetSelectionCancelled") = py::module_::import("builtins").attr("type")(
-        "PresetSelectionCancelled",
-        py::make_tuple(py::reinterpret_borrow<py::object>(PyExc_RuntimeError)),
-        selection_cancelled_ns);
-
     py::enum_<Preset::Type>(host, "PresetType")
         .value("Invalid", Preset::TYPE_INVALID)
         .value("Print", Preset::TYPE_PRINT)
@@ -865,12 +683,13 @@ void host_bindings::register_presets(py::module_& host)
         });
 
     py::class_<PresetTransaction>(preset, "PresetTransaction",
-                                  "A staged, single-target preset edit returned by awaiting begin_update(). set() stages "
-                                  "a serialized value without mutating the preset; commit() validates and applies the "
-                                  "whole batch through the normal setting-change path. begin_update() itself suspends "
-                                  "until any selection or unsaved-edit dialog is answered, without blocking the UI "
-                                  "thread; set() and commit() run synchronously on the plugin worker. Nothing is saved "
-                                  "to disk: the edited preset stays dirty until the user saves it.")
+                                  "A staged, single-target preset edit returned by begin_update(). set() stages a "
+                                  "serialized value without mutating the preset; commit() validates and applies the "
+                                  "whole batch through the normal setting-change path. begin_update() blocks the "
+                                  "background Script worker until any selection or unsaved-edit dialog is answered, "
+                                  "while the UI thread stays responsive; set() and commit() run synchronously on the "
+                                  "same worker. Nothing is saved to disk: the edited preset stays dirty until the user "
+                                  "saves it.")
         .def_readonly("type", &PresetTransaction::type)
         .def_readonly("target_name", &PresetTransaction::target_name)
         .def_readonly("selection_changed", &PresetTransaction::selection_changed)
@@ -907,17 +726,16 @@ void host_bindings::register_presets(py::module_& host)
                 if (editor.type == Preset::TYPE_FILAMENT)
                     throw std::invalid_argument("begin_update on the filament editor takes "
                                                 "(slot_number, preset_name=\"\"); use orca.host.preset.filament.begin_update(slot_number, ...)");
-                return begin_preset_update_async(editor.type, preset_name);
+                return begin_preset_update(editor.type, preset_name);
             },
             py::arg("preset_name") = "",
-            "Awaitable. Resolve and bind this category's target preset and resolve to a PresetTransaction. With no "
-            "preset_name the currently active preset is targeted; a preset_name must be a preset this category can "
-            "select, and is selected through the normal preset-selection flow (which prompts about unsaved edits). "
-            "The returned awaitable is pending until any such dialog is answered. A selection the user cancels raises "
-            "orca.host.preset.PresetSelectionCancelled (a RuntimeError subclass; distinct from asyncio task "
-            "cancellation, which raises asyncio.CancelledError); an unavailable or invalid target raises ValueError. "
-            "Either failure creates no transaction and stages no setting. Must be awaited from the background Script "
-            "worker's running event loop. This form is for process and printer; filament takes "
+            "Resolve and bind this category's target preset and return a PresetTransaction. With no preset_name the "
+            "currently active preset is targeted; a preset_name must be a preset this category can select, and is "
+            "selected through the normal preset-selection flow (which prompts about unsaved edits). The call blocks "
+            "the background Script worker until any such dialog is answered, leaving the UI thread responsive. A "
+            "selection the user cancels raises RuntimeError; an unavailable or invalid target raises ValueError. "
+            "Either failure creates no transaction and stages no setting. Call it from the background Script worker, "
+            "never from the UI thread. This form is for process and printer; filament takes "
             "begin_update(slot_number, preset_name=\"\").")
         .def(
             "begin_update",
@@ -925,22 +743,21 @@ void host_bindings::register_presets(py::module_& host)
                 if (editor.type != Preset::TYPE_FILAMENT)
                     throw std::invalid_argument("The slot_number form of begin_update() is only available on "
                                                 "orca.host.preset.filament; call begin_update(preset_name=\"\") on this editor");
-                return begin_filament_update_async(slot_number, preset_name);
+                return begin_filament_update(slot_number, preset_name);
             },
             py::arg("slot_number"), py::arg("preset_name") = "",
-            "Awaitable. Resolve and bind a filament preset by 1-based slot and resolve to a PresetTransaction. "
-            "Omitting preset_name targets the preset assigned to the slot; supplying a different name selects it for "
-            "the slot through the normal flow (prompting about unsaved edits) and, once that succeeds, records the new "
-            "slot assignment with the same Plater side effects the sidebar selection performs (project/selection "
-            "refresh, dynamic filament list, conditional support-filament flushing recalc and the slot's AMS sync "
-            "badge). A requested preset this slot's dropdown does not offer is rejected before that flow, so it "
-            "raises no prompt; the slot's own current assignment stays targetable even when the dropdown hides it. A "
-            "selection the user cancels raises orca.host.preset.PresetSelectionCancelled (a "
-            "RuntimeError subclass; distinct from asyncio task cancellation, which raises asyncio.CancelledError) and "
-            "changes neither the slot assignment nor any setting. An out-of-range, empty or unresolved slot is "
-            "rejected, and a mixed-color virtual slot is rejected whether or not preset_name is given. The "
-            "transaction edits the shared preset, so every slot assigned to it is affected. Must be awaited from the "
-            "background Script worker's running event loop.")
+            "Resolve and bind a filament preset by 1-based slot and return a PresetTransaction. Omitting preset_name "
+            "targets the preset assigned to the slot; supplying a different name selects it for the slot through the "
+            "normal flow (prompting about unsaved edits) and, once that succeeds, records the new slot assignment with "
+            "the same Plater side effects the sidebar selection performs (project/selection refresh, dynamic filament "
+            "list, conditional support-filament flushing recalc and the slot's AMS sync badge). A requested preset "
+            "this slot's dropdown does not offer is rejected before that flow, so it raises no prompt; the slot's own "
+            "current assignment stays targetable even when the dropdown hides it. A selection the user cancels raises "
+            "RuntimeError and changes neither the slot assignment nor any setting. An out-of-range, empty or "
+            "unresolved slot is rejected, and a mixed-color virtual slot is rejected whether or not preset_name is "
+            "given. The transaction edits the shared preset, so every slot assigned to it is affected. The call "
+            "blocks the background Script worker until the selection settles, leaving the UI thread responsive; call "
+            "it from that worker, never from the UI thread.")
         .def(
             "update",
             [](const PresetEditor& editor, const std::string& key, const std::string& value) {
@@ -953,8 +770,8 @@ void host_bindings::register_presets(py::module_& host)
             "otherwise ValueError is raised and nothing is written. A setting edited through a field "
             "runs that field's validation even before its page has been opened; one the GUI edits "
             "outside a field (such as compatible printers) also recomputes preset compatibility. "
-            "Equivalent to awaiting begin_update() with the active preset as target, then "
-            "set(key, value) and commit(); unlike begin_update() this call blocks the plugin worker.")
+            "Equivalent to begin_update() with the active preset as target, then set(key, value) "
+            "and commit(); like begin_update() this call blocks the background Script worker.")
         .def(
             "update",
             [](const PresetEditor& editor, int slot_number, const std::string& key, const std::string& value) {
@@ -970,9 +787,9 @@ void host_bindings::register_presets(py::module_& host)
             "call with an error and no change. An out-of-range, empty or unresolved slot is rejected with "
             "a clear error, as is a mixed-color virtual slot, which has no single preset to edit. Other "
             "preset editors accept only update(key, value); this form raises "
-            "ValueError on them. Equivalent to awaiting begin_update(slot_number) with an omitted "
-            "preset_name (the slot's current assignment is kept), then set(key, value) and commit(); "
-            "unlike begin_update() this call blocks the plugin worker.");
+            "ValueError on them. Equivalent to begin_update(slot_number) with an omitted preset_name "
+            "(the slot's current assignment is kept), then set(key, value) and commit(); like "
+            "begin_update() this call blocks the background Script worker.");
 
     // The three preset categories edited by the main tabs. `process` is the print/process preset,
     // `printer` the machine preset and `filament` the currently edited filament preset (its

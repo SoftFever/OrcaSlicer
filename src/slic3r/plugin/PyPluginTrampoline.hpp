@@ -2,6 +2,7 @@
 #define slic3r_PyPluginTrampoline_hpp_
 
 #include "libslic3r/LifecycleEvents.hpp"
+#include <exception>
 #include <pybind11/embed.h>
 
 #include <boost/log/trivial.hpp>
@@ -15,9 +16,11 @@
 #include "PythonInterpreter.hpp"
 #include "PluginFsUtils.hpp"
 #include "PluginAuditManager.hpp"
+#include "pybind11/cast.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/gil.h>
 #include <pybind11/pytypes.h>
+#include <utility>
 
 // Trampoline variants of pybind11's override macros. Every C++->Python plugin call crosses a
 // trampoline method, so this single boundary is where we (1) log the full Python traceback and
@@ -64,13 +67,11 @@
 namespace Slic3r {
 
 // True when `object` is a coroutine object (the value produced by calling an `async def`).
+// Match inspect.iscoroutine() without importing Python modules inside the plugin audit scope.
 // Must be called with the GIL held.
 inline bool py_is_coroutine(const pybind11::handle& object)
 {
-    if (!object)
-        return false;
-    pybind11::object inspect = pybind11::module_::import("inspect");
-    return inspect.attr("iscoroutine")(object).cast<bool>();
+    return object && PyCoro_CheckExact(object.ptr());
 }
 
 // Result of invoking a Script capability's Python `execute` exactly once.

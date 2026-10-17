@@ -40,7 +40,7 @@ applies them only on explicit `commit()`.
 # Filament is targeted by its 1-based slot. Omitting preset_name keeps the
 # preset currently assigned to the slot; providing it selects that preset for
 # the slot before staging updates.
-tx = await orca.host.preset.filament.begin_update(
+tx = orca.host.preset.filament.begin_update(
     slot_number=2,
     preset_name="Generic PLA"
 )
@@ -50,7 +50,7 @@ result = tx.commit()
 
 # Process and printer default to their active presets. A caller can request a
 # different preset that is selectable in the corresponding UI dropdown.
-tx = await orca.host.preset.process.begin_update(
+tx = orca.host.preset.process.begin_update(
     preset_name="0.20mm Standard"
 )
 tx.set("layer_height", "0.2")
@@ -58,11 +58,12 @@ tx.commit()
 ```
 
 The example is the API contract, and the Python bridge provides it. `begin_update()`
-is awaitable: it suspends the plugin operation until the target selection and any
-unsaved-edit dialog settle, without blocking Orca's UI thread. `set()` and `commit()`
-run synchronously on the background Script worker once the awaitable resolves.
-Awaiting `begin_update()` requires the Script worker's running asyncio loop; the
-mechanism is described in [python-plugin-async-bridge.md](python-plugin-async-bridge.md).
+is synchronous: it blocks the background Script worker until the target selection and
+any unsaved-edit dialog settle, then returns the bound transaction. Orca's UI thread
+stays responsive because the Script capability runs on its own worker. `set()` and
+`commit()` run synchronously on that same worker. The Script worker and its optional
+coroutine loop are described in
+[python-plugin-async-bridge.md](python-plugin-async-bridge.md).
 
 ### Target resolution
 
@@ -97,24 +98,21 @@ otherwise it returns a transaction without switching. The helpers use Orca's nor
 preset selection flow, `Tab::select_preset()`, including updating a filament slot
 assignment when requested. If the normal selection flow requires user input, it opens
 the relevant existing dialog(s), including unsaved-edit choices such as save, discard,
-or transfer. The operation is awaitable and remains pending until those interactions
-finish; it resolves with the bound transaction, or with a cancellation, without
+or transfer. The call remains blocked on the Script worker until those interactions
+finish; it returns the bound transaction, or raises on a cancellation, without
 applying staged settings. A canceled selection does not change the requested target or
 filament slot assignment, but it does not roll back decisions the user already accepted
-in an earlier dialog. Cancellation of the awaiting coroutine is separate from a user
-cancel: a selection the user already accepted is not reversed, while the remaining slot
-assignment and the transaction creation are skipped when the cancellation is observed
-before the slot is reassigned (see [python-plugin-async-bridge.md](python-plugin-async-bridge.md)). The helpers then confirm that the requested preset actually
+in an earlier dialog. The helpers then confirm that the requested preset actually
 became the edited preset; a successful selection request alone is not sufficient. There
 is no separate `switch_preset` plugin API.
 
 If the requested target is already active, `begin_update()` returns without a
-selection prompt, apart from any UI-thread dispatch needed by the bridge. If a
-different preset is requested, Orca selects it through the normal UI flow. For
+selection prompt, apart from the UI-thread dispatch needed to bind the transaction.
+If a different preset is requested, Orca selects it through the normal UI flow. For
 filament, this also updates the requested slot's assignment when `preset_name`
 differs from its current assignment. When the current preset has unsaved changes,
-the plugin operation remains pending until the user chooses among Orca's existing
-options, such as transfer, discard, or cancel.
+the Script worker stays blocked until the user chooses among Orca's existing options,
+such as transfer, discard, or cancel.
 
 The API never suppresses that warning, chooses an option for the user, or switches
 away from dirty edits silently. Cancel aborts the operation before any staged target
@@ -160,8 +158,8 @@ slot assignment changed and which slots share the edited preset. A canceled
 selection applies neither the requested slot assignment nor staged target changes;
 a failed commit applies none of the staged target settings.
 
-Filament slot assignments can change while a plugin operation is pending. The API
-must detect that and reject a stale operation instead of silently editing the new
+Filament slot assignments can change between `begin_update()` and `commit()`. The API
+detects that and rejects a stale operation instead of silently editing the new
 slot assignment. It must not hold raw preset pointers across reloads. Conflicting
 duplicate writes to one setting in a transaction are rejected rather than resolved
 by incidental call order.
@@ -169,8 +167,8 @@ by incidental call order.
 The existing one-setting filament call,
 `orca.host.preset.filament.update(slot_number, key, value)`, remains available as a
 compatibility shorthand. It shares the staged API's target resolution, selection,
-validation, and commit path, and it is synchronous (it blocks the background Script
-worker) rather than awaitable.
+validation, and commit path, and it is synchronous like `begin_update()`: both block
+the background Script worker while any selection dialog settles.
 
 ## Design principles
 
@@ -203,12 +201,11 @@ shorthand. For filament, `update_filament_slot()` resolves the preset already as
 to a slot, selects it through `Tab::select_preset()`, and applies one setting through
 `Tab::apply_preset_config_values()`; it does not change the slot assignment.
 
-`begin_update()` is awaitable through a Future-backed UI continuation
-(`begin_preset_update_async` / `begin_filament_update_async` plus `AsyncFuture`; see
-[python-plugin-async-bridge.md](python-plugin-async-bridge.md)). It posts the target
-binding to the UI thread and resolves once the selection settles, so the wait does not
-block the UI thread. The `update()` shorthand keeps the synchronous, blocking form,
-which is valid only on the background Script worker.
+`begin_update()` and `update()` are synchronous blocking calls
+(`begin_preset_update` / `begin_filament_update`). They marshal the target binding to
+the UI thread and block the background Script worker until the selection settles, so
+the wait never blocks the UI thread. They are valid only on that worker, never from the
+UI thread or a slicing pipeline hook.
 
 `Tab::select_preset()` is the basis for switching to process, printer, or filament
 presets and for invoking the normal unsaved-edit flow. The flow is type-specific: a
@@ -250,6 +247,6 @@ selection prompts, setting validation, or persistence. Target changes flow throu
 the same UI selection path so dependent behavior—such as selecting the printer
 agent—still runs. Setting changes flow through the same UI change path so `on_change`
 and related validation/correction behavior still runs. The integration bridges UI
-prompts to the Python operation asynchronously (the awaitable `begin_update()`), reuses
+prompts to the Python operation through the blocking `begin_update()` and reuses
 the normal Plater slot-selection behavior for explicit filament targets, and commits a
 batch without losing existing per-setting behavior.

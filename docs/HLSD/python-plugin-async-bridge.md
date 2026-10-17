@@ -2,16 +2,17 @@
 
 ## Purpose and scope
 
-The embedded Python plugin runtime runs capability calls synchronously: a C++ call site acquires the
-GIL and the capability's Python method runs to completion on the calling thread. That model cannot
-express an operation that has to wait for the user — most visibly the staged preset update
-(`begin_update()` in [preset-plugin-api.md](preset-plugin-api.md)), whose target selection can open
-unsaved-edit dialogs and must not block Orca's UI thread while it waits.
+The embedded Python plugin runtime runs most capability calls synchronously: a C++ call site acquires
+the GIL and the capability's Python method runs to completion on the calling thread. The staged preset
+update (`begin_update()` in [preset-plugin-api.md](preset-plugin-api.md)) is also synchronous, but
+its target selection can open unsaved-edit dialogs. It therefore blocks the Script worker, not the UI
+thread, and returns only when the selection settles.
 
-This document describes the bridge that lets a Python plugin suspend and resume such an operation
-without blocking the UI thread. The bridge is deliberately narrow: only the Script capability gains
-an awaitable execution path. Every other capability — including the SlicingPipeline hooks — stays
-synchronous.
+This document describes the Script capability's background execution path, including the optional
+per-invocation asyncio loop for an `async def execute`, and the blocking UI marshalling that host calls
+use from that worker. The bridge is deliberately narrow: only the Script capability gains a
+background/async execution path. Every other capability — including the SlicingPipeline hooks — stays
+synchronous on its caller's thread.
 
 ## Execution baseline
 
@@ -108,8 +109,10 @@ another plugin's.
   `loop.run_until_complete(task)` → `loop.close()`, then `asyncio.set_event_loop(None)`.
 
 The loop is per invocation, not global, and no loop outlives its invocation. The loop for the
-calling thread is published in the thread-local `tl_script_loop`, exposed to host awaitables through
-`ScriptAsyncRuntime::current_loop()` (GIL held).
+calling thread is published in the thread-local `tl_script_loop` and exposed through
+`ScriptAsyncRuntime::current_loop()` (GIL held). A host call such as `begin_update()` does not suspend
+the loop: it blocks the worker thread while the UI settles, then returns a value the coroutine uses
+directly.
 
 `PluginManager::launch_script_capability` is the entry point: it resolves the capability, hands it to
 `ScriptAsyncRuntime::start`, and sets `ScriptLaunchResult::launched_async`. The completion callback
@@ -141,97 +144,54 @@ with `CallAfter` and denies the current event, persisting the grant when the use
 Script sees a denial on the first attempt and can succeed on a later one. This matches the existing
 behavior for the plugin-load worker and the slicing worker.
 
-### Awaitable UI continuation
+### Blocking UI continuation
 
-`AsyncFuture` (`src/slic3r/plugin/host/PluginHostUi.hpp`, implemented in `PluginHostUi.cpp`) is the
-suspension primitive for a host call that must show a dialog before it can resolve. It carries no GUI
-or preset state — only the loop, the Future created on it, and a Python-side resolver:
+`PluginHostUi::run_on_ui_thread` (in `src/slic3r/plugin/host/PluginHostUi.cpp`) is the primitive host
+calls use from the Script worker. It forwards to `run_on_ui_blocking`:
 
-- `AsyncFuture::create()` requires the GIL and a running asyncio loop. It binds
-  `asyncio.get_running_loop()`, creates a Future with `create_future()`, and installs the resolver
-  `make_future_resolver` and the cancellation watcher `make_cancellation_watcher` on the Future.
-- `complete(value)`/`fail(exc)` marshal the outcome with `loop.call_soon_threadsafe(m_bind, …)`, so
-  the Future is resolved on its own loop thread, never from the UI thread. The resolver drops an
-  outcome whose Future is already cancelled (`set_result`/`set_exception` on a cancelled Future would
-  raise `InvalidStateError`).
-- Cancellation is observed two ways, so the UI thread can decide without touching the loop. The
-  loop-thread done-callback `make_cancellation_watcher` sets an atomic (`abandon()`); `is_cancelled()`
-  additionally reads the Python Future's own `cancelled()` under the GIL, so a cancellation that
-  `Future.cancel()` applied synchronously is seen even before the loop runs the done-callback.
-  `is_cancelled()` never mutates the Future or the loop and is safe from the UI thread. A queued
-  selection therefore never starts, and one inside a modal stops when the modal returns.
-  `~AsyncFuture` releases its Python references under the GIL, or intentionally leaks them if the
-  interpreter is already gone (same rule as the UI callable holders).
+- if the caller is already on the wx main thread, it runs the callable inline after a
+  `py::gil_scoped_release`;
+- otherwise it sets up a `std::promise`/`std::future`, releases the GIL, posts the callable with
+  `GUI::wxGetApp().CallAfter`, and blocks on `future.get()`.
 
-`PluginHostUi::post_to_ui_thread(fn)` posts work to the UI thread without blocking (returns false when
-the application is not initialized); `require_ui_application()` fails synchronously so an awaitable
-entry point can reject before touching asyncio.
+Because the Script capability owns a worker thread, blocking there does not freeze the UI. The same
+primitive is used by `begin_update()`, `set()`/`commit()`, `reload_local_bundle()` and
+`list_bundle_ids()`.
 
-### Awaitable `begin_update()`
+### Synchronous `begin_update()`
 
-`begin_update()` is a real awaitable. `begin_preset_update_async` and `begin_filament_update_async`
-(`src/slic3r/plugin/host/PluginHostPresets.cpp`) run on the plugin worker with the GIL held and a
-running loop:
+`begin_preset_update` and `begin_filament_update` (`src/slic3r/plugin/host/PluginHostPresets.cpp`) run
+on the Script worker with the GIL held and block it:
 
-1. validate the application synchronously (`require_ui_application()`), so a call without a wx app
-   fails exactly like `update()`;
-2. create an `AsyncFuture` on the running loop and register it with
-   `PluginHostUi::track_pending_async(handle)`;
-3. post the selection to the UI thread with `PluginHostUi::post_to_ui_thread`;
-4. return the Future at once.
+1. the binding enters through `PluginHostUi::run_on_ui_thread`, which fails with a `RuntimeError`
+   before posting when there is no wx application;
+2. the UI thread runs the target binding with the GIL released — `bind_preset_target` for
+   process/printer, `bind_filament_target` for filament — including `Tab::select_preset()` and any
+   unsaved-edit prompt;
+3. the worker resumes with the name-based `PresetTransaction`, and nothing is staged until the
+   caller's later `set()`/`commit()`.
 
-The UI callback first skips the selection entirely when `handle->is_cancelled()`, then runs the
-target binding with the GIL released — `bind_preset_target` for process/printer, `bind_filament_target`
-for filament — passing a `CancelProbe` that also reads `handle->is_cancelled()`. It reuses the normal
-selection flow `Tab::select_preset()`, including the unsaved-edit prompt. On success it resolves the
-Future with the name-based `PresetTransaction`; on failure it fails the Future with the mapped Python
-exception. Nothing is staged until the caller's later `set()`/`commit()`. An unavailable target is
-rejected before selection and changes no preset. If the user declines selection, decisions already
-accepted in an earlier dialog are not rolled back. Coroutine cancellation does not undo an accepted
-preset selection; for filament, slot reassignment is skipped when cancellation is observed before the
-mapping check, but may remain if cancellation arrives after that check, even when no transaction is
-delivered. No GUI or preset pointer crosses the suspension — the awaitable holds only copied
-category/name/slot values.
+An unavailable target is rejected before selection and changes no preset. A selection the user
+declines raises `RuntimeError` and creates no transaction; decisions already accepted in an earlier
+dialog are not rolled back. No GUI or preset pointer outlives the call: the transaction holds only
+copied category/name/slot values.
 
 `set()` stages a serialized value without mutating the preset, and `commit()` applies the batch
-through `Tab::apply_preset_config_values` on the UI thread; both are synchronous and, per their
-bindings, valid only on the background Script worker (they call `PluginHostUi::run_on_ui_thread`,
-which blocks the worker, or runs inline if entered from the UI thread).
+through `Tab::apply_preset_config_values` on the UI thread. Both are synchronous and, per their
+bindings, valid only on the background Script worker.
 
-### Cancellation and accepted-selection boundary
-
-Two distinct cancellations exist:
-
-- **User declined the selection** — `Tab::select_preset()` returned false. `bind_*_target` throws
-  `SelectionCancelled`, which the awaitable path maps to `orca.host.preset.PresetSelectionCancelled`
-  (a `RuntimeError` subclass). The synchronous `update()` path keeps raising plain `RuntimeError`.
-- **The awaiting coroutine was cancelled** — task cancellation or plugin unload. `AsyncFuture`
-  observes this two ways: the loop-thread done-callback sets an atomic, and `is_cancelled()` also
-  reads the Future's own `cancelled()` under the GIL (see above). `bind_*_target` checks its
-  `CancelProbe` after `select_preset()` returns and after the modal-free paths, throwing
-  `SelectionAbandoned`; the outcome is dropped because the handle is cancelled/abandoned, so the
-  coroutine sees `asyncio.CancelledError`. A queued selection never starts.
+### Cancellation
 
 `ScriptAsyncRuntime::cancel_plugin(plugin_key)` sets `cancel_requested` on every active run for the
 plugin and, when a loop is live (`has_loop`), cancels the task with
 `loop.call_soon_threadsafe(task.cancel)` while holding the GIL. A synchronous `def execute`
 invocation has no loop, so only the flag is set (checked before the run starts).
 
-The accepted-selection boundary is deliberate and cannot be fully enforced once the UI flow has
-begun:
-
-- A selection the user already accepted — including any unsaved-edit dialog decision and the switch
-  itself — is a UI decision and is **not** reversed. A cancellation that lands after the modal has
-  been answered leaves that accepted selection in place.
-- Cancellation only skips the remaining work. In the filament path, the slot assignment and the
-  transaction creation are skipped only when the cancellation is observed **before** the slot mapping
-  (`bind_filament_target` checks the `CancelProbe` immediately before it reassigns the slot); the
-  transaction is likewise skipped when cancellation is observed before it is created.
-- A narrow window remains where a cancellation and the operation's start race: if the cancel lands
-  just as the UI callback begins, the selection may still start. Whichever side wins, the coroutine
-  observes `asyncio.CancelledError`, never a plugin error.
-
-A finished `commit()` is unaffected by a later cancellation.
+A task cancellation cannot interrupt a blocking `begin_update()` native call: the worker is inside
+that call, so the loop does not run the scheduled `task.cancel()` until the selection settles and the
+call returns. The transaction is therefore delivered, and any accepted UI selection stands; the
+cancellation is observed at the coroutine's next suspension point. A user-declined selection is an
+ordinary `RuntimeError`, not `asyncio.CancelledError`.
 
 A plugin's own `asyncio.CancelledError` is treated as a cancellation only when `cancel_requested` was
 set; otherwise it stays a genuine error (see `run_invocation`), so a plugin that cancels its own task
@@ -240,22 +200,18 @@ does not masquerade as an unload cancellation.
 ### Unload and shutdown drain
 
 Unloading or shutting down must guarantee that no plugin Python code runs after its module is
-unloaded, and that a posted UI selection cannot mutate presets after teardown.
+unloaded, and that a blocking UI selection cannot mutate presets after teardown.
 
-- `PluginManager::unload_plugin` and `unload_all_plugins` call
-  `PluginHostUi::abandon_pending_async(plugin_key)` first, so the earliest possible UI callback
-  cannot resume the plugin's coroutine into a run that is being cancelled.
 - `PluginManager::cancel_and_wait_for_capabilities` calls `on_cancelled()` first (so the plugin can
   observe state while the run is intact), then `ScriptAsyncRuntime::cancel_plugin`, then drains.
-  The drain is **unbounded while a Script invocation worker or a posted host UI callback for the
-  plugin is outstanding** — its loop-exit condition is `all_released && !invocation_active &&
-  !ui_pending`. `has_active_run()` distinguishes a run that was cancelled before it started from one
-  whose worker is still live; `pending_async_count()` counts posted UI callbacks whose weak
-  registration has not expired. On the GUI thread the drain pumps `wxYield()` so a posted callback
-  (possibly a modal) can settle instead of being starved by the blocking wait. Only the non-Script
-  path keeps the historical bounded 2-second grace: when neither an invocation nor a UI callback is
-  pending, the drain stops waiting for capability references at the grace deadline and logs any
-  remaining ones.
+  The drain is **unbounded while a Script invocation worker is outstanding** — its loop-exit
+  condition is `all_released && !invocation_active`. `has_active_run()` distinguishes a run that was
+  cancelled before it started from one whose worker is still live, and a worker blocked in
+  `begin_update()` keeps the run active until its UI callback returns. On the GUI thread the drain
+  pumps `wxYield()` so a modal selection can settle instead of being starved by the blocking wait.
+  Only the non-Script path keeps the historical bounded 2-second grace: when no invocation is active,
+  the drain stops waiting for capability references at the grace deadline and logs any remaining
+  ones.
 - `PluginManager::shutdown` detaches the libslic3r hooks (`plugin_hooks::uninstall`), stops new
   loads, waits for in-flight loads, unloads every plugin (draining the async runs above), then calls
   `ScriptAsyncRuntime::instance().shutdown()`, which refuses new runs and waits without a deadline
@@ -286,12 +242,11 @@ self-cancelled plugin still records its failure.
   return immediately and report the outcome later (see Examples).
 - **Never call `orca.host.ui.*` from a slicing hook.** The slicing worker runs while the UI thread
   can be parked on it.
-- **Resolve an awaitable's Future only with `loop.call_soon_threadsafe`.** `AsyncFuture::complete`/
-  `fail` do this; the UI thread never touches the loop or the Future directly.
-- **Create host awaitables only on the worker with a running loop.** `AsyncFuture::create()` binds
-  `asyncio.get_running_loop()`; `begin_update()`'s binding requires this.
-- **No pointer crosses a suspension.** Awaitables carry copied values; the `SlicingPipelineContext`
-  graph is valid only within one synchronous `execute(ctx)`.
+- **Marshal host UI work from the Script worker only.** `PluginHostUi::run_on_ui_thread` blocks the
+  calling worker while the UI thread runs the callback; calling it from the UI thread itself would
+  deadlock the marshalling path.
+- **No pointer crosses a call boundary.** `begin_update()` returns copied category/name/slot values;
+  the `SlicingPipelineContext` graph is valid only within one synchronous `execute(ctx)`.
 
 ## File and symbol map
 
@@ -314,20 +269,17 @@ Lifetime and GIL primitives:
 - `src/slic3r/plugin/PluginAuditManager.hpp` / `.cpp` — `ScopedPluginAuditContext`,
   `request_filesystem_read_permissions`, `request_permission` (fail-closed off the main thread).
 
-UI suspension and lifecycle tracking:
+UI marshalling:
 
-- `src/slic3r/plugin/host/PluginHostUi.hpp` / `.cpp` — `AsyncFuture` (`create`, `complete`, `fail`,
-  `abandon`, `is_cancelled`), `make_future_resolver`, `make_cancellation_watcher`,
-  `PluginHostUi::post_to_ui_thread`, `require_ui_application`, `track_pending_async`,
-  `abandon_pending_async`, `pending_async_count`, `run_on_ui_thread`/`run_on_ui_blocking`.
+- `src/slic3r/plugin/host/PluginHostUi.hpp` / `.cpp` — `PluginHostUi::run_on_ui_thread`, the
+  file-local `run_on_ui_blocking`, and `close_windows_for_plugin`.
 - `GUI::wxGetApp().CallAfter` — the post-to-UI-thread primitive.
 
 Preset targets:
 
 - `src/slic3r/plugin/host/PluginHostPresets.cpp` — `PresetEditor`, `PresetTransaction`,
-  `bind_preset_target`, `bind_filament_target`, `begin_preset_update_async`,
-  `begin_filament_update_async`, `PresetSelectionCancelled`, `SelectionCancelled`,
-  `SelectionAbandoned`, `CancelProbe`, `resolve_combo_preset`/`resolve_preset_in_combo`.
+  `bind_preset_target`, `bind_filament_target`, `begin_preset_update`, `begin_filament_update`,
+  `SelectionCancelled`, `resolve_combo_preset`/`resolve_preset_in_combo`.
 - `src/slic3r/GUI/Tab.hpp` / `.cpp` — `Tab::select_preset`, `Tab::apply_preset_config_values`,
   `Tab::commit_preset_config_value`.
 
@@ -349,9 +301,9 @@ Unload/shutdown:
 
 ## Examples
 
-An `async def execute` that awaits a preset update. `execute` runs on the background Script worker
-with its own asyncio loop; `begin_update()` suspends the coroutine until any selection / unsaved-edit
-dialog is answered, without blocking the UI thread; `set()`/`commit()` run synchronously on the
+An `async def execute` that updates a preset. `execute` runs on the background Script worker with its
+own asyncio loop; `begin_update()` blocks that worker until any selection / unsaved-edit dialog is
+answered, without blocking the UI thread; `set()`/`commit()` then run synchronously on the same
 worker. This is the shape used by `sandboxes/orca_preset_transaction_demo.py`:
 
 ```python
@@ -365,9 +317,9 @@ class AutoTune(orca.script.ScriptPluginCapabilityBase):
         return "Auto tune"
 
     async def execute(self):
-        # begin_update() is awaitable: it resolves once the user answers any
+        # begin_update() blocks this worker until the user answers any
         # selection / unsaved-edit dialog. The UI thread stays responsive.
-        tx = await orca.host.preset.process.begin_update(preset_name="0.20mm Standard")
+        tx = orca.host.preset.process.begin_update(preset_name="0.20mm Standard")
         tx.set("layer_height", "0.2")
         tx.commit()
         return orca.ExecutionResult.success("process preset updated")
@@ -375,19 +327,20 @@ class AutoTune(orca.script.ScriptPluginCapabilityBase):
 
 The window-driven demo shows the same pattern where the plugin's own UI must hand work to the worker:
 `on_message` fires on the UI thread and only enqueues onto the worker loop with
-`loop.call_soon_threadsafe`; `execute` consumes that queue and awaits `begin_update()` per command.
+`loop.call_soon_threadsafe`; `execute` consumes that queue and calls `begin_update()` per command.
 
-Continuation sequence for one `await begin_update(...)`:
+Sequence for one `begin_update(...)`:
 
 ```text
 Script worker (owned, per invocation)        UI thread
   loop.run_until_complete(task)
-    await begin_update()  ─────────────────►  post_to_ui_thread
-    (suspended)                               bind_*_target →
-                                              Tab::select_preset() … dialog
-                                              settles
-    loop.call_soon_threadsafe(fut.set_result) ◄──── AsyncFuture::complete
-    coroutine resumes with PresetTransaction
+    begin_update()  ───────────────────────►  CallAfter(run_on_ui_blocking)
+    (blocked; not suspended)                   bind_*_target →
+                                               Tab::select_preset() … dialog
+                                               settles
+    promise set; worker resumes with PresetTransaction
+  set(); commit() (UI thread for the batch)
+  coroutine resumes at its next await
   execute() returns ExecutionResult
 ```
 

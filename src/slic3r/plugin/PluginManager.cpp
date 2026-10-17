@@ -16,10 +16,12 @@
 #include "PyPluginTrampoline.hpp"
 #include "PythonInterpreter.hpp"
 #include "PythonPluginBridge.hpp"
-#include "host/PluginHostUi.hpp"
 
 #include "OrcaCloudServiceAgent.hpp"
 #include "libslic3r/Semver.hpp"
+#include "pybind11/pytypes.h"
+#include "pybind11/gil.h"
+#include "pybind11/pybind11.h"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
@@ -769,8 +771,8 @@ void PluginManager::cancel_and_wait_for_capabilities(
 {
     // Ask the plugin to cancel first, then schedule the async cancellation: on_cancelled() can
     // observe/record state while the run is still intact, and only afterwards is its asyncio task
-    // cancelled. Draining of capability references and posted host UI callbacks still follows, so
-    // the module is not unloaded until both have settled.
+    // cancelled. Draining of capability references still follows, so the module is not unloaded
+    // until the run has settled.
     for (const auto& capability : capabilities) {
         if (!capability || !capability->is_enabled())
             continue;
@@ -791,30 +793,13 @@ void PluginManager::cancel_and_wait_for_capabilities(
             ScriptAsyncRuntime::instance().cancel_plugin(capability->audit_plugin_key());
     }
 
-    // Distinct plugins whose posted host UI work must settle before module unload. A Tab::select_preset
-    // dialog accepted while the plugin is being unloaded would otherwise mutate presets after unload,
-    // so the drain below waits for every posted UI callback to return, not just for the run's ref.
-    std::vector<std::string> plugin_keys;
-    for (const auto& capability : capabilities) {
-        if (!capability)
-            continue;
-        const std::string& key = capability->audit_plugin_key();
-        if (!key.empty() && std::find(plugin_keys.begin(), plugin_keys.end(), key) == plugin_keys.end())
-            plugin_keys.push_back(key);
-    }
-
-    const auto host_pending = [&plugin_keys]() {
-        return std::any_of(plugin_keys.begin(), plugin_keys.end(),
-                           [](const std::string& key) { return PluginHostUi::pending_async_count(key) > 0; });
-    };
-
     // Script rows are bounded only by their own worker: a cancelled or stalled invocation of another
-    // plugin can no longer couple to this one (each invocation owns a thread). A Script worker or a
-    // posted host UI callback is drained without a deadline — forcing module unload while either is
-    // outstanding would leave Python executing against a freed module, or apply a preset selection
-    // after the plugin is gone. Non-Script synchronous calls keep the historical bounded grace. On
-    // the GUI thread the event loop is pumped so the UI callback (possibly a modal) can settle
-    // instead of being starved by a blocking wait.
+    // plugin can no longer couple to this one (each invocation owns a thread). A Script worker is
+    // drained without a deadline — forcing module unload while one is outstanding would leave Python
+    // executing against a freed module, or let a blocking preset selection mutate presets after the
+    // plugin is gone. Non-Script synchronous calls keep the historical bounded grace. On the GUI
+    // thread the event loop is pumped so a modal selection can settle instead of being starved by a
+    // blocking wait.
     const auto grace_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
     for (;;) {
         const bool all_released = std::all_of(capabilities.begin(), capabilities.end(), [](const auto& capability) {
@@ -825,11 +810,10 @@ void PluginManager::cancel_and_wait_for_capabilities(
         const bool invocation_active = std::any_of(capabilities.begin(), capabilities.end(), [](const auto& capability) {
             return capability != nullptr && ScriptAsyncRuntime::instance().has_active_run(capability.get());
         });
-        const bool ui_pending = host_pending();
-        if (all_released && !invocation_active && !ui_pending)
+        if (all_released && !invocation_active)
             return;
 
-        if (!invocation_active && !ui_pending && std::chrono::steady_clock::now() >= grace_deadline)
+        if (!invocation_active && std::chrono::steady_clock::now() >= grace_deadline)
             break;
 
         if (wxTheApp != nullptr && wxIsMainThread())
@@ -1063,12 +1047,6 @@ void PluginManager::load_plugin_impl(const std::string& plugin_key, bool skip_de
 
 bool PluginManager::unload_plugin(const std::string& plugin_key)
 {
-    // Stop delivery from any posted host UI awaitable for this plugin before anything is torn down,
-    // so the earliest possible UI callback cannot resume the plugin's coroutine into a run that is
-    // already being cancelled. Registrations stay live so cancel_and_wait_for_capabilities() drains
-    // them; a Tab::select_preset dialog accepted after unload must not mutate presets post-teardown.
-    PluginHostUi::abandon_pending_async(plugin_key);
-
     auto notify_unload_complete = [this, &plugin_key]() {
         if (!m_shutting_down.load(std::memory_order_acquire))
             run_on_unload_callbacks(plugin_key);
@@ -1143,11 +1121,6 @@ void PluginManager::unload_all_plugins()
 
     // Bulk shutdown intentionally skips the normal unload notification path, but resources owned
     // by GUI subscribers still need to be torn down before the interpreter is finalized.
-    // Abandon posted host awaitables first, so a late UI callback cannot resolve into a plugin
-    // whose module is about to go; they stay tracked for cancel_and_wait_for_capabilities() below.
-    for (const std::string& key : removed_keys)
-        PluginHostUi::abandon_pending_async(key);
-
     for (const std::string& key : removed_keys)
         run_on_unload_callbacks(key);
 
