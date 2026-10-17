@@ -2659,6 +2659,7 @@ bool DesignSketchTool::try_add_constraints(const std::vector<SketchEntityConstra
     const size_t mark = m_constraints.size();
     for (const auto& c : cands) m_constraints.push_back(c);
     if (solve_sketch_entities(m_entities, m_constraints)) {
+        resolve_live();                         // refresh dof / solve state, or dof() reports the sketch before this batch
         if (on_constraints_changed) on_constraints_changed();
         return true;
     }

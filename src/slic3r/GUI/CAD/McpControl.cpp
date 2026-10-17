@@ -33,6 +33,11 @@
 #include <Standard_Failure.hxx>   // OCCT base error
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
+#include <wx/dcscreen.h>
+#include <wx/dcmemory.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/CAD/DesignPanel.hpp"
 #include "slic3r/GUI/CAD/DesignCanvas.hpp"
@@ -120,7 +125,18 @@ std::string rpc_error(const json& id, int code, const std::string& msg)
 
 // --- the three slice-1 methods (run on the wx MAIN thread) ---------------------
 
-json describe_tools()
+// Methods that never change the design (they may still write a file). The busy check lets these through while a
+// card or sketch owns the tab, and describe_tools reports them as readOnly so a client need not guess.
+bool read_only_method(const std::string& m)
+{
+    static const std::set<std::string> k = {
+        "describe_tools", "describe_scene", "query_topology", "measure", "mass_properties",
+        "slice_body", "validate_against", "list_verbs", "sketch_describe", "sketch_validate",
+        "check_interference", "inspect_design", "export", "save", "screenshot" };
+    return k.count(m) > 0;
+}
+
+json describe_tools_core()
 {
     // Hand-written descriptor. The bridge turns this into MCP tool schemas; later
     // slices grow this list (ideally from the kernel directly).
@@ -500,6 +516,68 @@ json describe_scene(DesignPanel* panel)
 inline json vec3(const Vec3d& v) { return json::array({v.x(), v.y(), v.z()}); }
 
 // Shared Build helpers.
+// Compact descriptors for the methods the hand-written core above does not list. {name, type, description}.
+struct P { const char* n; const char* t; const char* d; };
+json compact_tool(const char* name, const char* summary, std::initializer_list<P> ps)
+{
+    json a = json::array();
+    for (const P& p : ps) a.push_back(json{{"name", p.n}, {"type", p.t}, {"description", p.d}});
+    return json{{"name", name}, {"summary", summary}, {"params", a}};
+}
+
+json describe_tools()
+{
+    json out = describe_tools_core();
+    json& tools = out["tools"];
+    const P kEnt{"entities", "array", "[{type:line|circle|arc|ellipse|spline|point, ...}] or indices of existing entities"};
+    for (json& t : std::vector<json>{
+        compact_tool("sketch_begin", "Open a sketch on a plane (XY, XZ, YZ or datum:N). Only one sketch is open at a time.", {{"plane", "string", "XY|XZ|YZ|datum:N"}}),
+        compact_tool("sketch_add", "Add entities to the open sketch. Auto-inferred exact relations (coincident joints, H/V, origin) unless infer:false.", {
+            {"entities", "array", "[{type:line,p0,p1}|{type:circle,center,radius}|{type:arc,center,radius,start_angle,end_angle}|{type:point,p}...]"},
+            {"type", "string", "single-entity shorthand"}, {"rect", "array", "[x0,y0,x1,y1] rectangle shorthand"},
+            {"construction", "boolean", "add as construction geometry"}, {"infer", "boolean", "default true; false adds geometry only, so your own constraints are not rejected as redundant"}}),
+        compact_tool("sketch_commit", "Close the open sketch into a Sketch feature; returns sketch_index, to hand to extrude/revolve/sweep/loft.", {}),
+        compact_tool("sketch_cancel", "Discard the open sketch.", {}),
+        compact_tool("sketch_select", "Select sketch entities by index.", {kEnt}),
+        compact_tool("sketch_delete", "Delete the selected (or given) sketch entities.", {kEnt}),
+        compact_tool("sketch_construction", "Toggle construction on the selected (or given) entities.", {kEnt}),
+        compact_tool("sketch_offset", "Offset the selected entities by a distance.", {{"distance", "number", "mm, signed"}}),
+        compact_tool("sketch_mirror", "Mirror the selected entities about a line entity.", {{"axis", "integer", "line entity index to mirror about"}}),
+        compact_tool("sketch_describe", "Entities, constraints, degrees of freedom and solve state of the open sketch.", {}),
+        compact_tool("sketch_validate", "Check the open sketch for open loops / overlaps before it is used as a profile.", {}),
+        compact_tool("sketch_heal", "Repair small gaps and duplicate entities in the open sketch.", {}),
+        compact_tool("sketch_set_value", "Set the dimension of the current selection (line length, radius, distance between two entities).", {{"value", "number", "mm or degrees"}}),
+        compact_tool("list_verbs", "The GUI's tool vocabulary: every verb with its enabled state for the current selection.", {{"applicable_only", "boolean", "hide verbs that do not apply"}}),
+        compact_tool("run_verb", "Fire a GUI tool verb as the toolbar would. Opens its card, so it is not batchable.", {{"verb", "string", "verb id from list_verbs"}}),
+        compact_tool("set_variable", "Create or change a named variable (expression, units-free mm).", {{"name", "string", ""}, {"expr", "string", "number or expression"}}),
+        compact_tool("set_feature_expr", "Bind a feature field to an expression and recompute.", {{"feature", "integer", "feature index"}, {"field", "string", "field name"}, {"expr", "string", ""}}),
+        compact_tool("sweep", "Sweep a profile sketch along a path sketch.", {{"profile", "integer", "Sketch feature index"}, {"path", "integer", "Sketch feature index"}, {"boolean", "string", "new|union|subtract|intersect"}}),
+        compact_tool("loft", "Loft through two or more profile sketches, in order.", {{"profiles", "array", "[Sketch feature index,...]"}, {"ruled", "boolean", "straight (ruled) instead of smooth"}, {"boolean", "string", "new|union|subtract|intersect"}}),
+        compact_tool("thread", "Helical thread about the plane normal at (x,y): external adds material to the last body, internal cuts it.", {
+            {"radius", "number", "major radius, mm"}, {"pitch", "number", "mm per turn"}, {"height", "number", "axial length"}, {"depth", "number", "radial depth"},
+            {"internal", "boolean", ""}, {"x", "number", ""}, {"y", "number", ""}, {"plane", "string", "XY|XZ|YZ"}}),
+        compact_tool("cut", "Trim a body by a plane (split by plane).", {{"plane", "string", "XY|XZ|YZ"}, {"offset", "number", "mm along the plane normal"}, {"flip", "boolean", ""},
+            {"keep", "string", "upper|lower|both (both splits into two bodies)"}, {"body", "integer", "default last"}}),
+        compact_tool("surface_fill", "Fill a closed sketch boundary with a smooth sheet face.", {{"sketch", "integer", "Sketch feature index"}}),
+        compact_tool("surface_loft", "Skin two or more profile sketches into an open sheet.", {{"profiles", "array", "[Sketch feature index,...]"}, {"ruled", "boolean", ""}}),
+        compact_tool("surface_offset", "Offset the last sheet body.", {{"offset", "number", "signed mm"}}),
+        compact_tool("thicken_surface", "Thicken the last sheet body into a solid.", {{"thickness", "number", "mm"}, {"flip", "boolean", ""}}),
+        compact_tool("save", "Save the project (the design recipe travels inside the 3MF) to an absolute .3mf path under $HOME or /tmp.", {{"path", "string", ""}}),
+        compact_tool("open", "Open a .3mf project, replacing the current one. Refused while it has unsaved changes unless discard:true. Applied on the next UI turn.", {{"path", "string", ""}, {"discard", "boolean", ""}}),
+        compact_tool("screenshot", "PNG of the design viewport (X11 screen read-back; the window must be visible).", {{"path", "string", "absolute .png under $HOME or /tmp"}, {"view", "string", "iso|top|front|... applied first"}, {"fit", "boolean", "fit the view first"}}),
+    }) {
+        bool dup = false;
+        for (const json& e : tools) dup = dup || e["name"] == t["name"];
+        if (!dup) tools.push_back(std::move(t));
+    }
+    for (json& t : tools) {   // MCP annotations
+        const bool ro = read_only_method(t["name"].get<std::string>());
+        t["readOnly"] = ro;
+        t["destructive"] = !ro && (t["name"] == "open" || t["name"] == "new_document");
+    }
+    return out;
+}
+
 SketchPlane plane_from(const json& params, const CadDocument& doc)
 {
     std::string n = params.value("plane", std::string("XY"));
@@ -1002,8 +1080,18 @@ json action_hole(DesignPanel* panel, const json& params)
     CadDocument& doc = panel->mcp_doc();
     if (doc.bodies.empty()) throw std::runtime_error("no body to drill");
     SketchPlane pl = plane_from(params, doc);
+    std::vector<std::pair<double, double>> pts;   // `points` [[x,y],...] = one hole each, one undo step; else the single x,y
+    if (params.contains("points")) {
+        if (!params["points"].is_array() || params["points"].empty()) throw std::runtime_error("'points' must be a non-empty [[x,y],...]");
+        if (params["points"].size() > 500) throw std::runtime_error("at most 500 hole points per call");
+        for (const json& p : params["points"]) {
+            if (!p.is_array() || p.size() != 2 || !p[0].is_number() || !p[1].is_number()) throw std::runtime_error("each point must be [x, y]");
+            pts.emplace_back(p[0].get<double>(), p[1].get<double>());
+        }
+    } else pts.emplace_back(x, y);
     doc.checkpoint();
-    int h = doc.add_hole(dia, depth, thru, x, y, pl, "Hole");
+    int h = -1;
+    for (const auto& p : pts) h = doc.add_hole(dia, depth, thru, p.first, p.second, pl, "Hole");
     bool ok = doc.recompute();
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
     panel->mcp_after_change();
@@ -2362,6 +2450,132 @@ json action_export(DesignPanel* panel, const json& params)
     return json{{"ok", ok}, {"path", path}, {"bodies", int(doc.bodies.size())}, {"error", err}};
 }
 
+// ---- sweep / loft / thread / cut -----------------------------------------------------------------------------
+// A Sketch feature index in params[key], checked before any checkpoint.
+int sketch_index_at(const json& v, const CadDocument& doc, const char* what)
+{
+    if (!v.is_number_integer()) throw std::runtime_error(std::string(what) + " must be a Sketch feature index (sketch_commit returns it as sketch_index)");
+    const int s = v.get<int>();
+    if (s < 0 || s >= int(doc.features.size()) || doc.features[s].type != CadFeatureType::Sketch)
+        throw std::runtime_error(std::string(what) + " must be the index of a Sketch feature");
+    return s;
+}
+
+// Run the just-added feature; on failure drop it (undo) and keep the reason.
+json finish_feature(DesignPanel* panel, CadDocument& doc, json out)
+{
+    const bool ok = doc.recompute();
+    if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
+    panel->mcp_after_change();
+    out["ok"] = ok; out["bodies"] = int(doc.bodies.size()); out["error"] = doc.error;
+    return out;
+}
+
+// {profile:<sketch idx>, path:<sketch idx>, boolean}
+json action_sweep(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    if (!params.contains("profile") || !params.contains("path")) throw std::runtime_error("sweep needs 'profile' and 'path' (Sketch feature indices)");
+    const int pr = sketch_index_at(params["profile"], doc, "'profile'"), pa = sketch_index_at(params["path"], doc, "'path'");
+    doc.checkpoint();
+    const int i = doc.add_sweep(pr, pa, bool_from(params.value("boolean", std::string("new"))), "Sweep");
+    return finish_feature(panel, doc, json{{"sweep_index", i}});
+}
+
+// {profiles:[<sketch idx>,...] (>=2, in order), ruled, boolean}
+json action_loft(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    if (!params.contains("profiles") || !params["profiles"].is_array() || params["profiles"].size() < 2)
+        throw std::runtime_error("loft needs 'profiles': at least two Sketch feature indices, in order");
+    std::vector<int> refs;
+    for (const json& v : params["profiles"]) refs.push_back(sketch_index_at(v, doc, "each 'profiles' entry"));
+    doc.checkpoint();
+    const int i = doc.add_loft(refs, params.value("ruled", false), bool_from(params.value("boolean", std::string("new"))), "Loft");
+    return finish_feature(panel, doc, json{{"loft_index", i}});
+}
+
+// {radius (major), pitch, height, depth, internal, x, y, plane}
+json action_thread(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    if (doc.bodies.empty()) throw std::runtime_error("no body to thread");
+    const double r = params.value("radius", 5.0), pitch = params.value("pitch", 2.0), h = params.value("height", 10.0), d = params.value("depth", 1.0);
+    if (r <= 0 || pitch <= 0 || h <= 0 || d <= 0) throw std::runtime_error("radius, pitch, height and depth must be > 0");
+    SketchPlane pl = plane_from(params, doc);
+    doc.checkpoint();
+    const int i = doc.add_thread(r, pitch, h, d, params.value("internal", false), params.value("x", 0.0), params.value("y", 0.0), pl, "Thread");
+    doc.features[i].thread_major_nominal = true;
+    return finish_feature(panel, doc, json{{"thread_index", i}});
+}
+
+// {plane, offset, flip, keep: "upper"|"lower"|"both", body}: trim a body by a plane (Onshape split by plane).
+json action_cut(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    if (doc.bodies.empty()) throw std::runtime_error("no body to cut");
+    const std::string keep = params.value("keep", std::string("upper"));
+    if (keep != "upper" && keep != "lower" && keep != "both") throw std::runtime_error("keep must be upper, lower or both");
+    SketchPlane pl = plane_from(params, doc);
+    const int bi = target_body_arg(params, doc);
+    doc.checkpoint();
+    const int i = doc.add_cut(pl, params.value("offset", 0.0), params.value("flip", false), keep != "lower", keep != "upper", bi, "Cut");
+    return finish_feature(panel, doc, json{{"cut_index", i}});
+}
+
+// ---- save / open / screenshot ----------------------------------------------------------------------------------
+// The recipe travels inside the project 3MF, so saving the project saves the design.
+json action_save(DesignPanel*, const json& params)
+{
+    const std::string path = checked_out_path(params, "save");
+    if (boost::algorithm::to_lower_copy(boost::filesystem::path(path).extension().string()) != ".3mf") throw std::runtime_error("path must end in .3mf");
+    const int rc = wxGetApp().plater()->export_3mf(path);
+    return json{{"ok", rc == 0}, {"path", path}, {"error", rc == 0 ? std::string() : "export_3mf returned " + std::to_string(rc)}};
+}
+
+// Replaces the open project. Refused while it has unsaved changes unless discard:true, because the app would ask.
+json action_open(DesignPanel*, const json& params)
+{
+    const std::string raw = params.value("path", std::string());
+    if (raw.empty()) throw std::runtime_error("open needs 'path'");
+    boost::system::error_code ec;
+    const boost::filesystem::path p = boost::filesystem::canonical(raw, ec);
+    const char* home = std::getenv("HOME");
+    const std::string d = p.parent_path().string();
+    auto under = [&](const std::string& root) { return !root.empty() && (d == root || d.rfind(root + "/", 0) == 0); };
+    if (ec || !boost::filesystem::is_regular_file(p)) throw std::runtime_error("no such file: " + raw);
+    if (!under("/tmp") && !under(home ? home : "")) throw std::runtime_error("path must be under $HOME or /tmp");
+    if (boost::algorithm::to_lower_copy(p.extension().string()) != ".3mf") throw std::runtime_error("only .3mf projects can be opened");
+    Plater* pl = wxGetApp().plater();
+    if (pl->is_project_dirty()) {
+        if (!params.value("discard", false)) throw std::runtime_error("the open project has unsaved changes: save first, or pass discard:true");
+        pl->reset_project_dirty_after_save();
+    }
+    wxGetApp().CallAfter([pl, p]() { pl->load_project(wxString::FromUTF8(p.string())); });   // may rebuild the panel: not inline
+    return json{{"ok", true}, {"path", p.string()}, {"dispatched", true}};
+}
+
+// PNG of the design viewport, read back from the screen. ponytail: X11 only (a Wayland compositor returns black);
+// the window must be visible. Camera control: `view` (iso/top/front/...) and `fit`.
+json action_screenshot(DesignPanel* panel, const json& params)
+{
+    DesignCanvas* v = panel->mcp_viewport();
+    if (params.contains("view")) v->set_view(params["view"].get<std::string>());
+    if (params.value("fit", false)) v->fit_view();
+    v->Refresh(); v->Update();
+    const std::string path = checked_out_path(params, "screenshot");
+    const wxSize sz = v->GetClientSize();
+    if (sz.x < 8 || sz.y < 8) throw std::runtime_error("the design viewport is not visible");
+    wxScreenDC sdc;
+    wxBitmap bmp(sz.x, sz.y);
+    wxMemoryDC mdc(bmp);
+    const wxPoint o = v->ClientToScreen(wxPoint(0, 0));
+    mdc.Blit(0, 0, sz.x, sz.y, &sdc, o.x, o.y);
+    mdc.SelectObject(wxNullBitmap);
+    const bool ok = bmp.ConvertToImage().SaveFile(wxString::FromUTF8(path), wxBITMAP_TYPE_PNG);
+    return json{{"ok", ok}, {"path", path}, {"width", sz.x}, {"height", sz.y}, {"error", ok ? std::string() : "could not write the PNG"}};
+}
+
 // ---- undo / redo / inspect_design / batch ----------------------------------------------------------------
 struct MethodNotFound {};
 json        call_method(DesignPanel* panel, const std::string& method, const json& params);   // below
@@ -2510,6 +2724,13 @@ json call_method(DesignPanel* panel, const std::string& method, const json& para
     if (method == "ui_option")      return action_ui_option(panel, params);
     if (method == "sketch_constrain") return action_sketch_constrain(panel, params);
     if (method == "export")         return action_export(panel, params);
+    if (method == "sweep")          return action_sweep(panel, params);
+    if (method == "loft")           return action_loft(panel, params);
+    if (method == "thread")         return action_thread(panel, params);
+    if (method == "cut")            return action_cut(panel, params);
+    if (method == "save")           return action_save(panel, params);
+    if (method == "open")           return action_open(panel, params);
+    if (method == "screenshot")     return action_screenshot(panel, params);
     if (method == "undo")           return action_undo(panel, params);
     if (method == "redo")           return action_redo(panel, params);
     if (method == "inspect_design") return action_inspect_design(panel, params);
@@ -2538,11 +2759,7 @@ json call_method(DesignPanel* panel, const std::string& method, const json& para
 // progress (the GUI's worker thread holds the document then).
 std::string refuse_reason(DesignPanel* panel, const std::string& method)
 {
-    static const std::set<std::string> kReadOnly = {
-        "describe_tools", "describe_scene", "query_topology", "measure", "mass_properties",
-        "slice_body", "validate_against", "list_verbs", "sketch_describe", "sketch_validate",
-        "check_interference", "inspect_design", "export" };
-    if (kReadOnly.count(method)) return "";
+    if (read_only_method(method)) return "";
     std::string why;
     return panel->mcp_busy(method.rfind("sketch_", 0) == 0, why) ? "Design tab busy: " + why : std::string();
 }
