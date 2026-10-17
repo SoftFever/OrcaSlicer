@@ -2,6 +2,7 @@
 #define __MOONRAKER_PRINTER_AGENT_HPP__
 
 #include "IPrinterAgent.hpp"
+#include "AFCMapping.hpp"
 #include "bambu_networking.hpp"
 
 #include <functional>
@@ -69,6 +70,8 @@ public:
     // Pull-mode agent (on-demand filament sync)
     FilamentSyncMode get_filament_sync_mode() const override { return FilamentSyncMode::pull; }
     bool fetch_filament_info(std::string dev_id, FilamentSyncMode sync_mode = FilamentSyncMode::pull) override;
+    bool prepare_print_mapping(const std::string& mapping, std::string& info, std::string& error) const override;
+    void set_gcode_path(PrintParams& params, const std::string& path) const override { params.dst_file = path; }
 
 protected:
     struct MoonrakerDeviceInfo
@@ -125,7 +128,6 @@ private:
 
     bool fetch_object_list(const std::string& base_url, const std::string& api_key, std::set<std::string>& objects, std::string& error) const;
     bool query_printer_status(const std::string& base_url, const std::string& api_key, nlohmann::json& status, std::string& error) const;
-    bool send_gcode_sync(const std::string& dev_id, const std::string& gcode) const;
     void send_gcode_async(const std::string& dev_id, const std::string& gcode,
                           std::function<void(bool)> on_result = {}) const;
 
@@ -145,10 +147,9 @@ private:
     int resume_print(const std::string& dev_id);
     int cancel_print(const std::string& dev_id);
 
-    // File upload
-    bool upload_gcode(const std::string& local_path, const std::string& filename,
-                      const std::string& base_url, const std::string& api_key,
-                      OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+    // Shared print-host workflow, with agent progress/cancellation callbacks.
+    int send_gcode(PrintParams params, bool start_print, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn);
+    AFCMapping afc_snapshot;
 
     // JSON-RPC helper
     bool send_jsonrpc_command(const std::string& base_url, const std::string& api_key,
@@ -206,7 +207,7 @@ private:
     // Connection thread management
     std::atomic<uint64_t>  connect_generation{0};
     std::thread            connect_thread;
-    std::recursive_mutex   connect_mutex;
+    std::recursive_mutex connect_mutex;
 };
 
 } // namespace Slic3r

@@ -1,4 +1,5 @@
 #include "PrintHostDialogs.hpp"
+#include "../Utils/AFCMapping.hpp"
 
 #include <algorithm>
 #include <boost/algorithm/string/trim.hpp>
@@ -27,6 +28,7 @@
 #include <wx/arrstr.h>
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 #include <map>
+#include <set>
 #include <string>
 #include <wx/busycursor.h>
 #include <wx/dialog.h>
@@ -106,16 +108,43 @@ long long color_distance_sq(const wxColour& lhs, const wxColour& rhs)
     return dr * dr + dg * dg + db * db;
 }
 
-class FlashforgeSlotCard : public wxPanel
+// Shared view for the Flashforge and AFC mapping controls; printer identifiers
+// remain in their host adapters, while these widgets only select a displayed slot.
+struct MaterialMappingSlot {
+    int slot_id {0};
+    bool has_filament {false};
+    std::string material_name;
+    std::string material_color;
+    std::string display_name;
+};
+
+std::vector<MaterialMappingSlot> flashforge_mapping_slots(const std::vector<FlashforgeMaterialSlot>& slots)
+{
+    std::vector<MaterialMappingSlot> result;
+    for (int id = 1; id <= 4; ++id) {
+        MaterialMappingSlot view;
+        view.slot_id = id;
+        const auto slot = std::find_if(slots.begin(), slots.end(), [id](const auto& item) { return item.slot_id == id; });
+        if (slot != slots.end()) {
+            view.has_filament = slot->has_filament;
+            view.material_name = slot->material_name;
+            view.material_color = slot->material_color;
+        }
+        result.push_back(std::move(view));
+    }
+    return result;
+}
+
+class MaterialSlotCard : public wxPanel
 {
 public:
-    FlashforgeSlotCard(wxWindow* parent)
+    MaterialSlotCard(wxWindow* parent)
         : wxPanel(parent, wxID_ANY)
     {
         SetDoubleBuffered(true);
         SetMinSize(wxSize(FromDIP(68), FromDIP(92)));
         SetMaxSize(GetMinSize());
-        Bind(wxEVT_PAINT, &FlashforgeSlotCard::on_paint, this);
+        Bind(wxEVT_PAINT, &MaterialSlotCard::on_paint, this);
         Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
             m_hover = true;
             SetCursor(wxCursor(m_enabled ? wxCURSOR_HAND : wxCURSOR_NO_ENTRY));
@@ -128,12 +157,18 @@ public:
             Refresh();
             e.Skip();
         });
-        Bind(wxEVT_LEFT_DOWN, &FlashforgeSlotCard::on_left_down, this);
+        Bind(wxEVT_LEFT_DOWN, &MaterialSlotCard::on_left_down, this);
     }
 
-    void set_slot(const Slic3r::FlashforgeMaterialSlot& slot, bool enabled)
+    void set_slot(const MaterialMappingSlot& slot, bool enabled)
     {
         m_slot_id  = slot.slot_id;
+        m_display_name = slot.display_name;
+        const wxSize size(FromDIP(slot.display_name.empty() ? 68 : 112), FromDIP(92));
+        SetMinSize(size);
+        SetMaxSize(size);
+        if (!slot.display_name.empty())
+            SetToolTip(from_u8(slot.display_name));
         m_color    = parse_color(slot.material_color);
         m_name     = slot.material_name.empty() ? _L("Unknown") : from_u8(slot.material_name);
         m_empty    = !slot.has_filament;
@@ -184,14 +219,21 @@ private:
         const wxColour body_border  = m_enabled ? wxSystemSettings::GetColour(wxSYS_COLOUR_BTNSHADOW)
                                                 : wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT);
 
+        dc.SetFont(::Label::Body_13);
+        wxString slot_txt = m_display_name.empty() ? wxString::Format("%d", m_slot_id) : from_u8(m_display_name);
+        if (dc.GetTextExtent(slot_txt).x > size.x - FromDIP(12))
+            dc.SetFont(::Label::Body_10);
+        while (slot_txt.size() > 1 && dc.GetTextExtent(slot_txt).x > size.x - FromDIP(12))
+            slot_txt.RemoveLast();
+        const wxSize slot_size = dc.GetTextExtent(slot_txt);
+        const int badge_width = std::max(circle_size, slot_size.x + FromDIP(12));
         gc->SetPen(*wxTRANSPARENT_PEN);
         gc->SetBrush(wxBrush((m_hover && m_enabled) ? badge_color.ChangeLightness(130) : badge_color));
-        gc->DrawEllipse((size.x - circle_size) / 2.0, 0, circle_size, circle_size);
-
-        dc.SetFont(::Label::Body_13);
+        if (m_display_name.empty())
+            gc->DrawEllipse((size.x - circle_size) / 2.0, 0, circle_size, circle_size);
+        else
+            gc->DrawRoundedRectangle((size.x - badge_width) / 2.0, 0, badge_width, circle_size, circle_size / 2.0);
         dc.SetTextForeground(*wxWHITE);
-        const wxString slot_txt  = wxString::Format("%d", m_slot_id);
-        const wxSize   slot_size = dc.GetTextExtent(slot_txt);
         dc.DrawText(slot_txt, (size.x - slot_size.x) / 2, (circle_size - slot_size.y) / 2);
 
         const wxColour bg_color = m_empty ? wxColour("#F6F6F6") : m_color;
@@ -216,6 +258,7 @@ private:
 
 private:
     int      m_slot_id {0};
+    std::string m_display_name;
     wxColour m_color {*wxWHITE};
     wxString m_name;
     bool     m_empty {true};
@@ -223,10 +266,10 @@ private:
     bool     m_hover {false};
 };
 
-class FlashforgeSlotDialog : public DPIDialog
+class MaterialSlotDialog : public DPIDialog
 {
 public:
-    FlashforgeSlotDialog(wxWindow* parent, const wxString& material_name)
+    MaterialSlotDialog(wxWindow* parent, const wxString& material_name)
         : DPIDialog(parent, wxID_ANY, _L("Choose a slot for the selected color"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
         , m_material_name(material_name)
     {
@@ -238,7 +281,7 @@ public:
         title->SetFont(::Label::Head_13);
         root->Add(title, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(12));
 
-        m_grid = new wxGridSizer(1, 4, FromDIP(10), FromDIP(12));
+        m_grid = new wxGridSizer(0, 4, FromDIP(10), FromDIP(12));
         auto* grid_row = new wxBoxSizer(wxHORIZONTAL);
         grid_row->AddStretchSpacer();
         grid_row->Add(m_grid, 0);
@@ -249,19 +292,8 @@ public:
         tip->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT));
         root->Add(tip, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(12));
 
-        SetSizer(root);
         SetMinSize(wxSize(FromDIP(460), FromDIP(240)));
-
-        for (int i = 0; i < 4; ++i) {
-            auto* card = new FlashforgeSlotCard(this);
-            card->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
-                m_selected_slot_id = e.GetInt();
-                m_selected_color   = wxColour(e.GetString());
-                EndModal(wxID_OK);
-            });
-            m_cards.push_back(card);
-            m_grid->Add(card, 0);
-        }
+        SetSizerAndFit(root);
 
         wxGetApp().UpdateDlgDarkUI(this);
         Layout();
@@ -270,18 +302,24 @@ public:
         Refresh();
     }
 
-    void update_slots(const std::vector<Slic3r::FlashforgeMaterialSlot>& slots, const std::function<bool(const Slic3r::FlashforgeMaterialSlot&)>& matcher)
+    void update_slots(const std::vector<MaterialMappingSlot>& slots, const std::function<bool(const MaterialMappingSlot&)>& matcher)
     {
-        for (size_t i = 0; i < m_cards.size(); ++i) {
-            Slic3r::FlashforgeMaterialSlot slot;
-            slot.slot_id = static_cast<int>(i) + 1;
-            if (const auto it = std::find_if(slots.begin(), slots.end(), [&](const Slic3r::FlashforgeMaterialSlot& item) { return item.slot_id == slot.slot_id; }); it != slots.end())
-                slot = *it;
-            const bool enabled = slot.has_filament && matcher(slot);
-            m_cards[i]->set_slot(slot, enabled);
+        m_grid->Clear(true);
+        for (const auto& slot : slots) {
+            auto* card = new MaterialSlotCard(this);
+            card->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
+                m_selected_slot_id = e.GetInt();
+                m_selected_color = wxColour(e.GetString());
+                EndModal(wxID_OK);
+            });
+            card->set_slot(slot, slot.has_filament && matcher(slot));
+            m_grid->Add(card, 0);
         }
+        wxGetApp().UpdateDlgDarkUI(this);
         Layout();
         Fit();
+        GetSizer()->SetSizeHints(this);
+        CenterOnParent();
     }
 
     bool has_selection() const { return m_selected_slot_id > 0; }
@@ -301,30 +339,30 @@ protected:
 private:
     wxString                         m_material_name;
     wxGridSizer*                     m_grid {nullptr};
-    std::vector<FlashforgeSlotCard*> m_cards;
     int                              m_selected_slot_id {0};
     wxColour                         m_selected_color;
 };
 
-class FlashforgeMaterialMapWidget : public wxPanel
+class MaterialMapWidget : public wxPanel
 {
 public:
-    using SelectFn = std::function<void(FlashforgeMaterialMapWidget*)>;
+    using SelectFn = std::function<void(MaterialMapWidget*)>;
 
-    FlashforgeMaterialMapWidget(wxWindow* parent, int tool_id, const wxColour& color, const wxString& material_name, SelectFn on_select)
+    MaterialMapWidget(wxWindow* parent, int tool_id, const wxColour& color, const wxString& material_name, SelectFn on_select, int width = 72)
         : wxPanel(parent, wxID_ANY)
         , m_tool_id(tool_id)
+        , m_width(width)
         , m_color(color)
         , m_name(material_name.Strip())
         , m_select_fn(std::move(on_select))
     {
         SetDoubleBuffered(true);
-        const wxSize size(FromDIP(72), FromDIP(58));
+        const wxSize size(FromDIP(m_width), FromDIP(58));
         SetSize(size);
         SetMinSize(size);
         SetMaxSize(size);
-        Bind(wxEVT_PAINT, &FlashforgeMaterialMapWidget::on_paint, this);
-        Bind(wxEVT_LEFT_DOWN, &FlashforgeMaterialMapWidget::on_left_down, this);
+        Bind(wxEVT_PAINT, &MaterialMapWidget::on_paint, this);
+        Bind(wxEVT_LEFT_DOWN, &MaterialMapWidget::on_left_down, this);
 
     }
 
@@ -347,7 +385,11 @@ public:
     void set_slot_selection(int slot_id, const wxColour& slot_color)
     {
         m_slot_id = slot_id;
-        m_slot_color = slot_color;
+        m_slot_color = slot_color.IsOk() ? slot_color : wxColour("#DDDDDD");
+        const auto slot = std::find_if(m_slots_snapshot.begin(), m_slots_snapshot.end(),
+            [slot_id](const auto& item) { return item.slot_id == slot_id; });
+        if (slot != m_slots_snapshot.end() && !slot->display_name.empty())
+            SetToolTip(from_u8(slot->display_name));
         Refresh();
     }
 
@@ -358,7 +400,7 @@ public:
         Refresh();
     }
 
-    void update_popup_slots(const std::vector<Slic3r::FlashforgeMaterialSlot>& slots, const std::function<bool(const Slic3r::FlashforgeMaterialSlot&)>& matcher)
+    void update_popup_slots(const std::vector<MaterialMappingSlot>& slots, const std::function<bool(const MaterialMappingSlot&)>& matcher)
     {
         m_slots_snapshot = slots;
         m_matcher        = matcher;
@@ -366,7 +408,7 @@ public:
 
     wxSize DoGetBestSize() const override
     {
-        return wxSize(FromDIP(72), FromDIP(58));
+        return wxSize(FromDIP(m_width), FromDIP(58));
     }
 
 private:
@@ -375,13 +417,12 @@ private:
         if (!m_mapping_enabled)
             return;
 
-        FlashforgeSlotDialog dlg(this, m_name);
+        MaterialSlotDialog dlg(this, m_name);
         dlg.update_slots(m_slots_snapshot, m_matcher);
         m_selected = true;
         Refresh();
         if (dlg.ShowModal() == wxID_OK && dlg.has_selection()) {
-            m_slot_id    = dlg.selected_slot_id();
-            m_slot_color = dlg.selected_color();
+            set_slot_selection(dlg.selected_slot_id(), dlg.selected_color());
             if (m_select_fn)
                 m_select_fn(this);
         }
@@ -429,7 +470,15 @@ private:
 
         dc.SetFont(::Label::Body_13);
         dc.SetTextForeground(contrasting_text_color(m_slot_color));
-        const wxString bottom_text = m_slot_id > 0 ? wxString::Format("%d", m_slot_id) : "-";
+        wxString bottom_text = m_slot_id > 0 ? wxString::Format("%d", m_slot_id) : "-";
+        const auto slot = std::find_if(m_slots_snapshot.begin(), m_slots_snapshot.end(),
+            [this](const auto& item) { return item.slot_id == m_slot_id; });
+        if (slot != m_slots_snapshot.end() && !slot->display_name.empty())
+            bottom_text = from_u8(slot->display_name);
+        if (dc.GetTextExtent(bottom_text).x > size.x - FromDIP(26))
+            dc.SetFont(::Label::Body_10);
+        while (bottom_text.size() > 1 && dc.GetTextExtent(bottom_text).x > size.x - FromDIP(26))
+            bottom_text.RemoveLast();
         const wxSize bottom_size = dc.GetTextExtent(bottom_text);
         dc.DrawText(bottom_text, (size.x - bottom_size.x - FromDIP(10)) / 2, half_h + (half_h - bottom_size.y) / 2);
 
@@ -445,6 +494,7 @@ private:
 
 private:
     int                  m_tool_id {-1};
+    int                  m_width {72};
     wxColour             m_color;
     wxString             m_name;
     wxColour             m_slot_color {wxColour("#DDDDDD")};
@@ -452,13 +502,13 @@ private:
     bool                 m_selected {false};
     bool                 m_mapping_enabled {true};
     SelectFn             m_select_fn;
-    std::vector<Slic3r::FlashforgeMaterialSlot> m_slots_snapshot;
-    std::function<bool(const Slic3r::FlashforgeMaterialSlot&)> m_matcher;
+    std::vector<MaterialMappingSlot> m_slots_snapshot;
+    std::function<bool(const MaterialMappingSlot&)> m_matcher;
 };
 
-static FlashforgeMaterialMapWidget* as_ff_map_widget(wxWindow* window)
+static MaterialMapWidget* as_material_map_widget(wxWindow* window)
 {
-    return dynamic_cast<FlashforgeMaterialMapWidget*>(window);
+    return dynamic_cast<MaterialMapWidget*>(window);
 }
 
 } // namespace
@@ -686,6 +736,109 @@ void PrintHostSendDialog::EndModal(int ret)
     MsgDialog::EndModal(ret);
 }
 
+MoonrakerPrintHostSendDialog::MoonrakerPrintHostSendDialog(const fs::path& path,
+                                                         PrintHostPostUploadActions post_actions,
+                                                         const wxArrayString& groups,
+                                                         const wxArrayString& storage_paths,
+                                                         const wxArrayString& storage_names,
+                                                         bool switch_to_device_tab,
+                                                         AFCMapping mapping,
+                                                         std::vector<FilamentInfo> project_filaments)
+    : PrintHostSendDialog(path, post_actions, groups, storage_paths, storage_names, switch_to_device_tab)
+    , m_mapping(std::move(mapping))
+    , m_project_filaments(std::move(project_filaments))
+{}
+
+void MoonrakerPrintHostSendDialog::init()
+{
+    PrintHostSendDialog::init();
+    if (m_project_filaments.empty())
+        return;
+
+    auto* title = new wxStaticText(this, wxID_ANY, _L("AFC filament mapping"));
+    title->SetFont(::Label::Head_13);
+    content_sizer->Add(title, 0, wxTOP | wxBOTTOM, FromDIP(8));
+
+    std::vector<MaterialMappingSlot> slots;
+    for (const auto& [name, lane] : m_mapping.lanes) {
+        m_lane_names.push_back(name);
+        slots.push_back({static_cast<int>(slots.size()) + 1, lane.ready, lane.material, lane.color, name});
+    }
+    auto* cards = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS & ~wxEXTEND_LAST_ON_EACH_LINE);
+    std::set<int> assigned_slots;
+    for (const auto& filament : m_project_filaments) {
+        const wxColour project_color(from_u8(filament.color));
+        auto* card = new MaterialMapWidget(this, filament.id,
+            project_color.IsOk() ? project_color : *wxWHITE,
+            from_u8(filament.get_display_filament_type()), {}, 112);
+        const auto matches = [type = filament.type](const MaterialMappingSlot& slot) {
+            return boost::iequals(boost::trim_copy(slot.material_name), boost::trim_copy(type));
+        };
+        card->update_popup_slots(slots, matches);
+        const MaterialMappingSlot* best = nullptr;
+        long long best_distance = std::numeric_limits<long long>::max();
+        for (const auto& slot : slots) {
+            if (!slot.has_filament || !matches(slot)
+                || (!m_mapping.multiple_mapping && assigned_slots.count(slot.slot_id) != 0))
+                continue;
+            const wxColour color(from_u8(slot.material_color));
+            const long long distance = project_color.IsOk() && color.IsOk()
+                ? color_distance_sq(project_color, color) : std::numeric_limits<long long>::max();
+            if (best == nullptr || distance < best_distance) {
+                best = &slot;
+                best_distance = distance;
+            }
+        }
+        if (best != nullptr) {
+            card->set_slot_selection(best->slot_id, wxColour(from_u8(best->material_color)));
+            assigned_slots.insert(best->slot_id);
+        }
+        cards->Add(card, 0, wxRIGHT | wxBOTTOM | wxFIXED_MINSIZE, FromDIP(10));
+        m_mapping_rows.push_back({filament.id, card});
+    }
+    content_sizer->Add(cards, 0, wxEXPAND);
+    auto* hint = new wxStaticText(this, wxID_ANY,
+        _L("Choose a loaded lane of the same material for each filament. Assignments are saved in AFC when printing starts."));
+    hint->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
+    content_sizer->Add(hint, 0, wxTOP, FromDIP(4));
+    Layout();
+    Fit();
+    GetSizer()->SetSizeHints(this);
+}
+
+void MoonrakerPrintHostSendDialog::EndModal(int ret)
+{
+    if (ret == wxID_OK && post_action() == PrintHostPostUploadAction::StartPrint) {
+        std::set<int> assigned_slots;
+        for (const auto& row : m_mapping_rows) {
+            const auto* card = as_material_map_widget(row.card);
+            if (card == nullptr || !card->is_slot_selected()) {
+                show_error(this, _L("Assign each project filament to a loaded AFC lane of the same material before printing."));
+                return;
+            }
+            if (!assigned_slots.insert(card->selected_slot_id()).second && !m_mapping.multiple_mapping) {
+                show_error(this, _L("Each filament must use a different AFC lane when multiple tool mapping is disabled in AFC."));
+                return;
+            }
+        }
+    }
+    PrintHostSendDialog::EndModal(ret);
+}
+
+std::map<std::string, std::string> MoonrakerPrintHostSendDialog::extendedInfo() const
+{
+    if (post_action() != PrintHostPostUploadAction::StartPrint || m_mapping_rows.empty())
+        return {};
+    AFCSelections assignments;
+    for (const auto& row : m_mapping_rows) {
+        const auto* card = as_material_map_widget(row.card);
+        if (card != nullptr && card->selected_slot_id() > 0
+            && card->selected_slot_id() <= static_cast<int>(m_lane_names.size()))
+            assignments.push_back({row.tool_id, m_lane_names[card->selected_slot_id() - 1]});
+    }
+    return {{"afc_mapping", serialize_afc_selection(assignments)}};
+}
+
 FlashforgePrintHostSendDialog::FlashforgePrintHostSendDialog(const fs::path&             path,
                                                              PrintHostPostUploadActions  post_actions,
                                                              const wxArrayString&        groups,
@@ -894,7 +1047,7 @@ std::map<std::string, std::string> FlashforgePrintHostSendDialog::extendedInfo()
 
     if (m_use_material_station) {
         for (const auto& row : m_mapping_rows) {
-            auto* card = as_ff_map_widget(row.card);
+            auto* card = as_material_map_widget(row.card);
             if (card == nullptr || row.tool_id < 0)
                 continue;
 
@@ -983,8 +1136,8 @@ void FlashforgePrintHostSendDialog::rebuild_mapping_rows()
     }
 
     for (const auto& filament : m_project_filaments) {
-        auto* card = new FlashforgeMaterialMapWidget(this, filament.id, to_wx_colour(filament.color), from_u8(filament.get_display_filament_type()),
-                                                     [this](FlashforgeMaterialMapWidget* changed_card) {
+        auto* card = new MaterialMapWidget(this, filament.id, to_wx_colour(filament.color), from_u8(filament.get_display_filament_type()),
+                                                     [this](MaterialMapWidget* changed_card) {
                                                          if (changed_card == nullptr)
                                                              return;
                                                          for (auto& row : m_mapping_rows) {
@@ -1009,7 +1162,7 @@ void FlashforgePrintHostSendDialog::auto_assign_mappings()
 {
     for (size_t idx = 0; idx < m_project_filaments.size() && idx < m_mapping_rows.size(); ++idx) {
         auto& filament = m_project_filaments[idx];
-        auto* card     = as_ff_map_widget(m_mapping_rows[idx].card);
+        auto* card     = as_material_map_widget(m_mapping_rows[idx].card);
         if (card == nullptr)
             continue;
 
@@ -1039,14 +1192,15 @@ void FlashforgePrintHostSendDialog::auto_assign_mappings()
 
 void FlashforgePrintHostSendDialog::refresh_mapping_card(MappingRow& row)
 {
-    auto* card = as_ff_map_widget(row.card);
+    auto* card = as_material_map_widget(row.card);
     if (card == nullptr)
         return;
 
     const auto* filament = find_filament_by_tool_id(row.tool_id);
     card->set_enable_mapping(m_use_material_station);
-    card->update_popup_slots(m_slots, [this, filament](const FlashforgeMaterialSlot& slot) {
-        return filament != nullptr && slot_matches_filament(slot, *filament);
+    card->update_popup_slots(flashforge_mapping_slots(m_slots), [this, filament](const MaterialMappingSlot& slot) {
+        const auto* original = find_slot_by_id(std::to_string(slot.slot_id));
+        return filament != nullptr && original != nullptr && slot_matches_filament(*original, *filament);
     });
 
     if (card->selected_slot_id() <= 0) {
@@ -1111,7 +1265,7 @@ bool FlashforgePrintHostSendDialog::validate_before_close()
         return true;
 
     for (const auto& row : m_mapping_rows) {
-        auto* card = as_ff_map_widget(row.card);
+        auto* card = as_material_map_widget(row.card);
         if (card == nullptr || !card->is_slot_selected()) {
             show_error(this, _L("Each project material must be assigned to an IFS slot before printing."));
             return false;

@@ -2,10 +2,12 @@
 #define slic3r_Moonraker_hpp_
 
 #include <string>
+#include <functional>
 #include <wx/string.h>
 #include <wx/arrstr.h>
 
 #include "PrintHost.hpp"
+#include "AFCMapping.hpp"
 
 class wxArrayString;
 
@@ -35,6 +37,7 @@ class Moonraker : public PrintHost
 {
 public:
     Moonraker(DynamicPrintConfig *config);
+    Moonraker(std::string host, std::string api_key);
     ~Moonraker() override = default;
 
     const char* get_name() const override;
@@ -48,6 +51,10 @@ public:
     PrintHostPostUploadActions get_post_upload_actions() const override { return PrintHostPostUploadAction::StartPrint; }
     std::string get_host() const override { return m_host; }
     bool get_storage(wxArrayString &storage_path, wxArrayString &storage_name) const override;
+    bool fetch_afc_status(AFCMapping& mapping, bool& detected, wxString& error) const;
+    bool apply_afc_mapping(const AFCSelections& selection, bool& applied, wxString& error,
+                           const std::function<bool()>& cancelled = {}) const;
+    bool start_print_gcode(const std::string& filename, wxString& error) const;
     const std::string& get_apikey() const { return m_apikey; }
     const std::string& get_cafile() const { return m_cafile; }
 
@@ -60,6 +67,7 @@ protected:
     void set_auth(Http &http) const;
     std::string make_url(const std::string &path) const;
     bool start_print(wxString &error_msg, const std::string &filename) const;
+    bool send_gcode_script(const std::string& script, wxString& error) const;
 };
 
 }

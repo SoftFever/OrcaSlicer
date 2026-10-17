@@ -461,6 +461,11 @@ public:
      */
     virtual bool fetch_filament_info(std::string dev_id, FilamentSyncMode sync_mode = FilamentSyncMode::pull) { return false; }
 
+    // Built-in agents can adapt the existing print payload without changing the
+    // PrintParams layout shared with binary networking plug-ins.
+    virtual void set_gcode_path(PrintParams&, const std::string&) const {}
+    virtual bool prepare_print_mapping(const std::string&, std::string&, std::string&) const { return true; }
+
     /**
      * Translate one filament id across the printer boundary.
      *

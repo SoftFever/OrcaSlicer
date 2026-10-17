@@ -4,6 +4,7 @@
 #include "libslic3r/LifecycleEvents.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include "slic3r/Utils/IPrinterAgent.hpp"
 #include "libslic3r/MTUtils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -224,6 +225,9 @@ void SendJob::process(Ctl &ctl)
     else
         params.filename = job_data._3mf_path.string();
 
+
+    if (auto printer_agent = agent->get_printer_agent())
+        printer_agent->set_gcode_path(params, job_data._gcode_path.string());
 
     params.config_filename      = job_data._3mf_config_path.string();
 

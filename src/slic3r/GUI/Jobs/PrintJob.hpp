@@ -26,6 +26,7 @@ public:
     int             plate_idx;
     boost::filesystem::path _3mf_path;
     boost::filesystem::path _3mf_config_path;
+    boost::filesystem::path _gcode_path;
     boost::filesystem::path _temp_path;
     PrintPrepareData() {
         plate_idx = 0;
