@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <memory>
 
 namespace Slic3r {
 
@@ -801,6 +802,19 @@ public:
     // that produced it, so persisting the counter would imply a promise across loads that the
     // ids themselves cannot keep.
     uint64_t topo_generation{1};
+
+    // Incremental recompute. Each feature's result is cached under a CHAIN fingerprint (hash of every feature up to
+    // and including it, plus the document settings that change a build), so a tail edit replays only the tail and
+    // setting a parameter back restores the earlier state without any OCCT work. The cache is shared between copies of
+    // the document (a preview candidate reuses the prefix of the document it was copied from) and is thread safe.
+    struct ReplayStats {
+        int replayed{0};                  // features rebuilt by the last recompute()
+        int restored{0};                  // features taken from the cache
+        std::vector<double> feature_ms;   // per feature, 0 for a restored or non-solid one
+    } replay_stats;
+    bool incremental{true};
+    struct ReplayCache;
+    std::shared_ptr<ReplayCache> m_replay_cache;
 
     // v5: every feature is length-framed, so a reader can stop early on an older file and skip
     // the tail of a newer one. This is the LAST version that has to break anything — from here a

@@ -9917,3 +9917,61 @@ TEST_CASE("a cut through the middle of a bar yields two bodies", "[CadDocument][
     GProp_GProps a, b; BRepGProp::VolumeProperties(doc.bodies[0].shape, a); BRepGProp::VolumeProperties(doc.bodies[1].shape, b);
     CHECK(a.Mass() + b.Mass() == Approx(50.0 * 10.0 * 10.0).epsilon(1e-6));
 }
+
+// Incremental recompute: a tail edit replays only the tail; setting the value back restores without OCCT work.
+TEST_CASE("recompute replays only what changed and restores what came back", "[CadDocument][incremental]")
+{
+    CadDocument doc;
+    SketchProfile sp; sp.points = { Vec2d(0,0), Vec2d(40,0), Vec2d(40,40), Vec2d(0,40) }; sp.closed = true;
+    const int s = doc.add_sketch_profile(sp, SketchPlane::XY(), "Base");
+    doc.add_extrude(s, 10.0, false, BooleanMode::New, "Base");
+    doc.add_hole(6.0, 5.0, false, 10.0, 10.0, SketchPlane::XY(), "H1");
+    const int h2 = doc.add_hole(6.0, 5.0, false, 30.0, 30.0, SketchPlane::XY(), "H2");
+
+    REQUIRE(doc.recompute());
+    CHECK(doc.replay_stats.replayed == 3);   // extrude + 2 holes (the sketch is not a body feature)
+    CHECK(doc.replay_stats.restored == 0);
+    GProp_GProps p0; BRepGProp::VolumeProperties(doc.bodies[0].shape, p0);
+
+    REQUIRE(doc.recompute());                // nothing changed
+    CHECK(doc.replay_stats.replayed == 0);
+    CHECK(doc.replay_stats.restored == 3);
+
+    doc.features[h2].hole_diameter = 8.0;    // edit the LAST feature
+    REQUIRE(doc.recompute());
+    CHECK(doc.replay_stats.replayed == 1);
+    CHECK(doc.replay_stats.restored == 2);
+    GProp_GProps p1; BRepGProp::VolumeProperties(doc.bodies[0].shape, p1);
+    CHECK(p1.Mass() < p0.Mass());
+
+    doc.features[h2].hole_diameter = 6.0;    // and back: every state is in the cache
+    REQUIRE(doc.recompute());
+    CHECK(doc.replay_stats.replayed == 0);
+    GProp_GProps p2; BRepGProp::VolumeProperties(doc.bodies[0].shape, p2);
+    CHECK(p2.Mass() == Approx(p0.Mass()).epsilon(1e-9));
+
+    CadDocument cold = doc; cold.incremental = false;   // the cache must not change the answer
+    REQUIRE(cold.recompute());
+    GProp_GProps p3; BRepGProp::VolumeProperties(cold.bodies[0].shape, p3);
+    CHECK(p3.Mass() == Approx(p0.Mass()).epsilon(1e-9));
+}
+
+TEST_CASE("Expressions: unit literals and the wider function set", "[CadDocument][expr]")
+{
+    CadDocument doc;
+    const int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 10, 10, 0, "S");
+    const int ex = doc.add_extrude(sk, 5, false, BooleanMode::New, "E");
+    auto eval = [&](const char* e) { doc.features[ex].expr["distance"] = e; REQUIRE(doc.recompute()); return doc.features[ex].distance; };
+    CHECK(eval("10 cm") == Approx(100.0));
+    CHECK(eval("2 in + 1 mm") == Approx(51.8));
+    CHECK(eval("1 m / 4") == Approx(250.0));
+    CHECK(eval("180 deg / 6") == Approx(30.0));
+    CHECK(eval("atan2(1, 1)") == Approx(45.0));          // angles come back in degrees
+    CHECK(eval("floor(2.7) + ceil(2.1) + round(2.5)") == Approx(2 + 3 + 3));
+    CHECK(eval("mod(10, 4) + pow(2, 3) + hypot(3, 4)") == Approx(2 + 8 + 5));
+    CHECK(eval("rad(180)") == Approx(M_PI));              // the function, not the unit
+    doc.variables["n"] = "3 mm";
+    CHECK(eval("n * 2") == Approx(6.0));
+    doc.features[ex].expr["distance"] = "ln(0)";
+    CHECK_FALSE(doc.recompute());
+}

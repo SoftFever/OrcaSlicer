@@ -70,6 +70,10 @@
 #include <BRep_Builder.hxx>
 #include <TopAbs_Orientation.hxx>   // outward-normal orientation for face-extrude
 #include <TopoDS.hxx>               // TopoDS::Edge for SurfaceFill
+#include <mutex>
+#include <list>
+#include <unordered_map>
+#include <chrono>
 #include <TopExp_Explorer.hxx>      // is_sheet_shape
 #include <ShapeUpgrade_UnifySameDomain.hxx>   // push/pull: merge the faces a pull leaves coplanar
 #include <gp_Circ.hxx>
@@ -238,6 +242,26 @@ static TopoDS_Wire make_thread_profile(const gp_Pnt& origin, const gp_Dir& xdir,
 // ponytail: self-contained shunting-yard arithmetic + function set for
 // parametric dimension expressions. Extend the function table if needed.
 
+// Built-in names an expression may use besides variables. Units convert a literal to the field's own unit (lengths mm,
+// angles degrees): `10 cm` is 100, `2 in` is 50.8, `1 rad` is 57.29...; there is no dimension checking.
+static const std::map<std::string, double>& expr_units()
+{
+    static const std::map<std::string, double> u = {
+        {"mm", 1.0}, {"cm", 10.0}, {"m", 1000.0}, {"in", 25.4}, {"ft", 304.8}, {"um", 0.001},
+        {"deg", 1.0}, {"rad", 180.0 / M_PI}};
+    return u;
+}
+// Function name -> arity.
+static const std::map<std::string, int>& expr_functions()
+{
+    static const std::map<std::string, int> f = {
+        {"sqrt", 1}, {"abs", 1}, {"sin", 1}, {"cos", 1}, {"tan", 1}, {"deg", 1}, {"rad", 1}, {"asin", 1}, {"acos", 1}, {"atan", 1},
+        {"floor", 1}, {"ceil", 1}, {"round", 1}, {"trunc", 1}, {"exp", 1}, {"ln", 1}, {"log", 1}, {"log10", 1}, {"sign", 1},
+        {"min", 2}, {"max", 2}, {"atan2", 2}, {"mod", 2}, {"pow", 2}, {"hypot", 2}};
+    return f;
+}
+static bool expr_builtin(const std::string& id) { return id == "pi" || expr_functions().count(id) || expr_units().count(id); }
+
 // Evaluate an arithmetic expression to a double. Supports + - * /, parentheses,
 // unary minus, decimal literals, and identifiers resolved via `vars`. Functions:
 // sqrt, abs, sin, cos, tan, min, max, deg, rad, and the constant `pi`.
@@ -286,6 +310,17 @@ static double eval_expr(const std::string& src, const std::map<std::string, doub
             size_t start = i;
             while (i < src.size() && (isalnum(src[i]) || src[i] == '_')) ++i;
             std::string id = src.substr(start, i - start);
+            size_t nx = i;
+            while (nx < src.size() && (src[nx] == ' ' || src[nx] == '\t')) ++nx;
+            const bool call = nx < src.size() && src[nx] == '(';
+            auto un = expr_units().find(id);
+            if (!tokens.empty() && tokens.back().type == Token::Num && prev_was_val && !call && un != expr_units().end()) {
+                tokens.push_back({Token::Op, "*"});   // `10 mm` = 10 * 1, `2 in` = 2 * 25.4
+                Token f{Token::Num, "", un->second};
+                tokens.push_back(f);
+                prev_was_val = true;
+                continue;
+            }
             tokens.push_back({Token::Id, id});
             prev_was_val = true;
             continue;
@@ -402,11 +437,28 @@ static double eval_expr(const std::string& src, const std::map<std::string, doub
                 else if (name == "tan") { double a = vs.back(); vs.pop_back(); vs.push_back(std::tan(a * M_PI / 180.0)); }
                 else if (name == "deg") { double a = vs.back(); vs.pop_back(); vs.push_back(a * 180.0 / M_PI); }
                 else if (name == "rad") { double a = vs.back(); vs.pop_back(); vs.push_back(a * M_PI / 180.0); }
+                else if (name == "asin") { double a = vs.back(); vs.pop_back(); vs.push_back(std::asin(a) * 180.0 / M_PI); }   // angles are degrees
+                else if (name == "acos") { double a = vs.back(); vs.pop_back(); vs.push_back(std::acos(a) * 180.0 / M_PI); }
+                else if (name == "atan") { double a = vs.back(); vs.pop_back(); vs.push_back(std::atan(a) * 180.0 / M_PI); }
+                else if (name == "floor") { double a = vs.back(); vs.pop_back(); vs.push_back(std::floor(a)); }
+                else if (name == "ceil")  { double a = vs.back(); vs.pop_back(); vs.push_back(std::ceil(a)); }
+                else if (name == "round") { double a = vs.back(); vs.pop_back(); vs.push_back(std::round(a)); }
+                else if (name == "trunc") { double a = vs.back(); vs.pop_back(); vs.push_back(std::trunc(a)); }
+                else if (name == "exp")   { double a = vs.back(); vs.pop_back(); vs.push_back(std::exp(a)); }
+                else if (name == "ln")    { double a = vs.back(); vs.pop_back(); if (a <= 0) throw std::runtime_error(_u8L("ln of a non-positive number")); vs.push_back(std::log(a)); }
+                else if (name == "log" || name == "log10") { double a = vs.back(); vs.pop_back(); if (a <= 0) throw std::runtime_error(_u8L("log of a non-positive number")); vs.push_back(std::log10(a)); }
+                else if (name == "sign")  { double a = vs.back(); vs.pop_back(); vs.push_back(a > 0 ? 1.0 : a < 0 ? -1.0 : 0.0); }
                 else if (name == "min") { double b = vs.back(); vs.pop_back(); double a = vs.back(); vs.pop_back(); vs.push_back(std::min(a, b)); }
                 else if (name == "max") { double b = vs.back(); vs.pop_back(); double a = vs.back(); vs.pop_back(); vs.push_back(std::max(a, b)); }
+                else if (name == "atan2") { double b = vs.back(); vs.pop_back(); double a = vs.back(); vs.pop_back(); vs.push_back(std::atan2(a, b) * 180.0 / M_PI); }   // atan2(y, x)
+                else if (name == "mod")   { double b = vs.back(); vs.pop_back(); double a = vs.back(); vs.pop_back(); if (b == 0) throw std::runtime_error(_u8L("division by zero")); vs.push_back(std::fmod(a, b)); }
+                else if (name == "pow")   { double b = vs.back(); vs.pop_back(); double a = vs.back(); vs.pop_back(); vs.push_back(std::pow(a, b)); }
+                else if (name == "hypot") { double b = vs.back(); vs.pop_back(); double a = vs.back(); vs.pop_back(); vs.push_back(std::hypot(a, b)); }
                 else throw std::runtime_error(format(_u8L("unknown function: %1%"), name));
             };
-            call_fn(t.val, (t.val == "min" || t.val == "max") ? 2 : 1);
+            auto fn = expr_functions().find(t.val);
+            if (fn == expr_functions().end()) throw std::runtime_error(format(_u8L("unknown function: %1%"), t.val));
+            call_fn(t.val, fn->second);
         }
     }
     if (vs.size() != 1) throw std::runtime_error(_u8L("invalid expression"));
@@ -444,8 +496,7 @@ evaluate_variables(const std::map<std::string, std::string>& variables)
                 while (i < expr.size() && (isalnum(expr[i]) || expr[i] == '_')) ++i;
                 std::string id = expr.substr(start, i - start);
                 // skip "pi" and function names — they're built-ins, not variables
-                if (id == "pi" || id == "sqrt" || id == "abs" || id == "sin" || id == "cos" ||
-                    id == "tan" || id == "min" || id == "max" || id == "deg" || id == "rad") continue;
+                if (expr_builtin(id)) continue;   // pi, functions and units are not variables
                 if (!variables.count(id)) throw std::runtime_error(format(_u8L("unknown identifier: %1%"), id));
                 scope[id] = resolve(id);
                 continue;
@@ -4264,6 +4315,42 @@ void CadDocument::replay_feature(size_t fi, std::vector<CadBody>& built)
             b.source_feature = int(fi);
 }
 
+// ---- replay cache ------------------------------------------------------------------------------------------------
+struct CadDocument::ReplayCache {
+    struct Entry { std::vector<CadBody> built; CadFeature after; std::vector<std::string> warnings; };
+    std::mutex mu;
+    std::unordered_map<uint64_t, Entry> map;
+    std::list<uint64_t> lru;   // front = most recent
+    static constexpr size_t kMax = 512;
+    bool get(uint64_t k, Entry& out) {
+        std::lock_guard<std::mutex> g(mu);
+        auto it = map.find(k);
+        if (it == map.end()) return false;
+        lru.remove(k); lru.push_front(k);
+        out = it->second;
+        return true;
+    }
+    void put(uint64_t k, Entry e) {
+        std::lock_guard<std::mutex> g(mu);
+        if (map.emplace(k, std::move(e)).second) lru.push_front(k);
+        while (map.size() > kMax) { map.erase(lru.back()); lru.pop_back(); }
+    }
+};
+
+static uint64_t fnv_chain(uint64_t h, const void* data, size_t n)
+{
+    const unsigned char* p = static_cast<const unsigned char*>(data);
+    for (size_t i = 0; i < n; ++i) { h ^= p[i]; h *= 1099511628211ull; }
+    return h;
+}
+
+// Features that never touch the body list: replayed every time (cheap) but not worth a cache entry.
+static bool replay_is_trivial(const CadFeature& f)
+{
+    return !f.enabled || f.type == CadFeatureType::Sketch || f.type == CadFeatureType::Helix || f.type == CadFeatureType::Sketch3D
+        || f.type == CadFeatureType::Plane || f.type == CadFeatureType::Axis || f.type == CadFeatureType::CoordSys;
+}
+
 bool CadDocument::recompute()
 {
     error.clear();
@@ -4286,10 +4373,40 @@ bool CadDocument::recompute()
     size_t replaying = 0;
     try {
         bind_expressions();
+        replay_stats = ReplayStats{};
+        replay_stats.feature_ms.assign(features.size(), 0.0);
+        if (!m_replay_cache) m_replay_cache = std::make_shared<ReplayCache>();
+        uint64_t fp = 1469598103934665603ull;   // chain seed: everything outside the features that changes a build
+        { const uint32_t v = ORCA_CAD_RECIPE_VERSION; fp = fnv_chain(fp, &v, sizeof v); }
+        fp = fnv_chain(fp, modeling_origin.data(), 3 * sizeof(double));
+        fp = fnv_chain(fp, &auto_close_loops, sizeof auto_close_loops);
         for (size_t fi = 0; fi < features.size(); ++fi) {
             if (rollback_index >= 0 && int(fi) > rollback_index) break;   // rolled back to rollback_index
             replaying = fi;
+            if (!incremental) { replay_feature(fi, built); ++replay_stats.replayed; continue; }
+            {   // chain: this feature's bytes (fields already bound to the variables) on top of everything before it
+                std::ostringstream fos;
+                { cereal::BinaryOutputArchive fa(fos); fa(features[fi]); }
+                const std::string fb = fos.str();
+                fp = fnv_chain(fp, fb.data(), fb.size());
+            }
+            if (replay_is_trivial(features[fi])) { replay_feature(fi, built); continue; }
+            ReplayCache::Entry hit;
+            if (m_replay_cache->get(fp, hit)) {
+                built = std::move(hit.built);
+                features[fi] = std::move(hit.after);
+                for (const std::string& w : hit.warnings) feature_warnings.emplace_back(int(fi), w);
+                ++replay_stats.restored;
+                continue;
+            }
+            const size_t nw = feature_warnings.size();
+            const auto t0 = std::chrono::steady_clock::now();
             replay_feature(fi, built);
+            replay_stats.feature_ms[fi] = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+            ++replay_stats.replayed;
+            ReplayCache::Entry e{built, features[fi], {}};
+            for (size_t k = nw; k < feature_warnings.size(); ++k) e.warnings.push_back(feature_warnings[k].second);
+            m_replay_cache->put(fp, std::move(e));
         }
     } catch (const std::exception& e) {
         error_feature = int(replaying);

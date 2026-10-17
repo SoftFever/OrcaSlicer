@@ -2868,6 +2868,7 @@ json action_inspect_design(DesignPanel* panel, const json& params)
     out["error_feature"] = doc.error_feature;
     out["undo_depth"]    = int(doc.undo_depth());
     out["redo_depth"]    = int(doc.redo_depth());
+    out["recompute"]     = {{"replayed", doc.replay_stats.replayed}, {"restored", doc.replay_stats.restored}, {"feature_ms", doc.replay_stats.feature_ms}};
     DesignCanvas* vp = panel->mcp_viewport();
     out["sketch_open"] = vp != nullptr && vp->is_sketching();
     return out;
