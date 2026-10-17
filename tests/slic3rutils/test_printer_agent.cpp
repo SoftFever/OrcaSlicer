@@ -10,6 +10,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <pybind11/pytypes.h>
 #include <catch2/catch_message.hpp>
+#include "catch2/matchers/catch_matchers.hpp"
+#include "catch2/matchers/catch_matchers_floating_point.hpp"
 #include "python_test_support.hpp"
 
 #include <pybind11/embed.h>
