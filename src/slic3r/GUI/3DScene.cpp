@@ -297,6 +297,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , printable(true)
     , visible(true)
     , is_active(true)
+    , on_hidden_plate(false)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
     , is_outside(false)
@@ -824,6 +825,8 @@ bool GLVolume::is_below_printbed() const
 
 void GLVolume::render_sinking_contours()
 {
+    if (!is_active)
+        return;
     m_sinking_contours.render();
 }
 
@@ -1238,6 +1241,10 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
     // default sampler unit 0, which can conflict with other sampler types.
     shader->set_uniform("depth_tex", OUTLINE_DEPTH_TEX_UNIT);
 
+    // Compute up direction accounting for build plate tilt. This is frame-invariant
+    // (config cannot change mid-render), so compute it once before the volume loop.
+    const Vec3f up_direction = GUI::build_plate_tilt_up_direction().cast<float>();
+
     for (GLVolumeWithIdAndZ& volume : to_render) {
 #if ENABLE_MODIFIERS_ALWAYS_TRANSPARENT
         if (type == ERenderType::Transparent) {
@@ -1316,6 +1323,7 @@ void GLVolumeCollection::render(GLVolumeCollection::ERenderType       type,
         shader->set_uniform("slope.actived", m_slope.isGlobalActive && !volume.first->is_modifier && !volume.first->is_wipe_tower);
         shader->set_uniform("slope.volume_world_normal_matrix", static_cast<Matrix3f>(volume.first->world_matrix().matrix().block(0, 0, 3, 3).inverse().transpose().cast<float>()));
         shader->set_uniform("slope.normal_z", support_normal_z);
+        shader->set_uniform("slope.up_direction", up_direction);
 
 #if ENABLE_ENVIRONMENT_MAP
         unsigned int environment_texture_id = GUI::wxGetApp().plater()->get_environment_texture_id();

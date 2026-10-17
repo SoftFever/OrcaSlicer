@@ -50,6 +50,7 @@
 #include "ParamsPanel.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/CheckBox.hpp" // ORCA
+#include "Widgets/ComboBox.hpp"
 
 class TabCtrl;
 class ModeSwitchButton;
@@ -404,7 +405,11 @@ public:
 	void		on_roll_back_value(const bool to_sys = false);
 
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
-	static wxString translate_category(const wxString& title, Preset::Type preset_type);
+	// The name a category is displayed under. A few printer pages are renamed for display (BBL
+	// "Extruder 1/2" -> "Left/Right Extruder", the shared "Extruder" page -> "Extruders" when there are
+	// several). With `translate` false the same name is returned untranslated, i.e. as an English UI
+	// displays it.
+	static wxString translate_category(const wxString& title, Preset::Type preset_type, bool translate = true);
 
 	virtual void	OnActivate();
 	virtual void	on_preset_loaded() {}
@@ -431,6 +436,8 @@ public:
     Field*          get_field(const t_config_option_key &opt_key, Page** selected_page, int opt_index = -1);
     void            toggle_option(const std::string &opt_key, bool toggle, int opt_index = -1);
     void            toggle_line(const std::string &opt_key, bool toggle, int opt_index = -1); // BBS: hide some line
+    // Renames the row that owns the option. `label` is the untranslated English msgid (an L("...")
+    // string); it is translated for display and kept as the row's English search alias.
     void            set_option_label(const std::string &opt_key, const wxString &label, int opt_index = -1);
 
     // Live state of the settings row that owns an option, read from the built pages.
@@ -438,6 +445,7 @@ public:
     {
         bool     visible{true}; // false when ConfigManipulation hides the row
         wxString label;         // Line::label the row draws (may change at runtime)
+        wxString label_en;      // Line::label_en, the untranslated English of label
         bool     multi{false};  // row packs several options, so label is precomposed
     };
     SettingRowState setting_row_state(const std::string &opt_id) const;
@@ -664,6 +672,8 @@ public:
     void				set_custom_gcode(const t_config_option_key& opt_key, const std::string& value) override;
 };
 
+class IMEXModesCtrl;
+
 class TabPrinter : public Tab
 {
 private:
@@ -672,10 +682,17 @@ private:
 	bool		m_rebuild_kinematics_page = false;
 	void        update_input_shaper_menu(GCodeFlavor flavor);
 
+	// R8: track the belt->non-belt transition so update_fff() only clears the belt-derived
+	// build_plate_tilt on a genuine in-place belt-off toggle, never on a manual tilt or a
+	// preset switch. m_belt_synced_tilt_{x,y} hold the exact values belt-sync last wrote.
+	bool		m_was_belt_printer = false;
+	double		m_belt_synced_tilt_x = 0.;
+	double		m_belt_synced_tilt_y = 0.;
 
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;
 
+    IMEXModesCtrl*      m_imex_modes_ctrl               {nullptr};
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
 

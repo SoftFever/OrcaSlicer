@@ -4,9 +4,11 @@
 #include <functional>
 #include <utility>
 #include <string>
+#include <vector>
 #include "libslic3r/TextureDisplacement.hpp"
 #include <exception>
 #include <cstddef>
+#include <cstdint>
 #include "slic3r/GUI/Jobs/Worker.hpp"
 #include <memory>
 
@@ -25,6 +27,7 @@
 #include "slic3r/Utils/UndoRedo.hpp"
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/TriangleMesh.hpp"
+#include <array>
 
 namespace Slic3r::GUI {
 
@@ -53,9 +56,6 @@ void TextureDisplacementBakeJob::process(Ctl &ctl)
         color_request.quantize = GLGizmoTextureDisplacement::make_palette_quantizer(m_input.color.palette);
         if (!m_input.color.palette_pure.empty())
             color_request.quantize_pure = GLGizmoTextureDisplacement::make_palette_quantizer(m_input.color.palette_pure);
-        color_request.resolve  = GLGizmoTextureDisplacement::make_mix_resolver(
-            m_input.color.palette, m_input.color.mix_mode, m_input.color.layer_height,
-            m_input.color.dither_cell_mm);
         color_request.despeckle_passes = m_input.color.despeckle_passes;
         color_request.out_triangle     = &m_triangle_color;
         if (color_request.quantize)
@@ -76,7 +76,8 @@ void TextureDisplacementBakeJob::process(Ctl &ctl)
             }
             return true;
         },
-        color, m_input.volume_to_world, nullptr, &m_stats));
+        color, m_input.volume_to_world, nullptr, &m_stats,
+        m_input.model_uv.empty() ? nullptr : &m_input.model_uv));
 
     // Always finish at 100: this is what closes the notification. Reported even on cancel, where
     // build_texture_displacement() returns an empty mesh and finalize() commits nothing.
@@ -117,24 +118,92 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
         if (volume == nullptr)
             return;
 
+        // The filament each palette entry prints in. This is where a mix becomes a mixed filament slot,
+        // and only a mix the bake actually painted with: the preview never creates one, so the project
+        // gains only the slots this result needs. Done before anything below names them - adding a slot
+        // runs ModelVolume::update_extruder_count(), which clamps paint above the old filament count.
+        Sidebar &sidebar = plater->sidebar();
+        const std::vector<int> filament_of = GLGizmoTextureDisplacement::palette_filaments(
+            m_input.color.palette, m_triangle_color, [&sidebar](const PrintableColor &mix) {
+                return sidebar.ensure_mixed_filament({ unsigned(mix.a + 1), unsigned(mix.b + 1) },
+                                                     { mix.a_percent(), 100 - mix.a_percent() });
+            });
+
+        // Whether the bake replaced the triangles or only moved the vertices it was given. The classic
+        // path is topology-preserving by contract, so every per-triangle annotation on the volume still
+        // means what it did; the default pipeline refines, cuts and simplifies, so none of them do.
+        // Both are checked: the flag is what the bake promised, the count is what it delivered. Only
+        // the triangles matter - the annotations are per facet and reference no vertex index - so a
+        // vertex count that changed on its own (the bake compacts unreferenced vertices away) is not a
+        // reason to remap anything.
+        const bool topology_changed = m_input.options.pipeline_v2 ||
+                                      m_result.its.indices.size() != m_input.base_mesh.indices.size();
+
+        // Carry the volume's existing paint - the model's own colours above all - across that rebuild.
+        // Without it a bake left the mmu_segmentation_facets bitstream pointing at a triangle set that
+        // no longer existed, which is what scrambled the colours of an imported coloured model even
+        // with colour switched off on every layer and nothing in the bake that was meant to touch them.
+        //
+        // transfer_facet_paint() rather than ModelVolume::restore_painting(): the latter's remap wants
+        // a target triangle overlapping the source paint to within 0.01 mm, which the baked surface is
+        // nowhere near - it has moved by the relief depth. Nothing to do when the topology is intact:
+        // triangle i is still triangle i, so the paint is already exactly right and carrying it at all
+        // could only lose detail.
+        std::array<TriangleSelector::TriangleSplittingData, 4> before;
+        if (topology_changed) {
+            before[0] = volume->supported_facets.get_data();
+            before[1] = volume->seam_facets.get_data();
+            before[2] = volume->mmu_segmentation_facets.get_data();
+            before[3] = volume->fuzzy_skin_facets.get_data();
+        }
+
         volume->set_mesh(std::move(m_result));
         volume->set_new_unique_id();
         volume->calculate_convex_hull();
+
+        if (topology_changed) {
+            const std::array<FacetsAnnotation *, 4> target{ &volume->supported_facets, &volume->seam_facets,
+                                                            &volume->mmu_segmentation_facets,
+                                                            &volume->fuzzy_skin_facets };
+            for (size_t ch = 0; ch < target.size(); ++ch) {
+                const std::vector<uint8_t> state =
+                    transfer_facet_paint(m_input.base_mesh, before[ch], volume->mesh().its);
+                // Nothing was painted in this channel, or there is nothing to paint it onto: either
+                // way the annotation must not keep describing the mesh that is gone.
+                if (state.empty()) {
+                    target[ch]->reset();
+                    continue;
+                }
+                TriangleSelector selector(volume->mesh());
+                bool             any = false;
+                for (size_t i = 0; i < state.size(); ++i)
+                    if (state[i] != 0) {
+                        selector.set_facet(int(i), EnforcerBlockerType(state[i]));
+                        any = true;
+                    }
+                if (any)
+                    target[ch]->set(selector);
+                else
+                    target[ch]->reset();
+            }
+        }
 
         // Colour lands in mmu_segmentation_facets, merged *over* whatever is already painted there
         // rather than replacing it: a triangle the texture does not colour keeps its existing filament,
         // and one the user never painted at all stays at NONE, which already means "the volume's own
         // filament". That is what confines the effect to the painted area without having to invent a
-        // colour for everything outside it. Safe to index straight onto the new mesh - the bake is
-        // topology-preserving, so triangle i is still triangle i.
+        // colour for everything outside it. What was already painted is whatever the transfer above
+        // left in the annotation, so this bake's colour lands on top of it rather than instead of it.
         if (!m_triangle_color.empty() && m_triangle_color.size() == volume->mesh().its.indices.size()) {
             TriangleSelector selector(volume->mesh());
             const TriangleSelector::TriangleSplittingData &existing = volume->mmu_segmentation_facets.get_data();
             if (!existing.bitstream.empty())
                 selector.deserialize(existing, false);
-            for (size_t i = 0; i < m_triangle_color.size(); ++i)
-                if (m_triangle_color[i] > 0)
-                    selector.set_facet(int(i), EnforcerBlockerType(m_triangle_color[i]));
+            for (size_t i = 0; i < m_triangle_color.size(); ++i) {
+                const size_t entry = size_t(m_triangle_color[i]);
+                if (entry > 0 && entry <= filament_of.size() && filament_of[entry - 1] >= 0)
+                    selector.set_facet(int(i), EnforcerBlockerType(filament_of[entry - 1] + 1));
+            }
             volume->mmu_segmentation_facets.set(selector);
         }
 
@@ -148,13 +217,20 @@ void TextureDisplacementBakeJob::finalize(bool canceled, std::exception_ptr &ept
         // pipeline, which rebuilds and then simplifies the mesh. A mask left behind against the old
         // topology is exactly what makes the gizmo reload an empty selector over a non-empty mask and
         // then erase it on the next flush - see GLGizmoTextureDisplacement::update_from_model_object().
-        const bool topology_changed = m_input.base_mesh.indices.size() != volume->mesh().its.indices.size();
         for (int slot = 0; slot < int(TEXTURE_DISPLACEMENT_MAX_LAYERS); ++slot) {
             const auto it = std::find_if(m_input.layers.begin(), m_input.layers.end(),
                                          [slot](const TextureDisplacementLayer &l) { return l.slot == slot; });
             if (topology_changed || (it != m_input.layers.end() && !it->empty()))
                 volume->texture_displacement_facet(slot).reset();
         }
+
+        // The model's own UV channel. Resampled onto a rebuilt mesh from the surface the bake started
+        // from: a displaced vertex came from its foot point on that surface, which is the position its
+        // uv belongs to - so no distance limit, the relief depth is exactly how far it has moved.
+        if (!m_input.model_uv.empty())
+            volume->texture_uv = topology_changed ? transfer_uv_channel(m_input.base_mesh, m_input.model_uv,
+                                                                        volume->mesh().its) :
+                                                     m_input.model_uv;
 
         ModelObject *object = volume->get_object();
         if (object == nullptr)
@@ -208,6 +284,8 @@ void queue_texture_displacement_bake(const ModelVolume &volume, const TextureCol
     input.take_snapshot = take_snapshot;
     input.volume_id  = volume.id();
     input.base_mesh  = volume.mesh().its;
+    if (volume.has_texture_uv())
+        input.model_uv = volume.texture_uv;
     input.layers     = volume.texture_displacement_layers;
     input.options    = volume.texture_displacement_options;
     input.volume_to_world = texture_displacement_volume_to_world(volume);

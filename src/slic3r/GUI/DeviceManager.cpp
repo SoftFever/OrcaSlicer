@@ -4,6 +4,7 @@
 #include "HMS.hpp"
 #include "I18N.hpp"
 #include "libslic3r/Thread.hpp"
+#include "libslic3r/PresetBundle.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/Utils/NetworkAgentFactory.hpp"
@@ -11,7 +12,6 @@
 #include "GUI_App.hpp"
 #include "DeviceErrorDialog.hpp"
 #include "Plater.hpp"
-#include "GUI_App.hpp"
 #include "ReleaseNote.hpp"
 #include <string>
 #include <boost/log/trivial.hpp>
@@ -67,6 +67,7 @@
 #include <vector>
 #include <wx/colour.h>
 #include <tuple>
+#include <wx/app.h>
 #include <wx/dir.h>
 #include <wx/string.h>
 #include <wx/event.h>
@@ -528,6 +529,18 @@ bool MachineObject::HasRecentLanMessage()
     return diff.count() < 5000;
 }
 
+bool MachineObject::has_access_right() const
+{
+    return !m_access_revoked && (printer_agent_id == MOONRAKER_PRINTER_AGENT_ID || !get_access_code().empty());
+}
+
+void MachineObject::revoke_access()
+{
+    // UI panels retain this object; revoke its binding without invalidating their pointers.
+    access_code.clear();
+    m_access_revoked = true;
+}
+
 std::string MachineObject::get_access_code() const
 {
     return access_code;
@@ -536,6 +549,7 @@ std::string MachineObject::get_access_code() const
 void MachineObject::set_access_code(std::string code, bool only_refresh)
 {
     this->access_code = code;
+    m_access_revoked = false;
     if (only_refresh) {
         AppConfig* config = m_manager ? m_manager->get_app_config() : GUI::wxGetApp().app_config;
         if (config) {
@@ -549,25 +563,10 @@ void MachineObject::set_access_code(std::string code, bool only_refresh)
                 // session boundary, since parse_user_print_info() always overwrites their code
                 // fresh from the cloud API's current response, so there's no cross-agent leakage
                 // risk to guard against there.
-                if (!code.empty()) {
+                if (has_access_right()) {
                     DeviceManager::update_local_machine(*this, config);
                 } else {
-                    // Only patch an existing record's code - don't persist a brand-new
-                    // never-bound entry just because set_access_code("") was called on it.
-                    const auto& machines = config->get_local_machines();
-                    auto        it       = machines.find(get_dev_id());
-                    if (it != machines.end()) {
-                        BBLocalMachine local_machine = it->second;
-                        local_machine.access_code    = "";
-                        config->update_local_machine(local_machine);
-                    }
-                    // Also clear the pre-scoping flat legacy key when unbinding under BBL, so an
-                    // old BBL-era code can't silently "re-bind" this device again via
-                    // get_access_code_with_legacy_fallback()'s legacy fallback.
-                    if (printer_agent_id == BBL_PRINTER_AGENT_ID || printer_agent_id.empty()) {
-                        config->erase("access_code", get_dev_id());
-                        config->erase("user_access_code", get_dev_id());
-                    }
+                    config->clear_local_machine_access_code(get_dev_id(), printer_agent_id);
                 }
             } else {
                 if (!code.empty())
@@ -1799,7 +1798,8 @@ int MachineObject::command_ams_calibrate(int ams_id)
     return command_with_dialog(m_agent->command_ams_calibrate(get_dev_id(), ams_id, MachineObject::m_sequence_id++, is_lan_mode_printer()));
 }
 
-int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max)
+int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type,
+                                                 int nozzle_temp_min, int nozzle_temp_max, const std::vector<std::string>& tray_colors, int tray_ctype)
 {
     int tag_tray_id = 0;
     int tag_ams_id  = ams_id;
@@ -1828,6 +1828,10 @@ int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::s
     j["print"]["nozzle_temp_min"]   = nozzle_temp_min;
     j["print"]["nozzle_temp_max"]   = nozzle_temp_max;
     j["print"]["tray_type"]         = tray_type;
+    if (!tray_colors.empty()) {
+        j["print"]["cols"]  = tray_colors;
+        j["print"]["ctype"] = tray_ctype;
+    }
 
     return this->publish_json(j);
 }
@@ -2679,7 +2683,7 @@ void MachineObject::update_print_progress(const json& value)
 
 int MachineObject::connect()
 {
-    if (get_dev_ip().empty()) return -1;
+    if (m_access_revoked || get_dev_ip().empty()) return -1;
     std::string username = m_agent ? m_agent->default_lan_username() : std::string();
     // The stored access code may be the "no API key" sentinel; agents expect an empty credential.
     std::string password = normalize_access_code(get_access_code());
@@ -2693,16 +2697,24 @@ int MachineObject::connect()
     std::string host = Http::get_host_from_url(input, &port);
     std::string ca_file;
 
-    if (GUI::wxGetApp().preset_bundle) {
+    if (wxTheApp && GUI::wxGetApp().preset_bundle) {
         const auto& config = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config;
         if (port.empty())
             port = config.opt_string("printhost_port");
         ca_file = config.opt_string("printhost_cafile");
+
+        // Refresh credentials from the matching preset for connections that bypass GUI_App::select_machine().
+        const std::string print_host = config.opt_string("print_host");
+        if (printer_agent_id == MOONRAKER_PRINTER_AGENT_ID && config.opt_string("printer_agent") == MOONRAKER_PRINTER_AGENT_ID &&
+            !print_host.empty() && dev_id_from_address(print_host, config.opt_string("printhost_port")) == get_dev_id()) {
+            password = config.opt_string("printhost_apikey");
+            if (password != get_access_code())
+                set_access_code(password);
+        }
     }
 
     if (host.empty())
         host = get_dev_ip();
-
 
     if (m_agent) {
         try {
@@ -5472,6 +5484,7 @@ void MachineObject::parse_new_info(json print)
         is_support_pa_mode = (get_flag_bits_no_border(fun2, 3) == 1);
         is_support_remote_dry = (get_flag_bits_no_border(fun2, 5) == 1);
         is_support_check_track_switch_match_slice_printer = get_flag_bits_no_border(fun2, 19) == 1;
+        is_support_filament_manual_multi_color = (get_flag_bits_no_border(fun2, 23) == 1);
 
         if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(printer_type)) {
             m_firmware_support_print_tpu_left = get_flag_bits_no_border(fun2, 7) == 1;

@@ -1,5 +1,6 @@
 #include "ConnectPrinter.hpp"
 #include "GUI_App.hpp"
+#include "slic3r/Utils/NetworkAgentFactory.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
