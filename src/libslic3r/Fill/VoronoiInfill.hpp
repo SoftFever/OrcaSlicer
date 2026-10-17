@@ -37,6 +37,7 @@ public:
     // distribution experiments and stage-by-stage verification.
     Voronoi::Layer fill_geometry(const BoundingBox &object_bounds, const ExPolygon &region,
                                 const GeometryParams &params);
+    Polylines route_walls(Polylines walls, size_t layer_id) const;
 
 private:
     Voronoi::ActivePointCloud m_cloud;
