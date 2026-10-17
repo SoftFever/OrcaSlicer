@@ -85,7 +85,14 @@ void DropDown::EnableSearch()
     search_input->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { filterSearch(); });
     search_input->Bind(wxEVT_KEY_DOWN, &DropDown::searchKeyDown, this);
     search_list->Bind(wxEVT_KEY_DOWN, &DropDown::searchKeyDown, this);
-    search_list->Bind(wxEVT_LISTBOX, [this](wxCommandEvent&) { acceptSearch(); });
+    // wxEVT_LISTBOX only fires when the selection changes, and filterSearch() preselects
+    // the first match, so clicking that row would do nothing. Accept on mouse release instead.
+    search_list->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent& event) {
+        int row = search_list->VirtualHitTest(event.GetPosition().y);
+        if (row < 0 || row >= int(search_list->matches.size())) { event.Skip(); return; }
+        search_list->SetSelection(row);
+        acceptSearch();
+    });
 }
 
 void DropDown::filterSearch()
