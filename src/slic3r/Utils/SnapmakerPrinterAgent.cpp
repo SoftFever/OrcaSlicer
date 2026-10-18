@@ -7,16 +7,13 @@
 
 #include "nlohmann/json.hpp"
 #include <boost/log/trivial.hpp>
-
-#include <algorithm>
-#include <cctype>
-
-using json = nlohmann::json;
 #include <vector>
 #include <string>
 #include "libslic3r/Preset.hpp"
 #include <cstddef>
 #include <utility>
+#include <algorithm>
+#include <cctype>
 
 namespace Slic3r {
 
