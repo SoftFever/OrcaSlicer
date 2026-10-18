@@ -75,7 +75,10 @@ bool LaneMapping::plan(const LaneSelections& selection, std::map<int, std::strin
         const auto lane = lanes.find(entry.lane);
         if (entry.tool < 0 || !tools.count(entry.tool))
             return false;
-        if (lane == lanes.end() || !lane->second.ready)
+        if (lane == lanes.end())
+            return false;
+        const auto& [lane_name, lane_info] = *lane;
+        if (!lane_info.ready)
             return false;
         if (!selected.insert(entry.lane).second && !multiple_mapping)
             return false;

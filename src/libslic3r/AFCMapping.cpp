@@ -97,16 +97,18 @@ std::map<int, std::string> AFCMapping::expected_tools(const LaneMapping& mapping
     auto after = mapping.tools;
     for (const auto& [tool, lane] : desired) {
         const auto current = mapping.tools.find(tool);
-        const std::string current_lane = current != mapping.tools.end() ? current->second : std::string{};
-        if (current_lane == lane)
-            continue;
+        if (current != mapping.tools.end()) {
+            const auto& [current_tool, current_lane] = *current;
+            if (current_lane == lane)
+                continue;
+        }
         if (!mapping.multiple_mapping) {
             const auto previous = after.find(tool);
             if (previous != after.end()) {
-                const std::string displaced = previous->second;
+                const auto [previous_tool, displaced_lane] = *previous;
                 for (auto& [other_tool, other_lane] : after) {
                     if (other_lane == lane)
-                        other_lane = displaced;
+                        other_lane = displaced_lane;
                 }
             }
         }
@@ -121,9 +123,12 @@ std::string AFCMapping::mapping_script(const LaneMapping& mapping, const std::ma
     // All destinations are physical identities resolved before any swap.
     for (const auto& [tool, lane] : desired) {
         const auto current = mapping.tools.find(tool);
-        const std::string current_lane = current != mapping.tools.end() ? current->second : std::string{};
-        if (current_lane != lane)
-            script += "SET_MAP LANE=" + lane + " MAP=T" + std::to_string(tool) + "\n";
+        if (current != mapping.tools.end()) {
+            const auto& [current_tool, current_lane] = *current;
+            if (current_lane == lane)
+                continue;
+        }
+        script += "SET_MAP LANE=" + lane + " MAP=T" + std::to_string(tool) + "\n";
     }
     return script;
 }

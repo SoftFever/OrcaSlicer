@@ -109,7 +109,7 @@ long long color_distance_sq(const wxColour& lhs, const wxColour& rhs)
     return dr * dr + dg * dg + db * db;
 }
 
-// Shared view for the Flashforge and AFC mapping controls; printer identifiers
+// Shared view for the filament mapping controls; printer identifiers
 // remain in their host adapters, while these widgets only select a displayed slot.
 struct MaterialMappingSlot {
     int slot_id {0};
@@ -756,7 +756,7 @@ void MoonrakerPrintHostSendDialog::init()
     if (m_project_filaments.empty())
         return;
 
-    auto* title = new wxStaticText(this, wxID_ANY, _L("AFC filament mapping"));
+    auto* title = new wxStaticText(this, wxID_ANY, _L("Filament mapping"));
     title->SetFont(::Label::Head_13);
     content_sizer->Add(title, 0, wxTOP | wxBOTTOM, FromDIP(8));
 
@@ -799,7 +799,7 @@ void MoonrakerPrintHostSendDialog::init()
     }
     content_sizer->Add(cards, 0, wxEXPAND);
     auto* hint = new wxStaticText(this, wxID_ANY,
-        _L("Choose a loaded lane of the same material for each filament. Assignments are saved in AFC when printing starts."));
+        _L("Choose a loaded lane of the same material for each filament. Assignments are saved on the printer when printing starts."));
     hint->Wrap(CONTENT_WIDTH * wxGetApp().em_unit());
     content_sizer->Add(hint, 0, wxTOP, FromDIP(4));
     Layout();
@@ -814,17 +814,17 @@ void MoonrakerPrintHostSendDialog::EndModal(int ret)
         for (const auto& row : m_mapping_rows) {
             const auto* card = as_material_map_widget(row.card);
             if (card == nullptr || !card->is_slot_selected()) {
-                show_error(this, _L("Assign each project filament to a loaded AFC lane of the same material before printing."));
+                show_error(this, _L("Assign each project filament to a loaded lane of the same material before printing."));
                 return;
             }
             if (!assigned_slots.insert(card->selected_slot_id()).second && !m_mapping.multiple_mapping) {
-                show_error(this, _L("Each filament must use a different AFC lane when multiple tool mapping is disabled in AFC."));
+                show_error(this, _L("Each filament must use a different lane when multiple tool mapping is disabled."));
                 return;
             }
         }
         std::map<int, std::string> desired;
         if (!m_mapping.plan(collect_assignments(), desired)) {
-            show_error(this, _L("This AFC mapping cannot be applied. Check that the printer is idle, that every selected lane is loaded, and that every filament uses a tool known to AFC."));
+            show_error(this, _L("This filament mapping cannot be applied. Check that the printer is idle, that every selected lane is loaded, and that every filament uses a tool known to the printer."));
             return;
         }
     }

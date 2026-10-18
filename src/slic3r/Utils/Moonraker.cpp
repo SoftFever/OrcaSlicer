@@ -304,11 +304,11 @@ bool Moonraker::apply_afc_mapping(const LaneSelections& selection, bool& applied
     if (!fetch_afc_status(current, detected, error)) return false;
     std::map<int, std::string> desired;
     if (detected && current.tools.empty()) {
-        error = _L("AFC reports no filament-to-tool mappings, so the filament mapping cannot be applied.");
+        error = _L("The printer reports no filament-to-tool mappings, so the filament mapping cannot be applied.");
         return false;
     }
     if (!detected || !current.plan(selection, desired)) {
-        error = _L("AFC filament mapping is no longer valid. Check that the printer is idle and that all selected lanes are loaded, then reopen the send dialog.");
+        error = _L("Filament mapping is no longer valid. Check that the printer is idle and that all selected lanes are loaded, then reopen the send dialog.");
         return false;
     }
     // The upload and status query may take time; honor cancellation immediately
@@ -319,18 +319,18 @@ bool Moonraker::apply_afc_mapping(const LaneSelections& selection, bool& applied
     if (!script.empty()) {
         applied = true;
         if (!send_gcode_script(script, error)) {
-            error = _L("Failed to apply AFC filament mapping. The print was not started; check the printer's current lane assignments.");
+            error = _L("Failed to apply filament mapping. The print was not started; check the printer's current lane assignments.");
             return false;
         }
     }
     LaneMapping verified;
     if (!fetch_afc_status(verified, detected, error) || !detected
         || !verified.plan(selection, desired) || verified.tools != expected) {
-        error = _L("AFC filament mapping could not be verified. The print was not started; check that the printer is idle, that the selected lanes are loaded, and that the lane assignments are correct.");
+        error = _L("Filament mapping could not be verified. The print was not started; check that the printer is idle, that the selected lanes are loaded, and that the lane assignments are correct.");
         return false;
     }
     if (is_cancelled()) {
-        if (applied) error = _L("The print was canceled after AFC mapping was applied. The lane assignments remain saved on the printer.");
+        if (applied) error = _L("The print was canceled after filament mapping was applied. The lane assignments remain saved on the printer.");
         return false;
     }
     return true;
@@ -396,7 +396,7 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
     http.form_add("root", root);
     if (!plateindex.empty())
         http.form_add("plateindex", plateindex);
-    // AFC assignments belong to an immediate print, not a queued upload whose
+    // Filament assignments belong to an immediate print, not a queued upload whose
     // lane mappings might change before it starts.
     http.form_add("print", want_start && !map_filament ? "true" : "false");
     http.form_add_file("file", upload_data.source_path.string(), upload_filename.string())
@@ -466,7 +466,7 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
             return cancel;
         };
         if (moonraker_started_print) {
-            error_fn(_L("Moonraker unexpectedly started or queued the upload before AFC mapping could be applied."));
+            error_fn(_L("Moonraker unexpectedly started or queued the upload before filament mapping could be applied."));
             return false;
         }
         wxString message;
@@ -482,7 +482,7 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
         wxString start_msg;
         if (!start_print(start_msg, uploaded_path)) {
             if (filament_mapping_applied)
-                start_msg += "\n" + _L("The AFC lane assignments remain saved on the printer. Check them before retrying.");
+                start_msg += "\n" + _L("The lane assignments remain saved on the printer. Check them before retrying.");
             error_fn(std::move(start_msg));
             return false;
         }
