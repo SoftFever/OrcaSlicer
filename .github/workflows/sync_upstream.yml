@@ -1,0 +1,167 @@
+name: Sync with upstream
+
+# Keeps this fork's main in step with OrcaSlicer/OrcaSlicer. Once a day (or by hand)
+# the job fetches upstream's main and, when it carries commits main does not have,
+# merges it on the branch `sync/upstream` and opens one pull request for it, or
+# refreshes the one already open. A merge that conflicts still gets the pull request:
+# the branch is then upstream's main as is, so the PR shows the conflicts, and the
+# PR body lists the files to resolve by merging locally.
+#
+# The merge commit is made by GitHub, not by git on the runner: upstream's commits are
+# pushed to a staging branch and the repository "merges" API joins them into
+# `sync/upstream`. A commit GitHub creates is signed with GitHub's own key and shows as
+# Verified, so no signing key has to live in the repository's secrets.
+#
+# The sync pull request must be merged with a MERGE COMMIT. A squash (or rebase) turns
+# upstream's commits into new ones git cannot recognise as upstream's history, so the
+# next sync merges the same commits again and every later upstream edit to those
+# lines conflicts. The job refuses to run on a fork whose repository settings forbid
+# merge commits, so the mistake is caught before the first sync rather than after.
+#
+# Two repository settings matter: Actions must be allowed to create pull requests
+# (Settings > Actions > General > Workflow permissions), and pull requests opened with
+# the default GITHUB_TOKEN run no CI. Set a SYNC_TOKEN secret (a fine-grained token
+# with contents and pull-requests write on this repository) to have the checks run on
+# the sync PR; commits made through the API with a user token are signed as well.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+env:
+  UPSTREAM: https://github.com/OrcaSlicer/OrcaSlicer.git
+  UPSTREAM_BRANCH: main
+  BASE: main
+  SYNC_BRANCH: sync/upstream
+  STAGING_BRANCH: sync/upstream-source
+  GH_TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.BASE }}
+          fetch-depth: 0
+          lfs: 'false'
+          token: ${{ secrets.SYNC_TOKEN || github.token }}
+
+      - name: Refuse a repository that cannot merge the sync PR
+        run: |
+          allowed="$(gh api "repos/${GITHUB_REPOSITORY}" --jq '.allow_merge_commit')"
+          if [ "$allowed" != "true" ]; then
+            echo "::error::Merge commits are disabled in the repository settings; the sync PR cannot be merged without a squash, which breaks the next sync."
+            exit 1
+          fi
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "$UPSTREAM"
+          git fetch --no-tags upstream "$UPSTREAM_BRANCH"
+          behind="$(git rev-list --count "HEAD..upstream/$UPSTREAM_BRANCH")"
+          echo "behind=$behind" >> "$GITHUB_ENV"
+          echo "Fork is $behind commit(s) behind upstream/$UPSTREAM_BRANCH"
+
+      - name: Nothing to sync
+        if: env.behind == '0'
+        run: echo "main already contains upstream/$UPSTREAM_BRANCH"
+
+      # A local dry run only decides which path to take and which files conflict; the
+      # real merge commit is created by GitHub in the next step.
+      - name: Try the merge locally
+        if: env.behind != '0'
+        id: dry
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q -B dry-run "$BASE"
+          if git merge --no-commit --no-ff "upstream/$UPSTREAM_BRANCH" >/dev/null 2>&1; then
+            git merge --abort 2>/dev/null || git reset -q --hard "$BASE"
+            echo "clean=true" >> "$GITHUB_OUTPUT"
+          else
+            files="$(git diff --name-only --diff-filter=U | head -200)"
+            git merge --abort 2>/dev/null || git reset -q --hard "$BASE"
+            {
+              echo "conflicts<<EOF"
+              echo "$files"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            echo "clean=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Merge through GitHub so the commit is signed
+        if: env.behind != '0' && steps.dry.outputs.clean == 'true'
+        run: |
+          # Stage upstream's commits in this repository and reset the sync branch to main,
+          # then let GitHub create the merge commit.
+          git push --force origin "upstream/$UPSTREAM_BRANCH:refs/heads/$STAGING_BRANCH"
+          git push --force origin "$BASE:refs/heads/$SYNC_BRANCH"
+          status="$(gh api -X POST "repos/${GITHUB_REPOSITORY}/merges" \
+            -f base="$SYNC_BRANCH" -f head="$STAGING_BRANCH" \
+            -f commit_message="Merge upstream OrcaSlicer $UPSTREAM_BRANCH ($behind commits)" \
+            -i 2>/dev/null | sed -n '1s/^HTTP\/[0-9.]* \([0-9]*\).*/\1/p')"
+          echo "merges API returned HTTP $status"
+          case "$status" in
+            201) ;;
+            409) echo "::error::GitHub reports a conflict the local dry run did not; rerun the workflow"; exit 1 ;;
+            *) echo "::error::Unexpected response from the merges API"; exit 1 ;;
+          esac
+          git push origin --delete "$STAGING_BRANCH"
+
+      - name: Publish upstream as the branch when the merge conflicts
+        if: env.behind != '0' && steps.dry.outputs.clean != 'true'
+        run: git push --force origin "upstream/$UPSTREAM_BRANCH:refs/heads/$SYNC_BRANCH"
+
+      - name: Open or refresh the pull request
+        if: env.behind != '0'
+        env:
+          CLEAN: ${{ steps.dry.outputs.clean }}
+          CONFLICTS: ${{ steps.dry.outputs.conflicts }}
+        run: |
+          upstream_head="$(git rev-parse --short "upstream/$UPSTREAM_BRANCH")"
+          title="chore: sync with upstream OrcaSlicer ($behind commits)"
+          {
+            echo "Upstream \`OrcaSlicer/OrcaSlicer\` \`$UPSTREAM_BRANCH\` is at \`$upstream_head\`; this fork's \`$BASE\` is **$behind commit(s)** behind."
+            echo
+            if [ "$CLEAN" = "true" ]; then
+              echo "The merge applies cleanly. The branch \`$SYNC_BRANCH\` is \`$BASE\` plus one merge commit of upstream, created and signed by GitHub."
+            else
+              echo "**The merge conflicts.** The branch \`$SYNC_BRANCH\` is upstream's \`$UPSTREAM_BRANCH\` as is; resolve locally and push the result to it:"
+              echo
+              echo '```sh'
+              echo "git fetch origin $BASE && git checkout $BASE"
+              echo "git fetch https://github.com/OrcaSlicer/OrcaSlicer.git $UPSTREAM_BRANCH"
+              echo "git merge FETCH_HEAD        # resolve, then: git commit -S"
+              echo "git push --force origin HEAD:$SYNC_BRANCH"
+              echo '```'
+              echo
+              echo "Files in conflict:"
+              echo
+              printf '%s\n' "$CONFLICTS" | sed 's/^/- `/; s/$/`/'
+            fi
+            echo
+            echo "### Merging"
+            echo
+            echo "Use **Create a merge commit**. A squash or rebase merge rewrites upstream's commits, so the next sync would merge them again and conflict on every later upstream change to the same lines."
+            echo
+            echo "_Opened by the \"Sync with upstream\" workflow; it refreshes this PR on each run until it is merged or closed._"
+          } > body.md
+          number="$(gh pr list --head "$SYNC_BRANCH" --base "$BASE" --state open --json number --jq '.[0].number')"
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --title "$title" --body-file body.md
+            echo "Refreshed #$number"
+          else
+            gh pr create --head "$SYNC_BRANCH" --base "$BASE" --title "$title" --body-file body.md --label upstream-sync 2>/dev/null \
+              || gh pr create --head "$SYNC_BRANCH" --base "$BASE" --title "$title" --body-file body.md
+          fi
