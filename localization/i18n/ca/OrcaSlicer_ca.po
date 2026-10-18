@@ -1789,7 +1789,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Traç de forma ( %1% ) conté elements no compatibles: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Estat no vàlid; informeu dels passos per reproduir-lo a GitHub"
 
 # AI Translated
@@ -1797,11 +1797,11 @@ msgid "No embossed file"
 msgstr "No hi ha cap fitxer en relleu"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "Falta el fitxer SVG a la forma en relleu"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Falten les dades del fitxer SVG"
 
 msgid "Face the camera"
@@ -23505,7 +23505,7 @@ msgstr "Inici de la prova de %s..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "Prova de %s: IP resolta = %s"
 
 # AI Translated

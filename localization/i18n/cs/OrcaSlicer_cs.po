@@ -1765,7 +1765,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Obrys tvaru (%1%) obsahuje nepodporované: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Neplatný stav, nahlaste prosím postup reprodukce na GitHubu"
 
 # AI Translated
@@ -1773,11 +1773,11 @@ msgid "No embossed file"
 msgstr "Chybí soubor pro reliéf"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "V reliéfním tvaru chybí soubor SVG"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Chybí data souboru SVG"
 
 msgid "Face the camera"
@@ -23454,7 +23454,7 @@ msgstr "test %s spuštěn..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "test %s: IP adresa přeložena = %s"
 
 # AI Translated

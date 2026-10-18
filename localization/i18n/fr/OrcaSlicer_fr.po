@@ -1723,7 +1723,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Le trait de la forme (%1%) contient un élément non pris en charge : %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "État non valide, veuillez signaler les étapes de reproduction sur GitHub"
 
 # AI Translated
@@ -1731,11 +1731,11 @@ msgid "No embossed file"
 msgstr "Aucun fichier en relief"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "Fichier SVG manquant dans la forme en relief"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Données du fichier SVG manquantes"
 
 msgid "Face the camera"
@@ -22859,7 +22859,7 @@ msgstr "début du test %s…"
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "test %s : IP résolue = %s"
 
 # AI Translated

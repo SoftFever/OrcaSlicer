@@ -1751,7 +1751,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "形状（%1%）的描边包含不受支持的内容：%2%。"
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "状态无效，请在 GitHub 上报告复现步骤"
 
 # AI Translated
@@ -1759,11 +1759,11 @@ msgid "No embossed file"
 msgstr "没有浮雕文件"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "浮雕形状中缺少 SVG 文件"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "缺少 SVG 文件数据"
 
 # AI Translated
@@ -24004,7 +24004,7 @@ msgstr "开始测试 %s..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "测试 %s：IP 解析结果 = %s"
 
 # AI Translated

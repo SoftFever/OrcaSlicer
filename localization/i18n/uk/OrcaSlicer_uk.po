@@ -1740,7 +1740,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Обведення фігури (%1%) не підтримується: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Некоректний стан, будь ласка, повідомте кроки відтворення на GitHub"
 
 # AI Translated
@@ -1748,11 +1748,11 @@ msgid "No embossed file"
 msgstr "Відсутній файл рельєфу"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "У рельєфній формі відсутній файл SVG"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Відсутні дані файлу SVG"
 
 msgid "Face the camera"
@@ -23756,7 +23756,7 @@ msgstr "тест %s розпочато..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "тест %s: IP визначено = %s"
 
 # AI Translated

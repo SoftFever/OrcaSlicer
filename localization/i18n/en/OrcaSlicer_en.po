@@ -1633,16 +1633,16 @@ msgstr ""
 msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr ""
 
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr ""
 
 msgid "No embossed file"
 msgstr ""
 
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr ""
 
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr ""
 
 msgid "Face the camera"
@@ -20536,7 +20536,7 @@ msgid "test %s start..."
 msgstr ""
 
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr ""
 
 #, c-format, boost-format

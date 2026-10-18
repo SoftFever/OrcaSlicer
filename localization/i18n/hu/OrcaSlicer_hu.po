@@ -1743,7 +1743,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Az alakzat körvonala (%1%) nem támogatott elemet tartalmaz: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Érvénytelen állapot, kérlek, jelentsd a reprodukálás lépéseit a GitHubon"
 
 # AI Translated
@@ -1751,11 +1751,11 @@ msgid "No embossed file"
 msgstr "Nincs dombornyomott fájl"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "Hiányzik az SVG fájl a dombornyomott alakzatból"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Hiányoznak az SVG fájl adatai"
 
 msgid "Face the camera"
@@ -23346,7 +23346,7 @@ msgstr "%s tesztelése indul..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "%s tesztelése: IP feloldva = %s"
 
 # AI Translated

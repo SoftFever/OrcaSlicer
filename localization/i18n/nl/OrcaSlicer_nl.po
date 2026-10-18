@@ -1870,7 +1870,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "De lijn van vorm (%1%) bevat niet-ondersteund: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Ongeldige status; meld de stappen om dit te reproduceren op GitHub"
 
 # AI Translated
@@ -1878,11 +1878,11 @@ msgid "No embossed file"
 msgstr "Geen reliëfbestand"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "SVG-bestand ontbreekt in de reliëfvorm"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Gegevens van het SVG-bestand ontbreken"
 
 # AI Translated
@@ -25201,7 +25201,7 @@ msgstr "test %s gestart..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "test %s ip omgezet = %s"
 
 # AI Translated

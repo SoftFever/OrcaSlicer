@@ -1749,7 +1749,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Şeklin konturu (%1%) desteklenmeyenleri içeriyor: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Geçersiz durum, lütfen yeniden oluşturma adımlarını GitHub'da bildirin"
 
 # AI Translated
@@ -1757,11 +1757,11 @@ msgid "No embossed file"
 msgstr "Kabartma dosyası yok"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "Kabartmalı şekilde SVG dosyası eksik"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "SVG dosyasının verileri eksik"
 
 msgid "Face the camera"
@@ -23470,7 +23470,7 @@ msgstr "%s testi başlatılıyor..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "%s testi: IP çözümlendi = %s"
 
 # AI Translated

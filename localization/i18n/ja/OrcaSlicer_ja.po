@@ -1738,7 +1738,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "形状 (%1%) のストロークにサポートされていないものが含まれています： %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "無効な状態です。再現手順をGitHubで報告してください"
 
 # AI Translated
@@ -1746,11 +1746,11 @@ msgid "No embossed file"
 msgstr "エンボス対象のファイルがありません"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "エンボス形状にSVGファイルがありません"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "SVGファイルのデータがありません"
 
 msgid "Face the camera"
@@ -23766,7 +23766,7 @@ msgstr "%s のテストを開始..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "%s のテスト: IP解決 = %s"
 
 # AI Translated

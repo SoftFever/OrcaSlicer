@@ -1747,7 +1747,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "모양의 획(%1%)에는 지원되지 않는 %2%가 포함되어 있습니다."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "유효하지 않은 상태입니다. GitHub에 재현 단계를 보고해 주세요"
 
 # AI Translated
@@ -1755,11 +1755,11 @@ msgid "No embossed file"
 msgstr "양각 파일 없음"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "양각 형상에 SVG 파일이 없습니다"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "SVG 파일 데이터가 없습니다"
 
 msgid "Face the camera"
@@ -23736,7 +23736,7 @@ msgstr "%s 테스트 시작..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "%s 테스트 IP 확인됨 = %s"
 
 # AI Translated

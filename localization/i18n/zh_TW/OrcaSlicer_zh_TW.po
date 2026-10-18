@@ -1826,7 +1826,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "形狀（%1%）的筆劃包含不支援的內容：%2%。"
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "狀態無效，請在 GitHub 上回報重現步驟"
 
 # AI Translated
@@ -1834,11 +1834,11 @@ msgid "No embossed file"
 msgstr "沒有浮雕檔案"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "浮雕形狀中缺少 SVG 檔案"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "缺少 SVG 檔案的資料"
 
 msgid "Face the camera"
@@ -24597,7 +24597,7 @@ msgstr "測試 %s 開始..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "測試 %s IP 解析結果 = %s"
 
 # AI Translated
