@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-15 17:40+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -652,6 +652,9 @@ msgstr ""
 msgid "Part selection"
 msgstr ""
 
+msgid "Select multiple objects"
+msgstr ""
+
 msgid "Fixed step drag"
 msgstr ""
 
@@ -712,7 +715,64 @@ msgstr ""
 msgid "Relative"
 msgstr ""
 
+msgid "Selection"
+msgstr ""
+
+msgid "Plate"
+msgstr ""
+
+msgid "Distribute"
+msgstr ""
+
 msgid "Coordinate system used for transform actions."
+msgstr ""
+
+msgid "Reference for alignment"
+msgstr ""
+
+msgid "Select at least 3 parts or objects"
+msgstr ""
+
+msgid "Align left"
+msgstr ""
+
+msgid "Align left-right center"
+msgstr ""
+
+msgid "Align right"
+msgstr ""
+
+msgid "Align front"
+msgstr ""
+
+msgid "Align front-back center"
+msgstr ""
+
+msgid "Align back"
+msgstr ""
+
+msgid "Align bottom"
+msgstr ""
+
+msgid "Align top-bottom center"
+msgstr ""
+
+msgid "Align top"
+msgstr ""
+
+msgid "Distribute left-right"
+msgstr ""
+
+msgid "Distribute front-back"
+msgstr ""
+
+msgid "Distribute top-bottom"
+msgstr ""
+
+msgid "Drop"
+msgstr ""
+
+msgid "Move the selection along Z so that its lowest point touches the bed."
 msgstr ""
 
 msgid "Absolute"
@@ -1886,6 +1946,18 @@ msgstr ""
 msgid "Leaving Assembly gizmo"
 msgstr ""
 
+msgid "Parts of a cut object cannot be moved"
+msgstr ""
+
+msgid "Aligning to the plate is available in X and Y only"
+msgstr ""
+
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr ""
+
+msgid "All selected objects must be on the same plate"
+msgstr ""
+
 msgid "Shift+"
 msgstr ""
 
@@ -2246,6 +2318,48 @@ msgid "Network Plug-in Restriction"
 msgstr ""
 
 msgid "Privacy Policy Update"
+msgstr ""
+
+msgid "All your filament presets are available on the printers they were made for."
+msgstr ""
+
+msgid "Migrate Filament Presets"
+msgstr ""
+
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+
+#, possible-boost-format
+msgid "%1% (based on %2%)"
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr ""
+
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr ""
+
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+
+msgid "These presets could not be migrated:"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2919,7 +3033,10 @@ msgstr ""
 msgid "Center"
 msgstr ""
 
-msgid "Drop"
+msgid "Align/Distribute"
+msgstr ""
+
+msgid "Align and distribute objects"
 msgstr ""
 
 msgid "Edit Process Settings"
@@ -3266,9 +3383,6 @@ msgid "No-brim"
 msgstr ""
 
 msgid "Outer wall speed"
-msgstr ""
-
-msgid "Plate"
 msgstr ""
 
 msgid "Brim"
@@ -5881,6 +5995,9 @@ msgstr ""
 msgid "Gridlines"
 msgstr ""
 
+msgid "Focus mode"
+msgstr ""
+
 msgid "Labels"
 msgstr ""
 
@@ -5932,7 +6049,7 @@ msgstr ""
 msgid "Size:"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
+#, possible-boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 
@@ -6145,6 +6262,9 @@ msgid "Setup Wizard"
 msgstr ""
 
 msgid "Show Configuration Folder"
+msgstr ""
+
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
 msgstr ""
 
 msgid "Troubleshoot Center"
@@ -9790,6 +9910,12 @@ msgstr ""
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr ""
 
+msgid "Export statistics with G-code"
+msgstr ""
+
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
+
 msgid "Experimental Features"
 msgstr ""
 
@@ -12019,9 +12145,6 @@ msgstr ""
 msgid "from/to"
 msgstr ""
 
-msgid "Please choose the filament color"
-msgstr ""
-
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr ""
 
@@ -12212,9 +12335,6 @@ msgid "Available while the 3D view on the Prepare tab has focus."
 msgstr ""
 
 msgid "Select a part"
-msgstr ""
-
-msgid "Select multiple objects"
 msgstr ""
 
 msgid "Select objects by rectangle"
@@ -12684,6 +12804,10 @@ msgid "modifier \"%1%\" of \"%2%\" (%3% in total) had no effect on the seam (it 
 msgstr ""
 
 msgid "Seam placement may differ from expected."
+msgstr ""
+
+#, possible-boost-format
+msgid "Failed to write the G-code statistics to %1%."
 msgstr ""
 
 msgid "Internal Bridge"
@@ -13538,7 +13662,7 @@ msgid ""
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 
 msgid "Internal bridge flow ratio"
@@ -13766,7 +13890,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 
 msgid "mm/s or %"
@@ -13775,7 +13899,7 @@ msgstr ""
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
@@ -14224,7 +14348,7 @@ msgstr ""
 msgid "Small perimeters"
 msgstr ""
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
 msgstr ""
 
 msgid "Small perimeters threshold"
@@ -14236,7 +14360,7 @@ msgstr ""
 msgid "Small support perimeters"
 msgstr ""
 
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
 msgstr ""
 
 msgid "Small support perimeters threshold"
@@ -14253,7 +14377,7 @@ msgid ""
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
@@ -15077,13 +15201,13 @@ msgstr ""
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr ""
 
-msgid "This is the speed for the first layer except for solid infill sections."
+msgid "This is the speed for the walls and brim of the first layer."
 msgstr ""
 
 msgid "First layer infill"
 msgstr ""
 
-msgid "This is the speed for solid infill parts of the first layer."
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
 msgstr ""
 
 msgid "First layer travel speed"
@@ -15702,14 +15826,14 @@ msgid "Infill/wall overlap"
 msgstr ""
 
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
 msgstr ""
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr ""
 
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
 msgstr ""
 
 msgid "This is the speed for internal sparse infill."
@@ -15736,7 +15860,7 @@ msgstr ""
 msgid "Interlocking depth of a segmented region"
 msgstr ""
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
 msgstr ""
 
 msgid "Use beam interlocking"
@@ -15840,7 +15964,7 @@ msgstr ""
 
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 
@@ -16716,7 +16840,7 @@ msgstr ""
 msgid "Use scarf joint for inner walls as well."
 msgstr ""
 
-msgid "Role base wipe speed"
+msgid "Role based wipe speed"
 msgstr ""
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
@@ -16794,8 +16918,7 @@ msgstr ""
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
 
 msgid "Enabled"
@@ -17775,13 +17898,13 @@ msgstr ""
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
 
 msgid "Wall type"
@@ -17789,9 +17912,9 @@ msgstr ""
 
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 
 msgid "Rectangle"
@@ -17881,7 +18004,7 @@ msgstr ""
 msgid "Extra flow for purging"
 msgstr ""
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
 msgstr ""
 
 msgid "Idle temperature"
@@ -17992,9 +18115,9 @@ msgid "Minimum wall length"
 msgstr ""
 
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
 
 msgid "Maximum wall resolution"
@@ -18348,6 +18471,12 @@ msgid "Output directory"
 msgstr ""
 
 msgid "This is the output directory for exported files."
+msgstr ""
+
+msgid "Export statistics"
+msgstr ""
+
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
 msgstr ""
 
 msgid "Debug level"
@@ -21452,9 +21581,6 @@ msgid "Enable smart filament assign: Assign one filament to multiple nozzles to 
 msgstr ""
 
 msgid "File Saving"
-msgstr ""
-
-msgid "Don't remind me again"
 msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -25670,9 +25796,6 @@ msgstr ""
 msgid "Slicing and printing"
 msgstr ""
 
-msgid "Selection"
-msgstr ""
-
 msgid "Editing"
 msgstr ""
 
@@ -26363,6 +26486,1231 @@ msgid_plural "The current filament list does not contain %s. Project filaments r
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Color Picker"
+msgstr ""
+
+msgid "Basic Colors"
+msgstr ""
+
+msgid "Orca Palette"
+msgstr ""
+
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "RAL Classic"
+msgstr ""
+
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "Gradients"
+msgstr ""
+
+msgid "Solid"
+msgstr ""
+
+msgid "Gradient"
+msgstr ""
+
+msgid "Gradient start"
+msgstr ""
+
+msgid "Gradient end"
+msgstr ""
+
+msgid "Gradient color"
+msgstr ""
+
+msgid "Add color"
+msgstr ""
+
+msgid "Remove color"
+msgstr ""
+
+msgid "Saturation"
+msgstr ""
+
+msgid "Original color"
+msgstr ""
+
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr ""
+
+msgid "Palettes"
+msgstr ""
+
+msgid "Search colors"
+msgstr ""
+
+msgid "Filter colors"
+msgstr ""
+
+msgid "No matching colors"
+msgstr ""
+
+msgid "Hex color"
+msgstr ""
+
+msgid "Opacity"
+msgstr ""
+
+msgid "Opacity percent"
+msgstr ""
+
+msgid "Save color"
+msgstr ""
+
+msgid "Enter a complete hexadecimal color"
+msgstr ""
+
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Up to %d colors supported."
+msgstr ""
+
+msgid "Crimson"
+msgstr ""
+
+msgid "Orange red"
+msgstr ""
+
+msgid "Tomato"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Dark orange"
+msgstr ""
+
+msgid "Gold"
+msgstr ""
+
+msgid "Burly wood"
+msgstr ""
+
+msgid "Bisque"
+msgstr ""
+
+msgid "Misty rose"
+msgstr ""
+
+msgid "Light yellow"
+msgstr ""
+
+msgid "Lemon chiffon"
+msgstr ""
+
+msgid "Beige"
+msgstr ""
+
+msgid "Light golden rod yellow"
+msgstr ""
+
+msgid "Pale golden rod"
+msgstr ""
+
+msgid "Khaki"
+msgstr ""
+
+msgid "Dark khaki"
+msgstr ""
+
+msgid "Peach puff"
+msgstr ""
+
+msgid "Moccasin"
+msgstr ""
+
+msgid "Papaya whip"
+msgstr ""
+
+msgid "Blanched almond"
+msgstr ""
+
+msgid "Antique white"
+msgstr ""
+
+msgid "Navajo white"
+msgstr ""
+
+msgid "Wheat"
+msgstr ""
+
+msgid "Golden rod"
+msgstr ""
+
+msgid "Chocolate"
+msgstr ""
+
+msgid "Peru"
+msgstr ""
+
+msgid "Fire brick"
+msgstr ""
+
+msgid "Sienna"
+msgstr ""
+
+msgid "Saddle brown"
+msgstr ""
+
+msgid "Brown"
+msgstr ""
+
+msgid "Rosy brown"
+msgstr ""
+
+msgid "Salmon"
+msgstr ""
+
+msgid "Light salmon"
+msgstr ""
+
+msgid "Dark salmon"
+msgstr ""
+
+msgid "Sandy brown"
+msgstr ""
+
+msgid "Coral"
+msgstr ""
+
+msgid "Light coral"
+msgstr ""
+
+msgid "Indian red"
+msgstr ""
+
+msgid "Dark red"
+msgstr ""
+
+msgid "Maroon"
+msgstr ""
+
+msgid "Green yellow"
+msgstr ""
+
+msgid "Yellow green"
+msgstr ""
+
+msgid "Chartreuse"
+msgstr ""
+
+msgid "Lawn green"
+msgstr ""
+
+msgid "Lime green"
+msgstr ""
+
+msgid "Spring green"
+msgstr ""
+
+msgid "Medium spring green"
+msgstr ""
+
+msgid "Lime"
+msgstr ""
+
+msgid "Forest green"
+msgstr ""
+
+msgid "Dark green"
+msgstr ""
+
+msgid "Olive drab"
+msgstr ""
+
+msgid "Olive"
+msgstr ""
+
+msgid "Dark olive green"
+msgstr ""
+
+msgid "Pale green"
+msgstr ""
+
+msgid "Light green"
+msgstr ""
+
+msgid "Medium sea green"
+msgstr ""
+
+msgid "Sea green"
+msgstr ""
+
+msgid "Dark sea green"
+msgstr ""
+
+msgid "Cadet blue"
+msgstr ""
+
+msgid "Medium aqua marine"
+msgstr ""
+
+msgid "Turquoise"
+msgstr ""
+
+msgid "Medium turquoise"
+msgstr ""
+
+msgid "Dark turquoise"
+msgstr ""
+
+msgid "Pale turquoise"
+msgstr ""
+
+msgid "Aqua"
+msgstr ""
+
+msgid "Light cyan"
+msgstr ""
+
+msgid "Mint cream"
+msgstr ""
+
+msgid "Honey dew"
+msgstr ""
+
+msgid "Aquamarine"
+msgstr ""
+
+msgid "Light sea green"
+msgstr ""
+
+msgid "Dark cyan"
+msgstr ""
+
+msgid "Teal"
+msgstr ""
+
+msgid "Dark slate gray"
+msgstr ""
+
+msgid "Light slate gray"
+msgstr ""
+
+msgid "Slate gray"
+msgstr ""
+
+msgid "Deep sky blue"
+msgstr ""
+
+msgid "Dodger Blue"
+msgstr ""
+
+msgid "Sky blue"
+msgstr ""
+
+msgid "Light sky blue"
+msgstr ""
+
+msgid "Light blue"
+msgstr ""
+
+msgid "Powder blue"
+msgstr ""
+
+msgid "Light steel blue"
+msgstr ""
+
+msgid "Steel blue"
+msgstr ""
+
+msgid "Cornflower blue"
+msgstr ""
+
+msgid "Royal blue"
+msgstr ""
+
+msgid "Medium blue"
+msgstr ""
+
+msgid "Midnight blue"
+msgstr ""
+
+msgid "Dark blue"
+msgstr ""
+
+msgid "Navy"
+msgstr ""
+
+msgid "Slate blue"
+msgstr ""
+
+msgid "Dark slate blue"
+msgstr ""
+
+msgid "Medium slate blue"
+msgstr ""
+
+msgid "Blue violet"
+msgstr ""
+
+msgid "Indigo"
+msgstr ""
+
+msgid "Dark violet"
+msgstr ""
+
+msgid "Dark orchid"
+msgstr ""
+
+msgid "Medium orchid"
+msgstr ""
+
+msgid "Orchid"
+msgstr ""
+
+msgid "Violet"
+msgstr ""
+
+msgid "Medium purple"
+msgstr ""
+
+msgid "Purple"
+msgstr ""
+
+msgid "Rebecca purple"
+msgstr ""
+
+msgid "Medium violet red"
+msgstr ""
+
+msgid "PaleV violet red"
+msgstr ""
+
+msgid "Deep pink"
+msgstr ""
+
+msgid "Hot pink"
+msgstr ""
+
+msgid "Light pink"
+msgstr ""
+
+msgid "Pink"
+msgstr ""
+
+msgid "Plum"
+msgstr ""
+
+msgid "Thistle"
+msgstr ""
+
+msgid "Fuchsia"
+msgstr ""
+
+msgid "Dark magenta"
+msgstr ""
+
+msgid "Linen"
+msgstr ""
+
+msgid "Old lace"
+msgstr ""
+
+msgid "Sea shell"
+msgstr ""
+
+msgid "Ivory"
+msgstr ""
+
+msgid "Floral white"
+msgstr ""
+
+msgid "Lavender blush"
+msgstr ""
+
+msgid "Ghost white"
+msgstr ""
+
+msgid "Alice blue"
+msgstr ""
+
+msgid "Lavender"
+msgstr ""
+
+msgid "White smoke"
+msgstr ""
+
+msgid "Gainsboro"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Coral fire"
+msgstr ""
+
+msgid "Sea anemone"
+msgstr ""
+
+msgid "Deep abyss"
+msgstr ""
+
+msgid "Lobster red"
+msgstr ""
+
+msgid "Sandy clay"
+msgstr ""
+
+msgid "Driftwood"
+msgstr ""
+
+msgid "Sea buckthorn"
+msgstr ""
+
+msgid "Sunset reef"
+msgstr ""
+
+msgid "Tiger coral"
+msgstr ""
+
+msgid "Pink coral"
+msgstr ""
+
+msgid "Seashell glow"
+msgstr ""
+
+msgid "Sand"
+msgstr ""
+
+msgid "Golden kelp"
+msgstr ""
+
+msgid "Sunlit dune"
+msgstr ""
+
+msgid "Amber nautilus"
+msgstr ""
+
+msgid "Sea lemon"
+msgstr ""
+
+msgid "Pale starfish"
+msgstr ""
+
+msgid "Spring tide"
+msgstr ""
+
+msgid "Lime algae"
+msgstr ""
+
+msgid "Sea grass"
+msgstr ""
+
+msgid "Neon plankton"
+msgstr ""
+
+msgid "Kelp forest"
+msgstr ""
+
+msgid "Emerald wave"
+msgstr ""
+
+msgid "Whale shadow"
+msgstr ""
+
+msgid "Sea turtle"
+msgstr ""
+
+msgid "Lagoon"
+msgstr ""
+
+msgid "Tropical current"
+msgstr ""
+
+msgid "Midnight trench"
+msgstr ""
+
+msgid "Dark kelp"
+msgstr ""
+
+msgid "Crystal surf"
+msgstr ""
+
+msgid "Turquoise bay"
+msgstr ""
+
+msgid "Sky over reef"
+msgstr ""
+
+msgid "Shallow sky"
+msgstr ""
+
+msgid "Electric bel"
+msgstr ""
+
+msgid "Dolphin"
+msgstr ""
+
+msgid "Ocean depths"
+msgstr ""
+
+msgid "Whale"
+msgstr ""
+
+msgid "Indigo abyss"
+msgstr ""
+
+msgid "Sea urchin"
+msgstr ""
+
+msgid "Lavender coral"
+msgstr ""
+
+msgid "Violet tide"
+msgstr ""
+
+msgid "Deep sea orchid"
+msgstr ""
+
+msgid "Neon jelly"
+msgstr ""
+
+msgid "Fuchsia coral"
+msgstr ""
+
+msgid "Pink jellyfish"
+msgstr ""
+
+msgid "Foam"
+msgstr ""
+
+msgid "Seashell white"
+msgstr ""
+
+msgid "Pebble gray"
+msgstr ""
+
+msgid "Storm cloud"
+msgstr ""
+
+msgid "Ink black"
+msgstr ""
+
+msgid "Green beige"
+msgstr ""
+
+msgid "Sand yellow"
+msgstr ""
+
+msgid "Signal yellow"
+msgstr ""
+
+msgid "Golden yellow"
+msgstr ""
+
+msgid "Honey yellow"
+msgstr ""
+
+msgid "Maize yellow"
+msgstr ""
+
+msgid "Dalmatian yellow"
+msgstr ""
+
+msgid "Brown beige"
+msgstr ""
+
+msgid "Lemon yellow"
+msgstr ""
+
+msgid "Oyster white"
+msgstr ""
+
+msgid "Light ivory"
+msgstr ""
+
+msgid "Zinc yellow"
+msgstr ""
+
+msgid "Grey beige"
+msgstr ""
+
+msgid "Olive yellow"
+msgstr ""
+
+msgid "Rape yellow"
+msgstr ""
+
+msgid "Traffic yellow"
+msgstr ""
+
+msgid "Ochre yellow"
+msgstr ""
+
+msgid "Traffic orange yellow"
+msgstr ""
+
+msgid "Curry"
+msgstr ""
+
+msgid "Melon yellow"
+msgstr ""
+
+msgid "Broom yellow"
+msgstr ""
+
+msgid "Dahlia yellow"
+msgstr ""
+
+msgid "Pastel yellow"
+msgstr ""
+
+msgid "Pearl beige"
+msgstr ""
+
+msgid "Pearl gold"
+msgstr ""
+
+msgid "Sun yellow"
+msgstr ""
+
+msgid "Yellow orange"
+msgstr ""
+
+msgid "Deep orange"
+msgstr ""
+
+msgid "Vermilion"
+msgstr ""
+
+msgid "Pearl orange"
+msgstr ""
+
+msgid "Pure orange"
+msgstr ""
+
+msgid "Luminous orange"
+msgstr ""
+
+msgid "Luminous bright orange"
+msgstr ""
+
+msgid "Bright red orange"
+msgstr ""
+
+msgid "Traffic orange"
+msgstr ""
+
+msgid "Signal orange"
+msgstr ""
+
+msgid "Salmon orange"
+msgstr ""
+
+msgid "Pearl pink"
+msgstr ""
+
+msgid "Copper orange"
+msgstr ""
+
+msgid "Signal brown"
+msgstr ""
+
+msgid "Fir orange"
+msgstr ""
+
+msgid "Signal red"
+msgstr ""
+
+msgid "Luminous red"
+msgstr ""
+
+msgid "Carmine red"
+msgstr ""
+
+msgid "Pearl carmine red"
+msgstr ""
+
+msgid "Pure red"
+msgstr ""
+
+msgid "Luminous deep red"
+msgstr ""
+
+msgid "Currant red"
+msgstr ""
+
+msgid "Pearl ruby red"
+msgstr ""
+
+msgid "Fire red"
+msgstr ""
+
+msgid "Ruby red"
+msgstr ""
+
+msgid "Purple red"
+msgstr ""
+
+msgid "Wine red"
+msgstr ""
+
+msgid "Black red"
+msgstr ""
+
+msgid "Oxide red"
+msgstr ""
+
+msgid "Brown red"
+msgstr ""
+
+msgid "Pine red"
+msgstr ""
+
+msgid "Tomato red"
+msgstr ""
+
+msgid "Antique pink"
+msgstr ""
+
+msgid "Coral red"
+msgstr ""
+
+msgid "Rose"
+msgstr ""
+
+msgid "Strawberry red"
+msgstr ""
+
+msgid "Traffic red"
+msgstr ""
+
+msgid "Salmon pink"
+msgstr ""
+
+msgid "Luminous rose"
+msgstr ""
+
+msgid "Luminous bright red"
+msgstr ""
+
+msgid "Raspberry red"
+msgstr ""
+
+msgid "Orient red"
+msgstr ""
+
+msgid "Pearl ruby"
+msgstr ""
+
+msgid "Red purple"
+msgstr ""
+
+msgid "Red violet"
+msgstr ""
+
+msgid "Heather violet"
+msgstr ""
+
+msgid "Bordeaux violet"
+msgstr ""
+
+msgid "Mahogany"
+msgstr ""
+
+msgid "Grey purple"
+msgstr ""
+
+msgid "Signal violet"
+msgstr ""
+
+msgid "Fir green"
+msgstr ""
+
+msgid "Sabine grey"
+msgstr ""
+
+msgid "Pearl violet"
+msgstr ""
+
+msgid "Pearl blackberry"
+msgstr ""
+
+msgid "Green blue"
+msgstr ""
+
+msgid "Ultramarine blue"
+msgstr ""
+
+msgid "Sapphire blue"
+msgstr ""
+
+msgid "Black blue"
+msgstr ""
+
+msgid "Signal blue"
+msgstr ""
+
+msgid "Brilliant blue"
+msgstr ""
+
+msgid "Grey blue"
+msgstr ""
+
+msgid "Azure blue"
+msgstr ""
+
+msgid "Gentian blue"
+msgstr ""
+
+msgid "Cobalt blue"
+msgstr ""
+
+msgid "Pigeon blue"
+msgstr ""
+
+msgid "Traffic blue"
+msgstr ""
+
+msgid "Turquoise blue"
+msgstr ""
+
+msgid "Capsanthin violet"
+msgstr ""
+
+msgid "Ocean blue"
+msgstr ""
+
+msgid "Water blue"
+msgstr ""
+
+msgid "Night blue"
+msgstr ""
+
+msgid "Distant blue"
+msgstr ""
+
+msgid "Pastel blue"
+msgstr ""
+
+msgid "Pearl gentian blue"
+msgstr ""
+
+msgid "Pearl midnight blue"
+msgstr ""
+
+msgid "Patina green"
+msgstr ""
+
+msgid "Emerald green"
+msgstr ""
+
+msgid "Leaf green"
+msgstr ""
+
+msgid "Olive green"
+msgstr ""
+
+msgid "Blue green"
+msgstr ""
+
+msgid "Moss green"
+msgstr ""
+
+msgid "Grey olive"
+msgstr ""
+
+msgid "Pine green"
+msgstr ""
+
+msgid "Pine brown"
+msgstr ""
+
+msgid "Grass green"
+msgstr ""
+
+msgid "Reseda green"
+msgstr ""
+
+msgid "Brown green"
+msgstr ""
+
+msgid "Reed green"
+msgstr ""
+
+msgid "Black green"
+msgstr ""
+
+msgid "Turquoise green"
+msgstr ""
+
+msgid "May green"
+msgstr ""
+
+msgid "Chrome oxide green"
+msgstr ""
+
+msgid "Traffic green"
+msgstr ""
+
+msgid "Fern green"
+msgstr ""
+
+msgid "Opal green"
+msgstr ""
+
+msgid "Mint green"
+msgstr ""
+
+msgid "Bronze green"
+msgstr ""
+
+msgid "Pearl green"
+msgstr ""
+
+msgid "Sax turquoise"
+msgstr ""
+
+msgid "Pearl turquoise"
+msgstr ""
+
+msgid "Pearl jade"
+msgstr ""
+
+msgid "Pure green"
+msgstr ""
+
+msgid "Luminous green"
+msgstr ""
+
+msgid "Squirrel grey"
+msgstr ""
+
+msgid "Silver grey"
+msgstr ""
+
+msgid "Olivestone"
+msgstr ""
+
+msgid "Moss grey"
+msgstr ""
+
+msgid "Signal grey"
+msgstr ""
+
+msgid "Mouse grey"
+msgstr ""
+
+msgid "Beige grey"
+msgstr ""
+
+msgid "Khaki grey"
+msgstr ""
+
+msgid "Green grey"
+msgstr ""
+
+msgid "Tarpaulin grey"
+msgstr ""
+
+msgid "Iron grey"
+msgstr ""
+
+msgid "Basalt grey"
+msgstr ""
+
+msgid "Brown grey"
+msgstr ""
+
+msgid "Slate grey"
+msgstr ""
+
+msgid "Anthracite grey"
+msgstr ""
+
+msgid "Light grey"
+msgstr ""
+
+msgid "Umber grey"
+msgstr ""
+
+msgid "Concrete grey"
+msgstr ""
+
+msgid "Graphite grey"
+msgstr ""
+
+msgid "Granite grey"
+msgstr ""
+
+msgid "Stone grey"
+msgstr ""
+
+msgid "Pebble grey"
+msgstr ""
+
+msgid "Cement grey"
+msgstr ""
+
+msgid "Yellow grey"
+msgstr ""
+
+msgid "Platinum grey"
+msgstr ""
+
+msgid "Dusty grey"
+msgstr ""
+
+msgid "Agate grey"
+msgstr ""
+
+msgid "Quartz grey"
+msgstr ""
+
+msgid "Window grey"
+msgstr ""
+
+msgid "Traffic grey A"
+msgstr ""
+
+msgid "Traffic grey B"
+msgstr ""
+
+msgid "Silk grey"
+msgstr ""
+
+msgid "Telegrey 1"
+msgstr ""
+
+msgid "Telegrey 2"
+msgstr ""
+
+msgid "Telegrey 4"
+msgstr ""
+
+msgid "Pearl mouse grey"
+msgstr ""
+
+msgid "Green brown"
+msgstr ""
+
+msgid "Ochre brown"
+msgstr ""
+
+msgid "Clay brown"
+msgstr ""
+
+msgid "Copper brown"
+msgstr ""
+
+msgid "Chocolate brown"
+msgstr ""
+
+msgid "Olive brown"
+msgstr ""
+
+msgid "Nut brown"
+msgstr ""
+
+msgid "Red brown"
+msgstr ""
+
+msgid "Sepia brown"
+msgstr ""
+
+msgid "Chestnut brown"
+msgstr ""
+
+msgid "Mahogany brown"
+msgstr ""
+
+msgid "Grey brown"
+msgstr ""
+
+msgid "Pearl copper"
+msgstr ""
+
+msgid "Beige brown"
+msgstr ""
+
+msgid "Pearl mocha brown"
+msgstr ""
+
+msgid "Earth brown"
+msgstr ""
+
+msgid "Pearl brown"
+msgstr ""
+
+msgid "Cream"
+msgstr ""
+
+msgid "Grey white"
+msgstr ""
+
+msgid "Signal white"
+msgstr ""
+
+msgid "Signal black"
+msgstr ""
+
+msgid "Jet black"
+msgstr ""
+
+msgid "White aluminium"
+msgstr ""
+
+msgid "Grey aluminium"
+msgstr ""
+
+msgid "Pure white"
+msgstr ""
+
+msgid "Graphite black"
+msgstr ""
+
+msgid "Traffic white"
+msgstr ""
+
+msgid "Traffic black"
+msgstr ""
+
+msgid "Papyrus white"
+msgstr ""
+
+msgid "Pearl light grey"
+msgstr ""
+
+msgid "Metal: Silver"
+msgstr ""
+
+msgid "Metal: Brass"
+msgstr ""
+
+msgid "Metal: Gold"
+msgstr ""
+
+msgid "Metal: Copper"
+msgstr ""
+
+msgid "Metal: Bronze"
+msgstr ""
+
+msgid "Nature: Pearl"
+msgstr ""
+
+msgid "Nature: Rainbow"
+msgstr ""
+
+msgid "Nature: Clear Sky"
+msgstr ""
+
+msgid "Nature: Sunset"
+msgstr ""
+
+msgid "Wood: Dark"
+msgstr ""
+
+msgid "Wood: Medium"
+msgstr ""
+
+msgid "Wood: Light"
+msgstr ""
+
 msgid "Alternate nozzles:"
 msgstr ""
 
@@ -27029,6 +28377,12 @@ msgstr ""
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr ""
 
+msgid "Larger"
+msgstr ""
+
+msgid "Smaller"
+msgstr ""
+
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr ""
 
@@ -27081,6 +28435,12 @@ msgid "Mixed colors"
 msgstr ""
 
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
+msgstr ""
+
+msgid "Few"
+msgstr ""
+
+msgid "Many"
 msgstr ""
 
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -27177,9 +28537,6 @@ msgid "Projection frame"
 msgstr ""
 
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
-msgstr ""
-
-msgid "Opacity"
 msgstr ""
 
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -27355,6 +28712,12 @@ msgid "Remeshing"
 msgstr ""
 
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
+msgstr ""
+
+msgid "Before"
+msgstr ""
+
+msgid "After"
 msgstr ""
 
 msgid "Keep sharp edges"

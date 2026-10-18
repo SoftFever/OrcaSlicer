@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-15 17:40+0800\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -707,6 +707,9 @@ msgstr "mm"
 msgid "Part selection"
 msgstr "Alkatrész kijelölés"
 
+msgid "Select multiple objects"
+msgstr "Több objektum kijelölése"
+
 msgid "Fixed step drag"
 msgstr "Rögzített lépésközű húzás"
 
@@ -770,9 +773,79 @@ msgstr "Tárgy"
 msgid "Relative"
 msgstr "Relatív"
 
+msgid "Selection"
+msgstr "Kijelölés"
+
+msgid "Plate"
+msgstr "Tálca"
+
+msgid "Distribute"
+msgstr ""
+
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "A transzformációs műveletekhez használt koordináta-rendszer."
+
+msgid "Reference for alignment"
+msgstr ""
+
+msgid "Select at least 3 parts or objects"
+msgstr ""
+
+# AI Translated
+msgid "Align left"
+msgstr "Igazítás balra"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Igazítás középre bal-jobb irányban"
+
+# AI Translated
+msgid "Align right"
+msgstr "Igazítás jobbra"
+
+# AI Translated
+# Needs human review: Object menu item that aligns the objects' front edges (-Y on the plate); check that 'előre' is not read as 'in advance'.
+msgid "Align front"
+msgstr "Igazítás előre"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Igazítás középre előre-hátra irányban"
+
+# AI Translated
+msgid "Align back"
+msgstr "Igazítás hátra"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Igazítás alulra"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Igazítás középre fel-le irányban"
+
+# AI Translated
+msgid "Align top"
+msgstr "Igazítás felülre"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Elosztás bal-jobb irányban"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Elosztás előre-hátra irányban"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Elosztás fel-le irányban"
+
+msgid "Drop"
+msgstr "Lehelyezés"
+
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr ""
 
 # AI Translated
 msgid "Absolute"
@@ -2008,6 +2081,18 @@ msgstr "Belépés az összeállítás gizmóba"
 msgid "Leaving Assembly gizmo"
 msgstr "Kilépés az összeállítás gizmóból"
 
+msgid "Parts of a cut object cannot be moved"
+msgstr ""
+
+msgid "Aligning to the plate is available in X and Y only"
+msgstr ""
+
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr ""
+
+msgid "All selected objects must be on the same plate"
+msgstr ""
+
 msgid "Shift+"
 msgstr "Shift+"
 
@@ -2434,6 +2519,66 @@ msgstr "Hálózati bővítmény korlátozás"
 
 msgid "Privacy Policy Update"
 msgstr "Adatvédelmi szabályzat frissítése"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "Az összes filamentbeállításod elérhető azokon a nyomtatókon, amelyekhez készültek."
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "Filamentbeállítások áttelepítése"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"Az OrcaSlicer 2.5.0 átszervezte a rendszer számos filamentbeállítását, hogy kijavítsa a hibás profilokat és előkészítse a jövőbeli funkciókat. Emiatt az alábbi beállítások már nem jelennek meg néhány nyomtatón, amelyekhez készültek. Elnézést a kellemetlenségért; ez egy egyszeri javítás.\n"
+"\n"
+"Szeretnéd most visszaadni ezeket a nyomtatókat a beállításaidhoz? Előtte biztonsági mentés készül a beállításaidról. Ezt később is megteheted a Segítség > Filamentbeállítások áttelepítése menüpontban."
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (%2% alapján)"
+
+msgid "Don't remind me again"
+msgstr "Ne emlékeztessen újra"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "A beállításaidról nem sikerült biztonsági mentést készíteni, ezért nem lettek áttelepítve."
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "A felhasználói beállítások mappáját nem sikerült zárolni, ezért semmi sem lett áttelepítve. Lehet, hogy egy másik OrcaSlicer példány éppen beállításokat ment; próbáld újra később a Segítség > Filamentbeállítások áttelepítése menüpontban."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"A filamentbeállításaidat nem sikerült áttelepíteni. A beállításaidról készült biztonsági mentés ide lett mentve:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"A filamentbeállításaid áttelepítése megtörtént. Válaszd ki őket újra a filamentlistában ott, ahol használtad őket.\n"
+"\n"
+"A beállításaidról készült biztonsági mentés ide lett mentve:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "Ezeket a beállításokat nem sikerült áttelepíteni:"
 
 #, c-format, boost-format
 msgid "your Orca Cloud profile (user ID: \"%s\")"
@@ -3153,8 +3298,13 @@ msgstr "(Elveszett szín)"
 msgid "Center"
 msgstr "Közép"
 
-msgid "Drop"
-msgstr "Lehelyezés"
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Igazítás/Elosztás"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Objektumok igazítása és elosztása"
 
 msgid "Edit Process Settings"
 msgstr "Folyamatbeállítások szerkesztése"
@@ -3529,9 +3679,6 @@ msgstr "Nincs perem"
 
 msgid "Outer wall speed"
 msgstr "Külső fal sebessége"
-
-msgid "Plate"
-msgstr "Tálca"
 
 msgid "Brim"
 msgstr "Perem"
@@ -6386,6 +6533,9 @@ msgstr "Tengelyek"
 msgid "Gridlines"
 msgstr "Rácsvonalak"
 
+msgid "Focus mode"
+msgstr ""
+
 msgid "Labels"
 msgstr "Címkék"
 
@@ -6446,7 +6596,7 @@ msgid "Size:"
 msgstr "Méret:"
 
 # AI Translated
-#, c-format, boost-format
+#, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "G-code útvonalütközés található a(z) %d. rétegen, Z = %.2lfmm. Helyezd távolabb egymástól az ütköző objektumokat (%s <-> %s)."
 
@@ -6674,6 +6824,10 @@ msgstr "Beállítás varázsló"
 
 msgid "Show Configuration Folder"
 msgstr "Konfigurációs mappa megjelenítése"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "Azoknak a filamentbeállításoknak a visszahozása, amelyeket egy profilfrissítés eltávolított azokról a nyomtatókról, amelyekhez készültek"
 
 # AI Translated
 msgid "Troubleshoot Center"
@@ -10793,6 +10947,12 @@ msgstr "Nem támogatott beállítások megjelenítése"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Megjeleníti a nem kompatibilis vagy nem támogatott beállításokat a nyomtató- és filamentlegördülő listákban. Ezek a beállítások nem választhatók ki."
 
+msgid "Export statistics with G-code"
+msgstr ""
+
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
+
 # AI Translated
 msgid "Experimental Features"
 msgstr "Kísérleti funkciók"
@@ -13319,9 +13479,6 @@ msgstr "Filamentcsere öblítési mennyisége"
 msgid "from/to"
 msgstr "honnan/hová"
 
-msgid "Please choose the filament color"
-msgstr "Kérlek, válaszd ki a filament színét"
-
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "A felhőszolgáltatás nem érhető el. Indítsd újra az OrcaSlicert, majd próbáld újra."
 
@@ -13557,9 +13714,6 @@ msgstr "Akkor érhető el, ha az Előkészítés fül 3D nézete van fókuszban.
 
 msgid "Select a part"
 msgstr "Válassz egy tárgyat"
-
-msgid "Select multiple objects"
-msgstr "Több objektum kijelölése"
 
 msgid "Select objects by rectangle"
 msgstr "Objektumok kijelölése téglalapok alapján"
@@ -14080,6 +14234,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "egy kerület teljesen egy módosítón belül van, a módosító nem lett rá alkalmazva (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "%1% módosító „%2%” (objektum: „%3%”) a teljes kerületet lefedi"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "%1% módosító „%2%” (objektum: „%3%”, összesen: %4%) a teljes kerületet lefedi"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "a(z) \"%2%\" \"%1%\" módosítója nem volt hatással a varratra (lehet, hogy nem éri el a nyomtatott kerület középvonalát)"
@@ -14092,6 +14258,10 @@ msgstr "a(z) \"%2%\" \"%1%\" módosítója (összesen %3%) nem volt hatással a 
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "A varrat elhelyezése eltérhet a várttól."
+
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr ""
 
 msgid "Internal Bridge"
 msgstr "Belső híd"
@@ -15105,13 +15275,13 @@ msgid ""
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Az áthidalás vonalszélessége. Ha %-ban van megadva, a fúvóka átmérőjéből számítódik.\n"
-"Ajánlott nagyobb áthidalási sűrűséggel vagy áthidalási anyagáramlással együtt használni.\n"
+"Ajánlott nagyobb áthidalási sűrűséggel vagy magasabb „Áthidalás anyagáramlása” értékkel együtt használni.\n"
 "\n"
 "A maximális érték 100%, illetve a fúvóka átmérője.\n"
-"Ha 0-ra van állítva, a vonalszélesség megegyezik a belső tömör kitöltés szélességével."
+"Ha 0-ra van állítva, a vonalszélesség megegyezik a belső szilárd kitöltés szélességével, vastag áthidalásoknál pedig a fúvóka átmérőjével."
 
 msgid "Internal bridge flow ratio"
 msgstr "Belső híd anyagáramlása"
@@ -15396,7 +15566,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "Kapcsold be ezt a lehetőséget, hogy lassabban nyomtasson azokon a területeken, ahol a falak felfelé kunkorodhattak.\n"
 "Például további lassítás lép életbe éles sarkokon lévő túlnyúlások nyomtatásakor, mint amilyen a Benchy hajótestének eleje, csökkentve a több rétegen át felhalmozódó kunkorodást.\n"
@@ -15411,19 +15581,20 @@ msgstr ""
 "3. Ha még mindig megjelennek a hibák, kapcsold be az extrudálási sebesség simítását (ERS) az anyagáramlás átmeneteinek további simításához.\n"
 "\n"
 "Megjegyzés: ha ez a beállítás be van kapcsolva, a túlnyúló falakat a rendszer túlnyúlásként kezeli, vagyis a túlnyúlási sebesség akkor is érvényes, ha a túlnyúló fal egy áthidalás része.\n"
-"Például amikor a falak 100%-ban túlnyúlnak, és alattuk nincs alátámasztó fal, a 100%-os túlnyúlási sebesség lesz alkalmazva."
+"Például amikor a falak 100%-ban túlnyúlnak, és alattuk nincs alátámasztó fal, a 75%-os túlnyúlási sebesség lesz alkalmazva, az áthidalási sebesség által korlátozva."
 
 msgid "mm/s or %"
 msgstr "mm/s vagy %"
 
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "A külsőleg látható hídextrudálások sebessége.\n"
 "\n"
-"Ezen felül, ha a felkunkorodó kerületeknél való lassítás ki van kapcsolva, vagy a klasszikus túlnyúlási mód engedélyezett, akkor ez lesz azon túlnyúló falak nyomtatási sebessége is, amelyeket 13%-nál kisebb mértékben támaszt alá az alattuk lévő réteg, függetlenül attól, hogy híd vagy túlnyúlás részét képezik."
+"Ezen felül, ha a Lassítás felkunkorodó kerületeknél ki van kapcsolva, akkor ez lesz azon túlnyúló falak nyomtatási sebessége is, amelyeket 13%-nál kisebb mértékben támaszt alá az alattuk lévő réteg, függetlenül attól, hogy híd vagy túlnyúlás részét képezik."
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "A belső hidak sebessége. Ha az érték százalékban van megadva, a bridge_speed alapján lesz kiszámítva. Az alapértelmezett érték 150%."
@@ -15991,8 +16162,9 @@ msgstr "A legkülső látható fal sebessége. A jobb minőség érdekében ez l
 msgid "Small perimeters"
 msgstr "Kis peremek"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "Ez a külön beállítás a <= small_perimeter_threshold sugarú kerületek sebességét befolyásolja (általában furatoknál). Ha százalékban van megadva (például: 80%), a fenti külső fali sebesség alapján lesz kiszámítva. Az automatikus módhoz állítsd 0-ra."
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "Ez a külön beállítás a <= small_perimeter_threshold sugarú kerületek sebességét befolyásolja (általában furatoknál). Ha százalékban van megadva (például: 80%), a fenti külső fali sebesség alapján lesz kiszámítva."
 
 msgid "Small perimeters threshold"
 msgstr "Kis kerületek küszöbértéke"
@@ -16005,8 +16177,8 @@ msgid "Small support perimeters"
 msgstr "Kis támaszfalak"
 
 # AI Translated
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "Ugyanaz, mint a \"Kis peremek\", de a támaszokra vonatkozik. Ez a külön beállítás a támasz sebességét befolyásolja a `small_support_perimeter_threshold` értéknél kisebb vagy azzal egyenlő területeken. Ha százalékban van megadva (például: 80%), a fenti támasz- vagy támasz érintkező felület sebességéből számítódik. Automatikus működéshez állítsd nullára."
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "Ugyanaz, mint a „Kis peremek”, de a támaszokra vonatkozik. Ez a külön beállítás a támasz sebességét befolyásolja a `small_support_perimeter_threshold` értéknél kisebb vagy azzal egyenlő területeken. Ha százalékban van megadva (például: 80%), a fenti támasz- vagy támasz érintkező felület sebességéből számítódik."
 
 # AI Translated
 msgid "Small support perimeters threshold"
@@ -16019,12 +16191,13 @@ msgstr "Ez állítja be a kis támaszfalak hosszának küszöbértékét. Az ala
 msgid "Walls printing order"
 msgstr "Falak nyomtatási sorrendje"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
@@ -16986,14 +17159,16 @@ msgstr "Kezdő rétegmagasság"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "Kezdőréteg magassága. A vastagabb kezdőréteg javíthatja a tárgy asztalhoz való tapadását"
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "A kezdőréteg nyomtatási sebessége a szilárd kitöltési rész kivételével"
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "A kezdőréteg falainak és peremének sebessége."
 
 msgid "First layer infill"
 msgstr "Kezdőréteg kitöltése"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "A kezdőréteg szilárd kitöltési részének sebessége"
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "A kezdőréteg sebessége a falak és a perem kivételével, például a kitöltés, a hézagok kitöltése és a támasz."
 
 msgid "First layer travel speed"
 msgstr "Első réteg mozgási sebessége"
@@ -17710,16 +17885,18 @@ msgstr "A belső kitöltés vonalszélessége. Ha százalékban adod meg, a szel
 msgid "Infill/wall overlap"
 msgstr "Kitöltés/fal átfedés"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "A jobb kötés érdekében kissé megnöveli a kitöltési területet, hogy az átfedje a falat. A százalékos érték a kitöltés vonalszélességéhez viszonyított. Körülbelül 10-15%-os értékkel csökkenthető a túlextrudálás és az érdes felső felületet okozó anyagfelhalmozódás."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "A jobb kötés érdekében kissé megnöveli a kitöltési területet, hogy az átfedje a falat. A százalékos érték a belső fal vonalszélességéhez viszonyított. Körülbelül 10-15%-os értékkel csökkenthető a túlextrudálás és az érdes felső felületet okozó anyagfelhalmozódás."
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "Felső/alsó tömör kitöltés és fal átfedése"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "A jobb kötés és a felső kitöltés falhoz csatlakozásánál megjelenő apró lyukak csökkentése érdekében kissé megnöveli a felső tömör kitöltés területét, hogy az átfedje a falat. Jó kiindulási érték a 25-30%. A százalékos érték a kitöltés vonalszélességéhez viszonyított."
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "A jobb kötés és a felső kitöltés falhoz csatlakozásánál megjelenő apró lyukak csökkentése érdekében kissé megnöveli a felső tömör kitöltés területét, hogy az átfedje a falat. Jó kiindulási érték a 25-30%. A százalékos érték a belső fal vonalszélességéhez viszonyított."
 
 msgid "This is the speed for internal sparse infill."
 msgstr "A belső kitöltés sebessége"
@@ -17745,8 +17922,9 @@ msgstr "Szegmentált régió maximális szélessége. A 0 érték letiltja ezt a
 msgid "Interlocking depth of a segmented region"
 msgstr "Szegmentált régió összekapcsolódási mélysége"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr "A szegmentált régió összekapcsolódási mélysége. Figyelmen kívül marad, ha a \"mmu_segmented_region_max_width\" értéke nulla, vagy ha a \"mmu_segmented_region_interlocking_depth\" nagyobb, mint a \"mmu_segmented_region_max_width\". A 0 letiltja ezt a funkciót."
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "A szegmentált régió összekapcsolódási mélysége. Minden második rétegen a szegmentált régiót ez a mélység korlátozza. Figyelmen kívül marad, ha az „interlocking_beam” engedélyezve van. A 0 érték letiltja ezt a funkciót."
 
 msgid "Use beam interlocking"
 msgstr "Gerendaszerű kapcsolódás használata"
@@ -17848,13 +18026,14 @@ msgstr "Z-réteg kontúrozás engedélyezése (más néven Z-réteg élsimítás
 msgid "Minimize wall height angle"
 msgstr "Falmagasság szög minimalizálása"
 
+# AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "Csökkentsd a felső felület kerületének magasságát, hogy megfeleljen a modell élmagasságának.\n"
-"Befolyásolja az ennél a szögnél (foknál) kisebb lejtésű kerületeket.\n"
+"Befolyásolja az ennél a szögnél (foknál) nagyobb lejtésű kerületeket.\n"
 "Az ésszerű érték 35. A letiltáshoz állítsd 0-ra."
 
 msgid "Don't alternate fill direction"
@@ -18841,7 +19020,8 @@ msgstr "Átlapolt illesztés a belső falaknál"
 msgid "Use scarf joint for inner walls as well."
 msgstr "Átlapolt illesztés használata a belső falaknál is."
 
-msgid "Role base wipe speed"
+# AI Translated
+msgid "Role based wipe speed"
 msgstr "Szerepalapú törlési sebesség"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
@@ -18931,16 +19111,15 @@ msgstr "Az első réteg után a szoknya/huzatvédő hurkait egy falra korlátozz
 msgid "Draft shield"
 msgstr "Huzatvédő"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
 "A huzatvédő segíthet megelőzni, hogy a légmozgás miatt az ABS- vagy ASA-nyomatok felkunkorodjanak és leváljanak az asztalról. Általában csak nyitott vázas, azaz burkolat nélküli nyomtatóknál van rá szükség.\n"
 "\n"
-"Engedélyezve = a szoknya olyan magas lesz, mint a legmagasabb nyomtatott objektum. Ellenkező esetben a \"Szoknya magassága\" érték kerül használatra.\n"
-"Megjegyzés: Aktív huzatvédő mellett a szoknya az objektumtól mért szoknyatávolságban lesz nyomtatva. Ezért ha perem is aktív, metszheti azt. Ennek elkerüléséhez növeld a szoknyatávolság értékét.\n"
+"Engedélyezve = a szoknya olyan magas lesz, mint a legmagasabb nyomtatott objektum. Ellenkező esetben a „Szoknya magassága” érték kerül használatra."
 
 msgid "Enabled"
 msgstr "Engedélyezve"
@@ -20101,43 +20280,46 @@ msgstr "A törlőtorony stabilizálására szolgáló kúp csúcsszöge. A nagyo
 msgid "Maximum wipe tower print speed"
 msgstr "A törlőtorony maximális nyomtatási sebessége"
 
+# AI Translated
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
-"A maximális nyomtatási sebesség öblítéskor a törlőtoronyban, valamint a törlőtorony ritka rétegeinek nyomtatásakor. Öblítés közben, ha a kitöltés sebessége vagy a filament maximális térfogati sebességéből számolt sebesség alacsonyabb, a kisebbik értéket használja.\n"
+"A maximális nyomtatási sebesség öblítéskor a törlőtoronyban, valamint a törlőtorony ritka rétegeinek nyomtatásakor. Öblítés közben, ha a kitöltés sebessége vagy a filament maximális volumetrikus sebességéből számolt sebesség alacsonyabb, a kisebbik értéket használja.\n"
 "\n"
-"A ritka rétegek nyomtatásakor, ha a belső kerület sebessége vagy a filament maximális térfogati sebességéből számolt sebesség alacsonyabb, akkor a kisebbik érték lesz használva.\n"
+"A ritka rétegek nyomtatásakor, ha a kitöltés sebessége vagy a filament maximális volumetrikus sebességéből számolt sebesség alacsonyabb, akkor a kisebbik érték lesz használva.\n"
 "\n"
 "Ennek a sebességnek a növelése befolyásolhatja a torony stabilitását, és növelheti azt az erőt is, amellyel a fúvóka nekiütközik a törlőtoronyon esetleg kialakuló anyagcsomóknak.\n"
 "\n"
 "Mielőtt ezt a paramétert a 90 mm/s alapértelmezett érték fölé emeled, győződj meg arról, hogy a nyomtatód megbízhatóan tud hidalni nagyobb sebességen is, és hogy a szerszámváltás közbeni szivárgás megfelelően szabályozott.\n"
 "\n"
-"A törlőtorony külső kerületeinél ettől a beállítástól függetlenül a belső kerületi sebesség lesz használva."
+"A törlőtorony külső kerületeinél a belső kerületi sebesség lesz használva, amelyet ez a beállítás szintén korlátoz."
 
 msgid "Wall type"
 msgstr "Fal típusa"
 
+# AI Translated
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "A törlőtorony külső falának típusa.\n"
-"1. Téglalap: Az alapértelmezett faltípus, rögzített szélességű és magasságú téglalap.\n"
+"1. Téglalap: Rögzített szélességű és magasságú téglalap.\n"
 "2. Kúp: Alul lekerekített kúp, amely segít stabilizálni a törlőtoronyt.\n"
-"3. Borda: Négy bordát ad a torony falához a nagyobb stabilitás érdekében."
+"3. Borda: Az alapértelmezett faltípus, amely négy bordát ad a torony falához a nagyobb stabilitás érdekében."
 
+# AI Translated
 msgid "Rectangle"
-msgstr "Négyzet"
+msgstr "Téglalap"
 
 msgid "Rib"
 msgstr "Borda"
@@ -20225,8 +20407,9 @@ msgstr "A törlőtorony öblítési vonalainak távolsága."
 msgid "Extra flow for purging"
 msgstr "Többletáramlás az öblítéshez"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "A törlőtorony öblítési vonalaihoz használt többletáramlás. Ettől az öblítési vonalak a szokásosnál vastagabbak vagy vékonyabbak lesznek. A távolság automatikusan igazodik."
+# AI Translated
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "A törlőtorony öblítési vonalaihoz használt többletáramlás. Ettől az öblítési vonalak a szokásosnál vastagabbak lesznek. A távolság automatikusan igazodik."
 
 msgid "Idle temperature"
 msgstr "Üresjárati hőmérséklet"
@@ -20348,14 +20531,15 @@ msgstr "A vékony elemek minimális vastagsága. Az ennél vékonyabb modellelem
 msgid "Minimum wall length"
 msgstr "Minimális falhossz"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"Állítsd ezt az értéket úgy, hogy megakadályozza a rövid, nem zárt falak kinyomtatását, amelyek növelhetik a nyomtatási időt. A nagyobb értékek több és hosszabb falat távolítanak el.\n"
+"Állítsd ezt az értéket úgy, hogy megakadályozza a rövid, nem zárt falak kinyomtatását, amelyek növelhetik a nyomtatási időt. Az érték a falszélesség többszöröse. A nagyobb értékek több és hosszabb falat távolítanak el.\n"
 "\n"
-"MEGJEGYZÉS: Az alsó és felső felületeket ez az érték nem érinti, hogy elkerülhetők legyenek a modell külsején megjelenő látható hézagok. A lentebbi Speciális beállításokban az 'Egyfalas küszöbérték' módosításával állíthatod be annak érzékenységét, hogy mi számít felső felületnek. Az 'Egyfalas küszöbérték' csak akkor látható, ha ez a beállítás az alapértelmezett 0.5 fölé van állítva, vagy ha az egyfalú felső felületek engedélyezve vannak."
+"MEGJEGYZÉS: Az alsó és felső felületeket ez az érték nem érinti, hogy elkerülhetők legyenek a modell külsején megjelenő látható hézagok. Az alábbi „Falak és felületek” beállításai között az „Egyfalas küszöbérték” módosításával állíthatod be annak érzékenységét, hogy mi számít felső felületnek. Az „Egyfalas küszöbérték” csak akkor látható, ha ez a beállítás az alapértelmezett 0.5 fölé van állítva, vagy ha az egyfalú felső felületek engedélyezve vannak."
 
 msgid "Maximum wall resolution"
 msgstr "Maximális falfelbontás"
@@ -20733,6 +20917,12 @@ msgstr "Kimeneti mappa"
 
 msgid "This is the output directory for exported files."
 msgstr "Az exportált fájlok kimeneti mappája."
+
+msgid "Export statistics"
+msgstr ""
+
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
 
 msgid "Debug level"
 msgstr "Hibakeresés szintje"
@@ -24357,9 +24547,6 @@ msgstr "Intelligens filament-hozzárendelés bekapcsolása: egy filament több f
 # AI Translated
 msgid "File Saving"
 msgstr "Fájl mentése"
-
-msgid "Don't remind me again"
-msgstr "Ne emlékeztessen újra"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Nem jelenik meg több felugró ablak. A 'Beállítások' menüben újra megnyitható."
@@ -29750,9 +29937,6 @@ msgstr "A Gyorsindító megnyitása"
 msgid "Slicing and printing"
 msgstr "Szeletelés és nyomtatás"
 
-msgid "Selection"
-msgstr "Kijelölés"
-
 # AI Translated
 msgid "Editing"
 msgstr "Szerkesztés"
@@ -30656,6 +30840,1232 @@ msgid_plural "The current filament list does not contain %s. Project filaments r
 msgstr[0] "A jelenlegi filamentlista nem tartalmazza ezt: %s. A kevert filamenthez szükséges projektfilament a szétbontás után automatikusan létrejön."
 msgstr[1] "A jelenlegi filamentlista nem tartalmazza ezt: %s. A kevert filamenthez szükséges projektfilamentek a szétbontás után automatikusan létrejönnek."
 
+msgid "Color Picker"
+msgstr ""
+
+msgid "Basic Colors"
+msgstr ""
+
+msgid "Orca Palette"
+msgstr ""
+
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "RAL Classic"
+msgstr ""
+
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "Gradients"
+msgstr ""
+
+msgid "Solid"
+msgstr ""
+
+msgid "Gradient"
+msgstr ""
+
+msgid "Gradient start"
+msgstr ""
+
+msgid "Gradient end"
+msgstr ""
+
+msgid "Gradient color"
+msgstr ""
+
+msgid "Add color"
+msgstr ""
+
+msgid "Remove color"
+msgstr ""
+
+msgid "Saturation"
+msgstr ""
+
+msgid "Original color"
+msgstr ""
+
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr ""
+
+msgid "Palettes"
+msgstr ""
+
+msgid "Search colors"
+msgstr ""
+
+msgid "Filter colors"
+msgstr ""
+
+msgid "No matching colors"
+msgstr ""
+
+msgid "Hex color"
+msgstr ""
+
+# AI Translated
+msgid "Opacity"
+msgstr "Átlátszatlanság"
+
+msgid "Opacity percent"
+msgstr ""
+
+msgid "Save color"
+msgstr ""
+
+msgid "Enter a complete hexadecimal color"
+msgstr ""
+
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr ""
+
+msgid "Crimson"
+msgstr ""
+
+msgid "Orange red"
+msgstr ""
+
+msgid "Tomato"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Dark orange"
+msgstr ""
+
+msgid "Gold"
+msgstr ""
+
+msgid "Burly wood"
+msgstr ""
+
+msgid "Bisque"
+msgstr ""
+
+msgid "Misty rose"
+msgstr ""
+
+msgid "Light yellow"
+msgstr ""
+
+msgid "Lemon chiffon"
+msgstr ""
+
+msgid "Beige"
+msgstr ""
+
+msgid "Light golden rod yellow"
+msgstr ""
+
+msgid "Pale golden rod"
+msgstr ""
+
+msgid "Khaki"
+msgstr ""
+
+msgid "Dark khaki"
+msgstr ""
+
+msgid "Peach puff"
+msgstr ""
+
+msgid "Moccasin"
+msgstr ""
+
+msgid "Papaya whip"
+msgstr ""
+
+msgid "Blanched almond"
+msgstr ""
+
+msgid "Antique white"
+msgstr ""
+
+msgid "Navajo white"
+msgstr ""
+
+msgid "Wheat"
+msgstr ""
+
+msgid "Golden rod"
+msgstr ""
+
+msgid "Chocolate"
+msgstr ""
+
+msgid "Peru"
+msgstr ""
+
+msgid "Fire brick"
+msgstr ""
+
+msgid "Sienna"
+msgstr ""
+
+msgid "Saddle brown"
+msgstr ""
+
+msgid "Brown"
+msgstr ""
+
+msgid "Rosy brown"
+msgstr ""
+
+msgid "Salmon"
+msgstr ""
+
+msgid "Light salmon"
+msgstr ""
+
+msgid "Dark salmon"
+msgstr ""
+
+msgid "Sandy brown"
+msgstr ""
+
+msgid "Coral"
+msgstr ""
+
+msgid "Light coral"
+msgstr ""
+
+msgid "Indian red"
+msgstr ""
+
+msgid "Dark red"
+msgstr ""
+
+msgid "Maroon"
+msgstr ""
+
+msgid "Green yellow"
+msgstr ""
+
+msgid "Yellow green"
+msgstr ""
+
+msgid "Chartreuse"
+msgstr ""
+
+msgid "Lawn green"
+msgstr ""
+
+msgid "Lime green"
+msgstr ""
+
+msgid "Spring green"
+msgstr ""
+
+msgid "Medium spring green"
+msgstr ""
+
+msgid "Lime"
+msgstr ""
+
+msgid "Forest green"
+msgstr ""
+
+msgid "Dark green"
+msgstr ""
+
+msgid "Olive drab"
+msgstr ""
+
+msgid "Olive"
+msgstr ""
+
+msgid "Dark olive green"
+msgstr ""
+
+msgid "Pale green"
+msgstr ""
+
+msgid "Light green"
+msgstr ""
+
+msgid "Medium sea green"
+msgstr ""
+
+msgid "Sea green"
+msgstr ""
+
+msgid "Dark sea green"
+msgstr ""
+
+msgid "Cadet blue"
+msgstr ""
+
+msgid "Medium aqua marine"
+msgstr ""
+
+msgid "Turquoise"
+msgstr ""
+
+msgid "Medium turquoise"
+msgstr ""
+
+msgid "Dark turquoise"
+msgstr ""
+
+msgid "Pale turquoise"
+msgstr ""
+
+msgid "Aqua"
+msgstr ""
+
+msgid "Light cyan"
+msgstr ""
+
+msgid "Mint cream"
+msgstr ""
+
+msgid "Honey dew"
+msgstr ""
+
+msgid "Aquamarine"
+msgstr ""
+
+msgid "Light sea green"
+msgstr ""
+
+msgid "Dark cyan"
+msgstr ""
+
+msgid "Teal"
+msgstr ""
+
+msgid "Dark slate gray"
+msgstr ""
+
+msgid "Light slate gray"
+msgstr ""
+
+msgid "Slate gray"
+msgstr ""
+
+msgid "Deep sky blue"
+msgstr ""
+
+msgid "Dodger Blue"
+msgstr ""
+
+msgid "Sky blue"
+msgstr ""
+
+msgid "Light sky blue"
+msgstr ""
+
+msgid "Light blue"
+msgstr ""
+
+msgid "Powder blue"
+msgstr ""
+
+msgid "Light steel blue"
+msgstr ""
+
+msgid "Steel blue"
+msgstr ""
+
+msgid "Cornflower blue"
+msgstr ""
+
+msgid "Royal blue"
+msgstr ""
+
+msgid "Medium blue"
+msgstr ""
+
+msgid "Midnight blue"
+msgstr ""
+
+msgid "Dark blue"
+msgstr ""
+
+msgid "Navy"
+msgstr ""
+
+msgid "Slate blue"
+msgstr ""
+
+msgid "Dark slate blue"
+msgstr ""
+
+msgid "Medium slate blue"
+msgstr ""
+
+msgid "Blue violet"
+msgstr ""
+
+msgid "Indigo"
+msgstr ""
+
+msgid "Dark violet"
+msgstr ""
+
+msgid "Dark orchid"
+msgstr ""
+
+msgid "Medium orchid"
+msgstr ""
+
+msgid "Orchid"
+msgstr ""
+
+msgid "Violet"
+msgstr ""
+
+msgid "Medium purple"
+msgstr ""
+
+msgid "Purple"
+msgstr ""
+
+msgid "Rebecca purple"
+msgstr ""
+
+msgid "Medium violet red"
+msgstr ""
+
+msgid "PaleV violet red"
+msgstr ""
+
+msgid "Deep pink"
+msgstr ""
+
+msgid "Hot pink"
+msgstr ""
+
+msgid "Light pink"
+msgstr ""
+
+msgid "Pink"
+msgstr ""
+
+msgid "Plum"
+msgstr ""
+
+msgid "Thistle"
+msgstr ""
+
+msgid "Fuchsia"
+msgstr ""
+
+msgid "Dark magenta"
+msgstr ""
+
+msgid "Linen"
+msgstr ""
+
+msgid "Old lace"
+msgstr ""
+
+msgid "Sea shell"
+msgstr ""
+
+msgid "Ivory"
+msgstr ""
+
+msgid "Floral white"
+msgstr ""
+
+msgid "Lavender blush"
+msgstr ""
+
+msgid "Ghost white"
+msgstr ""
+
+msgid "Alice blue"
+msgstr ""
+
+msgid "Lavender"
+msgstr ""
+
+msgid "White smoke"
+msgstr ""
+
+msgid "Gainsboro"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Coral fire"
+msgstr ""
+
+msgid "Sea anemone"
+msgstr ""
+
+msgid "Deep abyss"
+msgstr ""
+
+msgid "Lobster red"
+msgstr ""
+
+msgid "Sandy clay"
+msgstr ""
+
+msgid "Driftwood"
+msgstr ""
+
+msgid "Sea buckthorn"
+msgstr ""
+
+msgid "Sunset reef"
+msgstr ""
+
+msgid "Tiger coral"
+msgstr ""
+
+msgid "Pink coral"
+msgstr ""
+
+msgid "Seashell glow"
+msgstr ""
+
+msgid "Sand"
+msgstr ""
+
+msgid "Golden kelp"
+msgstr ""
+
+msgid "Sunlit dune"
+msgstr ""
+
+msgid "Amber nautilus"
+msgstr ""
+
+msgid "Sea lemon"
+msgstr ""
+
+msgid "Pale starfish"
+msgstr ""
+
+msgid "Spring tide"
+msgstr ""
+
+msgid "Lime algae"
+msgstr ""
+
+msgid "Sea grass"
+msgstr ""
+
+msgid "Neon plankton"
+msgstr ""
+
+msgid "Kelp forest"
+msgstr ""
+
+msgid "Emerald wave"
+msgstr ""
+
+msgid "Whale shadow"
+msgstr ""
+
+msgid "Sea turtle"
+msgstr ""
+
+msgid "Lagoon"
+msgstr ""
+
+msgid "Tropical current"
+msgstr ""
+
+msgid "Midnight trench"
+msgstr ""
+
+msgid "Dark kelp"
+msgstr ""
+
+msgid "Crystal surf"
+msgstr ""
+
+msgid "Turquoise bay"
+msgstr ""
+
+msgid "Sky over reef"
+msgstr ""
+
+msgid "Shallow sky"
+msgstr ""
+
+msgid "Electric bel"
+msgstr ""
+
+msgid "Dolphin"
+msgstr ""
+
+msgid "Ocean depths"
+msgstr ""
+
+msgid "Whale"
+msgstr ""
+
+msgid "Indigo abyss"
+msgstr ""
+
+msgid "Sea urchin"
+msgstr ""
+
+msgid "Lavender coral"
+msgstr ""
+
+msgid "Violet tide"
+msgstr ""
+
+msgid "Deep sea orchid"
+msgstr ""
+
+msgid "Neon jelly"
+msgstr ""
+
+msgid "Fuchsia coral"
+msgstr ""
+
+msgid "Pink jellyfish"
+msgstr ""
+
+msgid "Foam"
+msgstr ""
+
+msgid "Seashell white"
+msgstr ""
+
+msgid "Pebble gray"
+msgstr ""
+
+msgid "Storm cloud"
+msgstr ""
+
+msgid "Ink black"
+msgstr ""
+
+msgid "Green beige"
+msgstr ""
+
+msgid "Sand yellow"
+msgstr ""
+
+msgid "Signal yellow"
+msgstr ""
+
+msgid "Golden yellow"
+msgstr ""
+
+msgid "Honey yellow"
+msgstr ""
+
+msgid "Maize yellow"
+msgstr ""
+
+msgid "Dalmatian yellow"
+msgstr ""
+
+msgid "Brown beige"
+msgstr ""
+
+msgid "Lemon yellow"
+msgstr ""
+
+msgid "Oyster white"
+msgstr ""
+
+msgid "Light ivory"
+msgstr ""
+
+msgid "Zinc yellow"
+msgstr ""
+
+msgid "Grey beige"
+msgstr ""
+
+msgid "Olive yellow"
+msgstr ""
+
+msgid "Rape yellow"
+msgstr ""
+
+msgid "Traffic yellow"
+msgstr ""
+
+msgid "Ochre yellow"
+msgstr ""
+
+msgid "Traffic orange yellow"
+msgstr ""
+
+msgid "Curry"
+msgstr ""
+
+msgid "Melon yellow"
+msgstr ""
+
+msgid "Broom yellow"
+msgstr ""
+
+msgid "Dahlia yellow"
+msgstr ""
+
+msgid "Pastel yellow"
+msgstr ""
+
+msgid "Pearl beige"
+msgstr ""
+
+msgid "Pearl gold"
+msgstr ""
+
+msgid "Sun yellow"
+msgstr ""
+
+msgid "Yellow orange"
+msgstr ""
+
+msgid "Deep orange"
+msgstr ""
+
+msgid "Vermilion"
+msgstr ""
+
+msgid "Pearl orange"
+msgstr ""
+
+msgid "Pure orange"
+msgstr ""
+
+msgid "Luminous orange"
+msgstr ""
+
+msgid "Luminous bright orange"
+msgstr ""
+
+msgid "Bright red orange"
+msgstr ""
+
+msgid "Traffic orange"
+msgstr ""
+
+msgid "Signal orange"
+msgstr ""
+
+msgid "Salmon orange"
+msgstr ""
+
+msgid "Pearl pink"
+msgstr ""
+
+msgid "Copper orange"
+msgstr ""
+
+msgid "Signal brown"
+msgstr ""
+
+msgid "Fir orange"
+msgstr ""
+
+msgid "Signal red"
+msgstr ""
+
+msgid "Luminous red"
+msgstr ""
+
+msgid "Carmine red"
+msgstr ""
+
+msgid "Pearl carmine red"
+msgstr ""
+
+msgid "Pure red"
+msgstr ""
+
+msgid "Luminous deep red"
+msgstr ""
+
+msgid "Currant red"
+msgstr ""
+
+msgid "Pearl ruby red"
+msgstr ""
+
+msgid "Fire red"
+msgstr ""
+
+msgid "Ruby red"
+msgstr ""
+
+msgid "Purple red"
+msgstr ""
+
+msgid "Wine red"
+msgstr ""
+
+msgid "Black red"
+msgstr ""
+
+msgid "Oxide red"
+msgstr ""
+
+msgid "Brown red"
+msgstr ""
+
+msgid "Pine red"
+msgstr ""
+
+msgid "Tomato red"
+msgstr ""
+
+msgid "Antique pink"
+msgstr ""
+
+msgid "Coral red"
+msgstr ""
+
+msgid "Rose"
+msgstr ""
+
+msgid "Strawberry red"
+msgstr ""
+
+msgid "Traffic red"
+msgstr ""
+
+msgid "Salmon pink"
+msgstr ""
+
+msgid "Luminous rose"
+msgstr ""
+
+msgid "Luminous bright red"
+msgstr ""
+
+msgid "Raspberry red"
+msgstr ""
+
+msgid "Orient red"
+msgstr ""
+
+msgid "Pearl ruby"
+msgstr ""
+
+msgid "Red purple"
+msgstr ""
+
+msgid "Red violet"
+msgstr ""
+
+msgid "Heather violet"
+msgstr ""
+
+msgid "Bordeaux violet"
+msgstr ""
+
+msgid "Mahogany"
+msgstr ""
+
+msgid "Grey purple"
+msgstr ""
+
+msgid "Signal violet"
+msgstr ""
+
+msgid "Fir green"
+msgstr ""
+
+msgid "Sabine grey"
+msgstr ""
+
+msgid "Pearl violet"
+msgstr ""
+
+msgid "Pearl blackberry"
+msgstr ""
+
+msgid "Green blue"
+msgstr ""
+
+msgid "Ultramarine blue"
+msgstr ""
+
+msgid "Sapphire blue"
+msgstr ""
+
+msgid "Black blue"
+msgstr ""
+
+msgid "Signal blue"
+msgstr ""
+
+msgid "Brilliant blue"
+msgstr ""
+
+msgid "Grey blue"
+msgstr ""
+
+msgid "Azure blue"
+msgstr ""
+
+msgid "Gentian blue"
+msgstr ""
+
+msgid "Cobalt blue"
+msgstr ""
+
+msgid "Pigeon blue"
+msgstr ""
+
+msgid "Traffic blue"
+msgstr ""
+
+msgid "Turquoise blue"
+msgstr ""
+
+msgid "Capsanthin violet"
+msgstr ""
+
+msgid "Ocean blue"
+msgstr ""
+
+msgid "Water blue"
+msgstr ""
+
+msgid "Night blue"
+msgstr ""
+
+msgid "Distant blue"
+msgstr ""
+
+msgid "Pastel blue"
+msgstr ""
+
+msgid "Pearl gentian blue"
+msgstr ""
+
+msgid "Pearl midnight blue"
+msgstr ""
+
+msgid "Patina green"
+msgstr ""
+
+msgid "Emerald green"
+msgstr ""
+
+msgid "Leaf green"
+msgstr ""
+
+msgid "Olive green"
+msgstr ""
+
+msgid "Blue green"
+msgstr ""
+
+msgid "Moss green"
+msgstr ""
+
+msgid "Grey olive"
+msgstr ""
+
+msgid "Pine green"
+msgstr ""
+
+msgid "Pine brown"
+msgstr ""
+
+msgid "Grass green"
+msgstr ""
+
+msgid "Reseda green"
+msgstr ""
+
+msgid "Brown green"
+msgstr ""
+
+msgid "Reed green"
+msgstr ""
+
+msgid "Black green"
+msgstr ""
+
+msgid "Turquoise green"
+msgstr ""
+
+msgid "May green"
+msgstr ""
+
+msgid "Chrome oxide green"
+msgstr ""
+
+msgid "Traffic green"
+msgstr ""
+
+msgid "Fern green"
+msgstr ""
+
+msgid "Opal green"
+msgstr ""
+
+msgid "Mint green"
+msgstr ""
+
+msgid "Bronze green"
+msgstr ""
+
+msgid "Pearl green"
+msgstr ""
+
+msgid "Sax turquoise"
+msgstr ""
+
+msgid "Pearl turquoise"
+msgstr ""
+
+msgid "Pearl jade"
+msgstr ""
+
+msgid "Pure green"
+msgstr ""
+
+msgid "Luminous green"
+msgstr ""
+
+msgid "Squirrel grey"
+msgstr ""
+
+msgid "Silver grey"
+msgstr ""
+
+msgid "Olivestone"
+msgstr ""
+
+msgid "Moss grey"
+msgstr ""
+
+msgid "Signal grey"
+msgstr ""
+
+msgid "Mouse grey"
+msgstr ""
+
+msgid "Beige grey"
+msgstr ""
+
+msgid "Khaki grey"
+msgstr ""
+
+msgid "Green grey"
+msgstr ""
+
+msgid "Tarpaulin grey"
+msgstr ""
+
+msgid "Iron grey"
+msgstr ""
+
+msgid "Basalt grey"
+msgstr ""
+
+msgid "Brown grey"
+msgstr ""
+
+msgid "Slate grey"
+msgstr ""
+
+msgid "Anthracite grey"
+msgstr ""
+
+msgid "Light grey"
+msgstr ""
+
+msgid "Umber grey"
+msgstr ""
+
+msgid "Concrete grey"
+msgstr ""
+
+msgid "Graphite grey"
+msgstr ""
+
+msgid "Granite grey"
+msgstr ""
+
+msgid "Stone grey"
+msgstr ""
+
+msgid "Pebble grey"
+msgstr ""
+
+msgid "Cement grey"
+msgstr ""
+
+msgid "Yellow grey"
+msgstr ""
+
+msgid "Platinum grey"
+msgstr ""
+
+msgid "Dusty grey"
+msgstr ""
+
+msgid "Agate grey"
+msgstr ""
+
+msgid "Quartz grey"
+msgstr ""
+
+msgid "Window grey"
+msgstr ""
+
+msgid "Traffic grey A"
+msgstr ""
+
+msgid "Traffic grey B"
+msgstr ""
+
+msgid "Silk grey"
+msgstr ""
+
+msgid "Telegrey 1"
+msgstr ""
+
+msgid "Telegrey 2"
+msgstr ""
+
+msgid "Telegrey 4"
+msgstr ""
+
+msgid "Pearl mouse grey"
+msgstr ""
+
+msgid "Green brown"
+msgstr ""
+
+msgid "Ochre brown"
+msgstr ""
+
+msgid "Clay brown"
+msgstr ""
+
+msgid "Copper brown"
+msgstr ""
+
+msgid "Chocolate brown"
+msgstr ""
+
+msgid "Olive brown"
+msgstr ""
+
+msgid "Nut brown"
+msgstr ""
+
+msgid "Red brown"
+msgstr ""
+
+msgid "Sepia brown"
+msgstr ""
+
+msgid "Chestnut brown"
+msgstr ""
+
+msgid "Mahogany brown"
+msgstr ""
+
+msgid "Grey brown"
+msgstr ""
+
+msgid "Pearl copper"
+msgstr ""
+
+msgid "Beige brown"
+msgstr ""
+
+msgid "Pearl mocha brown"
+msgstr ""
+
+msgid "Earth brown"
+msgstr ""
+
+msgid "Pearl brown"
+msgstr ""
+
+msgid "Cream"
+msgstr ""
+
+msgid "Grey white"
+msgstr ""
+
+msgid "Signal white"
+msgstr ""
+
+msgid "Signal black"
+msgstr ""
+
+msgid "Jet black"
+msgstr ""
+
+msgid "White aluminium"
+msgstr ""
+
+msgid "Grey aluminium"
+msgstr ""
+
+msgid "Pure white"
+msgstr ""
+
+msgid "Graphite black"
+msgstr ""
+
+msgid "Traffic white"
+msgstr ""
+
+msgid "Traffic black"
+msgstr ""
+
+msgid "Papyrus white"
+msgstr ""
+
+msgid "Pearl light grey"
+msgstr ""
+
+msgid "Metal: Silver"
+msgstr ""
+
+msgid "Metal: Brass"
+msgstr ""
+
+msgid "Metal: Gold"
+msgstr ""
+
+msgid "Metal: Copper"
+msgstr ""
+
+msgid "Metal: Bronze"
+msgstr ""
+
+msgid "Nature: Pearl"
+msgstr ""
+
+msgid "Nature: Rainbow"
+msgstr ""
+
+msgid "Nature: Clear Sky"
+msgstr ""
+
+msgid "Nature: Sunset"
+msgstr ""
+
+msgid "Wood: Dark"
+msgstr ""
+
+msgid "Wood: Medium"
+msgstr ""
+
+msgid "Wood: Light"
+msgstr ""
+
 # AI Translated
 msgid "Alternate nozzles:"
 msgstr "Alternatív fúvókák:"
@@ -31540,6 +32950,12 @@ msgstr "A modell saját UV-elrendezése szerint leképezve, ami már maga az elh
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "A textúra egy példányának szélessége a modellen. Kisebb értéknél a minta gyakrabban ismétlődik, és a részletei finomabbak; kikapcsolt Csempézésnél ez az egyetlen példány mérete."
 
+msgid "Larger"
+msgstr ""
+
+msgid "Smaller"
+msgstr ""
+
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Elforgatja a textúrát a felületen, fokban megadva - egy minta a modell egyik éléhez igazításához."
@@ -31613,6 +33029,12 @@ msgstr "Kevert színek"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "A beégetés által legfeljebb hozzáadható kevert filamentek száma. A textúra színeiből választódnak ki, és csak azok jönnek létre, amelyeket a beégetés ténylegesen használ."
+
+msgid "Few"
+msgstr ""
+
+msgid "Many"
+msgstr ""
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -31737,10 +33159,6 @@ msgstr "Vetítési keret"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Megnyit egy ablakot, amelyet a modell fölé húzhatsz. Ami rajta keresztül látszik, az kapja a textúrát, a kerete pedig a vetítés széle lesz."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Átlátszatlanság"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -31971,6 +33389,12 @@ msgstr "Újrahálózás"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Háromszögméret, amellyel a teljes modell újraépül, milliméterben. A domborítás egyenletes hálón működik a legjobban; ez készít ilyet egy egyenetlen importált modellből."
+
+msgid "Before"
+msgstr ""
+
+msgid "After"
+msgstr ""
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -34942,6 +36366,173 @@ msgid ""
 msgstr ""
 "Kunkorodás elkerülése\n"
 "Tudtad, hogy a kunkorodásra hajlamos anyagok (például ABS) nyomtatásakor az asztal hőmérsékletének növelése csökkentheti a kunkorodás valószínűségét?"
+
+#~ msgid "Please choose the filament color"
+#~ msgstr "Kérlek, válaszd ki a filament színét"
+
+# AI Translated
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "Az áthidalás vonalszélessége. Ha %-ban van megadva, a fúvóka átmérőjéből számítódik.\n"
+#~ "Ajánlott nagyobb áthidalási sűrűséggel vagy áthidalási anyagáramlással együtt használni.\n"
+#~ "\n"
+#~ "A maximális érték 100%, illetve a fúvóka átmérője.\n"
+#~ "Ha 0-ra van állítva, a vonalszélesség megegyezik a belső tömör kitöltés szélességével."
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "Kapcsold be ezt a lehetőséget, hogy lassabban nyomtasson azokon a területeken, ahol a falak felfelé kunkorodhattak.\n"
+#~ "Például további lassítás lép életbe éles sarkokon lévő túlnyúlások nyomtatásakor, mint amilyen a Benchy hajótestének eleje, csökkentve a több rétegen át felhalmozódó kunkorodást.\n"
+#~ "\n"
+#~ "Általában javasolt bekapcsolva hagyni, hacsak a nyomtató hűtése nem elég erős, vagy a nyomtatási sebesség nem elég alacsony ahhoz, hogy a falak kunkorodása ne forduljon elő. \n"
+#~ "Nagy külső falsebességgel nyomtatva ez a paraméter falhibákat okozhat a lassítás során, mivel a nyomtatási sebességek nagy szórása miatt az extruder nem tudja követni a kért anyagáramlás-változást.\n"
+#~ "Ezeknek a hibáknak az oka legtöbbször a kissé pontatlan PA-hangolás, különösen ha nagy PA simítási idővel párosul.\n"
+#~ "\n"
+#~ "Javaslatok a beállítás bekapcsolásakor:\n"
+#~ "1. Csökkentsd a Pressure Advance simítási idejét 0,015 - 0,02 értékre, hogy az extruder gyorsan reagáljon a sebességváltozásokra.\n"
+#~ "2. Növeld a minimális nyomtatási sebességeket, hogy korlátozd a lassítás mértékét, és csökkentsd a gyors és lassú szakaszok közötti eltérést.\n"
+#~ "3. Ha még mindig megjelennek a hibák, kapcsold be az extrudálási sebesség simítását (ERS) az anyagáramlás átmeneteinek további simításához.\n"
+#~ "\n"
+#~ "Megjegyzés: ha ez a beállítás be van kapcsolva, a túlnyúló falakat a rendszer túlnyúlásként kezeli, vagyis a túlnyúlási sebesség akkor is érvényes, ha a túlnyúló fal egy áthidalás része.\n"
+#~ "Például amikor a falak 100%-ban túlnyúlnak, és alattuk nincs alátámasztó fal, a 100%-os túlnyúlási sebesség lesz alkalmazva."
+
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "A külsőleg látható hídextrudálások sebessége.\n"
+#~ "\n"
+#~ "Ezen felül, ha a felkunkorodó kerületeknél való lassítás ki van kapcsolva, vagy a klasszikus túlnyúlási mód engedélyezett, akkor ez lesz azon túlnyúló falak nyomtatási sebessége is, amelyeket 13%-nál kisebb mértékben támaszt alá az alattuk lévő réteg, függetlenül attól, hogy híd vagy túlnyúlás részét képezik."
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "Ez a külön beállítás a <= small_perimeter_threshold sugarú kerületek sebességét befolyásolja (általában furatoknál). Ha százalékban van megadva (például: 80%), a fenti külső fali sebesség alapján lesz kiszámítva. Az automatikus módhoz állítsd 0-ra."
+
+# AI Translated
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "Ugyanaz, mint a \"Kis peremek\", de a támaszokra vonatkozik. Ez a külön beállítás a támasz sebességét befolyásolja a `small_support_perimeter_threshold` értéknél kisebb vagy azzal egyenlő területeken. Ha százalékban van megadva (például: 80%), a fenti támasz- vagy támasz érintkező felület sebességéből számítódik. Automatikus működéshez állítsd nullára."
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "A belső és külső falak nyomtatási sorrendje.\n"
+#~ "\n"
+#~ "A legjobb túlnyúlásokhoz használd a Belső/Külső módot. Ennek oka, hogy a túlnyúló falak nyomtatás közben hozzátapadhatnak egy szomszédos kerülethez. Ez az opció azonban kissé gyengébb felületminőséget eredményez, mert a külső kerület deformálódik, amikor a belső kerülethez préselődik.\n"
+#~ "\n"
+#~ "A legjobb külső felületi minőség és méretpontosság érdekében használd a Belső/Külső/Belső módot, mivel a külső fal zavartalanul nyomtatódik a belső kerülettől. Ugyanakkor a túlnyúlási teljesítmény csökken, mivel nincs belső kerület, amelyhez a külső fal hozzányomtatható lenne. Ennek a módnak a hatékony működéséhez legalább 3 fal szükséges, mert először a 3. kerülettől kezdve nyomtatja a belső falakat, majd a külső kerületet, végül az első belső kerületet. A legtöbb esetben ez a mód ajánlott a Külső/Belső helyett.\n"
+#~ "\n"
+#~ "A Külső/Belső mód ugyanazokat az előnyöket nyújtja külső falminőség és méretpontosság terén, mint a Belső/Külső/Belső. A Z-varratok azonban kevésbé lesznek egyenletesek, mivel az új réteg első extrudálása látható felületen kezdődik."
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "A kezdőréteg nyomtatási sebessége a szilárd kitöltési rész kivételével"
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "A kezdőréteg szilárd kitöltési részének sebessége"
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "A jobb kötés érdekében kissé megnöveli a kitöltési területet, hogy az átfedje a falat. A százalékos érték a kitöltés vonalszélességéhez viszonyított. Körülbelül 10-15%-os értékkel csökkenthető a túlextrudálás és az érdes felső felületet okozó anyagfelhalmozódás."
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "A jobb kötés és a felső kitöltés falhoz csatlakozásánál megjelenő apró lyukak csökkentése érdekében kissé megnöveli a felső tömör kitöltés területét, hogy az átfedje a falat. Jó kiindulási érték a 25-30%. A százalékos érték a kitöltés vonalszélességéhez viszonyított."
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr "A szegmentált régió összekapcsolódási mélysége. Figyelmen kívül marad, ha a \"mmu_segmented_region_max_width\" értéke nulla, vagy ha a \"mmu_segmented_region_interlocking_depth\" nagyobb, mint a \"mmu_segmented_region_max_width\". A 0 letiltja ezt a funkciót."
+
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "Csökkentsd a felső felület kerületének magasságát, hogy megfeleljen a modell élmagasságának.\n"
+#~ "Befolyásolja az ennél a szögnél (foknál) kisebb lejtésű kerületeket.\n"
+#~ "Az ésszerű érték 35. A letiltáshoz állítsd 0-ra."
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "Szerepalapú törlési sebesség"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "A huzatvédő segíthet megelőzni, hogy a légmozgás miatt az ABS- vagy ASA-nyomatok felkunkorodjanak és leváljanak az asztalról. Általában csak nyitott vázas, azaz burkolat nélküli nyomtatóknál van rá szükség.\n"
+#~ "\n"
+#~ "Engedélyezve = a szoknya olyan magas lesz, mint a legmagasabb nyomtatott objektum. Ellenkező esetben a \"Szoknya magassága\" érték kerül használatra.\n"
+#~ "Megjegyzés: Aktív huzatvédő mellett a szoknya az objektumtól mért szoknyatávolságban lesz nyomtatva. Ezért ha perem is aktív, metszheti azt. Ennek elkerüléséhez növeld a szoknyatávolság értékét.\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "A maximális nyomtatási sebesség öblítéskor a törlőtoronyban, valamint a törlőtorony ritka rétegeinek nyomtatásakor. Öblítés közben, ha a kitöltés sebessége vagy a filament maximális térfogati sebességéből számolt sebesség alacsonyabb, a kisebbik értéket használja.\n"
+#~ "\n"
+#~ "A ritka rétegek nyomtatásakor, ha a belső kerület sebessége vagy a filament maximális térfogati sebességéből számolt sebesség alacsonyabb, akkor a kisebbik érték lesz használva.\n"
+#~ "\n"
+#~ "Ennek a sebességnek a növelése befolyásolhatja a torony stabilitását, és növelheti azt az erőt is, amellyel a fúvóka nekiütközik a törlőtoronyon esetleg kialakuló anyagcsomóknak.\n"
+#~ "\n"
+#~ "Mielőtt ezt a paramétert a 90 mm/s alapértelmezett érték fölé emeled, győződj meg arról, hogy a nyomtatód megbízhatóan tud hidalni nagyobb sebességen is, és hogy a szerszámváltás közbeni szivárgás megfelelően szabályozott.\n"
+#~ "\n"
+#~ "A törlőtorony külső kerületeinél ettől a beállítástól függetlenül a belső kerületi sebesség lesz használva."
+
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "A törlőtorony külső falának típusa.\n"
+#~ "1. Téglalap: Az alapértelmezett faltípus, rögzített szélességű és magasságú téglalap.\n"
+#~ "2. Kúp: Alul lekerekített kúp, amely segít stabilizálni a törlőtoronyt.\n"
+#~ "3. Borda: Négy bordát ad a torony falához a nagyobb stabilitás érdekében."
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "A törlőtorony öblítési vonalaihoz használt többletáramlás. Ettől az öblítési vonalak a szokásosnál vastagabbak vagy vékonyabbak lesznek. A távolság automatikusan igazodik."
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr ""
+#~ "Állítsd ezt az értéket úgy, hogy megakadályozza a rövid, nem zárt falak kinyomtatását, amelyek növelhetik a nyomtatási időt. A nagyobb értékek több és hosszabb falat távolítanak el.\n"
+#~ "\n"
+#~ "MEGJEGYZÉS: Az alsó és felső felületeket ez az érték nem érinti, hogy elkerülhetők legyenek a modell külsején megjelenő látható hézagok. A lentebbi Speciális beállításokban az 'Egyfalas küszöbérték' módosításával állíthatod be annak érzékenységét, hogy mi számít felső felületnek. Az 'Egyfalas küszöbérték' csak akkor látható, ha ez a beállítás az alapértelmezett 0.5 fölé van állítva, vagy ha az egyfalú felső felületek engedélyezve vannak."
 
 # AI Translated
 #, boost-format

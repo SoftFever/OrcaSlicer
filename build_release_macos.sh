@@ -111,6 +111,54 @@ else
   export CMAKE_POLICY_COMPAT=""
 fi
 
+# Compiler cache, as in build_linux.sh. The program comes from CMAKE_CCACHE, else from a
+# launcher already set in the environment (the CI build sets ccache there), else sccache or
+# ccache from PATH; one program serves both languages. Each run applies its own choice to the
+# build directories, replacing a launcher an earlier run or a hand-run configure recorded.
+CMAKE_CCACHE_ARGS=()
+CCACHE_VAR=""
+for var in CMAKE_CCACHE CMAKE_CXX_COMPILER_LAUNCHER CMAKE_C_COMPILER_LAUNCHER; do
+    if [ -n "${!var:-}" ]; then
+        CCACHE_VAR=$var
+        break
+    fi
+done
+if [ -n "$CCACHE_VAR" ]; then
+    CCACHE_PROGRAM=${!CCACHE_VAR}
+    echo "Checking ${CCACHE_VAR} environment variable for compiler cache program..."
+    CMAKE_CCACHE=$(command -v "${CCACHE_PROGRAM}") || {
+        echo "${CCACHE_VAR} environment variable is set to '${CCACHE_PROGRAM}' but it was not found in PATH."
+        CMAKE_CCACHE=""
+    }
+elif command -v sccache >/dev/null 2>&1 ; then
+    CMAKE_CCACHE=$(command -v sccache)
+elif command -v ccache >/dev/null 2>&1 ; then
+    CMAKE_CCACHE=$(command -v ccache)
+fi
+if [ -n "${CMAKE_CCACHE}" ] ; then
+    echo "${CMAKE_CCACHE} found, enabling compiler caching..."
+    CMAKE_CCACHE_ARGS=(-DCMAKE_C_COMPILER_LAUNCHER="${CMAKE_CCACHE}" -DCMAKE_CXX_COMPILER_LAUNCHER="${CMAKE_CCACHE}")
+    # The same ccache settings as the CI build. Without this sloppiness ccache refuses every
+    # compile that uses the precompiled header, which is most of OrcaSlicer, and skips headers
+    # a checkout has just written. It is added to the sloppiness already configured, and
+    # CCACHE_SLOPPINESS or CCACHE_(NO)DEPEND set in the environment win.
+    if [[ "$(basename "${CMAKE_CCACHE}")" == ccache ]] ; then
+        if [[ -z "${CCACHE_SLOPPINESS+x}" ]] ; then
+            CCACHE_SLOPPINESS=$("${CMAKE_CCACHE}" --get-config sloppiness 2>/dev/null || true)
+            export CCACHE_SLOPPINESS="${CCACHE_SLOPPINESS:+${CCACHE_SLOPPINESS},}pch_defines,time_macros,include_file_mtime,include_file_ctime"
+        fi
+        # Hash the includes the compiler reports instead of preprocessing every miss.
+        if [[ -z "${CCACHE_DEPEND+x}${CCACHE_NODEPEND+x}" ]] ; then
+            export CCACHE_DEPEND=1
+        fi
+    fi
+else
+    echo "Note: ccache or sccache are not found. Install either of them for faster rebuilds."
+    # Clear a launcher recorded by an earlier configure. The entries must be set empty rather
+    # than removed: CMake fills a missing launcher entry from the environment.
+    CMAKE_CCACHE_ARGS=(-DCMAKE_C_COMPILER_LAUNCHER:STRING= -DCMAKE_CXX_COMPILER_LAUNCHER:STRING=)
+fi
+
 echo "Build params:"
 echo " - ARCH: $ARCH"
 echo " - BUILD_CONFIG: $BUILD_CONFIG"
@@ -162,6 +210,7 @@ function build_deps() {
                         -DCMAKE_OSX_ARCHITECTURES:STRING="${_ARCH}" \
                         -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}" \
                         -DCMAKE_IGNORE_PREFIX_PATH="${CMAKE_IGNORE_PREFIX_PATH}" \
+                        "${CMAKE_CCACHE_ARGS[@]}" \
                         ${CMAKE_POLICY_COMPAT}
                 fi
                 cmake --build . --config "$BUILD_CONFIG" --target deps
@@ -264,6 +313,7 @@ function build_slicer() {
                     -DCMAKE_OSX_ARCHITECTURES="${_ARCH}" \
                     -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}" \
                     -DCMAKE_IGNORE_PREFIX_PATH="${CMAKE_IGNORE_PREFIX_PATH}" \
+                    "${CMAKE_CCACHE_ARGS[@]}" \
                     ${CMAKE_POLICY_COMPAT}
             fi
             cmake --build . --config "$BUILD_CONFIG" --target "$SLICER_BUILD_TARGET"

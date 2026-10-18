@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OrcaSlicer V2.5.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-15 17:40+0800\n"
 "PO-Revision-Date: 2026-02-25 13:38+0300\n"
 "Last-Translator: Felix14_v2\n"
 "Language-Team: Felix14_v2 (ДС/ТГ: @felix14_v2, почта: aleks111001@list.ru), Andylg <andylg@yandex.ru>\n"
@@ -681,6 +681,9 @@ msgstr "мм"
 msgid "Part selection"
 msgstr "Выбрать часть"
 
+msgid "Select multiple objects"
+msgstr "Выбор нескольких моделей"
+
 msgid "Fixed step drag"
 msgstr "Сместить с шагом"
 
@@ -741,8 +744,78 @@ msgstr "Часть"
 msgid "Relative"
 msgstr "Прибавить"
 
+msgid "Selection"
+msgstr "Элемент"
+
+msgid "Plate"
+msgstr "Стол"
+
+msgid "Distribute"
+msgstr ""
+
 msgid "Coordinate system used for transform actions."
 msgstr "Опорная система координат для изменения положения."
+
+msgid "Reference for alignment"
+msgstr ""
+
+msgid "Select at least 3 parts or objects"
+msgstr ""
+
+# AI Translated
+msgid "Align left"
+msgstr "Выровнять по левому краю"
+
+# AI Translated
+# Needs human review: Align/Distribute menu (object right-click): left-right/front-back/top-bottom are rendered as по ширине/глубине/высоте (the menu appends X/Y/Z); check it reads as aligning the objects' centers along that axis.
+msgid "Align left-right center"
+msgstr "Выровнять центры по ширине"
+
+# AI Translated
+msgid "Align right"
+msgstr "Выровнять по правому краю"
+
+# AI Translated
+msgid "Align front"
+msgstr "Выровнять по переднему краю"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Выровнять центры по глубине"
+
+# AI Translated
+msgid "Align back"
+msgstr "Выровнять по заднему краю"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Выровнять по нижнему краю"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Выровнять центры по высоте"
+
+# AI Translated
+msgid "Align top"
+msgstr "Выровнять по верхнему краю"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Распределить по ширине"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Распределить по глубине"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Распределить по высоте"
+
+msgid "Drop"
+msgstr "Опустить на стол"
+
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr ""
 
 msgid "Absolute"
 msgstr "Поворот"
@@ -1997,6 +2070,18 @@ msgstr "Запуск режима сборки"
 msgid "Leaving Assembly gizmo"
 msgstr "Выход из режима сборки"
 
+msgid "Parts of a cut object cannot be moved"
+msgstr ""
+
+msgid "Aligning to the plate is available in X and Y only"
+msgstr ""
+
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr ""
+
+msgid "All selected objects must be on the same plate"
+msgstr ""
+
 msgid "Shift+"
 msgstr "Shift+"
 
@@ -2417,6 +2502,66 @@ msgstr "Ограничение сетевого плагина"
 
 msgid "Privacy Policy Update"
 msgstr "Обновление политики конфиденциальности"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "Все ваши профили материалов доступны на принтерах, для которых они были созданы."
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "Перенести профили материалов"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 изменил структуру многих системных профилей материалов, чтобы исправить неверные профили и подготовиться к будущим функциям. Из-за этого перечисленные ниже профили больше не отображаются на некоторых принтерах, для которых они были созданы. Приносим извинения за неудобства: это разовое исправление.\n"
+"\n"
+"Добавить эти принтеры в ваши профили обратно? Сначала будет создана резервная копия ваших профилей. Это можно сделать и позже через Помощь > Перенести профили материалов."
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (на основе %2%)"
+
+msgid "Don't remind me again"
+msgstr "Больше не показывать"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "Не удалось создать резервную копию ваших профилей, поэтому они не были перенесены."
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "Не удалось заблокировать папку пользовательских профилей, поэтому ничего не было перенесено. Возможно, другой экземпляр OrcaSlicer сохраняет профили; повторите попытку позже через Помощь > Перенести профили материалов."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Не удалось перенести ваши профили материалов. Резервная копия ваших профилей сохранена в:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Ваши профили материалов перенесены. Выберите их снова в списке материалов там, где вы их использовали.\n"
+"\n"
+"Резервная копия ваших профилей сохранена в:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "Не удалось перенести эти профили:"
 
 #, c-format, boost-format
 msgid "your Orca Cloud profile (user ID: \"%s\")"
@@ -3128,8 +3273,13 @@ msgstr " (с потерей цвета)"
 msgid "Center"
 msgstr "По центру"
 
-msgid "Drop"
-msgstr "Опустить на стол"
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Выровнять/Распределить"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Выровнять и распределить модели"
 
 # Согласуем с содержимым уведомления (отображается, если не нажато "больше не
 # показывать")
@@ -3520,9 +3670,6 @@ msgstr "Без каймы"
 
 msgid "Outer wall speed"
 msgstr "𝑽 внеш. периметров"
-
-msgid "Plate"
-msgstr "Стол"
 
 msgid "Brim"
 msgstr "Кайма"
@@ -6391,6 +6538,9 @@ msgstr "Оси координат"
 msgid "Gridlines"
 msgstr "Разметка"
 
+msgid "Focus mode"
+msgstr ""
+
 msgid "Labels"
 msgstr "Имена моделей"
 
@@ -6450,7 +6600,7 @@ msgstr "Объём:"
 msgid "Size:"
 msgstr "Размер:"
 
-#, c-format, boost-format
+#, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "В G-code на %d слое (z = %.2lf мм) обнаружен конфликт путей. Пожалуйста, разместите конфликтующие модели дальше друг от друга (%s <-> %s)."
 
@@ -6703,6 +6853,10 @@ msgstr "Мастер настройки"
 
 msgid "Show Configuration Folder"
 msgstr "Открыть папку слайсера"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "Вернуть профили материалов, которые обновление профилей убрало с принтеров, для которых они были созданы"
 
 msgid "Troubleshoot Center"
 msgstr "Экран отладки"
@@ -10787,6 +10941,12 @@ msgstr ""
 "\n"
 "Примечание: профили остаются недоступными для выбора."
 
+msgid "Export statistics with G-code"
+msgstr ""
+
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
+
 msgid "Experimental Features"
 msgstr "Экспериментальные настройки"
 
@@ -13277,9 +13437,6 @@ msgstr "Объёмы прочистки при смене материала"
 msgid "from/to"
 msgstr "с/на"
 
-msgid "Please choose the filament color"
-msgstr "Изменение цвета"
-
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "Облачный агент недоступен. Перезапустите OrcaSlicer и повторите попытку."
 
@@ -13497,9 +13654,6 @@ msgstr "Доступно, когда в фокусе 3D-вид на вкладк
 
 msgid "Select a part"
 msgstr "Выбор части модели"
-
-msgid "Select multiple objects"
-msgstr "Выбор нескольких моделей"
 
 msgid "Select objects by rectangle"
 msgstr "Выбор прямоугольником"
@@ -14007,6 +14161,18 @@ msgstr "несколько пересечений с периметром, ис�
 msgid "a perimeter is fully inside a modifier, the modifier was not applied to it (%1%)"
 msgstr "периметр целиком внутри модификатора, модификатор для него не применён (%1%)"
 
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "Модификатор «%2%» (%1%) модели «%3%» охватывает периметр целиком"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "Модификатор «%2%» (%1%) модели «%3%» (всего: %4%) охватывает периметр целиком"
+
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "модификатор «%1%» модели «%2%» не повлиял на шов (возможно, он не достигает осевой линии печатаемого периметра)"
@@ -14017,6 +14183,10 @@ msgstr "модификатор «%1%» модели «%2%» (всего: %3%) н
 
 msgid "Seam placement may differ from expected."
 msgstr "Размещение шва может отличаться от ожидаемого."
+
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr ""
 
 msgid "Internal Bridge"
 msgstr "Внутренний мост"
@@ -14991,8 +15161,9 @@ msgstr ""
 "\n"
 "Примечание: рекомендуется использовать в паре с «Двухслойными мостами»."
 
+# AI Translated
 msgid "Bridge flow ratio"
-msgstr "Поток внешних мостов"
+msgstr "Коэффициент потока внешних мостов"
 
 msgid ""
 "This value governs the thickness of the external (visible) bridge layer.\n"
@@ -15007,21 +15178,23 @@ msgstr ""
 "Внимание: при значениях меньше 1 плотность линий автоматически повышается для обеспечения печатаемости.\n"
 "Примечание: фактический поток для моста рассчитывается путём умножения этого значения на поток материала и общий поток модели (если он задан)."
 
-# Максимальное значение можно не указывать, т.к. теперь в каждой подсказке есть абзац с допустимым диапазоном значений.
+# AI Translated
 msgid ""
 "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Ширина линий мостов. Можно указать процент от диаметра сопла.\n"
-"Рекомендуется использовать в паре с увеличенными плотностью или потоком мостов.\n"
+"Рекомендуется использовать в паре с увеличенными значениями параметров «Плотность внешних мостов» или «Коэффициент потока внешних мостов».\n"
 "\n"
-"0 – использовать ширину линий сплошного заполнения."
+"Максимальное значение – 100% или диаметр сопла.\n"
+"0 – использовать ширину линий сплошного заполнения, а для толстых мостов – диаметр сопла."
 
+# AI Translated
 msgid "Internal bridge flow ratio"
-msgstr "Поток внутренних мостов"
+msgstr "Коэффициент потока внутренних мостов"
 
 msgid ""
 "This value governs the thickness of the internal bridge layer. This is the first layer over sparse infill so increasing it may increase strength and upper layer quality.\n"
@@ -15293,7 +15466,7 @@ msgstr "Включение динамического управления ск�
 msgid "Slow down for curled perimeters"
 msgstr "Замедляться на изогнутых периметрах"
 
-# Обновил, отформатировал и провёл семантическую оптимизацию
+# AI Translated
 #, no-c-format, no-boost-format
 msgid ""
 "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
@@ -15309,35 +15482,35 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
-"Позволяет автоматически замедлять печать в областях, где выступающие периметры могут деформироваться из-за усадки.\n"
-"Например, форштевень Benchy, который сильнее подвержен накоплению усадочной деформации.\n"
+"Включите эту опцию, чтобы замедлять печать в областях, где периметры могут закручиваться вверх.\n"
+"Например, при печати нависаний на острых углах, таких как передняя часть корпуса кораблика Benchy, будет применяться дополнительное замедление, что уменьшит закручивание, которое накапливается за несколько слоёв.\n"
 "\n"
-"Рекомендуется использовать в случаях, если скоростной режим, конструкция принтера или его система охлаждения не способны обеспечить качественного сопротивления усадке материала.\n"
+"В целом рекомендуется оставлять эту опцию включённой, кроме случаев, когда охлаждение принтера достаточно мощное или скорость печати достаточно низкая, чтобы периметры не закручивались. \n"
+"При печати с высокой скоростью внешнего периметра эта опция может вызывать артефакты на стенках при замедлении: из-за потенциально большого разброса скоростей печати экструдер не успевает за запрошенным изменением потока.\n"
+"Наиболее вероятная причина этих артефактов – слегка неточная настройка PA, особенно в сочетании с большим временем сглаживания PA.\n"
 "\n"
-"Примечание: отключает скоростной режим мостов для нависающих периметров (передаёт его в управление настройкам нависаний ниже).\n"
+"Рекомендации при включении этой опции:\n"
+"1. Уменьшите время сглаживания Pressure Advance до 0.015 - 0.02, чтобы экструдер быстро реагировал на изменения скорости.\n"
+"2. Увеличьте минимальные скорости печати, чтобы ограничить величину замедления и уменьшить разброс между быстрыми и медленными участками.\n"
+"3. Если артефакты всё же появляются, включите «Сглаживание расхода» (ERS), чтобы дополнительно сгладить переходы потока.\n"
 "\n"
-"Внимание: требуется крайне точная настройка коррекции давления. В противном случае при быстрой печати стенок в местах перепада скоростей будут возникать заметные артефакты поверхности.\n"
-"\n"
-"Рекомендации по настройке:\n"
-"1. Уменьшите время сглаживания Pressure Advance до 0.015-0.02, чтобы\n"
-"    повысить реактивность экструдера на изменения скорости.\n"
-"2. Повысьте ограничения скоростей нависаний.\n"
-"3. Если это не помогло, воспользуйтесь сглаживанием расхода."
+"Примечание: когда эта опция включена, нависающие периметры обрабатываются как нависания, то есть скорость нависаний применяется, даже если нависающий периметр является частью моста.\n"
+"Например, если периметры нависают на 100% и под ними нет стенки, которая бы их поддерживала, будет применена скорость нависаний 75%, ограниченная скоростью моста."
 
 msgid "mm/s or %"
 msgstr "мм/с или %"
 
-# ???
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "Скорость печати наружных периметров моста.\n"
 "\n"
-"Кроме того, если отключена опция «Замедляться на изогнутых периметрах» или включён «Классический режим» печати нависаний, то скорость печати будет какой же, что и для нависающих периметров, которые имеют поддержку менее 13%, независимо от того, являются ли они частью моста или нависания."
+"Кроме того, если отключена опция «Замедляться на изогнутых периметрах», то скорость печати будет такой же, что и для нависающих периметров, которые имеют поддержку менее 13%, независимо от того, являются ли они частью моста или нависания."
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "Скорость печати внутреннего моста. Можно указать процент от скорости внешнего моста (bridge_speed). По умолчанию – 150%."
@@ -15961,8 +16134,9 @@ msgstr "Ограничение скорости движения головы (�
 msgid "Small perimeters"
 msgstr "Короткие периметры"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "Ограничение скорости движения головы (относительно стола) при печати коротких периметров с радиусом, не превышающим значение порога маленьких периметров (обычно, это отверстия). Можно указать процент от ограничения скорости печати внешнего периметра, указанного выше. Установите 0 для автонастройки (50%)."
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "Ограничение скорости движения головы (относительно стола) при печати коротких периметров с радиусом, не превышающим значение small_perimeter_threshold (обычно это отверстия). Можно указать процент от ограничения скорости печати внешних периметров, указанного выше."
 
 msgid "Small perimeters threshold"
 msgstr "Порог коротких периметров"
@@ -15974,8 +16148,9 @@ msgstr "Пороговое значение (радиус) для расчёта
 msgid "Small support perimeters"
 msgstr "Короткие периметры поддержек"
 
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "Аналогично скорости «Коротких периметров», но для небольших отростков поддержек. Значительно повышает стабильность печати маленьких ветвей древовидных поддержек. Можно указать абсолютную скорость или процент от текущей скорости печати поддержки (например, 80%). 0 – рассчитывать автоматически."
+# AI Translated
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "Аналогично скорости «Короткие периметры», но для поддержек. Эта отдельная настройка влияет на скорость печати поддержек в областях, не превышающих `small_support_perimeter_threshold`. Если указан процент (например, 80%), он рассчитывается от скорости печати поддержки или связующего слоя, указанной выше."
 
 msgid "Small support perimeters threshold"
 msgstr "Порог коротких периметров поддержек"
@@ -15986,22 +16161,23 @@ msgstr "Пороговое значение (радиус) для расчёта
 msgid "Walls printing order"
 msgstr "Порядок печати периметров"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
 "Очерёдность печати внутренних и внешних периметров.\n"
 "\n"
-"• «Изнутри наружу» хорошо подходит для печати нависаний благодаря дополнительному сцеплению внешнего периметра к соседним внутренним, но может привести к небольшому снижению точности размеров и качества внешней поверхности, так как её форма будет повторять внутреннюю структуру печати.\n"
+"Используйте «Изнутри наружу» для лучшего качества нависаний, так как нависающие периметры при печати могут сцепляться с соседним периметром. Однако качество поверхности при этом немного снижается, так как внешний периметр деформируется, будучи прижатым к внутреннему.\n"
 "\n"
-"• «Снаружи внутрь» обеспечивает хорошую точность размеров, так как внешний периметр печатается без контакта с внутрненним (что одновременно снижает качество нависаний), но при этом избыток материала в сопле в момент подачи может привести к выпиранию шва на внешнем периметре.\n"
+"Используйте «Навстречу» для лучшей отделки внешней поверхности и точности размеров, так как внешний периметр печатается без воздействия внутреннего периметра. Однако качество нависаний ухудшится, так как нет внутреннего периметра, к которому можно печатать внешний. Для работы этого варианта необходимо не менее 3 периметров: сначала печатаются внутренние периметры, начиная с третьего, затем внешний периметр и, наконец, первый внутренний периметр. В большинстве случаев этот вариант рекомендуется вместо «Снаружи внутрь».\n"
 "\n"
-"• «Навстречу» обеспечивает точность размеров и наилучшее качество, так как помимо прочего внутренний периметр стабилизирует поток материала к началу печати внешнего. Требуется минимум 3 периметра: сначала печатаются крайние внутренние, затем внешний и оставшийся внутренний. В большинстве случаев предпочтительнее, чем «Снаружи внутрь»."
+"Используйте «Снаружи внутрь», чтобы получить такое же качество внешнего периметра и точность размеров, как у варианта «Навстречу». Однако швы по оси Z будут выглядеть менее однородно, так как первая экструзия нового слоя начинается на видимой поверхности."
 
 msgid "Inner/Outer"
 msgstr "Изнутри наружу"
@@ -16839,51 +17015,9 @@ msgstr ""
 msgid "Sparse infill pattern"
 msgstr "Шаблон заполнения"
 
+# AI Translated
 msgid "This is the line pattern for internal sparse infill."
-msgstr ""
-"Шаблон разреженного заполнения внутри модели.\n"
-"\n"
-"🞄 Зигзаг: самый простой и быстрый вариант заполнения.\n"
-"🞄 Ровный зигзаг: идентичен зигзагу, но сохраняет постоянный угол.\n"
-"🞄 Аккуратный зигзаг: идентичен зигзагу, но сохраняет согласованность\n"
-"   между слоями и поддерживает зеркальный режим.\n"
-"🞄 Смещённый зигзаг: идентичен зигзагу, но смещается с каждым слоем.\n"
-"🞄 Двойной зигзаг: зигзаг в оболочке с возможностью её настройки.\n"
-"🞄 Нити: похожи на зигзаг, но содержат вдвое меньше углов и\n"
-"   печатаются быстрее. Заполнение напоминает изонить.\n"
-"🞄 Сетка: простая сетка из двух перпендикулярных линий в основании.\n"
-"🞄 Треугольники: сетка из трёх линий в основании.\n"
-"🞄 Звёзды: идентичен треугольной сетке, но линии смещены для\n"
-"   снижения переэкструзии в её узлах.\n"
-"🞄 Куб: заполнение из вертикально расположенных кубов, отлично\n"
-"   распределяет нагрузку во всех направлениях у разных форм.\n"
-"🞄 Динамический куб: идентичен кубу, но экономит материал и время\n"
-"   в наименее нагруженных областях. Идеален для крупных моделей.\n"
-"🞄 Четверной куб: алгоритм идентичен кубу, но имеет в основании\n"
-"   4 линии. Лучше распределяет нагрузку в ортогональных формах.\n"
-"🞄 Кубическая поддержка: экономичный шаблон заполнения,\n"
-"   рекомендуется исключительно для ненагруженных деталей.\n"
-"🞄 Молния: предельно экономичный шаблон для быстрой печати\n"
-"   тестовых и декоративных моделей.\n"
-"🞄 Соты: заполнение вертикальными шестигугольными сотами.\n"
-"🞄 3D-соты: заполнение усечёнными октаэдрами, состоящими из\n"
-"   квадратов и наклонных шестиугольников.\n"
-"🞄 Боковые соты: идентичен сотам, но расположен горизонтально.\n"
-"   Хорошо сопротивляется кручению.\n"
-"🞄 Боковая сетка: более слабый аналог боковых сот с настройкой углов.\n"
-"🞄 Переходный зигзаг: упрощённый \"гироид\" для слабой электроники,\n"
-"   уступает ему в прочности.\n"
-"🞄 ТПМП Шварца D: похож на 3D-соты, но не создаёт концентраций\n"
-"   напряжения. Заполнение изотропно, как и гироид.\n"
-"🞄 ТПМП Фишера-Коха S: схож с костной тканью и хорошо гасит удары.\n"
-"🞄 Гироид: как и 3 предыдущих, делит пространство на 2 объёма и\n"
-"   хорошо подходит для заливки смолой.\n"
-"🞄 Эквидистанты: повторяют контур слоя. Подходят для сплошного\n"
-"   заполнения и гибких деталей.\n"
-"🞄 Кривая Гильберта: создаёт непрерывный фрактальный лабиринт.\n"
-"🞄 Спираль Архимеда: как и кривая Гильберта, равномерно заполняет\n"
-"   весь объём без его деления, подходит для заливки смолой.\n"
-"🞄 Спиральная октаграмма: декоративный шаблон."
+msgstr "Шаблон разреженного заполнения внутри модели."
 
 msgid "Zig Zag"
 msgstr "Аккуратный зигзаг"
@@ -16894,8 +17028,9 @@ msgstr "Смещённый зигзаг"
 msgid "Locked Zag"
 msgstr "Двойной зигзаг"
 
+# AI Translated
 msgid "Line"
-msgstr "Нити"
+msgstr "Линия"
 
 msgid "Grid"
 msgstr "Сетка"
@@ -17027,14 +17162,16 @@ msgstr "Высота первого слоя"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "Высота первого слоя. Небольшое увеличение высоты снижает вероятность отрыва детали от неровной поверхности стола."
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "Общее ограничение скорости движения головы (относительно стола) при печати элементов первого слоя (кроме сплошного заполнения)."
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "Ограничение скорости движения головы (относительно стола) при печати периметров и каймы на первом слое."
 
 msgid "First layer infill"
 msgstr "Заполнение"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "Ограничение скорости движения головы (относительно стола) при печати сплошного заполнения на первом слое."
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "Ограничение скорости движения головы (относительно стола) при печати первого слоя, кроме периметров и каймы: заполнения, заполнения щели и поддержек."
 
 msgid "First layer travel speed"
 msgstr "Холостые перемещения"
@@ -17794,16 +17931,18 @@ msgstr "Ширина линий заполнения. Можно указать 
 msgid "Infill/wall overlap"
 msgstr "Перекрытие заполнения с периметром"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "Параметр указывает на сколько процентов заполнение будет перекрываться с периметром для лучшего соединения друг с другом. Установите значение равным ≈10-15%, чтобы свести к минимуму вероятность чрезмерной экструзии и накопления материала приводящее к шероховатости поверхности."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "Параметр указывает, на сколько заполнение будет перекрываться с периметром для лучшего соединения друг с другом. Значение в процентах рассчитывается от ширины линии внутренних периметров. Установите значение равным ≈10-15%, чтобы свести к минимуму вероятность чрезмерной экструзии и накопления материала, приводящих к шероховатости верхних поверхностей."
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "Перекрытие заполнения поверхности с периметром"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "Площадь верхнего сплошного заполнения немного увеличивается, чтобы перекрыть периметр для лучшего сцепления и минимизировать появление мелких отверстий в местах соединения верхнего заполнения с периметрами. Значение 25-30% является хорошей отправной точкой, минимизирующей появление таких отверстий."
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "Площадь верхнего сплошного заполнения немного увеличивается, чтобы перекрыть периметр для лучшего сцепления и минимизировать появление мелких отверстий в местах соединения верхнего заполнения с периметрами. Значение 25-30% является хорошей отправной точкой, минимизирующей появление таких отверстий. Значение в процентах рассчитывается от ширины линии внутренних периметров."
 
 msgid "This is the speed for internal sparse infill."
 msgstr "Ограничение скорости движения головы при печати разреженного заполнения (относительно стола)."
@@ -17835,11 +17974,9 @@ msgstr "Толщина той части модели, которая была �
 msgid "Interlocking depth of a segmented region"
 msgstr "Глубина переплетения окрашенной области"
 
-# Переведено с фактическими ошибками, переписать с нуля
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr ""
-"Глубина взаимного переплетения окрашенной области с основной моделью. Это значительно увеличивает прочность соединения между частями детали при мультиматериальной покраске.\n"
-"При 0 и если «Глубина переплетения окрашенной области» будет больше значения «Глубина проникновения окрашенной области», то переплетения не будет."
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "Глубина переплетения окрашенной области. На каждом втором слое окрашенная область ограничивается этой глубиной. Игнорируется, если включён «interlocking_beam». Значение 0 отключает эту функцию."
 
 msgid "Use beam interlocking"
 msgstr "Создать взаимосвязанную структуру"
@@ -17948,14 +18085,15 @@ msgstr ""
 msgid "Minimize wall height angle"
 msgstr "Угол прижима периметров"
 
+# AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
-"Прижимать периметры к предыдущему слою на поверхностях с наклоном менее заданного значения.\n"
-"\n"
-"Внимание: в настоящий момент действие настройки инвертировано (затрагивается всё, кроме верхних периметров с указанным углом), что делает её вредоносной."
+"Уменьшает высоту периметров верхней поверхности до высоты края модели.\n"
+"Затрагивает периметры с наклоном больше этого угла (в градусах).\n"
+"Разумное значение – 35. 0 – отключить."
 
 msgid "Don't alternate fill direction"
 msgstr "Отключить поворот шаблона заполнения"
@@ -19013,10 +19151,9 @@ msgstr "Косой шов для внутренних периметров"
 msgid "Use scarf joint for inner walls as well."
 msgstr "Использовать косой шов и для внутренних периметров."
 
-# Адаптивная скорость очистки, местная скорость очистки, локальная скорость
-# очистки, скорость очистки по типу линии
-msgid "Role base wipe speed"
-msgstr "Местная скорость очистки"
+# AI Translated
+msgid "Role based wipe speed"
+msgstr "Скорость очистки по типу линии"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr "Выбирать скорость очистки перед холостым перемещением на основе скорости печати последней линии. Например, если очистка происходит после печати внешнего периметра, скорость движения очистки будет как у периметра."
@@ -19134,16 +19271,15 @@ msgstr "После первого слоя количество контуров
 msgid "Draft shield"
 msgstr "Защитный кожух"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
 "Защитный кожух полезен для защиты материалов типа ABS, ASA от деформации и отрыва от стола из-за внешнего воздушного потока. Обычно защитный кожух необходим только для принтеров без термокамеры.\n"
 "\n"
-"Если включено, то высота юбки будет равна высоте самой высокой модели, иначе используется значение «Слоёв юбки».\n"
-"Примечание: при включённом защитном кожухе, юбка будет печататься на расстоянии от модели, которое задаётся параметром «Расстояние до юбки». Если активна кайма, она может пересекаться с юбкой. Чтобы избежать этого, увеличьте значение «Расстояние до юбки».\n"
+"Если включено, то высота юбки будет равна высоте самой высокой модели, иначе используется значение «Слоёв юбки»."
 
 msgid "Enabled"
 msgstr "Включено"
@@ -20370,26 +20506,27 @@ msgstr "Регулировка угла «стабилизирующего ко�
 msgid "Maximum wipe tower print speed"
 msgstr "Макс. скорость печати черновой башни"
 
+# AI Translated
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
-"Максимальная скорость печати при очистке в черновую башню и печати её разреженных слоёв.\n"
-"Во время прочистки программа сопоставляет скорость разреженного заполнения и скорость, рассчитанную по 'максимальному объёмному расходу', и использует наименьшую.\n"
-"При печати разреженных слоёв программа сопоставляет скорость внутренних периметров и скорость, рассчитанную по 'максимальному объёмному расходу', и также использует наименьшую.\n"
+"Максимальная скорость печати при прочистке на черновой башне и при печати её разреженных слоёв. Во время прочистки, если скорость разреженного заполнения или скорость, рассчитанная по максимальному объёмному расходу материала, ниже, то используется наименьшая из них.\n"
+"\n"
+"При печати разреженных слоёв, если скорость разреженного заполнения или скорость, рассчитанная по максимальному объёмному расходу материала, ниже, то используется наименьшая из них.\n"
 "\n"
 "Увеличение этой скорости может повлиять на устойчивость башни, а также увеличить силу, с которой сопло сталкивается с любыми наплывами, которые могли образоваться на черновой башне.\n"
 "\n"
-"Перед увеличением этого параметра выше значения по умолчанию 90 мм/с убедитесь, что ваш принтер может надежно строить мосты на повышенных скоростях и что отсутствует подтекание при смене инструмента.\n"
+"Перед увеличением этого параметра выше значения по умолчанию 90 мм/с убедитесь, что ваш принтер может надёжно строить мосты на повышенных скоростях и что подтёки при смене инструмента хорошо контролируются.\n"
 "\n"
-"Для внешних периметров черновой башни всегда используется скорость внутренних периметров, независимо от значения данного параметра."
+"Для внешних периметров черновой башни используется скорость внутренних периметров, также ограниченная этим параметром."
 
 msgid "Wall type"
 msgstr "Форма черновой башни"
@@ -20397,14 +20534,14 @@ msgstr "Форма черновой башни"
 # AI Translated
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
 "Тип внешней стенки черновой башни.\n"
-"1. Прямоугольник с фиксированной шириной и высотой. Установлено по умолчанию.\n"
-"2. Конус со скруглением в нижней части для повышения устойчивости.\n"
-"3. Рёбра жёсткости, которые добавляются по четырём углам черновой башни для повышения устойчивости."
+"1. Прямоугольная: прямоугольник с фиксированной шириной и высотой.\n"
+"2. Конус: конус со скруглением в нижней части для повышения устойчивости черновой башни.\n"
+"3. Усиленная: тип по умолчанию, добавляет четыре ребра жёсткости к стенке башни для повышения устойчивости."
 
 # Тянется из "Форма стола" (в создании принтера) и "Форма черновой башни"
 msgid "Rectangle"
@@ -20507,8 +20644,9 @@ msgstr "Расстояние между линиями очистки на че�
 msgid "Extra flow for purging"
 msgstr "Дополнительный поток для очистки"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "Регулирует количество пластика, которое будет использоваться для очистки на черновой башне. Делает линии шире или уже по сравнению с тем, что выставлено в «Мин. объём сброса на черновой башне». Расстояние между линиями пересчитывается автоматически."
+# AI Translated
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "Дополнительный поток, используемый для линий очистки на черновой башне. Делает линии очистки толще обычного. Расстояние между линиями пересчитывается автоматически."
 
 msgid "Idle temperature"
 msgstr "Температура в простое"
@@ -20645,14 +20783,15 @@ msgstr ""
 msgid "Minimum wall length"
 msgstr "Допустимая длина щели"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"Максимальная длина щели в месте уплотнения, которую можно игнорировать. Помогает избежать печати большого количества ненужных коротких линий.\n"
+"Позволяет избежать печати коротких незамкнутых периметров, которые могут увеличить время печати. Значение задаётся как множитель ширины периметра. Чем оно больше, тем больше периметров и тем более длинные периметры удаляются.\n"
 "\n"
-"Примечание: не влияет на периметры на первом слое и верхних поверхностях во избежание появления видимых щелей в них. Дополнительно можно настроить чувствительность определения поверхности как верхней в настройке «Порог верхней поверхности», если значение превышает стандартное значение в 0.5 мм."
+"ПРИМЕЧАНИЕ: нижние и верхние поверхности не затрагиваются этим значением, чтобы не появлялись видимые щели на внешней стороне модели. Чувствительность определения верхней поверхности можно настроить в параметре «Порог верхней поверхности» в разделе «Периметры и поверхности» ниже. «Порог верхней поверхности» отображается только если это значение выше стандартного значения 0.5 или если включён параметр «Только один периметр на верхней поверхности»."
 
 # Минимальный сегмент периметра
 msgid "Maximum wall resolution"
@@ -21064,6 +21203,12 @@ msgstr "Папку сохранения"
 
 msgid "This is the output directory for exported files."
 msgstr "Выходной каталог для экспортированных файлов."
+
+msgid "Export statistics"
+msgstr ""
+
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
 
 msgid "Debug level"
 msgstr "Уровень отладки журнала"
@@ -24646,9 +24791,6 @@ msgstr "Включить умное назначение материалов: �
 # AI Translated
 msgid "File Saving"
 msgstr "Сохранение файла"
-
-msgid "Don't remind me again"
-msgstr "Больше не показывать"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "В дальнейшем уведомление выводиться не будет. Отменить это можно в параметрах слайсера."
@@ -29980,9 +30122,6 @@ msgstr "Открыть быстрый запуск"
 msgid "Slicing and printing"
 msgstr "Нарезка и печать"
 
-msgid "Selection"
-msgstr "Элемент"
-
 # AI Translated
 msgid "Editing"
 msgstr "Редактирование"
@@ -30890,6 +31029,1232 @@ msgstr[0] "В текущем списке материалов нет: %s. Ма�
 msgstr[1] "В текущем списке материалов нет: %s. Материалы проекта, необходимые для смешанного материала, будут созданы автоматически после разложения."
 msgstr[2] "В текущем списке материалов нет: %s. Материалы проекта, необходимые для смешанного материала, будут созданы автоматически после разложения."
 
+msgid "Color Picker"
+msgstr ""
+
+msgid "Basic Colors"
+msgstr ""
+
+msgid "Orca Palette"
+msgstr ""
+
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "RAL Classic"
+msgstr ""
+
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "Gradients"
+msgstr ""
+
+msgid "Solid"
+msgstr ""
+
+msgid "Gradient"
+msgstr ""
+
+msgid "Gradient start"
+msgstr ""
+
+msgid "Gradient end"
+msgstr ""
+
+msgid "Gradient color"
+msgstr ""
+
+msgid "Add color"
+msgstr ""
+
+msgid "Remove color"
+msgstr ""
+
+msgid "Saturation"
+msgstr ""
+
+msgid "Original color"
+msgstr ""
+
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr ""
+
+msgid "Palettes"
+msgstr ""
+
+msgid "Search colors"
+msgstr ""
+
+msgid "Filter colors"
+msgstr ""
+
+msgid "No matching colors"
+msgstr ""
+
+msgid "Hex color"
+msgstr ""
+
+# AI Translated
+msgid "Opacity"
+msgstr "Непрозрачность"
+
+msgid "Opacity percent"
+msgstr ""
+
+msgid "Save color"
+msgstr ""
+
+msgid "Enter a complete hexadecimal color"
+msgstr ""
+
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr ""
+
+msgid "Crimson"
+msgstr ""
+
+msgid "Orange red"
+msgstr ""
+
+msgid "Tomato"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Dark orange"
+msgstr ""
+
+msgid "Gold"
+msgstr ""
+
+msgid "Burly wood"
+msgstr ""
+
+msgid "Bisque"
+msgstr ""
+
+msgid "Misty rose"
+msgstr ""
+
+msgid "Light yellow"
+msgstr ""
+
+msgid "Lemon chiffon"
+msgstr ""
+
+msgid "Beige"
+msgstr ""
+
+msgid "Light golden rod yellow"
+msgstr ""
+
+msgid "Pale golden rod"
+msgstr ""
+
+msgid "Khaki"
+msgstr ""
+
+msgid "Dark khaki"
+msgstr ""
+
+msgid "Peach puff"
+msgstr ""
+
+msgid "Moccasin"
+msgstr ""
+
+msgid "Papaya whip"
+msgstr ""
+
+msgid "Blanched almond"
+msgstr ""
+
+msgid "Antique white"
+msgstr ""
+
+msgid "Navajo white"
+msgstr ""
+
+msgid "Wheat"
+msgstr ""
+
+msgid "Golden rod"
+msgstr ""
+
+msgid "Chocolate"
+msgstr ""
+
+msgid "Peru"
+msgstr ""
+
+msgid "Fire brick"
+msgstr ""
+
+msgid "Sienna"
+msgstr ""
+
+msgid "Saddle brown"
+msgstr ""
+
+msgid "Brown"
+msgstr ""
+
+msgid "Rosy brown"
+msgstr ""
+
+msgid "Salmon"
+msgstr ""
+
+msgid "Light salmon"
+msgstr ""
+
+msgid "Dark salmon"
+msgstr ""
+
+msgid "Sandy brown"
+msgstr ""
+
+msgid "Coral"
+msgstr ""
+
+msgid "Light coral"
+msgstr ""
+
+msgid "Indian red"
+msgstr ""
+
+msgid "Dark red"
+msgstr ""
+
+msgid "Maroon"
+msgstr ""
+
+msgid "Green yellow"
+msgstr ""
+
+msgid "Yellow green"
+msgstr ""
+
+msgid "Chartreuse"
+msgstr ""
+
+msgid "Lawn green"
+msgstr ""
+
+msgid "Lime green"
+msgstr ""
+
+msgid "Spring green"
+msgstr ""
+
+msgid "Medium spring green"
+msgstr ""
+
+msgid "Lime"
+msgstr ""
+
+msgid "Forest green"
+msgstr ""
+
+msgid "Dark green"
+msgstr ""
+
+msgid "Olive drab"
+msgstr ""
+
+msgid "Olive"
+msgstr ""
+
+msgid "Dark olive green"
+msgstr ""
+
+msgid "Pale green"
+msgstr ""
+
+msgid "Light green"
+msgstr ""
+
+msgid "Medium sea green"
+msgstr ""
+
+msgid "Sea green"
+msgstr ""
+
+msgid "Dark sea green"
+msgstr ""
+
+msgid "Cadet blue"
+msgstr ""
+
+msgid "Medium aqua marine"
+msgstr ""
+
+msgid "Turquoise"
+msgstr ""
+
+msgid "Medium turquoise"
+msgstr ""
+
+msgid "Dark turquoise"
+msgstr ""
+
+msgid "Pale turquoise"
+msgstr ""
+
+msgid "Aqua"
+msgstr ""
+
+msgid "Light cyan"
+msgstr ""
+
+msgid "Mint cream"
+msgstr ""
+
+msgid "Honey dew"
+msgstr ""
+
+msgid "Aquamarine"
+msgstr ""
+
+msgid "Light sea green"
+msgstr ""
+
+msgid "Dark cyan"
+msgstr ""
+
+msgid "Teal"
+msgstr ""
+
+msgid "Dark slate gray"
+msgstr ""
+
+msgid "Light slate gray"
+msgstr ""
+
+msgid "Slate gray"
+msgstr ""
+
+msgid "Deep sky blue"
+msgstr ""
+
+msgid "Dodger Blue"
+msgstr ""
+
+msgid "Sky blue"
+msgstr ""
+
+msgid "Light sky blue"
+msgstr ""
+
+msgid "Light blue"
+msgstr ""
+
+msgid "Powder blue"
+msgstr ""
+
+msgid "Light steel blue"
+msgstr ""
+
+msgid "Steel blue"
+msgstr ""
+
+msgid "Cornflower blue"
+msgstr ""
+
+msgid "Royal blue"
+msgstr ""
+
+msgid "Medium blue"
+msgstr ""
+
+msgid "Midnight blue"
+msgstr ""
+
+msgid "Dark blue"
+msgstr ""
+
+msgid "Navy"
+msgstr ""
+
+msgid "Slate blue"
+msgstr ""
+
+msgid "Dark slate blue"
+msgstr ""
+
+msgid "Medium slate blue"
+msgstr ""
+
+msgid "Blue violet"
+msgstr ""
+
+msgid "Indigo"
+msgstr ""
+
+msgid "Dark violet"
+msgstr ""
+
+msgid "Dark orchid"
+msgstr ""
+
+msgid "Medium orchid"
+msgstr ""
+
+msgid "Orchid"
+msgstr ""
+
+msgid "Violet"
+msgstr ""
+
+msgid "Medium purple"
+msgstr ""
+
+msgid "Purple"
+msgstr ""
+
+msgid "Rebecca purple"
+msgstr ""
+
+msgid "Medium violet red"
+msgstr ""
+
+msgid "PaleV violet red"
+msgstr ""
+
+msgid "Deep pink"
+msgstr ""
+
+msgid "Hot pink"
+msgstr ""
+
+msgid "Light pink"
+msgstr ""
+
+msgid "Pink"
+msgstr ""
+
+msgid "Plum"
+msgstr ""
+
+msgid "Thistle"
+msgstr ""
+
+msgid "Fuchsia"
+msgstr ""
+
+msgid "Dark magenta"
+msgstr ""
+
+msgid "Linen"
+msgstr ""
+
+msgid "Old lace"
+msgstr ""
+
+msgid "Sea shell"
+msgstr ""
+
+msgid "Ivory"
+msgstr ""
+
+msgid "Floral white"
+msgstr ""
+
+msgid "Lavender blush"
+msgstr ""
+
+msgid "Ghost white"
+msgstr ""
+
+msgid "Alice blue"
+msgstr ""
+
+msgid "Lavender"
+msgstr ""
+
+msgid "White smoke"
+msgstr ""
+
+msgid "Gainsboro"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Coral fire"
+msgstr ""
+
+msgid "Sea anemone"
+msgstr ""
+
+msgid "Deep abyss"
+msgstr ""
+
+msgid "Lobster red"
+msgstr ""
+
+msgid "Sandy clay"
+msgstr ""
+
+msgid "Driftwood"
+msgstr ""
+
+msgid "Sea buckthorn"
+msgstr ""
+
+msgid "Sunset reef"
+msgstr ""
+
+msgid "Tiger coral"
+msgstr ""
+
+msgid "Pink coral"
+msgstr ""
+
+msgid "Seashell glow"
+msgstr ""
+
+msgid "Sand"
+msgstr ""
+
+msgid "Golden kelp"
+msgstr ""
+
+msgid "Sunlit dune"
+msgstr ""
+
+msgid "Amber nautilus"
+msgstr ""
+
+msgid "Sea lemon"
+msgstr ""
+
+msgid "Pale starfish"
+msgstr ""
+
+msgid "Spring tide"
+msgstr ""
+
+msgid "Lime algae"
+msgstr ""
+
+msgid "Sea grass"
+msgstr ""
+
+msgid "Neon plankton"
+msgstr ""
+
+msgid "Kelp forest"
+msgstr ""
+
+msgid "Emerald wave"
+msgstr ""
+
+msgid "Whale shadow"
+msgstr ""
+
+msgid "Sea turtle"
+msgstr ""
+
+msgid "Lagoon"
+msgstr ""
+
+msgid "Tropical current"
+msgstr ""
+
+msgid "Midnight trench"
+msgstr ""
+
+msgid "Dark kelp"
+msgstr ""
+
+msgid "Crystal surf"
+msgstr ""
+
+msgid "Turquoise bay"
+msgstr ""
+
+msgid "Sky over reef"
+msgstr ""
+
+msgid "Shallow sky"
+msgstr ""
+
+msgid "Electric bel"
+msgstr ""
+
+msgid "Dolphin"
+msgstr ""
+
+msgid "Ocean depths"
+msgstr ""
+
+msgid "Whale"
+msgstr ""
+
+msgid "Indigo abyss"
+msgstr ""
+
+msgid "Sea urchin"
+msgstr ""
+
+msgid "Lavender coral"
+msgstr ""
+
+msgid "Violet tide"
+msgstr ""
+
+msgid "Deep sea orchid"
+msgstr ""
+
+msgid "Neon jelly"
+msgstr ""
+
+msgid "Fuchsia coral"
+msgstr ""
+
+msgid "Pink jellyfish"
+msgstr ""
+
+msgid "Foam"
+msgstr ""
+
+msgid "Seashell white"
+msgstr ""
+
+msgid "Pebble gray"
+msgstr ""
+
+msgid "Storm cloud"
+msgstr ""
+
+msgid "Ink black"
+msgstr ""
+
+msgid "Green beige"
+msgstr ""
+
+msgid "Sand yellow"
+msgstr ""
+
+msgid "Signal yellow"
+msgstr ""
+
+msgid "Golden yellow"
+msgstr ""
+
+msgid "Honey yellow"
+msgstr ""
+
+msgid "Maize yellow"
+msgstr ""
+
+msgid "Dalmatian yellow"
+msgstr ""
+
+msgid "Brown beige"
+msgstr ""
+
+msgid "Lemon yellow"
+msgstr ""
+
+msgid "Oyster white"
+msgstr ""
+
+msgid "Light ivory"
+msgstr ""
+
+msgid "Zinc yellow"
+msgstr ""
+
+msgid "Grey beige"
+msgstr ""
+
+msgid "Olive yellow"
+msgstr ""
+
+msgid "Rape yellow"
+msgstr ""
+
+msgid "Traffic yellow"
+msgstr ""
+
+msgid "Ochre yellow"
+msgstr ""
+
+msgid "Traffic orange yellow"
+msgstr ""
+
+msgid "Curry"
+msgstr ""
+
+msgid "Melon yellow"
+msgstr ""
+
+msgid "Broom yellow"
+msgstr ""
+
+msgid "Dahlia yellow"
+msgstr ""
+
+msgid "Pastel yellow"
+msgstr ""
+
+msgid "Pearl beige"
+msgstr ""
+
+msgid "Pearl gold"
+msgstr ""
+
+msgid "Sun yellow"
+msgstr ""
+
+msgid "Yellow orange"
+msgstr ""
+
+msgid "Deep orange"
+msgstr ""
+
+msgid "Vermilion"
+msgstr ""
+
+msgid "Pearl orange"
+msgstr ""
+
+msgid "Pure orange"
+msgstr ""
+
+msgid "Luminous orange"
+msgstr ""
+
+msgid "Luminous bright orange"
+msgstr ""
+
+msgid "Bright red orange"
+msgstr ""
+
+msgid "Traffic orange"
+msgstr ""
+
+msgid "Signal orange"
+msgstr ""
+
+msgid "Salmon orange"
+msgstr ""
+
+msgid "Pearl pink"
+msgstr ""
+
+msgid "Copper orange"
+msgstr ""
+
+msgid "Signal brown"
+msgstr ""
+
+msgid "Fir orange"
+msgstr ""
+
+msgid "Signal red"
+msgstr ""
+
+msgid "Luminous red"
+msgstr ""
+
+msgid "Carmine red"
+msgstr ""
+
+msgid "Pearl carmine red"
+msgstr ""
+
+msgid "Pure red"
+msgstr ""
+
+msgid "Luminous deep red"
+msgstr ""
+
+msgid "Currant red"
+msgstr ""
+
+msgid "Pearl ruby red"
+msgstr ""
+
+msgid "Fire red"
+msgstr ""
+
+msgid "Ruby red"
+msgstr ""
+
+msgid "Purple red"
+msgstr ""
+
+msgid "Wine red"
+msgstr ""
+
+msgid "Black red"
+msgstr ""
+
+msgid "Oxide red"
+msgstr ""
+
+msgid "Brown red"
+msgstr ""
+
+msgid "Pine red"
+msgstr ""
+
+msgid "Tomato red"
+msgstr ""
+
+msgid "Antique pink"
+msgstr ""
+
+msgid "Coral red"
+msgstr ""
+
+msgid "Rose"
+msgstr ""
+
+msgid "Strawberry red"
+msgstr ""
+
+msgid "Traffic red"
+msgstr ""
+
+msgid "Salmon pink"
+msgstr ""
+
+msgid "Luminous rose"
+msgstr ""
+
+msgid "Luminous bright red"
+msgstr ""
+
+msgid "Raspberry red"
+msgstr ""
+
+msgid "Orient red"
+msgstr ""
+
+msgid "Pearl ruby"
+msgstr ""
+
+msgid "Red purple"
+msgstr ""
+
+msgid "Red violet"
+msgstr ""
+
+msgid "Heather violet"
+msgstr ""
+
+msgid "Bordeaux violet"
+msgstr ""
+
+msgid "Mahogany"
+msgstr ""
+
+msgid "Grey purple"
+msgstr ""
+
+msgid "Signal violet"
+msgstr ""
+
+msgid "Fir green"
+msgstr ""
+
+msgid "Sabine grey"
+msgstr ""
+
+msgid "Pearl violet"
+msgstr ""
+
+msgid "Pearl blackberry"
+msgstr ""
+
+msgid "Green blue"
+msgstr ""
+
+msgid "Ultramarine blue"
+msgstr ""
+
+msgid "Sapphire blue"
+msgstr ""
+
+msgid "Black blue"
+msgstr ""
+
+msgid "Signal blue"
+msgstr ""
+
+msgid "Brilliant blue"
+msgstr ""
+
+msgid "Grey blue"
+msgstr ""
+
+msgid "Azure blue"
+msgstr ""
+
+msgid "Gentian blue"
+msgstr ""
+
+msgid "Cobalt blue"
+msgstr ""
+
+msgid "Pigeon blue"
+msgstr ""
+
+msgid "Traffic blue"
+msgstr ""
+
+msgid "Turquoise blue"
+msgstr ""
+
+msgid "Capsanthin violet"
+msgstr ""
+
+msgid "Ocean blue"
+msgstr ""
+
+msgid "Water blue"
+msgstr ""
+
+msgid "Night blue"
+msgstr ""
+
+msgid "Distant blue"
+msgstr ""
+
+msgid "Pastel blue"
+msgstr ""
+
+msgid "Pearl gentian blue"
+msgstr ""
+
+msgid "Pearl midnight blue"
+msgstr ""
+
+msgid "Patina green"
+msgstr ""
+
+msgid "Emerald green"
+msgstr ""
+
+msgid "Leaf green"
+msgstr ""
+
+msgid "Olive green"
+msgstr ""
+
+msgid "Blue green"
+msgstr ""
+
+msgid "Moss green"
+msgstr ""
+
+msgid "Grey olive"
+msgstr ""
+
+msgid "Pine green"
+msgstr ""
+
+msgid "Pine brown"
+msgstr ""
+
+msgid "Grass green"
+msgstr ""
+
+msgid "Reseda green"
+msgstr ""
+
+msgid "Brown green"
+msgstr ""
+
+msgid "Reed green"
+msgstr ""
+
+msgid "Black green"
+msgstr ""
+
+msgid "Turquoise green"
+msgstr ""
+
+msgid "May green"
+msgstr ""
+
+msgid "Chrome oxide green"
+msgstr ""
+
+msgid "Traffic green"
+msgstr ""
+
+msgid "Fern green"
+msgstr ""
+
+msgid "Opal green"
+msgstr ""
+
+msgid "Mint green"
+msgstr ""
+
+msgid "Bronze green"
+msgstr ""
+
+msgid "Pearl green"
+msgstr ""
+
+msgid "Sax turquoise"
+msgstr ""
+
+msgid "Pearl turquoise"
+msgstr ""
+
+msgid "Pearl jade"
+msgstr ""
+
+msgid "Pure green"
+msgstr ""
+
+msgid "Luminous green"
+msgstr ""
+
+msgid "Squirrel grey"
+msgstr ""
+
+msgid "Silver grey"
+msgstr ""
+
+msgid "Olivestone"
+msgstr ""
+
+msgid "Moss grey"
+msgstr ""
+
+msgid "Signal grey"
+msgstr ""
+
+msgid "Mouse grey"
+msgstr ""
+
+msgid "Beige grey"
+msgstr ""
+
+msgid "Khaki grey"
+msgstr ""
+
+msgid "Green grey"
+msgstr ""
+
+msgid "Tarpaulin grey"
+msgstr ""
+
+msgid "Iron grey"
+msgstr ""
+
+msgid "Basalt grey"
+msgstr ""
+
+msgid "Brown grey"
+msgstr ""
+
+msgid "Slate grey"
+msgstr ""
+
+msgid "Anthracite grey"
+msgstr ""
+
+msgid "Light grey"
+msgstr ""
+
+msgid "Umber grey"
+msgstr ""
+
+msgid "Concrete grey"
+msgstr ""
+
+msgid "Graphite grey"
+msgstr ""
+
+msgid "Granite grey"
+msgstr ""
+
+msgid "Stone grey"
+msgstr ""
+
+msgid "Pebble grey"
+msgstr ""
+
+msgid "Cement grey"
+msgstr ""
+
+msgid "Yellow grey"
+msgstr ""
+
+msgid "Platinum grey"
+msgstr ""
+
+msgid "Dusty grey"
+msgstr ""
+
+msgid "Agate grey"
+msgstr ""
+
+msgid "Quartz grey"
+msgstr ""
+
+msgid "Window grey"
+msgstr ""
+
+msgid "Traffic grey A"
+msgstr ""
+
+msgid "Traffic grey B"
+msgstr ""
+
+msgid "Silk grey"
+msgstr ""
+
+msgid "Telegrey 1"
+msgstr ""
+
+msgid "Telegrey 2"
+msgstr ""
+
+msgid "Telegrey 4"
+msgstr ""
+
+msgid "Pearl mouse grey"
+msgstr ""
+
+msgid "Green brown"
+msgstr ""
+
+msgid "Ochre brown"
+msgstr ""
+
+msgid "Clay brown"
+msgstr ""
+
+msgid "Copper brown"
+msgstr ""
+
+msgid "Chocolate brown"
+msgstr ""
+
+msgid "Olive brown"
+msgstr ""
+
+msgid "Nut brown"
+msgstr ""
+
+msgid "Red brown"
+msgstr ""
+
+msgid "Sepia brown"
+msgstr ""
+
+msgid "Chestnut brown"
+msgstr ""
+
+msgid "Mahogany brown"
+msgstr ""
+
+msgid "Grey brown"
+msgstr ""
+
+msgid "Pearl copper"
+msgstr ""
+
+msgid "Beige brown"
+msgstr ""
+
+msgid "Pearl mocha brown"
+msgstr ""
+
+msgid "Earth brown"
+msgstr ""
+
+msgid "Pearl brown"
+msgstr ""
+
+msgid "Cream"
+msgstr ""
+
+msgid "Grey white"
+msgstr ""
+
+msgid "Signal white"
+msgstr ""
+
+msgid "Signal black"
+msgstr ""
+
+msgid "Jet black"
+msgstr ""
+
+msgid "White aluminium"
+msgstr ""
+
+msgid "Grey aluminium"
+msgstr ""
+
+msgid "Pure white"
+msgstr ""
+
+msgid "Graphite black"
+msgstr ""
+
+msgid "Traffic white"
+msgstr ""
+
+msgid "Traffic black"
+msgstr ""
+
+msgid "Papyrus white"
+msgstr ""
+
+msgid "Pearl light grey"
+msgstr ""
+
+msgid "Metal: Silver"
+msgstr ""
+
+msgid "Metal: Brass"
+msgstr ""
+
+msgid "Metal: Gold"
+msgstr ""
+
+msgid "Metal: Copper"
+msgstr ""
+
+msgid "Metal: Bronze"
+msgstr ""
+
+msgid "Nature: Pearl"
+msgstr ""
+
+msgid "Nature: Rainbow"
+msgstr ""
+
+msgid "Nature: Clear Sky"
+msgstr ""
+
+msgid "Nature: Sunset"
+msgstr ""
+
+msgid "Wood: Dark"
+msgstr ""
+
+msgid "Wood: Medium"
+msgstr ""
+
+msgid "Wood: Light"
+msgstr ""
+
 # AI Translated
 msgid "Alternate nozzles:"
 msgstr "Другие сопла:"
@@ -31774,6 +33139,12 @@ msgstr "Наложение выполняется по собственной UV
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "Ширина одной копии текстуры на модели. Чем меньше значение, тем чаще повторяется узор и тем мельче его детали; при выключенной «Плитке» это размер единственной копии."
 
+msgid "Larger"
+msgstr ""
+
+msgid "Smaller"
+msgstr ""
+
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Поворачивает текстуру на поверхности, в градусах - чтобы выровнять узор по краю модели."
@@ -31847,6 +33218,12 @@ msgstr "Смешанные цвета"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Максимальное число смешанных материалов, которое может добавить запекание. Они подбираются по цветам текстуры, и создаются только те, которые запекание действительно использует."
+
+msgid "Few"
+msgstr ""
+
+msgid "Many"
+msgstr ""
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -31974,10 +33351,6 @@ msgstr "Рамка проекции"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Открывает окно, которое вы перетаскиваете поверх модели. Всё, что видно сквозь него, получит текстуру, а его граница станет краем проекции."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Непрозрачность"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -32210,6 +33583,12 @@ msgstr "Перестроение сетки"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Размер треугольников, с которым перестраивается вся модель, в миллиметрах. Смещение лучше всего работает на равномерной сетке; этот параметр делает её из неравномерной импортированной."
+
+msgid "Before"
+msgstr ""
+
+msgid "After"
+msgstr ""
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -35186,6 +36565,178 @@ msgid ""
 msgstr ""
 "Предотвращение коробления материала\n"
 "Знаете ли вы, что при печати материалами, склонными к короблению, таких как ABS, повышение температуры подогреваемого стола может снизить эту вероятность?"
+
+#~ msgid "Please choose the filament color"
+#~ msgstr "Изменение цвета"
+
+# Максимальное значение можно не указывать, т.к. теперь в каждой подсказке есть абзац с допустимым диапазоном значений.
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "Ширина линий мостов. Можно указать процент от диаметра сопла.\n"
+#~ "Рекомендуется использовать в паре с увеличенными плотностью или потоком мостов.\n"
+#~ "\n"
+#~ "0 – использовать ширину линий сплошного заполнения."
+
+# Обновил, отформатировал и провёл семантическую оптимизацию
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "Позволяет автоматически замедлять печать в областях, где выступающие периметры могут деформироваться из-за усадки.\n"
+#~ "Например, форштевень Benchy, который сильнее подвержен накоплению усадочной деформации.\n"
+#~ "\n"
+#~ "Рекомендуется использовать в случаях, если скоростной режим, конструкция принтера или его система охлаждения не способны обеспечить качественного сопротивления усадке материала.\n"
+#~ "\n"
+#~ "Примечание: отключает скоростной режим мостов для нависающих периметров (передаёт его в управление настройкам нависаний ниже).\n"
+#~ "\n"
+#~ "Внимание: требуется крайне точная настройка коррекции давления. В противном случае при быстрой печати стенок в местах перепада скоростей будут возникать заметные артефакты поверхности.\n"
+#~ "\n"
+#~ "Рекомендации по настройке:\n"
+#~ "1. Уменьшите время сглаживания Pressure Advance до 0.015-0.02, чтобы\n"
+#~ "    повысить реактивность экструдера на изменения скорости.\n"
+#~ "2. Повысьте ограничения скоростей нависаний.\n"
+#~ "3. Если это не помогло, воспользуйтесь сглаживанием расхода."
+
+# ???
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "Скорость печати наружных периметров моста.\n"
+#~ "\n"
+#~ "Кроме того, если отключена опция «Замедляться на изогнутых периметрах» или включён «Классический режим» печати нависаний, то скорость печати будет какой же, что и для нависающих периметров, которые имеют поддержку менее 13%, независимо от того, являются ли они частью моста или нависания."
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "Ограничение скорости движения головы (относительно стола) при печати коротких периметров с радиусом, не превышающим значение порога маленьких периметров (обычно, это отверстия). Можно указать процент от ограничения скорости печати внешнего периметра, указанного выше. Установите 0 для автонастройки (50%)."
+
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "Аналогично скорости «Коротких периметров», но для небольших отростков поддержек. Значительно повышает стабильность печати маленьких ветвей древовидных поддержек. Можно указать абсолютную скорость или процент от текущей скорости печати поддержки (например, 80%). 0 – рассчитывать автоматически."
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "Очерёдность печати внутренних и внешних периметров.\n"
+#~ "\n"
+#~ "• «Изнутри наружу» хорошо подходит для печати нависаний благодаря дополнительному сцеплению внешнего периметра к соседним внутренним, но может привести к небольшому снижению точности размеров и качества внешней поверхности, так как её форма будет повторять внутреннюю структуру печати.\n"
+#~ "\n"
+#~ "• «Снаружи внутрь» обеспечивает хорошую точность размеров, так как внешний периметр печатается без контакта с внутрненним (что одновременно снижает качество нависаний), но при этом избыток материала в сопле в момент подачи может привести к выпиранию шва на внешнем периметре.\n"
+#~ "\n"
+#~ "• «Навстречу» обеспечивает точность размеров и наилучшее качество, так как помимо прочего внутренний периметр стабилизирует поток материала к началу печати внешнего. Требуется минимум 3 периметра: сначала печатаются крайние внутренние, затем внешний и оставшийся внутренний. В большинстве случаев предпочтительнее, чем «Снаружи внутрь»."
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "Общее ограничение скорости движения головы (относительно стола) при печати элементов первого слоя (кроме сплошного заполнения)."
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "Ограничение скорости движения головы (относительно стола) при печати сплошного заполнения на первом слое."
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "Параметр указывает на сколько процентов заполнение будет перекрываться с периметром для лучшего соединения друг с другом. Установите значение равным ≈10-15%, чтобы свести к минимуму вероятность чрезмерной экструзии и накопления материала приводящее к шероховатости поверхности."
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "Площадь верхнего сплошного заполнения немного увеличивается, чтобы перекрыть периметр для лучшего сцепления и минимизировать появление мелких отверстий в местах соединения верхнего заполнения с периметрами. Значение 25-30% является хорошей отправной точкой, минимизирующей появление таких отверстий."
+
+# Переведено с фактическими ошибками, переписать с нуля
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr ""
+#~ "Глубина взаимного переплетения окрашенной области с основной моделью. Это значительно увеличивает прочность соединения между частями детали при мультиматериальной покраске.\n"
+#~ "При 0 и если «Глубина переплетения окрашенной области» будет больше значения «Глубина проникновения окрашенной области», то переплетения не будет."
+
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "Прижимать периметры к предыдущему слою на поверхностях с наклоном менее заданного значения.\n"
+#~ "\n"
+#~ "Внимание: в настоящий момент действие настройки инвертировано (затрагивается всё, кроме верхних периметров с указанным углом), что делает её вредоносной."
+
+# Адаптивная скорость очистки, местная скорость очистки, локальная скорость
+# очистки, скорость очистки по типу линии
+#~ msgid "Role base wipe speed"
+#~ msgstr "Местная скорость очистки"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "Защитный кожух полезен для защиты материалов типа ABS, ASA от деформации и отрыва от стола из-за внешнего воздушного потока. Обычно защитный кожух необходим только для принтеров без термокамеры.\n"
+#~ "\n"
+#~ "Если включено, то высота юбки будет равна высоте самой высокой модели, иначе используется значение «Слоёв юбки».\n"
+#~ "Примечание: при включённом защитном кожухе, юбка будет печататься на расстоянии от модели, которое задаётся параметром «Расстояние до юбки». Если активна кайма, она может пересекаться с юбкой. Чтобы избежать этого, увеличьте значение «Расстояние до юбки».\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "Максимальная скорость печати при очистке в черновую башню и печати её разреженных слоёв.\n"
+#~ "Во время прочистки программа сопоставляет скорость разреженного заполнения и скорость, рассчитанную по 'максимальному объёмному расходу', и использует наименьшую.\n"
+#~ "При печати разреженных слоёв программа сопоставляет скорость внутренних периметров и скорость, рассчитанную по 'максимальному объёмному расходу', и также использует наименьшую.\n"
+#~ "\n"
+#~ "Увеличение этой скорости может повлиять на устойчивость башни, а также увеличить силу, с которой сопло сталкивается с любыми наплывами, которые могли образоваться на черновой башне.\n"
+#~ "\n"
+#~ "Перед увеличением этого параметра выше значения по умолчанию 90 мм/с убедитесь, что ваш принтер может надежно строить мосты на повышенных скоростях и что отсутствует подтекание при смене инструмента.\n"
+#~ "\n"
+#~ "Для внешних периметров черновой башни всегда используется скорость внутренних периметров, независимо от значения данного параметра."
+
+# AI Translated
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "Тип внешней стенки черновой башни.\n"
+#~ "1. Прямоугольник с фиксированной шириной и высотой. Установлено по умолчанию.\n"
+#~ "2. Конус со скруглением в нижней части для повышения устойчивости.\n"
+#~ "3. Рёбра жёсткости, которые добавляются по четырём углам черновой башни для повышения устойчивости."
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "Регулирует количество пластика, которое будет использоваться для очистки на черновой башне. Делает линии шире или уже по сравнению с тем, что выставлено в «Мин. объём сброса на черновой башне». Расстояние между линиями пересчитывается автоматически."
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr ""
+#~ "Максимальная длина щели в месте уплотнения, которую можно игнорировать. Помогает избежать печати большого количества ненужных коротких линий.\n"
+#~ "\n"
+#~ "Примечание: не влияет на периметры на первом слое и верхних поверхностях во избежание появления видимых щелей в них. Дополнительно можно настроить чувствительность определения поверхности как верхней в настройке «Порог верхней поверхности», если значение превышает стандартное значение в 0.5 мм."
 
 # AI Translated
 #, boost-format
