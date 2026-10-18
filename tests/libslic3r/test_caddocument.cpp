@@ -2423,8 +2423,10 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // tag), sk3_closed, sk3_smooth. Every field appended after revolve_axis_entity is counted here.
     // + the fillet size laws: dressup_size2 (double), dressup_chord and dressup_has_start (bools), dressup_start (3 doubles),
     // dressup_radii and dressup_knots (two empty lists: a size tag each).
-    const size_t drop = sizeof(uint32_t) + 7 * sizeof(bool) + 7 * sizeof(cereal::size_type) + 5 * sizeof(double)
-                        + 6 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
+    // + the feature pattern: pattern_features (a list: size tag), pattern_axis / origin / axis2 (9 doubles), pattern_count2 (int),
+    // pattern_spacing2 (double).
+    const size_t drop = sizeof(uint32_t) + 7 * sizeof(bool) + 8 * sizeof(cereal::size_type) + 15 * sizeof(double)
+                        + 7 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
     shortened.erase(f_off[1] + 4 + f_len[1] - drop, drop);
@@ -10231,5 +10233,58 @@ TEST_CASE("fillet size laws: linear, chord and B-spline radius on a box edge", "
         });
         REQUIRE(r.first);
         REQUIRE(r.second < base.second);
+    }
+}
+
+TEST_CASE("a feature pattern repeats what a feature did to the body", "[CadDocument][Pattern]")
+{
+    using Catch::Matchers::WithinRel;
+    // 60 x 40 x 5 plate, one through hole (r = 2) near its -X end, then patterns of that hole
+    auto plate = [](CadDocument& doc, Vec2d& hole_at) {
+        const int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 60, 40, 10, "Plate");
+        doc.add_extrude(sk, 5.0, false, BooleanMode::New, "Plate");
+        REQUIRE(doc.recompute());
+        const BoundingBoxf3 bb = SketchEngine::tessellate(doc.bodies.front().shape).bounding_box();
+        hole_at = Vec2d(bb.min.x() + 20.0, bb.center().y());   // 10 from the centre: a quarter turn stays inside the 40 mm width
+        SketchEntity c; c.type = SketchEntity::Type::Circle; c.center = hole_at; c.p0 = hole_at; c.radius = 2.0;
+        const int hs = doc.add_sketch_entities({c}, SketchPlane::XY(), "HoleSketch");
+        doc.add_extrude(hs, 20.0, false, BooleanMode::Cut, "Hole");
+        REQUIRE(doc.recompute());
+        return doc.features.size() - 1;   // the Hole extrude
+    };
+    const double one_hole = M_PI * 4.0 * 5.0;
+    SECTION("rectangular 3 x 2 makes six holes") {
+        CadDocument doc; Vec2d at;
+        const int hole = int(plate(doc, at));
+        const double v0 = SketchEngine::tessellate(doc.bodies.front().shape).volume();
+        const int p = doc.add_pattern(false, 3, 15.0, 0, 360.0, -1, "Grid");
+        doc.features[p].pattern_features = { hole };
+        doc.features[p].pattern_axis = Vec3d(1, 0, 0); doc.features[p].pattern_axis2 = Vec3d(0, 1, 0);
+        doc.features[p].pattern_count2 = 2; doc.features[p].pattern_spacing2 = 10.0;
+        REQUIRE(doc.recompute());
+        REQUIRE(doc.error.empty());
+        REQUIRE(doc.bodies.size() == 1);
+        REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(v0 - 5.0 * one_hole, 2e-3));
+    }
+    SECTION("circular x4 about a vertical axis through the plate centre makes four holes") {
+        CadDocument doc; Vec2d at;
+        const int hole = int(plate(doc, at));
+        const double v0 = SketchEngine::tessellate(doc.bodies.front().shape).volume();
+        const BoundingBoxf3 bb = SketchEngine::tessellate(doc.bodies.front().shape).bounding_box();
+        const int p = doc.add_pattern(true, 4, 0.0, 0, 360.0, -1, "Ring");
+        doc.features[p].pattern_features = { hole };
+        doc.features[p].pattern_axis = Vec3d(0, 0, 1);
+        doc.features[p].pattern_origin = Vec3d(bb.center().x(), bb.center().y(), 0);
+        REQUIRE(doc.recompute());
+        REQUIRE(doc.error.empty());
+        REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(v0 - 3.0 * one_hole, 2e-3));
+    }
+    SECTION("a pattern cannot repeat a feature that comes after it") {
+        CadDocument doc; Vec2d at;
+        const int hole = int(plate(doc, at));
+        const int p = doc.add_pattern(false, 2, 10.0, 0, 360.0, -1, "Bad");
+        doc.features[p].pattern_features = { p + 3 };
+        CHECK_FALSE(doc.recompute());
+        (void) hole;
     }
 }

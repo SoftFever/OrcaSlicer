@@ -224,6 +224,15 @@ struct CadFeature {
     // curve. false (older recipes, kept as they were built): always angle / count, so 90° with 3
     // copies stopped at 60°.
     bool        pattern_inclusive{false};
+    // FEATURE pattern: replicate what these earlier features did to the body (the material they took away and the material they
+    // added), instead of copying the whole body. Linear = `pattern_count` x `pattern_spacing` along pattern_axis, optionally a
+    // second grid direction; circular (pattern_circular) = pattern_count about the line through pattern_origin along pattern_axis.
+    std::vector<int> pattern_features;
+    Vec3d       pattern_axis{1, 0, 0};
+    Vec3d       pattern_origin{0, 0, 0};
+    Vec3d       pattern_axis2{0, 1, 0};
+    int         pattern_count2{1};
+    double      pattern_spacing2{0};
 
     // Pattern along a curve: when pattern_curve_sketch >= 0 this mode takes precedence over
     // linear/circular. Copies are placed at equal-parameter points along entity
@@ -449,7 +458,8 @@ struct CadFeature {
                sk3_points, sk3_closed, sk3_smooth,
                attach_body, attach_face,
                dressup_size2, dressup_chord, dressup_has_start, dressup_start,
-               dressup_radii, dressup_knots);
+               dressup_radii, dressup_knots,
+               pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -498,7 +508,8 @@ struct CadFeature {
                sk3_points, sk3_closed, sk3_smooth,
                attach_body, attach_face,
                dressup_size2, dressup_chord, dressup_has_start, dressup_start,
-               dressup_radii, dressup_knots);
+               dressup_radii, dressup_knots,
+               pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature
@@ -978,6 +989,10 @@ private:
     void apply_boolean(std::vector<CadBody>& bodies, const CadFeature& f) const;
     void apply_cut(std::vector<CadBody>& bodies, const CadFeature& f) const;
     void apply_mirror(std::vector<CadBody>& bodies, const CadFeature& f) const;
+    void apply_feature_pattern(std::vector<CadBody>& bodies, const CadFeature& f) const;
+    // The bodies as they stood BEFORE each feature of the recompute in progress (index = feature index): a feature pattern
+    // needs the state around the features it repeats. Filled and cleared by recompute().
+    mutable std::vector<std::vector<CadBody>> m_pre_states;
     void apply_transform(std::vector<CadBody>& bodies, const CadFeature& f) const;
     void apply_thicken(std::vector<CadBody>& bodies, const CadFeature& f) const;
     void apply_thicken_surface(std::vector<CadBody>& bodies, const CadFeature& f) const;

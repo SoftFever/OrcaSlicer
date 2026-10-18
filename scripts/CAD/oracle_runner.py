@@ -167,7 +167,7 @@ BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cu
 
 class Replay:
     def __init__(self, mcp):
-        self.m, self.sketches, self.body = mcp, {}, 0
+        self.m, self.sketches, self.body, self.fidx = mcp, {}, 0, {}
         self.params, self.order, self.datums = {}, [], {}
         self.mo = [0, 0, 0]   # modeling_origin: the app frame is the recipe frame shifted by it   # recipe parameters (name -> expression); body names in app order
 
@@ -206,6 +206,39 @@ class Replay:
         if h is None:
             raise Blocked("op %s" % ft["op"])
         h(ft)
+        self.fidx[ft["name"]] = len(self.m.call("describe_scene")["features"]) - 1   # doc feature index of this recipe feature (a pattern repeats them)
+
+    def _pattern_features(self, ft):
+        if ft.get("pattern_of") != "features":
+            raise Blocked("pattern of %s" % ft.get("pattern_of"))
+        out = []
+        for n in ft["features"]:
+            base = n.rsplit(" (", 1)[0] if n.endswith(")") and " (" in n else n   # the recipe may name an instance "Hole (1)"
+            if n in self.fidx:
+                out.append(self.fidx[n])
+            elif base in self.fidx:
+                out.append(self.fidx[base])
+            else:
+                raise Blocked("pattern of unknown feature %s" % n)
+        return out
+
+    def op_rectangular_pattern(self, ft):
+        feats = self._pattern_features(ft)
+        d1, d2 = ft["direction1"], ft.get("direction2")
+        if "spacing" not in d1 or (d2 and "spacing" not in d2) or "spacing" not in ft.get("distance_type", "spacing"):
+            raise Blocked("rectangular pattern by total extent")
+        a = {"features": feats, "count": d1["count"], "spacing": d1["spacing"], "axis": d1["axis"], "body": self.body}
+        if d2:
+            a.update(count2=d2["count"], spacing2=d2["spacing"], axis2=d2["axis"])
+        self.m.call("pattern", a)
+
+    def op_circular_pattern(self, ft):
+        feats = self._pattern_features(ft)
+        if ft.get("symmetric"):
+            raise Blocked("symmetric circular pattern")
+        ax = ft["axis"]
+        self.m.call("pattern", {"features": feats, "circular": True, "count": ft["count"], "angle": ft.get("total_angle", 360),
+                                "axis": ax.get("dir", [0, 0, 1]), "origin": ax.get("origin", [0, 0, 0]), "body": self.body})
 
     def op_sketch(self, ft):
         plane, to_app = self.plane_for(ft["plane"])

@@ -26,6 +26,7 @@
 #include <Geom_BSplineCurve.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
+#include <NCollection_List.hxx>
 #include <BRepAlgoAPI_Common.hxx>
 #include <BRepAlgoAPI_Defeaturing.hxx>
 #include <BRepAlgoAPI_BooleanOperation.hxx>
@@ -2410,6 +2411,8 @@ static void for_each_feature_ref(CadFeature& f, Visit&& visit)
     visit(f.mate_cs_b);
     for (int& r : f.loft_profile_refs)
         visit(r);
+    for (int& r : f.pattern_features)
+        visit(r);
 }
 
 bool CadDocument::remove_feature(int index)
@@ -2518,6 +2521,7 @@ bool CadDocument::move_feature(int index, int delta)
         auto check = [&](int& ref) { if (ref >= fi && bad.empty()) bad = features[ref].name; };
         check(f.sketch_ref); check(f.sweep_path_ref); check(f.pattern_curve_sketch); check(f.rib_sketch_ref);
         for (int& r : f.loft_profile_refs) check(r);
+        for (int& r : f.pattern_features) check(r);
         if (!bad.empty()) {
             error = "\"" + f.name + "\" uses \"" + bad + "\", so it cannot come before it";
             features.swap(snapshot);
@@ -4194,6 +4198,98 @@ static double solid_volume(const TopoDS_Shape& s)
     return std::abs(props.Mass());
 }
 
+// Repeat what earlier features did to a body. The features' effect is measured, not re-run: `removed` is the material the
+// first..last listed feature took away (state before minus state after), `added` the material they put on. Each instance moves
+// both by a rigid transform; one cut and one fuse then apply them all, so overlapping instances merge instead of fighting.
+void CadDocument::apply_feature_pattern(std::vector<CadBody>& bodies, const CadFeature& f) const
+{
+    const int me = int(m_pre_states.size()) - 1;   // this feature's own index
+    int a = f.pattern_features.front(), b = a;
+    for (int r : f.pattern_features) { a = std::min(a, r); b = std::max(b, r); }
+    if (a < 0 || b >= me || b + 1 >= int(m_pre_states.size()))
+        throw std::runtime_error(_u8L("pattern: it can only repeat features that come before it"));
+    const std::vector<CadBody>& before = m_pre_states[a];
+    const std::vector<CadBody>& after  = m_pre_states[b + 1];
+    const int t = pick_body(features[a].target_body, int(before.size()));
+    if (t < 0 || t >= int(after.size()) || t >= int(bodies.size()) || before.size() != after.size())
+        throw std::runtime_error(_u8L("pattern: the repeated features must change one existing body (not create or remove bodies)"));
+    const int n1 = std::max(1, f.pattern_count), n2 = std::max(1, f.pattern_count2);
+    const bool circ = f.pattern_circular;
+    if (long(n1) * (circ ? 1 : n2) > 500) throw std::runtime_error(_u8L("pattern: at most 500 instances"));
+
+    auto solid_count = [](const TopoDS_Shape& s) { int n = 0; for (TopExp_Explorer e(s, TopAbs_SOLID); e.More(); e.Next()) ++n; return n; };
+    auto diff = [&](const TopoDS_Shape& x, const TopoDS_Shape& y) -> TopoDS_Shape {
+        BRepAlgoAPI_Cut c(x, y);
+        if (!c.IsDone()) throw std::runtime_error(_u8L("pattern: could not measure what the features changed"));
+        return solid_count(c.Shape()) > 0 ? c.Shape() : TopoDS_Shape();
+    };
+    // What to take away and what to put on, per instance. Repeated cuts use their own TOOL solids, not the measured loss: where a tool
+    // overlapped material that was already gone (an earlier pattern's hole), the loss is smaller than the tool, and a rotated or
+    // shifted copy would then miss material it should remove. Anything else is measured.
+    std::vector<TopoDS_Shape> cut_pieces, add_pieces;
+    bool all_cuts = true;
+    for (int r : f.pattern_features) {
+        const CadFeature& rf = features[r];
+        all_cuts = all_cuts && (rf.type == CadFeatureType::Extrude || rf.type == CadFeatureType::Revolve) && rf.mode == BooleanMode::Cut;
+    }
+    if (all_cuts) {
+        for (int r : f.pattern_features) {
+            CadFeature tool_f = features[r];
+            tool_f.mode = BooleanMode::New;   // the same cutter, built as a solid of its own against the body it met
+            std::vector<CadBody> tmp = m_pre_states[r];
+            const size_t n0 = tmp.size();
+            route_feature(tmp, tool_f);
+            if (tmp.size() <= n0 || tmp.back().shape.IsNull()) throw std::runtime_error(_u8L("pattern: could not rebuild the cutter of a repeated feature"));
+            cut_pieces.push_back(tmp.back().shape);
+        }
+    } else {
+        const TopoDS_Shape removed = diff(before[t].shape, after[t].shape);
+        const TopoDS_Shape added   = diff(after[t].shape, before[t].shape);
+        if (!removed.IsNull()) cut_pieces.push_back(removed);
+        if (!added.IsNull())   add_pieces.push_back(added);
+    }
+    if (cut_pieces.empty() && add_pieces.empty()) throw std::runtime_error(_u8L("pattern: the repeated features changed nothing"));
+
+    std::vector<gp_Trsf> trsfs;
+    auto unit = [](const Vec3d& v) { if (v.norm() < 1e-9) throw std::runtime_error(_u8L("pattern: the direction is zero")); return Vec3d(v.normalized()); };
+    if (circ) {
+        const Vec3d ax = unit(f.pattern_axis);
+        const gp_Ax1 axis(gp_Pnt(f.pattern_origin.x(), f.pattern_origin.y(), f.pattern_origin.z()), gp_Dir(ax.x(), ax.y(), ax.z()));
+        const bool full = std::abs(std::abs(f.pattern_angle) - 360.0) < 1e-9;
+        const double div = (!full && n1 > 1) ? double(n1 - 1) : double(n1);
+        for (int k = 1; k < n1; ++k) { gp_Trsf tr; tr.SetRotation(axis, (f.pattern_angle * M_PI / 180.0) / div * k); trsfs.push_back(tr); }
+    } else {
+        const Vec3d d1 = unit(f.pattern_axis), d2 = n2 > 1 ? unit(f.pattern_axis2) : Vec3d(0, 0, 0);
+        for (int j = 0; j < n2; ++j)
+            for (int i = 0; i < n1; ++i) {
+                if (i == 0 && j == 0) continue;
+                const Vec3d d = d1 * (i * f.pattern_spacing) + d2 * (j * f.pattern_spacing2);
+                gp_Trsf tr; tr.SetTranslation(gp_Vec(d.x(), d.y(), d.z()));
+                trsfs.push_back(tr);
+            }
+    }
+
+    TopoDS_Shape result = bodies[t].shape;
+    auto run = [&](bool cut, const std::vector<TopoDS_Shape>& pieces) {
+        if (pieces.empty()) return;
+        NCollection_List<TopoDS_Shape> args, tools;
+        args.Append(result);
+        for (const TopoDS_Shape& piece : pieces)
+            for (const gp_Trsf& tr : trsfs) tools.Append(BRepBuilderAPI_Transform(piece, tr, true).Shape());
+        std::unique_ptr<BRepAlgoAPI_BooleanOperation> op;
+        if (cut) op = std::make_unique<BRepAlgoAPI_Cut>(); else op = std::make_unique<BRepAlgoAPI_Fuse>();
+        op->SetArguments(args);
+        op->SetTools(tools);
+        op->Build();
+        if (!op->IsDone() || op->HasErrors()) throw std::runtime_error(_u8L("pattern: combining the instances failed"));
+        result = op->Shape();
+    };
+    run(true, cut_pieces);
+    run(false, add_pieces);
+    if (result.IsNull() || solid_count(result) == 0) throw std::runtime_error(_u8L("pattern: the instances left no solid"));
+    bodies[t].shape = result;
+}
+
 void CadDocument::route_feature(std::vector<CadBody>& bodies, const CadFeature& f) const
 {
     if (f.type == CadFeatureType::Plane)   return;   // datum plane: not part of the body pipeline
@@ -4204,6 +4300,7 @@ void CadDocument::route_feature(std::vector<CadBody>& bodies, const CadFeature& 
     if (f.type == CadFeatureType::Boolean) { apply_boolean(bodies, f); return; }   // body-body op
     if (f.type == CadFeatureType::Cut)     { apply_cut(bodies, f);     return; }   // plane-split body
     if (f.type == CadFeatureType::Mirror)  { apply_mirror(bodies, f);  return; }   // mirror body about plane
+    if (f.type == CadFeatureType::Pattern && !f.pattern_features.empty()) { apply_feature_pattern(bodies, f); return; }
     if (f.type == CadFeatureType::Transform) { apply_transform(bodies, f); return; }   // move/rotate body
     if (f.type == CadFeatureType::Mate)     { apply_mate(bodies, f);     return; }   // assembly mate
     if (f.type == CadFeatureType::Thicken) { apply_thicken(bodies, f); return; }   // face -> plate
@@ -4551,9 +4648,11 @@ bool CadDocument::recompute()
             if (!same) f.plane = np;
             f.attach_face = face;
         };
+        m_pre_states.clear();
         for (size_t fi = 0; fi < features.size(); ++fi) {
             if (rollback_index >= 0 && int(fi) > rollback_index) break;   // rolled back to rollback_index
             replaying = fi;
+            m_pre_states.push_back(built);   // the state this feature starts from (feature patterns look back at it)
             if (!incremental) { replay_feature(fi, built); ++replay_stats.replayed; continue; }
             if (features[fi].enabled && features[fi].type == CadFeatureType::Sketch && features[fi].attach_face >= 0) {
                 attach_update(fi);

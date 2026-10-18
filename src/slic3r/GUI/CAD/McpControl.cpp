@@ -285,6 +285,12 @@ json describe_tools_core()
                      json{{"name", "angle"},    {"type", "number"}, {"unit", "deg"}, {"default", 360}, {"description", "circular total sweep"}},
                      json{{"name", "plane"},    {"type", "string"}, {"enum", json::array({"XY", "XZ", "YZ"})}, {"default", "XY"}},
                      json{{"name", "body"},     {"type", "integer"}, {"default", -1}, {"description", "target body; omit for the last body"}},
+                     json{{"name", "features"}, {"type", "array"}, {"description", "FEATURE pattern: repeat what these earlier features (indices) did to the body, instead of copying the body. Then `axis`/`origin` replace plane/dir: linear = count x spacing along `axis` (+ `count2` x `spacing2` along `axis2` for a grid); circular = count over `angle` about the line through `origin` along `axis`"}},
+                     json{{"name", "axis"},     {"type", "array"}, {"description", "[x,y,z] direction (feature pattern)"}},
+                     json{{"name", "origin"},   {"type", "array"}, {"description", "[x,y,z] a point on the rotation axis in model coordinates, like sketch coordinates (circular feature pattern)"}},
+                     json{{"name", "axis2"},    {"type", "array"}, {"description", "[x,y,z] second grid direction (linear feature pattern)"}},
+                     json{{"name", "count2"},   {"type", "integer"}, {"default", 1}, {"min", 1}},
+                     json{{"name", "spacing2"}, {"type", "number"}, {"unit", "mm"}, {"default", 0}},
                  })}},
             json{{"name", "pattern_on_curve"}, {"summary", "Replicate a body along a sketch curve: `count` copies placed at equal-parameter points on the entity, each translated by (P_i - P_0)."},
                  {"params", json::array({
@@ -1286,6 +1292,26 @@ json action_pattern(DesignPanel* panel, const json& params)
     doc.checkpoint();
     int p = doc.add_pattern(circular, count, spacing, dir, angle, bi, "Pattern");
     doc.features[p].plane = plane_from(params, doc);   // axis (circular) / step dirs (linear)
+    if (params.contains("features")) {   // feature pattern: replays the effect of those features, with explicit world axes
+        auto vec3 = [&](const char* k, const Vec3d& dflt) {
+            if (!params.contains(k)) return dflt;
+            const json& a = params[k];
+            if (!a.is_array() || a.size() != 3 || !a[0].is_number() || !a[1].is_number() || !a[2].is_number()) { doc.undo(); throw std::runtime_error(std::string(k) + " must be [x,y,z]"); }
+            return Vec3d(a[0].get<double>(), a[1].get<double>(), a[2].get<double>());
+        };
+        CadFeature& pf = doc.features[p];
+        const json& fl = params["features"];
+        if (!fl.is_array() || fl.empty() || fl.size() > 64) { doc.undo(); throw std::runtime_error("features must be a non-empty array of feature indices"); }
+        for (const json& x : fl) {
+            if (!x.is_number_integer() || x.get<int>() < 0 || x.get<int>() >= p) { doc.undo(); throw std::runtime_error("features: every index must name an earlier feature"); }
+            pf.pattern_features.push_back(x.get<int>());
+        }
+        pf.pattern_axis    = vec3("axis", Vec3d(1, 0, 0));
+        pf.pattern_origin  = vec3("origin", Vec3d(0, 0, 0)) + doc.modeling_origin;   // given in model coordinates, stored in world ones
+        pf.pattern_axis2   = vec3("axis2", Vec3d(0, 1, 0));
+        pf.pattern_count2  = std::clamp(params.value("count2", 1), 1, 500);
+        pf.pattern_spacing2 = params.value("spacing2", 0.0);
+    }
     bool ok = doc.recompute();
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
     panel->mcp_after_change();
