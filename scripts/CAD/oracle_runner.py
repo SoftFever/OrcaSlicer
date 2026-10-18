@@ -156,10 +156,38 @@ def number(v, params):
         return float(v)
     if v in params:
         return number(params[v], params)
+    import re
+    m = re.fullmatch(r"\s*(-?\d+(?:\.\d+)?)\s*(?:mm|deg)?\s*", str(v))
+    if m:
+        return float(m.group(1))
+    return _eval_expr(str(v), params)
+
+
+def _eval_expr(text, params):
+    """A small arithmetic expression over recipe parameters ("width / 2", "10 mm + hole_d"): + - * / ** ( ), numbers with an
+    optional unit (mm, in, deg), parameter names. Resolved to a number, not linked."""
+    import ast, operator, re
+    t = re.sub(r"(\d+(?:\.\d+)?)\s*in\b", lambda m: str(float(m.group(1)) * 25.4), text)
+    t = re.sub(r"(\d+(?:\.\d+)?)\s*(?:mm|deg)\b", r"\1", t)
+    ops = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv, ast.Pow: operator.pow}
+
+    def ev(n):
+        if isinstance(n, ast.Expression):
+            return ev(n.body)
+        if isinstance(n, ast.Constant) and isinstance(n.value, (int, float)):
+            return float(n.value)
+        if isinstance(n, ast.Name) and n.id in params:
+            return number(params[n.id], params)
+        if isinstance(n, ast.BinOp) and type(n.op) in ops:
+            return ops[type(n.op)](ev(n.left), ev(n.right))
+        if isinstance(n, ast.UnaryOp) and isinstance(n.op, (ast.USub, ast.UAdd)):
+            return -ev(n.operand) if isinstance(n.op, ast.USub) else ev(n.operand)
+        raise Blocked("value %r (expression)" % (text,))
+
     try:
-        return float(str(v).split()[0])
-    except (ValueError, IndexError):
-        raise Blocked("value %r (expression)" % (v,))
+        return ev(ast.parse(t, mode="eval"))
+    except SyntaxError:
+        raise Blocked("value %r (expression)" % (text,))
 
 
 BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cut": "subtract", "intersect": "intersect"}
@@ -231,6 +259,13 @@ class Replay:
         if d2:
             a.update(count2=d2["count"], spacing2=d2["spacing"], axis2=d2["axis"])
         self.m.call("pattern", a)
+
+    def _mirror_features(self, ft):
+        if ft.get("operation", "join") != "join":
+            raise Blocked("mirror operation %s" % ft.get("operation"))
+        pl = ft["plane"]
+        self.m.call("pattern", {"features": self._pattern_features({"pattern_of": "features", "features": ft["features"]}), "mirror": True,
+                                "axis": pl["normal"], "origin": pl.get("origin", [0, 0, 0]), "body": self.body})
 
     def op_circular_pattern(self, ft):
         feats = self._pattern_features(ft)
@@ -331,7 +366,7 @@ class Replay:
             ex = ft["extent"]
             if ex.get("type", "distance") != "distance":
                 raise Blocked("thin extrude extent")
-            self.m.call("extrude", {"sketch": self.sketches[thin["sketch"]][0], "boolean": BOOL[ft["operation"]], "distance": ex["distance"],
+            self.m.call("extrude", {"sketch": self.sketches[thin["sketch"]][0], "boolean": BOOL[ft["operation"]], "distance": number(ex["distance"], self.params),
                                     "flip": ex.get("direction") == "negative", "thin_in": tin, "thin_out": tout})
             self._named(ft)
             return
@@ -345,12 +380,14 @@ class Replay:
         if et == "distance":
             if ex.get("taper_deg"):
                 p["taper"] = ex["taper_deg"]
-            p["distance"] = ex["distance"]
+            p["distance"] = number(ex["distance"], self.params)
             p["flip"] = ex.get("direction") == "negative"
         elif et == "through_all":
             p.update(end="through_all", distance=1.0, flip=ex.get("direction") == "negative")
+        elif et == "two_sides":
+            p.update(end="two_sided", distance=ex["side1"], distance2=ex["side2_opposite"])
         elif et == "symmetric":
-            p.update(end="symmetric", distance=2 * ex["distance"])   # the app's symmetric distance is the total; the recipe's is per side
+            p.update(end="symmetric", distance=2 * number(ex["distance"], self.params))   # the app's symmetric distance is the total; the recipe's is per side
         else:
             raise Blocked("extent %s" % et)
         self.m.call("extrude", p)
@@ -395,8 +432,10 @@ class Replay:
         self._named(ft)
 
     def op_mirror(self, ft):
+        if ft.get("mirror_of") == "features":
+            return self._mirror_features(ft)
         if ft.get("mirror_of") != "bodies" or len(ft["bodies"]) != 1:
-            raise Blocked("mirror of features")
+            raise Blocked("mirror of %s" % ft.get("mirror_of"))
         pl = ft["plane"]
         if pl.get("ref") not in PLANES or any(abs(c) > 1e-9 for c in pl.get("origin", [0, 0, 0])):
             raise Blocked("mirror plane %r" % pl.get("ref"))

@@ -288,7 +288,8 @@ json describe_tools_core()
                      json{{"name", "plane"},    {"type", "string"}, {"enum", json::array({"XY", "XZ", "YZ"})}, {"default", "XY"}},
                      json{{"name", "body"},     {"type", "integer"}, {"default", -1}, {"description", "target body; omit for the last body"}},
                      json{{"name", "features"}, {"type", "array"}, {"description", "FEATURE pattern: repeat what these earlier features (indices) did to the body, instead of copying the body. Then `axis`/`origin` replace plane/dir: linear = count x spacing along `axis` (+ `count2` x `spacing2` along `axis2` for a grid); circular = count over `angle` about the line through `origin` along `axis`"}},
-                     json{{"name", "axis"},     {"type", "array"}, {"description", "[x,y,z] direction (feature pattern)"}},
+                     json{{"name", "mirror"},   {"type", "boolean"}, {"default", false}, {"description", "feature pattern: reflect what the features did in the plane through `origin` with normal `axis`, instead of repeating it"}},
+                     json{{"name", "axis"},     {"type", "array"}, {"description", "[x,y,z] direction (feature pattern); the plane normal when mirroring"}},
                      json{{"name", "origin"},   {"type", "array"}, {"description", "[x,y,z] a point on the rotation axis in model coordinates, like sketch coordinates (circular feature pattern)"}},
                      json{{"name", "axis2"},    {"type", "array"}, {"description", "[x,y,z] second grid direction (linear feature pattern)"}},
                      json{{"name", "count2"},   {"type", "integer"}, {"default", 1}, {"min", 1}},
@@ -1318,6 +1319,7 @@ json action_pattern(DesignPanel* panel, const json& params)
         pf.pattern_axis    = vec3("axis", Vec3d(1, 0, 0));
         pf.pattern_origin  = vec3("origin", Vec3d(0, 0, 0)) + doc.modeling_origin;   // given in model coordinates, stored in world ones
         pf.pattern_axis2   = vec3("axis2", Vec3d(0, 1, 0));
+        pf.pattern_mirror  = params.value("mirror", false);
         pf.pattern_count2  = std::clamp(params.value("count2", 1), 1, 500);
         pf.pattern_spacing2 = params.value("spacing2", 0.0);
     }

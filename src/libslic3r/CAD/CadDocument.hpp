@@ -245,6 +245,9 @@ struct CadFeature {
     // outline, thin_out outside it (0 = none on that side; both 0 = a normal extrude).
     double      thin_in{0};
     double      thin_out{0};
+    // Feature "pattern" that mirrors instead: one copy of what the features did, reflected in the plane through pattern_origin
+    // with normal pattern_axis.
+    bool        pattern_mirror{false};
 
     // Pattern along a curve: when pattern_curve_sketch >= 0 this mode takes precedence over
     // linear/circular. Copies are placed at equal-parameter points along entity
@@ -473,7 +476,7 @@ struct CadFeature {
                dressup_radii, dressup_knots,
                pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
-               thin_in, thin_out);
+               thin_in, thin_out, pattern_mirror);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -525,7 +528,7 @@ struct CadFeature {
                dressup_radii, dressup_knots,
                pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
-               thin_in, thin_out);
+               thin_in, thin_out, pattern_mirror);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature

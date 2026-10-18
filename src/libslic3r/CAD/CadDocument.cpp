@@ -4293,7 +4293,12 @@ void CadDocument::apply_feature_pattern(std::vector<CadBody>& bodies, const CadF
 
     std::vector<gp_Trsf> trsfs;
     auto unit = [](const Vec3d& v) { if (v.norm() < 1e-9) throw std::runtime_error(_u8L("pattern: the direction is zero")); return Vec3d(v.normalized()); };
-    if (circ) {
+    if (f.pattern_mirror) {
+        const Vec3d nrm = unit(f.pattern_axis);
+        gp_Trsf tr;
+        tr.SetMirror(gp_Ax2(gp_Pnt(f.pattern_origin.x(), f.pattern_origin.y(), f.pattern_origin.z()), gp_Dir(nrm.x(), nrm.y(), nrm.z())));
+        trsfs.push_back(tr);
+    } else if (circ) {
         const Vec3d ax = unit(f.pattern_axis);
         const gp_Ax1 axis(gp_Pnt(f.pattern_origin.x(), f.pattern_origin.y(), f.pattern_origin.z()), gp_Dir(ax.x(), ax.y(), ax.z()));
         const bool full = std::abs(std::abs(f.pattern_angle) - 360.0) < 1e-9;

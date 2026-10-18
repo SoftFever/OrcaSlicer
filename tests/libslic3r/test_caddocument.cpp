@@ -2426,7 +2426,8 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // + the feature pattern: pattern_features (a list: size tag), pattern_axis / origin / axis2 (9 doubles), pattern_count2 (int),
     // pattern_spacing2 (double).
     // + shell_faces and draft_faces (two lists), draft_has_neutral (bool), draft_pull / draft_neutral (6 doubles), thin_in / thin_out.
-    const size_t drop = sizeof(uint32_t) + 8 * sizeof(bool) + 10 * sizeof(cereal::size_type) + 23 * sizeof(double)
+    // + pattern_mirror (bool)
+    const size_t drop = sizeof(uint32_t) + 9 * sizeof(bool) + 10 * sizeof(cereal::size_type) + 23 * sizeof(double)
                         + 7 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
@@ -10279,6 +10280,19 @@ TEST_CASE("a feature pattern repeats what a feature did to the body", "[CadDocum
         REQUIRE(doc.recompute());
         REQUIRE(doc.error.empty());
         REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(v0 - 3.0 * one_hole, 2e-3));
+    }
+    SECTION("mirroring a hole across the plate's centre plane makes its twin") {
+        CadDocument doc; Vec2d at;
+        const int hole = int(plate(doc, at));
+        const double v0 = SketchEngine::tessellate(doc.bodies.front().shape).volume();
+        const BoundingBoxf3 bb = SketchEngine::tessellate(doc.bodies.front().shape).bounding_box();
+        const int p = doc.add_pattern(false, 1, 0.0, 0, 360.0, -1, "Mirror");
+        doc.features[p].pattern_features = { hole };
+        doc.features[p].pattern_mirror = true;
+        doc.features[p].pattern_axis = Vec3d(1, 0, 0);
+        doc.features[p].pattern_origin = Vec3d(bb.center().x(), 0, 0);
+        REQUIRE(doc.recompute());
+        REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(v0 - one_hole, 2e-3));
     }
     SECTION("a pattern cannot repeat a feature that comes after it") {
         CadDocument doc; Vec2d at;
