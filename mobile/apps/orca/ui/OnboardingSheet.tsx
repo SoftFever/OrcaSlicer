@@ -29,7 +29,11 @@ export function OnboardingSheet({ visible, onDismiss }: Props): React.JSX.Elemen
         <View className="flex-1 justify-between px-6 pb-6 pt-10">
           <View className="gap-8">
             <View className="items-center gap-3">
-              <Image source={require('../assets/icon.png')} className="h-16 w-16 rounded-2xl" accessibilityIgnoresInvertColors />
+              <Image
+                source={require('../assets/icon.png')}
+                className="h-16 w-16 rounded-2xl"
+                accessibilityIgnoresInvertColors
+              />
               <Text className="text-title1 font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
                 Welcome to Orca
               </Text>
@@ -88,15 +92,29 @@ export function OnboardingSheet({ visible, onDismiss }: Props): React.JSX.Elemen
   )
 }
 
-function Step({ index, title, body }: { index: number; title: string; body: string }): React.JSX.Element {
+function Step({
+  index,
+  title,
+  body,
+}: {
+  index: number
+  title: string
+  body: string
+}): React.JSX.Element {
   return (
     <View className="flex-row items-start gap-3">
       <View className="mt-0.5 h-7 w-7 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
-        <Text className="text-footnote font-bold text-neutral-700 dark:text-neutral-200">{index}</Text>
+        <Text className="text-footnote font-bold text-neutral-700 dark:text-neutral-200">
+          {index}
+        </Text>
       </View>
       <View className="flex-1">
-        <Text className="text-headline font-semibold text-neutral-900 dark:text-neutral-100">{title}</Text>
-        <Text className="mt-0.5 text-callout leading-5 text-neutral-500 dark:text-neutral-400">{body}</Text>
+        <Text className="text-headline font-semibold text-neutral-900 dark:text-neutral-100">
+          {title}
+        </Text>
+        <Text className="mt-0.5 text-callout leading-5 text-neutral-500 dark:text-neutral-400">
+          {body}
+        </Text>
       </View>
     </View>
   )

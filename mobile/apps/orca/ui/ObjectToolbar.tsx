@@ -30,9 +30,9 @@ type Entry = {
 }
 
 const ENTRIES: readonly Entry[] = [
-  { tool: 'move',   glyph: '⇕', label: 'Move' },
+  { tool: 'move', glyph: '⇕', label: 'Move' },
   { tool: 'rotate', glyph: '↻', label: 'Rotate' },
-  { tool: 'scale',  glyph: '⇔', label: 'Scale' },
+  { tool: 'scale', glyph: '⇔', label: 'Scale' },
 ]
 
 // A background just dark enough to read chip labels over a bright viewport,
@@ -40,7 +40,12 @@ const ENTRIES: readonly Entry[] = [
 // dark mode makes the viewport dark and the pill blends naturally.
 const glassBg = 'rgba(28,28,30,0.62)'
 
-export function ObjectToolbar({ visible, tool, onChangeTool, onOpenDetails }: Props): React.JSX.Element | null {
+export function ObjectToolbar({
+  visible,
+  tool,
+  onChangeTool,
+  onOpenDetails,
+}: Props): React.JSX.Element | null {
   if (!visible) return null
 
   return (
@@ -63,13 +68,16 @@ export function ObjectToolbar({ visible, tool, onChangeTool, onOpenDetails }: Pr
           return (
             <Pressable
               key={e.tool}
-              onPress={() => { haptic('toggle'); onChangeTool(e.tool) }}
+              onPress={() => {
+                haptic('toggle')
+                onChangeTool(e.tool)
+              }}
               accessibilityLabel={e.label}
               accessibilityState={{ selected: active }}
               className={`min-w-[76px] items-center justify-center rounded-full px-4 py-2 active:opacity-70 ${active ? 'bg-blue-500' : ''}`}
             >
               <Text className="text-footnote font-semibold text-white">
-                {e.glyph}  {e.label}
+                {e.glyph} {e.label}
               </Text>
             </Pressable>
           )
@@ -78,7 +86,10 @@ export function ObjectToolbar({ visible, tool, onChangeTool, onOpenDetails }: Pr
           <>
             <View className="mx-1 h-6 w-px bg-white/25" />
             <Pressable
-              onPress={() => { haptic('tap'); onOpenDetails() }}
+              onPress={() => {
+                haptic('tap')
+                onOpenDetails()
+              }}
               accessibilityLabel="Object details"
               className="items-center justify-center rounded-full px-3 py-2 active:opacity-70"
             >

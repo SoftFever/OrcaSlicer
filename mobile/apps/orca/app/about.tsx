@@ -34,9 +34,9 @@ const open = (url: string): void => {
  * — the three fields a maintainer always asks for first. */
 function issueUrl(version: string, build: string): string {
   const platform = `iOS (Expo ${Constants.expoConfig?.sdkVersion ?? 'unknown'})`
-  const app     = `Orca Mobile ${version}${build === '' ? '' : ` (${build})`}`
-  const body    = `\n\n---\nEnvironment (please leave this):\n- App: ${app}\n- Platform: ${platform}\n`
-  const params  = new URLSearchParams({ title: '', body })
+  const app = `Orca Mobile ${version}${build === '' ? '' : ` (${build})`}`
+  const body = `\n\n---\nEnvironment (please leave this):\n- App: ${app}\n- Platform: ${platform}\n`
+  const params = new URLSearchParams({ title: '', body })
   return `${FORK_REPO}/issues/new?${params.toString()}`
 }
 
@@ -52,8 +52,8 @@ export default function AboutScreen(): React.JSX.Element {
     >
       <Card title="Help" subtitle="Guides for the app and for moving presets">
         <Text className="text-subhead leading-5 text-neutral-600 dark:text-neutral-300">
-          How to get your desktop presets onto the phone and back, and a tour of the app
-          from picking a printer to sending G-code.
+          How to get your desktop presets onto the phone and back, and a tour of the app from
+          picking a printer to sending G-code.
         </Text>
         <View className="mt-3 gap-2">
           <Button title="Open the guides" fullWidth onPress={() => router.push('/help')} />
@@ -62,8 +62,8 @@ export default function AboutScreen(): React.JSX.Element {
 
       <Card title="Orca Mobile" subtitle={build === '' ? version : `${version} (${build})`}>
         <Text className="text-subhead leading-5 text-neutral-600 dark:text-neutral-300">
-          An unofficial iOS port of OrcaSlicer. It is not built, released or endorsed by
-          the OrcaSlicer maintainers — please don&apos;t report problems with it to them.
+          An unofficial iOS port of OrcaSlicer. It is not built, released or endorsed by the
+          OrcaSlicer maintainers — please don&apos;t report problems with it to them.
         </Text>
         <View className="mt-3 gap-2">
           <Button
@@ -77,28 +77,19 @@ export default function AboutScreen(): React.JSX.Element {
 
       <Card title="Support OrcaSlicer" subtitle="The slicer this port is built on">
         <Text className="text-subhead leading-5 text-neutral-600 dark:text-neutral-300">
-          Every bit of slicing here is upstream&apos;s work. If you only support one
-          project, make it this one.
+          Every bit of slicing here is upstream&apos;s work. If you only support one project, make
+          it this one.
         </Text>
         <View className="mt-3 gap-2">
-          <Button
-            title="Sponsor SoftFever"
-            fullWidth
-            onPress={() => open(UPSTREAM_SPONSOR)}
-          />
-          <Button
-            title="Ko-fi"
-            variant="secondary"
-            fullWidth
-            onPress={() => open(UPSTREAM_KOFI)}
-          />
+          <Button title="Sponsor SoftFever" fullWidth onPress={() => open(UPSTREAM_SPONSOR)} />
+          <Button title="Ko-fi" variant="secondary" fullWidth onPress={() => open(UPSTREAM_KOFI)} />
         </View>
       </Card>
 
       <Card title="Support the port" subtitle="iOS-specific work only">
         <Text className="text-subhead leading-5 text-neutral-600 dark:text-neutral-300">
-          Tips here fund the mobile port — the native module, the viewport and the app
-          itself. Entirely optional; nothing in the app is gated behind it.
+          Tips here fund the mobile port — the native module, the viewport and the app itself.
+          Entirely optional; nothing in the app is gated behind it.
         </Text>
         <View className="mt-3 gap-2">
           <Button
@@ -112,8 +103,8 @@ export default function AboutScreen(): React.JSX.Element {
 
       <Card title="License" subtitle="AGPL-3.0-or-later">
         <Text className="text-subhead leading-5 text-neutral-600 dark:text-neutral-300">
-          This app is free software. You are entitled to the complete source for the
-          build you are running, and to redistribute and modify it under the same terms.
+          This app is free software. You are entitled to the complete source for the build you are
+          running, and to redistribute and modify it under the same terms.
         </Text>
         <View className="mt-3 gap-2">
           <Button
@@ -133,7 +124,8 @@ export default function AboutScreen(): React.JSX.Element {
       <Card title="On this device" padded>
         <View className="items-start gap-2">
           <Text className="text-subhead leading-5 text-neutral-500 dark:text-neutral-400">
-            See how much space vendor profiles, the autosaved plate, and cached models are using, and clear anything that no longer serves you.
+            See how much space vendor profiles, the autosaved plate, and cached models are using,
+            and clear anything that no longer serves you.
           </Text>
           <Button title="Storage" variant="secondary" onPress={() => router.push('/storage')} />
         </View>
@@ -141,9 +133,14 @@ export default function AboutScreen(): React.JSX.Element {
       <Card title="Feedback" padded>
         <View className="items-start gap-2">
           <Text className="text-subhead leading-5 text-neutral-500 dark:text-neutral-400">
-            Hit a bug or missing feature? Open an issue — the form is pre-filled with your app version and platform so we can jump straight to reproduction.
+            Hit a bug or missing feature? Open an issue — the form is pre-filled with your app
+            version and platform so we can jump straight to reproduction.
           </Text>
-          <Button title="Report an issue" variant="secondary" onPress={() => open(issueUrl(version, build))} />
+          <Button
+            title="Report an issue"
+            variant="secondary"
+            onPress={() => open(issueUrl(version, build))}
+          />
         </View>
       </Card>
     </ScrollView>

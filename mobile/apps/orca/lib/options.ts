@@ -111,10 +111,20 @@ export function splitStrings(value: string): string[] {
 }
 
 /** What the editor shows for a definition: scalar editors for single-element vectors. */
-export type EditorKind = 'bool' | 'number' | 'percent' | 'float_or_percent' | 'enum' | 'text' | 'code' | 'raw'
+export type EditorKind =
+  | 'bool'
+  | 'number'
+  | 'percent'
+  | 'float_or_percent'
+  | 'enum'
+  | 'text'
+  | 'code'
+  | 'raw'
 
 export function editorKind(def: OptionDefinition, serialized: string): EditorKind {
-  const multi = def.vector && (def.type === 'string' ? splitStrings(serialized).length : splitScalars(serialized).length) > 1
+  const multi =
+    def.vector &&
+    (def.type === 'string' ? splitStrings(serialized).length : splitScalars(serialized).length) > 1
   if (multi || def.type === 'point' || def.type === 'other') return 'raw'
   switch (def.type) {
     case 'bool':
@@ -181,7 +191,9 @@ export function encodePercent(value: string): string {
 }
 
 /** Groups definitions by category, keeping the definition order within each group. */
-export function groupByCategory(defs: OptionDefinition[]): Array<{ category: string; options: OptionDefinition[] }> {
+export function groupByCategory(
+  defs: OptionDefinition[],
+): Array<{ category: string; options: OptionDefinition[] }> {
   const groups = new Map<string, OptionDefinition[]>()
   for (const def of defs) {
     const category = def.category === '' ? 'Other' : def.category

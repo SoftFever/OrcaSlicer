@@ -1,7 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
-import { ActivityIndicator, Image, Pressable, SectionList, Text, TextInput, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  SectionList,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 
 import { Avatar } from '@/ui/Avatar'
 import { colors } from '@/lib/theme'
@@ -66,7 +74,10 @@ export default function VendorsScreen(): React.JSX.Element {
     }
     return Array.from(byVendor.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([title, data]) => ({ title, data: data.sort((a, b) => a.model.localeCompare(b.model)) }))
+      .map(([title, data]) => ({
+        title,
+        data: data.sort((a, b) => a.model.localeCompare(b.model)),
+      }))
   }, [printers.data, needle])
 
   return (
@@ -98,7 +109,9 @@ export default function VendorsScreen(): React.JSX.Element {
             </Text>
           </Pressable>
         </View>
-        {printers.isError ? <Text className="pt-2 text-footnote text-red-500">{String(printers.error)}</Text> : null}
+        {printers.isError ? (
+          <Text className="pt-2 text-footnote text-red-500">{String(printers.error)}</Text>
+        ) : null}
       </View>
       {printers.isPending ? (
         <View className="flex-1 items-center justify-center gap-2">
@@ -121,7 +134,9 @@ export default function VendorsScreen(): React.JSX.Element {
           renderItem={({ item, index, section }) => {
             const id = `${item.vendor}::${item.model}`
             const download = byId[id]
-            const isBusy = download !== undefined && (download.state === 'downloading' || download.state === 'installing')
+            const isBusy =
+              download !== undefined &&
+              (download.state === 'downloading' || download.state === 'installing')
             const isInstalled = installed.data?.includes(item.vendor) === true
             const first = index === 0
             const last = index === section.data.length - 1
@@ -132,7 +147,10 @@ export default function VendorsScreen(): React.JSX.Element {
                 >
                   <PrinterCover vendor={item.vendor} model={item.model} />
                   <View className="flex-1">
-                    <Text className="text-subhead font-semibold tracking-tight text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
+                    <Text
+                      className="text-subhead font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+                      numberOfLines={1}
+                    >
                       {item.model}
                     </Text>
                     <Text className="mt-0.5 text-footnote text-neutral-500 dark:text-neutral-400">

@@ -13,18 +13,20 @@ let cachedReduceMotion = false
 const reduceMotionListeners = new Set<(v: boolean) => void>()
 void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
   cachedReduceMotion = v
-  reduceMotionListeners.forEach((cb) => cb(v))
+  reduceMotionListeners.forEach((listener) => listener(v))
 })
 AccessibilityInfo.addEventListener('reduceMotionChanged', (v) => {
   cachedReduceMotion = v
-  reduceMotionListeners.forEach((cb) => cb(v))
+  reduceMotionListeners.forEach((listener) => listener(v))
 })
 
 function useReduceMotion(): boolean {
   const [v, setV] = useState(cachedReduceMotion)
   useEffect(() => {
     reduceMotionListeners.add(setV)
-    return () => { reduceMotionListeners.delete(setV) }
+    return () => {
+      reduceMotionListeners.delete(setV)
+    }
   }, [])
   return v
 }
@@ -77,7 +79,8 @@ export function Card({
     })
   }, [persistKey])
 
-  const hasHeader = title !== undefined || subtitle !== undefined || action !== undefined || collapsible
+  const hasHeader =
+    title !== undefined || subtitle !== undefined || action !== undefined || collapsible
 
   const Header = (
     <View className="flex-row items-end justify-between px-1">
@@ -98,7 +101,10 @@ export function Card({
           </View>
         ) : null}
         {subtitle !== undefined ? (
-          <Text className="mt-1 text-footnote text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
+          <Text
+            className="mt-1 text-footnote text-neutral-500 dark:text-neutral-400"
+            numberOfLines={1}
+          >
             {subtitle}
           </Text>
         ) : null}

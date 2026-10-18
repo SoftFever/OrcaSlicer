@@ -35,10 +35,17 @@ export function PromptSheet({
   }, [visible, defaultValue])
   const trimmed = value.trim()
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onCancel}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onCancel}
+    >
       <View className="flex-1 bg-neutral-50 dark:bg-neutral-950">
         <View className="flex-row items-center justify-between border-b border-neutral-100 px-5 pb-3 pt-4 dark:border-neutral-800">
-          <Text className="text-body font-semibold text-neutral-900 dark:text-neutral-100">{title}</Text>
+          <Text className="text-body font-semibold text-neutral-900 dark:text-neutral-100">
+            {title}
+          </Text>
           <Pressable hitSlop={8} onPress={onCancel}>
             <Text className="text-subhead font-semibold text-neutral-500">Cancel</Text>
           </Pressable>
@@ -58,7 +65,12 @@ export function PromptSheet({
             autoFocus
           />
           <View className="pt-2">
-            <Button title={confirmLabel} onPress={() => onConfirm(trimmed)} disabled={trimmed === ''} fullWidth />
+            <Button
+              title={confirmLabel}
+              onPress={() => onConfirm(trimmed)}
+              disabled={trimmed === ''}
+              fullWidth
+            />
           </View>
         </View>
       </View>

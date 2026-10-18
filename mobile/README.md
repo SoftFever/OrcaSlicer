@@ -14,23 +14,23 @@ The core slices with every vendor profile in the OrcaSlicer repository, so Bambu
 Prusa, Voron, Creality and the rest all slice. Talking to the printer afterwards is
 another matter: the app speaks the two open HTTP APIs and nothing proprietary.
 
-| Area | Status | Notes |
-| --- | --- | --- |
-| iPhone and iPad (iOS 16+) | Supported | Development, beta and release builds; AltStore source |
-| Android | Not verified | The Expo project builds the target, nobody has run it |
-| Klipper via Moonraker | Supported | Status, temperatures, pause / resume / cancel, upload and print, webcam, Mainsail web UI in-app |
-| OctoPrint | Supported | Same feature set over the OctoPrint API |
-| Bambu Lab printers | Not supported | Slicing with their profiles works; there is no Bambu network plugin or LAN-mode protocol in the app, so G-code goes through the desktop app or an SD card |
-| PrusaLink / Prusa Connect, Duet, Repetier, Elegoo | Not supported | Share the G-code to Files and upload it another way |
-| Any other printer | Manual | Save G-code to Files, or send it from another app |
-| Models: 3MF, STL, OBJ, STEP, AMF | Supported | 3MF projects restore plates and presets; the plate autosaves |
-| Multi-plate projects | Supported | Add, duplicate, remove and switch plates |
-| Multi-material | Partial | Per-object extruder assignment; no AMS / filament mapping |
-| Desktop preset files (.orca_printer, .orca_filament, .orca_bundle, .zip, .json) | Supported | Import from Files, AirDrop or a share sheet; export bundles the desktop imports |
-| Orca Cloud preset sync | Supported | Email + password sign-in; Google, Apple and GitHub go through the desktop's web sign-in page and have not been tested on iOS |
-| Calibration prints | Supported | Temperature tower, flow rate, pressure advance |
-| Python plugins | Not supported | The plugin runtime is not part of the mobile core |
-| Home screen widget and Live Activity | Supported | Print progress and temperatures; the Live Activity only updates while the app is open |
+| Area                                                                            | Status        | Notes                                                                                                                                                     |
+| ------------------------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| iPhone and iPad (iOS 16+)                                                       | Supported     | Development, beta and release builds; AltStore source                                                                                                     |
+| Android                                                                         | Not verified  | The Expo project builds the target, nobody has run it                                                                                                     |
+| Klipper via Moonraker                                                           | Supported     | Status, temperatures, pause / resume / cancel, upload and print, webcam, Mainsail web UI in-app                                                           |
+| OctoPrint                                                                       | Supported     | Same feature set over the OctoPrint API                                                                                                                   |
+| Bambu Lab printers                                                              | Not supported | Slicing with their profiles works; there is no Bambu network plugin or LAN-mode protocol in the app, so G-code goes through the desktop app or an SD card |
+| PrusaLink / Prusa Connect, Duet, Repetier, Elegoo                               | Not supported | Share the G-code to Files and upload it another way                                                                                                       |
+| Any other printer                                                               | Manual        | Save G-code to Files, or send it from another app                                                                                                         |
+| Models: 3MF, STL, OBJ, STEP, AMF                                                | Supported     | 3MF projects restore plates and presets; the plate autosaves                                                                                              |
+| Multi-plate projects                                                            | Supported     | Add, duplicate, remove and switch plates                                                                                                                  |
+| Multi-material                                                                  | Partial       | Per-object extruder assignment; no AMS / filament mapping                                                                                                 |
+| Desktop preset files (.orca_printer, .orca_filament, .orca_bundle, .zip, .json) | Supported     | Import from Files, AirDrop or a share sheet; export bundles the desktop imports                                                                           |
+| Orca Cloud preset sync                                                          | Supported     | Email + password sign-in; Google, Apple and GitHub go through the desktop's web sign-in page and have not been tested on iOS                              |
+| Calibration prints                                                              | Supported     | Temperature tower, flow rate, pressure advance                                                                                                            |
+| Python plugins                                                                  | Not supported | The plugin runtime is not part of the mobile core                                                                                                         |
+| Home screen widget and Live Activity                                            | Supported     | Print progress and temperatures; the Live Activity only updates while the app is open                                                                     |
 
 ## Prerequisites
 
@@ -108,11 +108,11 @@ workflow by hand with `lane: beta` to cut one now, or `lane: test` (the default)
 `app.config.ts` builds one of three variants, chosen by `APP_VARIANT`; `app.json` holds
 only the version release-please bumps.
 
-| `APP_VARIANT` | Used by | Bundle id | Name |
-| --- | --- | --- | --- |
-| `development` (default) | local builds | `io.github.angelohub.orcaslicer` | Orca Mobile |
-| `beta` | beta lane, test builds | `io.github.angelohub.orcaslicer.beta` | Orca Beta |
-| `production` | releases | `io.github.angelohub.orcaslicer` | Orca Mobile |
+| `APP_VARIANT`           | Used by                | Bundle id                             | Name        |
+| ----------------------- | ---------------------- | ------------------------------------- | ----------- |
+| `development` (default) | local builds           | `io.github.angelohub.orcaslicer`      | Orca Mobile |
+| `beta`                  | beta lane, test builds | `io.github.angelohub.orcaslicer.beta` | Orca Beta   |
+| `production`            | releases               | `io.github.angelohub.orcaslicer`      | Orca Mobile |
 
 Beta has its own app group and URL scheme (`orcaslicer-beta`) too, so it installs next
 to the stable app. On a free Apple ID that is four of AltStore's three app IDs (each

@@ -13,7 +13,12 @@ function storeFile(): File {
 function isHost(value: unknown): value is PrinterHost {
   if (typeof value !== 'object' || value === null) return false
   const v = value as Record<string, unknown>
-  return typeof v.id === 'string' && typeof v.name === 'string' && (v.kind === 'moonraker' || v.kind === 'octoprint') && typeof v.url === 'string'
+  return (
+    typeof v.id === 'string' &&
+    typeof v.name === 'string' &&
+    (v.kind === 'moonraker' || v.kind === 'octoprint') &&
+    typeof v.url === 'string'
+  )
 }
 
 export function loadPrinters(): PrinterHost[] {

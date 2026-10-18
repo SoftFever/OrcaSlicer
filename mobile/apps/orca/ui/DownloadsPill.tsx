@@ -24,9 +24,13 @@ export function DownloadsPill(): React.JSX.Element | null {
     <View className="mr-2 flex-row items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 dark:bg-neutral-800">
       <ActivityIndicator size="small" />
       {pct !== null ? (
-        <Text className="text-caption font-semibold tabular-nums text-neutral-700 dark:text-neutral-200">{pct}%</Text>
+        <Text className="text-caption font-semibold tabular-nums text-neutral-700 dark:text-neutral-200">
+          {pct}%
+        </Text>
       ) : active.length > 1 ? (
-        <Text className="text-caption font-semibold text-neutral-700 dark:text-neutral-200">{active.length}</Text>
+        <Text className="text-caption font-semibold text-neutral-700 dark:text-neutral-200">
+          {active.length}
+        </Text>
       ) : null}
     </View>
   )

@@ -59,9 +59,7 @@ export function CoreProvider({ children }: { children: React.ReactNode }): React
     const needsRepair =
       installedVendors().some((v) => v !== ORCA_FILAMENT_LIBRARY) &&
       !installedVendors().includes(ORCA_FILAMENT_LIBRARY)
-    const boot = needsRepair
-      ? ensureFilamentLibrary().catch(() => undefined)
-      : Promise.resolve()
+    const boot = needsRepair ? ensureFilamentLibrary().catch(() => undefined) : Promise.resolve()
 
     void boot
       .then(() => created.loadPresets())
@@ -74,7 +72,10 @@ export function CoreProvider({ children }: { children: React.ReactNode }): React
   // callback on top. First sync on launch happens once presets are in.
   useEffect(() => {
     if (!ready || session === null) return
-    registerSyncContext({ session, reloadPresets: () => session.reloadPresets().then((e) => setPresetError(e)) })
+    registerSyncContext({
+      session,
+      reloadPresets: () => session.reloadPresets().then((e) => setPresetError(e)),
+    })
     syncIfStale()
     return () => registerSyncContext(null)
   }, [ready, session])
@@ -121,7 +122,7 @@ export function CoreProvider({ children }: { children: React.ReactNode }): React
         }
       },
     }),
-    [core, session, presetError, ready]
+    [core, session, presetError, ready],
   )
 
   return <CoreContext.Provider value={value}>{children}</CoreContext.Provider>

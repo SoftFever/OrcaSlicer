@@ -4,7 +4,14 @@ import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native'
 import { WebView, type WebViewMessageEvent, type WebViewNavigation } from 'react-native-webview'
 
 import { adoptSession, exchangeCode } from '@/lib/cloud/auth'
-import { CLOUD_AUTH, CLOUD_LOOPBACK_PORT, CLOUD_PUBLISHABLE_KEY, CLOUD_REDIRECT, CLOUD_WEB, cloudUserAgent } from '@/lib/cloud/config'
+import {
+  CLOUD_AUTH,
+  CLOUD_LOOPBACK_PORT,
+  CLOUD_PUBLISHABLE_KEY,
+  CLOUD_REDIRECT,
+  CLOUD_WEB,
+  cloudUserAgent,
+} from '@/lib/cloud/config'
 import { createPkce, type Pkce } from '@/lib/cloud/pkce'
 import { useCore } from '@/lib/core'
 import { currentLanguage } from '@/lib/i18n'
@@ -37,7 +44,11 @@ export default function CloudLoginScreen(): React.JSX.Element {
   }, [])
 
   const finish = useCallback(
-    async (work: () => Promise<{ user: { id: string; email: string; displayName: string; avatarUrl: string } }>) => {
+    async (
+      work: () => Promise<{
+        user: { id: string; email: string; displayName: string; avatarUrl: string }
+      }>,
+    ) => {
       if (done.current) return
       done.current = true
       setFinishing(true)
@@ -48,7 +59,9 @@ export default function CloudLoginScreen(): React.JSX.Element {
       } catch (e) {
         done.current = false
         setFinishing(false)
-        web.current?.injectJavaScript(`alert(${JSON.stringify(`Sign-in failed: ${String(e)}`)}); true;`)
+        web.current?.injectJavaScript(
+          `alert(${JSON.stringify(`Sign-in failed: ${String(e)}`)}); true;`,
+        )
       }
     },
     [router, setCloudUser],
@@ -85,15 +98,24 @@ export default function CloudLoginScreen(): React.JSX.Element {
           })
           break
         case 'get_localhost_url':
-          reply({ command: 'get_localhost_url', sequence_id: msg.sequence_id, response: { base_url: `http://localhost:${CLOUD_LOOPBACK_PORT}`, result: 'success' } })
+          reply({
+            command: 'get_localhost_url',
+            sequence_id: msg.sequence_id,
+            response: { base_url: `http://localhost:${CLOUD_LOOPBACK_PORT}`, result: 'success' },
+          })
           break
         case 'user_login': {
           const code = data.code as string | undefined
           if (typeof code === 'string' && code.length > 0) {
             void finish(() => exchangeCode(code, pkce.codeVerifier))
-          } else if (typeof data.access_token === 'string' && typeof data.refresh_token === 'string') {
+          } else if (
+            typeof data.access_token === 'string' &&
+            typeof data.refresh_token === 'string'
+          ) {
             void finish(() => adoptSession(data as never))
-          } else if (typeof (data.session as Record<string, unknown> | undefined)?.access_token === 'string') {
+          } else if (
+            typeof (data.session as Record<string, unknown> | undefined)?.access_token === 'string'
+          ) {
             void finish(() => adoptSession(data.session as never))
           }
           break
@@ -103,7 +125,8 @@ export default function CloudLoginScreen(): React.JSX.Element {
           // redirect with a local server. Stay in this WebView instead; the
           // redirect is intercepted below.
           const url = data.url as string | undefined
-          if (typeof url === 'string') web.current?.injectJavaScript(`window.location.href = ${JSON.stringify(url)}; true;`)
+          if (typeof url === 'string')
+            web.current?.injectJavaScript(`window.location.href = ${JSON.stringify(url)}; true;`)
           break
         }
         case 'new_webpage': {
@@ -120,7 +143,9 @@ export default function CloudLoginScreen(): React.JSX.Element {
 
   const onShouldStartLoad = useCallback(
     (nav: WebViewNavigation): boolean => {
-      const m = /^https?:\/\/(?:localhost|127\.0\.0\.1):4117[2-4]\/callback(?:\?(.*))?$/.exec(nav.url)
+      const m = /^https?:\/\/(?:localhost|127\.0\.0\.1):4117[2-4]\/callback(?:\?(.*))?$/.exec(
+        nav.url,
+      )
       if (m === null) return true
       if (pkce === null) return false
       const params = new URLSearchParams(m[1] ?? '')
@@ -153,7 +178,9 @@ export default function CloudLoginScreen(): React.JSX.Element {
       ) : (
         <WebView
           ref={web}
-          source={{ uri: `${CLOUD_WEB}/orcaslicer-login?lang=${encodeURIComponent(currentLanguage())}` }}
+          source={{
+            uri: `${CLOUD_WEB}/orcaslicer-login?lang=${encodeURIComponent(currentLanguage())}`,
+          }}
           style={{ flex: 1 }}
           userAgent={cloudUserAgent(version)}
           injectedJavaScriptBeforeContentLoaded={BRIDGE}

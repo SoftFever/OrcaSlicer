@@ -20,11 +20,14 @@ const images = join(docs, 'images')
 
 execFileSync(process.execPath, [join(here, 'help-images.mjs')], { stdio: 'inherit' })
 
-const { HELP_TOPICS, imageKeys } = await import(pathToFileURL(join(app, 'lib', 'help', 'content.ts')).href)
+const { HELP_TOPICS, imageKeys } = await import(
+  pathToFileURL(join(app, 'lib', 'help', 'content.ts')).href
+)
 
 mkdirSync(images, { recursive: true })
 // Replace the image folder wholesale so renamed or dropped shots do not linger.
-for (const stale of existsSync(images) ? readdirSync(images) : []) rmSync(join(images, stale), { recursive: true, force: true })
+for (const stale of existsSync(images) ? readdirSync(images) : [])
+  rmSync(join(images, stale), { recursive: true, force: true })
 
 const missing = []
 for (const topic of HELP_TOPICS) {
@@ -67,5 +70,7 @@ const index = [
 writeFileSync(join(docs, 'README.md'), index.join('\n'))
 
 const total = HELP_TOPICS.reduce((n, t) => n + imageKeys(t).length, 0)
-console.log(`help-docs: ${HELP_TOPICS.length} page(s) -> docs/mobile, ${total - missing.length}/${total} screenshot(s) present`)
+console.log(
+  `help-docs: ${HELP_TOPICS.length} page(s) -> docs/mobile, ${total - missing.length}/${total} screenshot(s) present`,
+)
 if (missing.length > 0) console.log('help-docs: not captured yet:\n  ' + missing.join('\n  '))

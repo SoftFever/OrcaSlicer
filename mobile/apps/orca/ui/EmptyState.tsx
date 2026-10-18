@@ -23,12 +23,18 @@ export function EmptyState({ icon, title, body, action, secondary }: Props): Rea
       <View className="mb-1 h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 dark:bg-neutral-800">
         <Icon name={icon} size={24} />
       </View>
-      <Text className="text-center text-headline font-semibold text-neutral-900 dark:text-neutral-100">{title}</Text>
-      <Text className="text-center text-callout leading-5 text-neutral-500 dark:text-neutral-400">{body}</Text>
+      <Text className="text-center text-headline font-semibold text-neutral-900 dark:text-neutral-100">
+        {title}
+      </Text>
+      <Text className="text-center text-callout leading-5 text-neutral-500 dark:text-neutral-400">
+        {body}
+      </Text>
       {action !== undefined || secondary !== undefined ? (
         <View className="mt-3 w-full flex-row justify-center gap-2">
           {action !== undefined ? <Button title={action.title} onPress={action.onPress} /> : null}
-          {secondary !== undefined ? <Button title={secondary.title} variant="secondary" onPress={secondary.onPress} /> : null}
+          {secondary !== undefined ? (
+            <Button title={secondary.title} variant="secondary" onPress={secondary.onPress} />
+          ) : null}
         </View>
       ) : null}
     </View>

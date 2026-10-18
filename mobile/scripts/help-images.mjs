@@ -24,7 +24,9 @@ function* pngs(dir) {
 
 const entries = []
 for (const file of pngs(assets)) {
-  const key = relative(assets, file).replace(/\\/g, '/').replace(/\.png$/i, '')
+  const key = relative(assets, file)
+    .replace(/\\/g, '/')
+    .replace(/\.png$/i, '')
   const req = '../../assets/help/' + relative(assets, file).replace(/\\/g, '/')
   entries.push(`  '${key}': require('${req}') as number,`)
 }

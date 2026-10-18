@@ -18,7 +18,7 @@ export default function PrinterWebScreen(): React.JSX.Element {
   const router = useRouter()
   const { id } = useLocalSearchParams<{ id: string }>()
   const host: PrinterHost | null = useMemo(
-    () => (id !== undefined ? loadPrinters().find((h) => h.id === id) ?? null : null),
+    () => (id !== undefined ? (loadPrinters().find((h) => h.id === id) ?? null) : null),
     [id],
   )
 

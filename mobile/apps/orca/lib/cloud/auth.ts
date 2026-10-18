@@ -74,31 +74,52 @@ interface TokenResponse {
   user?: {
     id: string
     email?: string
-    user_metadata?: { username?: string; display_name?: string; full_name?: string; name?: string; avatar_url?: string }
+    user_metadata?: {
+      username?: string
+      display_name?: string
+      full_name?: string
+      name?: string
+      avatar_url?: string
+    }
   }
 }
 
 function sessionFrom(body: TokenResponse, previous?: CloudUser): CloudSession {
   const meta = body.user?.user_metadata ?? {}
-  const user: CloudUser = body.user !== undefined
-    ? {
-        id: body.user.id,
-        email: body.user.email ?? previous?.email ?? '',
-        displayName: meta.display_name ?? meta.full_name ?? meta.name ?? meta.username ?? body.user.email ?? previous?.displayName ?? '',
-        avatarUrl: meta.avatar_url ?? previous?.avatarUrl ?? '',
-      }
-    : (previous ?? { id: '', email: '', displayName: '', avatarUrl: '' })
+  const user: CloudUser =
+    body.user !== undefined
+      ? {
+          id: body.user.id,
+          email: body.user.email ?? previous?.email ?? '',
+          displayName:
+            meta.display_name ??
+            meta.full_name ??
+            meta.name ??
+            meta.username ??
+            body.user.email ??
+            previous?.displayName ??
+            '',
+          avatarUrl: meta.avatar_url ?? previous?.avatarUrl ?? '',
+        }
+      : (previous ?? { id: '', email: '', displayName: '', avatarUrl: '' })
   const expiresAt = body.expires_at ?? Math.floor(Date.now() / 1000) + (body.expires_in ?? 3600)
   return { accessToken: body.access_token, refreshToken: body.refresh_token, expiresAt, user }
 }
 
 export class CloudAuthError extends Error {
-  constructor(message: string, readonly status: number) {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
     super(message)
   }
 }
 
-async function tokenRequest(grant: string, body: Record<string, string>, previous?: CloudUser): Promise<CloudSession> {
+async function tokenRequest(
+  grant: string,
+  body: Record<string, string>,
+  previous?: CloudUser,
+): Promise<CloudSession> {
   const res = await fetch(`${CLOUD_AUTH}/auth/v1/token?grant_type=${grant}`, {
     method: 'POST',
     headers: { apikey: CLOUD_PUBLISHABLE_KEY, 'Content-Type': 'application/json' },
@@ -106,10 +127,23 @@ async function tokenRequest(grant: string, body: Record<string, string>, previou
   })
   const text = await res.text()
   let json: Record<string, unknown> = {}
-  try { json = JSON.parse(text) as Record<string, unknown> } catch { /* not JSON */ }
+  try {
+    json = JSON.parse(text) as Record<string, unknown>
+  } catch {
+    /* not JSON */
+  }
   if (!res.ok) {
-    const message = (json.error_description ?? json.msg ?? json.error ?? json.message ?? text) as string
-    throw new CloudAuthError(typeof message === 'string' && message.length > 0 ? message : `Sign-in failed (${res.status})`, res.status)
+    const message = (json.error_description ??
+      json.msg ??
+      json.error ??
+      json.message ??
+      text) as string
+    throw new CloudAuthError(
+      typeof message === 'string' && message.length > 0
+        ? message
+        : `Sign-in failed (${res.status})`,
+      res.status,
+    )
   }
   return sessionFrom(json as unknown as TokenResponse, previous)
 }
@@ -146,7 +180,11 @@ export async function refreshSession(): Promise<CloudSession | null> {
     const current = await readSession()
     if (current === null) return null
     try {
-      const next = await tokenRequest('refresh_token', { refresh_token: current.refreshToken }, current.user)
+      const next = await tokenRequest(
+        'refresh_token',
+        { refresh_token: current.refreshToken },
+        current.user,
+      )
       await writeSession(next)
       return next
     } catch (e) {

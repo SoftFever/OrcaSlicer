@@ -16,7 +16,15 @@ type Props = {
   last?: boolean
 }
 
-export function PresetRow({ label, value, swatchColor, disabled = false, onPickPress, onEditPress, last = false }: Props): React.JSX.Element {
+export function PresetRow({
+  label,
+  value,
+  swatchColor,
+  disabled = false,
+  onPickPress,
+  onEditPress,
+  last = false,
+}: Props): React.JSX.Element {
   const isEmpty = value.length === 0 || value.startsWith('Default ')
   return (
     <View

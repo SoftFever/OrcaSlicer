@@ -29,13 +29,24 @@ type Section = { title: string; data: PresetInfo[] }
 // For printer presets we group by vendor (matching the desktop wizard's
 // mental model, where a vendor bundle contains many machine models). For
 // filaments and processes we group by kind: selected, compatible, others.
-export function PresetPicker({ kind, title, presets, selected, visible, onPick, onClose }: Props): React.JSX.Element {
+export function PresetPicker({
+  kind,
+  title,
+  presets,
+  selected,
+  visible,
+  onPick,
+  onClose,
+}: Props): React.JSX.Element {
   const [query, setQuery] = useState('')
   const needle = query.trim().toLowerCase()
 
   const sections = useMemo<Section[]>(() => {
     const filtered = presets.filter(
-      (p) => needle === '' || p.name.toLowerCase().includes(needle) || p.vendor.toLowerCase().includes(needle),
+      (p) =>
+        needle === '' ||
+        p.name.toLowerCase().includes(needle) ||
+        p.vendor.toLowerCase().includes(needle),
     )
     if (kind === 'printer') {
       const byVendor = new Map<string, PresetInfo[]>()
@@ -46,13 +57,18 @@ export function PresetPicker({ kind, title, presets, selected, visible, onPick, 
         byVendor.set(key, bucket)
       }
       const out: Section[] = []
-      for (const [vendor, items] of Array.from(byVendor.entries()).sort((a, b) => a[0].localeCompare(b[0]))) {
+      for (const [vendor, items] of Array.from(byVendor.entries()).sort((a, b) =>
+        a[0].localeCompare(b[0]),
+      )) {
         items.sort((a, b) => a.name.localeCompare(b.name))
         out.push({ title: vendor, data: items })
       }
       return out
     }
-    const [compat, rest] = [filtered.filter((p) => p.isCompatible), filtered.filter((p) => !p.isCompatible)]
+    const [compat, rest] = [
+      filtered.filter((p) => p.isCompatible),
+      filtered.filter((p) => !p.isCompatible),
+    ]
     compat.sort((a, b) => a.name.localeCompare(b.name))
     rest.sort((a, b) => a.name.localeCompare(b.name))
     const out: Section[] = []
@@ -62,7 +78,12 @@ export function PresetPicker({ kind, title, presets, selected, visible, onPick, 
   }, [presets, needle, kind])
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       <View className="flex-1 bg-gray-50 dark:bg-black">
         <View className="flex-row items-center justify-between border-b border-gray-100 px-5 pb-3 pt-4 dark:border-neutral-800">
           <View className="flex-1 pr-4">
@@ -182,7 +203,10 @@ function PresetItem({
       </View>
       {isSelected ? <Text className="text-title3 text-blue-500">✓</Text> : null}
       {!last ? (
-        <View className="absolute inset-x-4 bottom-0 h-px bg-gray-100 dark:bg-neutral-800" style={{ left: 71 }} />
+        <View
+          className="absolute inset-x-4 bottom-0 h-px bg-gray-100 dark:bg-neutral-800"
+          style={{ left: 71 }}
+        />
       ) : null}
     </Pressable>
   )

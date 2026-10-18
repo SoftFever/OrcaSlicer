@@ -49,9 +49,7 @@ module.exports = function withSwiftUICoreWeakLink(config) {
       // block-close indented one level in from `post_install`.
       const anchor = /(post_install do \|installer\|\n(?:[^\n]*\n)*?)(\s*end\s*\n)/
       if (!anchor.test(contents)) {
-        throw new Error(
-          'with-swiftui-core-weak-link: could not find post_install block in Podfile',
-        )
+        throw new Error('with-swiftui-core-weak-link: could not find post_install block in Podfile')
       }
       contents = contents.replace(anchor, (_, head, tail) => head + PATCH + tail)
       fs.writeFileSync(podfilePath, contents)

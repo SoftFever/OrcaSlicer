@@ -7,10 +7,10 @@ import { storage } from './storage'
 // map so an old key with new type does not decode wrong.
 
 const KEYS = {
-  lastPrinter:  'prefs:v1:lastPrinter',
+  lastPrinter: 'prefs:v1:lastPrinter',
   lastFilament: 'prefs:v1:lastFilament',
-  lastProcess:  'prefs:v1:lastProcess',
-  lastPane:     'prefs:v1:lastPane',
+  lastProcess: 'prefs:v1:lastProcess',
+  lastPane: 'prefs:v1:lastPane',
 } as const
 
 function getString(key: string): string | null {
@@ -30,16 +30,16 @@ export interface RememberedPresets {
 
 export function readRememberedPresets(): RememberedPresets {
   return {
-    printer:  getString(KEYS.lastPrinter),
+    printer: getString(KEYS.lastPrinter),
     filament: getString(KEYS.lastFilament),
-    process:  getString(KEYS.lastProcess),
+    process: getString(KEYS.lastProcess),
   }
 }
 
 export function writeRememberedPresets(next: Partial<RememberedPresets>): void {
-  if (next.printer  !== undefined) setString(KEYS.lastPrinter,  next.printer)
+  if (next.printer !== undefined) setString(KEYS.lastPrinter, next.printer)
   if (next.filament !== undefined) setString(KEYS.lastFilament, next.filament)
-  if (next.process  !== undefined) setString(KEYS.lastProcess,  next.process)
+  if (next.process !== undefined) setString(KEYS.lastProcess, next.process)
 }
 
 export type LastPane = 'prepare' | 'preview' | 'device'

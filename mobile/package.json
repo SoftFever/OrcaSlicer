@@ -3,7 +3,6 @@
   "private": true,
   "description": "OrcaSlicer for iOS and Android: the React Native app and the native core module",
   "license": "AGPL-3.0-or-later",
-  "packageManager": "pnpm@12.4.0",
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "specs": "pnpm --filter react-native-orca-core specs",
@@ -21,5 +20,6 @@
     "lefthook": "^2.2.2",
     "oxfmt": "^0.73.0",
     "oxlint": "^1.88.0"
-  }
+  },
+  "packageManager": "pnpm@12.4.0"
 }

@@ -106,7 +106,8 @@ if (format === 'text') {
     out.push(`### ${name}`, '', ...items.map((i) => `- ${i.text} (${link(i.sha)})`), '')
   }
   if (!log) out.push('No changes to the mobile app since the previous release.', '')
-  if (slug && previous) out.push(`**Full changelog**: ${server}/${slug}/compare/${previous}...${tag}`)
+  if (slug && previous)
+    out.push(`**Full changelog**: ${server}/${slug}/compare/${previous}...${tag}`)
 }
 
 process.stdout.write(out.join('\n').trim() + '\n')

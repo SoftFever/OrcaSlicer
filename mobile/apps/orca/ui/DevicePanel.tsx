@@ -31,7 +31,9 @@ export function DevicePanel({ hosts, activeId, onFocus }: Props): React.JSX.Elem
   if (hosts.length === 0) {
     return (
       <View className="items-center gap-2 rounded-3xl bg-white p-6 shadow-soft dark:bg-neutral-900">
-        <Text className="text-subhead font-medium text-neutral-900 dark:text-neutral-100">No printer configured</Text>
+        <Text className="text-subhead font-medium text-neutral-900 dark:text-neutral-100">
+          No printer configured
+        </Text>
         <Text className="text-center text-footnote text-neutral-500 dark:text-neutral-400">
           Add a Moonraker or OctoPrint host from Manage destinations to control it live.
         </Text>
@@ -42,9 +44,18 @@ export function DevicePanel({ hosts, activeId, onFocus }: Props): React.JSX.Elem
   return (
     <View className="gap-4">
       {hosts.length > 1 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-2"
+        >
           {hosts.map((h) => (
-            <Chip key={h.id} label={h.name} selected={h.id === host.id} onPress={() => onFocus(h.id)} />
+            <Chip
+              key={h.id}
+              label={h.name}
+              selected={h.id === host.id}
+              onPress={() => onFocus(h.id)}
+            />
           ))}
         </ScrollView>
       ) : null}
@@ -83,15 +94,22 @@ function TempTile({
 }): React.JSX.Element {
   return (
     <Pressable
-      onPress={() => { haptic('tap'); onPress?.() }}
+      onPress={() => {
+        haptic('tap')
+        onPress?.()
+      }}
       className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 active:opacity-70 dark:bg-neutral-800"
     >
-      <Text className="text-label uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{label}</Text>
+      <Text className="text-label uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+        {label}
+      </Text>
       <Text className="mt-1 text-title2 font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
         {temp !== undefined ? `${Math.round(temp)}°` : '—'}
       </Text>
       {target !== undefined && target > 0 ? (
-        <Text className="text-label text-neutral-500 dark:text-neutral-400">Target {Math.round(target)}°</Text>
+        <Text className="text-label text-neutral-500 dark:text-neutral-400">
+          Target {Math.round(target)}°
+        </Text>
       ) : (
         <Text className="text-label text-neutral-500 dark:text-neutral-400">Tap to set</Text>
       )}
@@ -121,8 +139,11 @@ function DeviceLive({ host }: { host: PrinterHost }): React.JSX.Element {
   })
 
   const controlMutation = (action: 'pause' | 'resume' | 'cancel') => ({
-    mutationFn: async (): Promise<void> => { await clientFor(host)[action](host) },
-    onSuccess: (): Promise<void> => client.invalidateQueries({ queryKey: queryKeys.printerStatus(host.id) }),
+    mutationFn: async (): Promise<void> => {
+      await clientFor(host)[action](host)
+    },
+    onSuccess: (): Promise<void> =>
+      client.invalidateQueries({ queryKey: queryKeys.printerStatus(host.id) }),
     onError: (e: unknown): void => Alert.alert('Control failed', String(e)),
   })
   const pause = useMutation(controlMutation('pause'))
@@ -133,7 +154,8 @@ function DeviceLive({ host }: { host: PrinterHost }): React.JSX.Element {
   const setTemp = useMutation({
     mutationFn: async (value: string): Promise<void> => {
       const target = Number.parseInt(value, 10)
-      if (Number.isNaN(target) || target < 0 || target > 500) throw new Error('Enter a number between 0 and 500.')
+      if (Number.isNaN(target) || target < 0 || target > 500)
+        throw new Error('Enter a number between 0 and 500.')
       if (settingTool === null) return
       await clientFor(host).setTemperature(host, settingTool, target)
     },
@@ -147,7 +169,9 @@ function DeviceLive({ host }: { host: PrinterHost }): React.JSX.Element {
 
   const s = status.data
   const isPaused = s?.state.toLowerCase().includes('pause') === true
-  const isPrinting = s !== undefined && (s.state.toLowerCase().includes('print') || s.state.toLowerCase().includes('busy'))
+  const isPrinting =
+    s !== undefined &&
+    (s.state.toLowerCase().includes('print') || s.state.toLowerCase().includes('busy'))
 
   const askCancel = (): void => {
     Alert.alert('Cancel print?', 'This stops the current job on the printer.', [
@@ -195,7 +219,10 @@ function DeviceLive({ host }: { host: PrinterHost }): React.JSX.Element {
         collapseKey={`temps-${host.id}`}
         action={
           <Pressable
-            onPress={() => { haptic('tap'); router.push(`/host/web/${host.id}` as never) }}
+            onPress={() => {
+              haptic('tap')
+              router.push(`/host/web/${host.id}` as never)
+            }}
             hitSlop={8}
             className="rounded-full bg-neutral-100 px-2.5 py-1 active:opacity-70 dark:bg-neutral-800"
           >
@@ -269,13 +296,15 @@ function DeviceLive({ host }: { host: PrinterHost }): React.JSX.Element {
       <PromptSheet
         visible={settingTool !== null}
         title={settingTool === 'nozzle' ? 'Set nozzle target' : 'Set bed target'}
-        message={settingTool === 'nozzle'
-          ? 'In °C. Set 0 to turn the heater off.'
-          : 'In °C. Set 0 to turn the bed heater off.'}
+        message={
+          settingTool === 'nozzle'
+            ? 'In °C. Set 0 to turn the heater off.'
+            : 'In °C. Set 0 to turn the bed heater off.'
+        }
         placeholder="0"
-        defaultValue={String(Math.round(
-          (settingTool === 'nozzle' ? s?.nozzleTarget : s?.bedTarget) ?? 0,
-        ))}
+        defaultValue={String(
+          Math.round((settingTool === 'nozzle' ? s?.nozzleTarget : s?.bedTarget) ?? 0),
+        )}
         confirmLabel={setTemp.isPending ? 'Setting…' : 'Set'}
         onCancel={() => setSettingTool(null)}
         onConfirm={(value) => setTemp.mutate(value)}

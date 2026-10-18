@@ -48,10 +48,7 @@ function findInPnpmStore(name) {
 // Packages whose subpaths are imported from files inside the app tree
 // (nativewind's className transform, expo-router's runtime entry, etc.) and
 // are not direct deps of the app, so the standard walk misses them.
-const shimmed = new Set([
-  'react-native-css-interop',
-  '@expo/metro-runtime',
-])
+const shimmed = new Set(['react-native-css-interop', '@expo/metro-runtime'])
 
 const upstreamResolveRequest = config.resolver.resolveRequest
 config.resolver.resolveRequest = (context, moduleName, platform) => {

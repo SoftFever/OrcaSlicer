@@ -22,29 +22,36 @@ function sizeOf(entry: Directory | File | null): number {
   if (entry === null || !entry.exists) return 0
   try {
     return entry.size ?? 0
-  } catch { return 0 }
+  } catch {
+    return 0
+  }
 }
 
 function nuke(entry: Directory | File | null): void {
   if (entry === null || !entry.exists) return
-  try { entry.delete() } catch { /* best-effort */ }
+  try {
+    entry.delete()
+  } catch {
+    /* best-effort */
+  }
 }
 
 export function usageBuckets(): Bucket[] {
   const document = Paths.document
-  const cache    = Paths.cache
+  const cache = Paths.cache
 
   const dataSystem = new Directory(document, 'OrcaSlicer', 'data', 'system')
-  const dataUser   = new Directory(document, 'OrcaSlicer', 'data', 'user')
-  const autosave   = new File(document, 'autosave.3mf')
-  const calib      = new Directory(document, 'calib')
-  const downloads  = new Directory(cache, 'downloads')
+  const dataUser = new Directory(document, 'OrcaSlicer', 'data', 'user')
+  const autosave = new File(document, 'autosave.3mf')
+  const calib = new Directory(document, 'calib')
+  const downloads = new Directory(cache, 'downloads')
 
   return [
     {
       id: 'system-profiles',
       label: 'Vendor profiles',
-      description: 'Printer / filament / process presets fetched when you pick a printer. Removing forces a re-download next time you pick.',
+      description:
+        'Printer / filament / process presets fetched when you pick a printer. Removing forces a re-download next time you pick.',
       size: sizeOf(dataSystem),
       destructive: true,
       clear: () => nuke(dataSystem),
@@ -60,7 +67,8 @@ export function usageBuckets(): Bucket[] {
     {
       id: 'autosave',
       label: 'Autosaved plate',
-      description: 'The plate that reopens on next launch. Removing starts you with a blank scene next time.',
+      description:
+        'The plate that reopens on next launch. Removing starts you with a blank scene next time.',
       size: sizeOf(autosave),
       destructive: false,
       clear: () => nuke(autosave),
@@ -68,7 +76,8 @@ export function usageBuckets(): Bucket[] {
     {
       id: 'calibration',
       label: 'Calibration models',
-      description: 'Test models downloaded when you run a calibration wizard. Re-fetches on next run.',
+      description:
+        'Test models downloaded when you run a calibration wizard. Re-fetches on next run.',
       size: sizeOf(calib),
       destructive: false,
       clear: () => nuke(calib),

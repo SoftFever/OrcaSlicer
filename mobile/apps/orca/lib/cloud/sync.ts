@@ -16,7 +16,12 @@ import { showToast } from '../toast'
 
 export type SyncSession = Pick<
   OrcaSession,
-  'cloudPendingDeletes' | 'cloudConfirmDeleted' | 'cloudApplyPull' | 'cloudDirtyPresets' | 'cloudPushPayload' | 'cloudMarkSynced'
+  | 'cloudPendingDeletes'
+  | 'cloudConfirmDeleted'
+  | 'cloudApplyPull'
+  | 'cloudDirtyPresets'
+  | 'cloudPushPayload'
+  | 'cloudMarkSynced'
 >
 
 export interface SyncDeps {
@@ -50,7 +55,15 @@ interface PushPayload {
 
 export async function runSync(deps: SyncDeps): Promise<SyncReport> {
   const { session, api, userId } = deps
-  const report: SyncReport = { deleted: 0, pulled: 0, pushed: 0, notSynced: [], unresolved: [], errors: [], limitHit: false }
+  const report: SyncReport = {
+    deleted: 0,
+    pulled: 0,
+    pushed: 0,
+    notSynced: [],
+    unresolved: [],
+    errors: [],
+    limitHit: false,
+  }
 
   // 1. Deletions the server has not confirmed.
   for (const pending of session.cloudPendingDeletes()) {
@@ -73,7 +86,10 @@ export async function runSync(deps: SyncDeps): Promise<SyncReport> {
     if (installable.length > 0 && deps.installVendorFor !== undefined) {
       let installed = false
       for (const u of installable) {
-        if (await deps.installVendorFor(u)) { installed = true; break }
+        if (await deps.installVendorFor(u)) {
+          installed = true
+          break
+        }
       }
       if (installed) {
         await deps.reloadPresets()
@@ -102,7 +118,12 @@ export async function runSync(deps: SyncDeps): Promise<SyncReport> {
     const isUpdate = state.settingId !== '' && state.syncInfo !== 'create'
     if (!isUpdate && report.limitHit) continue
 
-    let result = await api.push(id, state.name, payload.content, isUpdate ? payload.updated_time : undefined)
+    let result = await api.push(
+      id,
+      state.name,
+      payload.content,
+      isUpdate ? payload.updated_time : undefined,
+    )
     if (result.kind === 'conflict') {
       if (result.server !== null) {
         // The server has a newer copy. The desktop takes the server's time and
@@ -128,7 +149,13 @@ export async function runSync(deps: SyncDeps): Promise<SyncReport> {
         session.cloudMarkSynced(state.kind, state.name, state.settingId, 0, 'hold')
         break
       case 'conflict':
-        session.cloudMarkSynced(state.kind, state.name, id, result.server?.updatedTime ?? 0, 'update')
+        session.cloudMarkSynced(
+          state.kind,
+          state.name,
+          id,
+          result.server?.updatedTime ?? 0,
+          'update',
+        )
         report.errors.push(`${state.name}: still conflicting with the server copy`)
         break
       default:
@@ -187,18 +214,28 @@ export function syncNow(): Promise<SyncReport | null> {
         store.setStatus('offline')
         return null
       }
-    } catch { /* unknown reachability: try anyway */ }
+    } catch {
+      /* unknown reachability: try anyway */
+    }
     store.setStatus('syncing')
     try {
-      const report = await runSync({ session: ctx.session, api: cloudApi, userId, reloadPresets: ctx.reloadPresets, installVendorFor })
+      const report = await runSync({
+        session: ctx.session,
+        api: cloudApi,
+        userId,
+        reloadPresets: ctx.reloadPresets,
+        installVendorFor,
+      })
       if (report.errors.length > 0) {
         useCloudStore.getState().setStatus('error', report.errors[0]!)
       } else {
         useCloudStore.getState().markSynced(report.notSynced)
       }
       if (report.pulled > 0 || report.deleted > 0) ctx.onChanged?.()
-      if (report.limitHit) showToast('Orca Cloud preset limit reached; new presets stay on this device', 'error')
-      if (report.notSynced.length > 0) showToast(`${report.notSynced.length} preset(s) are too large to sync`, 'info')
+      if (report.limitHit)
+        showToast('Orca Cloud preset limit reached; new presets stay on this device', 'error')
+      if (report.notSynced.length > 0)
+        showToast(`${report.notSynced.length} preset(s) are too large to sync`, 'info')
       return report
     } catch (e) {
       useCloudStore.getState().setStatus('error', String(e))
@@ -234,7 +271,10 @@ export function syncIfStale(maxAgeMs = 5 * 60 * 1000): void {
  * Mirrors the desktop's maybe_migrate_user_presets_on_login. Returns true when
  * files moved; the caller reloads presets.
  */
-export async function adoptLocalPresets(userId: string, cloudHasPresets: boolean): Promise<boolean> {
+export async function adoptLocalPresets(
+  userId: string,
+  cloudHasPresets: boolean,
+): Promise<boolean> {
   if (userId === '' || cloudHasPresets) return false
   const userRoot = new Directory(dataDirectory(), 'user')
   const target = new Directory(userRoot, userId)
@@ -254,7 +294,9 @@ export async function adoptLocalPresets(userId: string, cloudHasPresets: boolean
       try {
         f.move(dest)
         moved = true
-      } catch { /* leave it; the user can import by file */ }
+      } catch {
+        /* leave it; the user can import by file */
+      }
     }
   }
   return moved

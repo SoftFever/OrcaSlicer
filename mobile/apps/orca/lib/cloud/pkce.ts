@@ -17,8 +17,13 @@ function base64url(bytes: Uint8Array): string {
 export async function createPkce(): Promise<Pkce> {
   const verifierBytes = Crypto.getRandomBytes(32)
   const codeVerifier = base64url(verifierBytes) // 43 chars, within the 43–128 the RFC asks for
-  const digest = await Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256, new TextEncoder().encode(codeVerifier))
+  const digest = await Crypto.digest(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    new TextEncoder().encode(codeVerifier),
+  )
   const codeChallenge = base64url(new Uint8Array(digest))
-  const state = Array.from(Crypto.getRandomBytes(16), (b) => b.toString(16).padStart(2, '0')).join('')
+  const state = Array.from(Crypto.getRandomBytes(16), (b) => b.toString(16).padStart(2, '0')).join(
+    '',
+  )
   return { codeVerifier, codeChallenge, state }
 }

@@ -20,7 +20,9 @@ export function filamentColors(session: OrcaSession): string[] {
     const raw = session.option('filament_colour')
     if (raw === '') return []
     return raw.split(';').map(normalise)
-  } catch { /* mutex briefly held — caller usually re-reads on the next render */ }
+  } catch {
+    /* mutex briefly held — caller usually re-reads on the next render */
+  }
   return []
 }
 

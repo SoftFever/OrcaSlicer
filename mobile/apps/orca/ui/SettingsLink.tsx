@@ -11,7 +11,12 @@ export function SettingsLink(): React.JSX.Element {
   const router = useRouter()
   const tint = useIconTint()
   return (
-    <Pressable onPress={() => router.push('/settings')} hitSlop={12} accessibilityLabel="Settings" className="rounded-full active:opacity-60">
+    <Pressable
+      onPress={() => router.push('/settings')}
+      hitSlop={12}
+      accessibilityLabel="Settings"
+      className="rounded-full active:opacity-60"
+    >
       <Icon name="gear" size={22} color={tint} />
     </Pressable>
   )

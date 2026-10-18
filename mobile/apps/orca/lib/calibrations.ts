@@ -55,23 +55,26 @@ const TEMPERATURE_TOWER: Calibration = {
   name: 'Temperature tower',
   description:
     'Prints a tower whose bands change temperature every ~5 layers so you can spot the cleanest at a glance. Recommended for a new filament roll.',
-  suggestedModel: 'Import your own tower model (mobile core does not decode Draco yet, so the desktop temperature_tower.drc is not available)',
+  suggestedModel:
+    'Import your own tower model (mobile core does not decode Draco yet, so the desktop temperature_tower.drc is not available)',
   modelPath: '',
   bands: 6,
   param: [
     { key: 'start', label: 'Start °C', unit: '°C', default: 220 },
-    { key: 'end',   label: 'End °C',   unit: '°C', default: 180 },
-    { key: 'step',  label: 'Bands',    unit: '',   default: 6   },
+    { key: 'end', label: 'End °C', unit: '°C', default: 180 },
+    { key: 'step', label: 'Bands', unit: '', default: 6 },
   ],
   apply(session, values) {
     const warnings: string[] = []
     const start = values.start ?? 220
-    const end   = values.end ?? 180
+    const end = values.end ?? 180
     const bands = Math.max(2, Math.round(values.step ?? 6))
     const gcode = stepGcode('M104 S', start, end, bands)
-    if (!session.setOption('layer_change_gcode', gcode)) warnings.push('Could not write layer_change_gcode.')
+    if (!session.setOption('layer_change_gcode', gcode))
+      warnings.push('Could not write layer_change_gcode.')
     // Slow the print so temperature transitions actually take effect.
-    if (!session.setOption('outer_wall_speed', '30')) warnings.push('Could not set outer_wall_speed.')
+    if (!session.setOption('outer_wall_speed', '30'))
+      warnings.push('Could not set outer_wall_speed.')
     return { warnings }
   },
 }
@@ -85,18 +88,19 @@ const FLOW_RATE: Calibration = {
   modelPath: 'resources/calib/filament_flow/Orca-LinearFlow.3mf',
   bands: 5,
   param: [
-    { key: 'start', label: 'Start flow', unit: '%',  default: 95  },
-    { key: 'end',   label: 'End flow',   unit: '%',  default: 105 },
-    { key: 'step',  label: 'Bands',      unit: '',   default: 5   },
+    { key: 'start', label: 'Start flow', unit: '%', default: 95 },
+    { key: 'end', label: 'End flow', unit: '%', default: 105 },
+    { key: 'step', label: 'Bands', unit: '', default: 5 },
   ],
   apply(session, values) {
     const warnings: string[] = []
     const start = (values.start ?? 95) / 100
-    const end   = (values.end ?? 105) / 100
+    const end = (values.end ?? 105) / 100
     const bands = Math.max(2, Math.round(values.step ?? 5))
     // M221 sets the flow-rate multiplier globally; step by band.
     const gcode = stepGcode('M221 S', start * 100, end * 100, bands)
-    if (!session.setOption('layer_change_gcode', gcode)) warnings.push('Could not write layer_change_gcode.')
+    if (!session.setOption('layer_change_gcode', gcode))
+      warnings.push('Could not write layer_change_gcode.')
     if (!session.setOption('wall_loops', '1')) warnings.push('Could not set wall_loops.')
     return { warnings }
   },
@@ -111,19 +115,20 @@ const PRESSURE_ADVANCE: Calibration = {
   modelPath: 'resources/calib/pressure_advance/pa_pattern.3mf',
   bands: 10,
   param: [
-    { key: 'start', label: 'Start K', unit: '', default: 0.00 },
-    { key: 'end',   label: 'End K',   unit: '', default: 0.10 },
-    { key: 'step',  label: 'Bands',   unit: '', default: 10   },
+    { key: 'start', label: 'Start K', unit: '', default: 0.0 },
+    { key: 'end', label: 'End K', unit: '', default: 0.1 },
+    { key: 'step', label: 'Bands', unit: '', default: 10 },
   ],
   apply(session, values) {
     const warnings: string[] = []
     const start = values.start ?? 0
-    const end   = values.end ?? 0.1
+    const end = values.end ?? 0.1
     const bands = Math.max(2, Math.round(values.step ?? 10))
     // M900 K<value> — Klipper accepts SET_PRESSURE_ADVANCE ADVANCE=<v>, but M900
     // works on both Klipper (as a passthrough) and Marlin LA. Use M900.
     const gcode = stepGcode('M900 K', start, end, bands)
-    if (!session.setOption('layer_change_gcode', gcode)) warnings.push('Could not write layer_change_gcode.')
+    if (!session.setOption('layer_change_gcode', gcode))
+      warnings.push('Could not write layer_change_gcode.')
     return { warnings }
   },
 }

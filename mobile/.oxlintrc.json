@@ -5,15 +5,23 @@
     "correctness": "error",
     "suspicious": "warn"
   },
-  "env": { "builtin": true, "es2024": true },
+  "env": {
+    "builtin": true,
+    "es2024": true
+  },
   "settings": {
-    "react": { "version": "19.2" }
+    "react": {
+      "version": "19.2"
+    }
   },
   "rules": {
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",
     "react/react-in-jsx-scope": "off",
-    "import/no-unassigned-import": "off"
+    "import/no-unassigned-import": "off",
+    "vitest/require-mock-type-parameters": "off",
+    "react/set-state-in-effect": "warn",
+    "react/refs": "warn"
   },
   "ignorePatterns": [
     "packages/orca-core/nitrogen/**",

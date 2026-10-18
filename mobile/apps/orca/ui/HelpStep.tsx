@@ -13,16 +13,23 @@ type Props = { index: number; step: Step }
 export function HelpStep({ index, step }: Props): React.JSX.Element {
   const asset = step.image !== undefined ? helpImages[step.image] : undefined
   const size = asset !== undefined ? Image.resolveAssetSource(asset) : undefined
-  const ratio = size !== undefined && size.width > 0 && size.height > 0 ? size.width / size.height : undefined
+  const ratio =
+    size !== undefined && size.width > 0 && size.height > 0 ? size.width / size.height : undefined
   return (
     <View className="gap-2">
       <View className="flex-row items-start gap-3">
         <View className="mt-0.5 h-7 w-7 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
-          <Text className="text-footnote font-bold text-neutral-700 dark:text-neutral-200">{index}</Text>
+          <Text className="text-footnote font-bold text-neutral-700 dark:text-neutral-200">
+            {index}
+          </Text>
         </View>
         <View className="flex-1">
-          <Text className="text-headline font-semibold text-neutral-900 dark:text-neutral-100">{step.title}</Text>
-          <Text className="mt-1 text-subhead leading-6 text-neutral-600 dark:text-neutral-300">{step.body}</Text>
+          <Text className="text-headline font-semibold text-neutral-900 dark:text-neutral-100">
+            {step.title}
+          </Text>
+          <Text className="mt-1 text-subhead leading-6 text-neutral-600 dark:text-neutral-300">
+            {step.body}
+          </Text>
         </View>
       </View>
       {asset !== undefined ? (

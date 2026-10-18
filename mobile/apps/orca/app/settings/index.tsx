@@ -32,9 +32,14 @@ function Row({ icon, title, subtitle, onPress, last = false }: RowProps): React.
         <Icon name={icon} size={18} />
       </View>
       <View className="flex-1">
-        <Text className="text-subhead font-medium text-neutral-900 dark:text-neutral-100">{title}</Text>
+        <Text className="text-subhead font-medium text-neutral-900 dark:text-neutral-100">
+          {title}
+        </Text>
         {subtitle !== undefined ? (
-          <Text className="mt-0.5 text-footnote text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
+          <Text
+            className="mt-0.5 text-footnote text-neutral-500 dark:text-neutral-400"
+            numberOfLines={1}
+          >
             {subtitle}
           </Text>
         ) : null}
@@ -50,16 +55,29 @@ export default function SettingsScreen(): React.JSX.Element {
   const { user, status, lastSyncAt, lastError } = useCloudStore()
 
   const accountLine =
-    user === null ? 'Not signed in'
-    : status === 'syncing' ? 'Syncing…'
-    : status === 'error' ? `Sync failed: ${lastError}`
-    : lastSyncAt > 0 ? `${user.displayName || user.email} · synced ${relativeTime(lastSyncAt)}`
-    : user.displayName || user.email
+    user === null
+      ? 'Not signed in'
+      : status === 'syncing'
+        ? 'Syncing…'
+        : status === 'error'
+          ? `Sync failed: ${lastError}`
+          : lastSyncAt > 0
+            ? `${user.displayName || user.email} · synced ${relativeTime(lastSyncAt)}`
+            : user.displayName || user.email
 
   return (
-    <ScrollView className="flex-1 bg-neutral-50 dark:bg-neutral-950" contentContainerClassName="gap-5 p-5 pb-10">
+    <ScrollView
+      className="flex-1 bg-neutral-50 dark:bg-neutral-950"
+      contentContainerClassName="gap-5 p-5 pb-10"
+    >
       <Card title="Account" padded={false} index={0}>
-        <Row icon="cloud" title="Orca Cloud" subtitle={accountLine} onPress={() => router.push('/account')} last />
+        <Row
+          icon="cloud"
+          title="Orca Cloud"
+          subtitle={accountLine}
+          onPress={() => router.push('/account')}
+          last
+        />
       </Card>
 
       <Card title="Presets" padded={false} index={1}>
@@ -71,14 +89,41 @@ export default function SettingsScreen(): React.JSX.Element {
             if (session !== null) void pickAndImportPresets({ session, reloadPresets })
           }}
         />
-        <Row icon="export" title="Export presets" subtitle="Share a bundle the desktop app can import" onPress={() => router.push('/settings/export')} />
-        <Row icon="printer" title="Printers and profiles" subtitle="Add or remove vendor profiles" onPress={() => router.push('/vendors')} last />
+        <Row
+          icon="export"
+          title="Export presets"
+          subtitle="Share a bundle the desktop app can import"
+          onPress={() => router.push('/settings/export')}
+        />
+        <Row
+          icon="printer"
+          title="Printers and profiles"
+          subtitle="Add or remove vendor profiles"
+          onPress={() => router.push('/vendors')}
+          last
+        />
       </Card>
 
       <Card title="App" padded={false} index={2}>
-        <Row icon="help" title="Help" subtitle="Moving presets, using the app" onPress={() => router.push('/help')} />
-        <Row icon="storage" title="Storage" subtitle="What is on this device, and clearing it" onPress={() => router.push('/storage')} />
-        <Row icon="info" title="About" subtitle="Version, support, licence" onPress={() => router.push('/about')} last />
+        <Row
+          icon="help"
+          title="Help"
+          subtitle="Moving presets, using the app"
+          onPress={() => router.push('/help')}
+        />
+        <Row
+          icon="storage"
+          title="Storage"
+          subtitle="What is on this device, and clearing it"
+          onPress={() => router.push('/storage')}
+        />
+        <Row
+          icon="info"
+          title="About"
+          subtitle="Version, support, licence"
+          onPress={() => router.push('/about')}
+          last
+        />
       </Card>
     </ScrollView>
   )

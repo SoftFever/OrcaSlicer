@@ -1,4 +1,12 @@
-import { filePart, normalizeUrl, type PrinterClient, type PrinterHost, type PrinterStatus, type Sensor, type UploadOptions } from './types'
+import {
+  filePart,
+  normalizeUrl,
+  type PrinterClient,
+  type PrinterHost,
+  type PrinterStatus,
+  type Sensor,
+  type UploadOptions,
+} from './types'
 
 // OctoPrint. API reference: https://docs.octoprint.org/en/master/api/
 
@@ -33,7 +41,9 @@ interface Printer {
 export const octoprint: PrinterClient = {
   async info(host) {
     const base = normalizeUrl(host.url)
-    const version = await json<Version>(await fetch(`${base}/api/version`, { headers: headers(host) }))
+    const version = await json<Version>(
+      await fetch(`${base}/api/version`, { headers: headers(host) }),
+    )
     return version.text
   },
 
@@ -47,7 +57,9 @@ export const octoprint: PrinterClient = {
       sensors: [],
     }
     // /api/printer answers 409 while the printer is disconnected; temperatures are optional.
-    const printerResponse = await fetch(`${base}/api/printer?exclude=sd,state`, { headers: headers(host) })
+    const printerResponse = await fetch(`${base}/api/printer?exclude=sd,state`, {
+      headers: headers(host),
+    })
     if (printerResponse.ok) {
       const printer = (await printerResponse.json()) as Printer
       status.nozzleTemperature = printer.temperature.tool0?.actual
@@ -63,8 +75,22 @@ export const octoprint: PrinterClient = {
         // a Sensor whose typed-number `current` is really null.
         if (temp === undefined || temp.actual === null || !Number.isFinite(temp.actual)) continue
         const s: Sensor = {
-          name: key === 'bed' ? 'Bed' : key === 'chamber' ? 'Chamber' : key.startsWith('tool') ? `Tool ${key.slice(4)}` : key,
-          kind: key === 'bed' ? 'bed' : key === 'chamber' ? 'chamber' : key.startsWith('tool') ? 'nozzle' : 'other',
+          name:
+            key === 'bed'
+              ? 'Bed'
+              : key === 'chamber'
+                ? 'Chamber'
+                : key.startsWith('tool')
+                  ? `Tool ${key.slice(4)}`
+                  : key,
+          kind:
+            key === 'bed'
+              ? 'bed'
+              : key === 'chamber'
+                ? 'chamber'
+                : key.startsWith('tool')
+                  ? 'nozzle'
+                  : 'other',
           current: temp.actual,
           target: temp.target > 0 ? temp.target : undefined,
         }
@@ -80,30 +106,42 @@ export const octoprint: PrinterClient = {
     body.append('file', filePart(options.path, options.filename), options.filename)
     body.append('select', 'true')
     body.append('print', options.startPrint ? 'true' : 'false')
-    const response = await fetch(`${base}/api/files/local`, { method: 'POST', headers: headers(host), body })
+    const response = await fetch(`${base}/api/files/local`, {
+      method: 'POST',
+      headers: headers(host),
+      body,
+    })
     if (!response.ok) {
       throw new Error(`Upload failed: OctoPrint ${response.status} ${await response.text()}`)
     }
   },
 
-  async pause(host) { await job(host, 'pause', 'pause') },
-  async resume(host) { await job(host, 'pause', 'resume') },
-  async cancel(host) { await job(host, 'cancel') },
+  async pause(host) {
+    await job(host, 'pause', 'pause')
+  },
+  async resume(host) {
+    await job(host, 'pause', 'resume')
+  },
+  async cancel(host) {
+    await job(host, 'cancel')
+  },
 
   async setTemperature(host, tool, target) {
     // OctoPrint splits by tool. /api/printer/tool for nozzle heaters,
     // /api/printer/bed for the print bed.
     const base = normalizeUrl(host.url)
     const path = tool === 'nozzle' ? '/api/printer/tool' : '/api/printer/bed'
-    const body = tool === 'nozzle'
-      ? { command: 'target', targets: { tool0: Math.round(target) } }
-      : { command: 'target', target: Math.round(target) }
+    const body =
+      tool === 'nozzle'
+        ? { command: 'target', targets: { tool0: Math.round(target) } }
+        : { command: 'target', target: Math.round(target) }
     const response = await fetch(`${base}${path}`, {
       method: 'POST',
       headers: { ...headers(host), 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    if (!response.ok) throw new Error(`OctoPrint set ${tool} failed: ${response.status} ${await response.text()}`)
+    if (!response.ok)
+      throw new Error(`OctoPrint set ${tool} failed: ${response.status} ${await response.text()}`)
   },
 
   async webcamUrl(host) {
@@ -117,7 +155,9 @@ export const octoprint: PrinterClient = {
       )
       const stream = settings.webcam?.streamUrl ?? settings.webcam?.stream
       if (stream !== undefined && stream !== '') {
-        return stream.startsWith('http') ? stream : `${base}${stream.startsWith('/') ? '' : '/'}${stream}`
+        return stream.startsWith('http')
+          ? stream
+          : `${base}${stream.startsWith('/') ? '' : '/'}${stream}`
       }
     } catch {
       /* no settings access or missing key */
@@ -126,7 +166,11 @@ export const octoprint: PrinterClient = {
   },
 }
 
-async function job(host: PrinterHost, command: 'pause' | 'cancel', action?: 'pause' | 'resume' | 'toggle'): Promise<void> {
+async function job(
+  host: PrinterHost,
+  command: 'pause' | 'cancel',
+  action?: 'pause' | 'resume' | 'toggle',
+): Promise<void> {
   const base = normalizeUrl(host.url)
   const body = action !== undefined ? { command, action } : { command }
   const response = await fetch(`${base}/api/job`, {
@@ -134,5 +178,6 @@ async function job(host: PrinterHost, command: 'pause' | 'cancel', action?: 'pau
     headers: { ...headers(host), 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  if (!response.ok) throw new Error(`OctoPrint ${command} failed: ${response.status} ${await response.text()}`)
+  if (!response.ok)
+    throw new Error(`OctoPrint ${command} failed: ${response.status} ${await response.text()}`)
 }

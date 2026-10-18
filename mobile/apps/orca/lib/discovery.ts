@@ -54,7 +54,12 @@ async function probeOctoprint(ip: string): Promise<DiscoveredHost | null> {
     const response = await withTimeout(fetch(`${url}/api/version`), PROBE_TIMEOUT_MS)
     if (!response.ok) return null
     const body = (await response.json()) as { text?: string; server?: string }
-    return { kind: 'octoprint', ip, url, info: body.text ?? `OctoPrint ${body.server ?? ''}`.trim() }
+    return {
+      kind: 'octoprint',
+      ip,
+      url,
+      info: body.text ?? `OctoPrint ${body.server ?? ''}`.trim(),
+    }
   } catch {
     return null
   }

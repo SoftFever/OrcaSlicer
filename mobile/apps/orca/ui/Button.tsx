@@ -82,7 +82,11 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, Props>(fu
       className={classes}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' || variant === 'destructive' ? colors.onFill : colors.ink.light} />
+        <ActivityIndicator
+          color={
+            variant === 'primary' || variant === 'destructive' ? colors.onFill : colors.ink.light
+          }
+        />
       ) : (
         <Text className={`${sizeText[size]} ${variantText[variant]}`}>{title}</Text>
       )}

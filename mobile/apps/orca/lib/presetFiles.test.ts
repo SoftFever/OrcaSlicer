@@ -4,13 +4,20 @@ vi.mock('expo-document-picker', () => ({ getDocumentAsync: vi.fn() }))
 vi.mock('expo-file-system', () => ({ Directory: class {}, File: class {}, Paths: { cache: '' } }))
 vi.mock('expo-sharing', () => ({ isAvailableAsync: vi.fn(), shareAsync: vi.fn() }))
 vi.mock('react-native', () => ({ Alert: { alert: vi.fn() } }))
-vi.mock('./downloads', () => ({ useDownloadsStore: { getState: () => ({ install: vi.fn(), byId: {} }) } }))
-vi.mock('./profiles', () => ({ availablePrinters: vi.fn(), installedVendors: () => [], installVendor: vi.fn() }))
+vi.mock('./downloads', () => ({
+  useDownloadsStore: { getState: () => ({ install: vi.fn(), byId: {} }) },
+}))
+vi.mock('./profiles', () => ({
+  availablePrinters: vi.fn(),
+  installedVendors: () => [],
+  installVendor: vi.fn(),
+}))
 vi.mock('./queries', () => ({ queryClient: { fetchQuery: vi.fn() }, queryKeys: {} }))
 vi.mock('./prefs', () => ({ writeRememberedPresets: vi.fn() }))
 vi.mock('./toast', () => ({ showToast: vi.fn() }))
 
-const { archiveFileName, describeImported, describeSkipped, guessPrinterFor, missingVendorIn } = await import('./presetFiles')
+const { archiveFileName, describeImported, describeSkipped, guessPrinterFor, missingVendorIn } =
+  await import('./presetFiles')
 
 describe('describeImported', () => {
   it('counts by kind with plural forms', () => {
@@ -30,7 +37,11 @@ describe('describeImported', () => {
 
 describe('missingVendorIn', () => {
   it('returns the vendor only when every hint agrees', () => {
-    expect(missingVendorIn({ skipped: [{ name: 'x', reason: 'missing_parent', inherits: 'p', vendorHint: 'Qidi' }] })).toBe('Qidi')
+    expect(
+      missingVendorIn({
+        skipped: [{ name: 'x', reason: 'missing_parent', inherits: 'p', vendorHint: 'Qidi' }],
+      }),
+    ).toBe('Qidi')
     expect(
       missingVendorIn({
         skipped: [
@@ -39,7 +50,11 @@ describe('missingVendorIn', () => {
         ],
       }),
     ).toBeNull()
-    expect(missingVendorIn({ skipped: [{ name: 'x', reason: 'missing_parent', inherits: 'p', vendorHint: '' }] })).toBeNull()
+    expect(
+      missingVendorIn({
+        skipped: [{ name: 'x', reason: 'missing_parent', inherits: 'p', vendorHint: '' }],
+      }),
+    ).toBeNull()
   })
 })
 
@@ -76,7 +91,9 @@ describe('guessPrinterFor', () => {
 
 describe('archiveFileName', () => {
   it('keeps spaces and strips path separators', () => {
-    expect(archiveFileName('Qidi X-Max 3 0.4 nozzle', 'orca_printer')).toBe('Qidi X-Max 3 0.4 nozzle.orca_printer')
+    expect(archiveFileName('Qidi X-Max 3 0.4 nozzle', 'orca_printer')).toBe(
+      'Qidi X-Max 3 0.4 nozzle.orca_printer',
+    )
     expect(archiveFileName('a/b\\c:d', 'zip')).toBe('a-b-c-d.zip')
   })
 })

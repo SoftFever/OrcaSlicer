@@ -2,7 +2,13 @@ import type { OrcaSession } from 'react-native-orca-core'
 import { create } from 'zustand'
 
 import { notify } from './notifications'
-import { hasPrinterModelFiles, installVendor, installedVendors, removeVendor, type AvailablePrinter } from './profiles'
+import {
+  hasPrinterModelFiles,
+  installVendor,
+  installedVendors,
+  removeVendor,
+  type AvailablePrinter,
+} from './profiles'
 import { queryClient, queryKeys } from './queries'
 
 export type DownloadState = 'downloading' | 'installing' | 'done' | 'error' | 'cancelled'
@@ -86,8 +92,9 @@ export const useDownloadsStore = create<StoreState>((set, get) => {
         // model of the same vendor) would let us "succeed" without ever
         // downloading the newly-picked model's presets, and C++ would then
         // fail to find them at load time.
-        const alreadyHere = installedVendors().includes(printer.vendor)
-          && hasPrinterModelFiles(printer.vendor, printer.model)
+        const alreadyHere =
+          installedVendors().includes(printer.vendor) &&
+          hasPrinterModelFiles(printer.vendor, printer.model)
         try {
           if (!alreadyHere) {
             // Wipe any partial install so a re-run over a bad state starts clean.
@@ -108,8 +115,12 @@ export const useDownloadsStore = create<StoreState>((set, get) => {
           try {
             if (ctx.session !== null) {
               const presets = ctx.session.presets('printer')
-              const exact = presets.find((c) => c.name === printer.model && c.vendor === printer.vendor)
-              const withNozzle = presets.find((c) => c.vendor === printer.vendor && c.name.startsWith(`${printer.model} `))
+              const exact = presets.find(
+                (c) => c.name === printer.model && c.vendor === printer.vendor,
+              )
+              const withNozzle = presets.find(
+                (c) => c.vendor === printer.vendor && c.name.startsWith(`${printer.model} `),
+              )
               const pick = exact ?? withNozzle
               if (pick !== undefined) ctx.session.selectPreset('printer', pick.name)
             }
@@ -117,7 +128,10 @@ export const useDownloadsStore = create<StoreState>((set, get) => {
             /* selection is optional */
           }
           setDownload(id, { state: 'done' })
-          void notify(`${printer.model} ready`, `Installed from ${printer.vendorName}. Tap to slice.`)
+          void notify(
+            `${printer.model} ready`,
+            `Installed from ${printer.vendorName}. Tap to slice.`,
+          )
           ctx.onCompleted?.(get().byId[id] as Download)
         } catch (e) {
           const message = String(e)
@@ -157,5 +171,7 @@ export const useDownloadsStore = create<StoreState>((set, get) => {
 
 /** In-flight downloads (not `done` / `error` / `cancelled`). */
 export function selectActive(state: { byId: Record<string, Download> }): Download[] {
-  return Object.values(state.byId).filter((d) => d.state === 'downloading' || d.state === 'installing')
+  return Object.values(state.byId).filter(
+    (d) => d.state === 'downloading' || d.state === 'installing',
+  )
 }

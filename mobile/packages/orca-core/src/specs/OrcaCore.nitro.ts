@@ -243,7 +243,13 @@ export interface OrcaSession extends HybridObject<{ ios: 'c++'; android: 'c++' }
    */
   cloudPushPayload(kind: PresetKind, name: string): string
   /** Records a push outcome: the setting id, the server's updated_time (0 keeps the local one) and the new sync_info ('' = in sync). */
-  cloudMarkSynced(kind: PresetKind, name: string, settingId: string, updatedTime: number, syncInfo: string): void
+  cloudMarkSynced(
+    kind: PresetKind,
+    name: string,
+    settingId: string,
+    updatedTime: number,
+    syncInfo: string,
+  ): void
   /**
    * Applies a FULL pull: the JSON array of {id, name, updated_time, content} upserts.
    * Synced presets missing from the array are removed locally, so never pass a partial

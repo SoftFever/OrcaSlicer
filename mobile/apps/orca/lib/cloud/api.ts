@@ -27,12 +27,21 @@ export type PushResult =
 export interface CloudApi {
   health(): Promise<boolean>
   pull(): Promise<PullResult>
-  push(id: string, name: string, content: Record<string, unknown>, originalUpdatedTime?: number, force?: boolean): Promise<PushResult>
+  push(
+    id: string,
+    name: string,
+    content: Record<string, unknown>,
+    originalUpdatedTime?: number,
+    force?: boolean,
+  ): Promise<PushResult>
   remove(id: string): Promise<boolean>
 }
 
 export class CloudRequestError extends Error {
-  constructor(message: string, readonly status: number) {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
     super(message)
   }
 }
@@ -46,7 +55,7 @@ async function request(path: string, init: RequestInit, retry = true): Promise<R
       apikey: CLOUD_PUBLISHABLE_KEY,
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
-      ...(init.headers ?? {}),
+      ...init.headers,
     },
   })
   if (res.status === 401 && retry) {
@@ -60,7 +69,9 @@ async function request(path: string, init: RequestInit, retry = true): Promise<R
 export const cloudApi: CloudApi = {
   async health() {
     try {
-      const res = await fetch(`${CLOUD_API}/api/v1/health`, { headers: { apikey: CLOUD_PUBLISHABLE_KEY } })
+      const res = await fetch(`${CLOUD_API}/api/v1/health`, {
+        headers: { apikey: CLOUD_PUBLISHABLE_KEY },
+      })
       return res.ok
     } catch {
       return false
@@ -80,28 +91,55 @@ export const cloudApi: CloudApi = {
   async push(id, name, content, originalUpdatedTime, force = false) {
     const body: Record<string, unknown> = { id, name, content }
     // The desktop sends the version check as a string; the server reads either.
-    if (originalUpdatedTime !== undefined && originalUpdatedTime > 0) body.original_updated_time = String(originalUpdatedTime)
+    if (originalUpdatedTime !== undefined && originalUpdatedTime > 0)
+      body.original_updated_time = String(originalUpdatedTime)
     const text = JSON.stringify(body)
     if (text.length > CLOUD_MAX_PAYLOAD) return { kind: 'too_large' }
-    const res = await request(force ? '/api/v1/sync/force-push' : '/api/v1/sync/push', { method: 'POST', body: text })
+    const res = await request(force ? '/api/v1/sync/force-push' : '/api/v1/sync/push', {
+      method: 'POST',
+      body: text,
+    })
     const raw = await res.text()
     let json: Record<string, unknown> | null = null
-    try { json = JSON.parse(raw) as Record<string, unknown> | null } catch { /* not JSON */ }
+    try {
+      json = JSON.parse(raw) as Record<string, unknown> | null
+    } catch {
+      /* not JSON */
+    }
     if (res.status === 200) {
       const updatedTime = Number(json?.updated_time ?? 0)
-      return updatedTime > 0 ? { kind: 'ok', updatedTime } : { kind: 'error', status: 200, message: 'No updated_time in the response' }
+      return updatedTime > 0
+        ? { kind: 'ok', updatedTime }
+        : { kind: 'error', status: 200, message: 'No updated_time in the response' }
     }
     if (res.status === 409) {
-      const sp = (json?.server_profile ?? null) as { id?: string; name?: string; updated_time?: number } | null
-      return { kind: 'conflict', server: sp === null ? null : { id: sp.id ?? id, name: sp.name ?? name, updatedTime: Number(sp.updated_time ?? 0) } }
+      const sp = (json?.server_profile ?? null) as {
+        id?: string
+        name?: string
+        updated_time?: number
+      } | null
+      return {
+        kind: 'conflict',
+        server:
+          sp === null
+            ? null
+            : { id: sp.id ?? id, name: sp.name ?? name, updatedTime: Number(sp.updated_time ?? 0) },
+      }
     }
     if (res.status === 413) return { kind: 'too_large' }
     if (String(json?.code ?? '') === CLOUD_LIMIT_CODE) return { kind: 'limit' }
-    return { kind: 'error', status: res.status, message: (json?.message as string | undefined) ?? raw.slice(0, 200) }
+    return {
+      kind: 'error',
+      status: res.status,
+      message: (json?.message as string | undefined) ?? raw.slice(0, 200),
+    }
   },
 
   async remove(id) {
-    const res = await request(`/api/v1/sync/delete?resource=profiles&id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+    const res = await request(
+      `/api/v1/sync/delete?resource=profiles&id=${encodeURIComponent(id)}`,
+      { method: 'DELETE' },
+    )
     // 404 means it is already gone; the local sidecar can go too.
     return res.ok || res.status === 204 || res.status === 404
   },

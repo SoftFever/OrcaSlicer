@@ -29,13 +29,20 @@ function* sourceFiles(dir) {
 function decodeC(body) {
   return body.replace(/\\(x[0-9a-fA-F]{2}|.)/g, (_, e) => {
     switch (e[0]) {
-      case 'n': return '\n'
-      case 't': return '\t'
-      case 'r': return '\r'
-      case '"': return '"'
-      case '\\': return '\\'
-      case 'x': return String.fromCharCode(parseInt(e.slice(1), 16))
-      default: return e
+      case 'n':
+        return '\n'
+      case 't':
+        return '\t'
+      case 'r':
+        return '\r'
+      case '"':
+        return '"'
+      case '\\':
+        return '\\'
+      case 'x':
+        return String.fromCharCode(parseInt(e.slice(1), 16))
+      default:
+        return e
     }
   })
 }
@@ -54,7 +61,13 @@ function extractStrings(text) {
       let j = i + 1
       let body = ''
       while (j < text.length && text[j] !== '"') {
-        if (text[j] === '\\') { body += text[j] + text[j + 1]; j += 2 } else { body += text[j]; j++ }
+        if (text[j] === '\\') {
+          body += text[j] + text[j + 1]
+          j += 2
+        } else {
+          body += text[j]
+          j++
+        }
       }
       value += decodeC(body)
       found = true
@@ -71,10 +84,17 @@ function parsePo(text) {
   const entries = []
   let current = null
   let field = null
-  const flush = () => { if (current !== null) entries.push(current); current = null; field = null }
+  const flush = () => {
+    if (current !== null) entries.push(current)
+    current = null
+    field = null
+  }
   for (const rawLine of text.split('\n')) {
     const line = rawLine.trim()
-    if (line === '') { flush(); continue }
+    if (line === '') {
+      flush()
+      continue
+    }
     if (line.startsWith('#')) {
       if (current === null) current = { flags: '' }
       if (line.startsWith('#,')) current.flags += line
@@ -95,7 +115,8 @@ function parsePo(text) {
 }
 
 const wanted = new Set()
-for (const file of sourceFiles(coreDir)) for (const s of extractStrings(readFileSync(file, 'utf8'))) wanted.add(s)
+for (const file of sourceFiles(coreDir))
+  for (const s of extractStrings(readFileSync(file, 'utf8'))) wanted.add(s)
 
 mkdirSync(outDir, { recursive: true })
 const languages = []
@@ -103,10 +124,20 @@ let total = 0
 for (const lang of readdirSync(i18nDir).sort()) {
   const po = join(i18nDir, lang, `OrcaSlicer_${lang}.po`)
   let text
-  try { text = readFileSync(po, 'utf8') } catch { continue }
+  try {
+    text = readFileSync(po, 'utf8')
+  } catch {
+    continue
+  }
   const catalog = {}
   for (const e of parsePo(text)) {
-    if (e.msgid === undefined || e.msgid === '' || e.msgctxt !== undefined || e.msgid_plural !== undefined) continue
+    if (
+      e.msgid === undefined ||
+      e.msgid === '' ||
+      e.msgctxt !== undefined ||
+      e.msgid_plural !== undefined
+    )
+      continue
     if (e.flags.includes('fuzzy')) continue
     const str = e.msgstr
     if (str === undefined || str === '' || str === e.msgid) continue
@@ -128,4 +159,6 @@ const index = [
   '',
 ]
 writeFileSync(join(outDir, 'catalogs.ts'), index.join('\n'))
-console.log(`${wanted.size} core strings; ${languages.length} languages, ${total} translations written to ${outDir}`)
+console.log(
+  `${wanted.size} core strings; ${languages.length} languages, ${total} translations written to ${outDir}`,
+)

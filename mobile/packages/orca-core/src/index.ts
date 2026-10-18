@@ -2,7 +2,13 @@ import { NitroModules } from 'react-native-nitro-modules'
 import type { OrcaCore } from './specs/OrcaCore.nitro'
 
 export { OrcaViewport, type OrcaViewportRef } from './views/OrcaViewport'
-export type { ObjectTool, OrcaViewportMethods, OrcaViewportProps, PreviewColorMode, ViewportMode } from './specs/OrcaViewport.nitro'
+export type {
+  ObjectTool,
+  OrcaViewportMethods,
+  OrcaViewportProps,
+  PreviewColorMode,
+  ViewportMode,
+} from './specs/OrcaViewport.nitro'
 
 export type {
   BedInfo,
@@ -45,7 +51,16 @@ export function getOrcaCore(): OrcaCore {
 export interface OptionDefinition {
   key: string
   kind: 'process' | 'filament' | 'printer' | 'other'
-  type: 'float' | 'int' | 'string' | 'percent' | 'float_or_percent' | 'point' | 'bool' | 'enum' | 'other'
+  type:
+    | 'float'
+    | 'int'
+    | 'string'
+    | 'percent'
+    | 'float_or_percent'
+    | 'point'
+    | 'bool'
+    | 'enum'
+    | 'other'
   vector: boolean
   nullable: boolean
   readonly: boolean

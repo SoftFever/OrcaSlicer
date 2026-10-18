@@ -86,7 +86,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             // Desktop OrcaSlicer's preset exports (File > Export > Export Preset Bundle).
             CFBundleTypeName: 'OrcaSlicer preset bundle',
             LSHandlerRank: 'Owner',
-            LSItemContentTypes: [`${BUNDLE_ID}.orca-printer`, `${BUNDLE_ID}.orca-filament`, `${BUNDLE_ID}.orca-bundle`],
+            LSItemContentTypes: [
+              `${BUNDLE_ID}.orca-printer`,
+              `${BUNDLE_ID}.orca-filament`,
+              `${BUNDLE_ID}.orca-bundle`,
+            ],
           },
           {
             CFBundleTypeName: 'Preset JSON',

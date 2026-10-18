@@ -14,7 +14,9 @@ import type { HeatedTool, Sensor } from '@/lib/printers'
 const HISTORY_SIZE = 60
 type Series = number[]
 
-function trimmedName(name: string): string { return name.length > 22 ? name.slice(0, 21) + '…' : name }
+function trimmedName(name: string): string {
+  return name.length > 22 ? name.slice(0, 21) + '…' : name
+}
 
 function Sparkline({ values, target }: { values: Series; target?: number }): React.JSX.Element {
   // Compute the shared min/max across the visible series and the target line so a
@@ -50,15 +52,20 @@ function Sparkline({ values, target }: { values: Series; target?: number }): Rea
 
 function StateLabel({ sensor }: { sensor: Sensor }): React.JSX.Element {
   const isFan = sensor.kind === 'fan'
-  const label = isFan && sensor.fanSpeed !== undefined
-    ? `${Math.round(sensor.fanSpeed * 100)}%`
-    : sensor.target !== undefined && sensor.target > 0
-      ? 'heating'
-      : sensor.kind === 'nozzle' || sensor.kind === 'bed' || sensor.kind === 'chamber'
-        ? 'off'
-        : ''
+  const label =
+    isFan && sensor.fanSpeed !== undefined
+      ? `${Math.round(sensor.fanSpeed * 100)}%`
+      : sensor.target !== undefined && sensor.target > 0
+        ? 'heating'
+        : sensor.kind === 'nozzle' || sensor.kind === 'bed' || sensor.kind === 'chamber'
+          ? 'off'
+          : ''
   if (label === '') return <View />
-  return <Text className="w-16 text-right text-label text-neutral-500 dark:text-neutral-400">{label}</Text>
+  return (
+    <Text className="w-16 text-right text-label text-neutral-500 dark:text-neutral-400">
+      {label}
+    </Text>
+  )
 }
 
 export interface TemperaturePanelProps {
@@ -72,7 +79,11 @@ export interface TemperaturePanelProps {
  * Renders the sensor list plus per-heater sparklines. History is kept in a ref so
  * component re-renders (theme changes, target edits) do not reset the plotted trace.
  */
-export function TemperaturePanel({ hostId, sensors, onSetTarget }: TemperaturePanelProps): React.JSX.Element {
+export function TemperaturePanel({
+  hostId,
+  sensors,
+  onSetTarget,
+}: TemperaturePanelProps): React.JSX.Element {
   // hostId keys separate hosts' histories: switching between two printers must not
   // stripe one printer's readings into the other's chart.
   const history = useRef<Record<string, Series>>({})
@@ -106,22 +117,30 @@ export function TemperaturePanel({ hostId, sensors, onSetTarget }: TemperaturePa
         const key = `${hostId}:${s.name}`
         const series = history.current[key] ?? []
         const isHeater = heaterKinds.has(s.kind)
-        const tool: HeatedTool | null = s.kind === 'nozzle' ? 'nozzle' : s.kind === 'bed' ? 'bed' : null
+        const tool: HeatedTool | null =
+          s.kind === 'nozzle' ? 'nozzle' : s.kind === 'bed' ? 'bed' : null
         return (
           <View key={s.name} className="gap-1">
             <View className="flex-row items-center gap-3">
               <View className="flex-1">
-                <Text className="text-callout font-medium text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
+                <Text
+                  className="text-callout font-medium text-neutral-900 dark:text-neutral-100"
+                  numberOfLines={1}
+                >
                   {trimmedName(s.name)}
                 </Text>
               </View>
               <StateLabel sensor={s} />
               <Text className="w-16 text-right text-callout font-semibold text-neutral-900 dark:text-neutral-100">
-                {typeof s.current === 'number' && Number.isFinite(s.current) ? `${s.current.toFixed(1)}°` : '—'}
+                {typeof s.current === 'number' && Number.isFinite(s.current)
+                  ? `${s.current.toFixed(1)}°`
+                  : '—'}
               </Text>
               {isHeater ? (
                 <Pressable
-                  onPress={() => { if (tool !== null && onSetTarget !== undefined) onSetTarget(tool, s) }}
+                  onPress={() => {
+                    if (tool !== null && onSetTarget !== undefined) onSetTarget(tool, s)
+                  }}
                   disabled={tool === null || onSetTarget === undefined}
                   className="w-16 rounded-md bg-neutral-100 px-2 py-1 active:opacity-70 dark:bg-neutral-800"
                 >

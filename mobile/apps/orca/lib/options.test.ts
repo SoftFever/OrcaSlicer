@@ -51,7 +51,9 @@ describe('options helpers', () => {
     expect(editorKind(temps, '220,215')).toBe('raw')
     expect(editorKind(def({ type: 'bool' }), '1')).toBe('bool')
     expect(editorKind(def({ type: 'enum' }), 'grid')).toBe('enum')
-    expect(editorKind(def({ key: 'filament_start_gcode', type: 'string', vector: true }), '"M104"')).toBe('code')
+    expect(
+      editorKind(def({ key: 'filament_start_gcode', type: 'string', vector: true }), '"M104"'),
+    ).toBe('code')
   })
 
   test('scalar encode keeps the vector shape', () => {

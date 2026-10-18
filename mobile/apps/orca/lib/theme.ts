@@ -24,7 +24,14 @@ export interface ThemeColors {
 export const colors = require('../ui/theme/colors') as ThemeColors
 
 /** The colours resolved for the current scheme. */
-export function useThemeColors(): { dark: boolean; header: string; canvas: string; ink: string; tint: string; placeholder: string } {
+export function useThemeColors(): {
+  dark: boolean
+  header: string
+  canvas: string
+  ink: string
+  tint: string
+  placeholder: string
+} {
   const { colorScheme } = useColorScheme()
   const dark = colorScheme === 'dark'
   return {

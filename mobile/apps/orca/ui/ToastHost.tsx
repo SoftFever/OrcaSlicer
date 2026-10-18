@@ -10,15 +10,15 @@ import { useToastStore } from '@/lib/toast'
 // segmented control, cards) still register — only the toast chips are hit.
 
 const toneClasses = {
-  info:    'bg-neutral-900 dark:bg-neutral-100',
+  info: 'bg-neutral-900 dark:bg-neutral-100',
   success: 'bg-emerald-600 dark:bg-emerald-500',
-  error:   'bg-red-600 dark:bg-red-500',
+  error: 'bg-red-600 dark:bg-red-500',
 } as const
 
 const textClasses = {
-  info:    'text-white dark:text-neutral-900',
+  info: 'text-white dark:text-neutral-900',
   success: 'text-white',
-  error:   'text-white',
+  error: 'text-white',
 } as const
 
 export function ToastHost(): React.JSX.Element {
@@ -35,7 +35,10 @@ export function ToastHost(): React.JSX.Element {
             className={`max-w-[92%] rounded-full px-4 py-2 ${toneClasses[t.kind]} active:opacity-80`}
             accessibilityLabel={t.message}
           >
-            <Text className={`text-footnote font-semibold ${textClasses[t.kind]}`} numberOfLines={2}>
+            <Text
+              className={`text-footnote font-semibold ${textClasses[t.kind]}`}
+              numberOfLines={2}
+            >
               {t.message}
             </Text>
           </Pressable>

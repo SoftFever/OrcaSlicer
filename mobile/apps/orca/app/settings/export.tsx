@@ -33,7 +33,13 @@ export default function ExportPresetsScreen(): React.JSX.Element {
       KINDS.map(({ kind, title }) => ({
         kind,
         title,
-        presets: session === null || !ready ? [] : session.presets(kind).filter((p) => p.isUser).map((p) => p.name),
+        presets:
+          session === null || !ready
+            ? []
+            : session
+                .presets(kind)
+                .filter((p) => p.isUser)
+                .map((p) => p.name),
       })).filter((g) => g.presets.length > 0),
     // `ready` flips once presets are loaded; a cold start straight into this screen lands before that.
     [session, ready],
@@ -50,7 +56,11 @@ export default function ExportPresetsScreen(): React.JSX.Element {
     })
   }
 
-  const selected: PresetRef[] = groups.flatMap((g) => g.presets.filter((name) => picked.has(key({ kind: g.kind, name }))).map((name) => ({ kind: g.kind, name })))
+  const selected: PresetRef[] = groups.flatMap((g) =>
+    g.presets
+      .filter((name) => picked.has(key({ kind: g.kind, name })))
+      .map((name) => ({ kind: g.kind, name })),
+  )
   const printers = selected.filter((p) => p.kind === 'printer').length
 
   const share = async (): Promise<void> => {
@@ -90,7 +100,10 @@ export default function ExportPresetsScreen(): React.JSX.Element {
                     className={`flex-row items-center gap-3 px-4 py-3 active:bg-neutral-100 dark:active:bg-neutral-800 ${j === g.presets.length - 1 ? '' : 'border-b border-neutral-100 dark:border-neutral-800'}`}
                   >
                     <Icon name={on ? 'check' : 'circle'} size={20} color={on ? tint : undefined} />
-                    <Text className="flex-1 text-subhead text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
+                    <Text
+                      className="flex-1 text-subhead text-neutral-900 dark:text-neutral-100"
+                      numberOfLines={1}
+                    >
                       {name}
                     </Text>
                   </Pressable>
@@ -109,7 +122,13 @@ export default function ExportPresetsScreen(): React.JSX.Element {
                 ? `${selected.length} selected · exported as an .orca_printer bundle`
                 : `${selected.length} selected · exported as an .orca_bundle`}
           </Text>
-          <Button title={busy ? 'Exporting…' : 'Share bundle'} size="lg" fullWidth disabled={busy || selected.length === 0} onPress={() => void share()} />
+          <Button
+            title={busy ? 'Exporting…' : 'Share bundle'}
+            size="lg"
+            fullWidth
+            disabled={busy || selected.length === 0}
+            onPress={() => void share()}
+          />
         </View>
       ) : null}
     </View>

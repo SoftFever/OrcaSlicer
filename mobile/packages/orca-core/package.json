@@ -3,10 +3,6 @@
   "version": "0.0.1",
   "description": "OrcaSlicer's slicing core as a Nitro Module",
   "license": "AGPL-3.0-or-later",
-  "main": "lib/index",
-  "module": "lib/index",
-  "types": "src/index.ts",
-  "react-native": "src/index",
   "source": "src/index",
   "files": [
     "src",
@@ -20,6 +16,10 @@
     "*.podspec",
     "README.md"
   ],
+  "main": "lib/index",
+  "module": "lib/index",
+  "types": "src/index.ts",
+  "react-native": "src/index",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "specs": "nitrogen --logLevel=\"info\"",

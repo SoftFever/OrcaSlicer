@@ -1,15 +1,11 @@
 {
   "$schema": "https://nitro.margelo.com/nitro.schema.json",
-  "cxxNamespace": [
-    "orca"
-  ],
+  "cxxNamespace": ["orca"],
   "ios": {
     "iosModuleName": "NitroOrcaCore"
   },
   "android": {
-    "androidNamespace": [
-      "orca"
-    ],
+    "androidNamespace": ["orca"],
     "androidCxxLibName": "NitroOrcaCore"
   },
   "autolinking": {
@@ -26,9 +22,6 @@
       }
     }
   },
-  "ignorePaths": [
-    "**/node_modules",
-    "**/lib"
-  ],
+  "ignorePaths": ["**/node_modules", "**/lib"],
   "gitAttributesGeneratedFlag": true
 }

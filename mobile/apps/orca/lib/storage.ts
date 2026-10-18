@@ -10,8 +10,7 @@ export const storage = createMMKV({ id: 'orcaslicer' })
 // Async-shaped adapter for TanStack Query's async-storage persister. MMKV
 // itself is synchronous; the persister API expects Promises, so wrap.
 export const mmkvAsyncStorage = {
-  getItem: (key: string): Promise<string | null> =>
-    Promise.resolve(storage.getString(key) ?? null),
+  getItem: (key: string): Promise<string | null> => Promise.resolve(storage.getString(key) ?? null),
   setItem: (key: string, value: string): Promise<void> => {
     storage.set(key, value)
     return Promise.resolve()

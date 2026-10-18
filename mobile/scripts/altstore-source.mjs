@@ -89,7 +89,12 @@ const entry = {
   minOSVersion: meta.minOSVersion,
 }
 // Newest first: AltStore takes versions[0] as the latest.
-app.versions = [entry, ...app.versions.filter((v) => (v.marketingVersion ?? v.version) !== marketing)]
+app.versions = [
+  entry,
+  ...app.versions.filter((v) => (v.marketingVersion ?? v.version) !== marketing),
+]
 
 writeFileSync(sourcePath, JSON.stringify(source, null, 2) + '\n')
-console.log(`${sourcePath}: ${app.name} ${marketing} (${entry.buildVersion}), ${app.versions.length} version(s)`)
+console.log(
+  `${sourcePath}: ${app.name} ${marketing} (${entry.buildVersion}), ${app.versions.length} version(s)`,
+)

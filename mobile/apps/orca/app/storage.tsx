@@ -50,36 +50,45 @@ export default function StorageScreen(): React.JSX.Element {
             {formatBytes(total)}
           </Text>
           <Text className="text-footnote leading-5 text-neutral-500 dark:text-neutral-400">
-            Sizes here cover only the buckets Orca manages. iOS' Settings → General → iPhone Storage shows the full app footprint including the JS bundle and native frameworks.
+            Sizes here cover only the buckets Orca manages. iOS' Settings → General → iPhone Storage
+            shows the full app footprint including the JS bundle and native frameworks.
           </Text>
         </View>
       </Card>
       <Card padded index={1}>
         <View className="gap-2">
-          <Text className="text-headline font-semibold text-neutral-900 dark:text-neutral-100">Reset app</Text>
+          <Text className="text-headline font-semibold text-neutral-900 dark:text-neutral-100">
+            Reset app
+          </Text>
           <Text className="text-footnote leading-5 text-neutral-500 dark:text-neutral-400">
-            Nukes every bucket below, clears cached queries and preferences, and shows the onboarding again on next launch. Printer destinations you added by hand are gone too. There is no undo.
+            Nukes every bucket below, clears cached queries and preferences, and shows the
+            onboarding again on next launch. Printer destinations you added by hand are gone too.
+            There is no undo.
           </Text>
           <View className="pt-1">
             <Button
               title="Erase app data"
               variant="destructive"
               onPress={() => {
-                Alert.alert('Erase app data?', 'This deletes every profile, preset, autosaved plate, cached model, saved preference and pinned printer. There is no undo.', [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Erase',
-                    style: 'destructive',
-                    onPress: () => {
-                      for (const b of buckets) b.clear()
-                      storage.clearAll()
-                      resetOnboarding()
-                      setBuckets(usageBuckets())
-                      haptic('warn')
-                      showToast('App data erased. Restart to see onboarding.', 'success')
+                Alert.alert(
+                  'Erase app data?',
+                  'This deletes every profile, preset, autosaved plate, cached model, saved preference and pinned printer. There is no undo.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Erase',
+                      style: 'destructive',
+                      onPress: () => {
+                        for (const b of buckets) b.clear()
+                        storage.clearAll()
+                        resetOnboarding()
+                        setBuckets(usageBuckets())
+                        haptic('warn')
+                        showToast('App data erased. Restart to see onboarding.', 'success')
+                      },
                     },
-                  },
-                ])
+                  ],
+                )
               }}
             />
           </View>
@@ -89,12 +98,16 @@ export default function StorageScreen(): React.JSX.Element {
         <Card padded key={b.id} index={i + 2}>
           <View className="gap-2">
             <View className="flex-row items-baseline justify-between">
-              <Text className="text-headline font-semibold text-neutral-900 dark:text-neutral-100">{b.label}</Text>
+              <Text className="text-headline font-semibold text-neutral-900 dark:text-neutral-100">
+                {b.label}
+              </Text>
               <Text className="text-callout font-medium tabular-nums text-neutral-500 dark:text-neutral-400">
                 {formatBytes(b.size)}
               </Text>
             </View>
-            <Text className="text-footnote leading-5 text-neutral-500 dark:text-neutral-400">{b.description}</Text>
+            <Text className="text-footnote leading-5 text-neutral-500 dark:text-neutral-400">
+              {b.description}
+            </Text>
             <View className="pt-1">
               <Button
                 title={b.size === 0 ? 'Empty' : 'Clear'}

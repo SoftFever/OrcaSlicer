@@ -2,8 +2,23 @@ import { File } from 'expo-file-system'
 import * as Sharing from 'expo-sharing'
 import { Stack, useLocalSearchParams } from 'expo-router'
 import React, { useCallback, useMemo, useState } from 'react'
-import { Alert, FlatList, Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native'
-import { getOptionDefinitions, type OptionDefinition, type OrcaSession, type PresetKind } from 'react-native-orca-core'
+import {
+  Alert,
+  FlatList,
+  Modal,
+  Pressable,
+  ScrollView,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
+import {
+  getOptionDefinitions,
+  type OptionDefinition,
+  type OrcaSession,
+  type PresetKind,
+} from 'react-native-orca-core'
 
 import { useCore, useSession } from '@/lib/core'
 import { colors } from '@/lib/theme'
@@ -51,7 +66,13 @@ interface RowProps {
   last?: boolean
 }
 
-function OptionRow({ def, session, modified, onChanged, last = false }: RowProps): React.JSX.Element {
+function OptionRow({
+  def,
+  session,
+  modified,
+  onChanged,
+  last = false,
+}: RowProps): React.JSX.Element {
   const serialized = session.option(def.key)
   const kind = editorKind(def, serialized)
   const [draft, setDraft] = useState<string | null>(null)
@@ -90,7 +111,10 @@ function OptionRow({ def, session, modified, onChanged, last = false }: RowProps
             onPress={def.readonly ? undefined : () => setPicking(true)}
             className={`rounded-lg bg-neutral-100 px-3 py-1.5 dark:bg-neutral-800 ${def.readonly ? 'opacity-40' : 'active:opacity-60'}`}
           >
-            <Text className="text-callout font-medium text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
+            <Text
+              className="text-callout font-medium text-neutral-900 dark:text-neutral-100"
+              numberOfLines={1}
+            >
               {shown === '' ? 'Choose' : shown}
             </Text>
           </Pressable>
@@ -102,7 +126,9 @@ function OptionRow({ def, session, modified, onChanged, last = false }: RowProps
           >
             <View className="flex-1 bg-neutral-50 dark:bg-neutral-950">
               <View className="flex-row items-center justify-between border-b border-neutral-100 px-5 pb-3 pt-4 dark:border-neutral-800">
-                <Text className="text-body font-semibold text-neutral-900 dark:text-neutral-100">{label}</Text>
+                <Text className="text-body font-semibold text-neutral-900 dark:text-neutral-100">
+                  {label}
+                </Text>
                 <Pressable hitSlop={8} onPress={() => setPicking(false)}>
                   <Text className="text-subhead font-semibold text-neutral-500">Cancel</Text>
                 </Pressable>
@@ -125,7 +151,9 @@ function OptionRow({ def, session, modified, onChanged, last = false }: RowProps
                       <Text className="flex-1 text-subhead text-neutral-900 dark:text-neutral-100">
                         {t(def.enumLabels?.[i] ?? item)}
                       </Text>
-                      {isSelected ? <Text className="text-lead text-neutral-900 dark:text-white">✓</Text> : null}
+                      {isSelected ? (
+                        <Text className="text-lead text-neutral-900 dark:text-white">✓</Text>
+                      ) : null}
                     </Pressable>
                   )
                 }}
@@ -143,7 +171,8 @@ function OptionRow({ def, session, modified, onChanged, last = false }: RowProps
     case 'code':
     case 'raw': {
       const isPercent = kind === 'percent'
-      const shownValue = draft ?? (isPercent ? decodePercent(scalar) : kind === 'raw' ? serialized : scalar)
+      const shownValue =
+        draft ?? (isPercent ? decodePercent(scalar) : kind === 'raw' ? serialized : scalar)
       const inputClasses = [
         'rounded-lg bg-neutral-100 px-3 py-2 text-callout text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100',
         kind === 'code' ? 'min-h-[80px] text-left font-mono text-label' : 'min-w-[64px] text-right',
@@ -158,7 +187,9 @@ function OptionRow({ def, session, modified, onChanged, last = false }: RowProps
             multiline={kind === 'code'}
             autoCorrect={false}
             autoCapitalize="none"
-            keyboardType={kind === 'number' || kind === 'percent' ? 'numbers-and-punctuation' : 'default'}
+            keyboardType={
+              kind === 'number' || kind === 'percent' ? 'numbers-and-punctuation' : 'default'
+            }
             onChangeText={setDraft}
             onBlur={() => {
               if (draft === null) return
@@ -167,7 +198,9 @@ function OptionRow({ def, session, modified, onChanged, last = false }: RowProps
               setDraft(null)
             }}
           />
-          {def.unit !== '' ? <Text className="text-footnote text-neutral-500">{t(def.unit)}</Text> : null}
+          {def.unit !== '' ? (
+            <Text className="text-footnote text-neutral-500">{t(def.unit)}</Text>
+          ) : null}
           {isPercent ? <Text className="text-footnote text-neutral-500">%</Text> : null}
         </View>
       )
@@ -182,12 +215,18 @@ function OptionRow({ def, session, modified, onChanged, last = false }: RowProps
       <View className="flex-1">
         <View className="flex-row items-center gap-2">
           {modified ? <View className="h-1.5 w-1.5 rounded-full bg-accent-500" /> : null}
-          <Text className="text-callout font-medium text-neutral-900 dark:text-neutral-100" numberOfLines={2}>
+          <Text
+            className="text-callout font-medium text-neutral-900 dark:text-neutral-100"
+            numberOfLines={2}
+          >
             {label}
           </Text>
         </View>
         {def.tooltip !== '' ? (
-          <Text className="mt-1 text-label leading-4 text-neutral-500 dark:text-neutral-400" numberOfLines={3}>
+          <Text
+            className="mt-1 text-label leading-4 text-neutral-500 dark:text-neutral-400"
+            numberOfLines={3}
+          >
             {t(def.tooltip)}
           </Text>
         ) : null}
@@ -269,36 +308,63 @@ export default function SettingsScreen(): React.JSX.Element {
     const name = session.selectedPreset(kind)
     const path = session.presetFile(kind, name)
     if (path === '') {
-      Alert.alert('Nothing to export', 'Built-in presets have no file of their own. Save the preset under your own name first.')
+      Alert.alert(
+        'Nothing to export',
+        'Built-in presets have no file of their own. Save the preset under your own name first.',
+      )
       return
     }
-    const shareJson = () => Sharing.shareAsync(new File(path).uri, { mimeType: 'application/json', dialogTitle: `${name}.json` })
+    const shareJson = () =>
+      Sharing.shareAsync(new File(path).uri, {
+        mimeType: 'application/json',
+        dialogTitle: `${name}.json`,
+      })
     // A printer bundle carries the printer plus every user filament and process
     // that is compatible with it: what desktop's "Printer config bundle" writes.
     const shareBundle = () => {
-      const refs = kind === 'printer'
-        ? [
-            { kind: 'printer' as const, name },
-            ...session.presets('filament').filter((p) => p.isUser && p.isCompatible).map((p) => ({ kind: 'filament' as const, name: p.name })),
-            ...session.presets('process').filter((p) => p.isUser && p.isCompatible).map((p) => ({ kind: 'process' as const, name: p.name })),
-          ]
-        : [{ kind, name }]
+      const refs =
+        kind === 'printer'
+          ? [
+              { kind: 'printer' as const, name },
+              ...session
+                .presets('filament')
+                .filter((p) => p.isUser && p.isCompatible)
+                .map((p) => ({ kind: 'filament' as const, name: p.name })),
+              ...session
+                .presets('process')
+                .filter((p) => p.isUser && p.isCompatible)
+                .map((p) => ({ kind: 'process' as const, name: p.name })),
+            ]
+          : [{ kind, name }]
       void exportPresetBundle(session, refs, `Export ${name}`)
     }
-    Alert.alert('Export preset', 'Share as a single JSON file, or as a bundle the desktop app imports with File ▸ Import ▸ Import Configs.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'JSON file', onPress: () => void shareJson() },
-      { text: kind === 'printer' ? 'Printer bundle (.orca_printer)' : 'Bundle (.orca_bundle)', onPress: shareBundle },
-    ])
+    Alert.alert(
+      'Export preset',
+      'Share as a single JSON file, or as a bundle the desktop app imports with File ▸ Import ▸ Import Configs.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'JSON file', onPress: () => void shareJson() },
+        {
+          text: kind === 'printer' ? 'Printer bundle (.orca_printer)' : 'Bundle (.orca_bundle)',
+          onPress: shareBundle,
+        },
+      ],
+    )
   }, [session, kind])
 
   const definitions = useMemo(
-    () => getOptionDefinitions().filter((d) => d.kind === kind && visibleInMode(d, mode) && matchesQuery(d, query)),
+    () =>
+      getOptionDefinitions().filter(
+        (d) => d.kind === kind && visibleInMode(d, mode) && matchesQuery(d, query),
+      ),
     [kind, mode, query],
   )
   const groups = useMemo(() => groupByCategory(definitions), [definitions])
   const shownGroups = category === null ? groups : groups.filter((g) => g.category === category)
-  const modified = useMemo(() => new Set(session?.modifiedOptions(kind) ?? []), [session, kind, revision])
+  const modified = useMemo(
+    () => new Set(session?.modifiedOptions(kind) ?? []),
+    [session, kind, revision],
+  )
 
   if (session === null) {
     return <View className="flex-1 bg-neutral-50 dark:bg-neutral-950" />
@@ -311,8 +377,14 @@ export default function SettingsScreen(): React.JSX.Element {
       <Stack.Screen options={{ title: TITLES[kind] }} />
 
       <View className="border-b border-neutral-100 bg-white px-5 pb-3 pt-3 dark:border-neutral-800 dark:bg-neutral-900">
-        <Text className="mb-2 text-footnote text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
-          Editing <Text className="font-semibold text-neutral-900 dark:text-neutral-100">{currentPreset}</Text>
+        <Text
+          className="mb-2 text-footnote text-neutral-500 dark:text-neutral-400"
+          numberOfLines={1}
+        >
+          Editing{' '}
+          <Text className="font-semibold text-neutral-900 dark:text-neutral-100">
+            {currentPreset}
+          </Text>
         </Text>
         <View className="flex-row items-center rounded-2xl bg-neutral-100 px-3 py-2 dark:bg-neutral-800">
           <Text className="mr-2 text-subhead text-neutral-400">Search</Text>
@@ -330,7 +402,12 @@ export default function SettingsScreen(): React.JSX.Element {
         <View className="mt-3 flex-row items-center gap-2">
           <View className="flex-row gap-1.5">
             {MODES.map((m) => (
-              <Chip key={m} label={m.charAt(0).toUpperCase() + m.slice(1)} selected={mode === m} onPress={() => setMode(m)} />
+              <Chip
+                key={m}
+                label={m.charAt(0).toUpperCase() + m.slice(1)}
+                selected={mode === m}
+                onPress={() => setMode(m)}
+              />
             ))}
           </View>
           <View className="ml-auto flex-row gap-1">
@@ -382,7 +459,9 @@ export default function SettingsScreen(): React.JSX.Element {
           <CustomGCodeCard kind={kind} session={session} onChanged={onChanged} />
         ) : null}
         {shownGroups.length === 0 ? (
-          <Text className="px-4 py-8 text-center text-subhead text-neutral-500">No settings match.</Text>
+          <Text className="px-4 py-8 text-center text-subhead text-neutral-500">
+            No settings match.
+          </Text>
         ) : (
           shownGroups.map((group, groupIdx) => (
             <Card
@@ -442,10 +521,22 @@ function CustomGCodeCard({
   const entries = CUSTOM_GCODE_KEYS[kind]
   if (entries.length === 0) return null
   return (
-    <Card title="Custom G-code" className="mb-4" collapsible defaultCollapsed collapseKey={`settings:${kind}:custom-gcode`}>
+    <Card
+      title="Custom G-code"
+      className="mb-4"
+      collapsible
+      defaultCollapsed
+      collapseKey={`settings:${kind}:custom-gcode`}
+    >
       <View className="gap-4">
         {entries.map((entry) => (
-          <GCodeField key={entry.key} label={entry.label} field={entry.key} session={session} onChanged={onChanged} />
+          <GCodeField
+            key={entry.key}
+            label={entry.label}
+            field={entry.key}
+            session={session}
+            onChanged={onChanged}
+          />
         ))}
       </View>
     </Card>

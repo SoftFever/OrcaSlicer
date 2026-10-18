@@ -60,7 +60,9 @@ export function Alert({
       <View className="flex-row">
         <View className={`w-1 ${bar[tone]}`} />
         <View className="flex-1 gap-1 p-3">
-          <Text className={`text-caption font-semibold uppercase tracking-caps ${titleColor[tone]}`}>
+          <Text
+            className={`text-caption font-semibold uppercase tracking-caps ${titleColor[tone]}`}
+          >
             {title ?? label[tone]}
           </Text>
           {isString ? (

@@ -14,10 +14,23 @@ type Props = {
 // Small pill for filters, mode selectors and categories. Selected state fills
 // with the near-black primary tint used elsewhere; unselected is quiet on the
 // surface. Sized to sit inside a horizontal scroll strip.
-export function Chip({ label, selected = false, disabled = false, onPress, className }: Props): React.JSX.Element {
+export function Chip({
+  label,
+  selected = false,
+  disabled = false,
+  onPress,
+  className,
+}: Props): React.JSX.Element {
   return (
     <Pressable
-      onPress={disabled ? undefined : () => { haptic('toggle'); onPress?.() }}
+      onPress={
+        disabled
+          ? undefined
+          : () => {
+              haptic('toggle')
+              onPress?.()
+            }
+      }
       className={[
         'rounded-full px-3 py-1.5',
         selected

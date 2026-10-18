@@ -138,13 +138,17 @@ function CalibrationCard({
         {modelUrl !== null ? (
           <Button
             title={downloading ? 'Downloading…' : 'Download & load model + apply'}
-            onPress={() => { void downloadAndLoad() }}
+            onPress={() => {
+              void downloadAndLoad()
+            }}
             disabled={downloading}
             fullWidth
           />
         ) : null}
         <Button
-          title={modelUrl !== null ? 'Apply preset only (keep current plate)' : 'Apply to current preset'}
+          title={
+            modelUrl !== null ? 'Apply preset only (keep current plate)' : 'Apply to current preset'
+          }
           variant={modelUrl !== null ? 'secondary' : 'primary'}
           onPress={apply}
           fullWidth

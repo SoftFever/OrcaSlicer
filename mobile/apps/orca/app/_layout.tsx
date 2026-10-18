@@ -22,7 +22,10 @@ import { ToastHost } from '@/ui/ToastHost'
 // PersistQueryClientProvider owns the shared cache for GitHub profile
 // lookups and per-printer status polls, backed by an MMKV-persisted store
 // so vendor listings survive an app restart with no network hit.
-const persister = createAsyncStoragePersister({ storage: mmkvAsyncStorage, key: 'orca-query-cache' })
+const persister = createAsyncStoragePersister({
+  storage: mmkvAsyncStorage,
+  key: 'orca-query-cache',
+})
 
 export default function RootLayout(): React.JSX.Element {
   const { dark, header, canvas, ink, tint } = useThemeColors()
@@ -79,7 +82,10 @@ export default function RootLayout(): React.JSX.Element {
           <Stack.Screen name="about" options={{ title: 'About' }} />
           <Stack.Screen name="help/index" options={{ title: 'Help' }} />
           <Stack.Screen name="account/index" options={{ title: 'Orca Cloud' }} />
-          <Stack.Screen name="account/login" options={{ title: 'Sign in', presentation: 'modal' }} />
+          <Stack.Screen
+            name="account/login"
+            options={{ title: 'Sign in', presentation: 'modal' }}
+          />
           <Stack.Screen name="help/[topic]" options={{ title: 'Guide' }} />
         </Stack>
         <ToastHost />

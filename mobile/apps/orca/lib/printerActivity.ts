@@ -4,7 +4,10 @@ import { Platform } from 'react-native'
 import { loadPrinters } from './printers'
 import { queryClient } from './queries'
 import type { PrinterStatus } from './printers'
-import { PrintProgressActivity, type PrintActivityProps } from '@/widgets/PrintProgress.liveactivity'
+import {
+  PrintProgressActivity,
+  type PrintActivityProps,
+} from '@/widgets/PrintProgress.liveactivity'
 import { PrinterStatusWidget, type PrinterWidgetProps } from '@/widgets/PrinterStatus.widget'
 
 // Drives the home screen widget and the print-progress Live Activity.
@@ -15,9 +18,14 @@ import { PrinterStatusWidget, type PrinterWidgetProps } from '@/widgets/PrinterS
 // of the screens entirely — nothing here has to be wired into a component, and
 // no extra network traffic is created.
 
-const widget = Platform.OS === 'ios' ? createWidget<PrinterWidgetProps>('PrinterStatus', PrinterStatusWidget) : null
+const widget =
+  Platform.OS === 'ios'
+    ? createWidget<PrinterWidgetProps>('PrinterStatus', PrinterStatusWidget)
+    : null
 const activities =
-  Platform.OS === 'ios' ? createLiveActivity<PrintActivityProps>('PrintProgress', PrintProgressActivity) : null
+  Platform.OS === 'ios'
+    ? createLiveActivity<PrintActivityProps>('PrintProgress', PrintProgressActivity)
+    : null
 
 /** Hosts report free text; Moonraker says "printing", OctoPrint "Printing". */
 function isPrinting(state: string): boolean {

@@ -5,7 +5,16 @@ import { Alert, FlatList, Modal, Pressable, ScrollView, Text, TextInput, View } 
 
 import { scanLocalNetwork, type DiscoveredHost } from '@/lib/discovery'
 import { colors } from '@/lib/theme'
-import { clientFor, HOST_KINDS, loadPrinters, normalizeUrl, savePrinters, type PrinterHost, type PrinterHostKind, type PrinterStatus } from '@/lib/printers'
+import {
+  clientFor,
+  HOST_KINDS,
+  loadPrinters,
+  normalizeUrl,
+  savePrinters,
+  type PrinterHost,
+  type PrinterHostKind,
+  type PrinterStatus,
+} from '@/lib/printers'
 import { queryKeys } from '@/lib/queries'
 import { Alert as InlineAlert } from '@/ui/Alert'
 import { Avatar } from '@/ui/Avatar'
@@ -43,7 +52,10 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
     setScanning(true)
     setFound([])
     try {
-      await scanLocalNetwork((h) => setFound((prev) => (prev.some((p) => p.url === h.url) ? prev : [...prev, h])), controller.signal)
+      await scanLocalNetwork(
+        (h) => setFound((prev) => (prev.some((p) => p.url === h.url) ? prev : [...prev, h])),
+        controller.signal,
+      )
     } finally {
       if (scanAbort.current === controller) setScanning(false)
     }
@@ -99,7 +111,12 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
         <Card title="Host" padded>
           <View className="flex-row gap-1.5">
             {HOST_KINDS.map((k) => (
-              <Chip key={k.kind} label={k.label} selected={kind === k.kind} onPress={() => setKind(k.kind)} />
+              <Chip
+                key={k.kind}
+                label={k.label}
+                selected={kind === k.kind}
+                onPress={() => setKind(k.kind)}
+              />
             ))}
           </View>
         </Card>
@@ -107,9 +124,19 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
         {initial === null ? (
           <Card
             title="Discover on network"
-            subtitle={scanning ? `Scanning… ${found.length > 0 ? `${found.length} found` : ''}` : 'Sweep the local /24 for Moonraker or OctoPrint'}
+            subtitle={
+              scanning
+                ? `Scanning… ${found.length > 0 ? `${found.length} found` : ''}`
+                : 'Sweep the local /24 for Moonraker or OctoPrint'
+            }
             padded
-            action={<Button title={scanning ? 'Stop' : 'Scan'} variant="secondary" onPress={scanning ? () => scanAbort.current?.abort() : runScan} />}
+            action={
+              <Button
+                title={scanning ? 'Stop' : 'Scan'}
+                variant="secondary"
+                onPress={scanning ? () => scanAbort.current?.abort() : runScan}
+              />
+            }
           >
             {found.length === 0 && !scanning ? (
               <Text className="text-footnote text-neutral-500 dark:text-neutral-400">
@@ -127,13 +154,17 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
                   className="flex-row items-center gap-3 rounded-xl bg-neutral-100 px-3 py-2 active:bg-neutral-200 dark:bg-neutral-800 dark:active:bg-neutral-700"
                 >
                   <View className="flex-1">
-                    <Text className="text-callout font-medium text-neutral-900 dark:text-neutral-100">{h.ip}</Text>
+                    <Text className="text-callout font-medium text-neutral-900 dark:text-neutral-100">
+                      {h.ip}
+                    </Text>
                     <Text className="mt-0.5 text-label text-neutral-500 dark:text-neutral-400">
                       {h.kind === 'moonraker' ? 'Moonraker' : 'OctoPrint'}
                       {h.info !== '' ? ` · ${h.info}` : ''}
                     </Text>
                   </View>
-                  <Text className="text-label font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Use</Text>
+                  <Text className="text-label font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                    Use
+                  </Text>
                 </Pressable>
               ))
             )}
@@ -167,7 +198,10 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
         </Card>
 
         {testResult !== null ? (
-          <InlineAlert tone={testResult.ok ? 'success' : 'critical'} title={testResult.ok ? 'Connected' : 'Connection failed'}>
+          <InlineAlert
+            tone={testResult.ok ? 'success' : 'critical'}
+            title={testResult.ok ? 'Connected' : 'Connection failed'}
+          >
             {testResult.text}
           </InlineAlert>
         ) : null}
@@ -197,14 +231,16 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
 }
 
 function StatusDot({ ok }: { ok: boolean | null }): React.JSX.Element {
-  const color = ok === null ? 'bg-neutral-300 dark:bg-neutral-600' : ok ? 'bg-emerald-500' : 'bg-red-500'
+  const color =
+    ok === null ? 'bg-neutral-300 dark:bg-neutral-600' : ok ? 'bg-emerald-500' : 'bg-red-500'
   return <View className={`h-2 w-2 rounded-full ${color}`} />
 }
 
 function describe(status: PrinterStatus): string {
   const parts: string[] = [status.state]
   if (status.progress !== undefined) parts.push(`${Math.round(status.progress * 100)}%`)
-  if (status.nozzleTemperature !== undefined) parts.push(`nozzle ${Math.round(status.nozzleTemperature)}°`)
+  if (status.nozzleTemperature !== undefined)
+    parts.push(`nozzle ${Math.round(status.nozzleTemperature)}°`)
   if (status.bedTemperature !== undefined) parts.push(`bed ${Math.round(status.bedTemperature)}°`)
   return parts.join(' · ')
 }
@@ -237,15 +273,24 @@ function HostRow({
       <Avatar text={host.name} size={40} />
       <View className="flex-1">
         <View className="flex-row items-center gap-2">
-          <Text className="text-subhead font-semibold tracking-tight text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
+          <Text
+            className="text-subhead font-semibold tracking-tight text-neutral-900 dark:text-neutral-100"
+            numberOfLines={1}
+          >
             {host.name}
           </Text>
           <StatusDot ok={query.isError ? false : query.isSuccess ? true : null} />
         </View>
-        <Text className="mt-0.5 text-label text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
+        <Text
+          className="mt-0.5 text-label text-neutral-500 dark:text-neutral-400"
+          numberOfLines={1}
+        >
           {host.url}
         </Text>
-        <Text className="mt-0.5 text-label text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
+        <Text
+          className="mt-0.5 text-label text-neutral-500 dark:text-neutral-400"
+          numberOfLines={1}
+        >
           {query.isError
             ? 'Offline'
             : query.data !== undefined
@@ -253,10 +298,20 @@ function HostRow({
               : 'Checking…'}
         </Text>
       </View>
-      <Pressable onPress={onEdit} hitSlop={8} className="rounded-full bg-neutral-100 px-3 py-1.5 active:opacity-60 dark:bg-neutral-800">
-        <Text className="text-label font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">Edit</Text>
+      <Pressable
+        onPress={onEdit}
+        hitSlop={8}
+        className="rounded-full bg-neutral-100 px-3 py-1.5 active:opacity-60 dark:bg-neutral-800"
+      >
+        <Text className="text-label font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">
+          Edit
+        </Text>
       </Pressable>
-      <Pressable onPress={onDelete} hitSlop={8} className="ml-1 rounded-full px-2 py-1.5 active:opacity-60">
+      <Pressable
+        onPress={onDelete}
+        hitSlop={8}
+        className="ml-1 rounded-full px-2 py-1.5 active:opacity-60"
+      >
         <Text className="text-callout font-semibold text-red-500">✕</Text>
       </Pressable>
     </Pressable>
@@ -298,9 +353,13 @@ export default function PrintersScreen(): React.JSX.Element {
         data={printers}
         keyExtractor={(p) => p.id}
         contentContainerClassName="px-4 pt-3 pb-8"
-        ItemSeparatorComponent={() => <View className="ml-16 h-px bg-neutral-100 dark:bg-neutral-800" />}
+        ItemSeparatorComponent={() => (
+          <View className="ml-16 h-px bg-neutral-100 dark:bg-neutral-800" />
+        )}
         renderItem={({ item, index }) => (
-          <View className={`overflow-hidden ${index === 0 ? 'rounded-t-2xl' : ''} ${index === printers.length - 1 ? 'rounded-b-2xl' : ''}`}>
+          <View
+            className={`overflow-hidden ${index === 0 ? 'rounded-t-2xl' : ''} ${index === printers.length - 1 ? 'rounded-b-2xl' : ''}`}
+          >
             <HostRow
               host={item}
               onEdit={() => setEditing({ host: item })}
@@ -313,7 +372,8 @@ export default function PrintersScreen(): React.JSX.Element {
           <View className="mt-6">
             <Card padded>
               <Text className="text-subhead text-neutral-500 dark:text-neutral-400">
-                No destinations yet. Add a Klipper (Moonraker) or OctoPrint host to send G-code and monitor prints from the app.
+                No destinations yet. Add a Klipper (Moonraker) or OctoPrint host to send G-code and
+                monitor prints from the app.
               </Text>
             </Card>
           </View>

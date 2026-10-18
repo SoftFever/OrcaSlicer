@@ -78,7 +78,8 @@ export const useViewportStore = create<ViewportState>((set) => ({
   setSelectedId: (selectedId) => set({ selectedId }),
   setObjectTool: (objectTool) => set({ objectTool }),
   reset: () =>
-    set({      mode: 'scene',
+    set({
+      mode: 'scene',
       minLayer: -1,
       maxLayer: -1,
       maxTime: -1,

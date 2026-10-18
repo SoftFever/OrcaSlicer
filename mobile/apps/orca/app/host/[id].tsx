@@ -3,13 +3,11 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 
-import { clientFor, loadPrinters, type HeatedTool, type PrinterHost, type PrinterStatus } from '@/lib/printers'
-import { queryClient, queryKeys } from '@/lib/queries'
+import { clientFor, loadPrinters, type PrinterHost, type PrinterStatus } from '@/lib/printers'
+import { queryKeys } from '@/lib/queries'
 import { Alert as InlineAlert } from '@/ui/Alert'
 import { Button } from '@/ui/Button'
 import { Card } from '@/ui/Card'
-import { PromptSheet } from '@/ui/PromptSheet'
-import { WebcamView } from '@/ui/WebcamView'
 
 function formatEta(progress: number | undefined): string | null {
   // OctoPrint / Moonraker do not always expose remaining time cleanly, so we
@@ -35,12 +33,16 @@ function TempTile({
       onPress={onPress}
       className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 active:opacity-70 dark:bg-neutral-800"
     >
-      <Text className="text-label uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{label}</Text>
+      <Text className="text-label uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+        {label}
+      </Text>
       <Text className="mt-1 text-title2 font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
         {temp !== undefined ? `${Math.round(temp)}°` : '—'}
       </Text>
       {target !== undefined && target > 0 ? (
-        <Text className="text-label text-neutral-500 dark:text-neutral-400">Target {Math.round(target)}°</Text>
+        <Text className="text-label text-neutral-500 dark:text-neutral-400">
+          Target {Math.round(target)}°
+        </Text>
       ) : (
         <Text className="text-label text-neutral-500 dark:text-neutral-400">Tap to set</Text>
       )}
@@ -78,7 +80,8 @@ export default function HostDetailScreen(): React.JSX.Element {
 
   const status = useQuery<PrinterStatus>({
     queryKey: queryKeys.printerStatus(id ?? ''),
-    queryFn: () => (host !== null ? clientFor(host).status(host) : Promise.reject(new Error('no host'))),
+    queryFn: () =>
+      host !== null ? clientFor(host).status(host) : Promise.reject(new Error('no host')),
     enabled: host !== null,
     refetchInterval: 4000,
     refetchIntervalInBackground: false,
@@ -91,7 +94,8 @@ export default function HostDetailScreen(): React.JSX.Element {
       if (host === null) throw new Error('no host')
       await clientFor(host)[action](host)
     },
-    onSuccess: (): Promise<void> => client.invalidateQueries({ queryKey: queryKeys.printerStatus(id ?? '') }),
+    onSuccess: (): Promise<void> =>
+      client.invalidateQueries({ queryKey: queryKeys.printerStatus(id ?? '') }),
     onError: (e: unknown): void => Alert.alert('Control failed', String(e)),
   })
   const pause = useMutation(controlMutation('pause'))
@@ -120,7 +124,9 @@ export default function HostDetailScreen(): React.JSX.Element {
 
   const s = status.data
   const isPaused = s?.state.toLowerCase().includes('pause') === true
-  const isPrinting = s !== undefined && (s.state.toLowerCase().includes('print') || s.state.toLowerCase().includes('busy'))
+  const isPrinting =
+    s !== undefined &&
+    (s.state.toLowerCase().includes('print') || s.state.toLowerCase().includes('busy'))
 
   return (
     <View className="flex-1 bg-neutral-50 dark:bg-neutral-950">

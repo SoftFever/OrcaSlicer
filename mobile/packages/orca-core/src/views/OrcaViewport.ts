@@ -4,6 +4,9 @@ import OrcaViewportConfig from '../../nitrogen/generated/shared/json/OrcaViewpor
 import type { OrcaViewportMethods, OrcaViewportProps } from '../specs/OrcaViewport.nitro'
 
 /** The 3D viewport, rendered natively (Metal on iOS). */
-export const OrcaViewport = getHostComponent<OrcaViewportProps, OrcaViewportMethods>('OrcaViewport', () => OrcaViewportConfig)
+export const OrcaViewport = getHostComponent<OrcaViewportProps, OrcaViewportMethods>(
+  'OrcaViewport',
+  () => OrcaViewportConfig,
+)
 
 export type OrcaViewportRef = HybridRef<OrcaViewportProps, OrcaViewportMethods>

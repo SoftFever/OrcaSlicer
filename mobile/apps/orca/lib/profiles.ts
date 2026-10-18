@@ -77,8 +77,10 @@ async function download(
       const acceptable = received > 0 ? response.status === 206 : response.ok
       if (!acceptable) throw new Error(`HTTP ${response.status} downloading ${entry.path}`)
       const contentLengthHeader = response.headers.get('Content-Length')
-      const contentLength = contentLengthHeader !== null ? Number.parseInt(contentLengthHeader, 10) : 0
-      if (total === 0 && Number.isFinite(contentLength) && contentLength > 0) total = received + contentLength
+      const contentLength =
+        contentLengthHeader !== null ? Number.parseInt(contentLengthHeader, 10) : 0
+      if (total === 0 && Number.isFinite(contentLength) && contentLength > 0)
+        total = received + contentLength
       // fetch on iOS does not expose a stream reader in every RN release;
       // read as an ArrayBuffer per attempt and treat any error as
       // recoverable via a fresh Range request from `received`.
@@ -91,7 +93,8 @@ async function download(
       const message = String(e)
       if (message.includes('cancelled')) throw e
       attempt += 1
-      if (attempt > MAX_RETRIES) throw new Error(`Gave up on ${entry.path} after ${attempt} attempts: ${message}`)
+      if (attempt > MAX_RETRIES)
+        throw new Error(`Gave up on ${entry.path} after ${attempt} attempts: ${message}`)
       await new Promise<void>((r) => setTimeout(r, BASE_BACKOFF_MS * 2 ** (attempt - 1)))
     }
   }
@@ -183,7 +186,9 @@ export function installedVendors(): string[] {
 }
 
 /** Vendor ids available at the source. One GitHub API call. */
-export async function availableVendors(source: ProfileSource = DEFAULT_PROFILE_SOURCE): Promise<string[]> {
+export async function availableVendors(
+  source: ProfileSource = DEFAULT_PROFILE_SOURCE,
+): Promise<string[]> {
   const entries = await listDirectory(source, 'resources/profiles')
   return entries
     .filter((entry) => entry.type === 'file' && entry.name.endsWith('.json'))
@@ -203,7 +208,9 @@ export interface AvailablePrinter {
  * top-level manifest for its machine_model_list; one small HTTP fetch per
  * vendor, results cached by the caller. Empty or bad manifests are skipped.
  */
-export async function availablePrinters(source: ProfileSource = DEFAULT_PROFILE_SOURCE): Promise<AvailablePrinter[]> {
+export async function availablePrinters(
+  source: ProfileSource = DEFAULT_PROFILE_SOURCE,
+): Promise<AvailablePrinter[]> {
   const vendors = await availableVendors(source)
   const results = await Promise.all(
     vendors.map(async (vendor) => {
@@ -211,7 +218,10 @@ export async function availablePrinters(source: ProfileSource = DEFAULT_PROFILE_
         const url = `https://raw.githubusercontent.com/${source.owner}/${source.repo}/${source.ref}/resources/profiles/${encodeURIComponent(vendor)}.json`
         const response = await fetch(url)
         if (!response.ok) return [] as AvailablePrinter[]
-        const manifest = (await response.json()) as { name?: string; machine_model_list?: Array<{ name?: string }> }
+        const manifest = (await response.json()) as {
+          name?: string
+          machine_model_list?: Array<{ name?: string }>
+        }
         const models = manifest.machine_model_list ?? []
         const vendorName = manifest.name ?? vendor
         return models
@@ -264,7 +274,10 @@ interface MachineModel {
  * of files whenever the selected model shared a stem with another one (X-Max
  * / X-Max 3, X-Plus / X-Plus 3, Q2 / Q2C).
  */
-function makeOtherModelFilter(selectedModel: string, allModels: string[]): (filename: string) => boolean {
+function makeOtherModelFilter(
+  selectedModel: string,
+  allModels: string[],
+): (filename: string) => boolean {
   const otherModels = allModels.filter((m) => m !== selectedModel)
   if (otherModels.length === 0) return () => false
   const trailing = (m: string): string => m.replace(/^\S+\s+/, '')
@@ -315,7 +328,9 @@ async function downloadVendorTree(
   scopeToModel: string | undefined,
 ): Promise<void> {
   const root = profilesDirectory()
-  const index = (await listDirectory(source, 'resources/profiles')).find((entry) => entry.name === `${vendor}.json`)
+  const index = (await listDirectory(source, 'resources/profiles')).find(
+    (entry) => entry.name === `${vendor}.json`,
+  )
   if (index === undefined) {
     throw new Error(`Vendor ${vendor} not found at ${source.owner}/${source.repo}@${source.ref}`)
   }
@@ -337,9 +352,11 @@ async function downloadVendorTree(
       const selected = (manifest.machine_model_list ?? []).find((m) => m.name === scopeToModel)
       if (selected?.sub_path !== undefined) {
         const model = await fetchModelAssets(source, vendor, selected.sub_path)
-        allowedRootAssets = new Set([model.bed_model, model.bed_texture, model.hotend_model].filter(
-          (v): v is string => typeof v === 'string' && v.length > 0,
-        ))
+        allowedRootAssets = new Set(
+          [model.bed_model, model.bed_texture, model.hotend_model].filter(
+            (v): v is string => typeof v === 'string' && v.length > 0,
+          ),
+        )
       }
     } catch {
       /* If the manifest read fails, fall back to the full-vendor install. */
@@ -351,7 +368,8 @@ async function downloadVendorTree(
   // Which folders inside the vendor tree carry model-scoped presets. Files
   // outside these folders (SLAs, README, etc.) are always kept.
   const SCOPED_FOLDERS = new Set(['machine', 'filament', 'process'])
-  const isBinaryAsset = (name: string): boolean => /\.(stl|svg|png|jpg|jpeg|glb|obj|dxf)$/i.test(name)
+  const isBinaryAsset = (name: string): boolean =>
+    /\.(stl|svg|png|jpg|jpeg|glb|obj|dxf)$/i.test(name)
 
   const files: Array<{ entry: GitHubEntry; into: Directory }> = [{ entry: index, into: root }]
   const walk = async (path: string, into: Directory, folder: string | null): Promise<void> => {
@@ -435,9 +453,9 @@ function pruneVendorManifest(root: Directory, vendor: string): void {
   const next = {
     ...manifest,
     machine_model_list: keep(manifest.machine_model_list),
-    machine_list:       keep(manifest.machine_list),
-    process_list:       keep(manifest.process_list),
-    filament_list:      keep(manifest.filament_list),
+    machine_list: keep(manifest.machine_list),
+    process_list: keep(manifest.process_list),
+    filament_list: keep(manifest.filament_list),
   }
   manifestFile.write(JSON.stringify(next, null, 2))
 }
