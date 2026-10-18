@@ -435,8 +435,6 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
     // AFC assignments belong to an immediate print, not a queued upload whose
     // lane mappings might change before it starts.
     http.form_add("print", want_start && !map_afc ? "true" : "false");
-    if (!upload_parent_path.empty())
-        http.form_add("path", upload_parent_path.generic_string());
     http.form_add_file("file", upload_data.source_path.string(), upload_filename.string())
         .on_complete([&](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: upload HTTP %2%: %3%") % name % status % body;
@@ -459,7 +457,7 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
                 } else {
                     //ORCA: fallback if the server response omits item.path (older Moonraker, or
                     //      a buddy-fork that returns a slimmer envelope). Use the original filename.
-                    uploaded_path = upload_data.upload_path.generic_string();
+                    uploaded_path = upload_filename.string();
                     BOOST_LOG_TRIVIAL(warning) << boost::format(
                         "%1%: upload response missing item.path, falling back to original filename `%2%`")
                         % name % uploaded_path;
@@ -470,7 +468,7 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
                 BOOST_LOG_TRIVIAL(warning) << boost::format(
                     "%1%: could not parse upload response (%2%); falling back to original filename")
                     % name % ex.what();
-                uploaded_path = upload_data.upload_path.generic_string();
+                uploaded_path = upload_filename.string();
             }
         })
         .on_error([&](std::string body, std::string error, unsigned status) {

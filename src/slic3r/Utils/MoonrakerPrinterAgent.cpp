@@ -357,6 +357,7 @@ int MoonrakerPrinterAgent::send_gcode(PrintParams params, bool start_print,
     upload.post_action = PrintHostPostUploadAction::None;
     Moonraker host(connection.base_url, connection.api_key);
     wxString error;
+    int error_code = start_print ? BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED : BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED;
     bool success = host.upload(std::move(upload),
         [&](Http::Progress progress, bool& cancel) {
             if (cancel || cancelled()) { cancel = true; return; }
@@ -369,6 +370,7 @@ int MoonrakerPrinterAgent::send_gcode(PrintParams params, bool start_print,
         });
     bool applied = false;
     if (success && start_print && !cancelled()) {
+        error_code = BAMBU_NETWORK_ERR_PRINT_LP_PUBLISH_MSG_FAILED;
         if (!selection.empty()) {
             success = host.apply_afc_mapping(selection, applied, error, cancelled);
         } else {
@@ -394,9 +396,8 @@ int MoonrakerPrinterAgent::send_gcode(PrintParams params, bool start_print,
         return BAMBU_NETWORK_ERR_CANCELED;
     }
     if (!success) {
-        const int code = start_print ? BAMBU_NETWORK_ERR_PRINT_LP_PUBLISH_MSG_FAILED : BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED;
-        if (update_fn) update_fn(PrintingStageERROR, code, error.ToUTF8().data());
-        return code;
+        if (update_fn) update_fn(PrintingStageERROR, error_code, error.ToUTF8().data());
+        return error_code;
     }
     if (update_fn)
         update_fn(PrintingStageFinished, 100, start_print ? _u8L("Print started") : _u8L("File uploaded"));

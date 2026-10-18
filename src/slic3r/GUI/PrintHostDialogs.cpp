@@ -783,8 +783,8 @@ void MoonrakerPrintHostSendDialog::init()
         auto* card = new MaterialMapWidget(this, filament.id,
             project_color.IsOk() ? project_color : *wxWHITE,
             from_u8(filament.get_display_filament_type()), {}, 112);
-        const auto matches = [type = filament.type](const MaterialMappingSlot& slot) {
-            return boost::iequals(boost::trim_copy(slot.material_name), boost::trim_copy(type));
+        const auto matches = [type = AFCMapping::normalize_material(filament.type)](const MaterialMappingSlot& slot) {
+            return AFCMapping::normalize_material(slot.material_name) == type;
         };
         card->update_popup_slots(slots, matches);
         const MaterialMappingSlot* best = nullptr;
