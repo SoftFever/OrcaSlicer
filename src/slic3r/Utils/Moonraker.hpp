@@ -7,7 +7,7 @@
 #include <wx/arrstr.h>
 
 #include "PrintHost.hpp"
-#include "libslic3r/AFCMapping.hpp"
+#include "libslic3r/LaneMapping.hpp"
 
 class wxArrayString;
 
@@ -16,7 +16,7 @@ namespace Slic3r {
 
 // GET-only transport for AFC status and pre-print mapping verification.
 bool fetch_afc_status(const std::string& base_url, const std::string& api_key,
-                      AFCMapping& mapping, bool& detected, std::string& error,
+                      LaneMapping& mapping, bool& detected, std::string& error,
                       const std::string& ca_file = {}, bool ssl_revoke_best_effort = false);
 
 class DynamicPrintConfig;
@@ -55,8 +55,8 @@ public:
     PrintHostPostUploadActions get_post_upload_actions() const override { return PrintHostPostUploadAction::StartPrint; }
     std::string get_host() const override { return m_host; }
     bool get_storage(wxArrayString &storage_path, wxArrayString &storage_name) const override;
-    bool fetch_afc_status(AFCMapping& mapping, bool& detected, wxString& error) const;
-    bool apply_afc_mapping(const AFCSelections& selection, bool& applied, wxString& error,
+    bool fetch_afc_status(LaneMapping& mapping, bool& detected, wxString& error) const;
+    bool apply_afc_mapping(const LaneSelections& selection, bool& applied, wxString& error,
                            const std::function<bool()>& cancelled = {}) const;
     const std::string& get_apikey() const { return m_apikey; }
     const std::string& get_cafile() const { return m_cafile; }

@@ -10,6 +10,7 @@ add_executable(${_TEST_NAME}_tests
     test_precise_seam.cpp
     test_aabbindirect.cpp
     test_afc_mapping.cpp
+    test_lane_mapping.cpp
     test_appconfig.cpp
     test_arachne_walls.cpp
     test_arrange.cpp

@@ -1,5 +1,5 @@
 #include "PrintHostDialogs.hpp"
-#include "libslic3r/AFCMapping.hpp"
+#include "libslic3r/LaneMapping.hpp"
 
 #include <algorithm>
 #include <boost/algorithm/string/trim.hpp>
@@ -743,7 +743,7 @@ MoonrakerPrintHostSendDialog::MoonrakerPrintHostSendDialog(const fs::path& path,
                                                          const wxArrayString& storage_paths,
                                                          const wxArrayString& storage_names,
                                                          bool switch_to_device_tab,
-                                                         AFCMapping mapping,
+                                                         LaneMapping mapping,
                                                          std::vector<FilamentInfo> project_filaments)
     : PrintHostSendDialog(path, post_actions, groups, storage_paths, storage_names, switch_to_device_tab)
     , m_mapping(std::move(mapping))
@@ -772,8 +772,8 @@ void MoonrakerPrintHostSendDialog::init()
         auto* card = new MaterialMapWidget(this, filament.id,
             project_color.IsOk() ? project_color : *wxWHITE,
             from_u8(filament.get_display_filament_type()), {}, 112);
-        const auto matches = [type = AFCMapping::normalize_material(filament.type)](const MaterialMappingSlot& slot) {
-            return AFCMapping::normalize_material(slot.material_name) == type;
+        const auto matches = [type = LaneMapping::normalize_material(filament.type)](const MaterialMappingSlot& slot) {
+            return LaneMapping::normalize_material(slot.material_name) == type;
         };
         card->update_popup_slots(slots, matches);
         const MaterialMappingSlot* best = nullptr;
@@ -831,9 +831,9 @@ void MoonrakerPrintHostSendDialog::EndModal(int ret)
     PrintHostSendDialog::EndModal(ret);
 }
 
-AFCSelections MoonrakerPrintHostSendDialog::collect_assignments() const
+LaneSelections MoonrakerPrintHostSendDialog::collect_assignments() const
 {
-    AFCSelections assignments;
+    LaneSelections assignments;
     for (const auto& row : m_mapping_rows) {
         const auto* card = as_material_map_widget(row.card);
         if (card != nullptr && card->selected_slot_id() > 0
@@ -847,7 +847,7 @@ std::map<std::string, std::string> MoonrakerPrintHostSendDialog::extendedInfo() 
 {
     if (post_action() != PrintHostPostUploadAction::StartPrint || m_mapping_rows.empty())
         return {};
-    return {{"afc_mapping", serialize_afc_selection(collect_assignments())}};
+    return {{"filament_mapping", serialize_lane_selection(collect_assignments())}};
 }
 
 FlashforgePrintHostSendDialog::FlashforgePrintHostSendDialog(const fs::path&             path,

@@ -4,7 +4,7 @@
 #include "CalibUtils.hpp"
 #include "Flashforge.hpp"
 #include "../Utils/Moonraker.hpp"
-#include "libslic3r/AFCMapping.hpp"
+#include "libslic3r/LaneMapping.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r_version.h"
 
@@ -21052,7 +21052,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
                                                                    project_filaments);
         } else if (host_type == htMoonraker) {
             auto* moonraker = dynamic_cast<Moonraker*>(upload_job.printhost.get());
-            AFCMapping mapping;
+            LaneMapping mapping;
             bool detected = false;
             wxString error;
             if (moonraker != nullptr) {

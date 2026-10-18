@@ -10,12 +10,14 @@
 
 #include <nlohmann/json.hpp>
 #include "libslic3r/AFCMapping.hpp"
+#include "libslic3r/LaneMapping.hpp"
 
 using Slic3r::AFCMapping;
-using Slic3r::AFCSelections;
+using Slic3r::LaneMapping;
+using Slic3r::LaneSelections;
 using Slic3r::AFC_MAX_TOOLS;
-using Slic3r::parse_afc_selection;
-using Slic3r::serialize_afc_selection;
+using Slic3r::parse_lane_selection;
+using Slic3r::serialize_lane_selection;
 using nlohmann::json;
 
 namespace {
@@ -26,23 +28,23 @@ json status_fixture()
         {"AFC", {{"lanes", {"CANVAS_1", "CANVAS_2", "CANVAS_3", "CANVAS_4"}},
                  {"current_state", "Idle"}, {"error_state", false}, {"multiple_tool_mapping", false}}},
         {"print_stats", {{"state", "standby"}}},
-        {"AFC_lane CANVAS_1", {{"map", {"T1"}}, {"material", "PETG-CF"}, {"color", "#2E6194"}, {"load", true}, {"prep", true}, {"extruder_temp", 245.0}}},
-        {"AFC_lane CANVAS_2", {{"map", {"T0"}}, {"material", "PLA"}, {"color", "#747C7E"}, {"load", true}, {"prep", true}}},
-        {"AFC_lane CANVAS_3", {{"map", {"T2"}}, {"material", "PLA"}, {"color", "#FFFFFF"}, {"load", true}, {"prep", true}}},
-        {"AFC_lane CANVAS_4", {{"map", {"T3"}}, {"material", nullptr}, {"color", ""}, {"load", false}, {"prep", false}}}
+        {"AFC_lane CANVAS_1", {{"map", {"T1"}}, {"material", "PETG-CF"}, {"color", "#2E6194"}, {"load", true}, {"prep", true}, {"filament_status", "Ready"}, {"extruder_temp", 245.0}}},
+        {"AFC_lane CANVAS_2", {{"map", {"T0"}}, {"material", "PLA"}, {"color", "#747C7E"}, {"load", true}, {"prep", true}, {"filament_status", "Ready"}}},
+        {"AFC_lane CANVAS_3", {{"map", {"T2"}}, {"material", "PLA"}, {"color", "#FFFFFF"}, {"load", true}, {"prep", true}, {"filament_status", "Ready"}}},
+        {"AFC_lane CANVAS_4", {{"map", {"T3"}}, {"material", nullptr}, {"color", ""}, {"load", false}, {"prep", false}, {"filament_status", "Not Ready"}}}
     };
 }
 
-AFCSelections selection(const std::map<int, std::string>& desired)
+LaneSelections selection(const std::map<int, std::string>& desired)
 {
-    AFCSelections entries;
+    LaneSelections entries;
     for (const auto& [tool, name] : desired) entries.push_back({tool, name});
     return entries;
 }
 
 // Model AFC's documented SET_MAP semantics independently: legacy mode swaps
 // lane assignments; multiple mapping moves only the requested tool alias.
-void apply_script(AFCMapping& mapping, const std::string& script)
+void apply_script(LaneMapping& mapping, const std::string& script)
 {
     std::istringstream lines(script);
     std::string command, lane_param, tool_param;
@@ -66,7 +68,7 @@ void apply_script(AFCMapping& mapping, const std::string& script)
 TEST_CASE("AFC status preserves physical lane names and legacy or array tool mappings", "[AFCMapping]")
 {
     auto status = status_fixture();
-    AFCMapping parsed;
+    LaneMapping parsed;
     REQUIRE(AFCMapping::parse(status, parsed));
     CHECK(parsed.tools.at(0) == "CANVAS_2");
     CHECK(parsed.tools.at(1) == "CANVAS_1");
@@ -86,7 +88,7 @@ TEST_CASE("AFC status tolerates unknown metadata and multiple tool aliases", "[A
     status["AFC_lane CANVAS_1"]["bed_temp"] = nullptr;
     status["AFC_lane CANVAS_1"]["extruder_temp"] = nullptr;
     status["AFC_lane CANVAS_3"]["map"] = {"NONE"};
-    AFCMapping parsed;
+    LaneMapping parsed;
     REQUIRE(AFCMapping::parse(status, parsed));
     CHECK(parsed.multiple_mapping);
     CHECK(parsed.tools.at(1) == parsed.tools.at(2));
@@ -98,7 +100,7 @@ TEST_CASE("AFC status with no tool mappings parses as an empty unit", "[AFCMappi
     auto status = status_fixture();
     for (const auto* lane : {"CANVAS_1", "CANVAS_2", "CANVAS_3", "CANVAS_4"})
         status[std::string("AFC_lane ") + lane]["map"] = {"NONE"};
-    AFCMapping parsed;
+    LaneMapping parsed;
     REQUIRE(AFCMapping::parse(status, parsed));
     CHECK(parsed.tools.empty());
     CHECK(parsed.lanes.size() == 4);
@@ -106,21 +108,14 @@ TEST_CASE("AFC status with no tool mappings parses as an empty unit", "[AFCMappi
     CHECK_FALSE(parsed.plan(selection({{0, "CANVAS_1"}}), desired));
 }
 
-TEST_CASE("AFC color encodings normalize to the same display and snapshot color", "[AFCMapping]")
-{
-    for (const auto& color : {"#aAbBcC", "AABBCC", "aabbccff", "0xaabbcc", "0XAABBCCFF"})
-        CHECK(AFCMapping::normalize_color(color) == "#AABBCC");
-    CHECK(AFCMapping::normalize_color("not a color").empty());
-}
-
 TEST_CASE("AFC status rejects malformed or ambiguous physical assignments", "[AFCMapping]")
 {
     auto status = status_fixture();
-    AFCMapping parsed;
+    LaneMapping parsed;
     SECTION("duplicate tool") { status["AFC_lane CANVAS_1"]["map"] = {"T0"}; }
     SECTION("missing lane") { status.erase("AFC_lane CANVAS_2"); }
     SECTION("invalid tool") { status["AFC_lane CANVAS_1"]["map"] = {"T1evil"}; }
-    SECTION("malformed readiness") { status["AFC_lane CANVAS_1"]["load"] = "yes"; }
+    SECTION("malformed readiness") { status["AFC_lane CANVAS_1"]["filament_status"] = true; }
     SECTION("unrepresentable sync slot") { status["AFC_lane CANVAS_1"]["map"] = {"T32"}; }
     CHECK_FALSE(AFCMapping::parse(status, parsed));
 }
@@ -138,7 +133,7 @@ TEST_CASE("AFC lane names cannot introduce another G-code parameter or command",
 TEST_CASE("AFC print selections reject busy printers and unloaded lanes", "[AFCMapping]")
 {
     auto status = status_fixture();
-    AFCMapping before;
+    LaneMapping before;
     REQUIRE(AFCMapping::parse(status, before));
     const auto chosen = selection({{0, "CANVAS_1"}, {1, "CANVAS_2"}});
     std::map<int, std::string> accepted;
@@ -147,9 +142,9 @@ TEST_CASE("AFC print selections reject busy printers and unloaded lanes", "[AFCM
     SECTION("paused") { status["print_stats"]["state"] = "paused"; }
     SECTION("changing tool") { status["AFC"]["current_state"] = "Loading"; }
     SECTION("AFC error") { status["AFC"]["error_state"] = true; }
-    SECTION("unloaded") { status["AFC_lane CANVAS_1"]["load"] = false; }
-    SECTION("unprepared") { status["AFC_lane CANVAS_1"]["prep"] = false; }
-    AFCMapping now;
+    SECTION("unloaded") { status["AFC_lane CANVAS_1"]["filament_status"] = "Not Ready"; }
+    SECTION("unprepared") { status["AFC_lane CANVAS_1"]["filament_status"] = "Prep"; }
+    LaneMapping now;
     REQUIRE(AFCMapping::parse(status, now));
     std::map<int, std::string> desired;
     CHECK_FALSE(now.plan(chosen, desired));
@@ -158,17 +153,17 @@ TEST_CASE("AFC print selections reject busy printers and unloaded lanes", "[AFCM
 TEST_CASE("AFC selections retain physical destinations after an external remap", "[AFCMapping]")
 {
     auto status = status_fixture();
-    AFCMapping before;
+    LaneMapping before;
     REQUIRE(AFCMapping::parse(status, before));
     const auto chosen = selection({{1, "CANVAS_1"}, {2, "CANVAS_3"}});
     status["AFC_lane CANVAS_1"]["map"] = {"T2"};
     status["AFC_lane CANVAS_3"]["map"] = {"T1"};
-    AFCMapping now;
+    LaneMapping now;
     REQUIRE(AFCMapping::parse(status, now));
     std::map<int, std::string> desired;
     REQUIRE(now.plan(chosen, desired));
-    const auto expected = now.expected_tools(desired);
-    apply_script(now, now.mapping_script(desired));
+    const auto expected = AFCMapping::expected_tools(now, desired);
+    apply_script(now, AFCMapping::mapping_script(now, desired));
     CHECK(now.tools == expected);
     CHECK(now.tools.at(1) == "CANVAS_1");
     CHECK(now.tools.at(2) == "CANVAS_3");
@@ -178,7 +173,7 @@ TEST_CASE("AFC selections retain physical destinations after an external remap",
 
 TEST_CASE("AFC full single-mapping permutations reach the requested lanes", "[AFCMapping]")
 {
-    AFCMapping initial;
+    LaneMapping initial;
     REQUIRE(AFCMapping::parse(status_fixture(), initial));
     initial.lanes.at("CANVAS_4").ready = true;
     std::array<std::string, 4> names = {"CANVAS_1", "CANVAS_2", "CANVAS_3", "CANVAS_4"};
@@ -187,20 +182,20 @@ TEST_CASE("AFC full single-mapping permutations reach the requested lanes", "[AF
         for (size_t i = 0; i < names.size(); ++i) desired[static_cast<int>(i)] = names[i];
         auto current = initial;
         REQUIRE(current.plan(selection(desired), desired));
-        apply_script(current, current.mapping_script(desired));
+        apply_script(current, AFCMapping::mapping_script(current, desired));
         CHECK(current.tools == desired);
     } while (std::next_permutation(names.begin(), names.end()));
 }
 
 TEST_CASE("AFC partial selections that swap among themselves leave unselected tools in place", "[AFCMapping]")
 {
-    AFCMapping mapping;
+    LaneMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
     const auto before = mapping.tools;
     std::map<int, std::string> desired;
     REQUIRE(mapping.plan(selection({{0, "CANVAS_1"}, {1, "CANVAS_2"}}), desired));
-    const auto expected = mapping.expected_tools(desired);
-    apply_script(mapping, mapping.mapping_script(desired));
+    const auto expected = AFCMapping::expected_tools(mapping, desired);
+    apply_script(mapping, AFCMapping::mapping_script(mapping, desired));
     CHECK(mapping.tools == expected);
     CHECK(mapping.tools.at(0) == "CANVAS_1");
     CHECK(mapping.tools.at(1) == "CANVAS_2");
@@ -213,11 +208,12 @@ TEST_CASE("AFC selections can take a loaded lane from an unused tool when the cu
     auto status = status_fixture();
     status["AFC_lane CANVAS_2"]["load"] = false;
     status["AFC_lane CANVAS_2"]["prep"] = false;
+    status["AFC_lane CANVAS_2"]["filament_status"] = "Not Ready";
     SECTION("single mapping swaps the unused tool onto the empty lane") {}
     SECTION("multiple mapping retains the unused tool on the loaded lane") {
         status["AFC"]["multiple_tool_mapping"] = true;
     }
-    AFCMapping mapping;
+    LaneMapping mapping;
     REQUIRE(AFCMapping::parse(status, mapping));
     const auto chosen = selection({{0, "CANVAS_3"}});
     std::map<int, std::string> desired;
@@ -225,20 +221,20 @@ TEST_CASE("AFC selections can take a loaded lane from an unused tool when the cu
     auto expected = mapping.tools;
     expected.at(0) = "CANVAS_3";
     if (!mapping.multiple_mapping) expected.at(2) = "CANVAS_2";
-    CHECK(mapping.expected_tools(desired) == expected);
-    const auto script = mapping.mapping_script(desired);
+    CHECK(AFCMapping::expected_tools(mapping, desired) == expected);
+    const auto script = AFCMapping::mapping_script(mapping, desired);
     CHECK(script == "SET_MAP LANE=CANVAS_3 MAP=T0\n");
     apply_script(mapping, script);
     CHECK(mapping.tools == expected);
     CHECK(mapping.tools.at(1) == "CANVAS_1");
     CHECK(mapping.tools.at(3) == "CANVAS_4");
     REQUIRE(mapping.plan(chosen, desired));
-    CHECK(mapping.mapping_script(desired).empty());
+    CHECK(AFCMapping::mapping_script(mapping, desired).empty());
 }
 
 TEST_CASE("AFC verification requires the whole expected tool map", "[AFCMapping]")
 {
-    AFCMapping mapping;
+    LaneMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
     auto expected = mapping.tools;
     CHECK(mapping.tools == expected);
@@ -248,13 +244,13 @@ TEST_CASE("AFC verification requires the whole expected tool map", "[AFCMapping]
 
 TEST_CASE("AFC unchanged assignments still require idle and loaded status before printing", "[AFCMapping]")
 {
-    AFCMapping mapping;
+    LaneMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
     const auto chosen = selection({{0, "CANVAS_1"}, {1, "CANVAS_2"}});
     std::map<int, std::string> desired;
     REQUIRE(mapping.plan(chosen, desired));
-    const auto expected = mapping.expected_tools(desired);
-    apply_script(mapping, mapping.mapping_script(desired));
+    const auto expected = AFCMapping::expected_tools(mapping, desired);
+    apply_script(mapping, AFCMapping::mapping_script(mapping, desired));
     REQUIRE(mapping.plan(chosen, desired));
     SECTION("printer becomes busy") { mapping.idle = false; }
     SECTION("selected lane is unloaded") { mapping.lanes.at("CANVAS_1").ready = false; }
@@ -264,7 +260,7 @@ TEST_CASE("AFC unchanged assignments still require idle and loaded status before
 
 TEST_CASE("AFC multiple mapping permits duplicate destinations without moving other aliases", "[AFCMapping]")
 {
-    AFCMapping mapping;
+    LaneMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
     const auto chosen = selection({{1, "CANVAS_1"}, {2, "CANVAS_1"}});
     std::map<int, std::string> desired;
@@ -272,8 +268,8 @@ TEST_CASE("AFC multiple mapping permits duplicate destinations without moving ot
     CHECK_FALSE(mapping.plan(chosen, desired));
     mapping.multiple_mapping = true;
     REQUIRE(mapping.plan(chosen, desired));
-    const auto expected = mapping.expected_tools(desired);
-    apply_script(mapping, mapping.mapping_script(desired));
+    const auto expected = AFCMapping::expected_tools(mapping, desired);
+    apply_script(mapping, AFCMapping::mapping_script(mapping, desired));
     CHECK(mapping.tools == expected);
     CHECK(mapping.tools.at(1) == "CANVAS_1");
     CHECK(mapping.tools.at(2) == "CANVAS_1");
@@ -283,7 +279,7 @@ TEST_CASE("AFC multiple mapping permits duplicate destinations without moving ot
 
 TEST_CASE("AFC selection boundaries reject incomplete or malformed mappings", "[AFCMapping]")
 {
-    AFCMapping mapping;
+    LaneMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
     auto chosen = json::array({{{"tool", 0}, {"lane", "CANVAS_1"}}, {{"tool", 1}, {"lane", "CANVAS_2"}}});
     SECTION("missing lane") { chosen[0].erase("lane"); }
@@ -292,23 +288,11 @@ TEST_CASE("AFC selection boundaries reject incomplete or malformed mappings", "[
     SECTION("duplicate tool") { chosen.push_back(chosen[0]); }
     SECTION("unknown lane") { chosen[0]["lane"] = "CANVAS_99"; }
     SECTION("empty selection") { chosen = json::array(); }
-    AFCSelections decoded;
+    LaneSelections decoded;
     std::map<int, std::string> desired;
-    const bool accepted = parse_afc_selection(chosen, decoded) && mapping.plan(decoded, desired);
+    const bool accepted = parse_lane_selection(chosen, decoded) && mapping.plan(decoded, desired);
     CHECK_FALSE(accepted);
-    CHECK_FALSE(parse_afc_selection(std::string("not json"), decoded));
-}
-
-TEST_CASE("AFC typed selections round trip only tool and physical lane identity", "[AFCMapping]")
-{
-    const AFCSelections original = {{0, "CANVAS_1"}, {2, "CANVAS_3"}};
-    AFCSelections decoded;
-    REQUIRE(parse_afc_selection(serialize_afc_selection(original), decoded));
-    REQUIRE(decoded.size() == 2);
-    CHECK(decoded[0].tool == 0);
-    CHECK(decoded[0].lane == "CANVAS_1");
-    CHECK(decoded[1].tool == 2);
-    CHECK(decoded[1].lane == "CANVAS_3");
+    CHECK_FALSE(parse_lane_selection(std::string("not json"), decoded));
 }
 
 TEST_CASE("AFC tool parsing requires a complete bounded decimal number", "[AFCMapping]")
@@ -318,4 +302,77 @@ TEST_CASE("AFC tool parsing requires a complete bounded decimal number", "[AFCMa
     CHECK(tool == AFC_MAX_TOOLS - 1);
     for (const auto& invalid : {"T", "T-1", "T-0", "T+1", "T1tail", "T999999999999999999999", "X1"})
         CHECK_FALSE(AFCMapping::tool_index(invalid, tool));
+}
+
+TEST_CASE("AFC lane and stepper objects resolve the same physical lanes", "[AFCMapping]")
+{
+    auto status = status_fixture();
+    SECTION("stepper objects only") {
+        for (const auto* name : {"CANVAS_1", "CANVAS_2", "CANVAS_3", "CANVAS_4"}) {
+            status[std::string("AFC_stepper ") + name] = status[std::string("AFC_lane ") + name];
+            status.erase(std::string("AFC_lane ") + name);
+        }
+    }
+    SECTION("mixed lane and stepper objects") {
+        status["AFC_stepper CANVAS_1"] = status["AFC_lane CANVAS_1"];
+        status.erase("AFC_lane CANVAS_1");
+    }
+    SECTION("logical lane takes precedence over its stepper") {
+        status["AFC_stepper CANVAS_1"] = {{"map", "T0"}, {"filament_status", "Not Ready"}};
+    }
+    LaneMapping parsed;
+    REQUIRE(AFCMapping::parse(status, parsed));
+    CHECK(parsed.tools.at(1) == "CANVAS_1");
+    CHECK(parsed.lanes.at("CANVAS_1").ready);
+    CHECK(parsed.lanes.at("CANVAS_1").material == "PETG-CF");
+    std::map<int, std::string> desired;
+    REQUIRE(parsed.plan({{0, "CANVAS_1"}}, desired));
+    apply_script(parsed, AFCMapping::mapping_script(parsed, desired));
+    CHECK(parsed.tools.at(0) == "CANVAS_1");
+}
+
+TEST_CASE("AFC readiness follows filament status including the loaded tool", "[AFCMapping]")
+{
+    for (const auto* value : {"Ready", "In Tool", "Prep", "Not Ready", "unknown", ""}) {
+        DYNAMIC_SECTION("filament_status=" << value) {
+            auto status = status_fixture();
+            auto& lane = status["AFC_lane CANVAS_1"];
+            lane["filament_status"] = value;
+            lane.erase("load");
+            lane.erase("prep");
+            LaneMapping parsed;
+            REQUIRE(AFCMapping::parse(status, parsed));
+            const bool ready = std::string(value) == "Ready" || std::string(value) == "In Tool";
+            CHECK(parsed.lanes.at("CANVAS_1").ready == ready);
+            std::map<int, std::string> desired;
+            CHECK(parsed.plan({{1, "CANVAS_1"}}, desired) == ready);
+        }
+    }
+}
+
+TEST_CASE("AFC lanes without filament status remain unavailable for printing", "[AFCMapping]")
+{
+    auto status = status_fixture();
+    status["AFC_lane CANVAS_1"].erase("filament_status");
+    LaneMapping parsed;
+    REQUIRE(AFCMapping::parse(status, parsed));
+    CHECK_FALSE(parsed.lanes.at("CANVAS_1").ready);
+}
+
+TEST_CASE("AFC lane names preserve punctuation and Unicode without changing command syntax", "[AFCMapping]")
+{
+    for (const auto* name : {"unit:lane/1", "lane+2", "entrée_3", "lane=4"}) {
+        DYNAMIC_SECTION(name) {
+            REQUIRE(AFCMapping::valid_lane_name(name));
+            auto status = status_fixture();
+            status["AFC"]["lanes"][0] = name;
+            status[std::string("AFC_lane ") + name] = status["AFC_lane CANVAS_1"];
+            status.erase("AFC_lane CANVAS_1");
+            LaneMapping parsed;
+            REQUIRE(AFCMapping::parse(status, parsed));
+            CHECK(parsed.tools.at(1) == name);
+        }
+    }
+    for (const auto* name : {"lane#comment", "lane;comment", "lane\\1", "lane'1", "lane\t1", "lane\r1"})
+        CHECK_FALSE(AFCMapping::valid_lane_name(name));
 }

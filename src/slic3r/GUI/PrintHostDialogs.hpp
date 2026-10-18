@@ -17,7 +17,7 @@
 #include "MsgDialog.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/Flashforge.hpp"
-#include "libslic3r/AFCMapping.hpp"
+#include "libslic3r/LaneMapping.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/ProjectTask.hpp"
 class wxButton;
@@ -233,7 +233,7 @@ public:
                                 const wxArrayString& storage_paths,
                                 const wxArrayString& storage_names,
                                 bool switch_to_device_tab,
-                                AFCMapping mapping,
+                                LaneMapping mapping,
                                 std::vector<FilamentInfo> project_filaments);
 
     void init() override;
@@ -241,13 +241,13 @@ public:
     std::map<std::string, std::string> extendedInfo() const override;
 
 private:
-    AFCSelections collect_assignments() const;
+    LaneSelections collect_assignments() const;
 
     struct MappingRow {
         int tool_id;
         wxWindow* card;
     };
-    AFCMapping m_mapping;
+    LaneMapping m_mapping;
     std::vector<std::string> m_lane_names;
     std::vector<FilamentInfo> m_project_filaments;
     std::vector<MappingRow> m_mapping_rows;
