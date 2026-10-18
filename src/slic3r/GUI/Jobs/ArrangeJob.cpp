@@ -755,7 +755,9 @@ void ArrangeJob::process(Ctl &ctl)
     }
 
     if (m_selection_center && params.do_final_align) {
-        // Keep the arranged selection around where it was (as a fraction of the bed)
+        // Keep the arranged selection around where it was (as a fraction of the bed), regardless
+        // of where the objects that stay put are
+        params.align_movable_only = true;
         const BoundingBox bed_box(bedpts);
         if (bed_box.defined && bed_box.size().x() > 0 && bed_box.size().y() > 0)
             params.align_center = Vec2d(std::clamp(double(m_selection_center->x() - bed_box.min.x()) / bed_box.size().x(), 0., 1.),
