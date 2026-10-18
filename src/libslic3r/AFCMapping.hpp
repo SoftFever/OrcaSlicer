@@ -8,7 +8,7 @@
 
 namespace Slic3r {
 
-// Preparation sync projects AFC tools into a 32-bit tray-presence mask.
+// Supported AFC tool indices are 0 through 31.
 inline constexpr int AFC_MAX_TOOLS = 32;
 
 struct AFCSelection
@@ -29,12 +29,9 @@ struct AFCMapping
         std::string material;
         std::string color;
         bool ready = false;
-        int bed_temp = 0;
-        int nozzle_temp = 0;
     };
     std::map<int, std::string> tools;
     std::map<std::string, Lane> lanes;
-    std::string device_id;
     bool multiple_mapping = false;
     bool idle = false;
 
@@ -47,8 +44,6 @@ struct AFCMapping
     // On displacement failure, report the unselected tool and its current lane.
     bool plan(const AFCSelections& selection, std::map<int, std::string>& desired,
               AFCSelection* displaced_tool = nullptr) const;
-    bool selection_from_tools(const std::string& slot_mapping, const std::string& filament_info,
-                              AFCSelections& selection) const;
     std::map<int, std::string> expected_tools(const std::map<int, std::string>& desired) const;
     bool matches(const std::map<int, std::string>& expected) const;
     std::string mapping_script(const std::map<int, std::string>& desired) const;

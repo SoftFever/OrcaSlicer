@@ -98,8 +98,6 @@ bool AFCMapping::parse(const nlohmann::json& status, AFCMapping& parsed)
             if (lane.contains("material") && lane["material"].is_string()) info.material = lane["material"];
             if (lane.contains("color") && lane["color"].is_string()) info.color = normalize_color(lane["color"].get<std::string>());
             info.ready = lane.value("load", false) && lane.value("prep", false);
-            if (lane.contains("bed_temp") && lane["bed_temp"].is_number()) info.bed_temp = lane["bed_temp"];
-            if (lane.contains("extruder_temp") && lane["extruder_temp"].is_number()) info.nozzle_temp = lane["extruder_temp"];
             if (!result.lanes.emplace(name, std::move(info)).second || !lane.contains("map")) return false;
             const auto add_mapping = [&](const nlohmann::json& mapping) {
                 if (!mapping.is_string()) return false;
@@ -145,33 +143,6 @@ bool AFCMapping::plan(const AFCSelections& selection, std::map<int, std::string>
         }
     }
     return true;
-}
-
-bool AFCMapping::selection_from_tools(const std::string& slot_mapping, const std::string& filament_info,
-                                     AFCSelections& selection) const
-{
-    selection.clear();
-    const auto slots = nlohmann::json::parse(slot_mapping, nullptr, false);
-    const auto info = nlohmann::json::parse(filament_info, nullptr, false);
-    if (!slots.is_array() || slots.empty() || slots.size() > AFC_MAX_TOOLS || !info.is_array()) return false;
-    for (size_t tool = 0; tool < slots.size(); ++tool) {
-        if (!slots[tool].is_number_integer()) return false;
-        const auto target = slots[tool].get<long long>();
-        const nlohmann::json* source = tool < info.size() && info[tool].is_object() ? &info[tool] : nullptr;
-        const bool has_type = source && source->contains("filamentType") && (*source)["filamentType"].is_string();
-        const auto source_material = has_type ? normalize_material((*source)["filamentType"].get<std::string>()) : std::string{};
-        if (target == -1) {
-            if (!source || !source_material.empty() || source->contains("sourceColor")) return false;
-            continue;
-        }
-        if (target < 0 || target >= AFC_MAX_TOOLS) return false;
-        const auto selected = tools.find(static_cast<int>(target));
-        if (selected == tools.end()) return false;
-        if (source_material.empty() || source_material != normalize_material(lanes.at(selected->second).material)) return false;
-        selection.push_back({static_cast<int>(tool), selected->second});
-    }
-    std::map<int, std::string> desired;
-    return plan(selection, desired);
 }
 
 std::map<int, std::string> AFCMapping::expected_tools(const std::map<int, std::string>& desired) const

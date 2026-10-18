@@ -112,10 +112,6 @@ Moonraker::Moonraker(DynamicPrintConfig *config)
     , m_ssl_revoke_best_effort(config->opt_bool("printhost_ssl_ignore_revoke"))
 {}
 
-Moonraker::Moonraker(std::string host, std::string api_key)
-    : m_host(std::move(host)), m_apikey(std::move(api_key)), m_ssl_revoke_best_effort(false)
-{}
-
 const char* Moonraker::get_name() const { return "Moonraker"; }
 
 wxString Moonraker::get_test_ok_msg() const
@@ -321,14 +317,6 @@ bool Moonraker::send_gcode_script(const std::string& script, wxString& error) co
     return success;
 }
 
-bool Moonraker::start_print_gcode(const std::string& filename, wxString& error) const
-{
-    // Preserve the printer-agent command, quoting only when the returned path
-    // needs it. JSON escaping prevents a filename becoming another G-code line.
-    const bool quote = filename.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./-") != std::string::npos;
-    return send_gcode_script("SDCARD_PRINT_FILE FILENAME=" + (quote ? nlohmann::json(filename).dump() : filename), error);
-}
-
 bool Moonraker::apply_afc_mapping(const AFCSelections& selection, bool& applied, wxString& error,
                                  const std::function<bool()>& cancelled) const
 {
@@ -492,7 +480,6 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
     if (!result)
         return false;
 
-    if (info_fn) info_fn("uploaded_path", wxString::FromUTF8(uploaded_path));
     if (map_afc) {
         const auto cancelled = [&] {
             const std::string empty;

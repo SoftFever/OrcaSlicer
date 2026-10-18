@@ -1,7 +1,4 @@
 #include "MoonrakerPrinterAgent.hpp"
-#include "libslic3r/AFCMapping.hpp"
-#include "Moonraker.hpp"
-#include "PrintHost.hpp"
 #include "Http.hpp"
 #include "IPrinterAgent.hpp"
 #include "NetworkAgentFactory.hpp"
@@ -55,7 +52,6 @@
 #include <thread>
 #include <vector>
 #include <utility>
-#include <wx/string.h>
 
 namespace {
 
@@ -215,10 +211,6 @@ int MoonrakerPrinterAgent::disconnect_printer()
     {
         std::lock_guard<std::recursive_mutex> lock(connect_mutex);
         device_info = MoonrakerDeviceInfo{};
-        {
-            std::lock_guard<std::recursive_mutex> state_lock(state_mutex);
-            afc_snapshot = {};
-        }
         ++connect_generation;  // Invalidate any in-flight connection
         if (connect_thread.joinable()) {
             connect_thread.detach();
@@ -295,112 +287,91 @@ int MoonrakerPrinterAgent::start_local_print_with_record(PrintParams      params
     return BAMBU_NETWORK_SUCCESS;
 }
 
-int MoonrakerPrinterAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusFn update_fn,
-                                                      WasCancelledFn cancel_fn, OnWaitFn wait_fn)
+int MoonrakerPrinterAgent::start_send_gcode_to_sdcard(PrintParams      params,
+                                                      OnUpdateStatusFn update_fn,
+                                                      WasCancelledFn   cancel_fn,
+                                                      OnWaitFn         wait_fn)
 {
     (void) wait_fn;
-    return send_gcode(std::move(params), false, std::move(update_fn), std::move(cancel_fn));
+
+    if (update_fn)
+        update_fn(PrintingStageCreate, 0, _u8L("Preparing..."));
+
+    std::string filename = params.filename;
+    if (filename.empty()) {
+        filename = params.task_name;
+    }
+    if (!boost::iends_with(filename, ".gcode")) {
+        filename += ".gcode";
+    }
+
+    // Sanitize filename to prevent path traversal attacks
+    std::string safe_filename = sanitize_filename(filename);
+
+    // Upload only, don't start print
+    if (!upload_gcode(params.filename, safe_filename, device_info.base_url, device_info.api_key, update_fn, cancel_fn)) {
+        return BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED;
+    }
+
+    if (update_fn)
+        update_fn(PrintingStageFinished, 100, _u8L("File uploaded"));
+    return BAMBU_NETWORK_SUCCESS;
 }
 
 int MoonrakerPrinterAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
 {
-    return send_gcode(std::move(params), true, std::move(update_fn), std::move(cancel_fn));
-}
+    if (update_fn)
+        update_fn(PrintingStageCreate, 0, _u8L("Preparing..."));
 
-int MoonrakerPrinterAgent::send_gcode(PrintParams params, bool start_print,
-                                     OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
-{
-    if (update_fn) update_fn(PrintingStageCreate, 0, _u8L("Preparing..."));
-    if (cancel_fn && cancel_fn()) return BAMBU_NETWORK_ERR_CANCELED;
-    MoonrakerDeviceInfo connection;
-    uint64_t generation;
-    {
-        std::lock_guard<std::recursive_mutex> lock(connect_mutex);
-        if (params.dev_id != device_info.dev_id || device_info.base_url.empty())
-            return BAMBU_NETWORK_ERR_CONNECTION_TO_PRINTER_FAILED;
-        connection = device_info;
-        generation = connect_generation.load();
-    }
-    const auto cancelled = [&] {
-        return generation != connect_generation.load() || (cancel_fn && cancel_fn());
-    };
-
-    namespace fs = boost::filesystem;
-    const fs::path source_path(params.dst_file.empty() ? params.filename : params.dst_file);
-    if (boost::iequals(source_path.extension().string(), ".3mf") || boost::iequals(source_path.extension().string(), ".zip")) {
-        if (update_fn)
-            update_fn(PrintingStageERROR, BAMBU_NETWORK_ERR_INVALID_RESULT,
-                      _u8L("A raw G-code file is required for Moonraker. Slice the selected plate again before sending it."));
-        return BAMBU_NETWORK_ERR_INVALID_RESULT;
-    }
-    if (!fs::exists(source_path)) return BAMBU_NETWORK_ERR_FILE_NOT_EXIST;
-    if (fs::file_size(source_path) > 1024 * 1024 * 1024)
-        return BAMBU_NETWORK_ERR_PRINT_WR_FILE_OVER_SIZE;
-
-    std::string filename = source_path.filename().string();
-    if (!boost::iends_with(filename, ".gcode")) filename += ".gcode";
-    PrintHostUpload upload;
-    upload.source_path = source_path;
-    upload.upload_path = sanitize_filename(filename);
-    upload.storage = "gcodes";
-    AFCSelections selection;
-    if (start_print) {
-        const auto info = nlohmann::json::parse(params.ams_mapping_info, nullptr, false);
-        if (info.is_object() && info.contains("afc_mapping") && !parse_afc_selection(info["afc_mapping"], selection)) {
-            if (update_fn) update_fn(PrintingStageERROR, BAMBU_NETWORK_ERR_INVALID_RESULT, _u8L("Invalid AFC filament mapping. Reopen the send dialog to assign the used filaments."));
-            return BAMBU_NETWORK_ERR_INVALID_RESULT;
-        }
-    }
-
-    // Upload only in the shared transport; this agent retains its original
-    // SDCARD_PRINT_FILE start command after any AFC assignments are verified.
-    upload.post_action = PrintHostPostUploadAction::None;
-    Moonraker host(connection.base_url, connection.api_key);
-    wxString error;
-    int error_code = start_print ? BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED : BAMBU_NETWORK_ERR_PRINT_SG_UPLOAD_FTP_FAILED;
-    bool success = host.upload(std::move(upload),
-        [&](Http::Progress progress, bool& cancel) {
-            if (cancel || cancelled()) { cancel = true; return; }
-            if (update_fn && progress.ultotal > 0)
-                update_fn(PrintingStageUpload, static_cast<int>(progress.ulnow * 100 / progress.ultotal), _u8L("Uploading..."));
-        },
-        [&](wxString message) { error = std::move(message); },
-        [&](wxString tag, wxString path) {
-            if (tag == "uploaded_path") filename = path.ToUTF8().data();
-        });
-    bool applied = false;
-    if (success && start_print && !cancelled()) {
-        error_code = BAMBU_NETWORK_ERR_PRINT_LP_PUBLISH_MSG_FAILED;
-        if (!selection.empty()) {
-            success = host.apply_afc_mapping(selection, applied, error, cancelled);
-        } else {
-            AFCMapping current;
-            bool detected = false;
-            success = host.fetch_afc_status(current, detected, error);
-            if (success && detected) {
-                error = _L("AFC printing requires a filament mapping. Reopen the send dialog and assign each used filament to a loaded lane.");
-                success = false;
-            }
-        }
-        if (success && !cancelled()) {
-            if (update_fn) update_fn(PrintingStageSending, 0, _u8L("Starting print..."));
-            success = host.start_print_gcode(filename, error);
-            if (!success && applied)
-                error += "\n" + _L("The AFC lane assignments remain saved on the printer. Check them before retrying.");
-        }
-    }
-    if (cancelled()) {
-        if (applied && error.empty())
-            error = _L("The print was canceled after AFC mapping was applied. The lane assignments remain saved on the printer.");
-        if (!error.empty() && update_fn) update_fn(PrintingStageERROR, BAMBU_NETWORK_ERR_CANCELED, error.ToUTF8().data());
+    // Check cancellation
+    if (cancel_fn && cancel_fn()) {
         return BAMBU_NETWORK_ERR_CANCELED;
     }
-    if (!success) {
-        if (update_fn) update_fn(PrintingStageERROR, error_code, error.ToUTF8().data());
-        return error_code;
+    // Determine the G-code file to upload
+    // params.filename may be .3mf, params.dst_file contains actual G-code
+    std::string gcode_path = params.filename;
+    if (!params.dst_file.empty()) {
+        gcode_path = params.dst_file;
     }
+
+    // Check if file exists and has .gcode extension
+    namespace fs = boost::filesystem;
+    fs::path source_path(gcode_path);
+    if (!fs::exists(source_path)) {
+        BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: G-code file does not exist: " << gcode_path;
+        return BAMBU_NETWORK_ERR_FILE_NOT_EXIST;
+    }
+
+    // Extract filename for upload (relative to gcodes root)
+    std::string upload_filename = source_path.filename().string();
+    if (!boost::iends_with(upload_filename, ".gcode")) {
+        upload_filename += ".gcode";
+    }
+    // Sanitize filename to prevent path traversal attacks (extra safety)
+    upload_filename = sanitize_filename(upload_filename);
+
+    // Upload file
     if (update_fn)
-        update_fn(PrintingStageFinished, 100, start_print ? _u8L("Print started") : _u8L("File uploaded"));
+        update_fn(PrintingStageUpload, 0, _u8L("Uploading G-code..."));
+    if (!upload_gcode(gcode_path, upload_filename, device_info.base_url, device_info.api_key, update_fn, cancel_fn)) {
+        return BAMBU_NETWORK_ERR_PRINT_LP_UPLOAD_FTP_FAILED;
+    }
+
+    // Check cancellation
+    if (cancel_fn && cancel_fn()) {
+        return BAMBU_NETWORK_ERR_CANCELED;
+    }
+
+    // Start print via gcode script (simpler than JSON-RPC)
+    if (update_fn)
+        update_fn(PrintingStageSending, 0, _u8L("Starting print..."));
+    std::string gcode = "SDCARD_PRINT_FILE FILENAME=" + upload_filename;
+    if (!send_gcode_sync(device_info.dev_id, gcode)) {
+        return BAMBU_NETWORK_ERR_PRINT_LP_PUBLISH_MSG_FAILED;
+    }
+
+    if (update_fn)
+        update_fn(PrintingStageFinished, 100, _u8L("Print started"));
     return BAMBU_NETWORK_SUCCESS;
 }
 
@@ -592,62 +563,6 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
 {
     std::vector<AmsTrayData> trays;
     int max_lane_index = 0;
-    MoonrakerDeviceInfo connection;
-    uint64_t generation;
-    {
-        std::lock_guard<std::recursive_mutex> lock(connect_mutex);
-        if (dev_id != device_info.dev_id) return false;
-        connection = device_info;
-        generation = connect_generation.load();
-    }
-
-    // Use the same authoritative AFC snapshot as the upload dialog. The
-    // generic lane_data database is asynchronously updated after SET_MAP and
-    // cannot preserve physical lane identity on its own.
-    AFCMapping afc;
-    bool afc_detected = false;
-    std::string afc_error;
-    if (Slic3r::fetch_afc_status(connection.base_url, connection.api_key, afc, afc_detected, afc_error) && afc_detected) {
-        auto* bundle = GUI::wxGetApp().preset_bundle;
-        for (const auto& [tool, name] : afc.tools) {
-            const auto& lane = afc.lanes.at(name);
-            AmsTrayData tray;
-            tray.slot_index = tool;
-            tray.tray_color = lane.color;
-            tray.tray_type = lane.material;
-            tray.bed_temp = lane.bed_temp;
-            tray.nozzle_temp = lane.nozzle_temp;
-            tray.has_filament = lane.ready && !lane.material.empty();
-            tray.tray_info_idx = bundle ? bundle->filaments.filament_id_by_type(lane.material)
-                                       : map_filament_type_to_generic_id(lane.material);
-            trays.push_back(std::move(tray));
-            max_lane_index = std::max(max_lane_index, tool);
-        }
-        {
-            std::scoped_lock lock(state_mutex, connect_mutex);
-            if (connection.dev_id != device_info.dev_id || connection.base_url != device_info.base_url
-                || generation != connect_generation.load()) return false;
-            afc_snapshot = afc;
-            afc_snapshot.device_id = connection.dev_id;
-            build_ams_payload((max_lane_index + 4) / 4, max_lane_index, trays);
-        }
-        return true;
-    }
-    {
-        std::scoped_lock lock(state_mutex, connect_mutex);
-        if (connection.dev_id != device_info.dev_id || connection.base_url != device_info.base_url
-            || generation != connect_generation.load()) return false;
-        if (afc_detected || afc_snapshot.device_id == connection.dev_id) {
-            // A failed refresh invalidates the old display snapshot. Remember
-            // that this is AFC so Print now cannot quietly bypass the mapping.
-            afc_snapshot = {};
-            afc_snapshot.device_id = connection.dev_id;
-        }
-    }
-    if (afc_detected) {
-        BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent: Invalid AFC filament status: " << afc_error;
-        return false;
-    }
 
     // Try Moonraker filament data (more generic, supports any filament changer
     // software that reports lane data to Moonraker like AFC and recent Happy
@@ -672,21 +587,6 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
     // No MMU detected - this is normal for printers without MMU, not an error
     BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent::fetch_filament_info: No MMU system detected (neither HH nor Moonraker)";
     return false;
-}
-
-bool MoonrakerPrinterAgent::prepare_print_mapping(const std::string& slot_mapping, std::string& filament_info, std::string& error) const
-{
-    std::lock_guard<std::recursive_mutex> lock(state_mutex);
-    if (afc_snapshot.device_id.empty()) return true;
-    AFCSelections selection;
-    if (!afc_snapshot.selection_from_tools(slot_mapping, filament_info, selection)) {
-        error = _u8L("AFC filament mapping is invalid. Check that the printer is idle, assign every used filament to a loaded lane, and do not take a lane that already serves another tool this print does not use. Each lane can be used only once unless AFC multiple-tool mapping is enabled.");
-        return false;
-    }
-    // Only this job boundary needs a string; selection construction and
-    // validation operate on the typed vector throughout.
-    filament_info = "{\"afc_mapping\":" + serialize_afc_selection(selection) + "}";
-    return true;
 }
 
 std::string MoonrakerPrinterAgent::trim_and_upper(const std::string& input)
@@ -1171,10 +1071,6 @@ int MoonrakerPrinterAgent::handle_request(const std::string& dev_id, const std::
 bool MoonrakerPrinterAgent::init_device_info(const std::string& dev_id, const std::string& dev_ip, const std::string& username, const std::string& password, bool use_ssl, const std::string& port)
 {
     device_info         = MoonrakerDeviceInfo{};
-    {
-        std::lock_guard<std::recursive_mutex> lock(state_mutex);
-        afc_snapshot = {};
-    }
     auto* preset_bundle = GUI::wxGetApp().preset_bundle;
     if (!preset_bundle) {
         return false;
@@ -1343,6 +1239,48 @@ void MoonrakerPrinterAgent::send_gcode_async(const std::string& dev_id, const st
             }
         })
         .perform();
+}
+
+bool MoonrakerPrinterAgent::send_gcode_sync(const std::string& dev_id, const std::string& gcode) const
+{
+    nlohmann::json payload;
+    payload["script"]       = gcode;
+    std::string payload_str = payload.dump();
+
+    std::string response_body;
+    bool        success = false;
+    std::string http_error;
+
+    auto http = Http::post(join_url(device_info.base_url, "/printer/gcode/script"));
+    if (!device_info.api_key.empty()) {
+        http.header("X-Api-Key", device_info.api_key);
+    }
+    http.header("Content-Type", "application/json")
+        .set_post_body(payload_str)
+        .timeout_connect(5)
+        .timeout_max(10)
+        .on_complete([&](std::string body, unsigned status_code) {
+            if (status_code == 200) {
+                response_body = body;
+                success       = true;
+            } else {
+                http_error = "HTTP error: " + std::to_string(status_code);
+            }
+        })
+        .on_error([&](std::string body, std::string err, unsigned status_code) {
+            http_error = err;
+            if (status_code > 0) {
+                http_error += " (HTTP " + std::to_string(status_code) + ")";
+            }
+        })
+        .perform_sync();
+
+    if (!success) {
+        BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: send_gcode failed: " << http_error;
+        return false;
+    }
+
+    return true;
 }
 
 bool MoonrakerPrinterAgent::fetch_object_list(const std::string&     base_url,
@@ -1899,9 +1837,6 @@ nlohmann::json MoonrakerPrinterAgent::build_print_payload_locked() const
     payload["print"]["bed_temp_range"]    = {0, 120};   // Typical bed range
 
     payload["print"]["support_send_to_sd"] = true;
-    // Every status push must retain virtual storage availability, including
-    // pushes that only update temperatures or progress.
-    payload["print"]["sdcard"] = true;
     // Detect bed_leveling support from available objects (bed_mesh or probe)
     // Default to 0 (not supported) if neither object exists
     bool has_bed_leveling                    = (available_objects.count("bed_mesh") != 0 || available_objects.count("probe") != 0);
@@ -2031,6 +1966,77 @@ void MoonrakerPrinterAgent::dispatch_message(const std::string& dev_id, const st
     } else {
         dispatch();
     }
+}
+
+bool MoonrakerPrinterAgent::upload_gcode(const std::string& local_path,
+                                         const std::string& filename,
+                                         const std::string& base_url,
+                                         const std::string& api_key,
+                                         OnUpdateStatusFn   update_fn,
+                                         WasCancelledFn     cancel_fn)
+{
+    namespace fs = boost::filesystem;
+
+    // Validate file exists
+    fs::path source_path(local_path);
+    if (!fs::exists(source_path)) {
+        BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: File does not exist: " << local_path;
+        return false;
+    }
+
+    // Check file size
+    std::uintmax_t file_size = fs::file_size(source_path);
+    if (file_size > 1024 * 1024 * 1024) { // 1GB limit
+        BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: File too large: " << file_size << " bytes";
+        return false;
+    }
+
+    // Sanitize filename to prevent path traversal attacks
+    std::string safe_filename = sanitize_filename(filename);
+
+    bool        result = true;
+    std::string http_error;
+
+    // Use Http::form_add and Http::form_add_file
+    auto http = Http::post(join_url(base_url, "/server/files/upload"));
+    if (!api_key.empty()) {
+        http.header("X-Api-Key", api_key);
+    }
+    http.form_add("root", "gcodes") // Upload to gcodes directory
+        .form_add("print", "false") // Don't auto-start print
+        .form_add_file("file", source_path.string(), safe_filename)
+        .timeout_connect(5)
+        .timeout_max(300) // 5 minutes for large files
+        .on_complete([&](std::string body, unsigned status) {
+            (void) body;
+            (void) status;
+        })
+        .on_error([&](std::string body, std::string err, unsigned status) {
+            BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: Upload error: " << err << " HTTP " << status;
+            http_error = err;
+            result     = false;
+        })
+        .on_progress([&](Http::Progress progress, bool& cancel) {
+            // Check for cancellation via WasCancelledFn
+            if (cancel_fn && cancel_fn()) {
+                cancel = true;
+                result = false;
+                return;
+            }
+            // Report progress via OnUpdateStatusFn
+            if (update_fn && progress.ultotal > 0) {
+                int percent = static_cast<int>((progress.ulnow * 100) / progress.ultotal);
+                update_fn(PrintingStageUpload, percent, _u8L("Uploading..."));
+            }
+        })
+        .perform_sync();
+
+    if (!result) {
+        BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: Upload failed: " << http_error;
+        return false;
+    }
+
+    return true;
 }
 
 int MoonrakerPrinterAgent::pause_print(const std::string& dev_id)

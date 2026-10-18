@@ -14,7 +14,6 @@
 #include "slic3r/Utils/FileTransferUtils.hpp"
 #include "slic3r/Utils/BBLNetworkPlugin.hpp"
 #include "NetworkAgent.hpp"
-#include "slic3r/Utils/IPrinterAgent.hpp"
 #include <string>
 #include "libslic3r/Utils.hpp"
 #include <boost/log/trivial.hpp>
@@ -293,10 +292,6 @@ void PrintJob::process(Ctl &ctl)
     params.dev_id               = m_dev_id;
     params.ftp_folder           = m_ftp_folder;
     params.filename             = job_data._3mf_path.string();
-    // For Moonraker this sets dst_file, which "from_sdcard_view" below overwrites.
-    if (auto printer_agent = m_agent->get_printer_agent())
-        printer_agent->set_gcode_path(params, job_data._gcode_path.string());
-
     params.config_filename      = job_data._3mf_config_path.string();
     params.plate_index          = curr_plate_idx;
     params.task_bed_leveling    = this->task_bed_leveling;

@@ -131,7 +131,6 @@
 #include "slic3r/GUI/Widgets/ComboBox.hpp"
 #include "slic3r/GUI/Widgets/PopupWindow.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
-#include "slic3r/Utils/IPrinterAgent.hpp"
 #include <boost/filesystem.hpp>
 
 using json = nlohmann::json;
@@ -3593,21 +3592,6 @@ void SelectMachineDialog::on_send_print()
     assert(obj_->get_dev_id() == m_printer_last_select);
     if (obj_ == nullptr) { return; }
 
-    std::string ams_mapping_array;
-    std::string ams_mapping_array2;
-    std::string ams_mapping_info;
-    get_ams_mapping_result(ams_mapping_array, ams_mapping_array2, ams_mapping_info);
-    if (auto* agent = dev->get_agent()) {
-        if (auto printer_agent = agent->get_printer_agent()) {
-            std::string error;
-            if (!printer_agent->prepare_print_mapping(ams_mapping_array, ams_mapping_info, error)) {
-                show_error(this, from_u8(error));
-                Enable_Send_Button(true);
-                return;
-            }
-        }
-    }
-
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << m_printer_last_select << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
 
@@ -3630,6 +3614,13 @@ void SelectMachineDialog::on_send_print()
     // enter sending mode
     sending_mode();
     m_status_bar->enable_cancel_button();
+
+    // get ams_mapping_result
+    std::string ams_mapping_array;
+    std::string ams_mapping_array2;
+    std::string ams_mapping_info;
+
+    get_ams_mapping_result(ams_mapping_array,ams_mapping_array2, ams_mapping_info);
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool& cancel) {
@@ -4302,12 +4293,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
         return;
     }
 
-
-    // Pull-mode agents reuse preparation sync before automatic or manual mapping.
-    if (auto* agent = dev->get_agent(); agent && agent->get_filament_sync_mode() == FilamentSyncMode::pull) {
-        wxBusyCursor wait;
-        agent->fetch_filament_info(obj->get_dev_id());
-    }
 
     //reset print status
     show_status(PrintDialogStatus::PrintStatusInit);

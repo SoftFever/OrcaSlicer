@@ -14,7 +14,7 @@ class wxArrayString;
 
 namespace Slic3r {
 
-// GET-only transport shared by preparation sync and the pre-print dialog.
+// GET-only transport for AFC status and pre-print mapping verification.
 bool fetch_afc_status(const std::string& base_url, const std::string& api_key,
                       AFCMapping& mapping, bool& detected, std::string& error,
                       const std::string& ca_file = {}, bool ssl_revoke_best_effort = false);
@@ -42,7 +42,6 @@ class Moonraker : public PrintHost
 {
 public:
     Moonraker(DynamicPrintConfig *config);
-    Moonraker(std::string host, std::string api_key);
     ~Moonraker() override = default;
 
     const char* get_name() const override;
@@ -59,7 +58,6 @@ public:
     bool fetch_afc_status(AFCMapping& mapping, bool& detected, wxString& error) const;
     bool apply_afc_mapping(const AFCSelections& selection, bool& applied, wxString& error,
                            const std::function<bool()>& cancelled = {}) const;
-    bool start_print_gcode(const std::string& filename, wxString& error) const;
     const std::string& get_apikey() const { return m_apikey; }
     const std::string& get_cafile() const { return m_cafile; }
 

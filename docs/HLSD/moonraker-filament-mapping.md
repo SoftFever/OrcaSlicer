@@ -1,8 +1,8 @@
 # Moonraker filament mapping
 
-Moonraker AFC mapping is available through the legacy print-host upload dialog
-and the experimental printer-agent route. Both map only the selected plate’s used
-filaments. Upload/Save only never changes mappings or starts printing.
+Moonraker AFC mapping is available through the legacy print-host upload dialog.
+It maps only the selected plate’s used filaments. Upload/Save only never changes
+mappings or starts printing.
 
 ## Shared mapping controls
 
@@ -15,31 +15,19 @@ suggests the nearest color among loaded same-material lanes and reserves distinc
 lanes when multiple tool mapping is disabled. Filename and storage controls remain
 in the existing print-host send dialog.
 
-## Shared status and preparation sync
+## AFC status
 
 `libslic3r/AFCMapping.hpp` declares the snapshot and typed `AFCSelection { tool, lane }`;
 `libslic3r/AFCMapping.cpp` implements parsing, normalization, validation, and script generation.
 `fetch_afc_status()` reads AFC lane and print status together through Moonraker.
-Physical identity is independent of reassigned tool numbers. Preparation sync
-adapts it to existing `AmsTrayData`/`build_ams_payload()` trays and
-never issues mapping commands. The same snapshot supplies the legacy popup.
-The experimental `SelectMachineDialog` retains its existing printer/filament UI.
-Pull-mode agents refresh through preparation sync; the default agent interface
-hook converts its tool-indexed choices before dispatch. The current tray model
-represents tool indices 0–31 in groups of four. Unmapped physical lanes have no
-tray, and identical colors can produce duplicate automatic suggestions that need
-manual correction when AFC multiple tool mapping is disabled.
+Physical identity is independent of reassigned tool numbers. The snapshot supplies
+the lane choices in the send dialog and supports pre-print mapping verification.
+Supported tool indices are 0 through 31.
 
 ## Upload and print
 
-Typed selections serialize only at string-based job boundaries: legacy
-`extended_info["afc_mapping"]` and the agent's existing `ams_mapping_info` field.
-The agent's `set_gcode_path` hook receives the selected plate's actual raw file,
-including G-code already extracted from a sliced 3MF. Default hooks leave other
-agents unchanged and preserve the `PrintParams` layout used by binary plugins.
-
-Each route owns its upload/start sequence and invokes shared
-`Moonraker::apply_afc_mapping()` between upload and print startup:
+Typed selections serialize into `extended_info["afc_mapping"]` at the upload job
+boundary. `Moonraker::apply_afc_mapping()` runs between upload and print startup:
 
 1. Upload the file without starting or queuing a mapped print.
 2. Fetch fresh status, validate idle state and selected loaded lanes, then apply
@@ -58,20 +46,18 @@ performing the move silently, because the printer's persistent assignments for o
 tools would change as a side effect. The send dialog excludes those lanes from its
 automatic suggestion and, on confirmation, validates the choice with `plan()`; it
 stays open and names the lane and the tool it would move. The user either picks a
-different lane or assigns the displaced tool to one of the print's filaments. The
-agent route reports the same rule as an invalid mapping. An idle AFC with no tool
-mappings parses successfully with an empty tool map; the send dialog then falls back
-to the plain upload dialog.
+different lane or assigns the displaced tool to one of the print's filaments. An
+idle AFC with no tool mappings parses successfully with an empty tool map;
+the send dialog then falls back to the plain upload dialog.
 
 If AFC detection fails because `printer/objects/list` is unavailable, the plain
 upload dialog proceeds without a mapping (fail open), since a powered-off Klipper
-must still accept queued uploads. Agent-based prints fail closed once AFC has
-been detected for the device.
+must still accept queued uploads.
 
 AFC saves assignments persistently; cancellation or failure after mapping does
 not restore them. Errors prevent startup and explain that saved assignments may
-remain. Ordinary legacy uploads retain automatic-start/queue behavior; agents retain
-`SDCARD_PRINT_FILE` startup. Status checks and commands are not an atomic transaction.
+remain. Ordinary uploads retain automatic-start/queue behavior.
+Status checks and commands are not an atomic transaction.
 
 The parsing, planning, and script logic is covered by `tests/libslic3r/test_afc_mapping.cpp`.
 The HTTP and verification integration in `Moonraker.cpp` has no automated suite.

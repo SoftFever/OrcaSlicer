@@ -14493,9 +14493,6 @@ void Plater::get_print_job_data(PrintPrepareData* data)
         data->plate_idx = p->m_print_job_data.plate_idx;
         data->_3mf_path = p->m_print_job_data._3mf_path;
         data->_3mf_config_path = p->m_print_job_data._3mf_config_path;
-        const int plate_idx = data->plate_idx >= 0 ? data->plate_idx : get_partplate_list().get_curr_plate_index();
-        PartPlate* plate = get_partplate_list().get_plate(plate_idx);
-        data->_gcode_path = plate != nullptr ? fs::path(plate->get_gcode_filename()) : fs::path();
     }
 }
 
