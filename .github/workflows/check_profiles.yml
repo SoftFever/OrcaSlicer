@@ -13,6 +13,9 @@ on:
     # and lives in scripts/, so a PR touching only those must still run this workflow.
     - 'resources/printers/**'
     - 'scripts/**'
+    # The mobile port's scripts touch no profile.
+    - '!scripts/build_ios_core.sh'
+    - '!scripts/mobile_*'
     - ".github/workflows/check_profiles.yml"
 
   workflow_dispatch:

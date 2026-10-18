@@ -18,6 +18,12 @@ on:
      - 'scripts/flatpak/**'
      - 'scripts/msix/**'
      - 'tests/**'
+     # The mobile port has its own workflows (build_ios.yml, mobile_*.yml); a change
+     # confined to it does not need the desktop build matrix.
+     - '!src/mobile/**'
+     - '!tests/mobile/**'
+     - '!scripts/build_ios_core.sh'
+     - '!scripts/mobile_*'
 
   pull_request:
     branches:
@@ -40,6 +46,12 @@ on:
      - 'scripts/flatpak/**'
      - 'scripts/msix/**'
      - 'tests/**'
+     # The mobile port has its own workflows (build_ios.yml, mobile_*.yml); a change
+     # confined to it does not need the desktop build matrix.
+     - '!src/mobile/**'
+     - '!tests/mobile/**'
+     - '!scripts/build_ios_core.sh'
+     - '!scripts/mobile_*'
 
 
   schedule:
