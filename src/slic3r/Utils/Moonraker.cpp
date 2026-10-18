@@ -332,7 +332,7 @@ bool Moonraker::apply_afc_mapping(const AFCSelections& selection, bool& applied,
         return false;
     }
     if (!detected || !current.plan(selection, desired)) {
-        error = _L("AFC filament mapping is no longer valid. Check that the printer is idle, that all selected lanes are loaded, and that no selected lane is already serving another tool this print does not use, then reopen the send dialog.");
+        error = _L("AFC filament mapping is no longer valid. Check that the printer is idle and that all selected lanes are loaded, then reopen the send dialog.");
         return false;
     }
     // The upload and status query may take time; honor cancellation immediately

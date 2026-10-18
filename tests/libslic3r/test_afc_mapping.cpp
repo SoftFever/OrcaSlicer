@@ -208,25 +208,32 @@ TEST_CASE("AFC partial selections that swap among themselves leave unselected to
     CHECK(mapping.tools.at(3) == before.at(3));
 }
 
-TEST_CASE("AFC legacy selections that would displace an unselected tool are rejected", "[AFCMapping]")
+TEST_CASE("AFC selections can take a loaded lane from an unused tool when the current lane is empty", "[AFCMapping]")
 {
+    auto status = status_fixture();
+    status["AFC_lane CANVAS_2"]["load"] = false;
+    status["AFC_lane CANVAS_2"]["prep"] = false;
+    SECTION("single mapping swaps the unused tool onto the empty lane") {}
+    SECTION("multiple mapping retains the unused tool on the loaded lane") {
+        status["AFC"]["multiple_tool_mapping"] = true;
+    }
     AFCMapping mapping;
-    REQUIRE(AFCMapping::parse(status_fixture(), mapping));
+    REQUIRE(AFCMapping::parse(status, mapping));
+    const auto chosen = selection(mapping, {{0, "CANVAS_3"}});
     std::map<int, std::string> desired;
-    Slic3r::AFCSelection displaced_tool;
-    const auto chosen = selection(mapping, {{0, "CANVAS_1"}, {2, "CANVAS_3"}});
-    CHECK_FALSE(mapping.plan(chosen, desired, &displaced_tool));
-    CHECK(displaced_tool.tool == 1);
-    CHECK(displaced_tool.lane == "CANVAS_1");
-    mapping.multiple_mapping = true;
-    CHECK(mapping.plan(chosen, desired, &displaced_tool));
-    CHECK(displaced_tool.tool == -1);
-    CHECK(displaced_tool.lane.empty());
-    mapping.idle = false;
-    displaced_tool = {1, "CANVAS_1"};
-    CHECK_FALSE(mapping.plan(chosen, desired, &displaced_tool));
-    CHECK(displaced_tool.tool == -1);
-    CHECK(displaced_tool.lane.empty());
+    REQUIRE(mapping.plan(chosen, desired));
+    auto expected = mapping.tools;
+    expected.at(0) = "CANVAS_3";
+    if (!mapping.multiple_mapping) expected.at(2) = "CANVAS_2";
+    CHECK(mapping.expected_tools(desired) == expected);
+    const auto script = mapping.mapping_script(desired);
+    CHECK(script == "SET_MAP LANE=CANVAS_3 MAP=T0\n");
+    apply_script(mapping, script);
+    CHECK(mapping.matches(expected));
+    CHECK(mapping.tools.at(1) == "CANVAS_1");
+    CHECK(mapping.tools.at(3) == "CANVAS_4");
+    REQUIRE(mapping.plan(chosen, desired));
+    CHECK(mapping.mapping_script(desired).empty());
 }
 
 TEST_CASE("AFC verification requires the whole expected tool map", "[AFCMapping]")

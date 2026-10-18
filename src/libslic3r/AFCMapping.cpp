@@ -120,11 +120,9 @@ bool AFCMapping::parse(const nlohmann::json& status, AFCMapping& parsed)
     }
 }
 
-bool AFCMapping::plan(const AFCSelections& selection, std::map<int, std::string>& desired,
-                      AFCSelection* displaced_tool) const
+bool AFCMapping::plan(const AFCSelections& selection, std::map<int, std::string>& desired) const
 {
     desired.clear();
-    if (displaced_tool) *displaced_tool = {-1, {}};
     if (selection.empty() || !idle) return false;
     std::set<std::string> selected;
     for (const auto& entry : selection) {
@@ -133,14 +131,6 @@ bool AFCMapping::plan(const AFCSelections& selection, std::map<int, std::string>
             || lane == lanes.end() || !lane->second.ready || !valid_lane_name(entry.lane)) return false;
         if (!selected.insert(entry.lane).second && !multiple_mapping) return false;
         if (!desired.emplace(entry.tool, entry.lane).second) return false;
-    }
-    // Legacy SET_MAP swaps lanes, so a selection must not move any unselected tool.
-    const auto after = expected_tools(desired);
-    for (const auto& [tool, lane] : tools) {
-        if (!desired.count(tool) && after.at(tool) != lane) {
-            if (displaced_tool) *displaced_tool = {tool, lane};
-            return false;
-        }
     }
     return true;
 }

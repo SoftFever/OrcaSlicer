@@ -35,20 +35,16 @@ boundary. `Moonraker::apply_afc_mapping()` runs between upload and print startup
 3. Fetch again to verify assignments and readiness before starting the returned path.
 
 Without `multiple_tool_mapping`, AFC's `SET_MAP LANE=X MAP=Tn` swaps: lane X takes
-Tn and the lane that held Tn takes X's previous tool. Planning models the full
-post-state and rejects a selection that would move any unselected tool, and
-verification compares the whole tool map with that expected state rather than only
-the selected tools. With `multiple_tool_mapping`, only the requested tool moves.
+Tn and the lane that held Tn takes X's previous tool, including tools this print
+does not use. Planning models the full post-state, and verification compares the
+whole tool map with that expected state rather than only the selected tools.
+With `multiple_tool_mapping`, only the requested tool moves.
 
-Without `multiple_tool_mapping`, a lane serves exactly one tool, so taking a lane
-that serves a tool this print does not use necessarily moves that tool. Legacy mode rejects such a selection instead of
-performing the move silently, because the printer's persistent assignments for other
-tools would change as a side effect. The send dialog excludes those lanes from its
-automatic suggestion and, on confirmation, validates the choice with `plan()`; it
-stays open and names the lane and the tool it would move. The user either picks a
-different lane or assigns the displaced tool to one of the print's filaments. An
-idle AFC with no tool mappings parses successfully with an empty tool map;
-the send dialog then falls back to the plain upload dialog.
+Automatic suggestions and manual selection can use any loaded lane of the same
+material. Swaps may change persistent assignments for tools outside the print,
+even when their current lanes are empty. An idle AFC with no tool mappings parses
+successfully with an empty tool map; the send dialog then falls back to the plain
+upload dialog.
 
 If AFC detection fails because `printer/objects/list` is unavailable, the plain
 upload dialog proceeds without a mapping (fail open), since a powered-off Klipper
