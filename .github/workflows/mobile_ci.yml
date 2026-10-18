@@ -119,14 +119,21 @@ jobs:
 
       # Only commits under mobile/ need the convention: release-please reads no others,
       # and a merge from upstream OrcaSlicer brings commits that never followed it.
+      # Commits before release-please's bootstrap-sha predate the convention too, so a
+      # branch that started earlier is checked from that commit on.
       - name: Commits under mobile/
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
+          start="$BASE"
+          boot="$(jq -r '."bootstrap-sha" // empty' ../.github/release-please-config.json)"
+          if [ -n "$boot" ] && git merge-base --is-ancestor "$boot" "$HEAD" && git merge-base --is-ancestor "$BASE" "$boot"; then
+            start="$boot"
+          fi
           status=0
-          for sha in $(git log --no-merges --format=%H "$BASE..$HEAD" -- .); do
+          for sha in $(git log --no-merges --format=%H "$start..$HEAD" -- .); do
             if ! git log -1 --format=%B "$sha" | pnpm exec commitlint; then
               echo "::error::$(git log -1 --format='%h %s' "$sha")"
               status=1
