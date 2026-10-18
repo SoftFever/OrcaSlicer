@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstddef>
 #include <cstdlib>
 #include <future>
 #include <mutex>
@@ -351,8 +352,20 @@ std::vector<std::string> PluginAuditManager::default_denied_path_keywords()
     // must never be able to reach a secret, a certificate, or a configuration file just because
     // it happens to live inside an otherwise-allowed root (e.g. the bundled TLS client cert at
     // resources_dir()/cert/..., which would become reachable the moment resources_dir() is
-    // granted as a read-only allowed root).
-    return {"secret", "cert", "conf"};
+    // granted as a read-only allowed root). Match as whole path components, not substrings, so
+    // imports such as numpy/__config__.py and stdlib configparser.py remain usable.
+    return {"secret", "secrets", "cert", "certs", "certificate", "certificates", "conf", "config"};
+}
+
+static bool has_denied_config_extension(std::string name)
+{
+    const size_t stream_pos = name.find(':');
+    if (stream_pos != std::string::npos)
+        name.erase(stream_pos);
+
+    const boost::filesystem::path path(name);
+    const std::string extension = path.extension().string();
+    return extension == ".conf" || extension == ".ini";
 }
 
 bool PluginAuditManager::is_denied_path_keyword(const boost::filesystem::path& candidate) const
@@ -377,7 +390,7 @@ bool PluginAuditManager::is_denied_path_keyword(const boost::filesystem::path& c
             continue;
         std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::tolower(c); });
         for (const auto& keyword : m_denied_path_keywords) {
-            if (name.find(keyword) != std::string::npos)
+            if (name == keyword || (keyword == "conf" && has_denied_config_extension(name)))
                 return true;
         }
     }
@@ -489,9 +502,9 @@ bool PluginAuditManager::request_filesystem_read_permissions(const std::string& 
 
         wxMessageDialog dialog(
             nullptr,
-            wxString::Format("Plugin \"%s\" requests filesystem read access to:\n%s",
+            wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
                              wxString::FromUTF8(descriptor.name.c_str()), requested_paths),
-            "Plugin permissions",
+            _L("Plugin permissions"),
             wxYES_NO | wxICON_WARNING);
         return dialog.ShowModal() == wxID_YES;
     };
@@ -509,9 +522,9 @@ bool PluginAuditManager::request_filesystem_read_permissions(const std::string& 
 
             wxMessageDialog dialog(
                 nullptr,
-                wxString::Format("Plugin \"%s\" requests filesystem read access to:\n%s",
+                wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
                                  wxString::FromUTF8(descriptor_name.c_str()), requested_paths),
-                "Plugin permissions",
+                _L("Plugin permissions"),
                 wxYES_NO | wxICON_WARNING);
             result->set_value(dialog.ShowModal() == wxID_YES);
         });
@@ -810,7 +823,8 @@ bool persist_permission(const std::string&        plugin_key,
 
 int report_denied(PluginAuditManager&            mgr,
                   const std::string&             event_name,
-                  const AuditDecision&           decision)
+                  const AuditDecision&           decision,
+                  const std::string&             target = {})
 {
     AuditViolation violation;
     violation.plugin_key = mgr.current_plugin();
@@ -818,12 +832,18 @@ int report_denied(PluginAuditManager&            mgr,
     violation.reason     = decision.reason;
     mgr.report_violation(violation);
 
-    PyErr_SetString(PyExc_PermissionError, "Plugin attempted an audited operation without permission");
+    std::string message = "Plugin attempted audited operation \"" + event_name + "\" without permission";
+    if (!decision.reason.empty())
+        message += ": " + decision.reason;
+    if (!target.empty())
+        message += ": " + target;
+
+    PyErr_SetString(PyExc_PermissionError, message.c_str());
     return -1;
 }
 
 wxString audit_message(AuditEventCategory category, const wxString& plugin_name, const wxString& event_name,
-                       const wxString& target_list)
+                       const wxString& target_list, size_t target_count)
 {
     if (target_list.IsEmpty())
         return wxString::Format(
@@ -833,19 +853,29 @@ wxString audit_message(AuditEventCategory category, const wxString& plugin_name,
 
     switch (category) {
     case AuditEventCategory::FsRead:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to read the following file(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to read the following file:\n%s",
+                                          "Plugin \"%s\" is requesting to read the following files:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::FsReadWrite:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to read/write the following file(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to read/write the following file:\n%s",
+                                          "Plugin \"%s\" is requesting to read/write the following files:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::FsCreate:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to create the following file(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to create the following file:\n%s",
+                                          "Plugin \"%s\" is requesting to create the following files:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::FsDelete:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to delete the following file(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to delete the following file:\n%s",
+                                          "Plugin \"%s\" is requesting to delete the following files:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::Http:
         return wxString::Format(_L("Plugin \"%s\" is requesting to make an HTTP request to:\n%s"), plugin_name, target_list);
     case AuditEventCategory::Socket:
         return wxString::Format(_L("Plugin \"%s\" is requesting to open a network connection to:\n%s"), plugin_name, target_list);
     case AuditEventCategory::ProcessCreate:
-        return wxString::Format(_L("Plugin \"%s\" is requesting to run the following command(s):\n%s"), plugin_name, target_list);
+        return wxString::Format(_L_PLURAL("Plugin \"%s\" is requesting to run the following command:\n%s",
+                                          "Plugin \"%s\" is requesting to run the following commands:\n%s", target_count),
+                                plugin_name, target_list);
     case AuditEventCategory::Threading:
         return wxString::Format(_L("Plugin \"%s\" is requesting permission to create a thread."), plugin_name);
     case AuditEventCategory::ProcessReplace:
@@ -865,7 +895,7 @@ bool prompt_for_targets(AuditEventCategory category, const std::string& plugin_n
 
     wxMessageDialog dialog(nullptr,
                            audit_message(category, wxString::FromUTF8(plugin_name.c_str()),
-                                        wxString::FromUTF8(event_name.c_str()), target_list),
+                                        wxString::FromUTF8(event_name.c_str()), target_list, unresolved.size()),
                            _L("Plugin permission request"), wxYES_NO | wxICON_WARNING);
     return dialog.ShowModal() == wxID_YES;
 }
@@ -987,7 +1017,7 @@ int PluginAuditManager::audit_hook(const char* event, PyObject* args, void* user
     if (fs_category) {
         for (const auto& target : targets) {
             if (mgr->is_denied_path(boost::filesystem::path(target)))
-                return PluginAuditDetail::report_denied(*mgr, event_name, {false, "denied path"});
+                return PluginAuditDetail::report_denied(*mgr, event_name, {false, "denied path"}, target);
         }
     }
 

@@ -399,6 +399,7 @@ py::object ui_create_window(const std::string& html, const std::string& title, i
             if (UiRegistry::instance().is_open(new_id))
                 dlg->Destroy();
         } else {
+            dlg->use_normal_window_type();
             dlg->Show();
         }
     });
@@ -644,6 +645,11 @@ void plater_notification(GUI::NotificationManager::NotificationLevel notificatio
 }
 
 } // namespace
+
+void PluginHostUi::run_on_ui_thread(std::function<void()> fn)
+{
+    run_on_ui_blocking(std::move(fn));
+}
 
 void PluginHostUi::RegisterBindings(pybind11::module_& host)
 {

@@ -50,6 +50,7 @@
 #include <wx/panel.h>
 #include <wx/settings.h>
 #include <wx/textentry.h>
+#include <wx/spinctrl.h>
 #include <wx/notebook.h>
 #include <wx/listbook.h>
 #include <wx/simplebook.h>
@@ -107,6 +108,8 @@
 #include "../Utils/PrintHost.hpp"
 
 #include "GUI_App.hpp"
+#include "ImGuiWrapper.hpp"
+#include "OpenGLManager.hpp"
 #include "Shortcuts.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "PublishSettingsDialog.hpp"
@@ -184,18 +187,31 @@ enum class ERescaleTarget
 
 namespace {
 
+bool focus_is_text_field(wxWindow* focus)
+{
+    if (dynamic_cast<wxTextEntryBase*>(focus) || dynamic_cast<wxWebView*>(focus))
+        return true; // a web page can have its own text fields
+    if (dynamic_cast<wxSpinCtrl*>(focus) || dynamic_cast<wxSpinCtrlDouble*>(focus))
+        return true; // the native Windows spin control is not a wxTextEntry
+    return false;
+}
+
+// Only a scene canvas draws ImGui, and a hidden one can keep the wx focus after a tab switch.
+const ImGuiWrapper* focused_canvas_imgui(wxWindow* focus)
+{
+    if (!OpenGLManager::is_scene_canvas(focus) || !focus->IsShownOnScreen())
+        return nullptr;
+    return wxGetApp().imgui();
+}
+
 // Space opens the speed dial, but it is the activation key for buttons, checkboxes and other
-// controls. CHAR_HOOK runs before the focused child, so only take Space when the focused window has
-// no keyboard-activation meaning of its own. Canvases (GLCanvas3D) and panels are not controls and
-// fall through to "open"; the Notebook itself does too, so Space still opens the dial on any page.
+// controls, so only take Space when the focused window has no keyboard-activation meaning of its
+// own. Canvases (GLCanvas3D) and panels are not controls and fall through to "open"; the Notebook
+// itself does too, so Space still opens the dial on any page.
 bool focus_keeps_space(wxWindow* focus)
 {
     if (!focus)
         return false;
-    if (dynamic_cast<wxTextEntryBase*>(focus))
-        return true; // typing a space into a text field
-    if (dynamic_cast<wxWebView*>(focus))
-        return true; // web content scrolls and hosts its own text fields
     if (dynamic_cast<::Button*>(focus))
         return true; // custom button: Space clicks it (it is a wxWindow, not a wxControl)
     if (dynamic_cast<StaticBox*>(focus))
@@ -816,6 +832,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
 bool MainFrame::handle_global_shortcut(const KeyChord& chord)
 {
+    // CHAR_HOOK runs before the focused window, so leave text-editing keys to a focused text field and
+    // the keys ImGui owns to the focused canvas.
+    wxWindow* const focus = wxWindow::FindFocus();
+    if (chord.edits_text() && focus_is_text_field(focus))
+        return false;
+    if (const ImGuiWrapper* imgui = focused_canvas_imgui(focus); imgui != nullptr && imgui->owns_key(chord))
+        return false;
+
     const std::optional<Shortcut> shortcut = wxGetApp().shortcuts().lookup(ShortcutContext::Global, chord);
     if (!shortcut.has_value())
         return false;
@@ -1727,6 +1751,9 @@ void MainFrame::fit_tab_labels()
     for (size_t i = count - 1; i >= 1; --i) {
         int right = ScreenToClient(m_slice_option_btn->ClientToScreen({})).x;
         int left  = sizer->GetSize().GetWidth();
+        // The overflow button sits between the tab buttons and the side tools, so it is not free space.
+        if (const wxWindow* overflow = ctrl->GetOverflowButton())
+            left += overflow->GetSize().GetWidth();
         if (right - left - FromDIP(15) > 0) return;
         ctrl->SetCompact(i, true);
         m_tabpanel->Refresh();
@@ -1746,7 +1773,8 @@ bool MainFrame::preview_only_hint()
         confirm_dlg.update_btn_label(_L("Yes"), _L("No"));
         auto filename = m_plater->get_preview_only_filename();
 
-        confirm_dlg.update_text(filename + " " + _L("will be closed before creating a new model. Do you want to continue?"));
+        // TRN %s is a file name.
+        confirm_dlg.update_text(wxString::Format(_L("%s will be closed before creating a new model. Do you want to continue?"), from_u8(filename)));
         confirm_dlg.on_show();
         if (preview_only_to_editor) {
             m_plater->new_project();
@@ -2827,6 +2855,10 @@ wxMenu* MainFrame::generate_help_menu()
     append_menu_item(helpMenu, wxID_ANY, _L("Show Configuration Folder"), _L("Show Configuration Folder"),
         [](wxCommandEvent&) { Slic3r::GUI::desktop_open_datadir_folder(); });
 
+    append_menu_item(helpMenu, wxID_ANY, _L("Migrate Filament Presets"),
+        _L("Bring back filament presets that a profile update removed from printers they were made for"),
+        [](wxCommandEvent&) { wxGetApp().check_legacy_user_filament_presets(true); });
+
     helpMenu->AppendSeparator();
 
     // Troubleshoot center
@@ -3394,6 +3426,30 @@ void MainFrame::init_menubar_as_editor()
             }, this,
             [this]() { return is_prepare_or_preview_tab(); },
             []() { return wxGetApp().show_plate_gridlines(); }, this);
+
+        // IDEX/IQEX: toggle the per-carriage toolhead representation that appears during
+        // G-code preview playback. Today this is the symbolic footprint box; if a future
+        // change adds true toolhead model support (cf. printer bed models) this same toggle
+        // governs that. Only relevant on Preview, and only meaningful when the active
+        // printer is IDEX/IQEX — gated to keep the menu uncluttered for everyone else.
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show IDEX/IQEX Toolhead"),
+            _L("Show the IDEX/IQEX toolhead representation around each active nozzle in the G-code preview."),
+            [this](wxCommandEvent&) {
+                const bool current = wxGetApp().app_config->get("show_imex_toolhead_boxes") != "false";
+                wxGetApp().app_config->set("show_imex_toolhead_boxes", current ? "false" : "true");
+                m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
+            },
+            this,
+            [this]() {
+                if (m_tabpanel->GetSelectedPageName() != TAB_ID_PREVIEW) return false;
+                if (auto* pb = wxGetApp().preset_bundle) {
+                    auto* o = pb->printers.get_edited_preset().config.option<ConfigOptionBool>("is_imex");
+                    return o && o->value;
+                }
+                return false;
+            },
+            []() { return wxGetApp().app_config->get("show_imex_toolhead_boxes") != "false"; },
+            this);
 
         append_menu_item(
             viewMenu, wxID_ANY, _L("Reset Window Layout"), _L("Reset to default window layout"),
