@@ -1,8 +1,21 @@
+// Model.hpp includes OCCT, which defines NOUSER. Load the Windows controls
+// first, as in the GUI precompiled header, so wx headers retain their types.
+#ifdef _WIN32
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
+    #include <Windows.h>
+    #include <CommCtrl.h>
+#endif
+
 #include <glad/gl.h>
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "libslic3r/Format/AssimpImport.hpp"
+#include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/TexturePainting.hpp"
 #include "libslic3r/Utils.hpp"
@@ -10,6 +23,7 @@
 #include "slic3r/GUI/TextureImportDialog.hpp"
 #include "test_utils.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <memory>
@@ -31,9 +45,10 @@
 #include <EGL/egl.h>
 #endif
 
-// A separate executable keeps wxWidgets initialization and a native fast-fail
-// in the dialog from interfering with the other slic3rutils tests.
-TEST_CASE("A JPEG textured GLB reaches filament matching without interaction", "[TextureImport][Integration][RequiresApp]")
+namespace {
+
+// Each CTest case runs the actual importer and dialog in its own wxApp process.
+void check_texture_import(const std::string& filename, bool custom_model = false)
 {
 #if defined(__linux__)
     if (!std::getenv("DISPLAY") && !std::getenv("WAYLAND_DISPLAY"))
@@ -60,21 +75,25 @@ TEST_CASE("A JPEG textured GLB reaches filament matching without interaction", "
 
     wxGUIEventLoop event_loop;
     wxEventLoopActivator activate(&event_loop);
-    Slic3r::TexturedMesh mesh;
-    std::string error;
-    const char* supplied_model = std::getenv("ORCA_TEXTURE_IMPORT_TEST_MODEL");
-    const std::string filename = supplied_model ? supplied_model :
-        std::string(TEST_DATA_DIR) + "/texture_import/two_color_jpeg.glb";
     INFO(filename);
-    INFO(error);
-    REQUIRE(Slic3r::load_assimp_textured_model(filename, mesh, &error));
-    REQUIRE_FALSE(mesh.textures.empty());
-
-    std::vector<unsigned char> pixels;
-    int width = 0, height = 0;
-    REQUIRE(Slic3r::decode_texture_to_pixels(mesh.textures.front(), pixels, width, height));
-    REQUIRE(width > 0);
-    REQUIRE(height > 0);
+    // Use the same format dispatch as Plater: OBJ/MTL colors and external
+    // textures take different paths from Assimp's embedded GLB textures.
+    const Slic3r::Model model = Slic3r::Model::read_from_file(filename);
+    REQUIRE_FALSE(model.objects.empty());
+    REQUIRE(model.texture_mesh);
+    const Slic3r::TexturedMesh& mesh = *model.texture_mesh;
+    if (mesh.textures.empty()) {
+        REQUIRE(mesh.precomputed_face_colors.size() == mesh.indices.size());
+        REQUIRE_FALSE(mesh.precomputed_face_colors.empty());
+    } else {
+        for (const auto& texture : mesh.textures) {
+            std::vector<unsigned char> pixels;
+            int width = 0, height = 0;
+            REQUIRE(Slic3r::decode_texture_to_pixels(texture, pixels, width, height));
+            REQUIRE(width > 0);
+            REQUIRE(height > 0);
+        }
+    }
 
     auto parent = std::make_unique<wxFrame>(nullptr, wxID_ANY, "Texture import integration test");
     // The full app loads GL entry points before constructing the preview. Give
@@ -110,14 +129,19 @@ TEST_CASE("A JPEG textured GLB reaches filament matching without interaction", "
     filament.dialog_index = 0;
     filament.project_config_index = 0;
     filament.color_hex = "#FF0000";
-    filament.name = "Generic PLA";
+    filament.name = "Red PLA";
+    auto blue_filament = filament;
+    blue_filament.dialog_index = 1;
+    blue_filament.project_config_index = 1;
+    blue_filament.color_hex = "#0000FF";
+    blue_filament.name = "Blue PLA";
     const auto deadline = std::chrono::steady_clock::now() +
-        std::chrono::seconds(supplied_model ? 600 : 30);
+        std::chrono::seconds(custom_model ? 600 : 30);
     bool timed_out = false;
     {
         // Choose the existing no-repair option so a supplied local model with
         // open boundaries does not require answering an unrelated modal prompt.
-        Slic3r::GUI::TextureImportDialog dialog(parent.get(), mesh, {filament}, [&] {
+        Slic3r::GUI::TextureImportDialog dialog(parent.get(), mesh, {filament, blue_filament}, [&] {
             timed_out = std::chrono::steady_clock::now() >= deadline;
             return timed_out;
         }, [](int) { return true; },
@@ -146,6 +170,37 @@ TEST_CASE("A JPEG textured GLB reaches filament matching without interaction", "
         REQUIRE(matches.size() == painted.cluster_colors.size());
         for (const auto& match : matches)
             REQUIRE(match.filament_index >= 0);
+        if (!custom_model) {
+            // Loading geometry alone, losing an MTL or dropping a texture must
+            // not pass just because the dialog can open with one default color.
+            REQUIRE(std::any_of(painted.face_colors.begin(), painted.face_colors.end(),
+                [](const auto& color) { return color[0] > color[2]; }));
+            REQUIRE(std::any_of(painted.face_colors.begin(), painted.face_colors.end(),
+                [](const auto& color) { return color[2] > color[0]; }));
+            REQUIRE(std::any_of(matches.begin(), matches.end(),
+                [](const auto& match) { return match.filament_color[0] > match.filament_color[2]; }));
+            REQUIRE(std::any_of(matches.begin(), matches.end(),
+                [](const auto& match) { return match.filament_color[2] > match.filament_color[0]; }));
+        }
     }
     parent.reset();
+}
+
+} // namespace
+
+TEST_CASE("A JPEG textured GLB reaches filament matching without interaction", "[TextureImport][Integration][RequiresApp]")
+{
+    const char* supplied_model = std::getenv("ORCA_TEXTURE_IMPORT_TEST_MODEL");
+    check_texture_import(supplied_model ? supplied_model :
+        std::string(TEST_DATA_DIR) + "/texture_import/two_color_jpeg.glb", supplied_model != nullptr);
+}
+
+TEST_CASE("An OBJ preserves both MTL colors through filament matching", "[TextureImport][OBJ][Integration][RequiresApp]")
+{
+    check_texture_import(std::string(TEST_DATA_DIR) + "/texture_import/two_color_sphere/test_two_color_sphere.obj");
+}
+
+TEST_CASE("An OBJ resolves its MTL and external JPEG through filament matching", "[TextureImport][OBJ][Integration][RequiresApp]")
+{
+    check_texture_import(std::string(TEST_DATA_DIR) + "/texture_import/two_color_sphere/test_two_color_sphere_textured.obj");
 }
