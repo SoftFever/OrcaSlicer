@@ -8,9 +8,12 @@ name: Mobile release
 #                   the conventional commits under mobile/. Merging that PR tags
 #                   mobile-vX.Y.Z and creates the GitHub release; the jobs below then
 #                   build and attach the .ipa in the same run.
-#   version         decides what this run builds: that release; the weekly beta, tagged
-#                   mobile-vX.Y.Z-beta.N if mobile/ changed since the newest mobile tag;
-#                   or, by hand, a beta now or a test build that publishes nothing.
+#   version         decides what this run builds: that release; the release PR's own
+#                   candidate (production variant, mobile-vX.Y.Z-rc.N, an artifact only,
+#                   and the "IPA" check the ruleset on main requires before the PR can
+#                   merge); the weekly beta, tagged mobile-vX.Y.Z-beta.N if mobile/
+#                   changed since the newest mobile tag; or, by hand, a beta now or a
+#                   test build that publishes nothing.
 #   ipa             builds the .ipa on macOS (a self-hosted Mac when MOBILE_MACOS_RUNNER
 #                   is set) as the app.config.ts variant: production for a release, beta
 #                   (own bundle id, installs next to the stable app) otherwise.
@@ -36,12 +39,16 @@ name: Mobile release
 # Repository settings:
 #   Actions > General > "Allow GitHub Actions to create and approve pull requests", for
 #   the release PR when it is opened with the workflow's token. Its commits are then
-#   signed by GitHub, but no checks run on that PR. A GitHub App fixes that: set the
+#   signed by GitHub, but no checks run on that PR, so with "IPA" and the mobile checks
+#   required by main's ruleset it cannot be merged. A GitHub App fixes that: set the
 #   RELEASE_APP_ID variable and RELEASE_APP_PRIVATE_KEY secret of an app installed on
 #   this repository with contents, pull requests and issues write, and the PR is
 #   opened as the app, still signed, with checks. A personal access token is not a
 #   substitute: commits it creates through the API are unsigned, which a branch that
 #   requires signed commits rejects.
+#   Rulesets > main: required status checks "Lint and format", "Typecheck", "Unit
+#   tests" and "IPA", all from GitHub Actions. The release PR then merges only after
+#   its candidate .ipa built.
 #   MOBILE_MACOS_RUNNER         variable: runs-on for the ipa job as JSON, e.g.
 #                               '["self-hosted","macOS","ARM64","orca-ios"]'
 #                               (default "macos-15"; see mobile/scripts/setup-mac-runner.sh)
@@ -50,6 +57,12 @@ name: Mobile release
 
 on:
   push:
+    branches: [main]
+  # The release PR builds the .ipa it would release, as the "IPA" check that main's
+  # ruleset requires. Every pull request triggers this (a required check has to report
+  # on every PR, and a job skipped by its condition counts as passed), but only one
+  # whose head is a release-please branch builds; the rest skip in seconds.
+  pull_request:
     branches: [main]
   # The beta lane: Mondays 15:00 UTC, only when something under mobile/ changed since
   # the newest mobile tag.
@@ -138,12 +151,22 @@ jobs:
           RP_TAG: ${{ needs.release-please.outputs.tag }}
           LANE: ${{ inputs.lane }}
           OFFSET: ${{ vars.MOBILE_BUILD_NUMBER_OFFSET || '0' }}
+          HEAD_REF: ${{ github.head_ref }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           publish=true variant=production sha=$GITHUB_SHA
           if [ "$RP_CREATED" = true ]; then
             tag=$RP_TAG
+          elif [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            # The release PR: build what merging it would release, from the PR's merge
+            # commit, with the version the PR bumps to. Nothing is tagged or published.
+            case "$HEAD_REF" in
+              release-please--*) ;;
+              *) echo "build=false" >> "$GITHUB_OUTPUT"; echo "Not a release PR; nothing to build."; exit 0 ;;
+            esac
+            tag=mobile-v$(jq -r .mobile .github/.release-please-manifest.json)-rc.$GITHUB_RUN_NUMBER
+            publish=false
           elif [ "$GITHUB_EVENT_NAME" = schedule ] || [ "$LANE" = beta ]; then
             # Beta: the version the open release PR proposes (or the next patch when
             # none is open), numbered after the betas of it so far.
