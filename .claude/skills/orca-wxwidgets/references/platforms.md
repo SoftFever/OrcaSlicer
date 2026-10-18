@@ -271,6 +271,14 @@ Each bullet names the mechanism and the file that owns it.
 - **Painting:** in 3.3.2 windows are not double-buffered by default (the 3.3.0 global
   `WS_EX_COMPOSITED` was reverted, `docs/changes.txt:308`). Custom widgets buffer by hand →
   `references/painting-custom-widgets.md`.
+- **Building large panels:** every control is a native child window, and outside a sizer pass a move
+  or resize is immediate, repainting when the window is shown [source: `src/msw/window.cpp:2036`
+  `DoMoveSibling` → `MSWMoveWindowToAnyPosition(..., IsShown())`]; `wxStaticText::SetLabel`/`SetFont`
+  resize the control that way (`src/common/stattextcmn.cpp:334` `AutoResizeIfNecessary`). Created
+  inside a shown parent, each control re-clips and erases its shown, overlapping siblings, so the
+  cost grows with the number already built and hundreds of controls take seconds. Build a large
+  panel while its parent is hidden and show it once complete — `LazyPage::Show` builds its panel
+  before showing the page for this reason → `references/orca-architecture.md` §Deferred construction.
 - **Modal loops:** idle events do not run inside the Windows sizing/moving modal loop, so the 3D
   canvas renders from `on_paint` on MSW (c06a0223a7) → `references/webview-gl-aui-media.md` §GLCanvas3D rendering.
 - **Mouse capture:** `wxEVT_MOUSE_CAPTURE_LOST` and `wxEVT_MOUSE_CAPTURE_CHANGED` are delivered →
@@ -474,7 +482,7 @@ start there when looking for prior art. The sites below are exemplars, cited by 
   data-view cell editors an explicit top-level transient parent.
   `DropDown::ShouldDismissOnTopWindowDeactivate` handles Wayland chains.
 - `CheckBox::CheckBox`, `SwitchButton`, `RadioBox`, `ScalableButton` (`wxExtensions.cpp`),
-  `ObjColorDialog`, `PresetComboBoxes` call `RemoveButtonBorder`; `TextInput` and `SpinInput` call
+  `PresetComboBoxes` call `RemoveButtonBorder`; `TextInput` and `SpinInput` call
   `RemoveInputBorder` on their inner `wxTextCtrl`.
 - `Plater::priv::priv` together with `sanitize_window_layout_for_wayland`: AUI floating is disabled on
   Wayland.
@@ -561,12 +569,19 @@ on the **first** call. So:
 #endif
 ```
 
-**Before GTK starts**, only the environment exists. `CLI::run` (`src/OrcaSlicer.cpp`) branches on
-`GDK_BACKEND` (an `x11` prefix means the X11 opt-in). On the default path it forces `GDK_BACKEND=x11`
-when wx lacks EGL and `WAYLAND_DISPLAY` is set. It sets `WEBKIT_DISABLE_COMPOSITING_MODE=1`
-(non-replacing) only when both `DISPLAY` and `WAYLAND_DISPLAY` are set, and calls `XInitThreads()`
+**Before GTK starts**, only the environment exists. `CLI::run` (`src/OrcaSlicer.cpp`) sets the NVIDIA
+DMABUF workaround and then branches on `GDK_BACKEND` (an `x11` prefix means the X11 opt-in). On both
+paths, when `/proc/driver/nvidia/version` exists and the linked WebKitGTK honours the switch (>= 2.44,
+`WebView::SupportsForceSharedMemory()`), it sets `WEBKIT_DMABUF_RENDERER_FORCE_SHM=1` and
+`WEBKIT_FORCE_DMABUF_RENDERER=1` (non-replacing): the proprietary driver cannot back WebKit's hardware
+DMABUF renderer. On a hypervisor guest (`/proc/cpuinfo` `hypervisor` flag) and WebKitGTK >= 2.44 it sets
+`WEBKIT_DMABUF_RENDERER_FORCE_SHM=1` alone, since virtual GPUs cannot back the hardware path either. On the default path it forces `GDK_BACKEND=x11` when wx lacks EGL and `WAYLAND_DISPLAY`
+is set, and sets `WEBKIT_DISABLE_COMPOSITING_MODE=1` (non-replacing) inside that branch when the linked
+WebKitGTK is older than 2.42: a forced X11 backend in a Wayland session is the only default-path case
+that runs through XWayland, which `DISPLAY` and `WAYLAND_DISPLAY` alone do not tell you (a native
+Wayland app inherits both). It calls `XInitThreads()`
 only when `DISPLAY` is set. With neither variable set, the GUI refuses to start ("Neither DISPLAY nor
-WAYLAND_DISPLAY set"). The details and the WebKit rule (c12912e0df) are in
+WAYLAND_DISPLAY set"). The details and the WebKit rules (c12912e0df) are in
 `references/webview-gl-aui-media.md` §WebKitGTK on Linux sessions.
 
 **wx's own detectors**, for reference:
@@ -812,7 +827,7 @@ widgets do it in their constructors.
   (`"*.GtkBitmapToggleButton"`, class `"GtkEntry"`). The first call changes every matching widget in
   the process, not just the one passed in.
 
-**Callers:** `CheckBox::CheckBox`, `SwitchButton`, `RadioBox`, `ScalableButton`, `ObjColorDialog` and
+**Callers:** `CheckBox::CheckBox`, `SwitchButton`, `RadioBox`, `ScalableButton` and
 `PresetComboBoxes` (`RemoveButtonBorder`); the inner `wxTextCtrl` of `TextInput` and `SpinInput`
 (`RemoveInputBorder`). A new owner-drawn control built on a native GTK widget needs the same call.
 

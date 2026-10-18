@@ -66,6 +66,7 @@
 #define CLI_OBJECT_ORIENT_FAILED       -22
 #define CLI_MODIFIED_PARAMS_TO_PRINTER -23
 #define CLI_FILE_VERSION_NOT_SUPPORTED -24
+#define CLI_EXPORT_STATISTICS_ERROR    -25
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -109,7 +110,6 @@ extern std::string format_memsize_MB(size_t n);
 extern std::string format_memsize(size_t bytes, unsigned int decimals = 1);
 // Return string to be added to the boost::log output to inform about the current process memory allocation.
 // The string is non-empty if the loglevel >= info (3) or ignore_loglevel==true.
-// Latter is used to get the memory info from SysInfoDialog.
 extern std::string log_memory_info(bool ignore_loglevel = false);
 extern void disable_multi_threading();
 // Returns the size of physical memory (RAM) in bytes.
@@ -301,6 +301,14 @@ extern bool is_absolute_path_within_root(const boost::filesystem::path &path, co
 // True if a file with this name is of a type that the desktop opens as plain content, so it cannot run code.
 // Anything unknown is not safe.
 extern bool is_safe_to_open_file_name(const std::string &file_name);
+
+// Case-insensitive compare against a fixed ASCII keyword, without boost::iequals, whose
+// std::locale() takes a lock the whole process shares in the MSVC runtime.
+inline bool ascii_iequals(std::string_view a, std::string_view b)
+{
+    auto lower = [](char c) { return (c >= 'A' && c <= 'Z') ? char(c - 'A' + 'a') : c; };
+    return a.size() == b.size() && std::equal(a.begin(), a.end(), b.begin(), [&lower](char x, char y) { return lower(x) == lower(y); });
+}
 
 // Orca: custom protocal support utils
 inline bool is_orca_open(const std::string& url) { return boost::starts_with(url, "orcaslicer://open"); }
@@ -833,6 +841,13 @@ void save_string_file(const boost::filesystem::path& p, const std::string& str);
 void load_string_file(const boost::filesystem::path& p, std::string& str);
 
 bool check_layer_id_pattern(const std::string& pattern, int layer_id);
+
+// On Windows, return an equivalent path carrying the extended-length ("\\?\" / "\\?\UNC\")
+// prefix so the Win32 APIs accept it past MAX_PATH even when LongPathsEnabled is off. The path
+// is made absolute and lexically normalized first, because the prefix disables normalisation.
+// A path that is already extended (or a device path) is returned unchanged; on other platforms,
+// or when an absolute path cannot be formed, the input is returned unchanged.
+boost::filesystem::path extended_path(const boost::filesystem::path& path);
 
 } // namespace Slic3r
 

@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "GUI_App.hpp"
+#include "I18N.hpp"
 
 using json = nlohmann::json;
 
@@ -95,7 +96,7 @@ void FilamentColorCodeQuery::LoadFromLocal()
                     const auto& fila_color_strs = json_data_item["fila_color"].get<std::vector<wxString>>();
                     for (const auto& color_str : fila_color_strs) {
                         if (color_str.size() > 3) /* Skip the value like "#0"*/{
-                            fila_color.m_colors.emplace(wxColour(color_str));
+                            fila_color.AddColor(wxColour(color_str));
                         }
                     }
                 }
@@ -165,7 +166,7 @@ wxString FilamentColorCode::GetFilaColorName() const
     if (it != m_fila_color_names.end() && !it->second.empty()) {  return it->second; }
 
     it = m_fila_color_names.find("en");// retry with English as fallback
-    return (it != m_fila_color_names.end()) ? it->second : "Unknown";
+    return (it != m_fila_color_names.end()) ? it->second : _L("Unknown");
 }
 
 FilamentColorCode::FilamentColorCode(const wxString& color_code, FilamentColorCodes* owner, FilamentColor&& color, std::unordered_map<wxString, wxString>&& name_map)
