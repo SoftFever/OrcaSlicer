@@ -1,7 +1,15 @@
 #include "Moonraker.hpp"
+#include "MoonrakerAPI.hpp"
+#include "libslic3r/AFCMapping.hpp"
+#include "libslic3r/LaneMapping.hpp"
 
 #include <exception>
+#include <functional>
+#include <algorithm>
 #include <sstream>
+#include <string>
+#include <map>
+#include <nlohmann/json.hpp>
 
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
@@ -9,6 +17,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <wx/string.h>
 #include <utility>
+#include <vector>
 #include <wx/arrstr.h>
 
 #include "PrintHost.hpp"
@@ -20,6 +29,57 @@
 namespace pt = boost::property_tree;
 
 namespace Slic3r {
+
+bool fetch_afc_status(const std::string& base_url, const std::string& api_key,
+                      LaneMapping& mapping, bool& detected, std::string& error,
+                      const std::string& ca_file, bool ssl_revoke_best_effort)
+{
+    mapping = {};
+    detected = false;
+    error.clear();
+    if (base_url.empty()) return false;
+    const MoonrakerAPI api(base_url, api_key, ca_file, ssl_revoke_best_effort, 2, 3);
+    nlohmann::json result;
+    if (!api.get_result("printer/objects/list", result, error)) {
+        // Discovery is optional. In particular, a powered-off Klipper may
+        // return 503 while Moonraker can still accept and queue normal uploads.
+        BOOST_LOG_TRIVIAL(debug) << "Moonraker: AFC detection unavailable: " << error;
+        error.clear();
+        return true;
+    }
+    if (!result.contains("objects") || !result["objects"].is_array()) {
+        error = _u8L("Invalid Moonraker object list");
+        return false;
+    }
+    const auto& objects = result["objects"];
+    if (std::find(objects.begin(), objects.end(), nlohmann::json("AFC")) == objects.end()) return true;
+    detected = true;
+    std::vector<std::string> query = {"AFC", "print_stats"};
+    for (const auto& object : objects) {
+        if (object.is_string()) {
+            const auto name = object.get<std::string>();
+            if (name.rfind("AFC_lane ", 0) == 0 || name.rfind("AFC_stepper ", 0) == 0)
+                query.push_back(name);
+        }
+    }
+    // Fetch all lane maps and metadata together, so a concurrent external remap
+    // cannot associate a selected color with a different physical lane.
+    if (!api.query_objects(query, result, error) || !AFCMapping::parse(result, mapping)) {
+        if (error.empty()) error = _u8L("Invalid AFC lane status");
+        return false;
+    }
+    return true;
+}
+
+bool Moonraker::fetch_afc_status(LaneMapping& mapping, bool& detected, wxString& error) const
+{
+    std::string detail;
+    const bool success = Slic3r::fetch_afc_status(make_url(""), m_apikey, mapping, detected, detail,
+                                                m_cafile, m_ssl_revoke_best_effort);
+    if (!success)
+        error = GUI::format_wxstr(_L("Unable to read AFC filament information: %s"), detail);
+    return success;
+}
 
 Moonraker::Moonraker(DynamicPrintConfig *config)
     : m_host(config->opt_string("print_host"))
@@ -211,6 +271,71 @@ bool Moonraker::start_print(wxString &error_msg, const std::string &filename) co
     return res;
 }
 
+bool Moonraker::send_gcode_script(const std::string& script, wxString& error) const
+{
+    bool success = false;
+    auto request = Http::post(make_url("printer/gcode/script"));
+    set_auth(request);
+    request.header("Content-Type", "application/json")
+        .set_post_body(nlohmann::json{{"script", script}}.dump())
+        .timeout_connect(5).timeout_max(10)
+        .on_complete([&](std::string body, unsigned) {
+            const auto response = nlohmann::json::parse(body, nullptr, false);
+            success = response.is_object() && response.contains("result") && !response.contains("error");
+        })
+        .on_error([&](std::string body, std::string message, unsigned status) {
+            error = format_error(body, message, status);
+        })
+#ifdef WIN32
+        .ssl_revoke_best_effort(m_ssl_revoke_best_effort)
+#endif
+        .perform_sync();
+    return success;
+}
+
+bool Moonraker::apply_afc_mapping(const LaneSelections& selection, bool& applied, wxString& error,
+                                 const std::function<bool()>& cancelled) const
+{
+    applied = false;
+    const auto is_cancelled = [&] { return cancelled && cancelled(); };
+    if (is_cancelled()) return false;
+    LaneMapping current;
+    bool detected = false;
+    if (!fetch_afc_status(current, detected, error)) return false;
+    std::map<int, std::string> desired;
+    if (detected && current.tools.empty()) {
+        error = _L("The printer reports no filament-to-tool mappings, so the filament mapping cannot be applied.");
+        return false;
+    }
+    if (!detected || !current.plan(selection, desired)) {
+        error = _L("Filament mapping is no longer valid. Check that the printer is idle and that all selected lanes are loaded, then reopen the send dialog.");
+        return false;
+    }
+    // The upload and status query may take time; honor cancellation immediately
+    // before changing the printer's persistent mapping.
+    if (is_cancelled()) return false;
+    const auto expected = AFCMapping::expected_tools(current, desired);
+    const auto script = AFCMapping::mapping_script(current, desired);
+    if (!script.empty()) {
+        applied = true;
+        if (!send_gcode_script(script, error)) {
+            error = _L("Failed to apply filament mapping. The print was not started; check the printer's current lane assignments.");
+            return false;
+        }
+    }
+    LaneMapping verified;
+    if (!fetch_afc_status(verified, detected, error) || !detected
+        || !verified.plan(selection, desired) || verified.tools != expected) {
+        error = _L("Filament mapping could not be verified. The print was not started; check that the printer is idle, that the selected lanes are loaded, and that the lane assignments are correct.");
+        return false;
+    }
+    if (is_cancelled()) {
+        if (applied) error = _L("The print was canceled after filament mapping was applied. The lane assignments remain saved on the printer.");
+        return false;
+    }
+    return true;
+}
+
 bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, ErrorFn error_fn, InfoFn info_fn) const
 {
     // POST /server/files/upload with `print=true` so Moonraker starts the print
@@ -238,11 +363,19 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
     const std::string root = upload_data.storage.empty() ? std::string("gcodes") : upload_data.storage;
 
     const bool want_start = upload_data.post_action == PrintHostPostUploadAction::StartPrint;
+    const std::string serialized_mapping = want_start ? upload_data.extended("filament_mapping") : std::string{};
+    const bool map_filament = !serialized_mapping.empty();
+    LaneSelections selection;
+    if (map_filament && !parse_lane_selection(serialized_mapping, selection)) {
+        error_fn(_L("Filament assignments are invalid. Reopen the upload dialog to check the mapping."));
+        return false;
+    }
 
     std::string url = make_url("server/files/upload");
     bool result = true;
     std::string uploaded_path;
     bool moonraker_started_print = false;
+    bool filament_mapping_applied = false;
 
     //ORCA: gcode inside a .gcode.3mf is index-coded (Metadata/plate_<N>.gcode), so the upload names the
     //      plate via a 1-based `plateindex` (set only in the .3mf path, see Plater::send_gcode_legacy);
@@ -263,7 +396,9 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
     http.form_add("root", root);
     if (!plateindex.empty())
         http.form_add("plateindex", plateindex);
-    http.form_add("print", want_start ? "true" : "false");
+    // Filament assignments belong to an immediate print, not a queued upload whose
+    // lane mappings might change before it starts.
+    http.form_add("print", want_start && !map_filament ? "true" : "false");
     http.form_add_file("file", upload_data.source_path.string(), upload_filename.string())
         .on_complete([&](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(debug) << boost::format("%1%: upload HTTP %2%: %3%") % name % status % body;
@@ -321,11 +456,33 @@ bool Moonraker::upload(PrintHostUpload upload_data, ProgressFn progress_fn, Erro
     if (!result)
         return false;
 
+    if (map_filament) {
+        const auto cancelled = [&] {
+            const std::string empty;
+            bool cancel = false;
+            progress_fn(Http::Progress(0, 0, 1, 1, empty), cancel);
+            // Mirror Http's final cancellation notification to the upload queue.
+            if (cancel) progress_fn(Http::Progress(0, 0, 1, 1, empty), cancel);
+            return cancel;
+        };
+        if (moonraker_started_print) {
+            error_fn(_L("Moonraker unexpectedly started or queued the upload before filament mapping could be applied."));
+            return false;
+        }
+        wxString message;
+        if (!apply_afc_mapping(selection, filament_mapping_applied, message, cancelled)) {
+            if (!message.empty()) error_fn(std::move(message));
+            return false;
+        }
+    }
+
     // Fallback only when Moonraker neither started nor queued the print. If the
     // printer cannot start it, the error from this request is what the user sees.
     if (want_start && !uploaded_path.empty() && !moonraker_started_print) {
         wxString start_msg;
         if (!start_print(start_msg, uploaded_path)) {
+            if (filament_mapping_applied)
+                start_msg += "\n" + _L("The lane assignments remain saved on the printer. Check them before retrying.");
             error_fn(std::move(start_msg));
             return false;
         }

@@ -3,6 +3,8 @@
 #include "IPrinterAgent.hpp"
 #include "CalibUtils.hpp"
 #include "Flashforge.hpp"
+#include "../Utils/Moonraker.hpp"
+#include "libslic3r/LaneMapping.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r_version.h"
 
@@ -20963,34 +20965,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
         const bool flashforge_local_api = host_type == htFlashforge && ff_serial_opt != nullptr && !ff_serial_opt->value.empty() &&
                                           ff_code_opt != nullptr && !ff_code_opt->value.empty();
 
-        std::unique_ptr<PrintHostSendDialog> pDlg;
-        if (host_type == htElegooLink) {
-            pDlg = std::make_unique<ElegooPrintHostSendDialog>(default_output_file, upload_job.printhost->get_post_upload_actions(), groups,
-                                                               storage_paths, storage_names,
-                                                               config->get_bool("open_device_tab_post_upload"));
-        } else if (host_type == htCrealityPrint) {
-            pDlg = std::make_unique<CrealityPrintHostSendDialog>(default_output_file, upload_job.printhost->get_post_upload_actions(), groups,
-                                                                 storage_paths, storage_names,
-                                                                 config->get_bool("open_device_tab_post_upload"),
-                                                                 upload_job.printhost.get());
-        } else if (flashforge_local_api) {
-            auto* flashforge_host = dynamic_cast<Flashforge*>(upload_job.printhost.get());
-            if (flashforge_host == nullptr) {
-                show_error(this, _L("Flashforge host is not available."), false);
-                return;
-            }
-
-            std::vector<FlashforgeMaterialSlot> slots;
-            bool                                supports_material_station = false;
-            {
-                wxBusyCursor wait;
-                wxString     msg;
-                if (!flashforge_host->fetch_material_slots(slots, &supports_material_station, msg)) {
-                    show_error(this, msg.empty() ? _L("Unable to log in to the Flashforge printer.") : msg, false);
-                    return;
-                }
-            }
-
+        auto collect_project_filaments = [&](int mapping_plate_idx) {
             std::vector<FilamentInfo> project_filaments;
             PlateDataPtrs               plate_data_list;
             DynamicPrintConfig          cfg                 = wxGetApp().preset_bundle->full_config();
@@ -21020,7 +20995,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
             };
 
             p->partplate_list.store_to_3mf_structure(plate_data_list, true, plate_idx);
-            PlateData* selected_plate_data = (resolved_plate_idx >= 0 && resolved_plate_idx < static_cast<int>(plate_data_list.size())) ? plate_data_list[resolved_plate_idx] : nullptr;
+            PlateData* selected_plate_data = (mapping_plate_idx >= 0 && mapping_plate_idx < static_cast<int>(plate_data_list.size())) ? plate_data_list[mapping_plate_idx] : nullptr;
             if (selected_plate_data == nullptr && !plate_data_list.empty())
                 selected_plate_data = plate_data_list.front();
 
@@ -21028,13 +21003,45 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
                 project_filaments = selected_plate_data->slice_filaments_info;
 
             if (project_filaments.empty()) {
-                if (PartPlate* plate = get_partplate_list().get_plate(resolved_plate_idx); plate != nullptr)
+                if (PartPlate* plate = get_partplate_list().get_plate(mapping_plate_idx); plate != nullptr)
                     project_filaments = plate->get_slice_filaments_info();
             }
 
             if (!project_filaments.empty())
                 enrich_project_filaments(project_filaments);
             release_PlateData_list(plate_data_list);
+            return project_filaments;
+        };
+
+        std::unique_ptr<PrintHostSendDialog> pDlg;
+        if (host_type == htElegooLink) {
+            pDlg = std::make_unique<ElegooPrintHostSendDialog>(default_output_file, upload_job.printhost->get_post_upload_actions(), groups,
+                                                               storage_paths, storage_names,
+                                                               config->get_bool("open_device_tab_post_upload"));
+        } else if (host_type == htCrealityPrint) {
+            pDlg = std::make_unique<CrealityPrintHostSendDialog>(default_output_file, upload_job.printhost->get_post_upload_actions(), groups,
+                                                                 storage_paths, storage_names,
+                                                                 config->get_bool("open_device_tab_post_upload"),
+                                                                 upload_job.printhost.get());
+        } else if (flashforge_local_api) {
+            auto* flashforge_host = dynamic_cast<Flashforge*>(upload_job.printhost.get());
+            if (flashforge_host == nullptr) {
+                show_error(this, _L("Flashforge host is not available."), false);
+                return;
+            }
+
+            std::vector<FlashforgeMaterialSlot> slots;
+            bool                                supports_material_station = false;
+            {
+                wxBusyCursor wait;
+                wxString     msg;
+                if (!flashforge_host->fetch_material_slots(slots, &supports_material_station, msg)) {
+                    show_error(this, msg.empty() ? _L("Unable to log in to the Flashforge printer.") : msg, false);
+                    return;
+                }
+            }
+
+            auto project_filaments = collect_project_filaments(resolved_plate_idx);
 
             pDlg = std::make_unique<FlashforgePrintHostSendDialog>(default_output_file, upload_job.printhost->get_post_upload_actions(), groups,
                                                                    storage_paths, storage_names,
@@ -21043,7 +21050,27 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
                                                                    supports_material_station,
                                                                    std::move(slots),
                                                                    project_filaments);
-        } else {
+        } else if (host_type == htMoonraker) {
+            auto* moonraker = dynamic_cast<Moonraker*>(upload_job.printhost.get());
+            LaneMapping mapping;
+            bool detected = false;
+            bool mapping_available = false;
+            wxString error;
+            if (moonraker != nullptr) {
+                wxBusyCursor wait;
+                mapping_available = moonraker->fetch_afc_status(mapping, detected, error);
+                if (!mapping_available && detected)
+                    BOOST_LOG_TRIVIAL(warning) << "Moonraker: Upload and Print disabled: " << into_u8(error);
+            }
+            // Keep upload-only available when AFC is present but its mapping cannot be read.
+            if (detected && (!mapping_available || !mapping.tools.empty())) {
+                pDlg = std::make_unique<MoonrakerPrintHostSendDialog>(default_output_file, upload_job.printhost->get_post_upload_actions(), groups,
+                    storage_paths, storage_names, config->get_bool("open_device_tab_post_upload"),
+                    std::move(mapping), collect_project_filaments(plate_idx == PLATE_ALL_IDX
+                        ? get_partplate_list().get_curr_plate_index() : resolved_plate_idx));
+            }
+        }
+        if (pDlg == nullptr) {
             pDlg = std::make_unique<PrintHostSendDialog>(default_output_file, upload_job.printhost->get_post_upload_actions(), groups,
                                                          storage_paths, storage_names, config->get_bool("open_device_tab_post_upload"));
         }

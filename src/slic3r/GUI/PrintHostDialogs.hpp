@@ -17,6 +17,7 @@
 #include "MsgDialog.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/Flashforge.hpp"
+#include "libslic3r/LaneMapping.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/ProjectTask.hpp"
 class wxButton;
@@ -221,6 +222,35 @@ private:
     };
     std::vector<SlotInfo>   m_printer_slots;
     std::vector<BitmapComboBox*> m_slot_combos; // one per gcode filament
+};
+
+class MoonrakerPrintHostSendDialog : public PrintHostSendDialog
+{
+public:
+    MoonrakerPrintHostSendDialog(const boost::filesystem::path& path,
+                                PrintHostPostUploadActions post_actions,
+                                const wxArrayString& groups,
+                                const wxArrayString& storage_paths,
+                                const wxArrayString& storage_names,
+                                bool switch_to_device_tab,
+                                LaneMapping mapping,
+                                std::vector<FilamentInfo> project_filaments);
+
+    void init() override;
+    void EndModal(int ret) override;
+    std::map<std::string, std::string> extendedInfo() const override;
+
+private:
+    LaneSelections collect_assignments() const;
+
+    struct MappingRow {
+        int tool_id;
+        wxWindow* card;
+    };
+    LaneMapping m_mapping;
+    std::vector<std::string> m_lane_names;
+    std::vector<FilamentInfo> m_project_filaments;
+    std::vector<MappingRow> m_mapping_rows;
 };
 
 class FlashforgePrintHostSendDialog : public PrintHostSendDialog

@@ -262,6 +262,7 @@ src/slic3r/Utils/UltiMaker.cpp
 src/slic3r/Utils/FlashAir.cpp
 src/slic3r/Utils/MKS.cpp
 src/slic3r/Utils/Moonraker.cpp
+src/slic3r/Utils/MoonrakerAPI.cpp
 src/slic3r/Utils/OctoPrint.cpp
 src/slic3r/Utils/Repetier.cpp
 src/slic3r/Utils/ESP3D.cpp

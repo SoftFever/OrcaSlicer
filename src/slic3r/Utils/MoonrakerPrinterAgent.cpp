@@ -1,4 +1,5 @@
 #include "MoonrakerPrinterAgent.hpp"
+#include "MoonrakerAPI.hpp"
 #include "Http.hpp"
 #include "IPrinterAgent.hpp"
 #include "NetworkAgentFactory.hpp"
@@ -1096,53 +1097,10 @@ bool MoonrakerPrinterAgent::fetch_device_info(const std::string&   base_url,
                                               MoonrakerDeviceInfo& info,
                                               std::string&         error) const
 {
-    auto fetch_json = [&](const std::string& url, nlohmann::json& out) {
-        std::string response_body;
-        bool        success = false;
-        std::string http_error;
-
-        auto http = Http::get(url);
-        if (!api_key.empty()) {
-            http.header("X-Api-Key", api_key);
-        }
-        http.timeout_connect(5)
-            .timeout_max(10)
-            .on_complete([&](std::string body, unsigned status) {
-                if (status == 200) {
-                    response_body = body;
-                    success       = true;
-                } else {
-                    http_error = "HTTP error: " + std::to_string(status);
-                }
-            })
-            .on_error([&](std::string body, std::string err, unsigned status) {
-                http_error = err;
-                if (status > 0) {
-                    http_error += " (HTTP " + std::to_string(status) + ")";
-                }
-            })
-            .perform_sync();
-
-        if (!success) {
-            error = http_error.empty() ? "Connection failed" : http_error;
-            return false;
-        }
-
-        out = nlohmann::json::parse(response_body, nullptr, false, true);
-        if (out.is_discarded()) {
-            error = "Invalid JSON response";
-            return false;
-        }
-        return true;
-    };
-
-    nlohmann::json json;
-    std::string    url = join_url(base_url, "/server/info");
-    if (!fetch_json(url, json)) {
+    nlohmann::json result;
+    if (!MoonrakerAPI(base_url, api_key).get_result("server/info", result, error))
         return false;
-    }
 
-    nlohmann::json result = json.contains("result") ? json["result"] : json;
     info.dev_name         = result.value("machine_name", result.value("hostname", ""));
     info.version          = result.value("moonraker_version", "");
     info.klippy_state     = result.value("klippy_state", "");
@@ -1155,52 +1113,8 @@ bool MoonrakerPrinterAgent::query_printer_status(const std::string& base_url,
                                                  nlohmann::json&    status,
                                                  std::string&       error) const
 {
-    std::string url = join_url(base_url, "/printer/objects/query?print_stats&virtual_sdcard&extruder&heater_bed&fan");
-
-    std::string response_body;
-    bool        success = false;
-    std::string http_error;
-
-    auto http = Http::get(url);
-    if (!api_key.empty()) {
-        http.header("X-Api-Key", api_key);
-    }
-    http.timeout_connect(5)
-        .timeout_max(10)
-        .on_complete([&](std::string body, unsigned status_code) {
-            if (status_code == 200) {
-                response_body = body;
-                success       = true;
-            } else {
-                http_error = "HTTP error: " + std::to_string(status_code);
-            }
-        })
-        .on_error([&](std::string body, std::string err, unsigned status_code) {
-            http_error = err;
-            if (status_code > 0) {
-                http_error += " (HTTP " + std::to_string(status_code) + ")";
-            }
-        })
-        .perform_sync();
-
-    if (!success) {
-        error = http_error.empty() ? "Connection failed" : http_error;
-        return false;
-    }
-
-    auto json = nlohmann::json::parse(response_body, nullptr, false, true);
-    if (json.is_discarded()) {
-        error = "Invalid JSON response";
-        return false;
-    }
-
-    if (!json.contains("result") || !json["result"].contains("status")) {
-        error = "Unexpected JSON structure";
-        return false;
-    }
-
-    status = json["result"]["status"];
-    return true;
+    return MoonrakerAPI(base_url, api_key).query_objects(
+        {"print_stats", "virtual_sdcard", "extruder", "heater_bed", "fan"}, status, error);
 }
 
 void MoonrakerPrinterAgent::send_gcode_async(const std::string& dev_id, const std::string& gcode,
@@ -1288,56 +1202,11 @@ bool MoonrakerPrinterAgent::fetch_object_list(const std::string&     base_url,
                                               std::set<std::string>& objects,
                                               std::string&           error) const
 {
-    std::string response_body;
-    bool        success = false;
-    std::string http_error;
-
-    auto http = Http::get(join_url(base_url, "/printer/objects/list"));
-    if (!api_key.empty()) {
-        http.header("X-Api-Key", api_key);
-    }
-    http.timeout_connect(5)
-        .timeout_max(10)
-        .on_complete([&](std::string body, unsigned status) {
-            if (status == 200) {
-                response_body = body;
-                success       = true;
-            } else {
-                http_error = "HTTP error: " + std::to_string(status);
-            }
-        })
-        .on_error([&](std::string body, std::string err, unsigned status) {
-            http_error = err;
-            if (status > 0) {
-                http_error += " (HTTP " + std::to_string(status) + ")";
-            }
-        })
-        .perform_sync();
-
-    if (!success) {
-        error = http_error.empty() ? "Connection failed" : http_error;
+    std::vector<std::string> names;
+    if (!MoonrakerAPI(base_url, api_key).list_objects(names, error))
         return false;
-    }
-
-    auto json = nlohmann::json::parse(response_body, nullptr, false, true);
-    if (json.is_discarded()) {
-        error = "Invalid JSON response";
-        return false;
-    }
-
-    nlohmann::json result = json.contains("result") ? json["result"] : json;
-    if (!result.contains("objects") || !result["objects"].is_array()) {
-        error = "Unexpected JSON structure";
-        return false;
-    }
-
     objects.clear();
-    for (const auto& entry : result["objects"]) {
-        if (entry.is_string()) {
-            objects.insert(entry.get<std::string>());
-        }
-    }
-
+    objects.insert(names.begin(), names.end());
     return !objects.empty();
 }
 

@@ -27,6 +27,10 @@ if (SLIC3R_CAD)
 endif ()
 
 set(lisbslic3r_sources
+    AFCMapping.cpp
+    AFCMapping.hpp
+    LaneMapping.cpp
+    LaneMapping.hpp
     AABBMesh.cpp
     AABBMesh.hpp
     AABBTreeIndirect.hpp
