@@ -52,8 +52,8 @@ post-state and rejects a selection that would move any unselected tool, and
 verification compares the whole tool map with that expected state rather than only
 the selected tools. With `multiple_tool_mapping`, only the requested tool moves.
 
-A lane serves exactly one tool, so taking a lane that serves a tool this print does
-not use necessarily moves that tool. Legacy mode rejects such a selection instead of
+Without `multiple_tool_mapping`, a lane serves exactly one tool, so taking a lane
+that serves a tool this print does not use necessarily moves that tool. Legacy mode rejects such a selection instead of
 performing the move silently, because the printer's persistent assignments for other
 tools would change as a side effect. The send dialog excludes those lanes from its
 automatic suggestion and, on confirmation, validates the choice with `plan()`; it

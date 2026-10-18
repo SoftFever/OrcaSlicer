@@ -823,6 +823,7 @@ void MoonrakerPrintHostSendDialog::EndModal(int ret)
 {
     if (ret == wxID_OK && post_action() == PrintHostPostUploadAction::StartPrint) {
         std::set<int> assigned_slots;
+        AFCSelections assignments;
         for (const auto& row : m_mapping_rows) {
             const auto* card = as_material_map_widget(row.card);
             if (card == nullptr || !card->is_slot_selected()) {
@@ -833,35 +834,16 @@ void MoonrakerPrintHostSendDialog::EndModal(int ret)
                 show_error(this, _L("Each filament must use a different AFC lane when multiple tool mapping is disabled in AFC."));
                 return;
             }
-        }
-        AFCSelections assignments;
-        for (const auto& row : m_mapping_rows) {
-            const auto slot = as_material_map_widget(row.card)->selected_slot_id();
+            const auto slot = card->selected_slot_id();
             if (slot > 0 && slot <= static_cast<int>(m_lane_names.size()))
                 assignments.push_back({row.tool_id, m_lane_names[slot - 1]});
         }
         std::map<int, std::string> desired;
-        if (!m_mapping.plan(assignments, desired)) {
-            // Name the lane that would move a tool this print does not use.
-            desired.clear();
-            for (const auto& item : assignments)
-                desired.emplace(item.tool, item.lane);
-            const auto after = m_mapping.expected_tools(desired);
-            const auto is_taken = [&](const std::string& lane) {
-                return std::any_of(desired.begin(), desired.end(), [&](const auto& d) { return d.second == lane; });
-            };
-            const std::pair<const int, std::string>* culprit = nullptr;
-            for (const auto& item : m_mapping.tools) {
-                if (desired.count(item.first) || after.at(item.first) == item.second)
-                    continue;
-                if (culprit == nullptr || is_taken(item.second))
-                    culprit = &item;
-                if (is_taken(item.second))
-                    break;
-            }
-            if (culprit != nullptr && m_mapping.idle)
+        AFCSelection displaced_tool;
+        if (!m_mapping.plan(assignments, desired, &displaced_tool)) {
+            if (displaced_tool.tool >= 0)
                 show_error(this, GUI::format_wxstr(_L("%1% currently serves T%2%, which this print does not use; taking it would move T%2%. Choose another lane or assign T%2% to a filament."),
-                                                   culprit->second, culprit->first));
+                                                   displaced_tool.lane, displaced_tool.tool));
             else
                 show_error(this, _L("This AFC mapping cannot be applied. Check that the printer is idle, that every selected lane is loaded, and that every filament uses a tool known to AFC."));
             return;

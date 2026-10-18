@@ -634,7 +634,9 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
     }
     {
         std::scoped_lock lock(state_mutex, connect_mutex);
-        if (connection.dev_id == device_info.dev_id && (afc_detected || afc_snapshot.device_id == connection.dev_id)) {
+        if (connection.dev_id != device_info.dev_id || connection.base_url != device_info.base_url
+            || generation != connect_generation.load()) return false;
+        if (afc_detected || afc_snapshot.device_id == connection.dev_id) {
             // A failed refresh invalidates the old display snapshot. Remember
             // that this is AFC so Print now cannot quietly bypass the mapping.
             afc_snapshot = {};

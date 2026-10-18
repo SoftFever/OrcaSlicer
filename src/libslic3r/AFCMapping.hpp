@@ -44,7 +44,9 @@ struct AFCMapping
     static std::string normalize_material(std::string material);
     static bool parse(const nlohmann::json& status, AFCMapping& result);
 
-    bool plan(const AFCSelections& selection, std::map<int, std::string>& desired) const;
+    // On displacement failure, report the unselected tool and its current lane.
+    bool plan(const AFCSelections& selection, std::map<int, std::string>& desired,
+              AFCSelection* displaced_tool = nullptr) const;
     bool selection_from_tools(const std::string& slot_mapping, const std::string& filament_info,
                               AFCSelections& selection) const;
     std::map<int, std::string> expected_tools(const std::map<int, std::string>& desired) const;

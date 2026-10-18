@@ -216,9 +216,20 @@ TEST_CASE("AFC legacy selections that would displace an unselected tool are reje
     AFCMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
     std::map<int, std::string> desired;
-    CHECK_FALSE(mapping.plan(selection(mapping, {{0, "CANVAS_1"}, {2, "CANVAS_3"}}), desired));
+    Slic3r::AFCSelection displaced_tool;
+    const auto chosen = selection(mapping, {{0, "CANVAS_1"}, {2, "CANVAS_3"}});
+    CHECK_FALSE(mapping.plan(chosen, desired, &displaced_tool));
+    CHECK(displaced_tool.tool == 1);
+    CHECK(displaced_tool.lane == "CANVAS_1");
     mapping.multiple_mapping = true;
-    CHECK(mapping.plan(selection(mapping, {{0, "CANVAS_1"}, {2, "CANVAS_3"}}), desired));
+    CHECK(mapping.plan(chosen, desired, &displaced_tool));
+    CHECK(displaced_tool.tool == -1);
+    CHECK(displaced_tool.lane.empty());
+    mapping.idle = false;
+    displaced_tool = {1, "CANVAS_1"};
+    CHECK_FALSE(mapping.plan(chosen, desired, &displaced_tool));
+    CHECK(displaced_tool.tool == -1);
+    CHECK(displaced_tool.lane.empty());
 }
 
 TEST_CASE("AFC verification requires the whole expected tool map", "[AFCMapping]")
@@ -229,6 +240,22 @@ TEST_CASE("AFC verification requires the whole expected tool map", "[AFCMapping]
     CHECK(mapping.matches(expected));
     expected.at(3) = "CANVAS_1";
     CHECK_FALSE(mapping.matches(expected));
+}
+
+TEST_CASE("AFC unchanged assignments still require idle and loaded status before printing", "[AFCMapping]")
+{
+    AFCMapping mapping;
+    REQUIRE(AFCMapping::parse(status_fixture(), mapping));
+    const auto chosen = selection(mapping, {{0, "CANVAS_1"}, {1, "CANVAS_2"}});
+    std::map<int, std::string> desired;
+    REQUIRE(mapping.plan(chosen, desired));
+    const auto expected = mapping.expected_tools(desired);
+    apply_script(mapping, mapping.mapping_script(desired));
+    REQUIRE(mapping.plan(chosen, desired));
+    SECTION("printer becomes busy") { mapping.idle = false; }
+    SECTION("selected lane is unloaded") { mapping.lanes.at("CANVAS_1").ready = false; }
+    CHECK(mapping.matches(expected));
+    CHECK_FALSE(mapping.plan(chosen, desired));
 }
 
 TEST_CASE("AFC multiple mapping permits duplicate destinations without moving other aliases", "[AFCMapping]")

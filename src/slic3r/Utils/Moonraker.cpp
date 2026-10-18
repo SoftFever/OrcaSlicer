@@ -360,17 +360,9 @@ bool Moonraker::apply_afc_mapping(const AFCSelections& selection, bool& applied,
         }
     }
     AFCMapping verified;
-    bool verified_detected = false;
-    if (!fetch_afc_status(verified, verified_detected, error)) {
-        error = _L("Could not read the AFC filament mapping back from the printer to verify it. The print was not started; check the printer's current lane assignments.");
-        return false;
-    }
-    if (!verified_detected) {
-        error = _L("AFC was not detected when verifying the filament mapping. The print was not started; check the printer's current lane assignments.");
-        return false;
-    }
-    if (!verified.matches(expected)) {
-        error = _L("The printer's AFC filament mapping does not match the requested mapping. The print was not started; check the printer's current lane assignments.");
+    if (!fetch_afc_status(verified, detected, error) || !detected
+        || !verified.plan(selection, desired) || !verified.matches(expected)) {
+        error = _L("AFC filament mapping could not be verified. The print was not started; check that the printer is idle, that the selected lanes are loaded, and that the lane assignments are correct.");
         return false;
     }
     if (is_cancelled()) {
