@@ -2421,7 +2421,9 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // project_source_sketch (int) and the empty project_sketch_entities list (a size tag).
     // + the loft end conditions (two ints), then the 3D sketch tail: sk3_points (an empty list: a size
     // tag), sk3_closed, sk3_smooth. Every field appended after revolve_axis_entity is counted here.
-    const size_t drop = sizeof(uint32_t) + 5 * sizeof(bool) + 5 * sizeof(cereal::size_type) + sizeof(double)
+    // + the fillet size laws: dressup_size2 (double), dressup_chord and dressup_has_start (bools), dressup_start (3 doubles),
+    // dressup_radii and dressup_knots (two empty lists: a size tag each).
+    const size_t drop = sizeof(uint32_t) + 7 * sizeof(bool) + 7 * sizeof(cereal::size_type) + 5 * sizeof(double)
                         + 6 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
