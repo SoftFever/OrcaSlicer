@@ -51,6 +51,7 @@
 #include <boost/spirit/home/karma.hpp>
 #include <deque>
 #include <boost/filesystem/directory.hpp>
+#include <boost/system/errc.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
@@ -6541,7 +6542,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     }
 
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(",add no light thumbnail %1%'s data into 3mf") % (index + 1);
-                    thumbnail_status[index] = true;
+                    no_light_thumbnail_status[index] = true;
                 }
             }
             // Adds the file Metadata/top_i.png and Metadata/pick_i.png
@@ -9052,6 +9053,16 @@ bool _BBS_3MF_Exporter::_add_gcode_file_to_archive(mz_zip_archive& archive, cons
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", store  %1% to 3mf %2%\n") % src_gcode_file % gcode_in_3mf;
         }
     });
+    for (const PlateData *plate_data : plate_data_list2) {
+        if (plate_data->statistics.empty())
+            continue;
+        const std::string statistics_in_3mf = (boost::format(STATISTICS_FILE_FORMAT) % (plate_data->plate_index + 1)).str();
+        if (!mz_zip_writer_add_mem(&archive, statistics_in_3mf.c_str(), plate_data->statistics.data(), plate_data->statistics.size(),
+                                   MZ_DEFAULT_COMPRESSION)) {
+            add_error("Unable to add statistics file to archive");
+            result = false;
+        }
+    }
     return result;
 }
 
@@ -9776,13 +9787,13 @@ bool has_restore_data(std::string & path, std::string& origin)
         origin = "<lock>";
         return false;
     }
-    // ORCA: non-throwing probes; ec is deliberately unread, a backup path that cannot be
-    //       probed is treated as having no restore data rather than aborting the application.
+    // ORCA: the caller removes this directory unless origin is "<lock>", so every way of
+    //       failing to establish the backup's state has to claim the lock instead.
     boost::system::error_code ec;
     if (boost::filesystem::exists(path + "/lock.txt", ec)) {
         std::string pid;
-        load_string_file(path + "/lock.txt", pid);
         try {
+            load_string_file(path + "/lock.txt", pid);
             if (get_process_name(boost::lexical_cast<int>(pid)) ==
                 get_process_name(0)) {
                 origin = "<lock>";
@@ -9790,12 +9801,20 @@ bool has_restore_data(std::string & path, std::string& origin)
             }
         }
         catch (...) {
+            origin = "<lock>";
             return false;
         }
     }
     std::string file3mf = path + "/.3mf";
-    if (!boost::filesystem::exists(file3mf, ec))
+    if (!boost::filesystem::exists(file3mf, ec)) {
+        // ORCA: a .3mf that is simply absent is a spent backup and stays collectable. A probe
+        //       that could not look must not be: ec reports ENOENT/ENOTDIR for "not there" as
+        //       well, so only a different error means the answer is unknown.
+        if (ec && ec != boost::system::errc::no_such_file_or_directory &&
+                  ec != boost::system::errc::not_a_directory)
+            origin = "<lock>";
         return false;
+    }
     try {
         if (boost::filesystem::exists(path + "/origin.txt", ec))
             load_string_file(path + "/origin.txt", origin);

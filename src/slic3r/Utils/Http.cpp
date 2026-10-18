@@ -485,6 +485,14 @@ void Http::priv::http_perform()
 	if (!postfields.empty()) {
 		::curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields.c_str());
 		::curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, postfields.size());
+	} else if (method == "POST" && form == nullptr && mime == nullptr) {
+		// A POST with no body. Without CURLOPT_POSTFIELDS, curl takes the request body from
+		// the read callback, but form_file_read_cb only has a usable user pointer for a PUT
+		// (set_put_body) or a streamed multipart part (form_add_file); for an empty POST it
+		// dereferences libcurl's default READDATA as a form_file and crashes. Point curl at a
+		// zero-length body so the read callback is never used.
+		::curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields.c_str());
+		::curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, static_cast<curl_off_t>(0));
 	}
 
 	CURLcode res = ::curl_easy_perform(curl);

@@ -288,6 +288,19 @@ if (APPLE)
     # Type"); Ninja/-Wall does not, and under -Werror it fails Xcode builds on code CI accepts.
     set(CMAKE_XCODE_ATTRIBUTE_GCC_WARN_64_TO_32_BIT_CONVERSION "NO")
 
+    # The Xcode generator ignores CMAKE_<LANG>_COMPILER_LAUNCHER, so hand the launcher to
+    # Xcode's own Compiler Launcher setting, which wraps every clang compile (C, C++,
+    # Objective-C++ and the precompiled header) with one program: the C++ launcher wins when
+    # both are set. The setting takes a single program path, not a CMake launcher list.
+    # Xcode versions without it ignore it and build uncached.
+    if (CMAKE_GENERATOR STREQUAL "Xcode")
+        if (CMAKE_CXX_COMPILER_LAUNCHER)
+            set(CMAKE_XCODE_ATTRIBUTE_C_COMPILER_LAUNCHER "${CMAKE_CXX_COMPILER_LAUNCHER}")
+        elseif (CMAKE_C_COMPILER_LAUNCHER)
+            set(CMAKE_XCODE_ATTRIBUTE_C_COMPILER_LAUNCHER "${CMAKE_C_COMPILER_LAUNCHER}")
+        endif ()
+    endif ()
+
     message(STATUS "Orca: IS_CROSS_COMPILE: ${IS_CROSS_COMPILE}")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_INSTALL_RPATH "$ORIGIN")
@@ -1345,7 +1358,8 @@ set (CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
 set (CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/resources/images\\\\OrcaSlicer.ico")
 set (CPACK_NSIS_MUI_ICON "${CPACK_PACKAGE_ICON}")
 set (CPACK_NSIS_MUI_UNIICON "${CPACK_PACKAGE_ICON}")
-set (CPACK_NSIS_INSTALLED_ICON_NAME  "$INSTDIR\\\\orca-slicer.exe")
+# Relative to the install dir: CPack's NSIS template prefixes $INSTDIR itself.
+set (CPACK_NSIS_INSTALLED_ICON_NAME "orca-slicer.exe")
 set (CPACK_PACKAGE_CHECKSUM SHA256)
 set (CPACK_PACKAGE_INSTALL_REGISTRY_KEY "OrcaSlicer")
 set (CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
