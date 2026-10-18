@@ -202,7 +202,11 @@ TroubleshootDialog::TroubleshootDialog()
             return std::vector<wxString>{GetOStype()};
         return std::vector<wxString>{
             GetOSinfo(),
+#ifdef __LINUX__
             GetPackageType() + GetAppDisplayBackend(),
+#else
+            GetPackageType(),
+#endif
             GetCPUinfo(),
             GetRAMinfo() + " RAM",
             GetGPUinfo(),
@@ -435,10 +439,15 @@ wxString TroubleshootDialog::GetTimestamp()
 
 wxString TroubleshootDialog::GetSysInfoAll()
 {
+    wxString package = GetPackageType();
+#ifdef __LINUX__
+    package += GetAppDisplayBackend();
+#endif
+
     wxString info;
     info += "Version   :  " + wxString(SoftFever_VERSION) + "\n"
           + "Build     :  " + wxString(build_commit_label) + "\n"
-          + "Package   :  " + GetPackageType() + GetAppDisplayBackend() + "\n"
+          + "Package   :  " + package + "\n"
           + "Platform  :  " + GetOSinfo()      + "\n"
           + "Processor :  " + GetCPUinfo() + "\n"
           + "Memory    :  " + GetRAMinfo() + "RAM" + "\n"
