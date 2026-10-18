@@ -41,13 +41,23 @@ struct VertexOut {
   float4 color;
 };
 
-// One toolpath move, drawn as a line between its endpoints. One record per
-// segment, so the layer slider only changes which range of the buffer is drawn.
+// One toolpath move between two endpoints, with the bead's size for extrusions. One
+// record per segment, so the layer slider only changes which range of the buffer is
+// drawn, and the vertex shaders expand it to a line or a ribbon.
 struct Segment {
   packed_float3 a;
   packed_float3 b;
+  float width;
+  float height;
   uchar4 color;
 };
+
+// A ribbon is the bead as a diamond in cross-section: corners top, right, bottom and
+// left of the centre line, (side, up) in units of half the width and height.
+constant float2 kRibbonCorners[4] = {float2(0, 1), float2(1, 0), float2(0, -1), float2(-1, 0)};
+// Each of the four faces is two triangles between corner k and k + 1 of both ends:
+// (end, corner step) per vertex.
+constant uint2 kRibbonFaceVertices[6] = {uint2(0, 0), uint2(1, 0), uint2(1, 1), uint2(0, 0), uint2(1, 1), uint2(0, 1)};
 
 struct TexturedOut {
   float4 position [[position]];
@@ -94,6 +104,35 @@ vertex VertexOut orca_segment_line_vertex(const device Segment* segments [[buffe
   return out;
 }
 
+vertex VertexOut orca_ribbon_vertex(const device Segment* segments [[buffer(0)]],
+                                    constant Uniforms& u [[buffer(1)]],
+                                    uint vid [[vertex_id]],
+                                    uint iid [[instance_id]]) {
+  Segment s = segments[iid];
+  const uint face = vid / 6;
+  const uint2 pick = kRibbonFaceVertices[vid % 6];
+  const float2 corner = kRibbonCorners[(face + pick.y) % 4];
+  const float3 a = float3(s.a);
+  const float3 b = float3(s.b);
+  const float3 up = float3(0, 0, 1);
+  // Beads lie flat; a vertical or zero-length move has no direction, so any side will do.
+  const float3 side = cross(b - a, up);
+  const float3 right = length_squared(side) > 1e-12 ? normalize(side) : float3(1, 0, 0);
+  const float halfWidth = max(s.width, 0.05) * 0.5;
+  const float halfHeight = max(s.height, 0.05) * 0.5;
+  // G-code z is the top of the bead.
+  const float3 centre = (pick.x == 0 ? a : b) - up * halfHeight;
+  const float3 world = centre + right * (corner.x * halfWidth) + up * (corner.y * halfHeight);
+  // Corner normals, interpolated across each face, shade the bead as if it were round.
+  const float3 n = normalize(right * corner.x + up * corner.y);
+  const float shade = 0.35 + 0.65 * max(dot(n, normalize(u.lightDir.xyz)), 0.0);
+  VertexOut out;
+  out.position = u.mvp * float4(world, 1.0);
+  const float4 col = float4(s.color) / 255.0;
+  out.color = float4(col.rgb * shade, col.a);
+  return out;
+}
+
 fragment float4 orca_fragment(VertexOut in [[stage_in]]) {
   return in.color;
 }
@@ -128,14 +167,18 @@ struct TexturedVertex {
   float uv[2];
 };
 
-// Mirrors the shader's Segment: 28 bytes, 4-byte aligned, so any segment's offset is a
+// Mirrors the shader's Segment: 36 bytes, 4-byte aligned, so any segment's offset is a
 // valid vertex buffer offset.
 struct Segment {
   float a[3];
   float b[3];
+  float width;
+  float height;
   uint8_t color[4];
 };
-static_assert(sizeof(Segment) == 28, "Segment must match the shader's layout");
+static_assert(sizeof(Segment) == 36, "Segment must match the shader's layout");
+// Vertices orca_ribbon_vertex expands one segment into: four faces of two triangles.
+constexpr NSUInteger kRibbonVertexCount = 24;
 
 struct Uniforms {
   simd_float4x4 mvp;
@@ -206,11 +249,12 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
 }
 
 // Appends the segment a→b and records the move it belongs to, which is what the
-// layer and time filters select on.
+// layer and time filters select on. Width and height are the bead's, zero for moves
+// drawn as lines.
 void pushSegment(std::vector<Segment>& out, std::vector<uint32_t>& moves, size_t move, const float* a, const float* b,
-                 const float* c) {
+                 const float* c, float width = 0.f, float height = 0.f) {
   auto byte = [](float v) { return uint8_t(std::lround(std::clamp(v, 0.f, 1.f) * 255.f)); };
-  out.push_back(Segment{{a[0], a[1], a[2]}, {b[0], b[1], b[2]}, {byte(c[0]), byte(c[1]), byte(c[2]), byte(c[3])}});
+  out.push_back(Segment{{a[0], a[1], a[2]}, {b[0], b[1], b[2]}, width, height, {byte(c[0]), byte(c[1]), byte(c[2]), byte(c[3])}});
   moves.push_back(uint32_t(move));
 }
 
@@ -231,6 +275,7 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   id<MTLCommandQueue> _queue;
   id<MTLRenderPipelineState> _pipeline;
   id<MTLRenderPipelineState> _segmentLinePipeline;
+  id<MTLRenderPipelineState> _ribbonPipeline;
   id<MTLRenderPipelineState> _bedTexturePipeline;
   id<MTLDepthStencilState> _depthState;
   id<MTLSamplerState> _bedSampler;
@@ -331,6 +376,11 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
     _segmentLinePipeline = [_device newRenderPipelineStateWithDescriptor:desc error:&error];
     if (_segmentLinePipeline == nil) {
       NSLog(@"OrcaViewport: segment pipeline failed: %@", error);
+    }
+    desc.vertexFunction = [library newFunctionWithName:@"orca_ribbon_vertex"];
+    _ribbonPipeline = [_device newRenderPipelineStateWithDescriptor:desc error:&error];
+    if (_ribbonPipeline == nil) {
+      NSLog(@"OrcaViewport: ribbon pipeline failed: %@", error);
     }
     MTLRenderPipelineDescriptor* bedDesc = [MTLRenderPipelineDescriptor new];
     bedDesc.vertexFunction = [library newFunctionWithName:@"orca_bed_vertex"];
@@ -646,7 +696,7 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
             color = kRoleColors[std::min(static_cast<size_t>(b.role), kTravelColor - 1)];
             break;
         }
-        pushSegment(extrusions, _extrusionMoves, i, a.position, b.position, color);
+        pushSegment(extrusions, _extrusionMoves, i, a.position, b.position, color, b.width, b.height);
       } else if (_showTravels && b.type == Slic3r::Mobile::PreviewMoveType::Travel) {
         pushSegment(markers, _markerMoves, i, a.position, b.position, kRoleColors[kTravelColor]);
       } else if (_showWipes && b.type == Slic3r::Mobile::PreviewMoveType::Wipe) {
@@ -958,14 +1008,17 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   uniforms.params = simd_make_float4(0, 0, 0, 0);
   uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
   [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
-  if (_segmentLinePipeline != nil) {
-    // One instance per segment; the buffer offset selects the filtered range.
+  // One instance per segment; the buffer offset selects the filtered range. Extrusions
+  // are ribbons at the bead's width and height, the other moves thin lines.
+  if (_ribbonPipeline != nil && _extrusionBuffer != nil && _extrusionRange.length > 0) {
+    [encoder setRenderPipelineState:_ribbonPipeline];
+    [encoder setVertexBuffer:_extrusionBuffer offset:_extrusionRange.location * sizeof(Segment) atIndex:0];
+    [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:kRibbonVertexCount instanceCount:_extrusionRange.length];
+  }
+  if (_segmentLinePipeline != nil && _markerBuffer != nil && _markerRange.length > 0) {
     [encoder setRenderPipelineState:_segmentLinePipeline];
-    for (const auto& [buffer, range] : {std::pair{_extrusionBuffer, _extrusionRange}, std::pair{_markerBuffer, _markerRange}}) {
-      if (buffer == nil || range.length == 0) continue;
-      [encoder setVertexBuffer:buffer offset:range.location * sizeof(Segment) atIndex:0];
-      [encoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:2 instanceCount:range.length];
-    }
+    [encoder setVertexBuffer:_markerBuffer offset:_markerRange.location * sizeof(Segment) atIndex:0];
+    [encoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:2 instanceCount:_markerRange.length];
   }
   [encoder setRenderPipelineState:_pipeline];
   if (_bedLineBuffer != nil) {
