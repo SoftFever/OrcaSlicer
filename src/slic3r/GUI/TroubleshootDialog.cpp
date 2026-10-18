@@ -74,6 +74,7 @@
 #endif
 
 #ifdef __LINUX__
+#include "LinuxDisplayBackend.hpp"
 #include <wx/textfile.h>
 #include <wx/tokenzr.h>
 #include <cstdlib>
@@ -201,7 +202,7 @@ TroubleshootDialog::TroubleshootDialog()
             return std::vector<wxString>{GetOStype()};
         return std::vector<wxString>{
             GetOSinfo(),
-            GetPackageType(),
+            GetPackageType() + GetAppDisplayBackend(),
             GetCPUinfo(),
             GetRAMinfo() + " RAM",
             GetGPUinfo(),
@@ -437,7 +438,7 @@ wxString TroubleshootDialog::GetSysInfoAll()
     wxString info;
     info += "Version   :  " + wxString(SoftFever_VERSION) + "\n"
           + "Build     :  " + wxString(build_commit_label) + "\n"
-          + "Package   :  " + GetPackageType() + "\n"
+          + "Package   :  " + GetPackageType() + GetAppDisplayBackend() + "\n"
           + "Platform  :  " + GetOSinfo()      + "\n"
           + "Processor :  " + GetCPUinfo() + "\n"
           + "Memory    :  " + GetRAMinfo() + "RAM" + "\n"
@@ -750,6 +751,20 @@ wxString TroubleshootDialog::GetLinuxDisplayServer()
         return "X11"; // DISPLAY being set suggests X11
 
     return "";
+}
+
+wxString TroubleshootDialog::GetAppDisplayBackend()
+{
+    // Display backend actually used by the app (GDK), not the session type
+    #if defined(__WXGTK__)
+    wxString display;
+    switch (get_linux_display_backend()) {
+        case LinuxDisplayBackend::X11:     display = "X11";     break;
+        case LinuxDisplayBackend::Wayland: display = "Wayland"; break;
+        default: break;
+    }
+    #endif
+    return display.IsEmpty() ? "" : (" (" + display + ")"); // spacing included here to prevent non centered text
 }
 #endif
 
