@@ -423,6 +423,54 @@ set(lisbslic3r_sources
     MaterialType.hpp
     PrintConfig.cpp
     PrintConfig.hpp
+    PrintConfigDef_Internal_PresetPlumbing.cpp
+    PrintConfigDef_Internal_PrintSequence.cpp
+    PrintConfigDef_Internal_FeatureFlags.cpp
+    PrintConfigDef_Internal_Compatibility.cpp
+    PrintConfigDef_Internal_ExtruderVariants.cpp
+    PrintConfigDef_Internal_FilamentProperties.cpp
+    PrintConfigDef_Internal_FilamentMap.cpp
+    PrintConfigDef_Internal_WipeFlush.cpp
+    PrintConfigDef_Internal_Fans.cpp
+    PrintConfigDef_Internal_FilamentChange.cpp
+    PrintConfigDef_Internal_FilamentMix.cpp
+    PrintConfigDef_Internal_SupportExtras.cpp
+    PrintConfigDef_Internal_FaultDetection.cpp
+    PrintConfigDef_Internal_Calibration.cpp
+    PrintConfigDef_Internal_PrimeVolume.cpp
+    PrintConfigDef_Internal_MachineKinematics.cpp
+    PrintConfigDef_Internal_Retraction.cpp
+    PrintConfigDef_Internal_Travel.cpp
+    PrintConfigDef_Internal_ExtruderIdentity.cpp
+    PrintConfigDef_Internal_ImexAndTimelapse.cpp
+    PrintConfigDef_Internal_AmsDrying.cpp
+    PrintConfigDef_Internal_HotendTiming.cpp
+    PrintConfigDef_Printer_MotionAbility.cpp
+    PrintConfigDef_Filament_Notes.cpp
+    PrintConfigDef_Printer_Notes.cpp
+    PrintConfigDef_Process_Dependencies.cpp
+    PrintConfigDef_FilamentOverrides.cpp
+    PrintConfigDef_Process_Quality.cpp
+    PrintConfigDef_Filament_Filament.cpp
+    PrintConfigDef_Prepare_PlateSettings.cpp
+    PrintConfigDef_Printer_MachineGCode.cpp
+    PrintConfigDef_Process_Strength.cpp
+    PrintConfigDef_Filament_Cooling.cpp
+    PrintConfigDef_Process_Speed.cpp
+    PrintConfigDef_Process_Others.cpp
+    PrintConfigDef_Filament_Dependencies.cpp
+    PrintConfigDef_Process_Support.cpp
+    PrintConfigDef_Filament_Advanced.cpp
+    PrintConfigDef_Printer_BasicInformation.cpp
+    PrintConfigDef_Printer_Extruder.cpp
+    PrintConfigDef_Printer_Multimaterial.cpp
+    PrintConfigDef_Filament_Multimaterial.cpp
+    PrintConfigDef_Process_Multimaterial.cpp
+    PrintConfigDef.cpp
+    DynamicPrintConfig.cpp
+    CLIPrintConfig.cpp
+    SlicingStatesConfig.cpp
+    PrintStatisticsConfig.cpp
     Print.cpp
     Print.hpp
     PrintObject.cpp
