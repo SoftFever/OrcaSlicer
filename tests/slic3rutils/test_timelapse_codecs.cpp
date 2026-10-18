@@ -71,7 +71,7 @@ TEST_CASE("JPEG texture decoding coexists with thumbnails and video frames", "[T
     REQUIRE(texture_ok.load());
     REQUIRE(thumbnails_ok);
 
-    // Exercise Orca's real FFmpeg decoder and both video display conversions.
+    // Exercise Orca's real FFmpeg decoder and its platform display conversion.
     AVVideoDecoder decoder;
     Bambu_StreamInfo info{};
     info.type = VIDE;
@@ -88,10 +88,13 @@ TEST_CASE("JPEG texture decoding coexists with thumbnails and video frames", "[T
         REQUIRE(image.IsOk());
         REQUIRE(image.GetWidth() == width);
         REQUIRE(image.GetHeight() == height);
+#ifdef _WIN32
+        // Playback uses this raw 32-bit bitmap conversion only on Windows.
         wxBitmap bitmap;
         REQUIRE(decoder.toWxBitmap(bitmap, wxSize(width, height)));
         REQUIRE(bitmap.IsOk());
         REQUIRE(bitmap.GetWidth() == width);
         REQUIRE(bitmap.GetHeight() == height);
+#endif
     }
 }

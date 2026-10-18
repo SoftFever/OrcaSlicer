@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 #include <wx/app.h>
 #include <wx/defs.h>
@@ -24,6 +25,11 @@
 #include <wx/image.h>
 #include <wx/init.h>
 #include <wx/timer.h>
+
+#if defined(__WXGTK__) && defined(wxHAS_EGL)
+#include "slic3r/GUI/LinuxDisplayBackend.hpp"
+#include <EGL/egl.h>
+#endif
 
 // A separate executable keeps wxWidgets initialization and a native fast-fail
 // in the dialog from interfering with the other slic3rutils tests.
@@ -77,11 +83,29 @@ TEST_CASE("A JPEG textured GLB reaches filament matching without interaction", "
         wxGLAttributes attributes;
         attributes.PlatformDefaults().RGBA().DoubleBuffer().Depth(24).EndList();
         wxGLCanvas canvas(parent.get(), attributes);
+        parent->Show();
+        const auto shown_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+        do {
+            event_loop.YieldFor(wxEVT_CATEGORY_UI);
+            if (canvas.IsShownOnScreen())
+                break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        } while (std::chrono::steady_clock::now() < shown_deadline);
+        REQUIRE(canvas.IsShownOnScreen());
         wxGLContext context(&canvas);
         REQUIRE(context.IsOK());
         REQUIRE(canvas.SetCurrent(context));
-        REQUIRE(gladLoaderLoadGL() != 0);
+        int version = 0;
+#if defined(__WXGTK__) && defined(wxHAS_EGL)
+        // Match OpenGLManager's loader selection without starting the renderer.
+        if (Slic3r::GUI::is_running_on_wayland())
+            version = gladLoadGL(reinterpret_cast<GLADloadfunc>(eglGetProcAddress));
+        else
+#endif
+            version = gladLoaderLoadGL();
+        REQUIRE(version != 0);
     }
+    parent->Hide();
     Slic3r::GUI::TextureFilamentEntry filament;
     filament.dialog_index = 0;
     filament.project_config_index = 0;
