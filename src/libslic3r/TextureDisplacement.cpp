@@ -283,7 +283,7 @@ bool height_texture_has_color(const TextureDisplacementLayer &layer)
     return decode_height_texture(layer).has_color();
 }
 
-DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer)
+DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer, bool keep_decoded)
 {
     DecodedHeightTexture result;
     if (layer.empty())
@@ -351,13 +351,15 @@ DecodedHeightTexture decode_height_texture(const TextureDisplacementLayer &layer
                 }
         }
 
-        std::lock_guard<std::mutex> lock(g_decoded_texture_cache.mutex);
-        // Opportunistically drop entries for image_data that no longer exists anywhere, so the
-        // cache doesn't grow without bound across many add/remove-texture cycles in a long session.
-        auto &entries = g_decoded_texture_cache.entries;
-        for (auto it = entries.begin(); it != entries.end();)
-            it = it->second.first.expired() ? entries.erase(it) : std::next(it);
-        entries[key] = { std::weak_ptr<const std::vector<unsigned char>>(layer.image_data), result };
+        if (keep_decoded) {
+            std::lock_guard<std::mutex> lock(g_decoded_texture_cache.mutex);
+            // Opportunistically drop entries for image_data that no longer exists anywhere, so the
+            // cache doesn't grow without bound across many add/remove-texture cycles in a long session.
+            auto &entries = g_decoded_texture_cache.entries;
+            for (auto it = entries.begin(); it != entries.end();)
+                it = it->second.first.expired() ? entries.erase(it) : std::next(it);
+            entries[key] = { std::weak_ptr<const std::vector<unsigned char>>(layer.image_data), result };
+        }
     }
 
     // The image-adjustment panel's live edits, on top of the decode and before the smoothing. Before,
