@@ -1,5 +1,5 @@
 #include "PrintHostDialogs.hpp"
-#include "../Utils/AFCMapping.hpp"
+#include "libslic3r/AFCMapping.hpp"
 
 #include <algorithm>
 #include <boost/algorithm/string/trim.hpp>
@@ -23,6 +23,7 @@
 #include <memory>
 #include "slic3r/GUI/Widgets/Label.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
+#include "slic3r/GUI/format.hpp"
 #include <vector>
 #include <utility>
 #include <wx/arrstr.h>
@@ -766,6 +767,17 @@ void MoonrakerPrintHostSendDialog::init()
     }
     auto* cards = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS & ~wxEXTEND_LAST_ON_EACH_LINE);
     std::set<int> assigned_slots;
+    std::set<int> project_tools;
+    for (const auto& filament : m_project_filaments)
+        project_tools.insert(filament.id);
+    // In legacy mode taking a lane moves the tool it serves, so only lanes that
+    // serve no tool or a tool of this print can be picked without displacement.
+    const auto displaces_other_tool = [&](const std::string& lane) {
+        if (m_mapping.multiple_mapping) return false;
+        return std::any_of(m_mapping.tools.begin(), m_mapping.tools.end(), [&](const auto& item) {
+            return item.second == lane && project_tools.count(item.first) == 0;
+        });
+    };
     for (const auto& filament : m_project_filaments) {
         const wxColour project_color(from_u8(filament.color));
         auto* card = new MaterialMapWidget(this, filament.id,
@@ -779,7 +791,8 @@ void MoonrakerPrintHostSendDialog::init()
         long long best_distance = std::numeric_limits<long long>::max();
         for (const auto& slot : slots) {
             if (!slot.has_filament || !matches(slot)
-                || (!m_mapping.multiple_mapping && assigned_slots.count(slot.slot_id) != 0))
+                || (!m_mapping.multiple_mapping && assigned_slots.count(slot.slot_id) != 0)
+                || displaces_other_tool(slot.display_name))
                 continue;
             const wxColour color(from_u8(slot.material_color));
             const long long distance = project_color.IsOk() && color.IsOk()
@@ -820,6 +833,38 @@ void MoonrakerPrintHostSendDialog::EndModal(int ret)
                 show_error(this, _L("Each filament must use a different AFC lane when multiple tool mapping is disabled in AFC."));
                 return;
             }
+        }
+        AFCSelections assignments;
+        for (const auto& row : m_mapping_rows) {
+            const auto slot = as_material_map_widget(row.card)->selected_slot_id();
+            if (slot > 0 && slot <= static_cast<int>(m_lane_names.size()))
+                assignments.push_back({row.tool_id, m_lane_names[slot - 1]});
+        }
+        std::map<int, std::string> desired;
+        if (!m_mapping.plan(assignments, desired)) {
+            // Name the lane that would move a tool this print does not use.
+            desired.clear();
+            for (const auto& item : assignments)
+                desired.emplace(item.tool, item.lane);
+            const auto after = m_mapping.expected_tools(desired);
+            const auto is_taken = [&](const std::string& lane) {
+                return std::any_of(desired.begin(), desired.end(), [&](const auto& d) { return d.second == lane; });
+            };
+            const std::pair<const int, std::string>* culprit = nullptr;
+            for (const auto& item : m_mapping.tools) {
+                if (desired.count(item.first) || after.at(item.first) == item.second)
+                    continue;
+                if (culprit == nullptr || is_taken(item.second))
+                    culprit = &item;
+                if (is_taken(item.second))
+                    break;
+            }
+            if (culprit != nullptr && m_mapping.idle)
+                show_error(this, GUI::format_wxstr(_L("%1% currently serves T%2%, which this print does not use; taking it would move T%2%. Choose another lane or assign T%2% to a filament."),
+                                                   culprit->second, culprit->first));
+            else
+                show_error(this, _L("This AFC mapping cannot be applied. Check that the printer is idle, that every selected lane is loaded, and that every filament uses a tool known to AFC."));
+            return;
         }
     }
     PrintHostSendDialog::EndModal(ret);

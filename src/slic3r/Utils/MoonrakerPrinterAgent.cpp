@@ -1,5 +1,5 @@
 #include "MoonrakerPrinterAgent.hpp"
-#include "AFCMapping.hpp"
+#include "libslic3r/AFCMapping.hpp"
 #include "Moonraker.hpp"
 #include "PrintHost.hpp"
 #include "Http.hpp"
@@ -592,10 +592,12 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
     std::vector<AmsTrayData> trays;
     int max_lane_index = 0;
     MoonrakerDeviceInfo connection;
+    uint64_t generation;
     {
         std::lock_guard<std::recursive_mutex> lock(connect_mutex);
         if (dev_id != device_info.dev_id) return false;
         connection = device_info;
+        generation = connect_generation.load();
     }
 
     // Use the same authoritative AFC snapshot as the upload dialog. The
@@ -622,7 +624,8 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
         }
         {
             std::scoped_lock lock(state_mutex, connect_mutex);
-            if (connection.dev_id != device_info.dev_id || connection.base_url != device_info.base_url) return false;
+            if (connection.dev_id != device_info.dev_id || connection.base_url != device_info.base_url
+                || generation != connect_generation.load()) return false;
             afc_snapshot = afc;
             afc_snapshot.device_id = connection.dev_id;
             build_ams_payload((max_lane_index + 4) / 4, max_lane_index, trays);
@@ -668,18 +671,18 @@ bool MoonrakerPrinterAgent::fetch_filament_info(std::string dev_id, FilamentSync
     return false;
 }
 
-bool MoonrakerPrinterAgent::prepare_print_mapping(const std::string& mapping, std::string& info, std::string& error) const
+bool MoonrakerPrinterAgent::prepare_print_mapping(const std::string& slot_mapping, std::string& filament_info, std::string& error) const
 {
     std::lock_guard<std::recursive_mutex> lock(state_mutex);
     if (afc_snapshot.device_id.empty()) return true;
     AFCSelections selection;
-    if (!afc_snapshot.selection_from_tools(mapping, info, selection)) {
-        error = _u8L("AFC filament mapping is invalid. Assign every used filament to a loaded lane. Each lane can be used only once unless AFC multiple-tool mapping is enabled.");
+    if (!afc_snapshot.selection_from_tools(slot_mapping, filament_info, selection)) {
+        error = _u8L("AFC filament mapping is invalid. Check that the printer is idle, assign every used filament to a loaded lane, and do not take a lane that already serves another tool this print does not use. Each lane can be used only once unless AFC multiple-tool mapping is enabled.");
         return false;
     }
     // Only this job boundary needs a string; selection construction and
     // validation operate on the typed vector throughout.
-    info = "{\"afc_mapping\":" + serialize_afc_selection(selection) + "}";
+    filament_info = "{\"afc_mapping\":" + serialize_afc_selection(selection) + "}";
     return true;
 }
 

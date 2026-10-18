@@ -464,7 +464,9 @@ public:
     // Built-in agents can adapt the existing print payload without changing the
     // PrintParams layout shared with binary networking plug-ins.
     virtual void set_gcode_path(PrintParams&, const std::string&) const {}
-    virtual bool prepare_print_mapping(const std::string&, std::string&, std::string&) const { return true; }
+    // `filament_info` is the project's filament info on input and the agent's
+    // job payload on output.
+    virtual bool prepare_print_mapping(const std::string& slot_mapping, std::string& filament_info, std::string& error) const { return true; }
 
     /**
      * Translate one filament id across the printer boundary.

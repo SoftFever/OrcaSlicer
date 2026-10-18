@@ -7,12 +7,17 @@
 #include <wx/arrstr.h>
 
 #include "PrintHost.hpp"
-#include "AFCMapping.hpp"
+#include "libslic3r/AFCMapping.hpp"
 
 class wxArrayString;
 
 
 namespace Slic3r {
+
+// GET-only transport shared by preparation sync and the pre-print dialog.
+bool fetch_afc_status(const std::string& base_url, const std::string& api_key,
+                      AFCMapping& mapping, bool& detected, std::string& error,
+                      const std::string& ca_file = {}, bool ssl_revoke_best_effort = false);
 
 class DynamicPrintConfig;
 class Http;

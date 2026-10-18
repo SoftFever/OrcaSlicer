@@ -794,7 +794,6 @@ set(SLIC3R_GUI_SOURCES
     Utils/SnapmakerPrinterAgent.hpp
     Utils/MoonrakerPrinterAgent.cpp
     Utils/MoonrakerPrinterAgent.hpp
-    Utils/AFCMapping.cpp
     Utils/Moonraker.cpp
     Utils/Moonraker.hpp
     Utils/BBLCloudServiceAgent.cpp

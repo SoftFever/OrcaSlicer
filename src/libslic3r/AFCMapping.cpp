@@ -75,9 +75,9 @@ std::string AFCMapping::normalize_material(std::string material)
     return material;
 }
 
-bool AFCMapping::parse(const nlohmann::json& status, AFCMapping& result)
+bool AFCMapping::parse(const nlohmann::json& status, AFCMapping& parsed)
 {
-    result = {};
+    AFCMapping result;
     // This is the one untrusted firmware-data boundary. Keep nullable optional
     // metadata permissive while rejecting malformed maps and readiness fields.
     try {
@@ -114,7 +114,9 @@ bool AFCMapping::parse(const nlohmann::json& status, AFCMapping& result)
                     if (!add_mapping(mapping)) return false;
             } else if (!add_mapping(mappings)) return false;
         }
-        return !result.tools.empty();
+        // An idle AFC with nothing mapped is valid; callers inspect tools.empty().
+        parsed = std::move(result);
+        return true;
     } catch (const nlohmann::json::exception&) {
         return false;
     }
@@ -132,7 +134,11 @@ bool AFCMapping::plan(const AFCSelections& selection, std::map<int, std::string>
         if (!selected.insert(entry.lane).second && !multiple_mapping) return false;
         if (!desired.emplace(entry.tool, entry.lane).second) return false;
     }
-    return true;
+    // Legacy SET_MAP swaps lanes, so a selection must not move any unselected tool.
+    const auto after = expected_tools(desired);
+    return std::all_of(tools.begin(), tools.end(), [&](const auto& item) {
+        return desired.count(item.first) || after.at(item.first) == item.second;
+    });
 }
 
 bool AFCMapping::selection_from_tools(const std::string& slot_mapping, const std::string& filament_info,
@@ -141,11 +147,11 @@ bool AFCMapping::selection_from_tools(const std::string& slot_mapping, const std
     selection.clear();
     const auto slots = nlohmann::json::parse(slot_mapping, nullptr, false);
     const auto info = nlohmann::json::parse(filament_info, nullptr, false);
-    if (!slots.is_array() || slots.empty() || slots.size() > AFC_MAX_TOOLS) return false;
+    if (!slots.is_array() || slots.empty() || slots.size() > AFC_MAX_TOOLS || !info.is_array()) return false;
     for (size_t tool = 0; tool < slots.size(); ++tool) {
         if (!slots[tool].is_number_integer()) return false;
         const auto target = slots[tool].get<long long>();
-        const nlohmann::json* source = info.is_array() && tool < info.size() && info[tool].is_object() ? &info[tool] : nullptr;
+        const nlohmann::json* source = tool < info.size() && info[tool].is_object() ? &info[tool] : nullptr;
         const bool has_type = source && source->contains("filamentType") && (*source)["filamentType"].is_string();
         const auto source_material = has_type ? normalize_material((*source)["filamentType"].get<std::string>()) : std::string{};
         if (target == -1) {
@@ -155,20 +161,37 @@ bool AFCMapping::selection_from_tools(const std::string& slot_mapping, const std
         if (target < 0 || target >= AFC_MAX_TOOLS) return false;
         const auto selected = tools.find(static_cast<int>(target));
         if (selected == tools.end()) return false;
-        if (info.is_array() && !info.empty() && (source_material.empty()
-            || source_material != normalize_material(lanes.at(selected->second).material))) return false;
+        if (source_material.empty() || source_material != normalize_material(lanes.at(selected->second).material)) return false;
         selection.push_back({static_cast<int>(tool), selected->second});
     }
     std::map<int, std::string> desired;
     return plan(selection, desired);
 }
 
-bool AFCMapping::matches(const std::map<int, std::string>& desired) const
+std::map<int, std::string> AFCMapping::expected_tools(const std::map<int, std::string>& desired) const
 {
-    return std::all_of(desired.begin(), desired.end(), [this](const auto& item) {
-        const auto it = tools.find(item.first);
-        return it != tools.end() && it->second == item.second;
-    });
+    auto after = tools;
+    for (const auto& [tool, lane] : desired) {
+        const auto current = tools.find(tool);
+        if (current != tools.end() && current->second == lane) continue;
+        if (!multiple_mapping) {
+            // Every desired tool is validated against `tools` by plan(); a missing
+            // tool has no lane to hand over, so it is simply assigned.
+            const auto previous = after.find(tool);
+            if (previous != after.end()) {
+                const std::string displaced = previous->second;
+                for (auto& [other_tool, other_lane] : after)
+                    if (other_lane == lane) other_lane = displaced;
+            }
+        }
+        after.insert_or_assign(tool, lane);
+    }
+    return after;
+}
+
+bool AFCMapping::matches(const std::map<int, std::string>& expected) const
+{
+    return tools == expected;
 }
 
 std::string AFCMapping::mapping_script(const std::map<int, std::string>& desired) const

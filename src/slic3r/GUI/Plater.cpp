@@ -4,7 +4,7 @@
 #include "CalibUtils.hpp"
 #include "Flashforge.hpp"
 #include "../Utils/Moonraker.hpp"
-#include "../Utils/AFCMapping.hpp"
+#include "libslic3r/AFCMapping.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r_version.h"
 
@@ -21065,7 +21065,7 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
                     return;
                 }
             }
-            if (detected) {
+            if (detected && !mapping.tools.empty()) {
                 pDlg = std::make_unique<MoonrakerPrintHostSendDialog>(default_output_file, upload_job.printhost->get_post_upload_actions(), groups,
                     storage_paths, storage_names, config->get_bool("open_device_tab_post_upload"),
                     std::move(mapping), collect_project_filaments(plate_idx == PLATE_ALL_IDX

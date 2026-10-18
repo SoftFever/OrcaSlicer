@@ -17,8 +17,8 @@ in the existing print-host send dialog.
 
 ## Shared status and preparation sync
 
-`Utils/AFCMapping.hpp` declares the snapshot and typed `AFCSelection { tool, lane }`;
-`AFCMapping.cpp` implements parsing, normalization, validation, and script generation.
+`libslic3r/AFCMapping.hpp` declares the snapshot and typed `AFCSelection { tool, lane }`;
+`libslic3r/AFCMapping.cpp` implements parsing, normalization, validation, and script generation.
 `fetch_afc_status()` reads AFC lane and print status together through Moonraker.
 Physical identity is independent of reassigned tool numbers. Preparation sync
 adapts it to existing `AmsTrayData`/`build_ams_payload()` trays and
@@ -46,10 +46,35 @@ Each route owns its upload/start sequence and invokes shared
    the required AFC `SET_MAP` assignments.
 3. Fetch again to verify assignments and readiness before starting the returned path.
 
+Without `multiple_tool_mapping`, AFC's `SET_MAP LANE=X MAP=Tn` swaps: lane X takes
+Tn and the lane that held Tn takes X's previous tool. Planning models the full
+post-state and rejects a selection that would move any unselected tool, and
+verification compares the whole tool map with that expected state rather than only
+the selected tools. With `multiple_tool_mapping`, only the requested tool moves.
+
+A lane serves exactly one tool, so taking a lane that serves a tool this print does
+not use necessarily moves that tool. Legacy mode rejects such a selection instead of
+performing the move silently, because the printer's persistent assignments for other
+tools would change as a side effect. The send dialog excludes those lanes from its
+automatic suggestion and, on confirmation, validates the choice with `plan()`; it
+stays open and names the lane and the tool it would move. The user either picks a
+different lane or assigns the displaced tool to one of the print's filaments. The
+agent route reports the same rule as an invalid mapping. An idle AFC with no tool
+mappings parses successfully with an empty tool map; the send dialog then falls back
+to the plain upload dialog.
+
+If AFC detection fails because `printer/objects/list` is unavailable, the plain
+upload dialog proceeds without a mapping (fail open), since a powered-off Klipper
+must still accept queued uploads. Agent-based prints fail closed once AFC has
+been detected for the device.
+
 AFC saves assignments persistently; cancellation or failure after mapping does
 not restore them. Errors prevent startup and explain that saved assignments may
 remain. Ordinary legacy uploads retain automatic-start/queue behavior; agents retain
 `SDCARD_PRINT_FILE` startup. Status checks and commands are not an atomic transaction.
+
+The parsing, planning, and script logic is covered by `tests/libslic3r/test_afc_mapping.cpp`.
+The HTTP and verification integration in `Moonraker.cpp` has no automated suite.
 
 ## Other filament changers
 

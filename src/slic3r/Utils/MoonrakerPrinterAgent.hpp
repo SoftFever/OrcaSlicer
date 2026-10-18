@@ -2,7 +2,7 @@
 #define __MOONRAKER_PRINTER_AGENT_HPP__
 
 #include "IPrinterAgent.hpp"
-#include "AFCMapping.hpp"
+#include "libslic3r/AFCMapping.hpp"
 #include "bambu_networking.hpp"
 
 #include <functional>
@@ -70,7 +70,7 @@ public:
     // Pull-mode agent (on-demand filament sync)
     FilamentSyncMode get_filament_sync_mode() const override { return FilamentSyncMode::pull; }
     bool fetch_filament_info(std::string dev_id, FilamentSyncMode sync_mode = FilamentSyncMode::pull) override;
-    bool prepare_print_mapping(const std::string& mapping, std::string& info, std::string& error) const override;
+    bool prepare_print_mapping(const std::string& slot_mapping, std::string& filament_info, std::string& error) const override;
     void set_gcode_path(PrintParams& params, const std::string& path) const override { params.dst_file = path; }
 
 protected:

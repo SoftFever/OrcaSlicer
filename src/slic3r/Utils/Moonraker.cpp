@@ -1,5 +1,5 @@
 #include "Moonraker.hpp"
-#include "AFCMapping.hpp"
+#include "libslic3r/AFCMapping.hpp"
 
 #include <exception>
 #include <functional>
@@ -47,7 +47,7 @@ bool fetch_afc_status(const std::string& base_url, const std::string& api_key,
                     response = std::move(json["result"]);
                     success = true;
                 } else {
-                    error = "Invalid Moonraker status response";
+                    error = _u8L("Invalid Moonraker status response");
                 }
             })
             .on_error([&](std::string, std::string message, unsigned code) {
@@ -72,7 +72,7 @@ bool fetch_afc_status(const std::string& base_url, const std::string& api_key,
         return true;
     }
     if (!result.contains("objects") || !result["objects"].is_array()) {
-        error = "Invalid Moonraker object list";
+        error = _u8L("Invalid Moonraker object list");
         return false;
     }
     const auto& objects = result["objects"];
@@ -89,7 +89,7 @@ bool fetch_afc_status(const std::string& base_url, const std::string& api_key,
     // Fetch all lane maps and metadata together, so a concurrent external remap
     // cannot associate a selected color with a different physical lane.
     if (!get_result(query, result) || !result.contains("status") || !AFCMapping::parse(result["status"], mapping)) {
-        if (error.empty()) error = "Invalid AFC lane status";
+        if (error.empty()) error = _u8L("Invalid AFC lane status");
         return false;
     }
     return true;
@@ -339,13 +339,18 @@ bool Moonraker::apply_afc_mapping(const AFCSelections& selection, bool& applied,
     bool detected = false;
     if (!fetch_afc_status(current, detected, error)) return false;
     std::map<int, std::string> desired;
+    if (detected && current.tools.empty()) {
+        error = _L("AFC reports no filament-to-tool mappings, so the filament mapping cannot be applied.");
+        return false;
+    }
     if (!detected || !current.plan(selection, desired)) {
-        error = _L("AFC filament mapping is no longer valid. Check that the printer is idle and all selected lanes are loaded, then reopen the send dialog.");
+        error = _L("AFC filament mapping is no longer valid. Check that the printer is idle, that all selected lanes are loaded, and that no selected lane is already serving another tool this print does not use, then reopen the send dialog.");
         return false;
     }
     // The upload and status query may take time; honor cancellation immediately
     // before changing the printer's persistent mapping.
     if (is_cancelled()) return false;
+    const auto expected = current.expected_tools(desired);
     const auto script = current.mapping_script(desired);
     if (!script.empty()) {
         applied = true;
@@ -355,9 +360,17 @@ bool Moonraker::apply_afc_mapping(const AFCSelections& selection, bool& applied,
         }
     }
     AFCMapping verified;
-    if (!fetch_afc_status(verified, detected, error) || !detected
-        || !verified.plan(selection, desired) || !verified.matches(desired)) {
-        error = _L("AFC filament mapping could not be verified. The print was not started; check the printer's current lane assignments.");
+    bool verified_detected = false;
+    if (!fetch_afc_status(verified, verified_detected, error)) {
+        error = _L("Could not read the AFC filament mapping back from the printer to verify it. The print was not started; check the printer's current lane assignments.");
+        return false;
+    }
+    if (!verified_detected) {
+        error = _L("AFC was not detected when verifying the filament mapping. The print was not started; check the printer's current lane assignments.");
+        return false;
+    }
+    if (!verified.matches(expected)) {
+        error = _L("The printer's AFC filament mapping does not match the requested mapping. The print was not started; check the printer's current lane assignments.");
         return false;
     }
     if (is_cancelled()) {

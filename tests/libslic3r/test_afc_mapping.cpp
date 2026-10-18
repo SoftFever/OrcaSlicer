@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <nlohmann/json.hpp>
-#include "slic3r/Utils/AFCMapping.hpp"
+#include "libslic3r/AFCMapping.hpp"
 
 using Slic3r::AFCMapping;
 using Slic3r::AFCSelections;
@@ -96,6 +96,19 @@ TEST_CASE("AFC status tolerates unknown metadata and multiple tool aliases", "[A
     CHECK(parsed.lanes.at("CANVAS_1").nozzle_temp == 0);
 }
 
+TEST_CASE("AFC status with no tool mappings parses as an empty unit", "[AFCMapping]")
+{
+    auto status = status_fixture();
+    for (const auto* lane : {"CANVAS_1", "CANVAS_2", "CANVAS_3", "CANVAS_4"})
+        status[std::string("AFC_lane ") + lane]["map"] = {"NONE"};
+    AFCMapping parsed;
+    REQUIRE(AFCMapping::parse(status, parsed));
+    CHECK(parsed.tools.empty());
+    CHECK(parsed.lanes.size() == 4);
+    std::map<int, std::string> desired;
+    CHECK_FALSE(parsed.plan(selection(parsed, {{0, "CANVAS_1"}}), desired));
+}
+
 TEST_CASE("AFC color encodings normalize to the same display and snapshot color", "[AFCMapping]")
 {
     for (const auto& color : {"#aAbBcC", "AABBCC", "aabbccff", "0xaabbcc", "0XAABBCCFF"})
@@ -130,7 +143,9 @@ TEST_CASE("AFC print selections reject busy printers and unloaded lanes", "[AFCM
     auto status = status_fixture();
     AFCMapping before;
     REQUIRE(AFCMapping::parse(status, before));
-    const auto chosen = selection(before, {{0, "CANVAS_1"}});
+    const auto chosen = selection(before, {{0, "CANVAS_1"}, {1, "CANVAS_2"}});
+    std::map<int, std::string> accepted;
+    REQUIRE(before.plan(chosen, accepted));
     SECTION("printing") { status["print_stats"]["state"] = "printing"; }
     SECTION("paused") { status["print_stats"]["state"] = "paused"; }
     SECTION("changing tool") { status["AFC"]["current_state"] = "Loading"; }
@@ -148,18 +163,23 @@ TEST_CASE("AFC selections retain physical destinations after an external remap",
     auto status = status_fixture();
     AFCMapping before;
     REQUIRE(AFCMapping::parse(status, before));
-    const auto chosen = selection(before, {{0, "CANVAS_1"}, {1, "CANVAS_3"}});
+    const auto chosen = selection(before, {{1, "CANVAS_1"}, {2, "CANVAS_3"}});
     status["AFC_lane CANVAS_1"]["map"] = {"T2"};
     status["AFC_lane CANVAS_3"]["map"] = {"T1"};
     AFCMapping now;
     REQUIRE(AFCMapping::parse(status, now));
     std::map<int, std::string> desired;
     REQUIRE(now.plan(chosen, desired));
+    const auto expected = now.expected_tools(desired);
     apply_script(now, now.mapping_script(desired));
-    CHECK(now.matches(desired));
+    CHECK(now.matches(expected));
+    CHECK(now.tools.at(1) == "CANVAS_1");
+    CHECK(now.tools.at(2) == "CANVAS_3");
+    CHECK(now.tools.at(0) == "CANVAS_2");
+    CHECK(now.tools.at(3) == "CANVAS_4");
 }
 
-TEST_CASE("AFC single-mapping permutations converge without resetting other settings", "[AFCMapping]")
+TEST_CASE("AFC full single-mapping permutations reach the requested lanes", "[AFCMapping]")
 {
     AFCMapping initial;
     REQUIRE(AFCMapping::parse(status_fixture(), initial));
@@ -171,35 +191,62 @@ TEST_CASE("AFC single-mapping permutations converge without resetting other sett
         auto current = initial;
         REQUIRE(current.plan(selection(initial, desired), desired));
         apply_script(current, current.mapping_script(desired));
-        CHECK(current.matches(desired));
+        CHECK(current.tools == desired);
     } while (std::next_permutation(names.begin(), names.end()));
 }
 
-TEST_CASE("AFC partial selections leave already correct and unrelated tools in place", "[AFCMapping]")
+TEST_CASE("AFC partial selections that swap among themselves leave unselected tools in place", "[AFCMapping]")
+{
+    AFCMapping mapping;
+    REQUIRE(AFCMapping::parse(status_fixture(), mapping));
+    const auto before = mapping.tools;
+    std::map<int, std::string> desired;
+    REQUIRE(mapping.plan(selection(mapping, {{0, "CANVAS_1"}, {1, "CANVAS_2"}}), desired));
+    const auto expected = mapping.expected_tools(desired);
+    apply_script(mapping, mapping.mapping_script(desired));
+    CHECK(mapping.matches(expected));
+    CHECK(mapping.tools.at(0) == "CANVAS_1");
+    CHECK(mapping.tools.at(1) == "CANVAS_2");
+    CHECK(mapping.tools.at(2) == before.at(2));
+    CHECK(mapping.tools.at(3) == before.at(3));
+}
+
+TEST_CASE("AFC legacy selections that would displace an unselected tool are rejected", "[AFCMapping]")
 {
     AFCMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
     std::map<int, std::string> desired;
-    REQUIRE(mapping.plan(selection(mapping, {{0, "CANVAS_1"}, {2, "CANVAS_3"}}), desired));
-    apply_script(mapping, mapping.mapping_script(desired));
-    CHECK(mapping.matches(desired));
-    CHECK(mapping.tools.at(1) == "CANVAS_2");
-    CHECK(mapping.tools.at(2) == "CANVAS_3");
-    CHECK(mapping.tools.at(3) == "CANVAS_4");
+    CHECK_FALSE(mapping.plan(selection(mapping, {{0, "CANVAS_1"}, {2, "CANVAS_3"}}), desired));
+    mapping.multiple_mapping = true;
+    CHECK(mapping.plan(selection(mapping, {{0, "CANVAS_1"}, {2, "CANVAS_3"}}), desired));
+}
+
+TEST_CASE("AFC verification requires the whole expected tool map", "[AFCMapping]")
+{
+    AFCMapping mapping;
+    REQUIRE(AFCMapping::parse(status_fixture(), mapping));
+    auto expected = mapping.tools;
+    CHECK(mapping.matches(expected));
+    expected.at(3) = "CANVAS_1";
+    CHECK_FALSE(mapping.matches(expected));
 }
 
 TEST_CASE("AFC multiple mapping permits duplicate destinations without moving other aliases", "[AFCMapping]")
 {
     AFCMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
-    const auto chosen = selection(mapping, {{0, "CANVAS_1"}, {2, "CANVAS_1"}});
+    const auto chosen = selection(mapping, {{1, "CANVAS_1"}, {2, "CANVAS_1"}});
     std::map<int, std::string> desired;
+    // T1 already serves CANVAS_1, so only the duplicate destination can reject this.
     CHECK_FALSE(mapping.plan(chosen, desired));
     mapping.multiple_mapping = true;
     REQUIRE(mapping.plan(chosen, desired));
+    const auto expected = mapping.expected_tools(desired);
     apply_script(mapping, mapping.mapping_script(desired));
-    CHECK(mapping.matches(desired));
+    CHECK(mapping.matches(expected));
     CHECK(mapping.tools.at(1) == "CANVAS_1");
+    CHECK(mapping.tools.at(2) == "CANVAS_1");
+    CHECK(mapping.tools.at(0) == "CANVAS_2");
     CHECK(mapping.tools.at(3) == "CANVAS_4");
 }
 
@@ -207,7 +254,7 @@ TEST_CASE("AFC selection boundaries reject incomplete or malformed mappings", "[
 {
     AFCMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
-    auto chosen = json::array({{{"tool", 0}, {"lane", "CANVAS_1"}}});
+    auto chosen = json::array({{{"tool", 0}, {"lane", "CANVAS_1"}}, {{"tool", 1}, {"lane", "CANVAS_2"}}});
     SECTION("missing lane") { chosen[0].erase("lane"); }
     SECTION("unknown tool") { chosen[0]["tool"] = 99; }
     SECTION("noninteger tool") { chosen[0]["tool"] = 0.0; }
@@ -226,14 +273,14 @@ TEST_CASE("AFC agent selections serialize the physical lanes shown by filament s
     AFCMapping snapshot;
     REQUIRE(AFCMapping::parse(status_fixture(), snapshot));
     AFCSelections chosen;
-    REQUIRE(snapshot.selection_from_tools("[1,2]", R"([{"filamentType":"PETG-CF"},{"filamentType":"PLA"}])", chosen));
+    REQUIRE(snapshot.selection_from_tools("[1,0]", R"([{"filamentType":"PETG-CF"},{"filamentType":"PLA"}])", chosen));
     const auto entries = json::parse(serialize_afc_selection(chosen));
     REQUIRE(entries.size() == 2);
     CHECK(entries[0]["tool"] == 0);
     CHECK(entries[0]["lane"] == "CANVAS_1");
     CHECK(entries[0].size() == 2);
     CHECK(entries[1]["tool"] == 1);
-    CHECK(entries[1]["lane"] == "CANVAS_3");
+    CHECK(entries[1]["lane"] == "CANVAS_2");
 }
 
 TEST_CASE("AFC agent selections distinguish unused project slots from external spool choices", "[AFCMapping]")
@@ -255,16 +302,25 @@ TEST_CASE("AFC agent selections enforce the same readiness and duplicate rules a
     AFCMapping snapshot;
     REQUIRE(AFCMapping::parse(status_fixture(), snapshot));
     AFCSelections chosen;
-    CHECK_FALSE(snapshot.selection_from_tools("[3]", "[]", chosen));
-    CHECK_FALSE(snapshot.selection_from_tools("[1,1]", "[]", chosen));
+    const std::string twice = R"([{"filamentType":"PETG-CF"},{"filamentType":"PETG-CF"}])";
+    // CANVAS_4 matches the material but is not loaded; multiple mapping removes the
+    // displacement rule so readiness is the only reason left to reject it.
     snapshot.multiple_mapping = true;
-    REQUIRE(snapshot.selection_from_tools("[1,1]", "[]", chosen));
+    snapshot.lanes.at("CANVAS_4").material = "PLA";
+    CHECK_FALSE(snapshot.selection_from_tools("[3]", R"([{"filamentType":"PLA"}])", chosen));
+    snapshot.lanes.at("CANVAS_4").ready = true;
+    CHECK(snapshot.selection_from_tools("[3]", R"([{"filamentType":"PLA"}])", chosen));
+    snapshot.lanes.at("CANVAS_4").ready = false;
+    snapshot.multiple_mapping = false;
+    CHECK_FALSE(snapshot.selection_from_tools("[1,1]", twice, chosen));
+    snapshot.multiple_mapping = true;
+    REQUIRE(snapshot.selection_from_tools("[1,1]", twice, chosen));
     std::map<int, std::string> desired;
     REQUIRE(snapshot.plan(chosen, desired));
     CHECK(desired.at(0) == "CANVAS_1");
     CHECK(desired.at(1) == "CANVAS_1");
     snapshot.idle = false;
-    CHECK_FALSE(snapshot.selection_from_tools("[1]", "[]", chosen));
+    CHECK_FALSE(snapshot.selection_from_tools("[1]", R"([{"filamentType":"PETG-CF"}])", chosen));
 }
 
 TEST_CASE("AFC agent selections reject malformed or out-of-range logical slots", "[AFCMapping]")
@@ -273,18 +329,19 @@ TEST_CASE("AFC agent selections reject malformed or out-of-range logical slots",
     REQUIRE(AFCMapping::parse(status_fixture(), snapshot));
     AFCSelections chosen;
     for (const auto& invalid : {"not json", "{}", "[]", "[1.0]", "[-2]", "[254]", "[32]", "[null]"})
-        CHECK_FALSE(snapshot.selection_from_tools(invalid, "[]", chosen));
+        CHECK_FALSE(snapshot.selection_from_tools(invalid, R"([{"filamentType":"PETG-CF"}])", chosen));
 }
 
-TEST_CASE("AFC agent selections match source material and reject unused positive slots", "[AFCMapping]")
+TEST_CASE("AFC agent selections match source material and reject unused or missing filament info", "[AFCMapping]")
 {
     AFCMapping snapshot;
     REQUIRE(AFCMapping::parse(status_fixture(), snapshot));
     AFCSelections chosen;
-    REQUIRE(snapshot.selection_from_tools("[1]", R"([{"filamentType":" petg-cf "}])", chosen));
-    CHECK_FALSE(snapshot.selection_from_tools("[1]", R"([{"filamentType":"PLA"}])", chosen));
-    CHECK_FALSE(snapshot.selection_from_tools("[1]", R"([{"filamentType":""}])", chosen));
-    CHECK_FALSE(snapshot.selection_from_tools("[1,2]", R"([{"filamentType":"PETG-CF"}])", chosen));
+    REQUIRE(snapshot.selection_from_tools("[1,0]", R"([{"filamentType":" petg-cf "},{"filamentType":"PLA"}])", chosen));
+    CHECK_FALSE(snapshot.selection_from_tools("[1,0]", R"([{"filamentType":"PLA"},{"filamentType":"PLA"}])", chosen));
+    CHECK_FALSE(snapshot.selection_from_tools("[1,0]", R"([{"filamentType":""},{"filamentType":"PLA"}])", chosen));
+    CHECK_FALSE(snapshot.selection_from_tools("[1,0]", R"([{"filamentType":"PETG-CF"}])", chosen));
+    CHECK_FALSE(snapshot.selection_from_tools("[1,0]", "[]", chosen));
 }
 
 TEST_CASE("AFC typed selections round trip only tool and physical lane identity", "[AFCMapping]")

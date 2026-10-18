@@ -47,13 +47,9 @@ struct AFCMapping
     bool plan(const AFCSelections& selection, std::map<int, std::string>& desired) const;
     bool selection_from_tools(const std::string& slot_mapping, const std::string& filament_info,
                               AFCSelections& selection) const;
-    bool matches(const std::map<int, std::string>& desired) const;
+    std::map<int, std::string> expected_tools(const std::map<int, std::string>& desired) const;
+    bool matches(const std::map<int, std::string>& expected) const;
     std::string mapping_script(const std::map<int, std::string>& desired) const;
 };
-
-// GET-only transport shared by preparation sync and the pre-print dialog.
-bool fetch_afc_status(const std::string& base_url, const std::string& api_key,
-                      AFCMapping& mapping, bool& detected, std::string& error,
-                      const std::string& ca_file = {}, bool ssl_revoke_best_effort = false);
 
 } // namespace Slic3r
