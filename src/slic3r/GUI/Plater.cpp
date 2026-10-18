@@ -21178,7 +21178,12 @@ void Plater::print_job_finished(wxCommandEvent &evt)
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) return;
 
-    dev->set_selected_machine(evt.GetString().ToStdString());
+    const std::string dev_id = evt.GetString().ToStdString();
+    MachineObject* selected = dev->get_selected_machine();
+    // After a LAN print, the completion event reselects the same printer.
+    // Keep the active session while asynchronous status traffic may still be in flight.
+    if (!selected || selected->get_dev_id() != dev_id || selected->connection_type() != "lan")
+        dev->set_selected_machine(dev_id);
     p->main_frame->request_select_tab(TAB_ID_MONITOR);
     // Selects the status page on a built Device tab; one built by the switch starts there.
     MonitorPanel* curr_monitor = MonitorPanel::if_built();

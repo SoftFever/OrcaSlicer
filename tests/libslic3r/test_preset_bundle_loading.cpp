@@ -985,6 +985,37 @@ TEST_CASE("A user filament synced to the cloud and back keeps its values and uns
     }
 }
 
+TEST_CASE("A project filament storing one value for a per-variant key applies it to every variant", "[Preset][Bundle][Regression]")
+{
+    PresetCollection filaments(Preset::TYPE_FILAMENT, Preset::filament_options(),
+                               static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()));
+    Preset &parent = add_inmemory_preset(filaments, "Parent Filament");
+    parent.config.set_key_value("filament_extruder_variant", new ConfigOptionStrings({"Direct Drive Standard", "Direct Drive High Flow"}));
+    parent.config.set_key_value("adaptive_pressure_advance_model", new ConfigOptionStrings({"parent standard", "parent high flow"}));
+    parent.config.set_deserialize_strict("pressure_advance", "0.02,0.03");
+    parent.is_system = true;
+
+    // A filament saved before these keys became per-variant lists both variants but stores each key once.
+    const std::string model = "0.025,15.6,5000";
+    DynamicPrintConfig config;
+    config.set_key_value(BBL_JSON_KEY_INHERITS, new ConfigOptionString("Parent Filament"));
+    config.set_key_value("filament_extruder_variant", new ConfigOptionStrings({"Direct Drive Standard", "Direct Drive High Flow"}));
+    config.set_key_value("adaptive_pressure_advance_model", new ConfigOptionStrings({model}));
+    config.set_deserialize_strict("pressure_advance", "0.016");
+    auto embedded                 = std::make_unique<Preset>(Preset::TYPE_FILAMENT, "Project Filament", false);
+    embedded->config              = std::move(config);
+    embedded->is_project_embedded = true;
+
+    std::vector<Preset *>      project_presets{embedded.get()};
+    PresetsConfigSubstitutions substitutions;
+    filaments.load_project_embedded_presets(project_presets, PRESET_FILAMENT_NAME, substitutions, ForwardCompatibilitySubstitutionRule::Disable);
+
+    const Preset *loaded = filaments.find_preset("Project Filament");
+    REQUIRE(loaded != nullptr);
+    CHECK(loaded->config.option<ConfigOptionStrings>("adaptive_pressure_advance_model")->values == std::vector<std::string>{model, model});
+    check_double_vector(loaded->config.option<ConfigOptionFloats>("pressure_advance")->values, {0.016, 0.016});
+}
+
 TEST_CASE("Repeated loads of a user preset directory produce the same presets", "[Preset][Bundle]")
 {
     ScopedTemporaryDir temp_dir;
