@@ -9,6 +9,7 @@
     "apps/orca/i18n/*.json",
     "**/ios/**",
     "**/android/**",
-    "pnpm-lock.yaml"
+    "pnpm-lock.yaml",
+    "CHANGELOG.md"
   ]
 }
