@@ -4637,7 +4637,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 5;
-    def->mode = comDevelop;
+    def->mode = comExpert;
     def->set_default_value(new ConfigOptionFloat(0.1));
 
     def = this->add("gcode_comments", coBool);
