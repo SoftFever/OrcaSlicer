@@ -175,6 +175,10 @@ public:
     // Select Other. A press held ~0.5 s without moving more than 4 px asks for the list (take_hold, polled
     // by the canvas each frame); the press is then consumed, so its release is no click.
     bool pick_waiting() const { return m_pick_pending; }
+    // Type-first length: with a line's first point down and the pointer elsewhere, a typed digit completes the segment
+    // at the pointer and opens its Length field with that character already in it. False when nothing is pending.
+    bool begin_typed_length(char c);
+    std::function<void(const std::string&)> on_inline_seed;
     // Double-click on a picked body edge: extend the selection over the edges that continue it tangentially
     // (within 2 degrees) — the whole smooth loop. False when the edge has no tangent neighbour.
     bool select_tangent_loop();

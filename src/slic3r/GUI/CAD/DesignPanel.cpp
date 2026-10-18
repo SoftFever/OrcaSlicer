@@ -4326,6 +4326,13 @@ DesignPanel::DesignPanel(wxWindow* parent)
         // acts on that one only; see DesignInteraction.hpp for the ladder and its invariant.
         if (key == WXK_ESCAPE) { escape(); return; }
 
+        // Type-first length: a digit with a line's first point down completes the segment and types into its Length field.
+        if (sketching && !in_text && !ctrl && !e.AltDown() && m_viewport &&
+            ((key >= '0' && key <= '9') || key == '.' || (key >= WXK_NUMPAD0 && key <= WXK_NUMPAD9))) {
+            const char ch = key == '.' ? '.' : char(key >= WXK_NUMPAD0 ? '0' + (key - WXK_NUMPAD0) : key);
+            if (m_viewport->begin_typed_length(ch)) { m_viewport->request_repaint(); return; }
+        }
+
         // Enter mirrors the ✓ as Esc mirrors the ✗ (charter 4.2, L9): a ready sketch edit-op or
         // transform first, else whatever the ✓ would confirm — gated exactly as the greyed button
         // is, so a broken candidate cannot be committed from the keyboard either. An open value

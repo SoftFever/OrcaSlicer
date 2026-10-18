@@ -185,6 +185,7 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
     };
     // Let the tool force-close the field (keep-as-drawn) — polyline right-click/double-click
     // ends the chain even while a per-segment value field is open.
+    m_sketch_tool.on_inline_seed = [this](const std::string& s) { if (m_inline_editor) m_inline_editor->seed(s); };
     m_sketch_tool.on_inline_dismiss = [this]() {
         if (m_inline_editor) m_inline_editor->cancel();
     };

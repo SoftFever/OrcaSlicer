@@ -4202,6 +4202,16 @@ std::vector<DesignSketchTool::SolidPick> DesignSketchTool::candidate_picks(GLCan
     return out;
 }
 
+bool DesignSketchTool::begin_typed_length(char c)
+{
+    if (!m_active || m_mode != Mode::Line || m_points.size() != 1 || !m_has_cursor || m_awaiting_length) return false;
+    if ((m_cursor - m_points[0]).norm() < 1e-6) return false;
+    if (on_inline_seed) on_inline_seed(std::string(1, c));
+    m_points.push_back(m_cursor);
+    keep_segment_as_drawn();
+    return true;
+}
+
 bool DesignSketchTool::select_tangent_loop()
 {
     if (m_solid_sel != SolidSel::Edge || m_sel_edge < 0 || m_sel_shape.IsNull()) return false;
