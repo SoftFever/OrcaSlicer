@@ -221,7 +221,10 @@ jobs:
   ipa:
     name: IPA
     needs: version
-    if: needs.version.outputs.build == 'true'
+    # Without the status functions the condition implies success(), which is false when
+    # any job upstream was skipped: release-please is skipped on every event but a push
+    # to main, so the PR candidate, the beta and the test build would never run.
+    if: ${{ !failure() && !cancelled() && needs.version.outputs.build == 'true' }}
     runs-on: ${{ fromJSON(vars.MOBILE_MACOS_RUNNER || '"macos-15"') }}
     timeout-minutes: 90
     concurrency:
@@ -388,7 +391,7 @@ jobs:
   publish:
     name: Publish
     needs: [version, ipa]
-    if: needs.version.outputs.publish == 'true'
+    if: ${{ !failure() && !cancelled() && needs.version.outputs.publish == 'true' }}
     runs-on: ubuntu-latest
     concurrency:
       group: mobile-release
