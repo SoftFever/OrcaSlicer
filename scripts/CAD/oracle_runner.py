@@ -319,8 +319,22 @@ class Replay:
         return idx, plane
 
     def op_extrude(self, ft):
-        if ft.get("thin"):
-            raise Blocked("thin extrude")
+        thin = ft.get("thin")
+        if thin:
+            # the wall is built around the sketch's whole outline; the recipe names its curves
+            if set(thin["curves"]) != self.sketches[thin["sketch"]][2]:
+                raise Blocked("thin extrude of a subset of the sketch")
+            side, t1, t2 = thin.get("side", "one_side"), thin["thickness"], thin.get("thickness2", 0)
+            tin, tout = {"two_sides": (t1, t2), "inside": (t1, 0), "outside": (0, t1)}.get(side, (None, None))
+            if tin is None:
+                raise Blocked("thin extrude side %s" % side)
+            ex = ft["extent"]
+            if ex.get("type", "distance") != "distance":
+                raise Blocked("thin extrude extent")
+            self.m.call("extrude", {"sketch": self.sketches[thin["sketch"]][0], "boolean": BOOL[ft["operation"]], "distance": ex["distance"],
+                                    "flip": ex.get("direction") == "negative", "thin_in": tin, "thin_out": tout})
+            self._named(ft)
+            return
         if len({pr["sketch"] for pr in ft["profiles"]}) != 1:
             raise Blocked("extrude of profiles from several sketches")
         # several profiles of ONE sketch = the sketch's regions together, which is what the app extrudes
@@ -425,24 +439,45 @@ class Replay:
         if not ft.get("keep_tools"):
             self.order.pop(o)
 
+    def _face_ids(self, topo, sels):
+        """Face ids of `topo` matching recipe face selections (planes by outward normal + nearest centroid, cylinders by nearest centroid)."""
+        ids = []
+        for f0 in sels:
+            pt = [a + o for a, o in zip(f0["point"], self.mo)]
+            if f0.get("type") == "plane":
+                n = f0["plane_normal_outward"]
+                cand = [f for f in topo["faces"] if f["kind"] == "planar" and sum(a * b for a, b in zip(f["normal"], n)) > 0.99]
+            elif f0.get("type") == "cylinder":
+                cand = [f for f in topo["faces"] if f["kind"] == "cylindrical"]
+            else:
+                raise Blocked("face selection of type %s" % f0.get("type"))
+            if not cand:
+                raise Blocked("face selection not found")
+            ids.append(min(cand, key=lambda f: math.dist(f["centroid"], pt))["id"])
+        return ids
+
     def op_shell(self, ft):
         if ft.get("outside_thickness"):
             raise Blocked("shell with an outside thickness")
-        if len(ft["faces_removed"]) > 1:
-            raise Blocked("shell with several open faces (app: one)")
         self.body = len(self.m.call("describe_scene")["bodies"]) - 1
         topo = self.m.call("query_topology", {"body": self.body})
-        face = -1
-        if ft["faces_removed"]:
-            f0 = ft["faces_removed"][0]
-            if f0.get("type") != "plane":
-                raise Blocked("shell open face is not planar")
-            n, pt = f0["plane_normal_outward"], [a + o for a, o in zip(f0["point"], self.mo)]
-            cand = [f for f in topo["faces"] if f["kind"] == "planar" and sum(a * b for a, b in zip(f["normal"], n)) > 0.99]
-            if not cand:
-                raise Blocked("shell open face not found")
-            face = min(cand, key=lambda f: math.dist(f["centroid"], pt))["id"]
-        self.m.call("shell", {"thickness": ft["inside_thickness"], "face": face, "body": self.body})
+        ids = self._face_ids(topo, ft["faces_removed"])
+        args = {"thickness": ft["inside_thickness"], "body": self.body}
+        if len(ids) == 1:
+            args["face"] = ids[0]
+        elif ids:
+            args["faces"] = ids
+        self.m.call("shell", args)
+
+    def op_draft(self, ft):
+        self.body = len(self.m.call("describe_scene")["bodies"]) - 1
+        topo = self.m.call("query_topology", {"body": self.body})
+        ids = self._face_ids(topo, ft["faces"])
+        np_ = ft["neutral_plane"]
+        if np_.get("type") != "plane":
+            raise Blocked("draft neutral plane of type %s" % np_.get("type"))
+        angle = ft["angle"] * (-1 if ft.get("flipped") else 1)
+        self.m.call("draft", {"faces": ids, "angle": angle, "pull": np_["plane_normal_outward"], "neutral": np_["point"], "body": self.body})
 
     def _edges(self, ft):
         """Edge ids of the last body nearest to each recipe edge midpoint."""

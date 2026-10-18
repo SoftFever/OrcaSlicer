@@ -2425,7 +2425,8 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // dressup_radii and dressup_knots (two empty lists: a size tag each).
     // + the feature pattern: pattern_features (a list: size tag), pattern_axis / origin / axis2 (9 doubles), pattern_count2 (int),
     // pattern_spacing2 (double).
-    const size_t drop = sizeof(uint32_t) + 7 * sizeof(bool) + 8 * sizeof(cereal::size_type) + 15 * sizeof(double)
+    // + shell_faces and draft_faces (two lists), draft_has_neutral (bool), draft_pull / draft_neutral (6 doubles), thin_in / thin_out.
+    const size_t drop = sizeof(uint32_t) + 8 * sizeof(bool) + 10 * sizeof(cereal::size_type) + 23 * sizeof(double)
                         + 7 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
@@ -10286,5 +10287,62 @@ TEST_CASE("a feature pattern repeats what a feature did to the body", "[CadDocum
         doc.features[p].pattern_features = { p + 3 };
         CHECK_FALSE(doc.recompute());
         (void) hole;
+    }
+}
+
+TEST_CASE("multi-face shell, multi-face draft with a pull direction, and thin extrude", "[CadDocument][Shell]")
+{
+    using Catch::Matchers::WithinRel;
+    auto vol = [](const CadDocument& d) { return double(SketchEngine::tessellate(d.bodies.front().shape).volume()); };
+    auto box = [](CadDocument& d) {
+        const int sk = d.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 50, 40, 10, "Rect");
+        d.add_extrude(sk, 30.0, false, BooleanMode::New, "Box");
+        REQUIRE(d.recompute());
+    };
+    // the planar faces whose outward normal is n
+    auto faces_facing = [](const CadDocument& d, const Vec3d& n) {
+        std::vector<int> ids;
+        const auto faces = GeometryEngine::faces_of(d.bodies.front().shape);
+        for (int i = 0; i < int(faces.size()); ++i) {
+            if (BRepAdaptor_Surface(faces[i]).GetType() != GeomAbs_Plane) continue;
+            if (GeometryEngine::face_normal_world(faces[i]).dot(n) > 0.99) ids.push_back(i);   // already the outward normal
+        }
+        return ids;
+    };
+    SECTION("opening two faces of a box leaves less material than opening one") {
+        CadDocument one, two;
+        box(one); box(two);
+        const auto top = faces_facing(one, Vec3d(0, 0, 1)), front = faces_facing(one, Vec3d(0, -1, 0));
+        REQUIRE(top.size() == 1); REQUIRE(front.size() == 1);
+        one.add_shell(3.0, top.front(), -1, "S");
+        REQUIRE(one.recompute());
+        const int s = two.add_shell(3.0, top.front(), -1, "S");
+        two.features[s].shell_faces = { front.front() };
+        REQUIRE(two.recompute());
+        REQUIRE(vol(two) < vol(one));
+    }
+    SECTION("a 5 degree draft hinged on the bottom flares the box like the frustum formula") {
+        CadDocument d;
+        box(d);
+        const int dr = d.add_draft(5.0, -1, -1, "Draft");
+        for (const Vec3d& n : { Vec3d(1, 0, 0), Vec3d(-1, 0, 0), Vec3d(0, 1, 0), Vec3d(0, -1, 0) })
+            for (int id : faces_facing(d, n)) d.features[dr].draft_faces.push_back(id);
+        REQUIRE(d.features[dr].draft_faces.size() == 4);
+        d.features[dr].draft_has_neutral = true;
+        d.features[dr].draft_pull = Vec3d(0, 0, -1);   // the neutral plane's outward normal: the walls grow away from it
+        const BoundingBoxf3 bb = SketchEngine::tessellate(d.bodies.front().shape).bounding_box();
+        d.features[dr].draft_neutral = Vec3d(0, 0, bb.min.z());
+        REQUIRE(d.recompute());
+        const double grow = 30.0 * std::tan(5.0 * M_PI / 180.0);
+        const double a0 = 50.0 * 40.0, a1 = (50.0 + 2 * grow) * (40.0 + 2 * grow);
+        REQUIRE_THAT(vol(d), WithinRel(30.0 / 3.0 * (a0 + a1 + std::sqrt(a0 * a1)), 1e-3));
+    }
+    SECTION("a thin extrude is a wall around the outline") {
+        CadDocument d;
+        const int sk = d.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 40, 40, 10, "Rect");
+        const int e = d.add_extrude(sk, 10.0, false, BooleanMode::New, "Frame");
+        d.features[e].thin_in = 3.0; d.features[e].thin_out = 1.0;
+        REQUIRE(d.recompute());
+        REQUIRE_THAT(vol(d), WithinRel((42.0 * 42.0 - 34.0 * 34.0) * 10.0, 1e-3));
     }
 }

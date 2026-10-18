@@ -233,6 +233,18 @@ struct CadFeature {
     Vec3d       pattern_axis2{0, 1, 0};
     int         pattern_count2{1};
     double      pattern_spacing2{0};
+    // Shell: further faces to open besides shell_face. Draft: further faces to taper besides draft_face, the pull direction
+    // and the neutral plane (a point on it; the plane is perpendicular to the pull). Without draft_has_neutral the pull is +Z and
+    // the neutral plane is the body's lowest Z.
+    std::vector<int> shell_faces;
+    std::vector<int> draft_faces;
+    bool        draft_has_neutral{false};
+    Vec3d       draft_pull{0, 0, 1};
+    Vec3d       draft_neutral{0, 0, 0};
+    // Thin extrude: the profile is a wall around the sketch's outline instead of its filled area - thin_in thick inside the
+    // outline, thin_out outside it (0 = none on that side; both 0 = a normal extrude).
+    double      thin_in{0};
+    double      thin_out{0};
 
     // Pattern along a curve: when pattern_curve_sketch >= 0 this mode takes precedence over
     // linear/circular. Copies are placed at equal-parameter points along entity
@@ -459,7 +471,9 @@ struct CadFeature {
                attach_body, attach_face,
                dressup_size2, dressup_chord, dressup_has_start, dressup_start,
                dressup_radii, dressup_knots,
-               pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2);
+               pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
+               shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
+               thin_in, thin_out);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -509,7 +523,9 @@ struct CadFeature {
                attach_body, attach_face,
                dressup_size2, dressup_chord, dressup_has_start, dressup_start,
                dressup_radii, dressup_knots,
-               pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2);
+               pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
+               shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
+               thin_in, thin_out);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature

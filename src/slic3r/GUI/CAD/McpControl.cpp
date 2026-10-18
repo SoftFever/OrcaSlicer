@@ -202,6 +202,8 @@ json describe_tools_core()
                      json{{"name", "distance2"},{"type", "number"}, {"unit", "mm"}, {"default", 0}, {"description", "second-side depth when end=two_sided (else falls back to distance)"}},
                      json{{"name", "up_to_face"},{"type", "integer"}, {"default", -1}, {"description", "target face id (query_topology on the last body) when end=up_to_face"}},
                      json{{"name", "taper"},    {"type", "number"}, {"unit", "deg"}, {"default", 0}, {"description", "draft/taper of the side wall"}},
+                     json{{"name", "thin_in"},  {"type", "number"}, {"unit", "mm"}, {"default", 0}, {"description", "thin extrude: wall thickness inside the (closed) outline; with thin_out, a wall around it instead of a filled solid"}},
+                     json{{"name", "thin_out"}, {"type", "number"}, {"unit", "mm"}, {"default", 0}, {"description", "thin extrude: wall thickness outside the outline"}},
                      json{{"name", "flip"},     {"type", "boolean"}, {"default", false}},
                      json{{"name", "sketch"},   {"type", "integer"}, {"description", "extrude this existing Sketch feature (sketch_commit returns sketch_index) instead of a polygon/rectangle; circles, arcs and holes included"}},
                  })}},
@@ -303,11 +305,15 @@ json describe_tools_core()
                  {"params", json::array({
                      json{{"name", "thickness"}, {"type", "number"}, {"unit", "mm"}, {"default", 1}, {"min", 0.01}},
                      json{{"name", "face"},      {"type", "integer"}, {"default", -1}, {"description", "face id to leave open (query_topology); omit for a closed hollow"}},
+                     json{{"name", "faces"},     {"type", "array"}, {"description", "several face ids to leave open"}},
                      json{{"name", "body"},      {"type", "integer"}, {"default", -1}, {"description", "target body; omit for the last body"}},
                  })}},
             json{{"name", "draft"}, {"summary", "Taper a body face by an angle about its base (pull direction +Z)."},
                  {"params", json::array({
                      json{{"name", "face"},  {"type", "integer"}, {"description", "face id to draft (query_topology)"}},
+                     json{{"name", "faces"}, {"type", "array"}, {"description", "several face ids drafted together (instead of face)"}},
+                     json{{"name", "pull"},  {"type", "array"}, {"description", "[x,y,z] pull direction (default +Z); with `neutral`"}},
+                     json{{"name", "neutral"}, {"type", "array"}, {"description", "[x,y,z] a point on the neutral plane, which is perpendicular to the pull and stays put (default: the body's lowest Z)"}},
                      json{{"name", "angle"}, {"type", "number"}, {"unit", "deg"}, {"default", 5}},
                      json{{"name", "body"},  {"type", "integer"}, {"default", -1}, {"description", "target body; omit for the last body"}},
                  })}},
@@ -1052,6 +1058,9 @@ json action_extrude(DesignPanel* panel, const json& params)
     CadFeature& fe = doc.features[e];
     fe.flip      = params.value("flip", false);
     fe.taper_deg = params.value("taper", 0.0);
+    fe.thin_in   = params.value("thin_in", 0.0);
+    fe.thin_out  = params.value("thin_out", 0.0);
+    if (fe.thin_in < 0 || fe.thin_out < 0 || fe.thin_in > 1e6 || fe.thin_out > 1e6) { doc.undo(); throw std::runtime_error("thin_in and thin_out must be >= 0"); }
     if      (end == "symmetric")   fe.extrude_end = ExtrudeEnd::Symmetric;
     else if (end == "two_sided")  { fe.extrude_end = ExtrudeEnd::TwoSided; fe.distance2 = params.value("distance2", d); }
     else if (end == "through_all")  fe.extrude_end = ExtrudeEnd::ThroughAll;
@@ -1347,6 +1356,13 @@ json action_shell(DesignPanel* panel, const json& params)
     int bi = target_body_arg(params, doc);
     doc.checkpoint();
     int s = doc.add_shell(thickness, face, bi, "Shell");
+    if (params.contains("faces")) {
+        if (!params["faces"].is_array() || params["faces"].size() > 64) { doc.undo(); throw std::runtime_error("faces must be an array of face ids"); }
+        for (const json& x : params["faces"]) {
+            if (!x.is_number_integer() || x.get<int>() < 0) { doc.undo(); throw std::runtime_error("faces must hold face ids"); }
+            doc.features[s].shell_faces.push_back(x.get<int>());
+        }
+    }
     bool ok = doc.recompute();
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
     panel->mcp_after_change();
@@ -1461,13 +1477,33 @@ json action_surface_fill(DesignPanel* panel, const json& params)
 
 json action_draft(DesignPanel* panel, const json& params)
 {
-    if (!params.contains("face")) throw std::runtime_error("draft needs 'face' (id from query_topology)");
+    if (!params.contains("face") && !params.contains("faces")) throw std::runtime_error("draft needs 'face' or 'faces' (ids from query_topology)");
     const double angle = params.value("angle", 5.0);
     CadDocument& doc = panel->mcp_doc();
     if (doc.bodies.empty()) throw std::runtime_error("no body to draft");
     int bi = target_body_arg(params, doc);
     doc.checkpoint();
-    int d = doc.add_draft(angle, params["face"].get<int>(), bi, "Draft");
+    int d = doc.add_draft(angle, params.contains("face") ? params["face"].get<int>() : -1, bi, "Draft");
+    {
+        CadFeature& df = doc.features[d];
+        auto vec3 = [&](const char* k) {
+            const json& a = params[k];
+            if (!a.is_array() || a.size() != 3 || !a[0].is_number() || !a[1].is_number() || !a[2].is_number()) { doc.undo(); throw std::runtime_error(std::string(k) + " must be [x,y,z]"); }
+            return Vec3d(a[0].get<double>(), a[1].get<double>(), a[2].get<double>());
+        };
+        if (params.contains("faces")) {
+            if (!params["faces"].is_array() || params["faces"].size() > 64) { doc.undo(); throw std::runtime_error("faces must be an array of face ids"); }
+            for (const json& x : params["faces"]) {
+                if (!x.is_number_integer() || x.get<int>() < 0) { doc.undo(); throw std::runtime_error("faces must hold face ids"); }
+                df.draft_faces.push_back(x.get<int>());
+            }
+        }
+        if (params.contains("pull") || params.contains("neutral")) {
+            df.draft_has_neutral = true;
+            if (params.contains("pull")) df.draft_pull = vec3("pull");
+            df.draft_neutral = params.contains("neutral") ? vec3("neutral") + doc.modeling_origin : doc.modeling_origin;   // model coordinates -> world
+        }
+    }
     bool ok = doc.recompute();
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
     panel->mcp_after_change();

@@ -26,6 +26,7 @@
 #include <Geom_BSplineCurve.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
+#include <BRepOffsetAPI_MakeOffset.hxx>
 #include <NCollection_List.hxx>
 #include <BRepAlgoAPI_Common.hxx>
 #include <BRepAlgoAPI_Defeaturing.hxx>
@@ -2831,7 +2832,32 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
                       f.extrude_end == ExtrudeEnd::ThroughAll ? 1e5 : signed_d,
                       f.extrude_end == ExtrudeEnd::ThroughAll ? true : (sym || f.extrude_end == ExtrudeEnd::TwoSided))
                 : [&]() {
-                      const TopoDS_Face profile = build_sketch_face(sk);
+                      TopoDS_Face profile = build_sketch_face(sk);
+                      if (f.thin_in > 0 || f.thin_out > 0) {
+                          // A wall around the outline: (outline grown by thin_out) minus (outline shrunk by thin_in), as a face.
+                          if (std::abs(f.taper_deg) > 1e-6) throw std::runtime_error(_u8L("a thin extrude cannot be tapered"));
+                          const TopoDS_Wire outline = build_sketch_wire(sk, true);
+                          auto grown = [&](double d) -> TopoDS_Face {
+                              if (std::abs(d) < 1e-9) { BRepBuilderAPI_MakeFace fm(outline); return fm.Face(); }
+                              BRepOffsetAPI_MakeOffset mko(outline, GeomAbs_Intersection);
+                              mko.Perform(d);
+                              if (!mko.IsDone() || mko.Shape().IsNull()) throw std::runtime_error(_u8L("thin extrude: the wall does not fit around this outline"));
+                              TopoDS_Wire w;
+                              if (mko.Shape().ShapeType() == TopAbs_WIRE) w = TopoDS::Wire(mko.Shape());
+                              else for (TopExp_Explorer ex(mko.Shape(), TopAbs_WIRE); ex.More(); ex.Next()) { w = TopoDS::Wire(ex.Current()); break; }
+                              if (w.IsNull()) throw std::runtime_error(_u8L("thin extrude: the wall does not fit around this outline"));
+                              BRepBuilderAPI_MakeFace fm(w);
+                              if (!fm.IsDone()) throw std::runtime_error(_u8L("thin extrude: the wall does not fit around this outline"));
+                              return fm.Face();
+                          };
+                          if (!outline.Closed()) throw std::runtime_error(_u8L("a thin extrude needs a closed outline"));
+                          BRepAlgoAPI_Cut ring(grown(f.thin_out), grown(-f.thin_in));
+                          if (!ring.IsDone()) throw std::runtime_error(_u8L("thin extrude failed"));
+                          TopoDS_Face rf;
+                          for (TopExp_Explorer ex(ring.Shape(), TopAbs_FACE); ex.More(); ex.Next()) { rf = TopoDS::Face(ex.Current()); break; }
+                          if (rf.IsNull()) throw std::runtime_error(_u8L("thin extrude: the wall is empty (it is thicker than the outline)"));
+                          profile = rf;
+                      }
                       // A tapered extrude offsets the profile; a holed profile would have to
                       // offset its inner loops the opposite way, which is not implemented yet.
                       auto taper = [&](double L) -> TopoDS_Shape {
@@ -3307,6 +3333,11 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
             TopoDS_Face fc = GeometryEngine::face_by_index(result, f.shell_face);
             if (!fc.IsNull()) remove.Append(fc);
         }
+        for (int id : f.shell_faces) {
+            TopoDS_Face fc = GeometryEngine::face_by_index(result, id);
+            if (fc.IsNull()) throw std::runtime_error(_u8L("shell: a face to open was not found"));
+            if (id != f.shell_face) remove.Append(fc);
+        }
         // Sharp (intersection) joins first: with the default arc joins the cavity gets rounded corners where the
         // body is concave, and the shell comes out 0.2-0.4 % light against the exact offset. Arc joins stay as the
         // fallback for bodies the intersection join cannot offset.
@@ -3324,9 +3355,7 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
     }
     case CadFeatureType::Draft: {
         if (!have_body) throw std::runtime_error(_u8L("draft needs a body"));
-        if (f.draft_face < 0) throw std::runtime_error(_u8L("draft needs a picked face"));
-        TopoDS_Face fc = GeometryEngine::face_by_index(result, f.draft_face);
-        if (fc.IsNull()) throw std::runtime_error(_u8L("draft: face not found"));
+        if (f.draft_face < 0 && f.draft_faces.empty()) throw std::runtime_error(_u8L("draft needs a picked face"));
         // Neutral plane = horizontal plane through the body's bbox bottom, pull direction +Z.
         // The face pivots about the line where it meets the neutral plane and tilts by the angle.
         // ponytail: neutral plane / pull direction fixed to world up; pick-based neutral plane
@@ -3336,10 +3365,22 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
         bb.Get(xmin, ymin, zmin, xmax, ymax, zmax);
         gp_Dir pull(0, 0, 1);
         gp_Pln neutral(gp_Pnt(0, 0, zmin), pull);
+        if (f.draft_has_neutral) {
+            if (f.draft_pull.norm() < 1e-9) throw std::runtime_error(_u8L("draft: the pull direction is zero"));
+            const Vec3d pn = f.draft_pull.normalized();
+            pull    = gp_Dir(pn.x(), pn.y(), pn.z());
+            neutral = gp_Pln(gp_Pnt(f.draft_neutral.x(), f.draft_neutral.y(), f.draft_neutral.z()), pull);
+        }
         BRepOffsetAPI_DraftAngle draft(result);
-        draft.Add(fc, pull, f.draft_angle * M_PI / 180.0, neutral);
-        if (!draft.AddDone())
-            throw std::runtime_error(_u8L("draft: face cannot be drafted (is it parallel to the base?)"));
+        std::vector<int> ids = f.draft_faces;
+        if (f.draft_face >= 0 && std::find(ids.begin(), ids.end(), f.draft_face) == ids.end()) ids.insert(ids.begin(), f.draft_face);
+        for (int id : ids) {
+            TopoDS_Face fc = GeometryEngine::face_by_index(result, id);
+            if (fc.IsNull()) throw std::runtime_error(_u8L("draft: face not found"));
+            draft.Add(fc, pull, f.draft_angle * M_PI / 180.0, neutral);
+            if (!draft.AddDone())
+                throw std::runtime_error(_u8L("draft: face cannot be drafted (is it parallel to the base?)"));
+        }
         draft.Build();
         if (!draft.IsDone()) throw std::runtime_error(_u8L("draft failed"));
         result = draft.Shape();
@@ -4573,6 +4614,8 @@ static int remap_feature_refs(CadFeature& f, const TopoDS_Shape& was, const Topo
     auto face = [&](int& id) { if (id < 0) return; const int n = TopoRemap::remap_face(was, now, id); if (n < 0) ++lost; else id = n; };
     auto edge = [&](int& id) { if (id < 0) return; const int n = TopoRemap::remap_edge(was, now, id); if (n < 0) ++lost; else id = n; };
     face(f.up_to_face); face(f.extrude_src_face); face(f.shell_face); face(f.draft_face);
+    for (int& id : f.shell_faces) face(id);
+    for (int& id : f.draft_faces) face(id);
     edge(f.dressup_edge);
     for (int& id : f.dressup_edges) edge(id);
     return lost;
