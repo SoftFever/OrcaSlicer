@@ -39,6 +39,7 @@
 #include <GProp_GProps.hxx>
 #include <GeomLProp_SLProps.hxx>
 #include <BRepAdaptor_Curve.hxx>
+#include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <gp_Circ.hxx>
 #include <GCPnts_TangentialDeflection.hxx>
 #include <STEPControl_Reader.hxx>
@@ -729,6 +730,54 @@ int GeometryEngine::edge_index_of(const TopoDS_Shape& shape, const TopoDS_Edge& 
     TopExp::MapShapes(shape, TopAbs_EDGE, map);
     int idx = map.FindIndex(edge);
     return (idx > 0) ? (idx - 1) : -1;
+}
+
+// Unit tangent of `e` at its vertex `v` (the end of the curve that vertex sits on).
+static bool edge_tangent_at(const TopoDS_Edge& e, const TopoDS_Vertex& v, gp_Vec& t)
+{
+    BRepAdaptor_Curve c(e);
+    const gp_Pnt p = BRep_Tool::Pnt(v);
+    const double u = c.Value(c.FirstParameter()).SquareDistance(p) <= c.Value(c.LastParameter()).SquareDistance(p)
+                         ? c.FirstParameter() : c.LastParameter();
+    gp_Pnt q; gp_Vec d;
+    c.D1(u, q, d);
+    if (d.Magnitude() < 1e-12) return false;
+    t = d.Normalized();
+    return true;
+}
+
+std::vector<int> GeometryEngine::tangent_edge_chain(const TopoDS_Shape& shape, int index, double deg)
+{
+    std::vector<int> out;
+    ShapeIndexMap emap;
+    TopExp::MapShapes(shape, TopAbs_EDGE, emap);
+    if (index < 0 || index >= emap.Extent()) return out;
+    TopTools_IndexedDataMapOfShapeListOfShape v2e;
+    TopExp::MapShapesAndAncestors(shape, TopAbs_VERTEX, TopAbs_EDGE, v2e);
+    const double cs = std::cos(deg * M_PI / 180.0);
+    std::vector<char> seen(size_t(emap.Extent()), 0);
+    std::vector<int> stack{index};
+    seen[size_t(index)] = 1;
+    while (!stack.empty()) {
+        const int cur = stack.back(); stack.pop_back();
+        out.push_back(cur);
+        const TopoDS_Edge ce = TopoDS::Edge(emap(cur + 1));
+        for (TopExp_Explorer vx(ce, TopAbs_VERTEX); vx.More(); vx.Next()) {
+            const TopoDS_Vertex v = TopoDS::Vertex(vx.Current());
+            gp_Vec t0;
+            if (!edge_tangent_at(ce, v, t0)) continue;
+            const int vi = v2e.FindIndex(v);
+            if (vi <= 0) continue;
+            for (const TopoDS_Shape& s : v2e(vi)) {
+                const int ni = emap.FindIndex(s) - 1;
+                if (ni < 0 || seen[size_t(ni)]) continue;
+                gp_Vec t1;
+                if (!edge_tangent_at(TopoDS::Edge(s), v, t1)) continue;
+                if (std::abs(t0.Dot(t1)) >= cs) { seen[size_t(ni)] = 1; stack.push_back(ni); }
+            }
+        }
+    }
+    return out;
 }
 
 } // namespace Slic3r

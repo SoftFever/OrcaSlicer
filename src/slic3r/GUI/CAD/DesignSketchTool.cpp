@@ -4182,6 +4182,26 @@ std::vector<DesignSketchTool::SolidPick> DesignSketchTool::candidate_picks(GLCan
     return out;
 }
 
+bool DesignSketchTool::select_tangent_loop()
+{
+    if (m_solid_sel != SolidSel::Edge || m_sel_edge < 0 || m_sel_shape.IsNull()) return false;
+    const std::vector<int> chain = GeometryEngine::tangent_edge_chain(m_sel_shape, m_sel_edge, 2.0);
+    if (chain.size() < 2) return false;
+    m_sel_edges_more.clear();
+    m_sel_edges_more_pts.clear();
+    for (int e : chain) {
+        if (e == m_sel_edge) continue;
+        std::vector<Vec3d> pts = GeometryEngine::sample_edge_world(GeometryEngine::edge_by_index(m_sel_shape, e));
+        for (Vec3d& q : pts) q = body_xform_pt(m_sel_body, q);
+        m_sel_edges_more.push_back(e);
+        m_sel_edges_more_pts.push_back(std::move(pts));
+    }
+    dp_pick_trace("tangent loop -> %zu edge(s)", chain.size());
+    if (on_solid_selection_changed)
+        on_solid_selection_changed(int(m_solid_sel), m_sel_body, m_sel_face, m_sel_edge);
+    return true;
+}
+
 bool DesignSketchTool::take_hold(int& x, int& y)
 {
     if (!m_pick_pending || m_rubber.is_dragging()) return false;
@@ -11199,6 +11219,9 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
             // A reference or datum plane's label sketches on that plane. The first click of the
             // pair already picked it (resolved on release); this acts on the second. A label is
             // a precise target, so it wins over the fit-view fallback below.
+            // The first click of the pair picked a solid edge under the pointer: the double-click widens it to its
+            // smooth (tangent) loop. That is a more specific target than a datum label drawn across the same pixels.
+            if (select_tangent_loop()) return true;
             if (m_dbp_active && on_datum_base_activated) {
                 const int h = hit_test_base_pick(canvas, evt);
                 if (h >= 0 && h < int(m_dbp_base.size())) {

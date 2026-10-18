@@ -125,5 +125,30 @@ call("ui.click", at=[c["width"] - 30, 120])
 call("ui.drag", **{"from": [60, 60], "to": [c["width"] - 8, c["height"] - 8], "mods": ["shift"]})
 check(kind() == 1, "a window around the whole body takes it")
 
+# Double-click on a body edge selects its tangent loop (edges that continue it within 2 degrees)
+call("new_document")
+call("extrude", width=40, height=40, distance=10)
+topo = call("query_topology", body=0)
+vert = [e for e in topo["edges"] if abs(e["p0"][0] - e["p1"][0]) < 1e-6 and abs(e["p0"][1] - e["p1"][1]) < 1e-6 and abs(e["p0"][2] - e["p1"][2]) > 5][0]
+call("fillet", body=0, edge=[vert["id"]], radius=6)
+call("screenshot", path="/tmp/ui-pick-1.png", view="iso", fit=True)
+time.sleep(0.8)
+org = call("describe_scene")["modeling_origin"]
+ztop = max(vert["p0"][2], vert["p1"][2])
+sx = 1 if vert["p0"][0] > org[0] else -1
+def top_pt():                          # a point on the top straight edge that runs into the filleted corner
+    w = call("ui.worldToScreen", point=[vert["p0"][0] - sx * 14, vert["p0"][1], ztop])
+    return [w["x"], w["y"]]
+call("ui.click", at=[c["width"] - 30, 120])
+call("ui.click", at=top_pt())                      # the middle of a straight edge on the top face
+time.sleep(0.5)
+check(call("ui.inspect")["solid_selection"]["kind"] == 3, "one click on a top edge selects that edge")
+n1 = len(call("ui.inspect")["solid_selection"]["edges"])
+call("ui.click", at=[c["width"] - 30, 120])                                   # clear, then a real double-click
+call("ui.click", at=top_pt(), count=2)
+time.sleep(0.5)
+n2 = len(call("ui.inspect")["solid_selection"]["edges"])
+check(n2 == 3 and n1 == 1, "double-clicking a top edge takes the line, the fillet arc and the next line (tangent loop): %d -> %d edges" % (n1, n2))
+
 print("ui pick:", "PASS" if not fails else "%d FAIL" % len(fails))
 sys.exit(1 if fails else 0)

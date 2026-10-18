@@ -119,6 +119,10 @@ public:
     static int          edge_count(const TopoDS_Shape& shape);
     static TopoDS_Edge  edge_by_index(const TopoDS_Shape& shape, int index);
     static int          edge_index_of(const TopoDS_Shape& shape, const TopoDS_Edge& edge);
+    // Every edge reachable from `index` through vertices where the two edges meet tangent (within
+    // `deg`, direction-insensitive) — the "tangent loop" a double-click on an edge selects. Includes
+    // `index`; ids are the same edge_by_index ids.
+    static std::vector<int> tangent_edge_chain(const TopoDS_Shape& shape, int index, double deg = 2.0);
 
     // Analysis of a cylindrical face for the Thread tool (a hole bore or a cylinder's lateral
     // surface): axis (base at the lower axial end + unit direction), radius, axial extent, and
