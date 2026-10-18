@@ -191,9 +191,17 @@ jobs:
             tag=mobile-v$(jq -r .mobile .github/.release-please-manifest.json)-dev.$GITHUB_RUN_NUMBER
             publish=false variant=beta
           else
-            echo "build=false" >> "$GITHUB_OUTPUT"
-            echo "No release this push."
-            exit 0
+            # A push after a release whose .ipa never built (the IPA job failed, and
+            # release-please does not recreate a release it already made): finish it.
+            tag=$(gh release list --exclude-pre-releases --exclude-drafts --limit 20 --json tagName \
+              -q '[.[].tagName | select(startswith("mobile-v"))][0] // empty')
+            if [ -z "$tag" ] || gh release view "$tag" --json assets -q '.assets[].name' | grep -q '\.ipa$'; then
+              echo "build=false" >> "$GITHUB_OUTPUT"
+              echo "No release this push."
+              exit 0
+            fi
+            sha=$(git rev-list -n 1 "$tag")
+            echo "Release $tag has no .ipa yet; building it from $sha."
           fi
           version=${tag#mobile-v}
           if ! [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$ ]]; then
