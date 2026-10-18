@@ -51,7 +51,7 @@ name: Mobile release
 #   its candidate .ipa built.
 #   MOBILE_MACOS_RUNNER         variable: runs-on for the ipa job as JSON, e.g.
 #                               '["self-hosted","macOS","ARM64","orca-ios"]'
-#                               (default "macos-15"; see mobile/scripts/setup-mac-runner.sh)
+#                               (default "macos-26"; see mobile/scripts/setup-mac-runner.sh)
 #   MOBILE_BUILD_NUMBER_OFFSET  variable: added to the run number for CFBundleVersion, to
 #                               keep it above builds installed before this workflow
 
@@ -221,8 +221,13 @@ jobs:
   ipa:
     name: IPA
     needs: version
-    if: needs.version.outputs.build == 'true'
-    runs-on: ${{ fromJSON(vars.MOBILE_MACOS_RUNNER || '"macos-15"') }}
+    # Without the status functions the condition implies success(), which is false when
+    # any job upstream was skipped: release-please is skipped on every event but a push
+    # to main, so the PR candidate, the beta and the test build would never run.
+    if: ${{ !failure() && !cancelled() && needs.version.outputs.build == 'true' }}
+    # Expo 57's ExpoModulesJSI pod builds a Swift package declared for tools 6.2, which
+    # ships with Xcode 26; macos-15 defaults to Xcode 16.4 (Swift 6.1) and fails there.
+    runs-on: ${{ fromJSON(vars.MOBILE_MACOS_RUNNER || '"macos-26"') }}
     timeout-minutes: 90
     concurrency:
       group: mobile-ipa-${{ needs.version.outputs.publish == 'true' && 'release' || github.ref }}
@@ -388,7 +393,7 @@ jobs:
   publish:
     name: Publish
     needs: [version, ipa]
-    if: needs.version.outputs.publish == 'true'
+    if: ${{ !failure() && !cancelled() && needs.version.outputs.publish == 'true' }}
     runs-on: ubuntu-latest
     concurrency:
       group: mobile-release
