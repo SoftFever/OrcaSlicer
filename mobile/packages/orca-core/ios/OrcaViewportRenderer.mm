@@ -8,6 +8,7 @@
 #import <simd/simd.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <vector>
 
@@ -18,7 +19,6 @@ using namespace metal;
 
 struct VertexIn {
   packed_float3 position;
-  packed_float3 normal;
   packed_float4 color;
 };
 
@@ -30,7 +30,8 @@ struct TexturedVertexIn {
 struct Uniforms {
   float4x4 mvp;
   float4 lightDir;
-  float4 params; // x: 1 for lit triangles, 0 for lines
+  float4 eye;         // xyz: camera position, which the mesh's derived normals face
+  float4 color;       // flat colour of the mesh being drawn
   float4 modelOffset; // xyz added to every vertex; used to slide the dragged object each frame without a mesh rebuild
   float4 dragAnchor;  // xyz: world-space pivot the rotate/scale is performed around
   float4 dragParams;  // x: rotation-Z radians added at draw time, y: uniform scale multiplier, zw: padding
@@ -64,33 +65,52 @@ struct TexturedOut {
   float2 uv;
 };
 
+struct MeshOut {
+  float4 position [[position]];
+  float3 world;
+};
+
 vertex VertexOut orca_vertex(const device VertexIn* vertices [[buffer(0)]],
                              constant Uniforms& u [[buffer(1)]],
                              uint vid [[vertex_id]]) {
   VertexIn v = vertices[vid];
   VertexOut out;
+  out.position = u.mvp * float4(float3(v.position), 1.0);
+  out.color = float4(v.color);
+  return out;
+}
+
+// Meshes are positions only: the colour is per draw and the face normal is derived in
+// the fragment shader, a third of the memory of storing both per vertex.
+vertex MeshOut orca_mesh_vertex(const device packed_float3* positions [[buffer(0)]],
+                                constant Uniforms& u [[buffer(1)]],
+                                uint vid [[vertex_id]]) {
   // Compose the per-draw model transform: rotate around the anchor by
   // dragParams.x radians (Z axis), then uniformly scale by dragParams.y from
   // the same anchor, then translate by modelOffset. For the non-dragged
-  // triangles the caller passes anchor=(0,0,0), dragParams=(0,1) so this
+  // meshes the caller passes anchor=(0,0,0), dragParams=(0,1) so this
   // collapses to identity + offset (offset is also zero for them).
-  float3 rel = float3(v.position) - u.dragAnchor.xyz;
+  float3 rel = float3(positions[vid]) - u.dragAnchor.xyz;
   float c = cos(u.dragParams.x);
   float s = sin(u.dragParams.x);
   float3 rot;
   rot.x = c * rel.x - s * rel.y;
   rot.y = s * rel.x + c * rel.y;
   rot.z = rel.z;
-  float3 world = rot * u.dragParams.y + u.dragAnchor.xyz + u.modelOffset.xyz;
-  out.position = u.mvp * float4(world, 1.0);
-  float shade = 1.0;
-  if (u.params.x > 0.5) {
-    float3 n = normalize(float3(v.normal));
-    shade = 0.35 + 0.65 * max(dot(n, normalize(u.lightDir.xyz)), 0.0);
-  }
-  float4 col = float4(v.color);
-  out.color = float4(col.rgb * shade, col.a);
+  MeshOut out;
+  out.world = rot * u.dragParams.y + u.dragAnchor.xyz + u.modelOffset.xyz;
+  out.position = u.mvp * float4(out.world, 1.0);
   return out;
+}
+
+fragment float4 orca_mesh_fragment(MeshOut in [[stage_in]], constant Uniforms& u [[buffer(1)]]) {
+  // The screen-space derivatives span the triangle, so their cross product is its flat
+  // normal. Its sign depends on the screen's handedness; a visible face of a closed
+  // mesh faces the camera, so turn it that way.
+  float3 n = normalize(cross(dfdx(in.world), dfdy(in.world)));
+  if (dot(n, u.eye.xyz - in.world) < 0) n = -n;
+  const float shade = 0.35 + 0.65 * max(dot(n, normalize(u.lightDir.xyz)), 0.0);
+  return float4(u.color.rgb * shade, u.color.a);
 }
 
 vertex VertexOut orca_segment_line_vertex(const device Segment* segments [[buffer(0)]],
@@ -158,8 +178,18 @@ namespace {
 
 struct Vertex {
   float position[3];
-  float normal[3];
   float color[4];
+};
+
+// A mesh vertex is its position only; see orca_mesh_vertex.
+using MeshVertex = std::array<float, 3>;
+
+// One object's triangles within the mesh buffer, drawn with their own colour and, while
+// the object is dragged, the drag transform.
+struct MeshRange {
+  uint64_t id;
+  NSUInteger start;
+  NSUInteger count;
 };
 
 struct TexturedVertex {
@@ -187,7 +217,8 @@ constexpr MTLPixelFormat kDepthFormat = MTLPixelFormatDepth32Float;
 struct Uniforms {
   simd_float4x4 mvp;
   simd_float4 lightDir;
-  simd_float4 params;
+  simd_float4 eye;
+  simd_float4 color;
   simd_float4 modelOffset;
   simd_float4 dragAnchor;
   simd_float4 dragParams;
@@ -248,8 +279,8 @@ const float kRoleColors[][4] = {
 };
 constexpr size_t kTravelColor = sizeof(kRoleColors) / sizeof(kRoleColors[0]) - 1;
 
-void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c) {
-  out.push_back(Vertex{{p.x, p.y, p.z}, {n.x, n.y, n.z}, {c[0], c[1], c[2], c[3]}});
+void push(std::vector<Vertex>& out, simd_float3 p, const float* c) {
+  out.push_back(Vertex{{p.x, p.y, p.z}, {c[0], c[1], c[2], c[3]}});
 }
 
 // Appends the segment a→b and records the move it belongs to, which is what the
@@ -278,6 +309,7 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   id<MTLDevice> _device;
   id<MTLCommandQueue> _queue;
   id<MTLRenderPipelineState> _pipeline;
+  id<MTLRenderPipelineState> _meshPipeline;
   id<MTLRenderPipelineState> _segmentLinePipeline;
   id<MTLRenderPipelineState> _ribbonPipeline;
   id<MTLRenderPipelineState> _bedTexturePipeline;
@@ -289,8 +321,8 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   id<MTLTexture> _msaaColor;
   id<MTLTexture> _msaaDepth;
 
-  id<MTLBuffer> _triangleBuffer;
-  NSUInteger _triangleVertexCount;
+  id<MTLBuffer> _meshBuffer;
+  std::vector<MeshRange> _meshRanges;
   id<MTLBuffer> _bedLineBuffer;
   NSUInteger _bedLineVertexCount;
   // Toolpath segments in G-code order, extrusions and the other moves (travel, wipe,
@@ -322,9 +354,8 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
 
   // Drag-to-move/rotate/scale state. Non-zero id while a drag is in flight.
   // The interaction is chosen by `_dragTool`, and every drag frame just updates
-  // the drag-* fields that the shader applies at draw time — no per-frame mesh
-  // rebuild. The dragged object's triangle range in `_triangleBuffer` is
-  // captured at reload so the draw pass can split into three ranges.
+  // the drag-* fields that the shader applies to the dragged object's range at
+  // draw time — no per-frame mesh rebuild.
   uint64_t _dragObjectId;
   NSInteger _dragTool; // 0 = move, 1 = rotate, 2 = scale
   simd_float3 _dragInitialPosition;
@@ -335,8 +366,6 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   simd_float3 _dragOffset;      // world-space translation applied by 'move'
   float       _dragRotationZ;   // additional Z rotation applied by 'rotate' (radians)
   float       _dragScaleFactor; // uniform scale multiplier applied by 'scale' (default 1)
-  NSUInteger  _dragTriStart;
-  NSUInteger  _dragTriCount;
 }
 
 - (instancetype)initWithView:(MTKView*)view {
@@ -391,6 +420,12 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
     _ribbonPipeline = [_device newRenderPipelineStateWithDescriptor:desc error:&error];
     if (_ribbonPipeline == nil) {
       NSLog(@"OrcaViewport: ribbon pipeline failed: %@", error);
+    }
+    desc.vertexFunction = [library newFunctionWithName:@"orca_mesh_vertex"];
+    desc.fragmentFunction = [library newFunctionWithName:@"orca_mesh_fragment"];
+    _meshPipeline = [_device newRenderPipelineStateWithDescriptor:desc error:&error];
+    if (_meshPipeline == nil) {
+      NSLog(@"OrcaViewport: mesh pipeline failed: %@", error);
     }
     MTLRenderPipelineDescriptor* bedDesc = [MTLRenderPipelineDescriptor new];
     bedDesc.vertexFunction = [library newFunctionWithName:@"orca_bed_vertex"];
@@ -458,26 +493,20 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
 - (void)setSelectedId:(uint64_t)selectedId {
   if (_selectedId == selectedId) return;
   _selectedId = selectedId;
-  // Selection colour is baked into the triangle buffer, so we need a
-  // full geometry rebuild to swap tints.
-  [self reload];
+  [_view setNeedsDisplay];
 }
 
 #pragma mark - Geometry
 
 - (void)reload {
-  std::vector<Vertex> triangles;
+  std::vector<MeshVertex> triangles;
+  std::vector<MeshRange> ranges;
   std::vector<Vertex> bed;
-  std::vector<Vertex> bedModel;
+  std::vector<MeshVertex> bedModel;
   std::vector<TexturedVertex> bedQuad;
   std::string bedTexturePath;
   Slic3r::Mobile::PreviewData preview;
   Bounds bounds;
-  // Range within `triangles` that belongs to the object currently being dragged.
-  // Populated inside the SessionRegistry block below when a drag is in flight,
-  // stays zero otherwise.
-  size_t dragStart = 0;
-  size_t dragCount = 0;
   bool hasCustomBed = false;
 
   const bool previewMode = _mode == OrcaViewportModePreview;
@@ -486,26 +515,25 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
     const Slic3r::Mobile::BedInfo info = session.bed();
     const float grey[4] = {0.55f, 0.58f, 0.60f, 1.f};
     const float light[4] = {0.78f, 0.80f, 0.82f, 1.f};
-    const simd_float3 up = simd_make_float3(0, 0, 1);
     float minX = 1e30f, minY = 1e30f, maxX = -1e30f, maxY = -1e30f;
     if (info.shape.size() >= 2) {
       for (size_t i = 0; i < info.shape.size(); ++i) {
         const auto& a = info.shape[i];
         const auto& b = info.shape[(i + 1) % info.shape.size()];
-        push(bed, simd_make_float3(float(a[0]), float(a[1]), 0), up, grey);
-        push(bed, simd_make_float3(float(b[0]), float(b[1]), 0), up, grey);
+        push(bed, simd_make_float3(float(a[0]), float(a[1]), 0), grey);
+        push(bed, simd_make_float3(float(b[0]), float(b[1]), 0), grey);
         minX = std::min(minX, float(a[0]));
         maxX = std::max(maxX, float(a[0]));
         minY = std::min(minY, float(a[1]));
         maxY = std::max(maxY, float(a[1]));
       }
       for (float x = std::ceil(minX / 10.f) * 10.f; x < maxX; x += 10.f) {
-        push(bed, simd_make_float3(x, minY, 0), up, light);
-        push(bed, simd_make_float3(x, maxY, 0), up, light);
+        push(bed, simd_make_float3(x, minY, 0), light);
+        push(bed, simd_make_float3(x, maxY, 0), light);
       }
       for (float y = std::ceil(minY / 10.f) * 10.f; y < maxY; y += 10.f) {
-        push(bed, simd_make_float3(minX, y, 0), up, light);
-        push(bed, simd_make_float3(maxX, y, 0), up, light);
+        push(bed, simd_make_float3(minX, y, 0), light);
+        push(bed, simd_make_float3(maxX, y, 0), light);
       }
       bounds.add(simd_make_float3(minX, minY, 0));
       bounds.add(simd_make_float3(maxX, maxY, 0));
@@ -514,13 +542,10 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
     // Preloaded custom bed model (STL) — draw as a translucent grey slab so it
     // sits under the plate outline and reads as the printer's real bed.
     if (! info.model_mesh.positions.empty()) {
-      const float bedBody[4] = {0.24f, 0.26f, 0.28f, 1.f};
       const auto& mesh = info.model_mesh;
-      bedModel.reserve(bedModel.size() + mesh.positions.size() / 3);
+      bedModel.reserve(mesh.positions.size() / 3);
       for (size_t i = 0; i + 8 < mesh.positions.size(); i += 3) {
-        const simd_float3 p = simd_make_float3(mesh.positions[i], mesh.positions[i + 1], mesh.positions[i + 2]);
-        const simd_float3 n = simd_make_float3(mesh.normals[i], mesh.normals[i + 1], mesh.normals[i + 2]);
-        push(bedModel, p, n, bedBody);
+        bedModel.push_back({mesh.positions[i], mesh.positions[i + 1], mesh.positions[i + 2]});
       }
     }
     // Bed texture quad — mapped to the bounding rect of the printable area.
@@ -548,30 +573,15 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
         }
       }
     } else {
-      const float body[4] = {0.55f, 0.72f, 0.62f, 1.f};
-      // Amber highlight for the selected object — mirrors the desktop's
-      // selection tint. Non-selected instances keep the neutral sage body.
-      const float selected[4] = {1.00f, 0.72f, 0.30f, 1.f};
-      // Track the dragged object's vertex range so the draw pass can slide it
-      // via a shader offset without a mesh rebuild every frame. Cleared when
-      // no drag is in flight.
-      dragStart = 0;
-      dragCount = 0;
       for (const Slic3r::Mobile::ObjectInfo& object : session.objects()) {
         const Slic3r::Mobile::MeshData mesh = session.mesh(object.id);
-        const float* color = (self->_selectedId != 0 && self->_selectedId == object.id) ? selected : body;
         const size_t before = triangles.size();
         triangles.reserve(before + mesh.triangles * 3);
         for (size_t i = 0; i + 2 < mesh.positions.size(); i += 3) {
-          const simd_float3 p = simd_make_float3(mesh.positions[i], mesh.positions[i + 1], mesh.positions[i + 2]);
-          const simd_float3 n = simd_make_float3(mesh.normals[i], mesh.normals[i + 1], mesh.normals[i + 2]);
-          push(triangles, p, n, color);
-          bounds.add(p);
+          triangles.push_back({mesh.positions[i], mesh.positions[i + 1], mesh.positions[i + 2]});
+          bounds.add(simd_make_float3(mesh.positions[i], mesh.positions[i + 1], mesh.positions[i + 2]));
         }
-        if (self->_dragObjectId != 0 && object.id == self->_dragObjectId) {
-          dragStart = before;
-          dragCount = triangles.size() - before;
-        }
+        ranges.push_back({object.id, before, triangles.size() - before});
       }
     }
   });
@@ -585,18 +595,10 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   _preview = std::move(preview);
   const bool hadBounds = _bounds.valid;
   _bounds = bounds;
-  _triangleVertexCount = triangles.size();
-  _dragTriStart = NSUInteger(dragStart);
-  _dragTriCount = NSUInteger(dragCount);
-  _triangleBuffer = triangles.empty() ? nil
-                                      : [_device newBufferWithBytes:triangles.data()
-                                                             length:triangles.size() * sizeof(Vertex)
-                                                            options:MTLResourceStorageModeShared];
+  _meshRanges = std::move(ranges);
+  _meshBuffer = makeBuffer(_device, triangles);
   _bedModelVertexCount = bedModel.size();
-  _bedModelBuffer = bedModel.empty() ? nil
-                                     : [_device newBufferWithBytes:bedModel.data()
-                                                            length:bedModel.size() * sizeof(Vertex)
-                                                           options:MTLResourceStorageModeShared];
+  _bedModelBuffer = makeBuffer(_device, bedModel);
   _bedTextureQuadBuffer = bedQuad.empty() ? nil
                                           : [_device newBufferWithBytes:bedQuad.data()
                                                                  length:bedQuad.size() * sizeof(TexturedVertex)
@@ -788,10 +790,12 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   }
 }
 
+- (simd_float3)eye {
+  return _target + simd_make_float3(sinf(_yaw) * cosf(_pitch), cosf(_yaw) * cosf(_pitch), sinf(_pitch)) * _distance;
+}
+
 - (simd_float4x4)viewProjectionForSize:(CGSize)size {
-  const simd_float3 offset = simd_make_float3(sinf(_yaw) * cosf(_pitch), cosf(_yaw) * cosf(_pitch), sinf(_pitch)) * _distance;
-  const simd_float3 eye = _target + offset;
-  const simd_float4x4 view = lookAt(eye, _target, simd_make_float3(0, 0, 1));
+  const simd_float4x4 view = lookAt([self eye], _target, simd_make_float3(0, 0, 1));
   const float aspect = size.height > 0 ? float(size.width / size.height) : 1.f;
   const simd_float4x4 projection = perspective(0.7f, aspect, std::max(_distance * 0.01f, 0.1f), _distance * 10.f + 1000.f);
   return simd_mul(projection, view);
@@ -888,10 +892,9 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   _dragOffset          = simd_make_float3(0, 0, 0);
   _dragRotationZ       = 0.f;
   _dragScaleFactor     = 1.f;
-  // Reload once so the triangle buffer records this object's vertex range in
-  // `_dragTriStart` / `_dragTriCount`. Subsequent `dragToScreenX:` updates only
-  // the uniform + setNeedsDisplay — no per-frame mesh rebuild.
-  [self reload];
+  // `dragToScreenX:` updates only the drag uniforms + setNeedsDisplay — no per-frame
+  // mesh rebuild.
+  [_view setNeedsDisplay];
   return YES;
 }
 
@@ -959,8 +962,6 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   _dragOffset      = simd_make_float3(0, 0, 0);
   _dragRotationZ   = 0.f;
   _dragScaleFactor = 1.f;
-  _dragTriStart    = 0;
-  _dragTriCount    = 0;
   [self reload];
 }
 
@@ -1023,6 +1024,7 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   Uniforms uniforms;
   uniforms.mvp = [self viewProjectionForSize:view.drawableSize];
   uniforms.lightDir = simd_make_float4(0.3f, -0.5f, 0.8f, 0);
+  uniforms.eye = simd_make_float4([self eye], 1);
   uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
   uniforms.dragAnchor = simd_make_float4(0, 0, 0, 0);
   uniforms.dragParams = simd_make_float4(0, 1, 0, 0); // no rotation, identity scale
@@ -1033,17 +1035,16 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   [encoder setCullMode:MTLCullModeNone];
 
   // Custom bed model (STL) first — it sits under everything.
-  if (_bedModelBuffer != nil) {
-    uniforms.params = simd_make_float4(1, 0, 0, 0);
-    uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
-    [encoder setRenderPipelineState:_pipeline];
+  if (_bedModelBuffer != nil && _meshPipeline != nil) {
+    uniforms.color = simd_make_float4(0.24f, 0.26f, 0.28f, 1.f);
+    [encoder setRenderPipelineState:_meshPipeline];
     [encoder setVertexBuffer:_bedModelBuffer offset:0 atIndex:0];
     [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+    [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
     [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:_bedModelVertexCount];
   }
   // Bed texture quad — draws on top of the STL / directly on the polygon.
   if (_bedTextureQuadBuffer != nil && _bedTexture != nil && _bedTexturePipeline != nil) {
-    uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
     [encoder setRenderPipelineState:_bedTexturePipeline];
     [encoder setVertexBuffer:_bedTextureQuadBuffer offset:0 atIndex:0];
     [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
@@ -1052,8 +1053,6 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
     [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
   }
 
-  uniforms.params = simd_make_float4(0, 0, 0, 0);
-  uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
   [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
   // One instance per segment; the buffer offset selects the filtered range. Extrusions
   // are ribbons at the bead's width and height, the other moves thin lines.
@@ -1072,46 +1071,31 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
     [encoder setVertexBuffer:_bedLineBuffer offset:0 atIndex:0];
     [encoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:_bedLineVertexCount];
   }
-  if (_triangleBuffer != nil) {
-    uniforms.params = simd_make_float4(1, 0, 0, 0);
-    // While an object is being dragged, split the triangle draw so we can slide
-    // the dragged vertices by a shader offset without rebuilding geometry each
-    // frame. Non-dragged vertices before/after the range render normally; the
-    // middle slice picks up the current drag delta as an added translation.
-    const bool splitDrag = (_dragObjectId != 0 && _dragTriCount > 0 && _dragTriStart + _dragTriCount <= _triangleVertexCount);
-    if (splitDrag) {
-      [encoder setVertexBuffer:_triangleBuffer offset:0 atIndex:0];
-      if (_dragTriStart > 0) {
-        uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
-        uniforms.dragAnchor = simd_make_float4(0, 0, 0, 0);
-        uniforms.dragParams = simd_make_float4(0, 1, 0, 0);
-        [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
-        [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:_dragTriStart];
-      }
-      // The dragged range picks up per-frame rotation + scale from
-      // `_dragRotationZ` / `_dragScaleFactor`, applied around the object's
-      // instance origin (`_dragInitialPosition`). Move tool leaves those at
-      // (0, 1) so only `modelOffset` acts.
-      uniforms.modelOffset = simd_make_float4(_dragOffset.x, _dragOffset.y, _dragOffset.z, 0);
-      uniforms.dragAnchor  = simd_make_float4(_dragInitialPosition.x, _dragInitialPosition.y, _dragInitialPosition.z, 0);
-      uniforms.dragParams  = simd_make_float4(_dragRotationZ, _dragScaleFactor, 0, 0);
-      [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
-      [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:_dragTriStart vertexCount:_dragTriCount];
-      const NSUInteger tail = _dragTriStart + _dragTriCount;
-      if (tail < _triangleVertexCount) {
+  if (_meshBuffer != nil && _meshPipeline != nil) {
+    // Neutral sage body; amber for the selected object, mirroring the desktop's
+    // selection tint.
+    const simd_float4 body = simd_make_float4(0.55f, 0.72f, 0.62f, 1.f);
+    const simd_float4 selected = simd_make_float4(1.00f, 0.72f, 0.30f, 1.f);
+    [encoder setRenderPipelineState:_meshPipeline];
+    [encoder setVertexBuffer:_meshBuffer offset:0 atIndex:0];
+    for (const MeshRange& range : _meshRanges) {
+      uniforms.color = (_selectedId != 0 && range.id == _selectedId) ? selected : body;
+      if (_dragObjectId != 0 && range.id == _dragObjectId) {
+        // The dragged object picks up per-frame rotation + scale from
+        // `_dragRotationZ` / `_dragScaleFactor`, applied around the object's
+        // instance origin (`_dragInitialPosition`). Move tool leaves those at
+        // (0, 1) so only `modelOffset` acts.
+        uniforms.modelOffset = simd_make_float4(_dragOffset.x, _dragOffset.y, _dragOffset.z, 0);
+        uniforms.dragAnchor  = simd_make_float4(_dragInitialPosition.x, _dragInitialPosition.y, _dragInitialPosition.z, 0);
+        uniforms.dragParams  = simd_make_float4(_dragRotationZ, _dragScaleFactor, 0, 0);
+      } else {
         uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
         uniforms.dragAnchor  = simd_make_float4(0, 0, 0, 0);
         uniforms.dragParams  = simd_make_float4(0, 1, 0, 0);
-        [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
-        [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:tail vertexCount:(_triangleVertexCount - tail)];
       }
-    } else {
-      uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
-      uniforms.dragAnchor  = simd_make_float4(0, 0, 0, 0);
-      uniforms.dragParams  = simd_make_float4(0, 1, 0, 0);
-      [encoder setVertexBuffer:_triangleBuffer offset:0 atIndex:0];
       [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
-      [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:_triangleVertexCount];
+      [encoder setFragmentBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+      [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:range.start vertexCount:range.count];
     }
   }
 
