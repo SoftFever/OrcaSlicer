@@ -41,6 +41,14 @@ struct VertexOut {
   float4 color;
 };
 
+// One toolpath move, drawn as a line between its endpoints. One record per
+// segment, so the layer slider only changes which range of the buffer is drawn.
+struct Segment {
+  packed_float3 a;
+  packed_float3 b;
+  uchar4 color;
+};
+
 struct TexturedOut {
   float4 position [[position]];
   float2 uv;
@@ -72,6 +80,17 @@ vertex VertexOut orca_vertex(const device VertexIn* vertices [[buffer(0)]],
   }
   float4 col = float4(v.color);
   out.color = float4(col.rgb * shade, col.a);
+  return out;
+}
+
+vertex VertexOut orca_segment_line_vertex(const device Segment* segments [[buffer(0)]],
+                                          constant Uniforms& u [[buffer(1)]],
+                                          uint vid [[vertex_id]],
+                                          uint iid [[instance_id]]) {
+  Segment s = segments[iid];
+  VertexOut out;
+  out.position = u.mvp * float4(vid == 0 ? float3(s.a) : float3(s.b), 1.0);
+  out.color = float4(s.color) / 255.0;
   return out;
 }
 
@@ -108,6 +127,15 @@ struct TexturedVertex {
   float position[3];
   float uv[2];
 };
+
+// Mirrors the shader's Segment: 28 bytes, 4-byte aligned, so any segment's offset is a
+// valid vertex buffer offset.
+struct Segment {
+  float a[3];
+  float b[3];
+  uint8_t color[4];
+};
+static_assert(sizeof(Segment) == 28, "Segment must match the shader's layout");
 
 struct Uniforms {
   simd_float4x4 mvp;
@@ -177,6 +205,21 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
   out.push_back(Vertex{{p.x, p.y, p.z}, {n.x, n.y, n.z}, {c[0], c[1], c[2], c[3]}});
 }
 
+// Appends the segment a→b and records the move it belongs to, which is what the
+// layer and time filters select on.
+void pushSegment(std::vector<Segment>& out, std::vector<uint32_t>& moves, size_t move, const float* a, const float* b,
+                 const float* c) {
+  auto byte = [](float v) { return uint8_t(std::lround(std::clamp(v, 0.f, 1.f) * 255.f)); };
+  out.push_back(Segment{{a[0], a[1], a[2]}, {b[0], b[1], b[2]}, {byte(c[0]), byte(c[1]), byte(c[2]), byte(c[3])}});
+  moves.push_back(uint32_t(move));
+}
+
+// Uploads `items`, or returns nil for an empty list (Metal rejects zero-length buffers).
+template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::vector<T>& items) {
+  return items.empty() ? nil
+                       : [device newBufferWithBytes:items.data() length:items.size() * sizeof(T) options:MTLResourceStorageModeShared];
+}
+
 } // namespace
 
 @interface OrcaViewportRenderer () <WKNavigationDelegate>
@@ -187,6 +230,7 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
   id<MTLDevice> _device;
   id<MTLCommandQueue> _queue;
   id<MTLRenderPipelineState> _pipeline;
+  id<MTLRenderPipelineState> _segmentLinePipeline;
   id<MTLRenderPipelineState> _bedTexturePipeline;
   id<MTLDepthStencilState> _depthState;
   id<MTLSamplerState> _bedSampler;
@@ -194,8 +238,17 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
 
   id<MTLBuffer> _triangleBuffer;
   NSUInteger _triangleVertexCount;
-  id<MTLBuffer> _lineBuffer;
-  NSUInteger _lineVertexCount;
+  id<MTLBuffer> _bedLineBuffer;
+  NSUInteger _bedLineVertexCount;
+  // Toolpath segments in G-code order, extrusions and the other moves (travel, wipe,
+  // retraction ticks) apart, each with the index of the move it came from.
+  // `_*Range` is the slice the layer and time filters currently select.
+  id<MTLBuffer> _extrusionBuffer;
+  std::vector<uint32_t> _extrusionMoves;
+  NSRange _extrusionRange;
+  id<MTLBuffer> _markerBuffer;
+  std::vector<uint32_t> _markerMoves;
+  NSRange _markerRange;
   id<MTLBuffer> _bedModelBuffer;
   NSUInteger _bedModelVertexCount;
   id<MTLBuffer> _bedTextureQuadBuffer;
@@ -205,7 +258,6 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
   WKWebView* _svgRasterWebView;
   id<WKNavigationDelegate> _svgNavigationDelegate;
 
-  std::vector<Vertex> _bedLines;
   Slic3r::Mobile::PreviewData _preview;
   Bounds _bounds;
 
@@ -275,6 +327,11 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
     if (_pipeline == nil) {
       NSLog(@"OrcaViewport: pipeline failed: %@", error);
     }
+    desc.vertexFunction = [library newFunctionWithName:@"orca_segment_line_vertex"];
+    _segmentLinePipeline = [_device newRenderPipelineStateWithDescriptor:desc error:&error];
+    if (_segmentLinePipeline == nil) {
+      NSLog(@"OrcaViewport: segment pipeline failed: %@", error);
+    }
     MTLRenderPipelineDescriptor* bedDesc = [MTLRenderPipelineDescriptor new];
     bedDesc.vertexFunction = [library newFunctionWithName:@"orca_bed_vertex"];
     bedDesc.fragmentFunction = [library newFunctionWithName:@"orca_bed_fragment"];
@@ -304,37 +361,37 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
 
 - (void)setMinLayer:(NSInteger)minLayer {
   _minLayer = minLayer;
-  [self rebuildLines];
+  [self updateToolpathRange];
 }
 
 - (void)setMaxLayer:(NSInteger)maxLayer {
   _maxLayer = maxLayer;
-  [self rebuildLines];
+  [self updateToolpathRange];
 }
 
 - (void)setMaxTime:(float)maxTime {
   _maxTime = maxTime;
-  [self rebuildLines];
+  [self updateToolpathRange];
 }
 
 - (void)setShowTravels:(BOOL)showTravels {
   _showTravels = showTravels;
-  [self rebuildLines];
+  [self rebuildToolpath];
 }
 
 - (void)setShowRetractions:(BOOL)showRetractions {
   _showRetractions = showRetractions;
-  [self rebuildLines];
+  [self rebuildToolpath];
 }
 
 - (void)setShowWipes:(BOOL)showWipes {
   _showWipes = showWipes;
-  [self rebuildLines];
+  [self rebuildToolpath];
 }
 
 - (void)setColorMode:(OrcaPreviewColorMode)colorMode {
   _colorMode = colorMode;
-  [self rebuildLines];
+  [self rebuildToolpath];
 }
 
 - (void)setSelectedId:(uint64_t)selectedId {
@@ -462,7 +519,8 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
     return;
   }
 
-  _bedLines = std::move(bed);
+  _bedLineVertexCount = bed.size();
+  _bedLineBuffer = makeBuffer(_device, bed);
   _preview = std::move(preview);
   const bool hadBounds = _bounds.valid;
   _bounds = bounds;
@@ -509,18 +567,21 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
       }
     }
   }
-  [self rebuildLines];
+  [self rebuildToolpath];
   if (!hadBounds) {
     [self fit];
   }
   [_view setNeedsDisplay];
 }
 
-- (void)rebuildLines {
-  std::vector<Vertex> lines = _bedLines;
+- (void)rebuildToolpath {
+  std::vector<Segment> extrusions;
+  std::vector<Segment> markers;
+  _extrusionMoves.clear();
+  _markerMoves.clear();
   if (_mode == OrcaViewportModePreview && _preview.vertices.size() > 1) {
-    const simd_float3 up = simd_make_float3(0, 0, 1);
-    lines.reserve(lines.size() + _preview.vertices.size() * 2);
+    extrusions.reserve(_preview.vertices.size());
+    _extrusionMoves.reserve(_preview.vertices.size());
     // Precompute the max feedrate / volumetric rate / layer time so the
     // gradient spans a stable range regardless of how fast, thick or slow
     // the print is.
@@ -551,13 +612,9 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
     for (size_t i = 1; i < _preview.vertices.size(); ++i) {
       const Slic3r::Mobile::PreviewVertex& a = _preview.vertices[i - 1];
       const Slic3r::Mobile::PreviewVertex& b = _preview.vertices[i];
-      if (_maxLayer >= 0 && b.layer_id > static_cast<unsigned int>(_maxLayer)) continue;
-      if (_minLayer >= 0 && b.layer_id < static_cast<unsigned int>(_minLayer)) continue;
-      if (_maxTime >= 0.f && b.time > _maxTime) continue;
       const float* color = nullptr;
       float dynamic[4];
-      const bool isExtrude = b.type == Slic3r::Mobile::PreviewMoveType::Extrude;
-      if (isExtrude) {
+      if (b.type == Slic3r::Mobile::PreviewMoveType::Extrude) {
         switch (_colorMode) {
           case OrcaPreviewColorModeSpeed:
             colorForRate(b.feedrate, maxFeedrate, dynamic);
@@ -589,28 +646,52 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
             color = kRoleColors[std::min(static_cast<size_t>(b.role), kTravelColor - 1)];
             break;
         }
+        pushSegment(extrusions, _extrusionMoves, i, a.position, b.position, color);
       } else if (_showTravels && b.type == Slic3r::Mobile::PreviewMoveType::Travel) {
-        color = kRoleColors[kTravelColor];
+        pushSegment(markers, _markerMoves, i, a.position, b.position, kRoleColors[kTravelColor]);
       } else if (_showWipes && b.type == Slic3r::Mobile::PreviewMoveType::Wipe) {
         static const float wipe[4] = {0.90f, 0.70f, 0.10f, 1.f};
-        color = wipe;
+        pushSegment(markers, _markerMoves, i, a.position, b.position, wipe);
       } else if (_showRetractions && (b.type == Slic3r::Mobile::PreviewMoveType::Retract
                                       || b.type == Slic3r::Mobile::PreviewMoveType::Unretract)) {
         // Draw a short vertical tick at the position as a stand-in marker.
         static const float retract[4] = {0.95f, 0.20f, 0.20f, 1.f};
-        const simd_float3 pos = simd_make_float3(b.position[0], b.position[1], b.position[2]);
-        push(lines, pos, up, retract);
-        push(lines, pos + simd_make_float3(0, 0, 0.6f), up, retract);
-        continue;
+        const float top[3] = {b.position[0], b.position[1], b.position[2] + 0.6f};
+        pushSegment(markers, _markerMoves, i, b.position, top, retract);
       }
-      if (color == nullptr) continue;
-      push(lines, simd_make_float3(a.position[0], a.position[1], a.position[2]), up, color);
-      push(lines, simd_make_float3(b.position[0], b.position[1], b.position[2]), up, color);
     }
   }
-  _lineVertexCount = lines.size();
-  _lineBuffer = lines.empty() ? nil
-                              : [_device newBufferWithBytes:lines.data() length:lines.size() * sizeof(Vertex) options:MTLResourceStorageModeShared];
+  _extrusionBuffer = makeBuffer(_device, extrusions);
+  _markerBuffer = makeBuffer(_device, markers);
+  [self updateToolpathRange];
+}
+
+// Narrows the drawn toolpath to the layer and time filters without touching the
+// buffers. Moves come in G-code order, where layer ids and print time only grow, so
+// each filter is a prefix or suffix of the moves and a binary search finds it.
+- (void)updateToolpathRange {
+  const auto& moves = _preview.vertices;
+  size_t lo = 0;
+  size_t hi = moves.size();
+  if (_minLayer >= 0) {
+    const unsigned int minLayer = static_cast<unsigned int>(_minLayer);
+    lo = std::partition_point(moves.begin(), moves.end(), [&](const auto& v) { return v.layer_id < minLayer; }) - moves.begin();
+  }
+  if (_maxLayer >= 0) {
+    const unsigned int maxLayer = static_cast<unsigned int>(_maxLayer);
+    hi = std::partition_point(moves.begin(), moves.end(), [&](const auto& v) { return v.layer_id <= maxLayer; }) - moves.begin();
+  }
+  if (_maxTime >= 0.f) {
+    const float maxTime = _maxTime;
+    hi = std::min<size_t>(hi, std::partition_point(moves.begin(), moves.end(), [&](const auto& v) { return v.time <= maxTime; }) - moves.begin());
+  }
+  auto range = [&](const std::vector<uint32_t>& segmentMoves) {
+    const size_t first = std::lower_bound(segmentMoves.begin(), segmentMoves.end(), lo) - segmentMoves.begin();
+    const size_t last = std::lower_bound(segmentMoves.begin(), segmentMoves.end(), std::max(lo, hi)) - segmentMoves.begin();
+    return NSMakeRange(first, last - first);
+  };
+  _extrusionRange = range(_extrusionMoves);
+  _markerRange = range(_markerMoves);
   [_view setNeedsDisplay];
 }
 
@@ -874,13 +955,22 @@ void push(std::vector<Vertex>& out, simd_float3 p, simd_float3 n, const float* c
     [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:6];
   }
 
+  uniforms.params = simd_make_float4(0, 0, 0, 0);
+  uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
+  [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
+  if (_segmentLinePipeline != nil) {
+    // One instance per segment; the buffer offset selects the filtered range.
+    [encoder setRenderPipelineState:_segmentLinePipeline];
+    for (const auto& [buffer, range] : {std::pair{_extrusionBuffer, _extrusionRange}, std::pair{_markerBuffer, _markerRange}}) {
+      if (buffer == nil || range.length == 0) continue;
+      [encoder setVertexBuffer:buffer offset:range.location * sizeof(Segment) atIndex:0];
+      [encoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:2 instanceCount:range.length];
+    }
+  }
   [encoder setRenderPipelineState:_pipeline];
-  if (_lineBuffer != nil) {
-    uniforms.params = simd_make_float4(0, 0, 0, 0);
-    uniforms.modelOffset = simd_make_float4(0, 0, 0, 0);
-    [encoder setVertexBuffer:_lineBuffer offset:0 atIndex:0];
-    [encoder setVertexBytes:&uniforms length:sizeof(uniforms) atIndex:1];
-    [encoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:_lineVertexCount];
+  if (_bedLineBuffer != nil) {
+    [encoder setVertexBuffer:_bedLineBuffer offset:0 atIndex:0];
+    [encoder drawPrimitives:MTLPrimitiveTypeLine vertexStart:0 vertexCount:_bedLineVertexCount];
   }
   if (_triangleBuffer != nil) {
     uniforms.params = simd_make_float4(1, 0, 0, 0);
