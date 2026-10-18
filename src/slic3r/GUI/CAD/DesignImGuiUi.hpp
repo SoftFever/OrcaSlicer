@@ -68,6 +68,7 @@ private:
     bool        m_dragging{false};
     float       m_last_inset_top{-1.f};
     float       m_row_x{0.f};
+    int         m_drag_src{-1};   // the row being dragged this frame
     std::vector<float> m_row_mid;      // screen y of each row centre, from the previous frame (the bar drag reads it)
 };
 

@@ -161,6 +161,7 @@ void DesignTreeOverlay::render(ImGuiWrapper& imgui, float scale, float inset_lef
     for (int i = 0; i < n; ++i) {
         const TreeRowView& r = view.rows[i];
         const bool rolled = eff_rollback >= 0 && i > eff_rollback;   // not replayed right now
+        if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) m_drag_src = -1;
         ImGui::PushID(i);
         const bool selected = (i == view.selected);
         const ImVec4* tint = r.failed ? &col_red : r.conflict ? &col_warn : (r.suppressed || rolled) ? &col_dim : nullptr;
@@ -188,14 +189,16 @@ void DesignTreeOverlay::render(ImGuiWrapper& imgui, float scale, float inset_lef
             if (tint) ImGui::PopStyleColor();
             // Drag a row onto another to move it there (the panel stops at the first move the dependencies refuse).
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                m_drag_src = i;   // not read back from the payload: ImGui keeps the FIRST payload of a drag and a lingering one would name a stale row
                 ImGui::SetDragDropPayload("DESIGN_ROW", &i, sizeof(int));
                 ImGui::TextUnformatted(r.label.c_str());
                 ImGui::EndDragDropSource();
             }
             if (ImGui::BeginDragDropTarget()) {
                 if (const ImGuiPayload* pl = ImGui::AcceptDragDropPayload("DESIGN_ROW")) {
-                    const int src = *static_cast<const int*>(pl->Data);
-                    if (src != i) push(TreeEvent::Reorder, src, std::to_string(i));
+                    (void) pl;
+                    const int src = m_drag_src;
+                    if (src >= 0 && src != i) push(TreeEvent::Reorder, src, std::to_string(i));
                 }
                 ImGui::EndDragDropTarget();
             }

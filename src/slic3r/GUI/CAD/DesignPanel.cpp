@@ -3605,6 +3605,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
                 edited.entities           = ents;
                 edited.entity_constraints = cons;
                 edited.plane              = plane;
+                end_edit_rollback(true);
                 if (m_doc.replace_feature(m_edit_index, edited)) {
                     if (!cons.empty()) m_doc.solve_sketch_feature(m_edit_index);
                     m_doc.recompute();
@@ -4237,6 +4238,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
         // Insert card is the explicit gate, this is the in-canvas shortcut to it.
         if (m_active == Tool::Insert) { finalize_insert(); return; }
         if (m_viewport) m_viewport->cancel_sketch();
+        end_edit_rollback();
         m_edit_index = -1;
         set_ui_mode(UiMode::Feature);
         sync_sketch_display();
@@ -4837,6 +4839,7 @@ void DesignPanel::open_text_dialog(int feat)
             } else {
                 m_viewport->cancel_sketch();     // an empty sketch was only a way to pick the plane
             }
+            end_edit_rollback();
             m_edit_index = -1;
             set_ui_mode(UiMode::Feature);
             sync_sketch_display();
@@ -9946,6 +9949,17 @@ void DesignPanel::reset_edit_state()
     m_edit_index = -1;
 }
 
+void DesignPanel::end_edit_rollback(bool commit)
+{
+    if (!m_edit_rolled) return;
+    m_edit_rolled = false;
+    if (m_doc.rollback_index < 0) return;
+    m_doc.rollback_index = -1;
+    if (!commit && !recompute_guarded(_L("Rebuilding model…")))
+        set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
+    if (m_viewport) m_viewport->request_repaint();
+}
+
 int DesignPanel::resolve_extrude_sketch() const
 {
     int sel = tree_selection();
@@ -10324,6 +10338,11 @@ void DesignPanel::on_edit_feature()
             // toolbar + session card), NOT the legacy parametric card. The commit handler
             // replaces this feature in place (see m_edit_index). Hide its display overlay
             // so the live tool is the only copy drawn.
+            if (sel < int(m_doc.features.size()) - 1) {   // hide what is built on this sketch while it is edited
+                m_doc.rollback_index = sel;
+                m_edit_rolled = true;
+                if (!recompute_guarded(_L("Rebuilding model…"))) end_edit_rollback();
+            }
             set_ui_mode(UiMode::Sketch);
             if (m_viewport) {
                 m_viewport->set_display_sketches({});
@@ -12691,6 +12710,7 @@ void DesignPanel::tool_cancel()
             if (dlg.ShowModal() != wxID_YES) return;
         }
         if (m_viewport) m_viewport->cancel_sketch();   // drop the live session (committed art stays)
+        end_edit_rollback();
         m_edit_index = -1;
         set_ui_mode(UiMode::Feature);
         sync_sketch_display();

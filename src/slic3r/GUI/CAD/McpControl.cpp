@@ -2828,7 +2828,7 @@ json ui_inspect(DesignPanel* panel)
         out["focus"]["chain"] = chain;
         if (in) out["focus"]["canvas_accepts"] = in->AcceptsFocus();
     }
-    out["card"] = {{"tool", panel->mcp_active_tool()}, {"confirm", panel->mcp_confirm_enabled()}, {"status", panel->mcp_status()}};
+    out["card"] = {{"tool", panel->mcp_active_tool()}, {"confirm", panel->mcp_confirm_enabled()}, {"status", panel->mcp_status()}, {"rollback", panel->mcp_doc().rollback_index}};
     if (auto* ig = wxGetApp().imgui())
         out["imgui"] = {{"want_text_input", ig->want_text_input()}, {"want_keyboard", ig->want_keyboard()}, {"want_mouse", ig->want_mouse()}};
     if (v) {
@@ -2909,6 +2909,7 @@ json ui_dispatch(const std::string& method, const json& p)
         }
         const int tx = ui_int(p.value("to", json()), 0), ty = ui_int(p.value("to", json()), 1), steps = std::clamp(p.value("steps", 8), 1, 200);
         const int step_ms = std::clamp(p.value("step_ms", 25), 5, 1000);   // ImGui reads the pointer once per painted frame: slow software GL needs longer
+        pause(step_ms); mouse(0, x, y); pause(step_ms);   // a frame must see the pointer over the start before the press, or ImGui presses whatever it hovered last
         mouse(1, x, y); pause(std::max(60, step_ms));
         for (int i = 1; i <= steps; ++i) { mouse(0, x + (tx - x) * i / steps, y + (ty - y) * i / steps); pause(step_ms); }
         pause(step_ms); mouse(2, tx, ty); pause(60);

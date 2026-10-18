@@ -313,7 +313,11 @@ private:
     void drop_solid_pick();            // the solid and hit-face part of drop_selection
     bool begin_renumber();             // before delete/reorder: refuse while an index is held, else close the card, checkpoint, drop picks
     void load_feature_into_dialog(const CadFeature& f);
-    void reset_edit_state();           // back to add-mode (m_edit_index = -1)
+    void reset_edit_state();
+    // Edit Sketch rolls the history back to just after the sketch (what comes later is not built while it is edited);
+    // these put the full history back. `commit` = a replace_feature follows, which rebuilds anyway.
+    bool m_edit_rolled{false};
+    void end_edit_rollback(bool commit = false);           // back to add-mode (m_edit_index = -1)
 
     // Onshape loop: Button -> open_tool (show dialog) -> refresh_preview (ghost) ->
     // confirm_tool (commit) / cancel_tool (abort).
