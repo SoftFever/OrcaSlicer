@@ -248,6 +248,10 @@ struct CadFeature {
     // Feature "pattern" that mirrors instead: one copy of what the features did, reflected in the plane through pattern_origin
     // with normal pattern_axis.
     bool        pattern_mirror{false};
+    // Extrude of SOME of the sketch's loops: indices into the sketch's entities. Empty = all of them, as one region (the GUI's
+    // way: disjoint regions are refused). Set, the chosen loops become separate regions (nested loops are holes) and each is
+    // extruded - one feature, several islands.
+    std::vector<int> extrude_entities;
 
     // Pattern along a curve: when pattern_curve_sketch >= 0 this mode takes precedence over
     // linear/circular. Copies are placed at equal-parameter points along entity
@@ -476,7 +480,7 @@ struct CadFeature {
                dressup_radii, dressup_knots,
                pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
-               thin_in, thin_out, pattern_mirror);
+               thin_in, thin_out, pattern_mirror, extrude_entities);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -528,7 +532,7 @@ struct CadFeature {
                dressup_radii, dressup_knots,
                pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
-               thin_in, thin_out, pattern_mirror);
+               thin_in, thin_out, pattern_mirror, extrude_entities);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature

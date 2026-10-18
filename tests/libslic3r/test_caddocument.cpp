@@ -2426,8 +2426,8 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // + the feature pattern: pattern_features (a list: size tag), pattern_axis / origin / axis2 (9 doubles), pattern_count2 (int),
     // pattern_spacing2 (double).
     // + shell_faces and draft_faces (two lists), draft_has_neutral (bool), draft_pull / draft_neutral (6 doubles), thin_in / thin_out.
-    // + pattern_mirror (bool)
-    const size_t drop = sizeof(uint32_t) + 9 * sizeof(bool) + 10 * sizeof(cereal::size_type) + 23 * sizeof(double)
+    // + pattern_mirror (bool), extrude_entities (a list)
+    const size_t drop = sizeof(uint32_t) + 9 * sizeof(bool) + 11 * sizeof(cereal::size_type) + 23 * sizeof(double)
                         + 7 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
@@ -10359,4 +10359,20 @@ TEST_CASE("multi-face shell, multi-face draft with a pull direction, and thin ex
         REQUIRE(d.recompute());
         REQUIRE_THAT(vol(d), WithinRel((42.0 * 42.0 - 34.0 * 34.0) * 10.0, 1e-3));
     }
+}
+
+TEST_CASE("an extrude can take chosen loops of a sketch as separate islands, nested loops as holes", "[CadDocument][Extrude]")
+{
+    using Catch::Matchers::WithinRel;
+    auto circle = [](Vec2d c, double r) { SketchEntity e; e.type = SketchEntity::Type::Circle; e.center = c; e.p0 = c; e.radius = r; return e; };
+    CadDocument doc;
+    // two islands, a ring (outer + inner circle) and a third circle left out
+    const int sk = doc.add_sketch_entities({ circle({0, 0}, 5), circle({30, 0}, 4), circle({0, 40}, 10), circle({0, 40}, 6), circle({60, 60}, 3) },
+                                           SketchPlane::XY(), "Loops");
+    const int e = doc.add_extrude(sk, 10.0, false, BooleanMode::New, "Islands");
+    doc.features[e].extrude_entities = { 0, 1, 2, 3 };
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.error.empty());
+    const double want = (M_PI * 25 + M_PI * 16 + M_PI * (100 - 36)) * 10.0;
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(want, 2e-3));
 }

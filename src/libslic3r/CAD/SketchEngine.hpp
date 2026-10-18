@@ -318,6 +318,9 @@ public:
     // A planar face from a set of coplanar loops: the largest-area loop is the outer boundary
     // and every other loop is a hole in it. Throws std::runtime_error with a message naming the
     // problem when the loops do not describe one such region.
+    // Every closed region of a set of loops, as faces: a loop inside another one is a hole of the region around it, a loop inside
+    // a hole is a region of its own again (even depth = region, odd depth = hole). Unlike wires_to_face, disjoint regions are fine.
+    static std::vector<TopoDS_Face> wires_to_faces(const std::vector<TopoDS_Wire>& wires, const SketchPlane& plane);
     static TopoDS_Face wires_to_face(const std::vector<TopoDS_Wire>& wires,
                                      const SketchPlane& plane);
 

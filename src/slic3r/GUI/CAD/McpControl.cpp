@@ -204,6 +204,7 @@ json describe_tools_core()
                      json{{"name", "taper"},    {"type", "number"}, {"unit", "deg"}, {"default", 0}, {"description", "draft/taper of the side wall"}},
                      json{{"name", "thin_in"},  {"type", "number"}, {"unit", "mm"}, {"default", 0}, {"description", "thin extrude: wall thickness inside the (closed) outline; with thin_out, a wall around it instead of a filled solid"}},
                      json{{"name", "thin_out"}, {"type", "number"}, {"unit", "mm"}, {"default", 0}, {"description", "thin extrude: wall thickness outside the outline"}},
+                     json{{"name", "entities"}, {"type", "array"}, {"description", "extrude only these loops of an existing `sketch` (entity indices from sketch_describe): disjoint ones become separate islands, a loop inside another is its hole"}},
                      json{{"name", "flip"},     {"type", "boolean"}, {"default", false}},
                      json{{"name", "sketch"},   {"type", "integer"}, {"description", "extrude this existing Sketch feature (sketch_commit returns sketch_index) instead of a polygon/rectangle; circles, arcs and holes included"}},
                  })}},
@@ -1059,6 +1060,13 @@ json action_extrude(DesignPanel* panel, const json& params)
     CadFeature& fe = doc.features[e];
     fe.flip      = params.value("flip", false);
     fe.taper_deg = params.value("taper", 0.0);
+    if (params.contains("entities")) {
+        if (sk < 0 || !params["entities"].is_array() || params["entities"].empty() || params["entities"].size() > 256) { doc.undo(); throw std::runtime_error("entities needs an existing 'sketch' and a non-empty array of entity indices"); }
+        for (const json& x : params["entities"]) {
+            if (!x.is_number_integer() || x.get<int>() < 0) { doc.undo(); throw std::runtime_error("entities must hold entity indices"); }
+            fe.extrude_entities.push_back(x.get<int>());
+        }
+    }
     fe.thin_in   = params.value("thin_in", 0.0);
     fe.thin_out  = params.value("thin_out", 0.0);
     if (fe.thin_in < 0 || fe.thin_out < 0 || fe.thin_in > 1e6 || fe.thin_out > 1e6) { doc.undo(); throw std::runtime_error("thin_in and thin_out must be >= 0"); }

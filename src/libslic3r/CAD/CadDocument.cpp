@@ -2817,10 +2817,22 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
             // Use the referenced sketch when sketch_ref is a valid Sketch index,
             // otherwise fall back to f's own inline sketch params (this makes a
             // single self-contained candidate previewable).
-            const CadFeature& sk = (f.sketch_ref >= 0 && f.sketch_ref < int(features.size())
+            const CadFeature& sk0 = (f.sketch_ref >= 0 && f.sketch_ref < int(features.size())
                                     && (features[f.sketch_ref].type == CadFeatureType::Sketch
                                         || features[f.sketch_ref].type == CadFeatureType::Project))
                                    ? features[f.sketch_ref] : f;
+            // Only some of the sketch's loops: a private copy of the sketch holding just those entities.
+            CadFeature sk_subset;
+            if (!f.extrude_entities.empty()) {
+                sk_subset = sk0;
+                sk_subset.entities.clear();
+                sk_subset.entity_constraints.clear();
+                for (int id : f.extrude_entities) {
+                    if (id < 0 || id >= int(sk0.entities.size())) throw std::runtime_error(_u8L("extrude: a chosen sketch entity does not exist"));
+                    sk_subset.entities.push_back(sk0.entities[size_t(id)]);
+                }
+            }
+            const CadFeature& sk = f.extrude_entities.empty() ? sk0 : sk_subset;
             // Imported rigid art (Text/SVG) extrudes via the faces-with-holes path
             // (with its placement transform applied); otherwise build the sketch's planar
             // region (outer loop + holes) from entities/profile/shape.
@@ -2832,7 +2844,7 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
                       f.extrude_end == ExtrudeEnd::ThroughAll ? 1e5 : signed_d,
                       f.extrude_end == ExtrudeEnd::ThroughAll ? true : (sym || f.extrude_end == ExtrudeEnd::TwoSided))
                 : [&]() {
-                      TopoDS_Face profile = build_sketch_face(sk);
+                    auto one_region = [&](TopoDS_Face profile) -> TopoDS_Shape {
                       if (f.thin_in > 0 || f.thin_out > 0) {
                           // A wall around the outline: (outline grown by thin_out) minus (outline shrunk by thin_in), as a face.
                           if (std::abs(f.taper_deg) > 1e-6) throw std::runtime_error(_u8L("a thin extrude cannot be tapered"));
@@ -2901,6 +2913,18 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
                           default: t = SketchEngine::make_extrude(profile, sk.plane, signed_d, false); break;
                       }
                       return t;
+                    };
+                    if (f.extrude_entities.empty()) return one_region(build_sketch_face(sk));
+                    const std::vector<TopoDS_Wire> loops = SketchEngine::entities_to_wires(sk.entities, sk.plane, true);
+                    if (loops.empty()) throw std::runtime_error(open_loop_message(sk));
+                    TopoDS_Compound all;
+                    BRep_Builder bb;
+                    bb.MakeCompound(all);
+                    for (const TopoDS_Face& region : SketchEngine::wires_to_faces(loops, sk.plane)) {
+                        const TopoDS_Shape part = one_region(region);
+                        for (TopExp_Explorer ex(part, TopAbs_SOLID); ex.More(); ex.Next()) bb.Add(all, ex.Current());
+                    }
+                    return TopoDS_Shape(all);
                   }();
         }
         // New / first-of-a-body => result becomes the tool (route_feature sends New extrudes

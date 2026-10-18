@@ -195,7 +195,7 @@ BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cu
 
 class Replay:
     def __init__(self, mcp):
-        self.m, self.sketches, self.body, self.fidx = mcp, {}, 0, {}
+        self.m, self.sketches, self.body, self.fidx, self.entity_index, self.sketch_neg = mcp, {}, 0, {}, {}, {}
         self.params, self.order, self.datums = {}, [], {}
         self.mo = [0, 0, 0]   # modeling_origin: the app frame is the recipe frame shifted by it   # recipe parameters (name -> expression); body names in app order
 
@@ -211,8 +211,7 @@ class Replay:
         axis = max(range(3), key=lambda i: abs(n[i]))
         if abs(abs(n[axis]) - 1) > 1e-6:
             raise Blocked("tilted sketch plane")
-        if n[axis] < 0:
-            raise Blocked("sketch plane facing -%s" % "xyz"[axis])
+        self._last_neg = n[axis] < 0   # the app's datum faces +axis; a sketch that faces the other way extrudes the other way
         base, xa, ya = AXIS_BASE[axis]
         name = self.datum(base, O[axis])
         dot = lambda u, v: sum(a * b for a, b in zip(u, v))
@@ -276,7 +275,9 @@ class Replay:
                                 "axis": ax.get("dir", [0, 0, 1]), "origin": ax.get("origin", [0, 0, 0]), "body": self.body})
 
     def op_sketch(self, ft):
+        self._last_neg = False
         plane, to_app = self.plane_for(ft["plane"])
+        neg = self._last_neg
         ents, idx_of, swapped = sketch_entities(ft, to_app)
         types = {e["id"]: e["type"] for e in ft["entities"]}
 
@@ -345,6 +346,8 @@ class Replay:
         idx = self.m.call("sketch_commit")["sketch_index"]
         solid = {e["id"] for e in ft["entities"] if e["type"] != "point" and not e.get("construction")}
         self.sketches[ft["name"]] = (idx, plane, solid)
+        self.entity_index[ft["name"]] = {e["id"]: i for i, e in enumerate(ft["entities"])}
+        self.sketch_neg[ft["name"]] = neg
 
     def _sketch(self, prof):
         idx, plane, solid = self.sketches[prof["sketch"]]
@@ -372,18 +375,23 @@ class Replay:
             return
         if len({pr["sketch"] for pr in ft["profiles"]}) != 1:
             raise Blocked("extrude of profiles from several sketches")
-        # several profiles of ONE sketch = the sketch's regions together, which is what the app extrudes
-        idx, _ = self._sketch({"sketch": ft["profiles"][0]["sketch"], "loops": [lp for pr in ft["profiles"] for lp in pr.get("loops", [])]})
+        # several profiles of ONE sketch = the sketch's regions together; when they are only some of its loops the app is told which
+        sname = ft["profiles"][0]["sketch"]
+        used = [c for pr in ft["profiles"] for lp in pr.get("loops", []) for c in lp["curves"]]
+        idx, _, solid = self.sketches[sname][0], None, self.sketches[sname][2]
+        subset = sorted(self.entity_index[sname][c] for c in used) if (set(used) != solid or len(ft["profiles"]) > 1) else None   # several profiles = several islands
         ex = ft["extent"]
         et = ex.get("type", "distance")
         p = {"sketch": idx, "boolean": BOOL[ft["operation"]]}
+        if subset is not None:
+            p["entities"] = subset
         if et == "distance":
             if ex.get("taper_deg"):
                 p["taper"] = ex["taper_deg"]
             p["distance"] = number(ex["distance"], self.params)
-            p["flip"] = ex.get("direction") == "negative"
+            p["flip"] = (ex.get("direction") == "negative") != self.sketch_neg.get(sname, False)
         elif et == "through_all":
-            p.update(end="through_all", distance=1.0, flip=ex.get("direction") == "negative")
+            p.update(end="through_all", distance=1.0, flip=(ex.get("direction") == "negative") != self.sketch_neg.get(sname, False))
         elif et == "two_sides":
             p.update(end="two_sided", distance=ex["side1"], distance2=ex["side2_opposite"])
         elif et == "symmetric":
@@ -395,6 +403,8 @@ class Replay:
 
     def op_revolve(self, ft):
         idx, plane = self._sketch(ft["profile"])
+        if self.sketch_neg.get(ft["profile"]["sketch"]):
+            raise Blocked("revolve of a sketch facing the negative axis")
         d = ft["axis"].get("dir", [0, 0, 1])
         if any(abs(c) > 1e-9 for c in ft["axis"].get("origin", [0, 0, 0])):
             raise Blocked("revolve axis off the origin")

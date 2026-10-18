@@ -1044,6 +1044,46 @@ TopoDS_Face SketchEngine::wires_to_face(const std::vector<TopoDS_Wire>& wires,
     return checked_profile_face(sff.Face());
 }
 
+std::vector<TopoDS_Face> SketchEngine::wires_to_faces(const std::vector<TopoDS_Wire>& wires, const SketchPlane& plane)
+{
+    if (wires.empty()) throw std::runtime_error(_u8L("sketch has no closed loop"));
+    const gp_Pln pln(gp_Pnt(plane.origin.x(), plane.origin.y(), plane.origin.z()), gp_Dir(plane.normal.x(), plane.normal.y(), plane.normal.z()));
+    const size_t n = wires.size();
+    std::vector<TopoDS_Face> plain(n);
+    std::vector<gp_Pnt> probe(n);
+    for (size_t i = 0; i < n; ++i) {
+        BRepBuilderAPI_MakeFace fm(pln, wires[i]);
+        if (!fm.IsDone()) throw std::runtime_error(_u8L("sketch loop does not bound a face"));
+        plain[i] = fm.Face();
+        TopExp_Explorer ex(wires[i], TopAbs_VERTEX);
+        if (!ex.More()) throw std::runtime_error(_u8L("sketch loop does not bound a face"));
+        probe[i] = BRep_Tool::Pnt(TopoDS::Vertex(ex.Current()));
+    }
+    // parent[i] = the smallest loop that contains loop i (-1 = none); depth follows from the chain
+    std::vector<double> area(n);
+    for (size_t i = 0; i < n; ++i) { GProp_GProps pr; BRepGProp::SurfaceProperties(plain[i], pr); area[i] = std::abs(pr.Mass()); }
+    std::vector<int> parent(n, -1);
+    for (size_t i = 0; i < n; ++i)
+        for (size_t j = 0; j < n; ++j) {
+            if (i == j || area[j] <= area[i]) continue;
+            BRepClass_FaceClassifier fc(plain[j], probe[i], 1e-7);
+            if (fc.State() == TopAbs_IN && (parent[i] < 0 || area[j] < area[size_t(parent[i])])) parent[i] = int(j);
+        }
+    auto depth = [&](size_t i) { int d = 0; for (int p = parent[i]; p >= 0; p = parent[size_t(p)]) ++d; return d; };
+    std::vector<TopoDS_Face> out;
+    for (size_t i = 0; i < n; ++i) {
+        if (depth(i) % 2 != 0) continue;   // a hole: it rides along with the region around it
+        BRepBuilderAPI_MakeFace fm(pln, wires[i]);
+        for (size_t k = 0; k < n; ++k)
+            if (parent[k] == int(i)) fm.Add(wires[k]);
+        if (!fm.IsDone()) throw std::runtime_error(_u8L("sketch loop does not bound a face"));
+        ShapeFix_Face sff(fm.Face());
+        sff.FixOrientation();
+        out.push_back(checked_profile_face(sff.Face()));
+    }
+    return out;
+}
+
 std::vector<SketchEntity> SketchEngine::mirror_entities(
     const std::vector<SketchEntity>& src, const Vec2d& a, const Vec2d& b)
 {
