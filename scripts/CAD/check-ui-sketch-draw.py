@@ -125,6 +125,28 @@ time.sleep(0.6)
 call("ui.key", key="Escape")
 L3 = lines()[n2:]
 check(len(L3) == 1 and abs(L3[0]["length"] - 50.0) < 1e-6, "typing 5,0,Enter after the first point makes a 50 mm line: %s" % [round(x["length"], 3) for x in L3])
+# A drag of a point is ONE undo step: Ctrl+Z puts it back, and does not delete anything.
+n3 = len(lines())
+a, b = [cx + 250, cy - 250], [cx + 400, cy - 250]
+draw_line(a, b)
+call("ui.key", key="Escape")                               # leave the Line tool: back to Select
+mine = lines()[n3:]
+check(len(mine) == 1, "a line to drag was drawn")
+if len(mine) == 1:
+    before = mine[0]["p1"]
+    call("ui.drag", **{"from": b, "to": [b[0] + 30, b[1] + 60], "steps": 6})
+    after = [e for e in ents() if e["index"] == mine[0]["index"]][0]["p1"]
+    check(abs(after[0] - before[0]) + abs(after[1] - before[1]) > 0.5, "dragging the end moved it: %s -> %s" % (before, after))
+    cnt = len(ents())
+    call("ui.key", key="Z", mods=["ctrl"])
+    time.sleep(0.4)
+    back = [e for e in ents() if e["index"] == mine[0]["index"]]
+    check(len(ents()) == cnt and back and abs(back[0]["p1"][0] - before[0]) + abs(back[0]["p1"][1] - before[1]) < 1e-6,
+          "Ctrl+Z undoes the drag and removes nothing: %s" % (back[0]["p1"] if back else None))
+    call("ui.key", key="Z", mods=["ctrl", "shift"])
+    time.sleep(0.4)
+    redo = [e for e in ents() if e["index"] == mine[0]["index"]]
+    check(redo and abs(redo[0]["p1"][0] - after[0]) + abs(redo[0]["p1"][1] - after[1]) < 1e-6, "Ctrl+Shift+Z puts the drag back: %s" % (redo[0]["p1"] if redo else None))
 call("sketch_cancel")
 print("ui sketch draw:", "PASS" if not fails else "%d FAIL" % len(fails))
 sys.exit(1 if fails else 0)

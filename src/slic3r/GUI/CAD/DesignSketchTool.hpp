@@ -1218,6 +1218,13 @@ private:
         size_t after_entities{0};           size_t after_constraints{0};
     };
     std::vector<SketchSnap> m_sketch_redo;
+    // Drag = ONE undo step. The state before each completed point/handle drag; undo restores it when nothing was
+    // added or removed since (the entity/constraint counts still match), ahead of removing the last entity.
+    std::vector<SketchSnap> m_drag_hist;
+    SketchSnap              m_drag_pre;
+    bool                    m_drag_pre_valid{false};
+    void drag_begin_snapshot();
+    void drag_end_commit();
     int    m_skipped_last{0};       // constraints the last solve could not apply (reported on change)
     double m_chain_dup_tol{1e-9};   // plane units ~3 px at the last chain click (double-click repeat)
     int                   m_open_feature{-1};      // index of the Feature being built, or -1

@@ -102,6 +102,8 @@ static double ray_axis_proj(const Linef3& ray, const Vec3d& anchor, const Vec3d&
 void DesignSketchTool::begin(const SketchPlane& plane, Mode mode)
 {
     m_sketch_redo.clear();
+    m_drag_hist.clear();
+    m_drag_pre_valid = false;
 
     m_plane = plane;
     m_mode = mode;
@@ -344,6 +346,8 @@ void DesignSketchTool::set_tool(Mode mode)
 void DesignSketchTool::cancel()
 {
     m_sketch_redo.clear();
+    m_drag_hist.clear();
+    m_drag_pre_valid = false;
     close_session_chrome();     // same orphaned-field freeze as finish() — see yce
     m_active = false;
     m_step_mode_last = -1;
@@ -492,9 +496,50 @@ bool DesignSketchTool::redo_last_entity()
     return true;
 }
 
+void DesignSketchTool::drag_begin_snapshot()
+{
+    m_drag_pre = SketchSnap{ m_entities, m_constraints, m_features, m_dimensions, m_entities.size(), m_constraints.size() };
+    m_drag_pre_valid = true;
+}
+
+// Called when a drag ends: keep the pre-drag state as one undo step, unless the geometry did not actually move.
+void DesignSketchTool::drag_end_commit()
+{
+    if (!m_drag_pre_valid) return;
+    m_drag_pre_valid = false;
+    bool moved = m_drag_pre.entities.size() != m_entities.size();
+    for (size_t i = 0; !moved && i < m_entities.size(); ++i) {
+        const SketchEntity& a = m_drag_pre.entities[i];
+        const SketchEntity& b = m_entities[i];
+        moved = (a.p0 - b.p0).norm() > 1e-9 || (a.p1 - b.p1).norm() > 1e-9 || (a.center - b.center).norm() > 1e-9 ||
+                std::abs(a.radius - b.radius) > 1e-9 || std::abs(a.start_angle - b.start_angle) > 1e-9 ||
+                std::abs(a.end_angle - b.end_angle) > 1e-9 || a.ctrl.size() != b.ctrl.size();
+    }
+    if (!moved) return;
+    m_drag_hist.push_back(std::move(m_drag_pre));
+    if (m_drag_hist.size() > 64) m_drag_hist.erase(m_drag_hist.begin());
+}
+
 bool DesignSketchTool::undo_last_entity()
 {
-    if (!m_active || m_entities.empty()) return false;
+    if (!m_active) return false;
+    if (!m_drag_hist.empty() && m_drag_hist.back().after_entities == m_entities.size() &&
+        m_drag_hist.back().after_constraints == m_constraints.size()) {
+        if (!can_redo_entity()) m_sketch_redo.clear();
+        SketchSnap now{ m_entities, m_constraints, m_features, m_dimensions, m_entities.size(), m_constraints.size() };
+        SketchSnap s = std::move(m_drag_hist.back());
+        m_drag_hist.pop_back();
+        m_entities = std::move(s.entities); m_constraints = std::move(s.constraints);
+        m_features = std::move(s.features); m_dimensions = std::move(s.dimensions);
+        m_sketch_redo.push_back(std::move(now));
+        m_selection.clear();
+        m_point_sel.clear();
+        reset_autoedit();
+        resolve_live();
+        if (on_selection_changed) on_selection_changed(0);
+        return true;
+    }
+    if (m_entities.empty()) return false;
     if (!can_redo_entity()) m_sketch_redo.clear();   // the sketch moved on since the last undo
     SketchSnap snap{ m_entities, m_constraints, m_features, m_dimensions, 0, 0 };
     const int last = int(m_entities.size()) - 1;
@@ -11997,6 +12042,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
                     resolve_live_drag(m_drag_ei, m_drag_role);
                 }
                 m_dragging_point = false;
+                drag_end_commit();
                 m_drag_ei = -1;
                 m_drag_poly_fi = -1;
                 m_drag_rect_fi = -1;
@@ -12008,6 +12054,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
                 screen_to_plane(canvas, evt, p);
                 set_handle(m_drag_handle, p);
                 m_dragging_handle = false;
+                drag_end_commit();
                 return true;
             }
             return false;
@@ -12099,6 +12146,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
                 if (hit_test_handle(p, tol, hh) &&
                     (hh.role == HandleRole::RadiusHandle || hh.role == HandleRole::MajorAxis ||
                      hh.role == HandleRole::MinorAxis || hh.role == HandleRole::BSplineCtrl)) {
+                    drag_begin_snapshot();
                     m_dragging_handle = true;
                     m_drag_handle     = hh;
                     m_selection.clear();
@@ -12126,6 +12174,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
                         m_point_sel.push_back(key);
                     }
                     // Arm the drag so the grabbed point follows the cursor.
+                    drag_begin_snapshot();
                     m_dragging_point = true;
                     m_drag_ei = pe;
                     m_drag_role = pr;
