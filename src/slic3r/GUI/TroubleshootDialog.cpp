@@ -756,14 +756,12 @@ wxString TroubleshootDialog::GetLinuxDisplayServer()
 wxString TroubleshootDialog::GetAppDisplayBackend()
 {
     // Display backend actually used by the app (GDK), not the session type
-    #if defined(__WXGTK__)
     wxString display;
     switch (get_linux_display_backend()) {
         case LinuxDisplayBackend::X11:     display = "X11";     break;
         case LinuxDisplayBackend::Wayland: display = "Wayland"; break;
         default: break;
     }
-    #endif
     return display.IsEmpty() ? "" : (" (" + display + ")"); // spacing included here to prevent non centered text
 }
 #endif
