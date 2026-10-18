@@ -8,6 +8,30 @@ packages/orca-core   react-native-orca-core: Nitro Module over src/mobile/core (
 apps/orca            the Expo app (expo-router)
 ```
 
+## What works today
+
+The core slices with every vendor profile in the OrcaSlicer repository, so Bambu Lab,
+Prusa, Voron, Creality and the rest all slice. Talking to the printer afterwards is
+another matter: the app speaks the two open HTTP APIs and nothing proprietary.
+
+| Area | Status | Notes |
+| --- | --- | --- |
+| iPhone and iPad (iOS 16+) | Supported | Development, beta and release builds; AltStore source |
+| Android | Not verified | The Expo project builds the target, nobody has run it |
+| Klipper via Moonraker | Supported | Status, temperatures, pause / resume / cancel, upload and print, webcam, Mainsail web UI in-app |
+| OctoPrint | Supported | Same feature set over the OctoPrint API |
+| Bambu Lab printers | Not supported | Slicing with their profiles works; there is no Bambu network plugin or LAN-mode protocol in the app, so G-code goes through the desktop app or an SD card |
+| PrusaLink / Prusa Connect, Duet, Repetier, Elegoo | Not supported | Share the G-code to Files and upload it another way |
+| Any other printer | Manual | Save G-code to Files, or send it from another app |
+| Models: 3MF, STL, OBJ, STEP, AMF | Supported | 3MF projects restore plates and presets; the plate autosaves |
+| Multi-plate projects | Supported | Add, duplicate, remove and switch plates |
+| Multi-material | Partial | Per-object extruder assignment; no AMS / filament mapping |
+| Desktop preset files (.orca_printer, .orca_filament, .orca_bundle, .zip, .json) | Supported | Import from Files, AirDrop or a share sheet; export bundles the desktop imports |
+| Orca Cloud preset sync | Supported | Email + password sign-in; Google, Apple and GitHub go through the desktop's web sign-in page and have not been tested on iOS |
+| Calibration prints | Supported | Temperature tower, flow rate, pressure advance |
+| Python plugins | Not supported | The plugin runtime is not part of the mobile core |
+| Home screen widget and Live Activity | Supported | Print progress and temperatures; the Live Activity only updates while the app is open |
+
 ## Prerequisites
 
 - macOS with Xcode 16.4 or newer, CMake 3.20+, Ninja (`brew install ninja`)
