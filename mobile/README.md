@@ -34,7 +34,7 @@ another matter: the app speaks the two open HTTP APIs and nothing proprietary.
 
 ## Prerequisites
 
-- macOS with Xcode 16.4 or newer, CMake 3.20+, Ninja (`brew install ninja`)
+- macOS with Xcode 26 or newer, CMake 3.20+, Ninja (`brew install ninja`)
 - Node 22 and pnpm 10 (`corepack enable`)
 - The slicing core built for iOS: `./scripts/build_ios_core.sh -a all -x` from the
   repository root, or the `OrcaCore.xcframework` artifact of the "Build iOS core" workflow
@@ -149,7 +149,7 @@ AltStore PAL installs only builds Apple notarized for alternative distribution, 
 needs a team-signed upload to App Store Connect. Once its ADP is hosted, the "Mobile
 AltStore PAL" workflow adds it to `source-pal.json`; the steps are in its header.
 
-The `.ipa` builds on GitHub's `macos-15` runner unless the `MOBILE_MACOS_RUNNER`
+The `.ipa` builds on GitHub's `macos-26` runner unless the `MOBILE_MACOS_RUNNER`
 repository variable names another. `scripts/setup-mac-runner.sh` registers a Mac you own
 as a self-hosted runner with the `orca-ios` label (it needs Xcode, CocoaPods and `gh`):
 
