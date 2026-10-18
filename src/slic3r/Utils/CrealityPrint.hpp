@@ -6,6 +6,7 @@
 #include <wx/string.h>
 #include <boost/optional.hpp>
 #include <boost/asio/ip/address.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 #include "PrintHost.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -38,6 +39,11 @@ public:
     static bool model_supports_multi_color(const std::string& model);
     static std::string model_display_name(const std::string& model);
     std::string query_boxes_info() const;
+    // The printer's material library: the "retMaterials" answer to reqMaterials.
+    std::string query_material_library() const;
+    // Write one CFS slot record (the "modifyMaterial" set command Creality Print sends).
+    // Returns false on a transport error; the caller verifies the result with query_boxes_info().
+    bool modify_material(const nlohmann::json& material) const;
     std::string model_name() const;
 
 protected:
