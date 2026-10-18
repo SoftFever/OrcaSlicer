@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <parameters>
+    <parameter name="version" required="true" />
+  </parameters>
   <zip-file>
-    <pe-file path="OrcaSlicer_Windows_Installer_*.exe">
+    <pe-file path="OrcaSlicer_Windows_Installer_*.exe" product-name="OrcaSlicer" product-version="${version}">
       <authenticode-sign />
     </pe-file>
   </zip-file>

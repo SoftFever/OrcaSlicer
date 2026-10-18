@@ -1,0 +1,26 @@
+// Version information of orca-slicer.exe and OrcaSlicer.dll, configured once per binary.
+// SignPath only signs a binary whose ProductName and ProductVersion match its artifact
+// configuration (signpath/windows-binaries-v1.xml), which the workflow passes the
+// SoftFever_VERSION from version.inc.
+1 VERSIONINFO
+FILEVERSION @ORCA_VERSION_MAJOR@,@ORCA_VERSION_MINOR@,@ORCA_VERSION_PATCH@,0
+PRODUCTVERSION @ORCA_VERSION_MAJOR@,@ORCA_VERSION_MINOR@,@ORCA_VERSION_PATCH@,0
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "040904E4"
+  {
+   VALUE "CompanyName", "SoftFever"
+   VALUE "FileDescription", "@SLIC3R_APP_NAME@"
+   VALUE "FileVersion", "@SoftFever_VERSION@"
+   VALUE "ProductName", "@SLIC3R_APP_NAME@"
+   VALUE "ProductVersion", "@SoftFever_VERSION@"
+   VALUE "InternalName", "@SLIC3R_APP_NAME@"
+   VALUE "OriginalFilename", "@ORCA_RC_ORIGINAL_FILENAME@"
+  }
+ }
+ BLOCK "VarFileInfo"
+ {
+   VALUE "Translation", 0x409, 1252
+ }
+}

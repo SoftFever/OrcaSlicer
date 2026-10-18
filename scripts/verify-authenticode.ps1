@@ -4,17 +4,15 @@ param(
     [ValidateScript({ Test-Path -LiteralPath $_ -PathType Container })]
     [string]$ArtifactDirectory,
 
-    [string[]]$Files = @(
-        "orca-slicer.exe",
-        "OrcaSlicer.dll"
-    ),
+    # Paths relative to -ArtifactDirectory. Without them every executable, DLL and Python
+    # extension module under it is verified.
+    [string[]]$Files,
 
     [string]$SignToolPath,
 
     # Accept signatures whose certificate chain terminates in an untrusted root.
     # Required for the SignPath test certificate (self-signed). Do NOT pass this
-    # once a production CA-issued certificate is in use, so release builds enforce
-    # a fully trusted chain.
+    # with the release certificate, so release builds enforce a fully trusted chain.
     [switch]$AllowUntrustedRoot
 )
 
@@ -57,19 +55,26 @@ function Resolve-SignToolPath {
     throw "signtool.exe was not found. Install the Windows SDK or pass -SignToolPath."
 }
 
-$artifactRoot = (Resolve-Path -LiteralPath $ArtifactDirectory).Path
+$artifactRoot = (Resolve-Path -LiteralPath $ArtifactDirectory).Path.TrimEnd('\', '/')
 $signtool = Resolve-SignToolPath -ExplicitPath $SignToolPath
 
+if (-not $Files) {
+    $Files = Get-ChildItem -LiteralPath $artifactRoot -Recurse -File |
+        Where-Object { $_.Extension -in ".exe", ".dll", ".pyd" } |
+        ForEach-Object { $_.FullName.Substring($artifactRoot.Length + 1) }
+    if (-not $Files) {
+        throw "No executables or DLLs found in '$artifactRoot'."
+    }
+}
+
 Write-Host "Using SignTool: $signtool"
-Write-Host "Verifying Authenticode signatures in: $artifactRoot"
+Write-Host "Verifying Authenticode signatures of $(@($Files).Count) files in: $artifactRoot"
 
 foreach ($relativePath in $Files) {
     $filePath = Join-Path $artifactRoot $relativePath
     if (-not (Test-Path -LiteralPath $filePath -PathType Leaf)) {
         throw "Expected signed file was not found: $filePath"
     }
-
-    Write-Host "Verifying $relativePath"
 
     # Capture signtool output without letting native stderr (redirected via 2>&1)
     # raise a terminating NativeCommandError under $ErrorActionPreference = 'Stop'.
@@ -83,9 +88,9 @@ foreach ($relativePath in $Files) {
         $ErrorActionPreference = $previousErrorActionPreference
     }
 
-    $output | ForEach-Object { Write-Host $_ }
-
+    $signature = Get-AuthenticodeSignature -LiteralPath $filePath
     if ($exitCode -eq 0) {
+        Write-Host "Verified $relativePath ($($signature.SignerCertificate.Subject))"
         continue
     }
 
@@ -95,15 +100,16 @@ foreach ($relativePath in $Files) {
         # structured Get-AuthenticodeSignature result instead: accept only when the
         # file is genuinely signed and the sole problem is that the chain terminates
         # in an untrusted root (i.e. the self-signed SignPath test certificate).
-        $signature = Get-AuthenticodeSignature -LiteralPath $filePath
         $isSigned = ($signature.SignatureType -eq "Authenticode") -and ($null -ne $signature.SignerCertificate)
         $untrustedRootOnly = $signature.StatusMessage -match "terminated in a root certificate which is not trusted"
         if ($isSigned -and $untrustedRootOnly) {
-            Write-Host "  Accepted: '$relativePath' is signed but its certificate chains to an untrusted root (expected for the SignPath test certificate)."
+            Write-Host "Accepted $relativePath ($($signature.SignerCertificate.Subject)): signed, but its certificate chains to an untrusted root (expected for the SignPath test certificate)."
             continue
         }
     }
 
+    # The full chain and error details only for a file that did not verify.
+    $output | ForEach-Object { Write-Host "  $_" }
     throw "SignTool verification failed for '$relativePath' with exit code $exitCode."
 }
 

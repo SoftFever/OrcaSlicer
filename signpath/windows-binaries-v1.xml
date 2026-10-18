@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <parameters>
+    <parameter name="version" required="true" />
+  </parameters>
+  <zip-file>
+    <pe-file-set product-name="OrcaSlicer" product-version="${version}">
+      <include path="orca-slicer.exe" />
+      <include path="OrcaSlicer.dll" />
+      <for-each>
+        <authenticode-sign />
+      </for-each>
+    </pe-file-set>
+    <directory path="third-party">
+      <pe-file-set>
+        <include path="**/*.exe" min-matches="0" max-matches="unbounded" />
+        <include path="**/*.dll" min-matches="0" max-matches="unbounded" />
+        <include path="**/*.pyd" min-matches="0" max-matches="unbounded" />
+        <for-each>
+          <authenticode-sign />
+        </for-each>
+      </pe-file-set>
+    </directory>
+  </zip-file>
+</artifact-configuration>

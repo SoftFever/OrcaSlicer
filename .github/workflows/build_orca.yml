@@ -424,6 +424,10 @@ jobs:
             "BUILD_DIR=build"        | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
             "ARCH_SUFFIX=_x64"       | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           }
+          # Release branches ship binaries and installers signed through SignPath with the
+          # release certificate. Every signing request waits for a manual approval in
+          # SignPath, so main and pull request builds stay unsigned.
+          "SIGN_WINDOWS=${{ github.repository == 'OrcaSlicer/OrcaSlicer' && startsWith(github.ref, 'refs/heads/release/') && !vars.SELF_HOSTED }}" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
 
       - name: setup MSVC
         if: runner.os == 'Windows'
@@ -504,100 +508,117 @@ jobs:
           retention-days: 5
           if-no-files-found: error
 
-      - name: Upload unsigned Windows portable artifact for SignPath
-        id: upload-windows-portable
-        if: github.repository == 'OrcaSlicer/OrcaSlicer' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && runner.os == 'Windows' && !vars.SELF_HOSTED
+      # Signs OrcaSlicer's own binaries and every bundled executable, DLL and Python
+      # extension module that ships without a signature; files their vendor signed, such
+      # as the Microsoft runtime, keep that signature. See signpath/README.md.
+      - name: Stage Windows binaries for SignPath
+        id: stage-windows-binaries
+        if: env.SIGN_WINDOWS == 'true'
+        shell: pwsh
+        run: |
+          $version = "${{ env.ver }}" -replace '^V', ''
+          ./scripts/stage-for-signpath.ps1 -Bundle "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer" -Destination "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/unsigned-binaries" -ProductVersion $version
+          "version=$version" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+
+      - name: Upload unsigned Windows binaries for SignPath
+        id: upload-windows-binaries
+        if: env.SIGN_WINDOWS == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: OrcaSlicer_Windows_${{ env.ver }}${{ env.ARCH_SUFFIX }}_portable_unsigned
-          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer
+          name: signpath_windows_binaries${{ env.ARCH_SUFFIX }}_unsigned
+          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/unsigned-binaries
+          retention-days: 1
           if-no-files-found: error
 
-      - name: Submit Windows portable artifact to SignPath
-        if: github.repository == 'OrcaSlicer/OrcaSlicer' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && runner.os == 'Windows' && !vars.SELF_HOSTED
+      # Waits until the request is approved in SignPath.
+      - name: Sign Windows binaries with SignPath
+        if: env.SIGN_WINDOWS == 'true'
         uses: signpath/github-action-submit-signing-request@v2
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
           project-slug: OrcaSlicer
-          signing-policy-slug: test-signing
-          artifact-configuration-slug: windows-portable-v1
-          github-artifact-id: ${{ steps.upload-windows-portable.outputs.artifact-id }}
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: windows-binaries-v1
+          github-artifact-id: ${{ steps.upload-windows-binaries.outputs.artifact-id }}
+          parameters: |
+            version: "${{ steps.stage-windows-binaries.outputs.version }}"
           wait-for-completion: true
-          output-artifact-directory: ${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/windows-portable
+          wait-for-completion-timeout-in-seconds: 10800
+          output-artifact-directory: ${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/signed-binaries
 
-      - name: Verify SignPath Windows portable signatures
-        if: github.repository == 'OrcaSlicer/OrcaSlicer' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && runner.os == 'Windows' && !vars.SELF_HOSTED
+      - name: Verify Windows binary signatures
+        if: env.SIGN_WINDOWS == 'true'
         shell: pwsh
-        # -AllowUntrustedRoot is required while signing with the SignPath test
-        # certificate (self-signed). Remove it once signing-policy-slug switches
-        # to release-signing with a production CA-issued certificate.
-        run: ./scripts/verify-authenticode.ps1 -ArtifactDirectory '${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/windows-portable' -AllowUntrustedRoot
+        run: ./scripts/verify-authenticode.ps1 -ArtifactDirectory '${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/signed-binaries'
 
       - name: Replace Windows binaries with signed output
-        if: github.repository == 'OrcaSlicer/OrcaSlicer' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && runner.os == 'Windows' && !vars.SELF_HOSTED
+        if: env.SIGN_WINDOWS == 'true'
         shell: pwsh
-        run: |
-          $source = Join-Path "${{ github.workspace }}" "${{ env.BUILD_DIR }}/signpath/windows-portable"
-          $destination = Join-Path "${{ github.workspace }}" "${{ env.BUILD_DIR }}/OrcaSlicer"
-          if (-not (Test-Path -LiteralPath $source -PathType Container)) {
-              throw "SignPath output directory not found: $source"
-          }
-          Get-ChildItem -LiteralPath $source -Force | Copy-Item -Destination $destination -Recurse -Force
-
-          # cpack's install rules take the binaries from the build output, not from
-          # the portable bundle, so the installer needs the signed copies there too.
-          $buildOutput = Join-Path "${{ github.workspace }}" "${{ env.BUILD_DIR }}/src/Release"
-          if (-not (Test-Path -LiteralPath $buildOutput -PathType Container)) {
-              throw "Build output directory not found: $buildOutput"
-          }
-          foreach ($name in "orca-slicer.exe", "OrcaSlicer.dll") {
-              Copy-Item -LiteralPath (Join-Path $source $name) -Destination $buildOutput -Force
-          }
+        run: ./scripts/restore-from-signpath.ps1 -SignedDirectory "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/signed-binaries" -Bundle "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer"
 
       # NSIS is x86-only; it runs (and the installer it emits runs) under ARM64's
       # x86 emulation, packaging the native arm64 payload from build-arm64.
+      # The installer packs the installed OrcaSlicer/ tree, which the portable zip and the
+      # MSIX are made from too, instead of re-running the install rules: those take
+      # CPython and uv from the dependency tree and the download cache, which keep the
+      # unsigned copies.
       - name: Create installer Win
         if: runner.os == 'Windows' && !vars.SELF_HOSTED
         working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR }}
         run: |
-          cpack -G NSIS
+          $bundle = "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer".Replace('\', '/')
+          cpack -G NSIS -D CPACK_INSTALL_CMAKE_PROJECTS= -D "CPACK_INSTALLED_DIRECTORIES=$bundle;."
+
+      # cpack stages what the installer packs under _CPack_Packages/<system>/NSIS/<package>;
+      # every executable and DLL there must carry a valid signature, ours or its vendor's.
+      - name: Verify every binary the installer packs is signed
+        if: env.SIGN_WINDOWS == 'true'
+        shell: pwsh
+        run: |
+          $payload = Get-Item "${{ github.workspace }}/${{ env.BUILD_DIR }}/_CPack_Packages/*/NSIS/OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}"
+          ./scripts/verify-authenticode.ps1 -ArtifactDirectory $payload.FullName
+
+      - name: Stage Windows installer for SignPath
+        if: env.SIGN_WINDOWS == 'true'
+        shell: pwsh
+        run: ./scripts/stage-for-signpath.ps1 -Path "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}.exe" -Destination "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/unsigned-installer" -ProductVersion "${{ steps.stage-windows-binaries.outputs.version }}"
 
       - name: Upload unsigned Windows installer for SignPath
         id: upload-windows-installer
-        if: github.repository == 'OrcaSlicer/OrcaSlicer' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && runner.os == 'Windows' && !vars.SELF_HOSTED
+        if: env.SIGN_WINDOWS == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}_unsigned
-          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}.exe
+          name: signpath_windows_installer${{ env.ARCH_SUFFIX }}_unsigned
+          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/unsigned-installer
+          retention-days: 1
           if-no-files-found: error
 
-      - name: Submit Windows installer to SignPath
-        if: github.repository == 'OrcaSlicer/OrcaSlicer' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && runner.os == 'Windows' && !vars.SELF_HOSTED
+      - name: Sign Windows installer with SignPath
+        if: env.SIGN_WINDOWS == 'true'
         uses: signpath/github-action-submit-signing-request@v2
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
           project-slug: OrcaSlicer
-          signing-policy-slug: test-signing
+          signing-policy-slug: release-signing
           artifact-configuration-slug: windows-installer-v1
           github-artifact-id: ${{ steps.upload-windows-installer.outputs.artifact-id }}
+          parameters: |
+            version: "${{ steps.stage-windows-binaries.outputs.version }}"
           wait-for-completion: true
-          output-artifact-directory: ${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/windows-installer
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: ${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/signed-installer
 
-      - name: Verify SignPath Windows installer signature
-        if: github.repository == 'OrcaSlicer/OrcaSlicer' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && runner.os == 'Windows' && !vars.SELF_HOSTED
+      - name: Verify Windows installer signature
+        if: env.SIGN_WINDOWS == 'true'
         shell: pwsh
-        # -AllowUntrustedRoot: see "Verify SignPath Windows portable signatures".
-        run: ./scripts/verify-authenticode.ps1 -ArtifactDirectory '${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/windows-installer' -Files 'OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}.exe' -AllowUntrustedRoot
+        run: ./scripts/verify-authenticode.ps1 -ArtifactDirectory '${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/signed-installer' -Files 'OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}.exe'
 
       - name: Replace Windows installer with signed output
-        if: github.repository == 'OrcaSlicer/OrcaSlicer' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) && runner.os == 'Windows' && !vars.SELF_HOSTED
+        if: env.SIGN_WINDOWS == 'true'
         shell: pwsh
-        run: |
-          $name = "OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}.exe"
-          $source = Join-Path "${{ github.workspace }}" "${{ env.BUILD_DIR }}/signpath/windows-installer/$name"
-          Copy-Item -LiteralPath $source -Destination (Join-Path "${{ github.workspace }}" "${{ env.BUILD_DIR }}/$name") -Force
+        run: Copy-Item -LiteralPath "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/signed-installer/OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}.exe" -Destination "${{ github.workspace }}/${{ env.BUILD_DIR }}" -Force
 
       - name: Pack app
         if: runner.os == 'Windows'
