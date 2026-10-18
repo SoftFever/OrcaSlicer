@@ -11760,6 +11760,19 @@ void DesignPanel::apply_tree_events(const std::vector<TreeEvent>& evs)
         case TreeEvent::Zoom:          if (ok(e.row)) zoom_to_feature(e.row); break;
         case TreeEvent::MoveUp:        if (ok(e.row)) { m_tree->select(e.row); on_move_feature(-1); } break;
         case TreeEvent::MoveDown:      if (ok(e.row)) { m_tree->select(e.row); on_move_feature(+1); } break;
+        case TreeEvent::Reorder:
+            if (ok(e.row)) {
+                const int dst = std::clamp(std::atoi(e.text.c_str()), 0, n - 1);
+                int cur = e.row;
+                m_tree->select(cur);
+                while (cur != dst) {   // one step at a time: each is checked against the references, so it stops where the next is illegal
+                    const int before = tree_selection();
+                    on_move_feature(dst > cur ? +1 : -1);
+                    if (tree_selection() == before) break;
+                    cur = tree_selection();
+                }
+            }
+            break;
         case TreeEvent::Rename:
             if (ok(e.row) && m_tree->on_rename) m_tree->on_rename(e.row, wxString::FromUTF8(e.text));
             break;

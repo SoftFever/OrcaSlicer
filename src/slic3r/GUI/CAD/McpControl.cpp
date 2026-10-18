@@ -602,7 +602,7 @@ json describe_tools()
         compact_tool("ui.worldToScreen", "Pixel (canvas coordinates) of a world point under the current camera.", {{"point", "array", "[x,y,z] mm"}}),
         compact_tool("ui.move", "Move the pointer over the design canvas (canvas pixels).", {{"at", "array", "[x,y] px"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.click", "Click on the design canvas through the real event path: move, press, release (count 2 = double click).", {{"at", "array", "[x,y] px"}, {"button", "integer", "1 left, 2 middle, 3 right"}, {"count", "integer", "1|2"}, {"mods", "array", "shift|ctrl|alt"}}),
-        compact_tool("ui.drag", "Press at `from`, move to `to` in `steps`, release.", {{"from", "array", "[x,y] px"}, {"to", "array", "[x,y] px"}, {"steps", "integer", "default 8"}, {"button", "integer", "1|2|3"}, {"mods", "array", "shift|ctrl|alt"}}),
+        compact_tool("ui.drag", "Press at `from`, move to `to` in `steps`, release.", {{"from", "array", "[x,y] px"}, {"to", "array", "[x,y] px"}, {"steps", "integer", "default 8"}, {"step_ms", "integer", "pause per move, default 25"}, {"button", "integer", "1|2|3"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.key", "Press a key as the keyboard delivers it (shortcut gate first, then the focused window).", {{"key", "string", "a character, or Escape|Enter|Tab|Backspace|Delete|Space|Left|Right|Up|Down|Home|End|PageUp|PageDown|F1-F12"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.text", "Type text into the focused window, one character event each.", {{"text", "string", "up to 4096 characters"}}),
         compact_tool("ui.screenshot", "Same as screenshot.", {{"path", "string", "absolute .png"}, {"view", "string", ""}, {"fit", "boolean", ""}}),
@@ -610,6 +610,8 @@ json describe_tools()
         compact_tool("variables_export", "The variables as CSV (name,expression); also written to `path` when given.", {{"path", "string", "optional absolute .csv"}}),
         compact_tool("variables_import", "Add or replace variables from CSV text or a file; all rows are checked first.", {{"csv", "string", ""}, {"path", "string", ""}}),
         compact_tool("sketch_dimensions", "The dimensions of a committed sketch with their index, value and bound expression. Bind one with set_feature_expr {feature: sketch, field: \"dim:<index>\", expr}.", {{"sketch", "integer", "Sketch feature index"}}),
+        compact_tool("rename_feature", "Rename a feature in the history.", {{"feature", "integer", "feature index"}, {"name", "string", "new name"}}),
+        compact_tool("move_feature", "Move a feature to another history position; stops where a dependency (a sketch below its consumer) forbids the next step.", {{"feature", "integer", "feature index"}, {"to", "integer", "destination index"}}),
         compact_tool("suppress", "Suppress (or restore) a feature; downstream features rebuild without it.", {{"feature", "integer", "feature index"}, {"suppressed", "boolean", "default true"}}),
         compact_tool("rollback", "Roll the history back to just after a feature (later ones are kept but not built); -1 restores the full history.", {{"index", "integer", "feature index or -1"}}),
         compact_tool("save", "Save the project (the design recipe travels inside the 3MF) to an absolute .3mf path under $HOME or /tmp.", {{"path", "string", ""}}),
@@ -2746,6 +2748,7 @@ void ui_mouse(DesignPanel* panel, int kind /*0 move,1 down,2 up,3 dclick*/, int 
     e.m_clickCount = clicks;
     e.SetTimestamp(long(wxGetLocalTimeMillis().GetLo()));
     w->GetEventHandler()->ProcessEvent(e);
+    panel->mcp_viewport()->request_repaint();   // a person moving the mouse repaints; ImGui samples the pointer once per frame
 }
 
 int ui_keycode(const std::string& k)
@@ -2841,6 +2844,10 @@ json ui_inspect(DesignPanel* panel)
         out["other_menu"] = {{"open", om.is_open()}, {"labels", om.labels()}, {"hover", om.hovered()}};
         out["solid_selection"] = {{"kind", v->mcp_sketch_tool().solid_sel_kind()}, {"faces", faces}, {"edges", v->mcp_sketch_tool().selected_edges()}};
     }
+    if (v && v->tree_overlay_on()) {   // the on-canvas tree: where each row is, so a rig test can drag one
+        const DesignTreeOverlay& to = const_cast<DesignCanvas*>(v)->tree_overlay();
+        out["tree"] = {{"rows_y", to.row_mids()}, {"x", to.row_x()}};
+    }
     if (in) {
         const wxSize sz = in->GetClientSize();
         out["canvas"] = {{"width", sz.x}, {"height", sz.y}, {"shown", in->IsShownOnScreen()}};
@@ -2901,9 +2908,10 @@ json ui_dispatch(const std::string& method, const json& p)
             return json{{"ok", true}};
         }
         const int tx = ui_int(p.value("to", json()), 0), ty = ui_int(p.value("to", json()), 1), steps = std::clamp(p.value("steps", 8), 1, 200);
-        mouse(1, x, y); pause(60);
-        for (int i = 1; i <= steps; ++i) { mouse(0, x + (tx - x) * i / steps, y + (ty - y) * i / steps); pause(25); }
-        mouse(2, tx, ty); pause(60);
+        const int step_ms = std::clamp(p.value("step_ms", 25), 5, 1000);   // ImGui reads the pointer once per painted frame: slow software GL needs longer
+        mouse(1, x, y); pause(std::max(60, step_ms));
+        for (int i = 1; i <= steps; ++i) { mouse(0, x + (tx - x) * i / steps, y + (ty - y) * i / steps); pause(step_ms); }
+        pause(step_ms); mouse(2, tx, ty); pause(60);
         return json{{"ok", true}};
     }
     if (method == "ui.key") {
@@ -3011,6 +3019,42 @@ json action_suppress(DesignPanel* panel, const json& params)
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
     panel->mcp_after_change();
     return json{{"ok", ok}, {"feature", fi}, {"suppressed", suppressed}, {"error", doc.error}};
+}
+
+json action_rename_feature(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    if (!params.contains("feature") || !params["feature"].is_number_integer() || !params.contains("name") || !params["name"].is_string())
+        throw std::runtime_error("rename_feature needs 'feature' (index) and 'name'");
+    const int fi = params["feature"].get<int>();
+    if (fi < 0 || fi >= int(doc.features.size())) throw std::runtime_error("feature index out of range");
+    const std::string name = params["name"].get<std::string>();
+    if (name.empty() || name.size() > 128) throw std::runtime_error("name must be 1..128 characters");
+    doc.checkpoint();
+    doc.features[fi].name = name;
+    panel->mcp_after_change();
+    return json{{"ok", true}, {"feature", fi}, {"name", name}};
+}
+
+// Move a feature to history position `to`, one checked step at a time; stops (ok:false) where a dependency forbids the next step.
+json action_move_feature(DesignPanel* panel, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    if (!params.contains("feature") || !params["feature"].is_number_integer() || !params.contains("to") || !params["to"].is_number_integer())
+        throw std::runtime_error("move_feature needs 'feature' and 'to' (indices)");
+    int cur = params["feature"].get<int>();
+    const int to = params["to"].get<int>(), n = int(doc.features.size());
+    if (cur < 0 || cur >= n || to < 0 || to >= n) throw std::runtime_error("feature index out of range");
+    doc.checkpoint();
+    bool ok = true;
+    while (cur != to) {
+        const int step = to > cur ? 1 : -1;
+        if (!doc.move_feature(cur, step)) { ok = false; break; }
+        cur += step;
+    }
+    const std::string why = ok ? std::string() : doc.error;
+    panel->mcp_after_change();
+    return json{{"ok", ok}, {"feature", cur}, {"error", why}};
 }
 
 // Roll the history back to just after feature `index` (later features are kept, not built); index -1 = the full history.
@@ -3207,6 +3251,8 @@ json call_method_core(DesignPanel* panel, const std::string& method, const json&
     if (method == "variables_import")  return action_variables_import(panel, params);
     if (method == "sketch_dimensions") return action_sketch_dimensions(panel, params);
     if (method == "suppress")          return action_suppress(panel, params);
+    if (method == "rename_feature")    return action_rename_feature(panel, params);
+    if (method == "move_feature")      return action_move_feature(panel, params);
     if (method == "rollback")          return action_rollback(panel, params);
     if (method == "sweep")          return action_sweep(panel, params);
     if (method == "loft")           return action_loft(panel, params);

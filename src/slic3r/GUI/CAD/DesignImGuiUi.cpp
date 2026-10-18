@@ -186,6 +186,19 @@ void DesignTreeOverlay::render(ImGuiWrapper& imgui, float scale, float inset_lef
                 if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) push(TreeEvent::Edit, i);
             }
             if (tint) ImGui::PopStyleColor();
+            // Drag a row onto another to move it there (the panel stops at the first move the dependencies refuse).
+            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                ImGui::SetDragDropPayload("DESIGN_ROW", &i, sizeof(int));
+                ImGui::TextUnformatted(r.label.c_str());
+                ImGui::EndDragDropSource();
+            }
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload* pl = ImGui::AcceptDragDropPayload("DESIGN_ROW")) {
+                    const int src = *static_cast<const int*>(pl->Data);
+                    if (src != i) push(TreeEvent::Reorder, src, std::to_string(i));
+                }
+                ImGui::EndDragDropTarget();
+            }
             if (r.suppressed) {   // ImGui 1.83 has no strikethrough: draw the line over the text
                 const ImVec2 mn = ImGui::GetItemRectMin(), mx = ImGui::GetItemRectMax();
                 const float  tw = ImGui::CalcTextSize(r.label.c_str()).x;
@@ -196,6 +209,7 @@ void DesignTreeOverlay::render(ImGuiWrapper& imgui, float scale, float inset_lef
             if (ImGui::IsItemHovered() && !r.note.empty()) ImGui::SetTooltip("%s", r.note.c_str());
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) push(TreeEvent::Select, i);
             mids[i] = (ImGui::GetItemRectMin().y + ImGui::GetItemRectMax().y) * 0.5f;
+            m_row_x = ImGui::GetItemRectMin().x + 12.f;
 
             if (ImGui::BeginPopupContextItem("rowmenu")) {
                 if (m_menu_row != i) { m_menu_row = i; }

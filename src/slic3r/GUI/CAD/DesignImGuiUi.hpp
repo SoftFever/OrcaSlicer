@@ -35,10 +35,10 @@ struct TreeView {
 };
 
 struct TreeEvent {
-    enum Kind { Select, Deselect, Edit, ToggleEnabled, Delete, Zoom, MoveUp, MoveDown, Rename, SetRollback,
+    enum Kind { Select, Deselect, Edit, ToggleEnabled, Delete, Zoom, MoveUp, MoveDown, Reorder, Rename, SetRollback,
                 ToggleOrigin, ToggleBed, DockBack } kind{Deselect};
     int         row{-1};
-    std::string text;   // Rename: the new name
+    std::string text;   // Rename: the new name; Reorder: the destination row (row = the dragged one)
 };
 
 class DesignTreeOverlay
@@ -53,6 +53,9 @@ public:
 
     // Is the pointer over the tree window? (The canvas also asks ImGui, this is for the rig/tests.)
     bool hovered() const { return m_hovered; }
+    // Last frame's row centres in screen pixels (x is shared): lets a rig test aim a drag at a row.
+    const std::vector<float>& row_mids() const { return m_row_mid; }
+    float row_x() const { return m_row_x; }
 
 private:
     bool        m_hovered{false};
@@ -64,6 +67,7 @@ private:
     int         m_drag_rollback{-1};   // where the bar is being dragged to (valid while m_dragging)
     bool        m_dragging{false};
     float       m_last_inset_top{-1.f};
+    float       m_row_x{0.f};
     std::vector<float> m_row_mid;      // screen y of each row centre, from the previous frame (the bar drag reads it)
 };
 
