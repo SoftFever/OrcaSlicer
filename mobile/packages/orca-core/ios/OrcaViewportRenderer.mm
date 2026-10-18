@@ -180,6 +180,10 @@ static_assert(sizeof(Segment) == 36, "Segment must match the shader's layout");
 // Vertices orca_ribbon_vertex expands one segment into: four faces of two triangles.
 constexpr NSUInteger kRibbonVertexCount = 24;
 
+// 4x MSAA, which every iOS GPU supports.
+constexpr NSUInteger kSampleCount = 4;
+constexpr MTLPixelFormat kDepthFormat = MTLPixelFormatDepth32Float;
+
 struct Uniforms {
   simd_float4x4 mvp;
   simd_float4 lightDir;
@@ -280,6 +284,10 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   id<MTLDepthStencilState> _depthState;
   id<MTLSamplerState> _bedSampler;
   MTKTextureLoader* _textureLoader;
+  // Multisampled colour and depth targets, resolved into the drawable. Memoryless on
+  // a device, so they live in tile memory and cost no RAM.
+  id<MTLTexture> _msaaColor;
+  id<MTLTexture> _msaaDepth;
 
   id<MTLBuffer> _triangleBuffer;
   NSUInteger _triangleVertexCount;
@@ -351,7 +359,8 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
     _distance = 400.f;
 
     view.device = _device;
-    view.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
+    // The renderer owns its multisampled depth target; see renderPassForDrawable:.
+    view.depthStencilPixelFormat = MTLPixelFormatInvalid;
     view.clearColor = MTLClearColorMake(0.93, 0.94, 0.95, 1.0);
     view.enableSetNeedsDisplay = YES;
     view.paused = YES;
@@ -367,7 +376,8 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
     desc.vertexFunction = [library newFunctionWithName:@"orca_vertex"];
     desc.fragmentFunction = [library newFunctionWithName:@"orca_fragment"];
     desc.colorAttachments[0].pixelFormat = view.colorPixelFormat;
-    desc.depthAttachmentPixelFormat = view.depthStencilPixelFormat;
+    desc.depthAttachmentPixelFormat = kDepthFormat;
+    desc.rasterSampleCount = kSampleCount;
     _pipeline = [_device newRenderPipelineStateWithDescriptor:desc error:&error];
     if (_pipeline == nil) {
       NSLog(@"OrcaViewport: pipeline failed: %@", error);
@@ -386,7 +396,8 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
     bedDesc.vertexFunction = [library newFunctionWithName:@"orca_bed_vertex"];
     bedDesc.fragmentFunction = [library newFunctionWithName:@"orca_bed_fragment"];
     bedDesc.colorAttachments[0].pixelFormat = view.colorPixelFormat;
-    bedDesc.depthAttachmentPixelFormat = view.depthStencilPixelFormat;
+    bedDesc.depthAttachmentPixelFormat = kDepthFormat;
+    bedDesc.rasterSampleCount = kSampleCount;
     _bedTexturePipeline = [_device newRenderPipelineStateWithDescriptor:bedDesc error:&error];
     if (_bedTexturePipeline == nil) {
       NSLog(@"OrcaViewport: bed texture pipeline failed: %@", error);
@@ -963,15 +974,51 @@ template <typename T> id<MTLBuffer> makeBuffer(id<MTLDevice> device, const std::
   [view setNeedsDisplay];
 }
 
+// Clears the multisampled targets and resolves them into the drawable. The targets are
+// recreated when the drawable's size changes.
+- (MTLRenderPassDescriptor*)renderPassForDrawable:(id<CAMetalDrawable>)drawable clearColor:(MTLClearColor)clearColor {
+  id<MTLTexture> target = drawable.texture;
+  if (_msaaColor == nil || _msaaColor.width != target.width || _msaaColor.height != target.height) {
+    auto make = [&](MTLPixelFormat format) {
+      MTLTextureDescriptor* desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
+                                                                                      width:target.width
+                                                                                     height:target.height
+                                                                                  mipmapped:NO];
+      desc.textureType = MTLTextureType2DMultisample;
+      desc.sampleCount = kSampleCount;
+      desc.usage = MTLTextureUsageRenderTarget;
+#if TARGET_OS_SIMULATOR
+      desc.storageMode = MTLStorageModePrivate;
+#else
+      desc.storageMode = MTLStorageModeMemoryless;
+#endif
+      return [_device newTextureWithDescriptor:desc];
+    };
+    _msaaColor = make(target.pixelFormat);
+    _msaaDepth = make(kDepthFormat);
+  }
+  MTLRenderPassDescriptor* pass = [MTLRenderPassDescriptor renderPassDescriptor];
+  pass.colorAttachments[0].texture = _msaaColor;
+  pass.colorAttachments[0].resolveTexture = target;
+  pass.colorAttachments[0].loadAction = MTLLoadActionClear;
+  pass.colorAttachments[0].clearColor = clearColor;
+  pass.colorAttachments[0].storeAction = MTLStoreActionMultisampleResolve;
+  pass.depthAttachment.texture = _msaaDepth;
+  pass.depthAttachment.loadAction = MTLLoadActionClear;
+  pass.depthAttachment.clearDepth = 1.0;
+  pass.depthAttachment.storeAction = MTLStoreActionDontCare;
+  return pass;
+}
+
 - (void)drawInMTKView:(MTKView*)view {
   if (_pipeline == nil) {
     return;
   }
-  MTLRenderPassDescriptor* pass = view.currentRenderPassDescriptor;
   id<CAMetalDrawable> drawable = view.currentDrawable;
-  if (pass == nil || drawable == nil) {
+  if (drawable == nil) {
     return;
   }
+  MTLRenderPassDescriptor* pass = [self renderPassForDrawable:drawable clearColor:view.clearColor];
 
   Uniforms uniforms;
   uniforms.mvp = [self viewProjectionForSize:view.drawableSize];
