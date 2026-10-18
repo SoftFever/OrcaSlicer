@@ -23,6 +23,7 @@ for tool in xcodebuild pod gh curl; do
   command -v "$tool" >/dev/null || { echo "$tool is required" >&2; exit 1; }
 done
 xcodebuild -version | head -1
+[ "$(xcodebuild -version | awk 'NR == 1 { print int($2) }')" -ge 26 ] || { echo "Xcode 26 or newer is required: the app's Swift packages need tools 6.2" >&2; exit 1; }
 
 case $(uname -m) in
   arm64) arch=arm64 ;;
