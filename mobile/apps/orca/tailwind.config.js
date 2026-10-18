@@ -1,3 +1,5 @@
+const colors = require('./ui/theme/colors')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./app/**/*.{ts,tsx}', './ui/**/*.{ts,tsx}'],
@@ -9,18 +11,30 @@ module.exports = {
       // near-black primary actions and reserves this teal for status, links
       // and selected states.
       colors: {
-        accent: {
-          50: '#effcf6',
-          100: '#c6f7e2',
-          200: '#8eedc7',
-          300: '#65d6ad',
-          400: '#3ebd93',
-          500: '#27ab83',
-          600: '#199473',
-          700: '#147d64',
-          800: '#0c6b58',
-          900: '#014d40',
-        },
+        accent: colors.accent,
+      },
+      // The type scale. Every Text picks one of these instead of a pixel size, so
+      // the app has twelve sizes and one place to change them. Names follow iOS.
+      fontSize: {
+        caption: ['11px', { lineHeight: '14px' }],
+        label: ['12px', { lineHeight: '16px' }],
+        footnote: ['13px', { lineHeight: '18px' }],
+        callout: ['14px', { lineHeight: '19px' }],
+        subhead: ['15px', { lineHeight: '20px' }],
+        headline: ['16px', { lineHeight: '21px' }],
+        body: ['17px', { lineHeight: '22px' }],
+        lead: ['18px', { lineHeight: '23px' }],
+        title3: ['20px', { lineHeight: '25px' }],
+        title2: ['22px', { lineHeight: '28px' }],
+        title1: ['28px', { lineHeight: '34px' }],
+        display: ['36px', { lineHeight: '42px' }],
+      },
+      letterSpacing: {
+        caps: colors.capsTracking,
+      },
+      borderRadius: {
+        card: '24px',
+        control: '16px',
       },
       // Softer defaults: buttons and cards read as slightly floating on
       // a warm off-white / true-dark background rather than iOS glass.

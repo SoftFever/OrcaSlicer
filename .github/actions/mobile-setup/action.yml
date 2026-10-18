@@ -1,0 +1,21 @@
+name: 'Mobile setup'
+description: 'pnpm, Node and the mobile workspace dependencies, from the pnpm store cache'
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        package_json_file: mobile/package.json
+
+    - name: Set up Node
+      uses: actions/setup-node@v6
+      with:
+        node-version: 22
+        cache: pnpm
+        cache-dependency-path: mobile/pnpm-lock.yaml
+
+    - name: Install
+      shell: bash
+      working-directory: mobile
+      run: pnpm install --frozen-lockfile

@@ -2,7 +2,7 @@ import type { OrcaSession } from 'react-native-orca-core'
 import { create } from 'zustand'
 
 import { notify } from './notifications'
-import { installVendor, installedVendors, removeVendor, type AvailablePrinter } from './profiles'
+import { hasPrinterModelFiles, installVendor, installedVendors, removeVendor, type AvailablePrinter } from './profiles'
 import { queryClient, queryKeys } from './queries'
 
 export type DownloadState = 'downloading' | 'installing' | 'done' | 'error' | 'cancelled'
@@ -80,9 +80,16 @@ export const useDownloadsStore = create<StoreState>((set, get) => {
       set((s) => ({ byId: { ...s.byId, [id]: download } }))
 
       const run = async (): Promise<void> => {
-        const alreadyInstalled = installedVendors().includes(printer.vendor)
+        // Skip the download only when this exact printer's files are already on
+        // disk. Just checking whether the vendor folder exists is not enough —
+        // a previous unscoped install (or a scoped install for a different
+        // model of the same vendor) would let us "succeed" without ever
+        // downloading the newly-picked model's presets, and C++ would then
+        // fail to find them at load time.
+        const alreadyHere = installedVendors().includes(printer.vendor)
+          && hasPrinterModelFiles(printer.vendor, printer.model)
         try {
-          if (!alreadyInstalled) {
+          if (!alreadyHere) {
             // Wipe any partial install so a re-run over a bad state starts clean.
             removeVendor(printer.vendor)
             await installVendor(
@@ -90,6 +97,7 @@ export const useDownloadsStore = create<StoreState>((set, get) => {
               (done, total) => setDownload(id, { done, total }),
               undefined,
               abort.signal,
+              printer.model,
             )
           }
           if (abort.signal.aborted) throw new Error('cancelled')

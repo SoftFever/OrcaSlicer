@@ -2,7 +2,7 @@ import { moonraker } from './moonraker'
 import { octoprint } from './octoprint'
 import type { PrinterClient, PrinterHost, PrinterHostKind } from './types'
 
-export type { PrinterClient, PrinterHost, PrinterHostKind, PrinterStatus, UploadOptions } from './types'
+export type { HeatedTool, PrinterClient, PrinterHost, PrinterHostKind, PrinterStatus, Sensor, SensorKind, UploadOptions } from './types'
 export { normalizeUrl } from './types'
 export { loadPrinters, savePrinters } from './store'
 

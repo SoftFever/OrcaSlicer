@@ -1,17 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
-import * as DocumentPicker from 'expo-document-picker'
 import { useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
-import { ActivityIndicator, Alert, Image, Pressable, SectionList, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, Image, Pressable, SectionList, Text, TextInput, View } from 'react-native'
 
 import { Avatar } from '@/ui/Avatar'
+import { colors } from '@/lib/theme'
 import { Button } from '@/ui/Button'
 import { useCore } from '@/lib/core'
 import { useDownloadsStore } from '@/lib/downloads'
+import { pickAndImportPresets } from '@/lib/presetFiles'
 import {
   availablePrinters,
   DEFAULT_PROFILE_SOURCE,
-  importUserPreset,
   installedVendors,
   type AvailablePrinter,
 } from '@/lib/profiles'
@@ -74,11 +74,11 @@ export default function VendorsScreen(): React.JSX.Element {
       <View className="border-b border-neutral-100 px-5 pb-3 pt-3 dark:border-neutral-800">
         <View className="flex-row items-center gap-2">
           <View className="flex-1 flex-row items-center rounded-2xl bg-neutral-100 px-3 py-2 dark:bg-neutral-900">
-            <Text className="mr-2 text-[15px] text-neutral-400">Search</Text>
+            <Text className="mr-2 text-subhead text-neutral-400">Search</Text>
             <TextInput
-              className="flex-1 text-[15px] text-neutral-900 dark:text-neutral-100"
+              className="flex-1 text-subhead text-neutral-900 dark:text-neutral-100"
               placeholder="Printer or manufacturer…"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.placeholder}
               value={query}
               onChangeText={setQuery}
               autoCorrect={false}
@@ -87,36 +87,23 @@ export default function VendorsScreen(): React.JSX.Element {
             />
           </View>
           <Pressable
-            onPress={async () => {
-              const picked = await DocumentPicker.getDocumentAsync({
-                type: 'application/json',
-                copyToCacheDirectory: true,
-                multiple: false,
-              })
-              const asset = picked.assets?.[0]
-              if (picked.canceled || asset === undefined) return
-              try {
-                const path = decodeURIComponent(asset.uri.replace(/^file:\/\//, ''))
-                const name = importUserPreset('printer', path)
-                await reloadPresets()
-                Alert.alert('Imported', `Added ${name} to your printer presets.`)
-              } catch (e) {
-                Alert.alert('Import failed', String(e))
-              }
+            onPress={() => {
+              if (session === null) return
+              void pickAndImportPresets({ session, reloadPresets })
             }}
             className="rounded-full bg-neutral-100 px-3 py-2 active:bg-neutral-200 dark:bg-neutral-800 dark:active:bg-neutral-700"
           >
-            <Text className="text-[12px] font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-200">
+            <Text className="text-label font-semibold uppercase tracking-wider text-neutral-700 dark:text-neutral-200">
               Import
             </Text>
           </Pressable>
         </View>
-        {printers.isError ? <Text className="pt-2 text-[13px] text-red-500">{String(printers.error)}</Text> : null}
+        {printers.isError ? <Text className="pt-2 text-footnote text-red-500">{String(printers.error)}</Text> : null}
       </View>
       {printers.isPending ? (
         <View className="flex-1 items-center justify-center gap-2">
           <ActivityIndicator />
-          <Text className="text-[13px] text-neutral-500">Loading printer catalog…</Text>
+          <Text className="text-footnote text-neutral-500">Loading printer catalog…</Text>
         </View>
       ) : (
         <SectionList
@@ -126,7 +113,7 @@ export default function VendorsScreen(): React.JSX.Element {
           contentContainerClassName="pb-10"
           renderSectionHeader={({ section }) => (
             <View className="bg-neutral-50 px-5 pb-1 pt-5 dark:bg-neutral-950">
-              <Text className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500 dark:text-neutral-400">
+              <Text className="text-caption font-semibold uppercase tracking-caps text-neutral-500 dark:text-neutral-400">
                 {section.title}
               </Text>
             </View>
@@ -145,10 +132,10 @@ export default function VendorsScreen(): React.JSX.Element {
                 >
                   <PrinterCover vendor={item.vendor} model={item.model} />
                   <View className="flex-1">
-                    <Text className="text-[15px] font-semibold tracking-tight text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
+                    <Text className="text-subhead font-semibold tracking-tight text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
                       {item.model}
                     </Text>
-                    <Text className="mt-0.5 text-[13px] text-neutral-500 dark:text-neutral-400">
+                    <Text className="mt-0.5 text-footnote text-neutral-500 dark:text-neutral-400">
                       {isBusy
                         ? download.state === 'installing'
                           ? 'Installing…'
@@ -176,7 +163,7 @@ export default function VendorsScreen(): React.JSX.Element {
           }}
           ListEmptyComponent={
             <View className="items-center px-5 py-16">
-              <Text className="text-[15px] text-neutral-500">Nothing matches your search.</Text>
+              <Text className="text-subhead text-neutral-500">Nothing matches your search.</Text>
             </View>
           }
         />

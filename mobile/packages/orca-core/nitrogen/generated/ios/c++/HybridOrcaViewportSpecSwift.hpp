@@ -14,8 +14,19 @@ namespace NitroOrcaCore { class HybridOrcaViewportSpec_cxx; }
 
 // Forward declaration of `ViewportMode` to properly resolve imports.
 namespace margelo::nitro::orca { enum class ViewportMode; }
+// Forward declaration of `PreviewColorMode` to properly resolve imports.
+namespace margelo::nitro::orca { enum class PreviewColorMode; }
+// Forward declaration of `PickRay` to properly resolve imports.
+namespace margelo::nitro::orca { struct PickRay; }
+// Forward declaration of `ObjectTool` to properly resolve imports.
+namespace margelo::nitro::orca { enum class ObjectTool; }
 
 #include "ViewportMode.hpp"
+#include "PreviewColorMode.hpp"
+#include <functional>
+#include <optional>
+#include "PickRay.hpp"
+#include "ObjectTool.hpp"
 
 #include "NitroOrcaCore-Swift-Cxx-Umbrella.hpp"
 
@@ -76,11 +87,23 @@ namespace margelo::nitro::orca {
     inline void setMode(ViewportMode mode) noexcept override {
       _swiftPart.setMode(static_cast<int>(mode));
     }
+    inline double getMinLayer() noexcept override {
+      return _swiftPart.getMinLayer();
+    }
+    inline void setMinLayer(double minLayer) noexcept override {
+      _swiftPart.setMinLayer(std::forward<decltype(minLayer)>(minLayer));
+    }
     inline double getMaxLayer() noexcept override {
       return _swiftPart.getMaxLayer();
     }
     inline void setMaxLayer(double maxLayer) noexcept override {
       _swiftPart.setMaxLayer(std::forward<decltype(maxLayer)>(maxLayer));
+    }
+    inline double getMaxTime() noexcept override {
+      return _swiftPart.getMaxTime();
+    }
+    inline void setMaxTime(double maxTime) noexcept override {
+      _swiftPart.setMaxTime(std::forward<decltype(maxTime)>(maxTime));
     }
     inline bool getShowTravels() noexcept override {
       return _swiftPart.getShowTravels();
@@ -88,17 +111,63 @@ namespace margelo::nitro::orca {
     inline void setShowTravels(bool showTravels) noexcept override {
       _swiftPart.setShowTravels(std::forward<decltype(showTravels)>(showTravels));
     }
+    inline bool getShowRetractions() noexcept override {
+      return _swiftPart.getShowRetractions();
+    }
+    inline void setShowRetractions(bool showRetractions) noexcept override {
+      _swiftPart.setShowRetractions(std::forward<decltype(showRetractions)>(showRetractions));
+    }
+    inline bool getShowWipes() noexcept override {
+      return _swiftPart.getShowWipes();
+    }
+    inline void setShowWipes(bool showWipes) noexcept override {
+      _swiftPart.setShowWipes(std::forward<decltype(showWipes)>(showWipes));
+    }
+    inline PreviewColorMode getColorMode() noexcept override {
+      auto __result = _swiftPart.getColorMode();
+      return static_cast<PreviewColorMode>(__result);
+    }
+    inline void setColorMode(PreviewColorMode colorMode) noexcept override {
+      _swiftPart.setColorMode(static_cast<int>(colorMode));
+    }
     inline double getRevision() noexcept override {
       return _swiftPart.getRevision();
     }
     inline void setRevision(double revision) noexcept override {
       _swiftPart.setRevision(std::forward<decltype(revision)>(revision));
     }
+    inline std::optional<std::function<void(double /* x */, double /* y */)>> getOnTap() noexcept override {
+      auto __result = _swiftPart.getOnTap();
+      return __result;
+    }
+    inline void setOnTap(const std::optional<std::function<void(double /* x */, double /* y */)>>& onTap) noexcept override {
+      _swiftPart.setOnTap(onTap);
+    }
 
   public:
     // Methods
     inline void fit() override {
       auto __result = _swiftPart.fit();
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+    }
+    inline PickRay screenToRay(double x, double y) override {
+      auto __result = _swiftPart.screenToRay(std::forward<decltype(x)>(x), std::forward<decltype(y)>(y));
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline void setSelectedId(double id) override {
+      auto __result = _swiftPart.setSelectedId(std::forward<decltype(id)>(id));
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+    }
+    inline void setObjectTool(ObjectTool tool) override {
+      auto __result = _swiftPart.setObjectTool(static_cast<int>(tool));
       if (__result.hasError()) [[unlikely]] {
         std::rethrow_exception(__result.error());
       }

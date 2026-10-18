@@ -18,10 +18,11 @@
 #include <string>
 
 #include "ViewportMode.hpp"
-#include <memory>
-#include "HybridOrcaViewportSpec.hpp"
+#include "PreviewColorMode.hpp"
 #include <functional>
 #include <optional>
+#include <memory>
+#include "HybridOrcaViewportSpec.hpp"
 
 namespace margelo::nitro::orca::views {
 
@@ -45,18 +46,30 @@ namespace margelo::nitro::orca::views {
   public:
     nitro::ReactProp<double> sessionId;
     nitro::ReactProp<ViewportMode> mode;
+    nitro::ReactProp<double> minLayer;
     nitro::ReactProp<double> maxLayer;
+    nitro::ReactProp<double> maxTime;
     nitro::ReactProp<bool> showTravels;
+    nitro::ReactProp<bool> showRetractions;
+    nitro::ReactProp<bool> showWipes;
+    nitro::ReactProp<PreviewColorMode> colorMode;
     nitro::ReactProp<double> revision;
+    nitro::ReactProp<std::optional<std::function<void(double /* x */, double /* y */)>>> onTap;
     nitro::ReactProp<std::optional<std::function<void(const std::shared_ptr<HybridOrcaViewportSpec>& /* ref */)>>> hybridRef;
 
     [[nodiscard]]
     bool hasSameProps(const HybridOrcaViewportProps& other) const noexcept {
       return sessionId.hasSameValue(other.sessionId) &&
              mode.hasSameValue(other.mode) &&
+             minLayer.hasSameValue(other.minLayer) &&
              maxLayer.hasSameValue(other.maxLayer) &&
+             maxTime.hasSameValue(other.maxTime) &&
              showTravels.hasSameValue(other.showTravels) &&
+             showRetractions.hasSameValue(other.showRetractions) &&
+             showWipes.hasSameValue(other.showWipes) &&
+             colorMode.hasSameValue(other.colorMode) &&
              revision.hasSameValue(other.revision) &&
+             onTap.hasSameValue(other.onTap) &&
              hybridRef.hasSameValue(other.hybridRef);
     }
 
@@ -64,9 +77,15 @@ namespace margelo::nitro::orca::views {
     bool hasAnyProvidedProps() const noexcept {
       return sessionId.isProvided() ||
              mode.isProvided() ||
+             minLayer.isProvided() ||
              maxLayer.isProvided() ||
+             maxTime.isProvided() ||
              showTravels.isProvided() ||
+             showRetractions.isProvided() ||
+             showWipes.isProvided() ||
+             colorMode.isProvided() ||
              revision.isProvided() ||
+             onTap.isProvided() ||
              hybridRef.isProvided();
     }
 

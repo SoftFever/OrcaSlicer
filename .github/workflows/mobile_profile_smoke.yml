@@ -1,0 +1,103 @@
+name: Mobile profile smoke
+
+on:
+  # Fire nightly at 04:17 UTC so upstream profile PRs merged earlier in the day
+  # have time to land, and the check runs before US morning stand-ups. 04:17
+  # deliberately not on the hour so we do not collide with the GitHub-wide
+  # scheduler spike.
+  schedule:
+    - cron: '17 4 * * *'
+
+  # Also run on any PR that touches the profile tree or the mobile scoping logic
+  # — same paths as check_profiles.yml plus the mobile lib file where the filter
+  # lives and the smoke script itself. This is a soft check on PRs (does not
+  # gate merge) so upstream profile updates that fail mobile scoping surface as
+  # a review comment without blocking desktop-only fixes.
+  pull_request:
+    branches:
+      - main
+      - release/*
+    paths:
+      - 'resources/profiles/**'
+      - 'mobile/apps/orca/lib/profiles.ts'
+      - 'scripts/mobile_profile_smoke.py'
+      - '.github/workflows/mobile_profile_smoke.yml'
+
+  workflow_dispatch: {}
+
+# One run per PR: a new push cancels the one still running for the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write   # Only used by the nightly-issue step below; ignored on PRs.
+
+jobs:
+  smoke:
+    name: Simulate scoped installs for every printer
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      # The script has no external deps (stdlib only) so no pip install step —
+      # keeps the job cold-start under 15s and safe to run on every trigger.
+      - name: Run mobile profile smoke test
+        id: smoke
+        run: |
+          python3 scripts/mobile_profile_smoke.py | tee "${{ runner.temp }}/smoke.log"
+
+      # Nightly failures are noisy in PR comments; open (or update) a tracking
+      # issue instead so maintainers see the same one grow / shrink over time.
+      # Skipped on PR triggers — those get the log via the workflow summary.
+      - name: File / update tracking issue on nightly failure
+        if: ${{ failure() && github.event_name == 'schedule' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs')
+            const log = fs.readFileSync('${{ runner.temp }}/smoke.log', 'utf8')
+            const marker = '<!-- mobile-profile-smoke -->'
+            const title  = 'Mobile profile smoke test failing'
+            const body   = `${marker}\n\nNightly \`scripts/mobile_profile_smoke.py\` reported errors.\n\n<details><summary>Latest run</summary>\n\n\`\`\`\n${log.slice(0, 25000)}\n\`\`\`\n\n</details>\n\nSee workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+              labels: 'mobile-profile-smoke',
+            })
+            const existing = issues.find(i => i.body && i.body.includes(marker))
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              })
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['mobile-profile-smoke'],
+              })
+            }
+
+      - name: Attach log to workflow summary
+        if: ${{ always() }}
+        run: |
+          {
+            echo '## Mobile profile smoke result'
+            echo '```'
+            cat "${{ runner.temp }}/smoke.log"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

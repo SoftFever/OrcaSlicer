@@ -1,39 +1,5 @@
 {
   "expo": {
-    "name": "OrcaSlicer",
-    "slug": "orcaslicer",
-    "version": "0.0.1",
-    "scheme": "orcaslicer",
-    "orientation": "default",
-    "newArchEnabled": true,
-    "ios": {
-      "bundleIdentifier": "com.orcaslicer.mobile",
-      "supportsTablet": true,
-      "infoPlist": {
-        "UIFileSharingEnabled": true,
-        "LSSupportsOpeningDocumentsInPlace": true,
-        "UIBackgroundModes": ["processing", "fetch"],
-        "BGTaskSchedulerPermittedIdentifiers": ["orca-downloads-continue"],
-        "CFBundleDocumentTypes": [
-          {
-            "CFBundleTypeName": "3D model",
-            "LSHandlerRank": "Alternate",
-            "LSItemContentTypes": ["public.standard-tesselated-geometry-format", "public.3mf", "public.geometry-definition-format", "public.item"]
-          }
-        ]
-      }
-    },
-    "android": {
-      "package": "com.orcaslicer.mobile"
-    },
-    "plugins": [
-      "expo-router",
-      "expo-notifications",
-      "expo-background-task",
-      "./plugins/with-swiftui-core-weak-link"
-    ],
-    "experiments": {
-      "typedRoutes": true
-    }
+    "version": "0.0.1"
   }
 }

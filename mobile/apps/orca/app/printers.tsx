@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Alert, FlatList, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 
 import { scanLocalNetwork, type DiscoveredHost } from '@/lib/discovery'
+import { colors } from '@/lib/theme'
 import { clientFor, HOST_KINDS, loadPrinters, normalizeUrl, savePrinters, type PrinterHost, type PrinterHostKind, type PrinterStatus } from '@/lib/printers'
 import { queryKeys } from '@/lib/queries'
 import { Alert as InlineAlert } from '@/ui/Alert'
@@ -76,19 +77,19 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
   return (
     <View className="flex-1 bg-neutral-50 dark:bg-neutral-950">
       <View className="flex-row items-center justify-between border-b border-neutral-100 px-5 pb-3 pt-4 dark:border-neutral-800">
-        <Text className="text-[17px] font-semibold text-neutral-900 dark:text-neutral-100">
+        <Text className="text-body font-semibold text-neutral-900 dark:text-neutral-100">
           {initial === null ? 'Add destination' : 'Edit destination'}
         </Text>
         <Pressable hitSlop={8} onPress={() => onDone(null)}>
-          <Text className="text-[15px] font-semibold text-neutral-500">Cancel</Text>
+          <Text className="text-subhead font-semibold text-neutral-500">Cancel</Text>
         </Pressable>
       </View>
       <ScrollView contentContainerClassName="px-4 pt-4 pb-8 gap-4">
         <Card title="Name" padded>
           <TextInput
-            className="text-[15px] text-neutral-900 dark:text-neutral-100"
+            className="text-subhead text-neutral-900 dark:text-neutral-100"
             placeholder="Voron"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.placeholder}
             value={name}
             onChangeText={setName}
             autoCorrect={false}
@@ -111,7 +112,7 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
             action={<Button title={scanning ? 'Stop' : 'Scan'} variant="secondary" onPress={scanning ? () => scanAbort.current?.abort() : runScan} />}
           >
             {found.length === 0 && !scanning ? (
-              <Text className="text-[13px] text-neutral-500 dark:text-neutral-400">
+              <Text className="text-footnote text-neutral-500 dark:text-neutral-400">
                 Tap Scan to look for a printer on your Wi-Fi. Manual entry below still works.
               </Text>
             ) : (
@@ -126,13 +127,13 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
                   className="flex-row items-center gap-3 rounded-xl bg-neutral-100 px-3 py-2 active:bg-neutral-200 dark:bg-neutral-800 dark:active:bg-neutral-700"
                 >
                   <View className="flex-1">
-                    <Text className="text-[14px] font-medium text-neutral-900 dark:text-neutral-100">{h.ip}</Text>
-                    <Text className="mt-0.5 text-[12px] text-neutral-500 dark:text-neutral-400">
+                    <Text className="text-callout font-medium text-neutral-900 dark:text-neutral-100">{h.ip}</Text>
+                    <Text className="mt-0.5 text-label text-neutral-500 dark:text-neutral-400">
                       {h.kind === 'moonraker' ? 'Moonraker' : 'OctoPrint'}
                       {h.info !== '' ? ` · ${h.info}` : ''}
                     </Text>
                   </View>
-                  <Text className="text-[12px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Use</Text>
+                  <Text className="text-label font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Use</Text>
                 </Pressable>
               ))
             )}
@@ -141,9 +142,9 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
 
         <Card title="Address" padded>
           <TextInput
-            className="text-[15px] text-neutral-900 dark:text-neutral-100"
+            className="text-subhead text-neutral-900 dark:text-neutral-100"
             placeholder={hint}
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.placeholder}
             value={url}
             onChangeText={setUrl}
             autoCorrect={false}
@@ -154,9 +155,9 @@ function PrinterEditor({ initial, onDone }: EditorProps): React.JSX.Element {
 
         <Card title={kind === 'octoprint' ? 'Application key' : 'API key (optional)'} padded>
           <TextInput
-            className="text-[15px] text-neutral-900 dark:text-neutral-100"
+            className="text-subhead text-neutral-900 dark:text-neutral-100"
             placeholder={kind === 'octoprint' ? 'required' : 'leave empty if none'}
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.placeholder}
             value={apiKey}
             onChangeText={setApiKey}
             autoCorrect={false}
@@ -236,15 +237,15 @@ function HostRow({
       <Avatar text={host.name} size={40} />
       <View className="flex-1">
         <View className="flex-row items-center gap-2">
-          <Text className="text-[15px] font-semibold tracking-tight text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
+          <Text className="text-subhead font-semibold tracking-tight text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
             {host.name}
           </Text>
           <StatusDot ok={query.isError ? false : query.isSuccess ? true : null} />
         </View>
-        <Text className="mt-0.5 text-[12px] text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
+        <Text className="mt-0.5 text-label text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
           {host.url}
         </Text>
-        <Text className="mt-0.5 text-[12px] text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
+        <Text className="mt-0.5 text-label text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
           {query.isError
             ? 'Offline'
             : query.data !== undefined
@@ -253,10 +254,10 @@ function HostRow({
         </Text>
       </View>
       <Pressable onPress={onEdit} hitSlop={8} className="rounded-full bg-neutral-100 px-3 py-1.5 active:opacity-60 dark:bg-neutral-800">
-        <Text className="text-[12px] font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">Edit</Text>
+        <Text className="text-label font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-300">Edit</Text>
       </Pressable>
       <Pressable onPress={onDelete} hitSlop={8} className="ml-1 rounded-full px-2 py-1.5 active:opacity-60">
-        <Text className="text-[14px] font-semibold text-red-500">✕</Text>
+        <Text className="text-callout font-semibold text-red-500">✕</Text>
       </Pressable>
     </Pressable>
   )
@@ -311,7 +312,7 @@ export default function PrintersScreen(): React.JSX.Element {
         ListEmptyComponent={
           <View className="mt-6">
             <Card padded>
-              <Text className="text-[15px] text-neutral-500 dark:text-neutral-400">
+              <Text className="text-subhead text-neutral-500 dark:text-neutral-400">
                 No destinations yet. Add a Klipper (Moonraker) or OctoPrint host to send G-code and monitor prints from the app.
               </Text>
             </Card>

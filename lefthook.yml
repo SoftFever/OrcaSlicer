@@ -1,0 +1,23 @@
+# Git hooks for the mobile workspace: `pnpm hooks` in mobile/ installs them. CI runs
+# the same checks, so skipping a hook (--no-verify) only moves the failure to the PR.
+
+commit-msg:
+  commands:
+    # Conventional commits drive the mobile version and changelog (release-please).
+    # From mobile/, where .tool-versions pins Node for version managers.
+    commitlint:
+      root: mobile/
+      run: pnpm exec commitlint --edit "$(git rev-parse --show-toplevel)/{1}"
+
+pre-commit:
+  parallel: true
+  commands:
+    oxlint:
+      root: mobile/
+      glob: '*.{js,mjs,cjs,ts,tsx}'
+      run: pnpm exec oxlint {staged_files}
+    oxfmt:
+      root: mobile/
+      glob: '*.{js,mjs,cjs,ts,tsx,json}'
+      run: pnpm exec oxfmt --no-error-on-unmatched-pattern {staged_files}
+      stage_fixed: true

@@ -48,10 +48,11 @@ namespace margelo::nitro::orca {
     Vec3 scale     SWIFT_PRIVATE;
     Vec3 size     SWIFT_PRIVATE;
     double triangles     SWIFT_PRIVATE;
+    double openEdges     SWIFT_PRIVATE;
 
   public:
     ObjectInfo() = default;
-    explicit ObjectInfo(double id, std::string name, Vec3 position, Vec3 rotation, Vec3 scale, Vec3 size, double triangles): id(id), name(name), position(position), rotation(rotation), scale(scale), size(size), triangles(triangles) {}
+    explicit ObjectInfo(double id, std::string name, Vec3 position, Vec3 rotation, Vec3 scale, Vec3 size, double triangles, double openEdges): id(id), name(name), position(position), rotation(rotation), scale(scale), size(size), triangles(triangles), openEdges(openEdges) {}
 
   public:
     friend bool operator==(const ObjectInfo& lhs, const ObjectInfo& rhs) = default;
@@ -73,7 +74,8 @@ namespace margelo::nitro {
         JSIConverter<margelo::nitro::orca::Vec3>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "rotation"))),
         JSIConverter<margelo::nitro::orca::Vec3>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "scale"))),
         JSIConverter<margelo::nitro::orca::Vec3>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "size"))),
-        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "triangles")))
+        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "triangles"))),
+        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "openEdges")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::orca::ObjectInfo& arg) {
@@ -85,6 +87,7 @@ namespace margelo::nitro {
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "scale"), JSIConverter<margelo::nitro::orca::Vec3>::toJSI(runtime, arg.scale));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "size"), JSIConverter<margelo::nitro::orca::Vec3>::toJSI(runtime, arg.size));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "triangles"), JSIConverter<double>::toJSI(runtime, arg.triangles));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "openEdges"), JSIConverter<double>::toJSI(runtime, arg.openEdges));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -102,6 +105,7 @@ namespace margelo::nitro {
       if (!JSIConverter<margelo::nitro::orca::Vec3>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "scale")))) return false;
       if (!JSIConverter<margelo::nitro::orca::Vec3>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "size")))) return false;
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "triangles")))) return false;
+      if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "openEdges")))) return false;
       return true;
     }
   };

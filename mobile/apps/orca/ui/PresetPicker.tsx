@@ -3,6 +3,7 @@ import { Image, Modal, Pressable, SectionList, Text, TextInput, View } from 'rea
 import type { PresetInfo, PresetKind } from 'react-native-orca-core'
 
 import { Avatar } from '@/ui/Avatar'
+import { colors } from '@/lib/theme'
 import { DEFAULT_PROFILE_SOURCE } from '@/lib/profiles'
 
 type Props = {
@@ -65,24 +66,24 @@ export function PresetPicker({ kind, title, presets, selected, visible, onPick, 
       <View className="flex-1 bg-gray-50 dark:bg-black">
         <View className="flex-row items-center justify-between border-b border-gray-100 px-5 pb-3 pt-4 dark:border-neutral-800">
           <View className="flex-1 pr-4">
-            <Text className="text-[22px] font-bold text-black dark:text-white" numberOfLines={1}>
+            <Text className="text-title2 font-bold text-black dark:text-white" numberOfLines={1}>
               {title}
             </Text>
-            <Text className="mt-0.5 text-[13px] text-gray-500 dark:text-gray-400">
+            <Text className="mt-0.5 text-footnote text-gray-500 dark:text-gray-400">
               {presets.length} {KIND_LABEL[kind]} preset{presets.length === 1 ? '' : 's'} available
             </Text>
           </View>
           <Pressable hitSlop={10} onPress={onClose} className="active:opacity-60">
-            <Text className="text-[17px] font-semibold text-blue-500">Done</Text>
+            <Text className="text-body font-semibold text-blue-500">Done</Text>
           </Pressable>
         </View>
         <View className="px-5 pt-3">
           <View className="flex-row items-center rounded-xl bg-gray-100 px-3 py-2 dark:bg-neutral-900">
-            <Text className="mr-2 text-[15px] text-gray-500 dark:text-gray-400">Search</Text>
+            <Text className="mr-2 text-subhead text-gray-500 dark:text-gray-400">Search</Text>
             <TextInput
-              className="flex-1 text-[15px] text-black dark:text-white"
+              className="flex-1 text-subhead text-black dark:text-white"
               placeholder={`${KIND_LABEL[kind]} name…`}
-              placeholderTextColor="#8e8e93"
+              placeholderTextColor={colors.placeholder}
               value={query}
               onChangeText={setQuery}
               autoCorrect={false}
@@ -98,14 +99,14 @@ export function PresetPicker({ kind, title, presets, selected, visible, onPick, 
           stickySectionHeadersEnabled
           renderSectionHeader={({ section }) => (
             <View className="bg-gray-50 px-5 pb-1 pt-4 dark:bg-black">
-              <Text className="text-[13px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              <Text className="text-footnote font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 {section.title}
               </Text>
             </View>
           )}
           ListEmptyComponent={
             <View className="items-center px-5 py-16">
-              <Text className="text-[15px] text-gray-500 dark:text-gray-400">
+              <Text className="text-subhead text-gray-500 dark:text-gray-400">
                 {presets.length === 0
                   ? 'Install a vendor bundle to see presets here.'
                   : 'Nothing matches your search.'}
@@ -171,15 +172,15 @@ function PresetItem({
         <Avatar text={item.name} size={44} />
       )}
       <View className="flex-1">
-        <Text className="text-[15px] font-medium text-black dark:text-white" numberOfLines={1}>
+        <Text className="text-subhead font-medium text-black dark:text-white" numberOfLines={1}>
           {item.name}
         </Text>
-        <Text className="mt-0.5 text-[13px] text-gray-500 dark:text-gray-400" numberOfLines={1}>
+        <Text className="mt-0.5 text-footnote text-gray-500 dark:text-gray-400" numberOfLines={1}>
           {item.isUser ? 'User preset' : item.vendor !== '' ? `${item.vendor} · system` : 'System'}
           {!item.isCompatible ? ' · not compatible' : ''}
         </Text>
       </View>
-      {isSelected ? <Text className="text-[20px] text-blue-500">✓</Text> : null}
+      {isSelected ? <Text className="text-title3 text-blue-500">✓</Text> : null}
       {!last ? (
         <View className="absolute inset-x-4 bottom-0 h-px bg-gray-100 dark:bg-neutral-800" style={{ left: 71 }} />
       ) : null}

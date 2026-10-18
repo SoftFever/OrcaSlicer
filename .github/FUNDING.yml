@@ -1,3 +1,6 @@
-github: SoftFever
+# SoftFever maintains OrcaSlicer itself; angelo-hub maintains this fork's mobile port.
+# Upstream stays listed first on purpose: the port only exists because the slicer does,
+# and a fork that quietly redirects the Sponsor button to itself is not a good neighbour.
+github: [SoftFever, angelo-hub]
 ko_fi: SoftFever
 custom: https://paypal.me/softfever3d

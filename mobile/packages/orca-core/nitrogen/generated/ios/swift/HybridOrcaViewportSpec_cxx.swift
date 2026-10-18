@@ -143,6 +143,17 @@ open class HybridOrcaViewportSpec_cxx {
     }
   }
   
+  public final var minLayer: Double {
+    @inline(__always)
+    get {
+      return self.__implementation.minLayer
+    }
+    @inline(__always)
+    set {
+      self.__implementation.minLayer = newValue
+    }
+  }
+  
   public final var maxLayer: Double {
     @inline(__always)
     get {
@@ -151,6 +162,17 @@ open class HybridOrcaViewportSpec_cxx {
     @inline(__always)
     set {
       self.__implementation.maxLayer = newValue
+    }
+  }
+  
+  public final var maxTime: Double {
+    @inline(__always)
+    get {
+      return self.__implementation.maxTime
+    }
+    @inline(__always)
+    set {
+      self.__implementation.maxTime = newValue
     }
   }
   
@@ -165,6 +187,39 @@ open class HybridOrcaViewportSpec_cxx {
     }
   }
   
+  public final var showRetractions: Bool {
+    @inline(__always)
+    get {
+      return self.__implementation.showRetractions
+    }
+    @inline(__always)
+    set {
+      self.__implementation.showRetractions = newValue
+    }
+  }
+  
+  public final var showWipes: Bool {
+    @inline(__always)
+    get {
+      return self.__implementation.showWipes
+    }
+    @inline(__always)
+    set {
+      self.__implementation.showWipes = newValue
+    }
+  }
+  
+  public final var colorMode: Int32 {
+    @inline(__always)
+    get {
+      return self.__implementation.colorMode.rawValue
+    }
+    @inline(__always)
+    set {
+      self.__implementation.colorMode = margelo.nitro.orca.PreviewColorMode(rawValue: newValue)!
+    }
+  }
+  
   public final var revision: Double {
     @inline(__always)
     get {
@@ -175,12 +230,78 @@ open class HybridOrcaViewportSpec_cxx {
       self.__implementation.revision = newValue
     }
   }
+  
+  public final var onTap: bridge.std__optional_std__function_void_double____x_____double____y______ {
+    @inline(__always)
+    get {
+      return { () -> bridge.std__optional_std__function_void_double____x_____double____y______ in
+        if let __unwrappedValue = self.__implementation.onTap {
+          return bridge.create_std__optional_std__function_void_double____x_____double____y______({ () -> bridge.Func_void_double_double in
+            let __closureWrapper = Func_void_double_double(__unwrappedValue)
+            return bridge.create_Func_void_double_double(__closureWrapper.toUnsafe())
+          }())
+        } else {
+          return .init()
+        }
+      }()
+    }
+    @inline(__always)
+    set {
+      self.__implementation.onTap = { () -> ((_ x: Double, _ y: Double) -> Void)? in
+        if bridge.has_value_std__optional_std__function_void_double____x_____double____y______(newValue) {
+          let __unwrapped = bridge.get_std__optional_std__function_void_double____x_____double____y______(newValue)
+          return { () -> (Double, Double) -> Void in
+            let __wrappedFunction = bridge.wrap_Func_void_double_double(__unwrapped)
+            return { (__x: Double, __y: Double) -> Void in
+              __wrappedFunction.call(__x, __y)
+            }
+          }()
+        } else {
+          return nil
+        }
+      }()
+    }
+  }
 
   // Methods
   @inline(__always)
   public final func fit() -> bridge.Result_void_ {
     do {
       try self.__implementation.fit()
+      return bridge.create_Result_void_()
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_void_(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func screenToRay(x: Double, y: Double) -> bridge.Result_PickRay_ {
+    do {
+      let __result = try self.__implementation.screenToRay(x: x, y: y)
+      let __resultCpp = __result
+      return bridge.create_Result_PickRay_(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_PickRay_(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func setSelectedId(id: Double) -> bridge.Result_void_ {
+    do {
+      try self.__implementation.setSelectedId(id: id)
+      return bridge.create_Result_void_()
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_void_(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func setObjectTool(tool: Int32) -> bridge.Result_void_ {
+    do {
+      try self.__implementation.setObjectTool(tool: margelo.nitro.orca.ObjectTool(rawValue: tool)!)
       return bridge.create_Result_void_()
     } catch (let __error) {
       let __exceptionPtr = __error.toCpp()

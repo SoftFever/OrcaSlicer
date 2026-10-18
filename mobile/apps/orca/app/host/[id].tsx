@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
-import { Alert, ScrollView, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 
-import { clientFor, loadPrinters, type PrinterHost, type PrinterStatus } from '@/lib/printers'
-import { queryKeys } from '@/lib/queries'
+import { clientFor, loadPrinters, type HeatedTool, type PrinterHost, type PrinterStatus } from '@/lib/printers'
+import { queryClient, queryKeys } from '@/lib/queries'
 import { Alert as InlineAlert } from '@/ui/Alert'
 import { Button } from '@/ui/Button'
 import { Card } from '@/ui/Card'
+import { PromptSheet } from '@/ui/PromptSheet'
+import { WebcamView } from '@/ui/WebcamView'
 
 function formatEta(progress: number | undefined): string | null {
   // OctoPrint / Moonraker do not always expose remaining time cleanly, so we
@@ -17,19 +19,32 @@ function formatEta(progress: number | undefined): string | null {
   return `${pct}%`
 }
 
-function TempTile({ label, temp, target }: { label: string; temp?: number; target?: number }): React.JSX.Element {
+function TempTile({
+  label,
+  temp,
+  target,
+  onPress,
+}: {
+  label: string
+  temp?: number
+  target?: number
+  onPress?: () => void
+}): React.JSX.Element {
   return (
-    <View className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 dark:bg-neutral-800">
-      <Text className="text-[12px] uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{label}</Text>
-      <Text className="mt-1 text-[22px] font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+    <Pressable
+      onPress={onPress}
+      className="flex-1 rounded-2xl bg-neutral-100 px-4 py-3 active:opacity-70 dark:bg-neutral-800"
+    >
+      <Text className="text-label uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{label}</Text>
+      <Text className="mt-1 text-title2 font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
         {temp !== undefined ? `${Math.round(temp)}°` : '—'}
       </Text>
       {target !== undefined && target > 0 ? (
-        <Text className="text-[12px] text-neutral-500 dark:text-neutral-400">Target {Math.round(target)}°</Text>
+        <Text className="text-label text-neutral-500 dark:text-neutral-400">Target {Math.round(target)}°</Text>
       ) : (
-        <Text className="text-[12px] text-neutral-500 dark:text-neutral-400">Idle</Text>
+        <Text className="text-label text-neutral-500 dark:text-neutral-400">Tap to set</Text>
       )}
-    </View>
+    </Pressable>
   )
 }
 
@@ -45,7 +60,7 @@ function StatePill({ state }: { state: string }): React.JSX.Element {
           : ['bg-neutral-100 dark:bg-neutral-800', 'text-neutral-700 dark:text-neutral-300']
   return (
     <View className={`self-start rounded-full px-3 py-1 ${bg}`}>
-      <Text className={`text-[12px] font-semibold uppercase tracking-wider ${text}`}>{state}</Text>
+      <Text className={`text-label font-semibold uppercase tracking-wider ${text}`}>{state}</Text>
     </View>
   )
 }
@@ -95,7 +110,7 @@ export default function HostDetailScreen(): React.JSX.Element {
     return (
       <View className="flex-1 items-center justify-center bg-neutral-50 dark:bg-neutral-950">
         <Stack.Screen options={{ title: 'Destination' }} />
-        <Text className="text-[15px] text-neutral-500">Not found.</Text>
+        <Text className="text-subhead text-neutral-500">Not found.</Text>
         <View className="mt-3">
           <Button title="Back" variant="secondary" onPress={() => router.back()} />
         </View>
@@ -120,7 +135,7 @@ export default function HostDetailScreen(): React.JSX.Element {
         <Card title="Status" padded index={0}>
           <StatePill state={s?.state ?? 'checking'} />
           {s?.file !== undefined && s.file !== '' ? (
-            <Text className="text-[14px] text-neutral-900 dark:text-neutral-100" numberOfLines={2}>
+            <Text className="text-callout text-neutral-900 dark:text-neutral-100" numberOfLines={2}>
               {s.file}
             </Text>
           ) : null}
@@ -179,12 +194,12 @@ export default function HostDetailScreen(): React.JSX.Element {
         </Card>
 
         <Card title="Connection" padded index={3}>
-          <Text className="text-[13px] text-neutral-500 dark:text-neutral-400">Address</Text>
-          <Text className="text-[15px] text-neutral-900 dark:text-neutral-100" numberOfLines={2}>
+          <Text className="text-footnote text-neutral-500 dark:text-neutral-400">Address</Text>
+          <Text className="text-subhead text-neutral-900 dark:text-neutral-100" numberOfLines={2}>
             {host.url}
           </Text>
-          <Text className="mt-2 text-[13px] text-neutral-500 dark:text-neutral-400">Kind</Text>
-          <Text className="text-[15px] text-neutral-900 dark:text-neutral-100">
+          <Text className="mt-2 text-footnote text-neutral-500 dark:text-neutral-400">Kind</Text>
+          <Text className="text-subhead text-neutral-900 dark:text-neutral-100">
             {host.kind === 'moonraker' ? 'Klipper (Moonraker)' : 'OctoPrint'}
           </Text>
         </Card>

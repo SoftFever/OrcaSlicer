@@ -1,3 +1,5 @@
 packages:
   - packages/*
   - apps/*
+allowBuilds:
+  lefthook: set this to true or false

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react'
+
+import { colors } from '@/lib/theme'
 import { Modal, Pressable, Text, TextInput, View } from 'react-native'
 
 import { Button } from './Button'
@@ -36,21 +38,21 @@ export function PromptSheet({
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onCancel}>
       <View className="flex-1 bg-neutral-50 dark:bg-neutral-950">
         <View className="flex-row items-center justify-between border-b border-neutral-100 px-5 pb-3 pt-4 dark:border-neutral-800">
-          <Text className="text-[17px] font-semibold text-neutral-900 dark:text-neutral-100">{title}</Text>
+          <Text className="text-body font-semibold text-neutral-900 dark:text-neutral-100">{title}</Text>
           <Pressable hitSlop={8} onPress={onCancel}>
-            <Text className="text-[15px] font-semibold text-neutral-500">Cancel</Text>
+            <Text className="text-subhead font-semibold text-neutral-500">Cancel</Text>
           </Pressable>
         </View>
         <View className="gap-3 px-5 pt-4">
           {message !== undefined ? (
-            <Text className="text-[15px] text-neutral-600 dark:text-neutral-400">{message}</Text>
+            <Text className="text-subhead text-neutral-600 dark:text-neutral-400">{message}</Text>
           ) : null}
           <TextInput
-            className="rounded-xl bg-neutral-100 px-3 py-3 text-[16px] text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100"
+            className="rounded-xl bg-neutral-100 px-3 py-3 text-headline text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100"
             value={value}
             onChangeText={setValue}
             placeholder={placeholder}
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.placeholder}
             autoCorrect={false}
             autoCapitalize="none"
             autoFocus

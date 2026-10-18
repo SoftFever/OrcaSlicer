@@ -18,13 +18,28 @@ namespace margelo::nitro::orca {
       prototype.registerHybridSetter("sessionId", &HybridOrcaViewportSpec::setSessionId);
       prototype.registerHybridGetter("mode", &HybridOrcaViewportSpec::getMode);
       prototype.registerHybridSetter("mode", &HybridOrcaViewportSpec::setMode);
+      prototype.registerHybridGetter("minLayer", &HybridOrcaViewportSpec::getMinLayer);
+      prototype.registerHybridSetter("minLayer", &HybridOrcaViewportSpec::setMinLayer);
       prototype.registerHybridGetter("maxLayer", &HybridOrcaViewportSpec::getMaxLayer);
       prototype.registerHybridSetter("maxLayer", &HybridOrcaViewportSpec::setMaxLayer);
+      prototype.registerHybridGetter("maxTime", &HybridOrcaViewportSpec::getMaxTime);
+      prototype.registerHybridSetter("maxTime", &HybridOrcaViewportSpec::setMaxTime);
       prototype.registerHybridGetter("showTravels", &HybridOrcaViewportSpec::getShowTravels);
       prototype.registerHybridSetter("showTravels", &HybridOrcaViewportSpec::setShowTravels);
+      prototype.registerHybridGetter("showRetractions", &HybridOrcaViewportSpec::getShowRetractions);
+      prototype.registerHybridSetter("showRetractions", &HybridOrcaViewportSpec::setShowRetractions);
+      prototype.registerHybridGetter("showWipes", &HybridOrcaViewportSpec::getShowWipes);
+      prototype.registerHybridSetter("showWipes", &HybridOrcaViewportSpec::setShowWipes);
+      prototype.registerHybridGetter("colorMode", &HybridOrcaViewportSpec::getColorMode);
+      prototype.registerHybridSetter("colorMode", &HybridOrcaViewportSpec::setColorMode);
       prototype.registerHybridGetter("revision", &HybridOrcaViewportSpec::getRevision);
       prototype.registerHybridSetter("revision", &HybridOrcaViewportSpec::setRevision);
+      prototype.registerHybridGetter("onTap", &HybridOrcaViewportSpec::getOnTap);
+      prototype.registerHybridSetter("onTap", &HybridOrcaViewportSpec::setOnTap);
       prototype.registerHybridMethod("fit", &HybridOrcaViewportSpec::fit);
+      prototype.registerHybridMethod("screenToRay", &HybridOrcaViewportSpec::screenToRay);
+      prototype.registerHybridMethod("setSelectedId", &HybridOrcaViewportSpec::setSelectedId);
+      prototype.registerHybridMethod("setObjectTool", &HybridOrcaViewportSpec::setObjectTool);
     });
   }
 

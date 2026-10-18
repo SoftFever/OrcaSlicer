@@ -5,6 +5,8 @@ packages/*/lib/
 # expo prebuild regenerates the native projects on each run; treat them as build output.
 apps/*/ios/
 apps/*/android/
+# Written by the react-native-bootsplash config plugin during prebuild.
+apps/*/assets/bootsplash/
 ios/build/
 android/build/
 *.tsbuildinfo

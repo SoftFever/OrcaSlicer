@@ -1,0 +1,81 @@
+name: Mobile AltStore PAL
+
+# Adds a notarized build to the AltStore PAL source (source-pal.json on the altstore
+# branch). PAL installs only apps Apple notarized for alternative distribution, which
+# the ad-hoc .ipa of "Mobile release" is not. For a version already released there:
+#
+#   1. Archive and upload a team-signed build of the same version to App Store Connect,
+#      and have it notarized for alternative distribution.
+#   2. Download its ADP (App Store Connect API: alternativeDistributionPackageVersions)
+#      and host the unzipped package, e.g. as files of the GitHub release.
+#   3. Run this workflow with the release tag and the URL of the ADP's manifest.json.
+#
+# Needs the ALTSTORE_MARKETPLACE_ID repository variable: the Apple ID under "App
+# Information" in App Store Connect. Notes and permissions come from the release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (mobile-vX.Y.Z) the notarized build belongs to
+        type: string
+        required: true
+      manifest_url:
+        description: URL of the hosted ADP's manifest.json
+        type: string
+        required: true
+      size:
+        description: Size in bytes of one of the ADP's variants
+        type: string
+        required: true
+      build:
+        description: CFBundleVersion of the notarized build (default the release's)
+        type: string
+        default: ''
+
+concurrency:
+  group: mobile-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  pal:
+    name: PAL source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+
+      - name: Release metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: gh release download "$TAG" -p app-meta.json -p altstore-notes.txt -D release
+
+      - name: AltStore PAL source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MARKETPLACE_ID: ${{ vars.ALTSTORE_MARKETPLACE_ID }}
+          MANIFEST_URL: ${{ inputs.manifest_url }}
+          SIZE: ${{ inputs.size }}
+          BUILD: ${{ inputs.build }}
+        run: |
+          set -euo pipefail
+          if [ -z "$MARKETPLACE_ID" ]; then
+            echo "::error::Set the ALTSTORE_MARKETPLACE_ID repository variable" >&2
+            exit 1
+          fi
+          meta=release/app-meta.json
+          bash mobile/scripts/publish-altstore.sh source-pal.json \
+            --meta "$meta" \
+            --marketplace-id "$MARKETPLACE_ID" \
+            --version "$(jq -r .version "$meta")" \
+            --marketing "$(jq -r .marketingVersion "$meta")" \
+            --build "${BUILD:-$(jq -r .buildVersion "$meta")}" \
+            --size "$SIZE" \
+            --download-url "$MANIFEST_URL" \
+            --notes-file release/altstore-notes.txt

@@ -33,6 +33,7 @@ namespace margelo::nitro::orca { struct Vec2; }
 
 #include "Vec2.hpp"
 #include <vector>
+#include <string>
 
 namespace margelo::nitro::orca {
 
@@ -43,10 +44,12 @@ namespace margelo::nitro::orca {
   public:
     std::vector<Vec2> shape     SWIFT_PRIVATE;
     double height     SWIFT_PRIVATE;
+    std::string customTexture     SWIFT_PRIVATE;
+    std::string customModel     SWIFT_PRIVATE;
 
   public:
     BedInfo() = default;
-    explicit BedInfo(std::vector<Vec2> shape, double height): shape(shape), height(height) {}
+    explicit BedInfo(std::vector<Vec2> shape, double height, std::string customTexture, std::string customModel): shape(shape), height(height), customTexture(customTexture), customModel(customModel) {}
 
   public:
     friend bool operator==(const BedInfo& lhs, const BedInfo& rhs) = default;
@@ -63,13 +66,17 @@ namespace margelo::nitro {
       jsi::Object obj = arg.asObject(runtime);
       return margelo::nitro::orca::BedInfo(
         JSIConverter<std::vector<margelo::nitro::orca::Vec2>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "shape"))),
-        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "height")))
+        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "height"))),
+        JSIConverter<std::string>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "customTexture"))),
+        JSIConverter<std::string>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "customModel")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::orca::BedInfo& arg) {
       jsi::Object obj(runtime);
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "shape"), JSIConverter<std::vector<margelo::nitro::orca::Vec2>>::toJSI(runtime, arg.shape));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "height"), JSIConverter<double>::toJSI(runtime, arg.height));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "customTexture"), JSIConverter<std::string>::toJSI(runtime, arg.customTexture));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "customModel"), JSIConverter<std::string>::toJSI(runtime, arg.customModel));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -82,6 +89,8 @@ namespace margelo::nitro {
       }
       if (!JSIConverter<std::vector<margelo::nitro::orca::Vec2>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "shape")))) return false;
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "height")))) return false;
+      if (!JSIConverter<std::string>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "customTexture")))) return false;
+      if (!JSIConverter<std::string>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "customModel")))) return false;
       return true;
     }
   };

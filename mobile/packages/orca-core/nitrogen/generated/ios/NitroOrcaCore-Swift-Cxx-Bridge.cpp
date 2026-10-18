@@ -14,6 +14,14 @@
 
 namespace margelo::nitro::orca::bridge::swift {
 
+  // pragma MARK: std::function<void(double /* x */, double /* y */)>
+  Func_void_double_double create_Func_void_double_double(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = NitroOrcaCore::Func_void_double_double::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](double x, double y) mutable -> void {
+      swiftClosure.call(x, y);
+    };
+  }
+  
   // pragma MARK: std::shared_ptr<HybridOrcaViewportSpec>
   std::shared_ptr<HybridOrcaViewportSpec> create_std__shared_ptr_HybridOrcaViewportSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
     NitroOrcaCore::HybridOrcaViewportSpec_cxx swiftPart = NitroOrcaCore::HybridOrcaViewportSpec_cxx::fromUnsafe(swiftUnsafePointer);

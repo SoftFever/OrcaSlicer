@@ -1,8 +1,33 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated'
-import { Pressable, Text, View } from 'react-native'
+import { AccessibilityInfo, Pressable, Text, View } from 'react-native'
 
+import { haptic } from '@/lib/haptics'
 import { storage } from '@/lib/storage'
+
+// Cached across every Card instance — the OS setting rarely changes, and the
+// listener below keeps it live. Read synchronously into initial state so the
+// very first render already respects the setting instead of playing one
+// animation and then switching.
+let cachedReduceMotion = false
+const reduceMotionListeners = new Set<(v: boolean) => void>()
+void AccessibilityInfo.isReduceMotionEnabled().then((v) => {
+  cachedReduceMotion = v
+  reduceMotionListeners.forEach((cb) => cb(v))
+})
+AccessibilityInfo.addEventListener('reduceMotionChanged', (v) => {
+  cachedReduceMotion = v
+  reduceMotionListeners.forEach((cb) => cb(v))
+})
+
+function useReduceMotion(): boolean {
+  const [v, setV] = useState(cachedReduceMotion)
+  useEffect(() => {
+    reduceMotionListeners.add(setV)
+    return () => { reduceMotionListeners.delete(setV) }
+  }, [])
+  return v
+}
 
 type Props = {
   title?: string
@@ -36,6 +61,7 @@ export function Card({
   collapseKey,
   defaultCollapsed = false,
 }: Props): React.JSX.Element {
+  const reduceMotion = useReduceMotion()
   const persistKey = collapsible ? `card:collapsed:${collapseKey ?? title ?? ''}` : null
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (persistKey === null) return false
@@ -43,6 +69,7 @@ export function Card({
     return stored ?? defaultCollapsed
   })
   const toggle = useCallback(() => {
+    haptic('toggle')
     setCollapsed((prev) => {
       const next = !prev
       if (persistKey !== null) storage.set(persistKey, next)
@@ -57,12 +84,12 @@ export function Card({
       <View className="flex-1 pr-2">
         {title !== undefined ? (
           <View className="flex-row items-center gap-2">
-            <Text className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500 dark:text-neutral-400">
+            <Text className="text-caption font-semibold uppercase tracking-caps text-neutral-500 dark:text-neutral-400">
               {title}
             </Text>
             {collapsible ? (
               <Text
-                className={`text-[13px] leading-3 text-neutral-400 dark:text-neutral-500 ${collapsed ? '' : 'rotate-90'}`}
+                className={`text-footnote leading-3 text-neutral-400 dark:text-neutral-500 ${collapsed ? '' : 'rotate-90'}`}
                 style={{ transform: [{ rotate: collapsed ? '0deg' : '90deg' }] }}
               >
                 ›
@@ -71,7 +98,7 @@ export function Card({
           </View>
         ) : null}
         {subtitle !== undefined ? (
-          <Text className="mt-1 text-[13px] text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
+          <Text className="mt-1 text-footnote text-neutral-500 dark:text-neutral-400" numberOfLines={1}>
             {subtitle}
           </Text>
         ) : null}
@@ -82,8 +109,8 @@ export function Card({
 
   return (
     <Animated.View
-      layout={LinearTransition.duration(220)}
-      entering={FadeInDown.duration(260).delay(index * 40)}
+      layout={reduceMotion ? undefined : LinearTransition.duration(220)}
+      entering={reduceMotion ? undefined : FadeInDown.duration(260).delay(index * 40)}
       className={className}
     >
       {hasHeader ? (
@@ -97,7 +124,7 @@ export function Card({
       ) : null}
       {!collapsed ? (
         <Animated.View
-          layout={LinearTransition.duration(200)}
+          layout={reduceMotion ? undefined : LinearTransition.duration(200)}
           className={`overflow-hidden rounded-3xl bg-white shadow-soft dark:bg-neutral-900 ${padded ? 'gap-3 p-4' : ''}`}
         >
           {children}

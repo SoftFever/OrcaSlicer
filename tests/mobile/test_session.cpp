@@ -205,3 +205,101 @@ TEST_CASE("Session loads presets, imports a model, slices and exports G-code", "
         CHECK_THROWS(session.export_gcode(gcode_path));
     }
 }
+
+TEST_CASE("Session simplifies and repairs meshes", "[Session][slow]")
+{
+    const ScopedDataDir& dir = configured_directories();
+    Session              session;
+    REQUIRE(session.load_presets().empty());
+    REQUIRE(session.select_preset(PresetKind::Printer, first_name_containing(session.presets(PresetKind::Printer), "Voron 2.4 350 0.4 nozzle")));
+
+    SECTION("simplify shares the budget and is undoable")
+    {
+        const std::vector<ObjectInfo> imported = session.import(std::string(TEST_DATA_DIR) + "/simplification.obj");
+        REQUIRE(imported.size() == 1);
+        const unsigned long id     = imported.front().id;
+        const unsigned long before = imported.front().triangles;
+        REQUIRE(before > 1000);
+
+        CHECK_FALSE(session.simplify_object(id, before));           // already under the target
+        CHECK_FALSE(session.simplify_object(id + 1000000, 100));    // unknown object
+        CHECK_FALSE(session.simplify_object(id, 0));
+
+        REQUIRE(session.simplify_object(id, before / 4));
+        const ObjectInfo after = session.objects().front();
+        CHECK(after.triangles < before / 2);
+        CHECK(after.triangles >= 4);
+        // The size survives within the collapse error.
+        CHECK_THAT(after.size[0], Catch::Matchers::WithinRel(imported.front().size[0], 0.05));
+        CHECK(session.mesh(id).triangles == after.triangles);
+        CHECK(session.undo_label() == "Simplify mesh");
+        REQUIRE(session.undo());
+        CHECK(session.objects().front().triangles == before);
+    }
+
+    SECTION("repair merges a facet soup back into a watertight cube")
+    {
+        // Twelve faces with their own vertices each (a facet soup) plus one zero-area
+        // face: every edge is open until the vertices are merged.
+        const boost::filesystem::path soup = dir.path / "soup.obj";
+        {
+            std::ofstream out(soup.string());
+            const double v[8][3] = { {0,0,0}, {20,0,0}, {20,20,0}, {0,20,0}, {0,0,20}, {20,0,20}, {20,20,20}, {0,20,20} };
+            const int    f[12][3] = { {0,2,1}, {0,3,2}, {4,5,6}, {4,6,7}, {0,1,5}, {0,5,4}, {1,2,6}, {1,6,5}, {2,3,7}, {2,7,6}, {3,0,4}, {3,4,7} };
+            for (const auto& face : f)
+                for (int k : face)
+                    out << "v " << v[k][0] << ' ' << v[k][1] << ' ' << v[k][2] << '\n';
+            for (int k = 0; k < 3; ++k)
+                out << "v 5 5 5\n";
+            for (int i = 0; i < 13; ++i)
+                out << "f " << 3 * i + 1 << ' ' << 3 * i + 2 << ' ' << 3 * i + 3 << '\n';
+        }
+        const std::vector<ObjectInfo> imported = session.import(soup.string());
+        REQUIRE(imported.size() == 1);
+        const unsigned long id = imported.front().id;
+        REQUIRE(imported.front().open_edges > 0);
+
+        const Session::MeshRepairResult r = session.repair_object(id);
+        CHECK(r.changed);
+        CHECK(r.open_edges_before == imported.front().open_edges);
+        CHECK(r.open_edges_after == 0);
+        CHECK(r.vertices_merged + r.edges_fixed > 0);
+        CHECK(r.degenerate_faces + r.faces_removed > 0);
+        const ObjectInfo after = session.objects().front();
+        CHECK(after.triangles == 12);
+        CHECK(after.open_edges == 0);
+        CHECK_THAT(after.size[2], Catch::Matchers::WithinAbs(20.0, 0.01));
+        CHECK(session.undo_label() == "Repair mesh");
+
+        // A clean mesh is left alone.
+        const Session::MeshRepairResult again = session.repair_object(id);
+        CHECK_FALSE(again.changed);
+        CHECK(again.open_edges_after == 0);
+        CHECK(session.repair_object(id + 1000000).changed == false);
+    }
+
+    SECTION("an out-of-memory cancel ends the slice with its own outcome and the next slice works")
+    {
+        REQUIRE(session.select_preset(PresetKind::Filament, first_compatible(session.presets(PresetKind::Filament))));
+        REQUIRE(session.select_preset(PresetKind::Process, first_compatible(session.presets(PresetKind::Process))));
+        REQUIRE(session.import(std::string(TEST_DATA_DIR) + "/20mm_cube.obj").size() == 1);
+        session.set_thread_limit(2);
+
+        bool        tripped = false;
+        SliceResult result  = session.slice([&](const Progress&) {
+            if (! tripped) {
+                tripped = true;
+                session.cancel_out_of_memory();
+            }
+        });
+        REQUIRE(tripped);
+        CHECK(result.outcome == SliceOutcome::OutOfMemory);
+        CHECK_FALSE(result.error.empty());
+        CHECK_FALSE(session.is_sliced());
+
+        result = session.slice(nullptr);
+        INFO(result.error);
+        CHECK(result.outcome == SliceOutcome::Finished);
+        CHECK(session.is_sliced());
+    }
+}

@@ -1,5 +1,9 @@
 import React, { forwardRef } from 'react'
+
+import { colors } from '@/lib/theme'
 import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native'
+
+import { haptic } from '@/lib/haptics'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive'
 type Size = 'md' | 'lg'
@@ -33,8 +37,8 @@ const variantText: Record<Variant, string> = {
   destructive: 'text-white',
 }
 const sizeText: Record<Size, string> = {
-  md: 'text-[15px] font-semibold tracking-tight',
-  lg: 'text-[17px] font-semibold tracking-tight',
+  md: 'text-subhead font-semibold tracking-tight',
+  lg: 'text-body font-semibold tracking-tight',
 }
 
 export const Button = forwardRef<React.ComponentRef<typeof Pressable>, Props>(function Button(
@@ -62,17 +66,23 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, Props>(fu
   ]
     .join(' ')
     .trim()
+  const handlePress = isDisabled
+    ? undefined
+    : (event: Parameters<NonNullable<PressableProps['onPress']>>[0]) => {
+        haptic(variant === 'destructive' ? 'warn' : 'tap')
+        onPress?.(event)
+      }
   return (
     <Pressable
       ref={ref}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled }}
-      onPress={isDisabled ? undefined : onPress}
+      onPress={handlePress}
       {...rest}
       className={classes}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' || variant === 'destructive' ? '#ffffff' : '#0a0a0a'} />
+        <ActivityIndicator color={variant === 'primary' || variant === 'destructive' ? colors.onFill : colors.ink.light} />
       ) : (
         <Text className={`${sizeText[size]} ${variantText[variant]}`}>{title}</Text>
       )}

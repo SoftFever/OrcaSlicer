@@ -33,7 +33,7 @@ Pod::Spec.new do |s|
   # that OpenCV's ImageIO backend and Model I/O reach for on Apple. libpng is
   # bundled inside OrcaCore because iOS ships none.
   s.libraries = "c++", "iconv", "z", "lzma"
-  s.frameworks = "Foundation", "ModelIO", "Metal", "MetalKit", "QuartzCore", "CoreGraphics"
+  s.frameworks = "Foundation", "ModelIO", "Metal", "MetalKit", "QuartzCore", "CoreGraphics", "WebKit", "UIKit"
 
   s.pod_target_xcconfig = {
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",

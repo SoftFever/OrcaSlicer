@@ -15,8 +15,19 @@
 
 // Forward declaration of `ViewportMode` to properly resolve imports.
 namespace margelo::nitro::orca { enum class ViewportMode; }
+// Forward declaration of `PreviewColorMode` to properly resolve imports.
+namespace margelo::nitro::orca { enum class PreviewColorMode; }
+// Forward declaration of `PickRay` to properly resolve imports.
+namespace margelo::nitro::orca { struct PickRay; }
+// Forward declaration of `ObjectTool` to properly resolve imports.
+namespace margelo::nitro::orca { enum class ObjectTool; }
 
 #include "ViewportMode.hpp"
+#include "PreviewColorMode.hpp"
+#include <functional>
+#include <optional>
+#include "PickRay.hpp"
+#include "ObjectTool.hpp"
 
 namespace margelo::nitro::orca {
 
@@ -49,16 +60,31 @@ namespace margelo::nitro::orca {
       virtual void setSessionId(double sessionId) = 0;
       virtual ViewportMode getMode() = 0;
       virtual void setMode(ViewportMode mode) = 0;
+      virtual double getMinLayer() = 0;
+      virtual void setMinLayer(double minLayer) = 0;
       virtual double getMaxLayer() = 0;
       virtual void setMaxLayer(double maxLayer) = 0;
+      virtual double getMaxTime() = 0;
+      virtual void setMaxTime(double maxTime) = 0;
       virtual bool getShowTravels() = 0;
       virtual void setShowTravels(bool showTravels) = 0;
+      virtual bool getShowRetractions() = 0;
+      virtual void setShowRetractions(bool showRetractions) = 0;
+      virtual bool getShowWipes() = 0;
+      virtual void setShowWipes(bool showWipes) = 0;
+      virtual PreviewColorMode getColorMode() = 0;
+      virtual void setColorMode(PreviewColorMode colorMode) = 0;
       virtual double getRevision() = 0;
       virtual void setRevision(double revision) = 0;
+      virtual std::optional<std::function<void(double /* x */, double /* y */)>> getOnTap() = 0;
+      virtual void setOnTap(const std::optional<std::function<void(double /* x */, double /* y */)>>& onTap) = 0;
 
     public:
       // Methods
       virtual void fit() = 0;
+      virtual PickRay screenToRay(double x, double y) = 0;
+      virtual void setSelectedId(double id) = 0;
+      virtual void setObjectTool(ObjectTool tool) = 0;
 
     protected:
       // Hybrid Setup

@@ -10,15 +10,26 @@
 // Forward declarations of C++ defined types
 // Forward declaration of `HybridOrcaViewportSpec` to properly resolve imports.
 namespace margelo::nitro::orca { class HybridOrcaViewportSpec; }
+// Forward declaration of `ObjectTool` to properly resolve imports.
+namespace margelo::nitro::orca { enum class ObjectTool; }
+// Forward declaration of `PickRay` to properly resolve imports.
+namespace margelo::nitro::orca { struct PickRay; }
+// Forward declaration of `PreviewColorMode` to properly resolve imports.
+namespace margelo::nitro::orca { enum class PreviewColorMode; }
 // Forward declaration of `ViewportMode` to properly resolve imports.
 namespace margelo::nitro::orca { enum class ViewportMode; }
 
 // Include C++ defined types
 #include "HybridOrcaViewportSpec.hpp"
+#include "ObjectTool.hpp"
+#include "PickRay.hpp"
+#include "PreviewColorMode.hpp"
 #include "ViewportMode.hpp"
 #include <NitroModules/Result.hpp>
 #include <exception>
+#include <functional>
 #include <memory>
+#include <optional>
 
 // C++ helpers for Swift
 #include "NitroOrcaCore-Swift-Cxx-Bridge.hpp"

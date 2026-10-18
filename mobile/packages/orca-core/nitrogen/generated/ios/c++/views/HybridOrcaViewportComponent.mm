@@ -110,11 +110,23 @@ using namespace margelo::nitro::orca::views;
           : !newViewProps.mode.hasSameValue(oldViewProps->mode)) {
       swiftPart.setMode(static_cast<int>(newViewProps.mode.get()));
     }
+    // minLayer: number
+    if (oldViewProps == nullptr
+          ? newViewProps.minLayer.isProvided()
+          : !newViewProps.minLayer.hasSameValue(oldViewProps->minLayer)) {
+      swiftPart.setMinLayer(newViewProps.minLayer.get());
+    }
     // maxLayer: number
     if (oldViewProps == nullptr
           ? newViewProps.maxLayer.isProvided()
           : !newViewProps.maxLayer.hasSameValue(oldViewProps->maxLayer)) {
       swiftPart.setMaxLayer(newViewProps.maxLayer.get());
+    }
+    // maxTime: number
+    if (oldViewProps == nullptr
+          ? newViewProps.maxTime.isProvided()
+          : !newViewProps.maxTime.hasSameValue(oldViewProps->maxTime)) {
+      swiftPart.setMaxTime(newViewProps.maxTime.get());
     }
     // showTravels: boolean
     if (oldViewProps == nullptr
@@ -122,11 +134,35 @@ using namespace margelo::nitro::orca::views;
           : !newViewProps.showTravels.hasSameValue(oldViewProps->showTravels)) {
       swiftPart.setShowTravels(newViewProps.showTravels.get());
     }
+    // showRetractions: boolean
+    if (oldViewProps == nullptr
+          ? newViewProps.showRetractions.isProvided()
+          : !newViewProps.showRetractions.hasSameValue(oldViewProps->showRetractions)) {
+      swiftPart.setShowRetractions(newViewProps.showRetractions.get());
+    }
+    // showWipes: boolean
+    if (oldViewProps == nullptr
+          ? newViewProps.showWipes.isProvided()
+          : !newViewProps.showWipes.hasSameValue(oldViewProps->showWipes)) {
+      swiftPart.setShowWipes(newViewProps.showWipes.get());
+    }
+    // colorMode: enum
+    if (oldViewProps == nullptr
+          ? newViewProps.colorMode.isProvided()
+          : !newViewProps.colorMode.hasSameValue(oldViewProps->colorMode)) {
+      swiftPart.setColorMode(static_cast<int>(newViewProps.colorMode.get()));
+    }
     // revision: number
     if (oldViewProps == nullptr
           ? newViewProps.revision.isProvided()
           : !newViewProps.revision.hasSameValue(oldViewProps->revision)) {
       swiftPart.setRevision(newViewProps.revision.get());
+    }
+    // onTap: optional
+    if (oldViewProps == nullptr
+          ? newViewProps.onTap.isProvided()
+          : !newViewProps.onTap.hasSameValue(oldViewProps->onTap)) {
+      swiftPart.setOnTap(newViewProps.onTap.get());
     }
 
     // Update hybridRef if it changed

@@ -32,6 +32,7 @@ namespace margelo::nitro::orca {
     FINISHED      SWIFT_NAME(finished) = 0,
     CANCELLED      SWIFT_NAME(cancelled) = 1,
     FAILED      SWIFT_NAME(failed) = 2,
+    OUTOFMEMORY      SWIFT_NAME(outofmemory) = 3,
   } CLOSED_ENUM;
 
 } // namespace margelo::nitro::orca
@@ -47,6 +48,7 @@ namespace margelo::nitro {
         case hashString("finished"): return margelo::nitro::orca::SliceOutcome::FINISHED;
         case hashString("cancelled"): return margelo::nitro::orca::SliceOutcome::CANCELLED;
         case hashString("failed"): return margelo::nitro::orca::SliceOutcome::FAILED;
+        case hashString("outOfMemory"): return margelo::nitro::orca::SliceOutcome::OUTOFMEMORY;
         default: [[unlikely]]
           throw std::invalid_argument("Cannot convert \"" + unionValue + "\" to enum SliceOutcome - invalid value!");
       }
@@ -56,6 +58,7 @@ namespace margelo::nitro {
         case margelo::nitro::orca::SliceOutcome::FINISHED: return JSIConverter<std::string>::toJSI(runtime, "finished");
         case margelo::nitro::orca::SliceOutcome::CANCELLED: return JSIConverter<std::string>::toJSI(runtime, "cancelled");
         case margelo::nitro::orca::SliceOutcome::FAILED: return JSIConverter<std::string>::toJSI(runtime, "failed");
+        case margelo::nitro::orca::SliceOutcome::OUTOFMEMORY: return JSIConverter<std::string>::toJSI(runtime, "outOfMemory");
         default: [[unlikely]]
           throw std::invalid_argument("Cannot convert SliceOutcome to JS - invalid value: "
                                     + std::to_string(static_cast<int>(arg)) + "!");
@@ -70,6 +73,7 @@ namespace margelo::nitro {
         case hashString("finished"):
         case hashString("cancelled"):
         case hashString("failed"):
+        case hashString("outOfMemory"):
           return true;
         default:
           return false;

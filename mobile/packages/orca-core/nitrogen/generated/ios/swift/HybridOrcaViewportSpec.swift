@@ -12,12 +12,21 @@ public protocol HybridOrcaViewportSpec_protocol: HybridObject, HybridView {
   // Properties
   var sessionId: Double { get set }
   var mode: ViewportMode { get set }
+  var minLayer: Double { get set }
   var maxLayer: Double { get set }
+  var maxTime: Double { get set }
   var showTravels: Bool { get set }
+  var showRetractions: Bool { get set }
+  var showWipes: Bool { get set }
+  var colorMode: PreviewColorMode { get set }
   var revision: Double { get set }
+  var onTap: ((_ x: Double, _ y: Double) -> Void)? { get set }
 
   // Methods
   func fit() throws -> Void
+  func screenToRay(x: Double, y: Double) throws -> PickRay
+  func setSelectedId(id: Double) throws -> Void
+  func setObjectTool(tool: ObjectTool) throws -> Void
 }
 
 public extension HybridOrcaViewportSpec_protocol {

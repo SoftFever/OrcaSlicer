@@ -7,6 +7,19 @@
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "specs": "pnpm --filter react-native-orca-core specs",
-    "i18n": "node scripts/i18n.mjs"
+    "i18n": "node scripts/i18n.mjs",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "hooks": "lefthook install",
+    "help-images": "node scripts/help-images.mjs",
+    "help-docs": "node --experimental-strip-types --no-warnings scripts/help-docs.mjs"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "lefthook": "^2.2.2",
+    "oxfmt": "^0.73.0",
+    "oxlint": "^1.88.0"
   }
 }

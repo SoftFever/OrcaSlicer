@@ -9,8 +9,14 @@ project(libslic3r_mobile)
 add_library(libslic3r_mobile STATIC
     core/OrcaMobile.cpp
     core/OrcaMobile.hpp
+    core/PresetArchive.cpp
+    core/PresetArchive.hpp
     core/Session.cpp
     core/Session.hpp
+    core/Thumbnails.cpp
+    core/Thumbnails.hpp
+    core/UndoStack.cpp
+    core/UndoStack.hpp
 )
 
 target_include_directories(libslic3r_mobile PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

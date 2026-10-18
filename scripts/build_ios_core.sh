@@ -165,6 +165,12 @@ build_core() {
         fi
         echo "Building core for $slice ($SDK, $ARCH)..."
         (
+            # zlib and iconv come from the SDK (see "Link the system libz on iOS"). Left to
+            # itself FindZLIB / FindIconv resolve their include dir to <SDK>/usr/include and
+            # CMake then passes that as -isystem, ahead of libc++'s own headers; Xcode 27's
+            # libc++ refuses that ordering (<cstddef> ... didn't find libc++'s <stddef.h>).
+            # The headers are on the default search path anyway, so point the variables at
+            # the deps prefix, which is already an include dir, and let the SDK supply them.
             set -x
             mkdir -p "$CORE_BUILD_DIR"
             cd "$CORE_BUILD_DIR"
@@ -186,6 +192,8 @@ build_core() {
                     -DORCA_MOBILE=ON \
                     -DSLIC3R_GUI=0 \
                     -DSLIC3R_PCH=0 \
+                    -DZLIB_INCLUDE_DIR="$DEPS_PREFIX/include" \
+                    -DIconv_INCLUDE_DIR="$DEPS_PREFIX/include" \
                     $CMAKE_POLICY_COMPAT
             fi
             cmake --build . --target libslic3r_mobile

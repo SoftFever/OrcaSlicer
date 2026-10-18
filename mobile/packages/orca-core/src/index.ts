@@ -2,20 +2,31 @@ import { NitroModules } from 'react-native-nitro-modules'
 import type { OrcaCore } from './specs/OrcaCore.nitro'
 
 export { OrcaViewport, type OrcaViewportRef } from './views/OrcaViewport'
-export type { OrcaViewportMethods, OrcaViewportProps, ViewportMode } from './specs/OrcaViewport.nitro'
+export type { ObjectTool, OrcaViewportMethods, OrcaViewportProps, PreviewColorMode, ViewportMode } from './specs/OrcaViewport.nitro'
 
 export type {
   BedInfo,
+  CloudApplyResult,
+  CloudPresetState,
+  ImportPresetsResult,
+  MirrorAxis,
   ObjectInfo,
   OrcaCore,
   OrcaSession,
+  PickHit,
+  PendingDelete,
+  PlateInfo,
   PresetInfo,
   PresetKind,
+  PresetRef,
+  SkipReason,
+  SkippedPreset,
   Progress,
   SliceOutcome,
   SliceResult,
   SliceStatistics,
   SliceWarning,
+  SnapshotInfo,
   Vec2,
   Vec3,
 } from './specs/OrcaCore.nitro'

@@ -17,15 +17,16 @@ export function DownloadsPill(): React.JSX.Element | null {
   const head = active[0]
   if (head === undefined) return null
   const pct = head.total > 0 ? Math.round((head.done / head.total) * 100) : null
-  const label = active.length > 1 ? `${active.length}` : head.model.split(' ').slice(0, 2).join(' ')
+  // Only the percentage in the pill so it never crowds the segmented control on
+  // iPhone-width headers; the download's model / vendor name is on the model
+  // list itself and in the completion notification.
   return (
-    <View className="mr-2 flex-row items-center gap-2 rounded-full bg-neutral-100 px-3 py-1.5 dark:bg-neutral-800">
+    <View className="mr-2 flex-row items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 dark:bg-neutral-800">
       <ActivityIndicator size="small" />
-      <Text className="text-[12px] font-semibold text-neutral-700 dark:text-neutral-200" numberOfLines={1}>
-        {label}
-      </Text>
       {pct !== null ? (
-        <Text className="text-[11px] tabular-nums text-neutral-500 dark:text-neutral-400">{pct}%</Text>
+        <Text className="text-caption font-semibold tabular-nums text-neutral-700 dark:text-neutral-200">{pct}%</Text>
+      ) : active.length > 1 ? (
+        <Text className="text-caption font-semibold text-neutral-700 dark:text-neutral-200">{active.length}</Text>
       ) : null}
     </View>
   )

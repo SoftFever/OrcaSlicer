@@ -1,6 +1,8 @@
 import React from 'react'
 import { Pressable, Text } from 'react-native'
 
+import { haptic } from '@/lib/haptics'
+
 type Props = {
   label: string
   selected?: boolean
@@ -15,7 +17,7 @@ type Props = {
 export function Chip({ label, selected = false, disabled = false, onPress, className }: Props): React.JSX.Element {
   return (
     <Pressable
-      onPress={disabled ? undefined : onPress}
+      onPress={disabled ? undefined : () => { haptic('toggle'); onPress?.() }}
       className={[
         'rounded-full px-3 py-1.5',
         selected
@@ -30,8 +32,8 @@ export function Chip({ label, selected = false, disabled = false, onPress, class
       <Text
         className={
           selected
-            ? 'text-[13px] font-semibold text-white dark:text-neutral-950'
-            : 'text-[13px] font-medium text-neutral-700 dark:text-neutral-200'
+            ? 'text-footnote font-semibold text-white dark:text-neutral-950'
+            : 'text-footnote font-medium text-neutral-700 dark:text-neutral-200'
         }
         numberOfLines={1}
       >

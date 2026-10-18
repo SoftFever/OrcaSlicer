@@ -60,19 +60,19 @@ export function Alert({
       <View className="flex-row">
         <View className={`w-1 ${bar[tone]}`} />
         <View className="flex-1 gap-1 p-3">
-          <Text className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${titleColor[tone]}`}>
+          <Text className={`text-caption font-semibold uppercase tracking-caps ${titleColor[tone]}`}>
             {title ?? label[tone]}
           </Text>
           {isString ? (
             <>
               <Text
-                className={`text-[13px] leading-5 ${bodyColor[tone]}`}
+                className={`text-footnote leading-5 ${bodyColor[tone]}`}
                 numberOfLines={willClamp ? clampLines : undefined}
               >
                 {children}
               </Text>
               <Pressable onPress={() => setExpanded((e) => !e)} hitSlop={6}>
-                <Text className={`pt-1 text-[12px] font-semibold ${titleColor[tone]}`}>
+                <Text className={`pt-1 text-label font-semibold ${titleColor[tone]}`}>
                   {expanded ? 'Show less' : 'Show all'}
                 </Text>
               </Pressable>

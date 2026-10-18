@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "semi": false,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "ignorePatterns": [
+    "packages/orca-core/nitrogen/**",
+    "apps/orca/i18n/*.json",
+    "**/ios/**",
+    "**/android/**",
+    "pnpm-lock.yaml"
+  ]
+}

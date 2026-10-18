@@ -10,6 +10,8 @@
 // Forward declarations of C++ defined types
 // Forward declaration of `HybridOrcaViewportSpec` to properly resolve imports.
 namespace margelo::nitro::orca { class HybridOrcaViewportSpec; }
+// Forward declaration of `PickRay` to properly resolve imports.
+namespace margelo::nitro::orca { struct PickRay; }
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridOrcaViewportSpec_cxx` to properly resolve imports.
@@ -17,9 +19,12 @@ namespace NitroOrcaCore { class HybridOrcaViewportSpec_cxx; }
 
 // Include C++ defined types
 #include "HybridOrcaViewportSpec.hpp"
+#include "PickRay.hpp"
 #include <NitroModules/Result.hpp>
 #include <exception>
+#include <functional>
 #include <memory>
+#include <optional>
 
 /**
  * Contains specialized versions of C++ templated types so they can be accessed from Swift,
@@ -27,6 +32,43 @@ namespace NitroOrcaCore { class HybridOrcaViewportSpec_cxx; }
  */
 namespace margelo::nitro::orca::bridge::swift {
 
+  // pragma MARK: std::function<void(double /* x */, double /* y */)>
+  /**
+   * Specialized version of `std::function<void(double, double)>`.
+   */
+  using Func_void_double_double = std::function<void(double /* x */, double /* y */)>;
+  /**
+   * Wrapper class for a `std::function<void(double / * x * /, double / * y * /)>`, this can be used from Swift.
+   */
+  class Func_void_double_double_Wrapper final {
+  public:
+    explicit Func_void_double_double_Wrapper(std::function<void(double /* x */, double /* y */)>&& func): _function(std::make_unique<std::function<void(double /* x */, double /* y */)>>(std::move(func))) {}
+    inline void call(double x, double y) const noexcept {
+      _function->operator()(x, y);
+    }
+  private:
+    std::unique_ptr<std::function<void(double /* x */, double /* y */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_double_double create_Func_void_double_double(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_double_double_Wrapper wrap_Func_void_double_double(Func_void_double_double value) noexcept {
+    return Func_void_double_double_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::optional<std::function<void(double /* x */, double /* y */)>>
+  /**
+   * Specialized version of `std::optional<std::function<void(double / * x * /, double / * y * /)>>`.
+   */
+  using std__optional_std__function_void_double____x_____double____y______ = std::optional<std::function<void(double /* x */, double /* y */)>>;
+  inline std::optional<std::function<void(double /* x */, double /* y */)>> create_std__optional_std__function_void_double____x_____double____y______(const std::function<void(double /* x */, double /* y */)>& value) noexcept {
+    return std::optional<std::function<void(double /* x */, double /* y */)>>(value);
+  }
+  inline bool has_value_std__optional_std__function_void_double____x_____double____y______(const std::optional<std::function<void(double /* x */, double /* y */)>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::function<void(double /* x */, double /* y */)> get_std__optional_std__function_void_double____x_____double____y______(const std::optional<std::function<void(double /* x */, double /* y */)>>& optional) noexcept {
+    return optional.value();
+  }
+  
   // pragma MARK: std::shared_ptr<HybridOrcaViewportSpec>
   /**
    * Specialized version of `std::shared_ptr<HybridOrcaViewportSpec>`.
@@ -46,6 +88,15 @@ namespace margelo::nitro::orca::bridge::swift {
   }
   inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
     return Result<void>::withError(error);
+  }
+  
+  // pragma MARK: Result<PickRay>
+  using Result_PickRay_ = Result<PickRay>;
+  inline Result_PickRay_ create_Result_PickRay_(const PickRay& value) noexcept {
+    return Result<PickRay>::withValue(value);
+  }
+  inline Result_PickRay_ create_Result_PickRay_(const std::exception_ptr& error) noexcept {
+    return Result<PickRay>::withError(error);
   }
 
 } // namespace margelo::nitro::orca::bridge::swift

@@ -9,6 +9,11 @@ name: Build iOS core
 # or something it depends on was rebuilt) is then rebuilt from scratch by the build
 # script's -r, while the untouched ones are reused. A restored cache also records the
 # commit it was built from, so a recipe whose patch files changed is rebuilt as well.
+#
+# Compiles go through ccache, persisted the same way. CMake takes the launcher from the
+# environment and the superbuild forwards it to every CMake-based dependency, so the
+# core (libslic3r, rebuilt every run) and any dependency rebuilt from scratch reuse the
+# objects of earlier runs. Autotools and OpenSSL recipes compile without it.
 
 # One run per branch: a new push cancels the one still running for the same ref.
 concurrency:
@@ -45,6 +50,15 @@ jobs:
         slice: [device, simulator]
     env:
       DEPS_DIR: deps/build/ios-${{ matrix.slice }}
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      # Paths under the checkout are hashed relative to it, so a runner that checks out
+      # elsewhere still hits; the compiler is identified by content, not mtime.
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_SLOPPINESS: time_macros,include_file_mtime,include_file_ctime
+      CCACHE_MAXSIZE: 1500M
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -53,7 +67,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install build tools
-        run: brew install ninja automake libtool texinfo
+        run: brew install ninja automake libtool texinfo ccache
 
       - name: Show toolchain
         run: |
@@ -75,6 +89,17 @@ jobs:
           key: ios-deps-${{ matrix.slice }}-${{ github.run_id }}
           restore-keys: |
             ios-deps-${{ matrix.slice }}-
+
+      - name: Restore compiler cache
+        uses: actions/cache/restore@v5
+        with:
+          path: .ccache
+          key: ios-ccache-${{ matrix.slice }}-${{ github.run_id }}
+          restore-keys: |
+            ios-ccache-${{ matrix.slice }}-
+
+      - name: Reset compiler cache statistics
+        run: ccache --zero-stats
 
       - name: Invalidate recipes whose patches changed
         if: ${{ steps.deps-cache.outputs.cache-matched-key != '' }}
@@ -126,6 +151,17 @@ jobs:
 
       - name: Build core
         run: ./scripts/build_ios_core.sh -s -a ${{ matrix.slice }} -x
+
+      - name: Compiler cache statistics
+        if: always()
+        run: ccache --show-stats
+
+      - name: Save compiler cache
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: .ccache
+          key: ios-ccache-${{ matrix.slice }}-${{ github.run_id }}
 
       - name: Upload slice
         uses: actions/upload-artifact@v6
