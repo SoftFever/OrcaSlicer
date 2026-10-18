@@ -72,6 +72,42 @@ call("ui.click", at=[cx - 150, cy - 40])
 e = ents()
 check(len(e) == 2, "click-click still draws a circle: %d entities" % len(e))
 call("ui.key", key="Escape")
+
+# Inference: a line drawn 3 degrees off parallel to an existing one snaps exactly parallel; Ctrl bypasses it.
+def draw_line(a, b, mods=None):
+    call("ui.key", key="L")
+    kw = {"mods": mods} if mods else {}
+    call("ui.move", at=a, **kw)
+    call("ui.click", at=a, **kw)
+    time.sleep(0.6)
+    call("ui.move", at=b, **kw)
+    call("ui.click", at=b, **kw)
+    time.sleep(0.6)
+    call("ui.key", key="Escape")
+
+def lines():
+    return [x for x in ents() if x.get("type") == "line"]
+
+n0 = len(lines())
+draw_line([cx - 200, cy + 200], [cx + 0, cy + 127])               # about 20 degrees (not in the fixed-angle table)
+draw_line([cx - 200, cy + 260], [cx + 0, cy + 175])               # 3 degrees off parallel
+L = lines()[n0:]
+check(len(L) == 2, "two lines drawn: %d" % len(L))
+def dirv(e):
+    p0, p1 = e["p0"], e["p1"]
+    d = [p1[0] - p0[0], p1[1] - p0[1]]
+    n = (d[0] ** 2 + d[1] ** 2) ** 0.5
+    return [d[0] / n, d[1] / n]
+if len(L) == 2:
+    a, b = dirv(L[0]), dirv(L[1])
+    check(abs(a[0] * b[1] - a[1] * b[0]) < 1e-6, "the second line snapped exactly parallel (cross %.2e)" % (a[0] * b[1] - a[1] * b[0]))
+n1 = len(lines())
+draw_line([cx - 200, cy + 320], [cx + 0, cy + 235], mods=["ctrl"])
+L2 = lines()[n1:]
+on_grid = lambda e: all(abs(v - round(v)) < 1e-9 for v in e["p1"])
+if len(L) == 2 and len(L2) == 1:
+    check(not on_grid(L[1]), "the guided end is placed off the grid, on the guide direction: %s" % L[1]["p1"])
+    check(on_grid(L2[0]), "with Ctrl held the guide is off and the grid decides: %s" % L2[0]["p1"])
 call("sketch_cancel")
 print("ui sketch draw:", "PASS" if not fails else "%d FAIL" % len(fails))
 sys.exit(1 if fails else 0)

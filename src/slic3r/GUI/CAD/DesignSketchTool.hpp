@@ -789,6 +789,7 @@ private:
     // of {0,30,45,60,90} deg (replicated every 90 deg) when within tolerance, keeping
     // the same length. Sets `locked` when a snap was applied. Suppressed by m_snap_off.
     Vec2d snap_dir(const Vec2d& anchor, const Vec2d& raw, bool& locked) const;
+    void  draw_guide_line();   // highlights the line the rubber band is parallel/perpendicular to
     // Snap a placed point onto the nearest existing entity endpoint within ~8 px so
     // chains join across entities (a line + an arc can close into one loop). Shift
     // disables it. `snapped` reports whether a vertex was hit.
@@ -1127,6 +1128,9 @@ private:
     bool                m_polygon_circumscribed{false};
     Vec2d               m_cursor{0,0};
     bool                m_has_cursor{false};
+    mutable Vec2d       m_pre_grid{0, 0};       // the cursor as snap_vertex received it, before the grid moved it
+    mutable int         m_guide_ent{-1};        // the line the rubber band is parallel/perpendicular to (-1: none)
+    bool                m_infer_off{false};     // Ctrl/Alt held -> no snapping and no auto-constraints
     bool                m_snap_off{false};      // Shift held -> suppress angle snapping
     bool                m_grid_on{false};
     bool                m_ex_signed{false};     // extrude gizmo depth may be negative (face push/pull)

@@ -2558,14 +2558,33 @@ bool DesignSketchTool::snap_chain_start(GLCanvas3D& canvas, const wxMouseEvent& 
     return true;
 }
 
+void DesignSketchTool::draw_guide_line()
+{
+    if (m_guide_ent < 0 || m_guide_ent >= int(m_entities.size()) || !m_cursor_locked) return;
+    const SketchEntity& e = m_entities[size_t(m_guide_ent)];
+    std::vector<Vec2d> seg = { e.p0, e.p1 };
+    draw_quad_strip(m_line_model, seg, false, ColorRGBA(0.95f, 0.30f, 0.85f, 1.0f));
+}
+
 Vec2d DesignSketchTool::snap_dir(const Vec2d& anchor, const Vec2d& raw, bool& locked) const
 {
     locked = false;
+    m_guide_ent = -1;
     if (m_snap_off) return raw;
 
     const Vec2d d = raw - anchor;
     const double r = d.norm();
     if (r < 1e-9) return raw;
+
+    // Parallel / perpendicular to a line already in the sketch wins over the fixed-angle table: the relation is
+    // the point of drawing near it, and infer_relations then pins it as a constraint on commit.
+    // Measured on the cursor BEFORE the grid rounded it: a coarse grid would otherwise push the direction out of range.
+    const DirectionGuide g = infer_direction_guide(m_entities, anchor, m_grid_on ? m_pre_grid : raw, 4.0 * M_PI / 180.0);
+    if (g.kind != DirectionGuide::Kind::None) {
+        locked = true;
+        m_guide_ent = g.entity;
+        return anchor + (m_grid_on ? (m_pre_grid - anchor).norm() : r) * g.dir;
+    }
 
     const double tol_deg = 5.0;                 // inference half-window
     double ang = std::atan2(d.y(), d.x()) * 180.0 / M_PI;  // (-180,180]
@@ -2601,7 +2620,7 @@ double DesignSketchTool::screen_tol(GLCanvas3D& canvas, const wxMouseEvent& evt,
 InferenceSnap DesignSketchTool::infer_at(GLCanvas3D& canvas, const wxMouseEvent& evt,
                                          const Vec2d& raw) const
 {
-    if (evt.ShiftDown()) { InferenceSnap s; s.point = raw; return s; }   // Shift suppresses
+    if (evt.ShiftDown() || evt.ControlDown() || evt.AltDown()) { InferenceSnap s; s.point = raw; return s; }   // Shift/Ctrl/Alt suppress
     const double tol = screen_tol(canvas, evt, raw);
     return infer_point_snap(m_entities, raw, tol);
 }
@@ -2631,6 +2650,7 @@ bool DesignSketchTool::click_snaps() const
 Vec2d DesignSketchTool::snap_vertex(GLCanvas3D& canvas, const wxMouseEvent& evt,
                                     const Vec2d& raw, bool& snapped) const
 {
+    m_pre_grid = raw;
     const InferenceSnap s = infer_at(canvas, evt, raw);
     // Cache the target so render() can draw a snap hint; only endpoint/centre/origin
     // count as a "vertex" snap for the callers that gate angle inference on it.
@@ -2723,7 +2743,7 @@ static int sketch_endpoint_roles(const SketchEntity& e, SketchPointRole out[2])
 void DesignSketchTool::infer_auto_constraints(int base, double ang_tol_rad, double weld_tol)
 {
     const int n = int(m_entities.size());
-    if (base < 0 || base >= n) return;
+    if (base < 0 || base >= n || m_infer_off) return;   // Ctrl/Alt held: draw exactly what was clicked
 
 
     // 1) Coincident between a new endpoint and any (co-located) endpoint of another
@@ -10370,6 +10390,7 @@ void DesignSketchTool::render(GLCanvas3D& canvas)
             pts.push_back(m_cursor);
         draw_quad_strip(m_highlight_model, pts, false, preview);
         draw_vertices(m_vertex_model, m_points, yellow);
+        draw_guide_line();
         // Teal rubber-band = the new segment is locked to an inference angle.
         if (m_cursor_locked && m_has_cursor && !m_points.empty()) {
             const ColorRGBA lock(0.10f, 0.85f, 0.80f, 1.0f);
@@ -10380,6 +10401,7 @@ void DesignSketchTool::render(GLCanvas3D& canvas)
     }
 
     case Mode::Line: {
+        draw_guide_line();
         std::vector<Vec2d> pts = m_points;
         if (m_has_cursor && m_points.size() == 1)
             pts.push_back(m_cursor);
@@ -12261,7 +12283,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
         }
     }
     if (evt.Moving() || draw_drag) {
-        m_snap_off = evt.ShiftDown();
+        m_snap_off = evt.ShiftDown() || evt.ControlDown() || evt.AltDown(); m_infer_off = evt.ControlDown() || evt.AltDown();
         screen_to_plane(canvas, evt, m_cursor);
         m_has_cursor = true;
         m_cursor_locked = false;
@@ -12289,7 +12311,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
         if (evt.LeftDown()) {
             Vec2d p;
             screen_to_plane(canvas, evt, p);
-            m_snap_off = evt.ShiftDown();
+            m_snap_off = evt.ShiftDown() || evt.ControlDown() || evt.AltDown(); m_infer_off = evt.ControlDown() || evt.AltDown();
             bool vsnap = false;
             p = snap_vertex(canvas, evt, p, vsnap);   // snap onto an existing endpoint
             if (snap_chain_start(canvas, evt, p)) {   // clicked the previewed close target
@@ -12335,7 +12357,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
         if (evt.LeftDown()) {
             Vec2d p;
             screen_to_plane(canvas, evt, p);
-            m_snap_off = evt.ShiftDown();
+            m_snap_off = evt.ShiftDown() || evt.ControlDown() || evt.AltDown(); m_infer_off = evt.ControlDown() || evt.AltDown();
             bool vsnap = false;
             p = snap_vertex(canvas, evt, p, vsnap);   // snap onto an existing endpoint
             if (m_points.empty()) {     // first click = anchor
@@ -12687,7 +12709,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
         // geometry); double-click or right-click finishes as an open spline.
         if (evt.LeftDown()) {
             Vec2d p; screen_to_plane(canvas, evt, p);
-            m_snap_off = evt.ShiftDown();
+            m_snap_off = evt.ShiftDown() || evt.ControlDown() || evt.AltDown(); m_infer_off = evt.ControlDown() || evt.AltDown();
             bool vsnap = false;
             p = snap_vertex(canvas, evt, p, vsnap);   // poles can land on endpoints
             m_chain_dup_tol = screen_tol(canvas, evt, p, 3.0);
