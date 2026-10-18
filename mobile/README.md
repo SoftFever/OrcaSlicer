@@ -90,10 +90,15 @@ The "Mobile release" workflow (`.github/workflows/mobile_release.yml`), on every
 
 1. keeps a release PR open that bumps `mobile/version.txt`, `app.json` and
    `package.json` and adds the section to `mobile/CHANGELOG.md`;
-2. when that PR is merged, tags `mobile-vX.Y.Z` and creates the GitHub release, then in
+2. builds the release PR's own candidate `.ipa` on every update of that PR, as the "IPA"
+   check main's ruleset requires, so a release that does not build cannot be merged.
+   The release PR gets its checks only when release-please opens it as a GitHub App
+   (`RELEASE_APP_ID` / `RELEASE_APP_PRIVATE_KEY`); with the workflow's own token no
+   workflow runs on it;
+3. when that PR is merged, tags `mobile-vX.Y.Z` and creates the GitHub release, then in
    the same run builds an ad-hoc signed `OrcaMobile-X.Y.Z.ipa` against the newest
    `OrcaCore.xcframework` from "Build iOS core" (CFBundleVersion from the run number);
-3. attaches the `.ipa`, its checksum and install notes to the release, and adds it to
+4. attaches the `.ipa`, its checksum and install notes to the release, and adds it to
    the AltStore source on the `altstore` branch.
 
 The beta lane runs every Monday and publishes a beta only when something under
