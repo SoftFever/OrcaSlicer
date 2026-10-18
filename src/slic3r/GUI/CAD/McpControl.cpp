@@ -622,6 +622,7 @@ json describe_tools()
         compact_tool("ui.move", "Move the pointer over the design canvas (canvas pixels).", {{"at", "array", "[x,y] px"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.click", "Click on the design canvas through the real event path: move, press, release (count 2 = double click).", {{"at", "array", "[x,y] px"}, {"button", "integer", "1 left, 2 middle, 3 right"}, {"count", "integer", "1|2"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.drag", "Press at `from`, move to `to` in `steps`, release.", {{"from", "array", "[x,y] px"}, {"to", "array", "[x,y] px"}, {"steps", "integer", "default 8"}, {"step_ms", "integer", "pause per move, default 25"}, {"button", "integer", "1|2|3"}, {"mods", "array", "shift|ctrl|alt"}}),
+        compact_tool("ui.card", "Rig driver for the wx feature cards: open (dressup|extrude|shell|draft|pattern), set {field: number}, check [feature indices] (pattern), confirm.", {{"open", "string", "card name"}, {"set", "object", "field values: size size2 law distance thin_in thin_out shell_thickness draft_angle add_shell_face add_draft_face pattern_what pattern_type pattern_axis pattern_axis2 count spacing angle count2 spacing2 mirror_offset"}, {"check", "array", "feature indices to repeat"}, {"confirm", "boolean", "press the check mark"}}),
         compact_tool("ui.key", "Press a key as the keyboard delivers it (shortcut gate first, then the focused window).", {{"key", "string", "a character, or Escape|Enter|Tab|Backspace|Delete|Space|Left|Right|Up|Down|Home|End|PageUp|PageDown|F1-F12"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.text", "Type text into the focused window, one character event each.", {{"text", "string", "up to 4096 characters"}}),
         compact_tool("ui.screenshot", "Same as screenshot.", {{"path", "string", "absolute .png"}, {"view", "string", ""}, {"fit", "boolean", ""}}),
@@ -2294,6 +2295,7 @@ json action_new_document(DesignPanel* panel, const json& params)
     doc.variables.clear();   // a new document starts with no variables and no history marker
     doc.rollback_index = -1;
     doc.recompute();
+    panel->mcp_drop_selection();
     panel->mcp_after_change();
     return json{{"ok", true}, {"features", 0}};
 }
@@ -2916,6 +2918,11 @@ int ui_mods(const json& p)
 }
 int ui_int(const json& a, size_t i) { return int(std::lround(jn(a, i))); }
 
+json ui_card_state(DesignPanel* panel)
+{
+    return json{{"tool", panel->mcp_active_tool()}, {"confirm", panel->mcp_confirm_enabled()}, {"status", panel->mcp_status()}, {"rollback", panel->mcp_doc().rollback_index}};
+}
+
 json ui_inspect(DesignPanel* panel)
 {
     DesignCanvas* v = panel->mcp_viewport();
@@ -2930,7 +2937,7 @@ json ui_inspect(DesignPanel* panel)
         out["focus"]["chain"] = chain;
         if (in) out["focus"]["canvas_accepts"] = in->AcceptsFocus();
     }
-    out["card"] = {{"tool", panel->mcp_active_tool()}, {"confirm", panel->mcp_confirm_enabled()}, {"status", panel->mcp_status()}, {"rollback", panel->mcp_doc().rollback_index}};
+    out["card"] = ui_card_state(panel);
     if (auto* ig = wxGetApp().imgui())
         out["imgui"] = {{"want_text_input", ig->want_text_input()}, {"want_keyboard", ig->want_keyboard()}, {"want_mouse", ig->want_mouse()}};
     if (v) {
@@ -3016,6 +3023,30 @@ json ui_dispatch(const std::string& method, const json& p)
         for (int i = 1; i <= steps; ++i) { mouse(0, x + (tx - x) * i / steps, y + (ty - y) * i / steps); pause(step_ms); }
         pause(step_ms); mouse(2, tx, ty); pause(60);
         return json{{"ok", true}};
+    }
+    if (method == "ui.card") {   // rig driver for the wx feature cards: open one, set fields, commit
+        if (p.contains("open") && !(p["open"].is_string() && on_main([&]() { return panelp()->mcp_card_open(p["open"].get<std::string>()); })))
+            throw std::runtime_error("ui.card open: dressup | extrude | shell | draft | pattern");
+        if (p.contains("set")) {
+            if (!p["set"].is_object()) throw std::runtime_error("ui.card set must be an object {field: number}");
+            for (auto it = p["set"].begin(); it != p["set"].end(); ++it) {
+                if (!it.value().is_number()) throw std::runtime_error("ui.card set values are numbers");
+                const std::string k = it.key();
+                const double      v = it.value().get<double>();
+                if (!on_main([&]() { return panelp()->mcp_card_set(k, v); })) throw std::runtime_error("ui.card: unknown field or bad choice: " + k);
+            }
+        }
+        if (p.contains("check")) {
+            if (!p["check"].is_array()) throw std::runtime_error("ui.card check must be an array of feature indices");
+            for (const json& x : p["check"])
+                if (!x.is_number_integer() || !on_main([&]() { return panelp()->mcp_card_check_feature(x.get<int>(), true); })) throw std::runtime_error("ui.card check: not a repeatable feature");
+        }
+        bool confirmed = true;
+        if (p.value("confirm", false)) {
+            for (int i = 0; i < 50 && !on_main([&]() { return panelp()->mcp_card_confirm_enabled(); }); ++i) pause(100);   // the preview settles first
+            confirmed = on_main([&]() { return panelp()->mcp_card_confirm(); });
+        }
+        return json{{"ok", confirmed}, {"card", ui_card_state(panelp())}};
     }
     if (method == "ui.key") {
         if (!p.contains("key") || !p["key"].is_string()) throw std::runtime_error("ui.key needs 'key'");

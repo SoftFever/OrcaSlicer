@@ -1016,6 +1016,7 @@ private:
     // The bodies as they stood BEFORE each feature of the recompute in progress (index = feature index): a feature pattern
     // needs the state around the features it repeats. Filled and cleared by recompute().
     mutable std::vector<std::vector<CadBody>> m_pre_states;
+    mutable bool m_in_replay{false};   // recompute() is running its feature loop (m_pre_states has an entry for the feature being applied)
     void apply_transform(std::vector<CadBody>& bodies, const CadFeature& f) const;
     void apply_thicken(std::vector<CadBody>& bodies, const CadFeature& f) const;
     void apply_thicken_surface(std::vector<CadBody>& bodies, const CadFeature& f) const;

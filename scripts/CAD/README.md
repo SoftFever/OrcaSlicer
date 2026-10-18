@@ -32,6 +32,7 @@ The verb in the name is the role:
 | `check-ui-sketch-draw.py` | Two-point sketch shapes draw click-click or by one press-drag-release. | GUI with Design tab visible + `ORCA_CAD_MCP` |
 | `check-ui-card.py` | A face picked before a feature card opens is its input; the check mark follows the preview (Shell, Draft). | GUI with Design tab visible + `ORCA_CAD_MCP` |
 | `check-ui-timeline.py` | Dragging a tree row onto another reorders the history; moves the dependencies forbid are refused. | GUI with Design tab visible + `ORCA_CAD_MCP` |
+| `check-ui-card-features.py` | The wx cards drive the new kernel features: fillet size laws, thin extrude, Shell with several open faces, Draft, feature pattern and mirror. | GUI with Design tab visible + `ORCA_CAD_MCP` |
 | `check-mcp-sketch.py` | The sketch layer driven over the MCP socket, asserting what decides whether a profile is buildable. | Headless GUI + `ORCA_CAD_MCP` |
 
 **`run-kernel-tests.sh` is the only one CI can run.** The rest need a live

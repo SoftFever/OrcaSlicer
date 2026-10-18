@@ -106,6 +106,13 @@ public:
     // verb instead of spending a letter and every verb is reachable — including the rows with no
     // keyboard shortcut, which are otherwise invisible to anything that parses key tables.
     int  mcp_offer_selection_kind() const { return offer_selection_kind(); }  // OfferSel as int
+    // Rig driver for the wx feature cards: open one, set a field, commit it. Names: dressup extrude shell draft pattern.
+    bool mcp_card_open(const std::string& card);
+    bool mcp_card_set(const std::string& key, double value);
+    void mcp_drop_selection() { drop_selection(); }   // a replaced document must not keep the old pick (a stale body index poisons the next feature)
+    bool mcp_card_confirm_enabled() const { return confirm_enabled(); }
+    bool mcp_card_confirm() { if (!confirm_enabled()) return false; tool_confirm(); return true; }
+    bool mcp_card_check_feature(int feature_index, bool on);
     // The open card as the rig sees it: Tool as int (0 = none), whether the check mark would act, the status line.
     int         mcp_active_tool() const { return int(m_active); }
     bool        mcp_confirm_enabled() const { return confirm_enabled(); }
@@ -802,6 +809,23 @@ private:
     wxSpinCtrlDouble* m_pattern_spacing{nullptr};   // linear step (mm)
     ComboBox*         m_pattern_dir{nullptr};        // linear direction: 0 = plane X, 1 = plane Y
     wxSpinCtrlDouble* m_pattern_angle{nullptr};     // circular total angle (deg)
+    // Feature pattern: repeat what chosen earlier features did (instead of copying the whole body)
+    ComboBox*         m_pattern_what{nullptr};      // 0 = whole body, 1 = selected features
+    wxCheckListBox*   m_pattern_feat_list{nullptr};
+    std::vector<int>  m_pattern_feat_idx;           // feature index per row of the list
+    ComboBox*         m_pattern_axis{nullptr};      // world X / Y / Z: line, rotation axis or mirror-plane normal
+    ComboBox*         m_pattern_axis2{nullptr};     // second grid direction
+    wxSpinCtrlDouble* m_pattern_count2{nullptr};
+    wxSpinCtrlDouble* m_pattern_spacing2{nullptr};
+    wxSpinCtrlDouble* m_pattern_mirror_off{nullptr};   // mirror plane offset along its normal from the model origin
+    wxBoxSizer*       m_pattern_feat_box{nullptr};
+    void sync_pattern_mode();
+    std::vector<int> m_pattern_edit_features;   // checked features of a feature pattern being edited
+    void fill_feature_pattern(CadFeature& f) const;
+    void populate_pattern_features();
+    // Thin extrude (wall around the outline)
+    wxSpinCtrlDouble* m_thin_in{nullptr};
+    wxSpinCtrlDouble* m_thin_out{nullptr};
     // Boolean controls (combine two existing bodies).
     ComboBox*         m_bool_op{nullptr};            // 0 = Union, 1 = Subtract, 2 = Intersect
     ComboBox*         m_bool_target{nullptr};        // body that survives (selection == body index)
@@ -903,6 +927,9 @@ private:
     ComboBox*         m_dressup_type{nullptr};
     ComboBox*         m_face_group{nullptr};
     wxSpinCtrlDouble* m_dressup_size{nullptr};
+    ComboBox*         m_dressup_law{nullptr};        // fillet size law: 0 constant radius, 1 variable (start -> end), 2 chord length
+    wxSpinCtrlDouble* m_dressup_size2{nullptr};      // the end radius of a variable fillet
+    void apply_dressup_law(CadFeature& f) const;
     wxStaticText*     m_dressup_edge_label{nullptr}; // shows the picked edge, or the group fallback
 
     ComboBox*         m_hole_plane{nullptr};
@@ -944,6 +971,11 @@ private:
 
     wxSpinCtrlDouble* m_shell_thickness{nullptr};
     wxStaticText*     m_shell_face_label{nullptr};   // shows the picked face to remove
+    ::Button*         m_shell_add_btn{nullptr};      // "Add picked face": more than one face to open
+    std::vector<int>  m_shell_extra;                 // faces added so far (the live pick counts too)
+    ::Button*         m_draft_add_btn{nullptr};
+    std::vector<int>  m_draft_extra;
+    void sync_face_list_labels();
 
     // Draft controls (taper a single picked solid face about the body bottom).
     wxSpinCtrlDouble* m_draft_angle{nullptr};

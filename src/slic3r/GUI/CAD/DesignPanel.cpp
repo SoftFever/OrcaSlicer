@@ -1930,6 +1930,16 @@ DesignPanel::DesignPanel(wxWindow* parent)
         eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Flip direction")), 0, wxALIGN_CENTER_VERTICAL);
         eform->Add(m_flip, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
 
+        // Thin extrude: a wall around the closed outline instead of the filled area (0 and 0 = a normal extrude).
+        m_thin_in = make_spin(m_cards, 0.0, 0.0, 1000.0);
+        m_thin_out = make_spin(m_cards, 0.0, 0.0, 1000.0);
+        for (wxSpinCtrlDouble* sp : { m_thin_in, m_thin_out })
+            sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
+        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Wall inside")), 0, wxALIGN_CENTER_VERTICAL);
+        eform->Add(spin_frame(m_thin_in), 0, wxEXPAND);
+        eform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Wall outside")), 0, wxALIGN_CENTER_VERTICAL);
+        eform->Add(spin_frame(m_thin_out), 0, wxEXPAND);
+
         m_box_extrude->Add(eform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
     }
     cards->Add(m_box_extrude, 0, wxEXPAND);
@@ -1966,6 +1976,31 @@ DesignPanel::DesignPanel(wxWindow* parent)
     m_dressup_size = make_spin(m_cards, 2.0);
     dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Size (r/dist)")), 0, wxALIGN_CENTER_VERTICAL);
     dform->Add(spin_frame(m_dressup_size), 0, wxEXPAND);
+
+    // Fillet size law. Constant radius is the plain fillet; Variable runs the radius linearly along the edge from "Size" at the
+    // edge's start to the end radius; Chord length reads "Size" as the width of the round measured across it.
+    m_dressup_law = make_combo(m_cards);
+    m_dressup_law->Append(_L("Constant radius"));
+    m_dressup_law->Append(_L("Variable radius"));
+    m_dressup_law->Append(_L("Chord length"));
+    m_dressup_law->SetSelection(0);
+    m_dressup_size2 = make_spin(m_cards, 4.0, 0.0, 1000.0);
+    m_dressup_size2->Enable(false);
+    m_dressup_law->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) {
+        m_dressup_size2->Enable(m_dressup_law->GetSelection() == 1 && m_dressup_type->GetSelection() == 0);
+        refresh_preview();
+    });
+    m_dressup_size2->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
+    m_dressup_type->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) {   // a chamfer has no size law
+        const bool fillet = m_dressup_type->GetSelection() == 0;
+        m_dressup_law->Enable(fillet);
+        m_dressup_size2->Enable(fillet && m_dressup_law->GetSelection() == 1);
+        e.Skip();
+    });
+    dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Size law")), 0, wxALIGN_CENTER_VERTICAL);
+    dform->Add(m_dressup_law, 0, wxEXPAND);
+    dform->Add(new wxStaticText(m_cards, wxID_ANY, _L("End radius")), 0, wxALIGN_CENTER_VERTICAL);
+    dform->Add(spin_frame(m_dressup_size2), 0, wxEXPAND);
 
     m_box_dressup = new wxBoxSizer(wxVERTICAL);
     m_box_dressup->Add(card_header(m_cards, "design_dressup", _L("Fillet / Chamfer"), m_hdr_dressup), 0, wxLEFT | wxRIGHT | wxTOP, 12);
@@ -2169,7 +2204,9 @@ DesignPanel::DesignPanel(wxWindow* parent)
         m_pattern_type = make_combo(m_cards);
         m_pattern_type->Append(_L_CONTEXT("Linear", "Design"));
         m_pattern_type->Append(_L_CONTEXT("Circular", "Design"));
+        m_pattern_type->Append(_L("Mirror"));   // of selected features only
         m_pattern_type->SetSelection(0);
+        m_pattern_type->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { sync_pattern_mode(); refresh_preview(); });
         pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Type")), 0, wxALIGN_CENTER_VERTICAL);
         pform->Add(m_pattern_type, 0, wxEXPAND);
 
@@ -2192,7 +2229,54 @@ DesignPanel::DesignPanel(wxWindow* parent)
         pform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Total angle (°)")), 0, wxALIGN_CENTER_VERTICAL);
         pform->Add(spin_frame(m_pattern_angle), 0, wxEXPAND);
 
+        for (wxSpinCtrlDouble* sp : { m_pattern_count, m_pattern_spacing, m_pattern_angle })
+            sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
+        m_pattern_dir->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
+
+        m_pattern_what = make_combo(m_cards);
+        m_pattern_what->Append(_L("Whole body"));
+        m_pattern_what->Append(_L("Selected features"));
+        m_pattern_what->SetSelection(0);
+        m_pattern_what->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { sync_pattern_mode(); refresh_preview(); });
+        pform->Insert(0, new wxStaticText(m_cards, wxID_ANY, _L("Repeat")), 0, wxALIGN_CENTER_VERTICAL);
+        pform->Insert(1, m_pattern_what, 0, wxEXPAND);
+
         m_box_pattern->Add(pform, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+
+        // Selected-features mode: which features, along which world axis, a second grid direction, a mirror-plane offset.
+        m_pattern_feat_box = new wxBoxSizer(wxVERTICAL);
+        m_pattern_feat_list = new wxCheckListBox(m_cards, wxID_ANY, wxDefaultPosition, m_cards->FromDIP(wxSize(-1, 90)));
+        m_pattern_feat_list->Bind(wxEVT_CHECKLISTBOX, [this](wxCommandEvent&) { refresh_preview(); });
+        m_pattern_feat_box->Add(new wxStaticText(m_cards, wxID_ANY, _L("Features to repeat")), 0, wxBOTTOM, 4);
+        m_pattern_feat_box->Add(m_pattern_feat_list, 0, wxEXPAND | wxBOTTOM, 6);
+        auto* fform = two_col_form();
+        auto axis_combo = [&]() {
+            ComboBox* c = make_combo(m_cards);
+            c->Append(_L("World X")); c->Append(_L("World Y")); c->Append(_L("World Z"));
+            c->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
+            return c;
+        };
+        m_pattern_axis = axis_combo();
+        m_pattern_axis->SetSelection(0);
+        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Axis / normal")), 0, wxALIGN_CENTER_VERTICAL);
+        fform->Add(m_pattern_axis, 0, wxEXPAND);
+        m_pattern_count2 = make_spin(m_cards, 1, 1, 500);
+        m_pattern_spacing2 = make_spin(m_cards, 20.0, 0.01, 100000.0);
+        m_pattern_axis2 = axis_combo();
+        m_pattern_axis2->SetSelection(1);
+        m_pattern_mirror_off = make_spin(m_cards, 0.0, -100000.0, 100000.0);
+        for (wxSpinCtrlDouble* sp : { m_pattern_count2, m_pattern_spacing2, m_pattern_mirror_off })
+            sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
+        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("2nd count")), 0, wxALIGN_CENTER_VERTICAL);
+        fform->Add(spin_frame(m_pattern_count2), 0, wxEXPAND);
+        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("2nd spacing")), 0, wxALIGN_CENTER_VERTICAL);
+        fform->Add(spin_frame(m_pattern_spacing2), 0, wxEXPAND);
+        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("2nd axis")), 0, wxALIGN_CENTER_VERTICAL);
+        fform->Add(m_pattern_axis2, 0, wxEXPAND);
+        fform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Mirror offset")), 0, wxALIGN_CENTER_VERTICAL);
+        fform->Add(spin_frame(m_pattern_mirror_off), 0, wxEXPAND);
+        m_pattern_feat_box->Add(fform, 0, wxEXPAND);
+        m_box_pattern->Add(m_pattern_feat_box, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
     }
     cards->Add(m_box_pattern, 0, wxEXPAND);
 
@@ -2517,6 +2601,16 @@ DesignPanel::DesignPanel(wxWindow* parent)
     m_shell_face_label = new wxStaticText(m_cards, wxID_ANY, _L("(all faces — closed hollow)"));
     sform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Open face")), 0, wxALIGN_CENTER_VERTICAL);
     sform->Add(m_shell_face_label, 0, wxALIGN_CENTER_VERTICAL);
+    m_shell_add_btn = new ::Button(m_cards, _L("Add picked face"));
+    m_shell_add_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
+    m_shell_add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        if (m_sel_solid_face < 0) { set_status(StatusKind::Error, _L("Click a face on the body first, then Add picked face")); return; }
+        if (std::find(m_shell_extra.begin(), m_shell_extra.end(), m_sel_solid_face) == m_shell_extra.end()) m_shell_extra.push_back(m_sel_solid_face);
+        sync_face_list_labels();
+        refresh_preview();
+    });
+    sform->Add(0, 0);
+    sform->Add(m_shell_add_btn, 0, wxALIGN_CENTER_VERTICAL);
 
     m_box_shell = new wxBoxSizer(wxVERTICAL);
     m_box_shell->Add(card_header(m_cards, "design_shell", _L_CONTEXT("Shell", "Design"), m_hdr_shell), 0, wxLEFT | wxRIGHT | wxTOP, 12);
@@ -2535,6 +2629,16 @@ DesignPanel::DesignPanel(wxWindow* parent)
     m_draft_face_label = new wxStaticText(m_cards, wxID_ANY, _L("(pick a side face)"));
     drform->Add(new wxStaticText(m_cards, wxID_ANY, _L("Face")), 0, wxALIGN_CENTER_VERTICAL);
     drform->Add(m_draft_face_label, 0, wxALIGN_CENTER_VERTICAL);
+    m_draft_add_btn = new ::Button(m_cards, _L("Add picked face"));
+    m_draft_add_btn->SetStyle(ButtonStyle::Regular, ButtonType::Parameter);
+    m_draft_add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        if (m_sel_solid_face < 0) { set_status(StatusKind::Error, _L("Click a face on the body first, then Add picked face")); return; }
+        if (std::find(m_draft_extra.begin(), m_draft_extra.end(), m_sel_solid_face) == m_draft_extra.end()) m_draft_extra.push_back(m_sel_solid_face);
+        sync_face_list_labels();
+        refresh_preview();
+    });
+    drform->Add(0, 0);
+    drform->Add(m_draft_add_btn, 0, wxALIGN_CENTER_VERTICAL);
 
     m_box_draft = new wxBoxSizer(wxVERTICAL);
     m_box_draft->Add(card_header(m_cards, "design_draft", _L("Draft"), m_hdr_draft), 0, wxLEFT | wxRIGHT | wxTOP, 12);
@@ -3863,9 +3967,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
         // If the Shell card is open, a face pick chooses the open face: update the label + gizmo
         // + ghost so the hollow updates live.
         if (m_active == Tool::Shell) {
-            m_shell_face_label->SetLabel(m_sel_solid_face >= 0
-                ? wxString::Format(_L("Face %d"), m_sel_solid_face)
-                : _L("(all faces — closed hollow)"));
+            sync_face_list_labels();
             refresh_preview();   // rebuilds the shell ghost + re-anchors the thickness gizmo
         }
         // Thicken card open: the face pick IS the feature's input, and until now nothing here
@@ -5410,6 +5512,8 @@ void DesignPanel::on_add_extrude()
         f.distance2   = m_distance2->GetValue();
         f.taper_deg   = m_taper->GetValue();
         f.flip        = m_flip->GetValue();
+        f.thin_in     = m_thin_in->GetValue();
+        f.thin_out    = m_thin_out->GetValue();
         f.up_to_face  = (f.extrude_end == ExtrudeEnd::UpToFace) ? m_sel_solid_face : -1;
         // multi-body: act on the picked body, else the body the profile touches (-1 = last)
         f.target_body = m_sel_solid_body >= 0 ? m_sel_solid_body : m_extrude_auto_body;
@@ -5449,6 +5553,7 @@ void DesignPanel::on_add_dressup()
         didx = m_doc.add_fillet(sz, fg, feature_name(_L("Fillet")));
     else
         didx = m_doc.add_chamfer(sz, fg, feature_name(_L("Chamfer")));
+    if (didx >= 0 && didx < int(m_doc.features.size())) apply_dressup_law(m_doc.features[didx]);
     // Dress the picked body (its face/edge ids are body-local). -1 = last body.
     if (didx >= 0 && didx < int(m_doc.features.size()))
         m_doc.features[didx].target_body = m_sel_solid_body;
@@ -6158,10 +6263,11 @@ void DesignPanel::on_add_pattern()
     const int  target   = (m_sel_solid_body >= 0 && m_sel_solid_body < int(m_doc.bodies.size()))
                           ? m_sel_solid_body : -1;
     m_feature_counter++;
-    m_doc.add_pattern(circular, int(m_pattern_count->GetValue()),
-                      m_pattern_spacing->GetValue(), m_pattern_dir->GetSelection(),
-                      m_pattern_angle->GetValue(), target,
-                      feature_name(_L("Pattern")));
+    const int pidx = m_doc.add_pattern(circular, int(m_pattern_count->GetValue()),
+                                       m_pattern_spacing->GetValue(), m_pattern_dir->GetSelection(),
+                                       m_pattern_angle->GetValue(), target,
+                                       feature_name(_L("Pattern")));
+    if (pidx >= 0) fill_feature_pattern(m_doc.features[pidx]);
 
     if (!recompute_guarded(_L("Rebuilding model…")))
         set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
@@ -7478,8 +7584,9 @@ void DesignPanel::on_add_shell()
     const int face = (m_sel_solid_face >= 0) ? m_sel_solid_face : -1;
 
     m_feature_counter++;
-    m_doc.add_shell(m_shell_thickness->GetValue(), face, m_sel_solid_body,
-                    feature_name(_L("Shell")));
+    const int sidx = m_doc.add_shell(m_shell_thickness->GetValue(), face, m_sel_solid_body,
+                                     feature_name(_L("Shell")));
+    if (sidx >= 0) m_doc.features[sidx].shell_faces = m_shell_extra;
 
     if (!recompute_guarded(_L("Rebuilding model…")))
         set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
@@ -7495,14 +7602,15 @@ void DesignPanel::on_add_draft()
         set_status(StatusKind::Warning, _L("Draft needs a solid body — add or import one first"));
         return;
     }
-    if (m_sel_solid_face < 0) {
+    if (m_sel_solid_face < 0 && m_draft_extra.empty()) {
         set_status(StatusKind::Error, _L("Draft needs a picked face — click a side face first"));
         return;
     }
 
     m_feature_counter++;
-    m_doc.add_draft(m_draft_angle->GetValue(), m_sel_solid_face, m_sel_solid_body,
-                    feature_name(_L("Draft")));
+    const int didx = m_doc.add_draft(m_draft_angle->GetValue(), m_sel_solid_face, m_sel_solid_body,
+                                     feature_name(_L("Draft")));
+    if (didx >= 0) m_doc.features[didx].draft_faces = m_draft_extra;
 
     if (!recompute_guarded(_L("Rebuilding model…")))
         set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
@@ -9987,6 +10095,8 @@ void DesignPanel::load_feature_into_dialog(const CadFeature& f)
         m_distance2->SetValue(f.distance2);
         m_taper->SetValue(f.taper_deg);
         m_flip->SetValue(f.flip);
+        m_thin_in->SetValue(f.thin_in);
+        m_thin_out->SetValue(f.thin_out);
         m_extrude_sketch_ref = f.sketch_ref;
         m_sel_solid_body = f.target_body;    // preserve which body on re-edit
         if (m_extrude_sketch_ref >= 0 && m_extrude_sketch_ref < int(m_doc.features.size()))
@@ -9997,6 +10107,10 @@ void DesignPanel::load_feature_into_dialog(const CadFeature& f)
     case CadFeatureType::Chamfer:
         m_dressup_type->SetSelection(f.type == CadFeatureType::Fillet ? 0 : 1);
         m_dressup_size->SetValue(f.dressup_size);
+        m_dressup_law->SetSelection(f.dressup_chord ? 2 : f.dressup_size2 >= 0 ? 1 : 0);
+        if (f.dressup_size2 >= 0) m_dressup_size2->SetValue(f.dressup_size2);
+        m_dressup_law->Enable(f.type == CadFeatureType::Fillet);
+        m_dressup_size2->Enable(f.type == CadFeatureType::Fillet && f.dressup_size2 >= 0);
         m_face_group->SetSelection(static_cast<int>(f.face_group));
         m_sel_solid_edges = f.dressup_edge_ids();   // preserve edge-targeting on re-edit
         m_sel_solid_edge  = m_sel_solid_edges.empty() ? -1 : m_sel_solid_edges.back();
@@ -10054,9 +10168,8 @@ void DesignPanel::load_feature_into_dialog(const CadFeature& f)
     case CadFeatureType::Shell:
         m_shell_thickness->SetValue(f.shell_thickness);
         m_sel_solid_face = f.shell_face;
-        m_shell_face_label->SetLabel(f.shell_face >= 0
-            ? wxString::Format(_L("Face %d"), f.shell_face)
-            : _L("(all faces — closed hollow)"));
+        m_shell_extra = f.shell_faces;
+        sync_face_list_labels();
         break;
     case CadFeatureType::Revolve:
         m_revolve_angle->SetValue(f.revolve_angle);
@@ -10076,6 +10189,19 @@ void DesignPanel::load_feature_into_dialog(const CadFeature& f)
         m_pattern_spacing->SetValue(f.pattern_spacing);
         m_pattern_dir->SetSelection(f.pattern_dir);
         m_pattern_angle->SetValue(f.pattern_angle);
+        // a feature pattern: restore the mode, the axes and the checked features (the list itself is filled when the card opens)
+        m_pattern_what->SetSelection(f.pattern_features.empty() ? 0 : 1);
+        if (!f.pattern_features.empty()) {
+            m_pattern_type->SetSelection(f.pattern_mirror ? 2 : f.pattern_circular ? 1 : 0);
+            auto axis_of = [](const Vec3d& v) { return std::abs(v.y()) > 0.5 ? 1 : std::abs(v.z()) > 0.5 ? 2 : 0; };
+            m_pattern_axis->SetSelection(axis_of(f.pattern_axis));
+            m_pattern_axis2->SetSelection(axis_of(f.pattern_axis2));
+            m_pattern_count2->SetValue(f.pattern_count2);
+            m_pattern_spacing2->SetValue(f.pattern_spacing2);
+            const Vec3d off = f.pattern_origin - m_doc.modeling_origin;
+            m_pattern_mirror_off->SetValue(off.dot(f.pattern_axis.normalized()));
+        }
+        m_pattern_edit_features = f.pattern_features;
         break;
     case CadFeatureType::Plane:
         populate_plane_choices(m_plane_base);
@@ -10105,9 +10231,8 @@ void DesignPanel::load_feature_into_dialog(const CadFeature& f)
     case CadFeatureType::Draft:
         m_draft_angle->SetValue(f.draft_angle);
         m_sel_solid_face = f.draft_face;
-        m_draft_face_label->SetLabel(f.draft_face >= 0
-            ? wxString::Format(_L("Face %d"), f.draft_face)
-            : _L("(pick a side face)"));
+        m_draft_extra = f.draft_faces;
+        sync_face_list_labels();
         break;
     case CadFeatureType::Axis:
         m_axis_type->SetSelection((int)f.axis_type);
@@ -10656,6 +10781,8 @@ CadFeature DesignPanel::build_candidate(Tool t) const
         f.distance2   = m_distance2->GetValue();
         f.taper_deg   = m_taper->GetValue();
         f.flip        = m_flip->GetValue();
+        f.thin_in     = m_thin_in->GetValue();
+        f.thin_out    = m_thin_out->GetValue();
         f.mode       = (m_mode->GetSelection() == 0) ? BooleanMode::New
                      : (m_mode->GetSelection() == 1) ? BooleanMode::Add
                      : (m_mode->GetSelection() == 2) ? BooleanMode::Cut
@@ -10688,6 +10815,7 @@ CadFeature DesignPanel::build_candidate(Tool t) const
         f.type         = (m_dressup_type->GetSelection() == 0) ? CadFeatureType::Fillet
                                                                : CadFeatureType::Chamfer;
         f.dressup_size = m_dressup_size->GetValue();
+        apply_dressup_law(f);
         f.face_group   = static_cast<FaceGroup>(m_face_group->GetSelection());
         // Click-selected solid edges override the face-group: dress THOSE edges.
         {
@@ -10727,11 +10855,13 @@ CadFeature DesignPanel::build_candidate(Tool t) const
         f.shell_thickness = m_shell_thickness->GetValue();
         // A picked solid face opens the shell there; -1 = closed hollow.
         f.shell_face      = (m_sel_solid_face >= 0) ? m_sel_solid_face : -1;
+        f.shell_faces     = m_shell_extra;
         break;
     case Tool::Draft:
         f.type        = CadFeatureType::Draft;
         f.draft_angle = m_draft_angle->GetValue();
         f.draft_face  = (m_sel_solid_face >= 0) ? m_sel_solid_face : -1;
+        f.draft_faces = m_draft_extra;
         break;
     case Tool::Revolve:
         f.type          = CadFeatureType::Revolve;
@@ -10757,6 +10887,7 @@ CadFeature DesignPanel::build_candidate(Tool t) const
         f.pattern_spacing  = m_pattern_spacing->GetValue();
         f.pattern_dir      = m_pattern_dir->GetSelection();
         f.pattern_angle    = m_pattern_angle->GetValue();
+        fill_feature_pattern(f);
         if (!editing) {
             // What add_pattern commits, so the preview is the pattern that will be made: the
             // bed-centred XY plane, and copies spanning the whole angle.
@@ -10974,6 +11105,157 @@ std::vector<int> DesignPanel::dressup_edges() const
     if (!m_sel_solid_edges.empty() && m_sel_solid_edges.back() == m_sel_solid_edge)
         return m_sel_solid_edges;
     return { m_sel_solid_edge };
+}
+
+// The fillet's size law from the card (constant radius, variable radius to an end radius, or a chord width). A chamfer has none.
+void DesignPanel::apply_dressup_law(CadFeature& f) const
+{
+    f.dressup_size2 = -1.0;
+    f.dressup_chord = false;
+    if (f.type != CadFeatureType::Fillet || !m_dressup_law) return;
+    const int law = m_dressup_law->GetSelection();
+    if (law == 1) f.dressup_size2 = m_dressup_size2->GetValue();
+    else if (law == 2) f.dressup_chord = true;
+}
+
+// "Face 3, Face 5": the faces added to the list plus the live pick, or the card's no-face wording.
+void DesignPanel::sync_face_list_labels()
+{
+    auto text = [&](const std::vector<int>& extra, const wxString& none) {
+        std::vector<int> all = extra;
+        if (m_sel_solid_face >= 0 && std::find(all.begin(), all.end(), m_sel_solid_face) == all.end()) all.push_back(m_sel_solid_face);
+        if (all.empty()) return none;
+        wxString s;
+        for (size_t i = 0; i < all.size(); ++i) s += (i ? ", " : "") + wxString::Format(_L("Face %d"), all[i]);
+        return s;
+    };
+    if (m_shell_face_label) {
+        m_shell_face_label->SetLabel(text(m_shell_extra, _L("(all faces — closed hollow)")));
+        if (m_shell_face_label->GetParent()) m_shell_face_label->GetParent()->Layout();
+    }
+    if (m_draft_face_label) {
+        m_draft_face_label->SetLabel(text(m_draft_extra, _L("(pick a side face)")));
+        if (m_draft_face_label->GetParent()) m_draft_face_label->GetParent()->Layout();
+    }
+}
+
+// Every feature a pattern could repeat: the solid-changing ones (not sketches, datums or other patterns).
+void DesignPanel::populate_pattern_features()
+{
+    if (!m_pattern_feat_list) return;
+    std::vector<int> keep = m_edit_index >= 0 ? m_pattern_edit_features : std::vector<int>();
+    if (m_edit_index < 0)
+        for (size_t i = 0; i < m_pattern_feat_idx.size() && i < m_pattern_feat_list->GetCount(); ++i)
+            if (m_pattern_feat_list->IsChecked(unsigned(i))) keep.push_back(m_pattern_feat_idx[i]);
+    m_pattern_feat_list->Clear();
+    m_pattern_feat_idx.clear();
+    const int limit = m_edit_index >= 0 ? m_edit_index : int(m_doc.features.size());
+    for (int i = 0; i < limit; ++i) {
+        const CadFeatureType ty = m_doc.features[size_t(i)].type;
+        if (ty == CadFeatureType::Sketch || ty == CadFeatureType::Sketch3D || ty == CadFeatureType::Plane || ty == CadFeatureType::Axis
+            || ty == CadFeatureType::CoordSys || ty == CadFeatureType::Helix || ty == CadFeatureType::Pattern || ty == CadFeatureType::Project)
+            continue;
+        const int row = m_pattern_feat_list->Append(wxString::FromUTF8(m_doc.features[size_t(i)].name));
+        m_pattern_feat_idx.push_back(i);
+        if (std::find(keep.begin(), keep.end(), i) != keep.end()) m_pattern_feat_list->Check(unsigned(row), true);
+    }
+}
+
+// Selected-features mode shows its own box and turns off what only the whole-body pattern uses.
+void DesignPanel::sync_pattern_mode()
+{
+    if (!m_pattern_what) return;
+    const bool feats = m_pattern_what->GetSelection() == 1;
+    const int  type  = m_pattern_type->GetSelection();
+    if (!feats && type == 2) m_pattern_type->SetSelection(0);   // mirror needs features
+    m_box_pattern->Show(m_pattern_feat_box, feats, true);
+    m_pattern_dir->Enable(!feats);
+    const bool mirror = feats && m_pattern_type->GetSelection() == 2;
+    const bool linear = feats && m_pattern_type->GetSelection() == 0;
+    m_pattern_count->Enable(!mirror);
+    m_pattern_spacing->Enable(!mirror && m_pattern_type->GetSelection() != 1);
+    m_pattern_angle->Enable(!mirror && m_pattern_type->GetSelection() == 1);
+    m_pattern_count2->Enable(linear);
+    m_pattern_spacing2->Enable(linear);
+    m_pattern_axis2->Enable(linear);
+    m_pattern_mirror_off->Enable(mirror);
+    if (m_cards) { m_cards->Layout(); m_cards->FitInside(); }
+}
+
+// Feature-pattern fields of a pattern feature from the card (no-op in whole-body mode). Model coordinates -> world via the origin.
+void DesignPanel::fill_feature_pattern(CadFeature& f) const
+{
+    f.pattern_features.clear();
+    f.pattern_mirror = false;
+    if (!m_pattern_what || m_pattern_what->GetSelection() != 1) return;
+    for (size_t i = 0; i < m_pattern_feat_idx.size() && i < m_pattern_feat_list->GetCount(); ++i)
+        if (m_pattern_feat_list->IsChecked(unsigned(i))) f.pattern_features.push_back(m_pattern_feat_idx[i]);
+    auto axis = [](int sel) { return sel == 1 ? Vec3d(0, 1, 0) : sel == 2 ? Vec3d(0, 0, 1) : Vec3d(1, 0, 0); };
+    const int type = m_pattern_type->GetSelection();
+    f.pattern_axis      = axis(m_pattern_axis->GetSelection());
+    f.pattern_axis2     = axis(m_pattern_axis2->GetSelection());
+    f.pattern_origin    = m_doc.modeling_origin;
+    f.pattern_circular  = type == 1;
+    f.pattern_mirror    = type == 2;
+    f.pattern_count2    = int(m_pattern_count2->GetValue());
+    f.pattern_spacing2  = m_pattern_spacing2->GetValue();
+    if (f.pattern_mirror) { f.pattern_count = 1; f.pattern_origin += f.pattern_axis * m_pattern_mirror_off->GetValue(); }
+    if (type != 0) f.pattern_count2 = 1;
+}
+
+// ---- rig driver for the cards (McpControl "ui.card") ----
+bool DesignPanel::mcp_card_open(const std::string& card)
+{
+    if (card == "dressup")       open_tool(Tool::Dressup);
+    else if (card == "extrude") {   // the ribbon verb's setup: the last sketch is the profile
+        m_extrude_face_src   = -1;
+        m_extrude_sketch_ref = resolve_extrude_sketch();
+        if (m_extrude_sketch_ref < 0) return false;
+        open_tool(Tool::Extrude);
+    }
+    else if (card == "shell")    open_tool(Tool::Shell);
+    else if (card == "draft")    open_tool(Tool::Draft);
+    else if (card == "pattern")  open_tool(Tool::Pattern);
+    else return false;
+    update_action_bar();
+    refresh_preview();
+    return true;
+}
+
+bool DesignPanel::mcp_card_check_feature(int feature_index, bool on)
+{
+    if (!m_pattern_feat_list) return false;
+    for (size_t i = 0; i < m_pattern_feat_idx.size(); ++i)
+        if (m_pattern_feat_idx[i] == feature_index) { m_pattern_feat_list->Check(unsigned(i), on); refresh_preview(); return true; }
+    return false;
+}
+
+bool DesignPanel::mcp_card_set(const std::string& key, double v)
+{
+    auto spin = [&](wxSpinCtrlDouble* s) { if (!s) return false; s->SetValue(v); refresh_preview(); return true; };
+    auto combo = [&](ComboBox* c) { if (!c || int(v) < 0 || int(v) >= int(c->GetCount())) return false; c->SetSelection(int(v)); return true; };
+    if (key == "size")            return spin(m_dressup_size);
+    if (key == "size2")           return spin(m_dressup_size2);
+    if (key == "law")             { if (!combo(m_dressup_law)) return false; m_dressup_size2->Enable(int(v) == 1); refresh_preview(); return true; }
+    if (key == "dressup_type")    { if (!combo(m_dressup_type)) return false; refresh_preview(); return true; }
+    if (key == "distance")        return spin(m_distance);
+    if (key == "thin_in")         return spin(m_thin_in);
+    if (key == "thin_out")        return spin(m_thin_out);
+    if (key == "shell_thickness") return spin(m_shell_thickness);
+    if (key == "draft_angle")     return spin(m_draft_angle);
+    if (key == "add_shell_face")  { if (m_shell_add_btn) { wxCommandEvent e(wxEVT_BUTTON); m_shell_add_btn->GetEventHandler()->ProcessEvent(e); } return true; }
+    if (key == "add_draft_face")  { if (m_draft_add_btn) { wxCommandEvent e(wxEVT_BUTTON); m_draft_add_btn->GetEventHandler()->ProcessEvent(e); } return true; }
+    if (key == "pattern_what")    { if (!combo(m_pattern_what)) return false; sync_pattern_mode(); refresh_preview(); return true; }
+    if (key == "pattern_type")    { if (!combo(m_pattern_type)) return false; sync_pattern_mode(); refresh_preview(); return true; }
+    if (key == "pattern_axis")    { if (!combo(m_pattern_axis)) return false; refresh_preview(); return true; }
+    if (key == "pattern_axis2")   { if (!combo(m_pattern_axis2)) return false; refresh_preview(); return true; }
+    if (key == "count")           return spin(m_pattern_count);
+    if (key == "spacing")         return spin(m_pattern_spacing);
+    if (key == "angle")           return spin(m_pattern_angle);
+    if (key == "count2")          return spin(m_pattern_count2);
+    if (key == "spacing2")        return spin(m_pattern_spacing2);
+    if (key == "mirror_offset")   return spin(m_pattern_mirror_off);
+    return false;
 }
 
 void DesignPanel::sync_dressup_target()
@@ -12385,15 +12667,14 @@ void DesignPanel::open_tool(Tool t)
     if (t == Tool::Dressup && m_edit_index < 0)
         sync_dressup_target();
 
-    if (t == Tool::Shell && m_edit_index < 0)
-        m_shell_face_label->SetLabel(m_sel_solid_face >= 0
-            ? wxString::Format(_L("Face %d"), m_sel_solid_face)
-            : _L("(all faces — closed hollow)"));
-
-    if (t == Tool::Draft && m_edit_index < 0)
-        m_draft_face_label->SetLabel(m_sel_solid_face >= 0
-            ? wxString::Format(_L("Face %d"), m_sel_solid_face)
-            : _L("(pick a side face)"));
+    if (t == Tool::Shell && m_edit_index < 0) { m_shell_extra.clear(); sync_face_list_labels(); }
+    if (t == Tool::Draft && m_edit_index < 0) { m_draft_extra.clear(); sync_face_list_labels(); }
+    if (t == Tool::Pattern) { populate_pattern_features(); sync_pattern_mode(); }
+    if (t == Tool::Dressup && m_edit_index < 0) {   // a fresh fillet starts as a plain constant-radius one
+        m_dressup_law->SetSelection(0);
+        m_dressup_law->Enable(m_dressup_type->GetSelection() == 0);
+        m_dressup_size2->Enable(false);
+    }
 
     if (t == Tool::Extrude) {
         if (m_extrude_face_src >= 0)
@@ -12477,10 +12758,7 @@ void DesignPanel::open_tool(Tool t)
         const wxString face_name = have ? wxString::Format(_L("Face %d"), m_sel_solid_face) : wxString();
         if (t == Tool::Thicken && m_thicken_face_label)
             m_thicken_face_label->SetLabel(have ? face_name : _L("(pick a solid face)"));
-        if (t == Tool::Shell && m_shell_face_label)
-            m_shell_face_label->SetLabel(have ? face_name : _L("(all faces — closed hollow)"));
-        if (t == Tool::Draft && m_draft_face_label)
-            m_draft_face_label->SetLabel(have ? face_name : _L("(pick a side face)"));
+        if (t == Tool::Shell || t == Tool::Draft) sync_face_list_labels();
     }
 
     if (editing) {

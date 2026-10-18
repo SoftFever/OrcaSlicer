@@ -4268,13 +4268,19 @@ static double solid_volume(const TopoDS_Shape& s)
 // both by a rigid transform; one cut and one fuse then apply them all, so overlapping instances merge instead of fighting.
 void CadDocument::apply_feature_pattern(std::vector<CadBody>& bodies, const CadFeature& f) const
 {
-    const int me = int(m_pre_states.size()) - 1;   // this feature's own index
+    // During a recompute the state before THIS feature was just recorded (it is the last entry); in a preview the candidate is not
+    // recorded yet and the bodies passed in ARE that state - valid only while the recorded states cover every existing feature.
+    const int n_rec = int(m_pre_states.size());
+    if (!m_in_replay && n_rec != int(features.size()))
+        throw std::runtime_error(_u8L("pattern: rebuild the model first"));
+    const int me = m_in_replay ? n_rec - 1 : n_rec;   // this feature's own index
     int a = f.pattern_features.front(), b = a;
     for (int r : f.pattern_features) { a = std::min(a, r); b = std::max(b, r); }
-    if (a < 0 || b >= me || b + 1 >= int(m_pre_states.size()))
+    if (a < 0 || b >= me)
         throw std::runtime_error(_u8L("pattern: it can only repeat features that come before it"));
-    const std::vector<CadBody>& before = m_pre_states[a];
-    const std::vector<CadBody>& after  = m_pre_states[b + 1];
+    auto state_before = [&](int i) -> const std::vector<CadBody>& { return i < n_rec ? m_pre_states[size_t(i)] : bodies; };
+    const std::vector<CadBody>& before = state_before(a);
+    const std::vector<CadBody>& after  = state_before(b + 1);
     const int t = pick_body(features[a].target_body, int(before.size()));
     if (t < 0 || t >= int(after.size()) || t >= int(bodies.size()) || before.size() != after.size())
         throw std::runtime_error(_u8L("pattern: the repeated features must change one existing body (not create or remove bodies)"));
@@ -4721,6 +4727,7 @@ bool CadDocument::recompute()
             f.attach_face = face;
         };
         m_pre_states.clear();
+        struct ReplayFlag { bool& f; explicit ReplayFlag(bool& x) : f(x) { f = true; } ~ReplayFlag() { f = false; } } replay_flag(m_in_replay);
         for (size_t fi = 0; fi < features.size(); ++fi) {
             if (rollback_index >= 0 && int(fi) > rollback_index) break;   // rolled back to rollback_index
             replaying = fi;
