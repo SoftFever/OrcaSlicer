@@ -1,0 +1,141 @@
+name: Sync with upstream
+
+# Keeps this fork's main in step with OrcaSlicer/OrcaSlicer. Once a day (or by hand)
+# the job fetches upstream's main and, when it carries commits main does not have,
+# merges it on the branch `sync/upstream` and opens one pull request for it, or
+# refreshes the one already open. A merge that conflicts still gets the pull request:
+# the branch is then upstream's main as is, so the PR shows the conflicts, and the
+# PR body lists the files to resolve by merging locally.
+#
+# The sync pull request must be merged with a MERGE COMMIT. A squash (or rebase) turns
+# upstream's commits into new ones git cannot recognise as upstream's history, so the
+# next sync merges the same commits again and every later upstream edit to those
+# lines conflicts. The job refuses to run on a fork whose repository settings forbid
+# merge commits, so the mistake is caught before the first sync rather than after.
+#
+# Pull requests opened with the default GITHUB_TOKEN run no CI. Set a SYNC_TOKEN
+# secret (a fine-grained token with contents and pull-requests write on this
+# repository) to have the checks run on the sync PR.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+env:
+  UPSTREAM: https://github.com/OrcaSlicer/OrcaSlicer.git
+  UPSTREAM_BRANCH: main
+  BASE: main
+  SYNC_BRANCH: sync/upstream
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.BASE }}
+          fetch-depth: 0
+          lfs: 'false'
+          token: ${{ secrets.SYNC_TOKEN || github.token }}
+
+      - name: Refuse a repository that cannot merge the sync PR
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
+        run: |
+          allowed="$(gh api "repos/${GITHUB_REPOSITORY}" --jq '.allow_merge_commit')"
+          if [ "$allowed" != "true" ]; then
+            echo "::error::Merge commits are disabled in the repository settings; the sync PR cannot be merged without a squash, which breaks the next sync."
+            exit 1
+          fi
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "$UPSTREAM"
+          git fetch --no-tags upstream "$UPSTREAM_BRANCH"
+          behind="$(git rev-list --count "HEAD..upstream/$UPSTREAM_BRANCH")"
+          echo "behind=$behind" >> "$GITHUB_ENV"
+          echo "Fork is $behind commit(s) behind upstream/$UPSTREAM_BRANCH"
+
+      - name: Nothing to sync
+        if: env.behind == '0'
+        run: echo "main already contains upstream/$UPSTREAM_BRANCH"
+
+      - name: Attempt the merge
+        if: env.behind != '0'
+        id: merge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$SYNC_BRANCH" "$BASE"
+          if git merge --no-ff --no-edit "upstream/$UPSTREAM_BRANCH" \
+               -m "Merge upstream OrcaSlicer main ($behind commits)"; then
+            echo "conflicts=" >> "$GITHUB_OUTPUT"
+            echo "clean=true" >> "$GITHUB_OUTPUT"
+          else
+            # Record the conflicting files, then publish upstream's main as the branch
+            # so the pull request exists and shows the conflict for a person to resolve.
+            files="$(git diff --name-only --diff-filter=U | head -200)"
+            git merge --abort
+            git reset -q --hard "upstream/$UPSTREAM_BRANCH"
+            {
+              echo "conflicts<<EOF"
+              echo "$files"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            echo "clean=false" >> "$GITHUB_OUTPUT"
+          fi
+          git push --force origin "$SYNC_BRANCH"
+
+      - name: Open or refresh the pull request
+        if: env.behind != '0'
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
+          CLEAN: ${{ steps.merge.outputs.clean }}
+          CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+        run: |
+          upstream_head="$(git rev-parse --short "upstream/$UPSTREAM_BRANCH")"
+          title="chore: sync with upstream OrcaSlicer ($behind commits)"
+          {
+            echo "Upstream \`OrcaSlicer/OrcaSlicer\` \`$UPSTREAM_BRANCH\` is at \`$upstream_head\`; this fork's \`$BASE\` is **$behind commit(s)** behind."
+            echo
+            if [ "$CLEAN" = "true" ]; then
+              echo "The merge applies cleanly. The branch \`$SYNC_BRANCH\` is \`$BASE\` plus one merge commit of upstream."
+            else
+              echo "**The merge conflicts.** The branch \`$SYNC_BRANCH\` is upstream's \`$UPSTREAM_BRANCH\` as is; resolve locally and push the result to it:"
+              echo
+              echo '```sh'
+              echo "git fetch origin $BASE && git checkout $BASE"
+              echo "git fetch https://github.com/OrcaSlicer/OrcaSlicer.git $UPSTREAM_BRANCH"
+              echo "git merge FETCH_HEAD        # resolve, then: git commit"
+              echo "git push --force origin HEAD:$SYNC_BRANCH"
+              echo '```'
+              echo
+              echo "Files in conflict:"
+              echo
+              printf '%s\n' "$CONFLICTS" | sed 's/^/- `/; s/$/`/'
+            fi
+            echo
+            echo "### Merging"
+            echo
+            echo "Use **Create a merge commit**. A squash or rebase merge rewrites upstream's commits, so the next sync would merge them again and conflict on every later upstream change to the same lines."
+            echo
+            echo "_Opened by the \"Sync with upstream\" workflow; it refreshes this PR on each run until it is merged or closed._"
+          } > body.md
+          number="$(gh pr list --head "$SYNC_BRANCH" --base "$BASE" --state open --json number --jq '.[0].number')"
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --title "$title" --body-file body.md
+            echo "Refreshed #$number"
+          else
+            gh pr create --head "$SYNC_BRANCH" --base "$BASE" --title "$title" --body-file body.md --label upstream-sync 2>/dev/null \
+              || gh pr create --head "$SYNC_BRANCH" --base "$BASE" --title "$title" --body-file body.md
+          fi
