@@ -349,7 +349,7 @@ bool Moonraker::apply_afc_mapping(const AFCSelections& selection, bool& applied,
     }
     AFCMapping verified;
     if (!fetch_afc_status(verified, detected, error) || !detected
-        || !verified.plan(selection, desired) || !verified.matches(expected)) {
+        || !verified.plan(selection, desired) || verified.tools != expected) {
         error = _L("AFC filament mapping could not be verified. The print was not started; check that the printer is idle, that the selected lanes are loaded, and that the lane assignments are correct.");
         return false;
     }

@@ -33,7 +33,7 @@ json status_fixture()
     };
 }
 
-AFCSelections selection(const AFCMapping&, const std::map<int, std::string>& desired)
+AFCSelections selection(const std::map<int, std::string>& desired)
 {
     AFCSelections entries;
     for (const auto& [tool, name] : desired) entries.push_back({tool, name});
@@ -103,7 +103,7 @@ TEST_CASE("AFC status with no tool mappings parses as an empty unit", "[AFCMappi
     CHECK(parsed.tools.empty());
     CHECK(parsed.lanes.size() == 4);
     std::map<int, std::string> desired;
-    CHECK_FALSE(parsed.plan(selection(parsed, {{0, "CANVAS_1"}}), desired));
+    CHECK_FALSE(parsed.plan(selection({{0, "CANVAS_1"}}), desired));
 }
 
 TEST_CASE("AFC color encodings normalize to the same display and snapshot color", "[AFCMapping]")
@@ -140,7 +140,7 @@ TEST_CASE("AFC print selections reject busy printers and unloaded lanes", "[AFCM
     auto status = status_fixture();
     AFCMapping before;
     REQUIRE(AFCMapping::parse(status, before));
-    const auto chosen = selection(before, {{0, "CANVAS_1"}, {1, "CANVAS_2"}});
+    const auto chosen = selection({{0, "CANVAS_1"}, {1, "CANVAS_2"}});
     std::map<int, std::string> accepted;
     REQUIRE(before.plan(chosen, accepted));
     SECTION("printing") { status["print_stats"]["state"] = "printing"; }
@@ -160,7 +160,7 @@ TEST_CASE("AFC selections retain physical destinations after an external remap",
     auto status = status_fixture();
     AFCMapping before;
     REQUIRE(AFCMapping::parse(status, before));
-    const auto chosen = selection(before, {{1, "CANVAS_1"}, {2, "CANVAS_3"}});
+    const auto chosen = selection({{1, "CANVAS_1"}, {2, "CANVAS_3"}});
     status["AFC_lane CANVAS_1"]["map"] = {"T2"};
     status["AFC_lane CANVAS_3"]["map"] = {"T1"};
     AFCMapping now;
@@ -169,7 +169,7 @@ TEST_CASE("AFC selections retain physical destinations after an external remap",
     REQUIRE(now.plan(chosen, desired));
     const auto expected = now.expected_tools(desired);
     apply_script(now, now.mapping_script(desired));
-    CHECK(now.matches(expected));
+    CHECK(now.tools == expected);
     CHECK(now.tools.at(1) == "CANVAS_1");
     CHECK(now.tools.at(2) == "CANVAS_3");
     CHECK(now.tools.at(0) == "CANVAS_2");
@@ -186,7 +186,7 @@ TEST_CASE("AFC full single-mapping permutations reach the requested lanes", "[AF
         std::map<int, std::string> desired;
         for (size_t i = 0; i < names.size(); ++i) desired[static_cast<int>(i)] = names[i];
         auto current = initial;
-        REQUIRE(current.plan(selection(initial, desired), desired));
+        REQUIRE(current.plan(selection(desired), desired));
         apply_script(current, current.mapping_script(desired));
         CHECK(current.tools == desired);
     } while (std::next_permutation(names.begin(), names.end()));
@@ -198,10 +198,10 @@ TEST_CASE("AFC partial selections that swap among themselves leave unselected to
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
     const auto before = mapping.tools;
     std::map<int, std::string> desired;
-    REQUIRE(mapping.plan(selection(mapping, {{0, "CANVAS_1"}, {1, "CANVAS_2"}}), desired));
+    REQUIRE(mapping.plan(selection({{0, "CANVAS_1"}, {1, "CANVAS_2"}}), desired));
     const auto expected = mapping.expected_tools(desired);
     apply_script(mapping, mapping.mapping_script(desired));
-    CHECK(mapping.matches(expected));
+    CHECK(mapping.tools == expected);
     CHECK(mapping.tools.at(0) == "CANVAS_1");
     CHECK(mapping.tools.at(1) == "CANVAS_2");
     CHECK(mapping.tools.at(2) == before.at(2));
@@ -219,7 +219,7 @@ TEST_CASE("AFC selections can take a loaded lane from an unused tool when the cu
     }
     AFCMapping mapping;
     REQUIRE(AFCMapping::parse(status, mapping));
-    const auto chosen = selection(mapping, {{0, "CANVAS_3"}});
+    const auto chosen = selection({{0, "CANVAS_3"}});
     std::map<int, std::string> desired;
     REQUIRE(mapping.plan(chosen, desired));
     auto expected = mapping.tools;
@@ -229,7 +229,7 @@ TEST_CASE("AFC selections can take a loaded lane from an unused tool when the cu
     const auto script = mapping.mapping_script(desired);
     CHECK(script == "SET_MAP LANE=CANVAS_3 MAP=T0\n");
     apply_script(mapping, script);
-    CHECK(mapping.matches(expected));
+    CHECK(mapping.tools == expected);
     CHECK(mapping.tools.at(1) == "CANVAS_1");
     CHECK(mapping.tools.at(3) == "CANVAS_4");
     REQUIRE(mapping.plan(chosen, desired));
@@ -241,16 +241,16 @@ TEST_CASE("AFC verification requires the whole expected tool map", "[AFCMapping]
     AFCMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
     auto expected = mapping.tools;
-    CHECK(mapping.matches(expected));
+    CHECK(mapping.tools == expected);
     expected.at(3) = "CANVAS_1";
-    CHECK_FALSE(mapping.matches(expected));
+    CHECK(mapping.tools != expected);
 }
 
 TEST_CASE("AFC unchanged assignments still require idle and loaded status before printing", "[AFCMapping]")
 {
     AFCMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
-    const auto chosen = selection(mapping, {{0, "CANVAS_1"}, {1, "CANVAS_2"}});
+    const auto chosen = selection({{0, "CANVAS_1"}, {1, "CANVAS_2"}});
     std::map<int, std::string> desired;
     REQUIRE(mapping.plan(chosen, desired));
     const auto expected = mapping.expected_tools(desired);
@@ -258,7 +258,7 @@ TEST_CASE("AFC unchanged assignments still require idle and loaded status before
     REQUIRE(mapping.plan(chosen, desired));
     SECTION("printer becomes busy") { mapping.idle = false; }
     SECTION("selected lane is unloaded") { mapping.lanes.at("CANVAS_1").ready = false; }
-    CHECK(mapping.matches(expected));
+    CHECK(mapping.tools == expected);
     CHECK_FALSE(mapping.plan(chosen, desired));
 }
 
@@ -266,7 +266,7 @@ TEST_CASE("AFC multiple mapping permits duplicate destinations without moving ot
 {
     AFCMapping mapping;
     REQUIRE(AFCMapping::parse(status_fixture(), mapping));
-    const auto chosen = selection(mapping, {{1, "CANVAS_1"}, {2, "CANVAS_1"}});
+    const auto chosen = selection({{1, "CANVAS_1"}, {2, "CANVAS_1"}});
     std::map<int, std::string> desired;
     // T1 already serves CANVAS_1, so only the duplicate destination can reject this.
     CHECK_FALSE(mapping.plan(chosen, desired));
@@ -274,7 +274,7 @@ TEST_CASE("AFC multiple mapping permits duplicate destinations without moving ot
     REQUIRE(mapping.plan(chosen, desired));
     const auto expected = mapping.expected_tools(desired);
     apply_script(mapping, mapping.mapping_script(desired));
-    CHECK(mapping.matches(expected));
+    CHECK(mapping.tools == expected);
     CHECK(mapping.tools.at(1) == "CANVAS_1");
     CHECK(mapping.tools.at(2) == "CANVAS_1");
     CHECK(mapping.tools.at(0) == "CANVAS_2");

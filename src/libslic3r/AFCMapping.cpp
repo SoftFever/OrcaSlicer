@@ -154,11 +154,6 @@ std::map<int, std::string> AFCMapping::expected_tools(const std::map<int, std::s
     return after;
 }
 
-bool AFCMapping::matches(const std::map<int, std::string>& expected) const
-{
-    return tools == expected;
-}
-
 std::string AFCMapping::mapping_script(const std::map<int, std::string>& desired) const
 {
     std::string script;

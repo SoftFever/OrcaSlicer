@@ -43,7 +43,6 @@ struct AFCMapping
 
     bool plan(const AFCSelections& selection, std::map<int, std::string>& desired) const;
     std::map<int, std::string> expected_tools(const std::map<int, std::string>& desired) const;
-    bool matches(const std::map<int, std::string>& expected) const;
     std::string mapping_script(const std::map<int, std::string>& desired) const;
 };
 
