@@ -1,5 +1,85 @@
 <div align="center">
 
+<img alt="Orca Mobile" src="mobile/apps/orca/assets/icon.png" width="96" height="96">
+
+# Orca Mobile
+
+**OrcaSlicer on iPhone and iPad.** This repository is a fork of [OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer) that adds a native iOS app around the same slicing core.
+
+[![Mobile app checks](https://github.com/angelo-hub/orcaslicer/actions/workflows/mobile_ci.yml/badge.svg?branch=main)](https://github.com/angelo-hub/orcaslicer/actions/workflows/mobile_ci.yml)
+[![Build iOS core](https://github.com/angelo-hub/orcaslicer/actions/workflows/build_ios.yml/badge.svg?branch=main)](https://github.com/angelo-hub/orcaslicer/actions/workflows/build_ios.yml)
+[![Mobile release](https://img.shields.io/github/v/release/angelo-hub/orcaslicer?filter=mobile-*&label=release)](https://github.com/angelo-hub/orcaslicer/releases)
+
+</div>
+
+> **Unofficial.** Orca Mobile is not built, released or endorsed by the OrcaSlicer maintainers. Please report problems with the app [here](https://github.com/angelo-hub/orcaslicer/issues), not upstream. Everything that slices is upstream's work; if you support one project, [support OrcaSlicer](https://github.com/sponsors/SoftFever).
+
+<table align="center">
+  <tr>
+    <td align="center"><img src="docs/mobile/images/using-the-app/02-ios-prepare-pane.png" width="230" alt="The Prepare pane with a model on the plate"><br><sub>Prepare</sub></td>
+    <td align="center"><img src="docs/mobile/images/using-the-app/04-ios-slice-result.png" width="230" alt="The Preview pane after slicing"><br><sub>Preview</sub></td>
+    <td align="center"><img src="docs/mobile/images/using-the-app/06-ios-device-pane.png" width="230" alt="The Device pane during a print"><br><sub>Device</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/mobile/images/using-the-app/03-ios-object-tools.png" width="230" alt="The object toolbar and detail sheet"><br><sub>Object tools</sub></td>
+    <td align="center"><img src="docs/mobile/images/using-the-app/07-ios-edit-preset.png" width="230" alt="The preset editor"><br><sub>Preset editor</sub></td>
+    <td align="center"><img src="docs/mobile/images/transfer-presets/10-ios-export-share.png" width="230" alt="Sharing an exported preset bundle"><br><sub>Export presets</sub></td>
+  </tr>
+</table>
+
+## What it is
+
+The app links `libslic3r`, the engine behind desktop OrcaSlicer, through a thin C++ façade and a [Nitro](https://nitro.margelo.com) module into an Expo app, with a Metal viewport for the plate and the toolpaths. Every vendor profile in the repository slices on the phone; the app downloads only the printers you pick. See [`docs/HLSD/mobile.md`](docs/HLSD/mobile.md) for the design.
+
+- Slice STL, OBJ, STEP, AMF and 3MF projects with the desktop's presets, multi-plate and per-object extruder assignment.
+- Send G-code to Klipper (Moonraker) and OctoPrint hosts, follow the print with temperatures, camera and a Live Activity, or save the G-code to Files.
+- Move presets to and from the desktop app: import its `.orca_printer` / `.orca_filament` / `.orca_bundle` exports, export bundles it reads back, or sign in to Orca Cloud and let the presets sync.
+- Edit every print, filament and printer setting in the same parameter list as the desktop, run the calibration prints, and keep an eye on storage.
+
+The full list of what works, what is partial and what is not there (Bambu Lab printers, for one) is the matrix in [`mobile/README.md`](mobile/README.md#what-works-today).
+
+## Install
+
+Releases are ad-hoc signed `.ipa` files for [AltStore](https://altstore.io) or [SideStore](https://sidestore.io); add the source and install from there, or pick the `.ipa` from the [releases page](https://github.com/angelo-hub/orcaslicer/releases):
+
+```
+https://raw.githubusercontent.com/angelo-hub/orcaslicer/altstore/source.json          stable
+https://raw.githubusercontent.com/angelo-hub/orcaslicer/altstore/source-beta.json     weekly beta
+```
+
+To build it yourself, or run it from Xcode on your own device, follow [`mobile/README.md`](mobile/README.md).
+
+## Guides
+
+The app ships two guides under Settings ▸ Help; the same pages live here:
+
+- [Move presets between desktop and phone](docs/mobile/transfer-presets.md), export from the desktop app, import on the phone, send changes back, or use Orca Cloud.
+- [Using Orca on iPhone and iPad](docs/mobile/using-the-app.md), from picking a printer to sending G-code.
+
+<table align="center">
+  <tr>
+    <td align="center"><img src="docs/mobile/images/transfer-presets/02-desktop-export-dialog.png" width="360" alt="The desktop Export Preset Bundle dialog"><br><sub>Desktop: File ▸ Export ▸ Export Preset Bundle…</sub></td>
+    <td align="center"><img src="docs/mobile/images/transfer-presets/08-ios-import-confirm.png" width="230" alt="The import toast on the phone"><br><sub>Phone: imported</sub></td>
+  </tr>
+</table>
+
+## Where things are
+
+| Path | What |
+| --- | --- |
+| `mobile/apps/orca` | The Expo app (expo-router, NativeWind) |
+| `mobile/packages/orca-core` | The Nitro module and the Metal viewport over the façade |
+| `src/mobile/core` | The C++ façade over `libslic3r` that both platforms share |
+| `tests/mobile` | The façade's test suite, runnable on a desktop host |
+| `docs/mobile` | User guides, generated from the app's own help content |
+| `scripts/build_ios_core.sh` | Builds the slicing core for iOS into an xcframework |
+
+Upstream changes arrive through a daily workflow that opens a merge pull request; the desktop application itself is unchanged apart from one import flag in `PresetBundle`, and everything below this line is OrcaSlicer's own README.
+
+---
+
+<div align="center">
+
 <picture>
   <img alt="OrcaSlicer logo" src="resources/images/OrcaSlicer.png" width="15%" height="15%">
 </picture>
