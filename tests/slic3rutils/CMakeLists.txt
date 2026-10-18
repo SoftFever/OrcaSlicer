@@ -123,3 +123,18 @@ if (ORCA_BUNDLED_UV_EXECUTABLE)
 endif()
 
 orcaslicer_discover_tests(${_TEST_NAME}_tests)
+
+# Exercises the actual async texture-import dialog without manual input. Keep
+# its wxApp and native crash boundary out of the general utility test process.
+add_executable(texture_import_integration_tests
+    test_texture_import.cpp
+    test_timelapse_codecs.cpp)
+target_link_libraries(texture_import_integration_tests PRIVATE
+    test_common libslic3r_gui libslic3r pybind11::embed Catch2::Catch2WithMain)
+file(TO_NATIVE_PATH "${CMAKE_SOURCE_DIR}/resources" _texture_test_resources)
+target_compile_definitions(texture_import_integration_tests PRIVATE
+    ORCA_TEST_RESOURCES_DIR=R"\(${_texture_test_resources}\)")
+set_property(TARGET texture_import_integration_tests PROPERTY FOLDER "tests")
+orcaslicer_copy_test_dlls(texture_import_integration_tests)
+catch_discover_tests(texture_import_integration_tests ADD_TAGS_AS_LABELS
+    PROPERTIES TIMEOUT 660)

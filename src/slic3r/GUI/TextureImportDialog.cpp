@@ -1752,7 +1752,8 @@ TextureImportDialog::TextureImportDialog(
     const Slic3r::TexturedMesh&      textured_mesh,
     const std::vector<TextureFilamentEntry>& filament_entries,
     std::function<bool()>            initial_cancel_callback,
-    std::function<bool(int)>         initial_progress_callback)
+    std::function<bool(int)>         initial_progress_callback,
+    Slic3r::TexturePaintingSettings::MeshRepairDecision mesh_repair_decision)
     : DPIDialog(parent, wxID_ANY, _L("Import Model"),
                 wxDefaultPosition, wxDefaultSize,
                 (wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) & ~(wxMINIMIZE_BOX | wxMAXIMIZE_BOX))
@@ -1760,6 +1761,7 @@ TextureImportDialog::TextureImportDialog(
     , m_filament_entries(filament_entries)
     , m_initial_cancel_callback(std::move(initial_cancel_callback))
     , m_initial_progress_callback(std::move(initial_progress_callback))
+    , m_mesh_repair_decision(mesh_repair_decision)
 {
     SetSize(wxSize(FromDIP(960), FromDIP(640)));
 
