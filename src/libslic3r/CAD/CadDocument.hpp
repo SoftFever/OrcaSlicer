@@ -122,6 +122,14 @@ struct CadFeature {
     // dressup_edge holds the first of them: a build that predates the list still dresses that
     // one edge instead of falling back to the whole face group.
     std::vector<int> dressup_edges;
+    // Fillet size law (see GeometryEngine::FilletLaw): the radius at the far end of a linearly varying fillet (< 0 = constant),
+    // whether dressup_size is a chord width, and which end dressup_size belongs to.
+    double      dressup_size2{-1.0};
+    bool        dressup_chord{false};
+    bool        dressup_has_start{false};
+    Vec3d       dressup_start{0, 0, 0};
+    std::vector<double> dressup_radii;   // spline radius law: control radii after dressup_size, and the knot vector
+    std::vector<double> dressup_knots;
     // The edges this dress-up targets: the list, else the single edge, else none (face group).
     // Text feature: a Sketch whose imported_regions were vectorised from this string in this font
     // (a WxFontUtils descriptor, bold/italic included) at this cap height in mm. The regions are
@@ -439,7 +447,9 @@ struct CadFeature {
                project_from_sketch, project_source_sketch, project_sketch_entities,
                loft_start_cond, loft_end_cond,
                sk3_points, sk3_closed, sk3_smooth,
-               attach_body, attach_face);
+               attach_body, attach_face,
+               dressup_size2, dressup_chord, dressup_has_start, dressup_start,
+               dressup_radii, dressup_knots);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -486,7 +496,9 @@ struct CadFeature {
                project_from_sketch, project_source_sketch, project_sketch_entities,
                loft_start_cond, loft_end_cond,
                sk3_points, sk3_closed, sk3_smooth,
-               attach_body, attach_face);
+               attach_body, attach_face,
+               dressup_size2, dressup_chord, dressup_has_start, dressup_start,
+               dressup_radii, dressup_knots);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature

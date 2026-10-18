@@ -222,6 +222,11 @@ json describe_tools_core()
                      json{{"name", "edge"},   {"type", "integer|array"}, {"description", "one edge id, or an array of ids rounded together in one feature"}},
                      json{{"name", "radius"}, {"type", "number"}, {"unit", "mm"}, {"default", 1}, {"min", 0.01}},
                      json{{"name", "body"},   {"type", "integer"}, {"default", -1}, {"description", "target body; omit for the last body. edge id is resolved against THIS body."}},
+                     json{{"name", "radius_end"}, {"type", "number"}, {"unit", "mm"}, {"min", 0}, {"description", "variable fillet: the radius runs linearly from `radius` to this along each edge (0 closes the round to a point)"}},
+                     json{{"name", "start"},  {"type", "array"}, {"description", "[x,y,z]: with radius_end, `radius` applies at the end of the edge nearest this point"}},
+                     json{{"name", "radii"},  {"type", "array"}, {"description", "radius spline: the control radii after `radius`, with `knots` (clamped, sorted, 0..1, degree = knots - radii - 2); `start` picks the end the spline begins at"}},
+                     json{{"name", "knots"},  {"type", "array"}, {"description", "the full knot vector of the radius spline"}},
+                     json{{"name", "chord"},  {"type", "boolean"}, {"default", false}, {"description", "`radius` is the width of the round measured across it (chord length), not a radius"}},
                  })}},
             json{{"name", "chamfer"}, {"summary", "Chamfer measured edges of a body (edge ids from query_topology on that body)."},
                  {"params", json::array({
@@ -1117,6 +1122,31 @@ json action_fillet(DesignPanel* panel, const json& params)
     doc.checkpoint();
     int f = doc.add_fillet(radius, edges, "Fillet");
     if (bi >= 0) doc.features[f].target_body = bi;   // edge id resolved against THIS body's shape
+    {   // size law: radius_end = a radius running linearly from `radius` (at the end nearest `start`) to this; chord = `radius` is a width
+        CadFeature& cf = doc.features[f];
+        if (params.contains("radius_end")) {
+            if (!params["radius_end"].is_number() || params["radius_end"].get<double>() < 0) { doc.undo(); throw std::runtime_error("radius_end must be a number >= 0"); }
+            cf.dressup_size2 = params["radius_end"].get<double>();
+        }
+        if (params.contains("radii") || params.contains("knots")) {
+            auto nums = [&](const char* k) {
+                std::vector<double> v;
+                if (!params.contains(k) || !params[k].is_array() || params[k].empty() || params[k].size() > 64) { doc.undo(); throw std::runtime_error(std::string(k) + " must be a non-empty array of at most 64 numbers"); }
+                for (const json& x : params[k]) { if (!x.is_number()) { doc.undo(); throw std::runtime_error(std::string(k) + " must hold numbers"); } v.push_back(x.get<double>()); }
+                return v;
+            };
+            cf.dressup_radii = nums("radii");
+            cf.dressup_knots = nums("knots");
+        }
+        cf.dressup_chord = params.value("chord", false);
+        if (cf.dressup_chord && cf.dressup_size2 >= 0) { doc.undo(); throw std::runtime_error("chord and radius_end cannot be combined"); }
+        if (params.contains("start")) {
+            const json& s = params["start"];
+            if (!s.is_array() || s.size() != 3 || !s[0].is_number() || !s[1].is_number() || !s[2].is_number()) { doc.undo(); throw std::runtime_error("start must be [x,y,z]"); }
+            cf.dressup_has_start = true;
+            cf.dressup_start     = Vec3d(s[0].get<double>(), s[1].get<double>(), s[2].get<double>());
+        }
+    }
     bool ok = doc.recompute();
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
     panel->mcp_after_change();

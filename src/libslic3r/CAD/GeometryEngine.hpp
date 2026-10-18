@@ -83,9 +83,25 @@ public:
                                        FaceGroup faces = FaceGroup::All);
     static TopoDS_Shape apply_chamfer(const TopoDS_Shape& solid, double distance,
                                        int edge_id);
+    // How a fillet's size is read. Default: `radius` is constant along the edge.
+    //  r2 >= 0     the radius runs linearly from `radius` to `r2` along each edge (end 1 = the end nearest `start` when given)
+    //  chord       `radius` is the width of the round measured across it, not a radius: r = chord / (2 sin(phi/2)), phi = the
+    //              angle between the two faces' outward normals, taken at each edge's midpoint
+    struct FilletLaw {
+        double r2{-1.0};
+        bool   chord{false};
+        bool   has_start{false};
+        Vec3d  start{0, 0, 0};
+        // A radius that follows a B-spline along the edge (u = 0 at the first end .. 1 at the last): the control radii (the
+        // fillet's own radius is the first) and the full knot vector, clamped, degree = knots - radii - 1. Overrides r2.
+        std::vector<double> radii;
+        std::vector<double> knots;
+    };
     // Several edges in one operation, all ids resolved against `solid`.
     static TopoDS_Shape apply_fillet(const TopoDS_Shape& solid, double radius,
                                      const std::vector<int>& edge_ids);
+    static TopoDS_Shape apply_fillet(const TopoDS_Shape& solid, double radius,
+                                     const std::vector<int>& edge_ids, const FilletLaw& law);
     static TopoDS_Shape apply_chamfer(const TopoDS_Shape& solid, double distance,
                                        const std::vector<int>& edge_ids);
 

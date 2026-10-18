@@ -439,10 +439,22 @@ class Replay:
         return ids, topo.get("generation")
 
     def op_fillet(self, ft):
-        if ft.get("type") != "constant_radius":
-            raise Blocked("fillet type %s" % ft.get("type", "(none: variable/chord set)"))
+        kind = ft.get("type")
+        if kind not in ("constant_radius", "variable_radius", "chord_length", "spline_radius"):
+            raise Blocked("fillet type %s" % (kind or "(none: variable/chord set)"))
         ids, gen = self._edges(ft)
-        self.m.call("fillet", {"edge": ids, "radius": ft["radius"], "body": self.body, "generation": gen})
+        args = {"edge": ids, "radius": ft["radius"], "body": self.body, "generation": gen}
+        if kind == "variable_radius":
+            args["radius_end"] = ft["radius2"]
+            if "start" in ft:
+                args["start"] = ft["start"]
+        elif kind == "chord_length":
+            args["chord"] = True
+        elif kind == "spline_radius":
+            args["radii"], args["knots"] = ft["radii"], ft["knots"]
+            if "start" in ft:
+                args["start"] = ft["start"]
+        self.m.call("fillet", args)
 
     def op_chamfer(self, ft):
         if ft.get("type") != "equal_distance":

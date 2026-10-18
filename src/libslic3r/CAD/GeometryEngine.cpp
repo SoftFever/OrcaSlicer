@@ -39,6 +39,14 @@
 #include <GProp_GProps.hxx>
 #include <GeomLProp_SLProps.hxx>
 #include <BRepAdaptor_Curve.hxx>
+#include <GeomAPI_ProjectPointOnSurf.hxx>
+#include <Law_BSpline.hxx>
+#include <gp_Pnt2d.hxx>
+#include <NCollection_Array1.hxx>
+#include <Law_BSpFunc.hxx>
+#include <TColStd_Array1OfReal.hxx>
+#include <TColStd_Array1OfInteger.hxx>
+#include <BRep_Tool.hxx>
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <gp_Circ.hxx>
 #include <GCPnts_TangentialDeflection.hxx>
@@ -369,16 +377,104 @@ TopoDS_Shape GeometryEngine::apply_chamfer(const TopoDS_Shape& solid, double dis
     return apply_chamfer(solid, distance, std::vector<int>{ edge_id });
 }
 
+// Angle between the outward normals of the two faces that meet at `edge`, at the edge's midpoint (0 = flat, pi/2 = a box corner).
+static double edge_normal_angle(const TopoDS_Shape& solid, const TopoDS_Edge& edge)
+{
+    TopTools_IndexedDataMapOfShapeListOfShape ef;
+    TopExp::MapShapesAndAncestors(solid, TopAbs_EDGE, TopAbs_FACE, ef);
+    if (!ef.Contains(edge)) throw std::runtime_error("fillet: the edge is not part of the body");
+    const TopTools_ListOfShape& faces = ef.FindFromKey(edge);
+    if (faces.Extent() != 2) throw std::runtime_error("fillet: a chord-length fillet needs an edge shared by exactly two faces");
+    BRepAdaptor_Curve cur(edge);
+    const gp_Pnt mid = cur.Value(0.5 * (cur.FirstParameter() + cur.LastParameter()));
+    gp_Vec n[2];
+    int k = 0;
+    for (const TopoDS_Shape& s : faces) {
+        const TopoDS_Face face = TopoDS::Face(s);
+        BRepAdaptor_Surface surf(face);
+        GeomAPI_ProjectPointOnSurf proj(mid, BRep_Tool::Surface(face));
+        if (proj.NbPoints() < 1) throw std::runtime_error("fillet: cannot find the edge on its face");
+        double u, v;
+        proj.LowerDistanceParameters(u, v);
+        BRepLProp_SLProps props(surf, u, v, 1, 1e-6);
+        if (!props.IsNormalDefined()) throw std::runtime_error("fillet: the face normal is undefined at the edge");
+        n[k] = gp_Vec(props.Normal());
+        if (face.Orientation() == TopAbs_REVERSED) n[k].Reverse();
+        ++k;
+    }
+    return n[0].Angle(n[1]);
+}
+
 TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radius, const std::vector<int>& edge_ids)
+{
+    return apply_fillet(solid, radius, edge_ids, FilletLaw{});
+}
+
+TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radius, const std::vector<int>& edge_ids, const FilletLaw& law)
 {
     if (radius <= 0.001) throw std::runtime_error("the fillet radius must be greater than 0");
     if (edge_ids.empty()) throw std::runtime_error("apply_fillet: no edge picked");
+    if (law.r2 > 1e6 || radius > 1e6) throw std::runtime_error("the fillet radius is too large");
 
     BRepFilletAPI_MakeFillet mk(solid);
     for (int id : edge_ids) {
         TopoDS_Edge edge = edge_by_index(solid, id);
         if (edge.IsNull()) throw std::runtime_error("apply_fillet: invalid edge id");
-        mk.Add(radius, edge);
+        if (law.chord) {
+            const double s = std::sin(0.5 * edge_normal_angle(solid, edge));
+            if (s < 1e-6) throw std::runtime_error("fillet: the two faces are tangent here, a chord length cannot be turned into a radius");
+            mk.Add(radius / (2.0 * s), edge);
+        } else if (!law.radii.empty()) {
+            std::vector<double> poles(1, radius);
+            poles.insert(poles.end(), law.radii.begin(), law.radii.end());
+            std::vector<double> kn = law.knots;
+            const int deg = int(kn.size()) - int(poles.size()) - 1;
+            if (deg < 1 || deg > 8 || !std::is_sorted(kn.begin(), kn.end()) || kn.front() != 0.0 || kn.back() != 1.0)
+                throw std::runtime_error("fillet: the radius spline needs sorted knots from 0 to 1 and degree = knots - radii - 1 between 1 and 8");
+            for (double p : poles) if (!(p > 1e-3) || p > 1e6) throw std::runtime_error("fillet: every control radius must be greater than 0");
+            if (law.has_start) {
+                BRepAdaptor_Curve cur(edge);
+                const gp_Pnt a = cur.Value(cur.FirstParameter()), b = cur.Value(cur.LastParameter());
+                const gp_Pnt s(law.start.x(), law.start.y(), law.start.z());
+                if (s.Distance(b) < s.Distance(a)) {   // the law is written from `start`; the edge runs the other way
+                    std::reverse(poles.begin(), poles.end());
+                    std::reverse(kn.begin(), kn.end());
+                    for (double& k : kn) k = 1.0 - k;
+                }
+            }
+            std::vector<double> uk; std::vector<int> mult;   // distinct knots with their multiplicities
+            for (double k : kn) {
+                if (!uk.empty() && std::abs(uk.back() - k) < 1e-12) ++mult.back();
+                else { uk.push_back(k); mult.push_back(1); }
+            }
+            TColStd_Array1OfReal pa(1, int(poles.size())), ka(1, int(uk.size()));
+            TColStd_Array1OfInteger ma(1, int(mult.size()));
+            for (size_t i = 0; i < poles.size(); ++i) pa(int(i) + 1) = poles[i];
+            for (size_t i = 0; i < uk.size(); ++i) { ka(int(i) + 1) = uk[i]; ma(int(i) + 1) = mult[i]; }
+            Handle(Law_BSpline) bs = new Law_BSpline(pa, ka, ma, deg);
+            // OCCT's own law hook (a Law_Function) crashes ChFiDS_FilSpine::Reset on this build, so the spline is handed over as
+            // sampled (relative parameter, radius) pairs, which the builder interpolates smoothly itself.
+            constexpr int N = 32;
+            NCollection_Array1<gp_Pnt2d> samples(1, N + 1);
+            for (int i = 0; i <= N; ++i) {
+                const double u = double(i) / N;
+                double r = 0;
+                bs->D0(u, r);
+                samples(i + 1) = gp_Pnt2d(u, std::max(r, 1e-3));
+            }
+            mk.Add(samples, edge);
+        } else if (law.r2 >= 0.0) {
+            double r1 = radius, r2 = std::max(law.r2, 1e-3);   // a round that closes to a point is asked for as a very small one
+            if (law.has_start) {
+                BRepAdaptor_Curve cur(edge);
+                const gp_Pnt a = cur.Value(cur.FirstParameter()), b = cur.Value(cur.LastParameter());
+                const gp_Pnt s(law.start.x(), law.start.y(), law.start.z());
+                if (s.Distance(b) < s.Distance(a)) std::swap(r1, r2);   // `radius` belongs at the end nearest `start`
+            }
+            mk.Add(r1, r2, edge);
+        } else {
+            mk.Add(radius, edge);
+        }
     }
     mk.Build();
 

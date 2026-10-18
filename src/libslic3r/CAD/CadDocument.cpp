@@ -3115,7 +3115,12 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
     case CadFeatureType::Fillet:
         if (!have_body) throw std::runtime_error(_u8L("fillet needs a body"));
         if (f.dressup_edge >= 0 || !f.dressup_edges.empty())
-            result = GeometryEngine::apply_fillet(result, f.dressup_size, f.dressup_edge_ids());
+        {
+            GeometryEngine::FilletLaw law;
+            law.r2 = f.dressup_size2; law.chord = f.dressup_chord; law.has_start = f.dressup_has_start; law.start = f.dressup_start;
+            law.radii = f.dressup_radii; law.knots = f.dressup_knots;
+            result = GeometryEngine::apply_fillet(result, f.dressup_size, f.dressup_edge_ids(), law);
+        }
         else
             result = GeometryEngine::apply_fillet(result, f.dressup_size, f.face_group);
         break;

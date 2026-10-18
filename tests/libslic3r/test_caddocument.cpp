@@ -10182,3 +10182,52 @@ TEST_CASE("palette_score orders matches", "[CadDocument][palette]")
     CHECK(palette_score("", "Anything", true) == 150);
     CHECK(palette_score("EXT", "extrude", true) == palette_score("ext", "Extrude", true));          // case-blind
 }
+
+TEST_CASE("fillet size laws: linear, chord and B-spline radius on a box edge", "[CadDocument][Fillet]")
+{
+    using Catch::Matchers::WithinRel;
+    // 40 x 30 x 20 box; the fillet goes on its top edge that runs along X at the lowest Y (found by geometry, not by an id that could drift)
+    auto build = [](const std::function<void(CadFeature&)>& law) {
+        CadDocument doc;
+        int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 40, 30, 10, "Rect");
+        doc.add_extrude(sk, 20.0, false, BooleanMode::New, "Extrude");
+        REQUIRE(doc.recompute());
+        const TopoDS_Shape& shape = doc.bodies.front().shape;
+        int    edge = -1;
+        double best_y = 1e30;
+        for (int i = 0; i < 12; ++i) {
+            TopoDS_Edge        e = GeometryEngine::edge_by_index(shape, i);
+            BRepAdaptor_Curve  c(e);
+            const gp_Pnt       a = c.Value(c.FirstParameter()), b = c.Value(c.LastParameter());
+            const bool along_x_on_top = std::abs(a.X() - b.X()) > 39.9 && std::abs(a.Y() - b.Y()) < 1e-6 && std::min(a.Z(), b.Z()) > 19.99;
+            if (along_x_on_top && a.Y() < best_y) { best_y = a.Y(); edge = i; }
+        }
+        REQUIRE(edge >= 0);
+        const int f = doc.add_fillet(2.0, std::vector<int>{edge}, "Fillet");
+        law(doc.features[f]);
+        const bool ok = doc.recompute();
+        return std::make_pair(ok, ok ? double(SketchEngine::tessellate(doc.bodies.front().shape).volume()) : 0.0);
+    };
+    const auto base = build([](CadFeature&) {});
+    REQUIRE(base.first);
+    SECTION("a radius running 2 -> 5 removes more than the constant 2") {
+        const auto r = build([](CadFeature& f) { f.dressup_size = 2; f.dressup_size2 = 5; });
+        REQUIRE(r.first);
+        REQUIRE(r.second < base.second);
+    }
+    SECTION("the chord of a 90 degree edge is r * sqrt(2)") {
+        const auto r = build([](CadFeature& f) { f.dressup_size = 4; f.dressup_chord = true; });
+        const auto c = build([](CadFeature& f) { f.dressup_size = 2.0 * std::sqrt(2.0); });
+        REQUIRE(r.first);
+        REQUIRE_THAT(r.second, WithinRel(c.second, 1e-6));
+    }
+    SECTION("a B-spline radius") {
+        const auto r = build([](CadFeature& f) {
+            f.dressup_size  = 2;
+            f.dressup_radii = {5, 1.5, 4, 1, 3};
+            f.dressup_knots = {0, 0, 0, 0, 0.25, 0.6, 1, 1, 1, 1};
+        });
+        REQUIRE(r.first);
+        REQUIRE(r.second < base.second);
+    }
+}
