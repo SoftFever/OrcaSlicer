@@ -811,7 +811,6 @@ void MoonrakerPrintHostSendDialog::EndModal(int ret)
 {
     if (ret == wxID_OK && post_action() == PrintHostPostUploadAction::StartPrint) {
         std::set<int> assigned_slots;
-        AFCSelections assignments;
         for (const auto& row : m_mapping_rows) {
             const auto* card = as_material_map_widget(row.card);
             if (card == nullptr || !card->is_slot_selected()) {
@@ -822,12 +821,9 @@ void MoonrakerPrintHostSendDialog::EndModal(int ret)
                 show_error(this, _L("Each filament must use a different AFC lane when multiple tool mapping is disabled in AFC."));
                 return;
             }
-            const auto slot = card->selected_slot_id();
-            if (slot > 0 && slot <= static_cast<int>(m_lane_names.size()))
-                assignments.push_back({row.tool_id, m_lane_names[slot - 1]});
         }
         std::map<int, std::string> desired;
-        if (!m_mapping.plan(assignments, desired)) {
+        if (!m_mapping.plan(collect_assignments(), desired)) {
             show_error(this, _L("This AFC mapping cannot be applied. Check that the printer is idle, that every selected lane is loaded, and that every filament uses a tool known to AFC."));
             return;
         }
@@ -835,10 +831,8 @@ void MoonrakerPrintHostSendDialog::EndModal(int ret)
     PrintHostSendDialog::EndModal(ret);
 }
 
-std::map<std::string, std::string> MoonrakerPrintHostSendDialog::extendedInfo() const
+AFCSelections MoonrakerPrintHostSendDialog::collect_assignments() const
 {
-    if (post_action() != PrintHostPostUploadAction::StartPrint || m_mapping_rows.empty())
-        return {};
     AFCSelections assignments;
     for (const auto& row : m_mapping_rows) {
         const auto* card = as_material_map_widget(row.card);
@@ -846,7 +840,14 @@ std::map<std::string, std::string> MoonrakerPrintHostSendDialog::extendedInfo() 
             && card->selected_slot_id() <= static_cast<int>(m_lane_names.size()))
             assignments.push_back({row.tool_id, m_lane_names[card->selected_slot_id() - 1]});
     }
-    return {{"afc_mapping", serialize_afc_selection(assignments)}};
+    return assignments;
+}
+
+std::map<std::string, std::string> MoonrakerPrintHostSendDialog::extendedInfo() const
+{
+    if (post_action() != PrintHostPostUploadAction::StartPrint || m_mapping_rows.empty())
+        return {};
+    return {{"afc_mapping", serialize_afc_selection(collect_assignments())}};
 }
 
 FlashforgePrintHostSendDialog::FlashforgePrintHostSendDialog(const fs::path&             path,

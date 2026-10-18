@@ -241,6 +241,8 @@ public:
     std::map<std::string, std::string> extendedInfo() const override;
 
 private:
+    AFCSelections collect_assignments() const;
+
     struct MappingRow {
         int tool_id;
         wxWindow* card;
