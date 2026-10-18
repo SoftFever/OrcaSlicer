@@ -1,6 +1,7 @@
+#include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <assert.h>
-#include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "Utils.hpp"
 #include "FlushVolCalc.hpp"
 
@@ -16,6 +17,24 @@ const int g_max_flush_volume = 20000; //Orca: increase limit to 20k vs 900 in up
 static float to_radians(float degree)
 {
     return degree / 180.f * M_PI;
+}
+
+// Local copy of slic3r/Utils/ColorSpaceConvert.cpp's RGB2HSV. The version in
+// the GUI's ColorSpaceConvert TU is not linked into libslic3r_mobile, and it
+// is the only symbol from that file the flush-volume model needs.
+static void RGB2HSV(float r, float g, float b, float* h, float* s, float* v)
+{
+    float Cmax = std::max(std::max(r, g), b);
+    float Cmin = std::min(std::min(r, g), b);
+    float delta = Cmax - Cmin;
+
+    if (std::abs(delta) < 0.001f)      *h = 0.f;
+    else if (Cmax == r)                *h = 60.f * std::fmod((g - b) / delta, 6.f);
+    else if (Cmax == g)                *h = 60.f * ((b - r) / delta + 2.f);
+    else                               *h = 60.f * ((r - g) / delta + 4.f);
+
+    *s = std::abs(Cmax) < 0.001f ? 0.f : delta / Cmax;
+    *v = Cmax;
 }
 
 

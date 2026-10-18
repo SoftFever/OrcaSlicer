@@ -1,4 +1,5 @@
 #include "../libslic3r.h"
+#include <sstream>
 #include "../Exception.hpp"
 #include "../Model.hpp"
 #include "../Preset.hpp"

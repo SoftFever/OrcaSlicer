@@ -1,4 +1,5 @@
 #include "CutSurface.hpp"
+#include <sstream>
 
 /// models_input.obj - Check transormation of model to each others
 /// projection_center.obj - circle representing center of projection with correct distance

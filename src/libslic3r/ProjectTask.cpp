@@ -1,4 +1,5 @@
 #include "libslic3r.h"
+#include <sstream>
 #include "Time.hpp"
 #include "Thread.hpp"
 #include "ProjectTask.hpp"

@@ -1,9 +1,5 @@
-// This single-TU executable links libslic3r, whose SVG/emboss objects (pulled in by the slice mode
-// below) reference the header-only nanosvg implementation. Provide it here BEFORE any libslic3r header:
-// several of them transitively include nanosvg.h without the implementation macro, and its include
-// guard would then suppress the implementation if the macro were defined afterwards. Same pattern as
-// the test mains.
-#define NANOSVG_IMPLEMENTATION
+// libslic3r/NSVGUtils.cpp instantiates nanosvg's core implementation, so this
+// TU only needs the rasterizer one — same as BitmapCache.cpp in the GUI.
 #include "nanosvg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
 #include "nanosvg/nanosvgrast.h"

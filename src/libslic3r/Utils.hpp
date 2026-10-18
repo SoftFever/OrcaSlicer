@@ -2,6 +2,7 @@
 #define slic3r_Utils_hpp_
 
 #include <iomanip>
+#include <sstream>
 #include <locale>
 #include <set>
 #include <utility>

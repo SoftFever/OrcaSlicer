@@ -13,6 +13,13 @@ find_package(libnoise REQUIRED)
 
 add_subdirectory(libslic3r)
 
+# The mobile build stops at the core and its façade: no GUI, no executables, none of
+# the post-build steps that stage resources and the Python runtime next to a binary.
+if (ORCA_MOBILE)
+    add_subdirectory(mobile)
+    return()
+endif ()
+
 if (SLIC3R_GUI)
     add_subdirectory(glad)
     # imgui, imguizmo, and hidapi are now included from deps_src

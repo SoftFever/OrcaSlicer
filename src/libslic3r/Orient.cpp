@@ -1,4 +1,5 @@
 #include "Orient.hpp"
+#include <sstream>
 #include "Geometry.hpp"
 #include <numeric>
 #include <ClipperUtils.hpp>

@@ -1,4 +1,5 @@
 #include "BoundingBox.hpp"
+#include <sstream>
 #include "Config.hpp"
 #include "GCodeWriter.hpp"
 #include "Polygon.hpp"

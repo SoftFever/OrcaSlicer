@@ -2,6 +2,7 @@
 #define slic3r_Config_hpp_
 
 #include <assert.h>
+#include <sstream>
 #include <algorithm>
 #include <map>
 #include <climits>

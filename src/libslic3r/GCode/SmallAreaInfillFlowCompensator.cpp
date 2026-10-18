@@ -7,6 +7,7 @@
 // https://github.com/Alexander-T-Moss/Small-Area-Flow-Comp
 
 #include <math.h>
+#include <sstream>
 #include <cstring>
 #include <cfloat>
 #include <regex>

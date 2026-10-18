@@ -528,7 +528,9 @@ cmake_policy(SET CMP0011 NEW)
 # can't reach it; the default opts its Boost lookup into BoostConfig (CMP0167).
 set(CMAKE_POLICY_DEFAULT_CMP0167 NEW)
 find_package(CGAL REQUIRED)
-find_package(OpenCV REQUIRED core)
+# The modules the sources include. A deps build ships them all in opencv_world and
+# OpenCV_LIBS resolves to it; a system OpenCV has one library per module.
+find_package(OpenCV REQUIRED core imgproc imgcodecs)
 find_package(assimp REQUIRED)
 unset(CMAKE_POLICY_DEFAULT_CMP0167)
 cmake_policy(POP)
@@ -578,6 +580,10 @@ if (USE_SLIC3R_CONSOLE_LOG)
 endif()
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r SYSTEM PUBLIC ${EXPAT_INCLUDE_DIRS})
+# The deps build of OpenCV ships one static libopencv_world; find_package
+# returns it in OpenCV_LIBS but does not attach opencv4's include directory
+# through an INTERFACE property, so add it here explicitly.
+target_include_directories(libslic3r SYSTEM PUBLIC ${OpenCV_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
 set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
@@ -623,7 +629,7 @@ target_link_libraries(libslic3r
         libigl
         libnest2d
         miniz
-        opencv_world
+        ${OpenCV_LIBS}
         assimp::assimp
     PRIVATE
         ${CMAKE_DL_LIBS}

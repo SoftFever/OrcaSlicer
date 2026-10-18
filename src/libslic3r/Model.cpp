@@ -1,4 +1,5 @@
 #include "Model.hpp"
+#include <sstream>
 #include "libslic3r.h"
 #include "BuildVolume.hpp"
 #include "TexturePainting.hpp"

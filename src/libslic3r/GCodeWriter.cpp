@@ -1,4 +1,5 @@
 #include "GCodeWriter.hpp"
+#include <sstream>
 #include "CustomGCode.hpp"
 #include "I18N.hpp"
 #include "PrintConfig.hpp"

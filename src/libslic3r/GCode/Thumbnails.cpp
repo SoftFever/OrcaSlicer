@@ -1,4 +1,5 @@
 #include "Thumbnails.hpp"
+#include <sstream>
 #include "../miniz_extension.hpp"
 #include "format.hpp"
 

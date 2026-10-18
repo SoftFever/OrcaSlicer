@@ -23,7 +23,24 @@ else ()
     set(_gmp_ccflags "-O2 -DNDEBUG -fPIC -DPIC -Wall -Wmissing-prototypes -Wpointer-arith -pedantic -fomit-frame-pointer -fno-common")
     set(_gmp_build_tgt "${CMAKE_SYSTEM_PROCESSOR}")
 
-    if (APPLE)
+    if (DEPS_IOS)
+        # Cross build from the Mac host. --host comes from TOOLCHAIN_PREFIX below; the
+        # SDK, architecture and minimum version travel in the compiler flags. GMP's
+        # arm64 assembly is written for macOS and is skipped on iOS.
+        #
+        # autoconf only takes cross-compiling mode when the --build and --host triples
+        # differ as written; an arm64 Mac building for an arm64 device would otherwise
+        # get the same triple for both and configure would try to run an iOS binary.
+        # The host kernel version keeps them apart.
+        set(_gmp_ccflags "${_gmp_ccflags} ${DEPS_IOS_TARGET_FLAGS}")
+        if (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm")
+            set(_gmp_build_arch aarch64)
+        else ()
+            set(_gmp_build_arch ${CMAKE_HOST_SYSTEM_PROCESSOR})
+        endif ()
+        string(REGEX MATCH "^[0-9]+" _gmp_build_darwin "${CMAKE_HOST_SYSTEM_VERSION}")
+        set(_gmp_build_tgt "--build=${_gmp_build_arch}-apple-darwin${_gmp_build_darwin}" --disable-assembly)
+    elseif (APPLE)
         if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
             set(_gmp_build_arch aarch64)
         else ()

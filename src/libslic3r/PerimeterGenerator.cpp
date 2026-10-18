@@ -1,4 +1,5 @@
 #include "PerimeterGenerator.hpp"
+#include <sstream>
 #include "AABBTreeLines.hpp"
 #include "BridgeDetector.hpp"
 #include "ClipperUtils.hpp"

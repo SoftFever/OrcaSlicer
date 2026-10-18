@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "b59549314cdbc918776b69faf58f717b6bad91cf",
+  "include-component-in-tag": true,
+  "include-v-in-tag": true,
+  "tag-separator": "-",
+  "pull-request-title-pattern": "chore: release Orca Mobile ${version}",
+  "changelog-sections": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Fixes" },
+    { "type": "perf", "section": "Performance" },
+    { "type": "revert", "section": "Reverts" },
+    { "type": "refactor", "section": "Maintenance", "hidden": true },
+    { "type": "build", "section": "Maintenance", "hidden": true },
+    { "type": "ci", "section": "Maintenance", "hidden": true },
+    { "type": "chore", "section": "Maintenance", "hidden": true },
+    { "type": "docs", "section": "Maintenance", "hidden": true },
+    { "type": "test", "section": "Maintenance", "hidden": true }
+  ],
+  "packages": {
+    "mobile": {
+      "component": "mobile",
+      "package-name": "Orca Mobile",
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        { "type": "json", "path": "apps/orca/app.json", "jsonpath": "$.expo.version" },
+        { "type": "json", "path": "apps/orca/package.json", "jsonpath": "$.version" }
+      ]
+    }
+  }
+}

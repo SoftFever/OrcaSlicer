@@ -1,4 +1,5 @@
 #include <chrono>
+#include <sstream>
 #include <math.h>
 
 #include "format.hpp"

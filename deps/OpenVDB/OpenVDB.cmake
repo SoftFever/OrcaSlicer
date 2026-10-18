@@ -6,6 +6,12 @@ else()
     set(_build_static ON)
 endif()
 
+# Nothing built for iOS runs on the host, so the command line tool is skipped.
+set(_openvdb_print ON)
+if (DEPS_IOS)
+    set(_openvdb_print OFF)
+endif ()
+
 if (IN_GIT_REPO)
     set(OPENVDB_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_OpenVDB-prefix/src/dep_OpenVDB)
 endif ()
@@ -24,7 +30,7 @@ orcaslicer_add_cmake_project(OpenVDB
         -DOPENVDB_CORE_STATIC=${_build_static}
         -DOPENVDB_ENABLE_RPATH:BOOL=OFF
         -DTBB_STATIC=${_build_static}
-        -DOPENVDB_BUILD_VDB_PRINT=ON
+        -DOPENVDB_BUILD_VDB_PRINT=${_openvdb_print}
         -DDISABLE_DEPENDENCY_VERSION_CHECKS=ON # Centos6 has old zlib
 )
 

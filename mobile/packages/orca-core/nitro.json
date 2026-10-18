@@ -1,0 +1,27 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["orca"],
+  "ios": {
+    "iosModuleName": "NitroOrcaCore"
+  },
+  "android": {
+    "androidNamespace": ["orca"],
+    "androidCxxLibName": "NitroOrcaCore"
+  },
+  "autolinking": {
+    "OrcaCore": {
+      "all": {
+        "language": "c++",
+        "implementationClassName": "HybridOrcaCore"
+      }
+    },
+    "OrcaViewport": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridOrcaViewport"
+      }
+    }
+  },
+  "ignorePaths": ["**/node_modules", "**/lib"],
+  "gitAttributesGeneratedFlag": true
+}

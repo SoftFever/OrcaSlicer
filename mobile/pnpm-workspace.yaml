@@ -1,0 +1,6 @@
+packages:
+  - packages/*
+  - apps/*
+# lefthook's install script wires the git hooks; pnpm 12 refuses unlisted scripts.
+allowBuilds:
+  lefthook: true

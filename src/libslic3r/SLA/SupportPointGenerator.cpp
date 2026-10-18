@@ -2,6 +2,7 @@
 //#include "igl/AABB.h"
 
 #include <tbb/parallel_for.h>
+#include <sstream>
 
 #include "SupportPointGenerator.hpp"
 #include "Geometry/ConvexHull.hpp"

@@ -1,4 +1,5 @@
 #include "FanMover.hpp"
+#include <sstream>
 
 #include "GCodeReader.hpp"
 

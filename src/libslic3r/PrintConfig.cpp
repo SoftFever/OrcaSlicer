@@ -1,4 +1,5 @@
 #include "PrintConfig.hpp"
+#include <sstream>
 #include "PrintConfigConstants.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"

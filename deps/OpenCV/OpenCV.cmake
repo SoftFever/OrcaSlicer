@@ -21,6 +21,17 @@ if (IN_GIT_REPO)
     set(OpenCV_DIRECTORY_FLAG --directory ${BINARY_DIR_REL}/dep_OpenCV-prefix/src/dep_OpenCV)
 endif ()
 
+# Only the image modules are used; keep the camera and framework packaging off on iOS.
+set(_opencv_ios_args "")
+if (DEPS_IOS)
+    set(_opencv_ios_args
+        -DAPPLE_FRAMEWORK=OFF
+        -DWITH_AVFOUNDATION=OFF
+        -DWITH_CAP_IOS=OFF
+        -DBUILD_opencv_videoio=OFF
+    )
+endif ()
+
 orcaslicer_add_cmake_project(OpenCV
     ${_options}
     URL https://github.com/opencv/opencv/archive/refs/tags/4.6.0.tar.gz
@@ -91,5 +102,6 @@ orcaslicer_add_cmake_project(OpenCV
        -DWITH_WIN32UI=OFF
        -DHAVE_WIN32UI=FALSE
        ${_disable_carotene}
+       ${_opencv_ios_args}
 )
 

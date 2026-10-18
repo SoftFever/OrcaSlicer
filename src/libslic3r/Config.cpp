@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include <sstream>
 #include "format.hpp"
 #include "Utils.hpp"
 #include "LocalesUtils.hpp"

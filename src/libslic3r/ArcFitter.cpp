@@ -1,4 +1,5 @@
 #include "ArcFitter.hpp"
+#include <sstream>
 #include "Polyline.hpp"
 
 #include <cmath>

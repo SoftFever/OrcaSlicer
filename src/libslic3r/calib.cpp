@@ -1,4 +1,5 @@
 #include "calib.hpp"
+#include <sstream>
 #include "BoundingBox.hpp"
 #include "Config.hpp"
 #include "Model.hpp"

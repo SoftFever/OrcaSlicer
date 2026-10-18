@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react", "react-perf", "import", "promise", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "env": {
+    "builtin": true,
+    "es2024": true
+  },
+  "settings": {
+    "react": {
+      "version": "19.2"
+    }
+  },
+  "rules": {
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": "off",
+    "vitest/require-mock-type-parameters": "off",
+    "react/set-state-in-effect": "warn",
+    "react/refs": "warn"
+  },
+  "ignorePatterns": [
+    "packages/orca-core/nitrogen/**",
+    "packages/*/lib/**",
+    "**/ios/**",
+    "**/android/**",
+    "apps/orca/i18n/*.json"
+  ]
+}

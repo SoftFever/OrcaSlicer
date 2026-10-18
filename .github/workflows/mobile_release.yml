@@ -1,0 +1,452 @@
+name: Mobile release
+
+# Versions, builds and publishes the iOS app: a GitHub release with an .ipa and notes,
+# and the AltStore source that points at it.
+#
+#   release-please  on every push to main, keeps a release PR open that bumps the version
+#                   (mobile/version.txt, app.json, package.json) and the CHANGELOG from
+#                   the conventional commits under mobile/. Merging that PR tags
+#                   mobile-vX.Y.Z and creates the GitHub release; the jobs below then
+#                   build and attach the .ipa in the same run.
+#   version         decides what this run builds: that release; the weekly beta, tagged
+#                   mobile-vX.Y.Z-beta.N if mobile/ changed since the newest mobile tag;
+#                   or, by hand, a beta now or a test build that publishes nothing.
+#   ipa             builds the .ipa on macOS (a self-hosted Mac when MOBILE_MACOS_RUNNER
+#                   is set) as the app.config.ts variant: production for a release, beta
+#                   (own bundle id, installs next to the stable app) otherwise.
+#   publish         attaches the .ipa to the release and adds it to the AltStore source
+#                   on the altstore branch (source-beta.json for betas).
+#
+# The build jobs run in this workflow rather than on the release event, because a
+# release created with the workflow's token starts no other workflow.
+#
+# The .ipa is ad-hoc signed, not signed by a team. AltStore and SideStore re-sign with
+# the installing user's own Apple ID, so a real signature would only be stripped again,
+# and it keeps every Apple credential out of the repository's secrets. Ad-hoc signing
+# still matters: it embeds the entitlements (the app group the widget shares, the
+# raised memory limit) that the re-signer copies from the binary. AltStore PAL accepts
+# only apps notarized through App Store Connect; mobile_altstore_pal.yml adds such a
+# build to the PAL source once its ADP is hosted.
+#
+# The slicing core is not rebuilt here. "Build iOS core" takes hours and its output only
+# changes with the C++ under src/ or deps/, so the ipa job takes the newest
+# OrcaCore.xcframework that workflow published and names its commit in the notes. Those
+# artifacts expire after 90 days; if the download fails, run "Build iOS core" first.
+#
+# Repository settings:
+#   Actions > General > "Allow GitHub Actions to create and approve pull requests", for
+#   the release PR when it is opened with the workflow's token. Its commits are then
+#   signed by GitHub, but no checks run on that PR. A GitHub App fixes that: set the
+#   RELEASE_APP_ID variable and RELEASE_APP_PRIVATE_KEY secret of an app installed on
+#   this repository with contents, pull requests and issues write, and the PR is
+#   opened as the app, still signed, with checks. A personal access token is not a
+#   substitute: commits it creates through the API are unsigned, which a branch that
+#   requires signed commits rejects.
+#   MOBILE_MACOS_RUNNER         variable: runs-on for the ipa job as JSON, e.g.
+#                               '["self-hosted","macOS","ARM64","orca-ios"]'
+#                               (default "macos-15"; see mobile/scripts/setup-mac-runner.sh)
+#   MOBILE_BUILD_NUMBER_OFFSET  variable: added to the run number for CFBundleVersion, to
+#                               keep it above builds installed before this workflow
+
+on:
+  push:
+    branches: [main]
+  # The beta lane: Mondays 15:00 UTC, only when something under mobile/ changed since
+  # the newest mobile tag.
+  schedule:
+    - cron: '0 15 * * 1'
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: test builds an .ipa artifact only; beta tags and publishes a beta now
+        type: choice
+        options: [test, beta]
+        default: test
+
+# Concurrency is per job. A new push cancels the release-please pass of the previous
+# one (it is idempotent: the next pass picks up where it stopped) and a test build
+# still running. A release build and its publishing queue instead: cancelling them
+# would leave a release without its .ipa, and the AltStore source is a branch two
+# runs would race on.
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    name: Release PR
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: mobile-release-please
+      cancel-in-progress: true
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      created: ${{ steps.rp.outputs['mobile--release_created'] }}
+      tag: ${{ steps.rp.outputs['mobile--tag_name'] }}
+    steps:
+      - name: App token
+        id: app
+        if: vars.RELEASE_APP_ID != ''
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - id: rp
+        uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ steps.app.outputs.token || github.token }}
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json
+
+  version:
+    name: Version
+    needs: release-please
+    # Runs when release-please was skipped (the beta schedule or a run by hand) as well.
+    if: ${{ !failure() && !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      # Tags a beta.
+      contents: write
+    outputs:
+      build: ${{ steps.pick.outputs.build }}
+      publish: ${{ steps.pick.outputs.publish }}
+      variant: ${{ steps.pick.outputs.variant }}
+      tag: ${{ steps.pick.outputs.tag }}
+      version: ${{ steps.pick.outputs.version }}
+      base: ${{ steps.pick.outputs.base }}
+      prerelease: ${{ steps.pick.outputs.prerelease }}
+      build-number: ${{ steps.pick.outputs.build-number }}
+      sha: ${{ steps.pick.outputs.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+          # Tags, and the paths each commit touched, to see what changed since a beta.
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Pick what to build
+        id: pick
+        env:
+          RP_CREATED: ${{ needs.release-please.outputs.created }}
+          RP_TAG: ${{ needs.release-please.outputs.tag }}
+          LANE: ${{ inputs.lane }}
+          OFFSET: ${{ vars.MOBILE_BUILD_NUMBER_OFFSET || '0' }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          publish=true variant=production sha=$GITHUB_SHA
+          if [ "$RP_CREATED" = true ]; then
+            tag=$RP_TAG
+          elif [ "$GITHUB_EVENT_NAME" = schedule ] || [ "$LANE" = beta ]; then
+            # Beta: the version the open release PR proposes (or the next patch when
+            # none is open), numbered after the betas of it so far.
+            last=$(git tag --list 'mobile-v*' --sort=-creatordate --merged HEAD | head -1)
+            if [ "$GITHUB_EVENT_NAME" = schedule ] && [ -n "$last" ] \
+                && git diff --quiet "$last" HEAD -- mobile; then
+              echo "build=false" >> "$GITHUB_OUTPUT"
+              echo "Nothing under mobile/ changed since $last; no beta this week."
+              exit 0
+            fi
+            pending=$(git show 'origin/release-please--branches--main--components--mobile:.github/.release-please-manifest.json' 2>/dev/null \
+              | jq -r .mobile || true)
+            if [ -z "$pending" ]; then
+              IFS=. read -r major minor patch < <(jq -r .mobile .github/.release-please-manifest.json)
+              pending=$major.$minor.$((patch + 1))
+            fi
+            n=$(git tag --list "mobile-v$pending-beta.*" | wc -l)
+            tag=mobile-v$pending-beta.$((n + 1)) variant=beta
+          elif [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            # A test build of the current version, with the beta identity so it installs
+            # next to the stable app; nothing is tagged or published.
+            tag=mobile-v$(jq -r .mobile .github/.release-please-manifest.json)-dev.$GITHUB_RUN_NUMBER
+            publish=false variant=beta
+          else
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "No release this push."
+            exit 0
+          fi
+          version=${tag#mobile-v}
+          if ! [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+(\.[0-9A-Za-z]+)*)?$ ]]; then
+            echo "::error::'$tag' is not mobile-vX.Y.Z or mobile-vX.Y.Z-label.N" >&2
+            exit 1
+          fi
+          if [ "$variant" = beta ] && [ "$publish" = true ]; then
+            # A ref made through the API, like the commits elsewhere in the pipeline.
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$sha" >/dev/null
+            echo "Tagged $tag at $sha"
+          fi
+          # CFBundleShortVersionString is numeric only; the label lives in the tag, the
+          # release title, AltStore's marketingVersion and the app's extra.marketingVersion.
+          # CFBundleVersion has to grow between builds a device sees, otherwise iOS may
+          # keep the installed copy; the run number is monotonic per workflow.
+          base=${version%%-*}
+          prerelease=$([ "$version" = "$base" ] && echo false || echo true)
+          {
+            echo "build=true"; echo "publish=$publish"; echo "variant=$variant"
+            echo "tag=$tag"; echo "version=$version"; echo "base=$base"
+            echo "prerelease=$prerelease"; echo "build-number=$((GITHUB_RUN_NUMBER + OFFSET))"
+            echo "sha=$sha"
+          } | tee -a "$GITHUB_OUTPUT"
+
+  ipa:
+    name: IPA
+    needs: version
+    if: needs.version.outputs.build == 'true'
+    runs-on: ${{ fromJSON(vars.MOBILE_MACOS_RUNNER || '"macos-15"') }}
+    timeout-minutes: 90
+    concurrency:
+      group: mobile-ipa-${{ needs.version.outputs.publish == 'true' && 'release' || github.ref }}
+      cancel-in-progress: ${{ needs.version.outputs.publish != 'true' }}
+    permissions:
+      contents: read
+      # gh run download reads another workflow's artifacts.
+      actions: read
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      BASE: ${{ needs.version.outputs.base }}
+      # Read by app.config.ts, at prebuild and again when Xcode embeds the manifest.
+      APP_VARIANT: ${{ needs.version.outputs.variant }}
+      APP_VERSION: ${{ needs.version.outputs.base }}
+      APP_BUILD_NUMBER: ${{ needs.version.outputs.build-number }}
+      APP_MARKETING_VERSION: ${{ needs.version.outputs.version }}
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+          ref: ${{ needs.version.outputs.sha }}
+
+      - uses: ./.github/actions/mobile-setup
+
+      - name: Fetch the slicing core
+        id: core
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          read -r run_id core_sha < <(gh run list --workflow build_ios.yml --status success --limit 1 \
+            --json databaseId,headSha -q '.[0] | "\(.databaseId) \(.headSha)"') || true
+          if [ -z "${run_id:-}" ]; then
+            echo "::error::No successful 'Build iOS core' run to take OrcaCore.xcframework from." >&2
+            exit 1
+          fi
+          echo "Taking OrcaCore.xcframework from run $run_id ($core_sha)"
+          dest=packages/orca-core/ios/OrcaCore.xcframework
+          rm -rf "$dest"
+          gh run download "$run_id" -n OrcaCore.xcframework -D "$dest"
+          # The device slice is the one that matters here; a simulator-only
+          # framework would link and then fail to install on a phone.
+          test -f "$dest/Info.plist"
+          test -f "$dest/ios-arm64/libOrcaCore.a"
+          du -sh "$dest"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "sha=$core_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Translation catalogs
+        run: pnpm i18n
+
+      - name: Prebuild
+        working-directory: mobile/apps/orca
+        run: npx expo prebuild -p ios --clean
+
+      - name: Check the version
+        working-directory: mobile/apps/orca
+        # app.config.ts set both; the widget extension must carry the app's versions or
+        # iOS refuses to install it.
+        run: |
+          set -euo pipefail
+          for plist in ios/OrcaSlicer/Info.plist ios/*Widget*/Info.plist; do
+            [ -f "$plist" ] || continue
+            got="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist") ($(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist"))"
+            echo "$plist: $got"
+            if [ "$got" != "$BASE ($APP_BUILD_NUMBER)" ]; then
+              echo "::error::$plist has $got, expected $BASE ($APP_BUILD_NUMBER)" >&2
+              exit 1
+            fi
+          done
+
+      - name: Build
+        working-directory: mobile/apps/orca
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcodebuild \
+            -workspace ios/OrcaSlicer.xcworkspace \
+            -scheme OrcaSlicer \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Sign ad hoc
+        working-directory: mobile/apps/orca
+        # Inside out: frameworks, then each extension, then the app, each with the
+        # entitlements prebuild generated for its target.
+        run: |
+          set -euo pipefail
+          app=build/dd/Build/Products/Release-iphoneos/OrcaSlicer.app
+          test -d "$app"
+          if [ -d "$app/Frameworks" ]; then
+            find "$app/Frameworks" -maxdepth 1 \( -name '*.framework' -o -name '*.dylib' \) \
+              -exec codesign --force --sign - {} \;
+          fi
+          for appex in "$app"/PlugIns/*.appex; do
+            [ -d "$appex" ] || continue
+            name=$(basename "$appex" .appex)
+            args=(--force --sign -)
+            [ -f "ios/$name/$name.entitlements" ] && args+=(--entitlements "ios/$name/$name.entitlements")
+            codesign "${args[@]}" "$appex"
+          done
+          codesign --force --sign - --entitlements ios/OrcaSlicer/OrcaSlicer.entitlements "$app"
+          codesign -d --entitlements - "$app"
+
+      - name: Package
+        working-directory: mobile/apps/orca
+        env:
+          CORE_RUN: ${{ steps.core.outputs.run_id }}
+          CORE_SHA: ${{ steps.core.outputs.sha }}
+        run: |
+          set -euo pipefail
+          app=build/dd/Build/Products/Release-iphoneos/OrcaSlicer.app
+          out=build/release && rm -rf "$out" build/Payload && mkdir -p "$out" build/Payload
+          ipa=OrcaMobile-$VERSION.ipa
+          # An .ipa is a zip with the .app under Payload/.
+          cp -R "$app" build/Payload/
+          (cd build && zip -qry "release/$ipa" Payload)
+          (cd "$out" && shasum -a 256 "$ipa" > SHA256SUMS)
+          # What the publish job needs about the build, so it can run on Linux.
+          plutil -convert json -o build/info.json "$app/Info.plist"
+          codesign -d --entitlements :- "$app" 2>/dev/null > build/ent.plist
+          plutil -convert json -o build/ent.json build/ent.plist
+          node -e '
+            const fs = require("fs")
+            const [info, ent] = ["build/info.json", "build/ent.json"].map((f) => JSON.parse(fs.readFileSync(f)))
+            const privacy = Object.fromEntries(Object.entries(info).filter(([k]) => /^NS\w+UsageDescription$/.test(k)))
+            const e = process.env
+            fs.writeFileSync(process.argv[1], JSON.stringify({
+              name: info.CFBundleDisplayName ?? info.CFBundleName,
+              bundleIdentifier: info.CFBundleIdentifier,
+              version: info.CFBundleShortVersionString,
+              buildVersion: info.CFBundleVersion,
+              marketingVersion: e.VERSION,
+              minOSVersion: info.MinimumOSVersion,
+              entitlements: Object.keys(ent),
+              privacy,
+              size: fs.statSync(process.argv[2]).size,
+              ipa: process.argv[2].split("/").pop(),
+              core: { run: Number(e.CORE_RUN), sha: e.CORE_SHA },
+            }, null, 2) + "\n")
+          ' "$out/app-meta.json" "$out/$ipa"
+          cat "$out/app-meta.json"
+          ls -lh "$out"
+
+      - name: Upload
+        uses: actions/upload-artifact@v6
+        with:
+          name: OrcaMobile-${{ needs.version.outputs.version }}
+          path: mobile/apps/orca/build/release
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish
+    needs: [version, ipa]
+    if: needs.version.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: mobile-release
+      cancel-in-progress: false
+    permissions:
+      # The release, and the push to the altstore branch.
+      contents: write
+    env:
+      TAG: ${{ needs.version.outputs.tag }}
+      VERSION: ${{ needs.version.outputs.version }}
+      BASE: ${{ needs.version.outputs.base }}
+      PRERELEASE: ${{ needs.version.outputs.prerelease }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+          ref: ${{ needs.version.outputs.sha }}
+          # The notes walk the history back to the previous mobile tag.
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Download the build
+        uses: actions/download-artifact@v7
+        with:
+          name: OrcaMobile-${{ needs.version.outputs.version }}
+          path: release
+
+      - name: Release notes
+        run: |
+          set -euo pipefail
+          meta=release/app-meta.json
+          core_sha=$(jq -r .core.sha "$meta")
+          source=$([ "$PRERELEASE" = true ] && echo source-beta.json || echo source.json)
+          # A release-please release already carries its CHANGELOG section; a
+          # hand-pushed prerelease gets notes from the commits.
+          if gh release view "$TAG" --json body -q .body > body.md 2>/dev/null; then
+            echo "Release $TAG exists; adding the install section to its notes"
+            # Drop the section a previous attempt of this run added.
+            sed '/^### Install$/,$d' body.md > notes.md
+          else
+            node mobile/scripts/release-notes.mjs "$TAG" > notes.md
+          fi
+          {
+            echo
+            echo "### Install"
+            echo
+            echo "- **AltStore / SideStore**: add the source \`https://raw.githubusercontent.com/$GITHUB_REPOSITORY/altstore/$source\`, or open the \`.ipa\` below with AltStore."
+            echo "- Requires iOS $(jq -r .minOSVersion "$meta") or later."
+            echo
+            echo "Build $(jq -r .buildVersion "$meta"). Slicing core from [${core_sha:0:10}]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$core_sha) ([build]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$(jq -r .core.run "$meta")))."
+          } >> notes.md
+          node mobile/scripts/release-notes.mjs "$TAG" --format text > release/altstore-notes.txt
+          cat notes.md
+
+      - name: GitHub release
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "Orca Mobile $VERSION" --notes-file notes.md
+            gh release upload "$TAG" release/* --clobber
+          else
+            gh release create "$TAG" release/* \
+              --verify-tag \
+              --prerelease \
+              --title "Orca Mobile $VERSION" \
+              --notes-file notes.md
+          fi
+
+      - name: AltStore source
+        run: |
+          set -euo pipefail
+          meta=release/app-meta.json
+          ipa=$(jq -r .ipa "$meta")
+          bash mobile/scripts/publish-altstore.sh \
+            "$([ "$PRERELEASE" = true ] && echo source-beta.json || echo source.json)" \
+            --meta "$meta" \
+            --version "$BASE" \
+            --marketing "$VERSION" \
+            --build "$(jq -r .buildVersion "$meta")" \
+            --size "$(jq -r .size "$meta")" \
+            --download-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$TAG/$ipa" \
+            --notes-file release/altstore-notes.txt

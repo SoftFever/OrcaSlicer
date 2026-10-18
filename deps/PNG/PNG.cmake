@@ -1,3 +1,13 @@
+# The prusaslicer_ prefix keeps our libpng from clashing with a system libpng at
+# link time on desktops, but iOS ships no libpng at all. Skipping the prefix
+# there lets OpenCV's bundled PNG codec resolve against the same libpng — with
+# the prefix, its unprefixed png_* references were unresolved at final link.
+if (DEPS_IOS)
+    set(_png_prefix "")
+else ()
+    set(_png_prefix "-DPNG_PREFIX=prusaslicer_")
+endif ()
+
 if (APPLE)
     # Only disable NEON extension for Apple ARM builds, leave it enabled for Raspberry PI.
     set(_disable_neon_extension "-DPNG_ARM_NEON=off")
@@ -20,7 +30,7 @@ if(APPLE AND IS_CROSS_COMPILE)
         CMAKE_ARGS
             -DPNG_SHARED=OFF
             -DPNG_STATIC=ON
-            -DPNG_PREFIX=prusaslicer_
+            "${_png_prefix}"
             -DPNG_TESTS=OFF
             -DDISABLE_DEPENDENCY_TRACKING=OFF
             ${_disable_neon_extension}
@@ -40,7 +50,7 @@ set(_patch_step "")
         CMAKE_ARGS
             -DPNG_SHARED=OFF
             -DPNG_STATIC=ON
-            -DPNG_PREFIX=prusaslicer_
+            "${_png_prefix}"
             -DPNG_TESTS=OFF
             -DDISABLE_DEPENDENCY_TRACKING=OFF
             ${_disable_neon_extension}

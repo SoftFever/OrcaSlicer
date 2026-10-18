@@ -13,6 +13,9 @@ on:
     # and lives in scripts/, so a PR touching only those must still run this workflow.
     - 'resources/printers/**'
     - 'scripts/**'
+    # The mobile port's scripts touch no profile.
+    - '!scripts/build_ios_core.sh'
+    - '!scripts/mobile_*'
     - ".github/workflows/check_profiles.yml"
 
   workflow_dispatch:
@@ -35,6 +38,24 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      # The validator below is upstream's nightly build, so its verdict on the system
+      # profiles is only meaningful while they are in step with upstream. A pull request
+      # that leaves resources/profiles and resources/printers alone (scripts, this
+      # workflow) still runs every check and reports what the validator finds, but only
+      # a change to the profiles can fail on the validator's findings.
+      - name: Profiles changed in this pull request
+        id: changes
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE"
+          if [ -n "$(git diff --name-only "$BASE" HEAD -- resources/profiles resources/printers)" ]; then
+            echo "profiles=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "profiles=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Run extra JSON check
         id: extra_json_check
@@ -252,7 +273,7 @@ jobs:
           retention-days: 1
 
       - name: Fail if any check failed
-        if: ${{ always() && (steps.extra_json_check.outcome == 'failure' || steps.validate_system.outcome == 'failure' || steps.validate_slice.outcome == 'failure' || steps.validate_filament_subtypes.outcome == 'failure' || steps.validate_custom.outcome == 'failure') }}
+        if: ${{ always() && (steps.extra_json_check.outcome == 'failure' || (steps.changes.outputs.profiles != 'false' && (steps.validate_system.outcome == 'failure' || steps.validate_slice.outcome == 'failure' || steps.validate_filament_subtypes.outcome == 'failure' || steps.validate_custom.outcome == 'failure'))) }}
         run: |
           echo "One or more profile checks failed. See above for details."
           exit 1

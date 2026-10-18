@@ -1,0 +1,23 @@
+Do not take zutil.h's Classic Mac OS branch on modern Apple systems.
+
+TARGET_OS_MAC is 1 in the iOS SDK (it is Apple's umbrella target macro,
+not "macOS only"), and the Classic-Mac branch this header selects then
+does `#define fdopen(fd,mode) NULL`. That collides with the SDK's real
+`fdopen` prototype and every translation unit that includes <stdio.h>
+after zlib fails to compile. Modern Apple platforms carry the fdopen
+call in their libc and pick up the correct OS_CODE=19 from the __APPLE__
+branch below, so this whole block is only there for the true Classic
+Mac OS toolchain — exclude __APPLE__ from it.
+
+diff --git a/zutil.h b/zutil.h
+--- a/zutil.h
++++ b/zutil.h
+@@ -138,7 +138,7 @@
+ #  define OS_CODE 0
+ #endif
+
+-#if defined(MACOS) || defined(TARGET_OS_MAC)
++#if (defined(MACOS) || defined(TARGET_OS_MAC)) && !defined(__APPLE__)
+ #  define OS_CODE  7
+ #  ifndef Z_SOLO
+ #    if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os

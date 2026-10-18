@@ -1,0 +1,157 @@
+name: Mobile app checks
+
+# The JavaScript side of the mobile port, on Linux: lint and format (oxlint, oxfmt),
+# typecheck of the Nitro module and the Expo app with the nitrogen output current, the
+# app's unit tests, and the commit messages release-please reads.
+#
+# Each job is its own status check on a pull request; require them by name in branch
+# protection: "Lint and format", "Typecheck", "Unit tests", "Commit messages".
+# Pull requests run every job whatever they touch, because branch protection waits
+# forever for a required check that never starts. "Commit messages" runs on pull
+# requests only and reports as skipped elsewhere, which a required check accepts.
+
+# One run per branch: a new push cancels the one still running for the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'mobile/**'
+      - 'localization/i18n/**'
+      - 'src/libslic3r/**'
+      - 'lefthook.yml'
+      - '.github/actions/mobile-setup/**'
+      - '.github/workflows/mobile_ci.yml'
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint and format
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+
+      - uses: ./.github/actions/mobile-setup
+
+      - name: oxlint
+        run: pnpm lint --format github
+
+      - name: oxfmt
+        run: pnpm format:check
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+
+      - uses: ./.github/actions/mobile-setup
+
+      - name: Nitrogen output is committed and current
+        run: |
+          pnpm specs
+          git diff --exit-code -- packages/orca-core/nitrogen
+
+      - name: Translation catalogs
+        run: pnpm i18n
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+
+      - uses: ./.github/actions/mobile-setup
+
+      - name: Translation catalogs
+        run: pnpm i18n
+
+      - name: Unit tests
+        run: pnpm --filter orca-app test
+
+  commits:
+    name: Commit messages
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+          ref: ${{ github.event.pull_request.head.sha }}
+          # The PR's commits and the paths they touch; no file contents.
+          fetch-depth: 0
+          filter: blob:none
+
+      - uses: ./.github/actions/mobile-setup
+
+      # Only commits under mobile/ need the convention: release-please reads no others,
+      # and a merge from upstream OrcaSlicer brings commits that never followed it.
+      # Commits before release-please's bootstrap-sha predate the convention too, so a
+      # branch that started earlier is checked from that commit on.
+      - name: Commits under mobile/
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          start="$BASE"
+          boot="$(jq -r '."bootstrap-sha" // empty' ../.github/release-please-config.json)"
+          if [ -n "$boot" ] && git merge-base --is-ancestor "$boot" "$HEAD" && git merge-base --is-ancestor "$BASE" "$boot"; then
+            start="$boot"
+          fi
+          status=0
+          for sha in $(git log --no-merges --format=%H "$start..$HEAD" -- .); do
+            if ! git log -1 --format=%B "$sha" | pnpm exec commitlint; then
+              echo "::error::$(git log -1 --format='%h %s' "$sha")"
+              status=1
+            fi
+          done
+          exit $status
+
+      # A squash merge commits the PR title, so it has to pass as well.
+      - name: Pull request title
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+          if [ -z "$(git diff --name-only "$BASE...$HEAD" -- .)" ]; then
+            echo "Touches nothing under mobile/"
+            exit 0
+          fi
+          printf '%s\n' "$TITLE" | pnpm exec commitlint
+

@@ -1,5 +1,6 @@
 #ifdef _WIN32
 	#include <windows.h>
+#include <sstream>
 	#include <boost/nowide/convert.hpp>
 #else
 	// any posix system

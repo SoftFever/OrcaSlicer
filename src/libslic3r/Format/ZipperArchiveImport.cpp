@@ -1,4 +1,5 @@
 #include "ZipperArchiveImport.hpp"
+#include <sstream>
 
 #include "libslic3r/miniz_extension.hpp"
 #include "libslic3r/Exception.hpp"

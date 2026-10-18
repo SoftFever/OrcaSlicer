@@ -2,6 +2,7 @@
 #define slic3r_FileParserError_hpp_
 
 #include "libslic3r.h"
+#include <sstream>
 
 #include <string>
 #include <boost/filesystem/path.hpp>

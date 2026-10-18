@@ -1,0 +1,202 @@
+name: Build iOS core
+
+# Cross-compiles the slicing core (libslic3r + the mobile façade) for iOS device and
+# simulator and publishes OrcaCore.xcframework.
+#
+# The dependency build is resumable across runs: the prefix, the ExternalProject stamps
+# and the download cache are saved after every run, even a failed one, and restored on
+# the next. Every dependency that still has a step to run (it failed, its recipe changed,
+# or something it depends on was rebuilt) is then rebuilt from scratch by the build
+# script's -r, while the untouched ones are reused. A restored cache also records the
+# commit it was built from, so a recipe whose patch files changed is rebuilt as well.
+#
+# Compiles go through ccache, persisted the same way. CMake takes the launcher from the
+# environment and the superbuild forwards it to every CMake-based dependency, so the
+# core (libslic3r, rebuilt every run) and any dependency rebuilt from scratch reuse the
+# objects of earlier runs. Autotools and OpenSSL recipes compile without it.
+
+# One run per branch: a new push cancels the one still running for the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - 'deps/**'
+      - 'deps_src/**'
+      - 'src/**'
+      - 'version.inc'
+      - 'scripts/build_ios_core.sh'
+      - '.github/workflows/build_ios.yml'
+  workflow_dispatch:
+    inputs:
+      rebuild-deps:
+        description: Ignore the cached dependency prefix and rebuild it
+        type: boolean
+        default: false
+
+jobs:
+  core:
+    name: iOS core (${{ matrix.slice }})
+    runs-on: macos-15
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        slice: [device, simulator]
+    env:
+      DEPS_DIR: deps/build/ios-${{ matrix.slice }}
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      # Paths under the checkout are hashed relative to it, so a runner that checks out
+      # elsewhere still hits; the compiler is identified by content, not mtime.
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_SLOPPINESS: time_macros,include_file_mtime,include_file_ctime
+      CCACHE_MAXSIZE: 1500M
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          lfs: 'false'
+          fetch-depth: 0
+
+      - name: Install build tools
+        run: brew install ninja automake libtool texinfo ccache
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          cmake --version | head -1
+          ninja --version
+
+      - name: Restore dependency build
+        id: deps-cache
+        if: ${{ !inputs.rebuild-deps }}
+        uses: actions/cache/restore@v5
+        with:
+          path: |
+            ${{ env.DEPS_DIR }}/OrcaSlicer_dep
+            ${{ env.DEPS_DIR }}/*-prefix/src/*-stamp
+            ${{ env.DEPS_DIR }}/*-prefix/tmp
+            ${{ env.DEPS_DIR }}/deps-cache-commit
+            deps/DL_CACHE
+          key: ios-deps-${{ matrix.slice }}-${{ github.run_id }}
+          restore-keys: |
+            ios-deps-${{ matrix.slice }}-
+
+      - name: Restore compiler cache
+        uses: actions/cache/restore@v5
+        with:
+          path: .ccache
+          key: ios-ccache-${{ matrix.slice }}-${{ github.run_id }}
+          restore-keys: |
+            ios-ccache-${{ matrix.slice }}-
+
+      - name: Reset compiler cache statistics
+        run: ccache --zero-stats
+
+      - name: Invalidate recipes whose patches changed
+        if: ${{ steps.deps-cache.outputs.cache-matched-key != '' }}
+        run: |
+          set -e
+          commit_file="$DEPS_DIR/deps-cache-commit"
+          if [ ! -f "$commit_file" ]; then
+            echo "No commit recorded with the cache; rebuilding every dependency"
+            rm -rf "$DEPS_DIR"/*-prefix
+            exit 0
+          fi
+          base=$(cat "$commit_file")
+          echo "Cache was built at $base"
+          if ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            echo "Commit unknown to this checkout; rebuilding every dependency"
+            rm -rf "$DEPS_DIR"/*-prefix
+            exit 0
+          fi
+          # A changed configure command, download or dependency is noticed by the
+          # ExternalProject stamps themselves (the build script's -r handles those).
+          # Patch files are not, so a recipe directory with any change is rebuilt.
+          changed=$(git diff --name-only "$base" HEAD -- deps/)
+          echo "Changed since then:"; echo "$changed"
+          for recipe in $(echo "$changed" | sed -nE 's#^deps/([^/]+)/.*#\1#p' | sort -u); do
+            echo "Recipe $recipe changed; it is rebuilt"
+            rm -rf "$DEPS_DIR/dep_$recipe-prefix"
+          done
+
+      - name: Build dependencies
+        run: ./scripts/build_ios_core.sh -d -r -a ${{ matrix.slice }}
+
+      - name: Record the commit the dependency build matches
+        if: always()
+        run: |
+          mkdir -p "$DEPS_DIR"
+          git rev-parse HEAD > "$DEPS_DIR/deps-cache-commit"
+
+      - name: Save dependency build
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: |
+            ${{ env.DEPS_DIR }}/OrcaSlicer_dep
+            ${{ env.DEPS_DIR }}/*-prefix/src/*-stamp
+            ${{ env.DEPS_DIR }}/*-prefix/tmp
+            ${{ env.DEPS_DIR }}/deps-cache-commit
+            deps/DL_CACHE
+          key: ios-deps-${{ matrix.slice }}-${{ github.run_id }}
+
+      - name: Build core
+        run: ./scripts/build_ios_core.sh -s -a ${{ matrix.slice }} -x
+
+      - name: Compiler cache statistics
+        if: always()
+        run: ccache --show-stats
+
+      - name: Save compiler cache
+        if: always()
+        uses: actions/cache/save@v5
+        with:
+          path: .ccache
+          key: ios-ccache-${{ matrix.slice }}-${{ github.run_id }}
+
+      - name: Upload slice
+        uses: actions/upload-artifact@v6
+        with:
+          name: orca-core-ios-${{ matrix.slice }}
+          path: build/ios-xcframework
+          if-no-files-found: error
+
+  xcframework:
+    name: OrcaCore.xcframework
+    needs: core
+    runs-on: macos-15
+    steps:
+      - name: Download slices
+        uses: actions/download-artifact@v7
+        with:
+          pattern: orca-core-ios-*
+          path: slices
+
+      - name: Create XCFramework
+        run: |
+          set -e
+          args=()
+          for slice in device simulator; do
+            lib="slices/orca-core-ios-$slice/$slice/libOrcaCore.a"
+            test -f "$lib"
+            args+=(-library "$lib" -headers "slices/orca-core-ios-$slice/include")
+          done
+          rm -rf out && mkdir out
+          xcodebuild -create-xcframework "${args[@]}" -output out/OrcaCore.xcframework
+          du -sh out/OrcaCore.xcframework
+
+      - name: Upload XCFramework
+        uses: actions/upload-artifact@v6
+        with:
+          name: OrcaCore.xcframework
+          path: out/OrcaCore.xcframework
+          if-no-files-found: error

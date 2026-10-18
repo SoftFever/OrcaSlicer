@@ -1,0 +1,46 @@
+{
+  "name": "react-native-orca-core",
+  "version": "0.0.1",
+  "description": "OrcaSlicer's slicing core as a Nitro Module",
+  "license": "AGPL-3.0-or-later",
+  "source": "src/index",
+  "files": [
+    "src",
+    "lib",
+    "nitrogen",
+    "cpp",
+    "ios/**/*.h",
+    "ios/**/*.mm",
+    "ios/OrcaCore.xcframework",
+    "nitro.json",
+    "*.podspec",
+    "README.md"
+  ],
+  "main": "lib/index",
+  "module": "lib/index",
+  "types": "src/index.ts",
+  "react-native": "src/index",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "specs": "nitrogen --logLevel=\"info\"",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.15",
+    "nitrogen": "0.37.1",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-nitro-modules": "0.37.1",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-nitro-modules": "*"
+  },
+  "peerDependenciesMeta": {
+    "react-native-nitro-modules": {
+      "optional": true
+    }
+  }
+}

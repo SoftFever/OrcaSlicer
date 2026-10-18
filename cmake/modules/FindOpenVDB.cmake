@@ -352,24 +352,27 @@ macro(just_fail msg)
   return()
 endmacro()
 
-find_package(IlmBase QUIET)
-if(NOT IlmBase_FOUND)
-  pkg_check_modules(IlmBase QUIET IlmBase)
-endif()
-if (IlmBase_FOUND AND NOT TARGET IlmBase::Half)
-  message(STATUS "Falling back to IlmBase found by pkg-config...")
+# OpenVDB 9 replaced IlmBase's half with its own; older versions link it.
+if(OpenVDB_MAJOR_VERSION LESS 9)
+  find_package(IlmBase QUIET)
+  if(NOT IlmBase_FOUND)
+    pkg_check_modules(IlmBase QUIET IlmBase)
+  endif()
+  if (IlmBase_FOUND AND NOT TARGET IlmBase::Half)
+    message(STATUS "Falling back to IlmBase found by pkg-config...")
 
-  find_library(IlmHalf_LIBRARY NAMES Half)
-  if(IlmHalf_LIBRARY-NOTFOUND OR NOT IlmBase_INCLUDE_DIRS)
+    find_library(IlmHalf_LIBRARY NAMES Half)
+    if(IlmHalf_LIBRARY-NOTFOUND OR NOT IlmBase_INCLUDE_DIRS)
+      just_fail("IlmBase::Half can not be found!")
+    endif()
+    
+    add_library(IlmBase::Half UNKNOWN IMPORTED)
+    set_target_properties(IlmBase::Half PROPERTIES
+      IMPORTED_LOCATION "${IlmHalf_LIBRARY}"
+      INTERFACE_INCLUDE_DIRECTORIES "${IlmBase_INCLUDE_DIRS}")
+  elseif(NOT IlmBase_FOUND)
     just_fail("IlmBase::Half can not be found!")
   endif()
-  
-  add_library(IlmBase::Half UNKNOWN IMPORTED)
-  set_target_properties(IlmBase::Half PROPERTIES
-    IMPORTED_LOCATION "${IlmHalf_LIBRARY}"
-    INTERFACE_INCLUDE_DIRECTORIES "${IlmBase_INCLUDE_DIRS}")
-elseif(NOT IlmBase_FOUND)
-  just_fail("IlmBase::Half can not be found!")
 endif()
 find_package(TBB ${_quiet} ${_required} COMPONENTS tbb)
 find_package(ZLIB ${_quiet} ${_required})
@@ -476,8 +479,10 @@ endif()
 set(_OPENVDB_VISIBLE_DEPENDENCIES
   Boost::iostreams
   Boost::system
-  IlmBase::Half
 )
+if(OpenVDB_MAJOR_VERSION LESS 9)
+  list(APPEND _OPENVDB_VISIBLE_DEPENDENCIES IlmBase::Half)
+endif()
 
 set(_OPENVDB_DEFINITIONS)
 if(OpenVDB_ABI)

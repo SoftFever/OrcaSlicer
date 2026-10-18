@@ -1,4 +1,7 @@
-set(patch_command git init && ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-Respect-BUILD_SHARED_LIBS.patch)
+set(patch_command
+    git init &&
+    ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-Respect-BUILD_SHARED_LIBS.patch &&
+    ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0002-zutil-apple-fdopen.patch)
 
 orcaslicer_add_cmake_project(ZLIB
   # GIT_REPOSITORY https://github.com/madler/zlib.git

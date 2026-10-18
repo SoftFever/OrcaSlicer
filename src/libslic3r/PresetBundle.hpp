@@ -287,10 +287,16 @@ public:
                                                          const BundleMetadata& remote_metadata,
                                                          ForwardCompatibilitySubstitutionRule rule);
 
+    // ignore_bundle_structure: treat an archive that carries bundle_structure.json
+    // (.orca_printer / .orca_filament / .orca_bundle) like a plain zip of presets, so
+    // its contents become ordinary user presets (editable, deletable, cloud-synced)
+    // instead of a read-only _local/<bundle_id> bundle. Off by default, which keeps the
+    // desktop's bundle semantics.
     PresetsConfigSubstitutions import_presets(std::vector<std::string>& files,
                                               std::function<int(std::string const&)> override_confirm,
                                               ForwardCompatibilitySubstitutionRule rule,
-                                              AppConfig& config);
+                                              AppConfig& config,
+                                              bool ignore_bundle_structure = false);
 
     bool import_json_presets(PresetsConfigSubstitutions& substitutions,
                              std::string& file,

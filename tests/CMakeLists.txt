@@ -80,9 +80,15 @@ endfunction()
 
 add_subdirectory(libnest2d)
 add_subdirectory(libslic3r)
-add_subdirectory(slic3rutils)
+if (TARGET libslic3r_gui)
+    # The Python plugin system lives in the GUI library.
+    add_subdirectory(slic3rutils)
+endif ()
 add_subdirectory(fff_print)
 add_subdirectory(sla_print)
 add_subdirectory(filament_group)
+if (TARGET libslic3r_mobile)
+    add_subdirectory(mobile)
+endif ()
 
 
