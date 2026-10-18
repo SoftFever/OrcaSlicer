@@ -12242,7 +12242,25 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
         return false;                                  // let drag orbit the camera
     }
 
-    if (evt.Moving()) {
+    const bool two_point = m_mode == Mode::CornerRect || m_mode == Mode::CenterRect || m_mode == Mode::CenterCircle ||
+                           m_mode == Mode::TwoPointCircle || m_mode == Mode::Polygon;
+    bool draw_drag = false;
+    if (two_point) {
+        if (evt.LeftDown()) { m_dr_n = int(m_points.size()); m_dr_x = evt.GetX(); m_dr_y = evt.GetY(); }
+        draw_drag = evt.Dragging() && evt.LeftIsDown() && m_dr_n == 0 && m_points.size() == 1;
+        if (evt.LeftUp()) {
+            const bool released_away = m_dr_n == 0 && m_points.size() == 1 &&
+                std::max(std::abs(evt.GetX() - m_dr_x), std::abs(evt.GetY() - m_dr_y)) > 6;
+            m_dr_n = -1;
+            if (released_away) {          // the release is the second click
+                wxMouseEvent down(evt);
+                down.SetEventType(wxEVT_LEFT_DOWN);
+                down.SetLeftDown(true);
+                return on_mouse_impl(down, canvas);
+            }
+        }
+    }
+    if (evt.Moving() || draw_drag) {
         m_snap_off = evt.ShiftDown();
         screen_to_plane(canvas, evt, m_cursor);
         m_has_cursor = true;

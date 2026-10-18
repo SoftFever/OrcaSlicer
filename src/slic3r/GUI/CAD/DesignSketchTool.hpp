@@ -1133,6 +1133,9 @@ private:
     double              m_grid_step{1.0};
     InferenceSnap       m_cursor_snap;          // last cursor inference target (for hint render)
     bool                m_cursor_locked{false}; // rubber-band segment is angle-locked
+    // Press-drag-release drawing for the two-point shapes: a press that places the first point and is released
+    // elsewhere (> 6 px away) places the second, so the shape can be drawn click-click or in one drag.
+    int                 m_dr_n{-1}, m_dr_x{0}, m_dr_y{0};   // points held when the press landed (-1: no press), and where
     bool                m_awaiting_length{false}; // inline value editor open -> freeze canvas
     int                 m_autoedit_seen{-1};      // entity count baseline for draw-then-edit
     bool                m_autoedit_pending{false};// a new entity just committed -> open editor
