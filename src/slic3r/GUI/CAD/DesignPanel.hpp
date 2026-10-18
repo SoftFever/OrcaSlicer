@@ -106,6 +106,10 @@ public:
     // verb instead of spending a letter and every verb is reachable — including the rows with no
     // keyboard shortcut, which are otherwise invisible to anything that parses key tables.
     int  mcp_offer_selection_kind() const { return offer_selection_kind(); }  // OfferSel as int
+    // The open card as the rig sees it: Tool as int (0 = none), whether the check mark would act, the status line.
+    int         mcp_active_tool() const { return int(m_active); }
+    bool        mcp_confirm_enabled() const { return confirm_enabled(); }
+    std::string mcp_status() const { return m_status ? m_status->GetLabel().utf8_string() : std::string(); }
     void mcp_run_action(const char* action) { run_offer_action(action); }     // dispatch an action string
     // Defined out of line in DesignPanel.cpp: it needs kOfferVerbs, which this header deliberately
     // does not include (the table is generated and belongs to the offer-menu code).

@@ -30,6 +30,7 @@ The verb in the name is the role:
 | `check-ui-palette.py` | Ctrl+K opens the command palette; typing reaches only the box; Up/Down clamp; Esc closes; the keyboard returns to the shortcuts (focus invariant). | GUI with Design tab visible + `ORCA_CAD_MCP` |
 | `check-ui-pick.py` | SELECT filter; Select Other candidates (nearest first, one per face); click cycling steps through them and restarts when the spot moves. | GUI with Design tab visible + `ORCA_CAD_MCP` |
 | `check-ui-sketch-draw.py` | Two-point sketch shapes draw click-click or by one press-drag-release. | GUI with Design tab visible + `ORCA_CAD_MCP` |
+| `check-ui-card.py` | A face picked before a feature card opens is its input; the check mark follows the preview (Shell, Draft). | GUI with Design tab visible + `ORCA_CAD_MCP` |
 | `check-mcp-sketch.py` | The sketch layer driven over the MCP socket, asserting what decides whether a profile is buildable. | Headless GUI + `ORCA_CAD_MCP` |
 
 **`run-kernel-tests.sh` is the only one CI can run.** The rest need a live

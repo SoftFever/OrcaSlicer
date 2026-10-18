@@ -2825,6 +2825,7 @@ json ui_inspect(DesignPanel* panel)
         out["focus"]["chain"] = chain;
         if (in) out["focus"]["canvas_accepts"] = in->AcceptsFocus();
     }
+    out["card"] = {{"tool", panel->mcp_active_tool()}, {"confirm", panel->mcp_confirm_enabled()}, {"status", panel->mcp_status()}};
     if (auto* ig = wxGetApp().imgui())
         out["imgui"] = {{"want_text_input", ig->want_text_input()}, {"want_keyboard", ig->want_keyboard()}, {"want_mouse", ig->want_mouse()}};
     if (v) {
