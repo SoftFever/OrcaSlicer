@@ -753,8 +753,13 @@ MoonrakerPrintHostSendDialog::MoonrakerPrintHostSendDialog(const fs::path& path,
 void MoonrakerPrintHostSendDialog::init()
 {
     PrintHostSendDialog::init();
-    if (m_project_filaments.empty())
+    if (m_project_filaments.empty() || m_mapping.tools.empty()) {
+        if (m_project_filaments.empty())
+            BOOST_LOG_TRIVIAL(warning) << "Moonraker: Upload and Print disabled because filament information for this plate is unavailable";
+        if (auto* print_button = get_button(wxID_YES))
+            print_button->Disable();
         return;
+    }
 
     auto* title = new wxStaticText(this, wxID_ANY, _L("Filament mapping"));
     title->SetFont(::Label::Head_13);
@@ -810,6 +815,8 @@ void MoonrakerPrintHostSendDialog::init()
 void MoonrakerPrintHostSendDialog::EndModal(int ret)
 {
     if (ret == wxID_OK && post_action() == PrintHostPostUploadAction::StartPrint) {
+        if (m_mapping_rows.empty())
+            return;
         std::set<int> assigned_slots;
         for (const auto& row : m_mapping_rows) {
             const auto* card = as_material_map_widget(row.card);

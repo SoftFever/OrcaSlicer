@@ -98,8 +98,11 @@ TEST_CASE("AFC status tolerates unknown metadata and multiple tool aliases", "[A
 TEST_CASE("AFC status with no tool mappings parses as an empty unit", "[AFCMapping]")
 {
     auto status = status_fixture();
+    json unmapped = {"NONE"};
+    SECTION("array placeholder") {}
+    SECTION("legacy null") { unmapped = nullptr; }
     for (const auto* lane : {"CANVAS_1", "CANVAS_2", "CANVAS_3", "CANVAS_4"})
-        status[std::string("AFC_lane ") + lane]["map"] = {"NONE"};
+        status[std::string("AFC_lane ") + lane]["map"] = unmapped;
     LaneMapping parsed;
     REQUIRE(AFCMapping::parse(status, parsed));
     CHECK(parsed.tools.empty());
@@ -108,12 +111,40 @@ TEST_CASE("AFC status with no tool mappings parses as an empty unit", "[AFCMappi
     CHECK_FALSE(parsed.plan(selection({{0, "CANVAS_1"}}), desired));
 }
 
+TEST_CASE("AFC null mappings preserve unassigned lanes as print destinations", "[AFCMapping]")
+{
+    auto status = status_fixture();
+    status["AFC_lane CANVAS_4"]["map"] = nullptr;
+    status["AFC_lane CANVAS_4"]["filament_status"] = "Ready";
+    LaneMapping before;
+    REQUIRE(AFCMapping::parse(status, before));
+    CHECK(before.tools.size() == 3);
+    CHECK(before.lanes.at("CANVAS_4").ready);
+    CHECK(before.tools.at(0) == "CANVAS_2");
+    std::map<int, std::string> desired;
+    REQUIRE(before.plan(selection({{0, "CANVAS_4"}}), desired));
+    const auto expected = AFCMapping::expected_tools(before, desired);
+
+    // Legacy SET_MAP transfers the previously unassigned lane's null map
+    // to the displaced lane, without creating another tool alias.
+    status["AFC_lane CANVAS_2"]["map"] = nullptr;
+    status["AFC_lane CANVAS_4"]["map"] = "T0";
+    LaneMapping after;
+    REQUIRE(AFCMapping::parse(status, after));
+    CHECK(after.tools == expected);
+    CHECK(after.tools.at(0) == "CANVAS_4");
+    CHECK(after.tools.size() == 3);
+    CHECK(after.lanes.count("CANVAS_2") == 1);
+}
+
 TEST_CASE("AFC status rejects malformed or ambiguous physical assignments", "[AFCMapping]")
 {
     auto status = status_fixture();
     LaneMapping parsed;
     SECTION("duplicate tool") { status["AFC_lane CANVAS_1"]["map"] = {"T0"}; }
     SECTION("missing lane") { status.erase("AFC_lane CANVAS_2"); }
+    SECTION("missing map") { status["AFC_lane CANVAS_1"].erase("map"); }
+    SECTION("nonstring map") { status["AFC_lane CANVAS_1"]["map"] = 1; }
     SECTION("invalid tool") { status["AFC_lane CANVAS_1"]["map"] = {"T1evil"}; }
     SECTION("malformed readiness") { status["AFC_lane CANVAS_1"]["filament_status"] = true; }
     SECTION("unrepresentable sync slot") { status["AFC_lane CANVAS_1"]["map"] = {"T32"}; }

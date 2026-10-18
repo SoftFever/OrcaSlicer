@@ -3,6 +3,8 @@
 Moonraker AFC mapping is available through the legacy print-host upload dialog.
 It maps only the selected plate’s used filaments. Upload/Save only never changes
 mappings or starts printing.
+If the plate's filament information is unavailable, Upload and Print is disabled
+while upload-only remains available. The reason is logged without a popup.
 
 ## Shared mapping controls
 
@@ -56,12 +58,14 @@ With `multiple_tool_mapping`, only the requested tool moves.
 Automatic suggestions and manual selection can use any loaded lane of the same
 material. Swaps may change persistent assignments for tools outside the print,
 even when their current lanes are empty. An idle AFC with no tool mappings parses
-successfully with an empty tool map; the send dialog then falls back to the plain
-upload dialog.
+successfully with an empty tool map; null lane mappings are treated as unassigned.
+The send dialog falls back to the plain upload dialog when no tools are mapped.
 
 If AFC detection fails because `printer/objects/list` is unavailable, the plain
 upload dialog proceeds without a mapping (fail open), since a powered-off Klipper
-must still accept queued uploads.
+must still accept queued uploads. If AFC is detected but its status query or parsing
+fails, the send dialog keeps upload-only available and disables Upload and Print.
+The failure is logged without a popup.
 
 AFC saves assignments persistently; cancellation or failure after mapping does
 not restore them. Errors prevent startup and explain that saved assignments may

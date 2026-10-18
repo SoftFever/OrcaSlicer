@@ -21054,15 +21054,16 @@ void Plater::send_gcode_legacy(int plate_idx, Export3mfProgressFn proFn)
             auto* moonraker = dynamic_cast<Moonraker*>(upload_job.printhost.get());
             LaneMapping mapping;
             bool detected = false;
+            bool mapping_available = false;
             wxString error;
             if (moonraker != nullptr) {
                 wxBusyCursor wait;
-                if (!moonraker->fetch_afc_status(mapping, detected, error) && detected) {
-                    show_error(this, error, false);
-                    return;
-                }
+                mapping_available = moonraker->fetch_afc_status(mapping, detected, error);
+                if (!mapping_available && detected)
+                    BOOST_LOG_TRIVIAL(warning) << "Moonraker: Upload and Print disabled: " << into_u8(error);
             }
-            if (detected && !mapping.tools.empty()) {
+            // Keep upload-only available when AFC is present but its mapping cannot be read.
+            if (detected && (!mapping_available || !mapping.tools.empty())) {
                 pDlg = std::make_unique<MoonrakerPrintHostSendDialog>(default_output_file, upload_job.printhost->get_post_upload_actions(), groups,
                     storage_paths, storage_names, config->get_bool("open_device_tab_post_upload"),
                     std::move(mapping), collect_project_filaments(plate_idx == PLATE_ALL_IDX

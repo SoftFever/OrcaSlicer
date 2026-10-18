@@ -66,6 +66,8 @@ bool AFCMapping::parse(const nlohmann::json& status, LaneMapping& parsed)
             if (!result.lanes.emplace(name, std::move(info)).second || !lane.contains("map"))
                 return false;
             const auto add_mapping = [&](const nlohmann::json& mapping) {
+                if (mapping.is_null())
+                    return true;
                 if (!mapping.is_string())
                     return false;
                 const auto command = mapping.get<std::string>();
