@@ -361,6 +361,22 @@ static SketchSolveResult solve_system(std::vector<SketchEntity>& entities,
                     // not being changed by another constraint in the same solve; if some other
                     // constraint drives the radius, re-solving restores tangency. Tying them
                     // would need an auxiliary point constrained onto both circle and line.
+                    // When one end of the line is held ON the circle, "the centre is a radius from the line" is a double root
+                    // there (every line through a point of the circle is at most a radius from the centre), so the solver
+                    // cannot converge on it. Say what it means instead: the radius to that end is square to the line.
+                    int touch = -1;
+                    for (const auto& k : constraints) {
+                        if (k.type != CT::PointOnObject && k.type != CT::Coincident) continue;
+                        const bool fwd = k.ea == li && k.eb == ci, rev = k.eb == li && k.ea == ci;
+                        if (!fwd && !rev) continue;
+                        const Role lr = fwd ? k.ra : k.rb;
+                        if (lr == Role::P0 || lr == Role::P1) touch = lr == Role::P0 ? 0 : 1;
+                    }
+                    if (touch >= 0 && slot[ci].center && (touch == 0 ? slot[li].p0 : slot[li].p1)) {
+                        const Slvs_hEntity radius_line = b.E(Slvs_MakeLineSegment(++b.eh, G_SK, b.wp, slot[ci].center,
+                                                                                  touch == 0 ? slot[li].p0 : slot[li].p1));
+                        b.C(SLVS_C_PERPENDICULAR, 0, 0, 0, primOf(li), radius_line);
+                    } else
                     b.C(SLVS_C_PT_LINE_DISTANCE, side_of(ci, Role::Center, li) * entities[ci].radius,
                         ptOf(ci, Role::Center), 0, primOf(li), 0);
                 } else {

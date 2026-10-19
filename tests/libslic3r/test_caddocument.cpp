@@ -742,6 +742,25 @@ TEST_CASE("entity constraints: tangent/midpoint/symmetric/angle", "[CadDocument]
         REQUIRE(std::abs(doc.features[sk].entities[1].p0.y() + 5.0) < 1e-3);
     }
 
+    SECTION("a tangent line whose end is held on the circle converges to the tangent point") {
+        // the belt of two pulleys: with the line's end on the circle, "centre one radius from the line" is a double root
+        std::vector<SketchEntity> ents = {
+            {SketchEntity::Type::Circle, Vec2d(0,0), Vec2d(0,0), Vec2d(0,0), 20.0},
+            {SketchEntity::Type::Line,   Vec2d(3,19), Vec2d(60,12)},
+        };
+        std::vector<SketchEntityConstraintDef> cons;
+        cons.push_back({T::Fix,        0,-1, R::Center,R::Center, 0.0,-1,R::P0});
+        cons.push_back({T::LockX,      1,-1, R::P1,    R::P0,    60.0,-1,R::P0});
+        cons.push_back({T::LockY,      1,-1, R::P1,    R::P0,    12.0,-1,R::P0});
+        cons.push_back({T::PointOnObject, 1, 0, R::P0, R::P0,     0.0,-1,R::P0});
+        cons.push_back({T::Tangent,    1, 0, R::P0,    R::P0,     0.0,-1,R::P0});
+        REQUIRE(solve_sketch_entities(ents, cons));
+        const SketchEntity& L = ents[1];
+        CHECK(std::abs(L.p0.norm() - ents[0].radius) < 1e-6);                     // the start is on the circle
+        const Vec2d d = (L.p1 - L.p0).normalized();
+        CHECK(std::abs(L.p0.normalized().dot(d)) < 1e-6);                        // and the line is square to its radius
+    }
+
     SECTION("tangent circle to circle does not abort and keeps them touching") {
         std::vector<SketchEntity> ents = {
             {SketchEntity::Type::Circle, Vec2d(0,0),  Vec2d(0,0),  Vec2d(0,0),  5.0},

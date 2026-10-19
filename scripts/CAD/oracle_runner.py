@@ -24,7 +24,7 @@ CORPUS = os.path.join(HERE, "..", "..", "tests", "cad_oracle")
 XFAIL = {
     "58-phone-stand": "two 3 mm fillets on edges 6 mm apart: OCCT refuses ('no suitable edges'); the radii sum to the gap, so the two fillet surfaces just touch",
     "35-fillet-curved-curved": "3 mm fillet along a cylinder/cylinder intersection (4 seam-split edges): OCCT's fillet builder fails; truck's succeeds",
-    "26-sketch-belt": "constrained belt (2 circles + tangent lines): solver result 2 (did not converge) from the recipe's pre-solve positions; cause not analysed",
+    "26-sketch-belt": "belt (2 circles + tangent lines): the constraints now solve, but the extrude needs planar-arrangement regions (circles split where a tangent line ends: disc, disc-with-hole and the strip between); the app only extrudes closed loops",
 }
 
 
@@ -433,8 +433,11 @@ class Replay:
         self.m.call("sketch_begin", {"plane": plane})
         try:
             self.m.call("sketch_add", {"entities": ents, "infer": False})   # the recipe states its own constraints
-            if cons:
-                r = self.m.call("sketch_constrain", {"constraints": cons})
+            # sizes and positions first, then the tangents: from the drawing's rough positions the solver converges in two steps
+            # where it does not in one (belt: two circles joined by tangent lines)
+            for stage in [[c for c in cons if c["type"] != "tangent"]] + [[c] for c in cons if c["type"] == "tangent"]:
+                if stage:
+                    r = self.m.call("sketch_constrain", {"constraints": stage})
         except Exception:
             self.m.call("sketch_cancel")
             raise
