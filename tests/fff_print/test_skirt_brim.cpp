@@ -1091,6 +1091,32 @@ TEST_CASE("Belt brim is absent when both widths are zero", "[SkirtBrim][belt]")
     }
 }
 
+TEST_CASE("Belt brim layers give layer change G-code every layer change placeholder", "[SkirtBrim][belt]")
+{
+    DynamicPrintConfig config = belt_brim_config();
+    config.set_deserialize_strict({
+        { "brim_type",           "outer_only" },
+        { "brim_width",          10 },
+        { "leading_brim_length", 30 },
+        { "brim_object_gap",     0 },
+        { "layer_change_gcode",  "G92 E0\n; LC [layer_num] [most_used_physical_extruder_id] [curr_y_acceleration_limit] "
+                                 "[curr_accumulated_mass] [curr_layer_mass]\n" },
+    });
+    Print print;
+    Model model;
+    init_print({ cube(20) }, print, model, config);
+    print.process();
+    const int bands = belt_brim_apron_bands(*print.objects().front());
+    REQUIRE(bands > 0);
+    std::string gc;
+    REQUIRE_NOTHROW(gc = gcode(print));
+    // The apron bands print first, so they are layers 0 to bands - 1.
+    for (int layer = 0; layer < bands; ++ layer) {
+        INFO(layer);
+        CHECK(gc.find("\n; LC " + std::to_string(layer) + " 0 ") != std::string::npos);
+    }
+}
+
 TEST_CASE("Leading brim length alone produces a belt brim", "[SkirtBrim][belt]")
 {
     // Exercises the leading_brim_length-only enablement path and the downhill sweep.
