@@ -56,9 +56,23 @@ combo boxes), so it opens the dial from the canvases and the tab strip only.
 `MainFrame::handle_global_shortcut` skips a chord that `KeyChord::edits_text()` reports
 while a text field has the focus (a wx text entry, spin control, web view or ImGui
 InputText), and skips every chord while an ImGui modal is open, as a wx modal dialog
-would. `ImGuiWrapper::owns_key()` reads the active InputText and the popup stack
-directly, since `WantCaptureKeyboard` lags a frame, and is called only when the focus is on
-a visible canvas from `OpenGLManager::create_wxglcanvas()`.
+would. `ImGuiWrapper::owns_key()` reads the text input request and the popup stack of the
+last drawn frame, since `WantCaptureKeyboard` and `WantTextInput` only catch up when the
+next frame starts, and is called only when the focus is on a visible canvas from
+`OpenGLManager::create_wxglcanvas()`.
+
+The `Plater`, `Preview` and `Painting` shortcuts act on the 3D view, so they run only while
+the 3D view has the keyboard. `GLCanvas3D` feeds every key event to ImGui and asks
+`ImGuiWrapper::claim_key_event()` whether to act on it as well. While an ImGui modal is open
+or an ImGui InputText is active, ImGui claims every key, as a focused sidebar text field
+keeps every key from the canvas. A held slider or button claims none, so the shortcuts keep
+working while one is dragged. One side handles a key from its key-down to its release. Its
+repeats, its char event and its release follow the key-down's decision even when a field or
+modal opens or closes in between, so a key never both runs a shortcut and types, and a
+keyboard move of the selection always sees the release of the key that started it. The
+canvas drops this record when it loses the focus, since the key-ups then go to whatever took
+it. The macOS Edit menu, whose key equivalents run before the canvas sees the key, follows
+the same rule.
 
 ## Which event a chord matches
 

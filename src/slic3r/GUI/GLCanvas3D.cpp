@@ -3872,6 +3872,7 @@ void GLCanvas3D::bind_event_handlers()
                 // The key-up that would commit a keyboard edit goes to whatever took the focus.
                 if (m_selection_edit.kind != SelectionEdit::None)
                     finish_selection_edit();
+                wxGetApp().imgui()->forget_key_claims();
                 ImGui::SetWindowFocus(nullptr);
                 render();
                 evt.Skip();
@@ -4005,11 +4006,12 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     // see include/wx/defs.h enum wxKeyCode
     int keyCode = evt.GetKeyCode();
 
-    auto imgui = wxGetApp().imgui();
-    if (imgui->update_key_data(evt)) {
+    auto       imgui         = wxGetApp().imgui();
+    const bool imgui_claimed = imgui->claim_key_event(evt);
+    if (imgui->update_key_data(evt) || imgui_claimed)
         render();
+    if (imgui_claimed)
         return;
-    }
 
     // Design tab: Delete, Esc, Ctrl+Z/Y and F are NOT handled here. DesignPanel's CHAR_HOOK owns
     // them (one route per key, whatever holds focus) and only lets a key through to this canvas
@@ -4303,17 +4305,18 @@ static void key_released(int key) { s_keys_down.erase(key); }
 void GLCanvas3D::on_key(wxKeyEvent& evt)
 {
 
-    const int keyCode = evt.GetKeyCode();
+    auto       imgui         = wxGetApp().imgui();
+    const int  keyCode       = evt.GetKeyCode();
+    const bool imgui_claimed = imgui->claim_key_event(evt);
     if (evt.GetEventType() == wxEVT_KEY_DOWN)
         m_key_down = { keyCode, key_repeats(keyCode) };
     else if (evt.GetEventType() == wxEVT_KEY_UP)
         key_released(keyCode);
     const bool alt_wheel_released = evt.GetEventType() == wxEVT_KEY_UP && keyCode == WXK_ALT && std::exchange(m_alt_wheel_used, false);
 
-    auto imgui = wxGetApp().imgui();
-    if (imgui->update_key_data(evt))
+    if (imgui->update_key_data(evt) || imgui_claimed)
         render();
-    else
+    if (!imgui_claimed)
     {
         // Before the gizmos and the selection, which Esc also closes.
         if (evt.GetEventType() == wxEVT_KEY_DOWN && keyCode == WXK_ESCAPE && std::exchange(m_section_view->panel_open, false)) {

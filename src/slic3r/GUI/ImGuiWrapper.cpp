@@ -2137,8 +2137,10 @@ bool ImGuiWrapper::want_any_input() const
 
 bool ImGuiWrapper::text_input_active() const
 {
-    const ImGuiID id = ImGui::GetActiveID();
-    return id != 0 && ImGui::GetInputTextState(id) != nullptr;
+    // An active InputText requests text input in each frame that draws it, and NewFrame() moves the
+    // request into io.WantTextInput.
+    const ImGuiContext& g = *ImGui::GetCurrentContext();
+    return g.WithinFrameScope ? g.IO.WantTextInput : g.WantTextInputNextFrame == 1;
 }
 
 bool ImGuiWrapper::modal_popup_open() const
@@ -2154,6 +2156,34 @@ bool ImGuiWrapper::modal_popup_open() const
 bool ImGuiWrapper::owns_key(const KeyChord& chord) const
 {
     return modal_popup_open() || (chord.edits_text() && text_input_active());
+}
+
+bool ImGuiWrapper::owns_keyboard() const
+{
+    return modal_popup_open() || text_input_active();
+}
+
+bool ImGuiWrapper::claim_key_event(const wxKeyEvent& evt)
+{
+    const bool claimed = owns_keyboard();
+    const int  key     = evt.GetKeyCode();
+    if (evt.GetEventType() == wxEVT_KEY_DOWN) {
+        m_char_claim = m_key_claims.try_emplace(key, claimed).first->second;
+        return *m_char_claim;
+    }
+    if (evt.GetEventType() == wxEVT_KEY_UP) {
+        m_char_claim.reset();
+        if (const auto press = m_key_claims.extract(key))
+            return press.mapped();
+        return claimed;
+    }
+    return std::exchange(m_char_claim, std::nullopt).value_or(claimed);
+}
+
+void ImGuiWrapper::forget_key_claims()
+{
+    m_key_claims.clear();
+    m_char_claim.reset();
 }
 
 ImFontAtlasCustomRect* ImGuiWrapper::GetTextureCustomRect(const wchar_t& tex_id)
