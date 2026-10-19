@@ -3217,6 +3217,16 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
         if (!cut.IsDone()) throw std::runtime_error(_u8L("hole cut failed"));
         result = cut.Shape();
 
+        // Drill point: a cone continuing the blind bore past its shoulder (apex h = r / tan(tip / 2) further in)
+        if (!f.hole_through && f.hole_tip_angle > 1.0 && f.hole_tip_angle < 179.0) {
+            const double r = f.hole_diameter * 0.5;
+            const double h = r / std::tan(f.hole_tip_angle * 0.5 * M_PI / 180.0);
+            const gp_Pnt base(o.X() + n.X() * f.hole_depth, o.Y() + n.Y() * f.hole_depth, o.Z() + n.Z() * f.hole_depth);
+            TopoDS_Shape tip = BRepPrimAPI_MakeCone(gp_Ax2(base, n), r, 0.0, h).Shape();
+            BRepAlgoAPI_Cut tc(result, tip);
+            if (tc.IsDone() && !tc.Shape().IsNull()) result = tc.Shape();
+        }
+
         // Enlarge the entry for a screw head (style 1 = counterbore, 2 = countersink).
         if (f.hole_style == 1 && f.hole_cbore_diameter > f.hole_diameter
                               && f.hole_cbore_depth > 1e-6) {

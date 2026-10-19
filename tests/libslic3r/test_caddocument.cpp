@@ -2427,7 +2427,7 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // pattern_spacing2 (double).
     // + shell_faces and draft_faces (two lists), draft_has_neutral (bool), draft_pull / draft_neutral (6 doubles), thin_in / thin_out.
     // + pattern_mirror (bool), extrude_entities (a list)
-    const size_t drop = sizeof(uint32_t) + 9 * sizeof(bool) + 11 * sizeof(cereal::size_type) + 23 * sizeof(double)
+    const size_t drop = sizeof(uint32_t) + 9 * sizeof(bool) + 11 * sizeof(cereal::size_type) + 24 * sizeof(double)
                         + 7 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
@@ -10439,4 +10439,21 @@ TEST_CASE("a body can be split by a tilted plane", "[CadDocument][cut]")
     REQUIRE(doc.bodies.size() == 2);
     for (const CadBody& b : doc.bodies)
         REQUIRE_THAT(double(SketchEngine::tessellate(b.shape).volume()), WithinRel(v / 2, 5e-3));
+}
+
+TEST_CASE("a blind hole can end in a drill point", "[CadDocument][hole]")
+{
+    using Catch::Matchers::WithinRel;
+    CadDocument doc;
+    const int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 40, 30, 0, "Plate");
+    doc.add_extrude(sk, 15.0, false, BooleanMode::New, "Plate");
+    REQUIRE(doc.recompute());
+    SketchPlane down = SketchPlane::XY();   // faces -Z so the bore runs into the plate from its top face
+    down.origin = Vec3d(0, 0, 15); down.normal = Vec3d(0, 0, -1); down.y_axis = Vec3d(0, -1, 0);
+    const int h = doc.add_hole(6.8, 12.0, false, 0.0, 0.0, down, "Drill");
+    doc.features[h].hole_tip_angle = 118.0;
+    REQUIRE(doc.recompute());
+    const double r = 3.4, cone = M_PI * r * r * (r / std::tan(59.0 * M_PI / 180.0)) / 3.0;
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()),
+                 WithinRel(40.0 * 30.0 * 15.0 - M_PI * r * r * 12.0 - cone, 2e-3));
 }

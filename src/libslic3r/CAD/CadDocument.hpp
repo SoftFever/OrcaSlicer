@@ -159,6 +159,7 @@ struct CadFeature {
     double      hole_cbore_depth{0};       // counterbore depth from the entry face (mm), style==1
     double      hole_csink_diameter{0};    // countersink major diameter at entry face (mm), style==2
     double      hole_csink_angle{90};      // countersink included angle (degrees), style==2
+    double      hole_tip_angle{0};         // blind hole: included angle of the drill point (deg, 0 = flat bottom)
     std::string hole_standard;             // provenance only, e.g. "M6" / "1/4-20"; not used by geometry
 
     // Thread params (helical thread about the plane normal at a positioned point)
@@ -480,7 +481,8 @@ struct CadFeature {
                dressup_radii, dressup_knots,
                pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
-               thin_in, thin_out, pattern_mirror, extrude_entities);
+               thin_in, thin_out, pattern_mirror, extrude_entities,
+               hole_tip_angle);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -532,7 +534,8 @@ struct CadFeature {
                dressup_radii, dressup_knots,
                pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
-               thin_in, thin_out, pattern_mirror, extrude_entities);
+               thin_in, thin_out, pattern_mirror, extrude_entities,
+               hole_tip_angle);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature

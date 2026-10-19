@@ -195,7 +195,7 @@ BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cu
 
 class Replay:
     def __init__(self, mcp):
-        self.m, self.sketches, self.body, self.fidx, self.entity_index, self.sketch_neg, self.tilted = mcp, {}, 0, {}, {}, {}, {}
+        self.m, self.sketches, self.body, self.fidx, self.entity_index, self.sketch_neg, self.tilted, self.point_sets = mcp, {}, 0, {}, {}, {}, {}, {}
         self.params, self.order, self.datums = {}, [], {}
         self.mo = [0, 0, 0]   # modeling_origin: the app frame is the recipe frame shifted by it   # recipe parameters (name -> expression); body names in app order
 
@@ -283,8 +283,23 @@ class Replay:
         self.m.call("pattern", {"features": feats, "circular": True, "count": ft["count"], "angle": ft.get("total_angle", 360),
                                 "axis": ax.get("dir", [0, 0, 1]), "origin": ax.get("origin", [0, 0, 0]), "body": self.body})
 
+    def point_sketch(self, desc):
+        """World positions of the points of the sketch a hole feature names ("sketch HolePoints points p1..p6")."""
+        name = desc.split()[1]
+        if name not in self.point_sets:
+            raise Blocked("hole positions from %r" % desc)
+        return self.point_sets[name]
+
+    def op_thread(self, ft):
+        if not ft.get("modeled", True):
+            return   # a cosmetic thread is an annotation: it adds no geometry, so there is nothing to build or compare
+        raise Blocked("modeled thread")
+
     def op_sketch(self, ft):
         self._last_neg = False
+        pl0 = ft["plane"]
+        if ft["entities"] and all(e["type"] == "point" for e in ft["entities"]) and pl0.get("normal") == [0.0, 0.0, 1.0]:
+            self.point_sets[ft["name"]] = [(e["at"][0], e["at"][1], pl0["origin"][2]) for e in ft["entities"]]
         plane, to_app = self.plane_for(ft["plane"])
         neg = self._last_neg
         ents, idx_of, swapped = sketch_entities(ft, to_app)
@@ -471,14 +486,34 @@ class Replay:
             pass   # joined into the original: still one body
 
     def op_hole(self, ft):
-        if ft.get("direction") != "into the material (-Z)":
+        radial = str(ft.get("direction", "")).startswith("along the inward surface normal")
+        if ft.get("direction") != "into the material (-Z)" and not radial:
             raise Blocked("hole direction %r" % ft.get("direction"))
-        if "position" not in ft:
-            raise Blocked("hole positions from a sketch")
-        px, py, pz = ft["position"]
-        # the app drills along its plane normal, so a plane facing -Z (tilted 180 about X) at the entry face drills down
-        pl = self.datum(0, pz, tilt=180.0, axis=0)
-        p = {"plane": pl, "x": px, "y": -py, "diameter": ft["diameter"], "through": ft["extent"] == "through_all", "depth": ft.get("depth", 10)}
+        if radial:
+            # on a cylinder: drill from the surface point toward the axis, on an explicit plane whose normal is that direction
+            f, (px, py, pz) = ft["face"], ft["position"]
+            ao, ax = f["axis_origin"], f["axis"]
+            d = [px - ao[0], py - ao[1], pz - ao[2]]
+            t = sum(a * b for a, b in zip(d, ax))
+            rad = [d[i] - t * ax[i] for i in range(3)]
+            ln = sum(c * c for c in rad) ** 0.5
+            pl = {"origin": [px, py, pz], "normal": [-c / ln for c in rad]}
+            xy = {"x": 0, "y": 0}
+        elif "position" in ft:
+            px, py, pz = ft["position"]
+            # the app drills along its plane normal, so a plane facing -Z (tilted 180 about X) at the entry face drills down
+            pl = self.datum(0, pz, tilt=180.0, axis=0)
+            xy = {"x": px, "y": -py}
+        else:
+            # positions are the points of a sketch on the entry face: one hole each, y flipped for the -Z-facing plane
+            pts = self.point_sketch(ft["positions_from"])
+            pl = self.datum(0, pts[0][2], tilt=180.0, axis=0)
+            xy = {"points": [[x, -y] for x, y, _ in pts]}
+        p = {"plane": pl, **xy, "diameter": ft["diameter"], "through": ft["extent"] == "through_all", "depth": ft.get("depth", 10),
+             "tip_angle": ft.get("tip_angle", 0)}
+        if isinstance(pl, dict):
+            p.update(pl)
+            p.pop("plane")
         ht = ft["hole_type"]
         if ht == "simple":
             self.m.call("hole", p)

@@ -1236,7 +1236,9 @@ json action_hole(DesignPanel* panel, const json& params)
     } else pts.emplace_back(x, y);
     doc.checkpoint();
     int h = -1;
-    for (const auto& p : pts) h = doc.add_hole(dia, depth, thru, p.first, p.second, pl, "Hole");
+    const double tip = params.value("tip_angle", 0.0);
+    if (tip < 0 || tip >= 180) throw std::runtime_error("tip_angle must be in [0, 180)");
+    for (const auto& p : pts) { h = doc.add_hole(dia, depth, thru, p.first, p.second, pl, "Hole"); doc.features[size_t(h)].hole_tip_angle = tip; }
     bool ok = doc.recompute();
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
     panel->mcp_after_change();
@@ -1259,10 +1261,25 @@ json action_hole_styled(DesignPanel* panel, const json& params)
     CadDocument& doc = panel->mcp_doc();
     if (doc.bodies.empty()) throw std::runtime_error("no body to drill");
     SketchPlane pl = plane_from(params, doc);
+    std::vector<std::pair<double, double>> pts;   // `points` [[x,y],...] = one styled hole each, one undo step
+    if (params.contains("points")) {
+        if (!params["points"].is_array() || params["points"].empty()) throw std::runtime_error("'points' must be a non-empty [[x,y],...]");
+        if (params["points"].size() > 500) throw std::runtime_error("at most 500 hole points per call");
+        for (const json& p : params["points"]) {
+            if (!p.is_array() || p.size() != 2 || !p[0].is_number() || !p[1].is_number()) throw std::runtime_error("each point must be [x, y]");
+            pts.emplace_back(jn(p, 0), jn(p, 1));
+        }
+    } else pts.emplace_back(x, y);
+    const double tip = params.value("tip_angle", 0.0);
+    if (tip < 0 || tip >= 180) throw std::runtime_error("tip_angle must be in [0, 180)");
     doc.checkpoint();
-    int h = doc.add_hole_styled(dia, depth, thru, x, y, pl, style,
+    int h = -1;
+    for (const auto& p : pts) {
+        h = doc.add_hole_styled(dia, depth, thru, p.first, p.second, pl, style,
                                 cbore_diameter, cbore_depth,
                                 csink_diameter, csink_angle, standard, "Hole");
+        doc.features[size_t(h)].hole_tip_angle = tip;
+    }
     bool ok = doc.recompute();
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
     panel->mcp_after_change();
