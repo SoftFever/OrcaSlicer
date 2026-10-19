@@ -10572,3 +10572,22 @@ TEST_CASE("a fillet can taper to the room that is left (fit: taper)", "[CadDocum
     REQUIRE(removed < (1.0 - M_PI / 4.0) * 9.0 * 40.0);
     REQUIRE(removed > (1.0 - M_PI / 4.0) * 1.8 * 1.8 * 40.0);
 }
+
+TEST_CASE("a sketch whose lines end on circles extrudes the regions of the subdivision (a belt)", "[CadDocument][sketch]")
+{
+    using Catch::Matchers::WithinRel;
+    CadDocument doc;
+    const double R = 20, r = 10, d = 50, a = std::asin((R - r) / d);
+    auto circle = [](Vec2d c, double rad) { SketchEntity e; e.type = SketchEntity::Type::Circle; e.center = c; e.p0 = c; e.radius = rad; return e; };
+    auto line = [](Vec2d p, Vec2d q) { SketchEntity e; e.type = SketchEntity::Type::Line; e.p0 = p; e.p1 = q; return e; };
+    const int sk = doc.add_sketch_entities({ circle({0, 0}, R), circle({d, 0}, r), circle({d, 0}, 4.0),
+                                             line({R * std::sin(a), R * std::cos(a)}, {d + r * std::sin(a), r * std::cos(a)}),
+                                             line({R * std::sin(a), -R * std::cos(a)}, {d + r * std::sin(a), -r * std::cos(a)}) },
+                                           SketchPlane::XY(), "Belt");
+    doc.add_extrude(sk, 5.0, false, BooleanMode::New, "Belt");
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.error.empty());
+    REQUIRE(doc.bodies.size() == 1);
+    const double hull = (R + r) * std::sqrt(d * d - (R - r) * (R - r)) + R * R * (M_PI + 2 * a) / 2 + r * r * (M_PI - 2 * a) / 2;
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel((hull - M_PI * 16.0) * 5.0, 2e-3));
+}

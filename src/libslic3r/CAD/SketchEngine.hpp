@@ -326,6 +326,13 @@ public:
     // Every closed region of a set of loops, as faces: a loop inside another one is a hole of the region around it, a loop inside
     // a hole is a region of its own again (even depth = region, odd depth = hole). Unlike wires_to_face, disjoint regions are fine.
     static std::vector<TopoDS_Face> wires_to_faces(const std::vector<TopoDS_Wire>& wires, const SketchPlane& plane);
+    // Sketches whose curves meet in T-junctions (a line ending on a circle or on the middle of another line / arc, as in a belt
+    // around two pulleys) do not break into closed chains: the circle belongs to several regions at once. For those the regions
+    // are the faces of the planar subdivision. Only lines, arcs and circles take part; any other entity answers false.
+    static bool arrangement_needed(const std::vector<SketchEntity>& entities);
+    // The bounded regions of the subdivision as faces, holes by the same even / odd rule as wires_to_faces (a region wholly
+    // inside another region's boundary is its hole).
+    static std::vector<TopoDS_Face> arrangement_faces(const std::vector<SketchEntity>& entities, const SketchPlane& plane);
     static TopoDS_Face wires_to_face(const std::vector<TopoDS_Wire>& wires,
                                      const SketchPlane& plane);
 

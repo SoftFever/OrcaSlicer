@@ -3089,7 +3089,30 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
                       }
                       return t;
                     };
+                    if (f.extrude_entities.empty() && SketchEngine::arrangement_needed(sk.entities)) {
+                        // curves that meet in T-junctions: every region of the subdivision, joined into one solid
+                        TopoDS_Shape acc;
+                        for (const TopoDS_Face& region : SketchEngine::arrangement_faces(sk.entities, sk.plane)) {
+                            const TopoDS_Shape part = one_region(region);
+                            if (acc.IsNull()) { acc = part; continue; }
+                            BRepAlgoAPI_Fuse fu(acc, part);
+                            if (!fu.IsDone() || fu.Shape().IsNull()) throw std::runtime_error(_u8L("the regions of the sketch could not be joined"));
+                            acc = fu.Shape();
+                        }
+                        return unify_same_domain(acc);
+                    }
                     if (f.extrude_entities.empty()) return one_region(build_sketch_face(sk));
+                    if (SketchEngine::arrangement_needed(sk.entities)) {   // the chosen curves meet in T-junctions: see above
+                        TopoDS_Shape acc;
+                        for (const TopoDS_Face& region : SketchEngine::arrangement_faces(sk.entities, sk.plane)) {
+                            const TopoDS_Shape part = one_region(region);
+                            if (acc.IsNull()) { acc = part; continue; }
+                            BRepAlgoAPI_Fuse fu(acc, part);
+                            if (!fu.IsDone() || fu.Shape().IsNull()) throw std::runtime_error(_u8L("the regions of the sketch could not be joined"));
+                            acc = fu.Shape();
+                        }
+                        return unify_same_domain(acc);
+                    }
                     const std::vector<TopoDS_Wire> loops = SketchEngine::entities_to_wires(sk.entities, sk.plane, true);
                     if (loops.empty()) throw std::runtime_error(open_loop_message(sk));
                     TopoDS_Compound all;

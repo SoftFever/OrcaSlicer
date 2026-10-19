@@ -21,11 +21,7 @@ CORPUS = os.path.join(HERE, "..", "..", "tests", "cad_oracle")
 
 # Cases that run but disagree with the oracle for a known kernel reason. Reported XFAIL (not a red gate);
 # an XFAIL case that starts passing is reported XPASS so the entry gets deleted.
-XFAIL = {
-    "58-phone-stand": "two 3 mm fillets on edges 6 mm apart: OCCT refuses ('no suitable edges'); the radii sum to the gap, so the two fillet surfaces just touch",
-    "35-fillet-curved-curved": "3 mm fillet along a cylinder/cylinder intersection (4 seam-split edges): OCCT's fillet builder fails; truck's succeeds",
-    "26-sketch-belt": "belt (2 circles + tangent lines): the constraints now solve, but the extrude needs planar-arrangement regions (circles split where a tangent line ends: disc, disc-with-hole and the strip between); the app only extrudes closed loops",
-}
+XFAIL = {}
 
 
 class Blocked(Exception):
@@ -668,6 +664,24 @@ class Replay:
             cands = [e for e in topo["edges"] if e["kind"] != "circle" and "mid" in e] if sel.get("type") == "nurbs" else topo["edges"]
             best = min(cands, key=near)
             ids.append(best["id"])
+            if sel.get("type") == "line" and "start" in sel and "end" in sel:
+                # a straight recipe edge may be several app edges (a symmetric extrude cuts its side edges at the mid-plane):
+                # take every app edge that lies along it
+                a = [x + o for x, o in zip(sel["start"], self.mo)]
+                b = [x + o for x, o in zip(sel["end"], self.mo)]
+                ab = [q - p for p, q in zip(a, b)]
+                L = math.sqrt(sum(c * c for c in ab))
+                for e in topo["edges"]:
+                    if e["id"] == best["id"] or "mid" in e or L < 1e-9:
+                        continue
+                    m = [(p + q) / 2 for p, q in zip(e["p0"], e["p1"])]
+                    am = [q - p for p, q in zip(a, m)]
+                    t = sum(x * y for x, y in zip(am, ab)) / (L * L)
+                    off = math.sqrt(max(0.0, sum(x * x for x in am) - (t * L) ** 2))
+                    d0 = [q - p for p, q in zip(e["p0"], e["p1"])]
+                    par = abs(sum(x * y for x, y in zip(d0, ab))) / (math.sqrt(sum(c * c for c in d0)) * L + 1e-12)
+                    if off < 1e-5 and par > 1 - 1e-9 and -1e-9 < t < 1 + 1e-9:
+                        ids.append(e["id"])
             if sel.get("type") == "nurbs" and math.dist(sel["start"], sel["end"]) < 1e-6:   # a closed intersection curve: the app splits it at its seams into several edges
                 ends = lambda e: (tuple(round(x, 4) for x in e["p0"]), tuple(round(x, 4) for x in e["p1"]))
                 loop, grew = {best["id"]}, True

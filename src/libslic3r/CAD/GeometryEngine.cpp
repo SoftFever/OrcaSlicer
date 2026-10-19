@@ -66,6 +66,7 @@
 #include <TopoDS_Solid.hxx>
 #include <TopoDS_Vertex.hxx>
 #include <ShapeUpgrade_UnifySameDomain.hxx>
+#include <BRepTools_History.hxx>
 #include <array>
 #include <map>
 #include <cmath>
@@ -454,10 +455,10 @@ TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radi
     return apply_fillet(solid, radius, edge_ids, FilletLaw{});
 }
 
-TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radius, const std::vector<int>& edge_ids, const FilletLaw& law)
+static TopoDS_Shape fillet_edges(const TopoDS_Shape& solid, double radius, const std::vector<TopoDS_Edge>& edges, const GeometryEngine::FilletLaw& law)
 {
     if (radius <= 0.001) throw std::runtime_error("the fillet radius must be greater than 0");
-    if (edge_ids.empty()) throw std::runtime_error("apply_fillet: no edge picked");
+    if (edges.empty()) throw std::runtime_error("apply_fillet: no edge picked");
     if (law.r2 > 1e6 || radius > 1e6) throw std::runtime_error("the fillet radius is too large");
 
     BRepFilletAPI_MakeFillet mk(solid);
@@ -498,9 +499,7 @@ TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radi
             }
             mk.Add(samples, edge);
     };
-    for (int id : edge_ids) {
-        TopoDS_Edge edge = edge_by_index(solid, id);
-        if (edge.IsNull()) throw std::runtime_error("apply_fillet: invalid edge id");
+    for (const TopoDS_Edge& edge : edges) {
         if (law.chord) {
             const double s = std::sin(0.5 * edge_normal_angle(solid, edge));
             if (s < 1e-6) throw std::runtime_error("fillet: the two faces are tangent here, a chord length cannot be turned into a radius");
@@ -535,6 +534,46 @@ TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radi
 
     if (!mk.IsDone()) throw std::runtime_error(_u8L("apply_fillet: OCCT fillet failed"));
     return mk.Shape();
+}
+
+TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radius, const std::vector<int>& edge_ids, const FilletLaw& law)
+{
+    std::vector<TopoDS_Edge> edges;
+    for (int id : edge_ids) {
+        TopoDS_Edge edge = edge_by_index(solid, id);
+        if (edge.IsNull()) throw std::runtime_error("apply_fillet: invalid edge id");
+        edges.push_back(edge);
+    }
+    try {
+        return fillet_edges(solid, radius, edges, law);
+    } catch (const std::exception&) {
+        // An intersection curve that the surfaces' seams cut into several edges (two cylinders that cross) makes the builder
+        // give up; merged back into one edge it often does not. Unify the body, follow the edges through the merge, retry.
+        TopoDS_Shape merged;
+        std::vector<TopoDS_Edge> now;
+        try {
+            ShapeUpgrade_UnifySameDomain u(solid, true, true, true);
+            u.Build();
+            merged = u.Shape();
+            const Handle(BRepTools_History) h = u.History();
+            for (const TopoDS_Edge& e : edges) {
+                bool any = false;
+                if (!h.IsNull())
+                    for (const TopoDS_Shape& m : h->Modified(e)) { now.push_back(TopoDS::Edge(m)); any = true; }
+                if (!any && !(!h.IsNull() && h->IsRemoved(e))) now.push_back(e);
+            }
+        } catch (...) { merged.Nullify(); }
+        if (!merged.IsNull() && !now.empty()) {
+            std::vector<TopoDS_Edge> uniq;   // several seam pieces collapse onto one edge
+            for (const TopoDS_Edge& e : now) {
+                bool dup = false;
+                for (const TopoDS_Edge& q : uniq) if (q.IsSame(e)) { dup = true; break; }
+                if (!dup) uniq.push_back(e);
+            }
+            try { return fillet_edges(merged, radius, uniq, law); } catch (const std::exception&) {}
+        }
+        throw;
+    }
 }
 
 TopoDS_Shape GeometryEngine::apply_chamfer(const TopoDS_Shape& solid, double distance, const std::vector<int>& edge_ids)
