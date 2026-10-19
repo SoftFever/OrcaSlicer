@@ -4083,6 +4083,95 @@ int GLGizmoTextureDisplacement::chroma_measured_base(const TextureDisplacementLa
     return std::max(1, int(std::lround(patch.top_mm / layer.chroma.layer_height_mm)));
 }
 
+void GLGizmoTextureDisplacement::chroma_fit_picture(TextureDisplacementLayer &layer)
+{
+    const ChromaPatch patch = chroma_patch(layer);
+    if (!patch.valid || !layer.chroma_source)
+        return;
+    // Lay the one copy of the picture over the painted patch. Without this the picture would be a tile
+    // of some size starting at the volume's own origin, which for a part centred on that origin puts
+    // three quarters of the patch outside the picture and leaves it undisplaced.
+    //
+    // uv = (planar / tiling_scale) * (1, aspect) + offset, so fitting means a scale that makes the
+    // longer side of the patch one tile wide and an offset that moves the patch's own corner to uv 0
+    // and centres the shorter side. The aspect is the picture's, so a wide picture is not squeezed
+    // into a square tile.
+    TextureDisplacementLayer probe;
+    probe.image_data   = layer.chroma_source;
+    const float aspect = layer_texture_aspect(probe);
+    const Vec2f size   = patch.planar_max - patch.planar_min;
+    const float along_u = std::max(size.x(), 1e-3f);
+    const float along_v = std::max(size.y() * aspect, 1e-3f);
+    const float scale   = std::max(along_u, along_v);
+    layer.tiling_scale  = scale;
+    layer.rotation_deg  = 0.f; // the fit is in unrotated planar coordinates
+    layer.offset        = Vec2f(-patch.planar_min.x() / scale + 0.5f * (1.f - along_u / scale),
+                                -patch.planar_min.y() * aspect / scale + 0.5f * (1.f - along_v / scale));
+}
+
+// Turns a layer from one kind into the other, in place. Nothing is thrown away: a picture's stack is
+// kept while it is a relief layer, so switching back costs nothing, and a relief layer's texture
+// becomes the picture it is solved from.
+void GLGizmoTextureDisplacement::chroma_convert_layer(TextureDisplacementLayer &layer, bool to_chroma)
+{
+    if (layer.chroma_enabled == to_chroma)
+        return;
+    ModelVolume *mv = texture_volume();
+    if (mv == nullptr)
+        return;
+
+    if (to_chroma)
+        for (const TextureDisplacementLayer &l : mv->texture_displacement_layers)
+            if (l.chroma_enabled && l.slot != layer.slot) {
+                show_error(nullptr, _u8L("This object already has a ChromaStack picture. An object can only have one: "
+                                         "the filament swaps are the object's own height ranges, and there is one set "
+                                         "of those."));
+                return;
+            }
+
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(),
+                                  to_chroma ? _u8L("Make this a ChromaStack picture") : _u8L("Make this a relief layer"),
+                                  UndoRedo::SnapshotType::GizmoAction);
+    layer.chroma_enabled = to_chroma;
+    if (to_chroma) {
+        // The texture it was displacing by becomes the picture it is solved from - which is right
+        // whether that image is a photograph or a grayscale height map, since a height map is just a
+        // picture with no colour in it.
+        if (!layer.chroma_source)
+            layer.chroma_source = layer.image_data;
+        layer.color_enabled = false;
+        layer.tile_enabled  = false;
+        layer.invert        = false;
+        layer.midlevel      = 0.f;
+        layer.smoothing     = 0.f;
+        layer.blend_mode    = TextureBlendMode::Add;
+        chroma_fit_picture(layer);
+        if (layer.chroma.bands.empty()) {
+            const float layer_h  = print_layer_height();
+            const int   measured = chroma_measured_base(layer);
+            layer.chroma = chroma_default_stack(chroma_filaments(), layer_h > 0.f ? layer_h : 0.08f,
+                                                measured > 0 ? measured : 4, CHROMA_DEFAULT_RELIEF_LAYERS);
+        }
+        chroma_touch(layer.slot);
+    } else {
+        // It stops printing in colour, so the swaps it wrote stop being wanted. Only the ones it wrote:
+        // anything else on the object was never ours to remove.
+        ModelObject *mo = m_c->selection_info()->model_object();
+        if (mo != nullptr && !mo->layer_config_ranges.empty() && !chroma_swaps_blocked(layer)) {
+            mo->layer_config_ranges.clear();
+            layer.chroma.applied_ranges = 0;
+            if (ObjectList *list = wxGetApp().obj_list(); list != nullptr) {
+                const int obj_idx = m_parent.get_selection().get_object_idx();
+                if (obj_idx >= 0)
+                    list->rebuild_layer_ranges(obj_idx);
+            }
+        }
+        m_chroma_settle_at[size_t(layer.slot)] = 0;
+    }
+    rebuild_preview();
+    m_parent.set_as_dirty();
+}
+
 void GLGizmoTextureDisplacement::chroma_pick_picture(TextureDisplacementLayer &layer)
 {
     const wxString wildcard = _L("Images (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp");
@@ -4114,34 +4203,14 @@ void GLGizmoTextureDisplacement::chroma_pick_picture(TextureDisplacementLayer &l
     layer.invert       = false;
     layer.midlevel     = 0.f;
 
-    const ChromaPatch patch = chroma_patch(layer);
-    if (patch.valid) {
-        // Lay the one copy of the picture over the painted patch. Without this the picture would be a
-        // tile of some size starting at the volume's own origin, which for a part centred on that
-        // origin puts three quarters of the patch outside the picture and leaves it undisplaced.
-        //
-        // uv = (planar / tiling_scale) * (1, aspect) + offset, so fitting means a scale that makes the
-        // longer side of the patch one tile wide and an offset that moves the patch's own corner to
-        // uv 0 and centres the shorter side. The aspect is the picture's, so a wide picture is not
-        // squeezed into a square tile.
-        TextureDisplacementLayer probe;
-        probe.image_data    = layer.chroma_source;
-        const float aspect  = layer_texture_aspect(probe);
-        const Vec2f size    = patch.planar_max - patch.planar_min;
-        const float along_u = std::max(size.x(), 1e-3f);
-        const float along_v = std::max(size.y() * aspect, 1e-3f);
-        const float scale   = std::max(along_u, along_v);
-        layer.tiling_scale  = scale;
-        layer.rotation_deg  = 0.f; // the fit below is in unrotated planar coordinates
-        layer.offset = Vec2f(-patch.planar_min.x() / scale + 0.5f * (1.f - along_u / scale),
-                             -patch.planar_min.y() * aspect / scale + 0.5f * (1.f - along_v / scale));
-    }
+    chroma_fit_picture(layer);
 
     if (layer.chroma.bands.empty()) {
         const float layer_h = print_layer_height();
         // The base is whatever the model already has under the painted face, in layers: the relief is
-        // printed on top of it, so this is not a choice but a measurement.
-        const int base = (layer_h > 0.f && patch.valid) ? std::max(1, int(std::lround(patch.top_mm / layer_h))) : 4;
+        // printed on top of it, so this is a measurement rather than a choice.
+        const int measured = chroma_measured_base(layer);
+        const int base     = measured > 0 ? measured : 4;
         layer.chroma = chroma_default_stack(chroma_filaments(), layer_h > 0.f ? layer_h : 0.08f, base,
                                                 CHROMA_DEFAULT_RELIEF_LAYERS);
     }
@@ -7258,18 +7327,28 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     const auto chip_width = [&](const wxString &text) {
         return ImGui::CalcTextSize(into_u8(text).c_str()).x + 2.f * std::round(m_imgui->scaled(0.18f));
     };
+    // The badge is also the control: clicking it is how a layer changes kind, which is the only place
+    // that can be done and the first place a user looks for it.
     const auto chip = [&](const wxString &text, bool accent) {
         const std::string t   = into_u8(text);
         const ImVec2      ts  = ImGui::CalcTextSize(t.c_str());
         const float       pad = std::round(m_imgui->scaled(0.18f));
         const ImVec2      p   = ImGui::GetCursorScreenPos();
         const float       h   = ts.y + 2.f * pad;
-        ImGui::Dummy(ImVec2(ts.x + 2.f * pad, frame_h));
+        const bool clicked = ImGui::InvisibleButton("##kind", ImVec2(ts.x + 2.f * pad, frame_h));
+        const bool hot     = ImGui::IsItemHovered();
         const float y   = std::round(p.y + 0.5f * (frame_h - h));
-        const ImU32 col = accent ? ImGui::GetColorU32(orca) : ImGui::GetColorU32(ImGuiCol_TextDisabled);
+        ImVec4      tint = accent ? orca : ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
+        if (!hot)
+            tint.w *= 0.85f;
+        const ImU32 col = ImGui::GetColorU32(tint);
         ImDrawList *d   = ImGui::GetWindowDrawList();
+        if (hot)
+            d->AddRectFilled(ImVec2(p.x, y), ImVec2(p.x + ts.x + 2.f * pad, y + h),
+                             ImGui::GetColorU32(ImVec4(tint.x, tint.y, tint.z, 0.18f)), style.FrameRounding);
         d->AddRect(ImVec2(p.x, y), ImVec2(p.x + ts.x + 2.f * pad, y + h), col, style.FrameRounding);
         d->AddText(ImVec2(p.x + pad, y + pad), col, t.c_str());
+        return clicked;
     };
 
     const float grip_w = std::round(m_imgui->scaled(0.7f));
@@ -7289,6 +7368,11 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
             ImGui::EndDragDropSource();
         }
     };
+
+    // A kind change asked for by a card's chip, carried out after the list has been drawn: it rewrites
+    // the layer, and the preview with it, which is not something to do halfway through drawing them.
+    int  convert_slot      = -1;
+    bool convert_to_chroma = false;
 
     // The layer being dragged, while a reorder drag is in flight. Its card stays in place as a faded ghost.
     int dragged_slot = -1;
@@ -7415,12 +7499,31 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
                                         _u8L("Pick a different image for this layer. The paint, depth and tiling stay "
                                              "as they are."));
                 ImGui::SameLine(0.f, gap_s);
-                chip(chip_text, chroma_card);
+                if (chip(chip_text, chroma_card))
+                    ImGui::OpenPopup("layer_kind");
                 if (ImGui::IsItemHovered())
-                    m_imgui->tooltip(chroma_card ? _u8L("A color picture made of filament swaps. Its height map is "
-                                                        "solved from the picture and the filaments below.") :
-                                                   _u8L("A height map pushed into the surface. Tiles, depth, blending."),
+                    m_imgui->tooltip((chroma_card ? _u8L("A color picture made of filament swaps. Its height map is "
+                                                         "solved from the picture and the filaments below.") :
+                                                    _u8L("A height map pushed into the surface. Tiles, depth, "
+                                                         "blending.")) +
+                                         "\n\n" + _u8L("Click to change what kind of layer this is."),
                                      wrap_w);
+                if (ImGui::BeginPopup("layer_kind")) {
+                    const auto kind = [&](const wxString &title, const std::string &what, bool current) {
+                        const bool picked = ImGui::Selectable(("##" + into_u8(title)).c_str(), current, 0,
+                                                              ImVec2(0.f, 2.f * ImGui::GetTextLineHeight() + 4.f));
+                        const ImVec2 mn = ImGui::GetItemRectMin();
+                        dl->AddText(ImVec2(mn.x, mn.y + 2.f), ImGui::GetColorU32(ImGuiCol_Text), title.ToUTF8().data());
+                        dl->AddText(ImVec2(mn.x, mn.y + 2.f + ImGui::GetTextLineHeight()),
+                                    ImGui::GetColorU32(ImGuiCol_TextDisabled), what.c_str());
+                        return picked;
+                    };
+                    if (kind(_L("Relief layer"), _u8L("A height map pushed into the surface."), !chroma_card))
+                        convert_slot = layer.slot, convert_to_chroma = false;
+                    if (kind(_L("ChromaStack picture"), _u8L("A color picture made of filament swaps."), chroma_card))
+                        convert_slot = layer.slot, convert_to_chroma = true;
+                    ImGui::EndPopup();
+                }
                 // Whatever is wrong with this layer, as one mark. The panel says nothing in prose: the
                 // list is in the tooltip, where it is read when wanted rather than sat through, and a
                 // click does the one thing that can be done from here.
@@ -8302,6 +8405,12 @@ void GLGizmoTextureDisplacement::on_render_input_window(float x, float y, float 
     ImGui::PopStyleVar(2);
 
     // The layer-list changes deferred from the loop above.
+    if (convert_slot >= 0 && mv != nullptr)
+        for (TextureDisplacementLayer &l : mv->texture_displacement_layers)
+            if (l.slot == convert_slot) {
+                chroma_convert_layer(l, convert_to_chroma);
+                break;
+            }
     if (slot_to_remove >= 0)
         remove_texture_layer(slot_to_remove);
     else if (move_slot >= 0)

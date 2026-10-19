@@ -451,6 +451,13 @@ private:
     // filaments and the patch if the layer has none yet. Solves straight away, so the relief appears
     // without a second click.
     void chroma_pick_picture(TextureDisplacementLayer &layer);
+    // Lays one copy of the picture over the painted patch, which is what a picture wants and a tiling
+    // texture does not.
+    void chroma_fit_picture(TextureDisplacementLayer &layer);
+    // Switches a layer between the two kinds, from the chip in its header. Keeps everything: a
+    // picture's stack survives a trip through being a relief layer, and a relief layer's texture
+    // becomes the picture it is solved from.
+    void chroma_convert_layer(TextureDisplacementLayer &layer, bool to_chroma);
     // Re-runs the solve and replaces the layer's height map with its result. `silent` for the automatic
     // path, which must not put a dialog in front of someone who was only dragging a number.
     bool chroma_solve_layer(TextureDisplacementLayer &layer, bool silent = false);

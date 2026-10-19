@@ -201,8 +201,11 @@ overlay uses, since it is the same surface as whatever is underneath it.
 
 ## What the panel shows
 
-The kind of a layer is the layer's own, chosen when it is added and fixed from then on, except that
-the chip in the card's header is a menu: it is what turns a relief layer into a picture and back.
+The kind of a layer is the layer's own, chosen when it is added. The chip in the card's header is
+also the control that changes it: clicking it offers the two kinds, and converting keeps everything -
+a picture's stack survives a trip through being a relief layer, and a relief layer's texture becomes
+the picture it is solved from, a height map being a picture with no colour in it. Converting away
+from a picture clears the swaps it wrote, and only those.
 There is no panel-wide mode, so one object can hold a picture on its face and a knurl on its rim, and
 a card never shows a control that cannot do anything on it. A picture cannot be reordered (anything
 printed over it buries the colours) and an object may hold only one, refused when the layer is added
