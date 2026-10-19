@@ -12235,6 +12235,7 @@ void DesignPanel::toggle_origin()
 
 void DesignPanel::toggle_toolbar()
 {
+    if (m_imgui_ribbon) return;   // the ribbon is the always-visible toolbox (projects-is6a): only the wx groups can be hidden
     m_show_toolbar = !m_show_toolbar;
     wxGetApp().app_config->set("design_show_toolbar", m_show_toolbar ? "1" : "0");
     apply_toolbar_visibility();
@@ -12245,7 +12246,7 @@ void DesignPanel::toggle_toolbar()
 // re-show the mode switch and set_imgui_ribbon do, without re-wiring the ribbon's callbacks.
 void DesignPanel::apply_toolbar_visibility()
 {
-    if (m_viewport) m_viewport->set_ribbon_overlay(m_imgui_ribbon && m_show_toolbar);
+    if (m_viewport) m_viewport->set_ribbon_overlay(m_imgui_ribbon);
     if (m_toolbar && m_toolbar->GetSizer()) {
         wxSizer* s = m_toolbar->GetSizer();
         const bool wx_groups = !m_imgui_ribbon && m_show_toolbar;
@@ -12564,7 +12565,7 @@ void DesignPanel::set_imgui_ribbon(bool on)
     r.sketching = [this] { return sketch_map_applies(); };
     r.load_last = [cfg](const std::string& group) { return cfg->get("design_ribbon_last_" + group); };
     r.save_last = [cfg](const std::string& group, const std::string& id) { cfg->set("design_ribbon_last_" + group, id); };
-    m_viewport->set_ribbon_overlay(on && m_show_toolbar);
+    m_viewport->set_ribbon_overlay(on);
     if (m_toolbar && m_toolbar->GetSizer()) {
         wxSizer* s = m_toolbar->GetSizer();
         const bool wx_groups = !on && m_show_toolbar;
