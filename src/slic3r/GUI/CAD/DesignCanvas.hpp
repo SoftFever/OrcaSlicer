@@ -91,6 +91,7 @@ public:
     void set_ribbon_overlay(bool on) { m_ribbon_on = on; request_repaint(); }
     bool ribbon_overlay_on() const { return m_ribbon_on; }
     DesignTreeOverlay& tree_overlay() { return m_tree_overlay; }
+    const std::string& readout() const { return m_hud_last; }   // the HUD chip text (rig)
     void set_tree_overlay(bool on) { m_tree_overlay_on = on; request_repaint(); }
     bool tree_overlay_on() const { return m_tree_overlay_on; }
     void begin_sketch3d(const Vec3d& start, std::vector<Vec3d> snap_targets) { m_sketch_tool.begin_sketch3d(start, std::move(snap_targets)); request_repaint(); }

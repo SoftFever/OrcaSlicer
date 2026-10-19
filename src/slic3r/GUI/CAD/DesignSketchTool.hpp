@@ -928,6 +928,7 @@ private:
     void open_primary_autoedit();
     // Compact "current values" string for the bottom-right HUD (see on_readout).
     std::string build_readout() const;
+    std::string guide_tag() const;      // what the cursor is locked onto: "//", "T" (perpendicular), "End", "Mid", "On", "Ctr", "Origin"; "" when free
     // Open a characteristic live quote as a TENTATIVE driving dimension: the constraint is
     // appended only if the user commits a value (Enter); cancel (Esc) adds nothing — so
     // drawing never silently over-constrains. (place_dimension is the eager Select-mode twin.)
@@ -1136,6 +1137,7 @@ private:
     Vec2d               m_cursor{0,0};
     bool                m_has_cursor{false};
     mutable Vec2d       m_pre_grid{0, 0};       // the cursor as snap_vertex received it, before the grid moved it
+    mutable int         m_guide_kind{0};         // 1 parallel, 2 perpendicular (with m_guide_ent)
     mutable int         m_guide_ent{-1};        // the line the rubber band is parallel/perpendicular to (-1: none)
     bool                m_infer_off{false};     // Ctrl/Alt held -> no snapping and no auto-constraints
     bool                m_snap_off{false};      // Shift held -> suppress angle snapping

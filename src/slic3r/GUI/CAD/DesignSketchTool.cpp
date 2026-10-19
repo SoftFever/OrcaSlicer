@@ -2615,6 +2615,7 @@ Vec2d DesignSketchTool::snap_dir(const Vec2d& anchor, const Vec2d& raw, bool& lo
 {
     locked = false;
     m_guide_ent = -1;
+    m_guide_kind = 0;
     if (m_snap_off) return raw;
 
     const Vec2d d = raw - anchor;
@@ -2628,6 +2629,7 @@ Vec2d DesignSketchTool::snap_dir(const Vec2d& anchor, const Vec2d& raw, bool& lo
     if (g.kind != DirectionGuide::Kind::None) {
         locked = true;
         m_guide_ent = g.entity;
+        m_guide_kind = g.kind == DirectionGuide::Kind::Parallel ? 1 : 2;
         return anchor + (m_grid_on ? (m_pre_grid - anchor).norm() : r) * g.dir;
     }
 
@@ -10734,7 +10736,26 @@ void DesignSketchTool::render(GLCanvas3D& canvas)
     glsafe(::glEnable(GL_CULL_FACE));
     glsafe(::glEnable(GL_DEPTH_TEST));
 
-    if (on_readout) on_readout(build_readout());   // bottom-right viewport HUD
+    if (on_readout) {   // bottom-right viewport HUD: the values, then what the cursor is locked onto
+        std::string r = build_readout();
+        const std::string tag = m_has_cursor && m_active ? guide_tag() : std::string();
+        if (!tag.empty()) r += (r.empty() ? "" : "    ") + std::string("[") + tag + "]";
+        on_readout(r);
+    }
+}
+
+std::string DesignSketchTool::guide_tag() const
+{
+    if (m_guide_ent >= 0 && m_cursor_locked && m_guide_kind != 0) return m_guide_kind == 1 ? "//" : "\xE2\x8A\xA5";   // parallel / perpendicular
+    if (!m_cursor_snap.snapped()) return std::string();
+    switch (m_cursor_snap.kind) {
+    case InferenceSnap::Kind::Endpoint: return _u8L("End");
+    case InferenceSnap::Kind::Center:   return _u8L("Centre");
+    case InferenceSnap::Kind::Midpoint: return _u8L("Mid");
+    case InferenceSnap::Kind::OnEdge:   return _u8L("On");
+    case InferenceSnap::Kind::Origin:   return _u8L("Origin");
+    default: return std::string();
+    }
 }
 
 // Compact "current values" for the bottom-right HUD: the live segment being drawn (length
