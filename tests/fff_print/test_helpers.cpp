@@ -5,6 +5,7 @@
 #include "libslic3r/GCodeReader.hpp"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/Model.hpp"
 
 #include <algorithm>
 #include <cstdlib>
