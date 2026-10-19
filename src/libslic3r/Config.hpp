@@ -841,8 +841,12 @@ public:
     {
         UNUSED(append);
         std::istringstream iss(str);
-        iss >> this->value;
-        return !iss.fail();
+        double value;
+        iss >> value;
+        if (iss.fail())
+            return false;
+        this->value = value;
+        return true;
     }
 
     bool operator==(const ConfigOption &rhs) const override
@@ -1033,8 +1037,12 @@ public:
     {
         UNUSED(append);
         std::istringstream iss(str);
-        iss >> this->value;
-        return !iss.fail();
+        int value;
+        iss >> value;
+        if (iss.fail())
+            return false;
+        this->value = value;
+        return true;
     }
 
     ConfigOptionInt& operator=(const ConfigOption *opt)
@@ -1252,8 +1260,12 @@ public:
         UNUSED(append);
         // don't try to parse the trailing % since it's optional
         std::istringstream iss(str);
-        iss >> this->value;
-        return !iss.fail();
+        double value;
+        iss >> value;
+        if (iss.fail())
+            return false;
+        this->value = value;
+        return true;
     }
 
 private:
@@ -1365,10 +1377,14 @@ public:
     bool deserialize(const std::string &str, bool append = false) override
     {
         UNUSED(append);
-        this->percent = str.find_first_of("%") != std::string::npos;
         std::istringstream iss(str);
-        iss >> this->value;
-        return !iss.fail();
+        double value;
+        iss >> value;
+        if (iss.fail())
+            return false;
+        this->value   = value;
+        this->percent = str.find_first_of("%") != std::string::npos;
+        return true;
     }
 
 private:
@@ -1538,8 +1554,12 @@ public:
     {
         UNUSED(append);
         char dummy;
-        return sscanf(str.data(), " %lf , %lf %c", &this->value(0), &this->value(1), &dummy) == 2 ||
-               sscanf(str.data(), " %lf x %lf %c", &this->value(0), &this->value(1), &dummy) == 2;
+        Vec2d value;
+        if (sscanf(str.data(), " %lf , %lf %c", &value(0), &value(1), &dummy) != 2 &&
+            sscanf(str.data(), " %lf x %lf %c", &value(0), &value(1), &dummy) != 2)
+            return false;
+        this->value = value;
+        return true;
     }
 
 private:
@@ -1658,8 +1678,12 @@ public:
     {
         UNUSED(append);
         char dummy;
-        return sscanf(str.data(), " %lf , %lf , %lf %c", &this->value(0), &this->value(1), &this->value(2), &dummy) == 3 ||
-               sscanf(str.data(), " %lf x %lf x %lf %c", &this->value(0), &this->value(1), &this->value(2), &dummy) == 3;
+        Vec3d value;
+        if (sscanf(str.data(), " %lf , %lf , %lf %c", &value(0), &value(1), &value(2), &dummy) != 3 &&
+            sscanf(str.data(), " %lf x %lf x %lf %c", &value(0), &value(1), &value(2), &dummy) != 3)
+            return false;
+        this->value = value;
+        return true;
     }
 
 private:

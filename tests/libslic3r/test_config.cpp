@@ -1263,6 +1263,55 @@ TEST_CASE("read_cli rejects an invalid scalar numeric value", "[Config]") {
     REQUIRE_FALSE(config.read_cli(3, argv, &extra, &keys));
 }
 
+TEST_CASE("A scalar option keeps its value when deserializing fails", "[Config]") {
+    using Catch::Matchers::WithinAbs;
+
+    SECTION("float") {
+        ConfigOptionFloat opt(7.5);
+        REQUIRE_FALSE(opt.deserialize("abc"));
+        CHECK_THAT(opt.value, WithinAbs(7.5, 1e-9));
+    }
+    SECTION("int") {
+        ConfigOptionInt opt(3);
+        REQUIRE_FALSE(opt.deserialize("abc"));
+        CHECK(opt.value == 3);
+    }
+    SECTION("percent") {
+        ConfigOptionPercent opt(40.);
+        REQUIRE_FALSE(opt.deserialize("abc%"));
+        CHECK_THAT(opt.value, WithinAbs(40., 1e-9));
+    }
+    SECTION("float or percent") {
+        ConfigOptionFloatOrPercent opt(0.4, false);
+        REQUIRE_FALSE(opt.deserialize("abc%"));
+        CHECK_THAT(opt.value, WithinAbs(0.4, 1e-9));
+        CHECK_FALSE(opt.percent);
+    }
+    SECTION("point") {
+        ConfigOptionPoint opt(Vec2d(1., 2.));
+        REQUIRE_FALSE(opt.deserialize("5,abc"));
+        CHECK(opt.value == Vec2d(1., 2.));
+    }
+    SECTION("point3") {
+        ConfigOptionPoint3 opt(Vec3d(1., 2., 3.));
+        REQUIRE_FALSE(opt.deserialize("5,6,abc"));
+        CHECK(opt.value == Vec3d(1., 2., 3.));
+    }
+}
+
+TEST_CASE("A scalar option still takes a valid value", "[Config]") {
+    using Catch::Matchers::WithinAbs;
+
+    ConfigOptionFloatOrPercent opt(0.4, false);
+    REQUIRE(opt.deserialize("50%"));
+    CHECK_THAT(opt.value, WithinAbs(50., 1e-9));
+    CHECK(opt.percent);
+
+    ConfigOptionPoint point;
+    REQUIRE(point.deserialize("3x4"));
+    CHECK(point.value == Vec2d(3., 4.));
+}
+
 TEST_CASE("read_cli appends values when a vector option is repeated", "[Config]") {
     Slic3r::DynamicPrintConfig config;
     t_config_option_keys extra, keys;
