@@ -366,24 +366,24 @@ static t_config_enum_values s_keys_map_SurfaceFillOrder{
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SurfaceFillOrder)
 
 //Orca
-static t_config_enum_values s_keys_map_TpmsAdaptiveMode{
-    { "disabled",       int(TpmsAdaptiveMode::Disabled) },
-    { "distance_warp",  int(TpmsAdaptiveMode::DistanceWarp) },
-    { "smooth_blend",   int(TpmsAdaptiveMode::SmoothBlend) },
-    { "stepped_shells", int(TpmsAdaptiveMode::SteppedShells) },
-    { "lobes",          int(TpmsAdaptiveMode::Lobes) },
-    { "normal_z",       int(TpmsAdaptiveMode::NormalZ) },
-    { "normal_y",       int(TpmsAdaptiveMode::NormalY) },
-    { "normal_x",       int(TpmsAdaptiveMode::NormalX) },
+static t_config_enum_values s_keys_map_AdaptiveInfillMode{
+    { "disabled",       int(AdaptiveInfillMode::Disabled) },
+    { "distance_warp",  int(AdaptiveInfillMode::DistanceWarp) },
+    { "smooth_blend",   int(AdaptiveInfillMode::SmoothBlend) },
+    { "stepped_shells", int(AdaptiveInfillMode::SteppedShells) },
+    { "lobes",          int(AdaptiveInfillMode::Lobes) },
+    { "normal_z",       int(AdaptiveInfillMode::NormalZ) },
+    { "normal_y",       int(AdaptiveInfillMode::NormalY) },
+    { "normal_x",       int(AdaptiveInfillMode::NormalX) },
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TpmsAdaptiveMode)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AdaptiveInfillMode)
 
-static t_config_enum_values s_keys_map_TpmsAdaptiveGradient{
-    { "linear",      int(TpmsAdaptiveGradient::Linear) },
-    { "quadratic",   int(TpmsAdaptiveGradient::Quadratic) },
-    { "exponential", int(TpmsAdaptiveGradient::Exponential) },
+static t_config_enum_values s_keys_map_AdaptiveInfillGradient{
+    { "linear",      int(AdaptiveInfillGradient::Linear) },
+    { "quadratic",   int(AdaptiveInfillGradient::Quadratic) },
+    { "exponential", int(AdaptiveInfillGradient::Exponential) },
 };
-CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TpmsAdaptiveGradient)
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(AdaptiveInfillGradient)
 
 //BBS
 static t_config_enum_values s_keys_map_PrintSequence {
@@ -3660,7 +3660,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 10; // Maximum number of lines for infill pattern
     def->set_default_value(new ConfigOptionInt(1));
 
-    def             = this->add("tpms_adaptive", coEnum);
+    def             = this->add("adaptive_infill_mode", coEnum);
     def->label      = L("Adaptive density (experimental)");
     def->category   = L("Strength");
     def->tooltip    = L("Grades the Gyroid and TPMS infill inside the object: its cells grow from the surface of the "
@@ -3678,7 +3678,7 @@ void PrintConfigDef::init_fff_params()
                         "joined to the rest by a narrower neck, is graded towards its own center.\n"
                         " - Normal Z, Y or X: follows the sections of the object normal to that axis, so the density "
                         "does not change along it.");
-    def->enum_keys_map = &ConfigOptionEnum<TpmsAdaptiveMode>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<AdaptiveInfillMode>::get_enum_values();
     def->enum_values.push_back("disabled");
     def->enum_values.push_back("distance_warp");
     def->enum_values.push_back("smooth_blend");
@@ -3696,9 +3696,9 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Normal Y"));
     def->enum_labels.push_back(L("Normal X"));
     def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<TpmsAdaptiveMode>(TpmsAdaptiveMode::Disabled));
+    def->set_default_value(new ConfigOptionEnum<AdaptiveInfillMode>(AdaptiveInfillMode::Disabled));
 
-    def             = this->add("tpms_interior_density", coPercent);
+    def             = this->add("adaptive_infill_interior_density", coPercent);
     def->label      = L("Interior density");
     def->category   = L("Strength");
     def->tooltip    = L("Density of the adaptive infill at the center of the object.");
@@ -3708,7 +3708,7 @@ void PrintConfigDef::init_fff_params()
     def->mode       = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(5));
 
-    def             = this->add("tpms_adaptive_gradient", coEnum);
+    def             = this->add("adaptive_infill_gradient", coEnum);
     def->label      = L("Adaptive gradient");
     def->category   = L("Strength");
     def->tooltip    = L("How the density changes from the surface to the center of the object.\n"
@@ -3717,7 +3717,7 @@ void PrintConfigDef::init_fff_params()
                         "changes faster towards the center.\n"
                         "Exponential: the density changes quickly just below the surface and levels off towards "
                         "the center.");
-    def->enum_keys_map = &ConfigOptionEnum<TpmsAdaptiveGradient>::get_enum_values();
+    def->enum_keys_map = &ConfigOptionEnum<AdaptiveInfillGradient>::get_enum_values();
     def->enum_values.push_back("linear");
     def->enum_values.push_back("quadratic");
     def->enum_values.push_back("exponential");
@@ -3725,7 +3725,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Quadratic"));
     def->enum_labels.push_back(L("Exponential"));
     def->mode       = comAdvanced;
-    def->set_default_value(new ConfigOptionEnum<TpmsAdaptiveGradient>(TpmsAdaptiveGradient::Linear));
+    def->set_default_value(new ConfigOptionEnum<AdaptiveInfillGradient>(AdaptiveInfillGradient::Linear));
 
     // Z-buckling bias optimization (experimental). Tightens the gyroid wave along the Z
     // (vertical) axis at low infill density to shorten the effective column length under
@@ -4628,6 +4628,17 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Enable this option to add EXCLUDE OBJECT command in G-code.");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("exclude_object_tolerance", coFloat);
+    def->label = L("Outline tolerance");
+    def->tooltip = L("Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the "
+                     "original outline. Larger values give fewer points, which helps firmware that stalls "
+                     "while parsing G-code with many objects. 0 keeps every point.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 5;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.1));
 
     def = this->add("gcode_comments", coBool);
     def->label = L("Verbose G-code");
@@ -9654,6 +9665,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "change_filament_gcode";
     } else if (opt_key == "bridge_fan_speed") {
         opt_key = "overhang_fan_speed";
+    } else if (opt_key == "tpms_adaptive") {
+        opt_key = "adaptive_infill_mode";
+    } else if (opt_key == "tpms_interior_density") {
+        opt_key = "adaptive_infill_interior_density";
+    } else if (opt_key == "tpms_adaptive_gradient") {
+        opt_key = "adaptive_infill_gradient";
     } else if (opt_key == "infill_extruder" || opt_key == "sparse_infill_filament") {
         // ORCA: legacy feature-filament selector. Pre-2.4.0-dev these keys were 1-based and the
         // default value "1" meant "the first/active filament". The current scheme uses a dedicated

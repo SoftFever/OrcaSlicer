@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: orcaslicerua\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2026-07-17 16:25+0300\n"
 "Last-Translator: Andrij Mizyk <andm1zyk@proton.me>\n"
 "Language-Team: Ukrainian\n"
@@ -772,17 +772,22 @@ msgstr "Вибір"
 msgid "Plate"
 msgstr "Пластина"
 
+# AI Translated
+# Needs human review: No glossary rendering yet (Ukrainian cell empty); Розподілити proposed.
 msgid "Distribute"
-msgstr ""
+msgstr "Розподілити"
 
 msgid "Coordinate system used for transform actions."
 msgstr "Система координат для дій перетворення."
 
+# AI Translated
+# Needs human review: Label in the Align/Distribute tool: what the objects are aligned to; check the wording in the UI.
 msgid "Reference for alignment"
-msgstr ""
+msgstr "Опора для вирівнювання"
 
+# AI Translated
 msgid "Select at least 3 parts or objects"
-msgstr ""
+msgstr "Виберіть щонайменше 3 частини або обʼєкти"
 
 # AI Translated
 msgid "Align left"
@@ -836,8 +841,9 @@ msgstr "Розподілити за висотою"
 msgid "Drop"
 msgstr "Кинути"
 
+# AI Translated
 msgid "Move the selection along Z so that its lowest point touches the bed."
-msgstr ""
+msgstr "Перемістити виділене вздовж осі Z так, щоб його найнижча точка торкалася столу."
 
 msgid "Absolute"
 msgstr "Абсолютно"
@@ -1740,7 +1746,7 @@ msgid "Stroke of shape (%1%) contains unsupported: %2%."
 msgstr "Обведення фігури (%1%) не підтримується: %2%."
 
 # AI Translated
-msgid "Not valid state please report reproduction steps on github"
+msgid "Not valid state please report reproduction steps on GitHub"
 msgstr "Некоректний стан, будь ласка, повідомте кроки відтворення на GitHub"
 
 # AI Translated
@@ -1748,11 +1754,11 @@ msgid "No embossed file"
 msgstr "Відсутній файл рельєфу"
 
 # AI Translated
-msgid "Missing svg file in embossed shape"
+msgid "Missing SVG file in embossed shape"
 msgstr "У рельєфній формі відсутній файл SVG"
 
 # AI Translated
-msgid "Missing data of svg file"
+msgid "Missing data of SVG file"
 msgstr "Відсутні дані файлу SVG"
 
 msgid "Face the camera"
@@ -2073,17 +2079,21 @@ msgstr "Вхід у gizmo-збирання"
 msgid "Leaving Assembly gizmo"
 msgstr "Вихід з gizmo-збирання"
 
+# AI Translated
 msgid "Parts of a cut object cannot be moved"
-msgstr ""
+msgstr "Частини розрізаного обʼєкта не можна переміщувати"
 
+# AI Translated
 msgid "Aligning to the plate is available in X and Y only"
-msgstr ""
+msgstr "Вирівнювання за пластиною доступне лише за осями X та Y"
 
+# AI Translated
 msgid "Turn off Auto-Drop for the selected objects to move them in Z"
-msgstr ""
+msgstr "Вимкніть авто-кидання для вибраних обʼєктів, щоб переміщувати їх за віссю Z"
 
+# AI Translated
 msgid "All selected objects must be on the same plate"
-msgstr ""
+msgstr "Усі вибрані обʼєкти мають бути на одній пластині"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -4964,7 +4974,7 @@ msgstr "Збережіть проект і перезапустіть прогр
 msgid "Unknown C++ exception."
 msgstr "Невідомий виняток C++."
 
-msgid "Processing G-Code from previous file…"
+msgid "Processing G-code from previous file…"
 msgstr "Обробка G-code з попереднього файлу..."
 
 msgid "Slicing complete"
@@ -6532,8 +6542,10 @@ msgstr "Осі"
 msgid "Gridlines"
 msgstr "Лінії сітки"
 
+# AI Translated
+# Needs human review: No glossary rendering yet (Ukrainian cell empty); check the term for hiding the interface to concentrate on the 3D canvas.
 msgid "Focus mode"
-msgstr ""
+msgstr "Режим фокусу"
 
 msgid "Labels"
 msgstr "Підписи"
@@ -6596,7 +6608,7 @@ msgid "Size:"
 msgstr "Розмір:"
 
 # AI Translated
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Виявлено конфлікти шляхів G-code на шарі %d, Z = %.2lf мм. Будь ласка, рознесіть конфліктуючі обʼєкти далі один від одного (%s <-> %s)."
 
@@ -11016,11 +11028,13 @@ msgstr "Показати непідтримувані пресети"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Показати несумісні/непідтримувані пресети у випадаючому списку принтера і філаменту. Ці пресети не можна вибрати."
 
+# AI Translated
 msgid "Export statistics with G-code"
-msgstr ""
+msgstr "Експортувати статистику разом із G-code"
 
+# AI Translated
 msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Якщо ввімкнено, під час експорту файлу G-code поруч із ним записується його статистика у форматі JSON (<name>.statistics.json), а експортований нарізаний файл 3MF містить її всередині: час друку, підсумки за філаментом і типами ліній, а також ті самі дані за шарами та обʼєктами."
 
 msgid "Experimental Features"
 msgstr "Експериментальні функції"
@@ -11892,6 +11906,10 @@ msgstr "Не вдалося вивантажити файл у памʼять п
 # AI Translated
 msgid "Send Failed"
 msgstr "Не вдалося надіслати"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Немає доступних принтерів"
 
 msgid "The name length exceeds the limit."
 msgstr "Довжина імені перевищує обмеження."
@@ -13828,8 +13846,8 @@ msgid "Left mouse"
 msgstr "Ліва кнопка миші"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Доступно будь-де у вікні, навіть під час введення тексту в текстовому полі."
+msgid "Available anywhere in the window."
+msgstr "Доступно в будь-якому місці вікна."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13940,10 +13958,6 @@ msgstr "%s призначено для %s. Перепризначити для %
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "Типову комбінацію %s призначено для %s. Перепризначити її для %s?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Глобальні комбінації клавіш діють і під час введення тексту."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -14402,9 +14416,10 @@ msgstr "модифікатор \"%1%\" обʼєкта \"%2%\" (усього %3%)
 msgid "Seam placement may differ from expected."
 msgstr "Розташування шва може відрізнятися від очікуваного."
 
+# AI Translated
 #, boost-format
 msgid "Failed to write the G-code statistics to %1%."
-msgstr ""
+msgstr "Не вдалося записати статистику G-code до %1%."
 
 msgid "Internal Bridge"
 msgstr "Внутрішній міст"
@@ -17926,6 +17941,14 @@ msgstr "Виключити обʼєкт"
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Увімкнути цей параметр для додавання команди ВИКЛЮЧИТИ ОБʼЄКТ у G-code"
 
+# AI Translated
+msgid "Outline tolerance"
+msgstr "Допуск контуру"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "Максимальне відхилення контуру обʼєкта, що записується в EXCLUDE_OBJECT_DEFINE, від вихідного контуру. Чим більше значення, тим менше точок, що допомагає прошивкам, які зависають під час розбору G-code з великою кількістю обʼєктів. 0 зберігає всі точки."
+
 msgid "Verbose G-code"
 msgstr "Докладний G-code"
 
@@ -21290,11 +21313,13 @@ msgstr "Вихідний каталог"
 msgid "This is the output directory for exported files."
 msgstr "Цільова папка для експортованих файлів."
 
+# AI Translated
 msgid "Export statistics"
-msgstr ""
+msgstr "Експорт статистики"
 
+# AI Translated
 msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Записувати статистику кожної нарізаної пластини у форматі JSON: plate_N.statistics.json поруч із її G-code у вихідній теці та всередині 3MF для --export-3mf. Містить час друку, підсумки за філаментом і типами ліній, а також ті самі дані за шарами та обʼєктами."
 
 msgid "Debug level"
 msgstr "Рівень налагодження"
@@ -23756,7 +23781,7 @@ msgstr "тест %s розпочато..."
 
 # AI Translated
 #, c-format, boost-format
-msgid "test %s ip resolved = %s"
+msgid "test %s IP resolved = %s"
 msgstr "тест %s: IP визначено = %s"
 
 # AI Translated
@@ -31219,1231 +31244,1650 @@ msgstr[1] "Поточний список філаментів не містит�
 msgstr[2] "Поточний список філаментів не містить %s. Філаменти проєкту, потрібні для змішаного філаменту, буде створено автоматично після розкладання."
 msgstr[3] "Поточний список філаментів не містить %s. Філаменти проєкту, потрібні для змішаного філаменту, буде створено автоматично після розкладання."
 
+# AI Translated
 msgid "Color Picker"
-msgstr ""
+msgstr "Вибір кольору"
 
+# AI Translated
 msgid "Basic Colors"
-msgstr ""
+msgstr "Основні кольори"
 
-msgid "Orca Palette"
-msgstr ""
-
+# AI Translated
+# Needs human review: No glossary rendering yet for Palette (Ukrainian cell empty); Палітра proposed.
 #. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
-msgid "RAL Classic"
-msgstr ""
+msgid "Orca Palette"
+msgstr "Палітра Orca"
 
+# AI Translated
+# Needs human review: Brand RAL kept; check whether Classic should be translated or kept in English.
 #. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL Класика"
+
+# AI Translated
 msgid "Gradients"
-msgstr ""
+msgstr "Градієнти"
 
+# AI Translated
+msgctxt "Color picker"
 msgid "Solid"
-msgstr ""
+msgstr "Однотонний"
 
+# AI Translated
 msgid "Gradient"
-msgstr ""
+msgstr "Градієнт"
 
+# AI Translated
 msgid "Gradient start"
-msgstr ""
+msgstr "Початок градієнта"
 
+# AI Translated
 msgid "Gradient end"
-msgstr ""
+msgstr "Кінець градієнта"
 
+# AI Translated
 msgid "Gradient color"
-msgstr ""
+msgstr "Колір градієнта"
 
+# AI Translated
 msgid "Add color"
-msgstr ""
+msgstr "Додати колір"
 
+# AI Translated
 msgid "Remove color"
-msgstr ""
+msgstr "Вилучити колір"
 
+# AI Translated
 msgid "Saturation"
-msgstr ""
+msgstr "Насиченість"
 
+# AI Translated
 msgid "Original color"
-msgstr ""
+msgstr "Початковий колір"
 
+# AI Translated
 #. TRN: Clicking the current color preview adds it to the saved favorites.
 msgid "Save current color"
-msgstr ""
+msgstr "Зберегти поточний колір"
 
+# AI Translated
+# Needs human review: No glossary rendering yet for Palette (Ukrainian cell empty); Палітра proposed.
 msgid "Palettes"
-msgstr ""
+msgstr "Палітри"
 
+# AI Translated
 msgid "Search colors"
-msgstr ""
+msgstr "Пошук кольорів"
 
+# AI Translated
 msgid "Filter colors"
-msgstr ""
+msgstr "Фільтр кольорів"
 
+# AI Translated
 msgid "No matching colors"
-msgstr ""
+msgstr "Немає відповідних кольорів"
 
+# AI Translated
 msgid "Hex color"
-msgstr ""
+msgstr "HEX-колір"
 
 # AI Translated
 msgid "Opacity"
 msgstr "Непрозорість"
 
+# AI Translated
 msgid "Opacity percent"
-msgstr ""
+msgstr "Непрозорість у відсотках"
 
+# AI Translated
 msgid "Save color"
-msgstr ""
+msgstr "Зберегти колір"
 
+# AI Translated
 msgid "Enter a complete hexadecimal color"
-msgstr ""
+msgstr "Введіть повний шістнадцятковий код кольору"
 
+# AI Translated
 msgid "The current multi-color selection is kept until you choose a different color."
-msgstr ""
+msgstr "Поточний вибір кількох кольорів зберігається, доки ви не виберете інший колір."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "Підтримується до %d кольорів."
 
+# AI Translated
 msgid "Crimson"
-msgstr ""
+msgstr "Кармазин"
 
+# AI Translated
 msgid "Orange red"
-msgstr ""
+msgstr "Помаранчево-червоний"
 
+# AI Translated
 msgid "Tomato"
-msgstr ""
+msgstr "Томатний"
 
+# AI Translated
 msgid "Orange"
-msgstr ""
+msgstr "Помаранчевий"
 
+# AI Translated
 msgid "Dark orange"
-msgstr ""
+msgstr "Темно-помаранчевий"
 
+# AI Translated
 msgid "Gold"
-msgstr ""
+msgstr "Золотий"
 
+# AI Translated
+# Needs human review: CSS burlywood; check the natural Ukrainian color name.
 msgid "Burly wood"
-msgstr ""
+msgstr "Деревний"
 
+# AI Translated
 msgid "Bisque"
-msgstr ""
+msgstr "Бісквітний"
 
+# AI Translated
 msgid "Misty rose"
-msgstr ""
+msgstr "Туманна троянда"
 
+# AI Translated
 msgid "Light yellow"
-msgstr ""
+msgstr "Світло-жовтий"
 
+# AI Translated
 msgid "Lemon chiffon"
-msgstr ""
+msgstr "Лимонний шифон"
 
+# AI Translated
 msgid "Beige"
-msgstr ""
+msgstr "Бежевий"
 
+# AI Translated
 msgid "Light golden rod yellow"
-msgstr ""
+msgstr "Світло-золотисто-жовтий"
 
+# AI Translated
 msgid "Pale golden rod"
-msgstr ""
+msgstr "Блідо-золотистий"
 
+# AI Translated
 msgid "Khaki"
-msgstr ""
+msgstr "Хакі"
 
+# AI Translated
 msgid "Dark khaki"
-msgstr ""
+msgstr "Темний хакі"
 
+# AI Translated
 msgid "Peach puff"
-msgstr ""
+msgstr "Персиковий мус"
 
+# AI Translated
 msgid "Moccasin"
-msgstr ""
+msgstr "Мокасиновий"
 
+# AI Translated
 msgid "Papaya whip"
-msgstr ""
+msgstr "Збита папайя"
 
+# AI Translated
 msgid "Blanched almond"
-msgstr ""
+msgstr "Бланшований мигдаль"
 
+# AI Translated
 msgid "Antique white"
-msgstr ""
+msgstr "Античний білий"
 
+# AI Translated
 msgid "Navajo white"
-msgstr ""
+msgstr "Білий навахо"
 
+# AI Translated
 msgid "Wheat"
-msgstr ""
+msgstr "Пшеничний"
 
+# AI Translated
 msgid "Golden rod"
-msgstr ""
+msgstr "Золотистий"
 
+# AI Translated
 msgid "Chocolate"
-msgstr ""
+msgstr "Шоколадний"
 
+# AI Translated
 msgid "Peru"
-msgstr ""
+msgstr "Перу"
 
+# AI Translated
 msgid "Fire brick"
-msgstr ""
+msgstr "Цегляний"
 
+# AI Translated
 msgid "Sienna"
-msgstr ""
+msgstr "Сієна"
 
+# AI Translated
 msgid "Saddle brown"
-msgstr ""
+msgstr "Сідлово-коричневий"
 
+# AI Translated
 msgid "Brown"
-msgstr ""
+msgstr "Коричневий"
 
+# AI Translated
 msgid "Rosy brown"
-msgstr ""
+msgstr "Рожево-коричневий"
 
+# AI Translated
 msgid "Salmon"
-msgstr ""
+msgstr "Лососевий"
 
+# AI Translated
 msgid "Light salmon"
-msgstr ""
+msgstr "Світло-лососевий"
 
+# AI Translated
 msgid "Dark salmon"
-msgstr ""
+msgstr "Темно-лососевий"
 
+# AI Translated
 msgid "Sandy brown"
-msgstr ""
+msgstr "Піщано-коричневий"
 
+# AI Translated
 msgid "Coral"
-msgstr ""
+msgstr "Кораловий"
 
+# AI Translated
 msgid "Light coral"
-msgstr ""
+msgstr "Світло-кораловий"
 
+# AI Translated
 msgid "Indian red"
-msgstr ""
+msgstr "Індійський червоний"
 
+# AI Translated
 msgid "Dark red"
-msgstr ""
+msgstr "Темно-червоний"
 
+# AI Translated
 msgid "Maroon"
-msgstr ""
+msgstr "Бордовий"
 
+# AI Translated
 msgid "Green yellow"
-msgstr ""
+msgstr "Зелено-жовтий"
 
+# AI Translated
 msgid "Yellow green"
-msgstr ""
+msgstr "Жовто-зелений"
 
+# AI Translated
 msgid "Chartreuse"
-msgstr ""
+msgstr "Шартрез"
 
+# AI Translated
 msgid "Lawn green"
-msgstr ""
+msgstr "Зелений газон"
 
+# AI Translated
 msgid "Lime green"
-msgstr ""
+msgstr "Зелений лайм"
 
+# AI Translated
 msgid "Spring green"
-msgstr ""
+msgstr "Весняний зелений"
 
+# AI Translated
 msgid "Medium spring green"
-msgstr ""
+msgstr "Середній весняний зелений"
 
+# AI Translated
 msgid "Lime"
-msgstr ""
+msgstr "Лайм"
 
+# AI Translated
 msgid "Forest green"
-msgstr ""
+msgstr "Лісовий зелений"
 
+# AI Translated
 msgid "Dark green"
-msgstr ""
+msgstr "Темно-зелений"
 
+# AI Translated
 msgid "Olive drab"
-msgstr ""
+msgstr "Тьмяно-оливковий"
 
+# AI Translated
 msgid "Olive"
-msgstr ""
+msgstr "Оливковий"
 
+# AI Translated
 msgid "Dark olive green"
-msgstr ""
+msgstr "Темно-оливковий"
 
+# AI Translated
 msgid "Pale green"
-msgstr ""
+msgstr "Блідо-зелений"
 
+# AI Translated
 msgid "Light green"
-msgstr ""
+msgstr "Світло-зелений"
 
+# AI Translated
 msgid "Medium sea green"
-msgstr ""
+msgstr "Середній морський зелений"
 
+# AI Translated
 msgid "Sea green"
-msgstr ""
+msgstr "Морський зелений"
 
+# AI Translated
 msgid "Dark sea green"
-msgstr ""
+msgstr "Темний морський зелений"
 
+# AI Translated
 msgid "Cadet blue"
-msgstr ""
+msgstr "Кадетський синій"
 
+# AI Translated
 msgid "Medium aqua marine"
-msgstr ""
+msgstr "Середній аквамарин"
 
+# AI Translated
 msgid "Turquoise"
-msgstr ""
+msgstr "Бірюзовий"
 
+# AI Translated
 msgid "Medium turquoise"
-msgstr ""
+msgstr "Середньо-бірюзовий"
 
+# AI Translated
 msgid "Dark turquoise"
-msgstr ""
+msgstr "Темно-бірюзовий"
 
+# AI Translated
 msgid "Pale turquoise"
-msgstr ""
+msgstr "Блідо-бірюзовий"
 
+# AI Translated
 msgid "Aqua"
-msgstr ""
+msgstr "Аква"
 
+# AI Translated
 msgid "Light cyan"
-msgstr ""
+msgstr "Світло-ціановий"
 
+# AI Translated
 msgid "Mint cream"
-msgstr ""
+msgstr "Мʼятний крем"
 
+# AI Translated
 msgid "Honey dew"
-msgstr ""
+msgstr "Медова роса"
 
+# AI Translated
 msgid "Aquamarine"
-msgstr ""
+msgstr "Аквамарин"
 
+# AI Translated
 msgid "Light sea green"
-msgstr ""
+msgstr "Світлий морський зелений"
 
+# AI Translated
 msgid "Dark cyan"
-msgstr ""
+msgstr "Темно-ціановий"
 
+# AI Translated
+# Needs human review: CSS teal; check the natural Ukrainian color name.
 msgid "Teal"
-msgstr ""
+msgstr "Зелена бірюза"
 
+# AI Translated
 msgid "Dark slate gray"
-msgstr ""
+msgstr "Темний сланцево-сірий"
 
+# AI Translated
 msgid "Light slate gray"
-msgstr ""
+msgstr "Світлий сланцево-сірий"
 
+# AI Translated
 msgid "Slate gray"
-msgstr ""
+msgstr "Сланцево-сірий"
 
+# AI Translated
 msgid "Deep sky blue"
-msgstr ""
+msgstr "Насичений небесно-блакитний"
 
+# AI Translated
+# Needs human review: CSS dodgerblue; check the natural Ukrainian color name.
 msgid "Dodger Blue"
-msgstr ""
+msgstr "Синій доджер"
 
+# AI Translated
 msgid "Sky blue"
-msgstr ""
+msgstr "Небесно-блакитний"
 
+# AI Translated
 msgid "Light sky blue"
-msgstr ""
+msgstr "Світлий небесно-блакитний"
 
+# AI Translated
 msgid "Light blue"
-msgstr ""
+msgstr "Світло-блакитний"
 
+# AI Translated
 msgid "Powder blue"
-msgstr ""
+msgstr "Пудрово-блакитний"
 
+# AI Translated
 msgid "Light steel blue"
-msgstr ""
+msgstr "Світлий сталево-синій"
 
+# AI Translated
 msgid "Steel blue"
-msgstr ""
+msgstr "Сталево-синій"
 
+# AI Translated
 msgid "Cornflower blue"
-msgstr ""
+msgstr "Волошковий"
 
+# AI Translated
 msgid "Royal blue"
-msgstr ""
+msgstr "Королівський синій"
 
+# AI Translated
 msgid "Medium blue"
-msgstr ""
+msgstr "Середній синій"
 
+# AI Translated
 msgid "Midnight blue"
-msgstr ""
+msgstr "Опівнічно-синій"
 
+# AI Translated
 msgid "Dark blue"
-msgstr ""
+msgstr "Темно-синій"
 
+# AI Translated
 msgid "Navy"
-msgstr ""
+msgstr "Морський синій"
 
+# AI Translated
 msgid "Slate blue"
-msgstr ""
+msgstr "Сланцево-синій"
 
+# AI Translated
 msgid "Dark slate blue"
-msgstr ""
+msgstr "Темний сланцево-синій"
 
+# AI Translated
 msgid "Medium slate blue"
-msgstr ""
+msgstr "Середній сланцево-синій"
 
+# AI Translated
 msgid "Blue violet"
-msgstr ""
+msgstr "Синьо-фіолетовий"
 
+# AI Translated
 msgid "Indigo"
-msgstr ""
+msgstr "Індиго"
 
+# AI Translated
 msgid "Dark violet"
-msgstr ""
+msgstr "Темно-фіолетовий"
 
+# AI Translated
 msgid "Dark orchid"
-msgstr ""
+msgstr "Темна орхідея"
 
+# AI Translated
 msgid "Medium orchid"
-msgstr ""
+msgstr "Середня орхідея"
 
+# AI Translated
 msgid "Orchid"
-msgstr ""
+msgstr "Орхідея"
 
+# AI Translated
 msgid "Violet"
-msgstr ""
+msgstr "Фіолетовий"
 
+# AI Translated
 msgid "Medium purple"
-msgstr ""
+msgstr "Середній пурпуровий"
 
+# AI Translated
 msgid "Purple"
-msgstr ""
+msgstr "Пурпуровий"
 
+# AI Translated
 msgid "Rebecca purple"
-msgstr ""
+msgstr "Пурпуровий Ребекки"
 
+# AI Translated
 msgid "Medium violet red"
-msgstr ""
+msgstr "Середній фіолетово-червоний"
 
-msgid "PaleV violet red"
-msgstr ""
+# AI Translated
+msgid "Pale violet red"
+msgstr "Блідий фіолетово-червоний"
 
+# AI Translated
 msgid "Deep pink"
-msgstr ""
+msgstr "Насичений рожевий"
 
+# AI Translated
 msgid "Hot pink"
-msgstr ""
+msgstr "Яскраво-рожевий"
 
+# AI Translated
 msgid "Light pink"
-msgstr ""
+msgstr "Світло-рожевий"
 
+# AI Translated
 msgid "Pink"
-msgstr ""
+msgstr "Рожевий"
 
+# AI Translated
 msgid "Plum"
-msgstr ""
+msgstr "Сливовий"
 
+# AI Translated
 msgid "Thistle"
-msgstr ""
+msgstr "Будяк"
 
+# AI Translated
 msgid "Fuchsia"
-msgstr ""
+msgstr "Фуксія"
 
+# AI Translated
 msgid "Dark magenta"
-msgstr ""
+msgstr "Темна маджента"
 
+# AI Translated
 msgid "Linen"
-msgstr ""
+msgstr "Льняний"
 
+# AI Translated
 msgid "Old lace"
-msgstr ""
+msgstr "Старе мереживо"
 
+# AI Translated
+# Needs human review: Color name; the Shell glossary term does not apply.
 msgid "Sea shell"
-msgstr ""
+msgstr "Морська мушля"
 
+# AI Translated
 msgid "Ivory"
-msgstr ""
+msgstr "Слонова кістка"
 
+# AI Translated
 msgid "Floral white"
-msgstr ""
+msgstr "Квітково-білий"
 
+# AI Translated
 msgid "Lavender blush"
-msgstr ""
+msgstr "Лавандовий румʼянець"
 
+# AI Translated
 msgid "Ghost white"
-msgstr ""
+msgstr "Примарно-білий"
 
+# AI Translated
+# Needs human review: CSS aliceblue; check the natural Ukrainian color name.
 msgid "Alice blue"
-msgstr ""
+msgstr "Блакитний Еліс"
 
+# AI Translated
 msgid "Lavender"
-msgstr ""
+msgstr "Лавандовий"
 
+# AI Translated
 msgid "White smoke"
-msgstr ""
+msgstr "Білий дим"
 
+# AI Translated
 msgid "Gainsboro"
-msgstr ""
+msgstr "Гейнсборо"
 
+# AI Translated
 msgid "Black"
-msgstr ""
+msgstr "Чорний"
 
+# AI Translated
 msgid "Coral fire"
-msgstr ""
+msgstr "Кораловий вогонь"
 
+# AI Translated
 msgid "Sea anemone"
-msgstr ""
+msgstr "Морська актинія"
 
+# AI Translated
 msgid "Deep abyss"
-msgstr ""
+msgstr "Глибока безодня"
 
+# AI Translated
 msgid "Lobster red"
-msgstr ""
+msgstr "Червоний омар"
 
+# AI Translated
 msgid "Sandy clay"
-msgstr ""
+msgstr "Піщана глина"
 
+# AI Translated
+# Needs human review: Ocean-themed color name; check it reads as a color.
 msgid "Driftwood"
-msgstr ""
+msgstr "Дрейфуюча деревина"
 
+# AI Translated
 msgid "Sea buckthorn"
-msgstr ""
+msgstr "Обліпиха"
 
+# AI Translated
 msgid "Sunset reef"
-msgstr ""
+msgstr "Захід сонця на рифі"
 
+# AI Translated
 msgid "Tiger coral"
-msgstr ""
+msgstr "Тигровий корал"
 
+# AI Translated
 msgid "Pink coral"
-msgstr ""
+msgstr "Рожевий корал"
 
+# AI Translated
 msgid "Seashell glow"
-msgstr ""
+msgstr "Сяйво мушлі"
 
+# AI Translated
 msgid "Sand"
-msgstr ""
+msgstr "Пісок"
 
+# AI Translated
 msgid "Golden kelp"
-msgstr ""
+msgstr "Золота ламінарія"
 
+# AI Translated
 msgid "Sunlit dune"
-msgstr ""
+msgstr "Дюна на сонці"
 
+# AI Translated
 msgid "Amber nautilus"
-msgstr ""
+msgstr "Бурштиновий наутилус"
 
+# AI Translated
 msgid "Sea lemon"
-msgstr ""
+msgstr "Морський лимон"
 
+# AI Translated
 msgid "Pale starfish"
-msgstr ""
+msgstr "Бліда морська зірка"
 
+# AI Translated
 msgid "Spring tide"
-msgstr ""
+msgstr "Весняний приплив"
 
+# AI Translated
 msgid "Lime algae"
-msgstr ""
+msgstr "Лаймові водорості"
 
+# AI Translated
 msgid "Sea grass"
-msgstr ""
+msgstr "Морська трава"
 
+# AI Translated
 msgid "Neon plankton"
-msgstr ""
+msgstr "Неоновий планктон"
 
+# AI Translated
 msgid "Kelp forest"
-msgstr ""
+msgstr "Ліс ламінарії"
 
+# AI Translated
 msgid "Emerald wave"
-msgstr ""
+msgstr "Смарагдова хвиля"
 
+# AI Translated
 msgid "Whale shadow"
-msgstr ""
+msgstr "Тінь кита"
 
+# AI Translated
 msgid "Sea turtle"
-msgstr ""
+msgstr "Морська черепаха"
 
+# AI Translated
 msgid "Lagoon"
-msgstr ""
+msgstr "Лагуна"
 
+# AI Translated
 msgid "Tropical current"
-msgstr ""
+msgstr "Тропічна течія"
 
+# AI Translated
 msgid "Midnight trench"
-msgstr ""
+msgstr "Опівнічна западина"
 
+# AI Translated
 msgid "Dark kelp"
-msgstr ""
+msgstr "Темна ламінарія"
 
+# AI Translated
 msgid "Crystal surf"
-msgstr ""
+msgstr "Кришталевий прибій"
 
+# AI Translated
 msgid "Turquoise bay"
-msgstr ""
+msgstr "Бірюзова бухта"
 
+# AI Translated
 msgid "Sky over reef"
-msgstr ""
+msgstr "Небо над рифом"
 
+# AI Translated
 msgid "Shallow sky"
-msgstr ""
+msgstr "Небо мілководдя"
 
-msgid "Electric bel"
-msgstr ""
+# AI Translated
+msgid "Electric blue"
+msgstr "Електрик"
 
+# AI Translated
 msgid "Dolphin"
-msgstr ""
+msgstr "Дельфін"
 
+# AI Translated
 msgid "Ocean depths"
-msgstr ""
+msgstr "Океанські глибини"
 
+# AI Translated
 msgid "Whale"
-msgstr ""
+msgstr "Кит"
 
+# AI Translated
 msgid "Indigo abyss"
-msgstr ""
+msgstr "Індигова безодня"
 
+# AI Translated
 msgid "Sea urchin"
-msgstr ""
+msgstr "Морський їжак"
 
+# AI Translated
 msgid "Lavender coral"
-msgstr ""
+msgstr "Лавандовий корал"
 
+# AI Translated
 msgid "Violet tide"
-msgstr ""
+msgstr "Фіолетовий приплив"
 
+# AI Translated
 msgid "Deep sea orchid"
-msgstr ""
+msgstr "Глибоководна орхідея"
 
+# AI Translated
 msgid "Neon jelly"
-msgstr ""
+msgstr "Неонове желе"
 
+# AI Translated
 msgid "Fuchsia coral"
-msgstr ""
+msgstr "Фуксієвий корал"
 
+# AI Translated
 msgid "Pink jellyfish"
-msgstr ""
+msgstr "Рожева медуза"
 
+# AI Translated
 msgid "Foam"
-msgstr ""
+msgstr "Піна"
 
+# AI Translated
 msgid "Seashell white"
-msgstr ""
+msgstr "Біла мушля"
 
+# AI Translated
 msgid "Pebble gray"
-msgstr ""
+msgstr "Галечно-сірий"
 
+# AI Translated
 msgid "Storm cloud"
-msgstr ""
+msgstr "Грозова хмара"
 
+# AI Translated
 msgid "Ink black"
-msgstr ""
+msgstr "Чорнильно-чорний"
 
+# AI Translated
 msgid "Green beige"
-msgstr ""
+msgstr "Зелено-бежевий"
 
+# AI Translated
 msgid "Sand yellow"
-msgstr ""
+msgstr "Піщано-жовтий"
 
+# AI Translated
 msgid "Signal yellow"
-msgstr ""
+msgstr "Сигнальний жовтий"
 
+# AI Translated
 msgid "Golden yellow"
-msgstr ""
+msgstr "Золотисто-жовтий"
 
+# AI Translated
 msgid "Honey yellow"
-msgstr ""
+msgstr "Медово-жовтий"
 
+# AI Translated
 msgid "Maize yellow"
-msgstr ""
+msgstr "Кукурудзяно-жовтий"
 
-msgid "Dalmatian yellow"
-msgstr ""
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Нарцисово-жовтий"
 
+# AI Translated
 msgid "Brown beige"
-msgstr ""
+msgstr "Коричнево-бежевий"
 
+# AI Translated
 msgid "Lemon yellow"
-msgstr ""
+msgstr "Лимонно-жовтий"
 
+# AI Translated
 msgid "Oyster white"
-msgstr ""
+msgstr "Устрично-білий"
 
+# AI Translated
 msgid "Light ivory"
-msgstr ""
+msgstr "Світла слонова кістка"
 
+# AI Translated
 msgid "Zinc yellow"
-msgstr ""
+msgstr "Цинково-жовтий"
 
+# AI Translated
 msgid "Grey beige"
-msgstr ""
+msgstr "Сіро-бежевий"
 
+# AI Translated
 msgid "Olive yellow"
-msgstr ""
+msgstr "Оливково-жовтий"
 
+# AI Translated
 msgid "Rape yellow"
-msgstr ""
+msgstr "Ріпаково-жовтий"
 
+# AI Translated
 msgid "Traffic yellow"
-msgstr ""
+msgstr "Дорожній жовтий"
 
+# AI Translated
 msgid "Ochre yellow"
-msgstr ""
+msgstr "Охристо-жовтий"
 
+# AI Translated
 msgid "Traffic orange yellow"
-msgstr ""
+msgstr "Дорожній помаранчево-жовтий"
 
+# AI Translated
 msgid "Curry"
-msgstr ""
+msgstr "Карі"
 
+# AI Translated
 msgid "Melon yellow"
-msgstr ""
+msgstr "Динно-жовтий"
 
+# AI Translated
 msgid "Broom yellow"
-msgstr ""
+msgstr "Дріково-жовтий"
 
+# AI Translated
 msgid "Dahlia yellow"
-msgstr ""
+msgstr "Жоржиново-жовтий"
 
+# AI Translated
 msgid "Pastel yellow"
-msgstr ""
+msgstr "Пастельно-жовтий"
 
+# AI Translated
 msgid "Pearl beige"
-msgstr ""
+msgstr "Перламутровий бежевий"
 
+# AI Translated
 msgid "Pearl gold"
-msgstr ""
+msgstr "Перламутровий золотий"
 
+# AI Translated
 msgid "Sun yellow"
-msgstr ""
+msgstr "Сонячно-жовтий"
 
+# AI Translated
 msgid "Yellow orange"
-msgstr ""
+msgstr "Жовто-помаранчевий"
 
+# AI Translated
 msgid "Deep orange"
-msgstr ""
+msgstr "Насичений помаранчевий"
 
+# AI Translated
 msgid "Vermilion"
-msgstr ""
+msgstr "Кіновар"
 
+# AI Translated
 msgid "Pearl orange"
-msgstr ""
+msgstr "Перламутровий помаранчевий"
 
+# AI Translated
 msgid "Pure orange"
-msgstr ""
+msgstr "Чистий помаранчевий"
 
+# AI Translated
 msgid "Luminous orange"
-msgstr ""
+msgstr "Сяйний помаранчевий"
 
+# AI Translated
 msgid "Luminous bright orange"
-msgstr ""
+msgstr "Сяйний яскраво-помаранчевий"
 
+# AI Translated
 msgid "Bright red orange"
-msgstr ""
+msgstr "Яскраво-червоно-помаранчевий"
 
+# AI Translated
 msgid "Traffic orange"
-msgstr ""
+msgstr "Дорожній помаранчевий"
 
+# AI Translated
 msgid "Signal orange"
-msgstr ""
+msgstr "Сигнальний помаранчевий"
 
+# AI Translated
 msgid "Salmon orange"
-msgstr ""
+msgstr "Лососево-помаранчевий"
 
+# AI Translated
 msgid "Pearl pink"
-msgstr ""
+msgstr "Перламутровий рожевий"
 
+# AI Translated
 msgid "Copper orange"
-msgstr ""
+msgstr "Мідно-помаранчевий"
 
+# AI Translated
 msgid "Signal brown"
-msgstr ""
+msgstr "Сигнальний коричневий"
 
+# AI Translated
+# Needs human review: Source name unclear; translated literally.
 msgid "Fir orange"
-msgstr ""
+msgstr "Ялицево-помаранчевий"
 
+# AI Translated
 msgid "Signal red"
-msgstr ""
+msgstr "Сигнальний червоний"
 
+# AI Translated
 msgid "Luminous red"
-msgstr ""
+msgstr "Сяйний червоний"
 
+# AI Translated
 msgid "Carmine red"
-msgstr ""
+msgstr "Карміново-червоний"
 
+# AI Translated
 msgid "Pearl carmine red"
-msgstr ""
+msgstr "Перламутровий карміново-червоний"
 
+# AI Translated
 msgid "Pure red"
-msgstr ""
+msgstr "Чистий червоний"
 
+# AI Translated
 msgid "Luminous deep red"
-msgstr ""
+msgstr "Сяйний насичений червоний"
 
+# AI Translated
 msgid "Currant red"
-msgstr ""
+msgstr "Смородиново-червоний"
 
+# AI Translated
 msgid "Pearl ruby red"
-msgstr ""
+msgstr "Перламутровий рубіново-червоний"
 
+# AI Translated
 msgid "Fire red"
-msgstr ""
+msgstr "Вогненно-червоний"
 
+# AI Translated
 msgid "Ruby red"
-msgstr ""
+msgstr "Рубіново-червоний"
 
+# AI Translated
 msgid "Purple red"
-msgstr ""
+msgstr "Пурпурово-червоний"
 
+# AI Translated
 msgid "Wine red"
-msgstr ""
+msgstr "Винно-червоний"
 
+# AI Translated
 msgid "Black red"
-msgstr ""
+msgstr "Чорно-червоний"
 
+# AI Translated
 msgid "Oxide red"
-msgstr ""
+msgstr "Оксидно-червоний"
 
+# AI Translated
 msgid "Brown red"
-msgstr ""
+msgstr "Коричнево-червоний"
 
+# AI Translated
 msgid "Pine red"
-msgstr ""
+msgstr "Сосново-червоний"
 
+# AI Translated
 msgid "Tomato red"
-msgstr ""
+msgstr "Томатно-червоний"
 
+# AI Translated
 msgid "Antique pink"
-msgstr ""
+msgstr "Античний рожевий"
 
+# AI Translated
 msgid "Coral red"
-msgstr ""
+msgstr "Корало-червоний"
 
+# AI Translated
 msgid "Rose"
-msgstr ""
+msgstr "Троянда"
 
+# AI Translated
 msgid "Strawberry red"
-msgstr ""
+msgstr "Полунично-червоний"
 
+# AI Translated
 msgid "Traffic red"
-msgstr ""
+msgstr "Дорожній червоний"
 
+# AI Translated
 msgid "Salmon pink"
-msgstr ""
+msgstr "Лососево-рожевий"
 
+# AI Translated
 msgid "Luminous rose"
-msgstr ""
+msgstr "Сяйна троянда"
 
+# AI Translated
 msgid "Luminous bright red"
-msgstr ""
+msgstr "Сяйний яскраво-червоний"
 
+# AI Translated
 msgid "Raspberry red"
-msgstr ""
+msgstr "Малиново-червоний"
 
+# AI Translated
 msgid "Orient red"
-msgstr ""
+msgstr "Східний червоний"
 
+# AI Translated
 msgid "Pearl ruby"
-msgstr ""
+msgstr "Перламутровий рубіновий"
 
+# AI Translated
 msgid "Red purple"
-msgstr ""
+msgstr "Червоно-пурпуровий"
 
+# AI Translated
 msgid "Red violet"
-msgstr ""
+msgstr "Червоно-фіолетовий"
 
+# AI Translated
 msgid "Heather violet"
-msgstr ""
+msgstr "Вересково-фіолетовий"
 
+# AI Translated
 msgid "Bordeaux violet"
-msgstr ""
+msgstr "Бордово-фіолетовий"
 
+# AI Translated
 msgid "Mahogany"
-msgstr ""
+msgstr "Червоне дерево"
 
+# AI Translated
 msgid "Grey purple"
-msgstr ""
+msgstr "Сіро-пурпуровий"
 
+# AI Translated
 msgid "Signal violet"
-msgstr ""
+msgstr "Сигнальний фіолетовий"
 
+# AI Translated
 msgid "Fir green"
-msgstr ""
+msgstr "Ялицево-зелений"
 
+# AI Translated
+# Needs human review: Source name unclear; translated literally.
 msgid "Sabine grey"
-msgstr ""
+msgstr "Сабінський сірий"
 
+# AI Translated
 msgid "Pearl violet"
-msgstr ""
+msgstr "Перламутровий фіолетовий"
 
+# AI Translated
 msgid "Pearl blackberry"
-msgstr ""
+msgstr "Перламутровий ожиновий"
 
+# AI Translated
 msgid "Green blue"
-msgstr ""
+msgstr "Зелено-синій"
 
+# AI Translated
 msgid "Ultramarine blue"
-msgstr ""
+msgstr "Ультрамарино-синій"
 
+# AI Translated
 msgid "Sapphire blue"
-msgstr ""
+msgstr "Сапфірово-синій"
 
+# AI Translated
 msgid "Black blue"
-msgstr ""
+msgstr "Чорно-синій"
 
+# AI Translated
 msgid "Signal blue"
-msgstr ""
+msgstr "Сигнальний синій"
 
+# AI Translated
 msgid "Brilliant blue"
-msgstr ""
+msgstr "Бриліантово-синій"
 
+# AI Translated
 msgid "Grey blue"
-msgstr ""
+msgstr "Сіро-синій"
 
+# AI Translated
 msgid "Azure blue"
-msgstr ""
+msgstr "Лазурово-синій"
 
+# AI Translated
 msgid "Gentian blue"
-msgstr ""
+msgstr "Тирличево-синій"
 
+# AI Translated
 msgid "Cobalt blue"
-msgstr ""
+msgstr "Кобальтово-синій"
 
+# AI Translated
 msgid "Pigeon blue"
-msgstr ""
+msgstr "Голубино-синій"
 
+# AI Translated
 msgid "Traffic blue"
-msgstr ""
+msgstr "Дорожній синій"
 
+# AI Translated
 msgid "Turquoise blue"
-msgstr ""
+msgstr "Бірюзово-синій"
 
-msgid "Capsanthin violet"
-msgstr ""
+# AI Translated
+msgid "Capri blue"
+msgstr "Синій Капрі"
 
+# AI Translated
 msgid "Ocean blue"
-msgstr ""
+msgstr "Океанський синій"
 
+# AI Translated
 msgid "Water blue"
-msgstr ""
+msgstr "Водяно-синій"
 
+# AI Translated
 msgid "Night blue"
-msgstr ""
+msgstr "Нічно-синій"
 
+# AI Translated
 msgid "Distant blue"
-msgstr ""
+msgstr "Далекий синій"
 
+# AI Translated
 msgid "Pastel blue"
-msgstr ""
+msgstr "Пастельно-синій"
 
+# AI Translated
 msgid "Pearl gentian blue"
-msgstr ""
+msgstr "Перламутровий тирличево-синій"
 
+# AI Translated
 msgid "Pearl midnight blue"
-msgstr ""
+msgstr "Перламутровий опівнічно-синій"
 
+# AI Translated
 msgid "Patina green"
-msgstr ""
+msgstr "Патиново-зелений"
 
+# AI Translated
 msgid "Emerald green"
-msgstr ""
+msgstr "Смарагдово-зелений"
 
+# AI Translated
 msgid "Leaf green"
-msgstr ""
+msgstr "Листяно-зелений"
 
+# AI Translated
 msgid "Olive green"
-msgstr ""
+msgstr "Оливково-зелений"
 
+# AI Translated
 msgid "Blue green"
-msgstr ""
+msgstr "Синьо-зелений"
 
+# AI Translated
 msgid "Moss green"
-msgstr ""
+msgstr "Мохово-зелений"
 
+# AI Translated
 msgid "Grey olive"
-msgstr ""
+msgstr "Сіро-оливковий"
 
+# AI Translated
 msgid "Pine green"
-msgstr ""
+msgstr "Сосново-зелений"
 
+# AI Translated
 msgid "Pine brown"
-msgstr ""
+msgstr "Сосново-коричневий"
 
+# AI Translated
 msgid "Grass green"
-msgstr ""
+msgstr "Травʼяно-зелений"
 
+# AI Translated
 msgid "Reseda green"
-msgstr ""
+msgstr "Резедово-зелений"
 
+# AI Translated
 msgid "Brown green"
-msgstr ""
+msgstr "Коричнево-зелений"
 
+# AI Translated
 msgid "Reed green"
-msgstr ""
+msgstr "Очеретяно-зелений"
 
+# AI Translated
 msgid "Black green"
-msgstr ""
+msgstr "Чорно-зелений"
 
+# AI Translated
 msgid "Turquoise green"
-msgstr ""
+msgstr "Бірюзово-зелений"
 
+# AI Translated
 msgid "May green"
-msgstr ""
+msgstr "Травневий зелений"
 
+# AI Translated
 msgid "Chrome oxide green"
-msgstr ""
+msgstr "Хромооксидний зелений"
 
+# AI Translated
 msgid "Traffic green"
-msgstr ""
+msgstr "Дорожній зелений"
 
+# AI Translated
 msgid "Fern green"
-msgstr ""
+msgstr "Папоротево-зелений"
 
+# AI Translated
 msgid "Opal green"
-msgstr ""
+msgstr "Опалово-зелений"
 
+# AI Translated
 msgid "Mint green"
-msgstr ""
+msgstr "Мʼятно-зелений"
 
+# AI Translated
 msgid "Bronze green"
-msgstr ""
+msgstr "Бронзово-зелений"
 
+# AI Translated
 msgid "Pearl green"
-msgstr ""
+msgstr "Перламутровий зелений"
 
+# AI Translated
+# Needs human review: Source name unclear (Saxe blue?); translated literally.
 msgid "Sax turquoise"
-msgstr ""
+msgstr "Саксонсько-бірюзовий"
 
+# AI Translated
 msgid "Pearl turquoise"
-msgstr ""
+msgstr "Перламутровий бірюзовий"
 
+# AI Translated
 msgid "Pearl jade"
-msgstr ""
+msgstr "Перламутровий нефритовий"
 
+# AI Translated
 msgid "Pure green"
-msgstr ""
+msgstr "Чистий зелений"
 
+# AI Translated
 msgid "Luminous green"
-msgstr ""
+msgstr "Сяйний зелений"
 
+# AI Translated
 msgid "Squirrel grey"
-msgstr ""
+msgstr "Білячий сірий"
 
+# AI Translated
 msgid "Silver grey"
-msgstr ""
+msgstr "Сріблясто-сірий"
 
-msgid "Olivestone"
-msgstr ""
+# AI Translated
+msgid "Olive grey"
+msgstr "Оливково-сірий"
 
+# AI Translated
 msgid "Moss grey"
-msgstr ""
+msgstr "Мохово-сірий"
 
+# AI Translated
 msgid "Signal grey"
-msgstr ""
+msgstr "Сигнальний сірий"
 
+# AI Translated
 msgid "Mouse grey"
-msgstr ""
+msgstr "Мишачо-сірий"
 
+# AI Translated
 msgid "Beige grey"
-msgstr ""
+msgstr "Бежево-сірий"
 
+# AI Translated
 msgid "Khaki grey"
-msgstr ""
+msgstr "Хакі-сірий"
 
+# AI Translated
 msgid "Green grey"
-msgstr ""
+msgstr "Зелено-сірий"
 
+# AI Translated
 msgid "Tarpaulin grey"
-msgstr ""
+msgstr "Брезентово-сірий"
 
+# AI Translated
 msgid "Iron grey"
-msgstr ""
+msgstr "Залізно-сірий"
 
+# AI Translated
 msgid "Basalt grey"
-msgstr ""
+msgstr "Базальтово-сірий"
 
+# AI Translated
 msgid "Brown grey"
-msgstr ""
+msgstr "Коричнево-сірий"
 
+# AI Translated
 msgid "Slate grey"
-msgstr ""
+msgstr "Сланцево-сірий"
 
+# AI Translated
 msgid "Anthracite grey"
-msgstr ""
+msgstr "Антрацитово-сірий"
 
+# AI Translated
 msgid "Light grey"
-msgstr ""
+msgstr "Світло-сірий"
 
+# AI Translated
 msgid "Umber grey"
-msgstr ""
+msgstr "Умбро-сірий"
 
+# AI Translated
 msgid "Concrete grey"
-msgstr ""
+msgstr "Бетонно-сірий"
 
+# AI Translated
 msgid "Graphite grey"
-msgstr ""
+msgstr "Графітово-сірий"
 
+# AI Translated
 msgid "Granite grey"
-msgstr ""
+msgstr "Гранітно-сірий"
 
+# AI Translated
 msgid "Stone grey"
-msgstr ""
+msgstr "Камʼяно-сірий"
 
+# AI Translated
 msgid "Pebble grey"
-msgstr ""
+msgstr "Галечно-сірий"
 
+# AI Translated
 msgid "Cement grey"
-msgstr ""
+msgstr "Цементно-сірий"
 
+# AI Translated
 msgid "Yellow grey"
-msgstr ""
+msgstr "Жовто-сірий"
 
+# AI Translated
 msgid "Platinum grey"
-msgstr ""
+msgstr "Платиново-сірий"
 
+# AI Translated
 msgid "Dusty grey"
-msgstr ""
+msgstr "Пильно-сірий"
 
+# AI Translated
 msgid "Agate grey"
-msgstr ""
+msgstr "Агатово-сірий"
 
+# AI Translated
 msgid "Quartz grey"
-msgstr ""
+msgstr "Кварцово-сірий"
 
+# AI Translated
 msgid "Window grey"
-msgstr ""
+msgstr "Віконно-сірий"
 
+# AI Translated
 msgid "Traffic grey A"
-msgstr ""
+msgstr "Дорожній сірий A"
 
+# AI Translated
 msgid "Traffic grey B"
-msgstr ""
+msgstr "Дорожній сірий B"
 
+# AI Translated
 msgid "Silk grey"
-msgstr ""
+msgstr "Шовково-сірий"
 
+# AI Translated
 msgid "Telegrey 1"
-msgstr ""
+msgstr "Телесірий 1"
 
+# AI Translated
 msgid "Telegrey 2"
-msgstr ""
+msgstr "Телесірий 2"
 
+# AI Translated
 msgid "Telegrey 4"
-msgstr ""
+msgstr "Телесірий 4"
 
+# AI Translated
 msgid "Pearl mouse grey"
-msgstr ""
+msgstr "Перламутровий мишачо-сірий"
 
+# AI Translated
 msgid "Green brown"
-msgstr ""
+msgstr "Зелено-коричневий"
 
+# AI Translated
 msgid "Ochre brown"
-msgstr ""
+msgstr "Охристо-коричневий"
 
+# AI Translated
 msgid "Clay brown"
-msgstr ""
+msgstr "Глинисто-коричневий"
 
+# AI Translated
 msgid "Copper brown"
-msgstr ""
+msgstr "Мідно-коричневий"
 
+# AI Translated
 msgid "Chocolate brown"
-msgstr ""
+msgstr "Шоколадно-коричневий"
 
+# AI Translated
 msgid "Olive brown"
-msgstr ""
+msgstr "Оливково-коричневий"
 
+# AI Translated
 msgid "Nut brown"
-msgstr ""
+msgstr "Горіхово-коричневий"
 
+# AI Translated
 msgid "Red brown"
-msgstr ""
+msgstr "Червоно-коричневий"
 
+# AI Translated
 msgid "Sepia brown"
-msgstr ""
+msgstr "Сепієво-коричневий"
 
+# AI Translated
 msgid "Chestnut brown"
-msgstr ""
+msgstr "Каштаново-коричневий"
 
+# AI Translated
 msgid "Mahogany brown"
-msgstr ""
+msgstr "Махагонево-коричневий"
 
+# AI Translated
 msgid "Grey brown"
-msgstr ""
+msgstr "Сіро-коричневий"
 
+# AI Translated
 msgid "Pearl copper"
-msgstr ""
+msgstr "Перламутровий мідний"
 
+# AI Translated
 msgid "Beige brown"
-msgstr ""
+msgstr "Бежево-коричневий"
 
+# AI Translated
 msgid "Pearl mocha brown"
-msgstr ""
+msgstr "Перламутровий мокко-коричневий"
 
+# AI Translated
 msgid "Earth brown"
-msgstr ""
+msgstr "Земляно-коричневий"
 
+# AI Translated
 msgid "Pearl brown"
-msgstr ""
+msgstr "Перламутровий коричневий"
 
+# AI Translated
 msgid "Cream"
-msgstr ""
+msgstr "Кремовий"
 
+# AI Translated
 msgid "Grey white"
-msgstr ""
+msgstr "Сіро-білий"
 
+# AI Translated
 msgid "Signal white"
-msgstr ""
+msgstr "Сигнальний білий"
 
+# AI Translated
 msgid "Signal black"
-msgstr ""
+msgstr "Сигнальний чорний"
 
+# AI Translated
 msgid "Jet black"
-msgstr ""
+msgstr "Гагатово-чорний"
 
+# AI Translated
 msgid "White aluminium"
-msgstr ""
+msgstr "Білий алюміній"
 
+# AI Translated
 msgid "Grey aluminium"
-msgstr ""
+msgstr "Сірий алюміній"
 
+# AI Translated
 msgid "Pure white"
-msgstr ""
+msgstr "Чистий білий"
 
+# AI Translated
 msgid "Graphite black"
-msgstr ""
+msgstr "Графітово-чорний"
 
+# AI Translated
 msgid "Traffic white"
-msgstr ""
+msgstr "Дорожній білий"
 
+# AI Translated
 msgid "Traffic black"
-msgstr ""
+msgstr "Дорожній чорний"
 
+# AI Translated
 msgid "Papyrus white"
-msgstr ""
+msgstr "Папірусно-білий"
 
+# AI Translated
 msgid "Pearl light grey"
-msgstr ""
+msgstr "Перламутровий світло-сірий"
 
+# AI Translated
 msgid "Metal: Silver"
-msgstr ""
+msgstr "Метал: срібло"
 
+# AI Translated
 msgid "Metal: Brass"
-msgstr ""
+msgstr "Метал: латунь"
 
+# AI Translated
 msgid "Metal: Gold"
-msgstr ""
+msgstr "Метал: золото"
 
+# AI Translated
 msgid "Metal: Copper"
-msgstr ""
+msgstr "Метал: мідь"
 
+# AI Translated
 msgid "Metal: Bronze"
-msgstr ""
+msgstr "Метал: бронза"
 
+# AI Translated
 msgid "Nature: Pearl"
-msgstr ""
+msgstr "Природа: перлина"
 
+# AI Translated
 msgid "Nature: Rainbow"
-msgstr ""
+msgstr "Природа: веселка"
 
+# AI Translated
 msgid "Nature: Clear Sky"
-msgstr ""
+msgstr "Природа: ясне небо"
 
+# AI Translated
 msgid "Nature: Sunset"
-msgstr ""
+msgstr "Природа: захід сонця"
 
+# AI Translated
 msgid "Wood: Dark"
-msgstr ""
+msgstr "Дерево: темне"
 
+# AI Translated
 msgid "Wood: Medium"
-msgstr ""
+msgstr "Дерево: середнє"
 
+# AI Translated
 msgid "Wood: Light"
-msgstr ""
+msgstr "Дерево: світле"
 
 # AI Translated
 msgid "Alternate nozzles:"
@@ -32922,12 +33366,24 @@ msgid "Built-in"
 msgstr "Вбудовані"
 
 # AI Translated
+msgid "My textures"
+msgstr "Мої текстури"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Текстур не знайдено."
 
 # AI Translated
-msgid "My textures"
-msgstr "Мої текстури"
+msgid "Texture libraries"
+msgstr "Бібліотеки текстур"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Знайти інші бібліотеки текстур"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Відкриває OrcaCloud на домашній сторінці для перегляду плагінів."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -33330,11 +33786,15 @@ msgstr "Накладається за власною UV-розкладкою м�
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "Ширина однієї копії текстури на моделі. Менше значення частіше повторює візерунок і робить його деталі дрібнішими; якщо «Плитка» вимкнена, це розмір єдиної копії."
 
+# AI Translated
+# Needs human review: Caption of a tile-size picture in the texture-displacement tool; check it reads right.
 msgid "Larger"
-msgstr ""
+msgstr "Більше"
 
+# AI Translated
+# Needs human review: Caption of a tile-size picture in the texture-displacement tool; check it reads right.
 msgid "Smaller"
-msgstr ""
+msgstr "Менше"
 
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
@@ -33410,11 +33870,15 @@ msgstr "Змішані кольори"
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Найбільша кількість змішаних філаментів, яку може додати запікання. Їх вибирають із кольорів текстури, і створюються лише ті, що справді використовуються під час запікання."
 
+# AI Translated
+# Needs human review: Caption under a mixed-colors image in the texture-displacement tool; check it reads right.
 msgid "Few"
-msgstr ""
+msgstr "Мало"
 
+# AI Translated
+# Needs human review: Caption under a mixed-colors image in the texture-displacement tool; check it reads right.
 msgid "Many"
-msgstr ""
+msgstr "Багато"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -33780,11 +34244,13 @@ msgstr "Перебудова сітки"
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Розмір трикутника, з яким перебудовується вся модель, у міліметрах. Зміщення найкраще працює на рівномірній сітці; саме цей параметр робить її з нерівномірної імпортованої."
 
+# AI Translated
 msgid "Before"
-msgstr ""
+msgstr "До"
 
+# AI Translated
 msgid "After"
-msgstr ""
+msgstr "Після"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -35717,6 +36183,10 @@ msgid "Slicing Pipeline"
 msgstr "Конвеєр нарізки"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Текстура ресурсу"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "Інтерфейс конфігурації плагіна порожній. Показано типовий редактор."
 
@@ -35862,6 +36332,30 @@ msgstr "Каталог плагіна містить одночасно вхід
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Каталог плагіна не містить вхідного файлу .py або .whl"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Теку текстур ресурсу не задано"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Не вдалося визначити теку текстур ресурсу"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Шлях до текстур ресурсу не є текою"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Не вдалося визначити теку плагіна"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Тека текстур ресурсу розташована поза текою плагіна"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Не вдалося прочитати теку текстур ресурсу"
 
 # AI Translated
 #, boost-format
@@ -36323,7 +36817,7 @@ msgstr "Не вдалося завантажити файл конфігурац
 # AI Translated
 #. TRN %1% is the application name.
 #, boost-format
-msgid "Not a gcode file generated by %1%."
+msgid "Not a G-code file generated by %1%."
 msgstr "Це не файл G-code, створений %1%."
 
 # AI Translated
@@ -36443,7 +36937,7 @@ msgid "Failed making a temporary copy of G-code file %1% before running a post-p
 msgstr "Не вдалося створити тимчасову копію файлу G-code %1% перед запуском скрипта постобробки: %2%"
 
 # AI Translated
-msgid "Post-processor can't find exported gcode file"
+msgid "Post-processor can't find exported G-code file"
 msgstr "Постпроцесор не може знайти експортований файл G-code"
 
 # AI Translated
@@ -36815,6 +37309,28 @@ msgid ""
 msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури столу може зменшити ймовірність деформації?"
+
+# AI Translated
+# Needs human review: Not a known RAL name; translated literally.
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Далматинський жовтий"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "Капсантиново-фіолетовий"
+
+# AI Translated
+# Needs human review: Source name unclear; translated literally.
+#~ msgid "Olivestone"
+#~ msgstr "Оливково-камʼяний"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Доступно будь-де у вікні, навіть під час введення тексту в текстовому полі."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Глобальні комбінації клавіш діють і під час введення тексту."
 
 #~ msgid "Please choose the filament color"
 #~ msgstr "Будь ласка, виберіть колір філаменту"
@@ -37307,9 +37823,6 @@ msgstr ""
 #~ msgid "no configured tool"
 #~ msgstr "інструмент, якого немає в налаштуваннях"
 
-#~ msgid "Add end G-Code when finishing the entire print."
-#~ msgstr "Завершальний G-code, коли закінчити весь друк"
-
 #~ msgid "Maximum X speed"
 #~ msgstr "Максимальна швидкість X"
 
@@ -37327,24 +37840,8 @@ msgstr ""
 #~ msgstr "Плагіни Python, що викликаються на кожному кроці конвеєра нарізки для читання та зміни проміжних даних нарізки, включно з фінальним кроком постобробки G-code. Дослідницьке/експериментальне."
 
 # AI Translated
-#~ msgid "When enabled, the slicer emits g-code with the primary zone's contents centered on bed origin (0,0). The printer firmware is responsible for placing copies/mirrors at each physical zone position. Enable only on printers whose firmware applies its own zone offsets in copy/mirror mode (e.g. RepRapFirmware IDEX duplication mode). Has no effect in Primary mode."
-#~ msgstr "Якщо увімкнено, слайсер генерує G-code із вмістом основної зони, відцентрованим відносно початку координат столу (0,0). За розміщення копій і дзеркальних відображень у кожній фізичній зоні відповідає прошивка принтера. Вмикайте лише на принтерах, прошивка яких сама застосовує зміщення зон у режимі копії чи дзеркала (наприклад, режим дублювання IDEX у RepRapFirmware). Не діє в режимі «Основний»."
-
-# AI Translated
 #~ msgid "Per-plate override mapping physical heads to filament slots (1-based). Empty means use pem-inversion defaults."
 #~ msgstr "Перевизначення для пластини, що зіставляє фізичні головки зі слотами філаменту (нумерація з 1). Порожнє значення означає типові значення з інверсії pem."
-
-# AI Translated
-#~ msgid "Axis the mesh is rotated about before slicing. This is the belt printer's tilt: an isometric (no distortion) rotation that also drives bed rendering and support gravity tilt, and that the g-code back-transform inverts before the machine-frame shear/scale and remap. X is the typical gantry tilt (belt travels along Y)."
-#~ msgstr "Вісь, навколо якої сітку повертають перед нарізкою. Це нахил стрічкового принтера: ізометричне (без спотворень) обертання, яке також визначає відображення столу й нахил сили тяжіння для підтримок і яке зворотне перетворення G-code скасовує перед зсувом/масштабуванням і перепризначенням осей у машинній системі координат. X — типовий нахил порталу (стрічка рухається вздовж Y)."
-
-# AI Translated
-#~ msgid "Expert override: set the machine-frame (g-code shear/scale) tilt angle independently of the pre-slice rotation angle. When disabled, the machine-frame transform is derived from the belt tilt angle, so a single angle drives both stages. Enable only to compensate for a machine whose physical gantry tilt differs from the slicing rotation."
-#~ msgstr "Експертне перевизначення: задає кут нахилу машинної системи координат (зсув/масштаб G-code) незалежно від кута повороту перед нарізкою. Якщо вимкнено, перетворення машинної системи координат обчислюється з кута нахилу стрічки, тож один кут керує обома етапами. Вмикайте лише для компенсації машини, фізичний нахил порталу якої відрізняється від повороту під час нарізки."
-
-# AI Translated
-#~ msgid "The maximum deviation allowed when reducing the resolution for the 'Maximum wall resolution' setting. If you increase this, the print will be less accurate, but the G-Code will be smaller. 'Maximum wall deviation' limits 'Maximum wall resolution', so if the two conflict, 'Maximum wall deviation' takes precedence."
-#~ msgstr "Максимальне відхилення, дозволене при зниженні роздільності для налаштування «Максимальна роздільність стінки». Якщо його збільшити, друк буде менш точним, але G-code — меншим. «Максимальне відхилення стінки» обмежує «Максимальну роздільність стінки», тож у разі конфлікту пріоритет має «Максимальне відхилення стінки»."
 
 #~ msgid " not in range "
 #~ msgstr " не в зоні "

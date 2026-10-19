@@ -10,10 +10,13 @@
 #include <libslic3r/Utils.hpp>
 
 #include <boost/filesystem.hpp>
+#include <boost/nowide/cstdlib.hpp>
 
 #include <cstdio>
 #include <fstream>
+#include <optional>
 #include <string>
+#include <utility>
 
 #if defined(WIN32) || defined(_WIN32)
 #define PATH_SEPARATOR R"(\)"
@@ -195,6 +198,29 @@ public:
 
 private:
     boost::filesystem::path m_previous;
+};
+
+// Sets an environment variable for the lifetime of the guard and restores the previous value.
+class ScopedEnvVar
+{
+public:
+    ScopedEnvVar(std::string name, const std::string& value) : m_name(std::move(name))
+    {
+        if (const char* old = boost::nowide::getenv(m_name.c_str()))
+            m_previous = old;
+        boost::nowide::setenv(m_name.c_str(), value.c_str(), 1);
+    }
+    ~ScopedEnvVar()
+    {
+        if (m_previous)
+            boost::nowide::setenv(m_name.c_str(), m_previous->c_str(), 1);
+        else
+            boost::nowide::unsetenv(m_name.c_str());
+    }
+
+private:
+    std::string                m_name;
+    std::optional<std::string> m_previous;
 };
 
 #endif // SLIC3R_TEST_UTILS
