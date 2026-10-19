@@ -73,6 +73,9 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <TopTools_ListOfShape.hxx>
+#include <TopAbs_State.hxx>
+#include <exception>
 
 namespace Slic3r {
 

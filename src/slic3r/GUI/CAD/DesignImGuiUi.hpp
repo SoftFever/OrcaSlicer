@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "slic3r/GUI/CAD/DesignRibbonTable.hpp"
+#include "slic3r/GUI/CAD/DesignOffer.hpp"
 
 namespace Slic3r { namespace GUI {
 

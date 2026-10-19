@@ -26,6 +26,8 @@
 #include "slic3r/GUI/CAD/DesignInteraction.hpp"   // CadLevel: what one Esc press means
 #include "slic3r/GUI/AuiMgr.hpp"
 #include "slic3r/GUI/Lazy.hpp"
+#include "slic3r/GUI/CAD/DesignOffer.hpp"
+#include <wx/stattext.h>
 
 class ComboBox;    // Orca dropdown (Widgets/ComboBox.hpp) — replaces wxChoice everywhere here
 class StaticBox;   // Orca rounded card frame (Widgets/StaticBox.hpp)

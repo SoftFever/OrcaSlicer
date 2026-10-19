@@ -58,6 +58,11 @@
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Color.hpp"
 #include "slic3r/GUI/GLSelectionRectangle.hpp"
+#include <wx/event.h>
+#include <wx/time.h>
+#include <wx/timer.h>
+#include <wx/app.h>
+#include <wx/defs.h>
 
 class TopoDS_Shape;
 

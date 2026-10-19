@@ -43,6 +43,14 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <vector>
+#include <memory>
+#include <cstddef>
+#include <math.h>
+#include <TopAbs_ShapeEnum.hxx>
+#include <TopAbs_State.hxx>
+#include "libslic3r/TriangleMesh.hpp"
+#include "libslic3r/Point.hpp"
 
 namespace Slic3r {
 namespace SheetMetal {

@@ -69,6 +69,9 @@
 #include <cereal/archives/binary.hpp>
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Point.hpp"
+#include <cstdlib>
+#include <ratio>
+#include <functional>
 
 using namespace Slic3r;
 using Catch::Approx;   // Catch2 v3 scopes Approx under Catch:: (v2 had it unqualified)

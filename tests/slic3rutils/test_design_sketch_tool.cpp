@@ -38,6 +38,8 @@
 #include "slic3r/GUI/CAD/DesignRibbonTable.hpp"
 #include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/CAD/DesignSketchTool.hpp"
+#include "slic3r/GUI/CAD/DesignOffer.hpp"
+#include <catch2/catch_message.hpp>
 
 using namespace Slic3r;
 using namespace Slic3r::GUI;

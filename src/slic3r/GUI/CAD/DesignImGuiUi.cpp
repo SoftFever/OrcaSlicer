@@ -27,6 +27,15 @@
 #include <cstdlib>
 #include <cstring>
 #include <utility>
+#include <vector>
+#include <string>
+#include <functional>
+#include <cstdint>
+#include <ios>
+#include "slic3r/GUI/CAD/DesignOffer.hpp"
+#include "slic3r/GUI/CAD/DesignRibbonTable.hpp"
+#include <wx/translation.h>
+#include "libslic3r_version.h"
 
 namespace Slic3r {
 namespace GUI {

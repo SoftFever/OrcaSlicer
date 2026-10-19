@@ -13,6 +13,11 @@
 #include <cmath>
 #include <limits>
 #include <vector>
+#include <cstddef>
+#include "libslic3r/Point.hpp"
+#include <TopAbs_ShapeEnum.hxx>
+#include <GeomAbs_SurfaceType.hxx>
+#include <GeomAbs_CurveType.hxx>
 
 namespace Slic3r { namespace TopoRemap {
 

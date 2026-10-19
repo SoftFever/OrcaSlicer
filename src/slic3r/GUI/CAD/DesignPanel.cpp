@@ -117,6 +117,11 @@
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "slic3r/GUI/Shortcuts.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
+#include <wx/arrstr.h>
+#include <wx/timer.h>
+#include <gp_Pnt.hxx>
+#include <TopAbs_ShapeEnum.hxx>
 
 namespace Slic3r { namespace GUI {
 

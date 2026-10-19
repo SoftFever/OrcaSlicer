@@ -10,6 +10,7 @@
 # The app must be up (see the orca-cad-rig skill). Each check starts from new_document and leaves the tab clean; between them the
 # harness answers any modal dialog the app raised.
 set -uo pipefail
+# shellcheck disable=SC2029   # the remote commands are meant to expand HOST/SOCK/DSP here, on the client
 cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
 HOST="${HOST:-tommaso@100.103.234.2}"
 SOCK="${SOCK:-/tmp/orca-test.sock}"

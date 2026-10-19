@@ -7,6 +7,8 @@
 using Catch::Approx;   // v3 scopes Approx into the Catch namespace; v2 had it at global scope
 
 #include "libslic3r/CAD/SketchInference.hpp"
+#include <math.h>
+#include <cmath>
 
 using namespace Slic3r;
 using K = InferenceSnap::Kind;

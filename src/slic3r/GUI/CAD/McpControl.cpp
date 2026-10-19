@@ -75,6 +75,14 @@
 #include <BRepGProp.hxx>
 #include <Bnd_Box.hxx>
 #include <BRepBndLib.hxx>
+#include <initializer_list>
+#include <GeomAbs_SurfaceType.hxx>
+#include <boost/filesystem/operations.hpp>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/time.h>
+#include <wx/string.h>
+#include <wx/defs.h>
 
 using json = nlohmann::json;
 

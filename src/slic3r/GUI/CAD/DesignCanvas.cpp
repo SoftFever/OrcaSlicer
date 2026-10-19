@@ -53,6 +53,8 @@
 
 #if defined(__WXMSW__) && wxUSE_POPUPWIN
 #include <wx/popupwin.h>
+#include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
+#include "slic3r/GUI/I18N.hpp"
 extern wxPopupWindow* wxCurrentPopupWindow;
 #endif
 

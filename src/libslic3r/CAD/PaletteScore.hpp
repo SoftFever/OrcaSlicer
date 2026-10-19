@@ -3,6 +3,7 @@
 
 #include <cctype>
 #include <string>
+#include <cstddef>
 
 namespace Slic3r {
 

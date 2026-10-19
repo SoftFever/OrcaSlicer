@@ -123,6 +123,10 @@
 #include <utility>
 #include "libslic3r/Color.hpp"
 #include "libslic3r/TriangleMesh.hpp"
+#include <cstdlib>
+#include <ratio>
+#include <GeomAbs_JoinType.hxx>
+#include <BRepOffset_Mode.hxx>
 
 class Geom2d_TrimmedCurve;
 
