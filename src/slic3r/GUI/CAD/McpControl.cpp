@@ -173,7 +173,7 @@ bool read_only_method(const std::string& m)
     static const std::set<std::string> k = {
         "describe_tools", "describe_scene", "query_topology", "measure", "mass_properties",
         "slice_body", "validate_against", "list_verbs", "sketch_describe", "sketch_validate",
-        "check_interference", "inspect_design", "export", "save", "screenshot", "ui.inspect", "ui.candidates", "ui.worldToScreen", "ui.screenshot", "variables_export", "sketch_dimensions" };
+        "check_interference", "inspect_design", "list_commands", "export", "save", "screenshot", "ui.inspect", "ui.candidates", "ui.worldToScreen", "ui.screenshot", "variables_export", "sketch_dimensions" };
     return k.count(m) > 0;
 }
 
@@ -549,10 +549,10 @@ json describe_tools_core()
                      json{{"name", "atomic"}, {"type", "boolean"}, {"default", true}, {"description", "true: all constraints are solved as one system, all or nothing; false: each on its own, conflicting ones rejected alone"}},
                      json{{"name", "constraints"}, {"type", "array"}, {"description", "[{type, a, b, c, value, orientation}]. types: coincident, horizontal|vertical (one line), horizontal_points|vertical_points, distance (value mm, orientation aligned|horizontal|vertical), fix, lock_x, lock_y, equal, parallel, perpendicular, collinear, tangent, concentric, midpoint (point a, line b), symmetric (points a,b about line c), symmetric_x|symmetric_y, point_on_line, point_on_object, radius, diameter (value mm), angle (two lines, value deg)"}},
                  })}},
-            json{{"name", "export"}, {"summary", "Write the design's bodies to a STEP file (absolute path under $HOME or /tmp)."},
+            json{{"name", "export"}, {"summary", "Write the design's bodies to a STEP, IGES, STL (binary) or OBJ file (absolute path under $HOME or /tmp; ORCA_CAD_MCP_ALLOW overrides the roots). The project itself is `save`."},
                  {"params", json::array({
                      json{{"name", "path"},   {"type", "string"}},
-                     json{{"name", "format"}, {"type", "string"}, {"enum", json::array({"step"})}, {"default", "step"}},
+                     json{{"name", "format"}, {"type", "string"}, {"enum", json::array({"step", "iges", "stl", "obj"})}, {"default", "step"}},
                  })}},
             json{{"name", "undo"}, {"summary", "Undo the last feature-level change (one step per user action). ok is true even when there was nothing to undo; check `did`."},
                  {"params", json::array()}},
@@ -650,6 +650,9 @@ json describe_tools()
         compact_tool("list_verbs", "The GUI's tool vocabulary: every verb with its enabled state for the current selection.", {{"applicable_only", "boolean", "hide verbs that do not apply"}}),
         compact_tool("run_verb", "Fire a GUI tool verb as the toolbar would. Opens its card, so it is not batchable.", {{"verb", "string", "verb id from list_verbs"}}),
         compact_tool("set_variable", "Create or change a named variable (expression, units-free mm).", {{"name", "string", ""}, {"expr", "string", "number or expression"}}),
+        compact_tool("set_parameter", "Same as set_variable, and says how many features the change rebuilt (recomputed) and how many came from the cache (restored).", {{"name", "string", ""}, {"expr", "string", "number or expression"}}),
+        compact_tool("list_commands", "Every tool and every ribbon verb with whether it can run now and, if not, why. filter = a substring of the name.", {{"filter", "string", "optional substring"}}),
+        compact_tool("execute", "Run a tool by name or a ribbon verb by id (see list_commands). verbose:false returns only ok and the error.", {{"command", "string", "tool name or verb id"}, {"params", "object", "that command's parameters"}, {"verbose", "boolean", "default true"}}),
         compact_tool("set_feature_expr", "Bind a feature field to an expression and recompute.", {{"feature", "integer", "feature index"}, {"field", "string", "field name"}, {"expr", "string", ""}}),
         compact_tool("sweep", "Sweep a profile sketch along a path sketch.", {{"profile", "integer", "Sketch feature index"}, {"path", "integer", "Sketch feature index"}, {"boolean", "string", "new|union|subtract|intersect"}}),
         compact_tool("loft", "Loft through two or more profile sketches, in order.", {{"profiles", "array", "[Sketch feature index,...]"}, {"ruled", "boolean", "straight (ruled) instead of smooth"}, {"boolean", "string", "new|union|subtract|intersect"}}),
@@ -2204,6 +2207,57 @@ json action_list_verbs(DesignPanel* panel, const json& params)
                 {"verbs", std::move(verbs)}};
 }
 
+// One vocabulary for the agent: every tool (MCP method) and every offer verb (what the ribbon and the context menu run), with
+// whether it can run now and, when it cannot, why - the same sentence the GUI shows.
+json describe_tools();
+json call_method(DesignPanel* panel, const std::string& method, const json& params);
+json action_list_commands(DesignPanel* panel, const json& params)
+{
+    const std::string filter = params.value("filter", std::string());
+    auto match = [&](const std::string& s) { return filter.empty() || s.find(filter) != std::string::npos; };
+    json out = json::array();
+    const json dt = describe_tools();
+    for (const json& t : dt["tools"]) {
+        const std::string n = t["name"].get<std::string>();
+        if (n == "execute" || !match(n)) continue;
+        out.push_back(json{{"command", n}, {"kind", "tool"}, {"summary", t.value("summary", std::string())}, {"read_only", t.value("readOnly", false)}, {"enabled", true}});
+    }
+    const int kind = panel->mcp_offer_selection_kind();
+    const uint32_t bit = offer_bit(OfferSel(kind));
+    for (int i = 0; i < kOfferVerbCount; ++i) {
+        const OfferVerb& v = kOfferVerbs[i];
+        if (!match(v.id) || v.action == nullptr) continue;
+        const bool applies = (v.accepts & bit) != 0;
+        json e{{"command", std::string("verb:") + v.id}, {"kind", "verb"}, {"summary", v.hint ? v.hint : ""}, {"read_only", false}, {"enabled", applies}};
+        if (!applies) e["reason"] = v.refusal ? v.refusal : "does not apply to the current selection";
+        out.push_back(std::move(e));
+    }
+    return json{{"ok", true}, {"count", out.size()}, {"commands", std::move(out)}};
+}
+
+// {command, params, verbose}: a tool by name, or an offer verb by id (what the ribbon would run on the current selection).
+json action_execute(DesignPanel* panel, const json& params)
+{
+    if (!params.contains("command") || !params["command"].is_string()) throw std::runtime_error("execute needs 'command' (see list_commands)");
+    const std::string cmd = params["command"].get<std::string>();
+    const json p = params.contains("params") ? params["params"] : json::object();
+    if (!p.is_object()) throw std::runtime_error("'params' must be an object");
+    if (cmd == "execute") throw std::runtime_error("execute cannot run itself");
+    json r;
+    const json dt = describe_tools();
+    bool is_tool = false;
+    for (const json& t : dt["tools"]) is_tool = is_tool || t["name"] == cmd;
+    const bool prefixed = cmd.rfind("verb:", 0) == 0;
+    const std::string vid = prefixed ? cmd.substr(5) : cmd;
+    bool is_verb = false;
+    for (int i = 0; i < kOfferVerbCount; ++i) is_verb = is_verb || (vid == kOfferVerbs[i].id);
+    if (is_tool && !prefixed) r = call_method(panel, cmd, p);
+    else if (is_verb)         { json vp = p; vp["verb"] = vid; r = call_method(panel, "run_verb", vp); }
+    else throw std::runtime_error("unknown command '" + cmd + "' (list_commands lists them; ribbon verbs are \"verb:<id>\")");
+    if (!params.value("verbose", true) && r.is_object()) return json{{"ok", r.value("ok", true)}, {"error", r.value("error", std::string())}};
+    return r;
+}
+
 json action_run_verb(DesignPanel* panel, const json& params)
 {
     if (!params.contains("verb")) throw std::runtime_error("run_verb needs 'verb' (an offer verb id)");
@@ -2811,14 +2865,14 @@ std::string checked_out_path(const json& params, const char* what)
 json action_export(DesignPanel* panel, const json& params)
 {
     const std::string fmt = params.value("format", std::string("step"));
-    if (fmt != "step") throw std::runtime_error("format must be 'step' (stl/3mf/obj/iges are not wired yet)");
+    if (fmt != "step" && fmt != "iges" && fmt != "stl" && fmt != "obj") throw std::runtime_error("format must be step, iges, stl or obj (the project itself is `save`)");
     const std::string path = checked_out_path(params, "export");
     CadDocument& doc = panel->mcp_doc();
     if (doc.bodies.empty()) throw std::runtime_error("nothing to export - the design has no bodies");
     const std::vector<Transform3d> xf(doc.bodies.size(), Transform3d::Identity());   // bodies as modelled, no Move-gizmo offsets
     std::string err;
-    const bool ok = doc.export_step(path, xf, err);
-    return json{{"ok", ok}, {"path", path}, {"bodies", int(doc.bodies.size())}, {"error", err}};
+    const bool ok = fmt == "step" ? doc.export_step(path, xf, err) : doc.export_other(fmt, path, xf, err);
+    return json{{"ok", ok}, {"format", fmt}, {"path", path}, {"bodies", int(doc.bodies.size())}, {"error", err}};
 }
 
 // ---- sweep / loft / thread / cut -----------------------------------------------------------------------------
@@ -3463,7 +3517,7 @@ json call_method(DesignPanel* panel, const std::string& method, const json& para
     const std::vector<const void*> before = bodies_now();
     json r = call_method_core(panel, method, params);
     if (!r.is_object() || !r.contains("ok") || read_only_method(method) || method.rfind("sketch_", 0) == 0 || method == "batch" || method == "undo" || method == "redo"
-        || method == "open" || method == "new_document" || method == "run_verb")
+        || method == "open" || method == "new_document" || method == "run_verb" || method == "execute")
         return r;
     const std::vector<const void*> after = bodies_now();
     json created = json::array(), changed = json::array();
@@ -3528,6 +3582,15 @@ json call_method_core(DesignPanel* panel, const std::string& method, const json&
     if (method == "ui_option")      return action_ui_option(panel, params);
     if (method == "sketch_constrain") return action_sketch_constrain(panel, params);
     if (method == "export")         return action_export(panel, params);
+    if (method == "list_commands")  return action_list_commands(panel, params);
+    if (method == "execute")        return action_execute(panel, params);
+    if (method == "set_parameter") {   // set_variable, plus how much of the model the change rebuilt
+        json r = action_set_variable(panel, params);
+        const CadDocument& d = panel->mcp_doc();
+        r["recomputed"] = d.replay_stats.replayed;
+        r["restored"]   = d.replay_stats.restored;
+        return r;
+    }
     if (method == "rename_variable")   return action_rename_variable(panel, params);
     if (method == "variables_export")  return action_variables_export(panel, params);
     if (method == "variables_import")  return action_variables_import(panel, params);

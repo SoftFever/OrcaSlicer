@@ -669,6 +669,7 @@ find_package(JPEG REQUIRED)
 find_package(Draco REQUIRED)
 
 set(OCCT_LIBS
+    TKDEIGES
     TKDESTEP
     TKDE
     TKXCAF

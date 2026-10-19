@@ -87,6 +87,9 @@
 #include <gp_Vec.hxx>
 #include <gp_Trsf.hxx>             // pattern: rigid copy transforms
 #include <STEPControl_Writer.hxx>  // STEP export (native B-rep)
+#include <IGESControl_Writer.hxx>
+#include "libslic3r/Format/STL.hpp"
+#include "libslic3r/Format/OBJ.hpp"
 #include <STEPControl_StepModelType.hxx>
 #include <IFSelect_ReturnStatus.hxx>
 #include <gp_Ax1.hxx>             // pattern: rotation axis (circular)
@@ -5614,6 +5617,47 @@ bool CadDocument::deserialize_recipe(const std::string& blob)
         return false;
     } catch (...) {
         error = _u8L("CAD data could not be read");
+        return false;
+    }
+}
+
+bool CadDocument::export_other(const std::string& format, const std::string& path, const std::vector<Transform3d>& body_xforms,
+                               std::string& err) const
+{
+    err.clear();
+    if (bodies.empty()) { err = _u8L("nothing to export"); return false; }
+    try {
+        std::vector<TopoDS_Shape> placed;
+        for (size_t i = 0; i < bodies.size(); ++i) {
+            if (bodies[i].shape.IsNull()) continue;
+            TopoDS_Shape s = bodies[i].shape;
+            if (i < body_xforms.size() && !body_xforms[i].isApprox(Transform3d::Identity())) {
+                const Transform3d& m = body_xforms[i];
+                gp_Trsf t;
+                t.SetValues(m(0,0), m(0,1), m(0,2), m(0,3), m(1,0), m(1,1), m(1,2), m(1,3), m(2,0), m(2,1), m(2,2), m(2,3));
+                s = BRepBuilderAPI_Transform(s, t, true).Shape();
+            }
+            placed.push_back(s);
+        }
+        if (format == "iges") {
+            IGESControl_Writer w("MM", 0);
+            for (const TopoDS_Shape& s : placed) w.AddShape(s);
+            w.ComputeModel();
+            if (!w.Write(path.c_str())) { err = _u8L("cannot write IGES file"); return false; }
+            return true;
+        }
+        if (format == "stl" || format == "obj") {
+            indexed_triangle_set all;
+            for (const TopoDS_Shape& s : placed) its_merge(all, SketchEngine::tessellate(s).its);
+            TriangleMesh mesh(std::move(all));
+            const bool ok = format == "stl" ? store_stl(path.c_str(), &mesh, true) : store_obj(path.c_str(), &mesh);
+            if (!ok) err = _u8L("cannot write the file");
+            return ok;
+        }
+        err = _u8L("unknown export format");
+        return false;
+    } catch (const std::exception& e) {
+        err = *e.what() ? e.what() : _u8L("export failed");
         return false;
     }
 }

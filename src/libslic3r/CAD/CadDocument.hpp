@@ -928,6 +928,8 @@ public:
     // Export every body to a STEP file as native B-rep (not mesh). body_xforms is the
     // per-body display transform (Move gizmo); when supplied the bodies are written at
     // those positions so the STEP matches what Commit ships. false + err on failure.
+    // The bodies as one file: "iges" (B-rep), "stl" (binary) or "obj" (tessellated). STEP stays export_step.
+    bool export_other(const std::string& format, const std::string& path, const std::vector<Transform3d>& body_xforms, std::string& err) const;
     bool export_step(const std::string& path,
                      const std::vector<Transform3d>& body_xforms,
                      std::string& err) const;
