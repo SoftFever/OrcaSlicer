@@ -441,6 +441,7 @@ struct CadFeature {
     double sm_gap{0.01};      // hem gap
     double sm_angle{90};      // edge flange angle (deg)
     int    sm_ref{-1};        // refold: the unfold feature it folds back
+    bool   dressup_fit_taper{false};   // fillet: where the radius does not fit, follow the room (GeometryEngine::FilletLaw::fit_taper)
 
     template<class Archive>
     void save(Archive& ar) const {
@@ -494,7 +495,8 @@ struct CadFeature {
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
                thin_in, thin_out, pattern_mirror, extrude_entities,
                hole_tip_angle,
-               sm_thickness, sm_radius, sm_k, sm_gap, sm_angle, sm_ref);
+               sm_thickness, sm_radius, sm_k, sm_gap, sm_angle, sm_ref,
+               dressup_fit_taper);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -548,7 +550,8 @@ struct CadFeature {
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
                thin_in, thin_out, pattern_mirror, extrude_entities,
                hole_tip_angle,
-               sm_thickness, sm_radius, sm_k, sm_gap, sm_angle, sm_ref);
+               sm_thickness, sm_radius, sm_k, sm_gap, sm_angle, sm_ref,
+               dressup_fit_taper);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature

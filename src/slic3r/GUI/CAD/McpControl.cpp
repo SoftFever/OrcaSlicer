@@ -237,6 +237,7 @@ json describe_tools_core()
                      json{{"name", "start"},  {"type", "array"}, {"description", "[x,y,z]: with radius_end, `radius` applies at the end of the edge nearest this point"}},
                      json{{"name", "radii"},  {"type", "array"}, {"description", "radius spline: the control radii after `radius`, with `knots` (clamped, sorted, 0..1, degree = knots - radii - 2); `start` picks the end the spline begins at"}},
                      json{{"name", "knots"},  {"type", "array"}, {"description", "the full knot vector of the radius spline"}},
+                     json{{"name", "fit"},    {"type", "string"}, {"enum", json::array({"taper"})}, {"description", "taper: where `radius` does not fit, the radius follows the room (a smooth law, min(radius, 0.9 x room))"}},
                      json{{"name", "chord"},  {"type", "boolean"}, {"default", false}, {"description", "`radius` is the width of the round measured across it (chord length), not a radius"}},
                  })}},
             json{{"name", "sm_rule"}, {"summary", "Sheet-metal rule used by every later sheet-metal feature: thickness, inner bend radius, K-factor, hem gap."},
@@ -1225,6 +1226,10 @@ json action_fillet(DesignPanel* panel, const json& params)
             cf.dressup_knots = nums("knots");
         }
         cf.dressup_chord = params.value("chord", false);
+        if (params.contains("fit")) {
+            if (!params["fit"].is_string() || params["fit"].get<std::string>() != "taper") { doc.undo(); throw std::runtime_error("fit must be \"taper\""); }
+            cf.dressup_fit_taper = true;
+        }
         if (cf.dressup_chord && cf.dressup_size2 >= 0) { doc.undo(); throw std::runtime_error("chord and radius_end cannot be combined"); }
         if (params.contains("start")) {
             const json& s = params["start"];
@@ -2842,7 +2847,13 @@ json action_sweep(DesignPanel* panel, const json& params)
 {
     CadDocument& doc = panel->mcp_doc();
     if (!params.contains("profile") || !params.contains("path")) throw std::runtime_error("sweep needs 'profile' and 'path' (Sketch feature indices)");
-    const int pr = sketch_index_at(params["profile"], doc, "'profile'"), pa = sketch_index_at(params["path"], doc, "'path'");
+    const int pr = sketch_index_at(params["profile"], doc, "'profile'");
+    int pa = -1;   // the path is a sketch, a helix or a 3D curve
+    if (params["path"].is_number_integer() && params["path"].get<int>() >= 0 && params["path"].get<int>() < int(doc.features.size())
+        && (doc.features[size_t(params["path"].get<int>())].type == CadFeatureType::Helix || doc.features[size_t(params["path"].get<int>())].type == CadFeatureType::Sketch3D))
+        pa = params["path"].get<int>();
+    else
+        pa = sketch_index_at(params["path"], doc, "'path'");
     doc.checkpoint();
     const int i = doc.add_sweep(pr, pa, bool_from(params.value("boolean", std::string("new"))), "Sweep");
     return finish_feature(panel, doc, json{{"sweep_index", i}});

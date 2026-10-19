@@ -3359,7 +3359,7 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
         {
             GeometryEngine::FilletLaw law;
             law.r2 = f.dressup_size2; law.chord = f.dressup_chord; law.has_start = f.dressup_has_start; law.start = f.dressup_start;
-            law.radii = f.dressup_radii; law.knots = f.dressup_knots;
+            law.radii = f.dressup_radii; law.knots = f.dressup_knots; law.fit_taper = f.dressup_fit_taper;
             result = GeometryEngine::apply_fillet(result, f.dressup_size, f.dressup_edge_ids(), law);
         }
         else

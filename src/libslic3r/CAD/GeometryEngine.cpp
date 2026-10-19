@@ -39,6 +39,8 @@
 #include <GProp_GProps.hxx>
 #include <GeomLProp_SLProps.hxx>
 #include <BRepAdaptor_Curve.hxx>
+#include <BRepTopAdaptor_FClass2d.hxx>
+#include <Geom_Surface.hxx>
 #include <GeomAPI_ProjectPointOnSurf.hxx>
 #include <Law_BSpline.hxx>
 #include <gp_Pnt2d.hxx>
@@ -405,6 +407,48 @@ static double edge_normal_angle(const TopoDS_Shape& solid, const TopoDS_Edge& ed
     return n[0].Angle(n[1]);
 }
 
+// How much radius fits at relative position `u` along `edge`: the narrower of the two faces measured square to the edge
+// (to the face's own boundary), times tan(half the angle between the faces).
+static double taper_room(const TopoDS_Shape& solid, const TopoDS_Edge& edge, double u)
+{
+    TopTools_IndexedDataMapOfShapeListOfShape ef;
+    TopExp::MapShapesAndAncestors(solid, TopAbs_EDGE, TopAbs_FACE, ef);
+    if (!ef.Contains(edge)) throw std::runtime_error("fillet: the edge is not part of the body");
+    BRepAdaptor_Curve cur(edge);
+    // the ends of the edge sit on the faces' own boundaries, so measure a hair inside them
+    const double t = cur.FirstParameter() + std::clamp(u, 0.002, 0.998) * (cur.LastParameter() - cur.FirstParameter());
+    const gp_Pnt p = cur.Value(t);
+    gp_Vec tan = cur.DN(t, 1);
+    if (tan.Magnitude() < 1e-12) throw std::runtime_error("fillet: the edge has no direction here");
+    tan.Normalize();
+    const double beta = edge_normal_angle(solid, edge);
+    double room = 1e300;
+    for (const TopoDS_Shape& fs : ef.FindFromKey(edge)) {
+        const TopoDS_Face face = TopoDS::Face(fs);
+        BRepAdaptor_Surface surf(face);
+        if (surf.GetType() != GeomAbs_Plane) throw std::runtime_error("fillet: fit taper needs flat faces beside the edge");
+        gp_Vec n(surf.Plane().Axis().Direction());
+        gp_Vec d = n.Crossed(tan);
+        d.Normalize();
+        BRepTopAdaptor_FClass2d cls(face, 1e-7);
+        Handle(Geom_Surface) gs = BRep_Tool::Surface(face);
+        auto inside = [&](double dist) {   // the point on the plane, found in the face's own (u, v) and classified there
+            GeomAPI_ProjectPointOnSurf pr(gp_Pnt(p.XYZ() + d.XYZ() * dist), gs);
+            if (pr.NbPoints() < 1) return false;
+            double pu, pv;
+            pr.LowerDistanceParameters(pu, pv);
+            return cls.Perform(gp_Pnt2d(pu, pv)) == TopAbs_IN;
+        };
+        if (!inside(1e-4)) d.Reverse();
+        if (!inside(1e-4)) throw std::runtime_error("fillet: cannot measure the room beside the edge");
+        double lo = 0.0, hi = 1e-4;
+        while (inside(hi) && hi < 1e5) { lo = hi; hi *= 2.0; }
+        for (int i = 0; i < 40; ++i) { const double m = 0.5 * (lo + hi); (inside(m) ? lo : hi) = m; }
+        room = std::min(room, lo);
+    }
+    return room * std::tan(0.5 * (M_PI - beta));
+}
+
 TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radius, const std::vector<int>& edge_ids)
 {
     return apply_fillet(solid, radius, edge_ids, FilletLaw{});
@@ -417,17 +461,7 @@ TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radi
     if (law.r2 > 1e6 || radius > 1e6) throw std::runtime_error("the fillet radius is too large");
 
     BRepFilletAPI_MakeFillet mk(solid);
-    for (int id : edge_ids) {
-        TopoDS_Edge edge = edge_by_index(solid, id);
-        if (edge.IsNull()) throw std::runtime_error("apply_fillet: invalid edge id");
-        if (law.chord) {
-            const double s = std::sin(0.5 * edge_normal_angle(solid, edge));
-            if (s < 1e-6) throw std::runtime_error("fillet: the two faces are tangent here, a chord length cannot be turned into a radius");
-            mk.Add(radius / (2.0 * s), edge);
-        } else if (!law.radii.empty()) {
-            std::vector<double> poles(1, radius);
-            poles.insert(poles.end(), law.radii.begin(), law.radii.end());
-            std::vector<double> kn = law.knots;
+    auto add_spline = [&](std::vector<double> poles, std::vector<double> kn, const TopoDS_Edge& edge) {
             const int deg = int(kn.size()) - int(poles.size()) - 1;
             if (deg < 1 || deg > 8 || !std::is_sorted(kn.begin(), kn.end()) || kn.front() != 0.0 || kn.back() != 1.0)
                 throw std::runtime_error("fillet: the radius spline needs sorted knots from 0 to 1 and degree = knots - radii - 1 between 1 and 8");
@@ -463,6 +497,27 @@ TopoDS_Shape GeometryEngine::apply_fillet(const TopoDS_Shape& solid, double radi
                 samples(i + 1) = gp_Pnt2d(u, std::max(r, 1e-3));
             }
             mk.Add(samples, edge);
+    };
+    for (int id : edge_ids) {
+        TopoDS_Edge edge = edge_by_index(solid, id);
+        if (edge.IsNull()) throw std::runtime_error("apply_fillet: invalid edge id");
+        if (law.chord) {
+            const double s = std::sin(0.5 * edge_normal_angle(solid, edge));
+            if (s < 1e-6) throw std::runtime_error("fillet: the two faces are tangent here, a chord length cannot be turned into a radius");
+            mk.Add(radius / (2.0 * s), edge);
+        } else if (!law.radii.empty()) {
+            std::vector<double> poles(1, radius);
+            poles.insert(poles.end(), law.radii.begin(), law.radii.end());
+            add_spline(poles, law.knots, edge);
+        } else if (law.fit_taper) {
+            std::vector<double> kn(4, 0.0), poles;
+            for (int i = 1; i < 8; ++i) kn.push_back(i / 8.0);
+            kn.insert(kn.end(), 4, 1.0);
+            for (int i = 0; i < 11; ++i) {
+                const double u = (kn[size_t(i) + 1] + kn[size_t(i) + 2] + kn[size_t(i) + 3]) / 3.0;
+                poles.push_back(std::min(radius, 0.9 * taper_room(solid, edge, u)));
+            }
+            add_spline(poles, kn, edge);
         } else if (law.r2 >= 0.0) {
             double r1 = radius, r2 = std::max(law.r2, 1e-3);   // a round that closes to a point is asked for as a very small one
             if (law.has_start) {

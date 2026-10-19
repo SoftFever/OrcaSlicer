@@ -96,6 +96,10 @@ public:
         // fillet's own radius is the first) and the full knot vector, clamped, degree = knots - radii - 1. Overrides r2.
         std::vector<double> radii;
         std::vector<double> knots;
+        // Fit "taper": where `radius` does not fit, the radius follows the room there. A clamped cubic B-spline of 8 equal
+        // spans along each edge, its control radii min(radius, 0.9 * room) at the Greville abscissae, room being the
+        // narrower of the two faces measured square to the edge, times tan(half the angle between the faces). Overrides the rest.
+        bool fit_taper{false};
     };
     // Several edges in one operation, all ids resolved against `solid`.
     static TopoDS_Shape apply_fillet(const TopoDS_Shape& solid, double radius,

@@ -330,8 +330,30 @@ class Replay:
             return   # a cosmetic thread is an annotation: it adds no geometry, so there is nothing to build or compare
         raise Blocked("modeled thread")
 
+    def _helix_from_fit(self, ft):
+        """A fitted spline through points that lie on a helix about Z is replayed as the true helix (as the reference does)."""
+        e = ft["entities"][0]
+        pts = e["fit_points"]
+        r = math.hypot(pts[0][0], pts[0][1])
+        ang = [math.atan2(p[1], p[0]) for p in pts]
+        turn = [0.0]
+        for a0, a1 in zip(ang, ang[1:]):
+            d = (a1 - a0 + math.pi) % (2 * math.pi) - math.pi
+            turn.append(turn[-1] + d)
+        if (any(abs(math.hypot(p[0], p[1]) - r) > 1e-4 for p in pts) or abs(turn[-1]) < 1e-6 or abs(pts[0][1]) > 1e-9 or pts[0][0] < 0
+                or any(abs(p[2] - pts[0][2] - turn[i] / (2 * math.pi) * (pts[-1][2] - pts[0][2]) / (turn[-1] / (2 * math.pi))) > 1e-4 for i, p in enumerate(pts))):
+            raise Blocked("fitted spline that is not a helix about Z")
+        height = pts[-1][2] - pts[0][2]
+        pitch = height / (abs(turn[-1]) / (2 * math.pi))
+        idx = self.m.call("helix", {"radius": r, "pitch": pitch, "height": height, "left_handed": turn[-1] < 0, "plane": "XY"})["helix_index"]
+        self.sketches[ft["name"]] = (idx, "XY", {e["id"]})
+        self.entity_index[ft["name"]] = {e["id"]: 0}
+        self.sketch_neg[ft["name"]] = False
+
     def op_sketch(self, ft):
         self._last_neg = False
+        if len(ft["entities"]) == 1 and ft["entities"][0]["type"] == "fitted_spline":
+            return self._helix_from_fit(ft)
         pl0 = ft["plane"]
         if ft["entities"] and all(e["type"] == "point" for e in ft["entities"]) and pl0.get("normal") == [0.0, 0.0, 1.0]:
             self.point_sets[ft["name"]] = [(e["at"][0], e["at"][1], pl0["origin"][2]) for e in ft["entities"]]
@@ -367,13 +389,27 @@ class Replay:
                     add({"type": "coincident", "a": ref("%s.%s" % (e["id"], role)), "b": ref(pt["ref"])})
         for c in ft.get("constraints", []):
             d = {"type": c["type"]}
-            for k, r in zip("abc", c["refs"]):
+            refs = list(c["refs"])
+            if c["type"] == "symmetric":   # two circles/arcs mean their centres
+                for i in (0, 1):
+                    if "." not in refs[i] and types.get(refs[i]) in ("circle", "arc"):
+                        refs[i] += ".center"
+            for k, r in zip("abc", refs):
                 d[k] = ref(r)
             add(d)
+            if c["type"] == "symmetric" and refs[0].endswith(".center") and refs[1].endswith(".center"):   # a mirrored circle has the same radius
+                add({"type": "equal", "a": ref(c["refs"][0]), "b": ref(c["refs"][1])})
         for c in ft.get("dimensions", []):
             t = c["type"]
-            if t == "offset":
-                raise Blocked("sketch dimension 'offset'")
+            if t == "offset":   # perpendicular distance from a point to a line: the app's signed point_on_line, sign taken from the drawing
+                ln, pt = ents[int(ref(c["refs"][0]))], ref_point(ents, ref(c["refs"][1]))
+                if ln["type"] != "line" or pt is None:
+                    raise Blocked("offset between %s and a non-point" % ln["type"])
+                dx, dy = ln["p1"][0] - ln["p0"][0], ln["p1"][1] - ln["p0"][1]
+                side = dx * (pt[1] - ln["p0"][1]) - dy * (pt[0] - ln["p0"][0])
+                cons.append({"type": "point_on_line", "a": ref(c["refs"][1]), "b": ref(c["refs"][0]),
+                             "value": math.copysign(number(c["value"], self.params), side if abs(side) > 1e-9 else 1.0)})
+                continue
             d = {"type": t, "value": number(c["value"], self.params)}
             for k, r in zip("ab", c["refs"]):
                 d[k] = ref(r)
@@ -644,6 +680,10 @@ class Replay:
 
     def op_fillet(self, ft):
         kind = ft.get("type")
+        if ft.get("fit") == "taper" and kind is None:
+            ids, gen = self._edges(ft)
+            self.m.call("fillet", {"edge": ids, "radius": ft["radius"], "body": self.body, "generation": gen, "fit": "taper"})
+            return
         if kind not in ("constant_radius", "variable_radius", "chord_length", "spline_radius"):
             raise Blocked("fillet type %s" % (kind or "(none: variable/chord set)"))
         ids, gen = self._edges(ft)

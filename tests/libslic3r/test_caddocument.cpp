@@ -2427,7 +2427,7 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // pattern_spacing2 (double).
     // + shell_faces and draft_faces (two lists), draft_has_neutral (bool), draft_pull / draft_neutral (6 doubles), thin_in / thin_out.
     // + pattern_mirror (bool), extrude_entities (a list)
-    const size_t drop = sizeof(uint32_t) + 9 * sizeof(bool) + 11 * sizeof(cereal::size_type) + 29 * sizeof(double)
+    const size_t drop = sizeof(uint32_t) + 10 * sizeof(bool) + 11 * sizeof(cereal::size_type) + 29 * sizeof(double)
                         + 8 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
@@ -10521,4 +10521,35 @@ TEST_CASE("sheet metal: the rule feature sets the thickness of the sheet feature
     doc.features[0].sm_thickness = 3.0;   // editing the rule rebuilds the sheet
     REQUIRE(doc.recompute());
     REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(100.0 * 60.0 * 3.0, 1e-6));
+}
+
+TEST_CASE("a fillet can taper to the room that is left (fit: taper)", "[CadDocument][fillet]")
+{
+    using Catch::Matchers::WithinRel;
+    CadDocument doc;
+    auto line = [](Vec2d a, Vec2d b) { SketchEntity e; e.type = SketchEntity::Type::Line; e.p0 = a; e.p1 = b; return e; };
+    // plate whose top narrows from 20 mm (x = 0) to 2 mm (x = 40), 15 high
+    const int sk = doc.add_sketch_entities({ line({0, 0}, {40, 0}), line({40, 0}, {40, 2}), line({40, 2}, {0, 20}), line({0, 20}, {0, 0}) },
+                                           SketchPlane::XY(), "Plate");
+    doc.add_extrude(sk, 15.0, false, BooleanMode::New, "Plate");
+    REQUIRE(doc.recompute());
+    const double v0 = SketchEngine::tessellate(doc.bodies.front().shape).volume();
+    int edge = -1;
+    for (int i = 0;; ++i) {
+        const TopoDS_Edge e = GeometryEngine::edge_by_index(doc.bodies[0].shape, i);
+        if (e.IsNull()) break;
+        BRepAdaptor_Curve c(e);
+        const gp_Pnt a = c.Value(c.FirstParameter()), b = c.Value(c.LastParameter());
+        if (std::abs(a.Z() - 15) < 1e-6 && std::abs(b.Z() - 15) < 1e-6 && std::abs(a.Y()) < 1e-6 && std::abs(b.Y()) < 1e-6) edge = i;
+    }
+    REQUIRE(edge >= 0);
+    // 3 mm fits over most of the edge, so a plain fillet at 3 takes (1 - pi/4) 9 per mm there; the taper must remove less
+    // than that over the whole edge and more than a 1.8 mm fillet would
+    const int f = doc.add_fillet(3.0, edge, "Fillet");
+    doc.features[f].dressup_fit_taper = true;
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.error.empty());
+    const double removed = v0 - SketchEngine::tessellate(doc.bodies.front().shape).volume();
+    REQUIRE(removed < (1.0 - M_PI / 4.0) * 9.0 * 40.0);
+    REQUIRE(removed > (1.0 - M_PI / 4.0) * 1.8 * 1.8 * 40.0);
 }
