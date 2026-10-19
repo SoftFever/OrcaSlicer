@@ -1245,6 +1245,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     if(gcf_is_klipper)
         toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
 
+    toggle_line("exclude_object_tolerance", gcf_is_klipper && config->opt_bool("exclude_object"));
+
     bool have_make_overhang_printable = config->opt_bool("make_overhang_printable");
     toggle_line("make_overhang_printable_angle", have_make_overhang_printable);
     toggle_line("make_overhang_printable_hole_size", have_make_overhang_printable);
