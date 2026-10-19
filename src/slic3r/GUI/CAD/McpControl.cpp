@@ -3987,6 +3987,19 @@ void server_thread(std::string sock_path)
                 BOOST_LOG_TRIVIAL(error) << "MCP: " << sock_path << " exists and is not a socket; refusing to replace it";
                 return;
             }
+            // A socket that still answers belongs to a running process: never take its path over.
+            const int probe = ::socket(AF_UNIX, SOCK_STREAM, 0);
+            if (probe >= 0) {
+                sockaddr_un pa{};
+                pa.sun_family = AF_UNIX;
+                std::strncpy(pa.sun_path, sock_path.c_str(), sizeof(pa.sun_path) - 1);
+                const bool live = ::connect(probe, reinterpret_cast<sockaddr*>(&pa), sizeof(pa)) == 0;
+                ::close(probe);
+                if (live) {
+                    BOOST_LOG_TRIVIAL(warning) << "MCP: " << sock_path << " is in use by another process; not listening";
+                    return;
+                }
+            }
             ::unlink(sock_path.c_str());
         }
     }
@@ -4036,9 +4049,10 @@ void server_thread(std::string sock_path)
 
 void start_mcp_control_if_enabled()
 {
+    // On by default (the Design tab must be enabled to get here); ORCA_CAD_MCP=0|off opts out.
     const char* env = std::getenv("ORCA_CAD_MCP");
-    if (!env || !*env) return;
-    std::string path = (std::strcmp(env, "1") == 0) ? "/tmp/orca-cad-mcp.sock" : env;
+    if (env && (std::strcmp(env, "0") == 0 || std::strcmp(env, "off") == 0)) return;
+    const std::string path = (!env || !*env || std::strcmp(env, "1") == 0) ? "/tmp/orca-cad-mcp.sock" : env;
     static bool started = false;
     if (started) return;
     started = true;
