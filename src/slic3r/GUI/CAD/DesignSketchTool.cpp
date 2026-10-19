@@ -2653,6 +2653,36 @@ Vec2d DesignSketchTool::snap_dir(const Vec2d& anchor, const Vec2d& raw, bool& lo
     return anchor + r * Vec2d(std::cos(rad), std::sin(rad));
 }
 
+void DesignSketchTool::snap_dragged_point(GLCanvas3D& canvas, const wxMouseEvent& evt, const Vec2d& at)
+{
+    if (m_drag_ei < 0 || m_drag_ei >= int(m_entities.size())) return;
+    if (evt.ShiftDown() || evt.ControlDown() || evt.AltDown()) return;
+    // look for a target among the OTHER entities: the dragged one is parked far away so its own ends do not answer
+    std::vector<SketchEntity> others = m_entities;
+    SketchEntity away; away.type = SketchEntity::Type::Point; away.p0 = away.center = Vec2d(1e9, 1e9);
+    others[size_t(m_drag_ei)] = away;
+    const InferenceSnap s = infer_point_snap(others, at, screen_tol(canvas, evt, at));
+    if (!s.snapped()) return;
+    SketchEntityConstraintDef d;
+    d.ea = m_drag_ei; d.ra = m_drag_role;
+    switch (s.kind) {
+    case InferenceSnap::Kind::Endpoint: case InferenceSnap::Kind::Center:
+        d.type = SketchConstraintType::Coincident; d.eb = s.entity; d.rb = s.role; break;
+    case InferenceSnap::Kind::Origin:
+        d.type = SketchConstraintType::Coincident; d.eb = kSketchRefOrigin; d.rb = SketchPointRole::P0; break;
+    case InferenceSnap::Kind::Midpoint:
+        d.type = SketchConstraintType::Midpoint; d.eb = s.entity; break;
+    case InferenceSnap::Kind::OnEdge:
+        d.type = SketchConstraintType::PointOnObject; d.eb = s.entity; break;
+    default: return;
+    }
+    if (s.kind != InferenceSnap::Kind::OnEdge) set_point(m_drag_ei, m_drag_role, s.point);   // land exactly on it
+    if (!try_add_constraints({ d })) {   // refused (redundant or over-constrained): the point stays where it was dropped
+        set_point(m_drag_ei, m_drag_role, at);
+        resolve_live_drag(m_drag_ei, m_drag_role);
+    }
+}
+
 double DesignSketchTool::screen_tol(GLCanvas3D& canvas, const wxMouseEvent& evt,
                                     const Vec2d& at, double px) const
 {
@@ -12040,6 +12070,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
                 else {
                     set_point(m_drag_ei, m_drag_role, p);
                     resolve_live_drag(m_drag_ei, m_drag_role);
+                    snap_dragged_point(canvas, evt, p);
                 }
                 m_dragging_point = false;
                 drag_end_commit();

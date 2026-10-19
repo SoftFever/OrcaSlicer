@@ -639,6 +639,9 @@ public:
     // inconsistent. Returns true when the batch was kept. Public so the panel's live-constraint
     // path can commit a plan through the SAME append→solve→keep-or-rollback the gestures use.
     bool try_add_constraints(const std::vector<SketchEntityConstraintDef>& cands);
+    // The end of a point drag: a point let go on another point, a midpoint, a curve or the origin is placed exactly there and gets the
+    // relation (coincident, midpoint, on object) so it stays through later edits. Shift / Ctrl / Alt bypass it, as for drawing.
+    void snap_dragged_point(GLCanvas3D& canvas, const wxMouseEvent& evt, const Vec2d& at);
     // Click-to-delete on a constraint badge: drop the constraint whose glyph sits under `p`
     // and re-solve. Returns true if one was removed (the caller then repaints).
     bool remove_constraint_near(const Vec2d& p);
