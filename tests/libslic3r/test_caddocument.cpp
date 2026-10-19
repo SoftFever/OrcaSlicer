@@ -13,6 +13,7 @@
 #include <cereal/details/helpers.hpp>
 #include <cereal/cereal.hpp>
 #include <map>
+#include <random>
 #include <vector>
 #include <math.h>
 #include <utility>
@@ -10622,4 +10623,45 @@ TEST_CASE("a feature added while the history is rolled back goes in at the bar",
     doc.rollback_index = -1;
     REQUIRE(doc.recompute());
     REQUIRE(doc.bodies.size() == 2);
+}
+
+// The boolean identity V(A u B) + V(A n B) = V(A) + V(B), on random pairs of boxes and cylinders that overlap in every way
+// (apart, touching, crossing, nested): a kernel that loses a sliver or doubles one fails it long before a picture shows.
+TEST_CASE("boolean identity: V(A u B) + V(A n B) = V(A) + V(B) on random overlaps", "[CadDocument][property]")
+{
+    std::mt19937 rng(20261019);
+    auto uni = [&](double lo, double hi) { return std::uniform_real_distribution<double>(lo, hi)(rng); };
+    int checked = 0;
+    for (int trial = 0; trial < 40; ++trial) {
+        auto make = [&](CadDocument& doc, int k) {
+            SketchPlane pl = SketchPlane::XY();
+            pl.origin = Vec3d(uni(-15, 15), uni(-15, 15), uni(-5, 5));
+            const bool round = uni(0, 1) < 0.4;
+            const int sk = round ? doc.add_sketch(SketchShape::Circle, pl, 0, 0, uni(6, 18), "S" + std::to_string(k))
+                                 : doc.add_sketch(SketchShape::Rectangle, pl, uni(8, 30), uni(8, 30), 0, "S" + std::to_string(k));
+            doc.add_extrude(sk, uni(5, 25), false, BooleanMode::New, "B" + std::to_string(k));
+        };
+        CadDocument base;
+        make(base, 0); make(base, 1);
+        REQUIRE(base.recompute());
+        REQUIRE(base.bodies.size() == 2);
+        const double va = SketchEngine::tessellate(base.bodies[0].shape).volume(), vb = SketchEngine::tessellate(base.bodies[1].shape).volume();
+        double v_union = 0, v_common = 0;
+        {
+            CadDocument d = base;
+            d.add_boolean(BooleanMode::Add, 0, 1, false, 0.0, -1, -1, "U");
+            if (!d.recompute() || d.bodies.empty()) continue;   // apart: a join that does not touch is refused, which is correct
+            for (const CadBody& b : d.bodies) v_union += SketchEngine::tessellate(b.shape).volume();
+        }
+        {
+            CadDocument d = base;
+            d.add_boolean(BooleanMode::Intersect, 0, 1, false, 0.0, -1, -1, "I");
+            if (d.recompute() && !d.bodies.empty())
+                for (const CadBody& b : d.bodies) v_common += SketchEngine::tessellate(b.shape).volume();
+        }
+        // tessellated volumes: the curved ones carry the mesh's own error, so the tolerance is a fraction of a percent
+        CHECK_THAT(v_union + v_common, Catch::Matchers::WithinRel(va + vb, 5e-3));
+        ++checked;
+    }
+    REQUIRE(checked >= 10);   // enough of the random pairs actually overlapped
 }
