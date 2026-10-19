@@ -4,7 +4,9 @@
 #include "libslic3r/Technologies.hpp"
 #include <optional>
 #include <string>
+#include <future>
 #include <map>
+#include <memory>
 #include <string_view>
 #include <tuple>
 #include <vector>
@@ -73,6 +75,10 @@ class ImGuiWrapper
 #endif // ENABLE_ENHANCED_IMGUI_SLIDER_FLOAT
     std::map<wchar_t, int> m_custom_glyph_rects_ids;
     std::string m_clipboard_text;
+    // The complete font atlas is built on a worker thread, see init_font().
+    struct FontAtlas;
+    std::future<std::unique_ptr<FontAtlas>> m_font_atlas_build;
+    bool m_font_atlas_complete{ false };
 
 public:
     struct LastSliderStatus {
@@ -408,14 +414,18 @@ public:
     static int TOOLBAR_WINDOW_FLAGS;
 
     bool display_initialized() const;
+    // A font atlas built in the background is waiting for the next frame.
+    bool has_font_atlas_ready() const;
 
 private:
     void init_font(bool compress);
+    static std::unique_ptr<FontAtlas> build_font_atlas(const ImWchar *glyph_ranges, bool complete, float font_size,
+                                                       bool font_cjk, bool large_display, int gl_max_tex_size, bool dxt5);
     void init_input();
     void init_style();
     void render_draw_data(ImDrawData *draw_data);
     void destroy_font();
-    std::vector<unsigned char> load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height, unsigned *outwidth, unsigned *outheight);
+    static std::vector<unsigned char> load_svg(const std::string& bitmap_name, unsigned target_width, unsigned target_height, unsigned *outwidth, unsigned *outheight);
 
     static const char* clipboard_get(void* user_data);
     static void clipboard_set(void* user_data, const char* text);
