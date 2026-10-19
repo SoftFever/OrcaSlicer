@@ -133,6 +133,9 @@
 #include <mutex>
 #include <regex>
 #include <thread>
+#ifdef __WXMSW__
+#include <wx/graphics.h>
+#endif
 #include <string_view>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -2881,6 +2884,8 @@ int GUI_App::OnExit()
 {
     stop_http_server();
     stop_sync_user_preset();
+    if (m_startup_cloud_plugin_fetch_thread.joinable())
+        m_startup_cloud_plugin_fetch_thread.join();
 
     if (m_device_manager) {
         delete m_device_manager;
@@ -2937,6 +2942,8 @@ void GUI_App::CleanUp()
     // OnExit() does not run when OnInit() fails, and m_agent is then still set. Stop the check before
     // wxApp::CleanUp() resets wxTheApp, which a result posted from the worker would still be using.
     stop_orca_health_check(m_agent);
+    if (m_startup_cloud_plugin_fetch_thread.joinable())
+        m_startup_cloud_plugin_fetch_thread.join();
     wxApp::CleanUp();
 }
 
@@ -3579,23 +3586,43 @@ bool GUI_App::on_init_inner()
     if (m_agent && m_agent->is_user_login()) {
         enable_user_preset_folder(true);
         plugin_mgr.set_cloud_user(m_agent->get_user_id());
-        // If there is a user logged in we do an immediate sync.
-        std::vector<std::string> not_found, unauthorized;
-        plugin_mgr.fetch_plugins_from_cloud(&not_found, &unauthorized);
-        if (plater()) {
-            for (const auto& uuid : not_found) {
-                plater()->get_notification_manager()->push_notification(
-                    NotificationType::CustomNotification,
-                    NotificationManager::NotificationLevel::RegularNotificationLevel,
-                    format(_L("Plugin %s is no longer available."), uuid));
+        // If there is a user logged in we sync the cloud plugin metadata. It takes several
+        // network round trips (a token refresh alone can take over a second) and only refreshes
+        // the orphaned / unauthorized / update flags of plugins that were already discovered and
+        // auto-loaded above, so run it on a worker thread instead of blocking startup. It then
+        // overlaps preset loading and main window creation.
+        m_startup_cloud_plugin_fetch_thread = Slic3r::create_thread([this] {
+            std::vector<std::string> not_found, unauthorized;
+            try {
+                PluginManager::instance().fetch_plugins_from_cloud(&not_found, &unauthorized);
+            } catch (const std::exception& ex) {
+                BOOST_LOG_TRIVIAL(error) << "Startup cloud plugin fetch failed: " << ex.what();
+                return;
             }
-            for (const auto& uuid : unauthorized) {
-                plater()->get_notification_manager()->push_notification(
-                    NotificationType::CustomNotification,
-                    NotificationManager::NotificationLevel::RegularNotificationLevel,
-                    format(_L("Plugin %s access is unauthorized."), uuid));
-            }
-        }
+            // Report on the UI thread once the main window exists. (When this ran inline the
+            // plater did not exist yet, so these notifications were never shown.)
+            CallAfter([this, not_found = std::move(not_found), unauthorized = std::move(unauthorized)] {
+                if (is_closing())
+                    return;
+                if (m_plugins_dlg)
+                    m_plugins_dlg->update_plugin_dialog_ui();
+                Plater* plater = this->plater();
+                if (plater == nullptr)
+                    return;
+                for (const auto& uuid : not_found) {
+                    plater->get_notification_manager()->push_notification(
+                        NotificationType::CustomNotification,
+                        NotificationManager::NotificationLevel::RegularNotificationLevel,
+                        format(_L("Plugin %s is no longer available."), uuid));
+                }
+                for (const auto& uuid : unauthorized) {
+                    plater->get_notification_manager()->push_notification(
+                        NotificationType::CustomNotification,
+                        NotificationManager::NotificationLevel::RegularNotificationLevel,
+                        format(_L("Plugin %s access is unauthorized."), uuid));
+                }
+            });
+        });
     } else {
         enable_user_preset_folder(false);
         plugin_mgr.set_cloud_user("");
@@ -3612,6 +3639,24 @@ bool GUI_App::on_init_inner()
             // If there are substitutions in system profiles, then a "reconfigure" event shall be triggered, which will force
             // installation of a compatible system preset, thus nullifying the system preset substitutions.
             if (scrn) { scrn->SetText(_L("Loading printer & filament profiles") + dots, 30); wxYield(); }
+#ifdef __WXMSW__
+            // Every wxGCDC starts with the default GUI font (wxNORMAL_FONT). The first GDI+ font created from
+            // a system family makes GDI+ build its collection of all installed fonts, which took ~200-250 ms
+            // of UI thread time when the first themed control (a SwitchButton in ParamsPanel) was built.
+            // load_presets() below takes about as long and touches no GUI, so create that font on a worker
+            // thread meanwhile. The face name is copied here, so the worker shares no wx object with the UI
+            // thread. wx's GDI+ setup is not thread safe; this is fine because nothing on the UI thread
+            // draws until the guard joins the worker, which happens before the catch block's error dialog
+            // and before the main window is built.
+            std::thread gdiplus_warmup([face = wxNORMAL_FONT->GetFaceName()] {
+                if (wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetGDIPlusRenderer())
+                    renderer->CreateFont(12., face, wxFONTFLAG_DEFAULT, wxColour(0, 0, 0));
+            });
+            struct JoinOnExit {
+                std::thread& thread;
+                ~JoinOnExit() { if (thread.joinable()) thread.join(); }
+            } join_gdiplus_warmup{ gdiplus_warmup };
+#endif
             init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
         }
         catch (const std::exception& ex) {

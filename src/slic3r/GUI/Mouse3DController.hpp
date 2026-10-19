@@ -21,6 +21,7 @@
 #include <vector>
 #include <chrono>
 #include <condition_variable>
+#include <memory>
 
 
 namespace Slic3r {
@@ -162,7 +163,12 @@ class Mouse3DController
 
 #if ! __APPLE__
     // Worker thread for enumerating devices, connecting, reading data from the device and closing the device.
+    // On Windows it only runs the one-off device detection at startup (see init()).
     std::thread 		m_thread;
+#ifdef _WIN32
+    // Expires with this object, so a detection result queued to the UI thread is dropped afterwards.
+    std::shared_ptr<int> m_alive { std::make_shared<int>(0) };
+#endif /* _WIN32 */
     hid_device* 		m_device { nullptr };
     // Using m_stop_condition_mutex to synchronize m_stop.
     bool				m_stop { false };

@@ -351,6 +351,8 @@ private:
     FilamentColorCodeQuery* m_filament_color_code_query{ nullptr };
 
     boost::thread    m_sync_update_thread;
+    // Startup sync of cloud plugin metadata, run off the UI thread; joined in OnExit()/CleanUp().
+    boost::thread    m_startup_cloud_plugin_fetch_thread;
     std::shared_ptr<int> m_user_sync_token;
     std::atomic<bool>    m_restart_sync_pending {false};
     std::atomic<bool>    m_sync_user_preset_dlg_active {false}; // a manual "Sync Presets" progress dialog is on screen (see restart_sync_user_preset)

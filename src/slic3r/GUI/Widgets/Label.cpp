@@ -105,16 +105,24 @@ void Label::initSysFont()
     // (e.g. installed system-wide in a Flatpak).  Calling AddPrivateFont
     // triggers a Pango crash in ensure_faces() on Pango >= 1.48 (GNOME 49+),
     // because FcConfigAppFontAddFile invalidates Pango's cached font map.
+    //
+    // NanumGothic is only used as the UI font when the system language is Korean (see sysFont()),
+    // so don't register it otherwise. Registering is not free: on Windows, the first wxGraphicsContext
+    // loads GDI+, which then parses every private font file in full (~8 MB for the two NanumGothic
+    // files). ImGui loads its Korean font from the .ttf file directly and doesn't need this.
+    const bool korean = wxLocale::GetSystemLanguage() == wxLANGUAGE_KOREAN;
     bool load_fonts = true;
 #ifdef __linux__
-    load_fonts = !fc_font_available("HarmonyOS Sans SC") || !fc_font_available("NanumGothic");
+    load_fonts = !fc_font_available("HarmonyOS Sans SC") || (korean && !fc_font_available("NanumGothic"));
 #endif
     if (load_fonts) {
         const std::string &resource_path = Slic3r::resources_dir();
         wxFont::AddPrivateFont(wxString::FromUTF8(resource_path + "/fonts/HarmonyOS_Sans_SC_Bold.ttf"));
         wxFont::AddPrivateFont(wxString::FromUTF8(resource_path + "/fonts/HarmonyOS_Sans_SC_Regular.ttf"));
-        wxFont::AddPrivateFont(wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Regular.ttf"));
-        wxFont::AddPrivateFont(wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Bold.ttf"));
+        if (korean) {
+            wxFont::AddPrivateFont(wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Regular.ttf"));
+            wxFont::AddPrivateFont(wxString::FromUTF8(resource_path + "/fonts/NanumGothic-Bold.ttf"));
+        }
     }
 #endif
     Head_48 = Label::sysFont(48, true);
