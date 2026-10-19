@@ -1355,10 +1355,13 @@ set (CPACK_NSIS_EXECUTABLES_DIRECTORY ".")
 set(CPACK_PACKAGE_EXECUTABLES "orca-slicer;OrcaSlicer")
 set(CPACK_CREATE_DESKTOP_LINKS "orca-slicer")
 set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE.txt) # must also include in install command
-# Version information of the installer, the same as the binaries it installs carry
-# (src/dev-utils/platform/msw/OrcaSlicer-version.rc.in): SignPath only signs it when
-# ProductName and ProductVersion match signpath/windows-installer-v1.xml. The NSIS strings
-# are single-quoted because CPack writes this value into CPackConfig.cmake unescaped.
+# Version information of the installer and of the uninstaller it writes, the same as the
+# binaries it installs carry (src/dev-utils/platform/msw/OrcaSlicer-version.rc.in):
+# SignPath only signs them when ProductName and ProductVersion match the artifact
+# configurations in signpath/. The include lets the release workflow embed a signed
+# uninstaller. The NSIS strings are single-quoted and the paths use forward slashes
+# because CPack writes this value into CPackConfig.cmake unescaped; !include only accepts
+# a forward-slash path through !addincludedir.
 string (CONCAT CPACK_NSIS_DEFINES
     "VIProductVersion '${ORCA_VERSION_MAJOR}.${ORCA_VERSION_MINOR}.${ORCA_VERSION_PATCH}.0'\n"
     "VIFileVersion '${ORCA_VERSION_MAJOR}.${ORCA_VERSION_MINOR}.${ORCA_VERSION_PATCH}.0'\n"
@@ -1366,7 +1369,9 @@ string (CONCAT CPACK_NSIS_DEFINES
     "VIAddVersionKey /LANG=1033 'FileDescription' '${SLIC3R_APP_NAME} Installer'\n"
     "VIAddVersionKey /LANG=1033 'FileVersion' '${SoftFever_VERSION}'\n"
     "VIAddVersionKey /LANG=1033 'ProductName' '${SLIC3R_APP_NAME}'\n"
-    "VIAddVersionKey /LANG=1033 'ProductVersion' '${SoftFever_VERSION}'\n")
+    "VIAddVersionKey /LANG=1033 'ProductVersion' '${SoftFever_VERSION}'\n"
+    "!addincludedir '${CMAKE_SOURCE_DIR}/src/dev-utils/platform/msw'\n"
+    "!include 'uninstaller-signing.nsh'\n")
 
 set(CPACK_WIX_UPGRADE_GUID "058245e8-20e0-4a95-9ab7-1acfe17ad511")
 set(CPACK_GENERATOR NSIS)

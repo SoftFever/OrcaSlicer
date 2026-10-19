@@ -1,7 +1,8 @@
 # Copies the files SignPath signed back over the originals in the portable bundle they
 # were staged from with stage-for-signpath.ps1 -Bundle: the root of the signed artifact
 # holds OrcaSlicer's own binaries, third-party/ the other files under their paths in the
-# bundle.
+# bundle. Root files named in -Exclude came from outside the bundle, such as the exported
+# uninstaller, and stay in -SignedDirectory.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
@@ -10,14 +11,17 @@ param(
 
     [Parameter(Mandatory = $true)]
     [ValidateScript({ Test-Path -LiteralPath $_ -PathType Container })]
-    [string]$Bundle
+    [string]$Bundle,
+
+    [string[]]$Exclude = @()
 )
 
 $ErrorActionPreference = "Stop"
 
 $signedRoot = (Resolve-Path -LiteralPath $SignedDirectory).Path.TrimEnd('\', '/')
 $thirdPartyPrefix = "third-party" + [IO.Path]::DirectorySeparatorChar
-$files = Get-ChildItem -LiteralPath $signedRoot -Recurse -File
+$files = Get-ChildItem -LiteralPath $signedRoot -Recurse -File |
+    Where-Object { $_.DirectoryName -ne $signedRoot -or $_.Name -notin $Exclude }
 if (-not $files) {
     throw "No signed files found in '$signedRoot'."
 }
@@ -37,4 +41,4 @@ foreach ($file in $files) {
     Copy-Item -LiteralPath $file.FullName -Destination $target -Force
 }
 
-Write-Host "Restored $($files.Count) signed files into '$Bundle'."
+Write-Host "Restored $(@($files).Count) signed files into '$Bundle'."

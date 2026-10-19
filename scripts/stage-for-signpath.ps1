@@ -7,14 +7,16 @@
 # -Path stages the given files at the root of -Destination.
 #
 # -Bundle stages a portable OrcaSlicer bundle for signpath/windows-binaries-v1.xml:
-# OrcaSlicer's own binaries (-OwnBinaries) at the root, where their version information
-# is checked, and every other executable, DLL and Python extension module that carries no
+# OrcaSlicer's own binaries (-OwnBinaries, plus any -Path files from outside the bundle,
+# such as the exported uninstaller) at the root, where their version information is
+# checked, and every other executable, DLL and Python extension module that carries no
 # signature under third-party/, at its path in the bundle. Files signed by their vendor,
 # such as the Microsoft runtime, keep that signature. restore-from-signpath.ps1 copies the
 # signed files back.
 [CmdletBinding(DefaultParameterSetName = "Path")]
 param(
     [Parameter(Mandatory = $true, ParameterSetName = "Path")]
+    [Parameter(ParameterSetName = "Bundle")]
     [string[]]$Path,
 
     [Parameter(Mandatory = $true, ParameterSetName = "Bundle")]
@@ -50,21 +52,20 @@ function Test-VersionInfo {
 
 New-Item -ItemType Directory -Force -Path $Destination | Out-Null
 
-if ($PSCmdlet.ParameterSetName -eq "Path") {
-    foreach ($file in $Path) {
-        Test-VersionInfo $file
-        Copy-Item -LiteralPath $file -Destination $Destination -Force
-        Write-Host "Staged $(Split-Path -Leaf $file) ($ProductName $ProductVersion)"
-    }
-    exit 0
+$ownFiles = @($Path | Where-Object { $_ })
+if ($PSCmdlet.ParameterSetName -eq "Bundle") {
+    $bundleRoot = (Resolve-Path -LiteralPath $Bundle).Path.TrimEnd('\', '/')
+    $ownFiles = @($OwnBinaries | ForEach-Object { Join-Path $bundleRoot $_ }) + $ownFiles
 }
 
-$bundleRoot = (Resolve-Path -LiteralPath $Bundle).Path.TrimEnd('\', '/')
-foreach ($name in $OwnBinaries) {
-    $file = Join-Path $bundleRoot $name
+foreach ($file in $ownFiles) {
     Test-VersionInfo $file
     Copy-Item -LiteralPath $file -Destination $Destination -Force
-    Write-Host "Staged $name ($ProductName $ProductVersion)"
+    Write-Host "Staged $(Split-Path -Leaf $file) ($ProductName $ProductVersion)"
+}
+
+if ($PSCmdlet.ParameterSetName -eq "Path") {
+    exit 0
 }
 
 $thirdParty = Get-ChildItem -LiteralPath $bundleRoot -Recurse -File |

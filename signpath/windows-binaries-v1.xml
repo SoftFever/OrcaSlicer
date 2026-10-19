@@ -7,6 +7,7 @@
     <pe-file-set product-name="OrcaSlicer" product-version="${version}">
       <include path="orca-slicer.exe" />
       <include path="OrcaSlicer.dll" />
+      <include path="Uninstall.exe" />
       <for-each>
         <authenticode-sign />
       </for-each>

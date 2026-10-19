@@ -508,16 +508,30 @@ jobs:
           retention-days: 5
           if-no-files-found: error
 
-      # Signs OrcaSlicer's own binaries and every bundled executable, DLL and Python
-      # extension module that ships without a signature; files their vendor signed, such
-      # as the Microsoft runtime, keep that signature. See signpath/README.md.
+      # makensis generates the uninstaller while it compiles the installer, so a first
+      # installer build exports it to be signed with the binaries, and "Create installer
+      # Win" embeds the signed copy. See src/dev-utils/platform/msw/uninstaller-signing.nsh.
+      - name: Export the Windows uninstaller for SignPath
+        if: env.SIGN_WINDOWS == 'true'
+        working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR }}
+        shell: pwsh
+        run: |
+          $bundle = "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer".Replace('\', '/')
+          # Forward slashes: cpack drops the backslashes from makensis arguments.
+          $uninstaller = "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/Uninstall.exe".Replace('\', '/')
+          New-Item -ItemType Directory -Force -Path (Split-Path -Parent $uninstaller) | Out-Null
+          cpack -G NSIS -D CPACK_INSTALL_CMAKE_PROJECTS= -D "CPACK_INSTALLED_DIRECTORIES=$bundle;." -D "CPACK_NSIS_EXECUTABLE_PRE_ARGUMENTS=/DORCA_EXPORT_UNINSTALLER=$uninstaller"
+
+      # Signs OrcaSlicer's own binaries, the uninstaller and every bundled executable, DLL
+      # and Python extension module that ships without a signature; files their vendor
+      # signed, such as the Microsoft runtime, keep that signature. See signpath/README.md.
       - name: Stage Windows binaries for SignPath
         id: stage-windows-binaries
         if: env.SIGN_WINDOWS == 'true'
         shell: pwsh
         run: |
           $version = "${{ env.ver }}" -replace '^V', ''
-          ./scripts/stage-for-signpath.ps1 -Bundle "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer" -Destination "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/unsigned-binaries" -ProductVersion $version
+          ./scripts/stage-for-signpath.ps1 -Bundle "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer" -Path "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/Uninstall.exe" -Destination "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/unsigned-binaries" -ProductVersion $version
           "version=$version" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
 
       - name: Upload unsigned Windows binaries for SignPath
@@ -555,7 +569,7 @@ jobs:
       - name: Replace Windows binaries with signed output
         if: env.SIGN_WINDOWS == 'true'
         shell: pwsh
-        run: ./scripts/restore-from-signpath.ps1 -SignedDirectory "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/signed-binaries" -Bundle "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer"
+        run: ./scripts/restore-from-signpath.ps1 -SignedDirectory "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/signed-binaries" -Bundle "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer" -Exclude Uninstall.exe
 
       # NSIS is x86-only; it runs (and the installer it emits runs) under ARM64's
       # x86 emulation, packaging the native arm64 payload from build-arm64.
@@ -568,16 +582,30 @@ jobs:
         working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR }}
         run: |
           $bundle = "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer".Replace('\', '/')
-          cpack -G NSIS -D CPACK_INSTALL_CMAKE_PROJECTS= -D "CPACK_INSTALLED_DIRECTORIES=$bundle;."
+          $signedUninstaller = @()
+          if ($env:SIGN_WINDOWS -eq 'true') {
+              $uninstaller = "${{ github.workspace }}/${{ env.BUILD_DIR }}/signpath/signed-binaries/Uninstall.exe".Replace('\', '/')
+              $signedUninstaller = "-D", "CPACK_NSIS_EXECUTABLE_PRE_ARGUMENTS=/DORCA_SIGNED_UNINSTALLER=$uninstaller"
+          }
+          cpack -G NSIS -D CPACK_INSTALL_CMAKE_PROJECTS= -D "CPACK_INSTALLED_DIRECTORIES=$bundle;." @signedUninstaller
 
-      # cpack stages what the installer packs under _CPack_Packages/<system>/NSIS/<package>;
-      # every executable and DLL there must carry a valid signature, ours or its vendor's.
-      - name: Verify every binary the installer packs is signed
+      # Installs into a scratch directory and checks that every executable and DLL an
+      # installation puts on disk, the uninstaller included, carries a valid signature,
+      # ours or its vendor's. The hosted runner is discarded afterwards, so the
+      # installation is left in place.
+      - name: Verify every binary the installer installs is signed
         if: env.SIGN_WINDOWS == 'true'
         shell: pwsh
         run: |
-          $payload = Get-Item "${{ github.workspace }}/${{ env.BUILD_DIR }}/_CPack_Packages/*/NSIS/OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}"
-          ./scripts/verify-authenticode.ps1 -ArtifactDirectory $payload.FullName
+          $installDir = Join-Path "${{ runner.temp }}" "orca-install-check"
+          $installer = "${{ github.workspace }}/${{ env.BUILD_DIR }}/OrcaSlicer_Windows_Installer_${{ env.ver }}${{ env.ARCH_SUFFIX }}.exe"
+          # NSIS requires /D= to come last.
+          $setup = Start-Process -FilePath $installer -ArgumentList "/S", "/D=$installDir" -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw "The installer exited with code $($setup.ExitCode)." }
+          if (-not (Test-Path -LiteralPath (Join-Path $installDir "Uninstall.exe") -PathType Leaf)) {
+              throw "The installation in '$installDir' has no Uninstall.exe."
+          }
+          ./scripts/verify-authenticode.ps1 -ArtifactDirectory $installDir
 
       - name: Stage Windows installer for SignPath
         if: env.SIGN_WINDOWS == 'true'
