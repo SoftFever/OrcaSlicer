@@ -1457,6 +1457,19 @@ TEST_CASE("min_object_distance yields no floor when an FFF config lacks the opti
     }
 }
 
+TEST_CASE("handle_legacy migrates the adaptive TPMS keys", "[Config]") {
+    ConfigSubstitutionContext ctxt(ForwardCompatibilitySubstitutionRule::Enable);
+    DynamicPrintConfig config;
+    config.set_deserialize("tpms_adaptive", "stepped_shells", ctxt);
+    config.set_deserialize("tpms_interior_density", "12%", ctxt);
+    config.set_deserialize("tpms_adaptive_gradient", "quadratic", ctxt);
+
+    CHECK(config.opt_enum<AdaptiveInfillMode>("adaptive_infill_mode") == AdaptiveInfillMode::SteppedShells);
+    CHECK(config.option<ConfigOptionPercent>("adaptive_infill_interior_density")->value == Catch::Approx(12.));
+    CHECK(config.opt_enum<AdaptiveInfillGradient>("adaptive_infill_gradient") == AdaptiveInfillGradient::Quadratic);
+    CHECK(ctxt.substitutions.empty());
+}
+
 TEST_CASE("handle_legacy migrates every IDEX/IQEX key testers already have", "[Config]") {
     // Three eras of saved profiles: the feature shipped as iXex (is_ixex + ixex_*), the clearance
     // pair was renamed to say what it measures, then the whole prefix became imex_. Driven from the
