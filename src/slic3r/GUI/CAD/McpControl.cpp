@@ -83,6 +83,11 @@
 #include <wx/time.h>
 #include <wx/string.h>
 #include <wx/defs.h>
+#include <wx/unichar.h>
+#include <cctype>
+#include <iterator>
+#include <ios>
+#include "slic3r/GUI/CAD/DesignImGuiUi.hpp"
 
 using json = nlohmann::json;
 
