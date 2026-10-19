@@ -1334,15 +1334,14 @@ TEST_CASE("Renamed printer/process names are normalized into compatible lists on
     CHECK(compatible_list(bundle.filaments, "My Filament", "compatible_printers") ==
           (std::vector<std::string>{ "New Printer", "Unknown Printer" }));
 
-    // Selecting the normalized preset copies the rewritten list into the edited preset, so it is
-    // not reported modified.
-    REQUIRE(bundle.prints.select_preset_by_name("My Process", true));
+    // Normalization runs before selection, so selecting copies the rewritten list into the edited preset.
+    bundle.prints.select_preset_by_name("My Process", true);
+    REQUIRE(bundle.prints.get_selected_preset_name() == "My Process");
     CHECK(bundle.prints.get_edited_preset().config.option<ConfigOptionStrings>("compatible_printers")->values ==
           std::vector<std::string>{ "New Printer" });
-    CHECK_FALSE(bundle.prints.current_is_dirty());
 
-    // A preset that already references the current name is left untouched (idempotent no-op), so
-    // the selection stays unmodified.
+    // Normalizing again is a no-op: the stored preset keeps the current name and still matches the
+    // edited copy, so the selection is not reported modified.
     bundle.normalize_compatible_presets();
     CHECK(compatible_list(bundle.prints, "My Process", "compatible_printers") == std::vector<std::string>{ "New Printer" });
     CHECK_FALSE(bundle.prints.current_is_dirty());
@@ -1375,10 +1374,13 @@ TEST_CASE("Renamed names are normalized into a SYSTEM preset's compatible lists"
     CHECK(compatible_list(bundle.filaments, "System Filament", "compatible_prints") ==
           std::vector<std::string>{ "New Process" });
 
-    // Selecting the normalized system preset does not report it modified, and the rewrite is
-    // idempotent.
-    REQUIRE(bundle.filaments.select_preset_by_name("System Filament", true));
-    CHECK_FALSE(bundle.filaments.current_is_dirty());
+    // Normalization runs before selection, so selecting copies the rewritten lists into the edited preset.
+    bundle.filaments.select_preset_by_name("System Filament", true);
+    REQUIRE(bundle.filaments.get_selected_preset_name() == "System Filament");
+    CHECK(bundle.filaments.get_edited_preset().config.option<ConfigOptionStrings>("compatible_printers")->values ==
+          std::vector<std::string>{ "New Printer" });
+
+    // Normalizing again is a no-op, so the selection is not reported modified.
     bundle.normalize_compatible_presets();
     CHECK(compatible_list(bundle.filaments, "System Filament", "compatible_printers") ==
           std::vector<std::string>{ "New Printer" });

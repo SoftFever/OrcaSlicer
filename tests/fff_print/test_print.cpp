@@ -145,12 +145,21 @@ SCENARIO("Changing the number of solid shell layers does not make all surfaces i
 		        }
 		    return has_fill;
 		};
+        // True when the layer has a sparse fill surface, so a layer with no fill at all does not count.
+		auto has_sparse_infill = [&print](size_t obj_id, size_t layer_id) {
+		    const Layer &layer = *(print.objects().at(obj_id)->get_layer(static_cast<int>(layer_id)));
+		    for (const LayerRegion *region : layer.regions())
+		        for (const Surface &surface : region->fill_surfaces.surfaces)
+		            if (! surface.is_solid())
+		                return true;
+		    return false;
+		};
         print.process();
         // Precondition: 2 solid top layers (79, 78) and one solid bottom layer (0).
         REQUIRE(is_solid_infill(0,  0));
         REQUIRE(is_solid_infill(0, 79));
         REQUIRE(is_solid_infill(0, 78));
-        REQUIRE_FALSE(is_solid_infill(0, 77));
+        REQUIRE(has_sparse_infill(0, 77));
         WHEN("Model is re-sliced with top_shell_layers == 3") {
 			config.set("top_shell_layers", 3);
 			print.apply(model, config);
@@ -162,10 +171,10 @@ SCENARIO("Changing the number of solid shell layers does not make all surfaces i
                 CHECK(is_solid_infill(0, 79));
                 CHECK(is_solid_infill(0, 78));
                 CHECK(is_solid_infill(0, 77));
-                CHECK_FALSE(is_solid_infill(0, 76));
+                CHECK(has_sparse_infill(0, 76));
             }
             AND_THEN("Middle layers keep sparse infill") {
-                CHECK_FALSE(is_solid_infill(0, 40));
+                CHECK(has_sparse_infill(0, 40));
             }
         }
     }

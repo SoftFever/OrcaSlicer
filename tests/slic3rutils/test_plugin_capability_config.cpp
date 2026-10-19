@@ -8,7 +8,7 @@
 #include <slic3r/plugin/PythonPluginInterface.hpp>
 
 #include <catch2/catch_test_macros.hpp>
-#include "catch2/catch_message.hpp"
+#include <catch2/catch_message.hpp>
 #include "plugin_test_utils.hpp"
 #include <pybind11/pytypes.h>
 #include <pybind11/eval.h>
@@ -158,9 +158,9 @@ class RestorePackage(orca.base):
         orca.register_capability(Raising)
 )PY";
 
-// Writes the restore fixture into {data_dir}/orca_plugins and loads it. Call without holding the GIL:
-// the load runs on a worker thread.
-bool load_restore_plugin(const ScopedDataDir& data_dir_guard)
+// Writes the restore fixture into {data_dir}/orca_plugins and loads it, returning the load error
+// (empty on success). Call without holding the GIL: the load runs on a worker thread.
+std::string load_restore_plugin(const ScopedDataDir& data_dir_guard)
 {
     const boost::filesystem::path plugin_dir = data_dir_guard.plugins_dir() / RESTORE_PLUGIN_KEY;
     boost::filesystem::create_directories(plugin_dir);
@@ -173,9 +173,9 @@ bool load_restore_plugin(const ScopedDataDir& data_dir_guard)
     manager.discover_plugins(/*async=*/false, /*clear=*/true);
     manager.load_plugin(RESTORE_PLUGIN_KEY, /*skip_deps=*/true);
     std::string error;
-    const bool  loaded = manager.wait_for_plugin_load(RESTORE_PLUGIN_KEY, std::chrono::seconds(120), error);
-    INFO("load error: " << error);
-    return loaded && error.empty();
+    if (!manager.wait_for_plugin_load(RESTORE_PLUGIN_KEY, std::chrono::seconds(120), error) && error.empty())
+        error = "the plugin did not load";
+    return error;
 }
 
 } // namespace
@@ -433,7 +433,9 @@ TEST_CASE("Restoring defaults overwrites only the target capability", "[PluginCo
 
     ScopedDataDir data_dir_guard("plugin-config-py-restore");
     host_config().load();
-    REQUIRE(load_restore_plugin(data_dir_guard));
+    const std::string load_error = load_restore_plugin(data_dir_guard);
+    INFO("load error: " << load_error);
+    REQUIRE(load_error.empty());
 
     const PluginCapabilityId target    = capability_id(PluginCapabilityType::Script, "Target", RESTORE_PLUGIN_KEY);
     const PluginCapabilityId bystander = capability_id(PluginCapabilityType::Script, "Bystander", RESTORE_PLUGIN_KEY);
@@ -459,7 +461,9 @@ TEST_CASE("A raising get_default_config leaves the stored config untouched", "[P
 
     ScopedDataDir data_dir_guard("plugin-config-py-restore-raise");
     host_config().load();
-    REQUIRE(load_restore_plugin(data_dir_guard));
+    const std::string load_error = load_restore_plugin(data_dir_guard);
+    INFO("load error: " << load_error);
+    REQUIRE(load_error.empty());
 
     const PluginCapabilityId raising = capability_id(PluginCapabilityType::Script, "Raising", RESTORE_PLUGIN_KEY);
     REQUIRE(host_config().store_capability_config(raising, json{{"keep", "me"}}));

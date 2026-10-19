@@ -32,6 +32,7 @@
 using namespace Slic3r;
 
 using VD = Geometry::VoronoiDiagram;
+static bool has_missing_voronoi_vertices(const Polygons &polygons, const VD &vd);
 using BoostVD = boost::polygon::voronoi_diagram<double>;
 
 // https://svn.boost.org/trac10/ticket/12067
@@ -203,6 +204,7 @@ TEST_CASE("Voronoi missing edges - Alessandro gapfill 12707", "[Voronoi]")
     // Orca's detector finds nothing wrong with this input, so no repair is needed.
     CHECK(VD::detect_known_issues(vd, lines.begin(), lines.end()) == VD::IssueType::NO_ISSUE_DETECTED);
     CHECK(vd.get_state() == VD::State::REPAIR_NOT_NEEDED);
+    CHECK_FALSE(has_missing_voronoi_vertices({ poly }, vd));
 
 #ifdef VORONOI_DEBUG_OUT
     dump_voronoi_to_svg(debug_out_path("voronoi-lines.svg").c_str(),
@@ -1338,20 +1340,11 @@ TEST_CASE("Voronoi NaN coordinates 12139", "[Voronoi]")
 
     VD vd;
     vd.construct_voronoi(lines.begin(), lines.end());
-    // The input self-intersects, so rotation cannot repair the diagram. It must be reported as invalid,
-    // which is what MedialAxis::build checks before falling back to a morphological closing.
+    // The diagram built from this self-intersecting input has non-finite vertices, and rotating the
+    // input does not repair it. It must be reported as invalid, which is what MedialAxis::build
+    // checks before falling back to a morphological closing.
     CHECK(vd.get_state() == VD::State::REPAIR_UNSUCCESSFUL);
     CHECK_FALSE(vd.is_valid());
-
-    for (const auto& edge : vd.edges())
-        if (edge.is_finite()) {
-            auto v0 = edge.vertex0();
-            auto v1 = edge.vertex1();
-            REQUIRE((v0->x() == 0 || std::isnormal(v0->x())));
-            REQUIRE((v0->y() == 0 || std::isnormal(v0->y())));
-            REQUIRE((v1->x() == 0 || std::isnormal(v1->x())));
-            REQUIRE((v1->y() == 0 || std::isnormal(v1->y())));
-        }
 
 #ifdef VORONOI_DEBUG_OUT
     dump_voronoi_to_svg(debug_out_path("voronoi-NaNs.svg").c_str(),

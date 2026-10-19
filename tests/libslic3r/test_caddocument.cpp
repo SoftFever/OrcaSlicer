@@ -44,6 +44,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <boost/filesystem/path.hpp>
 #include <fstream>
 #include <memory>
 #include <set>
@@ -774,7 +775,8 @@ TEST_CASE("entity constraints: tangent/midpoint/symmetric/angle", "[CadDocument]
 TEST_CASE("imported text glyphs all extrude without failing (charset sweep)", "[CadDocument]")
 {
     // The bundled font, from the source tree: PROFILES_DIR is <repo>/resources/profiles.
-    const std::string font = std::string(PROFILES_DIR) + "/../fonts/HarmonyOS_Sans_SC_Regular.ttf";
+    const std::string font =
+        (boost::filesystem::path(PROFILES_DIR).parent_path() / "fonts" / "HarmonyOS_Sans_SC_Regular.ttf").string();
     REQUIRE(std::ifstream(font).good());
 
     const std::string charset =
@@ -4547,9 +4549,10 @@ TEST_CASE("a v4 recipe keeps every field value", "[CadDocument]")
     }
 
     // --- Layer 2: the production v4 load rebuilds the same geometry as the in-memory tree ---
-    // The golden tree is serialization coverage and does not recompute as a whole, so the
-    // features are switched on one at a time and any the in-memory tree cannot build are left
-    // off in both. Every step that builds must give the loaded tree the same bodies.
+    // The golden tree is serialization coverage and does not recompute as a whole: these
+    // features fail on the geometry they get, so they are left off in both trees.
+    const std::set<std::string> unbuildable{"Fillet_Lat35", "Chamfer_Top2", "Draft_F3", "Shell_T1375",
+                                            "GoldenProject"};
     CadDocument exp_doc = make_golden_doc_v1();
     // Fields appended after v4 are not in the file, so a v4 project reads them as defaults
     // (a v4 thread, for one, is not major-nominal). The reference has to match that.
@@ -4566,27 +4569,28 @@ TEST_CASE("a v4 recipe keeps every field value", "[CadDocument]")
     CadDocument doc;
     doc.deserialize_recipe(blob);
     REQUIRE(doc.features.size() == exp_doc.features.size());
-    for (CadFeature& f : exp_doc.features) f.enabled = false;
-    for (CadFeature& f : doc.features) f.enabled = false;
-    size_t built_steps = 0;
-    for (size_t i = 0; i < exp_doc.features.size(); ++i) {
-        exp_doc.features[i].enabled = doc.features[i].enabled = true;
-        if (!exp_doc.recompute()) {
-            exp_doc.features[i].enabled = doc.features[i].enabled = false;
-            continue;
+    for (size_t i = 0; i < exp_doc.features.size(); ++i)
+        exp_doc.features[i].enabled = doc.features[i].enabled = unbuildable.count(exp_doc.features[i].name) == 0;
+    const bool exp_built = exp_doc.recompute();
+    INFO("reference error: " << exp_doc.error);
+    REQUIRE(exp_built);
+    const bool built = doc.recompute();
+    INFO("loaded error: " << doc.error);
+    REQUIRE(built);
+    REQUIRE_FALSE(exp_doc.bodies.empty());
+    REQUIRE(doc.bodies.size() == exp_doc.bodies.size());
+    for (size_t b = 0; b < doc.bodies.size(); ++b) {
+        INFO("body " << b);
+        TriangleMesh mesh     = SketchEngine::tessellate(doc.bodies[b].shape);
+        TriangleMesh exp_mesh = SketchEngine::tessellate(exp_doc.bodies[b].shape);
+        CHECK_THAT(double(mesh.volume()), WithinRel(double(exp_mesh.volume()), 1e-6));
+        // Volume alone is blind to fields that only place a body, such as a transform.
+        const BoundingBoxf3 bb = mesh.bounding_box(), exp_bb = exp_mesh.bounding_box();
+        for (int k = 0; k < 3; ++k) {
+            CHECK_THAT(bb.min[k], WithinAbs(exp_bb.min[k], 1e-6));
+            CHECK_THAT(bb.max[k], WithinAbs(exp_bb.max[k], 1e-6));
         }
-        INFO("after feature " << i << " (" << exp_doc.features[i].name << ")");
-        REQUIRE(doc.recompute());
-        REQUIRE(doc.bodies.size() == exp_doc.bodies.size());
-        for (size_t b = 0; b < doc.bodies.size(); ++b) {
-            double v = double(SketchEngine::tessellate(doc.bodies[b].shape).volume());
-            double ev = double(SketchEngine::tessellate(exp_doc.bodies[b].shape).volume());
-            REQUIRE_THAT(v, WithinRel(ev, 1e-6));
-        }
-        ++built_steps;
     }
-    CHECK(built_steps > 0);
-    CHECK_FALSE(exp_doc.bodies.empty());
 }
 
 // --- Rib tests (M5b) ---

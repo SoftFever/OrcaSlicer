@@ -7,6 +7,7 @@
 #include "libslic3r/CAD/SketchImport.hpp"
 #include "test_utils.hpp"        // ScopedTemporaryFile
 
+#include <boost/filesystem/path.hpp>
 #include <cstdlib>
 #include <fstream>
 #include "libslic3r/Point.hpp"
@@ -78,7 +79,8 @@ TEST_CASE("transform_regions moves and scales independently", "[SketchImport]")
 TEST_CASE("text_to_regions vectorizes glyphs with counters", "[SketchImport]")
 {
     // The bundled font, from the source tree: PROFILES_DIR is <repo>/resources/profiles.
-    const std::string font = std::string(PROFILES_DIR) + "/../fonts/HarmonyOS_Sans_SC_Regular.ttf";
+    const std::string font =
+        (boost::filesystem::path(PROFILES_DIR).parent_path() / "fonts" / "HarmonyOS_Sans_SC_Regular.ttf").string();
     REQUIRE(std::ifstream(font).good());
 
     // Bad input is rejected without throwing.

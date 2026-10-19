@@ -1,7 +1,7 @@
 #include <catch2/catch_all.hpp>
 
 #include <catch2/catch_test_macros.hpp>
-#include "catch2/catch_message.hpp"
+#include <catch2/catch_message.hpp>
 #include "test_helpers.hpp"
 
 #include <algorithm>
@@ -30,7 +30,6 @@ TEST_CASE("Fan is held off for the initial layers", "[Cooling]")
         { "fan_cooling_layer_time",       1000 }, // every layer is short enough to run the fan
         { "layer_height",                 0.2 },
         { "initial_layer_print_height",   0.2 },
-        { "layer_change_gcode",           ";TEST_LAYER_CHANGE" },
     });
 
     // Record, for each layer, whether any extrusion was printed with the part fan running.
@@ -40,7 +39,7 @@ TEST_CASE("Fan is held off for the initial layers", "[Cooling]")
     std::istringstream input(gcode);
     std::string line;
     while (std::getline(input, line)) {
-        if (line.rfind(";TEST_LAYER_CHANGE", 0) == 0) {
+        if (line.rfind(";LAYER_CHANGE", 0) == 0) {
             ++layer;
             extruded_with_fan.push_back(false);
         } else if (line.rfind("M107", 0) == 0) {
