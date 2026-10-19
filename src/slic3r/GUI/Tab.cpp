@@ -5279,7 +5279,7 @@ void TabPrinter::build_fff()
                 option.opt.width = Field::def_width_wider();
                 option.opt.tooltip = L("Select the network agent implementation for printer communication. "
                     "Available agents are registered at startup.");
-                optgroup->append_single_option_line(option);
+                optgroup->append_single_option_line(option, "printer_basic_information_advanced#printer-agent");
             }
         }
 
