@@ -2,6 +2,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
+#include "slic3r/Utils/CrealityPrint.hpp"
 #include "slic3r/Utils/CrealityPrintAgent.hpp"
 
 using namespace Slic3r;
@@ -127,4 +128,15 @@ TEST_CASE("A slot write is verified against what the printer reports back", "[CF
 
     REQUIRE(CrealityPrintAgent::find_cfs_material(k2_plus_boxes, 0, 2, box_id, slot));
     CHECK(CrealityPrintAgent::material_matches(slot, CrealityPrintAgent::CFSMaterial()));
+}
+
+// Slot writes are limited to the K2 family; K1-family CFS, the Hi and the mini keep "not available".
+TEST_CASE("Only the K2 family takes CFS slot writes", "[CFS][Creality]")
+{
+    for (const char* model : {"F008", "F012", "F021"}) {
+        CHECK(CrealityPrint::model_supports_cfs_write(model));
+        CHECK(CrealityPrint::model_supports_multi_color(model));
+    }
+    for (const char* model : {"K1", "K1 SE", "K1C", "K1_CFS-C", "F022", "F001", ""})
+        CHECK_FALSE(CrealityPrint::model_supports_cfs_write(model));
 }

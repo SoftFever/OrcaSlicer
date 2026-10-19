@@ -38,6 +38,10 @@ public:
     // value: an F-code on the K2 platform, a literal name on K1-family.
     static bool model_supports_multi_color(const std::string& model);
     static std::string model_display_name(const std::string& model);
+    // Models whose CFS slots can be written back with modifyMaterial: the K2 family
+    // (K2 Plus F008, K2 Pro F012, K2 F021).
+    static bool model_supports_cfs_write(const std::string& model);
+    bool        supports_cfs_write() const;
     std::string query_boxes_info() const;
     // The printer's material library: the "retMaterials" answer to reqMaterials.
     std::string query_material_library() const;

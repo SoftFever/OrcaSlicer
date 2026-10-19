@@ -635,7 +635,9 @@ int CrealityPrintAgent::set_cfs_slot(const json& cmd)
     }
 
     const auto host = make_cfs_host(device_info.dev_ip, device_info.api_key);
-    if (!host->supports_multi_color_print())
+    // Only the K2 family is known to take modifyMaterial; K1-family CFS and other models
+    // keep reporting that slot writes are not available.
+    if (!host->supports_cfs_write())
         return ORCA_NETWORK_ERR_CAP_NOT_AVAILABLE;
 
     // The external spool holder (virtual tray) is not published as a CFS slot, so it has no

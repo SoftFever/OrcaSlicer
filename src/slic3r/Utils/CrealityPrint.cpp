@@ -317,6 +317,17 @@ std::string CrealityPrint::model_display_name(const std::string& model)
     return it != names.end() ? it->second : std::string{};
 }
 
+bool CrealityPrint::model_supports_cfs_write(const std::string& model)
+{
+    return model == "F008" || model == "F012" || model == "F021";
+}
+
+bool CrealityPrint::supports_cfs_write() const
+{
+    query_model();
+    return model_supports_cfs_write(m_model);
+}
+
 bool CrealityPrint::supports_multi_color_print() const
 {
     query_model();
