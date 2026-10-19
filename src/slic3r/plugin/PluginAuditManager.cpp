@@ -5,10 +5,14 @@
 #include "libslic3r/libslic3r.h" // GCODEVIEWER_APP_KEY, and SLIC3R_APP_KEY via libslic3r_version.h
 #include "libslic3r_version.h"
 
+#include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/asio/ip/address.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/system/error_code.hpp>
 
 #include <algorithm>
 #include <cctype>
@@ -144,6 +148,205 @@ static bool is_fs_category(AuditEventCategory category)
     default:
         return false;
     }
+}
+
+// HTTP and raw-socket events are governed by the same network permission: a declared host may be
+// reached through either layer, and the layers nest for one plugin action (urllib -> http.client
+// -> socket).
+static bool is_network_category(AuditEventCategory category)
+{
+    return category == AuditEventCategory::Http || category == AuditEventCategory::Socket;
+}
+
+// The only network events whose target can be a resolved address instead of the host the plugin
+// asked for. They may fall back to a network-approved call site; every other network event must
+// name a host or URL the hook can match directly.
+static bool is_resolved_address_event(const std::string& event_name)
+{
+    return event_name == "socket.connect" || event_name == "socket.sendto";
+}
+
+// ---------------------------------------------------------------------------
+// Network permission identity
+// ---------------------------------------------------------------------------
+
+static std::string ascii_lower(std::string value)
+{
+    boost::algorithm::to_lower(value);
+    return value;
+}
+
+static std::string trim_ascii_space(std::string value)
+{
+    boost::algorithm::trim(value);
+    return value;
+}
+
+// Canonical storage keeps IPv6 literals bracketed (https://[::1]), while a socket address
+// exposes the bare literal (::1). Compare them without the brackets.
+static std::string without_ipv6_brackets(std::string host)
+{
+    if (host.size() >= 2 && host.front() == '[' && host.back() == ']')
+        host = host.substr(1, host.size() - 2);
+    return host;
+}
+
+// Returns the host part of a URL authority, dropping userinfo and port. IPv6 literals keep their
+// brackets so that a URL and a bare address compare consistently.
+static std::string host_from_authority(std::string authority)
+{
+    const size_t at = authority.rfind('@');
+    if (at != std::string::npos)
+        authority.erase(0, at + 1);
+
+    if (authority.empty())
+        return {};
+
+    if (authority.front() == '[') {
+        const size_t close = authority.find(']');
+        if (close == std::string::npos)
+            return {};
+        authority.erase(close + 1);
+        return ascii_lower(authority);
+    }
+
+    const size_t colon = authority.find(':');
+    if (colon != std::string::npos)
+        authority.erase(colon);
+
+    if (authority.find_first_of(" \t\r\n/?#@") != std::string::npos)
+        return {};
+
+    return ascii_lower(authority);
+}
+
+// Extracts a host from a target that is not a URL: "host", "host:443", "[::1]:443", "('host',
+// 443)" (the form older releases persisted for socket address events), or "'host'".
+static std::string network_host_from_target(const std::string& target)
+{
+    std::string value = trim_ascii_space(target);
+    if (value.empty())
+        return {};
+
+    if (value.front() == '(') {
+        // Legacy persisted address tuple: ("host", 443) or ("host", 443, 0, 0).
+        const size_t quote = value.find_first_of("'\"");
+        if (quote != std::string::npos) {
+            const char   delimiter = value[quote];
+            const size_t end       = value.find(delimiter, quote + 1);
+            if (end == std::string::npos)
+                return {};
+            value = value.substr(quote + 1, end - quote - 1);
+        } else {
+            value = value.substr(1);
+            const size_t comma = value.find(',');
+            if (comma != std::string::npos)
+                value.erase(comma);
+        }
+    } else if (value.front() == '[') {
+        const size_t close = value.find(']');
+        if (close == std::string::npos)
+            return {};
+        value.erase(close + 1);
+    } else {
+        // Strip a ":port" suffix, but leave a bare IPv6 literal ("::1") intact.
+        const size_t colon = value.find(':');
+        if (colon != std::string::npos && value.find(':', colon + 1) == std::string::npos)
+            value.erase(colon);
+    }
+
+    value = trim_ascii_space(value);
+    if (value.empty() || value.find_first_of(" \t\r\n/?#@") != std::string::npos)
+        return {};
+
+    return ascii_lower(value);
+}
+
+std::string PluginAuditManager::normalize_network_url(const std::string& url)
+{
+    const size_t scheme_end = url.find("://");
+    if (scheme_end == std::string::npos || scheme_end == 0)
+        return {};
+
+    const std::string scheme = ascii_lower(url.substr(0, scheme_end));
+    if (scheme != "http" && scheme != "https")
+        return {};
+
+    const size_t authority_start = scheme_end + 3;
+    const size_t authority_end   = url.find_first_of("/?#", authority_start);
+    const std::string authority  = url.substr(authority_start, authority_end == std::string::npos
+                                                                    ? std::string::npos
+                                                                    : authority_end - authority_start);
+
+    const std::string host = host_from_authority(authority);
+    if (host.empty())
+        return {};
+
+    return scheme + "://" + host;
+}
+
+bool PluginAuditManager::network_permission_matches(const std::vector<std::string>& granted,
+                                                    const std::string&              target)
+{
+    if (target.empty())
+        return false;
+
+    const bool        target_is_url = target.find("://") != std::string::npos;
+    const std::string target_url    = normalize_network_url(target);
+    if (target_is_url && target_url.empty()) {
+        // A non-http(s) URL has no network identity we can generalize; only an exact grant
+        // recorded by an earlier approval stays valid, so an unrelated scheme never matches.
+        return std::find(granted.begin(), granted.end(), target) != granted.end();
+    }
+
+    const std::string target_host =
+        target_is_url ? std::string{} : without_ipv6_brackets(network_host_from_target(target));
+    if (!target_is_url && target_host.empty())
+        return false;
+
+    for (const std::string& entry : granted) {
+        // Preserve an exact grant recorded by an older release, e.g. a full URL with a query.
+        if (entry == target)
+            return true;
+
+        const std::string entry_url = normalize_network_url(entry);
+        if (target_is_url) {
+            if (entry_url == target_url)
+                return true;
+            continue;
+        }
+
+        if (!entry_url.empty()) {
+            // Bare hosts carry no scheme: match the host part of a scheme://host grant.
+            const std::string entry_host = entry_url.substr(entry_url.find("://") + 3);
+            if (without_ipv6_brackets(entry_host) == target_host)
+                return true;
+        } else if (without_ipv6_brackets(network_host_from_target(entry)) == target_host) {
+            // Legacy persisted address tuples, e.g. "('host', 443)".
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool PluginAuditManager::is_ip_address_target(const std::string& target)
+{
+    if (target.empty() || target.find("://") != std::string::npos)
+        return false;
+
+    std::string host = target;
+    if (host.size() >= 2 && host.front() == '[' && host.back() == ']')
+        host = host.substr(1, host.size() - 2);
+
+    // Drop an IPv6 zone identifier before parsing; it is not part of the address literal.
+    const size_t zone = host.find('%');
+    if (zone != std::string::npos)
+        host.erase(zone);
+
+    boost::system::error_code ec;
+    boost::asio::ip::make_address(host, ec);
+    return !ec;
 }
 
 // ---------------------------------------------------------------------------
@@ -471,6 +674,39 @@ AuditDecision PluginAuditManager::check_open(const std::string& path_str, const 
     return check_path_access(boost::filesystem::path(path_str), is_write);
 }
 
+namespace {
+
+// Builds and shows the modal confirmation. Must run on the GUI thread.
+bool show_permission_dialog(const wxString& message, const wxString& title)
+{
+    wxMessageDialog dialog(nullptr, message, title, wxYES_NO | wxICON_WARNING);
+    return dialog.ShowModal() == wxID_YES;
+}
+
+// Shows a permission prompt on the GUI thread and waits for the answer. The caller may be the
+// plugin-load worker, so off the main thread the dialog is marshaled with CallAfter.
+bool ask_permission(const wxString& message)
+{
+    if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
+        return false;
+
+    if (wxIsMainThread())
+        return show_permission_dialog(message, _L("Plugin permissions"));
+
+    auto result = std::make_shared<std::promise<bool>>();
+    auto future = result->get_future();
+    GUI::wxGetApp().CallAfter([result, message]() {
+        if (wxTheApp == nullptr || GUI::wxGetApp().is_closing()) {
+            result->set_value(false);
+            return;
+        }
+        result->set_value(show_permission_dialog(message, _L("Plugin permissions")));
+    });
+    return future.get();
+}
+
+} // namespace
+
 bool PluginAuditManager::request_filesystem_read_permissions(const std::string&              plugin_key,
                                                               const std::vector<std::string>& paths)
 {
@@ -492,57 +728,77 @@ bool PluginAuditManager::request_filesystem_read_permissions(const std::string& 
     if (missing.empty())
         return true;
 
-    if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
+    wxString requested_paths;
+    for (const std::string& path : missing)
+        requested_paths += wxString::FromUTF8(path.c_str()) + "\n";
+
+    if (!ask_permission(wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
+                                        wxString::FromUTF8(descriptor.name.c_str()), requested_paths)))
         return false;
 
-    auto show_dialog = [&descriptor, &missing]() {
-        wxString requested_paths;
-        for (const std::string& path : missing)
-            requested_paths += wxString::FromUTF8(path.c_str()) + "\n";
-
-        wxMessageDialog dialog(
-            nullptr,
-            wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
-                             wxString::FromUTF8(descriptor.name.c_str()), requested_paths),
-            _L("Plugin permissions"),
-            wxYES_NO | wxICON_WARNING);
-        return dialog.ShowModal() == wxID_YES;
-    };
-
-    bool granted = false;
-    if (wxIsMainThread()) {
-        granted = show_dialog();
-    } else {
-        auto result = std::make_shared<std::promise<bool>>();
-        auto future = result->get_future();
-        GUI::wxGetApp().CallAfter([result, descriptor_name = descriptor.name, missing]() {
-            wxString requested_paths;
-            for (const std::string& path : missing)
-                requested_paths += wxString::FromUTF8(path.c_str()) + "\n";
-
-            wxMessageDialog dialog(
-                nullptr,
-                wxString::Format(_L("Plugin \"%s\" requests filesystem read access to:\n%s"),
-                                 wxString::FromUTF8(descriptor_name.c_str()), requested_paths),
-                _L("Plugin permissions"),
-                wxYES_NO | wxICON_WARNING);
-            result->set_value(dialog.ShowModal() == wxID_YES);
-        });
-        granted = future.get();
-    }
-
-    if (!granted)
-        return false;
-
-    if (state.plugin_name.empty()) {
-        state.installed_from    = descriptor.is_cloud_plugin() ? "cloud" : "local";
-        state.installed_version = !descriptor.installed_version.empty() ? descriptor.installed_version : descriptor.version;
-        state.plugin_name       = descriptor.name;
-        state.cloud_uuid        = descriptor.cloud_uuid();
-        state.enabled            = true;
-    }
+    seed_install_metadata(state, descriptor);
 
     state.permissions.fs_read.insert(state.permissions.fs_read.end(), missing.begin(), missing.end());
+    return write_install_state(boost::filesystem::path(descriptor.plugin_root), state);
+}
+
+bool PluginAuditManager::request_network_permissions(const std::string&              plugin_key,
+                                                      const std::vector<std::string>& urls)
+{
+    if (plugin_key.empty() || urls.empty())
+        return true;
+
+    PluginDescriptor descriptor;
+    if (!PluginManager::instance().try_get_plugin_descriptor(plugin_key, descriptor) || descriptor.plugin_root.empty())
+        return false;
+
+    // Reduce every request to scheme://host before comparing or persisting it, so a URL with a
+    // path or query cannot create a second grant for the same host.
+    std::vector<std::string> requested;
+    for (const std::string& url : urls) {
+        const std::string normalized = normalize_network_url(url);
+        if (normalized.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "[AUDIT] Invalid network permission request for plugin " << plugin_key << ": " << url;
+            return false;
+        }
+        if (std::find(requested.begin(), requested.end(), normalized) == requested.end())
+            requested.push_back(normalized);
+    }
+
+    PluginInstallState state;
+    read_install_state(boost::filesystem::path(descriptor.plugin_root), state);
+
+    std::vector<std::string> missing;
+    for (const std::string& entry : requested) {
+        if (!network_permission_matches(state.permissions.network_http, entry) &&
+            !network_permission_matches(state.permissions.network_socket, entry))
+            missing.push_back(entry);
+    }
+    if (missing.empty())
+        return true;
+
+    wxString requested_hosts;
+    for (const std::string& entry : missing)
+        requested_hosts += wxString::FromUTF8(entry.c_str()) + "\n";
+
+    if (!ask_permission(wxString::Format(_L("Plugin \"%s\" requests network access to:\n%s"),
+                                        wxString::FromUTF8(descriptor.name.c_str()), requested_hosts)))
+        return false;
+
+    seed_install_metadata(state, descriptor);
+
+    // A declared host is reachable through both HTTP and raw socket events. Recording the grant in
+    // both existing lists keeps the sidecar self-describing and means either event layer matches
+    // it without relying on the other list.
+    for (const std::string& entry : missing) {
+        if (std::find(state.permissions.network_http.begin(), state.permissions.network_http.end(), entry) ==
+            state.permissions.network_http.end())
+            state.permissions.network_http.push_back(entry);
+        if (std::find(state.permissions.network_socket.begin(), state.permissions.network_socket.end(), entry) ==
+            state.permissions.network_socket.end())
+            state.permissions.network_socket.push_back(entry);
+    }
+
     return write_install_state(boost::filesystem::path(descriptor.plugin_root), state);
 }
 
@@ -578,12 +834,37 @@ bool PluginAuditManager::last_violation(AuditViolation& violation) const
 bool PluginAuditManager::has_approved_ancestor(const std::string&              plugin_key,
                                                const std::vector<std::string>& call_site_ids) const
 {
+    return has_call_site(m_approved_call_sites, plugin_key, call_site_ids);
+}
+
+void PluginAuditManager::record_approved_call_sites(const std::string&              plugin_key,
+                                                     const std::vector<std::string>& call_site_ids)
+{
+    record_call_sites(m_approved_call_sites, plugin_key, call_site_ids);
+}
+
+bool PluginAuditManager::has_approved_network_ancestor(const std::string&              plugin_key,
+                                                        const std::vector<std::string>& call_site_ids) const
+{
+    return has_call_site(m_approved_network_call_sites, plugin_key, call_site_ids);
+}
+
+void PluginAuditManager::record_approved_network_call_sites(const std::string&              plugin_key,
+                                                             const std::vector<std::string>& call_site_ids)
+{
+    record_call_sites(m_approved_network_call_sites, plugin_key, call_site_ids);
+}
+
+bool PluginAuditManager::has_call_site(const CallSiteRegistry&         registry,
+                                       const std::string&              plugin_key,
+                                       const std::vector<std::string>& call_site_ids) const
+{
     if (plugin_key.empty() || call_site_ids.empty())
         return false;
 
     std::lock_guard<std::mutex> lock(m_mutex);
-    auto it = m_approved_call_sites.find(plugin_key);
-    if (it == m_approved_call_sites.end())
+    auto it = registry.find(plugin_key);
+    if (it == registry.end())
         return false;
 
     for (const auto& id : call_site_ids)
@@ -592,14 +873,15 @@ bool PluginAuditManager::has_approved_ancestor(const std::string&              p
     return false;
 }
 
-void PluginAuditManager::record_approved_call_sites(const std::string&              plugin_key,
-                                                     const std::vector<std::string>& call_site_ids)
+void PluginAuditManager::record_call_sites(CallSiteRegistry&               registry,
+                                           const std::string&              plugin_key,
+                                           const std::vector<std::string>& call_site_ids)
 {
     if (plugin_key.empty() || call_site_ids.empty())
         return;
 
     std::lock_guard<std::mutex> lock(m_mutex);
-    auto& approved = m_approved_call_sites[plugin_key];
+    auto& approved = registry[plugin_key];
     approved.insert(call_site_ids.begin(), call_site_ids.end());
 }
 
@@ -616,6 +898,39 @@ PyObject* tuple_item(PyObject* args, Py_ssize_t index)
     return PyTuple_GET_ITEM(args, index);
 }
 
+std::string python_unicode(PyObject* object)
+{
+    if (!object || !PyUnicode_Check(object))
+        return {};
+    const char* text = PyUnicode_AsUTF8(object);
+    if (!text) {
+        PyErr_Clear();
+        return {};
+    }
+    return text;
+}
+
+// Converts a str/bytes leaf to text, clearing a failed conversion. Returns false when `object` is
+// neither str nor bytes, so callers can apply their own fallback.
+bool python_text(PyObject* object, std::string& out)
+{
+    if (PyUnicode_Check(object)) {
+        out = python_unicode(object);
+        return true;
+    }
+    if (PyBytes_Check(object)) {
+        const char* value = PyBytes_AsString(object);
+        if (!value) {
+            PyErr_Clear();
+            out.clear();
+            return true;
+        }
+        out = value;
+        return true;
+    }
+    return false;
+}
+
 std::string python_path(PyObject* object)
 {
     if (!object)
@@ -627,24 +942,10 @@ std::string python_path(PyObject* object)
         return {};
     }
 
-    const char* path = PyUnicode_Check(path_object) ? PyUnicode_AsUTF8(path_object) : PyBytes_AsString(path_object);
-    std::string result = path ? path : "";
+    std::string result;
+    python_text(path_object, result);
     Py_DECREF(path_object);
-    if (!path)
-        PyErr_Clear();
     return result;
-}
-
-std::string python_unicode(PyObject* object)
-{
-    if (!object || !PyUnicode_Check(object))
-        return {};
-    const char* text = PyUnicode_AsUTF8(object);
-    if (!text) {
-        PyErr_Clear();
-        return {};
-    }
-    return text;
 }
 
 std::string python_str(PyObject* object)
@@ -661,6 +962,27 @@ std::string python_str(PyObject* object)
     const std::string result = python_unicode(str_object);
     Py_DECREF(str_object);
     return result;
+}
+
+// Network audit events expose different shapes for the same thing: a URL, a bare host, or an
+// address tuple such as ("host", 443). Reduce the argument to the host it names, leaving the
+// scheme and port to be judged by the permission matcher. None / an empty tuple has no target.
+std::string python_network_host(PyObject* object)
+{
+    if (!object || object == Py_None)
+        return {};
+
+    if (PyTuple_Check(object)) {
+        if (PyTuple_GET_SIZE(object) == 0)
+            return {};
+        return python_network_host(PyTuple_GET_ITEM(object, 0));
+    }
+
+    std::string text;
+    if (python_text(object, text))
+        return text;
+
+    return python_str(object);
 }
 
 std::vector<std::string> call_site_identities(const std::string& plugin_root)
@@ -766,8 +1088,10 @@ std::vector<std::string> audit_targets(const std::string& event_name, AuditEvent
 
     const auto it = audit_target_arg_indices.find(event_name);
     if (it != audit_target_arg_indices.end()) {
+        const bool network_event = is_network_category(category);
         for (const Py_ssize_t index : it->second) {
-            std::string value = python_str(tuple_item(args, index));
+            std::string value = network_event ? python_network_host(tuple_item(args, index))
+                                              : python_str(tuple_item(args, index));
             if (!value.empty()) {
                 targets.push_back(std::move(value));
                 break;
@@ -797,6 +1121,20 @@ bool has_permission(const std::vector<std::string>& granted, const std::string& 
     return std::find(granted.begin(), granted.end(), target) != granted.end();
 }
 
+// A declared or previously approved network grant may live in either network list: an HTTP grant
+// covers the sockets the same request opens, and a raw socket grant covers a later HTTP call to
+// the same host.
+bool has_network_permission(const PluginPermissions& permissions, const std::string& target)
+{
+    return PluginAuditManager::network_permission_matches(permissions.network_http, target) ||
+           PluginAuditManager::network_permission_matches(permissions.network_socket, target);
+}
+
+bool has_any_network_permission(const PluginPermissions& permissions)
+{
+    return !permissions.network_http.empty() || !permissions.network_socket.empty();
+}
+
 bool persist_permission(const std::string&        plugin_key,
                         PluginInstallState&       state,
                         std::vector<std::string>& permission_list,
@@ -806,15 +1144,7 @@ bool persist_permission(const std::string&        plugin_key,
     if (!PluginManager::instance().try_get_plugin_descriptor(plugin_key, descriptor) || descriptor.plugin_root.empty())
         return false;
 
-    // A sandbox plugin may not have a sidecar yet.  Seed the small amount of install metadata
-    // needed by the writer so clicking Yes still creates the JSON file.
-    if (state.plugin_name.empty()) {
-        state.installed_from    = descriptor.is_cloud_plugin() ? "cloud" : "local";
-        state.installed_version = !descriptor.installed_version.empty() ? descriptor.installed_version : descriptor.version;
-        state.plugin_name       = descriptor.name;
-        state.cloud_uuid        = descriptor.cloud_uuid();
-        state.enabled            = true;
-    }
+    seed_install_metadata(state, descriptor);
 
     if (!has_permission(permission_list, target))
         permission_list.push_back(target);
@@ -893,11 +1223,10 @@ bool prompt_for_targets(AuditEventCategory category, const std::string& plugin_n
     for (const auto& target : unresolved)
         target_list += wxString::FromUTF8(target.c_str()) + "\n";
 
-    wxMessageDialog dialog(nullptr,
-                           audit_message(category, wxString::FromUTF8(plugin_name.c_str()),
-                                        wxString::FromUTF8(event_name.c_str()), target_list, unresolved.size()),
-                           _L("Plugin permission request"), wxYES_NO | wxICON_WARNING);
-    return dialog.ShowModal() == wxID_YES;
+    return show_permission_dialog(
+        audit_message(category, wxString::FromUTF8(plugin_name.c_str()), wxString::FromUTF8(event_name.c_str()),
+                      target_list, unresolved.size()),
+        _L("Plugin permission request"));
 }
 
 // Records a grant in the plugin's sidecar so it is not asked again. Reads the install state
@@ -957,7 +1286,30 @@ int decide_audited_event(PluginAuditManager&             mgr,
                          const std::vector<std::string>&   call_site_ids)
 {
     std::vector<std::string> unresolved = targets;
-    if (permission_list) {
+    if (is_network_category(category)) {
+        if (targets.empty()) {
+            // socket.__new__ and http.client.send carry no host. Any network grant already lets
+            // the plugin open a connection, and every host-bearing event still matches its own
+            // grant, so the targetless events are covered by an existing grant instead of
+            // prompting every run. Deliberately do not record a call site here: a targetless
+            // approval must not become an ancestor that later network events could use to skip
+            // their own host check.
+            if (has_any_network_permission(state.permissions))
+                return 0;
+        } else {
+            unresolved.clear();
+            for (const auto& target : targets)
+                if (!has_network_permission(state.permissions, target))
+                    unresolved.push_back(target);
+            if (unresolved.empty()) {
+                // Remember the stdlib frames for this approved host. The network ancestor cache
+                // is only consulted for a resolved-IP socket.connect/sendto, so this cannot
+                // suppress a later hostname or URL event.
+                mgr.record_approved_network_call_sites(plugin_key, call_site_ids);
+                return 0;
+            }
+        }
+    } else if (permission_list) {
         unresolved.clear();
         for (const auto& target : targets)
             if (!has_permission(*permission_list, target))
@@ -972,6 +1324,12 @@ int decide_audited_event(PluginAuditManager&             mgr,
     if (permission_list)
         for (const auto& target : unresolved)
             persist_permission(plugin_key, state, *permission_list, target);
+
+    // A target-bearing network approval may cover the resolved address of the same connection.
+    // A targetless approval does not: it carries no host, so it must not create an ancestor that
+    // a later hostname/URL check could be skipped by (and the network cache is IP-only anyway).
+    if (is_network_category(category) && !targets.empty())
+        mgr.record_approved_network_call_sites(plugin_key, call_site_ids);
 
     mgr.record_approved_call_sites(plugin_key, call_site_ids);
     return 0;
@@ -1024,12 +1382,28 @@ int PluginAuditManager::audit_hook(const char* event, PyObject* args, void* user
     PluginDescriptor plugin_descriptor;
     PluginManager::instance().try_get_plugin_descriptor(mgr->current_plugin(), plugin_descriptor);
 
-    // Some plugins call other audited events, e.g. urlib.request will call socket.connect. So this is so that if urlib.request
-    // was already approved, socket.connect won't trigger another permission dialog.
+    // Some plugins call other audited events, e.g. urllib.request will call socket.connect.
+    // Collect the stdlib frames now so an approved network host can cover the resolved address
+    // of the same connection without covering another host.
     const std::vector<std::string> call_site_ids =
         PluginAuditDetail::call_site_identities(plugin_descriptor.plugin_root);
-    if (mgr->has_approved_ancestor(mgr->current_plugin(), call_site_ids))
+
+    // A general call-site approval may cover nested events for the same logical action. Network
+    // events use a separate rule: a hostname/URL target must match its own grant even when a
+    // parent event was approved, and targetless events are handled by the any-grant rule. Only a
+    // resolved-address connect/sendto (target is an IP literal) may use an approval recorded for
+    // an earlier network host event, because its own target carries no hostname to match.
+    if (is_network_category(event_type)) {
+        const bool all_resolved_addresses =
+            !targets.empty() && std::all_of(targets.begin(), targets.end(), [](const std::string& target) {
+                return PluginAuditManager::is_ip_address_target(target);
+            });
+        if (is_resolved_address_event(event_name) && all_resolved_addresses &&
+            mgr->has_approved_network_ancestor(mgr->current_plugin(), call_site_ids))
+            return 0;
+    } else if (mgr->has_approved_ancestor(mgr->current_plugin(), call_site_ids)) {
         return 0;
+    }
 
     // A filesystem target that resolves entirely inside a pre-determined allowed root -- the
     // plugin system's own data_dir() tree (which holds each plugin's storage folder and the

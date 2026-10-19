@@ -14,6 +14,7 @@
 #include <boost/filesystem.hpp>
 
 #include <string>
+#include <vector>
 
 using namespace Slic3r;
 namespace fs = boost::filesystem;
@@ -322,6 +323,117 @@ TEST_CASE("Plugin audit a read-only allowed root blocks writes but not reads", "
         AuditDecision  decision = mgr.check_open(cert.string(), "r");
         CHECK_FALSE(decision.allowed);
         CHECK(decision.reason == "denied path keyword");
+    }
+}
+
+TEST_CASE("Plugin audit network permissions match by scheme and host", "[audit]")
+{
+    SECTION("a URL is reduced to its scheme and host")
+    {
+        CHECK(PluginAuditManager::normalize_network_url("https://API.Example.com:8443/v1/items?page=2#top") ==
+              "https://api.example.com");
+        CHECK(PluginAuditManager::normalize_network_url("http://example.com") == "http://example.com");
+        CHECK(PluginAuditManager::normalize_network_url("https://[2001:db8::1]:443/path") == "https://[2001:db8::1]");
+    }
+
+    SECTION("non-http schemes and targets without a scheme are not network URLs")
+    {
+        CHECK(PluginAuditManager::normalize_network_url("ftp://example.com").empty());
+        CHECK(PluginAuditManager::normalize_network_url("api.example.com").empty());
+        CHECK(PluginAuditManager::normalize_network_url("https://").empty());
+    }
+
+    SECTION("a URL target matches the same scheme and host regardless of path and port")
+    {
+        const std::vector<std::string> granted{"https://api.example.com"};
+        CHECK(PluginAuditManager::network_permission_matches(granted, "https://api.example.com/v1/items?page=2"));
+        CHECK(PluginAuditManager::network_permission_matches(granted, "https://api.example.com:8443/upload"));
+    }
+
+    SECTION("a URL target does not match a different host or a different scheme")
+    {
+        const std::vector<std::string> granted{"https://api.example.com"};
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(granted, "https://evil.example.com/v1"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(granted, "http://api.example.com/v1"));
+    }
+
+    SECTION("a bare host target matches the host of a grant")
+    {
+        const std::vector<std::string> granted{"https://api.example.com"};
+        CHECK(PluginAuditManager::network_permission_matches(granted, "api.example.com"));
+        CHECK(PluginAuditManager::network_permission_matches(granted, "api.example.com:443"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(granted, "other.example.com"));
+    }
+
+    SECTION("legacy persisted address tuples keep matching their host")
+    {
+        const std::vector<std::string> legacy_granted{"('api.example.com', 443)"};
+        CHECK(PluginAuditManager::network_permission_matches(legacy_granted, "api.example.com"));
+
+        const std::vector<std::string> granted{"https://api.example.com"};
+        CHECK(PluginAuditManager::network_permission_matches(granted, "('api.example.com', 443)"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(granted, "('93.184.216.34', 443)"));
+    }
+
+    SECTION("an IPv6 literal matches across bracketed and bare forms")
+    {
+        const std::vector<std::string> granted{"https://[2001:db8::1]"};
+        CHECK(PluginAuditManager::network_permission_matches(granted, "2001:db8::1"));
+        CHECK(PluginAuditManager::network_permission_matches(granted, "[2001:db8::1]:443"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(granted, "2001:db8::2"));
+    }
+
+    SECTION("a non-http URL only matches an exact grant")
+    {
+        const std::vector<std::string> granted{"ftp://example.com/file"};
+        CHECK(PluginAuditManager::network_permission_matches(granted, "ftp://example.com/file"));
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(granted, "ftp://example.com/other"));
+
+        const std::vector<std::string> https{"https://api.example.com"};
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(https, "ftp://api.example.com/file"));
+    }
+
+    SECTION("an empty grant list or an empty target never matches")
+    {
+        const std::vector<std::string> granted{};
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(granted, "https://api.example.com"));
+
+        const std::vector<std::string> any{"https://api.example.com"};
+        CHECK_FALSE(PluginAuditManager::network_permission_matches(any, ""));
+    }
+}
+
+TEST_CASE("Plugin audit limits network ancestor approvals to resolved addresses", "[audit]")
+{
+    SECTION("IP literals are distinguished from hostnames and URLs")
+    {
+        CHECK(PluginAuditManager::is_ip_address_target("127.0.0.1"));
+        CHECK(PluginAuditManager::is_ip_address_target("93.184.216.34"));
+        CHECK(PluginAuditManager::is_ip_address_target("::1"));
+        CHECK(PluginAuditManager::is_ip_address_target("2001:db8::1"));
+        CHECK(PluginAuditManager::is_ip_address_target("[2001:db8::1]"));
+
+        CHECK_FALSE(PluginAuditManager::is_ip_address_target("api.example.com"));
+        CHECK_FALSE(PluginAuditManager::is_ip_address_target("localhost"));
+        CHECK_FALSE(PluginAuditManager::is_ip_address_target("https://api.example.com"));
+        CHECK_FALSE(PluginAuditManager::is_ip_address_target(""));
+    }
+
+    SECTION("a network approval is kept apart from the general call-site cascade")
+    {
+        PluginAuditManager& mgr = PluginAuditManager::instance();
+        const std::string   plugin_key = "plugin-audit-network-ancestor";
+        const std::string   other_key  = "plugin-audit-network-ancestor-other";
+
+        mgr.record_approved_network_call_sites(plugin_key, {"frame:network"});
+        mgr.record_approved_call_sites(plugin_key, {"frame:general"});
+
+        CHECK(mgr.has_approved_network_ancestor(plugin_key, {"frame:network"}));
+        CHECK_FALSE(mgr.has_approved_network_ancestor(plugin_key, {"frame:general"}));
+        CHECK_FALSE(mgr.has_approved_network_ancestor(other_key, {"frame:network"}));
+
+        // The network approval must not leak into the general cascade used by other categories.
+        CHECK_FALSE(mgr.has_approved_ancestor(plugin_key, {"frame:network"}));
     }
 }
 

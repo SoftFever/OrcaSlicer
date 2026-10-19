@@ -138,6 +138,33 @@ public:
     bool request_filesystem_read_permissions(const std::string& plugin_key,
                                              const std::vector<std::string>& paths);
 
+    // Ask the user to grant network access to the given http(s) URLs. Each URL is reduced to its
+    // scheme and host before prompting and persisting, so one approval covers every path, query
+    // and port on that host. The grant is written to both network_http and network_socket: the
+    // same declared host can surface through HTTP events (urllib/http.client) and raw socket
+    // events. Like request_filesystem_read_permissions, the request may originate on a plugin
+    // load worker; denial aborts the plugin load without adding a permission.
+    bool request_network_permissions(const std::string& plugin_key,
+                                     const std::vector<std::string>& urls);
+
+    // Canonical scheme://host form used to store and match network permissions. Returns an empty
+    // string unless `url` is an absolute http(s) URL with a host. The path, query, fragment,
+    // userinfo and port are discarded; scheme and host are lowercased.
+    static std::string normalize_network_url(const std::string& url);
+
+    // True when a granted scheme://host entry covers `target`. `target` is a URL (urllib.Request),
+    // a bare host (http.client.connect, socket.getaddrinfo) or an address as exposed by the audit
+    // event (a hostname, a host:port pair, or a legacy persisted tuple such as "('host', 443)").
+    // URL targets must match both scheme and host. A bare host carries no scheme, so it matches
+    // the host part of any grant; it never matches a different host.
+    static bool network_permission_matches(const std::vector<std::string>& granted,
+                                           const std::string& target);
+
+    // True when `target` is a bare IPv4/IPv6 literal (optionally bracketed). A network event
+    // carrying an IP literal has no hostname the audit hook can match, so it is the only kind of
+    // network event allowed to use an approved network call-site ancestor.
+    static bool is_ip_address_target(const std::string& target);
+
     void report_violation(const AuditViolation& violation);
     bool audit_denial_pending() const;
     void clear_audit_denial();
@@ -151,8 +178,19 @@ public:
     // is recorded here by (filename, function, first line) identity. A later event whose own
     // ancestor chain still contains one of those frames is the same logical action seen from
     // a deeper layer, so it is auto-approved instead of prompting again.
+    //
+    // Network events do not use this general cache: see the network call-site cache below.
     bool has_approved_ancestor(const std::string& plugin_key, const std::vector<std::string>& call_site_ids) const;
     void record_approved_call_sites(const std::string& plugin_key, const std::vector<std::string>& call_site_ids);
+
+    // --- network call-site cache ---
+    // Separate from the general cascade above so a network approval can only suppress a later
+    // network event with no hostname to check: a resolved address (socket.connect/sendto with an
+    // IP literal). Hostname and URL events are never auto-approved by an ancestor; they must
+    // match their own grant. Targetless events are handled by the "any network grant" rule and
+    // never record an entry here.
+    bool has_approved_network_ancestor(const std::string& plugin_key, const std::vector<std::string>& call_site_ids) const;
+    void record_approved_network_call_sites(const std::string& plugin_key, const std::vector<std::string>& call_site_ids);
 
     bool verbose_events = true;
 
@@ -170,12 +208,23 @@ private:
     static thread_local bool                           m_has_last_violation;
     static thread_local AuditViolation                 m_last_violation;
 
-    // mutable: is_denied_filename() and has_approved_ancestor() are const queries that must lock.
+    // mutable: the deny and ancestor queries are const but must lock.
     mutable std::mutex m_mutex;
+
+    using CallSiteRegistry = std::unordered_map<std::string, std::unordered_set<std::string>>;
+
+    // Shared lookup/insert mechanics for the two registries below. The caller selects the
+    // registry, so the general and network approvals remain independent.
+    bool has_call_site(const CallSiteRegistry& registry, const std::string& plugin_key,
+                       const std::vector<std::string>& call_site_ids) const;
+    void record_call_sites(CallSiteRegistry& registry, const std::string& plugin_key,
+                           const std::vector<std::string>& call_site_ids);
+
     std::vector<AllowedRoot>             m_global_allowed_roots;
     std::vector<std::string>             m_denied_filenames;
     std::vector<std::string>             m_denied_path_keywords;
-    std::unordered_map<std::string, std::unordered_set<std::string>> m_approved_call_sites; // plugin_key -> call-site ids
+    CallSiteRegistry                     m_approved_call_sites;
+    CallSiteRegistry                     m_approved_network_call_sites;
 };
 
 // RAII guard that sets the current plugin key and capability name, restoring the previous

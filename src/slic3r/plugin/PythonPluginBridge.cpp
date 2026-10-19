@@ -50,6 +50,7 @@ std::mutex g_registry_mutex;
 std::unordered_map<std::string, std::vector<py::object>> g_pending_capabilities;
 std::unordered_map<std::string, py::object> g_pending_package;
 std::unordered_map<std::string, std::vector<std::string>> g_pending_fs_read_permissions;
+std::unordered_map<std::string, std::vector<std::string>> g_pending_network_permissions;
 struct PluginInstanceHandle
 {
     // The C++ plugin interface points into a Python object. Keep both alive through one
@@ -89,6 +90,7 @@ void discard_pending_capture_without_python(const std::string& plugin_key)
     }
 
     g_pending_fs_read_permissions.erase(plugin_key);
+    g_pending_network_permissions.erase(plugin_key);
 }
 
 } // namespace
@@ -114,6 +116,7 @@ void PythonPluginBridge::begin_plugin_capture(const std::string& plugin_key)
         g_pending_capabilities.erase(plugin_key);
         g_pending_package.erase(plugin_key);
         g_pending_fs_read_permissions.erase(plugin_key);
+        g_pending_network_permissions.erase(plugin_key);
     }
     // From now until finalize/cancel, @orca.plugin and register_capability() calls made by
     // Python code on this thread are attributed to this plugin.
@@ -145,6 +148,7 @@ std::vector<CapturedCapability> PythonPluginBridge::finalize_plugin_capture(cons
             g_pending_capabilities.erase(capture_key);
             g_pending_package.erase(capture_key);
             g_pending_fs_read_permissions.erase(capture_key);
+            g_pending_network_permissions.erase(capture_key);
         };
 
         try {
@@ -194,6 +198,30 @@ std::vector<CapturedCapability> PythonPluginBridge::finalize_plugin_capture(cons
                 }
                 if (!granted) {
                     error = _u8L("Plugin filesystem read permission request denied");
+                    BOOST_LOG_TRIVIAL(warning) << error << " for key " << plugin_key;
+                    discard_pending_for_key();
+                    clear_active_key();
+                    return {};
+                }
+            }
+
+            std::vector<std::string> network_permissions;
+            {
+                std::lock_guard<std::mutex> lock(g_registry_mutex);
+                auto it = g_pending_network_permissions.find(capture_key);
+                if (it != g_pending_network_permissions.end()) {
+                    network_permissions = std::move(it->second);
+                    g_pending_network_permissions.erase(it);
+                }
+            }
+            if (!network_permissions.empty()) {
+                bool granted = false;
+                {
+                    py::gil_scoped_release release;
+                    granted = PluginAuditManager::instance().request_network_permissions(plugin_key, network_permissions);
+                }
+                if (!granted) {
+                    error = _u8L("Plugin network permission request denied");
                     BOOST_LOG_TRIVIAL(warning) << error << " for key " << plugin_key;
                     discard_pending_for_key();
                     clear_active_key();
@@ -323,6 +351,7 @@ void PythonPluginBridge::cancel_plugin_capture(const std::string& plugin_key)
         g_pending_capabilities.erase(plugin_key);
         g_pending_package.erase(plugin_key);
         g_pending_fs_read_permissions.erase(plugin_key);
+        g_pending_network_permissions.erase(plugin_key);
     }
 
     if (g_active_plugin_key == plugin_key)
@@ -350,6 +379,7 @@ void PythonPluginBridge::clear_pending_captures()
         }
         g_pending_package.clear();
         g_pending_fs_read_permissions.clear();
+        g_pending_network_permissions.clear();
         g_active_plugin_key.clear();
         return;
     }
@@ -359,6 +389,7 @@ void PythonPluginBridge::clear_pending_captures()
     g_pending_capabilities.clear();
     g_pending_package.clear();
     g_pending_fs_read_permissions.clear();
+    g_pending_network_permissions.clear();
     g_active_plugin_key.clear();
 }
 
@@ -558,24 +589,50 @@ void bind_python_api(pybind11::module_& m)
 
     m.def(
         "request_permissions",
-        [](const std::vector<std::string>& fs_read) {
+        [](const std::vector<std::string>& fs_read, const std::vector<std::string>& network) {
             if (g_active_plugin_key.empty())
                 throw py::value_error("request_permissions() called outside plugin discovery context");
 
-            std::lock_guard<std::mutex> lock(g_registry_mutex);
-            auto& requested = g_pending_fs_read_permissions[g_active_plugin_key];
+            // Validate and canonicalize everything before touching the pending registry, so a
+            // partially invalid call cannot leave a half-recorded request behind.
+            std::vector<std::string> normalized_network;
+            normalized_network.reserve(network.size());
+            for (const std::string& url : network) {
+                const std::string normalized = PluginAuditManager::normalize_network_url(url);
+                if (normalized.empty())
+                    throw py::value_error(
+                        "request_permissions(network=...) requires an http:// or https:// URL with a host");
+                if (std::find(normalized_network.begin(), normalized_network.end(), normalized) == normalized_network.end())
+                    normalized_network.push_back(normalized);
+            }
+
             for (const std::string& path : fs_read) {
                 if (path.empty())
                     throw py::value_error("request_permissions(fs_read=...) does not accept empty paths");
-                if (std::find(requested.begin(), requested.end(), path) == requested.end())
-                    requested.push_back(path);
+            }
+
+            std::lock_guard<std::mutex> lock(g_registry_mutex);
+            auto& requested_fs = g_pending_fs_read_permissions[g_active_plugin_key];
+            for (const std::string& path : fs_read) {
+                if (std::find(requested_fs.begin(), requested_fs.end(), path) == requested_fs.end())
+                    requested_fs.push_back(path);
+            }
+
+            if (!normalized_network.empty()) {
+                auto& requested_network = g_pending_network_permissions[g_active_plugin_key];
+                for (const std::string& entry : normalized_network) {
+                    if (std::find(requested_network.begin(), requested_network.end(), entry) == requested_network.end())
+                        requested_network.push_back(entry);
+                }
             }
         },
-        py::arg("fs_read") = std::vector<std::string>{},
-        R"pbdoc(Request filesystem read permissions while OrcaSlicer loads your module.
+        py::arg("fs_read") = std::vector<std::string>{}, py::arg("network") = std::vector<std::string>{},
+        R"pbdoc(Request permissions while OrcaSlicer loads your module.
 
-The host presents the request to the user after register_capabilities() returns. Denying the
-request aborts the plugin load.)pbdoc");
+`fs_read` lists filesystem paths to read. `network` lists http(s) URLs; each is reduced to its
+scheme and host, so one grant covers every path, query and port on that host. The host presents
+the requests to the user after register_capabilities() returns. Denying a request aborts the
+plugin load.)pbdoc");
 
     m.def("plugin", [](py::object cls) {
         if (g_active_plugin_key.empty())
