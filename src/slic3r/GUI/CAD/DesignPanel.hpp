@@ -130,7 +130,7 @@ public:
     void hydrate_from_model();
 
 private:
-    enum class Tool { None, Sketch, Extrude, Dressup, Hole, Thread, Shell, Revolve, Sweep, Pattern, Plane, Loft, Draft, Boolean, Cut, Insert, Axis, CoordSys, SurfaceExtrude, SurfaceRevolve, SurfaceLoft, SurfaceFill, SurfaceOffset, ThickenSurface, Transform, Mirror, Thicken, Rib, Project, DeleteFace, Helix, Mate };
+    enum class Tool { None, Sketch, Extrude, Dressup, Hole, Thread, Shell, Revolve, Sweep, Pattern, Plane, Loft, Draft, Boolean, Cut, Insert, Axis, CoordSys, SurfaceExtrude, SurfaceRevolve, SurfaceLoft, SurfaceFill, SurfaceOffset, ThickenSurface, Transform, Mirror, Thicken, Rib, Project, DeleteFace, Helix, Mate, Sheet };
     // Which numeric fields an expression can be bound to, per feature type. A member rather
     // than a file-static helper so Tool — 32 values of purely internal card state — does not
     // have to become part of this panel's public API just to be named in a signature.
@@ -206,6 +206,12 @@ private:
     void on_add_mirror();
     void on_add_thicken();
     void on_add_rib();
+    // Sheet metal: ONE card with a mode (rule / base flange / edge flange / contour flange / hem / unfold / refold).
+    void on_add_sheet();
+    void open_sheet(int mode);              // the ribbon verbs: preset the mode, check the document, open the card
+    void sheet_sync_mode();                 // show the rows of the chosen mode
+    void sheet_sync_edges();                // the "N edges picked" label
+    void load_sheet_feature(const CadFeature& f);
     void on_add_project();
     void on_add_delete_face();
     void on_add_helix();
@@ -470,6 +476,7 @@ private:
     wxSizer*  m_box_mirror{nullptr};
     wxSizer*  m_box_thicken{nullptr};
     wxSizer*  m_box_rib{nullptr};
+    wxSizer*  m_box_sheet{nullptr};
     wxSizer*  m_box_project{nullptr};
     wxSizer*  m_box_delete_face{nullptr};
     wxSizer*  m_box_helix{nullptr};
@@ -533,6 +540,7 @@ private:
     wxStaticText* m_hdr_mirror{nullptr};
     wxStaticText* m_hdr_thicken{nullptr};
     wxStaticText* m_hdr_rib{nullptr};
+    wxStaticText* m_hdr_sheet{nullptr};
     wxStaticText* m_hdr_project{nullptr};
     wxStaticText* m_hdr_delete_face{nullptr};
     wxStaticText* m_hdr_helix{nullptr};
@@ -749,6 +757,18 @@ private:
     wxSpinCtrl*       m_rib_entity{nullptr};         // entity index within the sketch
     wxSpinCtrlDouble* m_rib_thickness{nullptr};
     wxSpinCtrlDouble* m_rib_depth{nullptr};
+    // Sheet metal card.
+    ComboBox*         m_sheet_mode{nullptr};         // 0 rule, 1 base flange, 2 edge flange, 3 contour flange, 4 hem, 5 unfold, 6 refold
+    ComboBox*         m_sheet_sketch{nullptr};       // base / contour sketch (feature index in client data)
+    ComboBox*         m_sheet_unfold{nullptr};       // refold: the Unfold feature (feature index in client data)
+    wxSpinCtrlDouble *m_sheet_t{nullptr}, *m_sheet_r{nullptr}, *m_sheet_k{nullptr}, *m_sheet_gap{nullptr};
+    wxSpinCtrlDouble *m_sheet_height{nullptr}, *m_sheet_angle{nullptr}, *m_sheet_len{nullptr};
+    CheckBox*         m_sheet_flip{nullptr};
+    wxStaticText*     m_sheet_edges_label{nullptr};
+    wxStaticText*     m_sheet_len_label{nullptr};
+    wxStaticText*     m_sheet_hint{nullptr};
+    wxSizer *m_sheet_g_rule{nullptr}, *m_sheet_g_sketch{nullptr}, *m_sheet_g_edges{nullptr}, *m_sheet_g_flange{nullptr},
+            *m_sheet_g_len{nullptr}, *m_sheet_g_flip{nullptr}, *m_sheet_g_unfold{nullptr};
 
     // Project controls (project body edges onto a plane as sketch entities).
     ComboBox*         m_proj_source_body{nullptr};   // source body

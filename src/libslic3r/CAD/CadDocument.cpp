@@ -4640,7 +4640,8 @@ void CadDocument::route_feature(std::vector<CadBody>& bodies, const CadFeature& 
             bodies[size_t(t)].shape = SheetMetal::flat_shape(*SheetMetal::unfold(bodies[size_t(t)].shape, rule));
         } else {
             // the folded sheet is rebuilt from the state the Unfold started from, so a cached replay needs no side data
-            if (!m_in_replay || f.sm_ref < 0 || f.sm_ref >= int(m_pre_states.size()) || t >= int(m_pre_states[size_t(f.sm_ref)].size()))
+            // (m_pre_states also holds the last recompute, which is what a card's preview works from)
+            if (f.sm_ref < 0 || f.sm_ref >= int(m_pre_states.size()) || t >= int(m_pre_states[size_t(f.sm_ref)].size()))
                 throw std::runtime_error(_u8L("refold: the unfold it folds back is not available"));
             const auto un = SheetMetal::unfold(m_pre_states[size_t(f.sm_ref)][size_t(t)].shape, rule);
             bodies[size_t(t)].shape = SheetMetal::refold(*un, bodies[size_t(t)].shape);

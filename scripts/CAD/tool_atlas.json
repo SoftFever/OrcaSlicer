@@ -2242,6 +2242,143 @@
       "action": "key:V",
       "icon": "design_dimension",
       "hint": "Type the angle between two lines, or the distance between the two picks"
+    },
+    {
+      "id": "sheet_base",
+      "name": "Base flange",
+      "slot": "add",
+      "key": null,
+      "feature": "SheetBase",
+      "mcp": "sm_base",
+      "accepts": [
+        "none",
+        "sk_loop",
+        "sk_none"
+      ],
+      "needs": {
+        "sketches": 1
+      },
+      "refusal": "Create a sketch first",
+      "gui": true,
+      "action": "fly:sheet#0",
+      "icon": "design_sheet_base",
+      "hint": "A plate of the sheet thickness from a closed sketch"
+    },
+    {
+      "id": "sheet_flange",
+      "name": "Edge flange",
+      "slot": "add",
+      "key": null,
+      "feature": "SheetFlange",
+      "mcp": "sm_flange",
+      "accepts": [
+        "edge_str"
+      ],
+      "needs": {
+        "bodies": 1
+      },
+      "refusal": "Sheet metal needs a sheet body — make a base flange first",
+      "gui": true,
+      "action": "fly:sheet#1",
+      "icon": "design_sheet_flange",
+      "hint": "Bend a flange up from the picked end edges of the sheet"
+    },
+    {
+      "id": "sheet_contour",
+      "name": "Contour flange",
+      "slot": "add",
+      "key": null,
+      "feature": "SheetContour",
+      "mcp": "sm_contour",
+      "accepts": [
+        "none",
+        "sk_line",
+        "sk_none"
+      ],
+      "needs": {
+        "sketches": 1
+      },
+      "refusal": "Create a sketch first",
+      "gui": true,
+      "action": "fly:sheet#2",
+      "icon": "design_sheet_contour",
+      "hint": "A bent sheet from an open chain of lines"
+    },
+    {
+      "id": "sheet_hem",
+      "name": "Hem",
+      "slot": "add",
+      "key": null,
+      "feature": "SheetHem",
+      "mcp": "sm_hem",
+      "accepts": [
+        "edge_str"
+      ],
+      "needs": {
+        "bodies": 1
+      },
+      "refusal": "Sheet metal needs a sheet body — make a base flange first",
+      "gui": true,
+      "action": "fly:sheet#3",
+      "icon": "design_sheet_hem",
+      "hint": "Fold the end of a flange back over itself"
+    },
+    {
+      "id": "sheet_unfold",
+      "name": "Unfold",
+      "slot": "modify",
+      "key": null,
+      "feature": "SheetUnfold",
+      "mcp": "sm_unfold",
+      "accepts": [
+        "none",
+        "body_solid"
+      ],
+      "needs": {
+        "bodies": 1
+      },
+      "refusal": "Sheet metal needs a sheet body — make a base flange first",
+      "gui": true,
+      "action": "fly:sheet#4",
+      "icon": "design_sheet_unfold",
+      "hint": "Flatten every bend"
+    },
+    {
+      "id": "sheet_refold",
+      "name": "Refold",
+      "slot": "modify",
+      "key": null,
+      "feature": "SheetRefold",
+      "mcp": "sm_refold",
+      "accepts": [
+        "none",
+        "body_solid"
+      ],
+      "needs": {
+        "bodies": 1
+      },
+      "refusal": "Unfold the sheet first",
+      "gui": true,
+      "action": "fly:sheet#5",
+      "icon": "design_sheet_refold",
+      "hint": "Fold a flattened sheet back, carrying the cuts made while flat"
+    },
+    {
+      "id": "sheet_rule",
+      "name": "Sheet rule",
+      "slot": "add",
+      "key": null,
+      "feature": "SheetRule",
+      "mcp": "sm_rule",
+      "accepts": [
+        "none"
+      ],
+      "needs": {},
+      "refusal": null,
+      "gui": true,
+      "action": "fly:sheet#6",
+      "icon": "design_sheet_rule",
+      "hint": "Thickness, bend radius, K-factor and hem gap for the sheet features after it"
     }
   ],
   "chrome_only": {

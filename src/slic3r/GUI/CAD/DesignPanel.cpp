@@ -1145,6 +1145,24 @@ DesignPanel::DesignPanel(wxWindow* parent)
              }, 0},
         });
 
+        // Sheet metal: bent plate work. One card (Tool::Sheet) with the operation preset by the verb.
+        feat_dropdown("sheet", "design_sheet", _L("Sheet metal (rule / base flange / edge flange / contour flange / hem / unfold / refold)"), {
+            {"design_sheet_base", _L("Base flange"), _L("A plate of the sheet thickness from a closed sketch"),
+             [this] { open_sheet(1); }, 0},
+            {"design_sheet_flange", _L("Edge flange"), _L("Bend a flange up from the picked end edges of the sheet"),
+             [this] { open_sheet(2); }, 0},
+            {"design_sheet_contour", _L("Contour flange"), _L("A bent sheet from an open chain of lines"),
+             [this] { open_sheet(3); }, 0},
+            {"design_sheet_hem", _L("Hem"), _L("Fold the end of a flange back over itself"),
+             [this] { open_sheet(4); }, 0},
+            {"design_sheet_unfold", _L("Unfold"), _L("Flatten every bend"),
+             [this] { open_sheet(5); }, 0},
+            {"design_sheet_refold", _L("Refold"), _L("Fold a flattened sheet back, carrying the cuts made while flat"),
+             [this] { open_sheet(6); }, 0},
+            {"design_sheet_rule", _L("Sheet rule"), _L("Thickness, bend radius, K-factor and hem gap for the sheet features after it"),
+             [this] { open_sheet(0); }, 0},
+        });
+
         // Hole / Thread — drilling into a solid (both face-aware)
         feat_dropdown("hole", "design_hole", _L("Hole / thread"), {
             {"design_hole", _L("Hole"), _L("Drill a hole, centered on a picked face or placed on a plane"),
@@ -2805,6 +2823,86 @@ DesignPanel::DesignPanel(wxWindow* parent)
     }
     cards->Add(m_box_rib, 0, wxEXPAND);
 
+    // --- Sheet metal (rule, base flange, edge flange, contour flange, hem, unfold, refold) ---
+    m_box_sheet = new wxBoxSizer(wxVERTICAL);
+    m_box_sheet->Add(card_header(m_cards, "design_sheet", _L("Sheet metal"), m_hdr_sheet), 0, wxLEFT | wxRIGHT | wxTOP, 12);
+    m_box_sheet->Add(new wxStaticLine(m_cards), 0, wxEXPAND | wxALL, 8);
+    {
+        auto lab = [&](const wxString& s) { return new wxStaticText(m_cards, wxID_ANY, s); };
+        auto spin = [&](double v, double lo, double hi) {
+            auto* sp = make_spin(m_cards, v, lo, hi);
+            sp->Bind(wxEVT_SPINCTRLDOUBLE, [this](wxSpinDoubleEvent&) { refresh_preview(); });
+            return sp;
+        };
+        auto group = [&]() { auto* g = two_col_form(); m_box_sheet->Add(g, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12); return g; };
+
+        auto* gm = group();
+        m_sheet_mode = make_combo(m_cards);
+        m_sheet_mode->Append(_L("Rule"));
+        m_sheet_mode->Append(_L("Base flange"));
+        m_sheet_mode->Append(_L("Edge flange"));
+        m_sheet_mode->Append(_L("Contour flange"));
+        m_sheet_mode->Append(_L("Hem"));
+        m_sheet_mode->Append(_L("Unfold"));
+        m_sheet_mode->Append(_L("Refold"));
+        m_sheet_mode->SetSelection(1);
+        m_sheet_mode->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) {
+            sheet_sync_mode();
+            m_form->Layout(); m_form->FitInside();
+            refresh_preview();
+        });
+        gm->Add(lab(_L("Operation")), 0, wxALIGN_CENTER_VERTICAL);
+        gm->Add(m_sheet_mode, 0, wxEXPAND);
+
+        auto* gr = group(); m_sheet_g_rule = gr;
+        m_sheet_t = spin(2.5, 0.01, 1000.0);
+        gr->Add(lab(_L("Thickness")), 0, wxALIGN_CENTER_VERTICAL);  gr->Add(spin_frame(m_sheet_t), 0, wxEXPAND);
+        m_sheet_r = spin(0.0, 0.0, 1000.0);
+        gr->Add(lab(_L("Bend radius (0 = thickness)")), 0, wxALIGN_CENTER_VERTICAL);  gr->Add(spin_frame(m_sheet_r), 0, wxEXPAND);
+        m_sheet_k = spin(0.44, 0.0, 1.0);
+        gr->Add(lab(_L("K-factor")), 0, wxALIGN_CENTER_VERTICAL);  gr->Add(spin_frame(m_sheet_k), 0, wxEXPAND);
+        m_sheet_gap = spin(0.01, 0.0, 100.0);
+        gr->Add(lab(_L("Hem gap")), 0, wxALIGN_CENTER_VERTICAL);  gr->Add(spin_frame(m_sheet_gap), 0, wxEXPAND);
+
+        auto* gs = group(); m_sheet_g_sketch = gs;
+        m_sheet_sketch = make_combo(m_cards);
+        m_sheet_sketch->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
+        gs->Add(lab(_L("Sketch")), 0, wxALIGN_CENTER_VERTICAL);  gs->Add(m_sheet_sketch, 0, wxEXPAND);
+
+        auto* ge = group(); m_sheet_g_edges = ge;
+        m_sheet_edges_label = lab(_L("(click the sheet's end edge)"));
+        ge->Add(lab(_L("Edges")), 0, wxALIGN_CENTER_VERTICAL);  ge->Add(m_sheet_edges_label, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto* gf = group(); m_sheet_g_flange = gf;
+        m_sheet_height = spin(20.0, 0.01, 100000.0);
+        gf->Add(lab(_L("Height")), 0, wxALIGN_CENTER_VERTICAL);  gf->Add(spin_frame(m_sheet_height), 0, wxEXPAND);
+        m_sheet_angle = spin(90.0, 1.0, 170.0);
+        gf->Add(lab(_L("Angle")), 0, wxALIGN_CENTER_VERTICAL);  gf->Add(spin_frame(m_sheet_angle), 0, wxEXPAND);
+
+        auto* gl = group(); m_sheet_g_len = gl;
+        m_sheet_len = spin(20.0, 0.01, 100000.0);
+        m_sheet_len_label = lab(_L("Width"));
+        gl->Add(m_sheet_len_label, 0, wxALIGN_CENTER_VERTICAL);  gl->Add(spin_frame(m_sheet_len), 0, wxEXPAND);
+
+        auto* gu = group(); m_sheet_g_unfold = gu;
+        m_sheet_unfold = make_combo(m_cards);
+        m_sheet_unfold->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { refresh_preview(); });
+        gu->Add(lab(_L("Unfold")), 0, wxALIGN_CENTER_VERTICAL);  gu->Add(m_sheet_unfold, 0, wxEXPAND);
+
+        m_sheet_flip = new CheckBox(m_cards);
+        m_sheet_flip->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) { refresh_preview(); });
+        auto* frow = new wxBoxSizer(wxHORIZONTAL);
+        frow->Add(lab(_L("Flip direction")), 0, wxALIGN_CENTER_VERTICAL);
+        frow->AddStretchSpacer();
+        frow->Add(m_sheet_flip, 0, wxALIGN_CENTER_VERTICAL);
+        m_sheet_g_flip = frow;
+        m_box_sheet->Add(frow, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 12);
+
+        m_sheet_hint = lab(wxString());
+        m_box_sheet->Add(m_sheet_hint, 0, wxLEFT | wxRIGHT | wxTOP, 12);
+    }
+    cards->Add(m_box_sheet, 0, wxEXPAND);
+
     // --- Project (project body edges onto a plane as sketch entities) ---
     m_box_project = new wxBoxSizer(wxVERTICAL);
     m_box_project->Add(card_header(m_cards, "design_sketch", _L_CONTEXT("Project", "Design"), m_hdr_project), 0, wxLEFT | wxRIGHT | wxTOP, 12);
@@ -3930,6 +4028,7 @@ DesignPanel::DesignPanel(wxWindow* parent)
         // If the Fillet/Chamfer card is open, re-anchor (or drop) the radius arrow on the new pick
         // and rebuild the ghost — once an edge is picked the preview-only mode hides the base body.
         if (m_active == Tool::Dressup) { sync_dressup_target(); update_fillet_gizmo(); refresh_preview(); }
+        if (m_active == Tool::Sheet) { sheet_sync_edges(); refresh_preview(); }
         // Boolean card open: the VIEWPORT is how you choose the two operands. Until now they
         // could only come from two combos — the one control the charter names for this tool
         // (e1p item 4), and the same pair 7xx caught silently resolving every row to
@@ -4832,7 +4931,7 @@ void DesignPanel::sync_sketch_display()
     // consumed; collect those so that loop is hidden from its source sketch overlay.
     std::vector<std::vector<SketchEntity>> consumed_loops;
     for (const CadFeature& f : m_doc.features) {
-        if (f.type != CadFeatureType::Extrude || !f.enabled) continue;
+        if ((f.type != CadFeatureType::Extrude && f.type != CadFeatureType::SmBase && f.type != CadFeatureType::SmContourFlange) || !f.enabled) continue;
         if (f.sketch_ref >= 0 && f.sketch_ref < n)        consumed[f.sketch_ref] = true;
         else if (f.sketch_ref < 0 && !f.entities.empty()) consumed_loops.push_back(f.entities);
     }
@@ -6054,6 +6153,152 @@ void DesignPanel::on_add_rib()
     m_feature_counter++;
     m_doc.add_rib(sketch_ref, m_rib_entity->GetValue(), m_rib_thickness->GetValue(),
                   m_rib_depth->GetValue(), target, feature_name(_L("Rib")));
+    if (!recompute_guarded(_L("Rebuilding model…")))
+        set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
+    else
+        set_status_ok();
+    refresh_tree();
+}
+
+static const CadFeatureType kSheetTypes[7] = { CadFeatureType::SmRule, CadFeatureType::SmBase, CadFeatureType::SmEdgeFlange,
+                                              CadFeatureType::SmContourFlange, CadFeatureType::SmHem, CadFeatureType::SmUnfold,
+                                              CadFeatureType::SmRefold };
+
+void DesignPanel::sheet_sync_edges()
+{
+    if (m_sheet_edges_label == nullptr) return;
+    const size_t n = dressup_edges().size();
+    m_sheet_edges_label->SetLabel(n == 0 ? _L("(click the sheet's end edge)")
+                                         : wxString::Format(n == 1 ? _L("%zu edge picked") : _L("%zu edges picked"), n));
+}
+
+void DesignPanel::sheet_sync_mode()
+{
+    const int mode = std::clamp(m_sheet_mode->GetSelection(), 0, 6);
+    auto show = [&](wxSizer* g, bool on) { m_box_sheet->Show(g, on, true); };
+    show(m_sheet_g_rule,   mode == 0);
+    show(m_sheet_g_sketch, mode == 1 || mode == 3);
+    show(m_sheet_g_edges,  mode == 2 || mode == 4);
+    show(m_sheet_g_flange, mode == 2);
+    show(m_sheet_g_len,    mode == 3 || mode == 4);
+    show(m_sheet_g_flip,   mode == 1 || mode == 2 || mode == 3);
+    show(m_sheet_g_unfold, mode == 6);
+    m_sheet_len_label->SetLabel(mode == 4 ? _L("Hem length") : _L("Width"));
+    m_sheet_mode->Enable(m_edit_index < 0);   // a feature keeps its kind while it is edited
+    static const wxString hints[7] = {
+        _L("Sets the thickness, bend radius, K-factor and hem gap for every sheet-metal feature after it."),
+        _L("Pick a closed sketch: the plate grows along the sketch normal by the rule thickness."),
+        _L("Click the end edges of the sheet (Shift+click for several). The plate is trimmed back by the bend setback; the height is measured along the outer face."),
+        _L("Pick a sketch of lines: the sheet runs along them, thickness to the right of travel, extruded by the width."),
+        _L("Click the end edge of a flange, on the face to fold away from. The length is measured to the outside of the fold."),
+        _L("Flattens every bend of the sheet. The piece with the largest flat face stays where it is."),
+        _L("Folds the flattened sheet back. Cuts made while it was flat follow it."),
+    };
+    {   // wxStaticText::Wrap() is unreliable on a label rewritten after the card is shown, so break the lines by hand
+        wxString out, line;
+        for (const wxString& word : wxSplit(hints[mode], ' ')) {
+            if (!line.empty() && line.length() + 1 + word.length() > 40) { out += line + "\n"; line.clear(); }
+            line += (line.empty() ? wxString() : wxString(" ")) + word;
+        }
+        m_sheet_hint->SetLabel(out + line);
+    }
+
+    // pickers
+    if (mode == 1 || mode == 3) {
+        int keep = -1;
+        if (m_sheet_sketch->GetSelection() != wxNOT_FOUND)
+            keep = int(reinterpret_cast<intptr_t>(m_sheet_sketch->GetClientData(m_sheet_sketch->GetSelection())));
+        m_sheet_sketch->Clear();
+        int pre = wxNOT_FOUND, last = wxNOT_FOUND;
+        for (int i = 0; i < int(m_doc.features.size()); ++i)
+            if (m_doc.features[i].type == CadFeatureType::Sketch) {
+                last = combo_append_index(m_sheet_sketch, wxString::FromUTF8(m_doc.features[i].name), i);
+                if (i == keep) pre = last;
+            }
+        m_sheet_sketch->SetSelection(pre != wxNOT_FOUND ? pre : last);
+    }
+    if (mode == 6) {
+        const int keep = m_sheet_unfold->GetSelection() != wxNOT_FOUND
+                       ? int(reinterpret_cast<intptr_t>(m_sheet_unfold->GetClientData(m_sheet_unfold->GetSelection()))) : -1;
+        m_sheet_unfold->Clear();
+        int pre = wxNOT_FOUND, last = wxNOT_FOUND;
+        for (int i = 0; i < int(m_doc.features.size()); ++i)
+            if (m_doc.features[i].type == CadFeatureType::SmUnfold) {
+                last = combo_append_index(m_sheet_unfold, wxString::FromUTF8(m_doc.features[i].name), i);
+                if (i == keep) pre = last;
+            }
+        m_sheet_unfold->SetSelection(pre != wxNOT_FOUND ? pre : last);
+    }
+    sheet_sync_edges();
+}
+
+void DesignPanel::open_sheet(int mode)
+{
+    const bool needs_body = mode == 2 || mode >= 4;
+    if (needs_body && m_doc.bodies.empty()) {
+        set_status(StatusKind::Error, _L("Sheet metal needs a sheet body — make a base flange first"));
+        return;
+    }
+    if (mode == 6) {
+        bool any = false;
+        for (const auto& f : m_doc.features) any = any || f.type == CadFeatureType::SmUnfold;
+        if (!any) { set_status(StatusKind::Error, _L("Unfold the sheet first")); return; }
+    }
+    if ((mode == 1 || mode == 3)) {
+        bool any = false;
+        for (const auto& f : m_doc.features) any = any || f.type == CadFeatureType::Sketch;
+        if (!any) { set_status(StatusKind::Error, _L("Create a sketch first")); return; }
+    }
+    m_sheet_mode->SetSelection(mode);
+    sheet_sync_mode();
+    open_tool(Tool::Sheet);
+}
+
+void DesignPanel::load_sheet_feature(const CadFeature& f)
+{
+    int mode = 1;
+    for (int i = 0; i < 7; ++i) if (kSheetTypes[i] == f.type) mode = i;
+    m_sheet_mode->SetSelection(mode);
+    m_sheet_t->SetValue(f.sm_thickness);
+    m_sheet_r->SetValue(f.sm_radius > 0 ? f.sm_radius : 0.0);
+    m_sheet_k->SetValue(f.sm_k);
+    m_sheet_gap->SetValue(f.sm_gap);
+    m_sheet_height->SetValue(f.distance > 0 ? f.distance : 20.0);
+    m_sheet_len->SetValue(f.distance > 0 ? f.distance : 20.0);
+    m_sheet_angle->SetValue(f.sm_angle);
+    m_sheet_flip->SetValue(f.flip);
+    if (!f.dressup_edges.empty()) {
+        m_sel_solid_edge  = f.dressup_edges.back();
+        m_sel_solid_edges = f.dressup_edge_ids();
+    }
+    sheet_sync_mode();
+    auto select = [](ComboBox* c, int idx) {
+        for (unsigned i = 0; i < c->GetCount(); ++i)
+            if (int(reinterpret_cast<intptr_t>(c->GetClientData(i))) == idx) { c->SetSelection(int(i)); return; }
+    };
+    select(m_sheet_sketch, f.sketch_ref);
+    select(m_sheet_unfold, f.sm_ref);
+}
+
+void DesignPanel::on_add_sheet()
+{
+    const CadFeature c = build_candidate(Tool::Sheet);
+    const int mode = std::clamp(m_sheet_mode->GetSelection(), 0, 6);
+    if ((mode == 1 || mode == 3) && c.sketch_ref < 0) { set_status(StatusKind::Warning, _L("Pick a sketch first")); return; }
+    if ((mode == 2 || mode == 4) && c.dressup_edges.empty()) { set_status(StatusKind::Warning, _L("Click the sheet's end edge first")); return; }
+    if (mode == 6 && c.sm_ref < 0) { set_status(StatusKind::Warning, _L("Pick the unfold to fold back")); return; }
+    m_feature_counter++;
+    int idx = -1;
+    switch (mode) {
+    case 0: idx = m_doc.add_sm_rule(c.sm_thickness, c.sm_radius, c.sm_k, c.sm_gap, feature_name(_L("Sheet rule"))); break;
+    case 1: idx = m_doc.add_sm_base(c.sketch_ref, c.flip, feature_name(_L("Base flange"))); break;
+    case 2: idx = m_doc.add_sm_edge_flange(c.dressup_edges, c.distance, c.sm_angle, c.flip, feature_name(_L("Edge flange"))); break;
+    case 3: idx = m_doc.add_sm_contour_flange(c.sketch_ref, c.distance, c.flip, feature_name(_L("Contour flange"))); break;
+    case 4: idx = m_doc.add_sm_hem(c.dressup_edges.front(), c.distance, feature_name(_L("Hem"))); break;
+    case 5: idx = m_doc.add_sm_unfold(feature_name(_L("Unfold"))); break;
+    default: idx = m_doc.add_sm_refold(c.sm_ref, feature_name(_L("Refold"))); break;
+    }
+    if (idx >= 0 && (mode == 2 || mode >= 4)) m_doc.features[size_t(idx)].target_body = c.target_body;
     if (!recompute_guarded(_L("Rebuilding model…")))
         set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
     else
@@ -7650,6 +7895,13 @@ const char* DesignPanel::tree_icon_for(CadFeatureType t)
     case CadFeatureType::Transform:
     case CadFeatureType::Mirror:
     case CadFeatureType::Thicken:
+    case CadFeatureType::SmRule:
+    case CadFeatureType::SmBase:
+    case CadFeatureType::SmEdgeFlange:
+    case CadFeatureType::SmContourFlange:
+    case CadFeatureType::SmHem:
+    case CadFeatureType::SmUnfold:
+    case CadFeatureType::SmRefold:       return "design_sheet";
     case CadFeatureType::Rib:
     case CadFeatureType::SurfaceExtrude:
     case CadFeatureType::SurfaceRevolve:
@@ -10384,6 +10636,15 @@ void DesignPanel::load_feature_into_dialog(const CadFeature& f)
         m_rib_depth->SetValue(f.rib_depth);
         break;
     }
+    case CadFeatureType::SmRule:
+    case CadFeatureType::SmBase:
+    case CadFeatureType::SmEdgeFlange:
+    case CadFeatureType::SmContourFlange:
+    case CadFeatureType::SmHem:
+    case CadFeatureType::SmUnfold:
+    case CadFeatureType::SmRefold:
+        load_sheet_feature(f);
+        break;
     case CadFeatureType::Project: {
         fill_project_sources(m_edit_index, f.project_from_sketch,
                              f.project_from_sketch ? f.project_source_sketch : f.project_source_body);
@@ -10599,6 +10860,17 @@ void DesignPanel::on_edit_feature()
         m_edit_index = sel;
         load_feature_into_dialog(f);
         open_tool(Tool::Rib);
+        break;
+    case CadFeatureType::SmRule:
+    case CadFeatureType::SmBase:
+    case CadFeatureType::SmEdgeFlange:
+    case CadFeatureType::SmContourFlange:
+    case CadFeatureType::SmHem:
+    case CadFeatureType::SmUnfold:
+    case CadFeatureType::SmRefold:
+        m_edit_index = sel;
+        load_feature_into_dialog(f);
+        open_tool(Tool::Sheet);
         break;
     case CadFeatureType::Project:
         m_edit_index = sel;
@@ -11025,6 +11297,32 @@ CadFeature DesignPanel::build_candidate(Tool t) const
         f.rib_depth      = m_rib_depth->GetValue();
         break;
     }
+    case Tool::Sheet: {
+        static const CadFeatureType kTypes[] = { CadFeatureType::SmRule, CadFeatureType::SmBase, CadFeatureType::SmEdgeFlange,
+                                                 CadFeatureType::SmContourFlange, CadFeatureType::SmHem, CadFeatureType::SmUnfold,
+                                                 CadFeatureType::SmRefold };
+        const int mode = std::clamp(m_sheet_mode->GetSelection(), 0, 6);
+        f.type = kTypes[mode];
+        auto picked = [](ComboBox* c) {
+            const int sel = c->GetSelection();
+            return sel != wxNOT_FOUND ? int(reinterpret_cast<intptr_t>(c->GetClientData(sel))) : -1;
+        };
+        switch (mode) {
+        case 0:
+            f.sm_thickness = m_sheet_t->GetValue();
+            f.sm_radius    = m_sheet_r->GetValue() > 1e-9 ? m_sheet_r->GetValue() : -1.0;
+            f.sm_k         = m_sheet_k->GetValue();
+            f.sm_gap       = m_sheet_gap->GetValue();
+            break;
+        case 1: f.sketch_ref = picked(m_sheet_sketch); f.flip = m_sheet_flip->GetValue(); f.mode = BooleanMode::New; break;
+        case 2: f.dressup_edges = dressup_edges(); f.distance = m_sheet_height->GetValue(); f.sm_angle = m_sheet_angle->GetValue(); f.flip = m_sheet_flip->GetValue(); break;
+        case 3: f.sketch_ref = picked(m_sheet_sketch); f.distance = m_sheet_len->GetValue(); f.flip = m_sheet_flip->GetValue(); f.mode = BooleanMode::New; break;
+        case 4: { const std::vector<int> e = dressup_edges(); if (!e.empty()) f.dressup_edges = { e.front() }; f.distance = m_sheet_len->GetValue(); break; }
+        case 6: f.sm_ref = picked(m_sheet_unfold); break;
+        default: break;
+        }
+        break;
+    }
     case Tool::Project: {
         f.type = CadFeatureType::Project;
         const int sel = m_proj_source_body->GetSelection();
@@ -11216,6 +11514,11 @@ bool DesignPanel::mcp_card_open(const std::string& card)
     else if (card == "shell")    open_tool(Tool::Shell);
     else if (card == "draft")    open_tool(Tool::Draft);
     else if (card == "pattern")  open_tool(Tool::Pattern);
+    else if (card.rfind("sheet", 0) == 0) {   // "sheet" = base flange, "sheet:N" = mode N
+        const int mode = card.size() > 6 ? std::atoi(card.c_str() + 6) : 1;
+        open_sheet(std::clamp(mode, 0, 6));
+        if (m_active != Tool::Sheet) return false;
+    }
     else return false;
     update_action_bar();
     refresh_preview();
@@ -11255,6 +11558,15 @@ bool DesignPanel::mcp_card_set(const std::string& key, double v)
     if (key == "count2")          return spin(m_pattern_count2);
     if (key == "spacing2")        return spin(m_pattern_spacing2);
     if (key == "mirror_offset")   return spin(m_pattern_mirror_off);
+    if (key == "sheet_thickness") return spin(m_sheet_t);
+    if (key == "sheet_radius")    return spin(m_sheet_r);
+    if (key == "sheet_k")         return spin(m_sheet_k);
+    if (key == "sheet_gap")       return spin(m_sheet_gap);
+    if (key == "sheet_height")    return spin(m_sheet_height);
+    if (key == "sheet_angle")     return spin(m_sheet_angle);
+    if (key == "sheet_length")    return spin(m_sheet_len);
+    if (key == "sheet_flip")      { if (!m_sheet_flip) return false; m_sheet_flip->SetValue(v != 0.0); refresh_preview(); return true; }
+    if (key == "sheet_mode")      { if (!combo(m_sheet_mode)) return false; sheet_sync_mode(); m_form->Layout(); refresh_preview(); return true; }
     return false;
 }
 
@@ -12310,7 +12622,8 @@ void DesignPanel::refresh_preview()
     // no geometry", which is what Axis / CoordSys / Helix / Project did on an empty document.
     // route_feature() skips these for the same reason, so the two agree on what is not a solid.
     if (m_active == Tool::Sketch  || m_active == Tool::Plane   || m_active == Tool::Axis ||
-        m_active == Tool::CoordSys || m_active == Tool::Helix   || m_active == Tool::Project) {
+        m_active == Tool::CoordSys || m_active == Tool::Helix   || m_active == Tool::Project ||
+        (m_active == Tool::Sheet && m_sheet_mode && m_sheet_mode->GetSelection() == 0)) {   // a sheet rule has no geometry either
         m_viewport->clear_preview();
         wxString ready;
         switch (m_active) {
@@ -12319,6 +12632,7 @@ void DesignPanel::refresh_preview()
         case Tool::CoordSys: ready = _L("Coordinate system ready"); break;
         case Tool::Helix:    ready = _L("Helix ready");     break;
         case Tool::Project:  ready = _L("Project ready");   break;
+        case Tool::Sheet:    ready = _L("Sheet rule ready"); break;
         default:             ready = _L("Sketch ready");    break;
         }
         set_status(StatusKind::Ok, ready);
@@ -12552,6 +12866,7 @@ void DesignPanel::open_tool(Tool t)
     s->Show(m_box_mirror,       t == Tool::Mirror,         true);
     s->Show(m_box_thicken,      t == Tool::Thicken,        true);
     s->Show(m_box_rib,          t == Tool::Rib,            true);
+    s->Show(m_box_sheet,        t == Tool::Sheet,          true);
     s->Show(m_box_project,      t == Tool::Project,        true);
     s->Show(m_box_delete_face,  t == Tool::DeleteFace,     true);
     s->Show(m_box_helix,        t == Tool::Helix,          true);
@@ -12670,6 +12985,7 @@ void DesignPanel::open_tool(Tool t)
     if (t == Tool::Shell && m_edit_index < 0) { m_shell_extra.clear(); sync_face_list_labels(); }
     if (t == Tool::Draft && m_edit_index < 0) { m_draft_extra.clear(); sync_face_list_labels(); }
     if (t == Tool::Pattern) { populate_pattern_features(); sync_pattern_mode(); }
+    if (t == Tool::Sheet) sheet_sync_mode();   // the box was just shown recursively: hide the rows of the other operations again
     if (t == Tool::Dressup && m_edit_index < 0) {   // a fresh fillet starts as a plain constant-radius one
         m_dressup_law->SetSelection(0);
         m_dressup_law->Enable(m_dressup_type->GetSelection() == 0);
@@ -12740,6 +13056,7 @@ void DesignPanel::open_tool(Tool t)
     case Tool::Mirror:      m_hdr_mirror->SetLabel(title(_L("Mirror")));         break;
     case Tool::Thicken:     m_hdr_thicken->SetLabel(title(_L("Thicken")));       break;
     case Tool::Rib:         m_hdr_rib->SetLabel(title(_L_CONTEXT("Rib", "Design")));               break;
+    case Tool::Sheet:       m_hdr_sheet->SetLabel(title(_L("Sheet metal")));                       break;
     case Tool::Project:     m_hdr_project->SetLabel(title(_L_CONTEXT("Project", "Design")));       break;
     case Tool::DeleteFace:  m_hdr_delete_face->SetLabel(title(_L("Delete Face"))); break;
     case Tool::Helix:       m_hdr_helix->SetLabel(title(_L("Helix")));           break;
@@ -12909,6 +13226,7 @@ void DesignPanel::confirm_tool()
     case Tool::Mirror:       on_add_mirror();       break;
     case Tool::Thicken:      on_add_thicken();      break;
     case Tool::Rib:          on_add_rib();          break;
+    case Tool::Sheet:        on_add_sheet();        break;
     case Tool::Project:      on_add_project();      break;
     case Tool::DeleteFace:   on_add_delete_face();  break;
     case Tool::Helix:        on_add_helix();        break;

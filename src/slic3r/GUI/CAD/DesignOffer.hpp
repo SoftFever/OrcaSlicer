@@ -205,8 +205,15 @@ static const OfferVerb kOfferVerbs[] = {
     {"sk_length", L_CONTEXT("Length…", "Design"), 7, "V", "key:V", nullptr, 0x00010000u, 0, 0, false, true, nullptr, "design_dimension", L("Type the length of this line")},
     {"sk_radius", L_CONTEXT("Radius / diameter…", "Design"), 7, "V", "key:V", nullptr, 0x00020000u, 0, 0, false, true, nullptr, "design_dimension", L("Type the radius of this arc, or the diameter of this circle")},
     {"sk_angdist", L_CONTEXT("Angle / distance…", "Design"), 7, "V", "key:V", nullptr, 0x00080000u, 0, 0, false, true, nullptr, "design_dimension", L("Type the angle between two lines, or the distance between the two picks")},
+    {"sheet_base", L_CONTEXT("Base flange", "Design"), 1, nullptr, "fly:sheet#0", L("Create a sketch first"), 0x0000c001u, 0, 1, false, false, nullptr, "design_sheet_base", L("A plate of the sheet thickness from a closed sketch")},
+    {"sheet_flange", L_CONTEXT("Edge flange", "Design"), 1, nullptr, "fly:sheet#1", L("Sheet metal needs a sheet body — make a base flange first"), 0x00000010u, 1, 0, false, false, nullptr, "design_sheet_flange", L("Bend a flange up from the picked end edges of the sheet")},
+    {"sheet_contour", L_CONTEXT("Contour flange", "Design"), 1, nullptr, "fly:sheet#2", L("Create a sketch first"), 0x00018001u, 0, 1, false, false, nullptr, "design_sheet_contour", L("A bent sheet from an open chain of lines")},
+    {"sheet_hem", L_CONTEXT("Hem", "Design"), 1, nullptr, "fly:sheet#3", L("Sheet metal needs a sheet body — make a base flange first"), 0x00000010u, 1, 0, false, false, nullptr, "design_sheet_hem", L("Fold the end of a flange back over itself")},
+    {"sheet_unfold", L_CONTEXT("Unfold", "Design"), 7, nullptr, "fly:sheet#4", L("Sheet metal needs a sheet body — make a base flange first"), 0x00000081u, 1, 0, false, false, nullptr, "design_sheet_unfold", L("Flatten every bend")},
+    {"sheet_refold", L_CONTEXT("Refold", "Design"), 7, nullptr, "fly:sheet#5", L("Unfold the sheet first"), 0x00000081u, 1, 0, false, false, nullptr, "design_sheet_refold", L("Fold a flattened sheet back, carrying the cuts made while flat")},
+    {"sheet_rule", L_CONTEXT("Sheet rule", "Design"), 1, nullptr, "fly:sheet#6", nullptr, 0x00000001u, 0, 0, false, false, nullptr, "design_sheet_rule", L("Thickness, bend radius, K-factor and hem gap for the sheet features after it")},
 };
-static const int kOfferVerbCount = 94;
+static const int kOfferVerbCount = 101;
 
 }} // namespace Slic3r::GUI
 
