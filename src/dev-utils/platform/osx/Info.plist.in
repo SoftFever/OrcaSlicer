@@ -22,9 +22,9 @@
   <string>????</string>
   <key>CFBundleVersion</key>
   <string>@SLIC3R_BUILD_ID@</string>
-  <key>CFBundleURLTypes</key>
   <key>ATSApplicationFontsPath</key>
   <string>fonts/</string>
+  <key>CFBundleURLTypes</key>
   <array>
     <dict>
       <key>CFBundleURLName</key>
