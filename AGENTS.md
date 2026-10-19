@@ -117,4 +117,4 @@ See `.claude/skills/orca-translations/references/source-audit.md` for the full c
 
 ## Design tab (CAD) over MCP
 
-- To drive the Design tab from an agent (sketches, features, variables, export), use the skill `skills/orca-cad-modeling/SKILL.md`; the app lists its own tools through `describe_tools`. The fields `set_feature_expr` can bind are in `docs/CAD/mcp_bindable_fields.md`, generated from the app by `scripts/CAD/gen_bindable_fields.py`.
+- To drive the Design tab from an agent (sketches, features, variables, export), use the skills `skills/orca-cad-modeling/SKILL.md` (the verbs) and `skills/orca-cad-ai-assisted-design/SKILL.md` (the parametric workflow and its traps); the app lists its own tools through `describe_tools`. The fields `set_feature_expr` can bind are in `docs/CAD/mcp_bindable_fields.md`, generated from the app by `scripts/CAD/gen_bindable_fields.py`.
