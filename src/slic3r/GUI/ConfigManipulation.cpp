@@ -1036,8 +1036,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool have_raft = config->opt_int("raft_layers") > 0 && !is_belt_printer;
     if (is_belt_printer)
-        toggle_field("raft_layers", false);
+        toggle_field("raft_layers", false, -1, _L("Rafts are unavailable for belt printers."));
     bool have_support_material = config->opt_bool("enable_support") || have_raft;
+    const wxString support_reason = is_belt_printer ? _L("Enable support to edit this setting.") :
+                                                    _L("Enable support or add raft layers to edit this setting.");
 
     SupportType support_type = config->opt_enum<SupportType>("support_type");
     bool have_support_interface = config->opt_int("support_interface_top_layers") > 0 || config->opt_int("support_interface_bottom_layers") > 0;
@@ -1049,9 +1051,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
         "bridge_no_support", "max_bridge_length", "support_top_z_distance", "support_bottom_z_distance",
         "support_type", "support_on_build_plate_only", "support_critical_regions_only", "support_interface_not_for_body",
         "support_object_xy_distance", "support_object_first_layer_gap", "independent_support_layer_height"})
-        toggle_field(el, have_support_material);
-    toggle_field("support_threshold_angle", have_support_material && is_auto(support_type));
-    toggle_field("support_threshold_overlap", config->opt_int("support_threshold_angle") == 0 && have_support_material && is_auto(support_type));
+        toggle_field(el, have_support_material, -1, support_reason);
+    toggle_field("support_threshold_angle", have_support_material && is_auto(support_type), -1,
+                 !have_support_material ? support_reason : _L("Select an automatic support type to edit the threshold angle."));
+    toggle_field("support_threshold_overlap", config->opt_int("support_threshold_angle") == 0 && have_support_material && is_auto(support_type), -1,
+                 !have_support_material ? support_reason : _L("Select an automatic support type and set the threshold angle to zero to edit threshold overlap."));
     //toggle_field("support_closing_radius", have_support_material && support_style == smsSnug);
 
     bool support_is_tree = config->opt_bool("enable_support") && is_tree(support_type);
@@ -1059,34 +1063,40 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool support_is_normal_tree = support_is_tree && !support_is_organic;
 
     // hide settings that are not used by tree supports
-    toggle_line("support_threshold_overlap", !support_is_tree); // ORCA: tree supports do not use Threshold Overlap
+    toggle_line("support_threshold_overlap", !support_is_tree, -1, _L("Threshold overlap is unavailable for tree supports.")); // ORCA: tree supports do not use Threshold Overlap
     // settings specific to normal trees
     for (auto el : {"tree_support_branch_angle", "tree_support_branch_distance", "tree_support_branch_diameter", "tree_support_auto_brim", "tree_support_brim_width"})
-        toggle_line(el, support_is_normal_tree);
+        toggle_line(el, support_is_normal_tree, -1, _L("Enable tree supports and select a style other than Organic or Default to show this setting."));
     // settings specific to organic trees
     for (auto el : {"tree_support_branch_angle_organic", "tree_support_branch_distance_organic", "tree_support_branch_diameter_organic", "tree_support_angle_slow", "tree_support_tip_diameter", "tree_support_top_rate", "tree_support_branch_diameter_angle"})
-        toggle_line(el, support_is_organic);
+        toggle_line(el, support_is_organic, -1, _L("Enable tree supports with the Organic or Default style to show this setting."));
     // ORCA: Independent support layer height is not compatible with organic tree supports,
     // as they rely on the support layers being the same as the object layers to determine where to place branches.
-    toggle_line("independent_support_layer_height", have_support_material && !support_is_organic);
+    toggle_line("independent_support_layer_height", have_support_material && !support_is_organic, -1,
+                !have_support_material ? support_reason : _L("Independent support layer height is unavailable for organic tree supports."));
 
-    toggle_field("tree_support_brim_width", support_is_tree && !config->opt_bool("tree_support_auto_brim"));
+    toggle_field("tree_support_brim_width", support_is_tree && !config->opt_bool("tree_support_auto_brim"), -1,
+                 _L("Enable tree supports and turn off automatic brim width to edit the tree support brim width."));
     // tree support use max_bridge_length instead of bridge_no_support
-    toggle_line("max_bridge_length", support_is_tree);
-    toggle_line("bridge_no_support", !support_is_tree);
-    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree);
+    toggle_line("max_bridge_length", support_is_tree, -1, _L("Enable tree supports to show the maximum bridge length."));
+    toggle_line("bridge_no_support", !support_is_tree, -1, _L("Tree supports use maximum bridge length instead of the bridge support setting."));
+    toggle_line("support_critical_regions_only", is_auto(support_type) && support_is_tree, -1, _L("Enable automatic tree supports to show this setting."));
 
     for (auto el : { "support_interface_filament",
         "support_interface_loop_pattern", "support_bottom_interface_spacing" })
-        toggle_field(el, have_support_material && have_support_interface);
+        toggle_field(el, have_support_material && have_support_interface, -1,
+                     !have_support_material ? support_reason : _L("Set top or bottom support interface layers above zero to edit this setting."));
 
     bool can_ironing_support = have_raft || (have_support_material && config->opt_int("support_interface_top_layers") > 0);
-    toggle_field("support_ironing", can_ironing_support);
+    toggle_field("support_ironing", can_ironing_support, -1, _L("Enable a raft, or enable supports with top interface layers, to use support ironing."));
     bool has_support_ironing = can_ironing_support && config->opt_bool("support_ironing");
     for (auto el : {"support_ironing_pattern", "support_ironing_flow", "support_ironing_spacing" })
-        toggle_line(el, has_support_ironing);
+        toggle_line(el, has_support_ironing, -1, _L("Enable support ironing with a raft or top support interface layers to show this setting."));
     // Orca: Force solid support interface when using support ironing
-    toggle_field("support_interface_spacing", have_support_material && have_support_interface && !has_support_ironing);
+    toggle_field("support_interface_spacing", have_support_material && have_support_interface && !has_support_ironing, -1,
+                 !have_support_material ? support_reason :
+                 !have_support_interface ? _L("Set top or bottom support interface layers above zero to edit interface spacing.") :
+                                          _L("Support ironing requires a solid interface, so interface spacing cannot be edited."));
 
 //    see issue #10915
 //    bool have_skirt_height = have_skirt &&
@@ -1096,26 +1106,29 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     // Orca:
     for (auto el : {"small_support_perimeter_speed", "small_support_perimeter_threshold"})
-        toggle_field(el, config->opt_bool("enable_support"));
+        toggle_field(el, config->opt_bool("enable_support"), -1, _L("Enable support to edit this setting."));
 
     // BBS
     //toggle_field("support_material_synchronize_layers", have_support_soluble);
 
     toggle_field("inner_wall_line_width", have_perimeters || have_skirt || have_brim);
-    toggle_field("support_filament", have_support_material || have_skirt);
+    toggle_field("support_filament", have_support_material || have_skirt, -1, _L("Enable support, a raft, or a skirt to select the support filament."));
 
-    toggle_line("raft_contact_distance", have_raft && !have_support_soluble);
+    toggle_line("raft_contact_distance", have_raft && !have_support_soluble, -1,
+                !have_raft ? _L("Add raft layers to show raft contact distance.") : _L("Raft contact distance is unavailable when the top support Z distance is zero."));
     // Orca:Hide raft expansion when raft is not enabled
-    toggle_line("raft_expansion", have_raft);
+    toggle_line("raft_expansion", have_raft, -1, _L("Add raft layers to show raft expansion."));
     // Orca: Slim, Strong and Hybrid tree supports size their raft by first layer expansion only.
-    toggle_field("raft_expansion", !(is_tree(support_type) && (support_style == smsTreeSlim || support_style == smsTreeStrong || support_style == smsTreeHybrid)));
+    toggle_field("raft_expansion", !(is_tree(support_type) && (support_style == smsTreeSlim || support_style == smsTreeStrong || support_style == smsTreeHybrid)), -1,
+                 _L("Slim, Strong and Hybrid tree supports use first layer expansion instead of raft expansion."));
 
     // Orca: First-layer density is available for supports broadly.
-    toggle_field("raft_first_layer_density", have_support_material);
+    toggle_field("raft_first_layer_density", have_support_material, -1, support_reason);
     // Orca: For regular tree (Slim/Strong) without raft, hide first-layer expansion.
     // Keep it enabled for non-tree supports, organic tree, hybrid tree, and any raft case.
     toggle_field("raft_first_layer_expansion",
-                 have_support_material && ((!support_is_normal_tree || support_style == smsTreeHybrid) || have_raft));
+                 have_support_material && ((!support_is_normal_tree || support_style == smsTreeHybrid) || have_raft), -1,
+                 !have_support_material ? support_reason : _L("Add a raft or choose a tree support style other than Slim or Strong to edit first layer expansion."));
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
     for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_angle", "ironing_inset", "ironing_angle_fixed" })
@@ -1208,7 +1221,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     toggle_line("flush_into_objects", !is_global_config);
 
-    toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
+    toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"), -1,
+                _L("Select a specific support interface filament and use the default support filament to show this setting."));
 
     // Get the current fuzzy skin state
     bool has_fuzzy_skin = config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::Disabled_fuzzy;
