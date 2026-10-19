@@ -11,6 +11,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
@@ -130,6 +131,20 @@ static AuditEventCategory event_category(const std::string& event_name)
     return it == audit_event_categories.end() ? AuditEventCategory::None : it->second;
 }
 
+// Events the 3.12 stdlib raises with sys.audit() inside the function that performs the whole
+// operation, so the raising frame bounds everything the operation does. Every other mapped event
+// is a primitive raised from C, whose current frame is whatever Python code called it -- possibly
+// a library loop over many targets -- so it never marks an operation. glob.glob and glob.glob/2
+// are raised in iglob(), which returns its lazy generator before any directory is listed.
+static const std::unordered_set<std::string> operation_root_events{
+    "urllib.Request",      "http.client.connect",   "os.walk",          "os.fwalk",
+    "glob.glob",           "glob.glob/2",           "pathlib.Path.glob", "pathlib.Path.rglob",
+    "subprocess.Popen",    "pty.spawn",             "tempfile.mkstemp", "tempfile.mkdtemp",
+    "shutil.copyfile",     "shutil.copymode",       "shutil.copystat",  "shutil.copytree",
+    "shutil.chown",        "shutil.move",           "shutil.rmtree",    "shutil.make_archive",
+    "shutil.unpack_archive",
+};
+
 // True for the categories whose targets are filesystem paths, as opposed to a network
 // address or a process command line -- the deny-path and allowed-root checks only make sense
 // against a path.
@@ -144,6 +159,24 @@ static bool is_fs_category(AuditEventCategory category)
     default:
         return false;
     }
+}
+
+// The category's name in a saved event grant, e.g. "FsRead" in "FsRead:open".
+static const char* category_name(AuditEventCategory category)
+{
+    switch (category) {
+    case AuditEventCategory::FsRead:         return "FsRead";
+    case AuditEventCategory::FsReadWrite:    return "FsReadWrite";
+    case AuditEventCategory::FsCreate:       return "FsCreate";
+    case AuditEventCategory::FsDelete:       return "FsDelete";
+    case AuditEventCategory::Http:           return "Http";
+    case AuditEventCategory::Socket:         return "Socket";
+    case AuditEventCategory::ProcessCreate:  return "ProcessCreate";
+    case AuditEventCategory::ProcessReplace: return "ProcessReplace";
+    case AuditEventCategory::Threading:      return "Threading";
+    case AuditEventCategory::None:           break;
+    }
+    return "None";
 }
 
 // ---------------------------------------------------------------------------
@@ -215,26 +248,50 @@ bool is_inside_allowed_root(const boost::filesystem::path& candidate, const boos
 thread_local std::string PluginAuditManager::m_current_plugin_key = "";
 thread_local std::string PluginAuditManager::m_current_capability_name = "";
 thread_local std::vector<AllowedRoot> PluginAuditManager::m_scoped_allowed_roots;
+thread_local std::vector<PyObject*> PluginAuditManager::m_root_frames;
+thread_local int PluginAuditManager::m_releasing_frames = 0;
 thread_local bool PluginAuditManager::m_audit_denial_pending = false;
 thread_local bool PluginAuditManager::m_has_last_violation = false;
 thread_local AuditViolation PluginAuditManager::m_last_violation;
 
 ScopedPluginAuditContext::ScopedPluginAuditContext(const std::string& plugin_key,
                                                    const std::string& capability_name)
-    : m_previous_id(PluginAuditManager::instance().current_plugin())
+    : m_plugin_key(plugin_key)
+    , m_capability(capability_name)
+    , m_previous_id(PluginAuditManager::instance().current_plugin())
     , m_previous_capability(PluginAuditManager::instance().current_capability())
     , m_previous_scoped_roots(PluginAuditManager::m_scoped_allowed_roots)
+    , m_previous_root_frames(std::move(PluginAuditManager::m_root_frames))
 {
     PluginAuditManager::instance().set_current_plugin(plugin_key);
     PluginAuditManager::instance().set_current_capability(capability_name);
     PluginAuditManager::m_scoped_allowed_roots.clear();
+    PluginAuditManager::m_root_frames.clear();
 }
 
 ScopedPluginAuditContext::~ScopedPluginAuditContext()
 {
-    PluginAuditManager::instance().set_current_plugin(m_previous_id);
-    PluginAuditManager::instance().set_current_capability(m_previous_capability);
+    PluginAuditManager& mgr = PluginAuditManager::instance();
+
+    // Let this scope's root frames go while it is still the current context, and as its own
+    // plugin: the trampoline's denial path clears the key before the scope ends, and a finalizer
+    // must never be judged as the outer plugin, or bypass the audit when there is none. A
+    // finalizer may record a new root frame, so repeat until none is held.
+    if (!PluginAuditManager::m_root_frames.empty()) {
+        assert(PyGILState_Check());
+        mgr.set_current_plugin(m_plugin_key);
+        mgr.set_current_capability(m_capability);
+        while (!PluginAuditManager::m_root_frames.empty()) {
+            std::vector<PyObject*> frames = std::move(PluginAuditManager::m_root_frames);
+            PluginAuditManager::m_root_frames.clear();
+            mgr.release_frames(frames);
+        }
+    }
+
+    mgr.set_current_plugin(m_previous_id);
+    mgr.set_current_capability(m_previous_capability);
     PluginAuditManager::m_scoped_allowed_roots = std::move(m_previous_scoped_roots);
+    PluginAuditManager::m_root_frames          = std::move(m_previous_root_frames);
 }
 
 // ---------------------------------------------------------------------------
@@ -575,34 +632,6 @@ bool PluginAuditManager::last_violation(AuditViolation& violation) const
     return true;
 }
 
-bool PluginAuditManager::has_approved_ancestor(const std::string&              plugin_key,
-                                               const std::vector<std::string>& call_site_ids) const
-{
-    if (plugin_key.empty() || call_site_ids.empty())
-        return false;
-
-    std::lock_guard<std::mutex> lock(m_mutex);
-    auto it = m_approved_call_sites.find(plugin_key);
-    if (it == m_approved_call_sites.end())
-        return false;
-
-    for (const auto& id : call_site_ids)
-        if (it->second.count(id))
-            return true;
-    return false;
-}
-
-void PluginAuditManager::record_approved_call_sites(const std::string&              plugin_key,
-                                                     const std::vector<std::string>& call_site_ids)
-{
-    if (plugin_key.empty() || call_site_ids.empty())
-        return;
-
-    std::lock_guard<std::mutex> lock(m_mutex);
-    auto& approved = m_approved_call_sites[plugin_key];
-    approved.insert(call_site_ids.begin(), call_site_ids.end());
-}
-
 // ---------------------------------------------------------------------------
 // The C-level audit hook
 // ---------------------------------------------------------------------------
@@ -663,40 +692,88 @@ std::string python_str(PyObject* object)
     return result;
 }
 
-std::vector<std::string> call_site_identities(const std::string& plugin_root)
-{
-    std::vector<std::string> ids;
-    if (plugin_root.empty())
-        return ids;
+// The interpreter's stdlib folders, and the site-packages folders inside them that hold
+// third-party code, both resolved. Set by install_hook(); like the verdict cache below, only
+// touched while the GIL is held.
+static std::vector<boost::filesystem::path>   s_stdlib_dirs;
+static std::vector<boost::filesystem::path>   s_site_package_dirs;
+static std::unordered_map<std::string, bool>  s_stdlib_file_verdicts; // co_filename -> is stdlib
 
+void collect_stdlib_dirs()
+{
+    s_stdlib_dirs.clear();
+    s_site_package_dirs.clear();
+    s_stdlib_file_verdicts.clear();
+
+    PyObject* sysconfig = PyImport_ImportModule("sysconfig");
+    PyObject* paths     = sysconfig ? PyObject_CallMethod(sysconfig, "get_paths", nullptr) : nullptr;
+    if (paths && PyDict_Check(paths)) {
+        const auto collect = [paths](const char* key, std::vector<boost::filesystem::path>& out) {
+            const std::string dir = python_unicode(PyDict_GetItemString(paths, key)); // borrowed
+            if (dir.empty())
+                return;
+            boost::system::error_code ec;
+            const boost::filesystem::path resolved = boost::filesystem::weakly_canonical(dir, ec);
+            out.push_back(ec ? boost::filesystem::path(dir) : resolved);
+        };
+        collect("stdlib", s_stdlib_dirs);
+        collect("platstdlib", s_stdlib_dirs);
+        collect("purelib", s_site_package_dirs);
+        collect("platlib", s_site_package_dirs);
+    }
+    Py_XDECREF(paths);
+    Py_XDECREF(sysconfig);
+    if (PyErr_Occurred()) {
+        PyErr_Clear();
+        BOOST_LOG_TRIVIAL(error) << "[AUDIT] Failed to read the stdlib folders from sysconfig";
+    }
+}
+
+bool is_stdlib_frame(PyObject* frame)
+{
+    PyCodeObject* code = PyFrame_GetCode(reinterpret_cast<PyFrameObject*>(frame)); // new reference
+    const std::string filename = python_unicode(code->co_filename);
+    Py_DECREF(code);
+    return PluginAuditManager::is_stdlib_file(filename);
+}
+
+// The frames on this thread's Python stack, innermost first. The pointers stay valid while the
+// caller runs, because a running activation keeps its frame object alive.
+std::vector<PyObject*> stack_frames()
+{
+    std::vector<PyObject*> frames;
     PyFrameObject* frame = PyEval_GetFrame(); // borrowed reference
     Py_XINCREF(frame);                        // normalize to an owned reference for the loop below
-
     while (frame) {
-        PyCodeObject* code     = PyFrame_GetCode(frame); // new reference
-        const std::string filename = python_unicode(reinterpret_cast<PyObject*>(code->co_filename));
-        const bool is_plugin_frame = !filename.empty() && boost::algorithm::starts_with(filename, plugin_root);
-
-        std::string id;
-        if (!is_plugin_frame && !filename.empty()) {
-            const std::string funcname = python_unicode(reinterpret_cast<PyObject*>(code->co_name));
-            id = filename + ":" + funcname + ":" + std::to_string(code->co_firstlineno);
-        }
-        Py_DECREF(code);
-
+        frames.push_back(reinterpret_cast<PyObject*>(frame));
         PyFrameObject* back = PyFrame_GetBack(frame); // new reference, or nullptr at the top of the stack
         Py_DECREF(frame);
         frame = back;
-
-        if (is_plugin_frame)
-            break;
-        if (!id.empty())
-            ids.push_back(std::move(id));
     }
+    return frames;
+}
 
-    Py_XDECREF(frame); // only holds a reference here if the loop exited via break
+// Moves the held root frames whose operation has returned from `held` to `dropped`. A suspended
+// generator's frame (os.walk between two items) is off the stack, but its operation resumes, so
+// it stays held until the scope ends.
+void take_returned_frames(std::vector<PyObject*>& held, std::vector<PyObject*>& dropped)
+{
+    if (held.empty())
+        return;
 
-    return ids;
+    const std::vector<PyObject*> stack = stack_frames();
+    const auto running = [&stack](PyObject* frame) {
+        if (std::find(stack.begin(), stack.end(), frame) != stack.end())
+            return true;
+        // NULL once the generator has finished or been deleted: its frame then owns its own data.
+        PyObject* generator = PyFrame_GetGenerator(reinterpret_cast<PyFrameObject*>(frame)); // new reference
+        const bool suspended = generator != nullptr;
+        Py_XDECREF(generator);
+        return suspended;
+    };
+    const auto returned = std::stable_partition(held.begin(), held.end(), running);
+    dropped.insert(dropped.end(), returned, held.end());
+    held.erase(returned, held.end());
 }
 
 static const std::unordered_set<std::string> two_path_fs_events{
@@ -717,12 +794,15 @@ static const std::unordered_map<std::string, std::vector<Py_ssize_t>> audit_targ
     {"socket.getnameinfo", {0}},
     {"socket.getservbyname", {0}},
     {"socket.getservbyport", {0}},
+    {"socket.sendto", {1}},
+    {"socket.sendmsg", {1}},
 
     {"os.system", {0}},
     {"subprocess.Popen", {1, 0}},
     {"os.posix_spawn", {1, 0}},
     {"os.spawn", {2, 1}},
     {"os.startfile", {0}},
+    {"os.startfile/2", {0}},
     {"pty.spawn", {0}},
     {"_winapi.CreateProcess", {1, 0}},
     {"_posixsubprocess.fork_exec", {0}},
@@ -767,7 +847,11 @@ std::vector<std::string> audit_targets(const std::string& event_name, AuditEvent
     const auto it = audit_target_arg_indices.find(event_name);
     if (it != audit_target_arg_indices.end()) {
         for (const Py_ssize_t index : it->second) {
-            std::string value = python_str(tuple_item(args, index));
+            // None is an argument left out (sendmsg without an address), not a target named "None".
+            PyObject* const item = tuple_item(args, index);
+            if (item == Py_None)
+                continue;
+            std::string value = python_str(item);
             if (!value.empty()) {
                 targets.push_back(std::move(value));
                 break;
@@ -778,8 +862,14 @@ std::vector<std::string> audit_targets(const std::string& event_name, AuditEvent
     return targets;
 }
 
-std::vector<std::string>* permission_list_for(AuditEventCategory category, PluginPermissions& permissions)
+// The saved list that grants an event: its category's target list, or the event-grant list for
+// an event with no target. Kept apart, so that no grant doubles as a target of the same name (an
+// os.fork grant is not an os.exec of a command named "os.fork").
+std::vector<std::string>* permission_list_for(AuditEventCategory category, bool by_event, PluginPermissions& permissions)
 {
+    if (by_event)
+        return &permissions.events;
+
     switch (category) {
     case AuditEventCategory::FsRead:        return &permissions.fs_read;
     case AuditEventCategory::FsReadWrite:   return &permissions.fs_readwrite;
@@ -790,6 +880,13 @@ std::vector<std::string>* permission_list_for(AuditEventCategory category, Plugi
     case AuditEventCategory::ProcessReplace: return &permissions.process;
     default:                                return nullptr;
     }
+}
+
+// An event with no target is granted by its effective category and name, e.g. "FsRead:open"
+// for a read of a file descriptor, which does not grant a write of one ("FsReadWrite:open").
+std::string event_grant_key(AuditEventCategory category, const std::string& event_name)
+{
+    return std::string(category_name(category)) + ":" + event_name;
 }
 
 bool has_permission(const std::vector<std::string>& granted, const std::string& target)
@@ -902,22 +999,25 @@ bool prompt_for_targets(AuditEventCategory category, const std::string& plugin_n
 
 // Records a grant in the plugin's sidecar so it is not asked again. Reads the install state
 // freshly because the async prompt outlives the caller's stack copy of it.
-void persist_grant(const std::string& plugin_key, AuditEventCategory category, const std::vector<std::string>& targets)
+void persist_grant(const std::string& plugin_key, AuditEventCategory category, bool by_event, const std::vector<std::string>& keys)
 {
     PluginInstallState state;
     if (!PluginManager::instance().get_install_state(plugin_key, state))
         return;
 
-    std::vector<std::string>* permission_list = permission_list_for(category, state.permissions);
+    std::vector<std::string>* permission_list = permission_list_for(category, by_event, state.permissions);
     if (!permission_list)
         return;
 
-    for (const auto& target : targets)
-        persist_permission(plugin_key, state, *permission_list, target);
+    for (const auto& key : keys)
+        persist_permission(plugin_key, state, *permission_list, key);
 }
 
-// Requests permission for an audited event, returning true when it is already granted or the user
-// approves an inline prompt.
+static PluginAuditManager::PermissionPrompt s_permission_prompt_for_testing;
+
+// Asks the user to grant an audited event, returning true when they approve an inline prompt.
+// `keys` are what a Yes saves: the unresolved targets, or the event-grant key when the event has
+// no target (by_event), which the prompt does not show as a target.
 //
 // An audited event can fire on a thread the UI thread may itself be blocked waiting on: the
 // SlicingPipeline hook runs on the slicing worker thread (see PluginHooks.cpp), and
@@ -929,55 +1029,204 @@ void persist_grant(const std::string& plugin_key, AuditEventCategory category, c
 // prompt); the grant is persisted once the user accepts, so a later attempt succeeds without
 // re-prompting.
 bool request_permission(AuditEventCategory category, const std::string& plugin_key, const std::string& plugin_name,
-                        const std::string& event_name, const std::vector<std::string>& unresolved)
+                        const std::string& event_name, bool by_event, const std::vector<std::string>& keys)
 {
+    const std::vector<std::string> shown = by_event ? std::vector<std::string>{} : keys;
+
+    if (s_permission_prompt_for_testing)
+        return s_permission_prompt_for_testing(event_name, shown);
+
     if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
         return false;
 
     if (wxIsMainThread())
-        return prompt_for_targets(category, plugin_name, event_name, unresolved);
+        return prompt_for_targets(category, plugin_name, event_name, shown);
 
-    GUI::wxGetApp().CallAfter([category, plugin_key, plugin_name, event_name, unresolved]() {
+    GUI::wxGetApp().CallAfter([category, plugin_key, plugin_name, event_name, by_event, keys, shown]() {
         if (wxTheApp == nullptr || GUI::wxGetApp().is_closing())
             return;
-        if (prompt_for_targets(category, plugin_name, event_name, unresolved))
-            persist_grant(plugin_key, category, unresolved);
+        if (prompt_for_targets(category, plugin_name, event_name, shown))
+            persist_grant(plugin_key, category, by_event, keys);
     });
     return false;
 }
 
+// Decides an event that no allowed root or running operation covers: a saved grant allows it,
+// otherwise the user is asked and a Yes is saved.
 int decide_audited_event(PluginAuditManager&             mgr,
                          PluginInstallState&              state,
                          const std::string&                plugin_key,
                          const std::string&                plugin_name,
                          const std::string&                event_name,
                          AuditEventCategory                category,
-                         const std::vector<std::string>&   targets,
-                         std::vector<std::string>*         permission_list,
-                         const std::vector<std::string>&   call_site_ids)
+                         const std::vector<std::string>&   targets)
 {
-    std::vector<std::string> unresolved = targets;
+    const bool                     by_event = targets.empty();
+    const std::vector<std::string> keys     = by_event ? std::vector<std::string>{event_grant_key(category, event_name)} : targets;
+    std::vector<std::string>*      permission_list = permission_list_for(category, by_event, state.permissions);
+
+    std::vector<std::string> unresolved = keys;
     if (permission_list) {
         unresolved.clear();
-        for (const auto& target : targets)
-            if (!has_permission(*permission_list, target))
-                unresolved.push_back(target);
-        if (!targets.empty() && unresolved.empty())
+        for (const auto& key : keys)
+            if (!has_permission(*permission_list, key))
+                unresolved.push_back(key);
+        if (unresolved.empty())
             return 0;
     }
 
-    if (!request_permission(category, plugin_key, plugin_name, event_name, unresolved))
+    // Letting a root frame go runs finalizers inside a scope destructor or another event's hook,
+    // where no dialog may open: what they do must already be granted.
+    if (mgr.releasing_frames())
+        return report_denied(mgr, event_name, {false, "audit permission required"});
+
+    if (!request_permission(category, plugin_key, plugin_name, event_name, by_event, unresolved))
         return report_denied(mgr, event_name, {false, "audit permission required"});
 
     if (permission_list)
-        for (const auto& target : unresolved)
-            persist_permission(plugin_key, state, *permission_list, target);
-
-    mgr.record_approved_call_sites(plugin_key, call_site_ids);
+        for (const auto& key : unresolved)
+            persist_permission(plugin_key, state, *permission_list, key);
     return 0;
 }
 
+// Judges an audited event raised while a plugin context is active.
+int audit_plugin_event(PluginAuditManager& mgr, const std::string& event_name, AuditEventCategory event_type, PyObject* args)
+{
+    const bool                      fs_category = is_fs_category(event_type);
+    const std::vector<std::string>  targets      = audit_targets(event_name, event_type, args);
+
+    // A denied path (secrets, certificates, config files -- see is_denied_path) is an
+    // unconditional block: checked before the running-operation check below, so no granted
+    // operation can launder access to one, and before the allowed-root shortcut further down,
+    // so an allowed root (e.g. the read-only resources folder) cannot make a denied path
+    // underneath it reachable.
+    if (fs_category) {
+        for (const auto& target : targets) {
+            if (mgr.is_denied_path(boost::filesystem::path(target)))
+                return report_denied(mgr, event_name, {false, "denied path"}, target);
+        }
+    }
+
+    // A nested event of an operation already granted, e.g. socket.connect inside an approved
+    // urlopen(), is not asked again. urllib.Request is always judged on its own URL, so a
+    // redirect or a nested urlopen() inside a running request is not covered by it.
+    if (event_name != "urllib.Request" && mgr.covered_by_root_frame())
+        return 0;
+
+    // A filesystem target that resolves entirely inside a pre-determined allowed root -- the
+    // plugin system's own data_dir() tree (which holds each plugin's storage folder and the
+    // installed/system profile cache), the read-only bundled resources folder, or a per-call
+    // scoped root such as the current G-code folder -- is part of the plugin system's normal
+    // workflow and does not need a prompt.
+    if (fs_category && !targets.empty()) {
+        const bool is_write = event_type != AuditEventCategory::FsRead;
+        const bool all_inside_allowed_root =
+            std::all_of(targets.begin(), targets.end(), [&](const std::string& target) {
+                return mgr.check_path_access(boost::filesystem::path(target), is_write).allowed;
+            });
+        if (all_inside_allowed_root)
+            return 0;
+    }
+
+    PluginInstallState state;
+    const bool have_install_state = PluginManager::instance().get_install_state(mgr.current_plugin(), state);
+    if (!have_install_state) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Failed to get install state for " << mgr.current_plugin();
+    }
+
+    const std::string plugin_name = state.plugin_name.empty() ? mgr.current_plugin() : state.plugin_name;
+
+    const int result = decide_audited_event(mgr, state, mgr.current_plugin(), plugin_name, event_name, event_type, targets);
+
+    // A granted operation covers its nested events while it runs. A targetless grant names no
+    // operation, so it covers nothing else.
+    if (result == 0 && !targets.empty() && operation_root_events.count(event_name))
+        mgr.record_root_frame();
+    return result;
+}
+
 } // namespace PluginAuditDetail
+
+void PluginAuditManager::record_root_frame()
+{
+    PyObject* frame = reinterpret_cast<PyObject*>(PyEval_GetFrame()); // borrowed reference
+    if (!frame || !PluginAuditDetail::is_stdlib_frame(frame))
+        return;
+    if (std::find(m_root_frames.begin(), m_root_frames.end(), frame) != m_root_frames.end())
+        return; // glob.glob and glob.glob/2 share a frame
+    Py_INCREF(frame);
+    m_root_frames.push_back(frame);
+}
+
+bool PluginAuditManager::covered_by_root_frame() const
+{
+    if (m_root_frames.empty())
+        return false;
+
+    // Only stdlib frames may sit between the event and the operation: plugin or library code
+    // the operation calls back into (an os.walk onerror, a urllib handler) acts on its own.
+    for (PyObject* frame : PluginAuditDetail::stack_frames()) {
+        if (std::find(m_root_frames.begin(), m_root_frames.end(), frame) != m_root_frames.end())
+            return true;
+        if (!PluginAuditDetail::is_stdlib_frame(frame))
+            return false;
+    }
+    return false;
+}
+
+bool PluginAuditManager::releasing_frames() const { return m_releasing_frames > 0; }
+
+bool PluginAuditManager::is_stdlib_file(const std::string& filename)
+{
+    // Frozen stdlib modules (os, posixpath, codecs, ...) carry a pseudo filename.
+    if (boost::algorithm::starts_with(filename, "<frozen "))
+        return true;
+    if (filename.empty() || filename.front() == '<')
+        return false;
+
+    // Both sides are resolved: co_filename follows the Python home as it was given, which may
+    // be a symlink.
+    const auto [it, inserted] = PluginAuditDetail::s_stdlib_file_verdicts.try_emplace(filename, false);
+    if (inserted) {
+        const boost::filesystem::path file(filename);
+        const auto inside_any = [&file](const std::vector<boost::filesystem::path>& dirs) {
+            return std::any_of(dirs.begin(), dirs.end(),
+                               [&file](const boost::filesystem::path& dir) { return is_inside_allowed_root(file, dir); });
+        };
+        it->second = inside_any(PluginAuditDetail::s_stdlib_dirs) && !inside_any(PluginAuditDetail::s_site_package_dirs);
+    }
+    return it->second;
+}
+
+void PluginAuditManager::release_frames(std::vector<PyObject*>& frames)
+{
+    if (frames.empty())
+        return;
+
+    // A finalizer's own denial must neither replace the PermissionError of the event being
+    // decided nor leave a stale denial behind for the next call.
+    PyObject* const      error          = PyErr_GetRaisedException();
+    const bool           denial_pending = m_audit_denial_pending;
+    const bool           has_violation  = m_has_last_violation;
+    const AuditViolation violation      = m_last_violation;
+
+    std::vector<PyObject*> released;
+    released.swap(frames);
+    ++m_releasing_frames;
+    for (PyObject* frame : released)
+        Py_DECREF(frame);
+    --m_releasing_frames;
+
+    m_audit_denial_pending = denial_pending;
+    m_has_last_violation   = has_violation;
+    m_last_violation       = violation;
+    PyErr_SetRaisedException(error);
+}
+
+void PluginAuditManager::set_permission_prompt_for_testing(PermissionPrompt prompt)
+{
+    PluginAuditDetail::s_permission_prompt_for_testing = std::move(prompt);
+}
 
 int PluginAuditManager::audit_hook(const char* event, PyObject* args, void* user_data)
 {
@@ -1006,62 +1255,20 @@ int PluginAuditManager::audit_hook(const char* event, PyObject* args, void* user
     if (event_type == AuditEventCategory::None)
         return 0;
 
-    const bool                      fs_category = is_fs_category(event_type);
-    const std::vector<std::string>  targets      = PluginAuditDetail::audit_targets(event_name, event_type, args);
-
-    // A denied path (secrets, certificates, config files -- see is_denied_path) is an
-    // unconditional block: checked before the ancestor-cascade check below, so a cascade
-    // approval recorded for an unrelated action can never launder access to one, and before
-    // the allowed-root shortcut further down, so an allowed root (e.g. the read-only resources
-    // folder) cannot make a denied path underneath it reachable.
-    if (fs_category) {
-        for (const auto& target : targets) {
-            if (mgr->is_denied_path(boost::filesystem::path(target)))
-                return PluginAuditDetail::report_denied(*mgr, event_name, {false, "denied path"}, target);
-        }
-    }
-
-    PluginDescriptor plugin_descriptor;
-    PluginManager::instance().try_get_plugin_descriptor(mgr->current_plugin(), plugin_descriptor);
-
-    // Some plugins call other audited events, e.g. urlib.request will call socket.connect. So this is so that if urlib.request
-    // was already approved, socket.connect won't trigger another permission dialog.
-    const std::vector<std::string> call_site_ids =
-        PluginAuditDetail::call_site_identities(plugin_descriptor.plugin_root);
-    if (mgr->has_approved_ancestor(mgr->current_plugin(), call_site_ids))
-        return 0;
-
-    // A filesystem target that resolves entirely inside a pre-determined allowed root -- the
-    // plugin system's own data_dir() tree (which holds each plugin's storage folder and the
-    // installed/system profile cache), the read-only bundled resources folder, or a per-call
-    // scoped root such as the current G-code folder -- is part of the plugin system's normal
-    // workflow and does not need a prompt.
-    if (fs_category && !targets.empty()) {
-        const bool is_write = event_type != AuditEventCategory::FsRead;
-        const bool all_inside_allowed_root =
-            std::all_of(targets.begin(), targets.end(), [&](const std::string& target) {
-                return mgr->check_path_access(boost::filesystem::path(target), is_write).allowed;
-            });
-        if (all_inside_allowed_root)
-            return 0;
-    }
-
-    PluginInstallState state;
-    const bool have_install_state = PluginManager::instance().get_install_state(mgr->current_plugin(), state);
-    if (!have_install_state) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Failed to get install state for " << mgr->current_plugin();
-    }
-
-    const std::string plugin_name = state.plugin_name.empty() ? mgr->current_plugin() : state.plugin_name;
-
-    std::vector<std::string>* permission_list = PluginAuditDetail::permission_list_for(event_type, state.permissions);
-
-    return PluginAuditDetail::decide_audited_event(*mgr, state, mgr->current_plugin(), plugin_name, event_name,
-                                                    event_type, targets, permission_list, call_site_ids);
+    // Root frames whose operation has returned are let go once this event is decided, so that a
+    // finalizer they run re-enters a hook whose held frames are already consistent.
+    std::vector<PyObject*> returned_frames;
+    PluginAuditDetail::take_returned_frames(m_root_frames, returned_frames);
+    const int result = PluginAuditDetail::audit_plugin_event(*mgr, event_name, event_type, args);
+    mgr->release_frames(returned_frames);
+    return result;
 }
 
 void PluginAuditManager::install_hook()
 {
+    // Tells the stdlib's own frames apart, for the operation-root frames (see record_root_frame).
+    PluginAuditDetail::collect_stdlib_dirs();
+
     // data_dir() is the primary globally-allowed root during plugin execution: read+write. It
     // covers the plugin system's own workflow needs -- each plugin's storage folder
     // (data_dir()/orca_plugins) and the installed/system profile cache (data_dir()/system) --
