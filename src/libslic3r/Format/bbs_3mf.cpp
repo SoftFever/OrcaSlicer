@@ -10120,7 +10120,7 @@ bool to_xml(std::stringstream &stream, const EmbossShape::SvgFile &svg, const Mo
     assert(file_data != nullptr);
     if (file_data == nullptr && !svg.path.empty()) file_data = read_from_disk(svg.path);
     if (file_data == nullptr) {
-        BOOST_LOG_TRIVIAL(warning) << "Can't write svg file no filedata";
+        BOOST_LOG_TRIVIAL(warning) << "Can't write SVG file no filedata";
         return false;
     }
     const std::string &file_data_str = *file_data; 
@@ -10136,7 +10136,7 @@ void to_xml(std::stringstream &stream, const EmbossShape &es, const ModelVolume 
     stream << "   <" << SHAPE_TAG << " ";
     if (es.svg_file.has_value())
         if (!to_xml(stream, *es.svg_file, volume, archive, export_full_path)) {
-            BOOST_LOG_TRIVIAL(warning) << "Can't write svg file defiden embossed shape into 3mf";
+            BOOST_LOG_TRIVIAL(warning) << "Can't write SVG file defiden embossed shape into 3mf";
         }
 
     stream << SHAPE_SCALE_ATTR << "=\"" << es.scale << "\" ";
