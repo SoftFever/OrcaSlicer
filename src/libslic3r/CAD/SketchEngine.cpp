@@ -388,7 +388,7 @@ TopoDS_Shape SketchEngine::make_revolve(const TopoDS_Wire& wire, const gp_Ax1& a
             }
         }
         if (pos && neg)
-            throw std::runtime_error("the profile crosses the revolve axis — it must lie on one side of it");
+            throw std::runtime_error(_u8L("the profile crosses the revolve axis — it must lie on one side of it"));
     }
     gp_Ax1 axis = axis_in;
     double angle_rad = angle_deg * M_PI / 180.0;
@@ -399,7 +399,7 @@ TopoDS_Shape SketchEngine::make_revolve(const TopoDS_Wire& wire, const gp_Ax1& a
     if (!rev.IsDone())
         throw std::runtime_error(_u8L("Failed to revolve"));
     if (!BRepCheck_Analyzer(rev.Shape()).IsValid())
-        throw std::runtime_error("the profile crosses the revolve axis — it must lie on one side of it");
+        throw std::runtime_error(_u8L("the profile crosses the revolve axis — it must lie on one side of it"));
     return rev.Shape();
 }
 
@@ -983,7 +983,7 @@ static TopoDS_Face checked_profile_face(const TopoDS_Face& f)
 {
     BRepCheck_Analyzer an(f);
     if (!an.IsValid())
-        throw std::runtime_error("the profile crosses or folds back on itself, so it does not bound one region");
+        throw std::runtime_error(_u8L("the profile crosses or folds back on itself, so it does not bound one region"));
     return f;
 }
 

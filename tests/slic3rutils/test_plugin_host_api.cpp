@@ -56,6 +56,14 @@ TEST_CASE("Plugin host API exposes host-owned bundle and preset surface to Pytho
     REQUIRE(has_attr(host, "Model"));
     REQUIRE(has_attr(host, "ModelObject"));
     REQUIRE(has_attr(host, "Plater"));
+    REQUIRE(has_attr(host, "preset"));
+    py::object preset = host.attr("preset");
+    REQUIRE(has_attr(preset, "bundles"));
+    py::object bundles = preset.attr("bundles");
+    CHECK(has_attr(bundles, "list_ids"));
+    CHECK(has_attr(bundles, "reload_local"));
+    CHECK_FALSE(has_attr(host, "reload_local_bundle"));
+    CHECK_FALSE(has_attr(host, "list_bundle_ids"));
 
     py::object preset_bundle_type = host.attr("PresetBundle");
     CHECK(has_attr(preset_bundle_type, "prints"));
@@ -132,8 +140,9 @@ TEST_CASE("Plugin host API exposes host-owned bundle and preset surface to Pytho
 TEST_CASE("Plugin host API reports unavailable GUI objects before Orca app initialization", "[PluginHost][Python]")
 {
     py::object host = import_orca_module().attr("host");
+    py::object bundles = host.attr("preset").attr("bundles");
 
-    for (const char* function_name : { "preset_bundle", "plater", "model" }) {
+    for (const char* function_name : { "preset_bundle", "plater", "model", "app_info", "selected_printer" }) {
         CAPTURE(function_name);
         try {
             host.attr(function_name)();
@@ -143,6 +152,33 @@ TEST_CASE("Plugin host API reports unavailable GUI objects before Orca app initi
             CHECK(std::string(error.what()).find("OrcaSlicer application is not initialized") != std::string::npos);
         }
     }
+
+    try {
+        bundles.attr("reload_local")("test-bundle");
+        FAIL("host.preset.bundles.reload_local unexpectedly succeeded without a wx application");
+    } catch (const py::error_already_set& error) {
+        CHECK(error.matches(PyExc_RuntimeError));
+        CHECK(std::string(error.what()).find("OrcaSlicer application is not initialized") != std::string::npos);
+    }
+
+    try {
+        bundles.attr("list_ids")();
+        FAIL("host.preset.bundles.list_ids unexpectedly succeeded without a wx application");
+    } catch (const py::error_already_set& error) {
+        CHECK(error.matches(PyExc_RuntimeError));
+        CHECK(std::string(error.what()).find("OrcaSlicer application is not initialized") != std::string::npos);
+    }
+}
+
+TEST_CASE("Plugin host API reports no GL details before the 3D view exists", "[PluginHost][Python]")
+{
+    py::object host = import_orca_module().attr("host");
+
+    CHECK(host.attr("gl_info")().is_none());
+
+    py::object plater_type = host.attr("Plater");
+    CHECK(has_attr(plater_type, "project_path"));
+    CHECK(has_attr(plater_type, "export_3mf_copy"));
 }
 
 TEST_CASE("Plugin host API exposes the UI module and guards it before Orca app initialization", "[PluginHost][Python]")
