@@ -10668,3 +10668,18 @@ TEST_CASE("boolean identity: V(A u B) + V(A n B) = V(A) + V(B) on random overlap
     }
     REQUIRE(checked >= 10);   // enough of the random pairs actually overlapped
 }
+
+// The one allow-list behind set_feature_expr: every name it reports is accepted, the reported set is sorted and free of
+// duplicates, and a name outside it (or an empty dimension index) is refused.
+TEST_CASE("bindable fields: the reported list is the accepted list", "[CadDocument][expr]")
+{
+    const std::vector<std::string> names = CadDocument::bindable_fields();
+    REQUIRE(names.size() > 40);
+    REQUIRE(std::is_sorted(names.begin(), names.end()));
+    REQUIRE(std::adjacent_find(names.begin(), names.end()) == names.end());
+    for (const std::string& n : names) CHECK(CadDocument::is_bindable_field(n));
+    CHECK(CadDocument::is_bindable_field("dim:3"));
+    CHECK_FALSE(CadDocument::is_bindable_field("pattern_spacing3"));
+    CHECK_FALSE(CadDocument::is_bindable_field("dim:"));
+    CHECK_FALSE(CadDocument::is_bindable_field(""));
+}

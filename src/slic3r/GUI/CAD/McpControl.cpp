@@ -190,6 +190,14 @@ bool read_only_method(const std::string& m)
     return k.count(m) > 0;
 }
 
+// "a, b, c": the fields set_feature_expr can bind, from the allow-list itself.
+static std::string bindable_fields_text()
+{
+    std::string s;
+    for (const std::string& f : CadDocument::bindable_fields()) s += (s.empty() ? "" : ", ") + f;
+    return s;
+}
+
 json describe_tools_core()
 {
     // Hand-written descriptor. The bridge turns this into MCP tool schemas; later
@@ -631,7 +639,7 @@ inline json vec3(const Vec3d& v) { return json::array({v.x(), v.y(), v.z()}); }
 // Shared Build helpers.
 // Compact descriptors for the methods the hand-written core above does not list. {name, type, description}.
 struct P { const char* n; const char* t; const char* d; };
-json compact_tool(const char* name, const char* summary, std::initializer_list<P> ps)
+json compact_tool(const char* name, const std::string& summary, std::initializer_list<P> ps)
 {
     json a = json::array();
     for (const P& p : ps) a.push_back(json{{"name", p.n}, {"type", p.t}, {"description", p.d}});
@@ -666,7 +674,7 @@ json describe_tools()
         compact_tool("set_parameter", "Same as set_variable, and says how many features the change rebuilt (recomputed) and how many came from the cache (restored).", {{"name", "string", ""}, {"expr", "string", "number or expression"}}),
         compact_tool("list_commands", "Every tool and every ribbon verb with whether it can run now and, if not, why. filter = a substring of the name.", {{"filter", "string", "optional substring"}}),
         compact_tool("execute", "Run a tool by name or a ribbon verb by id (see list_commands). verbose:false returns only ok and the error.", {{"command", "string", "tool name or verb id"}, {"params", "object", "that command's parameters"}, {"verbose", "boolean", "default true"}}),
-        compact_tool("set_feature_expr", "Bind a feature field to an expression and recompute.", {{"feature", "integer", "feature index"}, {"field", "string", "field name"}, {"expr", "string", ""}}),
+        compact_tool("set_feature_expr", "Bind a feature field to an expression and recompute. An unknown field is refused (\"unknown parameter\"). Fields: " + bindable_fields_text() + ", and dim:<N> for sketch dimension N.", {{"feature", "integer", "feature index"}, {"field", "string", "field name"}, {"expr", "string", "expression over the variables"}}),
         compact_tool("sweep", "Sweep a profile sketch along a path sketch.", {{"profile", "integer", "Sketch feature index"}, {"path", "integer", "Sketch feature index"}, {"boolean", "string", "new|union|subtract|intersect"}}),
         compact_tool("loft", "Loft through two or more profile sketches, in order.", {{"profiles", "array", "[Sketch feature index,...]"}, {"ruled", "boolean", "straight (ruled) instead of smooth"}, {"boolean", "string", "new|union|subtract|intersect"}}),
         compact_tool("thread", "Helical thread about the plane normal at (x,y): external adds material to the last body, internal cuts it.", {

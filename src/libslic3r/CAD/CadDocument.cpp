@@ -525,10 +525,64 @@ evaluate_variables(const std::map<std::string, std::string>& variables)
     return done;
 }
 
-// Write `value` into the CadFeature numeric field named `field`. Allow-list of
-// the geometric dimension fields a variable realistically drives. Integer-valued
-// fields are rounded. Throws std::runtime_error("unknown parameter: " + field)
-// for anything not in the list.
+// The numeric CadFeature fields an expression can drive: the one allow-list behind assign_field, is_bindable_field and
+// CadDocument::bindable_fields (which the MCP reports and the docs table is generated from), so they cannot disagree.
+// Alphabetical. thread_diameter (written as a radius), pattern_count (an int) and dim:<N> (a sketch dimension) are
+// special-cased in assign_field.
+static const struct { const char* name; double CadFeature::* member; } kBindable[] = {
+    {"bool_tolerance", &CadFeature::bool_tolerance},
+    {"cut_offset", &CadFeature::cut_offset},
+    {"distance", &CadFeature::distance},
+    {"distance2", &CadFeature::distance2},
+    {"draft_angle", &CadFeature::draft_angle},
+    {"dressup_size", &CadFeature::dressup_size},
+    {"height", &CadFeature::height},
+    {"helix_height", &CadFeature::helix_height},
+    {"helix_pitch", &CadFeature::helix_pitch},
+    {"helix_radius", &CadFeature::helix_radius},
+    {"helix_taper_deg", &CadFeature::helix_taper_deg},
+    {"hole_cbore_diameter", &CadFeature::hole_cbore_diameter},
+    {"hole_cbore_depth", &CadFeature::hole_cbore_depth},
+    {"hole_csink_angle", &CadFeature::hole_csink_angle},
+    {"hole_csink_diameter", &CadFeature::hole_csink_diameter},
+    {"hole_depth", &CadFeature::hole_depth},
+    {"hole_diameter", &CadFeature::hole_diameter},
+    {"hole_x", &CadFeature::hole_x},
+    {"hole_y", &CadFeature::hole_y},
+    {"import_scale_x", &CadFeature::import_scale_x},
+    {"import_scale_y", &CadFeature::import_scale_y},
+    {"mate_angle", &CadFeature::mate_angle},
+    {"mate_offset", &CadFeature::mate_offset},
+    {"pattern_angle", &CadFeature::pattern_angle},
+    {"pattern_spacing", &CadFeature::pattern_spacing},
+    {"plane_angle_tilt", &CadFeature::plane_angle_tilt},
+    {"plane_offset", &CadFeature::plane_offset},
+    {"plane_u_size", &CadFeature::plane_u_size},
+    {"plane_v_size", &CadFeature::plane_v_size},
+    {"radius", &CadFeature::radius},
+    {"revolve_angle", &CadFeature::revolve_angle},
+    {"rib_depth", &CadFeature::rib_depth},
+    {"rib_thickness", &CadFeature::rib_thickness},
+    {"shell_thickness", &CadFeature::shell_thickness},
+    {"sm_angle", &CadFeature::sm_angle},
+    {"sm_gap", &CadFeature::sm_gap},
+    {"sm_k", &CadFeature::sm_k},
+    {"sm_radius", &CadFeature::sm_radius},
+    {"sm_thickness", &CadFeature::sm_thickness},
+    {"taper_deg", &CadFeature::taper_deg},
+    {"thicken_thickness", &CadFeature::thicken_thickness},
+    {"thread_depth", &CadFeature::thread_depth},
+    {"thread_height", &CadFeature::thread_height},
+    {"thread_pitch", &CadFeature::thread_pitch},
+    {"thread_radius", &CadFeature::thread_radius},
+    {"thread_x", &CadFeature::thread_x},
+    {"thread_y", &CadFeature::thread_y},
+    {"width", &CadFeature::width},
+    {"xf_angle_deg", &CadFeature::xf_angle_deg},
+};
+
+// Write `value` into the CadFeature numeric field named `field`. Integer-valued fields are rounded. Throws
+// std::runtime_error("unknown parameter: " + field) for anything not in the list.
 static void assign_field(CadFeature& f, const std::string& field, double value)
 {
     if (field.rfind("dim:", 0) == 0) {   // a sketch dimension: the value of entity_constraints[N]; the sketch is re-solved afterwards
@@ -537,62 +591,23 @@ static void assign_field(CadFeature& f, const std::string& field, double value)
         f.entity_constraints[k].value = value;
         return;
     }
-    // double fields (alphabetical)
-    if (field == "bool_tolerance")    { f.bool_tolerance = value; return; }
-    if (field == "cut_offset")        { f.cut_offset = value; return; }
-    if (field == "distance")          { f.distance = value; return; }
-    if (field == "distance2")         { f.distance2 = value; return; }
-    if (field == "draft_angle")       { f.draft_angle = value; return; }
-    if (field == "dressup_size")      { f.dressup_size = value; return; }
-    if (field == "height")            { f.height = value; return; }
-    if (field == "helix_height")      { f.helix_height = value; return; }
-    if (field == "helix_pitch")       { f.helix_pitch = value; return; }
-    if (field == "helix_radius")      { f.helix_radius = value; return; }
-    if (field == "helix_taper_deg")   { f.helix_taper_deg = value; return; }
-    if (field == "hole_cbore_diameter") { f.hole_cbore_diameter = value; return; }
-    if (field == "hole_cbore_depth")  { f.hole_cbore_depth = value; return; }
-    if (field == "hole_csink_angle")  { f.hole_csink_angle = value; return; }
-    if (field == "hole_csink_diameter") { f.hole_csink_diameter = value; return; }
-    if (field == "hole_depth")        { f.hole_depth = value; return; }
-    if (field == "hole_diameter")     { f.hole_diameter = value; return; }
-    if (field == "hole_x")            { f.hole_x = value; return; }
-    if (field == "hole_y")            { f.hole_y = value; return; }
-    if (field == "import_scale_x")    { f.import_scale_x = value; return; }
-    if (field == "import_scale_y")    { f.import_scale_y = value; return; }
-    if (field == "mate_angle")        { f.mate_angle = value; return; }
-    if (field == "mate_offset")       { f.mate_offset = value; return; }
-    if (field == "pattern_angle")     { f.pattern_angle = value; return; }
-    if (field == "pattern_spacing")   { f.pattern_spacing = value; return; }
-    if (field == "plane_angle_tilt")  { f.plane_angle_tilt = value; return; }
-    if (field == "plane_offset")      { f.plane_offset = value; return; }
-    if (field == "plane_u_size")      { f.plane_u_size = value; return; }
-    if (field == "plane_v_size")      { f.plane_v_size = value; return; }
-    if (field == "radius")            { f.radius = value; return; }
-    if (field == "revolve_angle")     { f.revolve_angle = value; return; }
-    if (field == "rib_depth")         { f.rib_depth = value; return; }
-    if (field == "rib_thickness")     { f.rib_thickness = value; return; }
-    if (field == "shell_thickness")   { f.shell_thickness = value; return; }
-    if (field == "sm_angle")          { f.sm_angle = value; return; }
-    if (field == "sm_gap")            { f.sm_gap = value; return; }
-    if (field == "sm_k")              { f.sm_k = value; return; }
-    if (field == "sm_radius")         { f.sm_radius = value; return; }
-    if (field == "sm_thickness")      { f.sm_thickness = value; return; }
-    if (field == "taper_deg")         { f.taper_deg = value; return; }
-    if (field == "thicken_thickness") { f.thicken_thickness = value; return; }
-    if (field == "thread_depth")      { f.thread_depth = value; return; }
-    if (field == "thread_height")     { f.thread_height = value; return; }
-    if (field == "thread_pitch")      { f.thread_pitch = value; return; }
-    if (field == "thread_radius")     { f.thread_radius = value; return; }
+    for (const auto& b : kBindable)
+        if (field == b.name) { f.*(b.member) = value; return; }
     // The Thread card shows a DIAMETER (the size a thread is named by: M6, 1/4"), so that is
     // the name it offers for binding; thread_radius stays for recipes that already use it.
     if (field == "thread_diameter")   { f.thread_radius = 0.5 * value; return; }
-    if (field == "thread_x")          { f.thread_x = value; return; }
-    if (field == "thread_y")          { f.thread_y = value; return; }
-    if (field == "width")             { f.width = value; return; }
-    if (field == "xf_angle_deg")      { f.xf_angle_deg = value; return; }
-    // int fields (rounded)
     if (field == "pattern_count")     { f.pattern_count = (int)std::lround(value); return; }
     throw std::runtime_error(format(_u8L("unknown parameter: %1%"), field));
+}
+
+std::vector<std::string> CadDocument::bindable_fields()
+{
+    std::vector<std::string> out;
+    for (const auto& b : kBindable) out.push_back(b.name);
+    out.push_back("pattern_count");
+    out.push_back("thread_diameter");
+    std::sort(out.begin(), out.end());
+    return out;
 }
 
 bool CadDocument::produces_body(CadFeatureType t)

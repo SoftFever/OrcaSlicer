@@ -639,6 +639,8 @@ public:
     // Can a feature expression drive this numeric field? The single allow-list the evaluator
     // uses, so a caller can refuse a name before it breaks the next recompute.
     static bool is_bindable_field(const std::string& field);
+    // Every field name set_feature_expr accepts, sorted (plus "dim:<N>" for a sketch dimension).
+    static std::vector<std::string> bindable_fields();
     // Variable housekeeping. rename_variable rewrites every expression that names `from` (token-wise: `w` does not touch
     // `width`) and refuses a name that is taken, malformed or built in. The CSV is "name,expression" per line, quotes as
     // usual; from_csv adds or replaces and returns how many rows it took, naming the first bad row in `err`.

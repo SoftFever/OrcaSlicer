@@ -42,3 +42,6 @@ Face/edge ids from `query_topology` are indices into the CURRENT topology and ex
 
 ## Known kernel limits (OCCT)
 The OCCT fillet builder can still refuse awkward blends (the body is unified and retried once). Sheet-metal unfold keeps the largest flat face fixed; hems are not unfolded; material added while flat is not carried through refold.
+
+## Binding a field to a variable
+`set_feature_expr {feature, field, expr}` binds one field to an expression over the variables; a field outside the allow-list is refused (`unknown parameter: <field>`) and the document is left unchanged. The accepted fields per feature are in `docs/CAD/mcp_bindable_fields.md` (generated from the app: `scripts/CAD/gen_bindable_fields.py --check`); a sketch dimension is `dim:<N>` (`sketch_dimensions` lists the indexes).
