@@ -1665,3 +1665,68 @@ TEST_CASE("Default options of enum lists get their definition's keys map", "[Con
     }
     CHECK(enum_lists > 0);
 }
+
+SCENARIO("update_diff_values_to_child_config keeps a child's disabled filament override", "[Config][Variant]")
+{
+    std::set<std::string> no_keys;
+    GIVEN("A filament parent that overrides retract before wipe and ironing flow") {
+        Slic3r::DynamicPrintConfig parent;
+        parent.set_deserialize_strict("filament_retract_before_wipe", "100%");
+        parent.set_deserialize_strict("filament_ironing_flow", "15%");
+        WHEN("the child disables both overrides") {
+            Slic3r::DynamicPrintConfig child;
+            child.set_deserialize_strict("filament_retract_before_wipe", "nil");
+            child.set_deserialize_strict("filament_ironing_flow", "nil");
+            parent.update_diff_values_to_child_config(child, "", "filament_extruder_variant",
+                                                      Slic3r::filament_options_with_variant, no_keys);
+            THEN("both overrides stay disabled") {
+                CHECK(parent.opt_serialize("filament_retract_before_wipe") == "nil");
+                CHECK(parent.opt_serialize("filament_ironing_flow") == "nil");
+            }
+        }
+    }
+    GIVEN("A two-variant filament parent") {
+        Slic3r::DynamicPrintConfig parent;
+        parent.set_deserialize_strict("filament_extruder_variant", "Direct Drive Standard;Direct Drive High Flow");
+        parent.set_deserialize_strict("filament_retract_before_wipe", "100%,100%");
+        parent.set_deserialize_strict("filament_flow_ratio", "1,1");
+        WHEN("the child disables the override on one variant and leaves a plain option nil on it") {
+            Slic3r::DynamicPrintConfig child;
+            child.set_deserialize_strict("filament_extruder_variant", "Direct Drive Standard;Direct Drive High Flow");
+            child.set_deserialize_strict("filament_retract_before_wipe", "nil,100%");
+            child.set_deserialize_strict("filament_flow_ratio", "nil,1.1");
+            parent.update_diff_values_to_child_config(child, "", "filament_extruder_variant",
+                                                      Slic3r::filament_options_with_variant, no_keys);
+            THEN("the override column is disabled while the plain option's nil column inherits") {
+                CHECK(parent.opt_serialize("filament_retract_before_wipe") == "nil,100%");
+                CHECK(parent.opt_serialize("filament_flow_ratio") == "1,1.1");
+            }
+        }
+        WHEN("the child lists the same variants in the other order") {
+            Slic3r::DynamicPrintConfig child;
+            child.set_deserialize_strict("filament_extruder_variant", "Direct Drive High Flow;Direct Drive Standard");
+            child.set_deserialize_strict("filament_retract_before_wipe", "70%,nil");
+            child.set_deserialize_strict("filament_flow_ratio", "1.1,nil");
+            parent.update_diff_values_to_child_config(child, "", "filament_extruder_variant",
+                                                      Slic3r::filament_options_with_variant, no_keys);
+            THEN("columns are matched by variant name, the disabled one included") {
+                CHECK(parent.opt_serialize("filament_retract_before_wipe") == "nil,70%");
+                CHECK(parent.opt_serialize("filament_flow_ratio") == "1,1.1");
+            }
+        }
+    }
+}
+
+TEST_CASE("Every filament override is the only kind of option whose nil means disabled", "[Config]")
+{
+    // Listed by hand on purpose: the helper answers from the flag, so it cannot be the oracle here.
+    std::set<std::string> overrides(Slic3r::filament_extruder_override_keys.begin(), Slic3r::filament_extruder_override_keys.end());
+    overrides.insert({ "filament_retract_length_nc", "filament_ironing_flow", "filament_ironing_spacing", "filament_ironing_inset", "filament_ironing_speed" });
+    for (const auto &[key, def] : Slic3r::print_config_def.options) {
+        INFO(key);
+        CHECK(def.nil_means_disabled == (overrides.count(key) == 1));
+        CHECK(Slic3r::is_filament_extruder_override_key(key) == def.nil_means_disabled);
+        if (def.nil_means_disabled)
+            CHECK(def.nullable);
+    }
+}

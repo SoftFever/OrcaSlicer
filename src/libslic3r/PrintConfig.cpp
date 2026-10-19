@@ -118,13 +118,14 @@ const std::vector<std::string> filament_extruder_override_keys = {
     "filament_retraction_distances_when_cut"
 };
 
-// Some filament override parameters are generated from filament_extruder_override_keys,
-// while filament_retract_length_nc is defined separately. Keep the generator list
-// unchanged and use this helper for behavior checks that need the full override set.
+// A filament override is any option whose definition says its nil means "disabled" rather
+// than "inherit": the keys generated from filament_extruder_override_keys, plus the ones
+// defined separately (filament_retract_length_nc, the ironing overrides). Child presets
+// store and load such a nil verbatim instead of folding it into the parent's value.
 bool is_filament_extruder_override_key(const std::string &opt_key)
 {
-    return std::find(filament_extruder_override_keys.begin(), filament_extruder_override_keys.end(), opt_key) != filament_extruder_override_keys.end() ||
-           opt_key == "filament_retract_length_nc";
+    const ConfigOptionDef *def = print_config_def.get(opt_key);
+    return def != nullptr && def->nil_means_disabled;
 }
 
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
@@ -4133,6 +4134,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->nullable = true;
+    def->nil_means_disabled = true;
     def->set_default_value(new ConfigOptionPercentsNullable{ ConfigOptionPercentsNullable::nil_value() });
 
     def = this->add("filament_ironing_spacing", coFloats);
@@ -4145,6 +4147,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 1;
     def->mode = comAdvanced;
     def->nullable = true;
+    def->nil_means_disabled = true;
     def->set_default_value(new ConfigOptionFloatsNullable{ ConfigOptionFloatsNullable::nil_value() });
 
     def = this->add("filament_ironing_inset", coFloats);
@@ -4157,6 +4160,7 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->nullable = true;
+    def->nil_means_disabled = true;
     def->set_default_value(new ConfigOptionFloatsNullable{ ConfigOptionFloatsNullable::nil_value() });
 
     def = this->add("filament_ironing_speed", coFloats);
@@ -4168,6 +4172,7 @@ void PrintConfigDef::init_fff_params()
     def->min = 1;
     def->mode = comAdvanced;
     def->nullable = true;
+    def->nil_means_disabled = true;
     def->set_default_value(new ConfigOptionFloatsNullable{ ConfigOptionFloatsNullable::nil_value() });
 
     def = this->add("fuzzy_skin", coEnum);
@@ -8678,6 +8683,7 @@ void PrintConfigDef::init_fff_params()
         auto it_opt = options.find(extruder_raw_key);
         assert(it_opt != options.end());
         def = this->add_nullable(opt_key, it_opt->second.type);
+        def->nil_means_disabled = true;
         def->label 		= it_opt->second.label;
         def->full_label = it_opt->second.full_label;
         def->tooltip 	= it_opt->second.tooltip;
@@ -8827,6 +8833,7 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->mode = comDevelop;
     def->nullable = true;
+    def->nil_means_disabled = true;
     def->min = 0;
     def->max = 18;
     def->set_default_value(new ConfigOptionFloatsNullable { 10. });
@@ -12255,7 +12262,8 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
                     opt_src->set(opt_target);
                 }
                 else
-                    opt_vec_src->set_only_diff(opt_vec_dest, variant_index, stride);
+                    // An override's nil means "disabled" and is the child's value; every other nil column inherits.
+                    opt_vec_src->set_only_diff(opt_vec_dest, variant_index, stride, is_filament_extruder_override_key(opt));
             }
         }
     }
