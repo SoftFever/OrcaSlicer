@@ -688,15 +688,11 @@ int MoonrakerPrinterAgent::disconnect_printer()
 
 bool MoonrakerPrinterAgent::start_discovery(bool start, bool sending)
 {
-    // Discovery is not properly implemented, avoid populating machine list
-    // with stale device
-    // (void) sending;
-    // if (start) {
-    //     announce_printhost_device();
-    // }
-    // return true;
-
-    return BAMBU_NETWORK_SUCCESS;
+    (void) sending;
+    if (start) {
+        announce_printhost_device();
+    }
+    return true;
 }
 
 int MoonrakerPrinterAgent::bind_detect(std::string dev_ip, std::string sec_link, detectResult& detect)
