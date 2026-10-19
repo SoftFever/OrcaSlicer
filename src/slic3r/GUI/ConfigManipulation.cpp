@@ -846,14 +846,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // The sparse infill density is the surface density of the adaptive infill; at 100% the infill is solid.
     bool have_adaptive_infill_pattern = have_infill && config->option<ConfigOptionPercent>("sparse_infill_density")->value < 100 &&
                             is_adaptive_infill_pattern(pattern);
-    toggle_line("adaptive_infill_mode", have_adaptive_infill_pattern, -1, _L("Select an adaptive TPMS infill pattern with sparse infill density between zero and 100%."));
+    toggle_line("adaptive_infill_mode", have_adaptive_infill_pattern, -1, _L("Select Gyroid, TPMS-D or TPMS-FK infill with sparse infill density greater than zero and less than 100%."));
     bool have_adaptive_infill = have_adaptive_infill_pattern && config->opt_enum<AdaptiveInfillMode>("adaptive_infill_mode") != AdaptiveInfillMode::Disabled;
-    toggle_line("adaptive_infill_interior_density", have_adaptive_infill, -1, _L("Enable adaptive TPMS infill with sparse infill density between zero and 100%."));
-    toggle_line("adaptive_infill_gradient", have_adaptive_infill, -1, _L("Enable adaptive TPMS infill with sparse infill density between zero and 100%."));
+    toggle_line("adaptive_infill_interior_density", have_adaptive_infill, -1, _L("Enable adaptive density for Gyroid, TPMS-D or TPMS-FK infill with sparse infill density greater than zero and less than 100%."));
+    toggle_line("adaptive_infill_gradient", have_adaptive_infill, -1, _L("Enable adaptive density for Gyroid, TPMS-D or TPMS-FK infill with sparse infill density greater than zero and less than 100%."));
 
     // gyroid_optimized only applies when the sparse infill pattern is gyroid without adaptive density;
     // hide the whole line otherwise.
-    toggle_line("gyroid_optimized", have_infill && pattern == ipGyroid && !have_adaptive_infill, -1, _L("Select Gyroid infill with nonzero sparse infill density and disable adaptive TPMS to use this setting."));
+    toggle_line("gyroid_optimized", have_infill && pattern == ipGyroid && !have_adaptive_infill, -1, _L("Select Gyroid infill with nonzero sparse infill density and disable adaptive density to use this setting."));
 
     // If there is infill, enable/disable fill_multiline according to whether the pattern supports multiline infill.
     if (have_infill) {
@@ -1141,7 +1141,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool has_zaa = config->opt_bool("zaa_enabled");
     for (auto el : {"zaa_minimize_perimeter_height", "zaa_min_z", "zaa_dont_alternate_fill_direction", "ironing_expansion"})
-        toggle_line(el, has_zaa, -1, _L("Enable Z anti-aliasing to use this setting."));
+        toggle_line(el, has_zaa, -1, _L("Enable Z contouring to use this setting."));
 
     bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
