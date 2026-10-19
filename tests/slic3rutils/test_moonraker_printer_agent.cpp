@@ -150,6 +150,13 @@ public:
         return m_close_frames;
     }
 
+    // The printer answers a close frame before its own read completes, so the agent's stop can return first.
+    bool wait_for_close_frames(int count)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        return m_changed.wait_for(lock, 10s, [&] { return m_close_frames >= count; });
+    }
+
     // Hangs up every connection that is waiting.
     void release()
     {
@@ -277,6 +284,7 @@ private:
                 if (ec == websocket::error::closed) {
                     std::lock_guard<std::mutex> lock(m_mutex);
                     ++m_close_frames;
+                    m_changed.notify_all();
                 }
                 if (ec)
                     reading = false;
@@ -449,6 +457,7 @@ TEST_CASE("Stopping the status stream sends the printer a close frame", "[Moonra
     REQUIRE(f.printer.wait_for_ready_connections(1));
 
     CHECK(f.stops_within(3s));
+    CHECK(f.printer.wait_for_close_frames(1));
     CHECK(f.printer.close_frames() == 1);
 }
 
