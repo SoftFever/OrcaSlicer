@@ -92,6 +92,9 @@ public:
     bool ribbon_overlay_on() const { return m_ribbon_on; }
     DesignTreeOverlay& tree_overlay() { return m_tree_overlay; }
     const std::string& readout() const { return m_hud_last; }   // the HUD chip text (rig)
+    // The SELECT panel (which kinds a click takes, and whether re-clicking cycles): the checkbox centres of the last frame, in canvas pixels (rig)
+    const std::vector<std::pair<float, float>>& select_panel_hits() const { return m_select_hits; }
+    void render_select_panel(float top);
     void set_tree_overlay(bool on) { m_tree_overlay_on = on; request_repaint(); }
     bool tree_overlay_on() const { return m_tree_overlay_on; }
     void begin_sketch3d(const Vec3d& start, std::vector<Vec3d> snap_targets) { m_sketch_tool.begin_sketch3d(start, std::move(snap_targets)); request_repaint(); }
@@ -488,6 +491,7 @@ private:
     DesignCandidateMenu m_other_menu;   // Select Other, opened by a press-hold on the solid
     bool                m_ribbon_on{false};
     DesignTreeOverlay m_tree_overlay;
+    std::vector<std::pair<float, float>> m_select_hits;
     bool              m_tree_overlay_on{false};
     std::string   m_hud_last;
     wxString      m_status_hud_last;

@@ -3158,6 +3158,11 @@ json ui_inspect(DesignPanel* panel)
         out["solid_selection"] = {{"kind", v->mcp_sketch_tool().solid_sel_kind()}, {"faces", faces}, {"edges", v->mcp_sketch_tool().selected_edges()}};
     }
     if (v) out["hud"] = v->readout();
+    if (v) {
+        json hits = json::array();
+        for (const auto& hh : v->select_panel_hits()) hits.push_back(json::array({hh.first, hh.second}));
+        out["select_panel"] = {{"checks", hits}};
+    }
     if (v && v->tree_overlay_on()) {   // the on-canvas tree: where each row is, so a rig test can drag one
         const DesignTreeOverlay& to = const_cast<DesignCanvas*>(v)->tree_overlay();
         out["tree"] = {{"rows_y", to.row_mids()}, {"x", to.row_x()}, {"selected", panel->mcp_tree_selection()}};

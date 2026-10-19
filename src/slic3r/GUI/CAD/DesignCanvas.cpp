@@ -105,6 +105,12 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
     m_canvas->set_design_canvas(true);   // home-position bed, triad and CAD grid at the modeling origin
 
     m_canvas->set_design_sketch_tool(&m_sketch_tool);
+    {   // SELECT panel: the last filter and click mode
+        AppConfig* cfg = wxGetApp().app_config;
+        auto get = [cfg](const char* k, bool def) { const std::string v = cfg->get(k); return v.empty() ? def : v == "1" || v == "true"; };
+        m_sketch_tool.set_pick_filter({ get("design_pick_face", true), get("design_pick_edge", true), get("design_pick_vertex", true) });
+        m_sketch_tool.set_click_cycle(get("design_click_cycle", false));
+    }
     m_sketch_tool.on_commit = [this](const SketchProfile& prof, const SketchPlane& pl) {
         if (m_on_sketch_commit) m_on_sketch_commit(prof, pl);
         if (m_canvas) m_canvas->set_as_dirty();
@@ -224,6 +230,7 @@ DesignCanvas::DesignCanvas(wxWindow* parent)
         }
         if (m_tree_overlay_on)
             m_tree_overlay.render(imgui, m_canvas->get_scale(), 0.f, std::max(top, 0.f) + 34.f * em * (m_ribbon_on ? 0.f : 1.f));
+        render_select_panel(std::max(top, 0.f) + 34.f * em);
     };
 
     refresh_bed();
@@ -1278,6 +1285,47 @@ void DesignCanvas::set_status_text(const wxString& text, const wxColour& colour)
     m_status_hud_last   = text;
     m_status_hud_colour = colour;
     request_repaint();
+}
+
+// SELECT: which kinds a click or hover may take on the solids, and what a repeated click does. Not drawn while a sketch is open
+// (a sketch has its own picking). Saved with the app settings.
+void DesignCanvas::render_select_panel(float top)
+{
+    m_select_hits.clear();
+    if (m_sketch_tool.is_active() || m_canvas == nullptr) return;
+    ImGuiWrapper& imgui = *wxGetApp().imgui();
+    const ImVec2  ds    = ImGui::GetIO().DisplaySize;
+    const float   em    = imgui.get_style_scaling();
+    DesignSketchTool::PickFilter f = m_sketch_tool.pick_filter();
+    bool cycle = m_sketch_tool.click_cycle();
+    const DesignSketchTool::PickFilter f0 = f;
+    const bool cycle0 = cycle;
+    ImGuiWrapper::push_common_window_style(m_canvas->get_scale());
+    imgui.set_next_window_pos(ds.x - 12.f * em, top + 8.f * em, ImGuiCond_FirstUseEver, 1.f, 0.f);
+    imgui.begin(_u8L("Select") + "##design_select",
+                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);
+    auto box = [&](const std::string& label, bool& v) {
+        ImGui::Checkbox(label.c_str(), &v);
+        const ImVec2 a = ImGui::GetItemRectMin(), b = ImGui::GetItemRectMax();
+        m_select_hits.emplace_back(a.x + 10.f * em, 0.5f * (a.y + b.y));   // the box itself, not the label
+    };
+    box(_u8L("Faces"), f.face);
+    box(_u8L("Edges"), f.edge);
+    box(_u8L("Vertices"), f.vertex);
+    ImGui::Separator();
+    box(_u8L("Click cycles candidates"), cycle);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", _u8L("Off: clicking the same spot again takes the whole body. On: it steps through everything under the pointer.").c_str());
+    imgui.end();
+    ImGuiWrapper::pop_common_window_style();
+    if (f.face != f0.face || f.edge != f0.edge || f.vertex != f0.vertex) {
+        m_sketch_tool.set_pick_filter(f);
+        AppConfig* cfg = wxGetApp().app_config;
+        cfg->set("design_pick_face", f.face ? "1" : "0"); cfg->set("design_pick_edge", f.edge ? "1" : "0"); cfg->set("design_pick_vertex", f.vertex ? "1" : "0");
+    }
+    if (cycle != cycle0) {
+        m_sketch_tool.set_click_cycle(cycle);
+        wxGetApp().app_config->set("design_click_cycle", cycle ? "1" : "0");
+    }
 }
 
 void DesignCanvas::render_hud()
