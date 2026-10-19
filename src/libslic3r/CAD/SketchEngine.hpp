@@ -11,8 +11,9 @@
 #include <TopoDS_Wire.hxx>
 #include <TopoDS_Shape.hxx>
 #include <TopoDS_Face.hxx>
-#include <charconv>
 #include <cmath>
+#include <locale>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <utility>
@@ -98,12 +99,16 @@ inline double snap_to_step(double v, double step)
     return step > 0. ? std::round(v / step) * step : v;
 }
 // A length for a label: at most `decimals` places, trailing zeros dropped, never "-0", always a '.'
-// (std::to_chars ignores LC_NUMERIC, unlike snprintf, which wx points at the user's locale).
+// (a stream imbued with the classic locale ignores LC_NUMERIC, unlike snprintf, which wx points at the user's locale;
+// std::to_chars is not used: its floating-point overloads need macOS 13.3).
 inline std::string format_dim_number(double v, int decimals = 2)
 {
-    char buf[64];
-    const auto r = std::to_chars(buf, buf + sizeof(buf), v, std::chars_format::fixed, decimals);
-    std::string s(buf, r.ptr);
+    std::ostringstream os;
+    os.imbue(std::locale::classic());
+    os.setf(std::ios::fixed, std::ios::floatfield);
+    os.precision(decimals);
+    os << v;
+    std::string s = os.str();
     if (s.find('.') != std::string::npos) {
         while (s.back() == '0') s.pop_back();
         if (s.back() == '.') s.pop_back();
