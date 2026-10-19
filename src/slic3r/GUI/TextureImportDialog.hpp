@@ -201,9 +201,7 @@ public:
                         const Slic3r::TexturedMesh&      textured_mesh,
                         const std::vector<TextureFilamentEntry>& filament_entries,
                         std::function<bool()>            initial_cancel_callback = {},
-                        std::function<bool(int)>         initial_progress_callback = {},
-                        Slic3r::TexturePaintingSettings::MeshRepairDecision mesh_repair_decision =
-                            Slic3r::TexturePaintingSettings::MeshRepairDecision::Ask);
+                        std::function<bool(int)>         initial_progress_callback = {});
     ~TextureImportDialog();
 
     int ShowModal() override;

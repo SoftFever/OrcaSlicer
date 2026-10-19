@@ -44,6 +44,7 @@ add_executable(${_TEST_NAME}_tests
     test_shortcuts.cpp
     test_texture_color_palette.cpp
     test_texture_island_view.cpp
+    test_timelapse_codecs.cpp
     test_file_url.cpp
     test_imgui_wrapper.cpp
     test_user_manager.cpp
@@ -64,26 +65,15 @@ set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
 orcaslicer_copy_test_dlls(${_TEST_NAME}_tests)
 
-# The shared Python DLL must be staged before Catch's post-build discovery,
-# including when an executable is built without the other utility tests.
-function(orcaslicer_copy_test_python_dlls target)
-    if (WIN32)
-        add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CMAKE_PREFIX_PATH}/libpython/python${_bundled_python_abi}.dll"
-                "${CMAKE_PREFIX_PATH}/libpython/vcruntime140.dll"
-                "${CMAKE_PREFIX_PATH}/libpython/vcruntime140_1.dll"
-                "$<TARGET_FILE_DIR:${target}>"
-            COMMENT "Copying Python DLLs for ${target}"
-            VERBATIM
-        )
-    endif ()
-endfunction()
-
 if (WIN32)
     add_custom_command(TARGET ${_TEST_NAME}_tests POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${_TEST_NAME}_tests>/python"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_PREFIX_PATH}/libpython" "$<TARGET_FILE_DIR:${_TEST_NAME}_tests>/python"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_PREFIX_PATH}/libpython/python${_bundled_python_abi}.dll"
+            "${CMAKE_PREFIX_PATH}/libpython/vcruntime140.dll"
+            "${CMAKE_PREFIX_PATH}/libpython/vcruntime140_1.dll"
+            "$<TARGET_FILE_DIR:${_TEST_NAME}_tests>"
         COMMENT "Copying Python runtime for slic3rutils plugin host API tests"
         VERBATIM
     )
@@ -120,7 +110,6 @@ elseif (FLATPAK)
         VERBATIM
     )
 endif()
-orcaslicer_copy_test_python_dlls(${_TEST_NAME}_tests)
 
 # scripts/run_unit_tests.sh installs the tests' numpy into that runtime with this uv,
 # staged where the app build tree keeps it (<exe dir>/tools/uv, see src/CMakeLists.txt).
@@ -135,19 +124,3 @@ if (ORCA_BUNDLED_UV_EXECUTABLE)
 endif()
 
 orcaslicer_discover_tests(${_TEST_NAME}_tests)
-
-# Exercises the actual async texture-import dialog without manual input. Keep
-# its wxApp and native crash boundary out of the general utility test process.
-add_executable(texture_import_integration_tests
-    test_texture_import.cpp
-    test_timelapse_codecs.cpp)
-target_link_libraries(texture_import_integration_tests PRIVATE
-    test_common libslic3r_gui libslic3r pybind11::embed Catch2::Catch2WithMain)
-file(TO_NATIVE_PATH "${CMAKE_SOURCE_DIR}/resources" _texture_test_resources)
-target_compile_definitions(texture_import_integration_tests PRIVATE
-    ORCA_TEST_RESOURCES_DIR=R"\(${_texture_test_resources}\)")
-set_property(TARGET texture_import_integration_tests PROPERTY FOLDER "tests")
-orcaslicer_copy_test_dlls(texture_import_integration_tests)
-orcaslicer_copy_test_python_dlls(texture_import_integration_tests)
-catch_discover_tests(texture_import_integration_tests ADD_TAGS_AS_LABELS
-    PROPERTIES TIMEOUT 660)

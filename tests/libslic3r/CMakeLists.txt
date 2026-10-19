@@ -1,5 +1,9 @@
 get_filename_component(_TEST_NAME ${CMAKE_CURRENT_LIST_DIR} NAME)
 
+# Observe the geometry backend's actual CGAL layout without duplicating its flags.
+# This source is only added when the test suite is enabled.
+target_sources(libslic3r_cgal PRIVATE texture_import_cgal.cpp)
+
 add_executable(${_TEST_NAME}_tests
     ${_TEST_NAME}_tests.cpp
     test_3mf.cpp
@@ -71,6 +75,7 @@ add_executable(${_TEST_NAME}_tests
     test_indexed_triangle_set.cpp
     test_connected_bodies.cpp
     test_texture_displacement.cpp
+    test_texture_import.cpp
     test_instance_lock.cpp
     ../libnest2d/printer_parts.cpp
     )

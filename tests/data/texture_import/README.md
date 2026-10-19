@@ -1,8 +1,12 @@
 `two_color_jpeg.glb` is a generated, closed tetrahedron with four faces, UVs, and
 an embedded 8×8 red/blue JPEG base-color texture. Its coordinates span 20 mm.
 
-The compact model exercises JPEG decoding, automatic color clustering, geometry
-smoothing, and the filament-matching dialog without mesh repair or units prompts.
+The core tests load all three fixtures through `Model::read_from_file`, convert
+textures or MTL colors to painting with boundary smoothing, and match red and blue
+to filaments. They run in CI without a display. A separate layout check compares
+the smoothing search-tree type seen by a core consumer with the same type compiled
+inside `libslic3r_cgal`. The mismatch is checked directly because undefined behavior
+can be masked by which inline template implementations the linker selects.
 
 `two_color_sphere/test_two_color_sphere.obj` and its matching MTL are the original
 red/blue material-color sphere supplied by RF47 in

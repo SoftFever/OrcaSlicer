@@ -18,7 +18,7 @@
 #include <wx/init.h>
 #include <wx/mstream.h>
 
-TEST_CASE("JPEG texture decoding coexists with thumbnails and video frames", "[TimelapseCodecs][Integration][RequiresApp]")
+TEST_CASE("JPEG texture decoding coexists with thumbnails and video frames", "[TimelapseCodecs][Regression]")
 {
 #if defined(__linux__)
     if (!std::getenv("DISPLAY") && !std::getenv("WAYLAND_DISPLAY"))
