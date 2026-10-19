@@ -242,11 +242,23 @@ hundred distinguishable colours.
 
 ### The states
 
-Instead of paragraphs: a dot and a word, and only when it is true. `far off` / `close` / `good match`
-for the prediction, `not flat` where the painted face is not level, `swaps` where ranges that are not
-ours are in the way, `solving` while the stack settles. The sentence that used to be on the panel is
-in each chip's tooltip, where it is read once rather than every time the panel is open.
+The card contains no messages. Two words of label, `Colors` and `Base`, name controls; everything
+else the panel has to say is said by the thing it is about, and the sentence that explains it is in
+that thing's tooltip.
+
+- **How good the match is** is the colour of the prediction's own frame: amber when the filaments
+  cannot reach the picture, green when they do, the separator grey when it is merely close, and the
+  accent colour while the stack is settling. It is a property of that picture, so it is drawn on it.
+- **Everything else wrong** is one mark in the card's header, and only when something is. Its tooltip
+  is `chroma_problems()`, the whole list in sentences; clicking it does the one thing that can be
+  done from there, which is replacing height ranges that are in the way.
+- **Whether the base follows the model** is a padlock beside the field, closed while it does.
+
+The reasoning is that a warning printed on a panel is read once and then occupies that space for
+ever, and a panel that explains itself in paragraphs cannot be scanned at all. A mark that appears
+only when it has something to say costs one glyph when there is nothing wrong, and carries as much
+prose as the problem needs when there is.
 
 Base, dither and the picture's placement are behind More settings. The base is a measurement, not a
-setting: it follows the painted face unless it is set by hand. The printed-colour overlay is a view,
-so its switch is in the View row with the other views rather than inside a layer's card.
+setting: it follows the painted face unless the padlock is opened. The printed-colour overlay is a
+view, so its switch is in the View row with the other views rather than inside a layer's card.

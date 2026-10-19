@@ -483,6 +483,13 @@ private:
     // placement of the picture on the patch, none of which is touched twice in a session.
     void render_chroma_details(TextureDisplacementLayer &layer, float card_pad, float label_w, float wrap_w);
 
+    // Everything wrong with this layer, as sentences, worst first - empty when nothing is.
+    //
+    // The card shows none of them as text. A panel that explains itself in paragraphs is unreadable
+    // after the first time and still there on the hundredth, so the explanations live in one mark in
+    // the card's header: its tooltip is this list, and clicking it does whatever can be done about it.
+    std::vector<std::string> chroma_problems(const TextureDisplacementLayer &layer) const;
+
     // The surface drawn in the colours the stack will print, over whatever neutral surface is there:
     // the live preview's displaced mesh before a bake, the volume's own mesh after one. Every triangle
     // takes the palette colour of the printed layer its centroid falls in (chroma_level_at()), which
