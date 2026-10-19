@@ -33,7 +33,7 @@ namespace Slic3r { class ExtrusionEntityCollection; }
 namespace Slic3r {
 
 class Surface;
-class TpmsRadialField;
+class AdaptiveInfillField;
 enum InfillPattern : int;
 
 namespace FillAdaptive {
@@ -93,9 +93,9 @@ struct FillParams
     bool        gyroid_optimized { false };
 
     // For TPMS: grade the density from the surface to the interior of the object. Density fraction.
-    TpmsAdaptiveMode     tpms_adaptive { TpmsAdaptiveMode::Disabled };
-    float                tpms_interior_density { 0.f };
-    TpmsAdaptiveGradient tpms_adaptive_gradient { TpmsAdaptiveGradient::Linear };
+    AdaptiveInfillMode     adaptive_infill_mode { AdaptiveInfillMode::Disabled };
+    float                adaptive_infill_interior_density { 0.f };
+    AdaptiveInfillGradient adaptive_infill_gradient { AdaptiveInfillGradient::Linear };
 
     // Orca: corner smoothing factor in the range [0, 1].
     double      smooth_factor { 0. };
@@ -162,7 +162,7 @@ public:
     FillAdaptive::Octree* adapt_fill_octree = nullptr;
 
     // Radial coordinate inside the object for the adaptive TPMS infill
-    const TpmsRadialField* tpms_radial_field = nullptr;
+    const AdaptiveInfillField* adaptive_infill_field = nullptr;
 
     // PrintConfig and PrintObjectConfig are used by infills that use Arachne (Concentric and FillEnsuring).
     // Orca: also used by gap fill function.
