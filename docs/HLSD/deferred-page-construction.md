@@ -102,6 +102,14 @@ It records executed public calls, so direct field operations and rules that have
 are outside its coverage. Keeping it with the Tab lets reasons survive page control
 recycling without retaining a Field or window pointer.
 
+The registry formats the current restrictions for both controls and their labels.
+Public toggles refresh the active input's tooltip, and each page's `OG_CustomCtrl`
+reads its owning Tab's registry when the pointer rests on a row label. The label
+remains a hover target when the input is disabled. Markdown tips prepend the same
+restriction text to their document and refresh when that text changes, even when
+the document identifier stays the same. Callers without a reason receive a generic
+current-configuration explanation.
+
 ### The 3D view's GL resources
 
 OpenGL is loaded on the Prepare tab's canvas. When the start page is not Prepare, loading

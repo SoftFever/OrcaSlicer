@@ -75,3 +75,23 @@ TEST_CASE("Dependency toggles forward their reasons without requiring page contr
     manipulation.toggle_line("option", true, 2);
     CHECK(registry.hidden_reason("option") == nullptr);
 }
+
+TEST_CASE("Availability descriptions update when either restriction is removed", "[OptionStateRegistry]")
+{
+    OptionStateRegistry registry;
+    CHECK(registry.description("option").empty());
+    registry.set_visible("option", false, "Enable sparse infill.");
+    registry.set_enabled("option", false, "Change wall generator.");
+    wxString description = registry.description("option");
+    CHECK(description.Contains("Enable sparse infill."));
+    CHECK(description.Contains("Change wall generator."));
+
+    registry.set_visible("option", true);
+    CHECK_FALSE(registry.description("option").Contains("Enable sparse infill."));
+    CHECK(registry.description("option").Contains("Change wall generator."));
+    registry.set_enabled("option", true);
+    CHECK(registry.description("option").empty());
+
+    registry.set_enabled("option", false);
+    CHECK_FALSE(registry.description("option").empty());
+}

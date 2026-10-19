@@ -544,7 +544,10 @@ Pitfall:
 `Tab` also records each public toggle in its own `OptionStateRegistry` before looking up a field.
 The optional reason is localized text; false stores or replaces it, true removes only that kind of
 restriction. Keys are kept exactly as supplied, independently of the separate variant index. Direct
-field toggles are not recorded.
+field toggles are not recorded. The registry's `description` composes the localized restriction
+text; public toggles refresh the field tooltip, and `OG_CustomCtrl` reads the same registry for the
+row label. The label is the portable hover target for a disabled field. Markdown tips prepend this
+dynamic text to the loaded document and include it in their content-change check.
 
 `TabX::toggle_options()` calls the `toggle_*` function and adds tab-local tweaks. They run on every page activation,
 after every `update()`, and after a variant switch.

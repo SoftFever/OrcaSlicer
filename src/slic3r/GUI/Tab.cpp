@@ -1825,6 +1825,16 @@ Field* Tab::get_field(const t_config_option_key& opt_key, Page** selected_page, 
     return field;
 }
 
+static void update_option_tooltip(Field* field, const wxString& availability)
+{
+    if (!field || !field->getWindow())
+        return;
+    wxString tooltip = field->get_tooltip_text(wxEmptyString);
+    if (!availability.empty())
+        tooltip = availability + "\n\n" + tooltip;
+    field->getWindow()->SetToolTip(tooltip);
+}
+
 void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index, const wxString& reason)
 {
     m_option_state_registry.set_enabled(opt_key, toggle, reason);
@@ -1833,6 +1843,7 @@ void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index, 
     Field* field = m_active_page->get_field(opt_key, opt_index);
     if (field)
         field->toggle(toggle);
+    update_option_tooltip(field, m_option_state_registry.description(opt_key));
 }
 
 void Tab::toggle_line(const std::string &opt_key, bool toggle, int opt_index, const wxString& reason)
@@ -1845,6 +1856,7 @@ void Tab::toggle_line(const std::string &opt_key, bool toggle, int opt_index, co
         if (Line *line = page->get_line(opt_key, opt_index))
             line->toggle_visible = toggle;
     }
+    update_option_tooltip(get_field(opt_key, opt_index), m_option_state_registry.description(opt_key));
 };
 
 void Tab::set_option_label(const std::string &opt_key, const wxString &label, int opt_index)
@@ -9391,6 +9403,8 @@ bool Page::activate_group(size_t i, ConfigOptionMode mode, std::function<void()>
     auto& group = m_optgroups[i];
     if (!group->activate(throw_if_canceled))
         return false;
+    if (group->custom_ctrl)
+        group->custom_ctrl->set_option_state_registry(&static_cast<Tab*>(m_tab_owner)->option_state_registry());
     m_visibility_applied = false;
     m_vsizer->Add(group->sizer, 0, wxEXPAND | (group->is_legend_line() ? (wxLEFT|wxTOP) : wxALL), m_parent->FromDIP(5)); // ORCA use less margin on parameters section
     group->update_visibility(mode);

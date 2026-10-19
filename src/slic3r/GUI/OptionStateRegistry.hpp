@@ -23,6 +23,8 @@ public:
     const wxString* hidden_reason(const std::string& key) const { return find(m_hidden, key); }
     const wxString* disabled_reason(const std::string& key) const { return find(m_disabled, key); }
 
+    wxString description(const std::string& key) const;
+
     void clear()
     {
         m_hidden.clear();
