@@ -965,6 +965,7 @@ public:
     bool can_undo() const { return !m_undo.empty(); }
     bool can_redo() const { return !m_redo.empty(); }
     size_t undo_depth() const { return m_undo.size(); }
+    void   drop_undo_to(size_t depth) { while (m_undo.size() > depth) m_undo.pop_back(); }   // a rolled-back batch leaves no steps behind
     size_t redo_depth() const { return m_redo.size(); }
     bool undo();   // restore the previous feature list + recompute(); false if no history
     bool redo();   // re-apply the most recently undone change; false if none

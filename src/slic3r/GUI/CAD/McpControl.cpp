@@ -3471,6 +3471,7 @@ json action_batch(DesignPanel* panel, const json& params)
     CadDocument& doc = panel->mcp_doc();
     const auto saved_features  = doc.features;
     const auto saved_variables = doc.variables;
+    const size_t undo_at_start = doc.undo_depth();
     json results = json::array(), failed;
     for (size_t i = 0; i < cmds.size() && failed.is_null(); ++i) {
         const json& c = cmds[i];
@@ -3495,6 +3496,7 @@ json action_batch(DesignPanel* panel, const json& params)
     if (!failed.is_null() && rollback) {
         doc.features = saved_features;
         doc.variables = saved_variables;
+        doc.drop_undo_to(undo_at_start);   // the steps the failed batch pushed describe a history that no longer happened
         doc.recompute();
         panel->mcp_after_change();
         undone = true;
