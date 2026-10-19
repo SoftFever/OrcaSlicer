@@ -4807,6 +4807,35 @@ void GLGizmoTextureDisplacement::chroma_settle(TextureDisplacementLayer &layer)
         chroma_apply_swaps(layer, true);
 }
 
+void GLGizmoTextureDisplacement::chroma_suggest(TextureDisplacementLayer &layer, int count)
+{
+    if (layer.slot < 0 || size_t(layer.slot) >= TEXTURE_DISPLACEMENT_MAX_LAYERS)
+        return;
+    m_chroma_suggestion[size_t(layer.slot)].clear();
+    if (!layer.chroma_source)
+        return;
+
+    TextureDisplacementLayer probe;
+    probe.image_data                  = layer.chroma_source;
+    const DecodedHeightTexture source = decode_height_texture(probe);
+    if (source.empty())
+        return;
+
+    std::vector<uint8_t> grey_rgb;
+    const uint8_t       *rgb = source.rgb.data();
+    if (!source.has_color()) {
+        grey_rgb.resize(source.pixels.size() * 3);
+        for (size_t i = 0; i < source.pixels.size(); ++i)
+            grey_rgb[i * 3] = grey_rgb[i * 3 + 1] = grey_rgb[i * 3 + 2] = source.pixels[i];
+        rgb = grey_rgb.data();
+    }
+
+    const int relief = std::max(CHROMA_DEFAULT_RELIEF_LAYERS, layer.chroma.relief_layers());
+    m_chroma_suggestion[size_t(layer.slot)] =
+        chroma_suggest_colors(chroma_histogram(rgb, source.width, source.height), count, chroma_filaments(),
+                              layer.chroma.layer_height_mm, relief);
+}
+
 void GLGizmoTextureDisplacement::chroma_pick_colors(TextureDisplacementLayer &layer, int count)
 {
     if (!layer.chroma_source) {
@@ -4947,25 +4976,73 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
                                         report.mean, report.max),
          &ring);
 
-    // ---- How many colours to spend. The numbers are the action; there is nothing else to press. ----
+    // ---- How many colours to spend, and the two ways to choose them ----
     {
+        if (m_chroma_pick_count[slot] <= 0)
+            m_chroma_pick_count[slot] = std::max(2, int(layer.chroma.bands.size()));
         ImGui::AlignTextToFramePadding();
         ImGui::TextDisabled("%s", _u8L("Colors").c_str());
-        const int counts[] = { 2, 3, 4, 6 };
-        for (const int n : counts) {
-            ImGui::SameLine(0.f, gap_s);
-            const bool on = m_chroma_pick_count[slot] == n;
-            if (on)
-                ImGui::PushStyleColor(ImGuiCol_Button, ImGuiWrapper::COL_ORCA);
-            if (ImGui::Button((std::to_string(n) + "##hf_n").c_str(), ImVec2(frame_h * 1.3f, 0.f)))
-                chroma_pick_colors(layer, n);
-            if (on)
-                ImGui::PopStyleColor();
-            tip(Slic3r::format(_u8L("Build the stack from the %1% of your loaded filaments that come closest to this "
-                                    "picture, in the order that reaches the most colors.\n\n"
-                                    "Fewer colors is fewer filament changes to stand over; more is a better match, "
-                                    "never a worse one."),
-                               n));
+        ImGui::SameLine(0.f, gap_s);
+        ImGui::SetNextItemWidth(m_imgui->scaled(4.2f));
+        ImGui::SliderInt("##hf_count", &m_chroma_pick_count[slot], 2, int(CHROMA_MAX_BANDS) < 8 ? int(CHROMA_MAX_BANDS) : 8,
+                         "%d", ImGuiSliderFlags_AlwaysClamp);
+        tip(_u8L("How many filaments the picture is printed in. Fewer is fewer changes to stand over; more is a "
+                 "better match, never a worse one."));
+
+        ImGui::SameLine(0.f, gap_s);
+        if (m_imgui->button(_L("Use mine")))
+            chroma_pick_colors(layer, m_chroma_pick_count[slot]);
+        tip(_u8L("Builds the stack from that many of your loaded filaments: the ones that come closest to this "
+                 "picture, in the order that reaches the most colors."));
+
+        ImGui::SameLine(0.f, gap_s);
+        if (m_imgui->button(_L("Suggest"))) {
+            chroma_suggest(layer, m_chroma_pick_count[slot]);
+            ImGui::OpenPopup("hf_suggest");
+        }
+        tip(_u8L("Works out the colors this picture would most like to be printed in, whether or not you own them - "
+                 "so you know what to go and get."));
+
+        if (ImGui::BeginPopup("hf_suggest")) {
+            const std::vector<ChromaSuggestion> &found = m_chroma_suggestion[slot];
+            if (found.empty())
+                ImGui::TextDisabled("%s", _u8L("Nothing to suggest for this picture.").c_str());
+            else {
+                ImGui::TextDisabled("%s", _u8L("Colors to look for, bottom of the stack first").c_str());
+                ImGui::Dummy(ImVec2(1.f, gap_s));
+                for (size_t i = 0; i < found.size(); ++i) {
+                    const ChromaSuggestion &one = found[i];
+                    ImGui::PushID(int(i));
+                    swatch(one.color, std::round(frame_h * 0.8f));
+                    ImGui::SameLine(0.f, gap_s);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::Text("%s", Slic3r::format("#%1$02X%2$02X%3$02X", int(one.color.r() * 255.f + 0.5f),
+                                                     int(one.color.g() * 255.f + 0.5f), int(one.color.b() * 255.f + 0.5f))
+                                          .c_str());
+                    ImGui::SameLine(0.f, 2.f * gap_s);
+                    ImGui::TextDisabled("%s", Slic3r::format(_u8L("TD %1$.0f, %2% layers"), one.td_mm, one.layers).c_str());
+                    ImGui::SameLine(0.f, 2.f * gap_s);
+                    if (one.nearest < 0)
+                        ImGui::TextDisabled("%s", _u8L("nothing loaded").c_str());
+                    else {
+                        const std::string near_text =
+                            Slic3r::format(_u8L("yours: %1% (%2$.0f off)"), one.nearest + 1, one.nearest_de);
+                        if (one.nearest_de > 10.f)
+                            m_imgui->warning_text(near_text.c_str());
+                        else
+                            ImGui::TextDisabled("%s", near_text.c_str());
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::Dummy(ImVec2(1.f, gap_s));
+                ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + m_imgui->scaled(18.f));
+                ImGui::TextDisabled("%s", _u8L("A transmission distance matters as much as the color: the same red at "
+                                               "TD 1 and at TD 6 are different filaments for this. Use mine builds the "
+                                               "stack from what you have; this is what to look for next time you buy.")
+                                              .c_str());
+                ImGui::PopTextWrapPos();
+            }
+            ImGui::EndPopup();
         }
     }
 
@@ -5024,6 +5101,133 @@ void GLGizmoTextureDisplacement::render_chroma_card(TextureDisplacementLayer &la
             }
             tip(_u8L("This filament's transmission distance: how deep light gets into it. It starts from the "
                      "filament's preset and can be tried out here without changing it."));
+
+            // Measure this filament rather than guess it. The number beside it is the one every colour
+            // on the card is computed from, and no filament preset ships one.
+            ImGui::SameLine(0.f, gap_s);
+            {
+                const ImVec2 p = ImGui::GetCursorScreenPos();
+                if (ImGui::InvisibleButton("##hf_measure", ImVec2(frame_h, frame_h))) {
+                    m_chroma_wedge_step = 0;
+                    if (m_chroma_wedge_substrate < 0 || m_chroma_wedge_substrate == band.filament.filament) {
+                        // The darkest other filament shows through a pale staircase best.
+                        float darkest = 2.f;
+                        for (const ChromaFilament &f : loaded)
+                            if (f.filament != band.filament.filament) {
+                                const float lum = 0.2126f * f.color.r() + 0.7152f * f.color.g() + 0.0722f * f.color.b();
+                                if (lum < darkest) {
+                                    darkest                   = lum;
+                                    m_chroma_wedge_substrate = f.filament;
+                                }
+                            }
+                    }
+                    ImGui::OpenPopup("hf_measure_pop");
+                }
+                const bool  hot = ImGui::IsItemHovered();
+                const ImU32 col = ImGui::GetColorU32(ImGuiCol_Text, hot ? 1.f : 0.6f);
+                // A ruler: the thing you hold up to the print.
+                const float w = std::round(frame_h * 0.56f), hgt = std::round(frame_h * 0.34f);
+                const float x0 = p.x + 0.5f * (frame_h - w), y0 = p.y + 0.5f * (frame_h - hgt);
+                dl->AddRect(ImVec2(x0, y0), ImVec2(x0 + w, y0 + hgt), col);
+                for (int t = 1; t < 4; ++t) {
+                    const float x = x0 + w * float(t) / 4.f;
+                    dl->AddLine(ImVec2(x, y0), ImVec2(x, y0 + hgt * (t == 2 ? 0.62f : 0.38f)), col);
+                }
+                if (hot)
+                    panel_tooltip(_u8L("Measure this filament's transmission distance by printing a step wedge: a "
+                                       "staircase of it over a filament it has to hide. Nothing but a print can tell "
+                                       "you this number, and every color on this card is computed from it."));
+            }
+            if (ImGui::BeginPopup("hf_measure_pop")) {
+                ImGui::TextDisabled("%s", _u8L("Measure transmission distance").c_str());
+                ImGui::Dummy(ImVec2(1.f, gap_s));
+
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted(_u8L("Over").c_str());
+                ImGui::SameLine(0.f, gap_s);
+                const ChromaFilament *sub = nullptr;
+                for (const ChromaFilament &f : loaded)
+                    if (f.filament == m_chroma_wedge_substrate)
+                        sub = &f;
+                ImGui::SetNextItemWidth(m_imgui->scaled(8.f));
+                ImGuiWrapper::push_combo_style(m_parent.get_scale());
+                if (ImGui::BeginCombo("##hf_sub", sub == nullptr ? _u8L("pick one").c_str() :
+                                                                   (sub->name.empty() ?
+                                                                        Slic3r::format(_u8L("Filament %1%"), sub->filament + 1) :
+                                                                        Slic3r::format("%1%  %2%", sub->filament + 1, sub->name))
+                                                                       .c_str())) {
+                    for (const ChromaFilament &f : loaded) {
+                        if (f.filament == band.filament.filament)
+                            continue;
+                        const std::string item = f.name.empty() ? Slic3r::format(_u8L("Filament %1%"), f.filament + 1) :
+                                                                  Slic3r::format("%1%  %2%", f.filament + 1, f.name);
+                        if (ImGui::Selectable(item.c_str(), f.filament == m_chroma_wedge_substrate))
+                            m_chroma_wedge_substrate = f.filament;
+                    }
+                    ImGui::EndCombo();
+                }
+                ImGuiWrapper::pop_combo_style();
+                if (ImGui::IsItemHovered())
+                    panel_tooltip(_u8L("The filament the staircase is printed over. A dark one under a pale staircase "
+                                       "is the easiest to see stop showing through."));
+
+                ImGui::SameLine(0.f, 2.f * gap_s);
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted(_u8L("Steps").c_str());
+                ImGui::SameLine(0.f, gap_s);
+                ImGui::SetNextItemWidth(m_imgui->scaled(3.4f));
+                if (ImGui::InputInt("##hf_steps", &m_chroma_wedge_steps, 0, 0))
+                    m_chroma_wedge_steps = std::clamp(m_chroma_wedge_steps, 4, 60);
+                if (ImGui::IsItemHovered())
+                    panel_tooltip(_u8L("How many thicknesses the staircase offers, one layer apart. Sixteen covers "
+                                       "every filament that is any use for this at a fine layer height."));
+
+                m_imgui->disabled_begin(m_chroma_wedge_substrate < 0);
+                if (m_imgui->button(_L("Create test plate"))) {
+                    ChromaWedge wedge;
+                    wedge.steps           = m_chroma_wedge_steps;
+                    wedge.layer_height_mm = layer.chroma.layer_height_mm;
+                    if (Plater *plater = wxGetApp().plater(); plater != nullptr)
+                        plater->calib_transmission_distance(wedge, m_chroma_wedge_substrate, band.filament.filament);
+                }
+                m_imgui->disabled_end();
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    panel_tooltip(_u8L("Replaces what is on the plate with the wedge, ready to slice. Print it, then "
+                                       "come back here with the step you read off it."));
+
+                ImGui::Dummy(ImVec2(1.f, gap_s));
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted(_u8L("Step").c_str());
+                ImGui::SameLine(0.f, gap_s);
+                ImGui::SetNextItemWidth(m_imgui->scaled(3.4f));
+                if (ImGui::InputInt("##hf_read", &m_chroma_wedge_step, 0, 0))
+                    m_chroma_wedge_step = std::clamp(m_chroma_wedge_step, 0, 200);
+                if (ImGui::IsItemHovered())
+                    panel_tooltip(_u8L("The first step at which the filament underneath stopped showing through. "
+                                       "Every fifth step is widened so it can be counted in fives."));
+                const float measured_td = chroma_td_from_step(m_chroma_wedge_step, layer.chroma.layer_height_mm);
+                ImGui::SameLine(0.f, 2.f * gap_s);
+                ImGui::AlignTextToFramePadding();
+                if (measured_td > 0.f)
+                    ImGui::Text("%s", Slic3r::format(_u8L("TD %1$.1f"), measured_td).c_str());
+                else
+                    ImGui::TextDisabled("%s", _u8L("TD -").c_str());
+
+                ImGui::SameLine(0.f, 2.f * gap_s);
+                m_imgui->disabled_begin(measured_td <= 0.f);
+                if (m_imgui->button(_L("Use it"))) {
+                    for (ChromaBand &b : layer.chroma.bands)
+                        if (b.filament.filament == band.filament.filament)
+                            b.filament.td_mm = measured_td;
+                    chroma_touch(layer.slot);
+                    ImGui::CloseCurrentPopup();
+                }
+                m_imgui->disabled_end();
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    panel_tooltip(_u8L("Puts the measurement into this stack. Put it into the filament's own preset "
+                                       "too, under Transmission distance, so every later picture starts from it."));
+                ImGui::EndPopup();
+            }
 
             ImGui::SameLine(0.f, gap_s);
             m_imgui->disabled_begin(bi + 1 >= layer.chroma.bands.size());

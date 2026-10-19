@@ -517,8 +517,21 @@ private:
 
     // Chooses `count` of the loaded filaments for the layer's picture, and their order, then solves.
     void chroma_pick_colors(TextureDisplacementLayer &layer, int count);
-    // How many colours the picker was last asked for, per slot: the panel's 2/3/4/6 choice.
+    // How many colours to spend, per slot. Both the picker and the suggestion take it.
     std::array<int, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_chroma_pick_count{};
+
+    // Works out the colours this picture would most like to be printed in, owned or not, and shows
+    // them. The stack can only be built from filaments that exist; this is the answer to the question
+    // that asks instead which ones ought to.
+    void chroma_suggest(TextureDisplacementLayer &layer, int count);
+
+    // The transmission distance wedge, reached from the band whose filament it would measure: which
+    // filament to print the base in, how many steps, and the step read back off the finished print.
+    // Panel state rather than per layer - one of these is open at a time, and none of it outlives it.
+    int m_chroma_wedge_substrate = -1;
+    int m_chroma_wedge_steps     = 16;
+    int m_chroma_wedge_step      = 0;
+    std::array<std::vector<ChromaSuggestion>, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_chroma_suggestion;
     // The whole of a ChromaStack card between its header and More settings: the picture and the print
     // it predicts, the base, the filaments and the colours they reach, and the two actions.
     void render_chroma_card(TextureDisplacementLayer &layer, float card_pad, float label_w);

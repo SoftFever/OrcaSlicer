@@ -54,6 +54,21 @@ static Lab srgb_to_lab(float r, float g, float b)
     return Lab{ 116.f * fy - 16.f, 500.f * (fx - fy), 200.f * (fy - fz) };
 }
 
+static ColorRGB lab_to_srgb(const Lab &lab)
+{
+    const float fy = (lab.l + 16.f) / 116.f;
+    const float fx = fy + lab.a / 500.f;
+    const float fz = fy - lab.b / 200.f;
+    auto        inv = [](float t) { return (t * t * t > 0.008856f) ? t * t * t : (t - 16.f / 116.f) / 7.787f; };
+    const float x = inv(fx) * 0.95047f, y = inv(fy), z = inv(fz) * 1.08883f;
+    const float r =  3.2406f * x - 1.5372f * y - 0.4986f * z;
+    const float g = -0.9689f * x + 1.8758f * y + 0.0415f * z;
+    const float b =  0.0557f * x - 0.2040f * y + 1.0570f * z;
+    return ColorRGB(std::clamp(linear_to_srgb(std::max(r, 0.f)), 0.f, 1.f),
+                    std::clamp(linear_to_srgb(std::max(g, 0.f)), 0.f, 1.f),
+                    std::clamp(linear_to_srgb(std::max(b, 0.f)), 0.f, 1.f));
+}
+
 static float delta_e(const Lab &p, const Lab &q)
 {
     const float dl = p.l - q.l, da = p.a - q.a, db = p.b - q.b;
@@ -475,6 +490,185 @@ ChromaStack chroma_auto_stack(const ChromaHistogram &picture, const std::vector<
         (void) best_at;
     }
     return stack;
+}
+
+namespace {
+// The stack a set of candidate colours would make, so a candidate can be scored as the thing it would
+// really print rather than as a list of colours.
+ChromaStack stack_from_colors(const std::vector<ColorRGB> &colors, const std::vector<float> &tds, int layers,
+                              float layer_height_mm)
+{
+    ChromaStack stack;
+    stack.layer_height_mm = layer_height_mm;
+    stack.base_layers     = 0; // the suggestion is about the picture, not about what it sits on
+    for (size_t i = 0; i < colors.size(); ++i) {
+        ChromaBand band;
+        band.filament.color = colors[i];
+        band.filament.td_mm = tds[i];
+        band.layers         = layers;
+        stack.bands.push_back(band);
+    }
+    return stack;
+}
+} // namespace
+
+std::vector<ChromaSuggestion> chroma_suggest_colors(const ChromaHistogram &picture, int count,
+                                                    const std::vector<ChromaFilament> &loaded,
+                                                    float layer_height_mm, int relief_layers)
+{
+    std::vector<ChromaSuggestion> out;
+    const int want = std::clamp(count, 1, int(CHROMA_MAX_BANDS));
+    if (picture.empty() || relief_layers <= 0 || layer_height_mm <= 0.f)
+        return out;
+
+    // Start from the picture's own colours: a weighted k-means, seeded k-means++ so the first centres
+    // are spread over the picture rather than crowded into whatever it has most of.
+    std::vector<Lab> bins;
+    bins.reserve(picture.bins.size());
+    for (const auto &[color, weight] : picture.bins)
+        bins.push_back(srgb_to_lab(color.r(), color.g(), color.b()));
+
+    std::vector<size_t> centres;
+    centres.push_back(0);
+    for (size_t i = 1; i < picture.bins.size(); ++i)
+        if (picture.bins[i].second > picture.bins[centres[0]].second)
+            centres[0] = i;
+    while (int(centres.size()) < want && centres.size() < picture.bins.size()) {
+        size_t best = 0;
+        double best_score = -1.;
+        for (size_t i = 0; i < bins.size(); ++i) {
+            float nearest = std::numeric_limits<float>::max();
+            for (size_t c : centres)
+                nearest = std::min(nearest, delta_e(bins[i], bins[c]));
+            // Furthest from what is already covered, weighted by how much of the picture it is.
+            const double score = double(nearest) * double(picture.bins[i].second);
+            if (score > best_score) {
+                best_score = score;
+                best       = i;
+            }
+        }
+        if (best_score <= 0.)
+            break;
+        centres.push_back(best);
+    }
+
+    std::vector<ColorRGB> colors;
+    for (size_t c : centres)
+        colors.push_back(picture.bins[c].first);
+    if (colors.empty())
+        return out;
+
+    // Light at the bottom: a dark filament over a light one reads as a midtone at one layer and as
+    // itself at four, which is where the long tonal ramp comes from.
+    std::stable_sort(colors.begin(), colors.end(), [](const ColorRGB &a, const ColorRGB &b) {
+        auto lum = [](const ColorRGB &c) {
+            return 0.2126f * srgb_to_linear(c.r()) + 0.7152f * srgb_to_linear(c.g()) + 0.0722f * srgb_to_linear(c.b());
+        };
+        return lum(a) > lum(b);
+    });
+
+    const int layers = std::max(1, relief_layers / int(colors.size()));
+    // Each band wants to be translucent enough to fade over its own length and no more: a filament
+    // that covers in two layers inside a band of eight wastes six, and one that never covers at all
+    // never reaches its own colour.
+    const std::vector<float> tds(colors.size(),
+                                 std::clamp(float(layers) * layer_height_mm / CHROMA_TD_OPAQUE_FRACTION, 1.f, 12.f));
+
+    // Then let the colours move. Each pass tries one step along each axis of CIELAB for each band and
+    // keeps whatever lowers the error; the step halves between passes, so the first passes travel and
+    // the last ones settle.
+    double best = chroma_stack_error(picture, stack_from_colors(colors, tds, layers, layer_height_mm));
+    for (float step = 16.f; step > 1.f; step *= 0.5f) {
+        bool moved = false;
+        for (size_t b = 0; b < colors.size(); ++b) {
+            const Lab here = srgb_to_lab(colors[b].r(), colors[b].g(), colors[b].b());
+            for (int axis = 0; axis < 3; ++axis)
+                for (const float dir : { -1.f, 1.f }) {
+                    Lab tried = here;
+                    (axis == 0 ? tried.l : axis == 1 ? tried.a : tried.b) += dir * step;
+                    tried.l = std::clamp(tried.l, 0.f, 100.f);
+                    std::vector<ColorRGB> candidate = colors;
+                    candidate[b]                    = lab_to_srgb(tried);
+                    const double error = chroma_stack_error(picture, stack_from_colors(candidate, tds, layers,
+                                                                                       layer_height_mm));
+                    if (error < best) {
+                        best     = error;
+                        colors   = std::move(candidate);
+                        moved    = true;
+                    }
+                }
+        }
+        if (!moved && step < 4.f)
+            break;
+    }
+
+    for (size_t i = 0; i < colors.size(); ++i) {
+        ChromaSuggestion s;
+        s.color  = colors[i];
+        s.td_mm  = tds[i];
+        s.layers = layers;
+        const Lab target = srgb_to_lab(s.color.r(), s.color.g(), s.color.b());
+        float     best_de = std::numeric_limits<float>::max();
+        for (const ChromaFilament &f : loaded) {
+            const float de = delta_e(target, srgb_to_lab(f.color.r(), f.color.g(), f.color.b()));
+            if (de < best_de) {
+                best_de    = de;
+                s.nearest  = f.filament;
+            }
+        }
+        s.nearest_de = (s.nearest >= 0) ? best_de : 0.f;
+        out.push_back(s);
+    }
+    return out;
+}
+
+namespace {
+// One axis-aligned box, appended. The wedge is nothing but boxes, and a box is the only solid whose
+// facets can be written down without a mesher.
+void append_box(indexed_triangle_set &its, const Vec3f &min, const Vec3f &max)
+{
+    const int base = int(its.vertices.size());
+    for (int i = 0; i < 8; ++i)
+        its.vertices.emplace_back((i & 1) ? max.x() : min.x(), (i & 2) ? max.y() : min.y(),
+                                  (i & 4) ? max.z() : min.z());
+    // Wound so every facet faces outward; the pairs are the two triangles of each of the six faces.
+    static const int faces[12][3] = { { 0, 2, 1 }, { 1, 2, 3 }, { 4, 5, 6 }, { 5, 7, 6 },
+                                      { 0, 1, 4 }, { 1, 5, 4 }, { 2, 6, 3 }, { 3, 6, 7 },
+                                      { 0, 4, 2 }, { 2, 4, 6 }, { 1, 3, 5 }, { 3, 7, 5 } };
+    for (const auto &f : faces)
+        its.indices.emplace_back(base + f[0], base + f[1], base + f[2]);
+}
+} // namespace
+
+indexed_triangle_set chroma_wedge_mesh(const ChromaWedge &wedge)
+{
+    indexed_triangle_set its;
+    const int   steps = std::clamp(wedge.steps, 1, 100);
+    const float h     = std::max(0.01f, wedge.layer_height_mm);
+    const float depth = std::max(1.f, wedge.step_depth_mm);
+    const float width = std::max(5.f, wedge.width_mm);
+    const float base  = float(std::max(1, wedge.base_layers)) * h;
+    const float len   = depth * float(steps);
+
+    // The base: one slab under the whole staircase, in the contrasting filament.
+    append_box(its, Vec3f(0.f, 0.f, 0.f), Vec3f(width, len, base));
+
+    for (int i = 1; i <= steps; ++i) {
+        const float y0 = depth * float(i - 1);
+        // Every fifth step reaches further out, so a step can be counted in fives rather than one by
+        // one - the thing a user does while holding the print up to the light.
+        const float w = (i % 5 == 0) ? width + std::max(0.f, wedge.tick_mm) : width;
+        append_box(its, Vec3f(0.f, y0, base), Vec3f(w, y0 + depth, base + h * float(i)));
+    }
+    return its;
+}
+
+float chroma_td_from_step(int step, float layer_height_mm)
+{
+    if (step <= 0 || layer_height_mm <= 0.f)
+        return 0.f;
+    // The step is the depth at which the filament covers, and covering happens at a tenth of the TD.
+    return float(step) * layer_height_mm / CHROMA_TD_OPAQUE_FRACTION;
 }
 
 ChromaStack chroma_default_stack(const std::vector<ChromaFilament> &filaments, float layer_height_mm,

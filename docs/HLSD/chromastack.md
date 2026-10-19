@@ -229,6 +229,25 @@ rule about whose they are. The stack remembers a fingerprint of what it last wro
 match that fingerprint, and otherwise leaves them exactly as they are and says so with a chip, with
 a button that asks before replacing them. The panel never takes over something it was not given.
 
+### Measuring a filament
+
+Transmission distance cannot be read off a spool and no filament preset ships one, so without a
+measurement every stack starts from a default of 4.0 and every colour the panel predicts rests on a
+guess. `chroma_wedge_mesh()` is the measurement: a staircase of the filament under test, one layer
+taller at each step, printed over a base of a filament it has to hide. The step at which the base
+stops showing through is the depth at which it covers, and `chroma_td_from_step()` turns that depth
+into a TD - the same relationship `chroma_layers_to_opaque()` runs the other way.
+
+`Plater::calib_transmission_distance()` builds the plate: the wedge, the print forced to the layer
+height its steps are counted in (first layer included, or every step would be a different thickness
+from the one it is read as), and two height ranges putting the base in one filament and the staircase
+in the other. It is the only calibration that generates its model rather than loading a shipped one,
+because the steps are layers and the layer height is the user's.
+
+It is reached from the Calibration menu, which picks the darkest other loaded filament as the base
+and confirms before replacing the plate, and from a ruler beside each band's TD in the card, which
+measures that band's filament and offers to put the result straight into the stack.
+
 ### Choosing the filaments
 
 `chroma_auto_stack()` answers the question the panel could previously only report on: which of the
@@ -237,6 +256,14 @@ since a stack is filaments seen through each other, so it grows the stack one fi
 tries every remaining filament at every position, keeping whichever placement loses least to the
 picture. That is a few dozen candidates rather than the tens of thousands an exhaustive search over
 subsets and orderings would be.
+
+`chroma_suggest_colors()` answers the other half of that question: not which of the loaded filaments
+to use, but which colours the picture would most like to be printed in, owned or not. Picking from a
+drawer has a ceiling - a picture whose colours are not in it cannot be printed well out of it however
+it is arranged - so this lets the colours themselves move: a weighted k-means over the picture for a
+starting set, then a hill climb that walks each band's colour wherever the stack's own error falls
+fastest. Each suggestion carries the transmission distance its band wants and the nearest thing the
+user already has, since a colour is only half of what to go looking for.
 
 Candidates are scored against `chroma_histogram()` - the picture's colours bucketed four bits per
 channel and weighted by how much of the picture they cover - rather than against the picture, which

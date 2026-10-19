@@ -10,6 +10,7 @@
 #include <cereal/types/vector.hpp>
 
 #include "Color.hpp"
+#include "TriangleMesh.hpp"
 
 namespace Slic3r {
 
@@ -305,6 +306,59 @@ ChromaStack chroma_auto_stack(const ChromaHistogram &picture, const std::vector<
 // How far a stack lands from a picture, as the mean colour difference over `picture`'s bins - the same
 // measure the solve reports, computed without solving. This is what chroma_auto_stack() minimises.
 double chroma_stack_error(const ChromaHistogram &picture, const ChromaStack &stack);
+
+// One colour worth owning for a picture, and what the user already has that is like it.
+struct ChromaSuggestion
+{
+    ColorRGB color;            // the colour to go looking for
+    float    td_mm = 4.f;      // how translucent it wants to be, for the band it would print
+    int      layers = 1;       // how many layers that band would get
+    int      nearest = -1;     // the loaded filament closest to it, or -1 when none is loaded
+    float    nearest_de = 0.f; // how far that one is, as a colour difference
+};
+
+// The `count` colours a picture would most like to be printed in, in printing order, whether or not
+// anyone owns them.
+//
+// chroma_auto_stack() answers "which of my filaments", which is the question with a cheap answer and
+// a ceiling: a picture whose colours are not in the drawer cannot be printed well out of it however
+// the drawer is arranged. This answers the other one - what to go and buy - by letting the colours
+// themselves move: a weighted k-means over the picture's colours for a starting set, then a hill
+// climb that walks each band's colour wherever the stack's own error falls fastest.
+//
+// Each suggestion carries the transmission distance its band wants, since a colour is only half of
+// what to look for: the same red at TD 1 and at TD 6 are different filaments for this purpose.
+std::vector<ChromaSuggestion> chroma_suggest_colors(const ChromaHistogram &picture, int count,
+                                                    const std::vector<ChromaFilament> &loaded,
+                                                    float layer_height_mm, int relief_layers);
+
+// A step wedge for measuring a filament's transmission distance by printing it.
+//
+// TD cannot be read off a spool and no filament preset ships one, so every stack starts from a guess
+// and every prediction rests on it. The measurement is a staircase of the filament under test printed
+// over a contrasting base: the step at which the base stops showing through is the depth at which that
+// filament covers, and CHROMA_TD_OPAQUE_FRACTION turns that depth into a TD.
+struct ChromaWedge
+{
+    int   steps           = 16;    // how many thicknesses to offer
+    float layer_height_mm = 0.08f; // the height they step by, and the height it must be printed at
+    int   base_layers     = 6;     // the contrasting base under them, thick enough to be opaque itself
+    float step_depth_mm   = 7.f;   // how deep each step is, i.e. how much of it there is to look at
+    float width_mm        = 36.f;  // across the staircase
+    // Every fifth step is widened by this much, so the step a user is looking at can be counted
+    // without counting every step up to it.
+    float tick_mm         = 5.f;
+
+    float base_height_mm() const { return float(base_layers) * layer_height_mm; }
+};
+
+// The wedge as a mesh, sitting on z = 0. The base is one slab; step i (1-based) stands i layers proud
+// of it, so the filament under test is i layers thick there.
+indexed_triangle_set chroma_wedge_mesh(const ChromaWedge &wedge);
+
+// The transmission distance a wedge has measured: `step` is the first step at which the base below no
+// longer shows through. 0 or less means it was not readable, and gives 0.
+float chroma_td_from_step(int step, float layer_height_mm);
 
 // A starting point for a stack: the given filaments, lightest at the bottom, each with an equal
 // share of `relief_layers` on top of `base_layers`.

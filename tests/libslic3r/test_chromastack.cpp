@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Color.hpp"
 #include "libslic3r/ChromaStack.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
@@ -447,4 +448,110 @@ TEST_CASE("More filaments cannot make the match worse", "[ChromaStack]")
     // Nothing to choose from, or no room to print it, is an empty stack rather than a guess.
     REQUIRE(chroma_auto_stack(hist, {}, 4, 0.08f, 4, 24).bands.empty());
     REQUIRE(chroma_auto_stack(hist, available, 4, 0.08f, 4, 0).bands.empty());
+}
+
+TEST_CASE("Suggested colors beat the filaments that are loaded", "[ChromaStack]")
+{
+    // A picture of oranges and blues against a drawer holding neither. Picking from what is loaded has
+    // a ceiling; the suggestion is what tells the user to go and buy an orange.
+    std::vector<uint8_t> rgb;
+    const uint8_t        pixels[][3] = { { 232, 126, 34 }, { 41, 98, 177 }, { 232, 126, 34 }, { 20, 20, 24 } };
+    for (const auto &p : pixels)
+        for (int i = 0; i < 4; ++i) {
+            rgb.push_back(p[0]); rgb.push_back(p[1]); rgb.push_back(p[2]);
+        }
+    const ChromaHistogram hist = chroma_histogram(rgb.data(), 16, 1);
+
+    const std::vector<ChromaFilament> loaded{ WHITE_OPAQUE, BLACK_OPAQUE };
+    const std::vector<ChromaSuggestion> suggested = chroma_suggest_colors(hist, 3, loaded, 0.08f, 24);
+    REQUIRE(suggested.size() == 3);
+
+    // Every suggestion says how translucent it wants to be and how far the nearest loaded filament is,
+    // which together are the whole shopping list.
+    for (const ChromaSuggestion &s : suggested) {
+        REQUIRE(s.td_mm > 0.f);
+        REQUIRE(s.layers >= 1);
+        REQUIRE(s.nearest >= 0);
+    }
+
+    // The suggested set reaches the picture better than the best stack buildable from the drawer.
+    ChromaStack mine;
+    mine.layer_height_mm = 0.08f;
+    mine.base_layers     = 0;
+    mine.bands           = { band(WHITE_OPAQUE, 8), band(BLACK_OPAQUE, 8) };
+
+    ChromaStack theirs;
+    theirs.layer_height_mm = 0.08f;
+    theirs.base_layers     = 0;
+    for (const ChromaSuggestion &s : suggested)
+        theirs.bands.push_back(band(filament(-1, s.color, s.td_mm), s.layers));
+
+    REQUIRE(chroma_stack_error(hist, theirs) < chroma_stack_error(hist, mine));
+    // And at least one of them is a long way from anything in the drawer, which is the point.
+    float furthest = 0.f;
+    for (const ChromaSuggestion &s : suggested)
+        furthest = std::max(furthest, s.nearest_de);
+    REQUIRE(furthest > 10.f);
+}
+
+TEST_CASE("Suggestions are ordered light to dark, and bounded", "[ChromaStack]")
+{
+    std::vector<uint8_t> rgb;
+    const uint8_t        pixels[][3] = { { 240, 240, 230 }, { 180, 60, 50 }, { 30, 30, 36 } };
+    for (const auto &p : pixels)
+        for (int i = 0; i < 5; ++i) {
+            rgb.push_back(p[0]); rgb.push_back(p[1]); rgb.push_back(p[2]);
+        }
+    const ChromaHistogram hist = chroma_histogram(rgb.data(), 15, 1);
+
+    const std::vector<ChromaSuggestion> s = chroma_suggest_colors(hist, 3, {}, 0.08f, 24);
+    REQUIRE(s.size() == 3);
+    const auto lum = [](const ColorRGB &c) { return 0.2126f * c.r() + 0.7152f * c.g() + 0.0722f * c.b(); };
+    REQUIRE(lum(s.front().color) > lum(s.back().color));
+    // Nothing loaded means nothing to compare against, not a wrong answer.
+    REQUIRE(s.front().nearest == -1);
+    // A picture with nothing in it, or no room to print it, suggests nothing rather than guessing.
+    REQUIRE(chroma_suggest_colors(ChromaHistogram{}, 3, {}, 0.08f, 24).empty());
+    REQUIRE(chroma_suggest_colors(hist, 3, {}, 0.08f, 0).empty());
+}
+
+TEST_CASE("The calibration wedge is a staircase of one layer per step", "[ChromaStack]")
+{
+    ChromaWedge wedge;
+    wedge.steps           = 12;
+    wedge.layer_height_mm = 0.08f;
+    wedge.base_layers     = 5;
+    wedge.step_depth_mm   = 7.f;
+    wedge.width_mm        = 36.f;
+
+    const indexed_triangle_set its = chroma_wedge_mesh(wedge);
+    REQUIRE_FALSE(its.indices.empty());
+
+    // The base plus one box per step, each box 8 vertices and 12 facets.
+    REQUIRE(its.vertices.size() == size_t(8 * (wedge.steps + 1)));
+    REQUIRE(its.indices.size() == size_t(12 * (wedge.steps + 1)));
+
+    BoundingBoxf3 box;
+    for (const Vec3f &v : its.vertices)
+        box.merge(v.cast<double>());
+    REQUIRE_THAT(box.min.z(), WithinAbs(0., 1e-6));
+    // The tallest step stands `steps` layers above a base of `base_layers`.
+    REQUIRE_THAT(box.max.z(), WithinAbs(double(wedge.base_layers + wedge.steps) * 0.08, 1e-5));
+    REQUIRE_THAT(box.max.y(), WithinAbs(double(wedge.steps) * 7., 1e-5));
+    // Every fifth step is widened so the steps can be counted in fives.
+    REQUIRE(box.max.x() > double(wedge.width_mm));
+}
+
+TEST_CASE("A read-off step is a transmission distance", "[ChromaStack]")
+{
+    // The measurement and the model are the same relationship from opposite ends: a filament that
+    // covers at step 5 of an 0.08 mm wedge is one that chroma_layers_to_opaque() then says covers in
+    // five layers at that height.
+    const float td = chroma_td_from_step(5, 0.08f);
+    REQUIRE_THAT(td, WithinRel(4.f, 1e-4f));
+    REQUIRE_THAT(chroma_layers_to_opaque(td, 0.08f), WithinRel(5.f, 1e-4f));
+
+    REQUIRE_THAT(chroma_td_from_step(12, 0.08f), WithinRel(9.6f, 1e-4f));
+    REQUIRE_THAT(chroma_td_from_step(0, 0.08f), WithinAbs(0.f, 1e-6f));
+    REQUIRE_THAT(chroma_td_from_step(5, 0.f), WithinAbs(0.f, 1e-6f));
 }

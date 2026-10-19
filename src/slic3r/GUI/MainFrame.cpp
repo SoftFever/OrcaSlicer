@@ -3616,6 +3616,10 @@ void MainFrame::init_menubar_as_editor()
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
     // Flow rate (Wizard Dialog)
+    append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Transmission distance"), _L("Transmission distance"),
+        [this](wxCommandEvent&) { run_calibration(CalibKind::TransmissionDistance); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+
     append_menu_item(m_topbar->GetCalibMenu(), wxID_ANY, _L("Flow ratio"), _L("Flow Rate Calibration"),
         [this](wxCommandEvent&) { run_calibration(CalibKind::FlowRatio); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
@@ -3708,6 +3712,11 @@ void MainFrame::init_menubar_as_editor()
     // Temperature
     append_menu_item(calib_menu, wxID_ANY, _L("Temperature"), _L("Temperature"),
         [this](wxCommandEvent&) { run_calibration(CalibKind::Temperature); }, "", nullptr,
+        [this]() {return m_plater->is_view3D_shown();; }, this);
+
+    // Transmission distance, for ChromaStack colour prints
+    append_menu_item(calib_menu, wxID_ANY, _L("Transmission distance"), _L("Transmission distance"),
+        [this](wxCommandEvent&) { run_calibration(CalibKind::TransmissionDistance); }, "", nullptr,
         [this]() {return m_plater->is_view3D_shown();; }, this);
 
     // Max Volumetric Speed
@@ -4628,6 +4637,51 @@ void MainFrame::run_calibration(CalibKind calib_kind)
         if (!m_temp_calib_dlg)
             m_temp_calib_dlg = new Temp_Calibration_Dlg((wxWindow*) this, wxID_ANY, m_plater);
         m_temp_calib_dlg->ShowModal();
+        break;
+    }
+    case CalibKind::TransmissionDistance: {
+        if (!m_plater)
+            break;
+        // Two filaments, because the test is one seen through the other: the staircase is the filament
+        // being measured and the base under it is the one it has to hide.
+        const std::vector<std::string> &loaded = wxGetApp().preset_bundle->filament_presets;
+        if (loaded.size() < 2) {
+            MessageDialog(this,
+                          _L("This test prints a staircase of one filament over another and asks where the one "
+                             "underneath stops showing through, so it needs two filaments loaded."),
+                          _L("Transmission distance"), wxICON_INFORMATION | wxOK)
+                .ShowModal();
+            break;
+        }
+        const std::vector<ColorRGBA> colors = m_plater->get_extruders_colors();
+        // The darkest loaded filament is the one easiest to see through a pale staircase, so it is the
+        // base unless it is the filament being measured.
+        int substrate = -1;
+        float darkest = 2.f;
+        for (size_t i = 1; i < colors.size(); ++i) {
+            const float lum = 0.2126f * colors[i].r() + 0.7152f * colors[i].g() + 0.0722f * colors[i].b();
+            if (lum < darkest) {
+                darkest   = lum;
+                substrate = int(i);
+            }
+        }
+        if (substrate < 0)
+            substrate = 1;
+
+        ChromaWedge wedge;
+        const auto &print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        if (print_config.has("layer_height"))
+            wedge.layer_height_mm = float(print_config.opt_float("layer_height"));
+
+        MessageDialog confirm(this,
+                              wxString::Format(_L("Print %d steps of filament 1 over filament %d, at %.3f mm layers. "
+                                                  "The step where the filament underneath stops showing through is "
+                                                  "the measurement. This replaces what is on the plate."),
+                                               wedge.steps, substrate + 1, wedge.layer_height_mm),
+                              _L("Transmission distance"), wxICON_QUESTION | wxYES_NO);
+        if (confirm.ShowModal() != wxID_YES)
+            break;
+        m_plater->calib_transmission_distance(wedge, substrate, 0);
         break;
     }
     case CalibKind::MaxVolumetric: {
