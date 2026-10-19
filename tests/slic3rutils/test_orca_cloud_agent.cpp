@@ -223,30 +223,8 @@ private:
     std::string                              m_session_body;
 };
 
-// A JWT whose only claim is an expiry an hour from now; the agent reads nothing else from it.
-std::string jwt_expiring_in_an_hour()
-{
-    const auto base64url = [](const std::string& in) {
-        static const char* chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-        std::string out;
-        unsigned    bits = 0;
-        int         count = 0;
-        for (unsigned char c : in) {
-            bits = (bits << 8) | c;
-            count += 8;
-            while (count >= 6) {
-                count -= 6;
-                out += chars[(bits >> count) & 0x3F];
-            }
-        }
-        if (count > 0)
-            out += chars[(bits << (6 - count)) & 0x3F];
-        return out;
-    };
-    const auto exp = std::chrono::duration_cast<std::chrono::seconds>(
-        (std::chrono::system_clock::now() + 1h).time_since_epoch()).count();
-    return base64url(R"({"alg":"none"})") + "." + base64url("{\"exp\":" + std::to_string(exp) + "}") + ".sig";
-}
+// A JWT whose only claim is {"exp":4102444800} (2100-01-01); the agent reads nothing else from it.
+constexpr const char* FAR_FUTURE_JWT = "eyJhbGciOiJub25lIn0.eyJleHAiOjQxMDI0NDQ4MDB9.sig";
 
 // Sets an environment variable for the lifetime of the guard and restores the previous value.
 class ScopedEnvVar
@@ -597,7 +575,7 @@ TEST_CASE_METHOD(HealthCheckFixture, "A token request made while start() refresh
 {
     // A session saved by a previous run: start() refreshes it on its own thread.
     agent->persist_user_secret(nlohmann::json{{"refresh_token", "stored-refresh-token"}, {"user_id", "test-user-id"}}.dump());
-    const std::string access_token = jwt_expiring_in_an_hour();
+    const std::string access_token = FAR_FUTURE_JWT;
     server.set_session_body(nlohmann::json{{"access_token", access_token},
                                            {"refresh_token", "rotated-refresh-token"},
                                            {"user_id", "test-user-id"}}.dump());

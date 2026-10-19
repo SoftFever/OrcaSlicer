@@ -12,7 +12,6 @@
 #include <mutex>
 #include <atomic>
 #include <chrono>
-#include <condition_variable>
 #include <functional>
 #include <memory>
 #include <thread>
@@ -365,8 +364,6 @@ public:
     RefreshResult refresh_from_storage(const std::string& reason, bool async = false);
     RefreshResult refresh_now(const std::string& refresh_token, const std::string& reason, bool async = false);
     RefreshResult refresh_session_with_token(const std::string& refresh_token, const std::string& reason = "");
-    bool          needs_refresh(std::chrono::seconds skew) const;
-    void          wait_for_running_refresh();
 
     // Session state helpers. nickname is the human-facing UI label after provider fallback resolution.
     bool set_user_session(const std::string& token,
@@ -487,8 +484,6 @@ private:
     mutable std::recursive_mutex state_mutex;
     std::thread refresh_thread;
     std::atomic_bool refresh_running{false};
-    std::mutex refresh_wait_mutex;
-    std::condition_variable refresh_wait_cv;
     std::thread health_check_thread;
     std::atomic_bool health_check_running{false};
     std::atomic_bool health_check_stopped{false};

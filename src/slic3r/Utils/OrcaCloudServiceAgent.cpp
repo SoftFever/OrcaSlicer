@@ -1861,11 +1861,7 @@ RefreshResult OrcaCloudServiceAgent::refresh_now(const std::string& refresh_toke
 
     auto worker = [this, refresh_token, reason]() {
         RefreshResult r = refresh_session_with_token(refresh_token, reason);
-        {
-            std::lock_guard<std::mutex> lock(refresh_wait_mutex);
-            refresh_running.store(false);
-        }
-        refresh_wait_cv.notify_all();
+        refresh_running.store(false);
         return r;
     };
 
@@ -1919,27 +1915,22 @@ RefreshResult OrcaCloudServiceAgent::refresh_from_storage(const std::string& rea
     return refresh_now(refresh_token, reason, /*async=*/false);
 }
 
-bool OrcaCloudServiceAgent::needs_refresh(std::chrono::seconds skew) const
-{
-    std::lock_guard<std::mutex> lock(session_mutex);
-    return should_refresh_locked(skew);
-}
-
-// Wait for a refresh running on another thread, e.g. the one start() runs.
-void OrcaCloudServiceAgent::wait_for_running_refresh()
-{
-    std::unique_lock<std::mutex> lock(refresh_wait_mutex);
-    // The refresh POST times out after 30 s.
-    refresh_wait_cv.wait_for(lock, std::chrono::seconds(60), [this] { return !refresh_running.load(); });
-}
-
 bool OrcaCloudServiceAgent::refresh_if_expiring(std::chrono::seconds skew, const std::string& reason)
 {
-    if (!needs_refresh(skew))
+    const auto needs_refresh = [&] {
+        std::lock_guard<std::mutex> lock(session_mutex);
+        return should_refresh_locked(skew);
+    };
+    if (!needs_refresh())
         return true;
-    // Another thread may already be refreshing; wait and check again.
-    wait_for_running_refresh();
-    if (!needs_refresh(skew))
+
+    // A refresh may already be running on another thread, e.g. the one start() launches. Wait for
+    // it and check again instead of spending the refresh token it is rotating. Bounded: the
+    // refresh POST times out after 30 s.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(60);
+    while (refresh_running.load() && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    if (!needs_refresh())
         return true;
 
     // First attempt. refresh_from_storage blocks on the cross-process lock and reads the
@@ -1951,8 +1942,7 @@ bool OrcaCloudServiceAgent::refresh_if_expiring(std::chrono::seconds skew, const
     // One retry, only for a transient network failure of the refresh POST (lost response,
     // timeout, 429/5xx -> Transient). The retry re-acquires the lock and re-reads the store.
     std::this_thread::sleep_for(std::chrono::milliseconds(750));
-    wait_for_running_refresh();
-    if (!needs_refresh(skew))
+    if (!needs_refresh())
         return true;
     return refresh_from_storage(reason + "_retry", false) == RefreshResult::Success;
 }
