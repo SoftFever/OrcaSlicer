@@ -1,5 +1,7 @@
 #include <wx/app.h>
+#include <wx/event.h>
 #include <wx/frame.h>
+#include <wx/init.h>
 #include <wx/sizer.h>
 #include <iostream>
 
