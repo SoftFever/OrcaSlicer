@@ -13487,6 +13487,8 @@ static std::map<t_custom_gcode_key, t_config_option_keys> s_CustomGcodeSpecificP
                                       "curr_physical_extruder_id", "timelapse_pos_x", "timelapse_pos_y",
                                       "has_timelapse_safe_pos", "timelapse_inline_photo",
                                       "farthest_point_timelapse_enabled", "clear_to_x0"}},
+    {"wrapping_detection_gcode",    {"layer_num", "layer_z", "max_layer_z", "most_used_physical_extruder_id",
+                                      "curr_physical_extruder_id"}},
     {"change_filament_gcode",       {"layer_num", "layer_z", "max_layer_z", "next_extruder", "previous_extruder",
                                "current_hotend", "next_hotend", "current_nozzle_id", "next_nozzle_id",
                                "current_filament_id", "next_filament_id", "old_extruder_variant", "new_extruder_variant",
@@ -13562,7 +13564,7 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     new_def("most_used_physical_extruder_id", coInt, L("Most-used physical extruder ID"), L("Index of the physical extruder used most often on the current layer. The index is zero-based (first extruder has index 0)."));
     new_def("curr_y_acceleration_limit", coFloat, L("Current Y acceleration limit"), L("Current Y-axis acceleration limit after the bed-mass adjustment."));
     new_def("curr_accumulated_mass", coFloat, L("Current accumulated mass"), L("Accumulated printed mass at the current layer."));
-    new_def("curr_layer_mass", coFloat, L("Current layer mass"), L("Printed mass added by the current layer."));
+    new_def("curr_layer_mass", coFloat, L("Current layer mass"), L("Printed mass of the previous layer."));
 
 // timelapse_gcode
     new_def("curr_physical_extruder_id", coInt, L("Current physical extruder ID"), L("Index of the physical extruder active for the current layer. The index is zero-based (first extruder has index 0)."));
@@ -13615,15 +13617,15 @@ CustomGcodeSpecificConfigDef::CustomGcodeSpecificConfigDef()
     new_def("flush_length", coFloat, L("Flush length"), L("Total flush length."));
     new_def("flush_volumetric_speeds", coFloats, L("Flush volumetric speeds"), L("Flush volumetric speeds for each filament."));
     new_def("flush_temperatures", coInts, L("Flush temperatures"), L("Flush temperatures for each filament."));
-    new_def("filament_cooling_before_tower", coFloats, L("Filament cooling before tower"), L("Cooling time before purging into the tower for each filament."));
+    new_def("filament_cooling_before_tower", coFloats, L("Filament cooling before tower"), L("Temperature drop before entering filament tower"));
     new_def("wipe_avoid_perimeter", coBool, L("Avoid wipe perimeter"), L("Whether travel should avoid the wipe perimeter."));
     new_def("wipe_avoid_pos_x", coFloat, L("Wipe avoidance X"), L("X position used to avoid the wipe area."));
     new_def("is_prime_tower_interface", coBool, L("Prime tower interface"), L("Whether the current purge is for a prime-tower interface."));
-    new_def("filament_tower_interface_purge_volume", coFloat, L("Filament tower interface purge volume"), L("Purge volume for the filament tower interface."));
+    new_def("filament_tower_interface_purge_volume", coFloat, L("Interface layer purge length"), L("Purge length for prime tower interface layer (where different materials meet)."));
     new_def("filament_tower_interface_print_temp", coInt, L("Filament tower interface print temperature"), L("Print temperature used for the filament tower interface."));
-    new_def("wipe_tower_center_pos_x", coFloat, L("Wipe tower center X"), L("X coordinate of the wipe tower center."));
-    new_def("wipe_tower_center_pos_y", coFloat, L("Wipe tower center Y"), L("Y coordinate of the wipe tower center."));
-    new_def("wipe_tower_center_pos_valid", coBool, L("Wipe tower center position valid"), L("Whether the wipe tower center position is valid."));
+    new_def("wipe_tower_center_pos_x", coFloat, L("Wipe tower center X"), L("X coordinate of the nozzle's wipe-tower wait position, 2 mm outside the tower edge."));
+    new_def("wipe_tower_center_pos_y", coFloat, L("Wipe tower center Y"), L("Y coordinate of the nozzle's wipe-tower wait position."));
+    new_def("wipe_tower_center_pos_valid", coBool, L("Wipe tower center position valid"), L("Whether the print has a wipe tower."));
     new_def("temperature", coInts, L("Temperature"), L("Nozzle temperatures indexed by filament."));
     new_def("nozzle_temperature", coInts, L("Nozzle temperature"), L("Nozzle temperatures indexed by filament."));
     new_def("first_layer_temperature", coInts, L("First layer temperature"), L("First-layer nozzle temperatures indexed by filament."));
