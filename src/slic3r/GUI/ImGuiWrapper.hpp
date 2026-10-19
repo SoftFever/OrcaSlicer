@@ -4,6 +4,7 @@
 #include "libslic3r/Technologies.hpp"
 #include <optional>
 #include <string>
+#include <atomic>
 #include <future>
 #include <map>
 #include <memory>
@@ -78,6 +79,9 @@ class ImGuiWrapper
     // The complete font atlas is built on a worker thread, see init_font().
     struct FontAtlas;
     std::future<std::unique_ptr<FontAtlas>> m_font_atlas_build;
+    // Set by the worker once its atlas is built, before it wakes the idle loop; the future alone
+    // only turns ready after the worker returns, which can be after the woken idle pass has looked.
+    std::atomic<bool> m_font_atlas_built{ false };
     bool m_font_atlas_complete{ false };
 
 public:

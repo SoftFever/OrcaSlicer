@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstdint>
 #include <array>
-#include <chrono>
 #include <future>
 #include <memory>
 #include <cassert>
@@ -581,7 +580,8 @@ void ImGuiWrapper::new_frame()
         return;
     }
 
-    if (m_font_texture == 0 || ! m_font_atlas_complete)
+    // No fonts yet (startup, language or scale change), or the worker finished the complete atlas.
+    if (m_font_texture == 0 || has_font_atlas_ready())
         init_font(true);
 
     ImGuiIO& io = ImGui::GetIO();
@@ -3088,15 +3088,18 @@ std::unique_ptr<ImGuiWrapper::FontAtlas> ImGuiWrapper::build_font_atlas(const Im
     }
 
     // Compressed here rather than by the driver during the upload, which would stall the GL thread
-    // (~100 ms for a 4096 x 3000 atlas). One block row is 4 pixel rows. ImGui rounds TexHeight to a
-    // multiple of 4 (imgui_draw.cpp); should it not, rygCompress would write past the buffer, so the
-    // atlas is then uploaded uncompressed instead.
-    if (dxt5 && width % 4 == 0 && height % 4 == 0) {
-        font_atlas->dxt5.resize(size_t(width) * height);
-        tbb::parallel_for(tbb::blocked_range<int>(0, height / 4), [&](const tbb::blocked_range<int> &rows) {
+    // (~100 ms for a 4096 x 3000 atlas). One block row is 4 pixel rows; the last one may be partial,
+    // which extractBlock() in stb_dxt pads by repeating the edge rows, and S3TC accepts any height
+    // as long as imageSize is ceil(width / 4) * ceil(height / 4) * 16, which is what this produces.
+    // ImGui's width is always a multiple of 4 (512, 1024, 2048, 4096, or a doubling of one).
+    if (dxt5) {
+        assert(width % 4 == 0);
+        const int block_rows = (height + 3) / 4;
+        font_atlas->dxt5.resize(size_t(width) * 4 * block_rows); // (width / 4) * block_rows * 16 bytes
+        tbb::parallel_for(tbb::blocked_range<int>(0, block_rows), [&](const tbb::blocked_range<int> &rows) {
             int size;
             rygCompress(&font_atlas->dxt5[size_t(rows.begin()) * 4 * width], &pixels[size_t(rows.begin()) * 16 * width],
-                        width, int(rows.size()) * 4, 1, size);
+                        width, std::min(int(rows.size()) * 4, height - rows.begin() * 4), 1, size);
         });
     }
     return font_atlas;
@@ -3114,9 +3117,12 @@ static bool is_large_display()
 
 void ImGuiWrapper::start_font_atlas_build(int gl_max_tex_size, bool dxt5)
 {
-    m_font_atlas_build = std::async(std::launch::async, [glyph_ranges = m_glyph_ranges, font_size = m_font_size, font_cjk = m_font_cjk,
+    m_font_atlas_built.store(false, std::memory_order_relaxed);
+    // `this` outlives the worker: the destructor of m_font_atlas_build waits for it.
+    m_font_atlas_build = std::async(std::launch::async, [this, glyph_ranges = m_glyph_ranges, font_size = m_font_size, font_cjk = m_font_cjk,
                                                          large_display = is_large_display(), gl_max_tex_size, dxt5] {
         auto built = build_font_atlas(glyph_ranges, true, font_size, font_cjk, large_display, gl_max_tex_size, dxt5);
+        m_font_atlas_built.store(true, std::memory_order_release);
         wxWakeUpIdle(); // the canvases redraw with it, see GLCanvas3D::on_idle()
         return built;
     });
@@ -3133,7 +3139,7 @@ void ImGuiWrapper::prepare_fonts()
 
 bool ImGuiWrapper::has_font_atlas_ready() const
 {
-    return m_font_atlas_build.valid() && m_font_atlas_build.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    return m_font_atlas_build.valid() && m_font_atlas_built.load(std::memory_order_acquire);
 }
 
 // Called at the start of a frame while the fonts are missing or incomplete. Building the complete atlas takes long enough to stall the GL
@@ -3145,7 +3151,8 @@ void ImGuiWrapper::init_font(bool compress)
     GLint gl_max_tex_size = 0;
     glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_max_tex_size));
     if (has_font_atlas_ready()) {
-        font_atlas = m_font_atlas_build.get();
+        m_font_atlas_built.store(false, std::memory_order_relaxed);
+        font_atlas = m_font_atlas_build.get(); // at most the worker's return still pending, see has_font_atlas_ready()
         // Dropped if the language or the size changed while it was built, or if it was started before
         // the GL context (prepare_fonts()) and is too large for this GPU.
         if (font_atlas->glyph_ranges != m_glyph_ranges || font_atlas->font_size != m_font_size ||
@@ -3183,6 +3190,7 @@ void ImGuiWrapper::init_font(bool compress)
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+    // The data is there even when started by prepare_fonts() before the GL context, so S3TC is checked again here.
     if (compress && GLAD_GL_EXT_texture_compression_s3tc && ! font_atlas->dxt5.empty())
         glsafe(::glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height, 0, GLsizei(font_atlas->dxt5.size()), font_atlas->dxt5.data()));
     else
