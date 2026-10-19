@@ -5,6 +5,7 @@
 #include "libslic3r/Point.hpp"
 #include "libslic3r/CAD/SketchEngine.hpp"
 #include "libslic3r/CAD/GeometryEngine.hpp"
+#include "libslic3r/CAD/SheetMetal.hpp"
 #include "libslic3r/CAD/SketchConstraints.hpp"
 #include "libslic3r/CAD/SketchSolver.hpp"
 #include "libslic3r/CAD/SketchImport.hpp"   // transform_regions for imported art
@@ -564,6 +565,11 @@ static void assign_field(CadFeature& f, const std::string& field, double value)
     if (field == "rib_depth")         { f.rib_depth = value; return; }
     if (field == "rib_thickness")     { f.rib_thickness = value; return; }
     if (field == "shell_thickness")   { f.shell_thickness = value; return; }
+    if (field == "sm_angle")          { f.sm_angle = value; return; }
+    if (field == "sm_gap")            { f.sm_gap = value; return; }
+    if (field == "sm_k")              { f.sm_k = value; return; }
+    if (field == "sm_radius")         { f.sm_radius = value; return; }
+    if (field == "sm_thickness")      { f.sm_thickness = value; return; }
     if (field == "taper_deg")         { f.taper_deg = value; return; }
     if (field == "thicken_thickness") { f.thicken_thickness = value; return; }
     if (field == "thread_depth")      { f.thread_depth = value; return; }
@@ -587,7 +593,7 @@ bool CadDocument::produces_body(CadFeatureType t)
     switch (t) {
     case CadFeatureType::Sketch: case CadFeatureType::Helix: case CadFeatureType::Plane:
     case CadFeatureType::Axis:   case CadFeatureType::CoordSys: case CadFeatureType::Project:
-    case CadFeatureType::Sketch3D:
+    case CadFeatureType::Sketch3D: case CadFeatureType::SmRule:
         return false;
     default:
         return true;
@@ -1086,6 +1092,102 @@ int CadDocument::add_hole(double diameter, double depth, bool through,
     f.hole_through  = through;
     f.hole_x        = x;
     f.hole_y        = y;
+    features.push_back(f);
+    return int(features.size()) - 1;
+}
+
+static bool is_sheet_feature(CadFeatureType t)
+{
+    return t == CadFeatureType::SmBase || t == CadFeatureType::SmEdgeFlange || t == CadFeatureType::SmContourFlange
+        || t == CadFeatureType::SmHem || t == CadFeatureType::SmUnfold || t == CadFeatureType::SmRefold;
+}
+
+static SheetMetal::Rule sheet_rule_of(const CadFeature& f)
+{
+    SheetMetal::Rule r;
+    r.t = f.sm_thickness; r.r = f.sm_radius; r.k = f.sm_k; r.gap = f.sm_gap;
+    return r;
+}
+
+void CadDocument::bind_sheet_rules()
+{
+    CadFeature rule;   // defaults = the "Steel (mm)" rule
+    for (CadFeature& f : features) {
+        if (f.type == CadFeatureType::SmRule) { rule = f; continue; }
+        if (!is_sheet_feature(f.type)) continue;
+        f.sm_thickness = rule.sm_thickness; f.sm_radius = rule.sm_radius; f.sm_k = rule.sm_k; f.sm_gap = rule.sm_gap;
+    }
+}
+
+static void sheet_defaults(const std::vector<CadFeature>& features, CadFeature& f)
+{
+    for (size_t i = features.size(); i-- > 0;)
+        if (features[i].type == CadFeatureType::SmRule) {
+            f.sm_thickness = features[i].sm_thickness; f.sm_radius = features[i].sm_radius;
+            f.sm_k = features[i].sm_k; f.sm_gap = features[i].sm_gap;
+            return;
+        }
+}
+
+int CadDocument::add_sm_rule(double thickness, double bend_radius, double k_factor, double hem_gap, const std::string& name)
+{
+    CadFeature f;
+    f.type = CadFeatureType::SmRule; f.name = name;
+    f.sm_thickness = thickness; f.sm_radius = bend_radius; f.sm_k = k_factor; f.sm_gap = hem_gap;
+    features.push_back(f);
+    return int(features.size()) - 1;
+}
+
+int CadDocument::add_sm_base(int sketch_ref, bool flip, const std::string& name)
+{
+    CadFeature f;
+    f.type = CadFeatureType::SmBase; f.name = name; f.sketch_ref = sketch_ref; f.flip = flip; f.mode = BooleanMode::New;
+    sheet_defaults(features, f);
+    features.push_back(f);
+    return int(features.size()) - 1;
+}
+
+int CadDocument::add_sm_edge_flange(const std::vector<int>& edges, double height, double angle_deg, bool flip, const std::string& name)
+{
+    CadFeature f;
+    f.type = CadFeatureType::SmEdgeFlange; f.name = name; f.dressup_edges = edges; f.distance = height; f.sm_angle = angle_deg; f.flip = flip;
+    sheet_defaults(features, f);
+    features.push_back(f);
+    return int(features.size()) - 1;
+}
+
+int CadDocument::add_sm_contour_flange(int sketch_ref, double width, bool flip, const std::string& name)
+{
+    CadFeature f;
+    f.type = CadFeatureType::SmContourFlange; f.name = name; f.sketch_ref = sketch_ref; f.distance = width; f.flip = flip; f.mode = BooleanMode::New;
+    sheet_defaults(features, f);
+    features.push_back(f);
+    return int(features.size()) - 1;
+}
+
+int CadDocument::add_sm_hem(int edge, double length, const std::string& name)
+{
+    CadFeature f;
+    f.type = CadFeatureType::SmHem; f.name = name; f.dressup_edges = { edge }; f.distance = length;
+    sheet_defaults(features, f);
+    features.push_back(f);
+    return int(features.size()) - 1;
+}
+
+int CadDocument::add_sm_unfold(const std::string& name)
+{
+    CadFeature f;
+    f.type = CadFeatureType::SmUnfold; f.name = name;
+    sheet_defaults(features, f);
+    features.push_back(f);
+    return int(features.size()) - 1;
+}
+
+int CadDocument::add_sm_refold(int unfold_feature, const std::string& name)
+{
+    CadFeature f;
+    f.type = CadFeatureType::SmRefold; f.name = name; f.sm_ref = unfold_feature;
+    sheet_defaults(features, f);
     features.push_back(f);
     return int(features.size()) - 1;
 }
@@ -2776,10 +2878,82 @@ static void combine_into(BooleanMode mode, TopoDS_Shape& result, bool& have_body
     }
 }
 
+// The open chain of straight lines of a sketch, as world points from one free end to the other.
+static std::vector<Vec3d> sketch_line_chain(const CadFeature& sk)
+{
+    std::vector<const SketchEntity*> lines;
+    for (const SketchEntity& e : sk.entities) {
+        if (e.construction) continue;
+        if (e.type != SketchEntity::Type::Line) throw std::runtime_error(_u8L("contour flange: the sketch may only hold straight lines"));
+        lines.push_back(&e);
+    }
+    if (lines.empty()) throw std::runtime_error(_u8L("contour flange: the sketch has no lines"));
+    auto same = [](const Vec2d& a, const Vec2d& b) { return (a - b).norm() < 1e-6; };
+    std::vector<Vec2d> pts{ lines[0]->p0, lines[0]->p1 };
+    std::vector<char> used(lines.size(), 0);
+    used[0] = 1;
+    for (bool grew = true; grew;) {
+        grew = false;
+        for (size_t i = 0; i < lines.size(); ++i) {
+            if (used[i]) continue;
+            const Vec2d &a = lines[i]->p0, &b = lines[i]->p1;
+            if      (same(a, pts.back()))  pts.push_back(b);
+            else if (same(b, pts.back()))  pts.push_back(a);
+            else if (same(b, pts.front())) pts.insert(pts.begin(), a);
+            else if (same(a, pts.front())) pts.insert(pts.begin(), b);
+            else continue;
+            used[i] = 1; grew = true;
+        }
+    }
+    for (char u : used) if (!u) throw std::runtime_error(_u8L("contour flange: the lines do not form one chain"));
+    if (same(pts.front(), pts.back())) throw std::runtime_error(_u8L("contour flange: the contour must be open"));
+    std::vector<Vec3d> out;
+    for (const Vec2d& p : pts) out.push_back(sk.plane.to_world(p));
+    return out;
+}
+
 void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
                                 const TopoDS_Shape& context, const CadFeature& f) const
 {
     switch (f.type) {
+    case CadFeatureType::SmRule:
+        return;   // sets the rule; bind_sheet_rules has already copied it into the features that use it
+    case CadFeatureType::SmBase: {
+        CadFeature e = f;   // a base flange is an extrude of the profile by the rule thickness
+        e.type = CadFeatureType::Extrude; e.mode = BooleanMode::New; e.distance = f.sm_thickness;
+        apply_feature(result, have_body, context, e);
+        return;
+    }
+    case CadFeatureType::SmEdgeFlange: {
+        if (!have_body) throw std::runtime_error(_u8L("a flange needs a sheet body"));
+        std::vector<TopoDS_Edge> es;
+        for (int id : f.dressup_edge_ids()) {
+            TopoDS_Edge e = GeometryEngine::edge_by_index(result, id);
+            if (e.IsNull()) throw std::runtime_error(_u8L("flange: invalid edge id"));
+            es.push_back(e);
+        }
+        result = SheetMetal::edge_flanges(result, es, sheet_rule_of(f), f.distance, f.sm_angle, f.flip);
+        break;
+    }
+    case CadFeatureType::SmContourFlange: {
+        if (f.sketch_ref < 0 || f.sketch_ref >= int(features.size()) || features[f.sketch_ref].type != CadFeatureType::Sketch)
+            throw std::runtime_error(_u8L("contour flange needs a sketch"));
+        const CadFeature& sk = features[f.sketch_ref];
+        result = SheetMetal::contour_flange(sketch_line_chain(sk), sk.plane.normal, f.distance, sheet_rule_of(f), f.flip);
+        have_body = true;
+        break;
+    }
+    case CadFeatureType::SmHem: {
+        if (!have_body) throw std::runtime_error(_u8L("a hem needs a sheet body"));
+        const std::vector<int> ids = f.dressup_edge_ids();
+        const TopoDS_Edge e = ids.empty() ? TopoDS_Edge() : GeometryEngine::edge_by_index(result, ids[0]);
+        if (e.IsNull()) throw std::runtime_error(_u8L("hem: invalid edge id"));
+        result = SheetMetal::flat_hem(result, e, sheet_rule_of(f), f.distance);
+        break;
+    }
+    case CadFeatureType::SmUnfold:
+    case CadFeatureType::SmRefold:
+        throw std::runtime_error(_u8L("unfold / refold are not available yet"));
     case CadFeatureType::Sketch:
         return; // sketches carry no solid; consumed by an extrude
     case CadFeatureType::Project:
@@ -4432,9 +4606,24 @@ void CadDocument::route_feature(std::vector<CadBody>& bodies, const CadFeature& 
     if (f.type == CadFeatureType::ThickenSurface) { apply_thicken_surface(bodies, f); return; }
     if (f.type == CadFeatureType::SurfaceOffset) { apply_surface_offset(bodies, f); return; }
     if (f.type == CadFeatureType::Project) return;   // sketch-like: consumed downstream, no body
+    if (f.type == CadFeatureType::SmRule)  return;   // rule: no geometry of its own
     // Resolve the target body: explicit target_body when valid, else the last body.
     const int t = pick_body(f.target_body, int(bodies.size()));
     const TopoDS_Shape context = (t >= 0) ? bodies[t].shape : TopoDS_Shape();
+    if (f.type == CadFeatureType::SmUnfold || f.type == CadFeatureType::SmRefold) {
+        if (t < 0) throw std::runtime_error(_u8L("unfold needs a sheet body"));
+        const SheetMetal::Rule rule = sheet_rule_of(f);
+        if (f.type == CadFeatureType::SmUnfold) {
+            bodies[size_t(t)].shape = SheetMetal::flat_shape(*SheetMetal::unfold(bodies[size_t(t)].shape, rule));
+        } else {
+            // the folded sheet is rebuilt from the state the Unfold started from, so a cached replay needs no side data
+            if (!m_in_replay || f.sm_ref < 0 || f.sm_ref >= int(m_pre_states.size()) || t >= int(m_pre_states[size_t(f.sm_ref)].size()))
+                throw std::runtime_error(_u8L("refold: the unfold it folds back is not available"));
+            const auto un = SheetMetal::unfold(m_pre_states[size_t(f.sm_ref)][size_t(t)].shape, rule);
+            bodies[size_t(t)].shape = SheetMetal::refold(*un, bodies[size_t(t)].shape);
+        }
+        return;
+    }
     // A New extrude (or the very first solid feature) starts a fresh body; everything else
     // mutates the target body in place.
     const bool starts_new = bodies.empty()
@@ -4442,6 +4631,7 @@ void CadDocument::route_feature(std::vector<CadBody>& bodies, const CadFeature& 
         || f.type == CadFeatureType::SurfaceExtrude || f.type == CadFeatureType::SurfaceRevolve
         || f.type == CadFeatureType::ThickenSurface || f.type == CadFeatureType::SurfaceOffset
         || f.type == CadFeatureType::SurfaceLoft || f.type == CadFeatureType::SurfaceFill
+        || f.type == CadFeatureType::SmBase || f.type == CadFeatureType::SmContourFlange
         || ((f.type == CadFeatureType::Extrude || f.type == CadFeatureType::Revolve
              || f.type == CadFeatureType::Sweep || f.type == CadFeatureType::Loft)
             && f.mode == BooleanMode::New);
@@ -4525,6 +4715,7 @@ void CadDocument::bind_expressions()
             f.entities = std::move(ents);
         }
     }
+    bind_sheet_rules();
 }
 
 // ---- variable housekeeping ---------------------------------------------------------------------------------------
@@ -4632,6 +4823,7 @@ void CadDocument::replay_feature(size_t fi, std::vector<CadBody>& built)
         if (build_sketch3d_wire(f, e3).IsNull()) throw std::runtime_error(e3);
         return;
     }
+    if (f.type == CadFeatureType::SmRule)  return; // rule only
     if (f.type == CadFeatureType::Plane)   return; // datum: no solid, derived on demand
     if (f.type == CadFeatureType::Axis)    return; // datum axis
     if (f.type == CadFeatureType::CoordSys) return; // datum coordinate system
@@ -4687,7 +4879,8 @@ static uint64_t fnv_chain(uint64_t h, const void* data, size_t n)
 static bool replay_is_trivial(const CadFeature& f)
 {
     return !f.enabled || f.type == CadFeatureType::Sketch || f.type == CadFeatureType::Helix || f.type == CadFeatureType::Sketch3D
-        || f.type == CadFeatureType::Plane || f.type == CadFeatureType::Axis || f.type == CadFeatureType::CoordSys;
+        || f.type == CadFeatureType::Plane || f.type == CadFeatureType::Axis || f.type == CadFeatureType::CoordSys
+        || f.type == CadFeatureType::SmRule;
 }
 
 // Carry the face/edge ids of `f` from the body it was written against (`was`) to the rebuilt one (`now`). Returns how

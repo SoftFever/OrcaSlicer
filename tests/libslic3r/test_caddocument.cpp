@@ -2427,8 +2427,8 @@ TEST_CASE("a truncated feature keeps what it could read", "[CadDocument][recipe]
     // pattern_spacing2 (double).
     // + shell_faces and draft_faces (two lists), draft_has_neutral (bool), draft_pull / draft_neutral (6 doubles), thin_in / thin_out.
     // + pattern_mirror (bool), extrude_entities (a list)
-    const size_t drop = sizeof(uint32_t) + 9 * sizeof(bool) + 11 * sizeof(cereal::size_type) + 24 * sizeof(double)
-                        + 7 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
+    const size_t drop = sizeof(uint32_t) + 9 * sizeof(bool) + 11 * sizeof(cereal::size_type) + 29 * sizeof(double)
+                        + 8 * sizeof(int);   // 4 + the face attachment (attach_body, attach_face)
     REQUIRE(f_len[1] > drop);
     std::string shortened = blob;
     shortened.erase(f_off[1] + 4 + f_len[1] - drop, drop);
@@ -10456,4 +10456,69 @@ TEST_CASE("a blind hole can end in a drill point", "[CadDocument][hole]")
     const double r = 3.4, cone = M_PI * r * r * (r / std::tan(59.0 * M_PI / 180.0)) / 3.0;
     REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()),
                  WithinRel(40.0 * 30.0 * 15.0 - M_PI * r * r * 12.0 - cone, 2e-3));
+}
+
+// ---- sheet metal -------------------------------------------------------------------------------------------------
+namespace {
+int sheet_edge_near(const CadDocument& doc, const Vec3d& p)
+{
+    int best = -1;
+    double bd = 1e9;
+    for (int i = 0;; ++i) {
+        const TopoDS_Edge e = GeometryEngine::edge_by_index(doc.bodies[0].shape, i);
+        if (e.IsNull()) break;
+        BRepAdaptor_Curve c(e);
+        const gp_Pnt m = c.Value(0.5 * (c.FirstParameter() + c.LastParameter()));
+        const double d = (Vec3d(m.X(), m.Y(), m.Z()) - p).norm();
+        if (d < bd) { bd = d; best = i; }
+    }
+    return best;
+}
+}
+
+TEST_CASE("sheet metal: base flange, edge flange and the unfolded pattern", "[CadDocument][sheet]")
+{
+    using Catch::Matchers::WithinRel;
+    CadDocument doc;
+    const int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 100, 60, 0, "Base");
+    doc.add_sm_base(sk, false, "BaseFlange");
+    REQUIRE(doc.recompute());
+    const BoundingBoxf3 bb0 = SketchEngine::tessellate(doc.bodies.front().shape).bounding_box();
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(100.0 * 60.0 * 2.5, 1e-6));
+    // 20 mm flange on the y-min top edge: base y 5..60, quarter bend R 2.5..5, leg 15 long
+    const int e = sheet_edge_near(doc, Vec3d(bb0.center().x(), bb0.min.y(), 2.5));
+    doc.add_sm_edge_flange({ e }, 20.0, 90.0, false, "Flange");
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.error.empty());
+    const double section = 55.0 * 2.5 + M_PI / 4.0 * (25.0 - 6.25) + 15.0 * 2.5;
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(100.0 * section, 1e-3));
+    // unfold: the flat pattern is the base plus the bend allowance plus the leg
+    const double BA = M_PI / 2.0 * (2.5 + 0.44 * 2.5);
+    const int un = doc.add_sm_unfold("Unfold");
+    REQUIRE(doc.recompute());
+    const BoundingBoxf3 flat = SketchEngine::tessellate(doc.bodies.front().shape).bounding_box();
+    REQUIRE_THAT(flat.size().y(), WithinRel(55.0 + BA + 15.0, 1e-3));
+    REQUIRE_THAT(flat.size().z(), WithinRel(2.5, 1e-3));
+    // refolding without touching the flat pattern gives the flanged sheet back
+    doc.add_sm_refold(un, "Refold");
+    REQUIRE(doc.recompute());
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(100.0 * section, 1e-3));
+    CadDocument back;
+    REQUIRE(back.deserialize_recipe(doc.serialize_recipe()));
+    REQUIRE(back.features.size() == doc.features.size());
+    REQUIRE_THAT(double(SketchEngine::tessellate(back.bodies.front().shape).volume()), WithinRel(100.0 * section, 1e-3));
+}
+
+TEST_CASE("sheet metal: the rule feature sets the thickness of the sheet features after it", "[CadDocument][sheet]")
+{
+    using Catch::Matchers::WithinRel;
+    CadDocument doc;
+    doc.add_sm_rule(1.0, -1.0, 0.44, 0.01, "Rule");
+    const int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 100, 60, 0, "Base");
+    doc.add_sm_base(sk, false, "BaseFlange");
+    REQUIRE(doc.recompute());
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(100.0 * 60.0 * 1.0, 1e-6));
+    doc.features[0].sm_thickness = 3.0;   // editing the rule rebuilds the sheet
+    REQUIRE(doc.recompute());
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(100.0 * 60.0 * 3.0, 1e-6));
 }

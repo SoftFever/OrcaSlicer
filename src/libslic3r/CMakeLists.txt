@@ -576,6 +576,8 @@ if (SLIC3R_CAD)
             CAD/SketchInference.hpp
             CAD/SketchImport.cpp
             CAD/SketchImport.hpp
+            CAD/SheetMetal.cpp
+            CAD/SheetMetal.hpp
             CAD/CadDocument.cpp
             CAD/CadDocument.hpp
             CAD/ThreadStandards.cpp

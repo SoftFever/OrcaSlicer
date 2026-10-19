@@ -24,7 +24,8 @@
 
 namespace Slic3r {
 
-enum class CadFeatureType { Sketch, Extrude, Fillet, Chamfer, Hole, Thread, Shell, Revolve, Sweep, Pattern, Plane, Loft, Draft, Import, Boolean, Cut, Mirror, Axis, CoordSys, Helix, Transform, Thicken, Project, DeleteFace, Rib, SurfaceExtrude, SurfaceRevolve, ThickenSurface, SurfaceOffset, SurfaceLoft, SurfaceFill, Mate, Sketch3D };
+enum class CadFeatureType { Sketch, Extrude, Fillet, Chamfer, Hole, Thread, Shell, Revolve, Sweep, Pattern, Plane, Loft, Draft, Import, Boolean, Cut, Mirror, Axis, CoordSys, Helix, Transform, Thicken, Project, DeleteFace, Rib, SurfaceExtrude, SurfaceRevolve, ThickenSurface, SurfaceOffset, SurfaceLoft, SurfaceFill, Mate, Sketch3D,
+                             SmRule, SmBase, SmEdgeFlange, SmContourFlange, SmHem, SmUnfold, SmRefold };
 enum class SketchShape    { Rectangle, Circle };
 enum class PlaneType      { Offset, Angle, Midplane, Tangent, TwoEdges, Coincident };
 enum class AxisType       { TwoPoints, FaceNormal, CylinderCenterline, PlaneIntersection, AlongEdge };
@@ -431,6 +432,16 @@ struct CadFeature {
     double mate_angle{0};       // rotation about A's z, degrees
     bool   mate_flip{false};    // oppose the two z axes (face-to-face)
 
+    // Sheet metal. An SmRule feature sets the rule every later sheet-metal feature uses (bind_sheet_rules copies it into
+    // them on each recompute). `distance` is the flange height / contour width / hem length, `flip` the side, dressup_edges
+    // the edges, sketch_ref the base or contour sketch.
+    double sm_thickness{2.5};
+    double sm_radius{-1};     // inner bend radius; <= 0 = the thickness
+    double sm_k{0.44};        // K-factor (unfold)
+    double sm_gap{0.01};      // hem gap
+    double sm_angle{90};      // edge flange angle (deg)
+    int    sm_ref{-1};        // refold: the unfold feature it folds back
+
     template<class Archive>
     void save(Archive& ar) const {
         std::string brep = (type == CadFeatureType::Import) ? brep_to_string(imported_solid) : std::string();
@@ -482,7 +493,8 @@ struct CadFeature {
                pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
                thin_in, thin_out, pattern_mirror, extrude_entities,
-               hole_tip_angle);
+               hole_tip_angle,
+               sm_thickness, sm_radius, sm_k, sm_gap, sm_angle, sm_ref);
     }
     template<class Archive>
     void load(Archive& ar) {
@@ -535,7 +547,8 @@ struct CadFeature {
                pattern_features, pattern_axis, pattern_origin, pattern_axis2, pattern_count2, pattern_spacing2,
                shell_faces, draft_faces, draft_has_neutral, draft_pull, draft_neutral,
                thin_in, thin_out, pattern_mirror, extrude_entities,
-               hole_tip_angle);
+               hole_tip_angle,
+               sm_thickness, sm_radius, sm_k, sm_gap, sm_angle, sm_ref);
         imported_solid = brep_from_string(brep);
     }
     // The pre-framing (v4) layout, FROZEN. A v4 recipe is one flat stream with no per-feature
@@ -744,6 +757,14 @@ public:
     int  add_hole_standard(const std::string& designation, int style, bool through,
                            double depth, double x, double y,
                            const SketchPlane& plane, const std::string& name);
+    // Sheet metal (see SheetMetal.hpp). Each add_sm_* copies the rule in force so a lone candidate previews right.
+    int  add_sm_rule(double thickness, double bend_radius, double k_factor, double hem_gap, const std::string& name);
+    int  add_sm_base(int sketch_ref, bool flip, const std::string& name);
+    int  add_sm_edge_flange(const std::vector<int>& edges, double height, double angle_deg, bool flip, const std::string& name);
+    int  add_sm_contour_flange(int sketch_ref, double width, bool flip, const std::string& name);
+    int  add_sm_hem(int edge, double length, const std::string& name);
+    int  add_sm_unfold(const std::string& name);
+    int  add_sm_refold(int unfold_feature, const std::string& name);
     int  add_thread(double radius, double pitch, double height, double depth,
                     bool internal, double x, double y, const SketchPlane& plane,
                     const std::string& name);
@@ -1004,6 +1025,7 @@ private:
     // The parametric pass every replay starts with: evaluate the variables and write each
     // feature's expression bindings into its numeric fields.
     void bind_expressions();
+    void bind_sheet_rules();   // each sheet-metal feature gets the last SmRule before it (or the default rule)
     // One step of the replay: route features[fi] into `built` and stamp the bodies it created
     // with fi. A hidden feature, a sketch, a helix or a datum leaves `built` alone. Throws on
     // failure.

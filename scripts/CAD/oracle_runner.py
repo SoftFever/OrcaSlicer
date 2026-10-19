@@ -196,6 +196,7 @@ BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cu
 class Replay:
     def __init__(self, mcp):
         self.m, self.sketches, self.body, self.fidx, self.entity_index, self.sketch_neg, self.tilted, self.point_sets = mcp, {}, 0, {}, {}, {}, {}, {}
+        self.rule_edits = None
         self.params, self.order, self.datums = {}, [], {}
         self.mo = [0, 0, 0]   # modeling_origin: the app frame is the recipe frame shifted by it   # recipe parameters (name -> expression); body names in app order
 
@@ -229,11 +230,16 @@ class Replay:
         return self.datums[key]
 
     def run(self, ft):
+        if ft["op"].startswith("sm_") and self.rule_edits is not None:
+            # the recipe edits the sheet-metal rule (a document-level setting) at some point; the app keeps it as a feature
+            # before the first sheet-metal one, which gives every flange the final rule exactly as the reference does
+            self.m.call("sm_rule", self.rule_edits)
+            self.rule_edits = None
         h = getattr(self, "op_" + ft["op"], None)
         if h is None:
             raise Blocked("op %s" % ft["op"])
         h(ft)
-        self.fidx[ft["name"]] = len(self.m.call("describe_scene")["features"]) - 1   # doc feature index of this recipe feature (a pattern repeats them)
+        self.fidx[ft.get("name", "%s#%d" % (ft["op"], len(self.fidx)))] = len(self.m.call("describe_scene")["features"]) - 1   # doc feature index of this recipe feature (a pattern repeats them)
 
     def _pattern_features(self, ft):
         if ft.get("pattern_of") != "features":
@@ -282,6 +288,35 @@ class Replay:
         ax = ft["axis"]
         self.m.call("pattern", {"features": feats, "circular": True, "count": ft["count"], "angle": ft.get("total_angle", 360),
                                 "axis": ax.get("dir", [0, 0, 1]), "origin": ax.get("origin", [0, 0, 0]), "body": self.body})
+
+    def op_sheet_metal_rule_edit(self, ft):
+        pass   # folded into the sm_rule feature emitted before the first sheet-metal feature (see run)
+
+    def op_sm_flange(self, ft):
+        kind = ft["type"]
+        if kind == "base":
+            self.m.call("sm_base", {"sketch": self.sketches[ft["profile"]["sketch"]][0]})
+        elif kind == "edge":
+            ids, _ = self._edges(ft)
+            self.m.call("sm_flange", {"edge": ids, "height": ft["height"], "angle": ft["angle"], "flip": bool(ft.get("flip"))})
+        elif kind == "contour":
+            self.m.call("sm_contour", {"sketch": self.sketches[ft["profile_sketch"]][0], "width": ft["distance"]})
+        else:
+            raise Blocked("sheet flange type %s" % kind)
+
+    def op_sm_unfold(self, ft):
+        if not ft.get("all_bends"):
+            raise Blocked("unfold of chosen bends")
+        self.unfold_index = self.m.call("sm_unfold")["feature_index"]   # the stationary piece is the one with the largest face
+
+    def op_sm_refold(self, ft):
+        self.m.call("sm_refold", {"unfold": self.unfold_index})
+
+    def op_sm_hem(self, ft):
+        if ft.get("type") != "flat":
+            raise Blocked("hem type %s" % ft.get("type"))
+        ids, _ = self._edges({"edges": [ft["edge"]]})
+        self.m.call("sm_hem", {"edge": ids[0], "length": ft["length"]})
 
     def point_sketch(self, desc):
         """World positions of the points of the sketch a hole feature names ("sketch HolePoints points p1..p6")."""
@@ -685,6 +720,15 @@ def run_case(mcp, d):
         rp = Replay(mcp)
         rp.mo = mcp.call("describe_scene").get("modeling_origin", [0, 0, 0])
         rp.params = {q["name"]: q["expression"] for q in recipe.get("parameters", [])}
+        edits = [f for f in recipe["features"] if f["op"] == "sheet_metal_rule_edit"]
+        if edits:
+            rule = {}
+            key = {"thickness": "thickness", "kFactor": "k_factor", "bendRadius": "bend_radius"}
+            for e in edits:
+                for k, v in list(e.get("set", {}).items()) + [tuple(x.split(" ", 1)) for x in e.get("sequence", [])]:
+                    if k in key:
+                        rule[key[k]] = float(str(v).split()[0])
+            rp.rule_edits = rule
         for ft in recipe["features"]:
             rp.run(ft)
         got, _ = measure(mcp)   # sketch_begin sketches sit at the absolute origin; only extrude{profile} adds modeling_origin (MCP inconsistency, see bd)

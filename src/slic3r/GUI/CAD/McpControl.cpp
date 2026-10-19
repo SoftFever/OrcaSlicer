@@ -1,5 +1,6 @@
 #include "slic3r/GUI/CAD/McpControl.hpp"
 #include "libslic3r/Point.hpp"
+#include <functional>
 #include <stdexcept>
 #include <math.h>
 #include <TopAbs_ShapeEnum.hxx>
@@ -115,6 +116,13 @@ const char* feature_type_name(CadFeatureType t)
         case CadFeatureType::CoordSys: return "CoordSys";
         case CadFeatureType::Helix:    return "Helix";
         case CadFeatureType::Sketch3D: return "Sketch3D";
+        case CadFeatureType::SmRule:          return "SheetRule";
+        case CadFeatureType::SmBase:          return "SheetBase";
+        case CadFeatureType::SmEdgeFlange:    return "SheetFlange";
+        case CadFeatureType::SmContourFlange: return "SheetContour";
+        case CadFeatureType::SmHem:           return "SheetHem";
+        case CadFeatureType::SmUnfold:        return "SheetUnfold";
+        case CadFeatureType::SmRefold:        return "SheetRefold";
         case CadFeatureType::Transform: return "Transform";
         case CadFeatureType::Thicken:  return "Thicken";
         case CadFeatureType::Project:  return "Project";
@@ -231,6 +239,41 @@ json describe_tools_core()
                      json{{"name", "knots"},  {"type", "array"}, {"description", "the full knot vector of the radius spline"}},
                      json{{"name", "chord"},  {"type", "boolean"}, {"default", false}, {"description", "`radius` is the width of the round measured across it (chord length), not a radius"}},
                  })}},
+            json{{"name", "sm_rule"}, {"summary", "Sheet-metal rule used by every later sheet-metal feature: thickness, inner bend radius, K-factor, hem gap."},
+                 {"params", json::array({
+                     json{{"name", "thickness"},   {"type", "number"}, {"unit", "mm"}, {"default", 2.5}},
+                     json{{"name", "bend_radius"}, {"type", "number"}, {"unit", "mm"}, {"default", -1}, {"description", "inner bend radius; <= 0 means equal to the thickness"}},
+                     json{{"name", "k_factor"},    {"type", "number"}, {"default", 0.44}, {"description", "neutral-layer position, used to unfold"}},
+                     json{{"name", "gap"},         {"type", "number"}, {"unit", "mm"}, {"default", 0.01}, {"description", "gap inside a hem"}},
+                 })}},
+            json{{"name", "sm_base"}, {"summary", "Base flange: a plate of the rule thickness from a closed sketch (grows along the sketch normal; flip reverses)."},
+                 {"params", json::array({
+                     json{{"name", "sketch"}, {"type", "integer"}, {"description", "closed profile sketch index"}},
+                     json{{"name", "flip"},   {"type", "boolean"}, {"default", false}},
+                 })}},
+            json{{"name", "sm_flange"}, {"summary", "Edge flanges on the thickness edges of a sheet (edge ids from query_topology). The plate is trimmed back by the bend setback; height is measured along the flange's outer face from the virtual sharp."},
+                 {"params", json::array({
+                     json{{"name", "edge"},   {"type", "integer|array"}, {"description", "edge id(s) at the end of the sheet; several edges in one call close their corners"}},
+                     json{{"name", "height"}, {"type", "number"}, {"unit", "mm"}, {"default", 20}},
+                     json{{"name", "angle"},  {"type", "number"}, {"unit", "deg"}, {"default", 90}, {"max", 170}},
+                     json{{"name", "flip"},   {"type", "boolean"}, {"default", false}, {"description", "bend toward the other face"}},
+                     json{{"name", "body"},   {"type", "integer"}, {"default", -1}},
+                 })}},
+            json{{"name", "sm_contour"}, {"summary", "Contour flange: an open chain of lines becomes a bent sheet of the given width along the sketch normal; material grows to the right of travel (travel x normal)."},
+                 {"params", json::array({
+                     json{{"name", "sketch"}, {"type", "integer"}},
+                     json{{"name", "width"},  {"type", "number"}, {"unit", "mm"}, {"default", 20}},
+                     json{{"name", "flip"},   {"type", "boolean"}, {"default", false}},
+                 })}},
+            json{{"name", "sm_hem"}, {"summary", "Flat hem: folds the end of a flange back over its sheet. length is measured to the outside of the fold."},
+                 {"params", json::array({
+                     json{{"name", "edge"},   {"type", "integer"}, {"description", "the flange's end edge on the face to fold away from"}},
+                     json{{"name", "length"}, {"type", "number"}, {"unit", "mm"}, {"default", 8}},
+                     json{{"name", "body"},   {"type", "integer"}, {"default", -1}},
+                 })}},
+            json{{"name", "sm_unfold"}, {"summary", "Unfold every bend into a flat pattern (the first sheet face stays put)."}, {"params", json::array()}},
+            json{{"name", "sm_refold"}, {"summary", "Fold an unfolded sheet back; cuts made while flat are carried into the folded part."},
+                 {"params", json::array({ json{{"name", "unfold"}, {"type", "integer"}, {"description", "feature index returned by sm_unfold"}} })}},
             json{{"name", "chamfer"}, {"summary", "Chamfer measured edges of a body (edge ids from query_topology on that body)."},
                  {"params", json::array({
                      json{{"name", "edge"},     {"type", "integer|array"}, {"description", "one edge id, or an array of ids chamfered together in one feature"}},
@@ -1309,6 +1352,57 @@ json action_hole_standard(DesignPanel* panel, const json& params)
         panel->mcp_after_change();
         return json{{"ok", false}, {"error", ex.what()}};
     }
+}
+
+// Sheet metal: sm_rule | sm_base | sm_flange | sm_contour | sm_hem | sm_unfold | sm_refold
+json action_sheet(DesignPanel* panel, const std::string& m, const json& params)
+{
+    CadDocument& doc = panel->mcp_doc();
+    auto num = [&](const char* k, double def, double lo, double hi) {
+        const double v = params.value(k, def);
+        if (!(v >= lo && v <= hi)) throw std::runtime_error(std::string(k) + " must be between " + std::to_string(lo) + " and " + std::to_string(hi));
+        return v;
+    };
+    const bool flip = params.value("flip", false);
+    std::function<int()> make;
+    if (m == "sm_rule") {
+        const double t = num("thickness", 2.5, 1e-3, 1000), r = params.value("bend_radius", -1.0), k = num("k_factor", 0.44, 0.0, 1.0), g = num("gap", 0.01, 0.0, 100);
+        make = [&, t, r, k, g] { return doc.add_sm_rule(t, r, k, g, "Sheet metal rule"); };
+    } else if (m == "sm_base") {
+        const int sk = sketch_ref_arg(params, doc);
+        if (sk < 0) throw std::runtime_error("sm_base needs 'sketch' (a closed profile)");
+        make = [&, sk] { return doc.add_sm_base(sk, flip, "Base flange"); };
+    } else if (m == "sm_flange") {
+        if (doc.bodies.empty()) throw std::runtime_error("no sheet body to flange");
+        const std::vector<int> edges = edge_ids_arg(params, "sm_flange");
+        const double h = num("height", 20.0, 1e-3, 1e5), a = num("angle", 90.0, 1e-3, 170.0);
+        make = [&, edges, h, a] { return doc.add_sm_edge_flange(edges, h, a, flip, "Edge flange"); };
+    } else if (m == "sm_contour") {
+        const int sk = sketch_ref_arg(params, doc);
+        if (sk < 0) throw std::runtime_error("sm_contour needs 'sketch' (an open chain of lines)");
+        const double w = num("width", 20.0, 1e-3, 1e5);
+        make = [&, sk, w] { return doc.add_sm_contour_flange(sk, w, flip, "Contour flange"); };
+    } else if (m == "sm_hem") {
+        if (doc.bodies.empty()) throw std::runtime_error("no sheet body to hem");
+        const std::vector<int> edges = edge_ids_arg(params, "sm_hem");
+        const double len = num("length", 8.0, 1e-3, 1e5);
+        make = [&, edges, len] { return doc.add_sm_hem(edges.front(), len, "Hem"); };
+    } else if (m == "sm_unfold") {
+        make = [&] { return doc.add_sm_unfold("Unfold"); };
+    } else {   // sm_refold
+        const int u = params.value("unfold", -1);
+        if (u < 0 || u >= int(doc.features.size()) || doc.features[size_t(u)].type != CadFeatureType::SmUnfold)
+            throw std::runtime_error("sm_refold needs 'unfold': the index of an Unfold feature");
+        make = [&, u] { return doc.add_sm_refold(u, "Refold"); };
+    }
+    const int bi = target_body_arg(params, doc);
+    doc.checkpoint();
+    const int idx = make();
+    if (bi >= 0) doc.features[size_t(idx)].target_body = bi;
+    bool ok = doc.recompute();
+    if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
+    panel->mcp_after_change();
+    return json{{"ok", ok}, {"feature_index", idx}, {"bodies", int(doc.bodies.size())}, {"error", doc.error}};
 }
 
 json action_boolean(DesignPanel* panel, const json& params)
@@ -3434,6 +3528,9 @@ json call_method_core(DesignPanel* panel, const std::string& method, const json&
     if (method == "sweep")          return action_sweep(panel, params);
     if (method == "loft")           return action_loft(panel, params);
     if (method == "thread")         return action_thread(panel, params);
+    if (method == "sm_rule" || method == "sm_base" || method == "sm_flange" || method == "sm_contour" || method == "sm_hem"
+        || method == "sm_unfold" || method == "sm_refold")
+        return action_sheet(panel, method, params);
     if (method == "cut")            return action_cut(panel, params);
     if (method == "save")           return action_save(panel, params);
     if (method == "open")           return action_open(panel, params);
