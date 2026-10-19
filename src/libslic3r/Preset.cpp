@@ -1421,6 +1421,7 @@ static std::vector<std::string> s_Preset_print_options{
     "initial_layer_travel_acceleration",
     "initial_layer_travel_jerk",
     "exclude_object",
+    "exclude_object_tolerance",
     "slow_down_layers",
     "infill_anchor",
     "infill_anchor_max",
@@ -2294,6 +2295,7 @@ void PresetCollection::load_project_embedded_presets(std::vector<Preset*>& proje
                 BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent for config %1%!")%preset->file;
                 continue;
             }
+            extend_default_config_length(config, false, {});
             preset->config.update_diff_values_to_child_config(config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
             //preset->config.apply(std::move(config));
             Preset::normalize(preset->config);

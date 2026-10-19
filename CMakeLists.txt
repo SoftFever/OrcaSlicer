@@ -288,6 +288,19 @@ if (APPLE)
     # Type"); Ninja/-Wall does not, and under -Werror it fails Xcode builds on code CI accepts.
     set(CMAKE_XCODE_ATTRIBUTE_GCC_WARN_64_TO_32_BIT_CONVERSION "NO")
 
+    # The Xcode generator ignores CMAKE_<LANG>_COMPILER_LAUNCHER, so hand the launcher to
+    # Xcode's own Compiler Launcher setting, which wraps every clang compile (C, C++,
+    # Objective-C++ and the precompiled header) with one program: the C++ launcher wins when
+    # both are set. The setting takes a single program path, not a CMake launcher list.
+    # Xcode versions without it ignore it and build uncached.
+    if (CMAKE_GENERATOR STREQUAL "Xcode")
+        if (CMAKE_CXX_COMPILER_LAUNCHER)
+            set(CMAKE_XCODE_ATTRIBUTE_C_COMPILER_LAUNCHER "${CMAKE_CXX_COMPILER_LAUNCHER}")
+        elseif (CMAKE_C_COMPILER_LAUNCHER)
+            set(CMAKE_XCODE_ATTRIBUTE_C_COMPILER_LAUNCHER "${CMAKE_C_COMPILER_LAUNCHER}")
+        endif ()
+    endif ()
+
     message(STATUS "Orca: IS_CROSS_COMPILE: ${IS_CROSS_COMPILE}")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_INSTALL_RPATH "$ORIGIN")
