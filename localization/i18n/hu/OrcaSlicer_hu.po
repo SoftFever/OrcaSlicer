@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -779,18 +779,23 @@ msgstr "Kijelölés"
 msgid "Plate"
 msgstr "Tálca"
 
+# AI Translated
+# Needs human review: Glossary cell empty for hu; reused the catalog's 'Elosztás' (Distribute left-right etc.)
 msgid "Distribute"
-msgstr ""
+msgstr "Elosztás"
 
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "A transzformációs műveletekhez használt koordináta-rendszer."
 
+# AI Translated
+# Needs human review: Tooltip in the object manipulation panel; check it reads right next to the align buttons
 msgid "Reference for alignment"
-msgstr ""
+msgstr "Igazítás referenciája"
 
+# AI Translated
 msgid "Select at least 3 parts or objects"
-msgstr ""
+msgstr "Válassz ki legalább 3 tárgyat vagy objektumot"
 
 # AI Translated
 msgid "Align left"
@@ -844,8 +849,9 @@ msgstr "Elosztás fel-le irányban"
 msgid "Drop"
 msgstr "Lehelyezés"
 
+# AI Translated
 msgid "Move the selection along Z so that its lowest point touches the bed."
-msgstr ""
+msgstr "A kijelölés mozgatása Z mentén úgy, hogy a legalacsonyabb pontja érintse az asztalt."
 
 # AI Translated
 msgid "Absolute"
@@ -2081,17 +2087,21 @@ msgstr "Belépés az összeállítás gizmóba"
 msgid "Leaving Assembly gizmo"
 msgstr "Kilépés az összeállítás gizmóból"
 
+# AI Translated
 msgid "Parts of a cut object cannot be moved"
-msgstr ""
+msgstr "A vágott objektum tárgyai nem mozgathatók"
 
+# AI Translated
 msgid "Aligning to the plate is available in X and Y only"
-msgstr ""
+msgstr "A tálcához igazítás csak X és Y irányban érhető el"
 
+# AI Translated
 msgid "Turn off Auto-Drop for the selected objects to move them in Z"
-msgstr ""
+msgstr "Kapcsold ki a kijelölt objektumok automatikus leejtését, hogy Z irányban mozgathasd őket"
 
+# AI Translated
 msgid "All selected objects must be on the same plate"
-msgstr ""
+msgstr "Az összes kijelölt objektumnak ugyanazon a tálcán kell lennie"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -6533,8 +6543,10 @@ msgstr "Tengelyek"
 msgid "Gridlines"
 msgstr "Rácsvonalak"
 
+# AI Translated
+# Needs human review: Glossary cell empty for hu; check the term for this view mode
 msgid "Focus mode"
-msgstr ""
+msgstr "Fókuszmód"
 
 msgid "Labels"
 msgstr "Címkék"
@@ -6596,7 +6608,7 @@ msgid "Size:"
 msgstr "Méret:"
 
 # AI Translated
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "G-code útvonalütközés található a(z) %d. rétegen, Z = %.2lfmm. Helyezd távolabb egymástól az ütköző objektumokat (%s <-> %s)."
 
@@ -10947,11 +10959,13 @@ msgstr "Nem támogatott beállítások megjelenítése"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Megjeleníti a nem kompatibilis vagy nem támogatott beállításokat a nyomtató- és filamentlegördülő listákban. Ezek a beállítások nem választhatók ki."
 
+# AI Translated
 msgid "Export statistics with G-code"
-msgstr ""
+msgstr "Statisztika exportálása G-code-dal"
 
+# AI Translated
 msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Ha be van kapcsolva, a G-code fájl exportálásakor annak statisztikája is JSON-ként kiíródik mellé <name>.statistics.json néven, az exportált szeletelt 3MF fájl pedig belül tartalmazza: a nyomtatási időt, a filament- és vonaltípus-összesítőket, valamint ugyanezeket rétegenként és objektumonként."
 
 # AI Translated
 msgid "Experimental Features"
@@ -11818,6 +11832,10 @@ msgstr "Nem sikerült feltölteni a fájlt a nyomtató tárhelyére. Próbáld �
 # AI Translated
 msgid "Send Failed"
 msgstr "Sikertelen küldés"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Nincs elérhető nyomtató"
 
 msgid "The name length exceeds the limit."
 msgstr "A név hossza meghaladja a korlátot."
@@ -13688,8 +13706,8 @@ msgid "Left mouse"
 msgstr "Bal egérgomb"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Az ablakban bárhol elérhető, szövegmezőbe gépelés közben is."
+msgid "Available anywhere in the window."
+msgstr "Az ablak bármely pontján elérhető."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13800,10 +13818,6 @@ msgstr "A(z) %s ehhez van rendelve: %s. Átrendeled ehhez: %s?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "Az alapértelmezett %s ehhez van rendelve: %s. Átrendeled ehhez: %s?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "A globális gyorsbillentyűk gépelés közben is működnek."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -14259,9 +14273,10 @@ msgstr "a(z) \"%2%\" \"%1%\" módosítója (összesen %3%) nem volt hatással a 
 msgid "Seam placement may differ from expected."
 msgstr "A varrat elhelyezése eltérhet a várttól."
 
+# AI Translated
 #, boost-format
 msgid "Failed to write the G-code statistics to %1%."
-msgstr ""
+msgstr "Nem sikerült a G-code statisztikát a(z) %1% helyre írni."
 
 msgid "Internal Bridge"
 msgstr "Belső híd"
@@ -17680,6 +17695,14 @@ msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Engedélyezd ezt az opciót, hogy EXCLUDE OBJECT parancs kerüljön a G-code-ba."
 
 # AI Translated
+msgid "Outline tolerance"
+msgstr "Körvonal tűrése"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "Az EXCLUDE_OBJECT_DEFINE-ba írt objektumkörvonal legnagyobb megengedett eltérése az eredeti körvonaltól. Nagyobb értékeknél kevesebb pont keletkezik, ami segít azokon a firmware-eken, amelyek sok objektumot tartalmazó G-code feldolgozásakor megakadnak. A 0 minden pontot megtart."
+
+# AI Translated
 msgid "Verbose G-code"
 msgstr "Bővebb G-code"
 
@@ -20918,11 +20941,13 @@ msgstr "Kimeneti mappa"
 msgid "This is the output directory for exported files."
 msgstr "Az exportált fájlok kimeneti mappája."
 
+# AI Translated
 msgid "Export statistics"
-msgstr ""
+msgstr "Statisztika exportálása"
 
+# AI Translated
 msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Minden szeletelt tálca statisztikáját JSON-ként írja ki: plate_N.statistics.json néven a G-code mellé a kimeneti mappába, valamint az --export-3mf által írt 3MF fájlba: nyomtatási idő, filament- és vonaltípus-összesítők, valamint ugyanezek rétegenként és objektumonként."
 
 msgid "Debug level"
 msgstr "Hibakeresés szintje"
@@ -30840,1231 +30865,1645 @@ msgid_plural "The current filament list does not contain %s. Project filaments r
 msgstr[0] "A jelenlegi filamentlista nem tartalmazza ezt: %s. A kevert filamenthez szükséges projektfilament a szétbontás után automatikusan létrejön."
 msgstr[1] "A jelenlegi filamentlista nem tartalmazza ezt: %s. A kevert filamenthez szükséges projektfilamentek a szétbontás után automatikusan létrejönnek."
 
+# AI Translated
 msgid "Color Picker"
-msgstr ""
+msgstr "Színválasztó"
 
+# AI Translated
 msgid "Basic Colors"
-msgstr ""
+msgstr "Alapszínek"
 
-msgid "Orca Palette"
-msgstr ""
-
+# AI Translated
+# Needs human review: Glossary cell for Palette empty for hu; 'paletta' used
 #. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
-msgid "RAL Classic"
-msgstr ""
+msgid "Orca Palette"
+msgstr "Orca paletta"
 
+# AI Translated
 #. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL Klasszikus"
+
+# AI Translated
 msgid "Gradients"
-msgstr ""
+msgstr "Színátmenetek"
 
+# AI Translated
+msgctxt "Color picker"
 msgid "Solid"
-msgstr ""
+msgstr "Egyszínű"
 
+# AI Translated
 msgid "Gradient"
-msgstr ""
+msgstr "Színátmenet"
 
+# AI Translated
 msgid "Gradient start"
-msgstr ""
+msgstr "Színátmenet kezdete"
 
+# AI Translated
 msgid "Gradient end"
-msgstr ""
+msgstr "Színátmenet vége"
 
+# AI Translated
 msgid "Gradient color"
-msgstr ""
+msgstr "Színátmenet színe"
 
+# AI Translated
 msgid "Add color"
-msgstr ""
+msgstr "Szín hozzáadása"
 
+# AI Translated
 msgid "Remove color"
-msgstr ""
+msgstr "Szín eltávolítása"
 
+# AI Translated
 msgid "Saturation"
-msgstr ""
+msgstr "Telítettség"
 
+# AI Translated
 msgid "Original color"
-msgstr ""
+msgstr "Eredeti szín"
 
+# AI Translated
 #. TRN: Clicking the current color preview adds it to the saved favorites.
 msgid "Save current color"
-msgstr ""
+msgstr "Jelenlegi szín mentése"
 
+# AI Translated
+# Needs human review: Glossary cell for Palette empty for hu; 'paletta' used
 msgid "Palettes"
-msgstr ""
+msgstr "Paletták"
 
+# AI Translated
 msgid "Search colors"
-msgstr ""
+msgstr "Színek keresése"
 
+# AI Translated
 msgid "Filter colors"
-msgstr ""
+msgstr "Színek szűrése"
 
+# AI Translated
 msgid "No matching colors"
-msgstr ""
+msgstr "Nincs egyező szín"
 
+# AI Translated
 msgid "Hex color"
-msgstr ""
+msgstr "Hex szín"
 
 # AI Translated
 msgid "Opacity"
 msgstr "Átlátszatlanság"
 
+# AI Translated
 msgid "Opacity percent"
-msgstr ""
+msgstr "Átlátszatlanság (%)"
 
+# AI Translated
 msgid "Save color"
-msgstr ""
+msgstr "Szín mentése"
 
+# AI Translated
 msgid "Enter a complete hexadecimal color"
-msgstr ""
+msgstr "Adj meg egy teljes hexadecimális színkódot"
 
+# AI Translated
 msgid "The current multi-color selection is kept until you choose a different color."
-msgstr ""
+msgstr "A jelenlegi többszínű kijelölés megmarad, amíg másik színt nem választasz."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "Legfeljebb %d szín támogatott."
 
+# AI Translated
 msgid "Crimson"
-msgstr ""
+msgstr "Karmazsin"
 
+# AI Translated
 msgid "Orange red"
-msgstr ""
+msgstr "Narancsvörös"
 
+# AI Translated
 msgid "Tomato"
-msgstr ""
+msgstr "Paradicsom"
 
+# AI Translated
 msgid "Orange"
-msgstr ""
+msgstr "Narancs"
 
+# AI Translated
 msgid "Dark orange"
-msgstr ""
+msgstr "Sötét narancs"
 
+# AI Translated
 msgid "Gold"
-msgstr ""
+msgstr "Arany"
 
+# AI Translated
 msgid "Burly wood"
-msgstr ""
+msgstr "Fabarna"
 
+# AI Translated
 msgid "Bisque"
-msgstr ""
+msgstr "Biszkvit"
 
+# AI Translated
 msgid "Misty rose"
-msgstr ""
+msgstr "Ködös rózsa"
 
+# AI Translated
 msgid "Light yellow"
-msgstr ""
+msgstr "Világossárga"
 
+# AI Translated
 msgid "Lemon chiffon"
-msgstr ""
+msgstr "Citromhab"
 
+# AI Translated
 msgid "Beige"
-msgstr ""
+msgstr "Bézs"
 
+# AI Translated
 msgid "Light golden rod yellow"
-msgstr ""
+msgstr "Világos aranyvesszősárga"
 
+# AI Translated
 msgid "Pale golden rod"
-msgstr ""
+msgstr "Halvány aranyvessző"
 
+# AI Translated
 msgid "Khaki"
-msgstr ""
+msgstr "Khaki"
 
+# AI Translated
 msgid "Dark khaki"
-msgstr ""
+msgstr "Sötét khaki"
 
+# AI Translated
 msgid "Peach puff"
-msgstr ""
+msgstr "Barackhab"
 
+# AI Translated
 msgid "Moccasin"
-msgstr ""
+msgstr "Mokaszin"
 
+# AI Translated
 msgid "Papaya whip"
-msgstr ""
+msgstr "Papayakrém"
 
+# AI Translated
 msgid "Blanched almond"
-msgstr ""
+msgstr "Hámozott mandula"
 
+# AI Translated
 msgid "Antique white"
-msgstr ""
+msgstr "Antik fehér"
 
+# AI Translated
 msgid "Navajo white"
-msgstr ""
+msgstr "Navajo fehér"
 
+# AI Translated
 msgid "Wheat"
-msgstr ""
+msgstr "Búza"
 
+# AI Translated
 msgid "Golden rod"
-msgstr ""
+msgstr "Aranyvessző"
 
+# AI Translated
 msgid "Chocolate"
-msgstr ""
+msgstr "Csokoládé"
 
+# AI Translated
 msgid "Peru"
-msgstr ""
+msgstr "Peru"
 
+# AI Translated
 msgid "Fire brick"
-msgstr ""
+msgstr "Téglavörös"
 
+# AI Translated
 msgid "Sienna"
-msgstr ""
+msgstr "Siena"
 
+# AI Translated
 msgid "Saddle brown"
-msgstr ""
+msgstr "Nyeregbarna"
 
+# AI Translated
 msgid "Brown"
-msgstr ""
+msgstr "Barna"
 
+# AI Translated
 msgid "Rosy brown"
-msgstr ""
+msgstr "Rózsás barna"
 
+# AI Translated
 msgid "Salmon"
-msgstr ""
+msgstr "Lazac"
 
+# AI Translated
 msgid "Light salmon"
-msgstr ""
+msgstr "Világos lazac"
 
+# AI Translated
 msgid "Dark salmon"
-msgstr ""
+msgstr "Sötét lazac"
 
+# AI Translated
 msgid "Sandy brown"
-msgstr ""
+msgstr "Homokbarna"
 
+# AI Translated
 msgid "Coral"
-msgstr ""
+msgstr "Korall"
 
+# AI Translated
 msgid "Light coral"
-msgstr ""
+msgstr "Világos korall"
 
+# AI Translated
 msgid "Indian red"
-msgstr ""
+msgstr "Indiánvörös"
 
+# AI Translated
 msgid "Dark red"
-msgstr ""
+msgstr "Sötétvörös"
 
+# AI Translated
 msgid "Maroon"
-msgstr ""
+msgstr "Bordó"
 
+# AI Translated
 msgid "Green yellow"
-msgstr ""
+msgstr "Zöldessárga"
 
+# AI Translated
 msgid "Yellow green"
-msgstr ""
+msgstr "Sárgászöld"
 
+# AI Translated
 msgid "Chartreuse"
-msgstr ""
+msgstr "Chartreuse"
 
+# AI Translated
 msgid "Lawn green"
-msgstr ""
+msgstr "Gyepzöld"
 
+# AI Translated
 msgid "Lime green"
-msgstr ""
+msgstr "Limezöld"
 
+# AI Translated
 msgid "Spring green"
-msgstr ""
+msgstr "Tavaszi zöld"
 
+# AI Translated
 msgid "Medium spring green"
-msgstr ""
+msgstr "Közepes tavaszi zöld"
 
+# AI Translated
 msgid "Lime"
-msgstr ""
+msgstr "Lime"
 
+# AI Translated
 msgid "Forest green"
-msgstr ""
+msgstr "Erdőzöld"
 
+# AI Translated
 msgid "Dark green"
-msgstr ""
+msgstr "Sötétzöld"
 
+# AI Translated
 msgid "Olive drab"
-msgstr ""
+msgstr "Tompa olívazöld"
 
+# AI Translated
 msgid "Olive"
-msgstr ""
+msgstr "Olíva"
 
+# AI Translated
 msgid "Dark olive green"
-msgstr ""
+msgstr "Sötét olívazöld"
 
+# AI Translated
 msgid "Pale green"
-msgstr ""
+msgstr "Halványzöld"
 
+# AI Translated
 msgid "Light green"
-msgstr ""
+msgstr "Világoszöld"
 
+# AI Translated
 msgid "Medium sea green"
-msgstr ""
+msgstr "Közepes tengerzöld"
 
+# AI Translated
 msgid "Sea green"
-msgstr ""
+msgstr "Tengerzöld"
 
+# AI Translated
 msgid "Dark sea green"
-msgstr ""
+msgstr "Sötét tengerzöld"
 
+# AI Translated
 msgid "Cadet blue"
-msgstr ""
+msgstr "Kadétkék"
 
+# AI Translated
 msgid "Medium aqua marine"
-msgstr ""
+msgstr "Közepes akvamarin"
 
+# AI Translated
 msgid "Turquoise"
-msgstr ""
+msgstr "Türkiz"
 
+# AI Translated
 msgid "Medium turquoise"
-msgstr ""
+msgstr "Közepes türkiz"
 
+# AI Translated
 msgid "Dark turquoise"
-msgstr ""
+msgstr "Sötét türkiz"
 
+# AI Translated
 msgid "Pale turquoise"
-msgstr ""
+msgstr "Halvány türkiz"
 
+# AI Translated
 msgid "Aqua"
-msgstr ""
+msgstr "Aqua"
 
+# AI Translated
 msgid "Light cyan"
-msgstr ""
+msgstr "Világos cián"
 
+# AI Translated
 msgid "Mint cream"
-msgstr ""
+msgstr "Mentakrém"
 
+# AI Translated
 msgid "Honey dew"
-msgstr ""
+msgstr "Mézharmat"
 
+# AI Translated
 msgid "Aquamarine"
-msgstr ""
+msgstr "Akvamarin"
 
+# AI Translated
 msgid "Light sea green"
-msgstr ""
+msgstr "Világos tengerzöld"
 
+# AI Translated
 msgid "Dark cyan"
-msgstr ""
+msgstr "Sötét cián"
 
+# AI Translated
 msgid "Teal"
-msgstr ""
+msgstr "Pávakék"
 
+# AI Translated
 msgid "Dark slate gray"
-msgstr ""
+msgstr "Sötét palaszürke"
 
+# AI Translated
 msgid "Light slate gray"
-msgstr ""
+msgstr "Világos palaszürke"
 
+# AI Translated
 msgid "Slate gray"
-msgstr ""
+msgstr "Palaszürke"
 
+# AI Translated
 msgid "Deep sky blue"
-msgstr ""
+msgstr "Mély égkék"
 
+# AI Translated
 msgid "Dodger Blue"
-msgstr ""
+msgstr "Dodger-kék"
 
+# AI Translated
 msgid "Sky blue"
-msgstr ""
+msgstr "Égkék"
 
+# AI Translated
 msgid "Light sky blue"
-msgstr ""
+msgstr "Világos égkék"
 
+# AI Translated
 msgid "Light blue"
-msgstr ""
+msgstr "Világoskék"
 
+# AI Translated
 msgid "Powder blue"
-msgstr ""
+msgstr "Púderkék"
 
+# AI Translated
 msgid "Light steel blue"
-msgstr ""
+msgstr "Világos acélkék"
 
+# AI Translated
 msgid "Steel blue"
-msgstr ""
+msgstr "Acélkék"
 
+# AI Translated
 msgid "Cornflower blue"
-msgstr ""
+msgstr "Búzavirágkék"
 
+# AI Translated
 msgid "Royal blue"
-msgstr ""
+msgstr "Királykék"
 
+# AI Translated
 msgid "Medium blue"
-msgstr ""
+msgstr "Közepes kék"
 
+# AI Translated
 msgid "Midnight blue"
-msgstr ""
+msgstr "Éjkék"
 
+# AI Translated
 msgid "Dark blue"
-msgstr ""
+msgstr "Sötétkék"
 
+# AI Translated
 msgid "Navy"
-msgstr ""
+msgstr "Tengerészkék"
 
+# AI Translated
 msgid "Slate blue"
-msgstr ""
+msgstr "Palakék"
 
+# AI Translated
 msgid "Dark slate blue"
-msgstr ""
+msgstr "Sötét palakék"
 
+# AI Translated
 msgid "Medium slate blue"
-msgstr ""
+msgstr "Közepes palakék"
 
+# AI Translated
 msgid "Blue violet"
-msgstr ""
+msgstr "Kékibolya"
 
+# AI Translated
 msgid "Indigo"
-msgstr ""
+msgstr "Indigó"
 
+# AI Translated
 msgid "Dark violet"
-msgstr ""
+msgstr "Sötét ibolya"
 
+# AI Translated
 msgid "Dark orchid"
-msgstr ""
+msgstr "Sötét orchidea"
 
+# AI Translated
 msgid "Medium orchid"
-msgstr ""
+msgstr "Közepes orchidea"
 
+# AI Translated
 msgid "Orchid"
-msgstr ""
+msgstr "Orchidea"
 
+# AI Translated
 msgid "Violet"
-msgstr ""
+msgstr "Ibolya"
 
+# AI Translated
 msgid "Medium purple"
-msgstr ""
+msgstr "Közepes lila"
 
+# AI Translated
 msgid "Purple"
-msgstr ""
+msgstr "Lila"
 
+# AI Translated
 msgid "Rebecca purple"
-msgstr ""
+msgstr "Rebecca-lila"
 
+# AI Translated
 msgid "Medium violet red"
-msgstr ""
+msgstr "Közepes ibolyavörös"
 
-msgid "PaleV violet red"
-msgstr ""
+# AI Translated
+msgid "Pale violet red"
+msgstr "Halvány ibolyavörös"
 
+# AI Translated
 msgid "Deep pink"
-msgstr ""
+msgstr "Mély rózsaszín"
 
+# AI Translated
 msgid "Hot pink"
-msgstr ""
+msgstr "Élénk rózsaszín"
 
+# AI Translated
 msgid "Light pink"
-msgstr ""
+msgstr "Világos rózsaszín"
 
+# AI Translated
 msgid "Pink"
-msgstr ""
+msgstr "Rózsaszín"
 
+# AI Translated
 msgid "Plum"
-msgstr ""
+msgstr "Szilva"
 
+# AI Translated
 msgid "Thistle"
-msgstr ""
+msgstr "Bogáncs"
 
+# AI Translated
 msgid "Fuchsia"
-msgstr ""
+msgstr "Fukszia"
 
+# AI Translated
 msgid "Dark magenta"
-msgstr ""
+msgstr "Sötét magenta"
 
+# AI Translated
 msgid "Linen"
-msgstr ""
+msgstr "Vászon"
 
+# AI Translated
 msgid "Old lace"
-msgstr ""
+msgstr "Régi csipke"
 
+# AI Translated
+# Needs human review: CSS color 'seashell'; Shell glossary warning is a false match (not the print shell)
 msgid "Sea shell"
-msgstr ""
+msgstr "Kagyló"
 
+# AI Translated
 msgid "Ivory"
-msgstr ""
+msgstr "Elefántcsont"
 
+# AI Translated
 msgid "Floral white"
-msgstr ""
+msgstr "Virágfehér"
 
+# AI Translated
 msgid "Lavender blush"
-msgstr ""
+msgstr "Levendulapír"
 
+# AI Translated
 msgid "Ghost white"
-msgstr ""
+msgstr "Szellemfehér"
 
+# AI Translated
 msgid "Alice blue"
-msgstr ""
+msgstr "Alice-kék"
 
+# AI Translated
 msgid "Lavender"
-msgstr ""
+msgstr "Levendula"
 
+# AI Translated
 msgid "White smoke"
-msgstr ""
+msgstr "Füstfehér"
 
+# AI Translated
 msgid "Gainsboro"
-msgstr ""
+msgstr "Gainsboro"
 
+# AI Translated
 msgid "Black"
-msgstr ""
+msgstr "Fekete"
 
+# AI Translated
 msgid "Coral fire"
-msgstr ""
+msgstr "Korallparázs"
 
+# AI Translated
 msgid "Sea anemone"
-msgstr ""
+msgstr "Tengerirózsa"
 
+# AI Translated
 msgid "Deep abyss"
-msgstr ""
+msgstr "Mély szakadék"
 
+# AI Translated
 msgid "Lobster red"
-msgstr ""
+msgstr "Homárvörös"
 
+# AI Translated
 msgid "Sandy clay"
-msgstr ""
+msgstr "Homokos agyag"
 
+# AI Translated
 msgid "Driftwood"
-msgstr ""
+msgstr "Uszadékfa"
 
+# AI Translated
 msgid "Sea buckthorn"
-msgstr ""
+msgstr "Homoktövis"
 
+# AI Translated
 msgid "Sunset reef"
-msgstr ""
+msgstr "Naplementés zátony"
 
+# AI Translated
 msgid "Tiger coral"
-msgstr ""
+msgstr "Tigriskorall"
 
+# AI Translated
 msgid "Pink coral"
-msgstr ""
+msgstr "Rózsaszín korall"
 
+# AI Translated
 msgid "Seashell glow"
-msgstr ""
+msgstr "Kagylófény"
 
+# AI Translated
 msgid "Sand"
-msgstr ""
+msgstr "Homok"
 
+# AI Translated
 msgid "Golden kelp"
-msgstr ""
+msgstr "Arany moszat"
 
+# AI Translated
 msgid "Sunlit dune"
-msgstr ""
+msgstr "Napsütötte dűne"
 
+# AI Translated
 msgid "Amber nautilus"
-msgstr ""
+msgstr "Borostyán nautilus"
 
+# AI Translated
 msgid "Sea lemon"
-msgstr ""
+msgstr "Tengeri citrom"
 
+# AI Translated
 msgid "Pale starfish"
-msgstr ""
+msgstr "Halvány tengericsillag"
 
+# AI Translated
 msgid "Spring tide"
-msgstr ""
+msgstr "Tavaszi dagály"
 
+# AI Translated
 msgid "Lime algae"
-msgstr ""
+msgstr "Limezöld alga"
 
+# AI Translated
 msgid "Sea grass"
-msgstr ""
+msgstr "Tengeri fű"
 
+# AI Translated
 msgid "Neon plankton"
-msgstr ""
+msgstr "Neon plankton"
 
+# AI Translated
 msgid "Kelp forest"
-msgstr ""
+msgstr "Moszaterdő"
 
+# AI Translated
 msgid "Emerald wave"
-msgstr ""
+msgstr "Smaragd hullám"
 
+# AI Translated
 msgid "Whale shadow"
-msgstr ""
+msgstr "Bálnaárnyék"
 
+# AI Translated
 msgid "Sea turtle"
-msgstr ""
+msgstr "Tengeri teknős"
 
+# AI Translated
 msgid "Lagoon"
-msgstr ""
+msgstr "Lagúna"
 
+# AI Translated
 msgid "Tropical current"
-msgstr ""
+msgstr "Trópusi áramlat"
 
+# AI Translated
 msgid "Midnight trench"
-msgstr ""
+msgstr "Éjféli árok"
 
+# AI Translated
 msgid "Dark kelp"
-msgstr ""
+msgstr "Sötét moszat"
 
+# AI Translated
 msgid "Crystal surf"
-msgstr ""
+msgstr "Kristályhullám"
 
+# AI Translated
 msgid "Turquoise bay"
-msgstr ""
+msgstr "Türkiz öböl"
 
+# AI Translated
 msgid "Sky over reef"
-msgstr ""
+msgstr "Zátony feletti ég"
 
+# AI Translated
 msgid "Shallow sky"
-msgstr ""
+msgstr "Sekélyvízi ég"
 
-msgid "Electric bel"
-msgstr ""
+# AI Translated
+msgid "Electric blue"
+msgstr "Elektromos kék"
 
+# AI Translated
 msgid "Dolphin"
-msgstr ""
+msgstr "Delfin"
 
+# AI Translated
 msgid "Ocean depths"
-msgstr ""
+msgstr "Óceánmélység"
 
+# AI Translated
 msgid "Whale"
-msgstr ""
+msgstr "Bálna"
 
+# AI Translated
 msgid "Indigo abyss"
-msgstr ""
+msgstr "Indigó szakadék"
 
+# AI Translated
 msgid "Sea urchin"
-msgstr ""
+msgstr "Tengeri sün"
 
+# AI Translated
 msgid "Lavender coral"
-msgstr ""
+msgstr "Levendula korall"
 
+# AI Translated
 msgid "Violet tide"
-msgstr ""
+msgstr "Ibolya dagály"
 
+# AI Translated
 msgid "Deep sea orchid"
-msgstr ""
+msgstr "Mélytengeri orchidea"
 
+# AI Translated
 msgid "Neon jelly"
-msgstr ""
+msgstr "Neon medúza"
 
+# AI Translated
 msgid "Fuchsia coral"
-msgstr ""
+msgstr "Fukszia korall"
 
+# AI Translated
 msgid "Pink jellyfish"
-msgstr ""
+msgstr "Rózsaszín medúza"
 
+# AI Translated
 msgid "Foam"
-msgstr ""
+msgstr "Hab"
 
+# AI Translated
 msgid "Seashell white"
-msgstr ""
+msgstr "Kagylófehér"
 
+# AI Translated
 msgid "Pebble gray"
-msgstr ""
+msgstr "Kavicsszürke"
 
+# AI Translated
 msgid "Storm cloud"
-msgstr ""
+msgstr "Viharfelhő"
 
+# AI Translated
 msgid "Ink black"
-msgstr ""
+msgstr "Tintafekete"
 
+# AI Translated
 msgid "Green beige"
-msgstr ""
+msgstr "Zöldesbézs"
 
+# AI Translated
 msgid "Sand yellow"
-msgstr ""
+msgstr "Homoksárga"
 
+# AI Translated
 msgid "Signal yellow"
-msgstr ""
+msgstr "Jelzősárga"
 
+# AI Translated
 msgid "Golden yellow"
-msgstr ""
+msgstr "Aranysárga"
 
+# AI Translated
 msgid "Honey yellow"
-msgstr ""
+msgstr "Mézsárga"
 
+# AI Translated
 msgid "Maize yellow"
-msgstr ""
+msgstr "Kukoricasárga"
 
-msgid "Dalmatian yellow"
-msgstr ""
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Nárciszsárga"
 
+# AI Translated
 msgid "Brown beige"
-msgstr ""
+msgstr "Barnabézs"
 
+# AI Translated
 msgid "Lemon yellow"
-msgstr ""
+msgstr "Citromsárga"
 
+# AI Translated
 msgid "Oyster white"
-msgstr ""
+msgstr "Osztrigafehér"
 
+# AI Translated
 msgid "Light ivory"
-msgstr ""
+msgstr "Világos elefántcsont"
 
+# AI Translated
 msgid "Zinc yellow"
-msgstr ""
+msgstr "Cinksárga"
 
+# AI Translated
 msgid "Grey beige"
-msgstr ""
+msgstr "Szürkebézs"
 
+# AI Translated
 msgid "Olive yellow"
-msgstr ""
+msgstr "Olívasárga"
 
+# AI Translated
 msgid "Rape yellow"
-msgstr ""
+msgstr "Repcesárga"
 
+# AI Translated
 msgid "Traffic yellow"
-msgstr ""
+msgstr "Forgalmi sárga"
 
+# AI Translated
 msgid "Ochre yellow"
-msgstr ""
+msgstr "Okkersárga"
 
+# AI Translated
 msgid "Traffic orange yellow"
-msgstr ""
+msgstr "Forgalmi narancssárga"
 
+# AI Translated
 msgid "Curry"
-msgstr ""
+msgstr "Curry"
 
+# AI Translated
 msgid "Melon yellow"
-msgstr ""
+msgstr "Dinnyesárga"
 
+# AI Translated
 msgid "Broom yellow"
-msgstr ""
+msgstr "Rekettyesárga"
 
+# AI Translated
 msgid "Dahlia yellow"
-msgstr ""
+msgstr "Dáliasárga"
 
+# AI Translated
 msgid "Pastel yellow"
-msgstr ""
+msgstr "Pasztellsárga"
 
+# AI Translated
 msgid "Pearl beige"
-msgstr ""
+msgstr "Gyöngybézs"
 
+# AI Translated
 msgid "Pearl gold"
-msgstr ""
+msgstr "Gyöngyarany"
 
+# AI Translated
 msgid "Sun yellow"
-msgstr ""
+msgstr "Napsárga"
 
+# AI Translated
 msgid "Yellow orange"
-msgstr ""
+msgstr "Sárgásnarancs"
 
+# AI Translated
 msgid "Deep orange"
-msgstr ""
+msgstr "Mély narancs"
 
+# AI Translated
 msgid "Vermilion"
-msgstr ""
+msgstr "Cinóber"
 
+# AI Translated
 msgid "Pearl orange"
-msgstr ""
+msgstr "Gyöngynarancs"
 
+# AI Translated
 msgid "Pure orange"
-msgstr ""
+msgstr "Tiszta narancs"
 
+# AI Translated
 msgid "Luminous orange"
-msgstr ""
+msgstr "Világító narancs"
 
+# AI Translated
 msgid "Luminous bright orange"
-msgstr ""
+msgstr "Világító élénk narancs"
 
+# AI Translated
 msgid "Bright red orange"
-msgstr ""
+msgstr "Élénk vörösnarancs"
 
+# AI Translated
 msgid "Traffic orange"
-msgstr ""
+msgstr "Forgalmi narancs"
 
+# AI Translated
 msgid "Signal orange"
-msgstr ""
+msgstr "Jelzőnarancs"
 
+# AI Translated
 msgid "Salmon orange"
-msgstr ""
+msgstr "Lazacnarancs"
 
+# AI Translated
 msgid "Pearl pink"
-msgstr ""
+msgstr "Gyöngyrózsaszín"
 
+# AI Translated
 msgid "Copper orange"
-msgstr ""
+msgstr "Réznarancs"
 
+# AI Translated
 msgid "Signal brown"
-msgstr ""
+msgstr "Jelzőbarna"
 
+# AI Translated
+# Needs human review: RAL 2018 name; 'Fir' rendered as jegenyefenyő; check against the Hungarian RAL chart
 msgid "Fir orange"
-msgstr ""
+msgstr "Jegenyefenyő-narancs"
 
+# AI Translated
 msgid "Signal red"
-msgstr ""
+msgstr "Jelzővörös"
 
+# AI Translated
 msgid "Luminous red"
-msgstr ""
+msgstr "Világító vörös"
 
+# AI Translated
 msgid "Carmine red"
-msgstr ""
+msgstr "Karminvörös"
 
+# AI Translated
 msgid "Pearl carmine red"
-msgstr ""
+msgstr "Gyöngykarminvörös"
 
+# AI Translated
 msgid "Pure red"
-msgstr ""
+msgstr "Tiszta vörös"
 
+# AI Translated
 msgid "Luminous deep red"
-msgstr ""
+msgstr "Világító mélyvörös"
 
+# AI Translated
 msgid "Currant red"
-msgstr ""
+msgstr "Ribizlivörös"
 
+# AI Translated
 msgid "Pearl ruby red"
-msgstr ""
+msgstr "Gyöngyrubinvörös"
 
+# AI Translated
 msgid "Fire red"
-msgstr ""
+msgstr "Tűzvörös"
 
+# AI Translated
 msgid "Ruby red"
-msgstr ""
+msgstr "Rubinvörös"
 
+# AI Translated
 msgid "Purple red"
-msgstr ""
+msgstr "Lilásvörös"
 
+# AI Translated
 msgid "Wine red"
-msgstr ""
+msgstr "Borvörös"
 
+# AI Translated
 msgid "Black red"
-msgstr ""
+msgstr "Feketésvörös"
 
+# AI Translated
 msgid "Oxide red"
-msgstr ""
+msgstr "Oxidvörös"
 
+# AI Translated
 msgid "Brown red"
-msgstr ""
+msgstr "Barnásvörös"
 
+# AI Translated
+# Needs human review: RAL 3012 name; check against the Hungarian RAL chart
 msgid "Pine red"
-msgstr ""
+msgstr "Fenyővörös"
 
+# AI Translated
 msgid "Tomato red"
-msgstr ""
+msgstr "Paradicsomvörös"
 
+# AI Translated
 msgid "Antique pink"
-msgstr ""
+msgstr "Antik rózsaszín"
 
+# AI Translated
 msgid "Coral red"
-msgstr ""
+msgstr "Korallvörös"
 
+# AI Translated
 msgid "Rose"
-msgstr ""
+msgstr "Rózsa"
 
+# AI Translated
 msgid "Strawberry red"
-msgstr ""
+msgstr "Epervörös"
 
+# AI Translated
 msgid "Traffic red"
-msgstr ""
+msgstr "Forgalmi vörös"
 
+# AI Translated
 msgid "Salmon pink"
-msgstr ""
+msgstr "Lazacrózsaszín"
 
+# AI Translated
 msgid "Luminous rose"
-msgstr ""
+msgstr "Világító rózsa"
 
+# AI Translated
 msgid "Luminous bright red"
-msgstr ""
+msgstr "Világító élénkvörös"
 
+# AI Translated
 msgid "Raspberry red"
-msgstr ""
+msgstr "Málnavörös"
 
+# AI Translated
 msgid "Orient red"
-msgstr ""
+msgstr "Keleti vörös"
 
+# AI Translated
 msgid "Pearl ruby"
-msgstr ""
+msgstr "Gyöngyrubin"
 
+# AI Translated
 msgid "Red purple"
-msgstr ""
+msgstr "Vöröslila"
 
+# AI Translated
 msgid "Red violet"
-msgstr ""
+msgstr "Vörösibolya"
 
+# AI Translated
 msgid "Heather violet"
-msgstr ""
+msgstr "Hangaibolya"
 
+# AI Translated
 msgid "Bordeaux violet"
-msgstr ""
+msgstr "Bordóibolya"
 
+# AI Translated
 msgid "Mahogany"
-msgstr ""
+msgstr "Mahagóni"
 
+# AI Translated
 msgid "Grey purple"
-msgstr ""
+msgstr "Szürkéslila"
 
+# AI Translated
 msgid "Signal violet"
-msgstr ""
+msgstr "Jelzőibolya"
 
+# AI Translated
+# Needs human review: Used for both RAL 4009 and 6009 (source reuses one msgid); check against the Hungarian RAL chart
 msgid "Fir green"
-msgstr ""
+msgstr "Jegenyefenyő-zöld"
 
+# AI Translated
+# Needs human review: RAL 4010 name (a violet-grey); unclear source term, check against the Hungarian RAL chart
 msgid "Sabine grey"
-msgstr ""
+msgstr "Szabin szürke"
 
+# AI Translated
 msgid "Pearl violet"
-msgstr ""
+msgstr "Gyöngyibolya"
 
+# AI Translated
 msgid "Pearl blackberry"
-msgstr ""
+msgstr "Gyöngyszeder"
 
+# AI Translated
 msgid "Green blue"
-msgstr ""
+msgstr "Zöldeskék"
 
+# AI Translated
 msgid "Ultramarine blue"
-msgstr ""
+msgstr "Ultramarinkék"
 
+# AI Translated
 msgid "Sapphire blue"
-msgstr ""
+msgstr "Zafírkék"
 
+# AI Translated
 msgid "Black blue"
-msgstr ""
+msgstr "Feketéskék"
 
+# AI Translated
 msgid "Signal blue"
-msgstr ""
+msgstr "Jelzőkék"
 
+# AI Translated
 msgid "Brilliant blue"
-msgstr ""
+msgstr "Ragyogó kék"
 
+# AI Translated
 msgid "Grey blue"
-msgstr ""
+msgstr "Szürkéskék"
 
+# AI Translated
 msgid "Azure blue"
-msgstr ""
+msgstr "Azúrkék"
 
+# AI Translated
 msgid "Gentian blue"
-msgstr ""
+msgstr "Enciánkék"
 
+# AI Translated
 msgid "Cobalt blue"
-msgstr ""
+msgstr "Kobaltkék"
 
+# AI Translated
 msgid "Pigeon blue"
-msgstr ""
+msgstr "Galambkék"
 
+# AI Translated
 msgid "Traffic blue"
-msgstr ""
+msgstr "Forgalmi kék"
 
+# AI Translated
 msgid "Turquoise blue"
-msgstr ""
+msgstr "Türkizkék"
 
-msgid "Capsanthin violet"
-msgstr ""
+# AI Translated
+msgid "Capri blue"
+msgstr "Caprikék"
 
+# AI Translated
 msgid "Ocean blue"
-msgstr ""
+msgstr "Óceánkék"
 
+# AI Translated
 msgid "Water blue"
-msgstr ""
+msgstr "Vízkék"
 
+# AI Translated
 msgid "Night blue"
-msgstr ""
+msgstr "Éjszakai kék"
 
+# AI Translated
 msgid "Distant blue"
-msgstr ""
+msgstr "Távoli kék"
 
+# AI Translated
 msgid "Pastel blue"
-msgstr ""
+msgstr "Pasztellkék"
 
+# AI Translated
 msgid "Pearl gentian blue"
-msgstr ""
+msgstr "Gyöngyenciánkék"
 
+# AI Translated
 msgid "Pearl midnight blue"
-msgstr ""
+msgstr "Gyöngyéjkék"
 
+# AI Translated
 msgid "Patina green"
-msgstr ""
+msgstr "Patinazöld"
 
+# AI Translated
 msgid "Emerald green"
-msgstr ""
+msgstr "Smaragdzöld"
 
+# AI Translated
 msgid "Leaf green"
-msgstr ""
+msgstr "Levélzöld"
 
+# AI Translated
 msgid "Olive green"
-msgstr ""
+msgstr "Olívazöld"
 
+# AI Translated
 msgid "Blue green"
-msgstr ""
+msgstr "Kékeszöld"
 
+# AI Translated
 msgid "Moss green"
-msgstr ""
+msgstr "Mohazöld"
 
+# AI Translated
 msgid "Grey olive"
-msgstr ""
+msgstr "Szürkeolíva"
 
+# AI Translated
 msgid "Pine green"
-msgstr ""
+msgstr "Fenyőzöld"
 
+# AI Translated
 msgid "Pine brown"
-msgstr ""
+msgstr "Fenyőbarna"
 
+# AI Translated
 msgid "Grass green"
-msgstr ""
+msgstr "Fűzöld"
 
+# AI Translated
 msgid "Reseda green"
-msgstr ""
+msgstr "Rezedazöld"
 
+# AI Translated
 msgid "Brown green"
-msgstr ""
+msgstr "Barnászöld"
 
+# AI Translated
 msgid "Reed green"
-msgstr ""
+msgstr "Nádzöld"
 
+# AI Translated
 msgid "Black green"
-msgstr ""
+msgstr "Feketészöld"
 
+# AI Translated
 msgid "Turquoise green"
-msgstr ""
+msgstr "Türkizzöld"
 
+# AI Translated
 msgid "May green"
-msgstr ""
+msgstr "Májusi zöld"
 
+# AI Translated
 msgid "Chrome oxide green"
-msgstr ""
+msgstr "Krómoxidzöld"
 
+# AI Translated
 msgid "Traffic green"
-msgstr ""
+msgstr "Forgalmi zöld"
 
+# AI Translated
 msgid "Fern green"
-msgstr ""
+msgstr "Páfránzöld"
 
+# AI Translated
 msgid "Opal green"
-msgstr ""
+msgstr "Opálzöld"
 
+# AI Translated
 msgid "Mint green"
-msgstr ""
+msgstr "Mentazöld"
 
+# AI Translated
 msgid "Bronze green"
-msgstr ""
+msgstr "Bronzzöld"
 
+# AI Translated
 msgid "Pearl green"
-msgstr ""
+msgstr "Gyöngyzöld"
 
+# AI Translated
 msgid "Sax turquoise"
-msgstr ""
+msgstr "Szász türkiz"
 
+# AI Translated
 msgid "Pearl turquoise"
-msgstr ""
+msgstr "Gyöngytürkiz"
 
+# AI Translated
 msgid "Pearl jade"
-msgstr ""
+msgstr "Gyöngyjáde"
 
+# AI Translated
 msgid "Pure green"
-msgstr ""
+msgstr "Tiszta zöld"
 
+# AI Translated
 msgid "Luminous green"
-msgstr ""
+msgstr "Világító zöld"
 
+# AI Translated
 msgid "Squirrel grey"
-msgstr ""
+msgstr "Mókusszürke"
 
+# AI Translated
 msgid "Silver grey"
-msgstr ""
+msgstr "Ezüstszürke"
 
-msgid "Olivestone"
-msgstr ""
+# AI Translated
+msgid "Olive grey"
+msgstr "Olívaszürke"
 
+# AI Translated
 msgid "Moss grey"
-msgstr ""
+msgstr "Mohaszürke"
 
+# AI Translated
 msgid "Signal grey"
-msgstr ""
+msgstr "Jelzőszürke"
 
+# AI Translated
 msgid "Mouse grey"
-msgstr ""
+msgstr "Egérszürke"
 
+# AI Translated
 msgid "Beige grey"
-msgstr ""
+msgstr "Bézsszürke"
 
+# AI Translated
 msgid "Khaki grey"
-msgstr ""
+msgstr "Khakiszürke"
 
+# AI Translated
 msgid "Green grey"
-msgstr ""
+msgstr "Zöldesszürke"
 
+# AI Translated
 msgid "Tarpaulin grey"
-msgstr ""
+msgstr "Ponyvaszürke"
 
+# AI Translated
 msgid "Iron grey"
-msgstr ""
+msgstr "Vasszürke"
 
+# AI Translated
 msgid "Basalt grey"
-msgstr ""
+msgstr "Bazaltszürke"
 
+# AI Translated
 msgid "Brown grey"
-msgstr ""
+msgstr "Barnásszürke"
 
+# AI Translated
 msgid "Slate grey"
-msgstr ""
+msgstr "Palaszürke"
 
+# AI Translated
 msgid "Anthracite grey"
-msgstr ""
+msgstr "Antracitszürke"
 
+# AI Translated
 msgid "Light grey"
-msgstr ""
+msgstr "Világosszürke"
 
+# AI Translated
 msgid "Umber grey"
-msgstr ""
+msgstr "Umbraszürke"
 
+# AI Translated
 msgid "Concrete grey"
-msgstr ""
+msgstr "Betonszürke"
 
+# AI Translated
 msgid "Graphite grey"
-msgstr ""
+msgstr "Grafitszürke"
 
+# AI Translated
 msgid "Granite grey"
-msgstr ""
+msgstr "Gránitszürke"
 
+# AI Translated
 msgid "Stone grey"
-msgstr ""
+msgstr "Kőszürke"
 
+# AI Translated
 msgid "Pebble grey"
-msgstr ""
+msgstr "Kavicsszürke"
 
+# AI Translated
 msgid "Cement grey"
-msgstr ""
+msgstr "Cementszürke"
 
+# AI Translated
 msgid "Yellow grey"
-msgstr ""
+msgstr "Sárgásszürke"
 
+# AI Translated
 msgid "Platinum grey"
-msgstr ""
+msgstr "Platinaszürke"
 
+# AI Translated
 msgid "Dusty grey"
-msgstr ""
+msgstr "Porszürke"
 
+# AI Translated
 msgid "Agate grey"
-msgstr ""
+msgstr "Achátszürke"
 
+# AI Translated
 msgid "Quartz grey"
-msgstr ""
+msgstr "Kvarcszürke"
 
+# AI Translated
 msgid "Window grey"
-msgstr ""
+msgstr "Ablakszürke"
 
+# AI Translated
 msgid "Traffic grey A"
-msgstr ""
+msgstr "Forgalmi szürke A"
 
+# AI Translated
 msgid "Traffic grey B"
-msgstr ""
+msgstr "Forgalmi szürke B"
 
+# AI Translated
 msgid "Silk grey"
-msgstr ""
+msgstr "Selyemszürke"
 
+# AI Translated
 msgid "Telegrey 1"
-msgstr ""
+msgstr "Távközlési szürke 1"
 
+# AI Translated
 msgid "Telegrey 2"
-msgstr ""
+msgstr "Távközlési szürke 2"
 
+# AI Translated
 msgid "Telegrey 4"
-msgstr ""
+msgstr "Távközlési szürke 4"
 
+# AI Translated
 msgid "Pearl mouse grey"
-msgstr ""
+msgstr "Gyöngyegérszürke"
 
+# AI Translated
 msgid "Green brown"
-msgstr ""
+msgstr "Zöldesbarna"
 
+# AI Translated
 msgid "Ochre brown"
-msgstr ""
+msgstr "Okkerbarna"
 
+# AI Translated
 msgid "Clay brown"
-msgstr ""
+msgstr "Agyagbarna"
 
+# AI Translated
 msgid "Copper brown"
-msgstr ""
+msgstr "Rézbarna"
 
+# AI Translated
 msgid "Chocolate brown"
-msgstr ""
+msgstr "Csokoládébarna"
 
+# AI Translated
 msgid "Olive brown"
-msgstr ""
+msgstr "Olívabarna"
 
+# AI Translated
 msgid "Nut brown"
-msgstr ""
+msgstr "Dióbarna"
 
+# AI Translated
 msgid "Red brown"
-msgstr ""
+msgstr "Vörösesbarna"
 
+# AI Translated
 msgid "Sepia brown"
-msgstr ""
+msgstr "Szépiabarna"
 
+# AI Translated
 msgid "Chestnut brown"
-msgstr ""
+msgstr "Gesztenyebarna"
 
+# AI Translated
 msgid "Mahogany brown"
-msgstr ""
+msgstr "Mahagónibarna"
 
+# AI Translated
 msgid "Grey brown"
-msgstr ""
+msgstr "Szürkésbarna"
 
+# AI Translated
 msgid "Pearl copper"
-msgstr ""
+msgstr "Gyöngyréz"
 
+# AI Translated
 msgid "Beige brown"
-msgstr ""
+msgstr "Bézsbarna"
 
+# AI Translated
 msgid "Pearl mocha brown"
-msgstr ""
+msgstr "Gyöngymokkabarna"
 
+# AI Translated
 msgid "Earth brown"
-msgstr ""
+msgstr "Földbarna"
 
+# AI Translated
 msgid "Pearl brown"
-msgstr ""
+msgstr "Gyöngybarna"
 
+# AI Translated
 msgid "Cream"
-msgstr ""
+msgstr "Krém"
 
+# AI Translated
 msgid "Grey white"
-msgstr ""
+msgstr "Szürkésfehér"
 
+# AI Translated
 msgid "Signal white"
-msgstr ""
+msgstr "Jelzőfehér"
 
+# AI Translated
 msgid "Signal black"
-msgstr ""
+msgstr "Jelzőfekete"
 
+# AI Translated
 msgid "Jet black"
-msgstr ""
+msgstr "Koromfekete"
 
+# AI Translated
 msgid "White aluminium"
-msgstr ""
+msgstr "Fehér alumínium"
 
+# AI Translated
 msgid "Grey aluminium"
-msgstr ""
+msgstr "Szürke alumínium"
 
+# AI Translated
 msgid "Pure white"
-msgstr ""
+msgstr "Tiszta fehér"
 
+# AI Translated
 msgid "Graphite black"
-msgstr ""
+msgstr "Grafitfekete"
 
+# AI Translated
 msgid "Traffic white"
-msgstr ""
+msgstr "Forgalmi fehér"
 
+# AI Translated
 msgid "Traffic black"
-msgstr ""
+msgstr "Forgalmi fekete"
 
+# AI Translated
 msgid "Papyrus white"
-msgstr ""
+msgstr "Papiruszfehér"
 
+# AI Translated
 msgid "Pearl light grey"
-msgstr ""
+msgstr "Gyöngyvilágosszürke"
 
+# AI Translated
 msgid "Metal: Silver"
-msgstr ""
+msgstr "Fém: Ezüst"
 
+# AI Translated
 msgid "Metal: Brass"
-msgstr ""
+msgstr "Fém: Sárgaréz"
 
+# AI Translated
 msgid "Metal: Gold"
-msgstr ""
+msgstr "Fém: Arany"
 
+# AI Translated
 msgid "Metal: Copper"
-msgstr ""
+msgstr "Fém: Réz"
 
+# AI Translated
 msgid "Metal: Bronze"
-msgstr ""
+msgstr "Fém: Bronz"
 
+# AI Translated
 msgid "Nature: Pearl"
-msgstr ""
+msgstr "Természet: Gyöngy"
 
+# AI Translated
 msgid "Nature: Rainbow"
-msgstr ""
+msgstr "Természet: Szivárvány"
 
+# AI Translated
 msgid "Nature: Clear Sky"
-msgstr ""
+msgstr "Természet: Derült ég"
 
+# AI Translated
 msgid "Nature: Sunset"
-msgstr ""
+msgstr "Természet: Naplemente"
 
+# AI Translated
 msgid "Wood: Dark"
-msgstr ""
+msgstr "Fa: Sötét"
 
+# AI Translated
 msgid "Wood: Medium"
-msgstr ""
+msgstr "Fa: Közepes"
 
+# AI Translated
 msgid "Wood: Light"
-msgstr ""
+msgstr "Fa: Világos"
 
 # AI Translated
 msgid "Alternate nozzles:"
@@ -32542,12 +32981,24 @@ msgid "Built-in"
 msgstr "Beépített"
 
 # AI Translated
+msgid "My textures"
+msgstr "Saját textúrák"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Nem található textúra."
 
 # AI Translated
-msgid "My textures"
-msgstr "Saját textúrák"
+msgid "Texture libraries"
+msgstr "Textúratárak"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "További textúratárak felfedezése"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Megnyitja az OrcaCloudot a Kezdőlapon a bővítmények böngészéséhez."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -32950,11 +33401,15 @@ msgstr "A modell saját UV-elrendezése szerint leképezve, ami már maga az elh
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "A textúra egy példányának szélessége a modellen. Kisebb értéknél a minta gyakrabban ismétlődik, és a részletei finomabbak; kikapcsolt Csempézésnél ez az egyetlen példány mérete."
 
+# AI Translated
+# Needs human review: Caption under a tile-size picture in the Texture displacement gizmo; check it fits
 msgid "Larger"
-msgstr ""
+msgstr "Nagyobb"
 
+# AI Translated
+# Needs human review: Caption under a tile-size picture in the Texture displacement gizmo; check it fits
 msgid "Smaller"
-msgstr ""
+msgstr "Kisebb"
 
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
@@ -33030,11 +33485,15 @@ msgstr "Kevert színek"
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "A beégetés által legfeljebb hozzáadható kevert filamentek száma. A textúra színeiből választódnak ki, és csak azok jönnek létre, amelyeket a beégetés ténylegesen használ."
 
+# AI Translated
+# Needs human review: Caption under a mixed-colors picture in the Texture displacement gizmo; check it fits
 msgid "Few"
-msgstr ""
+msgstr "Kevés"
 
+# AI Translated
+# Needs human review: Caption under a mixed-colors picture in the Texture displacement gizmo; check it fits
 msgid "Many"
-msgstr ""
+msgstr "Sok"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -33390,11 +33849,15 @@ msgstr "Újrahálózás"
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Háromszögméret, amellyel a teljes modell újraépül, milliméterben. A domborítás egyenletes hálón működik a legjobban; ez készít ilyet egy egyenetlen importált modellből."
 
+# AI Translated
+# Needs human review: Caption under the remesh before/after picture; check it fits
 msgid "Before"
-msgstr ""
+msgstr "Előtte"
 
+# AI Translated
+# Needs human review: Caption under the remesh before/after picture; check it fits
 msgid "After"
-msgstr ""
+msgstr "Utána"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -35273,6 +35736,10 @@ msgid "Slicing Pipeline"
 msgstr "Szeletelési folyamat"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Erőforrás-textúra"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "A bővítmény konfigurációs felülete üres volt. Az alapértelmezett szerkesztő jelenik meg."
 
@@ -35418,6 +35885,30 @@ msgstr "A bővítmény könyvtára .py és .whl belépési fájlt is tartalmaz"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "A bővítmény könyvtára nem tartalmaz .py vagy .whl belépési fájlt"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Az erőforrás-textúra mappája nincs megadva"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Az erőforrás-textúra mappáját nem sikerült feloldani"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Az erőforrás-textúra útvonala nem mappa"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "A bővítmény mappáját nem sikerült feloldani"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Az erőforrás-textúra mappája a bővítmény mappáján kívül van"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Az erőforrás-textúra mappáját nem sikerült beolvasni"
 
 # AI Translated
 #, boost-format
@@ -36366,6 +36857,27 @@ msgid ""
 msgstr ""
 "Kunkorodás elkerülése\n"
 "Tudtad, hogy a kunkorodásra hajlamos anyagok (például ABS) nyomtatásakor az asztal hőmérsékletének növelése csökkentheti a kunkorodás valószínűségét?"
+
+# AI Translated
+# Needs human review: Source likely a typo for RAL 1007 Daffodil yellow; translated as daffodil
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Nárciszsárga"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "Kapszantinibolya"
+
+# AI Translated
+#~ msgid "Olivestone"
+#~ msgstr "Olívakő"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Az ablakban bárhol elérhető, szövegmezőbe gépelés közben is."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "A globális gyorsbillentyűk gépelés közben is működnek."
 
 #~ msgid "Please choose the filament color"
 #~ msgstr "Kérlek, válaszd ki a filament színét"

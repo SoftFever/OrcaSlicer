@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2025-10-02 17:43+0700\n"
 "Last-Translator: \n"
 "Language-Team: hainguyen.ts13@gmail.com\n"
@@ -836,18 +836,21 @@ msgstr "Lựa chọn"
 msgid "Plate"
 msgstr "Plate"
 
+# AI Translated
 msgid "Distribute"
-msgstr ""
+msgstr "Phân bố"
 
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "Hệ tọa độ dùng cho các thao tác biến đổi."
 
+# AI Translated
 msgid "Reference for alignment"
-msgstr ""
+msgstr "Tham chiếu để căn chỉnh"
 
+# AI Translated
 msgid "Select at least 3 parts or objects"
-msgstr ""
+msgstr "Chọn ít nhất 3 phần hoặc vật thể"
 
 # AI Translated
 msgid "Align left"
@@ -901,8 +904,9 @@ msgstr "Phân bố trên-dưới"
 msgid "Drop"
 msgstr "Thả xuống"
 
+# AI Translated
 msgid "Move the selection along Z so that its lowest point touches the bed."
-msgstr ""
+msgstr "Di chuyển vùng chọn theo trục Z để điểm thấp nhất chạm bàn in."
 
 # AI Translated
 msgid "Absolute"
@@ -2147,17 +2151,21 @@ msgstr "Đang vào gizmo Lắp ráp"
 msgid "Leaving Assembly gizmo"
 msgstr "Đang rời gizmo Lắp ráp"
 
+# AI Translated
 msgid "Parts of a cut object cannot be moved"
-msgstr ""
+msgstr "Không thể di chuyển các phần của vật thể đã cắt"
 
+# AI Translated
 msgid "Aligning to the plate is available in X and Y only"
-msgstr ""
+msgstr "Căn chỉnh theo plate chỉ khả dụng theo X và Y"
 
+# AI Translated
 msgid "Turn off Auto-Drop for the selected objects to move them in Z"
-msgstr ""
+msgstr "Tắt Tự động thả cho các vật thể đã chọn để di chuyển chúng theo Z"
 
+# AI Translated
 msgid "All selected objects must be on the same plate"
-msgstr ""
+msgstr "Tất cả vật thể đã chọn phải ở trên cùng một plate"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -6843,8 +6851,9 @@ msgstr "Trục tọa độ"
 msgid "Gridlines"
 msgstr "Đường lưới"
 
+# AI Translated
 msgid "Focus mode"
-msgstr ""
+msgstr "Chế độ tập trung"
 
 # AI Translated
 msgid "Labels"
@@ -6906,7 +6915,7 @@ msgstr "Thể tích:"
 msgid "Size:"
 msgstr "Kích thước:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Đã tìm thấy xung đột đường đi G-code tại lớp %d, Z = %.2lfmm. Vui lòng tách các vật thể xung đột ra xa hơn (%s <-> %s)."
 
@@ -11460,11 +11469,14 @@ msgstr "Hiện cài đặt sẵn không được hỗ trợ"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Hiện các cài đặt sẵn không tương thích/không được hỗ trợ trong danh sách thả xuống máy in và filament. Không thể chọn các cài đặt sẵn này."
 
+# AI Translated
 msgid "Export statistics with G-code"
-msgstr ""
+msgstr "Xuất thống kê cùng với G-code"
 
+# AI Translated
+# Needs human review: "feature" rendered as line type (ประเภทเส้น / Loại đường); check this matches the per-feature totals in the exported JSON
 msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Nếu bật, khi xuất file G-code, thống kê của nó cũng được ghi dưới dạng JSON cạnh file đó, với tên <name>.statistics.json, và file 3MF đã slice được xuất sẽ chứa chúng bên trong: thời gian in, tổng filament và tổng theo loại đường, cùng số liệu tương tự theo từng lớp và từng vật thể."
 
 # AI Translated
 msgid "Experimental Features"
@@ -12351,6 +12363,10 @@ msgstr "Tải file lên bộ nhớ của máy in thất bại. Vui lòng thử l
 # AI Translated
 msgid "Send Failed"
 msgstr "Gửi thất bại"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Không có máy in khả dụng"
 
 msgid "The name length exceeds the limit."
 msgstr "Độ dài tên vượt quá giới hạn."
@@ -14300,8 +14316,8 @@ msgid "Left mouse"
 msgstr "Chuột trái"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Khả dụng ở mọi nơi trong cửa sổ, kể cả khi đang gõ trong ô văn bản."
+msgid "Available anywhere in the window."
+msgstr "Khả dụng ở mọi nơi trong cửa sổ."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -14413,10 +14429,6 @@ msgstr "%s đã được gán cho %s. Gán lại cho %s?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "%s mặc định đã được gán cho %s. Gán lại cho %s?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Phím tắt toàn cục cũng có tác dụng khi đang gõ."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -14882,9 +14894,10 @@ msgstr "modifier \"%1%\" của \"%2%\" (tổng cộng %3%) không có tác dụn
 msgid "Seam placement may differ from expected."
 msgstr "Vị trí đường nối có thể khác với dự kiến."
 
+# AI Translated
 #, boost-format
 msgid "Failed to write the G-code statistics to %1%."
-msgstr ""
+msgstr "Không thể ghi thống kê G-code vào %1%."
 
 msgid "Internal Bridge"
 msgstr "Cầu bên trong"
@@ -18376,6 +18389,14 @@ msgstr "Loại trừ đối tượng"
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Bật tùy chọn này để thêm lệnh EXCLUDE OBJECT vào G-code."
 
+# AI Translated
+msgid "Outline tolerance"
+msgstr "Dung sai đường viền"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "Độ lệch tối đa của đường viền vật thể được ghi vào EXCLUDE_OBJECT_DEFINE so với đường viền gốc. Giá trị lớn hơn cho ít điểm hơn, giúp ích cho firmware bị treo khi phân tích G-code có nhiều vật thể. 0 giữ lại mọi điểm."
+
 msgid "Verbose G-code"
 msgstr "G-code chi tiết"
 
@@ -21664,11 +21685,14 @@ msgstr "Thư mục đầu ra"
 msgid "This is the output directory for exported files."
 msgstr "Thư mục đầu ra cho các file được xuất."
 
+# AI Translated
 msgid "Export statistics"
-msgstr ""
+msgstr "Xuất thống kê"
 
+# AI Translated
+# Needs human review: "feature" rendered as line type (ประเภทเส้น / Loại đường); check this matches the per-feature totals in the exported JSON
 msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Ghi thống kê của từng plate đã slice dưới dạng JSON, là plate_N.statistics.json cạnh file G-code của nó trong thư mục đầu ra và bên trong file 3MF của --export-3mf: thời gian in, tổng filament và tổng theo loại đường, cùng số liệu tương tự theo từng lớp và từng vật thể."
 
 msgid "Debug level"
 msgstr "Mức gỡ lỗi"
@@ -31675,1231 +31699,1641 @@ msgid "The current filament list does not contain %s. A project filament require
 msgid_plural "The current filament list does not contain %s. Project filaments required by the mixed filament will be created automatically after decomposition."
 msgstr[0] "Danh sách filament hiện tại không chứa %s. Một filament dự án mà filament pha trộn cần sẽ được tạo tự động sau khi phân tách."
 
+# AI Translated
 msgid "Color Picker"
-msgstr ""
+msgstr "Bộ chọn màu"
 
+# AI Translated
 msgid "Basic Colors"
-msgstr ""
+msgstr "Màu cơ bản"
 
-msgid "Orca Palette"
-msgstr ""
-
+# AI Translated
 #. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
-msgid "RAL Classic"
-msgstr ""
+msgid "Orca Palette"
+msgstr "Bảng màu Orca"
 
+# AI Translated
 #. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL Cổ điển"
+
+# AI Translated
 msgid "Gradients"
-msgstr ""
+msgstr "Chuyển màu"
 
+# AI Translated
+msgctxt "Color picker"
 msgid "Solid"
-msgstr ""
+msgstr "Đơn sắc"
 
+# AI Translated
 msgid "Gradient"
-msgstr ""
+msgstr "Chuyển màu"
 
+# AI Translated
 msgid "Gradient start"
-msgstr ""
+msgstr "Điểm bắt đầu chuyển màu"
 
+# AI Translated
 msgid "Gradient end"
-msgstr ""
+msgstr "Điểm kết thúc chuyển màu"
 
+# AI Translated
 msgid "Gradient color"
-msgstr ""
+msgstr "Màu chuyển màu"
 
+# AI Translated
 msgid "Add color"
-msgstr ""
+msgstr "Thêm màu"
 
+# AI Translated
 msgid "Remove color"
-msgstr ""
+msgstr "Xóa màu"
 
+# AI Translated
 msgid "Saturation"
-msgstr ""
+msgstr "Độ bão hòa"
 
+# AI Translated
 msgid "Original color"
-msgstr ""
+msgstr "Màu gốc"
 
+# AI Translated
 #. TRN: Clicking the current color preview adds it to the saved favorites.
 msgid "Save current color"
-msgstr ""
+msgstr "Lưu màu hiện tại"
 
+# AI Translated
 msgid "Palettes"
-msgstr ""
+msgstr "Bảng màu"
 
+# AI Translated
 msgid "Search colors"
-msgstr ""
+msgstr "Tìm màu"
 
+# AI Translated
 msgid "Filter colors"
-msgstr ""
+msgstr "Lọc màu"
 
+# AI Translated
 msgid "No matching colors"
-msgstr ""
+msgstr "Không có màu phù hợp"
 
+# AI Translated
 msgid "Hex color"
-msgstr ""
+msgstr "Màu hex"
 
 # AI Translated
 msgid "Opacity"
 msgstr "Độ đục"
 
+# AI Translated
 msgid "Opacity percent"
-msgstr ""
+msgstr "Phần trăm độ đục"
 
+# AI Translated
 msgid "Save color"
-msgstr ""
+msgstr "Lưu màu"
 
+# AI Translated
 msgid "Enter a complete hexadecimal color"
-msgstr ""
+msgstr "Nhập đầy đủ màu thập lục phân"
 
+# AI Translated
 msgid "The current multi-color selection is kept until you choose a different color."
-msgstr ""
+msgstr "Lựa chọn nhiều màu hiện tại được giữ lại cho đến khi bạn chọn màu khác."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "Hỗ trợ tối đa %d màu."
 
+# AI Translated
 msgid "Crimson"
-msgstr ""
+msgstr "Đỏ thẫm"
 
+# AI Translated
 msgid "Orange red"
-msgstr ""
+msgstr "Đỏ cam"
 
+# AI Translated
 msgid "Tomato"
-msgstr ""
+msgstr "Đỏ cà chua"
 
+# AI Translated
 msgid "Orange"
-msgstr ""
+msgstr "Cam"
 
+# AI Translated
 msgid "Dark orange"
-msgstr ""
+msgstr "Cam đậm"
 
+# AI Translated
 msgid "Gold"
-msgstr ""
+msgstr "Vàng kim"
 
+# AI Translated
 msgid "Burly wood"
-msgstr ""
+msgstr "Nâu gỗ nhạt"
 
+# AI Translated
 msgid "Bisque"
-msgstr ""
+msgstr "Kem cam"
 
+# AI Translated
 msgid "Misty rose"
-msgstr ""
+msgstr "Hồng sương"
 
+# AI Translated
 msgid "Light yellow"
-msgstr ""
+msgstr "Vàng nhạt"
 
+# AI Translated
 msgid "Lemon chiffon"
-msgstr ""
+msgstr "Kem chanh"
 
+# AI Translated
 msgid "Beige"
-msgstr ""
+msgstr "Be"
 
+# AI Translated
 msgid "Light golden rod yellow"
-msgstr ""
+msgstr "Vàng nghệ sáng"
 
+# AI Translated
 msgid "Pale golden rod"
-msgstr ""
+msgstr "Vàng nghệ dịu"
 
+# AI Translated
 msgid "Khaki"
-msgstr ""
+msgstr "Kaki"
 
+# AI Translated
 msgid "Dark khaki"
-msgstr ""
+msgstr "Kaki đậm"
 
+# AI Translated
 msgid "Peach puff"
-msgstr ""
+msgstr "Đào nhạt"
 
+# AI Translated
 msgid "Moccasin"
-msgstr ""
+msgstr "Vàng da hươu"
 
+# AI Translated
 msgid "Papaya whip"
-msgstr ""
+msgstr "Kem đu đủ"
 
+# AI Translated
 msgid "Blanched almond"
-msgstr ""
+msgstr "Hạnh nhân lột vỏ"
 
+# AI Translated
 msgid "Antique white"
-msgstr ""
+msgstr "Trắng cổ"
 
+# AI Translated
 msgid "Navajo white"
-msgstr ""
+msgstr "Trắng Navajo"
 
+# AI Translated
 msgid "Wheat"
-msgstr ""
+msgstr "Lúa mì"
 
+# AI Translated
 msgid "Golden rod"
-msgstr ""
+msgstr "Vàng nghệ"
 
+# AI Translated
 msgid "Chocolate"
-msgstr ""
+msgstr "Sô-cô-la"
 
+# AI Translated
 msgid "Peru"
-msgstr ""
+msgstr "Nâu Peru"
 
+# AI Translated
 msgid "Fire brick"
-msgstr ""
+msgstr "Gạch chịu lửa"
 
+# AI Translated
 msgid "Sienna"
-msgstr ""
+msgstr "Nâu sienna"
 
+# AI Translated
 msgid "Saddle brown"
-msgstr ""
+msgstr "Nâu yên ngựa"
 
+# AI Translated
 msgid "Brown"
-msgstr ""
+msgstr "Nâu"
 
+# AI Translated
 msgid "Rosy brown"
-msgstr ""
+msgstr "Nâu hồng"
 
+# AI Translated
 msgid "Salmon"
-msgstr ""
+msgstr "Cá hồi"
 
+# AI Translated
 msgid "Light salmon"
-msgstr ""
+msgstr "Cá hồi nhạt"
 
+# AI Translated
 msgid "Dark salmon"
-msgstr ""
+msgstr "Cá hồi đậm"
 
+# AI Translated
 msgid "Sandy brown"
-msgstr ""
+msgstr "Nâu cát"
 
+# AI Translated
 msgid "Coral"
-msgstr ""
+msgstr "San hô"
 
+# AI Translated
 msgid "Light coral"
-msgstr ""
+msgstr "San hô nhạt"
 
+# AI Translated
 msgid "Indian red"
-msgstr ""
+msgstr "Đỏ Ấn Độ"
 
+# AI Translated
 msgid "Dark red"
-msgstr ""
+msgstr "Đỏ đậm"
 
+# AI Translated
 msgid "Maroon"
-msgstr ""
+msgstr "Nâu đỏ sẫm"
 
+# AI Translated
 msgid "Green yellow"
-msgstr ""
+msgstr "Vàng lục"
 
+# AI Translated
 msgid "Yellow green"
-msgstr ""
+msgstr "Xanh lá vàng"
 
+# AI Translated
 msgid "Chartreuse"
-msgstr ""
+msgstr "Chartreuse"
 
+# AI Translated
 msgid "Lawn green"
-msgstr ""
+msgstr "Xanh thảm cỏ"
 
+# AI Translated
 msgid "Lime green"
-msgstr ""
+msgstr "Xanh lá chanh"
 
+# AI Translated
 msgid "Spring green"
-msgstr ""
+msgstr "Xanh lá mùa xuân"
 
+# AI Translated
 msgid "Medium spring green"
-msgstr ""
+msgstr "Xanh lá mùa xuân vừa"
 
+# AI Translated
 msgid "Lime"
-msgstr ""
+msgstr "Xanh chanh"
 
+# AI Translated
 msgid "Forest green"
-msgstr ""
+msgstr "Xanh lá rừng"
 
+# AI Translated
 msgid "Dark green"
-msgstr ""
+msgstr "Xanh lá đậm"
 
+# AI Translated
 msgid "Olive drab"
-msgstr ""
+msgstr "Xanh ô liu xỉn"
 
+# AI Translated
 msgid "Olive"
-msgstr ""
+msgstr "Ô liu"
 
+# AI Translated
 msgid "Dark olive green"
-msgstr ""
+msgstr "Xanh lá ô liu đậm"
 
+# AI Translated
 msgid "Pale green"
-msgstr ""
+msgstr "Xanh lá dịu"
 
+# AI Translated
 msgid "Light green"
-msgstr ""
+msgstr "Xanh lá nhạt"
 
+# AI Translated
 msgid "Medium sea green"
-msgstr ""
+msgstr "Xanh lá biển vừa"
 
+# AI Translated
 msgid "Sea green"
-msgstr ""
+msgstr "Xanh lá biển"
 
+# AI Translated
 msgid "Dark sea green"
-msgstr ""
+msgstr "Xanh lá biển đậm"
 
+# AI Translated
 msgid "Cadet blue"
-msgstr ""
+msgstr "Xanh dương cadet"
 
+# AI Translated
 msgid "Medium aqua marine"
-msgstr ""
+msgstr "Aquamarine vừa"
 
+# AI Translated
 msgid "Turquoise"
-msgstr ""
+msgstr "Ngọc lam"
 
+# AI Translated
 msgid "Medium turquoise"
-msgstr ""
+msgstr "Ngọc lam vừa"
 
+# AI Translated
 msgid "Dark turquoise"
-msgstr ""
+msgstr "Ngọc lam đậm"
 
+# AI Translated
 msgid "Pale turquoise"
-msgstr ""
+msgstr "Ngọc lam dịu"
 
+# AI Translated
 msgid "Aqua"
-msgstr ""
+msgstr "Aqua"
 
+# AI Translated
 msgid "Light cyan"
-msgstr ""
+msgstr "Xanh lơ nhạt"
 
+# AI Translated
 msgid "Mint cream"
-msgstr ""
+msgstr "Kem bạc hà"
 
+# AI Translated
 msgid "Honey dew"
-msgstr ""
+msgstr "Dưa mật"
 
+# AI Translated
 msgid "Aquamarine"
-msgstr ""
+msgstr "Aquamarine"
 
+# AI Translated
 msgid "Light sea green"
-msgstr ""
+msgstr "Xanh lá biển nhạt"
 
+# AI Translated
 msgid "Dark cyan"
-msgstr ""
+msgstr "Xanh lơ đậm"
 
+# AI Translated
 msgid "Teal"
-msgstr ""
+msgstr "Xanh mòng két"
 
+# AI Translated
 msgid "Dark slate gray"
-msgstr ""
+msgstr "Xám đá phiến đậm"
 
+# AI Translated
 msgid "Light slate gray"
-msgstr ""
+msgstr "Xám đá phiến nhạt"
 
+# AI Translated
 msgid "Slate gray"
-msgstr ""
+msgstr "Xám đá phiến"
 
+# AI Translated
 msgid "Deep sky blue"
-msgstr ""
+msgstr "Xanh da trời đậm"
 
+# AI Translated
 msgid "Dodger Blue"
-msgstr ""
+msgstr "Xanh dương Dodger"
 
+# AI Translated
 msgid "Sky blue"
-msgstr ""
+msgstr "Xanh da trời"
 
+# AI Translated
 msgid "Light sky blue"
-msgstr ""
+msgstr "Xanh da trời nhạt"
 
+# AI Translated
 msgid "Light blue"
-msgstr ""
+msgstr "Xanh dương nhạt"
 
+# AI Translated
 msgid "Powder blue"
-msgstr ""
+msgstr "Xanh dương phấn"
 
+# AI Translated
 msgid "Light steel blue"
-msgstr ""
+msgstr "Xanh thép nhạt"
 
+# AI Translated
 msgid "Steel blue"
-msgstr ""
+msgstr "Xanh thép"
 
+# AI Translated
 msgid "Cornflower blue"
-msgstr ""
+msgstr "Xanh dương cornflower"
 
+# AI Translated
 msgid "Royal blue"
-msgstr ""
+msgstr "Xanh hoàng gia"
 
+# AI Translated
 msgid "Medium blue"
-msgstr ""
+msgstr "Xanh dương vừa"
 
+# AI Translated
 msgid "Midnight blue"
-msgstr ""
+msgstr "Xanh dương nửa đêm"
 
+# AI Translated
 msgid "Dark blue"
-msgstr ""
+msgstr "Xanh dương đậm"
 
+# AI Translated
 msgid "Navy"
-msgstr ""
+msgstr "Xanh navy"
 
+# AI Translated
 msgid "Slate blue"
-msgstr ""
+msgstr "Xanh dương đá phiến"
 
+# AI Translated
 msgid "Dark slate blue"
-msgstr ""
+msgstr "Xanh dương đá phiến đậm"
 
+# AI Translated
 msgid "Medium slate blue"
-msgstr ""
+msgstr "Xanh dương đá phiến vừa"
 
+# AI Translated
 msgid "Blue violet"
-msgstr ""
+msgstr "Tím lam"
 
+# AI Translated
 msgid "Indigo"
-msgstr ""
+msgstr "Chàm"
 
+# AI Translated
 msgid "Dark violet"
-msgstr ""
+msgstr "Tím violet đậm"
 
+# AI Translated
 msgid "Dark orchid"
-msgstr ""
+msgstr "Lan đậm"
 
+# AI Translated
 msgid "Medium orchid"
-msgstr ""
+msgstr "Lan vừa"
 
+# AI Translated
 msgid "Orchid"
-msgstr ""
+msgstr "Lan"
 
+# AI Translated
 msgid "Violet"
-msgstr ""
+msgstr "Tím violet"
 
+# AI Translated
 msgid "Medium purple"
-msgstr ""
+msgstr "Tím vừa"
 
+# AI Translated
 msgid "Purple"
-msgstr ""
+msgstr "Tím"
 
+# AI Translated
 msgid "Rebecca purple"
-msgstr ""
+msgstr "Tím Rebecca"
 
+# AI Translated
 msgid "Medium violet red"
-msgstr ""
+msgstr "Đỏ tím vừa"
 
-msgid "PaleV violet red"
-msgstr ""
+# AI Translated
+msgid "Pale violet red"
+msgstr "Đỏ tím dịu"
 
+# AI Translated
 msgid "Deep pink"
-msgstr ""
+msgstr "Hồng đậm"
 
+# AI Translated
 msgid "Hot pink"
-msgstr ""
+msgstr "Hồng tươi"
 
+# AI Translated
 msgid "Light pink"
-msgstr ""
+msgstr "Hồng nhạt"
 
+# AI Translated
 msgid "Pink"
-msgstr ""
+msgstr "Hồng"
 
+# AI Translated
 msgid "Plum"
-msgstr ""
+msgstr "Mận"
 
+# AI Translated
 msgid "Thistle"
-msgstr ""
+msgstr "Tím kế"
 
+# AI Translated
 msgid "Fuchsia"
-msgstr ""
+msgstr "Fuchsia"
 
+# AI Translated
 msgid "Dark magenta"
-msgstr ""
+msgstr "Magenta đậm"
 
+# AI Translated
 msgid "Linen"
-msgstr ""
+msgstr "Vải lanh"
 
+# AI Translated
 msgid "Old lace"
-msgstr ""
+msgstr "Ren cũ"
 
+# AI Translated
 msgid "Sea shell"
-msgstr ""
+msgstr "Vỏ sò"
 
+# AI Translated
 msgid "Ivory"
-msgstr ""
+msgstr "Ngà"
 
+# AI Translated
 msgid "Floral white"
-msgstr ""
+msgstr "Trắng hoa"
 
+# AI Translated
 msgid "Lavender blush"
-msgstr ""
+msgstr "Oải hương ửng hồng"
 
+# AI Translated
 msgid "Ghost white"
-msgstr ""
+msgstr "Trắng bóng ma"
 
+# AI Translated
 msgid "Alice blue"
-msgstr ""
+msgstr "Xanh Alice"
 
+# AI Translated
 msgid "Lavender"
-msgstr ""
+msgstr "Oải hương"
 
+# AI Translated
 msgid "White smoke"
-msgstr ""
+msgstr "Trắng khói"
 
+# AI Translated
 msgid "Gainsboro"
-msgstr ""
+msgstr "Gainsboro"
 
+# AI Translated
 msgid "Black"
-msgstr ""
+msgstr "Đen"
 
+# AI Translated
 msgid "Coral fire"
-msgstr ""
+msgstr "San hô lửa"
 
+# AI Translated
 msgid "Sea anemone"
-msgstr ""
+msgstr "Hải quỳ"
 
+# AI Translated
 msgid "Deep abyss"
-msgstr ""
+msgstr "Vực sâu"
 
+# AI Translated
 msgid "Lobster red"
-msgstr ""
+msgstr "Đỏ tôm hùm"
 
+# AI Translated
 msgid "Sandy clay"
-msgstr ""
+msgstr "Đất sét cát"
 
+# AI Translated
 msgid "Driftwood"
-msgstr ""
+msgstr "Gỗ trôi dạt"
 
+# AI Translated
 msgid "Sea buckthorn"
-msgstr ""
+msgstr "Hắc mai biển"
 
+# AI Translated
 msgid "Sunset reef"
-msgstr ""
+msgstr "Rạn san hô hoàng hôn"
 
+# AI Translated
 msgid "Tiger coral"
-msgstr ""
+msgstr "San hô hổ"
 
+# AI Translated
 msgid "Pink coral"
-msgstr ""
+msgstr "San hô hồng"
 
+# AI Translated
 msgid "Seashell glow"
-msgstr ""
+msgstr "Ánh vỏ sò"
 
+# AI Translated
 msgid "Sand"
-msgstr ""
+msgstr "Cát"
 
+# AI Translated
 msgid "Golden kelp"
-msgstr ""
+msgstr "Tảo bẹ vàng"
 
+# AI Translated
 msgid "Sunlit dune"
-msgstr ""
+msgstr "Cồn cát nắng"
 
+# AI Translated
 msgid "Amber nautilus"
-msgstr ""
+msgstr "Ốc anh vũ hổ phách"
 
+# AI Translated
 msgid "Sea lemon"
-msgstr ""
+msgstr "Chanh biển"
 
+# AI Translated
 msgid "Pale starfish"
-msgstr ""
+msgstr "Sao biển dịu"
 
+# AI Translated
 msgid "Spring tide"
-msgstr ""
+msgstr "Triều cường"
 
+# AI Translated
 msgid "Lime algae"
-msgstr ""
+msgstr "Tảo xanh chanh"
 
+# AI Translated
 msgid "Sea grass"
-msgstr ""
+msgstr "Cỏ biển"
 
+# AI Translated
 msgid "Neon plankton"
-msgstr ""
+msgstr "Sinh vật phù du neon"
 
+# AI Translated
 msgid "Kelp forest"
-msgstr ""
+msgstr "Rừng tảo bẹ"
 
+# AI Translated
 msgid "Emerald wave"
-msgstr ""
+msgstr "Sóng ngọc lục bảo"
 
+# AI Translated
 msgid "Whale shadow"
-msgstr ""
+msgstr "Bóng cá voi"
 
+# AI Translated
 msgid "Sea turtle"
-msgstr ""
+msgstr "Rùa biển"
 
+# AI Translated
 msgid "Lagoon"
-msgstr ""
+msgstr "Đầm phá"
 
+# AI Translated
 msgid "Tropical current"
-msgstr ""
+msgstr "Dòng hải lưu nhiệt đới"
 
+# AI Translated
 msgid "Midnight trench"
-msgstr ""
+msgstr "Rãnh biển nửa đêm"
 
+# AI Translated
 msgid "Dark kelp"
-msgstr ""
+msgstr "Tảo bẹ đậm"
 
+# AI Translated
 msgid "Crystal surf"
-msgstr ""
+msgstr "Sóng pha lê"
 
+# AI Translated
 msgid "Turquoise bay"
-msgstr ""
+msgstr "Vịnh ngọc lam"
 
+# AI Translated
 msgid "Sky over reef"
-msgstr ""
+msgstr "Bầu trời trên rạn san hô"
 
+# AI Translated
 msgid "Shallow sky"
-msgstr ""
+msgstr "Bầu trời nước nông"
 
-msgid "Electric bel"
-msgstr ""
+# AI Translated
+msgid "Electric blue"
+msgstr "Xanh dương điện"
 
+# AI Translated
 msgid "Dolphin"
-msgstr ""
+msgstr "Cá heo"
 
+# AI Translated
 msgid "Ocean depths"
-msgstr ""
+msgstr "Độ sâu đại dương"
 
+# AI Translated
 msgid "Whale"
-msgstr ""
+msgstr "Cá voi"
 
+# AI Translated
 msgid "Indigo abyss"
-msgstr ""
+msgstr "Vực sâu chàm"
 
+# AI Translated
 msgid "Sea urchin"
-msgstr ""
+msgstr "Nhím biển"
 
+# AI Translated
 msgid "Lavender coral"
-msgstr ""
+msgstr "San hô oải hương"
 
+# AI Translated
 msgid "Violet tide"
-msgstr ""
+msgstr "Thủy triều tím"
 
+# AI Translated
 msgid "Deep sea orchid"
-msgstr ""
+msgstr "Lan biển sâu"
 
+# AI Translated
 msgid "Neon jelly"
-msgstr ""
+msgstr "Sứa neon"
 
+# AI Translated
 msgid "Fuchsia coral"
-msgstr ""
+msgstr "San hô fuchsia"
 
+# AI Translated
 msgid "Pink jellyfish"
-msgstr ""
+msgstr "Sứa hồng"
 
+# AI Translated
 msgid "Foam"
-msgstr ""
+msgstr "Bọt sóng"
 
+# AI Translated
 msgid "Seashell white"
-msgstr ""
+msgstr "Trắng vỏ sò"
 
+# AI Translated
 msgid "Pebble gray"
-msgstr ""
+msgstr "Xám sỏi"
 
+# AI Translated
 msgid "Storm cloud"
-msgstr ""
+msgstr "Mây bão"
 
+# AI Translated
 msgid "Ink black"
-msgstr ""
+msgstr "Đen mực"
 
+# AI Translated
 msgid "Green beige"
-msgstr ""
+msgstr "Be lục"
 
+# AI Translated
 msgid "Sand yellow"
-msgstr ""
+msgstr "Vàng cát"
 
+# AI Translated
 msgid "Signal yellow"
-msgstr ""
+msgstr "Vàng tín hiệu"
 
+# AI Translated
 msgid "Golden yellow"
-msgstr ""
+msgstr "Vàng óng"
 
+# AI Translated
 msgid "Honey yellow"
-msgstr ""
+msgstr "Vàng mật ong"
 
+# AI Translated
 msgid "Maize yellow"
-msgstr ""
+msgstr "Vàng ngô"
 
-msgid "Dalmatian yellow"
-msgstr ""
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Vàng thủy tiên"
 
+# AI Translated
 msgid "Brown beige"
-msgstr ""
+msgstr "Be nâu"
 
+# AI Translated
 msgid "Lemon yellow"
-msgstr ""
+msgstr "Vàng chanh"
 
+# AI Translated
 msgid "Oyster white"
-msgstr ""
+msgstr "Trắng hàu"
 
+# AI Translated
 msgid "Light ivory"
-msgstr ""
+msgstr "Ngà nhạt"
 
+# AI Translated
 msgid "Zinc yellow"
-msgstr ""
+msgstr "Vàng kẽm"
 
+# AI Translated
 msgid "Grey beige"
-msgstr ""
+msgstr "Be xám"
 
+# AI Translated
 msgid "Olive yellow"
-msgstr ""
+msgstr "Vàng ô liu"
 
+# AI Translated
 msgid "Rape yellow"
-msgstr ""
+msgstr "Vàng cải dầu"
 
+# AI Translated
 msgid "Traffic yellow"
-msgstr ""
+msgstr "Vàng giao thông"
 
+# AI Translated
 msgid "Ochre yellow"
-msgstr ""
+msgstr "Vàng ocher"
 
+# AI Translated
 msgid "Traffic orange yellow"
-msgstr ""
+msgstr "Vàng cam giao thông"
 
+# AI Translated
 msgid "Curry"
-msgstr ""
+msgstr "Cà ri"
 
+# AI Translated
 msgid "Melon yellow"
-msgstr ""
+msgstr "Vàng dưa"
 
+# AI Translated
 msgid "Broom yellow"
-msgstr ""
+msgstr "Vàng hoa chổi"
 
+# AI Translated
 msgid "Dahlia yellow"
-msgstr ""
+msgstr "Vàng thược dược"
 
+# AI Translated
 msgid "Pastel yellow"
-msgstr ""
+msgstr "Vàng pastel"
 
+# AI Translated
 msgid "Pearl beige"
-msgstr ""
+msgstr "Be xà cừ"
 
+# AI Translated
 msgid "Pearl gold"
-msgstr ""
+msgstr "Vàng kim xà cừ"
 
+# AI Translated
 msgid "Sun yellow"
-msgstr ""
+msgstr "Vàng mặt trời"
 
+# AI Translated
 msgid "Yellow orange"
-msgstr ""
+msgstr "Cam vàng"
 
+# AI Translated
 msgid "Deep orange"
-msgstr ""
+msgstr "Cam sẫm"
 
+# AI Translated
 msgid "Vermilion"
-msgstr ""
+msgstr "Đỏ son"
 
+# AI Translated
 msgid "Pearl orange"
-msgstr ""
+msgstr "Cam xà cừ"
 
+# AI Translated
 msgid "Pure orange"
-msgstr ""
+msgstr "Cam tinh khiết"
 
+# AI Translated
 msgid "Luminous orange"
-msgstr ""
+msgstr "Cam huỳnh quang"
 
+# AI Translated
 msgid "Luminous bright orange"
-msgstr ""
+msgstr "Cam huỳnh quang tươi"
 
+# AI Translated
 msgid "Bright red orange"
-msgstr ""
+msgstr "Cam đỏ tươi"
 
+# AI Translated
 msgid "Traffic orange"
-msgstr ""
+msgstr "Cam giao thông"
 
+# AI Translated
 msgid "Signal orange"
-msgstr ""
+msgstr "Cam tín hiệu"
 
+# AI Translated
 msgid "Salmon orange"
-msgstr ""
+msgstr "Cam cá hồi"
 
+# AI Translated
 msgid "Pearl pink"
-msgstr ""
+msgstr "Hồng xà cừ"
 
+# AI Translated
 msgid "Copper orange"
-msgstr ""
+msgstr "Cam đồng"
 
+# AI Translated
 msgid "Signal brown"
-msgstr ""
+msgstr "Nâu tín hiệu"
 
+# AI Translated
 msgid "Fir orange"
-msgstr ""
+msgstr "Cam linh sam"
 
+# AI Translated
 msgid "Signal red"
-msgstr ""
+msgstr "Đỏ tín hiệu"
 
+# AI Translated
 msgid "Luminous red"
-msgstr ""
+msgstr "Đỏ huỳnh quang"
 
+# AI Translated
 msgid "Carmine red"
-msgstr ""
+msgstr "Đỏ carmine"
 
+# AI Translated
 msgid "Pearl carmine red"
-msgstr ""
+msgstr "Đỏ carmine xà cừ"
 
+# AI Translated
 msgid "Pure red"
-msgstr ""
+msgstr "Đỏ tinh khiết"
 
+# AI Translated
 msgid "Luminous deep red"
-msgstr ""
+msgstr "Đỏ sẫm huỳnh quang"
 
+# AI Translated
 msgid "Currant red"
-msgstr ""
+msgstr "Đỏ lý chua"
 
+# AI Translated
 msgid "Pearl ruby red"
-msgstr ""
+msgstr "Đỏ ruby xà cừ"
 
+# AI Translated
 msgid "Fire red"
-msgstr ""
+msgstr "Đỏ lửa"
 
+# AI Translated
 msgid "Ruby red"
-msgstr ""
+msgstr "Đỏ ruby"
 
+# AI Translated
 msgid "Purple red"
-msgstr ""
+msgstr "Đỏ tím"
 
+# AI Translated
 msgid "Wine red"
-msgstr ""
+msgstr "Đỏ rượu vang"
 
+# AI Translated
 msgid "Black red"
-msgstr ""
+msgstr "Đỏ đen"
 
+# AI Translated
 msgid "Oxide red"
-msgstr ""
+msgstr "Đỏ oxit"
 
+# AI Translated
 msgid "Brown red"
-msgstr ""
+msgstr "Đỏ nâu"
 
+# AI Translated
+# Needs human review: Source name "Pine red" looks unusual for a RAL color; translated literally
 msgid "Pine red"
-msgstr ""
+msgstr "Đỏ thông"
 
+# AI Translated
 msgid "Tomato red"
-msgstr ""
+msgstr "Đỏ cà chua"
 
+# AI Translated
 msgid "Antique pink"
-msgstr ""
+msgstr "Hồng cổ"
 
+# AI Translated
 msgid "Coral red"
-msgstr ""
+msgstr "Đỏ san hô"
 
+# AI Translated
 msgid "Rose"
-msgstr ""
+msgstr "Hoa hồng"
 
+# AI Translated
 msgid "Strawberry red"
-msgstr ""
+msgstr "Đỏ dâu tây"
 
+# AI Translated
 msgid "Traffic red"
-msgstr ""
+msgstr "Đỏ giao thông"
 
+# AI Translated
 msgid "Salmon pink"
-msgstr ""
+msgstr "Hồng cá hồi"
 
+# AI Translated
 msgid "Luminous rose"
-msgstr ""
+msgstr "Hoa hồng huỳnh quang"
 
+# AI Translated
 msgid "Luminous bright red"
-msgstr ""
+msgstr "Đỏ huỳnh quang tươi"
 
+# AI Translated
 msgid "Raspberry red"
-msgstr ""
+msgstr "Đỏ mâm xôi"
 
+# AI Translated
 msgid "Orient red"
-msgstr ""
+msgstr "Đỏ phương Đông"
 
+# AI Translated
 msgid "Pearl ruby"
-msgstr ""
+msgstr "Ruby xà cừ"
 
+# AI Translated
 msgid "Red purple"
-msgstr ""
+msgstr "Tím đỏ"
 
+# AI Translated
 msgid "Red violet"
-msgstr ""
+msgstr "Tím violet đỏ"
 
+# AI Translated
 msgid "Heather violet"
-msgstr ""
+msgstr "Tím violet thạch nam"
 
+# AI Translated
 msgid "Bordeaux violet"
-msgstr ""
+msgstr "Tím violet bordeaux"
 
+# AI Translated
 msgid "Mahogany"
-msgstr ""
+msgstr "Gỗ gụ"
 
+# AI Translated
 msgid "Grey purple"
-msgstr ""
+msgstr "Tím xám"
 
+# AI Translated
 msgid "Signal violet"
-msgstr ""
+msgstr "Tím violet tín hiệu"
 
+# AI Translated
 msgid "Fir green"
-msgstr ""
+msgstr "Xanh lá linh sam"
 
+# AI Translated
 msgid "Sabine grey"
-msgstr ""
+msgstr "Xám Sabine"
 
+# AI Translated
 msgid "Pearl violet"
-msgstr ""
+msgstr "Tím violet xà cừ"
 
+# AI Translated
 msgid "Pearl blackberry"
-msgstr ""
+msgstr "Mâm xôi đen xà cừ"
 
+# AI Translated
 msgid "Green blue"
-msgstr ""
+msgstr "Xanh dương lục"
 
+# AI Translated
 msgid "Ultramarine blue"
-msgstr ""
+msgstr "Xanh dương ultramarine"
 
+# AI Translated
 msgid "Sapphire blue"
-msgstr ""
+msgstr "Xanh dương sapphire"
 
+# AI Translated
 msgid "Black blue"
-msgstr ""
+msgstr "Xanh dương đen"
 
+# AI Translated
 msgid "Signal blue"
-msgstr ""
+msgstr "Xanh dương tín hiệu"
 
+# AI Translated
 msgid "Brilliant blue"
-msgstr ""
+msgstr "Xanh dương rực rỡ"
 
+# AI Translated
 msgid "Grey blue"
-msgstr ""
+msgstr "Xanh dương xám"
 
+# AI Translated
 msgid "Azure blue"
-msgstr ""
+msgstr "Xanh thiên thanh"
 
+# AI Translated
 msgid "Gentian blue"
-msgstr ""
+msgstr "Xanh dương long đởm"
 
+# AI Translated
 msgid "Cobalt blue"
-msgstr ""
+msgstr "Xanh dương cobalt"
 
+# AI Translated
 msgid "Pigeon blue"
-msgstr ""
+msgstr "Xanh dương bồ câu"
 
+# AI Translated
 msgid "Traffic blue"
-msgstr ""
+msgstr "Xanh dương giao thông"
 
+# AI Translated
 msgid "Turquoise blue"
-msgstr ""
+msgstr "Xanh dương ngọc lam"
 
-msgid "Capsanthin violet"
-msgstr ""
+# AI Translated
+msgid "Capri blue"
+msgstr "Xanh dương Capri"
 
+# AI Translated
 msgid "Ocean blue"
-msgstr ""
+msgstr "Xanh dương đại dương"
 
+# AI Translated
 msgid "Water blue"
-msgstr ""
+msgstr "Xanh dương nước"
 
+# AI Translated
 msgid "Night blue"
-msgstr ""
+msgstr "Xanh dương đêm"
 
+# AI Translated
 msgid "Distant blue"
-msgstr ""
+msgstr "Xanh dương xa"
 
+# AI Translated
 msgid "Pastel blue"
-msgstr ""
+msgstr "Xanh dương pastel"
 
+# AI Translated
 msgid "Pearl gentian blue"
-msgstr ""
+msgstr "Xanh dương long đởm xà cừ"
 
+# AI Translated
 msgid "Pearl midnight blue"
-msgstr ""
+msgstr "Xanh dương nửa đêm xà cừ"
 
+# AI Translated
 msgid "Patina green"
-msgstr ""
+msgstr "Xanh lá gỉ đồng"
 
+# AI Translated
 msgid "Emerald green"
-msgstr ""
+msgstr "Xanh lá ngọc lục bảo"
 
+# AI Translated
 msgid "Leaf green"
-msgstr ""
+msgstr "Xanh diệp lục"
 
+# AI Translated
 msgid "Olive green"
-msgstr ""
+msgstr "Xanh lá ô liu"
 
+# AI Translated
 msgid "Blue green"
-msgstr ""
+msgstr "Xanh lá lam"
 
+# AI Translated
 msgid "Moss green"
-msgstr ""
+msgstr "Xanh lá rêu"
 
+# AI Translated
 msgid "Grey olive"
-msgstr ""
+msgstr "Ô liu xám"
 
+# AI Translated
 msgid "Pine green"
-msgstr ""
+msgstr "Xanh lá thông"
 
+# AI Translated
+# Needs human review: Source name "Pine brown" looks unusual for a RAL color; translated literally
 msgid "Pine brown"
-msgstr ""
+msgstr "Nâu thông"
 
+# AI Translated
 msgid "Grass green"
-msgstr ""
+msgstr "Xanh lá cỏ"
 
+# AI Translated
 msgid "Reseda green"
-msgstr ""
+msgstr "Xanh lá reseda"
 
+# AI Translated
 msgid "Brown green"
-msgstr ""
+msgstr "Xanh lá nâu"
 
+# AI Translated
 msgid "Reed green"
-msgstr ""
+msgstr "Xanh lá lau sậy"
 
+# AI Translated
 msgid "Black green"
-msgstr ""
+msgstr "Xanh lá đen"
 
+# AI Translated
 msgid "Turquoise green"
-msgstr ""
+msgstr "Xanh lá ngọc lam"
 
+# AI Translated
 msgid "May green"
-msgstr ""
+msgstr "Xanh lá tháng Năm"
 
+# AI Translated
 msgid "Chrome oxide green"
-msgstr ""
+msgstr "Xanh lá crom oxit"
 
+# AI Translated
 msgid "Traffic green"
-msgstr ""
+msgstr "Xanh lá giao thông"
 
+# AI Translated
 msgid "Fern green"
-msgstr ""
+msgstr "Xanh lá dương xỉ"
 
+# AI Translated
 msgid "Opal green"
-msgstr ""
+msgstr "Xanh lá opal"
 
+# AI Translated
 msgid "Mint green"
-msgstr ""
+msgstr "Xanh lá bạc hà"
 
+# AI Translated
 msgid "Bronze green"
-msgstr ""
+msgstr "Xanh lá đồng thanh"
 
+# AI Translated
 msgid "Pearl green"
-msgstr ""
+msgstr "Xanh lá xà cừ"
 
+# AI Translated
+# Needs human review: Unusual source name ("Sax turquoise"); translated literally
 msgid "Sax turquoise"
-msgstr ""
+msgstr "Ngọc lam Sax"
 
+# AI Translated
 msgid "Pearl turquoise"
-msgstr ""
+msgstr "Ngọc lam xà cừ"
 
+# AI Translated
 msgid "Pearl jade"
-msgstr ""
+msgstr "Ngọc bích xà cừ"
 
+# AI Translated
 msgid "Pure green"
-msgstr ""
+msgstr "Xanh lá tinh khiết"
 
+# AI Translated
 msgid "Luminous green"
-msgstr ""
+msgstr "Xanh lá huỳnh quang"
 
+# AI Translated
 msgid "Squirrel grey"
-msgstr ""
+msgstr "Xám sóc"
 
+# AI Translated
 msgid "Silver grey"
-msgstr ""
+msgstr "Xám bạc"
 
-msgid "Olivestone"
-msgstr ""
+# AI Translated
+msgid "Olive grey"
+msgstr "Xám ô liu"
 
+# AI Translated
 msgid "Moss grey"
-msgstr ""
+msgstr "Xám rêu"
 
+# AI Translated
 msgid "Signal grey"
-msgstr ""
+msgstr "Xám tín hiệu"
 
+# AI Translated
 msgid "Mouse grey"
-msgstr ""
+msgstr "Xám chuột"
 
+# AI Translated
 msgid "Beige grey"
-msgstr ""
+msgstr "Xám be"
 
+# AI Translated
 msgid "Khaki grey"
-msgstr ""
+msgstr "Xám kaki"
 
+# AI Translated
 msgid "Green grey"
-msgstr ""
+msgstr "Xám lục"
 
+# AI Translated
 msgid "Tarpaulin grey"
-msgstr ""
+msgstr "Xám bạt"
 
+# AI Translated
 msgid "Iron grey"
-msgstr ""
+msgstr "Xám sắt"
 
+# AI Translated
 msgid "Basalt grey"
-msgstr ""
+msgstr "Xám bazan"
 
+# AI Translated
 msgid "Brown grey"
-msgstr ""
+msgstr "Xám nâu"
 
+# AI Translated
 msgid "Slate grey"
-msgstr ""
+msgstr "Xám đá phiến"
 
+# AI Translated
 msgid "Anthracite grey"
-msgstr ""
+msgstr "Xám antraxit"
 
+# AI Translated
 msgid "Light grey"
-msgstr ""
+msgstr "Xám nhạt"
 
+# AI Translated
 msgid "Umber grey"
-msgstr ""
+msgstr "Xám umber"
 
+# AI Translated
 msgid "Concrete grey"
-msgstr ""
+msgstr "Xám bê tông"
 
+# AI Translated
 msgid "Graphite grey"
-msgstr ""
+msgstr "Xám than chì"
 
+# AI Translated
 msgid "Granite grey"
-msgstr ""
+msgstr "Xám đá granit"
 
+# AI Translated
 msgid "Stone grey"
-msgstr ""
+msgstr "Xám đá"
 
+# AI Translated
 msgid "Pebble grey"
-msgstr ""
+msgstr "Xám sỏi"
 
+# AI Translated
 msgid "Cement grey"
-msgstr ""
+msgstr "Xám xi măng"
 
+# AI Translated
 msgid "Yellow grey"
-msgstr ""
+msgstr "Xám vàng"
 
+# AI Translated
 msgid "Platinum grey"
-msgstr ""
+msgstr "Xám bạch kim"
 
+# AI Translated
 msgid "Dusty grey"
-msgstr ""
+msgstr "Xám bụi"
 
+# AI Translated
 msgid "Agate grey"
-msgstr ""
+msgstr "Xám mã não"
 
+# AI Translated
 msgid "Quartz grey"
-msgstr ""
+msgstr "Xám thạch anh"
 
+# AI Translated
 msgid "Window grey"
-msgstr ""
+msgstr "Xám cửa sổ"
 
+# AI Translated
 msgid "Traffic grey A"
-msgstr ""
+msgstr "Xám giao thông A"
 
+# AI Translated
 msgid "Traffic grey B"
-msgstr ""
+msgstr "Xám giao thông B"
 
+# AI Translated
 msgid "Silk grey"
-msgstr ""
+msgstr "Xám lụa"
 
+# AI Translated
 msgid "Telegrey 1"
-msgstr ""
+msgstr "Telegrey 1"
 
+# AI Translated
 msgid "Telegrey 2"
-msgstr ""
+msgstr "Telegrey 2"
 
+# AI Translated
 msgid "Telegrey 4"
-msgstr ""
+msgstr "Telegrey 4"
 
+# AI Translated
 msgid "Pearl mouse grey"
-msgstr ""
+msgstr "Xám chuột xà cừ"
 
+# AI Translated
 msgid "Green brown"
-msgstr ""
+msgstr "Nâu lục"
 
+# AI Translated
 msgid "Ochre brown"
-msgstr ""
+msgstr "Nâu ocher"
 
+# AI Translated
 msgid "Clay brown"
-msgstr ""
+msgstr "Nâu đất sét"
 
+# AI Translated
 msgid "Copper brown"
-msgstr ""
+msgstr "Nâu đồng"
 
+# AI Translated
 msgid "Chocolate brown"
-msgstr ""
+msgstr "Nâu sô-cô-la"
 
+# AI Translated
 msgid "Olive brown"
-msgstr ""
+msgstr "Nâu ô liu"
 
+# AI Translated
 msgid "Nut brown"
-msgstr ""
+msgstr "Nâu quả hạch"
 
+# AI Translated
 msgid "Red brown"
-msgstr ""
+msgstr "Nâu đỏ"
 
+# AI Translated
 msgid "Sepia brown"
-msgstr ""
+msgstr "Nâu sepia"
 
+# AI Translated
 msgid "Chestnut brown"
-msgstr ""
+msgstr "Nâu hạt dẻ"
 
+# AI Translated
 msgid "Mahogany brown"
-msgstr ""
+msgstr "Nâu gỗ gụ"
 
+# AI Translated
 msgid "Grey brown"
-msgstr ""
+msgstr "Nâu xám"
 
+# AI Translated
 msgid "Pearl copper"
-msgstr ""
+msgstr "Đồng xà cừ"
 
+# AI Translated
 msgid "Beige brown"
-msgstr ""
+msgstr "Nâu be"
 
+# AI Translated
 msgid "Pearl mocha brown"
-msgstr ""
+msgstr "Nâu mocha xà cừ"
 
+# AI Translated
 msgid "Earth brown"
-msgstr ""
+msgstr "Nâu đất"
 
+# AI Translated
 msgid "Pearl brown"
-msgstr ""
+msgstr "Nâu xà cừ"
 
+# AI Translated
 msgid "Cream"
-msgstr ""
+msgstr "Kem"
 
+# AI Translated
 msgid "Grey white"
-msgstr ""
+msgstr "Trắng xám"
 
+# AI Translated
 msgid "Signal white"
-msgstr ""
+msgstr "Trắng tín hiệu"
 
+# AI Translated
 msgid "Signal black"
-msgstr ""
+msgstr "Đen tín hiệu"
 
+# AI Translated
 msgid "Jet black"
-msgstr ""
+msgstr "Đen tuyền"
 
+# AI Translated
 msgid "White aluminium"
-msgstr ""
+msgstr "Nhôm trắng"
 
+# AI Translated
 msgid "Grey aluminium"
-msgstr ""
+msgstr "Nhôm xám"
 
+# AI Translated
 msgid "Pure white"
-msgstr ""
+msgstr "Trắng tinh khiết"
 
+# AI Translated
 msgid "Graphite black"
-msgstr ""
+msgstr "Đen than chì"
 
+# AI Translated
 msgid "Traffic white"
-msgstr ""
+msgstr "Trắng giao thông"
 
+# AI Translated
 msgid "Traffic black"
-msgstr ""
+msgstr "Đen giao thông"
 
+# AI Translated
 msgid "Papyrus white"
-msgstr ""
+msgstr "Trắng giấy cói"
 
+# AI Translated
 msgid "Pearl light grey"
-msgstr ""
+msgstr "Xám nhạt xà cừ"
 
+# AI Translated
 msgid "Metal: Silver"
-msgstr ""
+msgstr "Kim loại: Bạc"
 
+# AI Translated
 msgid "Metal: Brass"
-msgstr ""
+msgstr "Kim loại: Đồng thau"
 
+# AI Translated
 msgid "Metal: Gold"
-msgstr ""
+msgstr "Kim loại: Vàng"
 
+# AI Translated
 msgid "Metal: Copper"
-msgstr ""
+msgstr "Kim loại: Đồng"
 
+# AI Translated
 msgid "Metal: Bronze"
-msgstr ""
+msgstr "Kim loại: Đồng thanh"
 
+# AI Translated
 msgid "Nature: Pearl"
-msgstr ""
+msgstr "Thiên nhiên: Ngọc trai"
 
+# AI Translated
 msgid "Nature: Rainbow"
-msgstr ""
+msgstr "Thiên nhiên: Cầu vồng"
 
+# AI Translated
 msgid "Nature: Clear Sky"
-msgstr ""
+msgstr "Thiên nhiên: Trời quang"
 
+# AI Translated
 msgid "Nature: Sunset"
-msgstr ""
+msgstr "Thiên nhiên: Hoàng hôn"
 
+# AI Translated
 msgid "Wood: Dark"
-msgstr ""
+msgstr "Gỗ: Đậm"
 
+# AI Translated
 msgid "Wood: Medium"
-msgstr ""
+msgstr "Gỗ: Vừa"
 
+# AI Translated
 msgid "Wood: Light"
-msgstr ""
+msgstr "Gỗ: Nhạt"
 
 # AI Translated
 msgid "Alternate nozzles:"
@@ -33376,12 +33810,24 @@ msgid "Built-in"
 msgstr "Tích hợp sẵn"
 
 # AI Translated
+msgid "My textures"
+msgstr "Kết cấu của tôi"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Không tìm thấy kết cấu nào."
 
 # AI Translated
-msgid "My textures"
-msgstr "Kết cấu của tôi"
+msgid "Texture libraries"
+msgstr "Thư viện kết cấu"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Khám phá thêm thư viện kết cấu"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Mở OrcaCloud trong trang chủ để duyệt plugin."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -33784,11 +34230,13 @@ msgstr "Được ánh xạ theo bố cục UV riêng của mô hình, vốn đã
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "Chiều rộng của một bản kết cấu trên mô hình. Nhỏ hơn thì mẫu lặp lại nhiều hơn và chi tiết mịn hơn; khi tắt Xếp ô, đây là kích thước của bản duy nhất."
 
+# AI Translated
 msgid "Larger"
-msgstr ""
+msgstr "Lớn hơn"
 
+# AI Translated
 msgid "Smaller"
-msgstr ""
+msgstr "Nhỏ hơn"
 
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
@@ -33864,11 +34312,13 @@ msgstr "Màu pha trộn"
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Số filament pha trộn tối đa mà một lần nướng có thể thêm. Chúng được chọn từ các màu của kết cấu, và chỉ những filament mà lần nướng thực sự dùng mới được tạo."
 
+# AI Translated
 msgid "Few"
-msgstr ""
+msgstr "Ít"
 
+# AI Translated
 msgid "Many"
-msgstr ""
+msgstr "Nhiều"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -34219,11 +34669,13 @@ msgstr "Tạo lại lưới"
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Kích thước tam giác dùng để dựng lại toàn bộ mô hình, tính bằng milimét. Dịch chuyển hoạt động tốt nhất trên lưới đều; đây là cách tạo lưới đều từ một mô hình nhập vào không đều."
 
+# AI Translated
 msgid "Before"
-msgstr ""
+msgstr "Trước"
 
+# AI Translated
 msgid "After"
-msgstr ""
+msgstr "Sau"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -36076,6 +36528,10 @@ msgid "Slicing Pipeline"
 msgstr "Quy trình slice"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Kết cấu tài nguyên"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "Giao diện cấu hình của plugin trống. Đang hiển thị trình chỉnh sửa mặc định."
 
@@ -36221,6 +36677,30 @@ msgstr "Thư mục plugin chứa cả file đầu vào .py và .whl"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Thư mục plugin không chứa file đầu vào .py hoặc .whl"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Chưa đặt thư mục kết cấu tài nguyên"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Không thể xác định thư mục kết cấu tài nguyên"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Đường dẫn kết cấu tài nguyên không phải là thư mục"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Không thể xác định thư mục plugin"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Thư mục kết cấu tài nguyên nằm ngoài thư mục plugin"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Không thể đọc thư mục kết cấu tài nguyên"
 
 # AI Translated
 #, boost-format
@@ -37168,6 +37648,28 @@ msgid ""
 msgstr ""
 "Tránh cong vênh\n"
 "Bạn có biết rằng khi in vật liệu dễ cong vênh như ABS, tăng nhiệt độ bàn nóng một cách thích hợp có thể giảm xác suất cong vênh không?"
+
+# AI Translated
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Vàng Dalmatia"
+
+# AI Translated
+# Needs human review: Source "Capsanthin violet" is probably a typo for RAL "Capri blue" (sits between Turquoise blue and Ocean blue); translated as Capri blue. Source string needs fixing
+#~ msgid "Capsanthin violet"
+#~ msgstr "Xanh dương Capri"
+
+# AI Translated
+# Needs human review: Source "Olivestone" is probably a typo for RAL "Olive grey" (sits between Silver grey and Moss grey); translated as Olive grey. Source string needs fixing
+#~ msgid "Olivestone"
+#~ msgstr "Xám ô liu"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Khả dụng ở mọi nơi trong cửa sổ, kể cả khi đang gõ trong ô văn bản."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Phím tắt toàn cục cũng có tác dụng khi đang gõ."
 
 # AI Translated
 #~ msgid "Please choose the filament color"

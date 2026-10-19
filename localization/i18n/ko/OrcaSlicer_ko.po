@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2025-06-02 17:12+0900\n"
 "Last-Translator: crwusiz <crwusiz@gmail.com>\n"
 "Language-Team: \n"
@@ -786,18 +786,21 @@ msgstr "선택"
 msgid "Plate"
 msgstr "플레이트"
 
+# AI Translated
 msgid "Distribute"
-msgstr ""
+msgstr "분배"
 
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "변형 작업에 사용되는 좌표계입니다."
 
+# AI Translated
 msgid "Reference for alignment"
-msgstr ""
+msgstr "정렬 기준"
 
+# AI Translated
 msgid "Select at least 3 parts or objects"
-msgstr ""
+msgstr "부품 또는 객체를 3개 이상 선택하세요"
 
 # AI Translated
 msgid "Align left"
@@ -850,8 +853,9 @@ msgstr "상하 균등 분배"
 msgid "Drop"
 msgstr "내리기"
 
+# AI Translated
 msgid "Move the selection along Z so that its lowest point touches the bed."
-msgstr ""
+msgstr "선택 항목의 가장 낮은 지점이 베드에 닿도록 Z축 방향으로 이동합니다."
 
 # AI Translated
 msgid "Absolute"
@@ -2088,17 +2092,21 @@ msgstr "조립 변형도구 진입"
 msgid "Leaving Assembly gizmo"
 msgstr "조립 변형도구 나가기"
 
+# AI Translated
 msgid "Parts of a cut object cannot be moved"
-msgstr ""
+msgstr "절단된 객체의 부품은 이동할 수 없습니다"
 
+# AI Translated
 msgid "Aligning to the plate is available in X and Y only"
-msgstr ""
+msgstr "플레이트에 정렬은 X와 Y에서만 사용할 수 있습니다"
 
+# AI Translated
 msgid "Turn off Auto-Drop for the selected objects to move them in Z"
-msgstr ""
+msgstr "Z축으로 이동하려면 선택한 객체의 자동 내려놓기를 끄세요"
 
+# AI Translated
 msgid "All selected objects must be on the same plate"
-msgstr ""
+msgstr "선택한 객체는 모두 같은 플레이트에 있어야 합니다"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -6559,8 +6567,10 @@ msgstr "축"
 msgid "Gridlines"
 msgstr "그리드 라인"
 
+# AI Translated
+# Needs human review: Mode name that hides the surrounding UI to focus on the 3D canvas; glossary has no entry, check the wording.
 msgid "Focus mode"
-msgstr ""
+msgstr "집중 모드"
 
 msgid "Labels"
 msgstr "레이블"
@@ -6622,7 +6632,7 @@ msgid "Size:"
 msgstr "크기:"
 
 # AI Translated
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "레이어 %d, Z = %.2lf mm에서 G-code 경로 충돌이 발견되었습니다. 충돌하는 객체를 더 멀리 분리하세요 (%s <-> %s)."
 
@@ -11072,11 +11082,14 @@ msgstr "지원되지 않는 사전 설정 표시"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "프린터 및 필라멘트 드롭다운 목록에 호환되지 않거나 지원되지 않는 사전 설정을 표시합니다. 이러한 사전 설정은 선택할 수 없습니다."
 
+# AI Translated
 msgid "Export statistics with G-code"
-msgstr ""
+msgstr "G-code와 함께 통계 내보내기"
 
+# AI Translated
+# Needs human review: "feature" here is the G-code feature (line) type, not the Design-tab Feature; rendered as line type, check.
 msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "활성화하면 G-code 파일을 내보낼 때 해당 통계도 JSON 형식의 <name>.statistics.json으로 옆에 함께 기록되고, 내보낸 슬라이스된 3MF 파일에는 통계가 내부에 포함됩니다. 내용은 출력 시간, 필라멘트 및 선 유형별 합계와 레이어별, 객체별 동일 항목입니다."
 
 # AI Translated
 msgid "Experimental Features"
@@ -11945,6 +11958,10 @@ msgstr "프린터 저장소에 파일을 업로드하지 못했습니다. 다시
 # AI Translated
 msgid "Send Failed"
 msgstr "전송 실패"
+
+# AI Translated
+msgid "No available printers"
+msgstr "사용 가능한 프린터가 없습니다"
 
 msgid "The name length exceeds the limit."
 msgstr "이름 길이가 제한을 초과합니다."
@@ -13842,8 +13859,8 @@ msgid "Left mouse"
 msgstr "마우스 왼쪽 버튼"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "텍스트 필드에 입력하는 중에도 창 어디에서나 사용할 수 있습니다."
+msgid "Available anywhere in the window."
+msgstr "창 어디에서나 사용할 수 있습니다."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13955,10 +13972,6 @@ msgstr "%s은(는) %s에 할당되어 있습니다. %s에 다시 할당하시겠
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "기본 %s은(는) %s에 할당되어 있습니다. %s에 다시 할당하시겠습니까?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "전역 단축키는 텍스트를 입력하는 중에도 적용됩니다."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -14416,9 +14429,10 @@ msgstr "\"%2%\"의 수정자 \"%1%\"(총 %3%개)이(가) 재봉선에 영향을 
 msgid "Seam placement may differ from expected."
 msgstr "재봉선 위치가 예상과 다를 수 있습니다."
 
+# AI Translated
 #, boost-format
 msgid "Failed to write the G-code statistics to %1%."
-msgstr ""
+msgstr "G-code 통계를 %1%에 쓰지 못했습니다."
 
 msgid "Internal Bridge"
 msgstr "내부 브릿지"
@@ -17929,6 +17943,14 @@ msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "G-code에 객체 제외 명령을 추가하려면 이 옵션을 활성화하세요."
 
 # AI Translated
+msgid "Outline tolerance"
+msgstr "외곽선 공차"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "EXCLUDE_OBJECT_DEFINE에 기록되는 객체 외곽선과 원래 외곽선 사이의 최대 편차입니다. 값이 클수록 점의 수가 줄어들어, 객체가 많은 G-code를 파싱하는 동안 멈추는 펌웨어에 도움이 됩니다. 0이면 모든 점을 유지합니다."
+
+# AI Translated
 msgid "Verbose G-code"
 msgstr "상세한 G-code"
 
@@ -21256,11 +21278,14 @@ msgstr "출력 디렉토리"
 msgid "This is the output directory for exported files."
 msgstr "내보내기 파일의 출력 디렉토리입니다."
 
+# AI Translated
 msgid "Export statistics"
-msgstr ""
+msgstr "통계 내보내기"
 
+# AI Translated
+# Needs human review: "feature" here is the G-code feature (line) type, not the Design-tab Feature; rendered as line type, check.
 msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "슬라이스한 각 플레이트의 통계를 JSON 형식으로, 출력 디렉터리의 G-code 옆에 plate_N.statistics.json으로 기록하고 --export-3mf로 내보내는 3MF 내부에도 포함합니다. 내용은 출력 시간, 필라멘트 및 선 유형별 합계와 레이어별, 객체별 동일 항목입니다."
 
 msgid "Debug level"
 msgstr "디버그 수준"
@@ -31225,1231 +31250,1645 @@ msgid "The current filament list does not contain %s. A project filament require
 msgid_plural "The current filament list does not contain %s. Project filaments required by the mixed filament will be created automatically after decomposition."
 msgstr[0] "현재 필라멘트 목록에 %s이(가) 없습니다. 분해 후 혼합 필라멘트에 필요한 프로젝트 필라멘트가 자동으로 생성됩니다."
 
+# AI Translated
 msgid "Color Picker"
-msgstr ""
+msgstr "색상 선택기"
 
+# AI Translated
 msgid "Basic Colors"
-msgstr ""
+msgstr "기본 색상"
 
-msgid "Orca Palette"
-msgstr ""
-
+# AI Translated
+# Needs human review: Glossary has no Palette entry; rendered as a named color collection.
 #. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
-msgid "RAL Classic"
-msgstr ""
+msgid "Orca Palette"
+msgstr "Orca 팔레트"
 
+# AI Translated
 #. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL 클래식"
+
+# AI Translated
+# Needs human review: Name of the gradient color set tab in the color picker; check it reads right as a tab label.
 msgid "Gradients"
-msgstr ""
+msgstr "그라데이션"
 
+# AI Translated
+msgctxt "Color picker"
 msgid "Solid"
-msgstr ""
+msgstr "단색"
 
+# AI Translated
 msgid "Gradient"
-msgstr ""
+msgstr "그라데이션"
 
+# AI Translated
 msgid "Gradient start"
-msgstr ""
+msgstr "그라데이션 시작"
 
+# AI Translated
 msgid "Gradient end"
-msgstr ""
+msgstr "그라데이션 끝"
 
+# AI Translated
 msgid "Gradient color"
-msgstr ""
+msgstr "그라데이션 색상"
 
+# AI Translated
 msgid "Add color"
-msgstr ""
+msgstr "색상 추가"
 
+# AI Translated
 msgid "Remove color"
-msgstr ""
+msgstr "색상 제거"
 
+# AI Translated
 msgid "Saturation"
-msgstr ""
+msgstr "채도"
 
+# AI Translated
 msgid "Original color"
-msgstr ""
+msgstr "원래 색상"
 
+# AI Translated
 #. TRN: Clicking the current color preview adds it to the saved favorites.
 msgid "Save current color"
-msgstr ""
+msgstr "현재 색상 저장"
 
+# AI Translated
 msgid "Palettes"
-msgstr ""
+msgstr "팔레트"
 
+# AI Translated
 msgid "Search colors"
-msgstr ""
+msgstr "색상 검색"
 
+# AI Translated
 msgid "Filter colors"
-msgstr ""
+msgstr "색상 필터"
 
+# AI Translated
 msgid "No matching colors"
-msgstr ""
+msgstr "일치하는 색상이 없습니다"
 
+# AI Translated
 msgid "Hex color"
-msgstr ""
+msgstr "16진수 색상"
 
 # AI Translated
 msgid "Opacity"
 msgstr "불투명도"
 
+# AI Translated
 msgid "Opacity percent"
-msgstr ""
+msgstr "불투명도(%)"
 
+# AI Translated
 msgid "Save color"
-msgstr ""
+msgstr "색상 저장"
 
+# AI Translated
 msgid "Enter a complete hexadecimal color"
-msgstr ""
+msgstr "전체 16진수 색상 값을 입력하세요"
 
+# AI Translated
 msgid "The current multi-color selection is kept until you choose a different color."
-msgstr ""
+msgstr "다른 색상을 선택할 때까지 현재 다중 색상 선택이 유지됩니다."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "최대 %d개 색상을 지원합니다."
 
+# AI Translated
 msgid "Crimson"
-msgstr ""
+msgstr "크림슨"
 
+# AI Translated
 msgid "Orange red"
-msgstr ""
+msgstr "오렌지 레드"
 
+# AI Translated
 msgid "Tomato"
-msgstr ""
+msgstr "토마토"
 
+# AI Translated
 msgid "Orange"
-msgstr ""
+msgstr "오렌지"
 
+# AI Translated
 msgid "Dark orange"
-msgstr ""
+msgstr "다크 오렌지"
 
+# AI Translated
 msgid "Gold"
-msgstr ""
+msgstr "골드"
 
+# AI Translated
 msgid "Burly wood"
-msgstr ""
+msgstr "벌리우드"
 
+# AI Translated
 msgid "Bisque"
-msgstr ""
+msgstr "비스크"
 
+# AI Translated
 msgid "Misty rose"
-msgstr ""
+msgstr "미스티 로즈"
 
+# AI Translated
 msgid "Light yellow"
-msgstr ""
+msgstr "라이트 옐로"
 
+# AI Translated
 msgid "Lemon chiffon"
-msgstr ""
+msgstr "레몬 시폰"
 
+# AI Translated
 msgid "Beige"
-msgstr ""
+msgstr "베이지"
 
+# AI Translated
 msgid "Light golden rod yellow"
-msgstr ""
+msgstr "라이트 골든로드 옐로"
 
+# AI Translated
 msgid "Pale golden rod"
-msgstr ""
+msgstr "페일 골든로드"
 
+# AI Translated
 msgid "Khaki"
-msgstr ""
+msgstr "카키"
 
+# AI Translated
 msgid "Dark khaki"
-msgstr ""
+msgstr "다크 카키"
 
+# AI Translated
 msgid "Peach puff"
-msgstr ""
+msgstr "피치 퍼프"
 
+# AI Translated
 msgid "Moccasin"
-msgstr ""
+msgstr "모카신"
 
+# AI Translated
 msgid "Papaya whip"
-msgstr ""
+msgstr "파파야 휩"
 
+# AI Translated
 msgid "Blanched almond"
-msgstr ""
+msgstr "블랜치드 아몬드"
 
+# AI Translated
 msgid "Antique white"
-msgstr ""
+msgstr "앤티크 화이트"
 
+# AI Translated
 msgid "Navajo white"
-msgstr ""
+msgstr "나바호 화이트"
 
+# AI Translated
 msgid "Wheat"
-msgstr ""
+msgstr "휘트"
 
+# AI Translated
 msgid "Golden rod"
-msgstr ""
+msgstr "골든로드"
 
+# AI Translated
 msgid "Chocolate"
-msgstr ""
+msgstr "초콜릿"
 
+# AI Translated
 msgid "Peru"
-msgstr ""
+msgstr "페루"
 
+# AI Translated
 msgid "Fire brick"
-msgstr ""
+msgstr "파이어브릭"
 
+# AI Translated
 msgid "Sienna"
-msgstr ""
+msgstr "시에나"
 
+# AI Translated
 msgid "Saddle brown"
-msgstr ""
+msgstr "새들 브라운"
 
+# AI Translated
 msgid "Brown"
-msgstr ""
+msgstr "브라운"
 
+# AI Translated
 msgid "Rosy brown"
-msgstr ""
+msgstr "로지 브라운"
 
+# AI Translated
 msgid "Salmon"
-msgstr ""
+msgstr "살몬"
 
+# AI Translated
 msgid "Light salmon"
-msgstr ""
+msgstr "라이트 살몬"
 
+# AI Translated
 msgid "Dark salmon"
-msgstr ""
+msgstr "다크 살몬"
 
+# AI Translated
 msgid "Sandy brown"
-msgstr ""
+msgstr "샌디 브라운"
 
+# AI Translated
 msgid "Coral"
-msgstr ""
+msgstr "코랄"
 
+# AI Translated
 msgid "Light coral"
-msgstr ""
+msgstr "라이트 코랄"
 
+# AI Translated
 msgid "Indian red"
-msgstr ""
+msgstr "인디언 레드"
 
+# AI Translated
 msgid "Dark red"
-msgstr ""
+msgstr "다크 레드"
 
+# AI Translated
 msgid "Maroon"
-msgstr ""
+msgstr "마룬"
 
+# AI Translated
 msgid "Green yellow"
-msgstr ""
+msgstr "그린 옐로"
 
+# AI Translated
 msgid "Yellow green"
-msgstr ""
+msgstr "옐로 그린"
 
+# AI Translated
 msgid "Chartreuse"
-msgstr ""
+msgstr "샤르트뢰즈"
 
+# AI Translated
 msgid "Lawn green"
-msgstr ""
+msgstr "론 그린"
 
+# AI Translated
 msgid "Lime green"
-msgstr ""
+msgstr "라임 그린"
 
+# AI Translated
 msgid "Spring green"
-msgstr ""
+msgstr "스프링 그린"
 
+# AI Translated
 msgid "Medium spring green"
-msgstr ""
+msgstr "미디엄 스프링 그린"
 
+# AI Translated
 msgid "Lime"
-msgstr ""
+msgstr "라임"
 
+# AI Translated
 msgid "Forest green"
-msgstr ""
+msgstr "포레스트 그린"
 
+# AI Translated
 msgid "Dark green"
-msgstr ""
+msgstr "다크 그린"
 
+# AI Translated
 msgid "Olive drab"
-msgstr ""
+msgstr "올리브 드랩"
 
+# AI Translated
 msgid "Olive"
-msgstr ""
+msgstr "올리브"
 
+# AI Translated
 msgid "Dark olive green"
-msgstr ""
+msgstr "다크 올리브 그린"
 
+# AI Translated
 msgid "Pale green"
-msgstr ""
+msgstr "페일 그린"
 
+# AI Translated
 msgid "Light green"
-msgstr ""
+msgstr "라이트 그린"
 
+# AI Translated
 msgid "Medium sea green"
-msgstr ""
+msgstr "미디엄 시 그린"
 
+# AI Translated
 msgid "Sea green"
-msgstr ""
+msgstr "시 그린"
 
+# AI Translated
 msgid "Dark sea green"
-msgstr ""
+msgstr "다크 시 그린"
 
+# AI Translated
 msgid "Cadet blue"
-msgstr ""
+msgstr "카뎃 블루"
 
+# AI Translated
 msgid "Medium aqua marine"
-msgstr ""
+msgstr "미디엄 아쿠아마린"
 
+# AI Translated
 msgid "Turquoise"
-msgstr ""
+msgstr "터콰이즈"
 
+# AI Translated
 msgid "Medium turquoise"
-msgstr ""
+msgstr "미디엄 터콰이즈"
 
+# AI Translated
 msgid "Dark turquoise"
-msgstr ""
+msgstr "다크 터콰이즈"
 
+# AI Translated
 msgid "Pale turquoise"
-msgstr ""
+msgstr "페일 터콰이즈"
 
+# AI Translated
 msgid "Aqua"
-msgstr ""
+msgstr "아쿠아"
 
+# AI Translated
 msgid "Light cyan"
-msgstr ""
+msgstr "라이트 시안"
 
+# AI Translated
 msgid "Mint cream"
-msgstr ""
+msgstr "민트 크림"
 
+# AI Translated
 msgid "Honey dew"
-msgstr ""
+msgstr "허니듀"
 
+# AI Translated
 msgid "Aquamarine"
-msgstr ""
+msgstr "아쿠아마린"
 
+# AI Translated
 msgid "Light sea green"
-msgstr ""
+msgstr "라이트 시 그린"
 
+# AI Translated
 msgid "Dark cyan"
-msgstr ""
+msgstr "다크 시안"
 
+# AI Translated
 msgid "Teal"
-msgstr ""
+msgstr "틸"
 
+# AI Translated
 msgid "Dark slate gray"
-msgstr ""
+msgstr "다크 슬레이트 그레이"
 
+# AI Translated
 msgid "Light slate gray"
-msgstr ""
+msgstr "라이트 슬레이트 그레이"
 
+# AI Translated
 msgid "Slate gray"
-msgstr ""
+msgstr "슬레이트 그레이"
 
+# AI Translated
 msgid "Deep sky blue"
-msgstr ""
+msgstr "딥 스카이 블루"
 
+# AI Translated
 msgid "Dodger Blue"
-msgstr ""
+msgstr "다저 블루"
 
+# AI Translated
 msgid "Sky blue"
-msgstr ""
+msgstr "스카이 블루"
 
+# AI Translated
 msgid "Light sky blue"
-msgstr ""
+msgstr "라이트 스카이 블루"
 
+# AI Translated
 msgid "Light blue"
-msgstr ""
+msgstr "라이트 블루"
 
+# AI Translated
 msgid "Powder blue"
-msgstr ""
+msgstr "파우더 블루"
 
+# AI Translated
 msgid "Light steel blue"
-msgstr ""
+msgstr "라이트 스틸 블루"
 
+# AI Translated
 msgid "Steel blue"
-msgstr ""
+msgstr "스틸 블루"
 
+# AI Translated
 msgid "Cornflower blue"
-msgstr ""
+msgstr "콘플라워 블루"
 
+# AI Translated
 msgid "Royal blue"
-msgstr ""
+msgstr "로열 블루"
 
+# AI Translated
 msgid "Medium blue"
-msgstr ""
+msgstr "미디엄 블루"
 
+# AI Translated
 msgid "Midnight blue"
-msgstr ""
+msgstr "미드나이트 블루"
 
+# AI Translated
 msgid "Dark blue"
-msgstr ""
+msgstr "다크 블루"
 
+# AI Translated
 msgid "Navy"
-msgstr ""
+msgstr "네이비"
 
+# AI Translated
 msgid "Slate blue"
-msgstr ""
+msgstr "슬레이트 블루"
 
+# AI Translated
 msgid "Dark slate blue"
-msgstr ""
+msgstr "다크 슬레이트 블루"
 
+# AI Translated
 msgid "Medium slate blue"
-msgstr ""
+msgstr "미디엄 슬레이트 블루"
 
+# AI Translated
 msgid "Blue violet"
-msgstr ""
+msgstr "블루 바이올렛"
 
+# AI Translated
 msgid "Indigo"
-msgstr ""
+msgstr "인디고"
 
+# AI Translated
 msgid "Dark violet"
-msgstr ""
+msgstr "다크 바이올렛"
 
+# AI Translated
 msgid "Dark orchid"
-msgstr ""
+msgstr "다크 오키드"
 
+# AI Translated
 msgid "Medium orchid"
-msgstr ""
+msgstr "미디엄 오키드"
 
+# AI Translated
 msgid "Orchid"
-msgstr ""
+msgstr "오키드"
 
+# AI Translated
 msgid "Violet"
-msgstr ""
+msgstr "바이올렛"
 
+# AI Translated
 msgid "Medium purple"
-msgstr ""
+msgstr "미디엄 퍼플"
 
+# AI Translated
 msgid "Purple"
-msgstr ""
+msgstr "퍼플"
 
+# AI Translated
 msgid "Rebecca purple"
-msgstr ""
+msgstr "레베카 퍼플"
 
+# AI Translated
 msgid "Medium violet red"
-msgstr ""
+msgstr "미디엄 바이올렛 레드"
 
-msgid "PaleV violet red"
-msgstr ""
+# AI Translated
+msgid "Pale violet red"
+msgstr "페일 바이올렛 레드"
 
+# AI Translated
 msgid "Deep pink"
-msgstr ""
+msgstr "딥 핑크"
 
+# AI Translated
 msgid "Hot pink"
-msgstr ""
+msgstr "핫 핑크"
 
+# AI Translated
 msgid "Light pink"
-msgstr ""
+msgstr "라이트 핑크"
 
+# AI Translated
 msgid "Pink"
-msgstr ""
+msgstr "핑크"
 
+# AI Translated
 msgid "Plum"
-msgstr ""
+msgstr "플럼"
 
+# AI Translated
 msgid "Thistle"
-msgstr ""
+msgstr "시슬"
 
+# AI Translated
 msgid "Fuchsia"
-msgstr ""
+msgstr "푸크시아"
 
+# AI Translated
 msgid "Dark magenta"
-msgstr ""
+msgstr "다크 마젠타"
 
+# AI Translated
 msgid "Linen"
-msgstr ""
+msgstr "리넨"
 
+# AI Translated
 msgid "Old lace"
-msgstr ""
+msgstr "올드 레이스"
 
+# AI Translated
 msgid "Sea shell"
-msgstr ""
+msgstr "시 쉘"
 
+# AI Translated
 msgid "Ivory"
-msgstr ""
+msgstr "아이보리"
 
+# AI Translated
 msgid "Floral white"
-msgstr ""
+msgstr "플로럴 화이트"
 
+# AI Translated
 msgid "Lavender blush"
-msgstr ""
+msgstr "라벤더 블러시"
 
+# AI Translated
 msgid "Ghost white"
-msgstr ""
+msgstr "고스트 화이트"
 
+# AI Translated
 msgid "Alice blue"
-msgstr ""
+msgstr "앨리스 블루"
 
+# AI Translated
 msgid "Lavender"
-msgstr ""
+msgstr "라벤더"
 
+# AI Translated
 msgid "White smoke"
-msgstr ""
+msgstr "화이트 스모크"
 
+# AI Translated
 msgid "Gainsboro"
-msgstr ""
+msgstr "게인즈버러"
 
+# AI Translated
 msgid "Black"
-msgstr ""
+msgstr "블랙"
 
+# AI Translated
 msgid "Coral fire"
-msgstr ""
+msgstr "코랄 파이어"
 
+# AI Translated
 msgid "Sea anemone"
-msgstr ""
+msgstr "시 아네모네"
 
+# AI Translated
 msgid "Deep abyss"
-msgstr ""
+msgstr "딥 어비스"
 
+# AI Translated
 msgid "Lobster red"
-msgstr ""
+msgstr "랍스터 레드"
 
+# AI Translated
 msgid "Sandy clay"
-msgstr ""
+msgstr "샌디 클레이"
 
+# AI Translated
 msgid "Driftwood"
-msgstr ""
+msgstr "드리프트우드"
 
+# AI Translated
 msgid "Sea buckthorn"
-msgstr ""
+msgstr "시 벅손"
 
+# AI Translated
 msgid "Sunset reef"
-msgstr ""
+msgstr "선셋 리프"
 
+# AI Translated
 msgid "Tiger coral"
-msgstr ""
+msgstr "타이거 코랄"
 
+# AI Translated
 msgid "Pink coral"
-msgstr ""
+msgstr "핑크 코랄"
 
+# AI Translated
 msgid "Seashell glow"
-msgstr ""
+msgstr "시쉘 글로"
 
+# AI Translated
 msgid "Sand"
-msgstr ""
+msgstr "샌드"
 
+# AI Translated
 msgid "Golden kelp"
-msgstr ""
+msgstr "골든 켈프"
 
+# AI Translated
 msgid "Sunlit dune"
-msgstr ""
+msgstr "선릿 듄"
 
+# AI Translated
 msgid "Amber nautilus"
-msgstr ""
+msgstr "앰버 노틸러스"
 
+# AI Translated
 msgid "Sea lemon"
-msgstr ""
+msgstr "시 레몬"
 
+# AI Translated
 msgid "Pale starfish"
-msgstr ""
+msgstr "페일 스타피시"
 
+# AI Translated
 msgid "Spring tide"
-msgstr ""
+msgstr "스프링 타이드"
 
+# AI Translated
 msgid "Lime algae"
-msgstr ""
+msgstr "라임 앨지"
 
+# AI Translated
 msgid "Sea grass"
-msgstr ""
+msgstr "시 그래스"
 
+# AI Translated
 msgid "Neon plankton"
-msgstr ""
+msgstr "네온 플랑크톤"
 
+# AI Translated
 msgid "Kelp forest"
-msgstr ""
+msgstr "켈프 포레스트"
 
+# AI Translated
 msgid "Emerald wave"
-msgstr ""
+msgstr "에메랄드 웨이브"
 
+# AI Translated
 msgid "Whale shadow"
-msgstr ""
+msgstr "웨일 섀도"
 
+# AI Translated
 msgid "Sea turtle"
-msgstr ""
+msgstr "시 터틀"
 
+# AI Translated
 msgid "Lagoon"
-msgstr ""
+msgstr "라군"
 
+# AI Translated
 msgid "Tropical current"
-msgstr ""
+msgstr "트로피컬 커런트"
 
+# AI Translated
 msgid "Midnight trench"
-msgstr ""
+msgstr "미드나이트 트렌치"
 
+# AI Translated
 msgid "Dark kelp"
-msgstr ""
+msgstr "다크 켈프"
 
+# AI Translated
 msgid "Crystal surf"
-msgstr ""
+msgstr "크리스털 서프"
 
+# AI Translated
 msgid "Turquoise bay"
-msgstr ""
+msgstr "터콰이즈 베이"
 
+# AI Translated
 msgid "Sky over reef"
-msgstr ""
+msgstr "스카이 오버 리프"
 
+# AI Translated
 msgid "Shallow sky"
-msgstr ""
+msgstr "섈로 스카이"
 
-msgid "Electric bel"
-msgstr ""
+# AI Translated
+msgid "Electric blue"
+msgstr "일렉트릭 블루"
 
+# AI Translated
 msgid "Dolphin"
-msgstr ""
+msgstr "돌핀"
 
+# AI Translated
 msgid "Ocean depths"
-msgstr ""
+msgstr "오션 뎁스"
 
+# AI Translated
 msgid "Whale"
-msgstr ""
+msgstr "웨일"
 
+# AI Translated
 msgid "Indigo abyss"
-msgstr ""
+msgstr "인디고 어비스"
 
+# AI Translated
 msgid "Sea urchin"
-msgstr ""
+msgstr "시 어친"
 
+# AI Translated
 msgid "Lavender coral"
-msgstr ""
+msgstr "라벤더 코랄"
 
+# AI Translated
 msgid "Violet tide"
-msgstr ""
+msgstr "바이올렛 타이드"
 
+# AI Translated
 msgid "Deep sea orchid"
-msgstr ""
+msgstr "딥 시 오키드"
 
+# AI Translated
 msgid "Neon jelly"
-msgstr ""
+msgstr "네온 젤리"
 
+# AI Translated
 msgid "Fuchsia coral"
-msgstr ""
+msgstr "푸크시아 코랄"
 
+# AI Translated
 msgid "Pink jellyfish"
-msgstr ""
+msgstr "핑크 젤리피시"
 
+# AI Translated
 msgid "Foam"
-msgstr ""
+msgstr "폼"
 
+# AI Translated
 msgid "Seashell white"
-msgstr ""
+msgstr "시쉘 화이트"
 
+# AI Translated
 msgid "Pebble gray"
-msgstr ""
+msgstr "페블 그레이"
 
+# AI Translated
 msgid "Storm cloud"
-msgstr ""
+msgstr "스톰 클라우드"
 
+# AI Translated
 msgid "Ink black"
-msgstr ""
+msgstr "잉크 블랙"
 
+# AI Translated
 msgid "Green beige"
-msgstr ""
+msgstr "그린 베이지"
 
+# AI Translated
 msgid "Sand yellow"
-msgstr ""
+msgstr "샌드 옐로"
 
+# AI Translated
 msgid "Signal yellow"
-msgstr ""
+msgstr "시그널 옐로"
 
+# AI Translated
 msgid "Golden yellow"
-msgstr ""
+msgstr "골든 옐로"
 
+# AI Translated
 msgid "Honey yellow"
-msgstr ""
+msgstr "허니 옐로"
 
+# AI Translated
 msgid "Maize yellow"
-msgstr ""
+msgstr "메이즈 옐로"
 
-msgid "Dalmatian yellow"
-msgstr ""
+# AI Translated
+# Needs human review: Check the Korean name for daffodil: 수선화 (narcissus) is used; a transliteration such as 대포딜 is the alternative.
+msgid "Daffodil yellow"
+msgstr "수선화 옐로"
 
+# AI Translated
 msgid "Brown beige"
-msgstr ""
+msgstr "브라운 베이지"
 
+# AI Translated
 msgid "Lemon yellow"
-msgstr ""
+msgstr "레몬 옐로"
 
+# AI Translated
 msgid "Oyster white"
-msgstr ""
+msgstr "오이스터 화이트"
 
+# AI Translated
 msgid "Light ivory"
-msgstr ""
+msgstr "라이트 아이보리"
 
+# AI Translated
 msgid "Zinc yellow"
-msgstr ""
+msgstr "징크 옐로"
 
+# AI Translated
 msgid "Grey beige"
-msgstr ""
+msgstr "그레이 베이지"
 
+# AI Translated
 msgid "Olive yellow"
-msgstr ""
+msgstr "올리브 옐로"
 
+# AI Translated
+# Needs human review: RAL name (rapeseed); check the plant name reads naturally as a color.
 msgid "Rape yellow"
-msgstr ""
+msgstr "유채꽃 옐로"
 
+# AI Translated
 msgid "Traffic yellow"
-msgstr ""
+msgstr "트래픽 옐로"
 
+# AI Translated
 msgid "Ochre yellow"
-msgstr ""
+msgstr "오커 옐로"
 
+# AI Translated
 msgid "Traffic orange yellow"
-msgstr ""
+msgstr "트래픽 오렌지 옐로"
 
+# AI Translated
 msgid "Curry"
-msgstr ""
+msgstr "커리"
 
+# AI Translated
 msgid "Melon yellow"
-msgstr ""
+msgstr "멜론 옐로"
 
+# AI Translated
+# Needs human review: RAL name (broom, the plant); check the rendering.
 msgid "Broom yellow"
-msgstr ""
+msgstr "브룸 옐로"
 
+# AI Translated
 msgid "Dahlia yellow"
-msgstr ""
+msgstr "달리아 옐로"
 
+# AI Translated
 msgid "Pastel yellow"
-msgstr ""
+msgstr "파스텔 옐로"
 
+# AI Translated
 msgid "Pearl beige"
-msgstr ""
+msgstr "펄 베이지"
 
+# AI Translated
 msgid "Pearl gold"
-msgstr ""
+msgstr "펄 골드"
 
+# AI Translated
 msgid "Sun yellow"
-msgstr ""
+msgstr "선 옐로"
 
+# AI Translated
 msgid "Yellow orange"
-msgstr ""
+msgstr "옐로 오렌지"
 
+# AI Translated
 msgid "Deep orange"
-msgstr ""
+msgstr "딥 오렌지"
 
+# AI Translated
 msgid "Vermilion"
-msgstr ""
+msgstr "버밀리언"
 
+# AI Translated
 msgid "Pearl orange"
-msgstr ""
+msgstr "펄 오렌지"
 
+# AI Translated
 msgid "Pure orange"
-msgstr ""
+msgstr "퓨어 오렌지"
 
+# AI Translated
 msgid "Luminous orange"
-msgstr ""
+msgstr "루미너스 오렌지"
 
+# AI Translated
 msgid "Luminous bright orange"
-msgstr ""
+msgstr "루미너스 브라이트 오렌지"
 
+# AI Translated
 msgid "Bright red orange"
-msgstr ""
+msgstr "브라이트 레드 오렌지"
 
+# AI Translated
 msgid "Traffic orange"
-msgstr ""
+msgstr "트래픽 오렌지"
 
+# AI Translated
 msgid "Signal orange"
-msgstr ""
+msgstr "시그널 오렌지"
 
+# AI Translated
 msgid "Salmon orange"
-msgstr ""
+msgstr "살몬 오렌지"
 
+# AI Translated
 msgid "Pearl pink"
-msgstr ""
+msgstr "펄 핑크"
 
+# AI Translated
 msgid "Copper orange"
-msgstr ""
+msgstr "코퍼 오렌지"
 
+# AI Translated
 msgid "Signal brown"
-msgstr ""
+msgstr "시그널 브라운"
 
+# AI Translated
+# Needs human review: Source name is odd (RAL has Fir green); fir rendered as the tree.
 msgid "Fir orange"
-msgstr ""
+msgstr "전나무 오렌지"
 
+# AI Translated
 msgid "Signal red"
-msgstr ""
+msgstr "시그널 레드"
 
+# AI Translated
 msgid "Luminous red"
-msgstr ""
+msgstr "루미너스 레드"
 
+# AI Translated
 msgid "Carmine red"
-msgstr ""
+msgstr "카민 레드"
 
+# AI Translated
 msgid "Pearl carmine red"
-msgstr ""
+msgstr "펄 카민 레드"
 
+# AI Translated
 msgid "Pure red"
-msgstr ""
+msgstr "퓨어 레드"
 
+# AI Translated
 msgid "Luminous deep red"
-msgstr ""
+msgstr "루미너스 딥 레드"
 
+# AI Translated
 msgid "Currant red"
-msgstr ""
+msgstr "커런트 레드"
 
+# AI Translated
 msgid "Pearl ruby red"
-msgstr ""
+msgstr "펄 루비 레드"
 
+# AI Translated
 msgid "Fire red"
-msgstr ""
+msgstr "파이어 레드"
 
+# AI Translated
 msgid "Ruby red"
-msgstr ""
+msgstr "루비 레드"
 
+# AI Translated
 msgid "Purple red"
-msgstr ""
+msgstr "퍼플 레드"
 
+# AI Translated
 msgid "Wine red"
-msgstr ""
+msgstr "와인 레드"
 
+# AI Translated
 msgid "Black red"
-msgstr ""
+msgstr "블랙 레드"
 
+# AI Translated
 msgid "Oxide red"
-msgstr ""
+msgstr "옥사이드 레드"
 
+# AI Translated
 msgid "Brown red"
-msgstr ""
+msgstr "브라운 레드"
 
+# AI Translated
 msgid "Pine red"
-msgstr ""
+msgstr "파인 레드"
 
+# AI Translated
 msgid "Tomato red"
-msgstr ""
+msgstr "토마토 레드"
 
+# AI Translated
 msgid "Antique pink"
-msgstr ""
+msgstr "앤티크 핑크"
 
+# AI Translated
 msgid "Coral red"
-msgstr ""
+msgstr "코랄 레드"
 
+# AI Translated
 msgid "Rose"
-msgstr ""
+msgstr "로즈"
 
+# AI Translated
 msgid "Strawberry red"
-msgstr ""
+msgstr "스트로베리 레드"
 
+# AI Translated
 msgid "Traffic red"
-msgstr ""
+msgstr "트래픽 레드"
 
+# AI Translated
 msgid "Salmon pink"
-msgstr ""
+msgstr "살몬 핑크"
 
+# AI Translated
 msgid "Luminous rose"
-msgstr ""
+msgstr "루미너스 로즈"
 
+# AI Translated
 msgid "Luminous bright red"
-msgstr ""
+msgstr "루미너스 브라이트 레드"
 
+# AI Translated
 msgid "Raspberry red"
-msgstr ""
+msgstr "라즈베리 레드"
 
+# AI Translated
 msgid "Orient red"
-msgstr ""
+msgstr "오리엔트 레드"
 
+# AI Translated
 msgid "Pearl ruby"
-msgstr ""
+msgstr "펄 루비"
 
+# AI Translated
 msgid "Red purple"
-msgstr ""
+msgstr "레드 퍼플"
 
+# AI Translated
 msgid "Red violet"
-msgstr ""
+msgstr "레드 바이올렛"
 
+# AI Translated
 msgid "Heather violet"
-msgstr ""
+msgstr "헤더 바이올렛"
 
+# AI Translated
 msgid "Bordeaux violet"
-msgstr ""
+msgstr "보르도 바이올렛"
 
+# AI Translated
 msgid "Mahogany"
-msgstr ""
+msgstr "마호가니"
 
+# AI Translated
 msgid "Grey purple"
-msgstr ""
+msgstr "그레이 퍼플"
 
+# AI Translated
 msgid "Signal violet"
-msgstr ""
+msgstr "시그널 바이올렛"
 
+# AI Translated
 msgid "Fir green"
-msgstr ""
+msgstr "전나무 그린"
 
+# AI Translated
+# Needs human review: Source name unclear (Sabine); transliterated.
 msgid "Sabine grey"
-msgstr ""
+msgstr "사빈 그레이"
 
+# AI Translated
 msgid "Pearl violet"
-msgstr ""
+msgstr "펄 바이올렛"
 
+# AI Translated
 msgid "Pearl blackberry"
-msgstr ""
+msgstr "펄 블랙베리"
 
+# AI Translated
 msgid "Green blue"
-msgstr ""
+msgstr "그린 블루"
 
+# AI Translated
 msgid "Ultramarine blue"
-msgstr ""
+msgstr "울트라마린 블루"
 
+# AI Translated
 msgid "Sapphire blue"
-msgstr ""
+msgstr "사파이어 블루"
 
+# AI Translated
 msgid "Black blue"
-msgstr ""
+msgstr "블랙 블루"
 
+# AI Translated
 msgid "Signal blue"
-msgstr ""
+msgstr "시그널 블루"
 
+# AI Translated
 msgid "Brilliant blue"
-msgstr ""
+msgstr "브릴리언트 블루"
 
+# AI Translated
 msgid "Grey blue"
-msgstr ""
+msgstr "그레이 블루"
 
+# AI Translated
 msgid "Azure blue"
-msgstr ""
+msgstr "애저 블루"
 
+# AI Translated
 msgid "Gentian blue"
-msgstr ""
+msgstr "젠티안 블루"
 
+# AI Translated
 msgid "Cobalt blue"
-msgstr ""
+msgstr "코발트 블루"
 
+# AI Translated
 msgid "Pigeon blue"
-msgstr ""
+msgstr "피존 블루"
 
+# AI Translated
 msgid "Traffic blue"
-msgstr ""
+msgstr "트래픽 블루"
 
+# AI Translated
 msgid "Turquoise blue"
-msgstr ""
+msgstr "터콰이즈 블루"
 
-msgid "Capsanthin violet"
-msgstr ""
+# AI Translated
+msgid "Capri blue"
+msgstr "카프리 블루"
 
+# AI Translated
 msgid "Ocean blue"
-msgstr ""
+msgstr "오션 블루"
 
+# AI Translated
 msgid "Water blue"
-msgstr ""
+msgstr "워터 블루"
 
+# AI Translated
 msgid "Night blue"
-msgstr ""
+msgstr "나이트 블루"
 
+# AI Translated
 msgid "Distant blue"
-msgstr ""
+msgstr "디스턴트 블루"
 
+# AI Translated
 msgid "Pastel blue"
-msgstr ""
+msgstr "파스텔 블루"
 
+# AI Translated
 msgid "Pearl gentian blue"
-msgstr ""
+msgstr "펄 젠티안 블루"
 
+# AI Translated
 msgid "Pearl midnight blue"
-msgstr ""
+msgstr "펄 미드나이트 블루"
 
+# AI Translated
 msgid "Patina green"
-msgstr ""
+msgstr "파티나 그린"
 
+# AI Translated
 msgid "Emerald green"
-msgstr ""
+msgstr "에메랄드 그린"
 
+# AI Translated
 msgid "Leaf green"
-msgstr ""
+msgstr "리프 그린"
 
+# AI Translated
 msgid "Olive green"
-msgstr ""
+msgstr "올리브 그린"
 
+# AI Translated
 msgid "Blue green"
-msgstr ""
+msgstr "블루 그린"
 
+# AI Translated
 msgid "Moss green"
-msgstr ""
+msgstr "모스 그린"
 
+# AI Translated
 msgid "Grey olive"
-msgstr ""
+msgstr "그레이 올리브"
 
+# AI Translated
 msgid "Pine green"
-msgstr ""
+msgstr "파인 그린"
 
+# AI Translated
 msgid "Pine brown"
-msgstr ""
+msgstr "파인 브라운"
 
+# AI Translated
 msgid "Grass green"
-msgstr ""
+msgstr "그래스 그린"
 
+# AI Translated
 msgid "Reseda green"
-msgstr ""
+msgstr "레세다 그린"
 
+# AI Translated
 msgid "Brown green"
-msgstr ""
+msgstr "브라운 그린"
 
+# AI Translated
 msgid "Reed green"
-msgstr ""
+msgstr "리드 그린"
 
+# AI Translated
 msgid "Black green"
-msgstr ""
+msgstr "블랙 그린"
 
+# AI Translated
 msgid "Turquoise green"
-msgstr ""
+msgstr "터콰이즈 그린"
 
+# AI Translated
 msgid "May green"
-msgstr ""
+msgstr "메이 그린"
 
+# AI Translated
 msgid "Chrome oxide green"
-msgstr ""
+msgstr "크롬 옥사이드 그린"
 
+# AI Translated
 msgid "Traffic green"
-msgstr ""
+msgstr "트래픽 그린"
 
+# AI Translated
 msgid "Fern green"
-msgstr ""
+msgstr "펀 그린"
 
+# AI Translated
 msgid "Opal green"
-msgstr ""
+msgstr "오팔 그린"
 
+# AI Translated
 msgid "Mint green"
-msgstr ""
+msgstr "민트 그린"
 
+# AI Translated
 msgid "Bronze green"
-msgstr ""
+msgstr "브론즈 그린"
 
+# AI Translated
 msgid "Pearl green"
-msgstr ""
+msgstr "펄 그린"
 
+# AI Translated
 msgid "Sax turquoise"
-msgstr ""
+msgstr "삭스 터콰이즈"
 
+# AI Translated
 msgid "Pearl turquoise"
-msgstr ""
+msgstr "펄 터콰이즈"
 
+# AI Translated
 msgid "Pearl jade"
-msgstr ""
+msgstr "펄 제이드"
 
+# AI Translated
 msgid "Pure green"
-msgstr ""
+msgstr "퓨어 그린"
 
+# AI Translated
 msgid "Luminous green"
-msgstr ""
+msgstr "루미너스 그린"
 
+# AI Translated
 msgid "Squirrel grey"
-msgstr ""
+msgstr "스쿼럴 그레이"
 
+# AI Translated
 msgid "Silver grey"
-msgstr ""
+msgstr "실버 그레이"
 
-msgid "Olivestone"
-msgstr ""
+# AI Translated
+msgid "Olive grey"
+msgstr "올리브 그레이"
 
+# AI Translated
 msgid "Moss grey"
-msgstr ""
+msgstr "모스 그레이"
 
+# AI Translated
 msgid "Signal grey"
-msgstr ""
+msgstr "시그널 그레이"
 
+# AI Translated
 msgid "Mouse grey"
-msgstr ""
+msgstr "마우스 그레이"
 
+# AI Translated
 msgid "Beige grey"
-msgstr ""
+msgstr "베이지 그레이"
 
+# AI Translated
 msgid "Khaki grey"
-msgstr ""
+msgstr "카키 그레이"
 
+# AI Translated
 msgid "Green grey"
-msgstr ""
+msgstr "그린 그레이"
 
+# AI Translated
 msgid "Tarpaulin grey"
-msgstr ""
+msgstr "타폴린 그레이"
 
+# AI Translated
 msgid "Iron grey"
-msgstr ""
+msgstr "아이언 그레이"
 
+# AI Translated
 msgid "Basalt grey"
-msgstr ""
+msgstr "바솔트 그레이"
 
+# AI Translated
 msgid "Brown grey"
-msgstr ""
+msgstr "브라운 그레이"
 
+# AI Translated
 msgid "Slate grey"
-msgstr ""
+msgstr "슬레이트 그레이"
 
+# AI Translated
 msgid "Anthracite grey"
-msgstr ""
+msgstr "앤트러사이트 그레이"
 
+# AI Translated
 msgid "Light grey"
-msgstr ""
+msgstr "라이트 그레이"
 
+# AI Translated
 msgid "Umber grey"
-msgstr ""
+msgstr "엄버 그레이"
 
+# AI Translated
 msgid "Concrete grey"
-msgstr ""
+msgstr "콘크리트 그레이"
 
+# AI Translated
 msgid "Graphite grey"
-msgstr ""
+msgstr "그래파이트 그레이"
 
+# AI Translated
 msgid "Granite grey"
-msgstr ""
+msgstr "그래나이트 그레이"
 
+# AI Translated
 msgid "Stone grey"
-msgstr ""
+msgstr "스톤 그레이"
 
+# AI Translated
 msgid "Pebble grey"
-msgstr ""
+msgstr "페블 그레이"
 
+# AI Translated
 msgid "Cement grey"
-msgstr ""
+msgstr "시멘트 그레이"
 
+# AI Translated
 msgid "Yellow grey"
-msgstr ""
+msgstr "옐로 그레이"
 
+# AI Translated
 msgid "Platinum grey"
-msgstr ""
+msgstr "플래티넘 그레이"
 
+# AI Translated
 msgid "Dusty grey"
-msgstr ""
+msgstr "더스티 그레이"
 
+# AI Translated
 msgid "Agate grey"
-msgstr ""
+msgstr "아게이트 그레이"
 
+# AI Translated
 msgid "Quartz grey"
-msgstr ""
+msgstr "쿼츠 그레이"
 
+# AI Translated
 msgid "Window grey"
-msgstr ""
+msgstr "윈도 그레이"
 
+# AI Translated
 msgid "Traffic grey A"
-msgstr ""
+msgstr "트래픽 그레이 A"
 
+# AI Translated
 msgid "Traffic grey B"
-msgstr ""
+msgstr "트래픽 그레이 B"
 
+# AI Translated
 msgid "Silk grey"
-msgstr ""
+msgstr "실크 그레이"
 
+# AI Translated
 msgid "Telegrey 1"
-msgstr ""
+msgstr "텔레그레이 1"
 
+# AI Translated
 msgid "Telegrey 2"
-msgstr ""
+msgstr "텔레그레이 2"
 
+# AI Translated
 msgid "Telegrey 4"
-msgstr ""
+msgstr "텔레그레이 4"
 
+# AI Translated
 msgid "Pearl mouse grey"
-msgstr ""
+msgstr "펄 마우스 그레이"
 
+# AI Translated
 msgid "Green brown"
-msgstr ""
+msgstr "그린 브라운"
 
+# AI Translated
 msgid "Ochre brown"
-msgstr ""
+msgstr "오커 브라운"
 
+# AI Translated
 msgid "Clay brown"
-msgstr ""
+msgstr "클레이 브라운"
 
+# AI Translated
 msgid "Copper brown"
-msgstr ""
+msgstr "코퍼 브라운"
 
+# AI Translated
 msgid "Chocolate brown"
-msgstr ""
+msgstr "초콜릿 브라운"
 
+# AI Translated
 msgid "Olive brown"
-msgstr ""
+msgstr "올리브 브라운"
 
+# AI Translated
 msgid "Nut brown"
-msgstr ""
+msgstr "너트 브라운"
 
+# AI Translated
 msgid "Red brown"
-msgstr ""
+msgstr "레드 브라운"
 
+# AI Translated
 msgid "Sepia brown"
-msgstr ""
+msgstr "세피아 브라운"
 
+# AI Translated
 msgid "Chestnut brown"
-msgstr ""
+msgstr "체스트넛 브라운"
 
+# AI Translated
 msgid "Mahogany brown"
-msgstr ""
+msgstr "마호가니 브라운"
 
+# AI Translated
 msgid "Grey brown"
-msgstr ""
+msgstr "그레이 브라운"
 
+# AI Translated
 msgid "Pearl copper"
-msgstr ""
+msgstr "펄 코퍼"
 
+# AI Translated
 msgid "Beige brown"
-msgstr ""
+msgstr "베이지 브라운"
 
+# AI Translated
 msgid "Pearl mocha brown"
-msgstr ""
+msgstr "펄 모카 브라운"
 
+# AI Translated
 msgid "Earth brown"
-msgstr ""
+msgstr "어스 브라운"
 
+# AI Translated
 msgid "Pearl brown"
-msgstr ""
+msgstr "펄 브라운"
 
+# AI Translated
 msgid "Cream"
-msgstr ""
+msgstr "크림"
 
+# AI Translated
 msgid "Grey white"
-msgstr ""
+msgstr "그레이 화이트"
 
+# AI Translated
 msgid "Signal white"
-msgstr ""
+msgstr "시그널 화이트"
 
+# AI Translated
 msgid "Signal black"
-msgstr ""
+msgstr "시그널 블랙"
 
+# AI Translated
 msgid "Jet black"
-msgstr ""
+msgstr "제트 블랙"
 
+# AI Translated
 msgid "White aluminium"
-msgstr ""
+msgstr "화이트 알루미늄"
 
+# AI Translated
 msgid "Grey aluminium"
-msgstr ""
+msgstr "그레이 알루미늄"
 
+# AI Translated
 msgid "Pure white"
-msgstr ""
+msgstr "퓨어 화이트"
 
+# AI Translated
 msgid "Graphite black"
-msgstr ""
+msgstr "그래파이트 블랙"
 
+# AI Translated
 msgid "Traffic white"
-msgstr ""
+msgstr "트래픽 화이트"
 
+# AI Translated
 msgid "Traffic black"
-msgstr ""
+msgstr "트래픽 블랙"
 
+# AI Translated
 msgid "Papyrus white"
-msgstr ""
+msgstr "파피루스 화이트"
 
+# AI Translated
 msgid "Pearl light grey"
-msgstr ""
+msgstr "펄 라이트 그레이"
 
+# AI Translated
 msgid "Metal: Silver"
-msgstr ""
+msgstr "메탈: 실버"
 
+# AI Translated
 msgid "Metal: Brass"
-msgstr ""
+msgstr "메탈: 브라스"
 
+# AI Translated
 msgid "Metal: Gold"
-msgstr ""
+msgstr "메탈: 골드"
 
+# AI Translated
 msgid "Metal: Copper"
-msgstr ""
+msgstr "메탈: 코퍼"
 
+# AI Translated
 msgid "Metal: Bronze"
-msgstr ""
+msgstr "메탈: 브론즈"
 
+# AI Translated
 msgid "Nature: Pearl"
-msgstr ""
+msgstr "네이처: 펄"
 
+# AI Translated
 msgid "Nature: Rainbow"
-msgstr ""
+msgstr "네이처: 레인보우"
 
+# AI Translated
 msgid "Nature: Clear Sky"
-msgstr ""
+msgstr "네이처: 클리어 스카이"
 
+# AI Translated
 msgid "Nature: Sunset"
-msgstr ""
+msgstr "네이처: 선셋"
 
+# AI Translated
 msgid "Wood: Dark"
-msgstr ""
+msgstr "우드: 다크"
 
+# AI Translated
 msgid "Wood: Medium"
-msgstr ""
+msgstr "우드: 미디엄"
 
+# AI Translated
 msgid "Wood: Light"
-msgstr ""
+msgstr "우드: 라이트"
 
 # AI Translated
 msgid "Alternate nozzles:"
@@ -32925,12 +33364,24 @@ msgid "Built-in"
 msgstr "기본 제공"
 
 # AI Translated
+msgid "My textures"
+msgstr "내 텍스처"
+
+# AI Translated
 msgid "No textures found."
 msgstr "텍스처가 없습니다."
 
 # AI Translated
-msgid "My textures"
-msgstr "내 텍스처"
+msgid "Texture libraries"
+msgstr "텍스처 라이브러리"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "더 많은 텍스처 라이브러리 둘러보기"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "홈 페이지에서 OrcaCloud를 열어 플러그인을 찾아봅니다."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -33333,11 +33784,15 @@ msgstr "모델 자체의 UV 레이아웃으로 매핑됩니다. 이 레이아웃
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "모델 위에서 텍스처 한 장의 폭입니다. 작을수록 패턴이 더 자주 반복되고 디테일이 더 세밀해집니다. 타일이 꺼져 있으면 단일 텍스처의 크기입니다."
 
+# AI Translated
+# Needs human review: Image caption in the tile-size tip (larger tiles); check wording.
 msgid "Larger"
-msgstr ""
+msgstr "더 크게"
 
+# AI Translated
+# Needs human review: Image caption in the tile-size tip (smaller tiles); check wording.
 msgid "Smaller"
-msgstr ""
+msgstr "더 작게"
 
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
@@ -33413,11 +33868,15 @@ msgstr "혼합 색상"
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "굽기에서 추가할 수 있는 혼합 필라멘트의 최대 개수입니다. 텍스처의 색상에서 선택되며, 굽기에서 실제로 사용하는 것만 생성됩니다."
 
+# AI Translated
+# Needs human review: Image caption comparing few vs many mixed colors; check wording.
 msgid "Few"
-msgstr ""
+msgstr "적음"
 
+# AI Translated
+# Needs human review: Image caption comparing few vs many mixed colors; check wording.
 msgid "Many"
-msgstr ""
+msgstr "많음"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -33768,11 +34227,15 @@ msgstr "리메시"
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "모델 전체를 다시 만들 때 사용할 삼각형 크기(밀리미터)입니다. 변위는 고른 메시에서 가장 잘 작동하며, 이 설정으로 고르지 않은 가져온 메시를 고르게 만듭니다."
 
+# AI Translated
+# Needs human review: Image caption of the remesh comparison (before/after remeshing); check wording.
 msgid "Before"
-msgstr ""
+msgstr "적용 전"
 
+# AI Translated
+# Needs human review: Image caption of the remesh comparison (before/after remeshing); check wording.
 msgid "After"
-msgstr ""
+msgstr "적용 후"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -35617,6 +36080,10 @@ msgid "Slicing Pipeline"
 msgstr "슬라이스 파이프라인"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "리소스 텍스처"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "플러그인의 구성 UI가 비어 있습니다. 기본 편집기를 표시합니다."
 
@@ -35762,6 +36229,30 @@ msgstr "플러그인 디렉터리에 .py 및 .whl 진입 파일이 모두 있습
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "플러그인 디렉터리에 .py 또는 .whl 진입 파일이 없습니다"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "리소스 텍스처 디렉터리가 설정되지 않았습니다"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "리소스 텍스처 디렉터리를 확인할 수 없습니다"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "리소스 텍스처 경로가 디렉터리가 아닙니다"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "플러그인 폴더를 확인할 수 없습니다"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "리소스 텍스처 디렉터리가 플러그인 폴더 밖에 있습니다"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "리소스 텍스처 디렉터리를 읽을 수 없습니다"
 
 # AI Translated
 #, boost-format
@@ -36713,6 +37204,26 @@ msgid ""
 msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀림이 발생하기 쉬운 소재를 출력할 때, 히트베드 온도를 적절하게 높이면 뒤틀림 가능성을 줄일 수 있다는 사실을 알고 계셨나요?"
+
+# AI Translated
+#~ msgid "Dalmatian yellow"
+#~ msgstr "달마시안 옐로"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "캡산틴 바이올렛"
+
+# AI Translated
+#~ msgid "Olivestone"
+#~ msgstr "올리브스톤"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "텍스트 필드에 입력하는 중에도 창 어디에서나 사용할 수 있습니다."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "전역 단축키는 텍스트를 입력하는 중에도 적용됩니다."
 
 #~ msgid "Please choose the filament color"
 #~ msgstr "필라멘트 색상을 선택하세요"

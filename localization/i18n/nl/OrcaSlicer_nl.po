@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -810,18 +810,22 @@ msgstr "Selectie"
 msgid "Plate"
 msgstr "Printbed"
 
+# AI Translated
+# Needs human review: Glossary has no Dutch term yet; Verdelen matches the existing Uitlijnen/Verdelen.
 msgid "Distribute"
-msgstr ""
+msgstr "Verdelen"
 
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "Coördinatensysteem dat wordt gebruikt voor transformatiebewerkingen."
 
+# AI Translated
 msgid "Reference for alignment"
-msgstr ""
+msgstr "Referentie voor uitlijning"
 
+# AI Translated
 msgid "Select at least 3 parts or objects"
-msgstr ""
+msgstr "Selecteer minstens 3 onderdelen of objecten"
 
 # AI Translated
 msgid "Align left"
@@ -874,8 +878,9 @@ msgstr "Boven-onder verdelen"
 msgid "Drop"
 msgstr "Neerzetten"
 
+# AI Translated
 msgid "Move the selection along Z so that its lowest point touches the bed."
-msgstr ""
+msgstr "Verplaats de selectie langs Z zodat het laagste punt het printbed raakt."
 
 # AI Translated
 msgid "Absolute"
@@ -2257,17 +2262,21 @@ msgstr "Samenstelgizmo starten"
 msgid "Leaving Assembly gizmo"
 msgstr "Samenstelgizmo verlaten"
 
+# AI Translated
 msgid "Parts of a cut object cannot be moved"
-msgstr ""
+msgstr "Onderdelen van een gesneden object kunnen niet worden verplaatst"
 
+# AI Translated
 msgid "Aligning to the plate is available in X and Y only"
-msgstr ""
+msgstr "Uitlijnen op het printbed is alleen mogelijk in X en Y"
 
+# AI Translated
 msgid "Turn off Auto-Drop for the selected objects to move them in Z"
-msgstr ""
+msgstr "Schakel Automatisch laten vallen uit voor de geselecteerde objecten om ze in Z te verplaatsen"
 
+# AI Translated
 msgid "All selected objects must be on the same plate"
-msgstr ""
+msgstr "Alle geselecteerde objecten moeten op hetzelfde printbed staan"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -7030,8 +7039,10 @@ msgstr "Assen"
 msgid "Gridlines"
 msgstr "Rasterlijnen"
 
+# AI Translated
+# Needs human review: Glossary has no Dutch term for Focus mode yet; Focusmodus chosen.
 msgid "Focus mode"
-msgstr ""
+msgstr "Focusmodus"
 
 # AI Translated
 msgid "Labels"
@@ -7095,7 +7106,7 @@ msgid "Size:"
 msgstr "Maat:"
 
 # AI Translated
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Er zijn conflicten tussen G-code-paden gevonden op laag %d, Z = %.2lfmm. Plaats de conflicterende objecten verder uit elkaar (%s <-> %s)."
 
@@ -11752,11 +11763,13 @@ msgstr "Niet-ondersteunde voorinstellingen tonen"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Toon incompatibele/niet-ondersteunde voorinstellingen in de keuzelijsten voor printer en filament. Deze voorinstellingen kunnen niet worden geselecteerd."
 
+# AI Translated
 msgid "Export statistics with G-code"
-msgstr ""
+msgstr "Statistieken exporteren met de G-code"
 
+# AI Translated
 msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Indien ingeschakeld schrijft het exporteren van een G-codebestand ook de bijbehorende statistieken als JSON ernaast, als <name>.statistics.json, en een geëxporteerd gesliced 3MF-bestand bevat ze intern: printtijd, totalen voor filament en lijntypen, en dezelfde gegevens per laag en per object."
 
 # AI Translated
 msgid "Experimental Features"
@@ -12649,6 +12662,10 @@ msgstr "Uploaden van het bestand naar de opslag van de printer is mislukt. Probe
 # AI Translated
 msgid "Send Failed"
 msgstr "Verzenden mislukt"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Geen beschikbare printers"
 
 # AI Translated
 msgid "The name length exceeds the limit."
@@ -14644,8 +14661,8 @@ msgid "Left mouse"
 msgstr "Linkermuisknop"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Overal in het venster beschikbaar, zelfs tijdens het typen in een tekstveld."
+msgid "Available anywhere in the window."
+msgstr "Overal in het venster beschikbaar."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -14757,10 +14774,6 @@ msgstr "%s is toegewezen aan %s. Opnieuw toewijzen aan %s?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "De standaardsneltoets %s is toegewezen aan %s. Opnieuw toewijzen aan %s?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Globale sneltoetsen werken ook tijdens het typen."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -15241,9 +15254,10 @@ msgstr "aanpasser \"%1%\" van \"%2%\" (%3% in totaal) had geen effect op de naad
 msgid "Seam placement may differ from expected."
 msgstr "De plaatsing van de naad kan afwijken van wat verwacht wordt."
 
+# AI Translated
 #, boost-format
 msgid "Failed to write the G-code statistics to %1%."
-msgstr ""
+msgstr "De G-codestatistieken konden niet naar %1% worden geschreven."
 
 # AI Translated
 msgid "Internal Bridge"
@@ -18985,6 +18999,14 @@ msgstr "Objecten uitsluiten"
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Schakel deze optie in om de opdracht EXCLUDE OBJECT aan de G-code toe te voegen."
 
+# AI Translated
+msgid "Outline tolerance"
+msgstr "Omtrektolerantie"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "Maximale afwijking van de objectomtrek die naar EXCLUDE_OBJECT_DEFINE wordt geschreven ten opzichte van de oorspronkelijke omtrek. Hogere waarden geven minder punten, wat helpt bij firmware die vastloopt bij het verwerken van G-code met veel objecten. 0 behoudt elk punt."
+
 msgid "Verbose G-code"
 msgstr "Opmerkingen in G-code"
 
@@ -22565,11 +22587,13 @@ msgstr "Uitvoermap"
 msgid "This is the output directory for exported files."
 msgstr "Dit is de map waarin de geëxporteerde bestanden worden opgeslagen"
 
+# AI Translated
 msgid "Export statistics"
-msgstr ""
+msgstr "Statistieken exporteren"
 
+# AI Translated
 msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Schrijft de statistieken van elk printbed na het slicen als JSON, als plate_N.statistics.json naast de G-code in de uitvoermap en in de 3MF van --export-3mf: printtijd, totalen voor filament en lijntypen, en dezelfde gegevens per laag en per object."
 
 msgid "Debug level"
 msgstr "Debuggen level"
@@ -32838,1231 +32862,1651 @@ msgid_plural "The current filament list does not contain %s. Project filaments r
 msgstr[0] "De huidige filamentlijst bevat geen %s. Een projectfilament dat het gemengde filament nodig heeft, wordt na de ontleding automatisch aangemaakt."
 msgstr[1] "De huidige filamentlijst bevat geen %s. Projectfilamenten die het gemengde filament nodig heeft, worden na de ontleding automatisch aangemaakt."
 
+# AI Translated
 msgid "Color Picker"
-msgstr ""
+msgstr "Kleurkiezer"
 
+# AI Translated
 msgid "Basic Colors"
-msgstr ""
+msgstr "Basiskleuren"
 
-msgid "Orca Palette"
-msgstr ""
-
+# AI Translated
+# Needs human review: Glossary has no Dutch term for Palette yet; Palet chosen.
 #. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
-msgid "RAL Classic"
-msgstr ""
+msgid "Orca Palette"
+msgstr "Orca-palet"
 
+# AI Translated
 #. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL Classic"
+
+# AI Translated
 msgid "Gradients"
-msgstr ""
+msgstr "Verlopen"
 
+# AI Translated
+msgctxt "Color picker"
 msgid "Solid"
-msgstr ""
+msgstr "Effen"
 
+# AI Translated
 msgid "Gradient"
-msgstr ""
+msgstr "Verloop"
 
+# AI Translated
+# Needs human review: Color picker label for the start of a gradient; check it reads right next to the field.
 msgid "Gradient start"
-msgstr ""
+msgstr "Begin van verloop"
 
+# AI Translated
+# Needs human review: Color picker label for the end of a gradient; check it reads right next to the field.
 msgid "Gradient end"
-msgstr ""
+msgstr "Einde van verloop"
 
+# AI Translated
 msgid "Gradient color"
-msgstr ""
+msgstr "Verloopkleur"
 
+# AI Translated
 msgid "Add color"
-msgstr ""
+msgstr "Kleur toevoegen"
 
+# AI Translated
 msgid "Remove color"
-msgstr ""
+msgstr "Kleur verwijderen"
 
+# AI Translated
 msgid "Saturation"
-msgstr ""
+msgstr "Verzadiging"
 
+# AI Translated
 msgid "Original color"
-msgstr ""
+msgstr "Oorspronkelijke kleur"
 
+# AI Translated
 #. TRN: Clicking the current color preview adds it to the saved favorites.
 msgid "Save current color"
-msgstr ""
+msgstr "Huidige kleur opslaan"
 
+# AI Translated
+# Needs human review: Glossary has no Dutch term for Palette yet; Palet/Paletten chosen.
 msgid "Palettes"
-msgstr ""
+msgstr "Paletten"
 
+# AI Translated
 msgid "Search colors"
-msgstr ""
+msgstr "Kleuren zoeken"
 
+# AI Translated
 msgid "Filter colors"
-msgstr ""
+msgstr "Kleuren filteren"
 
+# AI Translated
 msgid "No matching colors"
-msgstr ""
+msgstr "Geen overeenkomende kleuren"
 
+# AI Translated
 msgid "Hex color"
-msgstr ""
+msgstr "Hexkleur"
 
 # AI Translated
 msgid "Opacity"
 msgstr "Dekking"
 
+# AI Translated
+# Needs human review: Label of the opacity percent input in the color picker; check it reads right next to the field.
 msgid "Opacity percent"
-msgstr ""
+msgstr "Dekking in procent"
 
+# AI Translated
 msgid "Save color"
-msgstr ""
+msgstr "Kleur opslaan"
 
+# AI Translated
 msgid "Enter a complete hexadecimal color"
-msgstr ""
+msgstr "Voer een volledige hexadecimale kleur in"
 
+# AI Translated
 msgid "The current multi-color selection is kept until you choose a different color."
-msgstr ""
+msgstr "De huidige meerkleurenselectie blijft behouden tot een andere kleur wordt gekozen."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "Maximaal %d kleuren worden ondersteund."
 
+# AI Translated
 msgid "Crimson"
-msgstr ""
+msgstr "Karmozijnrood"
 
+# AI Translated
 msgid "Orange red"
-msgstr ""
+msgstr "Oranjerood"
 
+# AI Translated
 msgid "Tomato"
-msgstr ""
+msgstr "Tomaat"
 
+# AI Translated
 msgid "Orange"
-msgstr ""
+msgstr "Oranje"
 
+# AI Translated
 msgid "Dark orange"
-msgstr ""
+msgstr "Donkeroranje"
 
+# AI Translated
 msgid "Gold"
-msgstr ""
+msgstr "Goud"
 
+# AI Translated
 msgid "Burly wood"
-msgstr ""
+msgstr "Houtbruin"
 
+# AI Translated
 msgid "Bisque"
-msgstr ""
+msgstr "Bisque"
 
+# AI Translated
 msgid "Misty rose"
-msgstr ""
+msgstr "Nevelroze"
 
+# AI Translated
 msgid "Light yellow"
-msgstr ""
+msgstr "Lichtgeel"
 
+# AI Translated
 msgid "Lemon chiffon"
-msgstr ""
+msgstr "Citroenchiffon"
 
+# AI Translated
 msgid "Beige"
-msgstr ""
+msgstr "Beige"
 
+# AI Translated
 msgid "Light golden rod yellow"
-msgstr ""
+msgstr "Lichtguldenroedegeel"
 
+# AI Translated
 msgid "Pale golden rod"
-msgstr ""
+msgstr "Bleke guldenroede"
 
+# AI Translated
 msgid "Khaki"
-msgstr ""
+msgstr "Kaki"
 
+# AI Translated
 msgid "Dark khaki"
-msgstr ""
+msgstr "Donkerkaki"
 
+# AI Translated
 msgid "Peach puff"
-msgstr ""
+msgstr "Perzikroom"
 
+# AI Translated
 msgid "Moccasin"
-msgstr ""
+msgstr "Mocassin"
 
+# AI Translated
 msgid "Papaya whip"
-msgstr ""
+msgstr "Papajaroom"
 
+# AI Translated
 msgid "Blanched almond"
-msgstr ""
+msgstr "Gepelde amandel"
 
+# AI Translated
 msgid "Antique white"
-msgstr ""
+msgstr "Antiekwit"
 
+# AI Translated
 msgid "Navajo white"
-msgstr ""
+msgstr "Navajowit"
 
+# AI Translated
 msgid "Wheat"
-msgstr ""
+msgstr "Tarwe"
 
+# AI Translated
 msgid "Golden rod"
-msgstr ""
+msgstr "Guldenroede"
 
+# AI Translated
 msgid "Chocolate"
-msgstr ""
+msgstr "Chocolade"
 
+# AI Translated
 msgid "Peru"
-msgstr ""
+msgstr "Peru"
 
+# AI Translated
 msgid "Fire brick"
-msgstr ""
+msgstr "Baksteenrood"
 
+# AI Translated
 msgid "Sienna"
-msgstr ""
+msgstr "Sienna"
 
+# AI Translated
 msgid "Saddle brown"
-msgstr ""
+msgstr "Zadelbruin"
 
+# AI Translated
 msgid "Brown"
-msgstr ""
+msgstr "Bruin"
 
+# AI Translated
 msgid "Rosy brown"
-msgstr ""
+msgstr "Rozebruin"
 
+# AI Translated
 msgid "Salmon"
-msgstr ""
+msgstr "Zalm"
 
+# AI Translated
 msgid "Light salmon"
-msgstr ""
+msgstr "Lichte zalm"
 
+# AI Translated
 msgid "Dark salmon"
-msgstr ""
+msgstr "Donkere zalm"
 
+# AI Translated
 msgid "Sandy brown"
-msgstr ""
+msgstr "Zandbruin"
 
+# AI Translated
 msgid "Coral"
-msgstr ""
+msgstr "Koraal"
 
+# AI Translated
 msgid "Light coral"
-msgstr ""
+msgstr "Licht koraal"
 
+# AI Translated
 msgid "Indian red"
-msgstr ""
+msgstr "Indisch rood"
 
+# AI Translated
 msgid "Dark red"
-msgstr ""
+msgstr "Donkerrood"
 
+# AI Translated
 msgid "Maroon"
-msgstr ""
+msgstr "Kastanjerood"
 
+# AI Translated
 msgid "Green yellow"
-msgstr ""
+msgstr "Groengeel"
 
+# AI Translated
 msgid "Yellow green"
-msgstr ""
+msgstr "Geelgroen"
 
+# AI Translated
 msgid "Chartreuse"
-msgstr ""
+msgstr "Chartreuse"
 
+# AI Translated
 msgid "Lawn green"
-msgstr ""
+msgstr "Gazongroen"
 
+# AI Translated
 msgid "Lime green"
-msgstr ""
+msgstr "Limoengroen"
 
+# AI Translated
 msgid "Spring green"
-msgstr ""
+msgstr "Lentegroen"
 
+# AI Translated
 msgid "Medium spring green"
-msgstr ""
+msgstr "Midden-lentegroen"
 
+# AI Translated
 msgid "Lime"
-msgstr ""
+msgstr "Limoen"
 
+# AI Translated
 msgid "Forest green"
-msgstr ""
+msgstr "Bosgroen"
 
+# AI Translated
 msgid "Dark green"
-msgstr ""
+msgstr "Donkergroen"
 
+# AI Translated
+# Needs human review: CSS olive drab has no common Dutch name; Matolijf chosen.
 msgid "Olive drab"
-msgstr ""
+msgstr "Matolijf"
 
+# AI Translated
 msgid "Olive"
-msgstr ""
+msgstr "Olijf"
 
+# AI Translated
 msgid "Dark olive green"
-msgstr ""
+msgstr "Donkerolijfgroen"
 
+# AI Translated
 msgid "Pale green"
-msgstr ""
+msgstr "Bleekgroen"
 
+# AI Translated
 msgid "Light green"
-msgstr ""
+msgstr "Lichtgroen"
 
+# AI Translated
 msgid "Medium sea green"
-msgstr ""
+msgstr "Midden-zeegroen"
 
+# AI Translated
 msgid "Sea green"
-msgstr ""
+msgstr "Zeegroen"
 
+# AI Translated
 msgid "Dark sea green"
-msgstr ""
+msgstr "Donkerzeegroen"
 
+# AI Translated
 msgid "Cadet blue"
-msgstr ""
+msgstr "Cadetblauw"
 
+# AI Translated
 msgid "Medium aqua marine"
-msgstr ""
+msgstr "Midden-aquamarijn"
 
+# AI Translated
 msgid "Turquoise"
-msgstr ""
+msgstr "Turkoois"
 
+# AI Translated
 msgid "Medium turquoise"
-msgstr ""
+msgstr "Midden-turkoois"
 
+# AI Translated
 msgid "Dark turquoise"
-msgstr ""
+msgstr "Donkerturkoois"
 
+# AI Translated
 msgid "Pale turquoise"
-msgstr ""
+msgstr "Bleekturkoois"
 
+# AI Translated
 msgid "Aqua"
-msgstr ""
+msgstr "Aqua"
 
+# AI Translated
 msgid "Light cyan"
-msgstr ""
+msgstr "Lichtcyaan"
 
+# AI Translated
 msgid "Mint cream"
-msgstr ""
+msgstr "Muntroom"
 
+# AI Translated
 msgid "Honey dew"
-msgstr ""
+msgstr "Honingdauw"
 
+# AI Translated
 msgid "Aquamarine"
-msgstr ""
+msgstr "Aquamarijn"
 
+# AI Translated
 msgid "Light sea green"
-msgstr ""
+msgstr "Lichtzeegroen"
 
+# AI Translated
 msgid "Dark cyan"
-msgstr ""
+msgstr "Donkercyaan"
 
+# AI Translated
 msgid "Teal"
-msgstr ""
+msgstr "Petrol"
 
+# AI Translated
 msgid "Dark slate gray"
-msgstr ""
+msgstr "Donkerleigrijs"
 
+# AI Translated
 msgid "Light slate gray"
-msgstr ""
+msgstr "Lichtleigrijs"
 
+# AI Translated
 msgid "Slate gray"
-msgstr ""
+msgstr "Leigrijs"
 
+# AI Translated
 msgid "Deep sky blue"
-msgstr ""
+msgstr "Diephemelsblauw"
 
+# AI Translated
 msgid "Dodger Blue"
-msgstr ""
+msgstr "Dodgerblauw"
 
+# AI Translated
 msgid "Sky blue"
-msgstr ""
+msgstr "Hemelsblauw"
 
+# AI Translated
 msgid "Light sky blue"
-msgstr ""
+msgstr "Lichthemelsblauw"
 
+# AI Translated
 msgid "Light blue"
-msgstr ""
+msgstr "Lichtblauw"
 
+# AI Translated
 msgid "Powder blue"
-msgstr ""
+msgstr "Poederblauw"
 
+# AI Translated
 msgid "Light steel blue"
-msgstr ""
+msgstr "Lichtstaalblauw"
 
+# AI Translated
 msgid "Steel blue"
-msgstr ""
+msgstr "Staalblauw"
 
+# AI Translated
 msgid "Cornflower blue"
-msgstr ""
+msgstr "Korenbloemblauw"
 
+# AI Translated
 msgid "Royal blue"
-msgstr ""
+msgstr "Koningsblauw"
 
+# AI Translated
 msgid "Medium blue"
-msgstr ""
+msgstr "Middenblauw"
 
+# AI Translated
 msgid "Midnight blue"
-msgstr ""
+msgstr "Middernachtblauw"
 
+# AI Translated
 msgid "Dark blue"
-msgstr ""
+msgstr "Donkerblauw"
 
+# AI Translated
 msgid "Navy"
-msgstr ""
+msgstr "Marineblauw"
 
+# AI Translated
 msgid "Slate blue"
-msgstr ""
+msgstr "Leiblauw"
 
+# AI Translated
 msgid "Dark slate blue"
-msgstr ""
+msgstr "Donkerleiblauw"
 
+# AI Translated
 msgid "Medium slate blue"
-msgstr ""
+msgstr "Midden-leiblauw"
 
+# AI Translated
 msgid "Blue violet"
-msgstr ""
+msgstr "Blauwviolet"
 
+# AI Translated
 msgid "Indigo"
-msgstr ""
+msgstr "Indigo"
 
+# AI Translated
 msgid "Dark violet"
-msgstr ""
+msgstr "Donkerviolet"
 
+# AI Translated
 msgid "Dark orchid"
-msgstr ""
+msgstr "Donkere orchidee"
 
+# AI Translated
 msgid "Medium orchid"
-msgstr ""
+msgstr "Midden-orchidee"
 
+# AI Translated
 msgid "Orchid"
-msgstr ""
+msgstr "Orchidee"
 
+# AI Translated
 msgid "Violet"
-msgstr ""
+msgstr "Violet"
 
+# AI Translated
 msgid "Medium purple"
-msgstr ""
+msgstr "Midden-purper"
 
+# AI Translated
 msgid "Purple"
-msgstr ""
+msgstr "Purper"
 
+# AI Translated
 msgid "Rebecca purple"
-msgstr ""
+msgstr "Rebecca-purper"
 
+# AI Translated
 msgid "Medium violet red"
-msgstr ""
+msgstr "Midden-violetrood"
 
-msgid "PaleV violet red"
-msgstr ""
+# AI Translated
+msgid "Pale violet red"
+msgstr "Bleek violetrood"
 
+# AI Translated
 msgid "Deep pink"
-msgstr ""
+msgstr "Dieproze"
 
+# AI Translated
 msgid "Hot pink"
-msgstr ""
+msgstr "Knalroze"
 
+# AI Translated
 msgid "Light pink"
-msgstr ""
+msgstr "Lichtroze"
 
+# AI Translated
 msgid "Pink"
-msgstr ""
+msgstr "Roze"
 
+# AI Translated
 msgid "Plum"
-msgstr ""
+msgstr "Pruim"
 
+# AI Translated
 msgid "Thistle"
-msgstr ""
+msgstr "Distel"
 
+# AI Translated
 msgid "Fuchsia"
-msgstr ""
+msgstr "Fuchsia"
 
+# AI Translated
 msgid "Dark magenta"
-msgstr ""
+msgstr "Donkermagenta"
 
+# AI Translated
 msgid "Linen"
-msgstr ""
+msgstr "Linnen"
 
+# AI Translated
 msgid "Old lace"
-msgstr ""
+msgstr "Oud kant"
 
+# AI Translated
+# Needs human review: Color name (CSS seashell), not the print Shell; glossary Shell warning is a false match.
 msgid "Sea shell"
-msgstr ""
+msgstr "Schelp"
 
+# AI Translated
 msgid "Ivory"
-msgstr ""
+msgstr "Ivoor"
 
+# AI Translated
 msgid "Floral white"
-msgstr ""
+msgstr "Bloemenwit"
 
+# AI Translated
 msgid "Lavender blush"
-msgstr ""
+msgstr "Lavendelroze"
 
+# AI Translated
 msgid "Ghost white"
-msgstr ""
+msgstr "Spookwit"
 
+# AI Translated
 msgid "Alice blue"
-msgstr ""
+msgstr "Alice-blauw"
 
+# AI Translated
 msgid "Lavender"
-msgstr ""
+msgstr "Lavendel"
 
+# AI Translated
 msgid "White smoke"
-msgstr ""
+msgstr "Rookwit"
 
+# AI Translated
 msgid "Gainsboro"
-msgstr ""
+msgstr "Gainsboro"
 
+# AI Translated
 msgid "Black"
-msgstr ""
+msgstr "Zwart"
 
+# AI Translated
 msgid "Coral fire"
-msgstr ""
+msgstr "Koraalvuur"
 
+# AI Translated
 msgid "Sea anemone"
-msgstr ""
+msgstr "Zeeanemoon"
 
+# AI Translated
+# Needs human review: Ocean-themed color name; check the Dutch rendering.
 msgid "Deep abyss"
-msgstr ""
+msgstr "Diepe afgrond"
 
+# AI Translated
 msgid "Lobster red"
-msgstr ""
+msgstr "Kreeftrood"
 
+# AI Translated
 msgid "Sandy clay"
-msgstr ""
+msgstr "Zandklei"
 
+# AI Translated
 msgid "Driftwood"
-msgstr ""
+msgstr "Drijfhout"
 
+# AI Translated
 msgid "Sea buckthorn"
-msgstr ""
+msgstr "Duindoorn"
 
+# AI Translated
 msgid "Sunset reef"
-msgstr ""
+msgstr "Rif bij zonsondergang"
 
+# AI Translated
 msgid "Tiger coral"
-msgstr ""
+msgstr "Tijgerkoraal"
 
+# AI Translated
 msgid "Pink coral"
-msgstr ""
+msgstr "Rozekoraal"
 
+# AI Translated
 msgid "Seashell glow"
-msgstr ""
+msgstr "Schelpgloed"
 
+# AI Translated
 msgid "Sand"
-msgstr ""
+msgstr "Zand"
 
+# AI Translated
 msgid "Golden kelp"
-msgstr ""
+msgstr "Gouden kelp"
 
+# AI Translated
 msgid "Sunlit dune"
-msgstr ""
+msgstr "Zonovergoten duin"
 
+# AI Translated
 msgid "Amber nautilus"
-msgstr ""
+msgstr "Barnsteen-nautilus"
 
+# AI Translated
 msgid "Sea lemon"
-msgstr ""
+msgstr "Zeecitroen"
 
+# AI Translated
 msgid "Pale starfish"
-msgstr ""
+msgstr "Bleke zeester"
 
+# AI Translated
 msgid "Spring tide"
-msgstr ""
+msgstr "Springtij"
 
+# AI Translated
 msgid "Lime algae"
-msgstr ""
+msgstr "Limoenalg"
 
+# AI Translated
 msgid "Sea grass"
-msgstr ""
+msgstr "Zeegras"
 
+# AI Translated
 msgid "Neon plankton"
-msgstr ""
+msgstr "Neonplankton"
 
+# AI Translated
 msgid "Kelp forest"
-msgstr ""
+msgstr "Kelpbos"
 
+# AI Translated
 msgid "Emerald wave"
-msgstr ""
+msgstr "Smaragdgolf"
 
+# AI Translated
 msgid "Whale shadow"
-msgstr ""
+msgstr "Walvisschaduw"
 
+# AI Translated
 msgid "Sea turtle"
-msgstr ""
+msgstr "Zeeschildpad"
 
+# AI Translated
 msgid "Lagoon"
-msgstr ""
+msgstr "Lagune"
 
+# AI Translated
 msgid "Tropical current"
-msgstr ""
+msgstr "Tropische stroming"
 
+# AI Translated
+# Needs human review: Ocean-themed color name; check the Dutch rendering.
 msgid "Midnight trench"
-msgstr ""
+msgstr "Middernachtgeul"
 
+# AI Translated
 msgid "Dark kelp"
-msgstr ""
+msgstr "Donkere kelp"
 
+# AI Translated
 msgid "Crystal surf"
-msgstr ""
+msgstr "Kristalbranding"
 
+# AI Translated
 msgid "Turquoise bay"
-msgstr ""
+msgstr "Turkooisbaai"
 
+# AI Translated
 msgid "Sky over reef"
-msgstr ""
+msgstr "Lucht boven het rif"
 
+# AI Translated
+# Needs human review: Ocean-themed color name; check the Dutch rendering.
 msgid "Shallow sky"
-msgstr ""
+msgstr "Ondiepe hemel"
 
-msgid "Electric bel"
-msgstr ""
+# AI Translated
+msgid "Electric blue"
+msgstr "Elektrisch blauw"
 
+# AI Translated
 msgid "Dolphin"
-msgstr ""
+msgstr "Dolfijn"
 
+# AI Translated
 msgid "Ocean depths"
-msgstr ""
+msgstr "Oceaandiepten"
 
+# AI Translated
 msgid "Whale"
-msgstr ""
+msgstr "Walvis"
 
+# AI Translated
 msgid "Indigo abyss"
-msgstr ""
+msgstr "Indigoafgrond"
 
+# AI Translated
 msgid "Sea urchin"
-msgstr ""
+msgstr "Zee-egel"
 
+# AI Translated
 msgid "Lavender coral"
-msgstr ""
+msgstr "Lavendelkoraal"
 
+# AI Translated
 msgid "Violet tide"
-msgstr ""
+msgstr "Violet getij"
 
+# AI Translated
 msgid "Deep sea orchid"
-msgstr ""
+msgstr "Diepzeeorchidee"
 
+# AI Translated
 msgid "Neon jelly"
-msgstr ""
+msgstr "Neonkwal"
 
+# AI Translated
 msgid "Fuchsia coral"
-msgstr ""
+msgstr "Fuchsiakoraal"
 
+# AI Translated
 msgid "Pink jellyfish"
-msgstr ""
+msgstr "Roze kwal"
 
+# AI Translated
 msgid "Foam"
-msgstr ""
+msgstr "Schuim"
 
+# AI Translated
 msgid "Seashell white"
-msgstr ""
+msgstr "Schelpwit"
 
+# AI Translated
 msgid "Pebble gray"
-msgstr ""
+msgstr "Kiezelgrijs"
 
+# AI Translated
 msgid "Storm cloud"
-msgstr ""
+msgstr "Onweerswolk"
 
+# AI Translated
 msgid "Ink black"
-msgstr ""
+msgstr "Inktzwart"
 
+# AI Translated
 msgid "Green beige"
-msgstr ""
+msgstr "Groenbeige"
 
+# AI Translated
 msgid "Sand yellow"
-msgstr ""
+msgstr "Zandgeel"
 
+# AI Translated
 msgid "Signal yellow"
-msgstr ""
+msgstr "Signaalgeel"
 
+# AI Translated
 msgid "Golden yellow"
-msgstr ""
+msgstr "Goudgeel"
 
+# AI Translated
 msgid "Honey yellow"
-msgstr ""
+msgstr "Honinggeel"
 
+# AI Translated
 msgid "Maize yellow"
-msgstr ""
+msgstr "Maisgeel"
 
-msgid "Dalmatian yellow"
-msgstr ""
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Narcisgeel"
 
+# AI Translated
 msgid "Brown beige"
-msgstr ""
+msgstr "Bruinbeige"
 
+# AI Translated
 msgid "Lemon yellow"
-msgstr ""
+msgstr "Citroengeel"
 
+# AI Translated
 msgid "Oyster white"
-msgstr ""
+msgstr "Parelwit"
 
+# AI Translated
 msgid "Light ivory"
-msgstr ""
+msgstr "Licht ivoor"
 
+# AI Translated
 msgid "Zinc yellow"
-msgstr ""
+msgstr "Zinkgeel"
 
+# AI Translated
 msgid "Grey beige"
-msgstr ""
+msgstr "Grijsbeige"
 
+# AI Translated
 msgid "Olive yellow"
-msgstr ""
+msgstr "Olijfgeel"
 
+# AI Translated
 msgid "Rape yellow"
-msgstr ""
+msgstr "Koolzaadgeel"
 
+# AI Translated
 msgid "Traffic yellow"
-msgstr ""
+msgstr "Verkeersgeel"
 
+# AI Translated
 msgid "Ochre yellow"
-msgstr ""
+msgstr "Okergeel"
 
+# AI Translated
 msgid "Traffic orange yellow"
-msgstr ""
+msgstr "Verkeersoranjegeel"
 
+# AI Translated
 msgid "Curry"
-msgstr ""
+msgstr "Curry"
 
+# AI Translated
 msgid "Melon yellow"
-msgstr ""
+msgstr "Meloengeel"
 
+# AI Translated
 msgid "Broom yellow"
-msgstr ""
+msgstr "Bremgeel"
 
+# AI Translated
 msgid "Dahlia yellow"
-msgstr ""
+msgstr "Dahliageel"
 
+# AI Translated
 msgid "Pastel yellow"
-msgstr ""
+msgstr "Pastelgeel"
 
+# AI Translated
 msgid "Pearl beige"
-msgstr ""
+msgstr "Parelbeige"
 
+# AI Translated
 msgid "Pearl gold"
-msgstr ""
+msgstr "Parelgoud"
 
+# AI Translated
 msgid "Sun yellow"
-msgstr ""
+msgstr "Zonnegeel"
 
+# AI Translated
 msgid "Yellow orange"
-msgstr ""
+msgstr "Geeloranje"
 
+# AI Translated
 msgid "Deep orange"
-msgstr ""
+msgstr "Dieporanje"
 
+# AI Translated
 msgid "Vermilion"
-msgstr ""
+msgstr "Vermiljoen"
 
+# AI Translated
 msgid "Pearl orange"
-msgstr ""
+msgstr "Pareloranje"
 
+# AI Translated
 msgid "Pure orange"
-msgstr ""
+msgstr "Zuiver oranje"
 
+# AI Translated
 msgid "Luminous orange"
-msgstr ""
+msgstr "Lichtgevend oranje"
 
+# AI Translated
 msgid "Luminous bright orange"
-msgstr ""
+msgstr "Lichtgevend helderoranje"
 
+# AI Translated
 msgid "Bright red orange"
-msgstr ""
+msgstr "Helder roodoranje"
 
+# AI Translated
 msgid "Traffic orange"
-msgstr ""
+msgstr "Verkeersoranje"
 
+# AI Translated
 msgid "Signal orange"
-msgstr ""
+msgstr "Signaaloranje"
 
+# AI Translated
 msgid "Salmon orange"
-msgstr ""
+msgstr "Zalmoranje"
 
+# AI Translated
 msgid "Pearl pink"
-msgstr ""
+msgstr "Parelroze"
 
+# AI Translated
 msgid "Copper orange"
-msgstr ""
+msgstr "Koperoranje"
 
+# AI Translated
 msgid "Signal brown"
-msgstr ""
+msgstr "Signaalbruin"
 
+# AI Translated
+# Needs human review: Unusual name (fir = spar); check the Dutch colour name.
 msgid "Fir orange"
-msgstr ""
+msgstr "Sparrenoranje"
 
+# AI Translated
 msgid "Signal red"
-msgstr ""
+msgstr "Signaalrood"
 
+# AI Translated
 msgid "Luminous red"
-msgstr ""
+msgstr "Lichtgevend rood"
 
+# AI Translated
 msgid "Carmine red"
-msgstr ""
+msgstr "Karmijnrood"
 
+# AI Translated
 msgid "Pearl carmine red"
-msgstr ""
+msgstr "Parelkarmijnrood"
 
+# AI Translated
 msgid "Pure red"
-msgstr ""
+msgstr "Zuiver rood"
 
+# AI Translated
+# Needs human review: Nonstandard RAL name; literal rendering.
 msgid "Luminous deep red"
-msgstr ""
+msgstr "Lichtgevend dieprood"
 
+# AI Translated
 msgid "Currant red"
-msgstr ""
+msgstr "Aalbesrood"
 
+# AI Translated
 msgid "Pearl ruby red"
-msgstr ""
+msgstr "Parelrobijnrood"
 
+# AI Translated
 msgid "Fire red"
-msgstr ""
+msgstr "Vuurrood"
 
+# AI Translated
 msgid "Ruby red"
-msgstr ""
+msgstr "Robijnrood"
 
+# AI Translated
 msgid "Purple red"
-msgstr ""
+msgstr "Purperrood"
 
+# AI Translated
 msgid "Wine red"
-msgstr ""
+msgstr "Wijnrood"
 
+# AI Translated
 msgid "Black red"
-msgstr ""
+msgstr "Zwartrood"
 
+# AI Translated
 msgid "Oxide red"
-msgstr ""
+msgstr "Oxiderood"
 
+# AI Translated
 msgid "Brown red"
-msgstr ""
+msgstr "Bruinrood"
 
+# AI Translated
 msgid "Pine red"
-msgstr ""
+msgstr "Dennenrood"
 
+# AI Translated
 msgid "Tomato red"
-msgstr ""
+msgstr "Tomaatrood"
 
+# AI Translated
 msgid "Antique pink"
-msgstr ""
+msgstr "Oudroze"
 
+# AI Translated
 msgid "Coral red"
-msgstr ""
+msgstr "Koraalrood"
 
+# AI Translated
 msgid "Rose"
-msgstr ""
+msgstr "Rosé"
 
+# AI Translated
 msgid "Strawberry red"
-msgstr ""
+msgstr "Aardbeirood"
 
+# AI Translated
 msgid "Traffic red"
-msgstr ""
+msgstr "Verkeersrood"
 
+# AI Translated
 msgid "Salmon pink"
-msgstr ""
+msgstr "Zalmroze"
 
+# AI Translated
 msgid "Luminous rose"
-msgstr ""
+msgstr "Lichtgevend roze"
 
+# AI Translated
 msgid "Luminous bright red"
-msgstr ""
+msgstr "Lichtgevend helderrood"
 
+# AI Translated
 msgid "Raspberry red"
-msgstr ""
+msgstr "Frambozenrood"
 
+# AI Translated
 msgid "Orient red"
-msgstr ""
+msgstr "Oriëntrood"
 
+# AI Translated
 msgid "Pearl ruby"
-msgstr ""
+msgstr "Parelrobijn"
 
+# AI Translated
 msgid "Red purple"
-msgstr ""
+msgstr "Roodpurper"
 
+# AI Translated
 msgid "Red violet"
-msgstr ""
+msgstr "Roodviolet"
 
+# AI Translated
 msgid "Heather violet"
-msgstr ""
+msgstr "Heideviolet"
 
+# AI Translated
 msgid "Bordeaux violet"
-msgstr ""
+msgstr "Bordeauxviolet"
 
+# AI Translated
 msgid "Mahogany"
-msgstr ""
+msgstr "Mahonie"
 
+# AI Translated
 msgid "Grey purple"
-msgstr ""
+msgstr "Grijspurper"
 
+# AI Translated
 msgid "Signal violet"
-msgstr ""
+msgstr "Signaalviolet"
 
+# AI Translated
 msgid "Fir green"
-msgstr ""
+msgstr "Sparrengroen"
 
+# AI Translated
 msgid "Sabine grey"
-msgstr ""
+msgstr "Sabijnengrijs"
 
+# AI Translated
 msgid "Pearl violet"
-msgstr ""
+msgstr "Parelviolet"
 
+# AI Translated
 msgid "Pearl blackberry"
-msgstr ""
+msgstr "Parelbraam"
 
+# AI Translated
 msgid "Green blue"
-msgstr ""
+msgstr "Groenblauw"
 
+# AI Translated
 msgid "Ultramarine blue"
-msgstr ""
+msgstr "Ultramarijnblauw"
 
+# AI Translated
 msgid "Sapphire blue"
-msgstr ""
+msgstr "Saffierblauw"
 
+# AI Translated
 msgid "Black blue"
-msgstr ""
+msgstr "Zwartblauw"
 
+# AI Translated
 msgid "Signal blue"
-msgstr ""
+msgstr "Signaalblauw"
 
+# AI Translated
 msgid "Brilliant blue"
-msgstr ""
+msgstr "Briljantblauw"
 
+# AI Translated
 msgid "Grey blue"
-msgstr ""
+msgstr "Grijsblauw"
 
+# AI Translated
 msgid "Azure blue"
-msgstr ""
+msgstr "Azuurblauw"
 
+# AI Translated
 msgid "Gentian blue"
-msgstr ""
+msgstr "Gentiaanblauw"
 
+# AI Translated
 msgid "Cobalt blue"
-msgstr ""
+msgstr "Kobaltblauw"
 
+# AI Translated
 msgid "Pigeon blue"
-msgstr ""
+msgstr "Duifblauw"
 
+# AI Translated
 msgid "Traffic blue"
-msgstr ""
+msgstr "Verkeersblauw"
 
+# AI Translated
 msgid "Turquoise blue"
-msgstr ""
+msgstr "Turkooisblauw"
 
-msgid "Capsanthin violet"
-msgstr ""
+# AI Translated
+msgid "Capri blue"
+msgstr "Capriblauw"
 
+# AI Translated
 msgid "Ocean blue"
-msgstr ""
+msgstr "Oceaanblauw"
 
+# AI Translated
 msgid "Water blue"
-msgstr ""
+msgstr "Waterblauw"
 
+# AI Translated
 msgid "Night blue"
-msgstr ""
+msgstr "Nachtblauw"
 
+# AI Translated
 msgid "Distant blue"
-msgstr ""
+msgstr "Verblauw"
 
+# AI Translated
 msgid "Pastel blue"
-msgstr ""
+msgstr "Pastelblauw"
 
+# AI Translated
 msgid "Pearl gentian blue"
-msgstr ""
+msgstr "Parelgentiaanblauw"
 
+# AI Translated
 msgid "Pearl midnight blue"
-msgstr ""
+msgstr "Parel-middernachtblauw"
 
+# AI Translated
 msgid "Patina green"
-msgstr ""
+msgstr "Patinagroen"
 
+# AI Translated
 msgid "Emerald green"
-msgstr ""
+msgstr "Smaragdgroen"
 
+# AI Translated
 msgid "Leaf green"
-msgstr ""
+msgstr "Loofgroen"
 
+# AI Translated
 msgid "Olive green"
-msgstr ""
+msgstr "Olijfgroen"
 
+# AI Translated
 msgid "Blue green"
-msgstr ""
+msgstr "Blauwgroen"
 
+# AI Translated
 msgid "Moss green"
-msgstr ""
+msgstr "Mosgroen"
 
+# AI Translated
 msgid "Grey olive"
-msgstr ""
+msgstr "Grijsolijf"
 
+# AI Translated
 msgid "Pine green"
-msgstr ""
+msgstr "Dennengroen"
 
+# AI Translated
 msgid "Pine brown"
-msgstr ""
+msgstr "Dennenbruin"
 
+# AI Translated
 msgid "Grass green"
-msgstr ""
+msgstr "Grasgroen"
 
+# AI Translated
 msgid "Reseda green"
-msgstr ""
+msgstr "Resedagroen"
 
+# AI Translated
 msgid "Brown green"
-msgstr ""
+msgstr "Bruingroen"
 
+# AI Translated
 msgid "Reed green"
-msgstr ""
+msgstr "Rietgroen"
 
+# AI Translated
 msgid "Black green"
-msgstr ""
+msgstr "Zwartgroen"
 
+# AI Translated
 msgid "Turquoise green"
-msgstr ""
+msgstr "Turkooisgroen"
 
+# AI Translated
 msgid "May green"
-msgstr ""
+msgstr "Meigroen"
 
+# AI Translated
 msgid "Chrome oxide green"
-msgstr ""
+msgstr "Chroomoxidegroen"
 
+# AI Translated
 msgid "Traffic green"
-msgstr ""
+msgstr "Verkeersgroen"
 
+# AI Translated
 msgid "Fern green"
-msgstr ""
+msgstr "Varengroen"
 
+# AI Translated
 msgid "Opal green"
-msgstr ""
+msgstr "Opaalgroen"
 
+# AI Translated
 msgid "Mint green"
-msgstr ""
+msgstr "Muntgroen"
 
+# AI Translated
 msgid "Bronze green"
-msgstr ""
+msgstr "Bronsgroen"
 
+# AI Translated
 msgid "Pearl green"
-msgstr ""
+msgstr "Parelgroen"
 
+# AI Translated
+# Needs human review: Unclear RAL-style name (Sax = Saxe blue?); check the Dutch colour name.
 msgid "Sax turquoise"
-msgstr ""
+msgstr "Sax-turkoois"
 
+# AI Translated
 msgid "Pearl turquoise"
-msgstr ""
+msgstr "Parelturkoois"
 
+# AI Translated
 msgid "Pearl jade"
-msgstr ""
+msgstr "Pareljade"
 
+# AI Translated
 msgid "Pure green"
-msgstr ""
+msgstr "Zuiver groen"
 
+# AI Translated
 msgid "Luminous green"
-msgstr ""
+msgstr "Lichtgevend groen"
 
+# AI Translated
 msgid "Squirrel grey"
-msgstr ""
+msgstr "Eekhoorngrijs"
 
+# AI Translated
 msgid "Silver grey"
-msgstr ""
+msgstr "Zilvergrijs"
 
-msgid "Olivestone"
-msgstr ""
+# AI Translated
+msgid "Olive grey"
+msgstr "Olijfgrijs"
 
+# AI Translated
 msgid "Moss grey"
-msgstr ""
+msgstr "Mosgrijs"
 
+# AI Translated
 msgid "Signal grey"
-msgstr ""
+msgstr "Signaalgrijs"
 
+# AI Translated
 msgid "Mouse grey"
-msgstr ""
+msgstr "Muisgrijs"
 
+# AI Translated
 msgid "Beige grey"
-msgstr ""
+msgstr "Beigegrijs"
 
+# AI Translated
 msgid "Khaki grey"
-msgstr ""
+msgstr "Kakigrijs"
 
+# AI Translated
 msgid "Green grey"
-msgstr ""
+msgstr "Groengrijs"
 
+# AI Translated
 msgid "Tarpaulin grey"
-msgstr ""
+msgstr "Dekzeilgrijs"
 
+# AI Translated
 msgid "Iron grey"
-msgstr ""
+msgstr "IJzergrijs"
 
+# AI Translated
 msgid "Basalt grey"
-msgstr ""
+msgstr "Basaltgrijs"
 
+# AI Translated
 msgid "Brown grey"
-msgstr ""
+msgstr "Bruingrijs"
 
+# AI Translated
 msgid "Slate grey"
-msgstr ""
+msgstr "Leigrijs"
 
+# AI Translated
 msgid "Anthracite grey"
-msgstr ""
+msgstr "Antracietgrijs"
 
+# AI Translated
 msgid "Light grey"
-msgstr ""
+msgstr "Lichtgrijs"
 
+# AI Translated
 msgid "Umber grey"
-msgstr ""
+msgstr "Ombergrijs"
 
+# AI Translated
 msgid "Concrete grey"
-msgstr ""
+msgstr "Betongrijs"
 
+# AI Translated
 msgid "Graphite grey"
-msgstr ""
+msgstr "Grafietgrijs"
 
+# AI Translated
 msgid "Granite grey"
-msgstr ""
+msgstr "Granietgrijs"
 
+# AI Translated
 msgid "Stone grey"
-msgstr ""
+msgstr "Steengrijs"
 
+# AI Translated
 msgid "Pebble grey"
-msgstr ""
+msgstr "Kiezelgrijs"
 
+# AI Translated
 msgid "Cement grey"
-msgstr ""
+msgstr "Cementgrijs"
 
+# AI Translated
 msgid "Yellow grey"
-msgstr ""
+msgstr "Geelgrijs"
 
+# AI Translated
 msgid "Platinum grey"
-msgstr ""
+msgstr "Platinagrijs"
 
+# AI Translated
 msgid "Dusty grey"
-msgstr ""
+msgstr "Stofgrijs"
 
+# AI Translated
 msgid "Agate grey"
-msgstr ""
+msgstr "Agaatgrijs"
 
+# AI Translated
 msgid "Quartz grey"
-msgstr ""
+msgstr "Kwartsgrijs"
 
+# AI Translated
 msgid "Window grey"
-msgstr ""
+msgstr "Raamgrijs"
 
+# AI Translated
 msgid "Traffic grey A"
-msgstr ""
+msgstr "Verkeersgrijs A"
 
+# AI Translated
 msgid "Traffic grey B"
-msgstr ""
+msgstr "Verkeersgrijs B"
 
+# AI Translated
 msgid "Silk grey"
-msgstr ""
+msgstr "Zijdegrijs"
 
+# AI Translated
 msgid "Telegrey 1"
-msgstr ""
+msgstr "Telegrijs 1"
 
+# AI Translated
 msgid "Telegrey 2"
-msgstr ""
+msgstr "Telegrijs 2"
 
+# AI Translated
 msgid "Telegrey 4"
-msgstr ""
+msgstr "Telegrijs 4"
 
+# AI Translated
 msgid "Pearl mouse grey"
-msgstr ""
+msgstr "Parelmuisgrijs"
 
+# AI Translated
 msgid "Green brown"
-msgstr ""
+msgstr "Groenbruin"
 
+# AI Translated
 msgid "Ochre brown"
-msgstr ""
+msgstr "Okerbruin"
 
+# AI Translated
 msgid "Clay brown"
-msgstr ""
+msgstr "Kleibruin"
 
+# AI Translated
 msgid "Copper brown"
-msgstr ""
+msgstr "Koperbruin"
 
+# AI Translated
 msgid "Chocolate brown"
-msgstr ""
+msgstr "Chocoladebruin"
 
+# AI Translated
 msgid "Olive brown"
-msgstr ""
+msgstr "Olijfbruin"
 
+# AI Translated
 msgid "Nut brown"
-msgstr ""
+msgstr "Notenbruin"
 
+# AI Translated
 msgid "Red brown"
-msgstr ""
+msgstr "Roodbruin"
 
+# AI Translated
 msgid "Sepia brown"
-msgstr ""
+msgstr "Sepiabruin"
 
+# AI Translated
 msgid "Chestnut brown"
-msgstr ""
+msgstr "Kastanjebruin"
 
+# AI Translated
 msgid "Mahogany brown"
-msgstr ""
+msgstr "Mahoniebruin"
 
+# AI Translated
 msgid "Grey brown"
-msgstr ""
+msgstr "Grijsbruin"
 
+# AI Translated
 msgid "Pearl copper"
-msgstr ""
+msgstr "Parelkoper"
 
+# AI Translated
 msgid "Beige brown"
-msgstr ""
+msgstr "Beigebruin"
 
+# AI Translated
 msgid "Pearl mocha brown"
-msgstr ""
+msgstr "Parelmokkabruin"
 
+# AI Translated
 msgid "Earth brown"
-msgstr ""
+msgstr "Aardbruin"
 
+# AI Translated
 msgid "Pearl brown"
-msgstr ""
+msgstr "Parelbruin"
 
+# AI Translated
 msgid "Cream"
-msgstr ""
+msgstr "Crème"
 
+# AI Translated
 msgid "Grey white"
-msgstr ""
+msgstr "Grijswit"
 
+# AI Translated
 msgid "Signal white"
-msgstr ""
+msgstr "Signaalwit"
 
+# AI Translated
 msgid "Signal black"
-msgstr ""
+msgstr "Signaalzwart"
 
+# AI Translated
 msgid "Jet black"
-msgstr ""
+msgstr "Gitzwart"
 
+# AI Translated
 msgid "White aluminium"
-msgstr ""
+msgstr "Wit aluminium"
 
+# AI Translated
 msgid "Grey aluminium"
-msgstr ""
+msgstr "Grijs aluminium"
 
+# AI Translated
 msgid "Pure white"
-msgstr ""
+msgstr "Zuiver wit"
 
+# AI Translated
 msgid "Graphite black"
-msgstr ""
+msgstr "Grafietzwart"
 
+# AI Translated
 msgid "Traffic white"
-msgstr ""
+msgstr "Verkeerswit"
 
+# AI Translated
 msgid "Traffic black"
-msgstr ""
+msgstr "Verkeerszwart"
 
+# AI Translated
 msgid "Papyrus white"
-msgstr ""
+msgstr "Papyruswit"
 
+# AI Translated
 msgid "Pearl light grey"
-msgstr ""
+msgstr "Parellichtgrijs"
 
+# AI Translated
 msgid "Metal: Silver"
-msgstr ""
+msgstr "Metaal: Zilver"
 
+# AI Translated
 msgid "Metal: Brass"
-msgstr ""
+msgstr "Metaal: Messing"
 
+# AI Translated
 msgid "Metal: Gold"
-msgstr ""
+msgstr "Metaal: Goud"
 
+# AI Translated
 msgid "Metal: Copper"
-msgstr ""
+msgstr "Metaal: Koper"
 
+# AI Translated
 msgid "Metal: Bronze"
-msgstr ""
+msgstr "Metaal: Brons"
 
+# AI Translated
 msgid "Nature: Pearl"
-msgstr ""
+msgstr "Natuur: Parel"
 
+# AI Translated
 msgid "Nature: Rainbow"
-msgstr ""
+msgstr "Natuur: Regenboog"
 
+# AI Translated
 msgid "Nature: Clear Sky"
-msgstr ""
+msgstr "Natuur: Heldere hemel"
 
+# AI Translated
 msgid "Nature: Sunset"
-msgstr ""
+msgstr "Natuur: Zonsondergang"
 
+# AI Translated
 msgid "Wood: Dark"
-msgstr ""
+msgstr "Hout: Donker"
 
+# AI Translated
 msgid "Wood: Medium"
-msgstr ""
+msgstr "Hout: Gemiddeld"
 
+# AI Translated
 msgid "Wood: Light"
-msgstr ""
+msgstr "Hout: Licht"
 
 # AI Translated
 msgid "Alternate nozzles:"
@@ -34539,12 +34983,24 @@ msgid "Built-in"
 msgstr "Ingebouwd"
 
 # AI Translated
+msgid "My textures"
+msgstr "Mijn texturen"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Geen texturen gevonden."
 
 # AI Translated
-msgid "My textures"
-msgstr "Mijn texturen"
+msgid "Texture libraries"
+msgstr "Textuurbibliotheken"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Ontdek meer textuurbibliotheken"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Opent OrcaCloud op de startpagina om naar plug-ins te zoeken."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -34947,11 +35403,13 @@ msgstr "Gekoppeld via de eigen UV-indeling van het model, die al de plaatsing be
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "Hoe breed één kopie van de textuur op het model is. Kleiner herhaalt het patroon vaker en maakt het detail fijner; met Tegelen uit is dit de grootte van de enkele kopie."
 
+# AI Translated
 msgid "Larger"
-msgstr ""
+msgstr "Groter"
 
+# AI Translated
 msgid "Smaller"
-msgstr ""
+msgstr "Kleiner"
 
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
@@ -35027,11 +35485,14 @@ msgstr "Gemengde kleuren"
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Het maximale aantal gemengde filamenten dat bij het bakken mag worden toegevoegd. Ze worden gekozen uit de kleuren van de textuur, en alleen de filamenten die bij het bakken daadwerkelijk worden gebruikt, worden aangemaakt."
 
+# AI Translated
+# Needs human review: Caption under an illustration in the texture displacement mixed-colors option; check it reads right as a pair with Many.
 msgid "Few"
-msgstr ""
+msgstr "Weinig"
 
+# AI Translated
 msgid "Many"
-msgstr ""
+msgstr "Veel"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -35387,11 +35848,13 @@ msgstr "Remeshen"
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Driehoeksgrootte waarmee het hele model opnieuw wordt opgebouwd, in millimeters. Verplaatsing werkt het best op een gelijkmatige mesh; hiermee maakt u er een van een ongelijkmatige import."
 
+# AI Translated
 msgid "Before"
-msgstr ""
+msgstr "Voor"
 
+# AI Translated
 msgid "After"
-msgstr ""
+msgstr "Na"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -37271,6 +37734,10 @@ msgid "Slicing Pipeline"
 msgstr "Slicepijplijn"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Resourcetextuur"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "De configuratie-UI van de plug-in was leeg. De standaardeditor wordt getoond."
 
@@ -37416,6 +37883,30 @@ msgstr "Plug-inmap bevat zowel .py- als .whl-startbestanden"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Plug-inmap bevat geen .py- of .whl-startbestand"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "De map voor de resourcetextuur is niet ingesteld"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "De map voor de resourcetextuur kon niet worden bepaald"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Het pad van de resourcetextuur is geen map"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "De plug-inmap kon niet worden bepaald"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "De map voor de resourcetextuur ligt buiten de plug-inmap"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "De map voor de resourcetextuur kon niet worden gelezen"
 
 # AI Translated
 #, boost-format
@@ -38363,6 +38854,29 @@ msgid ""
 msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
+
+# AI Translated
+# Needs human review: Likely RAL 1007 daffodil yellow (Narcisgeel); source name is nonstandard.
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Narcisgeel"
+
+# AI Translated
+# Needs human review: Source likely a typo for RAL 5019 Capri blue (sits between Turquoise blue and Ocean blue); translated as Capriblauw.
+#~ msgid "Capsanthin violet"
+#~ msgstr "Capriblauw"
+
+# AI Translated
+# Needs human review: Source likely a typo for RAL 7002 Olive grey; translated as Olijfgrijs.
+#~ msgid "Olivestone"
+#~ msgstr "Olijfgrijs"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Overal in het venster beschikbaar, zelfs tijdens het typen in een tekstveld."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Globale sneltoetsen werken ook tijdens het typen."
 
 # AI Translated
 #~ msgid "Please choose the filament color"

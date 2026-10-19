@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Guislain Cyril, Thomas Lété\n"
@@ -311,7 +311,7 @@ msgid "Tungsten Carbide"
 msgstr "Carbure de tungstène"
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
-msgstr "La tête d'outil et le rack hotend peuvent se déplacer. Veuillez garder vos mains hors de la chambre."
+msgstr "La tête d'outil et le rack hotend peuvent se déplacer. Veuillez garder vos mains hors du caisson."
 
 msgid "Warning"
 msgstr "Avertissement"
@@ -329,7 +329,7 @@ msgid "Reading the hotends, please wait."
 msgstr "Lecture des hotends, veuillez patienter."
 
 msgid "During the hotend upgrade, the toolhead will move. Don't reach into the chamber."
-msgstr "Pendant la mise à niveau du hotend, la tête d’outil va se déplacer. Ne mettez pas vos mains dans la chambre."
+msgstr "Pendant la mise à niveau du hotend, la tête d’outil va se déplacer. Ne mettez pas vos mains dans le caisson."
 
 msgid "Update"
 msgstr "Mise à jour"
@@ -1146,13 +1146,13 @@ msgid "Delete connector"
 msgstr "Supprimer le connecteur"
 
 msgid "Entering Cut gizmo"
-msgstr "Entrée dans l’outil Couper"
+msgstr "Entrée dans le gizmo Couper"
 
 msgid "Leaving Cut gizmo"
-msgstr "Quitter l’outil Couper"
+msgstr "Sortie du gizmo Couper"
 
 msgid "Cut gizmo editing"
-msgstr "Modification de la découpe"
+msgstr "Édition dans le gizmo Couper"
 
 msgid "Mesh name"
 msgstr "Nom du maillage"
@@ -1254,10 +1254,10 @@ msgid "Embossed text"
 msgstr "Texte en relief"
 
 msgid "Enter emboss gizmo"
-msgstr "Entrer dans l’outil d’embossage"
+msgstr "Entrer dans le gizmo d’embossage"
 
 msgid "Leave emboss gizmo"
-msgstr "Quitter l’outil d’embossage"
+msgstr "Quitter le gizmo d’embossage"
 
 msgid "Embossing actions"
 msgstr "Actions d’embossage"
@@ -1669,10 +1669,10 @@ msgid "SVG move"
 msgstr "Déplacement du SVG"
 
 msgid "Enter SVG gizmo"
-msgstr "Ouvrir l’outil SVG"
+msgstr "Ouvrir le gizmo SVG"
 
 msgid "Leave SVG gizmo"
-msgstr "Quitter l’outil SVG"
+msgstr "Quitter le gizmo SVG"
 
 msgid "SVG actions"
 msgstr "Actions SVG"
@@ -2011,10 +2011,10 @@ msgid "Flip by Face 2"
 msgstr "Retournement par la Face 2"
 
 msgid "Entering Measure gizmo"
-msgstr "Entrée dans l’outil Mesurer"
+msgstr "Entrée dans le gizmo Mesurer"
 
 msgid "Leaving Measure gizmo"
-msgstr "Quitter l’outil Mesurer"
+msgstr "Sortie du gizmo Mesurer"
 
 # AI Translated
 msgctxt "Assembly tool"
@@ -2070,7 +2070,7 @@ msgstr "L’alignement sur la plaque n’est disponible qu’en X et Y"
 
 # AI Translated
 msgid "Turn off Auto-Drop for the selected objects to move them in Z"
-msgstr "Désactivez la dépose automatique des objets sélectionnés pour les déplacer en Z"
+msgstr "Désactivez le dépôt automatique des objets sélectionnés pour les déplacer en Z"
 
 # AI Translated
 msgid "All selected objects must be on the same plate"
@@ -3813,7 +3813,7 @@ msgid "Init"
 msgstr "Initialisation"
 
 msgid "Chamber"
-msgstr "Chambre"
+msgstr "Caisson"
 
 msgid "Innerloop"
 msgstr "Boucle interne"
@@ -6472,7 +6472,7 @@ msgstr "Volume :"
 msgid "Size:"
 msgstr "Taille :"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Des conflits de chemins G-code ont été trouvés au niveau de la couche %d, z = %.2lfmm. Veuillez séparer davantage les objets en conflit (%s <-> %s)."
 
@@ -8428,11 +8428,11 @@ msgstr "Identifie le type et la position de la plaque de construction sur le pla
 
 # AI Translated
 msgid "Purifies the chamber air as the print finishes, based on the selected mode."
-msgstr "Purifie l'air de la chambre à la fin de l'impression, selon le mode sélectionné."
+msgstr "Purifie l'air du caisson à la fin de l'impression, selon le mode sélectionné."
 
 # AI Translated
 msgid "Purifies the chamber air through internal circulation as each print finishes."
-msgstr "Purifie l'air de la chambre par circulation interne à la fin de chaque impression."
+msgstr "Purifie l'air du caisson par circulation interne à la fin de chaque impression."
 
 # AI Translated
 msgid "Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection)."
@@ -11562,6 +11562,10 @@ msgstr "Échec du téléversement du fichier vers le stockage de l’imprimante.
 msgid "Send Failed"
 msgstr "Échec de l’envoi"
 
+# AI Translated
+msgid "No available printers"
+msgstr "Aucune imprimante disponible"
+
 msgid "The name length exceeds the limit."
 msgstr "La longueur du nom dépasse la limite."
 
@@ -12062,8 +12066,8 @@ msgid ""
 "When recording timelapse without toolhead, it is recommended to add a \"Timelapse Wipe Tower\" \n"
 "by right-click the empty position of build plate and choose \"Add Primitive\"->\"Timelapse Wipe Tower\"."
 msgstr ""
-"Lorsque vous enregistrez un timelapse sans tête d’outil, il est recommandé d’ajouter une \"Tour d’essuyage timelapse\".\n"
-"en faisant un clic droit sur un emplacement vide sur le plateau et en choisissant \"Ajouter Primitive\"-> \"Tour d’essuyage timelapse\"."
+"Lorsque vous enregistrez un timelapse sans tête d’outil, il est recommandé d’ajouter une \"Tour d’amorçage timelapse\".\n"
+"en faisant un clic droit sur un emplacement vide sur le plateau et en choisissant \"Ajouter Primitive\"-> \"Tour d’amorçage timelapse\"."
 
 msgid "A copy of the current system preset will be created, which will be detached from the system preset."
 msgstr "Une copie du préréglage actuel du système est créée et détachée du préréglage du système."
@@ -12362,7 +12366,7 @@ msgid "Filament end G-code"
 msgstr "G-code de fin de filament"
 
 msgid "Wipe tower parameters"
-msgstr "Paramètres de la tour d’essuyage"
+msgstr "Paramètres de la tour d’amorçage"
 
 msgid "Multi Filament"
 msgstr "Multi-filament"
@@ -12511,7 +12515,7 @@ msgid "Nozzle diameter"
 msgstr "Diamètre de la buse"
 
 msgid "Wipe tower"
-msgstr "Tour d’essuyage"
+msgstr "Tour d’amorçage"
 
 # AI Translated
 msgid "Belt purge tower"
@@ -13380,8 +13384,8 @@ msgid "Left mouse"
 msgstr "Clic gauche"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Disponible partout dans la fenêtre, même pendant la saisie dans un champ de texte."
+msgid "Available anywhere in the window."
+msgstr "Disponible partout dans la fenêtre."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13485,9 +13489,6 @@ msgstr "%s est attribué à %s. Le réattribuer à %s ?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "La valeur par défaut %s est attribuée à %s. La réattribuer à %s ?"
-
-msgid "Global shortcuts also apply while typing."
-msgstr "Les raccourcis globaux s'appliquent aussi pendant la saisie."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -13762,7 +13763,7 @@ msgstr "Ouvrir un fichier G-code :"
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Wipe tower generation failed, possibly due to empty first layer."
-msgstr "Échec de la génération de la tour d’essuyage, peut-être à cause d’une première couche vide."
+msgstr "Échec de la génération de la tour d’amorçage, peut-être à cause d’une première couche vide."
 
 msgid "One object has an empty first layer and can't be printed. Please Cut the bottom or enable supports."
 msgstr "Un objet a une couche initiale vide et ne peut pas être imprimé. Veuillez couper le bas ou activer les supports."
@@ -14287,16 +14288,16 @@ msgstr "La hauteur de couche variable n’est pas prise en charge avec les suppo
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "The wipe tower filament cannot be a mixed filament."
-msgstr "Le filament de la tour d’essuyage ne peut pas être un filament mixte."
+msgstr "Le filament de la tour d’amorçage ne peut pas être un filament mixte."
 
 msgid "Different nozzle diameters and different filament diameters may not work well when the prime tower is enabled. It's very experimental, so please proceed with caution."
 msgstr "Différents diamètres de buses et de filaments peuvent ne pas fonctionner correctement lorsque la tour d’amorçage est activée. Il s’agit d’un projet très expérimental, il convient donc de procéder avec prudence."
 
 msgid "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
-msgstr "La tour d’essuyage n’est actuellement prise en charge qu’avec l’adressage relatif des extrudeurs (use_relative_e_distances=1)."
+msgstr "La tour d’amorçage n’est actuellement prise en charge qu’avec l’adressage relatif des extrudeurs (use_relative_e_distances=1)."
 
 msgid "Ooze prevention is only supported with the wipe tower when 'single_extruder_multi_material' is off."
-msgstr "La prévention du suintement n’est possible qu’avec la tour d’essuyage lorsque l’option ‘single_extruder_multi_material’ est désactivée."
+msgstr "La prévention du suintement n’est possible qu’avec la tour d’amorçage lorsque l’option ‘single_extruder_multi_material’ est désactivée."
 
 msgid "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors."
 msgstr "La tour d’amorçage n’est actuellement prise en charge que pour les versions Marlin, RepRap/Sprinter, RepRapFirmware et Repetier G-code."
@@ -16237,7 +16238,7 @@ msgid "Loading speed"
 msgstr "Vitesse de chargement"
 
 msgid "Speed used for loading the filament on the wipe tower."
-msgstr "Vitesse utilisée pour charger le filament sur la tour d’essuyage."
+msgstr "Vitesse utilisée pour charger le filament sur la tour d’amorçage."
 
 msgid "Loading speed at the start"
 msgstr "Vitesse de chargement au démarrage"
@@ -16249,7 +16250,7 @@ msgid "Unloading speed"
 msgstr "Vitesse de déchargement"
 
 msgid "Speed used for unloading the filament on the wipe tower (does not affect initial part of unloading just after ramming)."
-msgstr "Vitesse utilisée pour le déchargement du filament sur la tour d’essuyage (n’affecte pas la partie initiale de retrait juste après le pilonnage)."
+msgstr "Vitesse utilisée pour le déchargement du filament sur la tour d’amorçage (n’affecte pas la partie initiale de retrait juste après le pilonnage)."
 
 msgid "Unloading speed at the start"
 msgstr "Vitesse de déchargement au démarrage"
@@ -16288,13 +16289,13 @@ msgid "Cooling moves are gradually accelerating beginning at this speed."
 msgstr "Les mouvements de refroidissement s’accélèrent progressivement à partir de cette vitesse."
 
 msgid "Minimal purge on wipe tower"
-msgstr "Purge minimale sur la tour d’essuyage"
+msgstr "Purge minimale sur la tour d’amorçage"
 
 msgid "After a tool change, the exact position of the newly loaded filament inside the nozzle may not be known, and the filament pressure is likely not yet stable. Before purging the print head into an infill or a sacrificial object, Orca Slicer will always prime this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably."
-msgstr "Après un changement d’outil, la position exacte du filament nouvellement chargé à l’intérieur de la buse peut ne pas être connue et la pression du filament n’est probablement pas encore stable. Avant de purger la tête d’impression dans un remplissage ou un objet, Orca Slicer amorcera toujours cette quantité de matériau dans la tour d’essuyage pour purger dans les remplissages ou objets de manière fiable."
+msgstr "Après un changement d’outil, la position exacte du filament nouvellement chargé à l’intérieur de la buse peut ne pas être connue et la pression du filament n’est probablement pas encore stable. Avant de purger la tête d’impression dans un remplissage ou un objet, Orca Slicer amorcera toujours cette quantité de matériau dans la tour d’amorçage pour purger dans les remplissages ou objets de manière fiable."
 
 msgid "Wipe tower cooling"
-msgstr "Refroidissement de la tour d’essuyage"
+msgstr "Refroidissement de la tour d’amorçage"
 
 msgid "Temperature drop before entering filament tower"
 msgstr "Baisse de température avant l’entrée dans la tour de filament"
@@ -16348,7 +16349,7 @@ msgid "Enable ramming for multi-tool setups"
 msgstr "Activer le pilonnage pour les configurations multi-outils"
 
 msgid "Perform ramming when using multi-tool printer (i.e. when the 'Single Extruder Multimaterial' in Printer Settings is unchecked). When checked, a small amount of filament is rapidly extruded on the wipe tower just before the tool change. This option is only used when the wipe tower is enabled."
-msgstr "Effectuez un pilonnage lorsque vous utilisez une imprimante multi-outils (c’est-à-dire lorsque l’option ‘Multi-matériau à extrudeur unique’ dans les paramètres de l’imprimante n’est pas cochée). Une fois vérifié, une petite quantité de filament est rapidement extrudée sur la tour d’essuyage juste avant le changement d’outil. Cette option n’est utilisée que lorsque la tour d’essuyage est activée."
+msgstr "Effectuez un pilonnage lorsque vous utilisez une imprimante multi-outils (c’est-à-dire lorsque l’option ‘Multi-matériau à extrudeur unique’ dans les paramètres de l’imprimante n’est pas cochée). Une fois vérifié, une petite quantité de filament est rapidement extrudée sur la tour d’amorçage juste avant le changement d’outil. Cette option n’est utilisée que lorsque la tour d’amorçage est activée."
 
 msgid "Multi-tool ramming volume"
 msgstr "Volume du pilonnage multi-outils"
@@ -17285,6 +17286,14 @@ msgstr "Exclure des objets"
 
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "Activer cette option pour ajouter la commande EXCLUDE OBJECT dans le G-code."
+
+# AI Translated
+msgid "Outline tolerance"
+msgstr "Tolérance du contour"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "Écart maximal entre le contour de l’objet écrit dans EXCLUDE_OBJECT_DEFINE et le contour d’origine. Des valeurs plus grandes donnent moins de points, ce qui aide les firmwares qui se bloquent à l’analyse d’un G-code contenant de nombreux objets. 0 conserve tous les points."
 
 msgid "Verbose G-code"
 msgstr "G-code commenté"
@@ -18818,7 +18827,7 @@ msgstr "Timelapse au point le plus éloigné"
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
-msgstr "Lorsque cette option est activée, l’instantané du timelapse est pris au point le plus éloigné de la caméra au lieu de se déplacer vers la tour d’essuyage ou la goulotte d’évacuation. Efficace uniquement en mode timelapse traditionnel sur les imprimantes non-I3."
+msgstr "Lorsque cette option est activée, l’instantané du timelapse est pris au point le plus éloigné de la caméra au lieu de se déplacer vers la tour d’amorçage ou la goulotte d’évacuation. Efficace uniquement en mode timelapse traditionnel sur les imprimantes non-I3."
 
 msgid "Temperature variation"
 msgstr "Variation de température"
@@ -18991,10 +19000,10 @@ msgid "Enable this option to omit the custom Change filament G-code only at the 
 msgstr "Activez cette option pour omettre le G-code de changement de filament personnalisé uniquement au début de l’impression. La commande de changement d’outil (par exemple, T0) sera ignorée tout au long de l’impression. Ceci est utile pour l’impression manuelle multi-matériaux, où nous utilisons M600/PAUSE pour déclencher l’action de changement manuel de filament."
 
 msgid "Wipe tower type"
-msgstr "Type de tour de purge"
+msgstr "Type de tour d'amorçage"
 
 msgid "Choose the wipe tower implementation for multi-material prints. Type 1 is recommended for Bambu and Qidi printers with a filament cutter. Type 2 offers better compatibility with multi-tool and MMU printers and provide overall better compatibility."
-msgstr "Choisir l'implémentation de la tour de purge pour les impressions multi-matériaux. Le Type 1 est recommandé pour les imprimantes Bambu et Qidi avec un coupeur de filament. Le Type 2 offre une meilleure compatibilité avec les imprimantes multi-outils et MMU et une meilleure compatibilité globale."
+msgstr "Choisir l'implémentation de la tour d'amorçage pour les impressions multi-matériaux. Le Type 1 est recommandé pour les imprimantes Bambu et Qidi avec un coupeur de filament. Le Type 2 offre une meilleure compatibilité avec les imprimantes multi-outils et MMU et une meilleure compatibilité globale."
 
 msgid "Type 1"
 msgstr "Type 1"
@@ -19012,20 +19021,20 @@ msgid "Enable filament ramming"
 msgstr "Activer le bourrage de filament"
 
 msgid "Tool change on wipe tower"
-msgstr "Changement d’outil sur la tour d’essuyage"
+msgstr "Changement d’outil sur la tour d’amorçage"
 
 msgid "Force the toolhead to travel to the wipe tower before issuing the tool change command (Tx). Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. By default Orca skips the travel on multi-toolhead machines because the firmware handles the head swap, which can result in the Tx command being issued above the printed part. Enable this option if you want the tool change to always be issued above the wipe tower instead."
-msgstr "Force la tête d’outil à se déplacer vers la tour d’essuyage avant d’émettre la commande de changement d’outil (Tx). Pertinent uniquement pour les imprimantes multi-extrudeurs (à têtes d’outil multiples) utilisant une tour d’essuyage de type 2. Par défaut, Orca omet ce déplacement sur les machines à têtes d’outil multiples car le firmware gère le changement de tête, ce qui peut entraîner l’émission de la commande Tx au-dessus de la pièce imprimée. Activez cette option si vous préférez que le changement d’outil soit toujours émis au-dessus de la tour d’essuyage."
+msgstr "Force la tête d’outil à se déplacer vers la tour d’amorçage avant d’émettre la commande de changement d’outil (Tx). Pertinent uniquement pour les imprimantes multi-extrudeurs (à têtes d’outil multiples) utilisant une tour d’amorçage de type 2. Par défaut, Orca omet ce déplacement sur les machines à têtes d’outil multiples car le firmware gère le changement de tête, ce qui peut entraîner l’émission de la commande Tx au-dessus de la pièce imprimée. Activez cette option si vous préférez que le changement d’outil soit toujours émis au-dessus de la tour d’amorçage."
 
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Wait for temperature on wipe tower"
-msgstr "Attendre la température sur la tour d’essuyage"
+msgstr "Attendre la température sur la tour d’amorçage"
 
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Pick up the new tool without waiting for it to reach printing temperature, travel to the wipe tower, and wait for the temperature there, right before purging. Ooze from the heat-up lands on the tower instead of the model, and the travel overlaps with the heating. Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. The firmware or tool change macro must not wait for the temperature itself. When disabled, the temperature wait is issued right after the tool change command."
-msgstr "Prend le nouvel outil sans attendre qu’il atteigne la température d’impression, se déplace vers la tour d’essuyage et y attend la température, juste avant la purge. Le suintement dû à la chauffe se dépose sur la tour plutôt que sur le modèle, et le déplacement se superpose à la chauffe. Uniquement pertinent pour les imprimantes multi-extrudeurs (multi-têtes) utilisant une tour d’essuyage de type 2. Le firmware ou la macro de changement d’outil ne doivent pas attendre la température eux-mêmes. Lorsque cette option est désactivée, l’attente de température est émise juste après la commande de changement d’outil."
+msgstr "Prend le nouvel outil sans attendre qu’il atteigne la température d’impression, se déplace vers la tour d’amorçage et y attend la température, juste avant la purge. Le suintement dû à la chauffe se dépose sur la tour plutôt que sur le modèle, et le déplacement se superpose à la chauffe. Uniquement pertinent pour les imprimantes multi-extrudeurs (multi-têtes) utilisant une tour d’amorçage de type 2. Le firmware ou la macro de changement d’outil ne doivent pas attendre la température eux-mêmes. Lorsque cette option est désactivée, l’attente de température est émise juste après la commande de changement d’outil."
 
 msgid "No sparse layers (beta)"
 msgstr "Pas de couches éparses (beta)"
@@ -19033,7 +19042,7 @@ msgstr "Pas de couches éparses (beta)"
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "If enabled, the wipe tower will not be printed on layers with no tool changes. On layers with a tool change, extruder will travel downward to print the wipe tower, so the tower ends up below the model and the toolhead has to reach down to it. Layouts where that would collide with an already printed object are rejected. Has no effect with smooth timelapse or clumping detection, which need a tower on every layer."
-msgstr "Si cette option est activée, la tour d’essuyage n’est pas imprimée sur les couches sans changement d’outil. Sur les couches comportant un changement d’outil, l’extrudeur descend pour imprimer la tour d’essuyage : la tour se retrouve donc sous le modèle et la tête d’outil doit descendre jusqu’à elle. Les dispositions où cela entrerait en collision avec un objet déjà imprimé sont rejetées. Sans effet avec le timelapse fluide ou la détection d’agglomération de la buse, qui nécessitent une tour à chaque couche."
+msgstr "Si cette option est activée, la tour d’amorçage n’est pas imprimée sur les couches sans changement d’outil. Sur les couches comportant un changement d’outil, l’extrudeur descend pour imprimer la tour d’amorçage : la tour se retrouve donc sous le modèle et la tête d’outil doit descendre jusqu’à elle. Les dispositions où cela entrerait en collision avec un objet déjà imprimé sont rejetées. Sans effet avec le timelapse fluide ou la détection d’agglomération de la buse, qui nécessitent une tour à chaque couche."
 
 # AI Translated
 msgid "Combine sparse layers"
@@ -19519,7 +19528,7 @@ msgstr "Activer la tour de purge du tapis"
 # AI Translated
 # Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’essuyage / Tour d’amorçage
 msgid "Belt-printer replacement for the wipe/prime tower. When enabled on a belt printer, a purge prism is automatically generated next to the printed parts and filament-change purging is routed into it (the classic wipe tower cannot be used on belt printers because its G-code bypasses the belt transform). Only available on belt printers."
-msgstr "Remplacement de la tour d’essuyage/d’amorçage pour les imprimantes à tapis. Lorsque cette option est activée sur une imprimante à tapis, un prisme de purge est généré automatiquement à côté des pièces imprimées et la purge lors des changements de filament y est dirigée (la tour d’essuyage classique ne peut pas être utilisée sur les imprimantes à tapis, car son G-code contourne la transformation du tapis). Disponible uniquement sur les imprimantes à tapis."
+msgstr "Remplacement de la tour d’amorçage pour les imprimantes à tapis. Lorsque cette option est activée sur une imprimante à tapis, un prisme de purge est généré automatiquement à côté des pièces imprimées et la purge lors des changements de filament y est dirigée (la tour d’amorçage classique ne peut pas être utilisée sur les imprimantes à tapis, car son G-code contourne la transformation du tapis). Disponible uniquement sur les imprimantes à tapis."
 
 # AI Translated
 msgid "Belt purge tower width"
@@ -19528,7 +19537,7 @@ msgstr "Largeur de la tour de purge du tapis"
 # AI Translated
 # Needs human review: Glossary cell for Prime tower / Wipe tower is unsettled (⚠); used the catalog's Tour d’essuyage for 'wipe tower'
 msgid "Width (machine X, across the belt) of the purge prism that is automatically generated on belt printers when the belt purge tower is enabled and multiple filaments are used. Filament-change purging is routed into this prism's extrusions instead of a classic wipe tower. Its height is computed automatically from the worst-case purge volume per layer: a wider prism results in a shorter one."
-msgstr "Largeur (X machine, en travers du tapis) du prisme de purge généré automatiquement sur les imprimantes à tapis lorsque la tour de purge du tapis est activée et que plusieurs filaments sont utilisés. La purge lors des changements de filament est dirigée vers les extrusions de ce prisme au lieu d'une tour d’essuyage classique. Sa hauteur est calculée automatiquement à partir du volume de purge le plus défavorable par couche : un prisme plus large sera moins haut."
+msgstr "Largeur (X machine, en travers du tapis) du prisme de purge généré automatiquement sur les imprimantes à tapis lorsque la tour de purge du tapis est activée et que plusieurs filaments sont utilisés. La purge lors des changements de filament est dirigée vers les extrusions de ce prisme au lieu d'une tour d’amorçage classique. Sa hauteur est calculée automatiquement à partir du volume de purge le plus défavorable par couche : un prisme plus large sera moins haut."
 
 msgid "Tree support branch angle"
 msgstr "Angle de branche support arborescent"
@@ -19778,7 +19787,7 @@ msgid "Enable mixed color sublayer splitting. When enabled, layers containing mi
 msgstr "Active la division en sous-couches de couleur mixte. Lorsqu’elle est activée, les couches contenant des filaments de couleur mixte sont divisées en sous-couches afin d’obtenir des effets de mélange de couleurs."
 
 msgid "The wiping tower can be used to clean up residue on the nozzle and stabilize the chamber pressure inside the nozzle in order to avoid appearance defects when printing objects."
-msgstr "La tour de purge peut être utilisée pour nettoyer les résidus sur la buse et stabiliser la pression du caisson à l'intérieur de la buse afin d'éviter les défauts d'apparence lors de l'impression d'objets."
+msgstr "La tour d'amorçage peut être utilisée pour nettoyer les résidus sur la buse et stabiliser la pression du caisson à l'intérieur de la buse afin d'éviter les défauts d'apparence lors de l'impression d'objets."
 
 msgid "Internal ribs"
 msgstr "Nervures internes"
@@ -19816,7 +19825,7 @@ msgstr "Mode de volume d'amorçage"
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Selects how the wipe-tower prime and flush volumes are computed on multi-extruder printers."
-msgstr "Sélectionne la manière dont les volumes d’amorçage et de purge de la tour d’essuyage sont calculés sur les imprimantes multi-extrudeurs."
+msgstr "Sélectionne la manière dont les volumes d’amorçage et de purge de la tour d’amorçage sont calculés sur les imprimantes multi-extrudeurs."
 
 # AI Translated
 msgid "Saving"
@@ -19830,10 +19839,10 @@ msgid "This is the width of prime towers."
 msgstr "Largeur de la tour d’amorçage"
 
 msgid "Wipe tower rotation angle"
-msgstr "Angle de rotation de la tour d’essuyage"
+msgstr "Angle de rotation de la tour d’amorçage"
 
 msgid "Wipe tower rotation angle with respect to X axis."
-msgstr "Angle de rotation de la tour d’essuyage par rapport à l’axe X."
+msgstr "Angle de rotation de la tour d’amorçage par rapport à l’axe X."
 
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
 msgstr "Largeur de la bordure de la tour d'amorçage, un nombre négatif signifie une largeur calculée automatiquement en fonction de la hauteur de la tour d'amorçage."
@@ -19842,10 +19851,10 @@ msgid "Stabilization cone apex angle"
 msgstr "Angle au sommet du cône de stabilisation"
 
 msgid "Angle at the apex of the cone that is used to stabilize the wipe tower. Larger angle means wider base."
-msgstr "Angle au sommet du cône utilisé pour stabiliser la tour d’essuyage. Un angle plus grand signifie une base plus large."
+msgstr "Angle au sommet du cône utilisé pour stabiliser la tour d’amorçage. Un angle plus grand signifie une base plus large."
 
 msgid "Maximum wipe tower print speed"
-msgstr "Vitesse maximale d’impression de la tour d’essuyage"
+msgstr "Vitesse maximale d’impression de la tour d’amorçage"
 
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
@@ -19860,15 +19869,15 @@ msgid ""
 "\n"
 "For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
-"Vitesse d’impression maximale lors de la purge dans la tour d’essuyage et de l’impression des couches éparses de la tour d’essuyage. Lors de la purge, si la vitesse de remplissage ou la vitesse calculée à partir de la vitesse volumétrique maximale du filament est inférieure, c’est la plus faible qui sera utilisée.\n"
+"Vitesse d’impression maximale lors de la purge dans la tour d’amorçage et de l’impression des couches éparses de la tour d’amorçage. Lors de la purge, si la vitesse de remplissage ou la vitesse calculée à partir de la vitesse volumétrique maximale du filament est inférieure, c’est la plus faible qui sera utilisée.\n"
 "\n"
 "Lors de l’impression des couches éparses, si la vitesse de remplissage ou la vitesse calculée à partir de la vitesse volumétrique maximale du filament est inférieure, c’est la plus faible qui sera utilisée.\n"
 "\n"
-"L’augmentation de cette vitesse peut affecter la stabilité de la tour et accroître la force avec laquelle la buse heurte les éventuels amas qui se sont formés sur la tour d’essuyage.\n"
+"L’augmentation de cette vitesse peut affecter la stabilité de la tour et accroître la force avec laquelle la buse heurte les éventuels amas qui se sont formés sur la tour d’amorçage.\n"
 "\n"
 "Avant d’augmenter ce paramètre au-delà de la valeur par défaut de 90 mm/s, assurez-vous que votre imprimante peut réaliser des ponts de façon fiable à des vitesses plus élevées et que le suintement lors des changements d’outil est bien maîtrisé.\n"
 "\n"
-"Pour les périmètres externes de la tour d’essuyage, c’est la vitesse du périmètre interne qui est utilisée, également limitée par ce paramètre."
+"Pour les périmètres externes de la tour d’amorçage, c’est la vitesse du périmètre interne qui est utilisée, également limitée par ce paramètre."
 
 msgid "Wall type"
 msgstr "Type de paroi"
@@ -19881,9 +19890,9 @@ msgid ""
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
 "3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
-"Type de paroi extérieure de la tour d’essuyage.\n"
+"Type de paroi extérieure de la tour d’amorçage.\n"
 "1. Rectangle : Un rectangle avec une largeur et une hauteur fixes.\n"
-"2. Cône : Un cône avec un congé en bas pour aider à stabiliser la tour d’essuyage.\n"
+"2. Cône : Un cône avec un congé en bas pour aider à stabiliser la tour d’amorçage.\n"
 "3. Nervure : Le type de paroi par défaut, qui ajoute quatre nervures à la paroi de la tour pour une stabilité améliorée."
 
 msgid "Rectangle"
@@ -19911,13 +19920,13 @@ msgid "The wall of prime tower will fillet."
 msgstr "La paroi de la tour d'amorçage aura un congé."
 
 msgid "The extruder to use when printing perimeter of the wipe tower. Set to 0 to use the one that is available (non-soluble would be preferred)."
-msgstr "L’extrudeur à utiliser lors de l’impression du périmètre de la tour d’essuyage. Réglez sur 0 pour utiliser celui qui est disponible (un non-soluble serait préféré)."
+msgstr "L’extrudeur à utiliser lors de l’impression du périmètre de la tour d’amorçage. Réglez sur 0 pour utiliser celui qui est disponible (un non-soluble serait préféré)."
 
 msgid "Purging volumes - load/unload volumes"
 msgstr "Volumes de purge - Volume de Chargement/Déchargement"
 
 msgid "This vector saves required volumes to change from/to each tool used on the wipe tower. These values are used to simplify creation of the full purging volumes below."
-msgstr "Ce vecteur enregistre les volumes requis pour passer de/vers chaque outil utilisé sur la tour d’essuyage. Ces valeurs sont utilisées pour simplifier la création des volumes de purge complets ci-dessous."
+msgstr "Ce vecteur enregistre les volumes requis pour passer de/vers chaque outil utilisé sur la tour d’amorçage. Ces valeurs sont utilisées pour simplifier la création des volumes de purge complets ci-dessous."
 
 msgid "Skip points"
 msgstr "Sauter des points"
@@ -19967,10 +19976,10 @@ msgid "Maximal distance between supports on sparse infill sections."
 msgstr "Distance maximale entre les supports sur les sections de remplissage."
 
 msgid "Wipe tower purge lines spacing"
-msgstr "Espacement des lignes de purge de la tour d’essuyage"
+msgstr "Espacement des lignes de purge de la tour d’amorçage"
 
 msgid "Spacing of purge lines on the wipe tower."
-msgstr "Espacement des lignes de purge sur la tour d’essuyage."
+msgstr "Espacement des lignes de purge sur la tour d’amorçage."
 
 msgid "Extra flow for purging"
 msgstr "Débit supplémentaire pour purger"
@@ -19978,7 +19987,7 @@ msgstr "Débit supplémentaire pour purger"
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
-msgstr "Débit supplémentaire utilisé pour les lignes de purge de la tour d’essuyage. Cela rend les lignes de purge plus épaisses qu’elles ne le seraient normalement. L’espacement est ajusté automatiquement."
+msgstr "Débit supplémentaire utilisé pour les lignes de purge de la tour d’amorçage. Cela rend les lignes de purge plus épaisses qu’elles ne le seraient normalement. L’espacement est ajusté automatiquement."
 
 msgid "Idle temperature"
 msgstr "Température au repos"
@@ -20053,7 +20062,7 @@ msgid "Use relative E distances"
 msgstr "Utiliser l’extrusion relative"
 
 msgid "Relative extrusion is recommended when using \"label_objects\" option. Some extruders work better with this option unchecked (absolute extrusion mode). Wipe tower is only compatible with relative mode. It is recommended on most printers. Default is checked."
-msgstr "L’extrusion relative est recommandée lors de l’utilisation de l’option « label_objects ». Certains extrudeurs fonctionnent mieux avec cette option non verrouillée (mode d’extrusion absolu). La tour d’essuyage n’est compatible qu’avec le mode relatif. Il est recommandé sur la plupart des imprimantes. L’option par défaut est cochée"
+msgstr "L’extrusion relative est recommandée lors de l’utilisation de l’option « label_objects ». Certains extrudeurs fonctionnent mieux avec cette option non verrouillée (mode d’extrusion absolu). La tour d’amorçage n’est compatible qu’avec le mode relatif. Il est recommandé sur la plupart des imprimantes. L’option par défaut est cochée"
 
 msgid "The classic wall generator produces walls with constant extrusion width and for very thin areas, gap-fill is used. The Arachne engine produces walls with variable extrusion width."
 msgstr "Le générateur de paroi classique produit des parois avec une largeur d’extrusion constante et, pour les zones très fines, il utilise le remplissage d’espace. Le moteur Arachne produit des parois avec une largeur d’extrusion variable."
@@ -20615,10 +20624,10 @@ msgid "Specific for sequential printing. Zero-based index of currently printed o
 msgstr "Spécifique à l’impression séquentielle. Index commençant à zéro de l’objet en cours d’impression."
 
 msgid "Has wipe tower"
-msgstr "Possède une tour d’essuyage"
+msgstr "Possède une tour d’amorçage"
 
 msgid "Whether or not wipe tower is being generated in the print."
-msgstr "Indique si la tour d’essuyage est générée ou non dans l’impression."
+msgstr "Indique si la tour d’amorçage est générée ou non dans l’impression."
 
 msgid "Initial extruder"
 msgstr "Extrudeur initial"
@@ -20755,16 +20764,16 @@ msgid "Total cost of all material used in the print. Calculated from filament_co
 msgstr "Coût total de tous les matériaux utilisés dans l'impression. Calculé à partir de la valeur filament_cost dans les paramètres de filament."
 
 msgid "Total wipe tower cost"
-msgstr "Coût total de la tour de purge"
+msgstr "Coût total de la tour d'amorçage"
 
 msgid "Total cost of the material wasted on the wipe tower. Calculated from filament_cost value in Filament Settings."
-msgstr "Coût total du matériau gaspillé sur la tour de purge. Calculé à partir de la valeur filament_cost dans les paramètres de filament."
+msgstr "Coût total du matériau gaspillé sur la tour d'amorçage. Calculé à partir de la valeur filament_cost dans les paramètres de filament."
 
 msgid "Wipe tower volume"
-msgstr "Volume de la tour de purge"
+msgstr "Volume de la tour d'amorçage"
 
 msgid "Total filament volume extruded on the wipe tower."
-msgstr "Volume total de filament extrudé sur la tour de purge."
+msgstr "Volume total de filament extrudé sur la tour d'amorçage."
 
 msgid "Used filament"
 msgstr "Filament utilisé"
@@ -20881,7 +20890,7 @@ msgstr "Taille du plateau d’impression"
 # AI Translated
 # Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "tour d’essuyage"; align it once the term is settled.
 msgid "First layer center without wipe tower"
-msgstr "Centre de la première couche sans tour d’essuyage"
+msgstr "Centre de la première couche sans tour d’amorçage"
 
 # AI Translated
 msgid "Height of the first layer."
@@ -29922,20 +29931,21 @@ msgid "Basic Colors"
 msgstr "Couleurs de base"
 
 # AI Translated
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
 msgid "Orca Palette"
 msgstr "Palette Orca"
 
 # AI Translated
-#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "RAL Classic"
 msgstr "RAL Classic"
 
 # AI Translated
-#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "Gradients"
 msgstr "Dégradés"
 
 # AI Translated
+msgctxt "Color picker"
 msgid "Solid"
 msgstr "Uni"
 
@@ -30437,8 +30447,7 @@ msgid "Medium violet red"
 msgstr "Rouge violacé moyen"
 
 # AI Translated
-# Needs human review: Nom de couleur inhabituel ou source possiblement erronée : vérifier
-msgid "PaleV violet red"
+msgid "Pale violet red"
 msgstr "Rouge violacé pâle"
 
 # AI Translated
@@ -30654,8 +30663,7 @@ msgid "Shallow sky"
 msgstr "Ciel de lagune"
 
 # AI Translated
-# Needs human review: Nom de couleur inhabituel ou source possiblement erronée : vérifier
-msgid "Electric bel"
+msgid "Electric blue"
 msgstr "Bleu électrique"
 
 # AI Translated
@@ -30747,8 +30755,8 @@ msgid "Maize yellow"
 msgstr "Jaune maïs"
 
 # AI Translated
-msgid "Dalmatian yellow"
-msgstr "Jaune dalmatien"
+msgid "Daffodil yellow"
+msgstr "Jaune jonquille"
 
 # AI Translated
 msgid "Brown beige"
@@ -31095,9 +31103,8 @@ msgid "Turquoise blue"
 msgstr "Bleu turquoise"
 
 # AI Translated
-# Needs human review: Nom de couleur inhabituel ou source possiblement erronée : vérifier
-msgid "Capsanthin violet"
-msgstr "Violet capsanthine"
+msgid "Capri blue"
+msgstr "Bleu Capri"
 
 # AI Translated
 msgid "Ocean blue"
@@ -31249,9 +31256,8 @@ msgid "Silver grey"
 msgstr "Gris argent"
 
 # AI Translated
-# Needs human review: Nom de couleur inhabituel ou source possiblement erronée : vérifier
-msgid "Olivestone"
-msgstr "Pierre d’olive"
+msgid "Olive grey"
+msgstr "Gris olive"
 
 # AI Translated
 msgid "Moss grey"
@@ -32028,12 +32034,24 @@ msgid "Built-in"
 msgstr "Prédéfinies"
 
 # AI Translated
+msgid "My textures"
+msgstr "Mes textures"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Aucune texture trouvée."
 
 # AI Translated
-msgid "My textures"
-msgstr "Mes textures"
+msgid "Texture libraries"
+msgstr "Bibliothèques de textures"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Explorer d’autres bibliothèques de textures"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Ouvre OrcaCloud dans la page d’accueil pour parcourir les plugins."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -34743,6 +34761,10 @@ msgid "Slicing Pipeline"
 msgstr "Pipeline de découpage"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Texture de ressource"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "L’interface de configuration du plugin était vide. Affichage de l’éditeur par défaut."
 
@@ -34888,6 +34910,30 @@ msgstr "Le répertoire du plugin contient à la fois des fichiers d’entrée .p
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Le répertoire du plugin ne contient aucun fichier d’entrée .py ou .whl"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Le répertoire des textures de ressource n’est pas défini"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Le répertoire des textures de ressource n’a pas pu être résolu"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Le chemin des textures de ressource n’est pas un répertoire"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Le dossier du plugin n’a pas pu être résolu"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Le répertoire des textures de ressource se trouve en dehors du dossier du plugin"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Le répertoire des textures de ressource n’a pas pu être lu"
 
 # AI Translated
 #, boost-format
@@ -35834,6 +35880,41 @@ msgid ""
 msgstr ""
 "Éviter la déformation\n"
 "Saviez-vous que lors de l’impression de matériaux susceptibles de se déformer, tels que l’ABS, une augmentation appropriée de la température du plateau chauffant peut réduire la probabilité de déformation?"
+
+# AI Translated
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Jaune dalmatien"
+
+# AI Translated
+# Needs human review: Nom de couleur inhabituel ou source possiblement erronée : vérifier
+#~ msgid "Capsanthin violet"
+#~ msgstr "Violet capsanthine"
+
+# AI Translated
+# Needs human review: Nom de couleur inhabituel ou source possiblement erronée : vérifier
+#~ msgid "Olivestone"
+#~ msgstr "Pierre d’olive"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Disponible partout dans la fenêtre, même pendant la saisie dans un champ de texte."
+
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Les raccourcis globaux s'appliquent aussi pendant la saisie."
+
+# AI Translated
+#~ msgid "Solid"
+#~ msgstr "Uni"
+
+# AI Translated
+# Needs human review: Nom de couleur inhabituel ou source possiblement erronée : vérifier
+#~ msgid "PaleV violet red"
+#~ msgstr "Rouge violacé pâle"
+
+# AI Translated
+# Needs human review: Nom de couleur inhabituel ou source possiblement erronée : vérifier
+#~ msgid "Electric bel"
+#~ msgstr "Bleu électrique"
 
 #~ msgid "Please choose the filament color"
 #~ msgstr "Veuillez choisir la couleur du filament"
