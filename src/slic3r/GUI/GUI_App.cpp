@@ -132,6 +132,7 @@
 #include <cstdlib>
 #include <mutex>
 #include <regex>
+#include <future>
 #include <thread>
 #include <string_view>
 
@@ -3616,14 +3617,11 @@ bool GUI_App::on_init_inner()
 #ifdef __WXMSW__
             // The first GDI+ font makes GDI+ load all installed fonts (~200-250ms) which the first wxGCDC used to pay for. 
             // Do it on a worker while load_presets() runs. Nothing draws on the UI thread until the worker is joined
-            std::thread gdiplus_warmup([face = wxNORMAL_FONT->GetFaceName()] {
+            // The future returned by std::async waits for the worker in its destructor, also when load_presets() throws.
+            auto gdiplus_warmup = std::async(std::launch::async, [face = wxNORMAL_FONT->GetFaceName()] {
                 if (wxGraphicsRenderer* renderer = wxGraphicsRenderer::GetGDIPlusRenderer())
                     renderer->CreateFont(12., face, wxFONTFLAG_DEFAULT, wxColour(0, 0, 0));
             });
-            struct JoinOnExit {
-                std::thread& thread;
-                ~JoinOnExit() { if (thread.joinable()) thread.join(); }
-            } join_gdiplus_warmup{ gdiplus_warmup };
 #endif
             init_params->preset_substitutions = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
         }
