@@ -804,9 +804,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool have_volumetric_extrusion_rate_slope = config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope")->value > 0;
     float have_volumetric_extrusion_rate_slope_segment_length = config->option<ConfigOptionFloat>("max_volumetric_extrusion_rate_slope_segment_length")->value;
-    toggle_field("enable_arc_fitting", !have_volumetric_extrusion_rate_slope && !is_belt_printer);
-    toggle_line("max_volumetric_extrusion_rate_slope_segment_length", have_volumetric_extrusion_rate_slope);
-    toggle_line("extrusion_rate_smoothing_external_perimeter_only", have_volumetric_extrusion_rate_slope);
+    toggle_field("enable_arc_fitting", !have_volumetric_extrusion_rate_slope && !is_belt_printer, -1, _L("Arc fitting is unavailable for belt printers and when extrusion rate smoothing is enabled."));
+    toggle_line("max_volumetric_extrusion_rate_slope_segment_length", have_volumetric_extrusion_rate_slope, -1, _L("Set the maximum volumetric extrusion rate slope above zero to use extrusion rate smoothing."));
+    toggle_line("extrusion_rate_smoothing_external_perimeter_only", have_volumetric_extrusion_rate_slope, -1, _L("Set the maximum volumetric extrusion rate slope above zero to use extrusion rate smoothing."));
     if(have_volumetric_extrusion_rate_slope) config->set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
     if(have_volumetric_extrusion_rate_slope_segment_length < 0.5) {
         DynamicPrintConfig new_conf = *config;
@@ -817,9 +817,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool have_perimeters = config->opt_int("wall_loops") > 0;
     for (auto el : { "extra_perimeters_on_overhangs", "ensure_vertical_shell_thickness", "detect_thin_wall", "detect_overhang_wall",
         "seam_position", "staggered_inner_seams", "wall_sequence", "outer_wall_line_width" })
-        toggle_field(el, have_perimeters);
+        toggle_field(el, have_perimeters, -1, _L("Set wall loops above zero to use this setting."));
     for (auto el : { "inner_wall_speed", "outer_wall_speed", "small_perimeter_speed", "small_perimeter_threshold" })
-        toggle_field(el, have_perimeters, variant_index);
+        toggle_field(el, have_perimeters, variant_index, _L("Set wall loops above zero to use this setting."));
 
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament_id uses the same logic as in Print::extruders()
@@ -846,18 +846,18 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // The sparse infill density is the surface density of the adaptive infill; at 100% the infill is solid.
     bool have_adaptive_infill_pattern = have_infill && config->option<ConfigOptionPercent>("sparse_infill_density")->value < 100 &&
                             is_adaptive_infill_pattern(pattern);
-    toggle_line("adaptive_infill_mode", have_adaptive_infill_pattern);
+    toggle_line("adaptive_infill_mode", have_adaptive_infill_pattern, -1, _L("Select an adaptive TPMS infill pattern with sparse infill density between zero and 100%."));
     bool have_adaptive_infill = have_adaptive_infill_pattern && config->opt_enum<AdaptiveInfillMode>("adaptive_infill_mode") != AdaptiveInfillMode::Disabled;
-    toggle_line("adaptive_infill_interior_density", have_adaptive_infill);
-    toggle_line("adaptive_infill_gradient", have_adaptive_infill);
+    toggle_line("adaptive_infill_interior_density", have_adaptive_infill, -1, _L("Enable adaptive TPMS infill with sparse infill density between zero and 100%."));
+    toggle_line("adaptive_infill_gradient", have_adaptive_infill, -1, _L("Enable adaptive TPMS infill with sparse infill density between zero and 100%."));
 
     // gyroid_optimized only applies when the sparse infill pattern is gyroid without adaptive density;
     // hide the whole line otherwise.
-    toggle_line("gyroid_optimized", have_infill && pattern == ipGyroid && !have_adaptive_infill);
+    toggle_line("gyroid_optimized", have_infill && pattern == ipGyroid && !have_adaptive_infill, -1, _L("Select Gyroid infill with nonzero sparse infill density and disable adaptive TPMS to use this setting."));
 
     // If there is infill, enable/disable fill_multiline according to whether the pattern supports multiline infill.
     if (have_infill) {
-        toggle_field("fill_multiline", have_multiline_infill_pattern);
+        toggle_field("fill_multiline", have_multiline_infill_pattern, -1, _L("The selected sparse infill pattern does not support multiline infill."));
         // If the infill pattern does not support multiline fill_multiline is changed to 1.
         // Necessary when the pattern contains params.multiline (for example, triangles because they belong to the rectilinear class)
         if (!have_multiline_infill_pattern) {
@@ -867,52 +867,52 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
         }
         // Hide infill anchor max if sparse_infill_pattern is not line or if sparse_infill_pattern is line but infill_anchor_max is 0.
         bool infill_anchor = config->opt_enum<InfillPattern>("sparse_infill_pattern") != ipLine;
-        toggle_field("infill_anchor_max", infill_anchor);
+        toggle_field("infill_anchor_max", infill_anchor, -1, _L("The Line infill pattern does not support infill anchors."));
 
         // Only allow configuration of open anchors if the anchoring is enabled.
         bool has_infill_anchors = infill_anchor && config->option<ConfigOptionFloatOrPercent>("infill_anchor_max")->value > 0;
-        toggle_field("infill_anchor", has_infill_anchors);
+        toggle_field("infill_anchor", has_infill_anchors, -1, _L("Select an infill pattern other than Line and set the maximum infill anchor length above zero."));
     }
 
     //cross zag
     bool is_cross_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipCrossZag;
     bool is_locked_zig = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipLockedZag;
 
-    toggle_line("infill_shift_step", is_cross_zag || is_locked_zig);
+    toggle_line("infill_shift_step", is_cross_zag || is_locked_zig, -1, _L("Select the Cross Zag or Locked Zag sparse infill pattern to use this setting."));
     
     for (auto el : { "skeleton_infill_density", "skin_infill_density", "infill_lock_depth", "skin_infill_depth","skin_infill_line_width", "skeleton_infill_line_width" })
-        toggle_line(el, is_locked_zig);
+        toggle_line(el, is_locked_zig, -1, _L("Select the Locked Zag sparse infill pattern to use this setting."));
 
     bool is_zig_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag;
 
-    toggle_line("symmetric_infill_y_axis", is_zig_zag || is_cross_zag || is_locked_zig);
+    toggle_line("symmetric_infill_y_axis", is_zig_zag || is_cross_zag || is_locked_zig, -1, _L("Select the Zig Zag, Cross Zag or Locked Zag sparse infill pattern to use this setting."));
 
     bool is_3Dhoneycomb = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ip3DHoneycomb;
-    toggle_line("infill_complete_top", have_infill && is_3Dhoneycomb);
+    toggle_line("infill_complete_top", have_infill && is_3Dhoneycomb, -1, _L("Select 3D Honeycomb infill with nonzero sparse infill density to use this setting."));
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
-    toggle_line("spiral_mode_smooth", has_spiral_vase);
-    toggle_line("spiral_mode_max_xy_smoothing", has_spiral_vase && config->opt_bool("spiral_mode_smooth"));
-    toggle_line("spiral_starting_flow_ratio", has_spiral_vase);
-    toggle_line("spiral_finishing_flow_ratio", has_spiral_vase);
+    toggle_line("spiral_mode_smooth", has_spiral_vase, -1, _L("Enable spiral vase mode to use this setting."));
+    toggle_line("spiral_mode_max_xy_smoothing", has_spiral_vase && config->opt_bool("spiral_mode_smooth"), -1, _L("Enable spiral vase mode and spiral smoothing to use this setting."));
+    toggle_line("spiral_starting_flow_ratio", has_spiral_vase, -1, _L("Enable spiral vase mode to use this setting."));
+    toggle_line("spiral_finishing_flow_ratio", has_spiral_vase, -1, _L("Enable spiral vase mode to use this setting."));
     bool has_top_shell_layers = config->opt_int("top_shell_layers") > 0 || (has_spiral_vase && config->opt_int("bottom_shell_layers") > 1);
     bool has_top_shell    = has_top_shell_layers && config->option<ConfigOptionPercent>("top_surface_density")->value > 0;
     bool has_bottom_shell = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill = has_top_shell_layers || has_bottom_shell;
-    toggle_line("sparse_infill_smooth_factor", have_infill && is_smoothable_infill_pattern(pattern, config->opt_int("fill_multiline")));
-    toggle_field("top_surface_pattern", has_top_shell);
-    toggle_field("bottom_surface_pattern", has_bottom_shell);
-    toggle_field("top_surface_density", has_top_shell_layers);
-    toggle_field("bottom_surface_density", has_bottom_shell);
-    toggle_field("top_layer_direction", has_top_shell);
-    toggle_field("bottom_layer_direction", has_bottom_shell);
+    toggle_line("sparse_infill_smooth_factor", have_infill && is_smoothable_infill_pattern(pattern, config->opt_int("fill_multiline")), -1, _L("Use nonzero sparse infill density and an infill pattern and multiline setting that support infill smoothing."));
+    toggle_field("top_surface_pattern", has_top_shell, -1, _L("This setting requires a top shell with nonzero top surface density."));
+    toggle_field("bottom_surface_pattern", has_bottom_shell, -1, _L("Set bottom shell layers above zero to use this setting."));
+    toggle_field("top_surface_density", has_top_shell_layers, -1, _L("This setting requires top shell layers, or more than one bottom shell layer in spiral vase mode."));
+    toggle_field("bottom_surface_density", has_bottom_shell, -1, _L("Set bottom shell layers above zero to use this setting."));
+    toggle_field("top_layer_direction", has_top_shell, -1, _L("This setting requires a top shell with nonzero top surface density."));
+    toggle_field("bottom_layer_direction", has_bottom_shell, -1, _L("Set bottom shell layers above zero to use this setting."));
 
-    toggle_line("top_surface_expansion", has_top_shell);
-    toggle_line("top_surface_expansion_margin", has_top_shell);
+    toggle_line("top_surface_expansion", has_top_shell, -1, _L("This setting requires a top shell with nonzero top surface density."));
+    toggle_line("top_surface_expansion_margin", has_top_shell, -1, _L("This setting requires a top shell with nonzero top surface density."));
     bool has_top_surface_expansion = config->opt_float("top_surface_expansion") > 0;
-    toggle_field("top_surface_expansion_margin", has_top_surface_expansion);
-    toggle_line("top_surface_expansion_direction", has_top_shell);
-    toggle_field("top_surface_expansion_direction", has_top_surface_expansion);
+    toggle_field("top_surface_expansion_margin", has_top_surface_expansion, -1, _L("Set top surface expansion above zero to use this setting."));
+    toggle_line("top_surface_expansion_direction", has_top_shell, -1, _L("This setting requires a top shell with nonzero top surface density."));
+    toggle_field("top_surface_expansion_direction", has_top_surface_expansion, -1, _L("Set top surface expansion above zero to use this setting."));
 
     // Orca: Archimedean Chords and Octagram Spiral are the centered surface patterns that the
     // pattern-centering feature acts on.
@@ -924,38 +924,38 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool has_centered_surface = (has_top_shell && is_top_centered) || (has_bottom_shell && is_bottom_centered);
 
     // Orca: center of surface pattern
-    toggle_line("center_of_surface_pattern", has_centered_surface);
+    toggle_line("center_of_surface_pattern", has_centered_surface, -1, _L("Use a top or bottom shell with the Archimedean Chords or Octagram Spiral surface pattern."));
 
     // Orca: separate infills
-    toggle_line("separated_infills", is_separable_infill_pattern(pattern));
+    toggle_line("separated_infills", is_separable_infill_pattern(pattern), -1, _L("The selected sparse infill pattern does not support separated infills."));
 
     // Fill order is only meaningful for the center-based surface fill patterns; hide it otherwise.
     auto is_centered_fill = [](InfillPattern p) { return p == ipConcentric || p == ipSpiralInset || p == ipArchimedeanChords || p == ipOctagramSpiral; };
-    toggle_line("top_surface_fill_order", has_top_shell && is_centered_fill(config->opt_enum<InfillPattern>("top_surface_pattern")));
-    toggle_line("bottom_surface_fill_order", has_bottom_shell && is_centered_fill(config->opt_enum<InfillPattern>("bottom_surface_pattern")));
+    toggle_line("top_surface_fill_order", has_top_shell && is_centered_fill(config->opt_enum<InfillPattern>("top_surface_pattern")), -1, _L("Use a top shell with nonzero surface density and the Concentric, Spiral Inset, Archimedean Chords or Octagram Spiral surface pattern."));
+    toggle_line("bottom_surface_fill_order", has_bottom_shell && is_centered_fill(config->opt_enum<InfillPattern>("bottom_surface_pattern")), -1, _L("Use bottom shell layers and the Concentric, Spiral Inset, Archimedean Chords or Octagram Spiral surface pattern."));
 
     for (auto el : { "infill_direction", "sparse_infill_line_width", "gap_fill_target","filter_out_gap_fill","infill_wall_overlap",
         "bridge_angle", "internal_bridge_angle", "relative_bridge_angle",
         "solid_infill_direction", "solid_infill_rotate_template", "internal_solid_infill_pattern", "internal_solid_filament_id", "top_surface_filament_id", "bottom_surface_filament_id",
         })
-        toggle_field(el, have_infill || has_solid_infill);
+        toggle_field(el, have_infill || has_solid_infill, -1, _L("Use nonzero sparse infill density or top or bottom shell layers to edit this setting."));
     for (auto el : { "sparse_infill_speed", "bridge_speed", "internal_bridge_speed"})
-        toggle_field(el, have_infill || has_solid_infill, variant_index);
+        toggle_field(el, have_infill || has_solid_infill, variant_index, _L("Use nonzero sparse infill density or top or bottom shell layers to edit this setting."));
 
-    toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_shell_layers);
-    toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_shell);
+    toggle_field("top_shell_thickness", ! has_spiral_vase && has_top_shell_layers, -1, _L("Disable spiral vase mode and set top shell layers above zero to edit top shell thickness."));
+    toggle_field("bottom_shell_thickness", ! has_spiral_vase && has_bottom_shell, -1, _L("Disable spiral vase mode and set bottom shell layers above zero to edit bottom shell thickness."));
 
     // Gap fill is newly allowed in between perimeter lines even for empty infill (see GH #1476).
-    toggle_field("gap_infill_speed", have_perimeters, variant_index);
+    toggle_field("gap_infill_speed", have_perimeters, variant_index, _L("Set wall loops above zero to use this setting."));
     
-    toggle_field("top_surface_line_width", has_top_shell);
-    toggle_field("top_surface_speed", has_top_shell, variant_index);
+    toggle_field("top_surface_line_width", has_top_shell, -1, _L("This setting requires a top shell with nonzero top surface density."));
+    toggle_field("top_surface_speed", has_top_shell, variant_index, _L("This setting requires a top shell with nonzero top surface density."));
 
     bool have_default_acceleration = config->opt_float_nullable("default_acceleration", variant_index) > 0;
 
     for (auto el : {"outer_wall_acceleration", "inner_wall_acceleration", "initial_layer_acceleration", "initial_layer_travel_acceleration",
         "top_surface_acceleration", "travel_acceleration", "bridge_acceleration", "sparse_infill_acceleration", "internal_solid_infill_acceleration"})
-        toggle_field(el, have_default_acceleration, variant_index);
+        toggle_field(el, have_default_acceleration, variant_index, _L("Set default acceleration above zero to edit acceleration for individual extrusion roles."));
 
     bool machine_supports_junction_deviation = false;
     if (gcf_is_marlin_firmware) {
@@ -963,31 +963,31 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
             machine_supports_junction_deviation = !machine_jd->values.empty() && machine_jd->values.front() > 0.0;
         }
     }
-    toggle_line("default_junction_deviation", gcf_is_marlin_firmware, variant_index);
+    toggle_line("default_junction_deviation", gcf_is_marlin_firmware, variant_index, _L("This setting requires the Marlin firmware G-code flavor."));
     if (machine_supports_junction_deviation) {
         toggle_field("default_junction_deviation", true, variant_index);
-        toggle_field("default_jerk", false, variant_index);
+        toggle_field("default_jerk", false, variant_index, _L("Jerk settings are unavailable while the printer uses junction deviation."));
         for (auto el : { "outer_wall_jerk", "inner_wall_jerk", "initial_layer_jerk", "initial_layer_travel_jerk", "top_surface_jerk", "travel_jerk", "infill_jerk"})
-            toggle_line(el, false, variant_index);
+            toggle_line(el, false, variant_index, _L("Jerk settings are unavailable while the printer uses junction deviation."));
     } else {
-        toggle_field("default_junction_deviation", false, variant_index);
+        toggle_field("default_junction_deviation", false, variant_index, _L("Set the printer junction deviation limit above zero with the Marlin firmware G-code flavor to edit this setting."));
         toggle_field("default_jerk", true, variant_index);
         bool have_default_jerk = config->has("default_jerk") && config->opt_float_nullable("default_jerk", variant_index) > 0;
         for (auto el : { "outer_wall_jerk", "inner_wall_jerk", "initial_layer_jerk", "initial_layer_travel_jerk", "top_surface_jerk", "travel_jerk", "infill_jerk"}) {
             toggle_line(el, true, variant_index);
-            toggle_field(el, have_default_jerk, variant_index);
+            toggle_field(el, have_default_jerk, variant_index, _L("Set default jerk above zero to edit jerk for individual extrusion roles."));
         }
     }
 
     // Belt printer: disable skirt, brim, raft, and draft shield controls.
     bool have_skirt = config->opt_int("skirt_loops") > 0 && !is_belt_printer;
-    toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled);
-    toggle_line("single_loop_draft_shield", have_skirt); // ORCA: Display one wall if skirt enabled
+    toggle_field("skirt_height", have_skirt && config->opt_enum<DraftShield>("draft_shield") != dsEnabled, -1, _L("Use a non-belt printer with skirt loops above zero and disable the full-height draft shield to edit skirt height."));
+    toggle_line("single_loop_draft_shield", have_skirt, -1, _L("Use a non-belt printer with skirt loops above zero to use this setting.")); // ORCA: Display one wall if skirt enabled
     for (auto el : {"skirt_type", "min_skirt_length", "skirt_distance", "skirt_start_angle", "skirt_speed", "draft_shield"})
-        toggle_field(el, have_skirt);
+        toggle_field(el, have_skirt, -1, _L("Use a non-belt printer with skirt loops above zero to use this setting."));
     if (is_belt_printer) {
-        toggle_field("skirt_loops", false);
-        toggle_field("skirt_height", false);
+        toggle_field("skirt_loops", false, -1, _L("Skirts are unavailable for belt printers."));
+        toggle_field("skirt_height", false, -1, _L("Skirts are unavailable for belt printers."));
     }
 
     // Belt printers now get a brim too, laid onto the tilted belt by BeltBrim.cpp,
@@ -995,27 +995,27 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // geometrically a flat bed and uses the ordinary plate brim, hence the separate
     // is_belt_tilted test.
     bool have_brim = config->opt_enum<BrimType>("brim_type") != btNoBrim;
-    toggle_field("brim_object_gap", have_brim);
+    toggle_field("brim_object_gap", have_brim, -1, _L("Select a brim type other than No brim to use this setting."));
     // Both are first-layer-only concepts that the belt path cannot honour.
-    toggle_field("brim_use_efc_outline", have_brim && !is_belt_tilted);
-    toggle_field("combine_brims", have_brim && !is_belt_tilted);
+    toggle_field("brim_use_efc_outline", have_brim && !is_belt_tilted, -1, _L("Enable a brim on a printer without a tilted belt to use this setting."));
+    toggle_field("combine_brims", have_brim && !is_belt_tilted, -1, _L("Enable a brim on a printer without a tilted belt to use this setting."));
     bool have_brim_width = have_brim && config->opt_enum<BrimType>("brim_type") != btAutoBrim &&
                            config->opt_enum<BrimType>("brim_type") != btPainted;
     // On a tilted belt Auto / Mouse ear / Painted all collapse to outer-only at the
     // configured width, so the width field has to stay live for them too.
-    toggle_field("brim_width", have_brim_width || (have_brim && is_belt_tilted));
-    toggle_field("brim_flow_ratio", have_brim);
+    toggle_field("brim_width", have_brim_width || (have_brim && is_belt_tilted), -1, _L("Select a brim type with an editable width, or enable a brim on a tilted belt printer."));
+    toggle_field("brim_flow_ratio", have_brim, -1, _L("Select a brim type other than No brim to use this setting."));
     // Paired toggle_line + toggle_field: cb_toggle_line is null in the per-object
     // override panel, so the row cannot be hidden there and greying out is the
     // fallback.  Both extras are belt-only: one extends the brim ahead along the belt,
     // the other widens it across the belt.
     for (auto el : { "leading_brim_length", "extra_brim_width" }) {
-        toggle_line(el, is_belt_tilted);
-        toggle_field(el, is_belt_tilted && have_brim);
+        toggle_line(el, is_belt_tilted, -1, _L("This setting requires a belt printer with a tilted slicing plane."));
+        toggle_field(el, is_belt_tilted && have_brim, -1, _L("Enable a brim on a belt printer with a tilted slicing plane to use this setting."));
     }
     // Wall filament selectors use the same logic as in Print::extruders().
-    toggle_field("outer_wall_filament_id", have_perimeters || have_brim);
-    toggle_field("inner_wall_filament_id", have_perimeters || have_brim);
+    toggle_field("outer_wall_filament_id", have_perimeters || have_brim, -1, _L("Enable walls or a brim to select the wall filament."));
+    toggle_field("inner_wall_filament_id", have_perimeters || have_brim, -1, _L("Enable walls or a brim to select the wall filament."));
 
     const BrimType brim_type = config->opt_enum<BrimType>("brim_type");
     const bool have_auto_brim_ear = brim_type == btEar && !is_belt_tilted;
@@ -1023,16 +1023,16 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     set_option_label("brim_width", have_auto_brim_ear ? L("Brim ear radius") : L("Brim width"));
     const auto brim_width = config->opt_float("brim_width");
     // Automatic brim ear settings require a non-zero brim width.
-    toggle_field("brim_ears_max_angle", brim_width > 0.0f);
-    toggle_field("brim_ears_detection_length", brim_width > 0.0f);
+    toggle_field("brim_ears_max_angle", brim_width > 0.0f, -1, _L("Set brim width above zero to edit brim ear detection."));
+    toggle_field("brim_ears_detection_length", brim_width > 0.0f, -1, _L("Set brim width above zero to edit brim ear detection."));
     // Painted ears carry their own radius and do not depend on brim_width.
-    toggle_field("brim_ears_outer_only", have_painted_brim_ear || brim_width > 0.0f);
-    toggle_line("brim_ears_max_angle", have_auto_brim_ear);
-    toggle_line("brim_ears_detection_length", have_auto_brim_ear);
-    toggle_line("brim_ears_outer_only", have_auto_brim_ear || have_painted_brim_ear);
+    toggle_field("brim_ears_outer_only", have_painted_brim_ear || brim_width > 0.0f, -1, _L("Use painted brim ears or set brim width above zero to edit this setting."));
+    toggle_line("brim_ears_max_angle", have_auto_brim_ear, -1, _L("Select automatic brim ears on a printer without a tilted belt to use this setting."));
+    toggle_line("brim_ears_detection_length", have_auto_brim_ear, -1, _L("Select automatic brim ears on a printer without a tilted belt to use this setting."));
+    toggle_line("brim_ears_outer_only", have_auto_brim_ear || have_painted_brim_ear, -1, _L("Select automatic or painted brim ears on a printer without a tilted belt to use this setting."));
 
     // Hide Elephant foot compensation layers if elefant_foot_compensation is not enabled
-    toggle_line("elefant_foot_compensation_layers", config->opt_float("elefant_foot_compensation") > 0 || config->option<ConfigOptionPercent>("elefant_foot_layers_density")->get_abs_value(1.0f) < 1.0f);
+    toggle_line("elefant_foot_compensation_layers", config->opt_float("elefant_foot_compensation") > 0 || config->option<ConfigOptionPercent>("elefant_foot_layers_density")->get_abs_value(1.0f) < 1.0f, -1, _L("Enable elephant foot compensation or set elephant foot layer density below 100% to use this setting."));
 
     bool have_raft = config->opt_int("raft_layers") > 0 && !is_belt_printer;
     if (is_belt_printer)
@@ -1111,7 +1111,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // BBS
     //toggle_field("support_material_synchronize_layers", have_support_soluble);
 
-    toggle_field("inner_wall_line_width", have_perimeters || have_skirt || have_brim);
+    toggle_field("inner_wall_line_width", have_perimeters || have_skirt || have_brim, -1, _L("Enable walls, a skirt or a brim to edit inner wall line width."));
     toggle_field("support_filament", have_support_material || have_skirt, -1, _L("Enable support, a raft, or a skirt to select the support filament."));
 
     toggle_line("raft_contact_distance", have_raft && !have_support_soluble, -1,
@@ -1132,33 +1132,33 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool has_ironing = (config->opt_enum<IroningType>("ironing_type") != IroningType::NoIroning);
     for (auto el : { "ironing_pattern", "ironing_flow", "ironing_spacing", "ironing_angle", "ironing_inset", "ironing_angle_fixed" })
-        toggle_line(el, has_ironing);
+        toggle_line(el, has_ironing, -1, _L("Enable ironing to use this setting."));
     bool has_rectilinear_ironing = (config->opt_enum<InfillPattern>("ironing_pattern") == InfillPattern::ipRectilinear);
     for (auto el : {"ironing_angle", "ironing_angle_fixed"})
-        toggle_field(el, has_ironing && has_rectilinear_ironing);
+        toggle_field(el, has_ironing && has_rectilinear_ironing, -1, _L("Enable ironing with the Rectilinear pattern to edit ironing angles."));
     
-    toggle_line("ironing_speed", has_ironing || has_support_ironing);
+    toggle_line("ironing_speed", has_ironing || has_support_ironing, -1, _L("Enable ironing or support ironing to edit ironing speed."));
 
     bool has_zaa = config->opt_bool("zaa_enabled");
     for (auto el : {"zaa_minimize_perimeter_height", "zaa_min_z", "zaa_dont_alternate_fill_direction", "ironing_expansion"})
-        toggle_line(el, has_zaa);
+        toggle_line(el, has_zaa, -1, _L("Enable Z anti-aliasing to use this setting."));
 
     bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     // for (auto el : { "extruder_clearance_radius", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
     //     toggle_field(el, have_sequential_printing);
-    toggle_field("print_order", !have_sequential_printing);
+    toggle_field("print_order", !have_sequential_printing, -1, _L("Print order cannot be edited when the print sequence is By object."));
 
-    toggle_field("single_extruder_multi_material", !is_BBL_Printer);
+    toggle_field("single_extruder_multi_material", !is_BBL_Printer, -1, _L("This setting is unavailable for Bambu Lab printers."));
 
     auto bSEMM = preset_bundle->printers.get_edited_preset().config.opt_bool("single_extruder_multi_material");
     const bool supports_wipe_tower_2 = !is_BBL_Printer && preset_bundle->printers.get_edited_preset().config.opt_enum<WipeTowerType>("wipe_tower_type") == WipeTowerType::Type2;
 
-    toggle_field("ooze_prevention", !bSEMM);
+    toggle_field("ooze_prevention", !bSEMM, -1, _L("This setting is unavailable in single extruder multimaterial mode."));
     bool have_ooze_prevention = config->opt_bool("ooze_prevention");
-    toggle_line("standby_temperature_delta", have_ooze_prevention);
-    toggle_line("preheat_time", have_ooze_prevention);
+    toggle_line("standby_temperature_delta", have_ooze_prevention, -1, _L("Enable ooze prevention to use this setting."));
+    toggle_line("preheat_time", have_ooze_prevention, -1, _L("Enable ooze prevention to use this setting."));
     int preheat_steps = config->opt_int("preheat_steps");
-    toggle_line("preheat_steps", have_ooze_prevention && (preheat_steps > 0));
+    toggle_line("preheat_steps", have_ooze_prevention && (preheat_steps > 0), -1, _L("Enable ooze prevention and use a positive number of preheat steps to show this setting."));
 
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
     // ORCA-Belt: belt printers replace the classic wipe tower with the
@@ -1168,58 +1168,58 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     const bool have_belt_purge_tower = is_belt_printer
         && preset_bundle->printers.get_edited_preset().config.has("enable_belt_purge_tower")
         && preset_bundle->printers.get_edited_preset().config.opt_bool("enable_belt_purge_tower");
-    toggle_line("belt_purge_tower_width", have_belt_purge_tower);
+    toggle_line("belt_purge_tower_width", have_belt_purge_tower, -1, _L("Enable the belt purge tower in the belt printer settings to use this setting."));
     for (auto el : {"prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "wipe_tower_wall_type", "prime_tower_infill_gap","prime_tower_enable_framework", "enable_tower_interface_features"})
-        toggle_line(el, have_prime_tower && !is_belt_printer);
+        toggle_line(el, have_prime_tower && !is_belt_printer, -1, _L("Enable the prime tower on a non-belt printer to use this setting."));
 
     toggle_line("enable_tower_interface_cooldown_during_tower",
-                have_prime_tower && !is_belt_printer && config->opt_bool("enable_tower_interface_features"));
+                have_prime_tower && !is_belt_printer && config->opt_bool("enable_tower_interface_features"), -1, _L("Enable the prime tower and tower interface features on a non-belt printer to use this setting."));
 
     bool purge_in_primetower = preset_bundle->printers.get_edited_preset().config.opt_bool("purge_in_prime_tower");
 
     for (auto el : {"wipe_tower_rotation_angle", "wipe_tower_cone_angle",
                     "wipe_tower_extra_spacing", "wipe_tower_max_purge_speed",
                     "wipe_tower_bridging", "wipe_tower_extra_flow"})
-            toggle_line(el, have_prime_tower && supports_wipe_tower_2 && !is_belt_printer);
+            toggle_line(el, have_prime_tower && supports_wipe_tower_2 && !is_belt_printer, -1, _L("Enable the prime tower and select wipe tower Type 2 on a non-Bambu, non-belt printer."));
 
     // Orca: both tower generators skip sparse layers, so this is not a wipe tower 2 exclusive.
-    toggle_line("wipe_tower_no_sparse_layers", have_prime_tower && !is_belt_printer);
+    toggle_line("wipe_tower_no_sparse_layers", have_prime_tower && !is_belt_printer, -1, _L("Enable the prime tower on a non-belt printer to use this setting."));
     // Dropping the sparse layers outright leaves nothing to combine, so the two are exclusive.
-    toggle_line("wipe_tower_sparse_layers_combination", have_prime_tower && !is_belt_printer && !config->opt_bool("wipe_tower_no_sparse_layers"));
+    toggle_line("wipe_tower_sparse_layers_combination", have_prime_tower && !is_belt_printer && !config->opt_bool("wipe_tower_no_sparse_layers"), -1, _L("Enable the prime tower on a non-belt printer and turn off skipping sparse tower layers to use layer combination."));
 
     WipeTowerWallType wipe_tower_wall_type = config->opt_enum<WipeTowerWallType>("wipe_tower_wall_type");
     bool have_rib_wall = (wipe_tower_wall_type == WipeTowerWallType::wtwRib)&&have_prime_tower&&!is_belt_printer;
-    toggle_line("wipe_tower_cone_angle", have_prime_tower && supports_wipe_tower_2 && !is_belt_printer && wipe_tower_wall_type == WipeTowerWallType::wtwCone);
-    toggle_line("wipe_tower_extra_rib_length", have_rib_wall);
-    toggle_line("wipe_tower_rib_width", have_rib_wall);
-    toggle_line("wipe_tower_fillet_wall", have_rib_wall);
-    toggle_field("prime_tower_width", have_prime_tower && !have_rib_wall && !is_belt_printer);
+    toggle_line("wipe_tower_cone_angle", have_prime_tower && supports_wipe_tower_2 && !is_belt_printer && wipe_tower_wall_type == WipeTowerWallType::wtwCone, -1, _L("Enable a Type 2 prime tower with Cone walls on a non-Bambu, non-belt printer."));
+    toggle_line("wipe_tower_extra_rib_length", have_rib_wall, -1, _L("Enable the prime tower with Rib walls on a non-belt printer to use this setting."));
+    toggle_line("wipe_tower_rib_width", have_rib_wall, -1, _L("Enable the prime tower with Rib walls on a non-belt printer to use this setting."));
+    toggle_line("wipe_tower_fillet_wall", have_rib_wall, -1, _L("Enable the prime tower with Rib walls on a non-belt printer to use this setting."));
+    toggle_field("prime_tower_width", have_prime_tower && !have_rib_wall && !is_belt_printer, -1, _L("Enable the prime tower on a non-belt printer and choose a wall type other than Rib to edit tower width."));
 
-    toggle_line("single_extruder_multi_material_priming", !bSEMM && have_prime_tower && supports_wipe_tower_2 && !is_belt_printer);
+    toggle_line("single_extruder_multi_material_priming", !bSEMM && have_prime_tower && supports_wipe_tower_2 && !is_belt_printer, -1, _L("Enable a Type 2 prime tower on a non-Bambu, non-belt printer and disable single extruder multimaterial mode."));
 
     bool use_cyclic_ordering = config->opt_enum<ToolChangeOrderingType>("toolchange_ordering") == ToolChangeOrderingType::Cyclic;
-    toggle_line("toolchange_cyclic_order", use_cyclic_ordering);
-    toggle_line("toolchange_cyclic_first_layer", use_cyclic_ordering);
+    toggle_line("toolchange_cyclic_order", use_cyclic_ordering, -1, _L("Select Cyclic tool change ordering to use this setting."));
+    toggle_line("toolchange_cyclic_first_layer", use_cyclic_ordering, -1, _L("Select Cyclic tool change ordering to use this setting."));
 
-    toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM));
+    toggle_line("prime_volume",have_prime_tower && (!purge_in_primetower || !bSEMM), -1, _L("Enable the prime tower and either disable purging in the prime tower or disable single extruder multimaterial mode."));
 
     for (auto el : {"flush_into_infill", "flush_into_support", "flush_into_objects"})
-        toggle_field(el, have_prime_tower);
+        toggle_field(el, have_prime_tower, -1, _L("Enable the prime tower to use this setting."));
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
-    toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
+    toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters, -1, _L("Enable avoiding crossing walls to edit the maximum travel detour distance."));
 
     bool has_set_other_flow_ratios = config->opt_bool("set_other_flow_ratios");
     for (auto el : {"first_layer_flow_ratio", "outer_wall_flow_ratio", "inner_wall_flow_ratio", "overhang_flow_ratio", "sparse_infill_flow_ratio", "internal_solid_infill_flow_ratio", "gap_fill_flow_ratio", "support_flow_ratio", "support_interface_flow_ratio"})
-        toggle_line(el, has_set_other_flow_ratios);
+        toggle_line(el, has_set_other_flow_ratios, -1, _L("Enable setting other flow ratios to use this setting."));
 
     bool has_overhang_speed = config->opt_bool_nullable("enable_overhang_speed", variant_index);
     for (auto el : {"overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
-        toggle_line(el, has_overhang_speed, variant_index);
+        toggle_line(el, has_overhang_speed, variant_index, _L("Enable slowing down for overhangs to use this setting."));
 
-    toggle_line("slowdown_for_curled_perimeters", has_overhang_speed, variant_index);
+    toggle_line("slowdown_for_curled_perimeters", has_overhang_speed, variant_index, _L("Enable slowing down for overhangs to use this setting."));
 
-    toggle_line("flush_into_objects", !is_global_config);
+    toggle_line("flush_into_objects", !is_global_config, -1, _L("This setting is available in object settings rather than global print settings."));
 
     toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"), -1,
                 _L("Select a specific support interface filament and use the default support filament to show this setting."));
@@ -1229,115 +1229,116 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     
     // Show fuzzy skin options when fuzzy skin is not disabled
     for (auto el : {"fuzzy_skin_mode", "fuzzy_skin_noise_type", "fuzzy_skin_point_distance", "fuzzy_skin_thickness", "fuzzy_skin_first_layer"})
-        toggle_line(el, has_fuzzy_skin);
+        toggle_line(el, has_fuzzy_skin, -1, _L("Enable fuzzy skin to use this setting."));
     
     // Show noise type specific options with the same logic
     NoiseType fuzzy_skin_noise_type = config->opt_enum<NoiseType>("fuzzy_skin_noise_type");
     const bool is_ripple = fuzzy_skin_noise_type == NoiseType::Ripple;
-    toggle_line("fuzzy_skin_scale", fuzzy_skin_noise_type != NoiseType::Classic && has_fuzzy_skin && !is_ripple);
-    toggle_line("fuzzy_skin_octaves", fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi && has_fuzzy_skin && !is_ripple);
-    toggle_line("fuzzy_skin_persistence", (fuzzy_skin_noise_type == NoiseType::Perlin || fuzzy_skin_noise_type == NoiseType::Billow) && has_fuzzy_skin && !is_ripple);
-    toggle_line("fuzzy_skin_ripples_per_layer", is_ripple && has_fuzzy_skin);
-    toggle_line("fuzzy_skin_ripple_offset", is_ripple && has_fuzzy_skin);
-    toggle_line("fuzzy_skin_layers_between_ripple_offset", is_ripple && has_fuzzy_skin);
+    toggle_line("fuzzy_skin_scale", fuzzy_skin_noise_type != NoiseType::Classic && has_fuzzy_skin && !is_ripple, -1, _L("Enable fuzzy skin and select a noise type other than Classic or Ripple to edit noise scale."));
+    toggle_line("fuzzy_skin_octaves", fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi && has_fuzzy_skin && !is_ripple, -1, _L("Enable fuzzy skin and select a noise type other than Classic, Voronoi or Ripple to edit noise octaves."));
+    toggle_line("fuzzy_skin_persistence", (fuzzy_skin_noise_type == NoiseType::Perlin || fuzzy_skin_noise_type == NoiseType::Billow) && has_fuzzy_skin && !is_ripple, -1, _L("Enable fuzzy skin with Perlin or Billow noise to edit persistence."));
+    toggle_line("fuzzy_skin_ripples_per_layer", is_ripple && has_fuzzy_skin, -1, _L("Enable fuzzy skin with Ripple noise to use this setting."));
+    toggle_line("fuzzy_skin_ripple_offset", is_ripple && has_fuzzy_skin, -1, _L("Enable fuzzy skin with Ripple noise to use this setting."));
+    toggle_line("fuzzy_skin_layers_between_ripple_offset", is_ripple && has_fuzzy_skin, -1, _L("Enable fuzzy skin with Ripple noise to use this setting."));
 
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : {"wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle", "min_feature_size", "min_length_factor",
         "min_bead_width", "wall_distribution_count", "initial_layer_min_bead_width", "wall_maximum_resolution", "wall_maximum_deviation"})
-        toggle_line(el, have_arachne);
+        toggle_line(el, have_arachne, -1, _L("Select the Arachne wall generator to use this setting."));
     toggle_field("detect_thin_wall", !have_arachne, -1, _L("Thin wall detection is unavailable with the Arachne wall generator."));
 
     // Orca
     auto is_role_based_wipe_speed = config->opt_bool("role_based_wipe_speed");
-    toggle_field("wipe_speed",!is_role_based_wipe_speed);
+    toggle_field("wipe_speed",!is_role_based_wipe_speed, -1, _L("Disable role-based wipe speed to edit wipe speed manually."));
 
     const bool have_wipe_inward = config->opt_bool("wipe_inward");
-    toggle_line("wipe_inward_distance", have_wipe_inward);
+    toggle_line("wipe_inward_distance", have_wipe_inward, -1, _L("Enable inward wiping to edit inward wipe distance."));
 
     for (auto el : {"accel_to_decel_enable", "accel_to_decel_factor"})
-        toggle_line(el, gcf_is_klipper);
+        toggle_line(el, gcf_is_klipper, -1, _L("This setting requires the Klipper G-code flavor."));
     if(gcf_is_klipper)
-        toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
+        toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"), -1, _L("Enable acceleration to deceleration to edit its factor."));
 
-    toggle_line("exclude_object_tolerance", gcf_is_klipper && config->opt_bool("exclude_object"));
+    toggle_line("exclude_object_tolerance", gcf_is_klipper && config->opt_bool("exclude_object"), -1,
+                _L("Enable excluding objects with the Klipper G-code flavor to edit the outline tolerance."));
 
     bool have_make_overhang_printable = config->opt_bool("make_overhang_printable");
-    toggle_line("make_overhang_printable_angle", have_make_overhang_printable);
-    toggle_line("make_overhang_printable_hole_size", have_make_overhang_printable);
+    toggle_line("make_overhang_printable_angle", have_make_overhang_printable, -1, _L("Enable making overhangs printable to use this setting."));
+    toggle_line("make_overhang_printable_hole_size", have_make_overhang_printable, -1, _L("Enable making overhangs printable to use this setting."));
 
     // Orca: the one-wall options act on top/bottom surfaces, which exist only with a shell. An unfilled surface
     // (0% surface density) is still a surface, so these are gated on the layer counts alone.
-    toggle_line("only_one_wall_first_layer", has_bottom_shell);
-    toggle_line("only_one_wall_top", has_top_shell_layers);
-    toggle_line("min_width_top_surface", (has_top_shell_layers && config->opt_bool("only_one_wall_top")) || ((config->opt_float("min_length_factor") > 0.5f) && have_arachne)); // 0.5 is default value
+    toggle_line("only_one_wall_first_layer", has_bottom_shell, -1, _L("Set bottom shell layers above zero to use this setting."));
+    toggle_line("only_one_wall_top", has_top_shell_layers, -1, _L("This setting requires top shell layers, or more than one bottom shell layer in spiral vase mode."));
+    toggle_line("min_width_top_surface", (has_top_shell_layers && config->opt_bool("only_one_wall_top")) || ((config->opt_float("min_length_factor") > 0.5f) && have_arachne), -1, _L("Enable only one wall on top surfaces with top shell layers, or use Arachne with a minimum wall length factor above 0.5.")); // 0.5 is default value
 
     for (auto el : { "hole_to_polyhole_threshold", "hole_to_polyhole_twisted", "hole_to_polyhole_max_edges" })
-        toggle_line(el, config->opt_bool("hole_to_polyhole"));
+        toggle_line(el, config->opt_bool("hole_to_polyhole"), -1, _L("Enable converting holes to polyholes to use this setting."));
 
     bool has_detect_overhang_wall = config->opt_bool("detect_overhang_wall");
     bool has_overhang_reverse     = config->opt_bool("overhang_reverse");
     bool allow_overhang_reverse   = !has_spiral_vase;
-    toggle_line("unsupported_wall_last", has_detect_overhang_wall);
-    toggle_line("overhang_reverse", allow_overhang_reverse);
-    toggle_line("overhang_reverse_internal_only", allow_overhang_reverse && has_overhang_reverse);
+    toggle_line("unsupported_wall_last", has_detect_overhang_wall, -1, _L("Enable overhang wall detection to use this setting."));
+    toggle_line("overhang_reverse", allow_overhang_reverse, -1, _L("Reverse overhang direction is unavailable in spiral vase mode."));
+    toggle_line("overhang_reverse_internal_only", allow_overhang_reverse && has_overhang_reverse, -1, _L("Disable spiral vase mode and enable reverse overhang direction to use this setting."));
     bool has_overhang_reverse_internal_only = config->opt_bool("overhang_reverse_internal_only");
     if (has_overhang_reverse_internal_only){
         DynamicPrintConfig new_conf = *config;
         new_conf.set_key_value("overhang_reverse_threshold", new ConfigOptionFloatOrPercent(0,true));
         apply(config, &new_conf);
     }
-    toggle_line("overhang_reverse_threshold", has_detect_overhang_wall && allow_overhang_reverse && has_overhang_reverse && !has_overhang_reverse_internal_only);
-    toggle_line("timelapse_type", is_BBL_Printer);
+    toggle_line("overhang_reverse_threshold", has_detect_overhang_wall && allow_overhang_reverse && has_overhang_reverse && !has_overhang_reverse_internal_only, -1, _L("Enable overhang wall detection and reverse overhang direction, disable spiral vase mode, and turn off reversing internal perimeters only."));
+    toggle_line("timelapse_type", is_BBL_Printer, -1, _L("This setting requires a Bambu Lab printer."));
 
 
     bool have_small_area_infill_flow_compensation = config->opt_bool("small_area_infill_flow_compensation");
-    toggle_line("small_area_infill_flow_compensation_model", have_small_area_infill_flow_compensation);
+    toggle_line("small_area_infill_flow_compensation_model", have_small_area_infill_flow_compensation, -1, _L("Enable small area infill flow compensation to edit its model."));
 
 
     // Belt printers: the scarf would start one layer back along the belt, inside the
     // previous layer (GCode::extrude_loop skips it there too).
-    toggle_field("seam_slope_type", !has_spiral_vase && !is_belt_printer);
+    toggle_field("seam_slope_type", !has_spiral_vase && !is_belt_printer, -1, _L("Scarf seams are unavailable in spiral vase mode and for belt printers."));
     bool has_seam_slope = !has_spiral_vase && !is_belt_printer && config->opt_enum<SeamScarfType>("seam_slope_type") != SeamScarfType::None;
-    toggle_line("seam_slope_conditional", has_seam_slope);
-    toggle_line("seam_slope_start_height", has_seam_slope);
-    toggle_line("seam_slope_entire_loop", has_seam_slope);
-    toggle_line("seam_slope_min_length", has_seam_slope);
-    toggle_line("seam_slope_steps", has_seam_slope);
-    toggle_line("seam_slope_inner_walls", has_seam_slope);
-    toggle_line("scarf_joint_speed", has_seam_slope);
-    toggle_line("scarf_joint_flow_ratio", has_seam_slope);
-    toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"));
-    toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
-    toggle_line("scarf_overhang_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"));
+    toggle_line("seam_slope_conditional", has_seam_slope, -1, _L("Enable scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
+    toggle_line("seam_slope_start_height", has_seam_slope, -1, _L("Enable scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
+    toggle_line("seam_slope_entire_loop", has_seam_slope, -1, _L("Enable scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
+    toggle_line("seam_slope_min_length", has_seam_slope, -1, _L("Enable scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
+    toggle_line("seam_slope_steps", has_seam_slope, -1, _L("Enable scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
+    toggle_line("seam_slope_inner_walls", has_seam_slope, -1, _L("Enable scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
+    toggle_line("scarf_joint_speed", has_seam_slope, -1, _L("Enable scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
+    toggle_line("scarf_joint_flow_ratio", has_seam_slope, -1, _L("Enable scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
+    toggle_field("seam_slope_min_length", !config->opt_bool("seam_slope_entire_loop"), -1, _L("Disable scarfing the entire loop to edit the minimum scarf length."));
+    toggle_line("scarf_angle_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"), -1, _L("Enable conditional scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
+    toggle_line("scarf_overhang_threshold", has_seam_slope && config->opt_bool("seam_slope_conditional"), -1, _L("Enable conditional scarf seams on a non-belt printer with spiral vase mode disabled to use this setting."));
 
     bool use_beam_interlocking = config->opt_bool("interlocking_beam");
-    toggle_line("mmu_segmented_region_interlocking_depth", !use_beam_interlocking);
-    toggle_line("interlocking_beam_width", use_beam_interlocking);
-    toggle_line("interlocking_orientation", use_beam_interlocking);
-    toggle_line("interlocking_beam_layer_count", use_beam_interlocking);
-    toggle_line("interlocking_depth", use_beam_interlocking);
-    toggle_line("interlocking_boundary_avoidance", use_beam_interlocking);
+    toggle_line("mmu_segmented_region_interlocking_depth", !use_beam_interlocking, -1, _L("Disable beam interlocking to edit segmented region interlocking depth."));
+    toggle_line("interlocking_beam_width", use_beam_interlocking, -1, _L("Enable beam interlocking to use this setting."));
+    toggle_line("interlocking_orientation", use_beam_interlocking, -1, _L("Enable beam interlocking to use this setting."));
+    toggle_line("interlocking_beam_layer_count", use_beam_interlocking, -1, _L("Enable beam interlocking to use this setting."));
+    toggle_line("interlocking_depth", use_beam_interlocking, -1, _L("Enable beam interlocking to use this setting."));
+    toggle_line("interlocking_boundary_avoidance", use_beam_interlocking, -1, _L("Enable beam interlocking to use this setting."));
 
     bool lattice_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLateralLattice;
     for (auto el : { "lateral_lattice_angle_1", "lateral_lattice_angle_2"})
-        toggle_line(el, lattice_options);
+        toggle_line(el, lattice_options, -1, _L("Select the Lateral Lattice sparse infill pattern to use this setting."));
 
     bool lightning_options = config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLightning;
     for (auto el : { "lightning_overhang_angle", "lightning_prune_angle", "lightning_straightening_angle" })
-        toggle_line(el, lightning_options);
+        toggle_line(el, lightning_options, -1, _L("Select the Lightning sparse infill pattern to use this setting."));
         
     // Adaptative Cubic and support cubic infill patterns do not support infill rotation.
     bool FillAdaptive = (pattern == InfillPattern::ipAdaptiveCubic || pattern == InfillPattern::ipSupportCubic);
 
     //Orca: disable infill_direction/solid_infill_direction if sparse_infill_rotate_template/solid_infill_rotate_template is not empty value and adaptive cubic/support cubic infill pattern is not selected
-    toggle_field("sparse_infill_rotate_template", !FillAdaptive);
-    toggle_field("infill_direction", config->opt_string("sparse_infill_rotate_template") == "" && !FillAdaptive);
-    toggle_field("solid_infill_direction", config->opt_string("solid_infill_rotate_template") == "");
+    toggle_field("sparse_infill_rotate_template", !FillAdaptive, -1, _L("Infill rotation templates are unavailable for Adaptive Cubic and Support Cubic infill."));
+    toggle_field("infill_direction", config->opt_string("sparse_infill_rotate_template") == "" && !FillAdaptive, -1, _L("Clear the sparse infill rotation template and choose a pattern other than Adaptive Cubic or Support Cubic to edit infill direction."));
+    toggle_field("solid_infill_direction", config->opt_string("solid_infill_rotate_template") == "", -1, _L("Clear the solid infill rotation template to edit solid infill direction."));
     
-    toggle_line("infill_overhang_angle", config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLateralHoneycomb);
+    toggle_line("infill_overhang_angle", config->opt_enum<InfillPattern>("sparse_infill_pattern") == InfillPattern::ipLateralHoneycomb, -1, _L("Select the Lateral Honeycomb sparse infill pattern to use this setting."));
 
     std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-    toggle_line("enable_wrapping_detection", DevPrinterConfigUtil::support_wrapping_detection(printer_type));
+    toggle_line("enable_wrapping_detection", DevPrinterConfigUtil::support_wrapping_detection(printer_type), -1, _L("The selected printer does not support wrapping detection."));
 }
 
 void ConfigManipulation::update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config/* = false*/)
@@ -1378,42 +1379,42 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
 {
     bool supports_en = config->opt_bool("supports_enable");
 
-    toggle_field("support_head_front_diameter", supports_en);
-    toggle_field("support_head_penetration", supports_en);
-    toggle_field("support_head_width", supports_en);
-    toggle_field("support_pillar_diameter", supports_en);
-    toggle_field("support_small_pillar_diameter_percent", supports_en);
-    toggle_field("support_max_bridges_on_pillar", supports_en);
-    toggle_field("support_pillar_connection_mode", supports_en);
-    toggle_field("support_buildplate_only", supports_en);
-    toggle_field("support_base_diameter", supports_en);
-    toggle_field("support_base_height", supports_en);
-    toggle_field("support_base_safety_distance", supports_en);
-    toggle_field("support_critical_angle", supports_en);
-    toggle_field("support_max_bridge_length", supports_en);
-    toggle_field("support_max_pillar_link_distance", supports_en);
-    toggle_field("support_points_density_relative", supports_en);
-    toggle_field("support_points_minimal_distance", supports_en);
+    toggle_field("support_head_front_diameter", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_head_penetration", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_head_width", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_pillar_diameter", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_small_pillar_diameter_percent", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_max_bridges_on_pillar", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_pillar_connection_mode", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_buildplate_only", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_base_diameter", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_base_height", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_base_safety_distance", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_critical_angle", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_max_bridge_length", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_max_pillar_link_distance", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_points_density_relative", supports_en, -1, _L("Enable support to edit this setting."));
+    toggle_field("support_points_minimal_distance", supports_en, -1, _L("Enable support to edit this setting."));
 
     bool pad_en = config->opt_bool("pad_enable");
 
-    toggle_field("pad_wall_thickness", pad_en);
-    toggle_field("pad_wall_height", pad_en);
-    toggle_field("pad_brim_size", pad_en);
-    toggle_field("pad_max_merge_distance", pad_en);
+    toggle_field("pad_wall_thickness", pad_en, -1, _L("Enable the pad to edit this setting."));
+    toggle_field("pad_wall_height", pad_en, -1, _L("Enable the pad to edit this setting."));
+    toggle_field("pad_brim_size", pad_en, -1, _L("Enable the pad to edit this setting."));
+    toggle_field("pad_max_merge_distance", pad_en, -1, _L("Enable the pad to edit this setting."));
  // toggle_field("pad_edge_radius", supports_en);
-    toggle_field("pad_wall_slope", pad_en);
-    toggle_field("pad_around_object", pad_en);
-    toggle_field("pad_around_object_everywhere", pad_en);
+    toggle_field("pad_wall_slope", pad_en, -1, _L("Enable the pad to edit this setting."));
+    toggle_field("pad_around_object", pad_en, -1, _L("Enable the pad to edit this setting."));
+    toggle_field("pad_around_object_everywhere", pad_en, -1, _L("Enable the pad to edit this setting."));
 
     bool zero_elev = config->opt_bool("pad_around_object") && pad_en;
 
-    toggle_field("support_object_elevation", supports_en && !zero_elev);
-    toggle_field("pad_object_gap", zero_elev);
-    toggle_field("pad_around_object_everywhere", zero_elev);
-    toggle_field("pad_object_connector_stride", zero_elev);
-    toggle_field("pad_object_connector_width", zero_elev);
-    toggle_field("pad_object_connector_penetration", zero_elev);
+    toggle_field("support_object_elevation", supports_en && !zero_elev, -1, _L("Enable support and disable the pad around the object to edit object elevation."));
+    toggle_field("pad_object_gap", zero_elev, -1, _L("Enable the pad around the object to edit this setting."));
+    toggle_field("pad_around_object_everywhere", zero_elev, -1, _L("Enable the pad around the object to edit this setting."));
+    toggle_field("pad_object_connector_stride", zero_elev, -1, _L("Enable the pad around the object to edit this setting."));
+    toggle_field("pad_object_connector_width", zero_elev, -1, _L("Enable the pad around the object to edit this setting."));
+    toggle_field("pad_object_connector_penetration", zero_elev, -1, _L("Enable the pad around the object to edit this setting."));
 }
 
 int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)

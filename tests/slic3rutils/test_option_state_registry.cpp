@@ -1,6 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_message.hpp>
 #include "slic3r/GUI/OptionStateRegistry.hpp"
 #include "slic3r/GUI/ConfigManipulation.hpp"
+#include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/Config.hpp"
 
 #include <string>
 
@@ -94,4 +97,40 @@ TEST_CASE("Availability descriptions update when either restriction is removed",
 
     registry.set_enabled("option", false);
     CHECK_FALSE(registry.description("option").empty());
+}
+
+TEST_CASE("SLA dependency rules explain restrictions and clear them when prerequisites change", "[OptionStateRegistry]")
+{
+    OptionStateRegistry registry;
+    Slic3r::GUI::ConfigManipulation manipulation(nullptr,
+        [&registry](const std::string& key, bool enabled, int, const wxString& reason) {
+            INFO(key);
+            if (!enabled)
+                CHECK_FALSE(reason.empty());
+            registry.set_enabled(key, enabled, reason);
+        }, nullptr, nullptr);
+    Slic3r::DynamicPrintConfig config;
+    config.apply(Slic3r::SLAFullPrintConfig{});
+    config.set_key_value("supports_enable", new Slic3r::ConfigOptionBool(false));
+    config.set_key_value("pad_enable", new Slic3r::ConfigOptionBool(false));
+    config.set_key_value("pad_around_object", new Slic3r::ConfigOptionBool(false));
+    manipulation.toggle_print_sla_options(&config);
+    REQUIRE(registry.disabled_reason("support_head_width") != nullptr);
+    CHECK_FALSE(registry.disabled_reason("support_head_width")->empty());
+    REQUIRE(registry.disabled_reason("pad_object_gap") != nullptr);
+
+    config.set_key_value("supports_enable", new Slic3r::ConfigOptionBool(true));
+    config.set_key_value("pad_enable", new Slic3r::ConfigOptionBool(true));
+    config.set_key_value("pad_around_object", new Slic3r::ConfigOptionBool(true));
+    manipulation.toggle_print_sla_options(&config);
+    CHECK(registry.disabled_reason("support_head_width") == nullptr);
+    CHECK(registry.disabled_reason("pad_object_gap") == nullptr);
+    REQUIRE(registry.disabled_reason("support_object_elevation") != nullptr);
+    CHECK_FALSE(registry.disabled_reason("support_object_elevation")->empty());
+
+    config.set_key_value("pad_around_object", new Slic3r::ConfigOptionBool(false));
+    manipulation.toggle_print_sla_options(&config);
+    CHECK(registry.disabled_reason("support_object_elevation") == nullptr);
+    REQUIRE(registry.disabled_reason("pad_object_gap") != nullptr);
+    CHECK_FALSE(registry.disabled_reason("pad_object_gap")->empty());
 }

@@ -108,7 +108,9 @@ reads its owning Tab's registry when the pointer rests on a row label. The label
 remains a hover target when the input is disabled. Markdown tips prepend the same
 restriction text to their document and refresh when that text changes, even when
 the document identifier stays the same. Callers without a reason receive a generic
-current-configuration explanation.
+current-configuration explanation. Dependency rules supply complete translated
+messages describing their prerequisites; compound rules can choose the message for
+the failed prerequisite. The same recorded text reaches tooltips and search results.
 
 Settings search resolves the same owning Tab as option navigation: a matching model
 Tab in object mode, otherwise the global preset Tab. Results show the first line of
