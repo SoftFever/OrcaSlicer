@@ -164,14 +164,15 @@ static std::string format_device_string(int vid, int pid)
     return ret;
 }
 
-static std::string detect_attached_device()
+// Runs on a worker thread on Windows; the caller reads skip_3dmouse_detect (AppConfig is not thread safe).
+static std::string detect_attached_device(bool skip_detection)
 {
     std::string ret;
     // Initialize the hidapi library
     int res = hid_init();
     if (res != 0)
         BOOST_LOG_TRIVIAL(error) << "Unable to initialize hidapi library";
-    else if (wxGetApp().app_config->get("skip_3dmouse_detect") == "true") {
+    else if (skip_detection) {
         BOOST_LOG_TRIVIAL(info) << "do not detect 3d Mouse";
     }
     else {
@@ -827,22 +828,33 @@ bool Mouse3DController::handle_input(const DataPacketAxis& packet)
 void Mouse3DController::init()
 {
 #ifdef _WIN32
-    m_device_str = detect_attached_device();
-    if (!m_device_str.empty()) {
-        m_connected = true;
-        if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end())
-            m_params = m_params_ui = it_params->second;
+    // hid_enumerate() queries every HID device on the system (~200 ms), so detect on m_thread.
+    // Windows doesn't otherwise use it: HID data arrives as window messages.
+    assert(! m_thread.joinable());
+    if (! m_thread.joinable()) {
+        const bool skip_detection = wxGetApp().app_config->get("skip_3dmouse_detect") == "true";
+        m_thread = std::thread([this, skip_detection, alive = std::weak_ptr<int>(m_alive)]() {
+            std::string device = detect_attached_device(skip_detection);
+            if (device.empty() || wxTheApp == nullptr)
+                return;
+            wxGetApp().CallAfter([this, alive, device = std::move(device)]() {
+                // Skip if this controller is gone or device_attached() already named the device.
+                if (alive.expired() || ! m_device_str.empty())
+                    return;
+                m_device_str = device;
+                m_connected  = true;
+                if (auto it_params = m_params_by_device.find(m_device_str); it_params != m_params_by_device.end())
+                    m_params = m_params_ui = it_params->second;
+            });
+        });
     }
-#endif // _WIN32
-
+#else
 	assert(! m_thread.joinable());
     if (! m_thread.joinable()) {
     	m_stop = false;
-#ifndef _WIN32
-    	// Don't start the background thread on Windows, as the HID messages are sent as Windows messages.
 	    m_thread = std::thread(&Mouse3DController::run, this);
-#endif // _WIN32
 	}
+#endif // _WIN32
 }
 
 // Closing the application.
