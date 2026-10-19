@@ -1415,16 +1415,8 @@ void MoonrakerPrinterAgent::announce_printhost_device()
         }
     }
 
-    // Try to fetch actual device name from Moonraker
-    // Priority: 1) Moonraker hostname, 2) Preset model name, 3) Generic fallback
-    std::string         dev_name;
-    MoonrakerDeviceInfo info;
-    std::string         fetch_error;
-    if (fetch_device_info(device_info.base_url, device_info.api_key, info, fetch_error) && !info.dev_name.empty()) {
-        dev_name = info.dev_name;
-    } else {
-        dev_name = device_info.model_name.empty() ? "Moonraker Printer" : device_info.model_name;
-    }
+    // Never asks the printer, since discovery runs on the GUI thread and an unreachable printer would freeze it
+    const std::string dev_name = device_info.model_name.empty() ? "Moonraker Printer" : device_info.model_name;
 
     const std::string model_id = device_info.model_id;
 
