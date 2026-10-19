@@ -5,6 +5,7 @@
 #include "bambu_networking.hpp"
 
 #include <functional>
+#include <chrono>
 #include <cstdint>
 #include <atomic>
 #include <memory>
@@ -12,7 +13,6 @@
 #include <set>
 #include <string>
 #include <thread>
-#include <chrono>
 #include <condition_variable>
 #include <deque>
 
@@ -119,6 +119,8 @@ public:
     int set_on_local_message_fn(OnMessageFn fn) override;
     int set_queue_on_main_fn(QueueOnMainFn fn) override;
     bool fetch_filament_info(std::string dev_id, FilamentSyncMode sync_mode = FilamentSyncMode::pull) override;
+    // Pull-mode agent (on-demand filament sync)
+    FilamentSyncMode get_filament_sync_mode() const override { return FilamentSyncMode::pull; }
     CameraStreamMode get_camera_stream_mode() const override;
     std::string get_camera_url() const override;
 
@@ -151,6 +153,16 @@ protected:
         bool        use_ssl = false;
         std::string ca_file;
     } device_info;
+
+    // Copied when the stream starts, so changes apply to the next start_status_stream()
+    struct StatusStreamTimings
+    {
+        std::chrono::milliseconds handshake{std::chrono::seconds(10)};      // Opening and closing handshakes
+        std::chrono::milliseconds close{std::chrono::seconds(1)};           // Wait for the close frame's answer before dropping the socket
+        std::chrono::milliseconds idle{std::chrono::seconds(30)};           // Silence before giving up, with a ping every half of it
+        std::chrono::milliseconds heartbeat{std::chrono::seconds(10)};      // Silence before the cached status is sent again
+        std::chrono::milliseconds reconnect_delay{std::chrono::seconds(1)}; // First wait, doubling per consecutive failure up to 32x
+    } ws_timings;
 
     // Tray data for AMS payload building
     struct AmsTrayData {
@@ -186,6 +198,9 @@ protected:
     MoonrakerDeviceInfo snapshot_device_info() const;
     void configure_http(Http& http, const ConnectionSettings& connection) const;
     static float parse_nozzle_diameter(const nlohmann::json& response);
+    // The connection is copied when the stream starts, so changes apply to the next start.
+    void start_status_stream(const std::string& dev_id, ConnectionSettings connection);
+    void stop_status_stream();
 
     // State access for derived classes
     mutable std::recursive_mutex       state_mutex;
@@ -259,10 +274,11 @@ private:
 
     MessageRouter make_message_router(const std::string& dev_id) const;
     void dispatch_message(const std::string& dev_id, const std::string& payload);
-    void start_status_stream(const std::string& dev_id, ConnectionSettings connection);
-    void stop_status_stream();
-    void run_status_stream(std::string dev_id, ConnectionSettings connection);
+    // Joins a stream stopped from its own callback, so a new stream can start without waiting on it under connect_mutex
+    void join_stopped_status_stream();
+    void run_status_stream(std::string dev_id, ConnectionSettings connection, StatusStreamTimings timings);
     void handle_ws_message(std::string dev_id, std::string payload, ConnectionSettings connection);
+    void send_heartbeat_if_due(const std::string& dev_id, std::chrono::milliseconds interval);
     void refresh_thumbnail_url(const ConnectionSettings& connection);
     void update_status_cache(const nlohmann::json& updates);
     nlohmann::json build_print_payload_locked() const;
@@ -329,16 +345,11 @@ private:
     std::atomic<uint64_t> ws_last_emit_ms{0};
     std::thread         ws_thread;
 
-    // stop_status_stream() invokes ws_abort_io to wake a blocked synchronous
-    // ws.read()/ws.write()/handshake in run_status_stream(): ws_stop is only
-    // observed between reads, and Beast's expires_after() does not bound
-    // synchronous operations.
-    std::mutex             ws_abort_mutex;
-    std::function<void()>  ws_abort_io;  // guarded by ws_abort_mutex
-
-    // Interrupts the exponential reconnect backoff in run_status_stream() when stopping.
-    std::mutex              ws_wait_mutex;
-    std::condition_variable ws_wait_cv;
+    // Guards ws_thread and ws_abort. ws_abort posts to the stream's io_context, cancelling the
+    // reconnect wait and interrupting whatever connection attempt is running, so stop is prompt
+    // even when the stream thread is blocked on connect, TLS, or a read.
+    std::mutex            ws_abort_mutex;
+    std::function<void()> ws_abort;  // guarded by ws_abort_mutex
 
     // AMS/filament refresh cadence, independent of telemetry dispatch so a steady
     // stream of status updates can't starve it (ws_last_emit_ms is reset by those).

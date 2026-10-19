@@ -21,13 +21,16 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/connect.hpp>
+#include <boost/asio/error.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/post.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/asio/ssl/context.hpp>
 #include <boost/asio/ssl/host_name_verification.hpp>
 #include <boost/asio/ssl/verify_mode.hpp>
 #include <boost/asio/ssl/stream_base.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/core/tcp_stream.hpp>
@@ -35,6 +38,8 @@
 #include <boost/beast/core/flat_buffer.hpp>
 #include <boost/beast/core/error.hpp>
 #include <boost/beast/core/buffers_to_string.hpp>
+#include <boost/beast/core/stream_traits.hpp>
+#include <boost/beast/core/string_type.hpp>
 #include <boost/beast/ssl/ssl_stream.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/beast/websocket/stream.hpp>
@@ -161,6 +166,168 @@ std::string map_moonraker_state(std::string state)
     return "IDLE";
 }
 
+// Runs one asynchronous operation to completion, because synchronous Beast calls ignore timeouts and cannot be aborted
+template<class Initiate>
+beast::error_code run_until_done(net::io_context& ioc, const std::atomic<bool>& stop, Initiate&& initiate)
+{
+    // An abort that runs before the operation starts finds nothing to cancel
+    if (stop.load()) {
+        return net::error::operation_aborted;
+    }
+    beast::error_code result;
+    bool              done = false;
+    initiate([&](beast::error_code ec, auto&&...) {
+        result = ec;
+        done   = true;
+    });
+    ioc.restart();
+    while (!done && ioc.run_one() != 0) {} // run() never returns while the websocket idle timer is armed
+    return done ? result : beast::error_code{net::error::operation_aborted};
+}
+
+uint64_t steady_now_ms()
+{
+    return static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+}
+
+// Verification context shared by the synchronous and the asynchronous websocket: the custom CA
+// when one is configured, the platform trust store otherwise, and always a verified peer.
+std::unique_ptr<net::ssl::context> make_tls_context(const std::string& ca_file)
+{
+    auto context = std::make_unique<net::ssl::context>(net::ssl::context::tls_client);
+    if (!ca_file.empty()) {
+        context->load_verify_file(ca_file);
+    } else {
+        context->set_default_verify_paths();
+    }
+    context->set_verify_mode(net::ssl::verify_peer);
+    return context;
+}
+
+// Commits the SNI name and requires the leaf certificate to match the requested host, not just
+// to chain to a trusted CA.
+void require_matching_certificate(beast::ssl_stream<beast::tcp_stream>& stream, const std::string& host)
+{
+    if (!SSL_set_tlsext_host_name(stream.native_handle(), host.c_str())) {
+        throw std::runtime_error("Moonraker WSS: failed to set TLS server name");
+    }
+    stream.set_verify_callback(net::ssl::host_name_verification(host));
+}
+
+// Asynchronous websocket over either plain TCP or TLS, decided once from the endpoint. Every
+// operation is asynchronous so run_until_done() can give it a deadline and abort it on stop.
+class AsyncWebsocket
+{
+public:
+    using PlainWebsocket  = websocket::stream<beast::tcp_stream>;
+    using SecureWebsocket = websocket::stream<beast::ssl_stream<beast::tcp_stream>>;
+    using PlainPtr        = std::unique_ptr<PlainWebsocket>;
+    using SecurePtr       = std::unique_ptr<SecureWebsocket>;
+
+    AsyncWebsocket(net::io_context& ioc, bool secure, std::string api_key, std::string ca_file)
+        : m_secure(secure), m_api_key(std::move(api_key))
+    {
+        if (m_secure) {
+            // Build the TLS context lazily so plaintext connections do not initialize OpenSSL.
+            m_ssl_context = make_tls_context(ca_file);
+            m_websocket   = std::make_unique<SecureWebsocket>(ioc, *m_ssl_context);
+        } else {
+            m_websocket = std::make_unique<PlainWebsocket>(beast::tcp_stream{ioc});
+        }
+    }
+
+    bool is_open() const { return std::visit([](const auto& ws) { return ws->is_open(); }, m_websocket); }
+
+    beast::tcp_stream& lowest_layer()
+    {
+        return std::visit([](auto& ws) -> beast::tcp_stream& { return beast::get_lowest_layer(*ws); }, m_websocket);
+    }
+
+    void expires_after(std::chrono::milliseconds timeout) { lowest_layer().expires_after(timeout); }
+    void expires_never() { lowest_layer().expires_never(); }
+
+    void close_socket()
+    {
+        beast::error_code ignored;
+        lowest_layer().socket().close(ignored);
+    }
+
+    template<class Handler>
+    void async_connect(const tcp::endpoint& endpoint, Handler&& handler)
+    {
+        std::visit([&](auto& ws) { beast::get_lowest_layer(*ws).async_connect(endpoint, std::forward<Handler>(handler)); }, m_websocket);
+    }
+
+    template<class Handler>
+    void async_tls_handshake(const std::string& host, Handler&& handler)
+    {
+        if (!m_secure) {
+            handler(beast::error_code{});
+            return;
+        }
+        auto& stream = std::get<SecurePtr>(m_websocket)->next_layer();
+        require_matching_certificate(stream, host);
+        stream.async_handshake(net::ssl::stream_base::client, std::forward<Handler>(handler));
+    }
+
+    void set_timeout(const websocket::stream_base::timeout& timeouts)
+    {
+        std::visit([&](auto& ws) { ws->set_option(timeouts); }, m_websocket);
+    }
+
+    template<class Fn>
+    void control_callback(Fn&& fn)
+    {
+        std::visit([&](auto& ws) { ws->control_callback(std::forward<Fn>(fn)); }, m_websocket);
+    }
+
+    template<class Handler>
+    void async_handshake(const std::string& host, const std::string& target, Handler&& handler)
+    {
+        std::visit(
+            [&](auto& ws) {
+                ws->set_option(websocket::stream_base::decorator([api_key = m_api_key](websocket::request_type& req) {
+                    req.set(http::field::user_agent, "OrcaSlicer");
+                    if (!api_key.empty()) {
+                        req.set("X-Api-Key", api_key);
+                    }
+                }));
+                ws->async_handshake(host, target, std::forward<Handler>(handler));
+            },
+            m_websocket);
+    }
+
+    void text(bool enabled)
+    {
+        std::visit([&](auto& ws) { ws->text(enabled); }, m_websocket);
+    }
+
+    template<class Handler>
+    void async_write(const std::string& body, Handler&& handler)
+    {
+        std::visit([&](auto& ws) { ws->async_write(net::buffer(body), std::forward<Handler>(handler)); }, m_websocket);
+    }
+
+    template<class Handler>
+    void async_read(beast::flat_buffer& buffer, Handler&& handler)
+    {
+        std::visit([&](auto& ws) { ws->async_read(buffer, std::forward<Handler>(handler)); }, m_websocket);
+    }
+
+    template<class Handler>
+    void async_close(websocket::close_code code, Handler&& handler)
+    {
+        std::visit([&](auto& ws) { ws->async_close(code, std::forward<Handler>(handler)); }, m_websocket);
+    }
+
+private:
+    bool                               m_secure;
+    std::string                        m_api_key;
+    std::unique_ptr<net::ssl::context> m_ssl_context;
+    std::variant<PlainPtr, SecurePtr>  m_websocket;
+};
+
 } // namespace
 
 namespace Slic3r {
@@ -176,15 +343,8 @@ struct MoonrakerWebsocket::Impl
         : secure(secure), api_key(std::move(api_key)), ca_file(std::move(ca_file))
     {
         if (this->secure) {
-            // Build the TLS context lazily so plaintext connections do not initialize OpenSSL.
-            ssl_context = std::make_unique<net::ssl::context>(net::ssl::context::tls_client);
-            if (!this->ca_file.empty()) {
-                ssl_context->load_verify_file(this->ca_file);
-            } else {
-                ssl_context->set_default_verify_paths();
-            }
-            ssl_context->set_verify_mode(net::ssl::verify_peer);
-            websocket = std::make_unique<SecureWebsocket>(ioc, *ssl_context);
+            ssl_context = make_tls_context(this->ca_file);
+            websocket   = std::make_unique<SecureWebsocket>(ioc, *ssl_context);
         } else {
             websocket = std::make_unique<PlainWebsocket>(beast::tcp_stream{ioc});
         }
@@ -224,13 +384,7 @@ void MoonrakerWebsocket::tls_handshake(const std::string& host)
 
     auto& websocket  = *std::get<Impl::SecurePtr>(m_impl->websocket);
     auto& tls_stream = websocket.next_layer();
-    if (!SSL_set_tlsext_host_name(tls_stream.native_handle(), host.c_str())) {
-        throw std::runtime_error("Moonraker WSS: failed to set TLS server name");
-    }
-
-    // verify_peer only validates the chain; also require the leaf certificate to match the
-    // host we asked for, otherwise any cert chaining to a trusted CA is accepted.
-    tls_stream.set_verify_callback(net::ssl::host_name_verification(host));
+    require_matching_certificate(tls_stream, host);
 
     tls_stream.handshake(net::ssl::stream_base::client);
 }
@@ -2419,76 +2573,171 @@ void MoonrakerPrinterAgent::start_status_stream(const std::string& dev_id, Conne
         return;
     }
 
+    std::lock_guard<std::mutex> lock(ws_abort_mutex);
     ws_stop.store(false);
     webcam_info_next_attempt_ms.store(0);  // new connection: refresh the webcam promptly
-    ws_thread = std::thread([this, dev_id, connection = std::move(connection)]() mutable {
-        run_status_stream(dev_id, std::move(connection));
+    ws_thread = std::thread([this, dev_id, connection = std::move(connection), timings = ws_timings]() mutable {
+        run_status_stream(dev_id, std::move(connection), timings);
     });
 }
 
 void MoonrakerPrinterAgent::stop_status_stream()
 {
-    ws_stop.store(true);
+    std::thread stopped;
     {
-        // Wake a blocked synchronous ws.connect()/tls_handshake()/read()/write() in
-        // run_status_stream(); ws_stop by itself is only observed between reads.
         std::lock_guard<std::mutex> lock(ws_abort_mutex);
-        if (ws_abort_io) {
-            ws_abort_io();
+        ws_stop.store(true);
+        if (ws_abort) {
+            ws_abort();
+        }
+        // A callback on the stream thread can stop the stream, which then ends on its own and is joined later, outside connect_mutex
+        if (ws_thread.get_id() != std::this_thread::get_id()) {
+            stopped = std::move(ws_thread);
         }
     }
-    ws_wait_cv.notify_all();
-    if (ws_thread.joinable()) {
-        ws_thread.join();
+    if (stopped.joinable()) {
+        stopped.join();
     }
 }
 
-void MoonrakerPrinterAgent::run_status_stream(std::string dev_id, ConnectionSettings connection)
+void MoonrakerPrinterAgent::join_stopped_status_stream()
+{
+    std::thread stopped;
+    {
+        std::lock_guard<std::mutex> lock(ws_abort_mutex);
+        // A running stream belongs to a newer connection, so only one that is already stopping is joined
+        if (ws_stop.load() && ws_thread.get_id() != std::this_thread::get_id()) {
+            stopped = std::move(ws_thread);
+        }
+    }
+    if (stopped.joinable()) {
+        stopped.join();
+    }
+}
+
+void MoonrakerPrinterAgent::run_status_stream(std::string dev_id, ConnectionSettings connection, StatusStreamTimings timings)
 {
     WsEndpoint endpoint;
     if (!parse_ws_endpoint(connection.base_url, endpoint)) {
         BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent: websocket endpoint invalid for base_url=" << connection.base_url;
         return;
     }
+    net::io_context       ioc;
+    net::steady_timer     backoff{ioc};
+    std::function<void()> abort_connection; // Set while a connection attempt runs
+    const auto            run = [&](auto&& initiate) { return run_until_done(ioc, ws_stop, initiate); };
+
+    // Registered under the lock stop_status_stream() takes, so a stop either finds this abort or has already set ws_stop
+    {
+        std::lock_guard<std::mutex> lock(ws_abort_mutex);
+        if (ws_stop.load()) {
+            return;
+        }
+        ws_abort = [&] {
+            net::post(ioc, [&] {
+                backoff.cancel();
+                if (abort_connection) {
+                    abort_connection();
+                }
+            });
+        };
+    }
+    const ScopeGuard clear_abort([this] {
+        std::lock_guard<std::mutex> lock(ws_abort_mutex);
+        ws_abort = nullptr;
+    });
+
     // Reconnection logic
     ws_reconnect_requested.store(false); // Reset reconnect flag
-    int       retry_count   = 0;
-    const int max_retries   = 10;
-    const int base_delay_ms = 1000;
+    int retry_count = 0;
 
-    while (!ws_stop.load() && retry_count < max_retries) {
+    while (!ws_stop.load()) {
         bool connection_lost = false; // Flag to distinguish clean shutdown from unexpected disconnect
 
-        try {
-            MoonrakerWebsocket ws{endpoint.secure, connection.api_key, connection.ca_file};
-
-            // Allow stop_status_stream() to force this socket shut so a blocked synchronous
-            // ws.connect()/tls_handshake()/read()/write() returns with an error (Beast's
-            // expires_after() does not bound synchronous operations). Registered before
-            // connect() so a stalled handshake is interruptible too; declared after `ws`
-            // so the hook is cleared before `ws` is destroyed on every exit path
-            // (fallthrough, break, exception); ws_abort_mutex keeps the hook from running
-            // against a half-destroyed `ws`.
-            ScopeGuard ws_abort_guard([this] {
-                std::lock_guard<std::mutex> lock(ws_abort_mutex);
-                ws_abort_io = nullptr;
-            });
-            {
-                std::lock_guard<std::mutex> lock(ws_abort_mutex);
-                ws_abort_io = [&ws] {
-                    ws.abort();
-                };
+        tcp::resolver                     resolver{ioc};
+        std::unique_ptr<AsyncWebsocket>   ws;  // Created inside the try so a TLS context failure is caught and retried
+        net::steady_timer                 close_deadline{ioc};
+        bool                              closing          = false;
+        bool                              deadline_pending = false;
+        auto                              last_message     = std::chrono::steady_clock::now();
+        // Sends a close frame if the websocket is open, and drops the socket when the printer has not answered within timings.close
+        const auto close_politely = [&](websocket::close_code code) {
+            if (!ws || !ws->is_open() || closing) {
+                return;
             }
+            closing          = true;
+            deadline_pending = true;
+            close_deadline.expires_after(timings.close);
+            close_deadline.async_wait([&](beast::error_code ec) {
+                deadline_pending = false;
+                if (!ec) {
+                    ws->close_socket();
+                }
+            });
+            ws->async_close(code, [&](beast::error_code) {
+                closing = false;
+                close_deadline.cancel();
+            });
+        };
+        abort_connection = [&] {
+            // Beast reports a closing websocket as not open, and dropping its socket would cut off the close frame
+            if (!ws || closing) {
+                return;
+            }
+            if (ws->is_open()) {
+                close_politely(websocket::close_code::going_away);
+            } else {
+                ws->close_socket();
+            }
+        };
+        const ScopeGuard clear_connection_abort([&] { abort_connection = nullptr; });
 
-            ws.connect(endpoint.host, endpoint.port, std::chrono::seconds(10));
-            ws.tls_handshake(endpoint.host);
+        try {
+            ws = std::make_unique<AsyncWebsocket>(ioc, endpoint.secure, connection.api_key, connection.ca_file);
+
+            beast::error_code connect_ec = net::error::host_not_found;
+            for (const auto& entry : resolver.resolve(endpoint.host, endpoint.port)) {
+                ws->close_socket(); // A failed attempt leaves the socket open
+                ws->expires_after(std::chrono::seconds(5));
+                connect_ec = run([&](auto&& handler) { ws->async_connect(entry.endpoint(), handler); });
+                if (!connect_ec || ws_stop.load()) {
+                    break;
+                }
+            }
+            if (connect_ec) {
+                throw beast::system_error{connect_ec};
+            }
+            // Clears the connect deadline, which would otherwise close the socket 5 s after connecting
+            ws->expires_never();
+
+            // The TLS handshake has no websocket-level timeout, so bound it like the TCP connect
+            ws->expires_after(timings.handshake);
+            if (const auto ec = run([&](auto&& handler) { ws->async_tls_handshake(endpoint.host, handler); })) {
+                throw beast::system_error{ec};
+            }
+            ws->expires_never();
+
+            websocket::stream_base::timeout timeouts{};
+            timeouts.handshake_timeout = timings.handshake;
+            timeouts.idle_timeout      = timings.idle;
+            timeouts.keep_alive_pings  = true;
+            ws->set_timeout(timeouts);
+            // Beast pings on a fixed schedule, so the heartbeat also checks how long the printer has sent no message
+            ws->control_callback([&](websocket::frame_type kind, beast::string_view) {
+                if (kind == websocket::frame_type::pong && !closing &&
+                    std::chrono::steady_clock::now() - last_message >= timings.heartbeat) {
+                    send_heartbeat_if_due(dev_id, timings.heartbeat);
+                }
+            });
 
             std::string host_header = bracket_host_for_header(endpoint.host);
             if (!endpoint.port.empty() && endpoint.port != (endpoint.secure ? MOONRAKER_DEFAULT_TLS_PORT : MOONRAKER_DEFAULT_PORT)) {
                 host_header += ":" + endpoint.port;
             }
-            ws.handshake(host_header, endpoint.target);
-            ws.text(true);
+            if (const auto ec = run([&](auto&& handler) { ws->async_handshake(host_header, endpoint.target, handler); })) {
+                throw beast::system_error{ec};
+            }
+            ws->text(true);
 
             // Send client identification
             nlohmann::json identify;
@@ -2499,7 +2748,10 @@ void MoonrakerPrinterAgent::run_status_stream(std::string dev_id, ConnectionSett
             identify["params"]["type"]        = "agent";
             identify["params"]["url"]         = "https://github.com/SoftFever/OrcaSlicer";
             identify["id"]                    = 0;
-            ws.write(identify.dump());
+            const std::string identify_payload = identify.dump();
+            if (const auto ec = run([&](auto&& handler) { ws->async_write(identify_payload, handler); })) {
+                throw beast::system_error{ec};
+            }
 
             std::set<std::string> subscribe_objects = {"print_stats", "virtual_sdcard"};
             std::set<std::string> available_objects;
@@ -2551,13 +2803,15 @@ void MoonrakerPrinterAgent::run_status_stream(std::string dev_id, ConnectionSett
             }
             subscribe["params"]["objects"] = std::move(objects);
             subscribe["id"]                = 1;
-            ws.write(subscribe.dump());
+            const std::string subscribe_payload = subscribe.dump();
+            if (const auto ec = run([&](auto&& handler) { ws->async_write(subscribe_payload, handler); })) {
+                throw beast::system_error{ec};
+            }
 
             // Eager fetch so AMS data is available immediately after connecting,
             // without waiting on the loop's own refresh clock below.
             fetch_filament_info(dev_id, FilamentSyncMode::subscription);
-            ams_last_fetch_ms.store(static_cast<uint64_t>(
-                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()));
+            ams_last_fetch_ms.store(steady_now_ms());
 
             // Read loop
             while (!ws_stop.load()) {
@@ -2566,64 +2820,52 @@ void MoonrakerPrinterAgent::run_status_stream(std::string dev_id, ConnectionSett
                 // here so the GUI-thread getters stay non-blocking.
                 refresh_webcam_info();
 
-                ws.expires_after(std::chrono::seconds(2));
-                std::string payload;
-                std::string read_error;
-                const auto read_result = ws.read(payload, read_error);
-                if (read_result == MoonrakerWebsocket::ReadResult::timeout) {
-                    const auto now_ms = static_cast<uint64_t>(
-                        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
-                    const auto last_ms = ws_last_emit_ms.load();
-                    if (last_ms == 0 || now_ms - last_ms >= 10000) {
-                        nlohmann::json message;
-                        {
-                            std::lock_guard<std::recursive_mutex> lock(payload_mutex);
-                            message = build_print_payload_locked();
-                        }
-                        dispatch_message(dev_id, message.dump());
-                        ws_last_emit_ms.store(now_ms);
-                    }
-                    continue;
+                beast::flat_buffer buffer;
+                const auto         ec = run([&](auto&& handler) { ws->async_read(buffer, handler); });
+                if (ws_stop.load()) {
+                    break;
                 }
-                if (read_result == MoonrakerWebsocket::ReadResult::closed) {
+                if (ec == websocket::error::closed) {
                     connection_lost = true;
                     break;
                 }
-                if (read_result == MoonrakerWebsocket::ReadResult::error) {
-                    BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent: websocket read error: " << read_error;
+                if (ec) {
+                    BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent: websocket read error: " << ec.message();
                     connection_lost = true;
                     break;
                 }
+
                 // AMS/filament refresh on its own clock: gated independently of
                 // ws_last_emit_ms so a steady telemetry stream can't starve it.
                 {
-                    const auto now_ms = static_cast<uint64_t>(
-                        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+                    const auto now_ms      = steady_now_ms();
                     const auto last_ams_ms = ams_last_fetch_ms.load();
                     if (last_ams_ms == 0 || now_ms - last_ams_ms >= AMS_REFRESH_INTERVAL_MS) {
                         fetch_filament_info(dev_id, FilamentSyncMode::subscription);
                         ams_last_fetch_ms.store(now_ms);
                     }
                 }
-                handle_ws_message(dev_id, std::move(payload), connection);
-                // Check if handle_ws_message triggered reconnection request`
+                last_message = std::chrono::steady_clock::now();
+                // A message shows the printer is answering, so the next drop starts the backoff from reconnect_delay
+                retry_count = 0;
+                handle_ws_message(dev_id, beast::buffers_to_string(buffer.data()), connection);
+                // Check if handle_ws_message triggered reconnection request
                 if (ws_reconnect_requested.exchange(false)) {
                     connection_lost = true;
                     break;
                 }
             }
-
-            ws.close();
-
-            // Only reset retry count on clean shutdown (not connection_lost)
-            if (!connection_lost && !ws_stop.load()) {
-                retry_count = 0;
-            }
-
         } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent: websocket disconnected: " << e.what();
+            if (!ws_stop.load()) {
+                BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent: websocket disconnected: " << e.what();
+            }
             connection_lost = true;
         }
+
+        close_politely(ws_stop.load() ? websocket::close_code::going_away : websocket::close_code::normal);
+        ioc.restart();
+        // Both handlers refer to this connection, so neither may be left queued for the next one
+        while ((closing || deadline_pending) && ioc.run_one() != 0) {}
 
         // Exit loop on clean shutdown
         if (!connection_lost) {
@@ -2635,20 +2877,12 @@ void MoonrakerPrinterAgent::run_status_stream(std::string dev_id, ConnectionSett
             break;
         }
 
-        // Exponential backoff before reconnection
-        const int delay_ms = base_delay_ms * (1 << std::min(retry_count, 5));
-        BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent: Reconnecting in " << delay_ms << "ms (attempt " << (retry_count + 1) << ")";
-        {
-            // Interruptible so stop_status_stream() doesn't have to wait out a backoff of up to 32 s.
-            std::unique_lock<std::mutex> wait_lock(ws_wait_mutex);
-            ws_wait_cv.wait_for(wait_lock, std::chrono::milliseconds(delay_ms), [this] { return ws_stop.load(); });
-        }
+        // Exponential backoff before reconnection, capped at 32 times reconnect_delay so a printer that comes back is found again
+        const auto delay = timings.reconnect_delay * (1 << std::min(retry_count, 5));
+        BOOST_LOG_TRIVIAL(info) << "MoonrakerPrinterAgent: Reconnecting in " << delay.count() << "ms (attempt " << (retry_count + 1) << ")";
+        backoff.expires_after(delay);
+        run([&](auto&& handler) { backoff.async_wait(handler); });
         retry_count++;
-    }
-
-    if (retry_count >= max_retries) {
-        BOOST_LOG_TRIVIAL(error) << "MoonrakerPrinterAgent: Max reconnection attempts reached";
-        dispatch_local_connect(ConnectStatusLost, dev_id, "max_retries");
     }
 }
 
@@ -2723,10 +2957,10 @@ void MoonrakerPrinterAgent::handle_ws_message(std::string dev_id, std::string pa
     }
 
     if (updated) {
+        // Uses the connection captured at stream start, not the mutable device_info
         refresh_thumbnail_url(connection);
 
-        const auto now_ms = static_cast<uint64_t>(
-            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+        const auto now_ms           = steady_now_ms();
         const auto last_dispatch_ms = ws_last_dispatch_ms.load();
 
         // Dispatch if: critical change OR throttle interval elapsed
@@ -2745,6 +2979,24 @@ void MoonrakerPrinterAgent::handle_ws_message(std::string dev_id, std::string pa
         }
         // else: skip dispatch, cache is updated for next dispatch cycle
     }
+}
+
+void MoonrakerPrinterAgent::send_heartbeat_if_due(const std::string& dev_id, std::chrono::milliseconds interval)
+{
+    const auto now_ms  = steady_now_ms();
+    const auto last_ms = ws_last_emit_ms.load();
+    // Re-sends only a status the printer has reported at least once
+    if (last_ms == 0 || now_ms - last_ms < static_cast<uint64_t>(interval.count())) {
+        return;
+    }
+
+    nlohmann::json message;
+    {
+        std::lock_guard<std::recursive_mutex> lock(payload_mutex);
+        message = build_print_payload_locked();
+    }
+    dispatch_message(dev_id, message.dump());
+    ws_last_emit_ms.store(now_ms);
 }
 
 void MoonrakerPrinterAgent::update_status_cache(const nlohmann::json& updates)
@@ -3259,8 +3511,15 @@ void MoonrakerPrinterAgent::perform_connection_async(const std::string& dev_id,
             BOOST_LOG_TRIVIAL(warning) << "MoonrakerPrinterAgent: Initial status query failed: " << error_msg;
         }
 
-        // Start WebSocket status stream
-        start_status_stream(dev_id, std::move(connection));
+        join_stopped_status_stream();
+        // Holds connect_mutex across the staleness check and the start, so a disconnect during the queries above prevents the start
+        {
+            std::lock_guard<std::recursive_mutex> lock(connect_mutex);
+            if (is_stale()) {
+                return;
+            }
+            start_status_stream(dev_id, std::move(connection));
+        }
 #endif
 
         // Success!
