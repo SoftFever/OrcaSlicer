@@ -177,6 +177,8 @@ public:
     bool pick_waiting() const { return m_pick_pending; }
     // Type-first length: with a line's first point down and the pointer elsewhere, a typed digit completes the segment
     // at the pointer and opens its Length field with that character already in it. False when nothing is pending.
+    // A digit typed with the first point of a shape down completes the shape at the cursor and types into its first value field
+    // (a line: the length; a rectangle: the width; a circle: the radius ...), then the rest of its fields follow.
     bool begin_typed_length(char c);
     std::function<void(const std::string&)> on_inline_seed;
     // Double-click on a picked body edge: extend the selection over the edges that continue it tangentially
@@ -1148,6 +1150,7 @@ private:
     bool                m_cursor_locked{false}; // rubber-band segment is angle-locked
     // Press-drag-release drawing for the two-point shapes: a press that places the first point and is released
     // elsewhere (> 6 px away) places the second, so the shape can be drawn click-click or in one drag.
+    GLCanvas3D*         m_last_canvas{nullptr};   // the canvas of the last mouse event: a typed digit completes a shape through the same path as a click
     int                 m_dr_n{-1}, m_dr_x{0}, m_dr_y{0};   // points held when the press landed (-1: no press), and where
     bool                m_awaiting_length{false}; // inline value editor open -> freeze canvas
     int                 m_autoedit_seen{-1};      // entity count baseline for draw-then-edit

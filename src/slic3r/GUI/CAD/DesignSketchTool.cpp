@@ -4281,6 +4281,17 @@ std::vector<DesignSketchTool::SolidPick> DesignSketchTool::candidate_picks(GLCan
 
 bool DesignSketchTool::begin_typed_length(char c)
 {
+    const bool two_click = m_mode == Mode::CornerRect || m_mode == Mode::CenterRect || m_mode == Mode::CenterCircle ||
+                           m_mode == Mode::TwoPointCircle || m_mode == Mode::Polygon;
+    if (m_active && two_click && m_points.size() == 1 && m_has_cursor && !m_awaiting_length && m_last_canvas &&
+        (m_cursor - m_points[0]).norm() > 1e-6) {
+        if (on_inline_seed) on_inline_seed(std::string(1, c));
+        wxMouseEvent down(wxEVT_LEFT_DOWN);      // the second click, at the cursor: the shape commits and its fields open
+        down.SetPosition(wxPoint(m_last_mouse_x, m_last_mouse_y));
+        down.SetLeftDown(true);
+        on_mouse_impl(down, *m_last_canvas);
+        return true;
+    }
     if (!m_active || m_mode != Mode::Line || m_points.size() != 1 || !m_has_cursor || m_awaiting_length) return false;
     if ((m_cursor - m_points[0]).norm() < 1e-6) return false;
     if (on_inline_seed) on_inline_seed(std::string(1, c));
@@ -11305,6 +11316,7 @@ bool DesignSketchTool::on_mouse_impl(wxMouseEvent& evt, GLCanvas3D& canvas)
     // projection — the design canvas's viewport isn't valid outside its own paint).
     m_last_mouse_x = evt.GetX();
     m_last_mouse_y = evt.GetY();
+    m_last_canvas  = &canvas;
     if (evt.LeftDClick()) dp_pick_trace("dclick x=%d y=%d dbp=%d", evt.GetX(), evt.GetY(), int(m_dbp_active));
 
     // Line draw-then-edit: while the length editor is open right after the second click,

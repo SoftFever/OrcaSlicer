@@ -164,6 +164,32 @@ check(drag_draw("R") == 4, "Rectangle: one press-drag-release makes the four sid
 check(drag_draw("S", extra=[[cx - 230, cy - 120]]) > 0, "Slot: drag the centre line, click the width")
 check(drag_draw("E", extra=[[cx - 230, cy - 120]]) > 0, "Ellipse: drag the major axis, click the minor point")
 check(drag_draw("A", extra=[[cx - 230, cy - 120]]) > 0, "Arc: drag start-end, click the third point")
+
+# Type-first for the shapes with a first field: a digit with the first point down completes the shape and types into that field
+# (rectangle: width, Tab, height; circle: radius).
+def typed_first(key):
+    n0 = len(ents())
+    call("ui.key", key=key)
+    call("ui.move", at=[cx - 200, cy - 100]); call("ui.click", at=[cx - 200, cy - 100]); time.sleep(0.5)
+    call("ui.move", at=[cx - 100, cy - 60]); time.sleep(0.4)
+    call("ui.key", key="5"); time.sleep(0.8)
+    call("ui.text", text="0"); time.sleep(0.4)
+    if key == "R":
+        call("ui.key", key="Tab"); time.sleep(0.4)
+        call("ui.text", text="30"); time.sleep(0.4)
+    call("ui.key", key="Return"); time.sleep(0.8)
+    es = ents()[n0:]
+    call("ui.key", key="Escape")
+    return es
+
+es = typed_first("R")
+if len(es) == 4:
+    xs = [v for e in es for v in (e["p0"][0], e["p1"][0])]; ys = [v for e in es for v in (e["p0"][1], e["p1"][1])]
+    check(abs((max(xs) - min(xs)) - 50) < 1e-6 and abs((max(ys) - min(ys)) - 30) < 1e-6, "typing 5, 0, Tab, 3, 0, Enter after the first corner makes a 50 x 30 rectangle: %.3f x %.3f" % (max(xs) - min(xs), max(ys) - min(ys)))
+else:
+    check(False, "type-first rectangle made %d entities" % len(es))
+es = typed_first("C")
+check(len(es) == 1 and abs(es[0]["radius"] - 50) < 1e-6, "typing 5, 0, Enter after the centre makes a circle of radius 50: %s" % [e.get("radius") for e in es])
 call("sketch_cancel")
 print("ui sketch draw:", "PASS" if not fails else "%d FAIL" % len(fails))
 sys.exit(1 if fails else 0)
