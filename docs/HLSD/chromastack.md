@@ -201,39 +201,52 @@ overlay uses, since it is the same surface as whatever is underneath it.
 
 ## What the panel shows
 
-The kind of a layer is the layer's own, chosen when it is added and fixed from then on: **Add layer**
-offers *Relief layer* or *ChromaStack picture*, and the card carries its kind as a chip. There is no
-panel-wide mode, so one object can hold a picture on its face and a knurl on its rim, and a card
-never shows a control that cannot do anything on it.
+The kind of a layer is the layer's own, chosen when it is added and fixed from then on, except that
+the chip in the card's header is a menu: it is what turns a relief layer into a picture and back.
+There is no panel-wide mode, so one object can hold a picture on its face and a knurl on its rim, and
+a card never shows a control that cannot do anything on it. A picture cannot be reordered (anything
+printed over it buries the colours) and an object may hold only one, refused when the layer is added
+rather than when its swaps would overwrite the first one's.
 
-What the two cards do not share:
+The card carries the four things a user decides and nothing else: which picture, which filaments in
+what order and how deep, whether the result is good enough, and - as a single row of `2 3 4 6` -
+how many colours to spend. Everything else is either derived or rare, and either shows as a state
+chip or sits behind More settings.
 
-| Control | Relief card | ChromaStack card |
-| --- | --- | --- |
-| Depth | slider | the solve writes it; the card prints the result |
-| Tile size | repeats the pattern | **Picture size**, the same number named for what it does |
-| Midlevel, Smoothing, Invert, Edge fade | present | absent: each would move the steps off the layer boundaries |
-| Colors, Mix filaments, Denoise | one filament per triangle | absent: swaps are how this card colours |
-| Tile, tile method | present | absent: one copy, never tiled |
-| Blend | four modes | absent: it is the top layer and replaces what is under it |
-| Picture, prediction, stack, palette, match, Dither, Solve, Apply swaps | absent | present |
+### The solve and the swaps are not buttons
 
-A ChromaStack card has no grip and cannot be reordered: its colours come from swapping filament at a
-height, so anything printed above it would bury them. An object may hold only one, refused when the
-layer is added rather than when the swaps are applied, because the swaps are the object's own height
-ranges and there is one set of those.
+A height map that has to be asked for can be out of date, and a set of swaps that has to be applied
+can be missing - and both of those states then need a warning to explain themselves. `chroma_settle()`
+removes the states rather than the warnings: every edit marks the stack, and once it has held still
+for a moment the layer re-solves and writes its swaps, the way the preview already rebuilds itself.
 
-The card itself, top to bottom: what it is in one line, the picture and the predicted print side by
-side at the same size, the match figures, the base with the measurement from the painted face offered
-beside it, a row per band - swatch, filament, layer count, TD - the colours the stack reaches as a
-ramp, the totals, dither with the layer height it is solved against, and the two actions. Base and
-band counts are typed fields rather than sliders: a base is measured in hundreds of layers and a band
-in single digits, and dragging past the end of a slider's range is how a stack silently loses its
-backing.
+The swaps are the object's height ranges, not the layer's, so writing them automatically needs a
+rule about whose they are. The stack remembers a fingerprint of what it last wrote
+(`ChromaStack::applied_ranges`); the automatic path writes only when the ranges are empty or still
+match that fingerprint, and otherwise leaves them exactly as they are and says so with a chip, with
+a button that asks before replacing them. The panel never takes over something it was not given.
 
-The ramp is computed from the stack alone, before any solve. It is what answers "can these filaments
-print this picture" without spending a solve to find out they cannot: a short or flat ramp means the
-filaments are too alike, or too opaque, to give the picture anything to work with.
+### Choosing the filaments
 
-A per-slot flag records that the stack has been edited since the last solve, because a stale height
-map looks exactly like a good one.
+`chroma_auto_stack()` answers the question the panel could previously only report on: which of the
+loaded filaments reach this picture, and in what order. The order matters as much as the choice,
+since a stack is filaments seen through each other, so it grows the stack one filament at a time and
+tries every remaining filament at every position, keeping whichever placement loses least to the
+picture. That is a few dozen candidates rather than the tens of thousands an exhaustive search over
+subsets and orderings would be.
+
+Candidates are scored against `chroma_histogram()` - the picture's colours bucketed four bits per
+channel and weighted by how much of the picture they cover - rather than against the picture, which
+is what makes trying dozens of stacks affordable. A photograph is millions of pixels and a few
+hundred distinguishable colours.
+
+### The states
+
+Instead of paragraphs: a dot and a word, and only when it is true. `far off` / `close` / `good match`
+for the prediction, `not flat` where the painted face is not level, `swaps` where ranges that are not
+ours are in the way, `solving` while the stack settles. The sentence that used to be on the panel is
+in each chip's tooltip, where it is read once rather than every time the panel is open.
+
+Base, dither and the picture's placement are behind More settings. The base is a measurement, not a
+setting: it follows the painted face unless it is set by hand. The printed-colour overlay is a view,
+so its switch is in the View row with the other views rather than inside a layer's card.

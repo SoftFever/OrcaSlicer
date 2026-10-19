@@ -451,18 +451,37 @@ private:
     // filaments and the patch if the layer has none yet. Solves straight away, so the relief appears
     // without a second click.
     void chroma_pick_picture(TextureDisplacementLayer &layer);
-    // Re-runs the solve and replaces the layer's height map with its result. False (with the reason
-    // shown to the user) when the layer has no picture, no stack or no relief layers.
-    bool chroma_solve_layer(TextureDisplacementLayer &layer);
-    // Writes the stack's filament swaps onto the object as height ranges, replacing whatever ranges it
-    // had. Takes its own undo snapshot.
-    void chroma_apply_swaps(const TextureDisplacementLayer &layer);
-    // The stack's swaps as the object's height ranges already express them: true when applying would
-    // change nothing, which is what the panel's hint keys off.
+    // Re-runs the solve and replaces the layer's height map with its result. `silent` for the automatic
+    // path, which must not put a dialog in front of someone who was only dragging a number.
+    bool chroma_solve_layer(TextureDisplacementLayer &layer, bool silent = false);
+    // Writes the stack's filament swaps onto the object as height ranges. `silent` for the automatic
+    // path: it writes only when the ranges are the ones this stack wrote, or there are none, and
+    // otherwise leaves them alone rather than asking.
+    void chroma_apply_swaps(TextureDisplacementLayer &layer, bool silent = false);
+    // The stack's swaps as the object's height ranges already express them.
     bool chroma_swaps_applied(const TextureDisplacementLayer &layer) const;
+    // Whether writing the swaps would take over ranges this stack did not write - which is the one
+    // case the automatic path refuses, and the only reason the card ever mentions swaps at all.
+    bool chroma_swaps_blocked(const TextureDisplacementLayer &layer) const;
+
+    // Keeps the layer in step with itself: the solve and the swaps are not things to remember to press.
+    // Called every frame; does the work once the stack has been still for a moment, since a solve on
+    // every keystroke of a layer count would be a stutter and a reslice each time.
+    void chroma_settle(TextureDisplacementLayer &layer);
+    // Marks the stack as changed. The debounce starts from the last change, so a drag settles once.
+    void chroma_touch(int slot);
+    std::array<int64_t, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_chroma_settle_at{}; // ms, 0 = nothing pending
+
+    // Chooses `count` of the loaded filaments for the layer's picture, and their order, then solves.
+    void chroma_pick_colors(TextureDisplacementLayer &layer, int count);
+    // How many colours the picker was last asked for, per slot: the panel's 2/3/4/6 choice.
+    std::array<int, TEXTURE_DISPLACEMENT_MAX_LAYERS> m_chroma_pick_count{};
     // The whole of a ChromaStack card between its header and More settings: the picture and the print
     // it predicts, the base, the filaments and the colours they reach, and the two actions.
     void render_chroma_card(TextureDisplacementLayer &layer, float card_pad, float label_w, float wrap_w);
+    // The rest of it, behind More settings: the base it measures for itself, the dither switch and the
+    // placement of the picture on the patch, none of which is touched twice in a session.
+    void render_chroma_details(TextureDisplacementLayer &layer, float card_pad, float label_w, float wrap_w);
 
     // The surface drawn in the colours the stack will print, over whatever neutral surface is there:
     // the live preview's displaced mesh before a bake, the volume's own mesh after one. Every triangle
@@ -502,9 +521,6 @@ private:
     // The source picture's thumbnail, beside the prediction, keyed by the image it was built from.
     std::array<std::unique_ptr<GLTexture>, TEXTURE_DISPLACEMENT_MAX_LAYERS>  m_chroma_source_thumb;
     std::array<const void *, TEXTURE_DISPLACEMENT_MAX_LAYERS>                m_chroma_source_key{};
-    // Per slot: the stack has been edited since the height map was solved, so the relief on screen is the
-    // previous stack's. Nothing else can show this - a stale height map looks like a perfectly good one.
-    std::array<bool, TEXTURE_DISPLACEMENT_MAX_LAYERS>                        m_chroma_stale{};
 
     // Paint / Erase, from the panel. See get_left_button_state_type().
     bool m_erase_mode = false;

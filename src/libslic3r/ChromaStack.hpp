@@ -142,6 +142,13 @@ struct ChromaStack
     // stipple is the artifact rather than the cure.
     bool dither = false;
 
+    // A fingerprint of the object height ranges this stack last wrote, or 0 for none. The swaps are
+    // written whenever the stack changes, which is only safe while they are still the ones we wrote:
+    // the ranges are the object's, a user may have made their own, and silently replacing those would
+    // be the panel taking something it was not given. Ranges that do not match this are left alone and
+    // the card says so.
+    uint64_t applied_ranges = 0;
+
     // Total printed layers, base included: what the tallest column is.
     int  total_layers() const;
     // Layers the picture is built from, i.e. the bands' own total above the base.
@@ -151,7 +158,7 @@ struct ChromaStack
     float depth_mm() const;
     bool  empty() const { return bands.empty(); }
 
-    template<class Archive> void serialize(Archive &ar) { ar(bands, layer_height_mm, base_layers, dither, base_auto); }
+    template<class Archive> void serialize(Archive &ar) { ar(bands, layer_height_mm, base_layers, dither, base_auto, applied_ranges); }
 };
 
 // The colour the stack shows at every column height: entry k is a column of exactly k printed
@@ -270,6 +277,34 @@ struct ChromaRange
 // a stack whose base starts at the object's first layer). Bands printed in the same filament as the
 // band below are merged, so a stack that repeats a filament does not produce a pointless swap.
 std::vector<ChromaRange> chroma_ranges(const ChromaStack &stack, double z_bottom = 0.);
+
+// A picture's colours, coarsely bucketed and weighted by how much of it they cover. Scoring a
+// candidate stack against this rather than against the picture is what makes trying hundreds of them
+// affordable: a photograph is millions of pixels and a few hundred distinguishable colours.
+struct ChromaHistogram
+{
+    std::vector<std::pair<ColorRGB, float>> bins; // colour and its share of the picture, summing to 1
+    bool empty() const { return bins.empty(); }
+};
+ChromaHistogram chroma_histogram(const uint8_t *rgb, int width, int height, int max_bins = 192);
+
+// Picks `count` of `available`, in printing order, for a picture.
+//
+// The order matters as much as the choice - a stack is filaments seen through each other, so the same
+// four in a different order reach different colours - which is why this searches orderings rather than
+// just picking the four nearest the picture's own colours. It grows the stack one filament at a time,
+// trying every remaining filament at every position and keeping whichever placement loses the least to
+// the picture, which is a few dozen candidate stacks instead of the tens of thousands an exhaustive
+// search over subsets and permutations would be.
+//
+// Bands come out equal, since what each one needs depends on the stack it ends up in; chroma_trim_bands()
+// is what shortens them afterwards. An empty result means there was nothing to choose from.
+ChromaStack chroma_auto_stack(const ChromaHistogram &picture, const std::vector<ChromaFilament> &available,
+                              int count, float layer_height_mm, int base_layers, int relief_layers);
+
+// How far a stack lands from a picture, as the mean colour difference over `picture`'s bins - the same
+// measure the solve reports, computed without solving. This is what chroma_auto_stack() minimises.
+double chroma_stack_error(const ChromaHistogram &picture, const ChromaStack &stack);
 
 // A starting point for a stack: the given filaments, lightest at the bottom, each with an equal
 // share of `relief_layers` on top of `base_layers`.

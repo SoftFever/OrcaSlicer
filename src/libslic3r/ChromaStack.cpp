@@ -358,6 +358,125 @@ std::vector<ChromaRange> chroma_ranges(const ChromaStack &stack, double z_bottom
     return out;
 }
 
+ChromaHistogram chroma_histogram(const uint8_t *rgb, int width, int height, int max_bins)
+{
+    ChromaHistogram out;
+    if (rgb == nullptr || width <= 0 || height <= 0 || max_bins <= 0)
+        return out;
+
+    // Four bits a channel: fine enough that two colours in one bucket are the same colour to a stack of
+    // a few filaments, coarse enough that a photograph collapses to a few hundred buckets.
+    struct Bucket
+    {
+        double r = 0., g = 0., b = 0.;
+        double n = 0.;
+    };
+    std::vector<Bucket> buckets(16 * 16 * 16);
+    const size_t        count = size_t(width) * size_t(height);
+    for (size_t i = 0; i < count; ++i) {
+        const uint8_t *p   = rgb + i * 3;
+        const size_t   key = size_t(p[0] >> 4) * 256 + size_t(p[1] >> 4) * 16 + size_t(p[2] >> 4);
+        Bucket        &b   = buckets[key];
+        b.r += p[0];
+        b.g += p[1];
+        b.b += p[2];
+        b.n += 1.;
+    }
+
+    std::vector<std::pair<ColorRGB, float>> all;
+    for (const Bucket &b : buckets)
+        if (b.n > 0.)
+            all.emplace_back(ColorRGB(float(b.r / b.n / 255.), float(b.g / b.n / 255.), float(b.b / b.n / 255.)),
+                             float(b.n));
+    // The heaviest buckets first, so capping the count drops the colours the picture barely shows.
+    std::sort(all.begin(), all.end(), [](const auto &a, const auto &b) { return a.second > b.second; });
+    if (int(all.size()) > max_bins)
+        all.resize(size_t(max_bins));
+
+    double total = 0.;
+    for (const auto &e : all)
+        total += double(e.second);
+    if (total <= 0.)
+        return out;
+    out.bins.reserve(all.size());
+    for (auto &e : all)
+        out.bins.emplace_back(e.first, float(double(e.second) / total));
+    return out;
+}
+
+double chroma_stack_error(const ChromaHistogram &picture, const ChromaStack &stack)
+{
+    if (picture.empty())
+        return 0.;
+    const std::vector<ColorRGB> palette = chroma_palette(stack);
+    const int                   base    = std::clamp(stack.base_layers, 0, int(palette.size()));
+    if (int(palette.size()) <= base)
+        return std::numeric_limits<double>::max();
+
+    std::vector<Lab> reachable;
+    reachable.reserve(palette.size() - size_t(base));
+    for (size_t i = size_t(base); i < palette.size(); ++i)
+        reachable.push_back(srgb_to_lab(palette[i].r(), palette[i].g(), palette[i].b()));
+
+    double error = 0.;
+    for (const auto &[color, weight] : picture.bins) {
+        const Lab target = srgb_to_lab(color.r(), color.g(), color.b());
+        float     best   = std::numeric_limits<float>::max();
+        for (const Lab &p : reachable)
+            best = std::min(best, delta_e(target, p));
+        error += double(weight) * double(best);
+    }
+    return error;
+}
+
+ChromaStack chroma_auto_stack(const ChromaHistogram &picture, const std::vector<ChromaFilament> &available,
+                              int count, float layer_height_mm, int base_layers, int relief_layers)
+{
+    ChromaStack stack;
+    stack.layer_height_mm = layer_height_mm > 0.f ? layer_height_mm : 0.08f;
+    stack.base_layers     = std::max(0, base_layers);
+    if (available.empty() || count <= 0 || relief_layers <= 0)
+        return stack;
+
+    const int    want = std::min({ count, int(available.size()), int(CHROMA_MAX_BANDS) });
+    std::vector<bool> used(available.size(), false);
+
+    // Grown one filament at a time: every unused filament tried at every position, the best placement
+    // kept. Bands are re-divided at each step so a candidate is scored as the stack it would really be.
+    for (int step = 0; step < want; ++step) {
+        double      best_error = std::numeric_limits<double>::max();
+        int         best_index = -1;
+        size_t      best_at    = 0;
+        ChromaStack best_stack;
+        for (size_t i = 0; i < available.size(); ++i) {
+            if (used[i])
+                continue;
+            for (size_t at = 0; at <= stack.bands.size(); ++at) {
+                ChromaStack trial = stack;
+                ChromaBand  band;
+                band.filament = available[i];
+                trial.bands.insert(trial.bands.begin() + long(at), band);
+                const int each = std::max(1, relief_layers / int(trial.bands.size()));
+                for (ChromaBand &b : trial.bands)
+                    b.layers = each;
+                const double error = chroma_stack_error(picture, trial);
+                if (error < best_error) {
+                    best_error = error;
+                    best_index = int(i);
+                    best_at    = at;
+                    best_stack = std::move(trial);
+                }
+            }
+        }
+        if (best_index < 0)
+            break;
+        used[size_t(best_index)] = true;
+        stack                    = std::move(best_stack);
+        (void) best_at;
+    }
+    return stack;
+}
+
 ChromaStack chroma_default_stack(const std::vector<ChromaFilament> &filaments, float layer_height_mm,
                                      int base_layers, int relief_layers)
 {

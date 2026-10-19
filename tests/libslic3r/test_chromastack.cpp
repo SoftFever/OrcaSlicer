@@ -377,3 +377,74 @@ TEST_CASE("Layers past a filament's covering depth add no color", "[ChromaStack]
     REQUIRE(light_over_dark.bands.back().layers < 14);
     REQUIRE(chroma_distinct_levels(light_over_dark) == kept);
 }
+
+TEST_CASE("A picture's colours become a weighted histogram", "[ChromaStack]")
+{
+    // Three quarters red, one quarter white: the bins carry that share, which is what makes a stack
+    // that gets the red right score better than one that gets the white right.
+    std::vector<uint8_t> rgb;
+    for (int i = 0; i < 3; ++i) {
+        rgb.push_back(230); rgb.push_back(20); rgb.push_back(20);
+    }
+    rgb.push_back(250); rgb.push_back(250); rgb.push_back(250);
+
+    const ChromaHistogram hist = chroma_histogram(rgb.data(), 4, 1);
+    REQUIRE(hist.bins.size() == 2);
+    REQUIRE_THAT(hist.bins[0].second, WithinAbs(0.75f, 1e-5f));
+    REQUIRE_THAT(hist.bins[1].second, WithinAbs(0.25f, 1e-5f));
+    REQUIRE(hist.bins[0].first.r() > hist.bins[0].first.g());
+    REQUIRE(chroma_histogram(nullptr, 4, 1).empty());
+}
+
+TEST_CASE("The picker chooses the filaments that reach the picture", "[ChromaStack]")
+{
+    // A picture of greens, and a choice between a green and two filaments that cannot make one. The
+    // green has to be in the stack whatever else is.
+    std::vector<uint8_t> rgb;
+    for (int i = 0; i < 8; ++i) {
+        rgb.push_back(40); rgb.push_back(150); rgb.push_back(60);
+    }
+    const ChromaHistogram hist = chroma_histogram(rgb.data(), 8, 1);
+
+    const std::vector<ChromaFilament> available{ WHITE_OPAQUE, BLACK_OPAQUE,
+                                                 filament(7, ColorRGB(0.16f, 0.59f, 0.24f), 4.f) };
+    const ChromaStack chosen = chroma_auto_stack(hist, available, 2, 0.08f, 4, 20);
+    REQUIRE(chosen.bands.size() == 2);
+    bool has_green = false;
+    for (const ChromaBand &b : chosen.bands)
+        if (b.filament.filament == 7)
+            has_green = true;
+    REQUIRE(has_green);
+    // And it is a better answer than the two it left out.
+    ChromaStack without;
+    without.layer_height_mm = 0.08f;
+    without.base_layers     = 4;
+    without.bands           = { band(WHITE_OPAQUE, 10), band(BLACK_OPAQUE, 10) };
+    REQUIRE(chroma_stack_error(hist, chosen) < chroma_stack_error(hist, without));
+}
+
+TEST_CASE("More filaments cannot make the match worse", "[ChromaStack]")
+{
+    // The reason the panel offers 2, 3, 4 and 6: each is a real trade of swaps against accuracy, and
+    // the trade only runs one way.
+    std::vector<uint8_t> rgb;
+    const uint8_t        pixels[][3] = { { 220, 40, 30 }, { 250, 200, 40 }, { 30, 70, 160 }, { 240, 240, 235 } };
+    for (const auto &p : pixels)
+        for (int i = 0; i < 3; ++i) {
+            rgb.push_back(p[0]); rgb.push_back(p[1]); rgb.push_back(p[2]);
+        }
+    const ChromaHistogram hist = chroma_histogram(rgb.data(), 12, 1);
+
+    const std::vector<ChromaFilament> available{
+        WHITE_OPAQUE, BLACK_OPAQUE,
+        filament(5, ColorRGB(0.86f, 0.16f, 0.12f), 4.f), filament(6, ColorRGB(0.98f, 0.78f, 0.16f), 5.f),
+        filament(7, ColorRGB(0.12f, 0.27f, 0.63f), 4.f), filament(8, ColorRGB(0.16f, 0.59f, 0.24f), 4.f)
+    };
+    const double two  = chroma_stack_error(hist, chroma_auto_stack(hist, available, 2, 0.08f, 4, 24));
+    const double four = chroma_stack_error(hist, chroma_auto_stack(hist, available, 4, 0.08f, 4, 24));
+    REQUIRE(four <= two);
+    REQUIRE(chroma_auto_stack(hist, available, 4, 0.08f, 4, 24).bands.size() == 4);
+    // Nothing to choose from, or no room to print it, is an empty stack rather than a guess.
+    REQUIRE(chroma_auto_stack(hist, {}, 4, 0.08f, 4, 24).bands.empty());
+    REQUIRE(chroma_auto_stack(hist, available, 4, 0.08f, 4, 0).bands.empty());
+}
