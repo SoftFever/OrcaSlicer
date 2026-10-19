@@ -25,8 +25,8 @@ namespace Slic3r {
 // Returns true if any improvement was made.
 bool tsp_2opt_improve(std::vector<size_t>& path, const Points& centers, int max_passes = 10);
 
-// Crossing removal: reverse any segment pair whose edges geometrically cross.
-// Returns true if any crossing was removed.
+// Crossing removal: reverse each pair of intersecting edges whose reversal shortens the cycle by more
+// than SCALED_EPSILON. Returns true if any pair was reversed.
 bool tsp_remove_crossings(std::vector<size_t>& path, const Points& centers);
 
 // The shortest cycle through the points, starting at point 0, by dynamic programming over subsets; for a few points only.

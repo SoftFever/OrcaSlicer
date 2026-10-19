@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/catch_all.hpp>
+#include <catch2/matchers/catch_matchers.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <vector>
 #include <cstddef>
 #include <math.h>
@@ -134,6 +136,53 @@ TEST_CASE("tsp_remove_crossings eliminates crossings", "[TSPPostProcessing]") {
     tsp_remove_crossings(path, centers);
     CHECK(!has_crossings(path, centers));
     REQUIRE(is_permutation(path, centers.size()));
+}
+
+TEST_CASE("tsp_remove_crossings leaves a tour alone when no reversal shortens it", "[TSPPostProcessing]") {
+    // Three points on a diagonal, the middle one doubled as island centroids snapped to the same 1 mm cell are,
+    // and a corner closing the tour. Edges 0-1 and 2-3 touch at the doubled point, and reversing between them
+    // only swaps the two copies.
+    Points centers;
+    centers.emplace_back(0, 0);
+    centers.emplace_back(3000000, 3000000);
+    centers.emplace_back(3000000, 3000000);
+    centers.emplace_back(6000000, 6000000);
+    centers.emplace_back(6000000, 0);
+    std::vector<size_t> path = {0, 1, 2, 3, 4};
+    REQUIRE(Geometry::segments_intersect(centers[0], centers[1], centers[2], centers[3]));
+
+    CHECK(!tsp_remove_crossings(path, centers));
+    CHECK(path == std::vector<size_t>{0, 1, 2, 3, 4});
+}
+
+TEST_CASE("tsp_remove_crossings keeps a crossing whose reversal gains less than SCALED_EPSILON", "[TSPPostProcessing]") {
+    // Two 100 mm edges crossing at a 10 nm offset: uncrossing them saves about 1e-6 scaled units of travel.
+    Points centers;
+    centers.emplace_back(0, 0);
+    centers.emplace_back(100000000, 10);
+    centers.emplace_back(100000000, 0);
+    centers.emplace_back(0, 10);
+    std::vector<size_t> path = {0, 1, 2, 3};
+    REQUIRE(Geometry::segments_intersect(centers[0], centers[1], centers[2], centers[3]));
+
+    CHECK(!tsp_remove_crossings(path, centers));
+    CHECK(path == std::vector<size_t>{0, 1, 2, 3});
+}
+
+TEST_CASE("tsp_remove_crossings reverses overlapping collinear edges when that shortens the tour", "[TSPPostProcessing]") {
+    // Points at x = 0, 3, 1 and 2 mm on one line. Tour 0-3-1-2 is 8 mm long, and its edges [0,3] and [1,2] overlap.
+    // The shortest tour through points on a line is twice their 3 mm span.
+    Points centers;
+    centers.emplace_back(0, 0);
+    centers.emplace_back(3000000, 0);
+    centers.emplace_back(1000000, 0);
+    centers.emplace_back(2000000, 0);
+    std::vector<size_t> path = {0, 1, 2, 3};
+    REQUIRE_THAT(tsp_cycle_path_length(path, centers), Catch::Matchers::WithinAbs(8000000., 1.));
+
+    CHECK(tsp_remove_crossings(path, centers));
+    REQUIRE(is_permutation(path, centers.size()));
+    CHECK_THAT(tsp_cycle_path_length(path, centers), Catch::Matchers::WithinAbs(6000000., 1.));
 }
 
 

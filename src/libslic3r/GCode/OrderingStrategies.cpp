@@ -6,6 +6,7 @@
 #include "../ShortestPath.hpp"
 #include "libslic3r/Point.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/libslic3r.h"
 
 #include <algorithm>
 #include <cassert>
@@ -120,7 +121,7 @@ bool tsp_remove_crossings(std::vector<size_t>& path, const Points& centers)
     // TSP helpers (2-opt, closing-edge rotation) that operate on the full cycle.
     size_t n_edges = pn;
 
-    // Scan for first crossing; returns {i, j} or {npos, npos} if none.
+    // Scan for the first pair of intersecting edges worth reversing; returns {i, j} or {npos, npos} if none.
     auto find_crossing = [&]() -> std::pair<size_t, size_t> {
         for (size_t i = 0; i < n_edges; ++i) {
             const Point& ai = centers[path[i]];
@@ -133,8 +134,13 @@ bool tsp_remove_crossings(std::vector<size_t>& path, const Points& centers)
                 const Point& aj = centers[path[j]];
                 const Point& bj = centers[path[(j + 1) % pn]];
 
-                if (!bboxes_overlap(ai, bi, aj, bj)) continue;
-                if (Geometry::segments_intersect(ai, bi, aj, bj))
+                if (!bboxes_overlap(ai, bi, aj, bj) || !Geometry::segments_intersect(ai, bi, aj, bj))
+                    continue;
+                // The reversal replaces edges (ai, bi) and (aj, bj) with (ai, aj) and (bi, bj). Edges that only touch
+                // or overlap collinearly, as at points sharing a position, may gain nothing from it, and reversing
+                // them would find the same pair again on every scan. A gain within SCALED_EPSILON, which nearly
+                // collinear crossings can have too, is not worth a reversal either.
+                if (ai.distance_to(bi) + aj.distance_to(bj) - ai.distance_to(aj) - bi.distance_to(bj) > SCALED_EPSILON)
                     return {i, j};
             }
         }
@@ -142,7 +148,8 @@ bool tsp_remove_crossings(std::vector<size_t>& path, const Points& centers)
     };
 
     // Process crossings one at a time: find first, reverse it, restart scan.
-    // Cap iterations to prevent infinite loops on collinear/overlapping segments.
+    // Every reversal shortens the cycle, so no tour repeats and the scan ends once no pair is worth
+    // reversing; the cap is a safety net.
     int max_iters = static_cast<int>(pn * pn);
     bool improved = false;
     while (max_iters-- > 0) {
