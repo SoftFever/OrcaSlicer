@@ -1309,6 +1309,14 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             get_tray_ams_and_slot_id(curr_obj, selected_filaments.begin()->first, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
             calib_info.select_ams         = std::to_string(selected_tray_id);
             calib_info.extruder_id = preset_page->get_extruder_id_by_tray_id(selected_filaments.begin()->first);
+            if (from_page == FlowRatioCaliSource::FROM_COARSE_PAGE) {
+                // The fine pass must run on the extruder the coarse pass used. The cache records it;
+                // the preset page's selection may have changed or been reset since.
+                const auto cached = get_cached_selected_filament_for_multi_extruder(curr_obj);
+                const auto it     = cached.find(selected_filaments.begin()->first);
+                if (it != cached.end())
+                    calib_info.extruder_id = it->second.extruder_id;
+            }
             calib_info.extruder_type      = preset_page->get_extruder_type(calib_info.extruder_id);
             calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(calib_info.extruder_id);
             calib_info.nozzle_diameter    = preset_page->get_nozzle_diameter(calib_info.extruder_id);
