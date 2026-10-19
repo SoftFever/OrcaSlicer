@@ -3124,7 +3124,7 @@ void ImGuiWrapper::init_font(bool compress)
 #ifdef _WIN32
     const bool large_display = wxGetApp().em_unit() > 30;
 #else
-    const bool large_display = false;
+    bool large_display = false; // not const: a constant would not need capturing below
 #endif
     const bool dxt5 = compress && GLAD_GL_EXT_texture_compression_s3tc;
     if (font_atlas == nullptr && m_font_texture == 0)
