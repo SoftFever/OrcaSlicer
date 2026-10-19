@@ -5,6 +5,7 @@
 #include "PartPlate.hpp"
 #include "Widgets/Button.hpp"
 #include <wx/stattext.h>
+#include <wx/strconv.h>
 #include "PresetHints.hpp"
 #include "libslic3r/IMEXHelpers.hpp"
 #include "libslic3r/PresetBundle.hpp"

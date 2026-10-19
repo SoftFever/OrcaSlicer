@@ -66,6 +66,20 @@ orcaslicer_copy_test_dlls(${_TEST_NAME}_tests)
 
 # Native visibility regression for option-group ShowItems passes. No slicer app
 # or user profile is started. Headless environments report an explicit skip.
+# Resolve wx here as well: src/ discovers it in a sibling directory, so its
+# module-mode include paths and definitions are not visible to this target.
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(wxWidgets_CONFIG_OPTIONS "--toolkit=gtk${SLIC3R_GTK}")
+    find_package(wxWidgets REQUIRED COMPONENTS core base)
+else ()
+    find_package(wxWidgets CONFIG QUIET COMPONENTS core base)
+    if (NOT wxWidgets_FOUND)
+        find_package(wxWidgets REQUIRED COMPONENTS core base)
+    endif ()
+endif ()
+if (wxWidgets_USE_FILE)
+    include(${wxWidgets_USE_FILE})
+endif ()
 add_executable(support_override_notice_tests test_support_override_notice.cpp)
 target_include_directories(support_override_notice_tests PRIVATE
     ${PROJECT_SOURCE_DIR}/src ${wxWidgets_INCLUDE_DIRS})
