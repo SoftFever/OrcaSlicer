@@ -115,6 +115,7 @@
 #include <Precision.hxx>
 #include <string>
 #include <vector>
+#include <optional>
 #include <utility>
 #include "libslic3r/Color.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -3058,16 +3059,28 @@ void CadDocument::apply_feature(TopoDS_Shape& result, bool& have_body,
         // Loft through 2+ closed profile Sketches, in recipe order. Each profile builds
         // a wire via build_sketch_wire (so it keeps its own plane); make_loft skins them.
         std::vector<TopoDS_Wire> profiles;
-        for (int ref : f.loft_profile_refs) {
+        std::optional<gp_Pnt> apex_first, apex_last;   // a section that is a lone point (a sketch holding only one point) ends the loft in a tip
+        const size_t n_refs = f.loft_profile_refs.size();
+        for (size_t ri = 0; ri < n_refs; ++ri) {
+            const int ref = f.loft_profile_refs[ri];
             if (ref < 0 || ref >= int(features.size())
                 || (features[ref].type != CadFeatureType::Sketch
                     && features[ref].type != CadFeatureType::Project))
                 continue;
+            const CadFeature& sk = features[ref];
+            if (sk.type == CadFeatureType::Sketch && sk.entities.size() == 1 && sk.entities[0].type == SketchEntity::Type::Point) {
+                if (ri != 0 && ri + 1 != n_refs) throw std::runtime_error(_u8L("loft: a point can only be the first or the last section"));
+                const Vec3d w = sk.plane.to_world(sk.entities[0].p0);
+                (ri == 0 ? apex_first : apex_last) = gp_Pnt(w.x(), w.y(), w.z());
+                continue;
+            }
             profiles.push_back(build_sketch_wire(features[ref], true));
         }
-        if (profiles.size() < 2)
+        const bool tip = apex_first || apex_last;
+        if (profiles.size() < (tip ? 1u : 2u))
             throw std::runtime_error(_u8L("loft needs 2+ valid profile sketches"));
-        TopoDS_Shape tool = SketchEngine::make_loft(profiles, f.loft_ruled, f.loft_start_cond, f.loft_end_cond);
+        TopoDS_Shape tool = tip ? SketchEngine::make_loft_to_point(profiles, f.loft_ruled, apex_first ? &*apex_first : nullptr, apex_last ? &*apex_last : nullptr)
+                                : SketchEngine::make_loft(profiles, f.loft_ruled, f.loft_start_cond, f.loft_end_cond);
         combine_into(f.mode, result, have_body, tool);
         break;
     }
@@ -4328,6 +4341,32 @@ void CadDocument::apply_feature_pattern(std::vector<CadBody>& bodies, const CadF
         gp_Trsf tr;
         tr.SetMirror(gp_Ax2(gp_Pnt(f.pattern_origin.x(), f.pattern_origin.y(), f.pattern_origin.z()), gp_Dir(nrm.x(), nrm.y(), nrm.z())));
         trsfs.push_back(tr);
+    } else if (f.pattern_curve_sketch >= 0) {
+        if (f.pattern_curve_sketch >= int(features.size()) || features[f.pattern_curve_sketch].type != CadFeatureType::Sketch)
+            throw std::runtime_error(_u8L("pattern: the path is not a sketch"));
+        const CadFeature& gs = features[f.pattern_curve_sketch];
+        if (f.pattern_curve_entity < 0 || f.pattern_curve_entity >= int(gs.entities.size()))
+            throw std::runtime_error(_u8L("pattern: the path curve does not exist"));
+        const SketchEntity& gc = gs.entities[size_t(f.pattern_curve_entity)];
+        // arc length -> point, by a fine polyline over the curve's own parameter
+        constexpr int N = 4000;
+        std::vector<Vec3d> pts(N + 1);
+        std::vector<double> len(N + 1, 0.0);
+        for (int i = 0; i <= N; ++i) {
+            pts[size_t(i)] = gs.plane.to_world(sample_entity_2d(gc, double(i) / N));
+            if (i > 0) len[size_t(i)] = len[size_t(i - 1)] + (pts[size_t(i)] - pts[size_t(i - 1)]).norm();
+        }
+        if (n1 > 1 && f.pattern_spacing * (n1 - 1) > len[N] * (1 + 1e-6))
+            throw std::runtime_error(_u8L("pattern: the path is shorter than the instances need"));
+        for (int k = 1; k < n1; ++k) {
+            const double s = std::min(f.pattern_spacing * k, len[N]);
+            int i = int(std::lower_bound(len.begin(), len.end(), s) - len.begin());
+            i = std::clamp(i, 1, N);
+            const double u = (len[size_t(i)] - len[size_t(i - 1)]) > 1e-12 ? (s - len[size_t(i - 1)]) / (len[size_t(i)] - len[size_t(i - 1)]) : 0.0;
+            const Vec3d d = pts[size_t(i - 1)] + (pts[size_t(i)] - pts[size_t(i - 1)]) * u - pts[0];
+            gp_Trsf tr; tr.SetTranslation(gp_Vec(d.x(), d.y(), d.z()));
+            trsfs.push_back(tr);
+        }
     } else if (circ) {
         const Vec3d ax = unit(f.pattern_axis);
         const gp_Ax1 axis(gp_Pnt(f.pattern_origin.x(), f.pattern_origin.y(), f.pattern_origin.z()), gp_Dir(ax.x(), ax.y(), ax.z()));

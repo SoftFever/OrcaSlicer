@@ -284,6 +284,11 @@ public:
     static TopoDS_Shape make_loft(const std::vector<TopoDS_Wire>& profiles, bool ruled,
                                   int start_cond = 0, int end_cond = 0, double strength = 0.25);
 
+    // Loft that ends (or starts) in a single point: `profiles` are the wire sections, `apex_first` / `apex_last` a vertex placed
+    // before the first / after the last of them (a pyramid or a cone tip).
+    static TopoDS_Shape make_loft_to_point(const std::vector<TopoDS_Wire>& profiles, bool ruled,
+                                           const gp_Pnt* apex_first, const gp_Pnt* apex_last);
+
     // Skin `profiles` WITHOUT end caps -> an open shell (sheet). Same as make_loft but the
     // ThruSections solid flag is false. // ponytail: a sibling instead of a bool param, so no
     // existing call site changes.

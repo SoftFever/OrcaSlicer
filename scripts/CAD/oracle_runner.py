@@ -195,7 +195,7 @@ BOOL = {"new": "new", "add": "union", "join": "union", "remove": "subtract", "cu
 
 class Replay:
     def __init__(self, mcp):
-        self.m, self.sketches, self.body, self.fidx, self.entity_index, self.sketch_neg = mcp, {}, 0, {}, {}, {}
+        self.m, self.sketches, self.body, self.fidx, self.entity_index, self.sketch_neg, self.tilted = mcp, {}, 0, {}, {}, {}, {}
         self.params, self.order, self.datums = {}, [], {}
         self.mo = [0, 0, 0]   # modeling_origin: the app frame is the recipe frame shifted by it   # recipe parameters (name -> expression); body names in app order
 
@@ -265,6 +265,15 @@ class Replay:
         pl = ft["plane"]
         self.m.call("pattern", {"features": self._pattern_features({"pattern_of": "features", "features": ft["features"]}), "mirror": True,
                                 "axis": pl["normal"], "origin": pl.get("origin", [0, 0, 0]), "body": self.body})
+
+    def op_path_pattern(self, ft):
+        pth = ft["path"]
+        if len(pth["curves"]) != 1 or "spacing" not in ft:
+            raise Blocked("path pattern with several curves / without spacing")
+        sname = pth["sketch"]
+        self.m.call("pattern", {"features": self._pattern_features(ft), "count": ft["count"], "spacing": ft["spacing"],
+                                "path_sketch": self.sketches[sname][0], "path_entity": self.entity_index[sname][pth["curves"][0]],
+                                "body": self.body})
 
     def op_circular_pattern(self, ft):
         feats = self._pattern_features(ft)
@@ -415,8 +424,18 @@ class Replay:
         self._named(ft)
 
     def op_construction_plane(self, ft):
+        if ft.get("method") == "at_angle" and "result_normal" in ft:
+            # a tilted plane has no datum in the app; it is remembered by its frame and handed to the tool that uses it
+            self.tilted[ft["name"]] = (ft["result_origin"], ft["result_normal"])
+            return
         if ft.get("method") != "offset":
             raise Blocked("construction plane method %s" % ft.get("method"))   # the plane itself is created when a sketch uses it
+
+    def op_split_body(self, ft):
+        if ft.get("tool") not in self.tilted:
+            raise Blocked("split body by %r" % ft.get("tool"))
+        o, n = self.tilted[ft["tool"]]
+        self.m.call("cut", {"origin": o, "normal": n, "keep": "both", "body": self.body})
 
     def _all_curves(self, ref):
         idx, plane, solid = self.sketches[ref["sketch"]]
@@ -436,8 +455,6 @@ class Replay:
         if ft.get("rails") or not ft.get("solid", True) or "free" not in ft.get("end_conditions", "free"):
             raise Blocked("loft with rails / end conditions / as a surface")
         secs = ft["sections"]
-        if any("point" in sec for sec in secs):
-            raise Blocked("loft to a point")
         self.m.call("loft", {"profiles": [self._sketch(sec)[0] for sec in secs], "boolean": BOOL[ft["operation"]]})
         self._named(ft)
 

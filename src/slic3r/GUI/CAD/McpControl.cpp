@@ -289,6 +289,8 @@ json describe_tools_core()
                      json{{"name", "plane"},    {"type", "string"}, {"enum", json::array({"XY", "XZ", "YZ"})}, {"default", "XY"}},
                      json{{"name", "body"},     {"type", "integer"}, {"default", -1}, {"description", "target body; omit for the last body"}},
                      json{{"name", "features"}, {"type", "array"}, {"description", "FEATURE pattern: repeat what these earlier features (indices) did to the body, instead of copying the body. Then `axis`/`origin` replace plane/dir: linear = count x spacing along `axis` (+ `count2` x `spacing2` along `axis2` for a grid); circular = count over `angle` about the line through `origin` along `axis`"}},
+                     json{{"name", "path_sketch"}, {"type", "integer"}, {"description", "feature pattern along a curve: sketch feature index; `spacing` is then an arc length along its entity `path_entity`, instance k = the features moved by path(k*spacing) - path(0)"}},
+                     json{{"name", "path_entity"}, {"type", "integer"}, {"default", 0}},
                      json{{"name", "mirror"},   {"type", "boolean"}, {"default", false}, {"description", "feature pattern: reflect what the features did in the plane through `origin` with normal `axis`, instead of repeating it"}},
                      json{{"name", "axis"},     {"type", "array"}, {"description", "[x,y,z] direction (feature pattern); the plane normal when mirroring"}},
                      json{{"name", "origin"},   {"type", "array"}, {"description", "[x,y,z] a point on the rotation axis in model coordinates, like sketch coordinates (circular feature pattern)"}},
@@ -611,7 +613,7 @@ json describe_tools()
             {"radius", "number", "major radius, mm"}, {"pitch", "number", "mm per turn"}, {"height", "number", "axial length"}, {"depth", "number", "radial depth"},
             {"internal", "boolean", ""}, {"x", "number", ""}, {"y", "number", ""}, {"plane", "string", "XY|XZ|YZ"}}),
         compact_tool("cut", "Trim a body by a plane (split by plane).", {{"plane", "string", "XY|XZ|YZ"}, {"offset", "number", "mm along the plane normal"}, {"flip", "boolean", ""},
-            {"keep", "string", "upper|lower|both (both splits into two bodies)"}, {"body", "integer", "default last"}}),
+            {"origin", "array", "[x,y,z] model coords of a point on the plane (with normal)"}, {"normal", "array", "[x,y,z]: an explicit plane of any tilt instead of `plane`"}, {"keep", "string", "upper|lower|both (both splits into two bodies)"}, {"body", "integer", "default last"}}),
         compact_tool("surface_fill", "Fill a closed sketch boundary with a smooth sheet face.", {{"sketch", "integer", "Sketch feature index"}}),
         compact_tool("surface_loft", "Skin two or more profile sketches into an open sheet.", {{"profiles", "array", "[Sketch feature index,...]"}, {"ruled", "boolean", ""}}),
         compact_tool("surface_offset", "Offset the last sheet body.", {{"offset", "number", "signed mm"}}),
@@ -652,6 +654,22 @@ json describe_tools()
 
 SketchPlane plane_from(const json& params, const CadDocument& doc)
 {
+    if (params.contains("normal")) {
+        auto v3 = [&](const char* k) {
+            const json& a = params[k];
+            if (!a.is_array() || a.size() != 3 || !a[0].is_number() || !a[1].is_number() || !a[2].is_number()) throw std::runtime_error(std::string(k) + " must be [x,y,z]");
+            return Vec3d(a[0].get<double>(), a[1].get<double>(), a[2].get<double>());
+        };
+        SketchPlane pl;
+        const Vec3d nrm = v3("normal");
+        if (nrm.norm() < 1e-9) throw std::runtime_error("normal must not be zero");
+        pl.normal = nrm.normalized();
+        pl.origin = (params.contains("origin") ? v3("origin") : Vec3d(0, 0, 0)) + doc.modeling_origin;   // model coordinates in, world stored
+        const Vec3d h = std::abs(pl.normal.x()) < 0.9 ? Vec3d(1, 0, 0) : Vec3d(0, 1, 0);
+        pl.x_axis = (h - pl.normal * h.dot(pl.normal)).normalized();
+        pl.y_axis = pl.normal.cross(pl.x_axis);
+        return pl;
+    }
     std::string n = params.value("plane", std::string("XY"));
     if (n.rfind("datum:", 0) == 0) {   // "datum:N" = the Nth datum plane, as sketch_begin takes it
         const auto datums = doc.resolve_datum_planes();
@@ -1329,6 +1347,14 @@ json action_pattern(DesignPanel* panel, const json& params)
         pf.pattern_origin  = vec3("origin", Vec3d(0, 0, 0)) + doc.modeling_origin;   // given in model coordinates, stored in world ones
         pf.pattern_axis2   = vec3("axis2", Vec3d(0, 1, 0));
         pf.pattern_mirror  = params.value("mirror", false);
+        if (params.contains("path_sketch")) {   // spacing is then an arc length along that sketch curve
+            const int ps = params["path_sketch"].get<int>(), pe = params.value("path_entity", 0);
+            if (ps < 0 || ps >= p || doc.features[size_t(ps)].type != CadFeatureType::Sketch || pe < 0 || pe >= int(doc.features[size_t(ps)].entities.size())) {
+                doc.undo(); throw std::runtime_error("path_sketch/path_entity must name an earlier sketch and one of its entities");
+            }
+            pf.pattern_curve_sketch = ps;
+            pf.pattern_curve_entity = pe;
+        }
         pf.pattern_count2  = std::clamp(params.value("count2", 1), 1, 500);
         pf.pattern_spacing2 = params.value("spacing2", 0.0);
     }

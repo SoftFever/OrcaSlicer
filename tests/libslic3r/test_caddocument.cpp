@@ -10376,3 +10376,67 @@ TEST_CASE("an extrude can take chosen loops of a sketch as separate islands, nes
     const double want = (M_PI * 25 + M_PI * 16 + M_PI * (100 - 36)) * 10.0;
     REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(want, 2e-3));
 }
+
+TEST_CASE("a feature pattern can follow a path, spaced by arc length", "[CadDocument][Pattern]")
+{
+    using Catch::Matchers::WithinRel;
+    CadDocument doc;
+    const int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 80, 40, 10, "Plate");
+    doc.add_extrude(sk, 5.0, false, BooleanMode::New, "Plate");
+    REQUIRE(doc.recompute());
+    const BoundingBoxf3 bb = SketchEngine::tessellate(doc.bodies.front().shape).bounding_box();
+    const Vec2d at(bb.min.x() + 10.0, bb.center().y());
+    SketchEntity c; c.type = SketchEntity::Type::Circle; c.center = at; c.p0 = at; c.radius = 2.0;
+    const int hs = doc.add_sketch_entities({c}, SketchPlane::XY(), "HoleSketch");
+    doc.add_extrude(hs, 20.0, false, BooleanMode::Cut, "Hole");
+    REQUIRE(doc.recompute());
+    const int hole = int(doc.features.size()) - 1;
+    const double v0 = SketchEngine::tessellate(doc.bodies.front().shape).volume();
+    // a quarter arc of radius 15 that starts at the hole (23.6 mm long): 4 holes 7 mm apart along it
+    SketchEntity a; a.type = SketchEntity::Type::Arc; a.center = at + Vec2d(0, 15); a.radius = 15.0; a.start_angle = -M_PI / 2; a.end_angle = 0.0;
+    a.p0 = a.center + Vec2d(0, -15); a.p1 = a.center + Vec2d(15, 0);
+    const int ps = doc.add_sketch_entities({a}, SketchPlane::XY(), "Path");
+    const int p = doc.add_pattern(false, 4, 7.0, 0, 360.0, -1, "PathPattern");
+    doc.features[p].pattern_features = { hole };
+    doc.features[p].pattern_curve_sketch = ps;
+    doc.features[p].pattern_curve_entity = 0;
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.error.empty());
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(v0 - 3.0 * M_PI * 4.0 * 5.0, 2e-3));
+    // a path too short for the instances is refused
+    doc.features[p].pattern_spacing = 12.0;
+    REQUIRE_FALSE(doc.recompute());
+}
+
+TEST_CASE("a loft can end in a single point", "[CadDocument][loft]")
+{
+    using Catch::Matchers::WithinRel;
+    CadDocument doc;
+    const int base = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 40, 40, 0, "Base");
+    SketchPlane top; top.origin = Vec3d(0, 0, 30);
+    SketchEntity pt; pt.type = SketchEntity::Type::Point; pt.p0 = Vec2d(0, 0);
+    const int apex = doc.add_sketch_entities({pt}, top, "Apex");
+    doc.add_loft({ base, apex }, false, BooleanMode::New, "Pyramid");
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.error.empty());
+    REQUIRE(doc.bodies.size() == 1);
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(40.0 * 40.0 * 30.0 / 3.0, 2e-3));
+}
+
+TEST_CASE("a body can be split by a tilted plane", "[CadDocument][cut]")
+{
+    using Catch::Matchers::WithinRel;
+    CadDocument doc;
+    const int sk = doc.add_sketch(SketchShape::Circle, SketchPlane::XY(), 0, 0, 20, "Cyl");
+    doc.add_extrude(sk, 60.0, false, BooleanMode::New, "Cyl");
+    REQUIRE(doc.recompute());
+    const double v = M_PI * 400.0 * 60.0;
+    SketchPlane pl;   // through (0,0,30), tilted 30 degrees about X: the cylinder's point symmetry makes the halves equal
+    pl.origin = Vec3d(0, 0, 30); pl.normal = Vec3d(0, -0.5, std::sqrt(3.0) / 2); pl.x_axis = Vec3d(1, 0, 0); pl.y_axis = pl.normal.cross(pl.x_axis);
+    doc.add_cut(pl, 0.0, false, true, true, 0, "Split");
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.error.empty());
+    REQUIRE(doc.bodies.size() == 2);
+    for (const CadBody& b : doc.bodies)
+        REQUIRE_THAT(double(SketchEngine::tessellate(b.shape).volume()), WithinRel(v / 2, 5e-3));
+}

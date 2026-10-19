@@ -463,6 +463,23 @@ TopoDS_Shape SketchEngine::make_loft(const std::vector<TopoDS_Wire>& profiles, b
     return s;
 }
 
+TopoDS_Shape SketchEngine::make_loft_to_point(const std::vector<TopoDS_Wire>& profiles, bool ruled,
+                                              const gp_Pnt* apex_first, const gp_Pnt* apex_last)
+{
+    if (profiles.empty() || (profiles.size() < 2 && !(apex_first && apex_last) && !(profiles.size() == 1 && (apex_first || apex_last))))
+        throw std::runtime_error(_u8L("loft needs a section besides the point"));
+    BRepOffsetAPI_ThruSections loft(true /*solid*/, ruled);
+    if (apex_first) loft.AddVertex(BRepBuilderAPI_MakeVertex(*apex_first));
+    for (const TopoDS_Wire& w : profiles) {
+        if (w.IsNull()) throw std::runtime_error("loft: null profile wire");
+        loft.AddWire(w);
+    }
+    if (apex_last) loft.AddVertex(BRepBuilderAPI_MakeVertex(*apex_last));
+    loft.Build();
+    if (!loft.IsDone() || loft.Shape().IsNull()) throw std::runtime_error(_u8L("loft to a point failed"));
+    return loft.Shape();
+}
+
 // ponytail: sibling of make_loft that builds an open shell (sheet) instead of a solid.
 TopoDS_Shape SketchEngine::make_loft_surface(const std::vector<TopoDS_Wire>& profiles, bool ruled)
 {
