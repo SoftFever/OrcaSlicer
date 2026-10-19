@@ -918,6 +918,10 @@ public:
     // the history while every feature stays in the recipe. -1 = no rollback. Any mutation
     // (checkpoint()) and undo/redo return to the end, so a new feature never lands mid-history.
     int rollback_index{-1};
+    // New features go in at the rollback bar, not at the end: with the history rolled back to feature k, a feature added now
+    // becomes k + 1 and the bar moves down onto it (what lies below stays unbuilt). `last_added` is where the last one landed.
+    int last_added{-1};
+    int append_feature(const CadFeature& f);
     // The feature whose replay threw in the last recompute(), or -1. Lets the tree mark the row
     // that failed instead of leaving the user a global message and no suspect.
     int error_feature{-1};
@@ -1030,6 +1034,7 @@ private:
     // The parametric pass every replay starts with: evaluate the variables and write each
     // feature's expression bindings into its numeric fields.
     void bind_expressions();
+    int  m_bar{-1};   // the rollback bar when the last checkpoint() was taken (checkpoint() itself puts the bar away)
     void bind_sheet_rules();   // each sheet-metal feature gets the last SmRule before it (or the default rule)
     // One step of the replay: route features[fi] into `built` and stamp the bodies it created
     // with fi. A hidden feature, a sketch, a helix or a datum leaves `built` alone. Throws on

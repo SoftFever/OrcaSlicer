@@ -10591,3 +10591,35 @@ TEST_CASE("a sketch whose lines end on circles extrudes the regions of the subdi
     const double hull = (R + r) * std::sqrt(d * d - (R - r) * (R - r)) + R * R * (M_PI + 2 * a) / 2 + r * r * (M_PI - 2 * a) / 2;
     REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel((hull - M_PI * 16.0) * 5.0, 2e-3));
 }
+
+TEST_CASE("a feature added while the history is rolled back goes in at the bar", "[CadDocument][history]")
+{
+    using Catch::Matchers::WithinRel;
+    CadDocument doc;
+    const int s0 = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 20, 20, 0, "A");
+    doc.add_extrude(s0, 10.0, false, BooleanMode::New, "BoxA");
+    SketchPlane far = SketchPlane::XY(); far.origin = Vec3d(100, 0, 0);
+    const int s1 = doc.add_sketch(SketchShape::Rectangle, far, 10, 10, 0, "B");
+    doc.add_extrude(s1, 10.0, false, BooleanMode::New, "BoxB");
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.bodies.size() == 2);
+    doc.rollback_index = 1;                      // the bar sits under the first box
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.bodies.size() == 1);
+    doc.checkpoint();
+    SketchPlane up = SketchPlane::XY(); up.origin = Vec3d(0, 0, 10);
+    const int s2 = doc.add_sketch(SketchShape::Rectangle, up, 20, 20, 0, "C");
+    doc.add_extrude(s2, 5.0, false, BooleanMode::Add, "Top");
+    REQUIRE(s2 == 2);                            // in at the bar, not at the end
+    REQUIRE(doc.last_added == 3);
+    REQUIRE(doc.features.size() == 6);
+    REQUIRE(doc.features[5].name == "BoxB");
+    REQUIRE(doc.features[5].sketch_ref == 4);    // the later sketch moved down by two: its extrude followed it
+    REQUIRE(doc.rollback_index == 3);            // the bar now sits under the new feature
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.bodies.size() == 1);
+    REQUIRE_THAT(double(SketchEngine::tessellate(doc.bodies.front().shape).volume()), WithinRel(20.0 * 20.0 * 15.0, 1e-3));
+    doc.rollback_index = -1;
+    REQUIRE(doc.recompute());
+    REQUIRE(doc.bodies.size() == 2);
+}

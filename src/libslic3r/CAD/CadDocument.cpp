@@ -654,8 +654,7 @@ int CadDocument::add_sketch(SketchShape shape, const SketchPlane& plane,
     f.width  = width;
     f.height = height;
     f.radius = radius;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_sketch_profile(const SketchProfile& profile, const SketchPlane& plane,
@@ -666,8 +665,7 @@ int CadDocument::add_sketch_profile(const SketchProfile& profile, const SketchPl
     f.name    = name;
     f.plane   = plane;
     f.profile = profile;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_sketch_entities(const std::vector<SketchEntity>& entities,
@@ -680,8 +678,7 @@ int CadDocument::add_sketch_entities(const std::vector<SketchEntity>& entities,
     f.plane              = plane;
     f.entities           = entities;
     f.entity_constraints = constraints;   // driving dimensions, solved by solve_sketch_feature
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 // Solve Onshape-style constraints on a SketchEntity list (Fase 4.3). All entity
@@ -973,8 +970,7 @@ int CadDocument::add_extrude(int sketch_ref, double distance, bool symmetric,
     f.distance   = distance;
     f.symmetric  = symmetric;
     f.mode       = mode;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_extrude_entities(const std::vector<SketchEntity>& entities,
@@ -993,8 +989,7 @@ int CadDocument::add_extrude_entities(const std::vector<SketchEntity>& entities,
     f.distance   = distance;
     f.symmetric  = symmetric;
     f.mode       = mode;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_extrude_face(int src_face, double distance, bool symmetric,
@@ -1008,8 +1003,7 @@ int CadDocument::add_extrude_face(int src_face, double distance, bool symmetric,
     f.distance         = distance;
     f.symmetric        = symmetric;
     f.mode             = mode;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_fillet(double radius, FaceGroup faces, const std::string& name)
@@ -1019,8 +1013,7 @@ int CadDocument::add_fillet(double radius, FaceGroup faces, const std::string& n
     f.name         = name;
     f.dressup_size = radius;
     f.face_group   = faces;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_fillet(double radius, int edge_id, const std::string& name)
@@ -1030,8 +1023,7 @@ int CadDocument::add_fillet(double radius, int edge_id, const std::string& name)
     f.name         = name;
     f.dressup_size = radius;
     f.dressup_edge = edge_id;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_fillet(double radius, const std::vector<int>& edge_ids, const std::string& name)
@@ -1043,8 +1035,7 @@ int CadDocument::add_fillet(double radius, const std::vector<int>& edge_ids, con
     f.dressup_size  = radius;
     f.dressup_edges = edge_ids;
     f.dressup_edge  = edge_ids.empty() ? -1 : edge_ids.front();
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_chamfer(double distance, FaceGroup faces, const std::string& name)
@@ -1054,8 +1045,7 @@ int CadDocument::add_chamfer(double distance, FaceGroup faces, const std::string
     f.name         = name;
     f.dressup_size = distance;
     f.face_group   = faces;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_chamfer(double distance, int edge_id, const std::string& name)
@@ -1065,8 +1055,7 @@ int CadDocument::add_chamfer(double distance, int edge_id, const std::string& na
     f.name         = name;
     f.dressup_size = distance;
     f.dressup_edge = edge_id;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_chamfer(double distance, const std::vector<int>& edge_ids, const std::string& name)
@@ -1078,8 +1067,7 @@ int CadDocument::add_chamfer(double distance, const std::vector<int>& edge_ids, 
     f.dressup_size  = distance;
     f.dressup_edges = edge_ids;
     f.dressup_edge  = edge_ids.empty() ? -1 : edge_ids.front();
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_hole(double diameter, double depth, bool through,
@@ -1095,8 +1083,7 @@ int CadDocument::add_hole(double diameter, double depth, bool through,
     f.hole_through  = through;
     f.hole_x        = x;
     f.hole_y        = y;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 static bool is_sheet_feature(CadFeatureType t)
@@ -1137,8 +1124,7 @@ int CadDocument::add_sm_rule(double thickness, double bend_radius, double k_fact
     CadFeature f;
     f.type = CadFeatureType::SmRule; f.name = name;
     f.sm_thickness = thickness; f.sm_radius = bend_radius; f.sm_k = k_factor; f.sm_gap = hem_gap;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_sm_base(int sketch_ref, bool flip, const std::string& name)
@@ -1146,8 +1132,7 @@ int CadDocument::add_sm_base(int sketch_ref, bool flip, const std::string& name)
     CadFeature f;
     f.type = CadFeatureType::SmBase; f.name = name; f.sketch_ref = sketch_ref; f.flip = flip; f.mode = BooleanMode::New;
     sheet_defaults(features, f);
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_sm_edge_flange(const std::vector<int>& edges, double height, double angle_deg, bool flip, const std::string& name)
@@ -1155,8 +1140,7 @@ int CadDocument::add_sm_edge_flange(const std::vector<int>& edges, double height
     CadFeature f;
     f.type = CadFeatureType::SmEdgeFlange; f.name = name; f.dressup_edges = edges; f.distance = height; f.sm_angle = angle_deg; f.flip = flip;
     sheet_defaults(features, f);
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_sm_contour_flange(int sketch_ref, double width, bool flip, const std::string& name)
@@ -1164,8 +1148,7 @@ int CadDocument::add_sm_contour_flange(int sketch_ref, double width, bool flip, 
     CadFeature f;
     f.type = CadFeatureType::SmContourFlange; f.name = name; f.sketch_ref = sketch_ref; f.distance = width; f.flip = flip; f.mode = BooleanMode::New;
     sheet_defaults(features, f);
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_sm_hem(int edge, double length, const std::string& name)
@@ -1173,8 +1156,7 @@ int CadDocument::add_sm_hem(int edge, double length, const std::string& name)
     CadFeature f;
     f.type = CadFeatureType::SmHem; f.name = name; f.dressup_edges = { edge }; f.distance = length;
     sheet_defaults(features, f);
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_sm_unfold(const std::string& name)
@@ -1182,8 +1164,7 @@ int CadDocument::add_sm_unfold(const std::string& name)
     CadFeature f;
     f.type = CadFeatureType::SmUnfold; f.name = name;
     sheet_defaults(features, f);
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_sm_refold(int unfold_feature, const std::string& name)
@@ -1191,8 +1172,7 @@ int CadDocument::add_sm_refold(int unfold_feature, const std::string& name)
     CadFeature f;
     f.type = CadFeatureType::SmRefold; f.name = name; f.sm_ref = unfold_feature;
     sheet_defaults(features, f);
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 // Hole standards: clearance hole, counterbore for a socket head cap screw, countersink for a
@@ -1250,8 +1230,7 @@ int CadDocument::add_hole_styled(double diameter, double depth, bool through,
     f.hole_csink_diameter = csink_diameter;
     f.hole_csink_angle    = csink_angle;
     f.hole_standard       = standard;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_hole_standard(const std::string& designation, int style, bool through,
@@ -1281,8 +1260,7 @@ int CadDocument::add_thread(double radius, double pitch, double height, double d
     f.thread_x        = x;
     f.thread_y        = y;
     f.thread_major_nominal = true;   // `radius` is the major (nominal) radius
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_revolve(int sketch_ref, double angle, int axis, bool flip,
@@ -1296,8 +1274,7 @@ int CadDocument::add_revolve(int sketch_ref, double angle, int axis, bool flip,
     f.revolve_axis  = axis;
     f.flip          = flip;
     f.mode          = mode;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_revolve_entities(const std::vector<SketchEntity>& entities,
@@ -1314,8 +1291,7 @@ int CadDocument::add_revolve_entities(const std::vector<SketchEntity>& entities,
     f.revolve_axis  = axis;
     f.flip          = flip;
     f.mode          = mode;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_sweep(int profile_sketch_ref, int path_sketch_ref, BooleanMode mode,
@@ -1327,8 +1303,7 @@ int CadDocument::add_sweep(int profile_sketch_ref, int path_sketch_ref, BooleanM
     f.sketch_ref     = profile_sketch_ref;
     f.sweep_path_ref = path_sketch_ref;
     f.mode           = mode;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_loft(const std::vector<int>& profile_refs, bool ruled, BooleanMode mode,
@@ -1340,8 +1315,7 @@ int CadDocument::add_loft(const std::vector<int>& profile_refs, bool ruled, Bool
     f.loft_profile_refs = profile_refs;
     f.loft_ruled        = ruled;
     f.mode              = mode;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_pattern(bool circular, int count, double spacing, int dir,
@@ -1362,8 +1336,7 @@ int CadDocument::add_pattern(bool circular, int count, double spacing, int dir,
     // the tab. Left at SketchPlane::XY() it pivoted about the bed's corner.
     f.plane            = SketchPlane::XY();
     f.plane.origin    += modeling_origin;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_pattern_on_curve(int count, int curve_sketch, int curve_entity,
@@ -1377,8 +1350,7 @@ int CadDocument::add_pattern_on_curve(int count, int curve_sketch, int curve_ent
     f.pattern_curve_entity = curve_entity;
     f.target_body          = target;
     f.pattern_circular     = false;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_shell(double thickness, int face, int target_body, const std::string& name)
@@ -1389,8 +1361,7 @@ int CadDocument::add_shell(double thickness, int face, int target_body, const st
     f.shell_thickness = thickness;
     f.shell_face      = face;
     f.target_body     = target_body;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_rib(int sketch_ref, int entity, double thickness, double depth,
@@ -1404,8 +1375,7 @@ int CadDocument::add_rib(int sketch_ref, int entity, double thickness, double de
     f.rib_thickness  = thickness;
     f.rib_depth      = depth;
     f.target_body    = target_body;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_delete_face(int target_body, const std::vector<int>& faces,
@@ -1416,8 +1386,7 @@ int CadDocument::add_delete_face(int target_body, const std::vector<int>& faces,
     f.name         = name;
     f.target_body  = target_body;
     f.delete_faces = faces;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_draft(double angle, int face, int target_body, const std::string& name)
@@ -1428,8 +1397,7 @@ int CadDocument::add_draft(double angle, int face, int target_body, const std::s
     f.draft_angle = angle;
     f.draft_face  = face;
     f.target_body = target_body;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_boolean(BooleanMode op, int target_body, int tool_body, bool keep_tool,
@@ -1446,8 +1414,7 @@ int CadDocument::add_boolean(BooleanMode op, int target_body, int tool_body, boo
     f.bool_tolerance   = tolerance;
     f.bool_target_face = target_face;
     f.bool_tool_face   = tool_face;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_cut(const SketchPlane& plane, double offset, bool flip,
@@ -1463,8 +1430,7 @@ int CadDocument::add_cut(const SketchPlane& plane, double offset, bool flip,
     f.cut_keep_upper = keep_upper;
     f.cut_keep_lower = keep_lower;
     f.target_body    = target_body;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_split_by_face(int target_body, int face_body, int face,
@@ -1478,8 +1444,7 @@ int CadDocument::add_split_by_face(int target_body, int face_body, int face,
     f.cut_face       = face;
     f.cut_keep_upper = keep_upper;
     f.cut_keep_lower = keep_lower;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_mirror(const SketchPlane& plane, int target_body, BooleanMode mode,
@@ -1491,8 +1456,7 @@ int CadDocument::add_mirror(const SketchPlane& plane, int target_body, BooleanMo
     f.plane                = plane;
     f.target_body          = target_body;
     f.mode                 = mode;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_transform(int target_body, const Vec3d& translate, const Vec3d& axis,
@@ -1508,8 +1472,7 @@ int CadDocument::add_transform(int target_body, const Vec3d& translate, const Ve
     f.xf_pivot     = pivot;
     f.xf_angle_deg = angle_deg;
     f.xf_copy      = copy;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_thicken(int target_body, int face, double thickness, bool flip,
@@ -1522,8 +1485,7 @@ int CadDocument::add_thicken(int target_body, int face, double thickness, bool f
     f.thicken_face     = face;
     f.thicken_thickness = thickness;
     f.thicken_flip     = flip;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_thicken_surface(int target_body, double thickness, bool flip,
@@ -1536,8 +1498,7 @@ int CadDocument::add_thicken_surface(int target_body, double thickness, bool fli
     f.thicken_thickness = thickness;
     f.thicken_flip      = flip;
     f.mode              = BooleanMode::New;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_surface_offset(int target_body, double offset, const std::string& name)
@@ -1548,8 +1509,7 @@ int CadDocument::add_surface_offset(int target_body, double offset, const std::s
     f.target_body  = target_body;
     f.plane_offset = offset;
     f.mode         = BooleanMode::New;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 static void project_edges_to_entities(const std::vector<TopoDS_Edge>& edges,
@@ -1567,8 +1527,7 @@ int CadDocument::add_project_edges(int source_body, const std::vector<int>& edge
     f.project_edges       = edge_ids;
     f.project_face        = face;
     f.plane               = plane;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_use_sketch(int source_sketch, const std::vector<int>& entities,
@@ -1581,8 +1540,7 @@ int CadDocument::add_use_sketch(int source_sketch, const std::vector<int>& entit
     f.project_source_sketch = source_sketch;
     f.project_sketch_entities = entities;
     f.plane                 = plane;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::project_edges_into_sketch(int sketch_feature, int source_body,
@@ -1641,8 +1599,7 @@ int CadDocument::add_plane(int base, double offset, double angle_tilt, int axis,
     f.plane_offset     = offset;
     f.plane_angle_tilt = angle_tilt;
     f.plane_axis       = axis;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_axis(AxisType axis_type_, const std::string& name)
@@ -1651,8 +1608,7 @@ int CadDocument::add_axis(AxisType axis_type_, const std::string& name)
     f.type      = CadFeatureType::Axis;
     f.name      = name;
     f.axis_type = axis_type_;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_coordsys(CoordSysType type, const Vec3d& point, const std::string& name)
@@ -1662,8 +1618,7 @@ int CadDocument::add_coordsys(CoordSysType type, const Vec3d& point, const std::
     f.name           = name;
     f.coordsys_type  = type;
     f.coordsys_point = point;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_mate(int kind, int cs_a, int cs_b, double offset, double angle_deg, bool flip,
@@ -1678,8 +1633,7 @@ int CadDocument::add_mate(int kind, int cs_a, int cs_b, double offset, double an
     f.mate_offset = offset;
     f.mate_angle  = angle_deg;
     f.mate_flip   = flip;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 std::vector<CadDocument::MateOption> CadDocument::mate_options(int cs_a, int cs_b) const
@@ -1767,8 +1721,7 @@ int CadDocument::add_sketch3d(const std::vector<Vec3d>& points, bool smooth, boo
     f.sk3_points = points;
     f.sk3_smooth = smooth;
     f.sk3_closed = closed;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 TopoDS_Wire CadDocument::build_sketch3d_wire(const CadFeature& f, std::string& err)
@@ -1815,8 +1768,7 @@ int CadDocument::add_helix(const SketchPlane& plane, double radius, double pitch
     f.helix_height      = height;
     f.helix_left_handed = left_handed;
     f.helix_taper_deg   = taper_deg;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 TopoDS_Wire CadDocument::build_helix_wire(const CadFeature& f, std::string& err) const
@@ -2276,7 +2228,8 @@ void CadDocument::clear()
 
 void CadDocument::checkpoint()
 {
-    rollback_index = -1;   // a mutation always acts on the full history
+    m_bar = rollback_index;   // an ADD still honours the bar (append_feature); everything else acts on the full history
+    rollback_index = -1;
     m_undo.push_back(Snapshot{features, variables});   // snapshot the pre-mutation recipe
     m_redo.clear();                                    // any new action invalidates the redo branch
     if (m_undo.size() > k_undo_cap)
@@ -2520,6 +2473,31 @@ static void for_each_feature_ref(CadFeature& f, Visit&& visit)
         visit(r);
     for (int& r : f.pattern_features)
         visit(r);
+}
+
+int CadDocument::append_feature(const CadFeature& f0)
+{
+    CadFeature f = f0;
+    const int bar = rollback_index >= 0 ? rollback_index : m_bar;
+    int pos = int(features.size());
+    if (bar >= 0 && bar + 1 < pos) {
+        // a feature may only read what lies above it: if it points at one below the bar it goes to the end instead
+        bool ok = true;
+        for_each_feature_ref(f, [&](int& ref) { if (ref > bar) ok = false; });
+        if (ok) {
+            pos = bar + 1;
+            for (CadFeature& g : features)
+                for_each_feature_ref(g, [&](int& ref) { if (ref >= pos) ++ref; });
+            if (error_feature >= pos) ++error_feature;
+            features.insert(features.begin() + pos, f);
+            rollback_index = pos;
+            last_added = pos;
+            return pos;
+        }
+    }
+    features.push_back(f);
+    last_added = int(features.size()) - 1;
+    return last_added;
 }
 
 bool CadDocument::remove_feature(int index)
@@ -4927,6 +4905,7 @@ static int remap_feature_refs(CadFeature& f, const TopoDS_Shape& was, const Topo
 
 bool CadDocument::recompute()
 {
+    m_bar = -1;
     error.clear();
     feature_warnings.clear();
     set_sketch_auto_close(auto_close_loops);   // this document's weld rule, not the last one's
@@ -5717,8 +5696,7 @@ int CadDocument::add_surface_extrude(int sketch_ref, double distance, const std:
     f.sketch_ref = sketch_ref;
     f.distance   = distance;
     f.mode       = BooleanMode::New;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_surface_revolve(int sketch_ref, double angle_deg, int axis, const std::string& name)
@@ -5730,8 +5708,7 @@ int CadDocument::add_surface_revolve(int sketch_ref, double angle_deg, int axis,
     f.revolve_angle = angle_deg;
     f.revolve_axis  = axis;
     f.mode          = BooleanMode::New;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_surface_loft(const std::vector<int>& profile_refs, bool ruled, const std::string& name)
@@ -5742,8 +5719,7 @@ int CadDocument::add_surface_loft(const std::vector<int>& profile_refs, bool rul
     f.loft_profile_refs = profile_refs;
     f.loft_ruled        = ruled;
     f.mode              = BooleanMode::New;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 int CadDocument::add_surface_fill(int sketch_ref, const std::string& name)
@@ -5753,8 +5729,7 @@ int CadDocument::add_surface_fill(int sketch_ref, const std::string& name)
     f.name       = name;
     f.sketch_ref = sketch_ref;
     f.mode       = BooleanMode::New;
-    features.push_back(f);
-    return int(features.size()) - 1;
+    return append_feature(f);
 }
 
 std::vector<CadDocument::Interference> CadDocument::check_interference(double min_volume) const

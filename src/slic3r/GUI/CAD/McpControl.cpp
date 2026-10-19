@@ -968,7 +968,7 @@ json import_step(DesignPanel* panel, const json& params)
         f.name           = "STEP" + std::to_string(int(doc.features.size()) + 1);
         f.imported_solid = s;
         f.mode           = BooleanMode::New;   // each solid = its own coexisting body
-        doc.features.push_back(f);
+        doc.append_feature(f);
     }
     bool ok = doc.recompute();
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
@@ -1013,7 +1013,7 @@ json import_mesh(DesignPanel* panel, const json& params)
     f.name           = "Mesh" + std::to_string(first + 1);
     f.imported_solid = shape;
     f.mode           = BooleanMode::New;
-    doc.features.push_back(f);
+    doc.append_feature(f);
 
     const bool ok = doc.recompute();
     if (!ok) { const std::string why = doc.error; doc.undo(); doc.error = why; }
@@ -1891,7 +1891,7 @@ json action_sketch_commit(DesignPanel* panel, const json& params)
     panel->mcp_set_sketch_mode(false);
     panel->mcp_after_change();
     CadDocument& cd = panel->mcp_doc();
-    const int last = int(cd.features.size()) - 1;
+    const int last = cd.last_added >= 0 && cd.last_added < int(cd.features.size()) ? cd.last_added : int(cd.features.size()) - 1;
     const bool is_sk = last >= 0 && cd.features[last].type == CadFeatureType::Sketch;
     if (is_sk && g_pending_attach.face >= 0) { cd.features[last].attach_body = g_pending_attach.body; cd.features[last].attach_face = g_pending_attach.face; }
     g_pending_attach = {};

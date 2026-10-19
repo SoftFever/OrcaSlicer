@@ -86,5 +86,19 @@ try:
 except RuntimeError:
     check(True, "export outside the allowed roots is refused")
 
+# a feature added while the history is rolled back goes in at the bar, and the bar moves onto it
+call("new_document")
+call("extrude", width=20, height=20, distance=10)
+call("extrude", width=10, height=10, distance=5, boolean="union")
+n0 = len(call("describe_scene")["features"])
+call("rollback", index=1)
+call("fillet", edge=[0], radius=1) if False else call("extrude", width=6, height=6, distance=3, boolean="union")
+feats = call("describe_scene")["features"]
+check(len(feats) == n0 + 2, "the rolled-back add made %d new features" % (len(feats) - n0))
+check([f["type"] for f in feats][:2] == ["Sketch", "Extrude"] and feats[2]["type"] == "Sketch" and feats[3]["type"] == "Extrude",
+      "the new sketch + extrude sit right under the bar: %s" % [f["type"] for f in feats])
+call("rollback", index=-1)
+check(len(call("describe_scene")["features"]) == n0 + 2, "restoring the full history keeps every feature")
+
 print("mcp commands: %s" % ("PASS" if not fails else "FAIL (%d)" % len(fails)))
 sys.exit(1 if fails else 0)

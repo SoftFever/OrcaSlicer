@@ -5096,8 +5096,7 @@ void DesignPanel::text_dialog_changed()
         f.import_offset    = m_text_offset;          // the regions are centred on the origin
         f.import_on_face   = m_text_face_body >= 0;
         f.import_face_body = m_text_face_body;
-        m_doc.features.push_back(f);
-        m_text_feat = int(m_doc.features.size()) - 1;
+        m_text_feat = m_doc.append_feature(f);
         refresh_tree();
         set_tree_selection(m_text_feat);
     }
@@ -5289,7 +5288,7 @@ void DesignPanel::on_import_step()
         f.name           = feature_name("STEP");
         f.imported_solid = s;
         f.mode           = BooleanMode::New;   // each solid is its own coexisting body
-        m_doc.features.push_back(f);
+        m_doc.append_feature(f);
     }
     bool rebuilt = false;
     run_off_ui_thread(this, _L("Rebuilding model…"), [&]() {
@@ -5305,7 +5304,7 @@ void DesignPanel::on_import_step()
     }
     set_ui_mode(UiMode::Feature);   // imported solids live in the feature timeline
     refresh_tree();
-    set_tree_selection(int(m_doc.features.size()) - 1);
+    set_tree_selection(m_doc.last_added);
     set_status_ok();                // canonical post-recompute viewport/pick/parts refresh
     set_status(StatusKind::Info, wxString::Format(
         _L_PLURAL("Imported %d solid — pick a face or edge, then Fillet / Cut / Shell to modify",
@@ -5383,7 +5382,7 @@ void DesignPanel::on_import_mesh()
     f.name           = feature_name(_L("Mesh"));
     f.imported_solid = shape;
     f.mode           = BooleanMode::New;   // its own coexisting body, like a STEP solid
-    m_doc.features.push_back(f);
+    m_doc.append_feature(f);
 
     if (!recompute_guarded(_L("Rebuilding model…"))) {
         fail(wxString::Format(_L("Mesh import failed: %s"), kernel_error_text(m_doc.error)));
@@ -5391,7 +5390,7 @@ void DesignPanel::on_import_mesh()
     }
     set_ui_mode(UiMode::Feature);
     refresh_tree();
-    set_tree_selection(int(m_doc.features.size()) - 1);
+    set_tree_selection(m_doc.last_added);
     set_status_ok();
 
     // Report what the mesh actually was, never dress an open shell up as a solid: if it is not
@@ -5465,10 +5464,9 @@ void DesignPanel::add_imported_sketch(
     // the next Extrude would push/pull that face instead of extruding the placed art.
     m_sel_solid_face = m_sel_solid_edge = m_sel_solid_body = -1;
 
-    m_doc.features.push_back(f);
+    const int newidx = m_doc.append_feature(f);
     m_doc.recompute();   // a lone sketch yields an empty body; that is expected
     refresh_tree();
-    const int newidx = int(m_doc.features.size()) - 1;
     set_tree_selection(newidx);   // select the new art
     sync_sketch_display();
     on_transform_imported(newidx);   // in-canvas place/size gizmo ON
