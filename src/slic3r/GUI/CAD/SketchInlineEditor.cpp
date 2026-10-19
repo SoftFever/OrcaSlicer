@@ -243,8 +243,10 @@ bool SketchInlineEditor::render(ImGuiWrapper& imgui, float scale)
 
     // Act AFTER end(): do_commit can reopen the field for the next queued dimension, and that
     // must not happen inside this frame's window.
-    if (entered || tabbed)
+    if (entered || tabbed) {
+        m_last_dir = tabbed && !entered ? (ImGui::GetIO().KeyShift ? -1 : 1) : 0;
         do_commit();
+    }
     else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape)))
         do_cancel();
     return true;

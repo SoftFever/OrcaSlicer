@@ -51,6 +51,9 @@ public:
     void close();                        // drop it with neither callback
     void cancel();                       // if open, run the registered cancel (keep-as-drawn)
     void commit();                       // if open, run the registered commit (accept the typed value)
+    // How the last commit was made: 0 Enter, +1 Tab, -1 Shift+Tab. A value chain (a rectangle's width, then height) uses it to step
+    // forwards or back and to wrap round at either end; Enter ends the chain.
+    int  last_commit_dir() const { return m_last_dir; }
     // Called from inside a commit callback that cannot accept the value (a negative length, a
     // count of 1): the field comes back with the typed text and `why` in its title line, instead
     // of closing as if the value had been taken.
@@ -108,6 +111,7 @@ private:
     };
     Closed      m_last;
     bool        m_in_commit{false};
+    int         m_last_dir{0};
 };
 
 }} // namespace Slic3r::GUI

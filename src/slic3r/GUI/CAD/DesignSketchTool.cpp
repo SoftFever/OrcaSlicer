@@ -1585,7 +1585,11 @@ void DesignSketchTool::open_next_autoedit_dim()
             if (step.apply) step.apply(v);
             // A refused value brought the same field back (show_refusal): stay on this step.
             if (inline_editor != nullptr && inline_editor->is_open()) return;
-            ++m_autoedit_dim_idx;
+            const int n = int(m_autoedit_dims.size());
+            if (m_autoedit_dim_idx >= 0 && m_autoedit_dim_idx < n) m_autoedit_dims[size_t(m_autoedit_dim_idx)].value = v;   // a field visited again shows what was typed
+            const int dir = inline_editor != nullptr ? inline_editor->last_commit_dir() : 0;
+            if (dir == 0) ++m_autoedit_dim_idx;                                            // Enter: on, and the chain ends after the last
+            else          m_autoedit_dim_idx = (m_autoedit_dim_idx + dir + n) % std::max(n, 1);   // Tab / Shift+Tab: round the fields, wrapping
             wxGetApp().CallAfter([this] { open_next_autoedit_dim(); });
         },
         [this]() { m_autoedit_dim_idx = -1; });   // cancel: keep as drawn, stop the chain

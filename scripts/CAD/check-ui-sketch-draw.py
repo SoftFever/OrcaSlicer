@@ -190,6 +190,25 @@ else:
     check(False, "type-first rectangle made %d entities" % len(es))
 es = typed_first("C")
 check(len(es) == 1 and abs(es[0]["radius"] - 50) < 1e-6, "typing 5, 0, Enter after the centre makes a circle of radius 50: %s" % [e.get("radius") for e in es])
+
+# Tab goes round the fields: after the height, Tab is back at the width (Enter would end the chain), and Shift+Tab goes the other way.
+n0 = len(ents())
+call("ui.key", key="R")
+call("ui.move", at=[cx - 200, cy - 100]); call("ui.click", at=[cx - 200, cy - 100]); time.sleep(0.5)
+call("ui.move", at=[cx - 100, cy - 60]); time.sleep(0.4)
+call("ui.key", key="5"); time.sleep(0.8)
+call("ui.text", text="0"); time.sleep(0.4)
+call("ui.key", key="Tab"); time.sleep(0.5)          # width 50 accepted, now the height
+call("ui.text", text="30"); time.sleep(0.4)
+call("ui.key", key="Tab"); time.sleep(0.6)          # height 30 accepted; the chain wraps back to the width
+call("ui.text", text="60"); time.sleep(0.4)
+call("ui.key", key="Return"); time.sleep(0.6)       # width 60 accepted; Enter moves to the height ...
+call("ui.key", key="Return"); time.sleep(0.8)       # ... and ends the chain on it
+es = ents()[n0:]
+xs = [v for e in es for v in (e["p0"][0], e["p1"][0])]; ys = [v for e in es for v in (e["p0"][1], e["p1"][1])]
+check(len(es) == 4 and abs((max(xs) - min(xs)) - 60) < 1e-6 and abs((max(ys) - min(ys)) - 30) < 1e-6,
+      "Tab after the last field wraps to the first: a 60 x 30 rectangle (%.3f x %.3f)" % (max(xs) - min(xs), max(ys) - min(ys)))
+call("ui.key", key="Escape")
 call("sketch_cancel")
 print("ui sketch draw:", "PASS" if not fails else "%d FAIL" % len(fails))
 sys.exit(1 if fails else 0)
