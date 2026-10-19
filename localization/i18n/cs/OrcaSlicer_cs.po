@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-13 09:55-0300\n"
+"POT-Creation-Date: 2026-10-15 17:40+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl\n"
 "Language-Team: \n"
@@ -717,6 +717,9 @@ msgstr "mm"
 msgid "Part selection"
 msgstr "Výběr části"
 
+msgid "Select multiple objects"
+msgstr "Vyberte více objektů"
+
 msgid "Fixed step drag"
 msgstr "Posouvání o pevný krok"
 
@@ -782,9 +785,78 @@ msgstr "Díl"
 msgid "Relative"
 msgstr "Relativní"
 
+msgid "Selection"
+msgstr "Výběr"
+
+msgid "Plate"
+msgstr "Deska"
+
+msgid "Distribute"
+msgstr ""
+
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "Souřadný systém použitý pro transformační akce."
+
+msgid "Reference for alignment"
+msgstr ""
+
+msgid "Select at least 3 parts or objects"
+msgstr ""
+
+# AI Translated
+msgid "Align left"
+msgstr "Zarovnat vlevo"
+
+# AI Translated
+msgid "Align left-right center"
+msgstr "Zarovnat na střed vlevo-vpravo"
+
+# AI Translated
+msgid "Align right"
+msgstr "Zarovnat vpravo"
+
+# AI Translated
+msgid "Align front"
+msgstr "Zarovnat dopředu"
+
+# AI Translated
+msgid "Align front-back center"
+msgstr "Zarovnat na střed vpředu-vzadu"
+
+# AI Translated
+msgid "Align back"
+msgstr "Zarovnat dozadu"
+
+# AI Translated
+msgid "Align bottom"
+msgstr "Zarovnat dolů"
+
+# AI Translated
+msgid "Align top-bottom center"
+msgstr "Zarovnat na střed nahoře-dole"
+
+# AI Translated
+msgid "Align top"
+msgstr "Zarovnat nahoru"
+
+# AI Translated
+msgid "Distribute left-right"
+msgstr "Rozmístit vlevo-vpravo"
+
+# AI Translated
+msgid "Distribute front-back"
+msgstr "Rozmístit vpředu-vzadu"
+
+# AI Translated
+msgid "Distribute top-bottom"
+msgstr "Rozmístit nahoře-dole"
+
+msgid "Drop"
+msgstr "Pustit"
+
+msgid "Move the selection along Z so that its lowest point touches the bed."
+msgstr ""
 
 # AI Translated
 msgid "Absolute"
@@ -2031,6 +2103,18 @@ msgstr "Vstup do nástroje Sestava"
 msgid "Leaving Assembly gizmo"
 msgstr "Opustit nástroj Sestava"
 
+msgid "Parts of a cut object cannot be moved"
+msgstr ""
+
+msgid "Aligning to the plate is available in X and Y only"
+msgstr ""
+
+msgid "Turn off Auto-Drop for the selected objects to move them in Z"
+msgstr ""
+
+msgid "All selected objects must be on the same plate"
+msgstr ""
+
 msgid "Shift+"
 msgstr "Shift+"
 
@@ -2461,6 +2545,67 @@ msgstr "Omezení síťového plug-inu"
 
 msgid "Privacy Policy Update"
 msgstr "Aktualizace zásad ochrany osobních údajů"
+
+# AI Translated
+msgid "All your filament presets are available on the printers they were made for."
+msgstr "Všechny vaše předvolby filamentů jsou dostupné na tiskárnách, pro které byly vytvořeny."
+
+# AI Translated
+msgid "Migrate Filament Presets"
+msgstr "Převést předvolby filamentů"
+
+# AI Translated
+msgid ""
+"OrcaSlicer 2.5.0 restructured many system filament presets to fix incorrect profiles and prepare for future features. As a result, the presets below no longer show on some printers they were made for. Sorry for the trouble; this is a one-time fix.\n"
+"\n"
+"Add those printers back to your presets now? Your presets are backed up first. You can also do this later from Help > Migrate Filament Presets."
+msgstr ""
+"OrcaSlicer 2.5.0 přestrukturoval mnoho systémových předvoleb filamentů, aby opravil nesprávné profily a připravil půdu pro budoucí funkce. Výsledkem je, že se níže uvedené předvolby již nezobrazují u některých tiskáren, pro které byly vytvořeny. Omlouváme se za potíže; jde o jednorázovou opravu.\n"
+"\n"
+"Přidat tyto tiskárny zpět k vašim předvolbám? Vaše předvolby se nejprve zálohují. Můžete to také provést později z nabídky Nápověda > Převést předvolby filamentů."
+
+# AI Translated
+#, boost-format
+msgid "%1% (based on %2%)"
+msgstr "%1% (založeno na %2%)"
+
+# AI Translated
+msgid "Don't remind me again"
+msgstr "Znovu mi to nepřipomínat"
+
+# AI Translated
+msgid "Your presets could not be backed up, so they were not migrated."
+msgstr "Vaše předvolby se nepodařilo zálohovat, proto nebyly převedeny."
+
+# AI Translated
+msgid "The user presets folder could not be locked, so nothing was migrated. Another OrcaSlicer instance may be saving presets; try again later from Help > Migrate Filament Presets."
+msgstr "Složku uživatelských předvoleb se nepodařilo zamknout, proto nebylo nic převedeno. Jiná instance OrcaSliceru možná právě ukládá předvolby; zkuste to později z nabídky Nápověda > Převést předvolby filamentů."
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets could not be migrated. A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Vaše předvolby filamentů se nepodařilo převést. Záloha vašich předvoleb byla uložena do:\n"
+"%1%"
+
+# AI Translated
+#, boost-format
+msgid ""
+"Your filament presets were migrated. Select them again in the filament list where you used them.\n"
+"\n"
+"A backup of your presets was saved to:\n"
+"%1%"
+msgstr ""
+"Vaše předvolby filamentů byly převedeny. Vyberte je znovu v seznamu filamentů tam, kde jste je používali.\n"
+"\n"
+"Záloha vašich předvoleb byla uložena do:\n"
+"%1%"
+
+# AI Translated
+msgid "These presets could not be migrated:"
+msgstr "Tyto předvolby se nepodařilo převést:"
 
 #, c-format, boost-format
 msgid "your Orca Cloud profile (user ID: \"%s\")"
@@ -3186,8 +3331,13 @@ msgstr "(Ztracená barva)"
 msgid "Center"
 msgstr "Střed"
 
-msgid "Drop"
-msgstr "Pustit"
+# AI Translated
+msgid "Align/Distribute"
+msgstr "Zarovnat/Rozmístit"
+
+# AI Translated
+msgid "Align and distribute objects"
+msgstr "Zarovnat a rozmístit objekty"
 
 msgid "Edit Process Settings"
 msgstr "Upravit nastavení procesu"
@@ -3568,9 +3718,6 @@ msgstr "Bez límce"
 
 msgid "Outer wall speed"
 msgstr "Rychlost vnější stěny"
-
-msgid "Plate"
-msgstr "Deska"
 
 msgid "Brim"
 msgstr "Límec"
@@ -6433,6 +6580,9 @@ msgstr "Osy"
 msgid "Gridlines"
 msgstr "Mřížka"
 
+msgid "Focus mode"
+msgstr ""
+
 msgid "Labels"
 msgstr "Popisky"
 
@@ -6493,7 +6643,7 @@ msgid "Size:"
 msgstr "Velikost:"
 
 # AI Translated
-#, c-format, boost-format
+#, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "Byly nalezeny konflikty drah G-code ve vrstvě %d, Z = %.2lf mm. Oddělte prosím konfliktní objekty více od sebe (%s <-> %s)."
 
@@ -6723,6 +6873,10 @@ msgstr "Průvodce nastavením"
 
 msgid "Show Configuration Folder"
 msgstr "Zobrazit složku s konfigurací"
+
+# AI Translated
+msgid "Bring back filament presets that a profile update removed from printers they were made for"
+msgstr "Vrátit předvolby filamentů, které aktualizace profilů odebrala z tiskáren, pro které byly vytvořeny"
 
 # AI Translated
 msgid "Troubleshoot Center"
@@ -10867,6 +11021,12 @@ msgstr "Zobrazit nepodporované předvolby"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Zobrazovat nekompatibilní/nepodporované předvolby v rozevíracích seznamech tiskáren a filamentů. Tyto předvolby nelze vybrat."
 
+msgid "Export statistics with G-code"
+msgstr ""
+
+msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
+
 # AI Translated
 msgid "Experimental Features"
 msgstr "Experimentální funkce"
@@ -12168,6 +12328,7 @@ msgid "Enabling both precise Z height and the prime tower may cause slicing erro
 msgstr "Povolení přesné výšky Z i čistící věže může způsobit chyby slicování. Chcete přesto povolit přesnou výšku Z?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "čistící věž"; align it once the term is settled.
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
 msgstr "Plynulý časosběr vyžaduje čistící věž na každé vrstvě, což není slučitelné s možností \"Žádné řídké vrstvy\". Možnost \"Žádné řídké vrstvy\" byla vypnuta."
 
@@ -12175,6 +12336,7 @@ msgid "A prime tower is required for smooth timelapse mode. There may be flaws o
 msgstr "Pro hladký časosběr je potřeba základní věž. Model může mít vady bez základní věže. Chcete povolit základní věž?"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "čistící věž"; align it once the term is settled.
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
 msgstr "Možnost \"Žádné řídké vrstvy\" není slučitelná s plynulým časosběrem, který vyžaduje čistící věž na každé vrstvě. Časosběr byl přepnut do tradičního režimu."
 
@@ -13426,10 +13588,6 @@ msgid "from/to"
 msgstr "z/na"
 
 # AI Translated
-msgid "Please choose the filament color"
-msgstr "Vyberte prosím barvu filamentu"
-
-# AI Translated
 msgid "Cloud agent is not available. Please restart OrcaSlicer and try again."
 msgstr "Cloudový agent není dostupný. Restartujte prosím OrcaSlicer a zkuste to znovu."
 
@@ -13660,9 +13818,6 @@ msgstr "Dostupné, když má fokus 3D pohled na kartě Připravit."
 
 msgid "Select a part"
 msgstr "Vyberte část"
-
-msgid "Select multiple objects"
-msgstr "Vyberte více objektů"
 
 msgid "Select objects by rectangle"
 msgstr "Vyberte objekty obdélníkem"
@@ -14035,6 +14190,7 @@ msgid "Open G-code file:"
 msgstr "Otevřít G-code soubor:"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Wipe tower generation failed, possibly due to empty first layer."
 msgstr "Generování věže na očištění trysky se nezdařilo, pravděpodobně kvůli prázdné první vrstvě."
 
@@ -14181,6 +14337,18 @@ msgid "a perimeter is fully inside a modifier, the modifier was not applied to i
 msgstr "obvod leží celý uvnitř modifikátoru, modifikátor na něj nebyl použit (%1%)"
 
 # AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" covers an entire perimeter"
+msgstr "Modifikátor %1% „%2%“ objektu „%3%“ pokrývá celý obvod"
+
+# AI Translated
+#. TRN: %1% is the modifier type "Seam Blocked" as in the menu, %2% the modifier name, %3% the object name, %4% the number of modifiers.
+#, boost-format
+msgid "%1% modifier \"%2%\" of \"%3%\" (%4% in total) covers an entire perimeter"
+msgstr "Modifikátor %1% „%2%“ objektu „%3%“ (celkem %4%) pokrývá celý obvod"
+
+# AI Translated
 #, boost-format
 msgid "modifier \"%1%\" of \"%2%\" had no effect on the seam (it might not reach the centerline of the printed perimeter)"
 msgstr "modifikátor „%1%“ objektu „%2%“ neměl na šev žádný vliv (možná nezasahuje ke středové linii tištěného obvodu)"
@@ -14193,6 +14361,10 @@ msgstr "modifikátor „%1%“ objektu „%2%“ (celkem %3%) neměl na šev ž�
 # AI Translated
 msgid "Seam placement may differ from expected."
 msgstr "Umístění švu se může lišit od očekávaného."
+
+#, boost-format
+msgid "Failed to write the G-code statistics to %1%."
+msgstr ""
 
 msgid "Internal Bridge"
 msgstr "Vnitřní most"
@@ -14388,6 +14560,7 @@ msgid "%1% is too tall, and collisions will be caused."
 msgstr "%1% je příliš vysoký, může dojít ke kolizím."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "čistící věž"; align it once the term is settled.
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
 msgstr "Vzájemná poloha modelu a čistící věže nesplňuje požadavky funkce \"Žádné řídké vrstvy\". Upravte prosím jejich vzájemnou polohu, snižte výšku modelu nebo vypněte možnost \"Žádné řídké vrstvy\"."
 
@@ -14397,26 +14570,32 @@ msgid "%1% is too close to the clumping detection area. There may be collisions 
 msgstr "%1% je příliš blízko oblasti detekce shlukování, při tisku může dojít ke kolizím."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to others, and collisions may be caused.\n"
 msgstr "Základní věž je příliš blízko ostatním, může dojít ke kolizím.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area, and collisions will be caused.\n"
 msgstr "Základní věž je příliš blízko vyhrazené oblasti a dojde ke kolizi.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area, and collisions will be caused.\n"
 msgstr "Základní věž je příliš blízko oblasti detekce shlukování a dojde ke kolizi.\n"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to an exclusion area. There may be collisions when printing."
 msgstr "Základní věž je příliš blízko vyhrazené oblasti, při tisku může dojít ke kolizím."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is too close to the clumping detection area. There may be collisions when printing."
 msgstr "Základní věž je příliš blízko oblasti detekce shlukování, při tisku může dojít ke kolizím."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid "Prime tower is partially outside the printable area, and it cannot be printed.\n"
 msgstr "Základní věž je částečně mimo tisknutelnou oblast a nelze ji vytisknout.\n"
 
@@ -14537,6 +14716,7 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "Proměnná výška vrstvy není podporována s organickými podporami."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "The wipe tower filament cannot be a mixed filament."
 msgstr "Filament věže na očištění trysky nemůže být míchaný filament."
 
@@ -15207,13 +15387,13 @@ msgid ""
 "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
 "\n"
 "The maximum value is 100% or the nozzle diameter.\n"
-"If set to 0, the line width will match the Internal solid infill width."
+"If set to 0, the line width will match the Internal solid infill width, or the nozzle diameter for thick bridges."
 msgstr ""
 "Šířka linie můstku. Pokud je vyjádřena v %, bude vypočítána z průměru trysky.\n"
 "Doporučuje se používat s vyšší hustotou můstku nebo vyšším poměrem průtoku můstku.\n"
 "\n"
 "Maximální hodnota je 100 % nebo průměr trysky.\n"
-"Pokud je nastavena na 0, bude šířka linie odpovídat šířce vnitřní plné výplně."
+"Pokud je nastavena na 0, bude šířka linie odpovídat šířce vnitřní plné výplně, nebo průměru trysky u silných můstků."
 
 msgid "Internal bridge flow ratio"
 msgstr "Poměr průtoku pro vnitřní most"
@@ -15498,7 +15678,7 @@ msgid ""
 "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
 "\n"
 "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
-"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+"For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 75% overhang speed will be applied, limited by the bridge speed."
 msgstr ""
 "Zapněte tuto volbu, chcete-li zpomalit tisk v místech, kde se mohly obvody zkroutit nahoru.\n"
 "Například při tisku převisů na ostrých rozích, jako je příď trupu modelu Benchy, se použije dodatečné zpomalení, které omezí kroucení narůstající přes více vrstev.\n"
@@ -15510,22 +15690,23 @@ msgstr ""
 "Doporučení při zapnutí této volby:\n"
 "1. Snižte čas vyhlazení Pressure Advance na 0,015–0,02, aby extruder rychle reagoval na změny rychlosti.\n"
 "2. Zvyšte minimální rychlosti tisku, abyste omezili míru zpomalení a rozdíl mezi rychlými a pomalými úseky.\n"
-"3. Pokud se artefakty stále objevují, zapněte vyhlazování rychlosti extruze (ERS), které přechody průtoku dále vyhladí.\n"
+"3. Pokud se artefakty stále objevují, zapněte Vyhlazování rychlosti extruze (ERS), které přechody průtoku dále vyhladí.\n"
 "\n"
 "Poznámka: Je-li tato volba zapnutá, jsou obvody převisů považovány za převisy, takže se rychlost pro převisy použije i tehdy, když je převislý obvod součástí můstku.\n"
-"Například pokud jsou obvody ze 100 % převislé a zespodu je nic nepodpírá, použije se rychlost pro 100% převis."
+"Například pokud jsou obvody ze 100 % převislé a zespodu je nic nepodpírá, použije se rychlost pro 75% převis, omezená rychlostí můstků."
 
 msgid "mm/s or %"
 msgstr "mm/s nebo %"
 
+# AI Translated
 msgid ""
 "Speed of the externally visible bridge extrusions.\n"
 "\n"
-"In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+"In addition, if Slow down for curled perimeters is disabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
 msgstr ""
 "Rychlost vnějších viditelných mostních extruzí.\n"
 "\n"
-"Pokud je navíc vypnutá možnost Zpomalit pro zkroucené obvody nebo je povolen Klasický režim převisů, bude to rychlost tisku stěn převisů, které jsou podepřeny méně než 13 %, ať už jsou součástí mostu nebo převisu."
+"Pokud je navíc vypnutá možnost Zpomalit pro zkroucené obvody, bude to rychlost tisku stěn převisů, které jsou podepřeny méně než 13 %, ať už jsou součástí mostu nebo převisu."
 
 msgid "Speed of internal bridges. If the value is expressed as a percentage, it will be calculated based on the bridge_speed. Default value is 150%."
 msgstr "Rychlost vnitřních mostů. Pokud je hodnota zadána v procentech, vypočítá se podle bridge_speed. Výchozí hodnota je 150 %."
@@ -16086,8 +16267,9 @@ msgstr "Rychlost vnější stěny, která je nejvíce vnější a viditelná. Ob
 msgid "Small perimeters"
 msgstr "Malé obvody"
 
-msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
-msgstr "Toto samostatné nastavení ovlivní rychlost obvodů s poloměrem <= small_perimeter_threshold (obvykle otvory). Pokud je zadáno v procentech (například: 80 %), bude vypočítáno na základě výše uvedeného nastavení rychlosti vnější stěny. Pro automatické nastavení zadejte nulu."
+# AI Translated
+msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above."
+msgstr "Toto samostatné nastavení ovlivní rychlost obvodů s poloměrem <= small_perimeter_threshold (obvykle otvory). Pokud je zadáno v procentech (například: 80 %), bude vypočítáno na základě výše uvedeného nastavení rychlosti vnější stěny."
 
 msgid "Small perimeters threshold"
 msgstr "Práh malých obvodů"
@@ -16100,8 +16282,8 @@ msgid "Small support perimeters"
 msgstr "Malé obvody podpor"
 
 # AI Translated
-msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
-msgstr "Stejné jako „Malé obvody“, ale pro podpory. Toto samostatné nastavení ovlivňuje rychlost podpor v oblastech <= `small_support_perimeter_threshold`. Pokud je vyjádřeno v procentech (například 80 %), bude vypočítáno z výše uvedeného nastavení rychlosti podpor nebo rozhraní podpor. Nastavte nulu pro automatický režim."
+msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above."
+msgstr "Stejné jako „Malé obvody“, ale pro podpory. Toto samostatné nastavení ovlivňuje rychlost podpor v oblastech <= `small_support_perimeter_threshold`. Pokud je vyjádřeno v procentech (například 80 %), bude vypočítáno z výše uvedeného nastavení rychlosti podpor nebo rozhraní podpor."
 
 # AI Translated
 msgid "Small support perimeters threshold"
@@ -16114,22 +16296,23 @@ msgstr "Nastavuje práh pro délku malého obvodu podpor. Výchozí práh je 0 m
 msgid "Walls printing order"
 msgstr "Pořadí tisku stěn"
 
+# AI Translated
 msgid ""
 "Print sequence of the internal (inner) and external (outer) walls.\n"
 "\n"
 "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
 "\n"
-"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+"Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended over the Outer/Inner option in most cases.\n"
 "\n"
 "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
 msgstr ""
 "Pořadí tisku vnitřních a vnějších stěn.\n"
 "\n"
-"Použijte Vnitřní/Vnější pro nejlepší převisy. Převislé stěny se totiž mohou během tisku opřít o sousední obvod. Tato možnost však mírně snižuje kvalitu povrchu, protože vnější obvod je deformován přitlačením k vnitřnímu obvodu.\n"
+"Použijte Vnitřní/vnější pro nejlepší převisy. Převislé stěny se totiž mohou během tisku opřít o sousední obvod. Tato možnost však mírně snižuje kvalitu povrchu, protože vnější obvod je deformován přitlačením k vnitřnímu obvodu.\n"
 "\n"
-"Použijte Vnitřní/Vnější/Vnitřní pro nejlepší kvalitu vnějšího povrchu a rozměrovou přesnost, protože vnější stěna je tisknuta bez ovlivnění vnitřním obvodem. Výkon převisů se však zhorší, protože vnější stěna nemá vnitřní obvod, o který by se při tisku opřela. Tato možnost vyžaduje alespoň 3 stěny, protože nejprve tiskne vnitřní stěny od 3. obvodu dál, poté vnější obvod a nakonec první vnitřní obvod. Ve většině případů je tato možnost doporučována místo Vnější/Vnitřní.\n"
+"Použijte Vnitřní/vnější/vnitřní pro nejlepší kvalitu vnějšího povrchu a rozměrovou přesnost, protože vnější stěna je tisknuta bez ovlivnění vnitřním obvodem. Výkon převisů se však zhorší, protože vnější stěna nemá vnitřní obvod, o který by se při tisku opřela. Tato možnost vyžaduje alespoň 3 stěny, protože nejprve tiskne vnitřní stěny od 3. obvodu dál, poté vnější obvod a nakonec první vnitřní obvod. Ve většině případů je tato možnost doporučována místo Vnější/Vnitřní.\n"
 "\n"
-"Použijte Vnější/Vnitřní pro stejnou kvalitu vnější stěny a rozměrovou přesnost jako u možnosti Vnitřní/Vnější/Vnitřní. Z-švy však budou méně konzistentní, protože první extruze nové vrstvy začíná na viditelném povrchu."
+"Použijte Vnější/Vnitřní pro stejnou kvalitu vnější stěny a rozměrovou přesnost jako u možnosti Vnitřní/vnější/vnitřní. Z-švy však budou méně konzistentní, protože první extruze nové vrstvy začíná na viditelném povrchu."
 
 msgid "Inner/Outer"
 msgstr "Vnitřní/vnější"
@@ -17079,14 +17262,16 @@ msgstr "Výška první vrstvy"
 msgid "Height of the first layer. Making the first layer height thicker can improve build plate adhesion."
 msgstr "Výška počáteční vrstvy. Mírně vyšší počáteční výška vrstvy může zlepšit přilnavost k tiskové podložce."
 
-msgid "This is the speed for the first layer except for solid infill sections."
-msgstr "Rychlost první vrstvy kromě plné výplně."
+# AI Translated
+msgid "This is the speed for the walls and brim of the first layer."
+msgstr "Rychlost stěn a límce první vrstvy."
 
 msgid "First layer infill"
 msgstr "Výplň první vrstvy"
 
-msgid "This is the speed for solid infill parts of the first layer."
-msgstr "Rychlost plné výplně první vrstvy."
+# AI Translated
+msgid "This is the speed for the first layer except for walls and brim, such as infill, gap fill and support."
+msgstr "Rychlost první vrstvy kromě stěn a límce, například výplně, vyplnění mezery a podpory."
 
 msgid "First layer travel speed"
 msgstr "Cestovní rychlost první vrstvy"
@@ -17800,16 +17985,18 @@ msgstr "Šířka čáry vnitřní řídké výplně. Pokud je zadána v %, bude 
 msgid "Infill/wall overlap"
 msgstr "Překrytí výplně/stěny"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
-msgstr "Oblast výplně je mírně zvětšena, aby se překrývala se stěnou pro lepší spojení. Procentuální hodnota je vztažena k šířce čáry řídké výplně. Nastavte tuto hodnotu přibližně na 10–15 % pro minimalizaci možné přeextruze a hromadění materiálu, které může vést k hrubému hornímu povrchu."
+msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to the inner wall line width. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+msgstr "Oblast výplně je mírně zvětšena, aby se překrývala se stěnou pro lepší spojení. Procentuální hodnota je vztažena k šířce čáry vnitřní stěny. Nastavte tuto hodnotu přibližně na 10–15 % pro minimalizaci možné přeextruze a hromadění materiálu, které může vést k hrubému hornímu povrchu."
 
 msgid "Top/Bottom solid infill/wall overlap"
 msgstr "Překrytí plné výplně/stěny nahoře/dole"
 
+# AI Translated
 #, no-c-format, no-boost-format
-msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
-msgstr "Oblast horní výplně je mírně zvětšena tak, aby překrývala stěnu, pro lepší propojení a minimalizaci vzniku otvorů ve styku horní výplně se stěnami. Hodnota 25–30 % je vhodným výchozím bodem a minimalizuje výskyt otvorů. Procentuální hodnota je vztažena k šířce čáry řídké výplně."
+msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to the inner wall line width."
+msgstr "Oblast horní výplně je mírně zvětšena tak, aby překrývala stěnu, pro lepší propojení a minimalizaci vzniku otvorů ve styku horní výplně se stěnami. Hodnota 25–30 % je vhodným výchozím bodem a minimalizuje výskyt otvorů. Procentuální hodnota je vztažena k šířce čáry vnitřní stěny."
 
 msgid "This is the speed for internal sparse infill."
 msgstr "Rychlost vnitřní řídké výplně."
@@ -17835,8 +18022,9 @@ msgstr "Maximální šířka segmentované oblasti. Nula tuto funkci vypne."
 msgid "Interlocking depth of a segmented region"
 msgstr "Hloubka prokládání segmentované oblasti"
 
-msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
-msgstr "Hloubka prokládání segmentované oblasti. Bude ignorováno, pokud je \"mmu_segmented_region_max_width\" nula nebo pokud je \"mmu_segmented_region_interlocking_depth\" větší než \"mmu_segmented_region_max_width\". Nula tuto funkci vypne."
+# AI Translated
+msgid "Interlocking depth of a segmented region. On every other layer, the segmented region is limited to this depth. It will be ignored if \"interlocking_beam\" is enabled. Zero disables this feature."
+msgstr "Hloubka prokládání segmentované oblasti. U každé druhé vrstvy je segmentovaná oblast omezena touto hloubkou. Bude ignorováno, pokud je povoleno \"interlocking_beam\". Nula tuto funkci vypne."
 
 msgid "Use beam interlocking"
 msgstr "Použít vzájemné zajištění nosníků"
@@ -17937,13 +18125,14 @@ msgstr "Povolí Z-konturování (také známé jako anti-aliasing vrstev Z)."
 msgid "Minimize wall height angle"
 msgstr "Minimalizovat úhel výšky stěny"
 
+# AI Translated
 msgid ""
 "Reduce the height of top-surface perimeters to match the model edge height.\n"
-"Affects perimeters with a slope less than this angle (degrees).\n"
+"Affects perimeters with a slope greater than this angle (degrees).\n"
 "A reasonable value is 35. Set to 0 to disable."
 msgstr ""
 "Sníží výšku obvodů horního povrchu tak, aby odpovídala výšce hrany modelu.\n"
-"Ovlivňuje obvody se sklonem menším než tento úhel (ve stupních).\n"
+"Ovlivňuje obvody se sklonem větším než tento úhel (ve stupních).\n"
 "Doporučená hodnota je 35. Nastavte 0 pro vypnutí."
 
 msgid "Don't alternate fill direction"
@@ -18929,8 +19118,9 @@ msgstr "Spoj límce pro vnitřní stěny"
 msgid "Use scarf joint for inner walls as well."
 msgstr "Použít šikmý spoj i pro vnitřní stěny."
 
-msgid "Role base wipe speed"
-msgstr "Rychlost vytírání podle role"
+# AI Translated
+msgid "Role based wipe speed"
+msgstr "Rychlost očištění podle role"
 
 msgid "The wipe speed is determined by the speed of the current extrusion role. e.g. if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr "Rychlost setření je určena rychlostí aktuálního extruzního režimu. Například pokud je akce setření provedena ihned po extruzi vnější stěně, použije se pro setření stejná rychlost, jako byla použita pro extruzi vnější stěny."
@@ -19019,16 +19209,15 @@ msgstr "Omezuje počet smyček sukně/ochranného štítu na jednu stěnu po prv
 msgid "Draft shield"
 msgstr "Ochranný štít"
 
+# AI Translated
 msgid ""
 "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
 "\n"
-"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
-"Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+"Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used."
 msgstr ""
 "Ochranný štít pomáhá chránit tisk z ABS nebo ASA před deformacemi a odtržením od podložky způsobenými průvanem. Obvykle je potřeba jen u tiskáren s otevřeným rámem, tedy bez krytu.\n"
 "\n"
-"Povoleno = lem je vysoký jako nejvyšší tištěný objekt. Jinak se použije „Výška sukně“.\n"
-"Poznámka: Při aktivním ochranném štítu bude sukně vytištěna ve vzdálenosti sukně od objektu. Proto pokud jsou aktivní ráfky, může s nimi dojít k překřížení. Aby se tomu zabránilo, zvyšte hodnotu vzdálenosti sukně.\n"
+"Povoleno = okraj je vysoký jako nejvyšší tištěný objekt. Jinak se použije „Výška okraje“."
 
 msgid "Enabled"
 msgstr "Povoleno"
@@ -19151,6 +19340,7 @@ msgid "Farthest point timelapse"
 msgstr "Časosběr v nejvzdálenějším bodě"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
 msgstr "Je-li zapnuto, pořizuje se časosběrný snímek v bodě nejvzdálenějším od kamery, místo přejezdu k věži na očištění trysky nebo k výhozovému žlabu. Účinné pouze v tradičním režimu časosběru na tiskárnách jiné konstrukce než I3."
 
@@ -19348,18 +19538,22 @@ msgid "Enable filament ramming"
 msgstr "Povolit protlačování filamentu"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Tool change on wipe tower"
 msgstr "Výměna nástroje na věži na očištění trysky"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Force the toolhead to travel to the wipe tower before issuing the tool change command (Tx). Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. By default Orca skips the travel on multi-toolhead machines because the firmware handles the head swap, which can result in the Tx command being issued above the printed part. Enable this option if you want the tool change to always be issued above the wipe tower instead."
 msgstr "Vynutí přejezd tiskové hlavy k věži na očištění trysky před vydáním příkazu k výměně nástroje (Tx). Týká se pouze tiskáren s více extrudery (více tiskovými hlavami), které používají věž na očištění trysky typu 2. Ve výchozím nastavení Orca na strojích s více tiskovými hlavami tento přejezd vynechává, protože výměnu hlavy řeší firmware, což může vést k vydání příkazu Tx nad tištěným dílem. Zapněte tuto volbu, chcete-li, aby byla výměna nástroje vždy vydána nad věží na očištění trysky."
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Wait for temperature on wipe tower"
 msgstr "Čekat na teplotu na věži na očištění trysky"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Pick up the new tool without waiting for it to reach printing temperature, travel to the wipe tower, and wait for the temperature there, right before purging. Ooze from the heat-up lands on the tower instead of the model, and the travel overlaps with the heating. Only relevant for multi-extruder (multi-toolhead) printers using a Type 2 wipe tower. The firmware or tool change macro must not wait for the temperature itself. When disabled, the temperature wait is issued right after the tool change command."
 msgstr "Vyzvedne nový nástroj, aniž by čekal na dosažení tiskové teploty, přejede na věž na očištění trysky a počká na teplotu tam, těsně před čištěním. Materiál vytékající při ohřevu skončí na věži místo na modelu a přejezd se překrývá s ohřevem. Relevantní pouze pro tiskárny s více extrudery (více tiskovými hlavami) používající věž na očištění trysky typu 2. Firmware ani makro pro změnu nástroje nesmí na teplotu čekat samo. Pokud je vypnuto, čekání na teplotu se vloží hned po příkazu ke změně nástroje."
 
@@ -19367,6 +19561,7 @@ msgid "No sparse layers (beta)"
 msgstr "Žádné řídké vrstvy (beta)"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "čistící věž"; align it once the term is settled.
 msgid "If enabled, the wipe tower will not be printed on layers with no tool changes. On layers with a tool change, extruder will travel downward to print the wipe tower, so the tower ends up below the model and the toolhead has to reach down to it. Layouts where that would collide with an already printed object are rejected. Has no effect with smooth timelapse or clumping detection, which need a tower on every layer."
 msgstr "Pokud je povoleno, čistící věž se nebude tisknout na vrstvách bez změny nástroje. Na vrstvách se změnou nástroje extruder sjede dolů, aby čistící věž vytiskl, takže věž skončí pod modelem a tisková hlava k ní musí dosáhnout dolů. Rozvržení, kde by to znamenalo kolizi s již vytištěným objektem, jsou odmítnuta. Nemá vliv při plynulém časosběru ani při detekci nánosů na trysce, které vyžadují věž na každé vrstvě."
 
@@ -19375,6 +19570,7 @@ msgid "Combine sparse layers"
 msgstr "Kombinovat řídké vrstvy"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "základní věž"; align it once the term is settled.
 msgid ""
 "If enabled, consecutive layers on which the prime tower has no filament change are printed as a single thicker tower layer instead of one thin layer each, the same way infill combination merges sparse infill. The merged layer is printed at the top of the run, at the height of everything it covers.\n"
 "\n"
@@ -20154,6 +20350,7 @@ msgid "Prime volume mode"
 msgstr "Režim objemu základní věže"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "Selects how the wipe-tower prime and flush volumes are computed on multi-extruder printers."
 msgstr "Určuje, jak se na tiskárnách s více extrudery počítají objemy naplnění a čištění na věži na očištění trysky."
 
@@ -20186,40 +20383,44 @@ msgstr "Úhel na vrcholu kužele, který slouží ke stabilizaci věže na oči�
 msgid "Maximum wipe tower print speed"
 msgstr "Maximální rychlost tisku věže na očištění trysky"
 
+# AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid ""
 "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
-"When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+"When printing the sparse layers, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
 "\n"
 "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
 "\n"
 "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
 "\n"
-"For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+"For the wipe tower external perimeters the internal perimeter speed is used, also limited by this setting."
 msgstr ""
 "Maximální rychlost tisku při proplachování ve věži na očištění trysky a při tisku řídkých vrstev této věže. Při proplachování se použije nejnižší rychlost z rychlosti řídké výplně nebo vypočtené rychlosti podle maximální objemové rychlosti filamentu.\n"
 "\n"
-"Při tisku řídkých vrstev se použije nejnižší rychlost z rychlosti vnitřních obvodů nebo vypočtené rychlosti podle maximální objemové rychlosti filamentu.\n"
+"Při tisku řídkých vrstev se použije nejnižší rychlost z rychlosti řídké výplně nebo vypočtené rychlosti podle maximální objemové rychlosti filamentu.\n"
 "\n"
 "Zvýšení této rychlosti může ovlivnit stabilitu věže a také zvýšit sílu, s jakou tryska narazí do případných kapek vytvořených na věži na očištění trysky.\n"
 "\n"
 "Před zvýšením tohoto parametru nad výchozí hodnotu 90 mm/s se ujistěte, že vaše tiskárna je schopna spolehlivě překonávat mosty při zvýšených rychlostech a že je při výměně nástroje dobře kontrolováno protékání.\n"
 "\n"
-"Pro vnější perimetry věže na očištění trysky se vždy použije rychlost vnitřních obvodů bez ohledu na toto nastavení."
+"Pro vnější obvody věže na očištění trysky se použije rychlost vnitřních obvodů, rovněž omezená tímto nastavením."
 
 msgid "Wall type"
 msgstr "Typ stěny"
 
+# AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid ""
 "Wipe tower outer wall type.\n"
-"1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+"1. Rectangle: A rectangle with fixed width and height.\n"
 "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
-"3. Rib: Adds four ribs to the tower wall for enhanced stability."
+"3. Rib: The default wall type, which adds four ribs to the tower wall for enhanced stability."
 msgstr ""
-"Typ vnější stěny čistící věže.\n"
-"1. Obdélník: Výchozí typ stěny, obdélník s pevnou šířkou a výškou.\n"
-"2. Kužel: Kužel se zaoblením ve spodní části pro lepší stabilitu čistící věže.\n"
-"3. Žebra: Přidá čtyři žebra ke stěně věže pro vyšší stabilitu."
+"Typ vnější stěny věže na očištění trysky.\n"
+"1. Obdélník: Obdélník s pevnou šířkou a výškou.\n"
+"2. Kužel: Kužel se zaoblením ve spodní části pro lepší stabilitu věže na očištění trysky.\n"
+"3. Žebra: Výchozí typ stěny, který přidává čtyři žebra ke stěně věže pro vyšší stabilitu."
 
 msgid "Rectangle"
 msgstr "Obdélník"
@@ -20310,8 +20511,10 @@ msgstr "Vzdálenost čisticích linií na věži na očištění trysky."
 msgid "Extra flow for purging"
 msgstr "Dodatečný průtok pro pročištění"
 
-msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
-msgstr "Dodatečný průtok použitý pro pročišťovací linie na věži na očištění trysky. Tím budou pročišťovací linie na věži na očištění trysky silnější nebo užší, než by byly obvykle. Rozestup je nastaven automaticky."
+# AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
+msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker than they normally would be. The spacing is adjusted automatically."
+msgstr "Dodatečný průtok použitý pro pročišťovací linie na věži na očištění trysky. Tím budou pročišťovací linie silnější, než by byly obvykle. Rozestup je nastaven automaticky."
 
 msgid "Idle temperature"
 msgstr "Teplota nečinnosti"
@@ -20431,14 +20634,15 @@ msgstr "Minimální tloušťka tenkých prvků. Prvky modelu tenčí než tato h
 msgid "Minimum wall length"
 msgstr "Minimální délka stěny"
 
+# AI Translated
 msgid ""
-"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+"Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. The value is a multiple of the wall width. Higher values remove more and longer walls.\n"
 "\n"
-"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+"NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the 'Walls and surfaces' settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
 msgstr ""
-"Upravte tuto hodnotu, abyste zabránili tisku krátkých, neuzavřených stěn, které by mohly zvýšit dobu tisku. Vyšší hodnoty odstraní více a delších stěn.\n"
+"Upravte tuto hodnotu, abyste zabránili tisku krátkých, neuzavřených stěn, které by mohly zvýšit dobu tisku. Hodnota je násobkem šířky stěny. Vyšší hodnoty odstraní více a delších stěn.\n"
 "\n"
-"POZNÁMKA: Dolní a horní povrch nebude touto hodnotou ovlivněn, aby nedocházelo k viditelným mezerám na vnější straně modelu. Upravte 'prahovou hodnotu jedné stěny' v pokročilých nastaveních níže pro nastavení citlivosti, co je považováno za horní povrch. 'Prahová hodnota jedné stěny' je zobrazena pouze pokud je toto nastavení vyšší než výchozí hodnota 0,5, nebo pokud je povolena možnost horních povrchů s jednou stěnou."
+"POZNÁMKA: Spodní a horní povrchy nebudou touto hodnotou ovlivněny, aby nedocházelo k viditelným mezerám na vnější straně modelu. Upravte „Práh jedné stěny“ v nastavení „Stěny a povrchy“ níže pro nastavení citlivosti, co je považováno za horní povrch. „Práh jedné stěny“ je zobrazen pouze pokud je toto nastavení vyšší než výchozí hodnota 0,5, nebo pokud je povolena možnost horních povrchů s jednou stěnou."
 
 msgid "Maximum wall resolution"
 msgstr "Maximální rozlišení stěny"
@@ -20817,6 +21021,12 @@ msgstr "Výstupní adresář"
 
 msgid "This is the output directory for exported files."
 msgstr "Výstupní adresář pro exportované soubory."
+
+msgid "Export statistics"
+msgstr ""
+
+msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
+msgstr ""
 
 msgid "Debug level"
 msgstr "Úroveň ladění"
@@ -21223,6 +21433,7 @@ msgid "Size of the print bed bounding box"
 msgstr "Velikost ohraničujícího boxu tiskové podložky"
 
 # AI Translated
+# Needs human review: Unsettled glossary term (⚠) "Prime tower / Wipe tower": this entry uses "věž na očištění"; align it once the term is settled.
 msgid "First layer center without wipe tower"
 msgstr "Střed první vrstvy bez věže na očištění trysky"
 
@@ -24440,10 +24651,6 @@ msgstr "Povolit chytré přiřazení filamentu: přiřadit jeden filament více 
 # AI Translated
 msgid "File Saving"
 msgstr "Ukládání souboru"
-
-# AI Translated
-msgid "Don't remind me again"
-msgstr "Znovu mi to nepřipomínat"
 
 # AI Translated
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -29932,9 +30139,6 @@ msgstr "Otevřít Rychlou volbu"
 msgid "Slicing and printing"
 msgstr "Slicování a tisk"
 
-msgid "Selection"
-msgstr "Výběr"
-
 # AI Translated
 msgid "Editing"
 msgstr "Úpravy"
@@ -30841,6 +31045,1232 @@ msgstr[0] "Aktuální seznam filamentů neobsahuje %s. Filament projektu, který
 msgstr[1] "Aktuální seznam filamentů neobsahuje %s. Filamenty projektu, které míchaný filament vyžaduje, budou po rozkladu vytvořeny automaticky."
 msgstr[2] "Aktuální seznam filamentů neobsahuje %s. Filamenty projektu, které míchaný filament vyžaduje, budou po rozkladu vytvořeny automaticky."
 
+msgid "Color Picker"
+msgstr ""
+
+msgid "Basic Colors"
+msgstr ""
+
+msgid "Orca Palette"
+msgstr ""
+
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+msgid "RAL Classic"
+msgstr ""
+
+#. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "Gradients"
+msgstr ""
+
+msgid "Solid"
+msgstr ""
+
+msgid "Gradient"
+msgstr ""
+
+msgid "Gradient start"
+msgstr ""
+
+msgid "Gradient end"
+msgstr ""
+
+msgid "Gradient color"
+msgstr ""
+
+msgid "Add color"
+msgstr ""
+
+msgid "Remove color"
+msgstr ""
+
+msgid "Saturation"
+msgstr ""
+
+msgid "Original color"
+msgstr ""
+
+#. TRN: Clicking the current color preview adds it to the saved favorites.
+msgid "Save current color"
+msgstr ""
+
+msgid "Palettes"
+msgstr ""
+
+msgid "Search colors"
+msgstr ""
+
+msgid "Filter colors"
+msgstr ""
+
+msgid "No matching colors"
+msgstr ""
+
+msgid "Hex color"
+msgstr ""
+
+# AI Translated
+msgid "Opacity"
+msgstr "Neprůhlednost"
+
+msgid "Opacity percent"
+msgstr ""
+
+msgid "Save color"
+msgstr ""
+
+msgid "Enter a complete hexadecimal color"
+msgstr ""
+
+msgid "The current multi-color selection is kept until you choose a different color."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Up to %d colors supported."
+msgstr ""
+
+msgid "Crimson"
+msgstr ""
+
+msgid "Orange red"
+msgstr ""
+
+msgid "Tomato"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Dark orange"
+msgstr ""
+
+msgid "Gold"
+msgstr ""
+
+msgid "Burly wood"
+msgstr ""
+
+msgid "Bisque"
+msgstr ""
+
+msgid "Misty rose"
+msgstr ""
+
+msgid "Light yellow"
+msgstr ""
+
+msgid "Lemon chiffon"
+msgstr ""
+
+msgid "Beige"
+msgstr ""
+
+msgid "Light golden rod yellow"
+msgstr ""
+
+msgid "Pale golden rod"
+msgstr ""
+
+msgid "Khaki"
+msgstr ""
+
+msgid "Dark khaki"
+msgstr ""
+
+msgid "Peach puff"
+msgstr ""
+
+msgid "Moccasin"
+msgstr ""
+
+msgid "Papaya whip"
+msgstr ""
+
+msgid "Blanched almond"
+msgstr ""
+
+msgid "Antique white"
+msgstr ""
+
+msgid "Navajo white"
+msgstr ""
+
+msgid "Wheat"
+msgstr ""
+
+msgid "Golden rod"
+msgstr ""
+
+msgid "Chocolate"
+msgstr ""
+
+msgid "Peru"
+msgstr ""
+
+msgid "Fire brick"
+msgstr ""
+
+msgid "Sienna"
+msgstr ""
+
+msgid "Saddle brown"
+msgstr ""
+
+msgid "Brown"
+msgstr ""
+
+msgid "Rosy brown"
+msgstr ""
+
+msgid "Salmon"
+msgstr ""
+
+msgid "Light salmon"
+msgstr ""
+
+msgid "Dark salmon"
+msgstr ""
+
+msgid "Sandy brown"
+msgstr ""
+
+msgid "Coral"
+msgstr ""
+
+msgid "Light coral"
+msgstr ""
+
+msgid "Indian red"
+msgstr ""
+
+msgid "Dark red"
+msgstr ""
+
+msgid "Maroon"
+msgstr ""
+
+msgid "Green yellow"
+msgstr ""
+
+msgid "Yellow green"
+msgstr ""
+
+msgid "Chartreuse"
+msgstr ""
+
+msgid "Lawn green"
+msgstr ""
+
+msgid "Lime green"
+msgstr ""
+
+msgid "Spring green"
+msgstr ""
+
+msgid "Medium spring green"
+msgstr ""
+
+msgid "Lime"
+msgstr ""
+
+msgid "Forest green"
+msgstr ""
+
+msgid "Dark green"
+msgstr ""
+
+msgid "Olive drab"
+msgstr ""
+
+msgid "Olive"
+msgstr ""
+
+msgid "Dark olive green"
+msgstr ""
+
+msgid "Pale green"
+msgstr ""
+
+msgid "Light green"
+msgstr ""
+
+msgid "Medium sea green"
+msgstr ""
+
+msgid "Sea green"
+msgstr ""
+
+msgid "Dark sea green"
+msgstr ""
+
+msgid "Cadet blue"
+msgstr ""
+
+msgid "Medium aqua marine"
+msgstr ""
+
+msgid "Turquoise"
+msgstr ""
+
+msgid "Medium turquoise"
+msgstr ""
+
+msgid "Dark turquoise"
+msgstr ""
+
+msgid "Pale turquoise"
+msgstr ""
+
+msgid "Aqua"
+msgstr ""
+
+msgid "Light cyan"
+msgstr ""
+
+msgid "Mint cream"
+msgstr ""
+
+msgid "Honey dew"
+msgstr ""
+
+msgid "Aquamarine"
+msgstr ""
+
+msgid "Light sea green"
+msgstr ""
+
+msgid "Dark cyan"
+msgstr ""
+
+msgid "Teal"
+msgstr ""
+
+msgid "Dark slate gray"
+msgstr ""
+
+msgid "Light slate gray"
+msgstr ""
+
+msgid "Slate gray"
+msgstr ""
+
+msgid "Deep sky blue"
+msgstr ""
+
+msgid "Dodger Blue"
+msgstr ""
+
+msgid "Sky blue"
+msgstr ""
+
+msgid "Light sky blue"
+msgstr ""
+
+msgid "Light blue"
+msgstr ""
+
+msgid "Powder blue"
+msgstr ""
+
+msgid "Light steel blue"
+msgstr ""
+
+msgid "Steel blue"
+msgstr ""
+
+msgid "Cornflower blue"
+msgstr ""
+
+msgid "Royal blue"
+msgstr ""
+
+msgid "Medium blue"
+msgstr ""
+
+msgid "Midnight blue"
+msgstr ""
+
+msgid "Dark blue"
+msgstr ""
+
+msgid "Navy"
+msgstr ""
+
+msgid "Slate blue"
+msgstr ""
+
+msgid "Dark slate blue"
+msgstr ""
+
+msgid "Medium slate blue"
+msgstr ""
+
+msgid "Blue violet"
+msgstr ""
+
+msgid "Indigo"
+msgstr ""
+
+msgid "Dark violet"
+msgstr ""
+
+msgid "Dark orchid"
+msgstr ""
+
+msgid "Medium orchid"
+msgstr ""
+
+msgid "Orchid"
+msgstr ""
+
+msgid "Violet"
+msgstr ""
+
+msgid "Medium purple"
+msgstr ""
+
+msgid "Purple"
+msgstr ""
+
+msgid "Rebecca purple"
+msgstr ""
+
+msgid "Medium violet red"
+msgstr ""
+
+msgid "PaleV violet red"
+msgstr ""
+
+msgid "Deep pink"
+msgstr ""
+
+msgid "Hot pink"
+msgstr ""
+
+msgid "Light pink"
+msgstr ""
+
+msgid "Pink"
+msgstr ""
+
+msgid "Plum"
+msgstr ""
+
+msgid "Thistle"
+msgstr ""
+
+msgid "Fuchsia"
+msgstr ""
+
+msgid "Dark magenta"
+msgstr ""
+
+msgid "Linen"
+msgstr ""
+
+msgid "Old lace"
+msgstr ""
+
+msgid "Sea shell"
+msgstr ""
+
+msgid "Ivory"
+msgstr ""
+
+msgid "Floral white"
+msgstr ""
+
+msgid "Lavender blush"
+msgstr ""
+
+msgid "Ghost white"
+msgstr ""
+
+msgid "Alice blue"
+msgstr ""
+
+msgid "Lavender"
+msgstr ""
+
+msgid "White smoke"
+msgstr ""
+
+msgid "Gainsboro"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Coral fire"
+msgstr ""
+
+msgid "Sea anemone"
+msgstr ""
+
+msgid "Deep abyss"
+msgstr ""
+
+msgid "Lobster red"
+msgstr ""
+
+msgid "Sandy clay"
+msgstr ""
+
+msgid "Driftwood"
+msgstr ""
+
+msgid "Sea buckthorn"
+msgstr ""
+
+msgid "Sunset reef"
+msgstr ""
+
+msgid "Tiger coral"
+msgstr ""
+
+msgid "Pink coral"
+msgstr ""
+
+msgid "Seashell glow"
+msgstr ""
+
+msgid "Sand"
+msgstr ""
+
+msgid "Golden kelp"
+msgstr ""
+
+msgid "Sunlit dune"
+msgstr ""
+
+msgid "Amber nautilus"
+msgstr ""
+
+msgid "Sea lemon"
+msgstr ""
+
+msgid "Pale starfish"
+msgstr ""
+
+msgid "Spring tide"
+msgstr ""
+
+msgid "Lime algae"
+msgstr ""
+
+msgid "Sea grass"
+msgstr ""
+
+msgid "Neon plankton"
+msgstr ""
+
+msgid "Kelp forest"
+msgstr ""
+
+msgid "Emerald wave"
+msgstr ""
+
+msgid "Whale shadow"
+msgstr ""
+
+msgid "Sea turtle"
+msgstr ""
+
+msgid "Lagoon"
+msgstr ""
+
+msgid "Tropical current"
+msgstr ""
+
+msgid "Midnight trench"
+msgstr ""
+
+msgid "Dark kelp"
+msgstr ""
+
+msgid "Crystal surf"
+msgstr ""
+
+msgid "Turquoise bay"
+msgstr ""
+
+msgid "Sky over reef"
+msgstr ""
+
+msgid "Shallow sky"
+msgstr ""
+
+msgid "Electric bel"
+msgstr ""
+
+msgid "Dolphin"
+msgstr ""
+
+msgid "Ocean depths"
+msgstr ""
+
+msgid "Whale"
+msgstr ""
+
+msgid "Indigo abyss"
+msgstr ""
+
+msgid "Sea urchin"
+msgstr ""
+
+msgid "Lavender coral"
+msgstr ""
+
+msgid "Violet tide"
+msgstr ""
+
+msgid "Deep sea orchid"
+msgstr ""
+
+msgid "Neon jelly"
+msgstr ""
+
+msgid "Fuchsia coral"
+msgstr ""
+
+msgid "Pink jellyfish"
+msgstr ""
+
+msgid "Foam"
+msgstr ""
+
+msgid "Seashell white"
+msgstr ""
+
+msgid "Pebble gray"
+msgstr ""
+
+msgid "Storm cloud"
+msgstr ""
+
+msgid "Ink black"
+msgstr ""
+
+msgid "Green beige"
+msgstr ""
+
+msgid "Sand yellow"
+msgstr ""
+
+msgid "Signal yellow"
+msgstr ""
+
+msgid "Golden yellow"
+msgstr ""
+
+msgid "Honey yellow"
+msgstr ""
+
+msgid "Maize yellow"
+msgstr ""
+
+msgid "Dalmatian yellow"
+msgstr ""
+
+msgid "Brown beige"
+msgstr ""
+
+msgid "Lemon yellow"
+msgstr ""
+
+msgid "Oyster white"
+msgstr ""
+
+msgid "Light ivory"
+msgstr ""
+
+msgid "Zinc yellow"
+msgstr ""
+
+msgid "Grey beige"
+msgstr ""
+
+msgid "Olive yellow"
+msgstr ""
+
+msgid "Rape yellow"
+msgstr ""
+
+msgid "Traffic yellow"
+msgstr ""
+
+msgid "Ochre yellow"
+msgstr ""
+
+msgid "Traffic orange yellow"
+msgstr ""
+
+msgid "Curry"
+msgstr ""
+
+msgid "Melon yellow"
+msgstr ""
+
+msgid "Broom yellow"
+msgstr ""
+
+msgid "Dahlia yellow"
+msgstr ""
+
+msgid "Pastel yellow"
+msgstr ""
+
+msgid "Pearl beige"
+msgstr ""
+
+msgid "Pearl gold"
+msgstr ""
+
+msgid "Sun yellow"
+msgstr ""
+
+msgid "Yellow orange"
+msgstr ""
+
+msgid "Deep orange"
+msgstr ""
+
+msgid "Vermilion"
+msgstr ""
+
+msgid "Pearl orange"
+msgstr ""
+
+msgid "Pure orange"
+msgstr ""
+
+msgid "Luminous orange"
+msgstr ""
+
+msgid "Luminous bright orange"
+msgstr ""
+
+msgid "Bright red orange"
+msgstr ""
+
+msgid "Traffic orange"
+msgstr ""
+
+msgid "Signal orange"
+msgstr ""
+
+msgid "Salmon orange"
+msgstr ""
+
+msgid "Pearl pink"
+msgstr ""
+
+msgid "Copper orange"
+msgstr ""
+
+msgid "Signal brown"
+msgstr ""
+
+msgid "Fir orange"
+msgstr ""
+
+msgid "Signal red"
+msgstr ""
+
+msgid "Luminous red"
+msgstr ""
+
+msgid "Carmine red"
+msgstr ""
+
+msgid "Pearl carmine red"
+msgstr ""
+
+msgid "Pure red"
+msgstr ""
+
+msgid "Luminous deep red"
+msgstr ""
+
+msgid "Currant red"
+msgstr ""
+
+msgid "Pearl ruby red"
+msgstr ""
+
+msgid "Fire red"
+msgstr ""
+
+msgid "Ruby red"
+msgstr ""
+
+msgid "Purple red"
+msgstr ""
+
+msgid "Wine red"
+msgstr ""
+
+msgid "Black red"
+msgstr ""
+
+msgid "Oxide red"
+msgstr ""
+
+msgid "Brown red"
+msgstr ""
+
+msgid "Pine red"
+msgstr ""
+
+msgid "Tomato red"
+msgstr ""
+
+msgid "Antique pink"
+msgstr ""
+
+msgid "Coral red"
+msgstr ""
+
+msgid "Rose"
+msgstr ""
+
+msgid "Strawberry red"
+msgstr ""
+
+msgid "Traffic red"
+msgstr ""
+
+msgid "Salmon pink"
+msgstr ""
+
+msgid "Luminous rose"
+msgstr ""
+
+msgid "Luminous bright red"
+msgstr ""
+
+msgid "Raspberry red"
+msgstr ""
+
+msgid "Orient red"
+msgstr ""
+
+msgid "Pearl ruby"
+msgstr ""
+
+msgid "Red purple"
+msgstr ""
+
+msgid "Red violet"
+msgstr ""
+
+msgid "Heather violet"
+msgstr ""
+
+msgid "Bordeaux violet"
+msgstr ""
+
+msgid "Mahogany"
+msgstr ""
+
+msgid "Grey purple"
+msgstr ""
+
+msgid "Signal violet"
+msgstr ""
+
+msgid "Fir green"
+msgstr ""
+
+msgid "Sabine grey"
+msgstr ""
+
+msgid "Pearl violet"
+msgstr ""
+
+msgid "Pearl blackberry"
+msgstr ""
+
+msgid "Green blue"
+msgstr ""
+
+msgid "Ultramarine blue"
+msgstr ""
+
+msgid "Sapphire blue"
+msgstr ""
+
+msgid "Black blue"
+msgstr ""
+
+msgid "Signal blue"
+msgstr ""
+
+msgid "Brilliant blue"
+msgstr ""
+
+msgid "Grey blue"
+msgstr ""
+
+msgid "Azure blue"
+msgstr ""
+
+msgid "Gentian blue"
+msgstr ""
+
+msgid "Cobalt blue"
+msgstr ""
+
+msgid "Pigeon blue"
+msgstr ""
+
+msgid "Traffic blue"
+msgstr ""
+
+msgid "Turquoise blue"
+msgstr ""
+
+msgid "Capsanthin violet"
+msgstr ""
+
+msgid "Ocean blue"
+msgstr ""
+
+msgid "Water blue"
+msgstr ""
+
+msgid "Night blue"
+msgstr ""
+
+msgid "Distant blue"
+msgstr ""
+
+msgid "Pastel blue"
+msgstr ""
+
+msgid "Pearl gentian blue"
+msgstr ""
+
+msgid "Pearl midnight blue"
+msgstr ""
+
+msgid "Patina green"
+msgstr ""
+
+msgid "Emerald green"
+msgstr ""
+
+msgid "Leaf green"
+msgstr ""
+
+msgid "Olive green"
+msgstr ""
+
+msgid "Blue green"
+msgstr ""
+
+msgid "Moss green"
+msgstr ""
+
+msgid "Grey olive"
+msgstr ""
+
+msgid "Pine green"
+msgstr ""
+
+msgid "Pine brown"
+msgstr ""
+
+msgid "Grass green"
+msgstr ""
+
+msgid "Reseda green"
+msgstr ""
+
+msgid "Brown green"
+msgstr ""
+
+msgid "Reed green"
+msgstr ""
+
+msgid "Black green"
+msgstr ""
+
+msgid "Turquoise green"
+msgstr ""
+
+msgid "May green"
+msgstr ""
+
+msgid "Chrome oxide green"
+msgstr ""
+
+msgid "Traffic green"
+msgstr ""
+
+msgid "Fern green"
+msgstr ""
+
+msgid "Opal green"
+msgstr ""
+
+msgid "Mint green"
+msgstr ""
+
+msgid "Bronze green"
+msgstr ""
+
+msgid "Pearl green"
+msgstr ""
+
+msgid "Sax turquoise"
+msgstr ""
+
+msgid "Pearl turquoise"
+msgstr ""
+
+msgid "Pearl jade"
+msgstr ""
+
+msgid "Pure green"
+msgstr ""
+
+msgid "Luminous green"
+msgstr ""
+
+msgid "Squirrel grey"
+msgstr ""
+
+msgid "Silver grey"
+msgstr ""
+
+msgid "Olivestone"
+msgstr ""
+
+msgid "Moss grey"
+msgstr ""
+
+msgid "Signal grey"
+msgstr ""
+
+msgid "Mouse grey"
+msgstr ""
+
+msgid "Beige grey"
+msgstr ""
+
+msgid "Khaki grey"
+msgstr ""
+
+msgid "Green grey"
+msgstr ""
+
+msgid "Tarpaulin grey"
+msgstr ""
+
+msgid "Iron grey"
+msgstr ""
+
+msgid "Basalt grey"
+msgstr ""
+
+msgid "Brown grey"
+msgstr ""
+
+msgid "Slate grey"
+msgstr ""
+
+msgid "Anthracite grey"
+msgstr ""
+
+msgid "Light grey"
+msgstr ""
+
+msgid "Umber grey"
+msgstr ""
+
+msgid "Concrete grey"
+msgstr ""
+
+msgid "Graphite grey"
+msgstr ""
+
+msgid "Granite grey"
+msgstr ""
+
+msgid "Stone grey"
+msgstr ""
+
+msgid "Pebble grey"
+msgstr ""
+
+msgid "Cement grey"
+msgstr ""
+
+msgid "Yellow grey"
+msgstr ""
+
+msgid "Platinum grey"
+msgstr ""
+
+msgid "Dusty grey"
+msgstr ""
+
+msgid "Agate grey"
+msgstr ""
+
+msgid "Quartz grey"
+msgstr ""
+
+msgid "Window grey"
+msgstr ""
+
+msgid "Traffic grey A"
+msgstr ""
+
+msgid "Traffic grey B"
+msgstr ""
+
+msgid "Silk grey"
+msgstr ""
+
+msgid "Telegrey 1"
+msgstr ""
+
+msgid "Telegrey 2"
+msgstr ""
+
+msgid "Telegrey 4"
+msgstr ""
+
+msgid "Pearl mouse grey"
+msgstr ""
+
+msgid "Green brown"
+msgstr ""
+
+msgid "Ochre brown"
+msgstr ""
+
+msgid "Clay brown"
+msgstr ""
+
+msgid "Copper brown"
+msgstr ""
+
+msgid "Chocolate brown"
+msgstr ""
+
+msgid "Olive brown"
+msgstr ""
+
+msgid "Nut brown"
+msgstr ""
+
+msgid "Red brown"
+msgstr ""
+
+msgid "Sepia brown"
+msgstr ""
+
+msgid "Chestnut brown"
+msgstr ""
+
+msgid "Mahogany brown"
+msgstr ""
+
+msgid "Grey brown"
+msgstr ""
+
+msgid "Pearl copper"
+msgstr ""
+
+msgid "Beige brown"
+msgstr ""
+
+msgid "Pearl mocha brown"
+msgstr ""
+
+msgid "Earth brown"
+msgstr ""
+
+msgid "Pearl brown"
+msgstr ""
+
+msgid "Cream"
+msgstr ""
+
+msgid "Grey white"
+msgstr ""
+
+msgid "Signal white"
+msgstr ""
+
+msgid "Signal black"
+msgstr ""
+
+msgid "Jet black"
+msgstr ""
+
+msgid "White aluminium"
+msgstr ""
+
+msgid "Grey aluminium"
+msgstr ""
+
+msgid "Pure white"
+msgstr ""
+
+msgid "Graphite black"
+msgstr ""
+
+msgid "Traffic white"
+msgstr ""
+
+msgid "Traffic black"
+msgstr ""
+
+msgid "Papyrus white"
+msgstr ""
+
+msgid "Pearl light grey"
+msgstr ""
+
+msgid "Metal: Silver"
+msgstr ""
+
+msgid "Metal: Brass"
+msgstr ""
+
+msgid "Metal: Gold"
+msgstr ""
+
+msgid "Metal: Copper"
+msgstr ""
+
+msgid "Metal: Bronze"
+msgstr ""
+
+msgid "Nature: Pearl"
+msgstr ""
+
+msgid "Nature: Rainbow"
+msgstr ""
+
+msgid "Nature: Clear Sky"
+msgstr ""
+
+msgid "Nature: Sunset"
+msgstr ""
+
+msgid "Wood: Dark"
+msgstr ""
+
+msgid "Wood: Medium"
+msgstr ""
+
+msgid "Wood: Light"
+msgstr ""
+
 # AI Translated
 msgid "Alternate nozzles:"
 msgstr "Alternativní trysky:"
@@ -31726,6 +33156,12 @@ msgstr "Mapováno podle vlastního rozložení UV modelu, které už je umístě
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "Jak široká je jedna kopie textury na modelu. Menší hodnota opakuje vzor častěji a zjemňuje jeho detaily; při vypnutém Dláždění je to velikost jediné kopie."
 
+msgid "Larger"
+msgstr ""
+
+msgid "Smaller"
+msgstr ""
+
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
 msgstr "Otočí texturu na povrchu, ve stupních - pro zarovnání vzoru s hranou modelu."
@@ -31799,6 +33235,12 @@ msgstr "Míchané barvy"
 # AI Translated
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Nejvyšší počet míchaných filamentů, které může zapečení přidat. Vybírají se z barev textury a vytvoří se pouze ty, které zapečení skutečně použije."
+
+msgid "Few"
+msgstr ""
+
+msgid "Many"
+msgstr ""
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -31926,10 +33368,6 @@ msgstr "Projekční rámeček"
 # AI Translated
 msgid "Opens a window you drag over the model. Whatever you can see through it is what gets the texture, and its border becomes the edge of the projection."
 msgstr "Otevře okno, které přetáhnete přes model. Co skrz něj vidíte, dostane texturu, a jeho okraj se stane okrajem projekce."
-
-# AI Translated
-msgid "Opacity"
-msgstr "Neprůhlednost"
 
 # AI Translated
 msgid "How solid the frame window looks while you place it. Lower to see the model through it; it does not affect the result."
@@ -32162,6 +33600,12 @@ msgstr "Přesíťování"
 # AI Translated
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Velikost trojúhelníků, se kterou se celý model znovu sestaví, v milimetrech. Reliéf funguje nejlépe na rovnoměrné síti; tímto ji vytvoříte z nerovnoměrného importu."
+
+msgid "Before"
+msgstr ""
+
+msgid "After"
+msgstr ""
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -35148,6 +36592,174 @@ msgid ""
 msgstr ""
 "Zamezte kroucení\n"
 "Víte, že při tisku materiálů náchylných ke kroucení, jako je ABS, může vhodné zvýšení teploty vyhřívané desky snížit pravděpodobnost kroucení?"
+
+# AI Translated
+#~ msgid "Please choose the filament color"
+#~ msgstr "Vyberte prosím barvu filamentu"
+
+# AI Translated
+#~ msgid ""
+#~ "Line width of the Bridge. If expressed as a %, it will be computed over the nozzle diameter.\n"
+#~ "Recommended to use with a higher Bridge density or Bridge flow ratio.\n"
+#~ "\n"
+#~ "The maximum value is 100% or the nozzle diameter.\n"
+#~ "If set to 0, the line width will match the Internal solid infill width."
+#~ msgstr ""
+#~ "Šířka linie můstku. Pokud je vyjádřena v %, bude vypočítána z průměru trysky.\n"
+#~ "Doporučuje se používat s vyšší hustotou můstku nebo vyšším poměrem průtoku můstku.\n"
+#~ "\n"
+#~ "Maximální hodnota je 100 % nebo průměr trysky.\n"
+#~ "Pokud je nastavena na 0, bude šířka linie odpovídat šířce vnitřní plné výplně."
+
+# AI Translated
+#, no-c-format, no-boost-format
+#~ msgid ""
+#~ "Enable this option to slow down printing in areas where perimeters may have curled upwards.\n"
+#~ "For example, additional slowdown will be applied when printing overhangs on sharp corners like the front of the Benchy hull, reducing curling which compounds over multiple layers.\n"
+#~ "\n"
+#~ "It is generally recommended to have this option switched on unless your printer cooling is powerful enough or the print speed is slow enough that perimeter curling does not happen. \n"
+#~ "If printing with a high external perimeter speed, this parameter may introduce wall artifacts when slowing down, due to the potentially large variance in print speeds causing the extruder to be unable to keep up with the requested flow change.\n"
+#~ "Root cause of these artifacts is most likely PA tuning being slightly off, especially when combined with a high PA smooth time.\n"
+#~ "\n"
+#~ "Recommendations when enabling this option:\n"
+#~ "1. Reduce Pressure Advance smooth time to 0.015 - 0.02 so the extruder reacts quickly to the speed changes.\n"
+#~ "2. Increase the minimum print speeds to limit the magnitude of the slowdown and reduce the variance between fast and slow segments.\n"
+#~ "3. If artifacts still appear, enable Extrusion Rate Smoothing (ERS) to further smooth the flow transitions.\n"
+#~ "\n"
+#~ "Note: When this option is enabled, overhang perimeters are treated like overhangs, meaning the overhang speed is applied even if the overhanging perimeter is part of a bridge.\n"
+#~ "For example, when the perimeters are 100% overhanging, with no wall supporting them from underneath, the 100% overhang speed will be applied."
+#~ msgstr ""
+#~ "Zapněte tuto volbu, chcete-li zpomalit tisk v místech, kde se mohly obvody zkroutit nahoru.\n"
+#~ "Například při tisku převisů na ostrých rozích, jako je příď trupu modelu Benchy, se použije dodatečné zpomalení, které omezí kroucení narůstající přes více vrstev.\n"
+#~ "\n"
+#~ "Obecně se doporučuje mít tuto volbu zapnutou, pokud není chlazení vaší tiskárny dostatečně výkonné nebo rychlost tisku natolik nízká, že ke kroucení obvodů nedochází. \n"
+#~ "Při tisku s vysokou rychlostí vnějších obvodů může tento parametr při zpomalování způsobit artefakty na stěnách, a to kvůli potenciálně velkému rozdílu rychlostí tisku, kdy extruder nestíhá požadovanou změnu průtoku.\n"
+#~ "Hlavní příčinou těchto artefaktů je nejspíš mírně nepřesné doladění PA, zejména v kombinaci s dlouhým časem vyhlazení PA.\n"
+#~ "\n"
+#~ "Doporučení při zapnutí této volby:\n"
+#~ "1. Snižte čas vyhlazení Pressure Advance na 0,015–0,02, aby extruder rychle reagoval na změny rychlosti.\n"
+#~ "2. Zvyšte minimální rychlosti tisku, abyste omezili míru zpomalení a rozdíl mezi rychlými a pomalými úseky.\n"
+#~ "3. Pokud se artefakty stále objevují, zapněte vyhlazování rychlosti extruze (ERS), které přechody průtoku dále vyhladí.\n"
+#~ "\n"
+#~ "Poznámka: Je-li tato volba zapnutá, jsou obvody převisů považovány za převisy, takže se rychlost pro převisy použije i tehdy, když je převislý obvod součástí můstku.\n"
+#~ "Například pokud jsou obvody ze 100 % převislé a zespodu je nic nepodpírá, použije se rychlost pro 100% převis."
+
+#~ msgid ""
+#~ "Speed of the externally visible bridge extrusions.\n"
+#~ "\n"
+#~ "In addition, if Slow down for curled perimeters is disabled or Classic overhang mode is enabled, it will be the print speed of overhang walls that are supported by less than 13%, whether they are part of a bridge or an overhang."
+#~ msgstr ""
+#~ "Rychlost vnějších viditelných mostních extruzí.\n"
+#~ "\n"
+#~ "Pokud je navíc vypnutá možnost Zpomalit pro zkroucené obvody nebo je povolen Klasický režim převisů, bude to rychlost tisku stěn převisů, které jsou podepřeny méně než 13 %, ať už jsou součástí mostu nebo převisu."
+
+#~ msgid "This separate setting will affect the speed of perimeters having radius <= small_perimeter_threshold (usually holes). If expressed as percentage (for example: 80%) it will be calculated on the outer wall speed setting above. Set to zero for auto."
+#~ msgstr "Toto samostatné nastavení ovlivní rychlost obvodů s poloměrem <= small_perimeter_threshold (obvykle otvory). Pokud je zadáno v procentech (například: 80 %), bude vypočítáno na základě výše uvedeného nastavení rychlosti vnější stěny. Pro automatické nastavení zadejte nulu."
+
+# AI Translated
+#~ msgid "Same as \"Small perimeters\", but for supports. This separate setting will affect the speed of support for areas <= `small_support_perimeter_threshold`. If expressed as a percentage (for example: 80%), it will be calculated on the support or support interface speed setting above. Set to zero for auto."
+#~ msgstr "Stejné jako „Malé obvody“, ale pro podpory. Toto samostatné nastavení ovlivňuje rychlost podpor v oblastech <= `small_support_perimeter_threshold`. Pokud je vyjádřeno v procentech (například 80 %), bude vypočítáno z výše uvedeného nastavení rychlosti podpor nebo rozhraní podpor. Nastavte nulu pro automatický režim."
+
+#~ msgid ""
+#~ "Print sequence of the internal (inner) and external (outer) walls.\n"
+#~ "\n"
+#~ "Use Inner/Outer for best overhangs. This is because the overhanging walls can adhere to a neighbouring perimeter while printing. However, this option results in slightly reduced surface quality as the external perimeter is deformed by being squashed to the internal perimeter.\n"
+#~ "\n"
+#~ "Use Inner/Outer/Inner for the best external surface finish and dimensional accuracy as the external wall is printed undisturbed from an internal perimeter. However, overhang performance will reduce as there is no internal perimeter to print the external wall against. This option requires a minimum of 3 walls to be effective as it prints the internal walls from the 3rd perimeter onwards first, then the external perimeter and, finally, the first internal perimeter. This option is recommended against the Outer/Inner option in most cases.\n"
+#~ "\n"
+#~ "Use Outer/Inner for the same external wall quality and dimensional accuracy benefits of Inner/Outer/Inner option. However, the Z seams will appear less consistent as the first extrusion of a new layer starts on a visible surface."
+#~ msgstr ""
+#~ "Pořadí tisku vnitřních a vnějších stěn.\n"
+#~ "\n"
+#~ "Použijte Vnitřní/Vnější pro nejlepší převisy. Převislé stěny se totiž mohou během tisku opřít o sousední obvod. Tato možnost však mírně snižuje kvalitu povrchu, protože vnější obvod je deformován přitlačením k vnitřnímu obvodu.\n"
+#~ "\n"
+#~ "Použijte Vnitřní/Vnější/Vnitřní pro nejlepší kvalitu vnějšího povrchu a rozměrovou přesnost, protože vnější stěna je tisknuta bez ovlivnění vnitřním obvodem. Výkon převisů se však zhorší, protože vnější stěna nemá vnitřní obvod, o který by se při tisku opřela. Tato možnost vyžaduje alespoň 3 stěny, protože nejprve tiskne vnitřní stěny od 3. obvodu dál, poté vnější obvod a nakonec první vnitřní obvod. Ve většině případů je tato možnost doporučována místo Vnější/Vnitřní.\n"
+#~ "\n"
+#~ "Použijte Vnější/Vnitřní pro stejnou kvalitu vnější stěny a rozměrovou přesnost jako u možnosti Vnitřní/Vnější/Vnitřní. Z-švy však budou méně konzistentní, protože první extruze nové vrstvy začíná na viditelném povrchu."
+
+#~ msgid "This is the speed for the first layer except for solid infill sections."
+#~ msgstr "Rychlost první vrstvy kromě plné výplně."
+
+#~ msgid "This is the speed for solid infill parts of the first layer."
+#~ msgstr "Rychlost plné výplně první vrstvy."
+
+#, no-c-format, no-boost-format
+#~ msgid "This allows the infill area to be enlarged slightly to overlap with walls for better bonding. The percentage value is relative to line width of sparse infill. Set this value to ~10-15% to minimize potential over extrusion and accumulation of material resulting in rough top surfaces."
+#~ msgstr "Oblast výplně je mírně zvětšena, aby se překrývala se stěnou pro lepší spojení. Procentuální hodnota je vztažena k šířce čáry řídké výplně. Nastavte tuto hodnotu přibližně na 10–15 % pro minimalizaci možné přeextruze a hromadění materiálu, které může vést k hrubému hornímu povrchu."
+
+#, no-c-format, no-boost-format
+#~ msgid "Top solid infill area is enlarged slightly to overlap with wall for better bonding and to minimize the appearance of pinholes where the top infill meets the walls. A value of 25-30% is a good starting point, minimizing the appearance of pinholes. The percentage value is relative to line width of sparse infill."
+#~ msgstr "Oblast horní výplně je mírně zvětšena tak, aby překrývala stěnu, pro lepší propojení a minimalizaci vzniku otvorů ve styku horní výplně se stěnami. Hodnota 25–30 % je vhodným výchozím bodem a minimalizuje výskyt otvorů. Procentuální hodnota je vztažena k šířce čáry řídké výplně."
+
+#~ msgid "Interlocking depth of a segmented region. It will be ignored if \"mmu_segmented_region_max_width\" is zero or if \"mmu_segmented_region_interlocking_depth\" is bigger than \"mmu_segmented_region_max_width\". Zero disables this feature."
+#~ msgstr "Hloubka prokládání segmentované oblasti. Bude ignorováno, pokud je \"mmu_segmented_region_max_width\" nula nebo pokud je \"mmu_segmented_region_interlocking_depth\" větší než \"mmu_segmented_region_max_width\". Nula tuto funkci vypne."
+
+#~ msgid ""
+#~ "Reduce the height of top-surface perimeters to match the model edge height.\n"
+#~ "Affects perimeters with a slope less than this angle (degrees).\n"
+#~ "A reasonable value is 35. Set to 0 to disable."
+#~ msgstr ""
+#~ "Sníží výšku obvodů horního povrchu tak, aby odpovídala výšce hrany modelu.\n"
+#~ "Ovlivňuje obvody se sklonem menším než tento úhel (ve stupních).\n"
+#~ "Doporučená hodnota je 35. Nastavte 0 pro vypnutí."
+
+#~ msgid "Role base wipe speed"
+#~ msgstr "Rychlost vytírání podle role"
+
+#~ msgid ""
+#~ "A draft shield is useful to protect an ABS or ASA print from warping and detaching from print bed due to wind draft. It is usually needed only with open frame printers, i.e. without an enclosure.\n"
+#~ "\n"
+#~ "Enabled = skirt is as tall as the highest printed object. Otherwise 'Skirt height' is used.\n"
+#~ "Note: With the draft shield active, the skirt will be printed at skirt distance from the object. Therefore, if brims are active it may intersect with them. To avoid this, increase the skirt distance value.\n"
+#~ msgstr ""
+#~ "Ochranný štít pomáhá chránit tisk z ABS nebo ASA před deformacemi a odtržením od podložky způsobenými průvanem. Obvykle je potřeba jen u tiskáren s otevřeným rámem, tedy bez krytu.\n"
+#~ "\n"
+#~ "Povoleno = lem je vysoký jako nejvyšší tištěný objekt. Jinak se použije „Výška sukně“.\n"
+#~ "Poznámka: Při aktivním ochranném štítu bude sukně vytištěna ve vzdálenosti sukně od objektu. Proto pokud jsou aktivní ráfky, může s nimi dojít k překřížení. Aby se tomu zabránilo, zvyšte hodnotu vzdálenosti sukně.\n"
+
+#~ msgid ""
+#~ "The maximum print speed when purging in the wipe tower and printing the wipe tower sparse layers. When purging, if the sparse infill speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "When printing the sparse layers, if the internal perimeter speed or calculated speed from the filament max volumetric speed is lower, the lowest will be used instead.\n"
+#~ "\n"
+#~ "Increasing this speed may affect the tower's stability as well as increase the force with which the nozzle collides with any blobs that may have formed on the wipe tower.\n"
+#~ "\n"
+#~ "Before increasing this parameter beyond the default of 90 mm/s, make sure your printer can reliably bridge at the increased speeds and that ooze when tool changing is well controlled.\n"
+#~ "\n"
+#~ "For the wipe tower external perimeters the internal perimeter speed is used regardless of this setting."
+#~ msgstr ""
+#~ "Maximální rychlost tisku při proplachování ve věži na očištění trysky a při tisku řídkých vrstev této věže. Při proplachování se použije nejnižší rychlost z rychlosti řídké výplně nebo vypočtené rychlosti podle maximální objemové rychlosti filamentu.\n"
+#~ "\n"
+#~ "Při tisku řídkých vrstev se použije nejnižší rychlost z rychlosti vnitřních obvodů nebo vypočtené rychlosti podle maximální objemové rychlosti filamentu.\n"
+#~ "\n"
+#~ "Zvýšení této rychlosti může ovlivnit stabilitu věže a také zvýšit sílu, s jakou tryska narazí do případných kapek vytvořených na věži na očištění trysky.\n"
+#~ "\n"
+#~ "Před zvýšením tohoto parametru nad výchozí hodnotu 90 mm/s se ujistěte, že vaše tiskárna je schopna spolehlivě překonávat mosty při zvýšených rychlostech a že je při výměně nástroje dobře kontrolováno protékání.\n"
+#~ "\n"
+#~ "Pro vnější perimetry věže na očištění trysky se vždy použije rychlost vnitřních obvodů bez ohledu na toto nastavení."
+
+#~ msgid ""
+#~ "Wipe tower outer wall type.\n"
+#~ "1. Rectangle: The default wall type, a rectangle with fixed width and height.\n"
+#~ "2. Cone: A cone with a fillet at the bottom to help stabilize the wipe tower.\n"
+#~ "3. Rib: Adds four ribs to the tower wall for enhanced stability."
+#~ msgstr ""
+#~ "Typ vnější stěny čistící věže.\n"
+#~ "1. Obdélník: Výchozí typ stěny, obdélník s pevnou šířkou a výškou.\n"
+#~ "2. Kužel: Kužel se zaoblením ve spodní části pro lepší stabilitu čistící věže.\n"
+#~ "3. Žebra: Přidá čtyři žebra ke stěně věže pro vyšší stabilitu."
+
+#~ msgid "Extra flow used for the purging lines on the wipe tower. This makes the purging lines thicker or narrower than they normally would be. The spacing is adjusted automatically."
+#~ msgstr "Dodatečný průtok použitý pro pročišťovací linie na věži na očištění trysky. Tím budou pročišťovací linie na věži na očištění trysky silnější nebo užší, než by byly obvykle. Rozestup je nastaven automaticky."
+
+#~ msgid ""
+#~ "Adjust this value to prevent short, unclosed walls from being printed, which could increase print time. Higher values remove more and longer walls.\n"
+#~ "\n"
+#~ "NOTE: Bottom and top surfaces will not be affected by this value to prevent visual gaps on the outside of the model. Adjust 'One wall threshold' in the Advanced settings below to adjust the sensitivity of what is considered a top-surface. 'One wall threshold' is only visible if this setting is set above the default value of 0.5, or if single-wall top surfaces is enabled."
+#~ msgstr ""
+#~ "Upravte tuto hodnotu, abyste zabránili tisku krátkých, neuzavřených stěn, které by mohly zvýšit dobu tisku. Vyšší hodnoty odstraní více a delších stěn.\n"
+#~ "\n"
+#~ "POZNÁMKA: Dolní a horní povrch nebude touto hodnotou ovlivněn, aby nedocházelo k viditelným mezerám na vnější straně modelu. Upravte 'prahovou hodnotu jedné stěny' v pokročilých nastaveních níže pro nastavení citlivosti, co je považováno za horní povrch. 'Prahová hodnota jedné stěny' je zobrazena pouze pokud je toto nastavení vyšší než výchozí hodnota 0,5, nebo pokud je povolena možnost horních povrchů s jednou stěnou."
 
 # AI Translated
 #, boost-format

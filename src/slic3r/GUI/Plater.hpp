@@ -418,6 +418,9 @@ public:
     bool is_gcode_3mf() { return m_exported_file; }
     bool only_gcode_mode() { return m_only_gcode; }
     void set_only_gcode(bool only_gcode) { m_only_gcode = only_gcode; }
+    // The previewed G-code's own settings were loaded into the presets, as a .gcode.3mf's are: the bed already is the
+    // one it was sliced for, and the sidebar shows them.
+    bool gcode_settings_loaded() const { return m_only_gcode && m_gcode_settings_loaded; }
 
     //BBS: add only gcode mode
     bool using_exported_file() { return m_exported_file; }
@@ -431,6 +434,7 @@ public:
     bool is_new_project_and_check_state() { return m_new_project_and_check_state; }
     wxString get_project_name();
     void update_all_plate_thumbnails(bool force_update = false);
+    void update_plate_thumbnails(int plate_idx, bool force_update);
     void update_obj_preview_thumbnail(ModelObject *, int obj_idx, int vol_idx, std::vector<Slic3r::ColorRGBA> colors, int camera_view_angle_type);
     void invalid_all_plate_thumbnails();
     void force_update_all_plate_thumbnails();
@@ -1068,6 +1072,8 @@ public:
     void mark_plate_toolbar_image_dirty();
     bool is_plate_toolbar_image_dirty() const;
     void clear_plate_toolbar_image_dirty();
+    // Bumped each time the plate thumbnails go stale, so each consumer can track it on its own.
+    unsigned plate_toolbar_image_version() const { return m_plate_toolbar_image_version; }
 
 private:
     struct priv;
@@ -1082,6 +1088,8 @@ private:
     wxString m_last_loaded_gcode;
     //BBS: add only gcode mode
     bool m_only_gcode { false };//just for .gcode file not for .gcode.3mf
+    // Set by load_gcode() for the file it previews, so it means nothing once m_only_gcode is cleared.
+    bool m_gcode_settings_loaded { false };
     bool m_exported_file { false };
     bool skip_thumbnail_invalid { false };
     bool m_loading_project { false };
@@ -1090,6 +1098,7 @@ private:
     int m_valid_plates_count { 0 };
     int m_check_status = 0; // 0 not check, 1 check success, 2 check failed
     bool m_b_plate_toolbar_image_dirty{ true };
+    unsigned m_plate_toolbar_image_version{ 0 };
 
     void suppress_snapshots();
     void allow_snapshots();

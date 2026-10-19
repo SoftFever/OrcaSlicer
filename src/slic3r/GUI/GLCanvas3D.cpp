@@ -65,6 +65,7 @@
 #include <string_view>
 #include "slic3r/GUI/Selection.hpp"
 #include "GLCanvas3D.hpp"
+#include "SequentialPrintClearance.hpp"
 #ifdef SLIC3R_CAD
 #include "slic3r/GUI/CAD/DesignSketchTool.hpp"   // Design tab: interactive 2D sketch tool
 #endif
@@ -1679,6 +1680,7 @@ GLCanvas3D::~GLCanvas3D()
 
     m_sel_plate_toolbar.del_all_item();
     m_sel_plate_toolbar.del_stats_item();
+    m_plate_switcher_items.clear();
 }
 
 void GLCanvas3D::post_event(wxEvent &&event)
@@ -2360,6 +2362,8 @@ void GLCanvas3D::zoom_to_gcode()
 void GLCanvas3D::zoom_to_plate(int plate_idx)
 {
     BoundingBoxf3 box;
+    if (plate_idx == REQUIRES_ZOOM_TO_ALL_PLATE && _hides_inactive_plates())
+        plate_idx = REQUIRES_ZOOM_TO_CUR_PLATE;
     if (plate_idx == REQUIRES_ZOOM_TO_ALL_PLATE) {
         box = wxGetApp().plater()->get_partplate_list().get_bounding_box();
         box.min.z() = 0.0;
@@ -2416,12 +2420,22 @@ float GLCanvas3D::get_collapse_toolbar_height() const
 }
 
 // The bottom-left corner: the 3D navigator, then the column of round canvas buttons beside it, in
-// units of the toolbar scale. Shared by _render_3d_navigator, _render_canvas_toolbar and
-// get_canvas_toolbar_right, so an overlay kept clear of the corner follows its layout.
+// units of the toolbar scale. Shared by _render_3d_navigator, _render_canvas_toolbar,
+// get_canvas_toolbar_right and canvas_corner_height, so an overlay kept clear of the corner follows its layout.
 static constexpr float NAVIGATOR_SIZE         = 128.f;
 static constexpr float CANVAS_TOOLBAR_MARGIN  = 10.f;   // off the canvas edge, when there is no navigator
 static constexpr float CANVAS_TOOLBAR_PADDING = 2.f;
 static constexpr float CANVAS_TOOLBAR_BUTTON  = 36.f;
+static constexpr float CANVAS_TOOLBAR_SPACING = 6.f;
+
+// What the corner takes at the left edge of the canvas: the 3D navigator, or else the canvas toolbar.
+static float canvas_corner_height()
+{
+    if (wxGetApp().show_3d_navigator())
+        return NAVIGATOR_SIZE;
+    const int buttons = wxGetApp().show_canvas_zoom_button() ? 3 : 2;
+    return CANVAS_TOOLBAR_MARGIN + 2.f * CANVAS_TOOLBAR_PADDING + buttons * CANVAS_TOOLBAR_BUTTON + (buttons - 1) * CANVAS_TOOLBAR_SPACING;
+}
 
 float GLCanvas3D::get_canvas_toolbar_right() const
 {
@@ -2545,6 +2559,9 @@ void GLCanvas3D::_render_frame(bool scene_dirty, bool only_init)
     camera.apply_projection(_max_bounding_box(true, true, true));
 
     wxGetApp().imgui()->new_frame();
+
+    if (_update_inactive_plates_visibility())
+        scene_dirty = true;
 
     if (m_picking_enabled && !m_benchmarking) {
         if (m_rectangle_selection.is_dragging())
@@ -4978,7 +4995,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 // Don't deselect a volume if layer editing is enabled or any gizmo is active. We want the object to stay selected
                 // during the scene manipulation.
 
-                if (m_picking_enabled && (!any_gizmo_active || !evt.CmdDown()) && (!m_hover_volume_idxs.empty())) {
+                if (m_picking_enabled && (m_gizmos.is_allow_multi_select_parts_or_objects() || !evt.CmdDown()) && (!m_hover_volume_idxs.empty())) {
                     if (evt.LeftDown() && !m_hover_volume_idxs.empty()) {
                         int volume_idx = get_first_hover_volume_idx();
                         bool already_selected = m_selection.contains_volume(volume_idx);
@@ -4988,7 +5005,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                         if (already_selected && ctrl_down)
                             m_selection.remove(volume_idx);
+                        else if (alt_down && m_gizmos.is_allow_multi_select_parts_or_objects() && m_selection.get_mode() == Selection::Volume &&
+                                 m_selection.get_object_idx() == m_volumes.volumes[volume_idx]->object_idx() &&
+                                 m_selection.get_instance_idx() == m_volumes.volumes[volume_idx]->instance_idx()) {
+                            // Alt+click on another part of the selected parts' instance adds it, and on a selected
+                            // part removes it, unless it is the only one.
+                            if (!already_selected)
+                                m_selection.add_volumes(Selection::Volume, {(unsigned int) volume_idx}, false);
+                            else if (curr_idxs.size() > 1)
+                                m_selection.remove_volumes(Selection::Volume, {(unsigned int) volume_idx});
+                        }
                         else if (alt_down) {
+                            // Select just the clicked part, also when an object is selected.
                             Selection::EMode mode = Selection::Volume;
                             if (already_selected) {
                                 std::vector<unsigned int> volume_idxs;
@@ -5520,7 +5548,7 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip)
         m_tooltip.set_text(tooltip);
 }
 
-void GLCanvas3D::do_move(const std::string& snapshot_type)
+void GLCanvas3D::do_move(const std::string& snapshot_type, bool force_volume_move)
 {
     if (m_model == nullptr)
         return;
@@ -5552,24 +5580,24 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
 
             // Move instances/volumes
             ModelObject* model_object = m_model->objects[object_idx];
-            if (model_object == nullptr) 
+            if (model_object == nullptr)
                 continue;
 
-            if (selection_mode == Selection::Instance) {
+            if (force_volume_move || selection_mode == Selection::Volume) {
+                auto cur_mv = model_object->volumes[volume_idx];
+                if (cur_mv->get_transformation() != v->get_volume_transformation()) {
+                    cur_mv->set_transformation(v->get_volume_transformation());
+                    // BBS: backup
+                    Slic3r::save_object_mesh(*model_object);
+                }
+            }
+            else if (selection_mode == Selection::Instance) {
                 if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
                     if ((model_object->instances[instance_idx]->get_assemble_offset() - v->get_instance_offset()).norm() > 1e-2) {
                         model_object->instances[instance_idx]->set_assemble_transformation(v->get_instance_transformation());
                     }
                 } else {
                     model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
-                }
-            }
-            else if (selection_mode == Selection::Volume) {
-                auto cur_mv = model_object->volumes[volume_idx];
-                if (cur_mv->get_transformation() != v->get_volume_transformation()) {
-                    cur_mv->set_transformation(v->get_volume_transformation());
-                    // BBS: backup
-                    Slic3r::save_object_mesh(*model_object);
                 }
             }
 
@@ -5588,13 +5616,14 @@ void GLCanvas3D::do_move(const std::string& snapshot_type)
     // parts moved. Notifying a plate about an instance that stayed put invalidates its slice
     // result, and notifying instance 0 alone left a moved copy unregistered on its new plate.
     {
+        const bool parts_moved = force_volume_move || selection_mode == Selection::Volume;
         std::set<std::pair<int, int>> notified;
         for (unsigned int i : m_selection.get_volume_idxs()) {
             const GLVolume* v          = m_volumes.volumes[i];
             const int       object_idx = v->object_idx();
             if (object_idx < 0 || object_idx >= static_cast<int>(m_model->objects.size()))
                 continue;
-            const std::pair<int, int> key(object_idx, selection_mode == Selection::Volume ? -1 : v->instance_idx());
+            const std::pair<int, int> key(object_idx, parts_moved ? -1 : v->instance_idx());
             if (notified.insert(key).second)
                 m_selection.notify_instance_update(key.first, key.second);
         }
@@ -6369,17 +6398,16 @@ void GLCanvas3D::update_sequential_clearance()
     //BBS: add the height logic
     PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     Polygons polygons;
-    std::vector<std::pair<Polygon, float>> height_polygons;
     polygons.reserve(instances_count);
-    height_polygons.reserve(instances_count);
-    std::vector<struct height_info> convex_and_bounding_boxes;
-    struct height_info
-    {
-        double         instance_height;
-        BoundingBox    bounding_box;
-        Polygon        hull_polygon;
-    };
+    std::vector<SequentialClearanceInstance> convex_and_bounding_boxes;
+    convex_and_bounding_boxes.reserve(instances_count);
+    std::map<ObjectID, int> print_order;
+    for (const PrintObject* print_object : fff_print()->objects())
+        for (const PrintInstance& instance : print_object->instances())
+            print_order.emplace(instance.model_instance->id(), instance.model_instance->arrange_order);
+
     for (size_t i = 0; i < instance_transforms.size(); ++i) {
+        const size_t first_instance = convex_and_bounding_boxes.size();
         const auto& instances = instance_transforms[i];
         double rotation_z0 = instances.front()->get_rotation().z();
         int index = 0;
@@ -6399,96 +6427,20 @@ void GLCanvas3D::update_sequential_clearance()
             Polygon convex_hull(std::move(inst_pts));
             BoundingBox bouding_box = convex_hull.bounding_box();
             BoundingBox plate_bb = plate->get_bounding_box_crd();
+            const ObjectID instance_id = m_model->objects[i]->instances[index]->id();
             double instance_height = m_model->objects[i]->get_instance_max_z(index++);
             //skip the object for not current plate
             if (!plate_bb.overlap(bouding_box))
                 continue;
-            convex_and_bounding_boxes.push_back({instance_height, bouding_box, convex_hull});
+            convex_and_bounding_boxes.push_back({instance_height, bouding_box, convex_hull, instance_id});
             polygons.emplace_back(std::move(convex_hull));
         }
+        sort_sequential_clearance_instances(convex_and_bounding_boxes.begin() + first_instance, convex_and_bounding_boxes.end(), print_order);
     }
 
-    //sort the print instance
-    std::sort(convex_and_bounding_boxes.begin(), convex_and_bounding_boxes.end(),
-        [](auto &l, auto &r) {
-            auto ly1 = l.bounding_box.min.y();
-            auto ly2 = l.bounding_box.max.y();
-            auto ry1 = r.bounding_box.min.y();
-            auto ry2 = r.bounding_box.max.y();
-            auto inter_min = std::max(ly1, ry1);
-            auto inter_max = std::min(ly2, ry2);
-            auto lx = l.bounding_box.min.x();
-            auto rx = r.bounding_box.min.x();
-            if (inter_max - inter_min > 0)
-                return (lx < rx) || ((lx == rx)&&(ly1 < ry1));
-            else
-                return (ly1 < ry1);
-        });
-
-    /*bool has_interlaced_objects = false;
-    for (int k = 0; k < bounding_box_count; k++)
-    {
-        Polygon& convex = convex_and_bounding_boxes[k].hull_polygon;
-        BoundingBox& bbox = convex_and_bounding_boxes[k].bounding_box;
-        auto iy1 = bbox.min.y();
-        auto iy2 = bbox.max.y();
-
-        for (int i = k+1; i < bounding_box_count; i++)
-        {
-            Polygon&     next_convex = convex_and_bounding_boxes[i].hull_polygon;
-            BoundingBox& next_bbox   = convex_and_bounding_boxes[i].bounding_box;
-            auto py1 = next_bbox.min.y();
-            auto py2 = next_bbox.max.y();
-            auto inter_min = std::max(iy1, py1); // min y of intersection
-            auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
-            if (inter_max - inter_min > 0) {
-                has_interlaced_objects = true;
-                break;
-            }
-        }
-        if (has_interlaced_objects)
-            break;
-    }*/
-
-    int bounding_box_count = convex_and_bounding_boxes.size();
-    double printable_height = fff_print()->config().printable_height;
-    double hc1 = fff_print()->config().extruder_clearance_height_to_lid;
-    double hc2 = fff_print()->config().extruder_clearance_height_to_rod;
-    for (int k = 0; k < bounding_box_count; k++)
-    {
-        Polygon& convex = convex_and_bounding_boxes[k].hull_polygon;
-        BoundingBox& bbox = convex_and_bounding_boxes[k].bounding_box;
-        auto iy1 = bbox.min.y();
-        auto iy2 = bbox.max.y();
-        double height = (k == (bounding_box_count - 1))?printable_height:hc1;
-
-        /*if (has_interlaced_objects) {
-            if ((k < (bounding_box_count - 1)) && (convex_and_bounding_boxes[k].instance_height > hc2)) {
-                height_polygons.emplace_back(std::make_pair(convex, hc2));
-            }
-        }
-        else {
-            if ((k < (bounding_box_count - 1)) && (convex_and_bounding_boxes[k].instance_height > hc1)) {
-                height_polygons.emplace_back(std::make_pair(convex, hc1));
-            }
-        }*/
-
-        for (int i = k+1; i < bounding_box_count; i++)
-        {
-            Polygon&     next_convex = convex_and_bounding_boxes[i].hull_polygon;
-            BoundingBox& next_bbox   = convex_and_bounding_boxes[i].bounding_box;
-            auto py1 = next_bbox.min.y();
-            auto py2 = next_bbox.max.y();
-            auto inter_min = std::max(iy1, py1); // min y of intersection
-            auto inter_max = std::min(iy2, py2); // max y of intersection. length=max_y-min_y>0 means intersection exists
-            if (inter_max - inter_min > 0) {
-                height = hc2;
-                break;
-            }
-        }
-        if (height < convex_and_bounding_boxes[k].instance_height)
-            height_polygons.emplace_back(std::make_pair(convex, height));
-    }
+    const auto& config = fff_print()->config();
+    const auto height_polygons = sequential_clearance_height_polygons(convex_and_bounding_boxes, config.printable_height,
+        config.extruder_clearance_height_to_lid, config.extruder_clearance_height_to_rod);
 
     // sends instances 2d hulls to be rendered
     set_sequential_print_clearance_visible(true);
@@ -7657,7 +7609,6 @@ void GLCanvas3D::_update_select_plate_toolbar_stats_item(bool force_selected) {
 
 bool GLCanvas3D::_update_imgui_select_plate_toolbar()
 {
-    bool result = true;
     if (!m_sel_plate_toolbar.is_enabled()) {
         return false;
     }
@@ -7682,19 +7633,13 @@ bool GLCanvas3D::_update_imgui_select_plate_toolbar()
     PartPlateList& plate_list = p_plater->get_partplate_list();
     for (int i = 0; i < plate_list.get_plate_count(); i++) {
         IMToolbarItem* item = new IMToolbarItem();
-        PartPlate* plate = plate_list.get_plate(i);
-        if (plate && plate->thumbnail_data.is_valid()) {
-            PartPlate* plate = plate_list.get_plate(i);
-            item->image_data = plate->thumbnail_data.pixels;
-            item->image_width = plate->thumbnail_data.width;
-            item->image_height = plate->thumbnail_data.height;
-            result = item->generate_texture();
-        }
+        if (PartPlate* plate = plate_list.get_plate(i))
+            item->set_thumbnail(plate->thumbnail_data);
         m_sel_plate_toolbar.m_items.push_back(item);
     }
     p_plater->clear_plate_toolbar_image_dirty();
     m_sel_plate_toolbar.is_display_scrollbar = false;
-    return result;
+    return true;
 }
 
 //BBS: GUI refactor
@@ -7962,8 +7907,8 @@ void GLCanvas3D::_picking_pass()
             if (0 <= hit.raycaster_id && hit.raycaster_id < (int)m_volumes.volumes.size()) {
                 const GLVolume* volume = m_volumes.volumes[hit.raycaster_id];
                 if (volume->is_active && !volume->disabled && (volume->composite_id.volume_id >= 0 || m_render_sla_auxiliaries)) {
-                    // do not add the volume id if any gizmo is active and CTRL is pressed
-                    if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined || !wxGetKeyState(WXK_CONTROL))
+                    // do not add the volume id if CTRL is pressed while a gizmo that does not allow Ctrl+click selection is active
+                    if (m_gizmos.is_allow_multi_select_parts_or_objects() || !wxGetKeyState(WXK_CONTROL))
                         m_hover_volume_idxs.emplace_back(hit.raycaster_id);
                     m_gizmos.set_hover_id(-1);
                 }
@@ -8889,9 +8834,73 @@ void GLCanvas3D::_render_bed(const Transform3d& view_matrix, const Transform3d& 
         const Vec2d bc = m_bed.build_volume().bed_center();
         m_bed.set_axes_origin(Vec3d(bc.x(), bc.y(), 0.0));
     } else {
-        m_bed.set_axes_mode(m_main_toolbar.is_enabled());
+        // With the other plates hidden, the axes go to the current plate as in Preview.
+        m_bed.set_axes_mode(m_main_toolbar.is_enabled() && !_hides_inactive_plates());
     }
     m_bed.render(*this, view_matrix, projection_matrix, bottom, scale_factor, show_axes);
+}
+
+bool GLCanvas3D::_hides_inactive_plates() const
+{
+    return m_canvas_type == ECanvasType::CanvasView3D && !m_design_canvas && wxGetApp().focus_mode();
+}
+
+bool GLCanvas3D::_update_inactive_plates_visibility()
+{
+    const bool hide = _hides_inactive_plates();
+    if (!hide && !m_inactive_plates_hidden)
+        return false;
+
+    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
+    PartPlate*     plate      = hide ? plate_list.get_curr_plate() : nullptr;
+
+    struct Instance
+    {
+        BoundingBoxf3 box;
+        bool          selected{ false };
+    };
+    std::map<std::pair<int, int>, Instance> instances;
+    if (plate != nullptr)
+        for (const GLVolume* volume : m_volumes.volumes) {
+            Instance& instance = instances[{ volume->object_idx(), volume->instance_idx() }];
+            instance.box.merge(volume->transformed_convex_hull_bounding_box());
+            instance.selected |= volume->selected;
+        }
+
+    // A gizmo that hides the other objects shows them all again when it closes.
+    const bool keep_hidden = m_gizmos.is_hiding_instances();
+    bool changed    = false;
+    bool any_hidden = false;
+    std::vector<bool> shown_again(m_volumes.volumes.size(), false);
+    for (size_t i = 0; i < m_volumes.volumes.size(); ++i) {
+        GLVolume*       volume   = m_volumes.volumes[i];
+        const Instance* instance = plate != nullptr ? &instances[{ volume->object_idx(), volume->instance_idx() }] : nullptr;
+        if (instance != nullptr && !instance->selected && instance->box.defined && !plate->get_bounding_box().overlap(instance->box)) {
+            changed |= volume->is_active;
+            volume->is_active       = false;
+            volume->on_hidden_plate = true;
+        } else if (volume->on_hidden_plate && !keep_hidden) {
+            volume->is_active       = true;
+            volume->on_hidden_plate = false;
+            shown_again[i]          = true;
+            changed                 = true;
+        }
+        any_hidden |= volume->on_hidden_plate;
+    }
+
+    if (auto* raycasters = get_raycasters_for_picking(SceneRaycaster::EType::Volume))
+        for (const std::shared_ptr<SceneRaycasterItem>& item : *raycasters) {
+            const int i = SceneRaycaster::decode_id(SceneRaycaster::EType::Volume, item->get_id());
+            if (0 <= i && i < int(m_volumes.volumes.size()) && (m_volumes.volumes[i]->on_hidden_plate || shown_again[i]))
+                item->set_active(shown_again[i]);
+        }
+    if (auto* raycasters = get_raycasters_for_picking(SceneRaycaster::EType::Bed))
+        for (const std::shared_ptr<SceneRaycasterItem>& item : *raycasters)
+            item->set_active(!hide || SceneRaycaster::decode_id(SceneRaycaster::EType::Bed, item->get_id()) / PartPlate::GRABBER_COUNT ==
+                                          plate_list.get_curr_plate_index());
+
+    m_inactive_plates_hidden = hide || any_hidden;
+    return changed;
 }
 
 void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transform3d& projection_matrix, bool bottom, bool only_current, bool only_body, int hover_id, bool render_cali, bool show_grid)
@@ -8902,7 +8911,7 @@ void GLCanvas3D::_render_platelist(const Transform3d& view_matrix, const Transfo
     PartPlate* curr_plate = plate_list.get_curr_plate();
     const Transform3d plate_view_matrix = m_design_canvas && curr_plate != nullptr ?
         Transform3d(view_matrix * Geometry::translation_transform(-curr_plate->get_origin())) : view_matrix;
-    plate_list.render(plate_view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali, show_grid, !m_plate_chrome_enabled);
+    plate_list.render(plate_view_matrix, projection_matrix, bottom, only_current, only_body, hover_id, render_cali, show_grid, !m_plate_chrome_enabled, _hides_inactive_plates());
 }
 
 BoundingBoxf3 GLCanvas3D::_current_plate_box() const
@@ -9920,6 +9929,7 @@ void GLCanvas3D::_render_overlays()
 
     //BBS: GUI refactor: GLToolbar
     _render_imgui_select_plate_toolbar();
+    _render_plate_switcher();
     _render_return_toolbar();
     // BBS
     //_render_view_toolbar();
@@ -10188,6 +10198,35 @@ void GLCanvas3D::_render_main_toolbar()
         m_main_toolbar.render_arrow(*this, m_toolbar_highlighter.m_toolbar_item);
 }
 
+// The scrollbar of the plate toolbars of Preview and Prepare, in units of the toolbar scale.
+static constexpr float PLATE_TOOLBAR_SCROLLBAR = 14.f;
+
+// Pushes 4 colors and 1 style var.
+static void push_plate_toolbar_scrollbar_style(bool is_dark, float scrollbar_size)
+{
+    const ImVec4 grab(0.77f, 0.77f, 0.77f, is_dark ? .6f : 1.f);
+    // A background with opacity over the window's would make a second color.
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.f, 0.f, 0.f, 0.f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, grab);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, grab);
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, grab);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_size);
+}
+
+// The border of a hovered plate in the plate toolbars, when it is not the current one.
+static ImVec4 plate_toolbar_hover_color(bool is_dark)
+{
+    return ImVec4(0.67f, 0.67f, 0.67f, is_dark ? .6f : 1.f);
+}
+
+// Not IsWindowHovered(), which is false while a button is held down and would drop the bar.
+static bool plate_toolbar_keeps_scrollbar(bool shown, float scrollbar_size)
+{
+    const ImVec2 pos = ImGui::GetWindowPos();
+    return ImGui::IsMouseHoveringRect(pos, pos + ImGui::GetWindowSize() + ImVec2(shown ? scrollbar_size : 0.f, 0.f), !shown) ||
+           (ImGui::GetIO().MouseDown[0] && GImGui->ActiveId != 0 && GImGui->ActiveIdWindow == ImGui::GetCurrentWindow());
+}
+
 //BBS: GUI refactor: GLToolbar adjust
 //when rendering, {0, 0} is at the center, {-0.5, 0.5} at the left-up
 void GLCanvas3D::_render_imgui_select_plate_toolbar()
@@ -10318,16 +10357,15 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     int item_count           = m_sel_plate_toolbar.m_items.size() + (m_sel_plate_toolbar.show_stats_item ? 1 : 0);
     float window_height_calc = (item_count * (button_height + (margin_size + button_margin) * 2.0f) + (item_count - 1) * ImGui::GetStyle().ItemSpacing.y + ImGui::GetStyle().WindowPadding.y * 2.0f);
     bool  show_scroll        = m_sel_plate_toolbar.is_display_scrollbar && (window_height_calc > window_height_max);
-    float scrollbar_size     = 14.0f * f_scale;
+    float scrollbar_size     = PLATE_TOOLBAR_SCROLLBAR * f_scale;
     float window_height      = std::min(window_height_calc, window_height_max);
     float window_width       = button_width + (margin_size + button_margin + ImGui::GetStyle().WindowPadding.x) * 2 + (show_scroll ? scrollbar_size : 0);
 
     ImVec4 window_bg     = m_is_dark ? ImVec4(.13f, .13f, .15f, .5f) : ImVec4(1.f, 1.f, 1.f, .7f);
     ImVec4 button_active = ImGuiWrapper::COL_ORCA; // ORCA: Use orca color for selected sliced plate border
-    ImVec4 button_hover  = ImVec4(0.67f, 0.67f, 0.67, m_is_dark ? .6f : 1.0f);
+    ImVec4 button_hover  = plate_toolbar_hover_color(m_is_dark);
     ImVec4 orca_active   = m_is_dark ? ImGuiWrapper::COL_ORCA_DARK       : ImGuiWrapper::COL_ORCA;
     ImVec4 orca_hover    = m_is_dark ? ImGuiWrapper::COL_ORCA_HOVER_DARK : ImGuiWrapper::COL_ORCA_HOVER;
-    ImVec4 scroll_col    = ImVec4(0.77f, 0.77f, 0.77f, m_is_dark ? .6f : 1.0f);
     ImU32  plate_bg      = m_is_dark ? IM_COL32(255, 255, 255, 10) : IM_COL32(0, 0, 0, 10);
     ImU32  plate_dim     = m_is_dark ? IM_COL32(30, 30, 30, 100) : IM_COL32(0, 0, 0, 50);
     float  button_radius = 1.0f * f_scale;
@@ -10335,14 +10373,10 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     //use white text as the background switch to black
     ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(.9f, .9f, .9f, 1) : ImVec4(.3f, .3f, .3f, 1)); // ORCA Plate number text > Add support for dark mode
     ImGui::PushStyleColor(ImGuiCol_WindowBg, window_bg);
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.f, 0.f, 0.f, 0.f)); // ORCA using background color with opacity creates a second color. This prevents secondary color
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, scroll_col);
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, scroll_col);
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, scroll_col);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hover);
+    push_plate_toolbar_scrollbar_style(m_is_dark, scrollbar_size);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_size);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, show_scroll ? (6.f * f_scale) : (button_radius + margin_size + frame_padding + ImGui::GetStyle().WindowPadding.x));
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, button_radius + margin_size);
@@ -10613,16 +10647,107 @@ void GLCanvas3D::_render_imgui_select_plate_toolbar()
     ImGui::PopStyleColor(8);
     ImGui::PopStyleVar(7);
 
-    //ORCA ImGui::IsWindowHovered() returns false when left_down events on buttons that causes scrollbar disappears for a short time
-    auto win_pos = ImGui::GetWindowPos();
-    bool is_win_hovered = ImGui::IsMouseHoveringRect(win_pos, win_pos + ImVec2(window_width + (show_scroll ? scrollbar_size : 0), window_height), !show_scroll);
-
-    // Also show scrollbar visible and continue to capture mouse position
-    const bool is_scrollbar_active_drag = GImGui != nullptr && ImGui::GetIO().MouseDown[0] && GImGui->ActiveId != 0 && GImGui->ActiveIdWindow == ImGui::GetCurrentWindow();
-
-    m_sel_plate_toolbar.is_display_scrollbar = is_win_hovered || is_scrollbar_active_drag;
+    m_sel_plate_toolbar.is_display_scrollbar = plate_toolbar_keeps_scrollbar(show_scroll, scrollbar_size);
 
     imgui.end();
+}
+
+void GLCanvas3D::_render_plate_switcher()
+{
+    Plater*        plater      = wxGetApp().plater();
+    PartPlateList& plate_list  = plater->get_partplate_list();
+    const int      plate_count = plate_list.get_plate_count();
+    if (!_hides_inactive_plates() || plate_count < 2 || m_gizmos.get_current_type() != GLGizmosManager::Undefined)
+        return;
+
+    // The thumbnails are the ones of the Preview plate toolbar.
+    const unsigned version = plater->plate_toolbar_image_version();
+    if (m_plate_switcher_version != version || m_plate_switcher_items.size() != size_t(plate_count)) {
+        // Only the current plate is edited here; the others are redrawn when their thumbnails go invalid.
+        for (int i = 0; i < plate_count && !plater->is_gcode_3mf(); ++i)
+            plater->update_plate_thumbnails(i, i == plate_list.get_curr_plate_index());
+        m_plate_switcher_items.clear();
+        for (int i = 0; i < plate_count; ++i) {
+            m_plate_switcher_items.push_back(std::make_unique<IMToolbarItem>());
+            m_plate_switcher_items.back()->set_thumbnail(plate_list.get_plate(i)->thumbnail_data);
+        }
+        m_plate_switcher_version = version;
+    }
+
+    float sc = get_scale();
+#ifdef WIN32
+    sc *= (float) get_dpi_for_window(wxGetApp().GetTopWindow()) / (float) DPI_DEFAULT;
+#endif // WIN32
+
+    ImGuiWrapper& imgui     = *wxGetApp().imgui();
+    const ImVec2  btn_size  = ImVec2(72.f, 72.f) * sc;
+    const ImVec2  padding   = ImVec2(8.f, 8.f) * sc;
+    const float   spacing   = 8.f * sc;
+    const float   rounding  = 4.f * sc;
+    const float   scrollbar = PLATE_TOOLBAR_SCROLLBAR * sc;
+    const float   top       = std::max(m_main_toolbar.get_height(), m_gizmos.get_scaled_total_height()) + CANVAS_TOOLBAR_MARGIN * sc;
+    const float   content_h = plate_count * (btn_size.y + spacing) - spacing + 2.f * padding.y;
+    const float   max_h     = std::max(btn_size.y + 2.f * padding.y, float(get_canvas_size().get_height()) - top - (canvas_corner_height() + CANVAS_TOOLBAR_MARGIN) * sc);
+    // As in the Preview plate toolbar, the scrollbar shows only while the mouse is over the column.
+    const bool    scroll    = m_plate_switcher_scrollbar && content_h > max_h;
+
+    const ImVec4 text_color  = m_is_dark ? ImVec4(.9f, .9f, .9f, 1.f) : ImVec4(.3f, .3f, .3f, 1.f);
+    const ImVec4 empty_color = ImVec4(text_color.x, text_color.y, text_color.z, .45f);
+    const ImVec4 hover       = plate_toolbar_hover_color(m_is_dark);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, padding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+    // Concentric with the thumbnails; tighter around the scrollbar, as in the Preview plate toolbar.
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, scroll ? 6.f * sc : rounding + padding.x);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImVec4(.13f, .13f, .15f, .5f) : ImVec4(1.f, 1.f, 1.f, .7f));
+    push_plate_toolbar_scrollbar_style(m_is_dark, scrollbar);
+
+    imgui.set_next_window_pos(CANVAS_TOOLBAR_MARGIN * sc, top, ImGuiCond_Always, 0.f, 0.f);
+    imgui.set_next_window_size(btn_size.x + 2.f * padding.x + (scroll ? scrollbar : 0.f), std::min(content_h, max_h), ImGuiCond_Always);
+    imgui.begin(std::string("##PlateSwitcher"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar |
+                                                ImGuiWindowFlags_NoCollapse | (scroll ? 0 : ImGuiWindowFlags_NoScrollbar));
+
+    const int curr_plate = plate_list.get_curr_plate_index();
+    ImDrawList*  draw_list = ImGui::GetWindowDrawList();
+    const ImU32  plate_bg  = m_is_dark ? IM_COL32(255, 255, 255, 10) : IM_COL32(0, 0, 0, 10);
+    const ImU32  plate_dim = m_is_dark ? IM_COL32(30, 30, 30, 100) : IM_COL32(0, 0, 0, 50);
+    for (int i = 0; i < plate_count; ++i) {
+        PartPlate* plate   = plate_list.get_plate(i);
+        const bool current = i == curr_plate;
+        const ImVec2 pos   = ImGui::GetCursorScreenPos();
+        ImGui::PushID(i);
+        const bool clicked = ImGui::InvisibleButton("##plate", btn_size);
+        ImGui::PopID();
+        const bool hovered = ImGui::IsItemHovered();
+
+        draw_list->AddRectFilled(pos, pos + btn_size, plate_bg, rounding);
+        if (ImTextureID texture = m_plate_switcher_items[i]->texture_id)
+            draw_list->AddImageRounded(texture, pos, pos + btn_size, ImVec2(0.f, 1.f), ImVec2(1.f, 0.f), IM_COL32_WHITE, rounding);
+        if (plate->empty())
+            draw_list->AddRectFilled(pos, pos + btn_size, plate_dim, rounding);
+        if (current || hovered) {
+            const float border = 2.f * sc;
+            draw_list->AddRect(pos - ImVec2(border, border) * .5f, pos + btn_size + ImVec2(border, border) * .5f,
+                               ImGui::GetColorU32(current ? (hovered ? ImGuiWrapper::COL_ORCA_HOVER : ImGuiWrapper::COL_ORCA) : hover),
+                               rounding + border * .5f, 0, border);
+        }
+        draw_list->AddText(pos + ImVec2(4.f, 2.f) * sc, ImGui::GetColorU32(plate->empty() ? empty_color : text_color), std::to_string(i + 1).c_str());
+
+        if (clicked && !current)
+            plater->CallAfter([i]() {
+                wxGetApp().plater()->select_plate(i);
+                wxGetApp().plater()->deselect_all();
+            });
+        if (hovered) {
+            const std::string name = plate->get_plate_name();
+            imgui.tooltip(_u8L("Plate") + " " + std::to_string(i + 1) + (name.empty() ? "" : " (" + name + ")"), ImGui::GetFontSize() * 20.f);
+        }
+    }
+
+    m_plate_switcher_scrollbar = plate_toolbar_keeps_scrollbar(scroll, scrollbar);
+    imgui.end();
+    ImGui::PopStyleColor(5);
+    ImGui::PopStyleVar(5);
 }
 
 //BBS: GUI refactor: GLToolbar adjust
@@ -10731,7 +10856,7 @@ void GLCanvas3D::_render_canvas_toolbar()
 
     ImVec2        btn_size = ImVec2(CANVAS_TOOLBAR_BUTTON, CANVAS_TOOLBAR_BUTTON) * sc;
     ImVec2        margin   = ImVec2(m_canvas_toolbar_pos[0] > 0 ? 0.f : (CANVAS_TOOLBAR_MARGIN * sc), CANVAS_TOOLBAR_MARGIN * sc);
-    ImVec2        spacing  = ImVec2(6.f, 6.f)  * sc;
+    ImVec2        spacing  = ImVec2(CANVAS_TOOLBAR_SPACING, CANVAS_TOOLBAR_SPACING) * sc;
     ImVec2        padding  = ImVec2(CANVAS_TOOLBAR_PADDING, CANVAS_TOOLBAR_PADDING) * sc;
     Vec2i32       pos      = {
         m_canvas_toolbar_pos[0]        + margin.x,
@@ -10932,6 +11057,17 @@ void GLCanvas3D::_render_canvas_toolbar()
             m_canvas_type != ECanvasType::CanvasAssembleView, // not work on assembly
             wxGetApp().show_plate_gridlines(),
             []{wxGetApp().toggle_show_plate_gridlines();}
+        );
+
+        create_menu_item( _utf8(L("Focus mode")),
+            m_canvas_type == ECanvasType::CanvasView3D && !m_design_canvas, // work only on prepare
+            wxGetApp().focus_mode(),
+            [this]{
+                wxGetApp().toggle_focus_mode();
+                if (wxGetApp().focus_mode())
+                    zoom_to_plate(REQUIRES_ZOOM_TO_CUR_PLATE);
+                m_dirty = true;
+            }
         );
 
         ImGui::Separator();

@@ -474,17 +474,14 @@ void Selection::add_curr_plate()
     if (!m_valid)
         return;
 
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_plate(wxGetApp().plater()->get_partplate_list().get_curr_plate_index());
+    if (volume_idxs.empty())
+        return;
+
     wxGetApp().plater()->take_snapshot(std::string("Selection-Add Curr Plate All!"));
     m_mode = Instance;
     clear();
-
-    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-        if (plate && plate->contain_instance_totally(obj_idx, 0)) {
-            std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
-            do_add_volumes(volume_idxs);
-        }
-    }
+    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -511,20 +508,14 @@ void Selection::remove_curr_plate()
     if (!m_valid)
         return;
 
-    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    if (plate->empty())
+    std::vector<unsigned int> volume_idxs = get_volume_idxs_from_plate(wxGetApp().plater()->get_partplate_list().get_curr_plate_index());
+    if (volume_idxs.empty())
         return;
 
     wxGetApp().plater()->take_snapshot(std::string("Selection-Delete Curr Plate All"));
     m_mode = Instance;
     clear();
-
-    for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
-        if (plate && plate->contain_instance(obj_idx, 0)) {
-            std::vector<unsigned int> volume_idxs = get_volume_idxs_from_object(obj_idx);
-            do_add_volumes(volume_idxs);
-        }
-    }
+    do_add_volumes(volume_idxs);
 
     update_type();
     this->set_bounding_boxes_dirty();
@@ -558,15 +549,37 @@ void Selection::center()
     return;
 }
 
+double Selection::get_drop_min_z() const
+{
+    if (!m_valid)
+        return 0.;
+    if (m_mode == Volume)
+        return get_bounding_box().min.z();
+
+    double min_z = DBL_MAX;
+    for (const auto& [obj_idx, inst_idxs] : m_cache.content) {
+        if (obj_idx >= (int)m_model->objects.size())
+            continue; // wipe tower
+        for (int inst_idx : inst_idxs)
+            min_z = std::min(min_z, m_model->objects[obj_idx]->get_instance_min_z(inst_idx));
+    }
+    return min_z == DBL_MAX ? 0. : min_z;
+}
+
+bool Selection::can_drop() const
+{
+    return std::abs(get_drop_min_z()) > -SINKING_Z_THRESHOLD;
+}
+
 void Selection::drop()
 {
-    if (std::abs(this->get_bounding_box().min.z()) < -SINKING_Z_THRESHOLD) {
-        return; // shouldnt happen, but better check anyways, already checked in append_menu_item_drop()
-    }
+    const double min_z = get_drop_min_z();
+    if (std::abs(min_z) < -SINKING_Z_THRESHOLD)
+        return; // already checked in can_drop()
 
     wxGetApp().plater()->take_snapshot(L("Move object"));
 
-    this->move_to_center(Vec3d(0, 0, -this->get_bounding_box().min.z()));
+    this->move_to_center(Vec3d(0, 0, -min_z));
 
     for (unsigned int i : m_list) {
         GLVolume&    volume = *(*m_volumes)[i];
@@ -1757,50 +1770,27 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
 
     //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": obj %1%, instance %2%") % object_idx % instance_idx;
     //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": %1%, displacement {%2%, %3%, %4%}") % __LINE__ % displacement(X) % displacement(Y) % displacement(Z);
-    for (unsigned int i : m_list) {
-        GLVolume& v = *(*m_volumes)[i];
-        if (v.object_idx() == (int)object_idx && v.instance_idx() == (int)instance_idx)
-            v.set_instance_offset(v.get_instance_offset() + displacement);
-    }
-
-    std::set<unsigned int> done;  // prevent processing volumes twice
-    done.insert(m_list.begin(), m_list.end());
-
-    for (unsigned int i : m_list) {
-        if (done.size() == m_volumes->size())
-            break;
-
-        int object_idx = (*m_volumes)[i]->object_idx();
-        if (object_idx >= 1000)
-            continue;
-
-        // Process unselected volumes of the object.
-        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j) {
-            if (done.size() == m_volumes->size())
-                break;
-
-            if (done.find(j) != done.end())
-                continue;
-
-            GLVolume& v = *(*m_volumes)[j];
-            if (v.object_idx() != object_idx || v.instance_idx() != (int)instance_idx)
-                continue;
-
-            v.set_instance_offset(v.get_instance_offset() + displacement);
-            done.insert(j);
-        }
+    // Every volume of the instance, selected or not, so that the instance moves as a whole.
+    for (GLVolume* v : *m_volumes) {
+        if (v->object_idx() == (int)object_idx && v->instance_idx() == (int)instance_idx)
+            v->set_instance_offset(v->get_instance_offset() + displacement);
     }
 
     this->set_bounding_boxes_dirty();
 }
 
-void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement) {
+void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement, bool local)
+{
     if (!m_valid) return;
 
     for (unsigned int i : m_list) {
         GLVolume &v = *(*m_volumes)[i];
-        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx)
-            v.set_volume_offset(v.get_volume_offset() + displacement);
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx) {
+            Vec3d local_displacement = displacement;
+            if (!local)
+                local_displacement = v.get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
+            v.set_volume_offset(v.get_volume_offset() + local_displacement);
+        }
     }
 
     this->set_bounding_boxes_dirty();
@@ -2265,6 +2255,27 @@ std::vector<unsigned int> Selection::get_volume_idxs_from_volume(unsigned int ob
         {
             if (((int)instance_idx != -1) && (v->instance_idx() == (int)instance_idx))
                 idxs.push_back(i);
+        }
+    }
+
+    return idxs;
+}
+
+std::vector<unsigned int> Selection::get_volume_idxs_from_plate(const int plate_idx) const
+{
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);
+    std::vector<unsigned int> idxs;
+    if (!plate)
+        return idxs;
+
+    for (int obj_idx = 0; obj_idx < (int)m_model->objects.size(); obj_idx++) {
+        const ModelObject* obj = m_model->objects[obj_idx];
+        for (int inst_idx = 0; inst_idx < (int)obj->instances.size(); inst_idx++) {
+            // on this plate or overlapping it in some way (fully inside, oversized or partly outside)
+            if (plate->contain_instance(obj_idx, inst_idx) || plate->intersect_instance(obj_idx, inst_idx)) {
+                std::vector<unsigned int> inst_idxs = get_volume_idxs_from_instance(obj_idx, inst_idx);
+                idxs.insert(idxs.end(), inst_idxs.begin(), inst_idxs.end());
+            }
         }
     }
 
