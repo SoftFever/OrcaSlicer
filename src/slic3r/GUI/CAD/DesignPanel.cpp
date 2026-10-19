@@ -10,6 +10,7 @@
 #include "slic3r/GUI/CAD/DesignSketchTool.hpp"
 #include "slic3r/GUI/CAD/DesignTextDialog.hpp"           // Text: font, height, live outline
 #include "slic3r/GUI/CAD/DesignRowList.hpp"              // Feature tree and Bodies rows with their own actions
+#include "slic3r/GUI/CAD/DesignRibbonTable.hpp"
 #include "slic3r/GUI/CAD/DesignOffer.hpp"                // generated offer table — see scripts/CAD/tool_atlas.json
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
@@ -1780,9 +1781,13 @@ DesignPanel::DesignPanel(wxWindow* parent)
         put("pattern");                                 // kept, at the end
     }
 
+    build_toolbox();
+
     auto* tbrow = new wxBoxSizer(wxHORIZONTAL);
     tbrow->AddSpacer(8);
     tbrow->Add(m_tb_doc,       0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 5);
+    add_sep(tbrow);
+    tbrow->Add(m_tb_tools,     0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 5);
     add_sep(tbrow);
     tbrow->Add(m_tb_feature,   0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 5);
     tbrow->Add(m_tb_sketch,    0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 5);
@@ -11624,6 +11629,95 @@ void DesignPanel::update_fillet_gizmo()
 // The keyboard shortcuts (Shift+N / Shift+X / Shift+B) deliberately keep running the guarded
 // action rather than being gated: a key press has no greyed-out state to see, so the sentence is
 // the only feedback there is.
+// One button per group of the Solid / Surface / Sketch ribbon tabs. The button runs the group's last-used variant (the key
+// the ribbon saves under), the small arrow lists the others. The ribbon is only the table's second view: same verbs, same
+// router (run_offer_action), same enable rule (verb_state).
+void DesignPanel::build_toolbox()
+{
+    m_tb_tools = new wxBoxSizer(wxHORIZONTAL);
+    AppConfig* cfg = wxGetApp().app_config;
+    auto icon_of = [](const OfferVerb* v) {
+        const std::string fc = std::string("fc_") + v->id;
+        return v->icon != nullptr ? std::string(v->icon) : fc;
+    };
+    const std::vector<RibbonTab> tabs = build_ribbon_table();
+    for (size_t ti : {size_t(0), size_t(1), size_t(2)}) {
+        if (ti >= tabs.size() || tabs[ti].groups.empty()) continue;
+        if (ti > 0) {
+            m_tb_tools->AddSpacer(5);
+            m_tb_tools->Add(new wxStaticLine(m_toolbar, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(1, 22)), wxLI_VERTICAL), 0, wxALIGN_CENTER_VERTICAL);
+            m_tb_tools->AddSpacer(5);
+        }
+        for (const RibbonGroup& g : tabs[ti].groups) {
+            m_toolbox.emplace_back();
+            ToolboxBtn& tb = m_toolbox.back();
+            tb.group = g.name;
+            tb.verbs = g.verbs;
+            tb.cur   = g.verbs.front();
+            const std::string last = cfg->get("design_ribbon_last_" + g.name);
+            for (const OfferVerb* v : g.verbs) if (last == v->id) tb.cur = v;
+            tb.btn = new ScalableButton(m_toolbar, wxID_ANY, icon_of(tb.cur), "", FromDIP(wxSize(33, 40)), wxDefaultPosition,
+                                        wxBU_EXACTFIT | wxBORDER_NONE, false, 26);
+            tb.btn->SetBackgroundColour(dp_ribbon_bg());
+            tb.btn->Bind(wxEVT_ENTER_WINDOW, [b = tb.btn](wxMouseEvent& e) { if (b->IsEnabled()) { b->SetBackgroundColour(dp_ribbon_hover()); b->Refresh(); } e.Skip(); });
+            tb.btn->Bind(wxEVT_LEAVE_WINDOW, [b = tb.btn](wxMouseEvent& e) { b->SetBackgroundColour(dp_ribbon_bg()); b->Refresh(); e.Skip(); });
+            const size_t idx = m_toolbox.size() - 1;
+            auto run = [this, cfg, idx](const OfferVerb* v) {
+                ToolboxBtn& t = m_toolbox[idx];
+                t.cur = v;
+                if (t.verbs.size() > 1) cfg->set("design_ribbon_last_" + t.group, v->id);
+                t.btn->SetBitmap_(v->icon != nullptr ? std::string(v->icon) : std::string("fc_") + v->id);
+                const std::string action = v->action ? v->action : "";
+                CallAfter([this, action] { run_offer_action(action.c_str()); });
+            };
+            tb.btn->Bind(wxEVT_BUTTON, [this, idx, run](wxCommandEvent&) { run(m_toolbox[idx].cur); });
+            m_tb_tools->Add(tb.btn, 0, wxALIGN_CENTER_VERTICAL, 0);
+            if (g.verbs.size() > 1) {
+                tb.arrow = new ScalableButton(m_toolbar, wxID_ANY, "drop_down", "", FromDIP(wxSize(12, 40)), wxDefaultPosition,
+                                              wxBU_EXACTFIT | wxBORDER_NONE, false, 10);
+                tb.arrow->SetBackgroundColour(dp_ribbon_bg());
+                tb.arrow->SetToolTip(wxString::FromUTF8(g.name.c_str()));
+                tb.arrow->Bind(wxEVT_BUTTON, [this, idx, run](wxCommandEvent&) {
+                    wxMenu menu;
+                    const ToolboxBtn& t = m_toolbox[idx];
+                    for (size_t i = 0; i < t.verbs.size(); ++i) {
+                        wxMenuItem* it = menu.Append(int(i) + 1, wxString::FromUTF8(t.verbs[i]->name));
+                        const auto st = verb_state(*t.verbs[i]);
+                        it->Enable(st.enabled && t.verbs[i]->action != nullptr);
+                    }
+                    menu.Bind(wxEVT_MENU, [this, idx, run](wxCommandEvent& e) { run(m_toolbox[idx].verbs[size_t(e.GetId() - 1)]); });
+                    m_toolbar->PopupMenu(&menu);
+                });
+                m_tb_tools->Add(tb.arrow, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 2);
+            } else {
+                m_tb_tools->AddSpacer(FromDIP(2));
+            }
+        }
+    }
+    // The enable state follows the selection, the mode and the document; those change in too many places to hook each,
+    // and the rule is cheap (a counter walk), so it is polled while the tab is on screen.
+    m_toolbox_timer.SetOwner(this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent&) { if (IsShownOnScreen()) update_toolbox(); }, m_toolbox_timer.GetId());
+    m_toolbox_timer.Start(250);
+    update_toolbox();
+}
+
+void DesignPanel::update_toolbox()
+{
+    for (ToolboxBtn& t : m_toolbox) {
+        bool any = false;
+        const OfferVerb* shown = t.cur;
+        const auto st = verb_state(*t.cur);
+        any = st.enabled && t.cur->action != nullptr;
+        if (!any) for (const OfferVerb* v : t.verbs) { const auto s = verb_state(*v); if (s.enabled && v->action != nullptr) { any = true; break; } }
+        if (t.btn->IsEnabled() != any) t.btn->Enable(any);
+        if (t.arrow != nullptr && t.arrow->IsEnabled() != any) t.arrow->Enable(any);
+        const std::string why = !st.why.empty() ? st.why : (shown->refusal ? std::string(shown->refusal) : std::string());
+        const wxString tip = wxString::FromUTF8(shown->name) + (any || why.empty() ? wxString() : wxString(" — ") + wxString::FromUTF8(why.c_str()));
+        if (t.btn->GetToolTipText() != tip) t.btn->SetToolTip(tip);
+    }
+}
+
 void DesignPanel::update_body_gates()
 {
     const int n = int(m_doc.bodies.size());
@@ -12235,7 +12329,6 @@ void DesignPanel::toggle_origin()
 
 void DesignPanel::toggle_toolbar()
 {
-    if (m_imgui_ribbon) return;   // the ribbon is the always-visible toolbox (projects-is6a): only the wx groups can be hidden
     m_show_toolbar = !m_show_toolbar;
     wxGetApp().app_config->set("design_show_toolbar", m_show_toolbar ? "1" : "0");
     apply_toolbar_visibility();
@@ -12246,7 +12339,7 @@ void DesignPanel::toggle_toolbar()
 // re-show the mode switch and set_imgui_ribbon do, without re-wiring the ribbon's callbacks.
 void DesignPanel::apply_toolbar_visibility()
 {
-    if (m_viewport) m_viewport->set_ribbon_overlay(m_imgui_ribbon);
+    if (m_viewport) m_viewport->set_ribbon_overlay(false);
     if (m_toolbar && m_toolbar->GetSizer()) {
         wxSizer* s = m_toolbar->GetSizer();
         const bool wx_groups = !m_imgui_ribbon && m_show_toolbar;
@@ -12565,7 +12658,7 @@ void DesignPanel::set_imgui_ribbon(bool on)
     r.sketching = [this] { return sketch_map_applies(); };
     r.load_last = [cfg](const std::string& group) { return cfg->get("design_ribbon_last_" + group); };
     r.save_last = [cfg](const std::string& group, const std::string& id) { cfg->set("design_ribbon_last_" + group, id); };
-    m_viewport->set_ribbon_overlay(on);
+    m_viewport->set_ribbon_overlay(false);
     if (m_toolbar && m_toolbar->GetSizer()) {
         wxSizer* s = m_toolbar->GetSizer();
         const bool wx_groups = !on && m_show_toolbar;

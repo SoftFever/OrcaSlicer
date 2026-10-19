@@ -456,6 +456,14 @@ private:
     CommitMode      m_commit_mode{CommitMode::Assembly};
     ScalableButton* m_commit_btn{nullptr};   // main face: runs the current commit mode
     DropDown*       m_commit_drop{nullptr};  // commit-mode choices, owned via m_flyout_keepalive
+    // The 3D (Solid, Surface) and 2D (Sketch) tool groups of the ribbon table, as buttons in the top row next to
+    // New / Import / Export: always shown, greyed by the same verb_state the ribbon uses (projects-is6a).
+    struct ToolboxBtn { ScalableButton* btn{nullptr}; ScalableButton* arrow{nullptr}; std::string group; std::vector<const OfferVerb*> verbs; const OfferVerb* cur{nullptr}; };
+    std::vector<ToolboxBtn> m_toolbox;
+    wxSizer*  m_tb_tools{nullptr};
+    wxTimer   m_toolbox_timer;
+    void build_toolbox();
+    void update_toolbox();
     wxSizer*  m_tb_doc{nullptr};      // toolbar document/view actions (new, commit, export, section, place)
     wxSizer*  m_box_move{nullptr};      // Move/Rotate numeric options (distance, axis, angle)
     wxSizer*  m_box_sketch{nullptr};
