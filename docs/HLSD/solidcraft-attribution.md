@@ -40,3 +40,10 @@ BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR P
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Added since the first cut
+
+| Item | Form | Where |
+|---|---|---|
+| Sheet-metal conventions (setback, flange height along the outer face, open corners, hem gap, K-factor unfold) | Re-implemented from the oracle's written method text; no source copied | `src/libslic3r/CAD/SheetMetal.cpp`, `tests/cad_oracle/6[7-9]-*, 7[0-6]-*` |
+| Planar-arrangement regions, fillet taper-to-fit, path pattern, loft to a point | Re-implemented from the oracle cases' descriptions | `SketchEngine.cpp`, `GeometryEngine.cpp`, `CadDocument.cpp` |
