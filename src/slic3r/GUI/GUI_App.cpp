@@ -3202,6 +3202,9 @@ bool GUI_App::on_init_inner()
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "received wxEVT_END_SESSION";
         stop_sync_user_preset();
         stop_orca_health_check(m_agent);
+        // Before the plugin manager and network module go away.
+        if (m_startup_cloud_plugin_fetch_thread.joinable())
+            m_startup_cloud_plugin_fetch_thread.join();
         Slic3r::NetworkAgent::unload_network_module();
         Slic3r::PluginManager::instance().shutdown();
         Slic3r::PythonInterpreter::instance().shutdown();
