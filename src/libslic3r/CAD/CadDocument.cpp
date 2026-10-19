@@ -555,6 +555,7 @@ static const struct { const char* name; double CadFeature::* member; } kBindable
     {"mate_offset", &CadFeature::mate_offset},
     {"pattern_angle", &CadFeature::pattern_angle},
     {"pattern_spacing", &CadFeature::pattern_spacing},
+    {"pattern_spacing2", &CadFeature::pattern_spacing2},
     {"plane_angle_tilt", &CadFeature::plane_angle_tilt},
     {"plane_offset", &CadFeature::plane_offset},
     {"plane_u_size", &CadFeature::plane_u_size},
@@ -597,6 +598,7 @@ static void assign_field(CadFeature& f, const std::string& field, double value)
     // the name it offers for binding; thread_radius stays for recipes that already use it.
     if (field == "thread_diameter")   { f.thread_radius = 0.5 * value; return; }
     if (field == "pattern_count")     { f.pattern_count = (int)std::lround(value); return; }
+    if (field == "pattern_count2")    { f.pattern_count2 = std::clamp((int)std::lround(value), 1, 500); return; }
     throw std::runtime_error(format(_u8L("unknown parameter: %1%"), field));
 }
 
@@ -605,6 +607,7 @@ std::vector<std::string> CadDocument::bindable_fields()
     std::vector<std::string> out;
     for (const auto& b : kBindable) out.push_back(b.name);
     out.push_back("pattern_count");
+    out.push_back("pattern_count2");
     out.push_back("thread_diameter");
     std::sort(out.begin(), out.end());
     return out;

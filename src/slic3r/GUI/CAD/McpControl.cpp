@@ -568,7 +568,7 @@ json describe_tools_core()
             json{{"name", "sketch_constrain"}, {"summary", "Add geometric constraints and dimensions to the open sketch; each is solved on its own and an inconsistent one is rejected alone (named in `rejected`). Entity refs are indices from sketch_add; points are \"3.start\", \"3.end\", \"3.center\", \"origin\"."},
                  {"params", json::array({
                      json{{"name", "atomic"}, {"type", "boolean"}, {"default", true}, {"description", "true: all constraints are solved as one system, all or nothing; false: each on its own, conflicting ones rejected alone"}},
-                     json{{"name", "constraints"}, {"type", "array"}, {"description", "[{type, a, b, c, value, orientation}]. types: coincident, horizontal|vertical (one line), horizontal_points|vertical_points, distance (value mm, orientation aligned|horizontal|vertical), fix, lock_x, lock_y, equal, parallel, perpendicular, collinear, tangent, concentric, midpoint (point a, line b), symmetric (points a,b about line c), symmetric_x|symmetric_y, point_on_line, point_on_object, radius, diameter (value mm), angle (two lines, value deg)"}},
+                     json{{"name", "constraints"}, {"type", "array"}, {"description", "[{type, a, b, c, value, orientation}]. types: coincident, horizontal|vertical (one line), horizontal_points|vertical_points, distance (value mm, orientation aligned|horizontal|vertical), fix, lock_x, lock_y, equal, parallel, perpendicular, collinear, tangent, concentric, midpoint (point a, line b), symmetric (points a,b about line c), symmetric_x (a,b mirror images across the sketch X axis) | symmetric_y (across the Y axis), point_on_line, point_on_object, radius, diameter (value mm), angle (two lines, value deg)"}},
                  })}},
             json{{"name", "export"}, {"summary", "Write the design's bodies to a STEP, IGES, STL (binary) or OBJ file (absolute path under $HOME or /tmp; ORCA_CAD_MCP_ALLOW overrides the roots). The project itself is `save`."},
                  {"params", json::array({
@@ -1860,6 +1860,7 @@ json action_sketch_begin(DesignPanel* panel, const json& params)
     if (vp->is_sketching()) throw std::runtime_error("a sketch is already open");
     const std::string pl = params.value("plane", std::string("XY"));
     SketchPlane plane = SketchPlane::XY();
+    int face_id = -1;
     g_pending_attach = {};
     if (params.contains("face")) {   // sketch ON a planar face of a body: the sketch then follows that face through upstream edits
         CadDocument& doc = panel->mcp_doc();
@@ -1881,6 +1882,7 @@ json action_sketch_begin(DesignPanel* panel, const json& params)
         plane.x_axis = x;
         plane.y_axis = n.cross(x);
         g_pending_attach = {body, face};
+        face_id = face;
     }
     else if (pl == "XZ") plane = SketchPlane::XZ();
     else if (pl == "YZ") plane = SketchPlane::YZ();
@@ -1901,7 +1903,11 @@ json action_sketch_begin(DesignPanel* panel, const json& params)
     // m_ui_mode while the menu tests the viewport. Driving the socket must leave the GUI in the
     // state a user would be in, not a state only the socket can produce.
     panel->mcp_set_sketch_mode(true);
-    return json{{"ok", true}, {"plane", pl}};
+    // The plane as it is, not as it was asked for: a face is "face:<id>" with its frame, so a client never reads "XY" for a
+    // sketch that lies on a tilted or offset face. origin is in model coordinates, like every sketch coordinate.
+    auto v3 = [](const Vec3d& v) { return json::array({v.x(), v.y(), v.z()}); };
+    return json{{"ok", true}, {"plane", face_id >= 0 ? "face:" + std::to_string(face_id) : pl},
+                {"origin", v3(plane.origin - panel->mcp_doc().modeling_origin)}, {"normal", v3(plane.normal)}, {"x_axis", v3(plane.x_axis)}};
 }
 
 json action_sketch_commit(DesignPanel* panel, const json& params)
@@ -2795,18 +2801,80 @@ SketchEntityConstraintDef sketch_constraint_from(const json& j, const std::vecto
     return d;
 }
 
-// Why the solver refuses `extra` on top of the sketch's constraints: the raw libslvs result and the conflicting
-// constraints, so an agent can tell a redundant constraint from an unsolvable one.
-std::string solver_why(const DesignSketchTool& t, const std::vector<SketchEntityConstraintDef>& extra)
+// A constraint in the vocabulary of the request that makes one: {type, a, b, c}, with the same point notation ("3.end",
+// "origin", "x_axis"), so a conflict can be read back against what the client sent.
+std::string constraint_text(const SketchEntityConstraintDef& c)
+{
+    using CT = SketchConstraintType;
+    const bool pair_line = c.ea == c.eb && c.ea >= 0 && (c.type == CT::Horizontal || c.type == CT::Vertical);   // one line: its two ends
+    const char* name = "constraint";
+    bool pts = false;   // a and b (and c) name points rather than whole entities
+    switch (c.type) {
+    case CT::Fix: name = "fix"; pts = true; break;
+    case CT::Coincident: name = "coincident"; pts = true; break;
+    case CT::Horizontal: name = pair_line ? "horizontal" : "horizontal_points"; pts = !pair_line; break;
+    case CT::Vertical: name = pair_line ? "vertical" : "vertical_points"; pts = !pair_line; break;
+    case CT::Distance: name = "distance"; pts = true; break;
+    case CT::DistanceX: name = "distance(horizontal)"; pts = true; break;
+    case CT::DistanceY: name = "distance(vertical)"; pts = true; break;
+    case CT::LockX: name = "lock_x"; pts = true; break;
+    case CT::LockY: name = "lock_y"; pts = true; break;
+    case CT::EqualLength: case CT::EqualRadius: name = "equal"; break;
+    case CT::Parallel: name = "parallel"; break;
+    case CT::Perpendicular: name = "perpendicular"; break;
+    case CT::Collinear: name = "collinear"; break;
+    case CT::Tangent: name = "tangent"; break;
+    case CT::Concentric: name = "concentric"; break;
+    case CT::Midpoint: name = "midpoint"; pts = true; break;
+    case CT::Symmetric: name = "symmetric"; pts = true; break;
+    case CT::SymmetricAboutX: name = "symmetric_x"; pts = true; break;
+    case CT::SymmetricAboutY: name = "symmetric_y"; pts = true; break;
+    case CT::PointOnLine: name = "point_on_line"; pts = true; break;
+    case CT::PointOnObject: name = "point_on_object"; pts = true; break;
+    case CT::Radius: name = "radius"; break;
+    case CT::Diameter: name = "diameter"; break;
+    case CT::Angle: name = "angle"; break;
+    }
+    auto ref = [&](int e, SketchPointRole r, bool point) -> std::string {
+        if (e == kSketchRefOrigin) return "origin";
+        if (e == kSketchRefAxisX) return "x_axis";
+        if (e == kSketchRefAxisY) return "y_axis";
+        if (e < 0) return "-";
+        std::string t = std::to_string(e);
+        if (point) t += r == SketchPointRole::P1 ? ".end" : r == SketchPointRole::Center ? ".center" : ".start";
+        return t;
+    };
+    std::string s = name;
+    if (c.ea != -1) s += " a=" + ref(c.ea, c.ra, pts && !(pair_line));
+    if (c.eb != -1 && !pair_line) s += " b=" + ref(c.eb, c.rb, pts && c.type != CT::Midpoint && c.type != CT::PointOnLine && c.type != CT::PointOnObject);
+    if (c.ec != -1) s += " c=" + ref(c.ec, c.rc, false);
+    return s;
+}
+
+// Why the solver refuses `extra` on top of the sketch's constraints, in one shape for every constraint type:
+//   kind       redundant_or_inconsistent | did_not_converge | too_many_unknowns
+//   conflicts  [{of: "existing"|"request", index, constraint: "<type a=.. b=..>"}]; existing indexes count the sketch's
+//              own constraints, request indexes count `extra`
+// and the text that names them.
+std::string solver_why(const DesignSketchTool& t, const std::vector<SketchEntityConstraintDef>& extra, json* out = nullptr)
 {
     std::vector<SketchEntity> ents = t.entities();
     std::vector<SketchEntityConstraintDef> cons = t.constraints();
     const int base = int(cons.size());
     cons.insert(cons.end(), extra.begin(), extra.end());
     const SketchSolveResult r = sketch_solve(ents, cons);
-    std::string s = "rejected by the solver (result " + std::to_string(r.result) + ": 1 inconsistent or redundant, 2 did not converge, 3 too many unknowns)";
-    for (size_t i = 0; i < r.bad.size(); ++i)
-        s += (i == 0 ? "; conflicting: " : ", ") + (r.bad[i] >= base ? "new#" + std::to_string(r.bad[i] - base) : "existing#" + std::to_string(r.bad[i]));
+    const char* kind = r.result == 2 ? "did_not_converge" : r.result == 3 ? "too_many_unknowns" : "redundant_or_inconsistent";
+    std::string s = std::string("rejected by the solver: ") + (r.result == 2 ? "it did not converge" : r.result == 3 ? "too many unknowns"
+                    : "redundant with, or inconsistent with, the constraints already in the sketch");
+    json conflicts = json::array();
+    for (size_t i = 0; i < r.bad.size(); ++i) {
+        const bool req = r.bad[i] >= base;
+        const int  idx = req ? r.bad[i] - base : r.bad[i];
+        const std::string text = constraint_text(cons[size_t(r.bad[i])]);
+        conflicts.push_back(json{{"of", req ? "request" : "existing"}, {"index", idx}, {"constraint", text}});
+        s += (i == 0 ? "; conflicts: " : ", ") + std::string(req ? "this request's #" : "the sketch's existing #") + std::to_string(idx) + " (" + text + ")";
+    }
+    if (out) *out = json{{"kind", kind}, {"conflicts", conflicts}};
     return s;
 }
 
@@ -2825,17 +2893,20 @@ json action_sketch_constrain(DesignPanel* panel, const json& params)
     const json& list = params["constraints"];
     for (size_t i = 0; i < list.size(); ++i) {
         try { defs.push_back(sketch_constraint_from(list[i], t.entities())); def_index.push_back(int(i)); }
-        catch (const std::exception& e) { rejected.push_back(json{{"index", int(i)}, {"error", e.what()}}); }
+        catch (const std::exception& e) { rejected.push_back(json{{"index", int(i)}, {"kind", "malformed"}, {"conflicts", json::array()}, {"error", e.what()}}); }
     }
     int added = 0;
     if (atomic) {
         if (!rejected.empty()) { /* a malformed entry: add nothing */ }
         else if (t.try_add_constraints(defs)) added = int(defs.size());
-        else rejected.push_back(json{{"index", -1}, {"error", solver_why(t, defs) + " (atomic: none of the " + std::to_string(defs.size()) + " were added; atomic:false keeps the consistent ones)"}});
+        else { json why; const std::string text = solver_why(t, defs, &why);
+               why["index"] = -1; why["error"] = text + " (atomic: none of the " + std::to_string(defs.size()) + " were added; atomic:false keeps the consistent ones)";
+               rejected.push_back(why); }
     } else {
         for (size_t k = 0; k < defs.size(); ++k) {
             if (t.try_add_constraints({defs[k]})) ++added;
-            else rejected.push_back(json{{"index", def_index[k]}, {"error", solver_why(t, {defs[k]})}});
+            else { json why; const std::string text = solver_why(t, {defs[k]}, &why);
+                   why["index"] = def_index[k]; why["error"] = text; rejected.push_back(why); }
         }
     }
     panel->mcp_viewport()->request_repaint();
@@ -3750,6 +3821,24 @@ std::string handle_on_main(const std::string& method, const json& params, const 
 std::string dispatch_once(const std::string& method, const json& params, const json& id);
 
 // Marshal a request to the main thread and block (with a timeout) for the reply.
+// The generation of the topology this connection last read (query_topology, describe_scene). One thread serves one
+// connection, so thread_local is per client. A call that takes a face or edge id and does not say which generation its ids
+// come from is checked against it: the ids it carries can only have come from that read.
+thread_local uint64_t t_seen_generation = 0;
+thread_local bool     t_has_seen_generation = false;
+
+bool takes_topology_ids(const json& params)
+{
+    if (!params.is_object()) return false;
+    for (const char* k : {"edge", "edges", "face", "faces", "up_to_face"}) {
+        const auto it = params.find(k);
+        if (it == params.end()) continue;
+        if (it->is_number_integer() && it->get<long long>() >= 0) return true;
+        if (it->is_array() && !it->empty()) return true;
+    }
+    return false;
+}
+
 std::string dispatch_request(const std::string& line)
 {
     // Nesting is bounded BEFORE parsing: copying or destroying a document a few hundred thousand levels deep recurses
@@ -3786,10 +3875,23 @@ std::string dispatch_request(const std::string& line)
         catch (const std::exception& ex) { return rpc_error(id, -32000, ex.what()); }
     }
     if (method == "ui.screenshot") method = "screenshot";
+    if (t_has_seen_generation && params.is_object() && !params.contains("generation") && takes_topology_ids(params))
+        params["generation"] = t_seen_generation;   // an id the client did not date is dated by its own last read
     const auto t0 = std::chrono::steady_clock::now();
     for (;;) {
         std::string r = dispatch_once(method, params, id);
-        if (r.find("\"transient\":true") == std::string::npos || std::chrono::steady_clock::now() - t0 > std::chrono::seconds(15)) return r;
+        if (r.find("\"transient\":true") == std::string::npos || std::chrono::steady_clock::now() - t0 > std::chrono::seconds(15)) {
+            if (method == "query_topology" || method == "describe_scene") {   // what this client has now seen
+                try {
+                    const json rr = json::parse(r);
+                    if (rr.contains("result") && rr["result"].is_object() && rr["result"].contains("generation") && rr["result"]["generation"].is_number_unsigned()) {
+                        t_seen_generation = rr["result"]["generation"].get<uint64_t>();
+                        t_has_seen_generation = true;
+                    }
+                } catch (const std::exception&) {}
+            }
+            return r;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }

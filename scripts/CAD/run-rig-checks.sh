@@ -23,6 +23,7 @@ CHECKS=(
     "oracle:oracle_runner.py"
     "hostile:check-mcp-hostile.py"
     "commands:check-mcp-commands.py"
+    "api-gaps:check-mcp-api-gaps.py"
     "undo:check-undo.py"
     "cards:check-ui-card-features.py"
     "sheet:check-ui-sheet.py"

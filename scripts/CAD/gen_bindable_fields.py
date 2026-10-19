@@ -32,6 +32,8 @@ FEATURE = {
     "bool_tolerance": ("Boolean", "fuzzy tolerance", "mm"),
     "pattern_count": ("Pattern", "instances along the first direction (rounded)", ""),
     "pattern_spacing": ("Pattern", "step along the first direction", "mm"),
+    "pattern_count2": ("Pattern (grid)", "instances along the second direction (rounded, 1..500)", ""),
+    "pattern_spacing2": ("Pattern (grid)", "step along the second direction", "mm"),
     "pattern_angle": ("Pattern (circular)", "total angle", "deg"),
     "hole_x": ("Hole", "x in the sketch plane's frame", "mm"),
     "hole_y": ("Hole", "y in the sketch plane's frame", "mm"),
