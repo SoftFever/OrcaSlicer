@@ -42,6 +42,8 @@ static const Place kPlace[] = {
     {"fillet", 0, L("Dress-up")}, {"chamfer", 0, L("Dress-up")}, {"draft", 0, L("Dress-up")},
     {"pattern", 0, L("Repeat")}, {"pattern_circular", 0, L("Repeat")}, {"pat_curve", 0, L("Repeat")}, {"mirror", 0, L("Repeat")},
     {"transform", 0, L("Place")}, {"mate", 0, L("Place")}, {"align", 0, L("Place")},
+    {"sheet_base", 0, L("Sheet metal")}, {"sheet_flange", 0, L("Sheet metal")}, {"sheet_contour", 0, L("Sheet metal")}, {"sheet_hem", 0, L("Sheet metal")},
+    {"sheet_unfold", 0, L("Sheet metal")}, {"sheet_refold", 0, L("Sheet metal")}, {"sheet_rule", 0, L("Sheet metal")},
     {"surf_extrude", 1, L("Surface")}, {"surf_revolve", 1, L("Surface")}, {"surf_loft", 1, L("Surface")}, {"surf_fill", 1, L("Surface")},
     {"surf_offset", 1, L("Offset / Thicken")}, {"thicken_surf", 1, L("Offset / Thicken")},
     {"plane", 3, L("Reference")}, {"axis", 3, L("Reference")}, {"coordsys_v", 3, L("Reference")}, {"helix", 3, L("Reference")}, {"project", 3, L("Reference")},
