@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/catch_all.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <vector>
@@ -17,8 +18,10 @@
 #include "libslic3r/GCode/OrderingStrategies.hpp"
 #include "libslic3r/ShortestPath.hpp"
 #include "libslic3r/Geometry.hpp"
+#include "libslic3r/ShortestPath.hpp"
 
 #include <algorithm>
+#include <random>
 #include <unordered_set>
 #include <numeric>
 #include <random>
@@ -51,6 +54,27 @@ static bool has_crossings(const std::vector<size_t>& path, const Points& centers
         }
     }
     return false;
+}
+
+// Intersecting edge pairs whose reversal would shorten the cycle by more than SCALED_EPSILON, which
+// tsp_remove_crossings must leave none of.
+static size_t count_shortening_crossings(const std::vector<size_t>& path, const Points& centers)
+{
+    size_t pn = path.size();
+    size_t count = 0;
+    for (size_t i = 0; i < pn; ++i) {
+        for (size_t j = i + 2; j < pn; ++j) {
+            if (i == 0 && j == pn - 1) continue;
+            const Point& ai = centers[path[i]];
+            const Point& bi = centers[path[(i + 1) % pn]];
+            const Point& aj = centers[path[j]];
+            const Point& bj = centers[path[(j + 1) % pn]];
+            if (Geometry::segments_intersect(ai, bi, aj, bj) &&
+                ai.distance_to(bi) + aj.distance_to(bj) - ai.distance_to(aj) - bi.distance_to(bj) > SCALED_EPSILON)
+                ++count;
+        }
+    }
+    return count;
 }
 
 static bool is_permutation(const std::vector<size_t>& path, size_t n)
@@ -183,6 +207,29 @@ TEST_CASE("tsp_remove_crossings reverses overlapping collinear edges when that s
     CHECK(tsp_remove_crossings(path, centers));
     REQUIRE(is_permutation(path, centers.size()));
     CHECK_THAT(tsp_cycle_path_length(path, centers), Catch::Matchers::WithinAbs(6000000., 1.));
+}
+
+TEST_CASE("tsp_remove_crossings leaves no shortening crossing in a tour of thousands of grid-snapped points", "[TSPPostProcessing]") {
+    // 4000 island centroids on a 170 mm plate, snapped to 1 mm as GCode::process_layer does, so many of them share
+    // a position or a line. The nearest-neighbour tour the island ordering starts from has crossings to remove.
+    std::mt19937 rng(GENERATE(1u, 2u, 3u));
+    Points centers;
+    for (int i = 0; i < 4000; ++i) {
+        const double x = double(rng() % 171);
+        const double y = double(rng() % 171);
+        centers.push_back(Point::new_scale(x, y));
+    }
+    std::vector<size_t> path = chain_points(centers);
+    const size_t first = path.front();
+    const double length_before = tsp_cycle_path_length(path, centers);
+    REQUIRE(count_shortening_crossings(path, centers) > 0);
+
+    CHECK(tsp_remove_crossings(path, centers));
+    REQUIRE(is_permutation(path, centers.size()));
+    CHECK(count_shortening_crossings(path, centers) == 0);
+    CHECK(tsp_cycle_path_length(path, centers) < length_before);
+    // Callers that start the tour near a given point rely on the first node staying in place.
+    CHECK(path.front() == first);
 }
 
 

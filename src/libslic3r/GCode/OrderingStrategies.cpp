@@ -121,9 +121,9 @@ bool tsp_remove_crossings(std::vector<size_t>& path, const Points& centers)
     // TSP helpers (2-opt, closing-edge rotation) that operate on the full cycle.
     size_t n_edges = pn;
 
-    // Scan for the first pair of intersecting edges worth reversing; returns {i, j} or {npos, npos} if none.
-    auto find_crossing = [&]() -> std::pair<size_t, size_t> {
-        for (size_t i = 0; i < n_edges; ++i) {
+    // Scan from edge `from` for the first pair of intersecting edges worth reversing; returns {i, j} or {npos, npos} if none.
+    auto find_crossing = [&](size_t from) -> std::pair<size_t, size_t> {
+        for (size_t i = from; i < n_edges; ++i) {
             const Point& ai = centers[path[i]];
             const Point& bi = centers[path[(i + 1) % pn]];
 
@@ -147,16 +147,27 @@ bool tsp_remove_crossings(std::vector<size_t>& path, const Points& centers)
         return {std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()};
     };
 
-    // Process crossings one at a time: find first, reverse it, restart scan.
-    // Every reversal shortens the cycle, so no tour repeats and the scan ends once no pair is worth
-    // reversing; the cap is a safety net.
-    int max_iters = static_cast<int>(pn * pn);
+    // Process crossings one at a time. Reversing path[ci+1..cj] replaces only edges ci and cj; the edges between
+    // them are the same segments traversed backwards. The scan therefore resumes at edge ci rather than at edge 0,
+    // so a pass over the tour costs one quadratic scan however many reversals it makes. Pairs before ci that
+    // involve a replaced edge are new too, so a scan that reaches the end starts over from edge 0, and the loop
+    // ends when a scan from edge 0 finds nothing.
+    // Every reversal shortens the cycle, so no tour repeats and the loop ends; the cap is a safety net.
+    size_t max_reversals = pn * pn;
     bool improved = false;
-    while (max_iters-- > 0) {
-        auto [ci, cj] = find_crossing();
-        if (ci == std::numeric_limits<size_t>::max()) break;
+    for (size_t from = 0;;) {
+        auto [ci, cj] = find_crossing(from);
+        if (ci == std::numeric_limits<size_t>::max()) {
+            if (from == 0)
+                break;
+            from = 0;
+            continue;
+        }
         improved = true;
         std::reverse(path.begin() + ci + 1, path.begin() + cj + 1);
+        if (--max_reversals == 0)
+            break;
+        from = ci;
     }
     return improved;
 }
