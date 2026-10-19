@@ -1225,6 +1225,9 @@ void GUI_App::post_init()
            }
         }
     }
+    if (m_startup_cloud_report)
+        std::exchange(m_startup_cloud_report, nullptr)();
+
     BOOST_LOG_TRIVIAL(info) << "finished post_init";
 //BBS: remove the single instance currently
 #ifdef _WIN32
@@ -3598,8 +3601,7 @@ bool GUI_App::on_init_inner()
                 BOOST_LOG_TRIVIAL(error) << "Startup cloud plugin fetch failed";
                 return;
             }
-            // Report once the main window exists.
-            CallAfter([this, not_found = std::move(not_found), unauthorized = std::move(unauthorized)] {
+            auto report = [this, not_found = std::move(not_found), unauthorized = std::move(unauthorized)] {
                 if (is_closing())
                     return;
                 if (m_plugins_dlg)
@@ -3619,6 +3621,13 @@ bool GUI_App::on_init_inner()
                         NotificationManager::NotificationLevel::RegularNotificationLevel,
                         format(_L("Plugin %s access is unauthorized."), uuid));
                 }
+            };
+            // This can run in a splash wxYield() before the main window exists.
+            CallAfter([this, report = std::move(report)]() mutable {
+                if (m_post_initialized)
+                    report();
+                else
+                    m_startup_cloud_report = std::move(report);
             });
         });
     } else {
