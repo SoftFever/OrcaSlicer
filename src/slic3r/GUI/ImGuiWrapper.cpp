@@ -2895,6 +2895,7 @@ struct ImGuiWrapper::FontAtlas
 {
     const ImWchar*         glyph_ranges{ nullptr }; // what it was built for
     float                  font_size{ 0.f };
+    int                    max_tex_size{ 0 };
     ImFontAtlas*           atlas{ IM_NEW(ImFontAtlas)() };
     ImFont*                default_font{ nullptr };
     ImFont*                bold_font{ nullptr };
@@ -2913,6 +2914,7 @@ std::unique_ptr<ImGuiWrapper::FontAtlas> ImGuiWrapper::build_font_atlas(const Im
     auto font_atlas = std::make_unique<FontAtlas>();
     font_atlas->glyph_ranges = glyph_ranges;
     font_atlas->font_size    = font_size;
+    font_atlas->max_tex_size = gl_max_tex_size;
     ImFontAtlas *atlas       = font_atlas->atlas;
     ImFont *&default_font = font_atlas->default_font, *&bold_font = font_atlas->bold_font;
 
@@ -3100,6 +3102,35 @@ std::unique_ptr<ImGuiWrapper::FontAtlas> ImGuiWrapper::build_font_atlas(const Im
     return font_atlas;
 }
 
+// Text is drawn a bit larger on Windows when the display scale is over 300%, see build_font_atlas().
+static bool is_large_display()
+{
+#ifdef _WIN32
+    return wxGetApp().em_unit() > 30;
+#else
+    return false;
+#endif
+}
+
+void ImGuiWrapper::start_font_atlas_build(int gl_max_tex_size, bool dxt5)
+{
+    m_font_atlas_build = std::async(std::launch::async, [glyph_ranges = m_glyph_ranges, font_size = m_font_size, font_cjk = m_font_cjk,
+                                                         large_display = is_large_display(), gl_max_tex_size, dxt5] {
+        auto built = build_font_atlas(glyph_ranges, true, font_size, font_cjk, large_display, gl_max_tex_size, dxt5);
+        wxWakeUpIdle(); // the canvases redraw with it, see GLCanvas3D::on_idle()
+        return built;
+    });
+}
+
+// Called once the window exists, so the build overlaps the rest of startup and the first frame can
+// use the complete atlas. With no GL context yet to ask, it assumes no texture size limit and DXT5
+// support; init_font() checks both before using the atlas.
+void ImGuiWrapper::prepare_fonts()
+{
+    if (m_glyph_ranges != nullptr && ! m_font_atlas_complete && ! m_font_atlas_build.valid())
+        start_font_atlas_build(std::numeric_limits<int>::max(), true);
+}
+
 bool ImGuiWrapper::has_font_atlas_ready() const
 {
     return m_font_atlas_build.valid() && m_font_atlas_build.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
@@ -3111,33 +3142,25 @@ bool ImGuiWrapper::has_font_atlas_ready() const
 void ImGuiWrapper::init_font(bool compress)
 {
     std::unique_ptr<FontAtlas> font_atlas;
+    GLint gl_max_tex_size = 0;
+    glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_max_tex_size));
     if (has_font_atlas_ready()) {
         font_atlas = m_font_atlas_build.get();
-        // Dropped if the language or the size changed while it was built.
-        if (font_atlas->glyph_ranges != m_glyph_ranges || font_atlas->font_size != m_font_size)
+        // Dropped if the language or the size changed while it was built, or if it was started before
+        // the GL context (prepare_fonts()) and is too large for this GPU.
+        if (font_atlas->glyph_ranges != m_glyph_ranges || font_atlas->font_size != m_font_size ||
+            (font_atlas->max_tex_size > gl_max_tex_size && std::max(font_atlas->width, font_atlas->height) > gl_max_tex_size))
             font_atlas.reset();
     }
     const bool complete = font_atlas != nullptr;
 
-    GLint gl_max_tex_size = 0;
-    glsafe(::glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gl_max_tex_size));
-#ifdef _WIN32
-    const bool large_display = wxGetApp().em_unit() > 30;
-#else
-    bool large_display = false; // not const: a constant would not need capturing below
-#endif
     const bool dxt5 = compress && GLAD_GL_EXT_texture_compression_s3tc;
     if (font_atlas == nullptr && m_font_texture == 0)
-        font_atlas = build_font_atlas(m_glyph_ranges, false, m_font_size, m_font_cjk, large_display, gl_max_tex_size, dxt5);
+        font_atlas = build_font_atlas(m_glyph_ranges, false, m_font_size, m_font_cjk, is_large_display(), gl_max_tex_size, dxt5);
     if (font_atlas != nullptr)
         m_font_atlas_complete = complete;
     if (! m_font_atlas_complete && ! m_font_atlas_build.valid())
-        m_font_atlas_build = std::async(std::launch::async, [glyph_ranges = m_glyph_ranges, font_size = m_font_size,
-                                                             font_cjk = m_font_cjk, large_display, gl_max_tex_size, dxt5] {
-            auto built = build_font_atlas(glyph_ranges, true, font_size, font_cjk, large_display, gl_max_tex_size, dxt5);
-            wxWakeUpIdle(); // the canvases redraw with it, see GLCanvas3D::on_idle()
-            return built;
-        });
+        start_font_atlas_build(gl_max_tex_size, dxt5);
     if (font_atlas == nullptr)
         return;
 
@@ -3160,7 +3183,7 @@ void ImGuiWrapper::init_font(bool compress)
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
-    if (! font_atlas->dxt5.empty())
+    if (compress && GLAD_GL_EXT_texture_compression_s3tc && ! font_atlas->dxt5.empty())
         glsafe(::glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, width, height, 0, GLsizei(font_atlas->dxt5.size()), font_atlas->dxt5.data()));
     else
         glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));

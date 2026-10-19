@@ -416,9 +416,12 @@ public:
     bool display_initialized() const;
     // A font atlas built in the background is waiting for the next frame.
     bool has_font_atlas_ready() const;
+    // Starts building the fonts before the first frame needs them, see init_font().
+    void prepare_fonts();
 
 private:
     void init_font(bool compress);
+    void start_font_atlas_build(int gl_max_tex_size, bool dxt5);
     static std::unique_ptr<FontAtlas> build_font_atlas(const ImWchar *glyph_ranges, bool complete, float font_size,
                                                        bool font_cjk, bool large_display, int gl_max_tex_size, bool dxt5);
     void init_input();
