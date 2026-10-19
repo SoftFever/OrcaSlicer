@@ -922,6 +922,9 @@ public:
     // becomes k + 1 and the bar moves down onto it (what lies below stays unbuilt). `last_added` is where the last one landed.
     int last_added{-1};
     int append_feature(const CadFeature& f);
+    // Copies of features, in order, added at the bar. Each item is {index it had, the feature}; a reference to another copied
+    // feature follows to its copy, any other reference stays where it was. Returns the index of the first copy (-1: nothing).
+    int paste_features(const std::vector<std::pair<int, CadFeature>>& items);
     // The feature whose replay threw in the last recompute(), or -1. Lets the tree mark the row
     // that failed instead of leaving the user a global message and no suspect.
     int error_feature{-1};

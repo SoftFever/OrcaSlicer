@@ -15,6 +15,7 @@
 #include <wx/scrolwin.h>
 #include <wx/string.h>
 
+#include <set>
 #include <vector>
 #include <memory>
 #include <functional>
@@ -111,6 +112,8 @@ public:
     bool mcp_card_set(const std::string& key, double value);
     void mcp_drop_selection() { drop_selection(); }   // a replaced document must not keep the old pick (a stale body index poisons the next feature)
     bool mcp_card_confirm_enabled() const { return confirm_enabled(); }
+    std::vector<int> mcp_tree_selection() const { return tree_selected_rows(); }
+    void mcp_tree_event(const std::string& kind, int row);   // rig driver: copy | paste | delete | toggle on a tree row
     bool mcp_card_confirm() { if (!confirm_enabled()) return false; tool_confirm(); return true; }
     bool mcp_card_check_feature(int feature_index, bool on);
     // The open card as the rig sees it: Tool as int (0 = none), whether the check mark would act, the status line.
@@ -275,6 +278,11 @@ private:
 
     // Feature-tree editing (Onshape-style): act on the selected tree row.
     void on_delete_feature();
+    std::set<int> m_tree_multi;                                  // the ImGui tree's multi-selection (the primary row is the wx tree's)
+    std::vector<std::pair<int, CadFeature>> m_feature_clip;      // Copy: {index, feature} in history order
+    void copy_selected_features();
+    void paste_features();
+    std::vector<int> tree_selected_rows() const;                 // the multi-selection, or the single selected row
     // "Delete Body" — the geometry-first counterpart, reached by pointing at a body or any of
     // its faces. Resolves the body to the feature that created it and removes THAT, because a
     // body is a recomputed result and has nothing else to delete.

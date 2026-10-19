@@ -2475,6 +2475,21 @@ static void for_each_feature_ref(CadFeature& f, Visit&& visit)
         visit(r);
 }
 
+int CadDocument::paste_features(const std::vector<std::pair<int, CadFeature>>& items)
+{
+    std::map<int, int> was_now;
+    int first = -1;
+    for (const auto& it : items) {
+        CadFeature f = it.second;
+        for_each_feature_ref(f, [&](int& ref) { auto m = was_now.find(ref); if (m != was_now.end()) ref = m->second; });
+        f.name += " copy";
+        const int now = append_feature(f);
+        was_now[it.first] = now;
+        if (first < 0) first = now;
+    }
+    return first;
+}
+
 int CadDocument::append_feature(const CadFeature& f0)
 {
     CadFeature f = f0;

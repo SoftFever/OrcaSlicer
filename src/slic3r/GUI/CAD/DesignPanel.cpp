@@ -8176,6 +8176,7 @@ void DesignPanel::load_recipe(const std::string& blob)
 
 void DesignPanel::refresh_tree()
 {
+    m_tree_multi.clear();
     // The recipe mirrors the FEATURE LIST, and this is the moment the feature list changed —
     // every add, delete, reorder, rename and suppression ends here to redraw the tree. Putting
     // the sync in recompute_guarded instead tied it to "a solid was built", and CadDocument::
@@ -12333,11 +12334,47 @@ void DesignPanel::start_sketch3d()
     m_viewport->begin_sketch3d(m_doc.modeling_origin, std::move(targets));
 }
 
+std::vector<int> DesignPanel::tree_selected_rows() const
+{
+    std::vector<int> out(m_tree_multi.begin(), m_tree_multi.end());
+    const int sel = m_tree ? m_tree->selection() : -1;
+    if (out.empty() && sel >= 0 && sel != wxNOT_FOUND) out.push_back(sel);
+    return out;
+}
+
+void DesignPanel::copy_selected_features()
+{
+    m_feature_clip.clear();
+    for (int r : tree_selected_rows())
+        if (r >= 0 && r < int(m_doc.features.size())) m_feature_clip.emplace_back(r, m_doc.features[size_t(r)]);
+    set_status(StatusKind::Info, wxString::Format(m_feature_clip.size() == 1 ? _L("%zu feature copied") : _L("%zu features copied"), m_feature_clip.size()));
+}
+
+void DesignPanel::paste_features()
+{
+    if (m_feature_clip.empty()) { set_status(StatusKind::Info, _L("Nothing copied yet")); return; }
+    m_doc.checkpoint();
+    const int first = m_doc.paste_features(m_feature_clip);
+    const bool ok = recompute_guarded(_L("Rebuilding model…"));
+    if (!ok) { const std::string why = m_doc.error; m_doc.undo(); m_doc.error = why; }
+    refresh_tree();
+    if (ok && first >= 0) {
+        set_tree_selection(first);
+        m_tree_multi.clear();
+        for (size_t k = 0; k < m_feature_clip.size(); ++k) m_tree_multi.insert(first + int(k));
+        set_status_ok();
+    } else if (!ok) {
+        set_status(StatusKind::Error, wxString::Format(_L("The model could not be rebuilt: %s"), kernel_error_text(m_doc.error)));
+    }
+}
+
 TreeView DesignPanel::build_tree_view() const
 {
     TreeView v;
     v.selected    = m_tree ? m_tree->selection() : -1;
     if (v.selected == wxNOT_FOUND) v.selected = -1;
+    v.selected_set.assign(m_tree_multi.begin(), m_tree_multi.end());
+    v.can_paste   = !m_feature_clip.empty();
     v.rollback    = m_doc.rollback_index;
     v.show_origin = m_show_origin;
     v.show_bed    = m_show_bed;
@@ -12355,6 +12392,14 @@ TreeView DesignPanel::build_tree_view() const
     return v;
 }
 
+void DesignPanel::mcp_tree_event(const std::string& kind, int row)
+{
+    TreeEvent e;
+    e.row  = row;
+    e.kind = kind == "copy" ? TreeEvent::Copy : kind == "paste" ? TreeEvent::Paste : kind == "delete" ? TreeEvent::Delete : TreeEvent::ToggleEnabled;
+    apply_tree_events({ e });
+}
+
 void DesignPanel::apply_tree_events(const std::vector<TreeEvent>& evs)
 {
     const int n = int(m_doc.features.size());
@@ -12362,12 +12407,42 @@ void DesignPanel::apply_tree_events(const std::vector<TreeEvent>& evs)
     for (const TreeEvent& e : evs) {
         switch (e.kind) {
         case TreeEvent::Select:
-            if (ok(e.row)) { if (m_parts) m_parts->unselect(); m_tree->select(e.row); }
+            if (ok(e.row)) {
+                if (m_parts) m_parts->unselect();
+                const int anchor = tree_selection();
+                if (e.text == "ctrl") {          // toggle this row in the selection
+                    if (m_tree_multi.empty() && anchor >= 0 && anchor != wxNOT_FOUND) m_tree_multi.insert(anchor);
+                    if (!m_tree_multi.erase(e.row)) m_tree_multi.insert(e.row);
+                } else if (e.text == "shift" && anchor >= 0 && anchor != wxNOT_FOUND) {   // the range from the primary row
+                    m_tree_multi.clear();
+                    for (int r = std::min(anchor, e.row); r <= std::max(anchor, e.row); ++r) m_tree_multi.insert(r);
+                } else {
+                    m_tree_multi.clear();
+                }
+                m_tree->select(e.row);
+            }
             break;
-        case TreeEvent::Deselect:      m_tree->unselect(); break;
+        case TreeEvent::Deselect:      m_tree_multi.clear(); m_tree->unselect(); break;
+        case TreeEvent::Copy:
+            if (ok(e.row) && !m_tree_multi.count(e.row)) { m_tree_multi.clear(); m_tree->select(e.row); }
+            copy_selected_features();
+            break;
+        case TreeEvent::Paste:         paste_features(); break;
         case TreeEvent::Edit:          if (ok(e.row)) { m_tree->select(e.row); on_edit_feature(); } break;
-        case TreeEvent::ToggleEnabled: if (ok(e.row)) { m_tree->select(e.row); on_toggle_visibility(); } break;
-        case TreeEvent::Delete:        if (ok(e.row)) { m_tree->select(e.row); on_delete_feature(); } break;
+        case TreeEvent::ToggleEnabled:
+            if (ok(e.row)) {
+                std::vector<int> rows = m_tree_multi.count(e.row) ? tree_selected_rows() : std::vector<int>{ e.row };
+                for (auto it = rows.rbegin(); it != rows.rend(); ++it) { m_tree->select(*it); on_toggle_visibility(); }
+            }
+            break;
+        case TreeEvent::Delete:
+            if (ok(e.row)) {
+                std::vector<int> rows = m_tree_multi.count(e.row) ? tree_selected_rows() : std::vector<int>{ e.row };
+                m_tree_multi.clear();
+                for (auto it = rows.rbegin(); it != rows.rend(); ++it)   // last first: a deletion never moves a row still to come
+                    if (*it < int(m_doc.features.size())) { m_tree->select(*it); on_delete_feature(); }
+            }
+            break;
         case TreeEvent::Zoom:          if (ok(e.row)) zoom_to_feature(e.row); break;
         case TreeEvent::MoveUp:        if (ok(e.row)) { m_tree->select(e.row); on_move_feature(-1); } break;
         case TreeEvent::MoveDown:      if (ok(e.row)) { m_tree->select(e.row); on_move_feature(+1); } break;

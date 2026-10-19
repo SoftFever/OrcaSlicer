@@ -671,6 +671,7 @@ json describe_tools()
         compact_tool("ui.move", "Move the pointer over the design canvas (canvas pixels).", {{"at", "array", "[x,y] px"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.click", "Click on the design canvas through the real event path: move, press, release (count 2 = double click).", {{"at", "array", "[x,y] px"}, {"button", "integer", "1 left, 2 middle, 3 right"}, {"count", "integer", "1|2"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.drag", "Press at `from`, move to `to` in `steps`, release.", {{"from", "array", "[x,y] px"}, {"to", "array", "[x,y] px"}, {"steps", "integer", "default 8"}, {"step_ms", "integer", "pause per move, default 25"}, {"button", "integer", "1|2|3"}, {"mods", "array", "shift|ctrl|alt"}}),
+        compact_tool("ui.tree", "Rig driver for the on-canvas tree row commands: copy | paste | delete | toggle (suppress) on a row; the selection is ui.inspect tree.selected.", {{"event", "string", "copy|paste|delete|toggle"}, {"row", "integer", "feature row"}}),
         compact_tool("ui.card", "Rig driver for the wx feature cards: open (dressup|extrude|shell|draft|pattern|sheet[:mode]), set {field: number}, check [feature indices] (pattern), confirm.", {{"open", "string", "card name"}, {"set", "object", "field values: size size2 law distance thin_in thin_out shell_thickness draft_angle add_shell_face add_draft_face pattern_what pattern_type pattern_axis pattern_axis2 count spacing angle count2 spacing2 mirror_offset sheet_thickness sheet_radius sheet_k sheet_gap sheet_height sheet_angle sheet_length sheet_flip sheet_mode"}, {"check", "array", "feature indices to repeat"}, {"confirm", "boolean", "press the check mark"}}),
         compact_tool("ui.key", "Press a key as the keyboard delivers it (shortcut gate first, then the focused window).", {{"key", "string", "a character, or Escape|Enter|Tab|Backspace|Delete|Space|Left|Right|Up|Down|Home|End|PageUp|PageDown|F1-F12"}, {"mods", "array", "shift|ctrl|alt"}}),
         compact_tool("ui.text", "Type text into the focused window, one character event each.", {{"text", "string", "up to 4096 characters"}}),
@@ -3052,6 +3053,7 @@ void ui_mouse(DesignPanel* panel, int kind /*0 move,1 down,2 up,3 dclick*/, int 
     e.m_leftDown = g_ui.buttons & 1; e.m_middleDown = g_ui.buttons & 2; e.m_rightDown = g_ui.buttons & 4;
     e.SetShiftDown(mods & 1); e.SetControlDown(mods & 2); e.SetAltDown(mods & 4);
     e.m_clickCount = clicks;
+    panel->mcp_viewport()->tree_overlay().test_mods = mods;   // ImGui takes modifiers from key events, which a synthetic click has none of
     e.SetTimestamp(long(wxGetLocalTimeMillis().GetLo()));
     w->GetEventHandler()->ProcessEvent(e);
     panel->mcp_viewport()->request_repaint();   // a person moving the mouse repaints; ImGui samples the pointer once per frame
@@ -3157,7 +3159,7 @@ json ui_inspect(DesignPanel* panel)
     }
     if (v && v->tree_overlay_on()) {   // the on-canvas tree: where each row is, so a rig test can drag one
         const DesignTreeOverlay& to = const_cast<DesignCanvas*>(v)->tree_overlay();
-        out["tree"] = {{"rows_y", to.row_mids()}, {"x", to.row_x()}};
+        out["tree"] = {{"rows_y", to.row_mids()}, {"x", to.row_x()}, {"selected", panel->mcp_tree_selection()}};
     }
     if (in) {
         const wxSize sz = in->GetClientSize();
@@ -3226,6 +3228,14 @@ json ui_dispatch(const std::string& method, const json& p)
         pause(step_ms); mouse(2, tx, ty); pause(60);
         return json{{"ok", true}};
     }
+    if (method == "ui.tree") {   // rig driver for the tree's row commands: {event: copy|paste|delete|toggle, row}
+        const std::string ev = p.value("event", std::string());
+        if (ev != "copy" && ev != "paste" && ev != "delete" && ev != "toggle") throw std::runtime_error("ui.tree event: copy | paste | delete | toggle");
+        const int row = p.value("row", -1);
+        on_main([&]() { panelp()->mcp_tree_event(ev, row); return true; });
+        pause(150);
+        return json{{"ok", true}};
+    }
     if (method == "ui.card") {   // rig driver for the wx feature cards: open one, set fields, commit
         if (p.contains("open") && !(p["open"].is_string() && on_main([&]() { return panelp()->mcp_card_open(p["open"].get<std::string>()); })))
             throw std::runtime_error("ui.card open: dressup | extrude | shell | draft | pattern | sheet[:0-6]");
@@ -3266,7 +3276,7 @@ json ui_dispatch(const std::string& method, const json& p)
         for (const wxUniChar c : wxString::FromUTF8(t)) { const int u = int(c.GetValue()); on_main([=]() { ui_key(panelp(), u, u, 0); }); pause(25); }
         return json{{"ok", true}};
     }
-    throw std::runtime_error("unknown ui method '" + method + "' (ui.inspect, ui.candidates, ui.worldToScreen, ui.move, ui.click, ui.drag, ui.key, ui.text)");
+    throw std::runtime_error("unknown ui method '" + method + "' (ui.inspect, ui.candidates, ui.worldToScreen, ui.move, ui.click, ui.drag, ui.key, ui.text, ui.tree, ui.card)");
 }
 
 // ---- variables, sketch dimensions, suppression, rollback ---------------------------------------------------------

@@ -29,6 +29,8 @@ struct TreeRowView {
 struct TreeView {
     std::vector<TreeRowView> rows;
     int  selected{-1};
+    std::vector<int> selected_set;   // every selected row (Ctrl toggles, Shift extends); `selected` is the primary
+    bool can_paste{false};           // the feature clipboard holds something
     int  rollback{-1};        // history is rolled back to this row; -1 = at the end
     bool show_origin{true};
     bool show_bed{true};
@@ -36,9 +38,9 @@ struct TreeView {
 
 struct TreeEvent {
     enum Kind { Select, Deselect, Edit, ToggleEnabled, Delete, Zoom, MoveUp, MoveDown, Reorder, Rename, SetRollback,
-                ToggleOrigin, ToggleBed, DockBack } kind{Deselect};
+                ToggleOrigin, ToggleBed, DockBack, Copy, Paste } kind{Deselect};
     int         row{-1};
-    std::string text;   // Rename: the new name; Reorder: the destination row (row = the dragged one)
+    std::string text;   // Rename: the new name; Reorder: the destination row (row = the dragged one); Select: "ctrl" | "shift" | ""
 };
 
 class DesignTreeOverlay
@@ -47,6 +49,7 @@ public:
     std::function<TreeView()>                       get_view;   // rebuilt by the owner every frame (cheap: names + flags)
     std::function<void(std::vector<TreeEvent>)>     emit;       // events from this frame, applied later by the owner
     std::function<bool(int row)>                    can_zoom;   // called only while a row menu is open
+    int                                             test_mods{0};   // rig only: modifiers a synthetic click carries (1 shift, 2 ctrl); ImGui learns real ones from key events
 
     // `inset_left/top` keep the window clear of the canvas's own corner widgets.
     void render(ImGuiWrapper& imgui, float scale, float inset_left, float inset_top);

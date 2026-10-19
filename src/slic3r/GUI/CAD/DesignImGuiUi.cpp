@@ -163,7 +163,7 @@ void DesignTreeOverlay::render(ImGuiWrapper& imgui, float scale, float inset_lef
         const bool rolled = eff_rollback >= 0 && i > eff_rollback;   // not replayed right now
         if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) m_drag_src = -1;
         ImGui::PushID(i);
-        const bool selected = (i == view.selected);
+        const bool selected = (i == view.selected) || std::find(view.selected_set.begin(), view.selected_set.end(), i) != view.selected_set.end();
         const ImVec4* tint = r.failed ? &col_red : r.conflict ? &col_warn : (r.suppressed || rolled) ? &col_dim : nullptr;
 
         if (m_rename_row == i) {
@@ -183,7 +183,8 @@ void DesignTreeOverlay::render(ImGuiWrapper& imgui, float scale, float inset_lef
         } else {
             if (tint) ImGui::PushStyleColor(ImGuiCol_Text, *tint);
             if (ImGui::Selectable(r.label.c_str(), selected, ImGuiSelectableFlags_AllowDoubleClick)) {
-                push(TreeEvent::Select, i);
+                const ImGuiIO& io = ImGui::GetIO();   // Ctrl toggles a row in the selection, Shift extends it from the primary one
+                push(TreeEvent::Select, i, (io.KeyCtrl || (test_mods & 2)) ? "ctrl" : (io.KeyShift || (test_mods & 1)) ? "shift" : "");
                 if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) push(TreeEvent::Edit, i);
             }
             if (tint) ImGui::PopStyleColor();
@@ -210,7 +211,7 @@ void DesignTreeOverlay::render(ImGuiWrapper& imgui, float scale, float inset_lef
                                                     ImGui::GetColorU32(col_dim), 1.f);
             }
             if (ImGui::IsItemHovered() && !r.note.empty()) ImGui::SetTooltip("%s", r.note.c_str());
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) push(TreeEvent::Select, i);
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Right) && !selected) push(TreeEvent::Select, i);
             mids[i] = (ImGui::GetItemRectMin().y + ImGui::GetItemRectMax().y) * 0.5f;
             m_row_x = ImGui::GetItemRectMin().x + 12.f;
 
@@ -221,6 +222,10 @@ void DesignTreeOverlay::render(ImGuiWrapper& imgui, float scale, float inset_lef
                     std::snprintf(m_rename_buf, sizeof(m_rename_buf), "%s", r.label.c_str());
                 }
                 if (ImGui::MenuItem(_u8L("Edit").c_str())) push(TreeEvent::Edit, i);
+                if (ImGui::MenuItem(_u8L("Copy").c_str())) push(TreeEvent::Copy, i);
+                if (!view.can_paste) { ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true); ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); }
+                if (ImGui::MenuItem(_u8L("Paste").c_str())) push(TreeEvent::Paste, i);
+                if (!view.can_paste) { ImGui::PopStyleVar(); ImGui::PopItemFlag(); }
                 if (ImGui::MenuItem(r.suppressed ? _u8L("Unsuppress").c_str() : _u8L("Suppress").c_str()))
                     push(TreeEvent::ToggleEnabled, i);
                 ImGui::Separator();
