@@ -3594,6 +3594,9 @@ bool GUI_App::on_init_inner()
             } catch (const std::exception& ex) {
                 BOOST_LOG_TRIVIAL(error) << "Startup cloud plugin fetch failed: " << ex.what();
                 return;
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(error) << "Startup cloud plugin fetch failed";
+                return;
             }
             // Report once the main window exists.
             CallAfter([this, not_found = std::move(not_found), unauthorized = std::move(unauthorized)] {
@@ -3602,8 +3605,8 @@ bool GUI_App::on_init_inner()
                 if (m_plugins_dlg)
                     m_plugins_dlg->update_plugin_dialog_ui();
                 Plater* plater = this->plater();
-                if (plater == nullptr)
-                    return;
+                if (plater == nullptr || m_agent == nullptr || !m_agent->is_user_login())
+                    return; // logged out meanwhile
                 for (const auto& uuid : not_found) {
                     plater->get_notification_manager()->push_notification(
                         NotificationType::CustomNotification,
@@ -5356,6 +5359,9 @@ void GUI_App::request_user_logout(const std::string& provider/* = ORCA_CLOUD_PRO
 
             remove_user_presets();
             enable_user_preset_folder(false);
+            // A startup fetch still in flight would re-add this user's cloud metadata.
+            if (m_startup_cloud_plugin_fetch_thread.joinable())
+                m_startup_cloud_plugin_fetch_thread.join();
             Slic3r::PluginManager::instance().unload_cloud_plugins();
             Slic3r::PluginManager::instance().clear_cloud_plugin_metadata();
             Slic3r::PluginManager::instance().set_cloud_user("");
