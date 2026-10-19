@@ -10657,6 +10657,9 @@ msgstr ""
 msgid "Send Failed"
 msgstr ""
 
+msgid "No available printers"
+msgstr ""
+
 msgid "The name length exceeds the limit."
 msgstr ""
 
