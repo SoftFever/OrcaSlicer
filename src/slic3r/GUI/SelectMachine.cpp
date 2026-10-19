@@ -946,7 +946,7 @@ void SelectMachineDialog::init_bind()
             if (!obj) return;
 
             if (obj->get_dev_id() == e.GetString()) {
-                m_printer_box->SetPrinterName(wxString::FromUTF8(obj->get_dev_name()) + "(LAN)");
+                m_printer_box->SetPrinterName(wxString::FromUTF8(obj->get_dev_name()) + _L("(LAN)"));
             }
         }
     });
@@ -4087,7 +4087,7 @@ void SelectMachineDialog::update_user_printer()
     {
         m_printer_last_select = "";
         update_select_layout(nullptr);
-        m_printer_box->GetPrinterComboBox()->SetTextLabel("");
+        m_printer_box->GetPrinterComboBox()->SetValue(_L("No available printers"));
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;
@@ -4358,7 +4358,9 @@ void SelectMachineDialog::update_filament_change_count()
         m_mapping_sugs_sizer->Show(true);
         m_change_filament_times_sizer->Show(true);
         m_txt_change_filament_times->Show(true);
-        m_txt_change_filament_times->SetLabel(wxString::Format(_L("Cost %dg filament and %d changes more than optimal grouping."), saving_weight, hand_changes_count));
+        m_txt_change_filament_times->SetLabel(wxString::Format(_L_PLURAL("Cost %dg filament and %d change more than optimal grouping.",
+                                                                         "Cost %dg filament and %d changes more than optimal grouping.", hand_changes_count),
+                                                               saving_weight, hand_changes_count));
         m_txt_change_filament_times->Wrap(FromDIP(580));
         m_txt_change_filament_times->Layout();
     }
@@ -7062,7 +7064,7 @@ void PrinterInfoBox::SetPrinters(const std::vector<MachineObject*>& sorted_print
     {
         wxString shown_dev_name = wxString::FromUTF8(obj->get_dev_name());
         if (obj->is_lan_mode_printer()) {
-            shown_dev_name += "(LAN)";
+            shown_dev_name += _L("(LAN)");
         }
 
         DropDown::Item drop_item;

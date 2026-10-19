@@ -1105,6 +1105,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     toggle_field("support_filament", have_support_material || have_skirt);
 
     toggle_line("raft_contact_distance", have_raft && !have_support_soluble);
+    // Orca:Hide raft expansion when raft is not enabled
+    toggle_line("raft_expansion", have_raft);
+    // Orca: Slim, Strong and Hybrid tree supports size their raft by first layer expansion only.
+    toggle_field("raft_expansion", !(is_tree(support_type) && (support_style == smsTreeSlim || support_style == smsTreeStrong || support_style == smsTreeHybrid)));
 
     // Orca: First-layer density is available for supports broadly.
     toggle_field("raft_first_layer_density", have_support_material);
@@ -1240,6 +1244,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
         toggle_line(el, gcf_is_klipper);
     if(gcf_is_klipper)
         toggle_field("accel_to_decel_factor", config->opt_bool("accel_to_decel_enable"));
+
+    toggle_line("exclude_object_tolerance", gcf_is_klipper && config->opt_bool("exclude_object"));
 
     bool have_make_overhang_printable = config->opt_bool("make_overhang_printable");
     toggle_line("make_overhang_printable_angle", have_make_overhang_printable);

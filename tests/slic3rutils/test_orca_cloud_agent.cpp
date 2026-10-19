@@ -12,7 +12,6 @@
 #include <boost/asio/write.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/nowide/cstdlib.hpp>
 #include <boost/system/error_code.hpp>
 
 #include <atomic>
@@ -23,7 +22,6 @@
 #include <istream>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -194,29 +192,6 @@ private:
     std::condition_variable                  m_cv;
     std::vector<Request>                     m_requests;
     std::vector<std::shared_ptr<Connection>> m_connections;
-};
-
-// Sets an environment variable for the lifetime of the guard and restores the previous value.
-class ScopedEnvVar
-{
-public:
-    ScopedEnvVar(std::string name, const std::string& value) : m_name(std::move(name))
-    {
-        if (const char* old = boost::nowide::getenv(m_name.c_str()))
-            m_previous = old;
-        boost::nowide::setenv(m_name.c_str(), value.c_str(), 1);
-    }
-    ~ScopedEnvVar()
-    {
-        if (m_previous)
-            boost::nowide::setenv(m_name.c_str(), m_previous->c_str(), 1);
-        else
-            boost::nowide::unsetenv(m_name.c_str());
-    }
-
-private:
-    std::string                m_name;
-    std::optional<std::string> m_previous;
 };
 
 // What the agent reported through its callbacks, recorded on whichever thread delivers it so the

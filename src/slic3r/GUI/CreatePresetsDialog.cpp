@@ -3151,7 +3151,7 @@ void CreatePrinterPresetDialog::set_current_visible_printer()
     m_printer_name_to_preset.clear();
     for (const Preset &printer_preset : printer_presets) {
         if (!printer_preset.is_visible) continue;
-        if (preset_bundle->printers.get_preset_base(printer_preset)->name != printer_preset.name) continue;
+        if (preset_bundle->printers.get_preset_base(printer_preset) != &printer_preset) continue;
         if (auto printer_model = dynamic_cast<ConfigOptionString*>(const_cast<Preset&>(printer_preset).config.option("printer_model", false))) {
             if (m_printer_name_to_preset.find(printer_model->value) == m_printer_name_to_preset.end()) {
                 printer_choice.push_back(from_u8(printer_model->value));
@@ -4690,7 +4690,7 @@ void EditFilamentPresetDialog::delete_preset()
             if (count > 0) {
                 msg = _L("Presets inherited by other presets cannot be deleted");
                 msg += "\n";
-                msg += _L_PLURAL("The following presets inherits this preset.", "The following preset inherits this preset.", count);
+                msg += _L_PLURAL("The following preset inherits this preset.", "The following presets inherit this preset.", count);
                 wxString title = _L("Delete Preset");
                 MessageDialog(this, msg + presets, title, wxOK | wxICON_ERROR).ShowModal();
                 m_selected_printer.clear();
@@ -4962,7 +4962,7 @@ void CreatePresetForPrinterDialog::get_visible_printer_and_compatible_filament_p
                     if (filament_preset.is_default || !filament_preset.is_compatible || filament_preset.is_project_embedded) continue;
                     ConfigOptionStrings *filament_types;
                     const Preset *       filament_preset_base = m_preset_bundle->filaments.get_preset_base(filament_preset);
-                    if (filament_preset_base == &filament_preset) {
+                    if (filament_preset_base == &filament_preset || filament_preset_base == nullptr) {
                         filament_types = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(&filament_preset)->config.option("filament_type"));
                     } else {
                         filament_types = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(filament_preset_base)->config.option("filament_type"));
