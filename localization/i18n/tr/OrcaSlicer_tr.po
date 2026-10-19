@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Orca Slicer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: 2026-08-21 23:18+0300\n"
 "Last-Translator: GlauTech\n"
 "Language-Team: \n"
@@ -783,18 +783,21 @@ msgstr "Seçim"
 msgid "Plate"
 msgstr "Plaka"
 
+# AI Translated
 msgid "Distribute"
-msgstr ""
+msgstr "Dağıt"
 
 # AI Translated
 msgid "Coordinate system used for transform actions."
 msgstr "Dönüştürme işlemlerinde kullanılan koordinat sistemi."
 
+# AI Translated
 msgid "Reference for alignment"
-msgstr ""
+msgstr "Hizalama referansı"
 
+# AI Translated
 msgid "Select at least 3 parts or objects"
-msgstr ""
+msgstr "En az 3 parça veya nesne seçin"
 
 # AI Translated
 msgid "Align left"
@@ -847,8 +850,9 @@ msgstr "Üst-alt yönünde dağıt"
 msgid "Drop"
 msgstr "Düşür"
 
+# AI Translated
 msgid "Move the selection along Z so that its lowest point touches the bed."
-msgstr ""
+msgstr "Seçimi, en alçak noktası yatağa değecek şekilde Z ekseni boyunca taşır."
 
 # AI Translated
 msgid "Absolute"
@@ -1714,10 +1718,10 @@ msgid "Undefined fill type"
 msgstr "Tanımsız dolgu türü"
 
 msgid "Linear gradient"
-msgstr "Doğrusal degrade"
+msgstr "Doğrusal gradyan"
 
 msgid "Radial gradient"
-msgstr "Radyal degrade"
+msgstr "Radyal gradyan"
 
 msgid "Open filled path"
 msgstr "Doldurulmuş yolu aç"
@@ -2089,17 +2093,21 @@ msgstr "Birleştirme gizmosuna giriliyor"
 msgid "Leaving Assembly gizmo"
 msgstr "Birleştirme gizmosundan çıkılıyor"
 
+# AI Translated
 msgid "Parts of a cut object cannot be moved"
-msgstr ""
+msgstr "Kesilmiş bir nesnenin parçaları taşınamaz"
 
+# AI Translated
 msgid "Aligning to the plate is available in X and Y only"
-msgstr ""
+msgstr "Plakaya hizalama yalnızca X ve Y'de kullanılabilir"
 
+# AI Translated
 msgid "Turn off Auto-Drop for the selected objects to move them in Z"
-msgstr ""
+msgstr "Seçilen nesneleri Z ekseninde taşımak için Otomatik düşürmeyi kapatın"
 
+# AI Translated
 msgid "All selected objects must be on the same plate"
-msgstr ""
+msgstr "Seçilen tüm nesneler aynı plakada olmalıdır"
 
 msgid "Shift+"
 msgstr "Shift+"
@@ -6557,8 +6565,10 @@ msgstr "Eksenler"
 msgid "Gridlines"
 msgstr "Kılavuz çizgileri"
 
+# AI Translated
+# Needs human review: Glossary has no Turkish rendering for Focus mode yet; check 'Odak modu' fits the view-mode name.
 msgid "Focus mode"
-msgstr ""
+msgstr "Odak modu"
 
 msgid "Labels"
 msgstr "Etiketler"
@@ -6619,7 +6629,7 @@ msgstr "Hacim:"
 msgid "Size:"
 msgstr "Boyut:"
 
-#, boost-format
+#, c-format, boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr "%d katmanında G-code yollarında çakışmalar bulundu, Z = %.2lfmm. Lütfen çakışan nesneleri daha uzağa ayırın (%s <-> %s)."
 
@@ -10985,11 +10995,13 @@ msgstr "Desteklenmeyen ön ayarları göster"
 msgid "Show incompatible/unsupported presets in the printer and filament dropdown lists. These presets cannot be selected."
 msgstr "Yazıcı ve filament açılır listelerinde uyumsuz/desteklenmeyen ön ayarları gösterir. Bu ön ayarlar seçilemez."
 
+# AI Translated
 msgid "Export statistics with G-code"
-msgstr ""
+msgstr "İstatistikleri G-code ile dışa aktar"
 
+# AI Translated
 msgid "If enabled, exporting a G-code file also writes its statistics as JSON next to it, as <name>.statistics.json, and an exported sliced 3MF file holds them inside: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Etkinleştirilirse, bir G-code dosyası dışa aktarılırken istatistikleri de yanına <name>.statistics.json olarak JSON biçiminde yazılır; dışa aktarılan dilimlenmiş 3MF dosyası da bunları içinde barındırır: baskı süresi, filament ve çizgi türü toplamları ile katman ve nesne başına aynı bilgiler."
 
 # AI Translated
 msgid "Experimental Features"
@@ -11852,6 +11864,10 @@ msgstr "Dosya yazıcının depolama alanına yüklenemedi. Lütfen tekrar deneyi
 # AI Translated
 msgid "Send Failed"
 msgstr "Gönderim Başarısız"
+
+# AI Translated
+msgid "No available printers"
+msgstr "Kullanılabilir yazıcı yok"
 
 msgid "The name length exceeds the limit."
 msgstr "Ad uzunluğu sınırı aşıyor."
@@ -13721,8 +13737,8 @@ msgid "Left mouse"
 msgstr "Sol fare tuşu"
 
 # AI Translated
-msgid "Available anywhere in the window, even while typing in a text field."
-msgstr "Pencerenin her yerinde, bir metin alanına yazarken bile kullanılabilir."
+msgid "Available anywhere in the window."
+msgstr "Pencerenin her yerinde kullanılabilir."
 
 # AI Translated
 msgid "Run favorite 1 to 10"
@@ -13833,10 +13849,6 @@ msgstr "%s, %s için atanmış. %s için yeniden atansın mı?"
 #, c-format, boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
 msgstr "Varsayılan %s, %s için atanmış. %s için yeniden atansın mı?"
-
-# AI Translated
-msgid "Global shortcuts also apply while typing."
-msgstr "Genel kısayollar yazarken de geçerlidir."
 
 # AI Translated
 msgid "A key that types a character cannot be a global shortcut."
@@ -14294,9 +14306,10 @@ msgstr "\"%2%\" nesnesinin \"%1%\" değiştiricisinin (toplam %3%) dikiş üzeri
 msgid "Seam placement may differ from expected."
 msgstr "Dikiş yerleşimi beklenenden farklı olabilir."
 
+# AI Translated
 #, boost-format
 msgid "Failed to write the G-code statistics to %1%."
-msgstr ""
+msgstr "G-code istatistikleri %1% konumuna yazılamadı."
 
 msgid "Internal Bridge"
 msgstr "İç köprü"
@@ -17740,6 +17753,14 @@ msgstr "Nesneleri hariç tut"
 msgid "Enable this option to add EXCLUDE OBJECT command in G-code."
 msgstr "G-code'a EXCLUDE OBJECT komutunu eklemek için bu seçeneği etkinleştirin."
 
+# AI Translated
+msgid "Outline tolerance"
+msgstr "Dış hat toleransı"
+
+# AI Translated
+msgid "Maximum deviation of the object outline written to EXCLUDE_OBJECT_DEFINE from the original outline. Larger values give fewer points, which helps firmware that stalls while parsing G-code with many objects. 0 keeps every point."
+msgstr "EXCLUDE_OBJECT_DEFINE'a yazılan nesne dış hattının orijinal dış hattan en fazla sapması. Daha büyük değerler daha az nokta üretir; bu, çok sayıda nesne içeren G-code'u ayrıştırırken takılan ürün yazılımına yardımcı olur. 0 her noktayı korur."
+
 msgid "Verbose G-code"
 msgstr "Ayrıntılı G-code"
 
@@ -21022,11 +21043,13 @@ msgstr "Çıkış dizini"
 msgid "This is the output directory for exported files."
 msgstr "Dışa aktarılan dosyalar için çıkış dizini."
 
+# AI Translated
 msgid "Export statistics"
-msgstr ""
+msgstr "İstatistikleri dışa aktar"
 
+# AI Translated
 msgid "Write the statistics of each sliced plate as JSON, as plate_N.statistics.json next to its G-code in the output directory and inside the 3MF of --export-3mf: print time, filament and feature totals, and the same per layer and per object."
-msgstr ""
+msgstr "Dilimlenen her plakanın istatistiklerini JSON olarak yazar: çıktı dizininde G-code'un yanına plate_N.statistics.json olarak ve --export-3mf ile oluşturulan 3MF'in içine; baskı süresi, filament ve çizgi türü toplamları ile katman ve nesne başına aynı bilgiler."
 
 msgid "Debug level"
 msgstr "Hata ayıklama düzeyi"
@@ -30966,1231 +30989,1652 @@ msgid_plural "The current filament list does not contain %s. Project filaments r
 msgstr[0] "Mevcut filament listesi %s içermiyor. Karışık filamentin gerektirdiği bir proje filamenti, ayrıştırmadan sonra otomatik olarak oluşturulacak."
 msgstr[1] "Mevcut filament listesi %s içermiyor. Karışık filamentin gerektirdiği proje filamentleri, ayrıştırmadan sonra otomatik olarak oluşturulacak."
 
+# AI Translated
 msgid "Color Picker"
-msgstr ""
+msgstr "Renk seçici"
 
+# AI Translated
 msgid "Basic Colors"
-msgstr ""
+msgstr "Temel renkler"
 
-msgid "Orca Palette"
-msgstr ""
-
+# AI Translated
+# Needs human review: Glossary has no Turkish rendering for Palette; check 'palet' (also Paletler).
 #. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
-msgid "RAL Classic"
-msgstr ""
+msgid "Orca Palette"
+msgstr "Orca paleti"
 
+# AI Translated
 #. TRN: Keep the standard/brand name "RAL" unchanged.
+msgid "RAL Classic"
+msgstr "RAL Klasik"
+
+# AI Translated
+# Needs human review: Glossary has no Turkish cell for Gradient; used 'Gradyan' (as in Karışık filament gradyanı), though 'Linear gradient' is 'Doğrusal degrade' in the catalog.
 msgid "Gradients"
-msgstr ""
+msgstr "Gradyanlar"
 
+# AI Translated
+# Needs human review: Color-picker sense (single color, not a gradient); check 'Düz' reads as 'solid color'.
+msgctxt "Color picker"
 msgid "Solid"
-msgstr ""
+msgstr "Düz"
 
+# AI Translated
+# Needs human review: Glossary has no Turkish cell for Gradient; used 'Gradyan' (as in Karışık filament gradyanı), though 'Linear gradient' is 'Doğrusal degrade' in the catalog.
 msgid "Gradient"
-msgstr ""
+msgstr "Gradyan"
 
+# AI Translated
 msgid "Gradient start"
-msgstr ""
+msgstr "Gradyan başlangıcı"
 
+# AI Translated
 msgid "Gradient end"
-msgstr ""
+msgstr "Gradyan sonu"
 
+# AI Translated
 msgid "Gradient color"
-msgstr ""
+msgstr "Gradyan rengi"
 
+# AI Translated
 msgid "Add color"
-msgstr ""
+msgstr "Renk ekle"
 
+# AI Translated
 msgid "Remove color"
-msgstr ""
+msgstr "Rengi kaldır"
 
+# AI Translated
 msgid "Saturation"
-msgstr ""
+msgstr "Doygunluk"
 
+# AI Translated
 msgid "Original color"
-msgstr ""
+msgstr "Orijinal renk"
 
+# AI Translated
 #. TRN: Clicking the current color preview adds it to the saved favorites.
 msgid "Save current color"
-msgstr ""
+msgstr "Geçerli rengi kaydet"
 
+# AI Translated
+# Needs human review: Glossary has no Turkish rendering for Palette; check 'Paletler'.
 msgid "Palettes"
-msgstr ""
+msgstr "Paletler"
 
+# AI Translated
 msgid "Search colors"
-msgstr ""
+msgstr "Renk ara"
 
+# AI Translated
 msgid "Filter colors"
-msgstr ""
+msgstr "Renkleri filtrele"
 
+# AI Translated
 msgid "No matching colors"
-msgstr ""
+msgstr "Eşleşen renk yok"
 
+# AI Translated
 msgid "Hex color"
-msgstr ""
+msgstr "Onaltılık renk"
 
 # AI Translated
 msgid "Opacity"
 msgstr "Opaklık"
 
+# AI Translated
 msgid "Opacity percent"
-msgstr ""
+msgstr "Opaklık yüzdesi"
 
+# AI Translated
 msgid "Save color"
-msgstr ""
+msgstr "Rengi kaydet"
 
+# AI Translated
 msgid "Enter a complete hexadecimal color"
-msgstr ""
+msgstr "Eksiksiz bir onaltılık renk girin"
 
+# AI Translated
 msgid "The current multi-color selection is kept until you choose a different color."
-msgstr ""
+msgstr "Mevcut çok renkli seçim, farklı bir renk seçene kadar korunur."
 
+# AI Translated
 #, c-format, boost-format
 msgid "Up to %d colors supported."
-msgstr ""
+msgstr "En fazla %d renk desteklenir."
 
+# AI Translated
 msgid "Crimson"
-msgstr ""
+msgstr "Kızıl"
 
+# AI Translated
 msgid "Orange red"
-msgstr ""
+msgstr "Turuncu kırmızı"
 
+# AI Translated
 msgid "Tomato"
-msgstr ""
+msgstr "Domates"
 
+# AI Translated
 msgid "Orange"
-msgstr ""
+msgstr "Turuncu"
 
+# AI Translated
 msgid "Dark orange"
-msgstr ""
+msgstr "Koyu turuncu"
 
+# AI Translated
 msgid "Gold"
-msgstr ""
+msgstr "Altın"
 
+# AI Translated
+# Needs human review: CSS color; check 'Ahşap kahvesi' conveys burlywood (light tan wood).
 msgid "Burly wood"
-msgstr ""
+msgstr "Ahşap kahvesi"
 
+# AI Translated
 msgid "Bisque"
-msgstr ""
+msgstr "Bisküvi"
 
+# AI Translated
 msgid "Misty rose"
-msgstr ""
+msgstr "Sisli gül"
 
+# AI Translated
 msgid "Light yellow"
-msgstr ""
+msgstr "Açık sarı"
 
+# AI Translated
 msgid "Lemon chiffon"
-msgstr ""
+msgstr "Limon şifonu"
 
+# AI Translated
 msgid "Beige"
-msgstr ""
+msgstr "Bej"
 
+# AI Translated
 msgid "Light golden rod yellow"
-msgstr ""
+msgstr "Açık altın çubuk sarısı"
 
+# AI Translated
 msgid "Pale golden rod"
-msgstr ""
+msgstr "Soluk altın çubuk"
 
+# AI Translated
 msgid "Khaki"
-msgstr ""
+msgstr "Haki"
 
+# AI Translated
 msgid "Dark khaki"
-msgstr ""
+msgstr "Koyu haki"
 
+# AI Translated
 msgid "Peach puff"
-msgstr ""
+msgstr "Şeftali kreması"
 
+# AI Translated
 msgid "Moccasin"
-msgstr ""
+msgstr "Mokasen"
 
+# AI Translated
 msgid "Papaya whip"
-msgstr ""
+msgstr "Papaya kreması"
 
+# AI Translated
 msgid "Blanched almond"
-msgstr ""
+msgstr "Soyulmuş badem"
 
+# AI Translated
 msgid "Antique white"
-msgstr ""
+msgstr "Antik beyaz"
 
+# AI Translated
 msgid "Navajo white"
-msgstr ""
+msgstr "Navaho beyazı"
 
+# AI Translated
 msgid "Wheat"
-msgstr ""
+msgstr "Buğday"
 
+# AI Translated
 msgid "Golden rod"
-msgstr ""
+msgstr "Altın çubuk"
 
+# AI Translated
 msgid "Chocolate"
-msgstr ""
+msgstr "Çikolata"
 
+# AI Translated
 msgid "Peru"
-msgstr ""
+msgstr "Peru"
 
+# AI Translated
 msgid "Fire brick"
-msgstr ""
+msgstr "Tuğla kırmızısı"
 
+# AI Translated
 msgid "Sienna"
-msgstr ""
+msgstr "Siyena"
 
+# AI Translated
 msgid "Saddle brown"
-msgstr ""
+msgstr "Eyer kahvesi"
 
+# AI Translated
 msgid "Brown"
-msgstr ""
+msgstr "Kahverengi"
 
+# AI Translated
 msgid "Rosy brown"
-msgstr ""
+msgstr "Gül kahvesi"
 
+# AI Translated
 msgid "Salmon"
-msgstr ""
+msgstr "Somon"
 
+# AI Translated
 msgid "Light salmon"
-msgstr ""
+msgstr "Açık somon"
 
+# AI Translated
 msgid "Dark salmon"
-msgstr ""
+msgstr "Koyu somon"
 
+# AI Translated
 msgid "Sandy brown"
-msgstr ""
+msgstr "Kum kahvesi"
 
+# AI Translated
 msgid "Coral"
-msgstr ""
+msgstr "Mercan"
 
+# AI Translated
 msgid "Light coral"
-msgstr ""
+msgstr "Açık mercan"
 
+# AI Translated
 msgid "Indian red"
-msgstr ""
+msgstr "Hint kırmızısı"
 
+# AI Translated
 msgid "Dark red"
-msgstr ""
+msgstr "Koyu kırmızı"
 
+# AI Translated
+# Needs human review: CSS maroon rendered 'Vişne çürüğü'; check.
 msgid "Maroon"
-msgstr ""
+msgstr "Vişne çürüğü"
 
+# AI Translated
 msgid "Green yellow"
-msgstr ""
+msgstr "Yeşil sarı"
 
+# AI Translated
 msgid "Yellow green"
-msgstr ""
+msgstr "Sarı yeşil"
 
+# AI Translated
 msgid "Chartreuse"
-msgstr ""
+msgstr "Şartröz"
 
+# AI Translated
 msgid "Lawn green"
-msgstr ""
+msgstr "Çim yeşili"
 
+# AI Translated
 msgid "Lime green"
-msgstr ""
+msgstr "Misket limonu yeşili"
 
+# AI Translated
 msgid "Spring green"
-msgstr ""
+msgstr "Bahar yeşili"
 
+# AI Translated
 msgid "Medium spring green"
-msgstr ""
+msgstr "Orta bahar yeşili"
 
+# AI Translated
 msgid "Lime"
-msgstr ""
+msgstr "Misket limonu"
 
+# AI Translated
 msgid "Forest green"
-msgstr ""
+msgstr "Orman yeşili"
 
+# AI Translated
 msgid "Dark green"
-msgstr ""
+msgstr "Koyu yeşil"
 
+# AI Translated
 msgid "Olive drab"
-msgstr ""
+msgstr "Mat zeytin yeşili"
 
+# AI Translated
 msgid "Olive"
-msgstr ""
+msgstr "Zeytin"
 
+# AI Translated
 msgid "Dark olive green"
-msgstr ""
+msgstr "Koyu zeytin yeşili"
 
+# AI Translated
 msgid "Pale green"
-msgstr ""
+msgstr "Soluk yeşil"
 
+# AI Translated
 msgid "Light green"
-msgstr ""
+msgstr "Açık yeşil"
 
+# AI Translated
 msgid "Medium sea green"
-msgstr ""
+msgstr "Orta deniz yeşili"
 
+# AI Translated
 msgid "Sea green"
-msgstr ""
+msgstr "Deniz yeşili"
 
+# AI Translated
 msgid "Dark sea green"
-msgstr ""
+msgstr "Koyu deniz yeşili"
 
+# AI Translated
 msgid "Cadet blue"
-msgstr ""
+msgstr "Harbiye mavisi"
 
+# AI Translated
 msgid "Medium aqua marine"
-msgstr ""
+msgstr "Orta akuamarin"
 
+# AI Translated
 msgid "Turquoise"
-msgstr ""
+msgstr "Turkuaz"
 
+# AI Translated
 msgid "Medium turquoise"
-msgstr ""
+msgstr "Orta turkuaz"
 
+# AI Translated
 msgid "Dark turquoise"
-msgstr ""
+msgstr "Koyu turkuaz"
 
+# AI Translated
 msgid "Pale turquoise"
-msgstr ""
+msgstr "Soluk turkuaz"
 
+# AI Translated
 msgid "Aqua"
-msgstr ""
+msgstr "Akua"
 
+# AI Translated
 msgid "Light cyan"
-msgstr ""
+msgstr "Açık camgöbeği"
 
+# AI Translated
 msgid "Mint cream"
-msgstr ""
+msgstr "Nane kreması"
 
+# AI Translated
 msgid "Honey dew"
-msgstr ""
+msgstr "Bal kavunu"
 
+# AI Translated
 msgid "Aquamarine"
-msgstr ""
+msgstr "Akuamarin"
 
+# AI Translated
 msgid "Light sea green"
-msgstr ""
+msgstr "Açık deniz yeşili"
 
+# AI Translated
 msgid "Dark cyan"
-msgstr ""
+msgstr "Koyu camgöbeği"
 
+# AI Translated
+# Needs human review: Rendered 'Petrol mavisi'; check it reads as teal.
 msgid "Teal"
-msgstr ""
+msgstr "Petrol mavisi"
 
+# AI Translated
 msgid "Dark slate gray"
-msgstr ""
+msgstr "Koyu arduvaz grisi"
 
+# AI Translated
 msgid "Light slate gray"
-msgstr ""
+msgstr "Açık arduvaz grisi"
 
+# AI Translated
 msgid "Slate gray"
-msgstr ""
+msgstr "Arduvaz grisi"
 
+# AI Translated
 msgid "Deep sky blue"
-msgstr ""
+msgstr "Derin gökyüzü mavisi"
 
+# AI Translated
 msgid "Dodger Blue"
-msgstr ""
+msgstr "Dodger mavisi"
 
+# AI Translated
 msgid "Sky blue"
-msgstr ""
+msgstr "Gökyüzü mavisi"
 
+# AI Translated
 msgid "Light sky blue"
-msgstr ""
+msgstr "Açık gökyüzü mavisi"
 
+# AI Translated
 msgid "Light blue"
-msgstr ""
+msgstr "Açık mavi"
 
+# AI Translated
 msgid "Powder blue"
-msgstr ""
+msgstr "Pudra mavisi"
 
+# AI Translated
 msgid "Light steel blue"
-msgstr ""
+msgstr "Açık çelik mavisi"
 
+# AI Translated
 msgid "Steel blue"
-msgstr ""
+msgstr "Çelik mavisi"
 
+# AI Translated
 msgid "Cornflower blue"
-msgstr ""
+msgstr "Kantaron mavisi"
 
+# AI Translated
 msgid "Royal blue"
-msgstr ""
+msgstr "Kraliyet mavisi"
 
+# AI Translated
 msgid "Medium blue"
-msgstr ""
+msgstr "Orta mavi"
 
+# AI Translated
 msgid "Midnight blue"
-msgstr ""
+msgstr "Gece yarısı mavisi"
 
+# AI Translated
 msgid "Dark blue"
-msgstr ""
+msgstr "Koyu mavi"
 
+# AI Translated
 msgid "Navy"
-msgstr ""
+msgstr "Lacivert"
 
+# AI Translated
 msgid "Slate blue"
-msgstr ""
+msgstr "Arduvaz mavisi"
 
+# AI Translated
 msgid "Dark slate blue"
-msgstr ""
+msgstr "Koyu arduvaz mavisi"
 
+# AI Translated
 msgid "Medium slate blue"
-msgstr ""
+msgstr "Orta arduvaz mavisi"
 
+# AI Translated
 msgid "Blue violet"
-msgstr ""
+msgstr "Mavi menekşe"
 
+# AI Translated
 msgid "Indigo"
-msgstr ""
+msgstr "İndigo"
 
+# AI Translated
 msgid "Dark violet"
-msgstr ""
+msgstr "Koyu menekşe"
 
+# AI Translated
 msgid "Dark orchid"
-msgstr ""
+msgstr "Koyu orkide"
 
+# AI Translated
 msgid "Medium orchid"
-msgstr ""
+msgstr "Orta orkide"
 
+# AI Translated
 msgid "Orchid"
-msgstr ""
+msgstr "Orkide"
 
+# AI Translated
 msgid "Violet"
-msgstr ""
+msgstr "Menekşe"
 
+# AI Translated
 msgid "Medium purple"
-msgstr ""
+msgstr "Orta mor"
 
+# AI Translated
 msgid "Purple"
-msgstr ""
+msgstr "Mor"
 
+# AI Translated
 msgid "Rebecca purple"
-msgstr ""
+msgstr "Rebecca moru"
 
+# AI Translated
 msgid "Medium violet red"
-msgstr ""
+msgstr "Orta menekşe kırmızısı"
 
-msgid "PaleV violet red"
-msgstr ""
+# AI Translated
+msgid "Pale violet red"
+msgstr "Soluk menekşe kırmızısı"
 
+# AI Translated
 msgid "Deep pink"
-msgstr ""
+msgstr "Derin pembe"
 
+# AI Translated
 msgid "Hot pink"
-msgstr ""
+msgstr "Sıcak pembe"
 
+# AI Translated
 msgid "Light pink"
-msgstr ""
+msgstr "Açık pembe"
 
+# AI Translated
 msgid "Pink"
-msgstr ""
+msgstr "Pembe"
 
+# AI Translated
 msgid "Plum"
-msgstr ""
+msgstr "Erik"
 
+# AI Translated
 msgid "Thistle"
-msgstr ""
+msgstr "Devedikeni"
 
+# AI Translated
 msgid "Fuchsia"
-msgstr ""
+msgstr "Fuşya"
 
+# AI Translated
 msgid "Dark magenta"
-msgstr ""
+msgstr "Koyu macenta"
 
+# AI Translated
 msgid "Linen"
-msgstr ""
+msgstr "Keten"
 
+# AI Translated
 msgid "Old lace"
-msgstr ""
+msgstr "Eski dantel"
 
+# AI Translated
 msgid "Sea shell"
-msgstr ""
+msgstr "Deniz kabuğu"
 
+# AI Translated
 msgid "Ivory"
-msgstr ""
+msgstr "Fildişi"
 
+# AI Translated
 msgid "Floral white"
-msgstr ""
+msgstr "Çiçek beyazı"
 
+# AI Translated
 msgid "Lavender blush"
-msgstr ""
+msgstr "Lavanta pembesi"
 
+# AI Translated
 msgid "Ghost white"
-msgstr ""
+msgstr "Hayalet beyazı"
 
+# AI Translated
 msgid "Alice blue"
-msgstr ""
+msgstr "Alice mavisi"
 
+# AI Translated
 msgid "Lavender"
-msgstr ""
+msgstr "Lavanta"
 
+# AI Translated
 msgid "White smoke"
-msgstr ""
+msgstr "Duman beyazı"
 
+# AI Translated
 msgid "Gainsboro"
-msgstr ""
+msgstr "Gainsboro"
 
+# AI Translated
 msgid "Black"
-msgstr ""
+msgstr "Siyah"
 
+# AI Translated
 msgid "Coral fire"
-msgstr ""
+msgstr "Mercan ateşi"
 
+# AI Translated
 msgid "Sea anemone"
-msgstr ""
+msgstr "Deniz anemonu"
 
+# AI Translated
 msgid "Deep abyss"
-msgstr ""
+msgstr "Derin uçurum"
 
+# AI Translated
 msgid "Lobster red"
-msgstr ""
+msgstr "Istakoz kırmızısı"
 
+# AI Translated
 msgid "Sandy clay"
-msgstr ""
+msgstr "Kumlu kil"
 
+# AI Translated
 msgid "Driftwood"
-msgstr ""
+msgstr "Sürüklenmiş odun"
 
+# AI Translated
 msgid "Sea buckthorn"
-msgstr ""
+msgstr "Deniz iğdesi"
 
+# AI Translated
 msgid "Sunset reef"
-msgstr ""
+msgstr "Gün batımı resifi"
 
+# AI Translated
 msgid "Tiger coral"
-msgstr ""
+msgstr "Kaplan mercanı"
 
+# AI Translated
 msgid "Pink coral"
-msgstr ""
+msgstr "Pembe mercan"
 
+# AI Translated
 msgid "Seashell glow"
-msgstr ""
+msgstr "Deniz kabuğu parıltısı"
 
+# AI Translated
 msgid "Sand"
-msgstr ""
+msgstr "Kum"
 
+# AI Translated
 msgid "Golden kelp"
-msgstr ""
+msgstr "Altın deniz yosunu"
 
+# AI Translated
 msgid "Sunlit dune"
-msgstr ""
+msgstr "Güneşli kumul"
 
+# AI Translated
 msgid "Amber nautilus"
-msgstr ""
+msgstr "Kehribar nautilus"
 
+# AI Translated
 msgid "Sea lemon"
-msgstr ""
+msgstr "Deniz limonu"
 
+# AI Translated
 msgid "Pale starfish"
-msgstr ""
+msgstr "Soluk deniz yıldızı"
 
+# AI Translated
+# Needs human review: Ocean-themed name; 'Büyük gelgit' is the oceanographic term; check it reads as a color name.
 msgid "Spring tide"
-msgstr ""
+msgstr "Büyük gelgit"
 
+# AI Translated
+# Needs human review: Ocean-themed name; check 'Misket limonu algi' reads right.
 msgid "Lime algae"
-msgstr ""
+msgstr "Misket limonu algi"
 
+# AI Translated
 msgid "Sea grass"
-msgstr ""
+msgstr "Deniz çimi"
 
+# AI Translated
 msgid "Neon plankton"
-msgstr ""
+msgstr "Neon plankton"
 
+# AI Translated
 msgid "Kelp forest"
-msgstr ""
+msgstr "Deniz yosunu ormanı"
 
+# AI Translated
 msgid "Emerald wave"
-msgstr ""
+msgstr "Zümrüt dalga"
 
+# AI Translated
 msgid "Whale shadow"
-msgstr ""
+msgstr "Balina gölgesi"
 
+# AI Translated
 msgid "Sea turtle"
-msgstr ""
+msgstr "Deniz kaplumbağası"
 
+# AI Translated
 msgid "Lagoon"
-msgstr ""
+msgstr "Lagün"
 
+# AI Translated
 msgid "Tropical current"
-msgstr ""
+msgstr "Tropik akıntı"
 
+# AI Translated
 msgid "Midnight trench"
-msgstr ""
+msgstr "Gece yarısı çukuru"
 
+# AI Translated
 msgid "Dark kelp"
-msgstr ""
+msgstr "Koyu deniz yosunu"
 
+# AI Translated
 msgid "Crystal surf"
-msgstr ""
+msgstr "Kristal dalga"
 
+# AI Translated
 msgid "Turquoise bay"
-msgstr ""
+msgstr "Turkuaz koy"
 
+# AI Translated
 msgid "Sky over reef"
-msgstr ""
+msgstr "Resif üstü gökyüzü"
 
+# AI Translated
+# Needs human review: Ocean-themed color name; check 'Sığ gökyüzü' reads as a color.
 msgid "Shallow sky"
-msgstr ""
+msgstr "Sığ gökyüzü"
 
-msgid "Electric bel"
-msgstr ""
+# AI Translated
+msgid "Electric blue"
+msgstr "Elektrik mavisi"
 
+# AI Translated
 msgid "Dolphin"
-msgstr ""
+msgstr "Yunus"
 
+# AI Translated
 msgid "Ocean depths"
-msgstr ""
+msgstr "Okyanus derinlikleri"
 
+# AI Translated
 msgid "Whale"
-msgstr ""
+msgstr "Balina"
 
+# AI Translated
 msgid "Indigo abyss"
-msgstr ""
+msgstr "İndigo uçurum"
 
+# AI Translated
 msgid "Sea urchin"
-msgstr ""
+msgstr "Deniz kestanesi"
 
+# AI Translated
 msgid "Lavender coral"
-msgstr ""
+msgstr "Lavanta mercanı"
 
+# AI Translated
 msgid "Violet tide"
-msgstr ""
+msgstr "Menekşe gelgiti"
 
+# AI Translated
 msgid "Deep sea orchid"
-msgstr ""
+msgstr "Derin deniz orkidesi"
 
+# AI Translated
 msgid "Neon jelly"
-msgstr ""
+msgstr "Neon denizanası"
 
+# AI Translated
 msgid "Fuchsia coral"
-msgstr ""
+msgstr "Fuşya mercan"
 
+# AI Translated
 msgid "Pink jellyfish"
-msgstr ""
+msgstr "Pembe denizanası"
 
+# AI Translated
 msgid "Foam"
-msgstr ""
+msgstr "Köpük"
 
+# AI Translated
 msgid "Seashell white"
-msgstr ""
+msgstr "Deniz kabuğu beyazı"
 
+# AI Translated
 msgid "Pebble gray"
-msgstr ""
+msgstr "Çakıl grisi"
 
+# AI Translated
 msgid "Storm cloud"
-msgstr ""
+msgstr "Fırtına bulutu"
 
+# AI Translated
 msgid "Ink black"
-msgstr ""
+msgstr "Mürekkep siyahı"
 
+# AI Translated
 msgid "Green beige"
-msgstr ""
+msgstr "Yeşil bej"
 
+# AI Translated
 msgid "Sand yellow"
-msgstr ""
+msgstr "Kum sarısı"
 
+# AI Translated
 msgid "Signal yellow"
-msgstr ""
+msgstr "Sinyal sarısı"
 
+# AI Translated
 msgid "Golden yellow"
-msgstr ""
+msgstr "Altın sarısı"
 
+# AI Translated
 msgid "Honey yellow"
-msgstr ""
+msgstr "Bal sarısı"
 
+# AI Translated
 msgid "Maize yellow"
-msgstr ""
+msgstr "Mısır sarısı"
 
-msgid "Dalmatian yellow"
-msgstr ""
+# AI Translated
+msgid "Daffodil yellow"
+msgstr "Nergis sarısı"
 
+# AI Translated
 msgid "Brown beige"
-msgstr ""
+msgstr "Kahverengi bej"
 
+# AI Translated
 msgid "Lemon yellow"
-msgstr ""
+msgstr "Limon sarısı"
 
+# AI Translated
 msgid "Oyster white"
-msgstr ""
+msgstr "İstiridye beyazı"
 
+# AI Translated
 msgid "Light ivory"
-msgstr ""
+msgstr "Açık fildişi"
 
+# AI Translated
 msgid "Zinc yellow"
-msgstr ""
+msgstr "Çinko sarısı"
 
+# AI Translated
 msgid "Grey beige"
-msgstr ""
+msgstr "Gri bej"
 
+# AI Translated
 msgid "Olive yellow"
-msgstr ""
+msgstr "Zeytin sarısı"
 
+# AI Translated
 msgid "Rape yellow"
-msgstr ""
+msgstr "Kolza sarısı"
 
+# AI Translated
 msgid "Traffic yellow"
-msgstr ""
+msgstr "Trafik sarısı"
 
+# AI Translated
 msgid "Ochre yellow"
-msgstr ""
+msgstr "Oker sarısı"
 
+# AI Translated
 msgid "Traffic orange yellow"
-msgstr ""
+msgstr "Trafik turuncu sarısı"
 
+# AI Translated
 msgid "Curry"
-msgstr ""
+msgstr "Köri"
 
+# AI Translated
 msgid "Melon yellow"
-msgstr ""
+msgstr "Kavun sarısı"
 
+# AI Translated
 msgid "Broom yellow"
-msgstr ""
+msgstr "Katırtırnağı sarısı"
 
+# AI Translated
 msgid "Dahlia yellow"
-msgstr ""
+msgstr "Dahlia sarısı"
 
+# AI Translated
 msgid "Pastel yellow"
-msgstr ""
+msgstr "Pastel sarı"
 
+# AI Translated
 msgid "Pearl beige"
-msgstr ""
+msgstr "İnci bej"
 
+# AI Translated
 msgid "Pearl gold"
-msgstr ""
+msgstr "İnci altın"
 
+# AI Translated
 msgid "Sun yellow"
-msgstr ""
+msgstr "Güneş sarısı"
 
+# AI Translated
 msgid "Yellow orange"
-msgstr ""
+msgstr "Sarı turuncu"
 
+# AI Translated
 msgid "Deep orange"
-msgstr ""
+msgstr "Derin turuncu"
 
+# AI Translated
 msgid "Vermilion"
-msgstr ""
+msgstr "Vermilyon"
 
+# AI Translated
 msgid "Pearl orange"
-msgstr ""
+msgstr "İnci turuncu"
 
+# AI Translated
 msgid "Pure orange"
-msgstr ""
+msgstr "Saf turuncu"
 
+# AI Translated
 msgid "Luminous orange"
-msgstr ""
+msgstr "Parlak turuncu"
 
+# AI Translated
 msgid "Luminous bright orange"
-msgstr ""
+msgstr "Parlak açık turuncu"
 
+# AI Translated
 msgid "Bright red orange"
-msgstr ""
+msgstr "Açık kırmızı turuncu"
 
+# AI Translated
 msgid "Traffic orange"
-msgstr ""
+msgstr "Trafik turuncusu"
 
+# AI Translated
 msgid "Signal orange"
-msgstr ""
+msgstr "Sinyal turuncusu"
 
+# AI Translated
 msgid "Salmon orange"
-msgstr ""
+msgstr "Somon turuncusu"
 
+# AI Translated
 msgid "Pearl pink"
-msgstr ""
+msgstr "İnci pembe"
 
+# AI Translated
 msgid "Copper orange"
-msgstr ""
+msgstr "Bakır turuncusu"
 
+# AI Translated
 msgid "Signal brown"
-msgstr ""
+msgstr "Sinyal kahvesi"
 
+# AI Translated
+# Needs human review: Odd RAL name; translated literally as Ladin turuncusu.
 msgid "Fir orange"
-msgstr ""
+msgstr "Ladin turuncusu"
 
+# AI Translated
 msgid "Signal red"
-msgstr ""
+msgstr "Sinyal kırmızısı"
 
+# AI Translated
 msgid "Luminous red"
-msgstr ""
+msgstr "Parlak kırmızı"
 
+# AI Translated
 msgid "Carmine red"
-msgstr ""
+msgstr "Karmen kırmızısı"
 
+# AI Translated
 msgid "Pearl carmine red"
-msgstr ""
+msgstr "İnci karmen kırmızısı"
 
+# AI Translated
 msgid "Pure red"
-msgstr ""
+msgstr "Saf kırmızı"
 
+# AI Translated
 msgid "Luminous deep red"
-msgstr ""
+msgstr "Parlak koyu kırmızı"
 
+# AI Translated
 msgid "Currant red"
-msgstr ""
+msgstr "Frenk üzümü kırmızısı"
 
+# AI Translated
 msgid "Pearl ruby red"
-msgstr ""
+msgstr "İnci yakut kırmızısı"
 
+# AI Translated
 msgid "Fire red"
-msgstr ""
+msgstr "Ateş kırmızısı"
 
+# AI Translated
 msgid "Ruby red"
-msgstr ""
+msgstr "Yakut kırmızısı"
 
+# AI Translated
 msgid "Purple red"
-msgstr ""
+msgstr "Mor kırmızı"
 
+# AI Translated
 msgid "Wine red"
-msgstr ""
+msgstr "Şarap kırmızısı"
 
+# AI Translated
 msgid "Black red"
-msgstr ""
+msgstr "Siyah kırmızı"
 
+# AI Translated
 msgid "Oxide red"
-msgstr ""
+msgstr "Oksit kırmızısı"
 
+# AI Translated
 msgid "Brown red"
-msgstr ""
+msgstr "Kahverengi kırmızı"
 
+# AI Translated
 msgid "Pine red"
-msgstr ""
+msgstr "Çam kırmızısı"
 
+# AI Translated
 msgid "Tomato red"
-msgstr ""
+msgstr "Domates kırmızısı"
 
+# AI Translated
 msgid "Antique pink"
-msgstr ""
+msgstr "Antik pembe"
 
+# AI Translated
 msgid "Coral red"
-msgstr ""
+msgstr "Mercan kırmızısı"
 
+# AI Translated
 msgid "Rose"
-msgstr ""
+msgstr "Gül"
 
+# AI Translated
 msgid "Strawberry red"
-msgstr ""
+msgstr "Çilek kırmızısı"
 
+# AI Translated
 msgid "Traffic red"
-msgstr ""
+msgstr "Trafik kırmızısı"
 
+# AI Translated
 msgid "Salmon pink"
-msgstr ""
+msgstr "Somon pembesi"
 
+# AI Translated
 msgid "Luminous rose"
-msgstr ""
+msgstr "Parlak gül"
 
+# AI Translated
 msgid "Luminous bright red"
-msgstr ""
+msgstr "Parlak açık kırmızı"
 
+# AI Translated
 msgid "Raspberry red"
-msgstr ""
+msgstr "Ahududu kırmızısı"
 
+# AI Translated
 msgid "Orient red"
-msgstr ""
+msgstr "Doğu kırmızısı"
 
+# AI Translated
 msgid "Pearl ruby"
-msgstr ""
+msgstr "İnci yakut"
 
+# AI Translated
 msgid "Red purple"
-msgstr ""
+msgstr "Kırmızı mor"
 
+# AI Translated
 msgid "Red violet"
-msgstr ""
+msgstr "Kırmızı menekşe"
 
+# AI Translated
 msgid "Heather violet"
-msgstr ""
+msgstr "Funda moru"
 
+# AI Translated
 msgid "Bordeaux violet"
-msgstr ""
+msgstr "Bordo moru"
 
+# AI Translated
 msgid "Mahogany"
-msgstr ""
+msgstr "Maun"
 
+# AI Translated
 msgid "Grey purple"
-msgstr ""
+msgstr "Gri mor"
 
+# AI Translated
 msgid "Signal violet"
-msgstr ""
+msgstr "Sinyal moru"
 
+# AI Translated
 msgid "Fir green"
-msgstr ""
+msgstr "Ladin yeşili"
 
+# AI Translated
+# Needs human review: RAL name; check the Turkish form.
 msgid "Sabine grey"
-msgstr ""
+msgstr "Sabine grisi"
 
+# AI Translated
 msgid "Pearl violet"
-msgstr ""
+msgstr "İnci mor"
 
+# AI Translated
 msgid "Pearl blackberry"
-msgstr ""
+msgstr "İnci böğürtlen"
 
+# AI Translated
 msgid "Green blue"
-msgstr ""
+msgstr "Yeşil mavi"
 
+# AI Translated
 msgid "Ultramarine blue"
-msgstr ""
+msgstr "Ultramarin mavisi"
 
+# AI Translated
 msgid "Sapphire blue"
-msgstr ""
+msgstr "Safir mavisi"
 
+# AI Translated
 msgid "Black blue"
-msgstr ""
+msgstr "Siyah mavi"
 
+# AI Translated
 msgid "Signal blue"
-msgstr ""
+msgstr "Sinyal mavisi"
 
+# AI Translated
 msgid "Brilliant blue"
-msgstr ""
+msgstr "Canlı mavi"
 
+# AI Translated
 msgid "Grey blue"
-msgstr ""
+msgstr "Gri mavi"
 
+# AI Translated
 msgid "Azure blue"
-msgstr ""
+msgstr "Azur mavisi"
 
+# AI Translated
 msgid "Gentian blue"
-msgstr ""
+msgstr "Centiyana mavisi"
 
+# AI Translated
 msgid "Cobalt blue"
-msgstr ""
+msgstr "Kobalt mavisi"
 
+# AI Translated
 msgid "Pigeon blue"
-msgstr ""
+msgstr "Güvercin mavisi"
 
+# AI Translated
 msgid "Traffic blue"
-msgstr ""
+msgstr "Trafik mavisi"
 
+# AI Translated
 msgid "Turquoise blue"
-msgstr ""
+msgstr "Turkuaz mavisi"
 
-msgid "Capsanthin violet"
-msgstr ""
+# AI Translated
+msgid "Capri blue"
+msgstr "Capri mavisi"
 
+# AI Translated
 msgid "Ocean blue"
-msgstr ""
+msgstr "Okyanus mavisi"
 
+# AI Translated
 msgid "Water blue"
-msgstr ""
+msgstr "Su mavisi"
 
+# AI Translated
 msgid "Night blue"
-msgstr ""
+msgstr "Gece mavisi"
 
+# AI Translated
 msgid "Distant blue"
-msgstr ""
+msgstr "Uzak mavi"
 
+# AI Translated
 msgid "Pastel blue"
-msgstr ""
+msgstr "Pastel mavi"
 
+# AI Translated
 msgid "Pearl gentian blue"
-msgstr ""
+msgstr "İnci centiyana mavisi"
 
+# AI Translated
 msgid "Pearl midnight blue"
-msgstr ""
+msgstr "İnci gece yarısı mavisi"
 
+# AI Translated
 msgid "Patina green"
-msgstr ""
+msgstr "Patina yeşili"
 
+# AI Translated
 msgid "Emerald green"
-msgstr ""
+msgstr "Zümrüt yeşili"
 
+# AI Translated
 msgid "Leaf green"
-msgstr ""
+msgstr "Yaprak yeşili"
 
+# AI Translated
 msgid "Olive green"
-msgstr ""
+msgstr "Zeytin yeşili"
 
+# AI Translated
 msgid "Blue green"
-msgstr ""
+msgstr "Mavi yeşil"
 
+# AI Translated
 msgid "Moss green"
-msgstr ""
+msgstr "Karayosunu yeşili"
 
+# AI Translated
 msgid "Grey olive"
-msgstr ""
+msgstr "Gri zeytin"
 
+# AI Translated
 msgid "Pine green"
-msgstr ""
+msgstr "Çam yeşili"
 
+# AI Translated
 msgid "Pine brown"
-msgstr ""
+msgstr "Çam kahvesi"
 
+# AI Translated
 msgid "Grass green"
-msgstr ""
+msgstr "Ot yeşili"
 
+# AI Translated
 msgid "Reseda green"
-msgstr ""
+msgstr "Reseda yeşili"
 
+# AI Translated
 msgid "Brown green"
-msgstr ""
+msgstr "Kahverengi yeşil"
 
+# AI Translated
 msgid "Reed green"
-msgstr ""
+msgstr "Sazlık yeşili"
 
+# AI Translated
 msgid "Black green"
-msgstr ""
+msgstr "Siyah yeşil"
 
+# AI Translated
 msgid "Turquoise green"
-msgstr ""
+msgstr "Turkuaz yeşili"
 
+# AI Translated
 msgid "May green"
-msgstr ""
+msgstr "Mayıs yeşili"
 
+# AI Translated
 msgid "Chrome oxide green"
-msgstr ""
+msgstr "Krom oksit yeşili"
 
+# AI Translated
 msgid "Traffic green"
-msgstr ""
+msgstr "Trafik yeşili"
 
+# AI Translated
 msgid "Fern green"
-msgstr ""
+msgstr "Eğrelti otu yeşili"
 
+# AI Translated
 msgid "Opal green"
-msgstr ""
+msgstr "Opal yeşili"
 
+# AI Translated
 msgid "Mint green"
-msgstr ""
+msgstr "Nane yeşili"
 
+# AI Translated
 msgid "Bronze green"
-msgstr ""
+msgstr "Bronz yeşili"
 
+# AI Translated
 msgid "Pearl green"
-msgstr ""
+msgstr "İnci yeşil"
 
+# AI Translated
+# Needs human review: RAL name; check the Turkish form.
 msgid "Sax turquoise"
-msgstr ""
+msgstr "Sax turkuazı"
 
+# AI Translated
 msgid "Pearl turquoise"
-msgstr ""
+msgstr "İnci turkuaz"
 
+# AI Translated
 msgid "Pearl jade"
-msgstr ""
+msgstr "İnci yeşim"
 
+# AI Translated
 msgid "Pure green"
-msgstr ""
+msgstr "Saf yeşil"
 
+# AI Translated
 msgid "Luminous green"
-msgstr ""
+msgstr "Parlak yeşil"
 
+# AI Translated
 msgid "Squirrel grey"
-msgstr ""
+msgstr "Sincap grisi"
 
+# AI Translated
 msgid "Silver grey"
-msgstr ""
+msgstr "Gümüş grisi"
 
-msgid "Olivestone"
-msgstr ""
+# AI Translated
+msgid "Olive grey"
+msgstr "Zeytin grisi"
 
+# AI Translated
 msgid "Moss grey"
-msgstr ""
+msgstr "Karayosunu grisi"
 
+# AI Translated
 msgid "Signal grey"
-msgstr ""
+msgstr "Sinyal grisi"
 
+# AI Translated
 msgid "Mouse grey"
-msgstr ""
+msgstr "Fare grisi"
 
+# AI Translated
 msgid "Beige grey"
-msgstr ""
+msgstr "Bej gri"
 
+# AI Translated
 msgid "Khaki grey"
-msgstr ""
+msgstr "Haki gri"
 
+# AI Translated
 msgid "Green grey"
-msgstr ""
+msgstr "Yeşil gri"
 
+# AI Translated
 msgid "Tarpaulin grey"
-msgstr ""
+msgstr "Branda grisi"
 
+# AI Translated
 msgid "Iron grey"
-msgstr ""
+msgstr "Demir grisi"
 
+# AI Translated
 msgid "Basalt grey"
-msgstr ""
+msgstr "Bazalt grisi"
 
+# AI Translated
 msgid "Brown grey"
-msgstr ""
+msgstr "Kahverengi gri"
 
+# AI Translated
 msgid "Slate grey"
-msgstr ""
+msgstr "Arduvaz grisi"
 
+# AI Translated
 msgid "Anthracite grey"
-msgstr ""
+msgstr "Antrasit grisi"
 
+# AI Translated
 msgid "Light grey"
-msgstr ""
+msgstr "Açık gri"
 
+# AI Translated
 msgid "Umber grey"
-msgstr ""
+msgstr "Umber grisi"
 
+# AI Translated
 msgid "Concrete grey"
-msgstr ""
+msgstr "Beton grisi"
 
+# AI Translated
 msgid "Graphite grey"
-msgstr ""
+msgstr "Grafit grisi"
 
+# AI Translated
 msgid "Granite grey"
-msgstr ""
+msgstr "Granit grisi"
 
+# AI Translated
 msgid "Stone grey"
-msgstr ""
+msgstr "Taş grisi"
 
+# AI Translated
 msgid "Pebble grey"
-msgstr ""
+msgstr "Çakıl grisi"
 
+# AI Translated
 msgid "Cement grey"
-msgstr ""
+msgstr "Çimento grisi"
 
+# AI Translated
 msgid "Yellow grey"
-msgstr ""
+msgstr "Sarı gri"
 
+# AI Translated
 msgid "Platinum grey"
-msgstr ""
+msgstr "Platin grisi"
 
+# AI Translated
 msgid "Dusty grey"
-msgstr ""
+msgstr "Tozlu gri"
 
+# AI Translated
 msgid "Agate grey"
-msgstr ""
+msgstr "Akik grisi"
 
+# AI Translated
 msgid "Quartz grey"
-msgstr ""
+msgstr "Kuvars grisi"
 
+# AI Translated
 msgid "Window grey"
-msgstr ""
+msgstr "Pencere grisi"
 
+# AI Translated
 msgid "Traffic grey A"
-msgstr ""
+msgstr "Trafik grisi A"
 
+# AI Translated
 msgid "Traffic grey B"
-msgstr ""
+msgstr "Trafik grisi B"
 
+# AI Translated
 msgid "Silk grey"
-msgstr ""
+msgstr "İpek grisi"
 
+# AI Translated
 msgid "Telegrey 1"
-msgstr ""
+msgstr "Telegri 1"
 
+# AI Translated
 msgid "Telegrey 2"
-msgstr ""
+msgstr "Telegri 2"
 
+# AI Translated
 msgid "Telegrey 4"
-msgstr ""
+msgstr "Telegri 4"
 
+# AI Translated
 msgid "Pearl mouse grey"
-msgstr ""
+msgstr "İnci fare grisi"
 
+# AI Translated
 msgid "Green brown"
-msgstr ""
+msgstr "Yeşil kahverengi"
 
+# AI Translated
 msgid "Ochre brown"
-msgstr ""
+msgstr "Oker kahvesi"
 
+# AI Translated
 msgid "Clay brown"
-msgstr ""
+msgstr "Kil kahvesi"
 
+# AI Translated
 msgid "Copper brown"
-msgstr ""
+msgstr "Bakır kahvesi"
 
+# AI Translated
 msgid "Chocolate brown"
-msgstr ""
+msgstr "Çikolata kahvesi"
 
+# AI Translated
 msgid "Olive brown"
-msgstr ""
+msgstr "Zeytin kahvesi"
 
+# AI Translated
 msgid "Nut brown"
-msgstr ""
+msgstr "Ceviz kahvesi"
 
+# AI Translated
 msgid "Red brown"
-msgstr ""
+msgstr "Kırmızı kahverengi"
 
+# AI Translated
 msgid "Sepia brown"
-msgstr ""
+msgstr "Sepya kahvesi"
 
+# AI Translated
 msgid "Chestnut brown"
-msgstr ""
+msgstr "Kestane kahvesi"
 
+# AI Translated
 msgid "Mahogany brown"
-msgstr ""
+msgstr "Maun kahvesi"
 
+# AI Translated
 msgid "Grey brown"
-msgstr ""
+msgstr "Gri kahverengi"
 
+# AI Translated
 msgid "Pearl copper"
-msgstr ""
+msgstr "İnci bakır"
 
+# AI Translated
 msgid "Beige brown"
-msgstr ""
+msgstr "Bej kahverengi"
 
+# AI Translated
 msgid "Pearl mocha brown"
-msgstr ""
+msgstr "İnci mokka kahvesi"
 
+# AI Translated
 msgid "Earth brown"
-msgstr ""
+msgstr "Toprak kahvesi"
 
+# AI Translated
 msgid "Pearl brown"
-msgstr ""
+msgstr "İnci kahverengi"
 
+# AI Translated
 msgid "Cream"
-msgstr ""
+msgstr "Krem"
 
+# AI Translated
 msgid "Grey white"
-msgstr ""
+msgstr "Gri beyaz"
 
+# AI Translated
 msgid "Signal white"
-msgstr ""
+msgstr "Sinyal beyazı"
 
+# AI Translated
 msgid "Signal black"
-msgstr ""
+msgstr "Sinyal siyahı"
 
+# AI Translated
 msgid "Jet black"
-msgstr ""
+msgstr "Jet siyahı"
 
+# AI Translated
 msgid "White aluminium"
-msgstr ""
+msgstr "Beyaz alüminyum"
 
+# AI Translated
 msgid "Grey aluminium"
-msgstr ""
+msgstr "Gri alüminyum"
 
+# AI Translated
 msgid "Pure white"
-msgstr ""
+msgstr "Saf beyaz"
 
+# AI Translated
 msgid "Graphite black"
-msgstr ""
+msgstr "Grafit siyahı"
 
+# AI Translated
 msgid "Traffic white"
-msgstr ""
+msgstr "Trafik beyazı"
 
+# AI Translated
 msgid "Traffic black"
-msgstr ""
+msgstr "Trafik siyahı"
 
+# AI Translated
 msgid "Papyrus white"
-msgstr ""
+msgstr "Papirüs beyazı"
 
+# AI Translated
 msgid "Pearl light grey"
-msgstr ""
+msgstr "İnci açık gri"
 
+# AI Translated
 msgid "Metal: Silver"
-msgstr ""
+msgstr "Metal: Gümüş"
 
+# AI Translated
 msgid "Metal: Brass"
-msgstr ""
+msgstr "Metal: Pirinç"
 
+# AI Translated
 msgid "Metal: Gold"
-msgstr ""
+msgstr "Metal: Altın"
 
+# AI Translated
 msgid "Metal: Copper"
-msgstr ""
+msgstr "Metal: Bakır"
 
+# AI Translated
 msgid "Metal: Bronze"
-msgstr ""
+msgstr "Metal: Bronz"
 
+# AI Translated
 msgid "Nature: Pearl"
-msgstr ""
+msgstr "Doğa: İnci"
 
+# AI Translated
 msgid "Nature: Rainbow"
-msgstr ""
+msgstr "Doğa: Gökkuşağı"
 
+# AI Translated
 msgid "Nature: Clear Sky"
-msgstr ""
+msgstr "Doğa: Açık gökyüzü"
 
+# AI Translated
 msgid "Nature: Sunset"
-msgstr ""
+msgstr "Doğa: Gün batımı"
 
+# AI Translated
 msgid "Wood: Dark"
-msgstr ""
+msgstr "Ahşap: Koyu"
 
+# AI Translated
 msgid "Wood: Medium"
-msgstr ""
+msgstr "Ahşap: Orta"
 
+# AI Translated
 msgid "Wood: Light"
-msgstr ""
+msgstr "Ahşap: Açık"
 
 # AI Translated
 msgid "Alternate nozzles:"
@@ -32668,12 +33112,24 @@ msgid "Built-in"
 msgstr "Yerleşik"
 
 # AI Translated
+msgid "My textures"
+msgstr "Dokularım"
+
+# AI Translated
 msgid "No textures found."
 msgstr "Doku bulunamadı."
 
 # AI Translated
-msgid "My textures"
-msgstr "Dokularım"
+msgid "Texture libraries"
+msgstr "Doku kütüphaneleri"
+
+# AI Translated
+msgid "Explore more texture libraries"
+msgstr "Daha fazla doku kütüphanesi keşfedin"
+
+# AI Translated
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
+msgstr "Eklentilere göz atmak için OrcaCloud'u Ana sayfada açar."
 
 # AI Translated
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -33076,11 +33532,13 @@ msgstr "Modelin kendi UV düzeniyle haritalanır; bu düzen zaten yerleşimin ke
 msgid "How wide one copy of the texture is on the model. Smaller repeats the pattern more often and makes its detail finer; with Tile off, this is the size of the single copy."
 msgstr "Dokunun bir kopyasının model üzerindeki genişliği. Küçük değerler deseni daha sık tekrarlar ve ayrıntısını inceltir; Döşeme kapalıyken bu, tek kopyanın boyutudur."
 
+# AI Translated
 msgid "Larger"
-msgstr ""
+msgstr "Daha büyük"
 
+# AI Translated
 msgid "Smaller"
-msgstr ""
+msgstr "Daha küçük"
 
 # AI Translated
 msgid "Turns the texture on the surface, in degrees - for lining a pattern up with an edge of the model."
@@ -33156,11 +33614,15 @@ msgstr "Karışık renkler"
 msgid "The most mixed filaments a bake may add. They are picked from the texture's colors, and only the ones the bake actually uses are created."
 msgstr "Bir pişirmenin ekleyebileceği en fazla karışık filament sayısı. Bunlar dokunun renklerinden seçilir ve yalnızca pişirmenin gerçekten kullandıkları oluşturulur."
 
+# AI Translated
+# Needs human review: Bare label in the app; check Az/Çok fit their context.
 msgid "Few"
-msgstr ""
+msgstr "Az"
 
+# AI Translated
+# Needs human review: Bare label in the app; check Az/Çok fit their context.
 msgid "Many"
-msgstr ""
+msgstr "Çok"
 
 # AI Translated
 #. TRN The %2% part of "%1% printable colors %2%"; %1% is the number of filaments.
@@ -33516,11 +33978,15 @@ msgstr "Yeniden mesh oluşturma"
 msgid "Triangle size the whole model is rebuilt with, in millimetres. Displacement works best on an even mesh; this is what makes one out of an uneven import."
 msgstr "Tüm modelin yeniden oluşturulacağı üçgen boyutu (milimetre). Yer değiştirme en iyi düzgün bir mesh üzerinde çalışır; düzensiz bir içe aktarmadan düzgün mesh bu şekilde elde edilir."
 
+# AI Translated
+# Needs human review: Bare label in the app; check Önce/Sonra fit their context.
 msgid "Before"
-msgstr ""
+msgstr "Önce"
 
+# AI Translated
+# Needs human review: Bare label in the app; check Önce/Sonra fit their context.
 msgid "After"
-msgstr ""
+msgstr "Sonra"
 
 # AI Translated
 msgid "Keep sharp edges"
@@ -35382,6 +35848,10 @@ msgid "Slicing Pipeline"
 msgstr "Dilimleme Hattı"
 
 # AI Translated
+msgid "Resource Texture"
+msgstr "Kaynak dokusu"
+
+# AI Translated
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr "Eklentinin yapılandırma arayüzü boştu. Varsayılan düzenleyici gösteriliyor."
 
@@ -35527,6 +35997,30 @@ msgstr "Eklenti dizini hem .py hem de .whl giriş dosyaları içeriyor"
 # AI Translated
 msgid "Plugin directory does not contain a .py or .whl entry file"
 msgstr "Eklenti dizini bir .py veya .whl giriş dosyası içermiyor"
+
+# AI Translated
+msgid "Resource texture directory is not set"
+msgstr "Kaynak dokusu dizini ayarlanmamış"
+
+# AI Translated
+msgid "Resource texture directory could not be resolved"
+msgstr "Kaynak dokusu dizini belirlenemedi"
+
+# AI Translated
+msgid "Resource texture path is not a directory"
+msgstr "Kaynak dokusu yolu bir dizin değil"
+
+# AI Translated
+msgid "Plugin folder could not be resolved"
+msgstr "Eklenti klasörü belirlenemedi"
+
+# AI Translated
+msgid "Resource texture directory is outside the plugin folder"
+msgstr "Kaynak dokusu dizini eklenti klasörünün dışında"
+
+# AI Translated
+msgid "Resource texture directory could not be read"
+msgstr "Kaynak dokusu dizini okunamadı"
 
 # AI Translated
 #, boost-format
@@ -36477,6 +36971,28 @@ msgid ""
 msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz?"
+
+# AI Translated
+# Needs human review: Possibly meant Daffodil yellow (RAL 1007); translated literally.
+#~ msgid "Dalmatian yellow"
+#~ msgstr "Dalmaçya sarısı"
+
+# AI Translated
+#~ msgid "Capsanthin violet"
+#~ msgstr "Kapsantin moru"
+
+# AI Translated
+# Needs human review: Probably RAL Olive grey; translated as Zeytin grisi.
+#~ msgid "Olivestone"
+#~ msgstr "Zeytin grisi"
+
+# AI Translated
+#~ msgid "Available anywhere in the window, even while typing in a text field."
+#~ msgstr "Pencerenin her yerinde, bir metin alanına yazarken bile kullanılabilir."
+
+# AI Translated
+#~ msgid "Global shortcuts also apply while typing."
+#~ msgstr "Genel kısayollar yazarken de geçerlidir."
 
 #~ msgid "Please choose the filament color"
 #~ msgstr "Lütfen filament rengini seçin"

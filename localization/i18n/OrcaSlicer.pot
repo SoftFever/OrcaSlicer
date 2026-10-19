@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-15 17:40+0800\n"
+"POT-Creation-Date: 2026-10-19 09:48-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -6049,7 +6049,7 @@ msgstr ""
 msgid "Size:"
 msgstr ""
 
-#, possible-boost-format
+#, possible-c-format, possible-boost-format
 msgid "Conflicts of G-code paths have been found at layer %d, Z = %.2lfmm. Please separate the conflicted objects farther (%s <-> %s)."
 msgstr ""
 
@@ -12318,7 +12318,7 @@ msgstr ""
 msgid "Left mouse"
 msgstr ""
 
-msgid "Available anywhere in the window, even while typing in a text field."
+msgid "Available anywhere in the window."
 msgstr ""
 
 msgid "Run favorite 1 to 10"
@@ -12413,9 +12413,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "The default %s is assigned to %s. Reassign it to %s?"
-msgstr ""
-
-msgid "Global shortcuts also apply while typing."
 msgstr ""
 
 msgid "A key that types a character cannot be a global shortcut."
@@ -26501,17 +26498,18 @@ msgstr ""
 msgid "Basic Colors"
 msgstr ""
 
+#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
 msgid "Orca Palette"
 msgstr ""
 
-#. TRN: Keep the brand name "Orca" unchanged; translate only the palette descriptor.
+#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "RAL Classic"
 msgstr ""
 
-#. TRN: Keep the standard/brand name "RAL" unchanged.
 msgid "Gradients"
 msgstr ""
 
+msgctxt "Color picker"
 msgid "Solid"
 msgstr ""
 
@@ -26886,7 +26884,7 @@ msgstr ""
 msgid "Medium violet red"
 msgstr ""
 
-msgid "PaleV violet red"
+msgid "Pale violet red"
 msgstr ""
 
 msgid "Deep pink"
@@ -27048,7 +27046,7 @@ msgstr ""
 msgid "Shallow sky"
 msgstr ""
 
-msgid "Electric bel"
+msgid "Electric blue"
 msgstr ""
 
 msgid "Dolphin"
@@ -27117,7 +27115,7 @@ msgstr ""
 msgid "Maize yellow"
 msgstr ""
 
-msgid "Dalmatian yellow"
+msgid "Daffodil yellow"
 msgstr ""
 
 msgid "Brown beige"
@@ -27378,7 +27376,7 @@ msgstr ""
 msgid "Turquoise blue"
 msgstr ""
 
-msgid "Capsanthin violet"
+msgid "Capri blue"
 msgstr ""
 
 msgid "Ocean blue"
@@ -27492,7 +27490,7 @@ msgstr ""
 msgid "Silver grey"
 msgstr ""
 
-msgid "Olivestone"
+msgid "Olive grey"
 msgstr ""
 
 msgid "Moss grey"
@@ -28080,10 +28078,19 @@ msgstr ""
 msgid "Built-in"
 msgstr ""
 
+msgid "My textures"
+msgstr ""
+
 msgid "No textures found."
 msgstr ""
 
-msgid "My textures"
+msgid "Texture libraries"
+msgstr ""
+
+msgid "Explore more texture libraries"
+msgstr ""
+
+msgid "Opens OrcaCloud in the Home page to browse for plugins."
 msgstr ""
 
 msgid "Import your own image as a height map. It is converted to the format the slicer bakes from and saved to your personal texture folder, kept separate from the textures shipped with OrcaSlicer."
@@ -30136,6 +30143,9 @@ msgstr ""
 msgid "Slicing Pipeline"
 msgstr ""
 
+msgid "Resource Texture"
+msgstr ""
+
 msgid "The plugin's configuration UI was empty. Showing the default editor."
 msgstr ""
 
@@ -30249,6 +30259,24 @@ msgid "Plugin directory contains both .py and .whl entry files"
 msgstr ""
 
 msgid "Plugin directory does not contain a .py or .whl entry file"
+msgstr ""
+
+msgid "Resource texture directory is not set"
+msgstr ""
+
+msgid "Resource texture directory could not be resolved"
+msgstr ""
+
+msgid "Resource texture path is not a directory"
+msgstr ""
+
+msgid "Plugin folder could not be resolved"
+msgstr ""
+
+msgid "Resource texture directory is outside the plugin folder"
+msgstr ""
+
+msgid "Resource texture directory could not be read"
 msgstr ""
 
 #, possible-boost-format
