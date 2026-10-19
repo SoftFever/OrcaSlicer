@@ -6826,6 +6826,21 @@ void DesignPanel::run_offer_action(const char* action)
         }
         return;
     }
+    if (a.rfind("con:", 0) == 0) {   // a relation applied to what is selected, in one step
+        static const std::pair<const char*, SketchConstraintType> kCon[] = {
+            {"Horizontal", SketchConstraintType::Horizontal}, {"Vertical", SketchConstraintType::Vertical},
+            {"Parallel", SketchConstraintType::Parallel}, {"Perpendicular", SketchConstraintType::Perpendicular},
+            {"Coincident", SketchConstraintType::Coincident}, {"EqualLength", SketchConstraintType::EqualLength},
+            {"EqualRadius", SketchConstraintType::EqualRadius}, {"Collinear", SketchConstraintType::Collinear},
+            {"Concentric", SketchConstraintType::Concentric}, {"Tangent", SketchConstraintType::Tangent},
+            {"Midpoint", SketchConstraintType::Midpoint}, {"Symmetric", SketchConstraintType::Symmetric},
+            {"SymmetricAboutY", SketchConstraintType::SymmetricAboutY}, {"SymmetricAboutX", SketchConstraintType::SymmetricAboutX},
+            {"Angle", SketchConstraintType::Angle}, {"Radius", SketchConstraintType::Radius}, {"Diameter", SketchConstraintType::Diameter},
+            {"Fix", SketchConstraintType::Fix}, {"DistanceX", SketchConstraintType::DistanceX}, {"DistanceY", SketchConstraintType::DistanceY}};
+        for (const auto& c : kCon)
+            if (a.compare(4, std::string::npos, c.first) == 0) { apply_constraint(c.second); return; }
+        return;
+    }
     auto it = m_verb_actions.find(a);
     if (it != m_verb_actions.end() && it->second)
         it->second();

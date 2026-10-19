@@ -3419,7 +3419,7 @@ json action_rollback(DesignPanel* panel, const json& params)
 // ---- undo / redo / inspect_design / batch ----------------------------------------------------------------
 struct MethodNotFound {};
 json        call_method(DesignPanel* panel, const std::string& method, const json& params);   // below
-std::string refuse_reason(DesignPanel* panel, const std::string& method);                      // below
+std::string refuse_reason(DesignPanel* panel, const std::string& method, const json& params = json());   // below
 
 json undo_redo_state(DesignPanel* panel, bool did)
 {
@@ -3490,7 +3490,7 @@ json action_batch(DesignPanel* panel, const json& params)
         std::string err;
         json r;
         if (name.empty() || name == "batch") err = "each entry needs a 'command' (and a batch cannot nest)";
-        else if (!(err = refuse_reason(panel, name)).empty()) {}
+        else if (!(err = refuse_reason(panel, name, p)).empty()) {}
         else {
             try { r = call_method(panel, name, p); }
             catch (const MethodNotFound&)    { err = "unknown command: " + name; }
@@ -3647,11 +3647,17 @@ json call_method_core(DesignPanel* panel, const std::string& method, const json&
 // Why `method` may not run now ("" = it may). Methods that only LOOK always may. Everything else changes the document
 // or the live sketch, and must not do it under a GUI editor, a sketch session it does not own, or a rebuild in
 // progress (the GUI's worker thread holds the document then).
-std::string refuse_reason(DesignPanel* panel, const std::string& method)
+std::string refuse_reason(DesignPanel* panel, const std::string& method, const json& params)
 {
     if (read_only_method(method)) return "";
+    // a sketch-mode verb (a relation, a drawing tool) works ON the open sketch, like the sketch_* methods do
+    bool sketchish = method.rfind("sketch_", 0) == 0;
+    if (method == "run_verb" && params.is_object() && params.contains("verb") && params["verb"].is_string()) {
+        const std::string id = params["verb"].get<std::string>();
+        for (int i = 0; i < kOfferVerbCount; ++i) if (id == kOfferVerbs[i].id && kOfferVerbs[i].sketch_mode) sketchish = true;
+    }
     std::string why;
-    return panel->mcp_busy(method.rfind("sketch_", 0) == 0, why) ? "Design tab busy: " + why : std::string();
+    return panel->mcp_busy(sketchish, why) ? "Design tab busy: " + why : std::string();
 }
 
 // Dispatch one parsed request ON THE MAIN THREAD. Returns a JSON-RPC reply string.
@@ -3667,7 +3673,7 @@ std::string handle_on_main(const std::string& method, const json& params, const 
     // load it, as showing the tab would, before anything reads or writes the document.
     panel->hydrate_from_model();
 
-    if (const std::string why = refuse_reason(panel, method); !why.empty())
+    if (const std::string why = refuse_reason(panel, method, params); !why.empty())
         return rpc_error(id, -32002, why, busy_data(why));
 
     // Stale-id guard, checked here rather than in each handler.

@@ -212,8 +212,28 @@ static const OfferVerb kOfferVerbs[] = {
     {"sheet_unfold", L_CONTEXT("Unfold", "Design"), 7, nullptr, "fly:sheet#4", L("Sheet metal needs a sheet body — make a base flange first"), 0x00000081u, 1, 0, false, false, nullptr, "design_sheet_unfold", L("Flatten every bend")},
     {"sheet_refold", L_CONTEXT("Refold", "Design"), 7, nullptr, "fly:sheet#5", L("Unfold the sheet first"), 0x00000081u, 1, 0, false, false, nullptr, "design_sheet_refold", L("Fold a flattened sheet back, carrying the cuts made while flat")},
     {"sheet_rule", L_CONTEXT("Sheet rule", "Design"), 1, nullptr, "fly:sheet#6", nullptr, 0x00000001u, 0, 0, false, false, nullptr, "design_sheet_rule", L("Thickness, bend radius, K-factor and hem gap for the sheet features after it")},
+    {"con_horizontal", L_CONTEXT("Horizontal", "Design"), 6, nullptr, "con:Horizontal", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_horizontal", L("Make the selected line (or two points) horizontal")},
+    {"con_vertical", L_CONTEXT("Vertical", "Design"), 6, nullptr, "con:Vertical", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_vertical", L("Make the selected line (or two points) vertical")},
+    {"con_parallel", L_CONTEXT("Parallel", "Design"), 6, nullptr, "con:Parallel", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_parallel", L("Make two selected lines parallel")},
+    {"con_perpendicular", L_CONTEXT("Perpendicular", "Design"), 6, nullptr, "con:Perpendicular", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_perpendicular", L("Make two selected lines perpendicular")},
+    {"con_coincident", L_CONTEXT("Coincident", "Design"), 6, nullptr, "con:Coincident", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_coincident", L("Join two selected points, or a point onto a curve")},
+    {"con_equallength", L_CONTEXT("Equal length", "Design"), 6, nullptr, "con:EqualLength", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_equal", L("Make two selected lines the same length")},
+    {"con_equalradius", L_CONTEXT("Equal radius", "Design"), 6, nullptr, "con:EqualRadius", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_equal_radius", L("Make two selected circles or arcs the same radius")},
+    {"con_collinear", L_CONTEXT("Collinear", "Design"), 6, nullptr, "con:Collinear", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_collinear", L("Put two selected lines on one line")},
+    {"con_concentric", L_CONTEXT("Concentric", "Design"), 6, nullptr, "con:Concentric", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_concentric", L("Give two selected circles or arcs one centre")},
+    {"con_tangent", L_CONTEXT("Tangent", "Design"), 6, nullptr, "con:Tangent", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_tangent", L("Make two selected curves tangent")},
+    {"con_midpoint", L_CONTEXT("Midpoint", "Design"), 6, nullptr, "con:Midpoint", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_midpoint", L("Put a selected point at the middle of a selected line")},
+    {"con_symmetric", L_CONTEXT("Symmetric", "Design"), 6, nullptr, "con:Symmetric", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_symmetric", L("Make two points mirror images about a selected line")},
+    {"con_symmetricabouty", L_CONTEXT("Symmetric about the vertical axis", "Design"), 6, nullptr, "con:SymmetricAboutY", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_sym_v", L("Make two points mirror images about the vertical axis")},
+    {"con_symmetricaboutx", L_CONTEXT("Symmetric about the horizontal axis", "Design"), 6, nullptr, "con:SymmetricAboutX", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_sym_h", L("Make two points mirror images about the horizontal axis")},
+    {"con_angle", L_CONTEXT("Angle", "Design"), 6, nullptr, "con:Angle", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_angle", L("Fix the angle between two selected lines")},
+    {"con_radius", L_CONTEXT("Radius", "Design"), 6, nullptr, "con:Radius", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_radius", L("Fix the radius of the selected arc or circle")},
+    {"con_diameter", L_CONTEXT("Diameter", "Design"), 6, nullptr, "con:Diameter", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_diameter", L("Fix the diameter of the selected circle")},
+    {"con_fix", L_CONTEXT("Fix point", "Design"), 6, nullptr, "con:Fix", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_fix", L("Anchor the selected point where it is")},
+    {"con_distancex", L_CONTEXT("Horizontal distance", "Design"), 6, nullptr, "con:DistanceX", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_dist_x", L("Fix the horizontal distance between two points")},
+    {"con_distancey", L_CONTEXT("Vertical distance", "Design"), 6, nullptr, "con:DistanceY", nullptr, 0x000f0000u, 0, 0, false, true, L("Constrain"), "design_c_dist_y", L("Fix the vertical distance between two points")},
 };
-static const int kOfferVerbCount = 101;
+static const int kOfferVerbCount = 121;
 
 }} // namespace Slic3r::GUI
 
