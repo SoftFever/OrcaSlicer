@@ -949,8 +949,8 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
                     const std::string collision_message = !exclusion_collision->collision_volume ?
                         (boost::format(L("%1% is too close to exclusion area. There may be collisions when printing.")) % instance.model_instance->get_object()->name).str() :
                         is_auto_filament_map_mode(print.get_filament_map_mode()) && print.is_BBL_printer() ?
-                            (boost::format(L("%1% intersects exclusion volumes for every available extruder.")) % instance.model_instance->get_object()->name).str() :
-                            (boost::format(L("%1% intersects an exclusion volume for extruder %2%.")) % instance.model_instance->get_object()->name % (exclusion_collision->extruder_id + 1)).str();
+                            (boost::format(L("%1% intersects collision volumes for every available extruder.")) % instance.model_instance->get_object()->name).str() :
+                            (boost::format(L("%1% intersects a collision volume for extruder %2%.")) % instance.model_instance->get_object()->name % (exclusion_collision->extruder_id + 1)).str();
                     if (single_object_exception.string.empty()) {
                         single_object_exception.string = collision_message;
                         // single_object_exception.object = instance.model_instance->get_object();
@@ -1620,8 +1620,8 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
             const std::string message = !exclusion_collision->collision_volume ?
                 (boost::format(L("%1% is too close to exclusion area. There may be collisions when printing.")) % inst->model_instance->get_object()->name).str() :
                 is_auto_filament_map_mode(print.get_filament_map_mode()) && print.is_BBL_printer() ?
-                    (boost::format(L("%1% intersects exclusion volumes for every available extruder.")) % inst->model_instance->get_object()->name).str() :
-                    (boost::format(L("%1% intersects an exclusion volume for extruder %2%.")) % inst->model_instance->get_object()->name % (exclusion_collision->extruder_id + 1)).str();
+                    (boost::format(L("%1% intersects collision volumes for every available extruder.")) % inst->model_instance->get_object()->name).str() :
+                    (boost::format(L("%1% intersects a collision volume for extruder %2%.")) % inst->model_instance->get_object()->name % (exclusion_collision->extruder_id + 1)).str();
             return {message + "\n", inst->model_instance};
         }
 

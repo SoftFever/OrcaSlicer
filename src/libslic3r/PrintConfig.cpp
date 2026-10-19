@@ -1057,8 +1057,8 @@ void PrintConfigDef::init_common_params()
     def->set_default_value(new ConfigOptionString());
 
     def = this->add("bed_exclude_volume_mode", coEnum);
-    def->label = L("Collision volume behaviour");
-    def->tooltip = L("Choose whether all nozzles use the same exclusion volumes, derive toolhead-relative volumes from each nozzle's XY offset, or configure independent volumes for every extruder. In individual mode, select each extruder on the Extruder page to configure its volumes.");
+    def->label = L("Collision volume behavior");
+    def->tooltip = L("Choose whether all nozzles use the same collision volumes, derive toolhead-relative volumes from each nozzle's XY offset, or configure independent volumes for every extruder. In individual mode, select each extruder on the Extruder page to configure its volumes.");
     def->enum_keys_map = &ConfigOptionEnum<BedExcludeVolumeMode>::get_enum_values();
     def->enum_values = { "shared", "toolhead_offset", "per_extruder" };
     def->enum_labels = { L("Shared"), L("Toolhead-relative (nozzle offsets)"), L("Individual per extruder") };
@@ -1067,7 +1067,7 @@ void PrintConfigDef::init_common_params()
 
     def = this->add("extruder_bed_exclude_volumes", coStrings);
     def->label = L("Extruder collision volumes");
-    def->tooltip = L("Collision volumes used only by this extruder in individual mode. Use the same polygon and optional Z-range format as the shared exclusion volumes. Leave empty for no exclusion volumes on this extruder. Automatic arrangement conservatively uses the bounding box of a non-convex volume.");
+    def->tooltip = L("Collision volumes used only by this extruder in individual mode. Use the same polygon and optional Z-range format as the shared collision volumes. Leave empty for no collision volumes on this extruder. Automatic arrangement conservatively uses the bounding box of a non-convex volume.");
     def->mode = comAdvanced;
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionStrings{ "" });
@@ -12394,16 +12394,16 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     if (cfg.bed_exclude_volume_mode.value != BedExcludeVolumeMode::PerExtruder &&
         !cfg.bed_exclude_volumes.value.empty() &&
         !is_valid_bed_exclude_volumes_string(cfg.bed_exclude_volumes.value, cfg.printable_height.value)) {
-        error_message.emplace("bed_exclude_volumes", L("Invalid exclusion volume definition."));
+        error_message.emplace("bed_exclude_volumes", L("Invalid collision volume definition."));
     }
     if (collision_volumes_enabled && cfg.bed_exclude_volume_mode.value == BedExcludeVolumeMode::ToolheadOffset &&
         cfg.extruder_offset.size() < cfg.nozzle_diameter.size()) {
-        error_message.emplace("extruder_offset", L("A nozzle offset is required for every extruder when toolhead-relative exclusion volumes are enabled."));
+        error_message.emplace("extruder_offset", L("A nozzle offset is required for every extruder when toolhead-relative collision volumes are enabled."));
     }
     if (collision_volumes_enabled && cfg.bed_exclude_volume_mode.value == BedExcludeVolumeMode::PerExtruder) {
         for (const std::string &entry : cfg.extruder_bed_exclude_volumes.values) {
             if (!is_valid_bed_exclude_volumes_string(entry, cfg.printable_height.value)) {
-                error_message.emplace("extruder_bed_exclude_volumes", L("Invalid per-extruder exclusion volume definition."));
+                error_message.emplace("extruder_bed_exclude_volumes", L("Invalid per-extruder collision volume definition."));
                 break;
             }
         }

@@ -3328,7 +3328,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     //BBS: add bed_exclude_area
     const ConfigOptionPoints* bed_exclude_area = config.option<ConfigOptionPoints>("bed_exclude_area");
-    if (bed_exclude_area != nullptr && !has_bed_exclude_volumes(config))
+    if (bed_exclude_area != nullptr)
         m_result.bed_exclude_area = bed_exclude_area->values;
 
     const ConfigOptionPoints* wrapping_exclude_area = config.option<ConfigOptionPoints>("wrapping_exclude_area");

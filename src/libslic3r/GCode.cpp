@@ -338,7 +338,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     Vec2d end_point    = points[1];
 
     // the cutter area size(18, 28)
-    Pointfs excluse_area = has_bed_exclude_volumes(print.config()) ? Pointfs{} : print.config().bed_exclude_area.values;
+    Pointfs excluse_area = print.config().bed_exclude_area.values;
     if (excluse_area.size() != 4)
         return out_points;
 
@@ -2992,9 +2992,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         const int extruder_id = m_processor.get_result().exclusion_volume_conflict_extruder_id;
         std::string warning = extruder_id >= 0 ?
             Slic3r::format(
-                _(L("A G-code move intersects an exclusion volume for extruder %1%. This may cause a printer collision.")),
+                _(L("A G-code move intersects a collision volume for extruder %1%. This may cause a printer collision.")),
                 std::to_string(extruder_id + 1)) :
-            _(L("A G-code move intersects an exclusion volume. This may cause a printer collision."));
+            _(L("A G-code move intersects a collision volume. This may cause a printer collision."));
         if (m_processor.get_result().exclusion_volume_conflict_used_unknown_z) {
             warning += "\n" + Slic3r::format(
                 _(L("The intersecting move is at G-code line %1%. Its Z position is unknown after homing, so Orca checked it against every height.")),

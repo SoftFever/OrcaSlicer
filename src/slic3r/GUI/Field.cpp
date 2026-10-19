@@ -736,7 +736,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
         } else if (m_opt.opt_key == "bed_exclude_volumes" || m_opt.opt_key == "extruder_bed_exclude_volumes") {
             const std::string definition = into_u8(str);
             if (!is_valid_bed_exclude_volumes_string(definition, std::numeric_limits<double>::max())) {
-                show_error(m_parent, _L("Invalid exclusion volume format. Use XxY, XxY, ... or ZMIN..ZMAX;XxY, XxY, ... and separate multiple volumes with |."));
+                show_error(m_parent, _L("Invalid collision volume format. Use XxY, XxY, ... or ZMIN..ZMAX;XxY, XxY, ... and separate multiple volumes with |."));
                 const std::string old_value = m_value.empty() ? std::string{} : boost::any_cast<std::string>(m_value);
                 set_value(from_u8(old_value), true);
                 break;

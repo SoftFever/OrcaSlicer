@@ -1952,7 +1952,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if (definition != nullptr && is_bed_exclusion_volume_syntax(*definition)) {
             const double printable_height = m_config->opt_float("printable_height");
             if (!is_valid_bed_exclude_volumes_string(*definition, printable_height)) {
-                show_error(wxGetApp().plater(), _L("Invalid exclusion volume format. Use XxY, XxY, ... or ZMIN..ZMAX;XxY, XxY, ... and separate multiple volumes with |."));
+                show_error(wxGetApp().plater(), _L("Invalid collision volume format. Use XxY, XxY, ... or ZMIN..ZMAX;XxY, XxY, ... and separate multiple volumes with |."));
                 reload_config();
                 return;
             }
@@ -5302,8 +5302,8 @@ void TabPrinter::build_fff()
 
         option = optgroup->get_option("bed_exclude_volumes");
         option.opt.full_width = true;
-        optgroup->append_single_option_line(option);
-        optgroup->append_single_option_line("bed_exclude_volume_mode");
+        optgroup->append_single_option_line(option, "printer_basic_information_printable_space#toolhead-collision-volumes");
+        optgroup->append_single_option_line("bed_exclude_volume_mode", "printer_basic_information_printable_space#toolhead-collision-volumes");
 
         optgroup->append_single_option_line("printable_height", "printer_basic_information_printable_space#printable-height");
         optgroup->append_single_option_line("support_multi_bed_types", "printer_basic_information_printable_space#support-multi-bed-types");
@@ -6123,7 +6123,7 @@ if (is_marlin_flavor)
 
             Option exclusion_option = optgroup->get_option("extruder_bed_exclude_volumes", extruder_idx);
             exclusion_option.opt.full_width = true;
-            optgroup->append_single_option_line(exclusion_option, "printer_basic_information_printable_space#excluded-bed-area");
+            optgroup->append_single_option_line(exclusion_option, "printer_basic_information_printable_space#toolhead-collision-volumes");
 
             optgroup->m_on_change = [this](const t_config_option_key& opt_key, boost::any value)
             {
