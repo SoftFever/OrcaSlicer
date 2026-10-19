@@ -1187,7 +1187,7 @@ void SendToPrinterDialog::update_user_printer()
                 m_list.push_back(it->second);
                 wxString dev_name_text = from_u8(it->second->get_dev_name());
                 if (it->second->is_lan_mode_printer()) {
-                    dev_name_text += "(LAN)";
+                    dev_name_text += _L("(LAN)");
                 }
                 machine_list_name.Add(dev_name_text);
                 break;
@@ -1229,7 +1229,7 @@ void SendToPrinterDialog::update_user_printer()
     }
     else {
         m_printer_last_select = "";
-        m_comboBox_printer->SetTextLabel("");
+        m_comboBox_printer->SetValue(_L("No available printers"));
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << m_printer_last_select << std::endl;

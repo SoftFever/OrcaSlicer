@@ -35,7 +35,7 @@ add_executable(${_TEST_NAME}_tests
     test_fill_corner_smoothing.cpp
     test_filament_mixer.cpp
     test_fill_plane_path.cpp
-    test_fill_tpms_adaptive.cpp
+    test_adaptive_infill_field.cpp
     test_geometry.cpp
     test_kdtree.cpp
     test_imex_arrange.cpp
@@ -54,6 +54,7 @@ add_executable(${_TEST_NAME}_tests
     test_stl.cpp
     test_triangle_selector.cpp
     test_meshboolean.cpp
+    test_mesh_repair.cpp
     test_trianglemesh_slicer.cpp
     test_marchingsquares.cpp
     test_lay_on_face.cpp
