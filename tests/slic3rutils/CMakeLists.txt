@@ -64,6 +64,24 @@ set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
 orcaslicer_copy_test_dlls(${_TEST_NAME}_tests)
 
+# Native visibility regression for option-group ShowItems passes. No slicer app
+# or user profile is started. Headless environments report an explicit skip.
+add_executable(support_override_notice_tests test_support_override_notice.cpp)
+target_include_directories(support_override_notice_tests PRIVATE
+    ${PROJECT_SOURCE_DIR}/src ${wxWidgets_INCLUDE_DIRS})
+target_compile_definitions(support_override_notice_tests PRIVATE ${wxWidgets_DEFINITIONS} wxDEBUG_LEVEL=0)
+set(_SUPPORT_NOTICE_WX_LIBS ${wxWidgets_LIBRARIES})
+if (APPLE)
+    list(REMOVE_ITEM _SUPPORT_NOTICE_WX_LIBS OpenGL.framework)
+endif()
+find_package(OpenGL REQUIRED)
+target_link_libraries(support_override_notice_tests PRIVATE
+    ${_SUPPORT_NOTICE_WX_LIBS} OpenGL::GL JPEG::JPEG PNG::PNG ZLIB::ZLIB ${EXPAT_LIBRARIES})
+add_test(NAME support_override_notice COMMAND support_override_notice_tests)
+set_tests_properties(support_override_notice PROPERTIES SKIP_RETURN_CODE 77)
+
+orcaslicer_copy_test_dlls(support_override_notice_tests)
+
 if (WIN32)
     add_custom_command(TARGET ${_TEST_NAME}_tests POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${_TEST_NAME}_tests>/python"
