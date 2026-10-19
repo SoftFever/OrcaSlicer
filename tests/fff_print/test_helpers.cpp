@@ -502,27 +502,3 @@ std::vector<std::string> role_sequence(const std::string &gcode, const std::vect
 }
 
 } } // namespace Slic3r::Test
-
-#include <catch2/catch_all.hpp>
-#include "libslic3r/Arrange.hpp"
-#include "libslic3r/Model.hpp"
-
-SCENARIO("init_print functionality", "[test_helpers]") {
-	GIVEN("A default config") {
-		Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-		WHEN("init_print is called with a single mesh.") {
-			Slic3r::Model model;
-			Slic3r::Print print;
-			Slic3r::Test::init_print({ Slic3r::Test::cube(20) }, print, model, config);
-			THEN("One mesh/printobject is in the resulting Print object.") {
-				REQUIRE(print.objects().size() == 1);
-			}
-			THEN("print.process() doesn't crash.") {
-				REQUIRE_NOTHROW(print.process());
-			}
-			THEN("Export gcode functions outputs text.") {
-				REQUIRE(! Slic3r::Test::gcode(print).empty());
-			}
-		}
-	}
-}

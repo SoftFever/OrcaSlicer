@@ -155,51 +155,6 @@ SCENARIO("Various Clipper operations - xs/t/11_clipper.t", "[ClipperUtils]") {
             REQUIRE(result.front().length() == Catch::Approx(subject.length()));
         }
     }
-
-#if 0
-    {
-        # Clipper does not preserve polyline orientation
-        my $polyline = Slic3r::Polyline->new([50, 150], [300, 150]);
-        my $result = Slic3r::Geometry::Clipper::intersection_pl([$polyline], [$square]);
-        is scalar(@$result), 1, 'intersection_pl - correct number of result lines';
-        is_deeply $result->[0]->pp, [[100, 150], [200, 150]], 'clipped line orientation is preserved';
-    }
-    {
-        # Clipper does not preserve polyline orientation
-        my $polyline = Slic3r::Polyline->new([300, 150], [50, 150]);
-        my $result = Slic3r::Geometry::Clipper::intersection_pl([$polyline], [$square]);
-        is scalar(@$result), 1, 'intersection_pl - correct number of result lines';
-        is_deeply $result->[0]->pp, [[200, 150], [100, 150]], 'clipped line orientation is preserved';
-    }
-    {
-        # Disabled until Clipper bug #127 is fixed
-        my $subject = [
-            Slic3r::Polyline->new([-90000000, -100000000], [-90000000, 100000000]), # vertical
-                Slic3r::Polyline->new([-100000000, -10000000], [100000000, -10000000]), # horizontal
-                Slic3r::Polyline->new([-100000000, 0], [100000000, 0]), # horizontal
-                Slic3r::Polyline->new([-100000000, 10000000], [100000000, 10000000]), # horizontal
-        ];
-        my $clip = Slic3r::Polygon->new(# a circular, convex, polygon
-            [99452190, 10452846], [97814760, 20791169], [95105652, 30901699], [91354546, 40673664], [86602540, 50000000],
-            [80901699, 58778525], [74314483, 66913061], [66913061, 74314483], [58778525, 80901699], [50000000, 86602540],
-            [40673664, 91354546], [30901699, 95105652], [20791169, 97814760], [10452846, 99452190], [0, 100000000],
-            [-10452846, 99452190], [-20791169, 97814760], [-30901699, 95105652], [-40673664, 91354546],
-            [-50000000, 86602540], [-58778525, 80901699], [-66913061, 74314483], [-74314483, 66913061],
-            [-80901699, 58778525], [-86602540, 50000000], [-91354546, 40673664], [-95105652, 30901699],
-            [-97814760, 20791169], [-99452190, 10452846], [-100000000, 0], [-99452190, -10452846],
-            [-97814760, -20791169], [-95105652, -30901699], [-91354546, -40673664], [-86602540, -50000000],
-            [-80901699, -58778525], [-74314483, -66913061], [-66913061, -74314483], [-58778525, -80901699],
-            [-50000000, -86602540], [-40673664, -91354546], [-30901699, -95105652], [-20791169, -97814760],
-            [-10452846, -99452190], [0, -100000000], [10452846, -99452190], [20791169, -97814760],
-            [30901699, -95105652], [40673664, -91354546], [50000000, -86602540], [58778525, -80901699],
-            [66913061, -74314483], [74314483, -66913061], [80901699, -58778525], [86602540, -50000000],
-            [91354546, -40673664], [95105652, -30901699], [97814760, -20791169], [99452190, -10452846], [100000000, 0]
-            );
-        my $result = Slic3r::Geometry::Clipper::intersection_pl($subject, [$clip]);
-        is scalar(@$result), scalar(@$subject), 'intersection_pl - expected number of polylines';
-        is sum(map scalar(@$_), @$result), scalar(@$subject) * 2, 'intersection_pl - expected number of points in polylines';
-    }
-#endif
 }
 
 SCENARIO("Various Clipper operations - t/clipper.t", "[ClipperUtils]") {

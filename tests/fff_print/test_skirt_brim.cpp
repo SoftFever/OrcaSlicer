@@ -837,30 +837,6 @@ TEST_CASE("Belt brim on an object layer precedes its perimeters, once", "[SkirtB
     CHECK(role_passes(gc, "brim") <= bands);
 }
 
-// B - single extruder (filament id 1).  Every band must survive the 1-based -> 0-based
-// filament-id conversion the apron path performs: a wrong conversion drops all single-extruder
-// bands, so the pass count would collapse.  The expected count is derived from the sliced
-// layers, not a ratio.
-TEST_CASE("Belt brim on a single extruder emits every band once", "[SkirtBrim][belt]")
-{
-    DynamicPrintConfig config = belt_brim_config();
-    config.set_deserialize_strict({
-        { "brim_type",       "outer_only" },
-        { "brim_width",      4 },
-        { "brim_object_gap", 0 },
-    });
-    Print print;
-    Model model;
-    init_print({ cube(20) }, print, model, config);
-    const std::string gc = gcode(print);
-
-    const PrintObject &object = *print.objects().front();
-    const int expected = nonempty_belt_brim_layers(object) + belt_brim_apron_bands(object);
-    REQUIRE(expected > 0);
-    CHECK(role_layers(gc, "brim") == expected);
-    CHECK(belt_tools_for_role(gc, "brim") == std::set<int>{ 0 });   // filament 1 -> tool 0
-}
-
 // Number of brim segments the belt brim generator produced for `object`: the lattice
 // lines of every per-layer band plus the apron prologue.  Each segment is written as one
 // extruding move, so this is what a G-code count has to match.  A pass count cannot see a

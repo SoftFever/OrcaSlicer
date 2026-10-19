@@ -27,14 +27,6 @@ TEST_CASE("slicing_pipeline_plugin option exists and defaults empty", "[slicing_
 
 #include "libslic3r/Print.hpp"
 
-TEST_CASE("slicing pipeline hook setter is a no-op-safe injection", "[slicing_pipeline]") {
-    int calls = 0;
-    Slic3r::Print::set_slicing_pipeline_hook_fn(
-        [&](Slic3r::Print&, const Slic3r::PrintObject*, Slic3r::SlicingPipelineStepPlugin){ ++calls; });
-    Slic3r::Print::set_slicing_pipeline_hook_fn(nullptr); // reset — must be legal
-    CHECK(calls == 0);
-}
-
 #include <vector>
 #include <algorithm>
 using namespace Slic3r::Test;

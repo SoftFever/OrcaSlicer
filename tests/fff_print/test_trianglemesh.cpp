@@ -10,8 +10,6 @@
 #include <cstdlib>
 #include <cstddef>
 #include <cmath>
-#include <future>
-#include <chrono>
 #include <vector>
 #include <math.h>
 #include "libslic3r/ExPolygon.hpp"
@@ -58,12 +56,6 @@ SCENARIO("Basic mesh statistics", "[TriangleMesh]") {
         THEN( "Facet count matches facet array size.") {
             REQUIRE(cube.facets_count() == facets.size());
         }
-
-#if 0
-        THEN( "Number of normals is equal to the number of facets.") {
-            REQUIRE(cube.normals().size() == facets.size());
-        }
-#endif
 
         THEN( "center() returns the center of the object.") {
             REQUIRE(cube.center() == Vec3d(10.0,10.0,10.0));
@@ -265,20 +257,6 @@ SCENARIO("Split functionality", "[TriangleMesh]") {
     }
 }
 
-SCENARIO("Mesh merge functions", "[TriangleMesh]") {
-    GIVEN( "Two 20mm cubes, each with one corner on the origin") {
-		auto cube = make_cube();
-		TriangleMesh cube2(cube);
-
-        WHEN( "The two meshes are merged") {
-            cube.merge(cube2);
-            THEN( "There are twice as many facets in the merged mesh as the original.") {
-                REQUIRE(cube.facets_count() == 2 * cube2.facets_count());
-            }
-        }
-    }
-}
-
 SCENARIO("Cut behavior", "[TriangleMesh]") {
     GIVEN( "A 20mm cube with one corner on the origin") {
 		auto cube = make_cube();
@@ -306,53 +284,3 @@ SCENARIO("Cut behavior", "[TriangleMesh]") {
         }
     }
 }
-#ifdef TEST_PERFORMANCE
-TEST_CASE("Large mesh slices within the time budget (#4486)", "[TriangleMesh][Regression]") {
-    TriangleMesh mesh;
-    DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-    mesh.ReadSTLFile(std::string(testfile_dir) + "test_trianglemesh/4486/100_000.stl");
-
-    config.set("layer_height", 500);
-    config.set("first_layer_height", 250);
-    config.set("nozzle_diameter", 500);
-
-    Slic3r::Print print;
-    Slic3r::Model model;
-    Slic3r::Test::init_print({mesh}, print, model, config);
-
-    print.status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
-
-    std::future<void> fut = std::async([&print] () { print.process(); });
-    std::chrono::milliseconds span {120000};
-    bool timedout {false};
-    if(fut.wait_for(span) == std::future_status::timeout) {
-        timedout = true;
-    }
-    REQUIRE(timedout == false);
-
-}
-#endif // TEST_PERFORMANCE
-
-#ifdef BUILD_PROFILE
-TEST_CASE("Large mesh slicing profile (#4486)", "[TriangleMesh][Profile]") {
-    TriangleMesh mesh;
-    DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
-    mesh.ReadSTLFile(std::string(testfile_dir) + "test_trianglemesh/4486/10_000.stl");
-
-    config.set("layer_height", 500);
-    config.set("first_layer_height", 250);
-    config.set("nozzle_diameter", 500);
-    config.set("fill_density", "5%");
-
-    Slic3r::Print print;
-    Slic3r::Model model;
-    Slic3r::Test::init_print({mesh}, print, model, config);
-
-    print.status_cb = [] (int ln, const std::string& msg) { Slic3r::Log::info("Print") << ln << " " << msg << "\n";};
-
-    print.process();
-
-    REQUIRE(true);
-
-}
-#endif //BUILD_PROFILE

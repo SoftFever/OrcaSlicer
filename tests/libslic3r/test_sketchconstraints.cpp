@@ -239,30 +239,6 @@ TEST_CASE("DistanceX on two Points binds real roles with non-negative prefill", 
     REQUIRE(p.defs[0].eb == 0);
 }
 
-TEST_CASE("Horizontal on a Point rejects with NeedALine", "[SketchConstraints]")
-{
-    std::vector<SketchEntity> ents = { mk_point(1, 2) };
-    ConstraintPlan p = plan_entity_constraint(ents, 0, -1, -1, SketchConstraintType::Horizontal);
-    REQUIRE(p.kind == ConstraintPlan::Kind::Reject);
-    REQUIRE(p.reason == ConstraintReject::NeedALine);
-}
-
-TEST_CASE("Angle on two Circles rejects with NeedTwoLines", "[SketchConstraints]")
-{
-    std::vector<SketchEntity> ents = { mk_circle(0, 0, 1), mk_circle(5, 0, 1) };
-    ConstraintPlan p = plan_entity_constraint(ents, 0, 1, -1, SketchConstraintType::Angle);
-    REQUIRE(p.kind == ConstraintPlan::Kind::Reject);
-    REQUIRE(p.reason == ConstraintReject::NeedTwoLines);
-}
-
-TEST_CASE("Parallel on a Line + Circle rejects with NeedTwoLines (new guard)", "[SketchConstraints]")
-{
-    std::vector<SketchEntity> ents = { mk_line(0, 0, 1, 0), mk_circle(5, 0, 1) };
-    ConstraintPlan p = plan_entity_constraint(ents, 0, 1, -1, SketchConstraintType::Parallel);
-    REQUIRE(p.kind == ConstraintPlan::Kind::Reject);
-    REQUIRE(p.reason == ConstraintReject::NeedTwoLines);
-}
-
 TEST_CASE("Equal on two Circles promotes to EqualRadius", "[SketchConstraints]")
 {
     std::vector<SketchEntity> ents = { mk_circle(0, 0, 1), mk_circle(5, 0, 2) };

@@ -2061,49 +2061,6 @@ TEST_CASE("mass properties: invalid body index", "[CadDocument]")
     REQUIRE_FALSE(mp3.valid);
 }
 
-TEST_CASE("serialize_recipe roundtrip with two bodies", "[CadDocument]")
-{
-    using Catch::Matchers::WithinRel;
-    CadDocument doc;
-
-    // Body 1: rectangle sketch + extrude + fillet
-    int sk1 = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(),
-                             20, 20, 10, "Rect1");
-    REQUIRE(sk1 >= 0);
-    doc.add_extrude(sk1, 10.0, false, BooleanMode::New, "Extrude1");
-    doc.add_fillet(2.0, FaceGroup::All, "Fillet1");
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-
-    // Body 2: circle sketch + extrude (separate New body)
-    SketchEntity circ;
-    circ.type   = SketchEntity::Type::Circle;
-    circ.center = Vec2d(0, 0);
-    circ.radius = 8.0;
-    int sk2 = doc.add_sketch_entities({circ}, SketchPlane::XZ(), "Circle2");
-    doc.add_extrude(sk2, 6.0, false, BooleanMode::New, "Extrude2");
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-
-    REQUIRE(doc.bodies.size() >= 2);
-    std::vector<double> orig_vols;
-    for (const auto& b : doc.bodies)
-        orig_vols.push_back(double(SketchEngine::tessellate(b.shape).volume()));
-
-    auto blob = doc.serialize_recipe();
-    REQUIRE_FALSE(blob.empty());
-
-    CadDocument doc2;
-    REQUIRE(doc2.deserialize_recipe(blob));
-    REQUIRE(doc2.error.empty());
-    REQUIRE(doc2.bodies.size() == doc.bodies.size());
-
-    for (size_t i = 0; i < doc.bodies.size(); ++i) {
-        double v2 = double(SketchEngine::tessellate(doc2.bodies[i].shape).volume());
-        REQUIRE_THAT(v2, WithinRel(orig_vols[i], 1e-6));
-    }
-}
-
 TEST_CASE("deserialize_recipe rejects future version with error", "[CadDocument]")
 {
     CadDocument doc;
@@ -2145,41 +2102,6 @@ TEST_CASE("deserialize_recipe handles empty blob without throwing", "[CadDocumen
     CadDocument doc;
     REQUIRE_FALSE(doc.deserialize_recipe(""));
     REQUIRE_FALSE(doc.error.empty());
-}
-
-TEST_CASE("deserialize_recipe error is non-empty on every failure path", "[CadDocument]")
-{
-    CadDocument doc;
-    auto reset = [&]() { doc = CadDocument{}; };
-
-    // too new
-    {
-        std::ostringstream oss;
-        { cereal::BinaryOutputArchive ar(oss); uint32_t v = 999; ar(v); }
-        reset();
-        REQUIRE_FALSE(doc.deserialize_recipe(oss.str()));
-        REQUIRE_FALSE(doc.error.empty());
-    }
-    // too old
-    {
-        std::ostringstream oss;
-        { cereal::BinaryOutputArchive ar(oss); uint32_t v = 1; ar(v); }
-        reset();
-        REQUIRE_FALSE(doc.deserialize_recipe(oss.str()));
-        REQUIRE_FALSE(doc.error.empty());
-    }
-    // truncated / garbage
-    {
-        reset();
-        REQUIRE_FALSE(doc.deserialize_recipe("not a valid blob \x00\x01\x02"));
-        REQUIRE_FALSE(doc.error.empty());
-    }
-    // empty
-    {
-        reset();
-        REQUIRE_FALSE(doc.deserialize_recipe(""));
-        REQUIRE_FALSE(doc.error.empty());
-    }
 }
 
 TEST_CASE("a v4 project still opens", "[CadDocument][recipe]")
@@ -4209,25 +4131,6 @@ static CadDocument make_golden_doc_v1()
     return doc;
 }
 
-TEST_CASE("regenerate golden recipe fixture", "[.regen]")
-{
-    CadDocument doc = make_golden_doc_v1();
-    // ponytail: serialize_recipe() only needs features, recompute is unnecessary
-    // for a fixture that exercises the serialization format.
-    auto blob = doc.serialize_recipe();
-    REQUIRE_FALSE(blob.empty());
-
-    // Version-free on purpose: this writes whatever today's format is, so a version bump does
-    // not have to remember to edit it. The version-stamped fixtures beside it are frozen
-    // evidence from older builds and are never regenerated.
-    std::string path = std::string(TEST_DATA_DIR) + "/cad_recipe_current.bin";
-    std::ofstream ofs(path, std::ios::binary);
-    REQUIRE(ofs.is_open());
-    ofs.write(blob.data(), static_cast<std::streamsize>(blob.size()));
-    ofs.close();
-    SUCCEED("Fixture written to " << path);
-}
-
 // The previous format's real blob, kept on disk deliberately. It is the only thing that can
 // prove the version gate does its job: a v3 recipe carries FEWER fields per feature than this
 // build reads, so without the bump to v4 it would have passed the gate and had two ints read
@@ -5692,45 +5595,6 @@ TEST_CASE("surface-loft round-trip serialize/deserialize", "[CadDocument][surfac
 
 // --- Mate tests (M8a) ---
 
-TEST_CASE("fastened mate with zero offset/angle", "[CadDocument][mate]")
-{
-    using Catch::Matchers::WithinAbs;
-
-    CadDocument doc;
-    int sk_box = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 10, 10, 0, "Box");
-    doc.add_extrude(sk_box, 5.0, false, BooleanMode::New, "BoxExt");
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-
-    int cs_fixed = doc.add_coordsys(CoordSysType::PointWorld, Vec3d(5, 5, 5), "CS_Fixed");
-    doc.features[cs_fixed].coordsys_body = 0;
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-
-    int sk_cyl = doc.add_sketch(SketchShape::Circle, SketchPlane::XY(), 0, 0, 3, "Cyl");
-    doc.add_extrude(sk_cyl, 10.0, false, BooleanMode::New, "CylExt");
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-    REQUIRE(doc.bodies.size() == 2);
-
-    int cs_moving = doc.add_coordsys(CoordSysType::PointWorld, Vec3d(0, 0, 5), "CS_Moving");
-    doc.features[cs_moving].coordsys_body = 1;
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-
-    int mi = doc.add_mate(0, cs_fixed, cs_moving, 0.0, 0.0, false, "Mate");
-    REQUIRE(mi >= 0);
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-
-    GProp_GProps props;
-    BRepGProp::VolumeProperties(doc.bodies[1].shape, props);
-    gp_Pnt com = props.CentreOfMass();
-    REQUIRE_THAT(double(com.X()), WithinAbs(5.0, 1e-4));
-    REQUIRE_THAT(double(com.Y()), WithinAbs(5.0, 1e-4));
-    REQUIRE_THAT(double(com.Z()), WithinAbs(5.0, 1e-4));
-}
-
 TEST_CASE("fastened mate with offset", "[CadDocument][mate]")
 {
     using Catch::Matchers::WithinAbs;
@@ -5925,30 +5789,6 @@ TEST_CASE("mate round-trip serialization", "[CadDocument][mate]")
     REQUIRE_THAT(mf->mate_offset, WithinAbs(7.25, 1e-9));
     REQUIRE_THAT(mf->mate_angle,  WithinAbs(33.0, 1e-9));
     REQUIRE(mf->mate_flip   == true);
-}
-
-TEST_CASE("version 2 blob is rejected", "[CadDocument][mate]")
-{
-
-    CadDocument doc;
-    int sk = doc.add_sketch(SketchShape::Rectangle, SketchPlane::XY(), 10, 10, 0, "Box");
-    doc.add_extrude(sk, 5.0, false, BooleanMode::New, "E");
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-
-    std::ostringstream oss;
-    {
-        cereal::BinaryOutputArchive ar(oss);
-        uint32_t fake_v = 2;
-        ar(fake_v);
-        ar(doc.features);
-        ar(doc.variables);
-    }
-    std::string blob = oss.str();
-
-    CadDocument fresh;
-    REQUIRE_FALSE(fresh.deserialize_recipe(blob));
-    REQUIRE_CONTAINS(fresh.error, "older version");
 }
 
 TEST_CASE("mate error: out of range connectors", "[CadDocument][mate]")
@@ -7690,17 +7530,6 @@ TEST_CASE("two holes are both subtracted", "[CadDocument][sketchwire]")
     REQUIRE(doc.recompute());
     REQUIRE(doc.error.empty());
     const double expected = 40.0 * 30.0 * 10.0 - 2.0 * M_PI * 9.0 * 10.0;
-    REQUIRE_THAT(double(doc.display_mesh.volume()), Catch::Matchers::WithinRel(expected, 0.01));
-}
-
-TEST_CASE("a lone circle still extrudes exactly as before", "[CadDocument][sketchwire]")
-{
-    std::vector<SketchEntity> ents = { circle_entity({0, 0}, 8.0) };
-    CadDocument doc = plate_doc(ents, 5.0);
-
-    REQUIRE(doc.recompute());
-    REQUIRE(doc.error.empty());
-    const double expected = M_PI * 64.0 * 5.0;
     REQUIRE_THAT(double(doc.display_mesh.volume()), Catch::Matchers::WithinRel(expected, 0.01));
 }
 

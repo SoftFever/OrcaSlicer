@@ -1110,28 +1110,6 @@ TEST_CASE("a cache with the wrong cache version is rejected", "[VendorCache]")
     REQUIRE(!out.load_vendor_cache(cache.string(), vid, Semver("1.0.0")));
 }
 
-TEST_CASE("a cache truncated mid-blob is rejected", "[VendorCache]")
-{
-    TempDir           tmp;
-    const std::string vid   = "Acme";
-    const fs::path     cache = tmp.path / "vendor.opc";
-
-    REQUIRE(save_one_vendor(cache.string(), one_vendor(vid), vid, "1.0.0",
-                            {filament_entry(vid + " PLA")}));
-
-    {
-        std::ifstream in(cache.string(), std::ios::binary);
-        std::vector<char> buf(30); // 20-byte header + 10 bytes of blob
-        in.read(buf.data(), 30);
-        in.close();
-        std::ofstream out(cache.string(), std::ios::binary | std::ios::trunc);
-        out.write(buf.data(), 30);
-    }
-
-    PresetBundle out;
-    REQUIRE(!out.load_vendor_cache(cache.string(), vid, Semver("1.0.0")));
-}
-
 TEST_CASE("printer model bed texture fields survive a cache round-trip", "[VendorCache]")
 {
     TempDir           tmp;

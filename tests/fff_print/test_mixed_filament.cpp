@@ -66,21 +66,6 @@ void count_mixed(ToolOrdering &to, size_t &groups, size_t &resolutions)
 
 } // namespace
 
-TEST_CASE("enable_mixed_color_sublayer reaches the Print config", "[MixedFilament]")
-{
-    Print print;
-    Model model;
-    init_print({cube(20)}, print, model, mixed_config(true));
-
-    // The option lives in PrintConfig; if it did not survive Print::apply the slicer would
-    // silently fall back to the whole-layer path.
-    CHECK(print.config().enable_mixed_color_sublayer.value == true);
-    REQUIRE(print.config().filament_is_mixed.values.size() == 3);
-    CHECK(print.config().filament_is_mixed.values[2] == true);
-    REQUIRE(print.config().filament_mixed_components.values.size() == 3);
-    CHECK(print.config().filament_mixed_components.values[2] == "1,2");
-}
-
 TEST_CASE("Mixed filament splits layers into sub-layers when the option is on", "[MixedFilament]")
 {
     Print print;

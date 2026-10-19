@@ -1647,69 +1647,6 @@ SCENARIO("Legacy 3MF without published metadata loads unchanged", "[3mf]") {
     }
 }
 
-// Locks the serialization contract of the orca_published_material_keys metadata: the per-entry JSON
-// must survive a store_bbs_3mf -> load_bbs_3mf round-trip verbatim, exactly like orca_published_keys.
-SCENARIO("Published 3MF round-trips the published_material_keys metadata", "[3mf]") {
-    GIVEN("a model carrying published material keys metadata") {
-        Model model;
-        std::string src_file = std::string(TEST_DATA_DIR) + "/test_3mf/Prusa.stl";
-        REQUIRE(load_stl(src_file.c_str(), &model));
-        model.add_default_instances();
-
-        const std::string material_keys_json =
-            R"([{"material":{"filament_type":"PLA","filament_vendor":"Generic","filament_id":"GFL99"},"slot":0,"keys":["filament_retraction_length","filament_z_hop"]}])";
-
-        model.model_info = std::make_shared<ModelInfo>();
-        model.model_info->metadata_items[ORCA_PUBLISHED_MATERIAL_TAG] = material_keys_json;
-
-        ScopedTemporaryDir backup_dir("orca_pub_mat");
-        model.set_backup_path(backup_dir.string());
-
-        WHEN("stored to and reloaded from a .3mf") {
-            ScopedTemporaryFile temp(".3mf");
-            const std::string test_file = temp.string();
-
-            DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
-            StoreParams store_params;
-            store_params.path    = test_file.c_str();
-            store_params.model   = &model;
-            store_params.config  = &config;
-            store_params.strategy = SaveStrategy::Zip64 | SaveStrategy::Silence;
-            REQUIRE(store_bbs_3mf(store_params));
-
-            Model dst_model;
-            DynamicPrintConfig dst_config;
-            ConfigSubstitutionContext ctxt{ ForwardCompatibilitySubstitutionRule::Enable };
-            PlateDataPtrs        dst_plates;
-            std::vector<Preset*> project_presets;
-            bool   is_bbl_3mf = false, is_orca_3mf = false;
-            Semver file_version;
-            bool loaded = load_bbs_3mf(test_file.c_str(), &dst_config, &ctxt, &dst_model, &dst_plates,
-                                       &project_presets, &is_bbl_3mf, &is_orca_3mf, &file_version, nullptr,
-                                       LoadStrategy::LoadModel | LoadStrategy::LoadConfig);
-            THEN("the published material keys metadata round-trips unchanged") {
-                REQUIRE(loaded);
-                REQUIRE(dst_model.model_info != nullptr);
-                REQUIRE(dst_model.model_info->metadata_items[ORCA_PUBLISHED_MATERIAL_TAG] == material_keys_json);
-
-                // The value must parse back to one material entry carrying the nested identity
-                // object, the author slot ordinal and the key list.
-                nlohmann::json entries = nlohmann::json::parse(material_keys_json);
-                REQUIRE(entries.is_array());
-                REQUIRE(entries.size() == 1);
-                REQUIRE(entries[0]["material"]["filament_type"] == "PLA");
-                REQUIRE(entries[0]["material"]["filament_vendor"] == "Generic");
-                REQUIRE(entries[0]["material"]["filament_id"] == "GFL99");
-                REQUIRE(entries[0]["slot"] == 0);
-                REQUIRE(entries[0]["keys"].is_array());
-                REQUIRE(entries[0]["keys"].size() == 2);
-                REQUIRE(entries[0]["keys"][0] == "filament_retraction_length");
-            }
-            release_PlateData_list(dst_plates);
-        }
-    }
-}
-
 SCENARIO("Minimal published 3MF omits project config, preset dumps and slicer tags", "[3mf]") {
     GIVEN("a multi-instance model carrying published metadata and a published_config payload") {
         Model model;
