@@ -24,6 +24,11 @@ class Print;
 
 namespace GUI {
 
+class Tab;
+
+// Resolves the same object/global settings owner for navigation and availability descriptions.
+Tab* get_tab_for_option(const std::string& opt_key, Preset::Type type);
+
 void disable_screensaver();
 void enable_screensaver();
 bool debugged();

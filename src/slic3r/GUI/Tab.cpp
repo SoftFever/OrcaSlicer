@@ -1825,6 +1825,18 @@ Field* Tab::get_field(const t_config_option_key& opt_key, Page** selected_page, 
     return field;
 }
 
+Tab* get_tab_for_option(const std::string& opt_key, Preset::Type type)
+{
+    if (type == Preset::TYPE_PRINT) {
+        if (auto panel = wxGetApp().params_panel()) {
+            auto model_tab = dynamic_cast<TabPrintModel*>(panel->get_current_tab());
+            if (model_tab && model_tab->has_key(opt_key))
+                return model_tab;
+        }
+    }
+    return wxGetApp().get_tab(type);
+}
+
 static void update_option_tooltip(Field* field, const wxString& availability)
 {
     if (!field || !field->getWindow())
@@ -2540,6 +2552,15 @@ void Tab::update_wiping_button_visibility() {
 
 void Tab::activate_option(const std::string& opt_key, const wxString& category)
 {
+    const std::string key = opt_key.substr(0, opt_key.find('#'));
+    if (m_option_state_registry.hidden_reason(key)) {
+        const wxString description = m_option_state_registry.description(key);
+        wxGetApp().CallAfter([description] {
+            if (!wxGetApp().is_closing())
+                show_info(wxGetApp().mainframe, description, _L("Setting unavailable"));
+        });
+        return;
+    }
     wxString page_title = translate_category(category, m_type);
 
     auto cur_item = m_tabctrl->GetFirstVisibleItem();

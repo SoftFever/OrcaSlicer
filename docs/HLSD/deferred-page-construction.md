@@ -110,6 +110,15 @@ restriction text to their document and refresh when that text changes, even when
 the document identifier stays the same. Callers without a reason receive a generic
 current-configuration explanation.
 
+Settings search resolves the same owning Tab as option navigation: a matching model
+Tab in object mode, otherwise the global preset Tab. Results show the first line of
+the registry description beneath the option name, with the complete description in
+the tooltip. Availability text is not part of fuzzy name matching. The Speed Dial
+keeps settings with a recorded hidden reason in its catalog and prepends their
+restrictions to its detail strip. Selecting a recorded hidden setting displays its
+explanation instead of trying to focus an invisible input. Settings hidden only by
+an unrecorded row restriction retain the Speed Dial's existing filtering.
+
 ### The 3D view's GL resources
 
 OpenGL is loaded on the Prepare tab's canvas. When the start page is not Prepare, loading
