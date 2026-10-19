@@ -439,6 +439,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/OpenGLManager.hpp
     GUI/OptionsGroup.cpp
     GUI/OptionsGroup.hpp
+    GUI/OptionStateRegistry.hpp
     GUI/ParamsDialog.cpp
     GUI/ParamsDialog.hpp
     GUI/ParamsPanel.cpp

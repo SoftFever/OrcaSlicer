@@ -63,22 +63,22 @@ t_config_option_keys const &ConfigManipulation::applying_keys() const
     return m_applying_keys;
 }
 
-void ConfigManipulation::toggle_field(const std::string &opt_key, const bool toggle, int opt_index /* = -1*/)
+void ConfigManipulation::toggle_field(const std::string &opt_key, const bool toggle, int opt_index, const wxString& reason)
 {
     if (local_config) {
         if (local_config->option(opt_key) == nullptr) return;
     }
-    cb_toggle_field(opt_key, toggle, opt_index);
+    cb_toggle_field(opt_key, toggle, opt_index, reason);
 }
 
-void ConfigManipulation::toggle_line(const std::string& opt_key, const bool toggle, int opt_index)
+void ConfigManipulation::toggle_line(const std::string& opt_key, const bool toggle, int opt_index, const wxString& reason)
 {
     if (local_config) {
         if (local_config->option(opt_key) == nullptr)
             return;
     }
     if (cb_toggle_line)
-        cb_toggle_line(opt_key, toggle, opt_index);
+        cb_toggle_line(opt_key, toggle, opt_index, reason);
 }
 
 void ConfigManipulation::set_option_label(const std::string& opt_key, const wxString& label, int opt_index)
@@ -826,18 +826,18 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : { "sparse_infill_pattern", "infill_combination", "fill_multiline","infill_direction",
                      "infill_complete_top",
         "minimum_sparse_infill_area", "sparse_infill_filament_id","infill_shift_step","sparse_infill_rotate_template","symmetric_infill_y_axis"})
-        toggle_line(el, have_infill);
+        toggle_line(el, have_infill, -1, _L("This setting is hidden because sparse infill density is zero."));
 
     InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
 
     // Orca: the concentric patterns follow the surface outline instead of crossing it, so there is
     // nothing for an infill anchor to attach to. Hide the anchor settings for them.
     bool have_infill_anchor = have_infill && pattern != ipConcentric && pattern != ipSpiralInset;
-    toggle_line("infill_anchor", have_infill_anchor);
-    toggle_line("infill_anchor_max", have_infill_anchor);
+    toggle_line("infill_anchor", have_infill_anchor, -1, _L("Infill anchors require nonzero sparse infill density and a pattern other than Concentric or Spiral Inset."));
+    toggle_line("infill_anchor_max", have_infill_anchor, -1, _L("Infill anchors require nonzero sparse infill density and a pattern other than Concentric or Spiral Inset."));
 
     bool have_combined_infill = config->opt_bool("infill_combination") && have_infill;
-    toggle_line("infill_combination_max_layer_height", have_combined_infill);
+    toggle_line("infill_combination_max_layer_height", have_combined_infill, -1, _L("Enable infill combination and use nonzero sparse infill density to show this setting."));
 
     // Infill patterns that support multiline infill.
     bool          have_multiline_infill_pattern = pattern == ipGyroid || pattern == ipGrid || pattern == ipRectilinear || pattern == ipTpmsD || pattern == ipTpmsFK || pattern == ipCrossHatch || pattern == ipHoneycomb || pattern == ipLateralLattice || pattern == ipLateralHoneycomb || pattern == ipConcentric ||
@@ -1231,7 +1231,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : {"wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle", "min_feature_size", "min_length_factor",
         "min_bead_width", "wall_distribution_count", "initial_layer_min_bead_width", "wall_maximum_resolution", "wall_maximum_deviation"})
         toggle_line(el, have_arachne);
-    toggle_field("detect_thin_wall", !have_arachne);
+    toggle_field("detect_thin_wall", !have_arachne, -1, _L("Thin wall detection is unavailable with the Arachne wall generator."));
 
     // Orca
     auto is_role_based_wipe_speed = config->opt_bool("role_based_wipe_speed");

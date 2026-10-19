@@ -1825,8 +1825,9 @@ Field* Tab::get_field(const t_config_option_key& opt_key, Page** selected_page, 
     return field;
 }
 
-void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index/* = -1*/)
+void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index, const wxString& reason)
 {
+    m_option_state_registry.set_enabled(opt_key, toggle, reason);
     if (!m_active_page)
         return;
     Field* field = m_active_page->get_field(opt_key, opt_index);
@@ -1834,8 +1835,9 @@ void Tab::toggle_option(const std::string& opt_key, bool toggle, int opt_index/*
         field->toggle(toggle);
 }
 
-void Tab::toggle_line(const std::string &opt_key, bool toggle, int opt_index)
+void Tab::toggle_line(const std::string &opt_key, bool toggle, int opt_index, const wxString& reason)
 {
+    m_option_state_registry.set_visible(opt_key, toggle, reason);
     // Apply to every page that owns the option, not just m_active_page. ConfigManipulation runs while
     // each tab updates at preset load, so the Speed Dial sees the same visibility regardless of page.
     for (const PageShp& page : m_pages) {
@@ -7036,6 +7038,7 @@ void Tab::reactive_preset_combo_box()
 // Initialize the UI from the current preset
 void Tab::load_current_preset()
 {
+    m_option_state_registry.clear();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": enter, m_type %1%")%Preset::get_type_string(m_type);
     const Preset& preset = m_presets->get_edited_preset();
     std::vector<std::string> prev_variant_list;
@@ -9859,12 +9862,12 @@ ConfigManipulation Tab::get_config_manipulation()
         update();
     };
 
-    auto cb_toggle_field = [this](const t_config_option_key& opt_key, bool toggle, int opt_index) {
-        return toggle_option(opt_key, toggle, opt_index >= 0 ? opt_index + 256 : opt_index);
+    auto cb_toggle_field = [this](const t_config_option_key& opt_key, bool toggle, int opt_index, const wxString& reason) {
+        return toggle_option(opt_key, toggle, opt_index >= 0 ? opt_index + 256 : opt_index, reason);
     };
 
-    auto cb_toggle_line = [this](const t_config_option_key &opt_key, bool toggle, int opt_index) {
-        return toggle_line(opt_key, toggle, opt_index >= 0 ? opt_index + 256 : opt_index);
+    auto cb_toggle_line = [this](const t_config_option_key &opt_key, bool toggle, int opt_index, const wxString& reason) {
+        return toggle_line(opt_key, toggle, opt_index >= 0 ? opt_index + 256 : opt_index, reason);
     };
 
     auto cb_set_option_label = [this](const t_config_option_key &opt_key, const wxString &label, int opt_index) {

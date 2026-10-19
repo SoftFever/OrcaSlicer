@@ -87,6 +87,21 @@ tasks, such as a tab, a dialog, the Prepare tab's settings page one option group
 time, the Prepare page's layout at the size the book gives its pages, or the 3D view's GL
 resources.
 
+### Settings option restrictions
+
+Each settings `Tab` owns an `OptionStateRegistry` independent of its page controls.
+`toggle_line` records a hidden reason and `toggle_option` records a disabled reason
+before looking for controls. Each restriction is stored only while its toggle is false;
+setting it true removes that restriction without affecting the other one. Repeated calls
+replace the previous reason, including an empty reason from a caller without explanatory
+text. Loading a preset clears the previous preset's records.
+
+Keys are the exact strings supplied to the public toggles. The registry does not expand
+an option to its row siblings or distinguish indices passed separately from the key.
+It records executed public calls, so direct field operations and rules that have not run
+are outside its coverage. Keeping it with the Tab lets reasons survive page control
+recycling without retaining a Field or window pointer.
+
 ### The 3D view's GL resources
 
 OpenGL is loaded on the Prepare tab's canvas. When the start page is not Prepare, loading
